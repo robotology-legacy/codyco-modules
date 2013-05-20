@@ -18,4 +18,4 @@ void pinvDampTrunc(const Matrix &A, Matrix &Apinv, Matrix &ApinvDamp, Vector &sv
                     Matrix &U, Matrix &V, Matrix &Spinv, Matrix &SpinvD);
 
 
-#endif UTIL_H
+#endif //UTIL_H

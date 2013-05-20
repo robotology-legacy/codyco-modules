@@ -22,6 +22,7 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 include(iCubHelpers)
 include(iCubOptions)
 
+SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
 INCLUDE_DIRECTORIES(${iDyn_INCLUDE_DIRS}
                     ${ICUB_INCLUDE_DIRS}
