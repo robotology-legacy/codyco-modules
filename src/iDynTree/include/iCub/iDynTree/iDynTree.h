@@ -23,8 +23,17 @@ namespace iDynTree
  */
 class iDynTree: public iDynTreeInterface {
     private:
-        KDL::Tree kinematic_tree;
-        std::vector<KDL::Tree> dynamics_trees;
+        KDL::Tree tree;
+        
+        std::
+        
+        std::vector<Frame> X;
+        std::vector<Twist> S;
+		std::vector<Twist> v;
+		std::vector<Twist> a;
+		std::vector<Wrench> f;
+        
+        JntArray torques;
         
     public:
         /**
@@ -33,9 +42,10 @@ class iDynTree: public iDynTreeInterface {
          * @param _tree the KDL::Tree that must be used
          * @param joint_sensor_names the names of the joint that should 
          *        be considered as FT sensors
+         * @param imu_link_name name of the link considered the IMU sensor
          *
          */
-        iDynTree(KDL::Tree _tree, const std::vector<std::string> & joint_sensor_names);
+        iDynTree(const KDL::Tree & _tree, const std::vector<std::string> & joint_sensor_names, const std::string & imu_link_name);
     
 }
 
