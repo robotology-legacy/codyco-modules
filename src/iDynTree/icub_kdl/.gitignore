@@ -1,0 +1,7 @@
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+install_manifest.txt
+icub_model/build/*
+test_idyn_kdl/build/*
