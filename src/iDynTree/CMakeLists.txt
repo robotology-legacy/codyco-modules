@@ -8,7 +8,8 @@ PROJECT(${PROJECTNAME})
 
 SET(folder_source )
 
-SET(folder_header include/iCub/iDynTree/iDynTree.h)
+SET(folder_header include/iCub/iDynTree/iDynTree.h
+                  include/iCub/iDynTree/iDynTreeInterface.h)
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
