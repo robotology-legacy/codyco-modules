@@ -1,0 +1,38 @@
+/**
+*
+* \defgroup codyco_modules_all Software
+*
+* A container for all software in $CODYCO_ROOT/src. For clarity 
+* this is further divided in groups.
+*
+*
+* (This page can be edited at $CODYCO_ROOT/src/doc/groups.dox)
+*
+*/
+
+/**
+* \defgroup codyco_module CoDyCo modules
+* @ingroup codyco_modules_all
+*
+*
+* This is the list of CoDyCo modules in the repository.
+* To add your own module to this list,
+* just add a comment like the following anywhere in your source
+* code (replacing "your_module_name" with the name of your module):
+\verbatim
+  /**
+   *
+   * \defgroup codyco_your_module_name your_module_name
+   * @ingroup codyco_module
+   *
+   */
+\endverbatim
+*
+* For convenience, try to keep the module name the same
+* as the directory it is placed in.  If you've a good reason
+* to do something different, of course you can do that too.
+*
+* (This page can be edited at $CODYCO_ROOT/doc/groups.dox)
+*
+*/
+

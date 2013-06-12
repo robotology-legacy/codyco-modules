@@ -1,0 +1,36 @@
+/**
+@mainpage notitle
+
+\image html codyco_logo.gif ""
+
+\section codyco_software_documentation The CoDyCo Software Repository
+
+This is the documentation extracted from
+the software repository of the CoDyCo project.  
+Its intended audience is developers within the consortium.  
+
+Topics:
+
+ - \ref codyco_module - a list of documented modules
+
+ - Reference material:
+  - The <a href="http://www.codyco.org//">Xperience project website</a>.
+  - \ref copyright_and_license - how to declare authorship and copyright
+  - \ref module_documentation - a template for documenting modules
+
+This documentation is developed by scanning all source code 
+in the src directory of the repository. You can produce this documentation on 
+your computer by running:
+
+\verbatim
+  doxygen doc/Doxyfile.in
+\endverbatim
+
+locally on your repository, to figure out what's going on.
+The output can be browsed at doc/html/index.html.
+
+This page can be edited at doc/main.dox.
+
+*
+*/
+
