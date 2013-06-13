@@ -1,57 +1,41 @@
 <application>
-  <name>comStepperSim</name>
-  <dependencies>
-    <port>/icubSim/inertial</port>
-  </dependencies>
-  <module>
-    <name>comStepper</name>
-    <parameters>--from defaultSim.ini</parameters>
-    <node>node1</node>
-	<stdio>node1</stdio>
-    <tag>ComStepper</tag>
-  </module>
-  <module>
-    <name>wholeBodyDynamics</name>
-    <parameters>--robot icubSim --dummy_ft --experimental_com_vel --autoconnect</parameters>
-    <node>node1</node>
-    <tag>wholeBoDyDynamicsSim</tag>
-  </module>
-	<module>
-		<name>yarpscope</name>
-		<parameters>--graph_size "(1 2 3)" --min -0.2 --max 0.2 --local /yarpscope/comStepper/r2l_error:i --remote /comStepper/r2l_error:o --index "(1 2 3)" --carrier udp </parameters>
-		<node>console</node>
-		<tag>yarpscopeR2LErr</tag>
-	</module>
-	<module>
-		<name>yarpscope</name>
-		<parameters>--graph_size "(2 3)" --min -0.2 --max 0.2 --local /yarpscope/comStepper/com_error:i --remote /comStepper/com_error:o --index "(1 2)" --carrier udp</parameters>
-		<node>console</node>
-		<tag>yarpscopeComErr</tag>
-	</module>
-
-  <connection>
-    <from>/icubSim/inertial</from>
-    <to>/wholeBodyDynamics/inertial:i</to>
-    <protocol>udp</protocol>
-  </connection>
-  <connection>
-    <from>/wholeBodyDynamics/com:o</from>
-    <to>/comStepper/com:i</to>
-    <protocol>udp</protocol>
-  </connection>
-  <connection>
-    <from>/wholeBodyDynamics/com_jacobian:o</from>
-    <to>/comStepper/com_jacobian:i</to>
-    <protocol>udp</protocol>
-  </connection>
-  <connection>
-    <from>/yarpscope/comStepper/r2l_error:i</from>
-    <to>/comStepper/r2l_error:o</to>
-    <protocol>udp</protocol>
-  </connection>
-  <connection>
-    <from>/yarpscope/comStepper/com_error:i</from>
-    <to>/comStepper/com_error:o</to>
-    <protocol>udp</protocol>
-  </connection>
+    <name>comStepperSim</name>
+    <dependencies>
+        <port>/icubSim/inertial</port>
+    </dependencies>
+    <module>
+        <name>comStepper</name>
+        <parameters>--from defaultSim.ini</parameters>
+        <node>node1</node>
+        <stdio>node1</stdio>
+        <tag>ComStepper</tag>
+    </module>
+    <module>
+        <name>wholeBodyDynamics</name>
+        <parameters>--robot icubSim --dummy_ft --experimental_com_vel --autoconnect</parameters>
+        <node>node1</node>
+        <tag>wholeBoDyDynamicsSim</tag>
+    </module>
+    <module>
+        <name>yarpscope</name>
+        <parameters>--from portscope_comStepper.xml</parameters>
+        <node>console</node>
+        <tag>yarpscopeErr</tag>
+    </module>
+    
+    <connection>
+        <from>/icubSim/inertial</from>
+        <to>/wholeBodyDynamics/inertial:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/wholeBodyDynamics/com:o</from>
+        <to>/comStepper/com:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/wholeBodyDynamics/com_jacobian:o</from>
+        <to>/comStepper/com_jacobian:i</to>
+        <protocol>udp</protocol>
+    </connection>
 </application>
