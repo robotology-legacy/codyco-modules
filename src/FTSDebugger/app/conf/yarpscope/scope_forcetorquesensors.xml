@@ -16,7 +16,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="FTS right leg - forces"
           minval="-200"
           maxval="200"
-          bgcolor="#99FF99">
+          bgcolor="#ccFFcc">
         <graph remote="/icub/right_leg/analog:o"
                index="0"
                color="Red"
@@ -44,7 +44,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="FTS right leg - moments"
           minval="-15"
           maxval="15"
-          bgcolor="#66FF66">
+          bgcolor="#ddFFdd">
         <graph remote="/icub/right_leg/analog:o"
                index="3"
                color="Red"
@@ -71,7 +71,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="FTS Left Leg - forces"
           minval="-200"
           maxval="200"
-          bgcolor="#FFCCCC">
+          bgcolor="#FFcccc">
         <graph remote="/icub/left_leg/analog:o"
                index="0"
                color="Red"
@@ -93,7 +93,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="FTS Left Leg - moments"
           minval="-15"
           maxval="15"
-          bgcolor="#FF6666">
+          bgcolor="#FFdddd">
         <graph remote="/icub/left_leg/analog:o"
                index="3"
                color="Red"
@@ -121,7 +121,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="FTS right foot - forces"
           minval="-200"
           maxval="200"
-          bgcolor="#99FF99">
+          bgcolor="#ccFFcc">
         <graph remote="/icub/right_foot/analog:o"
                index="0"
                color="Red"
@@ -149,7 +149,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="FTS right foot - moments"
           minval="-15"
           maxval="15"
-          bgcolor="#66FF66">
+          bgcolor="#ddFFdd">
         <graph remote="/icub/right_foot/analog:o"
                index="3"
                color="Red"
@@ -176,7 +176,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="FTS left foot - forces"
           minval="-200"
           maxval="200"
-          bgcolor="#FFCCCC">
+          bgcolor="#FFcccc">
         <graph remote="/icub/left_foot/analog:o"
                index="0"
                color="Red"
@@ -198,7 +198,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="FTS left foot - moments"
           minval="-15"
           maxval="15"
-          bgcolor="#FF6666">
+          bgcolor="#FFdddd">
         <graph remote="/icub/left_foot/analog:o"
                index="3"
                color="Red"

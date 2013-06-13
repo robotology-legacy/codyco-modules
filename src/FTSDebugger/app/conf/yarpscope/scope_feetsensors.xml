@@ -18,7 +18,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="RIGHT FOOT - iDyn - Forces"
           minval="-200"
           maxval="200"
-          bgcolor="#99FF99">
+          bgcolor="#ccFFcc">
         <graph remote="/wholeBodyDynamics/right_foot/endEffectorWrench:o"
                index="0"
                color="Red"
@@ -46,7 +46,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="RIGHT FOOT - iDyn - Moments"
           minval="-15"
           maxval="15"
-          bgcolor="#66ff66">
+          bgcolor="#ddffdd">
         <graph remote="/wholeBodyDynamics/right_foot/endEffectorWrench:o"
                index="3"
                color="Red"
@@ -78,7 +78,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           size="60"
           minval="-200"
           maxval="200"
-          bgcolor="#99FF99">
+          bgcolor="#ccFFcc">
         <graph remote="/icub/right_foot/analog:o"
                index="0"
                color="Red"
@@ -106,7 +106,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="RIGHT FOOT - FTS - moments"
           minval="-15"
           maxval="15"
-          bgcolor="#66FF66">
+          bgcolor="#ddFFdd">
         <graph remote="/icub/right_foot/analog:o"
                index="3"
                color="Red"
@@ -137,7 +137,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           size="60"
           minval="-100"
           maxval="100"
-          bgcolor="White">
+          bgcolor="#ccFFcc">
         <graph remote="/FTSDebugger/right_foot/error:o"
                index="0"
                color="Red"
@@ -165,7 +165,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="RIGHT FOOT - moment error"
           minval="-10"
           maxval="10"
-          bgcolor="LightGrey">
+          bgcolor="#ddFFdd">
         <graph remote="/FTSDebugger/right_foot/error:o"
                index="3"
                color="Red"
@@ -196,7 +196,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="LEFT FOOT - iDyn - Forces"
           minval="-200"
           maxval="200"
-          bgcolor="#FFCCCC">
+          bgcolor="#FFcccc">
         <graph remote="/wholeBodyDynamics/left_foot/endEffectorWrench:o"
                index="0"
                color="Red"
@@ -224,7 +224,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="LEFT FOOT - iDyn - Moments"
           minval="-15"
           maxval="15"
-          bgcolor="#FF6666">
+          bgcolor="#FFdddd">
         <graph remote="/wholeBodyDynamics/left_foot/endEffectorWrench:o"
                index="3"
                color="Red"
@@ -256,7 +256,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="LEFT FOOT - FTS - forces"
           minval="-200"
           maxval="200"
-          bgcolor="#FFCCCC">
+          bgcolor="#FFcccc">
         <graph remote="/icub/left_foot/analog:o"
                index="0"
                color="Red"
@@ -284,7 +284,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="LEFT FOOT - FTS - moments"
           minval="-15"
           maxval="15"
-          bgcolor="#FF6666">
+          bgcolor="#FFdddd">
         <graph remote="/icub/left_foot/analog:o"
                index="3"
                color="Red"
@@ -318,7 +318,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           size="60"
           minval="-100"
           maxval="100"
-          bgcolor="White">
+          bgcolor="#FFcccc">
         <graph remote="/FTSDebugger/left_foot/error:o"
                index="0"
                color="Red"
@@ -346,7 +346,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="LEFT FOOT - moment error"
           minval="-10"
           maxval="10"
-          bgcolor="LightGrey">
+          bgcolor="#FFdddd">
         <graph remote="/FTSDebugger/left_foot/error:o"
                index="3"
                color="Red"
