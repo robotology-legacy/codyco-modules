@@ -26,7 +26,7 @@ DOXYFILE_ENCODING      = UTF-8
 # identify the project. Note that if you do not use Doxywizard you need
 # to put quotes around the project name if it contains spaces.
 
-PROJECT_NAME           = "My Project"
+PROJECT_NAME           = "CoDyCo"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number.
 # This could be handy for archiving the generated documentation or
@@ -38,14 +38,14 @@ PROJECT_NUMBER         =
 # for a project that appears at the top of each page and should give viewer
 # a quick idea about the purpose of the project. Keep the description short.
 
-PROJECT_BRIEF          =
+PROJECT_BRIEF          = "Whole-body Compliant Dynamical Contacts in Cognitive Humanoids"
 
 # With the PROJECT_LOGO tag one can specify an logo or icon that is
 # included in the documentation. The maximum height of the logo should not
 # exceed 55 pixels and the maximum width should not exceed 200 pixels.
 # Doxygen will copy the logo to the output directory.
 
-PROJECT_LOGO           =
+PROJECT_LOGO           = ${CMAKE_SOURCE_DIR}/doc/codyco_logo_small.png
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute)
 # base path where the generated documentation will be put.
@@ -656,17 +656,7 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = ${DOX_EXTRA_DIR} \
-                         ${CMAKE_SOURCE_DIR}/src/libYARP_OS/include/yarp/os \
-                         ${CMAKE_SOURCE_DIR}/src/libYARP_sig/include/yarp/sig \
-                         ${CMAKE_SOURCE_DIR}/src/libYARP_dev/include/yarp/dev \
-                         ${CMAKE_SOURCE_DIR}/src/libYARP_math/include/yarp/math \
-                         ${CMAKE_SOURCE_DIR}/src/libYARP_name/include/yarp/name \
-                         ${CMAKE_SOURCE_DIR}/src/libYARP_dev/src \
-                         ${CMAKE_SOURCE_DIR}/src/libyarpc \
-                         ${CMAKE_SOURCE_DIR}/src/libyarpcxx \
-                         ${CMAKE_SOURCE_DIR}/src/modules \
-                         ${CMAKE_SOURCE_DIR}/src/carriers \
-                         ${CMAKE_SOURCE_DIR}/doc/spec \
+                         ${CMAKE_SOURCE_DIR}/src/ \
                          ${CMAKE_SOURCE_DIR}/src/doc
 
 # This tag can be used to specify the character encoding of the source files
