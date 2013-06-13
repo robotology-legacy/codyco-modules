@@ -13,31 +13,31 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 
 
-FILE(GLOB folder_source ./src/*.cpp )
-FILE(GLOB folder_header ./src/*.h )
+# FILE(GLOB folder_source ./src/*.cpp )
+# FILE(GLOB folder_header ./src/*.h )
 
-SOURCE_GROUP("Source Files" FILES ${folder_source})
-SOURCE_GROUP("Header Files" FILES ${folder_header})
+# SOURCE_GROUP("Source Files" FILES ${folder_source})
+# SOURCE_GROUP("Header Files" FILES ${folder_header})
 
 include(iCubHelpers)
 include(iCubOptions)
 
-SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
+# SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
-INCLUDE_DIRECTORIES(${iDyn_INCLUDE_DIRS}
-                    ${ICUB_INCLUDE_DIRS}
-                    ${YARP_INCLUDE_DIRS})
+# INCLUDE_DIRECTORIES(${iDyn_INCLUDE_DIRS}
+#                     ${ICUB_INCLUDE_DIRS}
+#                     ${YARP_INCLUDE_DIRS})
 
-ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
+# ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} iDyn
-                                     ${YARP_LIBRARIES})
+# TARGET_LINK_LIBRARIES(${PROJECTNAME} iDyn
+#                                      ${YARP_LIBRARIES})
 
 # INSTALL(TARGETS ${PROJECTNAME} DESTINATION $ENV{ICUB_DIR}/bin)
-if(WIN32)
-	INSTALL(TARGETS ${PROJECTNAME} DESTINATION $ENV{ICUB_DIR}/bin/Release)	
-else(WIN32)
-	INSTALL(TARGETS ${PROJECTNAME} DESTINATION $ENV{ICUB_DIR}/bin)
-endif(WIN32)
+# if(WIN32)
+# 	INSTALL(TARGETS ${PROJECTNAME} DESTINATION $ENV{ICUB_DIR}/bin/Release)	
+# else(WIN32)
+# 	INSTALL(TARGETS ${PROJECTNAME} DESTINATION $ENV{ICUB_DIR}/bin)
+# endif(WIN32)
 
 add_subdirectory(app)
