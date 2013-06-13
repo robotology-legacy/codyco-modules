@@ -1,0 +1,222 @@
+<!-- 
+Scope for force/torque sensors in the legs of iCub 
+Author: Serena Ivaldi 
+
+This xml file must be used with yarpscope: it plots by columns the forces and moments of the 6 axis F/T sensors of the iCub legs, i.e. the ones in the middle of the legs and the ones at the feet. -->
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<portscope rows="2" columns="4" carrier="mcast">
+
+<!-- RIGHT LEG -->
+
+    <plot gridx="0"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="Plot 00 - Forces FTS right leg"
+          size="60"
+          minval="-100"
+          maxval="100"
+          bgcolor="LightSlateGrey">
+        <graph remote="/icub/right_leg/analog:o"
+               index="0"
+               color="Red"
+               title="F1"
+               type="lines"
+               size="2" />
+        <graph remote="/icub/right_leg/analog:o"
+               index="1"
+               color="Green"
+               title="F2"
+               size="2"
+               type="lines" />
+        <graph remote="/icub/right_leg/analog:o"
+               index="2"
+               color="Blue"
+               title="F3"
+               size="2"
+               type="lines" />
+    </plot>
+    
+    <plot gridx="0"
+          gridy="1"
+          hspan="1"
+          vspan="1"
+          title="Plot 01 - Moments FTS right leg"
+          minval="-100"
+          maxval="100"
+          bgcolor="LightGrey">
+        <graph remote="/icub/right_leg/analog:o"
+               index="3"
+               color="Red"
+               title="M1"
+               type="bars" />
+        <graph remote="/icub/right_leg/analog:o"
+               index="4"
+               color="Green"
+               title="M2"
+               type="lines" />
+        <graph remote="/icub/right_leg/analog:o"
+               index="5"
+               color="Blue"
+               title="M3"
+               type="points" />
+    </plot>
+    
+  <!-- LEFT LEG -->  
+    
+    <plot gridx="1"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="Plot 10 - Forces FTS Left Leg"
+          minval="-100"
+          maxval="100"
+          bgcolor="Yellow">
+        <graph remote="/icub/left_leg/analog:o"
+               index="0"
+               color="Red"
+               title="F1" />
+        <graph remote="/icub/left_leg/analog:o"
+               index="1"
+               color="Green"
+               title="F2" />
+        <graph remote="/icub/left_leg/analog:o"
+               index="2"
+               color="Blue"
+               title="F3" />
+    </plot>
+    
+    <plot gridx="1"
+          gridy="1"
+          hspan="1"
+          vspan="1"
+          title="Plot 11 - Moments FTS Left Leg"
+          minval="-100"
+          maxval="100"
+          bgcolor="Pink">
+        <graph remote="/icub/left_leg/analog:o"
+               index="3"
+               color="Red"
+               title="M1"
+               type="bars" />
+        <graph remote="/icub/left_leg/analog:o"
+               index="4"
+               color="Green"
+               title="M2"
+               type="lines" />
+        <graph remote="/icub/left_leg/analog:o"
+               index="5"
+               color="Blue"
+               title="M3"
+               type="points" />
+    </plot>
+    
+    
+    <!-- RIGHT FOOT -->
+
+    <plot gridx="2"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="Forces FTS right foot"
+          size="60"
+          minval="-100"
+          maxval="100"
+          bgcolor="White">
+        <graph remote="/icub/right_foot/analog:o"
+               index="0"
+               color="Red"
+               title="F1"
+               type="lines"
+               size="2" />
+        <graph remote="/icub/right_foot/analog:o"
+               index="1"
+               color="Green"
+               title="F2"
+               size="2"
+               type="lines" />
+        <graph remote="/icub/right_foot/analog:o"
+               index="2"
+               color="Blue"
+               title="F3"
+               size="2"
+               type="lines" />
+    </plot>
+    
+    <plot gridx="2"
+          gridy="1"
+          hspan="1"
+          vspan="2"
+          title="Moments FTS right foot"
+          minval="-100"
+          maxval="100"
+          bgcolor="LightGrey">
+        <graph remote="/icub/right_foot/analog:o"
+               index="3"
+               color="Red"
+               title="M1"
+               type="bars" />
+        <graph remote="/icub/right_foot/analog:o"
+               index="4"
+               color="Green"
+               title="M2"
+               type="lines" />
+        <graph remote="/icub/right_foot/analog:o"
+               index="5"
+               color="Blue"
+               title="M3"
+               type="points" />
+    </plot>
+    
+  <!-- LEFT FOOT -->  
+    
+    <plot gridx="3"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="Forces FTS left foot"
+          minval="-100"
+          maxval="100"
+          bgcolor="Yellow">
+        <graph remote="/icub/left_foot/analog:o"
+               index="0"
+               color="Red"
+               title="F1" />
+        <graph remote="/icub/left_foot/analog:o"
+               index="1"
+               color="Green"
+               title="F2" />
+        <graph remote="/icub/left_foot/analog:o"
+               index="2"
+               color="Blue"
+               title="F3" />
+    </plot>
+    
+    <plot gridx="3"
+          gridy="1"
+          hspan="1"
+          vspan="1"
+          title="Moments FTS left foot"
+          minval="-100"
+          maxval="100"
+          bgcolor="Pink">
+        <graph remote="/icub/left_foot/analog:o"
+               index="3"
+               color="Red"
+               title="M1"
+               type="bars" />
+        <graph remote="/icub/left_foot/analog:o"
+               index="4"
+               color="Green"
+               title="M2"
+               type="lines" />
+        <graph remote="/icub/left_foot/analog:o"
+               index="5"
+               color="Blue"
+               title="M3"
+               type="points" />
+    </plot>
+    
+    
+</portscope>
