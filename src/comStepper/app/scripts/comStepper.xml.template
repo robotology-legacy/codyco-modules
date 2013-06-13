@@ -18,7 +18,7 @@
     </module>
     <module>
         <name>yarpscope</name>
-        <parameters>--from portscope_comStepper.xml</parameters>
+        <parameters>--xml comStepper/yarpscope_comStepperErrors.xml</parameters>
         <node>console</node>
         <tag>yarpscopeErr</tag>
     </module>
