@@ -63,16 +63,6 @@
 #ifndef __IDYNTREEINTERFACE_H__
 #define __IDYNTREEINTERFACE_H__
 
-/*! \mainpage iDynTree
- *
- * \section intro_sec Introduction
- * General implementation for a Tree of the concept behind iDyn library.
- * 
- * More details in the documentation of \ref iDynTree module.
- * 
- */
-
-
 namespace iCub
 {
 
