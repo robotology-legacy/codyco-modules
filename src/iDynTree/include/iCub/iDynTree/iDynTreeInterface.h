@@ -104,7 +104,7 @@ public:
      * @param part_name optional: the name of the part of joint to set
      * @return the effective joint positions, considering min/max values
      */
-    virtual yarp::sig::Vector setAng(const yarp::sig::Vector & _q, const std::string & part_name="")=0;
+    virtual yarp::sig::Vector setAng(const yarp::sig::Vector & _q, const std::string & part_name="") = 0;
     
     /**
      * Get joint positions in the specified part (if no part 
@@ -112,7 +112,7 @@ public:
      * @param part_name optional: the name of the part of joints to set
      * @return vector of joint positions
      */
-    virtual yarp::sig::Vector getAng(const std::string & part_name="")=0;
+    virtual yarp::sig::Vector getAng(const std::string & part_name="") const =0;
     
     /**
      * Set joint speeds in the specified part (if no part 
@@ -129,7 +129,7 @@ public:
      * @param part_name optional: the name of the part of joints to get
      * @return vector of joint speeds
      */
-    virtual yarp::sig::Vector getDAng(const std::string & part_name="")=0;
+    virtual yarp::sig::Vector getDAng(const std::string & part_name="") const = 0;
     
     /**
      * Set joint accelerations in the specified part (if no part 
@@ -146,7 +146,7 @@ public:
      * @param part_name optional: the name of the part of joints to get
      * @return vector of joint accelerations
      */
-    virtual yarp::sig::Vector getD2Ang(const std::string & part_name="")=0;
+    virtual yarp::sig::Vector getD2Ang(const std::string & part_name="") const =0;
     
     /**
      * Set the inertial sensor measurements 
@@ -164,27 +164,34 @@ public:
      * @param ddp0 a 3x1 vector with the initial/measured 3D proper (with gravity) linear acceleration
      * @return true if succeeds (correct vectors size), false otherwise
      */
-    virtual bool getInertialMeasure(yarp::sig::Vector &w0, yarp::sig::Vector &dw0, yarp::sig::Vector &ddp0)=0;
+    virtual bool getInertialMeasure(yarp::sig::Vector &w0, yarp::sig::Vector &dw0, yarp::sig::Vector &ddp0) const =0;
    
     /**
      * Set the FT sensor measurements on the specified sensor 
      * @param sensor_index the code of the specified sensor
      * @param ftm a 6x1 vector with forces and moments measured by the FT sensor
      * @return true if succeeds, false otherwise
+     * 
+     * \warning The convention used to serialize the wrench (Force-Torque) is different
+     *          from the one used in Spatial Algebra (Torque-F)
+     * 
      */
     virtual bool setSensorMeasurement(const int sensor_index, const yarp::sig::Vector &ftm)=0;
     
     /**
      * Get the FT sensor measurements on the specified sensor 
      * @param sensor_index the code of the specified sensor
-     * @param ftm a 6x1 vector with forces and moments measured by the FT sensor
+     * @param ftm a 6x1 vector with forces (0:2) and moments (3:5) measured by the FT sensor
      * @return true if succeeds, false otherwise
+     * 
+     * \warning The convention used to serialize the wrench (Force-Torque) is different
+     *          from the one used in Spatial Algebra (Torque-F)
      * 
      * \note if solveWrench(ignore_sensor_measures=true) is called, this
      *       function get the "simulated" measure of the sensor from the
      *       RNEA backward propagation of wrenches   
      */
-    virtual bool getSensorMeasurement(const int sensor_index, yarp::sig::Vector &ftm)=0;
+    virtual bool getSensorMeasurement(const int sensor_index, yarp::sig::Vector &ftm) const =0;
     
     //@}
     
@@ -198,18 +205,21 @@ public:
      * acceleration of each link) of the RNE algorithm.
      * @return true if succeeds, false otherwise
      */
-    virtual bool solveKinematics()=0;    
+    virtual bool kinematicRNEA()=0;    
+    
+    /**
+     * Estimate the external contacts, supplied by the setContacts call
+     * for each dynamical subtree
+     * 
+     */
+    virtual bool estimateContactForces()=0;
     
     /**
      * Execute the dynamical phase (recursive calculation of internal wrenches
-     * and of torques) of the RNE algorithm for each subtree. 
-     * @param ignore_sensor_measures if true, the sensor measures are ignored 
-     *                              and RNEA wrench phase is calculated from the
-     *                              leafs to the robot root, calculating consequently
-     *                              the corresponding torque and sensor measures
+     * and of torques) of the RNEA algorithm for all the tree. 
      * @return true if succeeds, false otherwise
      */
-    virtual bool solveWrench(bool ignore_sensor_measures = false)=0;
+    virtual bool dynamicRNEA()=0;
     
     //@}
     
@@ -224,10 +234,9 @@ public:
      * @param part_name optional: the name of the part of joints to get
      * @return vector of joint torques
      */
-    virtual yarp::sig::Vector getTorques(const std::string & part_name="")=0;
+    virtual yarp::sig::Vector getTorques(const std::string & part_name="") const=0;
     
-   
-    
+
     //@}
     /** @name Methods related to contact forces
      *  This methods are related both to input and output of the esimation:
@@ -245,14 +254,14 @@ public:
      * @param contacts the list of the concacts on the iDynTree
      * @return true if operation succeeded, false otherwise
      */
-    bool setContacts(const iCub::skinDynLib::dynContactList &contacts);
+    bool setContacts(const iCub::skinDynLib::dynContactList &contacts_list)=0;
     
     /**
      * Get the contacts list, containing the results of the estimation if
      * solveWrench() was called
      * @return A copy of the external contact list
      */
-    const iCub::skinDynLib::dynContactList& getContacts() const;
+    const iCub::skinDynLib::dynContactList& getContacts() const=0;
     
     //@}
     
@@ -267,13 +276,13 @@ public:
     * Performs the computation of the center of mass (COM) of the tree
     * @return true if succeeds, false otherwise
     */
-    bool computeCOM();
+    bool computeCOM()=0;
     
     /**
     * Performs the computation of the center of mass jacobian of the tree
     * @return true if succeeds, false otherwise
     */
-    bool computeCOMjacobian();
+    bool computeCOMjacobian()=0;
     
     /**
      * Get Center of Mass of the specified part (if no part 
@@ -281,7 +290,7 @@ public:
      * @param part_name optional: the name of the part of joints to get
      * @return Center of Mass vector
      */
-    virtual yarp::sig::Vector getCOM(const std::string & part_name="")=0;
+    virtual yarp::sig::Vector getCOM(const std::string & part_name="") const=0;
     
     /**
      * Get Center of Mass Kacobian of the specified part (if no part 
@@ -290,7 +299,7 @@ public:
      * @param part_name optional: the name of the part of joints to get
      * @return true if succeeds, false otherwise
      */
-    virtual bool getCOMJacobian(const yarp::sig::Matrix & jac, const std::string & part_name="")=0;
+    virtual bool getCOMJacobian(const yarp::sig::Matrix & jac, const std::string & part_name="") const=0;
 
     
     //@}

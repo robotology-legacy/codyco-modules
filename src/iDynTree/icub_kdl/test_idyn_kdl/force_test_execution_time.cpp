@@ -7,7 +7,10 @@
 #include <yarp/os/all.h>
 #include <yarp/os/Time.h>
 
-#include "chain_conversion.h"
+
+#include "../iDyn_KDL_conversion/iDyn2KDL.h"
+#include "../iDyn_KDL_conversion/KDL2iDyn.h"
+#include "iDyn_KDL_emulation.h"
 
 #include <kdl/chainfksolver.hpp>
 #include "custom_kdl/chainidsolver_recursive_newton_euler_internal_wrenches.hpp"
@@ -127,7 +130,7 @@ int main()
     KDL::JntArray torques = KDL::JntArray(nj);
     
     
-    int N_TRIALS = 100000;
+    int N_TRIALS = 10000;
     double time_idyn = 0.0;
     double time_kdl = 0.0;
     double tic = 0.0;
@@ -180,7 +183,7 @@ int main()
         time_idyn += (toc-tic);
         
         tic = yarp::os::Time::now();
-        YARP_ASSERT( neSolver.CartToJnt_and_internal_wrenches(jointpositions,jointvel,jointacc,f_ext,torques,f_int) >= 0);
+        //YARP_ASSERT( neSolver.CartToJnt_and_internal_wrenches(jointpositions,jointvel,jointacc,f_ext,torques,f_int) >= 0);
         toc = yarp::os::Time::now();
         time_kdl += (toc-tic);
     }
