@@ -38,6 +38,9 @@ INCLUDE_DIRECTORIES(${iDyn_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR})
+                    
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+
 
 #ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 

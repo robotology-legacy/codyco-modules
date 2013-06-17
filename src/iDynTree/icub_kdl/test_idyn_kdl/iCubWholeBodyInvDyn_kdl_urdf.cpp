@@ -96,8 +96,8 @@ int main(int argc, char * argv[])
     assert(ret); 
     
     //Creating solver
-    KDL::TreeIdSolver_RNE tree_solver(icub_kdl);
-    KDL::TreeIdSolver_RNE tree_solver_urdf(icub_kdl_urdf,KDL::Vector::Zero(),tree_solver.getSerialization());
+    KDL::CoDyCo::TreeIdSolver_RNE tree_solver(icub_kdl);
+    KDL::CoDyCo::TreeIdSolver_RNE tree_solver_urdf(icub_kdl_urdf,KDL::Vector::Zero(),tree_solver.getSerialization());
 
     int ns = icub_kdl.getNrOfSegments();
     int nj = icub_kdl.getNrOfJoints();
@@ -147,6 +147,7 @@ int main(int argc, char * argv[])
         assert(ret == 0);
         time_kdl += (toc-tic);
         
+        /*
         cout << "KDL dyn: " << endl;
         cout << f0 << endl;
         cout << clean_vec(torques) << endl;
@@ -154,11 +155,11 @@ int main(int argc, char * argv[])
         cout << "KDL urdf dyn: " << endl;
         cout << f0_urdf << endl;
         cout << clean_vec(torques_urdf) << endl;
-        
+        */
     
 
-        cout << "force error " <<  (f0-f0_urdf).force.Norm() << endl;
-        cout << "torque error " << (f0-f0_urdf).torque.Norm()  << endl;
+        //cout << "force error " <<  (f0-f0_urdf).force.Norm() << endl;
+        //cout << "torque error " << (f0-f0_urdf).torque.Norm()  << endl;
         assert((f0-f0_urdf).force.Norm() < delta);
         assert((f0-f0_urdf).torque.Norm() < delta);
     }

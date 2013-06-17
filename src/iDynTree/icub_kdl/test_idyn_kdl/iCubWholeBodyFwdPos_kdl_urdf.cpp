@@ -100,8 +100,10 @@ int main(int argc, char * argv[])
     assert(ret); 
     
     //Creating solver
-    KDL::TreeFkSolverPos_iterative tree_solver(icub_kdl);
-    KDL::TreeFkSolverPos_iterative tree_solver_urdf(icub_kdl_urdf,tree_solver.getSerialization());
+    KDL::CoDyCo::TreeFkSolverPos_iterative tree_solver(icub_kdl);
+    //std::cout << "Default serialization " << std::endl;
+    //std::cout << tree_solver.getTreeGraph().getSerialization().toString() << std::endl;
+    KDL::CoDyCo::TreeFkSolverPos_iterative tree_solver_urdf(icub_kdl_urdf,"",tree_solver.getTreeGraph().getSerialization());
     
     KDL::TreeFkSolverPos_recursive tree_solver_old(icub_kdl);
 
@@ -300,9 +302,7 @@ int main(int argc, char * argv[])
     
     cout << "Total time for KDL:" << time_kdl/N_TRIALS << endl;
     cout << "Total time for KDL (URDF):" << time_kdl_urdf/N_TRIALS << endl;
- 
 
-    
     
 }
 

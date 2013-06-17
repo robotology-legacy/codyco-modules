@@ -402,7 +402,7 @@ bool addBaseTransformation(const KDL::Chain & old_chain, KDL::Chain & new_chain,
     new_chain = KDL::Chain();
     for(unsigned int i=0;i<old_chain.getNrOfSegments();i++){
         KDL::Segment segm;
-        old_chain.getSegment(i,segm);
+        segm = old_chain.getSegment(i);
         //if is not the first segment add normally the segment
         if( i != 0 ) { 
             new_chain.addSegment(segm);
