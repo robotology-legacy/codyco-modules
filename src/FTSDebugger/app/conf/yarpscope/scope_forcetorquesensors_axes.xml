@@ -16,7 +16,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="FTS force X"
           minval="-200"
           maxval="200"
-          bgcolor="#ccFFcc">
+          bgcolor="White">
         <graph remote="/icub/right_leg/analog:o"
                index="0"
                color="Green"
@@ -40,7 +40,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="FTS force Y"
           minval="-200"
           maxval="200"
-          bgcolor="#ccFFcc">
+          bgcolor="White">
         <graph remote="/icub/right_leg/analog:o"
                index="1"
                color="Green"
@@ -64,7 +64,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="FTS force Z"
           minval="-200"
           maxval="200"
-          bgcolor="#ccFFcc">
+          bgcolor="White">
         <graph remote="/icub/right_leg/analog:o"
                index="2"
                color="Green"
@@ -89,7 +89,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="FTS moment X"
           minval="-200"
           maxval="200"
-          bgcolor="#ccFFcc">
+          bgcolor="White">
         <graph remote="/icub/right_leg/analog:o"
                index="3"
                color="Green"
@@ -113,7 +113,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="FTS moment Y"
           minval="-200"
           maxval="200"
-          bgcolor="#ccFFcc">
+          bgcolor="White">
         <graph remote="/icub/right_leg/analog:o"
                index="4"
                color="Green"
@@ -137,7 +137,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           title="FTS moment Z"
           minval="-200"
           maxval="200"
-          bgcolor="#ccFFcc">
+          bgcolor="White">
         <graph remote="/icub/right_leg/analog:o"
                index="5"
                color="Green"
