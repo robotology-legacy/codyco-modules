@@ -75,7 +75,6 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           hspan="1"
           vspan="1"
           title="RIGHT FOOT - FTS - forces"
-          size="60"
           minval="-200"
           maxval="200"
           bgcolor="#ccFFcc">
@@ -134,7 +133,6 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           hspan="1"
           vspan="1"
           title="RIGHT FOOT - force error"
-          size="60"
           minval="-100"
           maxval="100"
           bgcolor="#ccFFcc">
@@ -315,7 +313,6 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           hspan="1"
           vspan="1"
           title="LEFT FOOT - force error"
-          size="60"
           minval="-100"
           maxval="100"
           bgcolor="#FFcccc">
