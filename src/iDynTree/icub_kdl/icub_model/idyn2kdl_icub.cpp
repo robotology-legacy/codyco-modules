@@ -15,13 +15,14 @@ bool names2links_joints(const std::vector<std::string> names,std::vector<std::st
 {
     names_links = names;
     names_joints = names;
-    for(int i=0;i<names.size();i++) {
+    for(int i=0;i<(int)names.size();i++) {
         names_links[i] = names_links[i]+"_link";
         names_joints[i] = names_joints[i]+"_joint";
     }
+    return true;
 }
 
-bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl)
+bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, bool debug)
 {
     bool status_ok = true;
     //Joint names extracted from http://eris.liralab.it/wiki/ICub_joints
@@ -115,18 +116,19 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl)
     
     //not using RBT because it is an identity, and it is not clear is 
     //semantical meaning (if is H_upper_lower or H_lower_upper ) 
-    
     idynMatrix2kdlFrame(icub_idyn.upperTorso->HLeft,kdlFrame);
     addBaseTransformation(old_la,la,kdlFrame);
     icub_kdl.addChain(la,"torso_pitch_link");
     
     idynMatrix2kdlFrame(icub_idyn.upperTorso->HRight,kdlFrame);
     addBaseTransformation(old_ra,ra,kdlFrame);
-    icub_kdl.addChain(ra,"torso_pitch_link");
+    icub_kdl.addChain(ra,"torso_pitch_link");    
     
     idynMatrix2kdlFrame(icub_idyn.upperTorso->HUp,kdlFrame);
     addBaseTransformation(old_head,head,kdlFrame);
     icub_kdl.addChain(head,"torso_pitch_link");
+
+
     
     //REP 120
     KDL::Segment kdlSegment = KDL::Segment("torso",KDL::Joint("torso_joint",KDL::Joint::None));
@@ -134,13 +136,45 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl)
     
     
         
-    //debug
-    kdlSegment = KDL::Segment("torso_yaw",KDL::Joint("torso_yaw_fixed_joint",KDL::Joint::None));
-    icub_kdl.addSegment(kdlSegment,"torso_yaw_link");    
+    if( debug ) {
+        kdlSegment = KDL::Segment("torso_yaw",KDL::Joint("torso_yaw_fixed_joint",KDL::Joint::None));
+        icub_kdl.addSegment(kdlSegment,"torso_yaw_link");    
     
-    //debug
-    kdlSegment = KDL::Segment("torso_roll",KDL::Joint("torso_roll_fixed_joint",KDL::Joint::None));
-    icub_kdl.addSegment(kdlSegment,"torso_roll_link");    
+        kdlSegment = KDL::Segment("torso_roll",KDL::Joint("torso_roll_fixed_joint",KDL::Joint::None));
+        icub_kdl.addSegment(kdlSegment,"torso_roll_link");    
+        
+        kdlSegment = KDL::Segment("torso_pitch",KDL::Joint("torso_pitch_fixed_joint",KDL::Joint::None));
+        icub_kdl.addSegment(kdlSegment,"torso_pitch_link");    
+        
+        
+        kdlSegment = KDL::Segment("l_shoulder_pitch",KDL::Joint("l_shoulder_pitch_fixed_joint",KDL::Joint::None));
+        icub_kdl.addSegment(kdlSegment,"l_shoulder_pitch_link");   
+        
+        kdlSegment = KDL::Segment("l_shoulder_roll",KDL::Joint("l_shoulder_roll_fixed_joint",KDL::Joint::None));
+        icub_kdl.addSegment(kdlSegment,"l_shoulder_roll_link");   
+        
+        kdlSegment = KDL::Segment("l_arm_ft_sensor",KDL::Joint("l_arm_ft_sensor_fixed_joint",KDL::Joint::None));
+        icub_kdl.addSegment(kdlSegment,"l_arm_ft_sensor_link");   
+        
+    
+        kdlSegment = KDL::Segment("r_shoulder_pitch",KDL::Joint("r_shoulder_pitch_fixed_joint",KDL::Joint::None));
+        icub_kdl.addSegment(kdlSegment,"r_shoulder_pitch_link");   
+        
+        kdlSegment = KDL::Segment("r_shoulder_roll",KDL::Joint("r_shoulder_roll_fixed_joint",KDL::Joint::None));
+        icub_kdl.addSegment(kdlSegment,"r_shoulder_roll_link");   
+        
+        kdlSegment = KDL::Segment("r_arm_ft_sensor",KDL::Joint("r_arm_ft_sensor_fixed_joint",KDL::Joint::None));
+        icub_kdl.addSegment(kdlSegment,"r_arm_ft_sensor_link");   
+        
+        kdlSegment = KDL::Segment("r_shoulder_yaw",KDL::Joint("r_shoulder_yaw_fixed_joint",KDL::Joint::None));
+        icub_kdl.addSegment(kdlSegment,"r_shoulder_yaw_link");   
+        
+        kdlSegment = KDL::Segment("r_elbow",KDL::Joint("r_elbow_fixed_joint",KDL::Joint::None));
+        icub_kdl.addSegment(kdlSegment,"r_elbow_link");   
+        
+        kdlSegment = KDL::Segment("eyes_tilt",KDL::Joint("eyes_tilt_fixed_joint",KDL::Joint::None));
+        icub_kdl.addSegment(kdlSegment,"eyes_tilt_link");   
+    }
     
     return true;
     

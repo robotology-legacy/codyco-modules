@@ -19,7 +19,7 @@
  * @param icub_kdl the iCub KDL::Tree object
  * @return false in case of error, true otherwise
  */
-bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl);
+bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, bool debug=false);
 
 bool toKDL_no_limbs(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl);
 

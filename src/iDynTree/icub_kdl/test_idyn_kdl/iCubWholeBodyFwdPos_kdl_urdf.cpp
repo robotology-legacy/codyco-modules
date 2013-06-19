@@ -55,6 +55,53 @@ KDL::JntArray clean_vec(KDL::JntArray & in)
     return out;
 } 
 
+void compare(KDL::CoDyCo::TreeFkSolverPos_iterative & tree_solver, KDL::CoDyCo::TreeFkSolverPos_iterative & tree_solver_urdf,
+             KDL::JntArray q, std::string link_name)
+{
+    KDL::Frame pos_kdl, pos_kdl_urdf;
+    int ret;
+    //Compute forward position with KDL
+    ret = tree_solver.JntToCart(q,pos_kdl,link_name);
+    assert(ret == 0);
+    
+    //Compute forward position with KDL trought URDF
+    ret = tree_solver_urdf.JntToCart(q,pos_kdl_urdf,link_name);
+    assert(ret == 0);
+    
+    cout << "KDL " << link_name << endl;
+    cout << pos_kdl << endl;
+    
+    cout << "KDL urdf " << link_name << endl;
+    cout << pos_kdl_urdf << endl;
+}
+
+void compare(KDL::CoDyCo::TreeFkSolverPos_iterative & tree_solver, KDL::CoDyCo::TreeFkSolverPos_iterative & tree_solver_urdf,
+             KDL::JntArray q, std::string link_name_parent, std::string link_name_child)
+{
+    KDL::Frame pos_kdl, pos_kdl_urdf;
+    int ret;
+    //Compute forward position with KDL
+    ret = tree_solver.setBaseLink(link_name_parent);
+    assert(ret == 0);
+    ret = tree_solver.JntToCart(q,pos_kdl,link_name_child);
+    assert(ret == 0);
+    ret = tree_solver.setBaseLink("root_link");
+    assert(ret == 0);
+    
+    //Compute forward position with KDL trought URDF
+    ret = tree_solver_urdf.setBaseLink(link_name_parent);
+    assert(ret == 0);
+    ret = tree_solver_urdf.JntToCart(q,pos_kdl_urdf,link_name_child);
+    assert(ret == 0);
+    ret = tree_solver_urdf.setBaseLink("root_link");
+    assert(ret == 0);
+    
+    cout << "KDL " << link_name_parent << " " << link_name_child << endl;
+    cout << pos_kdl << endl;
+    
+    cout << "KDL urdf " << link_name_parent << " " << link_name_child  << endl;
+    cout << pos_kdl_urdf << endl;
+}
 
 int main(int argc, char * argv[])
 {
@@ -77,8 +124,7 @@ int main(int argc, char * argv[])
     KDL::Tree icub_kdl_urdf;
     
     int N_TRIALS = 1;
-    int N = 32;
-    
+  
     double time_kdl = 0.0;
     double time_idyn = 0.0;
     double time_kdl_urdf = 0.0;
@@ -88,7 +134,7 @@ int main(int argc, char * argv[])
     
     
     //Creating KDL iCub
-    bool ret = toKDL(icub_idyn,icub_kdl);
+    bool ret = toKDL(icub_idyn,icub_kdl,true);
     assert(ret);
     
     //Dumping URDF file
@@ -99,19 +145,32 @@ int main(int argc, char * argv[])
     ret = kdl_import::treeFromFile("com_test_icub.xml",icub_kdl_urdf);
     assert(ret); 
     
+    int ns = icub_kdl.getNrOfSegments();
+    int nj = icub_kdl.getNrOfJoints();
+    
+    
     //Creating solver
     KDL::CoDyCo::TreeFkSolverPos_iterative tree_solver(icub_kdl);
     //std::cout << "Default serialization " << std::endl;
     //std::cout << tree_solver.getTreeGraph().getSerialization().toString() << std::endl;
     KDL::CoDyCo::TreeFkSolverPos_iterative tree_solver_urdf(icub_kdl_urdf,"",tree_solver.getTreeGraph().getSerialization());
+    assert(tree_solver.getTreeGraph().getSerialization().is_consistent(icub_kdl));
+    
+    assert(tree_solver.getTreeGraph().getSerialization().getNrOfJoints() == nj);
+    assert(tree_solver.getTreeGraph().getSerialization().getNrOfSegments() == ns);
+    std::cout << "Original TreeGraph:" << std::endl;
+    std::cout << tree_solver.getTreeGraph().toString() << std::endl;
+    std::cout << "Serialization " << std::endl;
+    std::cout << tree_solver.getTreeGraph().getSerialization().toString() << std::endl;
+    
+    std::cout << "Converted to URDF TreeGraph:" << std::endl;
+    std::cout << tree_solver_urdf.getTreeGraph().toString() << std::endl;
     
     KDL::TreeFkSolverPos_recursive tree_solver_old(icub_kdl);
 
-    int ns = icub_kdl.getNrOfSegments();
-    int nj = icub_kdl.getNrOfJoints();
-    
-    assert(ns == icub_kdl_urdf.getNrOfSegments());
-    assert(nj == icub_kdl_urdf.getNrOfJoints());
+
+    assert(ns == (int)icub_kdl_urdf.getNrOfSegments());
+    assert(nj == (int)icub_kdl_urdf.getNrOfJoints());
     
     Random rng;
     rng.seed(yarp::os::Time::now());
@@ -126,7 +185,7 @@ int main(int argc, char * argv[])
         
         for(int i=0;i<nj;i++) 
         {
-            q_idyn[i] = 0.0*CTRL_DEG2RAD*360*rng.uniform();
+            q_idyn[i] = 1.0*CTRL_DEG2RAD*360*rng.uniform();
         }
         
         q_idyn = icub_idyn.setAllPositions(q_idyn);
@@ -152,6 +211,8 @@ int main(int argc, char * argv[])
         q_rarm[7] = q_idyn[26];
         q_rarm[8] = q_idyn[27];
         q_rarm[9] = q_idyn[28];
+        
+        std::cout << "Used q" << q_rarm.toString() << std::endl;
         
         icub_arm.setAng(q_rarm);
         tic = yarp::os::Time::now();
@@ -233,6 +294,7 @@ int main(int argc, char * argv[])
         ret = tree_solver_urdf.JntToCart(q,pos_kdl_urdf,"torso");
         assert(ret == 0);
         
+        
         cout << "KDL old solver torso" << endl;
         cout << pos_kdl_old.p << endl;
     
@@ -264,39 +326,27 @@ int main(int argc, char * argv[])
         cout << pos_kdl_urdf.p << endl;
         
         
-        //Compute forward position with KDL
-        ret = tree_solver.JntToCart(q,pos_kdl,"torso_yaw");
-        assert(ret == 0);
+        compare(tree_solver,tree_solver_urdf,q,"torso_yaw");
+        compare(tree_solver,tree_solver_urdf,q,"torso_roll");
+        compare(tree_solver,tree_solver_urdf,q,"torso_pitch");
+        compare(tree_solver,tree_solver_urdf,q,"r_shoulder_pitch");
+        compare(tree_solver,tree_solver_urdf,q,"r_shoulder_roll");
         
-        //Compute forward position with KDL trought URDF
-        ret = tree_solver_urdf.JntToCart(q,pos_kdl_urdf,"torso_yaw");
-        assert(ret == 0);
+        compare(tree_solver,tree_solver_urdf,q,"l_shoulder_pitch");
+        compare(tree_solver,tree_solver_urdf,q,"l_shoulder_roll");
         
+        
+        
+        compare(tree_solver,tree_solver_urdf,q,"torso_pitch","r_shoulder_pitch");
+        compare(tree_solver,tree_solver_urdf,q,"r_shoulder_pitch","r_shoulder_roll");
+        compare(tree_solver,tree_solver_urdf,q,"r_shoulder_roll","r_arm_ft_sensor");
+        
+        compare(tree_solver,tree_solver_urdf,q,"l_gripper");
+        compare(tree_solver,tree_solver_urdf,q,"r_gripper");
+        compare(tree_solver,tree_solver_urdf,q,"eyes_tilt");
 
-        cout << "KDL torso_yaw" << endl;
-        cout << pos_kdl.M << endl;
-        cout << pos_kdl.p << endl;
-    
-        cout << "KDL urdf torso_yaw" << endl;
-        cout << pos_kdl_urdf.M << endl;
-        cout << pos_kdl_urdf.p << endl;
-        
 
-        //Compute forward position with KDL
-        ret = tree_solver.JntToCart(q,pos_kdl,"torso_roll");
-        assert(ret == 0);
-        
-        //Compute forward position with KDL trought URDF
-        ret = tree_solver_urdf.JntToCart(q,pos_kdl_urdf,"torso_roll");
-        assert(ret == 0);
-        
 
-        cout << "KDL torso torso_roll" << endl;
-        cout << pos_kdl.p << endl;
-    
-        cout << "KDL urdf torso torso_roll" << endl;
-        cout << pos_kdl_urdf.p << endl;
-        
     }
     
     

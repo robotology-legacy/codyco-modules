@@ -57,6 +57,7 @@ add_executable(force_test_execution_time force_test_execution_time.cpp ../iDyn_K
 add_executable(iCubWholeBodyCOM_kdl_idyn iCubWholeBodyCOM_kdl_idyn.cpp iDyn_KDL_emulation.cpp iDyn_KDL_emulation.h ../iDyn_KDL_conversion/iDyn2KDL.cpp ../iDyn_KDL_conversion/iDyn2KDL.h ../iDyn_KDL_conversion/KDL2iDyn.cpp ../iDyn_KDL_conversion/KDL2iDyn.h ./custom_kdl/chainidsolver_recursive_newton_euler_internal_wrenches.cpp ../icub_model/idyn2kdl_icub.h ../icub_model/idyn2kdl_icub.cpp)
 add_executable(iCubWholeBodyInvDyn_kdl_urdf iCubWholeBodyInvDyn_kdl_urdf.cpp iDyn_KDL_emulation.cpp iDyn_KDL_emulation.h ../iDyn_KDL_conversion/iDyn2KDL.cpp ../iDyn_KDL_conversion/iDyn2KDL.h ../iDyn_KDL_conversion/KDL2iDyn.cpp ../iDyn_KDL_conversion/KDL2iDyn.h ./custom_kdl/chainidsolver_recursive_newton_euler_internal_wrenches.cpp ../icub_model/idyn2kdl_icub.h ../icub_model/idyn2kdl_icub.cpp)
 add_executable(iCubWholeBodyFwdPos_kdl_urdf iCubWholeBodyFwdPos_kdl_urdf.cpp iDyn_KDL_emulation.cpp iDyn_KDL_emulation.h ../iDyn_KDL_conversion/iDyn2KDL.cpp ../iDyn_KDL_conversion/iDyn2KDL.h ../iDyn_KDL_conversion/KDL2iDyn.cpp ../iDyn_KDL_conversion/KDL2iDyn.h ./custom_kdl/chainidsolver_recursive_newton_euler_internal_wrenches.cpp ../icub_model/idyn2kdl_icub.h ../icub_model/idyn2kdl_icub.cpp)
+add_executable(check_kdl_export check_kdl_export.cpp)
 
 
 
@@ -69,4 +70,5 @@ target_link_libraries(force_test_execution_time ${YARP_LIBRARIES} ${ICUB_LIBRARI
 target_link_libraries(iCubWholeBodyCOM_kdl_idyn ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES} ${kdl_urdf_LIBRARIES})
 target_link_libraries(iCubWholeBodyInvDyn_kdl_urdf ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES} ${kdl_urdf_LIBRARIES})
 target_link_libraries(iCubWholeBodyFwdPos_kdl_urdf ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES} ${kdl_urdf_LIBRARIES})
+target_link_libraries(check_kdl_export ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES} ${kdl_urdf_LIBRARIES})
 

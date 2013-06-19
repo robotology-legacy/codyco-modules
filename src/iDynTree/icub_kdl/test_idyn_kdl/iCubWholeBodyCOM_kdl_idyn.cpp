@@ -87,10 +87,9 @@ int main(int argc, char * argv[])
     
     //Creating solver
     KDL::CoDyCo::TreeCOMSerialSolver com_solver(icub_kdl);
-    KDL::CoDyCo::TreeCOMSerialSolver com_solver_urdf(icub_kdl_urdf);
-    KDL::CoDyCo::TreeCOMSolver com_solver_graph(icub_kdl_urdf);
+    KDL::CoDyCo::TreeCOMSerialSolver com_solver_urdf(icub_kdl_urdf,com_solver.getSerialization());
+    KDL::CoDyCo::TreeCOMSolver com_solver_graph(icub_kdl_urdf,com_solver.getSerialization());
 
-    
     Random rng;
     rng.seed(yarp::os::Time::now());
     
@@ -104,7 +103,7 @@ int main(int argc, char * argv[])
 
         for(int i=0;i<N;i++) 
         {
-            q[i] = 1.0*CTRL_DEG2RAD*360*rng.uniform();
+            q[i] = 0.0*CTRL_DEG2RAD*360*rng.uniform();
         }
         
         q = icub_idyn.setAllPositions(q);
