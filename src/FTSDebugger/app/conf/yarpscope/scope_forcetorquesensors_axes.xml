@@ -1,0 +1,156 @@
+<!-- 
+Scope for force/torque sensors in the legs of iCub 
+Author: Serena Ivaldi 
+
+This xml file must be used with yarpscope: it plots by columns the forces and moments of the 6 axis F/T sensors of the iCub legs, i.e. the ones in the middle of the legs. -->
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<portscope rows="2" columns="4" carrier="udp">
+
+<!-- Force 1 -->
+
+    <plot gridx="0"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="FTS force X"
+          minval="-200"
+          maxval="200"
+          bgcolor="#ccFFcc">
+        <graph remote="/icub/right_leg/analog:o"
+               index="0"
+               color="Green"
+               title="F1"
+               type="lines"
+               size="2" />
+        <graph remote="/icub/left_leg/analog:o"
+               index="0"
+               color="Red"
+               title="F2"
+               size="2"
+               type="lines" />
+    </plot>
+    
+   <!-- Force 2 -->
+
+    <plot gridx="1"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="FTS force Y"
+          minval="-200"
+          maxval="200"
+          bgcolor="#ccFFcc">
+        <graph remote="/icub/right_leg/analog:o"
+               index="1"
+               color="Green"
+               title="F1"
+               type="lines"
+               size="2" />
+        <graph remote="/icub/left_leg/analog:o"
+               index="1"
+               color="Red"
+               title="F2"
+               size="2"
+               type="lines" />
+    </plot>
+    
+       <!-- Force 3 -->
+
+    <plot gridx="1"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="FTS force Z"
+          minval="-200"
+          maxval="200"
+          bgcolor="#ccFFcc">
+        <graph remote="/icub/right_leg/analog:o"
+               index="2"
+               color="Green"
+               title="F1"
+               type="lines"
+               size="2" />
+        <graph remote="/icub/left_leg/analog:o"
+               index="2"
+               color="Red"
+               title="F2"
+               size="2"
+               type="lines" />
+    </plot>
+    
+    
+    <!-- Moment 1 -->
+
+    <plot gridx="0"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="FTS moment X"
+          minval="-200"
+          maxval="200"
+          bgcolor="#ccFFcc">
+        <graph remote="/icub/right_leg/analog:o"
+               index="3"
+               color="Green"
+               title="F1"
+               type="lines"
+               size="2" />
+        <graph remote="/icub/left_leg/analog:o"
+               index="3"
+               color="Red"
+               title="F2"
+               size="2"
+               type="lines" />
+    </plot>
+    
+   <!-- Moment 2 -->
+
+    <plot gridx="1"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="FTS moment Y"
+          minval="-200"
+          maxval="200"
+          bgcolor="#ccFFcc">
+        <graph remote="/icub/right_leg/analog:o"
+               index="4"
+               color="Green"
+               title="F1"
+               type="lines"
+               size="2" />
+        <graph remote="/icub/left_leg/analog:o"
+               index="4"
+               color="Red"
+               title="F2"
+               size="2"
+               type="lines" />
+    </plot>
+    
+       <!-- Moment 3 -->
+
+    <plot gridx="1"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="FTS moment Z"
+          minval="-200"
+          maxval="200"
+          bgcolor="#ccFFcc">
+        <graph remote="/icub/right_leg/analog:o"
+               index="5"
+               color="Green"
+               title="F1"
+               type="lines"
+               size="2" />
+        <graph remote="/icub/left_leg/analog:o"
+               index="5"
+               color="Red"
+               title="F2"
+               size="2"
+               type="lines" />
+    </plot>
+    
+    
+</portscope>
