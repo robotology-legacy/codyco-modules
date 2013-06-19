@@ -57,7 +57,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
     
        <!-- Force 3 -->
 
-    <plot gridx="1"
+    <plot gridx="2"
           gridy="0"
           hspan="1"
           vspan="1"
@@ -83,7 +83,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
     <!-- Moment 1 -->
 
     <plot gridx="0"
-          gridy="0"
+          gridy="1"
           hspan="1"
           vspan="1"
           title="FTS moment X"
@@ -107,7 +107,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
    <!-- Moment 2 -->
 
     <plot gridx="1"
-          gridy="0"
+          gridy="1"
           hspan="1"
           vspan="1"
           title="FTS moment Y"
@@ -130,8 +130,8 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
     
        <!-- Moment 3 -->
 
-    <plot gridx="1"
-          gridy="0"
+    <plot gridx="2"
+          gridy="1"
           hspan="1"
           vspan="1"
           title="FTS moment Z"
