@@ -5,7 +5,7 @@ Author: Serena Ivaldi
 This xml file must be used with yarpscope: it plots by columns the forces and moments of the 6 axis F/T sensors of the iCub feet, and the estimated forces/moments relying on the other 6 axis FT sensor in the legs. -->
 
 <?xml version="1.0" encoding="UTF-8" ?>
-<portscope rows="2" columns="6" carrier="mcast">
+<portscope rows="2" columns="6" carrier="udp">
 
   
     

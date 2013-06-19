@@ -28,5 +28,13 @@
             <node>macsi03</node>
             <tag>scope-feet-sensors</tag>
         </module> 
+        
+        <module>
+            <name>yarpscope</name>
+            <parameters>--xml FTSDebugger/scope_forcetorquesensors_axes.xml</parameters>
+            <stdio>macsi03</stdio>            
+            <node>macsi03</node>
+            <tag>scope-feet-sensors</tag>
+        </module> 
 
 </application>
