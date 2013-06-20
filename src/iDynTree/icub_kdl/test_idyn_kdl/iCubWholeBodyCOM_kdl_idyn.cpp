@@ -23,7 +23,6 @@
 
 #include <kdl_codyco/treecomsolver.hpp>
 #include <kdl_codyco/treecomserialsolver.hpp>
-#include <kdl_codyco/utils.hpp>
 
 #include <kdl_urdf/kdl_export.hpp>
 #include <kdl_urdf/kdl_import.hpp>
@@ -103,7 +102,7 @@ int main(int argc, char * argv[])
 
         for(int i=0;i<N;i++) 
         {
-            q[i] = 0.0*CTRL_DEG2RAD*360*rng.uniform();
+            q[i] = 1.0*CTRL_DEG2RAD*360*rng.uniform();
         }
         
         q = icub_idyn.setAllPositions(q);
@@ -147,17 +146,17 @@ int main(int argc, char * argv[])
         cout << "iDyn COM: " << icub_idyn.whole_COM.toString() << endl;
         
         cout << "KDL mass: " << endl;
-        cout << KDL::CoDyCo::computeMass(icub_kdl) << endl;
+        //cout << KDL::CoDyCo::computeMass(icub_kdl) << endl;
         cout << "KDL COM: " << endl;
         cout << COM_kdl << endl;
         
         cout << "KDL urdf mass: " << endl;
-        cout << KDL::CoDyCo::computeMass(icub_kdl_urdf) << endl;
+        //cout << KDL::CoDyCo::computeMass(icub_kdl_urdf) << endl;
         cout << "KDL urdf COM: " << endl;
         cout << COM_kdl_urdf << endl;
         
         cout << "KDL TreeGraph mass: " << endl;
-        cout << KDL::CoDyCo::computeMass(icub_kdl_urdf) << endl;
+        //cout << KDL::CoDyCo::computeMass(icub_kdl_urdf) << endl;
         cout << "KDL TreeGraph COM: " << endl;
         cout << COM_kdl_treegraph << endl;
         

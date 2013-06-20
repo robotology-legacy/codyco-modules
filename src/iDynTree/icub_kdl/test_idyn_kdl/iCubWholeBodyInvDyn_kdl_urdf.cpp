@@ -24,6 +24,9 @@
 #include <kdl_codyco/treecomsolver.hpp>
 #include <kdl_codyco/utils.hpp>
 #include <kdl_codyco/treeidsolver_recursive_newton_euler.hpp>
+#include <kdl_codyco/treeidserialsolver_recursive_newton_euler.hpp>
+
+
 
 #include <kdl_urdf/kdl_export.hpp>
 #include <kdl_urdf/kdl_import.hpp>
@@ -46,7 +49,7 @@ double delta = 1e-5;
 KDL::JntArray clean_vec(KDL::JntArray & in)
 {
     KDL::JntArray out = in;
-    for(int j =0; j < out.rows(); j++) {
+    for(int j =0; j < (int)out.rows(); j++) {
         out(j) = out(j) < 1e-15 ? 0 : out(j); 
     }
     return out;
@@ -74,17 +77,19 @@ int main(int argc, char * argv[])
     KDL::Tree icub_kdl_urdf;
     
     int N_TRIALS = 1000;
-    int N = 32;
+    //int N = 32;
     
     double time_kdl = 0.0;
     double time_idyn = 0.0;
     double time_kdl_urdf = 0.0;
+    double time_serial_kdl = 0.0;
+    double time_serial_kdl_urdf = 0.0;
     double tic = 0.0;
     double toc = 0.0;
     
     
     //Creating KDL iCub
-    bool ret = toKDL(icub_idyn,icub_kdl);
+    bool ret = toKDL(icub_idyn,icub_kdl,true);
     assert(ret);
     
     //Dumping URDF file
@@ -98,12 +103,20 @@ int main(int argc, char * argv[])
     //Creating solver
     KDL::CoDyCo::TreeIdSolver_RNE tree_solver(icub_kdl);
     KDL::CoDyCo::TreeIdSolver_RNE tree_solver_urdf(icub_kdl_urdf,KDL::Vector::Zero(),tree_solver.getSerialization());
+    
+    //Creating solver
+    KDL::CoDyCo::TreeIdSerialSolver_RNE tree_ssolver(icub_kdl);
+    KDL::CoDyCo::TreeIdSerialSolver_RNE tree_ssolver_urdf(icub_kdl_urdf,KDL::Vector::Zero(),tree_solver.getSerialization());
+    
+    
+    cout << tree_solver.getSerialization().toString() << endl;
+    cout << tree_solver_urdf.getSerialization().toString() << endl;
 
     int ns = icub_kdl.getNrOfSegments();
     int nj = icub_kdl.getNrOfJoints();
     
-    assert(ns == icub_kdl_urdf.getNrOfSegments());
-    assert(nj == icub_kdl_urdf.getNrOfJoints());
+    assert(ns == (int)icub_kdl_urdf.getNrOfSegments());
+    assert(nj == (int)icub_kdl_urdf.getNrOfJoints());
     
     Random rng;
     rng.seed(yarp::os::Time::now());
@@ -112,17 +125,17 @@ int main(int argc, char * argv[])
     KDL::Wrenches f_ext(ns);
     KDL::Twist a0,v0;
     
-    KDL::JntArray torques(nj), torques_urdf(nj);
-    KDL::Wrench f0,f0_urdf;
+    KDL::JntArray torques(nj), torques_urdf(nj), torques_serial(nj), torques_serial_urdf(nj);
+    KDL::Wrench f0,f0_urdf, f0_serial,f0_serial_urdf;
     
     for(int trial=0; trial < N_TRIALS; trial++ ) {
         KDL::Vector COM_kdl, COM_kdl_urdf;
         Vector COM_kdl_yarp(3), COM_kdl_urdf_yarp(3);
         
         for(int i=0;i<nj; i++ ) {
-            q(i) = 2*M_PI*rng.uniform();
-            dq(i) = 2*M_PI*rng.uniform();
-            ddq(i) = 2*M_PI*rng.uniform();
+            q(i) = 1.0*M_PI*rng.uniform();
+            dq(i) = 1.0*M_PI*rng.uniform();
+            ddq(i) = 1.0*M_PI*rng.uniform();
         }
         
         for(int j=0; j < ns; j++ ) {
@@ -132,14 +145,9 @@ int main(int argc, char * argv[])
         a0 = KDL::Twist(KDL::Vector(1,0,0),KDL::Vector::Zero());
         v0 = KDL::Twist::Zero();
         
-        //Compute inverse dynamics with KDL trought URDF
-        tic = yarp::os::Time::now();
-        ret = tree_solver_urdf.CartToJnt(q,dq,ddq,v0,a0,f_ext,torques_urdf,f0_urdf);
-        toc = yarp::os::Time::now();
-        assert(ret == 0);
-        time_kdl_urdf += (toc-tic);
         
         //Compute inverse dynamics with KDL
+        cout << "KDL dyn computation: " << endl;
         tic = yarp::os::Time::now();
         int ret;
         ret = tree_solver.CartToJnt(q,dq,ddq,v0,a0,f_ext,torques,f0);
@@ -147,7 +155,15 @@ int main(int argc, char * argv[])
         assert(ret == 0);
         time_kdl += (toc-tic);
         
-        /*
+        //Compute inverse dynamics with KDL trought URDF
+        cout << "KDL dyn computation urdf: " << endl;
+        tic = yarp::os::Time::now();
+        ret = tree_solver_urdf.CartToJnt(q,dq,ddq,v0,a0,f_ext,torques_urdf,f0_urdf);
+        toc = yarp::os::Time::now();
+        assert(ret == 0);
+        time_kdl_urdf += (toc-tic);
+        
+        
         cout << "KDL dyn: " << endl;
         cout << f0 << endl;
         cout << clean_vec(torques) << endl;
@@ -155,7 +171,35 @@ int main(int argc, char * argv[])
         cout << "KDL urdf dyn: " << endl;
         cout << f0_urdf << endl;
         cout << clean_vec(torques_urdf) << endl;
-        */
+        
+                
+        //Compute inverse dynamics with KDL
+        cout << "KDL serial dyn computation: " << endl;
+        tic = yarp::os::Time::now();
+        ret = tree_ssolver.CartToJnt(q,dq,ddq,v0,a0,f_ext,torques_serial,f0_serial);
+        toc = yarp::os::Time::now();
+        assert(ret == 0);
+        time_serial_kdl += (toc-tic);
+        
+        //serial version
+        //Compute inverse dynamics with KDL trought URDF
+        cout << "KDL serial dyn computation urdf: " << endl;
+        tic = yarp::os::Time::now();
+        ret = tree_ssolver_urdf.CartToJnt(q,dq,ddq,v0,a0,f_ext,torques_serial_urdf,f0_serial_urdf);
+        toc = yarp::os::Time::now();
+        assert(ret == 0);
+        time_serial_kdl_urdf += (toc-tic);
+    
+        
+        
+        cout << "KDL serial dyn: " << endl;
+        cout << f0_serial << endl;
+        cout << clean_vec(torques_serial) << endl;
+
+        cout << "KDL  serial urdf dyn: " << endl;
+        cout << f0_serial_urdf << endl;
+        cout << clean_vec(torques_serial_urdf) << endl;
+    
     
 
         //cout << "force error " <<  (f0-f0_urdf).force.Norm() << endl;
@@ -167,6 +211,8 @@ int main(int argc, char * argv[])
     
     cout << "Total time for KDL:" << time_kdl/N_TRIALS << endl;
     cout << "Total time for KDL (URDF):" << time_kdl_urdf/N_TRIALS << endl;
+    cout << "Total time for KDL (serial):" << time_serial_kdl/N_TRIALS << endl;
+    cout << "Total time for KDL serial (URDF):" << time_serial_kdl_urdf/N_TRIALS << endl;
  
 
     
