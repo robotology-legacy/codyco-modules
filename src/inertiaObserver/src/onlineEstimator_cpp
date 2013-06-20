@@ -1,0 +1,225 @@
+#include "onlineEstimator.h"
+#include "MatVetIO.h"
+
+
+using namespace yarp::sig;
+using namespace yarp::math;
+
+#include <iostream>
+
+Vector column_norms2(const Matrix & A)
+{
+	Vector ret;
+    ret = Vector(A.cols());
+    for(unsigned int i=0;i < ret.size(); i++ ) {
+        ret[i] = norm2(A.getCol(i));
+    }
+    return ret;
+}
+
+
+onlineSVDestimator::onlineSVDestimator(double _tol, bool _column_scaling)
+{
+    data_never_submitted = true;
+    are_stored_values_valid = false;
+    tol = _tol;
+    column_scaling = _column_scaling;
+}
+
+onlineSVDestimator::~onlineSVDestimator()
+{
+}
+
+bool onlineSVDestimator::step(Matrix Phi, Vector f) 
+{
+    if( data_never_submitted ) {
+        transpAA = Phi.transposed()*Phi;
+        vector_columns_norm2 = column_norms2(Phi);
+        Af = Phi.transposed()*f;
+        data_never_submitted = false;
+    } else {
+        transpAA += Phi.transposed()*Phi;
+        vector_columns_norm2 += column_norms2(Phi);
+        Af += Phi.transposed()*f;
+    }
+    //std::cerr << "onlineSVDestimator step called: traspAA.size:" << transpAA.rows() << " " << transpAA.cols() << " vcn " << vector_columns_norm2.size() << " af " << Af.size() << std::endl;
+    are_stored_values_valid = false;
+    return true;
+}
+
+bool onlineSVDestimator::step(Vector phi, double f)
+{
+    Matrix Phi;
+    Vector F;
+    int n;
+    n = phi.size();
+    Phi = Matrix(1,n);
+    Phi.setRow(0,phi);
+    F = Vector(1,f);
+    return step(Phi,F);
+}
+
+
+Vector onlineSVDestimator::getParameters() const
+{
+    //std::cout << "called getParameters " << std::endl;
+    if( !are_stored_values_valid ) {
+        updateStoredValues();
+        are_stored_values_valid = true;
+    }
+    //std::cerr << "returing stored Parameters  " << std::endl;
+    //std::cerr << "stored_paramters " << stored_parameters.toString() << "end stored" << std::endl; 
+    return stored_parameters;
+}
+
+Matrix onlineSVDestimator::getIdentificableLinearCombinations() const
+{
+    if( !are_stored_values_valid ) {
+        updateStoredValues();
+        are_stored_values_valid = true;
+    }
+    return stored_linear_combinations;
+}
+
+int onlineSVDestimator::getIdentificableSubspaceDimension() const
+{
+    if( !are_stored_values_valid ) {
+        updateStoredValues();
+        are_stored_values_valid = true;
+    }
+    return stored_linear_combinations.cols();
+}
+
+double onlineSVDestimator::getConditionNumber() const
+{
+    if( !are_stored_values_valid ) {
+        updateStoredValues();
+        are_stored_values_valid = true;
+    }
+    return stored_condition_number;
+}
+
+
+bool onlineSVDestimator::updateStoredValues() const
+{
+    int n,i;
+    Matrix U,V;
+    Vector S;
+    Matrix invS;
+    Matrix colScaling;
+    bool using_column_scaling = true;
+
+    //std::cout << "called updateStoredValues " << std::endl;
+    if( data_never_submitted ) {
+        std::cerr << "onlineEstimator error: updatedStoredValues called without ever submitting data" << std::endl;
+        return false;
+    }
+    
+    if( !column_scaling ) {
+        using_column_scaling = false;
+    }
+    
+    //column scaling, disabled if some column as a norm below the numerical zero
+    for(i=0; i < vector_columns_norm2.size(); i++ ) {
+        if( vector_columns_norm2[i] < tol ) {
+            using_column_scaling = false;
+            break;
+        }
+    }
+   
+    colScaling = zeros(vector_columns_norm2.size(),vector_columns_norm2.size());
+    if( using_column_scaling ) { 
+        for(i = 0; i < vector_columns_norm2.size(); i++ ) {
+            colScaling(i,i) = 1/sqrt(vector_columns_norm2(i));
+        }
+    } else {
+        for(i = 0; i < vector_columns_norm2.size(); i++ ) {
+            colScaling(i,i) = 1;
+        }
+    }
+    
+    /**
+     * As transpAA is a square symmetric matrix, the SVD reduces to eigendecomposition, and U == V
+     * \todo calculate through eigendecomposition directly instead of SVD
+     */
+    SVD(colScaling*transpAA*colScaling,U,S,V);
+    
+    /**
+     *  \todo calculate dynamically the tolerance
+     * 
+     */
+    //Counting the singular values different from numerical zero, and consequently the number of linear combination identificable
+    for(n = 0; (n < S.size()) && (S[n] > tol); n++ );
+    
+    //Calculating the condition number
+    stored_condition_number = S[0]/S[n-1];
+     
+    //Building the sigma pseudoinverse
+    //Setting only the nonzero values, the other are already set to zero
+    invS = zeros(S.size(),S.size());
+    
+    //std::cout << " n " << n << " s.size " << S.size() << std::endl;
+    
+    //std::cout << " n " << n << " S.size " <<  S.size() << std::endl;
+    for(i = 0; i < n; i++ ) {
+            //std::cout << " i " << i << std::endl;
+            invS(i,i) = 1/S[i];
+            //std::cout << " S[i] " << S[i] << std::endl;
+            //std::cout << " invS(i,i) " << invS(i,i) << std::endl;
+    }
+
+    //std::cout << " S " << S.toString() << std::endl;
+    //std::cout << " invS " << invS.toString() << std::endl;
+    
+    /**
+     * \todo if necessary, find another more efficient way to do diagonal matrix moltiplication
+     * \todo implement away for the user of the class to select between using column scaling or not
+     */
+    /*
+    std::cout << "calculating stored Parameters" << std::endl;
+    std::cout << "~~~~~~~~~~~~~~~~~~\ncolScaling\n" <<  colScaling.toString() << std::endl;
+    std::cout << "~~~~~~~~~~~~~~~~\nU\n" << U.toString() << std::endl;
+    std::cout << "~~~~~~~~~~~~~~~\ninvS\n" << invS.toString() << std::endl;
+    std::cout << "~~~~~~~~~~~~~~~~~\nV\n" << V.toString() << std::endl;
+    std::cout << "~~~~~~~~~~~~~~~\nAf " << Af.toString() << std::endl
+    */
+    stored_parameters = colScaling*U*invS*V.transposed()*colScaling*Af; 
+
+    //std::cout << "~~~~~~~~~~~~~~~\n stored parameters \n~~~~~~~~~~~~~~\n" << stored_parameters.toString() << std::endl;
+    
+    stored_linear_combinations = U.submatrix(0,U.rows()-1,0,n-1);
+    
+    return true;
+}
+
+bool onlineSVDestimator::load_estimator_state(std::string path)
+{
+    bool res = true;
+    
+    res = Matrix_read(path+"/traspAA",transpAA);
+    res = res && Vector_read(path+"/Af",Af);
+    res = res && Vector_read(path+"/vector_columns_norm2",vector_columns_norm2);
+    
+    if(res) {
+        data_never_submitted = false;
+    }
+    
+    return res;
+}
+
+bool onlineSVDestimator::dump_estimator_state(std::string path) const
+{
+    bool res = true;
+    if( !are_stored_values_valid ) {
+        updateStoredValues();
+        are_stored_values_valid = true;
+    }
+    
+    res = Vector_write(path+"/parameters",stored_parameters);
+    res = res && Matrix_write(path+"/linear_combinations",stored_linear_combinations);
+    res = res && Matrix_write(path+"/traspAA",transpAA);
+    res = res && Vector_write(path+"/Af",Af);
+    res = res && Vector_write(path+"/vector_columns_norm2",vector_columns_norm2);
+    return res;
+}
+

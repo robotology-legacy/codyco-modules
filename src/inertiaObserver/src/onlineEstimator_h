@@ -1,0 +1,69 @@
+#ifndef __INERTIA_OBSERVER_ONLINE_ESTIMATOR__
+#define __INERTIA_OBSERVER_ONLINE_ESTIMATOR__
+
+#include <yarp/sig/Vector.h>
+#include <yarp/sig/Matrix.h>
+#include <yarp/math/Math.h>
+#include <yarp/math/SVD.h>
+
+#include <string>
+
+#include <cmath>
+
+yarp::sig::Vector column_norms2(const yarp::sig::Matrix & A);
+
+/**
+ * Class provinding estimation using the SVD regression, online
+ * 
+ * \note replace with somethin derived from LearningMachine ?? 
+ * 
+ * \todo add verbose option to methods, add error checking (for data submitted!,matrix,vector dimentions) 
+ * 
+ */
+class onlineSVDestimator
+{
+    private:
+        // \f$  A^{\top}A \f$ 
+        yarp::sig::Matrix transpAA;
+        //Vector of the squared norm of the columns of \f$ A^{\top} A \f$
+        yarp::sig::Vector vector_columns_norm2; 
+        //
+        yarp::sig::Vector Af;
+        
+        mutable yarp::sig::Vector stored_parameters;
+        
+        mutable yarp::sig::Matrix stored_linear_combinations;
+        
+        mutable double stored_condition_number;
+        
+        mutable bool are_stored_values_valid;
+        
+        bool data_never_submitted;
+        
+        bool column_scaling;
+        
+        //The tollerance used in numerical calculation
+        double tol;
+
+        
+        bool updateStoredValues() const;
+        
+        
+    public:
+        onlineSVDestimator(double tol, bool column_scaling = true);
+        ~onlineSVDestimator();
+        
+        bool step(yarp::sig::Matrix Phi, yarp::sig::Vector f);
+        bool step(yarp::sig::Vector phi, double f);
+        yarp::sig::Vector getParameters() const;
+        yarp::sig::Matrix getIdentificableLinearCombinations() const;
+        int getIdentificableSubspaceDimension() const;
+        
+        bool load_estimator_state(std::string path);
+        bool dump_estimator_state(std::string path) const;
+        
+        
+        double getConditionNumber() const;
+};
+
+#endif
