@@ -26,6 +26,7 @@
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 #include <iCub/iDyn/iDyn.h>
 #include <iCub/iDyn/iDynBody.h>
+#include <iCub/skinDynLib/skinContactList.h>
 
 #include <iCub/learningMachine/IParameterLearner.h>
 
@@ -121,11 +122,14 @@ private:
     //input ports
     map<iCubFT,FTCollector *> port_ft;
 
+    BufferedPort<skinContactList> * port_contact;
     
     BufferedPort<Vector> *port_inertial_thread;
     
         
     map<iCubLimb,posCollector *> port_q;
+    
+    
     
     map<iCubFT,BufferedPort<Vector> *> param_output;
     map<iCubFT,BufferedPort<Matrix> *> identiable_param_output;
@@ -236,6 +240,7 @@ private:
     
     //Warning: use A and b can cause overflowing of int
     bool produceAb;
+    bool produceAb_contact;
     Matrix A;
     Matrix local_A;
     Matrix local_Phi;
@@ -244,6 +249,7 @@ private:
     int Ab_sample_count;
     std::ofstream A_file;
     std::ofstream b_file;
+    std::ofstream contact_file;
 
     void init_upper();
     void init_lower();

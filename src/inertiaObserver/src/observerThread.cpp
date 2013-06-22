@@ -120,7 +120,7 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
     ATA_forces = zeros(40,40);
     ATA_torques = zeros(40,40);
     TTT.resize(7);
-    for(int ind = 0; ind < TTT.size(); ind++ ) {
+    for(int ind = 0; ind < (int)TTT.size(); ind++ ) {
         TTT[ind] = zeros(40,40);
     }
     TauTTau = zeros(40,40);
@@ -132,6 +132,7 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
     debug_out_parameters = false;
     
     produceAb = true;
+    produceAb_contact = true;
     
     if( produceAb ) {
         A = Matrix(0,46);
@@ -143,6 +144,10 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
         
         A_file.open("A.csv");
         b_file.open("b.csv");
+    }
+    
+    if( produceAb_contact ) {
+        contact_file.open("contact.csv");
     }
 
     
@@ -205,6 +210,8 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
             }
         }
     }
+    
+    port_contact = new skinCollector(&current_state_estimator);
 
     port_inertial_thread->open(string("/"+local_name+"/inertial:i").c_str());
     
@@ -222,6 +229,9 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
             port_ft[vectorFT[i]]->open(string("/"+local_name+"/"+FTNames[vectorFT[i]]+"/FT:i").c_str());
         }
     }
+    
+    port_contact->useCallback();
+    port_contact->open(string("/"+local_name+"/"+"skin_events:i").c_str());
     
 
     
@@ -249,6 +259,8 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
                 Network::connect(string("/"+robot_name+"/"+FTNames[vectorFT[i]]+"/analog:o").c_str(),  string("/"+local_name+"/"+FTNames[vectorFT[i]]+"/FT:i").c_str(),"tcp",false);
             }
         }
+        
+        Network::connect(string("/skinManager/skin_events:o").c_str(),string("/"+local_name+"/"+"skin_events:i").c_str(),"tcp",false);
         
     }
     
@@ -314,6 +326,7 @@ bool inertiaObserver_thread::threadInit()
             params[vectorFT[i]].push_back(Vector());
             
             if( debug_out_enabled ) {
+                /*
                 //if in debug mode, install also other methods, first the one using cad models
                 //CAD model 
                 Vector cad_parameters;
@@ -336,12 +349,13 @@ bool inertiaObserver_thread::threadInit()
                 
                 //debug
                 //add others
+                */
 
             }
             
         }
     }
-    
+    /*
     //Setting mixed estimation
     staticParamEstimator = new MultiTaskLinearGPRLearner(static_identifiable_parameters[ICUB_FT_RIGHT_ARM].cols()+6,6);
     staticParamEstimator->setName("STATIC_RLS");
@@ -354,10 +368,11 @@ bool inertiaObserver_thread::threadInit()
     
     static_estimated_out_port = new BufferedPort<Vector>;
     static_estimated_out_port->open(string("/"+local_name+"/"+FTNames[ICUB_FT_RIGHT_ARM]+"/FT_static_RLS_estimated:o").c_str());
-  
+    */
     
     //If debug is enabled, open output debug ports
     if( debug_out_enabled ) { 
+        /*
         for(vector<iCubFT>::size_type i = 0; i != vectorFT.size(); i++) {
             if( is_enabled[FTlimb[vectorFT[i]]] ) {
                 measured_out_port[vectorFT[i]] = new BufferedPort<Vector>;
@@ -387,7 +402,7 @@ bool inertiaObserver_thread::threadInit()
      
                 }
             }
-        }
+        }*/
     }
 
     debug_generate_yarpscope_xml(ICUB_FT_RIGHT_ARM);
@@ -416,7 +431,7 @@ void printMatrix_ofstream(ofstream & file, const Matrix& mat, int precision)
 
 void printVector_ofstream(ofstream & file, const Vector& vet, int precision)
 {
-        for(int c=0;c<vet.size();c++)
+        for(int c=0;c<(int)vet.size();c++)
             {
                 file << vet(c) << endl;
             }
@@ -452,15 +467,10 @@ void inertiaObserver_thread::run()
     tic_run = yarp::os::Time::now();
 
 
-
     if( call_count % 100 == 0) {
         //fprintf(stderr,"~~~~\nRunning run method\n");
     }
-    /**
-     * 
-     * \todo add support for all limbs
-     * 
-     */
+    
     if( right_arm_enabled ) {
         iCubLimb currLimb = ICUB_RIGHT_ARM;
         iCubFT currFT = ICUB_FT_RIGHT_ARM;
@@ -480,6 +490,7 @@ void inertiaObserver_thread::run()
                     //It was not still, now it is
                     wasStill[currLimb] = true;
                     //}
+                    /*
                     if( dump_static ) {
                         //calculate regressor only for static case
                         //Get current static regressors
@@ -497,7 +508,7 @@ void inertiaObserver_thread::run()
                         
                         //onlineMeanFT[currFT].feedSample(measuredW[currFT]);
                         //onlineMeanRegr[currFT].feedSample(Phi_w_offset);
-                    }
+                    }*/
                     
                 } else {
                     if( wasStill[currLimb] ) {
@@ -551,10 +562,39 @@ void inertiaObserver_thread::run()
                     Ab_sample_count++;
                 }
                 
+                if( produceAb_contact ) {
+                    skinContactList scl, ra_scl;
+                    current_state_estimator.getContact(scl,W_timestamp[ICUB_FT_RIGHT_ARM]);
+                    
+                    ra_scl = scl.filterBodyPart(RIGHT_ARM);
+                    
+                    int num_taxels = 0;
+                    for(int i=0;i<ra_scl.size();i++ ) {
+                        num_taxels += ra_scl[i].getActiveTaxels();
+                    }
+                    
+                    contact_file << num_taxels << std::endl;
+                }
+                
+                /*
+                if( produceAb_motors ) {
+                    iCubLimbRegressorSensorWrench(icub,"right_arm",local_Phi);
+                    local_A.setSubmatrix(local_Phi,0,0);
+                    local_A.setSubmatrix(eye(6,6),0,local_Phi.cols());
+                    local_b = measuredW[currFT];
+                    YARP_ASSERT(local_Phi.rows() == 6 && local_Phi.cols() == 40);
+                    
+                    printMatrix_ofstream(A_file,local_A,10);
+                    printVector_ofstream(b_file,local_b,10);
+                    
+                    Ab_sample_count++;
+                }*/
+                
                 
                 if( debug_out_enabled ) {
                     //calculate regressor is limb is not still only if debug in enabled 
                     //Get current regressors
+                    /*
                     Matrix Phi_reduced, Phi_forces, Phi_torques;	
                     //fprintf(stderr,"Read FT success!\n");
                     //Doing an online estimation step
@@ -589,8 +629,7 @@ void inertiaObserver_thread::run()
                     iCubLimbRegressorComplete(icub,limbNames[currLimb],Phi_complete);
                     Phi_tau = Phi_complete.submatrix(6,Phi_complete.rows()-1,0,Phi_complete.cols()-1);
                     TauTTau = TauTTau + Phi_tau.transposed()*Phi_tau;
-                    
-           
+                    */
                     
                     //if debug is activated, output the estimation of the measure and the real one
                     if( debug_out_enabled ) {
@@ -598,11 +637,11 @@ void inertiaObserver_thread::run()
                         //
                         
                          //sensor contribution
-                        iDynSensor * p_sensor;
-                        iDynChain * p_chain;
-                        int virtual_link;
-                        iCubLimbGetData(icub,limbNames[currLimb],/*consider_virtual_link=*/false,p_chain,p_sensor,virtual_link);
-
+                        //iDynSensor * p_sensor;
+                        //iDynChain * p_chain;
+                        //int virtual_link;
+                        //iCubLimbGetData(icub,limbNames[currLimb],/*consider_virtual_link=*/false,p_chain,p_sensor,virtual_link);
+                        /*
                         Matrix torques_regressor(0,Phi.cols()); 
                         int first_torque = 3;
                         int Ntorques = p_chain->getN()-first_torque;
@@ -625,6 +664,7 @@ void inertiaObserver_thread::run()
                         //------------------------------------------------
                         // Code for checking accuracy of projected torques
                         //------------------------------------------------
+                        
                         Matrix Y;
                         Matrix JY_1(Ntorques,Phi_reduced.cols()), YTF, YTB; // YTF + JY_1 == YTB
                         iDynChainRegressorComplete(icub->upperTorso->right->asChain(), icub->upperTorso->rightSensor,Y,5);
@@ -642,6 +682,7 @@ void inertiaObserver_thread::run()
                             Vector Jrow = (adjointInv(p_sensor->getH_i_s(joint_index-1)).transposed()).getRow(5);
                             JacTor.setRow(joint_index-first_torque,Jrow);
                         }
+                        */
                         /**
                         Vector JWmeasured(Ntorques);
                         
@@ -675,26 +716,27 @@ void inertiaObserver_thread::run()
                 
                         //publish on port the estimated measure, and the real one
                         Stamp info(call_count,W_timestamp[currFT]);
-                        measured_out_port[currFT]->prepare() = measuredW[currFT];
-                        measured_out_port[currFT]->setEnvelope(info);
-                        measured_out_port[currFT]->write();
+                        //measured_out_port[currFT]->prepare() = measuredW[currFT];
+                        //measured_out_port[currFT]->setEnvelope(info);
+                        //measured_out_port[currFT]->write();
                         
                         //Mixed prediction
+                        /*
                         Prediction pred_static, pred_dynamic;
                         pred_static = staticParamEstimator->predict(Phi_static_w_offset);
                         pred_dynamic = dynamicParamEstimator->predict(Phi_dynamic);
                         mixed_estimated_out_port->prepare() = pred_static.getPrediction() + pred_dynamic.getPrediction();
                         mixed_estimated_out_port->setEnvelope(info);
                         mixed_estimated_out_port->write();
-                        
+                        */
                         //std::cerr << "Debug static " << pred_static.getPrediction().toString() << std::endl;
                         //std::cerr << "Debug dynamic " << pred_dynamic.getPrediction().toString() << std::endl;
 
-                        
+                        /*
                         static_estimated_out_port->prepare() = pred_static.getPrediction();
                         static_estimated_out_port->setEnvelope(info);
                         static_estimated_out_port->write();
-                        
+                        */
                         
                         for(unsigned int j=0; j < paramEstimators[currFT].size(); j++ ) {
                             Prediction pred;
@@ -705,17 +747,18 @@ void inertiaObserver_thread::run()
                             //estimated_out_port_inc[currFT][j]->prepare() = pred.getVariance();
                             //estimated_out_port_inc[currFT][j]->setEnvelope(info);
                             //estimated_out_port_inc[currFT][j]->write();
+                            /*
                             if( debug_out_parameters ) {
                                 params[currFT][j] = paramEstimators[currFT][j]->getParameters();
                                 parameters_estimated_out_port[currFT][j]->prepare() = params[currFT][j];
                                 parameters_estimated_out_port[currFT][j]->setEnvelope(info);
                                 parameters_estimated_out_port[currFT][j]->write();
-                            }
+                            }*/
                             
                             
 
 
-                            Prediction pred_torques = paramEstimators[currFT][j]->predict(torques_regressor_w_offset);
+                            //Prediction pred_torques = paramEstimators[currFT][j]->predict(torques_regressor_w_offset);
                             //Prediction pred_torques_cad = paramEstimators[currFT][2]->predict(torques_regressor_w_offset);
                             /* 
                             Vector est_torques_cad = torques_regressor*identifiable_parameters[currFT]*(params).subVector(0,params.size()-7);
@@ -768,17 +811,17 @@ void inertiaObserver_thread::run()
                         
                                 //cout << "Standard deviation : " << pred_torques.getVariance().toString(8) << endl;
                             }
-                            
+                            /*
                             Vector par, par_cad, offset_par;
                             par =  paramEstimators[currFT][j]->getParameters();
                             par_cad = paramEstimators[currFT][2]->getParameters();
                             offset_par = par.subVector(par.size()-6,par.size()-1);
                             par = par.subVector(0,par.size()-7);
                             par_cad = par_cad.subVector(0,par_cad.size()-7);
-                            
+                            */
                             //cout << "Error in using different regressor  1:" << norm( YTF*par + JY_1*par - YTB*par) << endl;
                             //cout << "Error in using different regressors 2:" << norm(JY_1*par - JacTor*Phi_reduced*par) << endl;
-                            
+                            /*
                             estimated_forward_inertial_torques[currFT][j]->prepare() = YTF*par;
                             estimated_backward_inertial_torques[currFT][j]->prepare() = YTB*par;
                             estimated_FT_sens_torques[currFT][j]->prepare() = JY_1*par;
@@ -794,7 +837,7 @@ void inertiaObserver_thread::run()
                             estimated_backward_inertial_torques[currFT][j]->write();
                             estimated_FT_sens_torques[currFT][j]->write();
                             measured_FT_sens_torques[currFT][j]->write();
-
+                            */
                   
                             //Vector vec(2);
                             //vec[0] = norm(par-par_cad);
@@ -805,22 +848,22 @@ void inertiaObserver_thread::run()
                             
                             //estimated_projected_torques[currFT][j]->setEnvelope(info);
                             //estimated_projected_torques[currFT][j]->write();
-                            estimated_projected_torques_inc[currFT][j]->prepare() = pred_torques.getVariance();
-                            estimated_projected_torques_inc[currFT][j]->setEnvelope(info);
-                            estimated_projected_torques_inc[currFT][j]->write();
+                            //estimated_projected_torques_inc[currFT][j]->prepare() = pred_torques.getVariance();
+                            //estimated_projected_torques_inc[currFT][j]->setEnvelope(info);
+                            //estimated_projected_torques_inc[currFT][j]->write();
 
                         }
                     
                     } 
                 }
                 
-                //if( !limbIsStill ) {
-                    //by default using the first one, if debug is enabled use more
+                
                 if( learning_enabled ) {
                     for(unsigned int j=0; j < paramEstimators[currFT].size(); j++ ) {
                         paramEstimators[currFT][j]->feedSample(Phi_w_offset,measuredW[currFT]);
                     }
                     
+                    /*
                     if( limbIsStill ) {
                         staticParamEstimator->feedSample(Phi_static_w_offset,measuredW[currFT]);
                     } else {
@@ -828,7 +871,7 @@ void inertiaObserver_thread::run()
                         pred_static = staticParamEstimator->predict(Phi_static_w_offset);
                         Vector pred_sd = pred_static.getVariance();
                         double max = -1.0;
-                        for(int i = 0; i < pred_sd.size(); i++ ) {
+                        for(int i = 0; i < (int)pred_sd.size(); i++ ) {
                             if( max < pred_sd[i]) {
                                 max = pred_sd[i];
                             }
@@ -839,7 +882,7 @@ void inertiaObserver_thread::run()
                             dynamicParamEstimator->feedSample(Phi_dynamic,measuredW[currFT]-pred_static.getPrediction());
                         }
                         
-                    }
+                    }*/
                 }
                 //}
             }
@@ -858,12 +901,6 @@ void inertiaObserver_thread::run()
            //fprintf(stderr,"No successful read in this run execution.\n"); 
         }
         //~~~~~~~~~~~~~~
-        
-        /**
-         * 
-         * \todo check if beta is available (estimatnion done!
-         */
-         
 
     }
 }
@@ -912,6 +949,9 @@ void inertiaObserver_thread::threadRelease()
             } 
         }
     }
+    
+            closePort(port_contact);
+
     
     if( staticParamEstimator ) {
         delete staticParamEstimator;
@@ -2026,7 +2066,7 @@ Matrix inertiaObserver_thread::getOnlyDynamicParam(Matrix all_param, double tol)
     
     int rank;
     
-    for(rank = 0; rank < S.size(); rank++ ) {
+    for(rank = 0; rank < (int)S.size(); rank++ ) {
         if( S[rank] < tol ) {
             break;
         }

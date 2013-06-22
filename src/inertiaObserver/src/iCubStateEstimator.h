@@ -13,6 +13,8 @@ enum iCubFT { ICUB_FT_RIGHT_ARM, ICUB_FT_LEFT_ARM, ICUB_FT_RIGHT_LEG, ICUB_FT_LE
 #include <yarp/math/api.h>
 #include <yarp/os/Semaphore.h>
 
+#include <iCub/skinDynLib/skinContactList.h>
+
 #include <iostream>
 #include <map>
 #include <vector>
@@ -22,8 +24,19 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace iCub::ctrl;
 using namespace yarp::math;
+using namespace iCub::skinDynLib;
 
 using namespace std;
+
+
+typedef struct
+{
+    double time;
+    skinContactList data;
+} AWSkinPolyElement;
+
+
+typedef std::deque<AWSkinPolyElement> AWSkinPolyList;
 
 
 /**
@@ -48,6 +61,9 @@ class iCubStateEstimator
 		
 		map<iCubFT,AWPolyList *> FTList;
         map<iCubFT,Semaphore*> FTListMutex;
+        
+        AWSkinPolyList * ContactList;
+        Semaphore *  ContactMutex;
 		
         map<iCubLimb,double> last_ts_linEst;
         map<iCubLimb,double> last_ts_quadEst;
@@ -94,6 +110,8 @@ class iCubStateEstimator
         void postOnFTMutex(iCubFT ft);
         void waitOnPosMutex(iCubLimb limb);
         void postOnPosMutex(iCubLimb limb);
+        void waitOnContactMutex();
+        void postOnContactMutex();
         
         
     public:
@@ -138,12 +156,22 @@ class iCubStateEstimator
         double getFT(iCubFT ft_sensor, Vector & result, const double time = -1.0);
         
         /**
+         * Get the voltage measure for timestamp time
+         * @return the timestamp of the returned sample it all went well, -1.0 otherwise
+         */
+        //double getVoltage(iCubLimb ft_sensor, Vector & result, const double time = -1.0);
+        
+        
+        /**
          * Get a inertial for timestamp time
          * @param inertial the reference to the vector contining the output sample
          * @param time the timestamp of the requested sample
          * @return time the timestamp of the returned sample it all went well, -1.0 otherwise
          */
         double getInertial(Vector & inertial,const double time);
+        
+        double getContact(skinContactList & dynList, const double time);
+
         
         /**
          * Submit a position sample
@@ -159,6 +187,15 @@ class iCubStateEstimator
          */
         bool submitFT(iCubFT ft, const Vector & FT, double time);
         
+        /**
+         * Submit a Voltage sensor sample
+         * 
+         * @return true if the sample was submitted, false otherwise
+         */
+        //bool submitVoltage(iCubLimb limb, const Vector & voltage, double time);
+        
+        bool submitContact(const skinContactList & skinList, double time);
+         
         /**
          * Submit a inertial sensor sample
          * 
@@ -200,6 +237,8 @@ class iCubStateEstimator
          * 
          */
         static bool greater_elem(AWPolyElement el1, AWPolyElement el2);
+        static bool greater_elem_skin(AWSkinPolyElement el1, AWSkinPolyElement el2);
+
 };
 
 
@@ -223,6 +262,23 @@ public:
 
     ~posCollector();
 };
+
+
+class skinCollector : public BufferedPort<skinContactList>
+{
+private:
+    iCubStateEstimator * p_state_estimator;
+
+    double start_ts;
+
+    virtual void onRead(skinContactList &b);
+
+public:
+    skinCollector(iCubStateEstimator * _p_state_estimator);
+
+    ~skinCollector();
+};
+
 
 /**
  *

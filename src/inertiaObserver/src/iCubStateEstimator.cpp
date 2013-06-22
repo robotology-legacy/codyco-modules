@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <deque>
 
+
 void posCollector::onRead(Bottle &b)
 {
         Stamp info;
@@ -109,6 +110,40 @@ FTCollector::~FTCollector()
 {
 }
 
+
+
+void skinCollector::onRead(skinContactList &b)
+{
+        Stamp info;
+        BufferedPort<skinContactList>::getEnvelope(info);
+
+        double pos_time;
+
+        // for the esteem the time stamp
+        // is required. If not present within the
+        // packet, the actual machine time is 
+        // attached to it.
+        if (info.isValid())
+            pos_time=info.getTime();
+        else
+            pos_time=Time::now();
+
+        //Minus because of the definition of the FT measurment in the sensor and in iDyn !!!
+        p_state_estimator->submitContact(b,pos_time);
+    
+}
+
+skinCollector::skinCollector(iCubStateEstimator * _p_state_estimator)
+{
+        p_state_estimator = _p_state_estimator;
+        start_ts = Time::now();
+    
+}
+
+skinCollector::~skinCollector()
+{
+}
+
 void inertialCollector::onRead(Bottle &b)
 {
         Stamp info;
@@ -198,6 +233,9 @@ iCubStateEstimator::iCubStateEstimator()
             FTListMutex[vectorFT[i]] = new Semaphore;
 		}
         
+        ContactList = new AWSkinPolyList;
+        ContactMutex = new Semaphore;
+        
 
 }
 
@@ -227,6 +265,14 @@ iCubStateEstimator::~iCubStateEstimator()
         if( FTListMutex[vectorFT[i]] ) {
             delete FTListMutex[vectorFT[i]];
         }
+    }
+    
+    if( ContactMutex ) {
+        delete ContactMutex;
+    }
+    
+    if( ContactList ) {
+        delete ContactList;
     }
 
 }
@@ -499,6 +545,62 @@ double iCubStateEstimator::getFT(iCubFT ft, Vector & result, const double time)
     return result_time;
 }
 
+
+double iCubStateEstimator::getContact(skinContactList & skinList, const double time)
+{
+    double result_time;
+    AWSkinPolyList * p_list;
+    p_list = ContactList;
+    
+    ContactMutex->wait();
+    
+    if( p_list->size() >= 1 && time == -1.0 ) {
+		skinList = p_list->front().data;
+		result_time = (p_list->front()).time;
+	} else if( p_list->size() <= 2 ) {
+		//result = Vector(0);
+		result_time = -1.0;
+	} else if( time < (p_list->back()).time  ) {
+		//Requested instant out of available samples
+		//result = Vector(0);
+		result_time = -1.0;
+	} else if( time > (p_list->front()).time ) {
+		//Return last available sample? it time is too distant? TODO 
+		//result = Vector(0);
+		result_time = -1.0;
+	} else {
+        //result = Vector(0);
+        result_time = -1.0;
+        //scan list to found the two sample with respect to which the request time sample is in the middle 
+        AWSkinPolyList::iterator curr;
+        double curr_time, next_time;
+        for(curr = p_list->begin(); curr != p_list->end(); curr++ ) {
+            curr_time = curr->time;
+            if( curr != p_list->begin() ) {
+                if( time == next_time ) {
+                    skinList = (*(curr-1)).data;
+                    result_time = time;
+                } else if( time < next_time && time > curr_time ) {
+                    if( abs(time-next_time) < abs(time-curr_time) ) {
+                        //result = ((*(curr-1)).data-(*curr).data)*((time-curr_time)/(next_time-curr_time)) + (*curr).data;
+                        skinList =  (*(curr-1)).data;
+                        result_time = next_time;
+                    } else {
+                        skinList = curr->data;
+                        result_time = curr_time;
+                    }
+                }
+            }
+            next_time = curr_time;
+        }
+
+    }
+    
+    ContactMutex->post();
+    return result_time;
+}
+
+
 double getInertial(Vector & inertial, double time)
 {
     inertial = Vector(0);
@@ -591,6 +693,63 @@ bool iCubStateEstimator::submitFT(iCubFT ft, const Vector & FT, double time)
     return true;
 }
 
+bool iCubStateEstimator::submitContact(const skinContactList & skinList, double time)
+{
+    AWSkinPolyElement el;
+    el.data = skinList;
+    el.time = time;
+    
+    ContactMutex->wait();
+    
+    //check to keep the list in descending ordered 
+    if( ContactList->size() == 0 || el.time >= ContactList->front().time ) {
+        //standard case
+        ContactList->push_front(el);
+    } else {
+        //an ordered insert would be more efficient, but is a very rare possibility
+        //so it is easier to do in this way
+        ContactList->push_front(el);
+        sort(ContactList->begin(),ContactList->end(),greater_elem_skin);
+    }
+    
+    if( ContactList->size() > window_length ) {
+        ContactList->pop_back();
+    }
+    
+    ContactMutex->post();
+    
+    return true;
+}
+
+/*
+bool iCubStateEstimator::submitVoltage(iCubLimb limb, const Vector & voltage, double time)
+{
+    AWPolyElement el;
+    el.data = voltage;
+    el.time = time;
+    
+    VoltageListMutex[limb]->wait();
+    
+    //check to keep the list in descending ordered 
+    if( VoltageList[limb]->size() == 0 || el.time >= VoltageList[limb]->front().time ) {
+        //standard case
+        VoltageList[limb]->push_front(el);
+    } else {
+        //an ordered insert would be more efficient, but is a very rare possibility
+        //so it is easier to do in this way
+        VoltageList[limb]->push_front(el);
+        sort(VoltageList[limb]->begin(),VoltageList[limv]->end(),greater_elem);
+    }
+    
+    if( VoltageList[limb]->size() > window_length ) {
+        VoltageList[limb]->pop_back();
+    }
+    
+    FTListMutex[ft]->post();
+    
+    return true;
+}
+*/
 
 bool iCubStateEstimator::submitInertial(const Vector & inertial, double time)
 {
@@ -728,6 +887,10 @@ bool iCubStateEstimator::greater_elem(AWPolyElement el1, AWPolyElement el2) {
     return (el1.time < el2.time);
 }
 
+bool iCubStateEstimator::greater_elem_skin(AWSkinPolyElement el1, AWSkinPolyElement el2) {
+    return (el1.time < el2.time);
+}
+
 void iCubStateEstimator::waitOnFTMutex(iCubFT ft) {
     if( FTListMutex[ft] ) {
         FTListMutex[ft]->wait();
@@ -751,6 +914,19 @@ void iCubStateEstimator::postOnPosMutex(iCubLimb limb) {
         posListMutex[limb]->post();
     } 
 }
+
+void iCubStateEstimator::waitOnContactMutex() {
+    if( ContactMutex ) {
+        ContactMutex->wait();
+    } 
+}
+
+void iCubStateEstimator::postOnContactMutex() {
+    if( ContactMutex ) {
+        ContactMutex->post();
+    } 
+}
+
 
 Vector iCubStateEstimator::estimate(AWPolyList & elemList, const double time, Vector & winLen, const unsigned N, const Vector & D, Vector & x, Vector & t, const unsigned int order, double & return_time)
 {
@@ -840,7 +1016,7 @@ Vector iCubStateEstimator::estimate(AWPolyList & elemList, const double time, Ve
 
             // test the regressor upon all the elements
             // belonging to the actual window
-            for (unsigned int k=i1; k<=i2; k++)
+            for (unsigned int k=(unsigned int)i1; k<=(unsigned int)i2; k++)
             {
                 if (fabs(x[k]-eval(coeff,t[k]))>D(i))
                 {
