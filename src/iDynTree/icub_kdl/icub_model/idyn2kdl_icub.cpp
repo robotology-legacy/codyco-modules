@@ -36,7 +36,7 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, bo
     
     //Creating left leg
     KDL::Chain ll, old_ll;
-    const char *ll_joints_cstr[] = {"l_hip_pitch", "l_hip_roll", "left_leg_ft_sensor", "l_hip_yaw", "l_knee", "l_ankle_pitch", "l_ankle_roll"};    
+    const char *ll_joints_cstr[] = {"l_hip_pitch", "l_hip_roll", "l_hip_yaw", "left_leg_ft_sensor", "l_knee", "l_ankle_pitch", "l_ankle_roll"};    
     std::vector<std::string> ll_joints(ll_joints_cstr,end(ll_joints_cstr));
     names2links_joints(ll_joints,links,joints);
     status_ok = idynSensorChain2kdlChain(*(icub_idyn.lowerTorso->left),*(icub_idyn.lowerTorso->leftSensor),old_ll,links,joints,"l_sole");
@@ -45,7 +45,7 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, bo
     
     //Creating right leg
     KDL::Chain rl, old_rl;
-    const char *rl_joints_cstr[] = {"r_hip_pitch", "r_hip_roll", "r_leg_ft_sensor", "r_hip_yaw", "r_knee", "r_ankle_pitch", "r_ankle_roll"};    
+    const char *rl_joints_cstr[] = {"r_hip_pitch", "r_hip_roll", "r_hip_yaw", "r_leg_ft_sensor", "r_knee", "r_ankle_pitch", "r_ankle_roll"};    
     std::vector<std::string> rl_joints(rl_joints_cstr,end(rl_joints_cstr));
     names2links_joints(rl_joints,links,joints);
     status_ok = idynSensorChain2kdlChain(*(icub_idyn.lowerTorso->right),*(icub_idyn.lowerTorso->rightSensor),old_rl,links,joints,"r_sole");
@@ -64,7 +64,7 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, bo
     
     //Creating left arm
     KDL::Chain la, old_la;
-    const char *la_joints_cstr[] = {"l_shoulder_pitch", "l_shoulder_roll","l_arm_ft_sensor" ,"l_shoulder_yaw", "l_elbow", "l_wrist_prosup", "l_wrist_pitch","l_wrist_yaw",};    
+    const char *la_joints_cstr[] = {"l_shoulder_pitch", "l_shoulder_roll","l_shoulder_yaw" ,"l_arm_ft_sensor" , "l_elbow", "l_wrist_prosup", "l_wrist_pitch","l_wrist_yaw",};    
     std::vector<std::string> la_joints(la_joints_cstr,end(la_joints_cstr));
     names2links_joints(la_joints,links,joints);
     status_ok = idynSensorChain2kdlChain(*(icub_idyn.upperTorso->left),*(icub_idyn.upperTorso->leftSensor),old_la,links,joints,"l_gripper");
@@ -73,7 +73,7 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, bo
 
     //Creating right arm
     KDL::Chain ra, old_ra;
-    const char *ra_joints_cstr[] = {"r_shoulder_pitch", "r_shoulder_roll","r_arm_ft_sensor" ,"r_shoulder_yaw", "r_elbow", "r_wrist_prosup", "r_wrist_pitch","r_wrist_yaw",};     
+    const char *ra_joints_cstr[] = {"r_shoulder_pitch", "r_shoulder_roll","r_shoulder_yaw", "r_arm_ft_sensor", "r_elbow", "r_wrist_prosup", "r_wrist_pitch","r_wrist_yaw",};     
     std::vector<std::string> ra_joints(ra_joints_cstr,end(ra_joints_cstr));
     names2links_joints(ra_joints,links,joints);
     status_ok = idynSensorChain2kdlChain(*(icub_idyn.upperTorso->right),*(icub_idyn.upperTorso->rightSensor),old_ra,links,joints,"r_gripper");

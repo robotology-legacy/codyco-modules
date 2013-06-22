@@ -115,17 +115,7 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
     FTlimb[ICUB_FT_LEFT_ARM] = ICUB_LEFT_ARM;
     FTlimb[ICUB_FT_RIGHT_LEG] = ICUB_RIGHT_LEG;
     FTlimb[ICUB_FT_LEFT_LEG] = ICUB_LEFT_LEG;
-    
-    ATA = zeros(40,40);
-    ATA_forces = zeros(40,40);
-    ATA_torques = zeros(40,40);
-    TTT.resize(7);
-    for(int ind = 0; ind < (int)TTT.size(); ind++ ) {
-        TTT[ind] = zeros(40,40);
-    }
-    TauTTau = zeros(40,40);
-    
-    
+        
     first = true;
     verbose = true;
     
@@ -185,7 +175,7 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
     
     ftStdDev[ICUB_FT_LEFT_ARM] = ftStdDev[ICUB_FT_RIGHT_ARM];
     
-    learning_enabled = true;
+    learning_enabled = false;
 
     
      
@@ -477,78 +467,15 @@ void inertiaObserver_thread::run()
         limbIsStill = false;
         do {
             read_success = readAvailableFT(currFT,*icub,current_state_estimator,measuredW[currFT],W_timestamp[currFT]);
-            limbIsStill = current_state_estimator.isStill(currLimb) && current_state_estimator.isStill(ICUB_HEAD);
+            //limbIsStill = current_state_estimator.isStill(currLimb) && current_state_estimator.isStill(ICUB_HEAD);
             
             if( read_success ) {
                 
-                if( limbIsStill  ) {
-                    //if(verbose) fprintf(stderr,"Estimate not updated because the arm was still for more than half a second\n");
-                    
-                    if( !wasStill[currLimb] ) {
-                        std::cerr << setprecision(15) << W_timestamp[currFT] << ": RUN: LIMB STOPPED" << std::endl;
-                    }
-                    //It was not still, now it is
-                    wasStill[currLimb] = true;
-                    //}
-                    /*
-                    if( dump_static ) {
-                        //calculate regressor only for static case
-                        //Get current static regressors
-                        Matrix Phi_reduced_static;	
-                        //fprintf(stderr,"Read FT success!\n");
-                        //Doing an online estimation step
-                        iCubLimbRegressorSensorWrench(icub,limbNames[currLimb],Phi);
-                        //Considering only identifable parameters
-                        Phi_reduced_static = Phi*static_identifiable_parameters[currFT];
-                    
-                        //Adding offset regression
-                        Phi_w_offset = Matrix(Phi_reduced_static.rows(),Phi_reduced_static.cols()+6);
-                        Phi_w_offset.setSubmatrix(Phi_reduced_static,0,0);
-                        Phi_w_offset.setSubmatrix(eye(6,6),0,Phi_reduced_static.cols());
-                        
-                        //onlineMeanFT[currFT].feedSample(measuredW[currFT]);
-                        //onlineMeanRegr[currFT].feedSample(Phi_w_offset);
-                    }*/
-                    
-                } else {
-                    if( wasStill[currLimb] ) {
-                        std::cerr << setprecision(15) << W_timestamp[currFT] << ": RUN: LIMB MOVING" << std::endl;
-                        //It was still, now it is moving
-                        wasStill[currLimb] = false;
-                        if( dump_static ) {
-                            Matrix regrMean;
-                            Vector ftMean;
-                            //use mean... what to do?
-                            //Store for offline learning? use as sample for a static online method                             
-                            //ftMean = onlineMeanFT[currFT].getMean();
-                            //regrMean = onlineMeanRegr[currFT].getMean();
-                            /*
-                            if( onlineMeanFT[currFT].getSampleNum() > 100 ) { //If was stopped for more than a second
-                                //std::cerr << "Dumping static " << static_dump_count[currFT] << std::endl;
-                                if( static_dump_count[currFT] == 0 ) {
-                                    allStaticRegr[currFT] = regrMean;
-                                    allStaticFT[currFT] = ftMean;
-                                    //std::cerr << "fist static_dump: allStaticFT[currFT] " << allStaticFT[currFT].size() << std::endl;
-                                    static_dump_count[currFT]++;
-                                } else {
-                                    YARP_ASSERT( 6*static_dump_count[currFT] == allStaticRegr[currFT].rows());
-                                    YARP_ASSERT( (unsigned)allStaticRegr[currFT].rows() == allStaticFT[currFT].size() );
-                                    YARP_ASSERT( 6 == regrMean.rows() );
-                                    allStaticRegr[currFT] = pile(allStaticRegr[currFT],regrMean);  
-                                    allStaticFT[currFT] = cat(allStaticFT[currFT],ftMean);
-                                    static_dump_count[currFT]++;
-                                }
-                            }*/
-                            //onlineMeanFT[currFT].reset();
-                            //onlineMeanRegr[currFT].reset();
-                            
-                        }
-                    }
-                }
                 
                 oneReadWasSuccess = true;
                 
                 //If produceAb is enabled, produce the estimation matrix A and known terms b and dump them
+                /*
                 if( produceAb ) {
                     iCubLimbRegressorSensorWrench(icub,"right_arm",local_Phi);
                     local_A.setSubmatrix(local_Phi,0,0);
@@ -560,7 +487,7 @@ void inertiaObserver_thread::run()
                     printVector_ofstream(b_file,local_b,10);
                     
                     Ab_sample_count++;
-                }
+                }*/
                 
                 if( produceAb_contact ) {
                     skinContactList scl, ra_scl;
@@ -576,8 +503,9 @@ void inertiaObserver_thread::run()
                     contact_file << num_taxels << std::endl;
                 }
                 
-                /*
+                
                 if( produceAb_motors ) {
+                    
                     iCubLimbRegressorSensorWrench(icub,"right_arm",local_Phi);
                     local_A.setSubmatrix(local_Phi,0,0);
                     local_A.setSubmatrix(eye(6,6),0,local_Phi.cols());
@@ -588,303 +516,13 @@ void inertiaObserver_thread::run()
                     printVector_ofstream(b_file,local_b,10);
                     
                     Ab_sample_count++;
-                }*/
-                
-                
-                if( debug_out_enabled ) {
-                    //calculate regressor is limb is not still only if debug in enabled 
-                    //Get current regressors
-                    /*
-                    Matrix Phi_reduced, Phi_forces, Phi_torques;	
-                    //fprintf(stderr,"Read FT success!\n");
-                    //Doing an online estimation step
-                    iCubLimbRegressorSensorWrench(icub,limbNames[currLimb],Phi);
-                    //Considering only identifable parameters
-                    Phi_reduced = Phi*identifiable_parameters[currFT];
-                    
-                    Phi_forces = Phi.submatrix(0,2,0,Phi.cols()-1);
-                    Phi_torques = Phi.submatrix(3,5,0,Phi.cols()-1);
-                    
-                    //Mixed regressor
-                    Matrix Phi_static;
-                    Phi_static = Phi*static_identifiable_parameters[currFT];
-                    Phi_static_w_offset = Matrix(Phi_static.rows(),Phi_static.cols()+6);
-                    Phi_static_w_offset.setSubmatrix(Phi_static,0,0);
-                    Phi_static_w_offset.setSubmatrix(eye(6,6),0,Phi_static.cols());       
-                    
-                    Phi_dynamic = Phi*dynamic_identifiable_parameters[currFT];             
-                    
-                    
-                    ATA = ATA + Phi.transposed()*diagonalMatrix(ftStdDev[ICUB_FT_RIGHT_ARM])*diagonalMatrix(ftStdDev[ICUB_FT_RIGHT_ARM])*Phi;
-                    ATA_forces = ATA_forces + Phi_forces.transposed()*Phi_forces;
-                    ATA_torques = ATA_torques + Phi_torques.transposed()*Phi_torques;
-                    N_samples++;
-                    
-                    //Adding offset regression
-                    Phi_w_offset = Matrix(Phi_reduced.rows(),Phi_reduced.cols()+6);
-                    Phi_w_offset.setSubmatrix(Phi_reduced,0,0);
-                    Phi_w_offset.setSubmatrix(eye(6,6),0,Phi_reduced.cols());
-                    
-                    Matrix Phi_complete, Phi_tau;
-                    iCubLimbRegressorComplete(icub,limbNames[currLimb],Phi_complete);
-                    Phi_tau = Phi_complete.submatrix(6,Phi_complete.rows()-1,0,Phi_complete.cols()-1);
-                    TauTTau = TauTTau + Phi_tau.transposed()*Phi_tau;
-                    */
-                    
-                    //if debug is activated, output the estimation of the measure and the real one
-                    if( debug_out_enabled ) {
-                        
-                        //
-                        
-                         //sensor contribution
-                        //iDynSensor * p_sensor;
-                        //iDynChain * p_chain;
-                        //int virtual_link;
-                        //iCubLimbGetData(icub,limbNames[currLimb],/*consider_virtual_link=*/false,p_chain,p_sensor,virtual_link);
-                        /*
-                        Matrix torques_regressor(0,Phi.cols()); 
-                        int first_torque = 3;
-                        int Ntorques = p_chain->getN()-first_torque;
-
-                        //Calculate torque estimation regressor, right arms arms only
-                        for( int joint_index = first_torque; joint_index < first_torque+Ntorques; joint_index++ ) {
-                            Vector T = iDynChainRegressorTorqueEstimation(p_chain,p_sensor,joint_index,virtual_link);
-                            TTT[joint_index] = TTT[joint_index] + outerProduct(T,T);
-                            torques_regressor = pile(torques_regressor,T);
-                        }
-                        torques_regressor = torques_regressor*identifiable_parameters[currFT];
-                        
-                        Matrix torques_regressor_w_offset = Matrix(torques_regressor.rows(),torques_regressor.cols()+6);
-                        torques_regressor_w_offset.setSubmatrix(torques_regressor,0,0);
-                        torques_regressor_w_offset.setSubmatrix(zeros(6,6),0,torques_regressor.cols());
-                        
-                        //torques_sensor[0] = (adjointInv(p_sensor->getH_i_s(2)).transposed()*measuredW[currFT])[5];
-                        //torques_sensor[1] = (adjointInv(p_sensor->getH_i_s(3)).transposed()*measuredW[currFT])[5];
-                        
-                        //------------------------------------------------
-                        // Code for checking accuracy of projected torques
-                        //------------------------------------------------
-                        
-                        Matrix Y;
-                        Matrix JY_1(Ntorques,Phi_reduced.cols()), YTF, YTB; // YTF + JY_1 == YTB
-                        iDynChainRegressorComplete(icub->upperTorso->right->asChain(), icub->upperTorso->rightSensor,Y,5);
-                        YTB = Y.submatrix(6,6+Ntorques-1,0,Y.cols()-1)*identifiable_parameters[currFT];
-                        YTF = torques_regressor;
-                         int joint_index;
-                        for(joint_index = first_torque; joint_index < first_torque+Ntorques; joint_index++ ) {
-                            Vector JY = (adjointInv(p_sensor->getH_i_s(joint_index-1)).transposed()*Phi_reduced).getRow(5);
-                            JY_1.setRow(joint_index-first_torque,JY);
-                        }
-                        
-                        
-                        Matrix JacTor(Ntorques,6);
-                        for( joint_index = first_torque; joint_index < first_torque+Ntorques; joint_index++ ) {
-                            Vector Jrow = (adjointInv(p_sensor->getH_i_s(joint_index-1)).transposed()).getRow(5);
-                            JacTor.setRow(joint_index-first_torque,Jrow);
-                        }
-                        */
-                        /**
-                        Vector JWmeasured(Ntorques);
-                        
-                        for( int joint_index = first_torque; joint_index < first_torque+Ntorques; joint_index++ ) {
-                            JWmeasured[joint_index-first_torque] =  (adjointInv(p_sensor->getH_i_s(joint_index-1)).transposed()).getRow(5);
-                        }**/
-                                                    
-                        
-                        //Vector proj_wrench = adjointInv(p_sensor->getH_i_s(2)).transposed()*measuredW[currFT];
-                        //Vector proj_wrench_l = adjointInv(p_sensor->getH_i_s(3)).transposed()*measuredW[currFT];
-
-        
-                        //Check if projected torque computation is right:
-                        Vector F_up(6, 0.0);
-                        //Matrix HC(4,4);
-                        //HC.zero();
-                        //HC.setSubmatrix(eye(3,3),0,0);
-                        //Matrix I(3,3);
-                        //I.zero();
-                        //p_chain->setDynamicParameters(0,0,HC,I);
-                        //p_chain->setDynamicParameters(1,0,HC,I);
-                        //p_chain->setDynamicParameters(2,0,HC,I);
-                        //iCubLimbSetBeta(icub,"right_arm",Vector(40,0.0),false);
-                        icub->upperTorso->setSensorMeasurement(measuredW[currFT],F_up,F_up);
-                        icub->upperTorso->solveWrench();
-                        Vector RATorques = icub->upperTorso->getTorques("right_arm");
-                        //Matrix RAForces = p_chain->getForces();
-                        //Matrix RAMoments = p_chain->getMoments();
-                        
-
-                
-                        //publish on port the estimated measure, and the real one
-                        Stamp info(call_count,W_timestamp[currFT]);
-                        //measured_out_port[currFT]->prepare() = measuredW[currFT];
-                        //measured_out_port[currFT]->setEnvelope(info);
-                        //measured_out_port[currFT]->write();
-                        
-                        //Mixed prediction
-                        /*
-                        Prediction pred_static, pred_dynamic;
-                        pred_static = staticParamEstimator->predict(Phi_static_w_offset);
-                        pred_dynamic = dynamicParamEstimator->predict(Phi_dynamic);
-                        mixed_estimated_out_port->prepare() = pred_static.getPrediction() + pred_dynamic.getPrediction();
-                        mixed_estimated_out_port->setEnvelope(info);
-                        mixed_estimated_out_port->write();
-                        */
-                        //std::cerr << "Debug static " << pred_static.getPrediction().toString() << std::endl;
-                        //std::cerr << "Debug dynamic " << pred_dynamic.getPrediction().toString() << std::endl;
-
-                        /*
-                        static_estimated_out_port->prepare() = pred_static.getPrediction();
-                        static_estimated_out_port->setEnvelope(info);
-                        static_estimated_out_port->write();
-                        */
-                        
-                        for(unsigned int j=0; j < paramEstimators[currFT].size(); j++ ) {
-                            Prediction pred;
-                            pred = paramEstimators[currFT][j]->predict(Phi_w_offset);
-                            estimated_out_port[currFT][j]->prepare() = pred.getPrediction();
-                            estimated_out_port[currFT][j]->setEnvelope(info);
-                            estimated_out_port[currFT][j]->write();
-                            //estimated_out_port_inc[currFT][j]->prepare() = pred.getVariance();
-                            //estimated_out_port_inc[currFT][j]->setEnvelope(info);
-                            //estimated_out_port_inc[currFT][j]->write();
-                            /*
-                            if( debug_out_parameters ) {
-                                params[currFT][j] = paramEstimators[currFT][j]->getParameters();
-                                parameters_estimated_out_port[currFT][j]->prepare() = params[currFT][j];
-                                parameters_estimated_out_port[currFT][j]->setEnvelope(info);
-                                parameters_estimated_out_port[currFT][j]->write();
-                            }*/
-                            
-                            
-
-
-                            //Prediction pred_torques = paramEstimators[currFT][j]->predict(torques_regressor_w_offset);
-                            //Prediction pred_torques_cad = paramEstimators[currFT][2]->predict(torques_regressor_w_offset);
-                            /* 
-                            Vector est_torques_cad = torques_regressor*identifiable_parameters[currFT]*(params).subVector(0,params.size()-7);
-                            Vector est_torques_no_cad = torques_regressor*identifiable_parameters[currFT]*(paramEstimators[currFT][1]->getParameters()).subVector(0,params.size()-7);
-                            Vector vec(2);
-                            vec[0] = est_torques_cad[0]/est_torques_no_cad[0];
-                            vec[1] = est_torques_cad[0]-est_torques_no_cad[0];
-                            
-                
-                            vec[1] = norm(pred_torques.getPrediction()-pred_torques_cad.getPrediction());
-                            */
-                            
-
-                            //estimated_projected_torques[currFT][j]->prepare() =  pred_torques.getPrediction();
-                            
-                            //torques_regressor_w_offset* paramEstimators[currFT][j]->getParameters();
-                            
-                            //cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
-                            /*
-                            cout << "but: " << endl;
-                            cout << p_sensor->getH_i_s(2).toString() << endl;
-                            cout << "lat " << endl;
-                            cout << adjoint(p_sensor->getH_i_s(2)).toString() << endl;
-                            cout << "measured " << endl;
-                            printVector("measure ", measuredW[currFT]);
-                            cout << "norm" << norm(measuredW[currFT].subVector(0,2)) << endl;
-                            */
-                            //cout << "Debug estimator " << j << endl;
-                            //cout << "Regressor torques: " << endl;
-                            //printVector("regr ", torques_sensor + pred_torques.getPrediction());
-                            /*
-                            cout << " regressor projrenc" << endl;
-                            printVector("proj ", proj_wrench);
-                            cout << "norm" << norm(proj_wrench.subVector(0,2)) << endl;
-                            printVector("proj l", proj_wrench_l);
-                            cout << "norm" << norm(proj_wrench_l.subVector(0,2)) << endl;
-                            */
-                            //cout << "iDyn torques " << endl;
-                            
-                            //printVector("idyn ",RATorques);
-                            //cout << RAForces.toString() << endl;
-                            //cout << RAMoments.toString() << endl;
-                            /*
-                            for(int col=0; col < RAForces.cols(); col++) {
-                                cout << norm((RAForces.getCol(col)).subVector(0,2)) << "\t";
-                            }*/
-                            //cout << endl;
-                            
-                            if( j == 0 ) {
-                        
-                                //cout << "Standard deviation : " << pred_torques.getVariance().toString(8) << endl;
-                            }
-                            /*
-                            Vector par, par_cad, offset_par;
-                            par =  paramEstimators[currFT][j]->getParameters();
-                            par_cad = paramEstimators[currFT][2]->getParameters();
-                            offset_par = par.subVector(par.size()-6,par.size()-1);
-                            par = par.subVector(0,par.size()-7);
-                            par_cad = par_cad.subVector(0,par_cad.size()-7);
-                            */
-                            //cout << "Error in using different regressor  1:" << norm( YTF*par + JY_1*par - YTB*par) << endl;
-                            //cout << "Error in using different regressors 2:" << norm(JY_1*par - JacTor*Phi_reduced*par) << endl;
-                            /*
-                            estimated_forward_inertial_torques[currFT][j]->prepare() = YTF*par;
-                            estimated_backward_inertial_torques[currFT][j]->prepare() = YTB*par;
-                            estimated_FT_sens_torques[currFT][j]->prepare() = JY_1*par;
-                            measured_FT_sens_torques[currFT][j]->prepare() = JacTor*(measuredW[currFT]-offset_par);
-                            
-                            estimated_forward_inertial_torques[currFT][j]->setEnvelope(info);
-                            estimated_backward_inertial_torques[currFT][j]->setEnvelope(info);
-                            estimated_FT_sens_torques[currFT][j]->setEnvelope(info);
-                            measured_FT_sens_torques[currFT][j]->setEnvelope(info);
-
-                            
-                            estimated_forward_inertial_torques[currFT][j]->write();
-                            estimated_backward_inertial_torques[currFT][j]->write();
-                            estimated_FT_sens_torques[currFT][j]->write();
-                            measured_FT_sens_torques[currFT][j]->write();
-                            */
-                  
-                            //Vector vec(2);
-                            //vec[0] = norm(par-par_cad);
-                            //cout << "Parameter error " << vec[0] << endl;
-                            //cout << "Norms: " << norm(par) << " " << norm(par_cad) << endl;
-                            //cout << "Perc: " << vec[0]/norm(par) << " " << vec[0]/norm(par_cad) << endl; 
-                            
-                            
-                            //estimated_projected_torques[currFT][j]->setEnvelope(info);
-                            //estimated_projected_torques[currFT][j]->write();
-                            //estimated_projected_torques_inc[currFT][j]->prepare() = pred_torques.getVariance();
-                            //estimated_projected_torques_inc[currFT][j]->setEnvelope(info);
-                            //estimated_projected_torques_inc[currFT][j]->write();
-
-                        }
-                    
-                    } 
                 }
-                
                 
                 if( learning_enabled ) {
                     for(unsigned int j=0; j < paramEstimators[currFT].size(); j++ ) {
                         paramEstimators[currFT][j]->feedSample(Phi_w_offset,measuredW[currFT]);
                     }
-                    
-                    /*
-                    if( limbIsStill ) {
-                        staticParamEstimator->feedSample(Phi_static_w_offset,measuredW[currFT]);
-                    } else {
-                        Prediction pred_static;
-                        pred_static = staticParamEstimator->predict(Phi_static_w_offset);
-                        Vector pred_sd = pred_static.getVariance();
-                        double max = -1.0;
-                        for(int i = 0; i < (int)pred_sd.size(); i++ ) {
-                            if( max < pred_sd[i]) {
-                                max = pred_sd[i];
-                            }
-                        }
-                        //std::cerr << "Static uncert max " << max << std::endl; 
-                        
-                        if( max < 0.2 ) {
-                            dynamicParamEstimator->feedSample(Phi_dynamic,measuredW[currFT]-pred_static.getPrediction());
-                        }
-                        
-                    }*/
                 }
-                //}
             }
                 
         } while( read_success );
