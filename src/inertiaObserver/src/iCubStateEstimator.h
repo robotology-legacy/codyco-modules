@@ -58,6 +58,9 @@ class iCubStateEstimator
         
         map<iCubLimb,Semaphore*> posListMutex;
 		map<iCubLimb,AWPolyList *> posList;
+        
+        map<iCubLimb,Semaphore*> pwmListMutex;
+		map<iCubLimb,AWPolyList *> pwmList;
 		
 		map<iCubFT,AWPolyList *> FTList;
         map<iCubFT,Semaphore*> FTListMutex;
@@ -110,6 +113,8 @@ class iCubStateEstimator
         void postOnFTMutex(iCubFT ft);
         void waitOnPosMutex(iCubLimb limb);
         void postOnPosMutex(iCubLimb limb);
+        void waitOnPwmMutex(iCubLimb limb);
+        void postOnPwmMutex(iCubLimb limb);
         void waitOnContactMutex();
         void postOnContactMutex();
         
@@ -126,6 +131,8 @@ class iCubStateEstimator
          * @return the timestamp of the returned sample it all went well, -1.0 otherwise
          */
         double getPos(iCubLimb limb, Vector & pos,const double time);
+        
+        double getPwm(iCubLimb limb, Vector & pwm, const double time);
         
         /**
          * Get a velocity estimate of a limb for timestamp time
@@ -187,6 +194,8 @@ class iCubStateEstimator
          */
         bool submitFT(iCubFT ft, const Vector & FT, double time);
         
+        
+        bool submitPwm(iCubLimb limb, const Vector & pwm, double time);
         /**
          * Submit a Voltage sensor sample
          * 
@@ -262,6 +271,24 @@ public:
 
     ~posCollector();
 };
+
+class pwmCollector : public BufferedPort<Bottle>
+{
+private:
+    iCubStateEstimator * p_state_estimator;
+    iCubLimb limb;
+    double start_ts;
+
+    virtual void onRead(Bottle &b);
+
+public:
+    pwmCollector(iCubLimb _limb,iCubStateEstimator * _p_state_estimator);
+
+    ~pwmCollector();
+};
+
+
+
 
 
 class skinCollector : public BufferedPort<skinContactList>

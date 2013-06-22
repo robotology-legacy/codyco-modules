@@ -50,6 +50,47 @@ posCollector::~posCollector()
         
 }
 
+void pwmCollector::onRead(Bottle &b)
+{
+        Stamp info;
+        BufferedPort<Bottle>::getEnvelope(info);
+
+        size_t sz=b.size();
+        Vector x(sz);
+
+        for (unsigned int i=0; i<sz; i++)
+            x[i]=b.get(i).asDouble();
+
+        double pwm_time;
+
+        // for the esteem the time stamp
+        // is required. If not present within the
+        // packet, the current machine time is 
+        // attached to it.
+        if (info.isValid())
+            pwm_time=info.getTime();
+        else
+            pwm_time=Time::now();
+        
+        if( x.size() == 0 ) {
+            std::cerr << "Time stamp of zero sized vector " << pwm_time << endl;
+        }
+        YARP_ASSERT(x.size() > 0);
+        p_state_estimator->submitPwm(limb,x,pwm_time);
+}
+
+pwmCollector::pwmCollector(iCubLimb _limb,iCubStateEstimator * _p_state_estimator)
+{
+        limb = _limb;
+        p_state_estimator = _p_state_estimator;
+        start_ts = Time::now();
+}
+
+pwmCollector::~pwmCollector()
+{
+        
+}
+
 void FTCollector::onRead(Bottle &b)
 {
         Stamp info;
@@ -200,6 +241,10 @@ iCubStateEstimator::iCubStateEstimator()
         for(vector<iCubLimb>::size_type i = 0; i != vectorLimbs.size(); i++) {
             posList[vectorLimbs[i]] = new AWPolyList;
             posListMutex[vectorLimbs[i]] = new Semaphore;
+            
+            pwmList[vectorLimbs[i]] = new AWPolyList;
+            pwmListMutex[vectorLimbs[i]] = new Semaphore;
+            
             if( !useNonCausalEst ) {
                 NVelAll = 16;
                 DVelAll = 1.0;
@@ -247,6 +292,12 @@ iCubStateEstimator::~iCubStateEstimator()
         }
         if( posListMutex[vectorLimbs[i]] ) {
             delete posListMutex[vectorLimbs[i]];
+        }
+        if( pwmList[vectorLimbs[i]] ) {
+            delete pwmList[vectorLimbs[i]];
+        }
+        if( pwmListMutex[vectorLimbs[i]] ) {
+            delete pwmListMutex[vectorLimbs[i]];
         }
         if( !useNonCausalEst ) {
             if( linEst[vectorLimbs[i]] ) {
@@ -329,6 +380,63 @@ double iCubStateEstimator::getPos(iCubLimb limb, Vector & pos, const double time
     
     
     posListMutex[limb]->post();
+    
+    return return_time;
+}
+
+ 
+double iCubStateEstimator::getPwm(iCubLimb limb, Vector & pwm, const double time)
+{
+    AWPolyList * p_list;
+    double return_time = -1.0;
+    p_list = (pwmList[limb]);
+    
+    pwmListMutex[limb]->wait();
+    
+
+    if( p_list->size() <= 2 ) {
+		pwm = Vector(0);
+		return_time = -1.0;
+	} else if( time < (p_list->back()).time  ) {
+		//Requested instant out of available samples
+		pwm = Vector(0);
+		return_time = -1.0;
+	} else if( time > (p_list->front()).time ) {
+		/**
+         *
+         * \todo Return last available sample? it time is too distant? TODO 
+         * 
+         */
+		pwm = Vector(0);
+		return_time = -1.0;
+	} else {
+        //scan list to found the two sample with respect to which the request time sample is in the middle 
+        AWPolyList::iterator curr, next;
+        double curr_time, next_time;
+        for(curr = p_list->begin(); curr != p_list->end(); curr++ ) {
+            curr_time = (*curr).time;
+            if( curr != p_list->begin() ) {
+                if( time <= next_time && time >= curr_time ) {
+                    next = curr-1;
+                    Vector deltaData,nextData,currData;
+                    nextData = next->data;
+                    currData = curr->data;
+                    deltaData = nextData - currData;
+                    pwm = ((*(next)).data-curr->data)*((time-curr_time)/(next_time-curr_time)) + curr->data;
+                    return_time = time;
+                    break;
+                }
+            }
+            next_time = curr_time;
+        }
+        if( curr == p_list->end() ) {
+            pwm = Vector(0);
+            return_time = -1.0;
+        } 
+    }
+    
+    
+    pwmListMutex[limb]->post();
     
     return return_time;
 }
@@ -665,6 +773,51 @@ bool iCubStateEstimator::submitPos(iCubLimb limb, const Vector & pos, double tim
     return true;
 }
 
+
+bool iCubStateEstimator::submitPwm(iCubLimb limb, const Vector & pwm, double time)
+{
+    AWPolyElement el;
+    int considered_joints = -1;
+    YARP_ASSERT(pwm.size() > 0);
+
+    if( limb == ICUB_RIGHT_ARM || limb == ICUB_LEFT_ARM ) {
+        considered_joints = 7;
+    }
+    
+    el.data = pwm;
+    el.time = time;
+    
+    pwmListMutex[limb]->wait();
+     
+    //check to keep the list in descending ordered 
+    if( pwmList[limb]->size() == 0 || el.time >= pwmList[limb]->front().time ) {
+        //standard case
+        pwmList[limb]->push_front(el);
+    } else {
+        //an ordered insert would be more efficient, but is a very rare possibility
+        //so it is easier to do in this way
+        pwmList[limb]->push_front(el);
+        sort(pwmList[limb]->begin(),pwmList[limb]->end(),greater_elem);
+    }    
+    
+    
+    if( pwmList[limb]->size() > window_length ) {
+        pwmList[limb]->pop_back();
+    }
+    //While submitting, control if the limb is still still
+    if( isStillFlag[limb] ) {
+        YARP_ASSERT( el.data.size() == (pwmList[limb]->back()).data.size() );
+        if( !areEqual(el.data,(pwmList[limb]->back()).data,still_threshold,considered_joints) ) {
+            isStillFlag[limb] = false;
+        }
+    }
+    
+    pwmListMutex[limb]->post();
+    
+    return true;
+}
+
+
 bool iCubStateEstimator::submitFT(iCubFT ft, const Vector & FT, double time)
 {
     AWPolyElement el;
@@ -721,36 +874,6 @@ bool iCubStateEstimator::submitContact(const skinContactList & skinList, double 
     return true;
 }
 
-/*
-bool iCubStateEstimator::submitVoltage(iCubLimb limb, const Vector & voltage, double time)
-{
-    AWPolyElement el;
-    el.data = voltage;
-    el.time = time;
-    
-    VoltageListMutex[limb]->wait();
-    
-    //check to keep the list in descending ordered 
-    if( VoltageList[limb]->size() == 0 || el.time >= VoltageList[limb]->front().time ) {
-        //standard case
-        VoltageList[limb]->push_front(el);
-    } else {
-        //an ordered insert would be more efficient, but is a very rare possibility
-        //so it is easier to do in this way
-        VoltageList[limb]->push_front(el);
-        sort(VoltageList[limb]->begin(),VoltageList[limv]->end(),greater_elem);
-    }
-    
-    if( VoltageList[limb]->size() > window_length ) {
-        VoltageList[limb]->pop_back();
-    }
-    
-    FTListMutex[ft]->post();
-    
-    return true;
-}
-*/
-
 bool iCubStateEstimator::submitInertial(const Vector & inertial, double time)
 {
     return false;
@@ -770,6 +893,11 @@ bool iCubStateEstimator::reset()
             posListMutex[vectorLimbs[i]]->wait();
             posList[vectorLimbs[i]]->clear();
             posListMutex[vectorLimbs[i]]->post();
+            
+            pwmListMutex[vectorLimbs[i]]->wait();
+            pwmList[vectorLimbs[i]]->clear();
+            pwmListMutex[vectorLimbs[i]]->post();
+            
             if( !useNonCausalEst ) {
                 linEst[vectorLimbs[i]]->reset();
                 quadEst[vectorLimbs[i]]->reset();
@@ -914,6 +1042,19 @@ void iCubStateEstimator::postOnPosMutex(iCubLimb limb) {
         posListMutex[limb]->post();
     } 
 }
+
+void iCubStateEstimator::waitOnPwmMutex(iCubLimb limb) {
+    if( pwmListMutex[limb] ) {
+        pwmListMutex[limb]->wait();
+    } 
+}
+
+void iCubStateEstimator::postOnPwmMutex(iCubLimb limb) {
+    if( pwmListMutex[limb] ) {
+        pwmListMutex[limb]->post();
+    } 
+}
+
 
 void iCubStateEstimator::waitOnContactMutex() {
     if( ContactMutex ) {
