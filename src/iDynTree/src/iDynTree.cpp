@@ -25,12 +25,11 @@ using namespace iCub::iDynTree;
 iDynTree::iDynTree(const KDL::Tree & _tree, 
                    const std::vector<std::string> & joint_sensor_names,
                    const std::string & imu_link_name,
-                   TreeSerialization serialization): tree(_tree)
+                   TreeSerialization serialization,
+                   TreePartition _partition
+                   ):  tree_graph(_tree,serialization,_partition)
 {
-    //If serialization is not consistent (as if no serialization is given), use the default one 
-    if(!serialization.is_consistent(tree)) {
-        serialization = TreeSerialization(tree);
-    }
+    int ret;
     
     //Setting useful constants
     NrOfDOFs = tree.getNrOfJoints();
@@ -44,27 +43,25 @@ iDynTree::iDynTree(const KDL::Tree & _tree,
     
     measured_wrenches =  std::vector< KDL::Wrench >(NrOfSensors);
     
-    X = std::vector<Frame>(NrOfLinks);
-    S = std::vector<Twist>(NrOfDOFs);
 	v = std::vector<Twist>(NrOfLinks);
 	a = std::vector<Twist>(NrOfLinks);
-	f = std::vector<Wrench>(NrOfLinks);
     
+	f = std::vector<Wrench>(NrOfLinks); /**< wrench trasmitted by a link to the predecessor (note that predecessor definition depends on the selected dynamic base */
+        
+    //Create default kinematic traversal (if imu_names is wrong, creating the default one)   
+    ret = tree_graph.compute_traversal(kinematic_traversal,imu_link_name);
     
-    //For the kinematic, the serialization is similar to a normal solver,
-    //with the difference of using the imu link as the root one
-    std::vector< int > children_root;
-    std::vector< std::vector< int > > children;
+    if( ret < 0 ) { std::cerr << "iDynTree constructor: imu_link_name not found" << std::endl }
+    assert(ret == 0);
     
-    if( !serialization.serialize(tree,children_root,children,kinematic_parent,
-                            kinematic_link2joint,kinematic_visit_order,segments_vector,imu_link_name) ) {
-        std::cerr << "Kinematic serialization failed" << std::endl; return; 
-    }
+    //Create default dynamics traversal (the dynamical base is the default one of the KDL::Tree)
+    //Note that the selected dynamical base affect only the "classical" use case, when unkown external
+    //wrenches are not estimated and are assume acting on the base. 
+    //If the external forces are properly estimated, the base link for dynamic loop should not 
+    //affect the results (i.e. 
+    ret = tree_graph.compute_traversal(dynamic_traversal);
     
-    //For dynamics
-    
-    
-    
+    assert(ret == 0);
 }
 
 iDynTree::~iDynTree() { } ;
@@ -169,23 +166,22 @@ bool iDynTree::getSensorMeasurement(const int sensor_index, yarp::sig::Vector &f
 bool iDynTree::kinematicRNEA()
 {
     int ret;
-    ret = rneaKinematicLoop(q,dq,ddq,base_velocity,base_acceleration,
-                            kinematic_visit_order,segments_vector,kinematic_parent,kinematic_link2joint,
-                            kinematic_X,kinematic_S,v,a);
-    if( ret != 0 ) return false;
+    ret = rneaKinematicLoop(tree_graph,q,dq,ddq,kinematic_traversal,imu_velocity,imu_acceleration,v,a);
+    if( ret < 0 ) return false;
+    //else
     return true;
 }
 
 bool iDynTree::estimateContactForces()
 {
-    
+    for( int i = 0; i < NrOfDynamicSubTrees; i++ ) {
+        //estimate contact forces for each subtree (using contacts)
+    }
 }
     
 bool iDynTree::dynamicRNEA()
 {
-    for( int i = 0; i < NrOfDynamicSubTrees; i++ ) {
-        //solve dynamics for each subtree (using contacts)
-    }
+
     return true;
 }
     

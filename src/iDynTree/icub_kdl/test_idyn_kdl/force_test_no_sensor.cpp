@@ -7,15 +7,18 @@
 #include <yarp/os/all.h>
 #include <yarp/os/Time.h>
 
-#include "chain_conversion.h"
+#include "../iDyn_KDL_conversion/iDyn2KDL.h"
+#include "iDyn_KDL_emulation.h"
+
 
 #include <kdl/chainfksolver.hpp>
 #include "custom_kdl/chainidsolver_recursive_newton_euler_internal_wrenches.hpp"
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainfksolvervel_recursive.hpp>
 #include <kdl/frames_io.hpp>
+#include <kdl/kinfam_io.hpp>
+
 #include <cassert>
-#include <cmath>
 
 using namespace std;
 using namespace iCub::iDyn;

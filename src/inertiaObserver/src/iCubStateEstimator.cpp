@@ -52,6 +52,7 @@ posCollector::~posCollector()
 
 void pwmCollector::onRead(Bottle &b)
 {
+       
         Stamp info;
         BufferedPort<Bottle>::getEnvelope(info);
 
@@ -77,6 +78,26 @@ void pwmCollector::onRead(Bottle &b)
         }
         YARP_ASSERT(x.size() > 0);
         p_state_estimator->submitPwm(limb,x,pwm_time);
+        
+        /*
+        Stamp info;
+        BufferedPort<Bottle>::getEnvelope(info);
+
+        size_t sz=b.size()-1;
+        Vector x(sz);
+
+        for (unsigned int i=1; i<sz; i++)
+            x[i]=b.get(i).asDouble();
+
+        double pwm_time;
+        
+        pwm_time = b.get(0).asDouble(); 
+        
+        if( x.size() == 0 ) {
+            std::cerr << "Time stamp of zero sized vector " << pwm_time << endl;
+        }
+        YARP_ASSERT(x.size() > 0);
+        p_state_estimator->submitPwm(limb,x,pwm_time);*/
 }
 
 pwmCollector::pwmCollector(iCubLimb _limb,iCubStateEstimator * _p_state_estimator)
@@ -804,13 +825,6 @@ bool iCubStateEstimator::submitPwm(iCubLimb limb, const Vector & pwm, double tim
     if( pwmList[limb]->size() > window_length ) {
         pwmList[limb]->pop_back();
     }
-    //While submitting, control if the limb is still still
-    if( isStillFlag[limb] ) {
-        YARP_ASSERT( el.data.size() == (pwmList[limb]->back()).data.size() );
-        if( !areEqual(el.data,(pwmList[limb]->back()).data,still_threshold,considered_joints) ) {
-            isStillFlag[limb] = false;
-        }
-    }
     
     pwmListMutex[limb]->post();
     
@@ -885,6 +899,10 @@ AWPolyList * iCubStateEstimator::getFTdeque(iCubFT limb)
 	return FTList[limb];
 }
 
+AWPolyList * iCubStateEstimator::getPWMdeque(iCubLimb limb)
+{
+    return pwmList[limb];
+}
 
 
 bool iCubStateEstimator::reset()

@@ -156,7 +156,8 @@ KDL::Wrenches idynChainGet_usingKDL_aux(iCub::iDyn::iDynChain & idynChain,yarp::
     
     KDL::ChainIdSolver_RNE_IW neSolver = KDL::ChainIdSolver_RNE_IW(kdlChain,-grav_kdl);
     
-    assert(neSolver.CartToJnt_and_internal_wrenches(jointpositions,jointvel,jointacc,f_ext,torques,f_int) >= 0);
+    int ret = neSolver.CartToJnt_and_internal_wrenches(jointpositions,jointvel,jointacc,f_ext,torques,f_int);
+    assert( ret >= 0);
     
     return f_int;
 }

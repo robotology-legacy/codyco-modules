@@ -126,6 +126,8 @@ private:
     
     BufferedPort<Vector> *port_inertial_thread;
     
+    pwmCollector *port_pwm;
+    
         
     map<iCubLimb,posCollector *> port_q;
     
@@ -212,6 +214,7 @@ private:
     
     Matrix F_sens_up, F_sens_low, F_ext_up, F_ext_low;
     
+    
     map<iCubFT,double> timestamp_lastFTsample_returned;
     
     map<iCubLimb,bool> wasStill;
@@ -241,6 +244,7 @@ private:
     //Warning: use A and b can cause overflowing of int
     bool produceAb;
     bool produceAb_contact;
+    bool produceAb_motors;
     Matrix A;
     Matrix local_A;
     Matrix local_Phi;
@@ -250,6 +254,14 @@ private:
     std::ofstream A_file;
     std::ofstream b_file;
     std::ofstream contact_file;
+    
+    //produce Ab motors
+    Matrix T_T, Y_s_reduced, Y_s_all, Y_I, Y_II, Y_tau, A_I, A_II, B_I, diagV_I, diagV_II;
+    Matrix megazord; //The complete REGRESSOR!!!
+    
+    bool fail;
+    
+    //Warning
 
     void init_upper();
     void init_lower();

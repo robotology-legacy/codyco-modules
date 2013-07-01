@@ -8,7 +8,6 @@
 #include <yarp/os/Time.h>
 
 #include "../iDyn_KDL_conversion/iDyn2KDL.h"
-#include "../iDyn_KDL_conversion/KDL2iDyn.h"
 #include "iDyn_KDL_emulation.h"
 
 
@@ -98,7 +97,7 @@ int main()
 
     int sensor_link = iCubArmSensor.getSensorLink();
     
-    /*
+    
     //Converting the chains from iDyn to KDL
     KDL::Chain armTorsoKDL;
     idynSensorChain2kdlChain(*(armNoTorsoDyn.asChain()),iCubArmSensor,armTorsoKDL);
@@ -130,7 +129,7 @@ int main()
     Vector f_i = Vector(3);
     Vector mu_i = Vector(3);
     
-    */
+
     
     //Simulate getForces,getMoments and getTorques calls using KDL, all the necessary conversion are done inside this functions
     Matrix F_KDL = idynChainGetForces_usingKDL(armNoTorsoDyn,ddp0);

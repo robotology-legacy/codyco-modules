@@ -49,7 +49,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 #INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
 
 add_executable(force_test_icub_arm force_test_icub_arm.cpp iDyn_KDL_emulation.cpp iDyn_KDL_emulation.h ../iDyn_KDL_conversion/iDyn2KDL.cpp ../iDyn_KDL_conversion/iDyn2KDL.h ../iDyn_KDL_conversion/KDL2iDyn.cpp ../iDyn_KDL_conversion/KDL2iDyn.h ./custom_kdl/chainidsolver_recursive_newton_euler_internal_wrenches.cpp)
-#add_executable(force_test_no_sensor force_test_no_sensor.cpp ../iDyn_KDL_conversion/iDyn2KDL.cpp ../iDyn_KDL_conversion/iDyn2KDL.h  ./custom_kdl/chainidsolver_recursive_newton_euler_internal_wrenches.cpp)
+add_executable(force_test_no_sensor force_test_no_sensor.cpp iDyn_KDL_emulation.cpp iDyn_KDL_emulation.h ../iDyn_KDL_conversion/iDyn2KDL.cpp ../iDyn_KDL_conversion/iDyn2KDL.h ../iDyn_KDL_conversion/KDL2iDyn.cpp ../iDyn_KDL_conversion/KDL2iDyn.h ./custom_kdl/chainidsolver_recursive_newton_euler_internal_wrenches.cpp)
 #add_executable(force_test_3links force_test_3links.cpp ../iDyn_KDL_conversion/iDyn2KDL.cpp ../iDyn_KDL_conversion/iDyn2KDL.h  ./custom_kdl/chainidsolver_recursive_newton_euler_internal_wrenches.cpp)
 #add_executable(force_test_5links force_test_5links.cpp ../iDyn_KDL_conversion/iDyn2KDL.cpp ../iDyn_KDL_conversion/iDyn2KDL.h  ./custom_kdl/chainidsolver_recursive_newton_euler_internal_wrenches.cpp)
 add_executable(force_test_7links force_test_7links.cpp iDyn_KDL_emulation.cpp iDyn_KDL_emulation.h ../iDyn_KDL_conversion/iDyn2KDL.cpp ../iDyn_KDL_conversion/iDyn2KDL.h ../iDyn_KDL_conversion/KDL2iDyn.cpp ../iDyn_KDL_conversion/KDL2iDyn.h ./custom_kdl/chainidsolver_recursive_newton_euler_internal_wrenches.cpp)
@@ -62,7 +62,7 @@ add_executable(check_kdl_export check_kdl_export.cpp)
 
 
 target_link_libraries(force_test_icub_arm ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${Orocos-KDL_LIBRARIES})
-#target_link_libraries(force_test_no_sensor ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${Orocos-KDL_LIBRARIES})
+target_link_libraries(force_test_no_sensor ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${Orocos-KDL_LIBRARIES})
 #target_link_libraries(force_test_3links ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${Orocos-KDL_LIBRARIES})
 #target_link_libraries(force_test_5links ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${Orocos-KDL_LIBRARIES})
 target_link_libraries(force_test_7links ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${Orocos-KDL_LIBRARIES})

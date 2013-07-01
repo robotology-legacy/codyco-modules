@@ -159,11 +159,11 @@ public:
     /**
      * Set the FT sensor measurements on the specified sensor 
      * @param sensor_index the code of the specified sensor
-     * @param ftm a 6x1 vector with forces and moments measured by the FT sensor
+     * @param ftm a 6x1 vector with forces (0:2) and moments (3:5) measured by the FT sensor
      * @return true if succeeds, false otherwise
      * 
      * \warning The convention used to serialize the wrench (Force-Torque) is different
-     *          from the one used in Spatial Algebra (Torque-F)
+     *          from the one used in Spatial Algebra (Torque-Force)
      * 
      */
     virtual bool setSensorMeasurement(const int sensor_index, const yarp::sig::Vector &ftm)=0;
@@ -175,10 +175,10 @@ public:
      * @return true if succeeds, false otherwise
      * 
      * \warning The convention used to serialize the wrench (Force-Torque) is different
-     *          from the one used in Spatial Algebra (Torque-F)
+     *          from the one used in Spatial Algebra (Torque-Force)
      * 
-     * \note if solveWrench(ignore_sensor_measures=true) is called, this
-     *       function get the "simulated" measure of the sensor from the
+     * \note if dynamicRNEA() is called without before calling estimateContactForces() this
+     *       function retrives the "simulated" measure of the sensor from the
      *       RNEA backward propagation of wrenches   
      */
     virtual bool getSensorMeasurement(const int sensor_index, yarp::sig::Vector &ftm) const =0;
@@ -248,7 +248,7 @@ public:
     
     /**
      * Get the contacts list, containing the results of the estimation if
-     * solveWrench() was called
+     * estimateContacts
      * @return A copy of the external contact list
      */
     const iCub::skinDynLib::dynContactList& getContacts() const=0;

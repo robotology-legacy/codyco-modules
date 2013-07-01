@@ -242,6 +242,9 @@ class iCubStateEstimator
          */
         AWPolyList * getFTdeque(iCubFT limb);
         
+        AWPolyList * getPWMdeque(iCubLimb limb);
+
+        
         /**
          * 
          */

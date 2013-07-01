@@ -121,12 +121,11 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
     
     debug_out_parameters = false;
     
-    produceAb = true;
+    produceAb = false;
     produceAb_contact = true;
+    produceAb_motors = true;
     
     if( produceAb ) {
-        A = Matrix(0,46);
-        b = Vector(0);
         Ab_sample_count = 0;
         local_Phi = Matrix(6,40);
         local_A = Matrix(6,46);
@@ -138,6 +137,49 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
     
     if( produceAb_contact ) {
         contact_file.open("contact.csv");
+    }
+    
+    if( produceAb_motors ) {
+        //Coupling matrix
+        double r = 65/40;
+        T_T = Matrix(3,3);
+        T_T(0,0) = 1;
+        T_T(0,1) = T_T(0,2) =-r;
+        T_T(1,0) = T_T(2,0) = 0;
+        T_T(1,1) = T_T(1,2) = T_T(2,2) = r;
+        
+        //Inertial parameters regressors
+        Y_s_reduced = Matrix(6,40);
+        Y_s_reduced.zero();
+        Y_s_all = Matrix(6,70);
+        Y_s_all.zero();
+        Y_tau = Matrix(7,70);
+        Y_tau.zero();
+        Y_I = Matrix(3,70);
+        Y_I.zero();
+        Y_II = Matrix(2,70);
+        Y_II.zero();
+        
+        //Friction regressors
+        A_I = Matrix(3,12);
+        A_I.zero();
+        A_II = Matrix(1,4);
+        A_II.zero();
+        B_I = Matrix(3,12);
+        B_I.zero();
+        
+        //PWM
+        diagV_I = Matrix(3,3);
+        diagV_I.zero();
+        diagV_II = Matrix(1,1);
+        diagV_II.zero();
+        
+        //everything
+        megazord = Matrix(3+1+6,70+6+4*3+4*1+4*3+3+1);
+        megazord.zero();
+        
+        A_file.open("A.csv");
+        b_file.open("b.csv");
     }
 
     
@@ -202,6 +244,8 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
     }
     
     port_contact = new skinCollector(&current_state_estimator);
+    
+    port_pwm = new pwmCollector(ICUB_RIGHT_ARM,&current_state_estimator);
 
     port_inertial_thread->open(string("/"+local_name+"/inertial:i").c_str());
     
@@ -223,9 +267,8 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
     port_contact->useCallback();
     port_contact->open(string("/"+local_name+"/"+"skin_events:i").c_str());
     
-
-    
-    
+    port_pwm->useCallback();
+    port_pwm->open(string("/"+local_name+"/"+"pwm_monitor:i").c_str());
     
 
     if (autoconnect)
@@ -252,6 +295,7 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
         
         Network::connect(string("/skinManager/skin_events:o").c_str(),string("/"+local_name+"/"+"skin_events:i").c_str(),"tcp",false);
         
+        Network::connect(string("/torqueCtrlTest/monitor:o").c_str(),string("/"+local_name+"/"+"pwm_monitor:i").c_str(),"tcp",false);
     }
     
     for(vector<iCubFT>::size_type i = 0; i != vectorFT.size(); i++) {
@@ -426,8 +470,65 @@ void printVector_ofstream(ofstream & file, const Vector& vet, int precision)
                 file << vet(c) << endl;
             }
 }
-     
 
+double positive_part(double dq)
+{
+    if( dq > 0.0 ) return dq;
+    return 0.0;
+}
+
+double negative_part(double dq)
+{
+    if( dq < 0.0 ) return -dq;
+    return 0.0;
+}
+     
+double damped_sgn(double dq, double tol)
+{
+    tol = fabs(tol);
+    if( dq < tol && dq > -tol ) {
+        return 0.0;
+    }
+    if( dq > tol ) {
+        return 1.0;
+    }
+    if( dq < -tol ) {
+        return -1.0;
+    }
+    return 0.0;
+}
+
+Matrix friction_regressor(double dq)
+{
+    double tol = CTRL_DEG2RAD*1;
+    Matrix ret(1,4);
+    ret(0,0) = positive_part(damped_sgn(dq,tol));
+    ret(0,1) = -negative_part(damped_sgn(dq,tol));
+    ret(0,2) = positive_part(dq);
+    ret(0,3) = -negative_part(dq);
+    return ret;
+}
+
+
+Matrix friction_regressor(double q0, double q1)
+{
+    Matrix ret(2,8);
+    ret.zero();
+    ret.setSubmatrix(friction_regressor(q0),0,0);
+    ret.setSubmatrix(friction_regressor(q1),1,4);
+    return ret;
+}
+    
+
+Matrix friction_regressor(double q0, double q1, double q2)
+{
+    Matrix ret(3,12);
+    ret.zero();
+    ret.setSubmatrix(friction_regressor(q0,q1),0,0);
+    ret.setSubmatrix(friction_regressor(q2),2,8);
+    return ret;
+}
+     
 
 void inertiaObserver_thread::run()
 {
@@ -486,41 +587,126 @@ void inertiaObserver_thread::run()
                     printMatrix_ofstream(A_file,local_A,10);
                     printVector_ofstream(b_file,local_b,10);
                     
+                    fail = false; 
+                    
                     Ab_sample_count++;
                 }*/
                 
-                if( produceAb_contact ) {
+     
+                
+                if( produceAb_motors ) {
+                    
+                    megazord.zero();
+                    
+                    //Inertial parameters regressor
+                    iCubLimbRegressorSensorWrench(icub,"right_arm",Y_s_reduced);
+                    iCubLimbRegressorTorqueFromBase(icub,"right_arm",Y_tau);
+                
+                    Y_s_all.zero();
+                    Y_s_all.setSubmatrix(Y_s_reduced,0,30);
+                
+                    Y_I = Y_tau.submatrix(0,2,0,Y_tau.cols()-1);
+                    Y_II = Y_tau.submatrix(3,3,0,Y_tau.cols()-1);
+                    
+                    megazord.setSubmatrix(Y_I,0,0);
+                    megazord.setSubmatrix(Y_II,Y_I.rows(),0);
+                    megazord.setSubmatrix(Y_s_all,Y_II.rows()+Y_I.rows(),0);
+                    
+                    assert(Y_II.rows()+Y_I.rows() == 4);
+                    //FT offset 
+                    megazord.setSubmatrix(eye(6,6),4,Y_s_all.cols());
+                    
+                    //friction stuff
+                    Vector dq = icub->upperTorso->getDAng("right_arm");
+                    Vector dq_I = dq.subVector(0,2);
+                    Vector dq_II = dq.subVector(3,3);
+                    
+                    A_I = friction_regressor(dq_I(0),dq_I(1),dq_I(2));
+                    A_II = friction_regressor(dq_II(0));
+                    
+                    //std::cout << "A_I: " << A_I.toString() << std::endl;
+                    //std::cout << "A_II: " << A_II.toString() << std::endl;
+                    
+                    assert(Y_s_all.cols()+6 == 76);
+                    
+                    megazord.setSubmatrix(A_I,0,76);
+                    megazord.setSubmatrix(A_II,A_I.rows(),76+A_I.cols());
+                    
+                    //motor friction stuff;
+                    Vector dq_mI = T_T.transposed()*dq_I;
+                    B_I = friction_regressor(dq_mI(0),dq_mI(1),dq_mI(2));
+                    
+                    assert(76+A_I.cols()+A_II.cols()==92);
+                    megazord.setSubmatrix(T_T*B_I,0,92);
+                    
+                    //pwm stuff;
+                    Vector pwm(5), pwm_I(3), pwm_II(1);
+                    current_state_estimator.getPwm(ICUB_RIGHT_ARM,pwm,W_timestamp[ICUB_FT_RIGHT_ARM]);
+                    #ifndef NDEBUG
+                    //std::cout << "Pwm value readed:" << pwm.toString() << std::endl;
+                    #endif
+                    fail = false;
+                    if( pwm.size() == 0 ) {
+                        AWPolyList* pwmList = current_state_estimator.getPWMdeque(ICUB_RIGHT_ARM);
+                        
+                        std::cout << setprecision(20) << "Error: couldn't read pwm value, sample exctraction failed, requested timestamp "  << W_timestamp[ICUB_FT_RIGHT_ARM] << std::endl;
+                        std::cout << "samples available from timestamp " << pwmList->front().time
+<< " to timestamp " <<  pwmList->back().time
+ << std::endl;
+                        fail = true;
+                    }
+                    
+                    pwm_I = pwm.subVector(0,2);
+                    pwm_II = pwm.subVector(3,3);
+                    
+                    //std::cout << "pwm_II" << pwm_II.toString() << std::endl;
+                    
+                    diagV_I.diagonal(pwm_I);
+                    diagV_II.diagonal(pwm_II);
+                    
+                    //std::cout << "diagV_II" << pwm_II.toString() << std::endl;
+
+                    
+                    megazord.setSubmatrix(-1*T_T*diagV_I,0,104);
+                    
+                    assert(A_I.rows() == 3);
+                    megazord.setSubmatrix(-1*diagV_II,3,107);
+                    
+                    YARP_ASSERT(megazord.rows() == 10);
+                    YARP_ASSERT(megazord.cols() == 108);
+                    
+                    local_b = Vector(10,0.0);
+                    local_b.setSubvector(4,measuredW[currFT]);
+                    
+                    if( !fail ) {
+                        printMatrix_ofstream(A_file,megazord,10);
+                        printVector_ofstream(b_file,local_b,10);
+                    }
+                    
+                    Ab_sample_count++;
+                }
+                
+                           if( produceAb_contact ) {
                     skinContactList scl, ra_scl;
                     current_state_estimator.getContact(scl,W_timestamp[ICUB_FT_RIGHT_ARM]);
                     
                     ra_scl = scl.filterBodyPart(RIGHT_ARM);
                     
                     int num_taxels = 0;
-                    for(int i=0;i<ra_scl.size();i++ ) {
-                        num_taxels += ra_scl[i].getActiveTaxels();
+                    for(int i=0;i<(int)ra_scl.size();i++ ) {
+                        if( ra_scl[i].getSkinPart() != SKIN_RIGHT_HAND ) { 
+                            num_taxels += ra_scl[i].getActiveTaxels();
+                        }
                     }
-                    
-                    contact_file << num_taxels << std::endl;
+                    if( !fail ) {
+                        contact_file << num_taxels << std::endl;
+                    }
                 }
                 
-                
-                if( produceAb_motors ) {
-                    
-                    iCubLimbRegressorSensorWrench(icub,"right_arm",local_Phi);
-                    local_A.setSubmatrix(local_Phi,0,0);
-                    local_A.setSubmatrix(eye(6,6),0,local_Phi.cols());
-                    local_b = measuredW[currFT];
-                    YARP_ASSERT(local_Phi.rows() == 6 && local_Phi.cols() == 40);
-                    
-                    printMatrix_ofstream(A_file,local_A,10);
-                    printVector_ofstream(b_file,local_b,10);
-                    
-                    Ab_sample_count++;
-                }
                 
                 if( learning_enabled ) {
                     for(unsigned int j=0; j < paramEstimators[currFT].size(); j++ ) {
-                        paramEstimators[currFT][j]->feedSample(Phi_w_offset,measuredW[currFT]);
+                        //paramEstimators[currFT][j]->feedSample(Phi_w_offset,measuredW[currFT]);
                     }
                 }
             }
@@ -549,7 +735,7 @@ void inertiaObserver_thread::run()
 void inertiaObserver_thread::threadRelease()
 {
     finalAnalysis();
-    
+    /*
     {
         ofstream beta_file;
         ofstream identifiable_param_file;
@@ -563,7 +749,7 @@ void inertiaObserver_thread::threadRelease()
         identifiable_param_file.close();
         beta_file.close();
     }
-    
+    */
 	fprintf(stderr,"Closing the inertiaObserver thread\n");
     
     fprintf(stderr, "Closing inertial port\n");
@@ -589,6 +775,8 @@ void inertiaObserver_thread::threadRelease()
     }
     
             closePort(port_contact);
+            
+            closePort(port_pwm);
 
     
     if( staticParamEstimator ) {
@@ -710,6 +898,12 @@ void inertiaObserver_thread::threadRelease()
         b_file.close();
     }
     
+    if( produceAb_motors ) {
+        A_file.close();
+        b_file.close();
+    }
+    
+    /*
     if( dump_static ) {
         std::cerr << "Dumping static measure to staticRegr.ymt, staticFT.yvc" << std::endl;
         for(vector<iCubFT>::size_type i = 0; i != vectorFT.size(); i++) {
@@ -726,7 +920,7 @@ void inertiaObserver_thread::threadRelease()
             }
         }
     }
-
+    */
     if (icub)      {delete icub; icub=0;}
     /*
     if (icub_CAD) {delete icub_CAD; icub_CAD=0;}
@@ -1501,6 +1695,7 @@ void inertiaObserver_thread::finalAnalysis() {
         
     }
     */
+    /*
     cout << "~~~~~~~~~~~~~~~~~~~~~Torque FORWARD analysis~~~~~~~~~~~~" << endl;
     for(int joint_index = 3; joint_index < 7; joint_index++ ) {
         cout << "~~~~~~~~~~~~~~~~~~~~~~~~~Check identifiable  subspace joint " << joint_index << " ~~~~~~~~~~~~~~~" << endl;
@@ -1589,6 +1784,7 @@ void inertiaObserver_thread::finalAnalysis() {
         
         cout << "error on estimated torques total " << endl;
     }
+    */
     /*
     for(int joint_index = 3; joint_index < 7; joint_index++ ) { 
         Matrix U_A,U_T,V_A,V_T;
