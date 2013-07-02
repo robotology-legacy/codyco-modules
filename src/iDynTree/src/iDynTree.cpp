@@ -60,11 +60,70 @@ iDynTree::iDynTree(const KDL::Tree & _tree,
     //If the external forces are properly estimated, the base link for dynamic loop should not 
     //affect the results (i.e. 
     ret = tree_graph.compute_traversal(dynamic_traversal);
+    assert(ret == 0);
+    
+    //iDynTreeContact
+    ret = buildSubGraphStructure(joint_sensor_names);
+    if( ret < 0 ) { std::cerr << "iDynTree constructor: ft sensor specified not existent not found" << std::endl }
+
     
     assert(ret == 0);
 }
 
 iDynTree::~iDynTree() { } ;
+
+
+bool isFTsensor(const std::string & joint_name, const std::vector<std::string> & ft_sensors) const
+{
+    if (std::find(ft_sensors.begin(), ft_sensors.end(), joint_name) != ft_sensors.end())
+    {
+        return true;
+    }
+    //else 
+    {
+        return false;
+    }
+}
+
+int iDynTree::buildSubGraphStructure(const std::vector<std::string> & ft_names)
+{
+    link2subgraph_index.resize(NrOfLinks);
+    int next_id = 0;
+    
+    for(int i=0; i < (int)dynamic_traversal.order.size(); i++) {
+        double joint_pos, joint_vel, joint_acc;
+        
+        LinkMap::const_iterator link_it = dynamic_traversal.order[i];
+        int link_nmbr = link_it->second.link_nr; 
+        
+        if( i == 0 ) {
+            
+            //Starting with the dynamical base link, assign an index to the subgraph
+            assert( kinetic_traversal.parent[link_nmbr] == tree_graph.getInvalidLinkIterator() );
+            link2subgraph[link_nmbr] = next_id;
+            next_id++;
+            
+        } else {
+            //For every link, the subgraph is the same of its parent, unless it is connected to it by an FT sensor
+            LinkMap::const_iterator parent_it = dynamic_traversal.parent[link_it->second.link_nr];
+            int parent_nmbr = parent_it->second.link_nr;
+            
+            if( isFTsensor(link_it->second.getAdjacentJoint(parent_it)->second.joint.getName(),ft_names) ) {
+                link2subgraph[link_nmbr] = next_id;
+                next_id++;
+            } else {
+                link2subgraph[link_nmbr] = link2subgraph[parent_nmbr];
+            }
+        }
+    }
+        
+    //The numbers of ids must be equal to the number of subgraphs
+    if(next_id == NrOfDynamicSubTrees) {
+        return 0;
+    } else {
+        return -1;
+    }
+}
 
 
 yarp::sig::Vector iDynTree::setAng(const yarp::sig::Vector & _q, const std::string & part_name) 
@@ -174,9 +233,9 @@ bool iDynTree::kinematicRNEA()
 
 bool iDynTree::estimateContactForces()
 {
-    for( int i = 0; i < NrOfDynamicSubTrees; i++ ) {
-        //estimate contact forces for each subtree (using contacts)
-    }
+     for(int l=dynamical_traversal.order.size()-1; l>=0; l-- ) {
+         
+     }
 }
     
 bool iDynTree::dynamicRNEA()

@@ -17,6 +17,48 @@ namespace iCub
 namespace iDynTree
 {
     
+    
+    
+/**
+ * 
+ * Data structure for containing information about internal FT sensors
+ * To properly describe an FT sensor, it is necessary: 
+ *      * the fixed joint of the FT sensor in the TreeGraph (a name)
+ *      * the transformation from the *parent* KDL::Tree link to the the reference
+ *        frame of the FT measurement ( H_p_s ) such that given the measure f_s, the 
+ *        wrench applied by the parent to the child expressed in the parent frame ( f_p )
+ *        is given by f_p = H_p_s f_s
+ *         
+ */
+class FTSensor
+{
+    private:
+        const std::string fixed_joint_name;
+        KDL::Frame H_parent_sensor;
+        int parent;
+        int child;
+        
+    public:
+        /**
+         * For the given current_link, get the wrench excerted on the subgraph
+         * as measured by the FT sensor
+         */
+        KDL::Frame getWrenchExcertedOnSubGraph(int current_link)
+        {
+            if( current_link == parent ) {
+                return -H_parent_sensor;
+            } else {
+                assert(current_link == child);
+                //return H_parent_sensor.Inverse();
+            }
+        }
+    
+}
+
+typedef std::vector<FTSensor> FTSensorList;
+    
+    
+    
 /**
  * \ingroup iDynTree
  *
@@ -66,6 +108,16 @@ class iDynTree: public iDynTreeInterface {
         
 		std::vector<Wrench> f;
         
+        //iDynTreeContact data structures
+        std::vector<int> link2subgraph_index; /**< for each link, return the correspondent dynamics subgraph index */
+        
+        int getSubGraphIndex(int link_index) { return link2subgraph_index[link_index]; }
+        void buildSubGraphStructure();
+        bool isFTsensor(const std::string & joint_name, const std::vector<std::string> & ft_sensors) const;
+        
+        std::vector<yarp::sig::Matrix> A_contacts; /**< for each subgraph, the A regressor matrix of unknowns \todo use Eigen */
+        std::vector<yarp::sig::Vector> b_contacts; /**< for each subgraph, the b vector of known terms \todo use Eigen */
+        //end iDynTreeContact data structures
         
     public:
         /**
