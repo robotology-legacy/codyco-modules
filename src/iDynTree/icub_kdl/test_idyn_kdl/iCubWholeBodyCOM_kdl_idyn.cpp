@@ -111,6 +111,13 @@ int main(int argc, char * argv[])
             q_kdl(i) = q[i];
         }
         
+        //Compute COM with KDL and TreeGraph
+        tic = yarp::os::Time::now();
+        ret = com_solver_graph.JntToCOM(q_kdl,COM_kdl_treegraph);
+        toc = yarp::os::Time::now();
+        assert(ret == 0);
+        time_kdl_treegraph += (toc-tic);
+        
         //Compute COM with iDyn
         tic = yarp::os::Time::now();
         icub_idyn.computeCOM();
@@ -132,15 +139,10 @@ int main(int argc, char * argv[])
         toc = yarp::os::Time::now();
         assert(ret == 0);
         time_kdl_urdf += (toc-tic);
-        
-        //Compute COM with KDL and TreeGraph
-        tic = yarp::os::Time::now();
-        ret = com_solver_graph.JntToCOM(q_kdl,COM_kdl_treegraph);
-        toc = yarp::os::Time::now();
-        assert(ret == 0);
-        time_kdl_treegraph += (toc-tic);
+    
         
         //Compare: 
+        /*
         cout << "iDyn mass: " << endl;
         cout << icub_idyn.whole_mass << endl;
         cout << "iDyn COM: " << icub_idyn.whole_COM.toString() << endl;
@@ -159,7 +161,7 @@ int main(int argc, char * argv[])
         //cout << KDL::CoDyCo::computeMass(icub_kdl_urdf) << endl;
         cout << "KDL TreeGraph COM: " << endl;
         cout << COM_kdl_treegraph << endl;
-        
+        */
         bool retb;
         retb = to_iDyn(COM_kdl,COM_kdl_yarp);
         assert(retb);

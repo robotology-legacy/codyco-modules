@@ -6,7 +6,11 @@
  */
  
 #include "iCub/iDynTree/yarp_kdl.h"
+
+#include <yarp/math/Math.h>
 #include <cstring>
+
+using namespace yarp::math;
 
 bool YarptoKDL(const yarp::sig::Matrix & idynInertia,KDL::RotationalInertia & kdlRotationalInertia)
 {
@@ -46,25 +50,120 @@ bool YarptoKDL(const yarp::sig::Vector & yarpVector, KDL::Vector & kdlVector)
 bool YarptoKDL(const yarp::sig::Vector & yarpVector, KDL::JntArray & kdlJntArray)
 {
     size_t nj = yarpVector.size();
-    if( kdlJntArray.rows() != nj ) { kdlJntArray.resize(nj) }
-    memcpy(kdlJntArray.data,yarpVector.data(),nj*sizeof(double));
+    if( kdlJntArray.rows() != nj ) { kdlJntArray.resize(nj); }
+    memcpy(kdlJntArray.data.data(),yarpVector.data(),nj*sizeof(double));
     return true;
 }
 
 
 bool KDLtoYarp(const KDL::Vector & kdlVector,yarp::sig::Vector & yarpVector)
 {
-    if( yarpVector.size != 3 ) { yarpVector.resize(3); }
+    if( yarpVector.size() != 3 ) { yarpVector.resize(3); }
     memcpy(yarpVector.data(),kdlVector.data,3*sizeof(double));
     return true;
+}
+
+yarp::sig::Vector KDLtoYarp(const KDL::Vector & kdlVector)
+{
+    yarp::sig::Vector yarpVector;
+    KDLtoYarp(kdlVector,yarpVector);
+    return yarpVector;
 }
 
 bool KDLtoYarp(const KDL::JntArray & kdlJntArray,yarp::sig::Vector & yarpVector)
 {
     int nj = kdlJntArray.rows();
-    if( yarpVector.size != nj ) { yarpVector.resize(nj); }
-    memcpy(yarpVector.data(),kdlJntArray.data,nj*sizeof(double));
+    if( (int)yarpVector.size() != nj ) { yarpVector.resize(nj); }
+    memcpy(yarpVector.data(),kdlJntArray.data.data(),nj*sizeof(double));
     return true;
 }
+
+bool KDLtoYarp(const KDL::Rotation & kdlRotation, yarp::sig::Matrix & yarpMatrix3_3)
+{
+    if( yarpMatrix3_3.rows() != 3 || yarpMatrix3_3.cols() != 3 ) { yarpMatrix3_3.resize(3,3); }
+    //Both kdl and yarp store the rotation matrix in row major order
+    memcpy(yarpMatrix3_3.data(),kdlRotation.data,3*3*sizeof(double));
+    return true;
+}
+
+bool KDLtoYarp_position(const KDL::Frame & kdlFrame, yarp::sig::Matrix & yarpMatrix4_4 )
+{
+    yarp::sig::Matrix R(3,3);
+    yarp::sig::Vector p(3);
+
+    KDLtoYarp(kdlFrame.M,R);
+    KDLtoYarp(kdlFrame.p,p);
+    
+    if( yarpMatrix4_4.rows() != 4 || yarpMatrix4_4.cols() != 4 ) { yarpMatrix4_4.resize(4,4); }
+    yarpMatrix4_4.zero();
+    
+    yarpMatrix4_4.setSubmatrix(R,0,0);
+    yarpMatrix4_4.setSubcol(p,0,3);
+    yarpMatrix4_4(3,3) = 1;
+    
+    return true;
+}
+
+yarp::sig::Matrix KDLtoYarp_position(const KDL::Frame & kdlFrame)
+{
+	yarp::sig::Matrix yarpMatrix4_4(4,4);
+	KDLtoYarp_position(kdlFrame,yarpMatrix4_4);
+	return yarpMatrix4_4;
+}
+
+
+bool KDLtoYarp_twist(const KDL::Frame & kdlFrame, yarp::sig::Matrix & yarpMatrix6_6 )
+{
+    yarp::sig::Matrix R(3,3);
+    yarp::sig::Vector p(3);
+
+    KDLtoYarp(kdlFrame.M,R);
+    KDLtoYarp(kdlFrame.p,p);
+    
+    if( yarpMatrix6_6.rows() != 6 || yarpMatrix6_6.cols() != 6 ) { yarpMatrix6_6.resize(6,6); }
+    yarpMatrix6_6.zero();
+    
+    yarpMatrix6_6.setSubmatrix(R,0,0);
+    yarpMatrix6_6.setSubmatrix(R,3,3);
+    yarpMatrix6_6.setSubmatrix(yarp::math::crossProductMatrix(p)*R,3,0);
+    
+    return true;
+}
+
+yarp::sig::Matrix KDLtoYarp_twist(const KDL::Frame & kdlFrame)
+{
+	yarp::sig::Matrix yarpMatrix6_6(6,6);
+	KDLtoYarp_twist(kdlFrame,yarpMatrix6_6);
+	return yarpMatrix6_6;
+}
+
+
+bool KDLtoYarp_wrench(const KDL::Frame &kdlFrame, yarp::sig::Matrix & yarpMatrix6_6 )
+{
+    yarp::sig::Matrix R(3,3);
+    yarp::sig::Vector p(3);
+
+    KDLtoYarp(kdlFrame.M,R);
+    KDLtoYarp(kdlFrame.p,p);
+    
+    if( yarpMatrix6_6.rows() != 6 || yarpMatrix6_6.cols() != 6 ) { yarpMatrix6_6.resize(6,6); }
+    yarpMatrix6_6.zero();
+    
+    yarpMatrix6_6.setSubmatrix(R,0,0);
+    yarpMatrix6_6.setSubmatrix(R,3,3);
+    yarpMatrix6_6.setSubmatrix(yarp::math::crossProductMatrix(p)*R,0,3);
+    
+    return true;
+}
+
+yarp::sig::Matrix KDLtoYarp_wrench(const KDL::Frame & kdlFrame)
+{
+	yarp::sig::Matrix yarpMatrix6_6(6,6);
+	KDLtoYarp_wrench(kdlFrame,yarpMatrix6_6);
+	return yarpMatrix6_6;
+}
+
+
+
 
 

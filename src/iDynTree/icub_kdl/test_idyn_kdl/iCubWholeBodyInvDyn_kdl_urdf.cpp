@@ -80,7 +80,7 @@ int main(int argc, char * argv[])
     //int N = 32;
     
     double time_kdl = 0.0;
-    double time_idyn = 0.0;
+    //double time_idyn = 0.0;
     double time_kdl_urdf = 0.0;
     double time_serial_kdl = 0.0;
     double time_serial_kdl_urdf = 0.0;

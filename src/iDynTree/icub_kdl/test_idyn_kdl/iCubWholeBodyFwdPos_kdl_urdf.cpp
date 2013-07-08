@@ -33,6 +33,7 @@
 #include <cassert>
 
 #define EQUALISH(x,y) norm(x-y) < delta
+#define EQUALISH_KDL(x,y) (x-y).Norm() < delta
 
 using namespace std;
 using namespace iCub::iDyn;
@@ -42,14 +43,14 @@ using namespace yarp::math;
 using namespace yarp::sig;
 using namespace yarp::os;
 
-double delta = 1e-10;
+double delta = 1e-7;
 
 
 
 KDL::JntArray clean_vec(KDL::JntArray & in)
 {
     KDL::JntArray out = in;
-    for(int j =0; j < out.rows(); j++) {
+    for(int j =0; j < (int)out.rows(); j++) {
         out(j) = out(j) < 1e-15 ? 0 : out(j); 
     }
     return out;
@@ -156,8 +157,8 @@ int main(int argc, char * argv[])
     KDL::CoDyCo::TreeFkSolverPos_iterative tree_solver_urdf(icub_kdl_urdf,"",tree_solver.getTreeGraph().getSerialization());
     assert(tree_solver.getTreeGraph().getSerialization().is_consistent(icub_kdl));
     
-    assert(tree_solver.getTreeGraph().getSerialization().getNrOfJoints() == nj);
-    assert(tree_solver.getTreeGraph().getSerialization().getNrOfSegments() == ns);
+    assert(tree_solver.getTreeGraph().getSerialization().getNrOfDOFs() == nj);
+    assert(tree_solver.getTreeGraph().getSerialization().getNrOfLinks() == ns);
     std::cout << "Original TreeGraph:" << std::endl;
     std::cout << tree_solver.getTreeGraph().toString() << std::endl;
     std::cout << "Serialization " << std::endl;
@@ -282,6 +283,18 @@ int main(int argc, char * argv[])
         cout << "KDL urdf r_gripper pos" << endl;
         cout << pos_kdl_urdf.p << endl;
         
+        cout << "Difference iDyn/KDL " << endl;
+        cout << (pos_idyn_body.p-pos_kdl.p).Norm() << endl;
+        
+        cout << "Difference KDL/KDL URDF " << endl;
+        cout << (pos_kdl_urdf.p-pos_kdl.p).Norm() << endl;
+
+        
+        
+        YARP_ASSERT(EQUALISH_KDL(pos_idyn_body.p,pos_kdl.p));
+        YARP_ASSERT(EQUALISH_KDL(pos_kdl_urdf.p,pos_kdl.p));
+        
+        /*
         //Compute forward position with KDL (old solver) 
         ret = tree_solver_old.JntToCart(q,pos_kdl_old,"torso");
         assert(ret == 0);
@@ -324,7 +337,8 @@ int main(int argc, char * argv[])
     
         cout << "KDL urdf torso root link" << endl;
         cout << pos_kdl_urdf.p << endl;
-        
+        */
+        /*
         
         compare(tree_solver,tree_solver_urdf,q,"torso_yaw");
         compare(tree_solver,tree_solver_urdf,q,"torso_roll");
@@ -344,7 +358,7 @@ int main(int argc, char * argv[])
         compare(tree_solver,tree_solver_urdf,q,"l_gripper");
         compare(tree_solver,tree_solver_urdf,q,"r_gripper");
         compare(tree_solver,tree_solver_urdf,q,"eyes_tilt");
-
+        */
 
 
     }

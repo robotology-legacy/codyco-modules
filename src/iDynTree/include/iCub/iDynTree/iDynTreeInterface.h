@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 RobotCub Consortium
+ * Copyright (C) 2013 Istituto Italiano di Tecnologia
  * Author: Silvio Traversaro
  * CopyPolicy: Released under the terms of the GNU GPL v2.0 (or any later version)
  *
@@ -63,10 +63,14 @@
 #ifndef __IDYNTREEINTERFACE_H__
 #define __IDYNTREEINTERFACE_H__
 
+#include <yarp/sig/Matrix.h>
+#include <yarp/sig/Vector.h>
+#include <iCub/skinDynLib/dynContactList.h>
+
 namespace iCub
 {
 
-namespace iDynTree
+namespace iDynTreeLib
 {
     
 /**
@@ -240,18 +244,18 @@ public:
     //@{
     
     /**
-     * Set the specified contacts 
-     * @param contacts the list of the concacts on the iDynTree
+     * Set the unknown contacts
+     * @param contacts the list of the contacts on the iDynTree
      * @return true if operation succeeded, false otherwise
      */
-    bool setContacts(const iCub::skinDynLib::dynContactList &contacts_list)=0;
+    virtual bool setContacts(const iCub::skinDynLib::dynContactList &contacts_list)=0;
     
     /**
      * Get the contacts list, containing the results of the estimation if
-     * estimateContacts
-     * @return A copy of the external contact list
+     * estimateContacts was called
+     * @return A reference to the external contact list
      */
-    const iCub::skinDynLib::dynContactList& getContacts() const=0;
+    virtual const iCub::skinDynLib::dynContactList getContacts() const=0;
     
     //@}
     
@@ -266,13 +270,13 @@ public:
     * Performs the computation of the center of mass (COM) of the tree
     * @return true if succeeds, false otherwise
     */
-    bool computeCOM()=0;
+    virtual bool computeCOM()=0;
     
     /**
     * Performs the computation of the center of mass jacobian of the tree
     * @return true if succeeds, false otherwise
     */
-    bool computeCOMjacobian()=0;
+    virtual bool computeCOMjacobian()=0;
     
     /**
      * Get Center of Mass of the specified part (if no part 
@@ -293,7 +297,7 @@ public:
 
     
     //@}
-}
+};
 
 
 
