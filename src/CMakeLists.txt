@@ -1,1 +1,2 @@
-add_subdirectory(wbi)
+add_subdirectory(comStepper)
+
