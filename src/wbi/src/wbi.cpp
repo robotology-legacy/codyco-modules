@@ -12,24 +12,23 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
  *
- * Authors: Serena Ivaldi, Andre Del Prete
- * email: serena.ivaldi@isir.upmc.fr - andrea.delprete@iit.it
+ * Authors: Serena Ivaldi, Andrea Del Prete, Marco Randazzo
+ * email: serena.ivaldi@isir.upmc.fr - andrea.delprete@iit.it - marco.randazzo@iit.it
  */
 
-#include <iCub/wbi/wbi.h>
+#include <wbi/wbi.h>
 
 using namespace std;
-//using namespace iCub::adaptiveTorqueControl;
 using namespace wbi;
 
 
-
+//Remove an existing joint 
 bool JointIds::removeJoint(const JointId &j)
 {
     JointIds::iterator itBp = find(j.bp);
     if(itBp == end())
         return false;
-    FOR_ALL_JOINTS(itBp, itJ)
+    FOR_ALL_JOINTS_NC(itBp, itJ)
     {
         if(j.joint == *itJ)
         {
@@ -40,7 +39,7 @@ bool JointIds::removeJoint(const JointId &j)
     return false;
 }
 
-// return true if the added joint belongs to a body part that wasn't present before
+//Return true if the added joint belongs to a body part that wasn't present before
 bool JointIds::addJoint(const JointId &j)
 {
     bool newBodyPart = !(find(j.bp)==end());
@@ -48,7 +47,7 @@ bool JointIds::addJoint(const JointId &j)
     return newBodyPart;
 }
 
-// return true if at least one of the added joints belong to a body part that wasn't present before
+//Return true if at least one of the added joints belong to a body part that wasn't present before
 bool JointIds::addJoints(const JointIds &jList)
 {
     bool ok = true;
@@ -62,7 +61,7 @@ bool JointIds::addJoints(const JointIds &jList)
     return ok;
 }
 
-/** Get the number of degrees of freedom */
+// Get the number of degrees of freedom
 unsigned int JointIds::getDoFs()
 {
     unsigned int dof=0;

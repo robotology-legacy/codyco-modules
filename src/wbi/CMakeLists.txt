@@ -7,7 +7,6 @@ SET(PROJECTNAME wbi)
 PROJECT(${PROJECTNAME})
 
 SET(folder_source src/wbi.cpp)
-
 SET(folder_header include/wbi/wbi.h)
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
@@ -19,8 +18,8 @@ ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME})
 
-#icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
-#                                   DESTINATION include/wbi
-#                                   FILES ${folder_header})
+icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
+                                   DESTINATION include/wbi
+                                   FILES ${folder_header})
 
 
