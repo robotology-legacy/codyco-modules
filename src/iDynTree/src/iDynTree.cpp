@@ -29,6 +29,10 @@ using namespace yarp::math;
  
 namespace iCub {
 namespace iDynTreeLib {
+	
+iDynTree::iDynTree()
+{
+}
 
 iDynTree::iDynTree(const KDL::Tree & _tree, 
                    const std::vector<std::string> & joint_sensor_names,
@@ -37,7 +41,20 @@ iDynTree::iDynTree(const KDL::Tree & _tree,
                    KDL::CoDyCo::TreePartition _partition
                    ):  tree_graph(_tree,serialization,_partition)
 {
-    int ret;
+	constructor(_tree,joint_sensor_names,imu_link_name,serialization,_partition);
+}
+
+void iDynTree::constructor(const KDL::Tree & _tree, 
+					  const std::vector<std::string> & joint_sensor_names,
+                      const std::string & imu_link_name,
+                      KDL::CoDyCo::TreeSerialization serialization,
+                      KDL::CoDyCo::TreePartition _partition,
+                      std::vector<KDL::Frame> child_sensor_transforms
+					  )
+{
+	int ret;
+    
+    tree_graph = KDL::CoDyCo::TreeGraph(_tree,serialization,_partition);  
     
     //Setting useful constants
     NrOfDOFs = _tree.getNrOfJoints();
@@ -45,9 +62,20 @@ iDynTree::iDynTree(const KDL::Tree & _tree,
     NrOfFTSensors = joint_sensor_names.size();
     NrOfDynamicSubGraphs = NrOfFTSensors + 1;
     
+    assert((int)tree_graph.getNrOfDOFs() == NrOfDOFs);
+    assert((int)tree_graph.getNrOfLinks() == NrOfLinks);
+    
     q = KDL::JntArray(NrOfDOFs);
     dq = KDL::JntArray(NrOfDOFs);
     ddq = KDL::JntArray(NrOfDOFs);
+    
+    torques = KDL::JntArray(NrOfDOFs);
+    
+    constrained = std::vector<bool>(NrOfDOFs,false);
+    constrained_count = 0;
+    
+    kinematic_traversal = KDL::CoDyCo::Traversal();
+    dynamic_traversal = KDL::CoDyCo::Traversal();
     
     measured_wrenches =  std::vector< KDL::Wrench >(NrOfFTSensors);
     
@@ -74,7 +102,7 @@ iDynTree::iDynTree(const KDL::Tree & _tree,
     
     //iDynTreeContact
     ret = buildSubGraphStructure(joint_sensor_names);
-    if( ret < 0 ) { std::cerr << "iDynTree constructor: ft sensor specified not found" << std::endl; }
+    if( ret != 0 ) { std::cerr << "iDynTree constructor: ft sensor specified not found" << std::endl; }
     
     //building matrix and vectors for each subgraph
     A_contacts.resize(NrOfDynamicSubGraphs);
@@ -89,6 +117,16 @@ iDynTree::iDynTree(const KDL::Tree & _tree,
 }
 
 iDynTree::~iDynTree() { } ;
+
+double iDynTree::setAng(const double q_in, const int i)
+{
+	if (constrained[i]) {
+		q(i) = (q_in<q_min(i)) ? q_min(i) : ((q_in>q_max(i)) ? q_max(i) : q_in);
+	} else {
+		q(i) = q_in;
+	}
+	return q(i);
+}
 
 
 //====================================
@@ -126,7 +164,7 @@ int iDynTree::buildSubGraphStructure(const std::vector<std::string> & ft_names)
         if( i == 0 ) {
             
             //Starting with the dynamical base link, assign an index to the subgraph
-            assert( kinematic_traversal.parent[link_nmbr] == tree_graph.getInvalidLinkIterator() );
+            assert( dynamic_traversal.parent[link_nmbr] == tree_graph.getInvalidLinkIterator() );
             link2subgraph_index[link_nmbr] = next_id;
             
             //The dynamical base link is the root of its subgraph
@@ -141,6 +179,9 @@ int iDynTree::buildSubGraphStructure(const std::vector<std::string> & ft_names)
             int parent_nmbr = parent_it->link_nr;
             
             if( isFTsensor(link_it->getAdjacentJoint(parent_it)->joint.getName(),ft_names) ) {
+				//The FT sensor should be a fixed joint ? probably not
+				//assert(link_it->getAdjacentJoint(parent_it)->joint.getType() == Joint::None);
+				
                 link2subgraph_index[link_nmbr] = next_id;
                 
                 //This link is a root of a dynamical subgraph, as its parent is in another subgraph
@@ -164,6 +205,7 @@ int iDynTree::buildSubGraphStructure(const std::vector<std::string> & ft_names)
 		int child_id = tree_graph.getJunction(ft_names[i])->child->link_nr;
 		int sensor_id = i;
 		ft_list.push_back(FTSensor(tree_graph,ft_names[i],parent_id,child_id,sensor_id));
+		
 		link_FT_sensors[parent_id].push_back(&(ft_list[i]));
 		link_FT_sensors[child_id].push_back(&(ft_list[i]));
 	}
@@ -381,51 +423,114 @@ void iDynTree::store_contacts_results()
 
 yarp::sig::Vector iDynTree::setAng(const yarp::sig::Vector & _q, const std::string & part_name) 
 {
-    if( part_name.length() > 0 ) { std::cerr << "Part handling not implemented yet!" << std::endl; }
-    if( (int)_q.size() != NrOfDOFs ) { std::cerr << "setAng: Input vector has a wrong number of elements" << std::endl; return yarp::sig::Vector(0); } 
-    YarptoKDL(_q,q);
-    return _q;
+	yarp::sig::Vector ret_q = _q;
+	
+    if( part_name.length() ==  0 ) 
+    { 
+		//No part specified
+		if( (int)_q.size() != NrOfDOFs ) { std::cerr << "setAng: Input vector has a wrong number of elements" << std::endl; return yarp::sig::Vector(0); } 
+		if( constrained_count == 0 ) {
+			//if all are not constrained, use a quicker way to copy
+			YarptoKDL(_q,q);
+		} else {
+			for(int i =0; i < NrOfDOFs; i++ ){
+				ret_q[i] = setAng(_q[i],i);
+			}
+		}
+		
+	} else { // if part_name.length > 0 
+		const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
+		if( dof_ids.size() != _q.size() ) { std::cerr << "setAng: Input vector has a wrong number of elements (or part_name wrong)" << std::endl; return yarp::sig::Vector(0); }
+		for(int i = 0; i < (int)dof_ids.size(); i++ ) {
+			ret_q[i] = setAng(_q[i],dof_ids[i]);
+		}
+	}
+	return ret_q;
 }
 
 yarp::sig::Vector iDynTree::getAng(const std::string & part_name) const
-{
-    if( part_name.length() > 0 ) { std::cerr << "Part handling not implemented yet!" << std::endl; }
-    yarp::sig::Vector ret;
-    KDLtoYarp(q,ret);
+{    
+	yarp::sig::Vector ret;
+    if( part_name.length() == 0 ) 
+    {
+		KDLtoYarp(q,ret);
+    } else {
+		const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
+		if( dof_ids.size() ==0  ) { std::cerr << "getAng: wrong part_name (or part with 0 DOFs)" << std::endl; return yarp::sig::Vector(0); }
+		ret.resize(dof_ids.size());
+		for(int i = 0; i < (int)dof_ids.size(); i++ ) {
+			ret[i] = q(dof_ids[i]);
+		}
+	}
     return ret;
 }
 
 yarp::sig::Vector iDynTree::setDAng(const yarp::sig::Vector & _q, const std::string & part_name)
 {
-    if( part_name.length() > 0 ) { std::cerr << "Part handling not implemented yet!" << std::endl; }
-    if( (int)_q.size() != NrOfDOFs  ) { std::cerr << "setDAng: Input vector has a wrong number of elements" << std::endl; return yarp::sig::Vector(0); } 
-    YarptoKDL(_q,dq);
-    return _q;
+    if( part_name.length() == 0 ) {
+		if( (int)_q.size() != NrOfDOFs  ) { std::cerr << "setDAng: Input vector has a wrong number of elements" << std::endl; return yarp::sig::Vector(0); } 
+		YarptoKDL(_q,dq);
+	} 
+	else 
+	{
+		const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
+		if( dof_ids.size() != _q.size() ) { std::cerr << "setDAng: Input vector has a wrong number of elements (or part_name wrong)" << std::endl; return yarp::sig::Vector(0); }
+		for(int i = 0; i < (int)dof_ids.size(); i++ ) {
+			dq(dof_ids[i]) = _q[i];
+		}
+	}
+	return _q;
 }
 
 yarp::sig::Vector iDynTree::getDAng(const std::string & part_name) const
 {
-    if( part_name.length() > 0 ) { std::cerr << "Part handling not implemented yet!" << std::endl; }
-    if( part_name.length() > 0 ) { std::cerr << "Part handling not implemented yet!" << std::endl; }
-    yarp::sig::Vector ret;
-    KDLtoYarp(dq,ret);
+	yarp::sig::Vector ret;
+    if( part_name.length() == 0 ) 
+    {
+		KDLtoYarp(dq,ret);
+    } else {
+		const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
+		if( dof_ids.size() ==0  ) { std::cerr << "getDAng: wrong part_name (or part with 0 DOFs)" << std::endl; return yarp::sig::Vector(0); }
+		ret.resize(dof_ids.size());
+		for(int i = 0; i < (int)dof_ids.size(); i++ ) {
+			ret[i] = dq(dof_ids[i]);
+		}
+	}
     return ret;
 
 }
 
 yarp::sig::Vector iDynTree::setD2Ang(const yarp::sig::Vector & _q, const std::string & part_name)
 {
-    if( part_name.length() > 0 ) { std::cerr << "Part handling not implemented yet!" << std::endl; }
-    if( (int)_q.size() != NrOfDOFs ) { std::cerr << "setD2Ang: Input vector has a wrong number of elements" << std::endl; return yarp::sig::Vector(0); } 
-    YarptoKDL(_q,ddq);
-    return _q;
+    if( part_name.length() == 0 ) {
+		if( (int)_q.size() != NrOfDOFs  ) { std::cerr << "setD2Ang: Input vector has a wrong number of elements" << std::endl; return yarp::sig::Vector(0); } 
+		YarptoKDL(_q,ddq);
+	} 
+	else 
+	{
+		const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
+		if( dof_ids.size() != _q.size() ) { std::cerr << "setD2Ang: Input vector has a wrong number of elements (or part_name wrong)" << std::endl; return yarp::sig::Vector(0); }
+		for(int i = 0; i < (int)dof_ids.size(); i++ ) {
+			ddq(dof_ids[i]) = _q[i];
+		}
+	}
+	return _q;
 }
 
 yarp::sig::Vector iDynTree::getD2Ang(const std::string & part_name) const
 {
-    if( part_name.length() > 0 ) { std::cerr << "Part handling not implemented yet!" << std::endl; }
-    yarp::sig::Vector ret;
-    KDLtoYarp(ddq,ret);
+	yarp::sig::Vector ret;
+    if( part_name.length() == 0 ) 
+    {
+		KDLtoYarp(ddq,ret);
+    } else {
+		const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
+		if( dof_ids.size() ==0  ) { std::cerr << "getD2Ang: wrong part_name (or part with 0 DOFs)" << std::endl; return yarp::sig::Vector(0); }
+		ret.resize(dof_ids.size());
+		for(int i = 0; i < (int)dof_ids.size(); i++ ) {
+			ret[i] = ddq(dof_ids[i]);
+		}
+	}
     return ret;
 }
 
@@ -458,6 +563,9 @@ bool iDynTree::setSensorMeasurement(const int sensor_index, const yarp::sig::Vec
     if( ftm.size() != 6 ) { return false; }
     YarptoKDL(ftm.subVector(0,2),measured_wrenches[sensor_index].force);
     YarptoKDL(ftm.subVector(3,5),measured_wrenches[sensor_index].torque);
+    
+    are_contact_estimated = false;
+    
     return true;
 }
 
@@ -471,15 +579,93 @@ bool iDynTree::getSensorMeasurement(const int sensor_index, yarp::sig::Vector &f
     KDLtoYarp(measured_wrenches[sensor_index].force,force_yarp);
     KDLtoYarp(measured_wrenches[sensor_index].torque,torque_yarp);
     ftm.setSubvector(0,force_yarp);
-    ftm.setSubvector(2,torque_yarp);
+    ftm.setSubvector(3,torque_yarp);
     return true;
 }
+
+yarp::sig::Matrix iDynTree::getPosition(const int link_index) const
+{
+	//\todo add that computation are updated checking
+	return KDLtoYarp_position(X_dynamic_base[link_index]);
+}
+
+yarp::sig::Matrix iDynTree::getPosition(const std::string & link_name) const
+{
+	KDL::CoDyCo::LinkMap::const_iterator link_it = tree_graph.getLink(link_name);
+	if( link_it == tree_graph.getInvalidLinkIterator() ) { std::cerr << "iDynTree::getPosition : link " << link_name << " not found" << std::endl; return Matrix(0,0); }
+	//\todo add that computation are updated checking
+	return getPosition(link_it->link_nr);
+}
+
+yarp::sig::Matrix iDynTree::getPosition(const int first_link, const int second_link) const
+{
+	//\todo add that computation are update checking
+	return KDLtoYarp_position(X_dynamic_base[first_link].Inverse()*X_dynamic_base[second_link]);
+}
+
+yarp::sig::Matrix iDynTree::getPosition(const std::string & first_link_name, const std::string & second_link_name ) const
+{
+	KDL::CoDyCo::LinkMap::const_iterator first_link_it = tree_graph.getLink(first_link_name);
+	if( first_link_it == tree_graph.getInvalidLinkIterator() ) { std::cerr << "iDynTree::getPosition : link " << first_link_name << " not found" << std::endl; return Matrix(0,0); }
+	KDL::CoDyCo::LinkMap::const_iterator second_link_it = tree_graph.getLink(second_link_name);
+	if( second_link_it == tree_graph.getInvalidLinkIterator() ) { std::cerr << "iDynTree::getPosition : link " << second_link_name << " not found" << std::endl; return Matrix(0,0); }	
+	return getPosition(first_link_it->link_nr,second_link_it->link_nr);
+}
+
+yarp::sig::Vector iDynTree::getVel(const int link_index) const
+{
+	if( link_index < 0 || link_index >= (int)tree_graph.getNrOfLinks() ) { std::cerr << "iDynTree::getVel: link index " << link_index <<  " out of bounds" << std::endl; return yarp::sig::Vector(0); }
+	yarp::sig::Vector ret(6), lin_vel(3), ang_vel(3);
+	KDLtoYarp(v[link_index].vel,lin_vel);
+	KDLtoYarp(v[link_index].rot,ang_vel);
+	ret.setSubvector(0,lin_vel);
+	ret.setSubvector(3,ang_vel);
+	return ret;
+}
+
+yarp::sig::Vector iDynTree::getVel(const std::string & link_name) const
+{
+	KDL::CoDyCo::LinkMap::const_iterator link_it = tree_graph.getLink(link_name);
+	if( link_it == tree_graph.getInvalidLinkIterator() ) { std::cerr << "iDynTree::getVel : link " << link_name << " not found" << std::endl; return Vector(0); }
+	//\todo add that computation are updated checking
+	return getVel(link_it->link_nr);
+}
+
+yarp::sig::Vector iDynTree::getAcc(const int link_index) const
+{
+	if( link_index < 0 || link_index >= (int)tree_graph.getNrOfLinks() ) { std::cerr << "iDynTree::getAcc: link index " << link_index <<  " out of bounds" << std::endl; return yarp::sig::Vector(0); }
+	yarp::sig::Vector ret(6), classical_lin_acc(3), ang_acc(3);
+	KDLtoYarp(a[link_index].vel+v[link_index].rot*v[link_index].vel,classical_lin_acc);
+	KDLtoYarp(a[link_index].rot,ang_acc);
+	ret.setSubvector(0,classical_lin_acc);
+	ret.setSubvector(3,ang_acc);
+	return ret;
+}
+
+yarp::sig::Vector iDynTree::getAcc(const std::string & link_name) const
+{
+	KDL::CoDyCo::LinkMap::const_iterator link_it = tree_graph.getLink(link_name);
+	if( link_it == tree_graph.getInvalidLinkIterator() ) { std::cerr << "iDynTree::getAcc : link " << link_name << " not found" << std::endl; return Vector(0); }
+	//\todo add that computation are updated checking
+	return getAcc(link_it->link_nr);
+}
+
     
 yarp::sig::Vector iDynTree::getTorques(const std::string & part_name) const
 {
-    yarp::sig::Vector ret(NrOfDOFs);
-    KDLtoYarp(torques,ret);
-    return ret;
+	if( part_name.length() == 0 ) {
+		yarp::sig::Vector ret(NrOfDOFs);
+		KDLtoYarp(torques,ret);
+		return ret;
+	} else {
+		const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
+		if( dof_ids.size() ==0  ) { std::cerr << "getTorques: wrong part_name (or part with 0 DOFs)" << std::endl; return yarp::sig::Vector(0); }
+		yarp::sig::Vector ret(dof_ids.size());
+		for(int i = 0; i < (int)dof_ids.size(); i++ ) {
+			ret[i] = torques(dof_ids[i]);
+		}
+		return ret;
+	}
 }
     
 bool iDynTree::setContacts(const iCub::skinDynLib::dynContactList & contacts_list)
@@ -526,10 +712,21 @@ const iCub::skinDynLib::dynContactList iDynTree::getContacts() const
 //      Computation methods
 //
 //====================================
+bool iDynTree::computePositions()
+{
+	if(X_dynamic_base.size() != tree_graph.getNrOfLinks()) { X_dynamic_base.resize(tree_graph.getNrOfLinks()); }
+	if( getFramesLoop(tree_graph,q,dynamic_traversal,X_dynamic_base) == 0 ) return true;
+	//else
+	 return false;  
+}
+
 bool iDynTree::kinematicRNEA()
 {
     int ret;
     ret = rneaKinematicLoop(tree_graph,q,dq,ddq,kinematic_traversal,imu_velocity,imu_acceleration,v,a);
+    
+    are_contact_estimated = false;
+    
     if( ret < 0 ) return false;
     //else
     return true;
@@ -554,12 +751,56 @@ bool iDynTree::dynamicRNEA()
     ret = rneaDynamicLoop(tree_graph,q,dynamic_traversal,v,a,f_ext,f,torques,base_force);
     //Check base force: if estimate contact was called, it should be zero
     if( are_contact_estimated == true ) {
+		//If the force were estimated wright
 		assert( base_force.force.Norm() < 1e-5 );
 		assert( base_force.torque.Norm() < 1e-5 );
+		//Note: this (that no residual appears happens only for the proper selection of the provided dynContactList
+		for(int i=0; i < NrOfFTSensors; i++ ) {
+			KDL::Wrench residual = measured_wrenches[i] - ft_list[i].getH_child_sensor().Inverse(f[ft_list[i].getChild()]);
+			assert( residual.force.Norm() < 1e-5 );
+			assert( residual.torque.Norm() < 1e-5 );
+		}
+		
+		
+	} else {
+		//In case contacts forces where not estimated, the sensor values have
+		//to be calculated from the RNEA
+		for(int i=0; i < NrOfFTSensors; i++ ) {
+			//Todo add case that the force/wrench is the one of the parent ?
+			#ifndef NDEBUG
+			std::cerr << "Project sensor " << i << "from link " << ft_list[i].getChild() << " to sensor " << std::endl;
+			std::cerr << "Original force " << KDLtoYarp(f[ft_list[i].getChild()].force).toString() << std::endl;
+			#endif
+			measured_wrenches[i] = ft_list[i].getH_child_sensor().Inverse(f[ft_list[i].getChild()]);
+		}
 	}
     if( ret < 0 ) return false;
     return true;
 }
+
+////////////////////////////////////////////////////////////////////////
+////// COM related methods
+////////////////////////////////////////////////////////////////////////
+    bool iDynTree::computeCOM() 
+    {
+		return false;
+	}
+    
+    bool iDynTree::computeCOMjacobian()
+    {
+		return false;
+	}
+
+    yarp::sig::Vector iDynTree::getCOM(const std::string & part_name) const
+    {
+		return yarp::sig::Vector(0);
+	}
+    
+    bool iDynTree::getCOMJacobian(const yarp::sig::Matrix & jac, const std::string & part_name) const
+    {
+		return false;
+	}
+
 
 }
 }
