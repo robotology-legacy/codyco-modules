@@ -1,4 +1,7 @@
 CoDyCo
+======
+
+
 Whole-body Compliant Dynamical Contacts in Cognitive Humanoids
 
 
@@ -8,3 +11,11 @@ iCub  the theoretical advances of the project.
 
 More info at http://codyco.eu/
 Code documentation automatically generated: http://wiki.icub.org/codyco/dox/html/index.html
+
+Installation
+------------
+
+Before installing CoDyCo software it is necessary to install some dependencies:
+    * Yarp/iCub software some dependencies http://wiki.icub.org/wiki/ICub_Software_Installation
+    * Eigen http://eigen.tuxfamily.org
+    
