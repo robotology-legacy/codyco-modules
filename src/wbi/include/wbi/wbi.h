@@ -141,45 +141,6 @@ namespace wbi
     
     
     /*
-     * Simple class to represent a generic sensor
-     */
-    class iSensor
-    {
-        std::string description;
-    public:
-        virtual bool init() = 0;
-        virtual bool read(double *measure) = 0;
-        virtual bool calibrate() = 0;
-    };
-    
-    /*
-     * Simple class to represent an inertial sensor
-     */
-    class iSensorInertial : public iSensor
-    {
-    public:
-        double value[6];
-        //
-        virtual bool init();
-        virtual bool read(double *measure);
-        virtual bool calibrate();
-    };
-    
-    /*
-     * Simple class to represent a 6 axis FT sensor
-     */
-    class iSensorFT6 : public iSensor
-    {
-    public:
-        double value[6];
-        //
-        virtual bool init();
-        virtual bool read(double *measure);
-        virtual bool calibrate();
-    };
-    
-    
-    /*
      * Interface for all the sensors of a system
      */
     class iWholeBodySensors
