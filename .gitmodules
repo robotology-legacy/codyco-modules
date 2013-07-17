@@ -1,0 +1,6 @@
+[submodule "extern/kdl_codyco"]
+	path = extern/kdl_codyco
+	url = https://github.com/pegua/kdl_codyco.git
+[submodule "extern/orocos_kinematics_dynamics"]
+	path = extern/orocos_kinematics_dynamics
+	url = http://git.mech.kuleuven.be/robotics/orocos_kinematics_dynamics.git
