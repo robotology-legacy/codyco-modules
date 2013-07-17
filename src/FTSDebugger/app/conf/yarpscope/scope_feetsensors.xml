@@ -132,7 +132,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           gridy="0"
           hspan="1"
           vspan="1"
-          title="R-foot from FTS-foot"
+          title="R-foot from FTS-foot - forces"
           minval="-100"
           maxval="100"
           bgcolor="#ccFFcc">
@@ -160,7 +160,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           gridy="1"
           hspan="1"
           vspan="1"
-          title="R-foot from FTS-foot - moment error"
+          title="R-foot from FTS-foot - moments"
           minval="-10"
           maxval="10"
           bgcolor="#ddFFdd">
@@ -191,7 +191,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           gridy="0"
           hspan="1"
           vspan="1"
-          title="LEFT FOOT - iDyn - Forces"
+          title="L-foot from FT-leg - Forces"
           minval="-200"
           maxval="200"
           bgcolor="#FFcccc">
@@ -219,7 +219,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           gridy="1"
           hspan="1"
           vspan="1"
-          title="LEFT FOOT - iDyn - Moments"
+          title="L-foot from FT-leg - Moments"
           minval="-15"
           maxval="15"
           bgcolor="#FFdddd">
@@ -251,7 +251,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           gridy="0"
           hspan="1"
           vspan="1"
-          title="LEFT FOOT - FTS - forces"
+          title="L-foot - FTS - forces"
           minval="-200"
           maxval="200"
           bgcolor="#FFcccc">
@@ -279,7 +279,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           gridy="1"
           hspan="1"
           vspan="1"
-          title="LEFT FOOT - FTS - moments"
+          title="L-foot - FTS - moments"
           minval="-15"
           maxval="15"
           bgcolor="#FFdddd">
@@ -312,7 +312,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           gridy="0"
           hspan="1"
           vspan="1"
-          title="LEFT FOOT - iDyn"
+          title="L-foot from FTS-foot - forces"
           minval="-100"
           maxval="100"
           bgcolor="#FFcccc">
@@ -340,7 +340,7 @@ This xml file must be used with yarpscope: it plots by columns the forces and mo
           gridy="1"
           hspan="1"
           vspan="1"
-          title="LEFT FOOT - iDyn"
+          title="L-foot from FTS-foot - moments"
           minval="-10"
           maxval="10"
           bgcolor="#FFdddd">
