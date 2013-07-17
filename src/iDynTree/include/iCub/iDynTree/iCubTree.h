@@ -5,8 +5,8 @@
  *
  */
 
-#include <iCub/iDynTree/iDynTreeInterface.h>
-#include <iCub/iDynTree/iDynTree.h>
+#include <iCub/iDynTree/DynTreeInterface.h>
+#include <iCub/iDynTree/DynTree.h>
 
 #include <iostream>
 
@@ -16,7 +16,7 @@
 namespace iCub
 {
 
-namespace iDynTreeLib
+namespace iDynTree
 {
     
 struct iCubTree_version_tag
@@ -32,7 +32,7 @@ struct iCubTree_version_tag
   
 };
 
-class iCubTree : public iDynTree 
+class iCubTree : public DynTree 
 {
 	private:
 		/**

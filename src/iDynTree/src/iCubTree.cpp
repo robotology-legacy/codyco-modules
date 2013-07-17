@@ -15,7 +15,7 @@
 using namespace iCub::skinDynLib;
 
 namespace iCub {
-namespace iDynTreeLib {
+namespace iDynTree {
 
 iCubTree::iCubTree(iCubTree_version_tag version, unsigned int verbose)
 {
