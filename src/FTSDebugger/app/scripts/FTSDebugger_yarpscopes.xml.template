@@ -7,33 +7,22 @@
 
         <module>
             <name>yarpscope</name>
-            <parameters>--xml FTSDebugger/scope_feetsensors.xml</parameters>
-            <stdio>macsi03</stdio>            
-            <node>macsi03</node>
+            <parameters>--context yarpscope/conf --xml FTSDebugger/scope_feetsensors.xml</parameters>
+            <node>console</node>
             <tag>scope-feet-sensors</tag>
         </module>
        
         <module>
             <name>yarpscope</name>
-            <parameters>--xml FTSDebugger/scope_jointtorques.xml</parameters>
-            <stdio>macsi03</stdio>            
-            <node>macsi03</node>
+            <parameters>--context yarpscope/conf --xml FTSDebugger/scope_jointtorques.xml</parameters>
+            <node>console</node>
             <tag>scope-feet-sensors</tag>
         </module>
 
         <module>
             <name>yarpscope</name>
-            <parameters>--xml FTSDebugger/scope_forcetorquesensors.xml</parameters>
-            <stdio>macsi03</stdio>            
-            <node>macsi03</node>
-            <tag>scope-feet-sensors</tag>
-        </module> 
-        
-        <module>
-            <name>yarpscope</name>
-            <parameters>--xml FTSDebugger/scope_forcetorquesensors_axes.xml</parameters>
-            <stdio>macsi03</stdio>            
-            <node>macsi03</node>
+            <parameters>--context yarpscope/conf --xml FTSDebugger/scope_forcetorquesensors.xml</parameters>
+            <node>console</node>
             <tag>scope-feet-sensors</tag>
         </module> 
 
