@@ -187,8 +187,8 @@ bool idynSensorChain2kdlChain(iCub::iDyn::iDynChain & idynChain,iCub::iDyn::iDyn
             //idynSensor.getH() <--> H_i_s
             yarp::sig::Matrix H_0 = H_sensor_link  * (idynSensor.getH()); // H_{i-1}_s = H_{i-1}_i*H_i_s ?  
             yarp::sig::Matrix H_1 = localSE3inv(idynSensor.getH()); //H_s_{i} 
-            std::cout << "H_0" << std::endl << H_0.toString() << std::endl;
-            std::cout << "H_1" << std::endl << H_1.toString() << std::endl;
+            //std::cout << "H_0" << std::endl << H_0.toString() << std::endl;
+            //std::cout << "H_1" << std::endl << H_1.toString() << std::endl;
             idynMatrix2kdlFrame(H_0,kdlFrame_0);
             idynMatrix2kdlFrame(H_1,kdlFrame_1);
             //cout << "kdlFrame_0: " << endl;

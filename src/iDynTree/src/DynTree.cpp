@@ -55,6 +55,7 @@ void DynTree::constructor(const KDL::Tree & _tree,
 	int ret;
     
     tree_graph = KDL::CoDyCo::TreeGraph(_tree,serialization,_partition);  
+    partition = _partition;
     
     //Setting useful constants
     NrOfDOFs = _tree.getNrOfJoints();
@@ -653,6 +654,9 @@ yarp::sig::Vector DynTree::getAcc(const std::string & link_name) const
     
 yarp::sig::Vector DynTree::getTorques(const std::string & part_name) const
 {
+	#ifndef NDEBUG
+	std::cout << "DynTree::getTorques(" << part_name << ")" << std::endl;
+	#endif
 	if( part_name.length() == 0 ) {
 		yarp::sig::Vector ret(NrOfDOFs);
 		KDLtoYarp(torques,ret);
@@ -661,7 +665,13 @@ yarp::sig::Vector DynTree::getTorques(const std::string & part_name) const
 		const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
 		if( dof_ids.size() ==0  ) { std::cerr << "getTorques: wrong part_name (or part with 0 DOFs)" << std::endl; return yarp::sig::Vector(0); }
 		yarp::sig::Vector ret(dof_ids.size());
+		#ifndef NDEBUG
+		std::cout << "dof_ids" << dof_ids.size() << std::endl;
+		#endif
 		for(int i = 0; i < (int)dof_ids.size(); i++ ) {
+			#ifndef NDEBUG
+			std::cout << "ids " << dof_ids[i] << std::endl;
+			#endif
 			ret[i] = torques(dof_ids[i]);
 		}
 		return ret;

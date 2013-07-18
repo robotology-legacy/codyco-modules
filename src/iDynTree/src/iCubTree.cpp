@@ -28,7 +28,7 @@ iCubTree::iCubTree(iCubTree_version_tag version, unsigned int verbose)
     
     //Convert it to a KDL::Tree (this preserve all the frame of reference, is the conversion to URDF that changes them)
     KDL::Tree icub_kdl;
-    bool ret = toKDL_iDynDebug(icub_idyn,icub_kdl);
+    bool ret = toKDL(icub_idyn,icub_kdl);
     assert(ret);
     
     //Imu link name
@@ -178,6 +178,10 @@ KDL::CoDyCo::TreePartition iCubTree::get_iCub_partition(const KDL::CoDyCo::TreeS
 	partition.addPart(right_arm);
 	partition.addPart(left_leg);
 	partition.addPart(right_leg);
+	
+	#ifndef NDEBUG
+	//std::cout << "iCub partition " << partition.toString() << std::endl;
+	#endif
 	
 	return partition;
 }
