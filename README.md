@@ -16,6 +16,12 @@ Code documentation automatically generated: http://wiki.icub.org/codyco/dox/html
 Installation
 ------------
 
+After cloning the CoDyCo repository, it is necessary to initialize the git submodules:
+```bash
+git submodule init
+git submodule update
+```
+
 Before installing CoDyCo software it is necessary to install some dependencies:
 
 ###Yarp/iCub software 
