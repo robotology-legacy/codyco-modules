@@ -8,6 +8,13 @@ PROJECT(${PROJECTNAME})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
+IF(UNIX)
+     IF(CMAKE_COMPILER_IS_GNUCC)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+     ENDIF(CMAKE_COMPILER_IS_GNUCC)
+ENDIF(UNIX)
+ 
+
 SET(folder_source src/wbiy.cpp)
 SET(folder_header include/wbiy/wbiy.h)
 

@@ -8,7 +8,7 @@
 /**
  * \defgroup iDynTree iDynTree 
  *    
- * @ingroup icub_libraries
+ * @ingroup codyco_modules
  *
  * \note <b>SI units adopted</b>: meters for lengths and radians
  *       for angles.
@@ -60,8 +60,8 @@
  * 
  **/ 
 
-#ifndef __IDYNTREEINTERFACE_H__
-#define __IDYNTREEINTERFACE_H__
+#ifndef __DYNTREEINTERFACE_H__
+#define __DYNTREEINTERFACE_H__
 
 #include <yarp/sig/Matrix.h>
 #include <yarp/sig/Vector.h>
@@ -70,7 +70,7 @@
 namespace iCub
 {
 
-namespace iDynTreeLib
+namespace iDynTree
 {
     
 /**
@@ -82,7 +82,7 @@ namespace iDynTreeLib
  * and FT sensor measures. 
  * 
  */
-class iDynTreeInterface {
+class DynTreeInterface {
     
 public:
 
@@ -245,7 +245,7 @@ public:
     
     /**
      * Set the unknown contacts
-     * @param contacts the list of the contacts on the iDynTree
+     * @param contacts the list of the contacts on the DynTree
      * @return true if operation succeeded, false otherwise
      */
     virtual bool setContacts(const iCub::skinDynLib::dynContactList &contacts_list)=0;
