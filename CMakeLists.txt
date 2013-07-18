@@ -130,7 +130,7 @@ add_custom_target(uninstall_CoDyCo
 
 
 #### Add external modules
-add_subdirectory(extern)
+#add_subdirectory(extern)
 
 add_subdirectory(src)
 add_subdirectory(doc)
