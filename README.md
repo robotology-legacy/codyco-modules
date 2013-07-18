@@ -36,3 +36,14 @@ sudo make install
 ```
 For any further information you can check http://www.orocos.org/kdl .
     
+###KDL_CoDyCo
+It is possible to install KDL_CoDyCo easily from the CoDyCo repository:
+```bash
+cd $CODYCO_ROOT/extern/kdl_codyco
+mkdir build
+cd build
+ccmake ../
+make
+sudo make install
+```
+    
