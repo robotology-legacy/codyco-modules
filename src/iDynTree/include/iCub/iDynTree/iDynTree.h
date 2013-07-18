@@ -32,10 +32,10 @@ namespace iDynTreeLib
  * Data structure for containing information about internal FT sensors
  * To properly describe an FT sensor, it is necessary: 
  *      * the fixed junction of the FT sensor in the TreeGraph (a name)
- *      * the transformation from the *child* KDL::Tree link to the the reference
- *        frame of the FT measurement ( H_c_s ) such that given the measure f_s, the 
- *        wrench applied by the parent on the child expressed in the child frame ( f_c )
- *        is given by f_c = H_c_s f_s
+ *      * the transformation from the *parent* KDL::Tree link to the the reference
+ *        frame of the FT measurement ( H_p_s ) such that given the measure f_s, the 
+ *        wrench applied by the child on the parent expressed in the parent frame ( f_p )
+ *        is given by f_p = H_p_s f_s
  *         
  */
 class FTSensor
@@ -43,10 +43,11 @@ class FTSensor
     private:
 		 const KDL::CoDyCo::TreeGraph * tree_graph;
          std::string fixed_joint_name;
-         KDL::Frame H_child_sensor;
+         KDL::Frame H_parent_sensor;
          int parent;
          int child;
          int sensor_id;
+      
         
     public:
     
@@ -57,20 +58,20 @@ class FTSensor
 				 const int _sensor_id) : 
 				 tree_graph(&_tree_graph),
 				 fixed_joint_name(_fixed_joint_name),
-				 H_child_sensor(KDL::Frame::Identity()),
+				 H_parent_sensor(KDL::Frame::Identity()),
 				 parent(_parent),
 				 child(_child),
 				 sensor_id(_sensor_id) {}
     
 		FTSensor(const KDL::CoDyCo::TreeGraph & _tree_graph, 
 				 const std::string _fixed_joint_name,
-				 const KDL::Frame _H_child_sensor,
+				 const KDL::Frame _H_parent_sensor,
 				 const int _parent,
 				 const int _child,
 				 const int _sensor_id) : 
 				 tree_graph(&_tree_graph),
 				 fixed_joint_name(_fixed_joint_name),
-				 H_child_sensor(_H_child_sensor),
+				 H_parent_sensor(_H_parent_sensor),
 				 parent(_parent),
 				 child(_child),
 				 sensor_id(_sensor_id) {}
@@ -84,15 +85,38 @@ class FTSensor
         KDL::Wrench getWrenchExcertedOnSubGraph(int current_link, const std::vector<KDL::Wrench> & measured_wrenches )
         {
             if( current_link == parent ) {
-				//The junction connected to an F/T sensor should be one with 0 DOF
-				assert(tree_graph->getLink(child)->getAdjacentJoint(parent)->joint.getType() == KDL::Joint::None );
-				KDL::Frame H_parent_child = tree_graph->getLink(child)->pose(parent,0.0);
-                return H_parent_child*(H_child_sensor*measured_wrenches[sensor_id]);
+			    return (H_parent_sensor*measured_wrenches[sensor_id]);
             } else {
+				//The junction connected to an F/T sensor should be one with 0 DOF
+				assert(tree_graph->getLink(child)->getAdjacentJoint(tree_graph->getLink(parent))->joint.getType() == KDL::Joint::None );
+				KDL::Frame H_child_parent = tree_graph->getLink(parent)->pose(tree_graph->getLink(child),0.0);
                 assert(current_link == child);
-                return H_child_sensor*measured_wrenches[sensor_id];
+                return H_child_parent*(H_parent_sensor*measured_wrenches[sensor_id]);
             }
         }
+        
+        KDL::Frame getH_parent_sensor() const 
+        {
+			return H_parent_sensor;
+		}
+		
+		KDL::Frame getH_child_sensor() const 
+        {
+			assert(tree_graph->getLink(child)->getAdjacentJoint(tree_graph->getLink(parent))->joint.getType() == KDL::Joint::None );
+			assert(tree_graph->getLink(parent)->getAdjacentJoint(tree_graph->getLink(child))->joint.getType() == KDL::Joint::None );
+			KDL::Frame H_child_parent = tree_graph->getLink(parent)->pose(tree_graph->getLink(child),0.0);
+			return H_child_parent*H_parent_sensor;
+		}
+		
+		int getChild() const 
+		{
+			return child;
+		}
+		
+		int getParent() const
+		{
+			return parent;
+		}
     
 };
 
@@ -132,6 +156,14 @@ class iDynTree : public iDynTreeInterface {
         KDL::Twist imu_velocity;
         KDL::Twist imu_acceleration; /**< KDL acceleration: spatial proper acceleration */
         
+        //joint position limits 
+        KDL::JntArray q_min;
+        KDL::JntArray q_max;
+        std::vector<bool> constrained; /**< true if the DOF is subject to limit check, false otherwise */
+        int constrained_count; /**< the number of DOFs that are constrained */
+        
+        double setAng(const double q, const int i);
+        
         //dynContact stuff 
         std::vector< iCub::skinDynLib::dynContactList > contacts; /**< a vector of dynContactList, one for each dynamic subgraph */
         
@@ -153,7 +185,7 @@ class iDynTree : public iDynTreeInterface {
         //External forces
         std::vector<KDL::Wrench> f_ext; /**< External wrench acting on a link */
         
-		std::vector<KDL::Wrench> f; /**< Link wrench \warning it is traversal dependent */
+		std::vector<KDL::Wrench> f; /**< For a link the wrench transmitted from the link to its parent in the dynamical traversal \warning it is traversal dependent */
 		std::vector<KDL::Wrench> f_gi; /**< Gravitational and inertial wrench acting on a link */
         
         //iDynTreeContact data structures
@@ -169,7 +201,7 @@ class iDynTree : public iDynTreeInterface {
         int buildSubGraphStructure(const std::vector<std::string> & ft_names);
         
         /**
-         * Get the A e b local to a plink, querying the contacts list and the FT sensor list
+         * Get the A e b local to a link, querying the contacts list and the FT sensor list
          * 
          */
         yarp::sig::Vector getLinkLocalAb_contacts(int global_index, yarp::sig::Matrix & A, yarp::sig::Vector & b); 
@@ -203,10 +235,21 @@ class iDynTree : public iDynTreeInterface {
 
         //end iDynTreeContact data structures
         
+        //Position related quantites
+        std::vector<KDL::Frame> X_dynamic_base; /**< for each link store the frame X_kinematic_base_link of the position of a link with respect to the kinematic base */
+        
         //Debug
         int verbose;
         
+        
+
+        
     public:
+		 iDynTree();
+		 
+		 void constructor(const KDL::Tree & _tree, const std::vector<std::string> & joint_sensor_names, const std::string & imu_link_name, KDL::CoDyCo::TreeSerialization  serialization=KDL::CoDyCo::TreeSerialization(), KDL::CoDyCo::TreePartition partition=KDL::CoDyCo::TreePartition(), std::vector<KDL::Frame> parent_sensor_transforms=std::vector<KDL::Frame>(0));
+
+    
         /**
          * Constructor for iDynTree
          * 
@@ -325,6 +368,8 @@ class iDynTree : public iDynTreeInterface {
      *  Methods to execute phases of Recursive Newton Euler Algorithm
      */
     //@{
+		
+	virtual bool computePositions();  
     
     /**
      * Execute the kinematic phase (recursive calculation of position, velocity,
@@ -353,6 +398,48 @@ class iDynTree : public iDynTreeInterface {
      *  Methods to get output quantities
      */
     //@{
+		
+		
+	virtual yarp::sig::Matrix getPosition(const int link_index) const;
+	
+	virtual yarp::sig::Matrix getPosition(const std::string & link_name ) const;
+	
+	virtual yarp::sig::Matrix getPosition(const int first_link, const int second_link) const;
+	
+	virtual yarp::sig::Matrix getPosition(const std::string & first_link_name, const std::string & second_link_name ) const;
+		
+	/**
+	 * Get the velocity of the specified link
+	 * @param the index of the link 
+	 * @return a 6x1 vector with linear velocity (0:2) and angular velocity (3:5)
+	 */
+	virtual yarp::sig::Vector getVel(const int link_index) const;
+	
+	/**
+	 * Get the velocity of the specified link
+	 * @param the index of the link 
+	 * @return a 6x1 vector with linear velocity (0:2) and angular velocity (3:5)
+	 */
+	virtual yarp::sig::Vector getVel(const std::string & link_name) const;
+  
+  	/**
+	 * Get the acceleration of the specified link
+	 * @param the index of the link 
+	 * @return a 6x1 vector with linear acc (0:2) and angular acceleration (3:5)
+	 *
+	 * \note This function returns the classical linear acceleration, not the spatial one
+	 */
+	virtual yarp::sig::Vector getAcc(const int link_index) const;
+	
+  	/**
+	 * Get the acceleration of the specified link
+	 * @param the index of the link 
+	 * @return a 6x1 vector with linear acceleration (0:2) and angular acceleration (3:5)
+	 * 
+	 * \note This function returns the classical linear acceleration, not the spatial one
+	 */
+	virtual yarp::sig::Vector getAcc(const std::string & link_name) const;
+  
     
     /**
      * Get joint torques in the specified part (if no part 

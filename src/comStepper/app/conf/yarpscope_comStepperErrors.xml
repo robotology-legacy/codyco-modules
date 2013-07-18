@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<portscope rows="2" columns="1" carrier="tcp">
+<portscope rows="1" columns="1" carrier="tcp">
     <plot gridx="0"
         gridy="0"
-        hspan="1"
-        vspan="1"
         title="errors on COM tracking"
         size="60"
         minval="-0.2"
@@ -23,8 +21,6 @@
     </plot>
     <plot gridx="1"
         gridy="0"
-        hspan="1"
-        vspan="1"
         title="errors on R2L tracking"
         minval="-0.2"
         maxval="0.2"
