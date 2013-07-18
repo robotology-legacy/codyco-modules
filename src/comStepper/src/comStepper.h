@@ -153,6 +153,8 @@ private:
     BufferedPort<Vector> *COM_Posit_port;
     BufferedPort<Vector> *r2l_err_port;
     BufferedPort<Vector> *COM_err_port;
+    BufferedPort<Vector> *COM_ctrl_port;
+    BufferedPort<Vector> *zmp_port;
     BufferedPort<Vector> *ankle_angle;        //Commanded ankle angle
     BufferedPort<Vector> *COM_ref_port;       //COM_ref 
     BufferedPort<Vector> *port_ft_foot_left;  //Left foot f/t sensor reading
@@ -174,7 +176,7 @@ private:
     string comPosPortString, comJacPortString;
 
     //err ports
-    string r2lErrPortString, comErrPortString;
+    string r2lErrPortString, comErrPortString, comCtrlPortString, zmpPortString;
     
     //compute ZMP variables
     double xLL, yLL, xDS, yDS, yRL, xRL;
@@ -229,7 +231,7 @@ public:
                      string _robot_name, string _local_name, string _wbs_name, bool display, bool noSens, \
                      bool ankles_sens, bool springs, bool torso, bool verbose, Matrix pi_a_t0, double vel_sat, double Kp_zmp_h, double Kd_zmp_h, double Kp_zmp_x, double Kd_zmp_x,\
                      double Kp_zmp_y, double Kd_zmp_y, double Kp, double Kd, string comPosPortName, string comJacPortName, \
-                     string r2lErrPortName, string comErrPortName);
+                     string r2lErrPortName, string comErrPortName, string comCtrlPortName, string zmpPortName);
     void setRefAcc(IEncoders* iencs, IVelocityControl* ivel);
     bool threadInit();
     void run();
