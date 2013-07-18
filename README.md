@@ -17,15 +17,22 @@ Installation
 ------------
 
 Before installing CoDyCo software it is necessary to install some dependencies:
-* Yarp/iCub software http://wiki.icub.org/wiki/ICub_Software_Installation
-* Eigen http://eigen.tuxfamily.org
-* KDL http://www.orocos.org/kdl
 
+###Yarp/iCub software 
+You can follow the instructions on: http://wiki.icub.org/wiki/ICub_Software_Installation .
+
+###Eigen
+You can follow the instructions on: http://eigen.tuxfamily.org .
+
+###KDL
 It is possible to install KDL easily from the CoDyCo repository:
-	cd $CODYCO_ROOT/extern/orocos_kinematics_dynamics/orocos_kdl
-	mkdir build
-	cd build
-	ccmake ../
-	make
-	sudo make install
+```bash
+cd $CODYCO_ROOT/extern/orocos_kinematics_dynamics/orocos_kdl
+mkdir build
+cd build
+ccmake ../
+make
+sudo make install
+```
+For any further information you can check http://www.orocos.org/kdl .
     
