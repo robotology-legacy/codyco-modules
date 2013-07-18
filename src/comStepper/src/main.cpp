@@ -240,6 +240,15 @@ public:
         if(rf.check("com_error"))
             comErrorPortName = rf.check("com_error", Value("/comStepper/com_error:o")).asString().c_str();
 
+        string comControlPortName;
+        if(rf.check("com_control"))
+            comControlPortName = rf.check("com_control", Value("/comStepper/dq:o")).asString().c_str();
+
+        string zmpPortName;
+        if(rf.check("zmp_port"))
+            zmpPortName = rf.check("zmp_port", Value("/comStepper/zmp:o")).asString().c_str();
+
+        
         //---------------------------- WRENCH OFFSETS ---------------------------------------------------------------
         Vector w0RL(6);
         if(rf.check("w0RL"))
@@ -397,7 +406,7 @@ public:
                                           robot_name,local_name,wbs_name,\
                                           display,noSens,ankles_sens,springs,torso,verbose,pi_a_t0,vel_sat,Kp_zmp_h,Kd_zmp_h,Kp_zmp_x,Kd_zmp_x,Kp_zmp_y,\
                                             Kd_zmp_y,Kp, Kd, comPosInputPortName,comJacInputPortName,
-                                            r2lErrorPortName, comErrorPortName);
+                                            r2lErrorPortName, comErrorPortName, comControlPortName, zmpPortName);
         fprintf(stderr, "Thread created!\n");
         
         attachTerminal();
