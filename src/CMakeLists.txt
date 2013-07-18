@@ -1,3 +1,6 @@
 add_subdirectory(comStepper)
 add_subdirectory(wbi)
 add_subdirectory(wbiy)
+add_subdirectory(wbci)
+add_subdirectory(wbciy)
+add_subdirectory(sensorsInterfaces)
