@@ -1,5 +1,5 @@
 <application>
-    <name>comStepperSim</name>
+    <name>comStepper</name>
     <module>
         <name>wholeBodyDynamics</name>
         <parameters>--robot icub --headV2 --experimental_com_vel --autoconnect</parameters>
