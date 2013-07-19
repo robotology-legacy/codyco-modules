@@ -125,12 +125,12 @@ configure_file(
   "${CMAKE_BINARY_DIR}/cmake_uninstall.cmake"
   IMMEDIATE @ONLY)
 
-add_custom_target(uninstall
+add_custom_target(uninstall_CoDyCo
   "${CMAKE_COMMAND}" -P "${CMAKE_BINARY_DIR}/icub-config-uninstall.cmake")
 
 
-
-
+#### Add external modules
+#add_subdirectory(extern)
 
 add_subdirectory(src)
 add_subdirectory(doc)

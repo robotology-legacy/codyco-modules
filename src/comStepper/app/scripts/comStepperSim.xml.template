@@ -22,6 +22,12 @@
         <node>console</node>
         <tag>yarpscopeErr</tag>
     </module>
+    <module>
+        <name>yarpscope</name>
+        <parameters>--context yarpscope/conf --xml comStepper/yarpscope_comStepperControls.xml</parameters>
+        <node>console</node>
+        <tag>yarpscopeErr</tag>
+    </module>
     
     <connection>
         <from>/icubSim/inertial</from>

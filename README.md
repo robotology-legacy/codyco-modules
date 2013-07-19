@@ -16,7 +16,40 @@ Code documentation automatically generated: http://wiki.icub.org/codyco/dox/html
 Installation
 ------------
 
+After cloning the CoDyCo repository, it is necessary to initialize the git submodules:
+```bash
+git submodule init
+git submodule update
+```
+
 Before installing CoDyCo software it is necessary to install some dependencies:
-* Yarp/iCub software http://wiki.icub.org/wiki/ICub_Software_Installation
-* Eigen http://eigen.tuxfamily.org
+
+###Yarp/iCub software 
+You can follow the instructions on: http://wiki.icub.org/wiki/ICub_Software_Installation .
+
+###Eigen
+You can follow the instructions on: http://eigen.tuxfamily.org .
+
+###KDL
+It is possible to install KDL easily from the CoDyCo repository:
+```bash
+cd $CODYCO_ROOT/extern/orocos_kinematics_dynamics/orocos_kdl
+mkdir build
+cd build
+ccmake ../
+make
+sudo make install
+```
+For any further information you can check http://www.orocos.org/kdl .
+    
+###KDL_CoDyCo
+It is possible to install KDL_CoDyCo easily from the CoDyCo repository:
+```bash
+cd $CODYCO_ROOT/extern/kdl_codyco
+mkdir build
+cd build
+ccmake ../
+make
+sudo make install
+```
     

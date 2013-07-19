@@ -5,7 +5,7 @@
  *
  */
 
-#include <iCub/iDynTree/iDynTreeInterface.h>
+#include <iCub/iDynTree/DynTreeInterface.h>
 
 #include <kdl_codyco/treeserialization.hpp>
 #include <kdl_codyco/treepartition.hpp>
@@ -16,13 +16,13 @@
 
 #include <iostream>
 
-#ifndef __IDYNTREE_H__
-#define __IDYNTREE_H__
+#ifndef __DYNTREE_H__
+#define __DYNTREE_H__
 
 namespace iCub
 {
 
-namespace iDynTreeLib
+namespace iDynTree
 {
     
     
@@ -125,9 +125,9 @@ typedef std::vector<FTSensor> FTSensorList;
     
     
 /**
- * \ingroup iDynTree
+ * \ingroup DynTree
  *
- * An implementation of the iDynTreeInterface using KDL 
+ * An implementation of the DynTreeInterface using KDL 
  * 
  * \todo add proper commented inherited methods
  * 
@@ -137,7 +137,7 @@ typedef std::vector<FTSensor> FTSensorList;
  *          Relativity generate the same dynamics of the "real" ones
  * 
  */
-class iDynTree : public iDynTreeInterface {
+class DynTree : public DynTreeInterface {
     private:
         KDL::CoDyCo::TreeGraph tree_graph; /**< TreeGraph object: it encodes the TreeSerialization and the TreePartition */
         KDL::CoDyCo::TreePartition partition; /**< TreePartition object explicit present as it is conventient to encode/decode dynContact objects */
@@ -188,7 +188,7 @@ class iDynTree : public iDynTreeInterface {
 		std::vector<KDL::Wrench> f; /**< For a link the wrench transmitted from the link to its parent in the dynamical traversal \warning it is traversal dependent */
 		std::vector<KDL::Wrench> f_gi; /**< Gravitational and inertial wrench acting on a link */
         
-        //iDynTreeContact data structures
+        //DynTreeContact data structures
         std::vector<int> link2subgraph_index; /**< for each link, return the correspondent dynamics subgraph index */
         std::vector<bool> link_is_subgraph_root; /**< for each link, return if it is a subgraph root */
         std::vector<int> subgraph_index2root_link; /**< for each subgraph, return the index of the root */
@@ -233,7 +233,7 @@ class iDynTree : public iDynTreeInterface {
          */
         KDL::Wrench getMeasuredWrench(int link_id);
 
-        //end iDynTreeContact data structures
+        //end DynTreeContact data structures
         
         //Position related quantites
         std::vector<KDL::Frame> X_dynamic_base; /**< for each link store the frame X_kinematic_base_link of the position of a link with respect to the kinematic base */
@@ -245,13 +245,13 @@ class iDynTree : public iDynTreeInterface {
 
         
     public:
-		 iDynTree();
+		 DynTree();
 		 
 		 void constructor(const KDL::Tree & _tree, const std::vector<std::string> & joint_sensor_names, const std::string & imu_link_name, KDL::CoDyCo::TreeSerialization  serialization=KDL::CoDyCo::TreeSerialization(), KDL::CoDyCo::TreePartition partition=KDL::CoDyCo::TreePartition(), std::vector<KDL::Frame> parent_sensor_transforms=std::vector<KDL::Frame>(0));
 
     
         /**
-         * Constructor for iDynTree
+         * Constructor for DynTree
          * 
          * @param _tree the KDL::Tree that must be used
          * @param joint_sensor_names the names of the joint that should 
@@ -261,9 +261,9 @@ class iDynTree : public iDynTreeInterface {
          * @param partition (optional) a partition of the tree (division of the links and DOFs in non-overlapping sets)
          *
          */
-        iDynTree(const KDL::Tree & _tree, const std::vector<std::string> & joint_sensor_names, const std::string & imu_link_name, KDL::CoDyCo::TreeSerialization  serialization=KDL::CoDyCo::TreeSerialization(), KDL::CoDyCo::TreePartition partition=KDL::CoDyCo::TreePartition());
+        DynTree(const KDL::Tree & _tree, const std::vector<std::string> & joint_sensor_names, const std::string & imu_link_name, KDL::CoDyCo::TreeSerialization  serialization=KDL::CoDyCo::TreeSerialization(), KDL::CoDyCo::TreePartition partition=KDL::CoDyCo::TreePartition());
         
-        ~iDynTree();
+        ~DynTree();
         
         
             /**
@@ -464,7 +464,7 @@ class iDynTree : public iDynTreeInterface {
     
     /**
      * Set the unknown contacts
-     * @param contacts the list of the contacts on the iDynTree
+     * @param contacts the list of the contacts on the DynTree
      * @return true if operation succeeded, false otherwise
      */
     virtual bool setContacts(const iCub::skinDynLib::dynContactList &contacts_list);
