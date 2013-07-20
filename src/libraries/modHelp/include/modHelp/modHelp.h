@@ -208,6 +208,14 @@ namespace modHelp
      */
     void fflushCin();
     
+    /**
+     * Connects two ports.
+     * @param portFrom the port streaming out
+     * @param portTo the port receiving in the data 
+     * @return true if ports were connected, false otherwise
+     */
+    bool connectPorts(const std::string &portFrom, const std::string &portTo, int retry=1);
+    
 }//end namespace modHelp
 
 

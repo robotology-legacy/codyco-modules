@@ -272,6 +272,33 @@ namespace modHelp{
         cin.clear();
     }
     
+    //---------------------------------------------------------
+    bool connectPorts(const string &portFrom, const string &portTo, int retry)
+    {
+        bool connected = false; int count=0;
+        
+        cout<<" +++ Connecting: "<<portFrom<<" => "<<portTo<<" ";
+        while((connected==false)&&(count<retry))
+        {
+            connected = Network::connect(portFrom.c_str(),portTo.c_str());
+            if(connected==false)
+            {
+                if(count==retry)
+                {
+                    cout<<": failed => ERROR "<<endl;
+                    return false;
+                }
+                
+                cout<<": retrying"<<endl;
+                Time::delay(0.5);
+                count++;
+            }
+            else
+                cout<<": done"<<endl;
+        }
+        return true;
+    }
+    
     
     
     
