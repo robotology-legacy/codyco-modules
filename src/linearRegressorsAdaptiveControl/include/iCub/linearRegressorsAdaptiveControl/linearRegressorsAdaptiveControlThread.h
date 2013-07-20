@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2013 Italian Institute of Technology CoDyCo Project
  * Authors: Daniele Pucci and Silvio Traversaro
@@ -45,8 +44,12 @@ class linearRegressorsAdaptiveControlThread : public RateThread
 {
 public:
 	/* class methods */
-
-	linearRegressorsAdaptiveControlThread(ResourceFinder* rf, string robotName, wholeBodyInterface* robot, Intint period);
+	linearRegressorsAdaptiveControlThread(ResourceFinder* rf, 
+										  string robotName, 
+										  wholeBodyInterface* robot_interface, 
+										  iDynTree* dynamical_model,
+										  const std::vector<bool> selected_DOFs,
+										  int period);
 	bool threadInit();
 	void threadRelease();
 	void run();
@@ -69,10 +72,36 @@ private:
 	BufferedPort<Vector> qfPort;
 
     /* Mathematical variables */
-    Vector q, dq, ddq;
-
+    int N_DOFs; /**< Controlled Degrees of Freedom */
+    
+    int N_p; /**< Number of parameters */
+    
+    Vector q, dq, ddq; /**< State variables */
+	
+	Vector q_d, dq_d, ddq_d; /**< Desired variables */
+	
+	Vector dq_r, ddq_r; /**< Modified reference variables */ 
+	
+	Vector s; /**< Modified error variable (dq-dq_r) */
+		
+	Vector q_err; /**< Position error (q-q_d) */
+	
+	Vector Tau; /**< Torques */
+	
+	Vector aH; /**< Estimated parameters */
+		
+	Matrix Y; /**< Regressor matrix */
+	
+	double T_c; /**< Timestamp in s */ 
+	
+	/* Gains */
+	Vector Lambda, Gamma, Kappa; /** Gain vector */
+	
+	//Helper methods
+	int count_DOFs(const std::vector<bool> & selected_DOFs);
+		
 };
 
 } //namespace iCub
 
-} //namespace skinCalib
+} //namespace 
