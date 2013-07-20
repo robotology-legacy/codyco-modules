@@ -1,5 +1,9 @@
+add_subdirectory(libraries) 
 add_subdirectory(comStepper)
 add_subdirectory(wbi)
 add_subdirectory(wbiy)
-
+#add_subdirectory(wbci)
+#add_subdirectory(wbciy)
+#add_subdirectory(sensorsInterfaces)
+#add_subdirectory(reachComBalance)
 #add_subdirectory(iDynTree)
