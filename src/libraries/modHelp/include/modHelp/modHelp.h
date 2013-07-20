@@ -10,7 +10,7 @@
  *
  * @ingroup codyco_libraries
  *
- * Classes for helping in symplifying modules.
+ * Classes/functions for helping in symplifying writing modules.
  *
  *
  * \section dep_sec Dependencies
