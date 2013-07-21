@@ -64,7 +64,7 @@ public:
 
     int njHD;   int njTO;   int njRL;  int njLL; int njRA;  int njLA;
 
-    Vector dqLL, dqRL, dqTO;
+    Vector dq, dqLL, dqRL, dqTO;
     Vector qrLL, qrRL, qrTO;                   //refernce/postural configuration
     Vector q0LL_both;    Vector q0RL_both;     Vector q0TO_both;
     Vector q0LL_right;   Vector q0RL_right;    Vector q0TO_right;
@@ -204,9 +204,8 @@ private:
     Vector *head_pose;
 
     //Right and left leg and torso encoders
-    Vector qRL, qRL_rad;
-    Vector qLL, qLL_rad;
-    Vector qTO, qTO_rad;
+    Vector q    , qRL    , qLL    , qTO;
+    Vector q_rad, qRL_rad, qLL_rad, qTO_rad;
     
     Matrix Jac_FR;             //Jacobian matrix for right FOOT from ROOT.
     iCubLeg *Right_Leg;
@@ -246,9 +245,11 @@ public:
     void jacobianR2LrightSupport(Matrix &jacobianR2LrightSupport, Vector &eR2LrightSupport, Matrix  pac_d, Matrix Rac_d, Matrix dpac_d, Matrix dRac_d);
     void jacobianCOMleftSupport(Matrix &jacobianCOMleftSupport, Vector &eCOMleftSupport, Matrix pi_cd, Matrix dpi_cd);
     void jacobianR2LleftSupport(Matrix &jacobianR2LleftSupport, Vector &eR2LleftSupport, Matrix  pca_d, Matrix Rca_d, Matrix dpca_d, Matrix dRca_d);
-    void computeControl(Matrix j1, Matrix j2, Vector e1, Vector e2);
-    void computeControlPrioritized(Matrix j1, Matrix j2, Vector e1, Vector e2);
-    void computeControlTriangular(Matrix J1, Matrix J2, Vector e1, Vector e2);
+    Vector computeControl(Matrix j1, Matrix j2, Vector e1, Vector e2);
+    Vector computeControlPrioritized(Matrix j1, Matrix j2, Vector e1, Vector e2);
+    Vector computeControlTriangular(Matrix J1, Matrix J2, Vector e1, Vector e2);
+    void executeControl(Vector dq);
+    void checkControl(Vector q, Vector dq, Vector err, Matrix J, Vector e);
     double separation(Vector qRL, Vector qLL);
     void closePort(Contactable *_port);
     void velTranslator(Matrix &out, Matrix p);
