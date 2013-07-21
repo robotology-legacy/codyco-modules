@@ -855,7 +855,14 @@ Vector comStepperThread::computeControlPrioritized(Matrix J1, Matrix J2, Vector 
     Matrix Jpinv(njTot, J.rows()), JpinvD(njTot, J.rows());
     pinvDampTrunc(J, Jpinv, JpinvD, PINV_TOL, PINV_DAMP);
     Matrix N = eye(njTot) - Jpinv*J;
-    dq = Jpinv*e + N*eq;
+    dq = Jpinv*e; //+ N*eq*CTRL_DEG2RAD;
+    
+    Vector err(pi_a.getCol(0).size()+6-1);
+    err.zero();
+    err.setSubvector(0, pi_a.submatrix(1, 2, 0, 0).getCol(0));
+    err.setSubvector(pi_a.getCol(0).size()-1, ep.getCol(0));
+    err.setSubvector(pi_a.getCol(0).size()+3-1, eo.getCol(0));
+    checkControl(q, dq, err, J, e);
     
     return dq*CTRL_RAD2DEG;
 }
