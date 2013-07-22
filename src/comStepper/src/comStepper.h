@@ -31,7 +31,7 @@ enum phase { LEFT_SUPPORT, RIGHT_SUPPORT, BOTH_SUPPORT };
 
 const double PINV_DAMP = 0.04;          // damping factor for damped pseudoinverses
 const double PINV_TOL  = 1e-6;          // singular value threshold for truncated pseudoinverses
-const double MIN_JERK_TRAJ_TIME = 0.5;  // trajectory time of "minimum jerk trajectory generators"
+const double MIN_JERK_TRAJ_TIME = 5;    // trajectory time of "minimum jerk trajectory generators"
 
 class comStepperThread: public RateThread
 {
