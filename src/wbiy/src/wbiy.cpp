@@ -410,32 +410,127 @@ bool yarpWholeBodyActuators::setPwmRef(double *pwmd, int joint)
 
 // *********************************************************************************************************************
 // *********************************************************************************************************************
+//                                          ROBOT WHOLE BODY STATES
+// *********************************************************************************************************************
+// *********************************************************************************************************************
+robotWholeBodyStates::robotWholeBodyStates(const char* _name, const char* _robotName, double estimationTimeWindow)
+{
+
+}
+
+bool robotWholeBodyStates::init(){ return false; }
+int robotWholeBodyStates::getDoFs(){ return 0; }
+bool robotWholeBodyStates::removeJoint(const wbi::LocalId &j){ return false; }
+bool robotWholeBodyStates::addJoint(const wbi::LocalId &j){ return false; }
+int robotWholeBodyStates::addJoints(const wbi::LocalIdList &j){ return 0; }
+
+bool robotWholeBodyStates::getQ(double *q, double time, bool wait){ return false; }
+bool robotWholeBodyStates::getDq(double *dq, double time, bool wait){ return false; }
+bool robotWholeBodyStates::getDqMotors(double *dqM, double time, bool wait){ return false; }
+bool robotWholeBodyStates::getD2q(double *d2q, double time, bool wait){ return false; }
+bool robotWholeBodyStates::getPwm(double *pwm, double time, bool wait){ return false; }
+bool robotWholeBodyStates::getInertial(double *inertial, double time, bool wait){ return false; }
+bool robotWholeBodyStates::getFTsensors(double *ftSens, double time, bool wait){ return false; }
+bool robotWholeBodyStates::getTorques(double *tau, double time, bool wait){ return false; }
+
+
+
+// *********************************************************************************************************************
+// *********************************************************************************************************************
+//                                          ICUB WHOLE BODY MODEL
+// *********************************************************************************************************************
+// *********************************************************************************************************************
+bool icubWholeBodyModel::init()
+{
+    return false;
+}
+
+int icubWholeBodyModel::getDoFs()
+{
+    return 0;
+}
+
+bool icubWholeBodyModel::removeJoint(const wbi::LocalId &j)
+{
+    return false;
+}
+
+bool icubWholeBodyModel::addJoint(const wbi::LocalId &j)
+{
+    return false;
+}
+
+int icubWholeBodyModel::addJoints(const wbi::LocalIdList &j)
+{
+    return false;
+}
+
+bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
+{
+    return false;    
+}
+
+bool icubWholeBodyModel::computeH(double *q, double *xBase, int linkId, double *H)
+{
+    return false;    
+}
+
+bool icubWholeBodyModel::computeJacobian(double *q, double *xBase, int linkId, double *J, double *pos)
+{
+    return false;    
+}
+
+bool icubWholeBodyModel::computeDJdq(double *q, double *xB, double *dq, double *dxB, int linkId, double *dJdq, double *pos)
+{
+    return false;    
+}
+
+bool icubWholeBodyModel::forwardKinematics(double *q, double *xB, int linkId, double *x)
+{
+    return false;
+}
+
+bool icubWholeBodyModel::inverseDynamics(double *q, double *xB, double *dq, double *dxB, double *ddq, double *ddxB, double *tau)
+{
+    return false;    
+}
+
+bool icubWholeBodyModel::directDynamics(double *q, double *xB, double *dq, double *dxB, double *M, double *h)
+{
+    return false;
+}
+
+
+
+// *********************************************************************************************************************
+// *********************************************************************************************************************
 //                                          ICUB WHOLE BODY INTERFACE
 // *********************************************************************************************************************
 // *********************************************************************************************************************
+
 bool icubWholeBodyInterface::init()
 {
-    return yarpWholeBodySensors::init();
+    return yarpWholeBodyActuators::init();
 }
 
 int icubWholeBodyInterface::getDoFs()
 {
-    return yarpWholeBodySensors::dof;
+    return yarpWholeBodyActuators::dof;
 }
 
 bool icubWholeBodyInterface::removeJoint(const LocalId &j)
 {
-    return yarpWholeBodySensors::removeJoint(j);
+    return yarpWholeBodyActuators::removeJoint(j);
 }
 
 bool icubWholeBodyInterface::addJoint(const LocalId &j)
 {
-    return yarpWholeBodySensors::addJoint(j);
+    return yarpWholeBodyActuators::addJoint(j);
 }
 
 int icubWholeBodyInterface::addJoints(const LocalIdList &jList)
 {
-    return yarpWholeBodySensors::addJoints(jList);
+    return yarpWholeBodyActuators::addJoints(jList);
 }
 
 
