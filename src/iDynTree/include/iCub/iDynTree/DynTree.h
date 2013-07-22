@@ -267,8 +267,11 @@ class DynTree : public DynTreeInterface {
         
         ~DynTree();
         
+        int getNrOfDOFs();
         
-            /**
+        int getNrOfLinks();
+        
+    /**
      * Set joint positions in the specified part (if no part 
      * is specified, set the joint positions of all the tree)
      * @param _q vector of joints position
