@@ -32,11 +32,21 @@
 
 #include <iCub/ctrl/minJerkCtrl.h>
 
+#include <iCub/iDynTree/DynTree.h>
+
+#include <wbi/wbi.h>
+
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::dev;
 using namespace wbi;
+
+using namespace iCub::ctrl;
+
+using namespace iCub::iDynTree;
+
+enum available_gains { gamma_gain, kappa_gain, lambda_gain };
 
 namespace iCub{
 
@@ -49,12 +59,15 @@ public:
 	linearRegressorsAdaptiveControlThread(ResourceFinder* rf,
 										  string robotName,
 										  wholeBodyInterface* robot_interface,
-										  iDynTree* dynamical_model,
+										  DynTree* dynamical_model,
 										  const std::vector<bool> selected_DOFs,
 										  int period);
 	bool threadInit();
 	void threadRelease();
 	void run();
+    
+    /** false if something goes wrong */
+    bool setGain(available_gains gain, double value);
 
 private:
 
@@ -64,7 +77,7 @@ private:
 	/* class variables */
     wholeBodyInterface* robot_interface;
     
-    iDynTree* dynamical_model;
+    DynTree* dynamical_model;
     
 	ResourceFinder* rf;
 

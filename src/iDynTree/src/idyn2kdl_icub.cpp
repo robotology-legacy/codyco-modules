@@ -22,11 +22,10 @@ bool names2links_joints(const std::vector<std::string> names,std::vector<std::st
     return true;
 }
 
-bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, bool debug)
+bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl,  iCub::iDynTree::iCubTree_serialization_tag serial, bool debug)
 {
     bool status_ok = true;
     //Joint names extracted from http://eris.liralab.it/wiki/ICub_joints
-    //Serialization: left leg (6), right leg (6), torso (3), left arm (7), right arm (7), head (3). 
     
     //Default "fake" base link for humanoids URDF
     std::string fake_root_name = "base_link";
@@ -97,39 +96,50 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, bo
 
     
     
-    //Adding the chains following the serialization
+    //Adding the chains, selecting the default serialization
     KDL::Frame kdlFrame;
     idynMatrix2kdlFrame(icub_idyn.lowerTorso->HLeft,kdlFrame);
     addBaseTransformation(old_ll,ll,kdlFrame);
 
-    status_ok = icub_kdl.addChain(ll,"root_link");
-    if(!status_ok) return false;
 
     
     idynMatrix2kdlFrame(icub_idyn.lowerTorso->HRight,kdlFrame);
     addBaseTransformation(old_rl,rl,kdlFrame);
-    icub_kdl.addChain(rl,"root_link");
     
     idynMatrix2kdlFrame(icub_idyn.lowerTorso->HUp,kdlFrame);
     addBaseTransformation(old_torso,torso,kdlFrame);
-    icub_kdl.addChain(torso,"root_link");
     
     //not using RBT because it is an identity, and it is not clear is 
     //semantical meaning (if is H_upper_lower or H_lower_upper ) 
     idynMatrix2kdlFrame(icub_idyn.upperTorso->HLeft,kdlFrame);
     addBaseTransformation(old_la,la,kdlFrame);
-    icub_kdl.addChain(la,"torso_pitch_link");
     
     idynMatrix2kdlFrame(icub_idyn.upperTorso->HRight,kdlFrame);
     addBaseTransformation(old_ra,ra,kdlFrame);
-    icub_kdl.addChain(ra,"torso_pitch_link");    
     
     idynMatrix2kdlFrame(icub_idyn.upperTorso->HUp,kdlFrame);
     addBaseTransformation(old_head,head,kdlFrame);
-    icub_kdl.addChain(head,"torso_pitch_link");
+
+    if( serial == iCub::iDynTree::IDYN_SERIALIZATION  ) {
+        //Using serialization in iCubWholeBody
+        icub_kdl.addChain(ll,"root_link");
+        icub_kdl.addChain(rl,"root_link");
+        icub_kdl.addChain(torso,"root_link");
+        icub_kdl.addChain(la,"torso_pitch_link");
+        icub_kdl.addChain(ra,"torso_pitch_link");    
+        icub_kdl.addChain(head,"torso_pitch_link");
+    } else {
+        assert(serial == iCub::iDynTree::SKINDYNLIB_SERIALIZATION);
+        //Using serialization used in wholeBodyInterfaceYarp
+        icub_kdl.addChain(torso,"root_link");
+        icub_kdl.addChain(head,"torso_pitch_link");
+        icub_kdl.addChain(la,"torso_pitch_link");
+        icub_kdl.addChain(ra,"torso_pitch_link"); 
+        icub_kdl.addChain(ll,"root_link");
+        icub_kdl.addChain(rl,"root_link");   
+    }
 
 
-    
     //REP 120
     KDL::Segment kdlSegment = KDL::Segment("torso",KDL::Joint("torso_joint",KDL::Joint::None));
     icub_kdl.addSegment(kdlSegment,"torso_pitch_link");    
