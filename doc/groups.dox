@@ -36,3 +36,25 @@
 *
 */
 
+/**
+* \defgroup codyco_libraries Libraries
+* @ingroup codyco_modules_all
+*
+* This is a list of static libraries, collected here in a group to separate them from the 
+* executables (in \ref codyco_module \endref).
+*
+* To add a new library to this group add this to your code:
+*
+\verbatim
+  /**
+   * \defgroup codyco_your_library your_library
+   * @ingroup codyco_libraries
+   *
+   */
+\endverbatim
+*
+* (This page can be edited at $CODYCO_ROOT/doc/groups.dox)
+*
+*
+*/
+
