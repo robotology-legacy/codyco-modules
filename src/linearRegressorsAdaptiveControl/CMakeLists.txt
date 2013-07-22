@@ -22,7 +22,7 @@ SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 ADD_EXECUTABLE(${PROJECTNAME}  ${folder_source} ${folder_header})
 
-target_link_libraries(${PROJECTNAME}  ${YARP_LIBRARIES})
+target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES})
 
 if(WIN32)
 	INSTALL(TARGETS ${PROJECTNAME} RUNTIME DESTINATION bin/release)

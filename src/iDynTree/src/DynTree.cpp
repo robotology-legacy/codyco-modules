@@ -856,5 +856,15 @@ bool DynTree::getDynamicsParameters(yarp::sig::Vector & vec)
     return true;
 }
 
+int DynTree::getNrOfDOFs()
+{
+    return tree_graph.getNrOfDOFs();
+}
+        
+int DynTree::getNrOfLinks()
+{
+    return tree_graph.getNrOfLinks();
+}
+
 }
 }

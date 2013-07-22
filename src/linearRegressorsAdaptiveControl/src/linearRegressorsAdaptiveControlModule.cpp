@@ -18,7 +18,7 @@
  */
 
 #include <sstream>			// string stream
-#include "iCub/linearRegressorsAdaptiveControl/linearRegressorsAdaptiveControl.h"
+#include "iCub/linearRegressorsAdaptiveControl/linearRegressorsAdaptiveControlModule.h"
 
 using namespace iCub::linearRegressorsAdaptiveControl;
 

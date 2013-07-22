@@ -75,18 +75,22 @@ private:
 	BufferedPort<Vector> qfPort;
     
 
-    /* Mathematical variables */
-    Vector q_complete; /**< Complete vector of initial joint positions */
+    /* Mathematical variables */    
+    Vector q_complete, dq_complete; /**< Complete state variables */
     
-    int N_DOFs; /**< Controlled Degrees of Freedom */
+    Vector ddq_r_complete; 
+    
+    int N_DOFs; /**< adaptivly controlled Degrees of Freedom */
 
     int N_p; /**< Number of parameters */
+    
 
-    Vector q, dq, ddq; /**< State variables */
+    Vector q, dq; /**< State variables */
 
 	Vector q_d, dq_d, ddq_d; /**< Reference trajectories */
 
 	Vector dq_r, ddq_r; /**< Modified reference variables */
+    
 
 	Vector s; /**< Modified error variable (dq-dq_r) */
 
@@ -96,7 +100,9 @@ private:
 
 	Vector aHat; /**< Estimated parameters */
 
-	Matrix Y; /**< Regressor matrix */
+	Matrix Yr; /**< Regressor matrix */
+    
+    Matrix Y_complete_no_friction; /**< Regressor matrix with all joints, but without friction */
 
 	double T_c; /**< Timestamp in s */
 
@@ -104,10 +110,15 @@ private:
 	Vector Lambda, Gamma, Kappa; /** Gain vector */
 
     double Kappa2;
-
+    
+    //Bool vector of activly controlled DOF 
+    std::vector<bool> selected_DOFs;
+    
 	//Helper methods
 	int count_DOFs(const std::vector<bool> & selected_DOFs);
     
+    //Dummy varibales
+    Vector friction_vec;
     
     //Trajectory generation
     minJerkTrajGen trajectory_generator;
