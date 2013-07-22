@@ -9,8 +9,10 @@
 
 #include <iCub/iDynTree/yarp_kdl.h>
 
+//Loops from KDL_CoDyCo
 #include <kdl_codyco/position_loops.hpp>
 #include <kdl_codyco/rnea_loops.hpp>
+#include <kdl_codyco/regressor_loops.hpp>
 
 #include <yarp/math/Math.h>
 #include <yarp/math/SVD.h>
@@ -727,7 +729,7 @@ bool DynTree::computePositions()
 	if(X_dynamic_base.size() != tree_graph.getNrOfLinks()) { X_dynamic_base.resize(tree_graph.getNrOfLinks()); }
 	if( getFramesLoop(tree_graph,q,dynamic_traversal,X_dynamic_base) == 0 ) return true;
 	//else
-	 return false;  
+    return false;  
 }
 
 bool DynTree::kinematicRNEA()
@@ -791,26 +793,68 @@ bool DynTree::dynamicRNEA()
 ////////////////////////////////////////////////////////////////////////
 ////// COM related methods
 ////////////////////////////////////////////////////////////////////////
-    bool DynTree::computeCOM() 
-    {
-		return false;
-	}
-    
-    bool DynTree::computeCOMjacobian()
-    {
-		return false;
-	}
+bool DynTree::computeCOM() 
+{
+	return false;
+}
 
-    yarp::sig::Vector DynTree::getCOM(const std::string & part_name) const
-    {
-		return yarp::sig::Vector(0);
-	}
-    
-    bool DynTree::getCOMJacobian(const yarp::sig::Matrix & jac, const std::string & part_name) const
-    {
-		return false;
-	}
+bool DynTree::computeCOMjacobian()
+{
+	return false;
+}
 
+yarp::sig::Vector DynTree::getCOM(const std::string & part_name) const
+{
+	return yarp::sig::Vector(0);
+}
+
+bool DynTree::getCOMJacobian(const yarp::sig::Matrix & jac, const std::string & part_name) const
+{
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////
+////// Regressor related methods
+////////////////////////////////////////////////////////////////////////
+bool DynTree::getDynamicsRegressor(yarp::sig::Matrix & mat)
+{
+    //If the incoming matrix have the wrong number of rows/colums, resize it
+    if( mat.rows() != (int)(6+tree_graph.getNrOfDOFs()) || mat.cols() != (int)(10*tree_graph.getNrOfLinks()) ) {
+        mat.resize(6+tree_graph.getNrOfDOFs(),10*tree_graph.getNrOfLinks());
+    }
+    
+    //Calculate the result directly in the output matrix
+    /**
+     * \todo check that X_b,v and are computed
+     */
+    Eigen::Map< Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > mapped_dynamics_regressor(mat.data(),mat.rows(),mat.cols());
+    
+    Eigen::MatrixXd dynamics_regressor;
+    dynamics_regressor.resize(6+tree_graph.getNrOfDOFs(),10*tree_graph.getNrOfLinks());
+    
+    dynamicsRegressorLoop(tree_graph,q,dynamic_traversal,X_dynamic_base,v,a,dynamics_regressor);
+    
+    mapped_dynamics_regressor = dynamics_regressor;
+    
+    return true;
+}
+    
+bool DynTree::getDynamicsParameters(yarp::sig::Vector & vec)
+{
+    if( vec.size() != 10*tree_graph.getNrOfLinks() ) {
+        vec.resize(10*tree_graph.getNrOfLinks());
+    }
+    
+    Eigen::Map< Eigen::VectorXd > mapped_vector(vec.data(),10*tree_graph.getNrOfLinks());
+    Eigen::VectorXd inertial_parameters;
+    inertial_parameters.resize(10*tree_graph.getNrOfLinks());
+    
+    inertialParametersVectorLoop(tree_graph,inertial_parameters);
+    
+    mapped_vector = inertial_parameters;
+
+    return true;
+}
 
 }
 }

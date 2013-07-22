@@ -30,6 +30,8 @@
 
 #include <yarp/os/Network.h>	//temporary
 
+#include <iCub/ctrl/minJerkCtrl.h>
+
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -60,9 +62,10 @@ private:
 	const int PERIOD;
 
 	/* class variables */
-
-	wholeBodyInterface* robot;
-
+    wholeBodyInterface* robot_interface;
+    
+    iDynTree* dynamical_model;
+    
 	ResourceFinder* rf;
 
 	// input parameters
@@ -70,8 +73,11 @@ private:
 
 	/* ports */
 	BufferedPort<Vector> qfPort;
+    
 
     /* Mathematical variables */
+    Vector q_complete; /**< Complete vector of initial joint positions */
+    
     int N_DOFs; /**< Controlled Degrees of Freedom */
 
     int N_p; /**< Number of parameters */
@@ -101,6 +107,11 @@ private:
 
 	//Helper methods
 	int count_DOFs(const std::vector<bool> & selected_DOFs);
+    
+    
+    //Trajectory generation
+    minJerkTrajGen trajectory_generator;
+    double T_trajectory;
 
 };
 

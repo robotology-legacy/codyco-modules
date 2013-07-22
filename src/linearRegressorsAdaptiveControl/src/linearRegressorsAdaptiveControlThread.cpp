@@ -28,11 +28,11 @@ using namespace iCub::linearRegressorsAdaptiveControl;
 
 
 linearRegressorsAdaptiveControlThread::linearRegressorsAdaptiveControlThread(ResourceFinder* _rf, string _robotName,
-																			 wholeBodyInterface* _robot,
+																			 wholeBodyInterface* _robot_interface,
 																			 iDynTree * dynamical_model,
 																			 const std::vector<bool> selected_DOFs,
 																			 int period)
-									   : rf(_rf), RateThread(period), robot(_robot),
+									   : rf(_rf), RateThread(period), robot_interface(_robot_interface), dynamical_model(_dynamical_model)
 									   PERIOD(period), robotName(_robotName)
 {
 	N_DOFs = count_DOFs(selected_DOFs);
@@ -51,33 +51,66 @@ linearRegressorsAdaptiveControlThread::linearRegressorsAdaptiveControlThread(Res
 	Kappa  = Vector(N_DOFs,0.0);
 	Gamma  = Vector(N_p,0.0);
 	Lambda = Vector(N_DOFs,0.0);
+    
+    //T_trajectory = ?
+    trajectory_generator = minJerkTrajGen(N_DOFs,T_c,T_trajectory)
 }
 
 bool linearRegressorsAdaptiveControlThread::threadInit()
 {
-
+    //Read q_initial_complete 
+    
+    
+    //Initialize the trajectory at the current state (so the it remain still)
+    robot_interface->getQ(q.data());
+    
+    trajectory_generator.init(q);
 }
 
 void linearRegressorsAdaptiveControlThread::run()
 {
-    // q   =
-    // dq  =
-    // qd  =
-    // dqd =
-    // Y  =
-
-/* **************  VARIABLES TO COMPUTE CONTROL INPUTS ********************************************  */
+    /* **************  READING SENSOR ******************************  */
+    robot_interface->getQ(q.data());
+    robot_interface->getDq(dq.data()); //to implement?
+    
+    /* **************  TRAJECTORY GENERATION ***********************  */
+    qfPort.read(qf);
+    if( qf.size() != N_DOFs ) {
+        //abort
+        YARP_ASSERT(false);
+    }
+    
+    {
+        //Check limits
+        /** Todo: add limits support to 
+         *  iDynTree or wholeBodyInterface
+         * 
+         */
+        YARP_ASSERT(false);
+    }
+    
+    //Generate trajectory from qf and obtain q_d, dq_d
+    trajectory_generator.computeNextValues(q_f);
+    
+    q_d = trajectory_generator.getPos();
+    dq_d = trajectory_generator.getVel();
+    ddq_d = trajectory_generator.getAcc();
+    
+	/* **************  VARIABLES TO COMPUTE CONTROL INPUTS ********************************************  */
     qTilde  = q     - q_d;                          /* Posititon error(s) */
     dqTilde = dq    - dq_d;                         /* Velocity error(s) */
     dq_r    = dq_d  - Lambda * qTilde;              /* Modified reference trajectories */
     ddq_r   = ddq_d - Lambda * dqTilde;
     s       = dq    - dqr;                          /* Modified position errors */
+    
     //Yr      = Yr(q,dq,ddq_r);
+    
 
-/* **************  CONTROL INPUTS *************************************************************  */
+    /* **************  CONTROL INPUTS *************************************************************  */
     Tau     = Yr * aHat - (norm(dq) + Kappa2) * Kappa * s;
     aHat    = aHat  - Gamma * ( Yr.transposed() * s ) * T_c;  /* Euler integration for estimated parameters  evolution */
 
+    robot_interface->setPwmRef(Tau.data());
 }
 
 
@@ -96,3 +129,5 @@ int linearRegressorsAdaptiveControlThread::count_DOFs(const std::vector<bool> & 
 	}
 	return DOFs;
 }
+
+int linearRegressorsAdaptiveControlThread::
