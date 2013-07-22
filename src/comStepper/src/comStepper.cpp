@@ -355,8 +355,8 @@ bool comStepperThread::threadInit()
     f_a   = zeros(3,1);  m_a     = zeros(3,1);    Sf_a    = zeros(3,3);
     f_c   = zeros(3,1);  m_c     = zeros(3,1);    Sf_c    = zeros(3,3);
     
-    qRL.resize(njRL);      qLL.resize(njLL);      qTO.resize(njTO);
-    qRL_rad.resize(njRL);  qLL_rad.resize(njLL);  qTO_rad.resize(njTO);
+    qRL.resize(njRL);      qLL.resize(njLL);      qTO.resize(njTO);         q.resize(njRL + njLL + njTO);
+    qRL_rad.resize(njRL);  qLL_rad.resize(njLL);  qTO_rad.resize(njTO); q_rad.resize(njRL + njLL + njTO);
     
     Jac_FR.resize(6,32);
     Jac_FR.zero();
@@ -434,7 +434,7 @@ bool comStepperThread::threadInit()
 #endif
     
     //resizing matrices involved in computing Jca
-    dqTO.resize(njTO);   dqLL.resize(njLL);   dqRL.resize(njRL);
+    dqTO.resize(njTO);   dqLL.resize(njLL);   dqRL.resize(njRL);  dq.resize(njRL + njLL +njTO);
     Tba.resize(4,4)  ;   Tbc.resize(4,4)  ;   Tab.resize(4,4)  ;  Tac.resize(4,4);
     Rba.resize(3,3)  ;   Rbc.resize(3,3)  ;   Rac.resize(3,3)  ;
     pba.resize(3,1)  ;   pbc.resize(3,1)  ;   pac.resize(3,1)  ;
@@ -547,6 +547,10 @@ void comStepperThread::run()
     Ienc_RL->getEncoders(qRL.data());      qRL_rad = CTRL_DEG2RAD * qRL;       Right_Leg->setAng(qRL_rad);
     Ienc_LL->getEncoders(qLL.data());      qLL_rad = CTRL_DEG2RAD * qLL;       Left_Leg->setAng(qLL_rad);
     Ienc_TO->getEncoders(qTO.data());      qTO_rad = CTRL_DEG2RAD * qTO;
+
+    q.setSubvector(   0     , qLL);    q_rad.setSubvector(   0     , qLL_rad);
+    q.setSubvector(njLL     , qRL);    q_rad.setSubvector(njLL     , qRL_rad);
+    q.setSubvector(njLL+njRL, qTO);    q_rad.setSubvector(njLL+njRL, qTO_rad);
     
     rangeCheckLL->isAtBoundaries(qLL, limitMaskLL);
     rangeCheckRL->isAtBoundaries(qRL, limitMaskRL);
@@ -554,18 +558,6 @@ void comStepperThread::run()
     
     Tba = Right_Leg->getH();
     Tbc =  Left_Leg->getH();
-    
-#ifdef COMPUTE_FINITE_DIFF
-    Vector q0R(6);    Vector q1R(6);
-    q0R(0) = 0.3;  q0R(1) = 0.2;  q0R(2) = 0.2;  q0R(3) = 0.1;  q0R(4) = 0.0;  q0R(5) = 0.1;
-    q1R(0) = 0.2;  q1R(1) = 0.0;  q1R(2) = 0.0;  q1R(3) = 0.0;  q1R(4) = 0.1;  q1R(5) = 0.1;
-    Vector q0L(6);    Vector q1L(6);
-    q0L(0) = 0.1;  q0L(1) = 0.1;  q0L(2) = 0.2;  q0L(3) = 0.0;  q0L(4) = 0.1;  q0L(5) = 0.0;
-    q1L(0) = 0.1;  q1L(1) = 0.2;  q1L(2) = 0.3;  q1L(3) = 0.4;  q1L(4) = 0.5;  q1L(5) = 0.6;
-    Vector delta_e = computeDeltaError(q0R, q0L, q1R, q1L);
-    Tba = Right_Leg->getH(q0R*CTRL_DEG2RAD);
-    Tbc =  Left_Leg->getH(q0L*CTRL_DEG2RAD);
-#endif
     
     Tab = iCub::ctrl::SE3inv(Tba);
     Tac = Tab * Tbc;
@@ -583,6 +575,10 @@ void comStepperThread::run()
     Rbc = Tbc.submatrix(0, 2, 0, 2);
     Rac = Tac.submatrix(0, 2, 0, 2);
     Rca = Tca.submatrix(0, 2, 0, 2);
+
+    pab =   -1.0 * Rba.transposed() * pba;
+    pcb =   -1.0 * Rbc.transposed() * pbc;
+    rca_b = -1.0 * Rba * pac;
     
     if (comPosPortString.empty())
         p_b  = zeros(3,1);
@@ -716,8 +712,9 @@ void comStepperThread::run()
             }
                 break;
         }
-        //computeControl(jCOM, jR2L, eCOM, eR2L);
-        computeControlPrioritized(jCOM, jR2L, eCOM, eR2L);
+        //dq = computeControl(jCOM, jR2L, eCOM, eR2L);
+        dq = computeControlPrioritized(jCOM, jR2L, eCOM, eR2L);
+        executeControl(dq);
     }
     
     //********************** PORT OUTPUTS ************************************
@@ -754,10 +751,6 @@ void comStepperThread::run()
 
     if(!comCtrlPortString.empty())
     {
-        Vector dq(njTO + njRL + njLL);
-        dq.setSubvector(   0     , dqTO);
-        dq.setSubvector(njTO     , dqRL);
-        dq.setSubvector(njTO+njRL, dqLL);
         COM_ctrl_port->prepare()= dq;
         COM_ctrl_port->setEnvelope(timeStamp);
         COM_ctrl_port->write();
@@ -782,12 +775,12 @@ void comStepperThread::setRefAcc(IEncoders* iencs, IVelocityControl* ivel)
     tmp.resize(nj);
     int i;
     for (i=0;i<=nj;i++){
-        tmp[i]=800;
+        tmp[i]=10000;
     }
     ivel->setRefAccelerations(tmp.data());
 }
 
-void comStepperThread::computeControl(Matrix J1, Matrix J2, Vector e1, Vector e2)
+Vector comStepperThread::computeControl(Matrix J1, Matrix J2, Vector e1, Vector e2)
 {
     int njTot = njLL + njRL + njTO;
     Vector dq(njTot, 0.0), eq(njTot, 0.0);  // dq: desired joint vel; eq: joint space position error
@@ -826,71 +819,11 @@ void comStepperThread::computeControl(Matrix J1, Matrix J2, Vector e1, Vector e2
     dq = Jpinv * e + nullspaceProjection(J, PINV_TOL) * eq;
     // fprintf(stderr, "Jpinv * J  :\n %s\n", (eye(Jpinv.rows(), J.cols()) - Jpinv * J).submatrix(njLL, njLL+njRL-1, njLL, njLL+njRL-1).toString().c_str());
     // fprintf(stderr, "eqRL  : %s\n", eq.subVector(njLL, njLL+njRL-1).toString().c_str());
-    
-    saturateVector(dq, vel_sat);
-    // fprintf(stderr, "Sending: %s\n", dq.toString().c_str());
-    // if (findMin(dqLegs) < -vel_sat || findMax(dqLegs) > vel_sat)
-    //     fprintf(stderr, "Saturation is not working properly! %s \n", dqLegs.toString().c_str());
-    
-    dqLL   = dq.subVector(0        , njLL          -1);
-    dqRL   = dq.subVector(njLL     , njLL+njRL     -1);
-    dqTO   = dq.subVector(njLL+njRL, njLL+njRL+njTO-1);
-    
-    // fprintf(stderr, "dqRL  : %s\n", dq.subVector(njLL, njLL+njRL-1).toString().c_str());
-    // fprintf(stderr, "dqLL  : %s\n", dq.subVector(0   , njLL     -1).toString().c_str());
-    
-#ifndef DO_NOT_CONTROL_LEGS
-    if (on_ground)
-    {
-        Ivel_RL->velocityMove(dqRL.data());
-        Ivel_LL->velocityMove(dqLL.data());
-        
-        //        if (current_phase == RIGHT_SUPPORT || current_phase == BOTH_SUPPORT)
-        //        {
-        //
-        //            for (int i =0; i < njLL; i++)
-        //                if (Smask_r2l_swg(i,i) == 1)
-        //                    Ivel_LL->velocityMove(i, dqLL(i));
-        //
-        //            for (int i =0; i < njRL; i++)
-        //                if (Smask_r2l_sup(i,i) == 1)
-        //                    Ivel_RL->velocityMove(i, dqRL(i));
-        //        }
-        //        else
-        //        {
-        //            for (int i =0; i < njLL; i++)
-        //                if (Smask_r2l_sup(i,i) == 1)
-        //                    Ivel_LL->velocityMove(i, dqLL(i));
-        //
-        //            for (int i =0; i < njRL; i++)
-        //                if (Smask_r2l_swg(i,i) == 1)
-        //                    Ivel_RL->velocityMove(i, dqRL(i));
-        //        }
-    }
-    else
-    {
-        Ivel_LL->velocityMove(zeros(njLL).data());
-        Ivel_RL->velocityMove(zeros(njLL).data());
-    }
-#endif
-    
-#ifndef DO_NOT_CONTROL_TORSO
-    if (on_ground)
-    {
-        Ivel_TO->velocityMove(dqTO.data());
-        //        for (int i =0; i < njTO; i++)
-        //            if (Smask_com_torso(i,i) == 1)
-        //                Ivel_TO->velocityMove(i, dqTO(i));
-    }
-    else
-        Ivel_TO->velocityMove(zeros(njTO).data());
-#endif
-    
-    
+    return dq*CTRL_RAD2DEG;
 }
 
 // J1: Jcom, J2: J_R2L
-void comStepperThread::computeControlPrioritized(Matrix J1, Matrix J2, Vector e1, Vector e2)
+Vector comStepperThread::computeControlPrioritized(Matrix J1, Matrix J2, Vector e1, Vector e2)
 {
     int njTot = njLL + njRL + njTO;
     Vector dq(njTot, 0.0), eq(njTot, 0.0);  // dq: desired joint vel; eq: joint space position error
@@ -912,6 +845,9 @@ void comStepperThread::computeControlPrioritized(Matrix J1, Matrix J2, Vector e1
     eq.setSubvector(0, qrLL-qLL);   // angles in deg!
     eq.setSubvector(njLL, qrRL-qRL);
     eq.setSubvector(njLL+njRL, qrTO-qTO);
+    //fprintf(stderr, "qrLL is: %s\n", qrRL.toString().c_str());
+    //fprintf(stderr, "qLL  is: %s\n", qLL.toString().c_str());
+    
     for (int i = 0; i < njTot; i++)
         if (Smask(i, i) == 1.0)
             eq(i) = 0.0;
@@ -919,46 +855,19 @@ void comStepperThread::computeControlPrioritized(Matrix J1, Matrix J2, Vector e1
     Matrix Jpinv(njTot, J.rows()), JpinvD(njTot, J.rows());
     pinvDampTrunc(J, Jpinv, JpinvD, PINV_TOL, PINV_DAMP);
     Matrix N = eye(njTot) - Jpinv*J;
-    dq = Jpinv*e + N*eq;
+    dq = Jpinv*e; //+ N*eq*CTRL_DEG2RAD;
     
-    // debug
-    debugOutVec1 = Vector(1, norm(J*dq - e));       // norm of task error (should be almost zero)
-    debugOutVec2 = cat(norm(Jpinv*e), norm(N*eq));  // norm of parts of dq due to task/posture (should be similar)
-    //debugOutVec3 = eq.subVector(njLL+njRL, njTot-1);
-    debugOutVec3 = current_phase==LEFT_SUPPORT ? pi_c_d.getCol(0) : pi_a_d.getCol(0);   // reference COM position
-    debugOutVec4 = current_phase==LEFT_SUPPORT ? dpi_c_d.getCol(0) : dpi_a_d.getCol(0); // reference COM velocity
+    Vector err(pi_a.getCol(0).size()+6-1);
+    err.zero();
+    err.setSubvector(0, pi_a.submatrix(1, 2, 0, 0).getCol(0));
+    err.setSubvector(pi_a.getCol(0).size()-1, ep.getCol(0));
+    err.setSubvector(pi_a.getCol(0).size()+3-1, eo.getCol(0));
+    checkControl(q, dq, err, J, e);
     
-    saturateVector(dq, vel_sat);
-    dqLL   = dq.subVector(0        , njLL          -1);
-    dqRL   = dq.subVector(njLL     , njLL+njRL     -1);
-    dqTO   = dq.subVector(njLL+njRL, njLL+njRL+njTO-1);
-    
-#ifndef DO_NOT_CONTROL_LEGS
-    if (on_ground)
-    {
-        Ivel_RL->velocityMove(dqRL.data());
-        Ivel_LL->velocityMove(dqLL.data());
-    }
-    else
-    {
-        Ivel_LL->velocityMove(zeros(njLL).data());
-        Ivel_RL->velocityMove(zeros(njLL).data());
-    }
-#endif
-    
-#ifndef DO_NOT_CONTROL_TORSO
-    if (on_ground)
-    {
-        Ivel_TO->velocityMove(dqTO.data());
-    }
-    else
-        Ivel_TO->velocityMove(zeros(njTO).data());
-#endif
-    
-    
+    return dq*CTRL_RAD2DEG;
 }
 
-void comStepperThread::computeControlTriangular(Matrix J1, Matrix J2, Vector e1, Vector e2)
+Vector comStepperThread::computeControlTriangular(Matrix J1, Matrix J2, Vector e1, Vector e2)
 {
     Vector dqLegs  = zeros(njLL + njRL);
     Vector dqTorso = zeros(njTO);
@@ -981,12 +890,35 @@ void comStepperThread::computeControlTriangular(Matrix J1, Matrix J2, Vector e1,
     dq.setSubvector(0        ,  dqLegs) ;
     dq.setSubvector(njRL+njLL, dqTorso);
     
-    // fprintf(stderr, "Before saturation                   %s \n", dq.toString().c_str());
-    saturateVector(dq, vel_sat);
-    // fprintf(stderr, "After  saturation                   %s \n", dq.toString().c_str());
-    // if (findMin(dqLegs) < -vel_sat || findMax(dqLegs) > vel_sat)
-    //     fprintf(stderr, "Saturation is not working properly! %s \n", dqLegs.toString().c_str());
+    return dq*CTRL_RAD2DEG;
+        
+}
+
+void comStepperThread::checkControl(Vector q, Vector dq, Vector err, Matrix J, Vector e)
+{
+    static Vector ePrev = err;
+    Vector eCurr = err;
+    Vector De = (eCurr - ePrev);
+
+    static Vector qPrev = q*CTRL_DEG2RAD;
+    Vector qCurr = q*CTRL_DEG2RAD;
+    Vector Dq = (qCurr - qPrev);
     
+    fprintf(stderr, "JDq VS De: \n %s \n %s \n", (J*Dq).toString().c_str(), De.toString().c_str());
+    //fprintf(stderr, "ep VS e: \n %s \n %s \n", ePrev.toString().c_str(), eCurr.toString().c_str());
+    //fprintf(stderr, "JDq VS De: \n %s \n %s \n", (Jtmp1*dq).toString().c_str(), (J*dq).toString().c_str());
+    //fprintf(stderr, "Dq VS dq LL:\n %s\n %s\n", Dq.subVector(0, njLL -1).toString().c_str(), dq.subVector(0, njLL -1).toString().c_str());
+    //fprintf(stderr, "Dq VS dq RL:\n %s\n %s\n", Dq.subVector(njLL, njLL+ njRL -1).toString().c_str(), dq.subVector(njLL, njLL+ njRL -1).toString().c_str());
+    //fprintf(stderr, "Dq VS dq TO:\n %s\n %s\n", Dq.subVector(njLL+ njRL, njLL+ njRL + njTO -1).toString().c_str(), dq.subVector(njLL+ njRL, njLL+ njRL + njTO -1).toString().c_str());
+    //fprintf(stderr, "Vel ratio is:\n %f\n", ((1/dq(1)*Dq(1))));
+
+    qPrev = qCurr;
+    ePrev = eCurr;
+}
+
+void comStepperThread::executeControl(Vector dq)
+{    
+    saturateVector(dq, vel_sat);
     dqLL   = dq.subVector(0        , njLL          -1);
     dqRL   = dq.subVector(njLL     , njLL+njRL     -1);
     dqTO   = dq.subVector(njLL+njRL, njLL+njRL+njTO-1);
@@ -994,48 +926,25 @@ void comStepperThread::computeControlTriangular(Matrix J1, Matrix J2, Vector e1,
 #ifndef DO_NOT_CONTROL_LEGS
     if (on_ground)
     {
-        if (current_phase == RIGHT_SUPPORT || current_phase == BOTH_SUPPORT)
-        {
-            for (int i =0; i < njLL; i++)
-                if (Smask_r2l_swg(i,i) == 1)
-                    Ivel_LL->velocityMove(i, dqLL(i));
-            
-            for (int i =0; i < njRL; i++)
-                if (Smask_r2l_sup(i,i) == 1)
-                    Ivel_RL->velocityMove(i, dqRL(i));
-        }
-        else
-        {
-            for (int i =0; i < njLL; i++)
-                if (Smask_r2l_sup(i,i) == 1)
-                    Ivel_LL->velocityMove(i, dqLL(i));
-            
-            for (int i =0; i < njRL; i++)
-                if (Smask_r2l_swg(i,i) == 1)
-                    Ivel_RL->velocityMove(i, dqRL(i));
-        }
+        Ivel_RL->velocityMove(dqRL.data());
+        Ivel_LL->velocityMove(dqLL.data());
     }
     else
     {
         Ivel_LL->velocityMove(zeros(njLL).data());
-        Ivel_RL->velocityMove(zeros(njLL).data());
+        Ivel_RL->velocityMove(zeros(njRL).data());
     }
 #endif
     
 #ifndef DO_NOT_CONTROL_TORSO
     if (on_ground)
     {
-        for (int i =0; i < njTO; i++)
-            if (Smask_com_torso(i,i) == 1)
-                Ivel_TO->velocityMove(i, dqTO(i));
+        Ivel_TO->velocityMove(dqTO.data());
     }
     else
         Ivel_TO->velocityMove(zeros(njTO).data());
 #endif
-    
-    
 }
-
 
 void comStepperThread::jacobianR2LrightSupport(Matrix &jR2LrightSupport, Vector &eR2LrightSupport, Matrix  pacd, Matrix Racd, Matrix dpacd, Matrix dRacd)
 {
@@ -1076,10 +985,6 @@ void comStepperThread::jacobianR2LrightSupport(Matrix &jR2LrightSupport, Vector 
     //   |      | = Jac dq = |              | |                    |  | (               ) *Jbc  | -Jba   |  |  dq
     //   | doac |            | 0       I    | |   0          Rab   |  | ( 0       I     )                |
     //                                                                |                                  |
-    
-    pab =   -1.0 * Rba.transposed() * pba;
-    pcb =   -1.0 * Rbc.transposed() * pbc;
-    rca_b = -1.0 * Rba * pac;
     
     velTranslator(Spac, pac);
     velTranslator(Srca, rca_b);
@@ -1384,7 +1289,7 @@ void comStepperThread::jacobianCOMrightSupport(Matrix &jCOMrightSupport, Vector 
 #ifdef COMPUTE_FINITE_DIFF
     Vector dqTO_(3);
     dqTO_ = zeros(3);
-    dqTO_(0) =  0.4;     dqTO_(1) = 0.2;     dqTO_(2) = -0.3;
+    dqTO_(0) =  0.2;     dqTO_(1) = 0.5;     dqTO_(2) = .30;
     Vector dqTOrev(3);
     dqTOrev(0) = dqTO_(2);     dqTOrev(1) = dqTO_(1);     dqTOrev(2) = dqTO_(0);
     
@@ -2003,6 +1908,10 @@ void comStepperThread::computeDeltaProjAReal(Vector dqR, Vector dqL, Vector dqT,
     Vector pi_a0 = PI * (Rba0.transposed() * p_b0.getCol(0) + pab0.getCol(0));
     Vector pi_b0 = Rba0 * PI * (Rba0.transposed() * p_b0.getCol(0) + pab0.getCol(0)) + pba0.getCol(0);
     
+    fprintf(stderr, "q: \n %s\n", (j0RL-qRL).toString().c_str());
+    fprintf(stderr, "R: \n%s\n", (Rba-Rba0).toString().c_str());
+    fprintf(stderr, "p_b: \n%s\n", (p_b0-p_b).toString().c_str());
+    fprintf(stderr, "pi_a: \n%s\n", (pab-pab0).toString().c_str());
 #ifndef DO_NOT_CONTROL_LEGS
     Ipos_LL->setRefSpeed(0, 100);    Ipos_LL->setRefSpeed(3, 100);
     Ipos_LL->setRefSpeed(1, 100);    Ipos_LL->setRefSpeed(4, 100);
