@@ -421,8 +421,9 @@ public:
                                           q0LL_left ,q0RL_left ,q0TO_left ,\
                                           robot_name,local_name,wbs_name,\
                                           display,noSens,ankles_sens,springs,torso,verbose,pi_a_t0,vel_sat,Kp_zmp_h,Kd_zmp_h,Kp_zmp_x,Kd_zmp_x,Kp_zmp_y,\
-                                            Kd_zmp_y,Kp, Kd, comPosInputPortName,comJacInputPortName,
-                                            r2lErrorPortName, comErrorPortName, comControlPortName, zmpPortName);
+                                          Kd_zmp_y,Kp, Kd, comPosInputPortName,comJacInputPortName,
+                                          r2lErrorPortName, comErrorPortName, comControlPortName, zmpPortName,
+                                          comDesiredPosPortName, r2lDesiredPosPortName, comDesiredVelPortName, r2lDesiredVelPortName, comDesiredPhsPortName);
         fprintf(stderr, "Thread created!\n");
         
         //attachTerminal();
