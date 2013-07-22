@@ -56,7 +56,8 @@ comStepperThread::comStepperThread(int _rate, PolyDriver *_ddTor, PolyDriver *_d
                                    Vector _q0TO_right,     Vector _q0LL_left,     Vector _q0RL_left,     Vector _q0TO_left,      string _robot_name,
                                    string _local_name, string _wbs_name, bool display, bool noSens, bool ankles_sens, bool _springs, bool _torso, bool _verbose,
                                    Matrix pi_a_t0, double _vel_sat, double Kp_zmp_h, double Kd_zmp_h, double Kp_zmp_x, double Kd_zmp_x, double Kp_zmp_y,
-                                   double Kd_zmp_y, double Kp, double Kd, string comPosPort, string comJacPort, string r2lErrPort, string comErrPort, string comCtrlPort, string zmpPort) :
+                                   double Kd_zmp_y, double Kp, double Kd, string comPosPort, string comJacPort, string r2lErrPort, string comErrPort, string comCtrlPort, string zmpPort,
+                                   string desiredComPosPort, string desiredR2lPosPort, string desiredComVelPort, string desiredR2lVelPort, string desiredComPhsPort) :
 RateThread(_rate),   dd_torso(_ddTor),dd_rightLeg(_dd_rightLeg), dd_leftLeg(_dd_leftLeg),
 q0LL_both(_q0LL_both), q0RL_both(_q0RL_both), q0TO_both(_q0TO_both), q0LL_right(_q0LL_right),
 q0RL_right(_q0RL_right), q0TO_right(_q0TO_right), q0LL_left(_q0LL_left), q0RL_left(_q0RL_left),
@@ -64,7 +65,8 @@ q0TO_left(_q0TO_left), robot_name(_robot_name), local_name(_local_name), wbsName
 springs(_springs), torso(_torso), verbose(_verbose), pi_a_t(pi_a_t0), vel_sat(_vel_sat),
 Kp_zmp_h(Kp_zmp_h), Kd_zmp_h(Kd_zmp_h), Kp_zmp_x(Kp_zmp_x), Kd_zmp_x(Kd_zmp_x), Kp_zmp_y(Kp_zmp_y),
 Kd_zmp_y(Kd_zmp_y), Kp(Kp), Kd(Kd), comPosPortString(comPosPort), comJacPortString(comJacPort),
-r2lErrPortString(r2lErrPort), comErrPortString(comErrPort), comCtrlPortString(comCtrlPort), zmpPortString(zmpPort)
+r2lErrPortString(r2lErrPort), comErrPortString(comErrPort), comCtrlPortString(comCtrlPort), zmpPortString(zmpPort),
+desiredComPosPortString(desiredComPosPort), desiredR2lPosPortString(desiredR2lPosPort), desiredComVelPortString(desiredComVelPort), desiredR2lVelPortString(desiredR2lVelPort), desiredComPhsPortString(desiredComPhsPort)
 {
     //------------------ INTERFACE INITIALIZATION ----------------------------------
     printf("rate: %d\n",_rate);
@@ -202,7 +204,7 @@ r2lErrPortString(r2lErrPort), comErrPortString(comErrPort), comCtrlPortString(co
     else
         fprintf(stderr, "Skipping the port for the COM controls!\n");
     
-    if (!comCtrlPort.empty())
+    if (!zmpPort.empty())
     {
         fprintf(stderr, "Opening a port for the ZMP!\n");
         zmp_port = new BufferedPort<Vector>;
@@ -211,6 +213,51 @@ r2lErrPortString(r2lErrPort), comErrPortString(comErrPort), comCtrlPortString(co
     else
         fprintf(stderr, "Skipping the port for the COM controls!\n");
 
+    //desired ports
+    if (!desiredComPosPort.empty())
+    {
+        fprintf(stderr, "Opening a port for the COM pos desired port!\n");
+        com_des_pos_port = new BufferedPort<Vector>;
+        com_des_pos_port->open(desiredComPosPort.c_str());
+    }
+    else
+        fprintf(stderr, "Skipping the port for the COM pos desired port!!\n");
+    
+    if (!desiredComVelPort.empty())
+    {
+        fprintf(stderr, "Opening a port for the COM vel desired port!\n");
+        com_des_vel_port = new BufferedPort<Vector>;
+        com_des_vel_port->open(desiredComVelPort.c_str());
+    }
+    else
+        fprintf(stderr, "Skipping the port for the COM vel desired port!!\n");
+
+    if (!desiredComPhsPort.empty())
+    {
+        fprintf(stderr, "Opening a port for the COM phs desired port!\n");
+        com_des_phs_port = new BufferedPort<Bottle>;
+        com_des_phs_port->open(desiredComPhsPort.c_str());
+    }
+    else
+        fprintf(stderr, "Skipping the port for the COM pos desired port!!\n");
+    
+    if (!desiredR2lPosPort.empty())
+    {
+        fprintf(stderr, "Opening a port for the R2L pos desired port!\n");
+        r2l_des_pos_port = new BufferedPort<Vector>;
+        r2l_des_pos_port->open(desiredR2lPosPort.c_str());
+    }
+    else
+        fprintf(stderr, "Skipping the port for the R2L pos desired port!!\n");
+    
+    if (!desiredR2lVelPort.empty())
+    {
+        fprintf(stderr, "Opening a port for the R2L vel desired port!\n");
+        r2l_des_vel_port = new BufferedPort<Vector>;
+        r2l_des_vel_port->open(desiredR2lVelPort.c_str());
+    }
+    else
+        fprintf(stderr, "Skipping the port for the R2L vel desired port!!\n");
     
     Right_Leg    = new iCubLeg("right");
     Left_Leg     = new iCubLeg("left");
@@ -538,6 +585,9 @@ void comStepperThread::run()
     //upate the desired COM
     updateComFilters();
     
+    //upate the desired COM and R2L pos, vel
+    updateComDesired();
+    
     //********************** COMPUTE JACOBIANS ************************************
     // In this notation we define a,b,c as follows:
     // right_foot_reference_frame = 'a';
@@ -758,10 +808,20 @@ void comStepperThread::run()
 
     if(!zmpPortString.empty())
     {
-        if (!strcmp(robot_name.c_str(), "icubSim"))
-            zmp_port->prepare()= pi_a.getCol(0);
+        if (current_phase==RIGHT_SUPPORT || current_phase==BOTH_SUPPORT)
+        {
+            if (!strcmp(robot_name.c_str(), "icubSim"))
+                zmp_port->prepare()= pi_a.getCol(0);
+            else
+                zmp_port->prepare()= zmp_a.getCol(0);
+        }
         else
-            zmp_port->prepare()= zmp_a.getCol(0);
+        {
+            if (!strcmp(robot_name.c_str(), "icubSim"))
+                zmp_port->prepare()= pi_c.getCol(0);
+            else
+                zmp_port->prepare()= zmp_c.getCol(0);
+        }
         zmp_port->setEnvelope(timeStamp);
         zmp_port->write();
     }
@@ -1683,6 +1743,36 @@ void comStepperThread::threadRelease()
         closePort(zmp_port);
     }
     
+    if(!desiredComPosPortString.empty())
+    {
+        fprintf(stderr, "Closing com_des_pos_port\n");
+        closePort(com_des_pos_port);
+    }
+
+    if(!desiredComVelPortString.empty())
+    {
+        fprintf(stderr, "Closing com_des_vel_port\n");
+        closePort(com_des_vel_port);
+    }
+
+    if(!desiredComPhsPortString.empty())
+    {
+        fprintf(stderr, "Closing com_des_phs_port\n");
+        closePort(com_des_phs_port);
+    }
+    
+    if(!desiredR2lPosPortString.empty())
+    {
+        fprintf(stderr, "Closing r2l_des_pos_port\n");
+        closePort(r2l_des_pos_port);
+    }
+    
+    if(!desiredR2lVelPortString.empty())
+    {
+        fprintf(stderr, "Closing r2l_des_vel_port\n");
+        closePort(r2l_des_vel_port);
+    }
+
     
     fprintf(stderr, "Closing commanded_ankle_port\n");
     closePort(ankle_angle);
@@ -2094,6 +2184,100 @@ void comStepperThread::switchSupport(phase newPhase)
     if (newPhase == RIGHT_SUPPORT)
     {
         qrLL = q0LL_right;   qrRL = q0RL_right;   qrTO = q0TO_right;
+    }
+    
+}
+
+void comStepperThread::updateComDesired()
+{
+    Vector *tmp; Bottle *btmp;
+
+    if (!desiredComPhsPortString.empty())
+    {
+        btmp = com_des_phs_port->read(false);
+        if (!(btmp==NULL))
+        {
+            if (!strcmp(btmp->toString().c_str(), "right"))
+                current_phase = RIGHT_SUPPORT;
+            if (!strcmp(btmp->toString().c_str(), "left"))
+                current_phase = LEFT_SUPPORT;
+            if (!strcmp(btmp->toString().c_str(), "double"))
+                current_phase = BOTH_SUPPORT;
+        }
+    }
+    
+    if (current_phase==RIGHT_SUPPORT || current_phase == BOTH_SUPPORT)
+    {
+        if (!desiredComPosPortString.empty())
+        {
+            tmp = com_des_pos_port->read(false);
+            if (!(tmp==NULL))
+            {
+                pi_a_d.setCol(0, (*tmp).subVector(0, 1)) ;
+                dpi_a_d.zero();
+            }
+        }
+        
+        if (!desiredComVelPortString.empty())
+        {
+            tmp = com_des_vel_port->read(false);
+            if (!(tmp==NULL))
+                dpi_a_d.setCol(0, (*tmp).subVector(0, 1)) ;
+        }
+        
+        if (!desiredR2lPosPortString.empty())
+        {
+            tmp = r2l_des_pos_port->read(false);
+            if (!(tmp==NULL))
+            {
+                pac_d.setCol(0, (*tmp).subVector(0, 2)) ;
+                dpac_d.zero();
+            }
+        }
+        
+        if (!desiredComVelPortString.empty())
+        {
+            tmp = r2l_des_vel_port->read(false);
+            if (!(tmp==NULL))
+                dpac_d.setCol(0, (*tmp).subVector(0, 2)) ;
+        }
+    }
+    else
+    {
+        if (!desiredComPosPortString.empty())
+        {
+            tmp = com_des_pos_port->read(false);
+            if (!(tmp==NULL))
+            {
+                pi_c_d.setCol(0, (*tmp).subVector(0, 1)) ;
+                dpi_c_d.zero();
+            }
+        }
+        
+        if (!desiredComVelPortString.empty())
+        {
+            tmp = com_des_vel_port->read(false);
+            if (!(tmp==NULL))
+                dpi_c_d.setCol(0, (*tmp).subVector(0, 1)) ;
+        }
+        
+        if (!desiredR2lPosPortString.empty())
+        {
+            tmp = r2l_des_pos_port->read(false);
+            if (!(tmp==NULL))
+            {
+                pca_d.setCol(0, (*tmp).subVector(0, 2)) ;
+                dpca_d.zero();
+            }
+        }
+        
+        if (!desiredComVelPortString.empty())
+        {
+            tmp = r2l_des_vel_port->read(false);
+            if (!(tmp==NULL))
+                dpca_d.setCol(0, (*tmp).subVector(0, 2)) ;
+        }
+        
     }
     
 }

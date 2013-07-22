@@ -31,7 +31,7 @@ enum phase { LEFT_SUPPORT, RIGHT_SUPPORT, BOTH_SUPPORT };
 
 const double PINV_DAMP = 0.04;          // damping factor for damped pseudoinverses
 const double PINV_TOL  = 1e-6;          // singular value threshold for truncated pseudoinverses
-const double MIN_JERK_TRAJ_TIME = 5;    // trajectory time of "minimum jerk trajectory generators"
+const double MIN_JERK_TRAJ_TIME = 3;    // trajectory time of "minimum jerk trajectory generators"
 
 class comStepperThread: public RateThread
 {
@@ -160,6 +160,9 @@ private:
     BufferedPort<Vector> *port_ft_foot_left;  //Left foot f/t sensor reading
     BufferedPort<Vector> *port_ft_foot_right; //Right foot f/t sensor reading
 
+    BufferedPort<Vector> *com_des_pos_port;        BufferedPort<Vector> *com_des_vel_port;        BufferedPort<Bottle> *com_des_phs_port;
+    BufferedPort<Vector> *r2l_des_pos_port;        BufferedPort<Vector> *r2l_des_vel_port;
+    
     BufferedPort<Bottle> *port_lr_trf;
 
     double *angle;
@@ -177,6 +180,11 @@ private:
 
     //err ports
     string r2lErrPortString, comErrPortString, comCtrlPortString, zmpPortString;
+    
+    //desired ports
+    string desiredComPosPortString; string desiredR2lPosPortString;
+    string desiredComVelPortString; string desiredR2lVelPortString;
+    string desiredComPhsPortString;
     
     //compute ZMP variables
     double xLL, yLL, xDS, yDS, yRL, xRL;
@@ -230,7 +238,8 @@ public:
                      string _robot_name, string _local_name, string _wbs_name, bool display, bool noSens, \
                      bool ankles_sens, bool springs, bool torso, bool verbose, Matrix pi_a_t0, double vel_sat, double Kp_zmp_h, double Kd_zmp_h, double Kp_zmp_x, double Kd_zmp_x,\
                      double Kp_zmp_y, double Kd_zmp_y, double Kp, double Kd, string comPosPortName, string comJacPortName, \
-                     string r2lErrPortName, string comErrPortName, string comCtrlPortName, string zmpPortName);
+                     string r2lErrPortName, string comErrPortName, string comCtrlPortName, string zmpPortName,
+                     string comPosName, string r2lPosName, string comVelName, string r2lVelName, string comPhsName);
     void setRefAcc(IEncoders* iencs, IVelocityControl* ivel);
     bool threadInit();
     void run();
@@ -262,6 +271,7 @@ public:
     void computeDeltaProjCReal(Vector dqR, Vector dqL, Vector dqT, Vector &delta_b, Vector &delta_pi_c, Vector &delta_pi_b);
     void switchSupport(phase newPhase);
     void updateComFilters();
+    void updateComDesired();
     bool check_njTO(int _njTO);
     bool check_njRL(int _njRL);
     bool check_njLL(int _njLL);

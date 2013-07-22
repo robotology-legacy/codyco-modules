@@ -33,8 +33,8 @@ private:
     PolyDriver *dd_leftLeg;
 
     comStepperThread *balThread;
-    Port rpcPort;
 
+    Port commandPort;
     Vector pi_a_d_right, pi_a_d_both, pi_c_d_left;
 public:
     Balancer()
@@ -63,10 +63,6 @@ public:
         // local_name = rf.check("local", Value("balanceModule"), "module name (string)").asString;
         // setName(local_name.c_str());             //setting the read local_name as module name
 
-        //--------------------------------- SOME RPC PORT --------------------------------------------------
-        string rpcPortName = "/"+local_name+"/rpc:i";
-        rpcPort.open(rpcPortName.c_str());
-        attach(rpcPort);
 
         //--------------------------------GETTING ROBOT NAME------------------------------------------------
         string robot_name;
@@ -248,6 +244,26 @@ public:
         if(rf.check("zmp_port"))
             zmpPortName = rf.check("zmp_port", Value("/comStepper/zmp:o")).asString().c_str();
 
+        //---------------------------- CTR INPUTS ---------------------------------------------------------------
+        string comDesiredPosPortName;
+        if(rf.check("com_desired_pos"))
+            comDesiredPosPortName = rf.check("com_desired_pos", Value("/comStepper/com_desired_pos:i")).asString().c_str();
+        
+        string r2lDesiredPosPortName;
+        if(rf.check("r2l_desired_pos"))
+            comDesiredPosPortName = rf.check("r2l_desired_pos", Value("/comStepper/r2l_desired_pos:i")).asString().c_str();
+        
+        string comDesiredVelPortName;
+        if(rf.check("com_desired_vel"))
+            comDesiredVelPortName = rf.check("com_desired_vel", Value("/comStepper/com_desired_vel:i")).asString().c_str();
+        
+        string r2lDesiredVelPortName;
+        if(rf.check("r2l_desired_vel"))
+            comDesiredVelPortName = rf.check("r2l_desired_vel", Value("/comStepper/com_desired_vel:i")).asString().c_str();
+
+        string comDesiredPhsPortName;
+        if(rf.check("com_desired_phs"))
+            comDesiredPhsPortName = rf.check("com_desired_phs", Value("/comStepper/com_desired_phs:i")).asString().c_str();
         
         //---------------------------- WRENCH OFFSETS ---------------------------------------------------------------
         Vector w0RL(6);
@@ -409,7 +425,10 @@ public:
                                             r2lErrorPortName, comErrorPortName, comControlPortName, zmpPortName);
         fprintf(stderr, "Thread created!\n");
         
-        attachTerminal();
+        //attachTerminal();
+
+        commandPort.open("/comStepper/command:i");
+        attach(commandPort);
         
         if (balThread->start())
         {
@@ -730,6 +749,14 @@ int main (int argc, char * argv[])
 
         cout<< "\t--r2l_error        :specify a port to output the tracking errors on the right/left foot position and orientation."                                          <<endl;
         cout<< "\t--com_error        :specify a port to output the tracking errors for the COM."                                                                              <<endl;
+        cout<< "\t--com_control      :specify a port to output the tracking controls on the right/left foot position and orientation."                                        <<endl;
+        cout<< "\t--zmp_port         :specify a port to output the ZMP."                                                                                                      <<endl;
+        cout<< "\t--com_desired_pos  :specify a port receiving the disired COM position."                                                                                     <<endl;
+        cout<< "\t--r2l_desired_pos  :specify a port receiving the disired R2L position."                                                                                     <<endl;
+        cout<< "\t--com_desired_vel  :specify a port receiving the disired COM velocity."                                                                                     <<endl;
+        cout<< "\t--r2l_desired_vel  :specify a port receiving the disired R2L velocity."                                                                                     <<endl;
+        cout<< "\t--com_desired_phs  :specify a port receiving the disired R2L phase."                                                                                     <<endl;
+
         
         cout<< "\t--w0RL             :specify the wrench (force/torque) offset for the right leg F/T sensor."                                                                 <<endl;
         cout<< "\t--w0LL             :specify the wrench (force/torque) offset for the left  leg F/T sensor."                                                                 <<endl;
