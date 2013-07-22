@@ -57,7 +57,8 @@ comStepperThread::comStepperThread(int _rate, PolyDriver *_ddTor, PolyDriver *_d
                                    string _local_name, string _wbs_name, bool display, bool noSens, bool ankles_sens, bool _springs, bool _torso, bool _verbose,
                                    Matrix pi_a_t0, double _vel_sat, double Kp_zmp_h, double Kd_zmp_h, double Kp_zmp_x, double Kd_zmp_x, double Kp_zmp_y,
                                    double Kd_zmp_y, double Kp, double Kd, string comPosPort, string comJacPort, string r2lErrPort, string comErrPort, string comCtrlPort, string zmpPort,
-                                   string desiredComPosPort, string desiredR2lPosPort, string desiredComVelPort, string desiredR2lVelPort, string desiredComPhsPort) :
+                                   string desiredComPosPort, string desiredR2lPosPort, string desiredComVelPort, string desiredR2lVelPort, string desiredComPhsPort,
+                                   string  outputComPosPort, string  outputR2lPosPort, string  outputComVelPort, string  outputR2lVelPort, string  outputComPhsPort) :
 RateThread(_rate),   dd_torso(_ddTor),dd_rightLeg(_dd_rightLeg), dd_leftLeg(_dd_leftLeg),
 q0LL_both(_q0LL_both), q0RL_both(_q0RL_both), q0TO_both(_q0TO_both), q0LL_right(_q0LL_right),
 q0RL_right(_q0RL_right), q0TO_right(_q0TO_right), q0LL_left(_q0LL_left), q0RL_left(_q0RL_left),
@@ -66,7 +67,8 @@ springs(_springs), torso(_torso), verbose(_verbose), pi_a_t(pi_a_t0), vel_sat(_v
 Kp_zmp_h(Kp_zmp_h), Kd_zmp_h(Kd_zmp_h), Kp_zmp_x(Kp_zmp_x), Kd_zmp_x(Kd_zmp_x), Kp_zmp_y(Kp_zmp_y),
 Kd_zmp_y(Kd_zmp_y), Kp(Kp), Kd(Kd), comPosPortString(comPosPort), comJacPortString(comJacPort),
 r2lErrPortString(r2lErrPort), comErrPortString(comErrPort), comCtrlPortString(comCtrlPort), zmpPortString(zmpPort),
-desiredComPosPortString(desiredComPosPort), desiredR2lPosPortString(desiredR2lPosPort), desiredComVelPortString(desiredComVelPort), desiredR2lVelPortString(desiredR2lVelPort), desiredComPhsPortString(desiredComPhsPort)
+desiredComPosPortString(desiredComPosPort), desiredR2lPosPortString(desiredR2lPosPort), desiredComVelPortString(desiredComVelPort), desiredR2lVelPortString(desiredR2lVelPort), desiredComPhsPortString(desiredComPhsPort),
+outputComPosPortString( outputComPosPort),  outputR2lPosPortString( outputR2lPosPort),  outputComVelPortString( outputComVelPort),  outputR2lVelPortString( outputR2lVelPort),  outputComPhsPortString( outputComPhsPort)
 {
     //------------------ INTERFACE INITIALIZATION ----------------------------------
     printf("rate: %d\n",_rate);
@@ -258,6 +260,53 @@ desiredComPosPortString(desiredComPosPort), desiredR2lPosPortString(desiredR2lPo
     }
     else
         fprintf(stderr, "Skipping the port for the R2L vel desired port!!\n");
+
+    //output ports
+    if (!outputComPosPort.empty())
+    {
+        fprintf(stderr, "Opening a port for the COM pos output port!\n");
+        com_out_pos_port = new BufferedPort<Vector>;
+        com_out_pos_port->open(outputComPosPort.c_str());
+    }
+    else
+        fprintf(stderr, "Skipping the port for the COM pos output port!!\n");
+    
+    if (!outputComVelPort.empty())
+    {
+        fprintf(stderr, "Opening a port for the COM vel output port!\n");
+        com_out_vel_port = new BufferedPort<Vector>;
+        com_out_vel_port->open(outputComVelPort.c_str());
+    }
+    else
+        fprintf(stderr, "Skipping the port for the COM vel desired port!!\n");
+    
+    if (!outputComPhsPort.empty())
+    {
+        fprintf(stderr, "Opening a port for the COM phs output port!\n");
+        com_out_phs_port = new BufferedPort<Bottle>;
+        com_out_phs_port->open(outputComPhsPort.c_str());
+    }
+    else
+        fprintf(stderr, "Skipping the port for the COM pos output port!!\n");
+    
+    if (!outputR2lPosPort.empty())
+    {
+        fprintf(stderr, "Opening a port for the R2L pos output port!\n");
+        r2l_out_pos_port = new BufferedPort<Vector>;
+        r2l_out_pos_port->open(outputR2lPosPort.c_str());
+    }
+    else
+        fprintf(stderr, "Skipping the port for the R2L pos output port!!\n");
+    
+    if (!outputR2lVelPort.empty())
+    {
+        fprintf(stderr, "Opening a port for the R2L vel output port!\n");
+        r2l_out_vel_port = new BufferedPort<Vector>;
+        r2l_out_vel_port->open(outputR2lVelPort.c_str());
+    }
+    else
+        fprintf(stderr, "Skipping the port for the R2L vel output port!!\n");
+    
     
     Right_Leg    = new iCubLeg("right");
     Left_Leg     = new iCubLeg("left");
@@ -825,6 +874,67 @@ void comStepperThread::run()
         zmp_port->setEnvelope(timeStamp);
         zmp_port->write();
     }
+    
+    if(!outputComPosPortString.empty())
+    {
+        if (current_phase==RIGHT_SUPPORT || current_phase==BOTH_SUPPORT)
+            com_out_pos_port->prepare() = pi_a_d.getCol(0);
+        else
+            com_out_pos_port->prepare() = pi_c_d.getCol(0);
+        
+        com_out_pos_port->setEnvelope(timeStamp);
+        com_out_pos_port->write();
+    }
+
+    if(!outputComVelPortString.empty())
+    {
+        if (current_phase==RIGHT_SUPPORT || current_phase==BOTH_SUPPORT)
+            com_out_vel_port->prepare() = dpi_a_d.getCol(0);
+        else
+            com_out_vel_port->prepare() = dpi_c_d.getCol(0);
+        
+        com_out_vel_port->setEnvelope(timeStamp);
+        com_out_vel_port->write();
+    }
+
+    if(!outputComPhsPortString.empty())
+    {
+        Bottle& b = com_out_phs_port->prepare();
+        b.clear();
+        if (current_phase==RIGHT_SUPPORT)
+            b.add("right");
+        if (current_phase==LEFT_SUPPORT)
+            b.add("left");
+        if (current_phase==BOTH_SUPPORT)
+            b.add("double");
+        
+        com_out_phs_port->setEnvelope(timeStamp);
+        com_out_phs_port->write();
+    }
+    
+    
+    if(!outputR2lPosPortString.empty())
+    {
+        if (current_phase==RIGHT_SUPPORT || current_phase==BOTH_SUPPORT)
+            r2l_out_pos_port->prepare() = pac_d.getCol(0);
+        else
+            r2l_out_pos_port->prepare() = pac_d.getCol(0);
+        
+        r2l_out_pos_port->setEnvelope(timeStamp);
+        r2l_out_pos_port->write();
+    }
+    
+    if(!outputR2lVelPortString.empty())
+    {
+        if (current_phase==RIGHT_SUPPORT || current_phase==BOTH_SUPPORT)
+            r2l_out_vel_port->prepare() = dpac_d.getCol(0);
+        else
+            r2l_out_vel_port->prepare() = dpac_d.getCol(0);
+        
+        r2l_out_vel_port->setEnvelope(timeStamp);
+        r2l_out_vel_port->write();
+    }
+    
 }
 
 void comStepperThread::setRefAcc(IEncoders* iencs, IVelocityControl* ivel)

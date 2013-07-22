@@ -162,6 +162,10 @@ private:
 
     BufferedPort<Vector> *com_des_pos_port;        BufferedPort<Vector> *com_des_vel_port;        BufferedPort<Bottle> *com_des_phs_port;
     BufferedPort<Vector> *r2l_des_pos_port;        BufferedPort<Vector> *r2l_des_vel_port;
+
+    BufferedPort<Vector> *com_out_pos_port;        BufferedPort<Vector> *com_out_vel_port;        BufferedPort<Bottle> *com_out_phs_port;
+    BufferedPort<Vector> *r2l_out_pos_port;        BufferedPort<Vector> *r2l_out_vel_port;
+
     
     BufferedPort<Bottle> *port_lr_trf;
 
@@ -185,6 +189,10 @@ private:
     string desiredComPosPortString; string desiredR2lPosPortString;
     string desiredComVelPortString; string desiredR2lVelPortString;
     string desiredComPhsPortString;
+    
+    //output ports
+    string  outputComPosPortString; string  outputComVelPortString;  string  outputComPhsPortString;
+    string  outputR2lPosPortString; string  outputR2lVelPortString;
     
     //compute ZMP variables
     double xLL, yLL, xDS, yDS, yRL, xRL;
@@ -239,7 +247,8 @@ public:
                      bool ankles_sens, bool springs, bool torso, bool verbose, Matrix pi_a_t0, double vel_sat, double Kp_zmp_h, double Kd_zmp_h, double Kp_zmp_x, double Kd_zmp_x,\
                      double Kp_zmp_y, double Kd_zmp_y, double Kp, double Kd, string comPosPortName, string comJacPortName, \
                      string r2lErrPortName, string comErrPortName, string comCtrlPortName, string zmpPortName,
-                     string comPosName, string r2lPosName, string comVelName, string r2lVelName, string comPhsName);
+                     string comPosName, string r2lPosName, string comVelName, string r2lVelName, string comPhsName,
+                     string comPosOut, string r2lPosOut, string comVelOut, string r2lVelOut, string comPhsOut);
     void setRefAcc(IEncoders* iencs, IVelocityControl* ivel);
     bool threadInit();
     void run();

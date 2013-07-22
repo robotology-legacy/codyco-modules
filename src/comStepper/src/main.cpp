@@ -236,14 +236,6 @@ public:
         if(rf.check("com_error"))
             comErrorPortName = rf.check("com_error", Value("/comStepper/com_error:o")).asString().c_str();
 
-        string comControlPortName;
-        if(rf.check("com_control"))
-            comControlPortName = rf.check("com_control", Value("/comStepper/dq:o")).asString().c_str();
-
-        string zmpPortName;
-        if(rf.check("zmp_port"))
-            zmpPortName = rf.check("zmp_port", Value("/comStepper/zmp:o")).asString().c_str();
-
         //---------------------------- CTR INPUTS ---------------------------------------------------------------
         string comDesiredPosPortName;
         if(rf.check("com_desired_pos"))
@@ -264,6 +256,36 @@ public:
         string comDesiredPhsPortName;
         if(rf.check("com_desired_phs"))
             comDesiredPhsPortName = rf.check("com_desired_phs", Value("/comStepper/com_desired_phs:i")).asString().c_str();
+
+        //---------------------------- CTR OUTPUTS ---------------------------------------------------------------
+        string comControlPortName;
+        if(rf.check("com_control"))
+            comControlPortName = rf.check("com_control", Value("/comStepper/dq:o")).asString().c_str();
+        
+        string zmpPortName;
+        if(rf.check("zmp_port"))
+            zmpPortName = rf.check("zmp_port", Value("/comStepper/zmp:o")).asString().c_str();        
+        
+        string comOutputPosPortName;
+        if(rf.check("com_output_pos"))
+            comOutputPosPortName = rf.check("com_output_pos", Value("/comStepper/com_output_pos:i")).asString().c_str();
+        
+        string r2lOutputPosPortName;
+        if(rf.check("r2l_output_pos"))
+            comOutputPosPortName = rf.check("r2l_output_pos", Value("/comStepper/r2l_output_pos:i")).asString().c_str();
+        
+        string comOutputVelPortName;
+        if(rf.check("com_output_vel"))
+            comOutputVelPortName = rf.check("com_output_vel", Value("/comStepper/com_output_vel:i")).asString().c_str();
+        
+        string r2lOutputVelPortName;
+        if(rf.check("r2l_output_vel"))
+            comOutputVelPortName = rf.check("r2l_output_vel", Value("/comStepper/com_output_vel:i")).asString().c_str();
+        
+        string comOutputPhsPortName;
+        if(rf.check("com_output_phs"))
+            comOutputPhsPortName = rf.check("com_output_phs", Value("/comStepper/com_output_phs:i")).asString().c_str();
+        
         
         //---------------------------- WRENCH OFFSETS ---------------------------------------------------------------
         Vector w0RL(6);
@@ -423,7 +445,8 @@ public:
                                           display,noSens,ankles_sens,springs,torso,verbose,pi_a_t0,vel_sat,Kp_zmp_h,Kd_zmp_h,Kp_zmp_x,Kd_zmp_x,Kp_zmp_y,\
                                           Kd_zmp_y,Kp, Kd, comPosInputPortName,comJacInputPortName,
                                           r2lErrorPortName, comErrorPortName, comControlPortName, zmpPortName,
-                                          comDesiredPosPortName, r2lDesiredPosPortName, comDesiredVelPortName, r2lDesiredVelPortName, comDesiredPhsPortName);
+                                          comDesiredPosPortName, r2lDesiredPosPortName, comDesiredVelPortName, r2lDesiredVelPortName, comDesiredPhsPortName,
+                                          comOutputPosPortName, r2lOutputPosPortName, comOutputVelPortName, r2lOutputVelPortName, comOutputPhsPortName);
         fprintf(stderr, "Thread created!\n");
         
         //attachTerminal();
@@ -757,6 +780,12 @@ int main (int argc, char * argv[])
         cout<< "\t--com_desired_vel  :specify a port receiving the disired COM velocity."                                                                                     <<endl;
         cout<< "\t--r2l_desired_vel  :specify a port receiving the disired R2L velocity."                                                                                     <<endl;
         cout<< "\t--com_desired_phs  :specify a port receiving the disired R2L phase."                                                                                     <<endl;
+
+        cout<< "\t--com_output_pos   :specify a port outputing the disired COM position."                                                                                     <<endl;
+        cout<< "\t--r2l_output_pos   :specify a port outputing the disired R2L position."                                                                                     <<endl;
+        cout<< "\t--com_output_vel   :specify a port outputing the disired COM velocity."                                                                                     <<endl;
+        cout<< "\t--r2l_output_vel   :specify a port outputing the disired R2L velocity."                                                                                     <<endl;
+        cout<< "\t--com_output_phs   :specify a port outputing the disired R2L phase."                                                                                     <<endl;
 
         
         cout<< "\t--w0RL             :specify the wrench (force/torque) offset for the right leg F/T sensor."                                                                 <<endl;
