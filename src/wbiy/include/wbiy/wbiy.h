@@ -54,7 +54,7 @@ namespace wbiy
     typedef std::unordered_map<wbi::LocalId, unsigned int, HashLocalId> jointMap;
 #endif
     
-    bool openPolyDriver(const std::string &localName, const std::string &robotName, yarp::dev::PolyDriver *pd, const std::string &bodyPartName);
+    bool openPolyDriver(const std::string &localName, const std::string &robotName, yarp::dev::PolyDriver *&pd, const std::string &bodyPartName);
     
 //    bool updateLocal2GlobalIndex(wbi::LocalIdList &jId, unsigned int dof, jointMap &l2g, std::vector<wbi::LocalId> &g2l);
     
@@ -65,7 +65,7 @@ namespace wbiy
      */
     class yarpWholeBodySensors: public wbi::iWholeBodySensors
     {
-    private:
+    protected:
         bool                        initDone;
         int                         dof;            // number of degrees of freedom
         std::string                 name;           // name used as root for the local ports
@@ -75,16 +75,13 @@ namespace wbiy
         std::map<int,unsigned int>  bodyPartAxes;   // number of axes for each body part
         wbi::LocalIdList            jointIdList;    // list of the joint ids
         
-        jointMap                    local2globalIndex;
-        std::vector<wbi::LocalId>   global2localIndex;
-        
         // last reading data
         std::map<int, yarp::sig::Vector>  qLastRead;
         std::map<int, yarp::sig::Vector>  qStampLastRead;
         std::map<int, yarp::sig::Vector>  pwmLastRead;
 
         // yarp interfaces
-        std::map<int, yarp::dev::IEncoders*>             ienc;
+        std::map<int, yarp::dev::IEncoders*>            ienc;
         std::map<int, yarp::dev::IOpenLoopControl*>     iopl;
         std::map<int, yarp::dev::PolyDriver*>           dd;
         
@@ -119,9 +116,9 @@ namespace wbiy
      */
     class yarpWholeBodyActuators : public wbi::iWholeBodyActuators
     {
-    private:
+    protected:
         bool                        initDone;
-        unsigned int                dof;            // number of degrees of freedom considered
+        int                         dof;            // number of degrees of freedom considered
         std::string                 name;           // name used as root for the local ports
         std::string                 robot;          // name of the robot
         std::vector<int>            bodyParts;      // list of the body parts
@@ -163,25 +160,21 @@ namespace wbiy
      */
     class robotWholeBodyStates : public wbi::iWholeBodyStates
     {
-    private:
+    protected:
         bool                        initDone;
-        unsigned int                dof;            // number of degrees of freedom considered
+        int                         dof;            // number of degrees of freedom considered
         std::string                 name;           // name used as root for the local ports
         std::string                 robot;          // name of the robot
         std::vector<int>            bodyParts;      // list of the body parts
         std::map<int,std::string>   bodyPartsName;  // name of the body parts
-        wbi::LocalIdList               jointIdList;    // list of the joint ids
+        wbi::LocalIdList            jointIdList;    // list of the joint ids
         
         yarpWholeBodySensors        *sensors;       // interface to access the robot sensors
         double                      estWind;        // time window for the estimation
         
-        jointMap                    local2globalIndex;
-        std::vector<wbi::LocalId>   global2localIndex;
-        
     public:
         // *** CONSTRUCTORS ***
         robotWholeBodyStates(const char* _name, const char* _robotName, double estimationTimeWindow);
-        robotWholeBodyStates(const char* _name, const char* _robotName, double estimationTimeWindow, const wbi::LocalIdList &jids);
         
         virtual bool init();
         virtual int getDoFs();
@@ -197,6 +190,23 @@ namespace wbiy
         virtual bool getInertial(double *inertial, double time=-1.0, bool wait=false);
         virtual bool getFTsensors(double *ftSens, double time=-1.0, bool wait=false);
         virtual bool getTorques(double *tau, double time=-1.0, bool wait=false);
+    };
+    
+    
+    /**
+     * Class to communicate with iCub
+     */
+    class icubWholeBodyInterface : public wbi::wholeBodyInterface, public yarpWholeBodySensors, public yarpWholeBodyActuators
+    {
+    public:
+        // *** CONSTRUCTORS ***
+        icubWholeBodyInterface(const char* _name, const char* _robotName, double estimationTimeWindow);
+        
+        virtual bool init();
+        virtual int getDoFs();
+        virtual bool removeJoint(const wbi::LocalId &j);
+        virtual bool addJoint(const wbi::LocalId &j);
+        virtual int addJoints(const wbi::LocalIdList &j);
     };
     
     

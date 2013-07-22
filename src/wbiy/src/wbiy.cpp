@@ -33,7 +33,7 @@ using namespace yarp::sig;
 // iterate over all joints of all body parts
 #define FOR_ALL(itBp, itJ)                  FOR_ALL_OF(itBp, itJ, jointIdList)
 
-bool wbiy::openPolyDriver(const string &localName, const string &robotName, PolyDriver *pd, const string &bodyPartName)
+bool wbiy::openPolyDriver(const string &localName, const string &robotName, PolyDriver* &pd, const string &bodyPartName)
 {
     string localPort  = "/" + localName + "/" + bodyPartName;
     string remotePort = "/" + robotName + "/" + bodyPartName;
@@ -64,9 +64,11 @@ yarpWholeBodySensors::yarpWholeBodySensors(const char* _name, const char* _robot
 bool yarpWholeBodySensors::openDrivers(int bp)
 {
     ienc[bp]=0; iopl[bp]=0;  dd[bp]=0;
-    if(!openPolyDriver(name, robot.c_str(), dd[bp], bodyPartNames[bp]))
+    if(!openPolyDriver(name, robot, dd[bp], bodyPartNames[bp]))
         return false;
     
+    if(dd[bp]==0)
+        printf("dd is zero\n");
     bool ok = dd[bp]->view(ienc[bp]);
     if(robot!="icubSim")
         dd[bp]->view(iopl[bp]);
@@ -404,6 +406,36 @@ bool yarpWholeBodyActuators::setPwmRef(double *pwmd, int joint)
     }
     
     return ok;
+}
+
+// *********************************************************************************************************************
+// *********************************************************************************************************************
+//                                          ICUB WHOLE BODY INTERFACE
+// *********************************************************************************************************************
+// *********************************************************************************************************************
+bool icubWholeBodyInterface::init()
+{
+    return yarpWholeBodySensors::init();
+}
+
+int icubWholeBodyInterface::getDoFs()
+{
+    return yarpWholeBodySensors::dof;
+}
+
+bool icubWholeBodyInterface::removeJoint(const LocalId &j)
+{
+    return yarpWholeBodySensors::removeJoint(j);
+}
+
+bool icubWholeBodyInterface::addJoint(const LocalId &j)
+{
+    return yarpWholeBodySensors::addJoint(j);
+}
+
+int icubWholeBodyInterface::addJoints(const LocalIdList &jList)
+{
+    return yarpWholeBodySensors::addJoints(jList);
 }
 
 

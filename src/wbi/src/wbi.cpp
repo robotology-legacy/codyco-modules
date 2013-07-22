@@ -28,6 +28,7 @@ LocalIdList::LocalIdList(int bp, vector<int>){}
 /** Convert a local id into a global id */
 int LocalIdList::localToGlobalId(const LocalId &i)
 {
+    
     return 0;
 }
 
