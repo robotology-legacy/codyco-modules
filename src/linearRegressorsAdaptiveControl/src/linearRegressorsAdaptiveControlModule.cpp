@@ -24,17 +24,22 @@ using namespace iCub::linearRegressorsAdaptiveControl;
 
 // module default values
 const int linearRegressorsAdaptiveControlModule::PERIOD_DEFAULT = 50;
+const int linearRegressorsAdaptiveControlModule::JOINT = 3+3+7+3;
 const string linearRegressorsAdaptiveControlModule::MODULE_NAME_DEFAULT = "linearRegressorsAdaptiveControlModule";
 const string linearRegressorsAdaptiveControlModule::ROBOT_NAME_DEFAULT = "icub";
 const string linearRegressorsAdaptiveControlModule::RPC_PORT_DEFAULT = "/rpc";
 
 // the order of the command(s) in this list MUST correspond to the order of the enum linearRegressorsAdaptiveControlModule::linearRegressorsAdaptiveControlModuleCommand
-const string linearRegressorsAdaptiveControlModule::COMMAND_LIST[] = {"help", "quit"};
+const string linearRegressorsAdaptiveControlModule::COMMAND_LIST[] = {"help", "quit","setGamma","setKappa","setLambda"};
 
 // the order in COMMAND_DESC must correspond to the order in COMMAND_LIST
 const string linearRegressorsAdaptiveControlModule::COMMAND_DESC[]  = {
 	"get this list",
-	"quit the module"};
+	"quit the module",
+    "set the Gamma gain (matrix with equal values on the diagonal)",
+    "set the Kamma gain (matrix with equal values on the diagonal)",
+    "set the Lambda gain (matrix with equal values on the diagonal)"
+    };
 
 bool linearRegressorsAdaptiveControlModule::configure(yarp::os::ResourceFinder &rf)
 {
@@ -47,8 +52,11 @@ bool linearRegressorsAdaptiveControlModule::configure(yarp::os::ResourceFinder &
 	* specifically the port names which are dependent on the module name*/
 	setName(moduleName.c_str());
 
+    
 	/* get some other values from the configuration file */
 	int period			= (int)rf.check("period", Value(PERIOD_DEFAULT),
+	   "Calling thread period in ms (positive int)").asInt();
+    int controlled_joint = (int)rf.check("joint", Value(PERIOD_DEFAULT),
 	   "Calling thread period in ms (positive int)").asInt();
 
 	/*
@@ -63,9 +71,24 @@ bool linearRegressorsAdaptiveControlModule::configure(yarp::os::ResourceFinder &
 	}
 	attach(handlerPort);                  // attach to port
 
+    //Create the dynamical model
+    iCubTree_version_tag version;
+    version.head_version = 2;
+    version.legs_version = 2;
+    
+    iCubTree_serialization_tag serial_version =  SKINDYNLIB_SERIALIZATION;
+    
+    icub_dynamical_model = new iCubTree(version,serial_version);
+    
+    controlled_DOFs.clear();
+    controlled_DOFs.resize(icub_dynamical_model->getNrOfDOFs(),false);
+    
+    controlled_DOFs[controlled_joint] = true;
+    
+    icub_interface = new icubWholeBodyInterface();
 
 	/* create the thread and pass pointers to the module parameters */
-	controlThread = new linearRegressorsAdaptiveControlModuleThread(&rf, robotName, rightArm, period);
+	controlThread = new linearRegressorsAdaptiveControlThread(&rf, robotName, icub_interface, icub_dynamical_model, controlled_DOFs, period);
 	/* now start the thread to do the work */
 	controlThread->start(); // this calls threadInit() and it if returns true, it then calls run()
 
@@ -85,8 +108,8 @@ bool linearRegressorsAdaptiveControlModule::interruptModule()
 bool linearRegressorsAdaptiveControlModule::close()
 {
 	/* stop the thread */
-	if(calibThread)
-		calibThread->stop();
+	if(controlThread)
+		controlThread->stop();
 
 	handlerPort.close();
 
@@ -110,6 +133,18 @@ bool linearRegressorsAdaptiveControlModule::respond(const Bottle& command, Bottl
 		case quit:
 			reply.addString("quitting");
 			return false;
+        
+        case setGamma:
+            reply.addString("setGamma command received");
+            return controlThread->setGain(gamma_gain,command.get(1).asDouble());
+        
+        case setKappa:
+            reply.addString("setKappa command received");
+            return controlThread->setGain(kappa_gain,command.get(1).asDouble());
+        
+        case setLambda:
+            reply.addString("setLambda command received");
+            return controlThread->setGain(lambda_gain,command.get(1).asDouble());
 
 		case help:
 			reply.addString("many");				// print every string added to the bottle on a new line
@@ -158,4 +193,6 @@ bool linearRegressorsAdaptiveControlModule::identifyCommand(Bottle commandBot, l
 
 bool linearRegressorsAdaptiveControlModule::updateModule(){ return true;}
 double linearRegressorsAdaptiveControlModule::getPeriod(){ return 0.1;}
+
+
 

@@ -1,3 +1,0 @@
-#add_subdirectory(orocos_kinematics_dynamics/orocos_kdl)
-
-add_subdirectory(kdl_codyco)

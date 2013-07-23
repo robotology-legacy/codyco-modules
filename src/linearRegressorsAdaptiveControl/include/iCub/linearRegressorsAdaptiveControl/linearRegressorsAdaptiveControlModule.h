@@ -126,11 +126,20 @@ This file can be edited at ICUB_HOME/main/src/modules/skinDriftCompensation/incl
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Network.h>
 
+#include <wbiy/wbiy.h>
+
+#include <iCub/iDynTree/iCubTree.h>
+
+
 #include "iCub/linearRegressorsAdaptiveControl/linearRegressorsAdaptiveControlThread.h"
 
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
+
+using namespace iCub::iDynTree;
+using namespace wbiy;
+
 
 namespace iCub{
 
@@ -142,7 +151,11 @@ public:
 
 	// the last element of the enum (COMMANDS_COUNT) represents the total number of commands accepted by this module
 	typedef enum {
-		help,				quit,
+		help,				
+        quit, 
+        setGamma,
+        setKappa,
+        setLambda,
 		COMMANDS_COUNT} linearRegressorsAdaptiveControlCommand;
 
 	bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
@@ -155,6 +168,7 @@ public:
 private:
 	// module default values
 	static const int PERIOD_DEFAULT;
+    static const int JOINT;
 	static const string MODULE_NAME_DEFAULT;
 	static const string ROBOT_NAME_DEFAULT;
 	static const string RPC_PORT_DEFAULT;
@@ -176,6 +190,14 @@ private:
 
 	/* pointer to a new thread to be created and started in configure() and stopped in close() */
 	linearRegressorsAdaptiveControlThread *controlThread;
+    
+    //Dynamical model passed to the thread
+    iCubTree * icub_dynamical_model;
+    
+    icubWholeBodyInterface * icub_interface;
+    
+    //Actuated DOF
+    std::vector<bool> controlled_DOFs;
 
 	bool identifyCommand(Bottle commandBot, linearRegressorsAdaptiveControlCommand &com);
 

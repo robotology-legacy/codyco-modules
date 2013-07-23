@@ -242,3 +242,19 @@ void linearRegressorAdaptiveControlThread::computeRegressor()
     
     return;
 }
+
+bool linearRegressorAdaptiveControlThread::setGain(available_gains gain, double value);
+{
+    if( value <= 0.0 ) return false;
+    switch( gain ) {
+        case gamma_gain:
+            Gamma = value;
+            return true;
+        case kappa_gain:
+            Kappa = value;
+            return true;
+        case lambda_gain:
+            Lambda = value;
+            return true;
+    }
+}

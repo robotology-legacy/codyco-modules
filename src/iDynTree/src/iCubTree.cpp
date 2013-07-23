@@ -17,7 +17,7 @@ using namespace iCub::skinDynLib;
 namespace iCub {
 namespace iDynTree {
 
-iCubTree::iCubTree(iCubTree_version_tag version, unsigned int verbose)
+iCubTree::iCubTree(iCubTree_version_tag version, iCubTree_serialization_tag serial_tag, unsigned int verbose)
 {
 	//Allocate an old iCubWholeBody object, with right version
 	iCub::iDyn::version_tag ver;
@@ -28,7 +28,7 @@ iCubTree::iCubTree(iCubTree_version_tag version, unsigned int verbose)
     
     //Convert it to a KDL::Tree (this preserve all the frame of reference, is the conversion to URDF that changes them)
     KDL::Tree icub_kdl;
-    bool ret = toKDL(icub_idyn,icub_kdl);
+    bool ret = toKDL(icub_idyn,icub_kdl,serial_tag);
     assert(ret);
     
     //Imu link name
@@ -47,7 +47,6 @@ iCubTree::iCubTree(iCubTree_version_tag version, unsigned int verbose)
 	
 	
 	//Define an explicit serialization of the links and the DOFs of the iCub
-	//Serialization obtained from current iDyn: left leg (6), right leg (6), torso (3), left arm (7), right arm (7), head (3)
 	//The DOF serialization done in icub_kdl construction is ok
 	KDL::CoDyCo::TreeSerialization serial = KDL::CoDyCo::TreeSerialization(icub_kdl);
 
