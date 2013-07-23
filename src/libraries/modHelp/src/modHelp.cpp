@@ -312,6 +312,36 @@ namespace modHelp{
         }
     }
     
+    //---------------------------------------------------------
+    string toString(bool val, int type)
+    {
+        string ret="";
+        
+        if(val==false)
+        {
+            switch(type)
+            {
+                case 1: ret="false"; break;
+                case 2: ret="off"; break;
+                case 3: ret="no"; break;
+                case 4: ret="disabled"; break;
+                default: ret="0";
+            }
+        }
+        else
+        {
+            switch(type)
+            {
+                case 1: ret="true"; break;
+                case 2: ret="on"; break;
+                case 3: ret="yes"; break;
+                case 4: ret="enabled"; break;
+                default: ret="1";
+            }
+        }
+        return ret;
+    }
+    
     
 }//namespace modHelp
 

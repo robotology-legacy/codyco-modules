@@ -221,6 +221,14 @@ namespace modHelp
      * @param port the port to be closed
      */
     void closePort(yarp::os::Contactable *port);
+    
+    /**
+     * Turns a boolean flag into a string true/false (type=1), on/off (type=2), yes/no (type=3), enabled/disabled (type=4)
+     * @param val the boolean value
+     * @param type the format of the boolean flag
+     * @return the string representing the value
+     */
+     std::string toString(bool val, int type=2);
 
     
 }//end namespace modHelp
