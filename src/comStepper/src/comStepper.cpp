@@ -601,10 +601,13 @@ bool comStepperThread::threadInit()
     comMinJerkZ = new minJerkTrajGen(iniZ, getRate()/1000.0, MIN_JERK_COM_TIME);
 
     //low pass ZMP filter
-    updateRotations();
-    updateForceTorque();
-    computeZMPBoth();
-    inputFilter = new FirstOrderLowPassFilter(0.5, getRate()/1000.0, zmp_a.getCol(0));
+    if (!strcmp(robot_name.c_str(), "icub") && on_ground && !Opt_nosens)
+    {
+        updateRotations();
+        updateForceTorque();
+        computeZMPBoth();
+        inputFilter = new FirstOrderLowPassFilter(0.5, getRate()/1000.0, zmp_a.getCol(0));
+    }
     
     //minimum jerk filters for the R2L
     iniX(1);     iniX(0) = pac_t(0,0);
@@ -769,8 +772,11 @@ void comStepperThread::run()
             }
             break;
     }
-    zmp_a.setCol(0, inputFilter->filt(zmp_a.getCol(0)));
-    zmp_c.setCol(0, inputFilter->filt(zmp_c.getCol(0)));
+    if (!strcmp(robot_name.c_str(), "icub") && !strcmp(robot_name.c_str(), "icub") && on_ground && !Opt_nosens)
+    {
+        zmp_a.setCol(0, inputFilter->filt(zmp_a.getCol(0)));
+        zmp_c.setCol(0, inputFilter->filt(zmp_c.getCol(0)));
+    }
     
     if(verbose){
         fprintf(stderr, "ZMP coordinates: %f %f       %d \n",zmp_xy[0],zmp_xy[1],(int)(torso));
