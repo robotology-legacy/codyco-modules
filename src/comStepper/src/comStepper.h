@@ -31,7 +31,8 @@ enum phase { LEFT_SUPPORT, RIGHT_SUPPORT, BOTH_SUPPORT };
 
 const double PINV_DAMP = 0.04;          // damping factor for damped pseudoinverses
 const double PINV_TOL  = 1e-6;          // singular value threshold for truncated pseudoinverses
-const double MIN_JERK_TRAJ_TIME = 3;    // trajectory time of "minimum jerk trajectory generators"
+const double MIN_JERK_R2L_TIME = 2;    // trajectory time of "minimum jerk trajectory generators"
+const double MIN_JERK_COM_TIME = 3;    // trajectory time of "minimum jerk trajectory generators"
 
 class comStepperThread: public RateThread
 {
@@ -84,8 +85,8 @@ public:
     Matrix Jba, Jbc, Jac, Jca;
     
     //matrices involved in the computation of eac
-    Matrix  pac_d,  Rac_d;        Matrix  pca_d,  Rca_d;
-    Matrix dpac_d, dRac_d;        Matrix dpca_d, dRca_d;
+    Matrix  pac_d,  Rac_d;        Matrix  pca_d,  Rca_d;        Matrix  pac_t;
+    Matrix dpac_d, dRac_d;        Matrix dpca_d, dRca_d;        Matrix  pca_t;
     
     Matrix nd,         sd,     ad,     ne,     se, ae;
     Matrix nd_hat, sd_hat, ad_hat, ne_hat, se_hat, ae_hat;
@@ -95,23 +96,28 @@ public:
     
     
     //Matrices involved in the computation of the center of mass projection
-    Matrix Jb_p, p_b, Jb_com           ;   //position of the center of mass and its jacobian
-    Matrix Jpi_b, Jpi_b_com            ;   //jacobian of the projection on 'b'
-    Matrix pi_b                        ;   //projection of p_b and disred value expressed in r.f. 'a'
-    Matrix PI                          ;   //projection matrix
-    Matrix pi_c, pi_a                  ;   //projection of p_b and disred value expressed in r.f. 'c'
-    Vector uY, uZ                      ;   //input to filters
-    Vector udY, udZ                    ;   //input to velocity filters
-    minJerkTrajGen *minJerkY, *minJerkZ;   //minimum jerk trajectory generator
-    minJerkTrajGen *minJerkH           ;   //minimum jerk trajectory generator
-    Matrix  pi_c_d,  pi_a_d            ;   //desired COM position (filter output)
-    Matrix dpi_c_d, dpi_a_d            ;   //desired COM velocity (filter output)
-    Matrix pi_c_t, pi_a_t              ;   //target COM position (filter input)
-    Matrix Kcom, Kr2l                  ;
-    Matrix zmp_a, zmpLL_a, zmpRL_a     ;   //ZMP in the right foot reference frame
-    Matrix zmp_c, zmpLL_c, zmpRL_c     ;   //ZMP in the left  foot reference frame
-    Vector *F_ext_RL, *F_ext_RL0       ;
-    Vector *F_ext_LL, *F_ext_LL0       ;
+    Matrix Jb_p, p_b, Jb_com              ;   //position of the center of mass and its jacobian
+    Matrix Jpi_b, Jpi_b_com               ;   //jacobian of the projection on 'b'
+    Matrix pi_b                           ;   //projection of p_b and disred value expressed in r.f. 'a'
+    Matrix PI                             ;   //projection matrix
+    Matrix pi_c, pi_a                     ;   //projection of p_b and disred value expressed in r.f. 'c'
+    Vector uY, uZ                         ;   //input to filters
+    Vector udY, udZ                       ;   //input to velocity filters
+    minJerkTrajGen *comMinJerkX           ;   //minimum jerk trajectory generator
+    minJerkTrajGen *comMinJerkY           ;
+    minJerkTrajGen *comMinJerkZ           ;
+    minJerkTrajGen *r2lMinJerkX           ;
+    minJerkTrajGen *r2lMinJerkY           ;
+    minJerkTrajGen *r2lMinJerkZ           ;
+    FirstOrderLowPassFilter *inputFilter  ;   //filter for the ZMP measurements
+    Matrix  pi_c_d,  pi_a_d               ;   //desired COM position (filter output)
+    Matrix dpi_c_d, dpi_a_d               ;   //desired COM velocity (filter output)
+    Matrix pi_c_t, pi_a_t                 ;   //target COM position (filter input)
+    Matrix Kcom, Kr2l                     ;
+    Matrix zmp_a, zmpLL_a, zmpRL_a        ;   //ZMP in the right foot reference frame
+    Matrix zmp_c, zmpLL_c, zmpRL_c        ;   //ZMP in the left  foot reference frame
+    Vector *F_ext_RL, *F_ext_RL0          ;
+    Vector *F_ext_LL, *F_ext_LL0          ;
 
     // vectors to print for debug
     Vector debugOutVec1, debugOutVec2, debugOutVec3, debugOutVec4;

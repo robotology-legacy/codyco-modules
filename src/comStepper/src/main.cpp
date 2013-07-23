@@ -641,74 +641,64 @@ public:
         }
         if (command.get(0).asString()=="fwd")
         {
-            balThread->suspend();
             reply.fromString("Moving forward");
             if (balThread->current_phase == RIGHT_SUPPORT)
-                balThread->pac_d(2,0) += 0.02;
+                balThread->pac_t(2,0) += 0.02;
             if (balThread->current_phase == LEFT_SUPPORT)
-                balThread->pca_d(2,0) += 0.02;
-            balThread->resume();
+                balThread->pca_t(2,0) += 0.02;
             return true;
         }
         if (command.get(0).asString()=="bck")
         {
-            balThread->suspend();
             reply.fromString("Moving backward");
             if (balThread->current_phase == RIGHT_SUPPORT)
-                balThread->pac_d(2,0) -= 0.02;
+                balThread->pac_t(2,0) -= 0.02;
             if (balThread->current_phase == LEFT_SUPPORT)
-                balThread->pca_d(2,0) -= 0.02;
-            balThread->resume();
+                balThread->pca_t(2,0) -= 0.02;
             return true;
         }
         if (command.get(0).asString()=="up")
         {
-            balThread->suspend();
             if (balThread->current_phase != BOTH_SUPPORT)
                 reply.fromString("Moving up");
             if (balThread->current_phase == RIGHT_SUPPORT)
-                balThread->pac_d(0,0) += 0.02;
+                balThread->pac_t(0,0) += 0.02;
             if (balThread->current_phase == LEFT_SUPPORT)
-                balThread->pca_d(0,0) += 0.02;
-            balThread->resume();
+                balThread->pca_t(0,0) += 0.02;
             return true;
         }
         if (command.get(0).asString()=="down")
         {
-            balThread->suspend();
             reply.fromString("Moving down");
             if (balThread->current_phase == RIGHT_SUPPORT)
-                balThread->pac_d(0,0) -= 0.02;
+                balThread->pac_t(0,0) -= 0.02;
             if (balThread->current_phase == LEFT_SUPPORT)
-                balThread->pca_d(0,0) -= 0.02;
-            balThread->resume();
+                balThread->pca_t(0,0) -= 0.02;
             return true;
         }
         if (command.get(0).asString()=="left")
         {
-            balThread->suspend();
             reply.fromString("Switching to left foot support");
             balThread->pi_c_t(0,0) = pi_c_d_left(0);    balThread->pi_c_t(1,0) =   pi_c_d_left(1);    balThread->pi_c_t(2,0) =  pi_c_d_left(2);
+            balThread->pca_t = balThread->pca;
             balThread->switchSupport(LEFT_SUPPORT);
-            balThread->resume();
             return true;
         }
         if (command.get(0).asString()=="right")
         {
-            balThread->suspend();
             reply.fromString("Switching to right foot support");
             balThread->pi_a_t(0,0) = pi_a_d_right(0);    balThread->pi_a_t(1,0) =   pi_a_d_right(1);    balThread->pi_a_t(2,0) = pi_a_d_right(2);
+            balThread->pac_t = balThread->pac;
             balThread-> switchSupport(RIGHT_SUPPORT);
-            balThread->resume();
             return true;
         }
         if (command.get(0).asString()=="double")
         {
-            balThread->suspend();
             reply.fromString("Switching to double");
-            balThread->pi_a_t(0,0) = pi_a_d_both(0);    balThread->pi_a_t(1,0) =  pi_a_d_both(1);    balThread->pi_a_t(2,0) =  pi_a_d_both(2);
+            balThread->pi_a_t(0,0) = pi_a_d_both(0);
+            balThread->pi_a_t(1,0) =  pi_a_d_both(1);    balThread->pi_a_t(2,0) =  pi_a_d_both(2);
+            balThread->pac_t = balThread->pac;
             balThread->switchSupport(BOTH_SUPPORT);
-            balThread->resume();
             return true;
         }
         if (command.get(0).asString()=="quit")
