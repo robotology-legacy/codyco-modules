@@ -15,7 +15,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
  
 
-SET(folder_source src/wbiy.cpp)
+SET(folder_source src/icubWholeBodyInterface.cpp 
+                  src/icubWholeBodyModel.cpp
+                  src/icubWholeBodyStates.cpp
+                  src/yarpWholeBodyActuators.cpp
+                  src/yarpWholeBodySensors.cpp)
 SET(folder_header include/wbiy/wbiy.h)
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})

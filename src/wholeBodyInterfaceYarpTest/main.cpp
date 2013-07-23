@@ -39,11 +39,8 @@ const double TOL = 1e-8;
 
 int main(int argc, char * argv[])
 {
-//    std::cout << "Int type id: "<< typeid(int).name() << std::endl;
     Network yarp;
     vector<string> bodyPartNames(BodyPart_s, BodyPart_s + sizeof(BodyPart_s) / sizeof(string) );
-    for(vector<string>::iterator it=bodyPartNames.begin(); it!=bodyPartNames.end(); it++)
-        printf("Body part %s\n", it->c_str());
     iWholeBodySensors *is = new yarpWholeBodySensors("testSensInt", "icubSim", bodyPartNames);
     is->addJoint(LocalId(LEFT_ARM, 0));
     vector<int> jList(2);
@@ -52,9 +49,11 @@ int main(int argc, char * argv[])
     is->addJoints(LocalIdList(LEFT_ARM, jList));
     if(!is->init())
     {
-        
+        printf("Error while initializing sensor interface.\n");
     }
     printf("DoF = %d\n", is->getDoFs());
+    
+    wholeBodyInterface *icub = new icubWholeBodyInterface("testSensInt", "icubSim", bodyPartNames);
     
     printf("Main returning...\n");
     return 0;

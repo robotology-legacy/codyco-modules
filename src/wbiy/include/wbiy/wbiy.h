@@ -158,7 +158,7 @@ namespace wbiy
     /**
      * Class to access the estimates of the states of a robot with a yarp interface.
      */
-    class robotWholeBodyStates : public wbi::iWholeBodyStates
+    class icubWholeBodyStates : public wbi::iWholeBodyStates
     {
     protected:
         bool                        initDone;
@@ -174,7 +174,7 @@ namespace wbiy
         
     public:
         // *** CONSTRUCTORS ***
-        robotWholeBodyStates(const char* _name, const char* _robotName, double estimationTimeWindow);
+        icubWholeBodyStates(const char* _name, const char* _robotName, double estimationTimeWindow);
         
         virtual bool init();
         virtual int getDoFs();
@@ -268,18 +268,55 @@ namespace wbiy
     /**
      * Class to communicate with iCub
      */
-    class icubWholeBodyInterface : 
-        public wbi::wholeBodyInterface, public robotWholeBodyStates, public yarpWholeBodyActuators, public icubWholeBodyModel
+    class icubWholeBodyInterface : public wbi::wholeBodyInterface
     {
+    protected:
+        icubWholeBodyStates     *stateInt;
+        yarpWholeBodyActuators  *actuatorInt;
+        icubWholeBodyModel      *modelInt;
+        
     public:
         // *** CONSTRUCTORS ***
-        icubWholeBodyInterface(const char* _name, const char* _robotName, double estimationTimeWindow);
+        icubWholeBodyInterface(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames);
         
         virtual bool init();
         virtual int getDoFs();
         virtual bool removeJoint(const wbi::LocalId &j);
         virtual bool addJoint(const wbi::LocalId &j);
         virtual int addJoints(const wbi::LocalIdList &j);
+   
+        // ACTUATORS
+        virtual bool setControlMode(int controlMode, int joint=-1){ return actuatorInt->setControlMode(controlMode, joint);};
+        virtual bool setTorqueRef(double *taud, int joint=-1){      return actuatorInt->setTorqueRef(taud, joint);};
+        virtual bool setPosRef(double *qd, int joint=-1){           return actuatorInt->setPosRef(qd, joint);};
+        virtual bool setVelRef(double *dqd, int joint=-1){          return actuatorInt->setVelRef(dqd, joint);};
+        virtual bool setPwmRef(double *pwmd, int joint=-1){         return actuatorInt->setPwmRef(pwmd, joint);};
+        
+        // STATES
+        virtual bool getQ(double *q, double time=-1.0, bool wait=false){    return stateInt->getQ(q, time, wait); }
+        virtual bool getDq(double *dq, double time=-1.0, bool wait=false){  return stateInt->getDq(dq, time, wait); }
+        virtual bool getDqMotors(double *dqM, double time=-1.0, bool wait=false){ return stateInt->getDqMotors(dqM, time, wait); }
+        virtual bool getD2q(double *d2q, double time=-1.0, bool wait=false){ return stateInt->getD2q(d2q, time, wait); }
+        virtual bool getPwm(double *pwm, double time=-1.0, bool wait=false){ return stateInt->getPwm(pwm, time, wait); }
+        virtual bool getInertial(double *inertial, double time=-1.0, bool wait=false){ return stateInt->getInertial(inertial, time, wait); }
+        virtual bool getFTsensors(double *ftSens, double time=-1.0, bool wait=false){ return stateInt->getFTsensors(ftSens, time, wait); }
+        virtual bool getTorques(double *tau, double time=-1.0, bool wait=false){ return stateInt->getTorques(tau, time, wait); }
+        
+        // MODEL
+        virtual bool getJointLimits(double *qMin, double *qMax, int joint=-1)
+        { return modelInt->getJointLimits(qMin, qMax, joint); }
+        virtual bool computeH(double *q, double *xB, int linkId, double *H)
+        { return modelInt->computeH(q, xB, linkId, H); }
+        virtual bool computeJacobian(double *q, double *xB, int linkId, double *J, double *pos=0)
+        { return modelInt->computeJacobian(q, xB, linkId, J, pos); }
+        virtual bool computeDJdq(double *q, double *xB, double *dq, double *dxB, int linkId, double *dJdq, double *pos=0)
+        { return modelInt->computeDJdq(q, xB, dq, dxB, linkId, dJdq, pos); }
+        virtual bool forwardKinematics(double *q, double *xB, int linkId, double *x)
+        { return modelInt->forwardKinematics(q, xB, linkId, x); }
+        virtual bool inverseDynamics(double *q, double *xB, double *dq, double *dxB, double *ddq, double *ddxB, double *tau)
+        { return modelInt->inverseDynamics(q, xB, dq, dxB, ddq, ddxB, tau); }
+        virtual bool directDynamics(double *q, double *xB, double *dq, double *dxB, double *M, double *h)
+        { return modelInt->directDynamics(q, xB, dq, dxB, M, h); }
     };
     
     
