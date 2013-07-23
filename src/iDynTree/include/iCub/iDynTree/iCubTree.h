@@ -32,6 +32,17 @@ struct iCubTree_version_tag
   
 };
 
+/**
+ * Enum for describing the serialization used in for iCubTree
+ */
+enum iCubTree_serialization_tag
+{
+    IDYN_SERIALIZATION, /**< The serialization used in iCubWholeBody:
+                             left leg (6), right leg (6), torso (3), left arm (7), right arm (7), head (3) (Jorhabib) */
+    SKINDYNLIB_SERIALIZATION /**< The serialization (implicitly) used in skinDynLib: 
+                              torso(3), head (3), left arm (7), right arm(7), left leg (6), right leg (6) (Andrea) */
+};
+
 class iCubTree : public DynTree 
 {
 	private:
@@ -49,7 +60,7 @@ class iCubTree : public DynTree
 	 * @param version a iCubTree_version_tag structure for defining the version of the parts
 	 * 				  composing the iCubTree
 	 */
-	iCubTree(iCubTree_version_tag version, unsigned int verbose=0);
+	iCubTree(iCubTree_version_tag version,  iCubTree_serialization_tag serial,  unsigned int verbose=0);
 	
 	~iCubTree();
 };

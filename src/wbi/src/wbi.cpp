@@ -12,8 +12,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
  *
- * Authors: Serena Ivaldi, Andrea Del Prete, Marco Randazzo
- * email: serena.ivaldi@isir.upmc.fr - andrea.delprete@iit.it - marco.randazzo@iit.it
+ * Authors: Andrea Del Prete, Marco Randazzo
+ * email: andrea.delprete@iit.it - marco.randazzo@iit.it
  */
 
 #include <wbi/wbi.h>
@@ -21,16 +21,32 @@
 using namespace std;
 using namespace wbi;
 
+LocalIdList::LocalIdList(){}
+
+LocalIdList::LocalIdList(int bp, vector<int>){}
+
+/** Convert a local id into a global id */
+int LocalIdList::localToGlobalId(const LocalId &i)
+{
+    
+    return 0;
+}
+
+/** Convert a global id into a local id */
+LocalId LocalIdList::globalToLocalId(int globalId)
+{
+    return LocalId();
+}
 
 //Remove an existing joint 
-bool JointIds::removeJoint(const JointId &j)
+bool LocalIdList::removeId(const LocalId &j)
 {
-    JointIds::iterator itBp = find(j.bp);
+    LocalIdList::iterator itBp = find(j.bodyPart);
     if(itBp == end())
         return false;
     FOR_ALL_JOINTS_NC(itBp, itJ)
     {
-        if(j.joint == *itJ)
+        if(j.index == *itJ)
         {
             itBp->second.erase(itJ);
             return true;
@@ -39,33 +55,42 @@ bool JointIds::removeJoint(const JointId &j)
     return false;
 }
 
-//Return true if the added joint belongs to a body part that wasn't present before
-bool JointIds::addJoint(const JointId &j)
+bool LocalIdList::addId(const LocalId &i)
 {
-    bool newBodyPart = !(find(j.bp)==end());
-    operator[](j.bp).push_back(j.joint);
-    return newBodyPart;
+    if(containsId(i))
+        return false;
+    (*this)[i.bodyPart].push_back(i.index);
+    return true;
 }
 
-//Return true if at least one of the added joints belong to a body part that wasn't present before
-bool JointIds::addJoints(const JointIds &jList)
+int LocalIdList::addIdList(const LocalIdList &jList)
 {
-    bool ok = true;
-    for(JointIds::const_iterator it=jList.begin(); it!=jList.end(); it++)
-    {
-        if(find(it->first)==end())
-            ok = false;
-        FOR_ALL_JOINTS(it, itJ)
-            operator[](it->first).push_back(*itJ);
-    }
-    return ok;
+    int count = 0;
+    FOR_ALL_OF(itBp, itJ, jList)
+        if(!containsId(LocalId(itBp->first,*itJ)))
+        {
+            (*this)[itBp->first].push_back(*itJ);
+            count++;
+        }
+    return count;
 }
 
-// Get the number of degrees of freedom
-unsigned int JointIds::getDoFs()
+bool LocalIdList::containsId(const LocalId &i)
 {
-    unsigned int dof=0;
+    if(find(i.bodyPart)==end())
+        return false;
+    vector<int> &v = (*this)[i.bodyPart];
+    for(unsigned int j=0; j<v.size(); j++)
+        if(v[j]==i.index)
+            return true;
+    return false;
+}
+
+// Get the number of ids in this list
+unsigned int LocalIdList::size()
+{
+    unsigned int s=0;
     FOR_ALL_BODY_PARTS_OF(itBp, (*this))
-        dof += itBp->second.size();
-    return dof;
+        s += itBp->second.size();
+    return s;
 }

@@ -236,7 +236,9 @@ class DynTree : public DynTreeInterface {
         //end DynTreeContact data structures
         
         //Position related quantites
+        bool is_X_dynamic_base_updated;
         std::vector<KDL::Frame> X_dynamic_base; /**< for each link store the frame X_kinematic_base_link of the position of a link with respect to the kinematic base */
+        
         
         //Debug
         int verbose;
@@ -265,8 +267,11 @@ class DynTree : public DynTreeInterface {
         
         ~DynTree();
         
+        int getNrOfDOFs();
         
-            /**
+        int getNrOfLinks();
+        
+    /**
      * Set joint positions in the specified part (if no part 
      * is specified, set the joint positions of all the tree)
      * @param _q vector of joints position
@@ -506,13 +511,24 @@ class DynTree : public DynTreeInterface {
     virtual yarp::sig::Vector getCOM(const std::string & part_name="") const;
     
     /**
-     * Get Center of Mass Kacobian of the specified part (if no part 
+     * Get Center of Mass Jacobian of the specified part (if no part 
      * is specified, get the joint torques of all the tree)
      * @param jac the output jacobiam matrix
      * @param part_name optional: the name of the part of joints to get
      * @return true if succeeds, false otherwise
      */
     virtual bool getCOMJacobian(const yarp::sig::Matrix & jac, const std::string & part_name="") const;
+    //@}
+    
+    //@{
+    /**
+     * Get the dynamics regressor
+     * 
+     */
+    virtual bool getDynamicsRegressor(yarp::sig::Matrix & mat);
+    
+    virtual bool getDynamicsParameters(yarp::sig::Vector & vet);
+    //@} 
 
     
 };

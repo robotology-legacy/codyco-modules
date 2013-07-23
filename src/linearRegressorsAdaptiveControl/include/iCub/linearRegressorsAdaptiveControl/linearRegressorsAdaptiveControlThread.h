@@ -30,11 +30,23 @@
 
 #include <yarp/os/Network.h>	//temporary
 
+#include <iCub/ctrl/minJerkCtrl.h>
+
+#include <iCub/iDynTree/DynTree.h>
+
+#include <wbi/wbi.h>
+
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::dev;
 using namespace wbi;
+
+using namespace iCub::ctrl;
+
+using namespace iCub::iDynTree;
+
+enum available_gains { gamma_gain, kappa_gain, lambda_gain };
 
 namespace iCub{
 
@@ -47,12 +59,15 @@ public:
 	linearRegressorsAdaptiveControlThread(ResourceFinder* rf,
 										  string robotName,
 										  wholeBodyInterface* robot_interface,
-										  iDynTree* dynamical_model,
+										  DynTree* dynamical_model,
 										  const std::vector<bool> selected_DOFs,
 										  int period);
 	bool threadInit();
 	void threadRelease();
 	void run();
+    
+    /** false if something goes wrong */
+    bool setGain(available_gains gain, double value);
 
 private:
 
@@ -60,9 +75,10 @@ private:
 	const int PERIOD;
 
 	/* class variables */
-
-	wholeBodyInterface* robot;
-
+    wholeBodyInterface* robot_interface;
+    
+    DynTree* dynamical_model;
+    
 	ResourceFinder* rf;
 
 	// input parameters
@@ -70,17 +86,24 @@ private:
 
 	/* ports */
 	BufferedPort<Vector> qfPort;
+    
 
-    /* Mathematical variables */
-    int N_DOFs; /**< Controlled Degrees of Freedom */
+    /* Mathematical variables */    
+    Vector q_complete, dq_complete; /**< Complete state variables */
+    
+    Vector ddq_r_complete; 
+    
+    int N_DOFs; /**< adaptivly controlled Degrees of Freedom */
 
     int N_p; /**< Number of parameters */
+    
 
-    Vector q, dq, ddq; /**< State variables */
+    Vector q, dq; /**< State variables */
 
 	Vector q_d, dq_d, ddq_d; /**< Reference trajectories */
 
 	Vector dq_r, ddq_r; /**< Modified reference variables */
+    
 
 	Vector s; /**< Modified error variable (dq-dq_r) */
 
@@ -90,7 +113,9 @@ private:
 
 	Vector aHat; /**< Estimated parameters */
 
-	Matrix Y; /**< Regressor matrix */
+	Matrix Yr; /**< Regressor matrix */
+    
+    Matrix Y_complete_no_friction; /**< Regressor matrix with all joints, but without friction */
 
 	double T_c; /**< Timestamp in s */
 
@@ -98,9 +123,19 @@ private:
 	Vector Lambda, Gamma, Kappa; /** Gain vector */
 
     double Kappa2;
-
+    
+    //Bool vector of activly controlled DOF 
+    std::vector<bool> selected_DOFs;
+    
 	//Helper methods
 	int count_DOFs(const std::vector<bool> & selected_DOFs);
+    
+    //Dummy varibales
+    Vector friction_vec;
+    
+    //Trajectory generation
+    minJerkTrajGen trajectory_generator;
+    double T_trajectory;
 
 };
 

@@ -31,7 +31,8 @@ enum phase { LEFT_SUPPORT, RIGHT_SUPPORT, BOTH_SUPPORT };
 
 const double PINV_DAMP = 0.04;          // damping factor for damped pseudoinverses
 const double PINV_TOL  = 1e-6;          // singular value threshold for truncated pseudoinverses
-const double MIN_JERK_TRAJ_TIME = 0.5;  // trajectory time of "minimum jerk trajectory generators"
+const double MIN_JERK_R2L_TIME = 2;    // trajectory time of "minimum jerk trajectory generators"
+const double MIN_JERK_COM_TIME = 3;    // trajectory time of "minimum jerk trajectory generators"
 
 class comStepperThread: public RateThread
 {
@@ -64,7 +65,7 @@ public:
 
     int njHD;   int njTO;   int njRL;  int njLL; int njRA;  int njLA;
 
-    Vector dqLL, dqRL, dqTO;
+    Vector dq, dqLL, dqRL, dqTO;
     Vector qrLL, qrRL, qrTO;                   //refernce/postural configuration
     Vector q0LL_both;    Vector q0RL_both;     Vector q0TO_both;
     Vector q0LL_right;   Vector q0RL_right;    Vector q0TO_right;
@@ -84,8 +85,8 @@ public:
     Matrix Jba, Jbc, Jac, Jca;
     
     //matrices involved in the computation of eac
-    Matrix  pac_d,  Rac_d;        Matrix  pca_d,  Rca_d;
-    Matrix dpac_d, dRac_d;        Matrix dpca_d, dRca_d;
+    Matrix  pac_d,  Rac_d;        Matrix  pca_d,  Rca_d;        Matrix  pac_t;
+    Matrix dpac_d, dRac_d;        Matrix dpca_d, dRca_d;        Matrix  pca_t;
     
     Matrix nd,         sd,     ad,     ne,     se, ae;
     Matrix nd_hat, sd_hat, ad_hat, ne_hat, se_hat, ae_hat;
@@ -95,23 +96,28 @@ public:
     
     
     //Matrices involved in the computation of the center of mass projection
-    Matrix Jb_p, p_b, Jb_com           ;   //position of the center of mass and its jacobian
-    Matrix Jpi_b, Jpi_b_com            ;   //jacobian of the projection on 'b'
-    Matrix pi_b                        ;   //projection of p_b and disred value expressed in r.f. 'a'
-    Matrix PI                          ;   //projection matrix
-    Matrix pi_c, pi_a                  ;   //projection of p_b and disred value expressed in r.f. 'c'
-    Vector uY, uZ                      ;   //input to filters
-    Vector udY, udZ                    ;   //input to velocity filters
-    minJerkTrajGen *minJerkY, *minJerkZ;   //minimum jerk trajectory generator
-    minJerkTrajGen *minJerkH           ;   //minimum jerk trajectory generator
-    Matrix  pi_c_d,  pi_a_d            ;   //desired COM position (filter output)
-    Matrix dpi_c_d, dpi_a_d            ;   //desired COM velocity (filter output)
-    Matrix pi_c_t, pi_a_t              ;   //target COM position (filter input)
-    Matrix Kcom, Kr2l                  ;
-    Matrix zmp_a, zmpLL_a, zmpRL_a     ;   //ZMP in the right foot reference frame
-    Matrix zmp_c, zmpLL_c, zmpRL_c     ;   //ZMP in the left  foot reference frame
-    Vector *F_ext_RL, *F_ext_RL0       ;
-    Vector *F_ext_LL, *F_ext_LL0       ;
+    Matrix Jb_p, p_b, Jb_com              ;   //position of the center of mass and its jacobian
+    Matrix Jpi_b, Jpi_b_com               ;   //jacobian of the projection on 'b'
+    Matrix pi_b                           ;   //projection of p_b and disred value expressed in r.f. 'a'
+    Matrix PI                             ;   //projection matrix
+    Matrix pi_c, pi_a                     ;   //projection of p_b and disred value expressed in r.f. 'c'
+    Vector uY, uZ                         ;   //input to filters
+    Vector udY, udZ                       ;   //input to velocity filters
+    minJerkTrajGen *comMinJerkX           ;   //minimum jerk trajectory generator
+    minJerkTrajGen *comMinJerkY           ;
+    minJerkTrajGen *comMinJerkZ           ;
+    minJerkTrajGen *r2lMinJerkX           ;
+    minJerkTrajGen *r2lMinJerkY           ;
+    minJerkTrajGen *r2lMinJerkZ           ;
+    FirstOrderLowPassFilter *inputFilter  ;   //filter for the ZMP measurements
+    Matrix  pi_c_d,  pi_a_d               ;   //desired COM position (filter output)
+    Matrix dpi_c_d, dpi_a_d               ;   //desired COM velocity (filter output)
+    Matrix pi_c_t, pi_a_t                 ;   //target COM position (filter input)
+    Matrix Kcom, Kr2l                     ;
+    Matrix zmp_a, zmpLL_a, zmpRL_a        ;   //ZMP in the right foot reference frame
+    Matrix zmp_c, zmpLL_c, zmpRL_c        ;   //ZMP in the left  foot reference frame
+    Vector *F_ext_RL, *F_ext_RL0          ;
+    Vector *F_ext_LL, *F_ext_LL0          ;
 
     // vectors to print for debug
     Vector debugOutVec1, debugOutVec2, debugOutVec3, debugOutVec4;
@@ -160,6 +166,13 @@ private:
     BufferedPort<Vector> *port_ft_foot_left;  //Left foot f/t sensor reading
     BufferedPort<Vector> *port_ft_foot_right; //Right foot f/t sensor reading
 
+    BufferedPort<Vector> *com_des_pos_port;        BufferedPort<Vector> *com_des_vel_port;        BufferedPort<Bottle> *com_des_phs_port;
+    BufferedPort<Vector> *r2l_des_pos_port;        BufferedPort<Vector> *r2l_des_vel_port;
+
+    BufferedPort<Vector> *com_out_pos_port;        BufferedPort<Vector> *com_out_vel_port;        BufferedPort<Bottle> *com_out_phs_port;
+    BufferedPort<Vector> *r2l_out_pos_port;        BufferedPort<Vector> *r2l_out_vel_port;
+
+    
     BufferedPort<Bottle> *port_lr_trf;
 
     double *angle;
@@ -177,6 +190,15 @@ private:
 
     //err ports
     string r2lErrPortString, comErrPortString, comCtrlPortString, zmpPortString;
+    
+    //desired ports
+    string desiredComPosPortString; string desiredR2lPosPortString;
+    string desiredComVelPortString; string desiredR2lVelPortString;
+    string desiredComPhsPortString;
+    
+    //output ports
+    string  outputComPosPortString; string  outputComVelPortString;  string  outputComPhsPortString;
+    string  outputR2lPosPortString; string  outputR2lVelPortString;
     
     //compute ZMP variables
     double xLL, yLL, xDS, yDS, yRL, xRL;
@@ -204,9 +226,8 @@ private:
     Vector *head_pose;
 
     //Right and left leg and torso encoders
-    Vector qRL, qRL_rad;
-    Vector qLL, qLL_rad;
-    Vector qTO, qTO_rad;
+    Vector q    , qRL    , qLL    , qTO;
+    Vector q_rad, qRL_rad, qLL_rad, qTO_rad;
     
     Matrix Jac_FR;             //Jacobian matrix for right FOOT from ROOT.
     iCubLeg *Right_Leg;
@@ -231,7 +252,9 @@ public:
                      string _robot_name, string _local_name, string _wbs_name, bool display, bool noSens, \
                      bool ankles_sens, bool springs, bool torso, bool verbose, Matrix pi_a_t0, double vel_sat, double Kp_zmp_h, double Kd_zmp_h, double Kp_zmp_x, double Kd_zmp_x,\
                      double Kp_zmp_y, double Kd_zmp_y, double Kp, double Kd, string comPosPortName, string comJacPortName, \
-                     string r2lErrPortName, string comErrPortName, string comCtrlPortName, string zmpPortName);
+                     string r2lErrPortName, string comErrPortName, string comCtrlPortName, string zmpPortName,
+                     string comPosName, string r2lPosName, string comVelName, string r2lVelName, string comPhsName,
+                     string comPosOut, string r2lPosOut, string comVelOut, string r2lVelOut, string comPhsOut);
     void setRefAcc(IEncoders* iencs, IVelocityControl* ivel);
     bool threadInit();
     void run();
@@ -246,9 +269,11 @@ public:
     void jacobianR2LrightSupport(Matrix &jacobianR2LrightSupport, Vector &eR2LrightSupport, Matrix  pac_d, Matrix Rac_d, Matrix dpac_d, Matrix dRac_d);
     void jacobianCOMleftSupport(Matrix &jacobianCOMleftSupport, Vector &eCOMleftSupport, Matrix pi_cd, Matrix dpi_cd);
     void jacobianR2LleftSupport(Matrix &jacobianR2LleftSupport, Vector &eR2LleftSupport, Matrix  pca_d, Matrix Rca_d, Matrix dpca_d, Matrix dRca_d);
-    void computeControl(Matrix j1, Matrix j2, Vector e1, Vector e2);
-    void computeControlPrioritized(Matrix j1, Matrix j2, Vector e1, Vector e2);
-    void computeControlTriangular(Matrix J1, Matrix J2, Vector e1, Vector e2);
+    Vector computeControl(Matrix j1, Matrix j2, Vector e1, Vector e2);
+    Vector computeControlPrioritized(Matrix j1, Matrix j2, Vector e1, Vector e2);
+    Vector computeControlTriangular(Matrix J1, Matrix J2, Vector e1, Vector e2);
+    void executeControl(Vector dq);
+    void checkControl(Vector q, Vector dq, Vector err, Matrix J, Vector e);
     double separation(Vector qRL, Vector qLL);
     void closePort(Contactable *_port);
     void velTranslator(Matrix &out, Matrix p);
@@ -261,6 +286,7 @@ public:
     void computeDeltaProjCReal(Vector dqR, Vector dqL, Vector dqT, Vector &delta_b, Vector &delta_pi_c, Vector &delta_pi_b);
     void switchSupport(phase newPhase);
     void updateComFilters();
+    void updateComDesired();
     bool check_njTO(int _njTO);
     bool check_njRL(int _njRL);
     bool check_njLL(int _njLL);

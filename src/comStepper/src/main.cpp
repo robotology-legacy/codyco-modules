@@ -33,8 +33,8 @@ private:
     PolyDriver *dd_leftLeg;
 
     comStepperThread *balThread;
-    Port rpcPort;
 
+    Port commandPort;
     Vector pi_a_d_right, pi_a_d_both, pi_c_d_left;
 public:
     Balancer()
@@ -63,10 +63,6 @@ public:
         // local_name = rf.check("local", Value("balanceModule"), "module name (string)").asString;
         // setName(local_name.c_str());             //setting the read local_name as module name
 
-        //--------------------------------- SOME RPC PORT --------------------------------------------------
-        string rpcPortName = "/"+local_name+"/rpc:i";
-        rpcPort.open(rpcPortName.c_str());
-        attach(rpcPort);
 
         //--------------------------------GETTING ROBOT NAME------------------------------------------------
         string robot_name;
@@ -240,14 +236,56 @@ public:
         if(rf.check("com_error"))
             comErrorPortName = rf.check("com_error", Value("/comStepper/com_error:o")).asString().c_str();
 
+        //---------------------------- CTR INPUTS ---------------------------------------------------------------
+        string comDesiredPosPortName;
+        if(rf.check("com_desired_pos"))
+            comDesiredPosPortName = rf.check("com_desired_pos", Value("/comStepper/com_desired_pos:i")).asString().c_str();
+        
+        string r2lDesiredPosPortName;
+        if(rf.check("r2l_desired_pos"))
+            comDesiredPosPortName = rf.check("r2l_desired_pos", Value("/comStepper/r2l_desired_pos:i")).asString().c_str();
+        
+        string comDesiredVelPortName;
+        if(rf.check("com_desired_vel"))
+            comDesiredVelPortName = rf.check("com_desired_vel", Value("/comStepper/com_desired_vel:i")).asString().c_str();
+        
+        string r2lDesiredVelPortName;
+        if(rf.check("r2l_desired_vel"))
+            comDesiredVelPortName = rf.check("r2l_desired_vel", Value("/comStepper/com_desired_vel:i")).asString().c_str();
+
+        string comDesiredPhsPortName;
+        if(rf.check("com_desired_phs"))
+            comDesiredPhsPortName = rf.check("com_desired_phs", Value("/comStepper/com_desired_phs:i")).asString().c_str();
+
+        //---------------------------- CTR OUTPUTS ---------------------------------------------------------------
         string comControlPortName;
         if(rf.check("com_control"))
             comControlPortName = rf.check("com_control", Value("/comStepper/dq:o")).asString().c_str();
-
+        
         string zmpPortName;
         if(rf.check("zmp_port"))
-            zmpPortName = rf.check("zmp_port", Value("/comStepper/zmp:o")).asString().c_str();
-
+            zmpPortName = rf.check("zmp_port", Value("/comStepper/zmp:o")).asString().c_str();        
+        
+        string comOutputPosPortName;
+        if(rf.check("com_output_pos"))
+            comOutputPosPortName = rf.check("com_output_pos", Value("/comStepper/com_output_pos:i")).asString().c_str();
+        
+        string r2lOutputPosPortName;
+        if(rf.check("r2l_output_pos"))
+            comOutputPosPortName = rf.check("r2l_output_pos", Value("/comStepper/r2l_output_pos:i")).asString().c_str();
+        
+        string comOutputVelPortName;
+        if(rf.check("com_output_vel"))
+            comOutputVelPortName = rf.check("com_output_vel", Value("/comStepper/com_output_vel:i")).asString().c_str();
+        
+        string r2lOutputVelPortName;
+        if(rf.check("r2l_output_vel"))
+            comOutputVelPortName = rf.check("r2l_output_vel", Value("/comStepper/com_output_vel:i")).asString().c_str();
+        
+        string comOutputPhsPortName;
+        if(rf.check("com_output_phs"))
+            comOutputPhsPortName = rf.check("com_output_phs", Value("/comStepper/com_output_phs:i")).asString().c_str();
+        
         
         //---------------------------- WRENCH OFFSETS ---------------------------------------------------------------
         Vector w0RL(6);
@@ -405,11 +443,16 @@ public:
                                           q0LL_left ,q0RL_left ,q0TO_left ,\
                                           robot_name,local_name,wbs_name,\
                                           display,noSens,ankles_sens,springs,torso,verbose,pi_a_t0,vel_sat,Kp_zmp_h,Kd_zmp_h,Kp_zmp_x,Kd_zmp_x,Kp_zmp_y,\
-                                            Kd_zmp_y,Kp, Kd, comPosInputPortName,comJacInputPortName,
-                                            r2lErrorPortName, comErrorPortName, comControlPortName, zmpPortName);
+                                          Kd_zmp_y,Kp, Kd, comPosInputPortName,comJacInputPortName,
+                                          r2lErrorPortName, comErrorPortName, comControlPortName, zmpPortName,
+                                          comDesiredPosPortName, r2lDesiredPosPortName, comDesiredVelPortName, r2lDesiredVelPortName, comDesiredPhsPortName,
+                                          comOutputPosPortName, r2lOutputPosPortName, comOutputVelPortName, r2lOutputVelPortName, comOutputPhsPortName);
         fprintf(stderr, "Thread created!\n");
         
-        attachTerminal();
+        //attachTerminal();
+
+        commandPort.open("/comStepper/command:i");
+        attach(commandPort);
         
         if (balThread->start())
         {
@@ -598,74 +641,64 @@ public:
         }
         if (command.get(0).asString()=="fwd")
         {
-            balThread->suspend();
             reply.fromString("Moving forward");
             if (balThread->current_phase == RIGHT_SUPPORT)
-                balThread->pac_d(2,0) += 0.02;
+                balThread->pac_t(2,0) += 0.02;
             if (balThread->current_phase == LEFT_SUPPORT)
-                balThread->pca_d(2,0) += 0.02;
-            balThread->resume();
+                balThread->pca_t(2,0) += 0.02;
             return true;
         }
         if (command.get(0).asString()=="bck")
         {
-            balThread->suspend();
             reply.fromString("Moving backward");
             if (balThread->current_phase == RIGHT_SUPPORT)
-                balThread->pac_d(2,0) -= 0.02;
+                balThread->pac_t(2,0) -= 0.02;
             if (balThread->current_phase == LEFT_SUPPORT)
-                balThread->pca_d(2,0) -= 0.02;
-            balThread->resume();
+                balThread->pca_t(2,0) -= 0.02;
             return true;
         }
         if (command.get(0).asString()=="up")
         {
-            balThread->suspend();
             if (balThread->current_phase != BOTH_SUPPORT)
                 reply.fromString("Moving up");
             if (balThread->current_phase == RIGHT_SUPPORT)
-                balThread->pac_d(0,0) += 0.02;
+                balThread->pac_t(0,0) += 0.02;
             if (balThread->current_phase == LEFT_SUPPORT)
-                balThread->pca_d(0,0) += 0.02;
-            balThread->resume();
+                balThread->pca_t(0,0) += 0.02;
             return true;
         }
         if (command.get(0).asString()=="down")
         {
-            balThread->suspend();
             reply.fromString("Moving down");
             if (balThread->current_phase == RIGHT_SUPPORT)
-                balThread->pac_d(0,0) -= 0.02;
+                balThread->pac_t(0,0) -= 0.02;
             if (balThread->current_phase == LEFT_SUPPORT)
-                balThread->pca_d(0,0) -= 0.02;
-            balThread->resume();
+                balThread->pca_t(0,0) -= 0.02;
             return true;
         }
         if (command.get(0).asString()=="left")
         {
-            balThread->suspend();
             reply.fromString("Switching to left foot support");
             balThread->pi_c_t(0,0) = pi_c_d_left(0);    balThread->pi_c_t(1,0) =   pi_c_d_left(1);    balThread->pi_c_t(2,0) =  pi_c_d_left(2);
+            balThread->pca_t = balThread->pca;
             balThread->switchSupport(LEFT_SUPPORT);
-            balThread->resume();
             return true;
         }
         if (command.get(0).asString()=="right")
         {
-            balThread->suspend();
             reply.fromString("Switching to right foot support");
             balThread->pi_a_t(0,0) = pi_a_d_right(0);    balThread->pi_a_t(1,0) =   pi_a_d_right(1);    balThread->pi_a_t(2,0) = pi_a_d_right(2);
+            balThread->pac_t = balThread->pac;
             balThread-> switchSupport(RIGHT_SUPPORT);
-            balThread->resume();
             return true;
         }
         if (command.get(0).asString()=="double")
         {
-            balThread->suspend();
             reply.fromString("Switching to double");
-            balThread->pi_a_t(0,0) = pi_a_d_both(0);    balThread->pi_a_t(1,0) =  pi_a_d_both(1);    balThread->pi_a_t(2,0) =  pi_a_d_both(2);
+            balThread->pi_a_t(0,0) = pi_a_d_both(0);
+            balThread->pi_a_t(1,0) =  pi_a_d_both(1);    balThread->pi_a_t(2,0) =  pi_a_d_both(2);
+            balThread->pac_t = balThread->pac;
             balThread->switchSupport(BOTH_SUPPORT);
-            balThread->resume();
             return true;
         }
         if (command.get(0).asString()=="quit")
@@ -730,6 +763,20 @@ int main (int argc, char * argv[])
 
         cout<< "\t--r2l_error        :specify a port to output the tracking errors on the right/left foot position and orientation."                                          <<endl;
         cout<< "\t--com_error        :specify a port to output the tracking errors for the COM."                                                                              <<endl;
+        cout<< "\t--com_control      :specify a port to output the tracking controls on the right/left foot position and orientation."                                        <<endl;
+        cout<< "\t--zmp_port         :specify a port to output the ZMP."                                                                                                      <<endl;
+        cout<< "\t--com_desired_pos  :specify a port receiving the disired COM position."                                                                                     <<endl;
+        cout<< "\t--r2l_desired_pos  :specify a port receiving the disired R2L position."                                                                                     <<endl;
+        cout<< "\t--com_desired_vel  :specify a port receiving the disired COM velocity."                                                                                     <<endl;
+        cout<< "\t--r2l_desired_vel  :specify a port receiving the disired R2L velocity."                                                                                     <<endl;
+        cout<< "\t--com_desired_phs  :specify a port receiving the disired R2L phase."                                                                                     <<endl;
+
+        cout<< "\t--com_output_pos   :specify a port outputing the disired COM position."                                                                                     <<endl;
+        cout<< "\t--r2l_output_pos   :specify a port outputing the disired R2L position."                                                                                     <<endl;
+        cout<< "\t--com_output_vel   :specify a port outputing the disired COM velocity."                                                                                     <<endl;
+        cout<< "\t--r2l_output_vel   :specify a port outputing the disired R2L velocity."                                                                                     <<endl;
+        cout<< "\t--com_output_phs   :specify a port outputing the disired R2L phase."                                                                                     <<endl;
+
         
         cout<< "\t--w0RL             :specify the wrench (force/torque) offset for the right leg F/T sensor."                                                                 <<endl;
         cout<< "\t--w0LL             :specify the wrench (force/torque) offset for the left  leg F/T sensor."                                                                 <<endl;
