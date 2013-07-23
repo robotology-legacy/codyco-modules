@@ -19,7 +19,7 @@
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
 #include <yarp/math/api.h>
-#include "math.h"
+#include <math.h>
 #include "iCub/linearRegressorsAdaptiveControl/linearRegressorsAdaptiveControlThread.h"
 
 
@@ -36,10 +36,13 @@ linearRegressorsAdaptiveControlThread::linearRegressorsAdaptiveControlThread(Res
 																			 const std::vector<bool> _selected_DOFs,
 																			 int period)
 									   : rf(_rf), RateThread(period), robot_interface(_robot_interface), dynamical_model(_dynamical_model),
-									   PERIOD(period), robotName(_robotName), selected_DOFs(_selected_DOFs)
+									   PERIOD(period), robotName(_robotName), selected_DOFs(_selected_DOFs), Yr()
 {
 	N_DOFs = count_DOFs(selected_DOFs);
     
+    #ifndef NDEBUG
+    std::cerr << "linearRegressorsAdaptiveControlThread: Dynamical models has " << dynamical_model->getNrOfDOFs() << " DOFs " << std::endl;
+    #endif
     q_complete = dq_complete = ddq_r_complete = Vector(dynamical_model->getNrOfDOFs(),0.0);
 
 
@@ -50,7 +53,10 @@ linearRegressorsAdaptiveControlThread::linearRegressorsAdaptiveControlThread(Res
 
 
 	N_p = getNrOfAdaptedParameters();
-	Yr = Matrix(N_DOFs,N_p);
+        #ifndef NDEBUG
+    std::cerr << "linearRegressorsAdaptiveControlThread: The regressor has " << N_p << " parameters " << std::endl;
+    #endif
+	Yr.resize(N_DOFs,N_p);
 	Yr.zero();
 	aHat = Vector(N_p,0.0);
 	T_c = ((double)period)/1000.0;
@@ -64,6 +70,25 @@ linearRegressorsAdaptiveControlThread::linearRegressorsAdaptiveControlThread(Res
     //T_trajectory = ?
     T_trajectory = 1.0;
     trajectory_generator = new minJerkTrajGen(N_DOFs,T_c,T_trajectory);
+    
+    /* get some other values from the configuration file */
+     double value_read;
+     value_read = (int)rf.check("gamma", Value(1.0),
+	"Value for the Gamma gain (single positive double, the gain matrix will be diagonal with all equal terms)").asDouble();
+     setGain(gamma_gain,value_read);
+     
+     value_read = (int)rf.check("kappa", Value(0.0),
+	"Value for the Kappa gain  in ms (single positive double, the gain matrix will be diagonal with all equal terms)").asDouble();
+     setGain(kappa_gain,value_read);
+            
+            
+    value_read = (int)rf.check("lambda", Value(0.0),
+    "Value for the lambda gain  in ms (single positive double, the gain matrix will be diagonal with all equal terms)").asDouble();
+    setGain(lambda_gain,value_read);
+    
+    value_read = (int)rf.check("trajectory_time", Value(1.0),
+    "Value for the lambda gain  in ms (single positive double, the gain matrix will be diagonal with all equal terms)").asDouble();
+    setGain(trajectory_time,value_read);
 }
 
 bool linearRegressorsAdaptiveControlThread::threadInit()

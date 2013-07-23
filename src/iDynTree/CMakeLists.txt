@@ -12,10 +12,12 @@ PROJECT(${PROJECTNAME})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 
-find_package(YARP)
-find_package(ICUB)
+
+find_package(YARP REQUIRED)
+find_package(ICUB REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Orocos-KDL REQUIRED)
 find_package(kdl_codyco REQUIRED)
@@ -40,7 +42,6 @@ SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
 
-
 INCLUDE_DIRECTORIES(include
                     ${skinDynLib_INCLUDE_DIRS}
                     ${iDyn_INCLUDE_DIRS}
@@ -51,19 +52,33 @@ INCLUDE_DIRECTORIES(include
 
 ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME}
+TARGET_LINK_LIBRARIES(${PROJECTNAME} iDyn
                                      ${GSL_LIBRARIES}
                                      ${YARP_LIBRARIES}
-                                     ${iDyn_LIBRARIES}
                                      ${Orocos-KDL_LIBRARIES} 
                                      ${kdl_codyco_LIBRARIES})
 
-include(iCubHelpers)
-include(iCubOptions)
 
-icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
-                                   DEPENDS skinDynLib iDyn
-                                   DESTINATION include/iCub/iDynTree
-                                   FILES ${folder_header})
 
+INSTALL(TARGETS iDynTree EXPORT iDynTargets-install DESTINATION lib)
+INSTALL(DIRECTORY include/iCub/iDynTree DESTINATION include/iCub)
+#install(EXPORT iDynTargets-install DESTINATION share/${PROJECT_NAME}/cmake )
+set(PKG_NAME ${PROJECT_NAME})
+set(PKG_LIBRARIES iDynTree)
+set(PKG_DEPENDS ICUB)
+set(cmake_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/iDynTreeConfig.cmake")
+configure_file("${cmake_conf_file}.in" "${cmake_conf_file}" @ONLY)
+install(FILES ${cmake_conf_file} DESTINATION share/${PROJECT_NAME}/cmake/ COMPONENT cmake)
+
+## Make the package config file
+#if (NOT MSVC)
+#  set(PKG_DESC "iDynTree")
+#  set(PKG_DEPENDS "Orocos-KDL eigen3") # make the list separated by spaces instead of ;
+#  set(PKG_LIBS "")
+#  set(pkg_conf_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/pkgconfig/iDynTree.pc")
+#  configure_file("${pkg_conf_file}.in" "${pkg_conf_file}" @ONLY)
+#  install(FILES ${pkg_conf_file} DESTINATION lib/pkgconfig/ COMPONENT pkgconfig)
+#endif()
+
+message(STATUS "Configuration successful. Type make to compile iDynTree")
 
