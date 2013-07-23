@@ -216,6 +216,13 @@ namespace modHelp
      */
     bool connectPorts(const std::string &portFrom, const std::string &portTo, int retry=1);
     
+    /**
+     * Close a port.
+     * @param port the port to be closed
+     */
+    void closePort(yarp::os::Contactable *port);
+
+    
 }//end namespace modHelp
 
 

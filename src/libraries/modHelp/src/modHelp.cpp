@@ -299,7 +299,18 @@ namespace modHelp{
         return true;
     }
     
-    
+    //---------------------------------------------------------
+    void closePort(Contactable *port)
+    {
+        if(port)
+        {
+            port->interrupt();
+            port->close();
+            
+            delete port;
+            port = 0;
+        }
+    }
     
     
 }//namespace modHelp
