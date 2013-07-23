@@ -156,6 +156,7 @@ public:
         setGamma,
         setKappa,
         setLambda,
+        setTrajTime,
 		COMMANDS_COUNT} linearRegressorsAdaptiveControlCommand;
 
 	bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful

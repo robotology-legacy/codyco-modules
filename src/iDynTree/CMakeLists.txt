@@ -54,7 +54,7 @@ ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
 TARGET_LINK_LIBRARIES(${PROJECTNAME}
                                      ${GSL_LIBRARIES}
                                      ${YARP_LIBRARIES}
-                                     ${iDyn_LIBARIES}
+                                     ${iDyn_LIBRARIES}
                                      ${Orocos-KDL_LIBRARIES} 
                                      ${kdl_codyco_LIBRARIES})
 

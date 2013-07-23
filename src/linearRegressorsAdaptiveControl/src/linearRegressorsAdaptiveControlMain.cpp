@@ -16,7 +16,7 @@
  * Public License for more details
  */
 
-#include "iCub/linearRegressorsAdaptiveControl/linearRegressorsAdaptiveControl.h"
+#include "iCub/linearRegressorsAdaptiveControl/linearRegressorsAdaptiveControlModule.h"
 
 using namespace iCub::linearRegressorsAdaptiveControl;
 

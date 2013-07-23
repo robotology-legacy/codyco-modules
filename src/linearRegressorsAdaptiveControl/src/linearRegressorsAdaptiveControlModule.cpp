@@ -30,7 +30,7 @@ const string linearRegressorsAdaptiveControlModule::ROBOT_NAME_DEFAULT = "icub";
 const string linearRegressorsAdaptiveControlModule::RPC_PORT_DEFAULT = "/rpc";
 
 // the order of the command(s) in this list MUST correspond to the order of the enum linearRegressorsAdaptiveControlModule::linearRegressorsAdaptiveControlModuleCommand
-const string linearRegressorsAdaptiveControlModule::COMMAND_LIST[] = {"help", "quit","setGamma","setKappa","setLambda"};
+const string linearRegressorsAdaptiveControlModule::COMMAND_LIST[] = {"help", "quit","setGamma","setKappa","setLambda","setTrajTime"};
 
 // the order in COMMAND_DESC must correspond to the order in COMMAND_LIST
 const string linearRegressorsAdaptiveControlModule::COMMAND_DESC[]  = {
@@ -38,7 +38,8 @@ const string linearRegressorsAdaptiveControlModule::COMMAND_DESC[]  = {
 	"quit the module",
     "set the Gamma gain (matrix with equal values on the diagonal)",
     "set the Kamma gain (matrix with equal values on the diagonal)",
-    "set the Lambda gain (matrix with equal values on the diagonal)"
+    "set the Lambda gain (matrix with equal values on the diagonal)",
+    "set the trajectory time"
     };
 
 bool linearRegressorsAdaptiveControlModule::configure(yarp::os::ResourceFinder &rf)
@@ -85,7 +86,7 @@ bool linearRegressorsAdaptiveControlModule::configure(yarp::os::ResourceFinder &
     
     controlled_DOFs[controlled_joint] = true;
     
-    icub_interface = new icubWholeBodyInterface();
+    //icub_interface = new icubWholeBodyInterface();
 
 	/* create the thread and pass pointers to the module parameters */
 	controlThread = new linearRegressorsAdaptiveControlThread(&rf, robotName, icub_interface, icub_dynamical_model, controlled_DOFs, period);
@@ -145,6 +146,9 @@ bool linearRegressorsAdaptiveControlModule::respond(const Bottle& command, Bottl
         case setLambda:
             reply.addString("setLambda command received");
             return controlThread->setGain(lambda_gain,command.get(1).asDouble());
+        case setTrajTime:
+            reply.addString("setTrajTime command received");
+            return controlThread->setGain(trajectory_time,command.get(1).asDouble());
 
 		case help:
 			reply.addString("many");				// print every string added to the bottle on a new line

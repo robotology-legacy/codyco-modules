@@ -46,7 +46,7 @@ using namespace iCub::ctrl;
 
 using namespace iCub::iDynTree;
 
-enum available_gains { gamma_gain, kappa_gain, lambda_gain };
+enum available_gains { gamma_gain, kappa_gain, lambda_gain, trajectory_time };
 
 namespace iCub{
 
@@ -60,7 +60,7 @@ public:
 										  string robotName,
 										  wholeBodyInterface* robot_interface,
 										  DynTree* dynamical_model,
-										  const std::vector<bool> selected_DOFs,
+										  const std::vector<bool> _selected_DOFs,
 										  int period);
 	bool threadInit();
 	void threadRelease();
@@ -70,6 +70,11 @@ public:
     bool setGain(available_gains gain, double value);
 
 private:
+
+    int getNrOfAdaptedParameters();
+    void selectActiveDOFs(const Vector & vec_complete, Vector & vec);
+    void setActiveDOFs(const Vector & vec, Vector & vec_complete);
+    void computeRegressor();
 
 	/* class constants */
 	const int PERIOD;
@@ -107,7 +112,7 @@ private:
 
 	Vector s; /**< Modified error variable (dq-dq_r) */
 
-	Vector qTilde; /**< Position error (q-q_d) */
+	Vector qTilde, dqTilde; /**< Position error (q-q_d) */
 
 	Vector Tau; /**< Torques */
 
@@ -119,6 +124,8 @@ private:
 
 	double T_c; /**< Timestamp in s */
 
+    Vector qf;
+
 	/* Gains */
 	Vector Lambda, Gamma, Kappa; /** Gain vector */
 
@@ -128,13 +135,13 @@ private:
     std::vector<bool> selected_DOFs;
     
 	//Helper methods
-	int count_DOFs(const std::vector<bool> & selected_DOFs);
+	int count_DOFs(const std::vector<bool> & _selected_DOFs);
     
     //Dummy varibales
     Vector friction_vec;
     
     //Trajectory generation
-    minJerkTrajGen trajectory_generator;
+    minJerkTrajGen * trajectory_generator;
     double T_trajectory;
 
 };

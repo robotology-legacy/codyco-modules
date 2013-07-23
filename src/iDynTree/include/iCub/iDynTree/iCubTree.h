@@ -60,7 +60,7 @@ class iCubTree : public DynTree
 	 * @param version a iCubTree_version_tag structure for defining the version of the parts
 	 * 				  composing the iCubTree
 	 */
-	iCubTree(iCubTree_version_tag version,  iCubTree_serialization_tag serial,  unsigned int verbose=0);
+	iCubTree(iCubTree_version_tag version,  iCubTree_serialization_tag serial=SKINDYNLIB_SERIALIZATION,  unsigned int verbose=0);
 	
 	~iCubTree();
 };
