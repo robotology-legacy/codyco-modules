@@ -117,9 +117,7 @@ bool ISIR_Balancer::configure(ResourceFinder &rf)
 {
     Time::turboBoost();
     cout<<"Reading parameters from init file... "<<endl;
-    
-    //----------------------------------- LOCAL NAME --------------------------------------------------
-    
+        
     readString(rf,"local_name",name,"ISIR");
     readString(rf,"robot",robot,"icubSim"); //by default simulator, so we dont break the real one
     //
