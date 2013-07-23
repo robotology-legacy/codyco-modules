@@ -67,8 +67,6 @@ class ISIR_Controller: public RateThread
 public:
     
     bool on_ground;
-    // booleans
-    bool useLeftArm, useRightArm, useHead;
     
     string robot;
     string name;    
@@ -79,7 +77,6 @@ public:
     bool feet_sensors; // if FT sensors at the feet are used to compute COP
     bool springs_legs; // springs on the legs joints
     bool torso_compensation; // using torso to compensate for built up angular momentum
-    bool using_gaze; // if we also control gaze
 
     // drivers icub parts
     PolyDriver *ddRA, *ddLA;
@@ -176,7 +173,17 @@ public:
     
     //****************************************************************
 
-    int njHD;   int njTO;   int njRL;  int njLL; int njRA;  int njLA;
+    // number of joints for the limbs
+    int njHE, njTO, njRL, njLL, njRA, njLA;
+
+    // the command for the motors
+    Vector cmd_dq_LL, cmd_dq_RL, cmd_dq_TO;
+    Vector cmd_q_LL, cmd_q_RL, cmd_q_TO;
+    Vector cmd_tau_LL, cmd_tau_RL, cmd_tau_TO;
+    
+    Vector cmd_dq_LA, cmd_dq_RA, cmd_dq_HE;
+    Vector cmd_q_LA, cmd_q_RA, cmd_q_HE;
+    Vector cmd_tau_LA, cmd_tau_RA, cmd_tau_HE;
 
     Vector dqLL, dqRL, dqTO;
     Vector qrLL, qrRL, qrTO;                   //reference/postural configuration
@@ -242,8 +249,9 @@ public:
     phase current_phase;
     
     //for checking joints within limits
-    rangeCheck *rangeCheckTO, *rangeCheckRL, *rangeCheckLL;
-    Vector      limitMaskTO,  limitMaskRL,   limitMaskLL;
+    rangeCheck *rangeCheckTO, *rangeCheckRL, *rangeCheckLL, *rangeCheckLA, *rangeCheckRA, *rangeCheckHE;
+    Vector      limitMaskTO,  limitMaskRL,   limitMaskLL,
+    limitMaskLA, limitMaskRA, limitMaskHE;
     
     // home position for the arms (joints)
     Vector homePoss, homeVels;
@@ -259,6 +267,12 @@ public:
     double releaseTmo;
     double tableHeight;
     double latchTimer;
+    
+    bool using_gaze; // if we also control gaze
+    bool using_cartesian_arm_left; //if we control cartesian arm left
+    bool using_cartesian_arm_right; //if we control cartesian arm right
+    // booleans for defining what we control
+    bool useLeftArm, useRightArm, useHead, useTorso, useRightLeg, useLeftLeg;
     
 private:
     string robot_name;
@@ -317,10 +331,10 @@ private:
     Vector *F_ext_lf;
 
     //Sensors not available in the simulator
-    bool Opt_nosens;
+    //bool Opt_nosens;
     
     //display
-    bool Opt_display;
+    //bool Opt_display;
 
     //Left and Right leg pose.
     Vector PoseLeftLeg;
@@ -342,7 +356,7 @@ private:
     Matrix Hright;
     Matrix Hleft;
 
-    bool Opt_ankles_sens;
+    //bool Opt_ankles_sens;
     
     Stamp zmp_time;
 
@@ -428,20 +442,16 @@ public:
     bool onStop();
     void threadRelease();
     void suspend();
-  
+    void defineUsedInterfaces(bool _using_gaze, bool _using_cartesian_arm_left, bool _using_cartesian_arm_right, bool _useLeftArm, bool _useRightArm, bool _useHead, bool _useTorso, bool _useRightLeg, bool _useLeftLeg);
     
     
-   
-   
     bool check_njTO(int _njTO);
     bool check_njRL(int _njRL);
     bool check_njLL(int _njLL);
 
-    
-    
-    
     bool moveHand(const int sel_arm, const Vector &xd, const Vector &od);
     void computeControl_ISIR();
+    void sendCommandsToRobot();
     
 };
 
@@ -475,6 +485,8 @@ private:
     bool springs_legs; // springs on the legs joints
     bool torso_compensation; // using torso to compensate for built up angular momentum
     bool using_gaze; // if we also control gaze
+    bool using_cartesian_arm_left; //if we control cartesian arm left
+    bool using_cartesian_arm_right; //if we control cartesian arm right
     
     // drivers
     //-------------------------------------------
@@ -507,7 +519,7 @@ private:
     // contexts for cartesian controllers
     int startup_context_id_RA, startup_context_id_LA,startup_context_id_gaze;
     // booleans
-    bool useLeftArm, useRightArm, useHead;
+    bool useLeftArm, useRightArm, useHead, useTorso, useRightLeg, useLeftLeg;
     // torso params
     bool torsoEnabled, trackingEnabled;
     Vector torsoSwitch;

@@ -11,6 +11,11 @@
 #include <iCub/iKin/iKinFwd.h>
 #include <modHelp/modHelp.h>
 //
+// EIGEN INCLUDES
+#include <Eigen/Core>
+#include <Eigen/Lgsm>
+#include <Eigen/StdVector>
+//
 #include <math.h>
 #include <stdio.h>
 #include <iostream>
@@ -33,6 +38,8 @@ using namespace std;
 // #define COMPUTE_FINITE_DIFF
 // #define DO_NOT_CONTROL_TORSO
 // #define DO_NOT_CONTROL_LEGS
+
+#define USING_XDE
 
 void saturateVector(Vector &v, double sat)
 {
@@ -117,7 +124,7 @@ bool ISIR_Balancer::configure(ResourceFinder &rf)
 {
     Time::turboBoost();
     cout<<"Reading parameters from init file... "<<endl;
-        
+    
     readString(rf,"local_name",name,"ISIR");
     readString(rf,"robot",robot,"icubSim"); //by default simulator, so we dont break the real one
     //
@@ -130,10 +137,15 @@ bool ISIR_Balancer::configure(ResourceFinder &rf)
     readBool(rf, "springs_legs", springs_legs, false);
     readBool(rf, "torso_compensation", torso_compensation, false);
     readBool(rf, "using_gaze", using_gaze, false);
+    readBool(rf, "using_cartesian_arm_left", using_cartesian_arm_left, false);
+    readBool(rf, "using_cartesian_arm_right", using_cartesian_arm_right, false);
     //
-    readBool(rf,"left_arm",useLeftArm,true);
-    readBool(rf,"right_arm",useRightArm,true);
-    readBool(rf,"head",useHead,true);
+    readBool(rf,"using_left_arm",useLeftArm,true);
+    readBool(rf,"using_right_arm",useRightArm,true);
+    readBool(rf,"using_head",useHead,true);
+    readBool(rf,"using_torso",useTorso,true);
+    readBool(rf,"using_left_leg",useLeftLeg,true);
+    readBool(rf,"using_right_leg",useRightLeg,true);
     readBool(rf,"enableTorso",torsoEnabled,false);
     readBool(rf,"enableTrackingMode",trackingEnabled,false);
     readBool(rf,"on_table",onTable,true);
@@ -186,7 +198,7 @@ bool ISIR_Balancer::configure(ResourceFinder &rf)
         cout<<"*** Rate thread working at "<<rate<<"ms"<<endl;
         
         if(display_only)
-            cout<<"*** Only displaying ZMP, not controllin the robot\n"<<endl;
+            cout<<"*** Only displaying ZMP, not controlling the robot\n"<<endl;
         else
             cout<<"*** Controlling the robot for real"<<endl;
         
@@ -334,23 +346,26 @@ bool ISIR_Balancer::configure(ResourceFinder &rf)
         return false;
     }
     // cartesian interface
-    if (!createDriver(ddCartRA,optionsCartRA))
+    if(using_cartesian_arm_right)
     {
-        cout<<"Problems connecting to the Cartesian interface of right_arm"<<endl;
-        close();
-        return false;
-    }
-    if(!ddCartRA->isValid())
-    {
-        cout<<"Invalid Cartesian interface for right_arm"<<endl;
-        close();
-        return false;
-    }
-    if(!ddCartRA->view(icrtRA))
-    {
-        cout<<"Problems acquiring the Cartesian interface of right_arm"<<endl;
-        close();
-        return false;
+        if (!createDriver(ddCartRA,optionsCartRA))
+        {
+            cout<<"Problems connecting to the Cartesian interface of right_arm"<<endl;
+            close();
+            return false;
+        }
+        if(!ddCartRA->isValid())
+        {
+            cout<<"Invalid Cartesian interface for right_arm"<<endl;
+            close();
+            return false;
+        }
+        if(!ddCartRA->view(icrtRA))
+        {
+            cout<<"Problems acquiring the Cartesian interface of right_arm"<<endl;
+            close();
+            return false;
+        }
     }
     // impedance
     if (rightArmImpVelMode)
@@ -385,24 +400,26 @@ bool ISIR_Balancer::configure(ResourceFinder &rf)
         return false;
     }
     // cartesian interface
-    ddCartLA = new PolyDriver;
-    if (!ddCartLA->open(optionsCartLA))
+    if(using_cartesian_arm_left)
     {
-        cout<<"Problems connecting to the Cartesian interface of left_arm"<<endl;
-        close();
-        return false;
-    }
-    if(!ddCartLA->isValid())
-    {
-        cout<<"Invalid Cartesian interface for left_arm"<<endl;
-        close();
-        return false;
-    }
-    if(!ddCartLA->view(icrtLA))
-    {
-        cout<<"Problems acquiring the Cartesian interface of left_arm"<<endl;
-        close();
-        return false;
+        if (!createDriver(ddCartLA,optionsCartLA))
+        {
+            cout<<"Problems connecting to the Cartesian interface of left_arm"<<endl;
+            close();
+            return false;
+        }
+        if(!ddCartLA->isValid())
+        {
+            cout<<"Invalid Cartesian interface for left_arm"<<endl;
+            close();
+            return false;
+        }
+        if(!ddCartLA->view(icrtLA))
+        {
+            cout<<"Problems acquiring the Cartesian interface of left_arm"<<endl;
+            close();
+            return false;
+        }
     }
     // impedance
     if (leftArmImpVelMode)
@@ -458,11 +475,16 @@ bool ISIR_Balancer::configure(ResourceFinder &rf)
     // the context contains the dofs status, the tracking mode,
     // the resting positions, the limits and so on.
     //cout<<" .. NONE (DEBUG) "<<endl;
-    cout<<" .. right arm"<<endl;
-    icrtRA->storeContext(&startup_context_id_RA);
-    cout<<" .. left arm"<<endl;
-    icrtLA->storeContext(&startup_context_id_LA);
-    
+    if(using_cartesian_arm_right)
+    {
+        cout<<" .. right arm"<<endl;
+        icrtRA->storeContext(&startup_context_id_RA);
+    }
+    if(using_cartesian_arm_left)
+    {
+        cout<<" .. left arm"<<endl;
+        icrtLA->storeContext(&startup_context_id_LA);
+    }
     if(using_gaze)
     {
         cout<<" .. gaze"<<endl;
@@ -470,8 +492,8 @@ bool ISIR_Balancer::configure(ResourceFinder &rf)
     }
     
     cout<<"Init Cartesian Controllers"<<endl;
-    initCartesianCtrl(torsoSwitch,torsoLimits,LEFTARM);
-    initCartesianCtrl(torsoSwitch,torsoLimits,RIGHTARM);
+    if(using_cartesian_arm_left) initCartesianCtrl(torsoSwitch,torsoLimits,LEFTARM);
+    if(using_cartesian_arm_right) initCartesianCtrl(torsoSwitch,torsoLimits,RIGHTARM);
     
     //set tolerance
     setCartesianTolerance();
@@ -517,7 +539,10 @@ bool ISIR_Balancer::configure(ResourceFinder &rf)
                                     rightArmJointsDamping, leftArmJointsDamping,
                                     rightLegJointsDamping, leftLegJointsDamping,
                                     controlMode);
-    fprintf(stderr, "Thread created!\n");
+    
+    balThread->defineUsedInterfaces(using_gaze, using_cartesian_arm_left, using_cartesian_arm_right, useLeftArm, useRightArm, useHead, useTorso, useRightLeg, useLeftLeg);
+    
+    cout<<"Thread created!"<<endl;
     
     // only if we want to type commands directly in the terminal.. may work for some
     // cases or debug
@@ -564,14 +589,14 @@ bool ISIR_Balancer::close()
     balThread=0;
     
     cout<<"Stopping cartesian controllers"<<endl;
-    icrtRA->stopControl();
-    icrtLA->stopControl();
+    if(using_cartesian_arm_right) icrtRA->stopControl();
+    if(using_cartesian_arm_left)  icrtLA->stopControl();
     if(using_gaze) igaze->stopControl();
     Time::delay(0.5);
     
     cout<<"Restoring cartesian context"<<endl;
-    icrtRA->restoreContext(startup_context_id_RA);
-    icrtLA->restoreContext(startup_context_id_LA);
+    if(using_cartesian_arm_right) icrtRA->restoreContext(startup_context_id_RA);
+    if(using_cartesian_arm_left)  icrtLA->restoreContext(startup_context_id_LA);
     if (using_gaze) igaze->restoreContext(startup_context_id_gaze);
     Time::delay(0.2);
     
@@ -617,34 +642,6 @@ bool ISIR_Balancer::updateModule()
     {
         printf("(real period: %3.3f +/- %3.3f. Expected %3.3f )\n",avgTime, stdDev, period);
     }
-    
-    
-    const int p = 2; // number of decimals when printing
-    if (balThread->current_phase == BOTH_SUPPORT || balThread->current_phase == RIGHT_SUPPORT)
-    {
-        fprintf(stderr,"Error in position and orientation: ep: %s;  eo: %s    \n",balThread->ep.getCol(0).toString(p).c_str(),balThread->eo.getCol(0).toString(p).c_str());
-        fprintf(stderr,"Error COM projection:               e: %s             \n",(balThread->pi_a_d - balThread->pi_a).getCol(0).toString(p).c_str());
-        fprintf(stderr,"Error ZMP projection:               e: %s             \n",(balThread->pi_a_d - balThread->zmp_a).getCol(0).toString(p).c_str());
-        fprintf(stderr,"ZMP on right is                   ZMP: %s\n", balThread->zmp_a.toString(p,-1,"\t").c_str());
-    }
-    else
-    {
-        fprintf(stderr,"Error in position and orientation: ep: %s;  eo: %s    \n",balThread->ep.getCol(0).toString(p).c_str(),balThread->eo.getCol(0).toString(p).c_str());
-        fprintf(stderr,"Error COM projection:               e: %s             \n",(balThread->pi_c_d - balThread->pi_c).getCol(0).toString(p).c_str());
-        fprintf(stderr,"Error ZMP projection:               e: %s             \n",(balThread->pi_c_d - balThread->zmp_c).getCol(0).toString(p).c_str());
-        fprintf(stderr,"ZMP on left is                    ZMP: %s\n", balThread->zmp_c.toString(p,-1,"\t").c_str());
-    }
-    
-    Vector warningLimTO = balThread->limitMaskTO;
-    Vector warningLimRL = balThread->limitMaskRL;
-    Vector warningLimLL = balThread->limitMaskLL;
-    
-    if (norm(warningLimTO) != 0)
-        fprintf(stderr, "WARNING reaching limit @ TORSO    : %s\n", warningLimTO.toString(p).c_str());
-    if (norm(warningLimRL) != 0)
-        fprintf(stderr, "WARNING reaching limit @ RIGHT LEG: %s\n", warningLimRL.toString(p).c_str());
-    if (norm(warningLimLL) != 0)
-        fprintf(stderr, "WARNING reaching limit @ LEFT  LEG: %s\n", warningLimLL.toString(p).c_str());
     
     return true;
 }
@@ -938,7 +935,7 @@ void ISIR_Balancer::initCartesianCtrl(Vector &sw, Matrix &lim, const int sel)
     
     if (sel==LEFTARM)
     {
-        if (useLeftArm)
+        if (using_cartesian_arm_left)
         {
             ddCartLA->view(icrtLA);
             icrtLA->storeContext(&startup_context_id_LA);
@@ -951,7 +948,7 @@ void ISIR_Balancer::initCartesianCtrl(Vector &sw, Matrix &lim, const int sel)
     }
     else if (sel==RIGHTARM)
     {
-        if (useRightArm)
+        if (using_cartesian_arm_right)
         {
             ddCartRA->view(icrtRA);
             icrtRA->storeContext(&startup_context_id_RA);
@@ -1013,23 +1010,29 @@ void ISIR_Balancer::enableTorso(int pitch, int roll, int yaw)
     
     cout<<"Enabling torso"<<endl;
     
-    icrtRA->getDOF(curDof);
-    newDof = curDof;
-    newDof[0]=p;    // torso pitch: 1 => enable
-    newDof[1]=r;    // torso roll:  1 => enable
-    newDof[2]=y;    // torso yaw:   1 => enable
-    cout<<"current DOF for Cartesian Right ["<<curDof.toString()<<"]"<<endl;
-    icrtRA->setDOF(newDof,curDof);
-    cout<<"new DOF for Cartesian Right ["<<curDof.toString()<<"]"<<endl;
+    if(using_cartesian_arm_right)
+    {
+        icrtRA->getDOF(curDof);
+        newDof = curDof;
+        newDof[0]=p;    // torso pitch: 1 => enable
+        newDof[1]=r;    // torso roll:  1 => enable
+        newDof[2]=y;    // torso yaw:   1 => enable
+        cout<<"current DOF for Cartesian Right ["<<curDof.toString()<<"]"<<endl;
+        icrtRA->setDOF(newDof,curDof);
+        cout<<"new DOF for Cartesian Right ["<<curDof.toString()<<"]"<<endl;
+    }
     
-    icrtLA->getDOF(curDof);
-    newDof = curDof;
-    newDof[0]=p;    // torso pitch: 1 => enable
-    newDof[1]=r;    // torso roll:  1 => enable
-    newDof[2]=y;    // torso yaw:   1 => enable
-    cout<<"current DOF for Cartesian Left ["<<curDof.toString()<<"]"<<endl;
-    icrtLA->setDOF(newDof,curDof);
-    cout<<"new DOF for Cartesian Left ["<<curDof.toString()<<"]"<<endl;
+    if(using_cartesian_arm_left)
+    {
+        icrtLA->getDOF(curDof);
+        newDof = curDof;
+        newDof[0]=p;    // torso pitch: 1 => enable
+        newDof[1]=r;    // torso roll:  1 => enable
+        newDof[2]=y;    // torso yaw:   1 => enable
+        cout<<"current DOF for Cartesian Left ["<<curDof.toString()<<"]"<<endl;
+        icrtLA->setDOF(newDof,curDof);
+        cout<<"new DOF for Cartesian Left ["<<curDof.toString()<<"]"<<endl;
+    }
     
     // impose some restriction on the torso pitch
     limitTorsoPitch();
@@ -1043,23 +1046,29 @@ void ISIR_Balancer::disableTorso()
     
     cout<<"Disabling torso"<<endl;
     
-    icrtRA->getDOF(curDof);
-    newDof = curDof;
-    newDof[0]=0;    // torso pitch: 1 => enable
-    newDof[1]=0;    // torso roll:  1 => enable
-    newDof[2]=0;    // torso yaw:   1 => enable
-    cout<<"current DOF for Cartesian Right ["<<curDof.toString()<<"]"<<endl;
-    icrtRA->setDOF(newDof,curDof);
-    cout<<"new DOF for Cartesian Right ["<<curDof.toString()<<"]"<<endl;
+    if(using_cartesian_arm_right)
+    {
+        icrtRA->getDOF(curDof);
+        newDof = curDof;
+        newDof[0]=0;    // torso pitch: 1 => enable
+        newDof[1]=0;    // torso roll:  1 => enable
+        newDof[2]=0;    // torso yaw:   1 => enable
+        cout<<"current DOF for Cartesian Right ["<<curDof.toString()<<"]"<<endl;
+        icrtRA->setDOF(newDof,curDof);
+        cout<<"new DOF for Cartesian Right ["<<curDof.toString()<<"]"<<endl;
+    }
     
-    icrtLA->getDOF(curDof);
-    newDof = curDof;
-    newDof[0]=0;    // torso pitch: 1 => enable
-    newDof[1]=0;    // torso roll:  1 => enable
-    newDof[2]=0;    // torso yaw:   1 => enable
-    cout<<"current DOF for Cartesian Left ["<<curDof.toString()<<"]"<<endl;
-    icrtLA->setDOF(newDof,curDof);
-    cout<<"new DOF for Cartesian Left ["<<curDof.toString()<<"]"<<endl;
+    if(using_cartesian_arm_left)
+    {
+        icrtLA->getDOF(curDof);
+        newDof = curDof;
+        newDof[0]=0;    // torso pitch: 1 => enable
+        newDof[1]=0;    // torso roll:  1 => enable
+        newDof[2]=0;    // torso yaw:   1 => enable
+        cout<<"current DOF for Cartesian Left ["<<curDof.toString()<<"]"<<endl;
+        icrtLA->setDOF(newDof,curDof);
+        cout<<"new DOF for Cartesian Left ["<<curDof.toString()<<"]"<<endl;
+    }
     
     torsoEnabled = false;
 }
@@ -1067,8 +1076,8 @@ void ISIR_Balancer::disableTorso()
 void ISIR_Balancer::setCartesianTolerance()
 {
     cartesian_tolerance = norm(cartesian_tolerances);
-    icrtRA->setInTargetTol(cartesian_tolerance);
-    icrtLA->setInTargetTol(cartesian_tolerance);
+    if(using_cartesian_arm_right) icrtRA->setInTargetTol(cartesian_tolerance);
+    if(using_cartesian_arm_left)  icrtLA->setInTargetTol(cartesian_tolerance);
     cout<<"Setting tolerance = "<<cartesian_tolerance<<" in the cartesian controllers"<<endl;
 }
 //---------------------------------------------------------
@@ -1090,8 +1099,8 @@ void ISIR_Balancer::setTrackingMode(bool mode)
 {
     // false    disable
     // true     enable
-    icrtRA->setTrackingMode(mode);
-    icrtLA->setTrackingMode(mode);
+    if(using_cartesian_arm_right) icrtRA->setTrackingMode(mode);
+    if(using_cartesian_arm_left)  icrtLA->setTrackingMode(mode);
     trackingEnabled=mode;
 }
 //---------------------------------------------------------
@@ -1104,10 +1113,16 @@ void ISIR_Balancer::limitTorsoPitch()
     // to lean out more than 30 degrees forward
     
     cout<<"Limiting torso pitch"<<endl;
-    icrtRA->getLimits(axis,&min,&max);
-    icrtRA->setLimits(axis,min,30.0);
-    icrtLA->getLimits(axis,&min,&max);
-    icrtLA->setLimits(axis,min,30.0);
+    if(using_cartesian_arm_right)
+    {
+        icrtRA->getLimits(axis,&min,&max);
+        icrtRA->setLimits(axis,min,30.0);
+    }
+    if(using_cartesian_arm_left)
+    {
+        icrtLA->getLimits(axis,&min,&max);
+        icrtLA->setLimits(axis,min,30.0);
+    }
 }
 //---------------------------------------------------------
 //---------------------------------------------------------
@@ -1210,13 +1225,13 @@ controlMode(_controlMode)
     icrt_RA     = 0;
     icrt_LA     = 0;
     
-//    
-//    n_r2l_swg   = new int;    n_r2l_sup   = new int;    n_com_swg   = new int;
-//    n_com_sup   = new int;    n_com_torso = new int;
+    //
+    //    n_r2l_swg   = new int;    n_r2l_sup   = new int;    n_com_swg   = new int;
+    //    n_com_sup   = new int;    n_com_torso = new int;
     
-    Opt_display = display_only;
-    Opt_nosens = no_sensors;
-    Opt_ankles_sens = feet_sensors;
+    //Opt_display = display_only;
+    //Opt_nosens = no_sensors;
+    //Opt_ankles_sens = feet_sensors;
     
     
     //---------------------------- PORTS ---------------------------------------------
@@ -1309,108 +1324,163 @@ bool ISIR_Controller::threadInit()
     //POLIDRIVERS AND INTERFACES
     
     // Torso Interface
-    ddT->view(Ienc_TO);
-    ddT->view(Ictrl_TO);
-    ddT->view(Ivel_TO);
-    ddT->view(Ipid_TO);
-    ddT->view(Ipos_TO);
-    ddT->view(Ilim_TO);
-    if((!ddT) || (!Ienc_TO) || (!Ictrl_TO) || (!Ivel_TO) || (!Ipid_TO) || (!Ipos_TO) || (!Ilim_TO))
+    if(useTorso)
     {
-        printf("ERROR acquiring torso interfaces\n");
-        return false;
+        ddT->view(Ienc_TO);
+        ddT->view(Ictrl_TO);
+        ddT->view(Ivel_TO);
+        ddT->view(Ipid_TO);
+        ddT->view(Ipos_TO);
+        ddT->view(Ilim_TO);
+        if((!ddT) || (!Ienc_TO) || (!Ictrl_TO) || (!Ivel_TO) || (!Ipid_TO) || (!Ipos_TO) || (!Ilim_TO))
+        {
+            printf("ERROR acquiring torso interfaces\n");
+            return false;
+        }
     }
     
     //Right leg interfaces
-    ddRL->view(Ienc_RL);
-    ddRL->view(Ictrl_RL);
-    ddRL->view(Ivel_RL);
-    ddRL->view(Ipid_RL);
-    ddRL->view(Ipos_RL);
-    ddRL->view(Ilim_RL);
-    if((!ddRL) || (!Ienc_RL) || (!Ictrl_RL) || (!Ivel_RL) || (!Ipid_RL) || (!Ipos_RL) || (!Ilim_RL))
+    if(useRightLeg)
     {
-        printf("ERROR acquiring right leg interfaces\n");
-        return false;
+        ddRL->view(Ienc_RL);
+        ddRL->view(Ictrl_RL);
+        ddRL->view(Ivel_RL);
+        ddRL->view(Ipid_RL);
+        ddRL->view(Ipos_RL);
+        ddRL->view(Ilim_RL);
+        if((!ddRL) || (!Ienc_RL) || (!Ictrl_RL) || (!Ivel_RL) || (!Ipid_RL) || (!Ipos_RL) || (!Ilim_RL))
+        {
+            printf("ERROR acquiring right leg interfaces\n");
+            return false;
+        }
     }
     
     
     //Left leg interfaces
-    ddLL->view(Ienc_LL);
-    ddLL->view(Ictrl_LL);
-    ddLL->view(Ivel_LL);
-    ddLL->view(Ipid_LL);
-    ddLL->view(Ipid_LL);
-    ddLL->view(Ipos_LL);
-    ddLL->view(Ilim_LL);
-    if((!ddLL) || (!Ienc_LL) || (!Ictrl_LL) || (!Ivel_LL) || (!Ipid_LL) || (!Ipos_LL) || (!Ilim_LL))
+    if(useLeftLeg)
     {
-        printf("ERROR acquiring left leg interfaces\n");
-        return false;
+        ddLL->view(Ienc_LL);
+        ddLL->view(Ictrl_LL);
+        ddLL->view(Ivel_LL);
+        ddLL->view(Ipid_LL);
+        ddLL->view(Ipid_LL);
+        ddLL->view(Ipos_LL);
+        ddLL->view(Ilim_LL);
+        if((!ddLL) || (!Ienc_LL) || (!Ictrl_LL) || (!Ivel_LL) || (!Ipid_LL) || (!Ipos_LL) || (!Ilim_LL))
+        {
+            printf("ERROR acquiring left leg interfaces\n");
+            return false;
+        }
     }
     
     //Left arm interfaces
-    ddLA->view(Ienc_LA);
-    ddLA->view(Ictrl_LA);
-    ddLA->view(Ivel_LA);
-    ddLA->view(Ipid_LA);
-    ddLA->view(Ipid_LA);
-    ddLA->view(Ipos_LA);
-    ddLA->view(Ilim_LA);
-    if((!ddLA) || (!Ienc_LA) || (!Ictrl_LA) || (!Ivel_LA) || (!Ipid_LA) || (!Ipos_LA) || (!Ilim_LA))
+    if(useLeftArm)
     {
-        printf("ERROR acquiring left arm interfaces\n");
-        return false;
+        ddLA->view(Ienc_LA);
+        ddLA->view(Ictrl_LA);
+        ddLA->view(Ivel_LA);
+        ddLA->view(Ipid_LA);
+        ddLA->view(Ipid_LA);
+        ddLA->view(Ipos_LA);
+        ddLA->view(Ilim_LA);
+        if((!ddLA) || (!Ienc_LA) || (!Ictrl_LA) || (!Ivel_LA) || (!Ipid_LA) || (!Ipos_LA) || (!Ilim_LA))
+        {
+            printf("ERROR acquiring left arm interfaces\n");
+            return false;
+        }
     }
     
     //Right arm interfaces
-    ddRA->view(Ienc_RA);
-    ddRA->view(Ictrl_RA);
-    ddRA->view(Ivel_RA);
-    ddRA->view(Ipid_RA);
-    ddRA->view(Ipid_RA);
-    ddRA->view(Ipos_RA);
-    ddRA->view(Ilim_RA);
-    if((!ddRA) || (!Ienc_RA) || (!Ictrl_RA) || (!Ivel_RA) || (!Ipid_RA) || (!Ipos_RA) || (!Ilim_RA))
+    if(useRightArm)
     {
-        printf("ERROR acquiring right arm interfaces\n");
-        return false;
+        ddRA->view(Ienc_RA);
+        ddRA->view(Ictrl_RA);
+        ddRA->view(Ivel_RA);
+        ddRA->view(Ipid_RA);
+        ddRA->view(Ipid_RA);
+        ddRA->view(Ipos_RA);
+        ddRA->view(Ilim_RA);
+        if((!ddRA) || (!Ienc_RA) || (!Ictrl_RA) || (!Ivel_RA) || (!Ipid_RA) || (!Ipos_RA) || (!Ilim_RA))
+        {
+            printf("ERROR acquiring right arm interfaces\n");
+            return false;
+        }
     }
     
-    fprintf(stderr, " *** moving torso to a given configuration \n");
-    //FOR Sending commands to the TORSO
-    Ienc_TO->getAxes(&njTO);
+    // retriveing number fo joints from interfaces
+    if(useTorso) Ienc_TO->getAxes(&njTO);
+    else njTO = 3;
+    if(useHead) Ienc_HE->getAxes(&njHE);
+    else njHE = 3;
+    if(useLeftArm) Ienc_LA->getAxes(&njLA);  // arms have 7 joints, but only 5 with torques
+    else njLA = 5;
+    if(useRightArm) Ienc_RA->getAxes(&njRA);
+    else njRA = 5;
+    if(useLeftLeg) Ienc_LL->getAxes(&njLL); // legs have 6 joints from 0 to 5
+    else njLL = 6;
+    if(useRightLeg) Ienc_RL->getAxes(&njRL);
+    else njRL = 6;
     
-    //FOR sending commands to the legs
-    Ienc_LL->getAxes(&njLL); //Legs have 6 joints from 0 to 5.
-    Ienc_RL->getAxes(&njRL);
     
-    //Setting Reference Accelerations
-#ifndef DO_NOT_CONTROL_TORSO
-    setRefAcc(Ienc_TO, Ivel_TO);
-#endif
+    //Setting Reference Accelerations and getting the limits, to init the ranges
     
-#ifndef DO_NOT_CONTROL_LEGS
-    setRefAcc(Ienc_RL, Ivel_RL);
-    setRefAcc(Ienc_LL, Ivel_LL);
-#endif
+    if(useTorso)
+    {
+        setRefAcc(Ienc_TO, Ivel_TO);
+        Vector qMinTO = zeros(njTO); Vector qMaxTO = zeros(njTO);
+        for(int i = 0; i < njTO; i++)
+            Ilim_TO->getLimits(i, (qMinTO.data()+ i), (qMaxTO.data()+ i));
+        rangeCheckTO = new rangeCheck(qMinTO, qMaxTO, 0.95);  limitMaskTO = zeros(njTO);
+    }
     
-    //Initializing the ranges
-    Vector qMinTO = zeros(njTO); Vector qMaxTO = zeros(njTO);
-    for(int i = 0; i < njTO; i++)
-        Ilim_TO->getLimits(i, (qMinTO.data()+ i), (qMaxTO.data()+ i));
+    if(useRightLeg)
+    {
+        setRefAcc(Ienc_RL, Ivel_RL);
+        Vector qMinRL = zeros(njRL); Vector qMaxRL = zeros(njRL);
+        for(int i = 0; i < njRL; i++)
+            Ilim_RL->getLimits(i, (qMinRL.data()+ i), (qMaxRL.data()+ i));
+        rangeCheckRL = new rangeCheck(qMinRL, qMaxRL, 0.95);  limitMaskRL = zeros(njRL);
+    }
     
-    Vector qMinRL = zeros(njRL); Vector qMaxRL = zeros(njRL);
-    for(int i = 0; i < njRL; i++)
-        Ilim_RL->getLimits(i, (qMinRL.data()+ i), (qMaxRL.data()+ i));
+    if(useLeftLeg)
+    {
+        setRefAcc(Ienc_LL, Ivel_LL);
+        Vector qMinLL = zeros(njLL); Vector qMaxLL = zeros(njLL);
+        for(int i = 0; i < njLL; i++)
+            Ilim_LL->getLimits(i, (qMinLL.data()+ i), (qMaxLL.data()+ i));
+        rangeCheckLL = new rangeCheck(qMinLL, qMaxLL, 0.95);  limitMaskLL = zeros(njLL);
+    }
     
-    Vector qMinLL = zeros(njLL); Vector qMaxLL = zeros(njLL);
-    for(int i = 0; i < njLL; i++)
-        Ilim_LL->getLimits(i, (qMinLL.data()+ i), (qMaxLL.data()+ i));
+    if(useLeftArm)
+    {
+        setRefAcc(Ienc_LA, Ivel_LA);
+        Vector qMinLA = zeros(njLA); Vector qMaxLA = zeros(njLA);
+        for(int i = 0; i < njLA; i++)
+            Ilim_LA->getLimits(i, (qMinLA.data()+ i), (qMaxLA.data()+ i));
+        rangeCheckLA = new rangeCheck(qMinLA, qMaxLA, 0.95);  limitMaskLA = zeros(njLA);
+    }
     
-    rangeCheckTO = new rangeCheck(qMinTO, qMaxTO, 0.95);  limitMaskTO = zeros(njTO);
-    rangeCheckLL = new rangeCheck(qMinLL, qMaxLL, 0.95);  limitMaskLL = zeros(njLL);
-    rangeCheckRL = new rangeCheck(qMinRL, qMaxRL, 0.95);  limitMaskRL = zeros(njRL);
+    if(useRightArm)
+    {
+        setRefAcc(Ienc_RA, Ivel_RA);
+        Vector qMinRA = zeros(njRA); Vector qMaxRA = zeros(njRA);
+        for(int i = 0; i < njRL; i++)
+            Ilim_RA->getLimits(i, (qMinRA.data()+ i), (qMaxRA.data()+ i));
+        rangeCheckRA = new rangeCheck(qMinRA, qMaxRA, 0.95);  limitMaskRA = zeros(njRA);
+    }
+    
+    if(useHead)
+    {
+        setRefAcc(Ienc_HE, Ivel_HE);
+        Vector qMinHE = zeros(njHE); Vector qMaxHE = zeros(njHE);
+        for(int i = 0; i < njHE; i++)
+            Ilim_HE->getLimits(i, (qMinHE.data()+ i), (qMaxHE.data()+ i));
+        rangeCheckHE = new rangeCheck(qMinHE, qMaxHE, 0.95);  limitMaskHE = zeros(njHE);
+    }
+    
+    
+    
+    
     
     return true;
 }
@@ -1424,6 +1494,7 @@ void ISIR_Controller::run()
     timeStamp.update();
     
     //read from the encoders and update the model of the robot
+    // iDyn -> iCubWholeBody
     readAndUpdate();
     
     
@@ -1486,26 +1557,7 @@ void ISIR_Controller::run()
     
     //***************************** Reading F/T measurements and encoders ****************
     
-    if (!no_sensors)
-    {
-        F_ext_RL = port_ft_foot_right->read(true);
-        F_ext_LL = port_ft_foot_left->read(true);
-        
-        *F_ext_RL = *F_ext_RL - *F_ext_RL0;
-        *F_ext_LL = *F_ext_LL - *F_ext_LL0;
-        
-        // fprintf(stderr, "Right forces in double support are %s\n", (* F_ext_RL).toString().c_str());
-        // fprintf(stderr, "Left  forces in double support are %s\n", (* F_ext_LL).toString().c_str());
-    }
-    
-    // check if the robot is not in contact with the ground
-    if (!no_sensors)
-    {
-        if ((*F_ext_LL)[2] < -50.0 || (*F_ext_RL)[2] < -50.0  )
-            on_ground = true;
-        else
-            on_ground = false;
-    }
+
     
     
     
@@ -1521,6 +1573,14 @@ void ISIR_Controller::run()
     
     // output on ports
     //---------------------------------------
+    
+    
+    // send commands to the robot
+    //------------------------------------
+    if(!display_only)
+    {
+        sendCommandsToRobot();
+    }
     
     
 }
@@ -1552,35 +1612,64 @@ void ISIR_Controller::suspend()
     // Should delete dynamically created data-structures
     // Beware this is quite dangerous!! Could cause discontinuities in the control
     
-    icrt_LA->stopControl();
-    icrt_RA->stopControl();
+    cout<<"Stopping cartesian controllers"<<endl;
+    if(using_cartesian_arm_left) icrt_LA->stopControl();
+    if(using_cartesian_arm_right) icrt_RA->stopControl();
+    if(using_gaze) igaze->stopControl();
     
-    Ivel_LL->stop();    Ipos_LL->setPositionMode();
-    Ivel_RL->stop();    Ipos_RL->setPositionMode();
-    Ivel_TO->stop();    Ipos_TO->setPositionMode();
-    Ivel_HE->stop();    Ipos_HE->setPositionMode();
-    Ivel_LA->stop();    Ipos_LA->setPositionMode();
-    Ivel_RA->stop();    Ipos_RA->setPositionMode();
+    cout<<"Stopping velocity controllers"<<endl;
+    if(useLeftLeg)  { Ivel_LL->stop();    Ipos_LL->setPositionMode();}
+    if(useRightLeg) { Ivel_RL->stop();    Ipos_RL->setPositionMode();}
+    if(useTorso)    { Ivel_TO->stop();    Ipos_TO->setPositionMode();}
+    if(useHead)     { Ivel_HE->stop();    Ipos_HE->setPositionMode();}
+    if(useLeftLeg)  { Ivel_LA->stop();    Ipos_LA->setPositionMode();}
+    if(useRightArm) { Ivel_RA->stop();    Ipos_RA->setPositionMode();}
 }
 //---------------------------------------------------------
 void ISIR_Controller::threadRelease()
 {
     // Should delete dynamically created data-structures
     
-    icrt_LA->stopControl();
-    icrt_RA->stopControl();
+    cout<<"Stopping cartesian controllers"<<endl;
+    if(using_cartesian_arm_left) icrt_LA->stopControl();
+    if(using_cartesian_arm_right) icrt_RA->stopControl();
+    if(using_gaze) igaze->stopControl();
     
-    Ivel_LL->stop();    Ipos_LL->setPositionMode();
-    Ivel_RL->stop();    Ipos_RL->setPositionMode();
-    Ivel_TO->stop();    Ipos_TO->setPositionMode();
-    Ivel_HE->stop();    Ipos_HE->setPositionMode();
-    Ivel_LA->stop();    Ipos_LA->setPositionMode();
-    Ivel_RA->stop();    Ipos_RA->setPositionMode();
+    cout<<"Stopping velocity controllers"<<endl;
+    if(useLeftLeg)  { Ivel_LL->stop();    Ipos_LL->setPositionMode();}
+    if(useRightLeg) { Ivel_RL->stop();    Ipos_RL->setPositionMode();}
+    if(useTorso)    { Ivel_TO->stop();    Ipos_TO->setPositionMode();}
+    if(useHead)     { Ivel_HE->stop();    Ipos_HE->setPositionMode();}
+    if(useLeftLeg)  { Ivel_LA->stop();    Ipos_LA->setPositionMode();}
+    if(useRightArm) { Ivel_RA->stop();    Ipos_RA->setPositionMode();}
     
     closePort(port_lr_trf);
     
-    fprintf(stderr, "Releasing the comStepperThread\n");
-    if(!Opt_nosens)
+    cout<<"Closing the velocity/accelerations estimators"<<endl;
+    
+    if(linEstUp)
+    {
+        delete linEstUp;
+        linEstUp = 0;
+    }
+    if(linEstLow)
+    {
+        delete linEstLow;
+        linEstLow = 0;
+    }
+    if(quadEstUp)
+    {
+        delete quadEstUp;
+        quadEstUp = 0;
+    }
+    if(quadEstLow)
+    {
+        delete quadEstLow;
+        quadEstLow = 0;
+    }
+    
+    fprintf(stderr, "Releasing the ISIR_Controller thread\n");
+    if(!no_sensors)
     {
         fprintf(stderr, "Closing EEWRightLeg port \n");
         closePort(EEWRightLeg);
@@ -1651,7 +1740,7 @@ void ISIR_Controller::threadRelease()
     
     delete rangeCheckTO; delete rangeCheckLL; delete rangeCheckRL;
     
-    fprintf(stderr, "Exiting comStepperThread::threadRelease\n");
+    cout<<"Exiting ISIR_Controller (threadRelease)"<<endl;
     
     
 }
@@ -1696,6 +1785,28 @@ bool ISIR_Controller::readAndUpdate(bool waitMeasure)
     b &= getUpperEncodersSpeedAndAcceleration();
     b &= getLowerEncodersSpeedAndAcceleration();
     setUpperLowerMeasure();
+    
+    // if there are available sensors, read them
+    if (!no_sensors)
+    {
+        F_ext_RL = port_ft_foot_right->read(true);
+        F_ext_LL = port_ft_foot_left->read(true);
+        
+        *F_ext_RL = *F_ext_RL - *F_ext_RL0;
+        *F_ext_LL = *F_ext_LL - *F_ext_LL0;
+        
+        // fprintf(stderr, "Right forces in double support are %s\n", (* F_ext_RL).toString().c_str());
+        // fprintf(stderr, "Left  forces in double support are %s\n", (* F_ext_LL).toString().c_str());
+    }
+    
+    // check if the robot is not in contact with the ground
+    if (!no_sensors)
+    {
+        if ((*F_ext_LL)[2] < -50.0 || (*F_ext_RL)[2] < -50.0  )
+            on_ground = true;
+        else
+            on_ground = false;
+    }
     
     return b;
 }
@@ -1855,6 +1966,34 @@ Vector ISIR_Controller::evalAccLow(const Vector &x)
     return quadEstLow->estimate(el);
 }
 //---------------------------------------------------------
+void ISIR_Controller::defineUsedInterfaces(bool _using_gaze, bool _using_cartesian_arm_left, bool _using_cartesian_arm_right, bool _useLeftArm, bool _useRightArm, bool _useHead, bool _useTorso, bool _useRightLeg, bool _useLeftLeg)
+{
+    using_gaze = _using_gaze;
+    using_cartesian_arm_left = _using_cartesian_arm_left;
+    using_cartesian_arm_right = _using_cartesian_arm_right;
+    useLeftArm = _useLeftArm;
+    useRightArm = _useRightArm;
+    useHead = _useHead;
+    useTorso = _useTorso;
+    useRightLeg = _useRightLeg;
+    useLeftLeg = _useLeftLeg;
+    
+    cout<<"*** CONTROLLED INTERFACES ***"<<endl;
+    cout<<"gaze_control                   "<<toString(using_gaze)<<endl;
+    cout<<"left_arm cartesian_control     "<<toString(using_cartesian_arm_left)<<endl;
+    cout<<"right_arm cartesian_control    "<<toString(using_cartesian_arm_right)<<endl;
+    cout<<"head joints       "<<toString(useHead)<<endl;
+    cout<<"right_arm joints  "<<toString(useRightArm)<<endl;
+    cout<<"left_arm joints   "<<toString(useLeftArm)<<endl;
+    cout<<"torso joints       "<<toString(useTorso)<<endl;
+    cout<<"right_leg joints  "<<toString(useRightLeg)<<endl;
+    cout<<"left_leg joints   "<<toString(useLeftLeg)<<endl;
+    cout<<"******************************"<<endl;
+    
+}
+//---------------------------------------------------------
+
+
 
 
 
@@ -1880,11 +2019,13 @@ void ISIR_Controller::computeControl_ISIR()
     //
     //    iCub::iDyn::iCubTorsoDyn torso;
     //
-    //    iCub::iDyn::iCubWholeBody wholeICub;
+    //        iCub::iDyn::iCubWholeBody wholeICub;
+    //    //
+    //    //    //given whole icub: wholeICub->lower->left
+    //    //
+    //    //    torso.getMass(i);
     //
-    //    //given whole icub: wholeICub->lower->left
-    //
-    //    torso.getMass(i);
+    //    wholeICub->upperTorso->right->getDOF()
     
     
 }
@@ -1903,7 +2044,70 @@ bool ISIR_Controller::moveHand(const int sel_arm, const Vector &xd, const Vector
     {
         return false;
     }
+    
 }
 //---------------------------------------------------------
-
+void ISIR_Controller::sendCommandsToRobot()
+{
+    if(controlMode==VELOCITY)
+    {
+        if(useTorso)    Ivel_TO->velocityMove(cmd_dq_TO.data());
+        if(useRightArm) Ivel_RA->velocityMove(cmd_dq_RA.data());
+        if(useLeftArm)  Ivel_LA->velocityMove(cmd_dq_LA.data());
+        if(useLeftLeg)  Ivel_LL->velocityMove(cmd_dq_LL.data());
+        if(useRightLeg) Ivel_RL->velocityMove(cmd_dq_RL.data());
+        if(useHead)     Ivel_HE->velocityMove(cmd_dq_HE.data());
+    }
+    else if(controlMode==VELOCITY_TORQUE)
+    {
+//        if(useTorso)    Ivel_TO->velocityMove(cmd_dq_TO.data());
+//        if(useRightArm) Ivel_RA->velocityMove(cmd_dq_RA.data());
+//        if(useLeftArm)  Ivel_LA->velocityMove(cmd_dq_LA.data());
+//        if(useLeftLeg)  Ivel_LL->velocityMove(cmd_dq_LL.data());
+//        if(useRightLeg) Ivel_RL->velocityMove(cmd_dq_RL.data());
+//        if(useHead)     Ivel_HE->velocityMove(cmd_dq_HE.data());
+    }
+    else if(controlMode==TORQUE)
+    {
+        if(useTorso)    Ivel_TO->velocityMove(cmd_tau_TO.data());
+        if(useRightArm) Ivel_RA->velocityMove(cmd_tau_RA.data());
+        if(useLeftArm)  Ivel_LA->velocityMove(cmd_tau_LA.data());
+        if(useLeftLeg)  Ivel_LL->velocityMove(cmd_tau_LL.data());
+        if(useRightLeg) Ivel_RL->velocityMove(cmd_tau_RL.data());
+        if(useHead)     Ivel_HE->velocityMove(cmd_tau_HE.data());
+    }
+    else
+    {
+        cout<<"=== ERROR === NO CONTROL === "<<endl;
+    }
+    
+//    saturateVector(dq, vel_sat);
+//    dqLL   = dq.subVector(0        , njLL          -1);
+//    dqRL   = dq.subVector(njLL     , njLL+njRL     -1);
+//    dqTO   = dq.subVector(njLL+njRL, njLL+njRL+njTO-1);
+//    
+//#ifndef DO_NOT_CONTROL_LEGS
+//    if (on_ground)
+//    {
+//        Ivel_RL->velocityMove(dqRL.data());
+//        Ivel_LL->velocityMove(dqLL.data());
+//    }
+//    else
+//    {
+//        Ivel_LL->velocityMove(zeros(njLL).data());
+//        Ivel_RL->velocityMove(zeros(njRL).data());
+//    }
+//#endif
+//    
+//#ifndef DO_NOT_CONTROL_TORSO
+//    if (on_ground)
+//    {
+//        Ivel_TO->velocityMove(dqTO.data());
+//    }
+//    else
+//        Ivel_TO->velocityMove(zeros(njTO).data());
+//#endif
+    
+}
+//---------------------------------------------------------
 
