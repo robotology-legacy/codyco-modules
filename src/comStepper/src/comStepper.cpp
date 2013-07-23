@@ -30,8 +30,8 @@ using namespace iCub::iDyn;
 using namespace std;
 
 // #define COMPUTE_FINITE_DIFF
-#define DO_NOT_CONTROL_TORSO
-#define DO_NOT_CONTROL_LEGS
+// #define DO_NOT_CONTROL_TORSO
+// #define DO_NOT_CONTROL_LEGS
 
 void saturateVector(Vector &v, double sat)
 {
