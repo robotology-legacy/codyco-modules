@@ -753,29 +753,24 @@ void comStepperThread::run()
     updateForceTorque();
     
     //***************************** Computing ZMP ****************************************
+    computeZMPBoth();
+    
     switch (current_phase)
     {
         case LEFT_SUPPORT:
             if (on_ground && !Opt_nosens)
-                computeZMPBoth();
+                zmp_c.setCol(0, inputFilter->filt(zmp_c.getCol(0)));
             break;
             
         case RIGHT_SUPPORT:
             if (on_ground && !Opt_nosens)
-                computeZMPBoth();
+                zmp_a.setCol(0, inputFilter->filt(zmp_a.getCol(0)));
             break;
             
         case BOTH_SUPPORT:
             if (on_ground && !Opt_nosens)
-            {
-                computeZMPBoth();
-            }
+                zmp_a.setCol(0, inputFilter->filt(zmp_a.getCol(0)));
             break;
-    }
-    if (!strcmp(robot_name.c_str(), "icub") && on_ground && !Opt_nosens)
-    {
-        zmp_a.setCol(0, inputFilter->filt(zmp_a.getCol(0)));
-        zmp_c.setCol(0, inputFilter->filt(zmp_c.getCol(0)));
     }
     
     if(verbose){
@@ -2292,6 +2287,9 @@ void comStepperThread::switchSupport(phase newPhase)
     
     if (newPhase == RIGHT_SUPPORT || newPhase == BOTH_SUPPORT)
     {
+        if (on_ground && !Opt_nosens)
+            inputFilter->init(zmp_a.getCol(0));
+        
         Vector H0(1);     H0(0) = pac(0,0);      r2lMinJerkX->init(H0);
         pac_d(0,0) = pac(0,0);
         Vector Y0(1);     Y0(0) = pac(1,0);      r2lMinJerkY->init(Y0);
@@ -2313,6 +2311,9 @@ void comStepperThread::switchSupport(phase newPhase)
     
     if (newPhase == LEFT_SUPPORT)
     {
+        if (on_ground && !Opt_nosens)
+            inputFilter->init(zmp_c.getCol(0));
+
         Vector H0(1);     H0(0) = pca(0,0);      r2lMinJerkX->init(H0);
         pca_d(0,0) = pca(0,0);
         Vector Y0(1);     Y0(0) = pca(1,0);      r2lMinJerkY->init(Y0);
