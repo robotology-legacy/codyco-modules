@@ -278,7 +278,7 @@ outputComPosPortString( outputComPosPort),  outputR2lPosPortString( outputR2lPos
         com_out_vel_port->open(outputComVelPort.c_str());
     }
     else
-        fprintf(stderr, "Skipping the port for the COM vel desired port!!\n");
+        fprintf(stderr, "Skipping the port for the COM vel output port!!\n");
     
     if (!outputComPhsPort.empty())
     {
@@ -601,7 +601,13 @@ bool comStepperThread::threadInit()
     comMinJerkZ = new minJerkTrajGen(iniZ, getRate()/1000.0, MIN_JERK_COM_TIME);
 
     //low pass ZMP filter
-    inputFilter = new FirstOrderLowPassFilter(0.01, getRate()/1000.0, zmp_a.getCol(0));
+    if (!strcmp(robot_name.c_str(), "icub") && on_ground && !Opt_nosens)
+    {
+        updateRotations();
+        updateForceTorque();
+        computeZMPBoth();
+        inputFilter = new FirstOrderLowPassFilter(0.5, getRate()/1000.0, zmp_a.getCol(0));
+    }
     
     //minimum jerk filters for the R2L
     iniX(1);     iniX(0) = pac_t(0,0);
@@ -640,28 +646,45 @@ bool comStepperThread::threadInit()
     return true;
 }
 
-void comStepperThread::run()
+void comStepperThread::updateForceTorque()
 {
-    //updating Time Stamp
-    static Stamp timeStamp;
-    timeStamp.update();
+    //***************************** Reading F/T measurements and encoders ****************
     
-    //upate the desired COM
-    updateComFilters();
+    if (!Opt_nosens)
+    {
+        F_ext_RL = port_ft_foot_right->read(true);
+        F_ext_LL = port_ft_foot_left->read(true);
+        
+        *F_ext_RL = *F_ext_RL - *F_ext_RL0;
+        *F_ext_LL = *F_ext_LL - *F_ext_LL0;
+        
+        // fprintf(stderr, "Right forces in double support are %s\n", (* F_ext_RL).toString().c_str());
+        // fprintf(stderr, "Left  forces in double support are %s\n", (* F_ext_LL).toString().c_str());
+    }
     
-    //upate the desired COM and R2L pos, vel
-    updateComDesired();
+    // check if the robot is not in contact with the ground
+    if (!Opt_nosens)
+    {
+        if ((*F_ext_LL)[2] < -50.0 || (*F_ext_RL)[2] < -50.0  )
+            on_ground = true;
+        else
+            on_ground = false;
+    }
     
+}
+
+void comStepperThread::updateRotations()
+{
     //********************** COMPUTE JACOBIANS ************************************
     // In this notation we define a,b,c as follows:
     // right_foot_reference_frame = 'a';
     // base_reference_frame       = 'b';
     // left_foot_reference_frame  = 'c';
-    
+
     Ienc_RL->getEncoders(qRL.data());      qRL_rad = CTRL_DEG2RAD * qRL;       Right_Leg->setAng(qRL_rad);
     Ienc_LL->getEncoders(qLL.data());      qLL_rad = CTRL_DEG2RAD * qLL;       Left_Leg->setAng(qLL_rad);
     Ienc_TO->getEncoders(qTO.data());      qTO_rad = CTRL_DEG2RAD * qTO;
-
+    
     q.setSubvector(   0     , qLL);    q_rad.setSubvector(   0     , qLL_rad);
     q.setSubvector(njLL     , qRL);    q_rad.setSubvector(njLL     , qRL_rad);
     q.setSubvector(njLL+njRL, qTO);    q_rad.setSubvector(njLL+njRL, qTO_rad);
@@ -689,10 +712,26 @@ void comStepperThread::run()
     Rbc = Tbc.submatrix(0, 2, 0, 2);
     Rac = Tac.submatrix(0, 2, 0, 2);
     Rca = Tca.submatrix(0, 2, 0, 2);
-
+    
     pab =   -1.0 * Rba.transposed() * pba;
     pcb =   -1.0 * Rbc.transposed() * pbc;
     rca_b = -1.0 * Rba * pac;
+}
+
+void comStepperThread::run()
+{
+    //updating Time Stamp
+    static Stamp timeStamp;
+    timeStamp.update();
+    
+    //upate the desired COM
+    updateComFilters();
+    
+    //upate the desired COM and R2L pos, vel
+    updateComDesired();
+    
+    //update rotation matrices
+    updateRotations();
     
     if (comPosPortString.empty())
         p_b  = zeros(3,1);
@@ -711,29 +750,7 @@ void comStepperThread::run()
     pi_c  =       PI * (Rbc.transposed() * p_b + pcb);
     
     //***************************** Reading F/T measurements and encoders ****************
-    
-    if (!Opt_nosens)
-    {
-        F_ext_RL = port_ft_foot_right->read(true);
-        F_ext_LL = port_ft_foot_left->read(true);
-        
-        *F_ext_RL = *F_ext_RL - *F_ext_RL0;
-        *F_ext_LL = *F_ext_LL - *F_ext_LL0;
-        
-        // fprintf(stderr, "Right forces in double support are %s\n", (* F_ext_RL).toString().c_str());
-        // fprintf(stderr, "Left  forces in double support are %s\n", (* F_ext_LL).toString().c_str());
-    }
-    
-    // check if the robot is not in contact with the ground
-    if (!Opt_nosens)
-    {
-        if ((*F_ext_LL)[2] < -50.0 || (*F_ext_RL)[2] < -50.0  )
-            on_ground = true;
-        else
-            on_ground = false;
-    }
-    
-    
+    updateForceTorque();
     
     //***************************** Computing ZMP ****************************************
     switch (current_phase)
@@ -755,8 +772,11 @@ void comStepperThread::run()
             }
             break;
     }
-    
-    
+    if (!strcmp(robot_name.c_str(), "icub") && on_ground && !Opt_nosens)
+    {
+        zmp_a.setCol(0, inputFilter->filt(zmp_a.getCol(0)));
+        zmp_c.setCol(0, inputFilter->filt(zmp_c.getCol(0)));
+    }
     
     if(verbose){
         fprintf(stderr, "ZMP coordinates: %f %f       %d \n",zmp_xy[0],zmp_xy[1],(int)(torso));
@@ -1735,7 +1755,6 @@ void comStepperThread::computeZMPBoth()
     zmp_a(0,0) = 0.0;  zmp_a(1,0) = zmp_a_tmp(0,0);  zmp_a(2,0) = zmp_a_tmp(1,0);
     
     zmp_c = Rca * zmp_a + pca;
-    zmp_c.setCol(0, inputFilter->filt(zmp_c.getCol(0)));
     
     //fprintf(stderr, "ZMP in double support is %s\n", zmpRL_a.toString().c_str());
 }
@@ -1750,7 +1769,6 @@ void comStepperThread::computeZMPRight()
     Matrix zmp_a_tmp = -1.0 * luinv(Sf_a.submatrix(1, 2, 1, 2)) * m_a.submatrix(1, 2, 0, 0);
     zmp_a(0,0) = 0.0;  zmp_a(1,0) = zmp_a_tmp(0,0);  zmp_a(2,0) = zmp_a_tmp(1,0);
     
-    zmp_a.setCol(0, inputFilter->filt(zmp_a.getCol(0)));
     //fprintf(stderr, "ZMP in right support is %s\n", zmpRL_a.toString().c_str());
 }
 
@@ -1764,7 +1782,6 @@ void comStepperThread::computeZMPLeft()
     Matrix zmp_c_tmp = -1.0 * luinv(Sf_c.submatrix(1, 2, 1, 2)) * m_c.submatrix(1, 2, 0, 0);
     zmp_c(0,0) = 0.0;  zmp_c(1,0) = zmp_c_tmp(0,0);  zmp_c(2,0) = zmp_c_tmp(1,0);
     
-    zmp_c.setCol(0, inputFilter->filt(zmp_c.getCol(0)));
     //fprintf(stderr, "ZMP in left support is %s\n", zmpLL_c.toString().c_str());
 }
 
@@ -1914,7 +1931,8 @@ void comStepperThread::threadRelease()
     fprintf(stderr, "Deleting minJerk\n");
     delete comMinJerkY; delete comMinJerkZ; delete comMinJerkX;
     delete r2lMinJerkY; delete r2lMinJerkZ; delete r2lMinJerkX;
-    delete inputFilter;
+    if (!strcmp(robot_name.c_str(), "icub"))
+        delete inputFilter;
     fprintf(stderr, "Deleting masks\n");
     delete mask_r2l_swg;     delete mask_r2l_sup;
     delete mask_com_torso;
@@ -2411,7 +2429,7 @@ void comStepperThread::updateComDesired()
             }
         }
         
-        if (!desiredComVelPortString.empty())
+        if (!desiredR2lVelPortString.empty())
         {
             tmp = r2l_des_vel_port->read(false);
             if (!(tmp==NULL))

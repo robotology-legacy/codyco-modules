@@ -287,6 +287,8 @@ public:
     void switchSupport(phase newPhase);
     void updateComFilters();
     void updateComDesired();
+    void updateForceTorque();
+    void updateRotations();
     bool check_njTO(int _njTO);
     bool check_njRL(int _njRL);
     bool check_njLL(int _njLL);
