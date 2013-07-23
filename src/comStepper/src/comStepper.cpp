@@ -772,7 +772,7 @@ void comStepperThread::run()
             }
             break;
     }
-    if (!strcmp(robot_name.c_str(), "icub") && !strcmp(robot_name.c_str(), "icub") && on_ground && !Opt_nosens)
+    if (!strcmp(robot_name.c_str(), "icub") && on_ground && !Opt_nosens)
     {
         zmp_a.setCol(0, inputFilter->filt(zmp_a.getCol(0)));
         zmp_c.setCol(0, inputFilter->filt(zmp_c.getCol(0)));
@@ -1931,7 +1931,8 @@ void comStepperThread::threadRelease()
     fprintf(stderr, "Deleting minJerk\n");
     delete comMinJerkY; delete comMinJerkZ; delete comMinJerkX;
     delete r2lMinJerkY; delete r2lMinJerkZ; delete r2lMinJerkX;
-    delete inputFilter;
+    if (!strcmp(robot_name.c_str(), "icub"))
+        delete inputFilter;
     fprintf(stderr, "Deleting masks\n");
     delete mask_r2l_swg;     delete mask_r2l_sup;
     delete mask_com_torso;
