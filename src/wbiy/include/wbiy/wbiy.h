@@ -41,22 +41,11 @@
 
 namespace wbiy
 {
+    /** Return true if the robotName is "icubSim", false otherwise. */
+    bool isRobotSimulator(const std::string &robotName);
     
-    struct HashLocalId
-    {
-        std::size_t operator()(const wbi::LocalId &b) const
-        { return b.bodyPart*100 + b.index; }
-    };
-    
-#if __APPLE__
-    typedef std::tr1::unordered_map<wbi::LocalId, unsigned int, HashLocalId> jointMap;
-#else 
-    typedef std::unordered_map<wbi::LocalId, unsigned int, HashLocalId> jointMap;
-#endif
-    
+    /** Open a remote control board driver for the specified body part. */
     bool openPolyDriver(const std::string &localName, const std::string &robotName, yarp::dev::PolyDriver *&pd, const std::string &bodyPartName);
-    
-//    bool updateLocal2GlobalIndex(wbi::LocalIdList &jId, unsigned int dof, jointMap &l2g, std::vector<wbi::LocalId> &g2l);
     
     
     /*
@@ -81,7 +70,7 @@ namespace wbiy
         std::map<int, yarp::sig::Vector>  pwmLastRead;
 
         // yarp interfaces
-        std::map<int, yarp::dev::IEncoders*>            ienc;
+        std::map<int, yarp::dev::IEncodersTimed*>       ienc;
         std::map<int, yarp::dev::IOpenLoopControl*>     iopl;
         std::map<int, yarp::dev::PolyDriver*>           dd;
         
@@ -277,7 +266,7 @@ namespace wbiy
         
     public:
         // *** CONSTRUCTORS ***
-        icubWholeBodyInterface(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames);
+        icubWholeBodyInterface(const char* _name, const char* _robotName);
         
         virtual bool init();
         virtual int getDoFs();
