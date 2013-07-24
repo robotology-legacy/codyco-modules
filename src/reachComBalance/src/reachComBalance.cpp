@@ -87,6 +87,12 @@ ISIR_Balancer::ISIR_Balancer()
     icrtRA=icrtLA=icrt=0;
     igaze=0;
     
+    //
+    count=0;
+    was_on_ground=false;
+    
+    //params for controllers
+    cartesian_tolerances.resize(7,0.0);
     torsoEnabled = false;
     trackingEnabled = false;
     cartesian_tolerance = 0.01;
@@ -116,6 +122,17 @@ ISIR_Balancer::ISIR_Balancer()
     od.resize(4,0.0);
     //
     
+    //
+    leftArmHandOrienTable.resize(7,0.0);
+    rightArmHandOrienTable.resize(7,0.0);
+    leftArmJointsStiffness.resize(7,0.0);
+    leftArmJointsDamping.resize(7,0.0);
+    rightArmJointsStiffness.resize(7,0.0);
+    rightArmJointsDamping.resize(7,0.0);
+    rightLegJointsStiffness.resize(6,0.0);
+    rightLegJointsDamping.resize(6,0.0);
+    leftLegJointsStiffness.resize(6,0.0);
+    leftLegJointsDamping.resize(6,0.0);
     
 }
 
@@ -158,6 +175,16 @@ bool ISIR_Balancer::configure(ResourceFinder &rf)
     readDouble(rf,"reach_tol",reachTol,0.01);
     //
     readVector(rf,"cartesian_tolerances",cartesian_tolerances,7);
+    //
+    int controlm;
+    readInt(rf, "control_mode", controlm, 0);
+    if (controlm==1) controlMode=VELOCITY_TORQUE;
+    else if(controlm==2) controlMode=TORQUE;
+    else
+    {
+        //velocity control il also default
+        controlMode=VELOCITY;
+    }
     
     // torso part
     //....................................................
@@ -242,12 +269,12 @@ bool ISIR_Balancer::configure(ResourceFinder &rf)
     optionsLA.put("remote",string("/"+robot+"/left_arm").c_str());
     // right leg
     optionsRL.put("device","remote_controlboard");
-    optionsRL.put("local",string("/"+name+"/right_arm").c_str());
-    optionsRL.put("remote",string("/"+robot+"/right_arm").c_str());
+    optionsRL.put("local",string("/"+name+"/right_leg").c_str());
+    optionsRL.put("remote",string("/"+robot+"/right_leg").c_str());
     // left leg
     optionsLL.put("device","remote_controlboard");
-    optionsLL.put("local",string("/"+name+"/left_arm").c_str());
-    optionsLL.put("remote",string("/"+robot+"/left_arm").c_str());
+    optionsLL.put("local",string("/"+name+"/left_leg").c_str());
+    optionsLL.put("remote",string("/"+robot+"/left_leg").c_str());
     // torso
     optionsT.put("device","remote_controlboard");
     optionsT.put("local",string("/"+name+"/torso").c_str());
@@ -272,7 +299,7 @@ bool ISIR_Balancer::configure(ResourceFinder &rf)
     
     // torso
     //....................................................
-    if(!createDriver(ddH, optionsT))
+    if(!createDriver(ddT, optionsT))
     {
         cout<<"Error: unable to create driver for torso"<<endl;
         close();
@@ -551,19 +578,6 @@ bool ISIR_Balancer::configure(ResourceFinder &rf)
     if (balThread->start())
     {
         cout<<"Starting thread!"<<endl;
-        //        fcout<<"Initializing offsets on forces!"<<endl;
-        //        (*balThread->F_ext_RL0) = w0RL;
-        //        (*balThread->F_ext_LL0) = w0LL;
-        //        fprintf(stderr, "Checking Device Drivers dimensions!\n");
-        
-        //        if (!balThread->check_njTO(njTO) || !balThread->check_njLL(njLL) || !balThread->check_njRL(njRL))
-        //        {
-        //            fprintf(stderr, "Wrong number of torso/legs joints!\n");
-        //            return false;
-        //        }
-        
-        // control masks
-        //        balThread->defineControlMasks(mask_r2l_swg, mask_r2l_sup, mask_com_torso);
         
         return true;
     }
@@ -580,7 +594,6 @@ bool ISIR_Balancer::configure(ResourceFinder &rf)
 //---------------------------------------------------------
 bool ISIR_Balancer::close()
 {
-    
     cout<< "Stopping controller thread...\n";
     balThread->stop();
     cout<< "controller thread stopped\n";
@@ -599,7 +612,6 @@ bool ISIR_Balancer::close()
     if(using_cartesian_arm_left)  icrtLA->restoreContext(startup_context_id_LA);
     if (using_gaze) igaze->restoreContext(startup_context_id_gaze);
     Time::delay(0.2);
-    
     
     cout<<"Closing rpc port"<<endl;
     rpcPort.interrupt();
@@ -628,13 +640,25 @@ double ISIR_Balancer::getPeriod()
 //---------------------------------------------------------
 bool ISIR_Balancer::updateModule()
 {
-    if (balThread->on_ground)
-        fprintf(stderr, "I'm running ON  ground!!\n");
-    else
-        fprintf(stderr, "I'm running OFF ground!!\n");
+    if(count==0)
+        cout<<"To send commands, open a rpc port: \n"
+        <<"      yarp rpc --client /myPort \n"
+        <<"Then connect with: \n"
+        <<"      yarp connect /myPort /ISIR/rpc:i"<<endl;
+    
+    if(count%60==0)
+    {
+        cout<<" reachComBalance module alive since "<<(count/60)<<" mins ... "<<endl;
+    }
+    
+    if(was_on_ground!=balThread->on_ground)
+    {
+        was_on_ground=balThread->on_ground;
+        if(was_on_ground)   cout<<"++++ icub ON ground ++++"<<endl;
+        else                cout<<"++++ icub OFF ground ++++"<<endl;
+    }
     
     double avgTime, stdDev, period;
-    
     period = balThread->getRate();
     balThread->getEstPeriod(avgTime,stdDev);
     
@@ -643,6 +667,7 @@ bool ISIR_Balancer::updateModule()
         printf("(real period: %3.3f +/- %3.3f. Expected %3.3f )\n",avgTime, stdDev, period);
     }
     
+    count++;
     return true;
 }
 //---------------------------------------------------------
@@ -1233,10 +1258,16 @@ controlMode(_controlMode)
     //Opt_nosens = no_sensors;
     //Opt_ankles_sens = feet_sensors;
     
+    wbsName="/wholeBodyDynamics";
+    
     
     //---------------------------- PORTS ---------------------------------------------
     if (!no_sensors)
     {
+        // these ports are open only if there are the sensors we need
+        // --> no for the simulator
+        // EEWRightLeg, EEWLeftLeg, EEWLeftAnkle, EEWRightAnkle, objPort, objPort2, desired_zmp, port_ft_foot_left, port_ft_foot_right
+        
         EEWRightLeg = new BufferedPort<Vector>; //Creating, opening and connecting PORT
         EEWRightLeg->open(string("/"+local_name+"/right_leg/endEffectorWrench:i").c_str());
         Network::connect(string(wbsName+"/right_leg/endEffectorWrench:o").c_str(), string("/"+local_name+"/right_leg/endEffectorWrench:i").c_str(),"tcp",false);
@@ -1282,12 +1313,8 @@ controlMode(_controlMode)
         
     }
     
-    COM_ref_port = new BufferedPort<Vector>;
-    COM_ref_port->open(string("/"+local_name+"/com_ref:o").c_str());
-    
-    ankle_angle = new BufferedPort<Vector>;
-    ankle_angle->open(string("/"+local_name+"/commanded_ankle_ang:o").c_str());
-    
+    port_ankle_angle = new BufferedPort<Vector>;
+    port_ankle_angle->open(string("/"+local_name+"/commanded_ankle_ang:o").c_str());
     
     Right_Leg    = new iCubLeg("right");
     Left_Leg     = new iCubLeg("left");
@@ -1305,6 +1332,20 @@ controlMode(_controlMode)
     linEstLow =new AWLinEstimator(16,1.0);
     quadEstLow=new AWQuadEstimator(25,1.0);
     InertialEst = new AWLinEstimator(16,1.0);
+    
+    init_upper();
+    init_lower();
+    
+    F_ext_LL = new Vector(6);
+    F_ext_LL0 = new Vector(6); F_ext_LL0->zero();
+    //*F_ext_LL0 = zeros(6); 
+    
+    F_ext_RL = new Vector(6);
+    F_ext_RL0 = new Vector(6); F_ext_RL0->zero();
+    //*F_ext_RL0 = zeros(6);
+    
+    
+    
 }
 
 //---------------------------------------------------------
@@ -1312,20 +1353,15 @@ bool ISIR_Controller::threadInit()
 {
     on_ground = true;
     
-    fprintf(stderr, " *** initializing the device drivers \n");
-    F_ext_LL = new Vector(6);
-    F_ext_LL0 = new Vector(6);
-    *F_ext_LL0 = zeros(6);
-    
-    F_ext_RL = new Vector(6);
-    F_ext_RL0 = new Vector(6);
-    *F_ext_RL0 = zeros(6);
+    cout<<" *** initializing the device drivers \n";
+
     
     //POLIDRIVERS AND INTERFACES
     
     // Torso Interface
     if(useTorso)
     {
+        cout<<"torso"<<endl;
         ddT->view(Ienc_TO);
         ddT->view(Ictrl_TO);
         ddT->view(Ivel_TO);
@@ -1339,9 +1375,27 @@ bool ISIR_Controller::threadInit()
         }
     }
     
+    // Head Interface
+    if(useHead)
+    {
+        cout<<"head"<<endl;
+        ddH->view(Ienc_HE);
+        ddH->view(Ictrl_HE);
+        ddH->view(Ivel_HE);
+        ddH->view(Ipid_HE);
+        ddH->view(Ipos_HE);
+        ddH->view(Ilim_HE);
+        if((!ddH) || (!Ienc_HE) || (!Ictrl_HE) || (!Ivel_HE) || (!Ipid_HE) || (!Ipos_HE) || (!Ilim_HE))
+        {
+            printf("ERROR acquiring head interfaces\n");
+            return false;
+        }
+    }
+    
     //Right leg interfaces
     if(useRightLeg)
     {
+        cout<<"right leg"<<endl;
         ddRL->view(Ienc_RL);
         ddRL->view(Ictrl_RL);
         ddRL->view(Ivel_RL);
@@ -1359,6 +1413,7 @@ bool ISIR_Controller::threadInit()
     //Left leg interfaces
     if(useLeftLeg)
     {
+        cout<<"left leg"<<endl;
         ddLL->view(Ienc_LL);
         ddLL->view(Ictrl_LL);
         ddLL->view(Ivel_LL);
@@ -1376,10 +1431,10 @@ bool ISIR_Controller::threadInit()
     //Left arm interfaces
     if(useLeftArm)
     {
+        cout<<"left arm"<<endl;
         ddLA->view(Ienc_LA);
         ddLA->view(Ictrl_LA);
         ddLA->view(Ivel_LA);
-        ddLA->view(Ipid_LA);
         ddLA->view(Ipid_LA);
         ddLA->view(Ipos_LA);
         ddLA->view(Ilim_LA);
@@ -1393,10 +1448,10 @@ bool ISIR_Controller::threadInit()
     //Right arm interfaces
     if(useRightArm)
     {
+        cout<<"right arm"<<endl;
         ddRA->view(Ienc_RA);
         ddRA->view(Ictrl_RA);
         ddRA->view(Ivel_RA);
-        ddRA->view(Ipid_RA);
         ddRA->view(Ipid_RA);
         ddRA->view(Ipos_RA);
         ddRA->view(Ilim_RA);
@@ -1420,6 +1475,15 @@ bool ISIR_Controller::threadInit()
     else njLL = 6;
     if(useRightLeg) Ienc_RL->getAxes(&njRL);
     else njRL = 6;
+    
+    cout<<"Number of Joints: "<<endl
+    <<"TO "<<njTO<<"  - "<<toString(useTorso,4)<<endl
+    <<"HE "<<njHE<<"  - "<<toString(useHead,4)<<endl
+    <<"RL "<<njRL<<"  - "<<toString(useRightLeg,4)<<endl
+    <<"LL "<<njLL<<"  - "<<toString(useLeftLeg,4)<<endl
+    <<"RA "<<njRA<<" - "<<toString(useRightArm,4)<<endl
+    <<"LA "<<njLA<<" - "<<toString(useLeftArm,4)<<endl;
+    
     
     
     //Setting Reference Accelerations and getting the limits, to init the ranges
@@ -1493,73 +1557,72 @@ void ISIR_Controller::run()
     static Stamp timeStamp;
     timeStamp.update();
     
+    //cout<<"time  "<<timeStamp.getTime()<<endl;
+    
     //read from the encoders and update the model of the robot
     // iDyn -> iCubWholeBody
     readAndUpdate();
     
     
-    //********************** COMPUTE JACOBIANS ************************************
-    // In this notation we define a,b,c as follows:
-    // right_foot_reference_frame = 'a';
-    // base_reference_frame       = 'b';
-    // left_foot_reference_frame  = 'c';
+//    //********************** COMPUTE JACOBIANS ************************************
+//    // In this notation we define a,b,c as follows:
+//    // right_foot_reference_frame = 'a';
+//    // base_reference_frame       = 'b';
+//    // left_foot_reference_frame  = 'c';
+//    
+//    Ienc_RL->getEncoders(qRL.data());
+//    qRL_rad = CTRL_DEG2RAD * qRL;
+//    Right_Leg->setAng(qRL_rad);
+//    
+//    Ienc_LL->getEncoders(qLL.data());
+//    qLL_rad = CTRL_DEG2RAD * qLL;
+//    Left_Leg->setAng(qLL_rad);
+//    
+//    Ienc_TO->getEncoders(qTO.data());
+//    qTO_rad = CTRL_DEG2RAD * qTO;
+//    
+//    rangeCheckLL->isAtBoundaries(qLL, limitMaskLL);
+//    rangeCheckRL->isAtBoundaries(qRL, limitMaskRL);
+//    rangeCheckTO->isAtBoundaries(qTO, limitMaskTO);
     
-    Ienc_RL->getEncoders(qRL.data());
-    qRL_rad = CTRL_DEG2RAD * qRL;
-    Right_Leg->setAng(qRL_rad);
-    
-    Ienc_LL->getEncoders(qLL.data());
-    qLL_rad = CTRL_DEG2RAD * qLL;
-    Left_Leg->setAng(qLL_rad);
-    
-    Ienc_TO->getEncoders(qTO.data());
-    qTO_rad = CTRL_DEG2RAD * qTO;
-    
-    rangeCheckLL->isAtBoundaries(qLL, limitMaskLL);
-    rangeCheckRL->isAtBoundaries(qRL, limitMaskRL);
-    rangeCheckTO->isAtBoundaries(qTO, limitMaskTO);
-    
-    Tba = Right_Leg->getH();
-    Tbc =  Left_Leg->getH();
-    
-    Tab = iCub::ctrl::SE3inv(Tba);
-    Tac = Tab * Tbc;
-    Tca = iCub::ctrl::SE3inv(Tac);
-    
-    Jba = Right_Leg->GeoJacobian();
-    Jbc = Left_Leg->GeoJacobian();
-    
-    pba = Tba.submatrix(0, 2, 3, 3);
-    pbc = Tbc.submatrix(0, 2, 3, 3);
-    pac = Tac.submatrix(0, 2, 3, 3);
-    pca = Tca.submatrix(0, 2, 3, 3);
-    
-    Rba = Tba.submatrix(0, 2, 0, 2);
-    Rbc = Tbc.submatrix(0, 2, 0, 2);
-    Rac = Tac.submatrix(0, 2, 0, 2);
-    Rca = Tca.submatrix(0, 2, 0, 2);
-    
-    if (comPosPortString.empty())
-        p_b  = zeros(3,1);
-    else
-        p_b.setCol(0, (*COM_Posit_port->read()).subVector(0, 2)) ;
-    
-    if (comJacPortString.empty())
-        Jb_p = zeros(3, Jba.cols());
-    else
-    {
-        Jb_com   = (*COM_Jacob_port->read()).removeRows(3, 3);
-        Jb_p     = Jb_com.submatrix(0, 2, njLL, njLL+njRL-1);
-    }
-    
-    pi_a  =       PI * (Rba.transposed() * p_b + pab);
-    pi_c  =       PI * (Rbc.transposed() * p_b + pcb);
+//    Tba = Right_Leg->getH();
+//    Tbc =  Left_Leg->getH();
+//    
+//    Tab = iCub::ctrl::SE3inv(Tba);
+//    Tac = Tab * Tbc;
+//    Tca = iCub::ctrl::SE3inv(Tac);
+//    
+//    Jba = Right_Leg->GeoJacobian();
+//    Jbc = Left_Leg->GeoJacobian();
+//    
+//    pba = Tba.submatrix(0, 2, 3, 3);
+//    pbc = Tbc.submatrix(0, 2, 3, 3);
+//    pac = Tac.submatrix(0, 2, 3, 3);
+//    pca = Tca.submatrix(0, 2, 3, 3);
+//    
+//    Rba = Tba.submatrix(0, 2, 0, 2);
+//    Rbc = Tbc.submatrix(0, 2, 0, 2);
+//    Rac = Tac.submatrix(0, 2, 0, 2);
+//    Rca = Tca.submatrix(0, 2, 0, 2);
+//    
+//    if (comPosPortString.empty())
+//        p_b  = zeros(3,1);
+//    else
+//        p_b.setCol(0, (*COM_Posit_port->read()).subVector(0, 2)) ;
+//    
+//    if (comJacPortString.empty())
+//        Jb_p = zeros(3, Jba.cols());
+//    else
+//    {
+//        Jb_com   = (*COM_Jacob_port->read()).removeRows(3, 3);
+//        Jb_p     = Jb_com.submatrix(0, 2, njLL, njLL+njRL-1);
+//    }
+//    
+//    pi_a  =       PI * (Rba.transposed() * p_b + pab);
+//    pi_c  =       PI * (Rbc.transposed() * p_b + pcb);
     
     //***************************** Reading F/T measurements and encoders ****************
-    
 
-    
-    
     
     
     
@@ -1643,102 +1706,52 @@ void ISIR_Controller::threadRelease()
     if(useLeftLeg)  { Ivel_LA->stop();    Ipos_LA->setPositionMode();}
     if(useRightArm) { Ivel_RA->stop();    Ipos_RA->setPositionMode();}
     
-    closePort(port_lr_trf);
-    
+
     cout<<"Closing the velocity/accelerations estimators"<<endl;
+    if(linEstUp)   {delete linEstUp; linEstUp = 0;}
+    if(linEstLow)  {delete linEstLow; linEstLow = 0;}
+    if(quadEstUp)  {delete quadEstUp;quadEstUp = 0;}
+    if(quadEstLow) {delete quadEstLow;quadEstLow = 0;}
+    cout<<"Deleting ZMP estimators"<<endl;
+    if(zmp_xy_vel_estimator) delete zmp_xy_vel_estimator;
     
-    if(linEstUp)
-    {
-        delete linEstUp;
-        linEstUp = 0;
-    }
-    if(linEstLow)
-    {
-        delete linEstLow;
-        linEstLow = 0;
-    }
-    if(quadEstUp)
-    {
-        delete quadEstUp;
-        quadEstUp = 0;
-    }
-    if(quadEstLow)
-    {
-        delete quadEstLow;
-        quadEstLow = 0;
-    }
+    cout<<"Deleting models of the robot"<<endl;
+    if(icub)        {delete icub;}
+    if(Right_Leg)   {delete Right_Leg;}
+    if(Left_Leg)    {delete Left_Leg;}
+    if(Inertia_Sens){delete Inertia_Sens;}
     
-    fprintf(stderr, "Releasing the ISIR_Controller thread\n");
+    cout<<"Closing ports"<<endl;
+    closePort(port_ankle_angle);
+        
     if(!no_sensors)
     {
-        fprintf(stderr, "Closing EEWRightLeg port \n");
         closePort(EEWRightLeg);
-        
-        fprintf(stderr, "Closing EEWLeftLeg port \n");
         closePort(EEWLeftLeg);
-        
-        fprintf(stderr, "Closing EEWRightAnkle port\n");
         closePort(EEWRightAnkle);
-        
-        fprintf(stderr, "Closing EEWLeftAnkle port\n");
         closePort(EEWLeftAnkle);
-        
-        fprintf(stderr, "Closing Object Port \n");
         closePort(objPort);
-        
-        fprintf(stderr, "Closing Object2 Port \n");
         closePort(objPort2);
-        
-        fprintf(stderr, "Closing desired_zmp port\n");
         closePort(desired_zmp);
-        
+        closePort(port_ft_foot_left);
+        closePort(port_ft_foot_right);
     }
     
-    if(!comPosPortString.empty())
-    {
-        fprintf(stderr, "Closing COM_Posit_port\n");
-        closePort(COM_Posit_port);
-    }
+    cout<<"Deleting range checks"<<endl;
+    if(rangeCheckTO) delete rangeCheckTO;
+    if(rangeCheckHE) delete rangeCheckHE;
+    if(rangeCheckLA) delete rangeCheckLA;
+    if(rangeCheckLL) delete rangeCheckLL;
+    if(rangeCheckRA) delete rangeCheckRA;
+    if(rangeCheckRL) delete rangeCheckRL;    
     
-    if(!comJacPortString.empty())
-    {
-        fprintf(stderr, "Closing COM_Jacob_port\n");
-        closePort(COM_Jacob_port);
-    }
+    cout<<"Releasing the ISIR_Controller thread"<<endl;
     
-    if(!r2lErrPortString.empty())
-    {
-        fprintf(stderr, "Closing r2l_err_port\n");
-        closePort(r2l_err_port);
-    }
-    
-    if(!comErrPortString.empty())
-    {
-        fprintf(stderr, "Closing COM_Jacob_port\n");
-        closePort(COM_err_port);
-    }
+    // close the ISIR controller from XDE here
+    //----------------------------------------------
     
     
-    fprintf(stderr, "Closing commanded_ankle_port\n");
-    closePort(ankle_angle);
-    fprintf(stderr, "Closing COM_ref_port\n");
-    closePort(COM_ref_port);
-    fprintf(stderr, "Deleting the right leg\n");
-    delete Right_Leg;
-    fprintf(stderr, "Deleting the left leg\n");
-    delete Left_Leg;
-    fprintf(stderr, "Deleting the velocity estimator\n");
-    delete zmp_xy_vel_estimator;
-    fprintf(stderr, "Deleting minJerk\n");
-    delete minJerkY; delete minJerkZ; delete minJerkH;
-    fprintf(stderr, "Deleting masks\n");
-    delete mask_r2l_swg;     delete mask_r2l_sup;
-    delete mask_com_torso;
-    delete n_r2l_swg; delete n_r2l_sup;
-    delete n_com_swg; delete n_com_sup;
-    delete n_com_torso;
-    
-    delete rangeCheckTO; delete rangeCheckLL; delete rangeCheckRL;
+    //----------------------------------------------
     
     cout<<"Exiting ISIR_Controller (threadRelease)"<<endl;
     
@@ -1992,7 +2005,71 @@ void ISIR_Controller::defineUsedInterfaces(bool _using_gaze, bool _using_cartesi
     
 }
 //---------------------------------------------------------
-
+void ISIR_Controller::init_upper()
+{
+    // Left_arm variables
+    int allJnt = 0;
+    int jnt=7;
+    encoders_arm_left.resize(jnt,0.0);
+    cmd_q_LA.resize(jnt,0.0);
+    cmd_dq_LA.resize(jnt,0.0);
+    cmd_tau_LA.resize(jnt,0.0);
+    allJnt+=jnt;
+    
+    // Right_arm variables
+    jnt = 7;
+    encoders_arm_right.resize(jnt,0.0);
+    cmd_q_RA.resize(jnt,0.0);
+    cmd_dq_RA.resize(jnt,0.0);
+    cmd_tau_RA.resize(jnt,0.0);
+    allJnt+=jnt;
+    
+    // Head variables
+    jnt = 3;
+    encoders_head.resize(jnt,0.0);
+    cmd_q_HE.resize(jnt,0.0);
+    cmd_dq_HE.resize(jnt,0.0);
+    cmd_tau_HE.resize(jnt,0.0);
+    allJnt+=jnt;
+    
+    all_q_up.resize(allJnt,0.0);
+    all_dq_up.resize(allJnt,0.0);
+    all_d2q_up.resize(allJnt,0.0);
+}
+//---------------------------------------------------------
+void ISIR_Controller::init_lower()
+{
+    // Left_leg variables
+    int allJnt = 0;
+    int jnt=6;
+    encoders_leg_left.resize(jnt,0.0);
+    cmd_q_LL.resize(jnt,0.0);
+    cmd_dq_LL.resize(jnt,0.0);
+    cmd_tau_LL.resize(jnt,0.0);
+    allJnt+=jnt;
+    
+    // Right_leg variables
+    jnt = 6;
+    encoders_leg_right.resize(jnt,0.0);
+    cmd_q_RL.resize(jnt,0.0);
+    cmd_dq_RL.resize(jnt,0.0);
+    cmd_tau_RL.resize(jnt,0.0);
+    allJnt+=jnt;
+    
+    // Torso variables
+    jnt = 3;
+    encoders_torso.resize(jnt,0.0);
+    cmd_q_TO.resize(jnt,0.0);
+    cmd_dq_TO.resize(jnt,0.0);
+    cmd_tau_TO.resize(jnt,0.0);
+    allJnt+=jnt;
+    
+    all_q_low.resize(allJnt,0.0);
+    all_dq_low.resize(allJnt,0.0);
+    all_d2q_low.resize(allJnt,0.0);
+    
+}
+//---------------------------------------------------------
 
 
 
@@ -2051,6 +2128,8 @@ void ISIR_Controller::sendCommandsToRobot()
 {
     if(controlMode==VELOCITY)
     {
+        // here we simply command in velocity
+        
         if(useTorso)    Ivel_TO->velocityMove(cmd_dq_TO.data());
         if(useRightArm) Ivel_RA->velocityMove(cmd_dq_RA.data());
         if(useLeftArm)  Ivel_LA->velocityMove(cmd_dq_LA.data());
@@ -2060,15 +2139,24 @@ void ISIR_Controller::sendCommandsToRobot()
     }
     else if(controlMode==VELOCITY_TORQUE)
     {
-//        if(useTorso)    Ivel_TO->velocityMove(cmd_dq_TO.data());
-//        if(useRightArm) Ivel_RA->velocityMove(cmd_dq_RA.data());
-//        if(useLeftArm)  Ivel_LA->velocityMove(cmd_dq_LA.data());
-//        if(useLeftLeg)  Ivel_LL->velocityMove(cmd_dq_LL.data());
-//        if(useRightLeg) Ivel_RL->velocityMove(cmd_dq_RL.data());
-//        if(useHead)     Ivel_HE->velocityMove(cmd_dq_HE.data());
+        if(useTorso)    Ivel_TO->velocityMove(cmd_dq_TO.data());
+        if(useRightArm) Ivel_RA->velocityMove(cmd_dq_RA.data());
+        if(useLeftArm)  Ivel_LA->velocityMove(cmd_dq_LA.data());
+        if(useLeftLeg)  Ivel_LL->velocityMove(cmd_dq_LL.data());
+        if(useRightLeg) Ivel_RL->velocityMove(cmd_dq_RL.data());
+        if(useHead)     Ivel_HE->velocityMove(cmd_dq_HE.data());
+        
+        // here we command an hybrid controller
+        /*
+         
+         
+         */
+        
     }
     else if(controlMode==TORQUE)
     {
+        // here we just send the desired joint torque
+        
         if(useTorso)    Ivel_TO->velocityMove(cmd_tau_TO.data());
         if(useRightArm) Ivel_RA->velocityMove(cmd_tau_RA.data());
         if(useLeftArm)  Ivel_LA->velocityMove(cmd_tau_LA.data());
@@ -2081,32 +2169,6 @@ void ISIR_Controller::sendCommandsToRobot()
         cout<<"=== ERROR === NO CONTROL === "<<endl;
     }
     
-//    saturateVector(dq, vel_sat);
-//    dqLL   = dq.subVector(0        , njLL          -1);
-//    dqRL   = dq.subVector(njLL     , njLL+njRL     -1);
-//    dqTO   = dq.subVector(njLL+njRL, njLL+njRL+njTO-1);
-//    
-//#ifndef DO_NOT_CONTROL_LEGS
-//    if (on_ground)
-//    {
-//        Ivel_RL->velocityMove(dqRL.data());
-//        Ivel_LL->velocityMove(dqLL.data());
-//    }
-//    else
-//    {
-//        Ivel_LL->velocityMove(zeros(njLL).data());
-//        Ivel_RL->velocityMove(zeros(njRL).data());
-//    }
-//#endif
-//    
-//#ifndef DO_NOT_CONTROL_TORSO
-//    if (on_ground)
-//    {
-//        Ivel_TO->velocityMove(dqTO.data());
-//    }
-//    else
-//        Ivel_TO->velocityMove(zeros(njTO).data());
-//#endif
     
 }
 //---------------------------------------------------------

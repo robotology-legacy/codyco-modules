@@ -47,7 +47,7 @@ const double MIN_JERK_TRAJ_TIME = 2.5;  // trajectory time of "minimum jerk traj
 
 const std::string armsTypesName[3] = {"no_arms", "left_arm", "right_arm"};
 
-enum ControlMode { VELOCITY=0, VELOCITY_TORQUE, TORQUE};
+enum ControlMode { VELOCITY=0, VELOCITY_TORQUE=1, TORQUE=2};
 
 
 
@@ -225,8 +225,6 @@ public:
     Matrix pi_c, pi_a                  ;   //projection of p_b and disred value expressed in r.f. 'c'
     Vector uY, uZ                      ;   //input to filters
     Vector udY, udZ                    ;   //input to velocity filters
-    minJerkTrajGen *minJerkY, *minJerkZ;   //minimum jerk trajectory generator
-    minJerkTrajGen *minJerkH           ;   //minimum jerk trajectory generator
     Matrix  pi_c_d,  pi_a_d            ;   //desired COM position (filter output)
     Matrix dpi_c_d, dpi_a_d            ;   //desired COM velocity (filter output)
     Matrix pi_c_t, pi_a_t              ;   //target COM position (filter input)
@@ -240,10 +238,8 @@ public:
     Vector debugOutVec1, debugOutVec2, debugOutVec3, debugOutVec4;
 
     //Vectors for the controller masks
-    Vector *mask_r2l_swg, *mask_r2l_sup; Matrix Smask_r2l_swg, Smask_r2l_sup;
-    Vector *mask_com_torso;              Matrix Smask_com_torso;
-
-    int *n_r2l_swg, *n_r2l_sup, *n_com_swg, *n_com_sup, *n_com_torso;
+    Matrix Smask_r2l_swg, Smask_r2l_sup;
+    Matrix Smask_com_torso;
 
     //support phase
     phase current_phase;
@@ -279,7 +275,7 @@ private:
     string local_name;
     string wbsName;
 //    bool springs;
-    bool torso;
+//    bool torso;
 
     //PORTS
     //input ports
@@ -293,26 +289,21 @@ private:
 //    BufferedPort<Matrix> *EEPRightLeg;        //EE Pose Right Leg
 //    BufferedPort<Matrix> *EEPLeftLeg;         //EE Pose Left Leg
     BufferedPort<Vector> *desired_zmp;        //varying set point.
-    BufferedPort<Matrix> *COM_Jacob_port;
-    BufferedPort<Vector> *COM_Posit_port;
-    BufferedPort<Vector> *r2l_err_port;
-    BufferedPort<Vector> *COM_err_port;
-    BufferedPort<Vector> *ankle_angle;        //Commanded ankle angle
-    BufferedPort<Vector> *COM_ref_port;       //COM_ref 
+//    BufferedPort<Matrix> *COM_Jacob_port;
+//    BufferedPort<Vector> *COM_Posit_port;
+//    BufferedPort<Vector> *r2l_err_port;
+//    BufferedPort<Vector> *COM_err_port;
+    BufferedPort<Vector> *port_ankle_angle;        //Commanded ankle angle
     BufferedPort<Vector> *port_ft_foot_left;  //Left foot f/t sensor reading
     BufferedPort<Vector> *port_ft_foot_right; //Right foot f/t sensor reading
-
-    BufferedPort<Bottle> *port_lr_trf;
-
-    double *angle;
 
     Matrix rot_f;
 
     //controller gains
-    double vel_sat;
-    double Kp_zmp_h, Kp_zmp_x, Kp_zmp_y;
-    double Kd_zmp_h, Kd_zmp_x, Kd_zmp_y;
-    double Kp, Kd;
+//    double vel_sat;
+//    double Kp_zmp_h, Kp_zmp_x, Kp_zmp_y;
+//    double Kd_zmp_h, Kd_zmp_x, Kd_zmp_y;
+//    double Kp, Kd;
     
     //com ports
     string comPosPortString, comJacPortString;
@@ -330,20 +321,10 @@ private:
     Vector *F_ext_rf;
     Vector *F_ext_lf;
 
-    //Sensors not available in the simulator
-    //bool Opt_nosens;
-    
-    //display
-    //bool Opt_display;
 
     //Left and Right leg pose.
     Vector PoseLeftLeg;
     Vector PoseRightLeg;
-
-    // To read from Inertial sensor. 
-    Vector *inrtl_reading;
-    // To read HEAD, RIGHT AND LEFT poses
-    Vector *head_pose;
 
     //Right and left leg and torso encoders
     Vector qRL, qRL_rad;
@@ -368,7 +349,7 @@ private:
     
     // for computing the icub model
     //---------------------------------------------
-    double timestamp;
+//    double timestamp;
     Vector all_q_up, all_dq_up, all_d2q_up;
     Vector all_q_low, all_dq_low, all_d2q_low;
     AWLinEstimator  *InertialEst;
@@ -584,6 +565,7 @@ private:
     // my variables for ease of coding
     //------------------------------------------------
     Vector x_cmd, o_cmd, x_cur, o_cur, xd, od;
+    bool was_on_ground;
     
     
     // the actual elements for the controller
