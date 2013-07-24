@@ -641,6 +641,7 @@ public:
         }
         if (command.get(0).asString()=="fwd")
         {
+            balThread->control_phase = INT_R2L_TRJ;
             reply.fromString("Moving forward");
             if (balThread->current_phase == RIGHT_SUPPORT)
                 balThread->pac_t(2,0) += 0.02;
@@ -650,6 +651,7 @@ public:
         }
         if (command.get(0).asString()=="bck")
         {
+            balThread->control_phase = INT_R2L_TRJ;
             reply.fromString("Moving backward");
             if (balThread->current_phase == RIGHT_SUPPORT)
                 balThread->pac_t(2,0) -= 0.02;
@@ -659,6 +661,7 @@ public:
         }
         if (command.get(0).asString()=="up")
         {
+            balThread->control_phase = INT_R2L_TRJ;
             if (balThread->current_phase != BOTH_SUPPORT)
                 reply.fromString("Moving up");
             if (balThread->current_phase == RIGHT_SUPPORT)
@@ -669,6 +672,7 @@ public:
         }
         if (command.get(0).asString()=="down")
         {
+            balThread->control_phase = INT_R2L_TRJ;
             reply.fromString("Moving down");
             if (balThread->current_phase == RIGHT_SUPPORT)
                 balThread->pac_t(0,0) -= 0.02;
@@ -678,6 +682,7 @@ public:
         }
         if (command.get(0).asString()=="left")
         {
+            balThread->control_phase = INT_COM_TRJ;            
             reply.fromString("Switching to left foot support");
             balThread->pi_c_t(0,0) = pi_c_d_left(0);    balThread->pi_c_t(1,0) =   pi_c_d_left(1);    balThread->pi_c_t(2,0) =  pi_c_d_left(2);
             balThread->pca_t = balThread->pca;
@@ -686,6 +691,7 @@ public:
         }
         if (command.get(0).asString()=="right")
         {
+            balThread->control_phase = INT_COM_TRJ;            
             reply.fromString("Switching to right foot support");
             balThread->pi_a_t(0,0) = pi_a_d_right(0);    balThread->pi_a_t(1,0) =   pi_a_d_right(1);    balThread->pi_a_t(2,0) = pi_a_d_right(2);
             balThread->pac_t = balThread->pac;
@@ -694,6 +700,7 @@ public:
         }
         if (command.get(0).asString()=="double")
         {
+            balThread->control_phase = INT_COM_TRJ;
             reply.fromString("Switching to double");
             balThread->pi_a_t(0,0) = pi_a_d_both(0);
             balThread->pi_a_t(1,0) =  pi_a_d_both(1);    balThread->pi_a_t(2,0) =  pi_a_d_both(2);

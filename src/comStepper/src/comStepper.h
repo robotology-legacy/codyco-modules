@@ -27,7 +27,8 @@ using namespace iCub::ctrl;
 using namespace iCub::iKin;
 using namespace std;
 
-enum phase { LEFT_SUPPORT, RIGHT_SUPPORT, BOTH_SUPPORT };
+enum phase     { LEFT_SUPPORT, RIGHT_SUPPORT, BOTH_SUPPORT };
+enum ctrlPhase { INT_COM_TRJ,  EXT_COM_TRJ,   INT_R2L_TRJ,  EXT_R2L_TRJ};
 
 const double PINV_DAMP = 0.04;          // damping factor for damped pseudoinverses
 const double PINV_TOL  = 1e-6;          // singular value threshold for truncated pseudoinverses
@@ -130,7 +131,10 @@ public:
 
     //support phase
     phase current_phase;
-    
+
+    //control phase
+    ctrlPhase control_phase;
+
     //for checking joints within limits
     rangeCheck *rangeCheckTO, *rangeCheckRL, *rangeCheckLL;
     Vector      limitMaskTO,  limitMaskRL,   limitMaskLL;
@@ -286,6 +290,7 @@ public:
     void computeDeltaProjCReal(Vector dqR, Vector dqL, Vector dqT, Vector &delta_b, Vector &delta_pi_c, Vector &delta_pi_b);
     void switchSupport(phase newPhase);
     void updateComFilters();
+    void updateR2lFilters();
     void updateComDesired();
     void updateForceTorque();
     void updateRotations();

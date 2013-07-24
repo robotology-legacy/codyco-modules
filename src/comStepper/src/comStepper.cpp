@@ -585,6 +585,7 @@ bool comStepperThread::threadInit()
     
     //initial support is double
     current_phase = BOTH_SUPPORT;
+    control_phase = INT_COM_TRJ;
     qrLL = q0LL_both;    qrRL = q0RL_both;    qrTO = q0TO_both;
     
     //initializing filter for the COM
@@ -725,7 +726,12 @@ void comStepperThread::run()
     timeStamp.update();
     
     //upate the desired COM
-    updateComFilters();
+    if (control_phase == INT_COM_TRJ)
+        updateComFilters();
+
+    //upate the desired COM
+    if (control_phase == INT_R2L_TRJ)
+    updateR2lFilters();
     
     //upate the desired COM and R2L pos, vel
     updateComDesired();
@@ -753,7 +759,8 @@ void comStepperThread::run()
     updateForceTorque();
     
     //***************************** Computing ZMP ****************************************
-    computeZMPBoth();
+    if (on_ground && !Opt_nosens)
+        computeZMPBoth();
     
     switch (current_phase)
     {
@@ -2372,6 +2379,7 @@ void comStepperThread::updateComDesired()
             tmp = com_des_pos_port->read(false);
             if (!(tmp==NULL))
             {
+                control_phase = EXT_COM_TRJ;
                 pi_a_d.setCol(0, (*tmp).subVector(0, 2)) ;
                 dpi_a_d.zero();
             }
@@ -2389,6 +2397,7 @@ void comStepperThread::updateComDesired()
             tmp = r2l_des_pos_port->read(false);
             if (!(tmp==NULL))
             {
+                control_phase = EXT_R2L_TRJ;
                 pac_d.setCol(0, (*tmp).subVector(0, 2)) ;
                 dpac_d.zero();
             }
@@ -2408,6 +2417,7 @@ void comStepperThread::updateComDesired()
             tmp = com_des_pos_port->read(false);
             if (!(tmp==NULL))
             {
+                control_phase = EXT_COM_TRJ;
                 pi_c_d.setCol(0, (*tmp).subVector(0, 2)) ;
                 dpi_c_d.zero();
             }
@@ -2425,6 +2435,7 @@ void comStepperThread::updateComDesired()
             tmp = r2l_des_pos_port->read(false);
             if (!(tmp==NULL))
             {
+                control_phase = EXT_R2L_TRJ;
                 pca_d.setCol(0, (*tmp).subVector(0, 2)) ;
                 dpca_d.zero();
             }
@@ -2440,8 +2451,7 @@ void comStepperThread::updateComDesired()
     }
     
 }
-
-void comStepperThread::updateComFilters()
+void comStepperThread::updateR2lFilters()
 {
     
     if (current_phase == RIGHT_SUPPORT || current_phase == BOTH_SUPPORT)
@@ -2457,24 +2467,10 @@ void comStepperThread::updateComFilters()
         pac_d(0,0) =  yH(0);              dpac_d(0,0) = ydH(0);
         pac_d(1,0) =  yY(0);              dpac_d(1,0) = ydY(0);
         pac_d(2,0) =  yZ(0);              dpac_d(2,0) = ydZ(0);
-
+        
         // fprintf(stderr, "dpac_d: %s VS %s, %s \n", dpac_d.transposed().toString().c_str(), ydY.toString().c_str(), ydZ.toString().c_str());
         // fprintf(stderr, " pac_d: %s -> %s\n", pac_d.transposed().toString().c_str(), pac_t.transposed().toString().c_str());
         
-        uH(1);      uH(0) = pi_a_t(0,0);
-        uY(1);      uY(0) = pi_a_t(1,0);
-        uZ(1);      uZ(0) = pi_a_t(2,0);
-        
-        comMinJerkX->computeNextValues(uH);   yH = comMinJerkX->getPos();   ydH = comMinJerkX->getVel();
-        comMinJerkY->computeNextValues(uY);   yY = comMinJerkY->getPos();   ydY = comMinJerkY->getVel();
-        comMinJerkZ->computeNextValues(uZ);   yZ = comMinJerkZ->getPos();   ydZ = comMinJerkZ->getVel();
-        
-        // fprintf(stderr, "dpi_a_d: %s VS %s, %s \n", dpi_a_d.transposed().toString().c_str(), ydY.toString().c_str(), ydZ.toString().c_str());
-        pi_a_d(0,0) =  yH(0);              dpi_a_d(0,0) = ydH(0);
-        pi_a_d(1,0) =  yY(0);              dpi_a_d(1,0) = ydY(0);
-        pi_a_d(2,0) =  yZ(0);              dpi_a_d(2,0) = ydZ(0);
-        
-        // fprintf(stderr, " pi_a_d: %s -> %s\n", pi_a_d.transposed().toString().c_str(), pi_a_t.transposed().toString().c_str());
     }
     if (current_phase == LEFT_SUPPORT)
     {
@@ -2489,19 +2485,44 @@ void comStepperThread::updateComFilters()
         pca_d(0,0) =  yH(0);              dpca_d(0,0) = ydH(0);
         pca_d(1,0) =  yY(0);              dpca_d(1,0) = ydY(0);
         pca_d(2,0) =  yZ(0);              dpca_d(2,0) = ydZ(0);
-
+        
         // fprintf(stderr, "dpca_d: %s VS %s, %s \n", dpca_d.transposed().toString().c_str(), ydY.toString().c_str(), ydZ.toString().c_str());
         // fprintf(stderr, " pca_d: %s -> %s\n", pac_d.transposed().toString().c_str(), pac_t.transposed().toString().c_str());
+    }
+}
+
+void comStepperThread::updateComFilters()
+{
+    
+    if (current_phase == RIGHT_SUPPORT || current_phase == BOTH_SUPPORT)
+    {
         
-        uH(1);      uH(0) = pi_c_t(0,0);
-        uY(1);      uY(0) = pi_c_t(1,0);
-        uZ(1);      uZ(0) = pi_c_t(2,0);
+        Vector uH(1);      uH(0) = pi_a_t(0,0);
+        Vector uY(1);      uY(0) = pi_a_t(1,0);
+        Vector uZ(1);      uZ(0) = pi_a_t(2,0);
+        
+        comMinJerkX->computeNextValues(uH);   Vector yH = comMinJerkX->getPos();   Vector ydH = comMinJerkX->getVel();
+        comMinJerkY->computeNextValues(uY);   Vector yY = comMinJerkY->getPos();   Vector ydY = comMinJerkY->getVel();
+        comMinJerkZ->computeNextValues(uZ);   Vector yZ = comMinJerkZ->getPos();   Vector ydZ = comMinJerkZ->getVel();
+        
+        // fprintf(stderr, "dpi_a_d: %s VS %s, %s \n", dpi_a_d.transposed().toString().c_str(), ydY.toString().c_str(), ydZ.toString().c_str());
+        pi_a_d(0,0) =  yH(0);              dpi_a_d(0,0) = ydH(0);
+        pi_a_d(1,0) =  yY(0);              dpi_a_d(1,0) = ydY(0);
+        pi_a_d(2,0) =  yZ(0);              dpi_a_d(2,0) = ydZ(0);
+        
+        // fprintf(stderr, " pi_a_d: %s -> %s\n", pi_a_d.transposed().toString().c_str(), pi_a_t.transposed().toString().c_str());
+    }
+    if (current_phase == LEFT_SUPPORT)
+    {
+        Vector uH(1);      uH(0) = pi_c_t(0,0);
+        Vector uY(1);      uY(0) = pi_c_t(1,0);
+        Vector uZ(1);      uZ(0) = pi_c_t(2,0);
         
         // fprintf(stderr, "dpi_c_d: %s VS %s, %s \n", dpi_c_d.transposed().toString().c_str(), ydY.toString().c_str(), ydZ.toString().c_str());
         
-        comMinJerkX->computeNextValues(uH);   yH = comMinJerkX->getPos();   ydH = comMinJerkX->getVel();
-        comMinJerkY->computeNextValues(uY);   yY = comMinJerkY->getPos();   ydY = comMinJerkY->getVel();
-        comMinJerkZ->computeNextValues(uZ);   yZ = comMinJerkZ->getPos();   ydZ = comMinJerkZ->getVel();
+        comMinJerkX->computeNextValues(uH);   Vector yH = comMinJerkX->getPos();   Vector ydH = comMinJerkX->getVel();
+        comMinJerkY->computeNextValues(uY);   Vector yY = comMinJerkY->getPos();   Vector ydY = comMinJerkY->getVel();
+        comMinJerkZ->computeNextValues(uZ);   Vector yZ = comMinJerkZ->getPos();   Vector ydZ = comMinJerkZ->getVel();
         
         pi_c_d(0,0) =  yH(0);              dpi_c_d(0,0) = ydH(0);
         pi_c_d(1,0) =  yY(0);              dpi_c_d(1,0) = ydY(0);
