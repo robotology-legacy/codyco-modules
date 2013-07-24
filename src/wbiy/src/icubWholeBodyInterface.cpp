@@ -16,6 +16,7 @@
  */
 
 #include "wbiy/wbiy.h"
+#include <iCub/skinDynLib/common.h>
 #include <string>
 
 using namespace std;
@@ -24,6 +25,7 @@ using namespace wbiy;
 using namespace yarp::os;
 using namespace yarp::dev;
 using namespace yarp::sig;
+using namespace iCub::skinDynLib;
 
 #define MAX_NJ 20
 #define WAIT_TIME 0.001
@@ -38,10 +40,10 @@ using namespace yarp::sig;
 //                                          ICUB WHOLE BODY INTERFACE
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _robotName, 
-                                               const std::vector<std::string> &_bodyPartNames)
+icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _robotName)
 {
-    actuatorInt = new yarpWholeBodyActuators(_name, _robotName, _bodyPartNames);
+    vector<string> bodyPartNames(BodyPart_s, BodyPart_s + sizeof(BodyPart_s) / sizeof(string) );
+    actuatorInt = new yarpWholeBodyActuators(_name, _robotName, bodyPartNames);
     stateInt = new icubWholeBodyStates(_name, _robotName, 0.0);
     modelInt = new icubWholeBodyModel();
 }

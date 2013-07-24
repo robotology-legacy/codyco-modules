@@ -8,6 +8,7 @@
 #include <iCub/iDynTree/iCubTree.h>
 #include <iCub/iDynTree/idyn2kdl_icub.h>
 
+#include <iCub/iDyn/iDyn.h>
 #include <iCub/iDyn/iDynBody.h>
 
 #include <iCub/skinDynLib/common.h>

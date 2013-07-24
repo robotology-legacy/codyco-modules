@@ -42,6 +42,7 @@ using namespace yarp::sig;
 using namespace yarp::dev;
 using namespace wbi;
 
+
 using namespace iCub::ctrl;
 
 using namespace iCub::iDynTree;

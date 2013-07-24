@@ -16,7 +16,7 @@
 
 #include <iCub/ctrl/math.h>
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
-#include <iCub/iDyn/iDyn.h>
+#include <iCub/iDyn/iDynInv.h>
 #include <iCub/iDyn/iDynBody.h>
 #include <iCub/skinDynLib/skinContactList.h>
 

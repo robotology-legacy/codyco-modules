@@ -16,7 +16,9 @@
  */
 
 #include "wbiy/wbiy.h"
+#include <iCub/skinDynLib/common.h>
 #include <string>
+
 
 using namespace std;
 using namespace wbi;
@@ -24,6 +26,7 @@ using namespace wbiy;
 using namespace yarp::os;
 using namespace yarp::dev;
 using namespace yarp::sig;
+using namespace iCub::skinDynLib;
 
 #define MAX_NJ 20
 #define WAIT_TIME 0.001
@@ -41,20 +44,21 @@ using namespace yarp::sig;
 // *********************************************************************************************************************
 icubWholeBodyStates::icubWholeBodyStates(const char* _name, const char* _robotName, double estimationTimeWindow)
 {
-
+    vector<string> bodyPartNames(BodyPart_s, BodyPart_s + sizeof(BodyPart_s) / sizeof(string) );
+    sensors = new yarpWholeBodySensors(_name, _robotName, bodyPartNames);
 }
 
-bool icubWholeBodyStates::init(){ return false; }
-int icubWholeBodyStates::getDoFs(){ return 0; }
-bool icubWholeBodyStates::removeJoint(const wbi::LocalId &j){ return false; }
-bool icubWholeBodyStates::addJoint(const wbi::LocalId &j){ return false; }
-int icubWholeBodyStates::addJoints(const wbi::LocalIdList &j){ return 0; }
+bool icubWholeBodyStates::init(){ return sensors->init(); }
+int icubWholeBodyStates::getDoFs(){ return sensors->getDoFs(); }
+bool icubWholeBodyStates::removeJoint(const wbi::LocalId &j){ return sensors->removeJoint(j); }
+bool icubWholeBodyStates::addJoint(const wbi::LocalId &j){ return sensors->addJoint(j); }
+int icubWholeBodyStates::addJoints(const wbi::LocalIdList &j){ return sensors->addJoints(j); }
 
-bool icubWholeBodyStates::getQ(double *q, double time, bool wait){ return false; }
+bool icubWholeBodyStates::getQ(double *q, double time, bool wait){ return sensors->readEncoders(q, 0, wait); }
 bool icubWholeBodyStates::getDq(double *dq, double time, bool wait){ return false; }
 bool icubWholeBodyStates::getDqMotors(double *dqM, double time, bool wait){ return false; }
 bool icubWholeBodyStates::getD2q(double *d2q, double time, bool wait){ return false; }
-bool icubWholeBodyStates::getPwm(double *pwm, double time, bool wait){ return false; }
-bool icubWholeBodyStates::getInertial(double *inertial, double time, bool wait){ return false; }
-bool icubWholeBodyStates::getFTsensors(double *ftSens, double time, bool wait){ return false; }
+bool icubWholeBodyStates::getPwm(double *pwm, double time, bool wait){ return sensors->readPwm(pwm, 0, wait); }
+bool icubWholeBodyStates::getInertial(double *inertial, double time, bool wait){ return sensors->readInertial(inertial, 0, wait); }
+bool icubWholeBodyStates::getFTsensors(double *ftSens, double time, bool wait){ return sensors->readFTsensors(ftSens, 0, wait); }
 bool icubWholeBodyStates::getTorques(double *tau, double time, bool wait){ return false; }

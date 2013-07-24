@@ -33,6 +33,11 @@ using namespace yarp::sig;
 // iterate over all joints of all body parts
 #define FOR_ALL(itBp, itJ)                  FOR_ALL_OF(itBp, itJ, jointIdList)
 
+bool wbiy::isRobotSimulator(const string &robotName)
+{
+    return robotName=="icubSim";
+}
+
 bool wbiy::openPolyDriver(const string &localName, const string &robotName, PolyDriver* &pd, const string &bodyPartName)
 {
     string localPort  = "/" + localName + "/" + bodyPartName;
@@ -66,11 +71,9 @@ bool yarpWholeBodySensors::openDrivers(int bp)
     ienc[bp]=0; iopl[bp]=0;  dd[bp]=0;
     if(!openPolyDriver(name, robot, dd[bp], bodyPartNames[bp]))
         return false;
-    
-    if(dd[bp]==0)
-        printf("dd is zero\n");
+
     bool ok = dd[bp]->view(ienc[bp]);
-    if(robot!="icubSim")
+    if(!isRobotSimulator(robot))
         dd[bp]->view(iopl[bp]);
     if(!ok)
     {
@@ -135,8 +138,7 @@ bool yarpWholeBodySensors::readEncoders(double *q, double *stamps, bool wait)
     int i=0;
     FOR_ALL_BODY_PARTS(itBp)
     {
-//        while( !(update=ienc[itBp->first]->getEncodersTimed(qTemp, tTemp)) && wait)
-        while( !(update=ienc[itBp->first]->getEncoders(qTemp)) && wait)
+        while( !(update=ienc[itBp->first]->getEncodersTimed(qTemp, tTemp)) && wait)
             Time::delay(WAIT_TIME);
         
         if(update)

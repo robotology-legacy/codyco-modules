@@ -53,7 +53,7 @@ int main(int argc, char * argv[])
     }
     printf("DoF = %d\n", is->getDoFs());
     
-    wholeBodyInterface *icub = new icubWholeBodyInterface("testSensInt", "icubSim", bodyPartNames);
+    wholeBodyInterface *icub = new icubWholeBodyInterface("testSensInt", "icubSim");
     
     printf("Main returning...\n");
     return 0;

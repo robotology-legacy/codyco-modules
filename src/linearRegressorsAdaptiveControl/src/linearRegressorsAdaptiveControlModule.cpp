@@ -19,6 +19,12 @@
 
 #include <sstream>			// string stream
 #include "iCub/linearRegressorsAdaptiveControl/linearRegressorsAdaptiveControlModule.h"
+#include <iCub/skinDynLib/common.h>
+#include <iCub/iDyn/iDyn.h>
+#include <iCub/iDyn/iDynInv.h>
+#include <iCub/iDyn/iDynBody.h>
+#include <wbiy/wbiy.h>
+
 
 using namespace iCub::linearRegressorsAdaptiveControl;
 
@@ -42,6 +48,9 @@ const string linearRegressorsAdaptiveControlModule::COMMAND_DESC[]  = {
     "set the trajectory time"
     };
 
+//name of the body parts
+const string icub_body_parts[] = {"torso","head","left_arm","right_arm","left_leg","right_leg"};
+
 bool linearRegressorsAdaptiveControlModule::configure(yarp::os::ResourceFinder &rf)
 {
 	/* Process all parameters from both command-line and .ini file */
@@ -57,7 +66,7 @@ bool linearRegressorsAdaptiveControlModule::configure(yarp::os::ResourceFinder &
 	/* get some other values from the configuration file */
 	int period			= (int)rf.check("period", Value(PERIOD_DEFAULT),
 	   "Calling thread period in ms (positive int)").asInt();
-    int controlled_joint = (int)rf.check("joint", Value(PERIOD_DEFAULT),
+    int controlled_joint = (int)rf.check("joint", Value(JOINT),
 	   "Calling thread period in ms (positive int)").asInt();
 
 	/*
@@ -86,7 +95,10 @@ bool linearRegressorsAdaptiveControlModule::configure(yarp::os::ResourceFinder &
     
     controlled_DOFs[controlled_joint] = true;
     
-    //icub_interface = new icubWholeBodyInterface();
+    std::string dummy_moduleName = moduleName;
+    std::string dummy_robotName = robotName;
+    
+    icub_interface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str());
 
 	/* create the thread and pass pointers to the module parameters */
 	controlThread = new linearRegressorsAdaptiveControlThread(&rf, robotName, icub_interface, icub_dynamical_model, controlled_DOFs, period);
