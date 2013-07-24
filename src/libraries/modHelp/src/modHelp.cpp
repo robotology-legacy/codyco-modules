@@ -226,11 +226,6 @@ namespace modHelp{
         //creates the new device driver
         p = new PolyDriver(options);
         
-        if(!p->open(options))
-        {
-            cout<<"Problems connecting to the remote driver"<<endl;
-            return false;
-        }
         if(!p->isValid())
         {
             cout<<"Problems with the validity of the remote driver"<<endl;
