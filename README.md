@@ -16,12 +16,6 @@ Code documentation automatically generated: http://wiki.icub.org/codyco/dox/html
 Installation
 ------------
 
-After cloning the CoDyCo repository, it is necessary to initialize the git submodules:
-```bash
-git submodule init
-git submodule update
-```
-
 Before installing CoDyCo software it is necessary to install some dependencies:
 
 ###Yarp/iCub software 
@@ -30,23 +24,27 @@ You can follow the instructions on: http://wiki.icub.org/wiki/ICub_Software_Inst
 ###Eigen
 You can follow the instructions on: http://eigen.tuxfamily.org .
 
-###KDL
-It is possible to install KDL easily from the CoDyCo repository:
+###kdl
+It is possible to install Orocos-KDL easily from the Orocos Git repository repository:
 ```bash
-cd $CODYCO_ROOT/extern/orocos_kinematics_dynamics/orocos_kdl
-mkdir build
+git clone http://git.mech.kuleuven.be/robotics/orocos_kinematics_dynamics.git
+cd orocos_kinematics_dynamics/orocos_kdl
+mkdir build 
 cd build
 ccmake ../
 make
 sudo make install
 ```
+Please note that for compiling the plain version of KDL, you have to use the CMakeLists.txt in orocos_kinematics_dynamics/orocos_kdl,
+while the CMakeLists.txt in orocos_kinematics_dynamics contains ROS-specific commands.
+
 For any further information you can check http://www.orocos.org/kdl .
     
-###KDL_CoDyCo
-It is possible to install KDL_CoDyCo easily from the CoDyCo repository:
+###kdl_codyco
+It is possible to install kdl_codyco easily from GitHub.
 ```bash
-cd $CODYCO_ROOT/extern/kdl_codyco
-mkdir build
+git clone https://github.com/pegua/kdl_codyco.git
+cd kdl_codyco
 cd build
 ccmake ../
 make
