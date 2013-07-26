@@ -97,6 +97,17 @@ bool yarpWholeBodySensors::init()
     return ok;
 }
 
+bool yarpWholeBodySensors::close()
+{
+    bool ok = true;
+    FOR_ALL_BODY_PARTS(itBp)
+    {
+        assert(dd[itBp->first]!=NULL);
+        ok = ok && dd[itBp->first]->close();
+    }
+    return ok;
+}
+
 bool yarpWholeBodySensors::removeJoint(const LocalId &j)
 {
     if(!jointIdList.removeId(j))

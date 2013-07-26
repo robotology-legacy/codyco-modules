@@ -44,7 +44,7 @@ using namespace iCub::skinDynLib;
 icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _robotName)
 {
     vector<string> bodyPartNames(BodyPart_s, BodyPart_s + sizeof(BodyPart_s) / sizeof(string) );
-    actuatorInt = new yarpWholeBodyActuators((_name+string("sens")).c_str(), _robotName, bodyPartNames);
+    actuatorInt = new yarpWholeBodyActuators((_name+string("actuator")).c_str(), _robotName, bodyPartNames);
     stateInt = new icubWholeBodyStates((_name+string("state")).c_str(), _robotName, 0.0);
     modelInt = new icubWholeBodyModel();
 }
@@ -54,6 +54,13 @@ bool icubWholeBodyInterface::init()
     bool ok = actuatorInt->init();
     if(ok) ok = stateInt->init();
     return ok ? modelInt->init() : false;
+}
+
+bool icubWholeBodyInterface::close()
+{
+    bool ok = actuatorInt->close();
+    ok = ok && stateInt->close();
+    return ok && modelInt->close();
 }
 
 int icubWholeBodyInterface::getDoFs()

@@ -52,43 +52,26 @@ icubWholeBodyStates::icubWholeBodyStates(const char* _name, const char* _robotNa
 bool icubWholeBodyStates::init()
 {
     bool ok = sensors->init();
-    return ok ? estimator->start() : false; 
+    return ok ? estimator->start() : false;
 }
 
-int icubWholeBodyStates::getDoFs(){ return sensors->getDoFs(); }
-
-bool icubWholeBodyStates::removeJoint(const wbi::LocalId &j)
-{ 
-    bool res = sensors->removeJoint(j);
-    if(res)
-        estimator->updateDimensions();
-    return res;
+bool icubWholeBodyStates::close()
+{
+    estimator->stop();  // stop estimator BEFORE closing sensor interface
+    bool ok = sensors->close();
+    delete sensors;
+    delete estimator;
+    return ok;
 }
 
-bool icubWholeBodyStates::addJoint(const wbi::LocalId &j)
-{ 
-    bool res = sensors->addJoint(j);
-    if(res)
-        estimator->updateDimensions();
-    return res;
-}
-
-int icubWholeBodyStates::addJoints(const wbi::LocalIdList &j)
-{ 
-    int res = sensors->addJoints(j);
-    if(res>0)
-        estimator->updateDimensions();
-    return res;
-}
-
-bool icubWholeBodyStates::getQ(double *q, double time, bool wait){ return sensors->readEncoders(q, 0, wait); }
-bool icubWholeBodyStates::getDq(double *dq, double time, bool wait){ return estimator->getDq(dq); }
-bool icubWholeBodyStates::getDqMotors(double *dqM, double time, bool wait){ return false; }
-bool icubWholeBodyStates::getD2q(double *d2q, double time, bool wait){ return estimator->getD2q(d2q); }
-bool icubWholeBodyStates::getPwm(double *pwm, double time, bool wait){ return sensors->readPwm(pwm, 0, wait); }
-bool icubWholeBodyStates::getInertial(double *inertial, double time, bool wait){ return sensors->readInertial(inertial, 0, wait); }
-bool icubWholeBodyStates::getFTsensors(double *ftSens, double time, bool wait){ return sensors->readFTsensors(ftSens, 0, wait); }
-bool icubWholeBodyStates::getTorques(double *tau, double time, bool wait){ return false; }
+bool icubWholeBodyStates::getQ(double *q, double time, bool wait){                  return estimator->getQ(q); }
+bool icubWholeBodyStates::getDq(double *dq, double time, bool wait){                return estimator->getDq(dq); }
+bool icubWholeBodyStates::getDqMotors(double *dqM, double time, bool wait){         return false; }
+bool icubWholeBodyStates::getD2q(double *d2q, double time, bool wait){              return estimator->getD2q(d2q); }
+bool icubWholeBodyStates::getPwm(double *pwm, double time, bool wait){              return sensors->readPwm(pwm, 0, wait); }
+bool icubWholeBodyStates::getInertial(double *inertial, double time, bool wait){    return sensors->readInertial(inertial, 0, wait); }
+bool icubWholeBodyStates::getFTsensors(double *ftSens, double time, bool wait){     return sensors->readFTsensors(ftSens, 0, wait); }
+bool icubWholeBodyStates::getTorques(double *tau, double time, bool wait){          return false; }
 
 
 // *********************************************************************************************************************
@@ -107,14 +90,15 @@ bool icubWholeBodyEstimator::threadInit()
     resizeAll(sensors->getDoFs());
     dqFilt = new AWLinEstimator(dqFiltWL, dqFiltTh);
     d2qFilt = new AWQuadEstimator(d2qFiltWL, d2qFiltTh);
+    sensors->readEncoders(lastQ.data(), qStamps.data(), true);
     return true;
 }
 
 void icubWholeBodyEstimator::run()
 {
-    if(sensors->readEncoders(q.data(), qStamps.data(), false))
+    mutex.wait();
     {
-        mutex.wait();
+        if(sensors->readEncoders(q.data(), qStamps.data(), false))
         {
             lastQ = q;
             AWPolyElement el;
@@ -123,8 +107,8 @@ void icubWholeBodyEstimator::run()
             lastDq = dqFilt->estimate(el);
             lastD2q = d2qFilt->estimate(el);
         }
-        mutex.post();
     }
+    mutex.post();
     
     return;
 }
@@ -163,7 +147,7 @@ void icubWholeBodyEstimator::setAccFiltParams(int windowLength, double threshold
         
 }
 
-void icubWholeBodyEstimator::resizeAll(int n)
+void icubWholeBodyEstimator::lockAndResizeAll(int n)
 {
     mutex.wait();
     {
@@ -176,9 +160,13 @@ void icubWholeBodyEstimator::resizeAll(int n)
     mutex.post();
 }
 
-void icubWholeBodyEstimator::updateDimensions()
+void icubWholeBodyEstimator::resizeAll(int n)
 {
-    resizeAll(sensors->getDoFs());
+    q.resize(n);
+    qStamps.resize(n);
+    lastQ.resize(n);
+    lastDq.resize(n);
+    lastD2q.resize(n);
 }
 
 bool icubWholeBodyEstimator::copyVector(const Vector &src, double *dest)
@@ -200,17 +188,42 @@ bool icubWholeBodyEstimator::lockAndCopyVector(const Vector &src, double *dest)
     return res;
 }
 
-bool icubWholeBodyEstimator::getQ(double *q)
+bool icubWholeBodyEstimator::removeJoint(const LocalId &j)
 {
-    return lockAndCopyVector(lastQ, q);
+    bool res;
+    mutex.wait();
+    {
+        if(res = sensors->removeJoint(j))
+            resizeAll(sensors->getDoFs());
+    }
+    mutex.post();
+    return res;
 }
 
-bool icubWholeBodyEstimator::getDq(double *dq)
+bool icubWholeBodyEstimator::addJoint(const LocalId &j)
 {
-    return lockAndCopyVector(lastDq, dq);
+    bool res;
+    mutex.wait();
+    {
+        if(res = sensors->addJoint(j))
+            resizeAll(sensors->getDoFs());
+    }
+    mutex.post();
+    return res;
 }
 
-bool icubWholeBodyEstimator::getD2q(double *d2q)
+int icubWholeBodyEstimator::addJoints(const LocalIdList &j)
 {
-    return lockAndCopyVector(lastD2q, d2q);
+    int res;
+    mutex.wait();
+    {
+        if((res = sensors->addJoints(j))>0)
+            resizeAll(sensors->getDoFs());
+    }
+    mutex.post();
+    return res;
 }
+
+bool icubWholeBodyEstimator::getQ(double *q){       return lockAndCopyVector(lastQ, q); }
+bool icubWholeBodyEstimator::getDq(double *dq){     return lockAndCopyVector(lastDq, dq); }
+bool icubWholeBodyEstimator::getD2q(double *d2q){   return lockAndCopyVector(lastD2q, d2q);}

@@ -40,6 +40,11 @@ bool icubWholeBodyModel::init()
     return true;
 }
 
+bool icubWholeBodyModel::close()
+{
+    return true;
+}
+
 int icubWholeBodyModel::getDoFs()
 {
     return 0;

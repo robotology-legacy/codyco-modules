@@ -89,9 +89,11 @@ namespace wbiy
         yarpWholeBodySensors(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames);
 
         virtual bool init();
+        virtual bool close();
         virtual bool removeJoint(const wbi::LocalId &j);
         virtual bool addJoint(const wbi::LocalId &j);
         virtual int addJoints(const wbi::LocalIdList &j);
+        virtual wbi::LocalIdList getJointList(){ return jointIdList; }
         virtual int getDoFs(){ return dof; }
         
         virtual bool readEncoders(double *q, double *stamps, bool wait=true);
@@ -132,16 +134,19 @@ namespace wbiy
         yarpWholeBodyActuators(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames);
         
         virtual bool init();
+        virtual bool close();
         virtual int getDoFs(){ return dof; }
         virtual bool removeJoint(const wbi::LocalId &j);
         virtual bool addJoint(const wbi::LocalId &j);
         virtual int addJoints(const wbi::LocalIdList &j);
+        virtual wbi::LocalIdList getJointList(){ return jointIdList; }
         
         virtual bool setControlMode(int controlMode, int joint=-1);
         virtual bool setTorqueRef(double *taud, int joint=-1);
         virtual bool setPosRef(double *qd, int joint=-1);
         virtual bool setVelRef(double *dqd, int joint=-1);
         virtual bool setPwmRef(double *pwmd, int joint=-1);
+        virtual bool setReferenceSpeed(double *rspd, int joint=-1);
     };
     
     /** Thread that estimates the state of the iCub robot. */
@@ -168,6 +173,7 @@ namespace wbiy
         bool lockAndCopyVector(const yarp::sig::Vector &src, double *dest);
         /* Resize all vectors using current number of DoFs. */
         void resizeAll(int n);
+        void lockAndResizeAll(int n);
         
     public:
         icubWholeBodyEstimator(int _period, yarpWholeBodySensors *_sensors);
@@ -181,8 +187,10 @@ namespace wbiy
         void run();
         void threadRelease();
         
-        /** To be called when joints are added/removed. */
-        void updateDimensions();
+        virtual bool removeJoint(const wbi::LocalId &j);
+        virtual bool addJoint(const wbi::LocalId &j);
+        virtual int addJoints(const wbi::LocalIdList &j);
+        
         bool getQ(double *q);
         bool getDq(double *dq);
         bool getD2q(double *d2q);
@@ -196,14 +204,6 @@ namespace wbiy
     class icubWholeBodyStates : public wbi::iWholeBodyStates
     {
     protected:
-        bool                        initDone;
-        int                         dof;            // number of degrees of freedom considered
-        std::string                 name;           // name used as root for the local ports
-        std::string                 robot;          // name of the robot
-        std::vector<int>            bodyParts;      // list of the body parts
-        std::map<int,std::string>   bodyPartsName;  // name of the body parts
-        wbi::LocalIdList            jointIdList;    // list of the joint ids
-        
         yarpWholeBodySensors        *sensors;       // interface to access the robot sensors
         icubWholeBodyEstimator      *estimator;     // estimation thread
         double                      estWind;        // time window for the estimation
@@ -213,10 +213,12 @@ namespace wbiy
         icubWholeBodyStates(const char* _name, const char* _robotName, double estimationTimeWindow);
         
         virtual bool init();
-        virtual int getDoFs();
-        virtual bool removeJoint(const wbi::LocalId &j);
-        virtual bool addJoint(const wbi::LocalId &j);
-        virtual int addJoints(const wbi::LocalIdList &j);
+        virtual bool close();
+        virtual int getDoFs(){                              return sensors->getDoFs(); }
+        virtual bool removeJoint(const wbi::LocalId &j){    return estimator->removeJoint(j); }
+        virtual bool addJoint(const wbi::LocalId &j){       return estimator->addJoint(j); }
+        virtual int addJoints(const wbi::LocalIdList &j){   return estimator->addJoints(j); }
+        virtual wbi::LocalIdList getJointList(){            return sensors->getJointList(); }
         
         virtual bool getQ(double *q, double time=-1.0, bool wait=false);
         virtual bool getDq(double *dq, double time=-1.0, bool wait=false);
@@ -234,12 +236,17 @@ namespace wbiy
      */
     class icubWholeBodyModel: public wbi::iWholeBodyModel
     {
+    protected:
+        wbi::LocalIdList     jointIdList;
     public:
         virtual bool init();
+        virtual bool close();
         virtual int getDoFs();
         virtual bool removeJoint(const wbi::LocalId &j);
         virtual bool addJoint(const wbi::LocalId &j);
         virtual int addJoints(const wbi::LocalIdList &j);
+        virtual wbi::LocalIdList getJointList(){ return jointIdList; }
+        
         virtual bool getJointLimits(double *qMin, double *qMax, int joint=-1);
         
         /** Compute rototranslation matrix from root reference frame to reference frame associated to the specified link.
@@ -316,17 +323,20 @@ namespace wbiy
         icubWholeBodyInterface(const char* _name, const char* _robotName);
         
         virtual bool init();
+        virtual bool close();
         virtual int getDoFs();
         virtual bool removeJoint(const wbi::LocalId &j);
         virtual bool addJoint(const wbi::LocalId &j);
         virtual int addJoints(const wbi::LocalIdList &j);
+        virtual wbi::LocalIdList getJointList(){ return actuatorInt->getJointList(); }
    
         // ACTUATORS
-        virtual bool setControlMode(int controlMode, int joint=-1){ return actuatorInt->setControlMode(controlMode, joint);};
-        virtual bool setTorqueRef(double *taud, int joint=-1){      return actuatorInt->setTorqueRef(taud, joint);};
-        virtual bool setPosRef(double *qd, int joint=-1){           return actuatorInt->setPosRef(qd, joint);};
-        virtual bool setVelRef(double *dqd, int joint=-1){          return actuatorInt->setVelRef(dqd, joint);};
-        virtual bool setPwmRef(double *pwmd, int joint=-1){         return actuatorInt->setPwmRef(pwmd, joint);};
+        virtual bool setControlMode(int controlMode, int joint=-1){ return actuatorInt->setControlMode(controlMode, joint);}
+        virtual bool setTorqueRef(double *taud, int joint=-1){      return actuatorInt->setTorqueRef(taud, joint);}
+        virtual bool setPosRef(double *qd, int joint=-1){           return actuatorInt->setPosRef(qd, joint);}
+        virtual bool setVelRef(double *dqd, int joint=-1){          return actuatorInt->setVelRef(dqd, joint);}
+        virtual bool setPwmRef(double *pwmd, int joint=-1){         return actuatorInt->setPwmRef(pwmd, joint);}
+        virtual bool setReferenceSpeed(double *rspd, int joint=-1){ return actuatorInt->setReferenceSpeed(rspd, joint);}
         
         // STATES
         virtual bool getQ(double *q, double time=-1.0, bool wait=false){    return stateInt->getQ(q, time, wait); }

@@ -137,10 +137,12 @@ namespace wbi
     {
     public:
         virtual bool init() = 0;
+        virtual bool close() = 0;
         
         virtual bool removeJoint(const LocalId &j) = 0;
         virtual bool addJoint(const LocalId &j) = 0;
         virtual int addJoints(const LocalIdList &j) = 0;
+        virtual LocalIdList getJointList() = 0;
         
         virtual int getDoFs() = 0;
         
@@ -157,10 +159,12 @@ namespace wbi
     {
     public:
         virtual bool init() = 0;
+        virtual bool close() = 0;
         virtual int getDoFs() = 0;
         virtual bool removeJoint(const LocalId &j) = 0;
         virtual bool addJoint(const LocalId &j) = 0;
         virtual int addJoints(const LocalIdList &j) = 0;
+        virtual LocalIdList getJointList() = 0;
         
         virtual bool getQ(double *q, double time=-1.0, bool wait=false) = 0;
         virtual bool getDq(double *dq, double time=-1.0, bool wait=false) = 0;
@@ -182,10 +186,13 @@ namespace wbi
     {
     public:
         virtual bool init() = 0;
+        virtual bool close() = 0;
         virtual int getDoFs() = 0;
         virtual bool removeJoint(const LocalId &j) = 0;
         virtual bool addJoint(const LocalId &j) = 0;
         virtual int addJoints(const LocalIdList &j) = 0;
+        virtual LocalIdList getJointList() = 0;
+        
         virtual bool getJointLimits(double *qMin, double *qMax, int joint=-1) = 0;
         
         /** Compute rototranslation matrix from root reference frame to reference frame associated to the specified link.
@@ -253,10 +260,12 @@ namespace wbi
     {
     public:
         virtual bool init() = 0;
+        virtual bool close() = 0;
         virtual int getDoFs() = 0;
         virtual bool removeJoint(const LocalId &j) = 0;
         virtual bool addJoint(const LocalId &j) = 0;
         virtual int addJoints(const LocalIdList &j) = 0;
+        virtual LocalIdList getJointList() = 0;
         
         /** Set the control mode of the specified joint(s).
           * @param controlMode Id of the control mode
@@ -267,6 +276,7 @@ namespace wbi
         virtual bool setPosRef(double *qd, int joint=-1) = 0;
         virtual bool setVelRef(double *dqd, int joint=-1) = 0;
         virtual bool setPwmRef(double *pwmd, int joint=-1) = 0;
+        virtual bool setReferenceSpeed(double *rspd, int joint=-1) = 0;
     };
     
     /**
@@ -276,10 +286,12 @@ namespace wbi
     {
     public:
         virtual bool init() = 0;
+        virtual bool close() = 0;
         virtual int getDoFs() = 0;
         virtual bool removeJoint(const LocalId &j) = 0;
         virtual bool addJoint(const LocalId &j) = 0;
         virtual int addJoints(const LocalIdList &j) = 0;
+        virtual LocalIdList getJointList() = 0;
     };
     
     

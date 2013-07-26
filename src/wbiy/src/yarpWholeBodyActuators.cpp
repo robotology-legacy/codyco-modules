@@ -17,6 +17,7 @@
 
 #include "wbiy/wbiy.h"
 #include <string>
+#include <cassert>
 
 using namespace std;
 using namespace wbi;
@@ -27,6 +28,7 @@ using namespace yarp::sig;
 
 #define MAX_NJ 20
 #define WAIT_TIME 0.001
+#define DEFAULT_REF_SPEED 10.0
 
 // iterate over all body parts
 #define FOR_ALL_BODY_PARTS(itBp)            FOR_ALL_BODY_PARTS_OF(itBp, jointIdList)
@@ -54,6 +56,7 @@ bool yarpWholeBodyActuators::openDrivers(int bp)
         fprintf(stderr, "Problem initializing drivers of %s\n", bodyPartNames[bp].c_str());
         return false;
     }
+    
     return true;
 }
 
@@ -63,6 +66,17 @@ bool yarpWholeBodyActuators::init()
     FOR_ALL_BODY_PARTS(itBp)
         ok = ok && openDrivers(itBp->first);
     initDone = true;
+    return ok;
+}
+
+bool yarpWholeBodyActuators::close()
+{
+    bool ok = true;
+    FOR_ALL_BODY_PARTS(itBp)
+    {
+        assert(dd[itBp->first]!=NULL);
+        ok = dd[itBp->first]->close();
+    }
     return ok;
 }
 
@@ -233,6 +247,28 @@ bool yarpWholeBodyActuators::setPwmRef(double *pwmd, int joint)
     FOR_ALL(itBp, itJ)
     {
         ok = ok && iopl[itBp->first]->setOutput(*itJ, pwmd[i]);
+        i++;
+    }
+    
+    return ok;
+}
+
+bool yarpWholeBodyActuators::setReferenceSpeed(double *rspd, int joint)
+{
+    if(joint>=dof)
+        return false;
+    
+    if(joint>=0)
+    {
+        LocalId li = jointIdList.globalToLocalId(joint);
+        return ipos[li.bodyPart]->setRefSpeed(li.index, *rspd);
+    }
+    
+    bool ok = true;
+    unsigned int i=0;
+    FOR_ALL(itBp, itJ)
+    {
+        ok = ok && ipos[itBp->first]->setRefSpeed(*itJ, rspd[i]);
         i++;
     }
     
