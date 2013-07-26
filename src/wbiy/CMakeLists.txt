@@ -27,6 +27,7 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
 					  ${YARP_INCLUDE_DIRS}
                       ${skinDynLib_INCLUDE_DIRS}
+                      ${ctrlLib_INCLUDE_DIRS}
                       ${wbi_INCLUDE_DIRS})
 
 ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
@@ -34,6 +35,7 @@ ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
 TARGET_LINK_LIBRARIES(${PROJECTNAME}
                                      ${YARP_LIBRARIES}
                                      skinDynLib
+                                     ctrlLib
                                      wbi)
 
 icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
