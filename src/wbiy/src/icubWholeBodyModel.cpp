@@ -25,9 +25,6 @@ using namespace yarp::os;
 using namespace yarp::dev;
 using namespace yarp::sig;
 
-#define MAX_NJ 20
-#define WAIT_TIME 0.001
-
 // iterate over all body parts
 #define FOR_ALL_BODY_PARTS(itBp)            FOR_ALL_BODY_PARTS_OF(itBp, jointIdList)
 // iterate over all joints of all body parts
@@ -40,7 +37,7 @@ using namespace yarp::sig;
 // *********************************************************************************************************************
 bool icubWholeBodyModel::init()
 {
-    return false;
+    return true;
 }
 
 int icubWholeBodyModel::getDoFs()
