@@ -39,21 +39,21 @@ const double TOL = 1e-8;
 
 int main(int argc, char * argv[])
 {
-    Network yarp;
-    vector<string> bodyPartNames(BodyPart_s, BodyPart_s + sizeof(BodyPart_s) / sizeof(string) );
-    iWholeBodySensors *is = new yarpWholeBodySensors("testSensInt", "icubSim", bodyPartNames);
-    is->addJoint(LocalId(LEFT_ARM, 0));
-    vector<int> jList(2);
-    jList[0] = 1;
-    jList[1] = 3;
-    is->addJoints(LocalIdList(LEFT_ARM, jList));
-    if(!is->init())
-    {
-        printf("Error while initializing sensor interface.\n");
-    }
-    printf("DoF = %d\n", is->getDoFs());
+    Network yarp; 
     
+    // TEST WHOLE BODY INTERFACE
     wholeBodyInterface *icub = new icubWholeBodyInterface("testSensInt", "icubSim");
+    icub->addJoints(LocalIdList(RIGHT_ARM,0,1,2,3,4));
+    icub->addJoints(LocalIdList(LEFT_ARM,0,1,2,3,4));
+    icub->addJoints(LocalIdList(TORSO,0,1,2));
+    if(!icub->init())
+        return 0;
+    
+    int dof = icub->getDoFs();
+    Vector q(dof);
+    printf("DoF of the interface: %d\n", dof);
+    icub->getQ(q.data());
+    printf("Q: %s\n", q.toString(1).c_str());
     
     printf("Main returning...\n");
     return 0;

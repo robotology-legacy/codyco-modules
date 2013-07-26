@@ -18,6 +18,7 @@
 #include "wbiy/wbiy.h"
 #include <iCub/skinDynLib/common.h>
 #include <string>
+#include <cassert>
 
 using namespace std;
 using namespace wbi;
@@ -43,16 +44,16 @@ using namespace iCub::skinDynLib;
 icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _robotName)
 {
     vector<string> bodyPartNames(BodyPart_s, BodyPart_s + sizeof(BodyPart_s) / sizeof(string) );
-    actuatorInt = new yarpWholeBodyActuators(_name, _robotName, bodyPartNames);
-    stateInt = new icubWholeBodyStates(_name, _robotName, 0.0);
+    actuatorInt = new yarpWholeBodyActuators((_name+string("sens")).c_str(), _robotName, bodyPartNames);
+    stateInt = new icubWholeBodyStates((_name+string("state")).c_str(), _robotName, 0.0);
     modelInt = new icubWholeBodyModel();
 }
 
 bool icubWholeBodyInterface::init()
 {
     bool ok = actuatorInt->init();
-    ok = ok && stateInt->init();
-    return ok && modelInt->init();
+    if(ok) ok = stateInt->init();
+    return ok ? modelInt->init() : false;
 }
 
 int icubWholeBodyInterface::getDoFs()
@@ -62,23 +63,26 @@ int icubWholeBodyInterface::getDoFs()
 
 bool icubWholeBodyInterface::removeJoint(const LocalId &j)
 {
-    actuatorInt->removeJoint(j);
-    stateInt->removeJoint(j);
-    return modelInt->removeJoint(j);
+    bool ok = actuatorInt->removeJoint(j);
+    if(ok) stateInt->removeJoint(j);
+    return ok ? modelInt->removeJoint(j) : false;
 }
 
 bool icubWholeBodyInterface::addJoint(const LocalId &j)
 {
-    actuatorInt->addJoint(j);
-    stateInt->addJoint(j);
-    return modelInt->addJoint(j);
+    bool ok = actuatorInt->addJoint(j);
+    if(ok) stateInt->addJoint(j);
+    return ok ? modelInt->addJoint(j) : false;
 }
 
 int icubWholeBodyInterface::addJoints(const LocalIdList &jList)
 {
-    actuatorInt->addJoints(jList);
-    stateInt->addJoints(jList);
-    return modelInt->addJoints(jList);
+    int res1 = actuatorInt->addJoints(jList);
+    int res2 = stateInt->addJoints(jList);
+    int res3 = modelInt->addJoints(jList);
+    assert(res1==res2);
+    //assert(res2==res3);   // temporarely comment this until model interface is ready
+    return res1;
 }
 
 //bool wholeBodyInterface::init()

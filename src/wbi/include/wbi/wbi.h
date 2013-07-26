@@ -78,9 +78,23 @@ namespace wbi
      */
     class LocalIdList : public std::map< int, std::vector<int> >
     {
+    protected:
+        /** Add the specified id without checking its existance. */
+        void pushId(int bp, int i);
+        
     public:
         LocalIdList();
-        LocalIdList(int bp, std::vector<int>);
+        LocalIdList(int bp, int j0);
+        /** Create an id list with the specified ids, all belonging to the same body part.
+         * @param bp Body part
+         * @param j0 First id
+         * @param j1 Second id */
+        LocalIdList(int bp, int j0, int j1);
+        LocalIdList(int bp, int j0, int j1, int j2);
+        LocalIdList(int bp, int j0, int j1, int j2, int j3);
+        LocalIdList(int bp, int j0, int j1, int j2, int j3, int j4);
+        LocalIdList(int bp, int j0, int j1, int j2, int j3, int j4, int j5);
+        LocalIdList(int bp, int j0, int j1, int j2, int j3, int j4, int j5, int j6);
         
         /** Convert a local id to a global id */
         virtual int localToGlobalId(const LocalId &i);
@@ -111,6 +125,8 @@ namespace wbi
         
         /* Check whether the specified id is present in this list. */        
         virtual bool containsId(const LocalId &i);
+        
+        virtual std::string toString();
     };
     
     

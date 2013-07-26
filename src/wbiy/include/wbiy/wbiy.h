@@ -28,6 +28,8 @@
 
 #include <yarp/dev/all.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
+#include <yarp/os/Semaphore.h>
+#include <iCub/ctrl/adaptWinPolyEstimator.h>
 #include <wbi/wbi.h>
 #include <map>
 #if __APPLE__
@@ -142,6 +144,50 @@ namespace wbiy
         virtual bool setPwmRef(double *pwmd, int joint=-1);
     };
     
+    /** Thread that estimates the state of the iCub robot. */
+    class icubWholeBodyEstimator: public yarp::os::RateThread
+    {
+    protected:
+        yarpWholeBodySensors        *sensors;
+        double                      estWind;        // time window for the estimation
+        
+        iCub::ctrl::AWLinEstimator  *dqFilt;        // joint velocity filter
+        iCub::ctrl::AWQuadEstimator *d2qFilt;       // joint acceleration filter
+        int dqFiltWL, d2qFiltWL;                    // window lengths of adaptive window filters
+        double dqFiltTh, d2qFiltTh;                 // threshold of adaptive window filters
+        
+        yarp::sig::Vector lastQ, q, qStamps;        // last joint position estimation
+        yarp::sig::Vector lastDq;                   // last joint velocity estimation
+        yarp::sig::Vector lastD2q;                  // last joint acceleration estimation
+        
+        yarp::os::Semaphore         mutex;          // mutex for access to class global variables
+        
+        /** Copy the content of vector src into vector dest. */
+        bool copyVector(const yarp::sig::Vector &src, double *dest);
+        /** Take the mutex and copy the content of src into dest. */
+        bool lockAndCopyVector(const yarp::sig::Vector &src, double *dest);
+        /* Resize all vectors using current number of DoFs. */
+        void resizeAll(int n);
+        
+    public:
+        icubWholeBodyEstimator(int _period, yarpWholeBodySensors *_sensors);
+        
+        /** Set the parameters of the adaptive window filter used for velocity estimation. */
+        void setVelFiltParams(int windowLength, double threshold);
+        /** Set the parameters of the adaptive window filter used for acceleration estimation. */
+        void setAccFiltParams(int windowLength, double threshold);
+
+        bool threadInit();
+        void run();
+        void threadRelease();
+        
+        /** To be called when joints are added/removed. */
+        void updateDimensions();
+        bool getQ(double *q);
+        bool getDq(double *dq);
+        bool getD2q(double *d2q);
+    };
+    
     
     
     /**
@@ -159,6 +205,7 @@ namespace wbiy
         wbi::LocalIdList            jointIdList;    // list of the joint ids
         
         yarpWholeBodySensors        *sensors;       // interface to access the robot sensors
+        icubWholeBodyEstimator      *estimator;     // estimation thread
         double                      estWind;        // time window for the estimation
         
     public:

@@ -17,6 +17,7 @@
 
 #include "wbiy/wbiy.h"
 #include <string>
+#include <cassert>
 
 using namespace std;
 using namespace wbi;
@@ -138,6 +139,7 @@ bool yarpWholeBodySensors::readEncoders(double *q, double *stamps, bool wait)
     int i=0;
     FOR_ALL_BODY_PARTS(itBp)
     {
+        assert(ienc[itBp->first]!=NULL);
         while( !(update=ienc[itBp->first]->getEncodersTimed(qTemp, tTemp)) && wait)
             Time::delay(WAIT_TIME);
         
