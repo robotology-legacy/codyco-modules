@@ -34,12 +34,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 
-# Hide variable to MSVC users, since it is not needed
-if (MSVC)
-    mark_as_advanced(CMAKE_BUILD_TYPE)
-endif(MSVC)
-
-
 #### Settings for rpath
 
 if(NOT MSVC)
