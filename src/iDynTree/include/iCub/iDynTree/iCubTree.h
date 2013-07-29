@@ -43,6 +43,11 @@ enum iCubTree_serialization_tag
                               torso(3), head (3), left arm (7), right arm(7), left leg (6), right leg (6) (Andrea) */
 };
 
+/**
+ *  \ingroup iDynTree
+ * 
+ * Class for using the iDynTree library with the iCub robot 
+ */
 class iCubTree : public DynTree 
 {
 	private:

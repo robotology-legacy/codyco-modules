@@ -77,21 +77,30 @@ private:
     void setActiveDOFs(const Vector & vec, Vector & vec_complete);
     void computeRegressor();
 
-	/* class constants */
-	const int PERIOD;
+    ResourceFinder* rf;
+
 
 	/* class variables */
     wholeBodyInterface* robot_interface;
     
     DynTree* dynamical_model;
     
-	ResourceFinder* rf;
+    	const int PERIOD;
+
+    
 
 	// input parameters
 	string robotName;
+    
+        //Bool vector of activly controlled DOF 
+    std::vector<bool> selected_DOFs;
 
 	/* ports */
 	BufferedPort<Vector> qfPort;
+    
+    
+	/* class constants */
+
     
 
     /* Mathematical variables */    
@@ -132,8 +141,7 @@ private:
 
     double Kappa2;
     
-    //Bool vector of activly controlled DOF 
-    std::vector<bool> selected_DOFs;
+
     
 	//Helper methods
 	int count_DOFs(const std::vector<bool> & _selected_DOFs);

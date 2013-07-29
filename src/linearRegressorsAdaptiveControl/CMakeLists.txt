@@ -40,7 +40,7 @@ SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 ADD_EXECUTABLE(${PROJECTNAME}  ${folder_source} ${folder_header})
 
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES}  ${iCub_LIBRARIES} ${iDyn_LIBRARIES} iDyn iDynTree ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
+target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES}  ${iCub_LIBRARIES} ${iDyn_LIBRARIES} wbi wbiy iDyn iDynTree ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
 
 
 if(WIN32)

@@ -24,6 +24,9 @@ using namespace yarp::math;
 
 /**
  * 
+ * 
+ * 
+ * 
  * \todo implement range checking and part handling
  * \todo iDynTreeContact solve dynamic allocation of regressor matrix for contacts
  * 
@@ -42,19 +45,18 @@ DynTree::DynTree(const KDL::Tree & _tree,
                    KDL::CoDyCo::TreeSerialization serialization,
                    KDL::CoDyCo::TreePartition _partition
                    ):  tree_graph(_tree,serialization,_partition)
-{
-	constructor(_tree,joint_sensor_names,imu_link_name,serialization,_partition);
+{constructor(_tree,joint_sensor_names,imu_link_name,serialization,_partition);
 }
 
 void DynTree::constructor(const KDL::Tree & _tree, 
-					  const std::vector<std::string> & joint_sensor_names,
+		      const std::vector<std::string> & joint_sensor_names,
                       const std::string & imu_link_name,
                       KDL::CoDyCo::TreeSerialization serialization,
                       KDL::CoDyCo::TreePartition _partition,
                       std::vector<KDL::Frame> child_sensor_transforms
-					  )
+)
 {
-	int ret;
+int ret;
     
     tree_graph = KDL::CoDyCo::TreeGraph(_tree,serialization,_partition);  
     partition = _partition;
@@ -82,10 +84,10 @@ void DynTree::constructor(const KDL::Tree & _tree,
     
     measured_wrenches =  std::vector< KDL::Wrench >(NrOfFTSensors);
     
-	v = std::vector<KDL::Twist>(NrOfLinks);
-	a = std::vector<KDL::Twist>(NrOfLinks);
+    v = std::vector<KDL::Twist>(NrOfLinks);
+    a = std::vector<KDL::Twist>(NrOfLinks);
     
-	f = std::vector<KDL::Wrench>(NrOfLinks); /**< wrench trasmitted by a link to the predecessor (note that predecessor definition depends on the selected dynamic base */
+    f = std::vector<KDL::Wrench>(NrOfLinks); /**< wrench trasmitted by a link to the predecessor (note that predecessor definition depends on the selected dynamic base */
         
     f_ext = std::vector<KDL::Wrench>(NrOfLinks,KDL::Wrench::Zero());     
         
@@ -182,9 +184,9 @@ int DynTree::buildSubGraphStructure(const std::vector<std::string> & ft_names)
             int parent_nmbr = parent_it->link_nr;
             
             if( isFTsensor(link_it->getAdjacentJoint(parent_it)->joint.getName(),ft_names) ) {
-				//The FT sensor should be a fixed joint ? probably not
-				//assert(link_it->getAdjacentJoint(parent_it)->joint.getType() == Joint::None);
-				
+                //The FT sensor should be a fixed joint ? probably not
+                //assert(link_it->getAdjacentJoint(parent_it)->joint.getType() == Joint::None);
+
                 link2subgraph_index[link_nmbr] = next_id;
                 
                 //This link is a root of a dynamical subgraph, as its parent is in another subgraph
@@ -204,14 +206,14 @@ int DynTree::buildSubGraphStructure(const std::vector<std::string> & ft_names)
     //Building Force/Torque sensors data structures
     ft_list.clear();
     for(int i=0; i < (int)ft_names.size(); i++ ) {
-		int parent_id = tree_graph.getJunction(ft_names[i])->parent->link_nr;
-		int child_id = tree_graph.getJunction(ft_names[i])->child->link_nr;
-		int sensor_id = i;
-		ft_list.push_back(FTSensor(tree_graph,ft_names[i],parent_id,child_id,sensor_id));
-		
-		link_FT_sensors[parent_id].push_back(&(ft_list[i]));
-		link_FT_sensors[child_id].push_back(&(ft_list[i]));
-	}
+        int parent_id = tree_graph.getJunction(ft_names[i])->parent->link_nr;
+        int child_id = tree_graph.getJunction(ft_names[i])->child->link_nr;
+        int sensor_id = i;
+        ft_list.push_back(FTSensor(tree_graph,ft_names[i],parent_id,child_id,sensor_id));
+
+        link_FT_sensors[parent_id].push_back(&(ft_list[i]));
+        link_FT_sensors[child_id].push_back(&(ft_list[i]));
+    }
         
     //The numbers of ids must be equal to the number of subgraphs
     if(next_id == NrOfDynamicSubGraphs) {
@@ -226,11 +228,11 @@ int DynTree::buildSubGraphStructure(const std::vector<std::string> & ft_names)
 
 KDL::Wrench DynTree::getMeasuredWrench(int link_id)
 {
-	KDL::Wrench ret = KDL::Wrench::Zero();
-	for(int i = 0; i < (int)link_FT_sensors[link_id].size(); i++ ) {
-		ret += link_FT_sensors[link_id][i]->getWrenchExcertedOnSubGraph(link_id,measured_wrenches);
-	}
-	return ret;
+    KDL::Wrench ret = KDL::Wrench::Zero();
+    for(int i = 0; i < (int)link_FT_sensors[link_id].size(); i++ ) {
+        ret += link_FT_sensors[link_id][i]->getWrenchExcertedOnSubGraph(link_id,measured_wrenches);
+    }
+    return ret;
 }
 
 void DynTree::buildAb_contacts()
@@ -250,35 +252,35 @@ void DynTree::buildAb_contacts()
 
     for(int l=dynamic_traversal.order.size()-1; l>=0; l-- ) {
             
-		KDL::CoDyCo::LinkMap::const_iterator link_it = dynamic_traversal.order[l];
-		int link_nmbr = link_it->link_nr;
-		
-		if( l != 0 ) {
-			
-			KDL::CoDyCo::LinkMap::const_iterator parent_it = dynamic_traversal.parent[link_nmbr];
-			const int parent_nmbr = parent_it->link_nr;
-			//If this link is a subgraph root, store the result, otherwise project it to the parent
-			if( !isSubGraphRoot(link_nmbr) ) {
-				double joint_pos;
-				
-				KDL::CoDyCo::JunctionMap::const_iterator joint_it = link_it->getAdjacentJoint(parent_it);
+        KDL::CoDyCo::LinkMap::const_iterator link_it = dynamic_traversal.order[l];
+        int link_nmbr = link_it->link_nr;
+
+        if( l != 0 ) {
+
+            KDL::CoDyCo::LinkMap::const_iterator parent_it = dynamic_traversal.parent[link_nmbr];
+            const int parent_nmbr = parent_it->link_nr;
+            //If this link is a subgraph root, store the result, otherwise project it to the parent
+            if( !isSubGraphRoot(link_nmbr) ) {
+                double joint_pos;
+
+            KDL::CoDyCo::JunctionMap::const_iterator joint_it = link_it->getAdjacentJoint(parent_it);
                 if( joint_it->joint.getType() == KDL::Joint::None ) {
                     joint_pos = 0.0;
                 } else {
                     joint_pos = q(link_it->getAdjacentJoint(parent_it)->q_nr);
                 }
              
-				
-				b_contacts_subtree[parent_nmbr] += link_it->pose(parent_it,joint_pos)*b_contacts_subtree[link_nmbr]; 
-			} else {
-				b_contacts[getSubGraphIndex(link_nmbr)].setSubvector(0,KDLtoYarp(b_contacts_subtree[link_nmbr].torque));
-				b_contacts[getSubGraphIndex(link_nmbr)].setSubvector(3,KDLtoYarp(b_contacts_subtree[link_nmbr].force));
-			}
+
+                b_contacts_subtree[parent_nmbr] += link_it->pose(parent_it,joint_pos)*b_contacts_subtree[link_nmbr]; 
+            } else {
+                b_contacts[getSubGraphIndex(link_nmbr)].setSubvector(0,KDLtoYarp(b_contacts_subtree[link_nmbr].torque));
+                b_contacts[getSubGraphIndex(link_nmbr)].setSubvector(3,KDLtoYarp(b_contacts_subtree[link_nmbr].force));
+            }
        }
-	}
-	
-	//Then calculate the A and b related to unknown contacts
-	
+    }
+    
+    //Then calculate the A and b related to unknown contacts
+    
     iCub::skinDynLib::dynContactList::const_iterator it;
     
     std::vector<int> unknowns(NrOfDynamicSubGraphs,0);
@@ -338,13 +340,13 @@ void DynTree::buildAb_contacts()
             
             if(it->isForceDirectionKnown())
             {   
-				// 1 UNKNOWN: FORCE MODULE
-				yarp::sig::Matrix un(6,1);
-				un.zero();
-				un.setSubcol(it->getForceDirection(),3,0); // force direction unit vector
-				yarp::sig::Matrix H_adj_root_contact = KDLtoYarp_wrench(H_root_contact);
-				yarp::sig::Matrix col = H_adj_root_contact*un;
-				A_contacts[sg].setSubmatrix(col,0,colInd);
+                // 1 UNKNOWN: FORCE MODULE
+                yarp::sig::Matrix un(6,1);
+                un.zero();
+                un.setSubcol(it->getForceDirection(),3,0); // force direction unit vector
+                yarp::sig::Matrix H_adj_root_contact = KDLtoYarp_wrench(H_root_contact);
+                yarp::sig::Matrix col = H_adj_root_contact*un;
+                A_contacts[sg].setSubmatrix(col,0,colInd);
                 colInd += 1;
                
             }
@@ -381,39 +383,39 @@ void DynTree::store_contacts_results()
         for(it = contacts[sg].begin(); it!=contacts[sg].end(); it++)
         {
 
-			//Store the result in dynContactList, for output
-			if(it->isForceDirectionKnown()) {
-				//1 UNKNOWN
-				it->setForceModule( x_contacts[sg](unknownInd++));
-			}
-			else
-			{
-				if(it->isMomentKnown())
-				{
-					//3 UNKNOWN
-					it->setForce(x_contacts[sg].subVector(unknownInd, unknownInd+2));
-					unknownInd += 3;				
-				} else {
-					//6 UNKNOWN
-					it->setMoment(x_contacts[sg].subVector(unknownInd, unknownInd+2));
-					unknownInd += 3;
-					it->setForce(x_contacts[sg].subVector(unknownInd, unknownInd+2));
-					unknownInd += 3;
+            //Store the result in dynContactList, for output
+            if(it->isForceDirectionKnown()) {
+                //1 UNKNOWN
+                it->setForceModule( x_contacts[sg](unknownInd++));
+            }
+            else
+            {
+                if(it->isMomentKnown())
+                {
+                    //3 UNKNOWN
+                    it->setForce(x_contacts[sg].subVector(unknownInd, unknownInd+2));
+                    unknownInd += 3;				
+                } else {
+                    //6 UNKNOWN
+                    it->setMoment(x_contacts[sg].subVector(unknownInd, unknownInd+2));
+                    unknownInd += 3;
+                    it->setForce(x_contacts[sg].subVector(unknownInd, unknownInd+2));
+                    unknownInd += 3;
 
-				}
-			}
-			
-			//Store the results in f_ext, for RNEA dynamic loop
-			KDL::Vector COP, force, moment;
-			YarptoKDL(it->getCoP(),COP);
-			KDL::Frame H_link_contact = KDL::Frame(COP);
-			YarptoKDL(it->getForce(),force);
-			YarptoKDL(it->getMoment(),moment);
-			
-			KDL::Wrench f_contact = KDL::Wrench(force,moment);
-			//Get global link index from part ID and local index
-			int link_nmbr = partition.getGlobalLinkIndex(it->getBodyPart(),it->getLinkNumber());
-			f_ext[link_nmbr] = H_link_contact*f_contact;
+                }
+            }
+            
+            //Store the results in f_ext, for RNEA dynamic loop
+            KDL::Vector COP, force, moment;
+            YarptoKDL(it->getCoP(),COP);
+            KDL::Frame H_link_contact = KDL::Frame(COP);
+            YarptoKDL(it->getForce(),force);
+            YarptoKDL(it->getMoment(),moment);
+            
+            KDL::Wrench f_contact = KDL::Wrench(force,moment);
+            //Get global link index from part ID and local index
+            int link_nmbr = partition.getGlobalLinkIndex(it->getBodyPart(),it->getLinkNumber());
+            f_ext[link_nmbr] = H_link_contact*f_contact;
         }
     }
 }
@@ -594,9 +596,9 @@ yarp::sig::Matrix DynTree::getPosition(const int link_index) const
 
 yarp::sig::Matrix DynTree::getPosition(const std::string & link_name) const
 {
-	KDL::CoDyCo::LinkMap::const_iterator link_it = tree_graph.getLink(link_name);
-	if( link_it == tree_graph.getInvalidLinkIterator() ) { std::cerr << "DynTree::getPosition : link " << link_name << " not found" << std::endl; return Matrix(0,0); }
-	//\todo add that computation are updated checking
+    KDL::CoDyCo::LinkMap::const_iterator link_it = tree_graph.getLink(link_name);
+    if( link_it == tree_graph.getInvalidLinkIterator() ) { std::cerr << "DynTree::getPosition : link " << link_name << " not found" << std::endl; return Matrix(0,0); }
+    //\todo add that computation are updated checking
 	return getPosition(link_it->link_nr);
 }
 
@@ -628,10 +630,10 @@ yarp::sig::Vector DynTree::getVel(const int link_index) const
 
 yarp::sig::Vector DynTree::getVel(const std::string & link_name) const
 {
-	KDL::CoDyCo::LinkMap::const_iterator link_it = tree_graph.getLink(link_name);
-	if( link_it == tree_graph.getInvalidLinkIterator() ) { std::cerr << "DynTree::getVel : link " << link_name << " not found" << std::endl; return Vector(0); }
-	//\todo add that computation are updated checking
-	return getVel(link_it->link_nr);
+    KDL::CoDyCo::LinkMap::const_iterator link_it = tree_graph.getLink(link_name);
+    if( link_it == tree_graph.getInvalidLinkIterator() ) { std::cerr << "DynTree::getVel : link " << link_name << " not found" << std::endl; return Vector(0); }
+    //\todo add that computation are updated checking
+    return getVel(link_it->link_nr);
 }
 
 yarp::sig::Vector DynTree::getAcc(const int link_index) const
@@ -726,9 +728,9 @@ const iCub::skinDynLib::dynContactList DynTree::getContacts() const
 //====================================
 bool DynTree::computePositions()
 {
-	if(X_dynamic_base.size() != tree_graph.getNrOfLinks()) { X_dynamic_base.resize(tree_graph.getNrOfLinks()); }
-	if( getFramesLoop(tree_graph,q,dynamic_traversal,X_dynamic_base) == 0 ) return true;
-	//else
+    if(X_dynamic_base.size() != tree_graph.getNrOfLinks()) { X_dynamic_base.resize(tree_graph.getNrOfLinks()); }
+    if( getFramesLoop(tree_graph,q,dynamic_traversal,X_dynamic_base) == 0 ) return true;
+    //else
     return false;  
 }
 

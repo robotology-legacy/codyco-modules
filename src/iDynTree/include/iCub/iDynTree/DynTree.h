@@ -125,7 +125,7 @@ typedef std::vector<FTSensor> FTSensorList;
     
     
 /**
- * \ingroup DynTree
+ * \ingroup iDynTree
  *
  * An implementation of the DynTreeInterface using KDL 
  * 

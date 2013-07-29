@@ -35,7 +35,7 @@ linearRegressorsAdaptiveControlThread::linearRegressorsAdaptiveControlThread(Res
 																			 DynTree * _dynamical_model,
 																			 const std::vector<bool> _selected_DOFs,
 																			 int period)
-									   : rf(_rf), RateThread(period), robot_interface(_robot_interface), dynamical_model(_dynamical_model),
+									   :  RateThread(period), rf(_rf), robot_interface(_robot_interface), dynamical_model(_dynamical_model),
 									   PERIOD(period), robotName(_robotName), selected_DOFs(_selected_DOFs), Yr()
 {
 	N_DOFs = count_DOFs(selected_DOFs);
@@ -73,20 +73,20 @@ linearRegressorsAdaptiveControlThread::linearRegressorsAdaptiveControlThread(Res
     
     /* get some other values from the configuration file */
      double value_read;
-     value_read = (int)rf.check("gamma", Value(1.0),
+     value_read = (int)rf->check("gamma", Value(1.0),
 	"Value for the Gamma gain (single positive double, the gain matrix will be diagonal with all equal terms)").asDouble();
      setGain(gamma_gain,value_read);
      
-     value_read = (int)rf.check("kappa", Value(0.0),
+     value_read = (int)rf->check("kappa", Value(0.0),
 	"Value for the Kappa gain  in ms (single positive double, the gain matrix will be diagonal with all equal terms)").asDouble();
      setGain(kappa_gain,value_read);
             
             
-    value_read = (int)rf.check("lambda", Value(0.0),
+    value_read = (int)rf->check("lambda", Value(0.0),
     "Value for the lambda gain  in ms (single positive double, the gain matrix will be diagonal with all equal terms)").asDouble();
     setGain(lambda_gain,value_read);
     
-    value_read = (int)rf.check("trajectory_time", Value(1.0),
+    value_read = (int)rf->check("trajectory_time", Value(1.0),
     "Value for the lambda gain  in ms (single positive double, the gain matrix will be diagonal with all equal terms)").asDouble();
     setGain(trajectory_time,value_read);
 }
@@ -103,6 +103,8 @@ bool linearRegressorsAdaptiveControlThread::threadInit()
     Vector inertial_parameters;
     dynamical_model->getDynamicsParameters(inertial_parameters);
     aHat.setSubvector(0,inertial_parameters);
+    
+    return true;
 }
 
 void linearRegressorsAdaptiveControlThread::run()
@@ -118,7 +120,7 @@ void linearRegressorsAdaptiveControlThread::run()
     Vector * tmp = qfPort.read();
     qf = *tmp;
     
-    if( qf.size() != N_DOFs ) {
+    if( (int)qf.size() != N_DOFs ) {
         //abort
         YARP_ASSERT(false);
     }
@@ -154,7 +156,7 @@ void linearRegressorsAdaptiveControlThread::run()
     aHat    = aHat  - Gamma * ( Yr.transposed() * s ) * T_c;  /* Euler integration for estimated parameters  evolution */
 
     int reduced_i = 0;
-    for(int i=0; i < selected_DOFs.size(); i++ ) {
+    for(int i=0; i < (int)selected_DOFs.size(); i++ ) {
         if( selected_DOFs[i] ) { 
             robot_interface->setTorqueRef(&(Tau[reduced_i]),i);
             reduced_i++;
@@ -171,7 +173,7 @@ void linearRegressorsAdaptiveControlThread::threadRelease()
 int linearRegressorsAdaptiveControlThread::count_DOFs(const std::vector<bool> & selected_DOFs)
 {
 	int DOFs = 0;
-	for(int i = 0; i < selected_DOFs.size(); i++ ) {
+	for(int i = 0; i < (int)selected_DOFs.size(); i++ ) {
 		if( selected_DOFs[i] ) {
 			DOFs++;
 		}
@@ -182,7 +184,7 @@ int linearRegressorsAdaptiveControlThread::count_DOFs(const std::vector<bool> & 
 void linearRegressorsAdaptiveControlThread::selectActiveDOFs(const Vector & vec_complete, Vector & vec)
 {
     int reduced_i = 0;
-    for(int i=0; i < selected_DOFs.size(); i++ ) 
+    for(int i=0; i < (int)selected_DOFs.size(); i++ ) 
     {
         if( selected_DOFs[i] ) {
             vec(reduced_i) = vec_complete(i);
@@ -257,7 +259,7 @@ void linearRegressorsAdaptiveControlThread::computeRegressor()
     dynamical_model->getDynamicsRegressor(Y_complete_no_friction);
     
     int reduced_i = 0;
-    for(int i = 0; i <  selected_DOFs.size(); i++ ) {
+    for(int i = 0; i < (int)selected_DOFs.size(); i++ ) {
         if( selected_DOFs[i] ) {
             Yr.setSubrow(Y_complete_no_friction.getRow(i),reduced_i,0);
             reduced_i++;
@@ -289,4 +291,5 @@ bool linearRegressorsAdaptiveControlThread::setGain(available_gains gain, double
         case trajectory_time:
             T_trajectory = value;
     }
+    return true;
 }
