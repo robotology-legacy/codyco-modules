@@ -53,7 +53,7 @@ class FTSensor
     
     		FTSensor(const KDL::CoDyCo::TreeGraph & _tree_graph, 
 				 const std::string _fixed_joint_name,
-				 const int _parent,
+                 const int _parent,
 				 const int _child,
 				 const int _sensor_id) : 
 				 tree_graph(&_tree_graph),
@@ -267,8 +267,19 @@ class DynTree : public DynTreeInterface {
         
         ~DynTree();
         
+        /**
+         * Get the number of (internal) degrees of freedom of the tree
+         *
+         * \note This function returns only the internal degrees of freedom of the robot (i.e. not counting the 6
+         *       DOFs of the floating base
+         * 
+         */
         int getNrOfDOFs();
         
+        /**
+         * Get the number of links of the tree
+         *
+         */
         int getNrOfLinks();
         
     /**
@@ -403,33 +414,54 @@ class DynTree : public DynTreeInterface {
      *  Methods to get output quantities
      */
     //@{
-		
-		
-	virtual yarp::sig::Matrix getPosition(const int link_index) const;
-	
-	virtual yarp::sig::Matrix getPosition(const std::string & link_name ) const;
-	
-	virtual yarp::sig::Matrix getPosition(const int first_link, const int second_link) const;
-	
-	virtual yarp::sig::Matrix getPosition(const std::string & first_link_name, const std::string & second_link_name ) const;
-		
+
+    /**
+     * 
+     * @param link_index the index of the link 
+     * @return a 4x4 rototranslation yarp::sig::Matrix 
+     */
+    virtual yarp::sig::Matrix getPosition(const int link_index) const;
+    
+    /**
+     * 
+     * @param link_name the name of the link 
+     * @return a 4x4 rototranslation yarp::sig::Matrix
+     */
+    virtual yarp::sig::Matrix getPosition(const std::string & link_name) const;
+    
+    /**
+     * 
+     * @param first_link the index of the first link 
+     * @param second_link the index of the second link
+     * @return a 4x4 rototranslation yarp::sig::Matrix
+     */
+    virtual yarp::sig::Matrix getPosition(const int first_link, const int second_link) const;
+    
+    /**
+     * 
+     * @param first_link_name the index of the first link 
+     * @param second_link_name the index of the second link
+     * @return a 4x4 rototranslation yarp::sig::Matrix
+     */
+    virtual yarp::sig::Matrix getPosition(const std::string & first_link_name, const std::string & second_link_name ) const;
+
 	/**
-	 * Get the velocity of the specified link
-	 * @param the index of the link 
+	 * Get the velocity of the specified link, expressed in the link local reference frame
+	 * @param link_index the index of the link 
 	 * @return a 6x1 vector with linear velocity (0:2) and angular velocity (3:5)
 	 */
 	virtual yarp::sig::Vector getVel(const int link_index) const;
 	
 	/**
-	 * Get the velocity of the specified link
-	 * @param the index of the link 
+	 * Get the velocity of the specified link, expressed in the link local reference frame
+	 * @param link_name the name of the link 
 	 * @return a 6x1 vector with linear velocity (0:2) and angular velocity (3:5)
 	 */
 	virtual yarp::sig::Vector getVel(const std::string & link_name) const;
   
   	/**
-	 * Get the acceleration of the specified link
-	 * @param the index of the link 
+	 * Get the acceleration of the specified link, expressed in the link local reference frame
+	 * @param link_index the index of the link 
 	 * @return a 6x1 vector with linear acc (0:2) and angular acceleration (3:5)
 	 *
 	 * \note This function returns the classical linear acceleration, not the spatial one
@@ -437,8 +469,8 @@ class DynTree : public DynTreeInterface {
 	virtual yarp::sig::Vector getAcc(const int link_index) const;
 	
   	/**
-	 * Get the acceleration of the specified link
-	 * @param the index of the link 
+	 * Get the acceleration of the specified link, expressed in the link local reference frame
+	 * @param link_name the name of the link 
 	 * @return a 6x1 vector with linear acceleration (0:2) and angular acceleration (3:5)
 	 * 
 	 * \note This function returns the classical linear acceleration, not the spatial one
@@ -520,13 +552,25 @@ class DynTree : public DynTreeInterface {
     virtual bool getCOMJacobian(const yarp::sig::Matrix & jac, const std::string & part_name="") const;
     //@}
     
+    /** @name Methods related to inertial parameters regressor 
+     * 
+     * 
+     */
     //@{
     /**
-     * Get the dynamics regressor
+     * Get the dynamics regressor, such that dynamics_regressor*dynamics_parameters 
+     * return a 6+nrOfDOFs vector where the first six elements are the components of the base wrench,
+     * while the other nrOfDOFs elements are the torques 
      * 
+     * @return a 6+nrOfDOFs x 10*nrOfLinks yarp::sig::Matrix
      */
     virtual bool getDynamicsRegressor(yarp::sig::Matrix & mat);
     
+    /**
+     * Get the dynamics parameters currently used for the dynamics calculations
+     * 
+     * @return a 10*nrOfLinks yarp::sig::Vector
+     */
     virtual bool getDynamicsParameters(yarp::sig::Vector & vet);
     //@} 
 
