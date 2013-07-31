@@ -18,11 +18,14 @@ namespace iCub
 
 namespace iDynTree
 {
-    
+
+/**
+ * Struct for describing the version of the parts of an iCubTree
+ */
 struct iCubTree_version_tag
 {
-    int head_version;
-    int legs_version;
+    int head_version; /**< Head version: can be 1 or 2 (default: 1) */ 
+    int legs_version; /**< Legs version: can be 1 or 2 (default: 1) */
     
     iCubTree_version_tag () 
     {
@@ -33,7 +36,7 @@ struct iCubTree_version_tag
 };
 
 /**
- * Enum for describing the serialization used in for iCubTree
+ * Enum for describing the serialization used for iCubTree
  */
 enum iCubTree_serialization_tag
 {
@@ -46,28 +49,33 @@ enum iCubTree_serialization_tag
 /**
  *  \ingroup iDynTree
  * 
- * Class for using the iDynTree library with the iCub robot 
+ * Class that instantiate a DynTree object with the model of the iCub robot
  */
 class iCubTree : public DynTree 
 {
-	private:
-		/**
-		 * Get the partition of the iCub in a skinDynLib 
-		 * 
-		 */
-		KDL::CoDyCo::TreePartition get_iCub_partition(const KDL::CoDyCo::TreeSerialization & icub_serialization);
-	
-	public:
-	/**
-	 * Default constructor for iCubTree
-	 * 
-	 * \note the FT sensor serialization is (0) LEFT_ARM (1) RIGHT_ARM (2) LEFT_LEG (3) RIGHT_LEG
-	 * @param version a iCubTree_version_tag structure for defining the version of the parts
-	 * 				  composing the iCubTree
-	 */
-	iCubTree(iCubTree_version_tag version,  iCubTree_serialization_tag serial=SKINDYNLIB_SERIALIZATION,  unsigned int verbose=0);
-	
-	~iCubTree();
+    private:
+        /**
+         * Get the partition of the iCub in a skinDynLib   
+         * 
+         */
+        KDL::CoDyCo::TreePartition get_iCub_partition(const KDL::CoDyCo::TreeSerialization & icub_serialization);
+
+    public:
+        
+    /**
+     * Constructor for iCubTree
+     * 
+     * \note the FT sensor serialization is (0) LEFT_ARM (1) RIGHT_ARM (2) LEFT_LEG (3) RIGHT_LEG
+     * \note currently the iCub model is loaded from iCub::iDyn::iCubWholeBody. This is a temporary workaround for initial deployment, 
+     *       while in the final version of iDynTree the structure of the iCub should be loaded from a file description.
+     *       
+     * @param version a iCubTree_version_tag structure for defining the version of the parts composing the iCubTree
+     * @param serial a iCubTree_serialization_tag for defining the serialization (default is SKINDYNLIB_SERIALIZATION)
+     * @param verbose level of verbosity: 0 if no output is requested, 1 to have output messages (default is 0) 
+     */
+     iCubTree(iCubTree_version_tag version,  iCubTree_serialization_tag serial=SKINDYNLIB_SERIALIZATION,  unsigned int verbose=0);
+
+    ~iCubTree();
 };
 
 }//end namespace

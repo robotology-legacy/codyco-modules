@@ -106,9 +106,9 @@ bool KDLtoYarp_position(const KDL::Frame & kdlFrame, yarp::sig::Matrix & yarpMat
 
 yarp::sig::Matrix KDLtoYarp_position(const KDL::Frame & kdlFrame)
 {
-	yarp::sig::Matrix yarpMatrix4_4(4,4);
-	KDLtoYarp_position(kdlFrame,yarpMatrix4_4);
-	return yarpMatrix4_4;
+    yarp::sig::Matrix yarpMatrix4_4(4,4);
+    KDLtoYarp_position(kdlFrame,yarpMatrix4_4);
+    return yarpMatrix4_4;
 }
 
 
@@ -132,9 +132,9 @@ bool KDLtoYarp_twist(const KDL::Frame & kdlFrame, yarp::sig::Matrix & yarpMatrix
 
 yarp::sig::Matrix KDLtoYarp_twist(const KDL::Frame & kdlFrame)
 {
-	yarp::sig::Matrix yarpMatrix6_6(6,6);
-	KDLtoYarp_twist(kdlFrame,yarpMatrix6_6);
-	return yarpMatrix6_6;
+    yarp::sig::Matrix yarpMatrix6_6(6,6);
+    KDLtoYarp_twist(kdlFrame,yarpMatrix6_6);
+    return yarpMatrix6_6;
 }
 
 
@@ -158,9 +158,9 @@ bool KDLtoYarp_wrench(const KDL::Frame &kdlFrame, yarp::sig::Matrix & yarpMatrix
 
 yarp::sig::Matrix KDLtoYarp_wrench(const KDL::Frame & kdlFrame)
 {
-	yarp::sig::Matrix yarpMatrix6_6(6,6);
-	KDLtoYarp_wrench(kdlFrame,yarpMatrix6_6);
-	return yarpMatrix6_6;
+    yarp::sig::Matrix yarpMatrix6_6(6,6);
+    KDLtoYarp_wrench(kdlFrame,yarpMatrix6_6);
+    return yarpMatrix6_6;
 }
 
 

@@ -51,7 +51,7 @@ class FTSensor
         
     public:
     
-    		FTSensor(const KDL::CoDyCo::TreeGraph & _tree_graph, 
+        FTSensor(const KDL::CoDyCo::TreeGraph & _tree_graph, 
 				 const std::string _fixed_joint_name,
                  const int _parent,
 				 const int _child,
@@ -87,7 +87,7 @@ class FTSensor
             if( current_link == parent ) {
 			    return (H_parent_sensor*measured_wrenches[sensor_id]);
             } else {
-				//The junction connected to an F/T sensor should be one with 0 DOF
+                //The junction connected to an F/T sensor should be one with 0 DOF
 				assert(tree_graph->getLink(child)->getAdjacentJoint(tree_graph->getLink(parent))->joint.getType() == KDL::Joint::None );
 				KDL::Frame H_child_parent = tree_graph->getLink(parent)->pose(tree_graph->getLink(child),0.0);
                 assert(current_link == child);
@@ -149,6 +149,8 @@ class DynTree : public DynTreeInterface {
         int NrOfDynamicSubGraphs;
         
         //state of the robot
+        //KDL::Frame world_base_frame; /**< the position of the floating base frame with respect to the world reference frame \f$ {}^w H_b */
+        
         KDL::JntArray q;
         KDL::JntArray dq;
         KDL::JntArray ddq;
@@ -160,6 +162,7 @@ class DynTree : public DynTreeInterface {
         KDL::JntArray q_min;
         KDL::JntArray q_max;
         std::vector<bool> constrained; /**< true if the DOF is subject to limit check, false otherwise */
+        
         int constrained_count; /**< the number of DOFs that are constrained */
         
         double setAng(const double q, const int i);
@@ -237,19 +240,23 @@ class DynTree : public DynTreeInterface {
         
         //Position related quantites
         bool is_X_dynamic_base_updated;
-        std::vector<KDL::Frame> X_dynamic_base; /**< for each link store the frame X_kinematic_base_link of the position of a link with respect to the kinematic base */
+        std::vector<KDL::Frame> X_dynamic_base; /**< for each link store the frame X_kinematic_base_link of the position of a link with respect to the dynamic base */
         
         
         //Debug
         int verbose;
         
-        
+        //Jacobian related quantities
+        //all this variable are defined once in the class to avoid dynamic memory allocation at each method call
+        KDL::Jacobian rel_jacobian; /**< dummy variable used by getRelativeJacobian */
+        KDL::CoDyCo::Traversal rel_jacobian_traversal;
+        KDL::Jacobian abs_jacobian; /**< dummy variable used by getJacobian */
 
         
     public:
-		 DynTree();
-		 
-		 void constructor(const KDL::Tree & _tree, const std::vector<std::string> & joint_sensor_names, const std::string & imu_link_name, KDL::CoDyCo::TreeSerialization  serialization=KDL::CoDyCo::TreeSerialization(), KDL::CoDyCo::TreePartition partition=KDL::CoDyCo::TreePartition(), std::vector<KDL::Frame> parent_sensor_transforms=std::vector<KDL::Frame>(0));
+        DynTree();
+ 
+        void constructor(const KDL::Tree & _tree, const std::vector<std::string> & joint_sensor_names, const std::string & imu_link_name, KDL::CoDyCo::TreeSerialization  serialization=KDL::CoDyCo::TreeSerialization(), KDL::CoDyCo::TreePartition partition=KDL::CoDyCo::TreePartition(), std::vector<KDL::Frame> parent_sensor_transforms=std::vector<KDL::Frame>(0));
 
     
         /**
@@ -282,6 +289,57 @@ class DynTree : public DynTreeInterface {
          */
         int getNrOfLinks();
         
+        /**
+         * Get the global index for a link, given a link name
+         * @param link_name the name of the link
+         * @return an index between 0..getNrOfLinks()-1 if all went well, -1 otherwise
+         */
+        int getLinkIndex(const std::string & link_name);
+       
+        /**
+         * Get the global index for a DOF, given a DOF name
+         * @param dof_name the name of the dof
+         * @return an index between 0..getNrOfDOFs()-1 if all went well, -1 otherwise
+         *
+         */
+        int getDOFIndex(const std::string & dof_name);
+        
+        
+         /**
+         * Get the global index for a link, given a part and a part local index
+         * @param part_id the id of the part
+         * @param local_link_index the index of the link in the given part
+         * @return an index between 0..getNrOfLinks()-1 if all went well, -1 otherwise
+         */
+        int getLinkIndex(const int part_id, const int local_link_index);
+       
+        /**
+         * Get the global index for a DOF, given a part id and a DOF part local index
+         * @param part_id the id of the part
+         * @param local_DOF_index the index of the DOF in the given part
+         * @return an index between 0..getNrOfDOFs()-1 if all went well, -1 otherwise
+         *
+         */
+        int getDOFIndex(const int part_id, const int local_DOF_index);
+        
+        /**
+         * Get the global index for a link, given a part and a part local index
+         * @param part_name the name of the part
+         * @param local_link_index the index of the link in the given part
+         * @return an index between 0..getNrOfLinks()-1 if all went well, -1 otherwise
+         */
+        int getLinkIndex(const std::string & part_name, const int local_link_index);
+       
+        /**
+         * Get the global index for a DOF, given a part id and a part local index
+         * @param part_name the name of the part
+         * @param local_DOF_index the index of the DOF in the given part
+         * @return an index between 0..getNrOfDOFs()-1 if all went well, -1 otherwise
+         *
+         */
+        int getDOFIndex(const std::string & part_name, const int local_DOF_index);
+        
+        
     /**
      * Set joint positions in the specified part (if no part 
      * is specified, set the joint positions of all the tree)
@@ -313,6 +371,8 @@ class DynTree : public DynTreeInterface {
      * is specified, get the joint speeds of all the tree)
      * @param part_name optional: the name of the part of joints to get
      * @return vector of joint speeds
+     * 
+     * \note please note that this does returns \f$  \f$ and not \f$ 
      */
     virtual yarp::sig::Vector getDAng(const std::string & part_name="") const;
     
@@ -333,6 +393,7 @@ class DynTree : public DynTreeInterface {
      */
     virtual yarp::sig::Vector getD2Ang(const std::string & part_name="") const;
     
+
     /**
      * Set the inertial sensor measurements 
      * @param w0 a 3x1 vector with the initial/measured angular velocity
@@ -384,8 +445,14 @@ class DynTree : public DynTreeInterface {
      *  Methods to execute phases of Recursive Newton Euler Algorithm
      */
     //@{
-		
-	virtual bool computePositions();  
+    
+    
+    /**
+     * Execute a loop for the calculation of the rototranslation between every frame
+     * The result of this computations can be then called using getPosition() methods
+     * @return true if succeeds, false otherwise
+     */
+    virtual bool computePositions();  
     
     /**
      * Execute the kinematic phase (recursive calculation of position, velocity,
@@ -416,21 +483,22 @@ class DynTree : public DynTreeInterface {
     //@{
 
     /**
-     * 
+     * Get the 4x4 rototranslation matrix of a link frame with respect to the dynamical base frame ( \f$ {}^bH_i \f$)
      * @param link_index the index of the link 
      * @return a 4x4 rototranslation yarp::sig::Matrix 
      */
     virtual yarp::sig::Matrix getPosition(const int link_index) const;
     
     /**
-     * 
+     * Get the 4x4 rototranslation matrix of a link frame with respect to the dynamical base frame (\f$ {}^bH_i \f$)
      * @param link_name the name of the link 
      * @return a 4x4 rototranslation yarp::sig::Matrix
      */
-    virtual yarp::sig::Matrix getPosition(const std::string & link_name) const;
+    //virtual yarp::sig::Matrix getPosition(const std::string & link_name) const;
     
     /**
-     * 
+     * Get the 4x4 rototranslation matrix between two link frames 
+     * (in particular, of the second link frame expressed in the first link frame, \f$ {}^fH_s \f$))
      * @param first_link the index of the first link 
      * @param second_link the index of the second link
      * @return a 4x4 rototranslation yarp::sig::Matrix
@@ -438,12 +506,13 @@ class DynTree : public DynTreeInterface {
     virtual yarp::sig::Matrix getPosition(const int first_link, const int second_link) const;
     
     /**
-     * 
+     * Get the 4x4 rototranslation matrix between two link frames 
+     * (in particular, of the second link frame expressed in the first link frame, \f$ {}^fH_s \f$))
      * @param first_link_name the index of the first link 
      * @param second_link_name the index of the second link
      * @return a 4x4 rototranslation yarp::sig::Matrix
      */
-    virtual yarp::sig::Matrix getPosition(const std::string & first_link_name, const std::string & second_link_name ) const;
+    //virtual yarp::sig::Matrix getPosition(const std::string & first_link_name, const std::string & second_link_name ) const;
 
 	/**
 	 * Get the velocity of the specified link, expressed in the link local reference frame
@@ -457,7 +526,7 @@ class DynTree : public DynTreeInterface {
 	 * @param link_name the name of the link 
 	 * @return a 6x1 vector with linear velocity (0:2) and angular velocity (3:5)
 	 */
-	virtual yarp::sig::Vector getVel(const std::string & link_name) const;
+	//virtual yarp::sig::Vector getVel(const std::string & link_name) const;
   
   	/**
 	 * Get the acceleration of the specified link, expressed in the link local reference frame
@@ -475,7 +544,7 @@ class DynTree : public DynTreeInterface {
 	 * 
 	 * \note This function returns the classical linear acceleration, not the spatial one
 	 */
-	virtual yarp::sig::Vector getAcc(const std::string & link_name) const;
+	//virtual yarp::sig::Vector getAcc(const std::string & link_name) const;
   
     
     /**
@@ -515,6 +584,46 @@ class DynTree : public DynTreeInterface {
     
     //@}
     
+    //@}
+    /** @name Methods related to Jacobian calculations
+     * 
+     * 
+     */
+    //@{
+    /**_
+     * For a floating base structure, outpus a 6x(nrOfDOFs+6) yarp::sig::Matrix \f$ {}^i J_i \f$ such
+     * that \f[ {}^i v_i = {}^iJ_i  \dot{q}_{fb} \f]
+     * @param link_index the index of the link
+     * @param jac the output yarp::sig::Matrix 
+     * @param global if true, return {}^wJ_i (the Jacobian expressed in the world frame) (default: false)
+     * @return true if all went well, false otherwise
+     * 
+     * \note the link used as a floating base is the base used for the dynamical loop
+     */
+    virtual bool getJacobian(const int link_index, yarp::sig::Matrix & jac, bool global=false);
+    
+    /**
+     * Get the 6+getNrOfDOFs() yarp::sig::Vector, characterizing the floating base velocities of the tree
+     * @return a vector where the 0:5 elements are the one of the dynamic base (the same that are obtained calling
+     *         getVel(dynamic_base_index), while the 6:6+getNrOfDOFs()-1 elements are the joint speeds
+     */
+    virtual yarp::sig::Vector getDQ_fb() const;
+    
+    //virtual yarp::sig::Vector getD2Q_fb() const;
+    
+    
+    /**_
+     * For a floating base structure, if d is the distal link index and b is the jacobian base link index 
+     * outputs a 6x(nrOfDOFs) yarp::sig::Matrix \f$ {}^d J_{b,d} \f$ such
+     * that \f[ {}^d v_d = {}^dJ_{b,d}  \dot{q} + {}^b v_b \f]
+     * @param jacobian_distal_link the index of the distal link
+     * @param jacobian_base_link the index of the base link
+     * @param jac the output yarp::sig::Matrix 
+     * @param global if true, return {}^wJ_{s,f} (the Jacobian expressed in the world frame) (default: false)
+     * @return true if all went well, false otherwise
+     */
+    virtual bool getRelativeJacobian(const int jacobian_distal_link, const int jacobian_base_link, yarp::sig::Matrix & jac, bool global=false);
+       
     //@}
     /** @name Methods related to Center of Mass calculation
      * 

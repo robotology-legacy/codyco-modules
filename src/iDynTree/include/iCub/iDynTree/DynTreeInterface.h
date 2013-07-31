@@ -55,7 +55,7 @@
  * \author Silvio Traversaro
  * 
  * Copyright (C) 2013 RobotCub Consortium
- * CopyPolicy: Released under the terms of the GNU GPL v2.0.
+ * CopyPolicy: Released under the terms of the GNU LGPL v2.0.
  * 
  * 
  **/ 
