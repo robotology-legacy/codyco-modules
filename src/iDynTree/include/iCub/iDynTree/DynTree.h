@@ -372,7 +372,7 @@ class DynTree : public DynTreeInterface {
      * @param part_name optional: the name of the part of joints to get
      * @return vector of joint speeds
      * 
-     * \note please note that this does returns \f$  \f$ and not \f$ 
+     * \note please note that this does returns a vector of size getNrOfDOFs()
      */
     virtual yarp::sig::Vector getDAng(const std::string & part_name="") const;
     
