@@ -488,14 +488,7 @@ class DynTree : public DynTreeInterface {
      * @return a 4x4 rototranslation yarp::sig::Matrix 
      */
     virtual yarp::sig::Matrix getPosition(const int link_index) const;
-    
-    /**
-     * Get the 4x4 rototranslation matrix of a link frame with respect to the dynamical base frame (\f$ {}^bH_i \f$)
-     * @param link_name the name of the link 
-     * @return a 4x4 rototranslation yarp::sig::Matrix
-     */
-    //virtual yarp::sig::Matrix getPosition(const std::string & link_name) const;
-    
+       
     /**
      * Get the 4x4 rototranslation matrix between two link frames 
      * (in particular, of the second link frame expressed in the first link frame, \f$ {}^fH_s \f$))
@@ -506,46 +499,21 @@ class DynTree : public DynTreeInterface {
     virtual yarp::sig::Matrix getPosition(const int first_link, const int second_link) const;
     
     /**
-     * Get the 4x4 rototranslation matrix between two link frames 
-     * (in particular, of the second link frame expressed in the first link frame, \f$ {}^fH_s \f$))
-     * @param first_link_name the index of the first link 
-     * @param second_link_name the index of the second link
-     * @return a 4x4 rototranslation yarp::sig::Matrix
+     * Get the velocity of the specified link, expressed in the link local reference frame
+     * @param link_index the index of the link 
+     * @return a 6x1 vector with linear velocity (0:2) and angular velocity (3:5)
      */
-    //virtual yarp::sig::Matrix getPosition(const std::string & first_link_name, const std::string & second_link_name ) const;
+    virtual yarp::sig::Vector getVel(const int link_index) const;
 
-	/**
-	 * Get the velocity of the specified link, expressed in the link local reference frame
-	 * @param link_index the index of the link 
-	 * @return a 6x1 vector with linear velocity (0:2) and angular velocity (3:5)
-	 */
-	virtual yarp::sig::Vector getVel(const int link_index) const;
-	
-	/**
-	 * Get the velocity of the specified link, expressed in the link local reference frame
-	 * @param link_name the name of the link 
-	 * @return a 6x1 vector with linear velocity (0:2) and angular velocity (3:5)
-	 */
-	//virtual yarp::sig::Vector getVel(const std::string & link_name) const;
-  
-  	/**
-	 * Get the acceleration of the specified link, expressed in the link local reference frame
-	 * @param link_index the index of the link 
-	 * @return a 6x1 vector with linear acc (0:2) and angular acceleration (3:5)
-	 *
-	 * \note This function returns the classical linear acceleration, not the spatial one
-	 */
-	virtual yarp::sig::Vector getAcc(const int link_index) const;
-	
-  	/**
-	 * Get the acceleration of the specified link, expressed in the link local reference frame
-	 * @param link_name the name of the link 
-	 * @return a 6x1 vector with linear acceleration (0:2) and angular acceleration (3:5)
-	 * 
-	 * \note This function returns the classical linear acceleration, not the spatial one
-	 */
-	//virtual yarp::sig::Vector getAcc(const std::string & link_name) const;
-  
+    /**
+     * Get the acceleration of the specified link, expressed in the link local reference frame
+     * @param link_index the index of the link 
+     * @return a 6x1 vector with linear acc (0:2) and angular acceleration (3:5)
+     *
+     * \note This function returns the classical linear acceleration, not the spatial one
+     */
+    virtual yarp::sig::Vector getAcc(const int link_index) const;
+
     
     /**
      * Get joint torques in the specified part (if no part 
