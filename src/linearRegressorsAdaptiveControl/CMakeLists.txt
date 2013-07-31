@@ -30,7 +30,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall ${ICUB_LINK_FLAGS}")
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${YARP_INCLUDE_DIRS})
 include_directories(${ICUB_INCLUDE_DIRS})
-include_directories(${iDynTree_INCLUDE_DIRS} 					${iDyn_INCLUDE_DIRS})
+include_directories(${iDynTree_INCLUDE_DIRS} ${iDyn_INCLUDE_DIRS} ${wbiy_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIR})
 
 # Search for source code.
