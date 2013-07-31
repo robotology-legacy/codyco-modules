@@ -32,6 +32,7 @@ include_directories(${YARP_INCLUDE_DIRS})
 include_directories(${ICUB_INCLUDE_DIRS})
 include_directories(${iDynTree_INCLUDE_DIRS} ${iDyn_INCLUDE_DIRS} ${wbiy_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIR})
+message("iDynTree_INCLUDE_DIRS " ${iDynTree_INCLUDE_DIRS})
 
 # Search for source code.
 FILE(GLOB folder_source src/*.cpp src/*.cc src/*.c)
