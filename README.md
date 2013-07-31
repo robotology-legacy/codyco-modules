@@ -43,7 +43,7 @@ For any further information you can check http://www.orocos.org/kdl .
 ###kdl_codyco
 It is possible to install kdl_codyco easily from GitHub.
 ```bash
-git clone https://github.com/pegua/kdl_codyco.git
+git clone https://github.com/traversaro/kdl_codyco.git
 cd kdl_codyco
 cd build
 ccmake ../
