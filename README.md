@@ -23,6 +23,15 @@ You can follow the instructions on: http://wiki.icub.org/wiki/ICub_Software_Inst
 
 ###Eigen
 You can follow the instructions on: http://eigen.tuxfamily.org .
+For example, on OS X you can simply use brew to install Eigen:
+```bash
+brew install eigen
+```
+
+while on Debian/Ubuntu you can use apt-get :
+```bash
+sudo apt-get install libeigen3-dev
+```
 
 ###kdl
 It is possible to install Orocos-KDL easily from the Orocos Git repository repository:
@@ -45,6 +54,7 @@ It is possible to install kdl_codyco easily from GitHub.
 ```bash
 git clone https://github.com/traversaro/kdl_codyco.git
 cd kdl_codyco
+mkdir build
 cd build
 ccmake ../
 make
