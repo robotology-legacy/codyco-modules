@@ -83,6 +83,9 @@ icubWholeBodyEstimator::icubWholeBodyEstimator(int _period, yarpWholeBodySensors
 : RateThread(_period), sensors(_sensors), dqFilt(0), d2qFilt(0)
 {
     resizeAll(sensors->getDoFs());
+    dqFiltWL = 16;
+    d2qFiltWL = 25;      // window lengths of adaptive window filters
+    dqFiltTh = d2qFiltTh = 1.0;     // threshold of adaptive window filters
 }
 
 bool icubWholeBodyEstimator::threadInit()
