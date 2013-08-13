@@ -11,6 +11,8 @@
 #include <kdl_codyco/treepartition.hpp>
 #include <kdl_codyco/treegraph.hpp>
 
+#include <kdl_codyco/ftsensor.hpp>
+
 #include <kdl/jntarray.hpp>
 #include <kdl/tree.hpp>
 
@@ -23,106 +25,7 @@ namespace iCub
 {
 
 namespace iDynTree
-{
-    
-    
-    
-/**
- * 
- * Data structure for containing information about internal FT sensors
- * To properly describe an FT sensor, it is necessary: 
- *      * the fixed junction of the FT sensor in the TreeGraph (a name)
- *      * the transformation from the *parent* KDL::Tree link to the the reference
- *        frame of the FT measurement ( H_p_s ) such that given the measure f_s, the 
- *        wrench applied by the child on the parent expressed in the parent frame ( f_p )
- *        is given by f_p = H_p_s f_s
- *         
- */
-class FTSensor
-{
-    private:
-		 const KDL::CoDyCo::TreeGraph * tree_graph;
-         std::string fixed_joint_name;
-         KDL::Frame H_parent_sensor;
-         int parent;
-         int child;
-         int sensor_id;
-      
-        
-    public:
-    
-        FTSensor(const KDL::CoDyCo::TreeGraph & _tree_graph, 
-				 const std::string _fixed_joint_name,
-                 const int _parent,
-				 const int _child,
-				 const int _sensor_id) : 
-				 tree_graph(&_tree_graph),
-				 fixed_joint_name(_fixed_joint_name),
-				 H_parent_sensor(KDL::Frame::Identity()),
-				 parent(_parent),
-				 child(_child),
-				 sensor_id(_sensor_id) {}
-    
-		FTSensor(const KDL::CoDyCo::TreeGraph & _tree_graph, 
-				 const std::string _fixed_joint_name,
-				 const KDL::Frame _H_parent_sensor,
-				 const int _parent,
-				 const int _child,
-				 const int _sensor_id) : 
-				 tree_graph(&_tree_graph),
-				 fixed_joint_name(_fixed_joint_name),
-				 H_parent_sensor(_H_parent_sensor),
-				 parent(_parent),
-				 child(_child),
-				 sensor_id(_sensor_id) {}
-		
-		~FTSensor() {}							
-		
-        /**
-         * For the given current_link, get the wrench excerted on the subgraph
-         * as measured by the FT sensor
-         */
-        KDL::Wrench getWrenchExcertedOnSubGraph(int current_link, const std::vector<KDL::Wrench> & measured_wrenches )
-        {
-            if( current_link == parent ) {
-			    return (H_parent_sensor*measured_wrenches[sensor_id]);
-            } else {
-                //The junction connected to an F/T sensor should be one with 0 DOF
-				assert(tree_graph->getLink(child)->getAdjacentJoint(tree_graph->getLink(parent))->joint.getType() == KDL::Joint::None );
-				KDL::Frame H_child_parent = tree_graph->getLink(parent)->pose(tree_graph->getLink(child),0.0);
-                assert(current_link == child);
-                return H_child_parent*(H_parent_sensor*measured_wrenches[sensor_id]);
-            }
-        }
-        
-        KDL::Frame getH_parent_sensor() const 
-        {
-			return H_parent_sensor;
-		}
-		
-		KDL::Frame getH_child_sensor() const 
-        {
-			assert(tree_graph->getLink(child)->getAdjacentJoint(tree_graph->getLink(parent))->joint.getType() == KDL::Joint::None );
-			assert(tree_graph->getLink(parent)->getAdjacentJoint(tree_graph->getLink(child))->joint.getType() == KDL::Joint::None );
-			KDL::Frame H_child_parent = tree_graph->getLink(parent)->pose(tree_graph->getLink(child),0.0);
-			return H_child_parent*H_parent_sensor;
-		}
-		
-		int getChild() const 
-		{
-			return child;
-		}
-		
-		int getParent() const
-		{
-			return parent;
-		}
-    
-};
-
-typedef std::vector<FTSensor> FTSensorList;
-    
-    
+{    
     
 /**
  * \ingroup iDynTree
@@ -172,7 +75,7 @@ class DynTree : public DynTreeInterface {
         
         //Sensors measures
         std::vector< KDL::Wrench > measured_wrenches;
-        FTSensorList ft_list;
+        KDL::CoDyCo::FTSensorList ft_list;
         
         //Index representation of the Kinematic tree and the dynamics subtrees
         KDL::CoDyCo::Traversal kinematic_traversal;
@@ -182,20 +85,19 @@ class DynTree : public DynTreeInterface {
         KDL::JntArray torques;
         
         //Link quantities
-		std::vector<KDL::Twist> v;
-		std::vector<KDL::Twist> a;
+        std::vector<KDL::Twist> v;
+        std::vector<KDL::Twist> a;
         
         //External forces
         std::vector<KDL::Wrench> f_ext; /**< External wrench acting on a link */
         
-		std::vector<KDL::Wrench> f; /**< For a link the wrench transmitted from the link to its parent in the dynamical traversal \warning it is traversal dependent */
-		std::vector<KDL::Wrench> f_gi; /**< Gravitational and inertial wrench acting on a link */
+        std::vector<KDL::Wrench> f; /**< For a link the wrench transmitted from the link to its parent in the dynamical traversal \warning it is traversal dependent */
+        std::vector<KDL::Wrench> f_gi; /**< Gravitational and inertial wrench acting on a link */
         
         //DynTreeContact data structures
         std::vector<int> link2subgraph_index; /**< for each link, return the correspondent dynamics subgraph index */
         std::vector<bool> link_is_subgraph_root; /**< for each link, return if it is a subgraph root */
         std::vector<int> subgraph_index2root_link; /**< for each subgraph, return the index of the root */
-        std::vector< std::vector<FTSensor *> > link_FT_sensors; /**< for each link, return the list of FT_sensors connected to that link */
         bool are_contact_estimated;
         
         int getSubGraphIndex(int link_index) { return link2subgraph_index[link_index]; }
@@ -230,8 +132,8 @@ class DynTree : public DynTreeInterface {
         void store_contacts_results();
         
         /**
-         * For a given link, returns the sum of the measure wrenches acting on
-         * the link, expressed in the link reference frame
+         * For a given link, returns the sum of the measured wrenches acting on the link (i.e. the sum of the wrenches acting 
+         * on the link measured by the FT sensors acting on the link) expressed in the link reference frame
          * 
          */
         KDL::Wrench getMeasuredWrench(int link_id);
@@ -240,7 +142,7 @@ class DynTree : public DynTreeInterface {
         
         //Position related quantites
         bool is_X_dynamic_base_updated;
-        std::vector<KDL::Frame> X_dynamic_base; /**< for each link store the frame X_kinematic_base_link of the position of a link with respect to the dynamic base */
+        std::vector<KDL::Frame> X_dynamic_base; /**< for each link store the frame X_dynamic_base_link of the position of a link with respect to the dynamic base */
         
         
         //Debug
@@ -256,7 +158,8 @@ class DynTree : public DynTreeInterface {
     public:
         DynTree();
  
-        void constructor(const KDL::Tree & _tree, const std::vector<std::string> & joint_sensor_names, const std::string & imu_link_name, KDL::CoDyCo::TreeSerialization  serialization=KDL::CoDyCo::TreeSerialization(), KDL::CoDyCo::TreePartition partition=KDL::CoDyCo::TreePartition(), std::vector<KDL::Frame> parent_sensor_transforms=std::vector<KDL::Frame>(0));
+        void constructor(const KDL::Tree & _tree, const std::vector<std::string> & joint_sensor_names, const std::string & imu_link_name, 
+                         KDL::CoDyCo::TreeSerialization  serialization=KDL::CoDyCo::TreeSerialization(), KDL::CoDyCo::TreePartition partition=KDL::CoDyCo::TreePartition(), std::vector<KDL::Frame> parent_sensor_transforms=std::vector<KDL::Frame>(0));
 
     
         /**
@@ -560,15 +463,16 @@ class DynTree : public DynTreeInterface {
     //@{
     /**_
      * For a floating base structure, outpus a 6x(nrOfDOFs+6) yarp::sig::Matrix \f$ {}^i J_i \f$ such
-     * that \f[ {}^i v_i = {}^iJ_i  \dot{q}_{fb} \f]
+     * that \f[ {}^w v_i = {}^wJ_i  \dot{q}_{fb} \f]
+     * where w is the world reference frame
      * @param link_index the index of the link
      * @param jac the output yarp::sig::Matrix 
-     * @param global if true, return {}^wJ_i (the Jacobian expressed in the world frame) (default: false)
+     * @param local if true, return {}^iJ_i (the Jacobian expressed in the local frame of link i) (default: false)
      * @return true if all went well, false otherwise
      * 
      * \note the link used as a floating base is the base used for the dynamical loop
      */
-    virtual bool getJacobian(const int link_index, yarp::sig::Matrix & jac, bool global=false);
+    virtual bool getJacobian(const int link_index, yarp::sig::Matrix & jac, bool local=false);
     
     /**
      * Get the 6+getNrOfDOFs() yarp::sig::Vector, characterizing the floating base velocities of the tree
@@ -580,10 +484,10 @@ class DynTree : public DynTreeInterface {
     //virtual yarp::sig::Vector getD2Q_fb() const;
     
     
-    /**_
+    /**
      * For a floating base structure, if d is the distal link index and b is the jacobian base link index 
      * outputs a 6x(nrOfDOFs) yarp::sig::Matrix \f$ {}^d J_{b,d} \f$ such
-     * that \f[ {}^d v_d = {}^dJ_{b,d}  \dot{q} + {}^b v_b \f]
+     * that \f[ {}^d v_d = {}^dJ_{b,d}  \dot{q} + {}^d v_b \f]
      * @param jacobian_distal_link the index of the distal link
      * @param jacobian_base_link the index of the base link
      * @param jac the output yarp::sig::Matrix 

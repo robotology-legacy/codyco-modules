@@ -20,7 +20,7 @@
  * @param icub_kdl the iCub KDL::Tree object
  * @return false in case of error, true otherwise
  */
-bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, iCub::iDynTree::iCubTree_serialization_tag serial, bool debug=false);
+bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, iCub::iDynTree::iCubTree_serialization_tag serial=iCub::iDynTree::SKINDYNLIB_SERIALIZATION, bool debug=false);
 
 bool toKDL_iDynDebug(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, bool debug=false);
 
