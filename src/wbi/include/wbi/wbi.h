@@ -59,17 +59,19 @@ namespace wbi
     class LocalId
     {
     public:
-        // body part id
-        int bodyPart;
-        // local id
-        int index;
-        // description
-        std::string description;
+        int bodyPart;               // body part id
+        int index;                  // local id
+        std::string description;    // description
         
+        // CONSTRUCTORS
         LocalId(): bodyPart(0), index(0) {}
         LocalId(int _bp, unsigned int _j): bodyPart(_bp), index(_j) {}
         LocalId(int _bp, unsigned int _j, std::string &_desc): bodyPart(_bp), index(_j), description(_desc) {}
+
+        // OPERATORS
         bool operator==(const LocalId &other) const { return (bodyPart==other.bodyPart && index==other.index); }
+        bool operator> (const LocalId &o) const { return bodyPart>o.bodyPart || (bodyPart==o.bodyPart && index>o.index); }
+        bool operator< (const LocalId &o) const { return bodyPart<o.bodyPart || (bodyPart==o.bodyPart && index<o.index); }
     };
     
     
@@ -131,25 +133,78 @@ namespace wbi
     
     
     /*
-     * Interface for reading all the sensors of the robot.
+     * Interface for reading the sensors of the robot.
      */
     class iWholeBodySensors
     {
     public:
+        /** Initialize the object. This method should be called after adding the joints,
+         *  but before reading any sensor. */
         virtual bool init() = 0;
+        /** Close all the communication channels with the robot. This method should be 
+         *  called before destroing the object. */
         virtual bool close() = 0;
         
+        /** Remove the specified joint from the list. This affects the reading of all the 
+         *  joint space sensors (e.g. encoders, pwm).
+         * @param j Id of the joint to remove.
+         * @return True if the joint has been removed, false otherwise.
+         */
         virtual bool removeJoint(const LocalId &j) = 0;
+        /** Add the specified joint to the list. This affects the reading of all the 
+         *  joint space sensors (e.g. encoders, pwm).
+         * @param j Id of the joint to add.
+         * @return True if the joint has been added, false otherwise.
+         */
         virtual bool addJoint(const LocalId &j) = 0;
+        /** Add the specified joints to the list. This affects the reading of all the 
+         *  joint space sensors (e.g. encoders, pwm).
+         * @param j Ids of the joints to add.
+         * @return The number of joints added to the list.
+         */
         virtual int addJoints(const LocalIdList &j) = 0;
+        /** Get a copy of the joint list.
+         * @return A copy of the joint list. */
         virtual LocalIdList getJointList() = 0;
-        
+        /** Get the number of joints in the joint list.
+         * @return The number of degrees of freedom. */
         virtual int getDoFs() = 0;
+
+        virtual bool addIMU(const LocalId &i) = 0;
+        virtual bool removeIMU(const LocalId &i) = 0;
+        virtual LocalIdList getIMUList() = 0;
+        virtual bool addFTsensor(const LocalId &i) = 0;
+        virtual bool removeFTsensor(const LocalId &i) = 0;
+        virtual LocalIdList getFTsensorList() = 0;
         
+        /** Read the joint encoders.
+         * @param q Output vector of joint angles
+         * @param stamps Output vector of timestamps
+         * @param wait If true, the reading is blocking, otherwise it is not
+         * @return True if all the readings succeeded, false otherwise.
+         */
         virtual bool readEncoders(double *q, double *stamps=0, bool wait=true) = 0;
+        /** Read the motor PWMs (proportional to the motor voltages).
+         * @param pwm Output vector of motor PWMs
+         * @param stamps Output vector of timestamps
+         * @param wait If true, the reading is blocking, otherwise it is not
+         * @return True if all the readings succeeded, false otherwise.
+         */
         virtual bool readPwm(double *pwm, double *stamps=0, bool wait=true) = 0;
-        virtual bool readInertial(double *inertial, double *stamps=0, bool wait=true) = 0;
-        virtual bool readFTsensors(double *ftSens, double *stamps=0, bool wait=true) = 0;
+        /** Read the inertial measurement unit (angular vel: w, angular acc: dw, linear acc: ddp).
+         * @param inertial Output vector of inertial measurements (w, dw, ddp)
+         * @param stamps Output vector of timestamps
+         * @param wait If true, the reading is blocking, otherwise it is not
+         * @return True if all the readings succeeded, false otherwise.
+         */
+        virtual bool readIMU(double *inertial, double *stamps=0, bool wait=true) = 0;
+        /** Read the force/torque sensors (3D force + 3D moment).
+         * @param ft Output vector of force/torque measurements (f, m)
+         * @param stamps Output vector of timestamps
+         * @param wait If true, the reading is blocking, otherwise it is not
+         * @return True if all the readings succeeded, false otherwise.
+         */
+        virtual bool readFTsensors(double *ft, double *stamps=0, bool wait=true) = 0;
     };
     
     /**
@@ -160,6 +215,7 @@ namespace wbi
     public:
         virtual bool init() = 0;
         virtual bool close() = 0;
+
         virtual int getDoFs() = 0;
         virtual bool removeJoint(const LocalId &j) = 0;
         virtual bool addJoint(const LocalId &j) = 0;
@@ -187,6 +243,7 @@ namespace wbi
     public:
         virtual bool init() = 0;
         virtual bool close() = 0;
+
         virtual int getDoFs() = 0;
         virtual bool removeJoint(const LocalId &j) = 0;
         virtual bool addJoint(const LocalId &j) = 0;
@@ -261,6 +318,7 @@ namespace wbi
     public:
         virtual bool init() = 0;
         virtual bool close() = 0;
+
         virtual int getDoFs() = 0;
         virtual bool removeJoint(const LocalId &j) = 0;
         virtual bool addJoint(const LocalId &j) = 0;
@@ -287,6 +345,7 @@ namespace wbi
     public:
         virtual bool init() = 0;
         virtual bool close() = 0;
+
         virtual int getDoFs() = 0;
         virtual bool removeJoint(const LocalId &j) = 0;
         virtual bool addJoint(const LocalId &j) = 0;
