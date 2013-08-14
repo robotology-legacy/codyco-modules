@@ -46,7 +46,7 @@ int main(int argc, char * argv[])
     icub->addJoints(LocalIdList(RIGHT_ARM,0,1,2,3,4));
     icub->addJoints(LocalIdList(LEFT_ARM,0,1,2,3,4));
     icub->addJoints(LocalIdList(TORSO,0,1,2));
-    icub->addFTsens(LocalId(RIGHT_LEG,1));
+    //icub->addFTsens(LocalId(RIGHT_LEG,1));
 
     if(!icub->init())
         return 0;
