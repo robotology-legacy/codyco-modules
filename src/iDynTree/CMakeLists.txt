@@ -47,6 +47,7 @@ INCLUDE_DIRECTORIES(include
                     ${iDyn_INCLUDE_DIRS}
                     ${GSL_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
+                    ${Orocos-KDL_INCLUDE_DIRS}
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR})
 
