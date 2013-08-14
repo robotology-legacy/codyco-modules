@@ -1,7 +1,7 @@
 /*
  * Copyright (C)2011  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
- * Author: Marco Randazzo
- * email: marco.randazzo@iit.it
+ * Author: Andrea Del Prete
+ * email: andrea.delprete@iit.it
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -45,7 +45,9 @@ using namespace iCub::ctrl;
 icubWholeBodyStates::icubWholeBodyStates(const char* _name, const char* _robotName, double estimationTimeWindow)
 {
     vector<string> bodyPartNames(BodyPart_s, BodyPart_s + sizeof(BodyPart_s) / sizeof(string) );
-    sensors = new yarpWholeBodySensors(_name, _robotName, bodyPartNames);
+    vector<id_2_PortName> ft2port(icub_FTsens_2_PortName, icub_FTsens_2_PortName + sizeof(icub_FTsens_2_PortName)/sizeof(id_2_PortName));
+    vector<id_2_PortName> imu2port(icub_IMU_2_PortName, icub_IMU_2_PortName + sizeof(icub_IMU_2_PortName)/sizeof(id_2_PortName));
+    sensors = new yarpWholeBodySensors(_name, _robotName, bodyPartNames, ft2port, imu2port);
     estimator = new icubWholeBodyEstimator(ESTIMATOR_PERIOD, sensors);
 }
 
@@ -69,7 +71,7 @@ bool icubWholeBodyStates::getDq(double *dq, double time, bool wait){            
 bool icubWholeBodyStates::getDqMotors(double *dqM, double time, bool wait){         return false; }
 bool icubWholeBodyStates::getD2q(double *d2q, double time, bool wait){              return estimator->getD2q(d2q); }
 bool icubWholeBodyStates::getPwm(double *pwm, double time, bool wait){              return sensors->readPwm(pwm, 0, wait); }
-bool icubWholeBodyStates::getInertial(double *inertial, double time, bool wait){    return sensors->readInertial(inertial, 0, wait); }
+bool icubWholeBodyStates::getInertial(double *inertial, double time, bool wait){    return sensors->readIMU(inertial, 0, wait); }
 bool icubWholeBodyStates::getFTsensors(double *ftSens, double time, bool wait){     return sensors->readFTsensors(ftSens, 0, wait); }
 bool icubWholeBodyStates::getTorques(double *tau, double time, bool wait){          return false; }
 
@@ -84,7 +86,7 @@ icubWholeBodyEstimator::icubWholeBodyEstimator(int _period, yarpWholeBodySensors
 {
     resizeAll(sensors->getDoFs());
     dqFiltWL = 16;
-    d2qFiltWL = 25;      // window lengths of adaptive window filters
+    d2qFiltWL = 25;                 // window lengths of adaptive window filters
     dqFiltTh = d2qFiltTh = 1.0;     // threshold of adaptive window filters
 }
 
@@ -104,9 +106,7 @@ void icubWholeBodyEstimator::run()
         if(sensors->readEncoders(q.data(), qStamps.data(), false))
         {
             lastQ = q;
-            AWPolyElement el;
-            el.data = q;
-            el.time = qStamps[0];
+            AWPolyElement el(q, qStamps[0]);
             lastDq = dqFilt->estimate(el);
             lastD2q = d2qFilt->estimate(el);
         }
@@ -153,13 +153,7 @@ void icubWholeBodyEstimator::setAccFiltParams(int windowLength, double threshold
 void icubWholeBodyEstimator::lockAndResizeAll(int n)
 {
     mutex.wait();
-    {
-        q.resize(n);
-        qStamps.resize(n);
-        lastQ.resize(n);
-        lastDq.resize(n);
-        lastD2q.resize(n);
-    }
+    resizeAll(n);
     mutex.post();
 }
 

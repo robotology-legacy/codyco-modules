@@ -29,6 +29,8 @@
 #include <yarp/dev/all.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
 #include <yarp/os/Semaphore.h>
+#include <yarp/os/BufferedPort.h>
+#include <iCub/skinDynLib/common.h>
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 #include <wbi/wbi.h>
 #include <map>
@@ -43,12 +45,39 @@
 
 namespace wbiy
 {
+    // mapping from generic sensor id to corresponding port name
+    struct id_2_PortName { wbi::LocalId id; std::string portName; };
+
+    // *** Mapping from FORCE/TORQUE SENSORS to PORT NAMES ***
+    const int ICUB_FT_SENS_NUMBER = 6;
+    const id_2_PortName icub_FTsens_2_PortName[ICUB_FT_SENS_NUMBER] = {
+        {wbi::LocalId(iCub::skinDynLib::LEFT_ARM,0),    "/left_arm/analog:o" }, 
+        {wbi::LocalId(iCub::skinDynLib::RIGHT_ARM,0),   "/right_arm/analog:o"}, 
+        {wbi::LocalId(iCub::skinDynLib::LEFT_LEG,0),    "/left_leg/analog:o" }, 
+        {wbi::LocalId(iCub::skinDynLib::RIGHT_LEG,0),   "/right_leg/analog:o"}, 
+        {wbi::LocalId(iCub::skinDynLib::LEFT_LEG,1),    "/left_foot/analog:o"}, 
+        {wbi::LocalId(iCub::skinDynLib::RIGHT_LEG,1),   "/right_foot/analog:o"}, 
+    };
+
+    // *** Mapping from IMUs to PORT NAMES ***
+    const id_2_PortName icub_IMU_2_PortName[1] = {
+        {wbi::LocalId(iCub::skinDynLib::HEAD,0),    "/inertial:o" }, 
+    };
+
+    /** Find the port name into id2port corresponding to the specified local id.
+     * @param lid Local id to look for
+     * @param id2port Mapping from ids to port names
+     * @param size Number of elements of id2port
+     * @return The port name corresponding to the specified local id. */
+    std::string getPortName(const wbi::LocalId &lid, const id_2_PortName *id2port, const int size);
+
+    std::string getPortName(const wbi::LocalId &lid, const std::vector<id_2_PortName> id2port);
+
     /** Return true if the robotName is "icubSim", false otherwise. */
     bool isRobotSimulator(const std::string &robotName);
     
     /** Open a remote control board driver for the specified body part. */
     bool openPolyDriver(const std::string &localName, const std::string &robotName, yarp::dev::PolyDriver *&pd, const std::string &bodyPartName);
-    
     
     /*
      * Class for reading the sensors of a robot that is accessed through
@@ -58,25 +87,39 @@ namespace wbiy
     {
     protected:
         bool                        initDone;
-        int                         dof;            // number of degrees of freedom
         std::string                 name;           // name used as root for the local ports
         std::string                 robot;          // name of the robot
+
+        int                         dof;            // number of degrees of freedom
         std::vector<int>            bodyParts;      // list of the body parts
         std::vector<std::string>    bodyPartNames;  // names of the body parts
+        std::vector<id_2_PortName>  ftSens_2_port;  // list containing the port name for each force/torque sensor
+        std::vector<id_2_PortName>  imu_2_port;     // list containing the port name for each IMU
         std::map<int,unsigned int>  bodyPartAxes;   // number of axes for each body part
-        wbi::LocalIdList            jointIdList;    // list of the joint ids
         
-        // last reading data
-        std::map<int, yarp::sig::Vector>  qLastRead;
-        std::map<int, yarp::sig::Vector>  qStampLastRead;
-        std::map<int, yarp::sig::Vector>  pwmLastRead;
+        wbi::LocalIdList            jointIdList;    // list of the joint ids
+        wbi::LocalIdList            imuIdList;      // list of the IMU ids
+        wbi::LocalIdList            ftSensIdList;   // list of the force/torque sensor ids
+        
+        // last reading data (map body parts to data)
+        std::map<int, yarp::sig::Vector>            qLastRead;
+        std::map<int, yarp::sig::Vector>            qStampLastRead;
+        std::map<int, yarp::sig::Vector>            pwmLastRead;
+        // the key of these maps is the sensor id
+        std::map<wbi::LocalId, yarp::sig::Vector>  imuLastRead;
+        std::map<wbi::LocalId, yarp::sig::Vector>  ftSensLastRead;
 
-        // yarp interfaces
+        // yarp interfaces (the key of the maps is the body part)
         std::map<int, yarp::dev::IEncodersTimed*>       ienc;
         std::map<int, yarp::dev::IOpenLoopControl*>     iopl;
         std::map<int, yarp::dev::PolyDriver*>           dd;
+        // input ports (the key of the maps is the sensor id)
+        std::map<wbi::LocalId, yarp::os::BufferedPort<yarp::sig::Vector>*>   portsFTsens;
+        std::map<wbi::LocalId, yarp::os::BufferedPort<yarp::sig::Vector>*>   portsIMU;
         
         bool openDrivers(int bodyPart);
+        bool openImu(const wbi::LocalId &i);
+        bool openFTsens(const wbi::LocalId &i);
         void setBodyPartName(int bodyPart, const std::string &nameBodyPart);
         
     public:
@@ -84,22 +127,37 @@ namespace wbiy
         /**
           * @param _name Local name of the interface (used as stem of port names)
           * @param _robotName Name of the robot
-          * @param _bodyPartNames Array of names of the body part (used when opening the polydrivers)
+          * @param _bodyPartNames Vector of names of the body part (used when opening the polydrivers)
+          * @param _ftSens_2_port List containing the port name for each force/torque sensor
+          * @param _imu_2_port List containing the port name for each inertial measurement unit
           */
-        yarpWholeBodySensors(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames);
+        yarpWholeBodySensors(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames, 
+            const std::vector<id_2_PortName> &_ftSens_2_port, const std::vector<id_2_PortName> &_imu_2_port);
 
         virtual bool init();
         virtual bool close();
+
+        // *** JOINTS
         virtual bool removeJoint(const wbi::LocalId &j);
         virtual bool addJoint(const wbi::LocalId &j);
         virtual int addJoints(const wbi::LocalIdList &j);
         virtual wbi::LocalIdList getJointList(){ return jointIdList; }
         virtual int getDoFs(){ return dof; }
+
+        // *** IMUs
+        virtual bool addIMU(const wbi::LocalId &i);
+        virtual bool removeIMU(const wbi::LocalId &i){      return imuIdList.removeId(i); }
+        virtual wbi::LocalIdList getIMUList(){              return imuIdList; }
+
+        // *** FORCE/TORQUE SENSORS
+        virtual bool addFTsensor(const wbi::LocalId &i);
+        virtual bool removeFTsensor(const wbi::LocalId &i){ return ftSensIdList.removeId(i); }
+        virtual wbi::LocalIdList getFTsensorList(){         return ftSensIdList; }
         
-        virtual bool readEncoders(double *q, double *stamps, bool wait=true);
-        virtual bool readPwm(double *pwm, double *stamps, bool wait=true);
-        virtual bool readInertial(double *inertial, double *stamps, bool wait=true);
-        virtual bool readFTsensors(double *ftSens, double *stamps, bool wait=true);
+        virtual bool readEncoders(double *q, double *stamps=0, bool wait=true);
+        virtual bool readPwm(double *pwm, double *stamps=0, bool wait=true);
+        virtual bool readIMU(double *inertial, double *stamps=0, bool wait=true);
+        virtual bool readFTsensors(double *ftSens, double *stamps=0, bool wait=true);
     };
     
     

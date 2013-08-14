@@ -17,6 +17,7 @@
 
 #include "wbiy/wbiy.h"
 #include <string>
+#include <sstream>
 #include <cassert>
 
 using namespace std;
@@ -33,6 +34,24 @@ using namespace yarp::sig;
 #define FOR_ALL_BODY_PARTS(itBp)            FOR_ALL_BODY_PARTS_OF(itBp, jointIdList)
 // iterate over all joints of all body parts
 #define FOR_ALL(itBp, itJ)                  FOR_ALL_OF(itBp, itJ, jointIdList)
+
+string wbiy::getPortName(const LocalId &lid, const id_2_PortName *id2port, const int size)
+{
+    int i=0;
+    do
+    {
+        if(id2port[i].id == lid)
+            return id2port[i].portName;
+        i++;
+    }
+    while(i<size);
+    return "";
+}
+
+string wbiy::getPortName(const LocalId &lid, const vector<id_2_PortName> id2port)
+{ 
+    return getPortName(lid, &id2port[0], id2port.size());
+}
 
 bool wbiy::isRobotSimulator(const string &robotName)
 {
@@ -64,8 +83,10 @@ bool wbiy::openPolyDriver(const string &localName, const string &robotName, Poly
 //                                          YARP WHOLE BODY SENSORS
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-yarpWholeBodySensors::yarpWholeBodySensors(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames)
-: name(_name), robot(_robotName), bodyPartNames(_bodyPartNames), dof(0), initDone(false) {}
+yarpWholeBodySensors::yarpWholeBodySensors(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames, 
+    const std::vector<id_2_PortName> &_ftSens_2_port, const std::vector<id_2_PortName> &_imu_2_port)
+: name(_name), robot(_robotName), bodyPartNames(_bodyPartNames), ftSens_2_port(_ftSens_2_port), imu_2_port(_imu_2_port), 
+dof(0), initDone(false) {}
 
 bool yarpWholeBodySensors::openDrivers(int bp)
 {
@@ -88,12 +109,43 @@ bool yarpWholeBodySensors::openDrivers(int bp)
     return true;
 }
 
+bool yarpWholeBodySensors::openImu(const LocalId &i)
+{
+    string remotePort = "/" + robot + getPortName(i, imu_2_port);
+    stringstream localPort; 
+    localPort << "/" << name << "/imu" << imuIdList.localToGlobalId(i);
+    portsIMU[i] = new BufferedPort<Vector>();
+    if(!portsIMU[i]->open(localPort.str().c_str()))
+        return false;
+    if(!Network::exists(remotePort.c_str()))
+        return false;
+    if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp"))
+        return false;
+    return true;
+}
+
+bool yarpWholeBodySensors::openFTsens(const LocalId &i)
+{
+    string remotePort = "/" + robot + getPortName(i, ftSens_2_port);
+    stringstream localPort; 
+    localPort << "/" << name << "/ftSens" << ftSensIdList.localToGlobalId(i);   // wrong id
+    portsFTsens[i] = new BufferedPort<Vector>();
+    if(!portsFTsens[i]->open(localPort.str().c_str()))
+        return false;
+    if(!Network::exists(remotePort.c_str()))
+        return false;
+    if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp"))
+        return false;
+    return true;
+}
+
 bool yarpWholeBodySensors::init()
 {
     bool ok = true;
     FOR_ALL_BODY_PARTS(itBp)
         ok = ok && openDrivers(itBp->first);
-    initDone = true;
+    
+    initDone = ok;
     return ok;
 }
 
@@ -114,6 +166,10 @@ bool yarpWholeBodySensors::removeJoint(const LocalId &j)
         return false;
     dof--;
     return true;
+    /* Shorter implementation */
+    /*bool res;
+    dof -= res=jointIdList.removeId(j) ? 1 : 0;
+    return res;*/
 }
 
 bool yarpWholeBodySensors::addJoint(const LocalId &j)
@@ -143,6 +199,26 @@ int yarpWholeBodySensors::addJoints(const LocalIdList &jList)
     return count;
 }
 
+bool yarpWholeBodySensors::addIMU(const wbi::LocalId &i)
+{
+    // if initialization was done, then open port of specified IMU
+    // if initialization was not done, ports will be opened during initialization
+    if(initDone && !imuIdList.containsId(i))
+        if(!openImu(i))
+            return false;
+    return imuIdList.addId(i);
+}
+
+bool yarpWholeBodySensors::addFTsensor(const wbi::LocalId &i)
+{
+    // if initialization was done, then open port of specified F/T sensor
+    // if initialization was not done, ports will be opened during initialization
+    if(initDone && !ftSensIdList.containsId(i))
+        if(!openFTsens(i))
+            return false;
+    return ftSensIdList.addId(i);
+}
+
 bool yarpWholeBodySensors::readEncoders(double *q, double *stamps, bool wait)
 {
     double qTemp[MAX_NJ], tTemp[MAX_NJ];
@@ -151,30 +227,27 @@ bool yarpWholeBodySensors::readEncoders(double *q, double *stamps, bool wait)
     FOR_ALL_BODY_PARTS(itBp)
     {
         assert(ienc[itBp->first]!=NULL);
+        // read encoders
         while( !(update=ienc[itBp->first]->getEncodersTimed(qTemp, tTemp)) && wait)
             Time::delay(WAIT_TIME);
         
+        // if read succeeded => update data
         if(update)
             for(unsigned int i=0; i<bodyPartAxes[itBp->first]; i++)
             {
-                qLastRead[itBp->first][i]            = qTemp[i];
+                qLastRead[itBp->first][i]        = qTemp[i];
                 qStampLastRead[itBp->first][i]   = tTemp[i];
             }
         
-        if(stamps!=NULL)
-            FOR_ALL_JOINTS(itBp, itJ)
-            {
-                q[i]        = qLastRead[itBp->first][*itJ];
-                stamps[i]   = qStampLastRead[itBp->first][*itJ];
-                i++;
-            }
-        else
-            FOR_ALL_JOINTS(itBp, itJ)
-            {
-                q[i]        = qLastRead[itBp->first][*itJ];
-                i++;
-            }
-        res = res && update;
+        // copy most recent data into output variables
+        FOR_ALL_JOINTS(itBp, itJ)
+        {
+            q[i] = qLastRead[itBp->first][*itJ];
+            if(stamps!=NULL)
+                stamps[i] = qStampLastRead[itBp->first][*itJ];
+            i++;
+        }
+        res = res && update;    // if read failed => return false
     }
     return res || wait;
 }
@@ -207,7 +280,7 @@ bool yarpWholeBodySensors::readPwm(double *pwm, double *stamps, bool wait)
     return res || wait;
 }
 
-bool yarpWholeBodySensors::readInertial(double *inertial, double *stamps, bool wait)
+bool yarpWholeBodySensors::readIMU(double *inertial, double *stamps, bool wait)
 {
     return false;
 }
