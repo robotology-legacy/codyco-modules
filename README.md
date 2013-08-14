@@ -34,9 +34,9 @@ sudo apt-get install libeigen3-dev
 ```
 
 ###kdl
-It is possible to install Orocos-KDL easily from the Orocos Git repository repository:
+It is possible to install Orocos-KDL easily from the local fork of the Orocos Git repository repository (a fork was necessary to avoid problems in compiling KDL in Windows):
 ```bash
-git clone http://git.mech.kuleuven.be/robotics/orocos_kinematics_dynamics.git
+git clone https://github.com/traversaro/orocos_kinematics_dynamics
 cd orocos_kinematics_dynamics/orocos_kdl
 mkdir build 
 cd build

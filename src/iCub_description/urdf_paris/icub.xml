@@ -1,0 +1,821 @@
+<?xml version="1.0" ?>
+<robot name="icub">
+	<link name="waist">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#waist"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#waist"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.20297"/>
+			<inertia ixx="0.000258841296496" ixy="0.0" ixz="0.0" iyy="0.000290758328996" iyz="0.0" izz="0.000106643820833"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.006 0.0 -0.1"/>
+		</inertial>
+	</link>
+	<link name="l_hip_1">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#l_hip_1"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#l_hip_1"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.32708"/>
+			<inertia ixx="0.000122682256667" ixy="0.0" ixz="0.0" iyy="0.000122682256667" iyz="0.0" izz="0.00023615176"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0375"/>
+		</inertial>
+	</link>
+	<link name="l_hip_2">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#l_hip_2"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#l_hip_2"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="1.5304"/>
+			<inertia ixx="0.0010850536" ixy="0.0" ixz="0.0" iyy="0.0010850536" iyz="0.0" izz="0.0007353572"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		</inertial>
+	</link>
+	<link name="l_thigh">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#l_thigh"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#l_thigh"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="2.32246"/>
+			<inertia ixx="0.0139763503018" ixy="0.0" ixz="0.0" iyy="0.00147239522875" iyz="0.0" izz="0.0137814870406"/>
+			<origin rpy="1.5707963268 0.0 1.5707963268" xyz="-0.0 0.0 -0.1501968774"/>
+		</inertial>
+	</link>
+	<link name="l_shank">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#l_shank"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#l_shank"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.95262"/>
+			<inertia ixx="0.00383792736375" ixy="0.0" ixz="0.0" iyy="0.0004726185975" iyz="0.0" izz="0.00383792736375"/>
+			<origin rpy="-0.0 0.0 0.0" xyz="0.0 -0.1065 -0.0"/>
+		</inertial>
+	</link>
+	<link name="l_ankle_1">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#l_ankle_1"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#l_ankle_1"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.14801"/>
+			<inertia ixx="7.1165058125e-05" ixy="0.0" ixz="0.0" iyy="7.1165058125e-05" iyz="0.0" izz="4.442150125e-05"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		</inertial>
+	</link>
+	<link name="l_foot">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#l_foot"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#l_foot"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.6747"/>
+			<inertia ixx="0.000811937097733" ixy="0.0" ixz="0.0" iyy="0.000336068314542" iyz="0.0" izz="0.000731741708191"/>
+			<origin rpy="1.4159195657 0.0 1.5707963268" xyz="-0.0047312139 0.0 0.0151082333"/>
+		</inertial>
+	</link>
+	<link name="lap_belt_1">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#lap_belt_1"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#lap_belt_1"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="3.623"/>
+			<inertia ixx="0.0142217845833" ixy="0.0" ixz="0.0" iyy="0.0105504779167" iyz="0.0" izz="0.00606792116667"/>
+			<origin rpy="0.0 0.0 -0.7853981634" xyz="-0.0383 -0.0173 0.0"/>
+		</inertial>
+	</link>
+	<link name="lap_belt_2">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#lap_belt_2"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#lap_belt_2"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.91179"/>
+			<inertia ixx="0.00093397689" ixy="0.0" ixz="0.0" iyy="0.00093397689" iyz="0.0" izz="0.000438115095"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.008"/>
+		</inertial>
+	</link>
+	<link name="chest">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#chest"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#chest"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="4.12925"/>
+			<inertia ixx="0.0101058081992" ixy="0.0" ixz="0.0" iyy="0.0116382113674" iyz="0.0" izz="0.00890101366667"/>
+			<origin rpy="-0.0 0.0 0.0" xyz="0.0 0.0 -0.1094482037"/>
+		</inertial>
+	</link>
+	<link name="r_shoulder_1">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#r_shoulder_1"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#r_shoulder_1"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.48278"/>
+			<inertia ixx="0.000120855926667" ixy="0.0" ixz="0.0" iyy="0.000120855926667" iyz="0.0" izz="0.00023197579"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.07224"/>
+		</inertial>
+	</link>
+	<link name="r_shoulder_2">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#r_shoulder_2"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#r_shoulder_2"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.20779"/>
+			<inertia ixx="0.000107029165833" ixy="0.0" ixz="0.0" iyy="0.000107029165833" iyz="0.0" izz="9.35055e-05"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		</inertial>
+	</link>
+	<link name="r_arm">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#r_arm"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#r_arm"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="1.1584"/>
+			<inertia ixx="0.0025450048" ixy="0.0" ixz="0.0" iyy="0.0025450048" iyz="0.0" izz="0.0003915392"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.078"/>
+		</inertial>
+	</link>
+	<link name="r_elbow_1">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#r_elbow_1"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#r_elbow_1"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.050798"/>
+			<inertia ixx="2.03192e-06" ixy="0.0" ixz="0.0" iyy="2.03192e-06" iyz="0.0" izz="2.03192e-06"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		</inertial>
+	</link>
+	<link name="r_forearm">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#r_forearm"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#r_forearm"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.48774"/>
+			<inertia ixx="0.000845416" ixy="0.0" ixz="0.0" iyy="0.000845416" iyz="0.0" izz="9.7548e-05"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.07"/>
+		</inertial>
+	</link>
+	<link name="r_wrist_1">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#r_wrist_1"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#r_wrist_1"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.05"/>
+			<inertia ixx="7.91666666667e-06" ixy="0.0" ixz="0.0" iyy="7.91666666667e-06" iyz="0.0" izz="2.5e-06"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		</inertial>
+	</link>
+	<link name="r_hand">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#r_hand"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#r_hand"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.19099"/>
+			<inertia ixx="7.64119158333e-05" ixy="0.0" ixz="0.0" iyy="8.49428025e-05" iyz="0.0" izz="0.000143019678333"/>
+			<origin rpy="0.0 0.0 0.0" xyz="-0.0345 0.0 0.0"/>
+		</inertial>
+	</link>
+	<link name="l_shoulder_1">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#l_shoulder_1"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#l_shoulder_1"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.48278"/>
+			<inertia ixx="0.000120855926667" ixy="0.0" ixz="0.0" iyy="0.000120855926667" iyz="0.0" izz="0.00023197579"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.07224"/>
+		</inertial>
+	</link>
+	<link name="l_shoulder_2">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#l_shoulder_2"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#l_shoulder_2"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.20779"/>
+			<inertia ixx="0.000107029165833" ixy="0.0" ixz="0.0" iyy="0.000107029165833" iyz="0.0" izz="9.35055e-05"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		</inertial>
+	</link>
+	<link name="l_arm">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#l_arm"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#l_arm"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="1.1584"/>
+			<inertia ixx="0.0025450048" ixy="0.0" ixz="0.0" iyy="0.0025450048" iyz="0.0" izz="0.0003915392"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.078"/>
+		</inertial>
+	</link>
+	<link name="l_elbow_1">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#l_elbow_1"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#l_elbow_1"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.050798"/>
+			<inertia ixx="2.03192e-06" ixy="0.0" ixz="0.0" iyy="2.03192e-06" iyz="0.0" izz="2.03192e-06"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		</inertial>
+	</link>
+	<link name="l_forearm">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#l_forearm"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#l_forearm"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.48774"/>
+			<inertia ixx="0.000845416" ixy="0.0" ixz="0.0" iyy="0.000845416" iyz="0.0" izz="9.7548e-05"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.07"/>
+		</inertial>
+	</link>
+	<link name="l_wrist_1">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#l_wrist_1"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#l_wrist_1"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.05"/>
+			<inertia ixx="7.91666666667e-06" ixy="0.0" ixz="0.0" iyy="7.91666666667e-06" iyz="0.0" izz="2.5e-06"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		</inertial>
+	</link>
+	<link name="l_hand">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#l_hand"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#l_hand"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.19099"/>
+			<inertia ixx="7.64119158333e-05" ixy="0.0" ixz="0.0" iyy="8.49428025e-05" iyz="0.0" izz="0.000143019678333"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0345 0.0 0.0"/>
+		</inertial>
+	</link>
+	<link name="neck_1">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#neck_1"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#neck_1"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.28252"/>
+			<inertia ixx="0.000155480173333" ixy="0.0" ixz="0.0" iyy="0.000155480173333" iyz="0.0" izz="3.17835e-05"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		</inertial>
+	</link>
+	<link name="neck_2">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#neck_2"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#neck_2"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.1"/>
+			<inertia ixx="1.47e-05" ixy="0.0" ixz="0.0" iyy="1.47e-05" iyz="0.0" izz="1.125e-05"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		</inertial>
+	</link>
+	<link name="head">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#head"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#head"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.78"/>
+			<inertia ixx="0.0019968" ixy="0.0" ixz="0.0" iyy="0.0019968" iyz="0.0" izz="0.0019968"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0825"/>
+		</inertial>
+	</link>
+	<link name="r_hip_1">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#r_hip_1"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#r_hip_1"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.32708"/>
+			<inertia ixx="0.000122682256667" ixy="0.0" ixz="0.0" iyy="0.000122682256667" iyz="0.0" izz="0.00023615176"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.0375"/>
+		</inertial>
+	</link>
+	<link name="r_hip_2">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#r_hip_2"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#r_hip_2"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="1.5304"/>
+			<inertia ixx="0.0010850536" ixy="0.0" ixz="0.0" iyy="0.0010850536" iyz="0.0" izz="0.0007353572"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		</inertial>
+	</link>
+	<link name="r_thigh">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#r_thigh"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#r_thigh"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="2.32246"/>
+			<inertia ixx="0.0139763503018" ixy="0.0" ixz="0.0" iyy="0.00147239522875" iyz="0.0" izz="0.0137814870406"/>
+			<origin rpy="1.5707963268 0.0 1.5707963268" xyz="0.0 0.0 0.1501968774"/>
+		</inertial>
+	</link>
+	<link name="r_shank">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#r_shank"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#r_shank"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.95262"/>
+			<inertia ixx="0.00383792736375" ixy="0.0" ixz="0.0" iyy="0.0004726185975" iyz="0.0" izz="0.00383792736375"/>
+			<origin rpy="-0.0 0.0 0.0" xyz="0.0 -0.1065 -0.0"/>
+		</inertial>
+	</link>
+	<link name="r_ankle_1">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#r_ankle_1"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#r_ankle_1"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.14801"/>
+			<inertia ixx="7.1165058125e-05" ixy="0.0" ixz="0.0" iyy="7.1165058125e-05" iyz="0.0" izz="4.442150125e-05"/>
+			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		</inertial>
+	</link>
+	<link name="r_foot">
+		<visual>
+			<geometry>
+				<mesh filename="icub.dae#r_foot"/>
+			</geometry>
+			<material name="material.metal"/>
+		</visual>
+		<collision>
+			<geometry>
+				<mesh filename="icub_simple_collision.dae#r_foot"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.6747"/>
+			<inertia ixx="0.000811937097733" ixy="0.0" ixz="0.0" iyy="0.000336068314542" iyz="0.0" izz="0.000731741708191"/>
+			<origin rpy="1.7256730879 0.0 1.5707963268" xyz="-0.0047312139 0.0 -0.0151082333"/>
+		</inertial>
+	</link>
+	<joint name="l_hip_pitch" type="revolute">
+		<parent link="waist"/>
+		<child link="l_hip_1"/>
+		<origin rpy="-1.5707963268 0.0 0.0" xyz="0.0 -0.0681 -0.1199"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="84" lower="-0.767944870878" upper="2.30383461263" velocity="100.0"/>
+	</joint>
+	<joint name="l_hip_roll" type="revolute">
+		<parent link="l_hip_1"/>
+		<child link="l_hip_2"/>
+		<origin rpy="-1.5707963268 -0.0 1.5707963268" xyz="0.0 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="84" lower="-2.07694180987" upper="0.296705972839" velocity="100.0"/>
+	</joint>
+	<joint name="l_hip_yaw" type="revolute">
+		<parent link="l_hip_2"/>
+		<child link="l_thigh"/>
+		<origin rpy="-1.5707963268 -0.0 1.5707963268" xyz="0.0 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="40" lower="-1.37881010908" upper="1.37881010908" velocity="100.0"/>
+	</joint>
+	<joint name="l_knee" type="revolute">
+		<parent link="l_thigh"/>
+		<child link="l_shank"/>
+		<origin rpy="1.5707963268 -0.0 -1.5707963268" xyz="0.0 0.0 -0.2236"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="30" lower="-2.18166156499" upper="0.401425727959" velocity="100.0"/>
+	</joint>
+	<joint name="l_ankle_pitch" type="revolute">
+		<parent link="l_shank"/>
+		<child link="l_ankle_1"/>
+		<origin rpy="3.1415926536 0.0 1.5707963268" xyz="-0.0 -0.213 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="24" lower="-0.733038285838" upper="0.366519142919" velocity="100.0"/>
+	</joint>
+	<joint name="l_ankle_roll" type="revolute">
+		<parent link="l_ankle_1"/>
+		<child link="l_foot"/>
+		<origin rpy="-1.5707963268 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="11" lower="-0.418879020479" upper="0.418879020479" velocity="100.0"/>
+	</joint>
+	<joint name="torso_pitch" type="revolute">
+		<parent link="waist"/>
+		<child link="lap_belt_1"/>
+		<origin rpy="1.5707963268 -1.5707963268 0" xyz="0.0 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="36" lower="-0.383972435439" upper="1.46607657168" velocity="100.0"/>
+	</joint>
+	<joint name="torso_roll" type="revolute">
+		<parent link="lap_belt_1"/>
+		<child link="lap_belt_2"/>
+		<origin rpy="1.5707963268 0.0 0.0" xyz="0.032 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="80" lower="-0.680678408278" upper="0.680678408278" velocity="100.0"/>
+	</joint>
+	<joint name="torso_yaw" type="revolute">
+		<parent link="lap_belt_2"/>
+		<child link="chest"/>
+		<origin rpy="1.5707963268 -0.0 -1.5707963268" xyz="0.0 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="80" lower="-1.02974425868" upper="1.02974425868" velocity="100.0"/>
+	</joint>
+	<joint name="r_shoulder_pitch" type="revolute">
+		<parent link="chest"/>
+		<child link="r_shoulder_1"/>
+		<origin rpy="1.5707963268 0.0 -1.8325957146" xyz="0.0060472293 0.0225685672 -0.1433"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="84" lower="-1.65806278939" upper="0.0872664625997" velocity="100.0"/>
+	</joint>
+	<joint name="r_shoulder_roll" type="revolute">
+		<parent link="r_shoulder_1"/>
+		<child link="r_shoulder_2"/>
+		<origin rpy="1.5707963268 -0.0 -1.5707963268" xyz="0.0 0.0 -0.10774"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="84" lower="0.0" upper="2.80648943721" velocity="100.0"/>
+	</joint>
+	<joint name="r_shoulder_yaw" type="revolute">
+		<parent link="r_shoulder_2"/>
+		<child link="r_arm"/>
+		<origin rpy="-1.5707963268 0.0 -1.5707963268" xyz="0.0 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="34" lower="-0.645771823238" upper="1.74532925199" velocity="100.0"/>
+	</joint>
+	<joint name="r_elbow_pitch" type="revolute">
+		<parent link="r_arm"/>
+		<child link="r_elbow_1"/>
+		<origin rpy="-1.5707963268 -0.0 -1.8325957146" xyz="0.0 0.0 -0.15228"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="20" lower="0.0959931088597" upper="1.85004900711" velocity="100.0"/>
+	</joint>
+	<joint name="r_elbow_yaw" type="revolute">
+		<parent link="r_elbow_1"/>
+		<child link="r_forearm"/>
+		<origin rpy="1.5707963268 0.0 0.0" xyz="0.015 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="0.45" lower="-0.872664625997" upper="0.872664625997" velocity="100.0"/>
+	</joint>
+	<joint name="r_wrist_roll" type="revolute">
+		<parent link="r_forearm"/>
+		<child link="r_wrist_1"/>
+		<origin rpy="1.5707963268 -0.0 -1.5707963268" xyz="0.0 0.0 -0.1373"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="0.65" lower="-1.1344640138" upper="0.174532925199" velocity="100.0"/>
+	</joint>
+	<joint name="r_wrist_pitch" type="revolute">
+		<parent link="r_wrist_1"/>
+		<child link="r_hand"/>
+		<origin rpy="1.5707963268 0.0 1.5707963268" xyz="0.0 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="0.65" lower="-0.436332312999" upper="0.436332312999" velocity="100.0"/>
+	</joint>
+	<joint name="l_shoulder_pitch" type="revolute">
+		<parent link="chest"/>
+		<child link="l_shoulder_1"/>
+		<origin rpy="-1.5707963268 0.0 1.8325957146" xyz="-0.0060472293 0.0225685672 -0.1433"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="84" lower="-1.65806278939" upper="0.0872664625997" velocity="100.0"/>
+	</joint>
+	<joint name="l_shoulder_roll" type="revolute">
+		<parent link="l_shoulder_1"/>
+		<child link="l_shoulder_2"/>
+		<origin rpy="-1.5707963268 -0.0 1.5707963268" xyz="0.0 0.0 0.10774"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="84" lower="0.0" upper="2.80648943721" velocity="100.0"/>
+	</joint>
+	<joint name="l_shoulder_yaw" type="revolute">
+		<parent link="l_shoulder_2"/>
+		<child link="l_arm"/>
+		<origin rpy="1.5707963268 -0.0 -1.5707963268" xyz="0.0 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="34" lower="-0.645771823238" upper="1.74532925199" velocity="100.0"/>
+	</joint>
+	<joint name="l_elbow_pitch" type="revolute">
+		<parent link="l_arm"/>
+		<child link="l_elbow_1"/>
+		<origin rpy="-1.5707963268 0.0 1.308996939" xyz="0.0 0.0 0.15228"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="20" lower="0.0959931088597" upper="1.85004900711" velocity="100.0"/>
+	</joint>
+	<joint name="l_elbow_yaw" type="revolute">
+		<parent link="l_elbow_1"/>
+		<child link="l_forearm"/>
+		<origin rpy="1.5707963268 0.0 0.0" xyz="-0.015 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="0.45" lower="-0.872664625997" upper="0.872664625997" velocity="100.0"/>
+	</joint>
+	<joint name="l_wrist_roll" type="revolute">
+		<parent link="l_forearm"/>
+		<child link="l_wrist_1"/>
+		<origin rpy="1.5707963268 -0.0 -1.5707963268" xyz="0.0 0.0 0.1373"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="0.65" lower="-1.1344640138" upper="0.174532925199" velocity="100.0"/>
+	</joint>
+	<joint name="l_wrist_pitch" type="revolute">
+		<parent link="l_wrist_1"/>
+		<child link="l_hand"/>
+		<origin rpy="1.5707963268 0.0 1.5707963268" xyz="0.0 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="0.65" lower="-0.436332312999" upper="0.436332312999" velocity="100.0"/>
+	</joint>
+	<joint name="head_pitch" type="revolute">
+		<parent link="chest"/>
+		<child link="neck_1"/>
+		<origin rpy="-1.5707963268 0.0 -1.5707963268" xyz="0.0 -0.00231 -0.1933"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="20" lower="-0.698131700798" upper="0.523598775598" velocity="100.0"/>
+	</joint>
+	<joint name="head_roll" type="revolute">
+		<parent link="neck_1"/>
+		<child link="neck_2"/>
+		<origin rpy="1.5707963268 0.0 1.5707963268" xyz="0.0 0.033 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="20" lower="-1.2217304764" upper="1.0471975512" velocity="100.0"/>
+	</joint>
+	<joint name="head_yaw" type="revolute">
+		<parent link="neck_2"/>
+		<child link="head"/>
+		<origin rpy="-1.5707963268 0.0 -1.5707963268" xyz="0.0 0.0 0.001"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="20" lower="-0.959931088597" upper="0.959931088597" velocity="100.0"/>
+	</joint>
+	<joint name="r_hip_pitch" type="revolute">
+		<parent link="waist"/>
+		<child link="r_hip_1"/>
+		<origin rpy="-1.5707963268 0.0 0.0" xyz="0.0 0.0681 -0.1199"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="84" lower="-0.767944870878" upper="2.30383461263" velocity="100.0"/>
+	</joint>
+	<joint name="r_hip_roll" type="revolute">
+		<parent link="r_hip_1"/>
+		<child link="r_hip_2"/>
+		<origin rpy="1.5707963268 0.0 1.5707963268" xyz="0.0 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="84" lower="-2.07694180987" upper="0.296705972839" velocity="100.0"/>
+	</joint>
+	<joint name="r_hip_yaw" type="revolute">
+		<parent link="r_hip_2"/>
+		<child link="r_thigh"/>
+		<origin rpy="1.5707963268 0.0 1.5707963268" xyz="0.0 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="40" lower="-1.37881010908" upper="1.37881010908" velocity="100.0"/>
+	</joint>
+	<joint name="r_knee" type="revolute">
+		<parent link="r_thigh"/>
+		<child link="r_shank"/>
+		<origin rpy="-1.5707963268 0.0 -1.5707963268" xyz="0.0 0.0 0.2236"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="30" lower="-2.18166156499" upper="0.401425727959" velocity="100.0"/>
+	</joint>
+	<joint name="r_ankle_pitch" type="revolute">
+		<parent link="r_shank"/>
+		<child link="r_ankle_1"/>
+		<origin rpy="3.1415926536 0.0 1.5707963268" xyz="-0.0 -0.213 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="24" lower="-0.733038285838" upper="0.366519142919" velocity="100.0"/>
+	</joint>
+	<joint name="r_ankle_roll" type="revolute">
+		<parent link="r_ankle_1"/>
+		<child link="r_foot"/>
+		<origin rpy="1.5707963268 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		<axis xyz="0 0 1"/>
+		<limit effort="11" lower="-0.418879020479" upper="0.418879020479" velocity="100.0"/>
+	</joint>
+</robot>

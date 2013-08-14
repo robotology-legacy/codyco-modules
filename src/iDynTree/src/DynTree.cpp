@@ -157,7 +157,6 @@ int DynTree::buildSubGraphStructure(const std::vector<std::string> & ft_names)
 {
     link2subgraph_index.resize(NrOfLinks,-1);
     link_is_subgraph_root.resize(NrOfLinks,false);
-    link_FT_sensors.resize(NrOfLinks,std::vector<FTSensor *>(0));
     subgraph_index2root_link.resize(NrOfDynamicSubGraphs,-1);
     
     int next_id = 0;
@@ -205,17 +204,8 @@ int DynTree::buildSubGraphStructure(const std::vector<std::string> & ft_names)
     }
     
     //Building Force/Torque sensors data structures
-    ft_list.clear();
-    for(int i=0; i < (int)ft_names.size(); i++ ) {
-        int parent_id = tree_graph.getJunction(ft_names[i])->parent->link_nr;
-        int child_id = tree_graph.getJunction(ft_names[i])->child->link_nr;
-        int sensor_id = i;
-        ft_list.push_back(FTSensor(tree_graph,ft_names[i],parent_id,child_id,sensor_id));
+    ft_list = KDL::CoDyCo::FTSensorList(tree_graph,ft_names);
 
-        link_FT_sensors[parent_id].push_back(&(ft_list[i]));
-        link_FT_sensors[child_id].push_back(&(ft_list[i]));
-    }
-        
     //The numbers of ids must be equal to the number of subgraphs
     if(next_id == NrOfDynamicSubGraphs) {
         return 0;
@@ -229,11 +219,7 @@ int DynTree::buildSubGraphStructure(const std::vector<std::string> & ft_names)
 
 KDL::Wrench DynTree::getMeasuredWrench(int link_id)
 {
-    KDL::Wrench ret = KDL::Wrench::Zero();
-    for(int i = 0; i < (int)link_FT_sensors[link_id].size(); i++ ) {
-        ret += link_FT_sensors[link_id][i]->getWrenchExcertedOnSubGraph(link_id,measured_wrenches);
-    }
-    return ret;
+  return ft_list.getMeasuredWrench(link_id,measured_wrenches);
 }
 
 void DynTree::buildAb_contacts()
@@ -675,7 +661,7 @@ yarp::sig::Vector DynTree::getAcc(const std::string & link_name) const
 yarp::sig::Vector DynTree::getTorques(const std::string & part_name) const
 {
     #ifndef NDEBUG
-    std::cout << "DynTree::getTorques(" << part_name << ")" << std::endl;
+    //std::cout << "DynTree::getTorques(" << part_name << ")" << std::endl;
     #endif
     if( part_name.length() == 0 ) {
         yarp::sig::Vector ret(NrOfDOFs);
@@ -686,11 +672,11 @@ yarp::sig::Vector DynTree::getTorques(const std::string & part_name) const
         if( dof_ids.size() ==0  ) { std::cerr << "getTorques: wrong part_name (or part with 0 DOFs)" << std::endl; return yarp::sig::Vector(0); }
         yarp::sig::Vector ret(dof_ids.size());
         #ifndef NDEBUG
-        std::cout << "dof_ids" << dof_ids.size() << std::endl;
+        //std::cout << "dof_ids" << dof_ids.size() << std::endl;
         #endif
         for(int i = 0; i < (int)dof_ids.size(); i++ ) {
             #ifndef NDEBUG
-            std::cout << "ids " << dof_ids[i] << std::endl;
+            //std::cout << "ids " << dof_ids[i] << std::endl;
             #endif
             ret[i] = torques(dof_ids[i]);
         }
@@ -786,7 +772,7 @@ bool DynTree::dynamicRNEA()
         assert( base_force.torque.Norm() < 1e-5 );
         //Note: this (that no residual appears happens only for the proper selection of the provided dynContactList
         for(int i=0; i < NrOfFTSensors; i++ ) {
-            KDL::Wrench residual = measured_wrenches[i] - ft_list[i].getH_child_sensor().Inverse(f[ft_list[i].getChild()]);
+            KDL::Wrench residual = measured_wrenches[i] - ft_list.ft_sensors_vector[i].getH_child_sensor().Inverse(f[ft_list.ft_sensors_vector[i].getChild()]);
             assert( residual.force.Norm() < 1e-5 );
             assert( residual.torque.Norm() < 1e-5 );
         }
@@ -798,10 +784,10 @@ bool DynTree::dynamicRNEA()
         for(int i=0; i < NrOfFTSensors; i++ ) {
             //Todo add case that the force/wrench is the one of the parent ?
             #ifndef NDEBUG
-            std::cerr << "Project sensor " << i << "from link " << ft_list[i].getChild() << " to sensor " << std::endl;
-            std::cerr << "Original force " << KDLtoYarp(f[ft_list[i].getChild()].force).toString() << std::endl;
+            //std::cerr << "Project sensor " << i << "from link " << ft_list.ft_sensors_vector[i].getChild() << " to sensor " << std::endl;
+            //std::cerr << "Original force " << KDLtoYarp(f[ft_list.ft_sensors_vector[i].getChild()].force).toString() << std::endl;
             #endif
-            measured_wrenches[i] = ft_list[i].getH_child_sensor().Inverse(f[ft_list[i].getChild()]);
+            measured_wrenches[i] = ft_list.ft_sensors_vector[i].getH_child_sensor().Inverse(f[ft_list.ft_sensors_vector[i].getChild()]);
         }
     }
     if( ret < 0 ) return false;
@@ -834,10 +820,8 @@ bool DynTree::getCOMJacobian(const yarp::sig::Matrix & jac, const std::string & 
 ////////////////////////////////////////////////////////////////////////
 ////// Jacobian related methods
 ////////////////////////////////////////////////////////////////////////
-bool DynTree::getJacobian(const int link_index, yarp::sig::Matrix & jac, bool global)
+bool DynTree::getJacobian(const int link_index, yarp::sig::Matrix & jac, bool local)
 {
-    if( global ) { std::cerr << "DynTree::getJacobian: global option not implemented" << std::endl; return false;}
-
     if( jac.rows() != (int)(6) || jac.cols() != (int)(6+tree_graph.getNrOfDOFs()) ) {
         jac.resize(6,6+tree_graph.getNrOfDOFs());
     }
@@ -845,6 +829,15 @@ bool DynTree::getJacobian(const int link_index, yarp::sig::Matrix & jac, bool gl
     if( abs_jacobian.rows() != 6 || abs_jacobian.columns() != 6+tree_graph.getNrOfDOFs() ) { abs_jacobian.resize(6+tree_graph.getNrOfDOFs()); } 
     
     getFloatingBaseJacobianLoop(tree_graph,q,dynamic_traversal,link_index,abs_jacobian);
+    
+    if( !local ) {
+        //Compute the position of the world 
+        //\todo compute only the needed rototranslation
+        if( !is_X_dynamic_base_updated ) {
+            computePositions();
+        }
+        abs_jacobian.changeRefFrame(X_dynamic_base[link_index]);
+    }
     
     Eigen::Map< Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > mapped_jacobian(jac.data(),jac.rows(),jac.cols());
     
