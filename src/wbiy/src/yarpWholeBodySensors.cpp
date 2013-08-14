@@ -113,13 +113,13 @@ bool yarpWholeBodySensors::openImu(const LocalId &i)
 {
     string remotePort = "/" + robot + getPortName(i, imu_2_port);
     stringstream localPort; 
-    localPort << "/" << name << "/imu" << imuIdList.localToGlobalId(i);
+    localPort << "/" << name << "/imu" << i.bodyPart << "_" << i.index << ":i";
     portsIMU[i] = new BufferedPort<Vector>();
-    if(!portsIMU[i]->open(localPort.str().c_str()))
+    if(!portsIMU[i]->open(localPort.str().c_str())) // open local input port
         return false;
-    if(!Network::exists(remotePort.c_str()))
+    if(!Network::exists(remotePort.c_str()))        // check remote output port exists
         return false;
-    if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp"))
+    if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp"))   // connect remote to local port
         return false;
     return true;
 }
@@ -128,25 +128,32 @@ bool yarpWholeBodySensors::openFTsens(const LocalId &i)
 {
     string remotePort = "/" + robot + getPortName(i, ftSens_2_port);
     stringstream localPort; 
-    localPort << "/" << name << "/ftSens" << ftSensIdList.localToGlobalId(i);   // wrong id
+    localPort << "/" << name << "/ftSens" << i.bodyPart << "_" << i.index << ":i";
     portsFTsens[i] = new BufferedPort<Vector>();
-    if(!portsFTsens[i]->open(localPort.str().c_str()))
+    if(!portsFTsens[i]->open(localPort.str().c_str()))  // open local input port
         return false;
-    if(!Network::exists(remotePort.c_str()))
+    if(!Network::exists(remotePort.c_str()))            // check remote output port exists
         return false;
-    if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp"))
+    if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp"))   // connect remote to local port
         return false;
     return true;
 }
 
 bool yarpWholeBodySensors::init()
 {
-    bool ok = true;
+    bool initDone = true;
     FOR_ALL_BODY_PARTS(itBp)
-        ok = ok && openDrivers(itBp->first);
+        initDone = initDone && openDrivers(itBp->first);
+
+    for(LocalIdList::iterator itBp=ftSensIdList.begin(); itBp!=ftSensIdList.end(); itBp++)
+        for(vector<int>::iterator itId=itBp->second.begin(); itId!=itBp->second.end(); itId++)
+            initDone = initDone && openFTsens(LocalId(itBp->first,*itId));
     
-    initDone = ok;
-    return ok;
+    for(LocalIdList::iterator itBp=imuIdList.begin(); itBp!=imuIdList.end(); itBp++)
+        for(vector<int>::iterator itId=itBp->second.begin(); itId!=itBp->second.end(); itId++)
+            initDone = initDone && openImu(LocalId(itBp->first,*itId));
+
+    return initDone;
 }
 
 bool yarpWholeBodySensors::close()

@@ -1,14 +1,8 @@
 
 /*
- * Copyright (C) 2011  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
- * Author: Marco Randazzo
- * email: marco.randazzo@iit.it
- *
- * Further modifications
- *
- * Copyright (C) 2013 CoDyCo Consortium
- * Author: Serena Ivaldi
- * email: serena.ivaldi@isir.upmc.fr
+ * Copyright (C) 2013 iCub Facility - Istituto Italiano di Tecnologia
+ * Author: Andrea Del Prete
+ * email: andrea.delprete@iit.it
  *
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
