@@ -97,6 +97,11 @@ namespace wbi
         LocalIdList(int bp, int j0, int j1, int j2, int j3, int j4);
         LocalIdList(int bp, int j0, int j1, int j2, int j3, int j4, int j5);
         LocalIdList(int bp, int j0, int j1, int j2, int j3, int j4, int j5, int j6);
+
+        LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2);
+        LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3);
+        LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4);
+        LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4, const LocalIdList &lid5);
         
         /** Convert a local id to a global id */
         virtual int localToGlobalId(const LocalId &i);

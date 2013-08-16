@@ -39,6 +39,15 @@ LocalIdList::LocalIdList(int bp, int j0, int j1, int j2, int j3, int j4, int j5)
 LocalIdList::LocalIdList(int bp, int j0, int j1, int j2, int j3, int j4, int j5, int j6)
 { pushId(bp,j0); pushId(bp,j1); pushId(bp,j2); pushId(bp,j3); pushId(bp,j4); pushId(bp,j5); pushId(bp,j6); }
 
+LocalIdList::LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2)
+{ addIdList(lid1); addIdList(lid2); }
+LocalIdList::LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3)
+{ addIdList(lid1); addIdList(lid2); addIdList(lid3); }
+LocalIdList::LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4)
+{ addIdList(lid1); addIdList(lid2); addIdList(lid3); addIdList(lid4); }
+LocalIdList::LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4, const LocalIdList &lid5)
+{ addIdList(lid1); addIdList(lid2); addIdList(lid3); addIdList(lid4); addIdList(lid5); }
+
 void LocalIdList::pushId(int bp, int i)
 {
     (*this)[bp].push_back(i);
