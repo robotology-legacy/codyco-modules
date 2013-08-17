@@ -39,6 +39,15 @@
 
 namespace wbiy
 {
+
+    // handy variable for initializing the whole body interface for iCub
+    const wbi::LocalIdList ICUB_RIGHT_ARM_JOINTS(iCub::skinDynLib::RIGHT_ARM, 0, 1, 2, 3, 4);
+    const wbi::LocalIdList ICUB_LEFT_ARM_JOINTS(iCub::skinDynLib::LEFT_ARM, 0, 1, 2, 3, 4);
+    const wbi::LocalIdList ICUB_RIGHT_LEG_JOINTS(iCub::skinDynLib::RIGHT_LEG, 0, 1, 2, 3, 4, 5);
+    const wbi::LocalIdList ICUB_LEFT_LEG_JOINTS(iCub::skinDynLib::LEFT_LEG, 0, 1, 2, 3, 4, 5);
+    const wbi::LocalIdList ICUB_TORSO_JOINTS(iCub::skinDynLib::TORSO, 0, 1, 2);
+    const wbi::LocalIdList ICUB_MAIN_JOINTS( ICUB_RIGHT_ARM_JOINTS, ICUB_LEFT_ARM_JOINTS, ICUB_RIGHT_LEG_JOINTS, ICUB_LEFT_LEG_JOINTS, ICUB_TORSO_JOINTS);
+
     // mapping from generic sensor id to corresponding port name
     struct id_2_PortName { wbi::LocalId id; std::string portName; };
 
