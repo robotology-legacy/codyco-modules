@@ -48,14 +48,11 @@ iCubTree::iCubTree(iCubTree_version_tag version, iCubTree_serialization_tag seri
     ft_names.push_back("l_leg_ft_sensor_joint");
     ft_names.push_back("r_leg_ft_sensor_joint");
     
-    
-    
     //Define an explicit serialization of the links and the DOFs of the iCub
     //The DOF serialization done in icub_kdl construction is ok
     KDL::CoDyCo::TreeSerialization serial = KDL::CoDyCo::TreeSerialization(icub_kdl);
     
     KDL::CoDyCo::TreePartition icub_partition = get_iCub_partition(serial);
-    
     
     this->constructor(icub_kdl,ft_names,imu_link_name,serial,icub_partition);
     
@@ -175,8 +172,8 @@ KDL::CoDyCo::TreePartition iCubTree::get_iCub_partition(const KDL::CoDyCo::TreeS
     right_leg.addLink(icub_serialization.getLinkId("r_sole"));
     
     KDL::CoDyCo::TreePartition partition;
-    partition.addPart(head);
     partition.addPart(torso);
+    partition.addPart(head);
     partition.addPart(left_arm);
     partition.addPart(right_arm);
     partition.addPart(left_leg);

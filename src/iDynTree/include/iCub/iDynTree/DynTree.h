@@ -52,7 +52,7 @@ class DynTree : public DynTreeInterface {
         int NrOfDynamicSubGraphs;
         
         //state of the robot
-        //KDL::Frame world_base_frame; /**< the position of the floating base frame with respect to the world reference frame \f$ {}^w H_b */
+        KDL::Frame world_base_frame; /**< the position of the floating base frame with respect to the world reference frame \f$ {}^w H_b */
         
         KDL::JntArray q;
         KDL::JntArray dq;
@@ -141,12 +141,15 @@ class DynTree : public DynTreeInterface {
         //end DynTreeContact data structures
         
         //Position related quantites
-        bool is_X_dynamic_base_updated;
-        std::vector<KDL::Frame> X_dynamic_base; /**< for each link store the frame X_dynamic_base_link of the position of a link with respect to the dynamic base */
+        mutable bool is_X_dynamic_base_updated;
+        mutable std::vector<KDL::Frame> X_dynamic_base; /**< for each link store the frame X_dynamic_base_link of the position of a link with respect to the dynamic base */
         
         
         //Debug
         int verbose;
+        
+        //Buffer 
+        yarp::sig::Matrix _H_w_b;
         
         //Jacobian related quantities
         //all this variable are defined once in the class to avoid dynamic memory allocation at each method call
@@ -241,8 +244,18 @@ class DynTree : public DynTreeInterface {
          *
          */
         int getDOFIndex(const std::string & part_name, const int local_DOF_index);
-        
-        
+    
+    /**
+     * Set the rototranslation between the world and the base reference
+     * frames, expressed in the world reference frame )
+     * 
+     * @param H_w_p a 4x4 rototranslation matrix
+     * @return true if all went well, false otherwise (a problem in the input)
+     */
+    bool setWorldBasePose(const yarp::sig::Matrix & H_w_p);
+    
+    yarp::sig::Matrix getWorldBasePose();
+    
     /**
      * Set joint positions in the specified part (if no part 
      * is specified, set the joint positions of all the tree)
@@ -355,7 +368,7 @@ class DynTree : public DynTreeInterface {
      * The result of this computations can be then called using getPosition() methods
      * @return true if succeeds, false otherwise
      */
-    virtual bool computePositions();  
+    virtual bool computePositions() const;  
     
     /**
      * Execute the kinematic phase (recursive calculation of position, velocity,
@@ -386,7 +399,7 @@ class DynTree : public DynTreeInterface {
     //@{
 
     /**
-     * Get the 4x4 rototranslation matrix of a link frame with respect to the dynamical base frame ( \f$ {}^bH_i \f$)
+     * Get the 4x4 rototranslation matrix of a link frame with respect to the world frame ( \f$ {}^wH_i \f$)
      * @param link_index the index of the link 
      * @return a 4x4 rototranslation yarp::sig::Matrix 
      */

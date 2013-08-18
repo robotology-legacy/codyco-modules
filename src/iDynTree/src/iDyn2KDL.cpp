@@ -369,7 +369,7 @@ yarp::sig::Matrix localSE3inv(const yarp::sig::Matrix &H, unsigned int verbose)
     if ((H.rows()<4) || (H.cols()<4))
     {
         if (verbose)
-            fprintf(stderr,"SE3inv() failed\n");
+            fprintf(stderr,"localSE3inv() failed\n");
 
         return yarp::sig::Matrix(0,0);
     }
