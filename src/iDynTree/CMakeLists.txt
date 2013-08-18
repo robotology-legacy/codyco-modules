@@ -54,6 +54,7 @@ INCLUDE_DIRECTORIES(include
 ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME} iDyn
+                                     ${ICUB_LIBRARIES}
                                      ${GSL_LIBRARIES}
                                      ${YARP_LIBRARIES}
                                      ${Orocos-KDL_LIBRARIES} 

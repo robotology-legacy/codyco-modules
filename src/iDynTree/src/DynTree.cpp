@@ -662,7 +662,7 @@ yarp::sig::Vector DynTree::getTorques(const std::string & part_name) const
         return ret;
     } else {
         const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
-        if( dof_ids.size() ==0  ) { std::cerr << "getTorques: wrong part_name (or part with 0 DOFs)" << std::endl; return yarp::sig::Vector(0); }
+        if( dof_ids.size() ==0  ) { std::cerr << "getTorques: " << part_name << " wrong part_name (or part with 0 DOFs)" << std::endl; return yarp::sig::Vector(0); }
         yarp::sig::Vector ret(dof_ids.size());
         #ifndef NDEBUG
         //std::cout << "dof_ids" << dof_ids.size() << std::endl;

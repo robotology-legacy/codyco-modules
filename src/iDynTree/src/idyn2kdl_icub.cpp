@@ -164,6 +164,7 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl,  i
 
 
     //REP 120
+    
     KDL::Segment kdlSegment = KDL::Segment("torso",KDL::Joint("torso_joint",KDL::Joint::None));
     icub_kdl.addSegment(kdlSegment,arms_head_base_name);    
     
