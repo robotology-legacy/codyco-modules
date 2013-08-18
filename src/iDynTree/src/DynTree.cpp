@@ -845,9 +845,7 @@ bool DynTree::getJacobian(const int link_index, yarp::sig::Matrix & jac, bool lo
 }
     
 bool DynTree::getRelativeJacobian(const int jacobian_distal_link, const int jacobian_base_link, yarp::sig::Matrix & jac, bool global)
-{
-    if( global ) { std::cerr << "DynTree::getRelativeJacobian: global option not implemented" << std::endl; return false;}
-    
+{    
     if( jac.rows() != (int)(6) || jac.cols() != (int)(tree_graph.getNrOfDOFs()) ) {
         jac.resize(6,tree_graph.getNrOfDOFs());
     }
@@ -874,6 +872,11 @@ bool DynTree::getRelativeJacobian(const int jacobian_distal_link, const int jaco
     assert( p_traversal->order[0]->getLinkIndex() == jacobian_base_link );
     
     getRelativeJacobianLoop(tree_graph,q,*p_traversal,jacobian_distal_link,rel_jacobian);
+    
+    if( global ) {
+        computePositions();
+        rel_jacobian.changeRefFrame(world_base_frame*X_dynamic_base[jacobian_distal_link]);
+    }
     
     Eigen::Map< Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > mapped_jacobian(jac.data(),jac.rows(),jac.cols());
 

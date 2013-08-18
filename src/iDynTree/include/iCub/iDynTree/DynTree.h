@@ -512,7 +512,7 @@ class DynTree : public DynTreeInterface {
      * @param jacobian_distal_link the index of the distal link
      * @param jacobian_base_link the index of the base link
      * @param jac the output yarp::sig::Matrix 
-     * @param global if true, return {}^wJ_{s,f} (the Jacobian expressed in the world frame) (default: false)
+     * @param global if true, return \f$ {}^wJ_{s,f} \f$ (the Jacobian expressed in the world frame) (default: false)
      * @return true if all went well, false otherwise
      */
     virtual bool getRelativeJacobian(const int jacobian_distal_link, const int jacobian_base_link, yarp::sig::Matrix & jac, bool global=false);
