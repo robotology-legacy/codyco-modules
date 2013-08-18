@@ -247,13 +247,19 @@ class DynTree : public DynTreeInterface {
     
     /**
      * Set the rototranslation between the world and the base reference
-     * frames, expressed in the world reference frame )
+     * frames, expressed in the world reference frame \f$ {}^wH_b \f$ 
      * 
      * @param H_w_p a 4x4 rototranslation matrix
      * @return true if all went well, false otherwise (a problem in the input)
      */
     bool setWorldBasePose(const yarp::sig::Matrix & H_w_p);
     
+     /**
+     * Get the rototranslation between the world and the base reference
+     * frames, expressed in the world reference frame \f$ {}^wH_b \f$ 
+     * 
+     * @return H_w_p a 4x4 rototranslation matrix
+     */
     yarp::sig::Matrix getWorldBasePose();
     
     /**
@@ -417,14 +423,14 @@ class DynTree : public DynTreeInterface {
     /**
      * Get the velocity of the specified link, expressed in the link local reference frame
      * @param link_index the index of the link 
-     * @return a 6x1 vector with linear velocity (0:2) and angular velocity (3:5)
+     * @return a 6x1 vector with linear velocity \f$ {}^iv_i \f$ (0:2) and angular velocity \f$ {}^i\omega_i\f$ (3:5)
      */
     virtual yarp::sig::Vector getVel(const int link_index) const;
 
     /**
      * Get the acceleration of the specified link, expressed in the link local reference frame
      * @param link_index the index of the link 
-     * @return a 6x1 vector with linear acc (0:2) and angular acceleration (3:5)
+     * @return a 6x1 vector with linear acc \f$ {}^ia_i \f$(0:2) and angular acceleration \f$ {}^i\dot{\omega}_i \f$ (3:5)
      *
      * \note This function returns the classical linear acceleration, not the spatial one
      */
@@ -476,11 +482,13 @@ class DynTree : public DynTreeInterface {
     //@{
     /**_
      * For a floating base structure, outpus a 6x(nrOfDOFs+6) yarp::sig::Matrix \f$ {}^i J_i \f$ such
-     * that \f[ {}^w v_i = {}^wJ_i  \dot{q}_{fb} \f]
-     * where w is the world reference frame
+     * that \f$ {}^w v_i = {}^wJ_i  \dot{q}_{fb} \f$
+     * where w is the world reference frame and \f$ \dot{q}_{fb} \f$ is the floating base velocity vector,
+     * where the first 3 elements are \f$ {}^bv_b\f$, the next 3 are \f$ {}^b\omega_b\f$ and the remaing 
+     * are the proper joint velocities.
      * @param link_index the index of the link
      * @param jac the output yarp::sig::Matrix 
-     * @param local if true, return {}^iJ_i (the Jacobian expressed in the local frame of link i) (default: false)
+     * @param local if true, return \f$ {}^iJ_i \f$ (the Jacobian expressed in the local frame of link i) (default: false)
      * @return true if all went well, false otherwise
      * 
      * \note the link used as a floating base is the base used for the dynamical loop
