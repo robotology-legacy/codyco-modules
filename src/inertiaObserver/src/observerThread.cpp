@@ -77,6 +77,14 @@ double lpf_ord1_3hz(double input, int j)
     return (yv[1][j]);
 }
 
+void printVector_ofstream(ofstream & file, const Vector& vet, int precision)
+{
+        for(int c=0;c<(int)vet.size();c++)
+            {
+                file << vet(c) << endl;
+            }
+}
+
 inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation, 
                                                 string _robot_name, string _local_name, 
                                                 version_tag _icub_type, string _data_path, 
@@ -180,6 +188,8 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
         
         A_file.open("A.csv");
         b_file.open("b.csv");
+        
+
     }
 
     
@@ -307,6 +317,12 @@ inertiaObserver_thread::inertiaObserver_thread(int _rate,int _rateEstimation,
     //----------INIT icub object--------------------//
     icub = new iCubWholeBody(icub_type, DYNAMIC);
     
+    beta_cad_file.open("beta_cad.csv");
+    Vector param_right_arm;
+    iCubLimbGetBetaComplete(icub,"right_arm",param_right_arm);  
+    YARP_ASSERT(param_right_arm.size() == 70);
+    printVector_ofstream(beta_cad_file,param_right_arm,10);
+    beta_cad_file.close();
 
 }
 
@@ -463,13 +479,6 @@ void printMatrix_ofstream(ofstream & file, const Matrix& mat, int precision)
         }
 }
 
-void printVector_ofstream(ofstream & file, const Vector& vet, int precision)
-{
-        for(int c=0;c<(int)vet.size();c++)
-            {
-                file << vet(c) << endl;
-            }
-}
 
 double positive_part(double dq)
 {

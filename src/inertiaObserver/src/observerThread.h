@@ -253,6 +253,7 @@ private:
     int Ab_sample_count;
     std::ofstream A_file;
     std::ofstream b_file;
+    std::ofstream beta_cad_file;
     std::ofstream contact_file;
     
     //produce Ab motors
