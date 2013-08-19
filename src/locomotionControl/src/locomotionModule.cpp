@@ -121,7 +121,6 @@ bool LocomotionModule::close()
         ctrlThread = 0; 
     }
 		
-		
 	//closing ports
     rpcPort.interrupt();
 	rpcPort.close();

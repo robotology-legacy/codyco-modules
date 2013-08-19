@@ -11,6 +11,7 @@
 
 
 ADD_SUBDIRECTORY(modHelp)
+ADD_SUBDIRECTORY(paramHelp)
 
 
 

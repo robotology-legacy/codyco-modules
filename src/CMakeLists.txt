@@ -11,3 +11,5 @@ add_subdirectory(iDynTree)
 add_subdirectory(linearRegressorsAdaptiveControl)
 #add_subdirectory(iCub_description/urdf_iDyn)
 #add_subdirectory(tests/iDynTreeJacobianTest)
+add_subdirectory(locomotionControl)
+
