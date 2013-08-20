@@ -119,7 +119,7 @@ bool yarpWholeBodySensors::openImu(const LocalId &i)
         return false;
     if(!Network::exists(remotePort.c_str()))        // check remote output port exists
         return false;
-    if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp"))   // connect remote to local port
+    if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp", true))   // connect remote to local port
         return false;
     return true;
 }
