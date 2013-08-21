@@ -35,7 +35,7 @@
 #include <Eigen/Core>                               // import most common Eigen types
 
 #include <wbi\wbi.h>
-#include <paramHelp\paramHelp.h>
+#include <paramHelp\paramHelpServer.h>
 #include <locomotion\locomotionConstants.h>
 
 
@@ -54,11 +54,11 @@ namespace locomotion
 /** Locomotion control thread: this thread sends velocity commands to the robot motors
   * trying to track the desired position trajectory of the COM, swinging foot and joint posture.
   */
-class LocomotionThread: public RateThread, public ParamObserver
-{	
+class LocomotionThread: public RateThread, public ParamObserver, public CommandObserver
+{
     string              name;
     string              robotName;
-    ParamHelper         *paramHelper;
+    ParamHelperServer   *paramHelper;
     wholeBodyInterface  *robot;
 
     // Module parameters
@@ -69,6 +69,16 @@ class LocomotionThread: public RateThread, public ParamObserver
     VectorXi            activeJoints;   // vector of bool indicating which joints are used (1 used, 0 blocked)
     int                 supportPhase;
     double              pinvDamp;
+
+    // Input streaming parameters
+    Vector2d            xd_com;
+    Vector7d            xd_foot;
+    VectorNd            qd;
+
+    // Output streaming parameters
+    Vector2d            x_com,  xr_com;     // measured and reference position of the COM
+    Vector7d            x_foot, xr_foot;
+    VectorNd            q,      qr;
 
     // Trajectory generators
     minJerkTrajGen      *trajGenCom, *trajGenFoot, *trajGenPosture;
@@ -85,7 +95,7 @@ public:
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    LocomotionThread(string _name, string _robotName, int _period, ParamHelper *_ph, wholeBodyInterface *_wbi) throw();
+    LocomotionThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi) throw();
 	
     bool threadInit();	
     void run();
@@ -93,6 +103,8 @@ public:
 
     /** Callback function for parameter updates. */
     void parameterUpdated(const ParamDescription &pd);
+    /** Callback function for rpc commands. */
+    void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
 
 };
 

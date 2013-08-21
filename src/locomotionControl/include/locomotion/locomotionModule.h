@@ -25,7 +25,7 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Vocab.h>
 
-#include <paramHelp\paramHelp.h>
+#include <paramHelp\paramHelpServer.h>
 #include <wbiy\wbiy.h>
 #include <locomotion\locomotionThread.h>
  
@@ -37,7 +37,7 @@ using namespace wbi;
 namespace locomotion
 {
 
-class LocomotionModule: public RFModule
+class LocomotionModule: public RFModule, public CommandObserver
 {
     /* module parameters */
 	string  moduleName;
@@ -47,7 +47,7 @@ class LocomotionModule: public RFModule
 
 	Port                rpcPort;		// a port to handle rpc messages
 	LocomotionThread*   ctrlThread;     // locomotion control thread
-    ParamHelper*        paramHelper;    // helper class for rpc set/get commands
+    ParamHelperServer*  paramHelper;    // helper class for rpc set/get commands and streaming data
     wholeBodyInterface* robotInterface; // interface to communicate with the robot
 
 public:
@@ -59,6 +59,8 @@ public:
 	bool respond(const Bottle& command, Bottle& reply);
 	double getPeriod(){ return period*1e-3;  }
 	bool updateModule();
+
+    void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
 
 };
 

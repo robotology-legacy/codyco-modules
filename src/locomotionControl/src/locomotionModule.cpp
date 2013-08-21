@@ -75,8 +75,9 @@ bool LocomotionModule::configure(ResourceFinder &rf)
     attach(rpcPort);
 
     //--------------------------PARAMETER HELPER--------------------------
-    paramHelper = new ParamHelper();
-    paramHelper->addParams(locomotionParamDescr, PARAM_ID_SIZE);
+    paramHelper = new ParamHelperServer(locomotionParamDescr, PARAM_ID_SIZE, locomotionCommandDescr, COMMAND_ID_SIZE);
+    paramHelper->registerCommandCallback(COMMAND_ID_HELP, this);
+    paramHelper->registerCommandCallback(COMMAND_ID_QUIT, this);
     if(!paramHelper->init(name)){ fprintf(stderr, "Error while initializing parameter helper. Closing module.\n"); return false; }
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
@@ -85,7 +86,7 @@ bool LocomotionModule::configure(ResourceFinder &rf)
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------
-    ctrlThread = new LocomotionThread(name, robot_name, (int)period, paramHelper, robotInterface);
+    ctrlThread = new LocomotionThread(name, robot_name, period, paramHelper, robotInterface);
     if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing locomotion control thread. Closing module.\n"); return false; }
     
     fprintf(stderr,"Locomotion control started\n");
@@ -94,18 +95,29 @@ bool LocomotionModule::configure(ResourceFinder &rf)
 
 bool LocomotionModule::respond(const Bottle& cmd, Bottle& reply) 
 {
-    // check that the command Bottle is not empty
-    if(cmd.size()==0){ reply.addString("Command unknown."); return true; }
-    // manage "help" command
-    if(cmd.get(0).asString()=="help"){ paramHelper->respond(cmd, reply); return true; }
-    // manage "quit" command
-    if(cmd.get(0).asString()=="quit"){ reply.addString("Quitting."); return false; }
-    // manage "set/get" commands
-	if(paramHelper->respond(cmd, reply)) return true;
-    
-    // otherwise => command unknown
-	reply.addString( (string("Command ")+cmd.toString().c_str()+" not recognized.").c_str());
+    paramHelper->lock();
+	if(!paramHelper->processRpcCommand(cmd, reply)) 
+	    reply.addString( (string("Command ")+cmd.toString().c_str()+" not recognized.").c_str());
+    paramHelper->unlock();
+
+    // if reply is empty put something into it, otherwise the rpc communication gets stuck
+    if(reply.size()==0)
+        reply.addString( (string("Command ")+cmd.toString().c_str()+" received.").c_str());
 	return true;	
+}
+
+void LocomotionModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
+{
+    switch(cd.id)
+    {
+    case COMMAND_ID_HELP:   
+        paramHelper->getHelpMessage(reply);     
+        break;
+    case COMMAND_ID_QUIT:   
+        stopModule(); 
+        reply.addString("Quitting module.");    
+        break;
+    }
 }
 
 bool LocomotionModule::interruptModule()
@@ -119,13 +131,15 @@ bool LocomotionModule::interruptModule()
 bool LocomotionModule::close()
 {
 	//stop threads
-	if(ctrlThread){ ctrlThread->stop(); delete ctrlThread; ctrlThread = 0; }
+    if(ctrlThread){     ctrlThread->stop();         delete ctrlThread;      ctrlThread = 0;     }
+    if(paramHelper){    paramHelper->close();       delete paramHelper;     paramHelper = 0;    }
+    if(robotInterface){ robotInterface->close();    delete robotInterface;  robotInterface = 0; }
+
 	//closing ports
-    rpcPort.interrupt();
 	rpcPort.close();
 
     printf("[PERFORMANCE INFORMATION]:\n");
-    printf("Expected period %3.1f ms.\nReal period: %3.1f+/-%3.1f ms.\n", period, avgTime, stdDev);
+    printf("Expected period %d ms.\nReal period: %3.1f+/-%3.1f ms.\n", period, avgTime, stdDev);
     printf("Real duration of 'run' method: %3.1f+/-%3.1f ms.\n", avgTimeUsed, stdDevUsed);
     if(avgTimeUsed<0.5*period)
         printf("Next time you could set a lower period to improve the controller performance.\n");
@@ -147,7 +161,7 @@ bool LocomotionModule::updateModule()
     ctrlThread->getEstUsed(avgTimeUsed, stdDevUsed);     // real duration of run()
     if(avgTime > 1.3 * period)
     {
-        printf("[WARNING] Control loop is too slow. Real period: %3.3f+/-%3.3f. Expected period %3.3f.\n", avgTime, stdDev, period);
+        printf("[WARNING] Control loop is too slow. Real period: %3.3f+/-%3.3f. Expected period %d.\n", avgTime, stdDev, period);
         printf("Duration of 'run' method: %3.3f+/-%3.3f.\n", avgTimeUsed, stdDevUsed);
     }
 

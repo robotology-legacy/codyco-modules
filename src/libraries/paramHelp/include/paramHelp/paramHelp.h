@@ -188,41 +188,33 @@ class CommandObserver
 public:
     /** Method called every time the command is received.
      * @param cd Description of the command
-     * @param params Parameters received after the command (if any) */
-    virtual void commandReceived(const CommandDescription &cd, const yarp::os::Bottle &params) = 0;
+     * @param params Parameters received after the command (if any) 
+     * @param reply Reply to the command */
+    virtual void commandReceived(const CommandDescription &cd, const yarp::os::Bottle &params, yarp::os::Bottle &reply) = 0;
 };
 
 
 
+/** Suffixes of the ports opened by the ParamHelper class. */
 static const char* PORT_IN_STREAM_SUFFIX    = "/stream:i";
 static const char* PORT_OUT_STREAM_SUFFIX   = "/stream:o";
-// *************************************************************************************************
-// Parameter helper.
-// By default (set/get) rpc commands are managed by calling the method 'respond',
-// whereas streaming parameters are read/sent by calling readStreamParams/sendStreamParams.
-// *************************************************************************************************
-class ParamHelper
+static const char* PORT_OUT_INFO_SUFFIX     = "/info:o";
+static const char* PORT_IN_INFO_SUFFIX      = "/info:i";
+static const char* PORT_RPC_SUFFIX          = "/rpc";
+
+/**
+  * Base class for the ParamHelperClient and ParamHelperServer.
+  */
+class ParamHelperBase
 {
-    yarp::os::Semaphore                 mutex;          // mutex for the access to the parameter values
-    
+protected:
     std::map<int, ParamDescription>     paramList;      // list of parameter descriptions
     std::map<int, void*>                paramValues;    // list of pointers to parameter values
-    std::map<int, ParamObserver*>       paramObs;       // list of pointers to parameter observers
-
     std::map<int, CommandDescription>   cmdList;        // list of command descriptions
-    std::map<int, CommandObserver*>     cmdObs;         // list of pointers to command observers
 
     yarp::os::BufferedPort<yarp::os::Bottle>    *portInStream;  // input port for streaming data
     yarp::os::BufferedPort<yarp::os::Bottle>    *portOutStream; // output port for streaming data
-    
-    /** Identify the specified rpc command.
-     * @param cmd The rpc command (input)
-     * @param isSetCmd True if the cmd contains a "set" command, false otherwise (output)
-     * @param isGetCmd True if the cmd contains a "get" command, false otherwise (output)
-     * @param id Id of either the parameter (if the command is a set/get) or the command (output)
-     * @param v Bottle containing everything that is after the identified command in cmd (output)
-     * @return True if the command has been identified, false otherwise. */
-    bool identifyCommand(const yarp::os::Bottle &cmd, bool &isSetCmd, bool &isGetCmd, int &paramId, yarp::os::Bottle &v);
+    yarp::os::Port                              portInfo;       // port for sporadic info messages
 
     /** Check whether the specified value satisfy the constraints on the specified parameter.
      * @param id Id of the parameter (input)
@@ -237,26 +229,9 @@ class ParamHelper
      * @param pd Description of the parameter to add
      * @return True if the operation succeeded, false otherwise (parameter id conflict) */
     bool addParam(const ParamDescription &pd);
+    bool addParams(const ParamDescription *pdList, int size);
+    bool addCommands(const CommandDescription *cdList, int size);
     bool addCommand(const CommandDescription &cd);
-
-    /** Set the value of the parameter with the specified id.
-     * @param id Id of the parameter to set
-     * @param v Bottle containing the value of the parameter
-     * @param reply Bottle into which to write the response of the operation.
-     * @return True if the operation succeeded, false otherwise. */
-    bool setParam(int id, const yarp::os::Bottle &v, yarp::os::Bottle &reply);
-
-    /** This version of setParam is used for the initialization and does not perform callbacks.
-      * @param id Id of the parameter
-      * @param v Pointer to the variable containing the new value of the parameter
-      * @return True if the operation succeeded, false otherwise. */
-    bool setParam(int id, const void *v);
-
-    /** Get the value of the parameter with the specified id
-     * @param id Id of the parameter (input)
-     * @param v Bottle inside which the value of the parameter is put (output)
-     * @return True if the operation succeeded, false otherwise */
-    bool getParam(int id, yarp::os::Bottle &v);
 
     /** Check whether a parameter with the specified id exists.
      * @param id Id of the parameter
@@ -264,50 +239,21 @@ class ParamHelper
     bool hasParam(int id){ return paramList.find(id)!=paramList.end(); }
     bool hasCommand(int id){ return cmdList.find(id)!=cmdList.end(); }
 
-    /** Convert a bottle into a vector of int.
-     * @param b The bottle to convert (input)
-     * @param x The pointer to the first element of the int vector (output)
-     * @param maxSize The max size of the int vector, -1 means no size limit (input)
-     * @return True if the operation succeeded, false otherwise. */
-    bool bottleToParam(const yarp::os::Bottle &b, int* x, int maxSize=-1);
+    /** This version of setParam is used for the initialization and does not perform callbacks.
+      * @param id Id of the parameter
+      * @param v Pointer to the variable containing the new value of the parameter
+      * @return True if the operation succeeded, false otherwise. */
+    bool setParam(int id, const void *v);
 
     /** Get a pointer to the element index of the parameter with the specified id. */
     template <class T> inline T* paramValue(int id, int index){ return ((T*)paramValues[id]) +index; }
 
-    void logMsg(const std::string &s);
+    enum MsgType{ MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR };
+    void logMsg(const std::string &s, MsgType type=MSG_INFO);
 
 public:
-    /** Constructor.
-      * @param pdList
-      * @param pdListSize
-      * @param cdList
-      * @param cdListSize
-      */
-    ParamHelper(const ParamDescription *pdList=0, int pdListSize=0, const CommandDescription *cdList=0, int cdListSize=0);
-
-    // Destructor
-    ~ParamHelper();
-
-    /** Open four ports:
-      * - "/moduleName/rpc": Rpc Port for synchronous set/get operations on module parameters
-      * - "/moduleName/info:o": Output Port for sporadic message regarding the module status
-      * - "/moduleName/stream:i": Input BufferedPort<Bottle> for asynchronous input streaming data
-      * - "/moduleName/stream:o": Output BufferedPort<Bottle> for asynchronous output streaming data 
-      * @param moduleName Name of the module, used as stem for all the port names 
-      * @return True if the initialization succeeded, false otherwise. */
-    bool init(std::string moduleName);
-
-    bool close();
-
-    /** Respond to the specified rpc command
-     * @param cmd The rpc command (input)
-     * @param reply The reply to the rpc command (output)
-     * @return bool True if the command is recognized (regardless of the success of the operation), false otherwise. */
-    bool respond(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
-    
-    bool addParams(const ParamDescription *pdList, int size);
-
-    bool addCommands(const CommandDescription *cdList, int size);
+    /** Close the ports opened during the initialization phase (see init method). */
+    virtual bool close();
     
     /** Link the parameter with the specified id to the specified variable v, so that
       * every time that the parameter is set, the value of the specified variable is updated.
@@ -315,41 +261,18 @@ public:
       * @param id Id of the parameter
       * @param v Pointer to the variable that has to contain the parameter value
       * @return True if the operation succeeded, false otherwise. */
-    bool linkParam(int id, void *v);
-
-    /** Register a callback on the parameter with the specified id.
-      * After the callback is registered, every time the parameter value is set
-      * the observer is notified through a call to its method "parameterUpdated".
-      * The callback is performed after the new value of the parameter is set and after releasing the mutex.
-      * @param id Id of the parameter
-      * @param observer Object to notify when the parameter changes value
-      * @return True if the operation succeeded, false otherwise. 
-      * @note If an observer was already registered, it is overwritten by the new one. */
-    bool registerCallback(int id, ParamObserver *observer);
-
-    /** Register a callback for an rpc command.
-      * @param id The id of the command
-      * @param observer Object to call when the command is received
-      * @return True if the operation succeeded, false otherwise. */
-    bool registerCallback(int id, CommandObserver *observer);
+    virtual bool linkParam(int id, void *v);
 
     /** Send the output streaming parameters.
       * @return True if the operation succeeded, false otherwise */
-    bool sendStreamParams();
+    virtual bool sendStreamParams() = 0;
 
-    /** Send the input streaming parameters.
+    /** Read the input streaming parameters.
       * @param blockingRead If true the reading is blocking (it waits until data arrive), otherwise it is not
       * @return True if the operation succeeded, false otherwise */
-    bool readStreamParams(bool blockingRead=false);
-    
-    /** Take the mutex that regulates the access to all the parameters.
-      * When the mutex is taken the parameter values are not updated. 
-      * @note Some methods do not take the mutex (i.e. linkParam, registerCallback, addParams). */
-    void lock(){    mutex.wait(); }
-    
-    /** Release the mutex that regulates the access to all the parameters. */
-    void unlock(){  mutex.post(); }
+    virtual bool readStreamParams(bool blockingRead=false) = 0;
 };
+
     
 }//end namespace paramHelp
 
