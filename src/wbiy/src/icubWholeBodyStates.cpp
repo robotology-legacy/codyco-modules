@@ -59,10 +59,10 @@ bool icubWholeBodyStates::init()
 
 bool icubWholeBodyStates::close()
 {
-    estimator->stop();  // stop estimator BEFORE closing sensor interface
-    bool ok = sensors->close();
-    delete sensors;
-    delete estimator;
+    if(estimator)   estimator->stop();  // stop estimator BEFORE closing sensor interface
+    bool ok = (sensors ? sensors->close() : true);
+    if(sensors)     delete sensors;
+    if(estimator)   delete estimator;
     return ok;
 }
 
@@ -118,8 +118,9 @@ void icubWholeBodyEstimator::run()
 
 void icubWholeBodyEstimator::threadRelease()
 {
-    if(dqFilt!=NULL)    delete dqFilt;
-    if(d2qFilt!=NULL)   delete d2qFilt;
+    // this causes a memory access violation (to investigate)
+    //if(dqFilt!=NULL)    delete dqFilt;
+    //if(d2qFilt!=NULL)   delete d2qFilt;
     return;
 }
 
