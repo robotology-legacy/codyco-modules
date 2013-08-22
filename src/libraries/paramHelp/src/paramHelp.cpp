@@ -25,7 +25,7 @@ using namespace yarp::os;
 using namespace paramHelp;
 
 //*************************************************************************************************************************
-bool ParamIOType::canRead(){ return value==PARAM_OUTPUT || value==PARAM_OUT_STREAM || value==PARAM_IN_OUT || value==PARAM_IN_OUT_STREAM; }
+bool ParamIOType::canRead(){ return value==PARAM_OUTPUT || value==PARAM_OUT_STREAM || value==PARAM_IN_OUT || value==PARAM_IN_OUT_STREAM || PARAM_IN_STREAM; }
 bool ParamIOType::canWrite(){ return value==PARAM_INPUT || value==PARAM_IN_STREAM || value==PARAM_IN_OUT || value==PARAM_IN_OUT_STREAM; }
 bool ParamIOType::isStreaming(){ return value==PARAM_OUT_STREAM || value==PARAM_IN_STREAM || value==PARAM_IN_OUT_STREAM; }
 bool ParamIOType::isStreamingOut(){ return value==PARAM_OUT_STREAM || value==PARAM_IN_OUT_STREAM; }

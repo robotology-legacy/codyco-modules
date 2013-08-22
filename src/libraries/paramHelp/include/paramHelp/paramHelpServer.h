@@ -59,18 +59,28 @@ namespace paramHelp
 // *************************************************************************************************
 class ParamHelperServer: public ParamHelperBase
 {
+    // Define the different types of rpc commands
+    enum CommandType
+    { 
+        COMMAND_GET,        // get the values of a parameter
+        COMMAND_GET_ONE,    // get one of the values of a parameter
+        COMMAND_SET,        // set the values of a parameter by specifying all the parameter values
+        COMMAND_SET_ALL,    // set all the values of a parameter to the same value
+        COMMAND_SET_ONE,    // set one of the values of a parameter
+        COMMAND_GENERIC     // generic rpc command that is neither a 'set' nor a 'get'
+    };
+
     yarp::os::Semaphore                 mutex;          // mutex for the access to the parameter values    
     std::map<int, ParamObserver*>       paramObs;       // list of pointers to parameter observers
     std::map<int, CommandObserver*>     cmdObs;         // list of pointers to command observers
     
     /** Identify the specified rpc command.
      * @param cmd The rpc command (input)
-     * @param isSetCmd True if the cmd contains a "set" command, false otherwise (output)
-     * @param isGetCmd True if the cmd contains a "get" command, false otherwise (output)
+     * @param cmdType Type of command contained in cmd (output)
      * @param id Id of either the parameter (if the command is a set/get) or the command (output)
      * @param v Bottle containing everything that is after the identified command in cmd (output)
      * @return True if the command has been identified, false otherwise. */
-    bool identifyCommand(const yarp::os::Bottle &cmd, bool &isSetCmd, bool &isGetCmd, int &paramId, yarp::os::Bottle &v);
+    bool identifyCommand(const yarp::os::Bottle &cmd, CommandType &cmdType, int &id, yarp::os::Bottle &v);
 
     /** Set the value of the parameter with the specified id.
      * @param id Id of the parameter to set
@@ -78,12 +88,15 @@ class ParamHelperServer: public ParamHelperBase
      * @param reply Bottle into which to write the response of the operation.
      * @return True if the operation succeeded, false otherwise. */
     bool setParam(int id, const yarp::os::Bottle &v, yarp::os::Bottle &reply);
+    bool setOneParam(int id, const yarp::os::Bottle &v, yarp::os::Bottle &reply);
+    bool setAllParam(int id, const yarp::os::Bottle &v, yarp::os::Bottle &reply);
 
     /** Get the value of the parameter with the specified id
      * @param id Id of the parameter (input)
      * @param v Bottle inside which the value of the parameter is put (output)
      * @return True if the operation succeeded, false otherwise */
-    bool getParam(int id, yarp::os::Bottle &v);
+    bool getParam(int id, yarp::os::Bottle &reply);
+    bool getOneParam(int id, const yarp::os::Bottle &v, yarp::os::Bottle &reply);
 
     /** Convert a bottle into a vector of int.
      * @param b The bottle to convert (input)

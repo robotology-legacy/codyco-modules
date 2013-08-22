@@ -59,9 +59,9 @@ const std::string ParamDataType_desc[PARAM_DATATYPE_SIZE] = { "UNKNOWN PARAM TYP
 // PARAM_INPUT: the parameter can be written from the rpc port, but not read
 // PARAM_OUTPUT: the parameter can be read from the rpc port, but not written
 // PARAM_IN_OUT: the parameter can be both written and read from the rpc port
-// PARAM_IN_STREAM: the parameter can be written (from either rpc or the input streaming port), but not read
+// PARAM_IN_STREAM: the parameter can be written (from either rpc or the input streaming port), and read from the rpc port only
 // PARAM_OUT_STREAM: the parameter can be read (from either rpc or the output streaming port), but not written
-// PARAM_IN_OUT_STREAM: the parameter can be both written and read from the rpc port (from either rpc or the streaming ports)
+// PARAM_IN_OUT_STREAM: the parameter can be both written and read from either rpc or the streaming ports
 // *************************************************************************************************
 enum ParamIOTypeEnum
 { PARAM_IO_UNKNOWN, PARAM_INPUT, PARAM_OUTPUT, PARAM_IN_OUT, PARAM_IN_STREAM, PARAM_OUT_STREAM, PARAM_IN_OUT_STREAM, PARAM_IO_TYPE_SIZE };
@@ -117,6 +117,11 @@ public:
     ParamBounds(ParamBound low, double up): lowerBound(low.bound), upperBound(up), hasUpperBound(true), hasLowerBound(low.hasBound) {}
     ParamBounds(double low, ParamBound up): lowerBound(low), upperBound(up.bound), hasUpperBound(up.hasBound), hasLowerBound(true) {}
     ParamBounds(ParamBound low, ParamBound up): lowerBound(low.bound), upperBound(up.bound), hasUpperBound(up.hasBound), hasLowerBound(low.hasBound) {}
+
+    /** Return true if the specified value respects the bounds, false otherwise. */
+    bool checkBounds(double v){ return (!hasUpperBound || v<=upperBound) && (!hasLowerBound || v>=lowerBound); }
+    std::string toString()
+    { return std::string("[")+(hasLowerBound?paramHelp::toString(lowerBound):"-INF")+", "+(hasUpperBound?paramHelp::toString(upperBound):"INF")+"]"; }
 };
 const ParamBounds PARAM_BOUNDS_INF(PARAM_BOUND_INF, PARAM_BOUND_INF);   // no bounds
 
