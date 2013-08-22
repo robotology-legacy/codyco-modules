@@ -54,39 +54,32 @@ LocomotionModule::LocomotionModule()
     
 bool LocomotionModule::configure(ResourceFinder &rf)
 {		
-	//-----------------GET THE MODULE NAME-------------------//
-    string name = "locomotionControl";
-    if (rf.check("name"))
-        name = rf.find("name").asString().c_str();
-    setName(name.c_str());
-        
-    //-----------------GET THE PERIOD-------------------//
-    period = DEFAULT_CTRL_PERIOD;
-    if (rf.check("period"))
-        period = rf.find("period").asInt();
-    
-	//-----------------GET THE ROBOT NAME-------------------//
-	string robot_name = DEFAULT_ROBOT_NAME;
-	if (rf.check("robot"))
-        robot_name = rf.find("robot").asString().c_str();
-
-    //---------------------RPC PORT--------------------------//
-    rpcPort.open(("/"+name+"/rpc").c_str());
-    attach(rpcPort);
-
     //--------------------------PARAMETER HELPER--------------------------
     paramHelper = new ParamHelperServer(locomotionParamDescr, PARAM_ID_SIZE, locomotionCommandDescr, COMMAND_ID_SIZE);
+    paramHelper->linkParam(PARAM_ID_MODULE_NAME, &moduleName);
+    paramHelper->linkParam(PARAM_ID_CTRL_PERIOD, &period);
+    paramHelper->linkParam(PARAM_ID_ROBOT_NAME, &robotName);
     paramHelper->registerCommandCallback(COMMAND_ID_HELP, this);
     paramHelper->registerCommandCallback(COMMAND_ID_QUIT, this);
-    if(!paramHelper->init(name)){ fprintf(stderr, "Error while initializing parameter helper. Closing module.\n"); return false; }
+
+    // Read parameters from configuration file (or command line)
+    Bottle initMsg;
+    paramHelper->initializeParams(rf, initMsg);
+    printf("%s\n", initMsg.toString().c_str());
+
+    // Open ports for communicating with other modules
+    if(!paramHelper->init(moduleName)){ fprintf(stderr, "Error while initializing parameter helper. Closing module.\n"); return false; }
+    rpcPort.open(("/"+moduleName+"/rpc").c_str());
+    setName(moduleName.c_str());
+    attach(rpcPort);
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
-    robotInterface = new icubWholeBodyInterface(name.c_str(), robot_name.c_str());
+    robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
     robotInterface->addJoints(ICUB_MAIN_JOINTS);
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------
-    ctrlThread = new LocomotionThread(name, robot_name, period, paramHelper, robotInterface);
+    ctrlThread = new LocomotionThread(moduleName, robotName, period, paramHelper, robotInterface);
     if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing locomotion control thread. Closing module.\n"); return false; }
     
     fprintf(stderr,"Locomotion control started\n");

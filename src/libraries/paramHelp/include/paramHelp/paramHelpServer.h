@@ -27,6 +27,7 @@
 #include <yarp/sig/Vector.h>
 #include <yarp/os/Semaphore.h>
 #include <yarp/os/BufferedPort.h>
+#include <yarp/os/ResourceFinder.h>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -85,9 +86,10 @@ class ParamHelperServer: public ParamHelperBase
     /** Set the value of the parameter with the specified id.
      * @param id Id of the parameter to set
      * @param v Bottle containing the value of the parameter
-     * @param reply Bottle into which to write the response of the operation.
+     * @param reply Bottle into which to write the response of the operation
+     * @param init True if the parameter is being initialized (e.g. from config file), false otherwise
      * @return True if the operation succeeded, false otherwise. */
-    bool setParam(int id, const yarp::os::Bottle &v, yarp::os::Bottle &reply);
+    bool setParam(int id, const yarp::os::Bottle &v, yarp::os::Bottle &reply, bool init=false);
     bool setOneParam(int id, const yarp::os::Bottle &v, yarp::os::Bottle &reply);
     bool setAllParam(int id, const yarp::os::Bottle &v, yarp::os::Bottle &reply);
 
@@ -116,6 +118,11 @@ public:
 
     // Destructor
     ~ParamHelperServer();
+
+    /** Initialize the module parameters reading the value from the specified resource finder.
+      * @param rf Resource finder used to read the parameter values from configuration file or command line
+      * @param reply Output message containing information about the initialization (e.g. what went wrong) */
+    void initializeParams(yarp::os::ResourceFinder &rf, yarp::os::Bottle &reply);
 
     /** Open 4 ports (at the moment only 3 ports because the rpc is assumed to be already opened) :
       * - "/moduleName/rpc": Rpc Port for synchronous set/get operations on module parameters

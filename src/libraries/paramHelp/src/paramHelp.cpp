@@ -44,8 +44,19 @@ bool ParamHelperBase::close()
 bool ParamHelperBase::linkParam(int id, void *v)
 {
     if(!hasParam(id) || v==0) return false;
-    paramValues[id] = v;
-    setParam(id, paramList[id].defaultValue);   // set the variable pointed by v to the default value (if any)
+    assert(paramValues[id]!=NULL);
+    void *currentValue = paramValues[id];   // store current value of the parameter
+    paramValues[id] = v;                    // point the parameter to the new variable
+    setParam(id, currentValue);             // set the new variable to the current value of the parameter
+    // delete previously allocated memory
+    switch(paramList[id].type)
+    {
+    case PARAM_DATA_FLOAT:  delete[] (double*)currentValue;     break;
+    case PARAM_DATA_INT:    delete[] (int*)currentValue;        break;
+    case PARAM_DATA_BOOL:   delete[] (bool*)currentValue;       break;
+    case PARAM_DATA_STRING: delete[] (string*)currentValue;     break;
+    }
+    
     return true;
 }
 
@@ -99,6 +110,16 @@ bool ParamHelperBase::addParam(const ParamDescription &pd)
 {
     if(hasParam(pd.id)) return false;   // there exists a parameter with the same id
     paramList[pd.id] = pd;
+    paramValues[pd.id] = NULL;
+    switch(pd.type)
+    {
+    case PARAM_DATA_FLOAT:  paramValues[pd.id] = new double[pd.size.size];      break;
+    case PARAM_DATA_INT:    paramValues[pd.id] = new int[pd.size.size];         break;
+    case PARAM_DATA_BOOL:   paramValues[pd.id] = new bool[pd.size.size];        break;
+    case PARAM_DATA_STRING: paramValues[pd.id] = new string[pd.size.size];      break;
+    default:                return false;   // unknown data type
+    }
+    setParam(pd.id, pd.defaultValue);   // set the variable to the default value
     return true;
 }
 

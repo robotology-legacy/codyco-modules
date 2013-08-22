@@ -21,17 +21,13 @@
 #include <paramHelp/paramHelp.h>
 #include <Eigen/Core>                               // import most common Eigen types
 #include <vector>
+#include <string>
 
 using namespace paramHelp;
 using namespace Eigen;
 using namespace std;
 
-// *** CONSTANTS RELATED TO THE MODULE PARAMETERS
-static const double    KP_MAX = 100.0;    // max value of proportional gains
 static const int       ICUB_DOFS = 23;    // number of (the main) degrees of freedom of iCub
-
-enum LocomotionSupportPhase
-{ SUPPORT_DOUBLE, SUPPORT_LEFT, SUPPORT_RIGHT };     // foot support phase
 
 // define some types
 typedef Matrix<double,6,1>          Vector6d;
@@ -39,9 +35,19 @@ typedef Matrix<double,7,1>          Vector7d;
 typedef Matrix<double,ICUB_DOFS,1>  VectorNd;
 typedef Matrix<int,ICUB_DOFS,1>     VectorNi;
 
+namespace locomotion
+{
+
+// *** CONSTANTS RELATED TO THE MODULE PARAMETERS
+static const double    KP_MAX = 100.0;    // max value of proportional gains
+
+enum LocomotionSupportPhase
+{ SUPPORT_DOUBLE, SUPPORT_LEFT, SUPPORT_RIGHT };     // foot support phase
+
 // *** DEFAULT PARAMETER VALUES
-static const int            DEFAULT_CTRL_PERIOD     = 10;           // controller period in ms
-static const char*          DEFAULT_ROBOT_NAME      = "icubSim";    // robot name
+static const string         DEFAULT_MODULE_NAME     = "locomotionControl";  
+static const int            DEFAULT_CTRL_PERIOD     = 10;                   // controller period in ms
+static const string         DEFAULT_ROBOT_NAME      = "icubSim";            // robot name
 static const Vector2d       DEFAULT_KP_COM          = Vector2d::Constant(1.0);
 static const Vector6d       DEFAULT_KP_FOOT         = Vector6d::Constant(1.0);
 static const VectorNd       DEFAULT_KP_POSTURE      = VectorNd::Constant(1.0);
@@ -65,6 +71,7 @@ static const VectorNd       DEFAULT_Q               = VectorNd::Constant(0.0);
 
 // *** IDs of all the module parameters
 enum LocomotionParamId { 
+    PARAM_ID_MODULE_NAME,       PARAM_ID_CTRL_PERIOD,       PARAM_ID_ROBOT_NAME,
     PARAM_ID_KP_COM,            PARAM_ID_KP_FOOT,           PARAM_ID_KP_POSTURE, 
     PARAM_ID_TRAJ_TIME_COM,     PARAM_ID_TRAJ_TIME_FOOT,    PARAM_ID_TRAJ_TIME_POSTURE,
     PARAM_ID_ACTIVE_JOINTS,     PARAM_ID_SUPPORT_PHASE,     PARAM_ID_PINV_DAMP,
@@ -81,6 +88,10 @@ enum LocomotionParamId {
 const ParamDescription locomotionParamDescr[]  = 
 { 
 //               NAME               ID                          TYPE                SIZE                        BOUNDS                              I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
+ParamDescription("name",            PARAM_ID_MODULE_NAME,       PARAM_DATA_STRING,  1,                          PARAM_BOUNDS_INF,                   PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
+ParamDescription("period",          PARAM_ID_CTRL_PERIOD,       PARAM_DATA_INT,     1,                          ParamBounds(1, 1000),               PARAM_CONFIG,       &DEFAULT_CTRL_PERIOD,           "Period of the control loop (ms)"), 
+ParamDescription("robot",           PARAM_ID_ROBOT_NAME,        PARAM_DATA_STRING,  1,                          PARAM_BOUNDS_INF,                   PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
+// ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************
 ParamDescription("kp com",          PARAM_ID_KP_COM,            PARAM_DATA_FLOAT,   2,                          ParamBounds(0.0, KP_MAX),           PARAM_IN_OUT,       DEFAULT_KP_COM.data(),          "Proportional gain for the COM position control"), 
 ParamDescription("kp foot",         PARAM_ID_KP_FOOT,           PARAM_DATA_FLOAT,   6,                          ParamBounds(0.0, KP_MAX),           PARAM_IN_OUT,       DEFAULT_KP_FOOT.data(),         "Proportional gain for the foot pose control"), 
 ParamDescription("kp posture",      PARAM_ID_KP_POSTURE,        PARAM_DATA_FLOAT,   ParamSize(ICUB_DOFS,true),  ParamBounds(0.0, KP_MAX),           PARAM_IN_OUT,       DEFAULT_KP_POSTURE.data(),      "Proportional gain for the joint posture control"), 
@@ -124,5 +135,7 @@ CommandDescription("stop",          COMMAND_ID_STOP,            "Stop the contro
 CommandDescription("help",          COMMAND_ID_HELP,            "Get instructions about how to communicate with this module"), 
 CommandDescription("quit",          COMMAND_ID_QUIT,            "Stop the controller and quit the module"), 
 };
+
+}
 
 #endif

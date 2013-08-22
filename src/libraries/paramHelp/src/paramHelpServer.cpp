@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <iomanip>
 #include <cassert>
+#include <algorithm>
 
 using namespace std;
 using namespace yarp::sig;
@@ -41,6 +42,30 @@ ParamHelperServer::~ParamHelperServer()
 }
 
 //*************************************************************************************************************************
+void ParamHelperServer::initializeParams(ResourceFinder &rf, Bottle &reply)
+{
+    Value *v;
+    Bottle temp;
+    for(map<int,ParamDescription>::iterator it=paramList.begin(); it!=paramList.end(); it++)
+    {
+        string paramName = it->second.name;
+        replace( paramName.begin(), paramName.end(), ' ', '_');
+        if (rf.check(paramName.c_str(), v))
+        {
+            if(v->isList())
+                temp = *(v->asList());  // if v is a Bottle => cast it into a Bottle
+            else
+            {
+                temp.clear();           // otherwise create a 1-element Bottle
+                temp.add(v);
+            }
+            printf("Setting parameter %s to %s\n", paramName.c_str(), temp.toString().c_str());
+            setParam(it->second.id, temp, reply, true);
+        }
+    }
+}
+
+//*************************************************************************************************************************
 bool ParamHelperServer::init(string moduleName)
 {
     string portInStreamName     = "/" + moduleName + PORT_IN_STREAM_SUFFIX;
@@ -61,7 +86,7 @@ bool ParamHelperServer::processRpcCommand(const Bottle& cmd, Bottle& reply)
     CommandType cmdType;
     int id;
     Bottle v;
-    if(!identifyCommand(cmd, cmdType, id, v))    // identify the command and, if put anything after it in v
+    if(!identifyCommand(cmd, cmdType, id, v))    // identify the command and, put anything after it in v
         return false;
     
     switch(cmdType)
@@ -220,13 +245,13 @@ bool ParamHelperServer::getOneParam(int id, const Bottle &v, Bottle &reply)
 }
 
 //*************************************************************************************************************************
-bool ParamHelperServer::setParam(int id, const Bottle &v, Bottle &reply)
+bool ParamHelperServer::setParam(int id, const Bottle &v, Bottle &reply, bool init)
 {
     // if the parameter doesn't exist or the value to set doesn't satisfy the constraints, then return
     if(!hasParam(id)){              reply.addString(("Parameter "+paramList[id].name+" cannot be written.").c_str());           return false; }
     if(paramValues[id]==NULL){      reply.addString(("Parameter "+paramList[id].name+" has no associated variable.").c_str());  return false; }
     if(!checkParamConstraints(id, v, reply)){                                                                                   return false; }
-    if(!paramList[id].ioType.canWrite()){   reply.addString(("Parameter "+paramList[id].name+" cannot be written.").c_str());   return false; }
+    if(!init && !paramList[id].ioType.canWrite()){ reply.addString(("Parameter "+paramList[id].name+" cannot be written.").c_str());   return false; }
     
     bool res = true;
     ParamDescription *pd = &paramList[id];     // TODO: deal with free size parameters

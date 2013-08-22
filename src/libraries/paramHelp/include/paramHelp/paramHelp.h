@@ -54,17 +54,28 @@ template <class T> inline std::string toString(const std::vector<T>& v, const ch
 enum ParamDataType{ PARAM_DATA_UNKNOWN, PARAM_DATA_FLOAT, PARAM_DATA_INT, PARAM_DATA_BOOL, PARAM_DATA_STRING, PARAM_DATATYPE_SIZE };
 const std::string ParamDataType_desc[PARAM_DATATYPE_SIZE] = { "UNKNOWN PARAM TYPE", "FLOAT", "INT", "BOOL", "STRING" };
 
-// *************************************************************************************************
+/***************************************************************************************************
 // This enum defines the I/O types of parameters: 
-// PARAM_INPUT: the parameter can be written from the rpc port, but not read
-// PARAM_OUTPUT: the parameter can be read from the rpc port, but not written
-// PARAM_IN_OUT: the parameter can be both written and read from the rpc port
-// PARAM_IN_STREAM: the parameter can be written (from either rpc or the input streaming port), and read from the rpc port only
-// PARAM_OUT_STREAM: the parameter can be read (from either rpc or the output streaming port), but not written
-// PARAM_IN_OUT_STREAM: the parameter can be both written and read from either rpc or the streaming ports
-// *************************************************************************************************
+// PARAM_CONFIG: can only be set when launching the module (either from command line or from configuration file)
+// PARAM_INPUT: can be written from the rpc port, but not read
+// PARAM_OUTPUT: can be read from the rpc port, but not written
+// PARAM_IN_OUT: can be both written and read from the rpc port
+// PARAM_IN_STREAM: can be written (from either rpc or the input streaming port), and read from the rpc port only
+// PARAM_OUT_STREAM: can be read (from either rpc or the output streaming port), but not written
+// PARAM_IN_OUT_STREAM: can be both written and read from either rpc or the streaming ports
+// *************************************************************************************************/
 enum ParamIOTypeEnum
-{ PARAM_IO_UNKNOWN, PARAM_INPUT, PARAM_OUTPUT, PARAM_IN_OUT, PARAM_IN_STREAM, PARAM_OUT_STREAM, PARAM_IN_OUT_STREAM, PARAM_IO_TYPE_SIZE };
+{ 
+    PARAM_IO_UNKNOWN, 
+    PARAM_CONFIG, 
+    PARAM_INPUT, 
+    PARAM_OUTPUT, 
+    PARAM_IN_OUT, 
+    PARAM_IN_STREAM, 
+    PARAM_OUT_STREAM, 
+    PARAM_IN_OUT_STREAM, 
+    PARAM_IO_TYPE_SIZE 
+};
 class ParamIOType
 {
 public:
