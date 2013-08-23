@@ -67,13 +67,13 @@ const std::string ParamDataType_desc[PARAM_DATATYPE_SIZE] = { "UNKNOWN PARAM TYP
 enum ParamIOTypeEnum
 { 
     PARAM_IO_UNKNOWN, 
-    PARAM_CONFIG, 
-    PARAM_INPUT, 
-    PARAM_OUTPUT, 
-    PARAM_IN_OUT, 
-    PARAM_IN_STREAM, 
-    PARAM_OUT_STREAM, 
-    PARAM_IN_OUT_STREAM, 
+    PARAM_CONFIG,           // standard configuration parameter, e.g. module name, thread period
+    PARAM_INPUT,            // probably USELESS
+    PARAM_OUTPUT,           // probably USELESS
+    PARAM_IN_OUT,           // standard rpc parameter, e.g. control gain, filter frequency
+    PARAM_IN_STREAM,        // input from other modules
+    PARAM_OUT_STREAM,       // output to other modules
+    PARAM_IN_OUT_STREAM,    // input from some modules that is also of interest for other modules
     PARAM_IO_TYPE_SIZE 
 };
 class ParamIOType
