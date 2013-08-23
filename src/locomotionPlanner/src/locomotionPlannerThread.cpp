@@ -16,32 +16,31 @@
 */
 
 #include <locomotionPlanner\locomotionPlannerThread.h>
+#include <locomotion\locomotionConstants.h>
 #include <yarp\os\Time.h>
 
 
+using namespace locomotion;
 using namespace locomotionPlanner;
 
 
-LocomotionPlannerThread::LocomotionPlannerThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
-    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi)
+LocomotionPlannerThread::LocomotionPlannerThread(string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient *_lc, wholeBodyInterface *_wbi)
+    :  name(_name), robotName(_robotName), paramHelper(_ph), locoCtrl(_lc), robot(_wbi)
 {
-
+    mustStop = false;
 }
 
 //*************************************************************************************************************************
 bool LocomotionPlannerThread::threadInit()
 {
-    // create trajectory generators
-    
     // resize vectors that are not fixed-size
-
 
     // link module rpc parameters to member variables
 
-    // link module input streaming parameters to member variables
-    assert(paramHelper->linkParam(PARAM_ID_XDES_COM,            xd_com.data()));
-    assert(paramHelper->linkParam(PARAM_ID_XDES_FOOT,           xd_foot.data()));
-    assert(paramHelper->linkParam(PARAM_ID_QDES,                qd.data()));
+    // link controller input streaming parameters to member variables
+    assert(locoCtrl->linkParam(PARAM_ID_XDES_COM,            xd_com.data()));
+    assert(locoCtrl->linkParam(PARAM_ID_XDES_FOOT,           xd_foot.data()));
+    assert(locoCtrl->linkParam(PARAM_ID_QDES,                qd.data()));
     // link module output streaming parameters to member variables
     
     // Register callbacks for some module parameters
@@ -56,13 +55,17 @@ bool LocomotionPlannerThread::threadInit()
 //*************************************************************************************************************************
 void LocomotionPlannerThread::run()
 {
-    paramHelper->lock();
-    paramHelper->readStreamParams();
+    while(!mustStop)
+    {
+        locoCtrl->readStreamParams();
 
-    Time::delay(0.005);
+        xd_com.setRandom();
+        xd_foot.setRandom();
+        qd.setRandom();
+        Time::delay(2.0);
     
-    paramHelper->sendStreamParams();
-    paramHelper->unlock();
+        locoCtrl->sendStreamParams();
+    }
 }
 
 //*************************************************************************************************************************
@@ -74,11 +77,11 @@ void LocomotionPlannerThread::threadRelease()
 //*************************************************************************************************************************
 void LocomotionPlannerThread::parameterUpdated(const ParamDescription &pd)
 {
-    switch(pd.id)
-    {
-    default:
-        sendMsg("A callback is registered but not managed for the parameter "+pd.name, MSG_WARNING);
-    }
+    //switch(pd.id)
+    //{
+    //default:
+    sendMsg("A callback is registered but not managed for the parameter "+pd.name, MSG_WARNING);
+    //}
 }
 
 //*************************************************************************************************************************

@@ -32,21 +32,15 @@ namespace locomotionPlanner
 {
 
 // *** DEFAULT PARAMETER VALUES
-static const string         DEFAULT_MODULE_NAME     = "locomotionPlanner";  
-static const int            DEFAULT_CTRL_PERIOD     = 10;                   // planner period in ms
-static const string         DEFAULT_ROBOT_NAME      = "icubSim";            // robot name
+static const string         DEFAULT_MODULE_NAME             = "locomotionPlanner";
+static const string         DEFAULT_ROBOT_NAME              = "icubSim";            // robot name
+static const string         DEFAULT_LOCOMOTION_CTRL_NAME    = "locomotionControl";  // locomotion controller name
 // Streaming parameters
-static const Vector2d       DEFAULT_XDES_COM        = Vector2d::Constant(0.0);
-static const Vector7d       DEFAULT_XDES_FOOT       = Vector7d::Constant(0.0);
-static const VectorNd       DEFAULT_QDES            = VectorNd::Constant(0.0);
-static const Matrix4d       DEFAULT_H_W2B           = Matrix4d::Identity();
 
 
 // *** IDs of all the module parameters
 enum LocomotionPlannerParamId { 
-    PARAM_ID_MODULE_NAME,       PARAM_ID_CTRL_PERIOD,       PARAM_ID_ROBOT_NAME,
-    PARAM_ID_XDES_COM,          PARAM_ID_XDES_FOOT,         PARAM_ID_QDES,
-    PARAM_ID_H_W2B,
+    PARAM_ID_PLANNER_NAME,       PARAM_ID_ROBOT_NAME,   PARAM_ID_LOCOMOTION_CTRL_NAME,
     PARAM_ID_SIZE
 };
 
@@ -55,10 +49,10 @@ enum LocomotionPlannerParamId {
 // ******************************************************************************************************************************
 const ParamDescription locomotionPlannerParamDescr[]  = 
 { 
-//               NAME               ID                          TYPE                SIZE                        BOUNDS                              I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
-ParamDescription("name",            PARAM_ID_MODULE_NAME,       PARAM_DATA_STRING,  1,                          PARAM_BOUNDS_INF,                   PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
-ParamDescription("period",          PARAM_ID_CTRL_PERIOD,       PARAM_DATA_INT,     1,                          ParamBounds(1, 1000),               PARAM_CONFIG,       &DEFAULT_CTRL_PERIOD,           "Period of the control loop (ms)"), 
-ParamDescription("robot",           PARAM_ID_ROBOT_NAME,        PARAM_DATA_STRING,  1,                          PARAM_BOUNDS_INF,                   PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
+//               NAME                   ID                              TYPE                SIZE        BOUNDS                  I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
+ParamDescription("name",                PARAM_ID_PLANNER_NAME,          PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
+ParamDescription("robot",               PARAM_ID_ROBOT_NAME,            PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
+ParamDescription("locomotionCtrlName",  PARAM_ID_LOCOMOTION_CTRL_NAME,  PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_LOCOMOTION_CTRL_NAME,  "Name of the locomotion controller module"), 
 // ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************

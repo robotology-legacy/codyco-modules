@@ -79,8 +79,9 @@ public:
       * Then it tries to connect these ports to the corresponding remote ports.
       * @param localName Name of this module, used as stem for all the port names 
       * @param remoteName Name of the remote module, with which you want to communicate
+      * @param reply Output bottle containing error messages, if any
       * @return True if the operation succeeded, false otherwise. */
-    bool init(std::string localName, std::string remoteName);
+    bool init(std::string localName, std::string remoteName, yarp::os::Bottle &reply);
 
     /** Close the ports opened during the initialization phase (see init method). */
     bool close();

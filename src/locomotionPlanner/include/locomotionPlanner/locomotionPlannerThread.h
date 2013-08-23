@@ -24,7 +24,7 @@
 #include <vector>
 
 #include <yarp/os/BufferedPort.h>
-#include <yarp/os/RateThread.h>
+#include <yarp/os/Thread.h>
 #include <yarp/os/Semaphore.h>
 #include <yarp/sig/Vector.h>
 
@@ -36,6 +36,7 @@
 
 #include <wbi\wbi.h>
 #include <paramHelp\paramHelpServer.h>
+#include <paramHelp\paramHelpClient.h>
 #include <locomotionPlanner\locomotionPlannerConstants.h>
 
 
@@ -54,12 +55,14 @@ namespace locomotionPlanner
 /** Locomotion control thread: this thread sends velocity commands to the robot motors
   * trying to track the desired position trajectory of the COM, swinging foot and joint posture.
   */
-class LocomotionPlannerThread: public RateThread, public ParamObserver, public CommandObserver
+class LocomotionPlannerThread: public Thread, public ParamObserver, public CommandObserver
 {
     string              name;
     string              robotName;
     ParamHelperServer   *paramHelper;
+    ParamHelperClient   *locoCtrl;
     wholeBodyInterface  *robot;
+    bool                mustStop;
 
     // Module parameters
     Vector2d            kp_com;
@@ -70,19 +73,13 @@ class LocomotionPlannerThread: public RateThread, public ParamObserver, public C
     int                 supportPhase;
     double              pinvDamp;
 
-    // Input streaming parameters
+    // Output streaming parameters
     Vector2d            xd_com;
     Vector7d            xd_foot;
     VectorNd            qd;
 
     // Output streaming parameters
-    Vector2d            x_com,  xr_com;     // measured and reference position of the COM
-    Vector7d            x_foot, xr_foot;
-    VectorNd            q,      qr;
-
-    // Trajectory generators
-    minJerkTrajGen      *trajGenCom, *trajGenFoot, *trajGenPosture;
-
+    
     enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO) throw();
 
@@ -95,11 +92,13 @@ public:
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    LocomotionPlannerThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi) throw();
+    LocomotionPlannerThread(string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient   *_lc, wholeBodyInterface *_wbi) throw();
 	
     bool threadInit();	
     void run();
     void threadRelease();
+
+    void stop(){ mustStop=true; Thread::stop(); }
 
     /** Callback function for parameter updates. */
     void parameterUpdated(const ParamDescription &pd);

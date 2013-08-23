@@ -38,14 +38,14 @@ using namespace locomotionPlanner;
 int main (int argc, char * argv[])
 {
     //Creating and preparing the Resource Finder
-    ResourceFinder rf;
-    rf.setVerbose(true);
-    rf.setDefaultConfigFile("default.ini");         //default config file name.
-    rf.setDefaultContext("locomotionPlanner/conf"); //when no parameters are given to the module this is the default context    
-    rf.configure("ICUB_ROOT",argc,argv);
+    ResourceFinder *rf = new ResourceFinder;
+    rf->setVerbose(true);
+    rf->setDefaultConfigFile("default.ini");         //default config file name.
+    rf->setDefaultContext("locomotionPlanner/conf"); //when no parameters are given to the module this is the default context    
+    rf->configure("ICUB_ROOT",argc,argv);
     // rf.setName("locomotionControl");
 
-    if (rf.check("help"))
+    if (rf->check("help"))
     {
         cout<< "Possible parameters"                                                                                                                                          << endl << endl;
         cout<< "\t--context          :Where to find an user defined .ini file within $ICUB_ROOT/app e.g. /locomotionPlanner/conf"                                   <<endl;
@@ -66,5 +66,5 @@ int main (int argc, char * argv[])
 
     //Creating the module
     LocomotionPlannerModule module;
-    return module.runModule(rf);
+    return module.runModule(*rf);
 }

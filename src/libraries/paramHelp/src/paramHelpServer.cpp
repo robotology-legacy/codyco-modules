@@ -114,15 +114,23 @@ void ParamHelperServer::getHelpMessage(Bottle &b)
     }
     if(paramList.size()>0)
     {
-        b.addString("Available commands for setting/getting parameter values:");
-        b.addString(" *'get <param_name>': get the value of the parameter <param_name>");
-        b.addString(" *'get <param_name> <i>': get the <i>-th element of <param_name>");
-        b.addString(" *'set <param_name> <param_values>': set <param_name> to <param_values>");
-        b.addString(" *'set one <param_name> <i> <param_value>': set the <i>-th element of <param_name>");
-        b.addString(" *'set all <param_name> <param_value>': set all the elements of <param_name> to the same value");
-        b.addString("List of the parameter names and descriptions:");
+        b.addString(" - get <param_name>: get the value of the parameter <param_name>");
+        b.addString(" - get <param_name> <i>: get the <i>-th element of <param_name>");
+        b.addString(" - set <param_name> <param_values>: set <param_name> to <param_values>");
+        b.addString(" - set one <param_name> <i> <param_value>: set the <i>-th element of <param_name>");
+        b.addString(" - set all <param_name> <param_value>: set all the elements of <param_name> to the same value");
+        b.addString("List of the configuration parameters:");
 		for(map<int,ParamDescription>::iterator it=paramList.begin(); it!=paramList.end(); it++)
-			b.addString( (" - "+it->second.name+": "+it->second.description).c_str() );
+            if(it->second.ioType.value==PARAM_CONFIG)
+			    b.addString( (" - "+it->second.name+": "+it->second.description).c_str() );
+        b.addString("List of the streaming parameters:");
+		for(map<int,ParamDescription>::iterator it=paramList.begin(); it!=paramList.end(); it++)
+            if(it->second.ioType.isStreaming())
+			    b.addString( (" - "+it->second.name+": "+it->second.description).c_str() );
+        b.addString("List of the rpc parameters:");
+		for(map<int,ParamDescription>::iterator it=paramList.begin(); it!=paramList.end(); it++)
+            if(it->second.ioType.value == PARAM_IN_OUT)
+			    b.addString( (" - "+it->second.name+": "+it->second.description).c_str() );
     }
 }
 

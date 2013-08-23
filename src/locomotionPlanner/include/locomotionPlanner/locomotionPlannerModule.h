@@ -25,6 +25,7 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Vocab.h>
 
+#include <paramHelp\paramHelpClient.h>
 #include <paramHelp\paramHelpServer.h>
 #include <wbiy\wbiy.h>
 #include <locomotionPlanner\locomotionPlannerThread.h>
@@ -42,13 +43,13 @@ class LocomotionPlannerModule: public RFModule, public CommandObserver
     /* module parameters */
 	string  moduleName;
 	string  robotName;
-    int     period;
-    double  avgTime, stdDev, avgTimeUsed, stdDevUsed;
+    string  locoCtrlName;
 
-	Port                rpcPort;		// a port to handle rpc messages
-	LocomotionPlannerThread*   ctrlThread;     // locomotion control thread
-    ParamHelperServer*  paramHelper;    // helper class for rpc set/get commands and streaming data
-    wholeBodyInterface* robotInterface; // interface to communicate with the robot
+	Port                        rpcPort;		// a port to handle rpc messages
+	LocomotionPlannerThread*    ctrlThread;     // locomotion control thread
+    ParamHelperClient*          locoCtrl;       // helper class for communicating with the locomotion controller
+    ParamHelperServer*          paramHelper;    // helper class for communication
+    wholeBodyInterface*         robotInterface; // interface to communicate with the robot
 
 public:
     LocomotionPlannerModule();
@@ -57,7 +58,7 @@ public:
 	bool interruptModule();                       // interrupt, e.g., the ports 
 	bool close();                                 // close and shut down the module
 	bool respond(const Bottle& command, Bottle& reply);
-	double getPeriod(){ return period*1e-3;  }
+	double getPeriod(){ return 0.1; }
 	bool updateModule();
 
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);

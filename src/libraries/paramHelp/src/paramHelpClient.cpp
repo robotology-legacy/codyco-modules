@@ -41,7 +41,7 @@ ParamHelperClient::~ParamHelperClient()
 }
 
 //*************************************************************************************************************************
-bool ParamHelperClient::init(string localName, string remoteName)
+bool ParamHelperClient::init(string localName, string remoteName, Bottle &reply)
 {
     string remotePortInStreamName   = "/" + remoteName + PORT_IN_STREAM_SUFFIX;
     string remotePortOutStreamName  = "/" + remoteName + PORT_OUT_STREAM_SUFFIX;
@@ -57,11 +57,16 @@ bool ParamHelperClient::init(string localName, string remoteName)
             && portOutStream->open(portOutStreamName.c_str())
             && portInfo.open(portInfoName.c_str())
             && portRpc.open(portRpcName.c_str());
+    if(!res) reply.addString(("Error while opening ports ("+portInStreamName+", "+portOutStreamName+", "+portInfoName+", "+portRpcName+").").c_str());
 
     res = res && Network::connect(remotePortOutStreamName.c_str(),  portInStreamName.c_str());
+    if(!res) reply.addString(("Error while trying to connect to "+remotePortOutStreamName).c_str());
     res = res && Network::connect(portOutStreamName.c_str(),        remotePortInStreamName.c_str());
+    if(!res) reply.addString(("Error while trying to connect to "+remotePortInStreamName).c_str());
     res = res && Network::connect(portInfoName.c_str(),             remotePortInfoName.c_str());
+    if(!res) reply.addString(("Error while trying to connect to "+remotePortInfoName).c_str());
     res = res && Network::connect(portRpcName.c_str(),              remotePortRpcName.c_str());
+    if(!res) reply.addString(("Error while trying to connect to "+remotePortRpcName).c_str());
 
     return res;
 }
@@ -113,11 +118,16 @@ bool ParamHelperClient::readStreamParams(bool blockingRead)
         if(it->second.ioType.isStreamingOut())
         {
             ParamDescription *pd = &(it->second);
+            if(paramValues[pd->id]==NULL){  logMsg("readStreamParams, parameter "+pd->name+" has no associated variable.", MSG_ERROR);  return false; }
+            if(j >= in->size()){            logMsg("readStreamParams, unexpected bottle size: "+toString(in->size()), MSG_ERROR);       return false; }
             Bottle *b = in->get(j).asList();
-            
-            if(paramValues[pd->id]==NULL){  logMsg("Parameter "+pd->name+" has no associated variable.", MSG_ERROR);        return false; }
-            if(j >= in->size()){            logMsg("readStreamParams, unexpected bottle size.", MSG_ERROR);                 return false; }
-            if(pd->size.size != b->size()){ logMsg("readStreamParams, unexpected size of parameter "+pd->name, MSG_ERROR);  return false; }
+            j++;
+            if(pd->size.size != b->size())
+            { 
+                logMsg("readStreamParams, unexpected size of "+pd->name+": "+toString(b->size())+"!="+toString(pd->size.size), MSG_ERROR);
+                logMsg("readStreamParams, value read for "+pd->name+": "+b->toString().c_str(), MSG_DEBUG);
+                return false; 
+            }
 
             for(int i=0; i<pd->size.size; i++)
                 switch(pd->type)
