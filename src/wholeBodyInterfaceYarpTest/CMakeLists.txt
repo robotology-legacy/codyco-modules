@@ -34,11 +34,15 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 INCLUDE_DIRECTORIES(${YARP_INCLUDE_DIRS}
                     ${wbi_INCLUDE_DIRS}
                     ${wbiy_INCLUDE_DIRS}
+                    ${iDynTree_INCLUDE_DIRS}
+                    ${Orocos-KDL_INCLUDE_DIRS}
+                    ${kdl_codyco_INCLUDE_DIRS}
+                    ${EIGEN3_INCLUDE_DIR}
                     ${skinDynLib_INCLUDE_DIRS})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} skinDynLib wbi wbiy)
+TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} skinDynLib wbi wbiy iDynTree ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
 
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 SET(CMAKE_INSTALL_PREFIX $ENV{ICUB_DIR} CACHE PATH "installation prefix" FORCE)

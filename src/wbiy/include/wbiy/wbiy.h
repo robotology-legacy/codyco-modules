@@ -34,12 +34,12 @@
 #include <unordered_map>
 #endif
 #include <vector>
+#include <iCub\iDynTree\iCubTree.h>
 
 /* CODE UNDER DEVELOPMENT */
 
 namespace wbiy
 {
-
     // handy variable for initializing the whole body interface for iCub
     const wbi::LocalIdList ICUB_RIGHT_ARM_JOINTS(iCub::skinDynLib::RIGHT_ARM, 0, 1, 2, 3, 4);
     const wbi::LocalIdList ICUB_LEFT_ARM_JOINTS(iCub::skinDynLib::LEFT_ARM, 0, 1, 2, 3, 4);
@@ -298,8 +298,38 @@ namespace wbiy
     class icubWholeBodyModel: public wbi::iWholeBodyModel
     {
     protected:
-        wbi::LocalIdList     jointIdList;
+        wbi::LocalIdList jointIdList;
+        int dof;
+        iCub::iDynTree::iCubTree * p_icub_model;
+        iCub::iDynTree::iCubTree_version_tag version;
+        
+        yarp::sig::Matrix world_base_transformation;
+        
+        yarp::sig::Vector v_base, a_base;
+        yarp::sig::Vector omega_base, domega_base;
+        
+        yarp::sig::Vector all_q;
+        yarp::sig::Vector all_dq;
+        yarp::sig::Vector all_ddq;
+        
+        bool convertBasePose(const double *xBase, yarp::sig::Matrix & H_world_base);
+        bool convertBaseVelocity(const double *dxB, yarp::sig::Vector & v_b, yarp::sig::Vector & omega_b);
+        bool convertBaseAcceleration(const double *ddxB, yarp::sig::Vector & a_b, yarp::sig::Vector & domega_b);
+        
+        bool convertQ(const double *q, yarp::sig::Vector & q_complete);
+        bool convertDQ(const double *dq, yarp::sig::Vector & dq_complete);
+        bool convertDDQ(const double *ddq, yarp::sig::Vector & ddq_complete);
+        
     public:
+         // *** CONSTRUCTORS ***
+        /**
+         * 
+         * @param head_version the version of the head of the iCub (1 or 2, default: 2)
+         * @param legs_version the version of the legs of the iCub (1 or 2, default: 2)
+         * @param initial_q the initial value for all the 32 joint angles (default: all 0)
+         */
+        icubWholeBodyModel(int head_version=2, int legs_version=2, double* initial_q=0);
+        
         virtual bool init();
         virtual bool close();
         virtual int getDoFs();
@@ -308,6 +338,8 @@ namespace wbiy
         virtual int addJoints(const wbi::LocalIdList &j);
         virtual wbi::LocalIdList getJointList(){ return jointIdList; }
         
+        virtual int getLinkId(const char *linkName);
+
         virtual bool getJointLimits(double *qMin, double *qMax, int joint=-1);
         
         /** Compute rototranslation matrix from root reference frame to reference frame associated to the specified link.
@@ -342,7 +374,7 @@ namespace wbiy
          * @param q Joint angles
          * @param xB Pose of the robot base, 3 values for position and 4 values for orientation
          * @param linkId Id of the link
-         * @param x Output 7-dim pose vector (3 for pos, 4 for angle-axis orientation)
+         * @param x Output 7-dim pose vector (3 for pos, 4 for quaternion orientation)
          * @return True if operation succeeded, false otherwise */
         virtual bool forwardKinematics(double *q, double *xB, int linkId, double *x);
         
@@ -410,6 +442,8 @@ namespace wbiy
         virtual bool getTorques(double *tau, double time=-1.0, bool wait=false){ return stateInt->getTorques(tau, time, wait); }
         
         // MODEL
+        virtual int getLinkId(const char *linkName)
+        { return modelInt->getLinkId(linkName); }
         virtual bool getJointLimits(double *qMin, double *qMax, int joint=-1)
         { return modelInt->getJointLimits(qMin, qMax, joint); }
         virtual bool computeH(double *q, double *xB, int linkId, double *H)

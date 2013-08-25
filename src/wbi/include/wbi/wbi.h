@@ -256,6 +256,11 @@ namespace wbi
         virtual LocalIdList getJointList() = 0;
         
         virtual bool getJointLimits(double *qMin, double *qMax, int joint=-1) = 0;
+
+        /** Get the id of the link with the specified name.
+          * @param linkName Name of the link
+          * @return Id of the link */
+        virtual int getLinkId(const char *linkName) = 0;
         
         /** Compute rototranslation matrix from root reference frame to reference frame associated to the specified link.
           * @param q Joint angles

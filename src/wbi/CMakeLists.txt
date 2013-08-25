@@ -1,5 +1,5 @@
 # Copyright: (C) 2013 CoDyCo Consortium
-# Authors: Serena Ivaldi
+# Authors: Andrea Del Prete
 # CopyPolicy: Released under the terms of the GNU GPL v2.0 (or any later version).
 
 SET(PROJECTNAME wbi)
