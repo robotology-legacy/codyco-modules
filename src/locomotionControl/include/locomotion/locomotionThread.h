@@ -40,6 +40,7 @@
 
 
 using namespace yarp::os;
+using namespace yarp::sig;
 using namespace yarp::math;
 using namespace iCub::ctrl;
 using namespace iCub::skinDynLib;
@@ -61,24 +62,36 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     ParamHelperServer   *paramHelper;
     wholeBodyInterface  *robot;
 
+    // Member variables
+    int                 LINK_ID_RIGHT_FOOT, LINK_ID_LEFT_FOOT;
+    int                 footLinkId;             // id of the controlled foot link
+    int                 comLinkId;              // id of the COM
+    Vector7d            xBase;                  // position/orientation of the floating base
+    JacobianMatrix      Jcom;                   // Jacobian of the center of mass
+    JacobianMatrix      Jfoot;                  // Jacobian of the controlled foot
+
     // Module parameters
-    Vector2d            kp_com;
-    Vector6d            kp_foot;
-    VectorXd            kp_posture;
+    Vector              kp_com;
+    Vector              kp_foot;
+    Vector              kp_posture;
     double              tt_com, tt_foot, tt_posture;    // trajectory times of min jerk trajectory generators
-    VectorXi            activeJoints;   // vector of bool indicating which joints are used (1 used, 0 blocked)
+    VectorNi            activeJoints;                   // vector of bool indicating which joints are used (1 used, 0 blocked)
     int                 supportPhase;
     double              pinvDamp;
 
     // Input streaming parameters
-    Vector2d            xd_com;
-    Vector7d            xd_foot;
-    VectorNd            qd;
+    //Vector2d            xd_com; Vector7d            xd_foot;    VectorNd            qd;
+    Vector              xd_com, xd_foot, qd;    // desired positions (use yarp vector because minJerkTrajGen wants yarp vector)
 
     // Output streaming parameters
-    Vector2d            x_com,  xr_com;     // measured and reference position of the COM
-    Vector7d            x_foot, xr_foot;
-    VectorNd            q,      qr;
+    Vector              xr_com, xr_foot, qr;    // reference positions (use yarp vector because minJerkTrajGen gives yarp vector)
+    Vector              dxr_com, dxr_foot, dqr; // reference velocities (use yarp vector because minJerkTrajGen gives yarp vector)
+    Vector              x_com, x_foot, q;       // measured positions (use yarp vector because minJerkTrajGen gives yarp vector)
+    Vector              dxc_com, dxc_foot, dqc; // commanded velocities (use yarp vector because minJerkTrajGen gives yarp vector)
+    Vector2d            dxc_comE;               // commanded velocity of the COM
+    Vector7d            dxc_footE;
+    VectorNd            dqcE;
+    
 
     // Trajectory generators
     minJerkTrajGen      *trajGenCom, *trajGenFoot, *trajGenPosture;
@@ -87,6 +100,9 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO) throw();
 
     void sendMonitorData() throw();
+
+    bool readRobotStatus(bool blockingRead=false);
+    bool updateReferenceTrajectories();
 
 public:	
     

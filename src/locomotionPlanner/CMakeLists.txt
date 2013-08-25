@@ -28,16 +28,19 @@ SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${wbi_INCLUDE_DIRS}
                     ${wbiy_INCLUDE_DIRS}
+                    ${iDynTree_INCLUDE_DIRS}
+                    ${Orocos-KDL_INCLUDE_DIRS}
+                    ${kdl_codyco_INCLUDE_DIRS}
+                    ${EIGEN3_INCLUDE_DIR}
                     ${paramHelp_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR}
                     ../locomotionControl/include )
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} skinDynLib ctrlLib wbi wbiy paramHelp)
+TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} skinDynLib ctrlLib wbi wbiy paramHelp iDynTree ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
 
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 SET(CMAKE_INSTALL_PREFIX $ENV{ICUB_DIR} CACHE PATH "installation prefix" FORCE)

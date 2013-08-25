@@ -30,10 +30,11 @@ using namespace std;
 static const int       ICUB_DOFS = 23;    // number of (the main) degrees of freedom of iCub
 
 // define some types
-typedef Matrix<double,6,1>          Vector6d;
-typedef Matrix<double,7,1>          Vector7d;
-typedef Matrix<double,ICUB_DOFS,1>  VectorNd;
-typedef Matrix<int,ICUB_DOFS,1>     VectorNi;
+typedef Matrix<double,6,1>              Vector6d;
+typedef Matrix<double,7,1>              Vector7d;
+typedef Matrix<double,ICUB_DOFS,1>      VectorNd;
+typedef Matrix<int,ICUB_DOFS,1>         VectorNi;
+typedef Matrix<double,6,ICUB_DOFS+6>    JacobianMatrix;
 
 namespace locomotion
 {
