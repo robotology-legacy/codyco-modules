@@ -31,9 +31,9 @@ LocomotionThread::LocomotionThread(string _name, string _robotName, int _period,
 //*************************************************************************************************************************
 bool LocomotionThread::threadInit()
 {
-    LINK_ID_RIGHT_FOOT  = robot->getLinkId("r_foot");
-    LINK_ID_LEFT_FOOT   = robot->getLinkId("l_foot");
-    comLinkId           = 0; //robot->getLinkId("com"); // since "com" is undefined it throws an exception
+    assert(robot->getLinkId("r_foot", LINK_ID_RIGHT_FOOT));
+    assert(robot->getLinkId("l_foot", LINK_ID_LEFT_FOOT));
+    comLinkId           = iWholeBodyModel::COM_LINK_ID;
 
     // create trajectory generators
     trajGenCom      = new minJerkTrajGen(DEFAULT_KP_COM.rows(),     getRate(), DEFAULT_TT_COM);
