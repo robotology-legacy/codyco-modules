@@ -34,7 +34,7 @@
 #include <unordered_map>
 #endif
 #include <vector>
-#include <iCub\iDynTree\iCubTree.h>
+#include <iCub/iDynTree/iCubTree.h>
 
 /* CODE UNDER DEVELOPMENT */
 
