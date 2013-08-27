@@ -9,7 +9,7 @@
 
 #include <paramHelp/paramHelp.h>
 
-#include <yarp\os\Vocab.h>
+#include <yarp/os/Vocab.h>
 
 #include <limits.h>
 #include <string>
