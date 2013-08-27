@@ -332,71 +332,85 @@ namespace wbiy
         
         virtual bool init();
         virtual bool close();
+
         virtual int getDoFs();
+
+        /** Remove the specified joint form the robot model. The joint is considered blocked
+          * at its last known value (values of the joint angles are stored whenever a method of 
+          * iWholeBodyModel is called). If no previous value of the joint angle is known, zero is assumed.
+          * @param j Id of the joint to remove
+          * @return True if the joint was found and removed, false otherwise. */
         virtual bool removeJoint(const wbi::LocalId &j);
         virtual bool addJoint(const wbi::LocalId &j);
         virtual int addJoints(const wbi::LocalIdList &j);
-        virtual wbi::LocalIdList getJointList(){ return jointIdList; }
+        virtual wbi::LocalIdList getJointList();
         
-        virtual int getLinkId(const char *linkName);
-
         virtual bool getJointLimits(double *qMin, double *qMax, int joint=-1);
+
+        /** Get the id of the link with the specified name.
+          * @param linkName Name of the link.
+          * @param linkId Id of the link (if found).
+          * @return True if the link name was found, false otherwise. */
+        virtual bool getLinkId(const char *linkName, int &linkId);
         
         /** Compute rototranslation matrix from root reference frame to reference frame associated to the specified link.
-         * @param q Joint angles
-         * @param xBase Pose of the robot base, 3 values for position and 4 values for orientation
-         * @param linkId Id of the link that is the target of the rototranslation
-         * @param H Output 4x4 rototranslation matrix (stored by rows)
-         * @return True if the operation succeeded, false otherwise (invalid input parameters) */
+          * @param q Joint angles
+          * @param xBase Pose of the robot base, 3 values for position and 4 values for orientation
+          * @param linkId Id of the link that is the target of the rototranslation
+          * @param H Output 4x4 rototranslation matrix (stored by rows)
+          * @return True if the operation succeeded, false otherwise (invalid input parameters) */
         virtual bool computeH(double *q, double *xBase, int linkId, double *H);
         
         /** Compute the Jacobian of the specified point of the robot.
-         * @param q Joint angles
-         * @param xBase Pose of the robot base, 3 values for position and 4 values for orientation
-         * @param linkId Id of the link
-         * @param J Output 6xN Jacobian matrix (stored by rows), where N=number of joints
-         * @param pos 3d position of the point expressed w.r.t the link reference frame
-         * @return True if the operation succeeded, false otherwise (invalid input parameters) */
+          * @param q Joint angles
+          * @param xBase Pose of the robot base, 3 values for position and 4 values for orientation
+          * @param linkId Id of the link
+          * @param J Output 6xN Jacobian matrix (stored by rows), where N=number of joints
+          * @param pos 3d position of the point expressed w.r.t the link reference frame
+          * @return True if the operation succeeded, false otherwise (invalid input parameters) 
+          * @note If linkId==COM_LINK_ID then the angular part of J is related to the angular velocity of the
+          *       reference frame associated to the CoM. This Jacobian premultiplied by the whole robot's inertia
+          *       matrix is equal to the Jacobian of the angular momentum of the whole robot. */
         virtual bool computeJacobian(double *q, double *xBase, int linkId, double *J, double *pos=0);
         
         /** Given a point on the robot, compute the product between the time derivative of its 
-         * Jacobian and the joint velocity vector.
-         * @param q Joint angles
-         * @param xBase Pose of the robot base, 3 values for position and 4 values for orientation
-         * @param dq Joint velocities
-         * @param linkId Id of the link
-         * @param dJdq Output 6-dim vector containing the product dJ*dq 
-         * @param pos 3d position of the point expressed w.r.t the link reference frame
-         * @return True if the operation succeeded, false otherwise (invalid input parameters) */
+          * Jacobian and the joint velocity vector.
+          * @param q Joint angles
+          * @param xBase Pose of the robot base, 3 values for position and 4 values for quaternion orientation
+          * @param dq Joint velocities
+          * @param linkId Id of the link
+          * @param dJdq Output 6-dim vector containing the product dJ*dq 
+          * @param pos 3d position of the point expressed w.r.t the link reference frame
+          * @return True if the operation succeeded, false otherwise (invalid input parameters) */
         virtual bool computeDJdq(double *q, double *xB, double *dq, double *dxB, int linkId, double *dJdq, double *pos=0);
         
         /** Compute the forward kinematics of the specified joint.
-         * @param q Joint angles
-         * @param xB Pose of the robot base, 3 values for position and 4 values for orientation
-         * @param linkId Id of the link
-         * @param x Output 7-dim pose vector (3 for pos, 4 for quaternion orientation)
-         * @return True if operation succeeded, false otherwise */
+          * @param q Joint angles.
+          * @param xB Pose of the robot base, 3 values for position and 4 values for quaternion orientation.
+          * @param linkId Id of the link.
+          * @param x Output 7-dim pose vector (3 for pos, 4 for quaternion orientation).
+          * @return True if operation succeeded, false otherwise. */
         virtual bool forwardKinematics(double *q, double *xB, int linkId, double *x);
         
         /** Compute the inverse dynamics.
-         * @param q Joint angles
-         * @param xB Pose of the robot base, 3 values for position and 4 values for orientation
-         * @param dq Joint velocities
-         * @param dxB Velocity of the robot base, 3 values for linear velocity and 3 values for angular velocity
-         * @param ddq Joint accelerations
-         * @param ddxB Acceleration of the robot base, 3 values for linear acceleration and 3 values for angular acceleration
-         * @param tau Output joint torques
-         * @return True if operation succeeded, false otherwise */
+          * @param q Joint angles.
+          * @param xB Pose of the robot base, 3 values for position and 4 values for orientation.
+          * @param dq Joint velocities.
+          * @param dxB Velocity of the robot base, 3 values for linear velocity and 3 values for angular velocity.
+          * @param ddq Joint accelerations.
+          * @param ddxB Acceleration of the robot base, 3 values for linear acceleration and 3 values for angular acceleration.
+          * @param tau Output joint torques.
+         * @return True if operation succeeded, false otherwise. */
         virtual bool inverseDynamics(double *q, double *xB, double *dq, double *dxB, double *ddq, double *ddxB, double *tau);
-        
+
         /** Compute the direct dynamics.
-         * @param q Joint angles
-         * @param xB Pose of the robot base, 3 values for position and 4 values for orientation
-         * @param dq Joint velocities
-         * @param dxB Velocity of the robot base, 3 values for linear velocity and 3 values for angular velocity
-         * @param M Output NxN mass matrix, with N=number of joints
-         * @param h Output N-dim vector containing all generalized bias forces (gravity+Coriolis+centrifugal) 
-         * @return True if operation succeeded, false otherwise */
+         * @param q Joint angles.
+         * @param xB Pose of the robot base, 3 values for position and 4 values for quaternion orientation.
+         * @param dq Joint velocities.
+         * @param dxB Velocity of the robot base, 3 values for linear velocity and 3 values for angular velocity.
+         * @param M Output N+6xN+6 mass matrix, with N=number of joints.
+         * @param h Output N+6-dim vector containing all generalized bias forces (gravity+Coriolis+centrifugal).
+         * @return True if operation succeeded, false otherwise. */
         virtual bool directDynamics(double *q, double *xB, double *dq, double *dxB, double *M, double *h);
     };
     
@@ -442,8 +456,8 @@ namespace wbiy
         virtual bool getTorques(double *tau, double time=-1.0, bool wait=false){ return stateInt->getTorques(tau, time, wait); }
         
         // MODEL
-        virtual int getLinkId(const char *linkName)
-        { return modelInt->getLinkId(linkName); }
+        virtual bool getLinkId(const char *linkName, int &linkId)
+        { return modelInt->getLinkId(linkName, linkId); }
         virtual bool getJointLimits(double *qMin, double *qMax, int joint=-1)
         { return modelInt->getJointLimits(qMin, qMax, joint); }
         virtual bool computeH(double *q, double *xB, int linkId, double *H)
