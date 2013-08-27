@@ -191,9 +191,10 @@ int icubWholeBodyModel::addJoints(const wbi::LocalIdList &j)
     return count;
 }
 
-int icubWholeBodyModel::getLinkId(const char *linkName)
+bool icubWholeBodyModel::getLinkId(const char *linkName, int &linkId)
 {
-    return p_icub_model->getLinkIndex(linkName);
+    linkId = p_icub_model->getLinkIndex(linkName);
+    return linkId>=0;
 }
 
 bool icubWholeBodyModel::convertBasePose(const double *xBase, yarp::sig::Matrix & H_world_base)
