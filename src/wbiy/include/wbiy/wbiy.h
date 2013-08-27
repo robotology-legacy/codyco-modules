@@ -343,7 +343,7 @@ namespace wbiy
         virtual bool removeJoint(const wbi::LocalId &j);
         virtual bool addJoint(const wbi::LocalId &j);
         virtual int addJoints(const wbi::LocalIdList &j);
-        virtual wbi::LocalIdList getJointList();
+        virtual wbi::LocalIdList getJointList(){    return jointIdList; }
         
         virtual bool getJointLimits(double *qMin, double *qMax, int joint=-1);
 
