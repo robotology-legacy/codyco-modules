@@ -34,6 +34,10 @@ iCubTree::iCubTree(iCubTree_version_tag version, iCubTree_serialization_tag seri
     KDL::Tree icub_kdl;
     bool ret = toKDL(icub_idyn,icub_kdl,serial_tag);
     assert(ret);
+    if( !ret ) {
+		if( verbose ) { std::cerr << "iCubTree: error in costructor" << std::endl; }
+		return;
+	}
     
     //Imu link name
     std::string imu_link_name = "imu_frame";

@@ -56,6 +56,7 @@ bool idynChain2kdlChain(iCub::iDyn::iDynChain & idynChain,KDL::Chain & kdlChain,
 
         
         bool ret = idynDynamicalParameters2kdlRigidBodyInertia(idynChain.getMass(i),idynChain.getCOM(i).subcol(0,3,3),idynChain.getInertia(i),kdlRigidBodyInertia);        
+        if( !ret ) return false;
         
         KDL::Joint jnt_idyn;
         
@@ -134,7 +135,6 @@ bool idynSensorChain2kdlChain(iCub::iDyn::iDynChain & idynChain,iCub::iDyn::iDyn
     
     for(i=0;i<n_links;i++) 
     {
-        bool ret;
         if( i != sensor_link ) {
             //forgive him, as he does not know what is doing
             iCub::iKin::iKinLink & link_current = idynChain[i];
@@ -150,6 +150,8 @@ bool idynSensorChain2kdlChain(iCub::iDyn::iDynChain & idynChain,iCub::iDyn::iDyn
 
             bool ret = idynDynamicalParameters2kdlRigidBodyInertia(idynChain.getMass(i),idynChain.getCOM(i).subcol(0,3,3),idynChain.getInertia(i),kdlRigidBodyInertia);
             assert(ret);
+            if(!ret) return false;
+            
             if( idynChain.isLinkBlocked(i) ) {
                 if( use_names ) {
                     kdlSegment = KDL::Segment(link_names[kdl_i],KDL::Joint(joint_names[kdl_i],KDL::Joint::None),kdlFrame,kdlRigidBodyInertia);
@@ -244,10 +246,13 @@ bool idynSensorChain2kdlChain(iCub::iDyn::iDynChain & idynChain,iCub::iDyn::iDyn
             //cout << "m0: " << m0 << endl;
             //printVector("r0",r0);
             //printMatrix("I0",I0);
+            bool ret;
             ret = idynDynamicalParameters2kdlRigidBodyInertia(m0,r0,I0,kdlRigidBodyInertia_0);
             assert(ret);
+            if(!ret) return false;
             ret = idynDynamicalParameters2kdlRigidBodyInertia(m1,r1,I1,kdlRigidBodyInertia_1);
             assert(ret);
+            if(!ret) return false;
 
             if( use_names ) {
                 kdlSegment = KDL::Segment(link_names[kdl_i],KDL::Joint(joint_names[kdl_i],KDL::Joint::RotZ),kdlFrame_0,kdlRigidBodyInertia_0);
