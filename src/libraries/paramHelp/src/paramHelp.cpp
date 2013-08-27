@@ -24,6 +24,14 @@ using namespace yarp::sig;
 using namespace yarp::os;
 using namespace paramHelp;
 
+
+//*************************************************************************************************************************
+void paramHelp::printBottle(const Bottle &b)
+{
+    for(int i=0; i<b.size(); i++)
+        printf("%s\n", b.get(i).asString().c_str());
+}
+
 //*************************************************************************************************************************
 bool ParamIOType::canRead(){ return value==PARAM_OUTPUT || value==PARAM_OUT_STREAM || value==PARAM_IN_OUT || value==PARAM_IN_OUT_STREAM || PARAM_IN_STREAM; }
 bool ParamIOType::canWrite(){ return value==PARAM_INPUT || value==PARAM_IN_STREAM || value==PARAM_IN_OUT || value==PARAM_IN_OUT_STREAM; }
@@ -137,7 +145,7 @@ bool ParamHelperBase::checkParamConstraints(int id, const Bottle &v, Bottle &rep
     // check size
     if(!paramList[id].size.freeSize && v.size() != paramList[id].size.size)
     {
-        reply.addString(("Wrong parameter size, expected "+toString(paramList[id].size.size)+" found "+toString(v.size())).c_str());
+        reply.addString(("Parameter "+paramList[id].name+" wrong size, expected "+toString(paramList[id].size.size)+", found "+toString(v.size())).c_str());
         return false;
     }
     // check bounds
@@ -153,12 +161,12 @@ bool ParamHelperBase::checkParamConstraints(int id, const Bottle &v, Bottle &rep
             vi = v.get(i).asDouble();   // bounds make sense only for float or int values, so "asDouble()" should work fine
             if(HLB && vi<LB)
             {
-                reply.addString(("Parameter out of range, lower bound "+toString(LB)+", value "+toString(vi)).c_str());
+                reply.addString(("Parameter "+paramList[id].name+" out of range, lower bound "+toString(LB)+", value "+toString(vi)).c_str());
                 return false;
             }
             if(HUB && vi>UB)
             {
-                reply.addString(("Parameter out of range, upper bound "+toString(UB)+", value "+toString(vi)).c_str());
+                reply.addString(("Parameter "+paramList[id].name+" out of range, upper bound "+toString(UB)+", value "+toString(vi)).c_str());
                 return false;
             }
         }

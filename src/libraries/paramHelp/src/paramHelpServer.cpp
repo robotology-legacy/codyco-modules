@@ -49,17 +49,17 @@ void ParamHelperServer::initializeParams(ResourceFinder &rf, Bottle &reply)
     for(map<int,ParamDescription>::iterator it=paramList.begin(); it!=paramList.end(); it++)
     {
         string paramName = it->second.name;
-        replace( paramName.begin(), paramName.end(), ' ', '_');
-        if (rf.check(paramName.c_str(), v))
+        replace( paramName.begin(), paramName.end(), ' ', '_'); // replace "white spaces" with "underscores"
+        if (rf.check(paramName.c_str(), v)) // check whether the parameter is specified
         {
             if(v->isList())
                 temp = *(v->asList());  // if v is a Bottle => cast it into a Bottle
             else
             {
-                temp.clear();           // otherwise create a 1-element Bottle
+                temp.clear();           // if v is not a Bottle => create a 1-element Bottle
                 temp.add(v);
             }
-            printf("Setting parameter %s to %s\n", paramName.c_str(), temp.toString().c_str());
+            //printf("Setting parameter %s to %s\n", paramName.c_str(), temp.toString().c_str());
             setParam(it->second.id, temp, reply, true);
         }
     }
@@ -256,7 +256,7 @@ bool ParamHelperServer::getOneParam(int id, const Bottle &v, Bottle &reply)
 bool ParamHelperServer::setParam(int id, const Bottle &v, Bottle &reply, bool init)
 {
     // if the parameter doesn't exist or the value to set doesn't satisfy the constraints, then return
-    if(!hasParam(id)){              reply.addString(("Parameter "+paramList[id].name+" cannot be written.").c_str());           return false; }
+    if(!hasParam(id)){              reply.addString(("Id of parameter "+paramList[id].name+" not found.").c_str());             return false; }
     if(paramValues[id]==NULL){      reply.addString(("Parameter "+paramList[id].name+" has no associated variable.").c_str());  return false; }
     if(!checkParamConstraints(id, v, reply)){                                                                                   return false; }
     if(!init && !paramList[id].ioType.canWrite()){ reply.addString(("Parameter "+paramList[id].name+" cannot be written.").c_str());   return false; }
@@ -277,7 +277,7 @@ bool ParamHelperServer::setParam(int id, const Bottle &v, Bottle &reply, bool in
     
     if(res)
     {
-        reply.addString(("Parameter "+paramList[id].name+" has been set.").c_str());
+        reply.addString(("Parameter "+paramList[id].name+" set to "+v.toString().c_str()).c_str());
         // if an observer is registered, then perform the callback
         if(paramObs[id]!=NULL)
             paramObs[id]->parameterUpdated(paramList[id]);

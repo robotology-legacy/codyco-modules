@@ -47,6 +47,9 @@ template <class T> inline std::string toString(const T& t)
 template <class T> inline std::string toString(const std::vector<T>& v, const char *separator=" ")
 { std::ostringstream s; std::copy(v.begin(), v.end(), std::ostream_iterator<T>(s, separator)); return s.str(); }
 
+/** Print the specified Bottle. */
+void printBottle(const yarp::os::Bottle &b);
+
 
 // *************************************************************************************************
 // This enum defines the possible data types of parameters
