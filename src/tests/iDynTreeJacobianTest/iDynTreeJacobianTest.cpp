@@ -111,16 +111,17 @@ void iDynTree_print_velocity_acceleration(DynTree & icub_idyntree, const std::st
 
 void set_random_q_dq_ddq(yarp::os::Random & rng, iCubTree & icub_tree)
 {
-	double pos_c,vel_c,acc_c;
-	pos_c = 2.0;
-	vel_c = 3.0;
-	acc_c = 4.0;
-	Vector q(icub_tree.getNrOfDOFs());			
-	set_random_vector(q,rng,pos_c);
+    double pos_c = 0.0,vel_c = 0.0,acc_c =0.0;
+    pos_c = 2.0;
+    vel_c = 1.0;
+    acc_c = 4.0;
+    Vector q(icub_tree.getNrOfDOFs());			
+    set_random_vector(q,rng,pos_c);
     icub_tree.setAng(q);
     
     Vector dq(icub_tree.getNrOfDOFs());			
-	set_random_vector(dq,rng,vel_c);
+    set_random_vector(dq,rng,vel_c);
+    dq[1] = 1000.0;
     icub_tree.setDAng(dq);
 
     Vector ddq(icub_tree.getNrOfDOFs());			
@@ -215,6 +216,7 @@ int main()
              << "Real one          " << v_rhand.toString() << std::endl
              << "Relative jacobian " << v_rhand_rel_jac.toString() << std::endl
              << "Absolute jacobian " << v_rhand_abs_jac.toString() << std::endl;
+             
     return 0;
-	
+    
 }

@@ -13,5 +13,7 @@ add_subdirectory(linearRegressorsAdaptiveControl)
 #add_subdirectory(iCub_description/urdf_iDyn)
 #add_subdirectory(reachComBalance)
 
-#add_subdirectory(tests/iDynTreeJacobianTest)
+add_subdirectory(tests/iDynTreeJacobianTest)
+add_subdirectory(tests/iDynTreeTest)
+
 #add_subdirectory(wholeBodyInterfaceYarpTest)

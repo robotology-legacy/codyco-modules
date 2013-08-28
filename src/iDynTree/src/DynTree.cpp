@@ -14,6 +14,12 @@
 #include <kdl_codyco/rnea_loops.hpp>
 #include <kdl_codyco/regressor_loops.hpp>
 #include <kdl_codyco/jacobian_loops.hpp>
+#include <kdl_codyco/com_loops.hpp>
+#include <kdl_codyco/utils.hpp>
+
+#ifndef NDEBUG
+#include <kdl/frames_io.hpp>
+#endif
 
 #include <yarp/math/Math.h>
 #include <yarp/math/SVD.h>
@@ -797,24 +803,182 @@ bool DynTree::dynamicRNEA()
 ////////////////////////////////////////////////////////////////////////
 ////// COM related methods
 ////////////////////////////////////////////////////////////////////////
-bool DynTree::computeCOM() 
+
+yarp::sig::Vector DynTree::getCOM(const std::string & part_name) 
 {
-    return false;
+	if( com_yarp.size() != 3 ) { com_yarp.resize(3); }
+	if( (int)subtree_COM.size() != getNrOfLinks() ) { subtree_COM.resize(getNrOfLinks()); }
+	if( (int)subtree_mass.size() != getNrOfLinks() ) { subtree_mass.resize(getNrOfLinks()); }
+
+	int part_id;
+	if( part_name.length() == 0 ) {
+		 part_id = -1; 
+	} else {
+		 part_id = partition.getPartIDfromPartName(part_name);
+		 if( part_id == -1 ) { std::cerr << "getCOM: Part name " << part_name << " not recognized " << std::endl; return yarp::sig::Vector(0); }
+	} 
+    
+    KDL::Vector com;                   
+    getCenterOfMassLoop(tree_graph,q,dynamic_traversal,subtree_COM,subtree_mass,com,part_id);
+    
+    KDL::Vector com_world;
+    
+    com_world = world_base_frame*com;
+    
+    memcpy(com_yarp.data(),com_world.data,3*sizeof(double));
+
+    return com_yarp;
 }
 
-bool DynTree::computeCOMjacobian()
+
+bool DynTree::getCOMJacobian(yarp::sig::Matrix & jac, const std::string & part_name) 
 {
-    return false;
+    /*
+    if( (int)com_jacobian.columns() != 6+getNrOfDOFs() ) { com_jacobian.resize(6+getNrOfDOFs()); }
+    if( (int)com_jac_buffer.columns() != 6+getNrOfDOFs() ) { com_jac_buffer.resize(6+getNrOfDOFs()); }
+    
+    if( jac.rows() != (int)(6) || jac.cols() != (int)(6+tree_graph.getNrOfDOFs()) ) {
+        jac.resize(6,6+tree_graph.getNrOfDOFs());
+    }
+    
+    int part_id;
+    if( part_name.length() == 0 ) {
+        part_id = -1; 
+    } else {
+        part_id = partition.getPartIDfromPartName(part_name);
+        if( part_id == -1 ) { std::cerr << "getCOMJacobian error: Part name " << part_name << " not recognized " << std::endl; return false; }
+    } 
+    
+    computePositions();
+    
+    getCOMJacobianLoop(tree_graph,q,dynamic_traversal,X_dynamic_base,com_jacobian,com_jac_buffer,part_id);
+    
+    //Rotate the jacobian to the world 
+    com_jacobian.changeBase(world_base_frame.M);
+    
+    Eigen::Map< Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > mapped_jacobian(jac.data(),jac.rows(),jac.cols());
+
+    mapped_jacobian = com_jacobian.data;
+    
+    return true;
+    */
+    yarp::sig::Matrix dummy;
+    return getCOMJacobian(jac,dummy,part_name);
 }
 
-yarp::sig::Vector DynTree::getCOM(const std::string & part_name) const
+bool DynTree::getCOMJacobian(yarp::sig::Matrix & jac, yarp::sig::Matrix & momentum_jac, const std::string & part_name) 
 {
-    return yarp::sig::Vector(0);
+    if( (int)com_jacobian.columns() != 6+getNrOfDOFs() ) { com_jacobian.resize(6+getNrOfDOFs()); }
+    if( (int)momentum_jacobian.columns() != 6+getNrOfDOFs() ) { momentum_jacobian.resize(6+getNrOfDOFs()); }
+    if( (int)com_jac_buffer.columns() != 6+getNrOfDOFs() ) { com_jac_buffer.resize(6+getNrOfDOFs()); }
+    if( (int)momentum_jac_buffer.columns() != 6+getNrOfDOFs() ) { momentum_jac_buffer.resize(6+getNrOfDOFs()); }
+    
+    if( jac.rows() != (int)(6) || jac.cols() != (int)(6+tree_graph.getNrOfDOFs()) ) {
+        jac.resize(6,6+tree_graph.getNrOfDOFs());
+    }
+    
+    if( momentum_jac.rows() != (int)(6) || momentum_jac.cols() != (int)(6+tree_graph.getNrOfDOFs()) ) {
+        momentum_jac.resize(6,6+tree_graph.getNrOfDOFs());
+    }
+    
+    int part_id;
+    if( part_name.length() == 0 ) {
+        part_id = -1; 
+    } else {
+        part_id = partition.getPartIDfromPartName(part_name);
+        if( part_id == -1 ) { std::cerr << "getCOMJacobian error: Part name " << part_name << " not recognized " << std::endl; return false; }
+    } 
+    
+    computePositions();
+    
+    KDL::RigidBodyInertia base_total_inertia;
+    
+    getMomentumJacobianLoop(tree_graph,q,dynamic_traversal,X_dynamic_base,momentum_jacobian,com_jac_buffer,momentum_jac_buffer,base_total_inertia,part_id);
+    #ifndef NDEBUG
+    std::cout << "getCOMJacobian: mass of the tree " <<  base_total_inertia.getMass() << std::endl; 
+    #endif
+    
+    momentum_jacobian.changeRefFrame(world_base_frame);
+    
+    total_inertia = world_base_frame*base_total_inertia;
+    
+    if( total_inertia.getMass() == 0 ) {  std::cerr << "getCOMJacobian error: Tree has no mass " << std::endl; return false; }
+    
+    momentum_jacobian.changeRefPoint(total_inertia.getCOG());
+    
+    /** \todo add a meaniful transformation for the rotational part of the jacobian */
+    //KDL::CoDyCo::divideJacobianInertia(momentum_jacobian,total_inertia,com_jacobian);
+    com_jacobian.data = momentum_jacobian.data/total_inertia.getMass();
+    
+    momentum_jacobian.changeRefPoint(-total_inertia.getCOG());
+
+    Eigen::Map< Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > mapped_jacobian(jac.data(),jac.rows(),jac.cols());
+
+    mapped_jacobian = com_jacobian.data;
+    
+    Eigen::Map< Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > mapped_momentum_jacobian(momentum_jac.data(),momentum_jac.rows(),momentum_jac.cols());
+
+    mapped_momentum_jacobian = momentum_jacobian.data;
+    
+    #ifndef NDEBUG
+    std::cout << "getCOMJacobian com " << total_inertia.getCOG().x() << " " << total_inertia.getCOG().y() << " " << total_inertia.getCOG().z() << std::endl;
+    #endif
+
+    return true;
 }
 
-bool DynTree::getCOMJacobian(const yarp::sig::Matrix & jac, const std::string & part_name) const
+yarp::sig::Vector DynTree::getVelCOM() 
 {
-    return false;
+    if( com_yarp.size() != 3 ) { com_yarp.resize(3); }
+    
+    /** \todo add controls like for computePositions() */
+    kinematicRNEA();
+    computePositions();
+    
+    double m = 0;
+    KDL::Vector mdcom;
+    KDL::Vector mdcom_world;
+    KDL::Vector dcom_world;
+    for(int i=0; i < getNrOfLinks(); i++ ) {
+        double m_i = tree_graph.getLink(i)->getInertia().getMass();
+        KDL::Vector com_i = tree_graph.getLink(i)->getInertia().getCOG();
+        mdcom += X_dynamic_base[i].M*(m_i*(v[i].RefPoint(com_i)).vel);
+        m += m_i;
+    }
+       
+    mdcom_world = world_base_frame.M*mdcom;
+    
+    dcom_world = mdcom_world/m;
+    
+    memcpy(com_yarp.data(),dcom_world.data,3*sizeof(double));
+
+    return com_yarp;
+}
+
+yarp::sig::Vector DynTree::getMomentum() 
+{
+    yarp::sig::Vector momentum_yarp(6);
+    yarp::sig::Vector lin_vel(3), ang_vel(3);
+    /** \todo add controls like for computePositions() */
+    kinematicRNEA();
+    computePositions();
+    
+    double m = 0;
+    KDL::Wrench mom;
+    KDL::Wrench mom_world;
+    for(int i=0; i < getNrOfLinks(); i++ ) {
+        double m_i = tree_graph.getLink(i)->getInertia().getMass();
+        mom += (X_dynamic_base[i]*(tree_graph.getLink(i)->getInertia()*v[i]));
+        m += m_i;
+    }
+    
+    mom_world = world_base_frame*mom;
+    
+    KDLtoYarp(mom_world.force,lin_vel);
+    KDLtoYarp(mom_world.torque,ang_vel);
+    momentum_yarp.setSubvector(0,lin_vel);
+    momentum_yarp.setSubvector(3,ang_vel);
+    return momentum_yarp;
 }
 
 ////////////////////////////////////////////////////////////////////////

@@ -266,17 +266,6 @@ public:
      */
     //@{
 
-    /**    
-    * Performs the computation of the center of mass (COM) of the tree
-    * @return true if succeeds, false otherwise
-    */
-    virtual bool computeCOM()=0;
-    
-    /**
-    * Performs the computation of the center of mass jacobian of the tree
-    * @return true if succeeds, false otherwise
-    */
-    virtual bool computeCOMjacobian()=0;
     
     /**
      * Get Center of Mass of the specified part (if no part 
@@ -284,7 +273,7 @@ public:
      * @param part_name optional: the name of the part of joints to get
      * @return Center of Mass vector
      */
-    virtual yarp::sig::Vector getCOM(const std::string & part_name="") const=0;
+    virtual yarp::sig::Vector getCOM(const std::string & part_name="") =0;
     
     /**
      * Get Center of Mass Kacobian of the specified part (if no part 
@@ -293,7 +282,7 @@ public:
      * @param part_name optional: the name of the part of joints to get
      * @return true if succeeds, false otherwise
      */
-    virtual bool getCOMJacobian(const yarp::sig::Matrix & jac, const std::string & part_name="") const=0;
+    virtual bool getCOMJacobian(yarp::sig::Matrix & jac, const std::string & part_name="") =0;
 
     
     //@}

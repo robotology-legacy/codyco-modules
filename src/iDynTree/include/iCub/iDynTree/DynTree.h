@@ -10,6 +10,7 @@
 #include <kdl_codyco/treeserialization.hpp>
 #include <kdl_codyco/treepartition.hpp>
 #include <kdl_codyco/treegraph.hpp>
+#include <kdl_codyco/momentumjacobian.hpp>
 
 #include <kdl_codyco/ftsensor.hpp>
 
@@ -156,6 +157,16 @@ class DynTree : public DynTreeInterface {
         KDL::Jacobian rel_jacobian; /**< dummy variable used by getRelativeJacobian */
         KDL::CoDyCo::Traversal rel_jacobian_traversal;
         KDL::Jacobian abs_jacobian; /**< dummy variable used by getJacobian */
+        
+        //COM related quantities
+        KDL::Jacobian com_jacobian;
+        KDL::CoDyCo::MomentumJacobian momentum_jacobian;
+        KDL::Jacobian com_jac_buffer;
+        KDL::CoDyCo::MomentumJacobian momentum_jac_buffer;
+        yarp::sig::Vector com_yarp;
+        std::vector<KDL::Vector> subtree_COM;
+		std::vector<double> subtree_mass;
+		KDL::RigidBodyInertia total_inertia;
 
         
     public:
@@ -523,35 +534,40 @@ class DynTree : public DynTreeInterface {
 		* 
 		*/
 		//@{
-	
-		/**    
-		* Performs the computation of the center of mass (COM) of the tree
-		* @return true if succeeds, false otherwise
-		*/
-		virtual bool computeCOM();
-		
-		/**
-		* Performs the computation of the center of mass jacobian of the tree
-		* @return true if succeeds, false otherwise
-		*/
-		virtual bool computeCOMjacobian();
 		
 		/**
 		* Get Center of Mass of the specified part (if no part 
-		* is specified, get the joint torques of all the tree)
+		* is specified, get the COM of all the tree) expressed
+		* in the world frame 
 		* @param part_name optional: the name of the part of joints to get
 		* @return Center of Mass vector
 		*/
-		virtual yarp::sig::Vector getCOM(const std::string & part_name="") const;
+		virtual yarp::sig::Vector getCOM(const std::string & part_name="");
 		
 		/**
 		* Get Center of Mass Jacobian of the specified part (if no part 
-		* is specified, get the joint torques of all the tree)
+		* is specified, get the Jacobian of the COM of all the tree) expressed in
+		* the world frame
 		* @param jac the output jacobiam matrix
 		* @param part_name optional: the name of the part of joints to get
 		* @return true if succeeds, false otherwise
 		*/
-		virtual bool getCOMJacobian(const yarp::sig::Matrix & jac, const std::string & part_name="") const;
+		virtual bool getCOMJacobian(yarp::sig::Matrix & jac, const std::string & part_name="");
+        
+        virtual bool getCOMJacobian(yarp::sig::Matrix & jac, yarp::sig::Matrix & momentum_jac, const std::string & part_name="");
+
+        
+		/**
+		* Get Velocity of the Center of Mass of the specified part (if no part 
+		* is specified, get the joint torques of all the tree) expressed
+		* in the world frame 
+		* @param part_name optional: the name of the part of joints to get
+		* @return velocity of Center of Mass vector
+		*/
+		yarp::sig::Vector getVelCOM();
+		
+		yarp::sig::Vector getMomentum();
+
 		//@}
 		
 		/** @name Methods related to inertial parameters regressor 
