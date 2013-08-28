@@ -198,7 +198,9 @@ int main()
     int r_hand_index = icub_idyntree.getLinkIndex("r_gripper");
     int l_hand_index = icub_idyntree.getLinkIndex("l_gripper");
     
-    v_rhand = icub_idyntree.getVel(r_hand_index);
+    //By default the returned velocity is expressed in global reference frame (but with local reference point)
+    //but it is possible to specify, via the local flag, to express them in local cordinates
+    v_rhand = icub_idyntree.getVel(r_hand_index,true);
     
     //By default the absloute jacobian is expressed in global reference frame
     //but it is possible to specify, via the local flag, to express them in local cordinates
@@ -217,6 +219,16 @@ int main()
              << "Relative jacobian " << v_rhand_rel_jac.toString() << std::endl
              << "Absolute jacobian " << v_rhand_abs_jac.toString() << std::endl;
              
+    //For testing, it is also possible to check that the absolute velocity is computed correctly
+    yarp::sig::Vector abs_v_rhand, abs_v_rhand_abs_jac;
+    icub_idyntree.getJacobian(r_hand_index,abs_jacobian);
+    abs_v_rhand = icub_idyntree.getVel(r_hand_index);
+    abs_v_rhand_abs_jac = abs_jacobian*icub_idyntree.getDQ_fb();
+         
+    std::cout << "Comparison between velocities expressed in world frame" << std::endl 
+             << "Real one          " << abs_v_rhand.toString() << std::endl
+             << "Absolute jacobian " << abs_v_rhand_abs_jac.toString() << std::endl;
+    
     return 0;
     
 }

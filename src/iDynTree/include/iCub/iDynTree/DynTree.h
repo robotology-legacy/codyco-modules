@@ -432,11 +432,13 @@ class DynTree : public DynTreeInterface {
 		virtual yarp::sig::Matrix getPosition(const int first_link, const int second_link) const;
 		
 		/**
-		* Get the velocity of the specified link, expressed in the link local reference frame
-		* @param link_index the index of the link 
+        * Get the velocity of the specified link, expressed in the global reference frame, but using as reference point
+        * the origin of the link local reference frame
+        * @param link_index the index of the link 
+        * @param if true, return the velocity expressed in the link local frame
 		* @return a 6x1 vector with linear velocity \f$ {}^iv_i \f$ (0:2) and angular velocity \f$ {}^i\omega_i\f$ (3:5)
 		*/
-		virtual yarp::sig::Vector getVel(const int link_index) const;
+		virtual yarp::sig::Vector getVel(const int link_index, bool local=false) const;
 	
 		/**
 		* Get the acceleration of the specified link, expressed in the link local reference frame
@@ -491,18 +493,19 @@ class DynTree : public DynTreeInterface {
 		* 
 		*/
 		//@{
-		/**_
+		/**
 		* For a floating base structure, outpus a 6x(nrOfDOFs+6) yarp::sig::Matrix \f$ {}^i J_i \f$ such
 		* that \f$ {}^w v_i = {}^wJ_i  \dot{q}_{fb} \f$
 		* where w is the world reference frame and \f$ \dot{q}_{fb} \f$ is the floating base velocity vector,
 		* where the first 3 elements are \f$ {}^bv_b\f$, the next 3 are \f$ {}^b\omega_b\f$ and the remaing 
-		* are the proper joint velocities.
+		* are the proper joint velocities. 
 		* @param link_index the index of the link
 		* @param jac the output yarp::sig::Matrix 
 		* @param local if true, return \f$ {}^iJ_i \f$ (the Jacobian expressed in the local frame of link i) (default: false)
 		* @return true if all went well, false otherwise
 		* 
 		* \note the link used as a floating base is the base used for the dynamical loop
+        * \note {}^w v_i is expressed in the world reference frame, but its reference point is the origin of the frame of link i
 		*/
 		virtual bool getJacobian(const int link_index, yarp::sig::Matrix & jac, bool local=false);
 		
@@ -559,7 +562,7 @@ class DynTree : public DynTreeInterface {
         
 		/**
 		* Get Velocity of the Center of Mass of the specified part (if no part 
-		* is specified, get the joint torques of all the tree) expressed
+		* is specified, get the velocity of the center of mass of all tree) expressed
 		* in the world frame 
 		* @param part_name optional: the name of the part of joints to get
 		* @return velocity of Center of Mass vector

@@ -532,7 +532,7 @@ yarp::sig::Vector DynTree::getDQ_fb() const
      * 
      * \todo checking it is possible to return something which have sense
      */
-    return cat(getVel(dynamic_traversal.order[0]->getLinkIndex()),getDAng());
+    return cat(getVel(dynamic_traversal.order[0]->getLinkIndex(),true),getDAng());
 }
 
 yarp::sig::Vector DynTree::setD2Ang(const yarp::sig::Vector & _q, const std::string & part_name)
@@ -633,12 +633,21 @@ yarp::sig::Matrix DynTree::getPosition(const int first_link, const int second_li
    return KDLtoYarp_position(X_dynamic_base[first_link].Inverse()*X_dynamic_base[second_link]);
 }
 
-yarp::sig::Vector DynTree::getVel(const int link_index) const
+yarp::sig::Vector DynTree::getVel(const int link_index, bool local) const
 {
     if( link_index < 0 || link_index >= (int)tree_graph.getNrOfLinks() ) { std::cerr << "DynTree::getVel: link index " << link_index <<  " out of bounds" << std::endl; return yarp::sig::Vector(0); }
     yarp::sig::Vector ret(6), lin_vel(3), ang_vel(3);
-    KDLtoYarp(v[link_index].vel,lin_vel);
-    KDLtoYarp(v[link_index].rot,ang_vel);
+    KDL::Twist return_twist;
+    
+    if( !local ) {
+        computePositions();
+        return_twist = (world_base_frame*X_dynamic_base[link_index]).M*(v[link_index]);
+    } else {
+        return_twist = v[link_index];
+    }
+    
+    KDLtoYarp(return_twist.vel,lin_vel);
+    KDLtoYarp(return_twist.rot,ang_vel);
     ret.setSubvector(0,lin_vel);
     ret.setSubvector(3,ang_vel);
     return ret;
@@ -998,7 +1007,7 @@ bool DynTree::getJacobian(const int link_index, yarp::sig::Matrix & jac, bool lo
         //Compute the position of the world 
         //\todo compute only the needed rototranslation
         computePositions();
-        abs_jacobian.changeRefFrame(world_base_frame*X_dynamic_base[link_index]);
+        abs_jacobian.changeBase((world_base_frame*X_dynamic_base[link_index]).M);
     }
     
     Eigen::Map< Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > mapped_jacobian(jac.data(),jac.rows(),jac.cols());
