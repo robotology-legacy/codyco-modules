@@ -20,6 +20,7 @@
 #include <yarp/sig/Matrix.h>
 #include <iCub/ctrl/math.h>
 #include <iostream>
+#include <cstdio>
 
 using namespace locomotion;
 using namespace Eigen;
