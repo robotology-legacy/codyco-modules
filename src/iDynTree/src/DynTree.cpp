@@ -88,6 +88,8 @@ int ret;
     
     torques = KDL::JntArray(NrOfDOFs);
     
+    q_min = KDL::JntArray(NrOfDOFs);
+    q_max = KDL::JntArray(NrOfDOFs);
     constrained = std::vector<bool>(NrOfDOFs,false);
     constrained_count = 0;
     
@@ -617,6 +619,100 @@ bool DynTree::getSensorMeasurement(const int sensor_index, yarp::sig::Vector &ft
     ftm.setSubvector(3,torque_yarp);
     return true;
 }
+
+yarp::sig::Vector DynTree::getJointBoundMin(const std::string & part_name)
+{
+    yarp::sig::Vector ret;
+    if( part_name.length() == 0 ) 
+    {
+        KDLtoYarp(q_min,ret);
+    } else {
+        const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
+        if( dof_ids.size() ==0  ) { std::cerr << "getJointBoundMin: wrong part_name (or part with 0 DOFs)" << std::endl; return yarp::sig::Vector(0); }
+        ret.resize(dof_ids.size());
+        for(int i = 0; i < (int)dof_ids.size(); i++ ) {
+            ret[i] = q_min(dof_ids[i]);
+        }
+    }
+    return ret;
+}
+        
+yarp::sig::Vector DynTree::getJointBoundMax(const std::string & part_name)
+{
+    yarp::sig::Vector ret;
+    if( part_name.length() == 0 ) 
+    {
+        KDLtoYarp(q_max,ret);
+    } else {
+        const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
+        if( dof_ids.size() ==0  ) { std::cerr << "getJointBoundMax: wrong part_name (or part with 0 DOFs)" << std::endl; return yarp::sig::Vector(0); }
+        ret.resize(dof_ids.size());
+        for(int i = 0; i < (int)dof_ids.size(); i++ ) {
+            ret[i] = q_max(dof_ids[i]);
+        }
+    }
+    return ret;
+}
+
+bool DynTree::setJointBoundMin(const yarp::sig::Vector & _q, const std::string & part_name)
+{
+    if( part_name.length() == 0 ) {
+        if( (int)_q.size() != NrOfDOFs  ) { std::cerr << "setDAng: Input vector has a wrong number of elements" << std::endl; return false; } 
+        YarptoKDL(_q,q_min);
+    } 
+    else 
+    {
+        const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
+        if( dof_ids.size() != _q.size() ) { std::cerr << "setDAng: Input vector has a wrong number of elements (or part_name wrong)" << std::endl; return false; }
+        for(int i = 0; i < (int)dof_ids.size(); i++ ) {
+            q_min(dof_ids[i]) = _q[i];
+        }
+    }
+    return true;
+}
+
+bool DynTree::setJointBoundMax(const yarp::sig::Vector & _q, const std::string & part_name)
+{
+    if( part_name.length() == 0 ) {
+        if( (int)_q.size() != NrOfDOFs  ) { std::cerr << "setDAng: Input vector has a wrong number of elements" << std::endl; return false; } 
+        YarptoKDL(_q,q_max);
+    } 
+    else 
+    {
+        const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
+        if( dof_ids.size() != _q.size() ) { std::cerr << "setDAng: Input vector has a wrong number of elements (or part_name wrong)" << std::endl; return false; }
+        for(int i = 0; i < (int)dof_ids.size(); i++ ) {
+            q_max(dof_ids[i]) = _q[i];
+        }
+    }
+    return true;
+}
+
+void DynTree::setAllConstraints(bool _constrained)
+{
+    if( _constrained ) {
+        //all joints are now not constrained 
+        for(int i=0; i < (int)constrained.size(); i++ ) constrained[i] = false;
+        constrained_count = 0;
+    } else {
+        //all joints are now constrained
+        for(int i=0; i < (int)constrained.size(); i++ ) constrained[i] = true;
+        constrained_count = constrained.size();
+    }
+}
+
+void DynTree::setConstraint(unsigned int i, bool _constrained) 
+{
+    //If a joint is constrained, add 1 to the number of constrained joints
+    if( !constrained[i] && _constrained ) constrained_count++;
+    //If a joint is liberated from its constraint, subtract 1 from the number of constrained joints
+    if( constrained[i] && !_constrained ) constrained_count--;
+
+    constrained[i] = _constrained;  
+}
+
+bool DynTree::getConstraint(unsigned int i) { return constrained[i]; }
+
 
 yarp::sig::Matrix DynTree::getPosition(const int link_index) const
 {

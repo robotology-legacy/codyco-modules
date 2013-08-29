@@ -25,7 +25,7 @@ bool names2links_joints(const std::vector<std::string> names,std::vector<std::st
 }
 */
 
-bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl,  iCub::iDynTree::iCubTree_serialization_tag serial, bool debug)
+bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KDL::JntArray & q_min, KDL::JntArray & q_max,  iCub::iDynTree::iCubTree_serialization_tag serial, bool debug)
 {
     bool status_ok = true;
     //Joint names extracted from http://eris.liralab.it/wiki/ICub_joints
@@ -132,7 +132,7 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl,  i
     idynMatrix2kdlFrame(icub_idyn.lowerTorso->HUp,kdlFrame);
     addBaseTransformation(old_torso,torso,kdlFrame);
     
-    //not using RBT because it is an identity, and it is not clear is 
+    //not using RBT because in the iCub it is an identity, and it is not clear is 
     //semantical meaning (if is H_upper_lower or H_lower_upper ) 
     idynMatrix2kdlFrame(icub_idyn.upperTorso->HLeft,kdlFrame);
     addBaseTransformation(old_la,la,kdlFrame);
@@ -142,7 +142,29 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl,  i
     
     idynMatrix2kdlFrame(icub_idyn.upperTorso->HUp,kdlFrame);
     addBaseTransformation(old_head,head,kdlFrame);
-
+    
+    //Get joint limits
+    yarp::sig::Vector torso_min = icub_idyn.lowerTorso->up->getJointBoundMin();
+    yarp::sig::Vector torso_max = icub_idyn.lowerTorso->up->getJointBoundMax();
+    
+    yarp::sig::Vector head_min = icub_idyn.upperTorso->up->getJointBoundMin();
+    yarp::sig::Vector head_max = icub_idyn.upperTorso->up->getJointBoundMax();
+    
+    yarp::sig::Vector la_min = icub_idyn.upperTorso->left->getJointBoundMin();
+    yarp::sig::Vector la_max = icub_idyn.upperTorso->left->getJointBoundMax();
+    
+    yarp::sig::Vector ra_min = icub_idyn.upperTorso->right->getJointBoundMin();
+    yarp::sig::Vector ra_max = icub_idyn.upperTorso->right->getJointBoundMax();
+    
+    yarp::sig::Vector ll_min = icub_idyn.lowerTorso->left->getJointBoundMin();
+    yarp::sig::Vector ll_max = icub_idyn.lowerTorso->left->getJointBoundMax();
+    
+    yarp::sig::Vector rl_min = icub_idyn.lowerTorso->right->getJointBoundMin();
+    yarp::sig::Vector rl_max = icub_idyn.lowerTorso->right->getJointBoundMax();
+    
+    yarp::sig::Vector q_min_yarp;
+    yarp::sig::Vector q_max_yarp;
+    
     if( serial == iCub::iDynTree::IDYN_SERIALIZATION  ) {
         //Using serialization in iCubWholeBody
         icub_kdl.addChain(ll,real_root_name);
@@ -151,6 +173,10 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl,  i
         icub_kdl.addChain(la,arms_head_base_name);
         icub_kdl.addChain(ra,arms_head_base_name);    
         icub_kdl.addChain(head,arms_head_base_name);
+        
+        q_min_yarp = cat(ll_min,cat(rl_min,cat(torso_min,cat(la_min,cat(ra_min,head_min)))));
+        q_max_yarp = cat(ll_max,cat(rl_max,cat(torso_max,cat(la_max,cat(ra_max,head_max)))));
+        
     } else {
         assert(serial == iCub::iDynTree::SKINDYNLIB_SERIALIZATION);
         //Using serialization used in wholeBodyInterfaceYarp ans skinDynLib
@@ -160,7 +186,18 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl,  i
         icub_kdl.addChain(ra,arms_head_base_name); 
         icub_kdl.addChain(ll,real_root_name);
         icub_kdl.addChain(rl,real_root_name);   
+     
+        q_min_yarp = cat(torso_min,cat(head_min,cat(la_min,cat(ra_min,cat(ll_min,rl_min)))));
+        q_max_yarp = cat(torso_max,cat(head_max,cat(la_max,cat(ra_max,cat(ll_max,rl_max)))));
+   
     }
+    
+    q_min.resize(q_min_yarp.size());
+    q_max.resize(q_max_yarp.size());
+    
+    int jjj;
+    for(jjj=1; jjj<(int)q_min.columns(); jjj++) { q_min(jjj) = q_min_yarp(jjj); }
+    for(jjj=1; jjj<(int)q_max.columns(); jjj++) { q_max(jjj) = q_max_yarp(jjj); }
 
 
     //REP 120

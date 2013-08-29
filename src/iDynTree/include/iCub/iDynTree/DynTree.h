@@ -371,7 +371,63 @@ class DynTree : public DynTreeInterface {
 		*       RNEA backward propagation of wrenches   
 		*/
 		virtual bool getSensorMeasurement(const int sensor_index, yarp::sig::Vector &ftm) const;
-		
+        
+
+                
+        //@}
+        
+        /** @name Methods to deal with joint constraints
+        *  Activate, set and get constraints on joint values
+        */
+        //@{
+        
+        /**
+         * Returns a list containing the min value for each joint. 
+         */
+        virtual yarp::sig::Vector getJointBoundMin(const std::string & part_name="");
+        
+        /**
+         * Returns a list containing the max value for each joint.
+         */
+        virtual yarp::sig::Vector getJointBoundMax(const std::string & part_name="");
+        
+        /**
+         * Set a list containing the min value for each joint. 
+         */
+        virtual bool setJointBoundMin(const yarp::sig::Vector & _q, const std::string & part_name="");
+        
+        /**
+         * Set a list containing the max value for each joint.
+         */
+        virtual bool setJointBoundMax(const yarp::sig::Vector & _q, const std::string & part_name="");
+
+       /**
+        * Sets the constraint status of all chain links.
+        * @param _constrained is the new constraint status. 
+        */
+        virtual void setAllConstraints(bool _constrained);
+
+       /**
+        * Sets the constraint status of ith link.
+        * @param _constrained is the new constraint status. 
+        */
+       virtual void setConstraint(unsigned int i, bool _constrained);
+
+       /**
+        * Returns the constraint status of ith link. 
+        * @return current constraint status.
+        */
+        virtual bool getConstraint(unsigned int i);
+
+
+        
+        //@}
+        
+        /** @name Methods to execute phases of RNEA
+        *  Methods to execute phases of Recursive Newton Euler Algorithm
+        */
+        //@{
+        
 		//@}
 		
 		/** @name Methods to execute phases of RNEA

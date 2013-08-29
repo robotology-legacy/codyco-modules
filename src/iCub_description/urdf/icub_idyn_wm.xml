@@ -9,7 +9,7 @@
         <visual>
             <origin xyz="-0.00550012 2.9008e-13 -2.02027e-08" rpy="-1.57081 -1.5708 -3.14158" />
             <geometry>
-                <mesh filename="icub.dae#chest" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/chest.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -19,7 +19,7 @@
         <collision>
             <origin xyz="-0.00550012 2.9008e-13 -2.02027e-08" rpy="-1.57081 -1.5708 -3.14158" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#chest" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/chest.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -32,7 +32,7 @@
         <visual>
             <origin xyz="0.00449991 -0.0235 -4.98833e-08" rpy="-1.57079 1.57079 3.14159" />
             <geometry>
-                <mesh filename="icub.dae#head" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/head.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -42,7 +42,7 @@
         <collision>
             <origin xyz="0.00449991 -0.0235 -4.98833e-08" rpy="-1.57079 1.57079 3.14159" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#head" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/head.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -62,7 +62,7 @@
         <visual>
             <origin xyz="-0.001555 4.44229e-07 -0.000917916" rpy="-1.5708 1.0196e-06 -1.01962e-06" />
             <geometry>
-                <mesh filename="icub.dae#l_ankle_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_ankle_1" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -72,7 +72,7 @@
         <collision>
             <origin xyz="-0.001555 4.44229e-07 -0.000917916" rpy="-1.5708 1.0196e-06 -1.01962e-06" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#l_ankle_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_ankle_1" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -85,7 +85,7 @@
         <visual>
             <origin xyz="-0.0204334 0.15228 0.000144467" rpy="1.57082 1.309 2.42275e-05" />
             <geometry>
-                <mesh filename="icub.dae#l_arm" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_arm.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -95,7 +95,7 @@
         <collision>
             <origin xyz="-0.0204334 0.15228 0.000144467" rpy="1.57082 1.309 2.42275e-05" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#l_arm" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_arm.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -108,7 +108,7 @@
         <visual>
             <origin xyz="-0.0204333 0.000143512 4.85623e-09" rpy="-1.57079 8.255e-07 1.0196e-06" />
             <geometry>
-                <mesh filename="icub.dae#l_elbow_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_elbow_1.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -118,7 +118,7 @@
         <collision>
             <origin xyz="-0.0204333 0.000143512 4.85623e-09" rpy="-1.57079 8.255e-07 1.0196e-06" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#l_elbow_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_elbow_1.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -131,7 +131,7 @@
         <visual>
             <origin xyz="-0.001555 -4.46665e-07 0.000917916" rpy="1.63396e-06 -1.0196e-06 1.01962e-06" />
             <geometry>
-                <mesh filename="icub.dae#l_foot" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_foot.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -141,7 +141,7 @@
         <collision>
             <origin xyz="-0.001555 -4.46665e-07 0.000917916" rpy="1.63396e-06 -1.0196e-06 1.01962e-06" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#l_foot" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_foot.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -154,7 +154,7 @@
         <visual>
             <origin xyz="-0.000143422 9.22944e-08 0.0204333" rpy="2.33508 1.57079 -2.37731" />
             <geometry>
-                <mesh filename="icub.dae#l_forearm" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_forearm.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -164,7 +164,7 @@
         <collision>
             <origin xyz="-0.000143422 9.22944e-08 0.0204333" rpy="2.33508 1.57079 -2.37731" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#l_forearm" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_forearm.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -184,7 +184,7 @@
         <visual>
             <origin xyz="9.2818e-08 0.0204327 -0.00014314" rpy="1.01961e-06 -6.27059e-06 -4.49869e-06" />
             <geometry>
-                <mesh filename="icub.dae#l_hand" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_hand.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -194,7 +194,7 @@
         <collision>
             <origin xyz="9.2818e-08 0.0204327 -0.00014314" rpy="1.01961e-06 -6.27059e-06 -4.49869e-06" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#l_hand" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_hand.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -207,7 +207,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="1.5708 -1.57079 3.14159" />
             <geometry>
-                <mesh filename="icub.dae#l_hip_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_hip_1.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -217,7 +217,7 @@
         <collision>
             <origin xyz="0 0 0" rpy="1.5708 -1.57079 3.14159" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#l_hip_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_hip_1.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -230,7 +230,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="-1.57079 1.57079 -1.57079" />
             <geometry>
-                <mesh filename="icub.dae#l_hip_2" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_hip_2.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -240,7 +240,7 @@
         <collision>
             <origin xyz="0 0 0" rpy="-1.57079 1.57079 -1.57079" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#l_hip_2" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_hip_2.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -253,7 +253,7 @@
         <visual>
             <origin xyz="0.010945 0.000918134 2.30422e-07" rpy="-3.14159 -2.65357e-06 1.5708" />
             <geometry>
-                <mesh filename="icub.dae#l_shank" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_shank.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -263,7 +263,7 @@
         <collision>
             <origin xyz="0.010945 0.000918134 2.30422e-07" rpy="-3.14159 -2.65357e-06 1.5708" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#l_shank" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_shank.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -276,7 +276,7 @@
         <visual>
             <origin xyz="1.22387e-07 0.109285 -0.00521147" rpy="0.715704 1.57079 -0.855093" />
             <geometry>
-                <mesh filename="icub.dae#l_shoulder_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_shoulder_1.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -286,7 +286,7 @@
         <collision>
             <origin xyz="1.22387e-07 0.109285 -0.00521147" rpy="0.715704 1.57079 -0.855093" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#l_shoulder_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_shoulder_1.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -299,7 +299,7 @@
         <visual>
             <origin xyz="-0.00154526 -0.00521103 4.8568e-09" rpy="1.61672 1.57079 -3.09566" />
             <geometry>
-                <mesh filename="icub.dae#l_shoulder_2" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_shoulder_2.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -309,7 +309,7 @@
         <collision>
             <origin xyz="-0.00154526 -0.00521103 4.8568e-09" rpy="1.61672 1.57079 -3.09566" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#l_shoulder_2" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_shoulder_2.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -329,7 +329,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="-1.41136e-05 1.5708 1.57078" />
             <geometry>
-                <mesh filename="icub.dae#l_thigh" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_thigh.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -339,7 +339,7 @@
         <collision>
             <origin xyz="0 0 0" rpy="-1.41136e-05 1.5708 1.57078" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#l_thigh" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_thigh.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -366,7 +366,7 @@
         <visual>
             <origin xyz="9.2818e-08 0.0204327 -0.00014314" rpy="1.40961 -1.57079 -2.98041" />
             <geometry>
-                <mesh filename="icub.dae#l_wrist_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_wrist_1.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -376,7 +376,7 @@
         <collision>
             <origin xyz="9.2818e-08 0.0204327 -0.00014314" rpy="1.40961 -1.57079 -2.98041" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#l_wrist_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/l_wrist_1.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -389,7 +389,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="-1.57079 -3.6732e-06 -9.74705e-12" />
             <geometry>
-                <mesh filename="icub.dae#lap_belt_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/lap_belt_1.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -399,7 +399,7 @@
         <collision>
             <origin xyz="0 0 0" rpy="-1.57079 -3.6732e-06 -9.74705e-12" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#lap_belt_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/lap_belt_1.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -412,7 +412,7 @@
         <visual>
             <origin xyz="3.11907e-13 1.17542e-07 -2.15869e-13" rpy="1.5708 1.57079 -3.14159" />
             <geometry>
-                <mesh filename="icub.dae#lap_belt_2" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/lap_belt_2.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -422,7 +422,7 @@
         <collision>
             <origin xyz="3.11907e-13 1.17542e-07 -2.15869e-13" rpy="1.5708 1.57079 -3.14159" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#lap_belt_2" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/lap_belt_2.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -435,7 +435,7 @@
         <visual>
             <origin xyz="2.02033e-08 -3.80477e-08 -0.00550012" rpy="2.47747 -1.57079 2.23492" />
             <geometry>
-                <mesh filename="icub.dae#neck_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/neck_1.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -445,7 +445,7 @@
         <collision>
             <origin xyz="2.02033e-08 -3.80477e-08 -0.00550012" rpy="2.47747 -1.57079 2.23492" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#neck_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/neck_1.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -458,7 +458,7 @@
         <visual>
             <origin xyz="-4.82735e-08 0.00549991 0.0235" rpy="-2.67795 -1.57079 -2.03445" />
             <geometry>
-                <mesh filename="icub.dae#neck_2" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/neck_2.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -468,7 +468,7 @@
         <collision>
             <origin xyz="-4.82735e-08 0.00549991 0.0235" rpy="-2.67795 -1.57079 -2.03445" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#neck_2" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/neck_2.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -481,7 +481,7 @@
         <visual>
             <origin xyz="-0.001555 1.60279e-06 -0.00091355" rpy="-1.5708 1.10196e-05 -3.67321e-06" />
             <geometry>
-                <mesh filename="icub.dae#r_ankle_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_ankle_1.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -491,7 +491,7 @@
         <collision>
             <origin xyz="-0.001555 1.60279e-06 -0.00091355" rpy="-1.5708 1.10196e-05 -3.67321e-06" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#r_ankle_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_ankle_1.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -504,7 +504,7 @@
         <visual>
             <origin xyz="0.0204336 -0.15228 -0.000143432" rpy="-1.57078 -1.309 3.14158" />
             <geometry>
-                <mesh filename="icub.dae#r_arm" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_arm.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -514,7 +514,7 @@
         <collision>
             <origin xyz="0.0204336 -0.15228 -0.000143432" rpy="-1.57078 -1.309 3.14158" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#r_arm" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_arm.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -527,7 +527,7 @@
         <visual>
             <origin xyz="0.0204335 -0.000144 -3.42155e-09" rpy="-1.5708 8.25483e-07 -3.6732e-06" />
             <geometry>
-                <mesh filename="icub.dae#r_elbow_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_elbow_1.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -537,7 +537,7 @@
         <collision>
             <origin xyz="0.0204335 -0.000144 -3.42155e-09" rpy="-1.5708 8.25483e-07 -3.6732e-06" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#r_elbow_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_elbow_1.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -550,7 +550,7 @@
         <visual>
             <origin xyz="-0.001555 -1.60521e-06 0.00091355" rpy="-3.14159 -1.10196e-05 3.67318e-06" />
             <geometry>
-                <mesh filename="icub.dae#r_foot" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_foot.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -560,7 +560,7 @@
         <collision>
             <origin xyz="-0.001555 -1.60521e-06 0.00091355" rpy="-3.14159 -1.10196e-05 3.67318e-06" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#r_foot" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_foot.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -573,7 +573,7 @@
         <visual>
             <origin xyz="0.00014398 -9.08603e-08 -0.0204335" rpy="3.14158 1.57079 -1.5708" />
             <geometry>
-                <mesh filename="icub.dae#r_forearm" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_forearm.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -583,7 +583,7 @@
         <collision>
             <origin xyz="0.00014398 -9.08603e-08 -0.0204335" rpy="3.14158 1.57079 -1.5708" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#r_forearm" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_forearm.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -603,7 +603,7 @@
         <visual>
             <origin xyz="3.71672e-08 0.0204329 0.000145071" rpy="-3.67318e-06 3.72945e-06 3.14159" />
             <geometry>
-                <mesh filename="icub.dae#r_hand" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_hand.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -613,7 +613,7 @@
         <collision>
             <origin xyz="3.71672e-08 0.0204329 0.000145071" rpy="-3.67318e-06 3.72945e-06 3.14159" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#r_hand" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_hand.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -626,7 +626,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="1.5708 -1.57079 3.14159" />
             <geometry>
-                <mesh filename="icub.dae#r_hip_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_hip_1.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -636,7 +636,7 @@
         <collision>
             <origin xyz="0 0 0" rpy="1.5708 -1.57079 3.14159" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#r_hip_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_hip_1.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -649,7 +649,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="3.14159 -1.57079 -3.14159" />
             <geometry>
-                <mesh filename="icub.dae#r_hip_2" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_hip_2.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -659,7 +659,7 @@
         <collision>
             <origin xyz="0 0 0" rpy="3.14159 -1.57079 -3.14159" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#r_hip_2" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_hip_2.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -672,7 +672,7 @@
         <visual>
             <origin xyz="0.010945 0.000915898 8.23759e-07" rpy="-3.14159 -2.65362e-06 1.57081" />
             <geometry>
-                <mesh filename="icub.dae#r_shank" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_shank.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -682,7 +682,7 @@
         <collision>
             <origin xyz="0.010945 0.000915898 8.23759e-07" rpy="-3.14159 -2.65362e-06 1.57081" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#r_shank" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_shank.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -695,7 +695,7 @@
         <visual>
             <origin xyz="1.22387e-07 0.109285 0.00521146" rpy="1.04869 1.57079 2.61949" />
             <geometry>
-                <mesh filename="icub.dae#r_shoulder_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_shoulder_1.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -705,7 +705,7 @@
         <collision>
             <origin xyz="1.22387e-07 0.109285 0.00521146" rpy="1.04869 1.57079 2.61949" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#r_shoulder_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_shoulder_1.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -718,7 +718,7 @@
         <visual>
             <origin xyz="-0.00154534 -0.00521124 -4.86143e-09" rpy="-1.61673 -1.57079 -3.09565" />
             <geometry>
-                <mesh filename="icub.dae#r_shoulder_2" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_shoulder_2.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -728,7 +728,7 @@
         <collision>
             <origin xyz="-0.00154534 -0.00521124 -4.86143e-09" rpy="-1.61673 -1.57079 -3.09565" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#r_shoulder_2" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_shoulder_2.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -748,7 +748,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="3.14159 -1.57079 -1.5708" />
             <geometry>
-                <mesh filename="icub.dae#r_thigh" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_thigh.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -758,7 +758,7 @@
         <collision>
             <origin xyz="0 0 0" rpy="3.14159 -1.57079 -1.5708" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#r_thigh" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_thigh.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -785,7 +785,7 @@
         <visual>
             <origin xyz="-9.13877e-08 -0.0204329 0.000145071" rpy="-2.34859 -1.57079 0.777794" />
             <geometry>
-                <mesh filename="icub.dae#r_wrist_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_wrist_1.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -795,7 +795,7 @@
         <collision>
             <origin xyz="-9.13877e-08 -0.0204329 0.000145071" rpy="-2.34859 -1.57079 0.777794" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#r_wrist_1" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/r_wrist_1.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>
@@ -808,7 +808,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 -0 0" />
             <geometry>
-                <mesh filename="icub.dae#waist" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/root_link.dae" scale="1 1 1" />
             </geometry>
             <material name="material.metal">
                 <texture />
@@ -818,7 +818,7 @@
         <collision>
             <origin xyz="0 0 0" rpy="0 -0 0" />
             <geometry>
-                <mesh filename="icub_simple_collision.dae#waist" scale="1 1 1" />
+                <mesh filename="file:///home/pegua/src/codyco/src/iCub_description/urdf/icub_simple_collision/root_link.dae" scale="1 1 1" />
             </geometry>
         </collision>
     </link>

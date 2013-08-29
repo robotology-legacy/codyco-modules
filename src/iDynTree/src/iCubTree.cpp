@@ -23,6 +23,8 @@ namespace iDynTree {
 
 iCubTree::iCubTree(iCubTree_version_tag version, iCubTree_serialization_tag serial_tag, unsigned int verbose)
 {
+    yarp::sig::Vector q_min_yarp, q_max_yarp;
+    KDL::JntArray q_min_kdl, q_max_kdl;
     //Allocate an old iCubWholeBody object, with right version
     iCub::iDyn::version_tag ver;
     ver.head_version = version.head_version;
@@ -32,12 +34,12 @@ iCubTree::iCubTree(iCubTree_version_tag version, iCubTree_serialization_tag seri
     
     //Convert it to a KDL::Tree (this preserve all the frame of reference, is the conversion to URDF that changes them)
     KDL::Tree icub_kdl;
-    bool ret = toKDL(icub_idyn,icub_kdl,serial_tag);
+    bool ret = toKDL(icub_idyn,icub_kdl,q_min_kdl,q_max_kdl,serial_tag);
     assert(ret);
     if( !ret ) {
-		if( verbose ) { std::cerr << "iCubTree: error in costructor" << std::endl; }
-		return;
-	}
+        if( verbose ) { std::cerr << "iCubTree: error in costructor" << std::endl; }
+        return;
+    }
     
     //Imu link name
     std::string imu_link_name = "imu_frame";
@@ -60,6 +62,18 @@ iCubTree::iCubTree(iCubTree_version_tag version, iCubTree_serialization_tag seri
     
     this->constructor(icub_kdl,ft_names,imu_link_name,serial,icub_partition);
     
+    //Set joint limits 
+ 
+    int jjj;
+    q_min_yarp.resize(q_min_kdl.columns());
+    q_max_yarp.resize(q_max_kdl.columns());
+    for(jjj=1; jjj<(int)q_min_kdl.columns(); jjj++) { q_min_yarp(jjj) = q_min_kdl(jjj); }
+    for(jjj=1; jjj<(int)q_max_kdl.columns(); jjj++) { q_max_yarp(jjj) = q_max_kdl(jjj); }
+    
+    this->setJointBoundMin(q_min_yarp);
+    this->setJointBoundMax(q_max_yarp);
+    
+    return;
 }
 
 KDL::CoDyCo::TreePartition iCubTree::get_iCub_partition(const KDL::CoDyCo::TreeSerialization & icub_serialization)
