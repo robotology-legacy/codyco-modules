@@ -1103,9 +1103,16 @@ bool DynTree::getDynamicsParameters(yarp::sig::Vector & vec)
     return true;
 }
 
-int DynTree::getNrOfDOFs()
+int DynTree::getNrOfDOFs(const std::string & part_name)
 {
-    return tree_graph.getNrOfDOFs();
+    if( part_name.length() ==  0 ) 
+    { 
+        //No part specified
+        return tree_graph.getNrOfDOFs();        
+    } else { // if part_name.length > 0 
+        const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
+        return dof_ids.size();
+    }
 }
         
 int DynTree::getNrOfLinks()

@@ -198,7 +198,7 @@ class DynTree : public DynTreeInterface {
          *       DOFs of the floating base
          * 
          */
-        int getNrOfDOFs();
+        int getNrOfDOFs(const std::string & part_name="");
         
         /**
          * Get the number of links of the tree
