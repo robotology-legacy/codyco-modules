@@ -204,12 +204,12 @@ VectorNd LocomotionThread::solveTaskHierarchy()
     VectorNd dqDes;
     dqDes.setZero();
     // CONTACT CONSTRAINTS
-    MatrixXd Jc_pinv(n, k), Nc(n,n);
-    VectorXd svJc(k);
+    MatrixXd Jc_pinv(n, k), Jcom_pinv(n,2), Jfoot_pinv(n,6), N(n,n);
+    VectorXd svJc(k), svJcom(2), svJfoot(6);
     
     pinvTrunc(Jc, PINV_TOL, Jc_pinv);
-    Nc.setIdentity();
-    Nc -= Jc_pinv*Jc;
+    N.setIdentity();
+    N -= Jc_pinv*Jc;
     //N = Nc;
 
     //// FORCE TASK 1
