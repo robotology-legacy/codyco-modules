@@ -33,6 +33,10 @@ using namespace yarp::sig;
 #define FOR_ALL_BODY_PARTS(itBp)            FOR_ALL_BODY_PARTS_OF(itBp, jointIdList)
 // iterate over all joints of all body parts
 #define FOR_ALL(itBp, itJ)                  FOR_ALL_OF(itBp, itJ, jointIdList)
+// print the floating point vector pointed by data of size size and name name
+#define PRINT_VECTOR(name, size, data)  printf("%s: ",name); for(int i=0;i<size;i++) printf("%.1lf ",data[i]); printf("\n");
+
+#define PRINT_MATRIX(name, rows, cols, data) printf("%s:\n",name); for(int i=0;i<rows;i++){ for(int j=0;j<cols;j++) printf("%.1lf ",data[i*(cols)+j]); printf("\n"); }
 
 Vector dcm2quaternion(const Matrix &R, unsigned int verbose)
 {
@@ -285,10 +289,8 @@ bool icubWholeBodyModel::computeH(double *q, double *xBase, int linkId, double *
 bool icubWholeBodyModel::computeJacobian(double *q, double *xBase, int linkId, double *J, double *pos)
 {
     if( pos != 0 ) return false; //not implemented yet
-    
-    bool floating_base_jacobian = false; //if true the jacobian has N+6 colums, N otherwise
-    
-    Matrix complete_jacobian;
+    int dof_jacobian = dof+6;
+    Matrix complete_jacobian(6,all_q.size()+6), reduced_jacobian(6,dof_jacobian);
     
     convertBasePose(xBase,world_base_transformation);
     convertQ(q,all_q);
@@ -298,33 +300,21 @@ bool icubWholeBodyModel::computeJacobian(double *q, double *xBase, int linkId, d
     
     p_icub_model->getJacobian(linkId,complete_jacobian);
     
-    int dof_jacobian;
-
-    if( floating_base_jacobian ) {
-        dof_jacobian = dof+6;
-    } else {
-        dof_jacobian = dof;
-    }
-    
-    Matrix reduced_jacobian(6,dof_jacobian);
-        
     int i=0;
     FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
         FOR_ALL_JOINTS(itBp, itJ) {
-            if( floating_base_jacobian ) {
-                reduced_jacobian.setCol(i+6,complete_jacobian.getCol(p_icub_model->getLinkIndex(itBp->first,*itJ)));
-            } else {
-                reduced_jacobian.setCol(i,complete_jacobian.getCol(p_icub_model->getLinkIndex(itBp->first,*itJ)));
-            }
+            reduced_jacobian.setCol(i+6,complete_jacobian.getCol(6+p_icub_model->getDOFIndex(itBp->first,*itJ)));
             i++;
         }
     }
-    
-    if( floating_base_jacobian ) {
-        reduced_jacobian.setSubmatrix(complete_jacobian.submatrix(0,5,0,5),0,0);
-    }
-    
+    reduced_jacobian.setSubmatrix(complete_jacobian.submatrix(0,5,0,5),0,0);
     memcpy(J,reduced_jacobian.data(),sizeof(double)*6*dof_jacobian);
+
+#ifndef NDEBUG
+    //printf("J of link %d:\n%s\n", linkId, reduced_jacobian.submatrix(0,5,0,9).toString(1).c_str());
+    //printf("J of link %d:\n%s\n", linkId, reduced_jacobian.submatrix(0,5,10,19).toString(1).c_str());
+    //printf("J of link %d:\n%s\n", linkId, reduced_jacobian.submatrix(0,5,20,29).toString(1).c_str());
+#endif
     
     return true;
 }
@@ -338,7 +328,7 @@ bool icubWholeBodyModel::forwardKinematics(double *q, double *xB, int linkId, do
 {
     convertBasePose(xB,world_base_transformation);
     convertQ(q,all_q);
-    
+
     p_icub_model->setWorldBasePose(world_base_transformation);
     p_icub_model->setAng(all_q);
     
@@ -349,12 +339,18 @@ bool icubWholeBodyModel::forwardKinematics(double *q, double *xB, int linkId, do
     x[1] = H_w_link(1,3);
     x[2] = H_w_link(2,3);
     
-    axisangle = iCub::ctrl::dcm2axis(H_w_link);
+    axisangle = iCub::ctrl::dcm2axis(H_w_link.submatrix(0,2,0,2));
     
     x[3] = axisangle(0);
     x[4] = axisangle(1);
     x[5] = axisangle(2);
     x[6] = axisangle(3);
+
+//#ifndef NDEBUG
+//    PRINT_VECTOR("xB", 7, xB);
+//    PRINT_VECTOR("q", jointIdList.size(), q);
+//    PRINT_MATRIX("world_base_transformation", 4, 4, world_base_transformation.data());
+//#endif
     
     return true;
 }

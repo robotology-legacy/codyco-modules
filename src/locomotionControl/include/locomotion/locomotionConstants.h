@@ -27,20 +27,22 @@ using namespace paramHelp;
 using namespace Eigen;
 using namespace std;
 
-static const int       ICUB_DOFS = 23;    // number of (the main) degrees of freedom of iCub
+static const int       ICUB_DOFS = 25;    // number of (the main) degrees of freedom of iCub
 
 // define some types
+typedef yarp::sig::Matrix               MatrixY;    // to not mistake Yarp Matrix and Eigen Matrix
 typedef Matrix<double,6,1>              Vector6d;
 typedef Matrix<double,7,1>              Vector7d;
 typedef Matrix<double,ICUB_DOFS,1>      VectorNd;
 typedef Matrix<int,ICUB_DOFS,1>         VectorNi;
-typedef Matrix<double,6,ICUB_DOFS+6>    JacobianMatrix;
+typedef Matrix<double,6,ICUB_DOFS+6,RowMajor>   JacobianMatrix;
 
 namespace locomotion
 {
 
-// *** CONSTANTS RELATED TO THE MODULE PARAMETERS
-static const double    KP_MAX = 100.0;    // max value of proportional gains
+// *** CONSTANTS
+static const double     KP_MAX          = 100.0;    // max value of proportional gains
+static const double     PINV_TOL        = 1e-4;     // threshold for truncated pseudoinverses
 
 enum LocomotionSupportPhase
 { SUPPORT_DOUBLE, SUPPORT_LEFT, SUPPORT_RIGHT };     // foot support phase
@@ -92,7 +94,7 @@ const ParamDescription locomotionParamDescr[]  =
 ParamDescription("name",            PARAM_ID_MODULE_NAME,       PARAM_DATA_STRING,  1,                          PARAM_BOUNDS_INF,                   PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
 ParamDescription("period",          PARAM_ID_CTRL_PERIOD,       PARAM_DATA_INT,     1,                          ParamBounds(1, 1000),               PARAM_CONFIG,       &DEFAULT_CTRL_PERIOD,           "Period of the control loop (ms)"), 
 ParamDescription("robot",           PARAM_ID_ROBOT_NAME,        PARAM_DATA_STRING,  1,                          PARAM_BOUNDS_INF,                   PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
-// ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************
+// ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************************
 ParamDescription("kp com",          PARAM_ID_KP_COM,            PARAM_DATA_FLOAT,   2,                          ParamBounds(0.0, KP_MAX),           PARAM_IN_OUT,       DEFAULT_KP_COM.data(),          "Proportional gain for the COM position control"), 
 ParamDescription("kp foot",         PARAM_ID_KP_FOOT,           PARAM_DATA_FLOAT,   6,                          ParamBounds(0.0, KP_MAX),           PARAM_IN_OUT,       DEFAULT_KP_FOOT.data(),         "Proportional gain for the foot pose control"), 
 ParamDescription("kp posture",      PARAM_ID_KP_POSTURE,        PARAM_DATA_FLOAT,   ParamSize(ICUB_DOFS,true),  ParamBounds(0.0, KP_MAX),           PARAM_IN_OUT,       DEFAULT_KP_POSTURE.data(),      "Proportional gain for the joint posture control"), 

@@ -28,11 +28,11 @@
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 #include <wbi/wbi.h>
 #include <map>
-#if __APPLE__
-#include <tr1/unordered_map>
-#else
-#include <unordered_map>
-#endif
+//#if __APPLE__
+//#include <tr1/unordered_map>
+//#else
+//#include <unordered_map>
+//#endif
 #include <vector>
 #include <iCub/iDynTree/iCubTree.h>
 

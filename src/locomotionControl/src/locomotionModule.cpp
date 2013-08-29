@@ -65,7 +65,7 @@ bool LocomotionModule::configure(ResourceFinder &rf)
     // Read parameters from configuration file (or command line)
     Bottle initMsg;
     paramHelper->initializeParams(rf, initMsg);
-    printf("%s\n", initMsg.toString().c_str());
+    printBottle(initMsg);
 
     // Open ports for communicating with other modules
     if(!paramHelper->init(moduleName)){ fprintf(stderr, "Error while initializing parameter helper. Closing module.\n"); return false; }
@@ -150,6 +150,7 @@ bool LocomotionModule::updateModule()
         return false;
     }
 
+#ifdef NDEBUG
     ctrlThread->getEstPeriod(avgTime, stdDev);
     ctrlThread->getEstUsed(avgTimeUsed, stdDevUsed);     // real duration of run()
     if(avgTime > 1.3 * period)
@@ -157,6 +158,7 @@ bool LocomotionModule::updateModule()
         printf("[WARNING] Control loop is too slow. Real period: %3.3f+/-%3.3f. Expected period %d.\n", avgTime, stdDev, period);
         printf("Duration of 'run' method: %3.3f+/-%3.3f.\n", avgTimeUsed, stdDevUsed);
     }
+#endif
 
     return true;
 }

@@ -34,9 +34,10 @@
 #include <iCub/skinDynLib/skinContactList.h>
 #include <Eigen/Core>                               // import most common Eigen types
 
-#include <wbi\wbi.h>
-#include <paramHelp\paramHelpServer.h>
-#include <locomotion\locomotionConstants.h>
+#include <wbi/wbi.h>
+#include <paramHelp/paramHelpServer.h>
+#include <locomotion/locomotionConstants.h>
+#include <locomotion/equalityQP.h>
 
 
 using namespace yarp::os;
@@ -69,6 +70,9 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     Vector7d            xBase;                  // position/orientation of the floating base
     JacobianMatrix      Jcom;                   // Jacobian of the center of mass
     JacobianMatrix      Jfoot;                  // Jacobian of the controlled foot
+    JacobianMatrix      JfootR;                 // Jacobian of the right foot
+    JacobianMatrix      JfootL;                 // Jacobian of the left foot
+    MatrixXd            Jc;                     // Jacobian of the constraints
 
     // Module parameters
     Vector              kp_com;
@@ -82,6 +86,7 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     // Input streaming parameters
     //Vector2d            xd_com; Vector7d            xd_foot;    VectorNd            qd;
     Vector              xd_com, xd_foot, qd;    // desired positions (use yarp vector because minJerkTrajGen wants yarp vector)
+    MatrixY             H_w2b;                  // rotation matrix from world to base reference frame
 
     // Output streaming parameters
     Vector              xr_com, xr_foot, qr;    // reference positions (use yarp vector because minJerkTrajGen gives yarp vector)
@@ -97,12 +102,16 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     minJerkTrajGen      *trajGenCom, *trajGenFoot, *trajGenPosture;
 
     enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
-    void sendMsg(const string &msg, MsgType msgType=MSG_INFO) throw();
+    void sendMsg(const string &msg, MsgType msgType=MSG_INFO);
 
-    void sendMonitorData() throw();
+    void sendMonitorData();
 
     bool readRobotStatus(bool blockingRead=false);
     bool updateReferenceTrajectories();
+    /** Compute joint velocities by solving a hierarchy of QPs (1st QP for COM, 2nd for foot, 3rd for posture) */
+    VectorNd solveTaskHierarchy();
+
+
 
 public:	
     
@@ -111,7 +120,7 @@ public:
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    LocomotionThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi) throw();
+    LocomotionThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi);
 	
     bool threadInit();	
     void run();

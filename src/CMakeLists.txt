@@ -8,12 +8,11 @@ add_subdirectory(sensorsInterfaces)
 
 add_subdirectory(comStepper)
 add_subdirectory(linearRegressorsAdaptiveControl)
-#add_subdirectory(locomotionControl)
-#add_subdirectory(locomotionPlanner)
+add_subdirectory(locomotionControl)
+add_subdirectory(locomotionPlanner)
 #add_subdirectory(iCub_description/urdf_iDyn)
 #add_subdirectory(reachComBalance)
 
 add_subdirectory(tests/iDynTreeJacobianTest)
 add_subdirectory(tests/iDynTreeTest)
-
 #add_subdirectory(wholeBodyInterfaceYarpTest)
