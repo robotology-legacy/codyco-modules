@@ -304,6 +304,7 @@ bool icubWholeBodyModel::computeH(double *q, double *xBase, int linkId, double *
     }
 
     memcpy(H,H_result.data(),4*4*sizeof(double));
+    return true;
 }
 
 bool icubWholeBodyModel::computeJacobian(double *q, double *xBase, int linkId, double *J, double *pos)
