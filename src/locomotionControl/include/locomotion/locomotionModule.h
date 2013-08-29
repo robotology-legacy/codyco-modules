@@ -25,9 +25,9 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Vocab.h>
 
-#include <paramHelp\paramHelpServer.h>
-#include <wbiy\wbiy.h>
-#include <locomotion\locomotionThread.h>
+#include <paramHelp/paramHelpServer.h>
+#include <wbiy/wbiy.h>
+#include <locomotion/locomotionThread.h>
  
 using namespace std;
 using namespace yarp::os; 

@@ -25,7 +25,7 @@
 #include <fstream>
 #include <iomanip>
 
-#include <locomotion\locomotionModule.h>
+#include <locomotion/locomotionModule.h>
 
 
 using namespace yarp::dev;
