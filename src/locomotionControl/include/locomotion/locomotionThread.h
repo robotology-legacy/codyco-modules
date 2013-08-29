@@ -72,12 +72,13 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     int                 _n;                     // current number of active joints
     int                 _k;                     // current number of constraints
     Vector7d            xBase;                  // position/orientation of the floating base
-    JacobianMatrix      Jcom_6xN;               // Jacobian of the center of mass (6 x N)
-    JacobianCom         Jcom_2xN;               // Jacobian of the center of mass (2 x N)
+    JacobianMatrix      Jcom_6xN;               // Jacobian of the center of mass (6 x N, where N=n+6)
+    JacobianCom         Jcom_2xN;               // Jacobian of the center of mass (2 x N, where N=n+6)
     JacobianMatrix      Jfoot;                  // Jacobian of the controlled foot
     JacobianMatrix      JfootR;                 // Jacobian of the right foot
     JacobianMatrix      JfootL;                 // Jacobian of the left foot
-    MatrixXd            Jc;                     // Jacobian of the constraints (k x N)
+    MatrixXd            Jposture;               // Jacobian of the posture (n x N, where N=n+6)
+    MatrixXd            Jc;                     // Jacobian of the constraints (k x N, where N=n+6)
 
     // Module parameters
     Vector              kp_com;
@@ -98,9 +99,12 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     Vector              dxr_com, dxr_foot, dqr; // reference velocities (use yarp vector because minJerkTrajGen gives yarp vector)
     Vector              x_com, x_foot, q;       // measured positions (use yarp vector because minJerkTrajGen gives yarp vector)
     Vector              dxc_com, dxc_foot, dqc; // commanded velocities (use yarp vector because minJerkTrajGen gives yarp vector)
-    Vector2d            dxc_comE;               // commanded velocity of the COM
-    Vector6d            dxc_footE;
-    VectorXd            dqcE;
+    Map<Vector2d>       dxc_comE;               // commanded velocity of the COM
+    Map<Vector6d>       dxc_footE;
+    Map<VectorXd>       dqcE;
+    //Vector2d            dxc_comE;               // commanded velocity of the COM
+    //Vector6d            dxc_footE;
+    //VectorXd            dqcE;
     
 
     // Trajectory generators

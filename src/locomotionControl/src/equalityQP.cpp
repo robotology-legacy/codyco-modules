@@ -60,7 +60,7 @@ void locomotion::pinvTrunc(const MatrixXd &A, double tol, MatrixXd &Apinv, Vecto
             Spinv(c,c) = 1/sv(c);
     // compute pseudoinverse
     Apinv = svd.matrixV() * Spinv  * svd.matrixU().transpose();
-    if(svP==0)
+    if(svP!=0)
         *svP = sv;
 }
 
@@ -85,7 +85,7 @@ void locomotion::pinvDampTrunc(const MatrixXd &A, double tol, double damp, Matri
     // compute pseudoinverses
     Apinv       = svd.matrixV() * Spinv  * svd.matrixU().transpose();   // truncated pseudoinverse
     ApinvDamp   = svd.matrixV() * SpinvD * svd.matrixU().transpose();   // damped pseudoinverse
-    if(svP==0)
+    if(svP!=0)
         *svP = sv;
 }
 

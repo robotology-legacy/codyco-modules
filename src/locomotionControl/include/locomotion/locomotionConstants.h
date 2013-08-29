@@ -39,6 +39,16 @@ typedef Matrix<double,6,Dynamic,RowMajor>   JacobianMatrix;     // a Jacobian is
 
 namespace locomotion
 {
+/** List of available parameters of IOFormat constructor:
+    precision       number of digits for floating point values, or one of the special constants StreamPrecision and FullPrecision.
+    flags           either 0, or DontAlignCols, which allows to disable the alignment of columns, resulting in faster code.
+    coeffSeparator  string printed between two coefficients of the same row
+    rowSeparator    string printed between two rows
+    rowPrefix       string printed at the beginning of each row
+    rowSuffix       string printed at the end of each row
+    matPrefix       string printed at the beginning of the matrix
+    matSuffix       string printed at the end of the matrix */
+static const IOFormat   matrixPrintFormat(1, DontAlignCols, " ", ";\n", "", "", "[", "]");
 
 // *** CONSTANTS
 static const double     KP_MAX          = 100.0;    // max value of proportional gains

@@ -24,7 +24,7 @@ using namespace yarp::math;
 
 //*************************************************************************************************************************
 LocomotionThread::LocomotionThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
-    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi)
+    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), dxc_comE(0), dxc_footE(0), dqcE(0,0)
 {
 
 }
@@ -35,7 +35,7 @@ bool LocomotionThread::threadInit()
     _n = robot->getJointList().size();
     assert(robot->getLinkId("r_foot", LINK_ID_RIGHT_FOOT));
     assert(robot->getLinkId("l_foot", LINK_ID_LEFT_FOOT));
-    comLinkId           = 0; // iWholeBodyModel::COM_LINK_ID; // use 0 until Silvio implements COM kinematics
+    comLinkId           = iWholeBodyModel::COM_LINK_ID; // use 0 until Silvio implements COM kinematics
     
     // resize all Yarp vectors
     x_com.resize(DEFAULT_XDES_COM.size(), 0.0);         // measured pos
@@ -64,10 +64,9 @@ bool LocomotionThread::threadInit()
     H_w2b = eye(4,4);
 
     // map Yarp vectors to Eigen vectors
-    dxc_comE.Map(dxc_com.data());
-    dxc_footE.Map(dxc_foot.data());
-    dqcE.resize(_n);
-    dqcE.Map(dqc.data(), _n);
+    new (&dxc_comE)     Map<Vector2d>(dxc_com.data());
+    new (&dxc_footE)    Map<Vector6d>(dxc_foot.data());
+    new (&dqcE)         Map<VectorXd>(dqc.data(), _n);
 
     // link module rpc parameters to member variables
     assert(paramHelper->linkParam(PARAM_ID_KP_COM,              kp_com.data()));
@@ -110,6 +109,7 @@ bool LocomotionThread::threadInit()
     Jfoot.resize(NoChange, _n+6);
     JfootR.resize(NoChange, _n+6);
     JfootL.resize(NoChange, _n+6);
+    Jposture = MatrixXd::Identity(_n, _n+6);
     Jc.resize(_k, _n+6);
 
     // read robot status (to be done before initializing trajectory generators)
@@ -138,14 +138,15 @@ void LocomotionThread::run()
     dxc_foot    =/*dxr_foot+*/ kp_foot   *compute6DError(x_foot, xr_foot);  // temporarely remove feedforward velocity because it is 7d (whereas it should be 6d)
     dqc         = dqr       +  kp_posture*(qr      - q);
 
+#ifdef PRINT_X_FOOT
     printf("\n*********************************************************************\n");
     printf("x foot:            %s\n", x_foot.toString(2).c_str());
     printf("x ref foot:        %s\n", xr_foot.toString(2).c_str());
     printf("x des foot:        %s\n", xd_foot.toString(2).c_str());
     printf("dx ref foot:       %s\n", dxr_foot.toString(2).c_str());
     printf("dx foot commanded: %s\n", dxc_foot.toString(2).c_str());
-    
-    //VectorNd dqMotors = solveTaskHierarchy();   // prioritized velocity control
+#endif
+    VectorXd dqMotors = solveTaskHierarchy();   // prioritized velocity control
 
     paramHelper->sendStreamParams();
     paramHelper->unlock();
@@ -204,7 +205,7 @@ VectorXd LocomotionThread::solveTaskHierarchy()
 {
     // allocate memory
     int k = _k, n = _n;
-    MatrixXd Jc_pinv(n+6, k), Jcom_pinv(n+6,2), Jcom_pinvD(n+6,2), Jfoot_pinv(n+6,6), Jfoot_pinvD(n+6,6), N(n+6,n+6);
+    MatrixXd Jc_pinv(n+6,k), Jcom_pinv(n+6,2), Jcom_pinvD(n+6,2), Jfoot_pinv(n+6,6), Jfoot_pinvD(n+6,6), Jposture_pinv(n+6,n), N(n+6,n+6);
     VectorXd dqDes(n+6), svJc(k), svJcom(2), svJfoot(6);
     // initialize variables
     dqDes.setZero();
@@ -213,20 +214,31 @@ VectorXd LocomotionThread::solveTaskHierarchy()
     pinvTrunc(Jc, PINV_TOL, Jc_pinv, &svJc);
     N -= Jc_pinv*Jc;
     // COM CTRL TASK
-    Jcom_2xN = Jcom_2xN * N;
-    pinvDampTrunc(Jcom_2xN, PINV_TOL, pinvDamp, Jcom_pinv, Jcom_pinvD, &svJcom);
+    pinvDampTrunc(Jcom_2xN*N, PINV_TOL, pinvDamp, Jcom_pinv, Jcom_pinvD, &svJcom);
     dqDes += Jcom_pinvD*dxc_comE;
-    N -= Jcom_pinv*Jcom_2xN;
+#ifndef NDEBUG 
+    assertEqual(Jc*N, MatrixXd::Zero(k,n+6), "Jc*Nc=0");
+    assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dqCom=0");
+#endif
+    N -= Jcom_pinv*Jcom_2xN*N;
     // FOOT CTRL TASK
-    Jfoot = Jfoot * N;
-    pinvDampTrunc(Jfoot, PINV_TOL, pinvDamp, Jfoot_pinv, Jfoot_pinvD, &svJfoot);
+    pinvDampTrunc(Jfoot*N, PINV_TOL, pinvDamp, Jfoot_pinv, Jfoot_pinvD, &svJfoot);
     dqDes += Jfoot_pinvD*(dxc_footE - Jfoot*dqDes);
-    N -= Jfoot_pinv*Jfoot;
+#ifndef NDEBUG 
+    assertEqual(Jc*N, MatrixXd::Zero(k,n+6), "Jc*N=0");
+    assertEqual(Jcom_2xN*N, MatrixXd::Zero(2,n+6), "Jcom_2xN*Ncom=0");
+    assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dqFoot=0");
+#endif
+    N -= Jfoot_pinv*Jfoot*N;
     // POSTURE TASK
-    dqDes += N*dqcE;  //Old implementation (should give same result): dqDes += N*(dqcE - dqDes);
+    pinvTrunc(Jposture*N, PINV_TOL, Jposture_pinv);
+    dqDes += Jposture_pinv*(dqcE - Jposture*dqDes);  //Old implementation (should give same result): dqDes += N*(dqcE - dqDes);
 
 #ifndef NDEBUG
-    assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dq=0");
+    assertEqual(Jc*N, MatrixXd::Zero(k,n+6), "Jc*N=0");
+    assertEqual(Jcom_2xN*N, MatrixXd::Zero(2,n+6), "Jcom_2xN*N=0");
+    assertEqual(Jfoot*N, MatrixXd::Zero(6,n+6), "Jfoot*N=0");
+    assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dqDes=0");
 #endif
 
     return dqDes.block(0,0,n,1);
