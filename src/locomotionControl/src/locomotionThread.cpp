@@ -199,15 +199,16 @@ bool LocomotionThread::updateReferenceTrajectories()
 //*************************************************************************************************************************
 VectorNd LocomotionThread::solveTaskHierarchy()
 {
+    int k = Jc.rows();
+    int n = Jc.cols();
     VectorNd dqDes;
     dqDes.setZero();
     // CONTACT CONSTRAINTS
-    int k = Jc.cols();
-    MatrixXd Jc_pinv(Jc.cols(), k);
-    MatrixXd Nc(k,k);
+    MatrixXd Jc_pinv(n, k), Nc(n,n);
     VectorXd svJc(k);
+    
     pinvTrunc(Jc, PINV_TOL, Jc_pinv);
-    Nc.setIdentity(k,k);
+    Nc.setIdentity();
     Nc -= Jc_pinv*Jc;
     //N = Nc;
 
