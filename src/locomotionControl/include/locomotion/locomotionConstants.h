@@ -30,12 +30,12 @@ using namespace std;
 static const int       ICUB_DOFS = 25;    // number of (the main) degrees of freedom of iCub
 
 // define some types
-typedef yarp::sig::Matrix               MatrixY;    // to not mistake Yarp Matrix and Eigen Matrix
-typedef Matrix<double,6,1>              Vector6d;
-typedef Matrix<double,7,1>              Vector7d;
-typedef Matrix<double,ICUB_DOFS,1>      VectorNd;
-typedef Matrix<int,ICUB_DOFS,1>         VectorNi;
-typedef Matrix<double,6,ICUB_DOFS+6,RowMajor>   JacobianMatrix;
+typedef yarp::sig::Matrix                   MatrixY;    // to not mistake Yarp Matrix and Eigen Matrix
+typedef Matrix<double,6,1>                  Vector6d;
+typedef Matrix<double,7,1>                  Vector7d;
+typedef Matrix<double,ICUB_DOFS,1>          VectorNd;
+typedef Matrix<int,ICUB_DOFS,1>             VectorNi;
+typedef Matrix<double,6,Dynamic,RowMajor>   JacobianMatrix;     // a Jacobian is 6 rows and N columns
 
 namespace locomotion
 {

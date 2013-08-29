@@ -32,39 +32,42 @@ LocomotionThread::LocomotionThread(string _name, string _robotName, int _period,
 //*************************************************************************************************************************
 bool LocomotionThread::threadInit()
 {
-    Vector zxx(2);
-
+    _n = robot->getJointList().size();
     assert(robot->getLinkId("r_foot", LINK_ID_RIGHT_FOOT));
     assert(robot->getLinkId("l_foot", LINK_ID_LEFT_FOOT));
     comLinkId           = 0; // iWholeBodyModel::COM_LINK_ID; // use 0 until Silvio implements COM kinematics
     
-    // resize Eigen vectors that are not fixed-size
-    
     // resize all Yarp vectors
-    x_com.resize(DEFAULT_XDES_COM.size(), 0.0);          // measured pos
-    x_foot.resize(DEFAULT_XDES_FOOT.size(), 0.0);        // measured pos
-    q.resize(DEFAULT_QDES.size(), 0.0);                  // measured pos
-    xd_com.resize(DEFAULT_XDES_COM.size(), 0.0);         // desired pos
-    xd_foot.resize(DEFAULT_XDES_FOOT.size(), 0.0);       // desired pos
-    qd.resize(DEFAULT_QDES.size(), 0.0);                 // desired pos
-    xr_com.resize(DEFAULT_XDES_COM.size(), 0.0);         // reference pos
-    xr_foot.resize(DEFAULT_XDES_FOOT.size(), 0.0);       // reference pos
-    qr.resize(DEFAULT_QDES.size(), 0.0);                 // reference pos
-    dxr_com.resize(DEFAULT_XDES_COM.size(), 0.0);        // reference vel
-    dxr_foot.resize(DEFAULT_XDES_FOOT.size(), 0.0);      // reference vel
-    dqr.resize(DEFAULT_QDES.size(), 0.0);                // reference vel
-    dxc_com.resize(DEFAULT_XDES_COM.size(), 0.0);        // commanded vel
-    dxc_foot.resize(DEFAULT_XDES_FOOT.size(), 0.0);      // commanded vel
-    dqc.resize(DEFAULT_QDES.size(), 0.0);                // commanded vel
-    kp_com.resize(DEFAULT_XDES_COM.size(), 0.0);         // proportional gain
-    kp_foot.resize(DEFAULT_XDES_FOOT.size(), 0.0);       // proportional gain
-    kp_posture.resize(DEFAULT_QDES.size(), 0.0);         // proportional gain
+    x_com.resize(DEFAULT_XDES_COM.size(), 0.0);         // measured pos
+    x_foot.resize(DEFAULT_XDES_FOOT.size(), 0.0);       // measured pos
+    q.resize(_n, 0.0);                                  // measured pos
+
+    xd_com.resize(DEFAULT_XDES_COM.size(), 0.0);        // desired pos
+    xd_foot.resize(DEFAULT_XDES_FOOT.size(), 0.0);      // desired pos
+    qd.resize(_n, 0.0);                                 // desired pos
+
+    xr_com.resize(DEFAULT_XDES_COM.size(), 0.0);        // reference pos
+    xr_foot.resize(DEFAULT_XDES_FOOT.size(), 0.0);      // reference pos
+    qr.resize(_n, 0.0);                                 // reference pos
+
+    dxr_com.resize(DEFAULT_XDES_COM.size(), 0.0);       // reference vel
+    dxr_foot.resize(6, 0.0);                            // reference vel
+    dqr.resize(_n, 0.0);                                // reference vel
+
+    dxc_com.resize(DEFAULT_XDES_COM.size(), 0.0);       // commanded vel
+    dxc_foot.resize(6, 0.0);                            // commanded vel
+    dqc.resize(_n, 0.0);                                // commanded vel
+
+    kp_com.resize(DEFAULT_XDES_COM.size(), 0.0);        // proportional gain
+    kp_foot.resize(6, 0.0);                             // proportional gain
+    kp_posture.resize(DEFAULT_QDES.size(), 0.0);        // proportional gain
     H_w2b = eye(4,4);
 
     // map Yarp vectors to Eigen vectors
     dxc_comE.Map(dxc_com.data());
     dxc_footE.Map(dxc_foot.data());
-    dqcE.Map(dqc.data());
+    dqcE.resize(_n);
+    dqcE.Map(dqc.data(), _n);
 
     // link module rpc parameters to member variables
     assert(paramHelper->linkParam(PARAM_ID_KP_COM,              kp_com.data()));
@@ -100,7 +103,16 @@ bool LocomotionThread::threadInit()
     assert(paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
     assert(paramHelper->registerCommandCallback(COMMAND_ID_STOP,            this));
 
-    // read robot status
+    // resize Eigen vectors that are not fixed-size (to be done before readRobotStatus)
+    _k = supportPhase==SUPPORT_DOUBLE ? 12 : 6;     // current number of constraints 
+    Jcom_6xN.resize(NoChange, _n+6);
+    Jcom_2xN.resize(NoChange, _n+6);
+    Jfoot.resize(NoChange, _n+6);
+    JfootR.resize(NoChange, _n+6);
+    JfootL.resize(NoChange, _n+6);
+    Jc.resize(_k, _n+6);
+
+    // read robot status (to be done before initializing trajectory generators)
     if(!readRobotStatus(true))
         return false;
 
@@ -122,9 +134,9 @@ void LocomotionThread::run()
     readRobotStatus();              // read encoders, compute positions and Jacobians
     updateReferenceTrajectories();  // compute reference trajectories
     
-    dxc_com     = dxr_com   + kp_com    *(xr_com  - x_com);
-    dxc_foot    = dxr_foot  + kp_foot   *(xr_foot - x_foot);
-    dqc         = dqr       + kp_posture*(qr      - q);
+    dxc_com     = dxr_com   +  kp_com    *(xr_com  - x_com);
+    dxc_foot    =/*dxr_foot+*/ kp_foot   *compute6DError(x_foot, xr_foot);  // temporarely remove feedforward velocity because it is 7d (whereas it should be 6d)
+    dqc         = dqr       +  kp_posture*(qr      - q);
 
     printf("\n*********************************************************************\n");
     printf("x foot:            %s\n", x_foot.toString(2).c_str());
@@ -133,7 +145,7 @@ void LocomotionThread::run()
     printf("dx ref foot:       %s\n", dxr_foot.toString(2).c_str());
     printf("dx foot commanded: %s\n", dxc_foot.toString(2).c_str());
     
-    VectorNd dqMotors = solveTaskHierarchy();   // prioritized velocity control
+    //VectorNd dqMotors = solveTaskHierarchy();   // prioritized velocity control
 
     paramHelper->sendStreamParams();
     paramHelper->unlock();
@@ -159,25 +171,16 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     // compute Jacobians of both feet and CoM
     robot->computeJacobian(q.data(), xBase.data(), LINK_ID_RIGHT_FOOT,  JfootR.data());
     robot->computeJacobian(q.data(), xBase.data(), LINK_ID_LEFT_FOOT,   JfootL.data());
-    robot->computeJacobian(q.data(), xBase.data(), comLinkId,  Jcom.data());
-    
+    robot->computeJacobian(q.data(), xBase.data(), comLinkId,           Jcom_6xN.data());
+    // convert Jacobians
+    Jcom_2xN = Jcom_6xN.topRows<2>();
     Jfoot = supportPhase==SUPPORT_LEFT ? JfootL : JfootR;
-    int k = supportPhase==SUPPORT_DOUBLE ? 12 : 6;
-    int n = q.size();
-    Jc.resize(k, n);
-    if(supportPhase==SUPPORT_DOUBLE)
-    {
-        Jc.topLeftCorner(6,n)       = JfootR;
-        Jc.bottomLeftCorner(6,n)    = JfootL;
-    }
-    else if(supportPhase==SUPPORT_LEFT)
-        Jc = JfootL;
-    else
-        Jc = JfootR;
+    if(supportPhase==SUPPORT_DOUBLE){       Jc.topRows<6>()=JfootR; Jc.bottomRows<6>()=JfootL; }
+    else if(supportPhase==SUPPORT_LEFT)     Jc = JfootL;
+    else                                    Jc = JfootR;
 
     //cout<< "J foot 1:\n" << fixed<< setw(4)<< setprecision(1)<< Jfoot.block(0,0,6,5) <<endl;
     //cout<< "J foot 2:\n" << fixed<< setw(4)<< setprecision(1)<< Jfoot.block(0,5,6,15) <<endl;
-    
     return res;
 }
 
@@ -197,43 +200,36 @@ bool LocomotionThread::updateReferenceTrajectories()
 }
 
 //*************************************************************************************************************************
-VectorNd LocomotionThread::solveTaskHierarchy()
+VectorXd LocomotionThread::solveTaskHierarchy()
 {
-    int k = Jc.rows();
-    int n = Jc.cols();
-    VectorNd dqDes;
+    // allocate memory
+    int k = _k, n = _n;
+    MatrixXd Jc_pinv(n+6, k), Jcom_pinv(n+6,2), Jcom_pinvD(n+6,2), Jfoot_pinv(n+6,6), Jfoot_pinvD(n+6,6), N(n+6,n+6);
+    VectorXd dqDes(n+6), svJc(k), svJcom(2), svJfoot(6);
+    // initialize variables
     dqDes.setZero();
-    // CONTACT CONSTRAINTS
-    MatrixXd Jc_pinv(n, k), Jcom_pinv(n,2), Jfoot_pinv(n,6), N(n,n);
-    VectorXd svJc(k), svJcom(2), svJfoot(6);
-    
-    pinvTrunc(Jc, PINV_TOL, Jc_pinv);
     N.setIdentity();
+    // CONTACT CONSTRAINTS
+    pinvTrunc(Jc, PINV_TOL, Jc_pinv, &svJc);
     N -= Jc_pinv*Jc;
-    //N = Nc;
+    // COM CTRL TASK
+    Jcom_2xN = Jcom_2xN * N;
+    pinvDampTrunc(Jcom_2xN, PINV_TOL, pinvDamp, Jcom_pinv, Jcom_pinvD, &svJcom);
+    dqDes += Jcom_pinvD*dxc_comE;
+    N -= Jcom_pinv*Jcom_2xN;
+    // FOOT CTRL TASK
+    Jfoot = Jfoot * N;
+    pinvDampTrunc(Jfoot, PINV_TOL, pinvDamp, Jfoot_pinv, Jfoot_pinvD, &svJfoot);
+    dqDes += Jfoot_pinvD*(dxc_footE - Jfoot*dqDes);
+    N -= Jfoot_pinv*Jfoot;
+    // POSTURE TASK
+    dqDes += N*dqcE;  //Old implementation (should give same result): dqDes += N*(dqcE - dqDes);
 
-    //// FORCE TASK 1
-    //J = hier.f1.J*N;
-    //pinvDampTrunc( J, J_pinv, J_pinvD, svJf1, PINV_TOL, hier.f1.pinvDamp, U, V, Spinv, SpinvD);
-    //dqDesF1 = J_pinvD*(dxF1Des - hier.f1.J*dqDes);
-    //dqDes += ddqDesF1;
-    //N -= J_pinv*J;
-    //// POSITION TASK 2
-    //J = hier.p2.J * N;
-    //pinvDampTrunc(J, J_pinv, J_pinvD, svJ2, PINV_TOL, hier.p2.pinvDamp, U, V, Spinv, SpinvD);
-    //dqDes2 = J_pinvD*(dx2Des - hier.p2.J*dqDes);
-    //dqDes += dqDes2;
-    //N -= J_pinv*J;
-    //// POSITION TASK 1
-    //J = hier.p1.J * N;
-    //pinvDampTrunc(J, J_pinv, J_pinvD, svJ1, PINV_TOL, hier.p1.pinvDamp, U, V, Spinv, SpinvD);
-    //dqDes1 = J_pinvD*(dx1Des - hier.p1.J*dqDes);
-    //dqDes += dqDes1;
-    //N -= J_pinv*J;
-    //// POSTURE TASK
-    //dqDes += N*(dqDesPost - dqDes);
+#ifndef NDEBUG
+    assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dq=0");
+#endif
 
-    return dqDes;
+    return dqDes.block(0,0,n,1);
 }
 
 //*************************************************************************************************************************

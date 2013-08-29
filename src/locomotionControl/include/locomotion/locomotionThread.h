@@ -53,6 +53,8 @@ using namespace Eigen;
 namespace locomotion
 {
 
+typedef Eigen::Matrix<double,2,Dynamic,RowMajor> JacobianCom;
+
 /** Locomotion control thread: this thread sends velocity commands to the robot motors
   * trying to track the desired position trajectory of the COM, swinging foot and joint posture.
   */
@@ -67,12 +69,15 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     int                 LINK_ID_RIGHT_FOOT, LINK_ID_LEFT_FOOT;
     int                 footLinkId;             // id of the controlled foot link
     int                 comLinkId;              // id of the COM
+    int                 _n;                     // current number of active joints
+    int                 _k;                     // current number of constraints
     Vector7d            xBase;                  // position/orientation of the floating base
-    JacobianMatrix      Jcom;                   // Jacobian of the center of mass
+    JacobianMatrix      Jcom_6xN;               // Jacobian of the center of mass (6 x N)
+    JacobianCom         Jcom_2xN;               // Jacobian of the center of mass (2 x N)
     JacobianMatrix      Jfoot;                  // Jacobian of the controlled foot
     JacobianMatrix      JfootR;                 // Jacobian of the right foot
     JacobianMatrix      JfootL;                 // Jacobian of the left foot
-    MatrixXd            Jc;                     // Jacobian of the constraints
+    MatrixXd            Jc;                     // Jacobian of the constraints (k x N)
 
     // Module parameters
     Vector              kp_com;
@@ -94,8 +99,8 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     Vector              x_com, x_foot, q;       // measured positions (use yarp vector because minJerkTrajGen gives yarp vector)
     Vector              dxc_com, dxc_foot, dqc; // commanded velocities (use yarp vector because minJerkTrajGen gives yarp vector)
     Vector2d            dxc_comE;               // commanded velocity of the COM
-    Vector7d            dxc_footE;
-    VectorNd            dqcE;
+    Vector6d            dxc_footE;
+    VectorXd            dqcE;
     
 
     // Trajectory generators
@@ -109,7 +114,7 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     bool readRobotStatus(bool blockingRead=false);
     bool updateReferenceTrajectories();
     /** Compute joint velocities by solving a hierarchy of QPs (1st QP for COM, 2nd for foot, 3rd for posture) */
-    VectorNd solveTaskHierarchy();
+    VectorXd solveTaskHierarchy();
 
 
 

@@ -17,9 +17,32 @@
 
 #include <locomotion/equalityQP.h>
 #include <Eigen/SVD>
+#include <yarp/sig/Matrix.h>
+#include <iCub/ctrl/math.h>
+#include <iostream>
 
 using namespace locomotion;
+using namespace Eigen;
+using namespace std;
+using namespace iCub::ctrl;
+using namespace yarp::math;
 
+//*************************************************************************************************************************
+yarp::sig::Vector locomotion::compute6DError(const yarp::sig::Vector &x, const yarp::sig::Vector &xd)
+{
+    yarp::sig::Matrix R     = axis2dcm(x.subVector(3,6));
+    yarp::sig::Matrix Rdes  = axis2dcm(xd.subVector(3,6));
+    yarp::sig::Matrix Re    = Rdes * R.transposed();
+    yarp::sig::Vector aa    = dcm2axis(Re);
+    yarp::sig::Vector res(6);
+    res[0] = xd[0]-x[0];
+    res[1] = xd[1]-x[1];
+    res[2] = xd[2]-x[2];
+    res[3] = aa[3] * aa[0];
+    res[4] = aa[3] * aa[1];
+    res[5] = aa[3] * aa[2];
+    return res;
+}
 
 //*************************************************************************************************************************
 void locomotion::pinvTrunc(const MatrixXd &A, double tol, MatrixXd &Apinv, VectorXd *svP)
@@ -65,4 +88,26 @@ void locomotion::pinvDampTrunc(const MatrixXd &A, double tol, double damp, Matri
         *svP = sv;
 }
 
+//*************************************************************************************************************************
+void locomotion::assertEqual(const MatrixXd &A, const MatrixXd &B, string testName, double tol)
+{
+    if(A.cols() != B.cols() || A.rows()!=B.rows())
+    {
+        cout<< testName<< ": dim(A) != dim(B): " << A.rows()<< "x"<<A.cols()<<" != "<< B.rows()<< "x"<<B.cols()<<endl;
+        return testFailed(testName);
+    }
+    for(int r=0; r<A.rows(); r++)
+        for(int c=0; c<A.cols(); c++)
+            if(abs(A(r,c)-B(r,c))>tol)
+            {
+                printf("%s: element %d,%d is different, absolute difference is %f\n", testName.c_str(), r, c, abs(A(r,c)-B(r,c)));
+                return testFailed(testName);
+            }
+}
 
+//*************************************************************************************************************************
+void locomotion::testFailed(string testName)
+{
+    printf("Test %s ***FAILED*** !!!\n", testName.c_str());
+    assert(false);
+}

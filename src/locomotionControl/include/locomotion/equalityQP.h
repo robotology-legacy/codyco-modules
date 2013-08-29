@@ -19,14 +19,22 @@
 #define EQUALITY_QP
 
 #include <Eigen/Core>                               // import most common Eigen types
-#include <vector>
+#include <yarp/sig/Vector.h>
 #include <string>
-
-using namespace Eigen;
-using namespace std;
 
 namespace locomotion
 {
+
+/** Tolerance for considering two values equal */
+const double ZERO_TOL = 1e-5;
+
+/**
+ * Given the real position/orientation and the desired position/orientation, compute the error as a linear/angular velocity.
+ * @param x Real position/orientation as 7d vector
+ * @param xd Desired position/orientation as a 7d vector
+ * @return w Output 6d vector, linear/angular velocity
+ */
+yarp::sig::Vector compute6DError(const yarp::sig::Vector &x, const yarp::sig::Vector &xd);
 
 /** Compute the truncated pseudoinverse of the specified matrix A. 
   * This version of the function takes addtional input matrices to avoid allocating memory and so improve 
@@ -38,7 +46,7 @@ namespace locomotion
   * @param Spinv Output kXk matrix (with k=min(m,n)), truncated pseudoinverse of the singular value matrix of A. 
   * @param Apinv Output nXm matrix, truncated pseudoinverse of A.
   * @param sv Output (optional) k-dim vector (with k=min(m,n)), singular values of A. */
-void pinvTrunc(const MatrixXd &A, double tol, MatrixXd &Apinv, VectorXd *sv=0);
+void pinvTrunc(const Eigen::MatrixXd &A, double tol, Eigen::MatrixXd &Apinv, Eigen::VectorXd *sv=0);
 
 /** Compute two different pseudoinverses of the specified matrix A: a truncated pseudoinverse and a
   * damped pseudoinverse. The difference between the two versions is that the truncated version sets to zero
@@ -51,7 +59,11 @@ void pinvTrunc(const MatrixXd &A, double tol, MatrixXd &Apinv, VectorXd *sv=0);
   * @param Apinv Output nXm matrix, truncated pseudoinverse of A.
   * @param ApinvDamp Output nXm matrix, damped pseudoinverse of A.
   * @param sv Output (optional) k-dim vector (with k=min(m,n)), singular values of A. */
-void pinvDampTrunc(const MatrixXd &A, double tol, double damp, MatrixXd &Apinv, MatrixXd &ApinvDamp, VectorXd *sv=0);
+void pinvDampTrunc(const Eigen::MatrixXd &A, double tol, double damp, Eigen::MatrixXd &Apinv, Eigen::MatrixXd &ApinvDamp, Eigen::VectorXd *sv=0);
+
+void assertEqual(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B, std::string testName, double tol = ZERO_TOL);
+
+void testFailed(std::string testName);
 
 }
 
