@@ -14,5 +14,5 @@ add_subdirectory(locomotionPlanner)
 #add_subdirectory(reachComBalance)
 
 add_subdirectory(tests/iDynTreeJacobianTest)
-add_subdirectory(tests/iDynTreeTest)
+#add_subdirectory(tests/iDynTreeTest)
 #add_subdirectory(wholeBodyInterfaceYarpTest)
