@@ -283,12 +283,38 @@ bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
 
 bool icubWholeBodyModel::computeH(double *q, double *xBase, int linkId, double *H)
 {
-    return false;    
+    if( (linkId < 0 || linkId >= p_icub_model->getNrOfLinks()) && linkId != COM_LINK_ID ) return false;
+    
+    convertBasePose(xBase,world_base_transformation);
+    convertQ(q,all_q);
+
+    p_icub_model->setWorldBasePose(world_base_transformation);
+    p_icub_model->setAng(all_q);
+    
+    Matrix H_result;
+    if( linkId != COM_LINK_ID ) {
+        H_result = p_icub_model->getPosition(linkId);
+        if( H_result.cols() != 4 || H_result.rows() != 4 ) { return false; }
+    } else {
+       H_result = Matrix(4,4);
+       H_result.eye();
+       Vector com = p_icub_model->getCOM();
+       if( com.size() == 0 ) { return false; }
+       H_result.setSubcol(com,0,3);
+    }
+
+    memcpy(H,H_result.data(),4*4*sizeof(double));
 }
 
 bool icubWholeBodyModel::computeJacobian(double *q, double *xBase, int linkId, double *J, double *pos)
 {
+    if( (linkId < 0 || linkId >= p_icub_model->getNrOfLinks()) && linkId != COM_LINK_ID ) return false;
+
+    
     if( pos != 0 ) return false; //not implemented yet
+    
+    bool ret_val;
+    
     int dof_jacobian = dof+6;
     Matrix complete_jacobian(6,all_q.size()+6), reduced_jacobian(6,dof_jacobian);
     
@@ -298,7 +324,15 @@ bool icubWholeBodyModel::computeJacobian(double *q, double *xBase, int linkId, d
     p_icub_model->setWorldBasePose(world_base_transformation);
     p_icub_model->setAng(all_q);
     
-    p_icub_model->getJacobian(linkId,complete_jacobian);
+    //Get Jacobian, the one of the link or the one of the COM
+    if( linkId != COM_LINK_ID ) {
+         ret_val = p_icub_model->getJacobian(linkId,complete_jacobian);
+         if( !ret_val ) return false;
+    } else {
+         ret_val = p_icub_model->getCOMJacobian(complete_jacobian);
+         if( !ret_val ) return false;
+    }
+
     
     int i=0;
     FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
@@ -326,20 +360,36 @@ bool icubWholeBodyModel::computeDJdq(double *q, double *xB, double *dq, double *
 
 bool icubWholeBodyModel::forwardKinematics(double *q, double *xB, int linkId, double *x)
 {
+    if( (linkId < 0 || linkId >= p_icub_model->getNrOfLinks()) && linkId != COM_LINK_ID ) return false;
+    
     convertBasePose(xB,world_base_transformation);
     convertQ(q,all_q);
 
     p_icub_model->setWorldBasePose(world_base_transformation);
     p_icub_model->setAng(all_q);
     
-    Matrix H_w_link = p_icub_model->getPosition(linkId);
+    Matrix H_result;
+
+    if( linkId != COM_LINK_ID ) {
+        H_result = p_icub_model->getPosition(linkId);
+        if( H_result.cols() != 4 || H_result.rows() != 4 ) { return false; }
+    } else {
+       H_result = Matrix(4,4);
+       H_result.eye();
+       Vector com = p_icub_model->getCOM();
+       if( com.size() == 0 ) { return false; }
+       H_result.setSubcol(com,0,3);
+    }
+
+    
+    
     Vector axisangle(4);
     
-    x[0] = H_w_link(0,3);
-    x[1] = H_w_link(1,3);
-    x[2] = H_w_link(2,3);
+    x[0] = H_result(0,3);
+    x[1] = H_result(1,3);
+    x[2] = H_result(2,3);
     
-    axisangle = iCub::ctrl::dcm2axis(H_w_link.submatrix(0,2,0,2));
+    axisangle = iCub::ctrl::dcm2axis(H_result.submatrix(0,2,0,2));
     
     x[3] = axisangle(0);
     x[4] = axisangle(1);
