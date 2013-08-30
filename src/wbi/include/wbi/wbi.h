@@ -120,10 +120,10 @@ namespace wbi
         LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4, const LocalIdList &lid5);
         
         /** Convert a local id to a global id */
-        virtual int localToGlobalId(const LocalId &i);
+        virtual int localToGlobalId(const LocalId &i) const;
 
         /** Convert a global id to a local id */
-        virtual LocalId globalToLocalId(int globalId);
+        virtual LocalId globalToLocalId(int globalId) const;
         
         /** Remove the specified joint from the list */
         virtual bool removeId(const LocalId &i);
@@ -141,15 +141,15 @@ namespace wbi
         virtual int addIdList(const LocalIdList &i);
         
         /** Get the number of ids in this list */
-        virtual unsigned int size();
+        virtual unsigned int size() const;
         
         /* Check whether the specified body part is present in this list. */
-        virtual bool containsBodyPart(int bp){ return !(find(bp)==end()); }
+        virtual bool containsBodyPart(int bp) const{ return !(find(bp)==end()); }
         
         /* Check whether the specified id is present in this list. */        
-        virtual bool containsId(const LocalId &i);
+        virtual bool containsId(const LocalId &i) const;
         
-        virtual std::string toString();
+        virtual std::string toString() const;
     };
     
     
