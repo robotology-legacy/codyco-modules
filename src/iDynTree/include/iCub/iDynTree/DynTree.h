@@ -107,7 +107,7 @@ class DynTree  {
         int NrOfDynamicSubGraphs;
         
         //state of the robot
-        KDL::Frame world_base_frame; /**< the position of the floating base frame with respect to the world reference frame \f$ {}^w H_b */
+        KDL::Frame world_base_frame; /**< the position of the floating base frame with respect to the world reference frame \f$ {}^w H_b \f$ */
         
         KDL::JntArray q;
         KDL::JntArray dq;
@@ -427,9 +427,7 @@ class DynTree  {
         virtual bool getSensorMeasurement(const int sensor_index, yarp::sig::Vector &ftm) const;
         
 
-                
-        //@}
-        
+                        
         /** @name Methods to deal with joint constraints
         *  Activate, set and get constraints on joint values
         */
