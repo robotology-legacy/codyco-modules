@@ -25,10 +25,10 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Vocab.h>
 
-#include <paramHelp\paramHelpClient.h>
-#include <paramHelp\paramHelpServer.h>
-#include <wbiy\wbiy.h>
-#include <locomotionPlanner\locomotionPlannerThread.h>
+#include <paramHelp/paramHelpClient.h>
+#include <paramHelp/paramHelpServer.h>
+#include <wbiy/wbiy.h>
+#include <locomotionPlanner/locomotionPlannerThread.h>
  
 using namespace std;
 using namespace yarp::os; 

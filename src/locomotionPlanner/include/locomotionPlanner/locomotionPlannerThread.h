@@ -34,10 +34,10 @@
 #include <iCub/skinDynLib/skinContactList.h>
 #include <Eigen/Core>                               // import most common Eigen types
 
-#include <wbi\wbi.h>
-#include <paramHelp\paramHelpServer.h>
-#include <paramHelp\paramHelpClient.h>
-#include <locomotionPlanner\locomotionPlannerConstants.h>
+#include <wbi/wbi.h>
+#include <paramHelp/paramHelpServer.h>
+#include <paramHelp/paramHelpClient.h>
+#include <locomotionPlanner/locomotionPlannerConstants.h>
 
 
 using namespace yarp::os;
@@ -81,9 +81,9 @@ class LocomotionPlannerThread: public Thread, public ParamObserver, public Comma
     // Output streaming parameters
     
     enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
-    void sendMsg(const string &msg, MsgType msgType=MSG_INFO) throw();
+    void sendMsg(const string &msg, MsgType msgType=MSG_INFO) ;
 
-    void sendMonitorData() throw();
+    void sendMonitorData() ;
 
 public:	
     
@@ -92,7 +92,7 @@ public:
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    LocomotionPlannerThread(string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient   *_lc, wholeBodyInterface *_wbi) throw();
+    LocomotionPlannerThread(string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient   *_lc, wholeBodyInterface *_wbi) ;
 	
     bool threadInit();	
     void run();
