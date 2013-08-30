@@ -212,7 +212,7 @@ int main()
     //In this example we calculate the Jacobian between the two hands
     icub_idyntree.getRelativeJacobian(r_hand_index,l_hand_index,rel_jacobian);
     
-    v_rhand_rel_jac = rel_jacobian*icub_idyntree.getDAng() + adjoint_twist(icub_idyntree.getPosition(r_hand_index,l_hand_index))*icub_idyntree.getVel(l_hand_index);
+    //v_rhand_rel_jac = rel_jacobian*icub_idyntree.getDAng() + adjoint_twist(icub_idyntree.getPosition(r_hand_index,l_hand_index))*icub_idyntree.getVel(l_hand_index);
     
     std::cout << "Comparison between velocities" << std::endl 
              << "Real one          " << v_rhand.toString() << std::endl

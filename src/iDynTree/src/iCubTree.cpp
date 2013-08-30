@@ -65,10 +65,10 @@ iCubTree::iCubTree(iCubTree_version_tag version, iCubTree_serialization_tag seri
     //Set joint limits 
  
     int jjj;
-    q_min_yarp.resize(q_min_kdl.columns());
-    q_max_yarp.resize(q_max_kdl.columns());
-    for(jjj=1; jjj<(int)q_min_kdl.columns(); jjj++) { q_min_yarp(jjj) = q_min_kdl(jjj); }
-    for(jjj=1; jjj<(int)q_max_kdl.columns(); jjj++) { q_max_yarp(jjj) = q_max_kdl(jjj); }
+    q_min_yarp.resize(q_min_kdl.rows());
+    q_max_yarp.resize(q_max_kdl.rows());
+    for(jjj=1; jjj<(int)q_min_kdl.rows(); jjj++) { q_min_yarp(jjj) = q_min_kdl(jjj); }
+    for(jjj=1; jjj<(int)q_max_kdl.rows(); jjj++) { q_max_yarp(jjj) = q_max_kdl(jjj); }
     
     this->setJointBoundMin(q_min_yarp);
     this->setJointBoundMax(q_max_yarp);

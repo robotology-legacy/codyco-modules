@@ -657,13 +657,13 @@ yarp::sig::Vector DynTree::getJointBoundMax(const std::string & part_name)
 bool DynTree::setJointBoundMin(const yarp::sig::Vector & _q, const std::string & part_name)
 {
     if( part_name.length() == 0 ) {
-        if( (int)_q.size() != NrOfDOFs  ) { std::cerr << "setDAng: Input vector has a wrong number of elements" << std::endl; return false; } 
+        if( (int)_q.size() != NrOfDOFs  ) { std::cerr << "setJointBoundMin error: input vector has size " << _q.size() <<  " while should have size " << NrOfDOFs << std::endl; return false; } 
         YarptoKDL(_q,q_min);
     } 
     else 
     {
         const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
-        if( dof_ids.size() != _q.size() ) { std::cerr << "setDAng: Input vector has a wrong number of elements (or part_name wrong)" << std::endl; return false; }
+        if( dof_ids.size() != _q.size() ) { std::cerr << "setJointBoundMax error: Input vector has a wrong number of elements (or part_name wrong)" << std::endl; return false; }
         for(int i = 0; i < (int)dof_ids.size(); i++ ) {
             q_min(dof_ids[i]) = _q[i];
         }
@@ -674,13 +674,13 @@ bool DynTree::setJointBoundMin(const yarp::sig::Vector & _q, const std::string &
 bool DynTree::setJointBoundMax(const yarp::sig::Vector & _q, const std::string & part_name)
 {
     if( part_name.length() == 0 ) {
-        if( (int)_q.size() != NrOfDOFs  ) { std::cerr << "setDAng: Input vector has a wrong number of elements" << std::endl; return false; } 
+        if( (int)_q.size() != NrOfDOFs  ) { std::cerr << "setJointBoundMax error: input vector has size " << _q.size() <<  " while should have size " << NrOfDOFs << std::endl; return false; } 
         YarptoKDL(_q,q_max);
     } 
     else 
     {
         const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
-        if( dof_ids.size() != _q.size() ) { std::cerr << "setDAng: Input vector has a wrong number of elements (or part_name wrong)" << std::endl; return false; }
+        if( dof_ids.size() != _q.size() ) { std::cerr << "setJointBoundMax error: Input vector has a wrong number of elements (or part_name wrong)" << std::endl; return false; }
         for(int i = 0; i < (int)dof_ids.size(); i++ ) {
             q_max(dof_ids[i]) = _q[i];
         }

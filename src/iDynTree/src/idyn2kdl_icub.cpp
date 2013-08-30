@@ -191,14 +191,13 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KD
         q_max_yarp = cat(torso_max,cat(head_max,cat(la_max,cat(ra_max,cat(ll_max,rl_max)))));
    
     }
-    
+       
     q_min.resize(q_min_yarp.size());
     q_max.resize(q_max_yarp.size());
     
     int jjj;
-    for(jjj=1; jjj<(int)q_min.columns(); jjj++) { q_min(jjj) = q_min_yarp(jjj); }
-    for(jjj=1; jjj<(int)q_max.columns(); jjj++) { q_max(jjj) = q_max_yarp(jjj); }
-
+    for(jjj=1; jjj<(int)q_min.rows(); jjj++) { q_min(jjj) = q_min_yarp(jjj); }
+    for(jjj=1; jjj<(int)q_max.rows(); jjj++) { q_max(jjj) = q_max_yarp(jjj); }
 
     //REP 120
     
