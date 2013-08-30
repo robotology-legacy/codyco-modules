@@ -165,8 +165,8 @@ class DynTree : public DynTreeInterface {
         KDL::CoDyCo::MomentumJacobian momentum_jac_buffer;
         yarp::sig::Vector com_yarp;
         std::vector<KDL::Vector> subtree_COM;
-		std::vector<double> subtree_mass;
-		KDL::RigidBodyInertia total_inertia;
+        std::vector<double> subtree_mass;
+        KDL::RigidBodyInertia total_inertia;
 
         
     public:
@@ -256,121 +256,121 @@ class DynTree : public DynTreeInterface {
          */
         int getDOFIndex(const std::string & part_name, const int local_DOF_index);
     
-		/**
-		* Set the rototranslation between the world and the base reference
-		* frames, expressed in the world reference frame \f$ {}^wH_b \f$ 
-		* 
-		* @param H_w_p a 4x4 rototranslation matrix
-		* @return true if all went well, false otherwise (a problem in the input)
-		*/
-		bool setWorldBasePose(const yarp::sig::Matrix & H_w_p);
-		
-		/**
-		* Get the rototranslation between the world and the base reference
-		* frames, expressed in the world reference frame \f$ {}^wH_b \f$ 
-		* 
-		* @return H_w_p a 4x4 rototranslation matrix
-		*/
-		yarp::sig::Matrix getWorldBasePose();
-		
-		/**
-		* Set joint positions in the specified part (if no part 
-		* is specified, set the joint positions of all the tree)
-		* @param _q vector of joints position
-		* @param part_name optional: the name of the part of joint to set
-		* @return the effective joint positions, considering min/max values
-		*/
-		virtual yarp::sig::Vector setAng(const yarp::sig::Vector & _q, const std::string & part_name="") ;
-		
-		/**
-		* Get joint positions in the specified part (if no part 
-		* is specified, get the joint positions of all the tree)
-		* @param part_name optional: the name of the part of joints to set
-		* @return vector of joint positions
-		*/
-		virtual yarp::sig::Vector getAng(const std::string & part_name="") const;
-		
-		/**
-		* Set joint speeds in the specified part (if no part 
-		* is specified, set the joint speeds of all the tree)
-		* @param _q vector of joint speeds
-		* @param part_name optional: the name of the part of joints to set
-		* @return the effective joint speeds, considering min/max values
-		*/
-		virtual yarp::sig::Vector setDAng(const yarp::sig::Vector & _q, const std::string & part_name="");
-		
-		/**
-		* Get joint speeds in the specified part (if no part 
-		* is specified, get the joint speeds of all the tree)
-		* @param part_name optional: the name of the part of joints to get
-		* @return vector of joint speeds
-		* 
-		* \note please note that this does returns a vector of size getNrOfDOFs()
-		*/
-		virtual yarp::sig::Vector getDAng(const std::string & part_name="") const;
-		
-		/**
-		* Set joint accelerations in the specified part (if no part 
-		* is specified, set the joint accelerations of all the tree)
-		* @param _q vector of joint speeds
-		* @param part_name optional: the name of the part of joints to set
-		* @return the effective joint accelerations, considering min/max values
-		*/
-		virtual yarp::sig::Vector setD2Ang(const yarp::sig::Vector & _q, const std::string & part_name="");
-		
-		/**
-		* Get joint speeds in the specified part (if no part 
-		* is specified, get the joint speeds of all the tree)
-		* @param part_name optional: the name of the part of joints to get
-		* @return vector of joint accelerations
-		*/
-		virtual yarp::sig::Vector getD2Ang(const std::string & part_name="") const;
-		
-	
-		/**
-		* Set the inertial sensor measurements 
-		* @param w0 a 3x1 vector with the initial/measured angular velocity
-		* @param dw0 a 3x1 vector with the initial/measured angular acceleration
-		* @param ddp0 a 3x1 vector with the initial/measured 3D proper (with gravity) linear acceleration
-		* @return true if succeeds (correct vectors size), false otherwise
-		*/
-		virtual bool setInertialMeasure(const yarp::sig::Vector &w0, const yarp::sig::Vector &dw0, const yarp::sig::Vector &ddp0);
-		
-		/**
-		* Get the inertial sensor measurements 
-		* @param w0 a 3x1 vector with the initial/measured angular velocity
-		* @param dw0 a 3x1 vector with the initial/measured angular acceleration
-		* @param ddp0 a 3x1 vector with the initial/measured 3D proper (with gravity) linear acceleration
-		* @return true if succeeds (correct vectors size), false otherwise
-		*/
-		virtual bool getInertialMeasure(yarp::sig::Vector &w0, yarp::sig::Vector &dw0, yarp::sig::Vector &ddp0) const;
-	
-		/**
-		* Set the FT sensor measurements on the specified sensor 
-		* @param sensor_index the code of the specified sensor
-		* @param ftm a 6x1 vector with forces (0:2) and moments (3:5) measured by the FT sensor
-		* @return true if succeeds, false otherwise
-		* 
-		* \warning The convention used to serialize the wrench (Force-Torque) is different
-		*          from the one used in Spatial Algebra (Torque-Force)
-		* 
-		*/
-		virtual bool setSensorMeasurement(const int sensor_index, const yarp::sig::Vector &ftm);
-		
-		/**
-		* Get the FT sensor measurements on the specified sensor 
-		* @param sensor_index the code of the specified sensor
-		* @param ftm a 6x1 vector with forces (0:2) and moments (3:5) measured by the FT sensor
-		* @return true if succeeds, false otherwise
-		* 
-		* \warning The convention used to serialize the wrench (Force-Torque) is different
-		*          from the one used in Spatial Algebra (Torque-Force)
-		* 
-		* \note if dynamicRNEA() is called without before calling estimateContactForces() this
-		*       function retrives the "simulated" measure of the sensor from the
-		*       RNEA backward propagation of wrenches   
-		*/
-		virtual bool getSensorMeasurement(const int sensor_index, yarp::sig::Vector &ftm) const;
+        /**
+        * Set the rototranslation between the world and the base reference
+        * frames, expressed in the world reference frame \f$ {}^wH_b \f$ 
+        * 
+        * @param H_w_p a 4x4 rototranslation matrix
+        * @return true if all went well, false otherwise (a problem in the input)
+        */
+        bool setWorldBasePose(const yarp::sig::Matrix & H_w_p);
+        
+        /**
+        * Get the rototranslation between the world and the base reference
+        * frames, expressed in the world reference frame \f$ {}^wH_b \f$ 
+        * 
+        * @return H_w_p a 4x4 rototranslation matrix
+        */
+        yarp::sig::Matrix getWorldBasePose();
+        
+        /**
+        * Set joint positions in the specified part (if no part 
+        * is specified, set the joint positions of all the tree)
+        * @param _q vector of joints position
+        * @param part_name optional: the name of the part of joint to set
+        * @return the effective joint positions, considering min/max values
+        */
+        virtual yarp::sig::Vector setAng(const yarp::sig::Vector & _q, const std::string & part_name="") ;
+        
+        /**
+        * Get joint positions in the specified part (if no part 
+        * is specified, get the joint positions of all the tree)
+        * @param part_name optional: the name of the part of joints to set
+        * @return vector of joint positions
+        */
+        virtual yarp::sig::Vector getAng(const std::string & part_name="") const;
+        
+        /**
+        * Set joint speeds in the specified part (if no part 
+        * is specified, set the joint speeds of all the tree)
+        * @param _q vector of joint speeds
+        * @param part_name optional: the name of the part of joints to set
+        * @return the effective joint speeds, considering min/max values
+        */
+        virtual yarp::sig::Vector setDAng(const yarp::sig::Vector & _q, const std::string & part_name="");
+        
+        /**
+        * Get joint speeds in the specified part (if no part 
+        * is specified, get the joint speeds of all the tree)
+        * @param part_name optional: the name of the part of joints to get
+        * @return vector of joint speeds
+        * 
+        * \note please note that this does returns a vector of size getNrOfDOFs()
+        */
+        virtual yarp::sig::Vector getDAng(const std::string & part_name="") const;
+        
+        /**
+        * Set joint accelerations in the specified part (if no part 
+        * is specified, set the joint accelerations of all the tree)
+        * @param _q vector of joint speeds
+        * @param part_name optional: the name of the part of joints to set
+        * @return the effective joint accelerations, considering min/max values
+        */
+        virtual yarp::sig::Vector setD2Ang(const yarp::sig::Vector & _q, const std::string & part_name="");
+        
+        /**
+        * Get joint speeds in the specified part (if no part 
+        * is specified, get the joint speeds of all the tree)
+        * @param part_name optional: the name of the part of joints to get
+        * @return vector of joint accelerations
+        */
+        virtual yarp::sig::Vector getD2Ang(const std::string & part_name="") const;
+        
+    
+        /**
+        * Set the inertial sensor measurements 
+        * @param w0 a 3x1 vector with the initial/measured angular velocity
+        * @param dw0 a 3x1 vector with the initial/measured angular acceleration
+        * @param ddp0 a 3x1 vector with the initial/measured 3D proper (with gravity) linear acceleration
+        * @return true if succeeds (correct vectors size), false otherwise
+        */
+        virtual bool setInertialMeasure(const yarp::sig::Vector &w0, const yarp::sig::Vector &dw0, const yarp::sig::Vector &ddp0);
+        
+        /**
+        * Get the inertial sensor measurements 
+        * @param w0 a 3x1 vector with the initial/measured angular velocity
+        * @param dw0 a 3x1 vector with the initial/measured angular acceleration
+        * @param ddp0 a 3x1 vector with the initial/measured 3D proper (with gravity) linear acceleration
+        * @return true if succeeds (correct vectors size), false otherwise
+        */
+        virtual bool getInertialMeasure(yarp::sig::Vector &w0, yarp::sig::Vector &dw0, yarp::sig::Vector &ddp0) const;
+    
+        /**
+        * Set the FT sensor measurements on the specified sensor 
+        * @param sensor_index the code of the specified sensor
+        * @param ftm a 6x1 vector with forces (0:2) and moments (3:5) measured by the FT sensor
+        * @return true if succeeds, false otherwise
+        * 
+        * \warning The convention used to serialize the wrench (Force-Torque) is different
+        *          from the one used in Spatial Algebra (Torque-Force)
+        * 
+        */
+        virtual bool setSensorMeasurement(const int sensor_index, const yarp::sig::Vector &ftm);
+        
+        /**
+        * Get the FT sensor measurements on the specified sensor 
+        * @param sensor_index the code of the specified sensor
+        * @param ftm a 6x1 vector with forces (0:2) and moments (3:5) measured by the FT sensor
+        * @return true if succeeds, false otherwise
+        * 
+        * \warning The convention used to serialize the wrench (Force-Torque) is different
+        *          from the one used in Spatial Algebra (Torque-Force)
+        * 
+        * \note if dynamicRNEA() is called without before calling estimateContactForces() this
+        *       function retrives the "simulated" measure of the sensor from the
+        *       RNEA backward propagation of wrenches   
+        */
+        virtual bool getSensorMeasurement(const int sensor_index, yarp::sig::Vector &ftm) const;
         
 
                 
@@ -428,228 +428,221 @@ class DynTree : public DynTreeInterface {
         */
         //@{
         
-		//@}
-		
-		/** @name Methods to execute phases of RNEA
-		*  Methods to execute phases of Recursive Newton Euler Algorithm
-		*/
-		//@{
-		
-		
-		/**
-		* Execute a loop for the calculation of the rototranslation between every frame
-		* The result of this computations can be then called using getPosition() methods
-		* @return true if succeeds, false otherwise
-		*/
-		virtual bool computePositions() const;  
-		
-		/**
-		* Execute the kinematic phase (recursive calculation of position, velocity,
-		* acceleration of each link) of the RNE algorithm.
-		* @return true if succeeds, false otherwise
-		*/
-		virtual bool kinematicRNEA();    
-		
-		/**
-		* Estimate the external contacts, supplied by the setContacts call
-		* for each dynamical subtree
-		* 
-		*/
-		virtual bool estimateContactForces();
-		
-		/**
-		* Execute the dynamical phase (recursive calculation of internal wrenches
-		* and of torques) of the RNEA algorithm for all the tree. 
-		* @return true if succeeds, false otherwise
-		*/
-		virtual bool dynamicRNEA();
-		
-		//@}
-		
-		/** @name Get methods for output quantities
-		*  Methods to get output quantities
-		*/
-		//@{
-	
-		/**
-		* Get the 4x4 rototranslation matrix of a link frame with respect to the world frame ( \f$ {}^wH_i \f$)
-		* @param link_index the index of the link 
-		* @return a 4x4 rototranslation yarp::sig::Matrix 
-		*/
-		virtual yarp::sig::Matrix getPosition(const int link_index) const;
-		
-		/**
-		* Get the 4x4 rototranslation matrix between two link frames 
-		* (in particular, of the second link frame expressed in the first link frame, \f$ {}^fH_s \f$))
-		* @param first_link the index of the first link 
-		* @param second_link the index of the second link
-		* @return a 4x4 rototranslation yarp::sig::Matrix
-		*/
-		virtual yarp::sig::Matrix getPosition(const int first_link, const int second_link) const;
-		
-		/**
+        
+        /**
+        * Execute a loop for the calculation of the rototranslation between every frame
+        * The result of this computations can be then called using getPosition() methods
+        * @return true if succeeds, false otherwise
+        */
+        virtual bool computePositions() const;  
+        
+        /**
+        * Execute the kinematic phase (recursive calculation of position, velocity,
+        * acceleration of each link) of the RNE algorithm.
+        * @return true if succeeds, false otherwise
+        */
+        virtual bool kinematicRNEA();    
+        
+        /**
+        * Estimate the external contacts, supplied by the setContacts call
+        * for each dynamical subtree
+        * 
+        */
+        virtual bool estimateContactForces();
+        
+        /**
+        * Execute the dynamical phase (recursive calculation of internal wrenches
+        * and of torques) of the RNEA algorithm for all the tree. 
+        * @return true if succeeds, false otherwise
+        */
+        virtual bool dynamicRNEA();
+        
+        //@}
+        
+        /** @name Get methods for output quantities
+        *  Methods to get output quantities
+        */
+        //@{
+    
+        /**
+        * Get the 4x4 rototranslation matrix of a link frame with respect to the world frame ( \f$ {}^wH_i \f$)
+        * @param link_index the index of the link 
+        * @return a 4x4 rototranslation yarp::sig::Matrix 
+        */
+        virtual yarp::sig::Matrix getPosition(const int link_index) const;
+        
+        /**
+        * Get the 4x4 rototranslation matrix between two link frames 
+        * (in particular, of the second link frame expressed in the first link frame, \f$ {}^fH_s \f$))
+        * @param first_link the index of the first link 
+        * @param second_link the index of the second link
+        * @return a 4x4 rototranslation yarp::sig::Matrix
+        */
+        virtual yarp::sig::Matrix getPosition(const int first_link, const int second_link) const;
+        
+        /**
         * Get the velocity of the specified link, expressed in the global reference frame, but using as reference point
         * the origin of the link local reference frame
         * @param link_index the index of the link 
         * @param if true, return the velocity expressed in the link local frame
-		* @return a 6x1 vector with linear velocity \f$ {}^iv_i \f$ (0:2) and angular velocity \f$ {}^i\omega_i\f$ (3:5)
-		*/
-		virtual yarp::sig::Vector getVel(const int link_index, bool local=false) const;
-	
-		/**
-		* Get the acceleration of the specified link, expressed in the link local reference frame
-		* @param link_index the index of the link 
-		* @return a 6x1 vector with linear acc \f$ {}^ia_i \f$(0:2) and angular acceleration \f$ {}^i\dot{\omega}_i \f$ (3:5)
-		*
-		* \note This function returns the classical linear acceleration, not the spatial one
-		*/
-		virtual yarp::sig::Vector getAcc(const int link_index) const;
-	
-		
-		/**
-		* Get joint torques in the specified part (if no part 
-		* is specified, get the joint torques of all the tree)
-		* @param part_name optional: the name of the part of joints to get
-		* @return vector of joint torques
-		*/
-		virtual yarp::sig::Vector getTorques(const std::string & part_name="") const;
-		
-	
-		//@}
-		/** @name Methods related to contact forces
-		*  This methods are related both to input and output of the esimation:
-		*  the iCub::skinDynLib::dynContactList is used both to specify the 
-		*  unkown contacts via setContacts, and also to get the result of the
-		*  estimation via getContacts
-		* 
-		*  \note If for a given subtree no contact is given, a default concact 
-		*  is assumed, for example ad the end effector
-		*/
-		//@{
-		
-		/**
-		* Set the unknown contacts
-		* @param contacts the list of the contacts on the DynTree
-		* @return true if operation succeeded, false otherwise
-		*/
-		virtual bool setContacts(const iCub::skinDynLib::dynContactList &contacts_list);
-		
-		/**
-		* Get the contacts list, containing the results of the estimation if
-		* estimateContacts was called
-		* @return A reference to the external contact list
-		*/
-		virtual const iCub::skinDynLib::dynContactList getContacts() const;
-		
-		//@}
-		
-		//@}
-		/** @name Methods related to Jacobian calculations
-		* 
-		* 
-		*/
-		//@{
-		/**
-		* For a floating base structure, outpus a 6x(nrOfDOFs+6) yarp::sig::Matrix \f$ {}^i J_i \f$ such
-		* that \f$ {}^w v_i = {}^wJ_i  \dot{q}_{fb} \f$
-		* where w is the world reference frame and \f$ \dot{q}_{fb} \f$ is the floating base velocity vector,
-		* where the first 3 elements are \f$ {}^bv_b\f$, the next 3 are \f$ {}^b\omega_b\f$ and the remaing 
-		* are the proper joint velocities. 
-		* @param link_index the index of the link
-		* @param jac the output yarp::sig::Matrix 
-		* @param local if true, return \f$ {}^iJ_i \f$ (the Jacobian expressed in the local frame of link i) (default: false)
-		* @return true if all went well, false otherwise
-		* 
-		* \note the link used as a floating base is the base used for the dynamical loop
+        * @return a 6x1 vector with linear velocity \f$ {}^iv_i \f$ (0:2) and angular velocity \f$ {}^i\omega_i\f$ (3:5)
+        */
+        virtual yarp::sig::Vector getVel(const int link_index, bool local=false) const;
+    
+        /**
+        * Get the acceleration of the specified link, expressed in the link local reference frame
+        * @param link_index the index of the link 
+        * @return a 6x1 vector with linear acc \f$ {}^ia_i \f$(0:2) and angular acceleration \f$ {}^i\dot{\omega}_i \f$ (3:5)
+        *
+        * \note This function returns the classical linear acceleration, not the spatial one
+        */
+        virtual yarp::sig::Vector getAcc(const int link_index) const;
+    
+        
+        /**
+        * Get joint torques in the specified part (if no part 
+        * is specified, get the joint torques of all the tree)
+        * @param part_name optional: the name of the part of joints to get
+        * @return vector of joint torques
+        */
+        virtual yarp::sig::Vector getTorques(const std::string & part_name="") const;
+        
+    
+        //@}
+        /** @name Methods related to contact forces
+        *  This methods are related both to input and output of the esimation:
+        *  the iCub::skinDynLib::dynContactList is used both to specify the 
+        *  unkown contacts via setContacts, and also to get the result of the
+        *  estimation via getContacts
+        * 
+        *  \note If for a given subtree no contact is given, a default concact 
+        *  is assumed, for example ad the end effector
+        */
+        //@{
+        
+        /**
+        * Set the unknown contacts
+        * @param contacts the list of the contacts on the DynTree
+        * @return true if operation succeeded, false otherwise
+        */
+        virtual bool setContacts(const iCub::skinDynLib::dynContactList &contacts_list);
+        
+        /**
+        * Get the contacts list, containing the results of the estimation if
+        * estimateContacts was called
+        * @return A reference to the external contact list
+        */
+        virtual const iCub::skinDynLib::dynContactList getContacts() const;
+        
+        //@}
+        
+        //@}
+        /** @name Methods related to Jacobian calculations
+        * 
+        * 
+        */
+        //@{
+        /**
+        * For a floating base structure, outpus a 6x(nrOfDOFs+6) yarp::sig::Matrix \f$ {}^i J_i \f$ such
+        * that \f$ {}^w v_i = {}^wJ_i  dq_{fb} \f$
+        * where w is the world reference frame and \f$ dq_{fb} \f$ is the floating base velocity vector,
+        * where the first 3 elements are \f$ {}^bv_b\f$, the next 3 are \f$ {}^b\omega_b\f$ and the remaing 
+        * are the proper joint velocities. 
+        * @param link_index the index of the link
+        * @param jac the output yarp::sig::Matrix 
+        * @param local if true, return \f$ {}^iJ_i \f$ (the Jacobian expressed in the local frame of link i) (default: false)
+        * @return true if all went well, false otherwise
+        * 
+        * \note the link used as a floating base is the base used for the dynamical loop
         * \note {}^w v_i is expressed in the world reference frame, but its reference point is the origin of the frame of link i
-		*/
-		virtual bool getJacobian(const int link_index, yarp::sig::Matrix & jac, bool local=false);
-		
-		/**
-		* Get the 6+getNrOfDOFs() yarp::sig::Vector, characterizing the floating base velocities of the tree
-		* @return a vector where the 0:5 elements are the one of the dynamic base (the same that are obtained calling
-		*         getVel(dynamic_base_index), while the 6:6+getNrOfDOFs()-1 elements are the joint speeds
-		*/
-		virtual yarp::sig::Vector getDQ_fb() const;
-		
-		//virtual yarp::sig::Vector getD2Q_fb() const;
-		
-		
-		/**
-		* For a floating base structure, if d is the distal link index and b is the jacobian base link index 
-		* outputs a 6x(nrOfDOFs) yarp::sig::Matrix \f$ {}^d J_{b,d} \f$ such
-		* that \f[ {}^d v_d = {}^dJ_{b,d}  \dot{q} + {}^d v_b \f]
-		* @param jacobian_distal_link the index of the distal link
-		* @param jacobian_base_link the index of the base link
-		* @param jac the output yarp::sig::Matrix 
-		* @param global if true, return \f$ {}^wJ_{s,f} \f$ (the Jacobian expressed in the world frame) (default: false)
-		* @return true if all went well, false otherwise
-		*/
-		virtual bool getRelativeJacobian(const int jacobian_distal_link, const int jacobian_base_link, yarp::sig::Matrix & jac, bool global=false);
-		
-		//@}
-		/** @name Methods related to Center of Mass calculation
-		* 
-		* 
-		*/
-		//@{
-		
-		/**
-		* Get Center of Mass of the specified part (if no part 
-		* is specified, get the COM of all the tree) expressed
-		* in the world frame 
-		* @param part_name optional: the name of the part of joints to get
-		* @return Center of Mass vector
-		*/
-		virtual yarp::sig::Vector getCOM(const std::string & part_name="");
-		
-		/**
-		* Get Center of Mass Jacobian of the specified part (if no part 
-		* is specified, get the Jacobian of the COM of all the tree) expressed in
-		* the world frame
-		* @param jac the output jacobiam matrix
-		* @param part_name optional: the name of the part of joints to get
-		* @return true if succeeds, false otherwise
-		*/
-		virtual bool getCOMJacobian(yarp::sig::Matrix & jac, const std::string & part_name="");
+        */
+        virtual bool getJacobian(const int link_index, yarp::sig::Matrix & jac, bool local=false);
+        
+        /**
+        * Get the 6+getNrOfDOFs() yarp::sig::Vector, characterizing the floating base velocities of the tree
+        * @return a vector where the 0:5 elements are the one of the dynamic base (the same that are obtained calling
+        *         getVel(dynamic_base_index), while the 6:6+getNrOfDOFs()-1 elements are the joint speeds
+        */
+        virtual yarp::sig::Vector getDQ_fb() const;
+        
+        //virtual yarp::sig::Vector getD2Q_fb() const;
+        
+        
+        /**
+        * For a floating base structure, if d is the distal link index and b is the jacobian base link index 
+        * outputs a 6x(nrOfDOFs) yarp::sig::Matrix \f$ {}^d J_{b,d} \f$ such
+        * that \f[ {}^d v_d = {}^dJ_{b,d}  \dot{q} + {}^d v_b \f]
+        * @param jacobian_distal_link the index of the distal link
+        * @param jacobian_base_link the index of the base link
+        * @param jac the output yarp::sig::Matrix 
+        * @param global if true, return \f$ {}^wJ_{s,f} \f$ (the Jacobian expressed in the world frame) (default: false)
+        * @return true if all went well, false otherwise
+        */
+        virtual bool getRelativeJacobian(const int jacobian_distal_link, const int jacobian_base_link, yarp::sig::Matrix & jac, bool global=false);
+        
+        //@}
+        /** @name Methods related to Center of Mass calculation
+        * 
+        * 
+        */
+        //@{
+        
+        /**
+        * Get Center of Mass of the specified part (if no part 
+        * is specified, get the COM of all the tree) expressed
+        * in the world frame 
+        * @param part_name optional: the name of the part of joints to get
+        * @return Center of Mass vector
+        */
+        virtual yarp::sig::Vector getCOM(const std::string & part_name="");
+        
+        /**
+        * Get Center of Mass Jacobian of the specified part (if no part 
+        * is specified, get the Jacobian of the COM of all the tree) expressed in
+        * the world frame
+        * @param jac the output jacobiam matrix
+        * @param part_name optional: the name of the part of joints to get
+        * @return true if succeeds, false otherwise
+        */
+        virtual bool getCOMJacobian(yarp::sig::Matrix & jac, const std::string & part_name="");
         
         virtual bool getCOMJacobian(yarp::sig::Matrix & jac, yarp::sig::Matrix & momentum_jac, const std::string & part_name="");
 
         
-		/**
-		* Get Velocity of the Center of Mass of the specified part (if no part 
-		* is specified, get the velocity of the center of mass of all tree) expressed
-		* in the world frame 
-		* @param part_name optional: the name of the part of joints to get
-		* @return velocity of Center of Mass vector
-		*/
-		yarp::sig::Vector getVelCOM();
-		
-		yarp::sig::Vector getMomentum();
+        /**
+        * Get Velocity of the Center of Mass of the specified part (if no part 
+        * is specified, get the velocity of the center of mass of all tree) expressed
+        * in the world frame 
+        * @param part_name optional: the name of the part of joints to get
+        * @return velocity of Center of Mass vector
+        */
+        yarp::sig::Vector getVelCOM();
+        
+        yarp::sig::Vector getMomentum();
 
-		//@}
-		
-		/** @name Methods related to inertial parameters regressor 
-		* 
-		* 
-		*/
-		//@{
-		/**
-		* Get the dynamics regressor, such that dynamics_regressor*dynamics_parameters 
-		* return a 6+nrOfDOFs vector where the first six elements are the components of the base wrench,
-		* while the other nrOfDOFs elements are the torques 
-		* 
-		* @return a 6+nrOfDOFs x 10*nrOfLinks yarp::sig::Matrix
-		*/
-		virtual bool getDynamicsRegressor(yarp::sig::Matrix & mat);
-		
-		/**
-		* Get the dynamics parameters currently used for the dynamics calculations
-		* 
-		* @return a 10*nrOfLinks yarp::sig::Vector
-		*/
-		virtual bool getDynamicsParameters(yarp::sig::Vector & vet);
-		//@} 
+        //@}
+        
+        /** @name Methods related to inertial parameters regressor 
+        * 
+        * 
+        */
+        //@{
+        /**
+        * Get the dynamics regressor, such that dynamics_regressor*dynamics_parameters 
+        * return a 6+nrOfDOFs vector where the first six elements are the components of the base wrench,
+        * while the other nrOfDOFs elements are the torques 
+        * 
+        * @return a 6+nrOfDOFs x 10*nrOfLinks yarp::sig::Matrix
+        */
+        virtual bool getDynamicsRegressor(yarp::sig::Matrix & mat);
+        
+        /**
+        * Get the dynamics parameters currently used for the dynamics calculations
+        * 
+        * @return a 10*nrOfLinks yarp::sig::Vector
+        */
+        virtual bool getDynamicsParameters(yarp::sig::Vector & vet);
+        //@} 
 
     
 };

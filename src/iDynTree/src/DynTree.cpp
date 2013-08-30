@@ -881,11 +881,11 @@ bool DynTree::dynamicRNEA()
         assert( base_force.torque.Norm() < 1e-5 );
         //Note: this (that no residual appears happens only for the proper selection of the provided dynContactList
         for(int i=0; i < NrOfFTSensors; i++ ) {
-			#ifndef NDEBUG
+            #ifndef NDEBUG
             KDL::Wrench residual = measured_wrenches[i] - ft_list.ft_sensors_vector[i].getH_child_sensor().Inverse(f[ft_list.ft_sensors_vector[i].getChild()]);
             assert( residual.force.Norm() < 1e-5 );
             assert( residual.torque.Norm() < 1e-5 );
-			#endif //NDEBUG
+            #endif //NDEBUG
         }
         
         
@@ -911,17 +911,17 @@ bool DynTree::dynamicRNEA()
 
 yarp::sig::Vector DynTree::getCOM(const std::string & part_name) 
 {
-	if( com_yarp.size() != 3 ) { com_yarp.resize(3); }
-	if( (int)subtree_COM.size() != getNrOfLinks() ) { subtree_COM.resize(getNrOfLinks()); }
-	if( (int)subtree_mass.size() != getNrOfLinks() ) { subtree_mass.resize(getNrOfLinks()); }
+    if( com_yarp.size() != 3 ) { com_yarp.resize(3); }
+    if( (int)subtree_COM.size() != getNrOfLinks() ) { subtree_COM.resize(getNrOfLinks()); }
+    if( (int)subtree_mass.size() != getNrOfLinks() ) { subtree_mass.resize(getNrOfLinks()); }
 
-	int part_id;
-	if( part_name.length() == 0 ) {
-		 part_id = -1; 
-	} else {
-		 part_id = partition.getPartIDfromPartName(part_name);
-		 if( part_id == -1 ) { std::cerr << "getCOM: Part name " << part_name << " not recognized " << std::endl; return yarp::sig::Vector(0); }
-	} 
+    int part_id;
+    if( part_name.length() == 0 ) {
+         part_id = -1; 
+    } else {
+         part_id = partition.getPartIDfromPartName(part_name);
+         if( part_id == -1 ) { std::cerr << "getCOM: Part name " << part_name << " not recognized " << std::endl; return yarp::sig::Vector(0); }
+    } 
     
     KDL::Vector com;                   
     getCenterOfMassLoop(tree_graph,q,dynamic_traversal,subtree_COM,subtree_mass,com,part_id);
