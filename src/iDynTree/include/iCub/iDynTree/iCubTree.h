@@ -5,7 +5,6 @@
  *
  */
 
-#include <iCub/iDynTree/DynTreeInterface.h>
 #include <iCub/iDynTree/DynTree.h>
 
 #include <iostream>
