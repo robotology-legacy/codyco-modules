@@ -467,9 +467,10 @@ class DynTree : public DynTreeInterface {
         /**
         * Get the 4x4 rototranslation matrix of a link frame with respect to the world frame ( \f$ {}^wH_i \f$)
         * @param link_index the index of the link 
+        * @param inverse if true, return the rototranslation of the world frame with respect to the link frame ( \f$ {}^iH_w \f$ , defaul: false )  
         * @return a 4x4 rototranslation yarp::sig::Matrix 
         */
-        virtual yarp::sig::Matrix getPosition(const int link_index) const;
+        virtual yarp::sig::Matrix getPosition(const int link_index, bool inverse = false) const;
         
         /**
         * Get the 4x4 rototranslation matrix between two link frames 

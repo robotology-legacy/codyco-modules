@@ -714,11 +714,15 @@ void DynTree::setConstraint(unsigned int i, bool _constrained)
 bool DynTree::getConstraint(unsigned int i) { return constrained[i]; }
 
 
-yarp::sig::Matrix DynTree::getPosition(const int link_index) const
+yarp::sig::Matrix DynTree::getPosition(const int link_index,bool inverse) const
 {
     if( link_index < 0 || link_index >= (int)tree_graph.getNrOfLinks() ) { std::cerr << "DynTree::getPosition: link index " << link_index <<  " out of bounds" << std::endl; return yarp::sig::Matrix(0,0); }
     computePositions();
-    return KDLtoYarp_position(world_base_frame*X_dynamic_base[link_index]);
+    if( !inverse ) {
+        return KDLtoYarp_position(world_base_frame*X_dynamic_base[link_index]);
+    } else {
+        return KDLtoYarp_position((world_base_frame*X_dynamic_base[link_index]).Inverse());
+    }
 }
 
 yarp::sig::Matrix DynTree::getPosition(const int first_link, const int second_link) const
