@@ -25,7 +25,7 @@
 #include <fstream>
 #include <iomanip>
 
-#include <locomotionPlanner\locomotionPlannerModule.h>
+#include <locomotionPlanner/locomotionPlannerModule.h>
 
 
 using namespace yarp::dev;
@@ -47,12 +47,12 @@ int main (int argc, char * argv[])
 
     if (rf->check("help"))
     {
-        cout<< "Possible parameters"                                                                                                                                          << endl << endl;
+        cout<< "Possible parameters"                                                                                                                                << endl << endl;
         cout<< "\t--context          :Where to find an user defined .ini file within $ICUB_ROOT/app e.g. /locomotionPlanner/conf"                                   <<endl;
-        cout<< "\t--from             :Name of the file.ini to be used for calibration."                                                                                       <<endl;
-        cout<< "\t--rate             :Period used by the module. Default set to 10ms."                                                                                        <<endl;
-        cout<< "\t--robot            :Robot name (icubSim or icub). Set to icub by default."                                                                                  <<endl;
-        cout<< "\t--local            :Prefix of the ports opened by the module. Set to the module name by default, i.e. locomotionPlanner."                                      <<endl;        
+        cout<< "\t--from             :Name of the file.ini to be used for calibration."                                                                             <<endl;
+        cout<< "\t--rate             :Period used by the module. Default set to 10ms."                                                                              <<endl;
+        cout<< "\t--robot            :Robot name (icubSim or icub). Set to icub by default."                                                                        <<endl;
+        cout<< "\t--local            :Prefix of the ports opened by the module. Set to the module name by default, i.e. locomotionPlanner."                         <<endl;
         return 0;
     }
     

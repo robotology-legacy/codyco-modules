@@ -15,9 +15,9 @@
  * Public License for more details
 */
 
-#include <locomotionPlanner\locomotionPlannerThread.h>
-#include <locomotion\locomotionConstants.h>
-#include <yarp\os\Time.h>
+#include <locomotionPlanner/locomotionPlannerThread.h>
+#include <locomotion/locomotionConstants.h>
+#include <yarp/os/Time.h>
 
 
 using namespace locomotion;
