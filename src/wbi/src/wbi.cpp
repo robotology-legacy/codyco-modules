@@ -54,7 +54,7 @@ void LocalIdList::pushId(int bp, int i)
 }
 
 /** Convert a local id into a global id */
-int LocalIdList::localToGlobalId(const LocalId &i)
+int LocalIdList::localToGlobalId(const LocalId &i) const
 {
     int gid = 0;
     FOR_ALL_BODY_PARTS_OF(itBp, (*this))
@@ -72,7 +72,7 @@ int LocalIdList::localToGlobalId(const LocalId &i)
 }
 
 /** Convert a global id into a local id */
-LocalId LocalIdList::globalToLocalId(int globalId)
+LocalId LocalIdList::globalToLocalId(int globalId) const
 {
     // iterate over list decreasing globalId for each id encountered
     // when globalId==0 => we found the local id
@@ -127,19 +127,19 @@ int LocalIdList::addIdList(const LocalIdList &jList)
     return count;
 }
 
-bool LocalIdList::containsId(const LocalId &i)
+bool LocalIdList::containsId(const LocalId &i) const
 {
-    if(find(i.bodyPart)==end())
+    const_iterator it = find(i.bodyPart);
+    if(it==end())
         return false;
-    vector<int> &v = (*this)[i.bodyPart];
-    for(unsigned int j=0; j<v.size(); j++)
-        if(v[j]==i.index)
+    for(unsigned int j=0; j<it->second.size(); j++)
+        if(it->second[j]==i.index)
             return true;
     return false;
 }
 
 // Get the number of ids in this list
-unsigned int LocalIdList::size()
+unsigned int LocalIdList::size() const
 {
     unsigned int s=0;
     FOR_ALL_BODY_PARTS_OF(itBp, (*this))
@@ -147,7 +147,7 @@ unsigned int LocalIdList::size()
     return s;
 }
 
-string LocalIdList::toString()
+string LocalIdList::toString() const
 {
     stringstream s;
     FOR_ALL_BODY_PARTS_OF(itBp, (*this))
