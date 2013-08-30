@@ -17,6 +17,7 @@
 
 #include "wbiy/wbiy.h"
 #include <iCub/skinDynLib/common.h>
+#include <iCub/ctrl/math.h>
 #include <string>
 #include <sstream>
 #include <cassert>
@@ -28,6 +29,7 @@ using namespace yarp::os;
 using namespace yarp::dev;
 using namespace yarp::sig;
 using namespace iCub::skinDynLib;
+using namespace iCub::ctrl;
 
 #define MAX_NJ 20
 #define WAIT_TIME 0.001
@@ -246,12 +248,12 @@ bool yarpWholeBodySensors::readEncoders(double *q, double *stamps, bool wait)
             {
                 if(itBp->first==TORSO)  // joints 0 and 2 of the torso are swapped
                 {
-                    qLastRead[itBp->first][2-i]        = qTemp[i];
+                    qLastRead[itBp->first][2-i]        = CTRL_DEG2RAD*qTemp[i];
                     qStampLastRead[itBp->first][2-i]   = tTemp[i];
                 }
                 else
                 {
-                    qLastRead[itBp->first][i]        = qTemp[i];
+                    qLastRead[itBp->first][i]        = CTRL_DEG2RAD*qTemp[i];
                     qStampLastRead[itBp->first][i]   = tTemp[i];
                 }
             }

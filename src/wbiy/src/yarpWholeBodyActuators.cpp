@@ -17,6 +17,7 @@
 
 #include "wbiy/wbiy.h"
 #include <iCub/skinDynLib/common.h>
+#include <iCub/ctrl/math.h>
 #include <string>
 #include <cassert>
 
@@ -27,6 +28,7 @@ using namespace yarp::os;
 using namespace yarp::dev;
 using namespace yarp::sig;
 using namespace iCub::skinDynLib;
+using namespace iCub::ctrl;
 
 #define MAX_NJ 20
 #define WAIT_TIME 0.001
@@ -201,7 +203,7 @@ bool yarpWholeBodyActuators::setPosRef(double *qd, int joint)
     {
         LocalId li = jointIdList.globalToLocalId(joint);
         int i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
-        return ipos[li.bodyPart]->positionMove(i, *qd);
+        return ipos[li.bodyPart]->positionMove(i, CTRL_RAD2DEG*(*qd));
     }
     
     bool ok = true;
@@ -209,7 +211,7 @@ bool yarpWholeBodyActuators::setPosRef(double *qd, int joint)
     FOR_ALL(itBp, itJ)
     {
         int j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
-        ok = ok && ipos[itBp->first]->positionMove(j, qd[i]);
+        ok = ok && ipos[itBp->first]->positionMove(j, CTRL_RAD2DEG*qd[i]);
         i++;
     }
     
@@ -225,7 +227,7 @@ bool yarpWholeBodyActuators::setVelRef(double *dqd, int joint)
     {
         LocalId li = jointIdList.globalToLocalId(joint);
         int i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
-        return ivel[li.bodyPart]->velocityMove(i, *dqd);
+        return ivel[li.bodyPart]->velocityMove(i, CTRL_RAD2DEG*(*dqd));
     }
     
     unsigned int i = 0;
@@ -233,7 +235,7 @@ bool yarpWholeBodyActuators::setVelRef(double *dqd, int joint)
     FOR_ALL(itBp, itJ)
     {
         int j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
-        ok = ok && ivel[itBp->first]->velocityMove(j, dqd[i]);
+        ok = ok && ivel[itBp->first]->velocityMove(j, CTRL_RAD2DEG*dqd[i]);
         i++;
     }
     
@@ -273,7 +275,7 @@ bool yarpWholeBodyActuators::setReferenceSpeed(double *rspd, int joint)
     {
         LocalId li = jointIdList.globalToLocalId(joint);
         int i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
-        return ipos[li.bodyPart]->setRefSpeed(i, *rspd);
+        return ipos[li.bodyPart]->setRefSpeed(i, CTRL_RAD2DEG*(*rspd));
     }
     
     bool ok = true;
@@ -281,7 +283,7 @@ bool yarpWholeBodyActuators::setReferenceSpeed(double *rspd, int joint)
     FOR_ALL(itBp, itJ)
     {
         int j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
-        ok = ok && ipos[itBp->first]->setRefSpeed(j, rspd[i]);
+        ok = ok && ipos[itBp->first]->setRefSpeed(j, CTRL_RAD2DEG*rspd[i]);
         i++;
     }
     
