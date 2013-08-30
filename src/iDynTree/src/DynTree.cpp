@@ -999,9 +999,7 @@ bool DynTree::getCOMJacobian(yarp::sig::Matrix & jac, yarp::sig::Matrix & moment
     KDL::RigidBodyInertia base_total_inertia;
     
     getMomentumJacobianLoop(tree_graph,q,dynamic_traversal,X_dynamic_base,momentum_jacobian,com_jac_buffer,momentum_jac_buffer,base_total_inertia,part_id);
-    #ifndef NDEBUG
-    std::cout << "getCOMJacobian: mass of the tree " <<  base_total_inertia.getMass() << std::endl; 
-    #endif
+
     
     momentum_jacobian.changeRefFrame(world_base_frame);
     
@@ -1024,10 +1022,6 @@ bool DynTree::getCOMJacobian(yarp::sig::Matrix & jac, yarp::sig::Matrix & moment
     Eigen::Map< Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > mapped_momentum_jacobian(momentum_jac.data(),momentum_jac.rows(),momentum_jac.cols());
 
     mapped_momentum_jacobian = momentum_jacobian.data;
-    
-    #ifndef NDEBUG
-    std::cout << "getCOMJacobian com " << total_inertia.getCOG().x() << " " << total_inertia.getCOG().y() << " " << total_inertia.getCOG().z() << std::endl;
-    #endif
 
     return true;
 }
