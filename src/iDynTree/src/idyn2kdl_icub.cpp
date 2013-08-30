@@ -47,7 +47,7 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KD
         
     //Creating torso
     KDL::Chain torso, old_torso;
-    const char *torso_joints_cstr[] = {"torso_yaw","torso_roll","torso_pitch"};
+    const char *torso_joints_cstr[] = {"torso_pitch","torso_roll","torso_yaw"};
     std::vector<std::string> torso_joints(torso_joints_cstr,end(torso_joints_cstr));
     const char *torso_links_cstr[] = {"lap_belt_1","lap_belt_2",ARMS_HEAD_BASE_NAME};
     std::vector<std::string> torso_links(torso_links_cstr,end(torso_links_cstr));
