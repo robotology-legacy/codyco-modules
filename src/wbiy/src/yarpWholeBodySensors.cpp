@@ -16,6 +16,7 @@
  */
 
 #include "wbiy/wbiy.h"
+#include <iCub/skinDynLib/common.h>
 #include <string>
 #include <sstream>
 #include <cassert>
@@ -26,6 +27,7 @@ using namespace wbiy;
 using namespace yarp::os;
 using namespace yarp::dev;
 using namespace yarp::sig;
+using namespace iCub::skinDynLib;
 
 #define MAX_NJ 20
 #define WAIT_TIME 0.001
@@ -242,8 +244,16 @@ bool yarpWholeBodySensors::readEncoders(double *q, double *stamps, bool wait)
         if(update)
             for(unsigned int i=0; i<bodyPartAxes[itBp->first]; i++)
             {
-                qLastRead[itBp->first][i]        = qTemp[i];
-                qStampLastRead[itBp->first][i]   = tTemp[i];
+                if(itBp->first==TORSO)  // joints 0 and 2 of the torso are swapped
+                {
+                    qLastRead[itBp->first][2-i]        = qTemp[i];
+                    qStampLastRead[itBp->first][2-i]   = tTemp[i];
+                }
+                else
+                {
+                    qLastRead[itBp->first][i]        = qTemp[i];
+                    qStampLastRead[itBp->first][i]   = tTemp[i];
+                }
             }
         
         // copy most recent data into output variables
@@ -273,7 +283,12 @@ bool yarpWholeBodySensors::readPwm(double *pwm, double *stamps, bool wait)
         // if reading has succeeded, update last read data
         if(update)
             for(unsigned int i=0; i<bodyPartAxes[itBp->first]; i++)
-                pwmLastRead[itBp->first][i] = pwmTemp[i];
+            {
+                if(itBp->first==TORSO)  // joints of the torso are in reverse order
+                    pwmLastRead[itBp->first][2-i] = pwmTemp[i];
+                else
+                    pwmLastRead[itBp->first][i] = pwmTemp[i];
+            }
         
         // copy data in output vector
         FOR_ALL_JOINTS(itBp, itJ)
