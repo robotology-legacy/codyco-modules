@@ -55,6 +55,8 @@ namespace locomotion
 
 typedef Eigen::Matrix<double,2,Dynamic,RowMajor> JacobianCom;
 
+enum LocomotionStatus { LOCOMOTION_ON, LOCOMOTION_OFF };
+
 /** Locomotion control thread: this thread sends velocity commands to the robot motors
   * trying to track the desired position trajectory of the COM, swinging foot and joint posture.
   */
@@ -66,11 +68,13 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     wholeBodyInterface  *robot;
 
     // Member variables
+    int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     int                 LINK_ID_RIGHT_FOOT, LINK_ID_LEFT_FOOT;
-    int                 footLinkId;             // id of the controlled foot link
+    int                 footLinkId;             // id of the controlled (swinging) foot link
     int                 comLinkId;              // id of the COM
     int                 _n;                     // current number of active joints
     int                 _k;                     // current number of constraints
+    LocomotionStatus    status;                 // thread status ("on" when controlling, off otherwise)
     Vector7d            xBase;                  // position/orientation of the floating base
     JacobianMatrix      Jcom_6xN;               // Jacobian of the center of mass (6 x N, where N=n+6)
     JacobianCom         Jcom_2xN;               // Jacobian of the center of mass (2 x N, where N=n+6)
@@ -79,6 +83,8 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     JacobianMatrix      JfootL;                 // Jacobian of the left foot
     MatrixXd            Jposture;               // Jacobian of the posture (n x N, where N=n+6)
     MatrixXd            Jc;                     // Jacobian of the constraints (k x N, where N=n+6)
+    MatrixY             S;                      // matrix selecting the active joints
+    VectorXd            dq, dqJ;                // joint velocities (size of vectors: n+6, n, 6)
 
     // Module parameters
     Vector              kp_com;
@@ -91,7 +97,8 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
 
     // Input streaming parameters
     //Vector2d            xd_com; Vector7d            xd_foot;    VectorNd            qd;
-    Vector              xd_com, xd_foot, qd;    // desired positions (use yarp vector because minJerkTrajGen wants yarp vector)
+    Vector              xd_com, xd_foot;        // desired positions (use yarp vector because minJerkTrajGen wants yarp vector)
+    Vector              qd;                     // desired joint posture (for all ICUB_DOFS joints)
     MatrixY             H_w2b;                  // rotation matrix from world to base reference frame
 
     // Output streaming parameters
@@ -99,28 +106,40 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     Vector              dxr_com, dxr_foot, dqr; // reference velocities (use yarp vector because minJerkTrajGen gives yarp vector)
     Vector              x_com, x_foot, q;       // measured positions (use yarp vector because minJerkTrajGen gives yarp vector)
     Vector              dxc_com, dxc_foot, dqc; // commanded velocities (use yarp vector because minJerkTrajGen gives yarp vector)
+    
+    // Eigen vectors mapping Yarp vectors
     Map<Vector2d>       dxc_comE;               // commanded velocity of the COM
     Map<Vector6d>       dxc_footE;
     Map<VectorXd>       dqcE;
-    //Vector2d            dxc_comE;               // commanded velocity of the COM
-    //Vector6d            dxc_footE;
-    //VectorXd            dqcE;
     
-
     // Trajectory generators
     minJerkTrajGen      *trajGenCom, *trajGenFoot, *trajGenPosture;
+
+    /************************************************* PRIVATE METHODS ******************************************************/
 
     enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO);
 
-    void sendMonitorData();
-
+    /** Read the robot sensors and compute forward kinematics and Jacobians. */
     bool readRobotStatus(bool blockingRead=false);
+
+    /** Update the reference trajectories to track */
     bool updateReferenceTrajectories();
+
     /** Compute joint velocities by solving a hierarchy of QPs (1st QP for COM, 2nd for foot, 3rd for posture) */
     VectorXd solveTaskHierarchy();
 
+    void updateSelectionMatrix();
 
+    /** Perform all the operations needed just before starting the controller. */
+    void preStartOperations();
+    /** Perform all the operations needed just before stopping the controller. */
+    void preStopOperations();
+
+    /** Method called every time the support status changes. */
+    void numberOfConstraintsChanged();
+    /** Method called every time the support status changes. */
+    void numberOfJointsChanged();
 
 public:	
     

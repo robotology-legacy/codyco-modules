@@ -51,6 +51,7 @@ namespace locomotion
 static const IOFormat   matrixPrintFormat(1, DontAlignCols, " ", ";\n", "", "", "[", "]");
 
 // *** CONSTANTS
+static const int        PRINT_PERIOD    = 1000;     // period of debug prints (in ms)
 static const double     KP_MAX          = 100.0;    // max value of proportional gains
 static const double     PINV_TOL        = 1e-4;     // threshold for truncated pseudoinverses
 
