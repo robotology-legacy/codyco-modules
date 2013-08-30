@@ -26,13 +26,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 
 SET(folder_source src/DynTree.cpp
-				  src/yarp_kdl.cpp
-				  src/iCubTree.cpp
-				  src/iDyn2KDL.cpp
-				  src/idyn2kdl_icub.cpp)
+                  src/yarp_kdl.cpp
+                  src/iCubTree.cpp
+                  src/iDyn2KDL.cpp
+                  src/idyn2kdl_icub.cpp)
 
 SET(folder_header include/iCub/iDynTree/DynTree.h
-                  include/iCub/iDynTree/DynTreeInterface.h
                   include/iCub/iDynTree/yarp_kdl.h
                   include/iCub/iDynTree/iDyn2KDL.h
                   include/iCub/iDynTree/iCubTree.h
