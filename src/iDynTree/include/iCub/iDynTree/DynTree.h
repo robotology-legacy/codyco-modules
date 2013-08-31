@@ -61,6 +61,10 @@
  * 
  **/ 
 
+#include <yarp/sig/Matrix.h>
+#include <yarp/sig/Vector.h>
+#include <iCub/skinDynLib/dynContactList.h>
+
 #include <kdl_codyco/treeserialization.hpp>
 #include <kdl_codyco/treepartition.hpp>
 #include <kdl_codyco/treegraph.hpp>
