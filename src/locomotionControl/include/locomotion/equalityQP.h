@@ -65,6 +65,8 @@ void assertEqual(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B, std::string
 
 void testFailed(std::string testName);
 
+std::string toString(const Eigen::MatrixXd &m, int precision=2, const char* endRowStr="\n");
+
 }
 
 #endif

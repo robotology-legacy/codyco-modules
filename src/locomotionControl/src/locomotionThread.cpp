@@ -54,7 +54,6 @@ bool LocomotionThread::threadInit()
     xd_com.resize(DEFAULT_XDES_COM.size(), 0.0);        // desired pos
     xd_foot.resize(DEFAULT_XDES_FOOT.size(), 0.0);      // desired pos
     qd.resize(ICUB_DOFS, 0.0);                          // desired pos (all joints)
-    //qdAllJoints.resize(ICUB_DOFS, 0.0);                 // desired pos (all joints)
 
     xr_com.resize(DEFAULT_XDES_COM.size(), 0.0);        // reference pos
     xr_foot.resize(DEFAULT_XDES_FOOT.size(), 0.0);      // reference pos
@@ -95,7 +94,7 @@ bool LocomotionThread::threadInit()
     assert(paramHelper->linkParam(PARAM_ID_QREF,                qr.data()));        // constant size
     assert(paramHelper->linkParam(PARAM_ID_X_COM,               x_com.data()));
     assert(paramHelper->linkParam(PARAM_ID_X_FOOT,              x_foot.data()));
-    assert(paramHelper->linkParam(PARAM_ID_Q,                   q.data()));         // variable size
+    assert(paramHelper->linkParam(PARAM_ID_Q,                   qDeg.data()));      // variable size
     
     // Register callbacks for some module parameters
     assert(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_COM,       this));
@@ -134,7 +133,7 @@ void LocomotionThread::run()
     
         dxc_com     = dxr_com   +  kp_com        * (xr_com  - x_com);
         dxc_foot    =/*dxr_foot+*/ kp_foot       * compute6DError(x_foot, xr_foot);  // temporarely remove feedforward velocity because it is 7d (whereas it should be 6d)
-        dqc         = S*dqr     +  (S*kp_posture)* (S*qr    - q);
+        dqc         = S*dqr     +  (S*kp_posture)* (S*qr    - qRad);
 
 #ifdef PRINT_X_FOOT
     printf("\n*********************************************************************\n");
@@ -147,14 +146,19 @@ void LocomotionThread::run()
         VectorXd dqMotors = solveTaskHierarchy();   // prioritized velocity control
         robot->setVelRef(dqMotors.data());          // send velocities to the joint motors
 
-        cout<<"dx com            "<< (Jcom_2xN*dq).transpose().format(matrixPrintFormat)<< endl;    // dq in n, J is n+6 !!!!!
-        cout<<"dx com commanded  "<< dxc_comE.transpose().format(matrixPrintFormat)<< endl;
+        if(printCountdown==0)
+        {
+            cout<<"dqMotors: "<< toString(dqMotors.transpose())<< endl;
+            cout<<"dq:       "<< toString(dq.transpose())<< endl;
+            //cout<<"dx com            "<< (Jcom_2xN*dq).transpose().format(matrixPrintFormat)<< endl;    // dq in n, J is n+6 !!!!!
+            //cout<<"dx com commanded  "<< dxc_comE.transpose().format(matrixPrintFormat)<< endl;
+        }
     }
 
     paramHelper->sendStreamParams();
     paramHelper->unlock();
 
-    printCountdown += getRate();
+    printCountdown += (int)getRate();
     if(printCountdown>= PRINT_PERIOD)
         printCountdown = 0;
 }
@@ -163,7 +167,8 @@ void LocomotionThread::run()
 bool LocomotionThread::readRobotStatus(bool blockingRead)
 {
     // read joint angles
-    bool res = robot->getQ(q.data(), blockingRead);
+    bool res = robot->getQ(qRad.data(), blockingRead);
+    qDeg = CTRL_RAD2DEG*qRad;
     res = res && robot->getDq(dqJ.data(), -1.0, blockingRead);
 
     // select which foot to control
@@ -173,7 +178,10 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
     Vector7d zero7 = Vector7d::Zero();
     MatrixY H_base_leftFoot(4,4);       // rototranslation from robot base to left foot (i.e. world)
-    robot->computeH(q.data(), zero7.data(), LINK_ID_LEFT_FOOT, H_base_leftFoot.data());
+    robot->computeH(qRad.data(), zero7.data(), LINK_ID_LEFT_FOOT, H_base_leftFoot.data());
+    MatrixY Ha = zeros(4,4); // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
+    Ha(0,2)=1; Ha(1,1)=-1; Ha(2,0)=1; Ha(3,3)=1;
+    H_base_leftFoot *= Ha;
     H_w2b = SE3inv(H_base_leftFoot);    // rototranslation from world (i.e. left foot) to robot base
 #endif
     //Vector qu = dcm2quaternion(H_w2b.submatrix(0,2,0,2));
@@ -182,12 +190,12 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     xBase[3]=qu[0];         xBase[4]=qu[1];         xBase[5]=qu[2];         xBase[6]=qu[3];
 
     // forward kinematics
-    robot->forwardKinematics(q.data(), xBase.data(), footLinkId,    x_foot.data());
-    robot->forwardKinematics(q.data(), xBase.data(), comLinkId,     x_com.data());
+    robot->forwardKinematics(qRad.data(), xBase.data(), footLinkId,    x_foot.data());
+    robot->forwardKinematics(qRad.data(), xBase.data(), comLinkId,     x_com.data());
     // compute Jacobians of both feet and CoM
-    robot->computeJacobian(q.data(), xBase.data(), LINK_ID_RIGHT_FOOT,  JfootR.data());
-    robot->computeJacobian(q.data(), xBase.data(), LINK_ID_LEFT_FOOT,   JfootL.data());
-    robot->computeJacobian(q.data(), xBase.data(), comLinkId,           Jcom_6xN.data());
+    robot->computeJacobian(qRad.data(), xBase.data(), LINK_ID_RIGHT_FOOT,  JfootR.data());
+    robot->computeJacobian(qRad.data(), xBase.data(), LINK_ID_LEFT_FOOT,   JfootL.data());
+    robot->computeJacobian(qRad.data(), xBase.data(), comLinkId,           Jcom_6xN.data());
     // convert Jacobians
     Jcom_2xN = Jcom_6xN.topRows<2>();
     if(supportPhase==SUPPORT_DOUBLE){       Jfoot.setZero();    Jc.topRows<6>()=JfootR; Jc.bottomRows<6>()=JfootL; }
@@ -201,8 +209,8 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
 
     if(printCountdown==0)
     {
-        cout<< "R foot vel: "<< (JfootR*dq).norm()<< endl; //.transpose().format(matrixPrintFormat)<< endl;
-        cout<< "L foot vel: "<< (JfootL*dq).norm()<< endl; //transpose().format(matrixPrintFormat)<< endl;
+        cout<< "R foot vel: "<< setprecision(2)<< (JfootR*dq).norm()<< endl; //.transpose().format(matrixPrintFormat)<< endl;
+        cout<< "L foot vel: "<< setprecision(2)<< (JfootL*dq).norm()<< endl; //transpose().format(matrixPrintFormat)<< endl;
         //cout<< "J foot 1:\n" << fixed<< setw(4)<< setprecision(1)<< Jfoot.block(0,0,6,5) <<endl;
         //cout<< "J foot 2:\n" << fixed<< setw(4)<< setprecision(1)<< Jfoot.block(0,5,6,15) <<endl;
     }
@@ -214,13 +222,13 @@ bool LocomotionThread::updateReferenceTrajectories()
 {
     trajGenCom->computeNextValues(xd_com);
     trajGenFoot->computeNextValues(xd_foot);
-    trajGenPosture->computeNextValues(qd);
+    trajGenPosture->computeNextValues(CTRL_DEG2RAD*qd);
     xr_com      = trajGenCom->getPos();
     xr_foot     = trajGenFoot->getPos();
-    qr          = trajGenPosture->getPos();
+    qr          = trajGenPosture->getPos(); // rad
     dxr_com     = trajGenCom->getVel();
     dxr_foot    = trajGenFoot->getVel();
-    dqr         = trajGenPosture->getVel();
+    dqr         = trajGenPosture->getVel(); // rad/sec
     return true;
 }
 
@@ -239,24 +247,25 @@ VectorXd LocomotionThread::solveTaskHierarchy()
     pinvTrunc(Jc, PINV_TOL, Jc_pinv, &svJc);
     N -= Jc_pinv*Jc;
 
-    // *** COM CTRL TASK
-    pinvDampTrunc(Jcom_2xN*N, PINV_TOL, pinvDamp, Jcom_pinv, Jcom_pinvD, &svJcom);
-    dqDes += Jcom_pinvD*dxc_comE;
-#ifndef NDEBUG 
-    assertEqual(Jc*N, MatrixXd::Zero(k,n+6), "Jc*Nc=0");
-    assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dqCom=0");
-#endif
-    N -= Jcom_pinv*Jcom_2xN*N;
-
-    // *** FOOT CTRL TASK
-    pinvDampTrunc(Jfoot*N, PINV_TOL, pinvDamp, Jfoot_pinv, Jfoot_pinvD, &svJfoot);
-    dqDes += Jfoot_pinvD*(dxc_footE - Jfoot*dqDes);
-#ifndef NDEBUG 
-    assertEqual(Jc*N, MatrixXd::Zero(k,n+6), "Jc*N=0");
-    assertEqual(Jcom_2xN*N, MatrixXd::Zero(2,n+6), "Jcom_2xN*Ncom=0");
-    assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dqFoot=0");
-#endif
-    N -= Jfoot_pinv*Jfoot*N;
+//    // *** COM CTRL TASK
+//    pinvDampTrunc(Jcom_2xN*N, PINV_TOL, pinvDamp, Jcom_pinv, Jcom_pinvD, &svJcom);
+//    dqDes += Jcom_pinvD*dxc_comE;
+//    return dqDes.block(0,0,n,1);
+//#ifndef NDEBUG 
+//    assertEqual(Jc*N, MatrixXd::Zero(k,n+6), "Jc*Nc=0");
+//    assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dqCom=0");
+//#endif
+//    N -= Jcom_pinv*Jcom_2xN*N;
+//
+//    // *** FOOT CTRL TASK
+//    pinvDampTrunc(Jfoot*N, PINV_TOL, pinvDamp, Jfoot_pinv, Jfoot_pinvD, &svJfoot);
+//    dqDes += Jfoot_pinvD*(dxc_footE - Jfoot*dqDes);
+//#ifndef NDEBUG 
+//    assertEqual(Jc*N, MatrixXd::Zero(k,n+6), "Jc*N=0");
+//    assertEqual(Jcom_2xN*N, MatrixXd::Zero(2,n+6), "Jcom_2xN*Ncom=0");
+//    assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dqFoot=0");
+//#endif
+//    N -= Jfoot_pinv*Jfoot*N;
 
     // *** POSTURE TASK
     pinvTrunc(Jposture*N, PINV_TOL, Jposture_pinv);
@@ -264,11 +273,11 @@ VectorXd LocomotionThread::solveTaskHierarchy()
 
 #ifndef NDEBUG
     assertEqual(Jc*N, MatrixXd::Zero(k,n+6), "Jc*N=0");
-    assertEqual(Jcom_2xN*N, MatrixXd::Zero(2,n+6), "Jcom_2xN*N=0");
-    assertEqual(Jfoot*N, MatrixXd::Zero(6,n+6), "Jfoot*N=0");
+    //assertEqual(Jcom_2xN*N, MatrixXd::Zero(2,n+6), "Jcom_2xN*N=0");
+    //assertEqual(Jfoot*N, MatrixXd::Zero(6,n+6), "Jfoot*N=0");
     assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dqDes=0");
 #endif
-
+    
     return dqDes.block(0,0,n,1);
 }
 
@@ -279,7 +288,7 @@ void LocomotionThread::preStartOperations()
     readRobotStatus(true);                  // update com, foot and joint positions
     trajGenCom->init(x_com);                // initialize trajectory generators
     trajGenFoot->init(x_foot);
-    trajGenPosture->init(q);
+    trajGenPosture->init(qRad);
     status = LOCOMOTION_ON;                 // set thread status to "on"
     robot->setControlMode(CTRL_MODE_VEL);   // set position control mode
 }
@@ -330,7 +339,8 @@ void LocomotionThread::numberOfJointsChanged()
     Jposture = MatrixXd::Identity(_n, _n+6);
     Jc.resize(NoChange, _n+6);
 
-    q.resize(_n, 0.0);                                  // measured pos
+    qRad.resize(_n, 0.0);                               // measured pos
+    qDeg.resize(_n, 0.0);                               // measured pos
     dq.resize(_n+6);                                    // measured vel (base + joints)
     dqJ.resize(_n);                                     // measured vel (joints only)
     dqc.resize(_n, 0.0);                                // commanded vel (Yarp vector)
@@ -397,7 +407,6 @@ void LocomotionThread::commandReceived(const CommandDescription &cd, const Bottl
         break;
     case COMMAND_ID_STOP:
         preStopOperations();
-        sendMsg("Stopping the controller.", MSG_INFO); 
         break;
     default:
         sendMsg("A callback is registered but not managed for the command "+cd.name, MSG_WARNING);

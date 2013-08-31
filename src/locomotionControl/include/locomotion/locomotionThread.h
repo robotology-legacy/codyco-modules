@@ -102,10 +102,10 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     MatrixY             H_w2b;                  // rotation matrix from world to base reference frame
 
     // Output streaming parameters
-    Vector              xr_com, xr_foot, qr;    // reference positions (use yarp vector because minJerkTrajGen gives yarp vector)
-    Vector              dxr_com, dxr_foot, dqr; // reference velocities (use yarp vector because minJerkTrajGen gives yarp vector)
-    Vector              x_com, x_foot, q;       // measured positions (use yarp vector because minJerkTrajGen gives yarp vector)
-    Vector              dxc_com, dxc_foot, dqc; // commanded velocities (use yarp vector because minJerkTrajGen gives yarp vector)
+    Vector              xr_com, xr_foot, qr;        // reference positions (use yarp vector because minJerkTrajGen gives yarp vector)
+    Vector              dxr_com, dxr_foot, dqr;     // reference velocities (use yarp vector because minJerkTrajGen gives yarp vector)
+    Vector              x_com, x_foot, qDeg, qRad;  // measured positions (use yarp vector because minJerkTrajGen gives yarp vector)
+    Vector              dxc_com, dxc_foot, dqc;     // commanded velocities (use yarp vector because minJerkTrajGen gives yarp vector)
     
     // Eigen vectors mapping Yarp vectors
     Map<Vector2d>       dxc_comE;               // commanded velocity of the COM

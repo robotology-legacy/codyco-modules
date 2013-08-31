@@ -112,3 +112,22 @@ void locomotion::testFailed(string testName)
     printf("Test %s ***FAILED*** !!!\n", testName.c_str());
     assert(false);
 }
+
+//*************************************************************************************************************************
+std::string locomotion::toString(const Eigen::MatrixXd &m, int precision, const char* endRowStr)
+{
+    string ret = "";
+    char tmp[350];
+    for(int i=0;i<m.rows();i++)
+    {
+        for(int j=0;j<m.cols();j++)
+        {
+            sprintf(tmp, "% .*lf\t", precision, m(i,j));
+            ret+=tmp;
+        }
+        ret = ret.substr(0,ret.length()-1);     // remove the last character (tab)
+        if(i<m.rows()-1)                          // if it is not the last row
+            ret+= endRowStr;
+    }
+    return ret.substr(0, ret.length()-1);
+}
