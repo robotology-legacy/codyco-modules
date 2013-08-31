@@ -174,7 +174,7 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     // select which foot to control
     footLinkId = supportPhase==SUPPORT_LEFT ? LINK_ID_RIGHT_FOOT : LINK_ID_LEFT_FOOT;
     // base orientation conversion
-#define COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
+//#define COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
     Vector7d zero7 = Vector7d::Zero();
     MatrixY H_base_leftFoot(4,4);       // rototranslation from robot base to left foot (i.e. world)
@@ -209,10 +209,11 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
 
     if(printCountdown==0)
     {
-        cout<< "R foot vel: "<< setprecision(2)<< (JfootR*dq).norm()<< endl; //.transpose().format(matrixPrintFormat)<< endl;
-        cout<< "L foot vel: "<< setprecision(2)<< (JfootL*dq).norm()<< endl; //transpose().format(matrixPrintFormat)<< endl;
-        //cout<< "J foot 1:\n" << fixed<< setw(4)<< setprecision(1)<< Jfoot.block(0,0,6,5) <<endl;
-        //cout<< "J foot 2:\n" << fixed<< setw(4)<< setprecision(1)<< Jfoot.block(0,5,6,15) <<endl;
+        //cout<< "R foot vel: "<< setprecision(2)<< (JfootR*dq).norm()<< endl; //.transpose().format(matrixPrintFormat)<< endl;
+        //cout<< "L foot vel: "<< setprecision(2)<< (JfootL*dq).norm()<< endl; //transpose().format(matrixPrintFormat)<< endl;
+        cout<< "Jc cols 0-9:\n" << toString(Jc.rightCols<10>()) <<endl;
+        cout<< "Jc cols 10-19:\n" << toString(Jc.block(0,10,12,10)) <<endl;
+        cout<< "Jc cols 20-29:\n" << toString(Jc.block(0,20,12,10)) <<endl;
     }
     return res;
 }
