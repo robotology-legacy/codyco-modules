@@ -1019,12 +1019,12 @@ bool DynTree::getCOMJacobian(yarp::sig::Matrix & jac, yarp::sig::Matrix & moment
     
 
     //As in iDynTree the base twist is expressed in the world frame, the first six columns are always the identity
-    com_jacobian.setColumn(0,KDL::Twist(KDL::Vector(1,0,0),KDL::Vector(0,0,0)));
-    com_jacobian.setColumn(1,KDL::Twist(KDL::Vector(0,1,0),KDL::Vector(0,0,0)));
-    com_jacobian.setColumn(2,KDL::Twist(KDL::Vector(0,0,1),KDL::Vector(0,0,0)));
-    com_jacobian.setColumn(3,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(1,0,0)));
-    com_jacobian.setColumn(4,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,1,0)));
-    com_jacobian.setColumn(5,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,0,1)));
+    abs_jacobian.setColumn(0,KDL::Twist(KDL::Vector(1,0,0),KDL::Vector(0,0,0)).RefPoint(total_inertia.getCOG()));
+    abs_jacobian.setColumn(1,KDL::Twist(KDL::Vector(0,1,0),KDL::Vector(0,0,0)).RefPoint(total_inertia.getCOG()));
+    abs_jacobian.setColumn(2,KDL::Twist(KDL::Vector(0,0,1),KDL::Vector(0,0,0)).RefPoint(total_inertia.getCOG()));
+    abs_jacobian.setColumn(3,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(1,0,0)).RefPoint(total_inertia.getCOG()));
+    abs_jacobian.setColumn(4,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,1,0)).RefPoint(total_inertia.getCOG()));
+    abs_jacobian.setColumn(5,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,0,1)).RefPoint(total_inertia.getCOG()));
     
     momentum_jacobian.changeRefPoint(-total_inertia.getCOG());
 
