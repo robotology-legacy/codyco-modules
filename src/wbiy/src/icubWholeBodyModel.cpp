@@ -246,7 +246,11 @@ bool icubWholeBodyModel::convertQ(const double *_q, yarp::sig::Vector & q_comple
     int i=0;
     FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
         FOR_ALL_JOINTS(itBp, itJ) {
-            all_q[p_icub_model->getLinkIndex(itBp->first,*itJ)] = _q[i];
+            double tmp;
+            tmp = _q[i];
+            assert(p_icub_model->getDOFIndex(itBp->first,*itJ) >= 0);
+            assert(p_icub_model->getDOFIndex(itBp->first,*itJ) < all_q.size());
+            all_q[p_icub_model->getDOFIndex(itBp->first,*itJ)] = tmp;
             i++;
         }
     }
@@ -257,7 +261,7 @@ bool icubWholeBodyModel::convertDQ(const double *_dq, yarp::sig::Vector & dq_com
     int i=0;
     FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
         FOR_ALL_JOINTS(itBp, itJ) {
-            all_dq[p_icub_model->getLinkIndex(itBp->first,*itJ)] = _dq[i];
+            all_dq[p_icub_model->getDOFIndex(itBp->first,*itJ)] = _dq[i];
             i++;
         }
     }
@@ -269,7 +273,7 @@ bool icubWholeBodyModel::convertDDQ(const double *_ddq, yarp::sig::Vector & ddq_
     int i=0;
     FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
         FOR_ALL_JOINTS(itBp, itJ) {
-            all_ddq[p_icub_model->getLinkIndex(itBp->first,*itJ)] = _ddq[i];
+            all_ddq[p_icub_model->getDOFIndex(itBp->first,*itJ)] = _ddq[i];
             i++;
         }
     }
