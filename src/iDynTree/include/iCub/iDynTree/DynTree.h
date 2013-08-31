@@ -538,11 +538,11 @@ class DynTree  {
         virtual yarp::sig::Matrix getPosition(const int first_link, const int second_link) const;
         
         /**
-        * Get the velocity of the specified link, expressed in the global reference frame, but using as reference point
+        * Get the velocity of the specified link, expressed in the world reference frame, but using as reference point
         * the origin of the link local reference frame
         * @param link_index the index of the link 
         * @param if true, return the velocity expressed in the link local frame
-        * @return a 6x1 vector with linear velocity \f$ {}^iv_i \f$ (0:2) and angular velocity \f$ {}^i\omega_i\f$ (3:5)
+        * @return a 6x1 vector with linear velocity \f$ {}^wv_i \f$ (0:2) and angular velocity \f$ {}^w\omega_i\f$ (3:5)
         */
         virtual yarp::sig::Vector getVel(const int link_index, bool local=false) const;
     
@@ -603,7 +603,7 @@ class DynTree  {
         * For a floating base structure, outpus a 6x(nrOfDOFs+6) yarp::sig::Matrix \f$ {}^i J_i \f$ such
         * that \f$ {}^w v_i = {}^wJ_i  dq_{fb} \f$
         * where w is the world reference frame and \f$ dq_{fb} \f$ is the floating base velocity vector,
-        * where the first 3 elements are \f$ {}^bv_b\f$, the next 3 are \f$ {}^b\omega_b\f$ and the remaing 
+        * where the first 3 elements are \f$ {}^wv_b\f$, the next 3 are \f$ {}^w\omega_b\f$ and the remaining 
         * are the proper joint velocities. 
         * @param link_index the index of the link
         * @param jac the output yarp::sig::Matrix 
@@ -617,7 +617,7 @@ class DynTree  {
         
         /**
         * Get the 6+getNrOfDOFs() yarp::sig::Vector, characterizing the floating base velocities of the tree
-        * @return a vector where the 0:5 elements are the one of the dynamic base (the same that are obtained calling
+        * @return a vector where the 0:5 elements are the one of the dynamic base expressed in the world frame (the same that are obtained calling
         *         getVel(dynamic_base_index), while the 6:6+getNrOfDOFs()-1 elements are the joint speeds
         */
         virtual yarp::sig::Vector getDQ_fb() const;
@@ -663,6 +663,10 @@ class DynTree  {
         */
         virtual bool getCOMJacobian(yarp::sig::Matrix & jac, const std::string & part_name="");
         
+        /**
+         * Temporary function, do not use.
+         * 
+         */
         virtual bool getCOMJacobian(yarp::sig::Matrix & jac, yarp::sig::Matrix & momentum_jac, const std::string & part_name="");
 
         

@@ -534,7 +534,7 @@ yarp::sig::Vector DynTree::getDQ_fb() const
      * 
      * \todo checking it is possible to return something which have sense
      */
-    return cat(getVel(dynamic_traversal.order[0]->getLinkIndex(),true),getDAng());
+    return cat(getVel(dynamic_traversal.order[0]->getLinkIndex()),getDAng());
 }
 
 yarp::sig::Vector DynTree::setD2Ang(const yarp::sig::Vector & _q, const std::string & part_name)
@@ -1017,6 +1017,15 @@ bool DynTree::getCOMJacobian(yarp::sig::Matrix & jac, yarp::sig::Matrix & moment
     //KDL::CoDyCo::divideJacobianInertia(momentum_jacobian,total_inertia,com_jacobian);
     com_jacobian.data = momentum_jacobian.data/total_inertia.getMass();
     
+
+    //As in iDynTree the base twist is expressed in the world frame, the first six columns are always the identity
+    com_jacobian.setColumn(0,KDL::Twist(KDL::Vector(1,0,0),KDL::Vector(0,0,0)));
+    com_jacobian.setColumn(1,KDL::Twist(KDL::Vector(0,1,0),KDL::Vector(0,0,0)));
+    com_jacobian.setColumn(2,KDL::Twist(KDL::Vector(0,0,1),KDL::Vector(0,0,0)));
+    com_jacobian.setColumn(3,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(1,0,0)));
+    com_jacobian.setColumn(4,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,1,0)));
+    com_jacobian.setColumn(5,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,0,1)));
+    
     momentum_jacobian.changeRefPoint(-total_inertia.getCOG());
 
     Eigen::Map< Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > mapped_jacobian(jac.data(),jac.rows(),jac.cols());
@@ -1097,11 +1106,34 @@ bool DynTree::getJacobian(const int link_index, yarp::sig::Matrix & jac, bool lo
     
     getFloatingBaseJacobianLoop(tree_graph,q,dynamic_traversal,link_index,abs_jacobian);
     
+    /** \todo compute only the needed rototranslation */
+    computePositions();
+    
     if( !local ) {
-        //Compute the position of the world 
-        //\todo compute only the needed rototranslation
-        computePositions();
+        //Compute the position of the world n
+
         abs_jacobian.changeBase((world_base_frame*X_dynamic_base[link_index]).M);
+        
+        KDL::Vector dist_world_link = (world_base_frame*X_dynamic_base[link_index]).p;
+        
+        //As in iDynTree the base twist is expressed in the world frame, the first six columns are always the identity
+        abs_jacobian.setColumn(0,KDL::Twist(KDL::Vector(1,0,0),KDL::Vector(0,0,0)).RefPoint(dist_world_link));
+        abs_jacobian.setColumn(1,KDL::Twist(KDL::Vector(0,1,0),KDL::Vector(0,0,0)).RefPoint(dist_world_link));
+        abs_jacobian.setColumn(2,KDL::Twist(KDL::Vector(0,0,1),KDL::Vector(0,0,0)).RefPoint(dist_world_link));
+        abs_jacobian.setColumn(3,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(1,0,0)).RefPoint(dist_world_link));
+        abs_jacobian.setColumn(4,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,1,0)).RefPoint(dist_world_link));
+        abs_jacobian.setColumn(5,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,0,1)).RefPoint(dist_world_link));
+    } else {
+        //The first 6 columns should be the transformation between world and the local frame
+        //in kdl_codyco the velocity of the base twist is expressed in the base frame
+        KDL::Frame H_link_world = (world_base_frame*X_dynamic_base[link_index]).Inverse();
+        
+        abs_jacobian.setColumn(0,H_link_world*KDL::Twist(KDL::Vector(1,0,0),KDL::Vector(0,0,0)));
+        abs_jacobian.setColumn(1,H_link_world*KDL::Twist(KDL::Vector(0,1,0),KDL::Vector(0,0,0)));
+        abs_jacobian.setColumn(2,H_link_world*KDL::Twist(KDL::Vector(0,0,1),KDL::Vector(0,0,0)));
+        abs_jacobian.setColumn(3,H_link_world*KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(1,0,0)));
+        abs_jacobian.setColumn(4,H_link_world*KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,1,0)));
+        abs_jacobian.setColumn(5,H_link_world*KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,0,1)));
     }
     
     Eigen::Map< Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > mapped_jacobian(jac.data(),jac.rows(),jac.cols());
