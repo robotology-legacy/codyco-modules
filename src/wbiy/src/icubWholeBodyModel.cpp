@@ -162,7 +162,7 @@ bool icubWholeBodyModel::init()
 
 bool icubWholeBodyModel::close()
 {
-    delete p_icub_model;
+    if(p_icub_model) { delete p_icub_model; p_icub_model = 0; }
     return true;
 }
 
