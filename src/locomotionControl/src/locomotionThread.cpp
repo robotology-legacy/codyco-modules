@@ -38,11 +38,12 @@ bool LocomotionThread::threadInit()
 {
     assert(robot->getLinkId("r_foot", LINK_ID_RIGHT_FOOT));
     assert(robot->getLinkId("l_foot", LINK_ID_LEFT_FOOT));
-    comLinkId           = iWholeBodyModel::COM_LINK_ID; // use 0 until Silvio implements COM kinematics
+    assert(robot->getLinkId("root_link", comLinkId));   // temporarely control "root link" rather than COM (issues in COM Jacobian)
+    //comLinkId           = iWholeBodyModel::COM_LINK_ID;
 
-    // I must count the nonzero entries of activeJoints to know _n
+    // I must count the nonzero entries of activeJoints before calling numberOfJointsChanged (to know _n)
     assert(paramHelper->linkParam(PARAM_ID_ACTIVE_JOINTS,       activeJoints.data()));
-    // I must know the support phase to know the number of constraints
+    // I must know the support phase before calling numberOfConstraintsChanged (to know the number of constraints)
     assert(paramHelper->linkParam(PARAM_ID_SUPPORT_PHASE,       &supportPhase));
     numberOfJointsChanged();
     numberOfConstraintsChanged();
@@ -171,10 +172,10 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     qDeg = CTRL_RAD2DEG*qRad;
     res = res && robot->getDq(dqJ.data(), -1.0, blockingRead);
 
-    // select which foot to control
-    footLinkId = supportPhase==SUPPORT_LEFT ? LINK_ID_RIGHT_FOOT : LINK_ID_LEFT_FOOT;
+    // select which foot to control (when in double support, select the right foot)
+    footLinkId = supportPhase==SUPPORT_RIGHT ? LINK_ID_LEFT_FOOT : LINK_ID_RIGHT_FOOT;
     // base orientation conversion
-//#define COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
+#define COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
     Vector7d zero7 = Vector7d::Zero();
     MatrixY H_base_leftFoot(4,4);       // rototranslation from robot base to left foot (i.e. world)
@@ -211,7 +212,8 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     {
         //cout<< "R foot vel: "<< setprecision(2)<< (JfootR*dq).norm()<< endl; //.transpose().format(matrixPrintFormat)<< endl;
         //cout<< "L foot vel: "<< setprecision(2)<< (JfootL*dq).norm()<< endl; //transpose().format(matrixPrintFormat)<< endl;
-        cout<< "Jc (Rfoot up, Lfoot down):\n" << toString(Jc) <<endl;
+        cout<< "Jc (Rfoot up, Lfoot down):\n" << toString(Jc,2) <<endl;
+        cout<< "Jcom:\n" << toString(Jcom_2xN,2) <<endl;
     }
     return res;
 }
@@ -246,16 +248,16 @@ VectorXd LocomotionThread::solveTaskHierarchy()
     pinvTrunc(Jc, PINV_TOL, Jc_pinv, &svJc);
     N -= Jc_pinv*Jc;
 
-//    // *** COM CTRL TASK
-//    pinvDampTrunc(Jcom_2xN*N, PINV_TOL, pinvDamp, Jcom_pinv, Jcom_pinvD, &svJcom);
-//    dqDes += Jcom_pinvD*dxc_comE;
-//    return dqDes.block(0,0,n,1);
-//#ifndef NDEBUG 
-//    assertEqual(Jc*N, MatrixXd::Zero(k,n+6), "Jc*Nc=0");
-//    assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dqCom=0");
-//#endif
-//    N -= Jcom_pinv*Jcom_2xN*N;
-//
+    // *** COM CTRL TASK
+    pinvDampTrunc(Jcom_2xN*N, PINV_TOL, pinvDamp, Jcom_pinv, Jcom_pinvD, &svJcom);
+    dqDes += Jcom_pinvD*dxc_comE;
+#ifndef NDEBUG 
+    assertEqual(Jc*N, MatrixXd::Zero(k,n+6), "Jc*Nc=0");
+    assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dqCom=0");
+#endif
+    N -= Jcom_pinv*Jcom_2xN*N;
+
+    //return dqDes.block(6,0,n,1);
 //    // *** FOOT CTRL TASK
 //    pinvDampTrunc(Jfoot*N, PINV_TOL, pinvDamp, Jfoot_pinv, Jfoot_pinvD, &svJfoot);
 //    dqDes += Jfoot_pinvD*(dxc_footE - Jfoot*dqDes);
@@ -268,8 +270,7 @@ VectorXd LocomotionThread::solveTaskHierarchy()
 
     // *** POSTURE TASK
     pinvTrunc(Jposture*N, PINV_TOL, Jposture_pinv);
-    //dqDes += Jposture_pinv*(dqcE - Jposture*dqDes);  //Old implementation (should give same result): dqDes += N*(dqcE - dqDes);
-    dqDes = Jposture_pinv*dqcE;
+    dqDes += Jposture_pinv*(dqcE - Jposture*dqDes);  //Old implementation (should give same result): dqDes += N*(dqcE - dqDes);
 
     if(printCountdown==0)
     {
