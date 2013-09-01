@@ -467,7 +467,8 @@ yarp::sig::Vector DynTree::setAng(const yarp::sig::Vector & _q, const std::strin
         }
         
     } else { // if part_name.length > 0 
-        const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
+        std::vector<int> dof_ids;
+        dof_ids = partition.getPartDOFIDs(part_name);
         if( dof_ids.size() != _q.size() ) { std::cerr << "setAng: Input vector has a wrong number of elements (or part_name wrong)" << std::endl; return yarp::sig::Vector(0); }
         for(int i = 0; i < (int)dof_ids.size(); i++ ) {
             ret_q[i] = setAng(_q[i],dof_ids[i]);
@@ -1019,12 +1020,12 @@ bool DynTree::getCOMJacobian(yarp::sig::Matrix & jac, yarp::sig::Matrix & moment
     
 
     //As in iDynTree the base twist is expressed in the world frame, the first six columns are always the identity
-    abs_jacobian.setColumn(0,KDL::Twist(KDL::Vector(1,0,0),KDL::Vector(0,0,0)).RefPoint(total_inertia.getCOG()));
-    abs_jacobian.setColumn(1,KDL::Twist(KDL::Vector(0,1,0),KDL::Vector(0,0,0)).RefPoint(total_inertia.getCOG()));
-    abs_jacobian.setColumn(2,KDL::Twist(KDL::Vector(0,0,1),KDL::Vector(0,0,0)).RefPoint(total_inertia.getCOG()));
-    abs_jacobian.setColumn(3,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(1,0,0)).RefPoint(total_inertia.getCOG()));
-    abs_jacobian.setColumn(4,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,1,0)).RefPoint(total_inertia.getCOG()));
-    abs_jacobian.setColumn(5,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,0,1)).RefPoint(total_inertia.getCOG()));
+    com_jacobian.setColumn(0,KDL::Twist(KDL::Vector(1,0,0),KDL::Vector(0,0,0)).RefPoint(total_inertia.getCOG()));
+    com_jacobian.setColumn(1,KDL::Twist(KDL::Vector(0,1,0),KDL::Vector(0,0,0)).RefPoint(total_inertia.getCOG()));
+    com_jacobian.setColumn(2,KDL::Twist(KDL::Vector(0,0,1),KDL::Vector(0,0,0)).RefPoint(total_inertia.getCOG()));
+    com_jacobian.setColumn(3,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(1,0,0)).RefPoint(total_inertia.getCOG()));
+    com_jacobian.setColumn(4,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,1,0)).RefPoint(total_inertia.getCOG()));
+    com_jacobian.setColumn(5,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,0,1)).RefPoint(total_inertia.getCOG()));
     
     momentum_jacobian.changeRefPoint(-total_inertia.getCOG());
 
@@ -1225,18 +1226,21 @@ bool DynTree::getDynamicsParameters(yarp::sig::Vector & vec)
     inertialParametersVectorLoop(tree_graph,inertial_parameters);
     
     mapped_vector = inertial_parameters;
-
+    
     return true;
 }
 
 int DynTree::getNrOfDOFs(const std::string & part_name)
 {
+    
     if( part_name.length() ==  0 ) 
     { 
         //No part specified
         return tree_graph.getNrOfDOFs();        
     } else { // if part_name.length > 0 
-        const std::vector<int> & dof_ids = partition.getPartDOFIDs(part_name);
+        std::vector<int> dof_ids;
+        dof_ids = partition.getPartDOFIDs(part_name);
+        std::cout << "DynTree::getNrOfDOFs " << part_name << " has " << dof_ids.size() << std::endl;
         return dof_ids.size();
     }
 }
