@@ -30,6 +30,8 @@ iCubTree::iCubTree(iCubTree_version_tag version, iCubTree_serialization_tag seri
     ver.head_version = version.head_version;
     ver.legs_version = version.legs_version;
     
+    //std::cout << "Creating iCubTree with head version " << ver.head_version << " and legs version " << ver.legs_version << std::endl;
+    
     iCub::iDyn::iCubWholeBody icub_idyn(ver);
     
     //Convert it to a KDL::Tree (this preserve all the frame of reference, is the conversion to URDF that changes them)
@@ -92,9 +94,9 @@ KDL::CoDyCo::TreePartition iCubTree::get_iCub_partition(const KDL::CoDyCo::TreeS
     head.addLink(icub_serialization.getLinkId("imu_frame"));    
     
     KDL::CoDyCo::TreePart torso(TORSO,BodyPart_s[TORSO]);
-    torso.addDOF(icub_serialization.getDOFId("torso_yaw"));
-    torso.addDOF(icub_serialization.getDOFId("torso_roll"));
     torso.addDOF(icub_serialization.getDOFId("torso_pitch"));
+    torso.addDOF(icub_serialization.getDOFId("torso_roll"));
+    torso.addDOF(icub_serialization.getDOFId("torso_yaw"));
     
     torso.addLink(icub_serialization.getLinkId("root_link"));
     torso.addLink(icub_serialization.getLinkId("lap_belt_1"));    
