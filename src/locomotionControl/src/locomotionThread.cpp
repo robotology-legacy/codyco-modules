@@ -39,8 +39,8 @@ bool LocomotionThread::threadInit()
 {
     assert(robot->getLinkId("r_foot", LINK_ID_RIGHT_FOOT)); // 41
     assert(robot->getLinkId("l_foot", LINK_ID_LEFT_FOOT));  // 33
-    assert(robot->getLinkId("root_link", comLinkId));   // temporarely control "root link" rather than COM (issues in COM Jacobian)
-    //comLinkId           = iWholeBodyModel::COM_LINK_ID;
+    //assert(robot->getLinkId("root_link", comLinkId));   // temporarely control "root link" rather than COM (issues in COM Jacobian)
+    comLinkId           = iWholeBodyModel::COM_LINK_ID;
 
 #ifdef NDEBUG
     // in Release the getLinkId method doesn't work, so force the link id to the right values
@@ -226,7 +226,7 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     //cout<< "R foot vel: "<< setprecision(2)<< (JfootR*dq).norm()<< endl; //.transpose().format(matrixPrintFormat)<< endl;
     //cout<< "L foot vel: "<< setprecision(2)<< (JfootL*dq).norm()<< endl; //transpose().format(matrixPrintFormat)<< endl;
     //sendMsg("Jc (Rfoot up, Lfoot down):\n"+toString(Jc,2), MSG_DEBUG);
-    //sendMsg("Jcom:\n"+toString(Jcom_2xN,2), MSG_DEBUG);
+    sendMsg("Jcom:\n"+toString(solver->com.A,2), MSG_DEBUG);
     return res;
 }
 

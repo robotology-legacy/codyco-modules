@@ -56,8 +56,8 @@ static const IOFormat   matrixPrintFormat(1, DontAlignCols, " ", ";\n", "", "", 
 enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
 
 // *** CONSTANTS
-static const int        PRINT_PERIOD    = 2000;     // period of debug prints (in ms)
-static const int        PRINT_MSG_LEVEL = MSG_INFO; // only messages whose type is >= PRINT_MSG_LEVEL are printed
+static const int        PRINT_PERIOD    = 3000;     // period of debug prints (in ms)
+static const int        PRINT_MSG_LEVEL = MSG_DEBUG; // only messages whose type is >= PRINT_MSG_LEVEL are printed
 static const double     KP_MAX          = 100.0;    // max value of proportional gains
 static const double     PINV_TOL        = 1e-4;     // threshold for truncated pseudoinverses
 
