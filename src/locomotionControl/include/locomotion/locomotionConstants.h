@@ -39,6 +39,8 @@ typedef Matrix<double,6,Dynamic,RowMajor>   JacobianMatrix;     // a Jacobian is
 
 namespace locomotion
 {
+
+
 /** List of available parameters of IOFormat constructor:
     precision       number of digits for floating point values, or one of the special constants StreamPrecision and FullPrecision.
     flags           either 0, or DontAlignCols, which allows to disable the alignment of columns, resulting in faster code.
@@ -50,8 +52,12 @@ namespace locomotion
     matSuffix       string printed at the end of the matrix */
 static const IOFormat   matrixPrintFormat(1, DontAlignCols, " ", ";\n", "", "", "[", "]");
 
+/** Types of printed messages */
+enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
+
 // *** CONSTANTS
 static const int        PRINT_PERIOD    = 2000;     // period of debug prints (in ms)
+static const int        PRINT_MSG_LEVEL = MSG_INFO; // only messages whose type is >= PRINT_MSG_LEVEL are printed
 static const double     KP_MAX          = 100.0;    // max value of proportional gains
 static const double     PINV_TOL        = 1e-4;     // threshold for truncated pseudoinverses
 

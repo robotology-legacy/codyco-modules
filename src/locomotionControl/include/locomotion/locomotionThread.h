@@ -66,6 +66,7 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     string              robotName;
     ParamHelperServer   *paramHelper;
     wholeBodyInterface  *robot;
+    LocomotionSolver    *solver;
 
     // Member variables
     int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
@@ -77,14 +78,15 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     LocomotionStatus    status;                 // thread status ("on" when controlling, off otherwise)
     Vector7d            xBase;                  // position/orientation of the floating base
     JacobianMatrix      Jcom_6xN;               // Jacobian of the center of mass (6 x N, where N=n+6)
-    JacobianCom         Jcom_2xN;               // Jacobian of the center of mass (2 x N, where N=n+6)
-    JacobianMatrix      Jfoot;                  // Jacobian of the controlled foot
+    //JacobianCom         Jcom_2xN;               // Jacobian of the center of mass (2 x N, where N=n+6)
+    //JacobianMatrix      Jfoot;                  // Jacobian of the controlled foot
     JacobianMatrix      JfootR;                 // Jacobian of the right foot
     JacobianMatrix      JfootL;                 // Jacobian of the left foot
-    MatrixXd            Jposture;               // Jacobian of the posture (n x N, where N=n+6)
-    MatrixXd            Jc;                     // Jacobian of the constraints (k x N, where N=n+6)
+    //MatrixXd            Jposture;               // Jacobian of the posture (n x N, where N=n+6)
+    //MatrixXd            Jc;                     // Jacobian of the constraints (k x N, where N=n+6)
     MatrixY             S;                      // matrix selecting the active joints
     VectorXd            dq, dqJ;                // joint velocities (size of vectors: n+6, n, 6)
+    VectorXd            dqDes;
 
     // Module parameters
     Vector              kp_com;
@@ -93,7 +95,7 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     double              tt_com, tt_foot, tt_posture;    // trajectory times of min jerk trajectory generators
     VectorNi            activeJoints;                   // vector of bool indicating which joints are used (1 used, 0 blocked)
     int                 supportPhase;
-    double              pinvDamp;
+    //double              pinvDamp;
 
     // Input streaming parameters
     //Vector2d            xd_com; Vector7d            xd_foot;    VectorNd            qd;
@@ -116,8 +118,6 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     minJerkTrajGen      *trajGenCom, *trajGenFoot, *trajGenPosture;
 
     /************************************************* PRIVATE METHODS ******************************************************/
-
-    enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO);
 
     /** Read the robot sensors and compute forward kinematics and Jacobians. */
@@ -127,7 +127,7 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     bool updateReferenceTrajectories();
 
     /** Compute joint velocities by solving a hierarchy of QPs (1st QP for COM, 2nd for foot, 3rd for posture) */
-    VectorXd solveTaskHierarchy();
+    //VectorXd solveTaskHierarchy();
 
     void updateSelectionMatrix();
 

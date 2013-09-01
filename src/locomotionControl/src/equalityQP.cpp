@@ -28,6 +28,61 @@ using namespace std;
 using namespace iCub::ctrl;
 using namespace yarp::math;
 
+
+LocomotionSolver::LocomotionSolver(int _k, int _n, double _pinvTol, double _pinvDamp): pinvTol(_pinvTol), pinvDamp(_pinvDamp)
+{
+    resize(_k,_n);
+}
+
+//*************************************************************************************************************************
+void LocomotionSolver::resize(int _k, int _n)
+{
+    n = _n;
+    constraints.resize(_k,_n);
+    com.resize(2,_n);
+    foot.resize(6,_n);
+    posture.resize(_n-6,_n);
+}
+
+//*************************************************************************************************************************
+void LocomotionSolver::solve(VectorXd &res)
+{
+    VectorXd dqDes = VectorXd::Zero(n);
+    constraints.N.setIdentity();
+
+    // *** CONTACT CONSTRAINTS
+    pinvTrunc(constraints.A, pinvTol, constraints.Apinv, &constraints.svA);
+    constraints.N -= constraints.Apinv*constraints.A;
+
+    // *** COM CTRL TASK
+    pinvDampTrunc(com.A*constraints.N, pinvTol, pinvDamp, com.Apinv, com.ApinvD, &com.svA);
+    dqDes += com.ApinvD*com.b;
+    com.N = constraints.N - com.Apinv*com.A*constraints.N;
+
+    // *** FOOT CTRL TASK
+    pinvDampTrunc(foot.A*com.N, pinvTol, pinvDamp, foot.Apinv, foot.ApinvD, &foot.svA);
+    dqDes += foot.ApinvD*(foot.b - foot.A*dqDes);
+    foot.N = com.N - foot.Apinv*foot.A*com.N;
+
+    // *** POSTURE TASK
+    pinvTrunc(posture.A*foot.N, pinvTol, posture.Apinv);
+    dqDes += posture.Apinv*(posture.b - posture.A*dqDes);
+    
+    res = dqDes.tail(n-6);  // return last n-6 joint vel (i.e. discard base vel)
+}
+
+//*************************************************************************************************************************
+void HQP_Task::resize(int m, int n)
+{
+    A.resize(m,n);
+    Apinv.resize(n,m);
+    ApinvD.resize(n,m);
+    N.resize(n,n);
+    svA.resize(m);
+    b.resize(m);
+}
+
+
 //*************************************************************************************************************************
 yarp::sig::Vector locomotion::compute6DError(const yarp::sig::Vector &x, const yarp::sig::Vector &xd)
 {

@@ -25,6 +25,48 @@
 namespace locomotion
 {
 
+/** Model of a task in the form of a quadratic cost function ||A*x-b||^2. */
+class HQP_Task
+{
+public:
+    Eigen::MatrixXd A, Apinv, ApinvD;
+    Eigen::MatrixXd N;     // nullspace projector of this task
+    Eigen::VectorXd b;     // known term
+    Eigen::VectorXd svA;   // singular value of the matrix A
+
+    /** Create a task with the specified dimensions.
+      * @param m Number of rows of A.
+      * @param n Number of columns of A. */
+    HQP_Task(int m, int n){ resize(m,n); }
+    HQP_Task(){}
+    void resize(int m, int n);
+
+};
+
+class LocomotionSolver
+{
+    int n;  // Number of joints (floating base included)
+public:
+    HQP_Task constraints;   // k DoFs
+    HQP_Task com;           // 2 DoFs
+    HQP_Task foot;          // 6 DoFs
+    HQP_Task posture;       // n-6 DoFs
+    double pinvTol;
+    double pinvDamp;
+
+    /** @param _k Number of constraints.
+      * @param _n Number of joints (floating base included). 
+      * @param _pinvTol Tolerance used for computing truncated pseudoinverses.
+      * @param _pinvDamp Damping factor used for computing damped pseudoinverses. */
+    LocomotionSolver(int _k, int _n, double _pinvTol, double _pinvDamp);
+
+    /** @param _k Number of constraints.
+      * @param _n Number of joints. */
+    void resize(int _k, int _n);
+    
+    void solve(Eigen::VectorXd &dqDes);
+};
+
 /** Tolerance for considering two values equal */
 const double ZERO_TOL = 1e-5;
 
