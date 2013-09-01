@@ -325,10 +325,10 @@ namespace wbiy
         /**
          * 
          * @param head_version the version of the head of the iCub (1 or 2, default: 2)
-         * @param legs_version the version of the legs of the iCub (1 or 2, default: 2)
+         * @param legs_version the version of the legs of the iCub (1 or 2, default: 1)
          * @param initial_q the initial value for all the 32 joint angles (default: all 0)
          */
-        icubWholeBodyModel(int head_version=2, int legs_version=2, double* initial_q=0);
+        icubWholeBodyModel(int head_version=2, int legs_version=1, double* initial_q=0);
         
         virtual bool init();
         virtual bool close();
