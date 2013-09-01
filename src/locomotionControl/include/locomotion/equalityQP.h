@@ -65,7 +65,11 @@ void assertEqual(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B, std::string
 
 void testFailed(std::string testName);
 
-std::string toString(const Eigen::MatrixXd &m, int precision=2, const char* endRowStr="\n");
+/** Convert a generic variable into a string. */
+template <class T> inline std::string toString(const T& t)
+{ std::ostringstream ss; ss << t; return ss.str(); }
+
+std::string toString(const Eigen::MatrixXd &m, int precision=2, const char* endRowStr="\n", int maxRowsPerLine=10);
 
 }
 
