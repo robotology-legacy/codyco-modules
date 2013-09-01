@@ -114,9 +114,15 @@ void locomotion::testFailed(string testName)
 }
 
 //*************************************************************************************************************************
-std::string locomotion::toString(const Eigen::MatrixXd &m, int precision, const char* endRowStr)
+std::string locomotion::toString(const Eigen::MatrixXd &m, int precision, const char* endRowStr, int maxColsPerLine)
 {
     string ret = "";
+    if(m.rows()>1 && m.cols()>maxColsPerLine)
+    {
+        return ret+"("+toString(maxColsPerLine)+" cols)\n" + 
+            toString(m.leftCols(maxColsPerLine),precision,endRowStr,maxColsPerLine) + "\n" +
+            toString(m.rightCols(m.cols()-maxColsPerLine),precision,endRowStr,maxColsPerLine);
+    }
     char tmp[350];
     for(int i=0;i<m.rows();i++)
     {
