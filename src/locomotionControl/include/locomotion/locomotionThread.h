@@ -78,11 +78,13 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     int                 _k;                     // current number of constraints
     LocomotionStatus    status;                 // thread status ("on" when controlling, off otherwise)
     Vector7d            xBase;                  // position/orientation of the floating base
+    Vector              aa_w2b;                 // world to base rotation in angle/axis notation
     JacobianMatrix      Jcom_6xN;               // Jacobian of the center of mass (6 x N, where N=n+6)
     JacobianMatrix      JfootR;                 // Jacobian of the right foot
     JacobianMatrix      JfootL;                 // Jacobian of the left foot
     MatrixY             S;                      // matrix selecting the active joints
     VectorXd            dq, dqJ;                // joint velocities (size of vectors: n+6, n, 6)
+    VectorXd            qMin, qMax;             // lower and upper joint bounds
     VectorXd            dqDes;
     MatrixXd            Jcb;                    // first 6 columns of the constraint Jacobian
     JacobiSVD<MatrixXd> svdJcb;                 // singular value decomposition of Jcb

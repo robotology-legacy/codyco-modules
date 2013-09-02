@@ -185,10 +185,10 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     H_base_leftFoot *= Ha;
     H_w2b = SE3inv(H_base_leftFoot);    // rototranslation from world (i.e. left foot) to robot base
 #endif
-    //Vector qu = dcm2quaternion(H_w2b.submatrix(0,2,0,2));
-    Vector qu = dcm2axis(H_w2b.submatrix(0,2,0,2));     // temporarely use angle/axis notation
+    //qu_w2b = dcm2quaternion(H_w2b.submatrix(0,2,0,2));
+    aa_w2b = dcm2axis(H_w2b.submatrix(0,2,0,2));     // temporarely use angle/axis notation
     xBase[0]=H_w2b(0,3);    xBase[1]=H_w2b(1,3);    xBase[2]=H_w2b(2,3);
-    xBase[3]=qu[0];         xBase[4]=qu[1];         xBase[5]=qu[2];         xBase[6]=qu[3];
+    xBase[3]=aa_w2b[0];     xBase[4]=aa_w2b[1];     xBase[5]=aa_w2b[2];     xBase[6]=aa_w2b[3];
     // select which foot to control (when in double support, select the right foot)
     footLinkId = supportPhase==SUPPORT_RIGHT ? LINK_ID_LEFT_FOOT : LINK_ID_RIGHT_FOOT;
     // forward kinematics
@@ -236,54 +236,6 @@ bool LocomotionThread::updateReferenceTrajectories()
     dqr         = trajGenPosture->getVel(); // rad/sec
     return true;
 }
-
-//*************************************************************************************************************************
-//VectorXd LocomotionThread::solveTaskHierarchy()
-//{
-//    // allocate memory
-//    int k = _k, n = _n;
-//    MatrixXd Jc_pinv(n+6,k), Jcom_pinv(n+6,2), Jcom_pinvD(n+6,2), Jfoot_pinv(n+6,6), Jfoot_pinvD(n+6,6), Jposture_pinv(n+6,n), N(n+6,n+6);
-//    VectorXd dqDes(n+6), svJc(k), svJcom(2), svJfoot(6);
-//    // initialize variables
-//    dqDes.setZero();
-//    N.setIdentity();
-//
-//    // *** CONTACT CONSTRAINTS
-//    pinvTrunc(Jc, PINV_TOL, Jc_pinv, &svJc);
-//    N -= Jc_pinv*Jc;
-//
-//    // *** COM CTRL TASK
-//    pinvDampTrunc(Jcom_2xN*N, PINV_TOL, pinvDamp, Jcom_pinv, Jcom_pinvD, &svJcom);
-//    dqDes += Jcom_pinvD*dxc_comE;
-//#ifndef NDEBUG 
-//    assertEqual(Jc*N, MatrixXd::Zero(k,n+6), "Jc*Nc=0");
-//    assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dqCom=0");
-//#endif
-//    N -= Jcom_pinv*Jcom_2xN*N;
-//
-//    // *** FOOT CTRL TASK
-//    pinvDampTrunc(Jfoot*N, PINV_TOL, pinvDamp, Jfoot_pinv, Jfoot_pinvD, &svJfoot);
-//    dqDes += Jfoot_pinvD*(dxc_footE - Jfoot*dqDes);
-//#ifndef NDEBUG 
-//    assertEqual(Jc*N, MatrixXd::Zero(k,n+6), "Jc*N=0");
-//    assertEqual(Jcom_2xN*N, MatrixXd::Zero(2,n+6), "Jcom_2xN*Ncom=0");
-//    assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dqFoot=0");
-//#endif
-//    N -= Jfoot_pinv*Jfoot*N;
-//
-//    // *** POSTURE TASK
-//    pinvTrunc(Jposture*N, PINV_TOL, Jposture_pinv);
-//    dqDes += Jposture_pinv*(dqcE - Jposture*dqDes);  //Old implementation (should give same result): dqDes += N*(dqcE - dqDes);
-//
-//#ifndef NDEBUG
-//    assertEqual(Jc*N, MatrixXd::Zero(k,n+6), "Jc*N=0");
-//    assertEqual(Jcom_2xN*N, MatrixXd::Zero(2,n+6), "Jcom_2xN*N=0");
-//    assertEqual(Jfoot*N, MatrixXd::Zero(6,n+6), "Jfoot*N=0");
-//    assertEqual(Jc*dqDes, VectorXd::Zero(k), "Jc*dqDes=0");
-//#endif
-//    
-//    return dqDes.block(6,0,n,1);
-//}
 
 //*************************************************************************************************************************
 void LocomotionThread::preStartOperations()
@@ -353,10 +305,14 @@ void LocomotionThread::numberOfJointsChanged()
     new (&dqcE) Map<VectorXd>(dqc.data(), _n);          // commanded vel (Eigen vector)
     dqDes.resize(_n);
     kp_posture.resize(_n, 0.0);                         // proportional gain (rpc input parameter)
+    qMin.resize(_n);
+    qMax.resize(_n);
     // These three have constant size = ICUB_DOFS
     //qd.resize(_n, 0.0);                                 // desired pos (streaming input param)
     //qr.resize(_n, 0.0);                                 // reference pos
     //dqr.resize(_n, 0.0);                                // reference vel
+    if(!robot->getJointLimits(qMin.data(), qMax.data()))
+        sendMsg("Error while reading joint limits.", MSG_ERROR);
     updateSelectionMatrix();
 }
 
