@@ -243,6 +243,14 @@ namespace wbi
         virtual int addJoints(const LocalIdList &j) = 0;
         virtual LocalIdList getJointList() = 0;
         
+        virtual bool addIMU(const LocalId &i) = 0;
+        virtual bool removeIMU(const LocalId &i) = 0;
+        virtual LocalIdList getIMUList() = 0;
+        
+        virtual bool addFTsensor(const LocalId &i) = 0;
+        virtual bool removeFTsensor(const LocalId &i) = 0;
+        virtual LocalIdList getFTsensorList() = 0;
+        
         virtual bool getQ(double *q, double time=-1.0, bool wait=false) = 0;
         virtual bool getDq(double *dq, double time=-1.0, bool wait=false) = 0;
         virtual bool getDqMotors(double *dqM, double time=-1.0, bool wait=false) = 0;
