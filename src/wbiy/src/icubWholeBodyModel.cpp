@@ -253,7 +253,7 @@ bool icubWholeBodyModel::convertQ(const double *_q_input, yarp::sig::Vector & q_
             double tmp;
             tmp = _q_input[i];
             assert(p_icub_model->getDOFIndex(itBp->first,*itJ) >= 0);
-            assert(p_icub_model->getDOFIndex(itBp->first,*itJ) < q_complete_output.size());
+            assert(p_icub_model->getDOFIndex(itBp->first,*itJ) < (int)q_complete_output.size());
             q_complete_output[p_icub_model->getDOFIndex(itBp->first,*itJ)] = tmp;
             i++;
         }
@@ -266,7 +266,6 @@ bool icubWholeBodyModel::convertQ(const yarp::sig::Vector & q_complete_input, do
     int i=0;
     FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
         FOR_ALL_JOINTS(itBp, itJ) {
-            double tmp;
              _q_output[i] = q_complete_input[p_icub_model->getDOFIndex(itBp->first,*itJ)];
             i++;
         }
@@ -301,7 +300,7 @@ bool icubWholeBodyModel::convertDDQ(const double *_ddq_input, yarp::sig::Vector 
 
 bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
 {
-    if( (joint < 0 || joint >= jointIdList.size()) && joint != -1 ) { return false; }
+    if( (joint < 0 || joint >= (int)jointIdList.size()) && joint != -1 ) { return false; }
     
     all_q_min = p_icub_model->getJointBoundMin();
     all_q_max = p_icub_model->getJointBoundMax();
