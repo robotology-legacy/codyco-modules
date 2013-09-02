@@ -650,8 +650,10 @@ class DynTree  {
         * in the world frame 
         * @param part_name optional: the name of the part of joints to get
         * @return Center of Mass vector
+        * 
+        * \todo prepare a suitable interface for specifing both an arbitrary part and a arbitrary frame of expression
         */
-        virtual yarp::sig::Vector getCOM(const std::string & part_name="");
+        virtual yarp::sig::Vector getCOM(const std::string & part_name="", const int link_index = -1);
         
         /**
         * Get Center of Mass Jacobian of the specified part (if no part 

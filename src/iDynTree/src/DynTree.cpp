@@ -914,8 +914,9 @@ bool DynTree::dynamicRNEA()
 ////// COM related methods
 ////////////////////////////////////////////////////////////////////////
 
-yarp::sig::Vector DynTree::getCOM(const std::string & part_name) 
+yarp::sig::Vector DynTree::getCOM(const std::string & part_name, int link_index) 
 {
+    if( (link_index < 0 || link_index >= (int)tree_graph.getNrOfLinks()) && link_id != -1 ) { std::cerr << "DynTree::getCOM: link index " << link_index <<  " out of bounds" << std::endl; return yarp::sig::Matrix(0,0); }
     if( com_yarp.size() != 3 ) { com_yarp.resize(3); }
     if( (int)subtree_COM.size() != getNrOfLinks() ) { subtree_COM.resize(getNrOfLinks()); }
     if( (int)subtree_mass.size() != getNrOfLinks() ) { subtree_mass.resize(getNrOfLinks()); }
@@ -931,9 +932,16 @@ yarp::sig::Vector DynTree::getCOM(const std::string & part_name)
     KDL::Vector com;                   
     getCenterOfMassLoop(tree_graph,q,dynamic_traversal,subtree_COM,subtree_mass,com,part_id);
     
-    KDL::Vector com_world;
+    KDL::Vector com_world, com_return;
     
     com_world = world_base_frame*com;
+    
+    if( link_id != -1 ) {
+        com_return = X_dynamic_base[link_id].Inverse(com);
+    } else {
+        //if no reference frame for the return is specified, used the world reference frame
+        com_return = com_world;
+    }
     
     memcpy(com_yarp.data(),com_world.data,3*sizeof(double));
 
@@ -1099,6 +1107,7 @@ yarp::sig::Vector DynTree::getMomentum()
 ////////////////////////////////////////////////////////////////////////
 bool DynTree::getJacobian(const int link_index, yarp::sig::Matrix & jac, bool local)
 {
+    if( link_index < 0 || link_index >= (int)tree_graph.getNrOfLinks() ) { std::cerr << "DynTree::getJacobian: link index " << link_index <<  " out of bounds" << std::endl; return false; }
     if( jac.rows() != (int)(6) || jac.cols() != (int)(6+tree_graph.getNrOfDOFs()) ) {
         jac.resize(6,6+tree_graph.getNrOfDOFs());
     }
