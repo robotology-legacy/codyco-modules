@@ -38,37 +38,65 @@ LocomotionSolver::LocomotionSolver(int _k, int _n, double _pinvTol, double _pinv
 void LocomotionSolver::resize(int _k, int _n)
 {
     n = _n;
-    constraints.resize(_k,_n);
-    com.resize(2,_n);
-    foot.resize(6,_n);
-    posture.resize(_n-6,_n);
+    constraints.resize(_k,n);
+    com.resize(2,n);
+    foot.resize(6,n);
+    posture.resize(n-6,n);
+    S.resize(n,n); S.setIdentity();
+    qMax.resize(n-6);
+    qMin.resize(n-6);
 }
 
 //*************************************************************************************************************************
-void LocomotionSolver::solve(VectorXd &res)
+void LocomotionSolver::solve(VectorXd &dqjDes, const VectorXd &q)
 {
-    VectorXd dqDes = VectorXd::Zero(n);
-    constraints.N.setIdentity();
+    bool solutionFound=false;
+    VectorXd dqDes; 
+    S.setIdentity();
 
-    // *** CONTACT CONSTRAINTS
-    pinvTrunc(constraints.A, pinvTol, constraints.Apinv, &constraints.svA);
-    constraints.N -= constraints.Apinv*constraints.A;
-
-    // *** COM CTRL TASK
-    pinvDampTrunc(com.A*constraints.N, pinvTol, pinvDamp, com.Apinv, com.ApinvD, &com.svA);
-    dqDes += com.ApinvD*com.b;
-    com.N = constraints.N - com.Apinv*com.A*constraints.N;
-
-    // *** FOOT CTRL TASK
-    pinvDampTrunc(foot.A*com.N, pinvTol, pinvDamp, foot.Apinv, foot.ApinvD, &foot.svA);
-    dqDes += foot.ApinvD*(foot.b - foot.A*dqDes);
-    foot.N = com.N - foot.Apinv*foot.A*com.N;
-
-    // *** POSTURE TASK
-    pinvTrunc(posture.A*foot.N, pinvTol, posture.Apinv);
-    dqDes += posture.Apinv*(posture.b - posture.A*dqDes);
+    while(!solutionFound)
+    {
+        dqDes = VectorXd::Zero(n);
+        constraints.N.setIdentity();
+        // *** CONTACT CONSTRAINTS
+        pinvTrunc(constraints.A*S, pinvTol, constraints.Apinv, &constraints.svA);
+        constraints.N -= constraints.Apinv*constraints.A*S;
+        // *** COM CTRL TASK
+        pinvDampTrunc(com.A*S*constraints.N, pinvTol, pinvDamp, com.Apinv, com.ApinvD, &com.svA);
+        dqDes += com.ApinvD*com.b;
+        com.N = constraints.N - com.Apinv*com.A*S*constraints.N;
+        // *** FOOT CTRL TASK
+        pinvDampTrunc(foot.A*S*com.N, pinvTol, pinvDamp, foot.Apinv, foot.ApinvD, &foot.svA);
+        dqDes += foot.ApinvD*(foot.b - foot.A*S*dqDes);
+        foot.N = com.N - foot.Apinv*foot.A*S*com.N;
+        // *** POSTURE TASK
+        pinvTrunc(posture.A*S*foot.N, pinvTol, posture.Apinv);
+        dqDes += posture.Apinv*(posture.b - posture.A*S*dqDes);
     
-    res = dqDes.tail(n-6);  // return last n-6 joint vel (i.e. discard base vel)
+        dqjDes = (S*dqDes).tail(n-6);  // return last n-6 joint vel (i.e. discard base vel)
+
+        solutionFound = true;
+        for(int i=0; i<n-6; i++)
+        {
+            if(q(i)>=qMax(i) && dqjDes(i)>0.0)  // add joint i to the active set
+            {
+                blockJoint(i);
+                solutionFound = false;
+            }
+            else if(q(i)<=qMin(i) && dqjDes(i)<0.0)  // add joint i to the active set
+            {
+                blockJoint(i);
+                solutionFound = false;
+            }
+        }
+    }
+}
+
+//*************************************************************************************************************************
+void LocomotionSolver::blockJoint(int j)
+{
+    printf("Blocking joint %d\n", j);
+    S(6+j,6+j) = 0.0;
 }
 
 //*************************************************************************************************************************
