@@ -312,13 +312,16 @@ namespace wbiy
         yarp::sig::Vector all_dq;
         yarp::sig::Vector all_ddq;
         
+        yarp::sig::Vector all_q_min, all_q_max;
+        
         bool convertBasePose(const double *xBase, yarp::sig::Matrix & H_world_base);
         bool convertBaseVelocity(const double *dxB, yarp::sig::Vector & v_b, yarp::sig::Vector & omega_b);
         bool convertBaseAcceleration(const double *ddxB, yarp::sig::Vector & a_b, yarp::sig::Vector & domega_b);
         
-        bool convertQ(const double *q, yarp::sig::Vector & q_complete);
-        bool convertDQ(const double *dq, yarp::sig::Vector & dq_complete);
-        bool convertDDQ(const double *ddq, yarp::sig::Vector & ddq_complete);
+        bool convertQ(const double *q_input, yarp::sig::Vector & q_complete_output);
+        bool convertQ(const yarp::sig::Vector & q_complete_input, double *q_output);
+        bool convertDQ(const double *dq_input, yarp::sig::Vector & dq_complete_output);
+        bool convertDDQ(const double *ddq_input, yarp::sig::Vector & ddq_complete_output);
         
     public:
          // *** CONSTRUCTORS ***

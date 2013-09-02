@@ -141,7 +141,7 @@ icubWholeBodyModel::icubWholeBodyModel(int head_version, int legs_version, doubl
     version.legs_version = legs_version;
     p_icub_model = new iCub::iDynTree::iCubTree(version);
     all_q.resize(p_icub_model->getNrOfDOFs(),0.0);
-    all_ddq = all_dq = all_q;
+    all_q_min = all_q_max = all_ddq = all_dq = all_q;
     
     world_base_transformation.resize(4,4);
     world_base_transformation.eye();
@@ -203,6 +203,7 @@ bool icubWholeBodyModel::getLinkId(const char *linkName, int &linkId)
 
 bool icubWholeBodyModel::convertBasePose(const double *xBase, yarp::sig::Matrix & H_world_base)
 {
+    if( H_world_base.cols() != 4 || H_world_base.rows() != 4 ) { H_world_base.resize(4,4); } 
     Vector quat(4,0.0);
 
     quat(0) = xBase[3];
@@ -215,6 +216,9 @@ bool icubWholeBodyModel::convertBasePose(const double *xBase, yarp::sig::Matrix 
     H_world_base(0,3) = xBase[0];
     H_world_base(1,3) = xBase[1];
     H_world_base(2,3) = xBase[2];
+    
+    H_world_base(3,0) = H_world_base(3,1) = H_world_base(3,2) = 0;
+    H_world_base(3,3) = 1;
     
     return true;
 }
@@ -241,39 +245,54 @@ bool icubWholeBodyModel::convertBaseAcceleration(const double *ddxB, yarp::sig::
     return true;
 }
 
-bool icubWholeBodyModel::convertQ(const double *_q, yarp::sig::Vector & q_complete)
+bool icubWholeBodyModel::convertQ(const double *_q_input, yarp::sig::Vector & q_complete_output)
 {
     int i=0;
     FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
         FOR_ALL_JOINTS(itBp, itJ) {
             double tmp;
-            tmp = _q[i];
+            tmp = _q_input[i];
             assert(p_icub_model->getDOFIndex(itBp->first,*itJ) >= 0);
-            assert(p_icub_model->getDOFIndex(itBp->first,*itJ) < all_q.size());
-            all_q[p_icub_model->getDOFIndex(itBp->first,*itJ)] = tmp;
-            i++;
-        }
-    }
-    return true;
-}
-bool icubWholeBodyModel::convertDQ(const double *_dq, yarp::sig::Vector & dq_complete)
-{
-    int i=0;
-    FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
-        FOR_ALL_JOINTS(itBp, itJ) {
-            all_dq[p_icub_model->getDOFIndex(itBp->first,*itJ)] = _dq[i];
+            assert(p_icub_model->getDOFIndex(itBp->first,*itJ) < q_complete_output.size());
+            q_complete_output[p_icub_model->getDOFIndex(itBp->first,*itJ)] = tmp;
             i++;
         }
     }
     return true;
 }
 
-bool icubWholeBodyModel::convertDDQ(const double *_ddq, yarp::sig::Vector & ddq_complete)
+bool icubWholeBodyModel::convertQ(const yarp::sig::Vector & q_complete_input, double *_q_output )
 {
     int i=0;
     FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
         FOR_ALL_JOINTS(itBp, itJ) {
-            all_ddq[p_icub_model->getDOFIndex(itBp->first,*itJ)] = _ddq[i];
+            double tmp;
+             _q_output[i] = q_complete_input[p_icub_model->getDOFIndex(itBp->first,*itJ)];
+            i++;
+        }
+    }
+    return true;
+}
+
+
+bool icubWholeBodyModel::convertDQ(const double *_dq_input, yarp::sig::Vector & dq_complete_output)
+{
+    int i=0;
+    FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
+        FOR_ALL_JOINTS(itBp, itJ) {
+            dq_complete_output[p_icub_model->getDOFIndex(itBp->first,*itJ)] = _dq_input[i];
+            i++;
+        }
+    }
+    return true;
+}
+
+bool icubWholeBodyModel::convertDDQ(const double *_ddq_input, yarp::sig::Vector & ddq_complete_output)
+{
+    int i=0;
+    FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
+        FOR_ALL_JOINTS(itBp, itJ) {
+            ddq_complete_output[p_icub_model->getDOFIndex(itBp->first,*itJ)] = _ddq_input[i];
             i++;
         }
     }
@@ -282,7 +301,22 @@ bool icubWholeBodyModel::convertDDQ(const double *_ddq, yarp::sig::Vector & ddq_
 
 bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
 {
-    return false;    
+    if( (joint < 0 || joint >= jointIdList.size()) && joint != -1 ) { return false; }
+    
+    all_q_min = p_icub_model->getJointBoundMin();
+    all_q_max = p_icub_model->getJointBoundMax();
+
+    if( joint == -1 ) {
+        //Get all joint limits
+        convertQ(all_q_min,qMin);
+        convertQ(all_q_max,qMax);
+    } else {
+        //Get only a joint
+        LocalId loc_id = jointIdList.globalToLocalId(joint);
+        *qMin = all_q_min[p_icub_model->getDOFIndex(loc_id.bodyPart,loc_id.index)];
+        *qMax = all_q_max[p_icub_model->getDOFIndex(loc_id.bodyPart,loc_id.index)];
+    }
+    return true;
 }
 
 bool icubWholeBodyModel::computeH(double *q, double *xBase, int linkId, double *H)
@@ -311,10 +345,10 @@ bool icubWholeBodyModel::computeH(double *q, double *xBase, int linkId, double *
     return true;
 }
 
+
 bool icubWholeBodyModel::computeJacobian(double *q, double *xBase, int linkId, double *J, double *pos)
 {
     if( (linkId < 0 || linkId >= p_icub_model->getNrOfLinks()) && linkId != COM_LINK_ID ) return false;
-
     
     if( pos != 0 ) return false; //not implemented yet
     
