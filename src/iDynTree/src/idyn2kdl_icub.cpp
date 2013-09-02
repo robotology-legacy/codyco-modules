@@ -196,8 +196,8 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KD
     q_max.resize(q_max_yarp.size());
     
     int jjj;
-    for(jjj=1; jjj<(int)q_min.rows(); jjj++) { q_min(jjj) = q_min_yarp(jjj); }
-    for(jjj=1; jjj<(int)q_max.rows(); jjj++) { q_max(jjj) = q_max_yarp(jjj); }
+    for(jjj=0; jjj<(int)q_min.rows(); jjj++) { q_min(jjj) = q_min_yarp(jjj); }
+    for(jjj=0; jjj<(int)q_max.rows(); jjj++) { q_max(jjj) = q_max_yarp(jjj); }
 
     //REP 120
     
