@@ -424,10 +424,10 @@ namespace wbiy
         icubWholeBodyStates     *stateInt;
         yarpWholeBodyActuators  *actuatorInt;
         icubWholeBodyModel      *modelInt;
-        
+       
     public:
         // *** CONSTRUCTORS ***
-        icubWholeBodyInterface(const char* _name, const char* _robotName);
+        icubWholeBodyInterface(const char* _name, const char* _robotName, int head_version=2, int legs_version=1);
         
         virtual bool init();
         virtual bool close();
