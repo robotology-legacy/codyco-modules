@@ -916,7 +916,7 @@ bool DynTree::dynamicRNEA()
 
 yarp::sig::Vector DynTree::getCOM(const std::string & part_name, int link_index) 
 {
-    if( (link_index < 0 || link_index >= (int)tree_graph.getNrOfLinks()) && link_id != -1 ) { std::cerr << "DynTree::getCOM: link index " << link_index <<  " out of bounds" << std::endl; return yarp::sig::Matrix(0,0); }
+    if( (link_index < 0 || link_index >= (int)tree_graph.getNrOfLinks()) && link_index != -1 ) { std::cerr << "DynTree::getCOM: link index " << link_index <<  " out of bounds" << std::endl; return yarp::sig::Vector(0); }
     if( com_yarp.size() != 3 ) { com_yarp.resize(3); }
     if( (int)subtree_COM.size() != getNrOfLinks() ) { subtree_COM.resize(getNrOfLinks()); }
     if( (int)subtree_mass.size() != getNrOfLinks() ) { subtree_mass.resize(getNrOfLinks()); }
@@ -936,8 +936,8 @@ yarp::sig::Vector DynTree::getCOM(const std::string & part_name, int link_index)
     
     com_world = world_base_frame*com;
     
-    if( link_id != -1 ) {
-        com_return = X_dynamic_base[link_id].Inverse(com);
+    if( link_index != -1 ) {
+        com_return = X_dynamic_base[link_index].Inverse(com);
     } else {
         //if no reference frame for the return is specified, used the world reference frame
         com_return = com_world;
