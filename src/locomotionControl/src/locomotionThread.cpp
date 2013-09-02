@@ -19,7 +19,7 @@
 #include <wbiy/wbiy.h>
 #include <yarp/os/Time.h>
 #include <yarp/math/SVD.h>
-#include <Eigen/SVD>
+
 
 using namespace locomotion;
 using namespace yarp::math;
@@ -39,7 +39,6 @@ bool LocomotionThread::threadInit()
 {
     assert(robot->getLinkId("r_foot", LINK_ID_RIGHT_FOOT)); // 41
     assert(robot->getLinkId("l_foot", LINK_ID_LEFT_FOOT));  // 33
-    //assert(robot->getLinkId("root_link", comLinkId));   // temporarely control "root link" rather than COM (issues in COM Jacobian)
     comLinkId           = iWholeBodyModel::COM_LINK_ID;
 
 #ifdef NDEBUG
@@ -47,7 +46,6 @@ bool LocomotionThread::threadInit()
     printf("right foot %d left foot %d root link %d\n", LINK_ID_RIGHT_FOOT, LINK_ID_LEFT_FOOT, comLinkId);
     LINK_ID_RIGHT_FOOT = 41;
     LINK_ID_LEFT_FOOT = 33;
-    comLinkId = 0;
 #endif
 
     // I must count the nonzero entries of activeJoints before calling numberOfJointsChanged (to know _n)
@@ -117,6 +115,13 @@ bool LocomotionThread::threadInit()
     assert(paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
     assert(paramHelper->registerCommandCallback(COMMAND_ID_STOP,            this));
 
+#ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
+    zero7.setZero();
+    H_base_leftFoot.resize(4,4);        // rototranslation from robot base to left foot (i.e. world)
+    Ha = zeros(4,4);                    // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
+    Ha(0,2)=1; Ha(1,1)=-1; Ha(2,0)=1; Ha(3,3)=1;
+#endif
+
     // read robot status (to be done before initializing trajectory generators)
     if(!readRobotStatus(true))
         return false;
@@ -145,14 +150,6 @@ void LocomotionThread::run()
         dxc_foot    =/*dxr_foot+*/ kp_foot       * compute6DError(x_foot, xr_foot);  // temporarely remove feedforward velocity because it is 7d (whereas it should be 6d)
         dqc         = S*dqr     +  (S*kp_posture)* (S*qr    - qRad);
 
-#ifdef PRINT_X_FOOT
-    printf("\n*********************************************************************\n");
-    printf("x foot:            %s\n", x_foot.toString(2).c_str());
-    printf("x ref foot:        %s\n", xr_foot.toString(2).c_str());
-    printf("x des foot:        %s\n", xd_foot.toString(2).c_str());
-    printf("dx ref foot:       %s\n", dxr_foot.toString(2).c_str());
-    printf("dx foot commanded: %s\n", dxc_foot.toString(2).c_str());
-#endif
         solver->com.b = dxc_comE;
         solver->foot.b = dxc_footE;
         solver->posture.b = dqcE;
@@ -183,13 +180,8 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     res = res && robot->getDq(dqJ.data(), -1.0, blockingRead);
     
     // base orientation conversion
-#define COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
-    Vector7d zero7 = Vector7d::Zero();
-    MatrixY H_base_leftFoot(4,4);       // rototranslation from robot base to left foot (i.e. world)
     robot->computeH(qRad.data(), zero7.data(), LINK_ID_LEFT_FOOT, H_base_leftFoot.data());
-    MatrixY Ha = zeros(4,4); // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
-    Ha(0,2)=1; Ha(1,1)=-1; Ha(2,0)=1; Ha(3,3)=1;
     H_base_leftFoot *= Ha;
     H_w2b = SE3inv(H_base_leftFoot);    // rototranslation from world (i.e. left foot) to robot base
 #endif
@@ -207,14 +199,14 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     res = res && robot->computeJacobian(qRad.data(), xBase.data(), LINK_ID_LEFT_FOOT,   JfootL.data());
     res = res && robot->computeJacobian(qRad.data(), xBase.data(), comLinkId,           Jcom_6xN.data());
     // convert Jacobians
-    solver->com.A = Jcom_6xN.topRows<2>();
+    solver->com.A = Jcom_6xN.topRows<2>();  // we control just CoM projection on the ground
     if(supportPhase==SUPPORT_DOUBLE){       solver->foot.A.setZero();    solver->constraints.A.topRows<6>()=JfootR; solver->constraints.A.bottomRows<6>()=JfootL; }
     else if(supportPhase==SUPPORT_LEFT){    solver->foot.A=JfootR;       solver->constraints.A = JfootL; }
     else{                                   solver->foot.A=JfootL;       solver->constraints.A = JfootR; }
     // estimate base velocity from joint velocities
-    MatrixXd Jcb = solver->constraints.A.leftCols<6>();
-    JacobiSVD<MatrixXd> svd(Jcb, ComputeThinU | ComputeThinV);
-    dq.head<6>() = svd.solve(solver->constraints.A.rightCols(_n)*dqJ);
+    Jcb = solver->constraints.A.leftCols<6>();
+    svdJcb = Jcb.jacobiSvd(ComputeThinU | ComputeThinV);
+    dq.head<6>() = svdJcb.solve(solver->constraints.A.rightCols(_n)*dqJ);
     dq.tail(_n) = dqJ;
     
     //sendMsg("q rad: "+string(qRad.toString(2)), MSG_INFO);
@@ -226,7 +218,7 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     //cout<< "R foot vel: "<< setprecision(2)<< (JfootR*dq).norm()<< endl; //.transpose().format(matrixPrintFormat)<< endl;
     //cout<< "L foot vel: "<< setprecision(2)<< (JfootL*dq).norm()<< endl; //transpose().format(matrixPrintFormat)<< endl;
     //sendMsg("Jc (Rfoot up, Lfoot down):\n"+toString(Jc,2), MSG_DEBUG);
-    sendMsg("Jcom:\n"+toString(solver->com.A,2), MSG_DEBUG);
+    //sendMsg("Jcom:\n"+toString(solver->com.A,2), MSG_DEBUG);
     return res;
 }
 

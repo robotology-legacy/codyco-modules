@@ -33,6 +33,7 @@
 #include <iCub/ctrl/minJerkCtrl.h>
 #include <iCub/skinDynLib/skinContactList.h>
 #include <Eigen/Core>                               // import most common Eigen types
+#include <Eigen/SVD>
 
 #include <wbi/wbi.h>
 #include <paramHelp/paramHelpServer.h>
@@ -78,15 +79,18 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     LocomotionStatus    status;                 // thread status ("on" when controlling, off otherwise)
     Vector7d            xBase;                  // position/orientation of the floating base
     JacobianMatrix      Jcom_6xN;               // Jacobian of the center of mass (6 x N, where N=n+6)
-    //JacobianCom         Jcom_2xN;               // Jacobian of the center of mass (2 x N, where N=n+6)
-    //JacobianMatrix      Jfoot;                  // Jacobian of the controlled foot
     JacobianMatrix      JfootR;                 // Jacobian of the right foot
     JacobianMatrix      JfootL;                 // Jacobian of the left foot
-    //MatrixXd            Jposture;               // Jacobian of the posture (n x N, where N=n+6)
-    //MatrixXd            Jc;                     // Jacobian of the constraints (k x N, where N=n+6)
     MatrixY             S;                      // matrix selecting the active joints
     VectorXd            dq, dqJ;                // joint velocities (size of vectors: n+6, n, 6)
     VectorXd            dqDes;
+    MatrixXd            Jcb;                    // first 6 columns of the constraint Jacobian
+    JacobiSVD<MatrixXd> svdJcb;                 // singular value decomposition of Jcb
+#ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
+    Vector7d zero7;
+    MatrixY H_base_leftFoot;        // rototranslation from robot base to left foot (i.e. world)
+    MatrixY Ha;                     // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
+#endif
 
     // Module parameters
     Vector              kp_com;

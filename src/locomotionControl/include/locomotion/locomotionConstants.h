@@ -40,6 +40,7 @@ typedef Matrix<double,6,Dynamic,RowMajor>   JacobianMatrix;     // a Jacobian is
 namespace locomotion
 {
 
+#define COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
 
 /** List of available parameters of IOFormat constructor:
     precision       number of digits for floating point values, or one of the special constants StreamPrecision and FullPrecision.
