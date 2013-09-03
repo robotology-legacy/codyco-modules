@@ -22,6 +22,8 @@
 #include <yarp/sig/Vector.h>
 #include <vector>
 #include <string>
+#include <iostream>
+#include <iterator>
 
 namespace locomotion
 {
