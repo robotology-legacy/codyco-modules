@@ -22,6 +22,10 @@
 #include <iomanip>
 #include <stdexcept>
 #include <vector>
+#include <fstream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
 
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Thread.h>
@@ -52,9 +56,9 @@ using namespace Eigen;
 namespace locomotionPlanner
 {
 
-/** Locomotion control thread: this thread sends velocity commands to the robot motors
-  * trying to track the desired position trajectory of the COM, swinging foot and joint posture.
-  */
+/** Locomotion planner thread: this thread sends the desired position trajectory of the COM,
+    swinging foot and joint posture.**/
+
 class LocomotionPlannerThread: public Thread, public ParamObserver, public CommandObserver
 {
     string              name;
@@ -63,6 +67,8 @@ class LocomotionPlannerThread: public Thread, public ParamObserver, public Comma
     ParamHelperClient   *locoCtrl;
     wholeBodyInterface  *robot;
     bool                mustStop;
+    const char          *filename;
+    string              codyco_root;
 
     // Module parameters
     Vector2d            kp_com;
@@ -104,7 +110,10 @@ public:
     void parameterUpdated(const ParamDescription &pd);
     /** Callback function for rpc commands. */
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
+    /** Callback function for reading text file parameters */
+    string readParamsFile(ifstream &fp);
 
+    string get_env_var( string const & key );
 };
 
 } // end namespace

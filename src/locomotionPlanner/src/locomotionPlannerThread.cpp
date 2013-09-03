@@ -28,21 +28,31 @@ LocomotionPlannerThread::LocomotionPlannerThread(string _name, string _robotName
     :  name(_name), robotName(_robotName), paramHelper(_ph), locoCtrl(_lc), robot(_wbi)
 {
     mustStop = false;
+    codyco_root = "CODYCO_ROOT";
+
 }
 
 //*************************************************************************************************************************
 bool LocomotionPlannerThread::threadInit()
 {
+    // For parsing input parameters file
+    filename = get_env_var(codyco_root).c_str();
+    string temp = "src/locomotionPlanner/paramsPlanner.txt";        // PROBABLY IT WOULD BE BEST TO PUT THIS FILE IN ANOTHER FOLDER
+    temp = get_env_var(codyco_root)+temp;
+    filename = temp.c_str();
+    cout << "Found params config file: " << filename << endl;
+
     // resize vectors that are not fixed-size
 
     // link module rpc parameters to member variables
 
     // link controller input streaming parameters to member variables
+    assert(locoCtrl->linkParam(PARAM_ID_SUPPORT_PHASE,       &supportPhase));
     assert(locoCtrl->linkParam(PARAM_ID_XDES_COM,            xd_com.data()));
     assert(locoCtrl->linkParam(PARAM_ID_XDES_FOOT,           xd_foot.data()));
     assert(locoCtrl->linkParam(PARAM_ID_QDES,                qd.data()));
     // link module output streaming parameters to member variables
-    
+
     // Register callbacks for some module parameters
 
     // Register callbacks for some module commands
@@ -55,17 +65,62 @@ bool LocomotionPlannerThread::threadInit()
 //*************************************************************************************************************************
 void LocomotionPlannerThread::run()
 {
-    while(!mustStop)
-    {
-        locoCtrl->readStreamParams();
 
-        xd_com.setRandom();
-        xd_foot.setRandom();
-        qd.setRandom();
-        Time::delay(2.0);
-    
-        locoCtrl->sendStreamParams();
+    ifstream file(filename, ifstream::in);
+
+    //get number of lines in file
+    int mycount = count(istreambuf_iterator<char>(file), istreambuf_iterator<char>(),'\n');
+    int lineNumber = mycount;
+    //reset file status
+    file.clear();
+    file.seekg(0,ios::beg);                         // returns to the beginning of fstream
+    double  timePrev = 0.0;
+
+    if(!file.fail()){
+        while(lineNumber)
+        {
+            Matrix<double,1,37> paramLine;
+            int j=0;
+
+            //  read one line at a time from text file
+            string line = readParamsFile(file);
+            istringstream iss(line);
+
+            while(iss)
+            {
+                double  sub;
+                iss  >> sub;
+                paramLine(0,j) = sub;
+                j++;
+            };
+
+            /* At this point paramLines has the current line of data in the following order
+            <time> <support_phase> <pos_com_desired> <pos_foot_desired> <joint_desired> */
+//             cout << "paramLine: "  << paramLine << endl;
+
+            // updating parameters
+            Matrix<double,1,1> tmp = paramLine.segment(1,1);    //extracting support phase which is integer
+            unsigned int tmp2 = (unsigned int)tmp(0,0);
+            supportPhase = tmp2;
+            xd_com       = paramLine.segment(2,2); // segment(position,size) It doesn't modify the original Eigen vector
+            xd_foot      = paramLine.segment(4,7);
+            qd           = paramLine.segment(11,ICUB_DOFS);
+
+            lineNumber--;
+
+            double timeStep = paramLine(0,0) - timePrev;
+            timePrev = paramLine(0,0);
+
+//            locoCtrl->sendStreamParams();
+            Time::delay(timeStep);
+        }
     }
+    else
+    {
+        fprintf(stderr,"INPUT PARAMETERS FILE NOT FOUND /n");
+    }
+
+    file.close();
 }
 
 //*************************************************************************************************************************
@@ -98,6 +153,23 @@ void LocomotionPlannerThread::commandReceived(const CommandDescription &cd, cons
     }
 }
 
+//*************************************************************************************************************************
+string LocomotionPlannerThread::readParamsFile(ifstream& fp)
+{
+    string lineStr;
+    getline(fp,lineStr);
+    return(lineStr);
+}
+//*************************************************************************************************************************
+string LocomotionPlannerThread::get_env_var( string const & key ) {
+    char * val;
+    val = getenv( key.c_str() );
+    std::string retval = "";
+    if (val != NULL) {
+        retval = val;
+    }
+    return retval;
+}
 //*************************************************************************************************************************
 void LocomotionPlannerThread::sendMsg(const string &s, MsgType type)
 {
