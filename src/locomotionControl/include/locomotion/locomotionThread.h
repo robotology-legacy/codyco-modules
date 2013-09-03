@@ -118,7 +118,7 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     Map<Vector2d>       dxc_comE;               // commanded velocity of the COM
     Map<Vector6d>       dxc_footE;
     Map<VectorXd>       dqcE;
-    Map<VectorXd>       qRadE;
+    Map<VectorXd>       qDegE;
     
     // Trajectory generators
     minJerkTrajGen      *trajGenCom, *trajGenFoot, *trajGenPosture;

@@ -28,7 +28,7 @@ using namespace wbiy;
 //*************************************************************************************************************************
 LocomotionThread::LocomotionThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
     :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), 
-    dxc_comE(0), dxc_footE(0), dqcE(0,0), qRadE(0,0)
+    dxc_comE(0), dxc_footE(0), dqcE(0,0), qDegE(0,0)
 {
     status = LOCOMOTION_OFF;
     printCountdown = 0;
@@ -38,21 +38,14 @@ LocomotionThread::LocomotionThread(string _name, string _robotName, int _period,
 //*************************************************************************************************************************
 bool LocomotionThread::threadInit()
 {
-    assert(robot->getLinkId("r_foot", LINK_ID_RIGHT_FOOT)); // 41
-    assert(robot->getLinkId("l_foot", LINK_ID_LEFT_FOOT));  // 33
+    YARP_ASSERT(robot->getLinkId("r_sole", LINK_ID_RIGHT_FOOT)); // 41
+    YARP_ASSERT(robot->getLinkId("l_sole", LINK_ID_LEFT_FOOT));  // 33
     comLinkId           = iWholeBodyModel::COM_LINK_ID;
 
-#ifdef NDEBUG
-    // in Release the getLinkId method doesn't work, so force the link id to the right values
-    printf("right foot %d left foot %d root link %d\n", LINK_ID_RIGHT_FOOT, LINK_ID_LEFT_FOOT, comLinkId);
-    LINK_ID_RIGHT_FOOT = 41;
-    LINK_ID_LEFT_FOOT = 33;
-#endif
-
     // I must count the nonzero entries of activeJoints before calling numberOfJointsChanged (to know _n)
-    assert(paramHelper->linkParam(PARAM_ID_ACTIVE_JOINTS,       activeJoints.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ACTIVE_JOINTS,       activeJoints.data()));
     // I must know the support phase before calling numberOfConstraintsChanged (to know the number of constraints)
-    assert(paramHelper->linkParam(PARAM_ID_SUPPORT_PHASE,       &supportPhase));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SUPPORT_PHASE,       &supportPhase));
     numberOfJointsChanged();
     numberOfConstraintsChanged();
     
@@ -88,38 +81,38 @@ bool LocomotionThread::threadInit()
     new (&dxc_footE)    Map<Vector6d>(dxc_foot.data());
 
     // link module rpc parameters to member variables
-    assert(paramHelper->linkParam(PARAM_ID_KP_COM,              kp_com.data()));    // constant size
-    assert(paramHelper->linkParam(PARAM_ID_KP_FOOT,             kp_foot.data()));
-    assert(paramHelper->linkParam(PARAM_ID_KP_POSTURE,          kp_posture.data()));
-    assert(paramHelper->linkParam(PARAM_ID_TRAJ_TIME_COM,       &tt_com));
-    assert(paramHelper->linkParam(PARAM_ID_TRAJ_TIME_FOOT,      &tt_foot));
-    assert(paramHelper->linkParam(PARAM_ID_TRAJ_TIME_POSTURE,   &tt_posture));
-    assert(paramHelper->linkParam(PARAM_ID_PINV_DAMP,           &solver->pinvDamp));
-    assert(paramHelper->linkParam(PARAM_ID_Q_MAX,               solver->qMax.data()));
-    assert(paramHelper->linkParam(PARAM_ID_Q_MIN,               solver->qMin.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KP_COM,              kp_com.data()));    // constant size
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KP_FOOT,             kp_foot.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KP_POSTURE,          kp_posture.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TRAJ_TIME_COM,       &tt_com));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TRAJ_TIME_FOOT,      &tt_foot));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TRAJ_TIME_POSTURE,   &tt_posture));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PINV_DAMP,           &solver->pinvDamp));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MAX,               solver->qMax.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MIN,               solver->qMin.data()));
     // link module input streaming parameters to member variables
-    assert(paramHelper->linkParam(PARAM_ID_XDES_COM,            xd_com.data()));
-    assert(paramHelper->linkParam(PARAM_ID_XDES_FOOT,           xd_foot.data()));
-    assert(paramHelper->linkParam(PARAM_ID_QDES,                qd.data()));        // constant size
-    assert(paramHelper->linkParam(PARAM_ID_H_W2B,               H_w2b.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_XDES_COM,            xd_com.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_XDES_FOOT,           xd_foot.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_QDES,                qd.data()));        // constant size
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_H_W2B,               H_w2b.data()));
     // link module output streaming parameters to member variables
-    assert(paramHelper->linkParam(PARAM_ID_XREF_COM,            xr_com.data()));
-    assert(paramHelper->linkParam(PARAM_ID_XREF_FOOT,           xr_foot.data()));
-    assert(paramHelper->linkParam(PARAM_ID_QREF,                qr.data()));        // constant size
-    assert(paramHelper->linkParam(PARAM_ID_X_COM,               x_com.data()));
-    assert(paramHelper->linkParam(PARAM_ID_X_FOOT,              x_foot.data()));
-    assert(paramHelper->linkParam(PARAM_ID_Q,                   qDeg.data()));      // variable size
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_XREF_COM,            xr_com.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_XREF_FOOT,           xr_foot.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_QREF,                qr.data()));        // constant size
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_X_COM,               x_com.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_X_FOOT,              x_foot.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,                   qDeg.data()));      // variable size
     
     // Register callbacks for some module parameters
-    assert(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_COM,       this));
-    assert(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_FOOT,      this));
-    assert(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_POSTURE,   this));
-    assert(paramHelper->registerParamCallback(PARAM_ID_ACTIVE_JOINTS,       this));
-    assert(paramHelper->registerParamCallback(PARAM_ID_SUPPORT_PHASE,       this));
+    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_COM,       this));
+    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_FOOT,      this));
+    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_POSTURE,   this));
+    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_ACTIVE_JOINTS,       this));
+    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_SUPPORT_PHASE,       this));
 
     // Register callbacks for some module commands
-    assert(paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
-    assert(paramHelper->registerCommandCallback(COMMAND_ID_STOP,            this));
+    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
+    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_STOP,            this));
 
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
     zero7.setZero();
@@ -130,6 +123,11 @@ bool LocomotionThread::threadInit()
 
     if(!robot->getJointLimits(solver->qMin.data(), solver->qMax.data()))
         sendMsg("Error while reading joint limits.", MSG_ERROR);
+    else
+    {
+        solver->qMin *= CTRL_RAD2DEG;
+        solver->qMax *= CTRL_RAD2DEG;
+    }
 
     // read robot status (to be done before initializing trajectory generators)
     if(!readRobotStatus(true))
@@ -163,7 +161,8 @@ void LocomotionThread::run()
         solver->foot.b = dxc_footE;
         solver->posture.b = dqcE;
 
-        solver->solve(dqDes, qRadE);
+        solver->solve(dqDes, qDegE);
+        if(solver->getBlockedJointList().size()>0) sendMsg("Blocking joints: "+toString(solver->getBlockedJointList()), MSG_INFO);
         robot->setVelRef(dqDes.data());          // send velocities to the joint motors
         //sendMsg("dqDes: "+toString(dqDes.transpose(), 1), MSG_DEBUG);
     }
@@ -215,7 +214,7 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     dq.head<6>() = svdJcb.solve(solver->constraints.A.rightCols(_n)*dqJ);
     dq.tail(_n) = dqJ;
     
-    sendMsg("ft sens: "+toString(ftSens.transpose(),1), MSG_DEBUG);
+    //sendMsg("ft sens: "+toString(ftSens.transpose(),1), MSG_DEBUG);
     //sendMsg("q rad: "+string(qRad.toString(2)), MSG_INFO);
     //sendMsg("q deg: "+string(qDeg.toString(2)), MSG_INFO);
     //sendMsg("H_w2b:\n"+string(H_w2b.toString(2)), MSG_INFO);
@@ -300,27 +299,28 @@ void LocomotionThread::numberOfJointsChanged()
     if(solver!=NULL)
         solver->resize(_k,_n+6);
     else
-        solver = new LocomotionSolver(supportPhase==SUPPORT_DOUBLE ? 12 : 6,_n+6, PINV_TOL, 1e-5);
+        solver = new LocomotionSolver(supportPhase==SUPPORT_DOUBLE ? 12 : 6,_n+6, PINV_TOL, 1e-4);
     solver->posture.A = MatrixXd::Zero(_n, _n+6);
     solver->posture.A.rightCols(_n) = MatrixXd::Identity(_n,_n);
 
     qRad.resize(_n, 0.0);                               // measured pos
-    new (&qRadE) Map<VectorXd>(qRad.data(), _n);        // measured pos (Eigen vector)
     qDeg.resize(_n, 0.0);                               // measured pos
+    new (&qDegE) Map<VectorXd>(qDeg.data(), _n);        // measured pos (Eigen vector)
     dq.resize(_n+6);                                    // measured vel (base + joints)
     dqJ.resize(_n);                                     // measured vel (joints only)
     dqc.resize(_n, 0.0);                                // commanded vel (Yarp vector)
     new (&dqcE) Map<VectorXd>(dqc.data(), _n);          // commanded vel (Eigen vector)
-    dqDes.resize(_n);
+    dqDes.resize(_n);                                   // desired joint vel commanded to the motors
     kp_posture.resize(_n, 0.0);                         // proportional gain (rpc input parameter)
-    // These three have constant size = ICUB_DOFS
-    //qd.resize(_n, 0.0);                                 // desired pos (streaming input param)
-    //qr.resize(_n, 0.0);                                 // reference pos
-    //dqr.resize(_n, 0.0);                                // reference vel
+    // Note: qd, qr and dqr have constant size = ICUB_DOFS
     if(!robot->getJointLimits(solver->qMin.data(), solver->qMax.data()))
         sendMsg("Error while reading joint limits.", MSG_ERROR);
     else
-        cout<< "qMin: "<<toString(CTRL_RAD2DEG*solver->qMin.transpose(),0)<<endl<<"qMax: "<<toString(CTRL_RAD2DEG*solver->qMax.transpose(),0)<<endl;
+    {
+        solver->qMin *= CTRL_RAD2DEG;   // convert from rad to deg
+        solver->qMax *= CTRL_RAD2DEG;   // convert from rad to deg
+        cout<< "qMin: "<<toString(solver->qMin.transpose(),0)<<"\nqMax: "<<toString(solver->qMax.transpose(),0)<<endl;
+    }
     updateSelectionMatrix();
 }
 

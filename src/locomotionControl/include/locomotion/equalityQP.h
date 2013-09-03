@@ -20,6 +20,7 @@
 
 #include <Eigen/Core>                               // import most common Eigen types
 #include <yarp/sig/Vector.h>
+#include <vector>
 #include <string>
 
 namespace locomotion
@@ -51,8 +52,9 @@ public:
   */
 class LocomotionSolver
 {
-    int n;  // Number of joints (floating base included)
-    Eigen::MatrixXd     S;  // selection matrix for joints in the active set
+    int n;                              // Number of joints (floating base included)
+    Eigen::MatrixXd     S;              // selection matrix for joints in the active set
+    std::vector<int>    blockedJoints;  // list of blocked joints
 
     void blockJoint(int j); // block the specified joint, adding it to the active set
 public:
@@ -60,26 +62,32 @@ public:
     HQP_Task com;           // 2 DoFs
     HQP_Task foot;          // 6 DoFs
     HQP_Task posture;       // n-6 DoFs
-    Eigen::VectorXd qMax;
-    Eigen::VectorXd qMin;
+    Eigen::VectorXd qMax;   // joint upper bounds (deg)
+    Eigen::VectorXd qMin;   // joint lower bounds (deg)
     double pinvTol;
     double pinvDamp;
 
     /** @param _k Number of constraints.
       * @param _n Number of joints (floating base included). 
       * @param _pinvTol Tolerance used for computing truncated pseudoinverses.
-      * @param _pinvDamp Damping factor used for computing damped pseudoinverses. */
+      * @param _pinvDamp Damping factor used for computing damped pseudoinverses. 
+      * @note The number of joints and constraints can be changed by calling the resize method.
+      *       The tolerances can be changed as well by writing the corresponding public member variables.*/
     LocomotionSolver(int _k, int _n, double _pinvTol, double _pinvDamp);
 
-    /** @param _k Number of constraints.
+    /** Call this method any time either the number of joints or of constraints changes.
+      * It resizes all the vectors and matrices.
+      * @param _k Number of constraints.
       * @param _n Number of joints. */
     void resize(int _k, int _n);
     
-    /** Find the joint velocities for solving the hierarchy of tasks.
-      * @param qDes Output vector, desired joint velocities.
-      * @param q Input vector, current joint positions, used to check whether the joints are close to their bounds.
+    /** Find the desired joint velocities for solving the hierarchy of tasks.
+      * @param qDes Output vector, desired joint velocities (rad/sec).
+      * @param q Input vector, current joint positions (deg), used to check whether the joints are close to their bounds.
       */
     void solve(Eigen::VectorXd &dqDes, const Eigen::VectorXd &q);
+
+    const std::vector<int>& getBlockedJointList(){ return blockedJoints; }
 };
 
 /** Tolerance for considering two values equal */
@@ -125,6 +133,10 @@ void testFailed(std::string testName);
 /** Convert a generic variable into a string. */
 template <class T> inline std::string toString(const T& t)
 { std::ostringstream ss; ss << t; return ss.str(); }
+
+/** Convert a generic vector into a string */
+template <class T> inline std::string toString(const std::vector<T>& v, const char *separator=" ")
+{ std::ostringstream s; std::copy(v.begin(), v.end(), std::ostream_iterator<T>(s, separator)); return s.str(); }
 
 std::string toString(const Eigen::MatrixXd &m, int precision=2, const char* endRowStr="\n", int maxRowsPerLine=10);
 

@@ -53,6 +53,7 @@ void LocomotionSolver::solve(VectorXd &dqjDes, const VectorXd &q)
     bool solutionFound=false;
     VectorXd dqDes; 
     S.setIdentity();
+    blockedJoints.resize(0);
 
     while(!solutionFound)
     {
@@ -95,8 +96,8 @@ void LocomotionSolver::solve(VectorXd &dqjDes, const VectorXd &q)
 //*************************************************************************************************************************
 void LocomotionSolver::blockJoint(int j)
 {
-    printf("Blocking joint %d\n", j);
     S(6+j,6+j) = 0.0;
+    blockedJoints.push_back(j);
 }
 
 //*************************************************************************************************************************
