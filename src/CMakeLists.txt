@@ -14,7 +14,7 @@ add_subdirectory(locomotionPlanner)
 
 if (ICUB_USE_XDE)
      add_subdirectory(reachComBalance)
-     #add_subdirectory(tests/ISIRControllerYarpTest)
+     add_subdirectory(tests/ISIRControllerYarpTest)
      message(STATUS "ISIR modules with XDE: YES")
 else (ICUB_USE_XDE)
      message(STATUS "ISIR modules with XDE: NO")
