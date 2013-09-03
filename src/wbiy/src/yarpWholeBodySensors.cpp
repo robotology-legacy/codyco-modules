@@ -130,6 +130,9 @@ bool yarpWholeBodySensors::openImu(const LocalId &i)
 
 bool yarpWholeBodySensors::openFTsens(const LocalId &i)
 {
+    ftSensLastRead[i].resize(6,0.0);
+    if(isRobotSimulator(robot)) // icub simulator doesn't have force/torque sensors
+        return true;
     string remotePort = "/" + robot + getPortName(i, ftSens_2_port);
     stringstream localPort; 
     localPort << "/" << name << "/ftSens" << i.bodyPart << "_" << i.index << ":i";
@@ -311,5 +314,20 @@ bool yarpWholeBodySensors::readIMU(double *inertial, double *stamps, bool wait)
 
 bool yarpWholeBodySensors::readFTsensors(double *ftSens, double *stamps, bool wait)
 {
-    return false;
+    Vector *v;
+    int i=0;    // sensor index
+    for(map<LocalId,BufferedPort<Vector>*>::iterator it=portsFTsens.begin(); it!=portsFTsens.end(); it++)
+    {
+        if(!isRobotSimulator(robot))    // icub simulator doesn't have force/torque sensors
+        {
+            v = it->second->read(wait);
+            if(v!=NULL)
+            {
+                ftSensLastRead[it->first] = *v;
+            }
+        }
+        memcpy(&ftSens[i*6], ftSensLastRead[it->first].data(), 6);
+        i++;
+    }
+    return true;
 }

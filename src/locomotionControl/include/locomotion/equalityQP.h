@@ -43,14 +43,25 @@ public:
 
 };
 
+/** Solver for the following hierarchy of tasks:
+  * - Task 1: foot constraints (either 1 foot or 2 feet)
+  * - Task 2: center of mass (projection on the ground)
+  * - Task 3: swinging foot
+  * - Task 4: joint posture
+  */
 class LocomotionSolver
 {
     int n;  // Number of joints (floating base included)
+    Eigen::MatrixXd     S;  // selection matrix for joints in the active set
+
+    void blockJoint(int j); // block the specified joint, adding it to the active set
 public:
     HQP_Task constraints;   // k DoFs
     HQP_Task com;           // 2 DoFs
     HQP_Task foot;          // 6 DoFs
     HQP_Task posture;       // n-6 DoFs
+    Eigen::VectorXd qMax;
+    Eigen::VectorXd qMin;
     double pinvTol;
     double pinvDamp;
 
@@ -64,7 +75,11 @@ public:
       * @param _n Number of joints. */
     void resize(int _k, int _n);
     
-    void solve(Eigen::VectorXd &dqDes);
+    /** Find the joint velocities for solving the hierarchy of tasks.
+      * @param qDes Output vector, desired joint velocities.
+      * @param q Input vector, current joint positions, used to check whether the joints are close to their bounds.
+      */
+    void solve(Eigen::VectorXd &dqDes, const Eigen::VectorXd &q);
 };
 
 /** Tolerance for considering two values equal */

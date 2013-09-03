@@ -27,7 +27,8 @@ using namespace wbiy;
 
 //*************************************************************************************************************************
 LocomotionThread::LocomotionThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
-    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), dxc_comE(0), dxc_footE(0), dqcE(0,0)
+    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), 
+    dxc_comE(0), dxc_footE(0), dqcE(0,0), qRadE(0,0)
 {
     status = LOCOMOTION_OFF;
     printCountdown = 0;
@@ -79,6 +80,9 @@ bool LocomotionThread::threadInit()
     kp_posture.resize(ICUB_DOFS, 0.0);                  // proportional gain
     H_w2b = eye(4,4);
 
+    // resize all Eigen vectors
+    ftSens.resize(12); ftSens.setZero();
+
     // map Yarp vectors to Eigen vectors
     new (&dxc_comE)     Map<Vector2d>(dxc_com.data());
     new (&dxc_footE)    Map<Vector6d>(dxc_foot.data());
@@ -91,6 +95,8 @@ bool LocomotionThread::threadInit()
     assert(paramHelper->linkParam(PARAM_ID_TRAJ_TIME_FOOT,      &tt_foot));
     assert(paramHelper->linkParam(PARAM_ID_TRAJ_TIME_POSTURE,   &tt_posture));
     assert(paramHelper->linkParam(PARAM_ID_PINV_DAMP,           &solver->pinvDamp));
+    assert(paramHelper->linkParam(PARAM_ID_Q_MAX,               solver->qMax.data()));
+    assert(paramHelper->linkParam(PARAM_ID_Q_MIN,               solver->qMin.data()));
     // link module input streaming parameters to member variables
     assert(paramHelper->linkParam(PARAM_ID_XDES_COM,            xd_com.data()));
     assert(paramHelper->linkParam(PARAM_ID_XDES_FOOT,           xd_foot.data()));
@@ -121,6 +127,9 @@ bool LocomotionThread::threadInit()
     Ha = zeros(4,4);                    // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
     Ha(0,2)=1; Ha(1,1)=-1; Ha(2,0)=1; Ha(3,3)=1;
 #endif
+
+    if(!robot->getJointLimits(solver->qMin.data(), solver->qMax.data()))
+        sendMsg("Error while reading joint limits.", MSG_ERROR);
 
     // read robot status (to be done before initializing trajectory generators)
     if(!readRobotStatus(true))
@@ -154,13 +163,9 @@ void LocomotionThread::run()
         solver->foot.b = dxc_footE;
         solver->posture.b = dqcE;
 
-        solver->solve(dqDes);
+        solver->solve(dqDes, qRadE);
         robot->setVelRef(dqDes.data());          // send velocities to the joint motors
-
-        //sendMsg("dqMot: "+toString(dqDes.transpose(), 1), MSG_DEBUG);
-        //sendMsg("dq:    "+toString(dq.transpose()), MSG_DEBUG);
-        //sendMsg("dx com           "+toString((solver->com.A*dq).transpose(),1), MSG_DEBUG);
-        //sendMsg("dx com commanded "+toString(dxc_comE.transpose(),1), MSG_DEBUG);
+        //sendMsg("dqDes: "+toString(dqDes.transpose(), 1), MSG_DEBUG);
     }
 
     paramHelper->sendStreamParams();
@@ -178,6 +183,7 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     bool res = robot->getQ(qRad.data(), blockingRead);
     qDeg = CTRL_RAD2DEG*qRad;
     res = res && robot->getDq(dqJ.data(), -1.0, blockingRead);
+    res = res && robot->getFTsensors(ftSens.data(), -1.0, blockingRead);
     
     // base orientation conversion
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
@@ -209,6 +215,7 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     dq.head<6>() = svdJcb.solve(solver->constraints.A.rightCols(_n)*dqJ);
     dq.tail(_n) = dqJ;
     
+    sendMsg("ft sens: "+toString(ftSens.transpose(),1), MSG_DEBUG);
     //sendMsg("q rad: "+string(qRad.toString(2)), MSG_INFO);
     //sendMsg("q deg: "+string(qDeg.toString(2)), MSG_INFO);
     //sendMsg("H_w2b:\n"+string(H_w2b.toString(2)), MSG_INFO);
@@ -298,6 +305,7 @@ void LocomotionThread::numberOfJointsChanged()
     solver->posture.A.rightCols(_n) = MatrixXd::Identity(_n,_n);
 
     qRad.resize(_n, 0.0);                               // measured pos
+    new (&qRadE) Map<VectorXd>(qRad.data(), _n);        // measured pos (Eigen vector)
     qDeg.resize(_n, 0.0);                               // measured pos
     dq.resize(_n+6);                                    // measured vel (base + joints)
     dqJ.resize(_n);                                     // measured vel (joints only)
@@ -305,14 +313,14 @@ void LocomotionThread::numberOfJointsChanged()
     new (&dqcE) Map<VectorXd>(dqc.data(), _n);          // commanded vel (Eigen vector)
     dqDes.resize(_n);
     kp_posture.resize(_n, 0.0);                         // proportional gain (rpc input parameter)
-    qMin.resize(_n);
-    qMax.resize(_n);
     // These three have constant size = ICUB_DOFS
     //qd.resize(_n, 0.0);                                 // desired pos (streaming input param)
     //qr.resize(_n, 0.0);                                 // reference pos
     //dqr.resize(_n, 0.0);                                // reference vel
-    if(!robot->getJointLimits(qMin.data(), qMax.data()))
+    if(!robot->getJointLimits(solver->qMin.data(), solver->qMax.data()))
         sendMsg("Error while reading joint limits.", MSG_ERROR);
+    else
+        cout<< "qMin: "<<toString(CTRL_RAD2DEG*solver->qMin.transpose(),0)<<endl<<"qMax: "<<toString(CTRL_RAD2DEG*solver->qMax.transpose(),0)<<endl;
     updateSelectionMatrix();
 }
 

@@ -46,7 +46,7 @@ namespace wbiy
     const wbi::LocalIdList ICUB_RIGHT_LEG_JOINTS(iCub::skinDynLib::RIGHT_LEG, 0, 1, 2, 3, 4, 5);
     const wbi::LocalIdList ICUB_LEFT_LEG_JOINTS(iCub::skinDynLib::LEFT_LEG, 0, 1, 2, 3, 4, 5);
     const wbi::LocalIdList ICUB_TORSO_JOINTS(iCub::skinDynLib::TORSO, 0, 1, 2);
-    const wbi::LocalIdList ICUB_MAIN_JOINTS( ICUB_RIGHT_ARM_JOINTS, ICUB_LEFT_ARM_JOINTS, ICUB_RIGHT_LEG_JOINTS, ICUB_LEFT_LEG_JOINTS, ICUB_TORSO_JOINTS);
+    const wbi::LocalIdList ICUB_MAIN_JOINTS(ICUB_TORSO_JOINTS, ICUB_LEFT_ARM_JOINTS, ICUB_RIGHT_ARM_JOINTS, ICUB_LEFT_LEG_JOINTS, ICUB_RIGHT_LEG_JOINTS);
 
     // mapping from generic sensor id to corresponding port name
     struct id_2_PortName { wbi::LocalId id; std::string portName; };
@@ -275,11 +275,21 @@ namespace wbiy
         
         virtual bool init();
         virtual bool close();
-        virtual int getDoFs(){                              return sensors->getDoFs(); }
-        virtual bool removeJoint(const wbi::LocalId &j){    return estimator->removeJoint(j); }
-        virtual bool addJoint(const wbi::LocalId &j){       return estimator->addJoint(j); }
-        virtual int addJoints(const wbi::LocalIdList &j){   return estimator->addJoints(j); }
-        virtual wbi::LocalIdList getJointList(){            return sensors->getJointList(); }
+        virtual int getDoFs(){                              return sensors->getDoFs();          }
+        virtual bool removeJoint(const wbi::LocalId &j){    return estimator->removeJoint(j);   }
+        virtual bool addJoint(const wbi::LocalId &j){       return estimator->addJoint(j);      }
+        virtual int addJoints(const wbi::LocalIdList &j){   return estimator->addJoints(j);     }
+        virtual wbi::LocalIdList getJointList(){            return sensors->getJointList();     }
+
+        // *** IMUs
+        virtual bool addIMU(const wbi::LocalId &i){         return sensors->addIMU(i);      }
+        virtual bool removeIMU(const wbi::LocalId &i){      return sensors->removeIMU(i);   }
+        virtual wbi::LocalIdList getIMUList(){              return sensors->getIMUList();   }
+
+        // *** FORCE/TORQUE SENSORS
+        virtual bool addFTsensor(const wbi::LocalId &i){    return sensors->addFTsensor(i);     }
+        virtual bool removeFTsensor(const wbi::LocalId &i){ return sensors->removeFTsensor(i);  }
+        virtual wbi::LocalIdList getFTsensorList(){         return sensors->getFTsensorList();  }
         
         virtual bool getQ(double *q, double time=-1.0, bool wait=false);
         virtual bool getDq(double *dq, double time=-1.0, bool wait=false);
@@ -449,6 +459,12 @@ namespace wbiy
         virtual bool setReferenceSpeed(double *rspd, int joint=-1){ return actuatorInt->setReferenceSpeed(rspd, joint);}
         
         // STATES
+        virtual bool addIMU(const wbi::LocalId &i){         return stateInt->addIMU(i);      }
+        virtual bool removeIMU(const wbi::LocalId &i){      return stateInt->removeIMU(i);   }
+        virtual wbi::LocalIdList getIMUList(){              return stateInt->getIMUList();   }
+        virtual bool addFTsensor(const wbi::LocalId &i){    return stateInt->addFTsensor(i);     }
+        virtual bool removeFTsensor(const wbi::LocalId &i){ return stateInt->removeFTsensor(i);  }
+        virtual wbi::LocalIdList getFTsensorList(){         return stateInt->getFTsensorList();  }
         virtual bool getQ(double *q, double time=-1.0, bool wait=false){    return stateInt->getQ(q, time, wait); }
         virtual bool getDq(double *dq, double time=-1.0, bool wait=false){  return stateInt->getDq(dq, time, wait); }
         virtual bool getDqMotors(double *dqM, double time=-1.0, bool wait=false){ return stateInt->getDqMotors(dqM, time, wait); }

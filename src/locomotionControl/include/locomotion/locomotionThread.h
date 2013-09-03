@@ -84,10 +84,11 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     JacobianMatrix      JfootL;                 // Jacobian of the left foot
     MatrixY             S;                      // matrix selecting the active joints
     VectorXd            dq, dqJ;                // joint velocities (size of vectors: n+6, n, 6)
-    VectorXd            qMin, qMax;             // lower and upper joint bounds
+    //VectorXd            qMin, qMax;             // lower and upper joint bounds
     VectorXd            dqDes;
     MatrixXd            Jcb;                    // first 6 columns of the constraint Jacobian
     JacobiSVD<MatrixXd> svdJcb;                 // singular value decomposition of Jcb
+    VectorXd            ftSens;                 // ankle force/torque sensor readings (order is: left, right)
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
     Vector7d zero7;
     MatrixY H_base_leftFoot;        // rototranslation from robot base to left foot (i.e. world)
@@ -100,11 +101,9 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     Vector              kp_posture;
     double              tt_com, tt_foot, tt_posture;    // trajectory times of min jerk trajectory generators
     VectorNi            activeJoints;                   // vector of bool indicating which joints are used (1 used, 0 blocked)
-    int                 supportPhase;
-    //double              pinvDamp;
 
     // Input streaming parameters
-    //Vector2d            xd_com; Vector7d            xd_foot;    VectorNd            qd;
+    int                 supportPhase;
     Vector              xd_com, xd_foot;        // desired positions (use yarp vector because minJerkTrajGen wants yarp vector)
     Vector              qd;                     // desired joint posture (for all ICUB_DOFS joints)
     MatrixY             H_w2b;                  // rotation matrix from world to base reference frame
@@ -119,6 +118,7 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     Map<Vector2d>       dxc_comE;               // commanded velocity of the COM
     Map<Vector6d>       dxc_footE;
     Map<VectorXd>       dqcE;
+    Map<VectorXd>       qRadE;
     
     // Trajectory generators
     minJerkTrajGen      *trajGenCom, *trajGenFoot, *trajGenPosture;
