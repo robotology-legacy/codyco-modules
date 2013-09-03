@@ -111,6 +111,7 @@ include(CoDyCoFindDependencies)
 
 ### enable testing
 option(CODYCO_DASHBOARD_SUBMIT "Submit compile tests to cdash" FALSE)
+option(ICUB_USE_XDE "Experimental ISIR modules based on XDE" FALSE)
 
 if (CODYCO_DASHBOARD_SUBMIT)
    include (CTest)
