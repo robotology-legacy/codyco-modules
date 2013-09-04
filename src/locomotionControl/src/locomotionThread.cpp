@@ -95,7 +95,9 @@ bool LocomotionThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_XDES_COM,            xd_com.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_XDES_FOOT,           xd_foot.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_QDES,                qd.data()));        // constant size
+#ifndef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_H_W2B,               H_w2b.data()));
+#endif
     // link module output streaming parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_XREF_COM,            xr_com.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_XREF_FOOT,           xr_foot.data()));
