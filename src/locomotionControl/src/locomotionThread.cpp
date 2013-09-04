@@ -169,6 +169,14 @@ void LocomotionThread::run()
 
         solver->solve(dqDes, qDegE);
 
+        for(int i=0; i<dqDes.size(); i++)
+            if(dqDes(i)> DQ_MAX || dqDes(i)<-DQ_MAX)
+            {
+                status = LOCOMOTION_OFF;
+                printf("\n************    ERROR: DESIRED JOINT %d VELOCITY IS TOO LARGE: %f\n", i, dqDes(i));
+                return;
+            }
+
         double t0 = Time::now();
         robot->setVelRef(dqDes.data());          // send velocities to the joint motors
         sendMsg("Time to set vel: "+toString(Time::now()-t0), MSG_INFO);
@@ -177,7 +185,7 @@ void LocomotionThread::run()
             sendMsg("Solver time: "+toString(solver->solverTime)+"; iterations: "+toString(solver->solverIterations)+"; blocked joints: "+toString(solver->getBlockedJointList()), MSG_INFO);
         else 
             sendMsg("Solver time: "+toString(solver->solverTime)+"; iterations: "+toString(solver->solverIterations), MSG_INFO);
-        //sendMsg("dqDes: "+toString(dqDes.transpose(), 1), MSG_DEBUG);
+        sendMsg("dqDes: "+toString(1e3*dqDes.transpose(), 1), MSG_DEBUG);
     }
 
     paramHelper->sendStreamParams();
