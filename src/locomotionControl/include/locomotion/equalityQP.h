@@ -68,14 +68,16 @@ public:
     Eigen::VectorXd qMin;   // joint lower bounds (deg)
     double pinvTol;
     double pinvDamp;
+    double safetyThreshold; // minimum distance from the joint bounds (deg)
 
     /** @param _k Number of constraints.
       * @param _n Number of joints (floating base included). 
       * @param _pinvTol Tolerance used for computing truncated pseudoinverses.
       * @param _pinvDamp Damping factor used for computing damped pseudoinverses. 
+      * @param _safetyThreshold Minimum distance to maintain from the joint bounds.
       * @note The number of joints and constraints can be changed by calling the resize method.
       *       The tolerances can be changed as well by writing the corresponding public member variables.*/
-    LocomotionSolver(int _k, int _n, double _pinvTol, double _pinvDamp);
+    LocomotionSolver(int _k, int _n, double _pinvTol, double _pinvDamp, double _safetyThreshold=0.0);
 
     /** Call this method any time either the number of joints or of constraints changes.
       * It resizes all the vectors and matrices.

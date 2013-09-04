@@ -87,9 +87,10 @@ bool LocomotionThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TRAJ_TIME_COM,       &tt_com));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TRAJ_TIME_FOOT,      &tt_foot));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TRAJ_TIME_POSTURE,   &tt_posture));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PINV_DAMP,           &solver->pinvDamp));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PINV_DAMP,           &(solver->pinvDamp)));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MAX,               solver->qMax.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MIN,               solver->qMin.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JNT_LIM_MIN_DIST,    &(solver->safetyThreshold)));
     // link module input streaming parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_XDES_COM,            xd_com.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_XDES_FOOT,           xd_foot.data()));

@@ -80,6 +80,7 @@ static const int            DEFAULT_SUPPORT_PHASE   = SUPPORT_DOUBLE;
 static const double         DEFAULT_PINV_DAMP       = 1e-4;
 static const VectorNd       DEFAULT_Q_MAX           = VectorNd::Constant(100.0);
 static const VectorNd       DEFAULT_Q_MIN           = VectorNd::Constant(-100.0);
+static const double         DEFAULT_JNT_LIM_MIN_DIST = 5.0;
 // Streaming parameters
 static const Vector2d       DEFAULT_XDES_COM        = Vector2d::Constant(0.0);
 static const Vector7d       DEFAULT_XDES_FOOT       = Vector7d::Constant(0.0);
@@ -98,7 +99,7 @@ enum LocomotionParamId {
     PARAM_ID_KP_COM,            PARAM_ID_KP_FOOT,           PARAM_ID_KP_POSTURE, 
     PARAM_ID_TRAJ_TIME_COM,     PARAM_ID_TRAJ_TIME_FOOT,    PARAM_ID_TRAJ_TIME_POSTURE,
     PARAM_ID_ACTIVE_JOINTS,     PARAM_ID_SUPPORT_PHASE,     PARAM_ID_PINV_DAMP,
-    PARAM_ID_Q_MAX,             PARAM_ID_Q_MIN,
+    PARAM_ID_Q_MAX,             PARAM_ID_Q_MIN,             PARAM_ID_JNT_LIM_MIN_DIST,
     PARAM_ID_XDES_COM,          PARAM_ID_XDES_FOOT,         PARAM_ID_QDES,
     PARAM_ID_H_W2B,             
     PARAM_ID_X_COM,             PARAM_ID_X_FOOT,            PARAM_ID_Q,
@@ -126,6 +127,7 @@ ParamDescription("active joints",   PARAM_ID_ACTIVE_JOINTS,     PARAM_DATA_INT, 
 ParamDescription("pinv damp",       PARAM_ID_PINV_DAMP,         PARAM_DATA_FLOAT,   1,                          ParamBounds(1e-8, 1.0),             PARAM_IN_OUT,       &DEFAULT_PINV_DAMP,             "Damping factor used in the pseudoinverses"),
 ParamDescription("q max",           PARAM_ID_Q_MAX,             PARAM_DATA_FLOAT,   ICUB_DOFS,                  PARAM_BOUNDS_INF,                   PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds"),
 ParamDescription("q min",           PARAM_ID_Q_MIN,             PARAM_DATA_FLOAT,   ICUB_DOFS,                  PARAM_BOUNDS_INF,                   PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds"),
+ParamDescription("jlmd",            PARAM_ID_JNT_LIM_MIN_DIST,  PARAM_DATA_FLOAT,   1,                          ParamBounds(0.1, PARAM_BOUND_INF),  PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits"),
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 ParamDescription("support phase",   PARAM_ID_SUPPORT_PHASE,     PARAM_DATA_INT,     1,                          ParamBounds(0.0, 2.0),              PARAM_IN_STREAM,    &DEFAULT_SUPPORT_PHASE,         "Foot support phase, 0: double, 1: left foot, 2: right foot"), 
 ParamDescription("xd com",          PARAM_ID_XDES_COM,          PARAM_DATA_FLOAT,   2,                          ParamBounds(-1.0, 1.0),             PARAM_IN_STREAM,    DEFAULT_XDES_COM.data(),        "Desired position of the center of mass"),

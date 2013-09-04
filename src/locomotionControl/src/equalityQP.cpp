@@ -29,7 +29,8 @@ using namespace iCub::ctrl;
 using namespace yarp::math;
 
 
-LocomotionSolver::LocomotionSolver(int _k, int _n, double _pinvTol, double _pinvDamp): pinvTol(_pinvTol), pinvDamp(_pinvDamp)
+LocomotionSolver::LocomotionSolver(int _k, int _n, double _pinvTol, double _pinvDamp, double _st)
+    : pinvTol(_pinvTol), pinvDamp(_pinvDamp), safetyThreshold(_st)
 {
     resize(_k,_n);
 }
@@ -79,12 +80,12 @@ void LocomotionSolver::solve(VectorXd &dqjDes, const VectorXd &q)
         solutionFound = true;
         for(int i=0; i<n-6; i++)
         {
-            if(q(i)>=qMax(i) && dqjDes(i)>0.0)  // add joint i to the active set
+            if(q(i)+safetyThreshold>=qMax(i) && dqjDes(i)>0.0)  // add joint i to the active set
             {
                 blockJoint(i);
                 solutionFound = false;
             }
-            else if(q(i)<=qMin(i) && dqjDes(i)<0.0)  // add joint i to the active set
+            else if(q(i)-safetyThreshold<=qMin(i) && dqjDes(i)<0.0)  // add joint i to the active set
             {
                 blockJoint(i);
                 solutionFound = false;
