@@ -104,6 +104,7 @@ bool LocomotionThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,                   qDeg.data()));      // variable size
     
     // Register callbacks for some module parameters
+    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_XDES_FOOT,           this));
     YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_COM,       this));
     YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_FOOT,      this));
     YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_POSTURE,   this));
@@ -120,6 +121,8 @@ bool LocomotionThread::threadInit()
     Ha = zeros(4,4);                    // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
     Ha(0,2)=1; Ha(1,1)=-1; Ha(2,0)=1; Ha(3,3)=1;
 #endif
+
+    normalizeFootOrientation();
 
     if(!robot->getJointLimits(solver->qMin.data(), solver->qMax.data()))
         sendMsg("Error while reading joint limits.", MSG_ERROR);
@@ -343,6 +346,15 @@ void LocomotionThread::updateSelectionMatrix()
 }
 
 //*************************************************************************************************************************
+void LocomotionThread::normalizeFootOrientation()
+{
+    double axisNorm = sqrt(xd_foot[3]*xd_foot[3] + xd_foot[4]*xd_foot[4] + xd_foot[5]*xd_foot[5]);
+    xd_foot[3] /= axisNorm;
+    xd_foot[4] /= axisNorm;
+    xd_foot[5] /= axisNorm;
+}
+
+//*************************************************************************************************************************
 void LocomotionThread::threadRelease()
 {
     if(trajGenCom)      delete trajGenCom;
@@ -355,6 +367,8 @@ void LocomotionThread::parameterUpdated(const ParamDescription &pd)
 {
     switch(pd.id)
     {
+    case PARAM_ID_XDES_FOOT:
+        normalizeFootOrientation(); break;
     case PARAM_ID_TRAJ_TIME_COM: 
         trajGenCom->setT(tt_com); break;
     case PARAM_ID_TRAJ_TIME_FOOT: 

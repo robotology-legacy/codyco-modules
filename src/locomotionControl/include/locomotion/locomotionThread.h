@@ -147,6 +147,8 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     /** Method called every time the support status changes. */
     void numberOfJointsChanged();
 
+    void normalizeFootOrientation();
+
 public:	
     
     /* If you define a structure having members of fixed-size vectorizable Eigen types, you must overload 
