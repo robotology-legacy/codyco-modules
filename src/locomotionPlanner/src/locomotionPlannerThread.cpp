@@ -18,6 +18,7 @@
 #include <locomotionPlanner/locomotionPlannerThread.h>
 #include <locomotion/locomotionConstants.h>
 #include <yarp/os/Time.h>
+#include <yarp/os/Log.h>
 
 
 using namespace locomotion;
@@ -37,7 +38,7 @@ bool LocomotionPlannerThread::threadInit()
 {
     // For parsing input parameters file
     filename = get_env_var(codyco_root).c_str();
-    string temp = "src/locomotionPlanner/paramsPlanner.txt";        // PROBABLY IT WOULD BE BEST TO PUT THIS FILE IN ANOTHER FOLDER
+    string temp = "src/locomotionPlanner/conf/data/randomStandingPoses_iCubGenova01_100poses.txt";        // PROBABLY IT WOULD BE BEST TO PUT THIS FILE IN ANOTHER FOLDER
     temp = get_env_var(codyco_root)+temp;
     filename = temp.c_str();
     cout << "Found params config file: " << filename << endl;
@@ -47,17 +48,17 @@ bool LocomotionPlannerThread::threadInit()
     // link module rpc parameters to member variables
 
     // link controller input streaming parameters to member variables
-    assert(locoCtrl->linkParam(PARAM_ID_SUPPORT_PHASE,       &supportPhase));
-    assert(locoCtrl->linkParam(PARAM_ID_XDES_COM,            xd_com.data()));
-    assert(locoCtrl->linkParam(PARAM_ID_XDES_FOOT,           xd_foot.data()));
-    assert(locoCtrl->linkParam(PARAM_ID_QDES,                qd.data()));
+    YARP_ASSERT(locoCtrl->linkParam(PARAM_ID_SUPPORT_PHASE,       &supportPhase));
+    YARP_ASSERT(locoCtrl->linkParam(PARAM_ID_XDES_COM,            xd_com.data()));
+    YARP_ASSERT(locoCtrl->linkParam(PARAM_ID_XDES_FOOT,           xd_foot.data()));
+    YARP_ASSERT(locoCtrl->linkParam(PARAM_ID_QDES,                qd.data()));
     // link module output streaming parameters to member variables
 
     // Register callbacks for some module parameters
 
     // Register callbacks for some module commands
-    assert(paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
-    assert(paramHelper->registerCommandCallback(COMMAND_ID_STOP,            this));
+    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
+    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_STOP,            this));
     
     return true;
 }
@@ -79,14 +80,14 @@ void LocomotionPlannerThread::run()
     if(!file.fail()){
         while(lineNumber)
         {
-            Matrix<double,1,37> paramLine;
+            Matrix<double,1,36> paramLine;
             int j=0;
 
             //  read one line at a time from text file
             string line = readParamsFile(file);
             istringstream iss(line);
 
-            while(iss)
+            while(iss && j<=35)
             {
                 double  sub;
                 iss  >> sub;
@@ -111,7 +112,7 @@ void LocomotionPlannerThread::run()
             double timeStep = paramLine(0,0) - timePrev;
             timePrev = paramLine(0,0);
 
-//            locoCtrl->sendStreamParams();
+            locoCtrl->sendStreamParams();
             Time::delay(timeStep);
         }
     }

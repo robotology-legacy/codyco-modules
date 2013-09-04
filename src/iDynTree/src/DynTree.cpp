@@ -943,7 +943,7 @@ yarp::sig::Vector DynTree::getCOM(const std::string & part_name, int link_index)
         com_return = com_world;
     }
     
-    memcpy(com_yarp.data(),com_world.data,3*sizeof(double));
+    memcpy(com_yarp.data(),com_return.data,3*sizeof(double));
 
     return com_yarp;
 }
