@@ -166,8 +166,15 @@ void LocomotionThread::run()
         solver->posture.b = dqcE;
 
         solver->solve(dqDes, qDegE);
-        if(solver->getBlockedJointList().size()>0) sendMsg("Blocking joints: "+toString(solver->getBlockedJointList()), MSG_INFO);
+
+        double t0 = Time::now();
         robot->setVelRef(dqDes.data());          // send velocities to the joint motors
+        sendMsg("Time to set vel: "+toString(Time::now()-t0), MSG_INFO);
+
+        if(solver->getBlockedJointList().size()>0) 
+            sendMsg("Solver time: "+toString(solver->solverTime)+"; iterations: "+toString(solver->solverIterations)+"; blocked joints: "+toString(solver->getBlockedJointList()), MSG_INFO);
+        else 
+            sendMsg("Solver time: "+toString(solver->solverTime)+"; iterations: "+toString(solver->solverIterations), MSG_INFO);
         //sendMsg("dqDes: "+toString(dqDes.transpose(), 1), MSG_DEBUG);
     }
 
@@ -218,6 +225,7 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     dq.head<6>() = svdJcb.solve(solver->constraints.A.rightCols(_n)*dqJ);
     dq.tail(_n) = dqJ;
     
+    //sendMsg("Time to compute Jacobians and FK: "+toString(Time::now()-t0), MSG_INFO);
     //sendMsg("ft sens: "+toString(ftSens.transpose(),1), MSG_DEBUG);
     //sendMsg("q rad: "+string(qRad.toString(2)), MSG_INFO);
     //sendMsg("q deg: "+string(qDeg.toString(2)), MSG_INFO);
