@@ -38,7 +38,7 @@ bool LocomotionPlannerThread::threadInit()
 {
     // For parsing input parameters file
     filename = get_env_var(codyco_root).c_str();
-    string temp = "src/locomotionPlanner/conf/data/randomStandingPoses_iCubGenova01_100poses.txt";        // PROBABLY IT WOULD BE BEST TO PUT THIS FILE IN ANOTHER FOLDER
+    string temp = "/locomotionPlanner/conf/data/timestamp10/randomStandingPoses_iCubGenova01_100poses_A.txt";        // PROBABLY IT WOULD BE BEST TO PUT THIS FILE IN ANOTHER FOLDER
     temp = get_env_var(codyco_root)+temp;
     filename = temp.c_str();
     cout << "Found params config file: " << filename << endl;

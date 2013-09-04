@@ -174,6 +174,7 @@ void LocomotionThread::run()
             {
                 status = LOCOMOTION_OFF;
                 printf("\n************    ERROR: DESIRED JOINT %d VELOCITY IS TOO LARGE: %f\n", i, dqDes(i));
+                paramHelper->unlock();
                 return;
             }
 
@@ -276,8 +277,13 @@ void LocomotionThread::preStartOperations()
     trajGenFoot->init(x_foot);
     trajGenPosture->init(qRad);
     status = LOCOMOTION_ON;                 // set thread status to "on"
+    robot->setControlMode(CTRL_MODE_VEL);
+    /*
     for(int i=0; i<13; i++)
         robot->setControlMode(CTRL_MODE_VEL, i);   // set position control mode
+    for(int i=13; i<25; i++)
+        robot->setControlMode(CTRL_MODE_VEL, i);   // set position control mode
+    */
 }
 
 //*************************************************************************************************************************

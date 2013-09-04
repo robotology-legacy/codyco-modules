@@ -60,7 +60,7 @@ enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
 static const int        PRINT_PERIOD    = 3000;     // period of debug prints (in ms)
 static const int        PRINT_MSG_LEVEL = MSG_DEBUG; // only messages whose type is >= PRINT_MSG_LEVEL are printed
 static const double     KP_MAX          = 100.0;    // max value of proportional gains
-static const double     DQ_MAX          = 0.2;      // max joint velocity allowed (rad/sec)
+static const double     DQ_MAX          = 0.3;      // max joint velocity allowed (rad/sec)
 static const double     PINV_TOL        = 1e-4;     // threshold for truncated pseudoinverses
 
 enum LocomotionSupportPhase
