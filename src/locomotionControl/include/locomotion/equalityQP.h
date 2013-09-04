@@ -18,8 +18,9 @@
 #ifndef EQUALITY_QP
 #define EQUALITY_QP
 
-#include <Eigen/Core>                               // import most common Eigen types
+#include <Eigen/Core>               // import most common Eigen types
 #include <yarp/sig/Vector.h>
+#include <yarp/os/Time.h>           // Timer
 #include <vector>
 #include <string>
 #include <iostream>
@@ -33,6 +34,7 @@ class HQP_Task
 {
 public:
     Eigen::MatrixXd A, Apinv, ApinvD;
+    Eigen::MatrixXd Spinv, SpinvD;
     Eigen::MatrixXd N;     // nullspace projector of this task
     Eigen::VectorXd b;     // known term
     Eigen::VectorXd svA;   // singular value of the matrix A
@@ -58,17 +60,19 @@ class LocomotionSolver
     Eigen::MatrixXd     S;              // selection matrix for joints in the active set
     std::vector<int>    blockedJoints;  // list of blocked joints
 
-    void blockJoint(int j); // block the specified joint, adding it to the active set
+    void blockJoint(int j);             // block the specified joint, adding it to the active set
 public:
-    HQP_Task constraints;   // k DoFs
-    HQP_Task com;           // 2 DoFs
-    HQP_Task foot;          // 6 DoFs
-    HQP_Task posture;       // n-6 DoFs
-    Eigen::VectorXd qMax;   // joint upper bounds (deg)
-    Eigen::VectorXd qMin;   // joint lower bounds (deg)
-    double pinvTol;
-    double pinvDamp;
-    double safetyThreshold; // minimum distance from the joint bounds (deg)
+    HQP_Task        constraints;        // k DoFs
+    HQP_Task        com;                // 2 DoFs
+    HQP_Task        foot;               // 6 DoFs
+    HQP_Task        posture;            // n-6 DoFs
+    Eigen::VectorXd qMax;               // joint upper bounds (deg)
+    Eigen::VectorXd qMin;               // joint lower bounds (deg)
+    double          pinvTol;            // Tolerance used for computing truncated pseudoinverses
+    double          pinvDamp;           // Damping factor used for computing damped pseudoinverses
+    double          safetyThreshold;    // minimum distance from the joint bounds (deg)
+    int             solverIterations;   // number of iterations required by the solver
+    double          solverTime;         // time taken to compute the solution
 
     /** @param _k Number of constraints.
       * @param _n Number of joints (floating base included). 
@@ -115,7 +119,7 @@ yarp::sig::Vector compute6DError(const yarp::sig::Vector &x, const yarp::sig::Ve
   * @param Spinv Output kXk matrix (with k=min(m,n)), truncated pseudoinverse of the singular value matrix of A. 
   * @param Apinv Output nXm matrix, truncated pseudoinverse of A.
   * @param sv Output (optional) k-dim vector (with k=min(m,n)), singular values of A. */
-void pinvTrunc(const Eigen::MatrixXd &A, double tol, Eigen::MatrixXd &Apinv, Eigen::VectorXd *sv=0);
+void pinvTrunc(const Eigen::MatrixXd &A, double tol, Eigen::MatrixXd &Apinv, Eigen::MatrixXd &Spinv, Eigen::VectorXd &sv);
 
 /** Compute two different pseudoinverses of the specified matrix A: a truncated pseudoinverse and a
   * damped pseudoinverse. The difference between the two versions is that the truncated version sets to zero
@@ -128,7 +132,7 @@ void pinvTrunc(const Eigen::MatrixXd &A, double tol, Eigen::MatrixXd &Apinv, Eig
   * @param Apinv Output nXm matrix, truncated pseudoinverse of A.
   * @param ApinvDamp Output nXm matrix, damped pseudoinverse of A.
   * @param sv Output (optional) k-dim vector (with k=min(m,n)), singular values of A. */
-void pinvDampTrunc(const Eigen::MatrixXd &A, double tol, double damp, Eigen::MatrixXd &Apinv, Eigen::MatrixXd &ApinvDamp, Eigen::VectorXd *sv=0);
+void pinvDampTrunc(const Eigen::MatrixXd &A, double tol, double damp, Eigen::MatrixXd &Apinv, Eigen::MatrixXd &ApinvDamp, Eigen::MatrixXd &Spinv, Eigen::MatrixXd &SpinvD, Eigen::VectorXd &sv);
 
 void assertEqual(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B, std::string testName, double tol = ZERO_TOL);
 

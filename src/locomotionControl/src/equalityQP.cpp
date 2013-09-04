@@ -51,28 +51,31 @@ void LocomotionSolver::resize(int _k, int _n)
 //*************************************************************************************************************************
 void LocomotionSolver::solve(VectorXd &dqjDes, const VectorXd &q)
 {
+    double t0 = yarp::os::Time::now();
     bool solutionFound=false;
+    solverIterations = 0;
     VectorXd dqDes; 
     S.setIdentity();
     blockedJoints.resize(0);
 
     while(!solutionFound)
     {
+        solverIterations++;
         dqDes = VectorXd::Zero(n);
         constraints.N.setIdentity();
         // *** CONTACT CONSTRAINTS
-        pinvTrunc(constraints.A*S, pinvTol, constraints.Apinv, &constraints.svA);
+        pinvTrunc(constraints.A*S, pinvTol, constraints.Apinv, constraints.Spinv, constraints.svA);
         constraints.N -= constraints.Apinv*constraints.A*S;
         // *** COM CTRL TASK
-        pinvDampTrunc(com.A*S*constraints.N, pinvTol, pinvDamp, com.Apinv, com.ApinvD, &com.svA);
+        pinvDampTrunc(com.A*S*constraints.N, pinvTol, pinvDamp, com.Apinv, com.ApinvD, com.Spinv, com.SpinvD, com.svA);
         dqDes += com.ApinvD*com.b;
         com.N = constraints.N - com.Apinv*com.A*S*constraints.N;
         // *** FOOT CTRL TASK
-        pinvDampTrunc(foot.A*S*com.N, pinvTol, pinvDamp, foot.Apinv, foot.ApinvD, &foot.svA);
+        pinvDampTrunc(foot.A*S*com.N, pinvTol, pinvDamp, foot.Apinv, foot.ApinvD, foot.Spinv, foot.SpinvD, foot.svA);
         dqDes += foot.ApinvD*(foot.b - foot.A*S*dqDes);
         foot.N = com.N - foot.Apinv*foot.A*S*com.N;
         // *** POSTURE TASK
-        pinvTrunc(posture.A*S*foot.N, pinvTol, posture.Apinv);
+        pinvTrunc(posture.A*S*foot.N, pinvTol, posture.Apinv, posture.Spinv, posture.svA);
         dqDes += posture.Apinv*(posture.b - posture.A*S*dqDes);
     
         dqjDes = (S*dqDes).tail(n-6);  // return last n-6 joint vel (i.e. discard base vel)
@@ -80,18 +83,14 @@ void LocomotionSolver::solve(VectorXd &dqjDes, const VectorXd &q)
         solutionFound = true;
         for(int i=0; i<n-6; i++)
         {
-            if(q(i)+safetyThreshold>=qMax(i) && dqjDes(i)>0.0)  // add joint i to the active set
+            if((q(i)+safetyThreshold>=qMax(i) && dqjDes(i)>0.0) || (q(i)-safetyThreshold<=qMin(i) && dqjDes(i)<0.0))  
             {
-                blockJoint(i);
-                solutionFound = false;
-            }
-            else if(q(i)-safetyThreshold<=qMin(i) && dqjDes(i)<0.0)  // add joint i to the active set
-            {
-                blockJoint(i);
+                blockJoint(i);          // add joint i to the active set
                 solutionFound = false;
             }
         }
     }
+    solverTime = yarp::os::Time::now()-t0;
 }
 
 //*************************************************************************************************************************
@@ -131,34 +130,33 @@ yarp::sig::Vector locomotion::compute6DError(const yarp::sig::Vector &x, const y
 }
 
 //*************************************************************************************************************************
-void locomotion::pinvTrunc(const MatrixXd &A, double tol, MatrixXd &Apinv, VectorXd *svP)
+void locomotion::pinvTrunc(const MatrixXd &A, double tol, MatrixXd &Apinv, MatrixXd &Spinv, VectorXd &sv)
 {
     // allocate memory
     int m = A.rows(), n = A.cols(), k = m<n?m:n;
-    MatrixXd Spinv=MatrixXd::Zero(k,k), SpinvD=MatrixXd::Zero(k,k);
+    Spinv.setZero(k,k);
     // compute decomposition
     JacobiSVD<MatrixXd> svd(A, ComputeThinU | ComputeThinV);    // default Eigen SVD
-    VectorXd sv = svd.singularValues();
+    sv = svd.singularValues();
     // compute pseudoinverse of singular value matrix
     for (int c=0;c<k; c++)
         if ( sv(c)> tol)
             Spinv(c,c) = 1/sv(c);
     // compute pseudoinverse
     Apinv = svd.matrixV() * Spinv  * svd.matrixU().transpose();
-    if(svP!=0)
-        *svP = sv;
 }
 
 
 //*************************************************************************************************************************
-void locomotion::pinvDampTrunc(const MatrixXd &A, double tol, double damp, MatrixXd &Apinv, MatrixXd &ApinvDamp, VectorXd *svP)
+void locomotion::pinvDampTrunc(const MatrixXd &A, double tol, double damp, MatrixXd &Apinv, MatrixXd &ApinvDamp, MatrixXd &Spinv, MatrixXd &SpinvD, VectorXd &sv)
 {
     // allocate memory
     int m = A.rows(), n = A.cols(), k = m<n?m:n;
-    MatrixXd Spinv=MatrixXd::Zero(k,k), SpinvD=MatrixXd::Zero(k,k);
+    Spinv.setZero(k,k); 
+    SpinvD.setZero(k,k);
     // compute decomposition
     JacobiSVD<MatrixXd> svd(A, ComputeThinU | ComputeThinV);    // default Eigen SVD
-    VectorXd sv = svd.singularValues();
+    sv = svd.singularValues();
     // compute pseudoinverses of singular value matrix
     double damp2 = damp*damp;
     for (int c=0;c<k; c++)
@@ -170,8 +168,6 @@ void locomotion::pinvDampTrunc(const MatrixXd &A, double tol, double damp, Matri
     // compute pseudoinverses
     Apinv       = svd.matrixV() * Spinv  * svd.matrixU().transpose();   // truncated pseudoinverse
     ApinvDamp   = svd.matrixV() * SpinvD * svd.matrixU().transpose();   // damped pseudoinverse
-    if(svP!=0)
-        *svP = sv;
 }
 
 //*************************************************************************************************************************
