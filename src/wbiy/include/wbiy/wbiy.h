@@ -323,6 +323,15 @@ namespace wbiy
         yarp::sig::Vector all_ddq;
         
         yarp::sig::Vector all_q_min, all_q_max;
+
+        // *** Variables needed for opening IControlLimits interfaces
+        std::string                 name;           // name used as root for the local ports
+        std::string                 robot;          // name of the robot
+        std::vector<int>            bodyParts;      // list of the body parts
+        std::vector<std::string>    bodyPartNames;  // names of the body parts
+        std::map<int, yarp::dev::PolyDriver*>       dd;
+        std::map<int, yarp::dev::IControlLimits*>   ilim;
+        bool openDrivers(int bp);
         
         bool convertBasePose(const double *xBase, yarp::sig::Matrix & H_world_base);
         bool convertBaseVelocity(const double *dxB, yarp::sig::Vector & v_b, yarp::sig::Vector & omega_b);
@@ -336,12 +345,15 @@ namespace wbiy
     public:
          // *** CONSTRUCTORS ***
         /**
-         * 
-         * @param head_version the version of the head of the iCub (1 or 2, default: 2)
-         * @param legs_version the version of the legs of the iCub (1 or 2, default: 1)
-         * @param initial_q the initial value for all the 32 joint angles (default: all 0)
-         */
-        icubWholeBodyModel(int head_version=2, int legs_version=1, double* initial_q=0);
+          * @param _name Local name of the interface (used as stem of port names)
+          * @param _robotName Name of the robot
+          * @param _bodyPartNames Vector of names of the body part (used when opening the polydrivers)
+          * @param head_version the version of the head of the iCub (1 or 2, default: 2)
+          * @param legs_version the version of the legs of the iCub (1 or 2, default: 1)
+          * @param initial_q the initial value for all the 32 joint angles (default: all 0)
+          */
+        icubWholeBodyModel(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames,
+            int head_version=2, int legs_version=1, double* initial_q=0);
         
         virtual bool init();
         virtual bool close();

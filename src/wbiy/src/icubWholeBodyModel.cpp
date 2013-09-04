@@ -20,6 +20,7 @@
 
 #include <cmath>
 
+#include <iCub/skinDynLib/common.h>
 #include <iCub/ctrl/math.h>
 
 using namespace std;
@@ -28,6 +29,7 @@ using namespace wbiy;
 using namespace yarp::os;
 using namespace yarp::dev;
 using namespace yarp::sig;
+using namespace iCub::skinDynLib;
 
 // iterate over all body parts
 #define FOR_ALL_BODY_PARTS(itBp)            FOR_ALL_BODY_PARTS_OF(itBp, jointIdList)
@@ -135,7 +137,9 @@ Matrix quaternion2dcm(const Vector &v, unsigned int verbose=false)
 //                                          ICUB WHOLE BODY MODEL
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodyModel::icubWholeBodyModel(int head_version, int legs_version, double* initial_q): dof(0)
+icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames, 
+    int head_version, int legs_version, double* initial_q)
+    : dof(0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
 {
     version.head_version = head_version;
     version.legs_version = legs_version;
@@ -157,13 +161,34 @@ icubWholeBodyModel::icubWholeBodyModel(int head_version, int legs_version, doubl
 
 bool icubWholeBodyModel::init()
 {
-    return (p_icub_model->getNrOfDOFs() > 0);
+    bool initDone = true;
+    FOR_ALL_BODY_PARTS(itBp)
+        initDone = initDone && openDrivers(itBp->first);
+    return initDone && (p_icub_model->getNrOfDOFs() > 0);
+}
+
+bool icubWholeBodyModel::openDrivers(int bp)
+{
+    ilim[bp]=0; dd[bp]=0;
+    if(!openPolyDriver(name, robot, dd[bp], bodyPartNames[bp]))
+        return false;
+    bool ok = dd[bp]->view(ilim[bp]);   //if(!isRobotSimulator(robot))
+    if(ok) 
+        return true;
+    fprintf(stderr, "Problem initializing drivers of %s\n", bodyPartNames[bp].c_str());
+    return false;
 }
 
 bool icubWholeBodyModel::close()
 {
+    bool ok = true;
+    FOR_ALL_BODY_PARTS(itBp)
+    {
+        assert(dd[itBp->first]!=NULL);
+        ok = ok && dd[itBp->first]->close();
+    }
     if(p_icub_model) { delete p_icub_model; p_icub_model = 0; }
-    return true;
+    return ok;
 }
 
 int icubWholeBodyModel::getDoFs()
@@ -273,7 +298,6 @@ bool icubWholeBodyModel::convertQ(const yarp::sig::Vector & q_complete_input, do
     return true;
 }
 
-
 bool icubWholeBodyModel::convertDQ(const double *_dq_input, yarp::sig::Vector & dq_complete_output)
 {
     int i=0;
@@ -301,21 +325,42 @@ bool icubWholeBodyModel::convertDDQ(const double *_ddq_input, yarp::sig::Vector 
 bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
 {
     if( (joint < 0 || joint >= (int)jointIdList.size()) && joint != -1 ) { return false; }
-    
-    all_q_min = p_icub_model->getJointBoundMin();
-    all_q_max = p_icub_model->getJointBoundMax();
 
-    if( joint == -1 ) {
-        //Get all joint limits
-        convertQ(all_q_min,qMin);
-        convertQ(all_q_max,qMax);
-    } else {
-        //Get only a joint
-        LocalId loc_id = jointIdList.globalToLocalId(joint);
-        *qMin = all_q_min[p_icub_model->getDOFIndex(loc_id.bodyPart,loc_id.index)];
-        *qMax = all_q_max[p_icub_model->getDOFIndex(loc_id.bodyPart,loc_id.index)];
+    if(joint>=0)
+    {
+        LocalId lid = jointIdList.globalToLocalId(joint);
+        int index = lid.bodyPart==TORSO ? 2-lid.index : lid.index;
+        assert(ilim[lid.bodyPart]!=NULL);
+        bool res = ilim[lid.bodyPart]->getLimits(index, qMin, qMax);
+        if(res)
+        {
+            *qMin = (*qMin) * CTRL_DEG2RAD;   // convert from deg to rad
+            *qMax = (*qMax) * CTRL_DEG2RAD;   // convert from deg to rad
+        }
+        return res;
     }
-    return true;
+    
+    bool res = true;
+    int n = jointIdList.size();
+    for(int i=0; i<n; i++)
+        res = res && getJointLimits(qMin+i, qMax+i, i);
+    return res;
+
+    // OLD IMPLEMENTATION
+    //all_q_min = p_icub_model->getJointBoundMin();
+    //all_q_max = p_icub_model->getJointBoundMax();
+
+    //if( joint == -1 ) {
+    //    //Get all joint limits
+    //    convertQ(all_q_min,qMin);
+    //    convertQ(all_q_max,qMax);
+    //} else {
+    //    //Get only a joint
+    //    LocalId loc_id = jointIdList.globalToLocalId(joint);
+    //    *qMin = all_q_min[p_icub_model->getDOFIndex(loc_id.bodyPart,loc_id.index)];
+    //    *qMax = all_q_max[p_icub_model->getDOFIndex(loc_id.bodyPart,loc_id.index)];
+    //}
+    //return true;
 }
 
 bool icubWholeBodyModel::computeH(double *q, double *xBase, int linkId, double *H)

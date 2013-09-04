@@ -46,7 +46,7 @@ icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _r
     vector<string> bodyPartNames(BodyPart_s, BodyPart_s + sizeof(BodyPart_s) / sizeof(string) );
     actuatorInt = new yarpWholeBodyActuators((_name+string("actuator")).c_str(), _robotName, bodyPartNames);
     stateInt = new icubWholeBodyStates((_name+string("state")).c_str(), _robotName, 0.0);
-    modelInt = new icubWholeBodyModel(head_version,legs_version);
+    modelInt = new icubWholeBodyModel((_name+string("model")).c_str(), _robotName, bodyPartNames, head_version,legs_version);
 }
 
 bool icubWholeBodyInterface::init()
