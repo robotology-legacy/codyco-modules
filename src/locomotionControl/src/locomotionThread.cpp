@@ -276,7 +276,8 @@ void LocomotionThread::preStartOperations()
     trajGenFoot->init(x_foot);
     trajGenPosture->init(qRad);
     status = LOCOMOTION_ON;                 // set thread status to "on"
-    robot->setControlMode(CTRL_MODE_VEL);   // set position control mode
+    for(int i=0; i<13; i++)
+        robot->setControlMode(CTRL_MODE_VEL, i);   // set position control mode
 }
 
 //*************************************************************************************************************************
