@@ -240,6 +240,8 @@ bool LocomotionThread::updateReferenceTrajectories()
     dxr_com     = trajGenCom->getVel();
     dxr_foot    = trajGenFoot->getVel();
     dqr         = trajGenPosture->getVel(); // rad/sec
+    // for the orientation part of xr_foot, bypass the trajectory generator and set it to xd_foot
+    xr_foot.setSubvector(3, xd_foot.subVector(3,6));
     return true;
 }
 
