@@ -127,13 +127,13 @@ bool LocomotionThread::threadInit()
 
     normalizeFootOrientation();
 
-    if(!robot->getJointLimits(solver->qMin.data(), solver->qMax.data()))
+    /*if(!robot->getJointLimits(solver->qMin.data(), solver->qMax.data()))
         sendMsg("Error while reading joint limits.", MSG_ERROR);
     else
     {
         solver->qMin *= CTRL_RAD2DEG;
         solver->qMax *= CTRL_RAD2DEG;
-    }
+    }*/
 
     // read robot status (to be done before initializing trajectory generators)
     if(!readRobotStatus(true))
@@ -172,8 +172,9 @@ void LocomotionThread::run()
         for(int i=0; i<dqDes.size(); i++)
             if(dqDes(i)> DQ_MAX || dqDes(i)<-DQ_MAX)
             {
-                status = LOCOMOTION_OFF;
+                preStopOperations();
                 printf("\n************    ERROR: DESIRED JOINT %d VELOCITY IS TOO LARGE: %f\n", i, dqDes(i));
+                paramHelper->sendStreamParams();
                 paramHelper->unlock();
                 return;
             }
@@ -344,14 +345,14 @@ void LocomotionThread::numberOfJointsChanged()
     dqDes.resize(_n);                                   // desired joint vel commanded to the motors
     kp_posture.resize(_n, 0.0);                         // proportional gain (rpc input parameter)
     // Note: qd, qr and dqr have constant size = ICUB_DOFS
-    if(!robot->getJointLimits(solver->qMin.data(), solver->qMax.data()))
-        sendMsg("Error while reading joint limits.", MSG_ERROR);
-    else
-    {
-        solver->qMin *= CTRL_RAD2DEG;   // convert from rad to deg
-        solver->qMax *= CTRL_RAD2DEG;   // convert from rad to deg
-        cout<< "qMin: "<<toString(solver->qMin.transpose(),0)<<"\nqMax: "<<toString(solver->qMax.transpose(),0)<<endl;
-    }
+    //if(!robot->getJointLimits(solver->qMin.data(), solver->qMax.data()))
+    //    sendMsg("Error while reading joint limits.", MSG_ERROR);
+    //else
+    //{
+    //    solver->qMin *= CTRL_RAD2DEG;   // convert from rad to deg
+    //    solver->qMax *= CTRL_RAD2DEG;   // convert from rad to deg
+    //    cout<< "qMin: "<<toString(solver->qMin.transpose(),0)<<"\nqMax: "<<toString(solver->qMax.transpose(),0)<<endl;
+    //}
     updateSelectionMatrix();
 }
 
