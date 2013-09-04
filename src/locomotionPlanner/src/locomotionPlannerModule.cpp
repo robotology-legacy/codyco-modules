@@ -77,8 +77,8 @@ bool LocomotionPlannerModule::configure(ResourceFinder &rf)
     // ------------------------------------ PARAMETER HELPER CLIENT FOR LOCOMOTION CONTROLLER -----------------------------------------------
     locoCtrl    = new ParamHelperClient(locomotionParamDescr, locomotion::PARAM_ID_SIZE, locomotionCommandDescr, locomotion::COMMAND_ID_SIZE);
     initMsg.clear();
-//    if(!locoCtrl->init(moduleName, locoCtrlName, initMsg))
-//    { printf("Error while trying to connect to LocomotionControl module:\n%s\nClosing module.\n", initMsg.toString().c_str()); return false; }
+    if(!locoCtrl->init(moduleName, locoCtrlName, initMsg))
+    { printf("Error while trying to connect to LocomotionControl module:\n%s\nClosing module.\n", initMsg.toString().c_str()); return false; }
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
     //robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
