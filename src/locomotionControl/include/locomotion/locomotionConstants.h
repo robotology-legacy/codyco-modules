@@ -72,14 +72,14 @@ static const string         DEFAULT_ROBOT_NAME      = "icubSim";            // r
 static const Vector2d       DEFAULT_KP_COM          = Vector2d::Constant(1.0);
 static const Vector6d       DEFAULT_KP_FOOT         = Vector6d::Constant(1.0);
 static const VectorNd       DEFAULT_KP_POSTURE      = VectorNd::Constant(1.0);
-static const double         DEFAULT_TT_COM          = 2.0;
-static const double         DEFAULT_TT_FOOT         = 2.0;
-static const double         DEFAULT_TT_POSTURE      = 2.0;
+static const double         DEFAULT_TT_COM          = 4.0;
+static const double         DEFAULT_TT_FOOT         = 4.0;
+static const double         DEFAULT_TT_POSTURE      = 4.0;
 static const VectorNi       DEFAULT_ACTIVE_JNTS     = VectorNi::Constant(1);
 static const int            DEFAULT_SUPPORT_PHASE   = SUPPORT_DOUBLE;
 static const double         DEFAULT_PINV_DAMP       = 1e-4;
-static const VectorNd       DEFAULT_Q_MAX           = VectorNd::Constant(100.0);
-static const VectorNd       DEFAULT_Q_MIN           = VectorNd::Constant(-100.0);
+static const VectorNd       DEFAULT_Q_MAX           = VectorNd::Constant(150.0);
+static const VectorNd       DEFAULT_Q_MIN           = VectorNd::Constant(-150.0);
 static const double         DEFAULT_JNT_LIM_MIN_DIST = 5.0;
 // Streaming parameters
 static const Vector2d       DEFAULT_XDES_COM        = Vector2d::Constant(0.0);
@@ -130,9 +130,9 @@ ParamDescription("q min",           PARAM_ID_Q_MIN,             PARAM_DATA_FLOAT
 ParamDescription("jlmd",            PARAM_ID_JNT_LIM_MIN_DIST,  PARAM_DATA_FLOAT,   1,                          ParamBounds(0.1, PARAM_BOUND_INF),  PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits"),
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 ParamDescription("support phase",   PARAM_ID_SUPPORT_PHASE,     PARAM_DATA_INT,     1,                          ParamBounds(0.0, 2.0),              PARAM_IN_STREAM,    &DEFAULT_SUPPORT_PHASE,         "Foot support phase, 0: double, 1: left foot, 2: right foot"), 
-ParamDescription("xd com",          PARAM_ID_XDES_COM,          PARAM_DATA_FLOAT,   2,                          ParamBounds(-1.0, 1.0),             PARAM_IN_STREAM,    DEFAULT_XDES_COM.data(),        "Desired position of the center of mass"),
-ParamDescription("xd foot",         PARAM_ID_XDES_FOOT,         PARAM_DATA_FLOAT,   7,                          ParamBounds(-10.0, 10.0),           PARAM_IN_STREAM,    DEFAULT_XDES_FOOT.data(),       "Desired position/orientation of the swinging foot"),
-ParamDescription("qd",              PARAM_ID_QDES,              PARAM_DATA_FLOAT,   ICUB_DOFS,                  ParamBounds(-100.0, 100.0),         PARAM_IN_STREAM,    DEFAULT_QDES.data(),            "Desired joint angles"),
+ParamDescription("xd com",          PARAM_ID_XDES_COM,          PARAM_DATA_FLOAT,   2,                          ParamBounds(-0.26, 0.1),            PARAM_IN_STREAM,    DEFAULT_XDES_COM.data(),        "Desired position of the center of mass"),
+ParamDescription("xd foot",         PARAM_ID_XDES_FOOT,         PARAM_DATA_FLOAT,   7,                          ParamBounds(-6.0, 6.0),             PARAM_IN_STREAM,    DEFAULT_XDES_FOOT.data(),       "Desired position/orientation of the swinging foot"),
+ParamDescription("qd",              PARAM_ID_QDES,              PARAM_DATA_FLOAT,   ICUB_DOFS,                  ParamBounds(-200.0, 200.0),         PARAM_IN_STREAM,    DEFAULT_QDES.data(),            "Desired joint angles"),
 ParamDescription("H_w2b",           PARAM_ID_H_W2B,             PARAM_DATA_FLOAT,   16,                         ParamBounds(-100.0, 100.0),         PARAM_IN_STREAM,    DEFAULT_H_W2B.data(),           "Estimated rototranslation matrix between world and robot base reference frames"),
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 ParamDescription("x com",           PARAM_ID_X_COM,             PARAM_DATA_FLOAT,   2,                          ParamBounds(-10.0, 10.0),           PARAM_OUT_STREAM,   DEFAULT_X_COM.data(),           "Position of the center of mass"),
