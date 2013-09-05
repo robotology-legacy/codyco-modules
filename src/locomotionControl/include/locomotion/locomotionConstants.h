@@ -103,8 +103,8 @@ enum LocomotionParamId {
     PARAM_ID_Q_MAX,             PARAM_ID_Q_MIN,             PARAM_ID_JNT_LIM_MIN_DIST,
     PARAM_ID_XDES_COM,          PARAM_ID_XDES_FOOT,         PARAM_ID_QDES,
     PARAM_ID_H_W2B,             
-    PARAM_ID_X_COM,             PARAM_ID_X_FOOT,            PARAM_ID_Q,
-    PARAM_ID_XREF_COM,          PARAM_ID_XREF_FOOT,         PARAM_ID_QREF,
+    PARAM_ID_X_COM,             PARAM_ID_XREF_COM,          PARAM_ID_X_FOOT,                
+    PARAM_ID_XREF_FOOT,         PARAM_ID_Q,                 PARAM_ID_QREF,
     PARAM_ID_SIZE
 };
 

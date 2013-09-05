@@ -184,7 +184,7 @@ namespace wbiy
         std::map<int, yarp::dev::ITorqueControl*>       itrq;
         std::map<int, yarp::dev::IImpedanceControl*>    iimp;
         std::map<int, yarp::dev::IControlMode*>         icmd;
-        std::map<int, yarp::dev::IVelocityControl*>     ivel;
+        std::map<int, yarp::dev::IVelocityControl2*>    ivel;
         std::map<int, yarp::dev::IOpenLoopControl*>     iopl;
         std::map<int, yarp::dev::PolyDriver*>           dd;
         
