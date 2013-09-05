@@ -127,14 +127,6 @@ bool LocomotionThread::threadInit()
 
     normalizeFootOrientation();
 
-    /*if(!robot->getJointLimits(solver->qMin.data(), solver->qMax.data()))
-        sendMsg("Error while reading joint limits.", MSG_ERROR);
-    else
-    {
-        solver->qMin *= CTRL_RAD2DEG;
-        solver->qMax *= CTRL_RAD2DEG;
-    }*/
-
     // read robot status (to be done before initializing trajectory generators)
     if(!readRobotStatus(true))
         return false;
@@ -154,48 +146,28 @@ void LocomotionThread::run()
     paramHelper->lock();
     paramHelper->readStreamParams();
 
-    readRobotStatus();              // read encoders, compute positions and Jacobians
+    readRobotStatus();                      // read encoders, compute positions and Jacobians
     if(status==LOCOMOTION_ON)
     {
-        updateReferenceTrajectories();  // compute reference trajectories
-    
-        dxc_com     = dxr_com   +  kp_com        * (xr_com  - x_com);
-        dxc_foot    =/*dxr_foot+*/ kp_foot       * compute6DError(x_foot, xr_foot);  // temporarely remove feedforward velocity because it is 7d (whereas it should be 6d)
-        dqc         = S*dqr     +  (S*kp_posture)* (S*qr    - qRad);
+        updateReferenceTrajectories();      // compute desired velocities for all tasks
+        solver->solve(dqDes, qDegE);        // compute desired joint velocities
 
-        solver->com.b = dxc_comE;
-        solver->foot.b = dxc_footE;
-        solver->posture.b = dqcE;
-
-        solver->solve(dqDes, qDegE);
-
-        for(int i=0; i<dqDes.size(); i++)
-            if(dqDes(i)> DQ_MAX || dqDes(i)<-DQ_MAX)
-            {
-                preStopOperations();
-                printf("\n************    ERROR: DESIRED JOINT %d VELOCITY IS TOO LARGE: %f\n", i, dqDes(i));
-                paramHelper->sendStreamParams();
-                paramHelper->unlock();
-                return;
-            }
-
-        double t0 = Time::now();
-        robot->setVelRef(dqDes.data());          // send velocities to the joint motors
-        sendMsg("Time to set vel: "+toString(Time::now()-t0), MSG_INFO);
-
-        if(solver->getBlockedJointList().size()>0) 
-            sendMsg("Solver time: "+toString(solver->solverTime)+"; iterations: "+toString(solver->solverIterations)+"; blocked joints: "+toString(solver->getBlockedJointList()), MSG_INFO);
-        else 
-            sendMsg("Solver time: "+toString(solver->solverTime)+"; iterations: "+toString(solver->solverIterations), MSG_INFO);
+        if(areDesiredJointVelTooLarge())    // check desired joint velocities are not too large
+        {
+            preStopOperations();            // stop the controller
+            cout<<"\n************ ERROR: CONTROLLER STOPPED BECAUSE DESIRED JOINT VELOCITIES ARE TOO LARGE: "<<toString(dqDes,2)<<endl;
+        }
+        else
+            robot->setVelRef(dqDes.data()); // send velocities to the joint motors
+            
+        sendMsg("Solver time: "+toString(solver->solverTime)+"; iterations: "+toString(solver->solverIterations)+"; blocked joints: "+toString(solver->getBlockedJointList()), MSG_INFO);
         sendMsg("dqDes: "+toString(1e3*dqDes.transpose(), 1), MSG_DEBUG);
     }
 
     paramHelper->sendStreamParams();
     paramHelper->unlock();
 
-    printCountdown += (int)getRate();
-    if(printCountdown>= PRINT_PERIOD)
-        printCountdown = 0;
+    printCountdown = (printCountdown>=PRINT_PERIOD) ? 0 : printCountdown +(int)getRate();   // countdown for next print (see sendMsg method)
 }
 
 //*************************************************************************************************************************
@@ -266,7 +238,24 @@ bool LocomotionThread::updateReferenceTrajectories()
     dqr         = trajGenPosture->getVel(); // rad/sec
     // for the orientation part of xr_foot, bypass the trajectory generator and set it to xd_foot
     xr_foot.setSubvector(3, xd_foot.subVector(3,6));
+
+    dxc_com     = dxr_com   +  kp_com        * (xr_com  - x_com);
+    dxc_foot    =/*dxr_foot+*/ kp_foot       * compute6DError(x_foot, xr_foot);  // temporarely remove feedforward velocity because it is 7d (whereas it should be 6d)
+    dqc         = S*dqr     +  (S*kp_posture)* (S*qr    - qRad);
+
+    solver->com.b = dxc_comE;
+    solver->foot.b = dxc_footE;
+    solver->posture.b = dqcE;
     return true;
+}
+
+//*************************************************************************************************************************
+bool LocomotionThread::areDesiredJointVelTooLarge()
+{
+    for(int i=0; i<dqDes.size(); i++)
+        if(dqDes(i)> DQ_MAX || dqDes(i)<-DQ_MAX)
+            return true;
+    return false;
 }
 
 //*************************************************************************************************************************
