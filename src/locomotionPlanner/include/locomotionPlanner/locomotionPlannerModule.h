@@ -41,12 +41,13 @@ namespace locomotionPlanner
 class LocomotionPlannerModule: public RFModule, public CommandObserver
 {
     /* module parameters */
-	string  moduleName;
-	string  robotName;
+    string  moduleName;
+    string  robotName;
     string  locoCtrlName;
+    string  fileName;
 
-	Port                        rpcPort;		// a port to handle rpc messages
-	LocomotionPlannerThread*    ctrlThread;     // locomotion control thread
+    Port                        rpcPort;		// a port to handle rpc messages
+    LocomotionPlannerThread*    ctrlThread;     // locomotion control thread
     ParamHelperClient*          locoCtrl;       // helper class for communicating with the locomotion controller
     ParamHelperServer*          paramHelper;    // helper class for communication
     wholeBodyInterface*         robotInterface; // interface to communicate with the robot
@@ -54,12 +55,12 @@ class LocomotionPlannerModule: public RFModule, public CommandObserver
 public:
     LocomotionPlannerModule();
 
-	bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
-	bool interruptModule();                       // interrupt, e.g., the ports 
-	bool close();                                 // close and shut down the module
-	bool respond(const Bottle& command, Bottle& reply);
-	double getPeriod(){ return 0.1; }
-	bool updateModule();
+    bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
+    bool interruptModule();                       // interrupt, e.g., the ports 
+    bool close();                                 // close and shut down the module
+    bool respond(const Bottle& command, Bottle& reply);
+    double getPeriod(){ return 0.1; }
+    bool updateModule();
 
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
 

@@ -60,6 +60,7 @@ bool LocomotionPlannerModule::configure(ResourceFinder &rf)
     paramHelper->linkParam(PARAM_ID_PLANNER_NAME,           &moduleName);
     paramHelper->linkParam(PARAM_ID_ROBOT_NAME,             &robotName);
     paramHelper->linkParam(PARAM_ID_LOCOMOTION_CTRL_NAME,   &locoCtrlName);
+    paramHelper->linkParam(PARAM_ID_FILE_NAME,   &fileName);
     paramHelper->registerCommandCallback(COMMAND_ID_HELP, this);
     paramHelper->registerCommandCallback(COMMAND_ID_QUIT, this);
     // Read parameters from configuration file (or command line)
@@ -86,7 +87,7 @@ bool LocomotionPlannerModule::configure(ResourceFinder &rf)
     //if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------
-    ctrlThread = new LocomotionPlannerThread(moduleName, robotName, paramHelper, locoCtrl, robotInterface);
+    ctrlThread = new LocomotionPlannerThread(moduleName, robotName, paramHelper, locoCtrl, robotInterface,fileName);
     if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing locomotion planner thread. Closing module.\n"); return false; }
     
     fprintf(stderr,"Locomotion planner started\n");
