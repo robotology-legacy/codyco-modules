@@ -1,0 +1,87 @@
+<application>
+<name>Dump Whole Body Position/FT</name>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /data/head</parameters>
+        <node>icub14</node>
+        <tag>dd1</tag>
+    </module>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /data/inertial</parameters>
+        <node>icub14</node>
+        <tag>dd2</tag>
+    </module>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /data/torso</parameters>
+        <node>icub14</node>
+        <tag>dd3</tag>
+    </module>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /data/leftArm</parameters>
+        <node>icub14</node>
+        <tag>dd4</tag>
+    </module>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /data/rightArm</parameters>
+        <node>icub14</node>
+        <tag>dd5</tag>
+    </module>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /data/skinContacts</parameters>
+        <node>icub14</node>
+        <stdio></stdio>
+        <tag>dd8</tag>
+    </module>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /data/rightFTsens</parameters>
+        <node>icub14</node>
+        <stdio></stdio>
+        <tag>dd9</tag>
+    </module>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /data/pwm</parameters>
+        <node>icub14</node>
+        <stdio></stdio>
+        <tag>dd10</tag>
+    </module>
+ 
+    <connection>
+        <from>/icub/inertial</from>
+        <to>/data/inertial</to>
+        <protocol>udp</protocol>
+    </connection>
+    
+    <connection>
+        <from>/icub/head/state:o</from>
+        <to>/data/head</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/torso/state:o</from>
+        <to>/data/torso</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/right_arm/state:o</from>
+        <to>/data/rightArm</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/skinManager/skin_events:o</from>
+        <to>/data/skinContacts</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/right_arm/analog:o</from>
+        <to>/data/rightFTsens</to>
+        <protocol>udp</protocol>
+    </connection>
+</application>
