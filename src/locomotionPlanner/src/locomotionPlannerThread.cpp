@@ -25,8 +25,8 @@ using namespace locomotion;
 using namespace locomotionPlanner;
 
 
-LocomotionPlannerThread::LocomotionPlannerThread(string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient *_lc, wholeBodyInterface *_wbi)
-    :  name(_name), robotName(_robotName), paramHelper(_ph), locoCtrl(_lc), robot(_wbi)
+LocomotionPlannerThread::LocomotionPlannerThread(string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient *_lc, wholeBodyInterface *_wbi, string _filename)
+    :  name(_name), robotName(_robotName), paramHelper(_ph), locoCtrl(_lc), robot(_wbi), filename(_filename)
 {
     mustStop = false;
     codyco_root = "CODYCO_ROOT";
@@ -37,10 +37,12 @@ LocomotionPlannerThread::LocomotionPlannerThread(string _name, string _robotName
 bool LocomotionPlannerThread::threadInit()
 {
     // For parsing input parameters file
-    filename = get_env_var(codyco_root).c_str();
-    string temp = "src/locomotionPlanner/conf/data/timestamp10/randomStandingPoses_iCubGenova01_100poses_A.txt";        // PROBABLY IT WOULD BE BEST TO PUT THIS FILE IN ANOTHER FOLDER
-    temp = get_env_var(codyco_root)+temp;
-    filename = temp.c_str();
+    if( filename.length() == 0 ) {
+        filename = get_env_var(codyco_root).c_str();
+        string temp = "/locomotionPlanner/conf/data/timestamp10/randomStandingPoses_iCubGenova01_100poses_A.txt";        // PROBABLY IT WOULD BE BEST TO PUT THIS FILE IN ANOTHER FOLDER
+        temp = get_env_var(codyco_root)+temp;
+        filename = temp;
+    }
     cout << "Found params config file: " << filename << endl;
 
     // resize vectors that are not fixed-size
@@ -67,7 +69,7 @@ bool LocomotionPlannerThread::threadInit()
 void LocomotionPlannerThread::run()
 {
 
-    ifstream file(filename, ifstream::in);
+    ifstream file(filename.c_str(), ifstream::in);
 
     //get number of lines in file
     int mycount = count(istreambuf_iterator<char>(file), istreambuf_iterator<char>(),'\n');

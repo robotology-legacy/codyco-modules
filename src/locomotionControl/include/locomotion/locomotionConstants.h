@@ -60,6 +60,7 @@ enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
 static const int        PRINT_PERIOD    = 3000;     // period of debug prints (in ms)
 static const int        PRINT_MSG_LEVEL = MSG_DEBUG; // only messages whose type is >= PRINT_MSG_LEVEL are printed
 static const double     KP_MAX          = 100.0;    // max value of proportional gains
+static const double     DQ_MAX          = 1.0;      // max joint velocity allowed (rad/sec)
 static const double     PINV_TOL        = 1e-4;     // threshold for truncated pseudoinverses
 
 enum LocomotionSupportPhase
@@ -102,8 +103,8 @@ enum LocomotionParamId {
     PARAM_ID_Q_MAX,             PARAM_ID_Q_MIN,             PARAM_ID_JNT_LIM_MIN_DIST,
     PARAM_ID_XDES_COM,          PARAM_ID_XDES_FOOT,         PARAM_ID_QDES,
     PARAM_ID_H_W2B,             
-    PARAM_ID_X_COM,             PARAM_ID_X_FOOT,            PARAM_ID_Q,
-    PARAM_ID_XREF_COM,          PARAM_ID_XREF_FOOT,         PARAM_ID_QREF,
+    PARAM_ID_X_COM,             PARAM_ID_XREF_COM,          PARAM_ID_X_FOOT,                
+    PARAM_ID_XREF_FOOT,         PARAM_ID_Q,                 PARAM_ID_QREF,
     PARAM_ID_SIZE
 };
 

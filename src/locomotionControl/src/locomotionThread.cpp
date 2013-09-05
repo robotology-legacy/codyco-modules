@@ -127,13 +127,13 @@ bool LocomotionThread::threadInit()
 
     normalizeFootOrientation();
 
-    if(!robot->getJointLimits(solver->qMin.data(), solver->qMax.data()))
+    /*if(!robot->getJointLimits(solver->qMin.data(), solver->qMax.data()))
         sendMsg("Error while reading joint limits.", MSG_ERROR);
     else
     {
         solver->qMin *= CTRL_RAD2DEG;
         solver->qMax *= CTRL_RAD2DEG;
-    }
+    }*/
 
     // read robot status (to be done before initializing trajectory generators)
     if(!readRobotStatus(true))
@@ -169,6 +169,16 @@ void LocomotionThread::run()
 
         solver->solve(dqDes, qDegE);
 
+        for(int i=0; i<dqDes.size(); i++)
+            if(dqDes(i)> DQ_MAX || dqDes(i)<-DQ_MAX)
+            {
+                preStopOperations();
+                printf("\n************    ERROR: DESIRED JOINT %d VELOCITY IS TOO LARGE: %f\n", i, dqDes(i));
+                paramHelper->sendStreamParams();
+                paramHelper->unlock();
+                return;
+            }
+
         double t0 = Time::now();
         robot->setVelRef(dqDes.data());          // send velocities to the joint motors
         sendMsg("Time to set vel: "+toString(Time::now()-t0), MSG_INFO);
@@ -177,7 +187,7 @@ void LocomotionThread::run()
             sendMsg("Solver time: "+toString(solver->solverTime)+"; iterations: "+toString(solver->solverIterations)+"; blocked joints: "+toString(solver->getBlockedJointList()), MSG_INFO);
         else 
             sendMsg("Solver time: "+toString(solver->solverTime)+"; iterations: "+toString(solver->solverIterations), MSG_INFO);
-        //sendMsg("dqDes: "+toString(dqDes.transpose(), 1), MSG_DEBUG);
+        sendMsg("dqDes: "+toString(1e3*dqDes.transpose(), 1), MSG_DEBUG);
     }
 
     paramHelper->sendStreamParams();
@@ -268,7 +278,13 @@ void LocomotionThread::preStartOperations()
     trajGenFoot->init(x_foot);
     trajGenPosture->init(qRad);
     status = LOCOMOTION_ON;                 // set thread status to "on"
-    robot->setControlMode(CTRL_MODE_VEL);   // set position control mode
+    robot->setControlMode(CTRL_MODE_VEL);
+    /*
+    for(int i=0; i<13; i++)
+        robot->setControlMode(CTRL_MODE_VEL, i);   // set position control mode
+    for(int i=13; i<25; i++)
+        robot->setControlMode(CTRL_MODE_VEL, i);   // set position control mode
+    */
 }
 
 //*************************************************************************************************************************
@@ -329,14 +345,14 @@ void LocomotionThread::numberOfJointsChanged()
     dqDes.resize(_n);                                   // desired joint vel commanded to the motors
     kp_posture.resize(_n, 0.0);                         // proportional gain (rpc input parameter)
     // Note: qd, qr and dqr have constant size = ICUB_DOFS
-    if(!robot->getJointLimits(solver->qMin.data(), solver->qMax.data()))
-        sendMsg("Error while reading joint limits.", MSG_ERROR);
-    else
-    {
-        solver->qMin *= CTRL_RAD2DEG;   // convert from rad to deg
-        solver->qMax *= CTRL_RAD2DEG;   // convert from rad to deg
-        cout<< "qMin: "<<toString(solver->qMin.transpose(),0)<<"\nqMax: "<<toString(solver->qMax.transpose(),0)<<endl;
-    }
+    //if(!robot->getJointLimits(solver->qMin.data(), solver->qMax.data()))
+    //    sendMsg("Error while reading joint limits.", MSG_ERROR);
+    //else
+    //{
+    //    solver->qMin *= CTRL_RAD2DEG;   // convert from rad to deg
+    //    solver->qMax *= CTRL_RAD2DEG;   // convert from rad to deg
+    //    cout<< "qMin: "<<toString(solver->qMin.transpose(),0)<<"\nqMax: "<<toString(solver->qMax.transpose(),0)<<endl;
+    //}
     updateSelectionMatrix();
 }
 

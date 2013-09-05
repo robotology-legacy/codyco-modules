@@ -67,7 +67,7 @@ class LocomotionPlannerThread: public Thread, public ParamObserver, public Comma
     ParamHelperClient   *locoCtrl;
     wholeBodyInterface  *robot;
     bool                mustStop;
-    const char          *filename;
+    string              filename;
     string              codyco_root;
 
     // Module parameters
@@ -98,7 +98,7 @@ public:
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    LocomotionPlannerThread(string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient   *_lc, wholeBodyInterface *_wbi) ;
+    LocomotionPlannerThread(string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient   *_lc, wholeBodyInterface *_wbi, string _filename="") ;
 	
     bool threadInit();	
     void run();
