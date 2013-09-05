@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<portscope rows="1" columns="2">
+    <!-- plotting COM x -->
+    <plot gridx="0"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="COM x ( green desired, blue obtained )"
+          size="60"
+          minval="-0.03"
+          maxval="0.10"
+          bgcolor="white">
+        <graph remote="/locomotionControl/stream:o"
+               index="0"
+               color="Red"
+               title="Desired COM x"
+               type="lines"
+               size="2" />
+        <graph remote="/locomotionControl/stream:o"
+               index="0"
+               color="Blue"
+               title="Computed COM x"
+               type="lines"
+               size="0" />
+    </plot>
+
+    <!-- plotting COM y -->
+    <plot gridx="0"
+          gridy="y"
+          hspan="1"
+          vspan="1"
+          title="COM y ( green desired, blue obtained )"
+          size="60"
+          minval="-0.30"
+          maxval="0.04"
+          bgcolor="white">
+        <graph remote="/locomotionControl/stream:o"
+               index="0"
+               color="Red"
+               title="Desired COM y"
+               type="lines"
+               size="3" />
+        <graph remote="/locomotionControl/stream:o"
+               index="0"
+               color="Blue"
+               title="Computed COM y"
+               type="lines"
+               size="1" />
+    </plot>
+
+</portscope>
