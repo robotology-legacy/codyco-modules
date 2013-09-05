@@ -230,11 +230,22 @@ bool yarpWholeBodyActuators::setVelRef(double *dqd, int joint)
         return ivel[li.bodyPart]->velocityMove(i, CTRL_RAD2DEG*(*dqd));
     }
     
-    
-    double spd[MAX_NJ];
-    int jointIds[MAX_NJ];
-    int i = 0, nj;
+    int i = 0;
     bool ok = true;
+    if(isRobotSimulator(robot)) // on simulator use old method which set one joint vel at a time
+    {
+        FOR_ALL(itBp, itJ)
+        {
+            int j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
+            ok = ok && ivel[itBp->first]->velocityMove(j, CTRL_RAD2DEG*dqd[i]);
+            i++;
+        }
+        return ok;
+    }
+
+    // on robot use new method which set all joint vel of one body part at the same time (much faster!)
+    double spd[MAX_NJ];
+    int nj, jointIds[MAX_NJ];
     FOR_ALL_BODY_PARTS(itBp)
     {
         nj = itBp->second.size();   // number of joints of this body part
@@ -245,18 +256,10 @@ bool yarpWholeBodyActuators::setVelRef(double *dqd, int joint)
             else
                 jointIds[j] = itBp->second[j];
             spd[j] = CTRL_RAD2DEG*dqd[i];           // convert joint vel from rad to deg
-            //printf("Body part %d; joint %d; velocity %f\n", itBp->first, jointIds[j], dqd[i]);
             i++;
         }
         ok = ok && ivel[itBp->first]->velocityMove(nj, jointIds, spd);
     }
-    //FOR_ALL(itBp, itJ)
-    //{
-    //    int j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
-    //    ok = ok && ivel[itBp->first]->velocityMove(j, CTRL_RAD2DEG*dqd[i]);
-    //    i++;
-    //}
-    
     return ok;
 }
 
