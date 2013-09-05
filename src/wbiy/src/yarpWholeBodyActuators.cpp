@@ -230,14 +230,32 @@ bool yarpWholeBodyActuators::setVelRef(double *dqd, int joint)
         return ivel[li.bodyPart]->velocityMove(i, CTRL_RAD2DEG*(*dqd));
     }
     
-    unsigned int i = 0;
+    
+    double spd[MAX_NJ];
+    int jointIds[MAX_NJ];
+    int i = 0, nj;
     bool ok = true;
-    FOR_ALL(itBp, itJ)
+    FOR_ALL_BODY_PARTS(itBp)
     {
-        int j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
-        ok = ok && ivel[itBp->first]->velocityMove(j, CTRL_RAD2DEG*dqd[i]);
-        i++;
+        nj = itBp->second.size();   // number of joints of this body part
+        for(int j=0;j<nj;j++)
+        {
+            if(itBp->first==TORSO)
+                jointIds[j] = 2-itBp->second[j];    // icub's torso joints are in reverse order
+            else
+                jointIds[j] = itBp->second[j];
+            spd[j] = CTRL_RAD2DEG*dqd[i];           // convert joint vel from rad to deg
+            //printf("Body part %d; joint %d; velocity %f\n", itBp->first, jointIds[j], dqd[i]);
+            i++;
+        }
+        ok = ok && ivel[itBp->first]->velocityMove(nj, jointIds, spd);
     }
+    //FOR_ALL(itBp, itJ)
+    //{
+    //    int j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
+    //    ok = ok && ivel[itBp->first]->velocityMove(j, CTRL_RAD2DEG*dqd[i]);
+    //    i++;
+    //}
     
     return ok;
 }
