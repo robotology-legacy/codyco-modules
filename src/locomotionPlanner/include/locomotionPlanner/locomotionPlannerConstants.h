@@ -35,14 +35,14 @@ namespace locomotionPlanner
 static const string         DEFAULT_MODULE_NAME             = "locomotionPlanner";
 static const string         DEFAULT_ROBOT_NAME              = "icubSim";            // robot name
 static const string         DEFAULT_LOCOMOTION_CTRL_NAME    = "locomotionControl";  // locomotion controller name
-static const string         DEFAULF_FILE_NAME               = "";
+static const string         DEFAULT_FILE_NAME               = "100poses_A";         // input params file (trajectory points)
 // Streaming parameters
 
 
 // *** IDs of all the module parameters
 enum LocomotionPlannerParamId { 
     PARAM_ID_PLANNER_NAME,       PARAM_ID_ROBOT_NAME,   PARAM_ID_LOCOMOTION_CTRL_NAME,
-    PARAM_ID_SIZE, PARAM_ID_FILE_NAME
+    PARAM_ID_FILE_NAME,          PARAM_ID_SIZE
 };
 
 // ******************************************************************************************************************************
@@ -54,7 +54,7 @@ const ParamDescription locomotionPlannerParamDescr[]  =
 ParamDescription("name",                PARAM_ID_PLANNER_NAME,          PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
 ParamDescription("robot",               PARAM_ID_ROBOT_NAME,            PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
 ParamDescription("locomotionCtrlName",  PARAM_ID_LOCOMOTION_CTRL_NAME,  PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_LOCOMOTION_CTRL_NAME,  "Name of the locomotion controller module"), 
-ParamDescription("filename",            PARAM_ID_FILE_NAME,             PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULF_FILE_NAME,             "Name of the file containing the via points")
+ParamDescription("filename",            PARAM_ID_FILE_NAME,             PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_FILE_NAME,             "Name of the file containing the via points"),
 // ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************

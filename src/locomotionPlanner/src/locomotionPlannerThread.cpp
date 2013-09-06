@@ -28,24 +28,18 @@ using namespace locomotionPlanner;
 LocomotionPlannerThread::LocomotionPlannerThread(string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient *_lc, wholeBodyInterface *_wbi, string _filename)
     :  name(_name), robotName(_robotName), paramHelper(_ph), locoCtrl(_lc), robot(_wbi), filename(_filename)
 {
+    cout <<"Instantiating the thread: "<< filename << endl;
     mustStop = false;
     codyco_root = "CODYCO_ROOT";
-
+    status = PLANNING_OFF;
 }
 
 //*************************************************************************************************************************
 bool LocomotionPlannerThread::threadInit()
 {
-    // For parsing input parameters file
-    if( filename.length() == 0 ) {
-        filename = get_env_var(codyco_root).c_str();
-        string temp = "/locomotionPlanner/conf/data/timestamp10/randomStandingPoses_iCubGenova01_100poses_A.txt";        // PROBABLY IT WOULD BE BEST TO PUT THIS FILE IN ANOTHER FOLDER
-        temp = get_env_var(codyco_root)+temp;
-        filename = temp;
-    }
-    cout << "Found params config file: " << filename << endl;
-
-    // resize vectors that are not fixed-size
+    const string partialLocation = "locomotionPlanner/conf/data/timestamp10/randomStandingPoses_iCubGenova01_";
+    filename = string(get_env_var(codyco_root) + partialLocation + filename + ".txt");
+    cout<<filename<<endl;
 
     // link module rpc parameters to member variables
 
@@ -54,6 +48,7 @@ bool LocomotionPlannerThread::threadInit()
     YARP_ASSERT(locoCtrl->linkParam(PARAM_ID_XDES_COM,            xd_com.data()));
     YARP_ASSERT(locoCtrl->linkParam(PARAM_ID_XDES_FOOT,           xd_foot.data()));
     YARP_ASSERT(locoCtrl->linkParam(PARAM_ID_QDES,                qd.data()));
+    //    YARP_ASSERT(locoCtrl->linkParam(PARAM_ID_FILE_NAME,           &filename));
     // link module output streaming parameters to member variables
 
     // Register callbacks for some module parameters
@@ -68,9 +63,7 @@ bool LocomotionPlannerThread::threadInit()
 //*************************************************************************************************************************
 void LocomotionPlannerThread::run()
 {
-
     ifstream file(filename.c_str(), ifstream::in);
-
     //get number of lines in file
     int mycount = count(istreambuf_iterator<char>(file), istreambuf_iterator<char>(),'\n');
     int lineNumber = mycount;
@@ -79,51 +72,68 @@ void LocomotionPlannerThread::run()
     file.seekg(0,ios::beg);                         // returns to the beginning of fstream
     double  timePrev = 0.0;
 
-    if(!file.fail()){
-        while(lineNumber)
-        {
-            Matrix<double,1,36> paramLine;
-            int j=0;
+    while(true){
+        if(status==PLANNING_ON){
+            if(!file.fail()){
+                cout << "Reading params config file: " << filename << endl;
+                while(lineNumber && status==PLANNING_ON)
+                {
+                    Matrix<double,1,36> paramLine;
+                    int j=0;
 
-            //  read one line at a time from text file
-            string line = readParamsFile(file);
-            istringstream iss(line);
+                    //  read one line at a time from text file
+                    string line = readParamsFile(file);
+                    istringstream iss(line);
 
-            while(iss && j<=35)
+                    while(iss && j<=35)
+                    {
+                        double  sub;
+                        iss  >> sub;
+                        paramLine(0,j) = sub;
+                        j++;
+                    };
+
+                    /* At this point paramLines has the current line of data in the following order
+                    <time> <support_phase> <pos_com_desired> <pos_foot_desired> <joint_desired> */
+                    // cout << "paramLine: "  << paramLine << endl;
+
+                    // updating parameters
+                    Matrix<double,1,1> tmp = paramLine.segment(1,1);    //extracting support phase which is integer
+                    unsigned int tmp2 = (unsigned int)tmp(0,0);
+                    supportPhase = tmp2;
+                    xd_com       = paramLine.segment(2,2); // segment(position,size) It doesn't modify the original Eigen vector
+                    xd_foot      = paramLine.segment(4,7);
+                    qd           = paramLine.segment(11,ICUB_DOFS);
+
+                    lineNumber--;
+
+                    double timeStep = paramLine(0,0) - timePrev;
+                    timePrev = paramLine(0,0);
+
+                    locoCtrl->sendStreamParams();
+                    Time::delay(timeStep);
+                }
+            }
+            else
             {
-                double  sub;
-                iss  >> sub;
-                paramLine(0,j) = sub;
-                j++;
-            };
+                fprintf(stderr,"INPUT PARAMETERS FILE NOT FOUND /n");
+            }
 
-            /* At this point paramLines has the current line of data in the following order
-            <time> <support_phase> <pos_com_desired> <pos_foot_desired> <joint_desired> */
-//             cout << "paramLine: "  << paramLine << endl;
-
-            // updating parameters
-            Matrix<double,1,1> tmp = paramLine.segment(1,1);    //extracting support phase which is integer
-            unsigned int tmp2 = (unsigned int)tmp(0,0);
-            supportPhase = tmp2;
-            xd_com       = paramLine.segment(2,2); // segment(position,size) It doesn't modify the original Eigen vector
-            xd_foot      = paramLine.segment(4,7);
-            qd           = paramLine.segment(11,ICUB_DOFS);
-
-            lineNumber--;
-
-            double timeStep = paramLine(0,0) - timePrev;
-            timePrev = paramLine(0,0);
-
-            locoCtrl->sendStreamParams();
-            Time::delay(timeStep);
+            file.close();
         }
     }
-    else
-    {
-        fprintf(stderr,"INPUT PARAMETERS FILE NOT FOUND /n");
-    }
+    printf("All positions from file have been sent /n");
+}
 
-    file.close();
+//*************************************************************************************************************************
+void LocomotionPlannerThread::startSending()
+{
+    status = PLANNING_ON;       //sets thread status to ON
+}
+//*************************************************************************************************************************
+void LocomotionPlannerThread::stopSending()
+{
+    status = PLANNING_OFF;
 }
 
 //*************************************************************************************************************************
@@ -148,8 +158,10 @@ void LocomotionPlannerThread::commandReceived(const CommandDescription &cd, cons
     switch(cd.id)
     {
     case COMMAND_ID_START:
+        startSending();
         sendMsg("Starting the planner.", MSG_INFO); break;
     case COMMAND_ID_STOP:
+        stopSending();
         sendMsg("Stopping the planner.", MSG_INFO); break;
     default:
         sendMsg("A callback is registered but not managed for the command "+cd.name, MSG_WARNING);

@@ -24,6 +24,7 @@
 #include <vector>
 #include <fstream>
 #include <stdlib.h>
+#include <cstdlib>
 #include <stdio.h>
 #include <time.h>
 
@@ -56,6 +57,7 @@ using namespace Eigen;
 namespace locomotionPlanner
 {
 
+enum PlanningStatus {PLANNING_ON, PLANNING_OFF};
 /** Locomotion planner thread: this thread sends the desired position trajectory of the COM,
     swinging foot and joint posture.**/
 
@@ -67,8 +69,10 @@ class LocomotionPlannerThread: public Thread, public ParamObserver, public Comma
     ParamHelperClient   *locoCtrl;
     wholeBodyInterface  *robot;
     bool                mustStop;
+//    string              fileName;
     string              filename;
     string              codyco_root;
+    PlanningStatus      status;         //When on the planner is reading from file and streaming data.
 
     // Module parameters
     Vector2d            kp_com;
@@ -98,10 +102,13 @@ public:
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    LocomotionPlannerThread(string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient   *_lc, wholeBodyInterface *_wbi, string _filename="") ;
+    LocomotionPlannerThread(string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient   *_lc, wholeBodyInterface *_wbi, string _filename) ;
 	
     bool threadInit();	
     void run();
+    void startSending();
+    void stopSending();
+
     void threadRelease();
 
     void stop(){ mustStop=true; Thread::stop(); }

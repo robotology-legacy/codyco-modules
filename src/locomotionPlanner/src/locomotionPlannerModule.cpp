@@ -60,7 +60,9 @@ bool LocomotionPlannerModule::configure(ResourceFinder &rf)
     paramHelper->linkParam(PARAM_ID_PLANNER_NAME,           &moduleName);
     paramHelper->linkParam(PARAM_ID_ROBOT_NAME,             &robotName);
     paramHelper->linkParam(PARAM_ID_LOCOMOTION_CTRL_NAME,   &locoCtrlName);
-    paramHelper->linkParam(PARAM_ID_FILE_NAME,   &fileName);
+    paramHelper->linkParam(PARAM_ID_FILE_NAME,              &fileName);
+
+
     paramHelper->registerCommandCallback(COMMAND_ID_HELP, this);
     paramHelper->registerCommandCallback(COMMAND_ID_QUIT, this);
     // Read parameters from configuration file (or command line)
@@ -137,6 +139,7 @@ bool LocomotionPlannerModule::close()
 
 	//closing ports
 	rpcPort.close();
+    cout << "about to close"<<endl;
     return true;
 }
 
