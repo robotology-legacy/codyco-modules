@@ -6,18 +6,19 @@
  */
 
 /**
- * \defgroup modHelp modHelp
+ * \defgroup codyco_modHelp modHelp
  *
  * @ingroup codyco_libraries
  *
- * Classes/functions for helping in symplifying writing modules.
- *
+ * Classes/functions for helping writing modules.
  *
  * \section dep_sec Dependencies
- 
+ * Eigen
  *
  * \section intro_sec Description
- *
+ * This is a collection of functions to ease writing code for modules. There are functions to read 
+ * variables from ini files; functions to create/open/close YARP ports; functions to ease the
+ * conversion of numeric vectors from yarp to eigen and viceversa.
  *
  * \section tested_os_sec Tested OS
  *
@@ -26,7 +27,7 @@
  *
  * \author Serena Ivaldi - serena.ivaldi@isir.upmc.fr
  *
- * Copyright (C) 2012-3 MACSI, 2013-.. CODYCO
+ * Copyright (C) 2012-3 MACSI, 2013 CODYCO
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.
  *
  *
@@ -44,11 +45,13 @@
 #include <deque>
 #include <string>
 
-
+#include <Eigen/Lgsm>
+#include <Eigen/StdVector> //Mandatory for vector fixed-size Eigen element (like Twistd)
+                           //otherwise it raises assertion of bad alignement
 
 namespace modHelp
 {
-    
+  
 #define displayValue(V)         cout<<"  "<< #V <<" : "<<V<<endl;
 #define displayNameValue(S,V)   cout<<"  "<< S <<" : "<<V<<endl;
 #define displayVector(V)        cout<<"  "<< #V <<" : "<<V.toString()<<endl;
@@ -229,6 +232,15 @@ namespace modHelp
      * @return the string representing the value
      */
      std::string toString(bool val, int type=2);
+
+
+    bool yarpToEigenVector(const yarp::sig::Vector &yarpVector, Eigen::VectorXd &eigenVector);
+
+    bool eigenToYarpVector(const Eigen::VectorXd &eigenVector, yarp::sig::Vector &yarpVector);
+
+    bool yarpToEigenMatrix(const yarp::sig::Matrix& yarpMatrix, Eigen::MatrixXd& eigenMatrix);
+
+    bool eigenToYarpMatrix(const Eigen::MatrixXd& eigenMatrix, yarp::sig::Matrix& yarpMatrix);
 
     
 }//end namespace modHelp

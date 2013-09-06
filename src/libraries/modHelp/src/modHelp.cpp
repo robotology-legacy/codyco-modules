@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 MACSI - 2013 CODYCO
- * Author: Serena Ivaldi
+ * Author: Serena Ivaldi, MingXing Liu
  * email:   serena.ivaldi@isir.upmc.fr
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -337,6 +337,77 @@ namespace modHelp{
         return ret;
     }
     
+    //---------------------------------------------------------
+    bool yarpToEigenVector(const yarp::sig::Vector &yarpVector, Eigen::VectorXd &eigenVector)
+    {
+        if(yarpVector.size() == 0)
+        {
+            cout<<"ERROR: input vector is empty (yarpToEigenVector)"<<endl;
+            return false;
+        }
+
+        //resize and fill eigen vector with yarp vector elements
+        eigenVector.resize(yarpVector.size());
+        for(unsigned int i = 0; i < yarpVector.size(); i++)
+            eigenVector(i) = yarpVector(i);
+
+        return true;
+    };
+
+    //---------------------------------------------------------
+    bool eigenToYarpVector(const Eigen::VectorXd &eigenVector, yarp::sig::Vector &yarpVector)
+    {
+        if(eigenVector.size() == 0)
+        {
+            cout<<"ERROR: input vector is empty (eigenToYarpVector)"<<endl;
+            return false;
+        }
+
+        //resize and fill eigen vector with yarp vector elements
+        yarpVector.resize(eigenVector.size());
+        for(unsigned int i=0; i <eigenVector.size(); i++)
+                yarpVector(i) = eigenVector(i);
+
+        return true;
+    };
+
+    //---------------------------------------------------------
+    bool yarpToEigenMatrix(const yarp::sig::Matrix& yarpMatrix, Eigen::MatrixXd& eigenMatrix)
+    {
+        if((eigenMatrix.cols() == 0)||(eigenMatrix.rows() == 0))
+        {
+            cout<<"ERROR: input matrix is empty (yarpToEigenMatrix)"<<endl;
+            return false;
+        }
+
+        //resize and fill eigen vector with yarp vector elements
+        eigenMatrix.resize(yarpMatrix.rows(),yarpMatrix.cols());
+        
+        for(unsigned int i = 0; i < eigenMatrix.rows(); i++)
+            for(unsigned int j = 0; j < eigenMatrix.cols(); j++)
+                eigenMatrix(i,j) = yarpMatrix(i,j);
+
+        return true;
+    };
+
+    //---------------------------------------------------------
+    bool eigenToYarpMatrix(const Eigen::MatrixXd& eigenMatrix, yarp::sig::Matrix& yarpMatrix)
+    {
+        if((yarpMatrix.cols() == 0)||(yarpMatrix.rows() == 0))
+        {
+            cout<<"ERROR: input matrix is empty (eigenToYarpMatrix)"<<endl;
+            return false;
+        }
+
+        //resize and fill eigen vector with yarp vector elements
+        yarpMatrix.resize(eigenMatrix.rows(),eigenMatrix.cols());
+        
+        for(unsigned int i = 0; i < yarpMatrix.rows(); i++)
+            for(unsigned int j = 0; j < yarpMatrix.cols(); j++)
+                yarpMatrix(i,j) = eigenMatrix(i,j);
+            
+        return true;
+    };
     
 }//namespace modHelp
 
