@@ -129,11 +129,11 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     /** Read the robot sensors and compute forward kinematics and Jacobians. */
     bool readRobotStatus(bool blockingRead=false);
 
-    /** Update the reference trajectories to track */
+    /** Update the reference trajectories to track and compute the desired velocities for all tasks. */
     bool updateReferenceTrajectories();
 
     /** Compute joint velocities by solving a hierarchy of QPs (1st QP for COM, 2nd for foot, 3rd for posture) */
-    //VectorXd solveTaskHierarchy();
+    bool areDesiredJointVelTooLarge();
 
     void updateSelectionMatrix();
 

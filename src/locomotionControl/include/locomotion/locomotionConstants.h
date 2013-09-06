@@ -40,6 +40,9 @@ typedef Eigen::Matrix<double,6,Dynamic,RowMajor>   JacobianMatrix;     // a Jaco
 namespace locomotion
 {
 
+// When COMPUTE_WORLD_2_BASE_ROTOTRANSLATION is defined the controller computes the rototranslation 
+// from world to floating base assuming that the left foot is always on the ground. Otherwise it 
+// takes the rototranslation as an input streaming parameter (i.e. H_w2b).
 #define COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
 
 /** List of available parameters of IOFormat constructor:
@@ -105,7 +108,7 @@ enum LocomotionParamId {
     PARAM_ID_H_W2B,             
     PARAM_ID_X_COM,             PARAM_ID_XREF_COM,          PARAM_ID_X_FOOT,                
     PARAM_ID_XREF_FOOT,         PARAM_ID_Q,                 PARAM_ID_QREF,
-    PARAM_ID_SIZE
+    PARAM_ID_SIZE /*This is the number of parameters, so it must be the last value of the enum.*/
 };
 
 // ******************************************************************************************************************************
