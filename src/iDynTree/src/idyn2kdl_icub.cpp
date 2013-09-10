@@ -4,7 +4,9 @@
  * website: http://www.codyco.eu
  */
  
+
 #include <iCub/iDynTree/idyn2kdl_icub.h>
+
 
 template<typename T, size_t N>
 T * end(T (&ra)[N]) {

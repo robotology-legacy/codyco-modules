@@ -903,7 +903,8 @@ bool DynTree::dynamicRNEA()
             //std::cerr << "Project sensor " << i << "from link " << ft_list.ft_sensors_vector[i].getChild() << " to sensor " << std::endl;
             //std::cerr << "Original force " << KDLtoYarp(f[ft_list.ft_sensors_vector[i].getChild()].force).toString() << std::endl;
             #endif
-            measured_wrenches[i] = ft_list.ft_sensors_vector[i].getH_child_sensor().Inverse(f[ft_list.ft_sensors_vector[i].getChild()]);
+            //measured_wrenches[i] = ft_list.ft_sensors_vector[i].getH_child_sensor().Inverse(f[ft_list.ft_sensors_vector[i].getChild()]);
+            measured_wrenches[i] = ft_list.estimateSensorWrenchFromRNEA(i,dynamic_traversal,f);
         }
     }
     if( ret < 0 ) return false;

@@ -707,6 +707,7 @@ class DynTree  {
         virtual bool getDynamicsParameters(yarp::sig::Vector & vet);
         //@} 
 
+        KDL::Tree getKDLTree() { return tree_graph.getTree(); }
     
 };
 
