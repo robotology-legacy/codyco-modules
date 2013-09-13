@@ -72,7 +72,7 @@ class iCubTree : public DynTree
      * @param serial a iCubTree_serialization_tag for defining the serialization (default is SKINDYNLIB_SERIALIZATION)
      * @param verbose level of verbosity: 0 if no output is requested, 1 to have output messages (default is 0) 
      */
-     iCubTree(iCubTree_version_tag version,  iCubTree_serialization_tag serial=SKINDYNLIB_SERIALIZATION,  unsigned int verbose=0);
+     iCubTree(iCubTree_version_tag version, bool foot_ft=false, iCubTree_serialization_tag serial=SKINDYNLIB_SERIALIZATION,  unsigned int verbose=0);
 
     ~iCubTree();
 };

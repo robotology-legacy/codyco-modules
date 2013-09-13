@@ -27,7 +27,7 @@ bool names2links_joints(const std::vector<std::string> names,std::vector<std::st
 }
 */
 
-bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KDL::JntArray & q_min, KDL::JntArray & q_max,  iCub::iDynTree::iCubTree_serialization_tag serial, bool debug)
+bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KDL::JntArray & q_min, KDL::JntArray & q_max,  iCub::iDynTree::iCubTree_serialization_tag serial, bool ft_foot, bool debug)
 {
     bool status_ok = true;
     //Joint names extracted from http://eris.liralab.it/wiki/ICub_joints
@@ -94,7 +94,7 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KD
     const char *ll_joints_cstr[] = {"l_hip_pitch", "l_hip_roll", "l_leg_ft_sensor", "l_hip_yaw", "l_knee", "l_ankle_pitch", "l_ankle_roll"};    
     std::vector<std::string> ll_joints(ll_joints_cstr,end(ll_joints_cstr));
     //names2links_joints(ll_joints,links,joints);
-    const char *ll_links_cstr[] = {"l_hip_1", "l_hip_2", "l_upper_thigh", "l_thigh", "l_shank", "l_ankle_1", "l_foot"};    
+    const char *ll_links_cstr[] = {"l_hip_1", "l_hip_2", "l_hip_3", "l_thigh", "l_shank", "l_ankle_1", "l_foot"};    
     std::vector<std::string> ll_links(ll_links_cstr,end(ll_links_cstr));
   
     status_ok = idynSensorChain2kdlChain(*(icub_idyn.lowerTorso->left),*(icub_idyn.lowerTorso->leftSensor),old_ll,ll_links,ll_joints,"l_sole");
@@ -106,7 +106,7 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KD
     const char *rl_joints_cstr[] = {"r_hip_pitch", "r_hip_roll", "r_leg_ft_sensor", "r_hip_yaw", "r_knee", "r_ankle_pitch", "r_ankle_roll"};    
     std::vector<std::string> rl_joints(rl_joints_cstr,end(rl_joints_cstr));
     //names2links_joints(rl_joints,links,joints);
-    const char *rl_links_cstr[] = {"r_hip_1", "r_hip_2", "r_upper_thigh", "r_thigh", "r_shank", "r_ankle_1", "r_foot"};    
+    const char *rl_links_cstr[] = {"r_hip_1", "r_hip_2", "r_hip_3", "r_thigh", "r_shank", "r_ankle_1", "r_foot"};    
     std::vector<std::string> rl_links(rl_links_cstr,end(rl_links_cstr));
 
     status_ok = idynSensorChain2kdlChain(*(icub_idyn.lowerTorso->right),*(icub_idyn.lowerTorso->rightSensor),old_rl,rl_links,rl_joints,"r_sole");
@@ -126,8 +126,6 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KD
     idynMatrix2kdlFrame(icub_idyn.lowerTorso->HLeft,kdlFrame);
     addBaseTransformation(old_ll,ll,kdlFrame);
 
-
-    
     idynMatrix2kdlFrame(icub_idyn.lowerTorso->HRight,kdlFrame);
     addBaseTransformation(old_rl,rl,kdlFrame);
     
@@ -144,6 +142,36 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KD
     
     idynMatrix2kdlFrame(icub_idyn.upperTorso->HUp,kdlFrame);
     addBaseTransformation(old_head,head,kdlFrame);
+    
+    //For the foot, it is possible that is present the ft sensor
+    if( ft_foot ) { 
+        KDL::Chain no_ft_rl, no_ft_ll;
+        KDL::Frame T_ss_ee(KDL::Rotation(0,0,1,0,1,0,-1,0,0),KDL::Vector(0,0,0.075)); //transformation between the end effector and the sensor
+        KDL::Frame T_ee_ss = T_ss_ee.Inverse();
+        
+        no_ft_rl = rl;
+        no_ft_ll = ll;
+        rl = KDL::Chain();
+        ll = KDL::Chain();
+        //add for each leg til ankle_1
+        for(int iii=0; iii <= 5; iii++ ) { rl.addSegment(no_ft_rl.getSegment(iii)); ll.addSegment(no_ft_ll.getSegment(iii)); }
+        KDL::Segment r_foot_no_ft = no_ft_rl.getSegment(6);
+        KDL::Segment l_foot_no_ft = no_ft_ll.getSegment(6);
+        //Build new segments
+        KDL::RigidBodyInertia r_upper_foot_I = KDL::RigidBodyInertia(0.1);
+        KDL::RigidBodyInertia l_upper_foot_I = KDL::RigidBodyInertia(0.1);
+        KDL::Segment r_upper_foot("r_upper_foot",r_foot_no_ft.getJoint(),r_foot_no_ft.getFrameToTip()*T_ee_ss,r_upper_foot_I);
+        KDL::Segment l_upper_foot("l_upper_foot",l_foot_no_ft.getJoint(),l_foot_no_ft.getFrameToTip()*T_ee_ss,l_upper_foot_I);
+        
+        KDL::RigidBodyInertia r_foot_new_I = r_foot_no_ft.getInertia()-T_ee_ss*r_upper_foot_I;
+        KDL::RigidBodyInertia l_foot_new_I = l_foot_no_ft.getInertia()-T_ee_ss*l_upper_foot_I;
+        KDL::Segment r_foot_new("r_foot",KDL::Joint("r_foot_ft_sensor"),T_ss_ee,r_foot_new_I);
+        KDL::Segment l_foot_new("l_root",KDL::Joint("l_foot_ft_sensor"),T_ss_ee,l_foot_new_I);
+        
+        rl.addSegment(r_upper_foot); rl.addSegment(r_foot_new); rl.addSegment(no_ft_rl.getSegment(7));
+
+        ll.addSegment(l_upper_foot); ll.addSegment(l_foot_new); ll.addSegment(no_ft_ll.getSegment(7));
+    }
     
     //Get joint limits
     yarp::sig::Vector torso_min = icub_idyn.lowerTorso->up->getJointBoundMin();
@@ -206,44 +234,6 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KD
     KDL::Segment kdlSegment = KDL::Segment("torso",KDL::Joint("torso_joint",KDL::Joint::None));
     icub_kdl.addSegment(kdlSegment,arms_head_base_name);    
     
-    
-    /*
-    if( debug ) {
-        kdlSegment = KDL::Segment("torso_yaw",KDL::Joint("torso_yaw_fixed_joint",KDL::Joint::None));
-        icub_kdl.addSegment(kdlSegment,"torso_yaw_link");    
-    
-        kdlSegment = KDL::Segment("torso_roll",KDL::Joint("torso_roll_fixed_joint",KDL::Joint::None));
-        icub_kdl.addSegment(kdlSegment,"torso_roll_link");    
-        
-        kdlSegment = KDL::Segment("torso_pitch",KDL::Joint("torso_pitch_fixed_joint",KDL::Joint::None));
-        icub_kdl.addSegment(kdlSegment,arms_head_base_name);    
-        
-        
-        kdlSegment = KDL::Segment("l_shoulder_pitch",KDL::Joint("l_shoulder_pitch_fixed_joint",KDL::Joint::None));
-        icub_kdl.addSegment(kdlSegment,"l_shoulder_pitch_link");   
-        
-        kdlSegment = KDL::Segment("l_shoulder_roll",KDL::Joint("l_shoulder_roll_fixed_joint",KDL::Joint::None));
-        icub_kdl.addSegment(kdlSegment,"l_shoulder_roll_link");   
-        
-        kdlSegment = KDL::Segment("l_arm_ft_sensor",KDL::Joint("l_arm_ft_sensor_fixed_joint",KDL::Joint::None));
-        icub_kdl.addSegment(kdlSegment,"l_arm_ft_sensor_link");   
-        
-        kdlSegment = KDL::Segment("r_shoulder_pitch",KDL::Joint("r_shoulder_pitch_fixed_joint",KDL::Joint::None));
-        icub_kdl.addSegment(kdlSegment,"r_shoulder_pitch_link");   
-        
-        kdlSegment = KDL::Segment("r_shoulder_roll",KDL::Joint("r_shoulder_roll_fixed_joint",KDL::Joint::None));
-        icub_kdl.addSegment(kdlSegment,"r_shoulder_roll_link");   
-        
-        kdlSegment = KDL::Segment("r_arm_ft_sensor",KDL::Joint("r_arm_ft_sensor_fixed_joint",KDL::Joint::None));
-        icub_kdl.addSegment(kdlSegment,"r_arm_ft_sensor_link");   
-        
-        kdlSegment = KDL::Segment("r_shoulder_yaw",KDL::Joint("r_shoulder_yaw_fixed_joint",KDL::Joint::None));
-        icub_kdl.addSegment(kdlSegment,"r_shoulder_yaw_link");   
-        
-        kdlSegment = KDL::Segment("r_elbow",KDL::Joint("r_elbow_fixed_joint",KDL::Joint::None));
-        icub_kdl.addSegment(kdlSegment,"r_elbow_link");   
-    }
-    */
     
     return true;
     
