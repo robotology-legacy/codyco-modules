@@ -6,7 +6,7 @@ add_subdirectory(sensorsInterfaces)
 #add_subdirectory(wbci)
 #add_subdirectory(wbciy)
 
-add_subdirectory(comStepper)
+add_subdirectory(modules/comStepper)
 add_subdirectory(linearRegressorsAdaptiveControl)
 add_subdirectory(locomotionControl)
 add_subdirectory(locomotionPlanner)
