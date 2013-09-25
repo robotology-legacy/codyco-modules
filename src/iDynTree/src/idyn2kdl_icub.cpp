@@ -7,6 +7,7 @@
 
 #include <iCub/iDynTree/idyn2kdl_icub.h>
 
+#include <kdl_codyco/treegraph.hpp>
 
 template<typename T, size_t N>
 T * end(T (&ra)[N]) {
@@ -27,7 +28,27 @@ bool names2links_joints(const std::vector<std::string> names,std::vector<std::st
 }
 */
 
-bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KDL::JntArray & q_min, KDL::JntArray & q_max,  iCub::iDynTree::iCubTree_serialization_tag serial, bool ft_foot, bool debug)
+KDL::RotationalInertia operator-(const KDL::RotationalInertia& Ia, const KDL::RotationalInertia& Ib){
+    KDL::RotationalInertia result;
+    Eigen::Map<Eigen::Matrix3d>(result.data)=Eigen::Map<const Eigen::Matrix3d>(Ia.data)-Eigen::Map<const Eigen::Matrix3d>(Ib.data);
+    return result;
+}
+
+KDL::RigidBodyInertia operator-(const KDL::RigidBodyInertia& Ia, const KDL::RigidBodyInertia& Ib){
+    double new_mass = Ia.getMass()-Ib.getMass();
+    KDL::Vector new_cog = Ia.getCOG()-Ib.getCOG();
+    
+    KDL::RotationalInertia new_inertia_ref_frame = Ia.getRotationalInertia()-Ib.getRotationalInertia();
+    
+    KDL::RotationalInertia new_inertia_cog;
+    
+    Eigen::Vector3d c_eig=Eigen::Map<const Eigen::Vector3d>(new_inertia_cog.data);
+    Eigen::Map<Eigen::Matrix3d>(new_inertia_cog.data)=Eigen::Map<const Eigen::Matrix3d>(new_inertia_ref_frame.data)+new_mass*(c_eig*c_eig.transpose()-c_eig.dot(c_eig)*Eigen::Matrix3d::Identity());
+    
+    return KDL::RigidBodyInertia(new_mass,new_cog,new_inertia_cog);
+}
+
+bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KDL::JntArray & q_min, KDL::JntArray & q_max,  iCub::iDynTree::iCubTree_serialization_tag serial, bool ft_foot, bool add_root_weight, bool debug)
 {
     bool status_ok = true;
     //Joint names extracted from http://eris.liralab.it/wiki/ICub_joints
@@ -117,7 +138,15 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KD
     //to create the iCub KDL::Tree
 
     //First we have to had the root_link, ( for now without RigidBodyInertia!)
-    status_ok = icub_kdl.addSegment(KDL::Segment(real_root_name,KDL::Joint("base_fixed_joint",KDL::Joint::None),KDL::Frame::Identity()),fake_root_name);
+    KDL::RigidBodyInertia I_root;
+    if( !add_root_weight ) {
+        I_root = KDL::RigidBodyInertia();
+    } else {
+        I_root = KDL::RigidBodyInertia(1.2);
+    }
+        
+        status_ok = icub_kdl.addSegment(KDL::Segment(real_root_name,KDL::Joint("base_fixed_joint",KDL::Joint::None),KDL::Frame::Identity(),I_root),fake_root_name);
+
     if(!status_ok) return false;
 
     
@@ -166,7 +195,7 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KD
         KDL::RigidBodyInertia r_foot_new_I = r_foot_no_ft.getInertia()-T_ee_ss*r_upper_foot_I;
         KDL::RigidBodyInertia l_foot_new_I = l_foot_no_ft.getInertia()-T_ee_ss*l_upper_foot_I;
         KDL::Segment r_foot_new("r_foot",KDL::Joint("r_foot_ft_sensor"),T_ss_ee,r_foot_new_I);
-        KDL::Segment l_foot_new("l_root",KDL::Joint("l_foot_ft_sensor"),T_ss_ee,l_foot_new_I);
+        KDL::Segment l_foot_new("l_foot",KDL::Joint("l_foot_ft_sensor"),T_ss_ee,l_foot_new_I);
         
         rl.addSegment(r_upper_foot); rl.addSegment(r_foot_new); rl.addSegment(no_ft_rl.getSegment(7));
 
@@ -234,6 +263,7 @@ bool toKDL(const iCub::iDyn::iCubWholeBody & icub_idyn, KDL::Tree & icub_kdl, KD
     KDL::Segment kdlSegment = KDL::Segment("torso",KDL::Joint("torso_joint",KDL::Joint::None));
     icub_kdl.addSegment(kdlSegment,arms_head_base_name);    
     
+    //std::cout << "Returning from KDL: " << KDL::CoDyCo::TreeGraph(icub_kdl).toString() << std::endl;
     
     return true;
     
