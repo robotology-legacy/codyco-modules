@@ -10,9 +10,9 @@
 # ADD_SUBDIRECTORY(B)
 
 
-ADD_SUBDIRECTORY(modHelp)
-ADD_SUBDIRECTORY(paramHelp)
-
+add_subdirectory(modHelp)
+add_subdirectory(paramHelp)
+add_subdirectory(iDynTree)
 
 
 

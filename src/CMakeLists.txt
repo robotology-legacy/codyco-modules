@@ -1,5 +1,4 @@
 add_subdirectory(libraries) 
-add_subdirectory(iDynTree)
 add_subdirectory(wbi)
 add_subdirectory(wbiy)
 add_subdirectory(sensorsInterfaces)
@@ -7,10 +6,13 @@ add_subdirectory(sensorsInterfaces)
 #add_subdirectory(wbciy)
 
 add_subdirectory(modules/comStepper)
-add_subdirectory(linearRegressorsAdaptiveControl)
+
 add_subdirectory(locomotionControl)
 add_subdirectory(locomotionPlanner)
-#add_subdirectory(iCub_description/urdf_iDyn)
+
+add_subdirectory(tests)
+#add_subdirectory(wholeBodyInterfaceYarpTest)
+
 
 if (ICUB_USE_XDE)
      add_subdirectory(reachComBalance)
@@ -20,6 +22,4 @@ else (ICUB_USE_XDE)
      message(STATUS "ISIR modules with XDE: NO")
 endif (ICUB_USE_XDE)
 
-add_subdirectory(tests/iDynTreeJacobianTest)
-#add_subdirectory(tests/iDynTreeTest)
-#add_subdirectory(wholeBodyInterfaceYarpTest)
+
