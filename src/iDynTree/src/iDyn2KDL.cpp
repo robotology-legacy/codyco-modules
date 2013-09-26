@@ -309,7 +309,8 @@ bool idynDynamicalParameters2kdlRigidBodyInertia(const double idynmass,const yar
     KDL::Vector kdlrC;
     KDL::RotationalInertia kdlRotationalInertia;
     
-    assert(idynVector2kdlVector(idynrC,kdlrC));
+    int ret = idynVector2kdlVector(idynrC,kdlrC);
+    assert(ret);
     //printMatrix("idynI",idynI);
     if( !idynInertia2kdlRotationalInertia(idynI,kdlRotationalInertia) ) return false;
 

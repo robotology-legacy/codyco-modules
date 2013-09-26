@@ -127,7 +127,7 @@ void set_random_q_dq_ddq(yarp::os::Random & rng, iCubTree & icub_tree)
     Vector ddq(icub_tree.getNrOfDOFs());			
     set_random_vector(ddq,rng,acc_c);
     icub_tree.setD2Ang(ddq);
-
+    
     return;
 }
 
@@ -143,35 +143,36 @@ int main()
 	////////////////////////////////////////////////////////////////////	
 	//Similarly in iDynTree a iCubTree_version_tag structure is defined
 	iCubTree_version_tag icub_idyntree_version;
-	
-	icub_idyntree_version.head_version = 2;
-	icub_idyntree_version.legs_version = 2;
-		
-	//The iCubTree is istantiated
+    
+    icub_idyntree_version.head_version = 2;
+    icub_idyntree_version.legs_version = 2;
+    
+    //The iCubTree is istantiated
     //note that the serialization used is the one used in iDyn, while the 
     //default one is the one used in skinDynLib
-	iCubTree icub_idyntree(icub_idyntree_version,IDYN_SERIALIZATION);
-	
+    iCubTree icub_idyntree(icub_idyntree_version,IDYN_SERIALIZATION);
+
     Vector w0(3,0.0);
     Vector dw0(3,0.0);
     Vector ddp0(3,0.0);
     ddp0[2] = 9.8;
     
-	//The setInertialMeasure impose the velocity in the imu, like in iCubWholeBody
-	icub_idyntree.setInertialMeasure(w0,dw0,ddp0);
-	
+    //The setInertialMeasure impose the velocity in the imu, like in iCubWholeBody
+    icub_idyntree.setInertialMeasure(w0,dw0,ddp0);
+    
     //We fill the robot state with random values, for testing
     //in reality this should be filled with value read from the robot 
     //NB: the serialization of q, dq, ddq is defined in the constructor of iCubTree
-	set_random_q_dq_ddq(rng,icub_idyntree);
-	
+    set_random_q_dq_ddq(rng,icub_idyntree);
+       
     //std::cout << "Joint position" << std::endl;
     //std::cout << icub_idyntree.getAng().toString() << std::endl;
     
+    
     //We then perform kinematic propagation
-	icub_idyntree.kinematicRNEA();
-	
-	
+    icub_idyntree.kinematicRNEA();
+       
+    
     ////////////////////////////////////////////////////////////////////
     // Checking JACOBIANS
     ////////////////////////////////////////////////////////////////////
@@ -228,6 +229,8 @@ int main()
     std::cout << "Comparison between velocities expressed in world frame" << std::endl 
              << "Real one          " << abs_v_rhand.toString() << std::endl
              << "Absolute jacobian " << abs_v_rhand_abs_jac.toString() << std::endl;
+             
+             
     
     return 0;
     
