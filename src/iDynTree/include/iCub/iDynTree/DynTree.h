@@ -708,6 +708,8 @@ class DynTree  {
         //@} 
 
         KDL::Tree getKDLTree() { return tree_graph.getTree(); }
+        
+        KDL::CoDyCo::TreeGraph getKDLUndirectedTree() { return tree_graph; }
     
 };
 

@@ -57,7 +57,7 @@ class iCubTree : public DynTree
          * Get the partition of the iCub in a skinDynLib   
          * 
          */
-        KDL::CoDyCo::TreePartition get_iCub_partition(const KDL::CoDyCo::TreeSerialization & icub_serialization);
+        KDL::CoDyCo::TreePartition get_iCub_partition(const KDL::CoDyCo::TreeSerialization & icub_serialization, bool ft_feet);
 
     public:
         

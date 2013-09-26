@@ -60,7 +60,7 @@ iCubTree::iCubTree(iCubTree_version_tag version, bool ft_feet, iCubTree_serializ
     //The DOF serialization done in icub_kdl construction is ok
     KDL::CoDyCo::TreeSerialization serial = KDL::CoDyCo::TreeSerialization(icub_kdl);
     
-    KDL::CoDyCo::TreePartition icub_partition = get_iCub_partition(serial);
+    KDL::CoDyCo::TreePartition icub_partition = get_iCub_partition(serial,ft_feet);
     
     this->constructor(icub_kdl,ft_names,imu_link_name,serial,icub_partition);
     
@@ -78,7 +78,7 @@ iCubTree::iCubTree(iCubTree_version_tag version, bool ft_feet, iCubTree_serializ
     return;
 }
 
-KDL::CoDyCo::TreePartition iCubTree::get_iCub_partition(const KDL::CoDyCo::TreeSerialization & icub_serialization)
+KDL::CoDyCo::TreePartition iCubTree::get_iCub_partition(const KDL::CoDyCo::TreeSerialization & icub_serialization,bool ft_feet)
 {
     //Define an explicit partition of the links and the DOFs of the iCub 
     //The parts are defined in http://wiki.icub.org/wiki/ICub_joints
@@ -167,7 +167,8 @@ KDL::CoDyCo::TreePartition iCubTree::get_iCub_partition(const KDL::CoDyCo::TreeS
     left_leg.addLink(icub_serialization.getLinkId("l_ankle_1"));
     left_leg.addLink(icub_serialization.getLinkId("l_foot"));
     //new links    
-    left_leg.addLink(icub_serialization.getLinkId("l_upper_thigh"));
+    left_leg.addLink(icub_serialization.getLinkId("l_hip_3"));
+    if( ft_feet ) {  left_leg.addLink(icub_serialization.getLinkId("l_upper_foot")); }
     left_leg.addLink(icub_serialization.getLinkId("l_sole"));
     
     
@@ -188,7 +189,8 @@ KDL::CoDyCo::TreePartition iCubTree::get_iCub_partition(const KDL::CoDyCo::TreeS
     right_leg.addLink(icub_serialization.getLinkId("r_ankle_1"));
     right_leg.addLink(icub_serialization.getLinkId("r_foot"));
     //new links    
-    right_leg.addLink(icub_serialization.getLinkId("r_upper_thigh"));
+    right_leg.addLink(icub_serialization.getLinkId("r_hip_3"));
+    if( ft_feet ) {  right_leg.addLink(icub_serialization.getLinkId("r_upper_foot")); }
     right_leg.addLink(icub_serialization.getLinkId("r_sole"));
     
     
