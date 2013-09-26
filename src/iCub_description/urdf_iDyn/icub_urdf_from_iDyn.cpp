@@ -69,8 +69,9 @@ int main(int argc, char* argv[])
 
     KDL::Tree icub_kdl;
     
+    KDL::JntArray dummy1,dummy2;
     
-    if( ! toKDL(icub_idyn,icub_kdl) ) {
+    if( ! toKDL(icub_idyn,icub_kdl,dummy1,dummy2,iCub::iDynTree::SKINDYNLIB_SERIALIZATION,true) ) {
         std::cerr << "Fatal error in iDyn - KDL conversion" << std::endl;
         return EXIT_FAILURE;
     }
