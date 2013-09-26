@@ -30,7 +30,8 @@ include_directories(${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${urdfdom_INCLUDE_
 #SOURCE_GROUP("Source Files" FILES ${folder_source})
 #SOURCE_GROUP("Header Files" FILES ${folder_header})
 
-INCLUDE_DIRECTORIES(${iDyn_INCLUDE_DIRS}
+INCLUDE_DIRECTORIES(${iDynTree_INCLUDE_DIRS}
+                    ${iDyn_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS})
 
