@@ -241,7 +241,7 @@ outputComPosPortString( outputComPosPort),  outputR2lPosPortString( outputR2lPos
         com_des_phs_port->open(desiredComPhsPort.c_str());
     }
     else
-        fprintf(stderr, "Skipping the port for the COM pos desired port!!\n");
+        fprintf(stderr, "Skipping the port for the PHS desired port!!\n");
     
     if (!desiredR2lPosPort.empty())
     {
@@ -287,7 +287,7 @@ outputComPosPortString( outputComPosPort),  outputR2lPosPortString( outputR2lPos
         com_out_phs_port->open(outputComPhsPort.c_str());
     }
     else
-        fprintf(stderr, "Skipping the port for the COM pos output port!!\n");
+        fprintf(stderr, "Skipping the port for the PHS output port!!\n");
     
     if (!outputR2lPosPort.empty())
     {
