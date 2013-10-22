@@ -101,6 +101,7 @@ public:
     int size;       // parameter dimension (if size is free, this is the default size)
     bool freeSize;  // true: the parameter size is free, false it is fixed
     ParamSize(int s=1, bool free=false): size(s), freeSize(free) {}
+    operator int() const { return size; } // conversion from ParamSize to int (this allows to use ParamSize as an int)
 };
 const ParamSize PARAM_SIZE_FREE(1, true);   // to be used when a parameter has free dimension
 
