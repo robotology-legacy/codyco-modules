@@ -47,111 +47,13 @@
 #ifndef WBI_H
 #define WBI_H
 
+#include <wbi/wbiUtil.h>
 #include <vector>
-#include <map>
-#include <string>
 
 namespace wbi
 {
     
     enum ControlMode { CTRL_MODE_OPEN_LOOP, CTRL_MODE_POS, CTRL_MODE_TORQUE, CTRL_MODE_VEL};
-    
-    // iterate over all body parts of the specified jointIds
-#define FOR_ALL_BODY_PARTS_OF(itBp, jIds)   for (LocalIdList::const_iterator itBp=jIds.begin(); itBp!=jIds.end(); itBp++)
-    // iterate over all body parts of the specified jointIds
-#define FOR_ALL_BODY_PARTS_OF_NC(itBp, jIds)   for (LocalIdList::iterator itBp=jIds.begin(); itBp!=jIds.end(); itBp++)
-    // iterate over all joints of the specified body part
-#define FOR_ALL_JOINTS(itBp, itJ)           for(vector<int>::const_iterator itJ=itBp->second.begin(); itJ!=itBp->second.end(); itJ++)
-    // as before, but it uses a nonconst iterator
-#define FOR_ALL_JOINTS_NC(itBp, itJ)        for(vector<int>::iterator itJ=itBp->second.begin(); itJ!=itBp->second.end(); itJ++)
-    // iterate over all joints of all body parts of the specified jointIds
-#define FOR_ALL_OF(itBp, itJ, jIds)         FOR_ALL_BODY_PARTS_OF(itBp, jIds) FOR_ALL_JOINTS(itBp, itJ)
-    // iterate over all joints of all body parts of the specified jointIds
-#define FOR_ALL_OF_NC(itBp, itJ, jIds)      FOR_ALL_BODY_PARTS_OF_NC(itBp, jIds) FOR_ALL_JOINTS_NC(itBp, itJ)
-
-    /**
-     * Identifier composed by a body part identifier and a relative id that identifies the object locally (on the body part).
-     */
-    class LocalId
-    {
-    public:
-        int bodyPart;               // body part id
-        int index;                  // local id
-        std::string description;    // description
-        
-        // CONSTRUCTORS
-        LocalId(): bodyPart(0), index(0) {}
-        LocalId(int _bp, unsigned int _j): bodyPart(_bp), index(_j) {}
-        LocalId(int _bp, unsigned int _j, std::string &_desc): bodyPart(_bp), index(_j), description(_desc) {}
-
-        // OPERATORS
-        bool operator==(const LocalId &other) const { return (bodyPart==other.bodyPart && index==other.index); }
-        bool operator> (const LocalId &o) const { return bodyPart>o.bodyPart || (bodyPart==o.bodyPart && index>o.index); }
-        bool operator< (const LocalId &o) const { return bodyPart<o.bodyPart || (bodyPart==o.bodyPart && index<o.index); }
-    };
-    
-    
-    /**
-     * List of identifiers, that is a map from body part identifiers to lists of numbers.
-     */
-    class LocalIdList : public std::map< int, std::vector<int> >
-    {
-    protected:
-        /** Add the specified id without checking its existance. */
-        void pushId(int bp, int i);
-        
-    public:
-        LocalIdList();
-        LocalIdList(int bp, int j0);
-        /** Create an id list with the specified ids, all belonging to the same body part.
-         * @param bp Body part
-         * @param j0 First id
-         * @param j1 Second id */
-        LocalIdList(int bp, int j0, int j1);
-        LocalIdList(int bp, int j0, int j1, int j2);
-        LocalIdList(int bp, int j0, int j1, int j2, int j3);
-        LocalIdList(int bp, int j0, int j1, int j2, int j3, int j4);
-        LocalIdList(int bp, int j0, int j1, int j2, int j3, int j4, int j5);
-        LocalIdList(int bp, int j0, int j1, int j2, int j3, int j4, int j5, int j6);
-
-        LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2);
-        LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3);
-        LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4);
-        LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4, const LocalIdList &lid5);
-        
-        /** Convert a local id to a global id */
-        virtual int localToGlobalId(const LocalId &i) const;
-
-        /** Convert a global id to a local id */
-        virtual LocalId globalToLocalId(int globalId) const;
-        
-        /** Remove the specified joint from the list */
-        virtual bool removeId(const LocalId &i);
-        
-        /** Add the specified id to the list.
-         * @param i id to add
-         * @return true if the id has been added, false if it was already present
-         */
-        virtual bool addId(const LocalId &i);
-        
-        /** Add the specified ids to the list.
-         * @param i id list to add
-         * @return the number of ids added to the list
-         */
-        virtual int addIdList(const LocalIdList &i);
-        
-        /** Get the number of ids in this list */
-        virtual unsigned int size() const;
-        
-        /* Check whether the specified body part is present in this list. */
-        virtual bool containsBodyPart(int bp) const{ return !(find(bp)==end()); }
-        
-        /* Check whether the specified id is present in this list. */        
-        virtual bool containsId(const LocalId &i) const;
-        
-        virtual std::string toString() const;
-    };
-    
     
     /*
      * Interface for reading the sensors of the robot.

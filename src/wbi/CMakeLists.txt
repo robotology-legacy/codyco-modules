@@ -6,8 +6,8 @@ SET(PROJECTNAME wbi)
 
 PROJECT(${PROJECTNAME})
 
-SET(folder_source src/wbi.cpp)
-SET(folder_header include/wbi/wbi.h)
+SET(folder_source src/wbiUtil.cpp)
+SET(folder_header include/wbi/wbi.h include/wbi/wbiUtil.h include/wbi/wbiUtil.inl)
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
