@@ -20,16 +20,13 @@
 using namespace std;
 using namespace wbiTest;
 
-const double TOL = 1e-8;
-
-
 int main(int argc, char * argv[])
 {
     if(!testRotation())
-        printf("\n*** SOME OF THE ROTATION TESTS HAVE FAILED! ***\n");
+        printf("\n*** Some tests on the Rotation class have FAILED! ***\n");
 
     char c[10];
-    cout<<"TEST FINISHED. ENTER ANY STRING AND PRESS ENTER TO EXIT.";
+    cout<<"\nTEST FINISHED. Enter any string and press ENTER to exit the program.";
     cin.getline(c,10);
     return 0;
 }

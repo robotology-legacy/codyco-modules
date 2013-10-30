@@ -98,9 +98,13 @@ bool wbiTest::testRotation()
     err += assertEqual(w, tmp3, 3, "R * (R^T * v) = v") ? 0 : 1;
     err += assertEqual(I.getInverse(), I, "inv(I) = I") ? 0 : 1;
 
-    // TEST == AND != OPERATORS
-    err += assertTrue(isEqual(Rzyz,Rzyz,0), "R = R") ? 0 : 1;
+    // TEST COPY CONSTRUCTOR AND OPERATORS =, == AND !=
+    err += assertTrue(Rzyz==Rzyz, "R = R") ? 0 : 1;
     err += assertTrue(Rzyz!=Rzyx, "R1 != R2") ? 0 : 1;
+    Rotation R1 = Raa;
+    err += assertEqual(Raa, R1, "copy constructor") ? 0 : 1;
+    Rotation R2; R2 = Raa;
+    err += assertEqual(Raa, R2, "assignment operator") ? 0 : 1;
 
     cout<<"\nNumber of failed tests: "<< err<< endl;
     return err==0;
