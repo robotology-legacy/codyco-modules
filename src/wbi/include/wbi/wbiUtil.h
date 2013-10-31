@@ -35,14 +35,6 @@ namespace wbi
 #else
     #define FRAMES_CHECKI(a) assert(a)
 #endif
-    
-#ifdef _MSC_VER
-    // Microsoft Visual C
-    #define IMETHOD __forceinline
-#else
-    // Some other compiler, e.g. gcc
-    #define IMETHOD inline
-#endif
 
     // iterate over all body parts of the specified jointIds
 #define FOR_ALL_BODY_PARTS_OF(itBp, jIds)   for (LocalIdList::const_iterator itBp=jIds.begin(); itBp!=jIds.end(); itBp++)
@@ -59,13 +51,16 @@ namespace wbi
 
 #define EPSILON 1e-6        // tolerance used for zero detection
 
-    /** Compute the square of the specified value. */
+    /** @return The square of the specified value. */
     inline double sqr(double arg) { return arg*arg; }
 
     /** Compare whether 2 doubles are equal in an eps-interval. On VC6, if a/b is -INF, it returns false. */
     inline bool equal(double a, double b, double eps=EPSILON){ return ((eps>=(a-b)) && ((a-b)>=-eps)); }
 
-    inline double norm3d(const double v[3]);
+    /** @return The norm of the specified 3d vector. */
+    inline double norm3d(const double &x, const double &y, const double &z);
+    /** @return The norm of the specified 3d vector. */
+    inline double norm3d(const double v[3]){ return norm3d(v[0],v[1],v[2]); }
 
     /**
      * Identifier composed by a body part identifier and a relative id that identifies the object locally (on the body part).
@@ -222,7 +217,6 @@ namespace wbi
         /************************************************************************************************/
         /****************************************** OPERATORS *******************************************/
         /************************************************************************************************/
-        //inline Rotation& operator=(const Rotation& arg);
 
         /** Access to elements 0..2,0..2, bounds are checked when NDEBUG is not set. */
         inline double& operator()(int i, int j);
@@ -263,26 +257,22 @@ namespace wbi
         /** Sets the value of *this to its inverse. */
         inline void setToInverse();
 
-
         /************************************************************************************************/
         /********************************************** SET ROTATIONS ***********************************/
         /************************************************************************************************/
 
-        //! The DoRot... functions apply a rotation R to *this,such that *this = *this * Rot..
-        //! DoRot... functions are only defined when they can be executed more efficiently
+        /** The DoRot... functions apply a rotation R to *this,such that *this = *this * Rot. */
         inline void doRotX(double angle);
-        //! The DoRot... functions apply a rotation R to *this,such that *this = *this * Rot..
-        //! DoRot... functions are only defined when they can be executed more efficiently
+        /** The DoRot... functions apply a rotation R to *this,such that *this = *this * Rot. */
         inline void doRotY(double angle);
-        //! The DoRot... functions apply a rotation R to *this,such that *this = *this * Rot..
-        //! DoRot... functions are only defined when they can be executed more efficiently
+        /** The DoRot... functions apply a rotation R to *this,such that *this = *this * Rot. */
         inline void doRotZ(double angle);
 
-        //! Access to the underlying unitvectors of the rotation matrix
+        /** Access to the underlying unitvectors of the rotation matrix. */
         inline void setUnitX(const double *x) { data[0]=x[0]; data[3]=x[1]; data[6]=x[2]; }
-        //! Access to the underlying unitvectors of the rotation matrix
+        /** Access to the underlying unitvectors of the rotation matrix. */
         inline void setUnitY(const double *y) { data[1]=y[0]; data[4]=y[1]; data[7]=y[2]; }
-        //! Access to the underlying unitvectors of the rotation matrix
+        /** Access to the underlying unitvectors of the rotation matrix. */
         inline void setUnitZ(const double *z) { data[2]=z[0]; data[5]=z[1]; data[8]=z[2]; }
 
 
@@ -373,6 +363,9 @@ namespace wbi
         inline void getEulerZYX(double& Alfa,double& Beta,double& Gamma) const { getRPY(Gamma,Beta,Alfa); }
         inline void getEulerZYX(double zyx[3]) const { getEulerZYX(zyx[0], zyx[1], zyx[2]); }
 
+        /** Copy the direction cosine matrix (i.e. 3x3 rotation matrix) into the specified array (row-major). */
+        inline void getDcm(double R[9]) const;
+
         /** Access to the underlying unitvectors of the rotation matrix. */
         inline void getUnitX(double x[3]) const { x[0]=data[0]; x[1]=data[3]; x[2]=data[6];}   
 
@@ -398,15 +391,16 @@ namespace wbi
         inline static Rotation rotY(double angle);
         //! The Rot... static functions give the value of the appropriate rotation matrix back.
         inline static Rotation rotZ(double angle);
+        
+        /** @return A rotation about the specified vector with angle equal to the vector norm. */
+        static Rotation rotationVector(const double rotvec[3]);
 
-        /** Along an arbitrary axes.  It is not necessary to normalize rotvec.
-          * returns identity rotation matrix in the case that the norm of rotvec
-          * is to small to be used.
-          * @see Rot2 if you want to handle this error in another way. */
+        /** Rotation along an arbitrary axes.  It is not necessary to normalize rotvec.
+          * Returns the identity rotation in case the norm of rotvec is smaller than EPSILON. */
         static Rotation axisAngle(const double rotvec[3], double angle);
         static Rotation axisAngle(const double aa[4]){ return axisAngle(aa, aa[3]); }
 
-        /** Along an arbitrary axis. rotvec should be normalized. */
+        /** Rotation along an arbitrary unit axes (i.e. rotvec must be normalized). */
         static Rotation axisAngle2(const double rotvec[3], double angle);
         static Rotation axisAngle2(const double aa[4]){ return axisAngle2(aa, aa[3]); }
 
@@ -448,17 +442,82 @@ namespace wbi
         inline static Rotation quaternion(double q[4]){ return quaternion(q[0], q[1], q[2], q[3]); }
     };
 
-    //! The literal inequality operator!=()
-    bool isEqual(const Rotation& a,const Rotation& b, double eps=EPSILON);
+    /**
+     * \brief A frame transformation in 3D space (rotation + translation).
+     * If V2 = Frame*V1 (V2 expressed in frame A, V1 expressed in frame B)
+     * then V2 = Frame.R*V1 + Frame.p
+     * Frame.R contains columns that represent the axes of frame B wrt frame A
+     * Frame.p contains the origin of frame B expressed in frame A.
+    */
+    class Frame 
+    {
+    public:
+        double      p[3];       // Origin of the Frame
+        Rotation    R;          // Orientation of the Frame
 
+        /** Identity rototranslation matrix. */
+        inline Frame() { p[0]=p[1]=p[2]=0.0; }
+        /** Create a Frame based on the specified 3D rotation and translation. */
+        inline Frame(const Rotation& _R, const double _p[3]);
+        /** Read data from a 16-dim double array. */
+        inline Frame(double* d):R(d[0],d[1],d[2],d[4],d[5],d[6],d[8],d[9],d[10]){ p[0]=d[3]; p[1]=d[7]; p[2]=d[8];}
+        /** The rotation matrix defaults to identity. */
+        explicit inline Frame(const double _p[3]);
+        /** The position matrix defaults to zero. */
+        explicit inline Frame(const Rotation& _R);
+        
+        /** Default copy constructor and assignment operator are enough (deep copy). */
+
+        /**  Treats a frame as a 4x4 matrix and returns element i,j. It checks bounds when NDEBUG is not set. */
+        inline double operator()(int i,int j);
+
+        /**  Treats a frame as a 4x4 matrix and returns element i,j. It checks bounds when NDEBUG is not set. */
+        inline double operator() (int i,int j) const;
+
+        /** Get a string representation of the 3x3 rotation matrix associated to this object.
+          * @param precision Number of digits after the floating point
+          * @param sep String used to separate the entries on the same row of the matrix
+          * @param endRow String used to separate two consecutive rows of the matrix
+          * @return A string representation of a 3x3 rotation matrix. */
+        inline std::string toString(int precision=-1, const char *sep="\t", const char *endRow="\n") const;
+
+        /** Convert this Frame into a 4x4 rototranslation matrix. */
+        void as4x4Matrix(double d[16]) const;
+
+        /** Rototranslate the specified vector. */
+        inline void rototranslate(const double v[3], double out[3]) const;
+        /** Rototranslate the specified vector. */
+        inline void rototranslate(double v[3]) const;
+
+        /** The same as this->getInverse().rototranslate(v,out) but more efficient. */
+        inline void rototranslateInverse(const double v[3], double out[3]) const;
+        /** The same as this->getInverse().rototranslate(v) but more efficient. */
+        inline void rototranslateInverse(double v[3]) const;
+
+        /** Compute the inverse frame transformation. */
+        inline Frame getInverse() const;
+
+        /** @return the identity transformation Frame(Rotation::identity(), {0,0,0}). */
+        inline static Frame identity();
+    };
+
+    /** Compare whether the 2 rotations are equal in an eps-interval. */
+    bool isEqual(const Rotation& a, const Rotation& b, double eps=EPSILON);
     //! The literal equality operator==(), also identical.
     inline bool operator==(const Rotation& a,const Rotation& b){ return isEqual(a,b,0.0); }
-
     //! The literal inequality operator!=()
     inline bool operator!=(const Rotation& a,const Rotation& b){ return !isEqual(a,b,0.0); }
-
     /** Multiplication between two rotations. */
     Rotation operator *(const Rotation& lhs, const Rotation& rhs);
+
+    /** Compare whether the 2 arguments are equal in an eps-interval. */
+    bool isEqual(const Frame& a, const Frame& b, double eps=EPSILON);
+	//! The literal equality operator==(), also identical.
+    inline bool operator==(const Frame& a,const Frame& b){ return isEqual(a,b,0.0); }
+	//! The literal inequality operator!=().
+    inline bool operator!=(const Frame& a,const Frame& b){ return !isEqual(a,b,0.0); }
+    //! Composition of two frames.
+    Frame operator *(const Frame& lhs, const Frame& rhs);
 
 
 // include inline function definitions

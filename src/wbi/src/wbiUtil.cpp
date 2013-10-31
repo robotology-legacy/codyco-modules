@@ -274,7 +274,7 @@ void Rotation::getAxisAngle(double &axisX, double &axisY, double &axisZ, double 
 {
     double x,y,z,w;
     getQuaternion(x,y,z,w);
-    double norm = sqrt(x*x+y*y+z*z); 
+    double norm = norm3d(x,y,z); //sqrt(x*x+y*y+z*z); 
     angle = 2*atan2(norm,w);
     if (norm>EPSILON){  axisX = x/norm;         axisY = y/norm;     axisZ = z/norm;   }
     else{               axisX = axisY = 0.0;    axisZ = 1.0;        angle = 0.0;      }
@@ -322,7 +322,7 @@ Rotation Rotation::axisAngle(const double rotaxis[3], double angle)
     // can be found by multiplying it with an arbitrary vector p
     // and noting that this vector is rotated.
     double v[3];
-	double norm = sqrt(rotaxis[0]*rotaxis[0]+rotaxis[1]*rotaxis[1]+rotaxis[2]*rotaxis[2]);
+	double norm = norm3d(rotaxis);
     if(norm < EPSILON)
         return Rotation::identity();
     v[0] = rotaxis[0] / norm;
@@ -341,6 +341,18 @@ Rotation Rotation::axisAngle2(const double rotvec[3], double angle)
     return Rotation(ct      +  m_vt_0*rotvec[0],    -m_st_2 +  m_vt_0_1,            m_st_1  +  m_vt_0_2,
                     m_st_2  +  m_vt_0_1,            ct      +  m_vt_1*rotvec[1],    -m_st_0 +  m_vt_1_2,
                     -m_st_1 +  m_vt_0_2,            m_st_0  +  m_vt_1_2,            ct      +  m_vt_2*rotvec[2] );
+}
+
+Rotation Rotation::rotationVector(const double rotvec[3])
+{
+    double v[3];
+	double angle = norm3d(rotvec);
+    if(angle < EPSILON)
+        return Rotation::identity();
+    v[0] = rotvec[0] / angle;
+    v[1] = rotvec[1] / angle;
+    v[2] = rotvec[2] / angle;
+	return Rotation::axisAngle2(v, angle);
 }
 
 /************************************************************************************************/
@@ -371,4 +383,37 @@ bool wbi::isEqual(const Rotation& a, const Rotation& b, double eps)
             wbi::equal(a.data[6],b.data[6],eps) &&
             wbi::equal(a.data[7],b.data[7],eps) &&
             wbi::equal(a.data[8],b.data[8],eps)    );
+}
+
+/************************************************************************************************/
+/****************************************** FRAME ***********************************************/
+/************************************************************************************************/
+
+void Frame::as4x4Matrix(double d[16]) const
+{
+    for (int i=0;i<3;i++) 
+    {
+        for (int j=0;j<3;j++)
+            d[i*4+j]=R(i,j);
+        d[i*4+3] = p[i];
+    }
+    d[12]=d[13]=d[14]=0.0;
+    d[15]=1.0;
+}
+
+Frame wbi::operator *(const Frame& lhs,const Frame& rhs)
+// Complexity : 36M+36A
+{
+    double v[3];
+    lhs.R.rotate(rhs.p, v);
+    v[0]+=lhs.p[0]; v[1]+=lhs.p[1]; v[2]+=lhs.p[2]; 
+    return Frame(lhs.R*rhs.R, v);
+}
+
+bool wbi::isEqual(const Frame& a, const Frame& b, double eps) 
+{
+    return (wbi::isEqual(a.R, b.R, eps) &&
+            wbi::equal(a.p[0],b.p[0],eps) && 
+            wbi::equal(a.p[1],b.p[1],eps) && 
+            wbi::equal(a.p[2],b.p[2],eps));
 }

@@ -226,25 +226,11 @@ bool icubWholeBodyModel::getLinkId(const char *linkName, int &linkId)
     return linkId>=0;
 }
 
-bool icubWholeBodyModel::convertBasePose(const double *xBase, yarp::sig::Matrix & H_world_base)
+bool icubWholeBodyModel::convertBasePose(const Frame &xBase, yarp::sig::Matrix & H_world_base)
 {
-    if( H_world_base.cols() != 4 || H_world_base.rows() != 4 ) { H_world_base.resize(4,4); } 
-    Vector quat(4,0.0);
-
-    quat(0) = xBase[3];
-    quat(1) = xBase[4];
-    quat(2) = xBase[5];
-    quat(3) = xBase[6];
-    
-    H_world_base.setSubmatrix(iCub::ctrl::axis2dcm(quat),0,0); 
-    
-    H_world_base(0,3) = xBase[0];
-    H_world_base(1,3) = xBase[1];
-    H_world_base(2,3) = xBase[2];
-    
-    H_world_base(3,0) = H_world_base(3,1) = H_world_base(3,2) = 0;
-    H_world_base(3,3) = 1;
-    
+    if( H_world_base.cols() != 4 || H_world_base.rows() != 4 )
+        H_world_base.resize(4,4);
+    xBase.as4x4Matrix(H_world_base.data());
     return true;
 }
 
@@ -363,7 +349,7 @@ bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
     //return true;
 }
 
-bool icubWholeBodyModel::computeH(double *q, double *xBase, int linkId, double *H)
+bool icubWholeBodyModel::computeH(double *q, const Frame &xBase, int linkId, double *H)
 {
     if( (linkId < 0 || linkId >= p_icub_model->getNrOfLinks()) && linkId != COM_LINK_ID ) return false;
     
@@ -390,7 +376,7 @@ bool icubWholeBodyModel::computeH(double *q, double *xBase, int linkId, double *
 }
 
 
-bool icubWholeBodyModel::computeJacobian(double *q, double *xBase, int linkId, double *J, double *pos)
+bool icubWholeBodyModel::computeJacobian(double *q, const Frame &xBase, int linkId, double *J, double *pos)
 {
     if( (linkId < 0 || linkId >= p_icub_model->getNrOfLinks()) && linkId != COM_LINK_ID ) return false;
     
@@ -436,12 +422,12 @@ bool icubWholeBodyModel::computeJacobian(double *q, double *xBase, int linkId, d
     return true;
 }
 
-bool icubWholeBodyModel::computeDJdq(double *q, double *xB, double *dq, double *dxB, int linkId, double *dJdq, double *pos)
+bool icubWholeBodyModel::computeDJdq(double *q, const Frame &xBase, double *dq, double *dxB, int linkId, double *dJdq, double *pos)
 {
     return false;    
 }
 
-bool icubWholeBodyModel::forwardKinematics(double *q, double *xB, int linkId, double *x)
+bool icubWholeBodyModel::forwardKinematics(double *q, const Frame &xB, int linkId, double *x)
 {
     if( (linkId < 0 || linkId >= p_icub_model->getNrOfLinks()) && linkId != COM_LINK_ID ) return false;
     
@@ -488,12 +474,12 @@ bool icubWholeBodyModel::forwardKinematics(double *q, double *xB, int linkId, do
     return true;
 }
 
-bool icubWholeBodyModel::inverseDynamics(double *q, double *xB, double *dq, double *dxB, double *ddq, double *ddxB, double *tau)
+bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *tau)
 {
     return false;
 }
 
-bool icubWholeBodyModel::directDynamics(double *q, double *xB, double *dq, double *dxB, double *M, double *h)
+bool icubWholeBodyModel::directDynamics(double *q, const Frame &xB, double *dq, double *dxB, double *M, double *h)
 {
     return false;
 }

@@ -10,6 +10,7 @@
  */
 
 #include <wbiTest/testRotation.h>
+#include <wbiTest/testFrame.h>
 #include <stdio.h>
 #include <math.h>
 #include <string>
@@ -24,6 +25,8 @@ int main(int argc, char * argv[])
 {
     if(!testRotation())
         printf("\n*** Some tests on the Rotation class have FAILED! ***\n");
+    if(!testFrame())
+        printf("\n*** Some tests on the Frame class have FAILED! ***\n");
 
     char c[10];
     cout<<"\nTEST FINISHED. Enter any string and press ENTER to exit the program.";

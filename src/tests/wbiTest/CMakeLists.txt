@@ -12,8 +12,13 @@ find_package(ICUB)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 
-FILE(GLOB folder_source ./src/main.cpp ./src/testRotation.cpp)
-FILE(GLOB folder_header ./include/wbiTest/testRotation.h)
+FILE(GLOB folder_source ./src/main.cpp 
+                        ./src/testRotation.cpp
+                        ./src/testFrame.cpp
+                        ./src/testUtil.cpp )
+FILE(GLOB folder_header ./include/wbiTest/testRotation.h 
+                        ./include/wbiTest/testFrame.h 
+                        ./include/wbiTest/testUtil.h )
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})

@@ -333,7 +333,7 @@ namespace wbiy
         std::map<int, yarp::dev::IControlLimits*>   ilim;
         bool openDrivers(int bp);
         
-        bool convertBasePose(const double *xBase, yarp::sig::Matrix & H_world_base);
+        bool convertBasePose(const wbi::Frame &xBase, yarp::sig::Matrix & H_world_base);
         bool convertBaseVelocity(const double *dxB, yarp::sig::Vector & v_b, yarp::sig::Vector & omega_b);
         bool convertBaseAcceleration(const double *ddxB, yarp::sig::Vector & a_b, yarp::sig::Vector & domega_b);
         
@@ -384,7 +384,7 @@ namespace wbiy
           * @param linkId Id of the link that is the target of the rototranslation
           * @param H Output 4x4 rototranslation matrix (stored by rows)
           * @return True if the operation succeeded, false otherwise (invalid input parameters) */
-        virtual bool computeH(double *q, double *xBase, int linkId, double *H);
+        virtual bool computeH(double *q, const wbi::Frame &xBase, int linkId, double *H);
         
         /** Compute the Jacobian of the specified point of the robot.
           * @param q Joint angles
@@ -396,7 +396,7 @@ namespace wbiy
           * @note If linkId==COM_LINK_ID then the angular part of J is related to the angular velocity of the
           *       reference frame associated to the CoM. This Jacobian premultiplied by the whole robot's inertia
           *       matrix is equal to the Jacobian of the angular momentum of the whole robot. */
-        virtual bool computeJacobian(double *q, double *xBase, int linkId, double *J, double *pos=0);
+        virtual bool computeJacobian(double *q, const wbi::Frame &xBase, int linkId, double *J, double *pos=0);
         
         /** Given a point on the robot, compute the product between the time derivative of its 
           * Jacobian and the joint velocity vector.
@@ -407,7 +407,7 @@ namespace wbiy
           * @param dJdq Output 6-dim vector containing the product dJ*dq 
           * @param pos 3d position of the point expressed w.r.t the link reference frame
           * @return True if the operation succeeded, false otherwise (invalid input parameters) */
-        virtual bool computeDJdq(double *q, double *xB, double *dq, double *dxB, int linkId, double *dJdq, double *pos=0);
+        virtual bool computeDJdq(double *q, const wbi::Frame &xB, double *dq, double *dxB, int linkId, double *dJdq, double *pos=0);
         
         /** Compute the forward kinematics of the specified joint.
           * @param q Joint angles.
@@ -415,7 +415,7 @@ namespace wbiy
           * @param linkId Id of the link.
           * @param x Output 7-dim pose vector (3 for pos, 4 for quaternion orientation).
           * @return True if operation succeeded, false otherwise. */
-        virtual bool forwardKinematics(double *q, double *xB, int linkId, double *x);
+        virtual bool forwardKinematics(double *q, const wbi::Frame &xB, int linkId, double *x);
         
         /** Compute the inverse dynamics.
           * @param q Joint angles.
@@ -426,7 +426,7 @@ namespace wbiy
           * @param ddxB Acceleration of the robot base, 3 values for linear acceleration and 3 values for angular acceleration.
           * @param tau Output joint torques.
          * @return True if operation succeeded, false otherwise. */
-        virtual bool inverseDynamics(double *q, double *xB, double *dq, double *dxB, double *ddq, double *ddxB, double *tau);
+        virtual bool inverseDynamics(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *tau);
 
         /** Compute the direct dynamics.
          * @param q Joint angles.
@@ -436,7 +436,7 @@ namespace wbiy
          * @param M Output N+6xN+6 mass matrix, with N=number of joints.
          * @param h Output N+6-dim vector containing all generalized bias forces (gravity+Coriolis+centrifugal).
          * @return True if operation succeeded, false otherwise. */
-        virtual bool directDynamics(double *q, double *xB, double *dq, double *dxB, double *M, double *h);
+        virtual bool directDynamics(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *M, double *h);
     };
     
     
@@ -491,17 +491,17 @@ namespace wbiy
         { return modelInt->getLinkId(linkName, linkId); }
         virtual bool getJointLimits(double *qMin, double *qMax, int joint=-1)
         { return modelInt->getJointLimits(qMin, qMax, joint); }
-        virtual bool computeH(double *q, double *xB, int linkId, double *H)
+        virtual bool computeH(double *q, const wbi::Frame &xB, int linkId, double *H)
         { return modelInt->computeH(q, xB, linkId, H); }
-        virtual bool computeJacobian(double *q, double *xB, int linkId, double *J, double *pos=0)
+        virtual bool computeJacobian(double *q, const wbi::Frame &xB, int linkId, double *J, double *pos=0)
         { return modelInt->computeJacobian(q, xB, linkId, J, pos); }
-        virtual bool computeDJdq(double *q, double *xB, double *dq, double *dxB, int linkId, double *dJdq, double *pos=0)
+        virtual bool computeDJdq(double *q, const wbi::Frame &xB, double *dq, double *dxB, int linkId, double *dJdq, double *pos=0)
         { return modelInt->computeDJdq(q, xB, dq, dxB, linkId, dJdq, pos); }
-        virtual bool forwardKinematics(double *q, double *xB, int linkId, double *x)
+        virtual bool forwardKinematics(double *q, const wbi::Frame &xB, int linkId, double *x)
         { return modelInt->forwardKinematics(q, xB, linkId, x); }
-        virtual bool inverseDynamics(double *q, double *xB, double *dq, double *dxB, double *ddq, double *ddxB, double *tau)
+        virtual bool inverseDynamics(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *tau)
         { return modelInt->inverseDynamics(q, xB, dq, dxB, ddq, ddxB, tau); }
-        virtual bool directDynamics(double *q, double *xB, double *dq, double *dxB, double *M, double *h)
+        virtual bool directDynamics(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *M, double *h)
         { return modelInt->directDynamics(q, xB, dq, dxB, M, h); }
     };
     

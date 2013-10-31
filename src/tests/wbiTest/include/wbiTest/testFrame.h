@@ -4,19 +4,15 @@
  * CopyPolicy: Released under the terms of the LGPLv2.1 or later, see LGPL.TXT
  */
 
-#ifndef _TEST_ROTATION_
-#define _TEST_ROTATION_
+#ifndef _TEST_FRAME_
+#define _TEST_FRAME_
 
 #include <string>
 #include <wbi/wbiUtil.h>
-#include <wbiTest/testUtil.h>
 
 namespace wbiTest
 {
-//#define VERBOSE
-    
-    bool testRotation();
-
+    bool testFrame();
 }
 
 
