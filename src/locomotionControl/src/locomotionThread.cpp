@@ -71,7 +71,7 @@ bool LocomotionThread::threadInit()
     kp_com.resize(DEFAULT_XDES_COM.size(), 0.0);        // proportional gain
     kp_foot.resize(6, 0.0);                             // proportional gain
     kp_posture.resize(ICUB_DOFS, 0.0);                  // proportional gain
-    H_w2b = eye(4,4);
+    //H_w2b = eye(4,4);
 
     // resize all Eigen vectors
     ftSens.resize(12); ftSens.setZero();
@@ -119,12 +119,8 @@ bool LocomotionThread::threadInit()
     YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_STOP,            this));
 
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
-    zero7.setZero();
-    H_base_leftFoot.resize(4,4);        // rototranslation from robot base to left foot (i.e. world)
-    Ha = zeros(4,4);                    // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
-    Ha(0,2)=1; Ha(1,1)=-1; Ha(2,0)=1; Ha(3,3)=1;
+    Ha.R = Rotation(0,0,1, 0,-1,0, 1,0,0);   // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
 #endif
-
     normalizeFootOrientation();
 
     // read robot status (to be done before initializing trajectory generators)
@@ -181,23 +177,20 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     
     // base orientation conversion
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
-    robot->computeH(qRad.data(), zero7.data(), LINK_ID_LEFT_FOOT, H_base_leftFoot.data());
-    H_base_leftFoot *= Ha;
-    H_w2b = SE3inv(H_base_leftFoot);    // rototranslation from world (i.e. left foot) to robot base
+    robot->computeH(qRad.data(), Frame(), LINK_ID_LEFT_FOOT, H_base_leftFoot);
+    H_base_leftFoot = H_base_leftFoot*Ha;
+    H_base_leftFoot.setToInverse().get4x4Matrix(H_w2b.data());    // rototranslation from world (i.e. left foot) to robot base
 #endif
-    //qu_w2b = dcm2quaternion(H_w2b.submatrix(0,2,0,2));
-    aa_w2b = dcm2axis(H_w2b.submatrix(0,2,0,2));     // temporarely use angle/axis notation
-    xBase[0]=H_w2b(0,3);    xBase[1]=H_w2b(1,3);    xBase[2]=H_w2b(2,3);
-    xBase[3]=aa_w2b[0];     xBase[4]=aa_w2b[1];     xBase[5]=aa_w2b[2];     xBase[6]=aa_w2b[3];
+    xBase.set4x4Matrix(H_w2b.data());
     // select which foot to control (when in double support, select the right foot)
     footLinkId = supportPhase==SUPPORT_RIGHT ? LINK_ID_LEFT_FOOT : LINK_ID_RIGHT_FOOT;
     // forward kinematics
-    res = res && robot->forwardKinematics(qRad.data(), xBase.data(), footLinkId,    x_foot.data());
-    res = res && robot->forwardKinematics(qRad.data(), xBase.data(), comLinkId,     x_com.data());
+    res = res && robot->forwardKinematics(qRad.data(), xBase, footLinkId,    x_foot.data());
+    res = res && robot->forwardKinematics(qRad.data(), xBase, comLinkId,     x_com.data());
     // compute Jacobians of both feet and CoM
-    res = res && robot->computeJacobian(qRad.data(), xBase.data(), LINK_ID_RIGHT_FOOT,  JfootR.data());
-    res = res && robot->computeJacobian(qRad.data(), xBase.data(), LINK_ID_LEFT_FOOT,   JfootL.data());
-    res = res && robot->computeJacobian(qRad.data(), xBase.data(), comLinkId,           Jcom_6xN.data());
+    res = res && robot->computeJacobian(qRad.data(), xBase, LINK_ID_RIGHT_FOOT,  JfootR.data());
+    res = res && robot->computeJacobian(qRad.data(), xBase, LINK_ID_LEFT_FOOT,   JfootL.data());
+    res = res && robot->computeJacobian(qRad.data(), xBase, comLinkId,           Jcom_6xN.data());
     // convert Jacobians
     solver->com.A = Jcom_6xN.topRows<2>();  // we control just CoM projection on the ground
     if(supportPhase==SUPPORT_DOUBLE){       solver->foot.A.setZero();    solver->constraints.A.topRows<6>()=JfootR; solver->constraints.A.bottomRows<6>()=JfootL; }
@@ -364,7 +357,7 @@ void LocomotionThread::updateSelectionMatrix()
 //*************************************************************************************************************************
 void LocomotionThread::normalizeFootOrientation()
 {
-    double axisNorm = sqrt(xd_foot[3]*xd_foot[3] + xd_foot[4]*xd_foot[4] + xd_foot[5]*xd_foot[5]);
+    double axisNorm = norm3d(&(xd_foot[3]));
     xd_foot[3] /= axisNorm;
     xd_foot[4] /= axisNorm;
     xd_foot[5] /= axisNorm;

@@ -30,10 +30,12 @@ namespace wbi
 {
 
 // Turn on or off frames bounds checking
-#ifdef NDEBUG
-    #define FRAMES_CHECKI(a)
-#else
-    #define FRAMES_CHECKI(a) assert(a)
+#ifndef CHECK_INDEX
+    #ifdef NDEBUG
+        #define CHECK_INDEX(a)
+    #else
+        #define CHECK_INDEX(a) assert(a)
+    #endif
 #endif
 
     // iterate over all body parts of the specified jointIds
@@ -210,7 +212,9 @@ namespace wbi
          * @param Xz Element of row 3 and column 1
          * @param Yz Element of row 3 and column 2
          * @param Zz Element of row 3 and column 3 */
-        inline Rotation(double Xx,double Yx,double Zx,double Xy,double Yy,double Zy,double Xz,double Yz,double Zz);
+        inline Rotation(const double Xx,const double Yx,const double Zx,
+                        const double Xy,const double Yy,const double Zy,
+                        const double Xz,const double Yz,const double Zz);
         
         // default copy constructor and assignment operator are sufficient (they perform deep copies)
 
@@ -268,6 +272,12 @@ namespace wbi
         /** The DoRot... functions apply a rotation R to *this,such that *this = *this * Rot. */
         inline void doRotZ(double angle);
 
+        /** Set the rotation to the specified rotation matrix. */
+        inline void setDcm( const double Xx,const double Yx,const double Zx,
+                            const double Xy,const double Yy,const double Zy,
+                            const double Xz,const double Yz,const double Zz);
+        /** Set the rotation to the specified rotation matrix. */
+        inline void setDcm(const double R[9]){ setDcm(R[0],R[1],R[2],R[3],R[4],R[5],R[6],R[7],R[8]); }
         /** Access to the underlying unitvectors of the rotation matrix. */
         inline void setUnitX(const double *x) { data[0]=x[0]; data[3]=x[1]; data[6]=x[2]; }
         /** Access to the underlying unitvectors of the rotation matrix. */
@@ -482,7 +492,10 @@ namespace wbi
         inline std::string toString(int precision=-1, const char *sep="\t", const char *endRow="\n") const;
 
         /** Convert this Frame into a 4x4 rototranslation matrix. */
-        void as4x4Matrix(double d[16]) const;
+        void get4x4Matrix(double d[16]) const;
+
+        /** Set this frame to the specified 4x4 rototranslation matrix. */
+        inline void set4x4Matrix(const double d[16]);
 
         /** Rototranslate the specified vector. */
         inline void rototranslate(const double v[3], double out[3]) const;
@@ -496,6 +509,10 @@ namespace wbi
 
         /** Compute the inverse frame transformation. */
         inline Frame getInverse() const;
+
+        /** Set this object to its inverse transformation.
+          * @return A reference to this object. */
+        inline Frame& setToInverse();
 
         /** @return the identity transformation Frame(Rotation::identity(), {0,0,0}). */
         inline static Frame identity();

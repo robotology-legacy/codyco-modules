@@ -205,7 +205,8 @@ namespace wbi
           * @param linkId Id of the link that is the target of the rototranslation
           * @param H Output 4x4 rototranslation matrix (stored by rows)
           * @return True if the operation succeeded, false otherwise (invalid input parameters) */
-        virtual bool computeH(double *q, const Frame &xBase, int linkId, double *H) = 0;
+        //virtual bool computeH(double *q, const Frame &xBase, int linkId, double *H) = 0;
+        virtual bool computeH(double *q, const Frame &xBase, int linkId, Frame &H) = 0;
         
         /** Compute the Jacobian of the specified point of the robot.
           * @param q Joint angles

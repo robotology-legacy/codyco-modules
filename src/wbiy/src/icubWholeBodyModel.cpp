@@ -230,7 +230,7 @@ bool icubWholeBodyModel::convertBasePose(const Frame &xBase, yarp::sig::Matrix &
 {
     if( H_world_base.cols() != 4 || H_world_base.rows() != 4 )
         H_world_base.resize(4,4);
-    xBase.as4x4Matrix(H_world_base.data());
+    xBase.get4x4Matrix(H_world_base.data());
     return true;
 }
 
@@ -349,7 +349,7 @@ bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
     //return true;
 }
 
-bool icubWholeBodyModel::computeH(double *q, const Frame &xBase, int linkId, double *H)
+bool icubWholeBodyModel::computeH(double *q, const Frame &xBase, int linkId, Frame &H)
 {
     if( (linkId < 0 || linkId >= p_icub_model->getNrOfLinks()) && linkId != COM_LINK_ID ) return false;
     
@@ -371,7 +371,7 @@ bool icubWholeBodyModel::computeH(double *q, const Frame &xBase, int linkId, dou
        H_result.setSubcol(com,0,3);
     }
 
-    memcpy(H,H_result.data(),4*4*sizeof(double));
+    H.set4x4Matrix(H_result.data());
     return true;
 }
 

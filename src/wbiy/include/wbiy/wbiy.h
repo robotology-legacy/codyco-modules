@@ -384,7 +384,7 @@ namespace wbiy
           * @param linkId Id of the link that is the target of the rototranslation
           * @param H Output 4x4 rototranslation matrix (stored by rows)
           * @return True if the operation succeeded, false otherwise (invalid input parameters) */
-        virtual bool computeH(double *q, const wbi::Frame &xBase, int linkId, double *H);
+        virtual bool computeH(double *q, const wbi::Frame &xBase, int linkId, wbi::Frame &H);
         
         /** Compute the Jacobian of the specified point of the robot.
           * @param q Joint angles
@@ -491,7 +491,7 @@ namespace wbiy
         { return modelInt->getLinkId(linkName, linkId); }
         virtual bool getJointLimits(double *qMin, double *qMax, int joint=-1)
         { return modelInt->getJointLimits(qMin, qMax, joint); }
-        virtual bool computeH(double *q, const wbi::Frame &xB, int linkId, double *H)
+        virtual bool computeH(double *q, const wbi::Frame &xB, int linkId, wbi::Frame &H)
         { return modelInt->computeH(q, xB, linkId, H); }
         virtual bool computeJacobian(double *q, const wbi::Frame &xB, int linkId, double *J, double *pos=0)
         { return modelInt->computeJacobian(q, xB, linkId, J, pos); }

@@ -44,9 +44,9 @@ Rotation::Rotation(const double R[9])
         data[i] = R[i];
 }
 
-Rotation::Rotation( double Xx,double Yx,double Zx,
-                    double Xy,double Yy,double Zy,
-                    double Xz,double Yz,double Zz)
+Rotation::Rotation( const double Xx,const double Yx,const double Zx,
+                    const double Xy,const double Yy,const double Zy,
+                    const double Xz,const double Yz,const double Zz)
 {
     data[0]=Xx; data[1]=Yx; data[2]=Zx;
     data[3]=Xy; data[4]=Yy; data[5]=Zy;
@@ -66,13 +66,13 @@ Rotation::Rotation(const double *x, const double *y, const double *z)
 
 double& Rotation::operator()(int i,int j) 
 {
-    FRAMES_CHECKI((0<=i)&&(i<=2)&&(0<=j)&&(j<=2));
+    CHECK_INDEX((0<=i)&&(i<=2)&&(0<=j)&&(j<=2));
     return data[i*3+j];
 }
 
 double Rotation::operator()(int i,int j) const 
 {
-    FRAMES_CHECKI((0<=i)&&(i<=2)&&(0<=j)&&(j<=2));
+    CHECK_INDEX((0<=i)&&(i<=2)&&(0<=j)&&(j<=2));
     return data[i*3+j];
 }
 
@@ -210,6 +210,15 @@ void Rotation::doRotZ(double angle)
     (*this)(2,0) = x3;
 }
 
+void Rotation::setDcm(  const double Xx,const double Yx,const double Zx,
+                        const double Xy,const double Yy,const double Zy,
+                        const double Xz,const double Yz,const double Zz)
+{
+    data[0]=Xx; data[1]=Yx; data[2]=Zx;
+    data[3]=Xy; data[4]=Yy; data[5]=Zy;
+    data[6]=Xz; data[7]=Yz; data[8]=Zz;
+}
+
 void Rotation::getDcm(double R[9]) const
 {
     R[0]=data[0]; R[1]=data[1]; R[2]=data[2];
@@ -255,6 +264,11 @@ Frame::Frame(const double _p[3]){ p[0]=_p[0]; p[1]=_p[1]; p[2]=_p[2]; }
 
 Frame::Frame(const Rotation & _R, const double _p[3]): R(_R){ p[0]=_p[0]; p[1]=_p[1]; p[2]=_p[2]; }
 
+void Frame::set4x4Matrix(const double d[16])
+{ 
+    R.setDcm(d[0],d[1],d[2],d[4],d[5],d[6],d[8],d[9],d[10]);
+    p[0]=d[3]; p[1]=d[7]; p[2]=d[11];
+}
 void Frame::rototranslate(const double v[3], double out[3]) const
 {
     R.rotate(v, out);
@@ -279,6 +293,14 @@ void Frame::rototranslateInverse(double v[3]) const
     R.rotateInverse(v);
 }
 
+Frame& Frame::setToInverse()
+{
+    R.setToInverse();
+    R.rotate(p);
+    p[0]=-p[0]; p[1]=-p[1]; p[2]=-p[2];
+    return *this;
+}
+
 Frame Frame::getInverse() const
 {
     double pInv[3];
@@ -289,7 +311,7 @@ Frame Frame::getInverse() const
 
 double Frame::operator()(int i,int j) 
 {
-    FRAMES_CHECKI((0<=i)&&(i<=3)&&(0<=j)&&(j<=3));
+    CHECK_INDEX((0<=i)&&(i<=3)&&(0<=j)&&(j<=3));
     if (i!=3) 
         return (j!=3) ? R(i,j) : p[i];
     return (j!=3) ? 0.0 : 1.0;
@@ -297,7 +319,7 @@ double Frame::operator()(int i,int j)
 
 double Frame::operator()(int i,int j) const 
 {
-    FRAMES_CHECKI((0<=i)&&(i<=3)&&(0<=j)&&(j<=3));
+    CHECK_INDEX((0<=i)&&(i<=3)&&(0<=j)&&(j<=3));
     if (i!=3) 
         return (j!=3) ? R(i,j) : p[i];
     return (j!=3) ? 0.0 : 1.0;

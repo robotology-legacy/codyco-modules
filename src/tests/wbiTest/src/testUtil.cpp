@@ -88,7 +88,7 @@ bool wbiTest::isRototranslationMatrixProper(const Frame &F)
 {
     int res = 0;
     double x[3], y[3], z[3], M[16];
-    F.as4x4Matrix(M);
+    F.get4x4Matrix(M);
     x[0]=M[0]; x[1]=M[4]; x[2]=M[8];
     y[0]=M[1]; y[1]=M[5]; y[2]=M[9];
     z[0]=M[2]; z[1]=M[6]; z[2]=M[10];

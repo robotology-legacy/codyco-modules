@@ -389,7 +389,7 @@ bool wbi::isEqual(const Rotation& a, const Rotation& b, double eps)
 /****************************************** FRAME ***********************************************/
 /************************************************************************************************/
 
-void Frame::as4x4Matrix(double d[16]) const
+void Frame::get4x4Matrix(double d[16]) const
 {
     for (int i=0;i<3;i++) 
     {
