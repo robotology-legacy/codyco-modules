@@ -18,7 +18,6 @@
 
 #include <wbi/wbi.h>
 #include <sstream>
-#include <math.h>
 
 using namespace std;
 using namespace wbi;

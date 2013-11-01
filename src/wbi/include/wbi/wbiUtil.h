@@ -25,6 +25,7 @@
 #include <sstream>      // std::stringstream
 #include <iomanip>      // std::setprecision
 #include <cassert>
+#include <cmath>
 
 namespace wbi
 {

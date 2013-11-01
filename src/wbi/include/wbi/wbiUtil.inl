@@ -17,9 +17,8 @@
  */
 
 #include <sstream>
-#include <math.h>
 
-double wbi::norm3d(const double &x, const double &y, const double &z)
+double norm3d(const double &x, const double &y, const double &z)
 {
     double tmp1=fabs(x), tmp2=fabs(y);
     if (tmp1 >= tmp2) 
