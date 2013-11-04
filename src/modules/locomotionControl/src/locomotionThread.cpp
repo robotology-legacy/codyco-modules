@@ -16,7 +16,7 @@
 */
 
 #include <locomotion/locomotionThread.h>
-#include <wbiy/wbiy.h>
+#include <wbi/icub/wholeBodyInterfaceIcub.h>
 #include <yarp/os/Time.h>
 #include <yarp/math/SVD.h>
 

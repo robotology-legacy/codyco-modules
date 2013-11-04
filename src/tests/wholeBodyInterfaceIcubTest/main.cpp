@@ -17,7 +17,7 @@
 
 #include <iCub/skinDynLib/common.h>
 
-#include <wbiy/wbiy.h>
+#include <wbi/icub/wholeBodyInterfaceIcub.h>
 
 #include <stdio.h>
 #include <math.h>

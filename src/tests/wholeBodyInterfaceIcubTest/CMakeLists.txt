@@ -3,7 +3,7 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 cmake_minimum_required(VERSION 2.8)
-SET(PROJECTNAME wholeBodyInterfaceYarpTest)
+SET(PROJECTNAME wholeBodyInterfaceIcubTest)
 PROJECT(${PROJECTNAME})
 
 find_package(YARP)
@@ -32,8 +32,8 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 
 INCLUDE_DIRECTORIES(${YARP_INCLUDE_DIRS}
-                    ${wbi_INCLUDE_DIRS}
-                    ${wbiy_INCLUDE_DIRS}
+                    ${wholeBodyInterface_INCLUDE_DIRS}
+                    ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
                     ${Orocos-KDL_INCLUDE_DIRS}
                     ${kdl_codyco_INCLUDE_DIRS}
@@ -42,7 +42,7 @@ INCLUDE_DIRECTORIES(${YARP_INCLUDE_DIRS}
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} skinDynLib wbi wbiy iDynTree ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} skinDynLib wholeBodyInterface wholeBodyInterfaceIcub iDynTree ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
 
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 SET(CMAKE_INSTALL_PREFIX $ENV{ICUB_DIR} CACHE PATH "installation prefix" FORCE)

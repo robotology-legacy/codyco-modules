@@ -3,7 +3,7 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 cmake_minimum_required(VERSION 2.8)
-SET(PROJECTNAME wbiTest)
+SET(PROJECTNAME wholeBodyInterfaceTest)
 PROJECT(${PROJECTNAME})
 
 find_package(YARP)
@@ -36,12 +36,12 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${YARP_INCLUDE_DIRS}
-                    ${wbi_INCLUDE_DIRS}
+                    ${wholeBodyInterface_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} wbi)
+TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} wholeBodyInterface)
 
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 SET(CMAKE_INSTALL_PREFIX $ENV{ICUB_DIR} CACHE PATH "installation prefix" FORCE)

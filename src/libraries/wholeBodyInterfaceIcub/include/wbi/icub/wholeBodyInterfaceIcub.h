@@ -17,8 +17,8 @@
  * Public License for more details
  */
 
-#ifndef WBIY_H
-#define WBIY_H
+#ifndef WBI_ICUB_H
+#define WBI_ICUB_H
 
 #include <yarp/dev/all.h>
 #include <yarp/dev/ControlBoardInterfaces.h>

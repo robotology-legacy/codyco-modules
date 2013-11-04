@@ -2,7 +2,7 @@
 # Authors: Andrea Del Prete
 # CopyPolicy: Released under the terms of the GNU GPL v2.0 (or any later version).
 
-SET(PROJECTNAME wbiy)
+SET(PROJECTNAME wholeBodyInterfaceIcub)
 
 PROJECT(${PROJECTNAME})
 
@@ -24,9 +24,9 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 SET(folder_source src/icubWholeBodyInterface.cpp 
                   src/icubWholeBodyModel.cpp
                   src/icubWholeBodyStates.cpp
-                  src/yarpWholeBodyActuators.cpp
-                  src/yarpWholeBodySensors.cpp)
-SET(folder_header include/wbiy/wbiy.h)
+                  src/icubWholeBodyActuators.cpp
+                  src/icubWholeBodySensors.cpp)
+SET(folder_header include/wbi/icub/wholeBodyInterfaceIcub.h)
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
@@ -35,7 +35,7 @@ include(iCubHelpers)
 include(iCubOptions)
 
 INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/include
-                    ${wbi_INCLUDE_DIRS}
+                    ${wholeBodyInterface_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
                     ${Orocos-KDL_INCLUDE_DIRS}
                     ${kdl_codyco_INCLUDE_DIRS}
@@ -50,14 +50,14 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME}
                                      ${YARP_LIBRARIES}
                                      skinDynLib
                                      ctrlLib
-                                     wbi
+                                     wholeBodyInterface
                                      iDynTree
                                      ${Orocos-KDL_LIBRARIES} 
                                      ${kdl_codyco_LIBRARIES})
 
 icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
-                                   DEPENDS wbi
-                                   DESTINATION include/wbiy
+                                   DEPENDS wholeBodyInterface
+                                   DESTINATION include/wbi/icub
                                    FILES ${folder_header})
 
 

@@ -15,7 +15,7 @@
  * Public License for more details
  */
 
-#include "wbiy/wbiy.h"
+#include "wbi/icub/wholeBodyInterfaceIcub.h"
 #include <iCub/skinDynLib/common.h>
 #include <iCub/ctrl/math.h>
 #include <string>

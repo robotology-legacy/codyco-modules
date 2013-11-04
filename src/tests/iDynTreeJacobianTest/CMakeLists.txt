@@ -29,7 +29,7 @@ SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
 INCLUDE_DIRECTORIES(${iDyn_INCLUDE_DIRS}
-					${iDynTree_INCLUDE_DIRS}
+                    ${iDynTree_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
                     ${skinDynLib_INCLUDE_DIRS})
