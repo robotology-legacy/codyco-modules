@@ -77,7 +77,7 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     int                 _n;                     // current number of active joints
     int                 _k;                     // current number of constraints
     LocomotionStatus    status;                 // thread status ("on" when controlling, off otherwise)
-    Vector7d            xBase;                  // position/orientation of the floating base
+    Frame               xBase;                  // position/orientation of the floating base
     Vector              aa_w2b;                 // world to base rotation in angle/axis notation
     JacobianMatrix      Jcom_6xN;               // Jacobian of the center of mass (6 x N, where N=n+6)
     JacobianMatrix      JfootR;                 // Jacobian of the right foot
@@ -90,9 +90,8 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     JacobiSVD<MatrixXd> svdJcb;                 // singular value decomposition of Jcb
     VectorXd            ftSens;                 // ankle force/torque sensor readings (order is: left, right)
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
-    Vector7d zero7;
-    MatrixY H_base_leftFoot;        // rototranslation from robot base to left foot (i.e. world)
-    MatrixY Ha;                     // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
+    Frame H_base_leftFoot;                      // rototranslation from robot base to left foot (i.e. world)
+    Frame Ha;                                   // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
 #endif
 
     // Module parameters
@@ -106,7 +105,7 @@ class LocomotionThread: public RateThread, public ParamObserver, public CommandO
     int                 supportPhase;
     Vector              xd_com, xd_foot;        // desired positions (use yarp vector because minJerkTrajGen wants yarp vector)
     Vector              qd;                     // desired joint posture (for all ICUB_DOFS joints)
-    MatrixY             H_w2b;                  // rotation matrix from world to base reference frame
+    Matrix4d            H_w2b;                  // rototranslation from world to base reference frame
 
     // Output streaming parameters
     Vector              xr_com, xr_foot, qr;        // reference positions (use yarp vector because minJerkTrajGen gives yarp vector)
