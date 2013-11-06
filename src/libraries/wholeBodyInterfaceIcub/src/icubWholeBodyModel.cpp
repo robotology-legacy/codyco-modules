@@ -37,108 +37,16 @@ using namespace iCub::skinDynLib;
 #define FOR_ALL(itBp, itJ)                  FOR_ALL_OF(itBp, itJ, jointIdList)
 // print the floating point vector pointed by data of size size and name name
 #define PRINT_VECTOR(name, size, data)  printf("%s: ",name); for(int i=0;i<size;i++) printf("%.1lf ",data[i]); printf("\n");
-
+// print the floating point matrix pointed by data of name "name"
 #define PRINT_MATRIX(name, rows, cols, data) printf("%s:\n",name); for(int i=0;i<rows;i++){ for(int j=0;j<cols;j++) printf("%.1lf ",data[i*(cols)+j]); printf("\n"); }
-
-Vector dcm2quaternion(const Matrix &R, unsigned int verbose)
-{
-    if ((R.rows()<3) || (R.cols()<3))
-    {
-        if (verbose)
-            fprintf(stderr,"dcm2quaternion() failed\n");
-
-        return Vector(0);
-    }
-
-    Vector v(4);
-    v[0]=R(2,1)-R(1,2);
-    v[1]=R(0,2)-R(2,0);
-    v[2]=R(1,0)-R(0,1);
-    v[3]=0.0;
-    double r=yarp::math::norm(v);
-    double theta=atan2(0.5*r,0.5*(R(0,0)+R(1,1)+R(2,2)-1));
-    
-    double x,y,z,w;
-    
-    if (r<1e-9)
-    {
-        double trace = R[0][0] + R[1][1] + R[2][2]; // I removed + 1.0f; see discussion with Ethan
-        if( trace > 0 ) {// I changed M_EPSILON to 0
-            double s = 0.5f / sqrt(trace+ 1.0f);
-            w = 0.25f / s;
-            x = ( R(2,1) - R(1,2) ) * s;
-            y = ( R(0,2) - R(2,0) ) * s;
-            z = ( R(1,0) - R(0,1) ) * s;
-        } else {
-            if ( R(0,0) > R(1,1) && R(0,0) > R(2,2) ) {
-                double s = 2.0f * sqrt( 1.0f + R(0,0) - R(1,1) - R(2,2));
-                w = (R(2,1)- R(1,2) ) / s;
-                x = 0.25f * s;
-                y = (R(0,1) + R(1,0) ) / s;
-                z = (R(0,2) + R(2,0) ) / s;
-            } else if (R(1,1) > R(2,2)) {
-                double s = 2.0f * sqrt( 1.0f + R(1,1) - R(0,0) - R(2,2));
-                w = (R(0,2) - R(2,0) ) / s;
-                x = (R(0,1) + R(1,0) ) / s;
-                y = 0.25f * s;
-                z = (R(1,2) + R(2,1) ) / s;
-            } else {
-                double s = 2.0f * sqrt( 1.0f + R(2,2) - R(0,0) - R(1,1) );
-                w = (R(1,0) - R(0,1) ) / s;
-                x = (R(0,2) + R(2,0) ) / s;
-                y = (R(1,2) + R(2,1) ) / s;
-                z = 0.25f * s;
-            }
-        }
-    }
-    
-    v[0] = x;
-    v[1] = y;
-    v[2] = z;
-    v[3] = w;
-
-    return v;
-}
-
-Matrix quaternion2dcm(const Vector &v, unsigned int verbose=false)
-{
-    if (v.length()<4)
-    {
-        if (verbose)
-            fprintf(stderr,"quaternion2dcm() failed\n");
-    
-        return Matrix(0,0);
-    }
-
-    Matrix R(4,4);
-    R.eye();
-
-    double x=v[0];
-    double y=v[1];
-    double z=v[2];
-    double w=v[3];
-
-    R(0,0)=1-2*(y*y+z*z);
-    R(0,1)=2*(x*y+w*z);
-    R(0,2)=2*(x*z-w*y);
-    R(1,0)=2*(x*y-w*z);
-    R(1,1)=1-2*(x*x+z*z);
-    R(1,2)=2*(y*z+w*x);
-    R(2,0)=2*(x*z+w*y);
-    R(2,1)=2*(y*z-w*x);
-    R(2,2)=1-2*(x*x+y*y);
-
-    return R;
-}
-
 
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 //                                          ICUB WHOLE BODY MODEL
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames, 
-    int head_version, int legs_version, double* initial_q)
+icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName, int head_version, int legs_version, 
+    double* initial_q, const std::vector<std::string> &_bodyPartNames)
     : dof(0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
 {
     version.head_version = head_version;
@@ -191,11 +99,6 @@ bool icubWholeBodyModel::close()
     return ok;
 }
 
-int icubWholeBodyModel::getDoFs()
-{
-    return dof;
-}
-
 bool icubWholeBodyModel::removeJoint(const wbi::LocalId &j)
 {
     if(!jointIdList.removeId(j))
@@ -208,7 +111,6 @@ bool icubWholeBodyModel::addJoint(const wbi::LocalId &j)
 {
     if(!jointIdList.addId(j))
         return false;
-    
     dof++;
     return true;
 }
@@ -218,12 +120,6 @@ int icubWholeBodyModel::addJoints(const wbi::LocalIdList &j)
     int count = jointIdList.addIdList(j);
     dof += count;
     return count;
-}
-
-bool icubWholeBodyModel::getLinkId(const char *linkName, int &linkId)
-{
-    linkId = p_icub_model->getLinkIndex(linkName);
-    return linkId>=0;
 }
 
 bool icubWholeBodyModel::convertBasePose(const Frame &xBase, yarp::sig::Matrix & H_world_base)

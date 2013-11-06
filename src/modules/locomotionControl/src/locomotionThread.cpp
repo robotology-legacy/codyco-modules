@@ -154,7 +154,7 @@ void LocomotionThread::run()
             cout<<"\n************ ERROR: CONTROLLER STOPPED BECAUSE DESIRED JOINT VELOCITIES ARE TOO LARGE: "<<toString(dqDes,2)<<endl;
         }
         else
-            robot->setVelRef(dqDes.data()); // send velocities to the joint motors
+            robot->setControlReference(dqDes.data()); // send velocities to the joint motors
             
         sendMsg("Solver time: "+toString(solver->solverTime)+"; iterations: "+toString(solver->solverIterations)+"; blocked joints: "+toString(solver->getBlockedJointList()), MSG_INFO);
         sendMsg("dqDes: "+toString(1e3*dqDes.transpose(), 1), MSG_DEBUG);
@@ -170,10 +170,10 @@ void LocomotionThread::run()
 bool LocomotionThread::readRobotStatus(bool blockingRead)
 {
     // read joint angles
-    bool res = robot->getQ(qRad.data(), blockingRead);
+    bool res = robot->getEstimates(ESTIMATE_JOINT_POS, qRad.data(), blockingRead);
+    res = res && robot->getEstimates(ESTIMATE_JOINT_VEL, dqJ.data(), -1.0, blockingRead);
+    res = res && robot->getEstimates(ESTIMATE_FORCE_TORQUE, ftSens.data(), -1.0, blockingRead);
     qDeg = CTRL_RAD2DEG*qRad;
-    res = res && robot->getDq(dqJ.data(), -1.0, blockingRead);
-    res = res && robot->getFTsensors(ftSens.data(), -1.0, blockingRead);
     
     // base orientation conversion
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
@@ -274,7 +274,7 @@ void LocomotionThread::preStopOperations()
 {
     // no need to lock because the mutex is already locked
     VectorXd dqMotors = VectorXd::Zero(_n);
-    robot->setVelRef(dqMotors.data());      // stop joint motors
+    robot->setControlReference(dqMotors.data());      // stop joint motors
     robot->setControlMode(CTRL_MODE_POS);   // set position control mode
     status = LOCOMOTION_OFF;                // set thread status to "off"
 }
