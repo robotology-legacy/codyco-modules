@@ -15,7 +15,7 @@
  * Public License for more details
  */
 
-#include "wbi/icub/wholeBodyInterfaceIcub.h"
+#include "wbiIcub/wholeBodyInterfaceIcub.h"
 #include <yarp/os/Time.h>
 #include <iCub/ctrl/math.h>
 #include <string>
@@ -24,7 +24,7 @@
 
 using namespace std;
 using namespace wbi;
-using namespace wbiy;
+using namespace wbiIcub;
 using namespace yarp::os;
 using namespace yarp::dev;
 using namespace yarp::sig;

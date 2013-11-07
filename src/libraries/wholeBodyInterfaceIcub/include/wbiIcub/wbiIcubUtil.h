@@ -27,7 +27,7 @@
 
 /* CODE UNDER DEVELOPMENT */
 
-namespace wbiy
+namespace wbiIcub
 {
     // handy variable for initializing the whole body interface for iCub
     const wbi::LocalIdList ICUB_RIGHT_ARM_JOINTS(iCub::skinDynLib::RIGHT_ARM, 0, 1, 2, 3, 4);
@@ -102,6 +102,6 @@ namespace wbiy
         return true;
     }
     
-} // end namespace
+} // end namespace wbiIcub
 
 #endif

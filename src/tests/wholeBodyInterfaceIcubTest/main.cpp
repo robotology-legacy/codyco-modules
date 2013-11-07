@@ -17,7 +17,7 @@
 
 #include <iCub/skinDynLib/common.h>
 
-#include <wbi/icub/wholeBodyInterfaceIcub.h>
+#include <wbiIcub/wholeBodyInterfaceIcub.h>
 
 #include <stdio.h>
 #include <math.h>
@@ -32,7 +32,7 @@ using namespace yarp::math;
 using namespace iCub::skinDynLib;
 using namespace std;
 using namespace wbi;
-using namespace wbiy;
+using namespace wbiIcub;
 
 const double TOL = 1e-8;
 

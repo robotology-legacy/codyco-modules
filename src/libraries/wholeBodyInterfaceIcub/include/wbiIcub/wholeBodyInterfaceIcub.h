@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2013 iCub Facility - Istituto Italiano di Tecnologia
  * Author: Andrea Del Prete
@@ -27,7 +26,7 @@
 #include <yarp/os/BufferedPort.h>
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 #include <iCub/iDynTree/iCubTree.h>
-#include <wbi/icub/wbiIcubUtil.h>
+#include <wbiIcub/wbiIcubUtil.h>
 #include <map>
 //#if __APPLE__
 //#include <tr1/unordered_map>
@@ -37,7 +36,7 @@
 
 /* CODE UNDER DEVELOPMENT */
 
-namespace wbiy
+namespace wbiIcub
 {
     /*
      * Class for reading the sensors of iCub.
@@ -49,7 +48,6 @@ namespace wbiy
         std::string                 name;           // name used as root for the local ports
         std::string                 robot;          // name of the robot
 
-        //int                         dof;            // number of degrees of freedom
         std::vector<int>            bodyParts;      // list of the body parts
         std::vector<std::string>    bodyPartNames;  // names of the body parts
         std::vector<id_2_PortName>  ftSens_2_port;  // list containing the port name for each force/torque sensor
@@ -81,8 +79,6 @@ namespace wbiy
         bool openEncoder(const int bodyPart);
         bool openImu(const wbi::LocalId &i);
         bool openFTsens(const wbi::LocalId &i);
-
-        //void setBodyPartName(int bodyPart, const std::string &nameBodyPart);
         
         // *** ENCODERS
         virtual bool addEncoder(const wbi::LocalId &j);
@@ -579,7 +575,7 @@ namespace wbiy
         { return modelInt->directDynamics(q, xB, dq, dxB, M, h); }
     };
     
-} // end namespace
+} // end namespace wbiIcub
 
 #endif
 

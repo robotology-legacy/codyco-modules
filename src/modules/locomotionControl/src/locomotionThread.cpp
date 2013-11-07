@@ -16,14 +16,15 @@
 */
 
 #include <locomotion/locomotionThread.h>
-#include <wbi/icub/wholeBodyInterfaceIcub.h>
+#include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <yarp/os/Time.h>
+#include <yarp/os/Log.h>
 #include <yarp/math/SVD.h>
 
 
 using namespace locomotion;
 using namespace yarp::math;
-using namespace wbiy;
+using namespace wbiIcub;
 
 //*************************************************************************************************************************
 LocomotionThread::LocomotionThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
