@@ -45,9 +45,7 @@ namespace wbi
         CTRL_PARAM_REF_VEL,     // reference velocity for trajectory generator
         CTRL_PARAM_REF_ACC      // reference acceleration for trajectory generator
     };
-    
-
-
+   
     /** List of available sensor types. */
     enum SensorType
     {
@@ -91,9 +89,6 @@ namespace wbi
     SensorTypeDescription(SENSOR_FORCE_TORQUE,  "force-torque",     6, false, "6-axis force torque"), 
     SensorTypeDescription(SENSOR_ACCELEROMETER, "accelerometer",    3, false, "3d linear acceleration"), 
     };
-
-
-
 
     /** List of available estimates. */
     enum EstimateType

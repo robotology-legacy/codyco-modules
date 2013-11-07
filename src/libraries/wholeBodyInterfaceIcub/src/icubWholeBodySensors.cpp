@@ -16,7 +16,7 @@
  */
 
 #include "wbi/icub/wholeBodyInterfaceIcub.h"
-//#include <iCub/skinDynLib/common.h>
+#include <yarp/os/Time.h>
 #include <iCub/ctrl/math.h>
 #include <string>
 #include <sstream>
@@ -38,39 +38,6 @@ using namespace iCub::ctrl;
 #define FOR_ALL_BODY_PARTS(itBp)            FOR_ALL_BODY_PARTS_OF(itBp, jointIdList)
 // iterate over all joints of all body parts
 #define FOR_ALL(itBp, itJ)                  FOR_ALL_OF(itBp, itJ, jointIdList)
-
-string wbiy::getPortName(const LocalId &lid, const id_2_PortName *id2port, const int size)
-{
-    int i=0;
-    do
-    {
-        if(id2port[i].id == lid)
-            return id2port[i].portName;
-        i++;
-    }
-    while(i<size);
-    return "";
-}
-
-bool wbiy::openPolyDriver(const string &localName, const string &robotName, PolyDriver* &pd, const string &bodyPartName)
-{
-    string localPort  = "/" + localName + "/" + bodyPartName;
-    string remotePort = "/" + robotName + "/" + bodyPartName;
-    Property options;
-    options.put("robot",robotName.c_str());
-    options.put("part",bodyPartName.c_str());
-    options.put("device","remote_controlboard");
-    options.put("local",localPort.c_str());
-    options.put("remote",remotePort.c_str());
-    
-    pd = new PolyDriver(options);
-    if(!pd || !(pd->isValid()))
-    {
-        fprintf(stderr,"Problems instantiating the device driver %s\n", bodyPartName.c_str());
-        return false;
-    }
-    return true;
-}
 
 // *********************************************************************************************************************
 // *********************************************************************************************************************
@@ -518,4 +485,3 @@ bool icubWholeBodySensors::readFTsensor(const LocalId &sid, double *ftSens, doub
 
     return true;
 }
-

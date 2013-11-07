@@ -20,73 +20,27 @@
 #ifndef WBI_ICUB_H
 #define WBI_ICUB_H
 
-#include <yarp/dev/all.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
+#include <yarp/dev/IVelocityControl2.h>
+#include <yarp/os/RateThread.h>
 #include <yarp/os/Semaphore.h>
 #include <yarp/os/BufferedPort.h>
-#include <iCub/skinDynLib/common.h>
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
-#include <wbi/wbi.h>
+#include <iCub/iDynTree/iCubTree.h>
+#include <wbi/icub/wbiIcubUtil.h>
 #include <map>
 //#if __APPLE__
 //#include <tr1/unordered_map>
 //#else
 //#include <unordered_map>
 //#endif
-#include <vector>
-#include <iCub/iDynTree/iCubTree.h>
 
 /* CODE UNDER DEVELOPMENT */
 
 namespace wbiy
 {
-    // handy variable for initializing the whole body interface for iCub
-    const wbi::LocalIdList ICUB_RIGHT_ARM_JOINTS(iCub::skinDynLib::RIGHT_ARM, 0, 1, 2, 3, 4);
-    const wbi::LocalIdList ICUB_LEFT_ARM_JOINTS(iCub::skinDynLib::LEFT_ARM, 0, 1, 2, 3, 4);
-    const wbi::LocalIdList ICUB_RIGHT_LEG_JOINTS(iCub::skinDynLib::RIGHT_LEG, 0, 1, 2, 3, 4, 5);
-    const wbi::LocalIdList ICUB_LEFT_LEG_JOINTS(iCub::skinDynLib::LEFT_LEG, 0, 1, 2, 3, 4, 5);
-    const wbi::LocalIdList ICUB_TORSO_JOINTS(iCub::skinDynLib::TORSO, 0, 1, 2);
-    const wbi::LocalIdList ICUB_MAIN_JOINTS(ICUB_TORSO_JOINTS, ICUB_LEFT_ARM_JOINTS, ICUB_RIGHT_ARM_JOINTS, ICUB_LEFT_LEG_JOINTS, ICUB_RIGHT_LEG_JOINTS);
-
-    // mapping from generic sensor id to corresponding port name
-    struct id_2_PortName { wbi::LocalId id; std::string portName; };
-
-    // *** Mapping from FORCE/TORQUE SENSORS to PORT NAMES ***
-    const int ICUB_FT_SENS_NUMBER = 6;
-    const id_2_PortName icub_FTsens_2_PortName[ICUB_FT_SENS_NUMBER] = {
-        {wbi::LocalId(iCub::skinDynLib::LEFT_ARM,0),    "/left_arm/analog:o" }, 
-        {wbi::LocalId(iCub::skinDynLib::RIGHT_ARM,0),   "/right_arm/analog:o"}, 
-        {wbi::LocalId(iCub::skinDynLib::LEFT_LEG,0),    "/left_leg/analog:o" }, 
-        {wbi::LocalId(iCub::skinDynLib::RIGHT_LEG,0),   "/right_leg/analog:o"}, 
-        {wbi::LocalId(iCub::skinDynLib::LEFT_LEG,1),    "/left_foot/analog:o"}, 
-        {wbi::LocalId(iCub::skinDynLib::RIGHT_LEG,1),   "/right_foot/analog:o"}, 
-    };
-
-    // *** Mapping from IMUs to PORT NAMES ***
-    const id_2_PortName icub_IMU_2_PortName[1] = {
-        {wbi::LocalId(iCub::skinDynLib::HEAD,0),    "/inertial:o" }, 
-    };
-
-    /** Find the port name into id2port corresponding to the specified local id.
-     * @param lid Local id to look for
-     * @param id2port Mapping from ids to port names
-     * @param size Number of elements of id2port
-     * @return The port name corresponding to the specified local id. */
-    std::string getPortName(const wbi::LocalId &lid, const id_2_PortName *id2port, const int size);
-
-    inline std::string getPortName(const wbi::LocalId &lid, const std::vector<id_2_PortName> id2port)
-    {return getPortName(lid, &id2port[0], id2port.size());}
-
-    /** Return true if the robotName is "icubSim", false otherwise. */
-    inline bool isRobotSimulator(const std::string &robotName)
-    { return robotName=="icubSim"; }
-    
-    /** Open a remote control board driver for the specified body part. */
-    bool openPolyDriver(const std::string &localName, const std::string &robotName, yarp::dev::PolyDriver *&pd, const std::string &bodyPartName);
-    
     /*
-     * Class for reading the sensors of a robot that is accessed through
-     * a yarp interface (i.e. PolyDrivers)
+     * Class for reading the sensors of iCub.
      */
     class icubWholeBodySensors: public wbi::iWholeBodySensors
     {
@@ -221,10 +175,9 @@ namespace wbiy
         virtual bool readSensors(const wbi::SensorType st, double *data, double *stamps=0, bool blocking=true);
     };
     
-    
+
     /*
-     * Class for interfacing the actuators of a robot that is accessed through
-     * a yarp interface (polydrivers etc)
+     * Class for communicating with iCub's motor control boards.
      */
     class icubWholeBodyActuators : public wbi::iWholeBodyActuators
     {
@@ -294,6 +247,7 @@ namespace wbiy
         virtual bool setControlParam(wbi::ControlParam paramId, double *value, int joint=-1);
     };
     
+
     /** 
      * Thread that estimates the state of the iCub robot. 
      */
@@ -346,8 +300,9 @@ namespace wbiy
         bool lockAndCopyVectorElement(int i, const yarp::sig::Vector &src, double *dest);
     };
     
+
     /**
-     * Class to access the estimates of the states of a robot with a yarp interface.
+     * Class to access the estimates of the states of iCub.
      */
     class icubWholeBodyStates : public wbi::iWholeBodyStates
     {
@@ -421,9 +376,9 @@ namespace wbiy
         virtual bool getEstimates(const wbi::EstimateType et, double *data, double time=-1.0, bool blocking=true);
     };
     
-    
+
     /**
-     * Interface to the kinematic/dynamic model of the robot.
+     * Interface to the kinematic/dynamic model of iCub.
      */
     class icubWholeBodyModel: public wbi::iWholeBodyModel
     {
@@ -563,7 +518,7 @@ namespace wbiy
     
     
     /**
-     * Class to communicate with iCub
+     * Class to communicate with iCub.
      */
     class icubWholeBodyInterface : public wbi::wholeBodyInterface
     {
@@ -623,8 +578,6 @@ namespace wbiy
         virtual bool directDynamics(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *M, double *h)
         { return modelInt->directDynamics(q, xB, dq, dxB, M, h); }
     };
-    
-    
     
 } // end namespace
 

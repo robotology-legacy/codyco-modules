@@ -26,7 +26,8 @@ SET(folder_source src/icubWholeBodyInterface.cpp
                   src/icubWholeBodyStates.cpp
                   src/icubWholeBodyActuators.cpp
                   src/icubWholeBodySensors.cpp)
-SET(folder_header include/wbi/icub/wholeBodyInterfaceIcub.h)
+SET(folder_header include/wbi/icub/wholeBodyInterfaceIcub.h
+                  include/wbi/icub/wbiIcubUtil.h)
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
