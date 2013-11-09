@@ -152,7 +152,7 @@ void LocomotionThread::run()
         if(areDesiredJointVelTooLarge())    // check desired joint velocities are not too large
         {
             preStopOperations();            // stop the controller
-            cout<<"\n************ ERROR: CONTROLLER STOPPED BECAUSE DESIRED JOINT VELOCITIES ARE TOO LARGE: "<<toString(dqDes,2)<<endl;
+            cout<<"\n************ ERROR: CONTROLLER STOPPED BECAUSE DESIRED JOINT VELOCITIES ARE TOO LARGE: "<<toString(dqDes.transpose(),2)<<endl;
         }
         else
             robot->setControlReference(dqDes.data()); // send velocities to the joint motors
