@@ -124,7 +124,7 @@ endif()
 configure_file(
   "${CMAKE_SOURCE_DIR}/cmake_uninstall.cmake.in"
   "${CMAKE_BINARY_DIR}/cmake_uninstall.cmake"
-  IMMEDIATE @ONLY)
+  @ONLY)
 
 add_custom_target(uninstall_CoDyCo
   "${CMAKE_COMMAND}" -P "${CMAKE_BINARY_DIR}/icub-config-uninstall.cmake")

@@ -18,7 +18,7 @@ if(DOXYGEN_FOUND)
     set(DOX_PATTERNS "*.h *.dox *.cpp")
     set(DOX_GENERATE_MAN NO)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
-                   ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile IMMEDIATE)
+                   ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
     add_custom_target(dox COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 
     set(DOX_GENERATE_HTML NO)
@@ -26,6 +26,6 @@ if(DOXYGEN_FOUND)
     set(DOX_GENERATE_XML NO)
     set(DOX_PATTERNS "cmd_*.dox")
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
-                   ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.man IMMEDIATE)
+                   ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.man)
     add_custom_target(man COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.man)
 endif(DOXYGEN_FOUND)
