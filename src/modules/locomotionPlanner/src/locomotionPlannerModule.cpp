@@ -41,7 +41,7 @@ YARP_DECLARE_DEVICES(icubmod)
 
 using namespace yarp::dev;
 using namespace paramHelp;
-using namespace wbiy;
+using namespace wbiIcub;
 using namespace locomotionPlanner;
 using namespace locomotion;
 

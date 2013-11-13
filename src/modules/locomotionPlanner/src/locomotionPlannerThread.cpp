@@ -65,7 +65,7 @@ void LocomotionPlannerThread::run()
 {
     ifstream file(filename.c_str(), ifstream::in);
     //get number of lines in file
-    int mycount = count(istreambuf_iterator<char>(file), istreambuf_iterator<char>(),'\n');
+    int mycount = (int) count(istreambuf_iterator<char>(file), istreambuf_iterator<char>(),'\n');
     int lineNumber = mycount;
     //reset file status
     file.clear();

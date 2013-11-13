@@ -16,14 +16,15 @@
 */
 
 #include <locomotion/locomotionThread.h>
-#include <wbi/icub/wholeBodyInterfaceIcub.h>
+#include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <yarp/os/Time.h>
+#include <yarp/os/Log.h>
 #include <yarp/math/SVD.h>
 
 
 using namespace locomotion;
 using namespace yarp::math;
-using namespace wbiy;
+using namespace wbiIcub;
 
 //*************************************************************************************************************************
 LocomotionThread::LocomotionThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
@@ -151,10 +152,10 @@ void LocomotionThread::run()
         if(areDesiredJointVelTooLarge())    // check desired joint velocities are not too large
         {
             preStopOperations();            // stop the controller
-            cout<<"\n************ ERROR: CONTROLLER STOPPED BECAUSE DESIRED JOINT VELOCITIES ARE TOO LARGE: "<<toString(dqDes,2)<<endl;
+            cout<<"\n************ ERROR: CONTROLLER STOPPED BECAUSE DESIRED JOINT VELOCITIES ARE TOO LARGE: "<<toString(dqDes.transpose(),2)<<endl;
         }
         else
-            robot->setVelRef(dqDes.data()); // send velocities to the joint motors
+            robot->setControlReference(dqDes.data()); // send velocities to the joint motors
             
         sendMsg("Solver time: "+toString(solver->solverTime)+"; iterations: "+toString(solver->solverIterations)+"; blocked joints: "+toString(solver->getBlockedJointList()), MSG_INFO);
         sendMsg("dqDes: "+toString(1e3*dqDes.transpose(), 1), MSG_DEBUG);
@@ -170,10 +171,10 @@ void LocomotionThread::run()
 bool LocomotionThread::readRobotStatus(bool blockingRead)
 {
     // read joint angles
-    bool res = robot->getQ(qRad.data(), blockingRead);
+    bool res = robot->getEstimates(ESTIMATE_JOINT_POS, qRad.data(), blockingRead);
+    res = res && robot->getEstimates(ESTIMATE_JOINT_VEL, dqJ.data(), -1.0, blockingRead);
+    res = res && robot->getEstimates(ESTIMATE_FORCE_TORQUE, ftSens.data(), -1.0, blockingRead);
     qDeg = CTRL_RAD2DEG*qRad;
-    res = res && robot->getDq(dqJ.data(), -1.0, blockingRead);
-    res = res && robot->getFTsensors(ftSens.data(), -1.0, blockingRead);
     
     // base orientation conversion
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
@@ -274,7 +275,7 @@ void LocomotionThread::preStopOperations()
 {
     // no need to lock because the mutex is already locked
     VectorXd dqMotors = VectorXd::Zero(_n);
-    robot->setVelRef(dqMotors.data());      // stop joint motors
+    robot->setControlReference(dqMotors.data());      // stop joint motors
     robot->setControlMode(CTRL_MODE_POS);   // set position control mode
     status = LOCOMOTION_OFF;                // set thread status to "off"
 }

@@ -17,7 +17,7 @@
 
 #include <iCub/skinDynLib/common.h>
 
-#include <wbi/icub/wholeBodyInterfaceIcub.h>
+#include <wbiIcub/wholeBodyInterfaceIcub.h>
 
 #include <stdio.h>
 #include <math.h>
@@ -32,7 +32,7 @@ using namespace yarp::math;
 using namespace iCub::skinDynLib;
 using namespace std;
 using namespace wbi;
-using namespace wbiy;
+using namespace wbiIcub;
 
 const double TOL = 1e-8;
 
@@ -57,25 +57,27 @@ int main(int argc, char * argv[])
     printf("Number of DoFs: %d\n", dof);
     
     Vector q(dof), dq(dof), d2q(dof);
-    icub->getQ(q.data());
-    printf("Q:   %s\n", q.toString(1).c_str());
-    
-    Vector refSpeed(dof, 10.0), qd = q;
-    qd += 30.0;
-    icub->setReferenceSpeed(refSpeed.data());
-    icub->setPosRef(qd.data());
+    icub->getEstimates(ESTIMATE_JOINT_POS, q.data());
+    Vector refSpeed(dof, CTRL_DEG2RAD*10.0), qd = q;
+    qd += 15.0*CTRL_DEG2RAD;
+    printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
+    printf("Qd:  %s\n", (CTRL_RAD2DEG*qd).toString(1).c_str());
+    icub->setControlParam(CTRL_PARAM_REF_VEL, refSpeed.data());
+    icub->setControlReference(qd.data());
     int j = 0;
     for(int i=0; i<30; i++)
     {
         Time::delay(0.1);
-        icub->getQ(q.data());
-        icub->getDq(dq.data());
-        icub->getD2q(d2q.data());
-        printf("(Q, dq, d2q):   %.2f \t %.2f \t %.2f\n", q(j), dq(j), d2q(j));
+        icub->getEstimates(ESTIMATE_JOINT_POS, q.data());
+        icub->getEstimates(ESTIMATE_JOINT_VEL, dq.data());
+        icub->getEstimates(ESTIMATE_JOINT_ACC,d2q.data());
+        printf("(Q, dq, d2q):   %.2f \t %.2f \t %.2f\n", CTRL_RAD2DEG*q(j), CTRL_RAD2DEG*dq(j), CTRL_RAD2DEG*d2q(j));
     }
-    
-    qd -= 30.0;
-    icub->setPosRef(qd.data());
+    printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
+
+    qd -= CTRL_DEG2RAD*15.0;
+    icub->setControlReference(qd.data());
+
     Time::delay(1.0);
     printf("Test finished. Press return to exit.");
     getchar();

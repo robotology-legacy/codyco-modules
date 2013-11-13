@@ -26,7 +26,8 @@ SET(folder_source src/icubWholeBodyInterface.cpp
                   src/icubWholeBodyStates.cpp
                   src/icubWholeBodyActuators.cpp
                   src/icubWholeBodySensors.cpp)
-SET(folder_header include/wbi/icub/wholeBodyInterfaceIcub.h)
+SET(folder_header include/wbiIcub/wholeBodyInterfaceIcub.h
+                  include/wbiIcub/wbiIcubUtil.h)
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
@@ -57,7 +58,7 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME}
 
 icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
                                    DEPENDS wholeBodyInterface
-                                   DESTINATION include/wbi/icub
+                                   DESTINATION include/wbiIcub
                                    FILES ${folder_header})
 
 

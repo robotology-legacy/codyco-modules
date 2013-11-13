@@ -26,7 +26,7 @@
 #include <yarp/os/Vocab.h>
 
 #include <paramHelp/paramHelpServer.h>
-#include <wbi/icub/wholeBodyInterfaceIcub.h>
+#include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <locomotion/locomotionThread.h>
  
 using namespace std;
