@@ -24,6 +24,7 @@
 #include <iCub/skinDynLib/common.h>
 #include <wbi/wbi.h>
 #include <vector>
+#include <cstdio>
 
 /* CODE UNDER DEVELOPMENT */
 
