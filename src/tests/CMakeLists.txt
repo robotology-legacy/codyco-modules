@@ -1,3 +1,4 @@
 #add_subdirectory(iDynTreeJacobianTest)
-add_subdirectory(wbiTest)
+add_subdirectory(wholeBodyInterfaceTest)
+add_subdirectory(wholeBodyInterfaceIcubTest)
 

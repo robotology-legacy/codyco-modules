@@ -9,7 +9,8 @@
 # ADD_SUBDIRECTORY(A)
 # ADD_SUBDIRECTORY(B)
 
-
+add_subdirectory(wholeBodyInterface)
+add_subdirectory(wholeBodyInterfaceIcub)
 add_subdirectory(modHelp)
 add_subdirectory(paramHelp)
 add_subdirectory(iDynTree)
