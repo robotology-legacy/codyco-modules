@@ -41,7 +41,7 @@ YARP_DECLARE_DEVICES(icubmod)
 
 using namespace yarp::dev;
 using namespace paramHelp;
-using namespace wbiy;
+using namespace wbiIcub;
 using namespace locomotion;
 
 LocomotionModule::LocomotionModule()
@@ -76,8 +76,8 @@ bool LocomotionModule::configure(ResourceFinder &rf)
     //--------------------------WHOLE BODY INTERFACE--------------------------
     robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
     robotInterface->addJoints(ICUB_MAIN_JOINTS);
-    robotInterface->addFTsensor(LocalId(RIGHT_LEG,1));  // right ankle ft sens
-    robotInterface->addFTsensor(LocalId(LEFT_LEG,1));   // left ankle ft sens
+    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE, LocalId(RIGHT_LEG,1));  // right ankle ft sens
+    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE, LocalId(LEFT_LEG,1));   // left ankle ft sens
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------

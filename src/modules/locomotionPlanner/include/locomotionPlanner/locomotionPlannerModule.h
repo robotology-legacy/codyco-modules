@@ -27,7 +27,7 @@
 
 #include <paramHelp/paramHelpClient.h>
 #include <paramHelp/paramHelpServer.h>
-#include <wbi/icub/wholeBodyInterfaceIcub.h>
+#include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <locomotionPlanner/locomotionPlannerThread.h>
  
 using namespace std;

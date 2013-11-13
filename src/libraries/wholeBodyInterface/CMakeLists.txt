@@ -6,8 +6,11 @@ SET(PROJECTNAME wholeBodyInterface)
 
 PROJECT(${PROJECTNAME})
 
-SET(folder_source src/wbiUtil.cpp)
-SET(folder_header include/wbi/wbi.h include/wbi/wbiUtil.h include/wbi/wbiUtil.inl)
+SET(folder_source src/wbiUtil.cpp )
+SET(folder_header include/wbi/wbi.h 
+                  include/wbi/wbiConstants.h 
+                  include/wbi/wbiUtil.h 
+                  include/wbi/wbiUtil.inl )
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
