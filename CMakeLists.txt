@@ -131,7 +131,7 @@ add_custom_target(uninstall_CoDyCo
 
 #### if you want to compile iDynTree you have to have the dependencies
 find_package(Eigen3)
-find_package(Orocos-KDL REQUIRED)
+find_package(orocos_kdl REQUIRED)
 find_package(kdl_codyco REQUIRED)
 
 
