@@ -1,21 +1,36 @@
+/*
+ * Copyright (C) 2013  CoDyCo Consortium
+ * Permission is granted to copy, distribute, and/or modify this program
+ * under the terms of the GNU General Public License, version 2 or any
+ * later version published by the Free Software Foundation.
+ *
+ * A copy of the license can be found at
+ * http://www.robotcub.org/icub/license/gpl.txt
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details
+ *
+ * Authors: Andrea Del Prete
+ * email: andrea.delprete@iit.it
+ */
 /**
  * \defgroup paramHelp paramHelp
  *
  * @ingroup codyco_libraries
  *
- * Classes for simplifying the management of the module parameters.
- *
- * \section dep_sec Dependencies
- * YARP
- *
- * \section intro_sec Description
+ * Classes for simplifying the management of the parameters of YARP modules.
  * The two main classes of this library are ParamHelperServer and ParamHelperClient.
+
+ * \section ParamHelperServer_sec Param Helper Server
  *
  * ParamHelperServer can be used to simplify these operations:
- * - reading the module parameters from a configuration file
+ * - reading parameters from a configuration file
  * - reading input parameters from a streaming YARP port
  * - writing output parameters on a streaming YARP port
  * - setting/getting parameters through an RPC YARP port
+ *
  * To automatize these operations ParamHelperServer needs a description of the parameters,
  * in the form of a vector of ParamDescription objects. A ParamDescription contains this information:
  * - name:           name of the parameter (can be used as an identifier, alternatively to id)
@@ -43,14 +58,14 @@
  * If multiple threads use an instance of this class, they can coordinate by using the methods
  * lock() and unlock(), which take and release the mutex associated to the object.
  *
- * \section rpc_command RPC Commands
+ * \subsection rpc_command RPC Commands
  * 
  * The ParamHelperServer can also help managing rpc commands such as 'start', 'stop', 'quit', 'help'.
  * The priciples are similar to what just explained regarding the parameter management.
  * An rpc command is described by an object of the class CommandDescription.
  * To register a callback for an rpc command, use ParamHelperServer::registerCommandCallback().
  *
- * \section open_ports Open YARP Ports
+ * \subsection open_ports Open YARP Ports
  * The ParamHelperServer opens four YARP ports when ParamHelperServer::init() is called:
  * - "/<module_name>/stream:i": port from which to read the input streaming parameters
  * - "/<module_name>/stream:o": port on which to send the output streaming parameters
@@ -59,6 +74,9 @@
  *
  * \section tested_os_sec Tested OS
  * Windows, Linux
+ *
+ * \section dep_sec Dependencies
+ * YARP
  *
  * \author Andrea Del Prete - andrea.delprete@iit.it
  *
@@ -96,13 +114,13 @@ template <class T> inline std::string toString(const std::vector<T>& v, const ch
 void printBottle(const yarp::os::Bottle &b);
 
 
-// ***********************************************************************************************//**
+/************************************************************************************************//**
 // This enum defines the possible data types of parameters
-// *************************************************************************************************
+// *************************************************************************************************/
 enum ParamDataType{ PARAM_DATA_UNKNOWN, PARAM_DATA_FLOAT, PARAM_DATA_INT, PARAM_DATA_BOOL, PARAM_DATA_STRING, PARAM_DATATYPE_SIZE };
 const std::string ParamDataType_desc[PARAM_DATATYPE_SIZE] = { "UNKNOWN PARAM TYPE", "FLOAT", "INT", "BOOL", "STRING" };
 
-/** *************************************************************************************************
+/************************************************************************************************//**
 // This enum defines the I/O types of parameters: 
 // PARAM_CONFIG: can only be set when launching the module (either from command line or from configuration file)
 // PARAM_INPUT: can be written from the rpc port, but not read
@@ -137,9 +155,9 @@ public:
 };
 
 
-// ***********************************************************************************************//**
+/************************************************************************************************//**
 // Class defining the dimension of a parameter
-// *************************************************************************************************
+// *************************************************************************************************/
 class ParamSize
 {
 public:
@@ -151,9 +169,9 @@ public:
 const ParamSize PARAM_SIZE_FREE(1, true);   ///< to be used when a parameter has free dimension
 
 
-// ***********************************************************************************************//**
+/************************************************************************************************//**
 // Single bound on a parameter value
-// *************************************************************************************************
+// *************************************************************************************************/
 class ParamBound
 {
 public:
@@ -165,9 +183,9 @@ public:
 const ParamBound PARAM_BOUND_INF(false);   ///< no bound
 
 
-// ***********************************************************************************************//**
+/************************************************************************************************//**
 // Double bound on a parameter value
-// *************************************************************************************************
+// *************************************************************************************************/
 class ParamBounds
 {
 public:
@@ -186,9 +204,9 @@ public:
 const ParamBounds PARAM_BOUNDS_INF(PARAM_BOUND_INF, PARAM_BOUND_INF);   ///< no bounds
 
 
-// *************************************************************************************************
+/************************************************************************************************//**
 // Description of a parameter
-// *************************************************************************************************
+// *************************************************************************************************/
 class ParamDescription
 {
 public:
@@ -216,9 +234,9 @@ public:
 };
 
 
-// ***********************************************************************************************//**
+/************************************************************************************************//**
 // Description of an RPC command
-// *************************************************************************************************
+// *************************************************************************************************/
 class CommandDescription
 {
 public:
@@ -233,9 +251,9 @@ public:
 };
 
 
-// ***********************************************************************************************//**
+/************************************************************************************************//**
 // Abstract class to be implemented for getting callbacks when a parameter value is changed.
-// *************************************************************************************************
+// *************************************************************************************************/
 class ParamObserver
 {
 public:
@@ -245,9 +263,9 @@ public:
 };
 
 
-// ***********************************************************************************************//**
+/************************************************************************************************//**
 // Abstract class to be implemented for getting callbacks when a command is received.
-// *************************************************************************************************
+// *************************************************************************************************/
 class CommandObserver
 {
 public:

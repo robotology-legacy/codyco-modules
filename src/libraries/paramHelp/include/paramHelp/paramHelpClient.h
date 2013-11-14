@@ -1,25 +1,21 @@
-/**
- * \defgroup paramHelp paramHelp
+/*
+ * Copyright (C) 2013  CoDyCo Consortium
+ * Permission is granted to copy, distribute, and/or modify this program
+ * under the terms of the GNU General Public License, version 2 or any
+ * later version published by the Free Software Foundation.
  *
- * @ingroup codyco_libraries
+ * A copy of the license can be found at
+ * http://www.robotcub.org/icub/license/gpl.txt
  *
- * Classes for simplifying the management of the module parameters.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details
  *
- * \section dep_sec Dependencies
- * YARP
- *
- * \section intro_sec Description
- *
- *
- * \section tested_os_sec Tested OS
- *
- * Windows
- *
- * \author Andrea Del Prete - andrea.delprete@iit.it
- *
- * Copyright (C) 2013-.. CODYCO
- * CopyPolicy: Released under the terms of the GNU GPL v2.0.
- **/
+ * Authors: Andrea Del Prete
+ * email: andrea.delprete@iit.it
+ */
+
 
 #ifndef __PARAMHELPCLIENT_H__
 #define __PARAMHELPCLIENT_H__
@@ -39,7 +35,7 @@
 namespace paramHelp
 {
 
-// *************************************************************************************************
+/************************************************************************************************//**
 // Parameter helper, client side.
 // To use this class you need an initialization phase, which consists of the following steps:
 // 1) Instantiate an object of this class specifying the parameters and the commands of the module
@@ -53,7 +49,7 @@ namespace paramHelp
 // 4) To send the input streaming parameters call the method 'sendStreamParams'
 // 5) To read the output streaming parameters call the method 'readStreamParams'
 // 6) To read sporadic info messages (about the module status) call the method 'readInfoMessage'
-// *************************************************************************************************
+****************************************************************************************************/
 class ParamHelperClient: public ParamHelperBase
 {
 protected:
