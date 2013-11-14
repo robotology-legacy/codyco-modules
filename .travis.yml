@@ -4,29 +4,39 @@ compiler:
   - gcc
   - clang
 
-before_script:
+install:
   - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
   - sudo apt-get update
   - sudo apt-get install -qq libeigen3-dev
   - sudo apt-get --force-yes install icub
+
+before_script:
+  - cmake --version
+  # Build orocos_kinematics_dynamics
   - git clone https://github.com/traversaro/orocos_kinematics_dynamics
   - cd orocos_kinematics_dynamics/orocos_kdl
   - mkdir build
   - cd build
-  - cmake ../
+  - cmake ..
   - make
   - sudo make install
   - cd ../../..
+  # Build kdl_codyco
   - git clone https://github.com/traversaro/kdl_codyco
   - cd kdl_codyco
   - mkdir build
   - cd build
-  - cmake ../
+  - cmake ..
   - make
   - sudo make install
   - cd ../..
+  # Prepare codyco build
   - mkdir build
   - cd build
-  - cmake ../
+  - cmake ..
 
-script: make && make test
+script:
+  - make
+  - make test
+  - sudo make install
+
