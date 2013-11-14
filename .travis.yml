@@ -37,6 +37,5 @@ before_script:
 
 script:
   - make
-  - make test
   - sudo make install
 
