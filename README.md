@@ -1,6 +1,6 @@
 CoDyCo
 ======
-
+[![Build Status](https://travis-ci.org/robotology/codyco.png?branch=master)](https://travis-ci.org/robotology/codyco)
 
 Whole-body Compliant Dynamical Contacts in Cognitive Humanoids
 
