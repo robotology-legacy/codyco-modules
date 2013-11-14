@@ -40,40 +40,40 @@
 namespace paramHelp
 {
 
-// *************************************************************************************************
+// ***********************************************************************************************//**
 // Parameter helper (server side).
 // To use this class you need an initialization phase, which consists of the following steps:
 // 1) Instantiate an object of this class specifying the parameters and the commands of the module
-// 2) Link each parameter to a variable, calling the method 'linkParam'
-// 3) Register a callback for each command, calling the method 'registerCommandCallback'
-// 4) If necessary, register a callback for some parameters, , calling the method 'registerParamCallback'
-// 5) Call the method 'init' (actually it can be called in any moment)
+// 2) Link each parameter to a variable, calling the method linkParam()
+// 3) Register a callback for each command, calling the method registerCommandCallback()
+// 4) If necessary, register a callback for some parameters, calling the method registerParamCallback()
+// 5) Call the method init() (actually it can be called at any moment)
 //
 // After the initializion, you can use this class in these ways:
-// 1) Any time an rpc message is received, process it calling the method 'processRpcCommand'
-// 2) To read the input streaming parameter call the method 'readStreamParams'
-// 3) To write the output streaming parameter call the method 'sendStreamParams'
-// 4) To send sporadic messages (about the module status) call the method 'sendInfoMessage'
+// 1) Any time an rpc message is received, process it calling the method processRpcCommand()
+// 2) To read the input streaming parameter call the method readStreamParams()
+// 3) To write the output streaming parameter call the method sendStreamParams()
+// 4) To send sporadic messages (about the module status) call the method sendInfoMessage()
 //
 // If multiple threads use an instance of this class, they can coordinate by using the methods
-// 'lock' and 'unlock', which take and release the mutex associated to the object.
+// lock() and unlock(), which take and release the mutex associated to the object.
 // *************************************************************************************************
 class ParamHelperServer: public ParamHelperBase
 {
-    // Define the different types of rpc commands
+    ///< Define the different types of rpc commands
     enum CommandType
     { 
-        COMMAND_GET,        // get the values of a parameter
-        COMMAND_GET_ONE,    // get one of the values of a parameter
-        COMMAND_SET,        // set the values of a parameter by specifying all the parameter values
-        COMMAND_SET_ALL,    // set all the values of a parameter to the same value
-        COMMAND_SET_ONE,    // set one of the values of a parameter
-        COMMAND_GENERIC     // generic rpc command that is neither a 'set' nor a 'get'
+        COMMAND_GET,        ///< get the values of a parameter
+        COMMAND_GET_ONE,    ///< get one of the values of a parameter
+        COMMAND_SET,        ///< set the values of a parameter by specifying all the parameter values
+        COMMAND_SET_ALL,    ///< set all the values of a parameter to the same value
+        COMMAND_SET_ONE,    ///< set one of the values of a parameter
+        COMMAND_GENERIC     ///< generic rpc command that is neither a 'set' nor a 'get'
     };
 
-    yarp::os::Semaphore                 mutex;          // mutex for the access to the parameter values    
-    std::map<int, ParamObserver*>       paramObs;       // list of pointers to parameter observers
-    std::map<int, CommandObserver*>     cmdObs;         // list of pointers to command observers
+    yarp::os::Semaphore                 mutex;          ///< mutex for the access to the parameter values    
+    std::map<int, ParamObserver*>       paramObs;       ///< list of pointers to parameter observers
+    std::map<int, CommandObserver*>     cmdObs;         ///< list of pointers to command observers
     
     /** Identify the specified rpc command.
      * @param cmd The rpc command (input)
@@ -175,10 +175,10 @@ public:
     
     /** Take the mutex associated to this object.
       * @note The management of the concurrent accesses to this object is left to the user. */
-    void lock(){    mutex.wait(); }
+    inline void lock(){    mutex.wait(); }
     
     /** Release the mutex associated to this object. */
-    void unlock(){  mutex.post(); }
+    inline void unlock(){  mutex.post(); }
 };
     
 }//end namespace paramHelp

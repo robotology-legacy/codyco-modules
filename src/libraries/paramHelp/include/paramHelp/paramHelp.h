@@ -9,11 +9,56 @@
  * YARP
  *
  * \section intro_sec Description
+ * The two main classes of this library are ParamHelperServer and ParamHelperClient.
  *
+ * ParamHelperServer can be used to simplify these operations:
+ * - reading the module parameters from a configuration file
+ * - reading input parameters from a streaming YARP port
+ * - writing output parameters on a streaming YARP port
+ * - setting/getting parameters through an RPC YARP port
+ * To automatize these operations ParamHelperServer needs a description of the parameters,
+ * in the form of a vector of ParamDescription objects. A ParamDescription contains this information:
+ * - name:           name of the parameter (can be used as an identifier, alternatively to id)
+ * - description:    meaning of the parameter (displayed in rpc port help messages)
+ * - id:             unique integer identifier of the parameter
+ * - type:           data type (int, float, string), see ParamDataType
+ * - size:           dimension of the parameter vector (1 if the parameter is a single value), see ParamSize
+ * - bounds:         constraints on the parameter values (makes sense only for numbers), see ParamBounds
+ * - ioType:         access level (input/output, streaming/rpc), see ParamIOTypeEnum
+ * - defaultValue:   default value of the parameter
+ *
+ * Besides the description of the parameters, ParamHelperServer needs to know where the parameters are 
+ * stored in memory (i.e. the address of the variable containing the value of the parameter).
+ * To link a parameter to a variable the user can use the method ParamHelperServer::linkParam().
+ * If necessary, the user can also get a callback every time a parameter is set; this is done by
+ * calling ParamHelperServer::registerParamCallback(). The object that gets the callback has to 
+ * inherit the abstract class ParamObserver.
+ *
+ * After the initial configuration, the user can use this class in these ways:
+ * - Any time an rpc message is received, process it calling the method processRpcCommand()
+ * - To read the input streaming parameter call the method readStreamParams()
+ * - To write the output streaming parameter call the method sendStreamParams()
+ * - To send sporadic messages (about the module status) call the method sendInfoMessage()
+ *
+ * If multiple threads use an instance of this class, they can coordinate by using the methods
+ * lock() and unlock(), which take and release the mutex associated to the object.
+ *
+ * \section rpc_command RPC Commands
+ * 
+ * The ParamHelperServer can also help managing rpc commands such as 'start', 'stop', 'quit', 'help'.
+ * The priciples are similar to what just explained regarding the parameter management.
+ * An rpc command is described by an object of the class CommandDescription.
+ * To register a callback for an rpc command, use ParamHelperServer::registerCommandCallback().
+ *
+ * \section open_ports Open YARP Ports
+ * The ParamHelperServer opens four YARP ports when ParamHelperServer::init() is called:
+ * - "/<module_name>/stream:i": port from which to read the input streaming parameters
+ * - "/<module_name>/stream:o": port on which to send the output streaming parameters
+ * - "/<module_name>/info:o":   port on which to write output info messages
+ * - "/<module_name>/rpc":      port for rpc communication
  *
  * \section tested_os_sec Tested OS
- *
- * Windows
+ * Windows, Linux
  *
  * \author Andrea Del Prete - andrea.delprete@iit.it
  *
@@ -51,13 +96,13 @@ template <class T> inline std::string toString(const std::vector<T>& v, const ch
 void printBottle(const yarp::os::Bottle &b);
 
 
-// *************************************************************************************************
+// ***********************************************************************************************//**
 // This enum defines the possible data types of parameters
 // *************************************************************************************************
 enum ParamDataType{ PARAM_DATA_UNKNOWN, PARAM_DATA_FLOAT, PARAM_DATA_INT, PARAM_DATA_BOOL, PARAM_DATA_STRING, PARAM_DATATYPE_SIZE };
 const std::string ParamDataType_desc[PARAM_DATATYPE_SIZE] = { "UNKNOWN PARAM TYPE", "FLOAT", "INT", "BOOL", "STRING" };
 
-/***************************************************************************************************
+/** *************************************************************************************************
 // This enum defines the I/O types of parameters: 
 // PARAM_CONFIG: can only be set when launching the module (either from command line or from configuration file)
 // PARAM_INPUT: can be written from the rpc port, but not read
@@ -70,13 +115,13 @@ const std::string ParamDataType_desc[PARAM_DATATYPE_SIZE] = { "UNKNOWN PARAM TYP
 enum ParamIOTypeEnum
 { 
     PARAM_IO_UNKNOWN, 
-    PARAM_CONFIG,           // standard configuration parameter, e.g. module name, thread period
-    PARAM_INPUT,            // probably USELESS
-    PARAM_OUTPUT,           // probably USELESS
-    PARAM_IN_OUT,           // standard rpc parameter, e.g. control gain, filter frequency
-    PARAM_IN_STREAM,        // input from other modules
-    PARAM_OUT_STREAM,       // output to other modules
-    PARAM_IN_OUT_STREAM,    // input from some modules that is also of interest for other modules
+    PARAM_CONFIG,           ///< standard configuration parameter, e.g. module name, thread period
+    PARAM_INPUT,            ///< probably USELESS
+    PARAM_OUTPUT,           ///< probably USELESS
+    PARAM_IN_OUT,           ///< standard rpc parameter, e.g. control gain, filter frequency
+    PARAM_IN_STREAM,        ///< input from other modules
+    PARAM_OUT_STREAM,       ///< output to other modules
+    PARAM_IN_OUT_STREAM,    ///< input from some modules that is also of interest for other modules
     PARAM_IO_TYPE_SIZE 
 };
 class ParamIOType
@@ -92,35 +137,35 @@ public:
 };
 
 
-// *************************************************************************************************
+// ***********************************************************************************************//**
 // Class defining the dimension of a parameter
 // *************************************************************************************************
 class ParamSize
 {
 public:
-    int size;       // parameter dimension (if size is free, this is the default size)
-    bool freeSize;  // true: the parameter size is free, false it is fixed
+    int size;       ///< parameter dimension (if size is free, this is the default size)
+    bool freeSize;  ///< true: the parameter size is free, false it is fixed
     ParamSize(int s=1, bool free=false): size(s), freeSize(free) {}
-    operator int() const { return size; } // conversion from ParamSize to int (this allows to use ParamSize as an int)
+    operator int() const { return size; } ///< conversion from ParamSize to int (this allows to use ParamSize as an int)
 };
-const ParamSize PARAM_SIZE_FREE(1, true);   // to be used when a parameter has free dimension
+const ParamSize PARAM_SIZE_FREE(1, true);   ///< to be used when a parameter has free dimension
 
 
-// *************************************************************************************************
+// ***********************************************************************************************//**
 // Single bound on a parameter value
 // *************************************************************************************************
 class ParamBound
 {
 public:
-    double bound;   // value of the bound
-    bool hasBound;  // false if the bound is at infinity
+    double bound;   ///< value of the bound
+    bool hasBound;  ///< false if the bound is at infinity
     ParamBound(bool _hasBound, double _bound=0.0): hasBound(_hasBound), bound(_bound) {}
     ParamBound(double _bound): hasBound(true), bound(_bound) {}
 };
-const ParamBound PARAM_BOUND_INF(false);   // no bound
+const ParamBound PARAM_BOUND_INF(false);   ///< no bound
 
 
-// *************************************************************************************************
+// ***********************************************************************************************//**
 // Double bound on a parameter value
 // *************************************************************************************************
 class ParamBounds
@@ -138,7 +183,7 @@ public:
     std::string toString()
     { return std::string("[")+(hasLowerBound?paramHelp::toString(lowerBound):"-INF")+", "+(hasUpperBound?paramHelp::toString(upperBound):"INF")+"]"; }
 };
-const ParamBounds PARAM_BOUNDS_INF(PARAM_BOUND_INF, PARAM_BOUND_INF);   // no bounds
+const ParamBounds PARAM_BOUNDS_INF(PARAM_BOUND_INF, PARAM_BOUND_INF);   ///< no bounds
 
 
 // *************************************************************************************************
@@ -147,14 +192,14 @@ const ParamBounds PARAM_BOUNDS_INF(PARAM_BOUND_INF, PARAM_BOUND_INF);   // no bo
 class ParamDescription
 {
 public:
-    std::string     name;           // name of the parameter (can be used as an identifier, alternatively to id)
-    std::string     description;    // meaning of the parameter displayed in help messages
-    int             id;             // unique identifier of the parameter
-    ParamDataType   type;           // data type
-    ParamSize       size;           // dimension
-    ParamBounds     bounds;         // constraints on the range of values that the parameter can take
-    ParamIOType     ioType;         // access level (input/output, streaming/rpc)
-    const void      *defaultValue;  // default value of the parameter
+    std::string     name;           ///< name of the parameter (can be used as an identifier, alternatively to id)
+    std::string     description;    ///< meaning of the parameter displayed in help messages
+    int             id;             ///< unique identifier of the parameter
+    ParamDataType   type;           ///< data type
+    ParamSize       size;           ///< dimension
+    ParamBounds     bounds;         ///< constraints on the range of values that the parameter can take
+    ParamIOType     ioType;         ///< access level (input/output, streaming/rpc)
+    const void      *defaultValue;  ///< default value of the parameter
 
     ParamDescription()
         : id(-1), type(PARAM_DATA_UNKNOWN), size(PARAM_SIZE_FREE), bounds(PARAM_BOUNDS_INF), ioType(PARAM_IO_UNKNOWN) {}
@@ -163,7 +208,7 @@ public:
         ParamIOTypeEnum _ioType=PARAM_IN_OUT, const void *_value=0, const std::string &_descr="")
         :name(_name), id(_id), type(_type), size(_size), bounds(_bounds), ioType(_ioType), defaultValue(_value), description(_descr) {}
     
-    // This constructor takes an 'int' rather than a ParamSize (just to simplify notation)
+    ///< This constructor takes an 'int' rather than a ParamSize (just to simplify notation)
     ParamDescription(const std::string &_name, int _id, ParamDataType _type, int _size, ParamBounds _bounds=PARAM_BOUNDS_INF, 
         ParamIOTypeEnum _ioType=PARAM_IN_OUT, const void *_value=0, const std::string &_descr="")
         :name(_name), id(_id), type(_type), size(ParamSize(_size)), bounds(_bounds), 
@@ -171,15 +216,15 @@ public:
 };
 
 
-// *************************************************************************************************
+// ***********************************************************************************************//**
 // Description of an RPC command
 // *************************************************************************************************
 class CommandDescription
 {
 public:
-    std::string     name;           // name of the command
-    std::string     description;    // meaning of the command displayed in help messages
-    int             id;             // unique identifier of the command
+    std::string     name;           ///< name of the command
+    std::string     description;    ///< meaning of the command displayed in help messages
+    int             id;             ///< unique identifier of the command
     
     CommandDescription(): name(""), id(-1), description("") {}
     
@@ -188,7 +233,7 @@ public:
 };
 
 
-// *************************************************************************************************
+// ***********************************************************************************************//**
 // Abstract class to be implemented for getting callbacks when a parameter value is changed.
 // *************************************************************************************************
 class ParamObserver
@@ -200,7 +245,7 @@ public:
 };
 
 
-// *************************************************************************************************
+// ***********************************************************************************************//**
 // Abstract class to be implemented for getting callbacks when a command is received.
 // *************************************************************************************************
 class CommandObserver
@@ -228,13 +273,13 @@ static const char* PORT_RPC_SUFFIX          = "/rpc";
 class ParamHelperBase
 {
 protected:
-    std::map<int, ParamDescription>     paramList;      // list of parameter descriptions
-    std::map<int, void*>                paramValues;    // list of pointers to parameter values
-    std::map<int, CommandDescription>   cmdList;        // list of command descriptions
+    std::map<int, ParamDescription>     paramList;      ///< list of parameter descriptions
+    std::map<int, void*>                paramValues;    ///< list of pointers to parameter values
+    std::map<int, CommandDescription>   cmdList;        ///< list of command descriptions
 
-    yarp::os::BufferedPort<yarp::os::Bottle>    *portInStream;  // input port for streaming data
-    yarp::os::BufferedPort<yarp::os::Bottle>    *portOutStream; // output port for streaming data
-    yarp::os::Port                              portInfo;       // port for sporadic info messages
+    yarp::os::BufferedPort<yarp::os::Bottle>    *portInStream;  ///< input port for streaming data
+    yarp::os::BufferedPort<yarp::os::Bottle>    *portOutStream; ///< output port for streaming data
+    yarp::os::Port                              portInfo;       ///< port for sporadic info messages
 
     /** Check whether the specified value satisfy the constraints on the specified parameter.
      * @param id Id of the parameter (input)
