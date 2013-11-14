@@ -213,6 +213,7 @@ namespace wbiIcub
         icubWholeBodyActuators(const char* _name, const char* _robot, const std::vector<std::string> &_bodyPartNames
             =std::vector<std::string>(iCub::skinDynLib::BodyPart_s,iCub::skinDynLib::BodyPart_s+sizeof(iCub::skinDynLib::BodyPart_s)/sizeof(std::string)));
         
+        inline virtual ~icubWholeBodyActuators(){ close(); }
         virtual bool init();
         virtual bool close();
 
@@ -318,6 +319,7 @@ namespace wbiIcub
     public:
         // *** CONSTRUCTORS ***
         icubWholeBodyStates(const char* _name, const char* _robotName, double estimationTimeWindow);
+        inline virtual ~icubWholeBodyStates(){ close(); }
         
         virtual bool init();
         virtual bool close();
@@ -427,6 +429,7 @@ namespace wbiIcub
         icubWholeBodyModel(const char* _name, const char* _robotName, int head_version=2, int legs_version=1, double* initial_q=0,
             const std::vector<std::string> &_bodyPartNames=std::vector<std::string>(iCub::skinDynLib::BodyPart_s,iCub::skinDynLib::BodyPart_s+sizeof(iCub::skinDynLib::BodyPart_s)/sizeof(std::string)));
         
+        inline virtual ~icubWholeBodyModel(){ close(); }
         virtual bool init();
         virtual bool close();
 
@@ -527,6 +530,7 @@ namespace wbiIcub
         // *** CONSTRUCTORS ***
         icubWholeBodyInterface(const char* _name, const char* _robotName, int head_version=2, int legs_version=1);
         
+        inline virtual ~icubWholeBodyInterface(){ close(); }
         virtual bool init();
         virtual bool close();
         virtual bool removeJoint(const wbi::LocalId &j);
