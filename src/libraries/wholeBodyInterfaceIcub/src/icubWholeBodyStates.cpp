@@ -267,7 +267,9 @@ void icubWholeBodyEstimator::run()
         if(sensors->readSensors(SENSOR_ENCODER, q.data(), qStamps.data(), false))
         {
             estimates.lastQ = q;
-            AWPolyElement el(q, qStamps[0]);
+            AWPolyElement el;
+            el.data = q;
+            el.time = qStamps[0];
             estimates.lastDq = dqFilt->estimate(el);
             estimates.lastD2q = d2qFilt->estimate(el);
         }
