@@ -69,6 +69,9 @@ namespace wbi
     class iWholeBodySensors
     {
     public:
+        /** Virtual destructor (to allow implementation of proper destructor in son classes). */
+        inline virtual ~iWholeBodySensors(){}
+
         /** Initialize the object. This method should be called after adding the sensors,
          *  but before reading any sensor. */
         virtual bool init() = 0;
@@ -140,6 +143,8 @@ namespace wbi
     class iWholeBodyStates
     {
     public:
+        /** Virtual destructor (to allow implementation of proper destructor in son classes). */
+        inline virtual ~iWholeBodyStates(){}
         virtual bool init() = 0;
         virtual bool close() = 0;
 
@@ -210,6 +215,7 @@ namespace wbi
           * associated to the center of mass. */
         static const int COM_LINK_ID = -1; 
 
+        inline virtual ~iWholeBodyModel(){}
         virtual bool init() = 0;
         virtual bool close() = 0;
 
@@ -306,6 +312,7 @@ namespace wbi
     class iWholeBodyActuators
     {
     public:
+        inline virtual ~iWholeBodyActuators(){}
         virtual bool init() = 0;
         virtual bool close() = 0;
 
@@ -342,6 +349,7 @@ namespace wbi
     class wholeBodyInterface: public iWholeBodyStates, public iWholeBodyModel, public iWholeBodyActuators
     {
     public:
+        inline virtual ~wholeBodyInterface(){}
         virtual bool init() = 0;
         virtual bool close() = 0;
         
