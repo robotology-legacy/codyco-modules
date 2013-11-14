@@ -8,8 +8,6 @@ PROJECT(${PROJECTNAME})
 
 find_package(YARP)
 find_package(ICUB)
-find_package(Eigen3 REQUIRED)
-find_package(orocos_kdl REQUIRED)
 find_package(kdl_codyco REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
@@ -38,12 +36,10 @@ include(iCubOptions)
 INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/include
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
-                    ${orocos_kdl_INCLUDE_DIRS}
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
-                    ${YARP_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR} )
+                    ${YARP_INCLUDE_DIRS} )
 
 ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
 
@@ -53,7 +49,6 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME}
                                      ctrlLib
                                      wholeBodyInterface
                                      iDynTree
-                                     ${orocos_kdl_LIBRARIES} 
                                      ${kdl_codyco_LIBRARIES})
 
 icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include

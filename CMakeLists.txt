@@ -129,11 +129,6 @@ configure_file(
 add_custom_target(uninstall_CoDyCo
   "${CMAKE_COMMAND}" -P "${CMAKE_BINARY_DIR}/icub-config-uninstall.cmake")
 
-#### if you want to compile iDynTree you have to have the dependencies
-find_package(Eigen3)
-find_package(orocos_kdl REQUIRED)
-find_package(kdl_codyco REQUIRED)
-
 
 #### Add external modules
 #add_subdirectory(extern)
