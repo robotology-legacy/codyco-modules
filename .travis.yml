@@ -1,0 +1,32 @@
+language: cpp
+
+compiler:
+  - gcc
+  - clang
+
+before_script:
+  - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
+  - sudo apt-get update
+  - sudo apt-get install -qq libeigen3-dev
+  - sudo apt-get --force-yes install icub
+  - git clone https://github.com/traversaro/orocos_kinematics_dynamics
+  - cd orocos_kinematics_dynamics/orocos_kdl
+  - mkdir build
+  - cd build
+  - cmake ../
+  - make
+  - sudo make install
+  - cd ../../..
+  - git clone https://github.com/traversaro/kdl_codyco
+  - cd kdl_codyco
+  - mkdir build
+  - cd build
+  - cmake ../
+  - make
+  - sudo make install
+  - cd ../..
+  - mkdir build
+  - cd build
+  - cmake ../
+
+script: make && make test
