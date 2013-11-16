@@ -1,3 +1,4 @@
+#add_subdirectory(iDynTree_wholeBody_FTsensor_estimate)
 #add_subdirectory(iDynTreeJacobianTest)
 add_subdirectory(wholeBodyInterfaceTest)
 add_subdirectory(wholeBodyInterfaceIcubTest)
