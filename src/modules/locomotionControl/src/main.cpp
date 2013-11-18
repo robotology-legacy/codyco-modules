@@ -43,7 +43,6 @@ int main (int argc, char * argv[])
     rf.setDefaultConfigFile("default.ini");         //default config file name.
     rf.setDefaultContext("locomotionControl/conf"); //when no parameters are given to the module this is the default context    
     rf.configure("ICUB_ROOT",argc,argv);
-    // rf.setName("locomotionControl");
 
     if (rf.check("help"))
     {
