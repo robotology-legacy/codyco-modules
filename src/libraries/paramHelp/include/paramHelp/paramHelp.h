@@ -72,6 +72,14 @@
  * - "/<module_name>/info:o":   port on which to write output info messages
  * - "/<module_name>/rpc":      port for rpc communication
  *
+ * \subsection sec_config_file Configuration File
+ *
+ * ParamHelperServer can automatically read the values of the parameters from a configuration file.
+ * However, any white space in the name of the parameters is expected to be replaced with an underscore '_'
+ * in the configuration file. For instance, if a parameter name is 'kp com', ParamHelperServer will look
+ * for a parameter 'kp_com' in the configuration file. This is motivated by the behavior of the yarp 
+ * ResourceFinder, which works only with parameters whose name does not contain white spaces.
+ *
  * \section tested_os_sec Tested OS
  * Windows, Linux
  *
@@ -117,8 +125,18 @@ void printBottle(const yarp::os::Bottle &b);
 /************************************************************************************************//**
 // This enum defines the possible data types of parameters
 // *************************************************************************************************/
-enum ParamDataType{ PARAM_DATA_UNKNOWN, PARAM_DATA_FLOAT, PARAM_DATA_INT, PARAM_DATA_BOOL, PARAM_DATA_STRING, PARAM_DATATYPE_SIZE };
-const std::string ParamDataType_desc[PARAM_DATATYPE_SIZE] = { "UNKNOWN PARAM TYPE", "FLOAT", "INT", "BOOL", "STRING" };
+enum ParamDataType
+{ 
+    PARAM_DATA_UNKNOWN, 
+    PARAM_DATA_FLOAT, 
+    PARAM_DATA_INT, 
+    PARAM_DATA_BOOL, 
+    PARAM_DATA_STRING, 
+    PARAM_DATA_STRUCT,
+    PARAM_DATATYPE_SIZE 
+};
+const std::string ParamDataType_desc[PARAM_DATATYPE_SIZE] = { "UNKNOWN PARAM TYPE", "FLOAT", "INT", "BOOL", "STRING", "STRUCT" };
+
 
 /************************************************************************************************//**
 // This enum defines the I/O types of parameters: 
@@ -200,6 +218,9 @@ public:
     bool checkBounds(double v){ return (!hasUpperBound || v<=upperBound) && (!hasLowerBound || v>=lowerBound); }
     std::string toString()
     { return std::string("[")+(hasLowerBound?paramHelp::toString(lowerBound):"-INF")+", "+(hasUpperBound?paramHelp::toString(upperBound):"INF")+"]"; }
+
+    static ParamBounds createLowerBound(double low){ return ParamBounds(low, PARAM_BOUND_INF); }
+    static ParamBounds createUpperBound(double up){ return ParamBounds(PARAM_BOUND_INF, up); }
 };
 const ParamBounds PARAM_BOUNDS_INF(PARAM_BOUND_INF, PARAM_BOUND_INF);   ///< no bounds
 
@@ -218,19 +239,22 @@ public:
     ParamBounds     bounds;         ///< constraints on the range of values that the parameter can take
     ParamIOType     ioType;         ///< access level (input/output, streaming/rpc)
     const void      *defaultValue;  ///< default value of the parameter
+    std::vector<ParamDescription>   subParams;  ///< if the param is of type PARAM_TYPE_STRUCT this is the array of subparameters
 
+    /** Constructor of an empty parameter description. */
     ParamDescription()
         : id(-1), type(PARAM_DATA_UNKNOWN), size(PARAM_SIZE_FREE), bounds(PARAM_BOUNDS_INF), ioType(PARAM_IO_UNKNOWN) {}
     
+    /** Constructor of a simple parameter description (either an int, float or string). */
     ParamDescription(const std::string &_name, int _id, ParamDataType _type, ParamSize _size, ParamBounds _bounds=PARAM_BOUNDS_INF, 
         ParamIOTypeEnum _ioType=PARAM_IN_OUT, const void *_value=0, const std::string &_descr="")
         :name(_name), id(_id), type(_type), size(_size), bounds(_bounds), ioType(_ioType), defaultValue(_value), description(_descr) {}
-    
-    ///< This constructor takes an 'int' rather than a ParamSize (just to simplify notation)
-    ParamDescription(const std::string &_name, int _id, ParamDataType _type, int _size, ParamBounds _bounds=PARAM_BOUNDS_INF, 
-        ParamIOTypeEnum _ioType=PARAM_IN_OUT, const void *_value=0, const std::string &_descr="")
-        :name(_name), id(_id), type(_type), size(ParamSize(_size)), bounds(_bounds), 
-        ioType(_ioType), defaultValue(_value), description(_descr) {}
+
+    /** Constructor of a struct parameter description (a parameter composed by more parameters). */
+    ParamDescription(const std::string &_name, int _id, ParamSize _size, const ParamDescription *_subParams, int _subParamSize, 
+        const std::string &_descr="")
+        :name(_name), id(_id), type(PARAM_DATA_STRUCT), size(_size), bounds(PARAM_BOUNDS_INF), ioType(PARAM_IO_UNKNOWN), 
+        defaultValue(0), description(_descr), subParams(_subParams, _subParams+_subParamSize*sizeof(ParamDescription)){}
 };
 
 
@@ -319,8 +343,8 @@ protected:
     /** Check whether a parameter with the specified id exists.
      * @param id Id of the parameter
      * @return True if the parameter exists, false otherwise. */
-    bool hasParam(int id){ return paramList.find(id)!=paramList.end(); }
-    bool hasCommand(int id){ return cmdList.find(id)!=cmdList.end(); }
+    inline bool hasParam(int id){ return paramList.find(id)!=paramList.end(); }
+    inline bool hasCommand(int id){ return cmdList.find(id)!=cmdList.end(); }
 
     /** This version of setParam is used for the initialization and does not perform callbacks.
       * @param id Id of the parameter
@@ -338,7 +362,7 @@ public:
     /** Close the ports opened during the initialization phase (see init method). */
     virtual bool close();
     
-    /** Link the parameter with the specified id to the specified variable v, so that
+    /** Link the parameter with the specified id to the variable pointed by v, so that
       * every time that the parameter is set, the value of the specified variable is updated.
       * If the parameter already has a value (e.g. the deafault value), the variable pointed by v is set to that value.
       * @param id Id of the parameter

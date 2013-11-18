@@ -168,7 +168,7 @@ bool ParamHelperServer::readStreamParams(bool blockingRead)
         if(it->second.ioType.isStreamingIn())
         {
             ParamDescription *pd = &(it->second);
-            if(paramValues[pd->id]==NULL){  logMsg("Parameter "+pd->name+" has no associated variable.", MSG_ERROR);        return false; }
+            if(paramValues[pd->id]==NULL){  logMsg("readStreamParams, parameter "+pd->name+" has no associated variable.", MSG_ERROR);  return false; }
             if(j >= in->size()){            logMsg("readStreamParams, unexpected bottle size.", MSG_ERROR);                 return false; }
             Bottle *b = in->get(j).asList();
             j++;
