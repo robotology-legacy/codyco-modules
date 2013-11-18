@@ -76,27 +76,27 @@
  * \section sec_configuration_file Configuration File
  *
  * Parameters for free-motion excitation:
- * - initialJointConfiguration
+ * - initial_joint_configuration
  * - a
  * - a0
  * - w
- * - jointLimitThreshold
- * - frictionParamCovarianceThreshold
+ * - joint_limit_thresh
+ * - fric_param_covar_thresh
  *
  * Parameters for in-contact excitation:
- * - initialJointConfiguration
+ * - initial_joint_configuration
  * - a
  * - a0
  * - w
- * - movableJoints
- * - jointLimitThreshold
- * - contactForceThreshold
- * - contactMomentThreshold
+ * - movable_joints
+ * - joint_limit_thresh
+ * - contact_force_thresh
+ * - contact_moment_thresh
  * 
  *
  * \section sec_rpc_commands RPC Commands
  *
- * The module opens a YARP rpc port with name *\<moduleName>\rpc*. 
+ * The module opens a YARP rpc port with name "\<moduleName>\rpc". 
  * The rpc commands accepted by this module are:
  * - start: (re-)start the excitation
  * - stop:  stop the excitation

@@ -84,51 +84,53 @@ static const VectorNd       DEFAULT_Q               = VectorNd::Constant(0.0);
 // *** IDs of all the module parameters
 enum MotorFrictionExcitationParamId { 
     PARAM_ID_MODULE_NAME,       PARAM_ID_CTRL_PERIOD,       PARAM_ID_ROBOT_NAME,
-    PARAM_ID_KP_COM,            PARAM_ID_KP_FOOT,           PARAM_ID_KP_POSTURE, 
-    PARAM_ID_TRAJ_TIME_COM,     PARAM_ID_TRAJ_TIME_FOOT,    PARAM_ID_TRAJ_TIME_POSTURE,
-    PARAM_ID_ACTIVE_JOINTS,     PARAM_ID_SUPPORT_PHASE,     PARAM_ID_PINV_DAMP,
+    PARAM_ID_JOINT_ID,          PARAM_ID_INIT_Q,            PARAM_ID_A,
+    PARAM_ID_A0,                PARAM_ID_W,                 PARAM_ID_JOINT_LIM_THR,
+    PARAM_ID_FRIC_PAR_COV_THR,  PARAM_FREE_MOTION_EXCIT,
     PARAM_ID_Q_MAX,             PARAM_ID_Q_MIN,             PARAM_ID_JNT_LIM_MIN_DIST,
-    PARAM_ID_XDES_COM,          PARAM_ID_XDES_FOOT,         PARAM_ID_QDES,
-    PARAM_ID_H_W2B,             
-    PARAM_ID_X_COM,             PARAM_ID_XREF_COM,          PARAM_ID_X_FOOT,                
-    PARAM_ID_XREF_FOOT,         PARAM_ID_Q,                 PARAM_ID_QREF,
+    PARAM_ID_Q,
     PARAM_ID_SIZE /*This is the number of parameters, so it must be the last value of the enum.*/
 };
 
 // ******************************************************************************************************************************
 // ****************************************** DESCRIPTION OF ALL THE MODULE PARAMETERS ******************************************
 // ******************************************************************************************************************************
+struct FreeMotionExcitation
+{
+    int jointId;
+    VectorXd initialJointConfiguration;
+};
+
+const ParamDescription freeMotionExcitationParamDescr[] =
+{
+//               NAME                           ID                          TYPE                SIZE                        BOUNDS                              I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
+ParamDescription("joint id",                    PARAM_ID_JOINT_ID,          PARAM_DATA_INT,     PARAM_SIZE_FREE,            ParamBounds(0,30),                  PARAM_CONFIG,       0,                              "Id(s) of the joint(s) to excite"),          
+ParamDescription("initial joint configuration", PARAM_ID_INIT_Q,            PARAM_DATA_FLOAT,   PARAM_SIZE_FREE,            ParamBounds(-360,360),              PARAM_CONFIG,       0,                              "Id(s) of the joint(s) to excite"),
+ParamDescription("a",                           PARAM_ID_A,                 PARAM_DATA_FLOAT,   PARAM_SIZE_FREE,            ParamBounds(0,10),                  PARAM_CONFIG,       0,                              "Id(s) of the joint(s) to excite"),
+ParamDescription("a0",                          PARAM_ID_A0,                PARAM_DATA_FLOAT,   PARAM_SIZE_FREE,            ParamBounds(0,100),                 PARAM_CONFIG,       0,                              "Id(s) of the joint(s) to excite"),
+ParamDescription("w",                           PARAM_ID_W,                 PARAM_DATA_FLOAT,   PARAM_SIZE_FREE,            ParamBounds(0,5),                   PARAM_CONFIG,       0,                              "Id(s) of the joint(s) to excite"),
+ParamDescription("joint limit thresh",          PARAM_ID_JOINT_LIM_THR,     PARAM_DATA_FLOAT,   PARAM_SIZE_FREE,            ParamBounds(1,100),                 PARAM_CONFIG,       0,                              "Id(s) of the joint(s) to excite"),
+ParamDescription("fric param covar thresh",     PARAM_ID_FRIC_PAR_COV_THR,  PARAM_DATA_FLOAT,   PARAM_SIZE_FREE,            ParamBounds::createLowerBound(0),   PARAM_CONFIG,       0,                              "Id(s) of the joint(s) to excite")
+};
+
 const ParamDescription motorFrictionExcitationParamDescr[]  = 
-{ 
-//               NAME               ID                          TYPE                SIZE                        BOUNDS                              I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
-ParamDescription("name",            PARAM_ID_MODULE_NAME,       PARAM_DATA_STRING,  1,                          PARAM_BOUNDS_INF,                   PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
-ParamDescription("period",          PARAM_ID_CTRL_PERIOD,       PARAM_DATA_INT,     1,                          ParamBounds(1, 1000),               PARAM_CONFIG,       &DEFAULT_CTRL_PERIOD,           "Period of the control loop (ms)"), 
-ParamDescription("robot",           PARAM_ID_ROBOT_NAME,        PARAM_DATA_STRING,  1,                          PARAM_BOUNDS_INF,                   PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
+{
+// ************************************************* STRUCT PARAMETERS ****************************************************************************************************************************************************************************************************************************************
+//               NAME                       ID                          SIZE                SUBPARAMETERS                   SUBPARAMETER NUMBER     DESCRIPTION
+ParamDescription("free motion excitation",  PARAM_FREE_MOTION_EXCIT,    PARAM_SIZE_FREE,    freeMotionExcitationParamDescr, 7,                      "Information describing the excitation process for the joints to move in free motion"),
+// ************************************************* SIMPLE PARAMETERS ****************************************************************************************************************************************************************************************************************************************
+//               NAME                       ID                          TYPE                SIZE                        BOUNDS                              I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
+ParamDescription("name",                    PARAM_ID_MODULE_NAME,       PARAM_DATA_STRING,  1,                          PARAM_BOUNDS_INF,                   PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
+ParamDescription("period",                  PARAM_ID_CTRL_PERIOD,       PARAM_DATA_INT,     1,                          ParamBounds(1, 1000),               PARAM_CONFIG,       &DEFAULT_CTRL_PERIOD,           "Period of the control loop (ms)"), 
+ParamDescription("robot",                   PARAM_ID_ROBOT_NAME,        PARAM_DATA_STRING,  1,                          PARAM_BOUNDS_INF,                   PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
 // ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************************
-ParamDescription("kp com",          PARAM_ID_KP_COM,            PARAM_DATA_FLOAT,   2,                          ParamBounds(0.0, KP_MAX),           PARAM_IN_OUT,       DEFAULT_KP_COM.data(),          "Proportional gain for the COM position control"), 
-ParamDescription("kp foot",         PARAM_ID_KP_FOOT,           PARAM_DATA_FLOAT,   6,                          ParamBounds(0.0, KP_MAX),           PARAM_IN_OUT,       DEFAULT_KP_FOOT.data(),         "Proportional gain for the foot pose control"), 
-ParamDescription("kp posture",      PARAM_ID_KP_POSTURE,        PARAM_DATA_FLOAT,   ParamSize(ICUB_DOFS,true),  ParamBounds(0.0, KP_MAX),           PARAM_IN_OUT,       DEFAULT_KP_POSTURE.data(),      "Proportional gain for the joint posture control"), 
-ParamDescription("tt com",          PARAM_ID_TRAJ_TIME_COM,     PARAM_DATA_FLOAT,   1,                          ParamBounds(0.1, PARAM_BOUND_INF),  PARAM_IN_OUT,       &DEFAULT_TT_COM,                "Trajectory time for the COM minimum jerk trajectory generator"), 
-ParamDescription("tt foot",         PARAM_ID_TRAJ_TIME_FOOT,    PARAM_DATA_FLOAT,   1,                          ParamBounds(0.1, PARAM_BOUND_INF),  PARAM_IN_OUT,       &DEFAULT_TT_FOOT,               "Trajectory time for the foot minimum jerk trajectory generator"), 
-ParamDescription("tt posture",      PARAM_ID_TRAJ_TIME_POSTURE, PARAM_DATA_FLOAT,   1,                          ParamBounds(0.1, PARAM_BOUND_INF),  PARAM_IN_OUT,       &DEFAULT_TT_POSTURE,            "Trajectory time for the posture minimum jerk trajectory generator"), 
-ParamDescription("active joints",   PARAM_ID_ACTIVE_JOINTS,     PARAM_DATA_INT,     ICUB_DOFS,                  ParamBounds(0, 1),                  PARAM_IN_OUT,       DEFAULT_ACTIVE_JNTS.data(),     "Selection of which joints are used in the control (1: active, 0: inactive)"), 
-ParamDescription("pinv damp",       PARAM_ID_PINV_DAMP,         PARAM_DATA_FLOAT,   1,                          ParamBounds(1e-8, 1.0),             PARAM_IN_OUT,       &DEFAULT_PINV_DAMP,             "Damping factor used in the pseudoinverses"),
-ParamDescription("q max",           PARAM_ID_Q_MAX,             PARAM_DATA_FLOAT,   ICUB_DOFS,                  PARAM_BOUNDS_INF,                   PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds"),
-ParamDescription("q min",           PARAM_ID_Q_MIN,             PARAM_DATA_FLOAT,   ICUB_DOFS,                  PARAM_BOUNDS_INF,                   PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds"),
-ParamDescription("jlmd",            PARAM_ID_JNT_LIM_MIN_DIST,  PARAM_DATA_FLOAT,   1,                          ParamBounds(0.1, PARAM_BOUND_INF),  PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits"),
+ParamDescription("q max",                   PARAM_ID_Q_MAX,             PARAM_DATA_FLOAT,   ICUB_DOFS,                  PARAM_BOUNDS_INF,                   PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds"),
+ParamDescription("q min",                   PARAM_ID_Q_MIN,             PARAM_DATA_FLOAT,   ICUB_DOFS,                  PARAM_BOUNDS_INF,                   PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds"),
+ParamDescription("jlmd",                    PARAM_ID_JNT_LIM_MIN_DIST,  PARAM_DATA_FLOAT,   1,                          ParamBounds(0.1, PARAM_BOUND_INF),  PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits"),
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
-ParamDescription("support phase",   PARAM_ID_SUPPORT_PHASE,     PARAM_DATA_INT,     1,                          ParamBounds(0.0, 2.0),              PARAM_IN_STREAM,    &DEFAULT_SUPPORT_PHASE,         "Foot support phase, 0: double, 1: left foot, 2: right foot"), 
-ParamDescription("xd com",          PARAM_ID_XDES_COM,          PARAM_DATA_FLOAT,   2,                          ParamBounds(-0.26, 0.1),            PARAM_IN_STREAM,    DEFAULT_XDES_COM.data(),        "Desired position of the center of mass"),
-ParamDescription("xd foot",         PARAM_ID_XDES_FOOT,         PARAM_DATA_FLOAT,   7,                          ParamBounds(-6.0, 6.0),             PARAM_IN_STREAM,    DEFAULT_XDES_FOOT.data(),       "Desired position/orientation of the swinging foot"),
-ParamDescription("qd",              PARAM_ID_QDES,              PARAM_DATA_FLOAT,   ICUB_DOFS,                  ParamBounds(-200.0, 200.0),         PARAM_IN_STREAM,    DEFAULT_QDES.data(),            "Desired joint angles"),
-ParamDescription("H_w2b",           PARAM_ID_H_W2B,             PARAM_DATA_FLOAT,   16,                         ParamBounds(-100.0, 100.0),         PARAM_IN_STREAM,    DEFAULT_H_W2B.data(),           "Estimated rototranslation matrix between world and robot base reference frames"),
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
-ParamDescription("x com",           PARAM_ID_X_COM,             PARAM_DATA_FLOAT,   2,                          ParamBounds(-10.0, 10.0),           PARAM_OUT_STREAM,   DEFAULT_X_COM.data(),           "Position of the center of mass"),
-ParamDescription("x foot",          PARAM_ID_X_FOOT,            PARAM_DATA_FLOAT,   7,                          ParamBounds(-10.0, 10.0),           PARAM_OUT_STREAM,   DEFAULT_X_FOOT.data(),          "Position/orientation of the swinging foot"),
-ParamDescription("q",               PARAM_ID_Q,                 PARAM_DATA_FLOAT,   ICUB_DOFS,                  ParamBounds(-100.0, 100.0),         PARAM_OUT_STREAM,   DEFAULT_Q.data(),               "Joint angles"),
-ParamDescription("xr com",          PARAM_ID_XREF_COM,          PARAM_DATA_FLOAT,   2,                          ParamBounds(-10.0, 10.0),           PARAM_OUT_STREAM,   DEFAULT_XREF_COM.data(),        "Reference position of the center of mass generated by a min jerk trajectory generator"),
-ParamDescription("xr foot",         PARAM_ID_XREF_FOOT,         PARAM_DATA_FLOAT,   7,                          ParamBounds(-10.0, 10.0),           PARAM_OUT_STREAM,   DEFAULT_XREF_FOOT.data(),       "Reference position/orientation of the swinging foot generated by a min jerk trajectory generator"),
-ParamDescription("qr",              PARAM_ID_QREF,              PARAM_DATA_FLOAT,   ICUB_DOFS,                  ParamBounds(-100.0, 100.0),         PARAM_OUT_STREAM,   DEFAULT_QREF.data(),            "Reference joint angles generated by a min jerk trajectory generator"),
+ParamDescription("q",                       PARAM_ID_Q,                 PARAM_DATA_FLOAT,   ICUB_DOFS,                  ParamBounds(-100.0, 100.0),         PARAM_OUT_STREAM,   DEFAULT_Q.data(),               "Joint angles"),
+
 };
 
 
