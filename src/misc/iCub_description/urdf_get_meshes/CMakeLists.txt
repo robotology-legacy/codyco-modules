@@ -13,16 +13,18 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 
 find_package(urdfdom REQUIRED)
-find_package(Orocos-KDL REQUIRED)
-find_package(kdl_urdf REQUIRED)
+find_package(orocos_kdl REQUIRED)
+find_package(kdl_format_io REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(TinyXML REQUIRED)
 
 
 
 # add YARP include directories
-include_directories(${urdfdom_INCLUDE_DIR} ${kdl_urdf_INCLUDE_DIRS} ${Orocos-KDL_INCLUDE_DIR}  ${EIGEN3_INCLUDE_DIR})
+include_directories(${urdfdom_INCLUDE_DIR} ${kdl_format_io_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIR}  ${EIGEN3_INCLUDE_DIR})
 
 add_executable(urdf_get_meshes urdf_get_meshes.cpp)
+add_executable(urdf_get_limits urdf_get_limits.cpp)
                                   
-target_link_libraries(urdf_get_meshes ${urdfdom_LIBRARIES} ${Orocos-KDL_LIBRARIES} ${TinyXML_LIBRARIES} ${kdl_urdf_LIBRARIES})
+target_link_libraries(urdf_get_meshes ${urdfdom_LIBRARIES} ${orocos_kdl_LIBRARIES} ${TinyXML_LIBRARIES} ${kdl_format_io_LIBRARIES})
+target_link_libraries(urdf_get_limits ${urdfdom_LIBRARIES} ${orocos_kdl_LIBRARIES} ${TinyXML_LIBRARIES} ${kdl_format_io_LIBRARIES})

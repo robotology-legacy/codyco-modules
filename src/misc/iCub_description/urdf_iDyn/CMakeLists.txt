@@ -15,9 +15,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(Orocos-KDL REQUIRED)
 find_package(urdfdom REQUIRED)
-find_package(kdl_urdf REQUIRED)
+find_package(orocos_kdl REQUIRED)
+find_package(kdl_format_io REQUIRED)
 find_package(TinyXML REQUIRED)
 
 # add YARP include directories
@@ -41,8 +41,6 @@ INCLUDE_DIRECTORIES(${iDynTree_INCLUDE_DIRS}
 
 #INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
 
-add_executable(icub_urdf_from_iDyn  icub_urdf_from_iDyn.cpp)
+add_executable(icub_urdf_from_iDyn icub_urdf_from_iDyn.cpp)
                                     
-add_definitions("-lkdl_export")
-
-target_link_libraries(icub_urdf_from_iDyn ${YARP_LIBRARIES} ${ICUB_LIBRARIES} iDynTree ${Orocos-KDL_LIBRARIES} ${urdfdom_LIBRARIES} ${kdl_urdf_LIBRARIES} ${TinyXML_LIBRARIES})
+target_link_libraries(icub_urdf_from_iDyn ${YARP_LIBRARIES} ${ICUB_LIBRARIES} iDynTree ${kdl_codyco_LIBRARIES} ${orocos_kdl_LIBRARIES} ${urdfdom_LIBRARIES} ${kdl_format_io_LIBRARIES} ${TinyXML_LIBRARIES})
