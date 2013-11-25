@@ -17,7 +17,7 @@ endif(NOT orocos_kdl_FOUND)
 #### Find kdl_codyco, require that kdl_codyco version is at least kdl_codyco_REQVERSION
 set(kdl_codyco_REQVERSION_MAJOR "0")
 set(kdl_codyco_REQVERSION_MINOR "0")
-set(kdl_codyco_REQVERSION_PATCH "1")
+set(kdl_codyco_REQVERSION_PATCH "2")
 set(kdl_codyco_REQVERSION_TWEAK "")
 if(kdl_codyco_REQVERSION_TWEAK)
     set(kdl_codyco_REQVERSION ${kdl_codyco_REQVERSION_MAJOR}.${kdl_codyco_REQVERSION_MINOR}.${kdl_codyco_REQVERSION_PATCH}.${kdl_codyco_REQVERSION_TWEAK})

@@ -17,7 +17,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 # find YARP
 find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)
-find_package(Orocos-KDL REQUIRED)
+find_package(orocos_kdl)
 find_package(kdl_codyco REQUIRED)
 find_package(Eigen3 REQUIRED)
 
@@ -39,4 +39,4 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall ${ICUB_LINK_FLAGS}")
 
 add_executable(${PROJECTNAME} iDynTreeJacobianTest.cpp)
 
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${ICUB_LIBRARIES} iDyn iDynTree ${iDynTree_LIBRARIES} ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
+target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${ICUB_LIBRARIES} iDyn iDynTree ${iDynTree_LIBRARIES} ${kdl_codyco_LIBRARIES})
