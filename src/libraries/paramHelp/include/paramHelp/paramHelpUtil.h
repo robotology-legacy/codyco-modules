@@ -71,7 +71,7 @@ template <>        inline double      castFromValue<double>(const yarp::os::Valu
 template <>        inline float       castFromValue<float>(const yarp::os::Value &v){       return (float)v.asDouble(); }
 template <>        inline int         castFromValue<int>(const yarp::os::Value &v){         return v.asInt(); }
 template <>        inline bool        castFromValue<bool>(const yarp::os::Value &v){        return v.asBool(); }
-template <>        inline std::string castFromValue<std::string>(const yarp::os::Value &v){ return v.asString(); }
+template <>        inline std::string castFromValue<std::string>(const yarp::os::Value &v){ return v.asString().c_str(); }
 
 /** Print the specified Bottle. */
 inline void printBottle(const yarp::os::Bottle &b)
