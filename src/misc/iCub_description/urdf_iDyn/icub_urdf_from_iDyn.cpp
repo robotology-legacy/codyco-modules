@@ -14,7 +14,7 @@
 
 #include <kdl/tree.hpp>
 
-#include <kdl_urdf/kdl_export.hpp>
+#include <kdl_format_io/urdf_export.hpp>
 
 #include <urdf_model/model.h>
 #include <urdf_parser/urdf_parser.h>
@@ -63,15 +63,15 @@ int main(int argc, char* argv[])
     
     iCub::iDyn::version_tag icub_type;
 
-    icub_type.head_version = 2;
-    icub_type.legs_version = 2;    
+    icub_type.head_version = 1;
+    icub_type.legs_version = 1;    
     iCub::iDyn::iCubWholeBody icub_idyn(icub_type);
 
     KDL::Tree icub_kdl;
     
     KDL::JntArray dummy1,dummy2;
     
-    if( ! toKDL(icub_idyn,icub_kdl,dummy1,dummy2,iCub::iDynTree::SKINDYNLIB_SERIALIZATION,true) ) {
+    if( ! toKDL(icub_idyn,icub_kdl,dummy1,dummy2,iCub::iDynTree::SKINDYNLIB_SERIALIZATION,false,true) ) {
         std::cerr << "Fatal error in iDyn - KDL conversion" << std::endl;
         return EXIT_FAILURE;
     }
@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
     std::cout << icub_kdl << std::endl;
     
     
-    if( ! kdl_export::treeToUrdfModel(icub_kdl,"test_icub",*icub_ptr) ) {
+    if( ! kdl_format_io::treeToUrdfModel(icub_kdl,"test_icub",*icub_ptr) ) {
         std::cerr << "Fatal error in KDL - URDF conversion" << std::endl;
         return EXIT_FAILURE;
     }
