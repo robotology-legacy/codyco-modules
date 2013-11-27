@@ -442,7 +442,7 @@ public:
             if(!constraints.checkConstraint(vi))
             {
                 if(reply!=NULL)
-                    reply->addString("Value "+vi.getAsValue().toString()+" does not satisfy constraints.");
+                    reply->addString(("Value "+vi.getAsValue().toString().c_str()+" does not satisfy constraints.").c_str());
                 return false;
             }
         }
