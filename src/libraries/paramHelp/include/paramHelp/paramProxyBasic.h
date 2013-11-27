@@ -206,7 +206,7 @@ public:
         const Bottle *newValue;
         if(nv.get(0).isList())
         {
-            printf("Parameter %s, 1st element of this Bottle should be a Bottle: %s\n", name.c_str(), nv.toString().c_str());
+            //printf("Parameter %s, 1st element of this Bottle should be a Bottle: %s\n", name.c_str(), nv.toString().c_str());
             newValue = nv.get(0).asList();
         }
         else

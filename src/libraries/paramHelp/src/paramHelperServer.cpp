@@ -45,7 +45,6 @@ ParamHelperServer::~ParamHelperServer()
 //*************************************************************************************************************************
 void ParamHelperServer::initializeParams(ResourceFinder &rf, Bottle &reply)
 {
-    //Value *v;
     Bottle temp;
     for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
     {
@@ -57,12 +56,12 @@ void ParamHelperServer::initializeParams(ResourceFinder &rf, Bottle &reply)
             ///< check whether this is the parameter value of a list of section names, which contain the parameter values
             if(paramList[it->second->id]->checkConstraints(b.tail()))
             {
-                printf("Param %s is simple\n", it->second->name.c_str());
+                //printf("Param %s is simple\n", it->second->name.c_str());
                 temp = b.tail();
             }
             else
             {
-                printf("Param %s is structured\n", it->second->name.c_str());
+                //printf("Param %s is structured\n", it->second->name.c_str());
                 temp.clear();
                 for(int i=1; i<b.size(); i++)
                 {
