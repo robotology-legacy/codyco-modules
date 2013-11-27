@@ -1,7 +1,7 @@
 /* 
  * Copyright (C) 2013 CoDyCo
- * Author: Andrea Del Prete
- * email:  andrea.delprete@iit.it
+ * Author: Daniele Pucci
+ * email:  daniele.pucci@iit.it
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -19,36 +19,89 @@
 #include <jointTorqueControl/jointTorqueControlConstants.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
+#include <yarp/os/Property.h>
 
 
-using namespace locomotionPlanner;
+using namespace jointTorqueControl;
 
 
-LocomotionPlannerThread::LocomotionPlannerThread(string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient *_lc, wholeBodyInterface *_wbi, string _filename)
-    :  name(_name), robotName(_robotName), paramHelper(_ph), locoCtrl(_lc), robot(_wbi), filename(_filename)
+jointTorqueControlThread::jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient *_lc, wholeBodyInterface *_wbi, string _filename)
+    : RateThread(period), name(_name), robotName(_robotName), paramHelper(_ph), torqueCtrl(_lc), robot(_wbi), filename(_filename)
 {
     cout <<"Instantiating the thread: "<< filename << endl;
     mustStop = false;
     codyco_root = "CODYCO_ROOT";
-    status = PLANNING_OFF;
+    status = CONTROL_OFF;
+    
+    yarp::os::Property configFile;
+    
+    configFile.fromConfigFile("default.ini");
+    
+//     Bottle *pointerToFile = configFile.find("ActiveJoints").asList(); 
+//     fromListToVector(pointerToFile, aj);
+//     
+//     pointerToFile = configFile.find("kt").asList(); 
+//     fromListToVector(pointerToFile, kt);
+//     
+//     pointerToFile = configFile.find("kvp").asList(); 
+//     fromListToVector(pointerToFile, kvp);
+//     
+//     pointerToFile = configFile.find("kvn").asList(); 
+//     fromListToVector(pointerToFile, kvn);
+//     
+//     pointerToFile = configFile.find("kcp").asList(); 
+//     fromListToVector(pointerToFile, kcp);
+//     
+//     pointerToFile = configFile.find("kcn").asList(); 
+//     fromListToVector(pointerToFile, kcn);
+//     
+//     pointerToFile = configFile.find("ki").asList(); 
+//     fromListToVector(pointerToFile, ki);
+//     
+//     pointerToFile = configFile.find("kp").asList(); 
+//     fromListToVector(pointerToFile, kp);
+//     
+//     pointerToFile = configFile.find("ks").asList(); 
+//     fromListToVector(pointerToFile, ks);
+//     
+//     pointerToFile = configFile.find("Vmax").asList(); 
+//     fromListToVector(pointerToFile, Vmax);
+	
+	tau 			= VectorNd::Constant(0.0); 
+	etau 			= VectorNd::Constant(0.0); 
+	tauD 			= VectorNd::Constant(0.0); 
+	tauM 			= VectorNd::Constant(0.0); 
+	integralState 	= VectorNd::Constant(0.0); 
+	Vm 				= VectorNd::Constant(0.0); 
+	DT				= 0;
+       
 }
 
 //*************************************************************************************************************************
-bool LocomotionPlannerThread::threadInit()
+bool jointTorqueControlThread::threadInit()
 {
-    const string partialLocation = "locomotionPlanner/conf/data/timestamp10/randomStandingPoses_iCubGenova01_";
+    const string partialLocation = "jointTorqueControl/conf/data/timestamp10/randomStandingPoses_iCubGenova01_";
     filename = string(get_env_var(codyco_root) + partialLocation + filename + ".txt");
     cout<<filename<<endl;
 
     // link module rpc parameters to member variables
-
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_AJ,		aj.data()));    // constant size
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KT,		kt.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KVP,	kvp.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KVN,	kvn.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KCP,	kcp.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KCN,	kcn.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KI,		ki.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KP,		kp.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KS,		ks.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VMAX,	Vmax.data()));
+	
     // link controller input streaming parameters to member variables
-//     YARP_ASSERT(locoCtrl->linkParam(PARAM_ID_SUPPORT_PHASE,       &supportPhase));
-//     YARP_ASSERT(locoCtrl->linkParam(PARAM_ID_XDES_COM,            xd_com.data()));
-//     YARP_ASSERT(locoCtrl->linkParam(PARAM_ID_XDES_FOOT,           xd_foot.data()));
-//     YARP_ASSERT(locoCtrl->linkParam(PARAM_ID_QDES,                qd.data()));
-    //    YARP_ASSERT(locoCtrl->linkParam(PARAM_ID_FILE_NAME,           &filename));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAUD,	tauD.data()));
+	
     // link module output streaming parameters to member variables
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VM,		Vm.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU,	tau.data()));
 
     // Register callbacks for some module parameters
 
@@ -60,89 +113,45 @@ bool LocomotionPlannerThread::threadInit()
 }
 
 //*************************************************************************************************************************
-void LocomotionPlannerThread::run()
-{
-    ifstream file(filename.c_str(), ifstream::in);
-    //get number of lines in file
-    int mycount = (int) count(istreambuf_iterator<char>(file), istreambuf_iterator<char>(),'\n');
-    int lineNumber = mycount;
-    //reset file status
-    file.clear();
-    file.seekg(0,ios::beg);                         // returns to the beginning of fstream
-    double  timePrev = 0.0;
-
-    while(true){
-        if(status==PLANNING_ON){
-            if(!file.fail()){
-                cout << "Reading params config file: " << filename << endl;
-                while(lineNumber && status==PLANNING_ON)
-                {
-                    Matrix<double,1,36> paramLine;
-                    int j=0;
-
-                    //  read one line at a time from text file
-                    string line = readParamsFile(file);
-                    istringstream iss(line);
-
-                    while(iss && j<=35)
-                    {
-                        double  sub;
-                        iss  >> sub;
-                        paramLine(0,j) = sub;
-                        j++;
-                    };
-
-                    /* At this point paramLines has the current line of data in the following order
-                    <time> <support_phase> <pos_com_desired> <pos_foot_desired> <joint_desired> */
-                    // cout << "paramLine: "  << paramLine << endl;
-
-                    // updating parameters
-                    Matrix<double,1,1> tmp = paramLine.segment(1,1);    //extracting support phase which is integer
-                    unsigned int tmp2 = (unsigned int)tmp(0,0);
-                    supportPhase = tmp2;
-                    xd_com       = paramLine.segment(2,2); // segment(position,size) It doesn't modify the original Eigen vector
-//                     xd_foot      = paramLine.segment(4,7);
-//                     qd           = paramLine.segment(11,ICUB_DOFS);
-
-                    lineNumber--;
-
-                    double timeStep = paramLine(0,0) - timePrev;
-                    timePrev = paramLine(0,0);
-
-                    locoCtrl->sendStreamParams();
-                    Time::delay(timeStep);
-                }
-            }
-            else
-            {
-                fprintf(stderr,"INPUT PARAMETERS FILE NOT FOUND /n");
-            }
-
-            file.close();
-        }
+void jointTorqueControlThread::run(){
+	if(status == CONTROL_ON){
+		// Read joint velocities
+		// dq = 
+		
+		// Read torques
+		// tauM =
+		// Receive desired torques
+				
+		for (int i=0; i < N_DOF; i++){
+			if (aj(i) == 1) {
+				// etau = tauM(i) - tauD(i);
+				// integralState(i) = integralState(i) - DT*etau
+				// tau(i) = tauD(i) - kp(i)*etau -ki(i)*integralState(i);
+				// Vm(i) = kt(i)*tao(i) + [kvp(i)*s(dq) + kvn(i)*s(-dq)]*dq + [kcp(i)*s(dq) + kcn(i)*s(-dq)]*tanh(ks(i)*dq),
+			}
+		}
     }
-    printf("All positions from file have been sent /n");
 }
 
 //*************************************************************************************************************************
-void LocomotionPlannerThread::startSending()
+void jointTorqueControlThread::startSending()
 {
-    status = PLANNING_ON;       //sets thread status to ON
+    status = CONTROL_ON;       //sets thread status to ON
 }
 //*************************************************************************************************************************
-void LocomotionPlannerThread::stopSending()
+void jointTorqueControlThread::stopSending()
 {
-    status = PLANNING_OFF;
+    status = CONTROL_OFF;
 }
 
 //*************************************************************************************************************************
-void LocomotionPlannerThread::threadRelease()
+void jointTorqueControlThread::threadRelease()
 {
 
 }
 
 //*************************************************************************************************************************
-void LocomotionPlannerThread::parameterUpdated(const ParamDescription &pd)
+void jointTorqueControlThread::parameterUpdated(const ParamDescription &pd)
 {
     //switch(pd.id)
     //{
@@ -152,7 +161,7 @@ void LocomotionPlannerThread::parameterUpdated(const ParamDescription &pd)
 }
 
 //*************************************************************************************************************************
-void LocomotionPlannerThread::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
+void jointTorqueControlThread::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
 {
     switch(cd.id)
     {
@@ -168,14 +177,14 @@ void LocomotionPlannerThread::commandReceived(const CommandDescription &cd, cons
 }
 
 //*************************************************************************************************************************
-string LocomotionPlannerThread::readParamsFile(ifstream& fp)
+string jointTorqueControlThread::readParamsFile(ifstream& fp)
 {
     string lineStr;
     getline(fp,lineStr);
     return(lineStr);
 }
 //*************************************************************************************************************************
-string LocomotionPlannerThread::get_env_var( string const & key ) {
+string jointTorqueControlThread::get_env_var( string const & key ) {
     char * val;
     val = getenv( key.c_str() );
     std::string retval = "";
@@ -185,8 +194,16 @@ string LocomotionPlannerThread::get_env_var( string const & key ) {
     return retval;
 }
 //*************************************************************************************************************************
-void LocomotionPlannerThread::sendMsg(const string &s, MsgType type)
+void jointTorqueControlThread::sendMsg(const string &s, MsgType type)
 {
     if(type>=MSG_DEBUG)
-        printf("[LocomotionPlannerThread] %s\n", s.c_str());
+        printf("[jointTorqueControlThread] %s\n", s.c_str());
+}
+
+void jointTorqueControlThread::fromListToVector(Bottle * pointerToList, VectorNd& vector) {
+	    for (int i=0; i < pointerToList->size(); i++)
+            {
+                vector(i) = pointerToList->get(i).asDouble();
+            }
+    return;
 }

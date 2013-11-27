@@ -12,6 +12,7 @@ INCLUDE_DIRECTORIES(${iDynTree_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR})
+                    
 ADD_EXECUTABLE(iDynTree_invDyn_test main.cpp)
 
 TARGET_LINK_LIBRARIES(iDynTree_invDyn_test iDyn iDynTree ${kdl_codyco_LIBRARIES} ${YARP_LIBRARIES})

@@ -10,7 +10,7 @@
 #include <kdl/treefksolverpos_recursive.hpp>
 #include <kdl/frames_io.hpp>
 
-#include <kdl_urdf/kdl_import.hpp>
+#include <kdl_format_io/urdf_import.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -18,7 +18,7 @@
 
 #include <tinyxml.h>
 
-using namespace kdl_import;
+using namespace kdl_format_io;
 using namespace KDL;
 using namespace std;
 
