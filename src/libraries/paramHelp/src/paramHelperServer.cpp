@@ -157,7 +157,7 @@ bool ParamHelperServer::sendStreamParams()
         if(it->second->ioType.isStreamingOut())
         {
             Bottle &b = out.addList();
-            b.addString(it->second->name);  // add the name of the parameter
+            b.addString(it->second->name.c_str());  // add the name of the parameter
             it->second->getAsBottle(b);     // add the value of the parameter
         }
     portOutStream->prepare() = out;
