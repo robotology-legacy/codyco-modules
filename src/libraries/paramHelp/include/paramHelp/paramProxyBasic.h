@@ -441,8 +441,10 @@ public:
                 return false;
             if(!constraints.checkConstraint(vi))
             {
-                if(reply!=NULL)
-                    reply->addString(("Value "+vi.getAsValue().toString().c_str()+" does not satisfy constraints.").c_str());
+                if(reply!=NULL) { 
+                    std::string val_str(vi.getAsValue().toString().c_str());
+                    reply->addString(("Value "+val_str+" does not satisfy constraints.").c_str());
+                }
                 return false;
             }
         }
