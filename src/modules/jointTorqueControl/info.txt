@@ -1,0 +1,129 @@
+**************************************************************************************************************
+****************************************    TORQUE CONTROL MODULE     ****************************************    
+**************************************************************************************************************
+
+--------------------------------------------------------------------------------------------------------------
+1) BACKGROUND
+--------------------------------------------------------------------------------------------------------------
+
+This module implements the whole-body torque control. Recall that the robot's motors are controlled by using 
+the PWM technique, i.e. the tension applied to each motor is a square wave of constant frequency and amplitude, 
+and the duty cycle of this wave is used as control input. 
+
+	V(t) ^           Tdc
+             |         /-----/ 
+          Vb | _  _  _  _____             ____ _
+             |         |     |           |
+             |         |     |           |
+             |         |     |           |
+             |_________|_____|___________|_______ 
+                       /-----------------/       t
+                                  T 
+
+   T: period of the square wave;
+   V: tension applied to the motor;
+  Vb: (positive) amplitude of the square wave;
+ Tdc: duty cycle time;
+
+The relationship between the link's torque tao and the tension V applied to the motor is assumed to be 
+
+	V  = kt*tao + kv*dq + kc*sign(dq),    
+	
+with kt, kv, kc three constants, and dq the link's velocity. Since the tension V(t) is a high-frequency square 
+wave, we can assume that the above relationship holds for V = Vm, where Vm stands for the "mean tension value" 
+over the time period T. By direct calculations, one can verify that 
+
+	Vm = (Tdc/T)*Vb. 
+	
+Also, discontinuities are always challenging in practice. So, it is best to smooth the sign function. 
+Among an infinite possible choices, we choose the hyperbolic function instead of sign(.). Then one has
+
+	    Vm  = kt*tao + kv*dq + kc*tanh(ks*dq).      		    			 (1)   
+
+The model (1) can be improved by modeling eventual parameters' asymmetries with respect to the joint velocity dq. 
+In particular, the parameters kv and kc may depend on the sign of dq, and have different values depending on this 
+sign. Then, an improved model is:
+
+	Vm  = kt*tao + [kvp*s(dq) + kvn*s(-dq)]*dq + [kcp*s(dq) + kcn*s(-dq)]*tanh(ks*dq),       (2)    
+
+where the function s(x) is the step function, i.e.
+		  _
+		 |  1, x >= 0,
+	s(x) =  <
+	         |_ 0, x < 0.
+		 
+As stated, Eq. (1) constitutes the relation between the tension applied to the motor and the link torque. Then, to 
+generate a desired torque taoD coming from an higher control loop, it suffices to evaluate (1) with tao = taoD. In 
+practice,however, it is a best practice to add a lower loop to generate tao so that tao will converge to taoD, i.e
+        
+	    et := tao - taoD,                                              			(3a)
+	    tao = taoD - kp*et - ki*integral(et).                          			(3b)
+
+--------------------------------------------------------------------------------------------------------------
+2) PARAMETERS DEFINITION FOR THE MODULE
+--------------------------------------------------------------------------------------------------------------
+
+The module needs a certain number of parameters for its proper operating status and management. We here define 
+these parameters:
+
+  - "name",   i.e. name of the module's instance;  
+  - "period", i.e. period of the control loop (ms); 
+  - "robot",  i.e. name of the robot; 
+  
+//  RPC PARAMETERS
+  - "aJ",     i.e. a vector of nDOF integers representing the joints to control  (1: active, 0: inactive); 
+  - "kt",     i.e. a vector of nDOF floats ( see Eq. (1) ); 
+  - "kvp",    i.e. a vector of nDOF floats ( see Eq. (2)  );
+  - "kvn",    i.e. a vector of nDOF floats (   "  "       ); 
+  - "kcp",    i.e. a vector of nDOF floats (   "  "       );  
+  - "kcn",    i.e. a vector of nDOF floats (   "  "       ); 
+  - "ki",     i.e. a vector of nDOF positive floats (     " "      );
+  - "kp",     i.e. a vector of nDOF positive floats ( see Eq. (3b) ); 
+  - "ks",     i.e. a vector of nDOF positive floats ( see Eq. (3b) ); 
+  - "Vmax",   i.e. a vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax);
+
+// STREAMING INPUT PARAMETERS 
+  - "taoD",   i.e. a vector of nDOF floats representing the desired torques;
+
+// STREAMING OUTPUT PARAMETERS 
+  - "tao",   i.e. a vector of nDOF floats representing the torques;
+  - "Vm",    i.e. a vector of nDOF floats representing the tensions;
+  - "dq",    i.e. the estimation of the joints' velocity;
+
+   
+--------------------------------------------------------------------------------------------------------------
+3) TO DO AND WARNING LIST
+--------------------------------------------------------------------------------------------------------------
+
+a) Syncronization between aJ and taoD;
+b) Anti wind-up and associated parameters;
+c) Observer and a.p.;
+d) Filtering parameters for velocity estimation and torque measurement;
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

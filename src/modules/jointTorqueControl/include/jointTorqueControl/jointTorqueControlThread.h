@@ -1,7 +1,7 @@
 /* 
  * Copyright (C) 2013 CoDyCo
- * Author: Andrea Del Prete
- * email:  andrea.delprete@iit.it
+ * Author: Daniele Pucci	
+ * email:  daniele.pucci@iit.it
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -27,10 +27,12 @@
 #include <cstdlib>
 #include <stdio.h>
 #include <time.h>
+#include <yarp/os/Property.h>
 
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Thread.h>
 #include <yarp/os/Semaphore.h>
+#include <yarp/os/RateThread.h>
 #include <yarp/sig/Vector.h>
 
 #include <iCub/ctrl/math.h>
@@ -54,39 +56,48 @@ using namespace paramHelp;
 using namespace wbi;
 using namespace Eigen;
 
-namespace locomotionPlanner
+namespace jointTorqueControl
 {
 
-enum PlanningStatus {PLANNING_ON, PLANNING_OFF};
+enum ControlStatus {CONTROL_ON, CONTROL_OFF};
 /** Locomotion planner thread: this thread sends the desired position trajectory of the COM,
     swinging foot and joint posture.**/
 
-class LocomotionPlannerThread: public Thread, public ParamObserver, public CommandObserver
+class jointTorqueControlThread: public RateThread, public ParamObserver, public CommandObserver
 {
     string              name;
     string              robotName;
     ParamHelperServer   *paramHelper;
-    ParamHelperClient   *locoCtrl;
+    ParamHelperClient   *torqueCtrl;
     wholeBodyInterface  *robot;
     bool                mustStop;
 //    string              fileName;
     string              filename;
     string              codyco_root;
-    PlanningStatus      status;         //When on the planner is reading from file and streaming data.
+    ControlStatus       status;         //When on the planner is reading from file and streaming data.
 
-    // Module parameters
-    Vector2d            kp_com;
-//     Vector6d            kp_foot;
-    VectorXd            kp_posture;
-    double              tt_com, tt_foot, tt_posture;    // trajectory times of min jerk trajectory generators
-    VectorXi            activeJoints;   // vector of bool indicating which joints are used (1 used, 0 blocked)
-    int                 supportPhase;
-    double              pinvDamp;
-
-    // Output streaming parameters
-    Vector2d            xd_com;
-//     Vector7d            xd_foot;
-//     VectorNd            qd;
+    // Thread parameters
+    
+	VectorNd 	aj;				// Vector of nDOF integers representing the joints to control  (1: active, 0: inactive) 
+    VectorNd	dq;				// Joint velocities 
+    VectorNd 	kt;				// Vector of nDOF floats ( see Eq. (1) )"), 
+    VectorNd 	kvp;			// Vector of nDOF floats ( see Eq. (2) )"), 
+    VectorNd	kvn;			// Vector of nDOF floats ( see Eq. (2) )"), 
+    VectorNd	kcp;			// Vector of nDOF floats ( see Eq. (2) )"), 
+    VectorNd	kcn;			// Vector of nDOF floats ( see Eq. (2) )"), 
+    VectorNd	ki;				// Vector of nDOF floats representing the position gains ( see Eq. (x) )"), 
+    VectorNd	kp;				// Vector of nDOF floats representing the integral gains ( see Eq. (x) )"), 
+    VectorNd	ks;				// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
+    VectorNd	etau;			// Errors between actual and desired torques 
+    VectorNd	tau;			// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
+    VectorNd	tauD;			// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
+    VectorNd	tauM;			// Measured torques, 
+    VectorNd	integralState;	// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
+    VectorNd	Vm;				// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
+    VectorNd	Vmax;			// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
+    double		DT;				// Time interval
+           
+    // Input streaming parameters
 
     // Output streaming parameters
     
@@ -94,6 +105,8 @@ class LocomotionPlannerThread: public Thread, public ParamObserver, public Comma
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO) ;
 
     void sendMonitorData() ;
+    
+    void fromListToVector(Bottle * , VectorNd &); 
 
 public:	
     
@@ -102,7 +115,7 @@ public:
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    LocomotionPlannerThread(string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient   *_lc, wholeBodyInterface *_wbi, string _filename) ;
+    jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient   *_lc, wholeBodyInterface *_wbi, string _filename) ;
 	
     bool threadInit();	
     void run();
@@ -111,7 +124,7 @@ public:
 
     void threadRelease();
 
-    void stop(){ mustStop=true; Thread::stop(); }
+//     void stop(){ mustStop=true; Thread::stop(); }
 
     /** Callback function for parameter updates. */
     void parameterUpdated(const ParamDescription &pd);
