@@ -203,7 +203,7 @@ public:
         }
         
         ///< if nv is a one-element list THEN unpack it
-        const Bottle *newValue;
+        const yarp::os::Bottle *newValue;
         if(nv.get(0).isList())
         {
             //printf("Parameter %s, 1st element of this Bottle should be a Bottle: %s\n", name.c_str(), nv.toString().c_str());
@@ -266,7 +266,7 @@ public:
             if(!constraints.checkConstraint(vi))
             {
                 if(reply!=NULL)
-                    reply->addString(string("Value ")+castToValue(vi).toString().c_str()+" does not satisfy constraints.");
+                    reply->addString(std::string("Value ")+castToValue(vi).toString().c_str()+" does not satisfy constraints.");
                 return false;
             }
         }

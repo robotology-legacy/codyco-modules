@@ -29,7 +29,7 @@
 #include <iterator>
 #include <map>
 #include <vector>
-#include <paramHelp/paramHelperbase.h>
+#include <paramHelp/paramHelperBase.h>
 
 
 namespace paramHelp
