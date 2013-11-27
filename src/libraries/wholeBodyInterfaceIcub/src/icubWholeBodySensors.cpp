@@ -406,17 +406,26 @@ bool icubWholeBodySensors::readIMUs(double *inertial, double *stamps, bool wait)
 
 bool icubWholeBodySensors::readFTsensors(double *ftSens, double *stamps, bool wait)
 {
-    Vector *v;
     int i=0;    // sensor index
+    
+    ///< iCub simulator does not implement the force/torque sensors
+    if(isRobotSimulator(robot))
+    {
+        for(map<LocalId,Vector>::iterator it=ftSensLastRead.begin(); it!=ftSensLastRead.end(); it++)
+        {
+            memcpy(&ftSens[i*6], ftSensLastRead[it->first].data(), 6);
+            i++;
+        }
+        return true;
+    }
+
+    Vector *v;
     for(map<LocalId,BufferedPort<Vector>*>::iterator it=portsFTsens.begin(); it!=portsFTsens.end(); it++)
     {
-        if(!isRobotSimulator(robot))    // icub simulator doesn't have force/torque sensors
+        v = it->second->read(wait);
+        if(v!=NULL)
         {
-            v = it->second->read(wait);
-            if(v!=NULL)
-            {
-                ftSensLastRead[it->first] = *v;
-            }
+            ftSensLastRead[it->first] = *v;
         }
         memcpy(&ftSens[i*6], ftSensLastRead[it->first].data(), 6);
         i++;
@@ -452,6 +461,11 @@ bool icubWholeBodySensors::readEncoder(const LocalId &sid, double *q, double *st
 
 bool icubWholeBodySensors::readPwm(const LocalId &sid, double *pwm, double *stamps, bool wait)
 {
+    if(isRobotSimulator(robot))
+    {
+        pwm[0] = 0.0;   // iCub simulator does not have pwm sensors
+        return true;    // does not return false, so programs can be tested in simulation
+    }
     double pwmTemp[MAX_NJ];
     bool update=false;
     assert(ienc[sid.bodyPart]!=NULL);

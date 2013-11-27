@@ -78,7 +78,7 @@ namespace wbi
         // CONSTRUCTORS
         LocalId(): bodyPart(0), index(0) {}
         LocalId(int _bp, unsigned int _j): bodyPart(_bp), index(_j) {}
-        LocalId(int _bp, unsigned int _j, std::string &_desc): bodyPart(_bp), index(_j), description(_desc) {}
+        LocalId(int _bp, unsigned int _j, const std::string &_desc): bodyPart(_bp), index(_j), description(_desc) {}
 
         // OPERATORS
         bool operator==(const LocalId &other) const { return (bodyPart==other.bodyPart && index==other.index); }

@@ -31,11 +31,11 @@
 namespace wbiIcub
 {
     // handy variable for initializing the whole body interface for iCub
-    const wbi::LocalIdList ICUB_RIGHT_ARM_JOINTS(iCub::skinDynLib::RIGHT_ARM, 0, 1, 2, 3, 4);
-    const wbi::LocalIdList ICUB_LEFT_ARM_JOINTS(iCub::skinDynLib::LEFT_ARM, 0, 1, 2, 3, 4);
-    const wbi::LocalIdList ICUB_RIGHT_LEG_JOINTS(iCub::skinDynLib::RIGHT_LEG, 0, 1, 2, 3, 4, 5);
-    const wbi::LocalIdList ICUB_LEFT_LEG_JOINTS(iCub::skinDynLib::LEFT_LEG, 0, 1, 2, 3, 4, 5);
     const wbi::LocalIdList ICUB_TORSO_JOINTS(iCub::skinDynLib::TORSO, 0, 1, 2);
+    const wbi::LocalIdList ICUB_LEFT_ARM_JOINTS(iCub::skinDynLib::LEFT_ARM, 0, 1, 2, 3, 4);
+    const wbi::LocalIdList ICUB_RIGHT_ARM_JOINTS(iCub::skinDynLib::RIGHT_ARM, 0, 1, 2, 3, 4);
+    const wbi::LocalIdList ICUB_LEFT_LEG_JOINTS(iCub::skinDynLib::LEFT_LEG, 0, 1, 2, 3, 4, 5);
+    const wbi::LocalIdList ICUB_RIGHT_LEG_JOINTS(iCub::skinDynLib::RIGHT_LEG, 0, 1, 2, 3, 4, 5);
     const wbi::LocalIdList ICUB_MAIN_JOINTS(ICUB_TORSO_JOINTS, ICUB_LEFT_ARM_JOINTS, ICUB_RIGHT_ARM_JOINTS, ICUB_LEFT_LEG_JOINTS, ICUB_RIGHT_LEG_JOINTS);
 
     // mapping from generic sensor id to corresponding port name
@@ -101,6 +101,48 @@ namespace wbiIcub
             return false;
         }
         return true;
+    }
+
+    inline wbi::LocalId globalToLocalIcubId(int globalJointId)
+    {
+        switch(globalJointId)
+        {
+        case 0: return wbi::LocalId(iCub::skinDynLib::TORSO, 0, "torso_pitch");
+        case 1: return wbi::LocalId(iCub::skinDynLib::TORSO, 1, "torso_roll");
+        case 2: return wbi::LocalId(iCub::skinDynLib::TORSO, 2, "torso_yaw");
+        case 3: return wbi::LocalId(iCub::skinDynLib::HEAD, 0, "neck_pitch");
+        case 4: return wbi::LocalId(iCub::skinDynLib::HEAD, 1, "neck_roll");
+        case 5: return wbi::LocalId(iCub::skinDynLib::HEAD, 2, "neck_yaw");
+        case 6: return wbi::LocalId(iCub::skinDynLib::LEFT_ARM, 0, "l_shoulder_pitch");
+        case 7: return wbi::LocalId(iCub::skinDynLib::LEFT_ARM, 1, "l_shoulder_roll");
+        case 8: return wbi::LocalId(iCub::skinDynLib::LEFT_ARM, 2, "l_shoulder_yaw");
+        case 9: return wbi::LocalId(iCub::skinDynLib::LEFT_ARM, 3, "l_elbow");
+        case 10: return wbi::LocalId(iCub::skinDynLib::LEFT_ARM, 4, "l_wrist_prosup");
+        case 11: return wbi::LocalId(iCub::skinDynLib::LEFT_ARM, 5, "l_wrist_pitch");
+        case 12: return wbi::LocalId(iCub::skinDynLib::LEFT_ARM, 6, "l_wrist_yaw");
+        case 13: return wbi::LocalId(iCub::skinDynLib::RIGHT_ARM, 0, "r_shoulder_pitch");
+        case 14: return wbi::LocalId(iCub::skinDynLib::RIGHT_ARM, 1, "r_shoulder_roll");
+        case 15: return wbi::LocalId(iCub::skinDynLib::RIGHT_ARM, 2, "r_shoulder_yaw");
+        case 16: return wbi::LocalId(iCub::skinDynLib::RIGHT_ARM, 3, "r_elbow");
+        case 17: return wbi::LocalId(iCub::skinDynLib::RIGHT_ARM, 4, "r_wrist_prosup");
+        case 18: return wbi::LocalId(iCub::skinDynLib::RIGHT_ARM, 5, "r_wrist_pitch");
+        case 19: return wbi::LocalId(iCub::skinDynLib::RIGHT_ARM, 6, "r_wrist_yaw");
+        case 20: return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 0, "l_hip_pitch");
+        case 21: return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 1, "l_hip_roll");
+        case 22: return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 2, "l_hip_yaw");
+        case 23: return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 3, "l_knee");
+        case 24: return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 4, "l_ankle_pitch");
+        case 25: return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 5, "l_hip_roll");
+        case 26: return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 0, "r_hip_pitch");
+        case 27: return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 1, "r_hip_roll");
+        case 28: return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 2, "r_hip_yaw");
+        case 29: return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 3, "r_knee");
+        case 30: return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 4, "r_ankle_pitch");
+        case 31: return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 5, "r_hip_roll");
+        default: 
+            printf("ERROR Unknown global joint id: %d\n", globalJointId);
+            return wbi::LocalId();
+        }
     }
     
 } // end namespace wbiIcub

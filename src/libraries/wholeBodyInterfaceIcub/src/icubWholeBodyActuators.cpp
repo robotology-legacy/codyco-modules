@@ -1,7 +1,7 @@
 /*
  * Copyright (C)2011  Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
- * Author: Marco Randazzo
- * email: marco.randazzo@iit.it
+ * Author: Andrea Del Prete, Marco Randazzo
+ * email: andrea.delprete@iit.it marco.randazzo@iit.it
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -30,13 +30,13 @@ using namespace yarp::sig;
 using namespace iCub::skinDynLib;
 using namespace iCub::ctrl;
 
-#define MAX_NJ 20
-#define WAIT_TIME 0.001
-#define DEFAULT_REF_SPEED 10.0
+#define MAX_NJ 20               ///< max number of joints in a body part
+#define WAIT_TIME 0.001         ///< waiting time in seconds before retrying to perform an operation that has failed
+#define DEFAULT_REF_SPEED 10.0  ///< default reference joint speed for the joint position control
 
-// iterate over all body parts
+///< iterate over all body parts
 #define FOR_ALL_BODY_PARTS(itBp)            FOR_ALL_BODY_PARTS_OF(itBp, jointIdList)
-// iterate over all joints of all body parts
+///< iterate over all joints of all body parts
 #define FOR_ALL(itBp, itJ)                  FOR_ALL_OF(itBp, itJ, jointIdList)
 
 // *********************************************************************************************************************
@@ -71,9 +71,12 @@ bool icubWholeBodyActuators::init()
     FOR_ALL_BODY_PARTS(itBp)
     {
         ok = ok && openDrivers(itBp->first);
-        icmd[itBp->first]->getControlModes(tmp);
-        for(vector<int>::const_iterator itJ=itBp->second.begin(); itJ!=itBp->second.end(); itJ++)
-            currentCtrlModes[LocalId(itBp->first,*itJ)] = yarpToWbiCtrlMode(tmp[itBp->first==TORSO?2-*itJ:*itJ]);
+        if(ok)
+        {
+            icmd[itBp->first]->getControlModes(tmp);
+            for(vector<int>::const_iterator itJ=itBp->second.begin(); itJ!=itBp->second.end(); itJ++)
+                currentCtrlModes[LocalId(itBp->first,*itJ)] = yarpToWbiCtrlMode(tmp[itBp->first==TORSO?2-*itJ:*itJ]);
+        }
     }
     initDone = true;
     return ok;
@@ -167,8 +170,9 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
                 break;
                 
             case CTRL_MODE_MOTOR_PWM:
-                FOR_ALL(itBp, itJ)
-                    ok = ok && icmd[itBp->first]->setOpenLoopMode(itBp->first==TORSO ? 2-(*itJ) : *itJ); // icub's torso joints are in reverse order
+                if(!isRobotSimulator(robot)) ///< iCub simulator does not implement PWM motor control
+                    FOR_ALL(itBp, itJ)
+                        ok = ok && icmd[itBp->first]->setOpenLoopMode(itBp->first==TORSO ? 2-(*itJ) : *itJ); // icub's torso joints are in reverse order
                 break;
 
             default:
@@ -191,7 +195,8 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
         case CTRL_MODE_POS:         ok = icmd[li.bodyPart]->setPositionMode(i); break;
         case CTRL_MODE_VEL:         ok = icmd[li.bodyPart]->setVelocityMode(i); break;
         case CTRL_MODE_TORQUE:      ok = icmd[li.bodyPart]->setTorqueMode(i);   break;
-        case CTRL_MODE_MOTOR_PWM:   ok = icmd[li.bodyPart]->setOpenLoopMode(i); break;
+        ///< iCub simulator does not implement PWM motor control
+        case CTRL_MODE_MOTOR_PWM:   ok = isRobotSimulator(robot) ? true : icmd[li.bodyPart]->setOpenLoopMode(i); break;
     }
     if(ok)
     {
@@ -217,13 +222,14 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
             case CTRL_MODE_POS:         return ipos[li.bodyPart]->positionMove(i, CTRL_RAD2DEG*(*ref));
             case CTRL_MODE_VEL:         return ivel[li.bodyPart]->velocityMove(i, CTRL_RAD2DEG*(*ref));
             case CTRL_MODE_TORQUE:      return itrq[li.bodyPart]->setRefTorque(i, *ref);
-            case CTRL_MODE_MOTOR_PWM:   return iopl[li.bodyPart]->setOutput(i, *ref);
+            ///< iCub simulator does not implement PWM motor control
+            case CTRL_MODE_MOTOR_PWM:   return isRobotSimulator(robot) ? true : iopl[li.bodyPart]->setOutput(i, *ref);
         }
         return false;
     }
     // set control references for all joints
 
-    // on robot use new method which set all joint vel of one body part at the same time (much faster!)
+    ///< on robot use new method which set all joint vel of one body part at the same time (much faster!)
     if(!isRobotSimulator(robot))
     {
         double spd[MAX_NJ];
@@ -255,7 +261,8 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
             case CTRL_MODE_POS:         ok = ok && ipos[itBp->first]->positionMove(j, CTRL_RAD2DEG*ref[i]); break;
             case CTRL_MODE_VEL:         ok = ok && ivel[itBp->first]->velocityMove(j, CTRL_RAD2DEG*ref[i]); break;
             case CTRL_MODE_TORQUE:      ok = ok && itrq[itBp->first]->setRefTorque(j, ref[i]);              break;
-            case CTRL_MODE_MOTOR_PWM:   ok = ok && iopl[itBp->first]->setOutput(j, ref[i]);                 break;
+            ///< iCub simulator does not implement PWM motor control
+            case CTRL_MODE_MOTOR_PWM:   ok = ok && isRobotSimulator(robot)?true:iopl[itBp->first]->setOutput(j, ref[i]); break;
         }
         i++;
     }
