@@ -198,7 +198,7 @@ public:
         if(nv.size()==0)
         {
             if(reply!=NULL)
-                reply->addString("The Bottle with the new value for the parameter "+name+" is empty.");
+                reply->addString(("The Bottle with the new value for the parameter "+name+" is empty.").c_str());
             return false;
         }
         
@@ -266,7 +266,7 @@ public:
             if(!constraints.checkConstraint(vi))
             {
                 if(reply!=NULL)
-                    reply->addString(std::string("Value ")+castToValue(vi).toString().c_str()+" does not satisfy constraints.");
+                    reply->addString((std::string("Value ")+castToValue(vi).toString().c_str()+" does not satisfy constraints.").c_str());
                 return false;
             }
         }
