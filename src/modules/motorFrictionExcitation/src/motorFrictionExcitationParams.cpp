@@ -149,7 +149,7 @@ bool FreeMotionExcitation::setSubParam(const char *key, const Bottle &value, Bot
     
     ///< if no parameter has been found then return false
     if(reply!=NULL)
-        reply->addString("Param name not found: "+paramName);
+        reply->addString(("Param name not found: "+paramName).c_str());
     return false;
 }
 
@@ -160,7 +160,7 @@ Value FreeMotionExcitation::getAsValue()
     for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
     {
         Bottle &b1 = b->addList();
-        b1.addString(it->second->name);
+        b1.addString(it->second->name.c_str());
         it->second->getAsBottle(b1);
     }
     return *v;
