@@ -60,20 +60,15 @@ namespace jointTorqueControl
 {
 
 enum ControlStatus {CONTROL_ON, CONTROL_OFF};
-/** Locomotion planner thread: this thread sends the desired position trajectory of the COM,
-    swinging foot and joint posture.**/
-
-class jointTorqueControlThread: public RateThread, public ParamObserver, public CommandObserver
+/** thread...
+*/
+class jointTorqueControlThread: public RateThread, public ParamValueObserver, public CommandObserver
 {
     string              name;
     string              robotName;
     ParamHelperServer   *paramHelper;
-    ParamHelperClient   *torqueCtrl;
     wholeBodyInterface  *robot;
     bool                mustStop;
-//    string              fileName;
-    string              filename;
-    string              codyco_root;
     ControlStatus       status;         //When on the planner is reading from file and streaming data.
 
     // Thread parameters
@@ -95,7 +90,6 @@ class jointTorqueControlThread: public RateThread, public ParamObserver, public 
     VectorNd	integralState;	// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
     VectorNd	Vm;				// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
     VectorNd	Vmax;			// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
-    double		DT;				// Time interval
            
     // Input streaming parameters
 
@@ -115,7 +109,7 @@ public:
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient   *_lc, wholeBodyInterface *_wbi, string _filename) ;
+    jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, wholeBodyInterface *_wbi);
 	
     bool threadInit();	
     void run();
@@ -127,7 +121,7 @@ public:
 //     void stop(){ mustStop=true; Thread::stop(); }
 
     /** Callback function for parameter updates. */
-    void parameterUpdated(const ParamDescription &pd);
+    void parameterUpdated(const ParamProxyInterface *pd);
     /** Callback function for rpc commands. */
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
     /** Callback function for reading text file parameters */

@@ -25,17 +25,14 @@
 using namespace jointTorqueControl;
 
 
-jointTorqueControlThread::jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient *_lc, wholeBodyInterface *_wbi, string _filename)
-    : RateThread(period), name(_name), robotName(_robotName), paramHelper(_ph), torqueCtrl(_lc), robot(_wbi), filename(_filename)
+jointTorqueControlThread::jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
+    : RateThread(period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi)
 {
-    cout <<"Instantiating the thread: "<< filename << endl;
     mustStop = false;
-    codyco_root = "CODYCO_ROOT";
     status = CONTROL_OFF;
     
-    yarp::os::Property configFile;
-    
-    configFile.fromConfigFile("default.ini");
+    //yarp::os::Property configFile;
+    //configFile.fromConfigFile("default.ini");
     
 //     Bottle *pointerToFile = configFile.find("ActiveJoints").asList(); 
 //     fromListToVector(pointerToFile, aj);
@@ -73,17 +70,11 @@ jointTorqueControlThread::jointTorqueControlThread(int period, string _name, str
 	tauM 			= VectorNd::Constant(0.0); 
 	integralState 	= VectorNd::Constant(0.0); 
 	Vm 				= VectorNd::Constant(0.0); 
-	DT				= 0;
-       
 }
 
 //*************************************************************************************************************************
 bool jointTorqueControlThread::threadInit()
 {
-    const string partialLocation = "jointTorqueControl/conf/data/timestamp10/randomStandingPoses_iCubGenova01_";
-    filename = string(get_env_var(codyco_root) + partialLocation + filename + ".txt");
-    cout<<filename<<endl;
-
     // link module rpc parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_AJ,		aj.data()));    // constant size
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KT,		kt.data()));
@@ -104,6 +95,7 @@ bool jointTorqueControlThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU,	tau.data()));
 
     // Register callbacks for some module parameters
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_AJ,     this));
 
     // Register callbacks for some module commands
     YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
@@ -113,8 +105,10 @@ bool jointTorqueControlThread::threadInit()
 }
 
 //*************************************************************************************************************************
-void jointTorqueControlThread::run(){
-	if(status == CONTROL_ON){
+void jointTorqueControlThread::run()
+{
+	if(status == CONTROL_ON)
+    {
 		// Read joint velocities
 		// dq = 
 		
@@ -122,8 +116,10 @@ void jointTorqueControlThread::run(){
 		// tauM =
 		// Receive desired torques
 				
-		for (int i=0; i < N_DOF; i++){
-			if (aj(i) == 1) {
+		for (int i=0; i < N_DOF; i++)
+        {
+			if (aj(i) == 1) 
+            {
 				// etau = tauM(i) - tauD(i);
 				// integralState(i) = integralState(i) - DT*etau
 				// tau(i) = tauD(i) - kp(i)*etau -ki(i)*integralState(i);
@@ -151,13 +147,16 @@ void jointTorqueControlThread::threadRelease()
 }
 
 //*************************************************************************************************************************
-void jointTorqueControlThread::parameterUpdated(const ParamDescription &pd)
+void jointTorqueControlThread::parameterUpdated(const ParamProxyInterface *pd)
 {
-    //switch(pd.id)
-    //{
-    //default:
-    sendMsg("A callback is registered but not managed for the parameter "+pd.name, MSG_WARNING);
-    //}
+    switch(pd->id)
+    {
+    case PARAM_ID_AJ:
+        //resetIntegralStates();
+        break;
+    default:
+        sendMsg("A callback is registered but not managed for the parameter "+pd->name, MSG_WARNING);
+    }
 }
 
 //*************************************************************************************************************************
@@ -183,16 +182,18 @@ string jointTorqueControlThread::readParamsFile(ifstream& fp)
     getline(fp,lineStr);
     return(lineStr);
 }
+
 //*************************************************************************************************************************
-string jointTorqueControlThread::get_env_var( string const & key ) {
+string jointTorqueControlThread::get_env_var( string const & key ) 
+{
     char * val;
     val = getenv( key.c_str() );
     std::string retval = "";
-    if (val != NULL) {
+    if (val != NULL) 
         retval = val;
-    }
     return retval;
 }
+
 //*************************************************************************************************************************
 void jointTorqueControlThread::sendMsg(const string &s, MsgType type)
 {
@@ -200,10 +201,11 @@ void jointTorqueControlThread::sendMsg(const string &s, MsgType type)
         printf("[jointTorqueControlThread] %s\n", s.c_str());
 }
 
-void jointTorqueControlThread::fromListToVector(Bottle * pointerToList, VectorNd& vector) {
-	    for (int i=0; i < pointerToList->size(); i++)
-            {
-                vector(i) = pointerToList->get(i).asDouble();
-            }
-    return;
+//*************************************************************************************************************************
+void jointTorqueControlThread::fromListToVector(Bottle * pointerToList, VectorNd& vector) 
+{
+	for (int i=0; i < pointerToList->size(); i++)
+    {
+        vector(i) = pointerToList->get(i).asDouble();
+    }
 }

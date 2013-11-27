@@ -32,14 +32,15 @@ namespace jointTorqueControl
 
 static const int N_DOF = 25; 
 
-typedef Eigen::Matrix<double,N_DOF,1>          VectorNd;
+typedef Eigen::Matrix<double,N_DOF,1>           VectorNd;
+typedef Eigen::Matrix<int,N_DOF,1>              VectorNi;
 
 // *** DEFAULT PARAMETER VALUES
 static const string		DEFAULT_MODULE_NAME     = "jointTorqueControl";
 static const string		DEFAULT_ROBOT_NAME      = "icubSim";            // robot name
 static const string		DEFAULT_FILE_NAME       = "100poses_A";         // input params file (trajectory points)
 static const int        DEFAULT_CTRL_PERIOD     = 10;                   // controller period in ms
-static const VectorNd	DEFAULT_ACTIVE_JOINTS   = VectorNd::Constant(0.0); 
+static const VectorNi	DEFAULT_ACTIVE_JOINTS   = VectorNi::Constant(0); 
 static const VectorNd	DEFAULT_KT				= VectorNd::Constant(0.0); 
 static const VectorNd	DEFAULT_KVP				= VectorNd::Constant(0.0); 
 static const VectorNd	DEFAULT_KVN				= VectorNd::Constant(0.0);
@@ -82,30 +83,30 @@ enum jointTorqueControlParamId {
 // ******************************************************************************************************************************
 // ****************************************** DESCRIPTION OF ALL THE MODULE PARAMETERS ******************************************
 // ******************************************************************************************************************************
-const ParamDescription jointTorqueControlParamDescr[]  = 
+const ParamProxyInterface *const jointTorqueControlParamDescr[]  = 
 { 
-//	              	      NAME                   ID                      TYPE          SIZE   			BOUNDS          		        I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
-	ParamDescription("name",           	PARAM_ID_MODULE_NAME,       PARAM_DATA_STRING,  1,			PARAM_BOUNDS_INF,                   PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
-	ParamDescription("period",         	PARAM_ID_CTRL_PERIOD,       PARAM_DATA_INT,     1,			ParamBounds(1, 1000),               PARAM_CONFIG,       &DEFAULT_CTRL_PERIOD,           "Period of the control loop (ms)"), 
-	ParamDescription("robot",			PARAM_ID_ROBOT_NAME,        PARAM_DATA_STRING,  1,			PARAM_BOUNDS_INF,                   PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
+//	              	        NAME                ID                          SIZE   		BOUNDS          		                        I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
+new ParamProxyBasic<string>("name",           	PARAM_ID_MODULE_NAME,       1,			                                                PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
+new ParamProxyBasic<int>(   "period",         	PARAM_ID_CTRL_PERIOD,       1,			ParamBilatBounds<int>(1, 1000),                 PARAM_CONFIG,       &DEFAULT_CTRL_PERIOD,           "Period of the control loop (ms)"), 
+new ParamProxyBasic<string>("robot",			PARAM_ID_ROBOT_NAME,        1,			                                                PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
 // ************************************************ RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************************
-	ParamDescription("Active joints",	PARAM_ID_AJ,			PARAM_DATA_INT,			N_DOF,		ParamBounds(0.0, 1),				PARAM_IN_OUT,       DEFAULT_ACTIVE_JOINTS.data(),	"Vector of nDOF integers representing the joints to control  (1: active, 0: inactive)"), 
-	ParamDescription("kt",          	PARAM_ID_KT,			PARAM_DATA_FLOAT,		N_DOF,		ParamBounds(0.0, KT_MAX),			PARAM_IN_OUT,       DEFAULT_KT.data(),				"Vector of nDOF floats ( see Eq. (1) )"), 
-	ParamDescription("kvp",          	PARAM_ID_KVP,			PARAM_DATA_FLOAT,		N_DOF,		ParamBounds(0.0, KVP_MAX),			PARAM_IN_OUT,       DEFAULT_KVP.data(),				"Vector of nDOF floats ( see Eq. (2) )"), 
-	ParamDescription("kvn",          	PARAM_ID_KVN,			PARAM_DATA_FLOAT,		N_DOF,		ParamBounds(0.0, KVN_MAX),			PARAM_IN_OUT,       DEFAULT_KVN.data(),				"Vector of nDOF floats ( see Eq. (2) )"), 
-	ParamDescription("kcp",		        PARAM_ID_KCP,			PARAM_DATA_FLOAT,		N_DOF,		ParamBounds(0.0, KCP_MAX),			PARAM_IN_OUT,       DEFAULT_KCP.data(),				"Vector of nDOF floats ( see Eq. (2) )"), 
-	ParamDescription("kcn",     	    PARAM_ID_KCN,			PARAM_DATA_FLOAT,		N_DOF,		ParamBounds(0.0, KCN_MAX),			PARAM_IN_OUT,       DEFAULT_KCN.data(),				"Vector of nDOF floats ( see Eq. (2) )"), 
-	ParamDescription("ki",          	PARAM_ID_KI,			PARAM_DATA_FLOAT,		N_DOF,		ParamBounds(0.0, KI_MAX),			PARAM_IN_OUT,       DEFAULT_KI.data(),				"Vector of nDOF floats representing the position gains ( see Eq. (x) )"), 
-	ParamDescription("kp",          	PARAM_ID_KP,			PARAM_DATA_FLOAT,		N_DOF,		ParamBounds(0.0, KP_MAX),			PARAM_IN_OUT,       DEFAULT_KP.data(),				"Vector of nDOF floats representing the integral gains ( see Eq. (x) )"), 
-	ParamDescription("ks",          	PARAM_ID_KS,			PARAM_DATA_FLOAT,		N_DOF,		ParamBounds(0.0, KS_MAX),			PARAM_IN_OUT,       DEFAULT_KS.data(),				"Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
-	ParamDescription("Vmax",          	PARAM_ID_VMAX,			PARAM_DATA_FLOAT,		N_DOF,		ParamBounds(0.0, V_MAX),			PARAM_IN_OUT,       DEFAULT_VMAX.data(),			"Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
+new ParamProxyBasic<int>(   "Active joints",	PARAM_ID_AJ,				N_DOF,		ParamBilatBounds<int>(0, 1),			        PARAM_IN_OUT,       DEFAULT_ACTIVE_JOINTS.data(),	"Vector of nDOF integers representing the joints to control  (1: active, 0: inactive)"), 
+new ParamProxyBasic<double>("kt",          	    PARAM_ID_KT,				N_DOF,		ParamBilatBounds<double>(0.0, KT_MAX),		    PARAM_IN_OUT,       DEFAULT_KT.data(),				"Vector of nDOF floats ( see Eq. (1) )"), 
+new ParamProxyBasic<double>("kvp",          	PARAM_ID_KVP,				N_DOF,		ParamBilatBounds<double>(0.0, KVP_MAX),		    PARAM_IN_OUT,       DEFAULT_KVP.data(),				"Vector of nDOF floats ( see Eq. (2) )"), 
+new ParamProxyBasic<double>("kvn",          	PARAM_ID_KVN,				N_DOF,		ParamBilatBounds<double>(0.0, KVN_MAX),		    PARAM_IN_OUT,       DEFAULT_KVN.data(),				"Vector of nDOF floats ( see Eq. (2) )"), 
+new ParamProxyBasic<double>("kcp",		        PARAM_ID_KCP,				N_DOF,		ParamBilatBounds<double>(0.0, KCP_MAX),		    PARAM_IN_OUT,       DEFAULT_KCP.data(),				"Vector of nDOF floats ( see Eq. (2) )"), 
+new ParamProxyBasic<double>("kcn",     	        PARAM_ID_KCN,			    N_DOF,		ParamBilatBounds<double>(0.0, KCN_MAX),		    PARAM_IN_OUT,       DEFAULT_KCN.data(),				"Vector of nDOF floats ( see Eq. (2) )"), 
+new ParamProxyBasic<double>("ki",          	    PARAM_ID_KI,				N_DOF,		ParamBilatBounds<double>(0.0, KI_MAX),		    PARAM_IN_OUT,       DEFAULT_KI.data(),				"Vector of nDOF floats representing the position gains ( see Eq. (x) )"), 
+new ParamProxyBasic<double>("kp",          	    PARAM_ID_KP,				N_DOF,		ParamBilatBounds<double>(0.0, KP_MAX),		    PARAM_IN_OUT,       DEFAULT_KP.data(),				"Vector of nDOF floats representing the integral gains ( see Eq. (x) )"), 
+new ParamProxyBasic<double>("ks",          	    PARAM_ID_KS,				N_DOF,		ParamBilatBounds<double>(0.0, KS_MAX),		    PARAM_IN_OUT,       DEFAULT_KS.data(),				"Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
+new ParamProxyBasic<double>("Vmax",          	PARAM_ID_VMAX,				N_DOF,		ParamBilatBounds<double>(0.0, V_MAX),		    PARAM_IN_OUT,       DEFAULT_VMAX.data(),			"Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
 
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
-	ParamDescription("tauD",        	PARAM_ID_TAUD,         	PARAM_DATA_FLOAT,		N_DOF,      ParamBounds(TAUD_MIN, TAUD_MAX),	PARAM_IN_STREAM,    DEFAULT_TAUD.data(),			"Desired torques"),
+new ParamProxyBasic<double>("tauD",        	    PARAM_ID_TAUD,         		N_DOF,      ParamBilatBounds<double>(TAUD_MIN, TAUD_MAX),   PARAM_IN_STREAM,    DEFAULT_TAUD.data(),			"Desired torques"),
 
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
-	ParamDescription("Vm",				PARAM_ID_VM,			PARAM_DATA_FLOAT,		N_DOF,		ParamBounds(VM_MIN, VM_MAX),		PARAM_OUT_STREAM,   DEFAULT_VM.data(),				"Vector of nDOF floats representing the tensions"),
-	ParamDescription("tau",          	PARAM_ID_TAU,         	PARAM_DATA_FLOAT,		N_DOF,      ParamBounds(TAUD_MIN, TAUD_MAX),	PARAM_OUT_STREAM,   DEFAULT_TAU.data(),        		"Torques"), 
+new ParamProxyBasic<double>("Vm",				PARAM_ID_VM,				N_DOF,		ParamBilatBounds<double>(VM_MIN, VM_MAX),		PARAM_OUT_STREAM,   DEFAULT_VM.data(),				"Vector of nDOF floats representing the tensions"),
+new ParamProxyBasic<double>("tau",          	PARAM_ID_TAU,         		N_DOF,      ParamBilatBounds<double>(TAUD_MIN, TAUD_MAX),	PARAM_OUT_STREAM,   DEFAULT_TAU.data(),        		"Torques")
 };
 
 // *** IDs of all the module command

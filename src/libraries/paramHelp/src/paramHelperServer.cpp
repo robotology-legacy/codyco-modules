@@ -45,7 +45,7 @@ ParamHelperServer::~ParamHelperServer()
 //*************************************************************************************************************************
 void ParamHelperServer::initializeParams(ResourceFinder &rf, Bottle &reply)
 {
-    Value *v;
+    //Value *v;
     Bottle temp;
     for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
     {

@@ -76,19 +76,15 @@ bool jointTorqueControlModule::configure(ResourceFinder &rf)
     setName(moduleName.c_str());
     attach(rpcPort);
 
-    // ------------------------------------ PARAMETER HELPER CLIENT FOR LOCOMOTION CONTROLLER -----------------------------------------------
-//     locoCtrl    = new ParamHelperClient(locomotionParamDescr, locomotion::PARAM_ID_SIZE, locomotionCommandDescr, locomotion::COMMAND_ID_SIZE);
     initMsg.clear();
-    if(!torqueCtrl->init(moduleName, locoCtrlName, initMsg))
-    { printf("Error while trying to connect to LocomotionControl module:\n%s\nClosing module.\n", initMsg.toString().c_str()); return false; }
-
+    
     //--------------------------WHOLE BODY INTERFACE--------------------------
-    //robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
-    //robotInterface->addJoints(ICUB_MAIN_JOINTS);
-    //if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
+    robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
+    robotInterface->addJoints(ICUB_MAIN_JOINTS);
+    if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------
-    ctrlThread = new jointTorqueControlThread(period, moduleName, robotName, paramHelper, torqueCtrl, robotInterface,fileName);
+    ctrlThread = new jointTorqueControlThread(period, moduleName, robotName, paramHelper, robotInterface);
     if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing control torque thread. Closing module.\n"); return false; }
     
     fprintf(stderr,"Control torque module started\n");
