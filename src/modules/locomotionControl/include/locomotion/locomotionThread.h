@@ -36,7 +36,7 @@
 #include <Eigen/SVD>
 
 #include <wbi/wbi.h>
-#include <paramHelp/paramHelpServer.h>
+#include <paramHelp/paramHelperServer.h>
 #include <locomotion/locomotionConstants.h>
 #include <locomotion/equalityQP.h>
 
@@ -61,7 +61,7 @@ enum LocomotionStatus { LOCOMOTION_ON, LOCOMOTION_OFF };
 /** Locomotion control thread: this thread sends velocity commands to the robot motors
   * trying to track the desired position trajectory of the COM, swinging foot and joint posture.
   */
-class LocomotionThread: public RateThread, public ParamObserver, public CommandObserver
+class LocomotionThread: public RateThread, public ParamValueObserver, public CommandObserver
 {
     string              name;
     string              robotName;
@@ -162,7 +162,7 @@ public:
     void threadRelease();
 
     /** Callback function for parameter updates. */
-    void parameterUpdated(const ParamDescription &pd);
+    void parameterUpdated(const ParamProxyInterface *pd);
     /** Callback function for rpc commands. */
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
 

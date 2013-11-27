@@ -92,8 +92,8 @@
  * CopyPolicy: Released under the terms of the GNU GPL v2.0.
  **/
 
-#ifndef __PARAMHELP_H__
-#define __PARAMHELP_H__
+#ifndef __PARAMHELPERBASE_H__
+#define __PARAMHELPERBASE_H__
 
 #include <yarp/sig/Vector.h>
 #include <yarp/os/Semaphore.h>
@@ -104,210 +104,11 @@
 #include <iterator>
 #include <map>
 #include <vector>
-
+#include <paramHelp/paramProxyInterface.h>
 
 
 namespace paramHelp
 {
-
-/** Convert a generic variable into a string. */
-template <class T> inline std::string toString(const T& t)
-{ std::ostringstream ss; ss << t; return ss.str(); }
-
-/** Convert a generic vector into a string */
-template <class T> inline std::string toString(const std::vector<T>& v, const char *separator=" ")
-{ std::ostringstream s; std::copy(v.begin(), v.end(), std::ostream_iterator<T>(s, separator)); return s.str(); }
-
-/** Print the specified Bottle. */
-void printBottle(const yarp::os::Bottle &b);
-
-
-/************************************************************************************************//**
-// This enum defines the possible data types of parameters
-// *************************************************************************************************/
-enum ParamDataType
-{ 
-    PARAM_DATA_UNKNOWN, 
-    PARAM_DATA_FLOAT, 
-    PARAM_DATA_INT, 
-    PARAM_DATA_BOOL, 
-    PARAM_DATA_STRING, 
-    PARAM_DATA_STRUCT,
-    PARAM_DATATYPE_SIZE 
-};
-const std::string ParamDataType_desc[PARAM_DATATYPE_SIZE] = { "UNKNOWN PARAM TYPE", "FLOAT", "INT", "BOOL", "STRING", "STRUCT" };
-
-
-/************************************************************************************************//**
-// This enum defines the I/O types of parameters: 
-// PARAM_CONFIG: can only be set when launching the module (either from command line or from configuration file)
-// PARAM_INPUT: can be written from the rpc port, but not read
-// PARAM_OUTPUT: can be read from the rpc port, but not written
-// PARAM_IN_OUT: can be both written and read from the rpc port
-// PARAM_IN_STREAM: can be written (from either rpc or the input streaming port), and read from the rpc port only
-// PARAM_OUT_STREAM: can be read (from either rpc or the output streaming port), but not written
-// PARAM_IN_OUT_STREAM: can be both written and read from either rpc or the streaming ports
-// *************************************************************************************************/
-enum ParamIOTypeEnum
-{ 
-    PARAM_IO_UNKNOWN, 
-    PARAM_CONFIG,           ///< standard configuration parameter, e.g. module name, thread period
-    PARAM_INPUT,            ///< probably USELESS
-    PARAM_OUTPUT,           ///< probably USELESS
-    PARAM_IN_OUT,           ///< standard rpc parameter, e.g. control gain, filter frequency
-    PARAM_IN_STREAM,        ///< input from other modules
-    PARAM_OUT_STREAM,       ///< output to other modules
-    PARAM_IN_OUT_STREAM,    ///< input from some modules that is also of interest for other modules
-    PARAM_IO_TYPE_SIZE 
-};
-class ParamIOType
-{
-public:
-    ParamIOTypeEnum value;
-    ParamIOType(ParamIOTypeEnum _value=PARAM_IO_UNKNOWN): value(_value) {}
-    bool canRead();
-    bool canWrite();
-    bool isStreaming();
-    bool isStreamingOut();
-    bool isStreamingIn();
-};
-
-
-/************************************************************************************************//**
-// Class defining the dimension of a parameter
-// *************************************************************************************************/
-class ParamSize
-{
-public:
-    int size;       ///< parameter dimension (if size is free, this is the default size)
-    bool freeSize;  ///< true: the parameter size is free, false it is fixed
-    ParamSize(int s=1, bool free=false): size(s), freeSize(free) {}
-    operator int() const { return size; } ///< conversion from ParamSize to int (this allows to use ParamSize as an int)
-};
-const ParamSize PARAM_SIZE_FREE(1, true);   ///< to be used when a parameter has free dimension
-
-
-/************************************************************************************************//**
-// Single bound on a parameter value
-// *************************************************************************************************/
-class ParamBound
-{
-public:
-    double bound;   ///< value of the bound
-    bool hasBound;  ///< false if the bound is at infinity
-    ParamBound(bool _hasBound, double _bound=0.0): hasBound(_hasBound), bound(_bound) {}
-    ParamBound(double _bound): hasBound(true), bound(_bound) {}
-};
-const ParamBound PARAM_BOUND_INF(false);   ///< no bound
-
-
-/************************************************************************************************//**
-// Double bound on a parameter value
-// *************************************************************************************************/
-class ParamBounds
-{
-public:
-    double  upperBound,     lowerBound;
-    bool    hasUpperBound,  hasLowerBound;
-    ParamBounds(double low, double up): lowerBound(low), upperBound(up), hasUpperBound(true), hasLowerBound(true) {}
-    ParamBounds(ParamBound low, double up): lowerBound(low.bound), upperBound(up), hasUpperBound(true), hasLowerBound(low.hasBound) {}
-    ParamBounds(double low, ParamBound up): lowerBound(low), upperBound(up.bound), hasUpperBound(up.hasBound), hasLowerBound(true) {}
-    ParamBounds(ParamBound low, ParamBound up): lowerBound(low.bound), upperBound(up.bound), hasUpperBound(up.hasBound), hasLowerBound(low.hasBound) {}
-
-    /** Return true if the specified value respects the bounds, false otherwise. */
-    bool checkBounds(double v){ return (!hasUpperBound || v<=upperBound) && (!hasLowerBound || v>=lowerBound); }
-    std::string toString()
-    { return std::string("[")+(hasLowerBound?paramHelp::toString(lowerBound):"-INF")+", "+(hasUpperBound?paramHelp::toString(upperBound):"INF")+"]"; }
-
-    static ParamBounds createLowerBound(double low){ return ParamBounds(low, PARAM_BOUND_INF); }
-    static ParamBounds createUpperBound(double up){ return ParamBounds(PARAM_BOUND_INF, up); }
-};
-const ParamBounds PARAM_BOUNDS_INF(PARAM_BOUND_INF, PARAM_BOUND_INF);   ///< no bounds
-
-
-/************************************************************************************************//**
-// Description of a parameter
-// *************************************************************************************************/
-class ParamDescription
-{
-public:
-    std::string     name;           ///< name of the parameter (can be used as an identifier, alternatively to id)
-    std::string     description;    ///< meaning of the parameter displayed in help messages
-    int             id;             ///< unique identifier of the parameter
-    ParamDataType   type;           ///< data type
-    ParamSize       size;           ///< dimension
-    ParamBounds     bounds;         ///< constraints on the range of values that the parameter can take
-    ParamIOType     ioType;         ///< access level (input/output, streaming/rpc)
-    const void      *defaultValue;  ///< default value of the parameter
-    std::vector<ParamDescription>   subParams;  ///< if the param is of type PARAM_TYPE_STRUCT this is the array of subparameters
-
-    /** Constructor of an empty parameter description. */
-    ParamDescription()
-        : id(-1), type(PARAM_DATA_UNKNOWN), size(PARAM_SIZE_FREE), bounds(PARAM_BOUNDS_INF), ioType(PARAM_IO_UNKNOWN) {}
-    
-    /** Constructor of a simple parameter description (either an int, float or string). */
-    ParamDescription(const std::string &_name, int _id, ParamDataType _type, ParamSize _size, ParamBounds _bounds=PARAM_BOUNDS_INF, 
-        ParamIOTypeEnum _ioType=PARAM_IN_OUT, const void *_value=0, const std::string &_descr="")
-        :name(_name), id(_id), type(_type), size(_size), bounds(_bounds), ioType(_ioType), defaultValue(_value), description(_descr) {}
-
-    /** Constructor of a struct parameter description (a parameter composed by more parameters). */
-    ParamDescription(const std::string &_name, int _id, ParamSize _size, const ParamDescription *_subParams, int _subParamSize, 
-        const std::string &_descr="")
-        :name(_name), id(_id), type(PARAM_DATA_STRUCT), size(_size), bounds(PARAM_BOUNDS_INF), ioType(PARAM_IO_UNKNOWN), 
-        defaultValue(0), description(_descr), subParams(_subParams, _subParams+_subParamSize*sizeof(ParamDescription)){}
-};
-
-
-/************************************************************************************************//**
-// Description of an RPC command
-// *************************************************************************************************/
-class CommandDescription
-{
-public:
-    std::string     name;           ///< name of the command
-    std::string     description;    ///< meaning of the command displayed in help messages
-    int             id;             ///< unique identifier of the command
-    
-    CommandDescription(): name(""), id(-1), description("") {}
-    
-    CommandDescription(const std::string &_name, int _id, const std::string &_descr="")
-        :name(_name), id(_id), description(_descr) {}
-};
-
-
-/************************************************************************************************//**
-// Abstract class to be implemented for getting callbacks when a parameter value is changed.
-// *************************************************************************************************/
-class ParamObserver
-{
-public:
-    /** Method called every time the parameter value is changed.
-     * @param pd Description of the parameter. */
-    virtual void parameterUpdated(const ParamDescription &pd) = 0;
-};
-
-
-/************************************************************************************************//**
-// Abstract class to be implemented for getting callbacks when a command is received.
-// *************************************************************************************************/
-class CommandObserver
-{
-public:
-    /** Method called every time the command is received.
-     * @param cd Description of the command
-     * @param params Parameters received after the command (if any) 
-     * @param reply Reply to the command */
-    virtual void commandReceived(const CommandDescription &cd, const yarp::os::Bottle &params, yarp::os::Bottle &reply) = 0;
-};
-
-
-
-/** Suffixes of the ports opened by the ParamHelper class. */
-static const char* PORT_IN_STREAM_SUFFIX    = "/stream:i";
-static const char* PORT_OUT_STREAM_SUFFIX   = "/stream:o";
-static const char* PORT_OUT_INFO_SUFFIX     = "/info:o";
-static const char* PORT_IN_INFO_SUFFIX      = "/info:i";
-static const char* PORT_RPC_SUFFIX          = "/rpc";
 
 /**
   * Base class for the ParamHelperClient and ParamHelperServer.
@@ -315,8 +116,7 @@ static const char* PORT_RPC_SUFFIX          = "/rpc";
 class ParamHelperBase
 {
 protected:
-    std::map<int, ParamDescription>     paramList;      ///< list of parameter descriptions
-    std::map<int, void*>                paramValues;    ///< list of pointers to parameter values
+    std::map<int, ParamProxyInterface*> paramList;      ///< list of parameter proxies
     std::map<int, CommandDescription>   cmdList;        ///< list of command descriptions
 
     yarp::os::BufferedPort<yarp::os::Bottle>    *portInStream;  ///< input port for streaming data
@@ -329,16 +129,21 @@ protected:
      * @param reply An error message is added to this bottle if a constraint is violated (output)
      * @return True if the constraints are satisfied, false otherwise. */
     bool checkParamConstraints(int id, const yarp::os::Bottle &v, yarp::os::Bottle &reply);
-    bool checkParamConstraints(int id, const void *v);
+    //bool checkParamConstraints(int id, const void *v);
 
     /** Add the specified parameter to the list of managed parameters. 
      * If a default value is specified, the parameter is initialized to that value.
      * @param pd Description of the parameter to add
      * @return True if the operation succeeded, false otherwise (parameter id conflict) */
-    bool addParam(const ParamDescription &pd);
-    bool addParams(const ParamDescription *pdList, int size);
-    bool addCommands(const CommandDescription *cdList, int size);
+    bool addParam(const ParamProxyInterface *pd);
+    /** Add the specified parameters to the list of managed parameters. 
+     * If a default value is specified, the parameter is initialized to that value.
+     * @param pdList Array of const pointers to const ParamProxyInterface containing a description of the parameters to add.
+     * @return True if the operation succeeded, false otherwise (parameter id conflict). 
+     * @note This method clones the paramProxyInterface contained in pdList. */
+    bool addParams(const ParamProxyInterface *const *pdList, int size);
     bool addCommand(const CommandDescription &cd);
+    bool addCommands(const CommandDescription *cdList, int size);
 
     /** Check whether a parameter with the specified id exists.
      * @param id Id of the parameter
@@ -350,18 +155,46 @@ protected:
       * @param id Id of the parameter
       * @param v Pointer to the variable containing the new value of the parameter
       * @return True if the operation succeeded, false otherwise. */
-    bool setParam(int id, const void *v);
-
-    /** Get a pointer to the element index of the parameter with the specified id. */
-    template <class T> inline T* paramValue(int id, int index){ return ((T*)paramValues[id]) +index; }
+    //bool setParam(int id, const void *v);
 
     enum MsgType{ MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR };
+    
     void logMsg(const std::string &s, MsgType type=MSG_INFO);
+
+    template<class T1>
+    void logMsg(const T1 &s, MsgType type=MSG_INFO)
+    { logMsg(toString(s),type); }
+
+    template<class T1, class T2>
+    void logMsg(const T1 &s1, const T2 &s2, MsgType type=MSG_INFO)
+    { logMsg(toString(s1)+toString(s2),type); }
+
+    template<class T1, class T2, class T3>
+    void logMsg(const T1 &s1, const T2 &s2, const T3 &s3, MsgType type=MSG_INFO)
+    { logMsg(toString(s1)+toString(s2)+toString(s3),type); }
+
+    template<class T1, class T2, class T3, class T4>
+    void logMsg(const T1 &s1, const T2 &s2, const T3 &s3, const T4 s4, MsgType type=MSG_INFO)
+    { logMsg(toString(s1)+toString(s2)+toString(s3)+toString(s4),type); }
+
 
 public:
     /** Close the ports opened during the initialization phase (see init method). */
     virtual bool close();
     
+    /* COMMENTS ON THE METHOD linkParam:
+     * PROBLEM:
+     * Linking the parameter through a pointer to the variable complicates the management of 
+     * variable size parameters. When the new value of the parameter has a different size the memory
+     * needs to be reallocated, but the paramProxy cannot do it because it has only the pointer to
+     * the current memory. 
+     * SOLUTION:
+     * Rather than passing the pointer to the memory (i.e. a void*) you could pass a pointer to
+     * a generic class T that has to implement the method resize and the operator []. This is
+     * true for Yarp, Eigen and stl vectors, so it is a reasonable constraint. However I wonder
+     * whether I should let the old way still viable for constant-size parameters.
+     */
+
     /** Link the parameter with the specified id to the variable pointed by v, so that
       * every time that the parameter is set, the value of the specified variable is updated.
       * If the parameter already has a value (e.g. the deafault value), the variable pointed by v is set to that value.
@@ -369,6 +202,9 @@ public:
       * @param v Pointer to the variable that has to contain the parameter value
       * @return True if the operation succeeded, false otherwise. */
     virtual bool linkParam(int id, void *v);
+
+    /*** @return A pointer to the proxy of the parameter with the specified id. */
+    virtual ParamProxyInterface* getParamProxy(int id){ return paramList[id]; }
 
     /** Send the output streaming parameters.
       * @return True if the operation succeeded, false otherwise */
@@ -385,6 +221,3 @@ public:
 
 
 #endif
-
-
-

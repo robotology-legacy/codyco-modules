@@ -29,7 +29,7 @@
 #include <iterator>
 #include <map>
 #include <vector>
-#include <paramHelp/paramHelp.h>
+#include <paramHelp/paramHelperBase.h>
 
 
 namespace paramHelp
@@ -67,7 +67,8 @@ class ParamHelperServer: public ParamHelperBase
     };
 
     yarp::os::Semaphore                 mutex;          ///< mutex for the access to the parameter values    
-    std::map<int, ParamObserver*>       paramObs;       ///< list of pointers to parameter observers
+    std::map<int, ParamValueObserver*>  paramValueObs;  ///< list of pointers to parameter value observers
+    std::map<int, ParamSizeObserver*>   paramSizeObs;   ///< list of pointers to parameter size observers
     std::map<int, CommandObserver*>     cmdObs;         ///< list of pointers to command observers
     
     /** Identify the specified rpc command.
@@ -104,14 +105,14 @@ class ParamHelperServer: public ParamHelperBase
 
 public:
     /** Constructor.
-      * @param pdList List of the module parameters
-      * @param pdListSize
-      * @param cdList List of the module commands
-      * @param cdListSize
+      * @param pdList Array of const pointers to const ParamProxyInterface containing a description of the parameters to add.
+      * @param pdListSize Size of the array pdList.
+      * @param cdList List of the module commands.
+      * @param cdListSize Size of the array cdList.
       */
-    ParamHelperServer(const ParamDescription *pdList=0, int pdListSize=0, const CommandDescription *cdList=0, int cdListSize=0);
+    ParamHelperServer(const ParamProxyInterface * const * pdList=0, int pdListSize=0, const CommandDescription *cdList=0, int cdListSize=0);
 
-    // Destructor
+    // Destructor.
     ~ParamHelperServer();
 
     /** Initialize the module parameters reading the value from the specified resource finder.
@@ -136,7 +137,18 @@ public:
       * @param observer Object to notify when the parameter changes value
       * @return True if the operation succeeded, false otherwise. 
       * @note If an observer was already registered, it is overwritten by the new one. */
-    bool registerParamCallback(int id, ParamObserver *observer);
+    bool registerParamValueChangedCallback(int id, ParamValueObserver *observer);
+
+    /** Register a callback on the parameter with the specified id.
+      * After the callback is registered, every time the parameter size changes
+      * the observer is notified through a call to its method "parameterSizeChanged".
+      * The callback is performed before setting the new value of the parameter,
+      * so that the variable can be resized.
+      * @param id Id of the parameter.
+      * @param observer Object to notify when the parameter changes size.
+      * @return True if the operation succeeded, false otherwise. 
+      * @note If an observer was already registered, it is overwritten by the new one. */
+    bool registerParamSizeChangedCallback(int id, ParamSizeObserver *observer);
 
     /** Register a callback for an rpc command.
       * @param id The id of the command

@@ -1,5 +1,5 @@
 add_subdirectory(comStepper)
 add_subdirectory(locomotionControl)
 add_subdirectory(locomotionPlanner)
-add_subdirectory(jointTorqueControl)
+#add_subdirectory(jointTorqueControl)
 add_subdirectory(motorFrictionExcitation)

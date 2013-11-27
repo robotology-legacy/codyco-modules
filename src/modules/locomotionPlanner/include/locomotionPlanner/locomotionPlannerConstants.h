@@ -18,7 +18,7 @@
 #ifndef LOCOMOTION_PLAN_CONSTANTS
 #define LOCOMOTION_PLAN_CONSTANTS
 
-#include <paramHelp/paramHelp.h>
+#include <paramHelp/paramProxyBasic.h>
 #include <Eigen/Core>                               // import most common Eigen types
 #include <vector>
 #include <string>
@@ -48,13 +48,13 @@ enum LocomotionPlannerParamId {
 // ******************************************************************************************************************************
 // ****************************************** DESCRIPTION OF ALL THE MODULE PARAMETERS ******************************************
 // ******************************************************************************************************************************
-const ParamDescription locomotionPlannerParamDescr[]  = 
+const ParamProxyInterface *const locomotionPlannerParamDescr[]  = 
 { 
-//               NAME                   ID                              TYPE                SIZE        BOUNDS                  I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
-ParamDescription("name",                PARAM_ID_PLANNER_NAME,          PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
-ParamDescription("robot",               PARAM_ID_ROBOT_NAME,            PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
-ParamDescription("locomotionCtrlName",  PARAM_ID_LOCOMOTION_CTRL_NAME,  PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_LOCOMOTION_CTRL_NAME,  "Name of the locomotion controller module"), 
-ParamDescription("filename",            PARAM_ID_FILE_NAME,             PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_FILE_NAME,             "Name of the file containing the via points"),
+//                          NAME                   ID                              SIZE        BOUNDS                       I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
+new ParamProxyBasic<string>("name",                PARAM_ID_PLANNER_NAME,          1,          ParamConstraint<string>(),   PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
+new ParamProxyBasic<string>("robot",               PARAM_ID_ROBOT_NAME,            1,          ParamConstraint<string>(),   PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
+new ParamProxyBasic<string>("locomotionCtrlName",  PARAM_ID_LOCOMOTION_CTRL_NAME,  1,          ParamConstraint<string>(),   PARAM_CONFIG,       &DEFAULT_LOCOMOTION_CTRL_NAME,  "Name of the locomotion controller module"), 
+new ParamProxyBasic<string>("filename",            PARAM_ID_FILE_NAME,             1,          ParamConstraint<string>(),   PARAM_CONFIG,       &DEFAULT_FILE_NAME,             "Name of the file containing the via points"),
 // ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************

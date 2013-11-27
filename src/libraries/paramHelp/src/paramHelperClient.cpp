@@ -7,7 +7,8 @@
  * later version published by the Free Software Foundation.
  */
 
-#include <paramHelp/paramHelpClient.h>
+#include <paramHelp/paramHelpUtil.h>
+#include <paramHelp/paramHelperClient.h>
 
 #include <yarp/os/Vocab.h>
 
@@ -25,7 +26,7 @@ using namespace yarp::os;
 using namespace paramHelp;
 
 
-ParamHelperClient::ParamHelperClient(const ParamDescription *pdList, int pdListSize, const CommandDescription *cdList, int cdListSize)
+ParamHelperClient::ParamHelperClient(const ParamProxyInterface *const *pdList, int pdListSize, const CommandDescription *cdList, int cdListSize)
 {
     if(pdList!=NULL) addParams(pdList, pdListSize);
     if(cdList!=NULL) addCommands(cdList, cdListSize);
@@ -88,20 +89,12 @@ bool ParamHelperClient::readInfoMessage(Bottle &b, bool blockingRead)
 bool ParamHelperClient::sendStreamParams()
 {
     Bottle out;
-    for(map<int,ParamDescription>::iterator it=paramList.begin(); it!=paramList.end(); it++)
-        if(it->second.ioType.isStreamingIn())
+    for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
+        if(it->second->ioType.isStreamingIn())
         {
-            ParamDescription *pd = &(it->second);
-            if(paramValues[pd->id]==NULL){ logMsg("Parameter "+pd->name+" has no associated variable.", MSG_ERROR); return false; }
             Bottle &b = out.addList();
-            for(int i=0; i<pd->size.size; i++)
-                switch(pd->type)
-                {
-                    case PARAM_DATA_FLOAT:  b.addDouble(*paramValue<double>(pd->id, i)); break;
-                    case PARAM_DATA_INT:    b.addInt(*paramValue<int>(pd->id, i)); break;
-                    case PARAM_DATA_BOOL:   b.addInt(*paramValue<bool>(pd->id, i)); break;  // the class Bottle has no "addBool" method
-                    case PARAM_DATA_STRING: b.addString(paramValue<string>(pd->id, i)->c_str()); break;
-                }
+            b.addInt(it->second->id);
+            it->second->getAsBottle(b);
         }
     portOutStream->prepare() = out;
     portOutStream->write();
@@ -112,32 +105,33 @@ bool ParamHelperClient::sendStreamParams()
 bool ParamHelperClient::readStreamParams(bool blockingRead)
 {
     Bottle *in = portInStream->read(blockingRead);
-    if(in==NULL) return false;
-    int j=0;
-    for(map<int,ParamDescription>::iterator it=paramList.begin(); it!=paramList.end(); it++)
-        if(it->second.ioType.isStreamingOut())
+    if(in==NULL || in->size()==0) return false;
+    Bottle reply;
+    for(int i=0; i<in->size(); i++)
+    {
+        if(!in->get(i).isList())
         {
-            ParamDescription *pd = &(it->second);
-            if(paramValues[pd->id]==NULL){  logMsg("readStreamParams, parameter "+pd->name+" has no associated variable.", MSG_ERROR);  return false; }
-            if(j >= in->size()){            logMsg("readStreamParams, unexpected bottle size: "+toString(in->size()), MSG_ERROR);       return false; }
-            Bottle *b = in->get(j).asList();
-            j++;
-            if(pd->size.size != b->size())
-            { 
-                logMsg("readStreamParams, unexpected size of "+pd->name+": "+toString(b->size())+"!="+toString(pd->size.size), MSG_ERROR);
-                logMsg("readStreamParams, value read for "+pd->name+": "+b->toString().c_str(), MSG_DEBUG);
-                return false; 
-            }
-
-            for(int i=0; i<pd->size.size; i++)
-                switch(pd->type)
-                {
-                    case PARAM_DATA_FLOAT:  (*paramValue<double>(pd->id, i))    = b->get(i).asDouble();         break;
-                    case PARAM_DATA_INT:    (*paramValue<int>(pd->id, i))       = b->get(i).asInt();            break;
-                    case PARAM_DATA_BOOL:   (*paramValue<bool>(pd->id, i))      = b->get(i).asBool();           break;
-                    case PARAM_DATA_STRING: (*paramValue<string>(pd->id, i))    = b->get(i).asString().c_str(); break;
-                }
+            logMsg("[readStreamParams] Value ",i," of read Bottle is not a list! Skipping it.", MSG_ERROR);
+            continue;
         }
+        Bottle *b = in->get(i).asList();
+        if(b->size()<1)
+        {
+            logMsg("[readStreamParams] Value ",i," of read Bottle is an empty list! Skipping it.", MSG_ERROR);
+            continue;
+        }
+        if(!b->get(0).isInt())
+        {
+            logMsg("[readStreamParams] 1st element of value ",i," of read Bottle is not an int! Skipping it.", MSG_ERROR);
+            continue;
+        }
+        int paramId = b->get(0).asInt();
+        if(!paramList[paramId]->set(b->tail(), &reply))
+        {
+            logMsg("[readStreamParams] ", reply.toString().c_str(), MSG_ERROR);
+            reply.clear();
+        }
+    }
     return true;
 }
 

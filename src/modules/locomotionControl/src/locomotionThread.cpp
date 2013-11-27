@@ -108,12 +108,12 @@ bool LocomotionThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,                   qDeg.data()));      // variable size
     
     // Register callbacks for some module parameters
-    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_XDES_FOOT,           this));
-    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_COM,       this));
-    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_FOOT,      this));
-    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_POSTURE,   this));
-    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_ACTIVE_JOINTS,       this));
-    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_SUPPORT_PHASE,       this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_XDES_FOOT,           this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TRAJ_TIME_COM,       this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TRAJ_TIME_FOOT,      this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TRAJ_TIME_POSTURE,   this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_ACTIVE_JOINTS,       this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_SUPPORT_PHASE,       this));
 
     // Register callbacks for some module commands
     YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
@@ -373,9 +373,9 @@ void LocomotionThread::threadRelease()
 }
 
 //*************************************************************************************************************************
-void LocomotionThread::parameterUpdated(const ParamDescription &pd)
+void LocomotionThread::parameterUpdated(const ParamProxyInterface *pd)
 {
-    switch(pd.id)
+    switch(pd->id)
     {
     case PARAM_ID_XDES_FOOT:
         normalizeFootOrientation(); break;
@@ -390,7 +390,7 @@ void LocomotionThread::parameterUpdated(const ParamDescription &pd)
     case PARAM_ID_SUPPORT_PHASE: 
         numberOfConstraintsChanged(); break;
     default:
-        sendMsg("A callback is registered but not managed for the parameter "+pd.name, MSG_WARNING);
+        sendMsg("A callback is registered but not managed for the parameter "+pd->name, MSG_WARNING);
     }
 }
 

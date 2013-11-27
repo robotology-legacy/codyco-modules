@@ -29,7 +29,7 @@
 #include <iterator>
 #include <map>
 #include <vector>
-#include <paramHelp/paramHelp.h>
+#include <paramHelp/paramHelperbase.h>
 
 
 namespace paramHelp
@@ -53,18 +53,18 @@ namespace paramHelp
 class ParamHelperClient: public ParamHelperBase
 {
 protected:
-    yarp::os::Port                              portRpc;        // port for rpc messages
+    yarp::os::Port                              portRpc;        ///< port for rpc messages
 
 public:
     /** Constructor.
-      * @param pdList List of the module parameters
-      * @param pdListSize
-      * @param cdList List of the module commands
-      * @param cdListSize
+      * @param pdList Array of const pointers to const ParamProxyInterface containing a description of the parameters to add.
+      * @param pdListSize Size of the array pdList.
+      * @param cdList List of the module commands.
+      * @param cdListSize Size of the array cdList.
       */
-    ParamHelperClient(const ParamDescription *pdList=0, int pdListSize=0, const CommandDescription *cdList=0, int cdListSize=0);
+    ParamHelperClient(const ParamProxyInterface *const *pdList=0, int pdListSize=0, const CommandDescription *cdList=0, int cdListSize=0);
 
-    // Destructor
+    // Destructor.
     ~ParamHelperClient();
 
     /** Open 4 ports:

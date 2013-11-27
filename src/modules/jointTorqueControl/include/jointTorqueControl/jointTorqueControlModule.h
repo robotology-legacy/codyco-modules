@@ -25,8 +25,8 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Vocab.h>
 
-#include <paramHelp/paramHelpClient.h>
-#include <paramHelp/paramHelpServer.h>
+#include <paramHelp/paramHelperClient.h>
+#include <paramHelp/paramHelperServer.h>
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <jointTorqueControl/jointTorqueControlThread.h>
  

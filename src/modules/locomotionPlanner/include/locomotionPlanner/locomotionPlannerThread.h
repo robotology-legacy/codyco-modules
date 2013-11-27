@@ -40,8 +40,8 @@
 #include <Eigen/Core>                               // import most common Eigen types
 
 #include <wbi/wbi.h>
-#include <paramHelp/paramHelpServer.h>
-#include <paramHelp/paramHelpClient.h>
+#include <paramHelp/paramHelperServer.h>
+#include <paramHelp/paramHelperClient.h>
 #include <locomotionPlanner/locomotionPlannerConstants.h>
 
 
@@ -61,7 +61,7 @@ enum PlanningStatus {PLANNING_ON, PLANNING_OFF};
 /** Locomotion planner thread: this thread sends the desired position trajectory of the COM,
     swinging foot and joint posture.**/
 
-class LocomotionPlannerThread: public Thread, public ParamObserver, public CommandObserver
+class LocomotionPlannerThread: public Thread, public ParamValueObserver, public CommandObserver
 {
     string              name;
     string              robotName;
@@ -114,7 +114,7 @@ public:
     void stop(){ mustStop=true; Thread::stop(); }
 
     /** Callback function for parameter updates. */
-    void parameterUpdated(const ParamDescription &pd);
+    void parameterUpdated(const ParamProxyInterface *pd);
     /** Callback function for rpc commands. */
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
     /** Callback function for reading text file parameters */

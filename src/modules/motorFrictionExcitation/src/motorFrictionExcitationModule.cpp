@@ -33,7 +33,7 @@
 #include <iomanip>
 #include <string.h>
 
-#include "motorFrictionExcitation/motorFrictionExcitationConstants.h"
+#include "motorFrictionExcitation/motorFrictionExcitationParams.h"
 #include "motorFrictionExcitation/motorFrictionExcitationThread.h"
 #include "motorFrictionExcitation/motorFrictionExcitationModule.h"
 
@@ -49,7 +49,7 @@ MotorFrictionExcitationModule::MotorFrictionExcitationModule()
     ctrlThread      = 0;
     robotInterface  = 0;
     paramHelper     = 0;
-    period          = 10;
+    period          = 20;
 }
     
 bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)

@@ -143,12 +143,12 @@ void LocomotionPlannerThread::threadRelease()
 }
 
 //*************************************************************************************************************************
-void LocomotionPlannerThread::parameterUpdated(const ParamDescription &pd)
+void LocomotionPlannerThread::parameterUpdated(const ParamProxyInterface *pd)
 {
     //switch(pd.id)
     //{
     //default:
-    sendMsg("A callback is registered but not managed for the parameter "+pd.name, MSG_WARNING);
+    sendMsg("A callback is registered but not managed for the parameter "+pd->name, MSG_WARNING);
     //}
 }
 

@@ -18,7 +18,7 @@
 #ifndef LOCOMOTION_PLAN_CONSTANTS
 #define LOCOMOTION_PLAN_CONSTANTS
 
-#include <paramHelp/paramHelp.h>
+#include <paramHelp/paramProxyBasic.h>
 #include <Eigen/Core>                               // import most common Eigen types
 #include <vector>
 #include <string>

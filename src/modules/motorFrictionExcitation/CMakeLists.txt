@@ -16,10 +16,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 
 FILE(GLOB folder_source ./src/motorFrictionExcitationMain.cpp
                         ./src/motorFrictionExcitationModule.cpp
-                        ./src/motorFrictionExcitationThread.cpp )
+                        ./src/motorFrictionExcitationThread.cpp 
+                        ./src/motorFrictionExcitationParams.cpp )
 FILE(GLOB folder_header ./include/motorFrictionExcitation/motorFrictionExcitationModule.h
                         ./include/motorFrictionExcitation/motorFrictionExcitationThread.h
-                        ./include/motorFrictionExcitation/motorFrictionExcitationConstants.h )
+                        ./include/motorFrictionExcitation/motorFrictionExcitationConstants.h
+                        ./include/motorFrictionExcitation/motorFrictionExcitationParams.h )
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})

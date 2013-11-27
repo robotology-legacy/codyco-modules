@@ -40,8 +40,8 @@
 #include <Eigen/Core>                               // import most common Eigen types
 
 #include <wbi/wbi.h>
-#include <paramHelp/paramHelpServer.h>
-#include <paramHelp/paramHelpClient.h>
+#include <paramHelp/paramHelperServer.h>
+#include <paramHelp/paramHelperClient.h>
 #include <jointTorqueControl/jointTorqueControlConstants.h>
 
 

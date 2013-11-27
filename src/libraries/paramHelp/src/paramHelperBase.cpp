@@ -7,7 +7,7 @@
  * later version published by the Free Software Foundation.
  */
 
-#include <paramHelp/paramHelp.h>
+#include <paramHelp/paramHelperBase.h>
 
 #include <yarp/os/Vocab.h>
 
@@ -26,20 +26,6 @@ using namespace paramHelp;
 
 
 //*************************************************************************************************************************
-void paramHelp::printBottle(const Bottle &b)
-{
-    for(int i=0; i<b.size(); i++)
-        printf("%s\n", b.get(i).asString().c_str());
-}
-
-//*************************************************************************************************************************
-bool ParamIOType::canRead(){ return value==PARAM_OUTPUT || value==PARAM_OUT_STREAM || value==PARAM_IN_OUT || value==PARAM_IN_OUT_STREAM || PARAM_IN_STREAM; }
-bool ParamIOType::canWrite(){ return value==PARAM_INPUT || value==PARAM_IN_STREAM || value==PARAM_IN_OUT || value==PARAM_IN_OUT_STREAM; }
-bool ParamIOType::isStreaming(){ return value==PARAM_OUT_STREAM || value==PARAM_IN_STREAM || value==PARAM_IN_OUT_STREAM; }
-bool ParamIOType::isStreamingOut(){ return value==PARAM_OUT_STREAM || value==PARAM_IN_OUT_STREAM; }
-bool ParamIOType::isStreamingIn(){ return value==PARAM_IN_STREAM || value==PARAM_IN_OUT_STREAM; }
-
-//*************************************************************************************************************************
 bool ParamHelperBase::close()
 {
     if(portInStream){  portInStream->interrupt();  portInStream->close();  delete portInStream;  portInStream=0; }
@@ -51,20 +37,9 @@ bool ParamHelperBase::close()
 //*************************************************************************************************************************
 bool ParamHelperBase::linkParam(int id, void *v)
 {
-    if(!hasParam(id) || v==0) return false;
-    assert(paramValues[id]!=NULL);
-    void *currentValue = paramValues[id];   // store current value of the parameter
-    paramValues[id] = v;                    // point the parameter to the new variable
-    setParam(id, currentValue);             // set the new variable to the current value of the parameter
-    // delete previously allocated memory
-    switch(paramList[id].type)
-    {
-    case PARAM_DATA_FLOAT:  delete[] (double*)currentValue;     break;
-    case PARAM_DATA_INT:    delete[] (int*)currentValue;        break;
-    case PARAM_DATA_BOOL:   delete[] (bool*)currentValue;       break;
-    case PARAM_DATA_STRING: delete[] (string*)currentValue;     break;
-    }
-    
+    if(!hasParam(id) || v==0) 
+        return false;
+    paramList[id]->linkToVariable(v);
     return true;
 }
 
@@ -73,30 +48,19 @@ bool ParamHelperBase::linkParam(int id, void *v)
 //************************************************  BASE METHODS  *********************************************************
 //*************************************************************************************************************************
 //*************************************************************************************************************************
-
-bool ParamHelperBase::setParam(int paramId, const void *v)
-{
-    // if the value to set doesn't satisfy the constraints, then return
-    if(!hasParam(paramId) || !checkParamConstraints(paramId, v)) return false; 
-    
-    bool res = true;
-    ParamDescription *pd = &paramList[paramId];
-    for(int i=0; i<pd->size.size; i++)
-    {
-        switch(pd->type)
-        {
-            case PARAM_DATA_FLOAT:  *paramValue<double>(pd->id, i) = ((double*)v)[i]; break;
-            case PARAM_DATA_INT:    *paramValue<int>(pd->id, i)    = ((int*)v)[i]; break;
-            case PARAM_DATA_BOOL:   *paramValue<bool>(pd->id, i)   = ((bool*)v)[i]; break;
-            case PARAM_DATA_STRING: *paramValue<string>(pd->id, i) = ((string*)v)[i]; break;
-            default: res = false;
-        }
-    }
-    return res;
-}
+//
+//bool ParamHelperBase::setParam(int paramId, const void *v)
+//{
+//    // if the value to set doesn't satisfy the constraints, then return
+//    if(!hasParam(paramId) || !checkParamConstraints(paramId, v)) return false; 
+//    
+//    //paramList[paramId]->fromString(v);
+//    
+//    return true;
+//}
 
 //*************************************************************************************************************************
-bool ParamHelperBase::addParams(const ParamDescription *pdList, int size)
+bool ParamHelperBase::addParams(const ParamProxyInterface *const *pdList, int size)
 {
     bool res = true;
     for(int i=0; i<size; i++)
@@ -114,27 +78,27 @@ bool ParamHelperBase::addCommands(const CommandDescription *cdList, int size)
 }
 
 //*************************************************************************************************************************
-bool ParamHelperBase::addParam(const ParamDescription &pd)
+bool ParamHelperBase::addParam(const ParamProxyInterface* pd)
 {
-    if(hasParam(pd.id)) return false;   // there exists a parameter with the same id
-    paramList[pd.id] = pd;
-    paramValues[pd.id] = NULL;
-    switch(pd.type)
+    if(hasParam(pd->id)) 
     {
-    case PARAM_DATA_FLOAT:  paramValues[pd.id] = new double[pd.size.size];      break;
-    case PARAM_DATA_INT:    paramValues[pd.id] = new int[pd.size.size];         break;
-    case PARAM_DATA_BOOL:   paramValues[pd.id] = new bool[pd.size.size];        break;
-    case PARAM_DATA_STRING: paramValues[pd.id] = new string[pd.size.size];      break;
-    default:                return false;   // unknown data type
+        printf("[ParamHelperBase::addParam()]: Parameter %s has the same id of parameter %s\n", 
+            paramList[pd->id]->name.c_str(), pd->name.c_str());
+        return false;   // there exists a parameter with the same id
     }
-    setParam(pd.id, pd.defaultValue);   // set the variable to the default value
+    paramList[pd->id] = pd->clone();
     return true;
 }
 
 //*************************************************************************************************************************
 bool ParamHelperBase::addCommand(const CommandDescription &cd)
 {
-    if(hasCommand(cd.id)) return false;   // there exists a command with the same id
+    if(hasCommand(cd.id))
+    {
+        printf("[ParamHelperBase::addCommand()]: Command %s has the same id of command %s\n", 
+            cmdList[cd.id].name.c_str(), cd.name.c_str());
+        return false;   // there exists a command with the same id
+    }
     cmdList[cd.id] = cd;
     return true;
 }
@@ -142,64 +106,13 @@ bool ParamHelperBase::addCommand(const CommandDescription &cd)
 //*************************************************************************************************************************
 bool ParamHelperBase::checkParamConstraints(int id, const Bottle &v, Bottle &reply)
 {
-    // check size
-    if(!paramList[id].size.freeSize && v.size() != paramList[id].size.size)
+    if(!hasParam(id))
     {
-        reply.addString(("Parameter "+paramList[id].name+" wrong size, expected "+toString(paramList[id].size.size)+", found "+toString(v.size())).c_str());
+        reply.addString("There is no parameter with the specified id: ");
+        reply.addInt(id);
         return false;
     }
-    // check bounds
-    bool HLB = paramList[id].bounds.hasLowerBound;
-    bool HUB = paramList[id].bounds.hasUpperBound;
-    if(HLB || HUB)
-    {
-        double LB = paramList[id].bounds.lowerBound;
-        double UB = paramList[id].bounds.upperBound;
-        double vi;
-        for(int i=0; i<v.size(); i++)
-        {
-            vi = v.get(i).asDouble();   // bounds make sense only for float or int values, so "asDouble()" should work fine
-            if(HLB && vi<LB)
-            {
-                reply.addString(("Parameter "+paramList[id].name+" out of range, lower bound "+toString(LB)+", value "+toString(vi)).c_str());
-                return false;
-            }
-            if(HUB && vi>UB)
-            {
-                reply.addString(("Parameter "+paramList[id].name+" out of range, upper bound "+toString(UB)+", value "+toString(vi)).c_str());
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-//*************************************************************************************************************************
-bool ParamHelperBase::checkParamConstraints(int id, const void *v)
-{
-    if(v==0) return false;
-
-    // check bounds
-    bool HLB = paramList[id].bounds.hasLowerBound;
-    bool HUB = paramList[id].bounds.hasUpperBound;
-    if(HLB || HUB)
-    {
-        double LB = paramList[id].bounds.lowerBound;
-        double UB = paramList[id].bounds.upperBound;
-        double vi;
-        for(int i=0; i<paramList[id].size.size; i++)
-        {
-            if(paramList[id].type == PARAM_DATA_FLOAT)
-                vi = ((double*)v)[i];
-            else if(paramList[id].type == PARAM_DATA_INT)
-                vi = ((int*)v)[i];
-            else
-                return true;    // bounds make sense only for float or int values
-            if(HLB && vi<LB)    return false;
-            if(HUB && vi>UB)    return false;
-        }
-    }
-    return true;
+    return paramList[id]->checkConstraints(v, &reply);
 }
 
 //*************************************************************************************************************************

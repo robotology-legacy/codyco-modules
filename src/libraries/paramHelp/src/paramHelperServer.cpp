@@ -7,7 +7,8 @@
  * later version published by the Free Software Foundation.
  */
 
-#include <paramHelp/paramHelpServer.h>
+#include <paramHelp/paramHelpUtil.h>
+#include <paramHelp/paramHelperServer.h>
 
 #include <yarp/os/Vocab.h>
 
@@ -27,7 +28,7 @@ using namespace paramHelp;
 
 
 //*************************************************************************************************************************
-ParamHelperServer::ParamHelperServer(const ParamDescription *pdList, int pdListSize, const CommandDescription *cdList, int cdListSize)
+ParamHelperServer::ParamHelperServer(const ParamProxyInterface *const *pdList, int pdListSize, const CommandDescription *cdList, int cdListSize)
 {
     if(pdList!=NULL) addParams(pdList, pdListSize);
     if(cdList!=NULL) addCommands(cdList, cdListSize);
@@ -46,21 +47,36 @@ void ParamHelperServer::initializeParams(ResourceFinder &rf, Bottle &reply)
 {
     Value *v;
     Bottle temp;
-    for(map<int,ParamDescription>::iterator it=paramList.begin(); it!=paramList.end(); it++)
+    for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
     {
-        string paramName = it->second.name;
+        string paramName = it->second->name;
         replace( paramName.begin(), paramName.end(), ' ', '_'); // replace "white spaces" with "underscores"
-        if (rf.check(paramName.c_str(), v)) // check whether the parameter is specified
+        Bottle &b = rf.findGroup(paramName.c_str());
+        if(!b.isNull())
         {
-            if(v->isList())
-                temp = *(v->asList());  // if v is a Bottle => cast it into a Bottle
+            ///< check whether this is the parameter value of a list of section names, which contain the parameter values
+            if(paramList[it->second->id]->checkConstraints(b.tail()))
+            {
+                printf("Param %s is simple\n", it->second->name.c_str());
+                temp = b.tail();
+            }
             else
             {
-                temp.clear();           // if v is not a Bottle => create a 1-element Bottle
-                temp.add(v);
+                printf("Param %s is structured\n", it->second->name.c_str());
+                temp.clear();
+                for(int i=1; i<b.size(); i++)
+                {
+                    ConstString key = b.get(i).asString();
+                    Bottle &sb = rf.findGroup(key);     ///< find all sections related to this parameter
+                    if(!sb.isNull())
+                    {
+                        //printf("Looking for subparameter %s I found this Bottle: %s\n", key.c_str(), sb.toString().c_str());
+                        temp.addList() = sb.tail();
+                    }
+                }
             }
-            //printf("Setting parameter %s to %s\n", paramName.c_str(), temp.toString().c_str());
-            setParam(it->second.id, temp, reply, true);
+
+            setParam(it->second->id, temp, reply, true);
         }
     }
 }
@@ -120,17 +136,17 @@ void ParamHelperServer::getHelpMessage(Bottle &b)
         b.addString(" - set one <param_name> <i> <param_value>: set the <i>-th element of <param_name>");
         b.addString(" - set all <param_name> <param_value>: set all the elements of <param_name> to the same value");
         b.addString("List of the configuration parameters:");
-		for(map<int,ParamDescription>::iterator it=paramList.begin(); it!=paramList.end(); it++)
-            if(it->second.ioType.value==PARAM_CONFIG)
-			    b.addString( (" - "+it->second.name+": "+it->second.description).c_str() );
+		for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
+            if(it->second->ioType.value==PARAM_CONFIG)
+			    b.addString( (" - "+it->second->name+": "+it->second->description).c_str() );
         b.addString("List of the streaming parameters:");
-		for(map<int,ParamDescription>::iterator it=paramList.begin(); it!=paramList.end(); it++)
-            if(it->second.ioType.isStreaming())
-			    b.addString( (" - "+it->second.name+": "+it->second.description).c_str() );
+		for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
+            if(it->second->ioType.isStreaming())
+			    b.addString( (" - "+it->second->name+": "+it->second->description).c_str() );
         b.addString("List of the rpc parameters:");
-		for(map<int,ParamDescription>::iterator it=paramList.begin(); it!=paramList.end(); it++)
-            if(it->second.ioType.value == PARAM_IN_OUT)
-			    b.addString( (" - "+it->second.name+": "+it->second.description).c_str() );
+		for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
+            if(it->second->ioType.value == PARAM_IN_OUT)
+			    b.addString( (" - "+it->second->name+": "+it->second->description).c_str() );
     }
 }
 
@@ -138,20 +154,12 @@ void ParamHelperServer::getHelpMessage(Bottle &b)
 bool ParamHelperServer::sendStreamParams()
 {
     Bottle out;
-    for(map<int,ParamDescription>::iterator it=paramList.begin(); it!=paramList.end(); it++)
-        if(it->second.ioType.isStreamingOut())
+    for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
+        if(it->second->ioType.isStreamingOut())
         {
-            ParamDescription *pd = &(it->second);
-            if(paramValues[pd->id]==NULL){ logMsg("Parameter "+pd->name+" has no associated variable.", MSG_ERROR); return false; }
             Bottle &b = out.addList();
-            for(int i=0; i<pd->size.size; i++)
-                switch(pd->type)
-                {
-                    case PARAM_DATA_FLOAT:  b.addDouble(*paramValue<double>(pd->id, i)); break;
-                    case PARAM_DATA_INT:    b.addInt(*paramValue<int>(pd->id, i)); break;
-                    case PARAM_DATA_BOOL:   b.addInt(*paramValue<bool>(pd->id, i)); break;  // the class Bottle has no "addBool" method
-                    case PARAM_DATA_STRING: b.addString(paramValue<string>(pd->id, i)->c_str()); break;
-                }
+            b.addString(it->second->name);  // add the name of the parameter
+            it->second->getAsBottle(b);     // add the value of the parameter
         }
     portOutStream->prepare() = out;
     portOutStream->write();
@@ -161,36 +169,50 @@ bool ParamHelperServer::sendStreamParams()
 //*************************************************************************************************************************
 bool ParamHelperServer::readStreamParams(bool blockingRead)
 {
+    // TODO: manage variable size input streaming params
     Bottle *in = portInStream->read(blockingRead);
     if(in==NULL) return false;
-    int j=0;
-    for(map<int,ParamDescription>::iterator it=paramList.begin(); it!=paramList.end(); it++)
-        if(it->second.ioType.isStreamingIn())
+    Bottle reply;
+    bool res;
+    for(int i=0; i<in->size(); i++)
+    {
+        if(!in->get(i).isList())
         {
-            ParamDescription *pd = &(it->second);
-            if(paramValues[pd->id]==NULL){  logMsg("readStreamParams, parameter "+pd->name+" has no associated variable.", MSG_ERROR);  return false; }
-            if(j >= in->size()){            logMsg("readStreamParams, unexpected bottle size.", MSG_ERROR);                 return false; }
-            Bottle *b = in->get(j).asList();
-            j++;
-            if(pd->size.size != b->size()){ logMsg("readStreamParams, unexpected size of parameter "+pd->name, MSG_ERROR);  return false; }
-
-            for(int i=0; i<pd->size.size; i++)
-                switch(pd->type)
-                {
-                    case PARAM_DATA_FLOAT:  (*paramValue<double>(pd->id, i))    = b->get(i).asDouble();         break;
-                    case PARAM_DATA_INT:    (*paramValue<int>(pd->id, i))       = b->get(i).asInt();            break;
-                    case PARAM_DATA_BOOL:   (*paramValue<bool>(pd->id, i))      = b->get(i).asBool();           break;
-                    case PARAM_DATA_STRING: (*paramValue<string>(pd->id, i))    = b->get(i).asString().c_str(); break;
-                }
+            logMsg("[ParamHelperServer::readStreamParams] Value ",i," is not a Bottle. Skipping it.", MSG_ERROR);
+            continue;
         }
+        Bottle *b = in->get(i).asList();
+        if(b->size()==0)
+        {
+            logMsg("[ParamHelperServer::readStreamParams] Value ",i," is an empty Bottle. Skipping it.", MSG_ERROR);
+            continue;
+        }
+        int parId = b->get(0).asInt();
+        if(!hasParam(parId))
+        {
+            logMsg("[ParamHelperServer::readStreamParams] Value ",i," refers to a nonexisting parameter with id ",parId, MSG_ERROR);
+            continue;
+        }
+        res = paramList[parId]->set(b->tail(), &reply);
+        if(res==false)
+            logMsg("[ParamHelperServer::readStreamParams] Param ",parId,reply.toString().c_str(), MSG_ERROR);
+    }
     return true;
 }
 
 //*************************************************************************************************************************
-bool ParamHelperServer::registerParamCallback(int id, ParamObserver *observer)
+bool ParamHelperServer::registerParamValueChangedCallback(int id, ParamValueObserver *observer)
 {
     if(!hasParam(id)) return false;
-    paramObs[id] = observer;
+    paramValueObs[id] = observer;
+    return true;
+}
+
+//*************************************************************************************************************************
+bool ParamHelperServer::registerParamSizeChangedCallback(int id, ParamSizeObserver *observer)
+{
+    if(!hasParam(id)) return false;
+    paramSizeObs[id] = observer;
     return true;
 }
 
@@ -210,45 +232,23 @@ bool ParamHelperServer::registerCommandCallback(int id, CommandObserver *observe
 
 bool ParamHelperServer::getParam(int id, Bottle &reply)
 {
-    if(!hasParam(id)){                      reply.addString("Parameter id not found.");                     return false; }
-    if(paramValues[id]==NULL){              reply.addString("This parameter has no associated variable.");  return false; }
-    if(!paramList[id].ioType.canRead()){    reply.addString("This parameter can not be read");              return false; }
-
-    bool res = true;
-    ParamDescription *pd = &paramList[id];
-    for(int i=0; i<pd->size.size; i++)
-    {
-        switch(pd->type)
-        {
-            case PARAM_DATA_FLOAT:  reply.addDouble(*paramValue<double>(pd->id, i)); break;
-            case PARAM_DATA_INT:    reply.addInt(*paramValue<int>(pd->id, i)); break;
-            case PARAM_DATA_BOOL:   reply.addInt(*paramValue<bool>(pd->id, i)); break;  // the class Bottle has no "addBool" method
-            case PARAM_DATA_STRING: reply.addString(paramValue<string>(pd->id, i)->c_str()); break;
-            default: res = false;
-        }
-    }
-    return res;
+    if(!hasParam(id)){                      reply.addString("Parameter id not found.");         return false; }
+    if(!paramList[id]->ioType.canRead()){   reply.addString("This parameter can not be read");  return false; }
+    paramList[id]->getAsBottle(reply);
+    return true;
 }
 
 //*************************************************************************************************************************
 bool ParamHelperServer::getOneParam(int id, const Bottle &v, Bottle &reply)
 {
-    if(!hasParam(id)){              reply.addString("Error: parameter id not found.");                      return false; }
-    if(paramValues[id]==NULL){      reply.addString("Error: this parameter has no associated variable.");   return false; }
-    ParamDescription *pd = &paramList[id];
-    if(!pd->ioType.canRead()){      reply.addString("Error: this parameter can not be read.");              return false; }
-    if(v.size()==0){                reply.addString("Error: index not specified.");                         return false; }
-    if(!v.get(0).isInt()){          reply.addString("Error: specified index is not an int.");               return false; }
+    if(!hasParam(id)){              reply.addString("Error: parameter id not found.");          return false; }
+    ParamProxyInterface *pd = paramList[id];
+    if(!pd->ioType.canRead()){      reply.addString("Error: this parameter can not be read.");  return false; }
+    if(v.size()==0){                reply.addString("Error: index not specified.");             return false; }
+    if(!v.get(0).isInt()){          reply.addString("Error: specified index is not an int.");   return false; }
     int i = v.get(0).asInt();
-    if(i<0 || i>=pd->size.size){    reply.addString("Error: specified index is out of range.");             return false; }
-
-    switch(pd->type)
-    {
-        case PARAM_DATA_FLOAT:  reply.addDouble(*paramValue<double>(pd->id, i)); break;
-        case PARAM_DATA_INT:    reply.addInt(*paramValue<int>(pd->id, i)); break;
-        case PARAM_DATA_BOOL:   reply.addInt(*paramValue<bool>(pd->id, i)); break;  // the class Bottle has no "addBool" method
-        case PARAM_DATA_STRING: reply.addString(paramValue<string>(pd->id, i)->c_str()); break;
-    }
+    if(i<0 || i>=pd->size.size){    reply.addString("Error: specified index is out of range."); return false; }
+    pd->getAsBottle(reply, i);
     return true;
 }
 
@@ -256,35 +256,28 @@ bool ParamHelperServer::getOneParam(int id, const Bottle &v, Bottle &reply)
 bool ParamHelperServer::setParam(int id, const Bottle &v, Bottle &reply, bool init)
 {
     // if the parameter doesn't exist or the value to set doesn't satisfy the constraints, then return
-    if(!hasParam(id)){              reply.addString(("Id of parameter "+paramList[id].name+" not found.").c_str());             return false; }
-    if(paramValues[id]==NULL){      reply.addString(("Parameter "+paramList[id].name+" has no associated variable.").c_str());  return false; }
-    if(!checkParamConstraints(id, v, reply)){                                                                                   return false; }
-    if(!init && !paramList[id].ioType.canWrite()){ reply.addString(("Parameter "+paramList[id].name+" cannot be written.").c_str());   return false; }
+    if(!hasParam(id)){              reply.addString(("Id of parameter "+paramList[id]->name+" not found.").c_str()); return false; }
+    if(!checkParamConstraints(id, v, reply)){                                                                        return false; }
+    if(!init && !paramList[id]->ioType.canWrite()){ reply.addString(("Parameter "+paramList[id]->name+" cannot be written.").c_str());   return false; }
     
-    bool res = true;
-    ParamDescription *pd = &paramList[id];     // TODO: deal with free size parameters
-    for(int i=0; i<v.size(); i++)
+    ///< if parameter size is about to change, perform callbacks
+    if(paramList[id]->size.freeSize && paramList[id]->size != v.size() && paramSizeObs[id]!=NULL)
     {
-        switch(pd->type)
-        {
-            case PARAM_DATA_FLOAT:  *paramValue<double>(pd->id, i) = v.get(i).asDouble(); break;
-            case PARAM_DATA_INT:    *paramValue<int>(pd->id, i)    = v.get(i).asInt(); break;
-            case PARAM_DATA_BOOL:   *paramValue<bool>(pd->id, i)   = v.get(i).asBool(); break;
-            case PARAM_DATA_STRING: *paramValue<string>(pd->id, i) = v.get(i).asString().c_str(); break;
-            default: res = false;
-        }
+        paramSizeObs[id]->parameterSizeChanged(paramList[id], v.size());
     }
+    bool res = paramList[id]->set(v, &reply);
+    // TODO: deal with free size parameters
     
     if(res)
     {
-        reply.addString(("Parameter "+paramList[id].name+" set to "+v.toString().c_str()).c_str());
+        reply.addString(("Parameter "+paramList[id]->name+" set to "+v.toString().c_str()).c_str());
         // if an observer is registered, then perform the callback
-        if(paramObs[id]!=NULL)
-            paramObs[id]->parameterUpdated(paramList[id]);
+        if(paramValueObs[id]!=NULL)
+            paramValueObs[id]->parameterUpdated(paramList[id]);
         return true;
     }
     
-    reply.addString(("Parameter "+paramList[id].name+" has not been set: unknown data type.").c_str());
+    reply.addString(("Parameter "+paramList[id]->name+" has not been set.").c_str());
     return false;
 }
 
@@ -292,72 +285,45 @@ bool ParamHelperServer::setParam(int id, const Bottle &v, Bottle &reply, bool in
 bool ParamHelperServer::setOneParam(int id, const Bottle &v, Bottle &reply)
 {
     // Check a lot of things
-    ParamDescription *pd = &paramList[id];
-    if(!hasParam(id)){              reply.addString(("Error: parameter "+paramList[id].name+" does not exist.").c_str());               return false; }
-    if(paramValues[id]==NULL){      reply.addString(("Error: parameter "+paramList[id].name+" has no associated variable.").c_str());   return false; }
-    if(!pd->ioType.canWrite()){     reply.addString(("Error: parameter "+paramList[id].name+" cannot be written.").c_str());            return false; }
+    ParamProxyInterface *pd = paramList[id];
+    if(!hasParam(id)){              reply.addString(("Error: parameter "+pd->name+" does not exist.").c_str());               return false; }
+    if(!pd->ioType.canWrite()){     reply.addString(("Error: parameter "+pd->name+" cannot be written.").c_str());            return false; }
     if(v.size()<=1){ reply.addString("Error: wrong command format (correct format is 'set one <param_name> <index> <value>').");        return false; }
     if(!v.get(0).isInt()){          reply.addString("Error: specified index is not an integer value.");                                 return false; }
     if(v.get(0).asInt()>=pd->size.size){                        reply.addString("Error: specified index is out of range.");             return false; }
-    if(pd->type==PARAM_DATA_STRING && !v.get(1).isString()){    reply.addString("Error: specified value is not a string.");             return false; }
-    else if(pd->type==PARAM_DATA_BOOL && !v.get(1).isBool()){   reply.addString("Error: specified value is not a bool.");               return false; }
-    if(pd->type==PARAM_DATA_FLOAT || pd->type==PARAM_DATA_INT)
-        if(!(v.get(1).isInt() || v.get(1).isDouble()) || !pd->bounds.checkBounds(v.get(1).asDouble()))
-        { 
-            reply.addString(("Value out of the allowed range: "+paramList[id].bounds.toString()).c_str()); 
-            return false; 
-        }
-    
-    
     int index = v.get(0).asInt();
-    switch(pd->type)
-    {
-        case PARAM_DATA_FLOAT:  *paramValue<double>(pd->id, index) = v.get(1).asDouble();           break;
-        case PARAM_DATA_INT:    *paramValue<int>(pd->id, index)    = v.get(1).asInt();              break;
-        case PARAM_DATA_BOOL:   *paramValue<bool>(pd->id, index)   = v.get(1).asBool();             break;
-        case PARAM_DATA_STRING: *paramValue<string>(pd->id, index) = v.get(1).asString().c_str();   break;
-    }
+    bool res = pd->set(v.tail(), index, &reply);
     
-    reply.addString(("Parameter "+paramList[id].name+" has been set.").c_str());
-    // if an observer is registered, then perform the callback
-    if(paramObs[id]!=NULL)
-        paramObs[id]->parameterUpdated(paramList[id]);
-    return true;
+    if(res)
+    {
+        reply.addString(("Parameter "+pd->name+" has been set.").c_str());
+        // if an observer is registered, then perform the callback
+        if(paramValueObs[id]!=NULL)
+            paramValueObs[id]->parameterUpdated(paramList[id]);
+    }
+    return res;
 }
 
 //*************************************************************************************************************************
 bool ParamHelperServer::setAllParam(int id, const Bottle &v, Bottle &reply)
 {
     // Check a lot of things
-    ParamDescription *pd = &paramList[id];
-    if(!hasParam(id)){              reply.addString(("Error: parameter "+paramList[id].name+" does not exist.").c_str());               return false; }
-    if(paramValues[id]==NULL){      reply.addString(("Error: parameter "+paramList[id].name+" has no associated variable.").c_str());   return false; }
-    if(!pd->ioType.canWrite()){     reply.addString(("Error: parameter "+paramList[id].name+" cannot be written.").c_str());            return false; }
-    if(v.size()==0){                reply.addString("Error: a value to set was not specified.");                                        return false; }
-    if(pd->type==PARAM_DATA_STRING && !v.get(0).isString()){    reply.addString("Error: specified value is not a string.");             return false; }
-    else if(pd->type==PARAM_DATA_BOOL && !v.get(0).isBool()){   reply.addString("Error: specified value is not a bool.");               return false; }
-    if(pd->type==PARAM_DATA_FLOAT || pd->type==PARAM_DATA_INT)
-        if(!(v.get(0).isInt() || v.get(0).isDouble()) || !pd->bounds.checkBounds(v.get(0).asDouble()))
-        { 
-            reply.addString(("Value out of the allowed range: "+paramList[id].bounds.toString()).c_str()); 
-            return false; 
-        }
+    ParamProxyInterface *pd = paramList[id];
+    if(!hasParam(id)){              reply.addString(("Error: parameter "+pd->name+" does not exist.").c_str());     return false; }
+    if(!pd->ioType.canWrite()){     reply.addString(("Error: parameter "+pd->name+" cannot be written.").c_str());  return false; }
+    if(v.size()==0){                reply.addString("Error: a value to set was not specified.");                    return false; }
     
-    
-    Value &val = v.get(0);
+    bool res = true;
     for(int i=0; i<pd->size.size; i++)
-        switch(pd->type)
-        {
-            case PARAM_DATA_FLOAT:  *paramValue<double>(pd->id, i) = val.asDouble();           break;
-            case PARAM_DATA_INT:    *paramValue<int>(pd->id, i)    = val.asInt();              break;
-            case PARAM_DATA_BOOL:   *paramValue<bool>(pd->id, i)   = val.asBool();             break;
-            case PARAM_DATA_STRING: *paramValue<string>(pd->id, i) = val.asString().c_str();   break;
-        }
+        res = res && pd->set(v, i, &reply);
     
-    reply.addString(("Parameter "+paramList[id].name+" has been set.").c_str());
-    // if an observer is registered, then perform the callback
-    if(paramObs[id]!=NULL)
-        paramObs[id]->parameterUpdated(paramList[id]);
+    if(res)
+    {
+        reply.addString(("Parameter "+pd->name+" has been set.").c_str());
+        // if an observer is registered, then perform the callback
+        if(paramValueObs[id]!=NULL)
+            paramValueObs[id]->parameterUpdated(pd);
+    }
     return true;
 }
 
@@ -399,9 +365,9 @@ bool ParamHelperServer::identifyCommand(const Bottle &cmd, CommandType &cmdType,
         if(cmdType==COMMAND_SET_ALL || cmdType==COMMAND_SET_ONE || cmdType==COMMAND_GET_ONE)
             cmdTail = cmdTail.tail();
         // look for a parameter name
-        for(map<int,ParamDescription>::iterator it=paramList.begin(); it!=paramList.end(); it++)
+        for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
         {
-		    stringstream stream(it->second.name);
+		    stringstream stream(it->second->name);
 		    found = true;
             wordCounter = 0;
 
@@ -412,7 +378,7 @@ bool ParamHelperServer::identifyCommand(const Bottle &cmd, CommandType &cmdType,
 		    }
 		    if(found)
             {
-			    id = it->second.id;
+			    id = it->second->id;
                 for(int k=wordCounter; k<cmdTail.size(); k++)
                     params.add(cmdTail.get(k));
                 if(cmdType==COMMAND_GET && params.size()>0)
