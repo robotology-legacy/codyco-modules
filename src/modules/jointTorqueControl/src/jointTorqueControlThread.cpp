@@ -85,7 +85,7 @@ void jointTorqueControlThread::run()
             {
 				etau(i) 			= tauM(i) - tauD(i);
 				integralState(i) 	= integralState(i) + DT*etau(i);
-				tau(i) 				= tauD(i) - kp(i)*etau(i) -ki(i)*integralState(i);
+				tau(i) 				= tauD(i) - kp(i)*etau(i) - ki(i)*integralState(i);
 				motorVoltage(i) 	= kt(i)*tau(i) + (kvp(i)*stepFunction(dq(i)) + kvn(i)*stepFunction(-dq(i)))*dq(i) + (kcp(i)*stepFunction(dq(i)) + kcn(i)*stepFunction(-dq(i)))*tanh(ks(i)*dq(i));
 			
 				robot->setControlReference(&motorVoltage(i), i);
@@ -117,6 +117,7 @@ void jointTorqueControlThread::parameterUpdated(const ParamProxyInterface *pd)
     switch(pd->id)
     {
     case PARAM_ID_AJ:
+		printf("%s",toString(activeJoints).c_str());
         resetIntegralStates();
 		setControlModePWMOnJoints(true);
         break;
@@ -190,9 +191,9 @@ float jointTorqueControlThread::stepFunction(float x)
 bool jointTorqueControlThread::readRobotStatus(bool blockingRead)
 {
     // read joint angles
-    bool res = res && robot->getEstimates(ESTIMATE_JOINT_VEL, dq.data(), -1.0, blockingRead);
+    bool res = robot->getEstimates(ESTIMATE_JOINT_VEL, dq.data(), -1.0, blockingRead);
 //     res = res && robot->getEstimates(ESTIMATE_TORQUE, tauM.data(), -1.0, blockingRead);
-
+	tauM = tau;
     return res;
 }
 
@@ -218,7 +219,7 @@ void jointTorqueControlThread::setControlModePWMOnJoints(bool torqueActive)
 		}
 		else {
 			robot->setControlMode(CTRL_MODE_POS, 0, i);
-			printf("Deactivating PWM control on joint %d\n", i);
+// 			printf("Deactivating PWM control on joint %d\n", i);
 		}
 	}
 }

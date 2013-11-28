@@ -73,7 +73,7 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
 
     // Thread parameters
     
-	VectorNd 	activeJoints;	// Vector of nDOF integers representing the joints to control  (1: active, 0: inactive) 
+	VectorNi 	activeJoints;	// Vector of nDOF integers representing the joints to control  (1: active, 0: inactive) 
     VectorNd	dq;				// Joint velocities 
     VectorNd 	kt;				// Vector of nDOF floats ( see Eq. (1) )"), 
     VectorNd 	kvp;			// Vector of nDOF floats ( see Eq. (2) )"), 
