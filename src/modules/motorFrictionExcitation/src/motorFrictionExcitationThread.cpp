@@ -57,6 +57,7 @@ bool MotorFrictionExcitationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MIN,              qMin.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MAX,              qMax.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SEND_COMMANDS,      &sendCmdToMotors));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_POS_INT_GAIN,       &posIntGain));
     ///< link module output streaming parameters to member variables
     ///< link module output monitoring parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,                  &qDegMonitor));
@@ -131,12 +132,23 @@ bool MotorFrictionExcitationThread::readRobotStatus(bool blockingRead)
 //*************************************************************************************************************************
 bool MotorFrictionExcitationThread::updateReferenceTrajectories()
 {
+    ///< update position "error" integral
+    for(unsigned int i=0; i<currentJointIds.size(); i++)
+    {
+        int jid = currentGlobalJointIds[i];
+        posIntegral[i] += posIntGain*(qDeg[jid]-freeMotionExc[excitationCounter].initialJointConfiguration[jid]);
+        posIntegral[i] = posIntegral[i]>MAX_POS_INTEGRAL  ?  MAX_POS_INTEGRAL : posIntegral[i];
+        posIntegral[i] = posIntegral[i]<-MAX_POS_INTEGRAL ? -MAX_POS_INTEGRAL : posIntegral[i];
+    }
+    sendMsg("Pos integral: "+toString(posIntegral));
+
     FreeMotionExcitation *fme = &freeMotionExc[excitationCounter];
     double t = Time::now()-excitationStartTime;
     if(t<0.0)
         return false;
     ///< these operations are coefficient-wise because I'm using arrays (not matrices)
-    pwmDes = pwmOffset + (fme->a0 + fme->a*t) * (6.28 * fme->w * t).sin();
+    pwmDes = pwmOffset - posIntegral + (fme->a0 + fme->a*t) * (6.28 * fme->w * t).sin();
+    
     pwmDesSingleJoint = pwmDes[0];
     return true;
 }
@@ -146,7 +158,7 @@ bool MotorFrictionExcitationThread::checkStopConditions()
 {
     for(unsigned int i=0; i<currentJointIds.size(); i++)
     {
-        int jid = robot->getJointList().localToGlobalId(currentJointIds[i]);
+        int jid = currentGlobalJointIds[i];
         qDegMonitor = qDeg[jid];
         double jThr = freeMotionExc[excitationCounter].jointLimitThresh[i];
         if(fabs(qMax[jid]-qDeg[jid])<jThr || fabs(qDeg[jid]-qMin[jid])<jThr)
@@ -224,6 +236,7 @@ bool MotorFrictionExcitationThread::preStartOperations()
     pwmOffset.resize(cjn);
     currentJointIds.resize(cjn);
     currentGlobalJointIds.resize(cjn);
+    posIntegral.resize(cjn); posIntegral.setZero();
     EstimateType estType = isRobotSimulator(robotName) ? ESTIMATE_JOINT_VEL : ESTIMATE_MOTOR_PWM;
     double pwmUp, pwmDown;
     for(int i=0; i<cjn; i++)
@@ -248,11 +261,7 @@ bool MotorFrictionExcitationThread::preStartOperations()
 
         ///< as soon as joint moves read motor PWM
         do
-        {
             robot->getEstimate(ESTIMATE_JOINT_POS, lid, &qRad_i);   ///< blocking read
-            //robot->getEstimates(ESTIMATE_JOINT_POS, qRad.data());   ///< blocking read
-            //qRad_i = qRad[currentGlobalJointIds[i]];
-        }
         while( fabs(qRad_i-q0) < 0.5*CTRL_DEG2RAD);
         
         ///< read motor PWM
@@ -277,11 +286,7 @@ bool MotorFrictionExcitationThread::preStartOperations()
         ///< wait for joint to start moving
         printf("Wait for joint to start moving\n");
         do
-        {
             robot->getEstimate(ESTIMATE_JOINT_POS, lid, &qRad_i);   ///< blocking read
-            /*robot->getEstimates(ESTIMATE_JOINT_POS, qRad.data());   ///< blocking read
-            qRad_i = qRad[currentGlobalJointIds[i]];*/
-        }
         while( fabs(qRad_i-q0) < 0.5*CTRL_DEG2RAD);
 
         ///< read motor PWM

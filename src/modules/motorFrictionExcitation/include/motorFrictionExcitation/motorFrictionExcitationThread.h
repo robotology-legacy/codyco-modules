@@ -82,6 +82,7 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     double              excitationStartTime;    // timestamp taken at the beginning of the current excitation
     ArrayXd             pwmOffset;              // pwm to keep motor still in the starting position
     ArrayXd             pwmDes;                 // desired values of PWM for the controlled joints (variable size)
+    ArrayXd             posIntegral;            // integral of (q-q0), where q0 is the initial joint position
     ArrayXd             dqJ;                    // joint velocities (size of vector: n)
     ArrayXd             ftSens;                 // ankle force/torque sensor readings (order is: left, right)
     vector<LocalId>     currentJointIds;        // IDs of the joints currently excited
@@ -90,6 +91,7 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     // Module parameters
     vector<FreeMotionExcitation>    freeMotionExc;
     ArrayXd             qMin, qMax;             // lower and upper joint bounds
+    double              posIntGain;
 
     // Output streaming parameters
     ArrayXd             qDeg, qRad;             // measured positions

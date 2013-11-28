@@ -55,6 +55,7 @@ enum MFE_MotorCommandMode
 static const int        PRINT_PERIOD    = 1000;         ///< period of debug prints (in ms)
 static const int        PRINT_MSG_LEVEL = MSG_DEBUG;    ///< only messages whose type is greater than or equal to PRINT_MSG_LEVEL are printed
 static const double     PWM_MAX         = 300;          ///< max motor PWM allowed (in [-1333; 1333])
+static const double     MAX_POS_INTEGRAL = 30.0;
 
 // *** DEFAULT PARAMETER VALUES
 static const string                 DEFAULT_MODULE_NAME     = "motorFrictionExcitationControl"; ///< name of the module 
@@ -64,6 +65,7 @@ static const VectorNd               DEFAULT_Q_MAX           = VectorNd::Constant
 static const VectorNd               DEFAULT_Q_MIN           = VectorNd::Constant(-150.0);
 static const int                    DEFAULT_SEND_COMMANDS   = SEND_COMMANDS_TO_MOTORS;
 static const double                 DEFAULT_JNT_LIM_MIN_DIST = 10.0;
+static const double                 DEFAULT_POS_INT_GAIN    = 1e-5;
 
 // *** IDs of all the module command
 enum MotorFrictionExcitationCommandId { 
