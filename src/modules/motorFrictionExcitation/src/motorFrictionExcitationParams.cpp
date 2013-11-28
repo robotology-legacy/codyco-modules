@@ -127,7 +127,7 @@ bool FreeMotionExcitation::setFromValue(const Value &v)
 
 bool FreeMotionExcitation::setSubParam(const char *key, const Bottle &value, Bottle *reply)
 {
-    printf("Going to set FreeMotionExcitation subparam %s to: %s\n", key, value.toString().c_str());
+    //printf("Going to set FreeMotionExcitation subparam %s to: %s\n", key, value.toString().c_str());
     ///< replace "underscores" with "white spaces"
     string paramName(key);
     replace( paramName.begin(), paramName.end(), '_', ' ');
@@ -143,7 +143,7 @@ bool FreeMotionExcitation::setSubParam(const char *key, const Bottle &value, Bot
             
             Bottle b;
             it->second->getAsBottle(b);
-            printf("Subparam %s set to %s\n", key, b.toString().c_str());
+            //printf("Subparam %s set to %s\n", key, b.toString().c_str());
             return res;
         }
     
@@ -168,7 +168,7 @@ Value FreeMotionExcitation::getAsValue()
 
 void FreeMotionExcitation::resizeParam(int paramId, int newSize)
 {
-    printf("Param %s changed size to %d\n", paramList[paramId]->name.c_str(), newSize);
+    //printf("Param %s changed size to %d\n", paramList[paramId]->name.c_str(), newSize);
     switch(paramId)
     {
     case PARAM_ID_JOINT_ID:         

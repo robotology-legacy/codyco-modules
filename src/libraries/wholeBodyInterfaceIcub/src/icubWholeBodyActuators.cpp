@@ -232,11 +232,13 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
     ///< on robot use new method which set all joint vel of one body part at the same time (much faster!)
     if(!isRobotSimulator(robot))
     {
-        double spd[MAX_NJ];
-        int i=0, nj, jointIds[MAX_NJ];
+        double spd[MAX_NJ];     // vector of reference joint speeds
+        int jointIds[MAX_NJ];   // vector of joint ids
+        int i=0;                // counter of controlled joints
         FOR_ALL_BODY_PARTS(itBp)
         {
-            nj = itBp->second.size();   // number of joints of this body part
+            int njVelCtrl = 0;              // number of joints that are velocity controlled
+            int nj = itBp->second.size();   // number of joints of this body part
             for(int j=0;j<nj;j++)
             {
                 if(currentCtrlModes[LocalId(itBp->first, itBp->second[j])]==CTRL_MODE_VEL)
@@ -244,12 +246,12 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
                     // icub's torso joints are in reverse order
                     jointIds[j] = itBp->first==TORSO ? 2-itBp->second[j] : itBp->second[j];
                     spd[j] = CTRL_RAD2DEG*ref[i];           // convert joint vel from rad to deg
-                    i++;
+                    njVelCtrl++;
                 }
+                i++;
             }
-            ok = ok && ivel[itBp->first]->velocityMove(nj, jointIds, spd);
+            ok = ok && ivel[itBp->first]->velocityMove(njVelCtrl, jointIds, spd);
         }
-        return ok;
     }
     
     unsigned int i=0;
@@ -259,7 +261,7 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
         switch(currentCtrlModes[LocalId(itBp->first,*itJ)])
         {
             case CTRL_MODE_POS:         ok = ok && ipos[itBp->first]->positionMove(j, CTRL_RAD2DEG*ref[i]); break;
-            case CTRL_MODE_VEL:         ok = ok && ivel[itBp->first]->velocityMove(j, CTRL_RAD2DEG*ref[i]); break;
+            ///< velocity controlled joints have already been managed
             case CTRL_MODE_TORQUE:      ok = ok && itrq[itBp->first]->setRefTorque(j, ref[i]);              break;
             ///< iCub simulator does not implement PWM motor control
             case CTRL_MODE_MOTOR_PWM:   ok = ok && isRobotSimulator(robot)?true:iopl[itBp->first]->setOutput(j, ref[i]); break;

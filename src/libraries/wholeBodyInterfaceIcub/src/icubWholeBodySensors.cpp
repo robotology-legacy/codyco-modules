@@ -190,7 +190,7 @@ bool icubWholeBodySensors::openEncoder(const int bp)
         fprintf(stderr, "Problem initializing drivers of %s\n", bodyPartNames[bp].c_str());
         return false;
     }
-    
+    ///< store the number of joints in this body part
     int nj=0;
     ienc[bp]->getAxes(&nj);
     bodyPartAxes[bp] = nj;
@@ -199,9 +199,11 @@ bool icubWholeBodySensors::openEncoder(const int bp)
 
 bool icubWholeBodySensors::openPwm(const int bp)
 {
-    iopl[bp]=0;
-    if(isRobotSimulator(robot))
-        return true;
+    ///< check whether the motor PWM interface is already open
+    if(iopl[bp]!=0)             return true;
+    ///< check that we are not in simulation, because iCub simulator does not implement pwm control
+    if(isRobotSimulator(robot)) return true;
+    ///< if necessary open the poly driver
     if(dd[bp]==0 && !openPolyDriver(name, robot, dd[bp], bodyPartNames[bp]))
         return false;
 
