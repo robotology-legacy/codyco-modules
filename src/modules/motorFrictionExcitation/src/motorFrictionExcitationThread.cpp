@@ -32,6 +32,7 @@ MotorFrictionExcitationThread::MotorFrictionExcitationThread(string _name, strin
     :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi)
 {
     status = EXCITATION_OFF;
+    sendCmdToMotors = SEND_COMMANDS_TO_MOTORS;
     printCountdown = 0;
     excitationCounter = 0;
     _n = ICUB_DOFS;
@@ -55,10 +56,11 @@ bool MotorFrictionExcitationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_FREE_MOTION_EXCIT,     freeMotionExc.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MIN,              qMin.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MAX,              qMax.data()));
-    ///< link module input streaming parameters to member variables
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SEND_COMMANDS,      &sendCmdToMotors));
     ///< link module output streaming parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,                  qDeg.data()));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_DES,            pwmDes.data()));
+    ///< link module output monitoring parameters to member variables
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_DES,            &pwmDesSingleJoint));
     
     ///< Register callbacks for some module parameters
     
@@ -89,8 +91,8 @@ void MotorFrictionExcitationThread::run()
         
         if(areDesiredMotorPwmTooLarge() || checkStopConditions())
             status = EXCITATION_FINISHED;   // stop current excitation and move to the next one
-        else
-            sendMotorCommands();
+        else if( !sendMotorCommands())
+            preStopOperations();
     }
     else if(status==EXCITATION_FINISHED)
     {
@@ -135,6 +137,7 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
         return false;
     ///< these operations are coefficient-wise because I'm using arrays (not matrices)
     pwmDes = pwmOffset + (fme->a0 + fme->a*t) * (fme->w * t).sin();
+    pwmDesSingleJoint = pwmDes[0];
     return true;
 }
 
@@ -170,7 +173,9 @@ bool MotorFrictionExcitationThread::areDesiredMotorPwmTooLarge()
 //*************************************************************************************************************************
 bool MotorFrictionExcitationThread::sendMotorCommands()
 {
-    //isRobotSimulator(robotName)
+    if(sendCmdToMotors==DO_NOT_SEND_COMMANDS_TO_MOTORS)
+        return true;
+
     int wbiId = -1;
     for(unsigned int i=0; i<currentJointIds.size(); i++)
     {
@@ -182,7 +187,6 @@ bool MotorFrictionExcitationThread::sendMotorCommands()
             return false;
         }
     }
-    sendMsg("Motor commands: "+toString(pwmDes), MSG_DEBUG);
     return true;
 }
 
@@ -196,16 +200,19 @@ bool MotorFrictionExcitationThread::preStartOperations()
     }
     printf("\nGoing to execute excitation %d:\n%s\n", excitationCounter, freeMotionExc[excitationCounter].toString().c_str());
 
-    // no need to lock because the mutex is already locked
-    readRobotStatus(true);                      ///< update state data
-    status = EXCITATION_STARTED;                ///< set thread status to "on"
+    ///< no need to lock because the mutex is already locked
+    if(!readRobotStatus(true))          ///< update state data
+        return false;
+    status = EXCITATION_STARTED;        ///< set thread status to "on"
 
     ///< move joints to initial configuration
     robot->setControlMode(CTRL_MODE_POS);
-    //cout<<"Set joint pos to:\n"<<freeMotionExc[excitationCounter].initialJointConfiguration.transpose()<<endl;
     ArrayXd initialJointConfRad = CTRL_DEG2RAD * freeMotionExc[excitationCounter].initialJointConfiguration;
     robot->setControlReference(initialJointConfRad.data());
-    Time::delay(2.0);   ///< wait for the joints to reach commanded configuration
+    
+    // @todo Improve this by checking whether the joints have actually reached the desired configuration
+    //       or checking whether the joint velocity is zero
+    Time::delay(3.0);                   ///< wait for the joints to reach commanded configuration
     
     ///< read pwm offset
     pwmOffset.resize(freeMotionExc[excitationCounter].jointId.size());
@@ -223,16 +230,18 @@ bool MotorFrictionExcitationThread::preStartOperations()
     }
     
     ///< set control mode to motor PWM
-    bool res = true;
-    int wbiId = -1;
-    ControlMode ctm = isRobotSimulator(robotName) ? CTRL_MODE_VEL : CTRL_MODE_MOTOR_PWM;
-    for(unsigned int i=0; i<currentJointIds.size(); i++)
+    if(sendCmdToMotors==SEND_COMMANDS_TO_MOTORS)
     {
-        wbiId = robot->getJointList().localToGlobalId(currentJointIds[i]);
-        if(!robot->setControlMode(ctm, pwmOffset.data()+i, wbiId))
+        int wbiId = -1;
+        ControlMode ctm = isRobotSimulator(robotName) ? CTRL_MODE_VEL : CTRL_MODE_MOTOR_PWM;
+        for(unsigned int i=0; i<currentJointIds.size(); i++)
         {
-            printf("Error while setting joint %s control mode to PWM.\n", currentJointIds[i].description.c_str());
-            return false;
+            wbiId = robot->getJointList().localToGlobalId(currentJointIds[i]);
+            if(!robot->setControlMode(ctm, pwmOffset.data()+i, wbiId))
+            {
+                printf("Error while setting joint %s control mode to PWM.\n", currentJointIds[i].description.c_str());
+                return false;
+            }
         }
     }
 

@@ -61,6 +61,8 @@ enum MotorFrictionExcitationStatus
     EXCITATION_OFF              // controller off (either the user stopped it or all excitations have finished)
 };
 
+
+
 /** 
  * MotorFrictionExcitation control thread.
  */
@@ -72,9 +74,10 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     wholeBodyInterface  *robot;
 
     // Member variables
+    MotorFrictionExcitationStatus   status;             ///< thread status ("on" when controlling, off otherwise)
+    MFE_MotorCommandMode            sendCmdToMotors;    ///< specify whether to send commands to motors
     int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     int                 _n;                     // current number of active joints
-    MotorFrictionExcitationStatus    status;    // thread status ("on" when controlling, off otherwise)
     int                 excitationCounter;      // counter of how many excitations have been performed
     double              excitationStartTime;    // timestamp taken at the beginning of the current excitation
     ArrayXd             pwmOffset;              // pwm to keep motor still in the starting position
@@ -87,14 +90,11 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     vector<FreeMotionExcitation>    freeMotionExc;
     ArrayXd             qMin, qMax;             // lower and upper joint bounds
 
-    // Input streaming parameters
-
     // Output streaming parameters
     ArrayXd             qDeg, qRad;             // measured positions
     
-    // Eigen vectors mapping Yarp vectors
-    
-    // Trajectory generators
+    ///< Output monitoring parameters
+    double              pwmDesSingleJoint;      // value of desired pwm for the first controlled joint
     
     /************************************************* PRIVATE METHODS ******************************************************/
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO);

@@ -44,21 +44,29 @@ namespace motorFrictionExcitation
 /** Types of printed messages */
 enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
 
+///< specify whether or not the commands are sent to the motors
+enum MFE_MotorCommandMode
+{
+    DO_NOT_SEND_COMMANDS_TO_MOTORS = 0,
+    SEND_COMMANDS_TO_MOTORS = 1
+};
+
 // *** CONSTANTS
 static const int        PRINT_PERIOD    = 1000;         ///< period of debug prints (in ms)
 static const int        PRINT_MSG_LEVEL = MSG_DEBUG;    ///< only messages whose type is greater than or equal to PRINT_MSG_LEVEL are printed
 static const double     PWM_MAX         = 300;          ///< max motor PWM allowed (in [-1333; 1333])
 
 // *** DEFAULT PARAMETER VALUES
-static const string         DEFAULT_MODULE_NAME     = "motorFrictionExcitationControl"; ///< name of the module 
-static const int            DEFAULT_CTRL_PERIOD     = 10;                               ///< controller period in ms
-static const string         DEFAULT_ROBOT_NAME      = "icubSim";                        ///< robot name
-static const VectorNd       DEFAULT_Q_MAX           = VectorNd::Constant(150.0);
-static const VectorNd       DEFAULT_Q_MIN           = VectorNd::Constant(-150.0);
-static const double         DEFAULT_JNT_LIM_MIN_DIST = 5.0;
+static const string                 DEFAULT_MODULE_NAME     = "motorFrictionExcitationControl"; ///< name of the module 
+static const int                    DEFAULT_CTRL_PERIOD     = 10;                               ///< controller period in ms
+static const string                 DEFAULT_ROBOT_NAME      = "icubSim";                        ///< robot name
+static const VectorNd               DEFAULT_Q_MAX           = VectorNd::Constant(150.0);
+static const VectorNd               DEFAULT_Q_MIN           = VectorNd::Constant(-150.0);
+static const int                    DEFAULT_SEND_COMMANDS   = SEND_COMMANDS_TO_MOTORS;
+static const double                 DEFAULT_JNT_LIM_MIN_DIST = 10.0;
 // Streaming parameters
-static const VectorNd       DEFAULT_Q               = VectorNd::Constant(0.0);
-static const Vector1d       DEFAULT_PWM_DES         = Vector1d::Constant(0.0);
+static const VectorNd               DEFAULT_Q               = VectorNd::Constant(0.0);
+static const double                 DEFAULT_PWM_DES         = 0.0;
 
 
 // *** IDs of all the module command
@@ -80,14 +88,5 @@ CommandDescription("quit",          COMMAND_ID_QUIT,            "Stop the contro
 };
 
 }   // end namespace 
-
-//using namespace motorFrictionExcitation;
-//
-//template <> inline FreeMotionExcitation paramHelp::castFromValue<FreeMotionExcitation>(const yarp::os::Value &v)
-//{      
-//    motorFrictionExcitation::FreeMotionExcitation res;
-//
-//    return res; 
-//}
 
 #endif

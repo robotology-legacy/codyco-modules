@@ -37,7 +37,7 @@ enum MotorFrictionExcitationParamId
 { 
     PARAM_ID_MODULE_NAME,       PARAM_ID_CTRL_PERIOD,       PARAM_ID_ROBOT_NAME, 
     PARAM_FREE_MOTION_EXCIT,    PARAM_ID_Q_MAX,             PARAM_ID_Q_MIN,             
-    PARAM_ID_Q,                 PARAM_ID_PWM_DES,
+    PARAM_ID_Q,                 PARAM_ID_PWM_DES,           PARAM_ID_SEND_COMMANDS,
     PARAM_ID_SIZE /*This is the number of parameters, so it must be the last value of the enum.*/
 };
 
@@ -103,10 +103,11 @@ new ParamProxyBasic<string>("robot",                PARAM_ID_ROBOT_NAME,        
 // ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("q max",                PARAM_ID_Q_MAX,             ICUB_DOFS,          ParamBilatBounds<double>(-360.0,360.0),     PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds"),
 new ParamProxyBasic<double>("q min",                PARAM_ID_Q_MIN,             ICUB_DOFS,          ParamBilatBounds<double>(-360.0,360.0),     PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds"),
-// ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
+new ParamProxyBasic<int>(   "send commands",        PARAM_ID_SEND_COMMANDS,     1,                  ParamBilatBounds<int>(0, 1),                PARAM_IN_OUT,       &DEFAULT_SEND_COMMANDS,         "Specify whether to send commands to the motors"),
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("q",                    PARAM_ID_Q,                 ICUB_DOFS,          ParamBilatBounds<double>(-100.0, 100.0),    PARAM_OUT_STREAM,   DEFAULT_Q.data(),               "Joint angles"),
-new ParamProxyBasic<double>("pwmDes",               PARAM_ID_PWM_DES,           PARAM_SIZE_FREE,    ParamBilatBounds<double>(-1333.0, 1333.0),  PARAM_OUT_STREAM,   DEFAULT_PWM_DES.data(),         "Joint angles")
+// ************************************************* STREAMING MONITOR PARAMETERS ****************************************************************************************************************************************************************************************************************************
+new ParamProxyBasic<double>("pwmDes",               PARAM_ID_PWM_DES,           1,                  ParamBilatBounds<double>(-1333.0, 1333.0),  PARAM_MONITOR,      &DEFAULT_PWM_DES,               "Current desired pwm sent to the motors")
 };
 
 }   // end namespace 
