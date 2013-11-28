@@ -38,7 +38,6 @@
 #include <iostream>
 #include <stdio.h>
 
-#include <paramHelp/paramHelpServer.h>
 #include <wbi/wbi.h>
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include "constants.h"

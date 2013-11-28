@@ -18,7 +18,7 @@
 #ifndef LOCOMOTION_CONSTANTS
 #define LOCOMOTION_CONSTANTS
 
-#include <paramHelp/paramHelp.h>
+#include <paramHelp/paramProxyBasic.h>
 #include <Eigen/Core>                               // import most common Eigen types
 #include <vector>
 #include <string>
@@ -114,40 +114,38 @@ enum LocomotionParamId {
 // ******************************************************************************************************************************
 // ****************************************** DESCRIPTION OF ALL THE MODULE PARAMETERS ******************************************
 // ******************************************************************************************************************************
-const ParamDescription locomotionParamDescr[]  = 
+const ParamProxyInterface *const locomotionParamDescr[PARAM_ID_SIZE] = 
 { 
-//               NAME               ID                          TYPE                SIZE                        BOUNDS                              I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
-ParamDescription("name",            PARAM_ID_MODULE_NAME,       PARAM_DATA_STRING,  1,                          PARAM_BOUNDS_INF,                   PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
-ParamDescription("period",          PARAM_ID_CTRL_PERIOD,       PARAM_DATA_INT,     1,                          ParamBounds(1, 1000),               PARAM_CONFIG,       &DEFAULT_CTRL_PERIOD,           "Period of the control loop (ms)"), 
-ParamDescription("robot",           PARAM_ID_ROBOT_NAME,        PARAM_DATA_STRING,  1,                          PARAM_BOUNDS_INF,                   PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
+//                          NAME                ID                          SIZE                        CONSTRAINTS                                 I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
+new ParamProxyBasic<string>("name",             PARAM_ID_MODULE_NAME,       1,                          ParamConstraint<string>(),                  PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"),
+new ParamProxyBasic<int>(   "period",           PARAM_ID_CTRL_PERIOD,       1,                          ParamBilatBounds<int>(1,1000),              PARAM_CONFIG,       &DEFAULT_CTRL_PERIOD,           "Period of the control loop (ms)"),
+new ParamProxyBasic<string>("robot",            PARAM_ID_ROBOT_NAME,        1,                          ParamConstraint<string>(),                  PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
 // ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************************
-ParamDescription("kp com",          PARAM_ID_KP_COM,            PARAM_DATA_FLOAT,   2,                          ParamBounds(0.0, KP_MAX),           PARAM_IN_OUT,       DEFAULT_KP_COM.data(),          "Proportional gain for the COM position control"), 
-ParamDescription("kp foot",         PARAM_ID_KP_FOOT,           PARAM_DATA_FLOAT,   6,                          ParamBounds(0.0, KP_MAX),           PARAM_IN_OUT,       DEFAULT_KP_FOOT.data(),         "Proportional gain for the foot pose control"), 
-ParamDescription("kp posture",      PARAM_ID_KP_POSTURE,        PARAM_DATA_FLOAT,   ParamSize(ICUB_DOFS,true),  ParamBounds(0.0, KP_MAX),           PARAM_IN_OUT,       DEFAULT_KP_POSTURE.data(),      "Proportional gain for the joint posture control"), 
-ParamDescription("tt com",          PARAM_ID_TRAJ_TIME_COM,     PARAM_DATA_FLOAT,   1,                          ParamBounds(0.1, PARAM_BOUND_INF),  PARAM_IN_OUT,       &DEFAULT_TT_COM,                "Trajectory time for the COM minimum jerk trajectory generator"), 
-ParamDescription("tt foot",         PARAM_ID_TRAJ_TIME_FOOT,    PARAM_DATA_FLOAT,   1,                          ParamBounds(0.1, PARAM_BOUND_INF),  PARAM_IN_OUT,       &DEFAULT_TT_FOOT,               "Trajectory time for the foot minimum jerk trajectory generator"), 
-ParamDescription("tt posture",      PARAM_ID_TRAJ_TIME_POSTURE, PARAM_DATA_FLOAT,   1,                          ParamBounds(0.1, PARAM_BOUND_INF),  PARAM_IN_OUT,       &DEFAULT_TT_POSTURE,            "Trajectory time for the posture minimum jerk trajectory generator"), 
-ParamDescription("active joints",   PARAM_ID_ACTIVE_JOINTS,     PARAM_DATA_INT,     ICUB_DOFS,                  ParamBounds(0, 1),                  PARAM_IN_OUT,       DEFAULT_ACTIVE_JNTS.data(),     "Selection of which joints are used in the control (1: active, 0: inactive)"), 
-ParamDescription("pinv damp",       PARAM_ID_PINV_DAMP,         PARAM_DATA_FLOAT,   1,                          ParamBounds(1e-8, 1.0),             PARAM_IN_OUT,       &DEFAULT_PINV_DAMP,             "Damping factor used in the pseudoinverses"),
-ParamDescription("q max",           PARAM_ID_Q_MAX,             PARAM_DATA_FLOAT,   ICUB_DOFS,                  PARAM_BOUNDS_INF,                   PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds"),
-ParamDescription("q min",           PARAM_ID_Q_MIN,             PARAM_DATA_FLOAT,   ICUB_DOFS,                  PARAM_BOUNDS_INF,                   PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds"),
-ParamDescription("jlmd",            PARAM_ID_JNT_LIM_MIN_DIST,  PARAM_DATA_FLOAT,   1,                          ParamBounds(0.1, PARAM_BOUND_INF),  PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits"),
+new ParamProxyBasic<double>("kp com",          PARAM_ID_KP_COM,             2,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_COM.data(),          "Proportional gain for the COM position control"), 
+new ParamProxyBasic<double>("kp foot",         PARAM_ID_KP_FOOT,            6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_FOOT.data(),         "Proportional gain for the foot pose control"), 
+new ParamProxyBasic<double>("kp posture",      PARAM_ID_KP_POSTURE,         ParamSize(ICUB_DOFS,true),  ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_POSTURE.data(),      "Proportional gain for the joint posture control"), 
+new ParamProxyBasic<double>("tt com",          PARAM_ID_TRAJ_TIME_COM,      1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_TT_COM,                "Trajectory time for the COM minimum jerk trajectory generator"), 
+new ParamProxyBasic<double>("tt foot",         PARAM_ID_TRAJ_TIME_FOOT,     1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_TT_FOOT,               "Trajectory time for the foot minimum jerk trajectory generator"), 
+new ParamProxyBasic<double>("tt posture",      PARAM_ID_TRAJ_TIME_POSTURE,  1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_TT_POSTURE,            "Trajectory time for the posture minimum jerk trajectory generator"), 
+new ParamProxyBasic<int>(   "active joints",   PARAM_ID_ACTIVE_JOINTS,      ICUB_DOFS,                  ParamBilatBounds<int>(0, 1),                PARAM_IN_OUT,       DEFAULT_ACTIVE_JNTS.data(),     "Selection of which joints are used in the control (1: active, 0: inactive)"), 
+new ParamProxyBasic<double>("pinv damp",       PARAM_ID_PINV_DAMP,          1,                          ParamBilatBounds<double>(1e-8, 1.0),        PARAM_IN_OUT,       &DEFAULT_PINV_DAMP,             "Damping factor used in the pseudoinverses"),
+new ParamProxyBasic<double>("q max",           PARAM_ID_Q_MAX,              ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds"),
+new ParamProxyBasic<double>("q min",           PARAM_ID_Q_MIN,              ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds"),
+new ParamProxyBasic<double>("jlmd",            PARAM_ID_JNT_LIM_MIN_DIST,   1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits"),
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
-ParamDescription("support phase",   PARAM_ID_SUPPORT_PHASE,     PARAM_DATA_INT,     1,                          ParamBounds(0.0, 2.0),              PARAM_IN_STREAM,    &DEFAULT_SUPPORT_PHASE,         "Foot support phase, 0: double, 1: left foot, 2: right foot"), 
-ParamDescription("xd com",          PARAM_ID_XDES_COM,          PARAM_DATA_FLOAT,   2,                          ParamBounds(-0.26, 0.1),            PARAM_IN_STREAM,    DEFAULT_XDES_COM.data(),        "Desired position of the center of mass"),
-ParamDescription("xd foot",         PARAM_ID_XDES_FOOT,         PARAM_DATA_FLOAT,   7,                          ParamBounds(-6.0, 6.0),             PARAM_IN_STREAM,    DEFAULT_XDES_FOOT.data(),       "Desired position/orientation of the swinging foot"),
-ParamDescription("qd",              PARAM_ID_QDES,              PARAM_DATA_FLOAT,   ICUB_DOFS,                  ParamBounds(-200.0, 200.0),         PARAM_IN_STREAM,    DEFAULT_QDES.data(),            "Desired joint angles"),
-ParamDescription("H_w2b",           PARAM_ID_H_W2B,             PARAM_DATA_FLOAT,   16,                         ParamBounds(-100.0, 100.0),         PARAM_IN_STREAM,    DEFAULT_H_W2B.data(),           "Estimated rototranslation matrix between world and robot base reference frames"),
+new ParamProxyBasic<int>(   "support phase",   PARAM_ID_SUPPORT_PHASE,      1,                          ParamBilatBounds<int>(0, 2),                PARAM_IN_STREAM,    &DEFAULT_SUPPORT_PHASE,         "Foot support phase, 0: double, 1: left foot, 2: right foot"), 
+new ParamProxyBasic<double>("xd com",          PARAM_ID_XDES_COM,           2,                          ParamBilatBounds<double>(-0.26, 0.1),       PARAM_IN_STREAM,    DEFAULT_XDES_COM.data(),        "Desired position of the center of mass"),
+new ParamProxyBasic<double>("xd foot",         PARAM_ID_XDES_FOOT,          7,                          ParamBilatBounds<double>(-6.0, 6.0),        PARAM_IN_STREAM,    DEFAULT_XDES_FOOT.data(),       "Desired position/orientation of the swinging foot"),
+new ParamProxyBasic<double>("qd",              PARAM_ID_QDES,               ICUB_DOFS,                  ParamBilatBounds<double>(-200.0, 200.0),    PARAM_IN_STREAM,    DEFAULT_QDES.data(),            "Desired joint angles"),
+new ParamProxyBasic<double>("H_w2b",           PARAM_ID_H_W2B,              16,                         ParamBilatBounds<double>(-100.0, 100.0),    PARAM_IN_STREAM,    DEFAULT_H_W2B.data(),           "Estimated rototranslation matrix between world and robot base reference frames"),
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
-ParamDescription("x com",           PARAM_ID_X_COM,             PARAM_DATA_FLOAT,   2,                          ParamBounds(-10.0, 10.0),           PARAM_OUT_STREAM,   DEFAULT_X_COM.data(),           "Position of the center of mass"),
-ParamDescription("x foot",          PARAM_ID_X_FOOT,            PARAM_DATA_FLOAT,   7,                          ParamBounds(-10.0, 10.0),           PARAM_OUT_STREAM,   DEFAULT_X_FOOT.data(),          "Position/orientation of the swinging foot"),
-ParamDescription("q",               PARAM_ID_Q,                 PARAM_DATA_FLOAT,   ICUB_DOFS,                  ParamBounds(-100.0, 100.0),         PARAM_OUT_STREAM,   DEFAULT_Q.data(),               "Joint angles"),
-ParamDescription("xr com",          PARAM_ID_XREF_COM,          PARAM_DATA_FLOAT,   2,                          ParamBounds(-10.0, 10.0),           PARAM_OUT_STREAM,   DEFAULT_XREF_COM.data(),        "Reference position of the center of mass generated by a min jerk trajectory generator"),
-ParamDescription("xr foot",         PARAM_ID_XREF_FOOT,         PARAM_DATA_FLOAT,   7,                          ParamBounds(-10.0, 10.0),           PARAM_OUT_STREAM,   DEFAULT_XREF_FOOT.data(),       "Reference position/orientation of the swinging foot generated by a min jerk trajectory generator"),
-ParamDescription("qr",              PARAM_ID_QREF,              PARAM_DATA_FLOAT,   ICUB_DOFS,                  ParamBounds(-100.0, 100.0),         PARAM_OUT_STREAM,   DEFAULT_QREF.data(),            "Reference joint angles generated by a min jerk trajectory generator"),
+new ParamProxyBasic<double>("x com",           PARAM_ID_X_COM,              2,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_X_COM.data(),           "Position of the center of mass"),
+new ParamProxyBasic<double>("x foot",          PARAM_ID_X_FOOT,             7,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_X_FOOT.data(),          "Position/orientation of the swinging foot"),
+new ParamProxyBasic<double>("q",               PARAM_ID_Q,                  ICUB_DOFS,                  ParamBilatBounds<double>(-100.0, 100.0),    PARAM_OUT_STREAM,   DEFAULT_Q.data(),               "Joint angles"),
+new ParamProxyBasic<double>("xr com",          PARAM_ID_XREF_COM,           2,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_XREF_COM.data(),        "Reference position of the center of mass generated by a min jerk trajectory generator"),
+new ParamProxyBasic<double>("xr foot",         PARAM_ID_XREF_FOOT,          7,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_XREF_FOOT.data(),       "Reference position/orientation of the swinging foot generated by a min jerk trajectory generator"),
+new ParamProxyBasic<double>("qr",              PARAM_ID_QREF,               ICUB_DOFS,                  ParamBilatBounds<double>(-100.0, 100.0),    PARAM_OUT_STREAM,   DEFAULT_QREF.data(),            "Reference joint angles generated by a min jerk trajectory generator")
 };
-
-
 
 
 
@@ -159,7 +157,7 @@ enum LocomotionCommandId {
 // ******************************************************************************************************************************
 // ****************************************** DESCRIPTION OF ALL THE MODULE COMMANDS ********************************************
 // ******************************************************************************************************************************
-const CommandDescription locomotionCommandDescr[]  = 
+const CommandDescription locomotionCommandDescr[COMMAND_ID_SIZE]  = 
 { 
 //                  NAME            ID                          DESCRIPTION
 CommandDescription("start",         COMMAND_ID_START,           "Start the controller"), 
