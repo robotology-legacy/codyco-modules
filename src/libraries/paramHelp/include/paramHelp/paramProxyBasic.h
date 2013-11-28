@@ -76,7 +76,7 @@ public:
 template<class T>
 class ParamBilatBounds : public ParamConstraint<T>
 {
-    T       upperBound,     lowerBound;
+    T       lowerBound, upperBound;
 public:
     ParamBilatBounds(const T low, const T up): lowerBound(low), upperBound(up) {}
     

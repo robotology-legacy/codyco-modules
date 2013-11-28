@@ -45,7 +45,7 @@ using namespace iCub::ctrl;
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 icubWholeBodyActuators::icubWholeBodyActuators(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames)
-: name(_name), robot(_robotName), bodyPartNames(_bodyPartNames), dof(0), initDone(false){}
+: initDone(false), dof(0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames){}
 
 bool icubWholeBodyActuators::openDrivers(int bp)
 {

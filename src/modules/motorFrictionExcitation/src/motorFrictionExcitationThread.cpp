@@ -57,6 +57,7 @@ bool MotorFrictionExcitationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MIN,              qMin.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MAX,              qMax.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SEND_COMMANDS,      &sendCmdToMotors));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_POS_INT_GAIN,       &posIntGain));
     ///< link module output streaming parameters to member variables
     ///< link module output monitoring parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,                  &qDegMonitor));
@@ -131,12 +132,23 @@ bool MotorFrictionExcitationThread::readRobotStatus(bool blockingRead)
 //*************************************************************************************************************************
 bool MotorFrictionExcitationThread::updateReferenceTrajectories()
 {
+    ///< update position "error" integral
+    for(unsigned int i=0; i<currentJointIds.size(); i++)
+    {
+        int jid = currentGlobalJointIds[i];
+        posIntegral[i] += posIntGain*(qDeg[jid]-freeMotionExc[excitationCounter].initialJointConfiguration[jid]);
+        posIntegral[i] = posIntegral[i]>MAX_POS_INTEGRAL  ?  MAX_POS_INTEGRAL : posIntegral[i];
+        posIntegral[i] = posIntegral[i]<-MAX_POS_INTEGRAL ? -MAX_POS_INTEGRAL : posIntegral[i];
+    }
+    sendMsg("Pos integral: "+toString(posIntegral));
+
     FreeMotionExcitation *fme = &freeMotionExc[excitationCounter];
     double t = Time::now()-excitationStartTime;
     if(t<0.0)
         return false;
     ///< these operations are coefficient-wise because I'm using arrays (not matrices)
-    pwmDes = pwmOffset + (fme->a0 + fme->a*t) * (6.28 * fme->w * t).sin();
+    pwmDes = pwmOffset - posIntegral + (fme->a0 + fme->a*t) * (6.28 * fme->w * t).sin();
+    
     pwmDesSingleJoint = pwmDes[0];
     return true;
 }
@@ -146,7 +158,7 @@ bool MotorFrictionExcitationThread::checkStopConditions()
 {
     for(unsigned int i=0; i<currentJointIds.size(); i++)
     {
-        int jid = robot->getJointList().localToGlobalId(currentJointIds[i]);
+        int jid = currentGlobalJointIds[i];
         qDegMonitor = qDeg[jid];
         double jThr = freeMotionExc[excitationCounter].jointLimitThresh[i];
         if(fabs(qMax[jid]-qDeg[jid])<jThr || fabs(qDeg[jid]-qMin[jid])<jThr)
@@ -215,21 +227,79 @@ bool MotorFrictionExcitationThread::preStartOperations()
     //       or checking whether the joint velocity is zero
     Time::delay(3.0);                   ///< wait for the joints to reach commanded configuration
     
-    ///< read pwm offset
-    pwmOffset.resize(freeMotionExc[excitationCounter].jointId.size());
-    currentJointIds.resize(freeMotionExc[excitationCounter].jointId.size());
+    ///< Compute pwm offset
+    ///< To compute a pwm offset that is not biased by the current stiction acting on the joint
+    ///< I move the joint 2 degrees up and 2 degrees down, and I read the PWM value
+    ///< at the two moments the joint starts moving. The average of these two values
+    ///< should give me a good PWM offset
+    int cjn = freeMotionExc[excitationCounter].jointId.size();  ///< current joint number
+    pwmOffset.resize(cjn);
+    currentJointIds.resize(cjn);
+    currentGlobalJointIds.resize(cjn);
+    posIntegral.resize(cjn); posIntegral.setZero();
     EstimateType estType = isRobotSimulator(robotName) ? ESTIMATE_JOINT_VEL : ESTIMATE_MOTOR_PWM;
-    for(int i=0; i<pwmOffset.size(); i++)
+    double pwmUp, pwmDown;
+    for(int i=0; i<cjn; i++)
     {
         LocalId lid = globalToLocalIcubId(freeMotionExc[excitationCounter].jointId[i]);
-        if(!robot->getEstimate(estType, lid, pwmOffset.data()+i))
+        currentGlobalJointIds[i] = robot->getJointList().localToGlobalId(lid);
+        currentJointIds[i] = lid;
+        
+        double q0 = initialJointConfRad[currentGlobalJointIds[i]];
+        double qDes = q0 + 2.0*CTRL_DEG2RAD;
+        double qRad_i = 0.0;
+        /*printf("Configuration joint id: %d, wbiLocalId=%s, wbiGlobalId=%d\n", freeMotionExc[excitationCounter].jointId[i], 
+            lid.description.c_str(), currentGlobalJointIds[i]);*/
+        printf("q0 = %.1f, qDes=%.1f\n", q0*CTRL_RAD2DEG, qDes*CTRL_RAD2DEG);
+
+        ///< move joint 2 degrees up
+        if(!robot->setControlReference(&qDes, currentGlobalJointIds[i]))
         {
-            printf("Error while reading pwm offset of joint %s. Stopping the excitation.\n", lid.description.c_str());
+            printf("Error while moving joint %s up to estimate stiction.\n", lid.description.c_str());
             return false;
         }
-        currentJointIds[i] = lid;
+
+        ///< as soon as joint moves read motor PWM
+        do
+            robot->getEstimate(ESTIMATE_JOINT_POS, lid, &qRad_i);   ///< blocking read
+        while( fabs(qRad_i-q0) < 0.5*CTRL_DEG2RAD);
+        
+        ///< read motor PWM
+        printf("Joint moved to %.1f deg.\n", qRad_i*CTRL_RAD2DEG);
+        if(!robot->getEstimate(estType, lid, &pwmUp))
+        {
+            printf("Error while reading pwm up of joint %s. Stopping the excitation.\n", lid.description.c_str());
+            return false;
+        }
+        Time::delay(2.0);   ///< wait for motion to stop
+        
+        ///< move joint 2 degrees down
+        qDes = q0;
+        robot->getEstimate(ESTIMATE_JOINT_POS, lid, &q0);   ///< blocking read
+        printf("Read joint pos: %.1f\nMove joint down to %.1f.\n", q0*CTRL_RAD2DEG, qDes*CTRL_RAD2DEG);
+        if(!robot->setControlReference(&qDes, currentGlobalJointIds[i]))
+        {
+            printf("Error while moving joint %s down to estimate stiction.\n", lid.description.c_str());
+            return false;
+        }
+
+        ///< wait for joint to start moving
+        printf("Wait for joint to start moving\n");
+        do
+            robot->getEstimate(ESTIMATE_JOINT_POS, lid, &qRad_i);   ///< blocking read
+        while( fabs(qRad_i-q0) < 0.5*CTRL_DEG2RAD);
+
+        ///< read motor PWM
+        printf("Joint moved to %.1f deg.\n", qRad_i*CTRL_RAD2DEG);
+        if(!robot->getEstimate(estType, lid, &pwmDown))
+        {
+            printf("Error while reading pwm down of joint %s. Stopping the excitation.\n", lid.description.c_str());
+            return false;
+        }
+
+        pwmOffset[i] = 0.5*(pwmUp+pwmDown); 
+        printf("Pwm offset=%.1f. Pwm up=%.1f. Pwm down=%.1f\n", pwmOffset[i], pwmUp, pwmDown);
     }
-    printf("Read pwm offset: %s\n", toString(pwmOffset).c_str());
     
     ///< set control mode to motor PWM
     if(sendCmdToMotors==SEND_COMMANDS_TO_MOTORS)

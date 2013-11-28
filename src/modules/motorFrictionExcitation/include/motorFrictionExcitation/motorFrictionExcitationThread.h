@@ -77,18 +77,21 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     MotorFrictionExcitationStatus   status;             ///< thread status ("on" when controlling, off otherwise)
     MFE_MotorCommandMode            sendCmdToMotors;    ///< specify whether to send commands to motors
     int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
-    int                 _n;                     // current number of active joints
+    int                 _n;                     // number of joints of the robot
     int                 excitationCounter;      // counter of how many excitations have been performed
     double              excitationStartTime;    // timestamp taken at the beginning of the current excitation
     ArrayXd             pwmOffset;              // pwm to keep motor still in the starting position
-    ArrayXd             pwmDes;                 // desired values of PWM for the controlled joints
+    ArrayXd             pwmDes;                 // desired values of PWM for the controlled joints (variable size)
+    ArrayXd             posIntegral;            // integral of (q-q0), where q0 is the initial joint position
     ArrayXd             dqJ;                    // joint velocities (size of vector: n)
     ArrayXd             ftSens;                 // ankle force/torque sensor readings (order is: left, right)
     vector<LocalId>     currentJointIds;        // IDs of the joints currently excited
+    ArrayXi             currentGlobalJointIds;  // global IDs of the joints currently excited
 
     // Module parameters
     vector<FreeMotionExcitation>    freeMotionExc;
     ArrayXd             qMin, qMax;             // lower and upper joint bounds
+    double              posIntGain;
 
     // Output streaming parameters
     ArrayXd             qDeg, qRad;             // measured positions
