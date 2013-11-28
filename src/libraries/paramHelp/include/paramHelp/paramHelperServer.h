@@ -113,7 +113,7 @@ public:
     ParamHelperServer(const ParamProxyInterface * const * pdList=0, int pdListSize=0, const CommandDescription *cdList=0, int cdListSize=0);
 
     // Destructor.
-    ~ParamHelperServer();
+    virtual ~ParamHelperServer();
 
     /** Initialize the module parameters reading the value from the specified resource finder.
       * @param rf Resource finder used to read the parameter values from configuration file or command line

@@ -44,7 +44,7 @@ using namespace iCub::ctrl;
 //                                          ICUB WHOLE BODY SENSORS
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodySensors::icubWholeBodySensors(const char* _name, const char* _robotName): name(_name), robot(_robotName), initDone(false) 
+icubWholeBodySensors::icubWholeBodySensors(const char* _name, const char* _robotName): initDone(false), name(_name), robot(_robotName)
 {
     bodyPartNames = vector<string>(BodyPart_s, BodyPart_s + sizeof(BodyPart_s) / sizeof(string) );
     ftSens_2_port = vector<id_2_PortName>(icub_FTsens_2_PortName, icub_FTsens_2_PortName + sizeof(icub_FTsens_2_PortName)/sizeof(id_2_PortName));
@@ -53,7 +53,7 @@ icubWholeBodySensors::icubWholeBodySensors(const char* _name, const char* _robot
 
 icubWholeBodySensors::icubWholeBodySensors(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames, 
                                            const std::vector<id_2_PortName> &_ftSens_2_port, const std::vector<id_2_PortName> &_imu_2_port)
-    : name(_name), robot(_robotName), initDone(false) , bodyPartNames(_bodyPartNames), ftSens_2_port(_ftSens_2_port), imu_2_port(_imu_2_port)
+    : initDone(false), name(_name), robot(_robotName) , bodyPartNames(_bodyPartNames), ftSens_2_port(_ftSens_2_port), imu_2_port(_imu_2_port)
 {}
 
 bool icubWholeBodySensors::init()
