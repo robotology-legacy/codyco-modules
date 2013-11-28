@@ -54,6 +54,7 @@ enum ParamIOTypeEnum
     PARAM_IN_STREAM,        ///< input from other modules
     PARAM_OUT_STREAM,       ///< output to other modules
     PARAM_IN_OUT_STREAM,    ///< input from some modules that is also of interest for other modules
+    PARAM_MONITOR,          ///< output streaming on monitoring port
     PARAM_IO_TYPE_SIZE 
 };
 
@@ -74,6 +75,8 @@ public:
     { return value==PARAM_OUT_STREAM || value==PARAM_IN_OUT_STREAM; }
     inline bool isStreamingIn() const
     { return value==PARAM_IN_STREAM || value==PARAM_IN_OUT_STREAM; }
+    inline bool isMonitoring() const
+    { return value==PARAM_MONITOR; }
 };
 
 

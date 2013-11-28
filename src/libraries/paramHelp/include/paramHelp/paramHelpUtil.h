@@ -39,6 +39,7 @@ static const char* PORT_OUT_STREAM_SUFFIX   = "/stream:o";
 static const char* PORT_OUT_INFO_SUFFIX     = "/info:o";
 static const char* PORT_IN_INFO_SUFFIX      = "/info:i";
 static const char* PORT_RPC_SUFFIX          = "/rpc";
+static const char* PORT_OUT_MONITOR_SUFFIX  = "/monitor:o";
 
 
 /** Convert a generic variable into a string (using an ostringstream). */

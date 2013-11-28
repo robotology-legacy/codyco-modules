@@ -85,11 +85,14 @@ bool ParamHelperServer::init(string moduleName)
 {
     string portInStreamName     = "/" + moduleName + PORT_IN_STREAM_SUFFIX;
     string portOutStreamName    = "/" + moduleName + PORT_OUT_STREAM_SUFFIX;
+    string portOutMonitorName   = "/" + moduleName + PORT_OUT_MONITOR_SUFFIX;
     string portInfoName         = "/" + moduleName + PORT_OUT_INFO_SUFFIX;
     portInStream = new BufferedPort<Bottle>();
     portOutStream = new BufferedPort<Bottle>();
+    portOutMonitor = new BufferedPort<Bottle>();
     bool res = portInStream->open(portInStreamName.c_str())
             && portOutStream->open(portOutStreamName.c_str())
+            && portOutMonitor->open(portOutMonitorName.c_str())
             && portInfo.open(portInfoName.c_str());
     return res;
 }
@@ -152,16 +155,29 @@ void ParamHelperServer::getHelpMessage(Bottle &b)
 //*************************************************************************************************************************
 bool ParamHelperServer::sendStreamParams()
 {
-    Bottle out;
+    Bottle out, mon;
     for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
-        if(it->second->ioType.isStreamingOut())
+    {
+        if(it->second->ioType.isStreamingOut())     ///< output streaming data
         {
             Bottle &b = out.addList();
             b.addString(it->second->name.c_str());  // add the name of the parameter
-            it->second->getAsBottle(b);     // add the value of the parameter
+            it->second->getAsBottle(b);             // add the value of the parameter
         }
+        if(it->second->ioType.isMonitoring())       ///< output monitoring data
+        {
+            it->second->getAsBottle(mon);           // add the value of the parameter
+        }
+    }
+
+    ///< write on output streaming port
     portOutStream->prepare() = out;
     portOutStream->write();
+    
+    ///< write on output monitoring port
+    portOutMonitor->prepare() = mon;
+    portOutMonitor->write();
+
     return true;
 }
 

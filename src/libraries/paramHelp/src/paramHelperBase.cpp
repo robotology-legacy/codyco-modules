@@ -28,8 +28,9 @@ using namespace paramHelp;
 //*************************************************************************************************************************
 bool ParamHelperBase::close()
 {
-    if(portInStream){  portInStream->interrupt();  portInStream->close();  delete portInStream;  portInStream=0; }
-    if(portOutStream){ portOutStream->interrupt(); portOutStream->close(); delete portOutStream; portOutStream=0; }
+    if(portInStream){   portInStream->interrupt();   portInStream->close();   delete portInStream;   portInStream=0;   }
+    if(portOutStream){  portOutStream->interrupt();  portOutStream->close();  delete portOutStream;  portOutStream=0;  }
+    if(portOutMonitor){ portOutMonitor->interrupt(); portOutMonitor->close(); delete portOutMonitor; portOutMonitor=0; }
     portInfo.close();
     return true;
 }

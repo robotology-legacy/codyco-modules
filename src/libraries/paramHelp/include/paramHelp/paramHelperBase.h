@@ -119,9 +119,10 @@ protected:
     std::map<int, ParamProxyInterface*> paramList;      ///< list of parameter proxies
     std::map<int, CommandDescription>   cmdList;        ///< list of command descriptions
 
-    yarp::os::BufferedPort<yarp::os::Bottle>    *portInStream;  ///< input port for streaming data
-    yarp::os::BufferedPort<yarp::os::Bottle>    *portOutStream; ///< output port for streaming data
-    yarp::os::Port                              portInfo;       ///< port for sporadic info messages
+    yarp::os::BufferedPort<yarp::os::Bottle>    *portInStream;      ///< input port for streaming data
+    yarp::os::BufferedPort<yarp::os::Bottle>    *portOutStream;     ///< output port for streaming data
+    yarp::os::BufferedPort<yarp::os::Bottle>    *portOutMonitor;    ///< output port for monitoring with Yarpscope
+    yarp::os::Port                              portInfo;           ///< port for sporadic info messages
 
     /** Check whether the specified value satisfy the constraints on the specified parameter.
      * @param id Id of the parameter (input)
