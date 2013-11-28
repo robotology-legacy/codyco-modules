@@ -73,7 +73,7 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
 
     // Thread parameters
     
-	VectorNd 	aj;				// Vector of nDOF integers representing the joints to control  (1: active, 0: inactive) 
+	VectorNd 	activeJoints;	// Vector of nDOF integers representing the joints to control  (1: active, 0: inactive) 
     VectorNd	dq;				// Joint velocities 
     VectorNd 	kt;				// Vector of nDOF floats ( see Eq. (1) )"), 
     VectorNd 	kvp;			// Vector of nDOF floats ( see Eq. (2) )"), 
@@ -88,9 +88,12 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     VectorNd	tauD;			// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
     VectorNd	tauM;			// Measured torques, 
     VectorNd	integralState;	// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
-    VectorNd	Vm;				// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
+    VectorNd	motorVoltage;	// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
     VectorNd	Vmax;			// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
+    double		DT;       
            
+	
+	
     // Input streaming parameters
 
     // Output streaming parameters
@@ -98,9 +101,16 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO) ;
 
-    void sendMonitorData() ;
+    void sendMonitorData();
+		
+    void resetIntegralStates();
+	
+	void setControlModePWMOnJoints(bool);
+	
+	float stepFunction(float); 
     
     void fromListToVector(Bottle * , VectorNd &); 
+    bool readRobotStatus(bool);
 
 public:	
     

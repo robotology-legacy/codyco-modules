@@ -31,52 +31,20 @@ jointTorqueControlThread::jointTorqueControlThread(int period, string _name, str
     mustStop = false;
     status = CONTROL_OFF;
     
-    //yarp::os::Property configFile;
-    //configFile.fromConfigFile("default.ini");
-    
-//     Bottle *pointerToFile = configFile.find("ActiveJoints").asList(); 
-//     fromListToVector(pointerToFile, aj);
-//     
-//     pointerToFile = configFile.find("kt").asList(); 
-//     fromListToVector(pointerToFile, kt);
-//     
-//     pointerToFile = configFile.find("kvp").asList(); 
-//     fromListToVector(pointerToFile, kvp);
-//     
-//     pointerToFile = configFile.find("kvn").asList(); 
-//     fromListToVector(pointerToFile, kvn);
-//     
-//     pointerToFile = configFile.find("kcp").asList(); 
-//     fromListToVector(pointerToFile, kcp);
-//     
-//     pointerToFile = configFile.find("kcn").asList(); 
-//     fromListToVector(pointerToFile, kcn);
-//     
-//     pointerToFile = configFile.find("ki").asList(); 
-//     fromListToVector(pointerToFile, ki);
-//     
-//     pointerToFile = configFile.find("kp").asList(); 
-//     fromListToVector(pointerToFile, kp);
-//     
-//     pointerToFile = configFile.find("ks").asList(); 
-//     fromListToVector(pointerToFile, ks);
-//     
-//     pointerToFile = configFile.find("Vmax").asList(); 
-//     fromListToVector(pointerToFile, Vmax);
-	
 	tau 			= VectorNd::Constant(0.0); 
 	etau 			= VectorNd::Constant(0.0); 
 	tauD 			= VectorNd::Constant(0.0); 
 	tauM 			= VectorNd::Constant(0.0); 
 	integralState 	= VectorNd::Constant(0.0); 
-	Vm 				= VectorNd::Constant(0.0); 
+	motorVoltage	= VectorNd::Constant(0.0); 
+	DT				= period;
 }
 
 //*************************************************************************************************************************
 bool jointTorqueControlThread::threadInit()
 {
     // link module rpc parameters to member variables
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_AJ,		aj.data()));    // constant size
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_AJ,		activeJoints.data()));    // constant size
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KT,		kt.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KVP,	kvp.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KVN,	kvn.data()));
@@ -91,7 +59,7 @@ bool jointTorqueControlThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAUD,	tauD.data()));
 	
     // link module output streaming parameters to member variables
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VM,		Vm.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VM,		motorVoltage.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU,	tau.data()));
 
     // Register callbacks for some module parameters
@@ -109,21 +77,18 @@ void jointTorqueControlThread::run()
 {
 	if(status == CONTROL_ON)
     {
-		// Read joint velocities
-		// dq = 
-		
-		// Read torques
-		// tauM =
-		// Receive desired torques
+		readRobotStatus(false);
 				
 		for (int i=0; i < N_DOF; i++)
         {
-			if (aj(i) == 1) 
+			if (activeJoints(i) == 1) 
             {
-				// etau = tauM(i) - tauD(i);
-				// integralState(i) = integralState(i) - DT*etau
-				// tau(i) = tauD(i) - kp(i)*etau -ki(i)*integralState(i);
-				// Vm(i) = kt(i)*tao(i) + [kvp(i)*s(dq) + kvn(i)*s(-dq)]*dq + [kcp(i)*s(dq) + kcn(i)*s(-dq)]*tanh(ks(i)*dq),
+				etau(i) 			= tauM(i) - tauD(i);
+				integralState(i) 	= integralState(i) + DT*etau(i);
+				tau(i) 				= tauD(i) - kp(i)*etau(i) -ki(i)*integralState(i);
+				motorVoltage(i) 	= kt(i)*tau(i) + (kvp(i)*stepFunction(dq(i)) + kvn(i)*stepFunction(-dq(i)))*dq(i) + (kcp(i)*stepFunction(dq(i)) + kcn(i)*stepFunction(-dq(i)))*tanh(ks(i)*dq(i));
+			
+				robot->setControlReference(&motorVoltage(i), i);
 			}
 		}
     }
@@ -152,7 +117,8 @@ void jointTorqueControlThread::parameterUpdated(const ParamProxyInterface *pd)
     switch(pd->id)
     {
     case PARAM_ID_AJ:
-        //resetIntegralStates();
+        resetIntegralStates();
+		setControlModePWMOnJoints(true);
         break;
     default:
         sendMsg("A callback is registered but not managed for the parameter "+pd->name, MSG_WARNING);
@@ -165,11 +131,13 @@ void jointTorqueControlThread::commandReceived(const CommandDescription &cd, con
     switch(cd.id)
     {
     case COMMAND_ID_START:
+		setControlModePWMOnJoints(true);
         startSending();
-        sendMsg("Starting the planner.", MSG_INFO); break;
+        sendMsg("Activating the torque control.", MSG_INFO); break;
     case COMMAND_ID_STOP:
+		setControlModePWMOnJoints(false);
         stopSending();
-        sendMsg("Stopping the planner.", MSG_INFO); break;
+        sendMsg("Deactivating the torque control.", MSG_INFO); break;
     default:
         sendMsg("A callback is registered but not managed for the command "+cd.name, MSG_WARNING);
     }
@@ -208,4 +176,49 @@ void jointTorqueControlThread::fromListToVector(Bottle * pointerToList, VectorNd
     {
         vector(i) = pointerToList->get(i).asDouble();
     }
+}
+
+float jointTorqueControlThread::stepFunction(float x) 
+{
+	if ( x >= 0)
+		return 1;
+	else
+		return 0;
+}
+
+//*************************************************************************************************************************
+bool jointTorqueControlThread::readRobotStatus(bool blockingRead)
+{
+    // read joint angles
+    bool res = res && robot->getEstimates(ESTIMATE_JOINT_VEL, dq.data(), -1.0, blockingRead);
+//     res = res && robot->getEstimates(ESTIMATE_TORQUE, tauM.data(), -1.0, blockingRead);
+
+    return res;
+}
+
+void jointTorqueControlThread::resetIntegralStates()
+{
+	for (int i=0; i < N_DOF; i++)
+	{
+		if (activeJoints(i) == 1) 
+		{
+			integralState(i) = 0; 
+		}
+	}
+}
+
+void jointTorqueControlThread::setControlModePWMOnJoints(bool torqueActive)
+{
+	for (int i=0; i < N_DOF; i++)
+	{
+		if (activeJoints(i) == 1 && torqueActive) 
+		{
+			robot->setControlMode(CTRL_MODE_MOTOR_PWM, 0, i);
+			printf("Activating PWM control on joint %d\n", i);
+		}
+		else {
+			robot->setControlMode(CTRL_MODE_POS, 0, i);
+			printf("Deactivating PWM control on joint %d\n", i);
+		}
+	}
 }
