@@ -14,7 +14,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
-FILE(GLOB folder_source ./*.cpp)
+FILE(GLOB folder_source ./src/*.cpp)
 FILE(GLOB folder_header ./include/*.h)
 
 source_group("Source Files" FILES ${folder_source})
