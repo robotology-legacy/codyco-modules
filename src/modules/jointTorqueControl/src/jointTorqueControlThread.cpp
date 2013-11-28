@@ -37,7 +37,7 @@ jointTorqueControlThread::jointTorqueControlThread(int period, string _name, str
 	tauM 			= VectorNd::Constant(0.0); 
 	integralState 	= VectorNd::Constant(0.0); 
 	motorVoltage	= VectorNd::Constant(0.0); 
-	DT				= period;
+	DT				= period * 1e-3;
 }
 
 //*************************************************************************************************************************
@@ -88,6 +88,7 @@ void jointTorqueControlThread::run()
 				tau(i) 				= tauD(i) - kp(i)*etau(i) - ki(i)*integralState(i);
 				motorVoltage(i) 	= kt(i)*tau(i) + (kvp(i)*stepFunction(dq(i)) + kvn(i)*stepFunction(-dq(i)))*dq(i) + (kcp(i)*stepFunction(dq(i)) + kcn(i)*stepFunction(-dq(i)))*tanh(ks(i)*dq(i));
 			
+                printf("Err %lf\tInt%lf\ttau%lf\tV%lf\n", etau(i), integralState(i), tau(i), motorVoltage(i));
 				robot->setControlReference(&motorVoltage(i), i);
 			}
 		}
@@ -219,7 +220,7 @@ void jointTorqueControlThread::setControlModePWMOnJoints(bool torqueActive)
 		}
 		else {
 			robot->setControlMode(CTRL_MODE_POS, 0, i);
-// 			printf("Deactivating PWM control on joint %d\n", i);
+ 			printf("Deactivating PWM control on joint %d\n", i);
 		}
 	}
 }

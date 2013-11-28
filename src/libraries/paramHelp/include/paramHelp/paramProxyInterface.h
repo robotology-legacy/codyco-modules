@@ -110,10 +110,11 @@ public:
     ParamSize       size;           ///< dimension
     ParamIOType     ioType;         ///< access level (input/output, streaming/rpc)
 
+
     ParamProxyInterface():id(-1), size(PARAM_SIZE_FREE), ioType(PARAM_IO_UNKNOWN) {}
 
     ParamProxyInterface(const std::string &_name, int _id, ParamSize _size, ParamIOType _ioType, const std::string &_descr)
-        :name(_name), id(_id), size(_size), ioType(_ioType), description(_descr) {}
+        :name(_name), description(_descr), id(_id), size(_size), ioType(_ioType) {}
 
     /** Clone this object. This method is used to create a copy of a subclass of ParamProxyInterface
      * so as to avoid "object slicing". In more details, the subclasses of ParamProxyinterface may
@@ -168,10 +169,10 @@ public:
     std::string     description;    ///< meaning of the command displayed in help messages
     int             id;             ///< unique identifier of the command
     
-    CommandDescription(): name(""), id(-1), description("") {}
+    CommandDescription(): name(""), description(""), id(-1) {}
     
     CommandDescription(const std::string &_name, int _id, const std::string &_descr="")
-        :name(_name), id(_id), description(_descr) {}
+        :name(_name), description(_descr), id(_id){}
 };
 
 
