@@ -66,13 +66,15 @@ bool icubWholeBodyInterface::removeJoint(const LocalId &j)
 {
     bool ok = actuatorInt->removeActuator(j);
     if(ok) stateInt->removeEstimate(ESTIMATE_JOINT_POS, j); // removing pos removes also vel and acc estimation
+    if(ok) stateInt->removeEstimate(ESTIMATE_MOTOR_PWM, j); // removing motor PWM estimation
     return ok ? modelInt->removeJoint(j) : false;
 }
 
 bool icubWholeBodyInterface::addJoint(const LocalId &j)
 {
     bool ok = actuatorInt->addActuator(j);
-    if(ok) stateInt->addEstimate(ESTIMATE_JOINT_POS, j);    // adding pos adds also vel and acc estimation
+    if(ok) ok = stateInt->addEstimate(ESTIMATE_JOINT_POS, j);    // adding pos adds also vel and acc estimation
+    if(ok) ok = stateInt->addEstimate(ESTIMATE_MOTOR_PWM, j);    // adding motor PWM estimation
     return ok ? modelInt->addJoint(j) : false;
 }
 
@@ -80,8 +82,10 @@ int icubWholeBodyInterface::addJoints(const LocalIdList &jList)
 {
     int res1 = actuatorInt->addActuators(jList);
     int res2 = stateInt->addEstimates(ESTIMATE_JOINT_POS, jList);   // adding pos adds also vel and acc estimation
-    int res3 = modelInt->addJoints(jList);
+    int res3 = stateInt->addEstimates(ESTIMATE_MOTOR_PWM, jList);   // adding motor PWM estimation
+    int res4 = modelInt->addJoints(jList);
     assert(res1==res2);
     assert(res2==res3);
+    assert(res3==res4);
     return res1;
 }

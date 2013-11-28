@@ -468,17 +468,18 @@ bool icubWholeBodySensors::readPwm(const LocalId &sid, double *pwm, double *stam
     }
     double pwmTemp[MAX_NJ];
     bool update=false;
-    assert(ienc[sid.bodyPart]!=NULL);
-    // read encoders
+    assert(iopl[sid.bodyPart]!=NULL);
+    // read motor PWM
     while( !(update=iopl[sid.bodyPart]->getOutputs(pwmTemp)) && wait)
         Time::delay(WAIT_TIME);
-        
+    
     // if read succeeded => update data
     if(update) // joints 0 and 2 of the torso are swapped
         pwmLastRead[sid.bodyPart][sid.bodyPart==TORSO ? 2-sid.index : sid.index] = pwmTemp[sid.index];
-        
+    
     // copy most recent data into output variables
     pwm[0] = pwmLastRead[sid.bodyPart][sid.index];
+    
     return update || wait;  // if read failed => return false
 }
 
