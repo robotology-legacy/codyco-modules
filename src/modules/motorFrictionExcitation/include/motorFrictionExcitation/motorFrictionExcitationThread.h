@@ -95,6 +95,7 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     
     ///< Output monitoring parameters
     double              pwmDesSingleJoint;      // value of desired pwm for the first controlled joint
+    double              qDegMonitor;            // value of the measured joint angle for the first controlled joint
     
     /************************************************* PRIVATE METHODS ******************************************************/
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO);

@@ -64,10 +64,6 @@ static const VectorNd               DEFAULT_Q_MAX           = VectorNd::Constant
 static const VectorNd               DEFAULT_Q_MIN           = VectorNd::Constant(-150.0);
 static const int                    DEFAULT_SEND_COMMANDS   = SEND_COMMANDS_TO_MOTORS;
 static const double                 DEFAULT_JNT_LIM_MIN_DIST = 10.0;
-// Streaming parameters
-static const VectorNd               DEFAULT_Q               = VectorNd::Constant(0.0);
-static const double                 DEFAULT_PWM_DES         = 0.0;
-
 
 // *** IDs of all the module command
 enum MotorFrictionExcitationCommandId { 

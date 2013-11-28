@@ -58,8 +58,8 @@ bool MotorFrictionExcitationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MAX,              qMax.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SEND_COMMANDS,      &sendCmdToMotors));
     ///< link module output streaming parameters to member variables
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,                  qDeg.data()));
     ///< link module output monitoring parameters to member variables
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,                  &qDegMonitor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_DES,            &pwmDesSingleJoint));
     
     ///< Register callbacks for some module parameters
@@ -136,7 +136,7 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
     if(t<0.0)
         return false;
     ///< these operations are coefficient-wise because I'm using arrays (not matrices)
-    pwmDes = pwmOffset + (fme->a0 + fme->a*t) * (fme->w * t).sin();
+    pwmDes = pwmOffset + (fme->a0 + fme->a*t) * (6.28 * fme->w * t).sin();
     pwmDesSingleJoint = pwmDes[0];
     return true;
 }
@@ -147,6 +147,7 @@ bool MotorFrictionExcitationThread::checkStopConditions()
     for(unsigned int i=0; i<currentJointIds.size(); i++)
     {
         int jid = robot->getJointList().localToGlobalId(currentJointIds[i]);
+        qDegMonitor = qDeg[jid];
         double jThr = freeMotionExc[excitationCounter].jointLimitThresh[i];
         if(fabs(qMax[jid]-qDeg[jid])<jThr || fabs(qDeg[jid]-qMin[jid])<jThr)
         {
