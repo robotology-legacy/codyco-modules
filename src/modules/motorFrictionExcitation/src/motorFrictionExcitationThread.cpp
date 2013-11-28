@@ -119,7 +119,7 @@ void MotorFrictionExcitationThread::run()
 bool MotorFrictionExcitationThread::readRobotStatus(bool blockingRead)
 {
     // read joint angles
-    bool res = robot->getEstimates(ESTIMATE_JOINT_POS, qRad.data(), blockingRead);
+    bool res = robot->getEstimates(ESTIMATE_JOINT_POS, qRad.data(), -1.0, blockingRead);
     res = res && robot->getEstimates(ESTIMATE_JOINT_VEL, dqJ.data(), -1.0, blockingRead);
     res = res && robot->getEstimates(ESTIMATE_FORCE_TORQUE, ftSens.data(), -1.0, blockingRead);
     qDeg = CTRL_RAD2DEG*qRad;
@@ -228,6 +228,7 @@ bool MotorFrictionExcitationThread::preStartOperations()
         }
         currentJointIds[i] = lid;
     }
+    printf("Read pwm offset: %s\n", toString(pwmOffset).c_str());
     
     ///< set control mode to motor PWM
     if(sendCmdToMotors==SEND_COMMANDS_TO_MOTORS)
