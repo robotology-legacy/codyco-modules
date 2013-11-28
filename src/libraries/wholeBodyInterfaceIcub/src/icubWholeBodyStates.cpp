@@ -147,9 +147,12 @@ bool icubWholeBodyStates::getEstimate(const EstimateType et, const LocalId &sid,
 {
     switch(et)
     {
-    case ESTIMATE_JOINT_POS:        return estimator->lockAndCopyVectorElement(sid.index, estimator->estimates.lastQ, data);
-    case ESTIMATE_JOINT_VEL:        return estimator->lockAndCopyVectorElement(sid.index, estimator->estimates.lastDq, data);
-    case ESTIMATE_JOINT_ACC:        return estimator->lockAndCopyVectorElement(sid.index, estimator->estimates.lastD2q, data);
+    case ESTIMATE_JOINT_POS:        
+        return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_ENCODER).localToGlobalId(sid), estimator->estimates.lastQ, data);
+    case ESTIMATE_JOINT_VEL:        
+        return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_ENCODER).localToGlobalId(sid), estimator->estimates.lastDq, data);
+    case ESTIMATE_JOINT_ACC:        
+        return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_ENCODER).localToGlobalId(sid), estimator->estimates.lastD2q, data);
     case ESTIMATE_MOTOR_VELOCITY:   return false;
     case ESTIMATE_JOINT_TORQUE:     return false;
     case ESTIMATE_MOTOR_PWM:        return lockAndReadSensor(SENSOR_PWM, sid, data, time, blocking);
