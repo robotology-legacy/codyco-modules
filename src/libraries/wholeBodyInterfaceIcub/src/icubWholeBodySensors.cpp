@@ -509,8 +509,8 @@ bool icubWholeBodySensors::readFTsensors(double *ftSens, double *stamps, bool wa
 
 bool icubWholeBodySensors::readTorqueSensors(double *jointSens, double *stamps, bool wait)
 {
-    if(isRobotSimulator(robot)) {
-        bzero(jointSens, sizeof(double) * MAX_NJ);
+    if (isRobotSimulator(robot)) {
+        memset(jointSens, 0, sizeof(double) * torqueSensorIdList.size());
         return true;
     }
     
@@ -528,9 +528,12 @@ bool icubWholeBodySensors::readTorqueSensors(double *jointSens, double *stamps, 
             for(unsigned int i = 0; i < bodyPartAxes[itBp->first]; i++)
                 torqueSensorsLastRead[itBp->first][itBp->first == TORSO ? 2 - i : i] = torqueTemp[i];    // joints of the torso are in reverse order
         
-        memcpy(&jointSens[i], torqueSensorsLastRead[itBp->first].data(), bodyPartAxes[itBp->first]);
-        i += bodyPartAxes[itBp->first];
-
+        // copy data in output vector
+        FOR_ALL_JOINTS(itBp, itJ)
+        {
+            jointSens[i] = torqueSensorsLastRead[itBp->first][*itJ];
+            i++;
+        }
         res = res && update;
     }
     return res || wait;
@@ -626,7 +629,7 @@ bool icubWholeBodySensors::readTorqueSensor(const LocalId &sid, double *jointTor
         torqueSensorsLastRead[sid.bodyPart][jointIndex] = torqueTemp;
     
     // copy most recent data into output variables
-    jointTorques[0] = torqueTemp;
+    jointTorques[0] = torqueSensorsLastRead[sid.bodyPart][jointIndex];
     
     return update || wait;  // if read failed => return false
 }
