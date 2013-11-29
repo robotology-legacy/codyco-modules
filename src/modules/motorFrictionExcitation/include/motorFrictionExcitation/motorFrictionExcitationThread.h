@@ -91,7 +91,6 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     // Module parameters
     vector<FreeMotionExcitation>    freeMotionExc;
     ArrayXd             qMin, qMax;             // lower and upper joint bounds
-    double              posIntGain;
 
     // Output streaming parameters
     ArrayXd             qDeg, qRad;             // measured positions

@@ -57,7 +57,6 @@ bool MotorFrictionExcitationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MIN,              qMin.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MAX,              qMax.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SEND_COMMANDS,      &sendCmdToMotors));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_POS_INT_GAIN,       &posIntGain));
     ///< link module output streaming parameters to member variables
     ///< link module output monitoring parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,                  &qDegMonitor));
@@ -136,7 +135,7 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
     for(unsigned int i=0; i<currentJointIds.size(); i++)
     {
         int jid = currentGlobalJointIds[i];
-        posIntegral[i] += posIntGain*(qDeg[jid]-freeMotionExc[excitationCounter].initialJointConfiguration[jid]);
+        posIntegral[i] += freeMotionExc[excitationCounter].ki[i]*(qDeg[jid]-freeMotionExc[excitationCounter].initialJointConfiguration[jid]);
         posIntegral[i] = posIntegral[i]>MAX_POS_INTEGRAL  ?  MAX_POS_INTEGRAL : posIntegral[i];
         posIntegral[i] = posIntegral[i]<-MAX_POS_INTEGRAL ? -MAX_POS_INTEGRAL : posIntegral[i];
     }

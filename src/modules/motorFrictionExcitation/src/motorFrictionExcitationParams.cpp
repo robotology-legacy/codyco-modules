@@ -31,7 +31,8 @@ FreeMotionExcitation::FreeMotionExcitation()
     new ParamProxyBasic<double>("a0",                          PARAM_ID_A0,                PARAM_SIZE_FREE,     ParamBilatBounds<double>(0,100),         PARAM_CONFIG,       0,                     "Initial amplitude of PWM sinusoid signal"),
     new ParamProxyBasic<double>("w",                           PARAM_ID_W,                 PARAM_SIZE_FREE,     ParamBilatBounds<double>(0,5),           PARAM_CONFIG,       0,                     "Frequency of PWM sinusoid signal"),
     new ParamProxyBasic<double>("joint limit thresh",          PARAM_ID_JOINT_LIM_THR,     PARAM_SIZE_FREE,     ParamBilatBounds<double>(1,100),         PARAM_CONFIG,       0,                     "Max distance to joint limit before stopping excitation"),
-    new ParamProxyBasic<double>("fric param covar thresh",     PARAM_ID_FRIC_PAR_COV_THR,  PARAM_SIZE_FREE,     ParamLowerBound<double>(0),              PARAM_CONFIG,       0,                     "Max variance of identified friction parameters")
+    new ParamProxyBasic<double>("fric param covar thresh",     PARAM_ID_FRIC_PAR_COV_THR,  PARAM_SIZE_FREE,     ParamLowerBound<double>(0),              PARAM_CONFIG,       0,                     "Max variance of identified friction parameters"),
+    new ParamProxyBasic<double>("ki",                          PARAM_ID_POS_INT_GAIN,      PARAM_SIZE_FREE,     ParamBilatBounds<double>(-0.1,0.1),      PARAM_CONFIG,       0,                     "Gain of the posiion integral used to correct the pwm offset")
     };
     addParams(freeMotionExcitationParamDescr, FREE_MOTION_EXCITATION_PARAM_ID_SIZE);
 
@@ -43,6 +44,7 @@ FreeMotionExcitation::FreeMotionExcitation()
     w.resize(1);
     jointLimitThresh.resize(1);
     fricParamCovarThresh.resize(1);
+    ki.resize(1);
 
     ///< link parameters to variables
     paramList[PARAM_ID_JOINT_ID]->linkToVariable(jointId.data());
@@ -52,6 +54,7 @@ FreeMotionExcitation::FreeMotionExcitation()
     paramList[PARAM_ID_W]->linkToVariable(w.data());
     paramList[PARAM_ID_JOINT_LIM_THR]->linkToVariable(jointLimitThresh.data());
     paramList[PARAM_ID_FRIC_PAR_COV_THR]->linkToVariable(fricParamCovarThresh.data());
+    paramList[PARAM_ID_POS_INT_GAIN]->linkToVariable(ki.data());
 }
 
 //FreeMotionExcitation::FreeMotionExcitation(const FreeMotionExcitation &rhs)
@@ -78,6 +81,7 @@ FreeMotionExcitation& FreeMotionExcitation::operator=(const FreeMotionExcitation
     w = rhs.w;
     jointLimitThresh = rhs.jointLimitThresh;
     fricParamCovarThresh = rhs.fricParamCovarThresh;
+    ki = rhs.ki;
     for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
         relinkParam(it->first);
     return *this;
@@ -88,12 +92,12 @@ bool FreeMotionExcitation::setFromValue(const Value &v)
     //printf("FreeMotionExcitation::setFromValue called with input:\n%s\n", v.toString().c_str());
 
     ///< v should be a list containing a list for each parameter (i.e. 7 lists).
-    ///< Each of these 7 lists should have the parameter's name as first element
+    ///< Each of these 8 lists should have the parameter's name as first element
     ///< and the parameter's value as tail.
     if(!v.isList())
         return false;
     Bottle *b = v.asList();
-    if(b==NULL || b->size()==0) // || b->size()!=7)
+    if(b==NULL || b->size()==0)
         return false;
 
     Bottle reply;
@@ -185,6 +189,8 @@ void FreeMotionExcitation::resizeParam(int paramId, int newSize)
         jointLimitThresh.resize(newSize); break;
     case PARAM_ID_FRIC_PAR_COV_THR: 
         fricParamCovarThresh.resize(newSize); break;
+    case PARAM_ID_POS_INT_GAIN: 
+        ki.resize(newSize); break;
     default:    
         printf("Unexpected param ID in FreeMotionExcitation::resizeParam: %d\n", paramId); 
         return;
@@ -210,6 +216,8 @@ void FreeMotionExcitation::relinkParam(int paramId, int newSize)
         return paramList[PARAM_ID_JOINT_LIM_THR]->linkToVariable(jointLimitThresh.data(), newSize);
     case PARAM_ID_FRIC_PAR_COV_THR: 
         return paramList[PARAM_ID_FRIC_PAR_COV_THR]->linkToVariable(fricParamCovarThresh.data(), newSize);
+    case PARAM_ID_POS_INT_GAIN: 
+        return paramList[PARAM_ID_POS_INT_GAIN]->linkToVariable(ki.data(), newSize);
     default:    
         printf("Unexpected param ID in FreeMotionExcitation::relinkParam: %d\n", paramId); 
     }

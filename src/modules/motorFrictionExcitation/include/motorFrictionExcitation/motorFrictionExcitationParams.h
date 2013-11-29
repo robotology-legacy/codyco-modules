@@ -38,7 +38,6 @@ enum MotorFrictionExcitationParamId
     PARAM_ID_MODULE_NAME,       PARAM_ID_CTRL_PERIOD,       PARAM_ID_ROBOT_NAME, 
     PARAM_FREE_MOTION_EXCIT,    PARAM_ID_Q_MAX,             PARAM_ID_Q_MIN,             
     PARAM_ID_Q,                 PARAM_ID_PWM_DES,           PARAM_ID_SEND_COMMANDS,
-    PARAM_ID_POS_INT_GAIN,
     PARAM_ID_SIZE /*This is the number of parameters, so it must be the last value of the enum.*/
 };
 
@@ -47,7 +46,7 @@ enum FreeMotionExcitationParamId
 {
     PARAM_ID_JOINT_ID,          PARAM_ID_INIT_Q,            PARAM_ID_A,
     PARAM_ID_A0,                PARAM_ID_W,                 PARAM_ID_JOINT_LIM_THR,
-    PARAM_ID_FRIC_PAR_COV_THR,  
+    PARAM_ID_FRIC_PAR_COV_THR,  PARAM_ID_POS_INT_GAIN,
     FREE_MOTION_EXCITATION_PARAM_ID_SIZE /*This is the number of parameters, so it must be the last value of the enum.*/
 };
 
@@ -79,6 +78,7 @@ public:
     ArrayXd w;
     ArrayXd jointLimitThresh;
     ArrayXd fricParamCovarThresh;
+    ArrayXd ki;
 
     FreeMotionExcitation();
     //FreeMotionExcitation(const FreeMotionExcitation &other);
@@ -105,7 +105,6 @@ new ParamProxyBasic<string>("robot",                PARAM_ID_ROBOT_NAME,        
 new ParamProxyBasic<double>("q max",                PARAM_ID_Q_MAX,             ICUB_DOFS,          ParamBilatBounds<double>(-360.0,360.0),     PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds"),
 new ParamProxyBasic<double>("q min",                PARAM_ID_Q_MIN,             ICUB_DOFS,          ParamBilatBounds<double>(-360.0,360.0),     PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds"),
 new ParamProxyBasic<int>(   "send commands",        PARAM_ID_SEND_COMMANDS,     1,                  ParamBilatBounds<int>(0, 1),                PARAM_IN_OUT,       &DEFAULT_SEND_COMMANDS,         "Specify whether to send commands to the motors"),
-new ParamProxyBasic<double>("ki",                   PARAM_ID_POS_INT_GAIN,      1,                  ParamBilatBounds<double>(-1.0,1.0),         PARAM_IN_OUT,       &DEFAULT_POS_INT_GAIN,          "Gain of the posiion integral used to correct the pwm offset"), 
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 // ************************************************* STREAMING MONITOR PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("q",                    PARAM_ID_Q,                 1,                  ParamBilatBounds<double>(-150.0, 150.0),    PARAM_MONITOR,      0,                              "Joint angle of the currently controlled motor"),
