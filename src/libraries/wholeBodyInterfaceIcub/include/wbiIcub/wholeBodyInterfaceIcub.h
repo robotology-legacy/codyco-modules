@@ -58,11 +58,13 @@ namespace wbiIcub
         wbi::LocalIdList            pwmSensIdList;  // list of the motor PWM sensor ids
         wbi::LocalIdList            imuIdList;      // list of the IMU ids
         wbi::LocalIdList            ftSensIdList;   // list of the force/torque sensor ids
+        wbi::LocalIdList            torqueSensorIdList; //list of the torque sensor ids
         
         // LAST READING DATA (map body parts to data)
         std::map<int, yarp::sig::Vector>            qLastRead;
         std::map<int, yarp::sig::Vector>            qStampLastRead;
         std::map<int, yarp::sig::Vector>            pwmLastRead;
+        std::map<int, yarp::sig::Vector>            torqueSensorsLastRead;
         // the key of these maps is the sensor id
         std::map<wbi::LocalId, yarp::sig::Vector>  imuLastRead;
         std::map<wbi::LocalId, yarp::sig::Vector>  ftSensLastRead;
@@ -70,15 +72,19 @@ namespace wbiIcub
         // yarp interfaces (the key of the maps is the body part)
         std::map<int, yarp::dev::IEncodersTimed*>       ienc;   // interface to read encoders
         std::map<int, yarp::dev::IOpenLoopControl*>     iopl;   // interface to read motor PWM
-        std::map<int, yarp::dev::PolyDriver*>           dd;
+        std::map<int, yarp::dev::PolyDriver*>           dd; //device drivers
+        std::map<int, yarp::dev::ITorqueControl*>       torqueControlInterfaces;  // interface to read joint torques
+        
         // input ports (the key of the maps is the sensor id)
         std::map<wbi::LocalId, yarp::os::BufferedPort<yarp::sig::Vector>*>   portsFTsens;
         std::map<wbi::LocalId, yarp::os::BufferedPort<yarp::sig::Vector>*>   portsIMU;
+        std::map<wbi::LocalId, yarp::os::BufferedPort<yarp::sig::Vector>*>   portsTorqueSensor;
         
         bool openPwm(const int bodyPart);
         bool openEncoder(const int bodyPart);
         bool openImu(const wbi::LocalId &i);
         bool openFTsens(const wbi::LocalId &i);
+        bool openTorqueSensor(const int bodyPart);
         
         // *** ENCODERS
         virtual bool addEncoder(const wbi::LocalId &j);
@@ -92,16 +98,21 @@ namespace wbiIcub
         // *** FORCE/TORQUE SENSORS
         virtual bool addFTsensor(const wbi::LocalId &i);
         virtual int addFTsensors(const wbi::LocalIdList &i);
+        // *** TORQUE SENSORS *** //
+        virtual bool addTorqueSensor(const wbi::LocalId &i);
+        virtual int addTorqueSensors(const wbi::LocalIdList &i);
         
         virtual bool readEncoder(const wbi::LocalId &i, double *q, double *stamps=0, bool wait=true);
         virtual bool readPwm(const wbi::LocalId &i, double *pwm, double *stamps=0, bool wait=true);
         virtual bool readIMU(const wbi::LocalId &i, double *inertial, double *stamps=0, bool wait=true);
         virtual bool readFTsensor(const wbi::LocalId &i, double *ftSens, double *stamps=0, bool wait=true);
+        virtual bool readTorqueSensor(const wbi::LocalId &i, double *jointTorque, double *stamps=0, bool wait=true);
 
         virtual bool readEncoders(double *q, double *stamps=0, bool wait=true);
         virtual bool readPwms(double *pwm, double *stamps=0, bool wait=true);
         virtual bool readIMUs(double *inertial, double *stamps=0, bool wait=true);
         virtual bool readFTsensors(double *ftSens, double *stamps=0, bool wait=true);
+        virtual bool readTorqueSensors(double *jointTorques, double *stamps=0, bool wait=true);
 
     public:
         // *** CONSTRUCTORS ***

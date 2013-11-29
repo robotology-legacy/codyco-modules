@@ -64,6 +64,9 @@ bool icubWholeBodySensors::init()
 
     FOR_ALL_BODY_PARTS_OF(itBp, pwmSensIdList)
         initDone = initDone && openPwm(itBp->first);
+    
+    FOR_ALL_BODY_PARTS_OF(itBp, torqueSensorIdList)
+        initDone = initDone && openTorqueSensor(itBp->first);
 
     for(LocalIdList::iterator itBp=ftSensIdList.begin(); itBp!=ftSensIdList.end(); itBp++)
         for(vector<int>::iterator itId=itBp->second.begin(); itId!=itBp->second.end(); itId++)
@@ -85,8 +88,17 @@ bool icubWholeBodySensors::close()
         ok = ok && dd[itBp->first]->close();
     }
     FOR_ALL_BODY_PARTS_OF(itBp, pwmSensIdList)
+    {
         if(dd[itBp->first]!=NULL)
             ok = ok && dd[itBp->first]->close();
+    }
+    
+    FOR_ALL_BODY_PARTS_OF(itBp, torqueSensorIdList)
+    {
+        if(dd[itBp->first])
+            ok = ok && dd[itBp->first]->close();
+    }
+    
     return ok;
 }
 
@@ -98,6 +110,8 @@ bool icubWholeBodySensors::addSensor(const SensorType st, const LocalId &sid)
     case SENSOR_PWM:            return addPwm(sid);
     case SENSOR_IMU:            return addIMU(sid);
     case SENSOR_FORCE_TORQUE:   return addFTsensor(sid);
+    case SENSOR_TORQUE:         return addTorqueSensor(sid);
+    default: break;
     }
     return false;
 }
@@ -110,6 +124,8 @@ int icubWholeBodySensors::addSensors(const SensorType st, const LocalIdList &sid
     case SENSOR_PWM:            return addPwms(sids);
     case SENSOR_IMU:            return addIMUs(sids);
     case SENSOR_FORCE_TORQUE:   return addFTsensors(sids);
+    case SENSOR_TORQUE:         return addTorqueSensors(sids);
+    default: break;
     }
     return false;
 }
@@ -122,6 +138,8 @@ bool icubWholeBodySensors::removeSensor(const SensorType st, const LocalId &sid)
     case SENSOR_PWM:            return pwmSensIdList.removeId(sid);
     case SENSOR_IMU:            return imuIdList.removeId(sid);
     case SENSOR_FORCE_TORQUE:   return ftSensIdList.removeId(sid);
+    case SENSOR_TORQUE:         return torqueSensorIdList.removeId(sid);
+    default:break;
     }
     return false;
 }
@@ -134,6 +152,8 @@ LocalIdList icubWholeBodySensors::getSensorList(const SensorType st)
     case SENSOR_PWM:            return pwmSensIdList;
     case SENSOR_IMU:            return imuIdList;
     case SENSOR_FORCE_TORQUE:   return ftSensIdList;
+    case SENSOR_TORQUE:         return torqueSensorIdList;
+    default:break;
     }
     return LocalIdList();
 }
@@ -146,6 +166,8 @@ int icubWholeBodySensors::getSensorNumber(const SensorType st)
     case SENSOR_PWM:            return pwmSensIdList.size();
     case SENSOR_IMU:            return imuIdList.size();
     case SENSOR_FORCE_TORQUE:   return ftSensIdList.size();
+    case SENSOR_TORQUE:         return torqueSensorIdList.size();
+    default: break;
     }
     return 0;
 }
@@ -158,6 +180,8 @@ bool icubWholeBodySensors::readSensor(const SensorType st, const LocalId &sid, d
     case SENSOR_PWM:            return readPwm(sid, data, stamps, blocking);
     case SENSOR_IMU:            return readIMU(sid, data, stamps, blocking);
     case SENSOR_FORCE_TORQUE:   return readFTsensor(sid, data, stamps, blocking);
+    case SENSOR_TORQUE:         return readTorqueSensor(sid, data, stamps, blocking);
+    default: break;
     }
     return false;
 }
@@ -170,6 +194,8 @@ bool icubWholeBodySensors::readSensors(const SensorType st, double *data, double
     case SENSOR_PWM:            return readPwms(data, stamps, blocking);
     case SENSOR_IMU:            return readIMUs(data, stamps, blocking);
     case SENSOR_FORCE_TORQUE:   return readFTsensors(data, stamps, blocking);
+    case SENSOR_TORQUE:         return readTorqueSensors(data, stamps, blocking);
+    default: break;
     }
     return false;
 }
@@ -245,6 +271,29 @@ bool icubWholeBodySensors::openFTsens(const LocalId &i)
         return false;
     if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp"))   // connect remote to local port
         return false;
+    return true;
+}
+
+bool icubWholeBodySensors::openTorqueSensor(const int bp)
+{
+//    torqueSensorsLastRead[bp].resize(6,0.0);
+    ///< check that we are not in simulation, because iCub simulator does not implement torque sensors
+    if(isRobotSimulator(robot))
+        return true;
+    
+    ///< check whether the joint control interface is already open
+    if(torqueControlInterfaces[bp])
+        return true;
+    
+    ///< if necessary open the poly driver
+    if(dd[bp]==0 && !openPolyDriver(name, robot, dd[bp], bodyPartNames[bp]))
+        return false;
+    
+    if(!dd[bp]->view(torqueControlInterfaces[bp]))
+    {
+        fprintf(stderr, "Problem initializing drivers of %s\n", bodyPartNames[bp].c_str());
+        return false;
+    }
     return true;
 }
 
@@ -335,6 +384,29 @@ int icubWholeBodySensors::addFTsensors(const wbi::LocalIdList &jList)
                     if(!openFTsens(LocalId(itBp->first,*itId)))
                         return 0;
     return ftSensIdList.addIdList(jList);
+}
+
+bool icubWholeBodySensors::addTorqueSensor(const wbi::LocalId &i)
+{
+    // if initialization was done, then open port of specified joint torque sensor
+    // if initialization was not done, ports will be opened during initialization
+    if(initDone && !torqueSensorIdList.containsBodyPart(i.bodyPart))
+        if(!openTorqueSensor(i.bodyPart))
+            return false;
+    
+    return torqueSensorIdList.addId(i);
+}
+
+int icubWholeBodySensors::addTorqueSensors(const wbi::LocalIdList &jList)
+{
+    // if initialization was done, then open port of specified torque sensors
+    // if initialization was not done, ports will be opened during initialization
+    if(initDone)
+        for(LocalIdList::const_iterator it = jList.begin(); it != jList.end(); it++)
+            if(!torqueSensorIdList.containsBodyPart(it->first))
+                if(!openTorqueSensor(it->first))
+                    return 0;
+    return torqueSensorIdList.addIdList(jList);
 }
 
 /********************************************** READ *******************************************************/
@@ -435,6 +507,35 @@ bool icubWholeBodySensors::readFTsensors(double *ftSens, double *stamps, bool wa
     return true;
 }
 
+bool icubWholeBodySensors::readTorqueSensors(double *jointSens, double *stamps, bool wait)
+{
+    if(isRobotSimulator(robot)) {
+        bzero(jointSens, sizeof(double) * MAX_NJ);
+        return true;
+    }
+    
+    double torqueTemp[MAX_NJ];
+    bool res = true, update=false;
+    int i=0;
+    FOR_ALL_BODY_PARTS_OF(itBp, torqueSensorIdList)
+    {
+        // read data
+        while( !(update = torqueControlInterfaces[itBp->first]->getTorques(torqueTemp)) && wait)
+            Time::delay(WAIT_TIME);
+        
+        // if reading has succeeded, update last read data
+        if(update)
+            for(unsigned int i = 0; i < bodyPartAxes[itBp->first]; i++)
+                torqueSensorsLastRead[itBp->first][itBp->first == TORSO ? 2 - i : i] = torqueTemp[i];    // joints of the torso are in reverse order
+        
+        memcpy(&jointSens[i], torqueSensorsLastRead[itBp->first].data(), bodyPartAxes[itBp->first]);
+        i += bodyPartAxes[itBp->first];
+
+        res = res && update;
+    }
+    return res || wait;
+}
+
 bool icubWholeBodySensors::readEncoder(const LocalId &sid, double *q, double *stamps, bool wait)
 {
     double qTemp[MAX_NJ], tTemp[MAX_NJ];
@@ -501,4 +602,31 @@ bool icubWholeBodySensors::readFTsensor(const LocalId &sid, double *ftSens, doub
     memcpy(&ftSens[0], ftSensLastRead[sid].data(), 6);
 
     return true;
+}
+
+bool icubWholeBodySensors::readTorqueSensor(const LocalId &sid, double *jointTorques, double *stamps, bool wait)
+{
+    if(isRobotSimulator(robot))
+    {
+        jointTorques[0] = 0.0;   // iCub simulator does not have joint torque sensors
+        return true;            // does not return false, so programs can be tested in simulation
+    }
+    double torqueTemp;
+    bool update=false;
+    assert(torqueControlInterfaces[sid.bodyPart]);
+
+    // read joint torque
+    int jointIndex = sid.bodyPart==TORSO ? 2-sid.index : sid.index;
+    
+    while(!(update = torqueControlInterfaces[sid.bodyPart]->getTorque(jointIndex, &torqueTemp)) && wait)
+        Time::delay(WAIT_TIME);
+    
+    // if read succeeded => update data
+    if(update) // joints 0 and 2 of the torso are swapped
+        torqueSensorsLastRead[sid.bodyPart][jointIndex] = torqueTemp;
+    
+    // copy most recent data into output variables
+    jointTorques[0] = torqueTemp;
+    
+    return update || wait;  // if read failed => return false
 }
