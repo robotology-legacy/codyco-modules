@@ -222,7 +222,7 @@ bool MotorFrictionExcitationThread::preStartOperations()
     
     // @todo Improve this by checking whether the joints have actually reached the desired configuration
     //       or checking whether the joint velocity is zero
-    Time::delay(4.0);                   ///< wait for the joints to reach commanded configuration
+    Time::delay(6.0);                   ///< wait for the joints to reach commanded configuration
     
     ///< Compute pwm offset
     ///< To compute a pwm offset that is not biased by the current stiction acting on the joint
@@ -259,7 +259,7 @@ bool MotorFrictionExcitationThread::preStartOperations()
         while( fabs(qRad_i-q0) < 0.5*CTRL_DEG2RAD);
         
         ///< read motor PWM
-        //printf("Joint moved to %.1f deg.\n", qRad_i*CTRL_RAD2DEG);
+        printf("Joint moved to %.1f deg.\n", qRad_i*CTRL_RAD2DEG);
         if(!robot->getEstimate(estType, lid, &pwmUp))
         {
             printf("Error while reading pwm up of joint %s. Stopping the excitation.\n", lid.description.c_str());
@@ -283,7 +283,7 @@ bool MotorFrictionExcitationThread::preStartOperations()
         while( fabs(qRad_i-q0) < 0.5*CTRL_DEG2RAD);
 
         ///< read motor PWM
-        //printf("Joint moved to %.1f deg.\n", qRad_i*CTRL_RAD2DEG);
+        printf("Joint moved to %.1f deg.\n", qRad_i*CTRL_RAD2DEG);
         if(!robot->getEstimate(estType, lid, &pwmDown))
         {
             printf("Error while reading pwm down of joint %s. Stopping the excitation.\n", lid.description.c_str());
