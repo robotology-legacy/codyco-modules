@@ -96,12 +96,10 @@ void MotorFrictionExcitationThread::run()
     }
     else if(status==EXCITATION_FINISHED)
     {
+        preStopOperations();              // set desired PWM to 0, switch to pos ctrl
         excitationCounter++;
         if(excitationCounter >= (int)freeMotionExc.size())
-        {
             printf("Excitation process finished (%d out of %d).\n", excitationCounter, freeMotionExc.size());
-            status = EXCITATION_OFF;
-        }
         else
         {
             printf("\nExcitation %d (out of %d) finished.\n", excitationCounter-1, freeMotionExc.size());
@@ -218,13 +216,13 @@ bool MotorFrictionExcitationThread::preStartOperations()
     status = EXCITATION_STARTED;        ///< set thread status to "on"
 
     ///< move joints to initial configuration
-    robot->setControlMode(CTRL_MODE_POS);
+    robot->setControlMode(CTRL_MODE_POS);    // @todo: set to pos ctrl mode only if joint is currently in another ctrl mode (to avoid jerkiness)
     ArrayXd initialJointConfRad = CTRL_DEG2RAD * freeMotionExc[excitationCounter].initialJointConfiguration;
     robot->setControlReference(initialJointConfRad.data());
     
     // @todo Improve this by checking whether the joints have actually reached the desired configuration
     //       or checking whether the joint velocity is zero
-    Time::delay(3.0);                   ///< wait for the joints to reach commanded configuration
+    Time::delay(4.0);                   ///< wait for the joints to reach commanded configuration
     
     ///< Compute pwm offset
     ///< To compute a pwm offset that is not biased by the current stiction acting on the joint
@@ -247,9 +245,6 @@ bool MotorFrictionExcitationThread::preStartOperations()
         double q0 = initialJointConfRad[currentGlobalJointIds[i]];
         double qDes = q0 + 2.0*CTRL_DEG2RAD;
         double qRad_i = 0.0;
-        /*printf("Configuration joint id: %d, wbiLocalId=%s, wbiGlobalId=%d\n", freeMotionExc[excitationCounter].jointId[i], 
-            lid.description.c_str(), currentGlobalJointIds[i]);*/
-        printf("q0 = %.1f, qDes=%.1f\n", q0*CTRL_RAD2DEG, qDes*CTRL_RAD2DEG);
 
         ///< move joint 2 degrees up
         if(!robot->setControlReference(&qDes, currentGlobalJointIds[i]))
@@ -283,7 +278,6 @@ bool MotorFrictionExcitationThread::preStartOperations()
         }
 
         ///< wait for joint to start moving
-        printf("Wait for joint to start moving\n");
         do
             robot->getEstimate(ESTIMATE_JOINT_POS, lid, &qRad_i);   ///< blocking read
         while( fabs(qRad_i-q0) < 0.5*CTRL_DEG2RAD);
@@ -303,12 +297,10 @@ bool MotorFrictionExcitationThread::preStartOperations()
     ///< set control mode to motor PWM
     if(sendCmdToMotors==SEND_COMMANDS_TO_MOTORS)
     {
-        int wbiId = -1;
         ControlMode ctm = isRobotSimulator(robotName) ? CTRL_MODE_VEL : CTRL_MODE_MOTOR_PWM;
         for(unsigned int i=0; i<currentJointIds.size(); i++)
         {
-            wbiId = robot->getJointList().localToGlobalId(currentJointIds[i]);
-            if(!robot->setControlMode(ctm, pwmOffset.data()+i, wbiId))
+            if(!robot->setControlMode(ctm, pwmOffset.data()+i, currentGlobalJointIds[i]))
             {
                 printf("Error while setting joint %s control mode to PWM.\n", currentJointIds[i].description.c_str());
                 return false;
@@ -324,7 +316,14 @@ bool MotorFrictionExcitationThread::preStartOperations()
 void MotorFrictionExcitationThread::preStopOperations()
 {
     // no need to lock because the mutex is already locked
-    robot->setControlMode(CTRL_MODE_POS);           // set position control mode
+    for(unsigned int i=0; i<currentGlobalJointIds.size(); i++)
+    {
+        pwmDes[i] = 0.0;
+        if(!robot->setControlReference(pwmDes.data()+i, currentGlobalJointIds[i]))
+            printf("Error while setting joint %s control reference.\n", currentJointIds[i].description.c_str());
+        robot->setControlMode(CTRL_MODE_POS, 0, currentGlobalJointIds[i]);  // switch joint to position control mode
+    }
+    
     status = EXCITATION_OFF;                        // set thread status to "off"
 }
 
