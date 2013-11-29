@@ -197,6 +197,7 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
         case CTRL_MODE_TORQUE:      ok = icmd[li.bodyPart]->setTorqueMode(i);   break;
         ///< iCub simulator does not implement PWM motor control
         case CTRL_MODE_MOTOR_PWM:   ok = isRobotSimulator(robot) ? true : icmd[li.bodyPart]->setOpenLoopMode(i); break;
+        default: break;
     }
     if(ok)
     {
@@ -224,6 +225,7 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
             case CTRL_MODE_TORQUE:      return itrq[li.bodyPart]->setRefTorque(i, *ref);
             ///< iCub simulator does not implement PWM motor control
             case CTRL_MODE_MOTOR_PWM:   return isRobotSimulator(robot) ? true : iopl[li.bodyPart]->setOutput(i, *ref);
+            default: break;
         }
         return false;
     }
@@ -264,7 +266,8 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
             ///< velocity controlled joints have already been managed
             case CTRL_MODE_TORQUE:      ok = ok && itrq[itBp->first]->setRefTorque(j, ref[i]);              break;
             ///< iCub simulator does not implement PWM motor control
-            case CTRL_MODE_MOTOR_PWM:   ok = ok && isRobotSimulator(robot)?true:iopl[itBp->first]->setOutput(j, ref[i]); break;
+            case CTRL_MODE_MOTOR_PWM:   ok = ok && isRobotSimulator(robot) ? true : iopl[itBp->first]->setOutput(j, ref[i]); break;
+            default: return false;
         }
         i++;
     }
@@ -277,6 +280,7 @@ bool icubWholeBodyActuators::setControlParam(ControlParam paramId, double *value
     switch(paramId)
     {
     case CTRL_PARAM_REF_VEL: return setReferenceSpeed(value, joint);
+    default: break;
     }
     return false;
 }
