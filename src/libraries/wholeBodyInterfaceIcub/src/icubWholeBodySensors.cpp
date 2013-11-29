@@ -509,8 +509,9 @@ bool icubWholeBodySensors::readFTsensors(double *ftSens, double *stamps, bool wa
 
 bool icubWholeBodySensors::readTorqueSensors(double *jointSens, double *stamps, bool wait)
 {
-    if(isRobotSimulator(robot)) {
-        bzero(jointSens, sizeof(double) * MAX_NJ);
+    if(isRobotSimulator(robot)) 
+    {
+        memset(jointSens, 0, sizeof(double) * torqueSensorIdList.size());
         return true;
     }
     
@@ -528,7 +529,7 @@ bool icubWholeBodySensors::readTorqueSensors(double *jointSens, double *stamps, 
             for(unsigned int i = 0; i < bodyPartAxes[itBp->first]; i++)
                 torqueSensorsLastRead[itBp->first][itBp->first == TORSO ? 2 - i : i] = torqueTemp[i];    // joints of the torso are in reverse order
         
-        memcpy(&jointSens[i], torqueSensorsLastRead[itBp->first].data(), bodyPartAxes[itBp->first]);
+        memcpy(&jointSens[i], torqueSensorsLastRead[itBp->first].data(), sizeof(double)*bodyPartAxes[itBp->first]);
         i += bodyPartAxes[itBp->first];
 
         res = res && update;

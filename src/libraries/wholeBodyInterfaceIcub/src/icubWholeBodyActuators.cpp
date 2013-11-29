@@ -150,29 +150,34 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
         return false;
     
     bool ok = true;
-    if(joint<0)
+    if(joint<0)     ///< set all joints to the specified control mode
     {
         switch(controlMode)
         {
             case CTRL_MODE_POS:
                 FOR_ALL(itBp, itJ)
-                    ok = ok && icmd[itBp->first]->setPositionMode(itBp->first==TORSO ? 2-(*itJ) : *itJ); // icub's torso joints are in reverse order
+                    if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode)
+                        ok = ok && icmd[itBp->first]->setPositionMode(itBp->first==TORSO ? 2-(*itJ) : *itJ);
+                        ///< icub's torso joints are in reverse order
                 break;
                 
             case CTRL_MODE_VEL:
                 FOR_ALL(itBp, itJ)
-                    ok = ok && icmd[itBp->first]->setVelocityMode(itBp->first==TORSO ? 2-(*itJ) : *itJ); // icub's torso joints are in reverse order
+                    if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode)
+                        ok = ok && icmd[itBp->first]->setVelocityMode(itBp->first==TORSO ? 2-(*itJ) : *itJ);
                 break;
                 
             case CTRL_MODE_TORQUE:
                 FOR_ALL(itBp, itJ)
-                    ok = ok && icmd[itBp->first]->setTorqueMode(itBp->first==TORSO ? 2-(*itJ) : *itJ); // icub's torso joints are in reverse order
+                    if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode)
+                        ok = ok && icmd[itBp->first]->setTorqueMode(itBp->first==TORSO ? 2-(*itJ) : *itJ);
                 break;
                 
             case CTRL_MODE_MOTOR_PWM:
                 if(!isRobotSimulator(robot)) ///< iCub simulator does not implement PWM motor control
                     FOR_ALL(itBp, itJ)
-                        ok = ok && icmd[itBp->first]->setOpenLoopMode(itBp->first==TORSO ? 2-(*itJ) : *itJ); // icub's torso joints are in reverse order
+                        if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode)
+                            ok = ok && icmd[itBp->first]->setOpenLoopMode(itBp->first==TORSO ? 2-(*itJ) : *itJ);
                 break;
 
             default:
@@ -188,23 +193,25 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
         return ok;
     }
     
+    ///< Set the specified joint to the specified control mode
     LocalId li = jointIdList.globalToLocalId(joint);
-    int i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
-    switch(controlMode)
+    if(currentCtrlModes[li]!=controlMode)   ///< check that joint is not already in the specified control mode
     {
-        case CTRL_MODE_POS:         ok = icmd[li.bodyPart]->setPositionMode(i); break;
-        case CTRL_MODE_VEL:         ok = icmd[li.bodyPart]->setVelocityMode(i); break;
-        case CTRL_MODE_TORQUE:      ok = icmd[li.bodyPart]->setTorqueMode(i);   break;
-        ///< iCub simulator does not implement PWM motor control
-        case CTRL_MODE_MOTOR_PWM:   ok = isRobotSimulator(robot) ? true : icmd[li.bodyPart]->setOpenLoopMode(i); break;
-        default: break;
+        int i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
+        switch(controlMode)
+        {
+            case CTRL_MODE_POS:         ok = icmd[li.bodyPart]->setPositionMode(i); break;
+            case CTRL_MODE_VEL:         ok = icmd[li.bodyPart]->setVelocityMode(i); break;
+            case CTRL_MODE_TORQUE:      ok = icmd[li.bodyPart]->setTorqueMode(i);   break;
+            ///< iCub simulator does not implement PWM motor control
+            case CTRL_MODE_MOTOR_PWM:   ok = isRobotSimulator(robot) ? true : icmd[li.bodyPart]->setOpenLoopMode(i); break;
+            default: break;
+        }
+        if(ok)
+            currentCtrlModes[li] = controlMode;
     }
-    if(ok)
-    {
-        currentCtrlModes[li] = controlMode;
-        if(ref!=0)
-            ok = ok && setControlReference(ref, joint);
-    }
+    if(ok &&ref!=0)
+        ok = setControlReference(ref, joint);   ///< set specified control reference (if any)
     return ok;
 }
 
@@ -262,12 +269,23 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
         int j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
         switch(currentCtrlModes[LocalId(itBp->first,*itJ)])
         {
-            case CTRL_MODE_POS:         ok = ok && ipos[itBp->first]->positionMove(j, CTRL_RAD2DEG*ref[i]); break;
-            ///< velocity controlled joints have already been managed
-            case CTRL_MODE_TORQUE:      ok = ok && itrq[itBp->first]->setRefTorque(j, ref[i]);              break;
-            ///< iCub simulator does not implement PWM motor control
-            case CTRL_MODE_MOTOR_PWM:   ok = ok && isRobotSimulator(robot) ? true : iopl[itBp->first]->setOutput(j, ref[i]); break;
-            default: return false;
+            case CTRL_MODE_POS:         
+                ok = ok && ipos[itBp->first]->positionMove(j, CTRL_RAD2DEG*ref[i]); 
+                break;
+            case CTRL_MODE_VEL:         
+                if(isRobotSimulator(robot)) ///< velocity controlled joints have already been managed (for the real robot)
+                    ok = ok && ivel[itBp->first]->velocityMove(j, CTRL_RAD2DEG*ref[i]); 
+                break;
+            case CTRL_MODE_TORQUE:      
+                ok = ok && itrq[itBp->first]->setRefTorque(j, ref[i]);              
+                break;
+            case CTRL_MODE_MOTOR_PWM:   
+                if(!isRobotSimulator(robot)) ///< iCub simulator does not implement PWM motor control
+                    ok = ok && iopl[itBp->first]->setOutput(j, ref[i]); 
+                break;
+            default: 
+                printf("[icubWholeBodyActuators::setControlReference] ERROR: unmanaged control mode.\n"); 
+                return false;
         }
         i++;
     }

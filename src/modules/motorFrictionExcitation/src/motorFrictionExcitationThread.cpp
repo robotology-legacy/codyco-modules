@@ -137,7 +137,7 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
         posIntegral[i] = posIntegral[i]>MAX_POS_INTEGRAL  ?  MAX_POS_INTEGRAL : posIntegral[i];
         posIntegral[i] = posIntegral[i]<-MAX_POS_INTEGRAL ? -MAX_POS_INTEGRAL : posIntegral[i];
     }
-    sendMsg("Pos integral: "+toString(posIntegral));
+    //sendMsg("Pos integral: "+toString(posIntegral));
 
     FreeMotionExcitation *fme = &freeMotionExc[excitationCounter];
     double t = Time::now()-excitationStartTime;
@@ -259,7 +259,7 @@ bool MotorFrictionExcitationThread::preStartOperations()
         while( fabs(qRad_i-q0) < 0.5*CTRL_DEG2RAD);
         
         ///< read motor PWM
-        printf("Joint moved to %.1f deg.\n", qRad_i*CTRL_RAD2DEG);
+        //printf("Joint moved to %.1f deg.\n", qRad_i*CTRL_RAD2DEG);
         if(!robot->getEstimate(estType, lid, &pwmUp))
         {
             printf("Error while reading pwm up of joint %s. Stopping the excitation.\n", lid.description.c_str());
@@ -270,7 +270,7 @@ bool MotorFrictionExcitationThread::preStartOperations()
         ///< move joint 2 degrees down
         qDes = q0;
         robot->getEstimate(ESTIMATE_JOINT_POS, lid, &q0);   ///< blocking read
-        printf("Read joint pos: %.1f\nMove joint down to %.1f.\n", q0*CTRL_RAD2DEG, qDes*CTRL_RAD2DEG);
+        //printf("Read joint pos: %.1f\nMove joint down to %.1f.\n", q0*CTRL_RAD2DEG, qDes*CTRL_RAD2DEG);
         if(!robot->setControlReference(&qDes, currentGlobalJointIds[i]))
         {
             printf("Error while moving joint %s down to estimate stiction.\n", lid.description.c_str());
@@ -283,7 +283,7 @@ bool MotorFrictionExcitationThread::preStartOperations()
         while( fabs(qRad_i-q0) < 0.5*CTRL_DEG2RAD);
 
         ///< read motor PWM
-        printf("Joint moved to %.1f deg.\n", qRad_i*CTRL_RAD2DEG);
+        //printf("Joint moved to %.1f deg.\n", qRad_i*CTRL_RAD2DEG);
         if(!robot->getEstimate(estType, lid, &pwmDown))
         {
             printf("Error while reading pwm down of joint %s. Stopping the excitation.\n", lid.description.c_str());
