@@ -24,9 +24,18 @@
 
 using namespace jointTorqueControl;
 
+// #warning remove this function
+// double getTimeFunction(double a, double w){
+// 	static double t0 = yarp::os::Time::now();
+// 	double t = yarp::os::Time::now();
+// 	return a*sin(w*(t-t0));
+// }
+// 
+// 
 
 jointTorqueControlThread::jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
-    : RateThread(period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi)
+    : RateThread(period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), sendCommands(SEND_COMMANDS_NONACTIVE),
+    monitoredJoint(0)
 {
     mustStop = false;
     status = CONTROL_OFF;
@@ -36,8 +45,8 @@ jointTorqueControlThread::jointTorqueControlThread(int period, string _name, str
 	tauD 			= VectorNd::Constant(0.0); 
 	tauM 			= VectorNd::Constant(0.0); 
 	integralState 	= VectorNd::Constant(0.0); 
-	motorVoltage	= VectorNd::Constant(0.0); 
-	DT				= period * 1e-3;
+	motorVoltage	= VectorNd::Constant(0.0);
+	
 }
 
 //*************************************************************************************************************************
@@ -54,6 +63,8 @@ bool jointTorqueControlThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KP,		kp.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KS,		ks.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VMAX,	Vmax.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SENDCMD,&sendCommands));
+	YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MONITORED_JOINT,&monitoredJoint));
 	
     // link controller input streaming parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAUD,	tauD.data()));
@@ -61,9 +72,14 @@ bool jointTorqueControlThread::threadInit()
     // link module output streaming parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VM,		motorVoltage.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU,	tau.data()));
-
+	
+	//link monitored variables
+	YARP_ASSERT(paramHelper->linkParam(PARAM_ID_V_OUT,	&monitoredVoltage));
+	YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_OUT,	&monitoredTau));
+	 
     // Register callbacks for some module parameters
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_AJ,     this));
+	YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_SENDCMD,this));
 
     // Register callbacks for some module commands
     YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
@@ -75,30 +91,55 @@ bool jointTorqueControlThread::threadInit()
 //*************************************************************************************************************************
 void jointTorqueControlThread::run()
 {
+	//NOTE: Cannata says: "Never use a mutex in a (real time) control loop".... what should I do?
+	paramHelper->lock();
+    paramHelper->readStreamParams();
+	
 	if(status == CONTROL_ON)
     {
+		double currentTime = yarp::os::Time::now();
+		double	dt	=  (currentTime - oldTime);
+		
 		readRobotStatus(false);
-				
+
 		for (int i=0; i < N_DOF; i++)
         {
 			if (activeJoints(i) == 1) 
             {
+// #warning remove the tauD line
+// 				tauD(i)				= getTimeFunction(2,1);
+// #warning remove the dq line
+// 				dq(i)				= getTimeFunction(10,0.5);
+				
 				etau(i) 			= tauM(i) - tauD(i);
-				integralState(i) 	= integralState(i) + DT*etau(i);
+				integralState(i) 	= saturation(integralState(i) + dt*etau(i), 1000, -1000) ;
 				tau(i) 				= tauD(i) - kp(i)*etau(i) - ki(i)*integralState(i);
 				motorVoltage(i) 	= kt(i)*tau(i) + (kvp(i)*stepFunction(dq(i)) + kvn(i)*stepFunction(-dq(i)))*dq(i) + (kcp(i)*stepFunction(dq(i)) + kcn(i)*stepFunction(-dq(i)))*tanh(ks(i)*dq(i));
-			
-                printf("Err %lf\tInt%lf\ttau%lf\tV%lf\n", etau(i), integralState(i), tau(i), motorVoltage(i));
-				robot->setControlReference(&motorVoltage(i), i);
+				printf("Err = %lf\tIntErr = %lf\ttau = %lf\ttauD = %lf\tV = %lf\tdq = %lf\tdt=%lf\n", etau(i), integralState(i), tau(i), tauD(i), motorVoltage(i),dq(i),dt);
+					
+				if (sendCommands == SEND_COMMANDS_ACTIVE)
+					robot->setControlReference(&motorVoltage(i), i);
+				else                
+					printf("Not sending commands");
 			}
 		}
+		oldTime = currentTime;
     }
+    
+    if (monitoredJoint >= 0 && monitoredJoint < N_DOF) {
+		monitoredTau = tau(monitoredJoint);
+		monitoredVoltage = motorVoltage(monitoredJoint);
+	}
+    
+    paramHelper->sendStreamParams();
+    paramHelper->unlock();
 }
 
 //*************************************************************************************************************************
 void jointTorqueControlThread::startSending()
 {
     status = CONTROL_ON;       //sets thread status to ON
+    oldTime = yarp::os::Time::now();
 }
 //*************************************************************************************************************************
 void jointTorqueControlThread::stopSending()
@@ -120,8 +161,11 @@ void jointTorqueControlThread::parameterUpdated(const ParamProxyInterface *pd)
     case PARAM_ID_AJ:
 		printf("%s",toString(activeJoints).c_str());
         resetIntegralStates();
-		setControlModePWMOnJoints(true);
+		setControlModePWMOnJoints(sendCommands == SEND_COMMANDS_ACTIVE);
         break;
+	case PARAM_ID_SENDCMD:
+		setControlModePWMOnJoints(sendCommands == SEND_COMMANDS_ACTIVE);
+		break;
     default:
         sendMsg("A callback is registered but not managed for the parameter "+pd->name, MSG_WARNING);
     }
@@ -133,7 +177,7 @@ void jointTorqueControlThread::commandReceived(const CommandDescription &cd, con
     switch(cd.id)
     {
     case COMMAND_ID_START:
-		setControlModePWMOnJoints(true);
+		setControlModePWMOnJoints(sendCommands == SEND_COMMANDS_ACTIVE);
         startSending();
         sendMsg("Activating the torque control.", MSG_INFO); break;
     case COMMAND_ID_STOP:
@@ -180,7 +224,8 @@ void jointTorqueControlThread::fromListToVector(Bottle * pointerToList, VectorNd
     }
 }
 
-float jointTorqueControlThread::stepFunction(float x) 
+//*************************************************************************************************************************
+double jointTorqueControlThread::stepFunction(double x) 
 {
 	if ( x >= 0)
 		return 1;
@@ -193,11 +238,12 @@ bool jointTorqueControlThread::readRobotStatus(bool blockingRead)
 {
     // read joint angles
     bool res = robot->getEstimates(ESTIMATE_JOINT_VEL, dq.data(), -1.0, blockingRead);
-//     res = res && robot->getEstimates(ESTIMATE_TORQUE, tauM.data(), -1.0, blockingRead);
+//     res = res && robot->getEstimates(ESTIMATE_JOINT_TORQUE, tauM.data(), -1.0, blockingRead);
 	tauM = tau;
     return res;
 }
 
+//*************************************************************************************************************************
 void jointTorqueControlThread::resetIntegralStates()
 {
 	for (int i=0; i < N_DOF; i++)
@@ -209,6 +255,7 @@ void jointTorqueControlThread::resetIntegralStates()
 	}
 }
 
+//*************************************************************************************************************************
 void jointTorqueControlThread::setControlModePWMOnJoints(bool torqueActive)
 {
 	for (int i=0; i < N_DOF; i++)
@@ -224,3 +271,14 @@ void jointTorqueControlThread::setControlModePWMOnJoints(bool torqueActive)
 		}
 	}
 }
+
+double jointTorqueControlThread::saturation(double x, double xMax, double xMin)
+{
+// 	if (x > xMax)
+// 		return xMax;
+// 	if (x < xMin)
+// 		return xMin;
+	return x;
+}
+
+

@@ -30,7 +30,10 @@ using namespace std;
 namespace jointTorqueControl
 {
 
-static const int N_DOF = 25; 
+static const int N_DOF = 25;
+
+static const int SEND_COMMANDS_ACTIVE = 1;
+static const int SEND_COMMANDS_NONACTIVE = 0;
 
 typedef Eigen::Matrix<double,N_DOF,1>           VectorNd;
 typedef Eigen::Matrix<int,N_DOF,1>              VectorNi;
@@ -40,6 +43,8 @@ static const string		DEFAULT_MODULE_NAME     = "jointTorqueControl";
 static const string		DEFAULT_ROBOT_NAME      = "icubSim";            // robot name
 static const string		DEFAULT_FILE_NAME       = "100poses_A";         // input params file (trajectory points)
 static const int        DEFAULT_CTRL_PERIOD     = 10;                   // controller period in ms
+static const int 		DEFAULT_MONITORED_JOINT = 0;
+static const int        DEFAULT_SENDCMD     	= SEND_COMMANDS_NONACTIVE; // 
 static const VectorNi	DEFAULT_ACTIVE_JOINTS   = VectorNi::Constant(0); 
 static const VectorNd	DEFAULT_KT				= VectorNd::Constant(0.0); 
 static const VectorNd	DEFAULT_KVP				= VectorNd::Constant(0.0); 
@@ -64,8 +69,8 @@ static const double		KS_MAX          		= 100.0;
 static const double		V_MAX 	       		  	= 100.0;  
 static const double		TAUD_MIN          		= 100.0;     
 static const double		TAUD_MAX 	        	= 100.0;  
-static const double		VM_MIN          		= 100.0;     
-static const double		VM_MAX	 	        	= 100.0;       
+static const double		VM_MIN          		= -1333.0;     
+static const double		VM_MAX	 	        	= 1333.0;       
 
 
 // Streaming parameters
@@ -76,7 +81,7 @@ enum jointTorqueControlParamId {
     PARAM_ID_MODULE_NAME,	PARAM_ID_CTRL_PERIOD,	PARAM_ID_ROBOT_NAME,		
 	PARAM_ID_AJ,	PARAM_ID_KT,	PARAM_ID_KVP,	PARAM_ID_KVN,	PARAM_ID_KCP,	PARAM_ID_KCN,
     PARAM_ID_KI,	PARAM_ID_KP,	PARAM_ID_KS,	PARAM_ID_VMAX,	PARAM_ID_TAUD,	PARAM_ID_VM,	
-	PARAM_ID_TAU,	PARAM_ID_SIZE
+	PARAM_ID_TAU,  PARAM_ID_SENDCMD,	PARAM_ID_V_OUT, PARAM_ID_TAU_OUT,PARAM_ID_MONITORED_JOINT,PARAM_ID_SIZE,
 };
 
 
@@ -100,13 +105,17 @@ new ParamProxyBasic<double>("ki",          	    PARAM_ID_KI,				N_DOF,		ParamBil
 new ParamProxyBasic<double>("kp",          	    PARAM_ID_KP,				N_DOF,		ParamBilatBounds<double>(0.0, KP_MAX),		    PARAM_IN_OUT,       DEFAULT_KP.data(),				"Vector of nDOF floats representing the integral gains ( see Eq. (x) )"), 
 new ParamProxyBasic<double>("ks",          	    PARAM_ID_KS,				N_DOF,		ParamBilatBounds<double>(0.0, KS_MAX),		    PARAM_IN_OUT,       DEFAULT_KS.data(),				"Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
 new ParamProxyBasic<double>("Vmax",          	PARAM_ID_VMAX,				N_DOF,		ParamBilatBounds<double>(0.0, V_MAX),		    PARAM_IN_OUT,       DEFAULT_VMAX.data(),			"Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
-
+new ParamProxyBasic<int>("sendCommands",   	 	PARAM_ID_SENDCMD,			1,			ParamBilatBounds<int>(0, 1),				    PARAM_IN_OUT,       &DEFAULT_SENDCMD,				"If equal to 1, send commands for torque control"), 
+new ParamProxyBasic<int>("monitoredJoint",     	PARAM_ID_MONITORED_JOINT,	1,			ParamBilatBounds<int>(0, N_DOF),				PARAM_IN_OUT,       &DEFAULT_MONITORED_JOINT,				"Select which joint is monitored"), 
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("tauD",        	    PARAM_ID_TAUD,         		N_DOF,      ParamBilatBounds<double>(TAUD_MIN, TAUD_MAX),   PARAM_IN_STREAM,    DEFAULT_TAUD.data(),			"Desired torques"),
 
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("Vm",				PARAM_ID_VM,				N_DOF,		ParamBilatBounds<double>(VM_MIN, VM_MAX),		PARAM_OUT_STREAM,   DEFAULT_VM.data(),				"Vector of nDOF floats representing the tensions"),
-new ParamProxyBasic<double>("tau",          	PARAM_ID_TAU,         		N_DOF,      ParamBilatBounds<double>(TAUD_MIN, TAUD_MAX),	PARAM_OUT_STREAM,   DEFAULT_TAU.data(),        		"Torques")
+new ParamProxyBasic<double>("tau",          	PARAM_ID_TAU,         		N_DOF,      ParamBilatBounds<double>(TAUD_MIN, TAUD_MAX),	PARAM_OUT_STREAM,   DEFAULT_TAU.data(),        		"Torques"),
+// ************************************************* MONITOR  PARAMETERS ****************************************************************************************************************************************************************************************************************************
+new ParamProxyBasic<double>("V_out",            PARAM_ID_V_OUT,               1,        ParamBilatBounds<double>(VM_MIN, VM_MAX),    PARAM_MONITOR,      0,                              "Joint angle of the currently controlled motor"),
+new ParamProxyBasic<double>("Tau_out",          PARAM_ID_TAU_OUT,             1,        ParamBilatBounds<double>(-150.0, 150.0),    PARAM_MONITOR,      0,                              "Joint angle of the currently controlled motor")	
 };
 
 // *** IDs of all the module command
