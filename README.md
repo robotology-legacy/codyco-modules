@@ -5,7 +5,7 @@ CoDyCo
 Whole-body Compliant Dynamical Contacts in Cognitive Humanoids
 
 
-The CoDyCo project is a four-years long project and starts in March
+The CoDyCo project is a four-years long project that started in March
 2013. At the end of each year a scenario will be used to validate on the
 iCub  the theoretical advances of the project.
 
