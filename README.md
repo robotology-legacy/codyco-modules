@@ -20,6 +20,7 @@ Before installing CoDyCo software it is necessary to install some dependencies:
 
 ###Yarp/iCub software 
 You can follow the instructions on: http://wiki.icub.org/wiki/ICub_Software_Installation .
+You should install at least Yarp version 2.3.22 and iCub version 1.1.13 .
 
 ###Eigen
 You can follow the instructions on: http://eigen.tuxfamily.org .
