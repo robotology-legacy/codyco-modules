@@ -33,19 +33,19 @@
 #include <iomanip>
 #include <string.h>
 
-#include "motorFrictionIdentificationLib/motorFrictionExcitationParams.h"
-#include "motorFrictionExcitation/motorFrictionExcitationThread.h"
-#include "motorFrictionExcitation/motorFrictionExcitationModule.h"
+#include "motorFrictionIdentificationLib/motorFrictionIdentificationParams.h"
+#include "motorFrictionIdentification/motorFrictionIdentificationThread.h"
+#include "motorFrictionIdentification/motorFrictionIdentificationModule.h"
 
 YARP_DECLARE_DEVICES(icubmod)
 
 using namespace yarp::dev;
 using namespace paramHelp;
 using namespace wbiIcub;
-using namespace motorFrictionExcitation;
+using namespace motorFrictionIdentification;
 using namespace motorFrictionIdentificationLib;
 
-MotorFrictionExcitationModule::MotorFrictionExcitationModule()
+MotorFrictionIdentificationModule::MotorFrictionIdentificationModule()
 {
     ctrlThread      = 0;
     robotInterface  = 0;
@@ -53,10 +53,10 @@ MotorFrictionExcitationModule::MotorFrictionExcitationModule()
     period          = 20;
 }
     
-bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
+bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
 {		
     //--------------------------PARAMETER HELPER--------------------------
-    paramHelper = new ParamHelperServer(motorFrictionExcitationParamDescr, PARAM_ID_SIZE, motorFrictionExcitationCommandDescr, COMMAND_ID_SIZE);
+    paramHelper = new ParamHelperServer(motorFrictionIdentificationParamDescr, PARAM_ID_SIZE, motorFrictionIdentificationCommandDescr, COMMAND_ID_SIZE);
     paramHelper->linkParam(PARAM_ID_MODULE_NAME, &moduleName);
     paramHelper->linkParam(PARAM_ID_CTRL_PERIOD, &period);
     paramHelper->linkParam(PARAM_ID_ROBOT_NAME, &robotName);
@@ -82,14 +82,14 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------
-    ctrlThread = new MotorFrictionExcitationThread(moduleName, robotName, period, paramHelper, robotInterface);
-    if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing motorFrictionExcitation control thread. Closing module.\n"); return false; }
+    ctrlThread = new MotorFrictionIdentificationThread(moduleName, robotName, period, paramHelper, robotInterface);
+    if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing motorFrictionIdentification control thread. Closing module.\n"); return false; }
     
-    fprintf(stderr,"MotorFrictionExcitation control started\n");
+    fprintf(stderr,"MotorFrictionIdentification control started\n");
 	return true;
 }
 
-bool MotorFrictionExcitationModule::respond(const Bottle& cmd, Bottle& reply) 
+bool MotorFrictionIdentificationModule::respond(const Bottle& cmd, Bottle& reply) 
 {
     paramHelper->lock();
 	if(!paramHelper->processRpcCommand(cmd, reply)) 
@@ -102,7 +102,7 @@ bool MotorFrictionExcitationModule::respond(const Bottle& cmd, Bottle& reply)
 	return true;	
 }
 
-void MotorFrictionExcitationModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
+void MotorFrictionIdentificationModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
 {
     switch(cd.id)
     {
@@ -116,7 +116,7 @@ void MotorFrictionExcitationModule::commandReceived(const CommandDescription &cd
     }
 }
 
-bool MotorFrictionExcitationModule::interruptModule()
+bool MotorFrictionIdentificationModule::interruptModule()
 {
     if(ctrlThread)
         ctrlThread->suspend();
@@ -124,7 +124,7 @@ bool MotorFrictionExcitationModule::interruptModule()
     return true;
 }
 
-bool MotorFrictionExcitationModule::close()
+bool MotorFrictionIdentificationModule::close()
 {
 	//stop threads
     if(ctrlThread){     ctrlThread->stop();         delete ctrlThread;      ctrlThread = 0;     }
@@ -145,7 +145,7 @@ bool MotorFrictionExcitationModule::close()
     return true;
 }
 
-bool MotorFrictionExcitationModule::updateModule()
+bool MotorFrictionIdentificationModule::updateModule()
 {
     if (ctrlThread==0)
     {

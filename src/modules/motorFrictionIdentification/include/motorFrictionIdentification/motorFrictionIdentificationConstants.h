@@ -15,24 +15,10 @@
  * Public License for more details
 */
 
-#ifndef _MOTOR_FRICTION_EXCITATION_CONSTANTS
-#define _MOTOR_FRICTION_EXCITATION_CONSTANTS
+#ifndef _MOTOR_FRICTION_IDENTIFICATION_CONSTANTS
+#define _MOTOR_FRICTION_IDENTIFICATION_CONSTANTS
 
-#include <paramHelp/paramProxyBasic.h>
-#include <Eigen/Core>                               // import most common Eigen types
-#include <vector>
-#include <string>
-#include <yarp/sig/Matrix.h>
-#include <motorFrictionIdentificationLib/motorFrictionExcitationParams.h>
-
-using namespace Eigen;
-
-
-// define some types
-typedef Eigen::Matrix<double,1,1>                  Vector1d;
-typedef Eigen::Matrix<int,ICUB_DOFS,1>             VectorNi;
-
-namespace motorFrictionExcitation
+namespace motorFrictionIdentification
 {
 /** Types of printed messages */
 enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
@@ -40,8 +26,6 @@ enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
 // *** CONSTANTS
 static const int        PRINT_PERIOD    = 1000;         ///< period of debug prints (in ms)
 static const int        PRINT_MSG_LEVEL = MSG_DEBUG;    ///< only messages whose type is greater than or equal to PRINT_MSG_LEVEL are printed
-static const double     PWM_MAX         = 300;          ///< max motor PWM allowed (in [-1333; 1333])
-static const double     MAX_POS_INTEGRAL = 30.0;
 
 }   // end namespace 
 

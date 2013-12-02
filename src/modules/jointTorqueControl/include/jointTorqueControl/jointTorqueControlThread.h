@@ -15,8 +15,8 @@
  * Public License for more details
 */
 
-#ifndef LOCOMOTION_PLANNER_THREAD
-#define LOCOMOTION_PLANNER_THREAD
+#ifndef __JOINT_TORQUE_CONTROL_THREAD
+#define __JOINT_TORQUE_CONTROL_THREAD
 
 #include <sstream>
 #include <iomanip>
@@ -55,6 +55,7 @@ using namespace std;
 using namespace paramHelp;
 using namespace wbi;
 using namespace Eigen;
+using namespace motorFrictionIdentificationLib;
 
 namespace jointTorqueControl
 {

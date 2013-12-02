@@ -119,8 +119,8 @@ This file can be edited at ICUB_HOME/main/src/modules/skinDriftCompensation/incl
 **/
 
 
-#ifndef __LOCOMOTION_PLANNER_MODULE_H__
-#define __LOCOMOTION_PLANNER_MODULE_H__
+#ifndef __JOINT_TORQUE_CONTROL_MODULE_H__
+#define __JOINT_TORQUE_CONTROL_MODULE_H__
 
 #include <iostream>
 #include <string>

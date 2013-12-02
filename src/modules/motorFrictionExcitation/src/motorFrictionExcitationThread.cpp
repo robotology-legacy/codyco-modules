@@ -15,7 +15,7 @@
  * Public License for more details
 */
 
-#include "motorFrictionExcitation/motorFrictionExcitationParams.h"
+#include "motorFrictionIdentificationLib/motorFrictionExcitationParams.h"
 #include <motorFrictionExcitation/motorFrictionExcitationThread.h>
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <yarp/os/Time.h>
@@ -23,6 +23,7 @@
 #include <yarp/math/SVD.h>
 
 
+using namespace motorFrictionIdentificationLib;
 using namespace motorFrictionExcitation;
 using namespace yarp::math;
 using namespace wbiIcub;

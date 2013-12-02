@@ -15,8 +15,8 @@
  * Public License for more details
 */
 
-#ifndef _MOTOR_FRICTION_EXCITATION_THREAD
-#define _MOTOR_FRICTION_EXCITATION_THREAD
+#ifndef _MOTOR_FRICTION_IDENTIFICATION_THREAD
+#define _MOTOR_FRICTION_IDENTIFICATION_THREAD
 
 #include <sstream>
 #include <iomanip>
@@ -37,7 +37,8 @@
 
 #include <wbi/wbi.h>
 #include <paramHelp/paramHelperServer.h>
-#include <motorFrictionExcitation/motorFrictionExcitationConstants.h>
+#include <motorFrictionIdentification/motorFrictionIdentificationConstants.h>
+#include <motorFrictionIdentificationLib/motorFrictionIdentificationParams.h>
 
 
 using namespace yarp::os;
@@ -49,25 +50,25 @@ using namespace std;
 using namespace paramHelp;
 using namespace wbi;
 using namespace Eigen;
-using namespace motorFrictionExcitation;
+using namespace motorFrictionIdentification;
 using namespace motorFrictionIdentificationLib;
 
-namespace motorFrictionExcitation
+
+namespace motorFrictionIdentification
 {
 
-enum MotorFrictionExcitationStatus 
+enum MotorFrictionIdentificationStatus 
 { 
-    EXCITATION_STARTED,         // a free motion excitation has started
-    EXCITATION_FINISHED,        // a free motion excitation has just finished
-    EXCITATION_OFF              // controller off (either the user stopped it or all excitations have finished)
+    IDENTIFICATION_STARTED,         // a free motion excitation has started
+    IDENTIFICATION_FINISHED,        // a free motion excitation has just finished
+    IDENTIFICATION_OFF              // controller off (either the user stopped it or all excitations have finished)
 };
 
 
-
 /** 
- * MotorFrictionExcitation control thread.
+ * MotorFrictionIdentification control thread.
  */
-class MotorFrictionExcitationThread: public RateThread, public ParamValueObserver, public CommandObserver
+class MotorFrictionIdentificationThread: public RateThread, public ParamValueObserver, public CommandObserver
 {
     string              name;
     string              robotName;
@@ -75,48 +76,26 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     wholeBodyInterface  *robot;
 
     // Member variables
-    MotorFrictionExcitationStatus   status;             ///< thread status ("on" when controlling, off otherwise)
-    MFE_MotorCommandMode            sendCmdToMotors;    ///< specify whether to send commands to motors
+    MotorFrictionIdentificationStatus   status;             ///< thread status ("on" when controlling, off otherwise)
     int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     int                 _n;                     // number of joints of the robot
-    int                 excitationCounter;      // counter of how many excitations have been performed
-    double              excitationStartTime;    // timestamp taken at the beginning of the current excitation
-    ArrayXd             pwmOffset;              // pwm to keep motor still in the starting position
-    ArrayXd             pwmDes;                 // desired values of PWM for the controlled joints (variable size)
-    ArrayXd             posIntegral;            // integral of (q-q0), where q0 is the initial joint position
+    
     ArrayXd             dqJ;                    // joint velocities (size of vector: n)
-    ArrayXd             ftSens;                 // ankle force/torque sensor readings (order is: left, right)
+    
     vector<LocalId>     currentJointIds;        // IDs of the joints currently excited
     ArrayXi             currentGlobalJointIds;  // global IDs of the joints currently excited
 
     // Module parameters
-    vector<FreeMotionExcitation>    freeMotionExc;
-    ArrayXd             qMin, qMax;             // lower and upper joint bounds
-
+    
     // Output streaming parameters
-    ArrayXd             qDeg, qRad;             // measured positions
     
     ///< Output monitoring parameters
-    double              pwmDesSingleJoint;      // value of desired pwm for the first controlled joint
-    double              qDegMonitor;            // value of the measured joint angle for the first controlled joint
     
     /************************************************* PRIVATE METHODS ******************************************************/
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO);
 
     /** Read the robot sensors and compute forward kinematics and Jacobians. */
     bool readRobotStatus(bool blockingRead=false);
-
-    /** Update the reference trajectories to track and compute the desired velocities for all tasks. */
-    bool updateReferenceTrajectories();
-
-    /** Return true if the desired motor PWM are too large. */
-    bool areDesiredMotorPwmTooLarge();
-
-    /** Return true if at least one of the stop conditions is verified (e.g. joint limit too close). */
-    bool checkStopConditions();
-
-    /** Send commands to the motors. Return true if the operation succeeded, false otherwise. */
-    bool sendMotorCommands();
 
     /** Perform all the operations needed just before starting the controller. 
      * @return True iff all initialization operations went fine, false otherwise. */
@@ -132,7 +111,7 @@ public:
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    MotorFrictionExcitationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi);
+    MotorFrictionIdentificationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi);
 	
     bool threadInit();	
     void run();
@@ -144,14 +123,6 @@ public:
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
 
 };
-
-/** Command the motors to move to the specified joint configuration and then wait until the motion is finished. */
-bool moveToJointConfigurationAndWaitMotionDone(wbi::wholeBodyInterface *robot, double *qDes_deg, const int nDoF, double tolerance_deg=0.1);
-
-/** Wait for the specified joint configuration to be reached. */
-bool waitMotionDone(wbi::iWholeBodyStates *robot, double *qDes_deg, const int nDoF, double tolerance_deg=0.1);
-
-bool waitMotionDone(wbi::iWholeBodyStates *robot, double qDes_deg, const LocalId &jointId, double tolerance_deg=0.1);
 
 } // end namespace
 
