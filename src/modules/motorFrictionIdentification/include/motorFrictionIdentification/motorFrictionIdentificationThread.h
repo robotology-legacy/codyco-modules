@@ -66,7 +66,7 @@ enum MotorFrictionIdentificationStatus
 
 
 /** 
- * MotorFrictionIdentification control thread.
+ * MotorFrictionIdentification thread.
  */
 class MotorFrictionIdentificationThread: public RateThread, public ParamValueObserver, public CommandObserver
 {
