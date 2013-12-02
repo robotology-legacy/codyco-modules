@@ -144,6 +144,14 @@ public:
 
 };
 
+/** Command the motors to move to the specified joint configuration and then wait until the motion is finished. */
+bool moveToJointConfigurationAndWaitMotionDone(wbi::wholeBodyInterface *robot, double *qDes_deg, const int nDoF, double tolerance_deg=0.1);
+
+/** Wait for the specified joint configuration to be reached. */
+bool waitMotionDone(wbi::iWholeBodyStates *robot, double *qDes_deg, const int nDoF, double tolerance_deg=0.1);
+
+bool waitMotionDone(wbi::iWholeBodyStates *robot, double qDes_deg, const LocalId &jointId, double tolerance_deg=0.1);
+
 } // end namespace
 
 #endif
