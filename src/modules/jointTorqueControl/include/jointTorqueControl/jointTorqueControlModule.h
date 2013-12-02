@@ -16,17 +16,16 @@
 */
 
 /**
-*
-@ingroup codyco_module
-\defgroup codyco_jointTorqueControl jointTorqueControl
-
-This module implements the whole-body torque control.
-
-\section intro_sec Background
-
-The robot's motors are controlled by using 
-the PWM technique, i.e. the tension applied to each motor is a square wave of constant frequency and amplitude, 
-and the duty cycle of this wave is used as control input. 
+ * @ingroup codyco_module
+ * \defgroup codyco_jointTorqueControl jointTorqueControl
+ *
+ * This module implements the whole-body torque control.
+ *
+ * \section intro_sec Background
+ *
+ * The robot's motors are controlled by using 
+ * the PWM technique, i.e. the tension applied to each motor is a square wave of constant frequency and amplitude, 
+ * and the duty cycle of this wave is used as control input. 
 
     V(t) ^           Tdc
              |         /-----/ 
@@ -44,41 +43,40 @@ where
 * \f$V_b\f$: (positive) amplitude of the square wave;
 * \f$T_{dc}\f$: duty cycle time.
 
-The relationship between the link's torque tao and the tension V applied to the motor is assumed to be:
+The relationship between the link's torque \f$ \tau \f$ and the tension \f$ V \f$ applied to the motor is assumed to be:
 \f[
-	V  = k_t*\tao + k_v*\dot{q} + k_c*\text{sign}(\dot{q}),
-\f[
+	V  = k_t \tau + k_v \dot{q} + k_c \text{sign}(\dot{q}),
+\f]
 with \f$k_t\f$, \f$k_v\f$, \f$k_c\f$ three constants, and \f$\dot{q}\f$ the link's velocity. 
 Since the tension \f$V(t)\f$ is a high-frequency square 
 wave, we can assume that the above relationship holds for \f$V = V_m\f$, where \f$V_m\f$ stands for the "mean tension value" 
 over the time period \f$T\f$. By direct calculations, one can verify that 
 \f[
-	V_m = (T_{dc}/T)*V_b. 
-\f[
+	V_m = (T_{dc}/T) V_b. 
+\f]
 Also, discontinuities are always challenging in practice. So, it is best to smooth the sign function. 
-Among an infinite possible choices, we choose the hyperbolic function instead of sign(.). Then one has
-\f{equation}{ \label{eq:motor_dynamics}
-	    V_m  = k_t*\tao + k_v*\dot{q} + k_c*tanh(k_s*\dot{q}).
-\f}
-The model f$ref{eq:motor_dynamics}f$ can be improved by modeling eventual parameters' asymmetries with respect to 
-the joint velocity \f$\dot{q}\f$. 
+Among an infinite possible choices, we choose the hyperbolic function instead of \f$\text{sign(.)}\f$. Then one has:
+\f[
+	    V_m  = k_t \tau + k_v \dot{q} + k_c \tanh(k_s \dot{q}).
+\f]
+This model can be improved by considering possible parameters' asymmetries with respect to the joint velocity \f$\dot{q}\f$.
 In particular, the parameters \f$k_v\f$ and \f$k_c\f$ may depend on the sign of \f$\dot{q}\f$, and have different 
 values depending on this sign. Then, an improved model is:
 \f[
-	V_m  = k_t*\tao + [k_{vp}*s(\dot{q}) + k_{vn}*s(-\dot{q})]*\dot{q} + [k_{cp}*s(\dot{q}) + k_{cn}*s(-\dot{q})]*tanh(k_s*\dot{q}),    
-\f[
+	V_m  = k_t \tau + [k_{vp} s(\dot{q}) + k_{vn} s(-\dot{q})] \dot{q} + [k_{cp} s(\dot{q}) + k_{cn} s(-\dot{q})] \tanh(k_s \dot{q}),
+\f]
 where the function \f$s(x)\f$ is the step function, i.e.
 \f[
-	s(x) =  1 \text{if} x >= 0; s(x)=0 \text{if} x < 0.
-\f[	 
-As stated, Eq. f$ref{eq:motor_dynamics}f$ constitutes the relation between the tension applied to the motor and the link torque. 
-Then, to generate a desired torque \f$\tao_d\f$ coming from an higher control loop, it suffices to evaluate f$ref{eq:motor_dynamics}f$
-with \f$\tao = \tao_d\f$. In practice, however, it is a best practice to add a lower loop to generate \f$\tao\f$ so that \f$\tao\f$ 
-will converge to \f$\tao_d\f$, i.e:
+	s(x) =  1 \quad \text{if} \quad x >= 0; s(x)=0 \quad \text{if} \quad x < 0.
+\f]
+As stated, the above equation constitutes the relation between the tension applied to the motor and the link torque. 
+Then, to generate a desired torque \f$\tau_d\f$ coming from an higher control loop, it suffices to evaluate the above equation
+with \f$\tau = \tau_d\f$. In practice, however, it is a best practice to add a lower loop to generate \f$\tau\f$ so that \f$\tau\f$ 
+will converge to \f$\tau_d\f$, i.e:
 \f[
-    \tao = \tao_d - k_p*e_{\tau} - k_i*\int e_{tau} \text{dt},
-\f[
-where \f$e_{\tau} := \tao - \tao_d \f$.
+    \tau = \tau_d - k_p e_{\tau} - k_i \int e_{\tau} \text{dt},
+\f]
+where \f$ e_{\tau} := \tau - \tau_d \f$.
 
 \section intro_sec To do and warning list
 

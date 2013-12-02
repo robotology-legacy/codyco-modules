@@ -20,11 +20,22 @@
  *
  * The aim of this module is to identify the parameters characterizing the relationship between the motor 
  * PWM (proportional to voltage) and the joint torque. These parameters regards the joint friction and the 
- * motor drive gains.To "excite" the parameters the module motorFrictionExcitation can be used. 
+ * motor drive gains. To "excite" the parameters the module motorFrictionExcitation can be used: it makes
+ * the robot move in a way that is suitable for performing this kind of identification. Once the 
+ * parameters have been identified they can be used by the module jointTorqueControl to implement a joint
+ * torque control.
  *
  * \section sec_description Description
  * 
- * 
+ * We assume that the relationship between the motor PWM \f$V_m\f$ and the joint torque \f$\tau\f$ is described
+ * by the following equation:
+ * The reference PWM signal \f$v(t)\f$ is a sinusoid with constant frequency \f$w\f$ and increasing amplitude:
+ * \f[
+ * V_m  = k_t \tau + (k_{vp} s(\dot{q}) + k_{vn} s(-\dot{q})) \dot{q} + (k_{cp} s(\dot{q}) + k_{cn} s(-\dot{q})) \text{sign}(k_s \dot{q}),
+ * \f]
+ * where \f$ k_t, k_{vp}, k_{vn}, k_{cp}, k_{cn} \f$ are the parameters to identify, \f$ \dot{q} \f$ is the joint velocity,
+ * \f$ s(x) \f$ is the step function (1 for \f$ x>0 \f$, 0 otherwise) and \f$ \text{sign}(x) \f$ is the sign function (1 for
+ * \f$ x>0 \f$, -1 for \f$ x<0 \f$, 0 for \f$ x=0 \f$).
  * 
  * \section sec_configuration_file Configuration File
  * 
@@ -46,6 +57,7 @@
  *
  * This file can be edited at /src/modules/motorFrictionIdentification/include/motorFrictionIdentification/motorFrictionIdentificationModule.h .
  */
+ 
 
 #ifndef __MOTOR_FRICTION_IDENTIFICATION_MODULE_H__
 #define __MOTOR_FRICTION_IDENTIFICATION_MODULE_H__
