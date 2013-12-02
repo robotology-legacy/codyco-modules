@@ -18,17 +18,17 @@
 /**
 *
 @ingroup codyco_module
-\defgroup icub_jointTorqueControl linearRegressorsAdaptiveControl
+\defgroup codyco_jointTorqueControl jointTorqueControl
 
 This module implements the whole-body torque control.
 
 \section intro_sec Background
 
-the robot's motors are controlled by using 
+The robot's motors are controlled by using 
 the PWM technique, i.e. the tension applied to each motor is a square wave of constant frequency and amplitude, 
 and the duty cycle of this wave is used as control input. 
 
-	V(t) ^           Tdc
+    V(t) ^           Tdc
              |         /-----/ 
           Vb | _  _  _  _____             ____ _
              |         |     |           |
@@ -38,44 +38,47 @@ and the duty cycle of this wave is used as control input.
                        /-----------------/       t
                                   T 
 
-   T: period of the square wave;
-   V: tension applied to the motor;
-  Vb: (positive) amplitude of the square wave;
- Tdc: duty cycle time;
+where
+* \f$T\f$: period of the square wave;
+* \f$V\f$: tension applied to the motor;
+* \f$V_b\f$: (positive) amplitude of the square wave;
+* \f$T_{dc}\f$: duty cycle time.
 
-The relationship between the link's torque tao and the tension V applied to the motor is assumed to be 
-
-	V  = kt*tao + kv*dq + kc*sign(dq),    
-	
-with kt, kv, kc three constants, and dq the link's velocity. Since the tension V(t) is a high-frequency square 
-wave, we can assume that the above relationship holds for V = Vm, where Vm stands for the "mean tension value" 
-over the time period T. By direct calculations, one can verify that 
-
-	Vm = (Tdc/T)*Vb. 
-	
+The relationship between the link's torque tao and the tension V applied to the motor is assumed to be:
+\f[
+	V  = k_t*\tao + k_v*\dot{q} + k_c*\text{sign}(\dot{q}),
+\f[
+with \f$k_t\f$, \f$k_v\f$, \f$k_c\f$ three constants, and \f$\dot{q}\f$ the link's velocity. 
+Since the tension \f$V(t)\f$ is a high-frequency square 
+wave, we can assume that the above relationship holds for \f$V = V_m\f$, where \f$V_m\f$ stands for the "mean tension value" 
+over the time period \f$T\f$. By direct calculations, one can verify that 
+\f[
+	V_m = (T_{dc}/T)*V_b. 
+\f[
 Also, discontinuities are always challenging in practice. So, it is best to smooth the sign function. 
 Among an infinite possible choices, we choose the hyperbolic function instead of sign(.). Then one has
-
-	    Vm  = kt*tao + kv*dq + kc*tanh(ks*dq).      		    			 (1)   
-
-The model (1) can be improved by modeling eventual parameters' asymmetries with respect to the joint velocity dq. 
-In particular, the parameters kv and kc may depend on the sign of dq, and have different values depending on this 
-sign. Then, an improved model is:
-
-	Vm  = kt*tao + [kvp*s(dq) + kvn*s(-dq)]*dq + [kcp*s(dq) + kcn*s(-dq)]*tanh(ks*dq),       (2)    
-
-where the function s(x) is the step function, i.e.
-		  _
-		 |  1, x >= 0,
-	s(x) =  <
-	     |_ 0, x < 0.
-		 
-As stated, Eq. (1) constitutes the relation between the tension applied to the motor and the link torque. Then, to 
-generate a desired torque taoD coming from an higher control loop, it suffices to evaluate (1) with tao = taoD. In 
-practice,however, it is a best practice to add a lower loop to generate tao so that tao will converge to taoD, i.e
-        
-	    et := tao - taoD,                                              			(3a)
-	    tao = taoD - kp*et - ki*integral(et).                          			(3b)
+\f{equation}{ \label{eq:motor_dynamics}
+	    V_m  = k_t*\tao + k_v*\dot{q} + k_c*tanh(k_s*\dot{q}).
+\f}
+The model f$ref{eq:motor_dynamics}f$ can be improved by modeling eventual parameters' asymmetries with respect to 
+the joint velocity \f$\dot{q}\f$. 
+In particular, the parameters \f$k_v\f$ and \f$k_c\f$ may depend on the sign of \f$\dot{q}\f$, and have different 
+values depending on this sign. Then, an improved model is:
+\f[
+	V_m  = k_t*\tao + [k_{vp}*s(\dot{q}) + k_{vn}*s(-\dot{q})]*\dot{q} + [k_{cp}*s(\dot{q}) + k_{cn}*s(-\dot{q})]*tanh(k_s*\dot{q}),    
+\f[
+where the function \f$s(x)\f$ is the step function, i.e.
+\f[
+	s(x) =  1 \text{if} x >= 0; s(x)=0 \text{if} x < 0.
+\f[	 
+As stated, Eq. f$ref{eq:motor_dynamics}f$ constitutes the relation between the tension applied to the motor and the link torque. 
+Then, to generate a desired torque \f$\tao_d\f$ coming from an higher control loop, it suffices to evaluate f$ref{eq:motor_dynamics}f$
+with \f$\tao = \tao_d\f$. In practice, however, it is a best practice to add a lower loop to generate \f$\tao\f$ so that \f$\tao\f$ 
+will converge to \f$\tao_d\f$, i.e:
+\f[
+    \tao = \tao_d - k_p*e_{\tau} - k_i*\int e_{tau} \text{dt},
+\f[
+where \f$e_{\tau} := \tao - \tao_d \f$.
 
 \section intro_sec To do and warning list
 
@@ -89,25 +92,12 @@ YARP.
 
 \section parameters_sec Parameters
 
-
-\section portsa_sec Ports Accessed
-
-\section portsc_sec Ports Created
-
-\section in_files_sec Input Data Files
-None.
-
-\section out_data_sec Output Data Files
-None.
-
 \section conf_file_sec Configuration Files
 None.
 
 \section tested_os_sec Tested OS Linux.
 
 \section example_sec Example Instantiation of the Module
-skinDriftCompensation --context graspingDemo/conf --from skinDriftCompensationRight.ini
-
 
 \author Daniele Pucci 
 
@@ -115,7 +105,7 @@ Copyright (C) 2013 CoDyCo Project
 
 CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-This file can be edited at ICUB_HOME/main/src/modules/skinDriftCompensation/include/iCub/skinDriftCompensation/SkinDriftCompensation.h.
+This file can be edited at CODYCO_HOME/src/modules/jointTorqueControl/include/jointTorqueControl/jointTorqueControlModule.h.
 **/
 
 
