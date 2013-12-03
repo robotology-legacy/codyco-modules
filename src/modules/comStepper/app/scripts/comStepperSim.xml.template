@@ -18,13 +18,13 @@
     </module>
     <module>
         <name>yarpscope</name>
-        <parameters>--context yarpscope/conf --xml comStepper/yarpscope_comStepperErrors.xml</parameters>
+        <parameters>--context comStepper/yarpscope --xml yarpscope_comStepperErrors.xml</parameters>
         <node>console</node>
         <tag>yarpscopeErr</tag>
     </module>
     <module>
         <name>yarpscope</name>
-        <parameters>--context yarpscope/conf --xml comStepper/yarpscope_comStepperControls.xml</parameters>
+        <parameters>--context comStepper/yarpscope --xml yarpscope_comStepperControls.xml</parameters>
         <node>console</node>
         <tag>yarpscopeErr</tag>
     </module>

@@ -726,8 +726,8 @@ int main (int argc, char * argv[])
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("default.ini");         //default config file name.
-    rf.setDefaultContext("comStepperModule/conf"); //when no parameters are given to the module this is the default context    
-    rf.configure("ICUB_ROOT",argc,argv);
+    rf.setDefaultContext("comStepper"); //when no parameters are given to the module this is the default context
+    rf.configure(argc,argv);
     // rf.setName("balancerModule");
 
     if (rf.check("help"))

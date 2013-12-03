@@ -1,4 +1,4 @@
-set(appname comStepperModule)
+set(appname comStepper)
 set(yscopename yarpscope)
 
 icub_app(${appname})
@@ -15,14 +15,11 @@ file(GLOB scripts ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.template
 file(GLOB yscope ${CMAKE_CURRENT_SOURCE_DIR}/conf/yarpscope_comStepperErrors.xml
                  ${CMAKE_CURRENT_SOURCE_DIR}/conf/yarpscope_comStepperControls.xml)
 
-icub_app_install(${appname}
-        FILES ${conf}
-        DESTINATION conf)
+yarp_install( FILES ${conf}
+              DESTINATION ${CODYCO_CONTEXTS_INSTALL_DIR}/${appname})
 
-icub_app_install(${appname} 
-                 FILES ${scripts}
-                 DESTINATION scripts)
+yarp_install( FILES ${scripts}
+              DESTINATION ${CODYCO_APPLICATIONS_TEMPLATES_INSTALL_DIR})
 
-icub_app_install(${appname}
-        FILES ${yscope}
-        DESTINATION ../yarpscope/conf/comStepper)
+yarp_install( FILES ${yscope}
+        DESTINATION ${CODYCO_CONTEXTS_INSTALL_DIR}/${appname}/yarpscope)
