@@ -1,4 +1,4 @@
-set(appname FTSDebugger)
+set(appname ftDumper)
 
 icub_app(${appname})
 
@@ -11,9 +11,9 @@ file(GLOB yscopescripts ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.xml.template)
 
 icub_app_install(${appname} 
                  FILES ${yscope}
-                 DESTINATION ../yarpscope/conf/FTSDebugger)
+                 DESTINATION ../yarpscope/conf/ftDumper)
 
 icub_app_install(${appname} 
                  FILES ${yscopescripts}
-                 DESTINATION ../FTSDebugger/scripts)
+                 DESTINATION ../ftDumper/scripts)
 
