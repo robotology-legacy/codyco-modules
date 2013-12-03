@@ -4,7 +4,8 @@ add_subdirectory(sensorsInterfaces)
 #add_subdirectory(wbciy)
 add_subdirectory(modules)
 add_subdirectory(tests)
-#add_subdirectory(simulink)
+add_subdirectory(misc/ftDumper)
+
 
 if (ICUB_USE_XDE)
      add_subdirectory(reachComBalance)

@@ -9,11 +9,10 @@ MESSAGE(STATUS ${ICUB_APPLICATIONS_PREFIX})
 file(GLOB yscope ${CMAKE_CURRENT_SOURCE_DIR}/conf/yarpscope/*.xml)
 file(GLOB yscopescripts ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.xml.template)
 
-icub_app_install(${appname} 
-                 FILES ${yscope}
-                 DESTINATION ../yarpscope/conf/ftDumper)
+yarp_install( FILES ${yscopescripts}
+              DESTINATION ${CODYCO_APPLICATIONS_TEMPLATES_INSTALL_DIR})
 
-icub_app_install(${appname} 
-                 FILES ${yscopescripts}
-                 DESTINATION ../ftDumper/scripts)
+yarp_install( FILES ${yscope}
+        DESTINATION ${CODYCO_CONTEXTS_INSTALL_DIR}/${appname}/yarpscope)
+
 
