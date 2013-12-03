@@ -15,165 +15,143 @@
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/inertial --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>	
 	<tag>inertial-sensor</tag>
 </module>
 <!-- FT sensor -->
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/leftArmFTS --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
+	
 	<tag>left-arm-ft-sensor</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/rightArmFTS --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>	
 	<tag>right-arm-ft-sensor</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/leftLegFTS --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>left-leg-ft-sensor</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/leftFootFTS --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>left-foot-ft-sensor</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/rightFootFTS --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>right-foot-ft-sensor</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/rightLegFTS --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>right-leg-ft-sensor</tag>
 </module>
 <!-- COM -->
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/leftArmCOM --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>left-arm-COM</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/rightArmCOM --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>right-arm-COM</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/leftLegCOM --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>left-leg-COM</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/rightLegCOM --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>right-leg-COM</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/torsoCOM --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>torso-COM</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/headCOM --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>head-COM</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/globalCOM --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>global-COM</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/upperBodyCOM --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>upper-body-COM</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/globalCOM_Jacobian --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>global-COM-Jacobian</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/globalCOM_velocity --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>global-COM-velocity</tag>
 </module>
 <!-- joints -->
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/head --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>head-joints</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/leftArm --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>left-arm-joints</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/rightArm --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>right-arm-joints</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/torso --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>torso-joints</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/leftLeg --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>left-leg-joints</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/rightLeg --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>right-leg-joints</tag>
 </module>
 <!-- cartesian -->
@@ -182,65 +160,56 @@
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/leftArmTorques --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>left-arm-torques</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/rightArmTorques --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>right-arm-torques</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/leftLegTorques --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>left-leg-torques</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/rightLegTorques --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>right-leg-torques</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/torsoTorques --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>torso-torques</tag>
 </module>
 <!-- end effectors -->
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/leftArmEndEffector --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>left-arm-endeffector</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/rightArmEndEffector --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>right-arm-endeffector</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/leftLegEndEffector --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>left-leg-endeffector</tag>
 </module>
 <module>
 	<name>dataDumper</name>
 	<parameters>--name /dumpWB/rightLegEndEffector --type bottle --rxTime --downsample 100</parameters>
-	<node>macsi03</node>
-	<stdio>macsi03</stdio>
+	<node>node1</node>
 	<tag>right-leg-endeffector</tag>
 </module>
 
