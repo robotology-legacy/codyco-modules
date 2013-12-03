@@ -18,6 +18,6 @@
 #ifndef __JOINT_TORQUE_CONTROL_CONSTANTS
 #define __JOINT_TORQUE_CONTROL_CONSTANTS
 
-#include <motorFrictionIdentificationLib\jointTorqueControlParams.h>
+#include <motorFrictionIdentificationLib/jointTorqueControlParams.h>
 
 #endif
