@@ -86,17 +86,25 @@ bool icubWholeBodySensors::close()
     {
         assert(dd[itBp->first]!=NULL);
         ok = ok && dd[itBp->first]->close();
+        dd[itBp->first] = NULL;
     }
+
     FOR_ALL_BODY_PARTS_OF(itBp, pwmSensIdList)
     {
         if(dd[itBp->first]!=NULL)
+        {
             ok = ok && dd[itBp->first]->close();
+            dd[itBp->first] = NULL;
+        }
     }
     
     FOR_ALL_BODY_PARTS_OF(itBp, torqueSensorIdList)
     {
         if(dd[itBp->first])
+        {
             ok = ok && dd[itBp->first]->close();
+            dd[itBp->first] = NULL;
+        }
     }
     
     return ok;
