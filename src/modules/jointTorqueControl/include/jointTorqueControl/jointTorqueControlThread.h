@@ -15,8 +15,8 @@
  * Public License for more details
 */
 
-#ifndef LOCOMOTION_PLANNER_THREAD
-#define LOCOMOTION_PLANNER_THREAD
+#ifndef __JOINT_TORQUE_CONTROL_THREAD
+#define __JOINT_TORQUE_CONTROL_THREAD
 
 #include <sstream>
 #include <iomanip>
@@ -55,6 +55,7 @@ using namespace std;
 using namespace paramHelp;
 using namespace wbi;
 using namespace Eigen;
+using namespace motorFrictionIdentificationLib;
 
 namespace jointTorqueControl
 {
@@ -89,8 +90,13 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     VectorNd	tauM;			// Measured torques, 
     VectorNd	integralState;	// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
     VectorNd	motorVoltage;	// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
-    VectorNd	Vmax;			// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
-    double		DT;       
+    VectorNd	Vmax;			// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"),     
+    double		oldTime;  
+    int			sendCommands;
+	int			monitoredJoint;
+	//monitored variables
+	double		monitoredTau;
+	double		monitoredVoltage;
            
 	
 	
@@ -107,10 +113,11 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
 	
 	void setControlModePWMOnJoints(bool);
 	
-	float stepFunction(float); 
+	double stepFunction(double); 
     
     void fromListToVector(Bottle * , VectorNd &); 
     bool readRobotStatus(bool);
+	double saturation(double x, double xMax, double xMin);
 
 public:	
     

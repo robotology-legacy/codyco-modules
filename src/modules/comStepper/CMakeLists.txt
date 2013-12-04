@@ -6,15 +6,8 @@ cmake_minimum_required(VERSION 2.8)
 SET(PROJECTNAME comStepper)
 PROJECT(${PROJECTNAME})
 
-find_package(YARP)
-find_package(ICUB)
-
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
-
-
-FILE(GLOB folder_source ./src/main.cpp ./src/comStepper.cpp ./src/rangeCheck.cpp ./src/util.cpp)
-FILE(GLOB folder_header ./src/comStepper.h ./src/rangeCheck.h ./src/util.h)
+SET(folder_source ./src/main.cpp ./src/comStepper.cpp ./src/rangeCheck.cpp ./src/util.cpp)
+SET(folder_header ./src/comStepper.h ./src/rangeCheck.h ./src/util.h)
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
@@ -30,13 +23,8 @@ INCLUDE_DIRECTORIES(${iDyn_INCLUDE_DIRS}
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} iDyn
-                                     ${YARP_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME} iDyn ${YARP_LIBRARIES})
 
-if(WIN32)
-	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})	
-else(WIN32)
-	INSTALL_TARGETS(/bin ${PROJECTNAME})
-endif(WIN32)
+INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
 
 add_subdirectory(app)

@@ -112,9 +112,12 @@ bool icubWholeBodyActuators::addActuator(const LocalId &j)
     if(!jointIdList.addId(j))
         return false;
     
-    int tmp=-1;
-    icmd[j.bodyPart]->getControlMode(j.bodyPart==TORSO?2-j.index:j.index, &tmp);
-    currentCtrlModes[j] = yarpToWbiCtrlMode(tmp);
+    if(initDone)
+    {
+        int tmp=-1;
+        icmd[j.bodyPart]->getControlMode(j.bodyPart==TORSO?2-j.index:j.index, &tmp);
+        currentCtrlModes[j] = yarpToWbiCtrlMode(tmp);
+    }
     
     dof++;
     return true;

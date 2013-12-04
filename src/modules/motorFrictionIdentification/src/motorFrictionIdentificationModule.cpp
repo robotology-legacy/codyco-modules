@@ -33,33 +33,33 @@
 #include <iomanip>
 #include <string.h>
 
-#include "motorFrictionIdentificationLib/motorFrictionExcitationParams.h"
-#include "motorFrictionExcitation/motorFrictionExcitationThread.h"
-#include "motorFrictionExcitation/motorFrictionExcitationModule.h"
+#include "motorFrictionIdentificationLib/motorFrictionIdentificationParams.h"
+#include "motorFrictionIdentification/motorFrictionIdentificationThread.h"
+#include "motorFrictionIdentification/motorFrictionIdentificationModule.h"
 
 YARP_DECLARE_DEVICES(icubmod)
 
 using namespace yarp::dev;
 using namespace paramHelp;
 using namespace wbiIcub;
-using namespace motorFrictionExcitation;
+using namespace motorFrictionIdentification;
 using namespace motorFrictionIdentificationLib;
 
-MotorFrictionExcitationModule::MotorFrictionExcitationModule()
+MotorFrictionIdentificationModule::MotorFrictionIdentificationModule()
 {
-    ctrlThread      = 0;
-    robotInterface  = 0;
-    paramHelper     = 0;
-    period          = 20;
+    identificationThread    = 0;
+    robotInterface          = 0;
+    paramHelper             = 0;
+    period                  = MODULE_PERIOD;
 }
     
-bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
+bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
 {		
     //--------------------------PARAMETER HELPER--------------------------
-    paramHelper = new ParamHelperServer(motorFrictionExcitationParamDescr, PARAM_ID_SIZE, motorFrictionExcitationCommandDescr, COMMAND_ID_SIZE);
-    paramHelper->linkParam(PARAM_ID_MODULE_NAME, &moduleName);
-    paramHelper->linkParam(PARAM_ID_CTRL_PERIOD, &period);
-    paramHelper->linkParam(PARAM_ID_ROBOT_NAME, &robotName);
+    paramHelper = new ParamHelperServer(motorFrictionIdentificationParamDescr, PARAM_ID_SIZE, motorFrictionIdentificationCommandDescr, COMMAND_ID_SIZE);
+    paramHelper->linkParam(PARAM_ID_MODULE_NAME,    &moduleName);
+    paramHelper->linkParam(PARAM_ID_CTRL_PERIOD,    &period);
+    paramHelper->linkParam(PARAM_ID_ROBOT_NAME,     &robotName);
     paramHelper->registerCommandCallback(COMMAND_ID_HELP, this);
     paramHelper->registerCommandCallback(COMMAND_ID_QUIT, this);
 
@@ -69,27 +69,41 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
     printBottle(initMsg);
 
     // Open ports for communicating with other modules
-    if(!paramHelper->init(moduleName)){ fprintf(stderr, "Error while initializing parameter helper. Closing module.\n"); return false; }
+    if(!paramHelper->init(moduleName))
+    { 
+        fprintf(stderr, "Error while initializing parameter helper. Closing module.\n"); 
+        return false; 
+    }
     rpcPort.open(("/"+moduleName+"/rpc").c_str());
     setName(moduleName.c_str());
     attach(rpcPort);
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
     robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
-    robotInterface->addJoints(ICUB_MAIN_JOINTS);
-    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE, LocalId(RIGHT_LEG,1));  // right ankle ft sens
-    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE, LocalId(LEFT_LEG,1));   // left ankle ft sens
-    if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
+    VectorXi jointList(paramHelper->getParamProxy(PARAM_ID_JOINT_LIST)->size);
+    paramHelper->getParamProxy(PARAM_ID_JOINT_LIST)->linkToVariable(jointList.data());
+    bool ok = true;
+    for(int i=0; ok && i<jointList.size(); i++)
+        ok = robotInterface->addJoint(globalToLocalIcubId(jointList[i]));
+    if(!ok || !robotInterface->init())
+    { 
+        fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); 
+        return false; 
+    }
 
     //--------------------------CTRL THREAD--------------------------
-    ctrlThread = new MotorFrictionExcitationThread(moduleName, robotName, period, paramHelper, robotInterface);
-    if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing motorFrictionExcitation control thread. Closing module.\n"); return false; }
+    identificationThread = new MotorFrictionIdentificationThread(moduleName, robotName, period, paramHelper, robotInterface);
+    if(!identificationThread->start())
+    { 
+        fprintf(stderr, "Error while initializing motorFrictionIdentification control thread. Closing module.\n"); 
+        return false; 
+    }
     
-    fprintf(stderr,"MotorFrictionExcitation control started\n");
+    fprintf(stderr,"MotorFrictionIdentification control started\n");
 	return true;
 }
 
-bool MotorFrictionExcitationModule::respond(const Bottle& cmd, Bottle& reply) 
+bool MotorFrictionIdentificationModule::respond(const Bottle& cmd, Bottle& reply) 
 {
     paramHelper->lock();
 	if(!paramHelper->processRpcCommand(cmd, reply)) 
@@ -102,7 +116,7 @@ bool MotorFrictionExcitationModule::respond(const Bottle& cmd, Bottle& reply)
 	return true;	
 }
 
-void MotorFrictionExcitationModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
+void MotorFrictionIdentificationModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
 {
     switch(cd.id)
     {
@@ -116,20 +130,20 @@ void MotorFrictionExcitationModule::commandReceived(const CommandDescription &cd
     }
 }
 
-bool MotorFrictionExcitationModule::interruptModule()
+bool MotorFrictionIdentificationModule::interruptModule()
 {
-    if(ctrlThread)
-        ctrlThread->suspend();
+    if(identificationThread)
+        identificationThread->suspend();
     rpcPort.interrupt();
     return true;
 }
 
-bool MotorFrictionExcitationModule::close()
+bool MotorFrictionIdentificationModule::close()
 {
 	//stop threads
-    if(ctrlThread){     ctrlThread->stop();         delete ctrlThread;      ctrlThread = 0;     }
-    if(paramHelper){    paramHelper->close();       delete paramHelper;     paramHelper = 0;    }
-    if(robotInterface){ robotInterface->close();    delete robotInterface;  robotInterface = 0; }
+    if(identificationThread){ identificationThread->stop(); delete identificationThread; identificationThread = 0; }
+    if(paramHelper){          paramHelper->close();         delete paramHelper;          paramHelper = 0;          }
+    if(robotInterface){       robotInterface->close();      delete robotInterface;       robotInterface = 0;       }
 
 	//closing ports
 	rpcPort.close();
@@ -145,16 +159,16 @@ bool MotorFrictionExcitationModule::close()
     return true;
 }
 
-bool MotorFrictionExcitationModule::updateModule()
+bool MotorFrictionIdentificationModule::updateModule()
 {
-    if (ctrlThread==0)
+    if (identificationThread==0)
     {
         printf("ControlThread pointers are zero\n");
         return false;
     }
 
-    ctrlThread->getEstPeriod(avgTime, stdDev);
-    ctrlThread->getEstUsed(avgTimeUsed, stdDevUsed);     // real duration of run()
+    identificationThread->getEstPeriod(avgTime, stdDev);
+    identificationThread->getEstUsed(avgTimeUsed, stdDevUsed);     // real duration of run()
 //#ifndef NDEBUG
     if(avgTime > 1.3 * period)
     {

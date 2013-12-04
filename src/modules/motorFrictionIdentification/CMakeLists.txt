@@ -1,9 +1,9 @@
 # Copyright (C) 2013 CoDyCo
-# Author: Daniele Pucci
+# Author: Andrea Del Prete
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 cmake_minimum_required(VERSION 2.8)
-SET(PROJECTNAME jointTorqueControl)
+SET(PROJECTNAME motorFrictionIdentification)
 PROJECT(${PROJECTNAME})
 
 find_package(YARP)
@@ -14,8 +14,14 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 
 
-FILE(GLOB folder_source ./src/*.cpp)
-FILE(GLOB folder_header ./include/jointTorqueControl/*.h)
+FILE(GLOB folder_source ./src/motorFrictionIdentificationMain.cpp
+                        ./src/motorFrictionIdentificationModule.cpp
+                        ./src/motorFrictionIdentificationThread.cpp
+                        ./src/recursiveLinearEstimator.cpp )
+FILE(GLOB folder_header ./include/motorFrictionIdentification/motorFrictionIdentificationModule.h
+                        ./include/motorFrictionIdentification/motorFrictionIdentificationThread.h
+                        ./include/motorFrictionIdentification/motorFrictionIdentificationConstants.h 
+                        ./include/motorFrictionIdentification/recursiveLinearEstimator.h )
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
@@ -32,11 +38,11 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${iDynTree_INCLUDE_DIRS}
                     ${Orocos-KDL_INCLUDE_DIRS}
                     ${kdl_codyco_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR}
                     ${paramHelp_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
-                    ${YARP_INCLUDE_DIRS} )
+                    ${YARP_INCLUDE_DIRS}
+                    ${EIGEN3_INCLUDE_DIR})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
@@ -47,6 +53,4 @@ if(WIN32)
 else(WIN32)
 	INSTALL_TARGETS(/bin ${PROJECTNAME})
 endif(WIN32)
-
-add_subdirectory(app)
 

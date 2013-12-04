@@ -73,7 +73,7 @@ namespace wbiIcub
         std::map<int, yarp::dev::IEncodersTimed*>       ienc;   // interface to read encoders
         std::map<int, yarp::dev::IOpenLoopControl*>     iopl;   // interface to read motor PWM
         std::map<int, yarp::dev::PolyDriver*>           dd; //device drivers
-        std::map<int, yarp::dev::ITorqueControl*>       torqueControlInterfaces;  // interface to read joint torques
+        std::map<int, yarp::dev::ITorqueControl*>       itrq;  // interface to read joint torques
         
         // input ports (the key of the maps is the sensor id)
         std::map<wbi::LocalId, yarp::os::BufferedPort<yarp::sig::Vector>*>   portsFTsens;
@@ -326,6 +326,11 @@ namespace wbiIcub
         virtual bool lockAndRemoveSensor(const wbi::SensorType st, const wbi::LocalId &sid);
         virtual wbi::LocalIdList lockAndGetSensorList(const wbi::SensorType st);
         virtual int lockAndGetSensorNumber(const wbi::SensorType st);
+
+        /** Get the velocity of the specified motor. */
+        bool getMotorVel(const wbi::LocalId &sid, double *data, double time, bool blocking);
+        /** Get the velocities of all the robot motors. */
+        bool getMotorVel(double *data, double time, bool blocking);
         
     public:
         // *** CONSTRUCTORS ***
@@ -526,6 +531,19 @@ namespace wbiIcub
         virtual bool directDynamics(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double *M, double *h);
     };
     
+
+    const int JOINT_ESTIMATE_TYPES_SIZE = 3;
+    ///< estimate types that are automatically added when calling addJoint(s) and automatically removed when calling removeJoint
+    const wbi::EstimateType jointEstimateTypes[JOINT_ESTIMATE_TYPES_SIZE] =
+    {
+        wbi::ESTIMATE_JOINT_POS,         // joint position
+        //wbi::ESTIMATE_JOINT_VEL,         // joint velocity
+        //wbi::ESTIMATE_JOINT_ACC,         // joint acceleration
+        wbi::ESTIMATE_JOINT_TORQUE,      // joint torque
+        //wbi::ESTIMATE_MOTOR_VEL,         // motor velocity
+        //wbi::ESTIMATE_MOTOR_TORQUE,      // motor torque
+        wbi::ESTIMATE_MOTOR_PWM,         // motor PWM (proportional to motor voltage)
+    };
     
     /**
      * Class to communicate with iCub.
