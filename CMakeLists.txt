@@ -60,6 +60,8 @@ add_definitions(${YARP_DEFINES})   #this contains also -D_REENTRANT
 # include YARP CMake modules
 set(CMAKE_MODULE_PATH ${YARP_MODULE_PATH} ${CMAKE_MODULE_PATH})
 
+#### find dependencies and set variables
+include(CoDyCoFindDependencies)
 
 # Import common options (disable flags in windows, rpath, etc..)
 include(CoDyCoOptions)
@@ -107,9 +109,6 @@ mark_as_advanced(LIBRARY_OUTPUT_PATH)
 
 
 
-
-#### find dependencies and set variables
-include(CoDyCoFindDependencies)
 
 
 
