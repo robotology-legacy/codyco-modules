@@ -4,7 +4,6 @@ add_subdirectory(sensorsInterfaces)
 #add_subdirectory(wbciy)
 add_subdirectory(modules)
 add_subdirectory(tests)
-#add_subdirectory(simulink)
 
 if (ICUB_USE_XDE)
      add_subdirectory(reachComBalance)
