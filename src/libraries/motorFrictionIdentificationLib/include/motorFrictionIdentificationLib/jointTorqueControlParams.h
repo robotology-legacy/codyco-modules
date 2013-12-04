@@ -46,18 +46,22 @@ static const int        DEFAULT_CTRL_PERIOD     = 10;                   // contr
 static const int 		DEFAULT_MONITORED_JOINT = 0;
 static const int        DEFAULT_SENDCMD     	= SEND_COMMANDS_NONACTIVE; // 
 static const VectorNi	DEFAULT_ACTIVE_JOINTS   = VectorNi::Constant(0); 
+
 static const VectorNd	DEFAULT_KT				= VectorNd::Constant(0.0); 
 static const VectorNd	DEFAULT_KVP				= VectorNd::Constant(0.0); 
 static const VectorNd	DEFAULT_KVN				= VectorNd::Constant(0.0);
 static const VectorNd	DEFAULT_KCP				= VectorNd::Constant(0.0); 
 static const VectorNd	DEFAULT_KCN				= VectorNd::Constant(0.0);  
+
 static const VectorNd	DEFAULT_KI				= VectorNd::Constant(0.0); 
 static const VectorNd	DEFAULT_KP				= VectorNd::Constant(0.0);  
 static const VectorNd	DEFAULT_KS				= VectorNd::Constant(0.0);  
-static const VectorNd	DEFAULT_VMAX			= VectorNd::Constant(0.0);  
+
 static const VectorNd	DEFAULT_TAUD			= VectorNd::Constant(0.0);  
 static const VectorNd	DEFAULT_TAU				= VectorNd::Constant(0.0); 
-static const VectorNd	DEFAULT_VM				= VectorNd::Constant(0.0);  
+static const VectorNd	DEFAULT_VM				= VectorNd::Constant(0.0);
+
+static const VectorNd	DEFAULT_VMAX			= VectorNd::Constant(0.0);
 static const double		KT_MAX 		         	= 100.0;     
 static const double		KVP_MAX     	     	= 100.0;    
 static const double		KVN_MAX         	 	= 100.0;     
@@ -114,8 +118,8 @@ new ParamProxyBasic<double>("tauD",        	    PARAM_ID_TAUD,         		N_DOF, 
 new ParamProxyBasic<double>("Vm",				PARAM_ID_VM,				N_DOF,		ParamBilatBounds<double>(VM_MIN, VM_MAX),		PARAM_OUT_STREAM,   DEFAULT_VM.data(),				"Vector of nDOF floats representing the tensions"),
 new ParamProxyBasic<double>("tau",          	PARAM_ID_TAU,         		N_DOF,      ParamBilatBounds<double>(TAUD_MIN, TAUD_MAX),	PARAM_OUT_STREAM,   DEFAULT_TAU.data(),        		"Torques"),
 // ************************************************* MONITOR  PARAMETERS ****************************************************************************************************************************************************************************************************************************
-new ParamProxyBasic<double>("V_out",            PARAM_ID_V_OUT,               1,        ParamBilatBounds<double>(VM_MIN, VM_MAX),    PARAM_MONITOR,      0,                              "Joint angle of the currently controlled motor"),
-new ParamProxyBasic<double>("Tau_out",          PARAM_ID_TAU_OUT,             1,        ParamBilatBounds<double>(-150.0, 150.0),    PARAM_MONITOR,      0,                              "Joint angle of the currently controlled motor")	
+new ParamProxyBasic<double>("V_out",            PARAM_ID_V_OUT,             1,          ParamBilatBounds<double>(VM_MIN, VM_MAX),       PARAM_MONITOR,      0,                              "PWM of the currently controlled motor"),
+new ParamProxyBasic<double>("Tau_out",          PARAM_ID_TAU_OUT,           1,          ParamBilatBounds<double>(-150.0, 150.0),        PARAM_MONITOR,      0,                              "Output torque of the currently controlled motor")	
 };
 
 // *** IDs of all the module command
