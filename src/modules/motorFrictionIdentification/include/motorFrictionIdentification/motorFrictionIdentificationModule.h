@@ -44,8 +44,7 @@
  *
  * The module opens a YARP rpc port with name "\<moduleName>\rpc". 
  * The rpc commands accepted by this module are:
- * - start: (re-)start the excitation
- * - stop:  stop the excitation
+ * - save:  save the current state of the identification on text file (the file name can be set through the rpc parameter filename)
  * - help:  print a message describing all the rpc commands
  * - quit:  stop the excitation and quit the module
  *
@@ -86,11 +85,11 @@ class MotorFrictionIdentificationModule: public RFModule, public CommandObserver
     /* module parameters */
 	string  moduleName;
 	string  robotName;
-    int     period;
+    double  period;
     double  avgTime, stdDev, avgTimeUsed, stdDevUsed;
 
 	Port                rpcPort;		// a port to handle rpc messages
-	MotorFrictionIdentificationThread*   ctrlThread;     // MotorFrictionIdentification control thread
+	MotorFrictionIdentificationThread*   identificationThread;     // MotorFrictionIdentification control thread
     ParamHelperServer*  paramHelper;    // helper class for rpc set/get commands and streaming data
     wholeBodyInterface* robotInterface; // interface to communicate with the robot
 

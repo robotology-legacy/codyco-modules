@@ -26,6 +26,7 @@ enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
 // *** CONSTANTS
 static const int        PRINT_PERIOD    = 1000;         ///< period of debug prints (in ms)
 static const int        PRINT_MSG_LEVEL = MSG_DEBUG;    ///< only messages whose type is greater than or equal to PRINT_MSG_LEVEL are printed
+static const double     MODULE_PERIOD   = 20.0;         ///< period of the module (in sec)
 
 }   // end namespace 
 

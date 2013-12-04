@@ -23,29 +23,19 @@
 #include <stdexcept>
 #include <vector>
 
-#include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
-#include <yarp/os/Semaphore.h>
-#include <yarp/sig/Vector.h>
-
 #include <iCub/ctrl/math.h>
-#include <iCub/ctrl/adaptWinPolyEstimator.h>
-#include <iCub/ctrl/minJerkCtrl.h>
-#include <iCub/skinDynLib/skinContactList.h>
+
 #include <Eigen/Core>                               // import most common Eigen types
 #include <Eigen/SVD>
 
 #include <wbi/wbi.h>
 #include <paramHelp/paramHelperServer.h>
+
 #include <motorFrictionIdentification/motorFrictionIdentificationConstants.h>
 #include <motorFrictionIdentificationLib/motorFrictionIdentificationParams.h>
 
-
 using namespace yarp::os;
-using namespace yarp::sig;
-using namespace yarp::math;
-using namespace iCub::ctrl;
-using namespace iCub::skinDynLib;
 using namespace std;
 using namespace paramHelp;
 using namespace wbi;
@@ -57,51 +47,61 @@ using namespace motorFrictionIdentificationLib;
 namespace motorFrictionIdentification
 {
 
-enum MotorFrictionIdentificationStatus 
-{ 
-    IDENTIFICATION_STARTED,         // a free motion excitation has started
-    IDENTIFICATION_FINISHED,        // a free motion excitation has just finished
-    IDENTIFICATION_OFF              // controller off (either the user stopped it or all excitations have finished)
-};
-
-
 /** 
  * MotorFrictionIdentification thread.
  */
 class MotorFrictionIdentificationThread: public RateThread, public ParamValueObserver, public CommandObserver
 {
-    string              name;
-    string              robotName;
-    ParamHelperServer   *paramHelper;
-    wholeBodyInterface  *robot;
+    string              name;           ///< name of the module instance
+    string              robotName;      ///< name of the robot
+    ParamHelperServer   *paramHelper;   ///< helper class for managing the module parameters
+    wholeBodyInterface  *robot;         ///< interface to communicate with the robot
 
     // Member variables
-    MotorFrictionIdentificationStatus   status;             ///< thread status ("on" when controlling, off otherwise)
-    int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
-    int                 _n;                     // number of joints of the robot
-    
-    ArrayXd             dqJ;                    // joint velocities (size of vector: n)
-    
-    vector<LocalId>     currentJointIds;        // IDs of the joints currently excited
-    ArrayXi             currentGlobalJointIds;  // global IDs of the joints currently excited
+    int         printCountdown;         ///< every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
+    int         _n;                     ///< number of joints of the robot
+    vector<LocalId> currentJointIds;        ///< IDs of the joints currently excited
+    ArrayXi         currentGlobalJointIds;  ///< global IDs of the joints currently excited
+    ArrayXd     dq;                 ///< motor velocities
+    ArrayXd     torques;            ///< motor torques
+    ArrayXd     dqSign;             ///< motor velocity signes
+    ArrayXd     pwm;                ///< motor PWMs
 
-    // Module parameters
+    ///< *************** INPUT MODULE PARAMETERS ********************
     
-    // Output streaming parameters
+    string      outputFilename;     ///< Name of the file on which to save the state of the identification
+    ArrayXd     activeJoints;       ///< List of flags (0,1) indicating for which motors the identification is active
+    double      delay;              ///< Delay (in sec) used before processing a sample to update the identified parameters
+    double      zeroVelThr;         ///< Velocities (deg/sec) below this threshold are considered zero
+    int         velEstWind;         ///< Max size of the moving window used for estimating joint velocities
+    double      forgetFactor;       ///<Forgetting factor (in [0,1], 1=do not forget) used in the identification
+    int         jointMonitor;       ///<Joint to monitor
     
-    ///< Output monitoring parameters
+    ///< *************** OUTPUT FILE PARAMETERS *************************
+    MatrixXd    covarianceInv;      ///< Inverse of the covariance matrix of the parameter estimations
+    ArrayXd     rhs;                ///< Right-hand side of the linear vector equation that is solved for estimating the parameters
+
+    ///< *************** MONITOR PARAMETERS ********************
+    double      dqMonitor;          ///< Velocity of the monitored joint
+    double      torqueMonitor;      ///< Torque of the monitored joint
+    double      signDqMonitor;      ///< Velocity sign of the monitored joint
+    double      pwmMonitor;         ///< Motor pwm of the monitored joint
+    VectorPd    estimateMonitor;    ///< Estimates of the parameters of the monitored joint
+    VectorPd    variancesMonitor;   ///< Variances of the parameters of the monitored joint
     
     /************************************************* PRIVATE METHODS ******************************************************/
+    
+    /** Send out the specified message (if the specified msgType is currently allowed). */
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO);
 
-    /** Read the robot sensors and compute forward kinematics and Jacobians. */
+    /** Read the robot status. */
     bool readRobotStatus(bool blockingRead=false);
 
-    /** Perform all the operations needed just before starting the controller. 
+    /** Perform all the operations needed just before starting the identification of a joint. 
      * @return True iff all initialization operations went fine, false otherwise. */
     bool preStartOperations();
 
-    /** Perform all the operations needed just before stopping the controller. */
+    /** Perform all the operations needed just before stopping the identification of a joint. */
     void preStopOperations();
 
 public:	
@@ -119,6 +119,7 @@ public:
 
     /** Callback function for parameter updates. */
     void parameterUpdated(const ParamProxyInterface *pd);
+
     /** Callback function for rpc commands. */
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
 
