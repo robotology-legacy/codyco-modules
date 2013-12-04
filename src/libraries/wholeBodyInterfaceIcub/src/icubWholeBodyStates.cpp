@@ -70,8 +70,11 @@ bool icubWholeBodyStates::addEstimate(const EstimateType et, const LocalId &sid)
     case ESTIMATE_JOINT_POS:        return lockAndAddSensor(SENSOR_ENCODER, sid);
     case ESTIMATE_JOINT_VEL:        return lockAndAddSensor(SENSOR_ENCODER, sid);
     case ESTIMATE_JOINT_ACC:        return lockAndAddSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_MOTOR_VELOCITY:   return false;
     case ESTIMATE_JOINT_TORQUE:     return lockAndAddSensor(SENSOR_TORQUE, sid);
+    case ESTIMATE_MOTOR_POS:        return lockAndAddSensor(SENSOR_ENCODER, sid);
+    case ESTIMATE_MOTOR_VEL:        return lockAndAddSensor(SENSOR_ENCODER, sid);
+    case ESTIMATE_MOTOR_ACC:        return lockAndAddSensor(SENSOR_ENCODER, sid);
+    case ESTIMATE_MOTOR_TORQUE:     return lockAndAddSensor(SENSOR_TORQUE, sid);
     case ESTIMATE_MOTOR_PWM:        return lockAndAddSensor(SENSOR_PWM, sid);
     case ESTIMATE_IMU:              return lockAndAddSensor(SENSOR_IMU, sid);
     case ESTIMATE_FORCE_TORQUE:     return lockAndAddSensor(SENSOR_FORCE_TORQUE, sid);
@@ -87,8 +90,11 @@ int icubWholeBodyStates::addEstimates(const EstimateType et, const LocalIdList &
     case ESTIMATE_JOINT_POS:        return lockAndAddSensors(SENSOR_ENCODER, sids);
     case ESTIMATE_JOINT_VEL:        return lockAndAddSensors(SENSOR_ENCODER, sids);
     case ESTIMATE_JOINT_ACC:        return lockAndAddSensors(SENSOR_ENCODER, sids);
-    case ESTIMATE_MOTOR_VELOCITY:   return false;
     case ESTIMATE_JOINT_TORQUE:     return lockAndAddSensors(SENSOR_TORQUE, sids);
+    case ESTIMATE_MOTOR_POS:        return lockAndAddSensors(SENSOR_ENCODER, sids);
+    case ESTIMATE_MOTOR_VEL:        return lockAndAddSensors(SENSOR_ENCODER, sids);
+    case ESTIMATE_MOTOR_ACC:        return lockAndAddSensors(SENSOR_ENCODER, sids);
+    case ESTIMATE_MOTOR_TORQUE:     return lockAndAddSensors(SENSOR_TORQUE, sids);
     case ESTIMATE_MOTOR_PWM:        return lockAndAddSensors(SENSOR_PWM, sids);
     case ESTIMATE_IMU:              return lockAndAddSensors(SENSOR_IMU, sids);
     case ESTIMATE_FORCE_TORQUE:     return lockAndAddSensors(SENSOR_FORCE_TORQUE, sids);
@@ -104,8 +110,11 @@ bool icubWholeBodyStates::removeEstimate(const EstimateType et, const LocalId &s
     case ESTIMATE_JOINT_POS:        return lockAndRemoveSensor(SENSOR_ENCODER, sid);
     case ESTIMATE_JOINT_VEL:        return lockAndRemoveSensor(SENSOR_ENCODER, sid);
     case ESTIMATE_JOINT_ACC:        return lockAndRemoveSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_MOTOR_VELOCITY:   return false;
     case ESTIMATE_JOINT_TORQUE:     return lockAndRemoveSensor(SENSOR_TORQUE, sid);
+    case ESTIMATE_MOTOR_POS:        return lockAndRemoveSensor(SENSOR_ENCODER, sid);
+    case ESTIMATE_MOTOR_VEL:        return lockAndRemoveSensor(SENSOR_ENCODER, sid);
+    case ESTIMATE_MOTOR_ACC:        return lockAndRemoveSensor(SENSOR_ENCODER, sid);
+    case ESTIMATE_MOTOR_TORQUE:     return lockAndRemoveSensor(SENSOR_TORQUE, sid);
     case ESTIMATE_MOTOR_PWM:        return lockAndRemoveSensor(SENSOR_PWM, sid);
     case ESTIMATE_IMU:              return lockAndRemoveSensor(SENSOR_IMU, sid);
     case ESTIMATE_FORCE_TORQUE:     return lockAndRemoveSensor(SENSOR_FORCE_TORQUE, sid);
@@ -121,8 +130,11 @@ LocalIdList icubWholeBodyStates::getEstimateList(const EstimateType et)
     case ESTIMATE_JOINT_POS:        return sensors->getSensorList(SENSOR_ENCODER);
     case ESTIMATE_JOINT_VEL:        return sensors->getSensorList(SENSOR_ENCODER);
     case ESTIMATE_JOINT_ACC:        return sensors->getSensorList(SENSOR_ENCODER);
-    case ESTIMATE_MOTOR_VELOCITY:   return LocalIdList();
     case ESTIMATE_JOINT_TORQUE:     return sensors->getSensorList(SENSOR_TORQUE);
+    case ESTIMATE_MOTOR_POS:        return sensors->getSensorList(SENSOR_ENCODER);
+    case ESTIMATE_MOTOR_VEL:        return sensors->getSensorList(SENSOR_ENCODER);
+    case ESTIMATE_MOTOR_ACC:        return sensors->getSensorList(SENSOR_ENCODER);
+    case ESTIMATE_MOTOR_TORQUE:     return sensors->getSensorList(SENSOR_TORQUE);
     case ESTIMATE_MOTOR_PWM:        return sensors->getSensorList(SENSOR_PWM);
     case ESTIMATE_IMU:              return sensors->getSensorList(SENSOR_IMU);
     case ESTIMATE_FORCE_TORQUE:     return sensors->getSensorList(SENSOR_FORCE_TORQUE);
@@ -138,8 +150,11 @@ int icubWholeBodyStates::getEstimateNumber(const EstimateType et)
     case ESTIMATE_JOINT_POS:        return sensors->getSensorNumber(SENSOR_ENCODER);
     case ESTIMATE_JOINT_VEL:        return sensors->getSensorNumber(SENSOR_ENCODER);
     case ESTIMATE_JOINT_ACC:        return sensors->getSensorNumber(SENSOR_ENCODER);
-    case ESTIMATE_MOTOR_VELOCITY:   return 0;
     case ESTIMATE_JOINT_TORQUE:     return sensors->getSensorNumber(SENSOR_TORQUE);
+    case ESTIMATE_MOTOR_POS:        return sensors->getSensorNumber(SENSOR_ENCODER);
+    case ESTIMATE_MOTOR_VEL:        return sensors->getSensorNumber(SENSOR_ENCODER);
+    case ESTIMATE_MOTOR_ACC:        return sensors->getSensorNumber(SENSOR_ENCODER);
+    case ESTIMATE_MOTOR_TORQUE:     return sensors->getSensorNumber(SENSOR_TORQUE);
     case ESTIMATE_MOTOR_PWM:        return sensors->getSensorNumber(SENSOR_PWM);
     case ESTIMATE_IMU:              return sensors->getSensorNumber(SENSOR_IMU);
     case ESTIMATE_FORCE_TORQUE:     return sensors->getSensorNumber(SENSOR_FORCE_TORQUE);
@@ -152,14 +167,17 @@ bool icubWholeBodyStates::getEstimate(const EstimateType et, const LocalId &sid,
 {
     switch(et)
     {
-    case ESTIMATE_JOINT_POS:        
+    case ESTIMATE_JOINT_POS:
         return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_ENCODER).localToGlobalId(sid), estimator->estimates.lastQ, data);
-    case ESTIMATE_JOINT_VEL:        
+    case ESTIMATE_JOINT_VEL:
         return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_ENCODER).localToGlobalId(sid), estimator->estimates.lastDq, data);
-    case ESTIMATE_JOINT_ACC:        
+    case ESTIMATE_JOINT_ACC:
         return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_ENCODER).localToGlobalId(sid), estimator->estimates.lastD2q, data);
-    case ESTIMATE_MOTOR_VELOCITY:   return false;
     case ESTIMATE_JOINT_TORQUE:     return lockAndReadSensor(SENSOR_TORQUE, sid, data, time, blocking);
+    case ESTIMATE_MOTOR_POS:        return false;
+    case ESTIMATE_MOTOR_VEL:        return getMotorVel(sid, data, time, blocking);
+    case ESTIMATE_MOTOR_ACC:        return false;
+    case ESTIMATE_MOTOR_TORQUE:     return lockAndReadSensor(SENSOR_TORQUE, sid, data, time, blocking);
     case ESTIMATE_MOTOR_PWM:        return lockAndReadSensor(SENSOR_PWM, sid, data, time, blocking);
     case ESTIMATE_IMU:              return lockAndReadSensor(SENSOR_IMU, sid, data, time, blocking);
     case ESTIMATE_FORCE_TORQUE:     return lockAndReadSensor(SENSOR_FORCE_TORQUE, sid, data, time, blocking);
@@ -175,8 +193,11 @@ bool icubWholeBodyStates::getEstimates(const EstimateType et, double *data, doub
     case ESTIMATE_JOINT_POS:        return estimator->lockAndCopyVector(estimator->estimates.lastQ, data);
     case ESTIMATE_JOINT_VEL:        return estimator->lockAndCopyVector(estimator->estimates.lastDq, data);
     case ESTIMATE_JOINT_ACC:        return estimator->lockAndCopyVector(estimator->estimates.lastD2q, data);
-    case ESTIMATE_MOTOR_VELOCITY:   return false;
     case ESTIMATE_JOINT_TORQUE:     return lockAndReadSensors(SENSOR_TORQUE, data, time, blocking);
+    case ESTIMATE_MOTOR_POS:        return false;
+    case ESTIMATE_MOTOR_VEL:        return getMotorVel(data, time, blocking);
+    case ESTIMATE_MOTOR_ACC:        return false;
+    case ESTIMATE_MOTOR_TORQUE:     return lockAndReadSensors(SENSOR_TORQUE, data, time, blocking);
     case ESTIMATE_MOTOR_PWM:        return lockAndReadSensors(SENSOR_PWM, data, time, blocking);
     case ESTIMATE_IMU:              return lockAndReadSensors(SENSOR_IMU, data, time, blocking);
     case ESTIMATE_FORCE_TORQUE:     return lockAndReadSensors(SENSOR_FORCE_TORQUE, data, time, blocking);
@@ -190,6 +211,41 @@ bool icubWholeBodyStates::getEstimates(const EstimateType et, double *data, doub
 //                                          PRIVATE METHODS
 // *********************************************************************************************************************
 // *********************************************************************************************************************
+
+bool icubWholeBodyStates::getMotorVel(double *data, double time, bool blocking)
+{
+    bool res = estimator->lockAndCopyVector(estimator->estimates.lastDq, data);    ///< read joint vel
+    if(!res) return false;
+    LocalIdList idList = lockAndGetSensorList(SENSOR_ENCODER);
+    int i=0;
+    FOR_ALL_OF(itBp, itJ, idList)   ///< manage coupled joints
+    {
+        if(itBp->first == LEFT_ARM && *itJ==0)          // left arm shoulder
+            data[i] = data[i];
+        else if(itBp->first == LEFT_ARM && *itJ==1)     // left arm shoulder
+            data[i] = data[i];
+        else if(itBp->first == LEFT_ARM && *itJ==2)     // left arm shoulder
+            data[i] = data[i];
+        else if(itBp->first == RIGHT_ARM && *itJ==0)    // right arm shoulder
+            data[i] = data[i];
+        else  if(itBp->first == RIGHT_ARM && *itJ==1)   // right arm shoulder
+            data[i] = data[i];
+        else if(itBp->first == RIGHT_ARM && *itJ==2)    // right arm shoulder
+            data[i] = data[i];
+        else if(itBp->first == TORSO && *itJ==1)        // torso
+            data[i] = data[i];
+        else if(itBp->first == TORSO && *itJ==2)        // torso
+            data[i] = data[i];
+        i++;
+    }
+    return true;
+}
+
+bool icubWholeBodyStates::getMotorVel(const LocalId &lid, double *data, double time, bool blocking)
+{
+    ///< read joint vel
+    return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_ENCODER).localToGlobalId(lid), estimator->estimates.lastDq, data);
+}
 
 bool icubWholeBodyStates::lockAndReadSensors(const SensorType st, double *data, double time, bool blocking)
 {

@@ -98,10 +98,13 @@ namespace wbi
         ESTIMATE_JOINT_VEL,         // joint velocity
         ESTIMATE_JOINT_ACC,         // joint acceleration
         ESTIMATE_JOINT_TORQUE,      // joint torque
+        // MOTOR SPACE ESTIMATES
+        ESTIMATE_MOTOR_POS,         // motor position
+        ESTIMATE_MOTOR_VEL,         // motor velocity
+        ESTIMATE_MOTOR_ACC,         // motor acceleration
+        ESTIMATE_MOTOR_TORQUE,      // motor torque
         ESTIMATE_MOTOR_PWM,         // motor PWM (proportional to motor voltage)
         ESTIMATE_MOTOR_CURRENT,     // motor current
-        ESTIMATE_MOTOR_VELOCITY,    // motor velocity
-        
         // CARTESIAN SPACE ESTIMATES
         ESTIMATE_IMU,               // 9d inertial measurement unit (angular vel: w, angular acc: dw, linear acc: ddp)
         ESTIMATE_FORCE_TORQUE,      // 6-axis force/torque
