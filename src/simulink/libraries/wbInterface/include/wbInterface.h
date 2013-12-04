@@ -154,7 +154,7 @@ public:
                 wbInterface = NULL;
             }
             else{
-                fprintf(stderr,"ERROR: wbInterface couldn't close correctly")
+                fprintf(stderr,"ERROR: wbInterface couldn't close correctly");
             }
 
 //            delete paramHelper;
