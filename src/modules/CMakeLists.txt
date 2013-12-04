@@ -1,4 +1,6 @@
-add_subdirectory(comStepper)
+if(CODYCO_BUILD_YARP24_MODULES)
+    add_subdirectory(comStepper)
+endif()
 add_subdirectory(locomotionControl)
 add_subdirectory(locomotionPlanner)
 add_subdirectory(jointTorqueControl)
