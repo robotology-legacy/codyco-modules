@@ -84,6 +84,9 @@ public:
      * @param output Output vector containing the predicted model output. */
     void predictOutput(const Eigen::VectorXd &input, double &output) const;
 
+    /** Reset the status of the estimator. */
+    inline void reset(){ resizeAllVariables(); }
+
     /** Get the current estimate of the parameters x (remember to call updateParameterEstimation before).
      * @param xEst Output vector containing the current estimate of the parameters. */
     void getCurrentParameterEstimate(Eigen::VectorXd &xEst) const;
@@ -97,8 +100,8 @@ public:
      * @return The size of the input domain. */
     unsigned int getParamSize() const { return this->n; }
 
-    /** Mutator for the domain size.
-     * @param size The desired domain size. */
+    /** Set the size of the parameter vector and reset the status of the estimator.
+     * @param size The desired size of the parameter vector. */
     inline void setParamSize(unsigned int size) { n = size; resizeAllVariables(); }
 };
 
