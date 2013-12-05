@@ -193,7 +193,7 @@ namespace wbiIcub
         if(jointName=="r_ankle_pitch")      return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 4, "r_ankle_pitch");
         if(jointName=="r_hip_roll")         return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 5, "r_hip_roll");
         
-        printf("ERROR Unknown global joint name: %d\n", jointName);
+        printf("ERROR Unknown global joint name: %s\n", jointName.c_str());
         return wbi::LocalId(iCub::skinDynLib::BODY_PART_UNKNOWN, 0);
     }
     

@@ -90,7 +90,7 @@ namespace wbi
     /**
      * List of identifiers, that is a map from body part identifiers to lists of numbers.
      */
-    class LocalIdList : public std::map<int, std::vector<int>>
+    class LocalIdList : public std::map<int, std::vector<int> >
     {
     protected:
         /** Add the specified id without checking its existance. */
