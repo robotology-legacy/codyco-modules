@@ -50,7 +50,8 @@ MotorFrictionIdentificationModule::MotorFrictionIdentificationModule()
     identificationThread    = 0;
     robotInterface          = 0;
     paramHelper             = 0;
-    period                  = MODULE_PERIOD;
+    modulePeriod            = MODULE_PERIOD;
+    threadPeriod            = 0;
 }
     
 bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
@@ -58,7 +59,7 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
     //--------------------------PARAMETER HELPER--------------------------
     paramHelper = new ParamHelperServer(motorFrictionIdentificationParamDescr, PARAM_ID_SIZE, motorFrictionIdentificationCommandDescr, COMMAND_ID_SIZE);
     paramHelper->linkParam(PARAM_ID_MODULE_NAME,    &moduleName);
-    paramHelper->linkParam(PARAM_ID_CTRL_PERIOD,    &period);
+    paramHelper->linkParam(PARAM_ID_CTRL_PERIOD,    &threadPeriod);
     paramHelper->linkParam(PARAM_ID_ROBOT_NAME,     &robotName);
     paramHelper->registerCommandCallback(COMMAND_ID_HELP, this);
     paramHelper->registerCommandCallback(COMMAND_ID_QUIT, this);
@@ -92,7 +93,7 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
     }
 
     //--------------------------CTRL THREAD--------------------------
-    identificationThread = new MotorFrictionIdentificationThread(moduleName, robotName, period, paramHelper, robotInterface);
+    identificationThread = new MotorFrictionIdentificationThread(moduleName, robotName, threadPeriod, paramHelper, robotInterface);
     if(!identificationThread->start())
     { 
         fprintf(stderr, "Error while initializing motorFrictionIdentification control thread. Closing module.\n"); 
@@ -143,17 +144,24 @@ bool MotorFrictionIdentificationModule::close()
 	//stop threads
     if(identificationThread){ identificationThread->stop(); delete identificationThread; identificationThread = 0; }
     if(paramHelper){          paramHelper->close();         delete paramHelper;          paramHelper = 0;          }
-    if(robotInterface){       robotInterface->close();      delete robotInterface;       robotInterface = 0;       }
+    if(robotInterface)
+    { 
+        bool res=robotInterface->close();    
+        if(res)
+            printf("Error while closing robot interface\n");
+        delete robotInterface;  
+        robotInterface = 0; 
+    }
 
 	//closing ports
 	rpcPort.close();
 
     printf("[PERFORMANCE INFORMATION]:\n");
-    printf("Expected period %d ms.\nReal period: %3.1f+/-%3.1f ms.\n", period, avgTime, stdDev);
+    printf("Expected period %d ms.\nReal period: %3.1f+/-%3.1f ms.\n", threadPeriod, avgTime, stdDev);
     printf("Real duration of 'run' method: %3.1f+/-%3.1f ms.\n", avgTimeUsed, stdDevUsed);
-    if(avgTimeUsed<0.5*period)
+    if(avgTimeUsed<0.5*threadPeriod)
         printf("Next time you could set a lower period to improve the controller performance.\n");
-    else if(avgTime>1.3*period)
+    else if(avgTime>1.3*threadPeriod)
         printf("The period you set was impossible to attain. Next time you could set a higher period.\n");
 
     return true;
@@ -170,9 +178,9 @@ bool MotorFrictionIdentificationModule::updateModule()
     identificationThread->getEstPeriod(avgTime, stdDev);
     identificationThread->getEstUsed(avgTimeUsed, stdDevUsed);     // real duration of run()
 //#ifndef NDEBUG
-    if(avgTime > 1.3 * period)
+    if(avgTime > 1.3 * threadPeriod)
     {
-        printf("[WARNING] Control loop is too slow. Real period: %3.3f+/-%3.3f. Expected period %d.\n", avgTime, stdDev, period);
+        printf("[WARNING] Control loop is too slow. Real period: %3.3f+/-%3.3f. Expected period %d.\n", avgTime, stdDev, threadPeriod);
         printf("Duration of 'run' method: %3.3f+/-%3.3f.\n", avgTimeUsed, stdDevUsed);
     }
 //#endif

@@ -62,7 +62,8 @@ enum MotorFrictionIdentificationParamId
     PARAM_ID_COVARIANCE_INV,    PARAM_ID_RHS,
     /* Monitor parameters */
     PARAM_ID_JOINT_VEL,         PARAM_ID_JOINT_TORQUE,      PARAM_ID_JOINT_VEL_SIGN,
-    PARAM_ID_MOTOR_PWM,         PARAM_ID_PARAM_ESTIMATES,   PARAM_ID_PARAM_VARIANCE,
+    PARAM_ID_MOTOR_PWM,         PARAM_ID_MOTOR_PWM_PREDICT, 
+    PARAM_ID_PARAM_ESTIMATES,   PARAM_ID_PARAM_VARIANCE,
     PARAM_ID_SIZE /*This is the number of parameters, so it must be the last value of the enum.*/
 };
 
@@ -94,6 +95,7 @@ new ParamProxyBasic<double>("dq",                   PARAM_ID_JOINT_VEL,         
 new ParamProxyBasic<double>("torque",               PARAM_ID_JOINT_TORQUE,      1,                                                          PARAM_MONITOR,      0,                              "Torque of the monitored joint"),
 new ParamProxyBasic<double>("sign dq",              PARAM_ID_JOINT_VEL_SIGN,    1,                                                          PARAM_MONITOR,      0,                              "Velocity sign of the monitored joint"),
 new ParamProxyBasic<double>("pwm",                  PARAM_ID_MOTOR_PWM,         1,                                                          PARAM_MONITOR,      0,                              "Motor pwm of the monitored joint"),
+new ParamProxyBasic<double>("pwm predicted",        PARAM_ID_MOTOR_PWM_PREDICT, 1,                                                          PARAM_MONITOR,      0,                              "Prediction of the motor pwm of the monitored joint"),
 new ParamProxyBasic<double>("estimates",            PARAM_ID_PARAM_ESTIMATES,   PARAM_NUMBER,                                               PARAM_MONITOR,      0,                              "Estimates of the parameters of the monitored joint"),
 new ParamProxyBasic<double>("variances",            PARAM_ID_PARAM_VARIANCE,    PARAM_NUMBER,                                               PARAM_MONITOR,      0,                              "Variances of the parameters of the monitored joint")
 };

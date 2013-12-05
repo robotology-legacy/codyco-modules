@@ -33,6 +33,7 @@
 #include <paramHelp/paramHelperServer.h>
 
 #include <motorFrictionIdentification/motorFrictionIdentificationConstants.h>
+#include <motorFrictionIdentification/recursiveLinearEstimator.h>
 #include <motorFrictionIdentificationLib/motorFrictionIdentificationParams.h>
 
 using namespace yarp::os;
@@ -47,6 +48,16 @@ using namespace motorFrictionIdentificationLib;
 namespace motorFrictionIdentification
 {
 
+///< indeces of the estimated parameters when written in vector form (for identification)
+enum MotorFrictionParamIndex
+{
+    INDEX_K_TAO = 0,
+    INDEX_K_VP = 1,
+    INDEX_K_VN = 2,
+    INDEX_K_CP = 3,
+    INDEX_K_CN = 4
+};
+
 /** 
  * MotorFrictionIdentification thread.
  */
@@ -58,19 +69,25 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     wholeBodyInterface  *robot;         ///< interface to communicate with the robot
 
     // Member variables
+    vector<RecursiveLinearEstimator>    estimators; ///< estimators, one per joint
     int         printCountdown;         ///< every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     int         _n;                     ///< number of joints of the robot
     vector<LocalId> currentJointIds;        ///< IDs of the joints currently excited
     ArrayXi         currentGlobalJointIds;  ///< global IDs of the joints currently excited
     ArrayXd     dq;                 ///< motor velocities
+    ArrayXd     dqPos;              ///< positive sample of the motor velocities
+    ArrayXd     dqNeg;              ///< negative samples of the motor velocities
     ArrayXd     torques;            ///< motor torques
     ArrayXd     dqSign;             ///< motor velocity signes
+    ArrayXd     dqSignPos;          ///< positive samples of the motor velocity signes
+    ArrayXd     dqSignNeg;          ///< negative samples of the motor velocity signes
     ArrayXd     pwm;                ///< motor PWMs
+    vector<VectorXd>    inputSamples;   ///< input samples to be used for identification
 
     ///< *************** INPUT MODULE PARAMETERS ********************
     
     string      outputFilename;     ///< Name of the file on which to save the state of the identification
-    ArrayXd     activeJoints;       ///< List of flags (0,1) indicating for which motors the identification is active
+    ArrayXi     activeJoints;       ///< List of flags (0,1) indicating for which motors the identification is active
     double      delay;              ///< Delay (in sec) used before processing a sample to update the identified parameters
     double      zeroVelThr;         ///< Velocities (deg/sec) below this threshold are considered zero
     int         velEstWind;         ///< Max size of the moving window used for estimating joint velocities
@@ -86,8 +103,10 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     double      torqueMonitor;      ///< Torque of the monitored joint
     double      signDqMonitor;      ///< Velocity sign of the monitored joint
     double      pwmMonitor;         ///< Motor pwm of the monitored joint
-    VectorPd    estimateMonitor;    ///< Estimates of the parameters of the monitored joint
-    VectorPd    variancesMonitor;   ///< Variances of the parameters of the monitored joint
+    double      pwmPredMonitor;     ///< Prediction of the motor pwm of the monitored joint based on the current parameter estimation
+    VectorXd    estimateMonitor;    ///< Estimates of the parameters of the monitored joint
+    VectorXd    variancesMonitor;   ///< Variances of the parameters of the monitored joint
+    MatrixXd    sigmaMonitor;       ///< Covariance matrix of the parameters of the monitored joint
     
     /************************************************* PRIVATE METHODS ******************************************************/
     
@@ -97,12 +116,12 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     /** Read the robot status. */
     bool readRobotStatus(bool blockingRead=false);
 
-    /** Perform all the operations needed just before starting the identification of a joint. 
+    /** Compute the input samples to be used for the identification of the motors and frictions. 
      * @return True iff all initialization operations went fine, false otherwise. */
-    bool preStartOperations();
+    bool computeInputSamples();
 
-    /** Perform all the operations needed just before stopping the identification of a joint. */
-    void preStopOperations();
+    /** Prepare the data to be sent out for monitoring. */
+    void prepareMonitorData();
 
 public:	
     

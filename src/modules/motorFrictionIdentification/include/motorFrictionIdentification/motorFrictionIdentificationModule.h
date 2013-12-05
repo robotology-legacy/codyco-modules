@@ -85,7 +85,8 @@ class MotorFrictionIdentificationModule: public RFModule, public CommandObserver
     /* module parameters */
 	string  moduleName;
 	string  robotName;
-    double  period;
+    double  modulePeriod;   ///< module period in seconds
+    int     threadPeriod;   ///< thread period in milliseconds
     double  avgTime, stdDev, avgTimeUsed, stdDevUsed;
 
 	Port                rpcPort;		// a port to handle rpc messages
@@ -100,7 +101,7 @@ public:
 	bool interruptModule();                       // interrupt, e.g., the ports 
 	bool close();                                 // close and shut down the module
 	bool respond(const Bottle& command, Bottle& reply);
-	double getPeriod(){ return period;  }
+	double getPeriod(){ return modulePeriod;  }
 	bool updateModule();
 
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);

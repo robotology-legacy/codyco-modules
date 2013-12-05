@@ -1,12 +1,65 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<portscope rows="2" columns="1">
-    <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Desired PWM" size="1000" minval="-200" maxval="200" bgcolor="white">
-        <graph remote="/excitation/monitor:o" index="1" color="Red" title="Desired PWM" type="lines" size="2" />
+
+<!-- Plotting monitor parameters of motorFrictionIdentification module, that are:
+0		dq				Velocity of the monitored joint
+1		torque			Torque of the monitored joint
+2		sign dq			Velocity sign of the monitored joint
+3		pwm				Motor pwm of the monitored joint
+4		pwm predicted	Prediction of the motor pwm of the monitored joint
+5-9		estimates		Estimates of the 5 parameters of the monitored joint
+10-14	variances
+-->
+
+<portscope rows="5" columns="3">
+	<!-- plotting dq and sign(dq) -->
+    <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Joint Vel (deg/sec)" size="1000" minval="-200" maxval="200" bgcolor="white">
+        <graph remote="/motorId/monitor:o" index="0" color="Red" title="dq" type="lines" size="2" />
+		<graph remote="/motorId/monitor:o" index="2" color="Blue" title="sign dq" type="lines" size="2" />
     </plot>
 
-    <!-- plotting COM y -->
-    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Joint angle" size="1000" bgcolor="white">
-        <graph remote="/excitation/monitor:o" index="0" color="Blue" title="Joint angle" type="lines" size="3" />
+    <!-- plotting torque -->
+    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Motor Torque" size="1000" bgcolor="white">
+        <graph remote="/motorId/monitor:o" index="1" color="Blue" title="Motor torque" type="lines" size="2" />
     </plot>
+
+	<!-- plotting PWM -->
+	<plot gridx="0" gridy="2" hspan="1" vspan="1" title="Motor PWM" size="1000" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="3" color="Red" title="Motor PWM" type="lines" size="2" />
+		<graph remote="/motorId/monitor:o" index="3" color="Blue" title="Predicted motor PWM" type="lines" size="2" />
+	</plot>
+
+	<!-- plotting estimates -->
+	<plot gridx="1" gridy="0" hspan="1" vspan="1" title="K tau" size="1000" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="5" color="Red" title="K tau" type="lines" size="2" />
+	</plot>
+	<plot gridx="1" gridy="1" hspan="1" vspan="1" title="K vp" size="1000" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="6" color="Red" title="K vp" type="lines" size="2" />
+	</plot>
+	<plot gridx="1" gridy="2" hspan="1" vspan="1" title="K vn" size="1000" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="7" color="Red" title="K vn" type="lines" size="2" />
+	</plot>
+	<plot gridx="1" gridy="3" hspan="1" vspan="1" title="K cp" size="1000" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="8" color="Red" title="K cp" type="lines" size="2" />
+	</plot>
+	<plot gridx="1" gridy="4" hspan="1" vspan="1" title="K cn" size="1000" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="9" color="Red" title="K cn" type="lines" size="2" />
+	</plot>
+
+	<!-- plotting variances -->
+	<plot gridx="2" gridy="0" hspan="1" vspan="1" title="Variance K tau" size="1000" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="10" color="Blue" title="K tau" type="lines" size="2" />
+	</plot>
+	<plot gridx="2" gridy="1" hspan="1" vspan="1" title="Variance K vp" size="1000" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="11" color="Blue" title="K vp" type="lines" size="2" />
+	</plot>
+	<plot gridx="2" gridy="2" hspan="1" vspan="1" title="Variance K vn" size="1000" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="12" color="Blue" title="K vn" type="lines" size="2" />
+	</plot>
+	<plot gridx="2" gridy="3" hspan="1" vspan="1" title="Variance K cp" size="1000" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="13" color="Blue" title="K cp" type="lines" size="2" />
+	</plot>
+	<plot gridx="2" gridy="4" hspan="1" vspan="1" title="Variance K cn" size="1000" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="14" color="Blue" title="K cn" type="lines" size="2" />
+	</plot>
 
 </portscope>
