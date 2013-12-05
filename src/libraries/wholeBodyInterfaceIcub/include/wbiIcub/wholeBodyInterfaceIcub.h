@@ -267,10 +267,16 @@ namespace wbiIcub
         
         iCub::ctrl::AWLinEstimator  *dqFilt;        // joint velocity filter
         iCub::ctrl::AWQuadEstimator *d2qFilt;       // joint acceleration filter
+        iCub::ctrl::AWLinEstimator  *dTauJFilt;     // joint torque derivative filter
+        iCub::ctrl::AWLinEstimator  *dTauMFilt;     // motor torque derivative filter
         int dqFiltWL, d2qFiltWL;                    // window lengths of adaptive window filters
         double dqFiltTh, d2qFiltTh;                 // threshold of adaptive window filters
+        int dTauMFiltWL, dTauJFiltWL;               // window lengths of adaptive window filters
+        double dTauMFiltTh, dTauJFiltTh;            // threshold of adaptive window filters
         
-        yarp::sig::Vector           q, qStamps;     // last joint position estimation
+        yarp::sig::Vector           q, qStamps;         // last joint position estimation
+        yarp::sig::Vector           tauJ, tauJStamps;
+        //yarp::sig::Vector           tauM;
         
         /* Resize all vectors using current number of DoFs. */
         void resizeAll(int n);
@@ -287,6 +293,10 @@ namespace wbiIcub
             yarp::sig::Vector lastQ;                    // last joint position estimation
             yarp::sig::Vector lastDq;                   // last joint velocity estimation
             yarp::sig::Vector lastD2q;                  // last joint acceleration estimation
+            yarp::sig::Vector lastTauJ;                 // last joint torque
+            yarp::sig::Vector lastTauM;                 // last motor torque
+            yarp::sig::Vector lastDtauJ;                // last joint torque derivative
+            yarp::sig::Vector lastDtauM;                // last motor torque derivative
         } 
         estimates;
 
@@ -297,6 +307,10 @@ namespace wbiIcub
         void setVelFiltParams(int windowLength, double threshold);
         /** Set the parameters of the adaptive window filter used for acceleration estimation. */
         void setAccFiltParams(int windowLength, double threshold);
+        /** Set the parameters of the adaptive window filter used for joint torque derivative estimation. */
+        void setDtauJFiltParams(int windowLength, double threshold);
+        /** Set the parameters of the adaptive window filter used for motor torque derivative estimation. */
+        void setDtauMFiltParams(int windowLength, double threshold);
 
         bool threadInit();
         void run();
