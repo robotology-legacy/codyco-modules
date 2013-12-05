@@ -25,7 +25,7 @@
 	<!-- plotting PWM -->
 	<plot gridx="0" gridy="2" hspan="1" vspan="1" title="Motor PWM" size="1000" bgcolor="white">
 		<graph remote="/motorId/monitor:o" index="3" color="Red" title="Motor PWM" type="lines" size="2" />
-		<graph remote="/motorId/monitor:o" index="3" color="Blue" title="Predicted motor PWM" type="lines" size="2" />
+		<graph remote="/motorId/monitor:o" index="4" color="Blue" title="Predicted motor PWM" type="lines" size="2" />
 	</plot>
 
 	<!-- plotting estimates -->
