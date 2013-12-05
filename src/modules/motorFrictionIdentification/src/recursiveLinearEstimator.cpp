@@ -16,7 +16,9 @@
 */
 
 #include <motorFrictionIdentification/recursiveLinearEstimator.h>
+#include <cstdio>
 
+using namespace std;
 using namespace Eigen;
 using namespace motorFrictionIdentification;
 
