@@ -129,7 +129,14 @@ bool MotorFrictionExcitationModule::close()
 	//stop threads
     if(ctrlThread){     ctrlThread->stop();         delete ctrlThread;      ctrlThread = 0;     }
     if(paramHelper){    paramHelper->close();       delete paramHelper;     paramHelper = 0;    }
-    if(robotInterface){ robotInterface->close();    delete robotInterface;  robotInterface = 0; }
+    if(robotInterface)
+    { 
+        bool res=robotInterface->close();    
+        if(res)
+            printf("Error while closing robot interface\n");
+        delete robotInterface;  
+        robotInterface = 0; 
+    }
 
 	//closing ports
 	rpcPort.close();
