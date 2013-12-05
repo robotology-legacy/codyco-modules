@@ -81,11 +81,21 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
     robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
-    VectorXi jointList(paramHelper->getParamProxy(PARAM_ID_JOINT_LIST)->size);
+    ///< read the parameter "joint list" from configuration file to configure the WBI
+    jointList.resize(paramHelper->getParamProxy(PARAM_ID_JOINT_LIST)->size);
     paramHelper->getParamProxy(PARAM_ID_JOINT_LIST)->linkToVariable(jointList.data());
+    ///< link the parameter "joint names" to the variable jointNames
+    jointNames.resize(jointList.size());
+    paramHelper->getParamProxy(PARAM_ID_JOINT_NAMES)->linkToVariable(jointNames.data(), jointList.size());
+    ///< add all the specified joints
     bool ok = true;
+    LocalId lid;
     for(int i=0; ok && i<jointList.size(); i++)
-        ok = robotInterface->addJoint(globalToLocalIcubId(jointList[i]));
+    {
+        lid = globalToLocalIcubId(jointList[i]);
+        ok = robotInterface->addJoint(lid);
+        jointNames[i] = lid.description;
+    }
     if(!ok || !robotInterface->init())
     { 
         fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); 

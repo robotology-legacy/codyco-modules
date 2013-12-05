@@ -78,6 +78,7 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     ArrayXd     dqPos;              ///< positive sample of the motor velocities
     ArrayXd     dqNeg;              ///< negative samples of the motor velocities
     ArrayXd     torques;            ///< motor torques
+    ArrayXd     dTorques;           ///< motor torque derivatives
     ArrayXd     dqSign;             ///< motor velocity signes
     ArrayXd     dqSignPos;          ///< positive samples of the motor velocity signes
     ArrayXd     dqSignNeg;          ///< negative samples of the motor velocity signes
@@ -91,16 +92,20 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     double      delay;              ///< Delay (in sec) used before processing a sample to update the identified parameters
     double      zeroVelThr;         ///< Velocities (deg/sec) below this threshold are considered zero
     int         velEstWind;         ///< Max size of the moving window used for estimating joint velocities
-    double      forgetFactor;       ///<Forgetting factor (in [0,1], 1=do not forget) used in the identification
-    int         jointMonitor;       ///<Joint to monitor
+    double      torqueVelThr;       ///< Lower threshold on the derivative of the joint torque
+    double      forgetFactor;       ///< Forgetting factor (in [0,1], 1=do not forget) used in the identification
+    string      jointMonitorName;   ///< Name of the joint to monitor
+    int         jointMonitor;       ///< Joint to monitor
     
     ///< *************** OUTPUT FILE PARAMETERS *************************
     MatrixXd    covarianceInv;      ///< Inverse of the covariance matrix of the parameter estimations
     ArrayXd     rhs;                ///< Right-hand side of the linear vector equation that is solved for estimating the parameters
 
     ///< *************** MONITOR PARAMETERS ********************
-    double      dqMonitor;          ///< Velocity of the monitored joint
-    double      torqueMonitor;      ///< Torque of the monitored joint
+    double      dqMonitor;          ///< Motor velocity of the monitored joint
+    double      torqueMonitor;      ///< Motor torque associated to the monitored joint
+    double      dTorqueMonitor;     ///< Derivative of the motor torque associated to the monitored joint
+    double      torquePredMonitor;  ///< Prediction of the motor torque associated to the monitored joint
     double      signDqMonitor;      ///< Velocity sign of the monitored joint
     double      pwmMonitor;         ///< Motor pwm of the monitored joint
     double      pwmPredMonitor;     ///< Prediction of the motor pwm of the monitored joint based on the current parameter estimation
@@ -122,6 +127,21 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
 
     /** Prepare the data to be sent out for monitoring. */
     void prepareMonitorData();
+
+    /** Reset the identification status of the specified joint. If no joint is specified
+     * then it resets the identification status of all the joints.
+     * @param jid Id of the joint. */
+    bool resetIdentification(int jid=-1);
+
+    /** Convert the global id contained in the specified Bottle into a local id to access
+     * the vector of this thread. The Bottle b may either contain an integer id or the name
+     * of the joint.
+     * @param b Bottle containing the global id.
+     * @return The local id, -1 if nothing was found. */
+    int convertGlobalToLocalJointId(const yarp::os::Bottle &b);
+
+    /** Update the variable jointMonitor based on the value of the variable jointMonitorName. */
+    void updateJointToMonitor();
 
 public:	
     

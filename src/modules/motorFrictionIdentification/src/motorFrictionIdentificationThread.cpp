@@ -45,6 +45,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     resizeAndSetToZero(dqPos, _n);
     resizeAndSetToZero(dqNeg, _n);
     resizeAndSetToZero(torques, _n);
+    resizeAndSetToZero(dTorques, _n);
     resizeAndSetToZero(dqSign, _n);
     resizeAndSetToZero(dqSignPos, _n);
     resizeAndSetToZero(dqSignNeg, _n);
@@ -61,39 +62,45 @@ bool MotorFrictionIdentificationThread::threadInit()
     inputSamples.resize(_n);
     estimators.resize(_n);
     
-    
     ///< link module rpc parameters to member variables
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_OUTPUT_FILENAME,    &outputFilename));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ACTIVE_JOINTS,      activeJoints.data()));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_IDENTIF_DELAY,      &delay));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ZERO_VEL_THRESH,    &zeroVelThr));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VEL_EST_WIND_SIZE,  &velEstWind));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_FORGET_FACTOR,      &forgetFactor));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_TO_MONITOR,   &jointMonitor));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_OUTPUT_FILENAME,        &outputFilename));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ACTIVE_JOINTS,          activeJoints.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_IDENTIF_DELAY,          &delay));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ZERO_VEL_THRESH,        &zeroVelThr));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VEL_EST_WIND_SIZE,      &velEstWind));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TORQUE_VEL_THRESH,      &torqueVelThr));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_FORGET_FACTOR,          &forgetFactor));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_TO_MONITOR,       &jointMonitorName));
 
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_COVARIANCE_INV,     covarianceInv.data()));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_RHS,                rhs.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_COVARIANCE_INV,         covarianceInv.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_RHS,                    rhs.data()));
     ///< link module output monitoring parameters to member variables
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL,          &dqMonitor));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_TORQUE,       &torqueMonitor));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL_SIGN,     &signDqMonitor));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_PWM,          &pwmMonitor));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_PWM_PREDICT,  &pwmPredMonitor));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PARAM_ESTIMATES,    estimateMonitor.data()));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PARAM_VARIANCE,     variancesMonitor.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL,              &dqMonitor));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_TORQUE,           &torqueMonitor));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL_SIGN,         &signDqMonitor));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_PWM,              &pwmMonitor));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_PWM_PREDICT,      &pwmPredMonitor));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PARAM_ESTIMATES,        estimateMonitor.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PARAM_VARIANCE,         variancesMonitor.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_TORQUE_DERIVAT,   &dTorqueMonitor));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_TORQUE_PREDICT,   &torquePredMonitor));
     
     ///< Register callbacks for some module parameters
-    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_ACTIVE_JOINTS,      this));
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_VEL_EST_WIND_SIZE,  this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_JOINT_TO_MONITOR,   this));
     
     ///< Register callbacks for some module commands
-    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_SAVE,           this));
+    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_SAVE,               this));
+    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_RESET,              this));
+    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_ACTIVATE_JOINT,     this));
+    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_DEACTIVATE_JOINT,   this));
 
     for(int i=0; i<_n; i++)
     {
         inputSamples[i].resize(PARAM_NUMBER);
         estimators[i].setParamSize(PARAM_NUMBER);
     }
+    updateJointToMonitor();
 
     ///< read robot status
     if(!readRobotStatus(true))
@@ -124,7 +131,8 @@ void MotorFrictionIdentificationThread::run()
     {
         if(activeJoints[i]==1)
         {
-            estimators[i].feedSample(inputSamples[i], pwm[i]);
+            if(fabs(dTorques[i])>torqueVelThr || fabs(dq[i])>zeroVelThr)
+                estimators[i].feedSample(inputSamples[i], pwm[i]);
         }
     }
     
@@ -140,9 +148,10 @@ void MotorFrictionIdentificationThread::run()
 bool MotorFrictionIdentificationThread::readRobotStatus(bool blockingRead)
 {
     double t = Time::now() - delay;
-    bool res =   robot->getEstimates(ESTIMATE_MOTOR_VEL,    dq.data(),      t, blockingRead);
-    res = res && robot->getEstimates(ESTIMATE_MOTOR_PWM,    pwm.data(),     t, blockingRead); 
-    res = res && robot->getEstimates(ESTIMATE_MOTOR_TORQUE, torques.data(), t, blockingRead);
+    bool res =   robot->getEstimates(ESTIMATE_MOTOR_VEL,                dq.data(),       t, blockingRead);
+    res = res && robot->getEstimates(ESTIMATE_MOTOR_PWM,                pwm.data(),      t, blockingRead); 
+    res = res && robot->getEstimates(ESTIMATE_MOTOR_TORQUE,             torques.data(),  t, blockingRead);
+    res = res && robot->getEstimates(ESTIMATE_MOTOR_TORQUE_DERIVATIVE,  dTorques.data(), t, blockingRead);
 
     dq *= CTRL_RAD2DEG;     ///< convert velocities from rad/s to deg/s
 
@@ -155,31 +164,12 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
     ///< compute velocity signs
     for(int i=0; i<_n; i++)
     {
-        if(dq[i]>zeroVelThr)
-        {
-            dqPos[i]        = dq[i];
-            dqNeg[i]        = 0.0;
-            dqSign[i]       = 1.0;
-            dqSignPos[i]    = 1.0;
-            dqSignNeg[i]    = 0.0;
-        }
-        else if(dq[i]<-zeroVelThr)
-        {
-            dqPos[i]        = 0.0;
-            dqNeg[i]        = dq[i];
-            dqSign[i]       = -1.0;
-            dqSignPos[i]    = 0.0;
-            dqSignNeg[i]    = 1.0;
-        }
-        else
-        {
-            dqPos[i]        = 0.0;
-            dqNeg[i]        = 0.0;
-            dqSign[i]       = 0.0;
-            dqSignPos[i]    = 0.0;
-            dqSignNeg[i]    = 0.0;
-        }
-
+        dqPos[i]        = dq[i]>zeroVelThr  ?   dq[i]   :   0.0;
+        dqNeg[i]        = dq[i]<-zeroVelThr ?   dq[i]   :   0.0;
+        dqSignPos[i]    = dq[i]>zeroVelThr  ?   1.0     :   0.0;
+        dqSignNeg[i]    = dq[i]<-zeroVelThr ?   1.0     :   0.0;
+        dqSign[i]       = dq[i]>zeroVelThr  ?   1.0     :   (dq[i]<-zeroVelThr ? -1.0 : 0.0);
+        
         inputSamples[i][INDEX_K_TAO]  = torques[i];
         inputSamples[i][INDEX_K_VP]   = dqPos[i];
         inputSamples[i][INDEX_K_VN]   = dqNeg[i];
@@ -196,8 +186,6 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
         }
     }
 
-    
-
     return true;
 }
 
@@ -205,15 +193,39 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
 void MotorFrictionIdentificationThread::prepareMonitorData()
 {
     ///< monitor variables
-    int jid = robot->getJointList().localToGlobalId(globalToLocalIcubId(jointMonitor));
+    int jid = jointMonitor; //robot->getJointList().localToGlobalId(globalToLocalIcubId(jointMonitor));
     estimators[jid].updateParameterEstimation();    ///< Estimates of the parameters of the monitored joint
     estimators[jid].getCurrentParameterEstimate(estimateMonitor, sigmaMonitor);
     variancesMonitor = sigmaMonitor.diagonal();     ///< Variances of the parameters of the monitored joint
     dqMonitor       = dq[jid];                      ///< Velocity of the monitored joint
     torqueMonitor   = torques[jid];                 ///< Torque of the monitored joint
+    dTorqueMonitor  = dTorques[jid];                ///< Derivative of the torque of the monitored joint
     signDqMonitor   = dqSign[jid];                  ///< Velocity sign of the monitored joint
     pwmMonitor      = pwm[jid];                     ///< Motor pwm of the monitored joint
-    estimators[jid].predictOutput(inputSamples[jid], pwmPredMonitor);   ///< Prediction of current motor pwm
+    ///< Prediction of current motor pwm
+    estimators[jid].predictOutput(inputSamples[jid], pwmPredMonitor);   
+    ///< Prediction of motor torque: tau = (-1/k_tau)(-pwm + k_v\dot{q} + k_c sign(\dot{q}))
+    VectorXd phi = inputSamples[jid];
+    phi[INDEX_K_TAO] = -pwm[jid];
+    torquePredMonitor = (-1.0/estimateMonitor[INDEX_K_TAO]) * estimateMonitor.dot(phi);
+}
+
+//*************************************************************************************************************************
+bool MotorFrictionIdentificationThread::resetIdentification(int jid)
+{
+    if(jid>=_n)     ///< check if index is out of bounds
+        return false;
+
+    if(jid>=0)      ///< reset the estimator of the specified joint
+    {
+        estimators[jid].reset();
+        return true;
+    }
+
+    ///< reset the estimators of all the joints
+    for(int i=0; i<_n; i++) 
+            estimators[i].reset();
+    return true;
 }
 
 //*************************************************************************************************************************
@@ -230,6 +242,9 @@ void MotorFrictionIdentificationThread::parameterUpdated(const ParamProxyInterfa
     case PARAM_ID_VEL_EST_WIND_SIZE:
         printf("Param velocity estimation window size changed\n");
         break;
+    case PARAM_ID_JOINT_TO_MONITOR:
+        updateJointToMonitor();
+        break;
     default:
         printf("A callback is registered but not managed for the parameter %s\n",pd->name.c_str());
     }
@@ -240,12 +255,46 @@ void MotorFrictionIdentificationThread::commandReceived(const CommandDescription
 {
     switch(cd.id)
     {
-    case COMMAND_ID_SAVE:
-        printf("Save command received.\n");
+    case COMMAND_ID_RESET:
+        if(!resetIdentification(convertGlobalToLocalJointId(params)))
+            reply.addString("ERROR: Reset failed.");
         break;
+
+    case COMMAND_ID_SAVE:
+        reply.addString("Save command received.\n");
+        break;
+
+    case COMMAND_ID_ACTIVATE_JOINT:
+        {
+            int jid = convertGlobalToLocalJointId(params);
+            if(jid>=0)
+                activeJoints[jid] = 1;
+            else
+                reply.addString("ERROR: specified joint identifier is not valid.");
+            break;
+        }
+
+    case COMMAND_ID_DEACTIVATE_JOINT:
+        {
+            int jid = convertGlobalToLocalJointId(params);
+            if(jid>=0)
+                activeJoints[jid] = 0;
+            else
+                reply.addString("ERROR: specified joint identifier is not valid.");
+            break;
+        }
+
     default:
         printf("A callback is registered but not managed for the command %s\n", cd.name.c_str());
     }
+}
+
+//*************************************************************************************************************************
+void MotorFrictionIdentificationThread::updateJointToMonitor()
+{
+    LocalId lid = globalToLocalIcubId(jointMonitorName);
+    if(lid.bodyPart!=iCub::skinDynLib::BODY_PART_UNKNOWN)
+        jointMonitor = robot->getJointList().localToGlobalId(lid);
 }
 
 //*************************************************************************************************************************
@@ -253,4 +302,29 @@ void MotorFrictionIdentificationThread::sendMsg(const string &s, MsgType type)
 {
     if(printCountdown==0 && type>=PRINT_MSG_LEVEL)
         printf("[MotorFrictionIdentificationThread] %s\n", s.c_str());
+}
+
+//*************************************************************************************************************************
+int MotorFrictionIdentificationThread::convertGlobalToLocalJointId(const Bottle &b)
+{
+    if(b.size()==0)
+        return -1;
+
+    LocalId lid;
+    if(b.get(0).isString())
+    {
+        string jointName = b.get(0).asString();
+        lid = globalToLocalIcubId(jointName);
+    }
+    else if(b.get(0).isInt())
+    {
+        int jointId = b.get(0).asInt();
+        lid = globalToLocalIcubId(jointId);
+    }
+    
+    if(lid.bodyPart==iCub::skinDynLib::BODY_PART_UNKNOWN)
+        return -1;
+
+    int jid = robot->getJointList().localToGlobalId(lid);
+    return jid;
 }
