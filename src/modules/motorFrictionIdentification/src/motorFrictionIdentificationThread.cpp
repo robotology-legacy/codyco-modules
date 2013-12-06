@@ -41,22 +41,22 @@ MotorFrictionIdentificationThread::MotorFrictionIdentificationThread(string _nam
 bool MotorFrictionIdentificationThread::threadInit()
 {
     ///< resize vectors and set them to zero
-    resizeAndSetToZero(dq, _n);
-    resizeAndSetToZero(dqPos, _n);
-    resizeAndSetToZero(dqNeg, _n);
-    resizeAndSetToZero(torques, _n);
-    resizeAndSetToZero(dTorques, _n);
-    resizeAndSetToZero(dqSign, _n);
-    resizeAndSetToZero(dqSignPos, _n);
-    resizeAndSetToZero(dqSignNeg, _n);
-    resizeAndSetToZero(pwm, _n);
-    resizeAndSetToZero(activeJoints, _n);
-    resizeAndSetToZero(currentGlobalJointIds, _n);
-    resizeAndSetToZero(rhs, _n*PARAM_NUMBER);
-    resizeAndSetToZero(estimateMonitor, PARAM_NUMBER);
-    resizeAndSetToZero(variancesMonitor, PARAM_NUMBER);
-    resizeAndSetToZero(sigmaMonitor, PARAM_NUMBER, PARAM_NUMBER);
-    resizeAndSetToZero(covarianceInv, _n, PARAM_NUMBER*PARAM_NUMBER);
+    resizeAndSetToZero(dq,                  _n);
+    resizeAndSetToZero(dqPos,               _n);
+    resizeAndSetToZero(dqNeg,               _n);
+    resizeAndSetToZero(torques,             _n);
+    resizeAndSetToZero(dTorques,            _n);
+    resizeAndSetToZero(dqSign,              _n);
+    resizeAndSetToZero(dqSignPos,           _n);
+    resizeAndSetToZero(dqSignNeg,           _n);
+    resizeAndSetToZero(pwm,                 _n);
+    resizeAndSetToZero(activeJoints,        _n);
+    resizeAndSetToZero(currentGlobalJointIds,   _n);
+    resizeAndSetToZero(rhs,                 _n*PARAM_NUMBER);
+    resizeAndSetToZero(estimateMonitor,     PARAM_NUMBER);
+    resizeAndSetToZero(variancesMonitor,    PARAM_NUMBER);
+    resizeAndSetToZero(sigmaMonitor,        PARAM_NUMBER,   PARAM_NUMBER);
+    resizeAndSetToZero(covarianceInv,       _n,             PARAM_NUMBER*PARAM_NUMBER);
 
     currentJointIds.resize(_n);             ///< IDs of the joints currently excited
     inputSamples.resize(_n);
@@ -66,9 +66,13 @@ bool MotorFrictionIdentificationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_OUTPUT_FILENAME,        &outputFilename));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ACTIVE_JOINTS,          activeJoints.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_IDENTIF_DELAY,          &delay));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ZERO_VEL_THRESH,        &zeroVelThr));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VEL_EST_WIND_SIZE,      &velEstWind));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TORQUE_VEL_THRESH,      &torqueVelThr));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ZERO_JOINT_VEL_THRESH,  &zeroJointVelThr));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ZERO_TORQUE_VEL_THRESH, &zeroTorqueVelThr));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL_WIND_SIZE,    &jointVelEstWind));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TORQUE_VEL_WIND_SIZE,   &torqueVelEstWind));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL_EST_THRESH,   &jointVelEstThr));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TORQUE_VEL_EST_THRESH,  &torqueVelEstThr));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TORQUE_FILT_CUT_FREQ,   &torqueFiltCutFreq));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_FORGET_FACTOR,          &forgetFactor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_TO_MONITOR,       &jointMonitorName));
 
@@ -86,8 +90,12 @@ bool MotorFrictionIdentificationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_TORQUE_PREDICT,   &torquePredMonitor));
     
     ///< Register callbacks for some module parameters
-    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_VEL_EST_WIND_SIZE,  this));
-    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_JOINT_TO_MONITOR,   this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_JOINT_VEL_WIND_SIZE,    this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TORQUE_VEL_WIND_SIZE,   this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_JOINT_VEL_EST_THRESH,   this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TORQUE_VEL_EST_THRESH,  this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TORQUE_FILT_CUT_FREQ,   this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_JOINT_TO_MONITOR,       this));
     
     ///< Register callbacks for some module commands
     YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_SAVE,               this));
@@ -101,6 +109,12 @@ bool MotorFrictionIdentificationThread::threadInit()
         estimators[i].setParamSize(PARAM_NUMBER);
     }
     updateJointToMonitor();
+    ///< set derivative filter parameters
+    robot->setEstimationParameter(ESTIMATE_MOTOR_VEL, ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE, &jointVelEstWind);
+    robot->setEstimationParameter(ESTIMATE_MOTOR_VEL, ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD, &jointVelEstThr);
+    robot->setEstimationParameter(ESTIMATE_MOTOR_TORQUE_DERIVATIVE, ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE, &torqueVelEstWind);
+    robot->setEstimationParameter(ESTIMATE_MOTOR_TORQUE_DERIVATIVE, ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD, &torqueVelEstThr);
+    robot->setEstimationParameter(ESTIMATE_MOTOR_TORQUE, ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ, &torqueFiltCutFreq);
 
     ///< read robot status
     if(!readRobotStatus(true))
@@ -131,7 +145,7 @@ void MotorFrictionIdentificationThread::run()
     {
         if(activeJoints[i]==1)
         {
-            if(fabs(dTorques[i])>torqueVelThr || fabs(dq[i])>zeroVelThr)
+            if(fabs(dTorques[i])>zeroTorqueVelThr || fabs(dq[i])>zeroJointVelThr)
                 estimators[i].feedSample(inputSamples[i], pwm[i]);
         }
     }
@@ -164,11 +178,11 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
     ///< compute velocity signs
     for(int i=0; i<_n; i++)
     {
-        dqPos[i]        = dq[i]>zeroVelThr  ?   dq[i]   :   0.0;
-        dqNeg[i]        = dq[i]<-zeroVelThr ?   dq[i]   :   0.0;
-        dqSignPos[i]    = dq[i]>zeroVelThr  ?   1.0     :   0.0;
-        dqSignNeg[i]    = dq[i]<-zeroVelThr ?   1.0     :   0.0;
-        dqSign[i]       = dq[i]>zeroVelThr  ?   1.0     :   (dq[i]<-zeroVelThr ? -1.0 : 0.0);
+        dqPos[i]        = dq[i]>zeroJointVelThr  ?   dq[i]   :   0.0;
+        dqNeg[i]        = dq[i]<-zeroJointVelThr ?   dq[i]   :   0.0;
+        dqSignPos[i]    = dq[i]>zeroJointVelThr  ?   1.0     :   0.0;
+        dqSignNeg[i]    = dq[i]<-zeroJointVelThr ?   1.0     :   0.0;
+        dqSign[i]       = dq[i]>zeroJointVelThr  ?   1.0     :   (dq[i]<-zeroJointVelThr ? -1.0 : 0.0);
         
         inputSamples[i][INDEX_K_TAO]  = torques[i];
         inputSamples[i][INDEX_K_VP]   = dqPos[i];
@@ -236,11 +250,25 @@ void MotorFrictionIdentificationThread::parameterUpdated(const ParamProxyInterfa
 {
     switch(pd->id)
     {
-    case PARAM_ID_ACTIVE_JOINTS:
-        printf("Param active joints changed\n");
+    case PARAM_ID_JOINT_VEL_WIND_SIZE:
+        if(!robot->setEstimationParameter(ESTIMATE_MOTOR_VEL, ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE, &jointVelEstWind))
+            printf("Error while setting joint velocity estimation window.");
         break;
-    case PARAM_ID_VEL_EST_WIND_SIZE:
-        printf("Param velocity estimation window size changed\n");
+    case PARAM_ID_JOINT_VEL_EST_THRESH:
+        if(!robot->setEstimationParameter(ESTIMATE_MOTOR_VEL, ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD, &jointVelEstThr))
+            printf("Error while setting joint velocity estimation threshold.");
+        break;
+    case PARAM_ID_TORQUE_VEL_WIND_SIZE:
+        if(!robot->setEstimationParameter(ESTIMATE_MOTOR_TORQUE_DERIVATIVE, ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE, &torqueVelEstWind))
+            printf("Error while setting torque velocity estimation window.");
+        break;
+    case PARAM_ID_TORQUE_VEL_EST_THRESH:
+        if(!robot->setEstimationParameter(ESTIMATE_MOTOR_TORQUE_DERIVATIVE, ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD, &torqueVelEstThr))
+            printf("Error while setting torque velocity estimation threshold.");
+        break;
+    case PARAM_ID_TORQUE_FILT_CUT_FREQ:
+        if(!robot->setEstimationParameter(ESTIMATE_MOTOR_TORQUE, ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ, &torqueFiltCutFreq))
+            printf("Error while setting torque filter cut frequency.");
         break;
     case PARAM_ID_JOINT_TO_MONITOR:
         updateJointToMonitor();
