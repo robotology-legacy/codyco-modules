@@ -152,7 +152,7 @@ bool icubWholeBodySensors::removeSensor(const SensorType st, const LocalId &sid)
     return false;
 }
 
-LocalIdList icubWholeBodySensors::getSensorList(const SensorType st)
+const LocalIdList& icubWholeBodySensors::getSensorList(const SensorType st)
 {
     switch(st)
     {
@@ -163,7 +163,7 @@ LocalIdList icubWholeBodySensors::getSensorList(const SensorType st)
     case SENSOR_TORQUE:         return torqueSensorIdList;
     default:break;
     }
-    return LocalIdList();
+    return emptyList;
 }
         
 int icubWholeBodySensors::getSensorNumber(const SensorType st)

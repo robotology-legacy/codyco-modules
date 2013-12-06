@@ -130,7 +130,7 @@ bool icubWholeBodyStates::removeEstimate(const EstimateType et, const LocalId &s
     return false;
 }
         
-LocalIdList icubWholeBodyStates::getEstimateList(const EstimateType et)
+const LocalIdList& icubWholeBodyStates::getEstimateList(const EstimateType et)
 {
     switch(et)
     {
@@ -149,7 +149,7 @@ LocalIdList icubWholeBodyStates::getEstimateList(const EstimateType et)
     case ESTIMATE_FORCE_TORQUE:             return sensors->getSensorList(SENSOR_FORCE_TORQUE);
     default: break;
     }
-    return LocalIdList();
+    return emptyList;
 }
         
 int icubWholeBodyStates::getEstimateNumber(const EstimateType et)
@@ -229,6 +229,11 @@ bool icubWholeBodyStates::getEstimates(const EstimateType et, double *data, doub
     default: break;
     }
     return false;
+}
+
+bool icubWholeBodyStates::setEstimationParameter(const EstimateType et, const EstimationParameter ep, const void *value)
+{
+    return estimator->lockAndSetEstimationParameter(et, ep, value);
 }
 
 // *********************************************************************************************************************
@@ -337,24 +342,35 @@ icubWholeBodyEstimator::icubWholeBodyEstimator(int _period, icubWholeBodySensors
 : RateThread(_period), sensors(_sensors), dqFilt(0), d2qFilt(0)
 {
     resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
-    dqFiltWL = 16;
-    d2qFiltWL = 25;                 // window lengths of adaptive window filters
-    dqFiltTh = d2qFiltTh = 1.0;     // threshold of adaptive window filters
-    dTauJFiltWL = 16;
-    dTauMFiltWL = 16;
-    dTauJFiltTh = 1.0;
-    dTauMFiltTh = 1.0;
+    ///< Window lengths of adaptive window filters
+    dqFiltWL            = 16;
+    d2qFiltWL           = 25;
+    dTauJFiltWL         = 30;
+    dTauMFiltWL         = 30;
+    ///< Threshold of adaptive window filters
+    dqFiltTh            = 1.0;      
+    d2qFiltTh           = 1.0;
+    dTauJFiltTh         = 0.2;
+    dTauMFiltTh         = 0.2;
+    ///< Cut frequencies
+    tauJCutFrequency    =   3.0;
+    tauMCutFrequency    =   3.0;
 }
 
 bool icubWholeBodyEstimator::threadInit()
 {
     resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
+    ///< create derivative filters
     dqFilt = new AWLinEstimator(dqFiltWL, dqFiltTh);
     d2qFilt = new AWQuadEstimator(d2qFiltWL, d2qFiltTh);
     dTauJFilt = new AWLinEstimator(dTauJFiltWL, dTauJFiltTh);
     dTauMFilt = new AWLinEstimator(dTauMFiltWL, dTauMFiltTh);
+    ///< read sensors
     bool ok = sensors->readSensors(SENSOR_ENCODER, estimates.lastQ.data(), qStamps.data(), true);
     ok = ok && sensors->readSensors(SENSOR_TORQUE, estimates.lastTauJ.data(), tauJStamps.data(), true);
+    ///< create low pass filters
+    tauJFilt    = new FirstOrderLowPassFilter(tauJCutFrequency, getRate()*1e-3, estimates.lastTauJ);
+    tauMFilt    = new FirstOrderLowPassFilter(tauMCutFrequency, getRate()*1e-3, estimates.lastTauJ);
     return ok;
 }
 
@@ -363,6 +379,8 @@ void icubWholeBodyEstimator::run()
     mutex.wait();
     {
         resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
+        
+        ///< Read encoders
         if(sensors->readSensors(SENSOR_ENCODER, q.data(), qStamps.data(), false))
         {
             estimates.lastQ = q;
@@ -372,18 +390,22 @@ void icubWholeBodyEstimator::run()
             estimates.lastDq = dqFilt->estimate(el);
             estimates.lastD2q = d2qFilt->estimate(el);
         }
+        
+        ///< Read joint torque sensors
         if(sensors->readSensors(SENSOR_TORQUE, tauJ.data(), tauJStamps.data(), false))
         {
+            // @todo Convert joint torques into motor torques
             AWPolyElement el;
             el.time = yarp::os::Time::now();
-            estimates.lastTauJ = tauJ;
-            estimates.lastTauM = tauJ;  // @todo Convert joint torques into motor torques
-            
-            el.data = estimates.lastTauJ;
-            estimates.lastDtauJ = dTauJFilt->estimate(el);
 
-            el.data = estimates.lastTauM;
-            estimates.lastDtauM = dTauMFilt->estimate(el);
+            estimates.lastTauJ = tauJFilt->filt(tauJ);  ///< low pass filter
+            estimates.lastTauM = tauMFilt->filt(tauJ);  ///< low pass filter
+
+            el.data = tauJ;
+            estimates.lastDtauJ = dTauJFilt->estimate(el);  ///< derivative filter
+
+            //el.data = tauM;
+            estimates.lastDtauM = dTauMFilt->estimate(el);  ///< derivative filter
         }
     }
     mutex.post();
@@ -439,8 +461,67 @@ bool icubWholeBodyEstimator::lockAndCopyVectorElement(int index, const Vector &s
     return true;
 }
 
-void icubWholeBodyEstimator::setVelFiltParams(int windowLength, double threshold)
+bool icubWholeBodyEstimator::lockAndSetEstimationParameter(const EstimateType et, const EstimationParameter ep, const void *value)
 {
+    bool res;
+    mutex.wait();
+    switch(et)
+    {
+    case ESTIMATE_JOINT_VEL:
+    case ESTIMATE_MOTOR_VEL:
+        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE) 
+            res = setVelFiltParams(((int*)value)[0], dqFiltTh);
+        else if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD)
+            res = setVelFiltParams(dqFiltWL, ((double*)value)[0]);
+        break;
+
+    case ESTIMATE_JOINT_ACC:
+    case ESTIMATE_MOTOR_ACC:
+        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE) 
+            res = setAccFiltParams(((int*)value)[0], d2qFiltTh);
+        else if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD)
+            res = setAccFiltParams(d2qFiltWL, ((double*)value)[0]);
+        break;
+
+    case ESTIMATE_JOINT_TORQUE:
+        if(ep==ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ)
+            res = setTauJCutFrequency(((double*)value)[0]);
+        break;
+
+    case ESTIMATE_JOINT_TORQUE_DERIVATIVE:
+        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE) 
+            res = setDtauJFiltParams(((int*)value)[0], dTauJFiltTh);
+        else if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD)
+            res = setDtauJFiltParams(dTauJFiltWL, ((double*)value)[0]);
+        break;
+
+    case ESTIMATE_MOTOR_TORQUE:
+        if(ep==ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ)
+            res = setTauMCutFrequency(((double*)value)[0]);
+        break;
+
+    case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:
+        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE) 
+            res = setDtauMFiltParams(((int*)value)[0], dTauMFiltTh);
+        else if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD)
+            res = setDtauMFiltParams(dTauMFiltWL, ((double*)value)[0]);
+        break;
+    
+    case ESTIMATE_MOTOR_PWM:
+    case ESTIMATE_IMU:
+    case ESTIMATE_FORCE_TORQUE:
+    case ESTIMATE_JOINT_POS:
+    case ESTIMATE_MOTOR_POS:    
+    default: break;
+    }
+    mutex.post();
+    return res;
+}
+
+bool icubWholeBodyEstimator::setVelFiltParams(int windowLength, double threshold)
+{
+    if(windowLength<1 || threshold<=0.0)
+        return false;
     dqFiltWL = windowLength;
     dqFiltTh = threshold;
     if(dqFilt!=NULL)
@@ -450,10 +531,13 @@ void icubWholeBodyEstimator::setVelFiltParams(int windowLength, double threshold
         for(AWPolyList::iterator it=list.begin(); it!=list.end(); it++)
             dqFilt->feedData(*it);
     }
+    return true;
 }
 
-void icubWholeBodyEstimator::setAccFiltParams(int windowLength, double threshold)
+bool icubWholeBodyEstimator::setAccFiltParams(int windowLength, double threshold)
 {
+    if(windowLength<1 || threshold<=0.0)
+        return false;
     d2qFiltWL = windowLength;
     d2qFiltTh = threshold;
     if(d2qFilt!=NULL)
@@ -463,10 +547,13 @@ void icubWholeBodyEstimator::setAccFiltParams(int windowLength, double threshold
         for(AWPolyList::iterator it=list.begin(); it!=list.end(); it++)
             d2qFilt->feedData(*it);
     }
+    return true;
 }
 
-void icubWholeBodyEstimator::setDtauJFiltParams(int windowLength, double threshold)
+bool icubWholeBodyEstimator::setDtauJFiltParams(int windowLength, double threshold)
 {
+    if(windowLength<1 || threshold<=0.0)
+        return false;
     dTauJFiltWL = windowLength;
     dTauJFiltTh = threshold;
     if(dTauJFilt!=NULL)
@@ -476,10 +563,13 @@ void icubWholeBodyEstimator::setDtauJFiltParams(int windowLength, double thresho
         for(AWPolyList::iterator it=list.begin(); it!=list.end(); it++)
             dTauJFilt->feedData(*it);
     }
+    return true;
 }
 
-void icubWholeBodyEstimator::setDtauMFiltParams(int windowLength, double threshold)
+bool icubWholeBodyEstimator::setDtauMFiltParams(int windowLength, double threshold)
 {
+    if(windowLength<1 || threshold<=0.0)
+        return false;
     dTauMFiltWL = windowLength;
     dTauMFiltTh = threshold;
     if(dTauMFilt!=NULL)
@@ -489,4 +579,15 @@ void icubWholeBodyEstimator::setDtauMFiltParams(int windowLength, double thresho
         for(AWPolyList::iterator it=list.begin(); it!=list.end(); it++)
             dTauMFilt->feedData(*it);
     }
+    return true;
+}
+
+bool icubWholeBodyEstimator::setTauJCutFrequency(double fc)
+{
+    return tauJFilt->setCutFrequency(fc);
+}
+
+bool icubWholeBodyEstimator::setTauMCutFrequency(double fc)
+{
+    return tauMFilt->setCutFrequency(fc);
 }

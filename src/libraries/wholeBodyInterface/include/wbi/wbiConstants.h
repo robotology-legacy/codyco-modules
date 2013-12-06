@@ -117,6 +117,14 @@ namespace wbi
 
         ESTIMATE_TYPE_SIZE
     };
+
+    /** List of parameters of estimation algorithms. */
+    enum EstimationParameter
+    {
+        ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE,
+        ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD,
+        ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ
+    };
     
 } // end namespace
 

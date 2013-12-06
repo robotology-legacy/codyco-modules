@@ -110,11 +110,11 @@ namespace wbi
         /** Get a copy of the sensor list of the specified sensor type.
          * @param st Type of sensors.
          * @return A copy of the sensor list. */
-        virtual LocalIdList getSensorList(const SensorType st) = 0;
+        virtual const LocalIdList& getSensorList(const SensorType st) = 0;
         
         /** Get the number of sensors of the specified type.
          * @return The number of sensors of the specified type. */
-        virtual int getSensorNumber(const SensorType st) = 0;
+        //virtual int getSensorNumber(const SensorType st) = 0;
 
         /** Read the specified sensor.
          * @param st Type of sensor to read.
@@ -178,11 +178,11 @@ namespace wbi
         /** Get a copy of the estimate list of the specified estimate type.
          * @param st Type of estimate.
          * @return A copy of the estimate list. */
-        virtual LocalIdList getEstimateList(const EstimateType st) = 0;
+        virtual const LocalIdList& getEstimateList(const EstimateType st) = 0;
         
         /** Get the number of estimates of the specified type.
          * @return The number of estimates of the specified type. */
-        virtual int getEstimateNumber(const EstimateType st) = 0;
+        //virtual int getEstimateNumber(const EstimateType st) = 0;
 
         /** Get the estimate of the specified quantity at the specified time.
          * @param et Type of estimate to get.
@@ -202,6 +202,14 @@ namespace wbi
          * @return True if all the estimate succeeded, false otherwise.
          */
         virtual bool getEstimates(const EstimateType et, double *data, double time=-1.0, bool blocking=true) = 0;
+
+        /** Set the value of the specified parameter of the estimation algorithm
+         * of the specified estimate type.
+         * @param et Estimation type (e.g. joint velocity, motor torque).
+         * @param ep Parameter to set.
+         * @param value Value of the parameter to set.
+         * @return True if the operation succeeded, false otherwise. */
+        virtual bool setEstimationParameter(const EstimateType et, const EstimationParameter ep, const void *value) = 0;
     };
     
     /**
@@ -230,7 +238,7 @@ namespace wbi
         virtual bool removeJoint(const LocalId &j) = 0;
         virtual bool addJoint(const LocalId &j) = 0;
         virtual int addJoints(const LocalIdList &j) = 0;
-        virtual LocalIdList getJointList() = 0;
+        virtual const LocalIdList& getJointList() = 0;
         
         /** Get the upper and lower limits of the joint position(s). 
           * @param qMin Output lower limit(s).
@@ -316,11 +324,11 @@ namespace wbi
         virtual bool init() = 0;
         virtual bool close() = 0;
 
-        virtual int getActuatorNumber() = 0;
+        //virtual int getActuatorNumber() = 0;
         virtual bool removeActuator(const LocalId &j) = 0;
         virtual bool addActuator(const LocalId &j) = 0;
         virtual int addActuators(const LocalIdList &j) = 0;
-        virtual LocalIdList getActuatorList() = 0;
+        virtual const LocalIdList& getActuatorList() = 0;
         
         /** Set the control mode of the specified joint(s).
           * @param controlMode Id of the control mode.
@@ -340,7 +348,7 @@ namespace wbi
           * @param value Value(s) of the parameter.
           * @param joint Joint number, if negative, all joints are considered.
           * @return True if operation succeeded, false otherwise. */
-        virtual bool setControlParam(ControlParam paramId, double *value, int joint=-1) = 0;
+        virtual bool setControlParam(ControlParam paramId, const void *value, int joint=-1) = 0;
     };
     
     /**

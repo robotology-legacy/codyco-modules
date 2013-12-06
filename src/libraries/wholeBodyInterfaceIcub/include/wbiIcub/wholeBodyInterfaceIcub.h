@@ -25,6 +25,7 @@
 #include <yarp/os/Semaphore.h>
 #include <yarp/os/BufferedPort.h>
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
+#include <iCub/ctrl/filters.h>
 #include <iCub/iDynTree/iCubTree.h>
 #include <wbiIcub/wbiIcubUtil.h>
 #include <map>
@@ -54,6 +55,7 @@ namespace wbiIcub
         std::vector<id_2_PortName>  imu_2_port;     // list containing the port name for each IMU
         std::map<int,unsigned int>  bodyPartAxes;   // number of axes for each body part
         
+        wbi::LocalIdList            emptyList;      ///< empty list of IDs to return in case of error
         wbi::LocalIdList            encoderIdList;  // list of the joint encoder ids
         wbi::LocalIdList            pwmSensIdList;  // list of the motor PWM sensor ids
         wbi::LocalIdList            imuIdList;      // list of the IMU ids
@@ -155,7 +157,7 @@ namespace wbiIcub
         /** Get a copy of the sensor list of the specified sensor type.
          * @param st Type of sensors.
          * @return A copy of the sensor list. */
-        virtual wbi::LocalIdList getSensorList(const wbi::SensorType st);
+        virtual const wbi::LocalIdList& getSensorList(const wbi::SensorType st);
         
         /** Get the number of sensors of the specified type.
          * @return The number of sensors of the specified type. */
@@ -232,7 +234,7 @@ namespace wbiIcub
         virtual bool removeActuator(const wbi::LocalId &j);
         virtual bool addActuator(const wbi::LocalId &j);
         virtual int addActuators(const wbi::LocalIdList &j);
-        inline virtual wbi::LocalIdList getActuatorList(){ return jointIdList; }
+        inline virtual const wbi::LocalIdList& getActuatorList(){ return jointIdList; }
         
         /** Set the control mode of the specified joint(s).
           * @param controlMode Id of the control mode.
@@ -252,7 +254,7 @@ namespace wbiIcub
           * @param value Value(s) of the parameter.
           * @param joint Joint number, if negative, all joints are considered.
           * @return True if operation succeeded, false otherwise. */
-        virtual bool setControlParam(wbi::ControlParam paramId, double *value, int joint=-1);
+        virtual bool setControlParam(wbi::ControlParam paramId, const void *value, int joint=-1);
     };
     
 
@@ -269,18 +271,35 @@ namespace wbiIcub
         iCub::ctrl::AWQuadEstimator *d2qFilt;       // joint acceleration filter
         iCub::ctrl::AWLinEstimator  *dTauJFilt;     // joint torque derivative filter
         iCub::ctrl::AWLinEstimator  *dTauMFilt;     // motor torque derivative filter
+        iCub::ctrl::FirstOrderLowPassFilter *tauJFilt;  ///< low pass filter for joint torque
+        iCub::ctrl::FirstOrderLowPassFilter *tauMFilt;  ///< low pass filter for motor torque
+        
         int dqFiltWL, d2qFiltWL;                    // window lengths of adaptive window filters
         double dqFiltTh, d2qFiltTh;                 // threshold of adaptive window filters
         int dTauMFiltWL, dTauJFiltWL;               // window lengths of adaptive window filters
         double dTauMFiltTh, dTauJFiltTh;            // threshold of adaptive window filters
+        double tauJCutFrequency;
+        double tauMCutFrequency;
         
         yarp::sig::Vector           q, qStamps;         // last joint position estimation
         yarp::sig::Vector           tauJ, tauJStamps;
-        //yarp::sig::Vector           tauM;
         
         /* Resize all vectors using current number of DoFs. */
         void resizeAll(int n);
         void lockAndResizeAll(int n);
+
+        /** Set the parameters of the adaptive window filter used for velocity estimation. */
+        bool setVelFiltParams(int windowLength, double threshold);
+        /** Set the parameters of the adaptive window filter used for acceleration estimation. */
+        bool setAccFiltParams(int windowLength, double threshold);
+        /** Set the parameters of the adaptive window filter used for joint torque derivative estimation. */
+        bool setDtauJFiltParams(int windowLength, double threshold);
+        /** Set the parameters of the adaptive window filter used for motor torque derivative estimation. */
+        bool setDtauMFiltParams(int windowLength, double threshold);
+        /** Set the cut frequency of the joint torque low pass filter. */
+        bool setTauJCutFrequency(double fc);
+        /** Set the cut frequency of the motor torque low pass filter. */
+        bool setTauMCutFrequency(double fc);
         
     public:
         
@@ -303,14 +322,7 @@ namespace wbiIcub
         /** Constructor. */
         icubWholeBodyEstimator(int _period, icubWholeBodySensors *_sensors);
         
-        /** Set the parameters of the adaptive window filter used for velocity estimation. */
-        void setVelFiltParams(int windowLength, double threshold);
-        /** Set the parameters of the adaptive window filter used for acceleration estimation. */
-        void setAccFiltParams(int windowLength, double threshold);
-        /** Set the parameters of the adaptive window filter used for joint torque derivative estimation. */
-        void setDtauJFiltParams(int windowLength, double threshold);
-        /** Set the parameters of the adaptive window filter used for motor torque derivative estimation. */
-        void setDtauMFiltParams(int windowLength, double threshold);
+        bool lockAndSetEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
 
         bool threadInit();
         void run();
@@ -331,6 +343,7 @@ namespace wbiIcub
     protected:
         icubWholeBodySensors        *sensors;       // interface to access the robot sensors
         icubWholeBodyEstimator      *estimator;     // estimation thread
+        wbi::LocalIdList            emptyList;      ///< empty list of IDs to return in case of error
         //double                      estWind;      // time window for the estimation
         
         virtual bool lockAndReadSensor(const wbi::SensorType st, const wbi::LocalId sid, double *data, double time, bool blocking);
@@ -378,7 +391,7 @@ namespace wbiIcub
         /** Get a copy of the estimate list of the specified estimate type.
          * @param st Type of estimate.
          * @return A copy of the estimate list. */
-        virtual wbi::LocalIdList getEstimateList(const wbi::EstimateType st);
+        virtual const wbi::LocalIdList& getEstimateList(const wbi::EstimateType st);
         
         /** Get the number of estimates of the specified type.
          * @return The number of estimates of the specified type. */
@@ -402,6 +415,14 @@ namespace wbiIcub
          * @return True if all the estimate succeeded, false otherwise.
          */
         virtual bool getEstimates(const wbi::EstimateType et, double *data, double time=-1.0, bool blocking=true);
+
+        /** Set the value of the specified parameter of the estimation algorithm
+         * of the specified estimate type.
+         * @param et Estimation type (e.g. joint velocity, motor torque).
+         * @param ep Parameter to set.
+         * @param value Value of the parameter to set.
+         * @return True if the operation succeeded, false otherwise. */
+        virtual bool setEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
     };
     
 
@@ -473,7 +494,7 @@ namespace wbiIcub
         virtual bool removeJoint(const wbi::LocalId &j);
         virtual bool addJoint(const wbi::LocalId &j);
         virtual int addJoints(const wbi::LocalIdList &j);
-        virtual wbi::LocalIdList getJointList(){    return jointIdList; }
+        virtual const wbi::LocalIdList& getJointList(){    return jointIdList; }
         
         virtual bool getJointLimits(double *qMin, double *qMax, int joint=-1);
 
@@ -585,25 +606,30 @@ namespace wbiIcub
         virtual bool removeActuator(const wbi::LocalId &j){     return actuatorInt->removeActuator(j); }
         virtual bool addActuator(const wbi::LocalId &j){        return actuatorInt->addActuator(j); }
         virtual int addActuators(const wbi::LocalIdList &j){    return actuatorInt->addActuators(j); }
-        virtual wbi::LocalIdList getActuatorList(){             return actuatorInt->getActuatorList(); }
-        virtual bool setControlMode(wbi::ControlMode cm, double *ref=0, int jnt=-1){ return actuatorInt->setControlMode(cm, ref, jnt); }
-        virtual bool setControlReference(double *ref, int jnt=-1){ return actuatorInt->setControlReference(ref, jnt); }
-        virtual bool setControlParam(wbi::ControlParam parId, double *val, int jnt=-1){ return actuatorInt->setControlParam(parId, val, jnt); }
+        virtual const wbi::LocalIdList& getActuatorList(){      return actuatorInt->getActuatorList(); }
+        virtual bool setControlMode(wbi::ControlMode cm, double *ref=0, int jnt=-1)
+        { return actuatorInt->setControlMode(cm, ref, jnt); }
+        virtual bool setControlReference(double *ref, int jnt=-1)
+        { return actuatorInt->setControlReference(ref, jnt); }
+        virtual bool setControlParam(wbi::ControlParam parId, const void *val, int jnt=-1)
+        { return actuatorInt->setControlParam(parId, val, jnt); }
 
         // STATES
-        virtual bool addEstimate(const wbi::EstimateType st, const wbi::LocalId &sid){        return stateInt->addEstimate(st, sid); }
-        virtual int addEstimates(const wbi::EstimateType st, const wbi::LocalIdList &sids){   return stateInt->addEstimates(st, sids); }
-        virtual bool removeEstimate(const wbi::EstimateType st, const wbi::LocalId &sid){     return stateInt->removeEstimate(st, sid); }
-        virtual wbi::LocalIdList getEstimateList(const wbi::EstimateType st){                 return stateInt->getEstimateList(st); }
-        virtual int getEstimateNumber(const wbi::EstimateType st){                       return stateInt->getEstimateNumber(st); }
+        virtual bool addEstimate(const wbi::EstimateType st, const wbi::LocalId &sid){      return stateInt->addEstimate(st, sid); }
+        virtual int addEstimates(const wbi::EstimateType st, const wbi::LocalIdList &sids){ return stateInt->addEstimates(st, sids); }
+        virtual bool removeEstimate(const wbi::EstimateType st, const wbi::LocalId &sid){   return stateInt->removeEstimate(st, sid); }
+        virtual const wbi::LocalIdList& getEstimateList(const wbi::EstimateType st){        return stateInt->getEstimateList(st); }
+        virtual int getEstimateNumber(const wbi::EstimateType st){                          return stateInt->getEstimateNumber(st); }
         virtual bool getEstimate(const wbi::EstimateType et, const wbi::LocalId &sid, double *data, double time=-1.0, bool blocking=true)
         { return stateInt->getEstimate(et, sid, data, time, blocking); }
         virtual bool getEstimates(const wbi::EstimateType et, double *data, double time=-1.0, bool blocking=true)
         { return stateInt->getEstimates(et, data, time, blocking); }
+        virtual bool setEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value)
+        { return stateInt->setEstimationParameter(et, ep, value); }
         
         // MODEL
         virtual int getDoFs(){ return modelInt->getDoFs(); }
-        virtual wbi::LocalIdList getJointList(){ return modelInt->getJointList(); }
+        virtual const wbi::LocalIdList& getJointList(){ return modelInt->getJointList(); }
         virtual bool getLinkId(const char *linkName, int &linkId)
         { return modelInt->getLinkId(linkName, linkId); }
         virtual bool getJointLimits(double *qMin, double *qMax, int joint=-1)
