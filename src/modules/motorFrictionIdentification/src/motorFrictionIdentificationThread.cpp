@@ -54,7 +54,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     resizeAndSetToZero(currentGlobalJointIds,   _n);
     resizeAndSetToZero(rhs,                 _n*PARAM_NUMBER);
     resizeAndSetToZero(estimateMonitor,     PARAM_NUMBER);
-    resizeAndSetToZero(variancesMonitor,    PARAM_NUMBER);
+    resizeAndSetToZero(stdDevMonitor,    PARAM_NUMBER);
     resizeAndSetToZero(sigmaMonitor,        PARAM_NUMBER,   PARAM_NUMBER);
     resizeAndSetToZero(covarianceInv,       _n,             PARAM_NUMBER*PARAM_NUMBER);
 
@@ -85,7 +85,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_PWM,              &pwmMonitor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_PWM_PREDICT,      &pwmPredMonitor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PARAM_ESTIMATES,        estimateMonitor.data()));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PARAM_VARIANCE,         variancesMonitor.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PARAM_STD_DEV,          stdDevMonitor.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_TORQUE_DERIVAT,   &dTorqueMonitor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_TORQUE_PREDICT,   &torquePredMonitor));
     
@@ -181,7 +181,7 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
         dqPos[i]        = dq[i]>zeroJointVelThr  ?   dq[i]   :   0.0;
         dqNeg[i]        = dq[i]<-zeroJointVelThr ?   dq[i]   :   0.0;
         dqSignPos[i]    = dq[i]>zeroJointVelThr  ?   1.0     :   0.0;
-        dqSignNeg[i]    = dq[i]<-zeroJointVelThr ?   1.0     :   0.0;
+        dqSignNeg[i]    = dq[i]<-zeroJointVelThr ?   -1.0    :   0.0;
         dqSign[i]       = dq[i]>zeroJointVelThr  ?   1.0     :   (dq[i]<-zeroJointVelThr ? -1.0 : 0.0);
         
         inputSamples[i][INDEX_K_TAO]  = torques[i];
@@ -210,7 +210,7 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
     int jid = jointMonitor; //robot->getJointList().localToGlobalId(globalToLocalIcubId(jointMonitor));
     estimators[jid].updateParameterEstimation();    ///< Estimates of the parameters of the monitored joint
     estimators[jid].getCurrentParameterEstimate(estimateMonitor, sigmaMonitor);
-    variancesMonitor = sigmaMonitor.diagonal();     ///< Variances of the parameters of the monitored joint
+    stdDevMonitor = sigmaMonitor.diagonal().array().sqrt();     ///< Variances of the parameters of the monitored joint
     dqMonitor       = dq[jid];                      ///< Velocity of the monitored joint
     torqueMonitor   = torques[jid];                 ///< Torque of the monitored joint
     dTorqueMonitor  = dTorques[jid];                ///< Derivative of the torque of the monitored joint
@@ -222,6 +222,15 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
     VectorXd phi = inputSamples[jid];
     phi[INDEX_K_TAO] = -pwm[jid];
     torquePredMonitor = (-1.0/estimateMonitor[INDEX_K_TAO]) * estimateMonitor.dot(phi);
+
+    // DEBUG TORQUE PREDICTION
+    double k_tau = estimateMonitor[INDEX_K_TAO];
+    double k_vp = estimateMonitor[INDEX_K_VP];
+    double k_vn = estimateMonitor[INDEX_K_VN];
+    double k_cp = estimateMonitor[INDEX_K_CP];
+    double k_cn = estimateMonitor[INDEX_K_CN];
+    double torquePred = (-1.0/k_tau)*(-pwmMonitor + k_vp*dqPos[jid] + k_vn*dqNeg[jid] + k_cp*dqSignPos[jid] + k_cn*dqSignNeg[jid]);
+    sendMsg("Torque predictions: "+toString(torquePred)+"=="+toString(torquePredMonitor));
 }
 
 //*************************************************************************************************************************

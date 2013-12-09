@@ -74,7 +74,7 @@ enum MotorFrictionIdentificationParamId
     /* Monitor parameters */
     PARAM_ID_JOINT_VEL,             PARAM_ID_JOINT_TORQUE,          PARAM_ID_JOINT_VEL_SIGN,
     PARAM_ID_MOTOR_PWM,             PARAM_ID_MOTOR_PWM_PREDICT, 
-    PARAM_ID_PARAM_ESTIMATES,       PARAM_ID_PARAM_VARIANCE,        PARAM_ID_MOTOR_TORQUE_PREDICT,
+    PARAM_ID_PARAM_ESTIMATES,       PARAM_ID_PARAM_STD_DEV,        PARAM_ID_MOTOR_TORQUE_PREDICT,
     PARAM_ID_MOTOR_TORQUE_DERIVAT,
     /*This is the number of parameters, so it must be the last value of the enum.*/
     PARAM_ID_SIZE 
@@ -117,7 +117,7 @@ new ParamProxyBasic<double>("sign dq",              PARAM_ID_JOINT_VEL_SIGN,    
 new ParamProxyBasic<double>("pwm",                  PARAM_ID_MOTOR_PWM,             1,                                                          PARAM_MONITOR,      0,                                  "Motor pwm of the monitored joint"),
 new ParamProxyBasic<double>("pwm predicted",        PARAM_ID_MOTOR_PWM_PREDICT,     1,                                                          PARAM_MONITOR,      0,                                  "Prediction of the motor pwm of the monitored joint"),
 new ParamProxyBasic<double>("estimates",            PARAM_ID_PARAM_ESTIMATES,       PARAM_NUMBER,                                               PARAM_MONITOR,      0,                                  "Estimates of the parameters of the monitored joint"),
-new ParamProxyBasic<double>("variances",            PARAM_ID_PARAM_VARIANCE,        PARAM_NUMBER,                                               PARAM_MONITOR,      0,                                  "Variances of the parameters of the monitored joint"),
+new ParamProxyBasic<double>("std dev",              PARAM_ID_PARAM_STD_DEV,         PARAM_NUMBER,                                               PARAM_MONITOR,      0,                                  "Standard deviations of the parameters of the monitored joint"),
 new ParamProxyBasic<double>("torque predicted",     PARAM_ID_MOTOR_TORQUE_PREDICT,  1,                                                          PARAM_MONITOR,      0,                                  "Prediction of the motor torque of the monitored joint"),
 new ParamProxyBasic<double>("torque derivative",    PARAM_ID_MOTOR_TORQUE_DERIVAT,  1,                                                          PARAM_MONITOR,      0,                                  "Derivative of the motor torque of the monitored joint")
 };

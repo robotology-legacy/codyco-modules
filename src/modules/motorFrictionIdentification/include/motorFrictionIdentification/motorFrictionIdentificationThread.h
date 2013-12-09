@@ -114,7 +114,7 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     double      pwmMonitor;         ///< Motor pwm of the monitored joint
     double      pwmPredMonitor;     ///< Prediction of the motor pwm of the monitored joint based on the current parameter estimation
     VectorXd    estimateMonitor;    ///< Estimates of the parameters of the monitored joint
-    VectorXd    variancesMonitor;   ///< Variances of the parameters of the monitored joint
+    VectorXd    stdDevMonitor;      ///< Standard deviations of the parameters of the monitored joint
     MatrixXd    sigmaMonitor;       ///< Covariance matrix of the parameters of the monitored joint
     
     /************************************************* PRIVATE METHODS ******************************************************/
