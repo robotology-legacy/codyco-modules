@@ -218,19 +218,19 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
     pwmMonitor      = pwm[jid];                     ///< Motor pwm of the monitored joint
     ///< Prediction of current motor pwm
     estimators[jid].predictOutput(inputSamples[jid], pwmPredMonitor);   
-    ///< Prediction of motor torque: tau = (-1/k_tau)(-pwm + k_v\dot{q} + k_c sign(\dot{q}))
+    ///< Prediction of motor torque: tau = (-1/k_tau)(-k_tau*pwm/k_tau + k_v\dot{q} + k_c sign(\dot{q}))
     VectorXd phi = inputSamples[jid];
-    phi[INDEX_K_TAO] = -pwm[jid];
-    torquePredMonitor = (-1.0/estimateMonitor[INDEX_K_TAO]) * estimateMonitor.dot(phi);
+    double k_tau_inv = fabs(estimateMonitor[INDEX_K_TAO])>0.1 ? 1.0/estimateMonitor[INDEX_K_TAO] : 10.0;
+    phi[INDEX_K_TAO] = -pwm[jid] * k_tau_inv;
+    torquePredMonitor = -k_tau_inv * estimateMonitor.dot(phi);
 
     // DEBUG TORQUE PREDICTION
-    double k_tau = estimateMonitor[INDEX_K_TAO];
-    double k_vp = estimateMonitor[INDEX_K_VP];
+    /*double k_vp = estimateMonitor[INDEX_K_VP];
     double k_vn = estimateMonitor[INDEX_K_VN];
     double k_cp = estimateMonitor[INDEX_K_CP];
     double k_cn = estimateMonitor[INDEX_K_CN];
-    double torquePred = (-1.0/k_tau)*(-pwmMonitor + k_vp*dqPos[jid] + k_vn*dqNeg[jid] + k_cp*dqSignPos[jid] + k_cn*dqSignNeg[jid]);
-    sendMsg("Torque predictions: "+toString(torquePred)+"=="+toString(torquePredMonitor));
+    double torquePred = k_tau_inv*(-pwmMonitor + k_vp*dqPos[jid] + k_vn*dqNeg[jid] + k_cp*dqSignPos[jid] + k_cn*dqSignNeg[jid]);
+    sendMsg("Torque predictions: "+toString(torquePred)+"=="+toString(torquePredMonitor));*/
 }
 
 //*************************************************************************************************************************
