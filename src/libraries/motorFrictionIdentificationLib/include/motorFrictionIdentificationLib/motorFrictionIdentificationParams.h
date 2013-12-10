@@ -47,6 +47,7 @@ static const string         DEFAULT_OUTPUT_FILENAME         = "motorFrictionIden
 static const double         DEFAULT_IDENTIF_DELAY           = 1.0;      ///< delay (in sec) used for the identification
 static const double         DEFAULT_ZERO_JOINT_VEL_THRESH   = 1.0;      ///< threshold to consider a joint velocity zero (deg/s)
 static const double         DEFAULT_ZERO_TORQUE_VEL_THRESH  = 0.2;      ///< threshold to consider the torque velocity zero (N*m/s)
+static const double         DEFAULT_EXT_TORQUE_THRESH       = 0.5;      ///< When the external torque exceedes this threshold we assume there is contact
 static const int            DEFAULT_JOINT_VEL_EST_WIND_SIZE = 61;       ///< max number of samples used for joint velocity estimation
 static const int            DEFAULT_TORQUE_VEL_EST_WIND_SIZE= 61;       ///< max number of samples used for torque velocity estimation
 static const double         DEFAULT_JOINT_VEL_EST_THRESH    = 1.0;      ///< threshold used by the adaptive window estimation of joint velocity
@@ -59,23 +60,23 @@ static const double         DEFAULT_COVARIANCE_INV          = 0.0;      ///< par
 enum MotorFrictionIdentificationParamId 
 { 
     /* Configuration parameters */
-    PARAM_ID_MODULE_NAME,           PARAM_ID_CTRL_PERIOD,           PARAM_ID_ROBOT_NAME, 
+    PARAM_ID_MODULE_NAME,           PARAM_ID_CTRL_PERIOD,               PARAM_ID_ROBOT_NAME, 
     PARAM_ID_JOINT_LIST,        
     /* Input parameters */
-    PARAM_ID_OUTPUT_FILENAME,       PARAM_ID_ACTIVE_JOINTS,         PARAM_ID_IDENTIF_DELAY,     
-    PARAM_ID_ZERO_JOINT_VEL_THRESH, PARAM_ID_ZERO_TORQUE_VEL_THRESH, 
+    PARAM_ID_OUTPUT_FILENAME,       PARAM_ID_ACTIVE_JOINTS,             PARAM_ID_IDENTIF_DELAY,     
+    PARAM_ID_ZERO_JOINT_VEL_THRESH, PARAM_ID_ZERO_TORQUE_VEL_THRESH,    PARAM_ID_EXT_TORQUE_THRESH,
     PARAM_ID_JOINT_VEL_WIND_SIZE,   PARAM_ID_TORQUE_VEL_WIND_SIZE,
     PARAM_ID_JOINT_VEL_EST_THRESH,  PARAM_ID_TORQUE_VEL_EST_THRESH,
-    PARAM_ID_TORQUE_FILT_CUT_FREQ,  PARAM_ID_FORGET_FACTOR,         PARAM_ID_JOINT_TO_MONITOR,  
+    PARAM_ID_TORQUE_FILT_CUT_FREQ,  PARAM_ID_FORGET_FACTOR,             PARAM_ID_JOINT_TO_MONITOR,  
     /* Output parameters */
     PARAM_ID_JOINT_NAMES,
     /* Input\output parameters (to file)*/
     PARAM_ID_COVARIANCE_INV,        PARAM_ID_RHS,
     /* Monitor parameters */
-    PARAM_ID_JOINT_VEL,             PARAM_ID_JOINT_TORQUE,          PARAM_ID_JOINT_VEL_SIGN,
+    PARAM_ID_JOINT_VEL,             PARAM_ID_JOINT_TORQUE,              PARAM_ID_JOINT_VEL_SIGN,
     PARAM_ID_MOTOR_PWM,             PARAM_ID_MOTOR_PWM_PREDICT, 
-    PARAM_ID_PARAM_ESTIMATES,       PARAM_ID_PARAM_STD_DEV,        PARAM_ID_MOTOR_TORQUE_PREDICT,
-    PARAM_ID_MOTOR_TORQUE_DERIVAT,
+    PARAM_ID_PARAM_ESTIMATES,       PARAM_ID_PARAM_STD_DEV,             PARAM_ID_MOTOR_TORQUE_PREDICT,
+    PARAM_ID_EXT_TORQUE,            PARAM_ID_IDENTIFICATION_PHASE,
     /*This is the number of parameters, so it must be the last value of the enum.*/
     PARAM_ID_SIZE 
 };
@@ -100,6 +101,7 @@ new ParamProxyBasic<int>(   "active joints",        PARAM_ID_ACTIVE_JOINTS,     
 new ParamProxyBasic<double>("delay",                PARAM_ID_IDENTIF_DELAY,         1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_IDENTIF_DELAY,             "Delay (in sec) used before processing a sample to update the identified parameters"), 
 new ParamProxyBasic<double>("zero joint vel thr",   PARAM_ID_ZERO_JOINT_VEL_THRESH, 1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_ZERO_JOINT_VEL_THRESH,     "Joint velocities (deg/sec) below this threshold are considered zero"), 
 new ParamProxyBasic<double>("zero torque vel thr",  PARAM_ID_ZERO_TORQUE_VEL_THRESH,1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_ZERO_TORQUE_VEL_THRESH,    "Torque velocities (deg/sec) below this threshold are considered zero"), 
+new ParamProxyBasic<double>("ext torque thr",       PARAM_ID_EXT_TORQUE_THRESH,     1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_EXT_TORQUE_THRESH,         "When the external torque exceedes this threshold we assume there is contact"), 
 new ParamProxyBasic<int>(   "joint vel est wind",   PARAM_ID_JOINT_VEL_WIND_SIZE,   1,                  ParamBilatBounds<int>(1,1000),          PARAM_IN_OUT,       &DEFAULT_JOINT_VEL_EST_WIND_SIZE,   "Max size of the moving window used for estimating joint velocities"), 
 new ParamProxyBasic<int>(   "torque vel est wind",  PARAM_ID_TORQUE_VEL_WIND_SIZE,  1,                  ParamBilatBounds<int>(1,1000),          PARAM_IN_OUT,       &DEFAULT_TORQUE_VEL_EST_WIND_SIZE,  "Max size of the moving window used for estimating motor torque velocities"), 
 new ParamProxyBasic<double>("joint vel est thr",    PARAM_ID_JOINT_VEL_EST_THRESH,  1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_JOINT_VEL_EST_THRESH,      "Threshold used by the adaptive window estimation of joint velocity"), 
@@ -119,7 +121,8 @@ new ParamProxyBasic<double>("pwm predicted",        PARAM_ID_MOTOR_PWM_PREDICT, 
 new ParamProxyBasic<double>("estimates",            PARAM_ID_PARAM_ESTIMATES,       PARAM_NUMBER,                                               PARAM_MONITOR,      0,                                  "Estimates of the parameters of the monitored joint"),
 new ParamProxyBasic<double>("std dev",              PARAM_ID_PARAM_STD_DEV,         PARAM_NUMBER,                                               PARAM_MONITOR,      0,                                  "Standard deviations of the parameters of the monitored joint"),
 new ParamProxyBasic<double>("torque predicted",     PARAM_ID_MOTOR_TORQUE_PREDICT,  1,                                                          PARAM_MONITOR,      0,                                  "Prediction of the motor torque of the monitored joint"),
-new ParamProxyBasic<double>("torque derivative",    PARAM_ID_MOTOR_TORQUE_DERIVAT,  1,                                                          PARAM_MONITOR,      0,                                  "Derivative of the motor torque of the monitored joint")
+new ParamProxyBasic<double>("external torque",      PARAM_ID_EXT_TORQUE,            1,                                                          PARAM_MONITOR,      0,                                  "External torque of the monitored joint"),
+new ParamProxyBasic<int>(   "id phase",             PARAM_ID_IDENTIFICATION_PHASE,  1,                                                          PARAM_MONITOR,      0,                                  "Identification phase of the monitored joint (0 none, 1 torque, 2 friction)")
 };
 
 

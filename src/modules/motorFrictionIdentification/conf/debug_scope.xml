@@ -9,7 +9,8 @@
 5-9		estimates		Estimates of the 5 parameters of the monitored joint
 10-14	variances
 15		torque precited
-16		torque derivative
+16		external torque
+17		identification phase	0 none, 1 torque, 2 friction
 -->
 
 <portscope rows="5" columns="3">
@@ -25,8 +26,8 @@
         <graph remote="/motorId/monitor:o" index="15" color="Blue" title="Motor torque prediction" type="lines" size="2" />
     </plot>
 
-	<!-- plotting torque derivative -->
-	<plot gridx="0" gridy="2" hspan="1" vspan="1" title="Motor Torque Derivative" size="500" bgcolor="white">
+	<!-- plotting external torque -->
+	<plot gridx="0" gridy="2" hspan="1" vspan="1" title="External Joint Torque" size="500" bgcolor="white">
 		<graph remote="/motorId/monitor:o" index="16" color="Red" title="Motor torque derivative" type="lines" size="2" />
 	</plot>
 
@@ -34,6 +35,11 @@
 	<plot gridx="0" gridy="3" hspan="1" vspan="1" title="Motor PWM" size="500" bgcolor="white">
 		<graph remote="/motorId/monitor:o" index="3" color="Red" title="Motor PWM" type="lines" size="2" />
 		<graph remote="/motorId/monitor:o" index="4" color="Blue" title="Predicted motor PWM" type="lines" size="2" />
+	</plot>
+
+	<!-- plotting identification phase-->
+	<plot gridx="0" gridy="4" hspan="1" vspan="1" title="Identification Phase (1: torque, 2:friction)" size="500" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="17" color="Red" title="phase" type="lines" size="2" />
 	</plot>
 
 	<!-- plotting estimates -->
