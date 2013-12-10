@@ -41,7 +41,7 @@ endif()
 link_directories(${CMAKE_BINARY_DIR})
 link_directories("${MATLAB_PATH}/bin/glnxa86")
 
-add_library(${PROJECTNAME} SHARED ${folder_source} ${header_source})
+add_library(${PROJECTNAME} SHARED ${folder_source} ${folder_header})
 
 set(CMAKE_CXX_FLAGS "-fpermissive")
 

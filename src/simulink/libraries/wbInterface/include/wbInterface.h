@@ -163,6 +163,12 @@ public:
             i           = NULL;
         }
     }
+    void setRobotName(string rn){
+        robotName = rn;
+    }
+    void setmoduleName(string mn){
+        moduleName = mn;
+    }
 
      // **************************************************************************************************
      int getCounter()
@@ -206,7 +212,7 @@ public:
              }
 
              // SET CONTROL MODE
-             setCtrlMode(CTRL_MODE_VEL);
+             setCtrlMode(CTRL_MODE_POS);
          }
 
          // Initializing private variables This must be done regardless of the new creation of wbInterface

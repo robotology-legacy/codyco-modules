@@ -198,6 +198,9 @@ static void mdlStart(SimStruct *S)
      //    if(counter.getCount()<2){
      // CONFIGURE AND INITIALIZE ROBOT INTERFACE
  //    fprintf(stderr,"about to configure robot \n");
+     robot->setmoduleName(local_name);
+     robot->setRobotName(robot_name);
+
      bool res = robot->robotConfig();
      res = res && robot->robotInit(static_cast<int>(block_type), static_cast<int>(*uPtrs[0]));
  //    if(res==true)
