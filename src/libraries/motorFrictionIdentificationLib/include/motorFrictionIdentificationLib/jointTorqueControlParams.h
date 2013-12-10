@@ -32,7 +32,7 @@ static const int N_DOF = 25;
 typedef Eigen::Matrix<double,N_DOF,1>           VectorNd;
 typedef Eigen::Matrix<int,N_DOF,1>              VectorNi;
 
-namespace motorFrictionIdentificationLib
+namespace jointTorqueControl
 {
 
 static const int SEND_COMMANDS_ACTIVE = 1;
@@ -40,11 +40,11 @@ static const int SEND_COMMANDS_NONACTIVE = 0;
 
 // *** DEFAULT PARAMETER VALUES
 static const string		DEFAULT_MODULE_NAME     = "jointTorqueControl";
-static const string		DEFAULT_ROBOT_NAME      = "icubSim";            // robot name
-static const string		DEFAULT_FILE_NAME       = "100poses_A";         // input params file (trajectory points)
-static const int        DEFAULT_CTRL_PERIOD     = 10;                   // controller period in ms
+static const string		DEFAULT_ROBOT_NAME      = "icubSim";                // robot name
+static const string		DEFAULT_FILE_NAME       = "100poses_A";             // input params file (trajectory points)
+static const int        DEFAULT_CTRL_PERIOD     = 10;                       // controller period in ms
 static const int 		DEFAULT_MONITORED_JOINT = 0;
-static const int        DEFAULT_SENDCMD     	= SEND_COMMANDS_NONACTIVE; // 
+static const int        DEFAULT_SENDCMD     	= SEND_COMMANDS_NONACTIVE;  // 
 static const VectorNi	DEFAULT_ACTIVE_JOINTS   = VectorNi::Constant(0); 
 
 static const VectorNd	DEFAULT_KT				= VectorNd::Constant(0.0); 

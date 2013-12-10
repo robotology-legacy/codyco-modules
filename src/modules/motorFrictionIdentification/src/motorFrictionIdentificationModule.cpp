@@ -34,6 +34,7 @@
 #include <string.h>
 
 #include "motorFrictionIdentificationLib/motorFrictionIdentificationParams.h"
+#include "motorFrictionIdentificationLib/jointTorqueControlParams.h"
 #include "motorFrictionIdentification/motorFrictionIdentificationThread.h"
 #include "motorFrictionIdentification/motorFrictionIdentificationModule.h"
 
@@ -43,7 +44,6 @@ using namespace yarp::dev;
 using namespace paramHelp;
 using namespace wbiIcub;
 using namespace motorFrictionIdentification;
-using namespace motorFrictionIdentificationLib;
 
 MotorFrictionIdentificationModule::MotorFrictionIdentificationModule()
 {
@@ -57,7 +57,8 @@ MotorFrictionIdentificationModule::MotorFrictionIdentificationModule()
 bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
 {		
     //--------------------------PARAMETER HELPER--------------------------
-    paramHelper = new ParamHelperServer(motorFrictionIdentificationParamDescr, PARAM_ID_SIZE, motorFrictionIdentificationCommandDescr, COMMAND_ID_SIZE);
+    paramHelper = new ParamHelperServer(motorFrictionIdentificationParamDescr, PARAM_ID_SIZE, 
+                                        motorFrictionIdentificationCommandDescr, COMMAND_ID_SIZE);
     paramHelper->linkParam(PARAM_ID_MODULE_NAME,    &moduleName);
     paramHelper->linkParam(PARAM_ID_CTRL_PERIOD,    &threadPeriod);
     paramHelper->linkParam(PARAM_ID_ROBOT_NAME,     &robotName);
@@ -68,6 +69,10 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
     Bottle initMsg;
     paramHelper->initializeParams(rf, initMsg);
     printBottle(initMsg);
+
+    ///< PARAMETER HELPER CLIENT (FOR JOINT TORQUE CONTROL)
+    torqueController = new ParamHelperClient(jointTorqueControl::jointTorqueControlParamDescr, jointTorqueControl::PARAM_ID_SIZE);
+    // do not initialize paramHelperClient because jointTorqueControl module may not be running
 
     // Open ports for communicating with other modules
     if(!paramHelper->init(moduleName))
@@ -103,7 +108,7 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
     }
 
     //--------------------------CTRL THREAD--------------------------
-    identificationThread = new MotorFrictionIdentificationThread(moduleName, robotName, threadPeriod, paramHelper, robotInterface);
+    identificationThread = new MotorFrictionIdentificationThread(moduleName, robotName, threadPeriod, paramHelper, robotInterface, torqueController);
     if(!identificationThread->start())
     { 
         fprintf(stderr, "Error while initializing motorFrictionIdentification control thread. Closing module.\n"); 

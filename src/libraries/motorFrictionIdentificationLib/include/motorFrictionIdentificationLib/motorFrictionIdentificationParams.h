@@ -28,7 +28,7 @@ using namespace paramHelp;
 using namespace Eigen;
 using namespace std;
 
-namespace motorFrictionIdentificationLib
+namespace motorFrictionIdentification
 {
 static const int            PARAM_NUMBER        = 5;    ///< number of estimated parameters
 

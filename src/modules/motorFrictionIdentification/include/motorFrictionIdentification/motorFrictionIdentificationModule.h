@@ -69,6 +69,7 @@
 #include <yarp/os/Vocab.h>
 
 #include <paramHelp/paramHelperServer.h>
+#include <paramHelp/paramHelperClient.h>
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <motorFrictionIdentification/motorFrictionIdentificationThread.h>
  
@@ -91,9 +92,10 @@ class MotorFrictionIdentificationModule: public RFModule, public CommandObserver
     vector<string>      jointNames;     ///< names of the joints that are specified in the configuration file
     double              avgTime, stdDev, avgTimeUsed, stdDevUsed;
 
-	Port                rpcPort;		///< a port to handle rpc messages
-    ParamHelperServer*  paramHelper;    ///< helper class for rpc set/get commands and streaming data
-    wholeBodyInterface* robotInterface; ///< interface to communicate with the robot
+	Port                rpcPort;		    ///< a port to handle rpc messages
+    ParamHelperServer*  paramHelper;        ///< helper class for rpc set/get commands and streaming data
+    ParamHelperClient*  torqueController;   ///< helper class for communicating with the jointTorqueControl module
+    wholeBodyInterface* robotInterface;     ///< interface to communicate with the robot
     MotorFrictionIdentificationThread*   identificationThread;     ///< MotorFrictionIdentification control thread
 
 public:

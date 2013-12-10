@@ -17,7 +17,7 @@
 
 #include <motorFrictionIdentificationLib/motorFrictionExcitationParams.h>
 
-using namespace motorFrictionIdentificationLib;
+using namespace motorFrictionExcitation;
 using namespace yarp::os;
 
 FreeMotionExcitation::FreeMotionExcitation()

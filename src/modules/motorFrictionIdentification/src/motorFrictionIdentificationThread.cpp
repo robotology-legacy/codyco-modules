@@ -16,22 +16,21 @@
 */
 
 #include <motorFrictionIdentification/motorFrictionIdentificationThread.h>
+#include <motorFrictionIdentificationLib/jointTorqueControlParams.h>
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Random.h>
 #include <yarp/os/Log.h>
 #include <yarp/math/SVD.h>
 
-
 using namespace yarp::math;
 using namespace wbiIcub;
 using namespace motorFrictionIdentification;
-using namespace motorFrictionIdentificationLib;
 
 //*************************************************************************************************************************
 MotorFrictionIdentificationThread::MotorFrictionIdentificationThread(string _name, string _robotName, int _period, 
-    ParamHelperServer *_ph, wholeBodyInterface *_wbi)
-    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi)
+    ParamHelperServer *_ph, wholeBodyInterface *_wbi, ParamHelperClient *_tc)
+    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), torqueController(_tc)
 {
     printCountdown = 0;
     _n = robot->getDoFs();
@@ -57,6 +56,11 @@ bool MotorFrictionIdentificationThread::threadInit()
     resizeAndSetToZero(activeJoints,            _n);
     resizeAndSetToZero(currentGlobalJointIds,   _n);
     resizeAndSetToZero(zeroN,                   _n);
+    resizeAndSetToZero(kt,                      _n);
+    resizeAndSetToZero(kvp,                     _n);
+    resizeAndSetToZero(kvn,                     _n);
+    resizeAndSetToZero(kcp,                     _n);
+    resizeAndSetToZero(kcn,                     _n);
     resizeAndSetToZero(rhs,                     _n*PARAM_NUMBER);
     resizeAndSetToZero(estimateMonitor,         PARAM_NUMBER);
     resizeAndSetToZero(stdDevMonitor,           PARAM_NUMBER);
@@ -99,6 +103,13 @@ bool MotorFrictionIdentificationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_EXT_TORQUE,             &extTorqueMonitor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_TORQUE_PREDICT,   &torquePredMonitor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_IDENTIFICATION_PHASE,   &idPhaseMonitor));
+
+    ///< link module jointTorqueControl parameters to member variables
+    YARP_ASSERT(torqueController->linkParam(jointTorqueControl::PARAM_ID_KT,   kt.data()));
+    YARP_ASSERT(torqueController->linkParam(jointTorqueControl::PARAM_ID_KVP,  kvp.data()));
+    YARP_ASSERT(torqueController->linkParam(jointTorqueControl::PARAM_ID_KVN,  kvn.data()));
+    YARP_ASSERT(torqueController->linkParam(jointTorqueControl::PARAM_ID_KCP,  kcp.data()));
+    YARP_ASSERT(torqueController->linkParam(jointTorqueControl::PARAM_ID_KCN,  kcn.data()));
     
     ///< Register callbacks for some module parameters
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_JOINT_VEL_WIND_SIZE,    this));
@@ -313,7 +324,7 @@ void MotorFrictionIdentificationThread::commandReceived(const CommandDescription
         break;
 
     case COMMAND_ID_SAVE:
-        reply.addString("Save command received.\n");
+        saveParametersOnFile();
         break;
 
     case COMMAND_ID_ACTIVATE_JOINT:
@@ -338,6 +349,21 @@ void MotorFrictionIdentificationThread::commandReceived(const CommandDescription
 
     default:
         printf("A callback is registered but not managed for the command %s\n", cd.name.c_str());
+    }
+}
+
+//*************************************************************************************************************************
+void MotorFrictionIdentificationThread::saveParametersOnFile()
+{
+    for(int i=0; i<_n; i++)
+    {
+        estimators[i].updateParameterEstimation();
+        estimators[i].getCurrentParameterEstimate(estimateMonitor, sigmaMonitor);
+        kt[i]   = estimateMonitor[INDEX_K_TAO];
+        kvp[i]  = estimateMonitor[INDEX_K_VP];
+        kvn[i]  = estimateMonitor[INDEX_K_VN];
+        kcp[i]  = estimateMonitor[INDEX_K_CP];
+        kcn[i]  = estimateMonitor[INDEX_K_CN];
     }
 }
 

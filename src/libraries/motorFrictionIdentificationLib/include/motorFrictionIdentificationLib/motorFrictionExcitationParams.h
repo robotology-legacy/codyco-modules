@@ -33,7 +33,7 @@ static const int       ICUB_DOFS = 25;    // number of (the main) degrees of fre
 
 typedef Eigen::Matrix<double,ICUB_DOFS,1>          VectorNd;
 
-namespace motorFrictionIdentificationLib
+namespace motorFrictionExcitation
 {
 
 ///< specify whether or not the commands are sent to the motors
