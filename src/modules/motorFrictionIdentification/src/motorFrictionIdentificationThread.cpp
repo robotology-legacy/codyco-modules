@@ -147,9 +147,9 @@ void MotorFrictionIdentificationThread::run()
         if(activeJoints[i]==1)
         {
             if(fabs(dq[i])>zeroJointVelThr)
-                estimators[i].feedSampleForGroup1(inputSamples[i], pwm[i]);
-            else if(fabs(dTorques[i])>zeroTorqueVelThr)
                 estimators[i].feedSampleForGroup2(inputSamples[i], pwm[i]);
+            else if(fabs(dTorques[i])>zeroTorqueVelThr)
+                estimators[i].feedSampleForGroup1(inputSamples[i], pwm[i]);
         }
     }
     

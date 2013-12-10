@@ -14,24 +14,24 @@
 
 <portscope rows="5" columns="3">
 	<!-- plotting dq and sign(dq) -->
-    <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Joint Vel (deg/sec)" size="1000" minval="-200" maxval="200" bgcolor="white">
+    <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Joint Vel (deg/sec)" size="500" minval="-200" maxval="200" bgcolor="white">
         <graph remote="/motorId/monitor:o" index="0" color="Red" title="dq" type="lines" size="2" />
 		<graph remote="/motorId/monitor:o" index="2" color="Blue" title="sign dq" type="lines" size="2" />
     </plot>
 
     <!-- plotting torque -->
-    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Motor Torque" size="1000" bgcolor="white">
+    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Motor Torque" size="500" bgcolor="white">
         <graph remote="/motorId/monitor:o" index="1" color="Red" title="Motor torque" type="lines" size="2" />
         <graph remote="/motorId/monitor:o" index="15" color="Blue" title="Motor torque prediction" type="lines" size="2" />
     </plot>
 
 	<!-- plotting torque derivative -->
-	<plot gridx="0" gridy="2" hspan="1" vspan="1" title="Motor Torque Derivative" size="1000" bgcolor="white">
+	<plot gridx="0" gridy="2" hspan="1" vspan="1" title="Motor Torque Derivative" size="500" bgcolor="white">
 		<graph remote="/motorId/monitor:o" index="16" color="Red" title="Motor torque derivative" type="lines" size="2" />
 	</plot>
 
 	<!-- plotting PWM -->
-	<plot gridx="0" gridy="3" hspan="1" vspan="1" title="Motor PWM" size="1000" bgcolor="white">
+	<plot gridx="0" gridy="3" hspan="1" vspan="1" title="Motor PWM" size="500" bgcolor="white">
 		<graph remote="/motorId/monitor:o" index="3" color="Red" title="Motor PWM" type="lines" size="2" />
 		<graph remote="/motorId/monitor:o" index="4" color="Blue" title="Predicted motor PWM" type="lines" size="2" />
 	</plot>
