@@ -33,7 +33,7 @@
 #include <paramHelp/paramHelperServer.h>
 
 #include <motorFrictionIdentification/motorFrictionIdentificationConstants.h>
-#include <motorFrictionIdentification/recursiveLinearEstimator.h>
+#include <motorFrictionIdentification/alternatingRecursiveLinearEstimator.h>
 #include <motorFrictionIdentificationLib/motorFrictionIdentificationParams.h>
 
 using namespace yarp::os;
@@ -69,7 +69,7 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     wholeBodyInterface  *robot;         ///< interface to communicate with the robot
 
     // Member variables
-    vector<RecursiveLinearEstimator>    estimators; ///< estimators, one per joint
+    vector<AlternatingRecursiveLinearEstimator>    estimators; ///< estimators, one per joint
     int         printCountdown;         ///< every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     int         _n;                     ///< number of joints of the robot
     vector<LocalId> currentJointIds;        ///< IDs of the joints currently excited

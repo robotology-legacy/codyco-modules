@@ -54,7 +54,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     resizeAndSetToZero(currentGlobalJointIds,   _n);
     resizeAndSetToZero(rhs,                 _n*PARAM_NUMBER);
     resizeAndSetToZero(estimateMonitor,     PARAM_NUMBER);
-    resizeAndSetToZero(stdDevMonitor,    PARAM_NUMBER);
+    resizeAndSetToZero(stdDevMonitor,       PARAM_NUMBER);
     resizeAndSetToZero(sigmaMonitor,        PARAM_NUMBER,   PARAM_NUMBER);
     resizeAndSetToZero(covarianceInv,       _n,             PARAM_NUMBER*PARAM_NUMBER);
 
@@ -106,7 +106,8 @@ bool MotorFrictionIdentificationThread::threadInit()
     for(int i=0; i<_n; i++)
     {
         inputSamples[i].resize(PARAM_NUMBER);
-        estimators[i].setParamSize(PARAM_NUMBER);
+        estimators[i].setGroup1ParamSize(1);
+        estimators[i].setGroup2ParamSize(PARAM_NUMBER-1);
     }
     updateJointToMonitor();
     ///< set derivative filter parameters
@@ -145,8 +146,10 @@ void MotorFrictionIdentificationThread::run()
     {
         if(activeJoints[i]==1)
         {
-            if(fabs(dTorques[i])>zeroTorqueVelThr || fabs(dq[i])>zeroJointVelThr)
-                estimators[i].feedSample(inputSamples[i], pwm[i]);
+            if(fabs(dq[i])>zeroJointVelThr)
+                estimators[i].feedSampleForGroup1(inputSamples[i], pwm[i]);
+            else if(fabs(dTorques[i])>zeroTorqueVelThr)
+                estimators[i].feedSampleForGroup2(inputSamples[i], pwm[i]);
         }
     }
     
@@ -182,7 +185,7 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
         dqNeg[i]        = dq[i]<-zeroJointVelThr ?   dq[i]   :   0.0;
         dqSignPos[i]    = dq[i]>zeroJointVelThr  ?   1.0     :   0.0;
         dqSignNeg[i]    = dq[i]<-zeroJointVelThr ?   -1.0    :   0.0;
-        dqSign[i]       = dq[i]>zeroJointVelThr  ?   1.0     :   (dq[i]<-zeroJointVelThr ? -1.0 : 0.0);
+        dqSign[i]       = dqSignPos[i] + dqSignNeg[i];
         
         inputSamples[i][INDEX_K_TAO]  = torques[i];
         inputSamples[i][INDEX_K_VP]   = dqPos[i];
@@ -223,14 +226,6 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
     double k_tau_inv = fabs(estimateMonitor[INDEX_K_TAO])>0.1 ? 1.0/estimateMonitor[INDEX_K_TAO] : 10.0;
     phi[INDEX_K_TAO] = -pwm[jid] * k_tau_inv;
     torquePredMonitor = -k_tau_inv * estimateMonitor.dot(phi);
-
-    // DEBUG TORQUE PREDICTION
-    /*double k_vp = estimateMonitor[INDEX_K_VP];
-    double k_vn = estimateMonitor[INDEX_K_VN];
-    double k_cp = estimateMonitor[INDEX_K_CP];
-    double k_cn = estimateMonitor[INDEX_K_CN];
-    double torquePred = k_tau_inv*(-pwmMonitor + k_vp*dqPos[jid] + k_vn*dqNeg[jid] + k_cp*dqSignPos[jid] + k_cn*dqSignNeg[jid]);
-    sendMsg("Torque predictions: "+toString(torquePred)+"=="+toString(torquePredMonitor));*/
 }
 
 //*************************************************************************************************************************
