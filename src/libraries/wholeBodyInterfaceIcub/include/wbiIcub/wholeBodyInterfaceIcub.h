@@ -447,6 +447,9 @@ namespace wbiIcub
         yarp::sig::Vector all_ddq;
         
         yarp::sig::Vector all_q_min, all_q_max;
+        
+        //Output buffers
+        yarp::sig::Vector generalized_floating_base_torques; //n+6 outputs for inverse dynamics
 
         // *** Variables needed for opening IControlLimits interfaces
         std::string                                 name;           // name used as root for the local ports
@@ -466,6 +469,8 @@ namespace wbiIcub
         bool convertQ(const yarp::sig::Vector & q_complete_input, double *q_output);
         bool convertDQ(const double *dq_input, yarp::sig::Vector & dq_complete_output);
         bool convertDDQ(const double *ddq_input, yarp::sig::Vector & ddq_complete_output);
+        
+        bool convertGeneralizedTorques(yarp::sig::Vector idyntree_base_force, yarp::sig::Vector idyntree_torques, double * tau);
         
     public:
          // *** CONSTRUCTORS ***
