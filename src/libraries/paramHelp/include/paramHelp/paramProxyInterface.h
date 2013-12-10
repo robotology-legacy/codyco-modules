@@ -183,7 +183,7 @@ public:
 class ParamValueObserver
 {
 public:
-    /** Method called every time the parameter value is changed.
+    /** Method called just after the parameter value has changed.
      * @param pd Description of the parameter. */
     virtual void parameterUpdated(const ParamProxyInterface *pd) = 0;
 };

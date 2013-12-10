@@ -51,8 +51,12 @@ icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _r
 bool icubWholeBodyInterface::init()
 {
     bool ok = actuatorInt->init();
+    if(!ok) printf("Error while initializing actuator interface.\n");
     if(ok) ok = stateInt->init();
-    return ok ? modelInt->init() : false;
+    if(!ok) printf("Error while initializing state interface.\n");
+    if(ok) ok = modelInt->init();
+    if(!ok) printf("Error while initializing model interface.\n");
+    return ok;
 }
 
 bool icubWholeBodyInterface::close()

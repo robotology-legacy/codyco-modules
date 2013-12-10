@@ -83,15 +83,18 @@ namespace motorFrictionIdentification
 class MotorFrictionIdentificationModule: public RFModule, public CommandObserver
 {
     /* module parameters */
-	string  moduleName;
-	string  robotName;
-    double  period;
-    double  avgTime, stdDev, avgTimeUsed, stdDevUsed;
+	string              moduleName;     ///< name of the module instance
+	string              robotName;      ///< name of the robot
+    double              modulePeriod;   ///< module period in seconds
+    int                 threadPeriod;   ///< thread period in milliseconds
+    VectorXi            jointList;      ///< IDs of the joints that are specified in the configuration file
+    vector<string>      jointNames;     ///< names of the joints that are specified in the configuration file
+    double              avgTime, stdDev, avgTimeUsed, stdDevUsed;
 
-	Port                rpcPort;		// a port to handle rpc messages
-	MotorFrictionIdentificationThread*   identificationThread;     // MotorFrictionIdentification control thread
-    ParamHelperServer*  paramHelper;    // helper class for rpc set/get commands and streaming data
-    wholeBodyInterface* robotInterface; // interface to communicate with the robot
+	Port                rpcPort;		///< a port to handle rpc messages
+    ParamHelperServer*  paramHelper;    ///< helper class for rpc set/get commands and streaming data
+    wholeBodyInterface* robotInterface; ///< interface to communicate with the robot
+    MotorFrictionIdentificationThread*   identificationThread;     ///< MotorFrictionIdentification control thread
 
 public:
     MotorFrictionIdentificationModule();
@@ -100,9 +103,8 @@ public:
 	bool interruptModule();                       // interrupt, e.g., the ports 
 	bool close();                                 // close and shut down the module
 	bool respond(const Bottle& command, Bottle& reply);
-	double getPeriod(){ return period;  }
+	inline double getPeriod(){ return modulePeriod;  }
 	bool updateModule();
-
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
 
 };

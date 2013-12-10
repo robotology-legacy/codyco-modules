@@ -296,11 +296,11 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
     return ok;
 }
         
-bool icubWholeBodyActuators::setControlParam(ControlParam paramId, double *value, int joint)
+bool icubWholeBodyActuators::setControlParam(ControlParam paramId, const void *value, int joint)
 {
     switch(paramId)
     {
-    case CTRL_PARAM_REF_VEL: return setReferenceSpeed(value, joint);
+    case CTRL_PARAM_REF_VEL: return setReferenceSpeed((double*)value, joint);
     default: break;
     }
     return false;

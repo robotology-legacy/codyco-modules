@@ -50,33 +50,16 @@ namespace motorFrictionIdentification
 class RecursiveLinearEstimator
 {
 protected:
-    unsigned int        n;     ///< The dimensionality of the input domain
-    //unsigned int        m;   ///< The dimensionality of the output domain (codomain)
-    
-    Eigen::LDLT<Eigen::MatrixXd>    R;  ///< Cholesky factor of the inverse covariance matrix (i.e. A).
-    Eigen::VectorXd     x;              ///< current parameter estimate
-    Eigen::VectorXd     b;              ///< current projected output
-
-    //double sigma;           ///< Signal noise (don't know if it could be useful)
-    int sampleCount;        ///< Number of samples during last training routine
+    unsigned int                    n;      ///< The dimensionality of the input domain
+    Eigen::LDLT<Eigen::MatrixXd>    R;      ///< Cholesky factor of the inverse covariance matrix (i.e. A).
+    Eigen::VectorXd                 x;      ///< current parameter estimate
+    Eigen::VectorXd                 b;      ///< current projected output
+    int                     sampleCount;    ///< Number of samples during last training routine
 
     /** Checks whether the input is of the desired dimensionality.
      * @param input A sample input.
      * @return True if the dimensionality is correct. */
     inline bool checkDomainSize(const Eigen::VectorXd& input) const { return input.size()==n; }
-
-    /** Checks whether the output is of the desired dimensionality.
-     * @param output A sample output.
-     * @return True if the dimensionality is correct. */
-    //inline bool checkCoDomainSize(const Eigen::VectorXd& output){ return output.size()==m; }
-
-    /** Validates whether the input and output are of the desired dimensionality.
-     * @param input A sample input.
-     * @param output The corresponding output. */
-    //bool checkDomainCoDomainSizes(const Eigen::VectorXd& input, const Eigen::VectorXd& output)
-    //{
-    //    return checkDomainSize(input) && checkCoDomainSize(output);
-    //}
 
     /** Resize all matrices and vectors based on the current domain and codomain sizes. */
     void resizeAllVariables();
@@ -96,32 +79,52 @@ public:
     void updateParameterEstimation();
 
     /** Given an input predicts the corresponding output using the current parameter
-     * estimate.
+     * estimate (remember to call updateParameterEstimation before).
      * @param input A sample input.
      * @param output Output vector containing the predicted model output. */
     void predictOutput(const Eigen::VectorXd &input, double &output) const;
 
-    /** Get the current estimate of the parameters x.
+    /** Reset the status of the estimator. */
+    inline void reset(){ resizeAllVariables(); }
+
+    /** Get the current estimate of the parameters x (remember to call updateParameterEstimation before).
      * @param xEst Output vector containing the current estimate of the parameters. */
     void getCurrentParameterEstimate(Eigen::VectorXd &xEst) const;
 
+    /** Get the current estimate of the parameters x (remember to call updateParameterEstimation before).
+     * @param xEst Output vector containing the current estimate of the parameters. 
+     * @param sigma Covariance matrix. */
+    void getCurrentParameterEstimate(Eigen::VectorXd &xEst, Eigen::MatrixXd &sigma) const;
+
     /** Returns the size (dimensionality) of the input domain.
      * @return The size of the input domain. */
-    unsigned int getDomainSize() const { return this->n; }
+    unsigned int getParamSize() const { return this->n; }
 
-    /** Returns the size (dimensionality) of the output domain (codomain).
-     * @return The size of the codomain. */
-    //unsigned int getCoDomainSize() const { return this->m; }
-
-    /** Mutator for the domain size.
-     * @param size The desired domain size. */
-    virtual void setDomainSize(unsigned int size) { this->n = size; }
-
-    /** Mutator for the codomain size.
-     * @param size The desired codomain size. */
-    //virtual void setCoDomainSize(unsigned int size) {this->m = size; }
+    /** Set the size of the parameter vector and reset the status of the estimator.
+     * @param size The desired size of the parameter vector. */
+    inline void setParamSize(unsigned int size) { n = size; resizeAllVariables(); }
 };
 
 }   // end namespace 
 
 #endif
+
+//unsigned int        m;   ///< The dimensionality of the output domain (codomain)
+/** Checks whether the output is of the desired dimensionality.
+    * @param output A sample output.
+    * @return True if the dimensionality is correct. */
+//inline bool checkCoDomainSize(const Eigen::VectorXd& output){ return output.size()==m; }
+
+/** Validates whether the input and output are of the desired dimensionality.
+    * @param input A sample input.
+    * @param output The corresponding output. */
+//bool checkDomainCoDomainSizes(const Eigen::VectorXd& input, const Eigen::VectorXd& output)
+//{ return checkDomainSize(input) && checkCoDomainSize(output); }
+
+/** Returns the size (dimensionality) of the output domain (codomain).
+    * @return The size of the codomain. */
+//unsigned int getCoDomainSize() const { return this->m; }
+
+/** Mutator for the codomain size.
+    * @param size The desired codomain size. */
+//virtual void setCoDomainSize(unsigned int size) {this->m = size; }
