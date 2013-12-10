@@ -69,7 +69,7 @@ bool MotorFrictionIdentificationThread::threadInit()
 
     zero6[0] = zero6[1] = zero6[2] = zero6[3] = zero6[4] = zero6[5] = 0.0;
     ddxB[0] = ddxB[1] = ddxB[3] = ddxB[4] = ddxB[5] = 0.0;
-    ddxB[2] = -9.81;
+    ddxB[2] = 9.81;
     
     ///< link module rpc parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_OUTPUT_FILENAME,        &outputFilename));
@@ -186,7 +186,7 @@ bool MotorFrictionIdentificationThread::readRobotStatus(bool blockingRead)
     res = res && robot->getEstimates(ESTIMATE_MOTOR_TORQUE_DERIVATIVE,  dTorques.data(), t, blockingRead);
     res = res && robot->inverseDynamics(q.data(), Frame(), dqJ.data(), zero6, zeroN.data(), ddxB, gravTorques.data());
     extTorques = torques - gravTorques.tail(_n);
-
+    
     dq *= CTRL_RAD2DEG;     ///< convert velocities from rad/s to deg/s
 
     return res;
@@ -236,6 +236,7 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
     signDqMonitor   = dqSign[jid];                  ///< Velocity sign of the monitored joint
     pwmMonitor      = pwm[jid];                     ///< Motor pwm of the monitored joint
     extTorqueMonitor = extTorques[jid];             ///< External torque of the monitored joint
+    sendMsg("Gravity torque: "+toString(gravTorques[6+jid]));
     ///< Prediction of current motor pwm
     estimators[jid].predictOutput(inputSamples[jid], pwmPredMonitor);   
     ///< Prediction of motor torque: tau = (-1/k_tau)(-k_tau*pwm/k_tau + k_v\dot{q} + k_c sign(\dot{q}))
