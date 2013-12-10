@@ -87,6 +87,7 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     ArrayXd             dqSignNeg;              ///< negative samples of the motor velocity signes
     ArrayXd             pwm;                    ///< motor PWMs
     double              zero6[6];               ///< array of 6 zeros
+    ArrayXd             zeroN;                  ///< array of N zeros
     double              ddxB[6];                ///< robot base acceleration containing only gravity acceleration
     vector<VectorXd>    inputSamples;           ///< input samples to use for identification
 

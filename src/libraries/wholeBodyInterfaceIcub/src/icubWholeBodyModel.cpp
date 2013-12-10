@@ -218,6 +218,7 @@ bool icubWholeBodyModel::convertGeneralizedTorques(yarp::sig::Vector idyntree_ba
     FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
         FOR_ALL_JOINTS(itBp, itJ) {
             tau[i+6] = idyntree_torques[p_icub_model->getDOFIndex(itBp->first,*itJ)];
+            i++;
         }
     }
     return true;
@@ -423,7 +424,6 @@ bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq,
     base_force.subVector(3,5) = world_base_transformation.submatrix(0,2,0,2)*base_force.subVector(3,5);
     
     convertGeneralizedTorques(base_force,p_icub_model->getTorques(),tau);
-    
     
     return true;
 }

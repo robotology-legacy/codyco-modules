@@ -56,6 +56,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     resizeAndSetToZero(pwm,                     _n);
     resizeAndSetToZero(activeJoints,            _n);
     resizeAndSetToZero(currentGlobalJointIds,   _n);
+    resizeAndSetToZero(zeroN,                   _n);
     resizeAndSetToZero(rhs,                     _n*PARAM_NUMBER);
     resizeAndSetToZero(estimateMonitor,         PARAM_NUMBER);
     resizeAndSetToZero(stdDevMonitor,           PARAM_NUMBER);
@@ -183,7 +184,7 @@ bool MotorFrictionIdentificationThread::readRobotStatus(bool blockingRead)
     res = res && robot->getEstimates(ESTIMATE_MOTOR_PWM,                pwm.data(),      t, blockingRead); 
     res = res && robot->getEstimates(ESTIMATE_MOTOR_TORQUE,             torques.data(),  t, blockingRead);
     res = res && robot->getEstimates(ESTIMATE_MOTOR_TORQUE_DERIVATIVE,  dTorques.data(), t, blockingRead);
-    res = res && robot->inverseDynamics(q.data(), Frame(), dq.data(), zero6, zero6, ddxB, gravTorques.data());
+    res = res && robot->inverseDynamics(q.data(), Frame(), dqJ.data(), zero6, zeroN.data(), ddxB, gravTorques.data());
     extTorques = torques - gravTorques.tail(_n);
 
     dq *= CTRL_RAD2DEG;     ///< convert velocities from rad/s to deg/s
