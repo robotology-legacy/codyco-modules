@@ -163,24 +163,10 @@ protected:
     
     void logMsg(const std::string &s, MsgType type=MSG_INFO);
 
-    /*template<class T1>
-    void logMsg(const T1 &s, MsgType type=MSG_INFO)
-    { logMsg(toString(s),type); }
-
-    template<class T1, class T2>
-    void logMsg(const T1 &s1, const T2 &s2, MsgType type=MSG_INFO)
-    { logMsg(toString(s1)+toString(s2),type); }
-
-    template<class T1, class T2, class T3>
-    void logMsg(const T1 &s1, const T2 &s2, const T3 &s3, MsgType type=MSG_INFO)
-    { logMsg(toString(s1)+toString(s2)+toString(s3),type); }
-
-    template<class T1, class T2, class T3, class T4>
-    void logMsg(const T1 &s1, const T2 &s2, const T3 &s3, const T4 s4, MsgType type=MSG_INFO)
-    { logMsg(toString(s1)+toString(s2)+toString(s3)+toString(s4),type); }*/
-
-
 public:
+    /** Default constructor. */
+    ParamHelperBase();
+
     /** Close the ports opened during the initialization phase (see init method). */
     virtual bool close();
     

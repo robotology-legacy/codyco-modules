@@ -26,7 +26,8 @@ using namespace yarp::os;
 using namespace paramHelp;
 
 
-ParamHelperClient::ParamHelperClient(const ParamProxyInterface *const *pdList, int pdListSize, const CommandDescription *cdList, int cdListSize)
+ParamHelperClient::ParamHelperClient(const ParamProxyInterface *const *pdList,  int pdListSize, 
+                                     const CommandDescription *cdList,          int cdListSize)
 {
     if(pdList!=NULL) addParams(pdList, pdListSize);
     if(cdList!=NULL) addCommands(cdList, cdListSize);
@@ -37,8 +38,6 @@ ParamHelperClient::~ParamHelperClient()
 {
     // delete all allocated memory
     close();
-    /** Do not delete memory associated to parameters, because for the moment I assume
-      * that all the parameters are linked to external variables */
 }
 
 //*************************************************************************************************************************
@@ -54,23 +53,48 @@ bool ParamHelperClient::init(string localName, string remoteName, Bottle &reply)
     string portRpcName              = "/" + localName + remotePortRpcName;
     portInStream = new BufferedPort<Bottle>();
     portOutStream = new BufferedPort<Bottle>();
+
     bool res = portInStream->open(portInStreamName.c_str())
             && portOutStream->open(portOutStreamName.c_str())
             && portInfo.open(portInfoName.c_str())
             && portRpc.open(portRpcName.c_str());
-    if(!res) reply.addString(("Error while opening ports ("+portInStreamName+", "+portOutStreamName+", "+portInfoName+", "+portRpcName+").").c_str());
+    if(!res)
+    {
+        reply.addString(("Error while opening ports ("+portInStreamName+", "+portOutStreamName+", "+portInfoName+", "+portRpcName+").").c_str());
+        return false;
+    }
 
-    res = res && Network::connect(remotePortOutStreamName.c_str(),  portInStreamName.c_str());
-    if(!res) reply.addString(("Error while trying to connect to "+remotePortOutStreamName).c_str());
-    res = res && Network::connect(portOutStreamName.c_str(),        remotePortInStreamName.c_str());
-    if(!res) reply.addString(("Error while trying to connect to "+remotePortInStreamName).c_str());
-    res = res && Network::connect(portInfoName.c_str(),             remotePortInfoName.c_str());
-    if(!res) reply.addString(("Error while trying to connect to "+remotePortInfoName).c_str());
-    res = res && Network::connect(portRpcName.c_str(),              remotePortRpcName.c_str());
-    if(!res) reply.addString(("Error while trying to connect to "+remotePortRpcName).c_str());
+    res = res && Network::connect(remotePortOutStreamName.c_str(), portInStreamName.c_str());
+    if(!res) 
+    {
+        reply.addString(("Error while trying to connect to "+remotePortOutStreamName).c_str());
+        return false;
+    }
+
+    res = res && Network::connect(portOutStreamName.c_str(), remotePortInStreamName.c_str());
+    if(!res) 
+    {
+        reply.addString(("Error while trying to connect to "+remotePortInStreamName).c_str());
+        return false;
+    }
+
+    res = res && Network::connect(portInfoName.c_str(), remotePortInfoName.c_str());
+    if(!res)
+    {
+        reply.addString(("Error while trying to connect to "+remotePortInfoName).c_str());
+        return false;
+    }
+
+    res = res && Network::connect(portRpcName.c_str(), remotePortRpcName.c_str());
+    if(!res)
+    {
+        reply.addString(("Error while trying to connect to "+remotePortRpcName).c_str());
+        return false;
+    }
 
     return res;
 }
+
 //*************************************************************************************************************************
 bool ParamHelperClient::close()
 {
@@ -88,6 +112,8 @@ bool ParamHelperClient::readInfoMessage(Bottle &b, bool blockingRead)
 //*************************************************************************************************************************
 bool ParamHelperClient::sendStreamParams()
 {
+    ///< Streaming parameters are inserted inside a Bottle with the following format:
+    ///< (PARAM_ID0 VALUE0 VALUE1 ... VALUEN) ... (PARAM_IDM VALUE0 ... VALUEN)
     Bottle out;
     for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
         if(it->second->ioType.isStreamingIn())

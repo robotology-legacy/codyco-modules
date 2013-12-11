@@ -38,8 +38,6 @@ ParamHelperServer::~ParamHelperServer()
 {
     // delete all allocated memory
     close();
-    /** Do not delete memory associated to parameters, because for the moment I assume
-      * that all the parameters are linked to external variables */
 }
 
 //*************************************************************************************************************************

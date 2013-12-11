@@ -33,6 +33,13 @@ using namespace yarp::sig;
 using namespace yarp::os;
 using namespace paramHelp;
 
+//*************************************************************************************************************************
+ParamHelperBase::ParamHelperBase()
+{
+    portInStream    = 0;
+    portOutStream   = 0;
+    portOutMonitor  = 0;
+}
 
 //*************************************************************************************************************************
 bool ParamHelperBase::close()
@@ -41,6 +48,13 @@ bool ParamHelperBase::close()
     if(portOutStream){  portOutStream->interrupt();  portOutStream->close();  delete portOutStream;  portOutStream=0;  }
     if(portOutMonitor){ portOutMonitor->interrupt(); portOutMonitor->close(); delete portOutMonitor; portOutMonitor=0; }
     portInfo.close();
+    
+    ///< delete all the cloned ParamProxyInterfaces
+    for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); ++it)
+    {
+        delete it->second;
+        it->second = 0;
+    }
     return true;
 }
 
@@ -92,8 +106,7 @@ bool ParamHelperBase::addParam(const ParamProxyInterface* pd)
 {
     if(hasParam(pd->id)) 
     {
-        printf("[ParamHelperBase::addParam()]: Parameter %s has the same id of parameter %s\n", 
-            paramList[pd->id]->name.c_str(), pd->name.c_str());
+        logMsg(strcat("[addParam] Parameter ",paramList[pd->id]->name," has the same id of parameter ",pd->name), MSG_ERROR);
         return false;   // there exists a parameter with the same id
     }
     paramList[pd->id] = pd->clone();
@@ -105,8 +118,7 @@ bool ParamHelperBase::addCommand(const CommandDescription &cd)
 {
     if(hasCommand(cd.id))
     {
-        printf("[ParamHelperBase::addCommand()]: Command %s has the same id of command %s\n", 
-            cmdList[cd.id].name.c_str(), cd.name.c_str());
+        logMsg(strcat("[addCommand] Command ",cmdList[cd.id].name," has the same id of command ",cd.name), MSG_ERROR);
         return false;   // there exists a command with the same id
     }
     cmdList[cd.id] = cd;
