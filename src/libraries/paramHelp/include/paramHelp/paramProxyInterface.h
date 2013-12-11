@@ -41,7 +41,7 @@ namespace paramHelp
 // PARAM_OUTPUT: can be read from the rpc port, but not written
 // PARAM_IN_OUT: can be both written and read from the rpc port
 // PARAM_IN_STREAM: can be written (from either rpc or the input streaming port), and read from the rpc port only
-// PARAM_OUT_STREAM: can be read (from either rpc or the output streaming port), but not written
+// PARAM_OUT_STREAM: can be read (from eitaher rpc or the output streaming port), but not written
 // PARAM_IN_OUT_STREAM: can be both written and read from either rpc or the streaming ports
 // PARAM_MONITOR: can be read from both the monitor port and the rpc port
 // *************************************************************************************************/
@@ -152,7 +152,7 @@ public:
     {
         yarp::os::Bottle b;
         getAsBottle(b);
-        return b.toString();
+        return b.toString().c_str();
     }
 
     /** Set the parameter to the specified value. Return true if the operation succeeded. */
