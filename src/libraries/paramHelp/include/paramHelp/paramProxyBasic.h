@@ -216,7 +216,8 @@ public:
         if(!size.freeSize && newValue->size()!=size)
         {
             if(reply!=NULL)
-                reply->addString(("Wrong size of parameter "+name+" (expected "+toString(size)+", found "+toString(newValue->size())).c_str());
+                reply->addString(("Wrong size of parameter "+name+" (expected "+paramHelp::toString(size)+
+                    ", found "+paramHelp::toString(newValue->size())).c_str());
             return false;
         }
 
@@ -245,7 +246,8 @@ public:
         if(index<0 || index>=size)
         {
             if(reply!=NULL)
-                reply->addString(("Index out of bound. Index="+toString(index)+", parameter size="+toString(size)).c_str());
+                reply->addString(("Index out of bound. Index="+paramHelp::toString(index)+
+                    ", parameter size="+paramHelp::toString(size)).c_str());
             return false;
         }
         if(!checkConstraints(newValue, reply))
@@ -271,6 +273,17 @@ public:
             }
         }
         return true;
+    }
+
+    virtual std::string getAsString() const
+    {
+        if(size==0)
+            return std::string("");
+        std::stringstream ss;
+        ss<< value[0];
+        for(int i=1; i<size; i++)
+            ss<<" "<<value[i];
+        return ss.str();
     }
 
     ///** Return true if the specified value satisfies this parameter's constraints. 
@@ -395,8 +408,8 @@ public:
         if(!size.freeSize && newValue.size()!=size)
         {
             if(reply!=NULL)
-                reply->addString(("Wrong size of parameter "+name+" (expected "+toString(size)+
-                    ", found "+toString(newValue.size())).c_str());
+                reply->addString(("Wrong size of parameter "+name+" (expected "+paramHelp::toString(size)+
+                    ", found "+paramHelp::toString(newValue.size())).c_str());
             return false;
         }
         if(!checkConstraints(newValue, reply))
@@ -420,7 +433,8 @@ public:
         if(index<0 || index>=size)
         {
             if(reply!=NULL)
-                reply->addString(("Index out of bound. Index="+toString(index)+", parameter size="+toString(size)).c_str());
+                reply->addString(("Index out of bound. Index="+paramHelp::toString(index)+
+                    ", parameter size="+paramHelp::toString(size)).c_str());
             return false;
         }
         if(!checkConstraints(newValue, reply))

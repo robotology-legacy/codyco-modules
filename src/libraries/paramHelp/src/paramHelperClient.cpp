@@ -111,24 +111,24 @@ bool ParamHelperClient::readStreamParams(bool blockingRead)
     {
         if(!in->get(i).isList())
         {
-            logMsg("[readStreamParams] Value ",i," of read Bottle is not a list! Skipping it.", MSG_ERROR);
+            logMsg(strcat("[readStreamParams] Value ",i," of read Bottle is not a list! Skipping it."), MSG_ERROR);
             continue;
         }
         Bottle *b = in->get(i).asList();
         if(b->size()<1)
         {
-            logMsg("[readStreamParams] Value ",i," of read Bottle is an empty list! Skipping it.", MSG_ERROR);
+            logMsg(strcat("[readStreamParams] Value ",i," of read Bottle is an empty list! Skipping it."), MSG_ERROR);
             continue;
         }
         if(!b->get(0).isInt())
         {
-            logMsg("[readStreamParams] 1st element of value ",i," of read Bottle is not an int! Skipping it.", MSG_ERROR);
+            logMsg(strcat("[readStreamParams] 1st element of value ",i," of read Bottle is not an int! Skipping it."), MSG_ERROR);
             continue;
         }
         int paramId = b->get(0).asInt();
         if(!paramList[paramId]->set(b->tail(), &reply))
         {
-            logMsg("[readStreamParams] ", reply.toString().c_str(), MSG_ERROR);
+            logMsg("[readStreamParams] "+reply.toString(), MSG_ERROR);
             reply.clear();
         }
     }

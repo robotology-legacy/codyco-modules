@@ -104,6 +104,7 @@
 #include <iterator>
 #include <map>
 #include <vector>
+#include <paramHelp/paramHelpUtil.h>
 #include <paramHelp/paramProxyInterface.h>
 
 
@@ -162,7 +163,7 @@ protected:
     
     void logMsg(const std::string &s, MsgType type=MSG_INFO);
 
-    template<class T1>
+    /*template<class T1>
     void logMsg(const T1 &s, MsgType type=MSG_INFO)
     { logMsg(toString(s),type); }
 
@@ -176,7 +177,7 @@ protected:
 
     template<class T1, class T2, class T3, class T4>
     void logMsg(const T1 &s1, const T2 &s2, const T3 &s3, const T4 s4, MsgType type=MSG_INFO)
-    { logMsg(toString(s1)+toString(s2)+toString(s3)+toString(s4),type); }
+    { logMsg(toString(s1)+toString(s2)+toString(s3)+toString(s4),type); }*/
 
 
 public:
@@ -192,8 +193,9 @@ public:
      * SOLUTION:
      * Rather than passing the pointer to the memory (i.e. a void*) you could pass a pointer to
      * a generic class T that has to implement the method resize and the operator []. This is
-     * true for Yarp, Eigen and stl vectors, so it is a reasonable constraint. However I wonder
-     * whether I should let the old way still viable for constant-size parameters.
+     * true for Yarp, Eigen and stl vectors, so it is a reasonable constraint. However, it is
+     * not true for standard C arrays, and I wonder whether I should let the old way still 
+     * viable for constant-size parameters.
      */
 
     /** Link the parameter with the specified id to the variable pointed by v, so that
@@ -215,6 +217,13 @@ public:
       * @param blockingRead If true the reading is blocking (it waits until data arrive), otherwise it is not
       * @return True if the operation succeeded, false otherwise */
     virtual bool readStreamParams(bool blockingRead=false) = 0;
+
+    /** Write the specified parameters to file. If no parameters are specified, write all of them. 
+     * @param filename name of the text file on which to write.
+     * @param paramIds Pointer to an array of parameter IDs.
+     * @param paramNumber Size of the array paramIds. 
+     * @return True if the operation succeeded, false otherwise. */
+    virtual bool writeParamsOnFile(std::string filename, int *paramIds=0, int paramNumber=0);
 };
 
     
