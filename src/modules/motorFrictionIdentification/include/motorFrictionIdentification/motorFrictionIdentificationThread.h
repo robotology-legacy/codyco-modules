@@ -95,7 +95,6 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     vector<VectorXd>    inputSamples;           ///< input samples to use for identification
 
     ///< *************** INPUT MODULE PARAMETERS ********************
-    string      outputFilename;     ///< Name of the file on which to save the state of the identification
     ArrayXi     activeJoints;       ///< List of flags (0,1) indicating for which motors the identification is active
     double      delay;              ///< Delay (in sec) used before processing a sample to update the identified parameters
     double      zeroJointVelThr;    ///< Joint velocities (deg/sec) below this threshold are considered zero
@@ -147,8 +146,9 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     /** Prepare the data to be sent out for monitoring. */
     void prepareMonitorData();
 
-    /** Save the current values of the identified parameters on a text file. */
-    void saveParametersOnFile();
+    /** Save the current values of the identified parameters on a text file. 
+     * @return True if the operation succeeded, false otherwise. */
+    bool saveParametersOnFile(const Bottle &params, Bottle &reply);
 
     /** Reset the identification status of the specified joint. If no joint is specified
      * then it resets the identification status of all the joints.

@@ -22,7 +22,6 @@
 #include <yarp/os/Log.h>
 #include <yarp/math/SVD.h>
 
-
 using namespace motorFrictionExcitation;
 using namespace yarp::math;
 using namespace wbiIcub;
