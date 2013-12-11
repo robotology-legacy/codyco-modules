@@ -27,13 +27,12 @@ using namespace paramHelp;
 using namespace Eigen;
 using namespace std;
 
-static const int N_DOF = 25;
-
-typedef Eigen::Matrix<double,N_DOF,1>           VectorNd;
-typedef Eigen::Matrix<int,N_DOF,1>              VectorNi;
-
 namespace jointTorqueControl
 {
+
+static const int N_DOF = 25;
+typedef Eigen::Matrix<double,N_DOF,1>           VectorNd;
+typedef Eigen::Matrix<int,N_DOF,1>              VectorNi;
 
 static const int SEND_COMMANDS_ACTIVE = 1;
 static const int SEND_COMMANDS_NONACTIVE = 0;

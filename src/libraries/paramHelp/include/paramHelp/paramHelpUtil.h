@@ -58,6 +58,30 @@ template <class T> inline std::string toString(const std::vector<T>& v, const ch
     return s.str(); 
 }
 
+template<class T1>
+std::string strcat(const T1 &s)
+{ return toString(s); }
+
+template<class T1, class T2>
+std::string strcat(const T1 &s1, const T2 &s2)
+{ return toString(s1)+toString(s2); }
+
+template<class T1, class T2, class T3>
+std::string strcat(const T1 &s1, const T2 &s2, const T3 &s3)
+{ return toString(s1)+toString(s2)+toString(s3); }
+
+template<class T1, class T2, class T3, class T4>
+std::string strcat(const T1 &s1, const T2 &s2, const T3 &s3, const T4 s4)
+{ return toString(s1)+toString(s2)+toString(s3)+toString(s4); }
+
+template<class T1, class T2, class T3, class T4, class T5>
+std::string strcat(const T1 &s1, const T2 &s2, const T3 &s3, const T4 s4, const T5 s5)
+{ return toString(s1)+toString(s2)+toString(s3)+toString(s4)+toString(s5); }
+
+template<class T1, class T2, class T3, class T4, class T5, class T6>
+std::string strcat(const T1 &s1, const T2 &s2, const T3 &s3, const T4 s4, const T5 s5, const T6 s6)
+{ return toString(s1)+toString(s2)+toString(s3)+toString(s4)+toString(s5)+toString(s6); }
+
 /** Convert a generic variable into a yarp::os::Value. */
 template <class T> inline yarp::os::Value castToValue(const T& t){                          return (*yarp::os::Value::makeValue(toString(t).c_str())); }
 template <>        inline yarp::os::Value castToValue<double>(const double& t){             return yarp::os::Value(t); }

@@ -147,16 +147,20 @@ public:
     /** Return true if the specified value satisfies this parameter's constraints. */
     virtual bool checkConstraints(const yarp::os::Bottle &value, yarp::os::Bottle *reply=0) const = 0;
 
+    /** Get the current value of the parameter in string format. */
+    virtual std::string getAsString() const
+    {
+        yarp::os::Bottle b;
+        getAsBottle(b);
+        return b.toString();
+    }
+
     /** Set the parameter to the specified value. Return true if the operation succeeded. */
     //virtual bool set(const void *newValue, yarp::os::Bottle *reply=0) = 0;
     /** Set the parameter to the specified value. Return true if the operation succeeded. */
     //virtual bool set(const std::string &value, std::string *reply=0) = 0;
     /** Return true if the specified value satisfies this parameter's constraints. */
     //virtual bool checkConstraints(const std::string &value, std::string *reply=0) = 0;
-    /** Get the current value of the parameter in string format. */
-    //virtual std::string getAsString() = 0;
-    /** Get the current value of the parameter in Bottle format. */
-    //virtual yarp::os::Bottle getAsBottle() = 0;
 };
 
 

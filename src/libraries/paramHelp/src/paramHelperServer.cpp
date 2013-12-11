@@ -38,8 +38,6 @@ ParamHelperServer::~ParamHelperServer()
 {
     // delete all allocated memory
     close();
-    /** Do not delete memory associated to parameters, because for the moment I assume
-      * that all the parameters are linked to external variables */
 }
 
 //*************************************************************************************************************************
@@ -193,24 +191,24 @@ bool ParamHelperServer::readStreamParams(bool blockingRead)
     {
         if(!in->get(i).isList())
         {
-            logMsg("[ParamHelperServer::readStreamParams] Value ",i," is not a Bottle. Skipping it.", MSG_ERROR);
+            logMsg(strcat("[ParamHelperServer::readStreamParams] Value ",i," is not a Bottle. Skipping it."), MSG_ERROR);
             continue;
         }
         Bottle *b = in->get(i).asList();
         if(b->size()==0)
         {
-            logMsg("[ParamHelperServer::readStreamParams] Value ",i," is an empty Bottle. Skipping it.", MSG_ERROR);
+            logMsg(strcat("[ParamHelperServer::readStreamParams] Value ",i," is an empty Bottle. Skipping it."), MSG_ERROR);
             continue;
         }
         int parId = b->get(0).asInt();
         if(!hasParam(parId))
         {
-            logMsg("[ParamHelperServer::readStreamParams] Value ",i," refers to a nonexisting parameter with id ",parId, MSG_ERROR);
+            logMsg(strcat("[ParamHelperServer::readStreamParams] Value ",i," refers to a nonexisting parameter with id ",parId), MSG_ERROR);
             continue;
         }
         res = paramList[parId]->set(b->tail(), &reply);
         if(res==false)
-            logMsg("[ParamHelperServer::readStreamParams] Param ",parId,reply.toString().c_str(), MSG_ERROR);
+            logMsg(strcat("[ParamHelperServer::readStreamParams] Param ",parId,reply.toString().c_str()), MSG_ERROR);
     }
     return true;
 }

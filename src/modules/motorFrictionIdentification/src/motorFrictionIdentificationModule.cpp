@@ -15,30 +15,18 @@
  * Public License for more details
 */ 
 
-#include <yarp/os/BufferedPort.h>
-#include <yarp/os/RFModule.h>
-#include <yarp/os/Time.h>
-#include <yarp/os/Network.h>
-#include <yarp/os/RateThread.h>
-#include <yarp/os/Stamp.h>
-#include <yarp/sig/Vector.h>
-#include <yarp/dev/PolyDriver.h>
-#include <yarp/dev/Drivers.h>
-#include <yarp/dev/ControlBoardInterfaces.h>
-#include <iCub/ctrl/math.h>
-#include <iCub/ctrl/adaptWinPolyEstimator.h>
-
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <string.h>
 
+#include <yarp/os/Log.h>
+
 #include "motorFrictionIdentificationLib/motorFrictionIdentificationParams.h"
 #include "motorFrictionIdentificationLib/jointTorqueControlParams.h"
-#include "motorFrictionIdentification/motorFrictionIdentificationThread.h"
 #include "motorFrictionIdentification/motorFrictionIdentificationModule.h"
 
-YARP_DECLARE_DEVICES(icubmod)
+//YARP_DECLARE_DEVICES(icubmod)
 
 using namespace yarp::dev;
 using namespace paramHelp;
@@ -71,7 +59,15 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
     printBottle(initMsg);
 
     ///< PARAMETER HELPER CLIENT (FOR JOINT TORQUE CONTROL)
-    torqueController = new ParamHelperClient(jointTorqueControl::jointTorqueControlParamDescr, jointTorqueControl::PARAM_ID_SIZE);
+    const ParamProxyInterface* torqueCtrlParams[5];
+    torqueCtrlParams[0] = jointTorqueControl::jointTorqueControlParamDescr[4];
+    torqueCtrlParams[1] = jointTorqueControl::jointTorqueControlParamDescr[5];
+    torqueCtrlParams[2] = jointTorqueControl::jointTorqueControlParamDescr[6];
+    torqueCtrlParams[3] = jointTorqueControl::jointTorqueControlParamDescr[7];
+    torqueCtrlParams[4] = jointTorqueControl::jointTorqueControlParamDescr[8];
+    YARP_ASSERT(torqueCtrlParams[0]->id==jointTorqueControl::PARAM_ID_KT);
+    torqueController = new ParamHelperClient(torqueCtrlParams, 5); //jointTorqueControl::PARAM_ID_SIZE);
+
     // do not initialize paramHelperClient because jointTorqueControl module may not be running
 
     // Open ports for communicating with other modules
@@ -148,17 +144,27 @@ void MotorFrictionIdentificationModule::commandReceived(const CommandDescription
 
 bool MotorFrictionIdentificationModule::interruptModule()
 {
-    if(identificationThread)
-        identificationThread->suspend();
-    rpcPort.interrupt();
+    ///< This method is called by the stopModule method
     return true;
 }
 
 bool MotorFrictionIdentificationModule::close()
 {
-	//stop threads
-    if(identificationThread){ identificationThread->stop(); delete identificationThread; identificationThread = 0; }
-    if(paramHelper){          paramHelper->close();         delete paramHelper;          paramHelper = 0;          }
+    ///< This method is called by the module thread, which is not the same managing the 
+    ///< RPC calls
+    if(identificationThread)
+    { 
+        identificationThread->suspend();
+        identificationThread->stop(); 
+        delete identificationThread; 
+        identificationThread = 0; 
+    }
+    if(paramHelper)
+    {          
+        paramHelper->close();         
+        delete paramHelper;          
+        paramHelper = 0;          
+    }
     if(robotInterface)
     { 
         bool res=robotInterface->close();    
@@ -169,6 +175,7 @@ bool MotorFrictionIdentificationModule::close()
     }
 
 	//closing ports
+    rpcPort.interrupt();
 	rpcPort.close();
 
     printf("[PERFORMANCE INFORMATION]:\n");

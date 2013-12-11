@@ -56,11 +56,11 @@ bool MotorFrictionIdentificationThread::threadInit()
     resizeAndSetToZero(activeJoints,            _n);
     resizeAndSetToZero(currentGlobalJointIds,   _n);
     resizeAndSetToZero(zeroN,                   _n);
-    resizeAndSetToZero(kt,                      _n);
-    resizeAndSetToZero(kvp,                     _n);
-    resizeAndSetToZero(kvn,                     _n);
-    resizeAndSetToZero(kcp,                     _n);
-    resizeAndSetToZero(kcn,                     _n);
+    resizeAndSetToZero(kt,                      jointTorqueControl::N_DOF);
+    resizeAndSetToZero(kvp,                     jointTorqueControl::N_DOF);
+    resizeAndSetToZero(kvn,                     jointTorqueControl::N_DOF);
+    resizeAndSetToZero(kcp,                     jointTorqueControl::N_DOF);
+    resizeAndSetToZero(kcn,                     jointTorqueControl::N_DOF);
     resizeAndSetToZero(rhs,                     _n*PARAM_NUMBER);
     resizeAndSetToZero(estimateMonitor,         PARAM_NUMBER);
     resizeAndSetToZero(stdDevMonitor,           PARAM_NUMBER);
@@ -76,7 +76,6 @@ bool MotorFrictionIdentificationThread::threadInit()
     ddxB[2] = 9.81;
     
     ///< link module rpc parameters to member variables
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_OUTPUT_FILENAME,        &outputFilename));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ACTIVE_JOINTS,          activeJoints.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_IDENTIF_DELAY,          &delay));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ZERO_JOINT_VEL_THRESH,  &zeroJointVelThr));
@@ -247,10 +246,10 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
     signDqMonitor   = dqSign[jid];                  ///< Velocity sign of the monitored joint
     pwmMonitor      = pwm[jid];                     ///< Motor pwm of the monitored joint
     extTorqueMonitor = extTorques[jid];             ///< External torque of the monitored joint
-    sendMsg("Gravity torque: "+toString(gravTorques[6+jid]));
     ///< Prediction of current motor pwm
     estimators[jid].predictOutput(inputSamples[jid], pwmPredMonitor);   
-    ///< Prediction of motor torque: tau = (-1/k_tau)(-k_tau*pwm/k_tau + k_v\dot{q} + k_c sign(\dot{q}))
+    ///< Prediction of motor torque: tau = -(1/k_tau)(-k_tau*pwm/k_tau + k_v\dot{q} + k_c sign(\dot{q}))
+    ///< Prediction of motor torque: tau = (1/k_tau)(k_tau*pwm/k_tau - k_v\dot{q} - k_c sign(\dot{q}))
     VectorXd phi = inputSamples[jid];
     double k_tau_inv = fabs(estimateMonitor[INDEX_K_TAO])>0.1 ? 1.0/estimateMonitor[INDEX_K_TAO] : 10.0;
     phi[INDEX_K_TAO] = -pwm[jid] * k_tau_inv;
@@ -324,7 +323,7 @@ void MotorFrictionIdentificationThread::commandReceived(const CommandDescription
         break;
 
     case COMMAND_ID_SAVE:
-        saveParametersOnFile();
+        saveParametersOnFile(params, reply);
         break;
 
     case COMMAND_ID_ACTIVATE_JOINT:
@@ -353,8 +352,14 @@ void MotorFrictionIdentificationThread::commandReceived(const CommandDescription
 }
 
 //*************************************************************************************************************************
-void MotorFrictionIdentificationThread::saveParametersOnFile()
+bool MotorFrictionIdentificationThread::saveParametersOnFile(const Bottle &params, Bottle &reply)
 {
+    if(params.size()<1 || !params.get(0).isString())
+    {
+        reply.addString("Error, the file name is missing");
+        return false;
+    }
+    string outputFilename = params.get(0).asString();
     for(int i=0; i<_n; i++)
     {
         estimators[i].updateParameterEstimation();
@@ -365,6 +370,9 @@ void MotorFrictionIdentificationThread::saveParametersOnFile()
         kcp[i]  = estimateMonitor[INDEX_K_CP];
         kcn[i]  = estimateMonitor[INDEX_K_CN];
     }
+    int paramIds[] = { jointTorqueControl::PARAM_ID_KT, jointTorqueControl::PARAM_ID_KVP, jointTorqueControl::PARAM_ID_KVN,
+        jointTorqueControl::PARAM_ID_KCP, jointTorqueControl::PARAM_ID_KCN };
+    return torqueController->writeParamsOnFile(outputFilename, paramIds, 5);
 }
 
 //*************************************************************************************************************************

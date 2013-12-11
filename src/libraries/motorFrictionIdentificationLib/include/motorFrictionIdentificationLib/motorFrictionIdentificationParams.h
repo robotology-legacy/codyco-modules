@@ -63,7 +63,7 @@ enum MotorFrictionIdentificationParamId
     PARAM_ID_MODULE_NAME,           PARAM_ID_CTRL_PERIOD,               PARAM_ID_ROBOT_NAME, 
     PARAM_ID_JOINT_LIST,        
     /* Input parameters */
-    PARAM_ID_OUTPUT_FILENAME,       PARAM_ID_ACTIVE_JOINTS,             PARAM_ID_IDENTIF_DELAY,     
+    PARAM_ID_ACTIVE_JOINTS,         PARAM_ID_IDENTIF_DELAY,     
     PARAM_ID_ZERO_JOINT_VEL_THRESH, PARAM_ID_ZERO_TORQUE_VEL_THRESH,    PARAM_ID_EXT_TORQUE_THRESH,
     PARAM_ID_JOINT_VEL_WIND_SIZE,   PARAM_ID_TORQUE_VEL_WIND_SIZE,
     PARAM_ID_JOINT_VEL_EST_THRESH,  PARAM_ID_TORQUE_VEL_EST_THRESH,
@@ -96,7 +96,6 @@ new ParamProxyBasic<int>(   "joint list",           PARAM_ID_JOINT_LIST,        
 // ************************************************* RPC OUTPUT PARAMETERS ************************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<string>("joint names",          PARAM_ID_JOINT_NAMES,           PARAM_SIZE_FREE,                                            PARAM_OUTPUT,       0,                                  "List of the names of the (used) robot joints"), 
 // ************************************************* RPC INPUT OUTPUT PARAMETERS ******************************************************************************************************************************************************************************************************************************
-new ParamProxyBasic<string>("filename",             PARAM_ID_OUTPUT_FILENAME,       1,                                                          PARAM_IN_OUT,       &DEFAULT_OUTPUT_FILENAME,           "Name of the file on which to save the state of the identification"), 
 new ParamProxyBasic<int>(   "active joints",        PARAM_ID_ACTIVE_JOINTS,         PARAM_SIZE_FREE,    ParamBilatBounds<int>(0,1),             PARAM_IN_OUT,       0,                                  "List of flags (0,1) indicating for which motors the identification is active"), 
 new ParamProxyBasic<double>("delay",                PARAM_ID_IDENTIF_DELAY,         1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_IDENTIF_DELAY,             "Delay (in sec) used before processing a sample to update the identified parameters"), 
 new ParamProxyBasic<double>("zero joint vel thr",   PARAM_ID_ZERO_JOINT_VEL_THRESH, 1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_ZERO_JOINT_VEL_THRESH,     "Joint velocities (deg/sec) below this threshold are considered zero"), 
@@ -139,7 +138,7 @@ enum MotorFrictionIdentificationCommandId
 const CommandDescription motorFrictionIdentificationCommandDescr[COMMAND_ID_SIZE]  = 
 { 
 //                  NAME                ID                              DESCRIPTION
-CommandDescription("save",              COMMAND_ID_SAVE,                "Save the current identification state on text file"),
+CommandDescription("save",              COMMAND_ID_SAVE,                "Save the identified parameters on a text file with the specified name. If the file already exists, append at the end."),
 CommandDescription("reset",             COMMAND_ID_RESET,               "Reset the identification status of the specified joint (all joints if none is specified)"), 
 CommandDescription("activate joint",    COMMAND_ID_ACTIVATE_JOINT,      "Activate the identification for the specified joint (joint can be specified by either its name or its global id)"), 
 CommandDescription("deactivate joint",  COMMAND_ID_DEACTIVATE_JOINT,    "Deactivate the identification for the specified joint (joint can be specified by either its name or its global id)"), 
