@@ -43,7 +43,6 @@ using namespace yarp::dev;
 using namespace paramHelp;
 using namespace wbiIcub;
 using namespace motorFrictionExcitation;
-using namespace motorFrictionIdentificationLib;
 
 MotorFrictionExcitationModule::MotorFrictionExcitationModule()
 {

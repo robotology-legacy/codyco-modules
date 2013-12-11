@@ -43,7 +43,6 @@ using namespace yarp::dev;
 using namespace paramHelp;
 using namespace wbiIcub;
 using namespace jointTorqueControl;
-using namespace motorFrictionIdentificationLib;
 
 jointTorqueControlModule::jointTorqueControlModule()
 {

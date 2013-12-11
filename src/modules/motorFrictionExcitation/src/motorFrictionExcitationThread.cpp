@@ -23,7 +23,6 @@
 #include <yarp/math/SVD.h>
 
 
-using namespace motorFrictionIdentificationLib;
 using namespace motorFrictionExcitation;
 using namespace yarp::math;
 using namespace wbiIcub;
@@ -101,10 +100,10 @@ void MotorFrictionExcitationThread::run()
         preStopOperations();              // set desired PWM to 0, switch to pos ctrl
         excitationCounter++;
         if(excitationCounter >= (int)freeMotionExc.size())
-            printf("Excitation process finished (%d out of %d).\n", excitationCounter, freeMotionExc.size());
+            printf("Excitation process finished (%d out of %lu).\n", excitationCounter, freeMotionExc.size());
         else
         {
-            printf("\nExcitation %d (out of %d) finished.\n", excitationCounter-1, freeMotionExc.size());
+            printf("\nExcitation %d (out of %lu) finished.\n", excitationCounter-1, freeMotionExc.size());
             preStartOperations();
         }
     }

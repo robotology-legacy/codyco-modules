@@ -55,7 +55,6 @@ using namespace std;
 using namespace paramHelp;
 using namespace wbi;
 using namespace Eigen;
-using namespace motorFrictionExcitation;
 
 namespace jointTorqueControl
 {
