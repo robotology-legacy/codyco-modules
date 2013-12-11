@@ -4,6 +4,10 @@ compiler:
   - gcc
   - clang
 
+env:
+  - CODYCO_TRAVIS_BUILD_TYPE=Debug
+  - CODYCO_TRAVIS_BUILD_TYPE=Release
+
 install:
   - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
   - sudo apt-get update
@@ -18,7 +22,7 @@ before_script:
   - mkdir build
   - cd build
   - mkdir local_install
-  - cmake -DCMAKE_INSTALL_PREFIX="./local_install" ..
+  - cmake -DCMAKE_INSTALL_PREFIX="./local_install" -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} ..
   - make
   - make install
   - cd ../../..
@@ -28,14 +32,14 @@ before_script:
   - mkdir build
   - cd build
   - mkdir local_install
-  - cmake -DCMAKE_INSTALL_PREFIX="./local_install" ..
+  - cmake -DCMAKE_INSTALL_PREFIX="./local_install" -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} ..
   - make
   - make install
   - cd ../..
   # Prepare codyco build
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} ..
 
 script:
   - make

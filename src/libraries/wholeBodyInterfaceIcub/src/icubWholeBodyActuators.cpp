@@ -112,9 +112,12 @@ bool icubWholeBodyActuators::addActuator(const LocalId &j)
     if(!jointIdList.addId(j))
         return false;
     
-    int tmp=-1;
-    icmd[j.bodyPart]->getControlMode(j.bodyPart==TORSO?2-j.index:j.index, &tmp);
-    currentCtrlModes[j] = yarpToWbiCtrlMode(tmp);
+    if(initDone)
+    {
+        int tmp=-1;
+        icmd[j.bodyPart]->getControlMode(j.bodyPart==TORSO?2-j.index:j.index, &tmp);
+        currentCtrlModes[j] = yarpToWbiCtrlMode(tmp);
+    }
     
     dof++;
     return true;
@@ -293,11 +296,11 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
     return ok;
 }
         
-bool icubWholeBodyActuators::setControlParam(ControlParam paramId, double *value, int joint)
+bool icubWholeBodyActuators::setControlParam(ControlParam paramId, const void *value, int joint)
 {
     switch(paramId)
     {
-    case CTRL_PARAM_REF_VEL: return setReferenceSpeed(value, joint);
+    case CTRL_PARAM_REF_VEL: return setReferenceSpeed((double*)value, joint);
     default: break;
     }
     return false;

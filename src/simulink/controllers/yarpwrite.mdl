@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.15"
+    ComputedModelVersion    "1.16"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -38,9 +38,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Nov 19 16:39:51 2013"
-  RTWModifiedTimeStamp	  306779990
-  ModelVersionFormat	  "1.%<AutoIncrement:15>"
+  LastModifiedDate	  "Fri Dec 06 16:11:53 2013"
+  RTWModifiedTimeStamp	  308246778
+  ModelVersionFormat	  "1.%<AutoIncrement:16>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -78,6 +78,7 @@ Model {
     $ObjectID		    2
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "yarpwrite"
+    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -742,7 +743,7 @@ Model {
   }
   System {
     Name		    "yarpwrite"
-    Location		    [467, 462, 1047, 722]
+    Location		    [321, 294, 901, 554]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -790,7 +791,7 @@ Model {
       MaskIconRotate	      "none"
       MaskPortRotate	      "default"
       MaskIconUnits	      "autoscale"
-      MaskValueString	      "'/write:o'"
+      MaskValueString	      "'/test:o'"
       System {
 	Name			"yarp write"
 	Location		[670, 506, 890, 588]

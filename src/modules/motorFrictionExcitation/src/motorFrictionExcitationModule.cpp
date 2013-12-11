@@ -43,7 +43,6 @@ using namespace yarp::dev;
 using namespace paramHelp;
 using namespace wbiIcub;
 using namespace motorFrictionExcitation;
-using namespace motorFrictionIdentificationLib;
 
 MotorFrictionExcitationModule::MotorFrictionExcitationModule()
 {
@@ -77,8 +76,8 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
     //--------------------------WHOLE BODY INTERFACE--------------------------
     robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
     robotInterface->addJoints(ICUB_MAIN_JOINTS);
-    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE, LocalId(RIGHT_LEG,1));  // right ankle ft sens
-    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE, LocalId(LEFT_LEG,1));   // left ankle ft sens
+    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE, LocalId(RIGHT_LEG,0));  // right get ft sens
+    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE, LocalId(LEFT_LEG,0));   // left leg ft sens
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------
@@ -129,7 +128,14 @@ bool MotorFrictionExcitationModule::close()
 	//stop threads
     if(ctrlThread){     ctrlThread->stop();         delete ctrlThread;      ctrlThread = 0;     }
     if(paramHelper){    paramHelper->close();       delete paramHelper;     paramHelper = 0;    }
-    if(robotInterface){ robotInterface->close();    delete robotInterface;  robotInterface = 0; }
+    if(robotInterface)
+    { 
+        bool res=robotInterface->close();    
+        if(res)
+            printf("Error while closing robot interface\n");
+        delete robotInterface;  
+        robotInterface = 0; 
+    }
 
 	//closing ports
 	rpcPort.close();

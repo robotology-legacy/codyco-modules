@@ -23,7 +23,6 @@
 #include <yarp/math/SVD.h>
 
 
-using namespace motorFrictionIdentificationLib;
 using namespace motorFrictionExcitation;
 using namespace yarp::math;
 using namespace wbiIcub;
@@ -66,8 +65,9 @@ bool MotorFrictionExcitationThread::threadInit()
     ///< Register callbacks for some module parameters
     
     ///< Register callbacks for some module commands
-    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
-    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_STOP,            this));
+    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_START,          this));
+    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_STOP,           this));
+    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_RESET,          this));
 
     ///< read robot status (to be done before initializing trajectory generators)
     if(!readRobotStatus(true))
@@ -100,10 +100,10 @@ void MotorFrictionExcitationThread::run()
         preStopOperations();              // set desired PWM to 0, switch to pos ctrl
         excitationCounter++;
         if(excitationCounter >= (int)freeMotionExc.size())
-            printf("Excitation process finished (%d out of %d).\n", excitationCounter, freeMotionExc.size());
+            printf("Excitation process finished (%d out of %lu).\n", excitationCounter, freeMotionExc.size());
         else
         {
-            printf("\nExcitation %d (out of %d) finished.\n", excitationCounter-1, freeMotionExc.size());
+            printf("\nExcitation %d (out of %lu) finished.\n", excitationCounter-1, freeMotionExc.size());
             preStartOperations();
         }
     }
@@ -135,10 +135,12 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
     {
         int jid = currentGlobalJointIds[i];
         posIntegral[i] += freeMotionExc[excitationCounter].ki[i]*(qDeg[jid]-freeMotionExc[excitationCounter].initialJointConfiguration[jid]);
-        posIntegral[i] = posIntegral[i]>MAX_POS_INTEGRAL  ?  MAX_POS_INTEGRAL : posIntegral[i];
-        posIntegral[i] = posIntegral[i]<-MAX_POS_INTEGRAL ? -MAX_POS_INTEGRAL : posIntegral[i];
+        ///< saturate position integral
+        if(posIntegral[i]>MAX_POS_INTEGRAL) 
+            posIntegral[i]=MAX_POS_INTEGRAL;
+        else if(posIntegral[i]<-MAX_POS_INTEGRAL) 
+            posIntegral[i]=-MAX_POS_INTEGRAL;
     }
-    //sendMsg("Pos integral: "+toString(posIntegral));
 
     FreeMotionExcitation *fme = &freeMotionExc[excitationCounter];
     double t = Time::now()-excitationStartTime;
@@ -159,6 +161,8 @@ bool MotorFrictionExcitationThread::checkStopConditions()
         int jid = currentGlobalJointIds[i];
         qDegMonitor = qDeg[jid];
         double jThr = freeMotionExc[excitationCounter].jointLimitThresh[i];
+
+        ///< check whether the joint is too close to its limit
         if(fabs(qMax[jid]-qDeg[jid])<jThr || fabs(qDeg[jid]-qMin[jid])<jThr)
         {
             printf("Joint %s got too close to its limit. Q=%.1f, Qmax=%.1f, Qmin=%.1f, Joint limit threshold=%.1f\n", 
@@ -351,9 +355,18 @@ void MotorFrictionExcitationThread::commandReceived(const CommandDescription &cd
         if(!preStartOperations())
             preStopOperations();
         break;
+
     case COMMAND_ID_STOP:
         preStopOperations();
         break;
+
+    case COMMAND_ID_RESET:
+        preStopOperations();
+        excitationCounter = 0;
+        if(!preStartOperations())
+            preStopOperations();
+        break;
+
     default:
         sendMsg("A callback is registered but not managed for the command "+cd.name, MSG_WARNING);
     }

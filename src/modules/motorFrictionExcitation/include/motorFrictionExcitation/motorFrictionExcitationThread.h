@@ -50,7 +50,6 @@ using namespace paramHelp;
 using namespace wbi;
 using namespace Eigen;
 using namespace motorFrictionExcitation;
-using namespace motorFrictionIdentificationLib;
 
 namespace motorFrictionExcitation
 {

@@ -18,6 +18,8 @@
 #ifndef _MOTOR_FRICTION_IDENTIFICATION_CONSTANTS
 #define _MOTOR_FRICTION_IDENTIFICATION_CONSTANTS
 
+#include <Eigen/Core>
+
 namespace motorFrictionIdentification
 {
 /** Types of printed messages */
@@ -26,6 +28,21 @@ enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
 // *** CONSTANTS
 static const int        PRINT_PERIOD    = 1000;         ///< period of debug prints (in ms)
 static const int        PRINT_MSG_LEVEL = MSG_DEBUG;    ///< only messages whose type is greater than or equal to PRINT_MSG_LEVEL are printed
+static const double     MODULE_PERIOD   = 20.0;         ///< period of the module (in sec)
+
+template<class VectorType>
+inline void resizeAndSetToZero(VectorType &v, unsigned int size)
+{
+    v.resize(size);
+    v.setZero();
+}
+
+template<class MatrixType>
+inline void resizeAndSetToZero(MatrixType &m, unsigned int rowNum, unsigned int colNum)
+{
+    m.resize(rowNum, colNum);
+    m.setZero();
+}
 
 }   // end namespace 
 

@@ -281,7 +281,7 @@ bool ParamHelperServer::setParam(int id, const Bottle &v, Bottle &reply, bool in
         paramSizeObs[id]->parameterSizeChanged(paramList[id], v.size());
     }
     bool res = paramList[id]->set(v, &reply);
-    // TODO: deal with free size parameters
+    ///< @todo deal with free size parameters
     
     if(res)
     {

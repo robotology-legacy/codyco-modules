@@ -43,10 +43,11 @@ namespace paramHelp
 // PARAM_IN_STREAM: can be written (from either rpc or the input streaming port), and read from the rpc port only
 // PARAM_OUT_STREAM: can be read (from either rpc or the output streaming port), but not written
 // PARAM_IN_OUT_STREAM: can be both written and read from either rpc or the streaming ports
+// PARAM_MONITOR: can be read from both the monitor port and the rpc port
 // *************************************************************************************************/
 enum ParamIOTypeEnum
 { 
-    PARAM_IO_UNKNOWN, 
+    PARAM_IO_UNKNOWN,       ///< unknown parameter input/output type
     PARAM_CONFIG,           ///< standard configuration parameter, e.g. module name, thread period
     PARAM_INPUT,            ///< probably USELESS
     PARAM_OUTPUT,           ///< probably USELESS
@@ -55,7 +56,7 @@ enum ParamIOTypeEnum
     PARAM_OUT_STREAM,       ///< output to other modules
     PARAM_IN_OUT_STREAM,    ///< input from some modules that is also of interest for other modules
     PARAM_MONITOR,          ///< output streaming on monitoring port
-    PARAM_IO_TYPE_SIZE 
+    PARAM_IO_TYPE_SIZE      ///< number of elements of this enum
 };
 
 /** Class representing a parameter I/O type. */
@@ -182,7 +183,7 @@ public:
 class ParamValueObserver
 {
 public:
-    /** Method called every time the parameter value is changed.
+    /** Method called just after the parameter value has changed.
      * @param pd Description of the parameter. */
     virtual void parameterUpdated(const ParamProxyInterface *pd) = 0;
 };
@@ -197,7 +198,7 @@ public:
     /** Method called every time the parameter's size is about to change.
      * @param pd Description of the parameter. 
      * @param newSize New size of the parameter. 
-     * @note This callback is though to allow the resize of the variable linked to the parameter (if any). */
+     * @note This callback is thought to allow the resize of the variable linked to the parameter (if any). */
     virtual void parameterSizeChanged(const ParamProxyInterface *pd, int newSize) = 0;
 };
 
@@ -208,7 +209,7 @@ public:
 class CommandObserver
 {
 public:
-    /** Method called every time the command is received.
+    /** Method called every time a command is received.
      * @param cd Description of the command
      * @param params Parameters received after the command (if any) 
      * @param reply Reply to the command */

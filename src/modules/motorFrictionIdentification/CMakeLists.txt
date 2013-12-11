@@ -16,10 +16,14 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 
 FILE(GLOB folder_source ./src/motorFrictionIdentificationMain.cpp
                         ./src/motorFrictionIdentificationModule.cpp
-                        ./src/motorFrictionIdentificationThread.cpp )
+                        ./src/motorFrictionIdentificationThread.cpp
+                        ./src/recursiveLinearEstimator.cpp
+                        ./src/alternatingRecursiveLinearEstimator.cpp )
 FILE(GLOB folder_header ./include/motorFrictionIdentification/motorFrictionIdentificationModule.h
                         ./include/motorFrictionIdentification/motorFrictionIdentificationThread.h
-                        ./include/motorFrictionIdentification/motorFrictionIdentificationConstants.h )
+                        ./include/motorFrictionIdentification/motorFrictionIdentificationConstants.h 
+                        ./include/motorFrictionIdentification/recursiveLinearEstimator.h 
+                        ./include/motorFrictionIdentification/alternatingRecursiveLinearEstimator.h )
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})

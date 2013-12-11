@@ -33,7 +33,7 @@ static const int       ICUB_DOFS = 25;    // number of (the main) degrees of fre
 
 typedef Eigen::Matrix<double,ICUB_DOFS,1>          VectorNd;
 
-namespace motorFrictionIdentificationLib
+namespace motorFrictionExcitation
 {
 
 ///< specify whether or not the commands are sent to the motors
@@ -55,7 +55,7 @@ static const double                 DEFAULT_POS_INT_GAIN    = 1e-5;
 
 // *** IDs of all the module command
 enum MotorFrictionExcitationCommandId { 
-    COMMAND_ID_START,   COMMAND_ID_STOP,    COMMAND_ID_HELP,    COMMAND_ID_QUIT, 
+    COMMAND_ID_START,   COMMAND_ID_STOP,    COMMAND_ID_RESET,   COMMAND_ID_HELP,    COMMAND_ID_QUIT, 
     COMMAND_ID_SIZE
 };
 
@@ -67,6 +67,7 @@ const CommandDescription motorFrictionExcitationCommandDescr[]  =
 //                  NAME            ID                          DESCRIPTION
 CommandDescription("start",         COMMAND_ID_START,           "Start the controller"), 
 CommandDescription("stop",          COMMAND_ID_STOP,            "Stop the controller"), 
+CommandDescription("reset",         COMMAND_ID_RESET,           "Reset the excitation counter so that the excitation starts back form the beginning"), 
 CommandDescription("help",          COMMAND_ID_HELP,            "Get instructions about how to communicate with this module"), 
 CommandDescription("quit",          COMMAND_ID_QUIT,            "Stop the controller and quit the module"), 
 };

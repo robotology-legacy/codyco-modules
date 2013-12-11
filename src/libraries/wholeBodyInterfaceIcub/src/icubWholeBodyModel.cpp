@@ -23,12 +23,15 @@
 #include <iCub/skinDynLib/common.h>
 #include <iCub/ctrl/math.h>
 
+#include <yarp/math/Math.h>
+
 using namespace std;
 using namespace wbi;
 using namespace wbiIcub;
 using namespace yarp::os;
 using namespace yarp::dev;
 using namespace yarp::sig;
+using namespace yarp::math;
 using namespace iCub::skinDynLib;
 
 // iterate over all body parts
@@ -49,9 +52,10 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName
     double* initial_q, const std::vector<std::string> &_bodyPartNames)
     : dof(0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
 {
+    std::string kinematic_base_link_name = "root_link";
     version.head_version = head_version;
     version.legs_version = legs_version;
-    p_icub_model = new iCub::iDynTree::iCubTree(version);
+    p_icub_model = new iCub::iDynTree::iCubTree(version,false,iCub::iDynTree::SKINDYNLIB_SERIALIZATION,0,kinematic_base_link_name);
     all_q.resize(p_icub_model->getNrOfDOFs(),0.0);
     all_q_min = all_q_max = all_ddq = all_dq = all_q;
     
@@ -198,6 +202,22 @@ bool icubWholeBodyModel::convertDDQ(const double *_ddq_input, yarp::sig::Vector 
     FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
         FOR_ALL_JOINTS(itBp, itJ) {
             ddq_complete_output[p_icub_model->getDOFIndex(itBp->first,*itJ)] = _ddq_input[i];
+            i++;
+        }
+    }
+    return true;
+}
+
+bool icubWholeBodyModel::convertGeneralizedTorques(yarp::sig::Vector idyntree_base_force, yarp::sig::Vector idyntree_torques, double * tau)
+{
+    if( idyntree_base_force.size() != 6 && idyntree_torques.size() != p_icub_model->getNrOfDOFs() ) { return false; }
+    for(int j = 0; j < 6; j++ ) {
+        tau[j] = idyntree_base_force[j];
+    }
+    int i = 0;
+    FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
+        FOR_ALL_JOINTS(itBp, itJ) {
+            tau[i+6] = idyntree_torques[p_icub_model->getDOFIndex(itBp->first,*itJ)];
             i++;
         }
     }
@@ -372,7 +392,40 @@ bool icubWholeBodyModel::forwardKinematics(double *q, const Frame &xB, int linkI
 
 bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *tau)
 {
-    return false;
+    /** \todo move all conversion (also the one relative to frames) in convert* functions */
+    //Converting local wbi positions/velocity/acceleration to iDynTree one
+    convertBasePose(xB,world_base_transformation);
+    convertQ(q,all_q);
+    convertBaseVelocity(dxB,v_base,omega_base);
+    convertDQ(dq,all_dq);
+    convertBaseAcceleration(ddxB,a_base,domega_base);
+    convertDDQ(ddq,all_ddq);
+
+    //Setting iDynTree variables
+    p_icub_model->setWorldBasePose(world_base_transformation);
+    p_icub_model->setAng(all_q);
+    //The kinematic initial values are expressed in the imu link (in this case, the base) for iDynTree 
+    yarp::sig::Matrix base_world_rotation = world_base_transformation.submatrix(0,2,0,2).transposed();
+    
+    p_icub_model->setInertialMeasure(base_world_rotation*omega_base,
+                                     world_base_transformation.submatrix(0,2,0,2).transposed()*domega_base,
+                                     world_base_transformation.submatrix(0,2,0,2).transposed()*a_base);
+    p_icub_model->setDAng(all_dq);
+    p_icub_model->setD2Ang(all_ddq);
+    
+    //Computing inverse dynamics
+    p_icub_model->kinematicRNEA();
+    p_icub_model->dynamicRNEA();
+    
+    //Get the output floating base torques and convert them to wbi generalized torques
+    yarp::sig::Vector base_force = p_icub_model->getBaseForceTorque();
+    
+    base_force.subVector(0,2) = world_base_transformation.submatrix(0,2,0,2)*base_force.subVector(0,2);
+    base_force.subVector(3,5) = world_base_transformation.submatrix(0,2,0,2)*base_force.subVector(3,5);
+    
+    convertGeneralizedTorques(base_force,p_icub_model->getTorques(),tau);
+    
+    return true;
 }
 
 bool icubWholeBodyModel::directDynamics(double *q, const Frame &xB, double *dq, double *dxB, double *M, double *h)

@@ -40,6 +40,8 @@
 #include "matrix.h"
 #include "simstruc.h"
 
+#define VERBOSE 0
+
 #define IS_PARAM_DOUBLE(pVal) (mxIsNumeric(pVal) && !mxIsLogical(pVal) &&\
     !mxIsEmpty(pVal) && !mxIsSparse(pVal) && !mxIsComplex(pVal) && mxIsDouble(pVal))
 
@@ -196,6 +198,9 @@ static void mdlStart(SimStruct *S)
      //    if(counter.getCount()<2){
      // CONFIGURE AND INITIALIZE ROBOT INTERFACE
  //    fprintf(stderr,"about to configure robot \n");
+     robot->setmoduleName(local_name);
+     robot->setRobotName(robot_name);
+
      bool res = robot->robotConfig();
      res = res && robot->robotInit(static_cast<int>(block_type), static_cast<int>(*uPtrs[0]));
  //    if(res==true)
@@ -258,24 +263,6 @@ static void mdlOutputs(SimStruct *S, int_T tid)
      InputPtrsType           u = ssGetInputPortSignalPtrs(S,0);
      InputInt8PtrsType   uPtrs = (InputInt8PtrsType) u;
      //    fprintf(stderr,"Input port value: %d \n", (int)(*uPtrs[0]));
-
-
-
-//     if(btype == 0 || btype == 1){
-//         // Streaming out encoders and joint velocities
-//         fprintf(stderr,"About to send data to ports \n");
-//         int_T nOutputPorts = 1;   // FOR THE FIRST TWO OUTPUT PORTS (q and dq)
-//         for(int_T i=0; i<nOutputPorts; i++){
-//             real_T *pY1 = (real_T *)ssGetOutputPortSignal(S,0);
-//             real_T *pY2 = (real_T *)ssGetOutputPortSignal(S,1);
-//             int_T widthPort = ssGetOutputPortWidth(S,i);
-//             fprintf(stderr,"about to send data: %s \n",qrad.toString().c_str());
-//             for(int_T j=0; j<widthPort; j++){
-//                 pY1[j] = qrad((int) j);
-//                 pY2[j] = dotq((int) j);
-//             }
-//         }
-//     }
 
      if(btype == 0){
  //        cout<<"About to send encoders to ports..."<<endl;
@@ -417,7 +404,6 @@ static void mdlTerminate(SimStruct *S)
      if(ssGetPWork(S) != NULL){
          ssSetPWorkValue(S,0,NULL);
      }
-    fprintf(stderr,"Everything was closed correctly\n");
 }
 
 // Required S-function trailer

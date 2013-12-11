@@ -43,12 +43,12 @@ namespace paramHelp
 // 3) Call the method 'init' (actually it can be called at any moment)
 //
 // After the initializion, you can use this class in these ways:
-// 1) To set a parameter through an rpc message call the method 'setRpcParam'
-// 2) To get a parameter through an rpc message call the method 'getRpcParam'
-// 3) To send an rpc command call the method 'sendRpcCommand'
-// 4) To send the input streaming parameters call the method 'sendStreamParams'
-// 5) To read the output streaming parameters call the method 'readStreamParams'
-// 6) To read sporadic info messages (about the module status) call the method 'readInfoMessage'
+// 1) To set a parameter through an rpc message, call the method 'setRpcParam'
+// 2) To get a parameter through an rpc message, call the method 'getRpcParam'
+// 3) To send an rpc command, call the method 'sendRpcCommand'
+// 4) To send the input streaming parameters, call the method 'sendStreamParams'
+// 5) To read the output streaming parameters, call the method 'readStreamParams'
+// 6) To read sporadic info messages (about the module status), call the method 'readInfoMessage'
 ****************************************************************************************************/
 class ParamHelperClient: public ParamHelperBase
 {

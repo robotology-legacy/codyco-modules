@@ -148,16 +148,26 @@ public:
     ~robotStatus(){
         if(i!=NULL){
             fprintf(stderr,"wbInterface in destructor: %p \n",wbInterface);
-            wbInterface->close();
-            delete wbInterface;
-            fprintf(stderr,"wbInterface has been deleted\n");
-            wbInterface = NULL;
+            if(wbInterface->close()){
+                delete wbInterface;
+                fprintf(stderr,"wbInterface has been closed and deleted correctly\n");
+                wbInterface = NULL;
+            }
+            else{
+                fprintf(stderr,"ERROR: wbInterface couldn't close correctly");
+            }
 
 //            delete paramHelper;
 //            paramHelper = NULL;
 
             i           = NULL;
         }
+    }
+    void setRobotName(string rn){
+        robotName = rn;
+    }
+    void setmoduleName(string mn){
+        moduleName = mn;
     }
 
      // **************************************************************************************************
@@ -202,7 +212,7 @@ public:
              }
 
              // SET CONTROL MODE
-             setCtrlMode(CTRL_MODE_VEL);
+             setCtrlMode(CTRL_MODE_POS);
          }
 
          // Initializing private variables This must be done regardless of the new creation of wbInterface
@@ -364,7 +374,7 @@ public:
      bool robotJntAngles(bool blockingRead)
      {
  //        fprintf(stderr,"Robot Joint Angles requested\n");
-         return wbInterface->getEstimates(ESTIMATE_JOINT_POS, qRad.data(), blockingRead);
+         return wbInterface->getEstimates(ESTIMATE_JOINT_POS, qRad.data(),-1.0, blockingRead);
      }
      // **************************************************************************************************
      bool robotJntVelocities(bool blockingRead)
