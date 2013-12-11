@@ -36,10 +36,10 @@
         <protocol>udp</protocol>
     </connection>
     
-    <!-- FT connections -->
+    <!-- skin connections -->
     <connection>
-        <from>/icub/left_foot/analog:o</from>
-        <to>/dump/leftFootFT</to>
+        <from>/icub/skin/left_foot</from>
+        <to>/dump/leftFootSkin</to>
         <protocol>udp</protocol>
     </connection>
 </application>
