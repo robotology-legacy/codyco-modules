@@ -154,7 +154,7 @@ bool ParamHelperClient::readStreamParams(bool blockingRead)
         int paramId = b->get(0).asInt();
         if(!paramList[paramId]->set(b->tail(), &reply))
         {
-            logMsg("[readStreamParams] "+reply.toString(), MSG_ERROR);
+            logMsg("[readStreamParams] "+reply.toString().c_str(), MSG_ERROR);
             reply.clear();
         }
     }
