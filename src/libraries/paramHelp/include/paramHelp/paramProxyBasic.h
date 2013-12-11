@@ -225,9 +225,10 @@ public:
         ///< check the size
         if(!size.freeSize && newValue->size()!=size)
         {
-            if(reply!=NULL)
+            if(reply!=NULL) {
                 std::string reply_str = strcat("Wrong size of parameter ",name," (expected ",size,", found ",newValue->size());
                 reply->addString(reply_str.c_str());
+            }
             return false;
         }
 
@@ -255,9 +256,10 @@ public:
     {
         if(index<0 || index>=size)
         {
-            if(reply!=NULL)
+            if(reply!=NULL) {
                 std::string reply_str = strcat("Index out of bound. Index=",index,", parameter size=",size);
                 reply->addString(reply_str.c_str());
+            }
             return false;
         }
         if(!checkConstraints(newValue, reply))
