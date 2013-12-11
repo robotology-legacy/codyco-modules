@@ -21,7 +21,6 @@
 #include <yarp/os/Time.h>
 #include <yarp/os/Random.h>
 #include <yarp/os/Log.h>
-#include <yarp/math/SVD.h>
 
 using namespace yarp::math;
 using namespace wbiIcub;

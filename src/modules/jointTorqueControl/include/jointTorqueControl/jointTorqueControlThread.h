@@ -18,39 +18,23 @@
 #ifndef __JOINT_TORQUE_CONTROL_THREAD
 #define __JOINT_TORQUE_CONTROL_THREAD
 
-#include <sstream>
 #include <iomanip>
-#include <stdexcept>
-#include <vector>
 #include <fstream>
 #include <stdlib.h>
 #include <cstdlib>
 #include <stdio.h>
 #include <time.h>
-#include <yarp/os/Property.h>
 
-#include <yarp/os/BufferedPort.h>
-#include <yarp/os/Thread.h>
-#include <yarp/os/Semaphore.h>
 #include <yarp/os/RateThread.h>
-#include <yarp/sig/Vector.h>
-
-#include <iCub/ctrl/math.h>
-#include <iCub/ctrl/adaptWinPolyEstimator.h>
-#include <iCub/ctrl/minJerkCtrl.h>
-#include <iCub/skinDynLib/skinContactList.h>
 #include <Eigen/Core>                               // import most common Eigen types
-
 #include <wbi/wbi.h>
 #include <paramHelp/paramHelperServer.h>
 #include <paramHelp/paramHelperClient.h>
+
 #include <jointTorqueControl/jointTorqueControlConstants.h>
 
 
 using namespace yarp::os;
-using namespace yarp::math;
-using namespace iCub::ctrl;
-using namespace iCub::skinDynLib;
 using namespace std;
 using namespace paramHelp;
 using namespace wbi;

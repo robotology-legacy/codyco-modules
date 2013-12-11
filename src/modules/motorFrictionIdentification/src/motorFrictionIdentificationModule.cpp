@@ -26,8 +26,6 @@
 #include "motorFrictionIdentificationLib/jointTorqueControlParams.h"
 #include "motorFrictionIdentification/motorFrictionIdentificationModule.h"
 
-//YARP_DECLARE_DEVICES(icubmod)
-
 using namespace yarp::dev;
 using namespace paramHelp;
 using namespace wbiIcub;

@@ -19,8 +19,6 @@
 #include <jointTorqueControl/jointTorqueControlConstants.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
-#include <yarp/os/Property.h>
-
 
 using namespace jointTorqueControl;
 
