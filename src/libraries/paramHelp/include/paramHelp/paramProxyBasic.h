@@ -208,7 +208,7 @@ public:
         if(nv.size()==0)
         {
             if(reply!=NULL)
-                reply->addString(("The Bottle with the new value for the parameter "+name+" is empty."));
+                reply->addString(("The Bottle with the new value for the parameter "+name+" is empty.").c_str());
             return false;
         }
         
@@ -226,7 +226,8 @@ public:
         if(!size.freeSize && newValue->size()!=size)
         {
             if(reply!=NULL)
-                reply->addString(strcat("Wrong size of parameter ",name," (expected ",size,", found ",newValue->size()));
+                std::string reply_str = strcat("Wrong size of parameter ",name," (expected ",size,", found ",newValue->size());
+                reply->addString(reply_str.c_str());
             return false;
         }
 
@@ -255,7 +256,8 @@ public:
         if(index<0 || index>=size)
         {
             if(reply!=NULL)
-                reply->addString(strcat("Index out of bound. Index=",index,", parameter size=",size));
+                std::string reply_str = strcat("Index out of bound. Index=",index,", parameter size=",size);
+                reply->addString(reply_str.c_str());
             return false;
         }
         if(!checkConstraints(newValue, reply))
