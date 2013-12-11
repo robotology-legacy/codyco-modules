@@ -1,5 +1,5 @@
 add_subdirectory(libraries) 
-add_subdirectory(sensorsInterfaces)
+#add_subdirectory(sensorsInterfaces)
 #add_subdirectory(wbci)
 #add_subdirectory(wbciy)
 add_subdirectory(modules)

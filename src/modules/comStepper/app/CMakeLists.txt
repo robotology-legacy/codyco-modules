@@ -1,11 +1,9 @@
 set(appname comStepper)
 set(yscopename yarpscope)
 
-icub_app(${appname})
-
-SET(ICUB_APPLICATIONS_PREFIX "$ENV{ICUB_ROOT}"  CACHE PATH "Application path prefix")
-
-MESSAGE(STATUS ${ICUB_APPLICATIONS_PREFIX})
+# icub_app(${appname})
+# SET(ICUB_APPLICATIONS_PREFIX "$ENV{ICUB_ROOT}"  CACHE PATH "Application path prefix")
+# MESSAGE(STATUS ${ICUB_APPLICATIONS_PREFIX})
 
 file(GLOB conf ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini)
 
