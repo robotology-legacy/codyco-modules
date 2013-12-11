@@ -154,7 +154,7 @@ bool ParamHelperClient::readStreamParams(bool blockingRead)
         int paramId = b->get(0).asInt();
         if(!paramList[paramId]->set(b->tail(), &reply))
         {
-            std::string reply_str(reply.toString().c_str())
+            std::string reply_str(reply.toString().c_str());
             logMsg("[readStreamParams] "+reply_str, MSG_ERROR);
             reply.clear();
         }
