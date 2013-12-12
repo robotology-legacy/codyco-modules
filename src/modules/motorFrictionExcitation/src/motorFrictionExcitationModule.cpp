@@ -15,33 +15,21 @@
  * Public License for more details
 */ 
 
-#include <yarp/os/BufferedPort.h>
-#include <yarp/os/RFModule.h>
-#include <yarp/os/Time.h>
-#include <yarp/os/Network.h>
-#include <yarp/os/RateThread.h>
-#include <yarp/os/Stamp.h>
-#include <yarp/sig/Vector.h>
-#include <yarp/dev/PolyDriver.h>
-#include <yarp/dev/Drivers.h>
-#include <yarp/dev/ControlBoardInterfaces.h>
-#include <iCub/ctrl/math.h>
-#include <iCub/ctrl/adaptWinPolyEstimator.h>
-
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <string.h>
 
-#include "motorFrictionIdentificationLib/motorFrictionExcitationParams.h"
-#include "motorFrictionExcitation/motorFrictionExcitationThread.h"
-#include "motorFrictionExcitation/motorFrictionExcitationModule.h"
+#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <iCub/skinDynLib/common.h>
 
-YARP_DECLARE_DEVICES(icubmod)
+#include "motorFrictionIdentificationLib/motorFrictionExcitationParams.h"
+#include "motorFrictionExcitation/motorFrictionExcitationModule.h"
 
 using namespace yarp::dev;
 using namespace paramHelp;
 using namespace wbiIcub;
+using namespace iCub::skinDynLib;
 using namespace motorFrictionExcitation;
 
 MotorFrictionExcitationModule::MotorFrictionExcitationModule()
@@ -81,7 +69,7 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------
-    ctrlThread = new MotorFrictionExcitationThread(moduleName, robotName, period, paramHelper, robotInterface);
+    ctrlThread = new MotorFrictionExcitationThread(moduleName, robotName, period, paramHelper, robotInterface, rf);
     if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing motorFrictionExcitation control thread. Closing module.\n"); return false; }
     
     fprintf(stderr,"MotorFrictionExcitation control started\n");
@@ -117,16 +105,13 @@ void MotorFrictionExcitationModule::commandReceived(const CommandDescription &cd
 
 bool MotorFrictionExcitationModule::interruptModule()
 {
-    if(ctrlThread)
-        ctrlThread->suspend();
-    rpcPort.interrupt();
     return true;
 }
 
 bool MotorFrictionExcitationModule::close()
 {
 	//stop threads
-    if(ctrlThread){     ctrlThread->stop();         delete ctrlThread;      ctrlThread = 0;     }
+    if(ctrlThread){     ctrlThread->suspend();      ctrlThread->stop();     delete ctrlThread;      ctrlThread = 0;     }
     if(paramHelper){    paramHelper->close();       delete paramHelper;     paramHelper = 0;    }
     if(robotInterface)
     { 
@@ -138,6 +123,7 @@ bool MotorFrictionExcitationModule::close()
     }
 
 	//closing ports
+    rpcPort.interrupt();
 	rpcPort.close();
 
     printf("[PERFORMANCE INFORMATION]:\n");

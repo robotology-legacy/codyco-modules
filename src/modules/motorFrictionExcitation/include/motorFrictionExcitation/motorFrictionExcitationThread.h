@@ -23,15 +23,16 @@
 #include <stdexcept>
 #include <vector>
 
-#include <yarp/os/BufferedPort.h>
+//#include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
-#include <yarp/os/Semaphore.h>
-#include <yarp/sig/Vector.h>
+#include <yarp/os/ResourceFinder.h>
+//#include <yarp/os/Semaphore.h>
+//#include <yarp/sig/Vector.h>
 
 #include <iCub/ctrl/math.h>
-#include <iCub/ctrl/adaptWinPolyEstimator.h>
-#include <iCub/ctrl/minJerkCtrl.h>
-#include <iCub/skinDynLib/skinContactList.h>
+//#include <iCub/ctrl/adaptWinPolyEstimator.h>
+//#include <iCub/ctrl/minJerkCtrl.h>
+//#include <iCub/skinDynLib/skinContactList.h>
 #include <Eigen/Core>                               // import most common Eigen types
 #include <Eigen/SVD>
 
@@ -44,7 +45,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::math;
 using namespace iCub::ctrl;
-using namespace iCub::skinDynLib;
+//using namespace iCub::skinDynLib;
 using namespace std;
 using namespace paramHelp;
 using namespace wbi;
@@ -89,7 +90,8 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     ArrayXi             currentGlobalJointIds;  // global IDs of the joints currently excited
 
     // Module parameters
-    vector<FreeMotionExcitation>    freeMotionExc;
+    vector<FreeMotionExcitation>    freeMotionExc;  ///< free motion excitations
+    ContactExcitationList           contactExc;     ///< in contact excitations
     ArrayXd             qMin, qMax;             // lower and upper joint bounds
 
     // Output streaming parameters
@@ -131,7 +133,8 @@ public:
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    MotorFrictionExcitationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi);
+    MotorFrictionExcitationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi, 
+                                    ResourceFinder &rf);
 	
     bool threadInit();	
     void run();

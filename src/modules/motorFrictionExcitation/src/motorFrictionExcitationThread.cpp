@@ -27,7 +27,8 @@ using namespace yarp::math;
 using namespace wbiIcub;
 
 //*************************************************************************************************************************
-MotorFrictionExcitationThread::MotorFrictionExcitationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
+MotorFrictionExcitationThread::MotorFrictionExcitationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, 
+    wholeBodyInterface *_wbi, ResourceFinder &rf)
     :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi)
 {
     status = EXCITATION_OFF;
@@ -35,6 +36,11 @@ MotorFrictionExcitationThread::MotorFrictionExcitationThread(string _name, strin
     printCountdown = 0;
     excitationCounter = 0;
     _n = ICUB_DOFS;
+
+    Bottle reply;
+    contactExc.readFromConfigFile(rf, reply);
+    printf("Read contact excitation from config file: \n%s\n", reply.toString().c_str());
+    printf("Value read:\n%s\n", contactExc.toString().c_str());
 }
 
 //*************************************************************************************************************************

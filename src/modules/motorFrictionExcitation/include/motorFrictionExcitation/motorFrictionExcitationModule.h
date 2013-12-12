@@ -123,7 +123,7 @@
 #include <yarp/os/Vocab.h>
 
 #include <paramHelp/paramHelperServer.h>
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+
 #include <motorFrictionExcitation/motorFrictionExcitationThread.h>
  
 using namespace std;

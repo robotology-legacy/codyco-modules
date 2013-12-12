@@ -18,12 +18,12 @@
 #ifndef __MOTOR_FRICTION_EXCITATION_PARAMS
 #define __MOTOR_FRICTION_EXCITATION_PARAMS
 
-//#include <motorFrictionExcitation/motorFrictionExcitationConstants.h>
 #include <paramHelp/paramProxyBasic.h>
 #include <Eigen/Core>                               // import most common Eigen types
 #include <vector>
 #include <string>
 #include <yarp/os/Bottle.h>
+#include <yarp/os/ResourceFinder.h>
 
 using namespace paramHelp;
 using namespace Eigen;
@@ -93,6 +93,26 @@ enum FreeMotionExcitationParamId
 // ******************************************************************************************************************************
 // ****************************************** DESCRIPTION OF ALL THE MODULE PARAMETERS ******************************************
 // ******************************************************************************************************************************
+
+class ContactExcitation
+{
+public:
+    ArrayXi jointId;
+    ArrayXd initialJointConfiguration;
+    ArrayXd paramCovarThresh;
+
+    //ContactExcitation();
+    bool set(const yarp::os::Bottle &value, yarp::os::Bottle &reply);
+    bool setSubparam(const std::string &name, const yarp::os::Bottle &value, yarp::os::Bottle &reply);
+    std::string toString() const;
+};
+
+class ContactExcitationList : std::vector<ContactExcitation>
+{
+public:
+    bool readFromConfigFile(yarp::os::ResourceFinder &rf, yarp::os::Bottle &reply);
+    std::string toString() const;
+};
 
 class FreeMotionExcitation
 {
