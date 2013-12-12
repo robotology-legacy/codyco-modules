@@ -28,9 +28,31 @@ pi = lgsm.np.pi
 rad2deg = 180.0/pi;
 # height of the waist
 waist_z = 0.58
+# height of the table
+table_z = 0.50
+# height of contact on the table
+table_contact_z = 0.52
+table_contact_x = -0.25
+table_contact_y = 0.15
 # minimum distance for computing the local distance between shapes in possible collision
 local_minimal_distance = 0.05
 
+#### WEIGHTS OF THE TASKS
+
+Weight_head_stabilization_task = 1.0
+Weight_waist_task = 1.0
+Weight_COM_task = 10.0
+Weight_hand_task = 1.0
+Weight_hand_task_or = 0.5
+
+# weight of the force task = 1.0 by default because we don't know how to weight it wrt the other tasks
+Weight_force_task = 1.0
+
+#### FORCE TASK
+
+# the desired force is expressed in the world frame
+force_desired = lgsm.vector(0,0,0,0,0,-5) # mux, muy, muz, fx, fy,fz
+is_expressed_in_world_frame = True
 
 ########### CONTROLLER ###############
 
@@ -59,12 +81,11 @@ wm.resizeWindow("mainWindow",  640, 480, 50, 50)
 ##### WORLD
 
 ## GROUND
-#flat ground
 groundWorld = xrl.createWorldFromUrdfFile(xr.ground, "ground", [0,0,0,1,0,0,0], True, 0.001, 0.001)
 wm.addWorld(groundWorld)
 
 ## MOVING WALL
-robotWorld = xrl.createWorldFromUrdfFile("resources/moving_wall.xml", "moving_wall", [-0.25,0.2,0.85,1,0,0,0], True, 0.001, 0.01)
+robotWorld = xrl.createWorldFromUrdfFile("resources/moving_table.xml", "moving_wall", [-0.4,0.2,table_z,0.707,0,0.707,0], True, 0.001, 0.01)
 wm.addWorld(robotWorld)
 dynModel_moving_wall = xrl.getDynamicModelFromWorld(robotWorld)
 
@@ -108,15 +129,17 @@ robot.enableContactWithBody("moving_wall.moving_wall", True)
 
 
 ##### SET INITIAL STATE OF THE ROBOT
-qinit = lgsm.zeros(N)
-# correspond to:    l_elbow_pitch     r_elbow_pitch     l_knee             r_knee             l_ankle_pitch      r_ankle_pitch      l_shoulder_roll          r_shoulder_roll
-for name, val in [("l_elbow_pitch", pi/8.), ("r_elbow_pitch", pi/8.), ("l_knee", -0.05), ("r_knee", -0.05), ("l_ankle_pitch", -0.05), ("r_ankle_pitch", -0.05), ("l_shoulder_roll", pi/8.), ("r_shoulder_roll", pi/8.)]:
+qinit = lgsm.zeros(N)   
+for name, val in [("l_elbow_pitch", pi/2.), ("r_elbow_pitch", pi/2.), ("l_knee", -0.05), ("r_knee", -0.05), ("l_ankle_pitch", -0.05), ("r_ankle_pitch", -0.05), ("l_shoulder_roll", pi/2.), ("r_shoulder_roll", pi/2.)]:
     qinit[jmap[rname+"."+name]] = val
+    
 
 robot.setJointPositions(qinit)
 dynModel.setJointPositions(qinit)
 robot.setJointVelocities(lgsm.zeros(N))
 dynModel.setJointVelocities(lgsm.zeros(N))
+
+head_init = dynModel.getSegmentPosition(dynModel.getSegmentIndex(rname+".head"))
 
 
 ##### CONTROLLERS
@@ -126,47 +149,37 @@ ctrl_moving_wall = xic.ISIRController(dynModel_moving_wall, "moving_wall", wm.ph
 gposdes = lgsm.zeros(1)
 gveldes = lgsm.zeros(1)
 # create full task with a very low weight for reference posture
+# lower KP if the spring of the wall is too rigid
 fullTask = ctrl_moving_wall.createFullTask("zero_wall", w=1., kp=50)  
-# lower if the spring of the wall is too rigid
-#fullTask.setKpKd(50) --> now in create full task
-#fullTask.update(gposdes, gveldes) --> now split into two
 fullTask.set_q(gposdes)
 fullTask.set_qdot(gveldes)
 
-
-
 ## controller for the robot
-
-# flat ground
 ctrl = xic.ISIRController(dynModel, rname, wm.phy, wm.icsync, solver, use_reduced_problem_no_ddq)
 
 
 
 
 ##### SET TASKS
-# this ...
-#N0 = 6 if fixed_base is False else 0
-#partialTask = ctrl.createPartialTask("partial", range(N0, N+N0), 0.0001, kp=9., pos_des=qinit)
-# ... is equivalent to that ("INTERNAL" can be omitted):
 
 ## full task: bring joints to the initial position
 #default: Kd= 2*sqrt(Kp)
 fullTask = ctrl.createFullTask("full", "INTERNAL", w=0.0001, kp=0., kd=9., q_des=qinit)
 
 ## waist task: better balance
-Weight_waist_task = 1.0
-waistTask   = ctrl.createFrameTask("waist", rname+'.waist', lgsm.Displacement(), "RXYZ", w=Weight_waist_task, kp=36., pose_des=lgsm.Displacement(0,0,.58,1,0,0,0))
 
 ## back task: to keep the back stable
 back_dofs   = [jmap[rname+"."+n] for n in ['torso_pitch', 'torso_roll', 'torso_yaw']]
 backTask    = ctrl.createPartialTask("back", back_dofs, w=0.001, kp=16., q_des=lgsm.zeros(3))
 
+## head stabilization task: 
+headTask   = ctrl.createFrameTask("head_task", rname+'.head', lgsm.Displacement(), "R", w=Weight_head_stabilization_task, kp=1., pose_des=head_init )
+
 ## COM task
-Weight_COM_task = 10.0
-CoMTask     = ctrl.createCoMTask("com", "XY", w=Weight_COM_task, kp=0.) #, kd=0.
+CoMTask     = ctrl.createCoMTask("com", "XY", w=Weight_COM_task, kp=0.) #, kd=0., Kp=0 is correct!!
 # controller that generates the ZMP reference trajectory for stabilizing the COM
 COM_reference_position = [[-0.0,0.0]]
-ctrl.add_updater( xic.task_controller.ZMPController( CoMTask, ctrl.getModel(), COM_reference_position, RonQ=1e-6, horizon=1.8, dt=dt, H_0_planeXY=lgsm.Displacement(), stride=3, gravity=9.81) )
+ctrl.add_updater( xic.task_controller.ZMPController( CoMTask, dynModel, COM_reference_position, RonQ=1e-6, horizon=1.8, dt=dt, H_0_planeXY=lgsm.Displacement(), stride=3, gravity=9.81) )
 
 ## contact tasks for the feet
 sqrt2on2 = lgsm.np.sqrt(2.)/2.
@@ -183,38 +196,45 @@ ctrl.createContactTask("CRF1", rname+".r_foot", lgsm.Displacement([-.039, .027, 
 ctrl.createContactTask("CRF2", rname+".r_foot", lgsm.Displacement([-.039, .027,-.099]+ RotRZdown.tolist()), 1.5, 0.) # mu, margin
 ctrl.createContactTask("CRF3", rname+".r_foot", lgsm.Displacement([-.039,-.027,-.099]+ RotRZdown.tolist()), 1.5, 0.) # mu, margin
 
-## frame task for putting the hand in contact with the wall
+## frame tasks for putting the hand in contact with the wall
 # we have to split rotation and xyz posing - because controlling both at same time generates 
 # rototranslation vector (xyz+o4)
+#this is the frame controlled - attached to the hand
 H_hand_tool = lgsm.Displacement(0, 0.0, 0, 1, 0, 0, 0)
 # rotation matrix hand in world frame
-R_right_hand = numpy.matrix([[0, 0, -1],[0, -1, 0],[-1,0,0]])
+# mano davanti, palmo verso il fuori (parallelo torso)
+#R_right_hand = numpy.matrix([[0, 0, -1],[0, -1, 0],[-1,0,0]])
+#o_right_hand = lgsm.Quaternion.fromMatrix(R_right_hand)
+# mano davanti, palmo verso il robot
+#o_right_hand = lgsm.Quaternion(0.707,0,0.707,0)
+# mano perpendicolare tavolo, girata palmo verso interno
+#o_right_hand = lgsm.Quaternion(0.707,0.707,0,0)
+# mano parallela tavolo, palmo verso tavolo, pollice verso torso
+#o_right_hand = lgsm.Quaternion(0,0.707,0.707,0)
+# mano parallela tavolo, palmo verso alto
+#o_right_hand = lgsm.Quaternion(1,0,0,0)
+# mano parallela tavolo, palmo verso basso 
+R_right_hand = numpy.matrix([[1, 0, 0],[0, -1, 0],[0,0,-1]])
 o_right_hand = lgsm.Quaternion.fromMatrix(R_right_hand)
-Weight_hand_task = 1.0
-Weight_hand_task_or = 0.5
+
 Task_hand_controlled_var = "RXYZ" # "RXYZ" "R" "XY" "Z" ..
 
+# a frame task to prepare the hand to touch
+prepareTouch_task = ctrl.createFrameTask("prepare_touchWall", rname+'.r_hand', H_hand_tool, "XYZ", w=Weight_hand_task, kp=36., pose_des=lgsm.Displacement([table_contact_x,table_contact_y,table_contact_z+0.05]+o_right_hand.tolist()))
+
 # it is a frame task to displace the hand
-touchWall_task = ctrl.createFrameTask("touchWall", rname+'.r_hand', H_hand_tool, "XYZ", w=Weight_hand_task, kp=36., pose_des=lgsm.Displacement([-0.25,0.15,waist_z+0.25]+o_right_hand.tolist()))
+touchWall_task = ctrl.createFrameTask("touchWall", rname+'.r_hand', H_hand_tool, "XYZ", w=Weight_hand_task, kp=36., pose_des=lgsm.Displacement([table_contact_x,table_contact_y,table_contact_z]+o_right_hand.tolist()))
 
 # it is a frame task to rotate the hand
-touchWall_orient_task = ctrl.createFrameTask("touchWall_orient", rname+'.r_hand', H_hand_tool, "R", w=Weight_hand_task_or, kp=36., pose_des=lgsm.Displacement([-0.25,0.15,waist_z+0.25]+o_right_hand.tolist()))
-
+touchWall_orient_task = ctrl.createFrameTask("touchWall_orient", rname+'.r_hand', H_hand_tool, "R", w=Weight_hand_task_or, kp=36., pose_des=lgsm.Displacement([table_contact_x,table_contact_y,table_contact_z]+o_right_hand.tolist()))
 
 ## force task for touching the wall
-# weight of the force task = 1.0 by default because we don't know how to weight it wrt the other tasks
-Weight_force_task = 1.0
 # create task
 EETask = ctrl.createForceTask("EE", rname+".r_hand", H_hand_tool, w=Weight_force_task)
 # update the task goal
-# the desired force is expressed in the world frame
-force_desired = lgsm.vector(0,0,0,-5.0,0,0) # mux, muy, muz, fx, fy,fz
-is_expressed_in_world_frame = True
-#EETask.update(force_desired, is_expressed_in_world_frame) -> API changed
 EETask.setPosition(lgsm.Displacement()) #--> new "expressed in world frame"
 EETask.setWrench(force_desired)
 EETask.deactivate()
-
 
 
 # if we want to transform a task into a constraint
@@ -237,9 +257,17 @@ all_joints_obs = ctrl.add_updater(xic.observers.JointPositionsObserver(ctrl.getM
 tpobs = ctrl_moving_wall.add_updater(xic.observers.TorqueObserver(ctrl_moving_wall))
 
 
-##### SIMULATE
+#######################################################
+################ SIMULATE ######################""
 ctrl.s.start()
 ctrl_moving_wall.s.start()
+
+# deactivate tasks
+
+#headTask.deactivate()
+EETask.deactivate()
+touchWall_orient_task.deactivate()
+touchWall_task.deactivate()
 
 # launch the simulation
 wm.startAgents()
@@ -252,24 +280,33 @@ print "first sleep"
 
 time.sleep(5.)
 
-print "end sleep - change tasks" 
+print "activate orientation" 
+touchWall_orient_task.activateAsObjective()
 
-time.sleep(2.)
+time.sleep(5.)
+
+print "go to contact"
+touchWall_task.activateAsObjective()
+prepareTouch_task.deactivate()
+
+time.sleep(.5)
 
 #backTask.deactivate()
+print "activate force" 
 EETask.activateAsObjective()
 
-time.sleep(0.5)
-touchWall_task.deactivate()
+#time.sleep(0.5)
 
-#time.sleep(5.)
-time.sleep(15.)
+#print "deactivate touch" 
+#touchWall_task.deactivate()
 
-
+time.sleep(5.)
 
 wm.stopAgents()
 ctrl.s.stop()
 ctrl_moving_wall.s.stop()
+
+####################### STOP SIMU ######################""
 
 ##### RESULTS
 comtraj = numpy.array(cpobs.get_record())
@@ -284,7 +321,7 @@ pl.plot(comtraj[:,0],label="com x")
 pl.plot(comtraj[:,1],label="com y")
 pl.plot(comtraj[:,2],label="com z")
 pl.legend()
-pl.savefig("results/02_touch_wall_5N_COM.pdf", bbox_inches='tight' )
+pl.savefig("results/04_touch_table_5N_COM.pdf", bbox_inches='tight' )
 
 #pl.figure()
 #pl.plot(wtraj[:,0],label="waist x")
@@ -328,7 +365,7 @@ pl.figure()
 pl.plot(tpos)
 pl.legend()
 pl.title("force on wall")
-pl.savefig("results/02_touch_wall_5N_force.pdf", bbox_inches='tight' )
+pl.savefig("results/04_touch_table_5N_force.pdf", bbox_inches='tight' )
 
 #the last to show all plots
 pl.show()
