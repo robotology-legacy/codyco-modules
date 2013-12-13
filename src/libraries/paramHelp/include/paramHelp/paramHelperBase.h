@@ -117,6 +117,7 @@ namespace paramHelp
 class ParamHelperBase
 {
 protected:
+    bool                initDone;                        ///< true after successfull initialization
     std::map<int, ParamProxyInterface*> paramList;      ///< list of parameter proxies
     std::map<int, CommandDescription>   cmdList;        ///< list of command descriptions
 
@@ -124,6 +125,8 @@ protected:
     yarp::os::BufferedPort<yarp::os::Bottle>    *portOutStream;     ///< output port for streaming data
     yarp::os::BufferedPort<yarp::os::Bottle>    *portOutMonitor;    ///< output port for monitoring with Yarpscope
     yarp::os::Port                              portInfo;           ///< port for sporadic info messages
+
+    std::map<int, ParamSizeObserver*>   paramSizeObs;   ///< list of pointers to parameter size observers
 
     /** Check whether the specified value satisfy the constraints on the specified parameter.
      * @param id Id of the parameter (input)
@@ -138,6 +141,7 @@ protected:
      * @param pd Description of the parameter to add
      * @return True if the operation succeeded, false otherwise (parameter id conflict) */
     bool addParam(const ParamProxyInterface *pd);
+    
     /** Add the specified parameters to the list of managed parameters. 
      * If a default value is specified, the parameter is initialized to that value.
      * @param pdList Array of const pointers to const ParamProxyInterface containing a description of the parameters to add.
@@ -150,8 +154,8 @@ protected:
     /** Check whether a parameter with the specified id exists.
      * @param id Id of the parameter
      * @return True if the parameter exists, false otherwise. */
-    inline bool hasParam(int id){ return paramList.find(id)!=paramList.end(); }
-    inline bool hasCommand(int id){ return cmdList.find(id)!=cmdList.end(); }
+    inline bool hasParam(int id) const   { return paramList.find(id)!=paramList.end(); }
+    inline bool hasCommand(int id) const { return cmdList.find(id)!=cmdList.end(); }
 
     /** This version of setParam is used for the initialization and does not perform callbacks.
       * @param id Id of the parameter
@@ -161,15 +165,22 @@ protected:
 
     enum MsgType{ MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR };
     
-    void logMsg(const std::string &s, MsgType type=MSG_INFO);
+    void logMsg(const std::string &s, MsgType type=MSG_INFO) const;
 
 public:
     /** Default constructor. */
     ParamHelperBase();
 
+    inline bool isInitDone(){ return initDone; }
+
     /** Close the ports opened during the initialization phase (see init method). */
-    virtual bool close();
+    virtual bool closePorts();
     
+    /** Delete all the memory allocated when cloning the ParamProxyInterfaces. */
+    virtual bool deleteParameters();
+
+    virtual bool close(){ return closePorts() && deleteParameters(); }
+
     /* COMMENTS ON THE METHOD linkParam:
      * PROBLEM:
      * Linking the parameter through a pointer to the variable complicates the management of 
@@ -186,11 +197,13 @@ public:
 
     /** Link the parameter with the specified id to the variable pointed by v, so that
       * every time that the parameter is set, the value of the specified variable is updated.
-      * If the parameter already has a value (e.g. the deafault value), the variable pointed by v is set to that value.
-      * @param id Id of the parameter
-      * @param v Pointer to the variable that has to contain the parameter value
+      * If the parameter already has a value (e.g. the default value), the variable pointed 
+      * by v is set to that value.
+      * @param id Id of the parameter.
+      * @param v Pointer to the variable that has to contain the parameter value.
+      * @param newSize New size of the parameter (it applies only for free size parameters).
       * @return True if the operation succeeded, false otherwise. */
-    virtual bool linkParam(int id, void *v);
+    virtual bool linkParam(int id, void *v, int newSize=-1);
 
     /*** @return A pointer to the proxy of the parameter with the specified id. */
     virtual ParamProxyInterface* getParamProxy(int id){ return paramList[id]; }
@@ -203,6 +216,17 @@ public:
       * @param blockingRead If true the reading is blocking (it waits until data arrive), otherwise it is not
       * @return True if the operation succeeded, false otherwise */
     virtual bool readStreamParams(bool blockingRead=false) = 0;
+
+    /** Register a callback on the parameter with the specified id.
+      * After the callback is registered, every time the parameter size changes
+      * the observer is notified through a call to its method "parameterSizeChanged".
+      * The callback is performed before setting the new value of the parameter,
+      * so that the variable can be resized.
+      * @param id Id of the parameter.
+      * @param observer Object to notify when the parameter changes size.
+      * @return True if the operation succeeded, false otherwise. 
+      * @note If an observer was already registered, it is overwritten by the new one. */
+    bool registerParamSizeChangedCallback(int id, ParamSizeObserver *observer);
 
     /** Write the specified parameters to file. If no parameters are specified, write all of them. 
      * @param filename name of the text file on which to write.

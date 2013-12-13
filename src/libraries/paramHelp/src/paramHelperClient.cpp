@@ -37,7 +37,8 @@ ParamHelperClient::ParamHelperClient(const ParamProxyInterface *const *pdList,  
 ParamHelperClient::~ParamHelperClient()
 {
     // delete all allocated memory
-    close();
+    closePorts();
+    deleteParameters();
 }
 
 //*************************************************************************************************************************
@@ -51,6 +52,9 @@ bool ParamHelperClient::init(string localName, string remoteName, Bottle &reply)
     string portOutStreamName        = "/" + localName + remotePortOutStreamName;
     string portInfoName             = "/" + localName + "/" + remoteName + PORT_IN_INFO_SUFFIX;
     string portRpcName              = "/" + localName + remotePortRpcName;
+
+    ///< @todo Check whether the remote ports exist, if not return false
+
     portInStream = new BufferedPort<Bottle>();
     portOutStream = new BufferedPort<Bottle>();
 
@@ -61,6 +65,7 @@ bool ParamHelperClient::init(string localName, string remoteName, Bottle &reply)
     if(!res)
     {
         reply.addString(("Error while opening ports ("+portInStreamName+", "+portOutStreamName+", "+portInfoName+", "+portRpcName+").").c_str());
+        closePorts();
         return false;
     }
 
@@ -68,6 +73,7 @@ bool ParamHelperClient::init(string localName, string remoteName, Bottle &reply)
     if(!res) 
     {
         reply.addString(("Error while trying to connect to "+remotePortOutStreamName).c_str());
+        closePorts();
         return false;
     }
 
@@ -75,6 +81,7 @@ bool ParamHelperClient::init(string localName, string remoteName, Bottle &reply)
     if(!res) 
     {
         reply.addString(("Error while trying to connect to "+remotePortInStreamName).c_str());
+        closePorts();
         return false;
     }
 
@@ -82,6 +89,7 @@ bool ParamHelperClient::init(string localName, string remoteName, Bottle &reply)
     if(!res)
     {
         reply.addString(("Error while trying to connect to "+remotePortInfoName).c_str());
+        closePorts();
         return false;
     }
 
@@ -89,29 +97,36 @@ bool ParamHelperClient::init(string localName, string remoteName, Bottle &reply)
     if(!res)
     {
         reply.addString(("Error while trying to connect to "+remotePortRpcName).c_str());
+        closePorts();
         return false;
     }
 
+    initDone = res;
     return res;
 }
 
 //*************************************************************************************************************************
 bool ParamHelperClient::close()
 {
-    ParamHelperBase::close();
+    closePorts();
     portRpc.close();
+    deleteParameters();
     return true;
 }
 
 //*************************************************************************************************************************
 bool ParamHelperClient::readInfoMessage(Bottle &b, bool blockingRead)
 {
-    return portInfo.read(b);
+    if(initDone)
+        return portInfo.read(b);
+    return false;
 }
 
 //*************************************************************************************************************************
 bool ParamHelperClient::sendStreamParams()
 {
+    if(!initDone)
+        return false;
     ///< Streaming parameters are inserted inside a Bottle with the following format:
     ///< (PARAM_ID0 VALUE0 VALUE1 ... VALUEN) ... (PARAM_IDM VALUE0 ... VALUEN)
     Bottle out;
@@ -130,6 +145,8 @@ bool ParamHelperClient::sendStreamParams()
 //*************************************************************************************************************************
 bool ParamHelperClient::readStreamParams(bool blockingRead)
 {
+    if(!initDone)
+        return false;
     Bottle *in = portInStream->read(blockingRead);
     if(in==NULL || in->size()==0) return false;
     Bottle reply;
@@ -160,6 +177,87 @@ bool ParamHelperClient::readStreamParams(bool blockingRead)
         }
     }
     return true;
+}
+
+//*************************************************************************************************************************
+bool ParamHelperClient::setRpcParam(int paramId, Bottle *reply)
+{
+    if(!initDone)
+        return false;
+    ///< check that the parameter exists and it can be written
+    if(!hasParam(paramId)){ logMsg(strcat("[setRpcParam] There is no param with id ",paramId), MSG_ERROR); return false; }
+    ParamProxyInterface *ppi = paramList[paramId];
+    if(!ppi->ioType.canWrite()){ logMsg(strcat("[setRpcParam] Parameter ",ppi->name," cannot be written"),MSG_ERROR); return false;}
+
+    ///< prepare the Bottle to send
+    Bottle outBottle;
+    outBottle.addString("set");
+    outBottle.addString(ppi->name);
+    ppi->getAsBottle(outBottle);
+
+    ///< send the Bottle
+    bool res;
+    if(reply==0)
+        res = portRpc.write(outBottle);
+    else
+        res = portRpc.write(outBottle, *reply);
+    if(!res) logMsg("[setRpcParam] Error while send rpc msg", MSG_ERROR);
+    return res;
+}
+
+//*************************************************************************************************************************
+bool ParamHelperClient::getRpcParam(int paramId, Bottle *reply)
+{
+    if(!initDone)
+        return false;
+    ///< check that the parameter exists and it can be written
+    if(!hasParam(paramId)){ logMsg(strcat("[getRpcParam] There is no param with id ",paramId), MSG_ERROR); return false; }
+    ParamProxyInterface *ppi = paramList[paramId];
+    if(!ppi->ioType.canRead()){ logMsg(strcat("[getRpcParam] Parameter ",ppi->name," cannot be read"),MSG_ERROR); return false;}
+
+    ///< prepare the Bottle to send
+    Bottle outBottle;
+    outBottle.addString("get");
+    outBottle.addString(ppi->name);
+
+    ///< send the Bottle
+    Bottle value;
+    if(!portRpc.write(outBottle, value)){ logMsg("[getRpcParam] Error while send rpc msg", MSG_ERROR); return false; }
+
+    ///< if parameter size is about to change, perform callbacks
+    if(ppi->size.freeSize && (value.size()!=ppi->size.size) && paramSizeObs[paramId]!=NULL)
+        paramSizeObs[paramId]->parameterSizeChanged(ppi, value.size());
+
+    ///< read the reply with the parameter value
+    if(!ppi->set(value, reply))
+    { 
+        logMsg(strcat("[getRpcParam] Error while setting read value of ", ppi->name,": ",value.toString().c_str()), MSG_ERROR);
+        return false;
+    }
+    return true;
+}
+
+//*************************************************************************************************************************
+bool ParamHelperClient::sendRpcCommand(int cmdId, Bottle *reply)
+{
+    if(!initDone)
+        return false;
+    ///< check that the command exists
+    if(!hasCommand(cmdId)){ logMsg(strcat("[sendRpcCommand] There is no command with id ",cmdId), MSG_ERROR); return false; }
+    CommandDescription &cd = cmdList[cmdId];
+
+    ///< prepare the Bottle to send
+    Bottle outBottle;
+    outBottle.addString(cd.name.c_str());
+
+    ///< send the Bottle
+    bool res;
+    if(reply==0)
+        res = portRpc.write(outBottle);
+    else
+        res = portRpc.write(outBottle, *reply);
+    if(!res) logMsg("[sendRpcCommand] Error while send rpc msg", MSG_ERROR);
+    return res;
 }
 
 //*************************************************************************************************************************

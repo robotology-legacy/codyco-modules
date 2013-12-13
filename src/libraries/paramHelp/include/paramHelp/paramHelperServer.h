@@ -68,7 +68,6 @@ class ParamHelperServer: public ParamHelperBase
 
     yarp::os::Semaphore                 mutex;          ///< mutex for the access to the parameter values    
     std::map<int, ParamValueObserver*>  paramValueObs;  ///< list of pointers to parameter value observers
-    std::map<int, ParamSizeObserver*>   paramSizeObs;   ///< list of pointers to parameter size observers
     std::map<int, CommandObserver*>     cmdObs;         ///< list of pointers to command observers
     
     /** Identify the specified rpc command.
@@ -138,17 +137,6 @@ public:
       * @return True if the operation succeeded, false otherwise. 
       * @note If an observer was already registered, it is overwritten by the new one. */
     bool registerParamValueChangedCallback(int id, ParamValueObserver *observer);
-
-    /** Register a callback on the parameter with the specified id.
-      * After the callback is registered, every time the parameter size changes
-      * the observer is notified through a call to its method "parameterSizeChanged".
-      * The callback is performed before setting the new value of the parameter,
-      * so that the variable can be resized.
-      * @param id Id of the parameter.
-      * @param observer Object to notify when the parameter changes size.
-      * @return True if the operation succeeded, false otherwise. 
-      * @note If an observer was already registered, it is overwritten by the new one. */
-    bool registerParamSizeChangedCallback(int id, ParamSizeObserver *observer);
 
     /** Register a callback for an rpc command.
       * @param id The id of the command

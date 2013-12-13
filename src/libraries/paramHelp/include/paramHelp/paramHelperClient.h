@@ -82,30 +82,36 @@ public:
     /** Close the ports opened during the initialization phase (see init method). */
     bool close();
 
-    /** Send an rpc command to set the value of the specified parameter
-     * @param paramId Id of the parameter to set
+    /** Send an rpc command to set the value of the specified parameter.
+     * @param paramId Id of the parameter to set.
+     * @param reply Reply to the rpc set message.
      * @return bool True if the operation succeeded, false otherwise. */
-    bool setRpcParam(int paramId);
+    bool setRpcParam(int paramId, yarp::os::Bottle *reply=0);
 
-    /** Send an rpc command to get the value of the specified parameter
-     * @param paramId Id of the parameter to get
+    /** Send an rpc command to get the value of the specified parameter.
+     * @param paramId Id of the parameter to get.
+     * @param reply Reply to the rpc get message.
      * @return bool True if the operation succeeded, false otherwise. */
-    bool getRpcParam(int paramId);
+    bool getRpcParam(int paramId, yarp::os::Bottle *reply=0);
 
-    bool sendRpcCommand(int cmdId);
+    /** Send the specified rpc command to the server.
+     * @param cmdId Id of the command to send.
+     * @param reply Reply to the rpc message.
+     * @return True if the operation succeeded, false otherwise. */
+    bool sendRpcCommand(int cmdId, yarp::os::Bottle *reply=0);
 
     /** Read a message from the info port.
-      * @param b Message read
-      * @return True if the operation succeeded, false otherwise */
+      * @param b Message read.
+      * @return True if the operation succeeded, false otherwise. */
     bool readInfoMessage(yarp::os::Bottle &b, bool blockingRead=false);
 
     /** Send the input streaming parameters.
-      * @return True if the operation succeeded, false otherwise */
+      * @return True if the operation succeeded, false otherwise. */
     bool sendStreamParams();
 
     /** Read the output streaming parameters.
-      * @param blockingRead If true the reading is blocking (it waits until data arrive), otherwise it is not
-      * @return True if the operation succeeded, false otherwise */
+      * @param blockingRead If true the reading is blocking (it waits until data arrive), otherwise it is not.
+      * @return True if the data have been read, false otherwise. */
     bool readStreamParams(bool blockingRead=false);
 };
     

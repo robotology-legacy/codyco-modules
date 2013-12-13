@@ -36,19 +36,26 @@ using namespace paramHelp;
 //*************************************************************************************************************************
 ParamHelperBase::ParamHelperBase()
 {
+    initDone         = false;
     portInStream    = 0;
     portOutStream   = 0;
     portOutMonitor  = 0;
 }
 
 //*************************************************************************************************************************
-bool ParamHelperBase::close()
+bool ParamHelperBase::closePorts()
 {
     if(portInStream){   portInStream->interrupt();   portInStream->close();   delete portInStream;   portInStream=0;   }
     if(portOutStream){  portOutStream->interrupt();  portOutStream->close();  delete portOutStream;  portOutStream=0;  }
     if(portOutMonitor){ portOutMonitor->interrupt(); portOutMonitor->close(); delete portOutMonitor; portOutMonitor=0; }
     portInfo.close();
-    
+    initDone = false;
+    return true;
+}
+
+//*************************************************************************************************************************
+bool ParamHelperBase::deleteParameters()
+{
     ///< delete all the cloned ParamProxyInterfaces
     for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); ++it)
     {
@@ -59,11 +66,19 @@ bool ParamHelperBase::close()
 }
 
 //*************************************************************************************************************************
-bool ParamHelperBase::linkParam(int id, void *v)
+bool ParamHelperBase::linkParam(int id, void *v, int newSize)
 {
     if(!hasParam(id) || v==0) 
         return false;
-    paramList[id]->linkToVariable(v);
+    paramList[id]->linkToVariable(v, newSize);
+    return true;
+}
+
+//*************************************************************************************************************************
+bool ParamHelperBase::registerParamSizeChangedCallback(int id, ParamSizeObserver *observer)
+{
+    if(!hasParam(id)) return false;
+    paramSizeObs[id] = observer;
     return true;
 }
 
@@ -181,7 +196,7 @@ bool ParamHelperBase::writeParamsOnFile(string filename, int *paramIds, int para
 }
 
 //*************************************************************************************************************************
-void ParamHelperBase::logMsg(const string &s, MsgType type)
+void ParamHelperBase::logMsg(const string &s, MsgType type) const
 {
     if(type>=MSG_DEBUG)
         printf("[ParamHelper] %s\n", s.c_str());
