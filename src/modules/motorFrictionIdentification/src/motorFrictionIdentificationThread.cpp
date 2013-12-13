@@ -155,14 +155,6 @@ bool MotorFrictionIdentificationThread::threadInit()
     if(!readRobotStatus(true))
         return false;
     
-    // don't know if this stuff is useful
-    /*for(int i=0; i<_n; i++)
-    {
-        LocalId lid = globalToLocalIcubId(freeMotionExc[excitationCounter].jointId[i]);
-        currentGlobalJointIds[i] = robot->getJointList().localToGlobalId(lid);
-        currentJointIds[i] = lid;
-    }*/
-    
     printf("\n\n");
     return true;
 }
@@ -383,12 +375,15 @@ void MotorFrictionIdentificationThread::commandReceived(const CommandDescription
 //*************************************************************************************************************************
 bool MotorFrictionIdentificationThread::saveParametersOnFile(const Bottle &params, Bottle &reply)
 {
+    ///< read the text file name on which to save the parameters
     if(params.size()<1 || !params.get(0).isString())
     {
         reply.addString("Error, the file name is missing");
         return false;
     }
     string outputFilename = params.get(0).asString();
+    
+    ///< update the estimation of the parameters
     for(int i=0; i<_n; i++)
     {
         estimators[i].updateParameterEstimation();
@@ -399,9 +394,15 @@ bool MotorFrictionIdentificationThread::saveParametersOnFile(const Bottle &param
         kcp[i]  = estimateMonitor[INDEX_K_CP];
         kcn[i]  = estimateMonitor[INDEX_K_CN];
     }
+    
+    ///< save the estimations of the parameters on text file
     int paramIds[] = { jointTorqueControl::PARAM_ID_KT, jointTorqueControl::PARAM_ID_KVP, jointTorqueControl::PARAM_ID_KVN,
         jointTorqueControl::PARAM_ID_KCP, jointTorqueControl::PARAM_ID_KCN };
-    return torqueController->writeParamsOnFile(outputFilename, paramIds, 5);
+    bool res = torqueController->writeParamsOnFile(outputFilename, paramIds, 5);
+    
+    ///< save the current values of all the module parameters on another text file (just in case)
+    res = res && paramHelper->writeParamsOnFile(outputFilename+"_identificationState.ini");
+    return res;
 }
 
 //*************************************************************************************************************************
