@@ -122,15 +122,10 @@ void MotorFrictionExcitationThread::run()
         preStopOperations();
         contactExcCounter++;
         if(contactExcCounter >= (int)contactExc.size())
-        {
             printf("Contact excitations finished. Starting now free motion excitations.\n");
-            status = EXCITATION_FREE_MOTION;
-        }
         else
-        {
             printf("Contact excitation %d finished. Moving to next contact excitation.\n", contactExcCounter-1);
-            preStartOperations();
-        }
+        preStartOperations();
     }
     else if(status==EXCITATION_FREE_MOTION)
     {
