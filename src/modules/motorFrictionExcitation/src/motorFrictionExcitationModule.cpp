@@ -20,10 +20,13 @@
 #include <iomanip>
 #include <string.h>
 
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <yarp/os/Log.h>
 #include <iCub/skinDynLib/common.h>
+#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <paramHelp/paramHelperClient.h>
 
 #include "motorFrictionIdentificationLib/motorFrictionExcitationParams.h"
+#include "motorFrictionIdentificationLib/motorFrictionIdentificationParams.h"
 #include "motorFrictionExcitation/motorFrictionExcitationModule.h"
 
 using namespace yarp::dev;
@@ -37,29 +40,39 @@ MotorFrictionExcitationModule::MotorFrictionExcitationModule()
     ctrlThread      = 0;
     robotInterface  = 0;
     paramHelper     = 0;
-    period          = 20;
 }
     
 bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
 {		
-    //--------------------------PARAMETER HELPER--------------------------
-    paramHelper = new ParamHelperServer(motorFrictionExcitationParamDescr, PARAM_ID_SIZE, motorFrictionExcitationCommandDescr, COMMAND_ID_SIZE);
-    paramHelper->linkParam(PARAM_ID_MODULE_NAME, &moduleName);
-    paramHelper->linkParam(PARAM_ID_CTRL_PERIOD, &period);
-    paramHelper->linkParam(PARAM_ID_ROBOT_NAME, &robotName);
-    paramHelper->registerCommandCallback(COMMAND_ID_HELP, this);
-    paramHelper->registerCommandCallback(COMMAND_ID_QUIT, this);
-
+    //--------------------------PARAMETER HELPER SERVER--------------------------
+    paramHelper = new ParamHelperServer(motorFrictionExcitationParamDescr,      PARAM_ID_SIZE, 
+                                        motorFrictionExcitationCommandDescr,    COMMAND_ID_SIZE);
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_FRICTION_IDENTIFICATION_NAME, &motorFrictionIdentificationName));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MODULE_NAME,                        &moduleName));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_CTRL_PERIOD,                        &threadPeriod));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ROBOT_NAME,                         &robotName));
+    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_HELP, this));
+    YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_QUIT, this));
     // Read parameters from configuration file (or command line)
     Bottle initMsg;
     paramHelper->initializeParams(rf, initMsg);
     printBottle(initMsg);
-
     // Open ports for communicating with other modules
     if(!paramHelper->init(moduleName)){ fprintf(stderr, "Error while initializing parameter helper. Closing module.\n"); return false; }
     rpcPort.open(("/"+moduleName+"/rpc").c_str());
     setName(moduleName.c_str());
     attach(rpcPort);
+
+    //--------------------------PARAMETER HELPER CLIENT--------------------------
+    identificationModule = new ParamHelperClient(
+        motorFrictionIdentification::motorFrictionIdentificationParamDescr, motorFrictionIdentification::PARAM_ID_SIZE);
+    initMsg.clear();
+    if(!identificationModule->init(moduleName, motorFrictionIdentificationName, initMsg))
+    {
+        printf("Could not connect to motorFrictionIdentification module with name %s\n", motorFrictionIdentificationName.c_str());
+    }
+    printBottle(initMsg);
+    
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
     robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
@@ -69,7 +82,7 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------
-    ctrlThread = new MotorFrictionExcitationThread(moduleName, robotName, period, paramHelper, robotInterface, rf);
+    ctrlThread = new MotorFrictionExcitationThread(moduleName, robotName, threadPeriod, paramHelper, robotInterface, rf, identificationModule);
     if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing motorFrictionExcitation control thread. Closing module.\n"); return false; }
     
     fprintf(stderr,"MotorFrictionExcitation control started\n");
@@ -127,11 +140,11 @@ bool MotorFrictionExcitationModule::close()
 	rpcPort.close();
 
     printf("[PERFORMANCE INFORMATION]:\n");
-    printf("Expected period %d ms.\nReal period: %3.1f+/-%3.1f ms.\n", period, avgTime, stdDev);
+    printf("Expected period %d ms.\nReal period: %3.1f+/-%3.1f ms.\n", threadPeriod, avgTime, stdDev);
     printf("Real duration of 'run' method: %3.1f+/-%3.1f ms.\n", avgTimeUsed, stdDevUsed);
-    if(avgTimeUsed<0.5*period)
+    if(avgTimeUsed<0.5*threadPeriod)
         printf("Next time you could set a lower period to improve the controller performance.\n");
-    else if(avgTime>1.3*period)
+    else if(avgTime>1.3*threadPeriod)
         printf("The period you set was impossible to attain. Next time you could set a higher period.\n");
 
     return true;
@@ -148,12 +161,19 @@ bool MotorFrictionExcitationModule::updateModule()
     ctrlThread->getEstPeriod(avgTime, stdDev);
     ctrlThread->getEstUsed(avgTimeUsed, stdDevUsed);     // real duration of run()
 //#ifndef NDEBUG
-    if(avgTime > 1.3 * period)
+    if(avgTime > 1.3 * threadPeriod)
     {
-        printf("[WARNING] Control loop is too slow. Real period: %3.3f+/-%3.3f. Expected period %d.\n", avgTime, stdDev, period);
+        printf("[WARNING] Control loop is too slow. Real period: %3.3f+/-%3.3f. Expected period %d.\n", avgTime, stdDev, threadPeriod);
         printf("Duration of 'run' method: %3.3f+/-%3.3f.\n", avgTimeUsed, stdDevUsed);
     }
 //#endif
+
+    if(!identificationModule->isInitDone())
+    {
+        Bottle initMsg;
+        if(identificationModule->init(moduleName, motorFrictionIdentificationName, initMsg))
+            printf("\nManaged to connect to identification module!\n");
+    }
 
     return true;
 }

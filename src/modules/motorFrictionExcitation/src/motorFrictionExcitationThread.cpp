@@ -15,12 +15,15 @@
  * Public License for more details
 */
 
-#include "motorFrictionIdentificationLib/motorFrictionExcitationParams.h"
-#include <motorFrictionExcitation/motorFrictionExcitationThread.h>
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
-#include <yarp/math/SVD.h>
+
+#include <wbiIcub/wholeBodyInterfaceIcub.h>
+
+#include "motorFrictionIdentificationLib/motorFrictionExcitationParams.h"
+#include "motorFrictionIdentificationLib/motorFrictionIdentificationParams.h"
+#include <motorFrictionExcitation/motorFrictionExcitationThread.h>
 
 using namespace motorFrictionExcitation;
 using namespace yarp::math;
@@ -28,19 +31,20 @@ using namespace wbiIcub;
 
 //*************************************************************************************************************************
 MotorFrictionExcitationThread::MotorFrictionExcitationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, 
-    wholeBodyInterface *_wbi, ResourceFinder &rf)
-    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi)
+    wholeBodyInterface *_wbi, ResourceFinder &rf, ParamHelperClient *_identificationModule)
+    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), identificationModule(_identificationModule)
 {
     status = EXCITATION_OFF;
     sendCmdToMotors = SEND_COMMANDS_TO_MOTORS;
     printCountdown = 0;
-    excitationCounter = 0;
+    freeExcCounter = 0;
+    contactExcCounter = 0;
     _n = ICUB_DOFS;
 
     Bottle reply;
-    contactExc.readFromConfigFile(rf, reply);
-    printf("Read contact excitation from config file: \n%s\n", reply.toString().c_str());
-    printf("Value read:\n%s\n", contactExc.toString().c_str());
+    if(!contactExc.readFromConfigFile(rf, reply))
+        printf("Error while reading contact excitation from config file: \n%s\n", reply.toString().c_str());
+    printf("Contact excitation value read:\n%s\n", contactExc.toString().c_str());
 }
 
 //*************************************************************************************************************************
@@ -54,6 +58,12 @@ bool MotorFrictionExcitationThread::threadInit()
     qMax.resize(_n);    qMax.setZero();
     ftSens.resize(12);  ftSens.setZero();
     pwmDes.resize(1);   pwmDes.setZero();
+    activeJoints    =   ArrayXi::Constant(_n, 0);
+    stdDev.kt       =   ArrayXd::Constant(_n, 1e10);
+    stdDev.kvp      =   ArrayXd::Constant(_n, 1e10);
+    stdDev.kvn      =   ArrayXd::Constant(_n, 1e10);
+    stdDev.kcp      =   ArrayXd::Constant(_n, 1e10);
+    stdDev.kcn      =   ArrayXd::Constant(_n, 1e10);
     ///< resize std vectors
     freeMotionExc.resize(paramHelper->getParamProxy(PARAM_FREE_MOTION_EXCIT)->size);
 
@@ -74,6 +84,15 @@ bool MotorFrictionExcitationThread::threadInit()
     YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_STOP,           this));
     YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_RESET,          this));
 
+    ///< Link identification module parameters to member variables
+    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_ACTIVE_JOINTS,    activeJoints.data()));
+    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_JOINT_TO_MONITOR, &monitoredJoint));
+    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KT_STD_DEV,       stdDev.kt.data()));
+    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KVP_STD_DEV,      stdDev.kvp.data()));
+    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KVN_STD_DEV,      stdDev.kvn.data()));
+    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KCP_STD_DEV,      stdDev.kcp.data()));
+    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KCN_STD_DEV,      stdDev.kcn.data()));
+
     ///< read robot status (to be done before initializing trajectory generators)
     if(!readRobotStatus(true))
         return false;
@@ -90,25 +109,45 @@ void MotorFrictionExcitationThread::run()
     paramHelper->lock();
     paramHelper->readStreamParams();
 
-    readRobotStatus();                      // read encoders, compute positions
-    if(status==EXCITATION_STARTED)
+    readRobotStatus();                          ///< read encoders, compute positions
+    identificationModule->readStreamParams();   ///< read std dev of parameter estimates
+
+    if(status==EXCITATION_CONTACT)
     {
-        updateReferenceTrajectories();
-        
-        if(areDesiredMotorPwmTooLarge() || checkStopConditions())
-            status = EXCITATION_FINISHED;   // stop current excitation and move to the next one
-        else if( !sendMotorCommands())
-            preStopOperations();
+        if(checkContactStopConditions())
+            status = EXCITATION_CONTACT_FINISHED;
     }
-    else if(status==EXCITATION_FINISHED)
+    else if(status==EXCITATION_CONTACT_FINISHED)
     {
-        preStopOperations();              // set desired PWM to 0, switch to pos ctrl
-        excitationCounter++;
-        if(excitationCounter >= (int)freeMotionExc.size())
-            printf("Excitation process finished (%d out of %lu).\n", excitationCounter, freeMotionExc.size());
+        contactExcCounter++;
+        if(contactExcCounter >= (int)contactExc.size())
+        {
+            printf("Contact excitations finished. Starting now free motion excitations.\n");
+            status = EXCITATION_FREE_MOTION;
+        }
         else
         {
-            printf("\nExcitation %d (out of %lu) finished.\n", excitationCounter-1, freeMotionExc.size());
+            printf("Contact excitation %d finished. Moving to next contact excitation.\n", contactExcCounter-1);
+            status = EXCITATION_CONTACT;
+        }
+    }
+    else if(status==EXCITATION_FREE_MOTION)
+    {
+        updateReferenceTrajectories();
+        if(areDesiredMotorPwmTooLarge() || checkFreeMotionStopConditions())
+            status = EXCITATION_FREE_MOTION_FINISHED;   // stop current excitation and move to the next one
+        else if(!sendMotorCommands())
+            preStopOperations();
+    }
+    else if(status==EXCITATION_FREE_MOTION_FINISHED)
+    {
+        preStopOperations();              // set desired PWM to 0, switch to pos ctrl
+        freeExcCounter++;
+        if(freeExcCounter >= (int)freeMotionExc.size())
+            printf("Excitation process finished (%d out of %lu).\n", freeExcCounter, freeMotionExc.size());
+        else
+        {
+            printf("\nFree excitation %d (out of %lu) finished.\n", freeExcCounter-1, freeMotionExc.size());
             preStartOperations();
         }
     }
@@ -127,8 +166,6 @@ bool MotorFrictionExcitationThread::readRobotStatus(bool blockingRead)
     res = res && robot->getEstimates(ESTIMATE_JOINT_VEL, dqJ.data(), -1.0, blockingRead);
     res = res && robot->getEstimates(ESTIMATE_FORCE_TORQUE, ftSens.data(), -1.0, blockingRead);
     qDeg = CTRL_RAD2DEG*qRad;
-    
-    //sendMsg("ft sens: "+toString(ftSens.transpose(),1), MSG_DEBUG);
     return res;
 }
 
@@ -139,7 +176,7 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
     for(unsigned int i=0; i<currentJointIds.size(); i++)
     {
         int jid = currentGlobalJointIds[i];
-        posIntegral[i] += freeMotionExc[excitationCounter].ki[i]*(qDeg[jid]-freeMotionExc[excitationCounter].initialJointConfiguration[jid]);
+        posIntegral[i] += freeMotionExc[freeExcCounter].ki[i]*(qDeg[jid]-freeMotionExc[freeExcCounter].initialJointConfiguration[jid]);
         ///< saturate position integral
         if(posIntegral[i]>MAX_POS_INTEGRAL) 
             posIntegral[i]=MAX_POS_INTEGRAL;
@@ -147,7 +184,7 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
             posIntegral[i]=-MAX_POS_INTEGRAL;
     }
 
-    FreeMotionExcitation *fme = &freeMotionExc[excitationCounter];
+    FreeMotionExcitation *fme = &freeMotionExc[freeExcCounter];
     double t = Time::now()-excitationStartTime;
     if(t<0.0)
         return false;
@@ -159,13 +196,13 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
 }
 
 //*************************************************************************************************************************
-bool MotorFrictionExcitationThread::checkStopConditions()
+bool MotorFrictionExcitationThread::checkFreeMotionStopConditions()
 {
     for(unsigned int i=0; i<currentJointIds.size(); i++)
     {
         int jid = currentGlobalJointIds[i];
         qDegMonitor = qDeg[jid];
-        double jThr = freeMotionExc[excitationCounter].jointLimitThresh[i];
+        double jThr = freeMotionExc[freeExcCounter].jointLimitThresh[i];
 
         ///< check whether the joint is too close to its limit
         if(fabs(qMax[jid]-qDeg[jid])<jThr || fabs(qDeg[jid]-qMin[jid])<jThr)
@@ -176,6 +213,21 @@ bool MotorFrictionExcitationThread::checkStopConditions()
         }
     }
     return false;
+}
+
+//*************************************************************************************************************************
+bool MotorFrictionExcitationThread::checkContactStopConditions()
+{
+    for(unsigned int i=0; i<currentJointIds.size(); i++)
+    {
+        if(stdDev.kt[currentGlobalJointIds[i]] > contactExc[contactExcCounter].paramCovarThresh[i])
+        {
+            sendMsg(strcat("Std dev of joint ",currentJointIds[i].description," is too large: ",
+                stdDev.kt[currentGlobalJointIds[i]]), MSG_DEBUG);
+            return false;
+        }
+    }
+    return true;
 }
 
 //*************************************************************************************************************************
@@ -213,20 +265,48 @@ bool MotorFrictionExcitationThread::sendMotorCommands()
 //*************************************************************************************************************************
 bool MotorFrictionExcitationThread::preStartOperations()
 {
-    if(excitationCounter>= (int)freeMotionExc.size())
+    if(contactExcCounter < (int)contactExc.size())
+    {
+        status = EXCITATION_CONTACT;
+        printf("\nGoing to execute contact excitation %d:\n%s\n", contactExcCounter, contactExc[contactExcCounter].toString().c_str());
+        return initContactExcitation();
+    }
+    if(freeExcCounter>= (int)freeMotionExc.size())
     {
         printf("Excitation process already finished.\n");
         return false;
     }
-    printf("\nGoing to execute excitation %d:\n%s\n", excitationCounter, freeMotionExc[excitationCounter].toString().c_str());
 
+    status = EXCITATION_FREE_MOTION;
+    printf("\nGoing to execute free motion excitation %d:\n%s\n", freeExcCounter, freeMotionExc[freeExcCounter].toString().c_str());
+    return initFreeMotionExcitation();
     ///< no need to lock because the mutex is already locked
-    if(!readRobotStatus(true))          ///< update state data
-        return false;
-    status = EXCITATION_STARTED;        ///< set thread status to "on"
+    //if(!readRobotStatus(true))          ///< update state data
+    //    return false;
+}
 
+//*************************************************************************************************************************
+bool MotorFrictionExcitationThread::initContactExcitation()
+{
+    ArrayXd initialJointConf_deg = contactExc[contactExcCounter].initialJointConfiguration;
+    bool res = moveToJointConfigurationAndWaitMotionDone(robot, initialJointConf_deg.data(), _n, 0.5);
+
+    int cjn = contactExc[contactExcCounter].jointId.size();  ///< current joint number
+    currentJointIds.resize(cjn);
+    currentGlobalJointIds.resize(cjn);
+    for(int i=0; i<cjn; i++)
+    {
+        currentJointIds[i] = globalToLocalIcubId(contactExc[contactExcCounter].jointId[i]);
+        currentGlobalJointIds[i] = robot->getJointList().localToGlobalId(currentJointIds[i]);
+    }
+    return res;
+}
+
+//*************************************************************************************************************************
+bool MotorFrictionExcitationThread::initFreeMotionExcitation()
+{
     ///< move joints to initial configuration
-    ArrayXd initialJointConf_deg = freeMotionExc[excitationCounter].initialJointConfiguration;
+    ArrayXd initialJointConf_deg = freeMotionExc[freeExcCounter].initialJointConfiguration;
     moveToJointConfigurationAndWaitMotionDone(robot, initialJointConf_deg.data(), _n, 0.5);
     
     ///< Compute pwm offset
@@ -234,7 +314,7 @@ bool MotorFrictionExcitationThread::preStartOperations()
     ///< I move the joint 3 degrees up and 3 degrees down, and I read the PWM value
     ///< at the two moments the joint starts moving. The average of these two values
     ///< should give me a good PWM offset
-    int cjn = freeMotionExc[excitationCounter].jointId.size();  ///< current joint number
+    int cjn = freeMotionExc[freeExcCounter].jointId.size();  ///< current joint number
     pwmOffset.resize(cjn);
     currentJointIds.resize(cjn);
     currentGlobalJointIds.resize(cjn);
@@ -243,7 +323,7 @@ bool MotorFrictionExcitationThread::preStartOperations()
     double pwmUp, pwmDown, q0_rad, qDes_rad, qRad_i;
     for(int i=0; i<cjn; i++)
     {
-        LocalId lid = globalToLocalIcubId(freeMotionExc[excitationCounter].jointId[i]);
+        LocalId lid = globalToLocalIcubId(freeMotionExc[freeExcCounter].jointId[i]);
         currentGlobalJointIds[i] = robot->getJointList().localToGlobalId(lid);
         currentJointIds[i] = lid;
         
@@ -327,12 +407,16 @@ bool MotorFrictionExcitationThread::preStartOperations()
 void MotorFrictionExcitationThread::preStopOperations()
 {
     // no need to lock because the mutex is already locked
-    for(int i=0; i<currentGlobalJointIds.size(); i++)
+    if(status==EXCITATION_FREE_MOTION)
     {
-        pwmDes[i] = 0.0;
-        if(!robot->setControlReference(pwmDes.data()+i, currentGlobalJointIds[i]))
-            printf("Error while setting joint %s control reference.\n", currentJointIds[i].description.c_str());
-        robot->setControlMode(CTRL_MODE_POS, 0, currentGlobalJointIds[i]);  // switch joint to position control mode
+        ///< if it was performing a free motion excitation then it stops the motors
+        for(int i=0; i<currentGlobalJointIds.size(); i++)
+        {
+            pwmDes[i] = 0.0;
+            if(!robot->setControlReference(pwmDes.data()+i, currentGlobalJointIds[i]))
+                printf("Error while setting joint %s control reference.\n", currentJointIds[i].description.c_str());
+            robot->setControlMode(CTRL_MODE_POS, 0, currentGlobalJointIds[i]);  // switch joint to position control mode
+        }
     }
     
     status = EXCITATION_OFF;                        // set thread status to "off"
@@ -344,11 +428,7 @@ void MotorFrictionExcitationThread::threadRelease(){}
 //*************************************************************************************************************************
 void MotorFrictionExcitationThread::parameterUpdated(const ParamProxyInterface *pd)
 {
-    //switch(pd->id)
-    //{
-    //default:
-        sendMsg("A callback is registered but not managed for the parameter "+pd->name, MSG_WARNING);
-    //}
+    sendMsg("A callback is registered but not managed for the parameter "+pd->name, MSG_WARNING);
 }
 
 //*************************************************************************************************************************
@@ -367,7 +447,8 @@ void MotorFrictionExcitationThread::commandReceived(const CommandDescription &cd
 
     case COMMAND_ID_RESET:
         preStopOperations();
-        excitationCounter = 0;
+        contactExcCounter = 0;
+        freeExcCounter = 0;
         if(!preStartOperations())
             preStopOperations();
         break;

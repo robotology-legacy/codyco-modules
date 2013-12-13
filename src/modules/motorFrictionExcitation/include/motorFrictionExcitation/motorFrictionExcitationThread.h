@@ -20,48 +20,39 @@
 
 #include <sstream>
 #include <iomanip>
-#include <stdexcept>
 #include <vector>
 
-//#include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/ResourceFinder.h>
-//#include <yarp/os/Semaphore.h>
-//#include <yarp/sig/Vector.h>
 
-#include <iCub/ctrl/math.h>
-//#include <iCub/ctrl/adaptWinPolyEstimator.h>
-//#include <iCub/ctrl/minJerkCtrl.h>
-//#include <iCub/skinDynLib/skinContactList.h>
 #include <Eigen/Core>                               // import most common Eigen types
 #include <Eigen/SVD>
 
 #include <wbi/wbi.h>
 #include <paramHelp/paramHelperServer.h>
+#include <paramHelp/paramHelperClient.h>
 #include <motorFrictionExcitation/motorFrictionExcitationConstants.h>
 
 
-using namespace yarp::os;
-using namespace yarp::sig;
-using namespace yarp::math;
-using namespace iCub::ctrl;
-//using namespace iCub::skinDynLib;
 using namespace std;
+using namespace Eigen;
+using namespace yarp::os;
 using namespace paramHelp;
 using namespace wbi;
-using namespace Eigen;
 using namespace motorFrictionExcitation;
 
 namespace motorFrictionExcitation
 {
 
+
 enum MotorFrictionExcitationStatus 
 { 
-    EXCITATION_STARTED,         // a free motion excitation has started
-    EXCITATION_FINISHED,        // a free motion excitation has just finished
-    EXCITATION_OFF              // controller off (either the user stopped it or all excitations have finished)
+    EXCITATION_CONTACT,                 ///< a contact excitation is going on
+    EXCITATION_CONTACT_FINISHED,        ///< a contact excitation has finished
+    EXCITATION_FREE_MOTION,             ///< a free motion excitation is going on
+    EXCITATION_FREE_MOTION_FINISHED,    ///< a free motion excitation has just finished
+    EXCITATION_OFF                      ///< controller off (either the user stopped it or all excitations have finished)
 };
-
 
 
 /** 
@@ -69,17 +60,19 @@ enum MotorFrictionExcitationStatus
  */
 class MotorFrictionExcitationThread: public RateThread, public ParamValueObserver, public CommandObserver
 {
-    string              name;
-    string              robotName;
-    ParamHelperServer   *paramHelper;
-    wholeBodyInterface  *robot;
+    string              name;                   ///< name of this module instance
+    string              robotName;              ///< name of the robot
+    ParamHelperServer   *paramHelper;           ///< manager of the module parameters
+    wholeBodyInterface  *robot;                 ///< interface to communicate with the robot
+    ParamHelperClient   *identificationModule;  ///< client to communicate with the motorFrictionIdentification module
 
     // Member variables
     MotorFrictionExcitationStatus   status;             ///< thread status ("on" when controlling, off otherwise)
     MFE_MotorCommandMode            sendCmdToMotors;    ///< specify whether to send commands to motors
     int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     int                 _n;                     // number of joints of the robot
-    int                 excitationCounter;      // counter of how many excitations have been performed
+    int                 freeExcCounter;         // counter of how many free motion excitations have been performed
+    int                 contactExcCounter;      // counter of how many contact excitations have been performed
     double              excitationStartTime;    // timestamp taken at the beginning of the current excitation
     ArrayXd             pwmOffset;              // pwm to keep motor still in the starting position
     ArrayXd             pwmDes;                 // desired values of PWM for the controlled joints (variable size)
@@ -92,7 +85,7 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     // Module parameters
     vector<FreeMotionExcitation>    freeMotionExc;  ///< free motion excitations
     ContactExcitationList           contactExc;     ///< in contact excitations
-    ArrayXd             qMin, qMax;             // lower and upper joint bounds
+    ArrayXd             qMin, qMax;                 // lower and upper joint bounds
 
     // Output streaming parameters
     ArrayXd             qDeg, qRad;             // measured positions
@@ -100,6 +93,14 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     ///< Output monitoring parameters
     double              pwmDesSingleJoint;      // value of desired pwm for the first controlled joint
     double              qDegMonitor;            // value of the measured joint angle for the first controlled joint
+
+    ///< Identification module parameters
+    ArrayXi             activeJoints;
+    string              monitoredJoint;
+    struct
+    {
+        ArrayXd kt, kvp, kvn, kcp, kcn;
+    } stdDev;
     
     /************************************************* PRIVATE METHODS ******************************************************/
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO);
@@ -114,7 +115,10 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     bool areDesiredMotorPwmTooLarge();
 
     /** Return true if at least one of the stop conditions is verified (e.g. joint limit too close). */
-    bool checkStopConditions();
+    bool checkFreeMotionStopConditions();
+
+    /** Return true if the current contact excitation phase is finished (e.g. std dev of parameters is below threshold). */
+    bool checkContactStopConditions();
 
     /** Send commands to the motors. Return true if the operation succeeded, false otherwise. */
     bool sendMotorCommands();
@@ -122,6 +126,10 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     /** Perform all the operations needed just before starting the controller. 
      * @return True iff all initialization operations went fine, false otherwise. */
     bool preStartOperations();
+
+    bool initFreeMotionExcitation();
+
+    bool initContactExcitation();
 
     /** Perform all the operations needed just before stopping the controller. */
     void preStopOperations();
@@ -134,7 +142,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     MotorFrictionExcitationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi, 
-                                    ResourceFinder &rf);
+                                    ResourceFinder &rf, ParamHelperClient *_identificationModule);
 	
     bool threadInit();	
     void run();

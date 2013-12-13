@@ -44,9 +44,10 @@ enum MFE_MotorCommandMode
 };
 
 // *** DEFAULT PARAMETER VALUES
-static const string                 DEFAULT_MODULE_NAME     = "motorFrictionExcitationControl"; ///< name of the module 
+static const string                 DEFAULT_MODULE_NAME     = "motorFrictionExcitation";        ///< name of the module 
 static const int                    DEFAULT_CTRL_PERIOD     = 10;                               ///< controller period in ms
 static const string                 DEFAULT_ROBOT_NAME      = "icubSim";                        ///< robot name
+static const string                 DEFAULT_MFI_NAME        = "motorFrictionIdentification";    ///< name of the motorFrictionIdentification module 
 static const VectorNd               DEFAULT_Q_MAX           = VectorNd::Constant(150.0);
 static const VectorNd               DEFAULT_Q_MIN           = VectorNd::Constant(-150.0);
 static const int                    DEFAULT_SEND_COMMANDS   = SEND_COMMANDS_TO_MOTORS;
@@ -76,6 +77,7 @@ CommandDescription("quit",          COMMAND_ID_QUIT,            "Stop the contro
 enum MotorFrictionExcitationParamId 
 { 
     PARAM_ID_MODULE_NAME,       PARAM_ID_CTRL_PERIOD,       PARAM_ID_ROBOT_NAME, 
+    PARAM_ID_MOTOR_FRICTION_IDENTIFICATION_NAME,
     PARAM_FREE_MOTION_EXCIT,    PARAM_ID_Q_MAX,             PARAM_ID_Q_MIN,             
     PARAM_ID_Q,                 PARAM_ID_PWM_DES,           PARAM_ID_SEND_COMMANDS,
     PARAM_ID_SIZE /*This is the number of parameters, so it must be the last value of the enum.*/
@@ -107,7 +109,7 @@ public:
     std::string toString() const;
 };
 
-class ContactExcitationList : std::vector<ContactExcitation>
+class ContactExcitationList : public std::vector<ContactExcitation>
 {
 public:
     bool readFromConfigFile(yarp::os::ResourceFinder &rf, yarp::os::Bottle &reply);
@@ -161,6 +163,7 @@ new ParamProxyClass<FreeMotionExcitation>("free motion excitation",  PARAM_FREE_
 new ParamProxyBasic<string>("name",                 PARAM_ID_MODULE_NAME,       1,                                                              PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
 new ParamProxyBasic<int>(   "period",               PARAM_ID_CTRL_PERIOD,       1,                  ParamBilatBounds<int>(1,1000),              PARAM_CONFIG,       &DEFAULT_CTRL_PERIOD,           "Period of the control loop (ms)"), 
 new ParamProxyBasic<string>("robot",                PARAM_ID_ROBOT_NAME,        1,                                                              PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
+new ParamProxyBasic<string>("motor friction identification name", PARAM_ID_MOTOR_FRICTION_IDENTIFICATION_NAME, 1,                               PARAM_CONFIG,       &DEFAULT_MFI_NAME,              "Name of the instance of the motorFrictionIdentification module"), 
 // ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("q max",                PARAM_ID_Q_MAX,             ICUB_DOFS,          ParamBilatBounds<double>(-360.0,360.0),     PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds"),
 new ParamProxyBasic<double>("q min",                PARAM_ID_Q_MIN,             ICUB_DOFS,          ParamBilatBounds<double>(-360.0,360.0),     PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds"),
