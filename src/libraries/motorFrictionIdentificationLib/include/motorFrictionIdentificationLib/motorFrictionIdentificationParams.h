@@ -69,7 +69,8 @@ enum MotorFrictionIdentificationParamId
     PARAM_ID_JOINT_VEL_EST_THRESH,  PARAM_ID_TORQUE_VEL_EST_THRESH,
     PARAM_ID_TORQUE_FILT_CUT_FREQ,  PARAM_ID_FORGET_FACTOR,             PARAM_ID_JOINT_TO_MONITOR,  
     /* Output parameters */
-    PARAM_ID_JOINT_NAMES,
+    PARAM_ID_JOINT_NAMES,           PARAM_ID_KT_STD_DEV,                PARAM_ID_KVP_STD_DEV,
+    PARAM_ID_KVN_STD_DEV,           PARAM_ID_KCP_STD_DEV,               PARAM_ID_KCN_STD_DEV,
     /* Input\output parameters (to file)*/
     PARAM_ID_COVARIANCE_INV,        PARAM_ID_RHS,
     /* Monitor parameters */
@@ -111,6 +112,12 @@ new ParamProxyBasic<string>("joint monitor",        PARAM_ID_JOINT_TO_MONITOR,  
 // ************************************************* FILE OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("covariance inv",       PARAM_ID_COVARIANCE_INV,        PARAM_SIZE_FREE,                                            PARAM_IN_OUT,       0,                                  "Inverse of the covariance matrix of the parameter estimations"),
 new ParamProxyBasic<double>("rhs",                  PARAM_ID_RHS,                   PARAM_SIZE_FREE,                                            PARAM_IN_OUT,       0,                                  "Right-hand side of the linear vector equation that is solved for estimating the parameters"),
+// ************************************************* OUTPUT STREAMING PARAMETERS ****************************************************************************************************************************************************************************************************************************
+new ParamProxyBasic<double>("kt std dev",           PARAM_ID_KT_STD_DEV,            PARAM_SIZE_FREE,                                            PARAM_OUT_STREAM,   0,                                  "Standard deviation of the estimations of the parameter kt"),
+new ParamProxyBasic<double>("kvp std dev",          PARAM_ID_KVP_STD_DEV,           PARAM_SIZE_FREE,                                            PARAM_OUT_STREAM,   0,                                  "Standard deviation of the estimations of the parameter kvp"),
+new ParamProxyBasic<double>("kvn std dev",          PARAM_ID_KVN_STD_DEV,           PARAM_SIZE_FREE,                                            PARAM_OUT_STREAM,   0,                                  "Standard deviation of the estimations of the parameter kvn"),
+new ParamProxyBasic<double>("kcp std dev",          PARAM_ID_KCP_STD_DEV,           PARAM_SIZE_FREE,                                            PARAM_OUT_STREAM,   0,                                  "Standard deviation of the estimations of the parameter kcp"),
+new ParamProxyBasic<double>("kcn std dev",          PARAM_ID_KCN_STD_DEV,           PARAM_SIZE_FREE,                                            PARAM_OUT_STREAM,   0,                                  "Standard deviation of the estimations of the parameter kcn"),
 // ************************************************* STREAMING MONITOR PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("dq",                   PARAM_ID_JOINT_VEL,             1,                                                          PARAM_MONITOR,      0,                                  "Velocity of the monitored joint"),
 new ParamProxyBasic<double>("torque",               PARAM_ID_JOINT_TORQUE,          1,                                                          PARAM_MONITOR,      0,                                  "Torque of the monitored joint"),

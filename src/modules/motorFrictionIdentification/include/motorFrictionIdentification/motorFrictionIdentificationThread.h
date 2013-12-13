@@ -118,6 +118,12 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     ArrayXd     kcp;                ///< Array of estimated parameters (Coulomb friction coefficients for positive velocities)
     ArrayXd     kcn;                ///< Array of estimated parameters (Coulomb friction coefficients for negative velocities)
 
+    ///< *************** OUTPUT STREAMING PARAMETERS *************************
+    struct
+    {
+        ArrayXd kt, kvp, kvn, kcp, kcn;
+    } stdDev;
+
     ///< *************** MONITOR PARAMETERS ********************
     double      dqMonitor;          ///< Motor velocity of the monitored joint
     double      torqueMonitor;      ///< Motor torque associated to the monitored joint

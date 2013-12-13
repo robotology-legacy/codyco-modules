@@ -55,6 +55,13 @@ bool MotorFrictionIdentificationThread::threadInit()
     resizeAndSetToZero(activeJoints,            _n);
     resizeAndSetToZero(currentGlobalJointIds,   _n);
     resizeAndSetToZero(zeroN,                   _n);
+    stdDev.kt   =   ArrayXd::Constant(_n, 1e5);
+    stdDev.kvp  =   ArrayXd::Constant(_n, 1e5);
+    stdDev.kvn  =   ArrayXd::Constant(_n, 1e5);
+    stdDev.kcp  =   ArrayXd::Constant(_n, 1e5);
+    stdDev.kcn  =   ArrayXd::Constant(_n, 1e5);
+    // @todo this arrays should have size _n rather than N_DOF 
+    // I need to make the corresponding parameters in jointTorqueControl of free size
     resizeAndSetToZero(kt,                      jointTorqueControl::N_DOF);
     resizeAndSetToZero(kvp,                     jointTorqueControl::N_DOF);
     resizeAndSetToZero(kvn,                     jointTorqueControl::N_DOF);
@@ -70,9 +77,10 @@ bool MotorFrictionIdentificationThread::threadInit()
     inputSamples.resize(_n);
     estimators.resize(_n);
 
+    ///< thread constants
     zero6[0] = zero6[1] = zero6[2] = zero6[3] = zero6[4] = zero6[5] = 0.0;
     ddxB[0] = ddxB[1] = ddxB[3] = ddxB[4] = ddxB[5] = 0.0;
-    ddxB[2] = 9.81;
+    ddxB[2] = 9.81;     ///< gravity acceleration
     
     ///< link module rpc parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ACTIVE_JOINTS,          activeJoints.data()));
@@ -87,7 +95,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TORQUE_FILT_CUT_FREQ,   &torqueFiltCutFreq));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_FORGET_FACTOR,          &forgetFactor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_TO_MONITOR,       &jointMonitorName));
-
+    ///< @todo Populate these variables and use them somehow, otherwise remove these 2 parameters
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_COVARIANCE_INV,         covarianceInv.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_RHS,                    rhs.data()));
     ///< link module output monitoring parameters to member variables
@@ -101,7 +109,13 @@ bool MotorFrictionIdentificationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_EXT_TORQUE,             &extTorqueMonitor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_TORQUE_PREDICT,   &torquePredMonitor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_IDENTIFICATION_PHASE,   &idPhaseMonitor));
-
+    ///< link module output streaming parameters to member variables
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KT_STD_DEV,             stdDev.kt.data(),   _n));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KVP_STD_DEV,            stdDev.kvp.data(),  _n));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KVN_STD_DEV,            stdDev.kvn.data(),  _n));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KCP_STD_DEV,            stdDev.kcp.data(),  _n));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KCN_STD_DEV,            stdDev.kcn.data(),  _n));
+    
     ///< link module jointTorqueControl parameters to member variables
     YARP_ASSERT(torqueController->linkParam(jointTorqueControl::PARAM_ID_KT,   kt.data()));
     YARP_ASSERT(torqueController->linkParam(jointTorqueControl::PARAM_ID_KVP,  kvp.data()));
@@ -235,16 +249,31 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
 //*************************************************************************************************************************
 void MotorFrictionIdentificationThread::prepareMonitorData()
 {
-    ///< monitor variables
-    int jid = jointMonitor; //robot->getJointList().localToGlobalId(globalToLocalIcubId(jointMonitor));
-    estimators[jid].updateParameterEstimation();    ///< Estimates of the parameters of the monitored joint
-    estimators[jid].getCurrentParameterEstimate(estimateMonitor, sigmaMonitor);
-    stdDevMonitor = sigmaMonitor.diagonal().array().sqrt();     ///< Variances of the parameters of the monitored joint
-    dqMonitor       = dq[jid];                      ///< Velocity of the monitored joint
-    torqueMonitor   = torques[jid];                 ///< Torque of the monitored joint
-    signDqMonitor   = dqSign[jid];                  ///< Velocity sign of the monitored joint
-    pwmMonitor      = pwm[jid];                     ///< Motor pwm of the monitored joint
-    extTorqueMonitor = extTorques[jid];             ///< External torque of the monitored joint
+    ///< ***************************** OUTPUT STREAMING VARIABLES
+    for(int i=0; i<_n; i++)
+    {
+        estimators[i].updateParameterEstimation();
+        estimators[i].getCurrentCovarianceMatrix(sigmaMonitor);
+        stdDev.kt[i]    = sqrt(sigmaMonitor.diagonal()[INDEX_K_TAO]);
+        stdDev.kvp[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_VP]);
+        stdDev.kvn[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_VN]);
+        stdDev.kcp[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_CP]);
+        stdDev.kcn[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_CN]);
+    }
+    
+
+    ///< ***************************** MONITOR VARIABLES
+    int jid = jointMonitor;
+    stdDevMonitor[INDEX_K_TAO] = stdDev.kt[jid];
+    stdDevMonitor[INDEX_K_VP] = stdDev.kvp[jid];
+    stdDevMonitor[INDEX_K_VN] = stdDev.kvn[jid];
+    stdDevMonitor[INDEX_K_CP] = stdDev.kcp[jid];
+    stdDevMonitor[INDEX_K_CN] = stdDev.kcn[jid];
+    dqMonitor           = dq[jid];                      ///< Velocity of the monitored joint
+    torqueMonitor       = torques[jid];                 ///< Torque of the monitored joint
+    signDqMonitor       = dqSign[jid];                  ///< Velocity sign of the monitored joint
+    pwmMonitor          = pwm[jid];                     ///< Motor pwm of the monitored joint
+    extTorqueMonitor    = extTorques[jid];              ///< External torque of the monitored joint
     ///< Prediction of current motor pwm
     estimators[jid].predictOutput(inputSamples[jid], pwmPredMonitor);   
     ///< Prediction of motor torque: tau = -(1/k_tau)(-k_tau*pwm/k_tau + k_v\dot{q} + k_c sign(\dot{q}))
