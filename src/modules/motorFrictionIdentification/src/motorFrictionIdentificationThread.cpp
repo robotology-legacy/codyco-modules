@@ -269,6 +269,7 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
     stdDevMonitor[INDEX_K_VN] = stdDev.kvn[jid];
     stdDevMonitor[INDEX_K_CP] = stdDev.kcp[jid];
     stdDevMonitor[INDEX_K_CN] = stdDev.kcn[jid];
+    estimators[jid].getCurrentParameterEstimate(estimateMonitor);
     dqMonitor           = dq[jid];                      ///< Velocity of the monitored joint
     torqueMonitor       = torques[jid];                 ///< Torque of the monitored joint
     signDqMonitor       = dqSign[jid];                  ///< Velocity sign of the monitored joint

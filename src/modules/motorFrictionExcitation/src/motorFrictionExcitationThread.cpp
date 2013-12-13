@@ -85,13 +85,13 @@ bool MotorFrictionExcitationThread::threadInit()
     YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_RESET,          this));
 
     ///< Link identification module parameters to member variables
-    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_ACTIVE_JOINTS,    activeJoints.data()));
+    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_ACTIVE_JOINTS,    activeJoints.data(), _n));
     YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_JOINT_TO_MONITOR, &monitoredJoint));
-    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KT_STD_DEV,       stdDev.kt.data()));
-    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KVP_STD_DEV,      stdDev.kvp.data()));
-    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KVN_STD_DEV,      stdDev.kvn.data()));
-    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KCP_STD_DEV,      stdDev.kcp.data()));
-    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KCN_STD_DEV,      stdDev.kcn.data()));
+    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KT_STD_DEV,       stdDev.kt.data(),  _n));
+    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KVP_STD_DEV,      stdDev.kvp.data(), _n));
+    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KVN_STD_DEV,      stdDev.kvn.data(), _n));
+    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KCP_STD_DEV,      stdDev.kcp.data(), _n));
+    YARP_ASSERT(identificationModule->linkParam(motorFrictionIdentification::PARAM_ID_KCN_STD_DEV,      stdDev.kcn.data(), _n));
 
     ///< read robot status (to be done before initializing trajectory generators)
     if(!readRobotStatus(true))
@@ -128,7 +128,7 @@ void MotorFrictionExcitationThread::run()
         else
         {
             printf("Contact excitation %d finished. Moving to next contact excitation.\n", contactExcCounter-1);
-            status = EXCITATION_CONTACT;
+            preStartOperations();
         }
     }
     else if(status==EXCITATION_FREE_MOTION)
@@ -223,7 +223,8 @@ bool MotorFrictionExcitationThread::checkContactStopConditions()
         if(stdDev.kt[currentGlobalJointIds[i]] > contactExc[contactExcCounter].paramCovarThresh[i])
         {
             sendMsg(strcat("Std dev of joint ",currentJointIds[i].description," is too large: ",
-                stdDev.kt[currentGlobalJointIds[i]]), MSG_DEBUG);
+                stdDev.kt[currentGlobalJointIds[i]], " > ", contactExc[contactExcCounter].paramCovarThresh[i]), MSG_DEBUG);
+            sendMsg(strcat("std dev kt: ",stdDev.kt.transpose()), MSG_DEBUG);
             return false;
         }
     }
