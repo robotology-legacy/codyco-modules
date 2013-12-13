@@ -96,6 +96,10 @@ public:
      * @param sigma Covariance matrix. */
     void getCurrentParameterEstimate(Eigen::VectorXd &xEst, Eigen::MatrixXd &sigma) const;
 
+    /** Get the current covariance matrix (remember to call updateParameterEstimation before).
+     * @param sigma Output covariance matrix. */
+    void getCurrentCovarianceMatrix(Eigen::MatrixXd &sigma) const;
+
     /** Returns the size (dimensionality) of the input domain.
      * @return The size of the input domain. */
     unsigned int getParamSize() const { return this->n; }

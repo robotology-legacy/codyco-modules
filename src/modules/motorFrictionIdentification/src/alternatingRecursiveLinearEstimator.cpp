@@ -57,12 +57,18 @@ void AlternatingRecursiveLinearEstimator::getCurrentParameterEstimate(VectorXd &
 }
 
 /*************************************************************************************************/
-void AlternatingRecursiveLinearEstimator::getCurrentParameterEstimate(VectorXd &xEst, MatrixXd &sigma) const
+void AlternatingRecursiveLinearEstimator::getCurrentCovarianceMatrix(MatrixXd &sigma) const
 {
     assert(sigma.cols()==n1+n2 && sigma.rows()==n1+n2);
-    getCurrentParameterEstimate(xEst);
     sigma.block(0,0,n1,n1) = sigma1;
     sigma.block(n1,n1,n2,n2) = sigma2;
+}
+
+/*************************************************************************************************/
+void AlternatingRecursiveLinearEstimator::getCurrentParameterEstimate(VectorXd &xEst, MatrixXd &sigma) const
+{
+    getCurrentParameterEstimate(xEst);
+    getCurrentCovarianceMatrix(sigma);
 }
 
 /*************************************************************************************************/

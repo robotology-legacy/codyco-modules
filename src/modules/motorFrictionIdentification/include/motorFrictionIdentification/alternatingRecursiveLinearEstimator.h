@@ -104,6 +104,10 @@ public:
      * @param xEst Output vector containing the current estimate of the parameters. */
     void getCurrentParameterEstimate(Eigen::VectorXd &xEst) const;
 
+    /** Get the current covariance matrix (remember to call updateParameterEstimation before).
+     * @param sigma Output covariance matrix. */
+    void getCurrentCovarianceMatrix(Eigen::MatrixXd &sigma) const;
+
     /** Get the current estimate of the parameters x (remember to call updateParameterEstimation before).
      * @param xEst Output vector containing the current estimate of the parameters. 
      * @param sigma Covariance matrix. */

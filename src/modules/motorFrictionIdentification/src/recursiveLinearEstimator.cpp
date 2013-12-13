@@ -54,21 +54,34 @@ void RecursiveLinearEstimator::getCurrentParameterEstimate(VectorXd &xEst) const
 }
 
 /*************************************************************************************************/
+void RecursiveLinearEstimator::getCurrentCovarianceMatrix(MatrixXd &sigma) const
+{
+    assert(sigma.cols()==n && sigma.rows()==n);
+    ///< if there are not enough sample to perform the estimation set covariance a very high value
+    if(sampleCount<(int)n)  
+    {
+        sigma = MatrixXd::Constant(n,n,1e10);
+        return;
+    }
+    ///< Invert A by solving n times the system: A*x=e_i, 
+    ///< where e_i is a vector with all elements equal to 0, except for the i-th element, which is equal to 1
+    VectorXd e_i(n);
+    for(unsigned int i=0; i<n; i++)
+    {
+        e_i.setZero();
+        e_i[i] = 1.0;
+        if(!R.solveInPlace(e_i))
+            printf("Error while computing covariance matrix in loop %d\n", i);
+        sigma.col(i) = e_i;
+    }
+}
+
+/*************************************************************************************************/
 void RecursiveLinearEstimator::getCurrentParameterEstimate(VectorXd &xEst, MatrixXd &sigma) const
 {
     assert(sigma.cols()==n && sigma.rows()==n);
     getCurrentParameterEstimate(xEst);
-    
-    ///< invert A by solving n times 
-    VectorXd temp(n);
-    for(unsigned int i=0; i<n; i++)
-    {
-        temp.setZero();
-        temp[i] = 1.0;
-        if(!R.solveInPlace(temp))
-            printf("Error while computing covariance matrix in loop %d\n", i);
-        sigma.col(i) = temp;
-    }
+    getCurrentCovarianceMatrix(sigma);
 }
 
 /*************************************************************************************************/
