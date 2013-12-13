@@ -181,9 +181,15 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
         posIntegral[i] += freeMotionExc[freeExcCounter].ki[i]*(qDeg[jid]-freeMotionExc[freeExcCounter].initialJointConfiguration[jid]);
         ///< saturate position integral
         if(posIntegral[i]>MAX_POS_INTEGRAL) 
+        {
             posIntegral[i]=MAX_POS_INTEGRAL;
+            sendMsg(strcat("WARNING: Position integral reached its maximum value: ", MAX_POS_INTEGRAL), MSG_WARNING);
+        }
         else if(posIntegral[i]<-MAX_POS_INTEGRAL) 
+        {
             posIntegral[i]=-MAX_POS_INTEGRAL;
+            sendMsg(strcat("WARNING: Position integral reached its minimum value: ", -MAX_POS_INTEGRAL), MSG_WARNING);
+        }
     }
 
     FreeMotionExcitation *fme = &freeMotionExc[freeExcCounter];
@@ -200,6 +206,8 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
 //*************************************************************************************************************************
 bool MotorFrictionExcitationThread::checkFreeMotionStopConditions()
 {
+    ArrayXd maxStdDev(currentJointIds.size());
+    bool isStdDevBelowThreshold = true;
     for(unsigned int i=0; i<currentJointIds.size(); i++)
     {
         int jid = currentGlobalJointIds[i];
@@ -213,7 +221,23 @@ bool MotorFrictionExcitationThread::checkFreeMotionStopConditions()
                 currentJointIds[i].description.c_str(), qDeg[jid], qMax[jid], qMin[jid], jThr);
             return true;
         }
+
+        ///< check whether the standard deviation of all friction parameters is under threshold
+        maxStdDev[i] = max(stdDev.kvp[jid], max(stdDev.kvn[jid], max(stdDev.kcp[jid], stdDev.kcn[jid])));
+        if(maxStdDev[i] > freeMotionExc[freeExcCounter].fricParamCovarThresh[i])
+            isStdDevBelowThreshold = false;
+        else if(currentJointIds.size()==1)
+            printf("Std dev of joint %s got under threshold: %f < %f\n", currentJointIds[i].description.c_str(),
+                                            maxStdDev[i], freeMotionExc[freeExcCounter].fricParamCovarThresh[i]);
     }
+
+    ///< is std dev of all joints under excitation is below threshold, stop this excitation
+    if(isStdDevBelowThreshold)
+    {
+        printf("Stop excitation because standard deviation of friction parameters of all joints got below threshold\n");
+        return true;
+    }
+
     return false;
 }
 

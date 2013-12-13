@@ -38,10 +38,10 @@ namespace motorFrictionExcitation
 enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
 
 // *** CONSTANTS
-static const int        PRINT_PERIOD    = 1000;         ///< period of debug prints (in ms)
+static const int        PRINT_PERIOD    = 2000;         ///< period of debug prints (in ms)
 static const int        PRINT_MSG_LEVEL = MSG_DEBUG;    ///< only messages whose type is greater than or equal to PRINT_MSG_LEVEL are printed
-static const double     PWM_MAX         = 300;          ///< max motor PWM allowed (in [-1333; 1333])
-static const double     MAX_POS_INTEGRAL = 30.0;
+static const double     PWM_MAX         = 400;          ///< max motor PWM allowed (in [-1333; 1333])
+static const double     MAX_POS_INTEGRAL = 50.0;        ///< max position error integral (in PWM units)
 
 }   // end namespace 
 
