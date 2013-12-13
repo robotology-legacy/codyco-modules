@@ -145,13 +145,13 @@ namespace wbiIcub
         case 22: return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 2, "l_hip_yaw");
         case 23: return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 3, "l_knee");
         case 24: return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 4, "l_ankle_pitch");
-        case 25: return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 5, "l_hip_roll");
+        case 25: return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 5, "l_ankle_roll");
         case 26: return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 0, "r_hip_pitch");
         case 27: return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 1, "r_hip_roll");
         case 28: return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 2, "r_hip_yaw");
         case 29: return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 3, "r_knee");
         case 30: return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 4, "r_ankle_pitch");
-        case 31: return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 5, "r_hip_roll");
+        case 31: return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 5, "r_ankle_roll");
         default: 
             printf("ERROR Unknown global joint id: %d\n", globalJointId);
             return wbi::LocalId();
