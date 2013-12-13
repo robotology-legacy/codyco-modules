@@ -145,7 +145,13 @@ void MotorFrictionExcitationThread::run()
         preStopOperations();              // set desired PWM to 0, switch to pos ctrl
         freeExcCounter++;
         if(freeExcCounter >= (int)freeMotionExc.size())
+        {
             printf("Excitation process finished (%d out of %lu).\n", freeExcCounter, freeMotionExc.size());
+            Bottle filename, reply;
+            filename.addString(name.c_str());
+            if(!identificationModule->sendRpcCommand(motorFrictionIdentification::COMMAND_ID_SAVE, &filename, &reply))
+                printf("Error while sending 'save' command to identification module: %s\n", reply.toString().c_str());
+        }
         else
         {
             printf("\nFree excitation %d (out of %lu) finished.\n", freeExcCounter-1, freeMotionExc.size());
