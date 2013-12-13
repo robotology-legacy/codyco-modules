@@ -199,8 +199,11 @@ bool ParamHelperClient::setRpcParam(int paramId, Bottle *reply)
 
     ///< prepare the Bottle to send
     Bottle outBottle;
+    string word;
+    stringstream stream(ppi->name);
     outBottle.addString("set");
-    outBottle.addString(ppi->name);
+	while(stream>>word)
+        outBottle.addString(word.c_str());
     ppi->getAsBottle(outBottle);
 
     ///< send the Bottle
@@ -225,8 +228,11 @@ bool ParamHelperClient::getRpcParam(int paramId, Bottle *reply)
 
     ///< prepare the Bottle to send
     Bottle outBottle;
+    string word;
+    stringstream stream(ppi->name);
     outBottle.addString("get");
-    outBottle.addString(ppi->name);
+	while(stream>>word)
+        outBottle.addString(word.c_str());
 
     ///< send the Bottle
     Bottle value;
