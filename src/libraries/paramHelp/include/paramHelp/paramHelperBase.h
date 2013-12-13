@@ -165,7 +165,7 @@ protected:
 
     enum MsgType{ MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR };
     
-    void logMsg(const std::string &s, MsgType type=MSG_INFO) const;
+    virtual void logMsg(const std::string &s, MsgType type=MSG_INFO) const;
 
 public:
     /** Default constructor. */

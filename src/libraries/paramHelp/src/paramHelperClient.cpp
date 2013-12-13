@@ -48,12 +48,19 @@ bool ParamHelperClient::init(string localName, string remoteName, Bottle &reply)
     string remotePortOutStreamName  = "/" + remoteName + PORT_OUT_STREAM_SUFFIX;
     string remotePortInfoName       = "/" + remoteName + PORT_OUT_INFO_SUFFIX;
     string remotePortRpcName        = "/" + remoteName + PORT_RPC_SUFFIX;
+
+    ///< Check whether the remote ports exist, if not return false
+    if(!Network::exists(remotePortInStreamName.c_str()) || !Network::exists(remotePortOutStreamName.c_str()) ||
+        !Network::exists(remotePortInfoName.c_str()) || !Network::exists(remotePortRpcName.c_str()))
+    {
+        reply.addString("One of the remote port does not exist");
+        return false;
+    }
+
     string portInStreamName         = "/" + localName + remotePortInStreamName;
     string portOutStreamName        = "/" + localName + remotePortOutStreamName;
     string portInfoName             = "/" + localName + "/" + remoteName + PORT_IN_INFO_SUFFIX;
     string portRpcName              = "/" + localName + remotePortRpcName;
-
-    ///< @todo Check whether the remote ports exist, if not return false
 
     portInStream = new BufferedPort<Bottle>();
     portOutStream = new BufferedPort<Bottle>();
@@ -165,7 +172,8 @@ bool ParamHelperClient::readStreamParams(bool blockingRead)
         }
         if(!b->get(0).isInt())
         {
-            logMsg(strcat("[readStreamParams] 1st element of value ",i," of read Bottle is not an int! Skipping it."), MSG_ERROR);
+            logMsg(strcat("[readStreamParams] 1st element of Bottle ",i," is not an int (",b->get(0).toString().c_str()
+                ,")! Skipping it."), MSG_ERROR);
             continue;
         }
         int paramId = b->get(0).asInt();

@@ -102,6 +102,12 @@ class ParamHelperServer: public ParamHelperBase
      * @return True if the operation succeeded, false otherwise. */
     bool bottleToParam(const yarp::os::Bottle &b, int* x, int maxSize=-1);
 
+    virtual void logMsg(const std::string &s, MsgType type=MSG_INFO) const
+    {
+        if(type>=MSG_DEBUG)
+            printf("[ParamHelperServer] %s\n", s.c_str());
+    }
+
 public:
     /** Constructor.
       * @param pdList Array of const pointers to const ParamProxyInterface containing a description of the parameters to add.

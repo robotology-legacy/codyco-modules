@@ -55,6 +55,12 @@ class ParamHelperClient: public ParamHelperBase
 protected:
     yarp::os::Port                              portRpc;        ///< port for rpc messages
 
+    virtual void logMsg(const std::string &s, MsgType type=MSG_INFO) const
+    {
+        if(type>=MSG_DEBUG)
+            printf("[ParamHelperClient] %s\n", s.c_str());
+    }
+
 public:
     /** Constructor.
       * @param pdList Array of const pointers to const ParamProxyInterface containing a description of the parameters to add.
