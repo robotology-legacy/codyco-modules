@@ -256,7 +256,10 @@ bool ParamHelperClient::sendRpcCommand(int cmdId, Bottle *params, Bottle *reply)
 
     ///< prepare the Bottle to send
     Bottle outBottle;
-    outBottle.addString(cd.name.c_str());
+    string word;
+    stringstream stream(cd.name);
+	while(stream>>word)
+        outBottle.addString(word.c_str());
     if(params!=0)
         for(int i=0; i<params->size(); i++)
             outBottle.add(params->get(i));
