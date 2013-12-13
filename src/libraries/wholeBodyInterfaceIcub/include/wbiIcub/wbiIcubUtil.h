@@ -185,13 +185,13 @@ namespace wbiIcub
         if(jointName=="l_hip_yaw")          return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 2, "l_hip_yaw");
         if(jointName=="l_knee")             return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 3, "l_knee");
         if(jointName=="l_ankle_pitch")      return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 4, "l_ankle_pitch");
-        if(jointName=="l_hip_roll")         return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 5, "l_hip_roll");
+        if(jointName=="l_ankle_roll")       return wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 5, "l_ankle_roll");
         if(jointName=="r_hip_pitch")        return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 0, "r_hip_pitch");
         if(jointName=="r_hip_roll")         return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 1, "r_hip_roll");
         if(jointName=="r_hip_yaw")          return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 2, "r_hip_yaw");
         if(jointName=="r_knee")             return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 3, "r_knee");
         if(jointName=="r_ankle_pitch")      return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 4, "r_ankle_pitch");
-        if(jointName=="r_hip_roll")         return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 5, "r_hip_roll");
+        if(jointName=="r_ankle_roll")       return wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 5, "r_ankle_roll");
         
         printf("ERROR Unknown global joint name: %s\n", jointName.c_str());
         return wbi::LocalId(iCub::skinDynLib::BODY_PART_UNKNOWN, 0);
