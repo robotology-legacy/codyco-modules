@@ -44,6 +44,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     resizeAndSetToZero(dq,                      _n);
     resizeAndSetToZero(dqPos,                   _n);
     resizeAndSetToZero(dqNeg,                   _n);
+    resizeAndSetToZero(extTorqueThr,            _n);
     resizeAndSetToZero(torques,                 _n);
     resizeAndSetToZero(dTorques,                _n);
     resizeAndSetToZero(gravTorques,             _n+6);
@@ -87,7 +88,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_IDENTIF_DELAY,          &delay));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ZERO_JOINT_VEL_THRESH,  &zeroJointVelThr));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ZERO_TORQUE_VEL_THRESH, &zeroTorqueVelThr));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_EXT_TORQUE_THRESH,      &extTorqueThr));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_EXT_TORQUE_THRESH,      extTorqueThr.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL_WIND_SIZE,    &jointVelEstWind));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TORQUE_VEL_WIND_SIZE,   &torqueVelEstWind));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL_EST_THRESH,   &jointVelEstThr));
@@ -176,7 +177,7 @@ void MotorFrictionIdentificationThread::run()
             ///< otherwise, if there is external force, estimate motor gain
             if(fabs(dq[i])>zeroJointVelThr)
                 estimators[i].feedSampleForGroup2(inputSamples[i], pwm[i]);
-            else if(fabs(extTorques[i])>extTorqueThr)
+            else if(fabs(extTorques[i])>extTorqueThr[i] && fabs(torques[i])<TORQUE_SENSOR_SATURATION)
                 estimators[i].feedSampleForGroup1(inputSamples[i], pwm[i]);
         }
     }
@@ -276,7 +277,7 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
     phi[INDEX_K_TAO] = -pwm[jid] * k_tau_inv;
     torquePredMonitor = -k_tau_inv * estimateMonitor.dot(phi);
     ///< identification phase
-    idPhaseMonitor = fabs(dq[jid])>zeroJointVelThr ? 2 : (fabs(extTorques[jid])>extTorqueThr ? 1 : 0);
+    idPhaseMonitor = fabs(dq[jid])>zeroJointVelThr ? 2 : (fabs(extTorques[jid])>extTorqueThr[jid] ? 1 : 0);
 }
 
 //*************************************************************************************************************************

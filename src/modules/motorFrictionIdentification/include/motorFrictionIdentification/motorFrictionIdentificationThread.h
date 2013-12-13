@@ -96,10 +96,10 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
 
     ///< *************** INPUT MODULE PARAMETERS ********************
     ArrayXi     activeJoints;       ///< List of flags (0,1) indicating for which motors the identification is active
+    ArrayXd     extTorqueThr;       ///< External torque thresholds (Nm) to estimate whether there is contact
     double      delay;              ///< Delay (in sec) used before processing a sample to update the identified parameters
     double      zeroJointVelThr;    ///< Joint velocities (deg/sec) below this threshold are considered zero
     double      zeroTorqueVelThr;   ///< Torque velocities (Nm/sec) below this threshold are considered zero
-    double      extTorqueThr;       ///< External torque threshold (Nm) to estimate whether there is contact
     int         jointVelEstWind;    ///< Max size of the moving window used for estimating joint velocities
     int         torqueVelEstWind;   ///< Max size of the moving window used for estimating torque velocities
     double      jointVelEstThr;     ///< Threshold used by the adaptive window estimation of joint velocity
