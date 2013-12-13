@@ -102,9 +102,10 @@ public:
 
     /** Send the specified rpc command to the server.
      * @param cmdId Id of the command to send.
+     * @param params Parameter to send with the rpc command.
      * @param reply Reply to the rpc message.
      * @return True if the operation succeeded, false otherwise. */
-    bool sendRpcCommand(int cmdId, yarp::os::Bottle *reply=0);
+    bool sendRpcCommand(int cmdId, yarp::os::Bottle *params=0, yarp::os::Bottle *reply=0);
 
     /** Read a message from the info port.
       * @param b Message read.

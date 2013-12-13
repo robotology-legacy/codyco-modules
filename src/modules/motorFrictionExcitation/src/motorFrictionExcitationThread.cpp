@@ -119,6 +119,7 @@ void MotorFrictionExcitationThread::run()
     }
     else if(status==EXCITATION_CONTACT_FINISHED)
     {
+        preStopOperations();
         contactExcCounter++;
         if(contactExcCounter >= (int)contactExc.size())
         {
@@ -225,6 +226,15 @@ bool MotorFrictionExcitationThread::checkContactStopConditions()
             sendMsg(strcat("Std dev of joint ",currentJointIds[i].description," is too large: ",
                 stdDev.kt[currentGlobalJointIds[i]], " > ", contactExc[contactExcCounter].paramCovarThresh[i]), MSG_DEBUG);
             sendMsg(strcat("std dev kt: ",stdDev.kt.transpose()), MSG_DEBUG);
+            
+            ///< change the joint to monitor
+            if(currentJointIds[i].description != monitoredJoint)
+            {
+                monitoredJoint = currentJointIds[i].description;
+                Bottle reply;
+                if(!identificationModule->setRpcParam(motorFrictionIdentification::PARAM_ID_JOINT_TO_MONITOR, &reply))
+                    printf("Error setting joint to monitor: %s\n", reply.toString().c_str());
+            }
             return false;
         }
     }
@@ -293,13 +303,25 @@ bool MotorFrictionExcitationThread::initContactExcitation()
     bool res = moveToJointConfigurationAndWaitMotionDone(robot, initialJointConf_deg.data(), _n, 0.5);
 
     int cjn = contactExc[contactExcCounter].jointId.size();  ///< current joint number
+    if(cjn==0)
+        return false;
     currentJointIds.resize(cjn);
     currentGlobalJointIds.resize(cjn);
+    Bottle jointName, reply;
     for(int i=0; i<cjn; i++)
     {
         currentJointIds[i] = globalToLocalIcubId(contactExc[contactExcCounter].jointId[i]);
         currentGlobalJointIds[i] = robot->getJointList().localToGlobalId(currentJointIds[i]);
+        jointName.addString(currentJointIds[i].description.c_str());
+        if(!identificationModule->sendRpcCommand(motorFrictionIdentification::COMMAND_ID_ACTIVATE_JOINT, &jointName, &reply))
+            printf("Error activating identification of joint %s: %s\n", jointName .toString().c_str(), reply.toString().c_str());
+        jointName.clear();
     }
+
+    monitoredJoint = currentJointIds[0].description;
+    if(!identificationModule->setRpcParam(motorFrictionIdentification::PARAM_ID_JOINT_TO_MONITOR, &reply))
+        printf("Error setting joint to monitor: %s\n", reply.toString().c_str());
+
     return res;
 }
 
@@ -322,11 +344,17 @@ bool MotorFrictionExcitationThread::initFreeMotionExcitation()
     posIntegral.resize(cjn); posIntegral.setZero();
     EstimateType estType = isRobotSimulator(robotName) ? ESTIMATE_JOINT_VEL : ESTIMATE_MOTOR_PWM;
     double pwmUp, pwmDown, q0_rad, qDes_rad, qRad_i;
+    Bottle jointName, reply;
     for(int i=0; i<cjn; i++)
     {
         LocalId lid = globalToLocalIcubId(freeMotionExc[freeExcCounter].jointId[i]);
         currentGlobalJointIds[i] = robot->getJointList().localToGlobalId(lid);
         currentJointIds[i] = lid;
+
+        jointName.addString(currentJointIds[i].description.c_str());
+        if(!identificationModule->sendRpcCommand(motorFrictionIdentification::COMMAND_ID_ACTIVATE_JOINT, &jointName, &reply))
+            printf("Error activating identification of joint %s: %s\n", jointName .toString().c_str(), reply.toString().c_str());
+        jointName.clear();
         
         q0_rad = initialJointConf_deg[currentGlobalJointIds[i]] * CTRL_DEG2RAD;
         qDes_rad = q0_rad + 3.0*CTRL_DEG2RAD;
@@ -385,6 +413,10 @@ bool MotorFrictionExcitationThread::initFreeMotionExcitation()
         ///< wait for motion to stop
         waitMotionDone(robot, qDes_rad*CTRL_RAD2DEG, lid, 0.2);
     }
+
+    monitoredJoint = currentJointIds[0].description;
+    if(!identificationModule->setRpcParam(motorFrictionIdentification::PARAM_ID_JOINT_TO_MONITOR, &reply))
+        printf("Error setting joint to monitor: %s\n", reply.toString().c_str());
     
     ///< set control mode to motor PWM
     if(sendCmdToMotors==SEND_COMMANDS_TO_MOTORS)
@@ -418,6 +450,16 @@ void MotorFrictionExcitationThread::preStopOperations()
                 printf("Error while setting joint %s control reference.\n", currentJointIds[i].description.c_str());
             robot->setControlMode(CTRL_MODE_POS, 0, currentGlobalJointIds[i]);  // switch joint to position control mode
         }
+    }
+
+    ///< deactivate identification of joints
+    Bottle jointName, reply;
+    for(int i=0; i<(int)currentJointIds.size(); i++)
+    {
+        jointName.addString(currentJointIds[i].description.c_str());
+        if(!identificationModule->sendRpcCommand(motorFrictionIdentification::COMMAND_ID_DEACTIVATE_JOINT, &jointName, &reply))
+            printf("Error deactivating identification of joint %s: %s\n", jointName .toString().c_str(), reply.toString().c_str());
+        jointName.clear();
     }
     
     status = EXCITATION_OFF;                        // set thread status to "off"

@@ -65,7 +65,8 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
 
     //--------------------------PARAMETER HELPER CLIENT--------------------------
     identificationModule = new ParamHelperClient(
-        motorFrictionIdentification::motorFrictionIdentificationParamDescr, motorFrictionIdentification::PARAM_ID_SIZE);
+        motorFrictionIdentification::motorFrictionIdentificationParamDescr, motorFrictionIdentification::PARAM_ID_SIZE,
+        motorFrictionIdentification::motorFrictionIdentificationCommandDescr, motorFrictionIdentification::COMMAND_ID_SIZE);
     initMsg.clear();
     if(!identificationModule->init(moduleName, motorFrictionIdentificationName, initMsg))
     {

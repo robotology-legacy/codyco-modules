@@ -246,7 +246,7 @@ bool ParamHelperClient::getRpcParam(int paramId, Bottle *reply)
 }
 
 //*************************************************************************************************************************
-bool ParamHelperClient::sendRpcCommand(int cmdId, Bottle *reply)
+bool ParamHelperClient::sendRpcCommand(int cmdId, Bottle *params, Bottle *reply)
 {
     if(!initDone)
         return false;
@@ -257,6 +257,9 @@ bool ParamHelperClient::sendRpcCommand(int cmdId, Bottle *reply)
     ///< prepare the Bottle to send
     Bottle outBottle;
     outBottle.addString(cd.name.c_str());
+    if(params!=0)
+        for(int i=0; i<params->size(); i++)
+            outBottle.add(params->get(i));
 
     ///< send the Bottle
     bool res;
