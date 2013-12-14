@@ -273,6 +273,7 @@ namespace wbiIcub
         iCub::ctrl::AWLinEstimator  *dTauMFilt;     // motor torque derivative filter
         iCub::ctrl::FirstOrderLowPassFilter *tauJFilt;  ///< low pass filter for joint torque
         iCub::ctrl::FirstOrderLowPassFilter *tauMFilt;  ///< low pass filter for motor torque
+        iCub::ctrl::FirstOrderLowPassFilter *pwmFilt;   ///< low pass filter for motor PWM
         
         int dqFiltWL, d2qFiltWL;                    // window lengths of adaptive window filters
         double dqFiltTh, d2qFiltTh;                 // threshold of adaptive window filters
@@ -280,9 +281,11 @@ namespace wbiIcub
         double dTauMFiltTh, dTauJFiltTh;            // threshold of adaptive window filters
         double tauJCutFrequency;
         double tauMCutFrequency;
+        double pwmCutFrequency;
         
         yarp::sig::Vector           q, qStamps;         // last joint position estimation
         yarp::sig::Vector           tauJ, tauJStamps;
+        yarp::sig::Vector           pwm, pwmStamps;
         
         /* Resize all vectors using current number of DoFs. */
         void resizeAll(int n);
@@ -300,6 +303,8 @@ namespace wbiIcub
         bool setTauJCutFrequency(double fc);
         /** Set the cut frequency of the motor torque low pass filter. */
         bool setTauMCutFrequency(double fc);
+        /** Set the cut frequency of the motor PWM low pass filter. */
+        bool setPwmCutFrequency(double fc);
         
     public:
         
@@ -316,6 +321,7 @@ namespace wbiIcub
             yarp::sig::Vector lastTauM;                 // last motor torque
             yarp::sig::Vector lastDtauJ;                // last joint torque derivative
             yarp::sig::Vector lastDtauM;                // last motor torque derivative
+            yarp::sig::Vector lastPwm;                  // last motor PWM
         } 
         estimates;
 
