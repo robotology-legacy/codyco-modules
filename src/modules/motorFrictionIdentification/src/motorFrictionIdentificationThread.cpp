@@ -257,11 +257,12 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
 
     ///< ***************************** MONITOR VARIABLES
     int jid = jointMonitor;
-    stdDevMonitor[INDEX_K_TAO] = stdDev.kt[jid];
-    stdDevMonitor[INDEX_K_VP] = stdDev.kvp[jid];
-    stdDevMonitor[INDEX_K_VN] = stdDev.kvn[jid];
-    stdDevMonitor[INDEX_K_CP] = stdDev.kcp[jid];
-    stdDevMonitor[INDEX_K_CN] = stdDev.kcn[jid];
+    ///< saturate standard deviations to 1.0 to make plots nice
+    stdDevMonitor[INDEX_K_TAO]  = max(stdDev.kt[jid], 1.0);
+    stdDevMonitor[INDEX_K_VP]   = max(stdDev.kvp[jid], 1.0);
+    stdDevMonitor[INDEX_K_VN]   = max(stdDev.kvn[jid], 1.0);
+    stdDevMonitor[INDEX_K_CP]   = max(stdDev.kcp[jid], 1.0);
+    stdDevMonitor[INDEX_K_CN]   = max(stdDev.kcn[jid], 1.0);
     estimators[jid].getCurrentParameterEstimate(estimateMonitor);
     dqMonitor           = dq[jid];                      ///< Velocity of the monitored joint
     torqueMonitor       = torques[jid];                 ///< Torque of the monitored joint
@@ -271,7 +272,6 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
     ///< Prediction of current motor pwm
     estimators[jid].predictOutput(inputSamples[jid], pwmPredMonitor);   
     ///< Prediction of motor torque: tau = -(1/k_tau)(-k_tau*pwm/k_tau + k_v\dot{q} + k_c sign(\dot{q}))
-    ///< Prediction of motor torque: tau = (1/k_tau)(k_tau*pwm/k_tau - k_v\dot{q} - k_c sign(\dot{q}))
     VectorXd phi = inputSamples[jid];
     double k_tau_inv = fabs(estimateMonitor[INDEX_K_TAO])>0.1 ? 1.0/estimateMonitor[INDEX_K_TAO] : 10.0;
     phi[INDEX_K_TAO] = -pwm[jid] * k_tau_inv;
