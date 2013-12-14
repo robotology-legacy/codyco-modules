@@ -139,17 +139,16 @@ void MotorFrictionExcitationThread::run()
     else if(status==EXCITATION_FREE_MOTION_FINISHED)
     {
         preStopOperations();              ///< set desired PWM to 0, switch to pos ctrl
+        printf("\nFree excitation %d (out of %lu) finished.\n", freeExcCounter, freeMotionExc.size());
+
         ///< if std dev is low enough then switch to next excitation, otherwise repeat this excitation
         if(isFrictionStdDevBelowThreshold)
             freeExcCounter++;
         else
             printf("Repeating the same excitation because friction parameter standard deviation is not low enough.\n");
 
-        if(freeExcCounter < (int)freeMotionExc.size())
-        {
-            printf("\nFree excitation %d (out of %lu) finished.\n", freeExcCounter-1, freeMotionExc.size());
+        if(freeExcCounter < (int)freeMotionExc.size())            
             preStartOperations();
-        }
         else
         {
             printf("Excitation process finished (%d out of %lu).\n", freeExcCounter, freeMotionExc.size());

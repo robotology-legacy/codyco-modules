@@ -261,11 +261,11 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
     ///< ***************************** MONITOR VARIABLES
     int jid = jointMonitor;
     ///< saturate standard deviations to 1.0 to make plots nice
-    stdDevMonitor[INDEX_K_TAO]  = max(stdDev.kt[jid], 1.0);
-    stdDevMonitor[INDEX_K_VP]   = max(stdDev.kvp[jid], 1.0);
-    stdDevMonitor[INDEX_K_VN]   = max(stdDev.kvn[jid], 1.0);
-    stdDevMonitor[INDEX_K_CP]   = max(stdDev.kcp[jid], 1.0);
-    stdDevMonitor[INDEX_K_CN]   = max(stdDev.kcn[jid], 1.0);
+    stdDevMonitor[INDEX_K_TAO]  = min(stdDev.kt[jid], 1.0);
+    stdDevMonitor[INDEX_K_VP]   = min(stdDev.kvp[jid], 1.0);
+    stdDevMonitor[INDEX_K_VN]   = min(stdDev.kvn[jid], 1.0);
+    stdDevMonitor[INDEX_K_CP]   = min(stdDev.kcp[jid], 1.0);
+    stdDevMonitor[INDEX_K_CN]   = min(stdDev.kcn[jid], 1.0);
     estimators[jid].getParameterEstimate(estimateMonitor);
     dqMonitor           = dq[jid];                      ///< Velocity of the monitored joint
     torqueMonitor       = torques[jid];                 ///< Torque of the monitored joint
