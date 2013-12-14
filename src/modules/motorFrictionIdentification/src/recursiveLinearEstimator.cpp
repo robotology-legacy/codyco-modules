@@ -58,6 +58,7 @@ void RecursiveLinearEstimator::getCovarianceMatrix(MatrixXd &sigma) const
 {
     assert(sigma.cols()==n && sigma.rows()==n);
     ///< if there are not enough sample to perform the estimation set covariance a very high value
+    ///< @todo Rather than checking the # of sample I should check the rank of the inverse covariance matrix A
     if(sampleCount<(int)n)  
     {
         sigma = MatrixXd::Constant(n,n,1e10);
