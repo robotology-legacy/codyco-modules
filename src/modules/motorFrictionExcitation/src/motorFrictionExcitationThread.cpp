@@ -40,6 +40,7 @@ MotorFrictionExcitationThread::MotorFrictionExcitationThread(string _name, strin
     freeExcCounter = 0;
     contactExcCounter = 0;
     _n = ICUB_DOFS;
+    isFrictionStdDevBelowThreshold = false;
 
     Bottle reply;
     if(!contactExc.readFromConfigFile(rf, reply))
@@ -137,20 +138,25 @@ void MotorFrictionExcitationThread::run()
     }
     else if(status==EXCITATION_FREE_MOTION_FINISHED)
     {
-        preStopOperations();              // set desired PWM to 0, switch to pos ctrl
-        freeExcCounter++;
-        if(freeExcCounter >= (int)freeMotionExc.size())
+        preStopOperations();              ///< set desired PWM to 0, switch to pos ctrl
+        ///< if std dev is low enough then switch to next excitation, otherwise repeat this excitation
+        if(isFrictionStdDevBelowThreshold)
+            freeExcCounter++;
+        else
+            printf("Repeating the same excitation because friction parameter standard deviation is not low enough.\n");
+
+        if(freeExcCounter < (int)freeMotionExc.size())
+        {
+            printf("\nFree excitation %d (out of %lu) finished.\n", freeExcCounter-1, freeMotionExc.size());
+            preStartOperations();
+        }
+        else
         {
             printf("Excitation process finished (%d out of %lu).\n", freeExcCounter, freeMotionExc.size());
             Bottle filename, reply;
             filename.addString(name.c_str());
             if(!identificationModule->sendRpcCommand(motorFrictionIdentification::COMMAND_ID_SAVE, &filename, &reply))
                 printf("Error while sending 'save' command to identification module: %s\n", reply.toString().c_str());
-        }
-        else
-        {
-            printf("\nFree excitation %d (out of %lu) finished.\n", freeExcCounter-1, freeMotionExc.size());
-            preStartOperations();
         }
     }
 
@@ -207,7 +213,8 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
 bool MotorFrictionExcitationThread::checkFreeMotionStopConditions()
 {
     ArrayXd maxStdDev(currentJointIds.size());
-    bool isStdDevBelowThreshold = true;
+    isFrictionStdDevBelowThreshold = true;
+    bool areJointsTooCloseToLimits = false;
     for(unsigned int i=0; i<currentJointIds.size(); i++)
     {
         int jid = currentGlobalJointIds[i];
@@ -219,26 +226,23 @@ bool MotorFrictionExcitationThread::checkFreeMotionStopConditions()
         {
             printf("Joint %s got too close to its limit. Q=%.1f, Qmax=%.1f, Qmin=%.1f, Joint limit threshold=%.1f\n", 
                 currentJointIds[i].description.c_str(), qDeg[jid], qMax[jid], qMin[jid], jThr);
-            return true;
+            areJointsTooCloseToLimits = true;
         }
 
         ///< check whether the standard deviation of all friction parameters is under threshold
         maxStdDev[i] = max(stdDev.kvp[jid], max(stdDev.kvn[jid], max(stdDev.kcp[jid], stdDev.kcn[jid])));
         if(maxStdDev[i] > freeMotionExc[freeExcCounter].fricParamCovarThresh[i])
-            isStdDevBelowThreshold = false;
+            isFrictionStdDevBelowThreshold = false;
         else if(currentJointIds.size()==1)
             printf("Std dev of joint %s got under threshold: %f < %f\n", currentJointIds[i].description.c_str(),
                                             maxStdDev[i], freeMotionExc[freeExcCounter].fricParamCovarThresh[i]);
     }
 
-    ///< is std dev of all joints under excitation is below threshold, stop this excitation
-    if(isStdDevBelowThreshold)
-    {
-        printf("Stop excitation because standard deviation of friction parameters of all joints got below threshold\n");
-        return true;
-    }
+    ///< if std dev of all joints under excitation is below threshold, stop this excitation
+    if(isFrictionStdDevBelowThreshold)
+        printf("Standard deviation of friction parameters of all joints got below threshold\n");
 
-    return false;
+    return areJointsTooCloseToLimits || isFrictionStdDevBelowThreshold;
 }
 
 //*************************************************************************************************************************
@@ -248,9 +252,8 @@ bool MotorFrictionExcitationThread::checkContactStopConditions()
     {
         if(stdDev.kt[currentGlobalJointIds[i]] > contactExc[contactExcCounter].paramCovarThresh[i])
         {
-            sendMsg(strcat("Std dev of joint ",currentJointIds[i].description," is too large: ",
-                stdDev.kt[currentGlobalJointIds[i]], " > ", contactExc[contactExcCounter].paramCovarThresh[i]), MSG_DEBUG);
-            sendMsg(strcat("std dev kt: ",stdDev.kt.transpose()), MSG_DEBUG);
+            sendMsg(strcat("Standard deviation of 'kt' estimate of joint ",currentJointIds[i].description," is too large: ",
+                stdDev.kt[currentGlobalJointIds[i]], " > ", contactExc[contactExcCounter].paramCovarThresh[i]), MSG_INFO);
             
             ///< change the joint to monitor
             if(currentJointIds[i].description != monitoredJoint)
@@ -303,29 +306,26 @@ bool MotorFrictionExcitationThread::preStartOperations()
 {
     if(contactExcCounter < (int)contactExc.size())
     {
-        status = EXCITATION_CONTACT;
         printf("\nGoing to execute contact excitation %d:\n%s\n", contactExcCounter, contactExc[contactExcCounter].toString().c_str());
         return initContactExcitation();
     }
-    if(freeExcCounter>= (int)freeMotionExc.size())
+    if(freeExcCounter < (int)freeMotionExc.size())
     {
-        printf("Excitation process already finished.\n");
-        return false;
+        printf("\nGoing to execute free motion excitation %d:\n%s\n", freeExcCounter, freeMotionExc[freeExcCounter].toString().c_str());
+        return initFreeMotionExcitation();
     }
 
-    status = EXCITATION_FREE_MOTION;
-    printf("\nGoing to execute free motion excitation %d:\n%s\n", freeExcCounter, freeMotionExc[freeExcCounter].toString().c_str());
-    return initFreeMotionExcitation();
-    ///< no need to lock because the mutex is already locked
-    //if(!readRobotStatus(true))          ///< update state data
-    //    return false;
+    printf("Excitation process already finished.\n");
+    return false;
 }
 
 //*************************************************************************************************************************
 bool MotorFrictionExcitationThread::initContactExcitation()
 {
+    status = EXCITATION_CONTACT;
+
     ArrayXd initialJointConf_deg = contactExc[contactExcCounter].initialJointConfiguration;
-    bool res = moveToJointConfigurationAndWaitMotionDone(robot, initialJointConf_deg.data(), _n, 0.5);
+    bool res = moveToJointConfigurationAndWaitMotionDone(robot, initialJointConf_deg.data(), _n, 0.5, qMax.data(), qMin.data());
 
     int cjn = contactExc[contactExcCounter].jointId.size();  ///< current joint number
     if(cjn==0)
@@ -353,9 +353,12 @@ bool MotorFrictionExcitationThread::initContactExcitation()
 //*************************************************************************************************************************
 bool MotorFrictionExcitationThread::initFreeMotionExcitation()
 {
+    status = EXCITATION_FREE_MOTION;
+
     ///< move joints to initial configuration
     ArrayXd initialJointConf_deg = freeMotionExc[freeExcCounter].initialJointConfiguration;
-    moveToJointConfigurationAndWaitMotionDone(robot, initialJointConf_deg.data(), _n, 0.5);
+    if(!moveToJointConfigurationAndWaitMotionDone(robot, initialJointConf_deg.data(), _n, 0.5, qMax.data(), qMin.data()))
+        return false;
     
     ///< Compute pwm offset
     ///< To compute a pwm offset that is not biased by the current stiction acting on the joint
@@ -539,11 +542,19 @@ void MotorFrictionExcitationThread::sendMsg(const string &s, MsgType type)
 //*************************************************** UTILITY FUNCTIONS ***************************************************
 //*************************************************************************************************************************
 bool motorFrictionExcitation::moveToJointConfigurationAndWaitMotionDone(wholeBodyInterface *robot, 
-    double *qDes_deg, const int nDoF, double tolerance_deg)
+    double *qDes_deg, const int nDoF, double tolerance_deg, double *qMaxDeg, double *qMinDeg)
 {
     double *qDes_rad = new double[nDoF];
     for(int i=0;i<nDoF;i++)
+    {
         qDes_rad[i] = qDes_deg[i] * CTRL_DEG2RAD;
+        if(qDes_deg[i]<qMinDeg[i] || qDes_deg[i]>qMaxDeg[i])
+        {
+            printf("Desired joint %d position is out of bounds, qDes=%.1f, qMin=%.1f, qMax=%.1f\n", 
+                i, qDes_deg[i], qMinDeg[i], qMaxDeg[i]);
+            return false;
+        }
+    }
     if(!robot->setControlMode(CTRL_MODE_POS, qDes_rad))
         return false;
     return waitMotionDone(robot, qDes_deg, nDoF, tolerance_deg);

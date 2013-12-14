@@ -69,6 +69,7 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     // Member variables
     MotorFrictionExcitationStatus   status;             ///< thread status ("on" when controlling, off otherwise)
     MFE_MotorCommandMode            sendCmdToMotors;    ///< specify whether to send commands to motors
+    bool                isFrictionStdDevBelowThreshold; ///< true if during the last freeMotionExcitation the std dev went below threhsold
     int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     int                 _n;                     // number of joints of the robot
     int                 freeExcCounter;         // counter of how many free motion excitations have been performed
@@ -156,7 +157,8 @@ public:
 };
 
 /** Command the motors to move to the specified joint configuration and then wait until the motion is finished. */
-bool moveToJointConfigurationAndWaitMotionDone(wbi::wholeBodyInterface *robot, double *qDes_deg, const int nDoF, double tolerance_deg=0.1);
+bool moveToJointConfigurationAndWaitMotionDone(wbi::wholeBodyInterface *robot, double *qDes_deg, const int nDoF, 
+    double tolerance_deg=0.1, double *qMaxDeg=0, double *qMinDeg=0);
 
 /** Wait for the specified joint configuration to be reached. */
 bool waitMotionDone(wbi::iWholeBodyStates *robot, double *qDes_deg, const int nDoF, double tolerance_deg=0.1);
