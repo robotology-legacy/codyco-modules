@@ -129,9 +129,9 @@ bool LocomotionThread::threadInit()
         return false;
 
     // create and initialize trajectory generators
-    trajGenCom      = new minJerkTrajGen(2,         getRate()*1e-3, DEFAULT_TT_COM);
-    trajGenFoot     = new minJerkTrajGen(7,         getRate()*1e-3, DEFAULT_TT_FOOT);
-    trajGenPosture  = new minJerkTrajGen(ICUB_DOFS, getRate()*1e-3, DEFAULT_TT_POSTURE);
+    trajGenCom      = new minJerkTrajGen(2,         getRate()*1e-3, tt_com);
+    trajGenFoot     = new minJerkTrajGen(7,         getRate()*1e-3, tt_foot);
+    trajGenPosture  = new minJerkTrajGen(ICUB_DOFS, getRate()*1e-3, tt_posture);
 
     xd_com      = x_com;
     xd_foot     = x_foot;
