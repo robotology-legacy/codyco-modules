@@ -94,6 +94,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL_EST_THRESH,   &jointVelEstThr));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TORQUE_VEL_EST_THRESH,  &torqueVelEstThr));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TORQUE_FILT_CUT_FREQ,   &torqueFiltCutFreq));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_FILT_CUT_FREQ,      &pwmFiltCutFreq));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_FORGET_FACTOR,          &forgetFactor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_TO_MONITOR,       &jointMonitorName));
     ///< @todo Populate these variables and use them somehow, otherwise remove these 2 parameters
@@ -130,6 +131,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_JOINT_VEL_EST_THRESH,   this));
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TORQUE_VEL_EST_THRESH,  this));
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TORQUE_FILT_CUT_FREQ,   this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_PWM_FILT_CUT_FREQ,      this));
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_JOINT_TO_MONITOR,       this));
     
     ///< Register callbacks for some module commands
@@ -151,6 +153,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     robot->setEstimationParameter(ESTIMATE_MOTOR_TORQUE_DERIVATIVE, ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE, &torqueVelEstWind);
     robot->setEstimationParameter(ESTIMATE_MOTOR_TORQUE_DERIVATIVE, ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD, &torqueVelEstThr);
     robot->setEstimationParameter(ESTIMATE_MOTOR_TORQUE, ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ, &torqueFiltCutFreq);
+    robot->setEstimationParameter(ESTIMATE_MOTOR_PWM,    ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ, &pwmFiltCutFreq);
 
     ///< read robot status
     if(!readRobotStatus(true))
@@ -325,6 +328,10 @@ void MotorFrictionIdentificationThread::parameterUpdated(const ParamProxyInterfa
     case PARAM_ID_TORQUE_FILT_CUT_FREQ:
         if(!robot->setEstimationParameter(ESTIMATE_MOTOR_TORQUE, ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ, &torqueFiltCutFreq))
             printf("Error while setting torque filter cut frequency.");
+        break;
+    case PARAM_ID_PWM_FILT_CUT_FREQ:
+        if(!robot->setEstimationParameter(ESTIMATE_MOTOR_PWM, ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ, &pwmFiltCutFreq))
+            printf("Error while setting motor PWM filter cut frequency.");
         break;
     case PARAM_ID_JOINT_TO_MONITOR:
         updateJointToMonitor();

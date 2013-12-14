@@ -53,6 +53,7 @@ static const int            DEFAULT_TORQUE_VEL_EST_WIND_SIZE= 61;       ///< max
 static const double         DEFAULT_JOINT_VEL_EST_THRESH    = 1.0;      ///< threshold used by the adaptive window estimation of joint velocity
 static const double         DEFAULT_TORQUE_VEL_EST_THRESH   = 0.2;      ///< threshold used by the adaptive window estimation of torque velocity
 static const double         DEFAULT_TORQUE_FILT_CUT_FREQ    = 3.0;      ///< cut frequency of the torque low pass filter
+static const double         DEFAULT_PWM_FILT_CUT_FREQ       = 3.0;      ///< cut frequency of the motor PWM low pass filter
 static const double         DEFAULT_FORGET_FACTOR           = 1.0;      ///< forgetting factor of the recursive least-square (in [0;1], where 1 means do not forget anything)
 static const double         DEFAULT_COVARIANCE_INV          = 0.0;      ///< parameter identification covariance inverse used to start up the algorithm
 
@@ -67,7 +68,8 @@ enum MotorFrictionIdentificationParamId
     PARAM_ID_ZERO_JOINT_VEL_THRESH, PARAM_ID_ZERO_TORQUE_VEL_THRESH,    PARAM_ID_EXT_TORQUE_THRESH,
     PARAM_ID_JOINT_VEL_WIND_SIZE,   PARAM_ID_TORQUE_VEL_WIND_SIZE,
     PARAM_ID_JOINT_VEL_EST_THRESH,  PARAM_ID_TORQUE_VEL_EST_THRESH,
-    PARAM_ID_TORQUE_FILT_CUT_FREQ,  PARAM_ID_FORGET_FACTOR,             PARAM_ID_JOINT_TO_MONITOR,  
+    PARAM_ID_TORQUE_FILT_CUT_FREQ,  PARAM_ID_PWM_FILT_CUT_FREQ,      
+    PARAM_ID_FORGET_FACTOR,         PARAM_ID_JOINT_TO_MONITOR,  
     /* Output parameters */
     PARAM_ID_JOINT_NAMES,           PARAM_ID_KT_STD_DEV,                PARAM_ID_KVP_STD_DEV,
     PARAM_ID_KVN_STD_DEV,           PARAM_ID_KCP_STD_DEV,               PARAM_ID_KCN_STD_DEV,
@@ -107,6 +109,7 @@ new ParamProxyBasic<int>(   "torque vel est wind",  PARAM_ID_TORQUE_VEL_WIND_SIZ
 new ParamProxyBasic<double>("joint vel est thr",    PARAM_ID_JOINT_VEL_EST_THRESH,  1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_JOINT_VEL_EST_THRESH,      "Threshold used by the adaptive window estimation of joint velocity"), 
 new ParamProxyBasic<double>("torque vel est thr",   PARAM_ID_TORQUE_VEL_EST_THRESH, 1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_TORQUE_VEL_EST_THRESH,     "Threshold used by the adaptive window estimation of torque velocity"), 
 new ParamProxyBasic<double>("torque filt fc",       PARAM_ID_TORQUE_FILT_CUT_FREQ,  1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_TORQUE_FILT_CUT_FREQ,      "Cut frequency (Hz) of the low pass filter of the motor torque"), 
+new ParamProxyBasic<double>("pwm filt fc",          PARAM_ID_PWM_FILT_CUT_FREQ,     1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_PWM_FILT_CUT_FREQ,         "Cut frequency (Hz) of the low pass filter of the motor PWM"), 
 new ParamProxyBasic<double>("forget factor",        PARAM_ID_FORGET_FACTOR,         1,                  ParamBilatBounds<double>(0.,1.),        PARAM_IN_OUT,       &DEFAULT_FORGET_FACTOR,             "Forgetting factor (in [0,1], 1=do not forget) used in the identification"),
 new ParamProxyBasic<string>("joint monitor",        PARAM_ID_JOINT_TO_MONITOR,      1,                                                          PARAM_IN_OUT,       0,                                  "Name of the joint to monitor"),
 // ************************************************* FILE OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************

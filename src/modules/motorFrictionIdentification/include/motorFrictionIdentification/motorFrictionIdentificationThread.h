@@ -105,6 +105,7 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     double      jointVelEstThr;     ///< Threshold used by the adaptive window estimation of joint velocity
     double      torqueVelEstThr;    ///< Threshold used by the adaptive window estimation of torque velocity
     double      torqueFiltCutFreq;  ///< Cut frequency of the low pass filter of the motor torques
+    double      pwmFiltCutFreq;     ///< Cut frequency of the low pass filter of the motor pwm
     double      forgetFactor;       ///< Forgetting factor (in [0,1], 1=do not forget) used in the identification
     string      jointMonitorName;   ///< Name of the joint to monitor
     int         jointMonitor;       ///< Joint to monitor
