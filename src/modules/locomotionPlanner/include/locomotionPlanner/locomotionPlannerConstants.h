@@ -33,9 +33,9 @@ namespace locomotionPlanner
 
 // *** DEFAULT PARAMETER VALUES
 static const string         DEFAULT_MODULE_NAME             = "locomotionPlanner";
-static const string         DEFAULT_ROBOT_NAME              = "icubSim";            // robot name
+static const string         DEFAULT_ROBOT_NAME              = "icub";               // robot name
 static const string         DEFAULT_LOCOMOTION_CTRL_NAME    = "locomotionControl";  // locomotion controller name
-static const string         DEFAULT_FILE_NAME               = "100poses_A";         // input params file (trajectory points)
+static const string         DEFAULT_FILE_NAME               = "ts20_invkin/iCubGenova01_100poses_A.txt";         // input params file (trajectory points)
 // Streaming parameters
 
 
