@@ -47,14 +47,14 @@ void RecursiveLinearEstimator::predictOutput(const VectorXd &input, double &outp
 }
 
 /*************************************************************************************************/
-void RecursiveLinearEstimator::getCurrentParameterEstimate(VectorXd &xEst) const
+void RecursiveLinearEstimator::getParameterEstimate(VectorXd &xEst) const
 {
     assert(checkDomainSize(xEst));
     xEst = x;
 }
 
 /*************************************************************************************************/
-void RecursiveLinearEstimator::getCurrentCovarianceMatrix(MatrixXd &sigma) const
+void RecursiveLinearEstimator::getCovarianceMatrix(MatrixXd &sigma) const
 {
     assert(sigma.cols()==n && sigma.rows()==n);
     ///< if there are not enough sample to perform the estimation set covariance a very high value
@@ -77,15 +77,33 @@ void RecursiveLinearEstimator::getCurrentCovarianceMatrix(MatrixXd &sigma) const
 }
 
 /*************************************************************************************************/
-void RecursiveLinearEstimator::getCurrentParameterEstimate(VectorXd &xEst, MatrixXd &sigma) const
+void RecursiveLinearEstimator::getParameterEstimate(VectorXd &xEst, MatrixXd &sigma) const
 {
     assert(sigma.cols()==n && sigma.rows()==n);
-    getCurrentParameterEstimate(xEst);
-    getCurrentCovarianceMatrix(sigma);
+    getParameterEstimate(xEst);
+    getCovarianceMatrix(sigma);
 }
 
 /*************************************************************************************************/
-void RecursiveLinearEstimator::updateParameterEstimation()
+void RecursiveLinearEstimator::getEstimationState(MatrixXd &A, VectorXd &bOut) const
+{
+    assert(A.cols()==n && A.rows()==n);
+    assert(b.size()==n);
+    A = R.matrixLDLT();
+    bOut = b;
+}
+
+/*************************************************************************************************/
+void RecursiveLinearEstimator::setEstimationState(const MatrixXd &A, const VectorXd &bNew)
+{
+    assert(A.cols()==n && A.rows()==n);
+    assert(b.size()==n);
+    R.compute(A);
+    b = bNew;
+}
+
+/*************************************************************************************************/
+void RecursiveLinearEstimator::updateParameterEstimate()
 {
     x = b;
     bool res = R.solveInPlace(x);

@@ -33,8 +33,9 @@ namespace motorFrictionIdentification
 static const int            PARAM_NUMBER        = 5;    ///< number of estimated parameters
 
 // define some types
-typedef Eigen::Matrix<double,1,1>                   Vector1d;
-typedef Eigen::Matrix<double,PARAM_NUMBER,1>        VectorPd;
+typedef Eigen::Matrix<double,Dynamic,Dynamic,RowMajor>  MatrixXdR;
+typedef Eigen::Matrix<double,1,1>                       Vector1d;
+typedef Eigen::Matrix<double,PARAM_NUMBER,1>            VectorPd;
 
 ///< Constants
 

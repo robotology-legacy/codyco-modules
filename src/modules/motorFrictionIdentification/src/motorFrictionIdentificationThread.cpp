@@ -61,18 +61,18 @@ bool MotorFrictionIdentificationThread::threadInit()
     stdDev.kvn  =   ArrayXd::Constant(_n, 1e5);
     stdDev.kcp  =   ArrayXd::Constant(_n, 1e5);
     stdDev.kcn  =   ArrayXd::Constant(_n, 1e5);
-    // @todo this arrays should have size _n rather than N_DOF 
+    // @todo These arrays should have size _n rather than N_DOF 
     // I need to make the corresponding parameters in jointTorqueControl of free size
     resizeAndSetToZero(kt,                      jointTorqueControl::N_DOF);
     resizeAndSetToZero(kvp,                     jointTorqueControl::N_DOF);
     resizeAndSetToZero(kvn,                     jointTorqueControl::N_DOF);
     resizeAndSetToZero(kcp,                     jointTorqueControl::N_DOF);
     resizeAndSetToZero(kcn,                     jointTorqueControl::N_DOF);
-    resizeAndSetToZero(rhs,                     _n*PARAM_NUMBER);
     resizeAndSetToZero(estimateMonitor,         PARAM_NUMBER);
     resizeAndSetToZero(stdDevMonitor,           PARAM_NUMBER);
     resizeAndSetToZero(sigmaMonitor,            PARAM_NUMBER,       PARAM_NUMBER);
-    resizeAndSetToZero(covarianceInv,           _n,                 PARAM_NUMBER*PARAM_NUMBER);
+    resizeAndSetToZero(covarianceInv,           _n*PARAM_NUMBER,    PARAM_NUMBER);
+    resizeAndSetToZero(rhs,                     _n,                 PARAM_NUMBER);
 
     currentJointIds.resize(_n);             ///< IDs of the joints currently excited
     inputSamples.resize(_n);
@@ -98,8 +98,8 @@ bool MotorFrictionIdentificationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_FORGET_FACTOR,          &forgetFactor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_TO_MONITOR,       &jointMonitorName));
     ///< @todo Populate these variables and use them somehow, otherwise remove these 2 parameters
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_COVARIANCE_INV,         covarianceInv.data()));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_RHS,                    rhs.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_COVARIANCE_INV,         covarianceInv.data(),   _n*PARAM_NUMBER*PARAM_NUMBER));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_RHS,                    rhs.data(),             _n*PARAM_NUMBER));
     ///< link module output monitoring parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL,              &dqMonitor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_TORQUE,           &torqueMonitor));
@@ -248,8 +248,8 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
     ///< ***************************** OUTPUT STREAMING VARIABLES
     for(int i=0; i<_n; i++)
     {
-        estimators[i].updateParameterEstimation();
-        estimators[i].getCurrentCovarianceMatrix(sigmaMonitor);
+        estimators[i].updateParameterEstimate();
+        estimators[i].getCovarianceMatrix(sigmaMonitor);
         stdDev.kt[i]    = sqrt(sigmaMonitor.diagonal()[INDEX_K_TAO]);
         stdDev.kvp[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_VP]);
         stdDev.kvn[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_VN]);
@@ -266,7 +266,7 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
     stdDevMonitor[INDEX_K_VN]   = max(stdDev.kvn[jid], 1.0);
     stdDevMonitor[INDEX_K_CP]   = max(stdDev.kcp[jid], 1.0);
     stdDevMonitor[INDEX_K_CN]   = max(stdDev.kcn[jid], 1.0);
-    estimators[jid].getCurrentParameterEstimate(estimateMonitor);
+    estimators[jid].getParameterEstimate(estimateMonitor);
     dqMonitor           = dq[jid];                      ///< Velocity of the monitored joint
     torqueMonitor       = torques[jid];                 ///< Torque of the monitored joint
     signDqMonitor       = dqSign[jid];                  ///< Velocity sign of the monitored joint
@@ -391,16 +391,23 @@ bool MotorFrictionIdentificationThread::saveParametersOnFile(const Bottle &param
     }
     string outputFilename = params.get(0).asString();
     
-    ///< update the estimation of the parameters
+    ///< update the estimation of the parameters and the estimation state
+    MatrixXd A(PARAM_NUMBER, PARAM_NUMBER);
+    VectorXd b(PARAM_NUMBER);
     for(int i=0; i<_n; i++)
     {
-        estimators[i].updateParameterEstimation();
-        estimators[i].getCurrentParameterEstimate(estimateMonitor, sigmaMonitor);
+        estimators[i].updateParameterEstimate();
+        estimators[i].getParameterEstimate(estimateMonitor, sigmaMonitor);
         kt[i]   = estimateMonitor[INDEX_K_TAO];
         kvp[i]  = estimateMonitor[INDEX_K_VP];
         kvn[i]  = estimateMonitor[INDEX_K_VN];
         kcp[i]  = estimateMonitor[INDEX_K_CP];
         kcn[i]  = estimateMonitor[INDEX_K_CN];
+
+        estimators[i].getEstimationState(A, b);
+        covarianceInv.block(i*PARAM_NUMBER,0,PARAM_NUMBER,PARAM_NUMBER)  = A;
+        rhs.row(i) = b;
+        if(i<5) cout<<"Covariance of joint "<<i<<":\n"<<A<<endl;
     }
     
     ///< save the estimations of the parameters on text file

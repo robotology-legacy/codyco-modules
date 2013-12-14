@@ -111,8 +111,8 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     int         jointMonitor;       ///< Joint to monitor
     
     ///< *************** OUTPUT FILE PARAMETERS *************************
-    MatrixXd    covarianceInv;      ///< Inverse of the covariance matrix of the parameter estimations
-    ArrayXd     rhs;                ///< Right-hand side of the linear vector equation that is solved for estimating the parameters
+    MatrixXdR   covarianceInv;      ///< Inverse of the covariance matrix of the parameter estimations
+    MatrixXdR   rhs;                ///< Right-hand side of the linear vector equation that is solved for estimating the parameters
     ArrayXd     kt;                 ///< Array of estimated parameters (motor drive gains)
     ArrayXd     kvp;                ///< Array of estimated parameters (viscous friction coefficients for positive velocities)
     ArrayXd     kvn;                ///< Array of estimated parameters (viscous friction coefficients for negative velocities)

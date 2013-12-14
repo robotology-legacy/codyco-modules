@@ -89,10 +89,10 @@ public:
     void feedSampleForGroup2(const Eigen::VectorXd &input, const double &output);
 
     /** Update the current estimation of the parameters. */
-    void updateParameterEstimation();
+    void updateParameterEstimate();
 
     /** Given an input predicts the corresponding output using the current parameter
-     * estimate (remember to call updateParameterEstimation before).
+     * estimate (remember to call updateParameterEstimate before).
      * @param input A sample input.
      * @param output Output vector containing the predicted model output. */
     void predictOutput(const Eigen::VectorXd &input, double &output) const;
@@ -100,26 +100,47 @@ public:
     /** Reset the status of the estimator. */
     inline void reset(){ resizeAllVariables(); }
 
-    /** Get the current estimate of the parameters x (remember to call updateParameterEstimation before).
+    /** Get the current estimate of the parameters x (remember to call updateParameterEstimate before).
      * @param xEst Output vector containing the current estimate of the parameters. */
-    void getCurrentParameterEstimate(Eigen::VectorXd &xEst) const;
+    void getParameterEstimate(Eigen::VectorXd &xEst) const;
 
-    /** Get the current covariance matrix (remember to call updateParameterEstimation before).
+    /** Get the current covariance matrix (remember to call updateParameterEstimate before).
      * @param sigma Output covariance matrix. */
-    void getCurrentCovarianceMatrix(Eigen::MatrixXd &sigma) const;
+    void getCovarianceMatrix(Eigen::MatrixXd &sigma) const;
 
-    /** Get the current estimate of the parameters x (remember to call updateParameterEstimation before).
+    /** Get the current estimate of the parameters x (remember to call updateParameterEstimate before).
      * @param xEst Output vector containing the current estimate of the parameters. 
      * @param sigma Covariance matrix. */
-    void getCurrentParameterEstimate(Eigen::VectorXd &xEst, Eigen::MatrixXd &sigma) const;
+    void getParameterEstimate(Eigen::VectorXd &xEst, Eigen::MatrixXd &sigma) const;
+
+    /** Get the current state of this estimator under the form of the matrix \f$A\f$ and
+     * the vector \f$b\f$, which are defined by this equation:
+     * \f[
+     * \underbrace{\Phi_t^T \Phi_t}_{A_t} \hat{x}_t = \underbrace{\Phi_t^T Y_t}_{b_t}
+     * \f]
+     * \f$A\f$ and \f$b\f$ can be used to resume the estimation from the current state
+     * at a later time.
+     * @param A Output matrix filled with the inverse of the covariance matrix.
+     * @param b Output vector filled with the right-hand side of the normal LS equation. */
+    void getEstimationState(Eigen::MatrixXd &A, Eigen::VectorXd &b) const;
+
+    /** Set the state of this estimator under the form of the matrix \f$A\f$ and
+     * the vector \f$b\f$, which are defined by this equation:
+     * \f[
+     * \underbrace{\Phi_t^T \Phi_t}_{A_t} \hat{x}_t = \underbrace{\Phi_t^T Y_t}_{b_t}
+     * \f]
+     * \f$A\f$ and \f$b\f$ can be retrieved through the method getEstimationState.
+     * @param A Inverse of the covariance matrix.
+     * @param b Right-hand side vector of the normal LS equation. */
+    void setEstimationState(const Eigen::MatrixXd &A, const Eigen::VectorXd &b);
 
     /** Returns the size (dimensionality) of the first group of parameters.
      * @return The size of the first group of parameters. */
-    unsigned int getGroup1ParamSize() const { return this->n1; }
+    inline unsigned int getGroup1ParamSize() const { return this->n1; }
     
     /** Returns the size (dimensionality) of the second group of parameters.
      * @return The size of the second group of parameters. */
-    unsigned int getGroup2ParamSize() const { return this->n2; }
+    inline unsigned int getGroup2ParamSize() const { return this->n2; }
 
     /** Set the size of the parameters of the first group and reset the status of the estimator.
      * @param size The desired size of the parameters of the first group. */
