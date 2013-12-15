@@ -74,6 +74,11 @@ void RecursiveLinearEstimator::getCovarianceMatrix(MatrixXd &sigma) const
         if(!R.solveInPlace(e_i))
             printf("Error while computing covariance matrix in loop %d\n", i);
         sigma.col(i) = e_i;
+
+        // If the covariance is exactly zero it means that there are not enough samples to estimate
+        // the relative parameter, so actually the covariance is infinite
+        if(sigma(i,i)==0.0)
+            sigma(i,i) = 1e10;
     }
 }
 

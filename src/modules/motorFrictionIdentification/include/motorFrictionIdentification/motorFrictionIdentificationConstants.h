@@ -30,6 +30,7 @@ static const int        PRINT_PERIOD                = 1000;         ///< period 
 static const int        PRINT_MSG_LEVEL             = MSG_DEBUG;    ///< only messages whose type is greater than or equal to PRINT_MSG_LEVEL are printed
 static const double     MODULE_PERIOD               = 20.0;         ///< period of the module (in sec)
 static const double     TORQUE_SENSOR_SATURATION    = 13.0;         ///< value at which the joint torque sensors saturate
+static const double     STD_DEV_SATURATION          = 0.1;          ///< value at which the standard deviation written on the output monitoring port are saturated
 
 template<class VectorType>
 inline void resizeAndSetToZero(VectorType &v, unsigned int size)

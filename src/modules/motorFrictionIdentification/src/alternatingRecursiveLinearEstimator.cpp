@@ -62,6 +62,8 @@ void AlternatingRecursiveLinearEstimator::getCovarianceMatrix(MatrixXd &sigma) c
     assert(sigma.cols()==n1+n2 && sigma.rows()==n1+n2);
     sigma.block(0,0,n1,n1) = sigma1;
     sigma.block(n1,n1,n2,n2) = sigma2;
+    sigma.block(0,n1,n1,n2).setZero();
+    sigma.block(n1,0,n2,n1).setZero();
 }
 
 /*************************************************************************************************/
