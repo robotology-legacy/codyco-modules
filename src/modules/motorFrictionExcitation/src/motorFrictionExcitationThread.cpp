@@ -39,6 +39,8 @@ MotorFrictionExcitationThread::MotorFrictionExcitationThread(string _name, strin
     printCountdown = 0;
     freeExcCounter = 0;
     contactExcCounter = 0;
+    fricStdDevThrMonitor = 0.0;
+    ktStdDevThrMonitor = 0.0;
     _n = ICUB_DOFS;
     isFrictionStdDevBelowThreshold = false;
 
@@ -77,6 +79,8 @@ bool MotorFrictionExcitationThread::threadInit()
     ///< link module output monitoring parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,                  &qDegMonitor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_DES,            &pwmDesSingleJoint));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KT_STD_DEV_THR,     &ktStdDevThrMonitor));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_FRIC_STD_DEV_THR,   &fricStdDevThrMonitor));
     
     ///< Register callbacks for some module parameters
     
@@ -241,6 +245,8 @@ bool MotorFrictionExcitationThread::checkFreeMotionStopConditions()
     if(isFrictionStdDevBelowThreshold)
         printf("Standard deviation of friction parameters of all joints got below threshold\n");
 
+    fricStdDevThrMonitor = freeMotionExc[freeExcCounter].fricParamCovarThresh[0];
+
     return areJointsTooCloseToLimits || isFrictionStdDevBelowThreshold;
 }
 
@@ -253,6 +259,8 @@ bool MotorFrictionExcitationThread::checkContactStopConditions()
         {
             sendMsg(strcat("Standard deviation of 'kt' estimate of joint ",currentJointIds[i].description," is too large: ",
                 stdDev.kt[currentGlobalJointIds[i]], " > ", contactExc[contactExcCounter].paramCovarThresh[i]), MSG_INFO);
+            
+            ktStdDevThrMonitor = contactExc[contactExcCounter].paramCovarThresh[i];
             
             ///< change the joint to monitor
             if(currentJointIds[i].description != monitoredJoint)

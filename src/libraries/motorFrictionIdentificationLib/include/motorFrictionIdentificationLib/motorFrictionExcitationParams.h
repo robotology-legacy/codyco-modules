@@ -77,9 +77,11 @@ CommandDescription("quit",          COMMAND_ID_QUIT,            "Stop the contro
 enum MotorFrictionExcitationParamId 
 { 
     PARAM_ID_MODULE_NAME,       PARAM_ID_CTRL_PERIOD,       PARAM_ID_ROBOT_NAME, 
-    PARAM_ID_MOTOR_FRICTION_IDENTIFICATION_NAME,
+    PARAM_ID_MOTOR_FRICTION_IDENTIFICATION_NAME,            PARAM_ID_SEND_COMMANDS,
     PARAM_FREE_MOTION_EXCIT,    PARAM_ID_Q_MAX,             PARAM_ID_Q_MIN,             
-    PARAM_ID_Q,                 PARAM_ID_PWM_DES,           PARAM_ID_SEND_COMMANDS,
+    // Monitor parameters
+    PARAM_ID_Q,                 PARAM_ID_PWM_DES,
+    PARAM_ID_KT_STD_DEV_THR,    PARAM_ID_FRIC_STD_DEV_THR,
     PARAM_ID_SIZE /*This is the number of parameters, so it must be the last value of the enum.*/
 };
 
@@ -171,7 +173,9 @@ new ParamProxyBasic<int>(   "send commands",        PARAM_ID_SEND_COMMANDS,     
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 // ************************************************* STREAMING MONITOR PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("q",                    PARAM_ID_Q,                 1,                  ParamBilatBounds<double>(-150.0, 150.0),    PARAM_MONITOR,      0,                              "Joint angle of the currently controlled motor"),
-new ParamProxyBasic<double>("pwmDes",               PARAM_ID_PWM_DES,           1,                  ParamBilatBounds<double>(-1333.0, 1333.0),  PARAM_MONITOR,      0,                              "Current desired pwm sent to the motors")
+new ParamProxyBasic<double>("pwmDes",               PARAM_ID_PWM_DES,           1,                  ParamBilatBounds<double>(-1333.0, 1333.0),  PARAM_MONITOR,      0,                              "Current desired pwm sent to the motors"),
+new ParamProxyBasic<double>("kt std dev thr",       PARAM_ID_KT_STD_DEV_THR,    1,                  ParamBilatBounds<double>(0.0, 1.0),         PARAM_MONITOR,      0,                              "Threshold of the standard deviation of the parameter kt of the currently excited motor"),
+new ParamProxyBasic<double>("fric std dev thr",     PARAM_ID_FRIC_STD_DEV_THR,  1,                  ParamBilatBounds<double>(0.0, 1.0),         PARAM_MONITOR,      0,                              "Threshold of the standard deviation of the friction parameters of the currently excited motor")
 };
 
 }   // end namespace 

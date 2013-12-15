@@ -94,6 +94,8 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     ///< Output monitoring parameters
     double              pwmDesSingleJoint;      // value of desired pwm for the first controlled joint
     double              qDegMonitor;            // value of the measured joint angle for the first controlled joint
+    double              ktStdDevThrMonitor;     ///< standard deviation threshold for the param kt of the currently excited joint
+    double              fricStdDevThrMonitor;   ///< standard deviation threshold for the friction parameters of the currently excited joint
 
     ///< Identification module parameters
     ArrayXi             activeJoints;
@@ -153,6 +155,15 @@ public:
     void parameterUpdated(const ParamProxyInterface *pd);
     /** Callback function for rpc commands. */
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
+    
+    /** Start the excitation process. */
+    inline void startExcitation()
+    {
+        paramHelper->lock();
+        if(!preStartOperations())
+            preStopOperations();
+        paramHelper->unlock();
+    }
 
 };
 

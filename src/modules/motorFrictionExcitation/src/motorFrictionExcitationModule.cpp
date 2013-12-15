@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include <yarp/os/Log.h>
+#include <yarp/os/Time.h>
 #include <iCub/skinDynLib/common.h>
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <paramHelp/paramHelperClient.h>
@@ -63,15 +64,25 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
     setName(moduleName.c_str());
     attach(rpcPort);
 
+    //-------------------------- CHECK startIn FLAG ---------------------
+    bool startInFound = rf.check("startIn");
+    if(startInFound)
+    {
+        Value &v = rf.find("startIn");
+        double delay = 10.0;
+        if(v.isInt() || v.isDouble())
+            delay = v.asDouble();
+        printf("startIn flag found => Gonna start in %f seconds!\n", delay);
+        Time::delay(delay);
+    }
+
     //--------------------------PARAMETER HELPER CLIENT--------------------------
     identificationModule = new ParamHelperClient(
         motorFrictionIdentification::motorFrictionIdentificationParamDescr, motorFrictionIdentification::PARAM_ID_SIZE,
         motorFrictionIdentification::motorFrictionIdentificationCommandDescr, motorFrictionIdentification::COMMAND_ID_SIZE);
     initMsg.clear();
     if(!identificationModule->init(moduleName, motorFrictionIdentificationName, initMsg))
-    {
         printf("Could not connect to motorFrictionIdentification module with name %s\n", motorFrictionIdentificationName.c_str());
-    }
     printBottle(initMsg);
     
 
@@ -87,6 +98,10 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
     if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing motorFrictionExcitation control thread. Closing module.\n"); return false; }
     
     fprintf(stderr,"MotorFrictionExcitation control started\n");
+
+    if(startInFound)
+        ctrlThread->startExcitation();
+
 	return true;
 }
 
