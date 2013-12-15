@@ -67,23 +67,23 @@
 	</plot>
 
 	<!-- plotting std dev -->
-	<plot gridx="2" gridy="0" hspan="1" vspan="1" title="Standard deviation K tau (red threshold)" size="1000" minval="0" maxval="1" bgcolor="white">
+	<plot gridx="2" gridy="0" hspan="1" vspan="1" title="Standard deviation K tau (red threshold)" size="1000" minval="0" maxval="0.11" bgcolor="white">
 		<graph remote="/motorId/monitor:o" index="10" color="Blue" title="K tau" type="lines" size="2" />
 		<graph remote="/excitation/monitor:o" index="2" color="Red" title="Threshold" type="lines" size="2" />
 	</plot>
-	<plot gridx="2" gridy="1" hspan="1" vspan="1" title="Standard deviation K vp" size="1000" minval="0" maxval="1" bgcolor="white">
+	<plot gridx="2" gridy="1" hspan="1" vspan="1" title="Standard deviation K vp" size="1000" minval="0" maxval="0.11" bgcolor="white">
 		<graph remote="/motorId/monitor:o" index="11" color="Blue" title="K vp" type="lines" size="2" />
 		<graph remote="/excitation/monitor:o" index="3" color="Red" title="Threshold" type="lines" size="2" />
 	</plot>
-	<plot gridx="2" gridy="2" hspan="1" vspan="1" title="Standard deviation K vn" size="1000" minval="0" maxval="1" bgcolor="white">
+	<plot gridx="2" gridy="2" hspan="1" vspan="1" title="Standard deviation K vn" size="1000" minval="0" maxval="0.11" bgcolor="white">
 		<graph remote="/motorId/monitor:o" index="12" color="Blue" title="K vn" type="lines" size="2" />
 		<graph remote="/excitation/monitor:o" index="3" color="Red" title="Threshold" type="lines" size="2" />
 	</plot>
-	<plot gridx="2" gridy="3" hspan="1" vspan="1" title="Standard deviation K cp" size="1000" minval="0" maxval="1" bgcolor="white">
+	<plot gridx="2" gridy="3" hspan="1" vspan="1" title="Standard deviation K cp" size="1000" minval="0" maxval="0.11" bgcolor="white">
 		<graph remote="/motorId/monitor:o" index="13" color="Blue" title="K cp" type="lines" size="2" />
 		<graph remote="/excitation/monitor:o" index="3" color="Red" title="Threshold" type="lines" size="2" />
 	</plot>
-	<plot gridx="2" gridy="4" hspan="1" vspan="1" title="Standard deviation K cn" size="1000" minval="0" maxval="1" bgcolor="white">
+	<plot gridx="2" gridy="4" hspan="1" vspan="1" title="Standard deviation K cn" size="1000" minval="0" maxval="0.11" bgcolor="white">
 		<graph remote="/motorId/monitor:o" index="14" color="Blue" title="K cn" type="lines" size="2" />
 		<graph remote="/excitation/monitor:o" index="3" color="Red" title="Threshold" type="lines" size="2" />
 	</plot>
