@@ -99,6 +99,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_TO_MONITOR,       &jointMonitorName));
     ///< @todo Populate these variables and use them somehow, otherwise remove these 2 parameters
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_COVARIANCE_INV,         covarianceInv.data(),   _n*PARAM_NUMBER*PARAM_NUMBER));
+    covarianceInv.setZero();
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_RHS,                    rhs.data(),             _n*PARAM_NUMBER));
     ///< link module output monitoring parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL,              &dqMonitor));
