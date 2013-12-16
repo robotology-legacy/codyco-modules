@@ -272,7 +272,7 @@ bool ContactExcitation::set(const Bottle &value, Bottle &reply)
             reply.addString(strcat("First element of Bottle is not the subparameter name: ",subparam->toString()).c_str());
             continue;
         }
-        res = res && setSubparam(subparam->get(0).asString(), subparam->tail(), reply);
+        res = res && setSubparam(subparam->get(0).asString().c_str(), subparam->tail(), reply);
     }
     return res;
 }
