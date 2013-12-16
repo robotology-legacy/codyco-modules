@@ -363,7 +363,8 @@ bool ContactExcitationList::readFromConfigFile(ResourceFinder &rf, Bottle &reply
         }
         if(sb.size()<2)
         {
-            reply.addString(("Section "+sb.get(0).asString().c_str()+" does not have a content").c_str());
+            std::string section_name = sb.get(0).asString().c_str();
+            reply.addString(("Section "+section_name+" does not have a content").c_str());
             continue;
         }
         ///< the tail can be either a list or a one-element list with the only element being a list itself
