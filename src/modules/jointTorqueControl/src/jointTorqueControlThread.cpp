@@ -124,8 +124,8 @@ void jointTorqueControlThread::run()
 			if (activeJoints(i) == 1) 
             {
 				etau(i) 			= tauM(i) - tauD(i);
-				integralState(i) 	= saturation(integralState(i) + dt*etau(i), TORQUE_INTEGRAL_SATURATION, -TORQUE_INTEGRAL_SATURATION) ;
-				tau(i) 				= tauD(i) - kp(i)*etau(i) - ki(i)*integralState(i);
+				integralState(i) 	= saturation(integralState(i) + ki(i)*dt*etau(i), TORQUE_INTEGRAL_SATURATION, -TORQUE_INTEGRAL_SATURATION) ;
+				tau(i) 				= tauD(i) - kp(i)*etau(i) - integralState(i);
 
                 if(dq(i)>0)
                     motorVoltage(i) = kt(i)*tau(i) + kvp(i)*dq(i) + kcp(i)*dqSign(i);
@@ -139,6 +139,7 @@ void jointTorqueControlThread::run()
 					robot->setControlReference(&motorVoltage(i), i);
 			}
 		}
+
 		oldTime = currentTime;
     }
 
@@ -270,7 +271,7 @@ void jointTorqueControlThread::prepareMonitorData()
     monitor.pwmTorqueFF     = kt(j)*tauD(j);
     monitor.pwmFrictionFF   = dq(j)>0 ? kvp(j)*dq(j) + kcp(j)*dqSign(j) : kvn(j)*dq(j) + kcn(j)*dqSign(j);
     monitor.pwmFF           = monitor.pwmTorqueFF + monitor.pwmFrictionFF;
-    monitor.pwmFB           = -kt(j)*(kp(j)*etau(j) + ki(j)*integralState(j));
+    monitor.pwmFB           = -kt(j)*(kp(j)*etau(j) + integralState(j));
 }
 
 //*************************************************************************************************************************
