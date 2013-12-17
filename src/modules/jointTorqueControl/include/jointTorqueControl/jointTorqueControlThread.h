@@ -52,11 +52,16 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     string              robotName;
     ParamHelperServer   *paramHelper;
     wholeBodyInterface  *robot;
-    bool                mustStop;
-    ControlStatus       status;         //When on the planner is reading from file and streaming data.
+    
+    int             printCountdown;     ///< counter for printing every PRINT_PERIOD ms
+    bool            mustStop;
+    ControlStatus   status;
+    double		    oldTime;  
+    int             monitoredJointId;
+    VectorNi        activeJointsOld;    ///< value of the vector activeJoints before it was changed
+    VectorNd        dqSign;             ///< approximation of the sign of the joint vel
 
     // Thread parameters
-    
 	VectorNi 	activeJoints;	// Vector of nDOF integers representing the joints to control  (1: active, 0: inactive) 
     VectorNd	dq;				// Joint velocities 
     VectorNd 	kt;				// Vector of nDOF floats ( see Eq. (1) )"), 
@@ -66,7 +71,7 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     VectorNd	kcn;			// Vector of nDOF floats ( see Eq. (2) )"), 
     VectorNd	ki;				// Vector of nDOF floats representing the position gains ( see Eq. (x) )"), 
     VectorNd	kp;				// Vector of nDOF floats representing the integral gains ( see Eq. (x) )"), 
-    VectorNd	ks;				// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
+    VectorNd	coulombVelThr;	///< Vector of nDOF floats representing the joint vel (deg/s) at which Coulomb friction is completely compensated
     VectorNd	etau;			// Errors between actual and desired torques 
     VectorNd	tau;			// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
     VectorNd	tauD;			// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
@@ -74,14 +79,23 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     VectorNd	integralState;	// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
     VectorNd	motorVoltage;	// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
     VectorNd	Vmax;			// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"),     
-    double		oldTime;  
     int			sendCommands;
-	int			monitoredJoint;
-	//monitored variables
-	double		monitoredTau;
-	double		monitoredVoltage;
-           
+	string      monitoredJointName;     ///< name of the monitored joint
 	
+    //monitored variables
+    struct
+    {
+        double tauMeas;
+        double tauDes;
+        double tadDesPlusPI;
+        double dq;
+        double dqSign;
+        double pwm;
+        double pwmFF;
+        double pwmFB;
+        double pwmTorqueFF;
+        double pwmFrictionFF;
+    } monitor;
 	
     // Input streaming parameters
 
@@ -90,17 +104,32 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO) ;
 
-    void sendMonitorData();
+    void prepareMonitorData();
 		
-    void resetIntegralStates();
+    /** Reset the integral state of the specified joint. */
+    void resetIntegralState(int j);
 	
-	void setControlModePWMOnJoints(bool);
+    /** If activeTorque is true set all the active joints to open loop control.
+     * If activeTorque is false set all the joints to position control. */
+	void setControlModePWMOnJoints(bool activeTorque);
 	
-	double stepFunction(double); 
+    /** Convert the global id contained in the specified Bottle into a local id to access
+     * the vector of this thread. The Bottle b may either contain an integer id or the name
+     * of the joint.
+     * @param b Bottle containing the global id.
+     * @return The local id, -1 if nothing was found. */
+    int convertGlobalToLocalJointId(const yarp::os::Bottle &b);
+
+    /** Update the variable jointMonitor based on the value of the variable jointMonitorName. 
+     * @return True if the current monitored joint name was recognized, false otherwise. */
+    bool updateJointToMonitor(); 
+
+    /** Method called every time the parameter activeJoints changes value. It resets
+     * the integral state of the joints that are activated and change the control mode
+     * of the joints that are activated/deactivated. */
+    bool activeJointsChanged();
     
-    void fromListToVector(Bottle * , VectorNd &); 
     bool readRobotStatus(bool);
-	double saturation(double x, double xMax, double xMin);
 
 public:	
     
@@ -116,7 +145,7 @@ public:
     void startSending();
     void stopSending();
 
-    void threadRelease();
+    void threadRelease(){}
 
 //     void stop(){ mustStop=true; Thread::stop(); }
 
@@ -124,10 +153,6 @@ public:
     void parameterUpdated(const ParamProxyInterface *pd);
     /** Callback function for rpc commands. */
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
-    /** Callback function for reading text file parameters */
-    string readParamsFile(ifstream &fp);
-
-    string get_env_var( string const & key );
 };
 
 } // end namespace

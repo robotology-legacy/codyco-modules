@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- Plotting monitor parameters of jointTorqueControl module, that are:
+0		tauMeas			Torque of the monitored motor
+1		tauDes			Desired torque of the monitored motor
+2		tauDesPlusPI	Desired torque plus proportional and integral terms of the monitored motor
+3		dq				Velocity of the monitored motor
+4		sign dq			Sign of the velocity of the monitored motor
+5		pwmOut			PWM commanded to the monitored motor
+6		pwmFF			Feedforward part of the PWM commanded to the monitored motor
+7		pwmFB			Feedback part of the PWM commanded to the monitored motor
+8		pwmTorqueFF		Torque feedforward term of the PWM commanded to the monitored motor
+9		pwmFrictionFF	Friction feedforward term of the PWM commanded to the monitored motor
+-->
+
+<portscope rows="5" columns="1">
+	<!-- plotting dq and sign(dq) -->
+    <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Joint Vel (deg/sec)" size="500" minval="-50" maxval="50" bgcolor="white">
+        <graph remote="/jointTorqueControl/monitor:o" index="3" color="Red" title="dq" type="lines" size="2" />
+		<graph remote="/jointTorqueControl/monitor:o" index="4" color="Blue" title="sign dq" type="lines" size="2" />
+    </plot>
+
+    <!-- plotting torque -->
+    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Motor Torque (red desired, blue measure)" size="500" minval="-13" maxval="13" bgcolor="white">
+		<graph remote="/jointTorqueControl/monitor:o" index="0" color="Blue" title="Motor torque measure" type="lines" size="2" />
+		<graph remote="/jointTorqueControl/monitor:o" index="1" color="Red" title="Motor torque desired" type="lines" size="2" />
+	</plot>
+
+	<!-- plotting torque -->
+	<plot gridx="0" gridy="2" hspan="1" vspan="1" title="Motor Torque (red desired, blue desired+PI)" size="500" minval="-10" maxval="10" bgcolor="white">
+		<graph remote="/jointTorqueControl/monitor:o" index="1" color="Red" title="Motor torque desired" type="lines" size="2" />
+		<graph remote="/jointTorqueControl/monitor:o" index="2" color="Blue" title="Motor torque desired + PI" type="lines" size="2" />
+	</plot>
+
+	<!-- plotting PWM -->
+	<plot gridx="0" gridy="3" hspan="1" vspan="1" title="Motor PWM (red all, blue feedforward)" size="500" minval="-100" maxval="100" bgcolor="white">
+		<graph remote="/jointTorqueControl/monitor:o" index="5" color="Red" title="Motor PWM" type="lines" size="2" />
+		<graph remote="/jointTorqueControl/monitor:o" index="6" color="Blue" title="Motor PWM Feedforward" type="lines" size="2" />
+	</plot>
+
+	<!-- plotting PWM-->
+	<plot gridx="0" gridy="4" hspan="1" vspan="1" title="Motor PWM (red FF, blue friction FF)" size="500" minval="-100" maxval="100" bgcolor="white">
+		<graph remote="/jointTorqueControl/monitor:o" index="6" color="Red" title="Feedforward PWM" type="lines" size="2" />
+		<graph remote="/jointTorqueControl/monitor:o" index="9" color="Blue" title="Friction feedforward PWM" type="lines" size="2" />
+	</plot>
+
+</portscope>
