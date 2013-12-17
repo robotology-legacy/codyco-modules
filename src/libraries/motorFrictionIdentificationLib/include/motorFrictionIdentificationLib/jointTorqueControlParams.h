@@ -87,8 +87,8 @@ enum jointTorqueControlParamId {
     /* MONITOR PARAMETERS*/
     PARAM_ID_TAU_MEAS,      PARAM_ID_TAUD_MONITOR,      PARAM_ID_TAUD_PLUS_PI,
     PARAM_ID_JOINT_VEL,     PARAM_ID_JOINT_VEL_SIGN,
-    PARAM_ID_PWM_OUT,       PARAM_ID_PWM_FEEDFORWARD,   PARAM_ID_PWM_FEEDBACK,
-    PARAM_ID_PWM_TORQUE_FF, PARAM_ID_PWM_FRICTION_FF,
+    PARAM_ID_PWM_DESIRED,   PARAM_ID_PWM_FEEDFORWARD,   PARAM_ID_PWM_FEEDBACK,
+    PARAM_ID_PWM_TORQUE_FF, PARAM_ID_PWM_FRICTION_FF,   PARAM_ID_PWM_MEASURED,
     PARAM_ID_SIZE,
 };
 
@@ -126,11 +126,12 @@ new ParamProxyBasic<double>("tauDes",               PARAM_ID_TAUD_MONITOR,      
 new ParamProxyBasic<double>("tauDesPlusPI",         PARAM_ID_TAUD_PLUS_PI,      1,                                                          PARAM_MONITOR,      0,                              "Desired torque plus proportional and integral terms of the monitored motor"),
 new ParamProxyBasic<double>("dq",                   PARAM_ID_JOINT_VEL,         1,                                                          PARAM_MONITOR,      0,                              "Velocity of the monitored motor"),
 new ParamProxyBasic<double>("sign dq",              PARAM_ID_JOINT_VEL_SIGN,    1,                                                          PARAM_MONITOR,      0,                              "Sign of the velocity of the monitored motor"),
-new ParamProxyBasic<double>("pwmOut",               PARAM_ID_PWM_OUT,           1,                                                          PARAM_MONITOR,      0,                              "PWM commanded to the monitored motor"),
+new ParamProxyBasic<double>("pwmDes",               PARAM_ID_PWM_DESIRED,       1,                                                          PARAM_MONITOR,      0,                              "PWM commanded to the monitored motor"),
 new ParamProxyBasic<double>("pwmFF",                PARAM_ID_PWM_FEEDFORWARD,   1,                                                          PARAM_MONITOR,      0,                              "Feedforward part of the PWM commanded to the monitored motor"),
 new ParamProxyBasic<double>("pwmFB",                PARAM_ID_PWM_FEEDBACK,      1,                                                          PARAM_MONITOR,      0,                              "Feedback part of the PWM commanded to the monitored motor"),
 new ParamProxyBasic<double>("pwmTorqueFF",          PARAM_ID_PWM_TORQUE_FF,     1,                                                          PARAM_MONITOR,      0,                              "Torque feedforward term of the PWM commanded to the monitored motor"),
-new ParamProxyBasic<double>("pwmFrictionFF",        PARAM_ID_PWM_FRICTION_FF,   1,                                                          PARAM_MONITOR,      0,                              "Friction feedforward term of the PWM commanded to the monitored motor")
+new ParamProxyBasic<double>("pwmFrictionFF",        PARAM_ID_PWM_FRICTION_FF,   1,                                                          PARAM_MONITOR,      0,                              "Friction feedforward term of the PWM commanded to the monitored motor"),
+new ParamProxyBasic<double>("pwmMeas",              PARAM_ID_PWM_MEASURED,      1,                                                          PARAM_MONITOR,      0,                              "Measured PWM of the monitored motor")
 };
 
 // *** IDs of all the module command

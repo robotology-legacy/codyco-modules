@@ -64,8 +64,8 @@ bool jointTorqueControlThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAUD_PLUS_PI,	    &monitor.tadDesPlusPI));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL,	        &monitor.dq));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL_SIGN,	    &monitor.dqSign));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_OUT,	        &monitor.pwm));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_OUT_MEASURE,    &monitor.pwmMeasurement));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_DESIRED,	    &monitor.pwmDes));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_MEASURED,       &monitor.pwmMeas));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_FEEDFORWARD,	&monitor.pwmFF));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_FEEDBACK,	    &monitor.pwmFB));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_TORQUE_FF,	    &monitor.pwmTorqueFF));
@@ -86,6 +86,7 @@ bool jointTorqueControlThread::threadInit()
 	tauM 			= VectorNd::Constant(0.0); 
 	integralState 	= VectorNd::Constant(0.0); 
 	motorVoltage	= VectorNd::Constant(0.0);
+    pwmMeas	        = VectorNd::Constant(0.0);
 	dq              = VectorNd::Constant(0.0);
     dqSign          = VectorNd::Constant(0.0);
 
@@ -156,8 +157,9 @@ void jointTorqueControlThread::run()
 bool jointTorqueControlThread::readRobotStatus(bool blockingRead)
 {
     // read joint angles and torques
-    bool res =   robot->getEstimates(ESTIMATE_JOINT_VEL,    dq.data(),   -1.0, blockingRead);
-    res = res && robot->getEstimates(ESTIMATE_JOINT_TORQUE, tauM.data(), -1.0, blockingRead);
+    bool res =   robot->getEstimates(ESTIMATE_JOINT_VEL,    dq.data(),      -1.0, blockingRead);
+    res = res && robot->getEstimates(ESTIMATE_JOINT_TORQUE, tauM.data(),    -1.0, blockingRead);
+    res = res && robot->getEstimates(ESTIMATE_MOTOR_PWM,    pwmMeas.data(), -1.0, blockingRead);
     
     // convert joint velocities to deg/s
     dq *= CTRL_RAD2DEG;
@@ -267,8 +269,9 @@ void jointTorqueControlThread::prepareMonitorData()
     monitor.dqSign          = dqSign(j);
     monitor.tauMeas         = tauM(j);
     monitor.tauDes          = tauD(j);
-    monitor.tadDesPlusPI    = tau(j);           // this has huge values
-    monitor.pwm             = motorVoltage(j);  // and this too
+    monitor.tadDesPlusPI    = tau(j);
+    monitor.pwmDes          = motorVoltage(j);
+    monitor.pwmMeas         = pwmMeas(j);
     monitor.pwmTorqueFF     = kt(j)*tauD(j);
     monitor.pwmFrictionFF   = dq(j)>0 ? kvp(j)*dq(j) + kcp(j)*dqSign(j) : kvn(j)*dq(j) + kcn(j)*dqSign(j);
     monitor.pwmFF           = monitor.pwmTorqueFF + monitor.pwmFrictionFF;

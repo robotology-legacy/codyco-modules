@@ -60,6 +60,7 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     int             monitoredJointId;
     VectorNi        activeJointsOld;    ///< value of the vector activeJoints before it was changed
     VectorNd        dqSign;             ///< approximation of the sign of the joint vel
+    VectorNd        pwmMeas;            ///< measured motor PWMs
 
     // Thread parameters
 	VectorNi 	activeJoints;	// Vector of nDOF integers representing the joints to control  (1: active, 0: inactive) 
@@ -90,12 +91,12 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
         double tadDesPlusPI;
         double dq;
         double dqSign;
-        double pwm;
+        double pwmDes;
+        double pwmMeas;
         double pwmFF;
         double pwmFB;
         double pwmTorqueFF;
         double pwmFrictionFF;
-        double pwmMeasurement;
     } monitor;
 	
     // Input streaming parameters
