@@ -86,6 +86,10 @@ template<class T1, class T2, class T3, class T4, class T5, class T6, class T7>
 std::string strcat(const T1 &s1, const T2 &s2, const T3 &s3, const T4 s4, const T5 s5, const T6 s6, const T7 s7)
 { return toString(s1)+toString(s2)+toString(s3)+toString(s4)+toString(s5)+toString(s6)+toString(s7); }
 
+template<class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
+std::string strcat(const T1 &s1, const T2 &s2, const T3 &s3, const T4 s4, const T5 s5, const T6 s6, const T7 s7, const T8 s8)
+{ return toString(s1)+toString(s2)+toString(s3)+toString(s4)+toString(s5)+toString(s6)+toString(s7)+toString(s8); }
+
 /** Convert a generic variable into a yarp::os::Value. */
 template <class T> inline yarp::os::Value castToValue(const T& t){                          return (*yarp::os::Value::makeValue(toString(t).c_str())); }
 template <>        inline yarp::os::Value castToValue<double>(const double& t){             return yarp::os::Value(t); }
