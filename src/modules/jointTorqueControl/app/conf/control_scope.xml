@@ -11,6 +11,7 @@
 7		pwmFB			Feedback part of the PWM commanded to the monitored motor
 8		pwmTorqueFF		Torque feedforward term of the PWM commanded to the monitored motor
 9		pwmFrictionFF	Friction feedforward term of the PWM commanded to the monitored motor
+10		pwmMeas			Measured motor PWM
 -->
 
 <portscope rows="5" columns="1">
@@ -33,9 +34,9 @@
 	</plot>
 
 	<!-- plotting PWM -->
-	<plot gridx="0" gridy="3" hspan="1" vspan="1" title="Motor PWM (red all, blue feedforward)" size="500" minval="-100" maxval="100" bgcolor="white">
-		<graph remote="/jtc/monitor:o" index="5" color="Red" title="Motor PWM" type="lines" size="2" />
-		<graph remote="/jtc/monitor:o" index="6" color="Blue" title="Motor PWM Feedforward" type="lines" size="2" />
+	<plot gridx="0" gridy="3" hspan="1" vspan="1" title="Motor PWM (red desired, blue measured)" size="500" minval="-100" maxval="100" bgcolor="white">
+		<graph remote="/jtc/monitor:o" index="5" color="Red" title="Desired Motor PWM" type="lines" size="2" />
+		<graph remote="/jtc/monitor:o" index="10" color="Blue" title="Measured Motor PWM" type="lines" size="2" />
 	</plot>
 
 	<!-- plotting PWM-->
