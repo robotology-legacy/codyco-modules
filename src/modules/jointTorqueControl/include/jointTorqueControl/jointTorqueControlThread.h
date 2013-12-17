@@ -95,6 +95,7 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
         double pwmFB;
         double pwmTorqueFF;
         double pwmFrictionFF;
+        double pwmMeasurement;
     } monitor;
 	
     // Input streaming parameters

@@ -65,6 +65,7 @@ bool jointTorqueControlThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL,	        &monitor.dq));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL_SIGN,	    &monitor.dqSign));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_OUT,	        &monitor.pwm));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_OUT_MEASURE,    &monitor.pwmMeasurement));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_FEEDFORWARD,	&monitor.pwmFF));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_FEEDBACK,	    &monitor.pwmFB));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_TORQUE_FF,	    &monitor.pwmTorqueFF));
