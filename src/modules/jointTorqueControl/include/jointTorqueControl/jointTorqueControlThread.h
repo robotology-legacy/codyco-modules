@@ -48,6 +48,12 @@ enum ControlStatus {CONTROL_ON, CONTROL_OFF};
 */
 class jointTorqueControlThread: public RateThread, public ParamValueObserver, public CommandObserver
 {
+    ///< *************** MEMBER CONSTANTS ********************
+    double              zero6[6];               ///< array of 6 zeros
+    VectorNd            zeroN;                  ///< array of N zeros
+    double              ddxB[6];                ///< robot base acceleration containing only gravity acceleration
+
+    ///< *************** MEMBER VARIABLES ********************
     string              name;
     string              robotName;
     ParamHelperServer   *paramHelper;
@@ -61,10 +67,12 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     VectorNi        activeJointsOld;    ///< value of the vector activeJoints before it was changed
     VectorNd        dqSign;             ///< approximation of the sign of the joint vel
     VectorNd        pwmMeas;            ///< measured motor PWMs
+    VectorNd        q;                  ///< measure joint angles (deg)
+    VectorNd        tauGrav;            ///< gravity torque
 
-    // Thread parameters
+    ///< *************** MODULE PARAMETERS ********************
 	VectorNi 	activeJoints;	// Vector of nDOF integers representing the joints to control  (1: active, 0: inactive) 
-    VectorNd	dq;				// Joint velocities 
+    VectorNd	dq;				// Joint velocities (deg/s)
     VectorNd 	kt;				// Vector of nDOF floats ( see Eq. (1) )"), 
     VectorNd 	kvp;			// Vector of nDOF floats ( see Eq. (2) )"), 
     VectorNd	kvn;			// Vector of nDOF floats ( see Eq. (2) )"), 
@@ -72,15 +80,20 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     VectorNd	kcn;			// Vector of nDOF floats ( see Eq. (2) )"), 
     VectorNd	ki;				// Vector of nDOF floats representing the position gains ( see Eq. (x) )"), 
     VectorNd	kp;				// Vector of nDOF floats representing the integral gains ( see Eq. (x) )"), 
+    VectorNd	ks;				// Vector of nDOF floats representing the joint stiffnesses 
+    VectorNd	kd;				// Vector of nDOF floats representing the joint dampings
+    VectorNd    qDes;           // Vector of nDOF floats representing the desired joint positions (deg)
     VectorNd	coulombVelThr;	///< Vector of nDOF floats representing the joint vel (deg/s) at which Coulomb friction is completely compensated
     VectorNd	etau;			// Errors between actual and desired torques 
-    VectorNd	tau;			// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
-    VectorNd	tauD;			// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
-    VectorNd	tauM;			// Measured torques, 
+    VectorNd	tau;			// Vector of nDOF floats representing the desired torques plus the PI terms
+    VectorNd	tauD;			// Vector of nDOF floats representing the desired torques
+    VectorNd	tauOffset;      // Vector of nDOF floats representing the desired torques offset
+    VectorNd	tauM;			// Measured torques
     VectorNd	integralState;	// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
     VectorNd	motorVoltage;	// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
     VectorNd	Vmax;			// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"),     
     int			sendCommands;
+    int         gravityCompOn;  // 1 if gravity compensation is on, 0 otherwise
 	string      monitoredJointName;     ///< name of the monitored joint
 	
     //monitored variables

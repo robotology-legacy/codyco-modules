@@ -32,6 +32,7 @@ jointTorqueControlThread::jointTorqueControlThread(int period, string _name, str
     mustStop = false;
     status = CONTROL_OFF;
     printCountdown = 0;
+    gravityCompOn = 0;
 }
 
 //*************************************************************************************************************************
@@ -46,13 +47,17 @@ bool jointTorqueControlThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KCN,	            kcn.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KI,		            ki.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KP,		            kp.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KS,		            ks.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KD,		            kd.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_DES,		        qDes.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_GRAV_COMP_ON,		&gravityCompOn));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_COULOMB_VEL_THR,	coulombVelThr.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VMAX,	            Vmax.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SENDCMD,            &sendCommands));
 	YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MONITORED_JOINT,    &monitoredJointName));
 	
     // link controller input streaming parameters to member variables
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAUD,	            tauD.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_OFFSET,	        tauOffset.data()));
 	
     // link module output streaming parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VM,		            motorVoltage.data()));
@@ -83,12 +88,19 @@ bool jointTorqueControlThread::threadInit()
     tau 			= VectorNd::Constant(0.0); 
 	etau 			= VectorNd::Constant(0.0); 
 	tauD 			= VectorNd::Constant(0.0); 
-	tauM 			= VectorNd::Constant(0.0); 
+    tauOffset 		= VectorNd::Constant(0.0); 
+	//tauM 			= VectorNd::Constant(0.0); 
 	integralState 	= VectorNd::Constant(0.0); 
 	motorVoltage	= VectorNd::Constant(0.0);
-    pwmMeas	        = VectorNd::Constant(0.0);
-	dq              = VectorNd::Constant(0.0);
+ //   pwmMeas	        = VectorNd::Constant(0.0);
+	//dq              = VectorNd::Constant(0.0);
     dqSign          = VectorNd::Constant(0.0);
+
+    ///< thread constants
+    zeroN.setZero();
+    zero6[0] = zero6[1] = zero6[2] = zero6[3] = zero6[4] = zero6[5] = 0.0;
+    ddxB[0] = ddxB[1] = ddxB[3] = ddxB[4] = ddxB[5] = 0.0;
+    ddxB[2] = 9.81;     ///< gravity acceleration
 
     activeJointsOld = activeJoints;
 
@@ -121,7 +133,8 @@ void jointTorqueControlThread::run()
 
 		for (int i=0; i < N_DOF; i++)
         {
-            dqSign(i)           = fabs(dq(i))>coulombVelThr(i) ? sign(dq(i)) : pow(dq(i)/coulombVelThr(i),3);
+            dqSign(i)       = fabs(dq(i))>coulombVelThr(i) ? sign(dq(i)) : pow(dq(i)/coulombVelThr(i),3);
+            tauD(i)         = tauOffset(i) + ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i);
 
 			if (activeJoints(i) == 1) 
             {
@@ -133,9 +146,6 @@ void jointTorqueControlThread::run()
                     motorVoltage(i) = kt(i)*tau(i) + kvp(i)*dq(i) + kcp(i)*dqSign(i);
                 else
                     motorVoltage(i) = kt(i)*tau(i) + kvn(i)*dq(i) + kcn(i)*dqSign(i);
-				
-                //sendMsg(strcat("Err = ",etau(i),"\tIntErr = ",integralState(i),"\ttau = ",tau(i),"\ttauD = ",tauD(i)), MSG_DEBUG);
-                //sendMsg(strcat("V = ",motorVoltage(i),"\tdq = ",dq(i),"\tdt=",dt), MSG_DEBUG);
 					
 				if (sendCommands == SEND_COMMANDS_ACTIVE)
 					robot->setControlReference(&motorVoltage(i), i);
@@ -158,11 +168,14 @@ bool jointTorqueControlThread::readRobotStatus(bool blockingRead)
 {
     // read joint angles and torques
     bool res =   robot->getEstimates(ESTIMATE_JOINT_VEL,    dq.data(),      -1.0, blockingRead);
+    res = res && robot->getEstimates(ESTIMATE_JOINT_POS,    q.data(),       -1.0, blockingRead);
     res = res && robot->getEstimates(ESTIMATE_JOINT_TORQUE, tauM.data(),    -1.0, blockingRead);
     res = res && robot->getEstimates(ESTIMATE_MOTOR_PWM,    pwmMeas.data(), -1.0, blockingRead);
-    
-    // convert joint velocities to deg/s
-    dq *= CTRL_RAD2DEG;
+    res = res && robot->inverseDynamics(q.data(), Frame(), zeroN.data(), zero6, zeroN.data(), ddxB, tauGrav.data());
+
+    // convert angles from rad to deg
+    q   *= CTRL_RAD2DEG;
+    dq  *= CTRL_RAD2DEG;
     return res;
 }
 
