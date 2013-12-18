@@ -218,7 +218,7 @@ void jointTorqueControlThread::setControlModePWMOnJoints(bool torqueActive)
 {
 	for (int i=0; i < N_DOF; i++)
 	{
-		if (activeJoints(i) == 1 && torqueActive) 
+		if (activeJoints(i) == 1 && torqueActive && status==CONTROL_ON) 
 			robot->setControlMode(CTRL_MODE_MOTOR_PWM, 0, i);
 		else
 			robot->setControlMode(CTRL_MODE_POS, 0, i);
@@ -264,7 +264,7 @@ bool jointTorqueControlThread::activeJointsChanged()
         if(activeJoints(i)==1 && activeJointsOld(i)==0)         // joint has been activated
         {
             resetIntegralState(i);
-            if(sendCommands == SEND_COMMANDS_ACTIVE)
+            if(status==CONTROL_ON && sendCommands == SEND_COMMANDS_ACTIVE)
                 robot->setControlMode(CTRL_MODE_MOTOR_PWM, 0, i);
         }
         else if(activeJoints(i)==0 && activeJointsOld(i)==1)    // joint has been deactivated
