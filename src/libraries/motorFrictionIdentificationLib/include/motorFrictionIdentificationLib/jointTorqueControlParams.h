@@ -32,6 +32,7 @@ namespace jointTorqueControl
 
 static const int N_DOF = 25;
 typedef Eigen::Matrix<double,N_DOF,1>           VectorNd;
+typedef Eigen::Matrix<double,N_DOF+6,1>         VectorNp6d;
 typedef Eigen::Matrix<int,N_DOF,1>              VectorNi;
 
 static const int SEND_COMMANDS_ACTIVE = 1;

@@ -55,7 +55,7 @@ bool jointTorqueControlThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VMAX,	            Vmax.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SENDCMD,            &sendCommands));
 	YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MONITORED_JOINT,    &monitoredJointName));
-	
+
     // link controller input streaming parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_OFFSET,	        tauOffset.data()));
 	
@@ -75,7 +75,7 @@ bool jointTorqueControlThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_FEEDBACK,	    &monitor.pwmFB));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_TORQUE_FF,	    &monitor.pwmTorqueFF));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_FRICTION_FF,	&monitor.pwmFrictionFF));
-	 
+
     // Register callbacks for some module parameters
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_AJ,                 this));
 	YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_SENDCMD,            this));
@@ -134,7 +134,7 @@ void jointTorqueControlThread::run()
 		for (int i=0; i < N_DOF; i++)
         {
             dqSign(i)       = fabs(dq(i))>coulombVelThr(i) ? sign(dq(i)) : pow(dq(i)/coulombVelThr(i),3);
-            tauD(i)         = tauOffset(i) + ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i);
+            tauD(i)         = tauOffset(i) + ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i+6);
 
 			if (activeJoints(i) == 1) 
             {

@@ -68,7 +68,7 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     VectorNd        dqSign;             ///< approximation of the sign of the joint vel
     VectorNd        pwmMeas;            ///< measured motor PWMs
     VectorNd        q;                  ///< measure joint angles (deg)
-    VectorNd        tauGrav;            ///< gravity torque
+    VectorNp6d      tauGrav;            ///< gravity torque
 
     ///< *************** MODULE PARAMETERS ********************
 	VectorNi 	activeJoints;	// Vector of nDOF integers representing the joints to control  (1: active, 0: inactive) 
