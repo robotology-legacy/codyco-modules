@@ -42,7 +42,7 @@ static const int SEND_COMMANDS_NONACTIVE = 0;
 static const string		DEFAULT_MODULE_NAME     = "jtc";
 static const string		DEFAULT_ROBOT_NAME      = "icubSim";                // robot name
 static const int        DEFAULT_CTRL_PERIOD     = 10;                       // controller period in ms
-static const int        DEFAULT_SENDCMD     	= SEND_COMMANDS_NONACTIVE;  // 
+static const int        DEFAULT_SENDCMD     	= SEND_COMMANDS_ACTIVE;     // 
 static const int        DEFAULT_GRAV_COMP_ON    = 1;                        // 1=gravity compensation on, 0=off
 static const VectorNi	DEFAULT_ACTIVE_JOINTS   = VectorNi::Constant(0); 
 
@@ -69,8 +69,8 @@ static const double		KI_MAX  	        	= 100.0;
 static const double		KP_MAX      	    	= 100.0;    
 static const double		KS_MAX          		= 100.0;     
 static const double		V_MAX 	       		  	= 100.0;  
-static const double		TAUD_MIN          		= 100.0;     
-static const double		TAUD_MAX 	        	= 100.0;  
+static const double		TAUD_MIN          		= -10.0;     
+static const double		TAUD_MAX 	        	= 10.0;  
 static const double		VM_MIN          		= -1333.0;     
 static const double		VM_MAX	 	        	= 1333.0;       
 
@@ -86,7 +86,7 @@ enum jointTorqueControlParamId {
     PARAM_ID_KS,            PARAM_ID_KD,                PARAM_ID_GRAV_COMP_ON,
     PARAM_ID_Q_DES,
     /* STREAMING INPUT PARAMETERS */
-    PARAM_ID_TAU_OFFSET,	        
+    PARAM_ID_TAU_OFFSET,    PARAM_ID_TAU_SIN_AMPL,      PARAM_ID_TAU_SIN_FREQ,
     /* STREAMING OUTPUT PARAMETERS */
     PARAM_ID_VM,	        PARAM_ID_TAU,
     /* MONITOR PARAMETERS*/
@@ -125,7 +125,9 @@ new ParamProxyBasic<double>("kd",          	        PARAM_ID_KD,				N_DOF,		Para
 new ParamProxyBasic<int>(   "grav comp on",         PARAM_ID_GRAV_COMP_ON,		1,		    ParamBilatBounds<int>(0, 1),		            PARAM_IN_OUT,       &DEFAULT_GRAV_COMP_ON,		    "1 if gravity compensation is on, 0 otherwise"), 
 new ParamProxyBasic<double>("qDes",          	    PARAM_ID_Q_DES,				N_DOF,		ParamBilatBounds<double>(-180.0, 180.0),		PARAM_IN_OUT,       DEFAULT_ZEROS_NDOF.data(),		"Desired joint angles"), 
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
-new ParamProxyBasic<double>("tauOffset",        	PARAM_ID_TAU_OFFSET,        N_DOF,      ParamBilatBounds<double>(TAUD_MIN, TAUD_MAX),   PARAM_IN_STREAM,    DEFAULT_TAUD.data(),			"Constant offset on the desired joint torques"),
+new ParamProxyBasic<double>("tauOffset",        	PARAM_ID_TAU_OFFSET,        N_DOF,      ParamBilatBounds<double>(TAUD_MIN, TAUD_MAX),   PARAM_IN_STREAM,    DEFAULT_TAUD.data(),			"Constant offset added to the desired joint torques"),
+new ParamProxyBasic<double>("tauSinAmpl",        	PARAM_ID_TAU_SIN_AMPL,      N_DOF,      ParamBilatBounds<double>(0.0, TAUD_MAX),        PARAM_IN_STREAM,    DEFAULT_ZEROS_NDOF.data(),		"Amplitudes of the sinusoidal signals that are added to the desired joint torques"),
+new ParamProxyBasic<double>("tauSinFreq",        	PARAM_ID_TAU_SIN_FREQ,      N_DOF,      ParamBilatBounds<double>(0.0, 10.0),            PARAM_IN_STREAM,    DEFAULT_ZEROS_NDOF.data(),		"Frequencies of the sinusoidal signals that are added to the desired joint torques"),
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("Vm",				    PARAM_ID_VM,				N_DOF,		ParamBilatBounds<double>(VM_MIN, VM_MAX),		PARAM_OUT_STREAM,   0,				                "Vector of nDOF floats representing the motor PWM"),
 new ParamProxyBasic<double>("tau",          	    PARAM_ID_TAU,         		N_DOF,      ParamBilatBounds<double>(TAUD_MIN, TAUD_MAX),	PARAM_OUT_STREAM,   0,        		                "Estimated joint torques"),

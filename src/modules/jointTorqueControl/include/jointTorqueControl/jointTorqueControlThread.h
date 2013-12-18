@@ -69,6 +69,7 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     VectorNd        pwmMeas;            ///< measured motor PWMs
     VectorNd        q;                  ///< measure joint angles (deg)
     VectorNp6d      tauGrav;            ///< gravity torque
+    VectorNd	    integralState;	// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
 
     ///< *************** MODULE PARAMETERS ********************
 	VectorNi 	activeJoints;	// Vector of nDOF integers representing the joints to control  (1: active, 0: inactive) 
@@ -84,14 +85,17 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     VectorNd	kd;				// Vector of nDOF floats representing the joint dampings
     VectorNd    qDes;           // Vector of nDOF floats representing the desired joint positions (deg)
     VectorNd	coulombVelThr;	///< Vector of nDOF floats representing the joint vel (deg/s) at which Coulomb friction is completely compensated
-    VectorNd	etau;			// Errors between actual and desired torques 
-    VectorNd	tau;			// Vector of nDOF floats representing the desired torques plus the PI terms
     VectorNd	tauD;			// Vector of nDOF floats representing the desired torques
     VectorNd	tauOffset;      // Vector of nDOF floats representing the desired torques offset
-    VectorNd	tauM;			// Measured torques
-    VectorNd	integralState;	// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
-    VectorNd	motorVoltage;	// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
+    VectorNd    tauSinAmpl;     // Amplitudes of the sinusoidal signals that are added to the desired joint torques
+    VectorNd    tauSinFreq;     // Frequencies of the sinusoidal signals that are added to the desired joint torques
     VectorNd	Vmax;			// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"),     
+
+    VectorNd	tauM;			// Measured torques
+    VectorNd	motorVoltage;	// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
+    VectorNd	etau;			// Errors between actual and desired torques 
+    VectorNd	tau;			// Vector of nDOF floats representing the desired torques plus the PI terms
+
     int			sendCommands;
     int         gravityCompOn;  // 1 if gravity compensation is on, 0 otherwise
 	string      monitoredJointName;     ///< name of the monitored joint

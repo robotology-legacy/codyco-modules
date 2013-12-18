@@ -58,6 +58,8 @@ bool jointTorqueControlThread::threadInit()
 
     // link controller input streaming parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_OFFSET,	        tauOffset.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_SIN_AMPL,	    tauSinAmpl.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_SIN_FREQ,	    tauSinFreq.data()));
 	
     // link module output streaming parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VM,		            motorVoltage.data()));
@@ -88,12 +90,9 @@ bool jointTorqueControlThread::threadInit()
     tau 			= VectorNd::Constant(0.0); 
 	etau 			= VectorNd::Constant(0.0); 
 	tauD 			= VectorNd::Constant(0.0); 
-    tauOffset 		= VectorNd::Constant(0.0); 
-	//tauM 			= VectorNd::Constant(0.0); 
+    tauOffset 		= VectorNd::Constant(0.0);  
 	integralState 	= VectorNd::Constant(0.0); 
 	motorVoltage	= VectorNd::Constant(0.0);
- //   pwmMeas	        = VectorNd::Constant(0.0);
-	//dq              = VectorNd::Constant(0.0);
     dqSign          = VectorNd::Constant(0.0);
 
     ///< thread constants
@@ -114,6 +113,8 @@ bool jointTorqueControlThread::threadInit()
         printf("Error while initializing the controller: it was not possible to read the robot status!\n");
         return false;
     }
+
+    qDes = q;
     
     return true;
 }
@@ -134,7 +135,8 @@ void jointTorqueControlThread::run()
 		for (int i=0; i < N_DOF; i++)
         {
             dqSign(i)       = fabs(dq(i))>coulombVelThr(i) ? sign(dq(i)) : pow(dq(i)/coulombVelThr(i),3);
-            tauD(i)         = tauOffset(i) + ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i+6);
+            tauD(i)         = ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i+6);
+            tauD(i)        += tauOffset(i) + tauSinAmpl(i)*sin(2*M_PI*tauSinFreq(i)*currentTime);
 
 			if (activeJoints(i) == 1) 
             {
