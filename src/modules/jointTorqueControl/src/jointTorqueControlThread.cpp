@@ -318,7 +318,7 @@ int jointTorqueControlThread::convertGlobalToLocalJointId(const Bottle &b)
     LocalId lid;
     if(b.get(0).isString())
     {
-        string jointName = b.get(0).asString();
+        string jointName = b.get(0).asString().c_str();
         lid = globalToLocalIcubId(jointName);
     }
     else if(b.get(0).isInt())
