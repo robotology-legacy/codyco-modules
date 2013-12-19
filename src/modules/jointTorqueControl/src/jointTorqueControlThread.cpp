@@ -69,6 +69,9 @@ bool jointTorqueControlThread::threadInit()
 	YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_MEAS,	        &monitor.tauMeas));
 	YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAUD_MONITOR,	    &monitor.tauDes));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAUD_PLUS_PI,	    &monitor.tadDesPlusPI));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_ERR,	        &monitor.tauErr));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,	                &monitor.q));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_DES_MONITOR,	    &monitor.qDes));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL,	        &monitor.dq));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL_SIGN,	    &monitor.dqSign));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_DESIRED,	    &monitor.pwmDes));
@@ -280,11 +283,14 @@ bool jointTorqueControlThread::activeJointsChanged()
 void jointTorqueControlThread::prepareMonitorData()
 {
     int j = monitoredJointId;
+    monitor.q               = q(j);
+    monitor.qDes            = qDes(j);
     monitor.dq              = dq(j);
     monitor.dqSign          = dqSign(j);
     monitor.tauMeas         = tauM(j);
     monitor.tauDes          = tauD(j);
     monitor.tadDesPlusPI    = tau(j);
+    monitor.tauErr          = etau(j);
     monitor.pwmDes          = motorVoltage(j);
     monitor.pwmMeas         = pwmMeas(j);
     monitor.pwmTorqueFF     = kt(j)*tauD(j);

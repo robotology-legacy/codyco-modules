@@ -94,6 +94,7 @@ enum jointTorqueControlParamId {
     PARAM_ID_JOINT_VEL,     PARAM_ID_JOINT_VEL_SIGN,
     PARAM_ID_PWM_DESIRED,   PARAM_ID_PWM_FEEDFORWARD,   PARAM_ID_PWM_FEEDBACK,
     PARAM_ID_PWM_TORQUE_FF, PARAM_ID_PWM_FRICTION_FF,   PARAM_ID_PWM_MEASURED,
+    PARAM_ID_TAU_ERR,       PARAM_ID_Q,                 PARAM_ID_Q_DES_MONITOR,
     PARAM_ID_SIZE,
 };
 
@@ -142,7 +143,10 @@ new ParamProxyBasic<double>("pwmFF",                PARAM_ID_PWM_FEEDFORWARD,   
 new ParamProxyBasic<double>("pwmFB",                PARAM_ID_PWM_FEEDBACK,      1,                                                          PARAM_MONITOR,      0,                              "Feedback part of the PWM commanded to the monitored motor"),
 new ParamProxyBasic<double>("pwmTorqueFF",          PARAM_ID_PWM_TORQUE_FF,     1,                                                          PARAM_MONITOR,      0,                              "Torque feedforward term of the PWM commanded to the monitored motor"),
 new ParamProxyBasic<double>("pwmFrictionFF",        PARAM_ID_PWM_FRICTION_FF,   1,                                                          PARAM_MONITOR,      0,                              "Friction feedforward term of the PWM commanded to the monitored motor"),
-new ParamProxyBasic<double>("pwmMeas",              PARAM_ID_PWM_MEASURED,      1,                                                          PARAM_MONITOR,      0,                              "Measured PWM of the monitored motor")
+new ParamProxyBasic<double>("pwmMeas",              PARAM_ID_PWM_MEASURED,      1,                                                          PARAM_MONITOR,      0,                              "Measured PWM of the monitored motor"),
+new ParamProxyBasic<double>("tauErr",               PARAM_ID_TAU_ERR,           1,                                                          PARAM_MONITOR,      0,                              "Tracking torque error"),
+new ParamProxyBasic<double>("q",                    PARAM_ID_Q,                 1,                                                          PARAM_MONITOR,      0,                              "Joint angle"),
+new ParamProxyBasic<double>("qd",                 PARAM_ID_Q_DES_MONITOR,     1,                                                          PARAM_MONITOR,      0,                              "Desired joint angle")
 };
 
 // *** IDs of all the module command

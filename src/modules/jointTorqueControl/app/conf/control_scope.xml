@@ -12,14 +12,21 @@
 8		pwmTorqueFF		Torque feedforward term of the PWM commanded to the monitored motor
 9		pwmFrictionFF	Friction feedforward term of the PWM commanded to the monitored motor
 10		pwmMeas			Measured motor PWM
+11		tauErr			Torque tracking error
+12		q				Joint angle
+13		qDes			Desired joint angle
 -->
 
 <portscope rows="5" columns="1">
 	<!-- plotting dq and sign(dq) -->
-    <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Joint Vel (deg/sec)" size="500" minval="-50" maxval="50" bgcolor="white">
+    <!--<plot gridx="0" gridy="0" hspan="1" vspan="1" title="Joint Vel (deg/sec)" size="500" minval="-50" maxval="50" bgcolor="white">
         <graph remote="/jtc/monitor:o" index="3" color="Red" title="dq" type="lines" size="2" />
 		<graph remote="/jtc/monitor:o" index="4" color="Blue" title="sign dq" type="lines" size="2" />
-    </plot>
+    </plot>-->
+	<plot gridx="0" gridy="0" hspan="1" vspan="1" title="Joint angle (red desired, blue measure)" size="500" minval="-50" maxval="50" bgcolor="white">
+		<graph remote="/jtc/monitor:o" index="13" color="Red" title="qDes" type="lines" size="2" />
+		<graph remote="/jtc/monitor:o" index="12" color="Blue" title="q" type="lines" size="2" />
+	</plot>
 
     <!-- plotting torque -->
     <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Motor Torque (red desired, blue measure)" size="500" minval="-13" maxval="13" bgcolor="white">
@@ -28,9 +35,8 @@
 	</plot>
 
 	<!-- plotting torque -->
-	<plot gridx="0" gridy="2" hspan="1" vspan="1" title="Motor Torque (red desired, blue desired+PI)" size="500" minval="-10" maxval="10" bgcolor="white">
-		<graph remote="/jtc/monitor:o" index="1" color="Red" title="Motor torque desired" type="lines" size="2" />
-		<graph remote="/jtc/monitor:o" index="2" color="Blue" title="Motor torque desired + PI" type="lines" size="2" />
+	<plot gridx="0" gridy="2" hspan="1" vspan="1" title="Motor Torque (blue error)" size="500" minval="-10" maxval="10" bgcolor="white">
+		<graph remote="/jtc/monitor:o" index="11" color="Blue" title="Motor torque tracking error" type="lines" size="2" />
 	</plot>
 
 	<!-- plotting PWM -->

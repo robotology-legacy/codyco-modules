@@ -106,6 +106,9 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
         double tauMeas;
         double tauDes;
         double tadDesPlusPI;
+        double tauErr;
+        double q;
+        double qDes;
         double dq;
         double dqSign;
         double pwmDes;
