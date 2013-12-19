@@ -35,10 +35,12 @@ sudo apt-get install libeigen3-dev
 ```
 
 ###kdl
-It is possible to install orocos_kdl easily from the orocos github repository:
+It is possible to install orocos_kdl easily from the orocos github repository (version 1.2.0 is recommended, but other versions, for example those shipped with ROS should work without problems):
 ```bash
 git clone https://github.com/orocos/orocos_kinematics_dynamics
-cd orocos_kinematics_dynamics/orocos_kdl
+cd orocos_kinematics_dynamics
+git checkout v1.2.0
+cd orocos_kdl
 mkdir build 
 cd build
 ccmake ../
