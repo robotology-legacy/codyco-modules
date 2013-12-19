@@ -109,7 +109,9 @@ bool jointTorqueControlThread::threadInit()
     if(!updateJointToMonitor())
         printf("Specified monitored joint name was not recognized: %s\n", monitoredJointName.c_str());
 
-    robot->setEstimationParameter(ESTIMATE_JOINT_VEL, ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE, &JOINT_VEL_ESTIMATION_WINDOW);
+    double torqueFiltCutFreq = 1.0;
+    robot->setEstimationParameter(ESTIMATE_JOINT_VEL,    ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE, &JOINT_VEL_ESTIMATION_WINDOW);
+    robot->setEstimationParameter(ESTIMATE_JOINT_TORQUE, ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ, &torqueFiltCutFreq);
 
     if(!readRobotStatus(true))
     {
@@ -188,8 +190,8 @@ bool jointTorqueControlThread::readRobotStatus(bool blockingRead)
 void jointTorqueControlThread::startSending()
 {
     resetIntegralState(-1);
-	setControlModePWMOnJoints(sendCommands == SEND_COMMANDS_ACTIVE);
     status = CONTROL_ON;       //sets thread status to ON
+	setControlModePWMOnJoints(sendCommands == SEND_COMMANDS_ACTIVE);
     oldTime = yarp::os::Time::now();
     printf("Activating the torque control.\n"); 
 }
