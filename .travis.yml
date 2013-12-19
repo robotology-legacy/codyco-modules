@@ -45,3 +45,6 @@ script:
   - make
   - sudo make install
 
+notifications:
+  email:
+    - pegua1@gmail.com
