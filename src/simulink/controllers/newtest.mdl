@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.10"
+    ComputedModelVersion    "1.11"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -38,9 +38,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri Dec 06 15:35:37 2013"
-  RTWModifiedTimeStamp	  308147402
-  ModelVersionFormat	  "1.%<AutoIncrement:10>"
+  LastModifiedDate	  "Fri Jan 03 17:49:54 2014"
+  RTWModifiedTimeStamp	  310672191
+  ModelVersionFormat	  "1.%<AutoIncrement:11>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -78,6 +78,7 @@ Model {
     $ObjectID		    2
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "newtest"
+    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -755,7 +756,7 @@ Model {
   System {
     Name		    "newtest"
     Location		    [1, 88, 1365, 767]
-    Open		    off
+    Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
     ScreenColor		    "white"
@@ -768,7 +769,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "252"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "50"
+    SIDHighWatermark	    "51"
     Block {
       BlockType		      Display
       Name		      "Display"
@@ -798,7 +799,7 @@ Model {
       ShowName		      off
       LibraryVersion	      "1.7"
       SourceBlock	      "utility/Soft Real Time"
-      SourceType	      "Unknown"
+      SourceType	      ""
       x			      "1"
     }
     Block {
@@ -817,8 +818,8 @@ Model {
       MaskHideContents	      off
       System {
 	Name			"robot angles1"
-	Location		[274, 340, 736, 689]
-	Open			off
+	Location		[275, 372, 737, 721]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -870,7 +871,7 @@ Model {
 	  MaskIconRotate	  "none"
 	  MaskPortRotate	  "default"
 	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "1|'icubGazeboSim'|'robotState'"
+	  MaskValueString	  "1|'icubSim'|'robotState'"
 	}
 	Block {
 	  BlockType		  Terminator

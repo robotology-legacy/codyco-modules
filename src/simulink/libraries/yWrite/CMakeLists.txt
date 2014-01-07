@@ -9,6 +9,18 @@ PROJECT(${PROJECTNAME})
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(YARP)
+find_package(Matlab REQUIRED)
+
+if(MATLAB_FOUND)
+	message(STATUS "Matlab found")
+else()
+	message(STATUS "Matlab not found")
+	set(MATLAB_LIBRARIES 
+	  ${MATLAB_MEX_LIBRARY}
+	  ${MATLAB_MX_LIBRARY}
+	  ${MATLAB_ENG_LIBRARY}
+	)
+endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 
@@ -21,25 +33,29 @@ source_group("Source Files" FILES ${folder_source})
 source_group("Header Files" FILES ${folder_header})
 
 #User Directories
-set(MATLAB_PATH "/usr/local/MATLAB/R2012a" CACHE PATH "Matlab Installation Path")
+#set(MATLAB_PATH "/usr/local/MATLAB/R2012a" CACHE PATH "Matlab Installation Path")
 
 include_directories("${MATLAB_PATH}/simulink/include")
 include_directories("${MATLAB_PATH}/extern/include")
+include_directories(${MATLAB_INCLUDE_DIR})
 include_directories("${YARP_INCLUDE_DIRS}")
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 add_definitions(-DMATLAB_MEX_FILE)
 
-if(APPLE)
-    set(SFUNCTION_SUFFIX ".mexmaci64")
-elseif(UNIX)
-    set(SFUNCTION_SUFFIX ".mexa86")
-elseif(WIN32)
-    set(SFUNCTION_SUFFIX ".mexw64")
-endif()
+#if(APPLE)
+#    set(SFUNCTION_SUFFIX ".mexmaci64")
+#elseif(UNIX)
+#    set(SFUNCTION_SUFFIX ".mexa86")
+#elseif(WIN32)
+#    set(SFUNCTION_SUFFIX ".mexw64")
+#endif()
+
+set(SFUNCTION_SUFFIX MATLAB_MEXFILE_EXT)
 
 link_directories(${CMAKE_BINARY_DIR})
-link_directories("${MATLAB_PATH}/bin/glnxa86")
+#link_directories("${MATLAB_PATH}/bin/glnxa86")
+#link_directories(${MATLAB_LIBRARIES})
 
 add_library(${PROJECTNAME} SHARED ${folder_source} ${folder_header})
 
@@ -56,7 +72,7 @@ if(NOT $ENV{MATLAB_ROOT} STREQUAL "")
                         set_target_properties(${PROJECTNAME} PROPERTIES COMPILE_FLAGS "-I$ENV{MATLAB_ROOT} -O -pthread -shared -m32 -Wl,--version-script,$ENV{MATLAB_ROOT}/extern/lib/glnx86/mexFunction.map -Wl,--no-undefined -Wl,-rpath-link,$ENV{MATLAB_ROOT}/bin/glnx86 -L$ENV{MATLAB_ROOT}/bin/glnx86 -lmx -lmex -lmat -lm -lstdc++")
 	endif()		
 
-        target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES})
+        target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${MATLAB_LIBRARIES})
         install(TARGETS ${PROJECTNAME} DESTINATION mex)
 endif()
 
