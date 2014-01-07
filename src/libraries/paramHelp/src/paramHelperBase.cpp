@@ -20,7 +20,7 @@
 #include <iomanip>
 #include <cassert>
 
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN32) 
     #include <direct.h>
     #define GetCurrentDir _getcwd
 #else
