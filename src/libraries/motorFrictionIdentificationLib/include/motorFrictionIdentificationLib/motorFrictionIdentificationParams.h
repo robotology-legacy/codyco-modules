@@ -28,13 +28,14 @@ using namespace paramHelp;
 using namespace Eigen;
 using namespace std;
 
-namespace motorFrictionIdentificationLib
+namespace motorFrictionIdentification
 {
 static const int            PARAM_NUMBER        = 5;    ///< number of estimated parameters
 
 // define some types
-typedef Eigen::Matrix<double,1,1>                   Vector1d;
-typedef Eigen::Matrix<double,PARAM_NUMBER,1>        VectorPd;
+typedef Eigen::Matrix<double,Dynamic,Dynamic,RowMajor>  MatrixXdR;
+typedef Eigen::Matrix<double,1,1>                       Vector1d;
+typedef Eigen::Matrix<double,PARAM_NUMBER,1>            VectorPd;
 
 ///< Constants
 
@@ -53,6 +54,7 @@ static const int            DEFAULT_TORQUE_VEL_EST_WIND_SIZE= 61;       ///< max
 static const double         DEFAULT_JOINT_VEL_EST_THRESH    = 1.0;      ///< threshold used by the adaptive window estimation of joint velocity
 static const double         DEFAULT_TORQUE_VEL_EST_THRESH   = 0.2;      ///< threshold used by the adaptive window estimation of torque velocity
 static const double         DEFAULT_TORQUE_FILT_CUT_FREQ    = 3.0;      ///< cut frequency of the torque low pass filter
+static const double         DEFAULT_PWM_FILT_CUT_FREQ       = 3.0;      ///< cut frequency of the motor PWM low pass filter
 static const double         DEFAULT_FORGET_FACTOR           = 1.0;      ///< forgetting factor of the recursive least-square (in [0;1], where 1 means do not forget anything)
 static const double         DEFAULT_COVARIANCE_INV          = 0.0;      ///< parameter identification covariance inverse used to start up the algorithm
 
@@ -63,13 +65,15 @@ enum MotorFrictionIdentificationParamId
     PARAM_ID_MODULE_NAME,           PARAM_ID_CTRL_PERIOD,               PARAM_ID_ROBOT_NAME, 
     PARAM_ID_JOINT_LIST,        
     /* Input parameters */
-    PARAM_ID_OUTPUT_FILENAME,       PARAM_ID_ACTIVE_JOINTS,             PARAM_ID_IDENTIF_DELAY,     
+    PARAM_ID_ACTIVE_JOINTS,         PARAM_ID_IDENTIF_DELAY,     
     PARAM_ID_ZERO_JOINT_VEL_THRESH, PARAM_ID_ZERO_TORQUE_VEL_THRESH,    PARAM_ID_EXT_TORQUE_THRESH,
     PARAM_ID_JOINT_VEL_WIND_SIZE,   PARAM_ID_TORQUE_VEL_WIND_SIZE,
     PARAM_ID_JOINT_VEL_EST_THRESH,  PARAM_ID_TORQUE_VEL_EST_THRESH,
-    PARAM_ID_TORQUE_FILT_CUT_FREQ,  PARAM_ID_FORGET_FACTOR,             PARAM_ID_JOINT_TO_MONITOR,  
+    PARAM_ID_TORQUE_FILT_CUT_FREQ,  PARAM_ID_PWM_FILT_CUT_FREQ,      
+    PARAM_ID_FORGET_FACTOR,         PARAM_ID_JOINT_TO_MONITOR,  
     /* Output parameters */
-    PARAM_ID_JOINT_NAMES,
+    PARAM_ID_JOINT_NAMES,           PARAM_ID_KT_STD_DEV,                PARAM_ID_KVP_STD_DEV,
+    PARAM_ID_KVN_STD_DEV,           PARAM_ID_KCP_STD_DEV,               PARAM_ID_KCN_STD_DEV,
     /* Input\output parameters (to file)*/
     PARAM_ID_COVARIANCE_INV,        PARAM_ID_RHS,
     /* Monitor parameters */
@@ -96,22 +100,28 @@ new ParamProxyBasic<int>(   "joint list",           PARAM_ID_JOINT_LIST,        
 // ************************************************* RPC OUTPUT PARAMETERS ************************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<string>("joint names",          PARAM_ID_JOINT_NAMES,           PARAM_SIZE_FREE,                                            PARAM_OUTPUT,       0,                                  "List of the names of the (used) robot joints"), 
 // ************************************************* RPC INPUT OUTPUT PARAMETERS ******************************************************************************************************************************************************************************************************************************
-new ParamProxyBasic<string>("filename",             PARAM_ID_OUTPUT_FILENAME,       1,                                                          PARAM_IN_OUT,       &DEFAULT_OUTPUT_FILENAME,           "Name of the file on which to save the state of the identification"), 
 new ParamProxyBasic<int>(   "active joints",        PARAM_ID_ACTIVE_JOINTS,         PARAM_SIZE_FREE,    ParamBilatBounds<int>(0,1),             PARAM_IN_OUT,       0,                                  "List of flags (0,1) indicating for which motors the identification is active"), 
 new ParamProxyBasic<double>("delay",                PARAM_ID_IDENTIF_DELAY,         1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_IDENTIF_DELAY,             "Delay (in sec) used before processing a sample to update the identified parameters"), 
 new ParamProxyBasic<double>("zero joint vel thr",   PARAM_ID_ZERO_JOINT_VEL_THRESH, 1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_ZERO_JOINT_VEL_THRESH,     "Joint velocities (deg/sec) below this threshold are considered zero"), 
 new ParamProxyBasic<double>("zero torque vel thr",  PARAM_ID_ZERO_TORQUE_VEL_THRESH,1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_ZERO_TORQUE_VEL_THRESH,    "Torque velocities (deg/sec) below this threshold are considered zero"), 
-new ParamProxyBasic<double>("ext torque thr",       PARAM_ID_EXT_TORQUE_THRESH,     1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_EXT_TORQUE_THRESH,         "When the external torque exceedes this threshold we assume there is contact"), 
+new ParamProxyBasic<double>("ext torque thr",       PARAM_ID_EXT_TORQUE_THRESH,     PARAM_SIZE_FREE,    ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_EXT_TORQUE_THRESH,         "When the external torque exceedes these thresholds we assume there is contact"), 
 new ParamProxyBasic<int>(   "joint vel est wind",   PARAM_ID_JOINT_VEL_WIND_SIZE,   1,                  ParamBilatBounds<int>(1,1000),          PARAM_IN_OUT,       &DEFAULT_JOINT_VEL_EST_WIND_SIZE,   "Max size of the moving window used for estimating joint velocities"), 
 new ParamProxyBasic<int>(   "torque vel est wind",  PARAM_ID_TORQUE_VEL_WIND_SIZE,  1,                  ParamBilatBounds<int>(1,1000),          PARAM_IN_OUT,       &DEFAULT_TORQUE_VEL_EST_WIND_SIZE,  "Max size of the moving window used for estimating motor torque velocities"), 
 new ParamProxyBasic<double>("joint vel est thr",    PARAM_ID_JOINT_VEL_EST_THRESH,  1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_JOINT_VEL_EST_THRESH,      "Threshold used by the adaptive window estimation of joint velocity"), 
 new ParamProxyBasic<double>("torque vel est thr",   PARAM_ID_TORQUE_VEL_EST_THRESH, 1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_TORQUE_VEL_EST_THRESH,     "Threshold used by the adaptive window estimation of torque velocity"), 
 new ParamProxyBasic<double>("torque filt fc",       PARAM_ID_TORQUE_FILT_CUT_FREQ,  1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_TORQUE_FILT_CUT_FREQ,      "Cut frequency (Hz) of the low pass filter of the motor torque"), 
+new ParamProxyBasic<double>("pwm filt fc",          PARAM_ID_PWM_FILT_CUT_FREQ,     1,                  ParamBilatBounds<double>(0.,10.),       PARAM_IN_OUT,       &DEFAULT_PWM_FILT_CUT_FREQ,         "Cut frequency (Hz) of the low pass filter of the motor PWM"), 
 new ParamProxyBasic<double>("forget factor",        PARAM_ID_FORGET_FACTOR,         1,                  ParamBilatBounds<double>(0.,1.),        PARAM_IN_OUT,       &DEFAULT_FORGET_FACTOR,             "Forgetting factor (in [0,1], 1=do not forget) used in the identification"),
 new ParamProxyBasic<string>("joint monitor",        PARAM_ID_JOINT_TO_MONITOR,      1,                                                          PARAM_IN_OUT,       0,                                  "Name of the joint to monitor"),
 // ************************************************* FILE OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("covariance inv",       PARAM_ID_COVARIANCE_INV,        PARAM_SIZE_FREE,                                            PARAM_IN_OUT,       0,                                  "Inverse of the covariance matrix of the parameter estimations"),
 new ParamProxyBasic<double>("rhs",                  PARAM_ID_RHS,                   PARAM_SIZE_FREE,                                            PARAM_IN_OUT,       0,                                  "Right-hand side of the linear vector equation that is solved for estimating the parameters"),
+// ************************************************* OUTPUT STREAMING PARAMETERS ****************************************************************************************************************************************************************************************************************************
+new ParamProxyBasic<double>("kt std dev",           PARAM_ID_KT_STD_DEV,            PARAM_SIZE_FREE,                                            PARAM_OUT_STREAM,   0,                                  "Standard deviation of the estimations of the parameter kt"),
+new ParamProxyBasic<double>("kvp std dev",          PARAM_ID_KVP_STD_DEV,           PARAM_SIZE_FREE,                                            PARAM_OUT_STREAM,   0,                                  "Standard deviation of the estimations of the parameter kvp"),
+new ParamProxyBasic<double>("kvn std dev",          PARAM_ID_KVN_STD_DEV,           PARAM_SIZE_FREE,                                            PARAM_OUT_STREAM,   0,                                  "Standard deviation of the estimations of the parameter kvn"),
+new ParamProxyBasic<double>("kcp std dev",          PARAM_ID_KCP_STD_DEV,           PARAM_SIZE_FREE,                                            PARAM_OUT_STREAM,   0,                                  "Standard deviation of the estimations of the parameter kcp"),
+new ParamProxyBasic<double>("kcn std dev",          PARAM_ID_KCN_STD_DEV,           PARAM_SIZE_FREE,                                            PARAM_OUT_STREAM,   0,                                  "Standard deviation of the estimations of the parameter kcn"),
 // ************************************************* STREAMING MONITOR PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("dq",                   PARAM_ID_JOINT_VEL,             1,                                                          PARAM_MONITOR,      0,                                  "Velocity of the monitored joint"),
 new ParamProxyBasic<double>("torque",               PARAM_ID_JOINT_TORQUE,          1,                                                          PARAM_MONITOR,      0,                                  "Torque of the monitored joint"),
@@ -139,7 +149,7 @@ enum MotorFrictionIdentificationCommandId
 const CommandDescription motorFrictionIdentificationCommandDescr[COMMAND_ID_SIZE]  = 
 { 
 //                  NAME                ID                              DESCRIPTION
-CommandDescription("save",              COMMAND_ID_SAVE,                "Save the current identification state on text file"),
+CommandDescription("save",              COMMAND_ID_SAVE,                "Save the identified parameters on a text file with the specified name. If the file already exists, append at the end."),
 CommandDescription("reset",             COMMAND_ID_RESET,               "Reset the identification status of the specified joint (all joints if none is specified)"), 
 CommandDescription("activate joint",    COMMAND_ID_ACTIVATE_JOINT,      "Activate the identification for the specified joint (joint can be specified by either its name or its global id)"), 
 CommandDescription("deactivate joint",  COMMAND_ID_DEACTIVATE_JOINT,    "Deactivate the identification for the specified joint (joint can be specified by either its name or its global id)"), 

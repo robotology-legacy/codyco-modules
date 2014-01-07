@@ -123,7 +123,7 @@
 #include <yarp/os/Vocab.h>
 
 #include <paramHelp/paramHelperServer.h>
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+
 #include <motorFrictionExcitation/motorFrictionExcitationThread.h>
  
 using namespace std;
@@ -139,13 +139,15 @@ class MotorFrictionExcitationModule: public RFModule, public CommandObserver
     /* module parameters */
 	string  moduleName;
 	string  robotName;
-    int     period;
+    int     threadPeriod;
     double  avgTime, stdDev, avgTimeUsed, stdDevUsed;
 
-	Port                rpcPort;		// a port to handle rpc messages
-	MotorFrictionExcitationThread*   ctrlThread;     // MotorFrictionExcitation control thread
-    ParamHelperServer*  paramHelper;    // helper class for rpc set/get commands and streaming data
-    wholeBodyInterface* robotInterface; // interface to communicate with the robot
+	Port                            rpcPort;		// a port to handle rpc messages
+	MotorFrictionExcitationThread*  ctrlThread;     // MotorFrictionExcitation control thread
+    ParamHelperServer*              paramHelper;    // helper class for rpc set/get commands and streaming data
+    ParamHelperClient*              identificationModule;   ///< interface to communicate with identification module
+    string                          motorFrictionIdentificationName;    ///< name of the motorFrictionIdentification module
+    wholeBodyInterface*             robotInterface; // interface to communicate with the robot
 
 public:
     MotorFrictionExcitationModule();
@@ -154,7 +156,7 @@ public:
 	bool interruptModule();                       // interrupt, e.g., the ports 
 	bool close();                                 // close and shut down the module
 	bool respond(const Bottle& command, Bottle& reply);
-	double getPeriod(){ return period;  }
+	double getPeriod(){ return 20.0;  }
 	bool updateModule();
 
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);

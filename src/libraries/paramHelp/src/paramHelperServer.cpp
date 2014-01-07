@@ -37,9 +37,8 @@ ParamHelperServer::ParamHelperServer(const ParamProxyInterface *const *pdList, i
 ParamHelperServer::~ParamHelperServer()
 {
     // delete all allocated memory
-    close();
-    /** Do not delete memory associated to parameters, because for the moment I assume
-      * that all the parameters are linked to external variables */
+    closePorts();
+    deleteParameters();
 }
 
 //*************************************************************************************************************************
@@ -94,6 +93,9 @@ bool ParamHelperServer::init(string moduleName)
             && portOutStream->open(portOutStreamName.c_str())
             && portOutMonitor->open(portOutMonitorName.c_str())
             && portInfo.open(portInfoName.c_str());
+    if(!res)
+        closePorts();
+    initDone = res;
     return res;
 }
 
@@ -155,13 +157,16 @@ void ParamHelperServer::getHelpMessage(Bottle &b)
 //*************************************************************************************************************************
 bool ParamHelperServer::sendStreamParams()
 {
+    if(!initDone)
+        return false;
     Bottle out, mon;
     for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
     {
         if(it->second->ioType.isStreamingOut())     ///< output streaming data
         {
             Bottle &b = out.addList();
-            b.addString(it->second->name.c_str());  // add the name of the parameter
+            //b.addString(it->second->name.c_str());  // add the name of the parameter
+            b.addInt(it->second->id);               // add the id of the parameter
             it->second->getAsBottle(b);             // add the value of the parameter
         }
         if(it->second->ioType.isMonitoring())       ///< output monitoring data
@@ -184,6 +189,8 @@ bool ParamHelperServer::sendStreamParams()
 //*************************************************************************************************************************
 bool ParamHelperServer::readStreamParams(bool blockingRead)
 {
+    if(!initDone)
+        return false;
     // TODO: manage variable size input streaming params
     Bottle *in = portInStream->read(blockingRead);
     if(in==NULL) return false;
@@ -193,24 +200,24 @@ bool ParamHelperServer::readStreamParams(bool blockingRead)
     {
         if(!in->get(i).isList())
         {
-            logMsg("[ParamHelperServer::readStreamParams] Value ",i," is not a Bottle. Skipping it.", MSG_ERROR);
+            logMsg(strcat("[ParamHelperServer::readStreamParams] Value ",i," is not a Bottle. Skipping it."), MSG_ERROR);
             continue;
         }
         Bottle *b = in->get(i).asList();
         if(b->size()==0)
         {
-            logMsg("[ParamHelperServer::readStreamParams] Value ",i," is an empty Bottle. Skipping it.", MSG_ERROR);
+            logMsg(strcat("[ParamHelperServer::readStreamParams] Value ",i," is an empty Bottle. Skipping it."), MSG_ERROR);
             continue;
         }
         int parId = b->get(0).asInt();
         if(!hasParam(parId))
         {
-            logMsg("[ParamHelperServer::readStreamParams] Value ",i," refers to a nonexisting parameter with id ",parId, MSG_ERROR);
+            logMsg(strcat("[ParamHelperServer::readStreamParams] Value ",i," refers to a nonexisting parameter with id ",parId), MSG_ERROR);
             continue;
         }
         res = paramList[parId]->set(b->tail(), &reply);
         if(res==false)
-            logMsg("[ParamHelperServer::readStreamParams] Param ",parId,reply.toString().c_str(), MSG_ERROR);
+            logMsg(strcat("[ParamHelperServer::readStreamParams] Param ",parId,reply.toString().c_str()), MSG_ERROR);
     }
     return true;
 }
@@ -220,14 +227,6 @@ bool ParamHelperServer::registerParamValueChangedCallback(int id, ParamValueObse
 {
     if(!hasParam(id)) return false;
     paramValueObs[id] = observer;
-    return true;
-}
-
-//*************************************************************************************************************************
-bool ParamHelperServer::registerParamSizeChangedCallback(int id, ParamSizeObserver *observer)
-{
-    if(!hasParam(id)) return false;
-    paramSizeObs[id] = observer;
     return true;
 }
 

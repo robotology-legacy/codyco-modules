@@ -41,7 +41,7 @@ namespace paramHelp
 // PARAM_OUTPUT: can be read from the rpc port, but not written
 // PARAM_IN_OUT: can be both written and read from the rpc port
 // PARAM_IN_STREAM: can be written (from either rpc or the input streaming port), and read from the rpc port only
-// PARAM_OUT_STREAM: can be read (from either rpc or the output streaming port), but not written
+// PARAM_OUT_STREAM: can be read (from eitaher rpc or the output streaming port), but not written
 // PARAM_IN_OUT_STREAM: can be both written and read from either rpc or the streaming ports
 // PARAM_MONITOR: can be read from both the monitor port and the rpc port
 // *************************************************************************************************/
@@ -147,16 +147,20 @@ public:
     /** Return true if the specified value satisfies this parameter's constraints. */
     virtual bool checkConstraints(const yarp::os::Bottle &value, yarp::os::Bottle *reply=0) const = 0;
 
+    /** Get the current value of the parameter in string format. */
+    virtual std::string getAsString() const
+    {
+        yarp::os::Bottle b;
+        getAsBottle(b);
+        return b.toString().c_str();
+    }
+
     /** Set the parameter to the specified value. Return true if the operation succeeded. */
     //virtual bool set(const void *newValue, yarp::os::Bottle *reply=0) = 0;
     /** Set the parameter to the specified value. Return true if the operation succeeded. */
     //virtual bool set(const std::string &value, std::string *reply=0) = 0;
     /** Return true if the specified value satisfies this parameter's constraints. */
     //virtual bool checkConstraints(const std::string &value, std::string *reply=0) = 0;
-    /** Get the current value of the parameter in string format. */
-    //virtual std::string getAsString() = 0;
-    /** Get the current value of the parameter in Bottle format. */
-    //virtual yarp::os::Bottle getAsBottle() = 0;
 };
 
 

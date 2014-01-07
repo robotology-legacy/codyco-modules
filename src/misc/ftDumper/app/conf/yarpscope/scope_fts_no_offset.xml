@@ -5,7 +5,7 @@ Author: Serena Ivaldi
 This xml file must be used with yarpscope: it plots by columns the joint torques of the iCub legs. -->
 
 <?xml version="1.0" encoding="UTF-8" ?>
-<portscope rows="2" columns="3" carrier="udp">
+<portscope rows="2" columns="3" carrier="udp" persistent="0">
 
 <!-- RIGHT LEG -->
 

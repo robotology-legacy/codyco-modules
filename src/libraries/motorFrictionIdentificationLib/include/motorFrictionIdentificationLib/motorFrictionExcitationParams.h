@@ -18,12 +18,12 @@
 #ifndef __MOTOR_FRICTION_EXCITATION_PARAMS
 #define __MOTOR_FRICTION_EXCITATION_PARAMS
 
-//#include <motorFrictionExcitation/motorFrictionExcitationConstants.h>
 #include <paramHelp/paramProxyBasic.h>
 #include <Eigen/Core>                               // import most common Eigen types
 #include <vector>
 #include <string>
 #include <yarp/os/Bottle.h>
+#include <yarp/os/ResourceFinder.h>
 
 using namespace paramHelp;
 using namespace Eigen;
@@ -33,7 +33,7 @@ static const int       ICUB_DOFS = 25;    // number of (the main) degrees of fre
 
 typedef Eigen::Matrix<double,ICUB_DOFS,1>          VectorNd;
 
-namespace motorFrictionIdentificationLib
+namespace motorFrictionExcitation
 {
 
 ///< specify whether or not the commands are sent to the motors
@@ -44,9 +44,10 @@ enum MFE_MotorCommandMode
 };
 
 // *** DEFAULT PARAMETER VALUES
-static const string                 DEFAULT_MODULE_NAME     = "motorFrictionExcitationControl"; ///< name of the module 
+static const string                 DEFAULT_MODULE_NAME     = "motorFrictionExcitation";        ///< name of the module 
 static const int                    DEFAULT_CTRL_PERIOD     = 10;                               ///< controller period in ms
 static const string                 DEFAULT_ROBOT_NAME      = "icubSim";                        ///< robot name
+static const string                 DEFAULT_MFI_NAME        = "motorFrictionIdentification";    ///< name of the motorFrictionIdentification module 
 static const VectorNd               DEFAULT_Q_MAX           = VectorNd::Constant(150.0);
 static const VectorNd               DEFAULT_Q_MIN           = VectorNd::Constant(-150.0);
 static const int                    DEFAULT_SEND_COMMANDS   = SEND_COMMANDS_TO_MOTORS;
@@ -76,8 +77,11 @@ CommandDescription("quit",          COMMAND_ID_QUIT,            "Stop the contro
 enum MotorFrictionExcitationParamId 
 { 
     PARAM_ID_MODULE_NAME,       PARAM_ID_CTRL_PERIOD,       PARAM_ID_ROBOT_NAME, 
+    PARAM_ID_MOTOR_FRICTION_IDENTIFICATION_NAME,            PARAM_ID_SEND_COMMANDS,
     PARAM_FREE_MOTION_EXCIT,    PARAM_ID_Q_MAX,             PARAM_ID_Q_MIN,             
-    PARAM_ID_Q,                 PARAM_ID_PWM_DES,           PARAM_ID_SEND_COMMANDS,
+    // Monitor parameters
+    PARAM_ID_Q,                 PARAM_ID_PWM_DES,
+    PARAM_ID_KT_STD_DEV_THR,    PARAM_ID_FRIC_STD_DEV_THR,
     PARAM_ID_SIZE /*This is the number of parameters, so it must be the last value of the enum.*/
 };
 
@@ -93,6 +97,26 @@ enum FreeMotionExcitationParamId
 // ******************************************************************************************************************************
 // ****************************************** DESCRIPTION OF ALL THE MODULE PARAMETERS ******************************************
 // ******************************************************************************************************************************
+
+class ContactExcitation
+{
+public:
+    ArrayXi jointId;
+    ArrayXd initialJointConfiguration;
+    ArrayXd paramCovarThresh;
+
+    //ContactExcitation();
+    bool set(const yarp::os::Bottle &value, yarp::os::Bottle &reply);
+    bool setSubparam(const std::string &name, const yarp::os::Bottle &value, yarp::os::Bottle &reply);
+    std::string toString() const;
+};
+
+class ContactExcitationList : public std::vector<ContactExcitation>
+{
+public:
+    bool readFromConfigFile(yarp::os::ResourceFinder &rf, yarp::os::Bottle &reply);
+    std::string toString() const;
+};
 
 class FreeMotionExcitation
 {
@@ -141,6 +165,7 @@ new ParamProxyClass<FreeMotionExcitation>("free motion excitation",  PARAM_FREE_
 new ParamProxyBasic<string>("name",                 PARAM_ID_MODULE_NAME,       1,                                                              PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
 new ParamProxyBasic<int>(   "period",               PARAM_ID_CTRL_PERIOD,       1,                  ParamBilatBounds<int>(1,1000),              PARAM_CONFIG,       &DEFAULT_CTRL_PERIOD,           "Period of the control loop (ms)"), 
 new ParamProxyBasic<string>("robot",                PARAM_ID_ROBOT_NAME,        1,                                                              PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
+new ParamProxyBasic<string>("motor friction identification name", PARAM_ID_MOTOR_FRICTION_IDENTIFICATION_NAME, 1,                               PARAM_CONFIG,       &DEFAULT_MFI_NAME,              "Name of the instance of the motorFrictionIdentification module"), 
 // ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("q max",                PARAM_ID_Q_MAX,             ICUB_DOFS,          ParamBilatBounds<double>(-360.0,360.0),     PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds"),
 new ParamProxyBasic<double>("q min",                PARAM_ID_Q_MIN,             ICUB_DOFS,          ParamBilatBounds<double>(-360.0,360.0),     PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds"),
@@ -148,7 +173,9 @@ new ParamProxyBasic<int>(   "send commands",        PARAM_ID_SEND_COMMANDS,     
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 // ************************************************* STREAMING MONITOR PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("q",                    PARAM_ID_Q,                 1,                  ParamBilatBounds<double>(-150.0, 150.0),    PARAM_MONITOR,      0,                              "Joint angle of the currently controlled motor"),
-new ParamProxyBasic<double>("pwmDes",               PARAM_ID_PWM_DES,           1,                  ParamBilatBounds<double>(-1333.0, 1333.0),  PARAM_MONITOR,      0,                              "Current desired pwm sent to the motors")
+new ParamProxyBasic<double>("pwmDes",               PARAM_ID_PWM_DES,           1,                  ParamBilatBounds<double>(-1333.0, 1333.0),  PARAM_MONITOR,      0,                              "Current desired pwm sent to the motors"),
+new ParamProxyBasic<double>("kt std dev thr",       PARAM_ID_KT_STD_DEV_THR,    1,                  ParamBilatBounds<double>(0.0, 1.0),         PARAM_MONITOR,      0,                              "Threshold of the standard deviation of the parameter kt of the currently excited motor"),
+new ParamProxyBasic<double>("fric std dev thr",     PARAM_ID_FRIC_STD_DEV_THR,  1,                  ParamBilatBounds<double>(0.0, 1.0),         PARAM_MONITOR,      0,                              "Threshold of the standard deviation of the friction parameters of the currently excited motor")
 };
 
 }   // end namespace 

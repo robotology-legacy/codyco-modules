@@ -50,30 +50,62 @@ void AlternatingRecursiveLinearEstimator::predictOutput(const VectorXd &input, d
 }
 
 /*************************************************************************************************/
-void AlternatingRecursiveLinearEstimator::getCurrentParameterEstimate(VectorXd &xEst) const
+void AlternatingRecursiveLinearEstimator::getParameterEstimate(VectorXd &xEst) const
 {
     assert(checkDomainSize(xEst));
     xEst = x;
 }
 
 /*************************************************************************************************/
-void AlternatingRecursiveLinearEstimator::getCurrentParameterEstimate(VectorXd &xEst, MatrixXd &sigma) const
+void AlternatingRecursiveLinearEstimator::getCovarianceMatrix(MatrixXd &sigma) const
 {
     assert(sigma.cols()==n1+n2 && sigma.rows()==n1+n2);
-    getCurrentParameterEstimate(xEst);
     sigma.block(0,0,n1,n1) = sigma1;
     sigma.block(n1,n1,n2,n2) = sigma2;
+    sigma.block(0,n1,n1,n2).setZero();
+    sigma.block(n1,0,n2,n1).setZero();
 }
 
 /*************************************************************************************************/
-void AlternatingRecursiveLinearEstimator::updateParameterEstimation()
+void AlternatingRecursiveLinearEstimator::getParameterEstimate(VectorXd &xEst, MatrixXd &sigma) const
 {
-    estimator1.updateParameterEstimation();
-    estimator2.updateParameterEstimation();
-    estimator1.getCurrentParameterEstimate(x1, sigma1);
-    estimator2.getCurrentParameterEstimate(x2, sigma2);
+    getParameterEstimate(xEst);
+    getCovarianceMatrix(sigma);
+}
+
+/*************************************************************************************************/
+void AlternatingRecursiveLinearEstimator::updateParameterEstimate()
+{
+    estimator1.updateParameterEstimate();
+    estimator2.updateParameterEstimate();
+    estimator1.getParameterEstimate(x1, sigma1);
+    estimator2.getParameterEstimate(x2, sigma2);
     x.segment(0,n1) = x1;
     x.segment(n1,n2) = x2;
+}
+
+/*************************************************************************************************/
+void AlternatingRecursiveLinearEstimator::getEstimationState(MatrixXd &A, VectorXd &bOut) const
+{
+    assert(A.cols()==n1+n2 && A.rows()==n1+n2);
+    assert(bOut.size()==n1+n2);
+    MatrixXd A1(n1,n1), A2(n2,n2);
+    VectorXd b1(n1), b2(n2);
+    estimator1.getEstimationState(A1, b1);
+    estimator2.getEstimationState(A2, b2);
+    A.topLeftCorner(n1,n1)      = A1;
+    A.bottomRightCorner(n2,n2)  = A2;
+    bOut.head(n1)               = b1;
+    bOut.tail(n2)               = b2;
+}
+
+/*************************************************************************************************/
+void AlternatingRecursiveLinearEstimator::setEstimationState(const MatrixXd &A, const VectorXd &bNew)
+{
+    assert(A.cols()==n1+n2 && A.rows()==n1+n2);
+    assert(bNew.size()==n1+n2);
+    estimator1.setEstimationState(A.topLeftCorner(n1,n1), bNew.head(n1));
+    estimator2.setEstimationState(A.bottomRightCorner(n2,n2), bNew.tail(n2));
 }
 
 /*************************************************************************************************/

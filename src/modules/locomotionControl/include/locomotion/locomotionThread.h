@@ -166,6 +166,9 @@ public:
     /** Callback function for rpc commands. */
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
 
+    /** Start the controller. */
+    void startController();
+
 };
 
 } // end namespace

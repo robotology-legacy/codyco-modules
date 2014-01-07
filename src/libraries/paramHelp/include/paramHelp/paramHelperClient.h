@@ -43,17 +43,23 @@ namespace paramHelp
 // 3) Call the method 'init' (actually it can be called at any moment)
 //
 // After the initializion, you can use this class in these ways:
-// 1) To set a parameter through an rpc message call the method 'setRpcParam'
-// 2) To get a parameter through an rpc message call the method 'getRpcParam'
-// 3) To send an rpc command call the method 'sendRpcCommand'
-// 4) To send the input streaming parameters call the method 'sendStreamParams'
-// 5) To read the output streaming parameters call the method 'readStreamParams'
-// 6) To read sporadic info messages (about the module status) call the method 'readInfoMessage'
+// 1) To set a parameter through an rpc message, call the method 'setRpcParam'
+// 2) To get a parameter through an rpc message, call the method 'getRpcParam'
+// 3) To send an rpc command, call the method 'sendRpcCommand'
+// 4) To send the input streaming parameters, call the method 'sendStreamParams'
+// 5) To read the output streaming parameters, call the method 'readStreamParams'
+// 6) To read sporadic info messages (about the module status), call the method 'readInfoMessage'
 ****************************************************************************************************/
 class ParamHelperClient: public ParamHelperBase
 {
 protected:
     yarp::os::Port                              portRpc;        ///< port for rpc messages
+
+    virtual void logMsg(const std::string &s, MsgType type=MSG_INFO) const
+    {
+        if(type>=MSG_DEBUG)
+            printf("[ParamHelperClient] %s\n", s.c_str());
+    }
 
 public:
     /** Constructor.
@@ -82,30 +88,37 @@ public:
     /** Close the ports opened during the initialization phase (see init method). */
     bool close();
 
-    /** Send an rpc command to set the value of the specified parameter
-     * @param paramId Id of the parameter to set
+    /** Send an rpc command to set the value of the specified parameter.
+     * @param paramId Id of the parameter to set.
+     * @param reply Reply to the rpc set message.
      * @return bool True if the operation succeeded, false otherwise. */
-    bool setRpcParam(int paramId);
+    bool setRpcParam(int paramId, yarp::os::Bottle *reply=0);
 
-    /** Send an rpc command to get the value of the specified parameter
-     * @param paramId Id of the parameter to get
+    /** Send an rpc command to get the value of the specified parameter.
+     * @param paramId Id of the parameter to get.
+     * @param reply Reply to the rpc get message.
      * @return bool True if the operation succeeded, false otherwise. */
-    bool getRpcParam(int paramId);
+    bool getRpcParam(int paramId, yarp::os::Bottle *reply=0);
 
-    bool sendRpcCommand(int cmdId);
+    /** Send the specified rpc command to the server.
+     * @param cmdId Id of the command to send.
+     * @param params Parameter to send with the rpc command.
+     * @param reply Reply to the rpc message.
+     * @return True if the operation succeeded, false otherwise. */
+    bool sendRpcCommand(int cmdId, yarp::os::Bottle *params=0, yarp::os::Bottle *reply=0);
 
     /** Read a message from the info port.
-      * @param b Message read
-      * @return True if the operation succeeded, false otherwise */
+      * @param b Message read.
+      * @return True if the operation succeeded, false otherwise. */
     bool readInfoMessage(yarp::os::Bottle &b, bool blockingRead=false);
 
     /** Send the input streaming parameters.
-      * @return True if the operation succeeded, false otherwise */
+      * @return True if the operation succeeded, false otherwise. */
     bool sendStreamParams();
 
     /** Read the output streaming parameters.
-      * @param blockingRead If true the reading is blocking (it waits until data arrive), otherwise it is not
-      * @return True if the operation succeeded, false otherwise */
+      * @param blockingRead If true the reading is blocking (it waits until data arrive), otherwise it is not.
+      * @return True if the data have been read, false otherwise. */
     bool readStreamParams(bool blockingRead=false);
 };
     

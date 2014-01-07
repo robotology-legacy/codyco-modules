@@ -15,19 +15,6 @@
  * Public License for more details
 */ 
 
-#include <yarp/os/BufferedPort.h>
-#include <yarp/os/RFModule.h>
-#include <yarp/os/Time.h>
-#include <yarp/os/Network.h>
-#include <yarp/os/RateThread.h>
-#include <yarp/os/Stamp.h>
-#include <yarp/sig/Vector.h>
-#include <yarp/dev/PolyDriver.h>
-#include <yarp/dev/Drivers.h>
-#include <yarp/dev/ControlBoardInterfaces.h>
-#include <iCub/ctrl/math.h>
-#include <iCub/ctrl/adaptWinPolyEstimator.h>
-
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -37,13 +24,10 @@
 #include "jointTorqueControl/jointTorqueControlThread.h"
 #include "jointTorqueControl/jointTorqueControlModule.h"
 
-YARP_DECLARE_DEVICES(icubmod)
-
 using namespace yarp::dev;
 using namespace paramHelp;
 using namespace wbiIcub;
 using namespace jointTorqueControl;
-using namespace motorFrictionIdentificationLib;
 
 jointTorqueControlModule::jointTorqueControlModule()
 {
@@ -76,8 +60,6 @@ bool jointTorqueControlModule::configure(ResourceFinder &rf)
     rpcPort.open(("/"+moduleName+"/rpc").c_str());
     setName(moduleName.c_str());
     attach(rpcPort);
-
-    initMsg.clear();
     
     //--------------------------WHOLE BODY INTERFACE--------------------------
     robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
@@ -110,21 +92,16 @@ void jointTorqueControlModule::commandReceived(const CommandDescription &cd, con
     switch(cd.id)
     {
     case COMMAND_ID_HELP:   
-        paramHelper->getHelpMessage(reply);     
+        paramHelper->getHelpMessage(reply);
         break;
-    case COMMAND_ID_QUIT:   
-        stopModule(); 
+    case COMMAND_ID_QUIT:
+        stopModule();
         reply.addString("Quitting module.");    
         break;
     }
 }
 
-bool jointTorqueControlModule::interruptModule()
-{
-    if(ctrlThread)  ctrlThread->stop();
-    rpcPort.interrupt();
-    return true;
-}
+bool jointTorqueControlModule::interruptModule(){ return true; }
 
 bool jointTorqueControlModule::close()
 {
@@ -134,6 +111,7 @@ bool jointTorqueControlModule::close()
     if(robotInterface){ robotInterface->close();    delete robotInterface;  robotInterface = 0; }
 
 	//closing ports
+    rpcPort.interrupt();
 	rpcPort.close();
     cout << "about to close"<<endl;
     return true;

@@ -85,6 +85,14 @@ bool LocomotionModule::configure(ResourceFinder &rf)
     if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing locomotion control thread. Closing module.\n"); return false; }
     
     fprintf(stderr,"Locomotion control started\n");
+
+    //-------------------------- CHECK startNow FLAG ---------------------
+    if(rf.check("startNow"))
+    {
+        printf("startNow flag found => Gonna start the controller right away!\n");
+        ctrlThread->startController();
+    }
+
 	return true;
 }
 

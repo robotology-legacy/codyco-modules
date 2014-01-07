@@ -1,0 +1,146 @@
+<application>
+    <name>dataDumperForStateEstimation </name>
+    <dependencies>
+        <port>/icub/inertial</port>
+        <port>/icub/right_leg/state:o</port>
+        <port>/icub/skin/right_foot</port>
+        <port>/icub/right_foot/analog:o</port>
+        <port>/icub/right_leg/analog:o</port>
+        <port> /wholeBodyDynamics/right_foot/endEffectorWrench:o</port>
+    </dependencies>
+
+    <!-- position dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/rightLegPos</parameters>
+        <node>node1</node>
+        <tag>right-leg-pos</tag>
+    </module>
+
+    <!-- velocities dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/rightLegVel</parameters>
+        <node>node1</node>
+        <tag>right-leg-vel</tag>
+    </module>
+    <module>
+        <name>velocityObserver</name>
+        <parameters>--name /icub/obs/right_leg</parameters>
+        <node>node1</node>
+        <tag>right-leg-obs</tag>
+    </module>
+    
+    <!-- accelerations dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/rightLegAcc</parameters>
+        <node>node1</node>
+        <tag>right-leg-acc</tag>
+    </module>
+
+    <!-- skin foot dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/rightFootSkin</parameters>
+        <node>node1</node>
+        <tag>right-foot-skin</tag>
+    </module>
+    
+    <!-- FT foot dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/rightFootFT</parameters>
+        <node>node1</node>
+        <tag>right-foot-ft-sensor</tag>
+    </module>
+
+    <!-- FT leg2foot dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/rightLeg2FootFT</parameters>
+        <node>node1</node>
+        <tag>right-leg2foot-ft-sensor</tag>
+    </module>    
+    
+    <!-- FT leg dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/rightLegFT</parameters>
+        <node>node1</node>
+        <tag>right-leg-ft-sensor</tag>
+    </module>
+    
+    <!-- acc and gyro dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/inertial</parameters>
+        <node>node1</node>
+        <tag>inertial-sensor</tag>
+    </module>
+    
+
+    <!-- pos connections -->
+    <connection>
+        <from>/icub/right_leg/state:o</from>
+        <to>/dump/rightLegPos</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <!-- vel connections -->
+    <connection>
+        <from>/icub/obs/right_leg/vel:o</from>
+        <to>/dump/rightLegVel</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/right_leg/state:o</from>
+        <to>/icub/obs/right_leg/pos:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <!-- acc connections -->
+    <connection>
+        <from>/icub/obs/right_leg/acc:o</from>
+        <to>/dump/rightLegAcc</to>
+        <protocol>udp</protocol>
+    </connection>
+    
+    <!-- skin connections -->
+    <connection>
+        <from>/icub/skin/right_foot</from>
+        <to>/dump/rightFootSkin</to>
+        <protocol>udp</protocol>
+    </connection>
+    
+    <!-- FT foot connections -->
+    <connection>
+        <from>/icub/right_foot/analog:o</from>
+        <to>/dump/rightFootFT</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <!-- FT leg connections -->
+    <connection>
+        <from>/icub/right_leg/analog:o</from>
+        <to>/dump/rightLegFT</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <!-- FT leg2foot connections -->
+    <connection>
+        <from>/wholeBodyDynamics/right_foot/endEffectorWrench:o</from>
+        <to>/dump/rightLeg2FootFT</to>
+        <protocol>udp</protocol>
+    </connection>
+    
+    <!-- gyro and acc connections -->
+    <connection>
+        <from>/icub/inertial</from>
+        <to>/dump/inertial</to>
+        <protocol>udp</protocol>
+    </connection>
+    
+</application>
+
+

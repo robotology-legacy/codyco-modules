@@ -16,22 +16,20 @@
 */
 
 #include <motorFrictionIdentification/motorFrictionIdentificationThread.h>
+#include <motorFrictionIdentificationLib/jointTorqueControlParams.h>
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Random.h>
 #include <yarp/os/Log.h>
-#include <yarp/math/SVD.h>
-
 
 using namespace yarp::math;
 using namespace wbiIcub;
 using namespace motorFrictionIdentification;
-using namespace motorFrictionIdentificationLib;
 
 //*************************************************************************************************************************
 MotorFrictionIdentificationThread::MotorFrictionIdentificationThread(string _name, string _robotName, int _period, 
-    ParamHelperServer *_ph, wholeBodyInterface *_wbi)
-    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi)
+    ParamHelperServer *_ph, wholeBodyInterface *_wbi, ParamHelperClient *_tc)
+    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), torqueController(_tc)
 {
     printCountdown = 0;
     _n = robot->getDoFs();
@@ -46,6 +44,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     resizeAndSetToZero(dq,                      _n);
     resizeAndSetToZero(dqPos,                   _n);
     resizeAndSetToZero(dqNeg,                   _n);
+    resizeAndSetToZero(extTorqueThr,            _n);
     resizeAndSetToZero(torques,                 _n);
     resizeAndSetToZero(dTorques,                _n);
     resizeAndSetToZero(gravTorques,             _n+6);
@@ -57,37 +56,51 @@ bool MotorFrictionIdentificationThread::threadInit()
     resizeAndSetToZero(activeJoints,            _n);
     resizeAndSetToZero(currentGlobalJointIds,   _n);
     resizeAndSetToZero(zeroN,                   _n);
-    resizeAndSetToZero(rhs,                     _n*PARAM_NUMBER);
+    stdDev.kt   =   ArrayXd::Constant(_n, 1e5);
+    stdDev.kvp  =   ArrayXd::Constant(_n, 1e5);
+    stdDev.kvn  =   ArrayXd::Constant(_n, 1e5);
+    stdDev.kcp  =   ArrayXd::Constant(_n, 1e5);
+    stdDev.kcn  =   ArrayXd::Constant(_n, 1e5);
+    // @todo These arrays should have size _n rather than N_DOF 
+    // I need to make the corresponding parameters in jointTorqueControl of free size
+    resizeAndSetToZero(kt,                      jointTorqueControl::N_DOF);
+    resizeAndSetToZero(kvp,                     jointTorqueControl::N_DOF);
+    resizeAndSetToZero(kvn,                     jointTorqueControl::N_DOF);
+    resizeAndSetToZero(kcp,                     jointTorqueControl::N_DOF);
+    resizeAndSetToZero(kcn,                     jointTorqueControl::N_DOF);
     resizeAndSetToZero(estimateMonitor,         PARAM_NUMBER);
     resizeAndSetToZero(stdDevMonitor,           PARAM_NUMBER);
     resizeAndSetToZero(sigmaMonitor,            PARAM_NUMBER,       PARAM_NUMBER);
-    resizeAndSetToZero(covarianceInv,           _n,                 PARAM_NUMBER*PARAM_NUMBER);
+    resizeAndSetToZero(covarianceInv,           _n*PARAM_NUMBER,    PARAM_NUMBER);
+    resizeAndSetToZero(rhs,                     _n,                 PARAM_NUMBER);
 
     currentJointIds.resize(_n);             ///< IDs of the joints currently excited
     inputSamples.resize(_n);
     estimators.resize(_n);
 
+    ///< thread constants
     zero6[0] = zero6[1] = zero6[2] = zero6[3] = zero6[4] = zero6[5] = 0.0;
     ddxB[0] = ddxB[1] = ddxB[3] = ddxB[4] = ddxB[5] = 0.0;
-    ddxB[2] = 9.81;
+    ddxB[2] = 9.81;     ///< gravity acceleration
     
     ///< link module rpc parameters to member variables
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_OUTPUT_FILENAME,        &outputFilename));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ACTIVE_JOINTS,          activeJoints.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_IDENTIF_DELAY,          &delay));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ZERO_JOINT_VEL_THRESH,  &zeroJointVelThr));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ZERO_TORQUE_VEL_THRESH, &zeroTorqueVelThr));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_EXT_TORQUE_THRESH,      &extTorqueThr));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_EXT_TORQUE_THRESH,      extTorqueThr.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL_WIND_SIZE,    &jointVelEstWind));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TORQUE_VEL_WIND_SIZE,   &torqueVelEstWind));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL_EST_THRESH,   &jointVelEstThr));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TORQUE_VEL_EST_THRESH,  &torqueVelEstThr));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TORQUE_FILT_CUT_FREQ,   &torqueFiltCutFreq));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_FILT_CUT_FREQ,      &pwmFiltCutFreq));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_FORGET_FACTOR,          &forgetFactor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_TO_MONITOR,       &jointMonitorName));
-
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_COVARIANCE_INV,         covarianceInv.data()));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_RHS,                    rhs.data()));
+    ///< @todo Populate these variables and use them somehow, otherwise remove these 2 parameters
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_COVARIANCE_INV,         covarianceInv.data(),   _n*PARAM_NUMBER*PARAM_NUMBER));
+    covarianceInv.setZero();
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_RHS,                    rhs.data(),             _n*PARAM_NUMBER));
     ///< link module output monitoring parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_VEL,              &dqMonitor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JOINT_TORQUE,           &torqueMonitor));
@@ -99,6 +112,19 @@ bool MotorFrictionIdentificationThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_EXT_TORQUE,             &extTorqueMonitor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_TORQUE_PREDICT,   &torquePredMonitor));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_IDENTIFICATION_PHASE,   &idPhaseMonitor));
+    ///< link module output streaming parameters to member variables
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KT_STD_DEV,             stdDev.kt.data(),   _n));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KVP_STD_DEV,            stdDev.kvp.data(),  _n));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KVN_STD_DEV,            stdDev.kvn.data(),  _n));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KCP_STD_DEV,            stdDev.kcp.data(),  _n));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KCN_STD_DEV,            stdDev.kcn.data(),  _n));
+    
+    ///< link module jointTorqueControl parameters to member variables
+    YARP_ASSERT(torqueController->linkParam(jointTorqueControl::PARAM_ID_KT,   kt.data()));
+    YARP_ASSERT(torqueController->linkParam(jointTorqueControl::PARAM_ID_KVP,  kvp.data()));
+    YARP_ASSERT(torqueController->linkParam(jointTorqueControl::PARAM_ID_KVN,  kvn.data()));
+    YARP_ASSERT(torqueController->linkParam(jointTorqueControl::PARAM_ID_KCP,  kcp.data()));
+    YARP_ASSERT(torqueController->linkParam(jointTorqueControl::PARAM_ID_KCN,  kcn.data()));
     
     ///< Register callbacks for some module parameters
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_JOINT_VEL_WIND_SIZE,    this));
@@ -106,6 +132,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_JOINT_VEL_EST_THRESH,   this));
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TORQUE_VEL_EST_THRESH,  this));
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TORQUE_FILT_CUT_FREQ,   this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_PWM_FILT_CUT_FREQ,      this));
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_JOINT_TO_MONITOR,       this));
     
     ///< Register callbacks for some module commands
@@ -127,18 +154,11 @@ bool MotorFrictionIdentificationThread::threadInit()
     robot->setEstimationParameter(ESTIMATE_MOTOR_TORQUE_DERIVATIVE, ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE, &torqueVelEstWind);
     robot->setEstimationParameter(ESTIMATE_MOTOR_TORQUE_DERIVATIVE, ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD, &torqueVelEstThr);
     robot->setEstimationParameter(ESTIMATE_MOTOR_TORQUE, ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ, &torqueFiltCutFreq);
+    robot->setEstimationParameter(ESTIMATE_MOTOR_PWM,    ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ, &pwmFiltCutFreq);
 
     ///< read robot status
     if(!readRobotStatus(true))
         return false;
-    
-    // don't know if this stuff is useful
-    /*for(int i=0; i<_n; i++)
-    {
-        LocalId lid = globalToLocalIcubId(freeMotionExc[excitationCounter].jointId[i]);
-        currentGlobalJointIds[i] = robot->getJointList().localToGlobalId(lid);
-        currentJointIds[i] = lid;
-    }*/
     
     printf("\n\n");
     return true;
@@ -161,7 +181,7 @@ void MotorFrictionIdentificationThread::run()
             ///< otherwise, if there is external force, estimate motor gain
             if(fabs(dq[i])>zeroJointVelThr)
                 estimators[i].feedSampleForGroup2(inputSamples[i], pwm[i]);
-            else if(fabs(extTorques[i])>extTorqueThr)
+            else if(fabs(extTorques[i])>extTorqueThr[i] && fabs(torques[i])<TORQUE_SENSOR_SATURATION)
                 estimators[i].feedSampleForGroup1(inputSamples[i], pwm[i]);
         }
     }
@@ -226,26 +246,42 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
 //*************************************************************************************************************************
 void MotorFrictionIdentificationThread::prepareMonitorData()
 {
-    ///< monitor variables
-    int jid = jointMonitor; //robot->getJointList().localToGlobalId(globalToLocalIcubId(jointMonitor));
-    estimators[jid].updateParameterEstimation();    ///< Estimates of the parameters of the monitored joint
-    estimators[jid].getCurrentParameterEstimate(estimateMonitor, sigmaMonitor);
-    stdDevMonitor = sigmaMonitor.diagonal().array().sqrt();     ///< Variances of the parameters of the monitored joint
-    dqMonitor       = dq[jid];                      ///< Velocity of the monitored joint
-    torqueMonitor   = torques[jid];                 ///< Torque of the monitored joint
-    signDqMonitor   = dqSign[jid];                  ///< Velocity sign of the monitored joint
-    pwmMonitor      = pwm[jid];                     ///< Motor pwm of the monitored joint
-    extTorqueMonitor = extTorques[jid];             ///< External torque of the monitored joint
-    sendMsg("Gravity torque: "+toString(gravTorques[6+jid]));
+    ///< ***************************** OUTPUT STREAMING VARIABLES
+    for(int i=0; i<_n; i++)
+    {
+        estimators[i].updateParameterEstimate();
+        estimators[i].getCovarianceMatrix(sigmaMonitor);
+        stdDev.kt[i]    = sqrt(sigmaMonitor.diagonal()[INDEX_K_TAO]);
+        stdDev.kvp[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_VP]);
+        stdDev.kvn[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_VN]);
+        stdDev.kcp[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_CP]);
+        stdDev.kcn[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_CN]);
+    }
+    
+
+    ///< ***************************** MONITOR VARIABLES
+    int jid = jointMonitor;
+    ///< saturate standard deviations to 1.0 to make plots nice
+    stdDevMonitor[INDEX_K_TAO]  = min(stdDev.kt[jid],  STD_DEV_SATURATION);
+    stdDevMonitor[INDEX_K_VP]   = min(stdDev.kvp[jid], STD_DEV_SATURATION);
+    stdDevMonitor[INDEX_K_VN]   = min(stdDev.kvn[jid], STD_DEV_SATURATION);
+    stdDevMonitor[INDEX_K_CP]   = min(stdDev.kcp[jid], STD_DEV_SATURATION);
+    stdDevMonitor[INDEX_K_CN]   = min(stdDev.kcn[jid], STD_DEV_SATURATION);
+    estimators[jid].getParameterEstimate(estimateMonitor);
+    dqMonitor           = dq[jid];                      ///< Velocity of the monitored joint
+    torqueMonitor       = torques[jid];                 ///< Torque of the monitored joint
+    signDqMonitor       = dqSign[jid];                  ///< Velocity sign of the monitored joint
+    pwmMonitor          = pwm[jid];                     ///< Motor pwm of the monitored joint
+    extTorqueMonitor    = extTorques[jid];              ///< External torque of the monitored joint
     ///< Prediction of current motor pwm
     estimators[jid].predictOutput(inputSamples[jid], pwmPredMonitor);   
-    ///< Prediction of motor torque: tau = (-1/k_tau)(-k_tau*pwm/k_tau + k_v\dot{q} + k_c sign(\dot{q}))
+    ///< Prediction of motor torque: tau = -(1/k_tau)(-k_tau*pwm/k_tau + k_v\dot{q} + k_c sign(\dot{q}))
     VectorXd phi = inputSamples[jid];
     double k_tau_inv = fabs(estimateMonitor[INDEX_K_TAO])>0.1 ? 1.0/estimateMonitor[INDEX_K_TAO] : 10.0;
     phi[INDEX_K_TAO] = -pwm[jid] * k_tau_inv;
     torquePredMonitor = -k_tau_inv * estimateMonitor.dot(phi);
     ///< identification phase
-    idPhaseMonitor = fabs(dq[jid])>zeroJointVelThr ? 2 : (fabs(extTorques[jid])>extTorqueThr ? 1 : 0);
+    idPhaseMonitor = fabs(dq[jid])>zeroJointVelThr ? 2 : (fabs(extTorques[jid])>extTorqueThr[jid] ? 1 : 0);
 }
 
 //*************************************************************************************************************************
@@ -294,6 +330,10 @@ void MotorFrictionIdentificationThread::parameterUpdated(const ParamProxyInterfa
         if(!robot->setEstimationParameter(ESTIMATE_MOTOR_TORQUE, ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ, &torqueFiltCutFreq))
             printf("Error while setting torque filter cut frequency.");
         break;
+    case PARAM_ID_PWM_FILT_CUT_FREQ:
+        if(!robot->setEstimationParameter(ESTIMATE_MOTOR_PWM, ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ, &pwmFiltCutFreq))
+            printf("Error while setting motor PWM filter cut frequency.");
+        break;
     case PARAM_ID_JOINT_TO_MONITOR:
         updateJointToMonitor();
         break;
@@ -313,7 +353,7 @@ void MotorFrictionIdentificationThread::commandReceived(const CommandDescription
         break;
 
     case COMMAND_ID_SAVE:
-        reply.addString("Save command received.\n");
+        saveParametersOnFile(params, reply);
         break;
 
     case COMMAND_ID_ACTIVATE_JOINT:
@@ -339,6 +379,46 @@ void MotorFrictionIdentificationThread::commandReceived(const CommandDescription
     default:
         printf("A callback is registered but not managed for the command %s\n", cd.name.c_str());
     }
+}
+
+//*************************************************************************************************************************
+bool MotorFrictionIdentificationThread::saveParametersOnFile(const Bottle &params, Bottle &reply)
+{
+    ///< read the text file name on which to save the parameters
+    if(params.size()<1 || !params.get(0).isString())
+    {
+        reply.addString("Error, the file name is missing");
+        return false;
+    }
+    string outputFilename = params.get(0).asString();
+    
+    ///< update the estimation of the parameters and the estimation state
+    MatrixXd A(PARAM_NUMBER, PARAM_NUMBER);
+    VectorXd b(PARAM_NUMBER);
+    for(int i=0; i<_n; i++)
+    {
+        estimators[i].updateParameterEstimate();
+        estimators[i].getParameterEstimate(estimateMonitor, sigmaMonitor);
+        kt[i]   = estimateMonitor[INDEX_K_TAO];
+        kvp[i]  = estimateMonitor[INDEX_K_VP];
+        kvn[i]  = estimateMonitor[INDEX_K_VN];
+        kcp[i]  = estimateMonitor[INDEX_K_CP];
+        kcn[i]  = estimateMonitor[INDEX_K_CN];
+
+        estimators[i].getEstimationState(A, b);
+        covarianceInv.block(i*PARAM_NUMBER,0,PARAM_NUMBER,PARAM_NUMBER)  = A;
+        rhs.row(i) = b;
+        if(i<5) cout<<"Covariance of joint "<<i<<":\n"<<A<<endl;
+    }
+    
+    ///< save the estimations of the parameters on text file
+    int paramIds[] = { jointTorqueControl::PARAM_ID_KT, jointTorqueControl::PARAM_ID_KVP, jointTorqueControl::PARAM_ID_KVN,
+        jointTorqueControl::PARAM_ID_KCP, jointTorqueControl::PARAM_ID_KCN };
+    bool res = torqueController->writeParamsOnFile(outputFilename, paramIds, 5);
+    
+    ///< save the current values of all the module parameters on another text file (just in case)
+    res = res && paramHelper->writeParamsOnFile(outputFilename+"_identificationState.ini");
+    return res;
 }
 
 //*************************************************************************************************************************

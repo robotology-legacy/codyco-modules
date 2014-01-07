@@ -77,22 +77,33 @@ bool LocomotionPlannerModule::configure(ResourceFinder &rf)
     setName(moduleName.c_str());
     attach(rpcPort);
 
+    //-------------------------- CHECK startIn FLAG ---------------------
+    bool startInFound = rf.check("startIn");
+    if(startInFound)
+    {
+        Value &v = rf.find("startIn");
+        double delay = 10.0;
+        if(v.isInt() || v.isDouble())
+            delay = v.asDouble();
+        printf("startIn flag found => Gonna start the planner in %f seconds!\n", delay);
+        Time::delay(delay);
+    }
+
     // ------------------------------------ PARAMETER HELPER CLIENT FOR LOCOMOTION CONTROLLER -----------------------------------------------
     locoCtrl    = new ParamHelperClient(locomotionParamDescr, locomotion::PARAM_ID_SIZE, locomotionCommandDescr, locomotion::COMMAND_ID_SIZE);
     initMsg.clear();
     if(!locoCtrl->init(moduleName, locoCtrlName, initMsg))
     { printf("Error while trying to connect to LocomotionControl module:\n%s\nClosing module.\n", initMsg.toString().c_str()); return false; }
 
-    //--------------------------WHOLE BODY INTERFACE--------------------------
-    //robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
-    //robotInterface->addJoints(ICUB_MAIN_JOINTS);
-    //if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
-
     //--------------------------CTRL THREAD--------------------------
     ctrlThread = new LocomotionPlannerThread(moduleName, robotName, paramHelper, locoCtrl, robotInterface,fileName);
     if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing locomotion planner thread. Closing module.\n"); return false; }
     
     fprintf(stderr,"Locomotion planner started\n");
+
+    if(startInFound)
+        ctrlThread->startSending();
+
 	return true;
 }
 

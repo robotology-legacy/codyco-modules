@@ -17,9 +17,10 @@
 
 #include <motorFrictionIdentificationLib/motorFrictionExcitationParams.h>
 
-using namespace motorFrictionIdentificationLib;
+using namespace motorFrictionExcitation;
 using namespace yarp::os;
 
+// ************************************************************************************************
 FreeMotionExcitation::FreeMotionExcitation()
 {
     const ParamProxyInterface *const freeMotionExcitationParamDescr[FREE_MOTION_EXCITATION_PARAM_ID_SIZE] =
@@ -71,6 +72,7 @@ FreeMotionExcitation::FreeMotionExcitation()
 //        relinkParam(it->first);
 //}
     
+// ************************************************************************************************
 FreeMotionExcitation& FreeMotionExcitation::operator=(const FreeMotionExcitation& rhs)
 {
     paramList = rhs.paramList;
@@ -87,6 +89,7 @@ FreeMotionExcitation& FreeMotionExcitation::operator=(const FreeMotionExcitation
     return *this;
 }
 
+// ************************************************************************************************
 bool FreeMotionExcitation::setFromValue(const Value &v)
 {
     //printf("FreeMotionExcitation::setFromValue called with input:\n%s\n", v.toString().c_str());
@@ -129,6 +132,7 @@ bool FreeMotionExcitation::setFromValue(const Value &v)
     return res;
 }
 
+// ************************************************************************************************
 bool FreeMotionExcitation::setSubParam(const char *key, const Bottle &value, Bottle *reply)
 {
     //printf("Going to set FreeMotionExcitation subparam %s to: %s\n", key, value.toString().c_str());
@@ -157,6 +161,7 @@ bool FreeMotionExcitation::setSubParam(const char *key, const Bottle &value, Bot
     return false;
 }
 
+// ************************************************************************************************
 Value FreeMotionExcitation::getAsValue()
 {
     Value *v = Value::makeList();
@@ -170,6 +175,7 @@ Value FreeMotionExcitation::getAsValue()
     return *v;
 }
 
+// ************************************************************************************************
 void FreeMotionExcitation::resizeParam(int paramId, int newSize)
 {
     //printf("Param %s changed size to %d\n", paramList[paramId]->name.c_str(), newSize);
@@ -198,6 +204,7 @@ void FreeMotionExcitation::resizeParam(int paramId, int newSize)
     relinkParam(paramId, newSize);
 }
 
+// ************************************************************************************************
 void FreeMotionExcitation::relinkParam(int paramId, int newSize)
 {
     switch(paramId)
@@ -223,6 +230,7 @@ void FreeMotionExcitation::relinkParam(int paramId, int newSize)
     }
 }
 
+// ************************************************************************************************
 bool FreeMotionExcitation::addParams(const ParamProxyInterface *const *pdList, int size)
 {
     for(int i=0;i<size;i++)
@@ -230,7 +238,146 @@ bool FreeMotionExcitation::addParams(const ParamProxyInterface *const *pdList, i
     return true;
 }
 
+// ************************************************************************************************
 string FreeMotionExcitation::toString()
 {
     return getAsValue().toString().c_str();
+}
+
+// ************************************************************************************************
+// ***************************************** ContactExcitation ************************************
+// ************************************************************************************************
+string ContactExcitation::toString() const
+{
+    return strcat("Joint id (",jointId.transpose(),"); Initial joint configuration (", 
+        initialJointConfiguration.transpose(), "); Param covariance threshold (", paramCovarThresh.transpose(),")");
+}
+
+// ************************************************************************************************
+bool ContactExcitation::set(const Bottle &value, Bottle &reply)
+{
+    // value should be a Bottle of 3 elements, each being a Bottle itself
+    Bottle *subparam;
+    bool res = true;
+    for(int i=0; i<value.size(); i++)
+    {
+        if(!value.get(i).isList())
+        {
+            reply.addString(strcat("Element ",i," was expected to be a list but it is not: ",value.get(i).toString()).c_str());
+            continue;
+        }
+        subparam = value.get(i).asList();
+        if(!(subparam->size()>0 && subparam->get(0).isString()))
+        {
+            reply.addString(strcat("First element of Bottle is not the subparameter name: ",subparam->toString()).c_str());
+            continue;
+        }
+        res = res && setSubparam(subparam->get(0).asString().c_str(), subparam->tail(), reply);
+    }
+    return res;
+}
+
+// ************************************************************************************************
+bool ContactExcitation::setSubparam(const string &name, const Bottle &v, Bottle &reply)
+{
+    Bottle value = v;
+    if(value.get(0).isList())   ///< if the value is a list then unpack it
+        value = *v.get(0).asList();
+    bool res = false;
+    //printf("Set subparam %s to %s which has %d elements\n", name.c_str(), value.toString().c_str(), value.size());
+    if(name=="joint_id")
+    {
+        res = true;
+        jointId.resize(value.size());
+        for(int j=0; j<value.size(); j++)
+        {
+            if(!value.get(j).isInt())
+            {
+                res = false;
+                reply.addString(strcat("The value ",j," of the parameter ",name," is not of the expected type").c_str());
+                continue;
+            }
+            jointId[j] = value.get(j).asInt();
+        }
+    }
+    else if(name=="initial_joint_configuration")
+    {
+        res = true;
+        initialJointConfiguration.resize(value.size());
+        for(int j=0; j<value.size(); j++)
+        {
+            if(!(value.get(j).isInt() || value.get(j).isDouble()))
+            {
+                res = false;
+                reply.addString(strcat("The value ",j," of the parameter ",name," is not of the expected type").c_str());
+                continue;
+            }
+            initialJointConfiguration[j] = value.get(j).asDouble();
+        }
+    }
+    else if(name=="param_covar_thresh")
+    {
+        res = true;
+        paramCovarThresh.resize(value.size());
+        for(int j=0; j<value.size(); j++)
+        {
+            if(!value.get(j).isDouble())
+            {
+                res = false;
+                reply.addString(strcat("The value ",j," of the parameter ",name," is not of the expected type").c_str());
+                continue;
+            }
+            paramCovarThresh[j] = value.get(j).asDouble();
+        }
+    }
+    return res;
+}
+
+// ************************************************************************************************
+// ************************************* ContactExcitationList ************************************
+// ************************************************************************************************
+bool ContactExcitationList::readFromConfigFile(ResourceFinder &rf, Bottle &reply)
+{
+    Bottle &b = rf.findGroup("contact_excitation");
+    if(b.isNull())
+    {
+        reply.addString("Section contactExcitation not found");
+        return false;
+    }
+
+    bool res = true;
+    resize(b.size()-1);
+    for(int i=1; i<b.size(); i++)
+    {
+        ConstString key = b.get(i).asString();
+        Bottle &sb = rf.findGroup(key);     ///< find the i-th section "contact_excitation"
+        if(sb.isNull())
+        {
+            reply.addString(strcat("Could not find section ",key).c_str());
+            continue;
+        }
+        if(!sb.get(0).isString())   ///< first element is the section name
+        {
+            reply.addString(strcat("Error parsing contact_excitation param, section name not found: ",sb.get(0).toString()).c_str());
+            continue;
+        }
+        if(sb.size()<2)
+        {
+            std::string section_name = sb.get(0).asString().c_str();
+            reply.addString(("Section "+section_name+" does not have a content").c_str());
+            continue;
+        }
+        ///< the tail can be either a list or a one-element list with the only element being a list itself
+        this->operator[](i-1).set(sb.tail(), reply);
+    }
+    return res;
+}
+
+// ************************************************************************************************
+string ContactExcitationList::toString() const
+{
+    string res;
+    for(unsigned int i=0; i<size(); i++)
+        res += this->operator[](i).toString()+"\n";
+    return res;
 }

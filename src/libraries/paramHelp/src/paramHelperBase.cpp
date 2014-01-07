@@ -14,33 +14,71 @@
 #include <limits.h>
 #include <string>
 #include <fstream>
+#include <time.h>
 #include <iostream>
 #include <stdio.h>
 #include <iomanip>
 #include <cassert>
+
+#ifdef WIN32
+    #include <direct.h>
+    #define GetCurrentDir _getcwd
+#else
+    #include <unistd.h>
+    #define GetCurrentDir getcwd
+ #endif
 
 using namespace std;
 using namespace yarp::sig;
 using namespace yarp::os;
 using namespace paramHelp;
 
+//*************************************************************************************************************************
+ParamHelperBase::ParamHelperBase()
+{
+    initDone         = false;
+    portInStream    = 0;
+    portOutStream   = 0;
+    portOutMonitor  = 0;
+}
 
 //*************************************************************************************************************************
-bool ParamHelperBase::close()
+bool ParamHelperBase::closePorts()
 {
     if(portInStream){   portInStream->interrupt();   portInStream->close();   delete portInStream;   portInStream=0;   }
     if(portOutStream){  portOutStream->interrupt();  portOutStream->close();  delete portOutStream;  portOutStream=0;  }
     if(portOutMonitor){ portOutMonitor->interrupt(); portOutMonitor->close(); delete portOutMonitor; portOutMonitor=0; }
     portInfo.close();
+    initDone = false;
     return true;
 }
 
 //*************************************************************************************************************************
-bool ParamHelperBase::linkParam(int id, void *v)
+bool ParamHelperBase::deleteParameters()
+{
+    ///< delete all the cloned ParamProxyInterfaces
+    for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); ++it)
+    {
+        delete it->second;
+        it->second = 0;
+    }
+    return true;
+}
+
+//*************************************************************************************************************************
+bool ParamHelperBase::linkParam(int id, void *v, int newSize)
 {
     if(!hasParam(id) || v==0) 
         return false;
-    paramList[id]->linkToVariable(v);
+    paramList[id]->linkToVariable(v, newSize);
+    return true;
+}
+
+//*************************************************************************************************************************
+bool ParamHelperBase::registerParamSizeChangedCallback(int id, ParamSizeObserver *observer)
+{
+    if(!hasParam(id)) return false;
+    paramSizeObs[id] = observer;
     return true;
 }
 
@@ -83,8 +121,7 @@ bool ParamHelperBase::addParam(const ParamProxyInterface* pd)
 {
     if(hasParam(pd->id)) 
     {
-        printf("[ParamHelperBase::addParam()]: Parameter %s has the same id of parameter %s\n", 
-            paramList[pd->id]->name.c_str(), pd->name.c_str());
+        logMsg(strcat("[addParam] Parameter ",paramList[pd->id]->name," has the same id of parameter ",pd->name), MSG_ERROR);
         return false;   // there exists a parameter with the same id
     }
     paramList[pd->id] = pd->clone();
@@ -96,8 +133,7 @@ bool ParamHelperBase::addCommand(const CommandDescription &cd)
 {
     if(hasCommand(cd.id))
     {
-        printf("[ParamHelperBase::addCommand()]: Command %s has the same id of command %s\n", 
-            cmdList[cd.id].name.c_str(), cd.name.c_str());
+        logMsg(strcat("[addCommand] Command ",cmdList[cd.id].name," has the same id of command ",cd.name), MSG_ERROR);
         return false;   // there exists a command with the same id
     }
     cmdList[cd.id] = cd;
@@ -117,7 +153,50 @@ bool ParamHelperBase::checkParamConstraints(int id, const Bottle &v, Bottle &rep
 }
 
 //*************************************************************************************************************************
-void ParamHelperBase::logMsg(const string &s, MsgType type)
+bool ParamHelperBase::writeParamsOnFile(string filename, int *paramIds, int paramNumber)
+{
+    ofstream file(filename.c_str(), ios::out | ios::app); ///< append content at the end of the file
+    if(!file.is_open())
+    {
+        logMsg("[writeParamsOnFile] Error while opening file "+filename, MSG_ERROR);
+        return false;
+    }
+
+    time_t rawtime;
+    time (&rawtime);
+    file<<"%File written on "<< ctime(&rawtime)<< endl;
+    ///< if no parameter is specified, write all of them
+    if(paramNumber<=0 || paramIds==0)
+    {
+        for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
+            file<< it->second->name<<"\t"<<it->second->getAsString()<<endl;
+    }
+    else
+    {
+        ParamProxyInterface *ppi;
+        for(int i=0; i<paramNumber; i++)
+        {
+            if(!hasParam(paramIds[i]))
+            {
+                logMsg(strcat("[writeParamsOnFile] There exists no parameter with id", paramIds[i]), MSG_ERROR);
+                continue;
+            }
+            ppi = paramList[paramIds[i]];
+            file<< ppi->name<<"\t"<<ppi->getAsString()<<endl;
+        }
+    }
+
+    ///< close the file and return
+    char the_path[256];
+    GetCurrentDir(the_path, 255);
+    logMsg(strcat("Written file ", the_path,"\\",filename), MSG_INFO);
+    file<<endl;
+    file.close();
+    return true;
+}
+
+//*************************************************************************************************************************
+void ParamHelperBase::logMsg(const string &s, MsgType type) const
 {
     if(type>=MSG_DEBUG)
         printf("[ParamHelper] %s\n", s.c_str());

@@ -43,8 +43,8 @@ namespace motorFrictionIdentification
  * \f]
  * To avoid storing all the samples in memory the estimator only need to store \f$ A_t \in R^{n \times n}\f$
  * and \f$ b_t \in R^n\f$, which have constant size. Actually, to improve the numerical accuracy
- * of the estimation, we store the Cholesky decomposition of \f$ A_t \f$, that is a triangular matrix
- * \f$ R_t \in R^{n \times n} \f$ such that \f$ A_t = R_t^T R_t \f$. It uses a rank 1 update rule to
+ * of the estimation, the Cholesky decomposition of \f$ A_t \f$ is stored, which is a triangular matrix
+ * \f$ R_t \in R^{n \times n} \f$ such that \f$ A_t = R_t^T R_t \f$. A rank-1 update rule is used to
  * incrementally update the Cholesky decomposition.
  */
 class RecursiveLinearEstimator
@@ -76,29 +76,57 @@ public:
     void feedSample(const Eigen::VectorXd &input, const double &output);
 
     /** Update the current estimation of the parameters. */
-    void updateParameterEstimation();
+    void updateParameterEstimate();
 
-    /** Given an input predicts the corresponding output using the current parameter
-     * estimate (remember to call updateParameterEstimation before).
+    /** Given an input predicts the corresponding output using the current parameter estimate.
      * @param input A sample input.
-     * @param output Output vector containing the predicted model output. */
+     * @param output Output vector containing the predicted model output. 
+     * @note Remember to call updateParameterEstimate before.*/
     void predictOutput(const Eigen::VectorXd &input, double &output) const;
 
     /** Reset the status of the estimator. */
     inline void reset(){ resizeAllVariables(); }
 
-    /** Get the current estimate of the parameters x (remember to call updateParameterEstimation before).
-     * @param xEst Output vector containing the current estimate of the parameters. */
-    void getCurrentParameterEstimate(Eigen::VectorXd &xEst) const;
-
-    /** Get the current estimate of the parameters x (remember to call updateParameterEstimation before).
+    /** Get the current estimate of the parameters x.
      * @param xEst Output vector containing the current estimate of the parameters. 
-     * @param sigma Covariance matrix. */
-    void getCurrentParameterEstimate(Eigen::VectorXd &xEst, Eigen::MatrixXd &sigma) const;
+     * @note Remember to call updateParameterEstimate before. */
+    void getParameterEstimate(Eigen::VectorXd &xEst) const;
+
+    /** Get the current estimate of the parameters x and the covariance matrix.
+     * @param xEst Output vector containing the current estimate of the parameters. 
+     * @param sigma Output covariance matrix. 
+     * @note Remember to call updateParameterEstimate before. */
+    void getParameterEstimate(Eigen::VectorXd &xEst, Eigen::MatrixXd &sigma) const;
+
+    /** Get the current covariance matrix.
+     * @param sigma Output covariance matrix. 
+     * @note Remember to call updateParameterEstimate before. */
+    void getCovarianceMatrix(Eigen::MatrixXd &sigma) const;
+
+    /** Get the current state of this estimator under the form of the matrix \f$A\f$ and
+     * the vector \f$b\f$, which are defined by this equation:
+     * \f[
+     * \underbrace{\Phi_t^T \Phi_t}_{A_t} \hat{x}_t = \underbrace{\Phi_t^T Y_t}_{b_t}
+     * \f]
+     * \f$A\f$ and \f$b\f$ can be used to resume the estimation from the current state
+     * at a later time.
+     * @param A Output matrix filled with the inverse of the covariance matrix.
+     * @param b Output vector filled with the right-hand side of the normal LS equation. */
+    void getEstimationState(Eigen::MatrixXd &A, Eigen::VectorXd &b) const;
+
+    /** Set the state of this estimator under the form of the matrix \f$A\f$ and
+     * the vector \f$b\f$, which are defined by this equation:
+     * \f[
+     * \underbrace{\Phi_t^T \Phi_t}_{A_t} \hat{x}_t = \underbrace{\Phi_t^T Y_t}_{b_t}
+     * \f]
+     * \f$A\f$ and \f$b\f$ can be retrieved through the method getEstimationState.
+     * @param A Inverse of the covariance matrix.
+     * @param b Right-hand side vector of the normal LS equation. */
+    void setEstimationState(const Eigen::MatrixXd &A, const Eigen::VectorXd &b);
 
     /** Returns the size (dimensionality) of the input domain.
      * @return The size of the input domain. */
-    unsigned int getParamSize() const { return this->n; }
+    inline unsigned int getParamSize() const { return this->n; }
 
     /** Set the size of the parameter vector and reset the status of the estimator.
      * @param size The desired size of the parameter vector. */

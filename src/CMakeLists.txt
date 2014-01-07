@@ -1,9 +1,14 @@
 add_subdirectory(libraries) 
-add_subdirectory(sensorsInterfaces)
+#add_subdirectory(sensorsInterfaces)
 #add_subdirectory(wbci)
 #add_subdirectory(wbciy)
 add_subdirectory(modules)
 add_subdirectory(tests)
+#built ftDumper only if YARP24 is found
+if(CODYCO_BUILD_YARP24_MODULES)
+   add_subdirectory(misc/ftDumper)
+endif(CODYCO_BUILD_YARP24_MODULES)
+
 
 if (ICUB_USE_XDE)
      add_subdirectory(reachComBalance)

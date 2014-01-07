@@ -355,6 +355,7 @@ icubWholeBodyEstimator::icubWholeBodyEstimator(int _period, icubWholeBodySensors
     ///< Cut frequencies
     tauJCutFrequency    =   3.0;
     tauMCutFrequency    =   3.0;
+    pwmCutFrequency     =   3.0;
 }
 
 bool icubWholeBodyEstimator::threadInit()
@@ -368,9 +369,11 @@ bool icubWholeBodyEstimator::threadInit()
     ///< read sensors
     bool ok = sensors->readSensors(SENSOR_ENCODER, estimates.lastQ.data(), qStamps.data(), true);
     ok = ok && sensors->readSensors(SENSOR_TORQUE, estimates.lastTauJ.data(), tauJStamps.data(), true);
+    ok = ok && sensors->readSensors(SENSOR_PWM, estimates.lastPwm.data(), pwmStamps.data(), true);
     ///< create low pass filters
     tauJFilt    = new FirstOrderLowPassFilter(tauJCutFrequency, getRate()*1e-3, estimates.lastTauJ);
     tauMFilt    = new FirstOrderLowPassFilter(tauMCutFrequency, getRate()*1e-3, estimates.lastTauJ);
+    pwmFilt     = new FirstOrderLowPassFilter(pwmCutFrequency, getRate()*1e-3, estimates.lastPwm);
     return ok;
 }
 
@@ -407,6 +410,10 @@ void icubWholeBodyEstimator::run()
             //el.data = tauM;
             estimates.lastDtauM = dTauMFilt->estimate(el);  ///< derivative filter
         }
+
+        ///< Read motor pwm
+        sensors->readSensors(SENSOR_PWM, pwm.data(), pwmStamps.data(), false);
+        estimates.lastPwm = pwmFilt->filt(pwm);     ///< low pass filter
     }
     mutex.post();
     
@@ -434,6 +441,8 @@ void icubWholeBodyEstimator::resizeAll(int n)
     qStamps.resize(n);
     tauJ.resize(n);
     tauJStamps.resize(n);
+    pwm.resize(n);
+    pwmStamps.resize(n);
     estimates.lastQ.resize(n);
     estimates.lastDq.resize(n);
     estimates.lastD2q.resize(n);
@@ -441,6 +450,7 @@ void icubWholeBodyEstimator::resizeAll(int n)
     estimates.lastTauM.resize(n);
     estimates.lastDtauJ.resize(n);
     estimates.lastDtauM.resize(n);
+    estimates.lastPwm.resize(n);
 }
 
 bool icubWholeBodyEstimator::lockAndCopyVector(const Vector &src, double *dest)
@@ -508,6 +518,10 @@ bool icubWholeBodyEstimator::lockAndSetEstimationParameter(const EstimateType et
         break;
     
     case ESTIMATE_MOTOR_PWM:
+        if(ep==ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ)
+            res = setPwmCutFrequency(((double*)value)[0]);
+        break;
+
     case ESTIMATE_IMU:
     case ESTIMATE_FORCE_TORQUE:
     case ESTIMATE_JOINT_POS:
@@ -590,4 +604,9 @@ bool icubWholeBodyEstimator::setTauJCutFrequency(double fc)
 bool icubWholeBodyEstimator::setTauMCutFrequency(double fc)
 {
     return tauMFilt->setCutFrequency(fc);
+}
+
+bool icubWholeBodyEstimator::setPwmCutFrequency(double fc)
+{
+    return pwmFilt->setCutFrequency(fc);
 }
