@@ -42,6 +42,7 @@
 
 # Modified to properly find the libraries on Windows 32/64 bits by Jorhabib Eljaik,
 # Istituto Italiano di Tecnologia, RBCS Department. Genoa, Italy.
+# This module should find from Matlab 7.1 R14SP3 to Matlab 8 R2012b
 #=============================================================================
 
 SET(MATLAB_FOUND 0)
