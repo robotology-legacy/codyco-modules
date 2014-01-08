@@ -22,6 +22,10 @@ Before installing CoDyCo software it is necessary to install some dependencies:
 You can follow the instructions on: http://wiki.icub.org/wiki/ICub_Software_Installation .
 You should install at least Yarp version 2.3.22 and iCub version 1.1.13 .
 
+**The repository is being migrated to yarp version 2.4 (current yarp master branch).**
+
+*Modules _comStepper_ and _wholeBodyDynamicsTree_ are already migrated to version 2.4, so it is necessary to install yarp from the repository to build them.* 
+
 ###Eigen
 You can follow the instructions on: http://eigen.tuxfamily.org .
 For example, on OS X you can simply use brew to install Eigen:
@@ -34,12 +38,16 @@ while on Debian/Ubuntu you can use apt-get :
 sudo apt-get install libeigen3-dev
 ```
 
+The minimum version of Eigen required by codyco is 3.0.5
+
+**The module motorFrictionIdentification requires at least Eigen version 3.1.0**
+
+
 ###kdl
-It is possible to install orocos_kdl easily from the orocos github repository (version 1.2.0 is recommended, but other versions, for example those shipped with ROS should work without problems):
+It is possible to install orocos_kdl easily from the orocos github repository. The master branch of the repository is required only for proper windows installation, while for Linux also older versions, as the one provided by ROS releases are ok):
 ```bash
 git clone https://github.com/orocos/orocos_kinematics_dynamics
 cd orocos_kinematics_dynamics
-git checkout v1.2.0
 cd orocos_kdl
 mkdir build 
 cd build
@@ -61,4 +69,5 @@ ccmake ../
 make
 sudo make install
 ```
+
     
