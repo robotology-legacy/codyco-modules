@@ -28,7 +28,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
 include(YarpIDL)
 
 set(generated_libs_dir "${CMAKE_CURRENT_SOURCE_DIR}")
-yarp_idl_to_dir(IRpcServer.thrift ${generated_libs_dir})
+yarp_idl_to_dir(wholeBodyDynamics.thrift ${generated_libs_dir})
 
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
