@@ -76,27 +76,27 @@
  * \section sec_configuration_file Configuration File
  *
  * Parameters for free-motion excitation:
- * - initialJointConfiguration
+ * - initial_joint_configuration
  * - a
  * - a0
  * - w
- * - jointLimitThreshold
- * - frictionParamCovarianceThreshold
+ * - joint_limit_thresh
+ * - fric_param_covar_thresh
  *
  * Parameters for in-contact excitation:
- * - initialJointConfiguration
+ * - initial_joint_configuration
  * - a
  * - a0
  * - w
- * - movableJoints
- * - jointLimitThreshold
- * - contactForceThreshold
- * - contactMomentThreshold
+ * - movable_joints
+ * - joint_limit_thresh
+ * - contact_force_thresh
+ * - contact_moment_thresh
  * 
  *
  * \section sec_rpc_commands RPC Commands
  *
- * The module opens a YARP rpc port with name *\<moduleName>\rpc*. 
+ * The module opens a YARP rpc port with name "\<moduleName>\rpc". 
  * The rpc commands accepted by this module are:
  * - start: (re-)start the excitation
  * - stop:  stop the excitation
@@ -122,8 +122,8 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Vocab.h>
 
-#include <paramHelp/paramHelpServer.h>
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <paramHelp/paramHelperServer.h>
+
 #include <motorFrictionExcitation/motorFrictionExcitationThread.h>
  
 using namespace std;
@@ -139,13 +139,15 @@ class MotorFrictionExcitationModule: public RFModule, public CommandObserver
     /* module parameters */
 	string  moduleName;
 	string  robotName;
-    int     period;
+    int     threadPeriod;
     double  avgTime, stdDev, avgTimeUsed, stdDevUsed;
 
-	Port                rpcPort;		// a port to handle rpc messages
-	MotorFrictionExcitationThread*   ctrlThread;     // MotorFrictionExcitation control thread
-    ParamHelperServer*  paramHelper;    // helper class for rpc set/get commands and streaming data
-    wholeBodyInterface* robotInterface; // interface to communicate with the robot
+	Port                            rpcPort;		// a port to handle rpc messages
+	MotorFrictionExcitationThread*  ctrlThread;     // MotorFrictionExcitation control thread
+    ParamHelperServer*              paramHelper;    // helper class for rpc set/get commands and streaming data
+    ParamHelperClient*              identificationModule;   ///< interface to communicate with identification module
+    string                          motorFrictionIdentificationName;    ///< name of the motorFrictionIdentification module
+    wholeBodyInterface*             robotInterface; // interface to communicate with the robot
 
 public:
     MotorFrictionExcitationModule();
@@ -154,7 +156,7 @@ public:
 	bool interruptModule();                       // interrupt, e.g., the ports 
 	bool close();                                 // close and shut down the module
 	bool respond(const Bottle& command, Bottle& reply);
-	double getPeriod(){ return period;  }
+	double getPeriod(){ return 20.0;  }
 	bool updateModule();
 
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);

@@ -1,0 +1,29 @@
+
+<application>
+<name>ftDumper - yarpscopes</name>
+
+        <dependencies>
+        </dependencies>
+
+        <module>
+            <name>yarpscope</name>
+            <parameters>--context ftDumper/yarpscope --xml scope_feetsensors.xml</parameters>
+            <node>console</node>
+            <tag>scope-feet-sensors</tag>
+        </module>
+       
+        <module>
+            <name>yarpscope</name>
+            <parameters>--context ftDumper/yarpscope --xml scope_jointtorques.xml</parameters>
+            <node>console</node>
+            <tag>scope-feet-sensors</tag>
+        </module>
+
+        <module>
+            <name>yarpscope</name>
+            <parameters>--context ftDumper/yarpscope --xml scope_forcetorquesensors.xml</parameters>
+            <node>console</node>
+            <tag>scope-feet-sensors</tag>
+        </module> 
+
+</application>

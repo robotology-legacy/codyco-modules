@@ -26,6 +26,7 @@ include(iCubOptions)
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
+                    ${motorFrictionIdentificationLib_INCLUDE_DIRS}
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
@@ -39,11 +40,13 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} skinDynLib ctrlLib wholeBodyInterface wholeBodyInterfaceIcub paramHelp iDynTree ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME} motorFrictionIdentificationLib ${YARP_LIBRARIES} skinDynLib ctrlLib wholeBodyInterface wholeBodyInterfaceIcub paramHelp iDynTree ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
 
 if(WIN32)
 	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})	
 else(WIN32)
 	INSTALL_TARGETS(/bin ${PROJECTNAME})
 endif(WIN32)
+
+add_subdirectory(app)
 

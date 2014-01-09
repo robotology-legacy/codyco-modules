@@ -1,0 +1,388 @@
+<application>
+<name>Data dumpers: whole body </name>
+<dependencies>
+	<port>/wholeBodyDynamics/filtered/inertial:o</port>
+	<port>/icub/left_leg/analog:o</port>
+	<port>/icub/right_arm/state:o</port>
+	<port>/icub/left_arm/state:o</port>
+	<port>/icub/torso/state:o</port>
+	<port>/icub/head/state:o</port>
+	<port>/icub/cartesianController/left_arm/state:o</port>
+	<port>/icub/cartesianController/right_arm/state:o</port>
+</dependencies>
+
+<!-- inertial -->
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/inertial --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>	
+	<tag>inertial-sensor</tag>
+</module>
+<!-- FT sensor -->
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/leftArmFTS --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	
+	<tag>left-arm-ft-sensor</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/rightArmFTS --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>	
+	<tag>right-arm-ft-sensor</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/leftLegFTS --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>left-leg-ft-sensor</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/leftFootFTS --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>left-foot-ft-sensor</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/rightFootFTS --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>right-foot-ft-sensor</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/rightLegFTS --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>right-leg-ft-sensor</tag>
+</module>
+<!-- COM -->
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/leftArmCOM --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>left-arm-COM</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/rightArmCOM --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>right-arm-COM</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/leftLegCOM --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>left-leg-COM</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/rightLegCOM --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>right-leg-COM</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/torsoCOM --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>torso-COM</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/headCOM --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>head-COM</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/globalCOM --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>global-COM</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/upperBodyCOM --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>upper-body-COM</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/globalCOM_Jacobian --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>global-COM-Jacobian</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/globalCOM_velocity --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>global-COM-velocity</tag>
+</module>
+<!-- joints -->
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/head --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>head-joints</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/leftArm --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>left-arm-joints</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/rightArm --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>right-arm-joints</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/torso --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>torso-joints</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/leftLeg --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>left-leg-joints</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/rightLeg --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>right-leg-joints</tag>
+</module>
+<!-- cartesian -->
+
+<!-- joint torques -->
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/leftArmTorques --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>left-arm-torques</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/rightArmTorques --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>right-arm-torques</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/leftLegTorques --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>left-leg-torques</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/rightLegTorques --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>right-leg-torques</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/torsoTorques --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>torso-torques</tag>
+</module>
+<!-- end effectors -->
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/leftArmEndEffector --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>left-arm-endeffector</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/rightArmEndEffector --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>right-arm-endeffector</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/leftLegEndEffector --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>left-leg-endeffector</tag>
+</module>
+<module>
+	<name>dataDumper</name>
+	<parameters>--name /dumpWB/rightLegEndEffector --type bottle --rxTime --downsample 100</parameters>
+	<node>node1</node>
+	<tag>right-leg-endeffector</tag>
+</module>
+
+<!-- inertial -->
+<connection>
+  <from>/wholeBodyDynamics/filtered/inertial:o</from>
+  <to>/dumpWB/inertial</to>
+  <protocol>udp</protocol>
+</connection>
+<!-- FT sensor -->
+<connection>
+  <from>/icub/left_arm/analog:o</from>
+  <to>/dumpWB/leftArmFTS</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/icub/right_arm/analog:o</from>
+  <to>/dumpWB/rightArmFTS</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/icub/left_leg/analog:o</from>
+  <to>/dumpWB/leftLegFTS</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/icub/right_leg/analog:o</from>
+  <to>/dumpWB/rightLegFTS</to>
+  <protocol>udp</protocol>
+</connection>
+
+<connection>
+  <from>/icub/left_foot/analog:o</from>
+  <to>/dumpWB/leftFootFTS</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/icub/right_foot/analog:o</from>
+  <to>/dumpWB/rightFootFTS</to>
+  <protocol>udp</protocol>
+</connection>
+<!-- COM -->
+<connection>
+  <from>/wholeBodyDynamics/left_arm/com:o</from>
+  <to>/dumpWB/leftArmCOM</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/right_arm/com:o</from>
+  <to>/dumpWB/rightArmCOM</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/left_leg/com:o</from>
+  <to>/dumpWB/leftLegCOM</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/right_leg/com:o</from>
+  <to>/dumpWB/rightLegCOM</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/torso/com:o</from>
+  <to>/dumpWB/torsoCOM</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/head/com:o</from>
+  <to>/dumpWB/headCOM</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/upper_body/com:o</from>
+  <to>/dumpWB/upperBodyCOM</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/com:o</from>
+  <to>/dumpWB/globalCOM</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/com_jacobian:o</from>
+  <to>/dumpWB/globalCOM_Jacobian</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/com_vel:o</from>
+  <to>/dumpWB/globalCOM_velocity</to>
+  <protocol>udp</protocol>
+</connection>
+<!-- joints -->
+<connection>
+  <from>/icub/right_arm/state:o</from>
+  <to>/dumpWB/rightArm</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/icub/left_arm/state:o</from>
+  <to>/dumpWB/leftArm</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/icub/head/state:o</from>
+  <to>/dumpWB/head</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/icub/torso/state:o</from>
+  <to>/dumpWB/torso</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/icub/right_leg/state:o</from>
+  <to>/dumpWB/rightLeg</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/icub/left_leg/state:o</from>
+  <to>/dumpWB/leftLeg</to>
+  <protocol>udp</protocol>
+</connection>
+<!-- cartesian -->
+
+<!-- joint torques -->
+<connection>
+  <from>/wholeBodyDynamics/right_arm/Torques:o</from>
+  <to>/dumpWB/rightArmTorques</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/left_arm/Torques:o</from>
+  <to>/dumpWB/leftArmTorques</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/torso/Torques:o</from>
+  <to>/dumpWB/torsoTorques</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/right_leg/Torques:o</from>
+  <to>/dumpWB/rightLegTorques</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/left_leg/Torques:o</from>
+  <to>/dumpWB/leftLegTorques</to>
+  <protocol>udp</protocol>
+</connection>
+<!-- end effectors -->
+<connection>
+  <from>/wholeBodyDynamics/right_arm/endEffectorWrench:o</from>
+  <to>/dumpWB/rightArmEndEffector</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/left_arm/endEffectorWrench:o</from>
+  <to>/dumpWB/leftArmEndEffector</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/right_leg/endEffectorWrench:o</from>
+  <to>/dumpWB/rightLegEndEffector</to>
+  <protocol>udp</protocol>
+</connection>
+<connection>
+  <from>/wholeBodyDynamics/left_leg/endEffectorWrench:o</from>
+  <to>/dumpWB/leftLegEndEffector</to>
+  <protocol>udp</protocol>
+</connection>
+
+</application>
+
+

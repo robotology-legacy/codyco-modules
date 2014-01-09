@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<portscope rows="2" columns="1">
+    <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Desired PWM" size="1000" minval="-200" maxval="200" bgcolor="white">
+        <graph remote="/excitation/monitor:o" index="1" color="Red" title="Desired PWM" type="lines" size="2" />
+    </plot>
+
+    <!-- plotting COM y -->
+    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Joint angle" size="1000" bgcolor="white">
+        <graph remote="/excitation/monitor:o" index="0" color="Blue" title="Joint angle" type="lines" size="3" />
+    </plot>
+
+</portscope>

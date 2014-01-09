@@ -108,12 +108,12 @@ bool LocomotionThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,                   qDeg.data()));      // variable size
     
     // Register callbacks for some module parameters
-    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_XDES_FOOT,           this));
-    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_COM,       this));
-    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_FOOT,      this));
-    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_TRAJ_TIME_POSTURE,   this));
-    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_ACTIVE_JOINTS,       this));
-    YARP_ASSERT(paramHelper->registerParamCallback(PARAM_ID_SUPPORT_PHASE,       this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_XDES_FOOT,           this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TRAJ_TIME_COM,       this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TRAJ_TIME_FOOT,      this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TRAJ_TIME_POSTURE,   this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_ACTIVE_JOINTS,       this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_SUPPORT_PHASE,       this));
 
     // Register callbacks for some module commands
     YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
@@ -129,9 +129,13 @@ bool LocomotionThread::threadInit()
         return false;
 
     // create and initialize trajectory generators
-    trajGenCom      = new minJerkTrajGen(2,         getRate()*1e-3, DEFAULT_TT_COM);
-    trajGenFoot     = new minJerkTrajGen(7,         getRate()*1e-3, DEFAULT_TT_FOOT);
-    trajGenPosture  = new minJerkTrajGen(ICUB_DOFS, getRate()*1e-3, DEFAULT_TT_POSTURE);
+    trajGenCom      = new minJerkTrajGen(2,         getRate()*1e-3, tt_com);
+    trajGenFoot     = new minJerkTrajGen(7,         getRate()*1e-3, tt_foot);
+    trajGenPosture  = new minJerkTrajGen(ICUB_DOFS, getRate()*1e-3, tt_posture);
+
+    xd_com      = x_com;
+    xd_foot     = x_foot;
+    qd          = qDeg;
 
     printf("\n\n");
     return true;
@@ -171,9 +175,9 @@ void LocomotionThread::run()
 bool LocomotionThread::readRobotStatus(bool blockingRead)
 {
     // read joint angles
-    bool res = robot->getEstimates(ESTIMATE_JOINT_POS, qRad.data(), blockingRead);
-    res = res && robot->getEstimates(ESTIMATE_JOINT_VEL, dqJ.data(), -1.0, blockingRead);
-    res = res && robot->getEstimates(ESTIMATE_FORCE_TORQUE, ftSens.data(), -1.0, blockingRead);
+    bool res =   robot->getEstimates(ESTIMATE_JOINT_POS,    qRad.data(),    -1.0, blockingRead);
+    res = res && robot->getEstimates(ESTIMATE_JOINT_VEL,    dqJ.data(),     -1.0, blockingRead);
+    res = res && robot->getEstimates(ESTIMATE_FORCE_TORQUE, ftSens.data(),  -1.0, blockingRead);
     qDeg = CTRL_RAD2DEG*qRad;
     
     // base orientation conversion
@@ -183,20 +187,28 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     H_base_leftFoot.setToInverse().get4x4Matrix(H_w2b.data());    // rototranslation from world (i.e. left foot) to robot base
 #endif
     xBase.set4x4Matrix(H_w2b.data());
+
     // select which foot to control (when in double support, select the right foot)
     footLinkId = supportPhase==SUPPORT_RIGHT ? LINK_ID_LEFT_FOOT : LINK_ID_RIGHT_FOOT;
+
     // forward kinematics
+    double x_com7d[7];
     res = res && robot->forwardKinematics(qRad.data(), xBase, footLinkId,    x_foot.data());
-    res = res && robot->forwardKinematics(qRad.data(), xBase, comLinkId,     x_com.data());
+    res = res && robot->forwardKinematics(qRad.data(), xBase, comLinkId,     x_com7d);
+    x_com(0) = x_com7d[0];
+    x_com(1) = x_com7d[1];
+
     // compute Jacobians of both feet and CoM
     res = res && robot->computeJacobian(qRad.data(), xBase, LINK_ID_RIGHT_FOOT,  JfootR.data());
     res = res && robot->computeJacobian(qRad.data(), xBase, LINK_ID_LEFT_FOOT,   JfootL.data());
     res = res && robot->computeJacobian(qRad.data(), xBase, comLinkId,           Jcom_6xN.data());
+
     // convert Jacobians
     solver->com.A = Jcom_6xN.topRows<2>();  // we control just CoM projection on the ground
     if(supportPhase==SUPPORT_DOUBLE){       solver->foot.A.setZero();    solver->constraints.A.topRows<6>()=JfootR; solver->constraints.A.bottomRows<6>()=JfootL; }
     else if(supportPhase==SUPPORT_LEFT){    solver->foot.A=JfootR;       solver->constraints.A = JfootL; }
     else{                                   solver->foot.A=JfootL;       solver->constraints.A = JfootR; }
+
     // estimate base velocity from joint velocities
     Jcb = solver->constraints.A.leftCols<6>();
     svdJcb = Jcb.jacobiSvd(ComputeThinU | ComputeThinV);
@@ -373,9 +385,9 @@ void LocomotionThread::threadRelease()
 }
 
 //*************************************************************************************************************************
-void LocomotionThread::parameterUpdated(const ParamDescription &pd)
+void LocomotionThread::parameterUpdated(const ParamProxyInterface *pd)
 {
-    switch(pd.id)
+    switch(pd->id)
     {
     case PARAM_ID_XDES_FOOT:
         normalizeFootOrientation(); break;
@@ -390,7 +402,7 @@ void LocomotionThread::parameterUpdated(const ParamDescription &pd)
     case PARAM_ID_SUPPORT_PHASE: 
         numberOfConstraintsChanged(); break;
     default:
-        sendMsg("A callback is registered but not managed for the parameter "+pd.name, MSG_WARNING);
+        sendMsg("A callback is registered but not managed for the parameter "+pd->name, MSG_WARNING);
     }
 }
 
@@ -408,6 +420,14 @@ void LocomotionThread::commandReceived(const CommandDescription &cd, const Bottl
     default:
         sendMsg("A callback is registered but not managed for the command "+cd.name, MSG_WARNING);
     }
+}
+
+//*************************************************************************************************************************
+void LocomotionThread::startController()
+{
+    paramHelper->lock();
+    preStartOperations();
+    paramHelper->unlock();
 }
 
 //*************************************************************************************************************************

@@ -1,9 +1,13 @@
 add_subdirectory(libraries) 
-add_subdirectory(sensorsInterfaces)
+#add_subdirectory(sensorsInterfaces)
 #add_subdirectory(wbci)
 #add_subdirectory(wbciy)
 add_subdirectory(modules)
 add_subdirectory(tests)
+#built ftDumper only if YARP24 is found
+if(CODYCO_BUILD_YARP24_MODULES)
+   add_subdirectory(misc/ftDumper)
+endif(CODYCO_BUILD_YARP24_MODULES)
 
 
 if (ICUB_USE_XDE)
@@ -14,4 +18,9 @@ else (ICUB_USE_XDE)
      message(STATUS "ISIR modules with XDE: NO")
 endif (ICUB_USE_XDE)
 
-
+if(SIMULINK_LIBRARY)
+	add_subdirectory(simulink)
+	message(STATUS "Simulink library will be compiled")
+else(SIMULINK_LIBRARY)
+	message(STATUS "Simulink library skipped")
+endif(SIMULINK_LIBRARY)

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- Plotting monitor parameters of motorFrictionIdentification module, that are:
+0		dq				Velocity of the monitored joint
+1		torque			Torque of the monitored joint
+2		sign dq			Velocity sign of the monitored joint
+3		pwm				Motor pwm of the monitored joint
+4		pwm predicted	Prediction of the motor pwm of the monitored joint
+5-9		estimates		Estimates of the 5 parameters of the monitored joint
+10-14	std dev			Standard deviation of the estimates
+15		torque precited
+16		external torque
+17		identification phase	0 none, 1 torque, 2 friction
+-->
+
+<!-- Plotting monitor parameters of motorFrictionExcitation module, that are:
+0		q					Angle of the excited joint
+1		pwmDes				Desired pwm currently sent to the motor
+2		kt std dev thr		Threshold of the standard deviation of the parameter kt of the currently excited motor
+3		fric std dev thr	Threshold of the standard deviation of the friction parameters of the currently excited motor
+-->
+
+<portscope rows="5" columns="3">
+	<!-- plotting dq and sign(dq) -->
+    <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Joint Vel (deg/sec)" size="500" minval="-50" maxval="50" bgcolor="white">
+        <graph remote="/motorId/monitor:o" index="0" color="Red" title="dq" type="lines" size="2" />
+		<graph remote="/motorId/monitor:o" index="2" color="Blue" title="sign dq" type="lines" size="2" />
+    </plot>
+
+    <!-- plotting torque -->
+    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Motor Torque (red measure, blue prediction)" size="500" minval="-13" maxval="13" bgcolor="white">
+        <graph remote="/motorId/monitor:o" index="1" color="Red" title="Motor torque" type="lines" size="2" />
+        <graph remote="/motorId/monitor:o" index="15" color="Blue" title="Motor torque prediction" type="lines" size="2" />
+    </plot>
+
+	<!-- plotting external torque -->
+	<plot gridx="0" gridy="2" hspan="1" vspan="1" title="External Joint Torque" size="500" minval="-10" maxval="10" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="16" color="Red" title="Motor torque derivative" type="lines" size="2" />
+	</plot>
+
+	<!-- plotting PWM -->
+	<plot gridx="0" gridy="3" hspan="1" vspan="1" title="Motor PWM (red measure, blue prediction)" size="500" minval="-100" maxval="100" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="3" color="Red" title="Motor PWM" type="lines" size="2" />
+		<graph remote="/motorId/monitor:o" index="4" color="Blue" title="Predicted motor PWM" type="lines" size="2" />
+	</plot>
+
+	<!-- plotting identification phase-->
+	<plot gridx="0" gridy="4" hspan="1" vspan="1" title="Identification Phase (1: torque, 2:friction)" size="500" minval="0" maxval="3" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="17" color="Red" title="phase" type="lines" size="2" />
+	</plot>
+
+	<!-- plotting estimates -->
+	<plot gridx="1" gridy="0" hspan="1" vspan="1" title="K tau" size="1000" minval="-30" maxval="30" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="5" color="Red" title="K tau" type="lines" size="2" />
+	</plot>
+	<plot gridx="1" gridy="1" hspan="1" vspan="1" title="K vp" size="1000" minval="-30" maxval="30" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="6" color="Red" title="K vp" type="lines" size="2" />
+	</plot>
+	<plot gridx="1" gridy="2" hspan="1" vspan="1" title="K vn" size="1000" minval="-30" maxval="30" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="7" color="Red" title="K vn" type="lines" size="2" />
+	</plot>
+	<plot gridx="1" gridy="3" hspan="1" vspan="1" title="K cp" size="1000" minval="-30" maxval="30" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="8" color="Red" title="K cp" type="lines" size="2" />
+	</plot>
+	<plot gridx="1" gridy="4" hspan="1" vspan="1" title="K cn" size="1000" minval="-30" maxval="30" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="9" color="Red" title="K cn" type="lines" size="2" />
+	</plot>
+
+	<!-- plotting std dev -->
+	<plot gridx="2" gridy="0" hspan="1" vspan="1" title="Standard deviation K tau (red threshold)" size="1000" minval="0" maxval="0.3" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="10" color="Blue" title="K tau" type="lines" size="2" />
+		<graph remote="/excitation/monitor:o" index="2" color="Red" title="Threshold" type="lines" size="2" />
+	</plot>
+	<plot gridx="2" gridy="1" hspan="1" vspan="1" title="Standard deviation K vp" size="1000" minval="0" maxval="0.3" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="11" color="Blue" title="K vp" type="lines" size="2" />
+		<graph remote="/excitation/monitor:o" index="3" color="Red" title="Threshold" type="lines" size="2" />
+	</plot>
+	<plot gridx="2" gridy="2" hspan="1" vspan="1" title="Standard deviation K vn" size="1000" minval="0" maxval="0.3" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="12" color="Blue" title="K vn" type="lines" size="2" />
+		<graph remote="/excitation/monitor:o" index="3" color="Red" title="Threshold" type="lines" size="2" />
+	</plot>
+	<plot gridx="2" gridy="3" hspan="1" vspan="1" title="Standard deviation K cp" size="1000" minval="0" maxval="0.3" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="13" color="Blue" title="K cp" type="lines" size="2" />
+		<graph remote="/excitation/monitor:o" index="3" color="Red" title="Threshold" type="lines" size="2" />
+	</plot>
+	<plot gridx="2" gridy="4" hspan="1" vspan="1" title="Standard deviation K cn" size="1000" minval="0" maxval="0.3" bgcolor="white">
+		<graph remote="/motorId/monitor:o" index="14" color="Blue" title="K cn" type="lines" size="2" />
+		<graph remote="/excitation/monitor:o" index="3" color="Red" title="Threshold" type="lines" size="2" />
+	</plot>
+
+</portscope>

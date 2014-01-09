@@ -20,11 +20,11 @@ rangeCheck::rangeCheck(Vector _qMin, Vector _qMax, double tolerance):qMin(_qMin)
     tol = tolerance;
         
     qMed.resize(qMin.size());
-    for(int i = 0; i < qMin.size(); i++)
+    for(unsigned int i = 0; i < qMin.size(); i++)
         qMed(i) = 0.5 * (qMin(i) + qMax(i));
     
     qSpn.resize(qMin.size());
-    for(int i = 0; i < qMin.size(); i++)
+    for(unsigned int i = 0; i < qMin.size(); i++)
         qSpn(i) = qMax(i) - qMin(i);
 
 }
@@ -38,11 +38,11 @@ void rangeCheck::isAtBoundaries(Vector q, Vector &mask)
 {
     mask.zero();
     
-    for(int i = 0; i < qMin.size(); i++)
+    for(unsigned int i = 0; i < qMin.size(); i++)
         if(q(i) < qMed(i) - 0.5 * qSpn(i) * tol)
             mask(i) = -1.0;
 
-    for(int i = 0; i < qMax.size(); i++)
+    for(unsigned int i = 0; i < qMax.size(); i++)
         if(q(i) > qMed(i) + 0.5 * qSpn(i) * tol)
             mask(i) =  1.0;
 }

@@ -94,14 +94,19 @@ namespace wbi
     enum EstimateType
     {
         // JOINT SPACE ESTIMATES
-        ESTIMATE_JOINT_POS,         // joint position
-        ESTIMATE_JOINT_VEL,         // joint velocity
-        ESTIMATE_JOINT_ACC,         // joint acceleration
-        ESTIMATE_JOINT_TORQUE,      // joint torque
-        ESTIMATE_MOTOR_PWM,         // motor PWM (proportional to motor voltage)
-        ESTIMATE_MOTOR_CURRENT,     // motor current
-        ESTIMATE_MOTOR_VELOCITY,    // motor velocity
-        
+        ESTIMATE_JOINT_POS,                 // joint position
+        ESTIMATE_JOINT_VEL,                 // joint velocity
+        ESTIMATE_JOINT_ACC,                 // joint acceleration
+        ESTIMATE_JOINT_TORQUE,              // joint torque
+        ESTIMATE_JOINT_TORQUE_DERIVATIVE,   // joint torque derivative
+        // MOTOR SPACE ESTIMATES
+        ESTIMATE_MOTOR_POS,                 // motor position
+        ESTIMATE_MOTOR_VEL,                 // motor velocity
+        ESTIMATE_MOTOR_ACC,                 // motor acceleration
+        ESTIMATE_MOTOR_TORQUE,              // motor torque
+        ESTIMATE_MOTOR_TORQUE_DERIVATIVE,   // motor torque derivative
+        ESTIMATE_MOTOR_PWM,                 // motor PWM (proportional to motor voltage)
+        ESTIMATE_MOTOR_CURRENT,             // motor current
         // CARTESIAN SPACE ESTIMATES
         ESTIMATE_IMU,               // 9d inertial measurement unit (angular vel: w, angular acc: dw, linear acc: ddp)
         ESTIMATE_FORCE_TORQUE,      // 6-axis force/torque
@@ -111,6 +116,14 @@ namespace wbi
         ESTIMATE_BASE_ACC,          // acceleration of the base of the robot
 
         ESTIMATE_TYPE_SIZE
+    };
+
+    /** List of parameters of estimation algorithms. */
+    enum EstimationParameter
+    {
+        ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE,
+        ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD,
+        ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ
     };
     
 } // end namespace

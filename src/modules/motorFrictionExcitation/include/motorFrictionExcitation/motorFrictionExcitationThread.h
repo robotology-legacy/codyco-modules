@@ -20,106 +20,91 @@
 
 #include <sstream>
 #include <iomanip>
-#include <stdexcept>
 #include <vector>
 
-#include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
-#include <yarp/os/Semaphore.h>
-#include <yarp/sig/Vector.h>
+#include <yarp/os/ResourceFinder.h>
 
-#include <iCub/ctrl/math.h>
-#include <iCub/ctrl/adaptWinPolyEstimator.h>
-#include <iCub/ctrl/minJerkCtrl.h>
-#include <iCub/skinDynLib/skinContactList.h>
 #include <Eigen/Core>                               // import most common Eigen types
 #include <Eigen/SVD>
 
 #include <wbi/wbi.h>
-#include <paramHelp/paramHelpServer.h>
+#include <paramHelp/paramHelperServer.h>
+#include <paramHelp/paramHelperClient.h>
 #include <motorFrictionExcitation/motorFrictionExcitationConstants.h>
 
 
-using namespace yarp::os;
-using namespace yarp::sig;
-using namespace yarp::math;
-using namespace iCub::ctrl;
-using namespace iCub::skinDynLib;
 using namespace std;
+using namespace Eigen;
+using namespace yarp::os;
 using namespace paramHelp;
 using namespace wbi;
-using namespace Eigen;
+using namespace motorFrictionExcitation;
 
 namespace motorFrictionExcitation
 {
 
-typedef Eigen::Matrix<double,2,Dynamic,RowMajor> JacobianCom;
 
-enum MotorFrictionExcitationStatus { EXCITATION_ON, EXCITATION_OFF };
+enum MotorFrictionExcitationStatus 
+{ 
+    EXCITATION_CONTACT,                 ///< a contact excitation is going on
+    EXCITATION_CONTACT_FINISHED,        ///< a contact excitation has finished
+    EXCITATION_FREE_MOTION,             ///< a free motion excitation is going on
+    EXCITATION_FREE_MOTION_FINISHED,    ///< a free motion excitation has just finished
+    EXCITATION_OFF                      ///< controller off (either the user stopped it or all excitations have finished)
+};
+
 
 /** 
  * MotorFrictionExcitation control thread.
  */
-class MotorFrictionExcitationThread: public RateThread, public ParamObserver, public CommandObserver
+class MotorFrictionExcitationThread: public RateThread, public ParamValueObserver, public CommandObserver
 {
-    string              name;
-    string              robotName;
-    ParamHelperServer   *paramHelper;
-    wholeBodyInterface  *robot;
+    string              name;                   ///< name of this module instance
+    string              robotName;              ///< name of the robot
+    ParamHelperServer   *paramHelper;           ///< manager of the module parameters
+    wholeBodyInterface  *robot;                 ///< interface to communicate with the robot
+    ParamHelperClient   *identificationModule;  ///< client to communicate with the motorFrictionIdentification module
 
     // Member variables
+    MotorFrictionExcitationStatus   status;             ///< thread status ("on" when controlling, off otherwise)
+    MFE_MotorCommandMode            sendCmdToMotors;    ///< specify whether to send commands to motors
+    bool                isFrictionStdDevBelowThreshold; ///< true if during the last freeMotionExcitation the std dev went below threhsold
     int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
-    int                 LINK_ID_RIGHT_FOOT, LINK_ID_LEFT_FOOT;
-    int                 footLinkId;             // id of the controlled (swinging) foot link
-    int                 comLinkId;              // id of the COM
-    int                 _n;                     // current number of active joints
-    int                 _k;                     // current number of constraints
-    MotorFrictionExcitationStatus    status;                 // thread status ("on" when controlling, off otherwise)
-    Frame               xBase;                  // position/orientation of the floating base
-    Vector              aa_w2b;                 // world to base rotation in angle/axis notation
-    JacobianMatrix      Jcom_6xN;               // Jacobian of the center of mass (6 x N, where N=n+6)
-    JacobianMatrix      JfootR;                 // Jacobian of the right foot
-    JacobianMatrix      JfootL;                 // Jacobian of the left foot
-    MatrixY             S;                      // matrix selecting the active joints
-    VectorXd            dq, dqJ;                // joint velocities (size of vectors: n+6, n, 6)
-    //VectorXd            qMin, qMax;             // lower and upper joint bounds
-    VectorXd            dqDes;
-    MatrixXd            Jcb;                    // first 6 columns of the constraint Jacobian
-    JacobiSVD<MatrixXd> svdJcb;                 // singular value decomposition of Jcb
-    VectorXd            ftSens;                 // ankle force/torque sensor readings (order is: left, right)
-#ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
-    Frame H_base_leftFoot;                      // rototranslation from robot base to left foot (i.e. world)
-    Frame Ha;                                   // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
-#endif
+    int                 _n;                     // number of joints of the robot
+    int                 freeExcCounter;         // counter of how many free motion excitations have been performed
+    int                 contactExcCounter;      // counter of how many contact excitations have been performed
+    double              excitationStartTime;    // timestamp taken at the beginning of the current excitation
+    ArrayXd             pwmOffset;              // pwm to keep motor still in the starting position
+    ArrayXd             pwmDes;                 // desired values of PWM for the controlled joints (variable size)
+    ArrayXd             posIntegral;            // integral of (q-q0), where q0 is the initial joint position
+    ArrayXd             dqJ;                    // joint velocities (size of vector: n)
+    ArrayXd             ftSens;                 // ankle force/torque sensor readings (order is: left, right)
+    vector<LocalId>     currentJointIds;        // IDs of the joints currently excited
+    ArrayXi             currentGlobalJointIds;  // global IDs of the joints currently excited
 
     // Module parameters
-    Vector              kp_com;
-    Vector              kp_foot;
-    Vector              kp_posture;
-    double              tt_com, tt_foot, tt_posture;    // trajectory times of min jerk trajectory generators
-    VectorNi            activeJoints;                   // vector of bool indicating which joints are used (1 used, 0 blocked)
-
-    // Input streaming parameters
-    int                 supportPhase;
-    Vector              xd_com, xd_foot;        // desired positions (use yarp vector because minJerkTrajGen wants yarp vector)
-    Vector              qd;                     // desired joint posture (for all ICUB_DOFS joints)
-    Matrix4d            H_w2b;                  // rototranslation from world to base reference frame
+    vector<FreeMotionExcitation>    freeMotionExc;  ///< free motion excitations
+    ContactExcitationList           contactExc;     ///< in contact excitations
+    ArrayXd             qMin, qMax;                 // lower and upper joint bounds
 
     // Output streaming parameters
-    Vector              xr_com, xr_foot, qr;        // reference positions (use yarp vector because minJerkTrajGen gives yarp vector)
-    Vector              dxr_com, dxr_foot, dqr;     // reference velocities (use yarp vector because minJerkTrajGen gives yarp vector)
-    Vector              x_com, x_foot, qDeg, qRad;  // measured positions (use yarp vector because minJerkTrajGen gives yarp vector)
-    Vector              dxc_com, dxc_foot, dqc;     // commanded velocities (use yarp vector because minJerkTrajGen gives yarp vector)
+    ArrayXd             qDeg, qRad;             // measured positions
     
-    // Eigen vectors mapping Yarp vectors
-    Map<Vector2d>       dxc_comE;               // commanded velocity of the COM
-    Map<Vector6d>       dxc_footE;
-    Map<VectorXd>       dqcE;
-    Map<VectorXd>       qDegE;
-    
-    // Trajectory generators
-    minJerkTrajGen      *trajGenCom, *trajGenFoot, *trajGenPosture;
+    ///< Output monitoring parameters
+    double              pwmDesSingleJoint;      // value of desired pwm for the first controlled joint
+    double              qDegMonitor;            // value of the measured joint angle for the first controlled joint
+    double              ktStdDevThrMonitor;     ///< standard deviation threshold for the param kt of the currently excited joint
+    double              fricStdDevThrMonitor;   ///< standard deviation threshold for the friction parameters of the currently excited joint
 
+    ///< Identification module parameters
+    ArrayXi             activeJoints;
+    string              monitoredJoint;
+    struct
+    {
+        ArrayXd kt, kvp, kvn, kcp, kcn;
+    } stdDev;
+    
     /************************************************* PRIVATE METHODS ******************************************************/
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO);
 
@@ -129,22 +114,28 @@ class MotorFrictionExcitationThread: public RateThread, public ParamObserver, pu
     /** Update the reference trajectories to track and compute the desired velocities for all tasks. */
     bool updateReferenceTrajectories();
 
-    /** Compute joint velocities by solving a hierarchy of QPs (1st QP for COM, 2nd for foot, 3rd for posture) */
-    bool areDesiredJointVelTooLarge();
+    /** Return true if the desired motor PWM are too large. */
+    bool areDesiredMotorPwmTooLarge();
 
-    void updateSelectionMatrix();
+    /** Return true if at least one of the stop conditions is verified (e.g. joint limit too close). */
+    bool checkFreeMotionStopConditions();
 
-    /** Perform all the operations needed just before starting the controller. */
-    void preStartOperations();
+    /** Return true if the current contact excitation phase is finished (e.g. std dev of parameters is below threshold). */
+    bool checkContactStopConditions();
+
+    /** Send commands to the motors. Return true if the operation succeeded, false otherwise. */
+    bool sendMotorCommands();
+
+    /** Perform all the operations needed just before starting the controller. 
+     * @return True iff all initialization operations went fine, false otherwise. */
+    bool preStartOperations();
+
+    bool initFreeMotionExcitation();
+
+    bool initContactExcitation();
+
     /** Perform all the operations needed just before stopping the controller. */
     void preStopOperations();
-
-    /** Method called every time the support status changes. */
-    void numberOfConstraintsChanged();
-    /** Method called every time the support status changes. */
-    void numberOfJointsChanged();
-
-    void normalizeFootOrientation();
 
 public:	
     
@@ -153,18 +144,37 @@ public:
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    MotorFrictionExcitationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi);
+    MotorFrictionExcitationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi, 
+                                    ResourceFinder &rf, ParamHelperClient *_identificationModule);
 	
     bool threadInit();	
     void run();
     void threadRelease();
 
     /** Callback function for parameter updates. */
-    void parameterUpdated(const ParamDescription &pd);
+    void parameterUpdated(const ParamProxyInterface *pd);
     /** Callback function for rpc commands. */
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
+    
+    /** Start the excitation process. */
+    inline void startExcitation()
+    {
+        paramHelper->lock();
+        if(!preStartOperations())
+            preStopOperations();
+        paramHelper->unlock();
+    }
 
 };
+
+/** Command the motors to move to the specified joint configuration and then wait until the motion is finished. */
+bool moveToJointConfigurationAndWaitMotionDone(wbi::wholeBodyInterface *robot, double *qDes_deg, const int nDoF, 
+    double tolerance_deg=0.1, double *qMaxDeg=0, double *qMinDeg=0);
+
+/** Wait for the specified joint configuration to be reached. */
+bool waitMotionDone(wbi::iWholeBodyStates *robot, double *qDes_deg, const int nDoF, double tolerance_deg=0.1);
+
+bool waitMotionDone(wbi::iWholeBodyStates *robot, double qDes_deg, const LocalId &jointId, double tolerance_deg=0.1);
 
 } // end namespace
 

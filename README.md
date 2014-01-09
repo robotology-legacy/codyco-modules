@@ -5,7 +5,7 @@ CoDyCo
 Whole-body Compliant Dynamical Contacts in Cognitive Humanoids
 
 
-The CoDyCo project is a four-years long project and starts in March
+The CoDyCo project is a four-years long project that started in March
 2013. At the end of each year a scenario will be used to validate on the
 iCub  the theoretical advances of the project.
 
@@ -20,6 +20,11 @@ Before installing CoDyCo software it is necessary to install some dependencies:
 
 ###Yarp/iCub software 
 You can follow the instructions on: http://wiki.icub.org/wiki/ICub_Software_Installation .
+You should install at least Yarp version 2.3.22 and iCub version 1.1.13 .
+
+**The repository is being migrated to yarp version 2.4 (current yarp master branch).**
+
+*Modules _comStepper_ and _wholeBodyDynamicsTree_ are already migrated to version 2.4, so it is necessary to install yarp from the repository to build them.* 
 
 ###Eigen
 You can follow the instructions on: http://eigen.tuxfamily.org .
@@ -33,19 +38,23 @@ while on Debian/Ubuntu you can use apt-get :
 sudo apt-get install libeigen3-dev
 ```
 
+The minimum version of Eigen required by codyco is 3.0.5
+
+**The module motorFrictionIdentification requires at least Eigen version 3.1.0**
+
+
 ###kdl
-It is possible to install Orocos-KDL easily from the local fork of the Orocos Git repository repository (a fork was necessary to avoid problems in compiling KDL in Windows):
+It is possible to install orocos_kdl easily from the orocos github repository. The master branch of the repository is required only for proper windows installation, while for Linux also older versions, as the one provided by ROS releases are ok):
 ```bash
-git clone https://github.com/traversaro/orocos_kinematics_dynamics
-cd orocos_kinematics_dynamics/orocos_kdl
+git clone https://github.com/orocos/orocos_kinematics_dynamics
+cd orocos_kinematics_dynamics
+cd orocos_kdl
 mkdir build 
 cd build
 ccmake ../
 make
 sudo make install
 ```
-Please note that for compiling the plain version of KDL, you have to use the CMakeLists.txt in orocos_kinematics_dynamics/orocos_kdl,
-while the CMakeLists.txt in orocos_kinematics_dynamics contains ROS-specific commands.
 
 For any further information you can check http://www.orocos.org/kdl .
     
@@ -60,4 +69,5 @@ ccmake ../
 make
 sudo make install
 ```
+
     

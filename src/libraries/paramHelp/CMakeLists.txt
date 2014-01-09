@@ -6,13 +6,16 @@ SET(PROJECTNAME paramHelp)
 
 PROJECT(${PROJECTNAME})
 
-SET(folder_source src/paramHelp.cpp
-                  src/paramHelpClient.cpp
-                  src/paramHelpServer.cpp)
+SET(folder_source src/paramHelperBase.cpp
+                  src/paramHelperClient.cpp
+                  src/paramHelperServer.cpp)
 
-SET(folder_header include/paramHelp/paramHelp.h
-                  include/paramHelp/paramHelpClient.h
-                  include/paramHelp/paramHelpServer.h)
+SET(folder_header include/paramHelp/paramHelpUtil.h
+                  include/paramHelp/paramProxyInterface.h
+                  include/paramHelp/paramProxyBasic.h
+                  include/paramHelp/paramHelperBase.h
+                  include/paramHelp/paramHelperClient.h
+                  include/paramHelp/paramHelperServer.h)
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})

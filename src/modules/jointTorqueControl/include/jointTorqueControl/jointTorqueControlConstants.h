@@ -1,7 +1,7 @@
 /* 
  * Copyright (C) 2013 CoDyCo
- * Author: Andrea Del Prete
- * email:  andrea.delprete@iit.it
+ * Author: Daniele Pucci
+ * email:  daniele.pucci@iit.it
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -15,69 +15,36 @@
  * Public License for more details
 */
 
-#ifndef LOCOMOTION_PLAN_CONSTANTS
-#define LOCOMOTION_PLAN_CONSTANTS
+#ifndef __JOINT_TORQUE_CONTROL_CONSTANTS
+#define __JOINT_TORQUE_CONTROL_CONSTANTS
 
-#include <paramHelp/paramHelp.h>
-#include <Eigen/Core>                               // import most common Eigen types
-#include <vector>
-#include <string>
-#include <jointTorqueControl/jointTorqueControlConstants.h>
+#include <motorFrictionIdentificationLib/jointTorqueControlParams.h>
 
-using namespace paramHelp;
-using namespace Eigen;
-using namespace std;
-
-namespace locomotionPlanner
+namespace jointTorqueControl
 {
 
-// *** DEFAULT PARAMETER VALUES
-static const string         DEFAULT_MODULE_NAME             = "locomotionPlanner";
-static const string         DEFAULT_ROBOT_NAME              = "icubSim";            // robot name
-static const string         DEFAULT_LOCOMOTION_CTRL_NAME    = "locomotionControl";  // locomotion controller name
-static const string         DEFAULT_FILE_NAME               = "100poses_A";         // input params file (trajectory points)
-// Streaming parameters
+#ifndef M_PI
+    #define M_PI        3.14159265358979323846264338328
+#endif
 
+#define CTRL_RAD2DEG    (180.0/M_PI)
+#define CTRL_DEG2RAD    (M_PI/180.0)
 
-// *** IDs of all the module parameters
-enum LocomotionPlannerParamId { 
-    PARAM_ID_PLANNER_NAME,       PARAM_ID_ROBOT_NAME,   PARAM_ID_LOCOMOTION_CTRL_NAME,
-    PARAM_ID_FILE_NAME,          PARAM_ID_SIZE
-};
+static const int    PRINT_PERIOD                = 2000;     ///< period of debug prints (in ms)
+static const double TORQUE_INTEGRAL_SATURATION  = 10.0;     ///< value at which the torque error integral is saturated
+static const double JOINT_VEL_ESTIMATION_WINDOW = 25.0;     ///< max size of the moving window used for velocity estimation
 
-// ******************************************************************************************************************************
-// ****************************************** DESCRIPTION OF ALL THE MODULE PARAMETERS ******************************************
-// ******************************************************************************************************************************
-const ParamDescription locomotionPlannerParamDescr[]  = 
-{ 
-//               NAME                   ID                              TYPE                SIZE        BOUNDS                  I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
-ParamDescription("name",                PARAM_ID_PLANNER_NAME,          PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"), 
-ParamDescription("robot",               PARAM_ID_ROBOT_NAME,            PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
-ParamDescription("locomotionCtrlName",  PARAM_ID_LOCOMOTION_CTRL_NAME,  PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_LOCOMOTION_CTRL_NAME,  "Name of the locomotion controller module"), 
-ParamDescription("filename",            PARAM_ID_FILE_NAME,             PARAM_DATA_STRING,  1,          PARAM_BOUNDS_INF,       PARAM_CONFIG,       &DEFAULT_FILE_NAME,             "Name of the file containing the via points"),
-// ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************
-// ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
-// ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
-};
-
-
-// *** IDs of all the module command
-enum LocomotionPlannerCommandId { 
-    COMMAND_ID_START,   COMMAND_ID_STOP,    COMMAND_ID_HELP,    COMMAND_ID_QUIT, 
-    COMMAND_ID_SIZE
-};
-// ******************************************************************************************************************************
-// ****************************************** DESCRIPTION OF ALL THE MODULE COMMANDS ********************************************
-// ******************************************************************************************************************************
-const CommandDescription locomotionPlannerCommandDescr[]  = 
-{ 
-//                  NAME            ID                          DESCRIPTION
-CommandDescription("start",         COMMAND_ID_START,           "Start the planner"), 
-CommandDescription("stop",          COMMAND_ID_STOP,            "Stop the planner"), 
-CommandDescription("help",          COMMAND_ID_HELP,            "Get instructions about how to communicate with this module"), 
-CommandDescription("quit",          COMMAND_ID_QUIT,            "Stop the planner and quit the module"), 
-};
-
+/** Saturate the specified value between the specified bounds. */
+inline double saturation(const double x, const double xMax, const double xMin)
+{
+ 	return x>xMax ? xMax : (x<xMin?xMin:x);
 }
+
+inline double sign(const double x)
+{
+    return x>=0.0 ? 1.0 : -1.0;
+}
+
+};
 
 #endif

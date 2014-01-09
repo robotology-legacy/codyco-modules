@@ -1,7 +1,7 @@
 /* 
  * Copyright (C) 2013 CoDyCo
- * Author: Andrea Del Prete
- * email:  andrea.delprete@iit.it
+ * Author: Daniele Pucci	
+ * email:  daniele.pucci@iit.it
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -15,85 +15,143 @@
  * Public License for more details
 */
 
-#ifndef LOCOMOTION_PLANNER_THREAD
-#define LOCOMOTION_PLANNER_THREAD
+#ifndef __JOINT_TORQUE_CONTROL_THREAD
+#define __JOINT_TORQUE_CONTROL_THREAD
 
-#include <sstream>
 #include <iomanip>
-#include <stdexcept>
-#include <vector>
 #include <fstream>
 #include <stdlib.h>
 #include <cstdlib>
 #include <stdio.h>
 #include <time.h>
 
-#include <yarp/os/BufferedPort.h>
-#include <yarp/os/Thread.h>
-#include <yarp/os/Semaphore.h>
-#include <yarp/sig/Vector.h>
-
-#include <iCub/ctrl/math.h>
-#include <iCub/ctrl/adaptWinPolyEstimator.h>
-#include <iCub/ctrl/minJerkCtrl.h>
-#include <iCub/skinDynLib/skinContactList.h>
+#include <yarp/os/RateThread.h>
 #include <Eigen/Core>                               // import most common Eigen types
-
 #include <wbi/wbi.h>
-#include <paramHelp/paramHelpServer.h>
-#include <paramHelp/paramHelpClient.h>
+#include <paramHelp/paramHelperServer.h>
+#include <paramHelp/paramHelperClient.h>
+
 #include <jointTorqueControl/jointTorqueControlConstants.h>
 
 
 using namespace yarp::os;
-using namespace yarp::math;
-using namespace iCub::ctrl;
-using namespace iCub::skinDynLib;
 using namespace std;
 using namespace paramHelp;
 using namespace wbi;
 using namespace Eigen;
 
-namespace locomotionPlanner
+namespace jointTorqueControl
 {
 
-enum PlanningStatus {PLANNING_ON, PLANNING_OFF};
-/** Locomotion planner thread: this thread sends the desired position trajectory of the COM,
-    swinging foot and joint posture.**/
-
-class LocomotionPlannerThread: public Thread, public ParamObserver, public CommandObserver
+enum ControlStatus {CONTROL_ON, CONTROL_OFF};
+/** thread...
+*/
+class jointTorqueControlThread: public RateThread, public ParamValueObserver, public CommandObserver
 {
+    ///< *************** MEMBER CONSTANTS ********************
+    double              zero6[6];               ///< array of 6 zeros
+    VectorNd            zeroN;                  ///< array of N zeros
+    double              ddxB[6];                ///< robot base acceleration containing only gravity acceleration
+
+    ///< *************** MEMBER VARIABLES ********************
     string              name;
     string              robotName;
     ParamHelperServer   *paramHelper;
-    ParamHelperClient   *locoCtrl;
     wholeBodyInterface  *robot;
-    bool                mustStop;
-//    string              fileName;
-    string              filename;
-    string              codyco_root;
-    PlanningStatus      status;         //When on the planner is reading from file and streaming data.
+    
+    int             printCountdown;     ///< counter for printing every PRINT_PERIOD ms
+    bool            mustStop;
+    ControlStatus   status;
+    double		    oldTime;  
+    int             monitoredJointId;
+    VectorNi        activeJointsOld;    ///< value of the vector activeJoints before it was changed
+    VectorNd        dqSign;             ///< approximation of the sign of the joint vel
+    VectorNd        pwmMeas;            ///< measured motor PWMs
+    VectorNd        q;                  ///< measure joint angles (deg)
+    VectorNp6d      tauGrav;            ///< gravity torque
+    VectorNd	    integralState;	// Vector of nDOF floats representing the steepnes       ( see Eq. (x) )"), 
 
-    // Module parameters
-    Vector2d            kp_com;
-//     Vector6d            kp_foot;
-    VectorXd            kp_posture;
-    double              tt_com, tt_foot, tt_posture;    // trajectory times of min jerk trajectory generators
-    VectorXi            activeJoints;   // vector of bool indicating which joints are used (1 used, 0 blocked)
-    int                 supportPhase;
-    double              pinvDamp;
+    ///< *************** MODULE PARAMETERS ********************
+	VectorNi 	activeJoints;	// Vector of nDOF integers representing the joints to control  (1: active, 0: inactive) 
+    VectorNd	dq;				// Joint velocities (deg/s)
+    VectorNd 	kt;				// Vector of nDOF floats ( see Eq. (1) )"), 
+    VectorNd 	kvp;			// Vector of nDOF floats ( see Eq. (2) )"), 
+    VectorNd	kvn;			// Vector of nDOF floats ( see Eq. (2) )"), 
+    VectorNd	kcp;			// Vector of nDOF floats ( see Eq. (2) )"), 
+    VectorNd	kcn;			// Vector of nDOF floats ( see Eq. (2) )"), 
+    VectorNd	ki;				// Vector of nDOF floats representing the position gains ( see Eq. (x) )"), 
+    VectorNd	kp;				// Vector of nDOF floats representing the integral gains ( see Eq. (x) )"), 
+    VectorNd	ks;				// Vector of nDOF floats representing the joint stiffnesses 
+    VectorNd	kd;				// Vector of nDOF floats representing the joint dampings
+    VectorNd    qDes;           // Vector of nDOF floats representing the desired joint positions (deg)
+    VectorNd	coulombVelThr;	///< Vector of nDOF floats representing the joint vel (deg/s) at which Coulomb friction is completely compensated
+    VectorNd	tauD;			// Vector of nDOF floats representing the desired torques
+    VectorNd	tauOffset;      // Vector of nDOF floats representing the desired torques offset
+    VectorNd    tauSinAmpl;     // Amplitudes of the sinusoidal signals that are added to the desired joint torques
+    VectorNd    tauSinFreq;     // Frequencies of the sinusoidal signals that are added to the desired joint torques
+    VectorNd	Vmax;			// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"),     
 
-    // Output streaming parameters
-    Vector2d            xd_com;
-//     Vector7d            xd_foot;
-//     VectorNd            qd;
+    VectorNd	tauM;			// Measured torques
+    VectorNd	motorVoltage;	// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
+    VectorNd	etau;			// Errors between actual and desired torques 
+    VectorNd	tau;			// Vector of nDOF floats representing the desired torques plus the PI terms
+
+    int			sendCommands;
+    int         gravityCompOn;  // 1 if gravity compensation is on, 0 otherwise
+	string      monitoredJointName;     ///< name of the monitored joint
+	
+    //monitored variables
+    struct
+    {
+        double tauMeas;
+        double tauDes;
+        double tadDesPlusPI;
+        double tauErr;
+        double q;
+        double qDes;
+        double dq;
+        double dqSign;
+        double pwmDes;
+        double pwmMeas;
+        double pwmFF;
+        double pwmFB;
+        double pwmTorqueFF;
+        double pwmFrictionFF;
+    } monitor;
+	
+    // Input streaming parameters
 
     // Output streaming parameters
     
     enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO) ;
 
-    void sendMonitorData() ;
+    void prepareMonitorData();
+		
+    /** Reset the integral state of the specified joint. */
+    void resetIntegralState(int j);
+	
+    /** If activeTorque is true set all the active joints to open loop control.
+     * If activeTorque is false set all the joints to position control. */
+	void setControlModePWMOnJoints(bool activeTorque);
+	
+    /** Convert the global id contained in the specified Bottle into a local id to access
+     * the vector of this thread. The Bottle b may either contain an integer id or the name
+     * of the joint.
+     * @param b Bottle containing the global id.
+     * @return The local id, -1 if nothing was found. */
+    int convertGlobalToLocalJointId(const yarp::os::Bottle &b);
+
+    /** Update the variable jointMonitor based on the value of the variable jointMonitorName. 
+     * @return True if the current monitored joint name was recognized, false otherwise. */
+    bool updateJointToMonitor(); 
+
+    /** Method called every time the parameter activeJoints changes value. It resets
+     * the integral state of the joints that are activated and change the control mode
+     * of the joints that are activated/deactivated. */
+    bool activeJointsChanged();
+    
+    bool readRobotStatus(bool);
 
 public:	
     
@@ -102,25 +160,21 @@ public:
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    LocomotionPlannerThread(string _name, string _robotName, ParamHelperServer *_ph, ParamHelperClient   *_lc, wholeBodyInterface *_wbi, string _filename) ;
+    jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, wholeBodyInterface *_wbi);
 	
     bool threadInit();	
     void run();
     void startSending();
     void stopSending();
 
-    void threadRelease();
+    void threadRelease(){}
 
-    void stop(){ mustStop=true; Thread::stop(); }
+//     void stop(){ mustStop=true; Thread::stop(); }
 
     /** Callback function for parameter updates. */
-    void parameterUpdated(const ParamDescription &pd);
+    void parameterUpdated(const ParamProxyInterface *pd);
     /** Callback function for rpc commands. */
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
-    /** Callback function for reading text file parameters */
-    string readParamsFile(ifstream &fp);
-
-    string get_env_var( string const & key );
 };
 
 } // end namespace

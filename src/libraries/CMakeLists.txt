@@ -12,6 +12,7 @@
 add_subdirectory(wholeBodyInterface)
 add_subdirectory(modHelp)
 add_subdirectory(paramHelp)
+add_subdirectory(motorFrictionIdentificationLib)
 add_subdirectory(iDynTree)
 add_subdirectory(wholeBodyInterfaceIcub)
 

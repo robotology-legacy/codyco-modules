@@ -71,14 +71,14 @@ namespace wbi
     class LocalId
     {
     public:
-        int bodyPart;               // body part id
-        int index;                  // local id
-        std::string description;    // description
+        int         bodyPart;       ///< body part id
+        int         index;          ///< local id
+        std::string description;    ///< description
         
         // CONSTRUCTORS
         LocalId(): bodyPart(0), index(0) {}
         LocalId(int _bp, unsigned int _j): bodyPart(_bp), index(_j) {}
-        LocalId(int _bp, unsigned int _j, std::string &_desc): bodyPart(_bp), index(_j), description(_desc) {}
+        LocalId(int _bp, unsigned int _j, const std::string &_desc): bodyPart(_bp), index(_j), description(_desc) {}
 
         // OPERATORS
         bool operator==(const LocalId &other) const { return (bodyPart==other.bodyPart && index==other.index); }
@@ -90,7 +90,7 @@ namespace wbi
     /**
      * List of identifiers, that is a map from body part identifiers to lists of numbers.
      */
-    class LocalIdList : public std::map< int, std::vector<int> >
+    class LocalIdList : public std::map<int, std::vector<int> >
     {
     protected:
         /** Add the specified id without checking its existance. */
@@ -144,7 +144,7 @@ namespace wbi
         
         /* Check whether the specified id is present in this list. */        
         virtual bool containsId(const LocalId &i) const;
-        
+
         virtual std::string toString() const;
     };
 

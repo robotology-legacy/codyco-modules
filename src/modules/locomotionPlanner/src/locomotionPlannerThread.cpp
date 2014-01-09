@@ -37,8 +37,8 @@ LocomotionPlannerThread::LocomotionPlannerThread(string _name, string _robotName
 //*************************************************************************************************************************
 bool LocomotionPlannerThread::threadInit()
 {
-    const string partialLocation = "locomotionPlanner/conf/data/timestamp10/randomStandingPoses_iCubGenova01_";
-    filename = string(get_env_var(codyco_root) + partialLocation + filename + ".txt");
+    const string partialLocation = "/modules/locomotionPlanner/conf/data/";
+    filename = string(get_env_var(codyco_root) + partialLocation + filename);
     cout<<filename<<endl;
 
     // link module rpc parameters to member variables
@@ -71,8 +71,11 @@ void LocomotionPlannerThread::run()
     file.clear();
     file.seekg(0,ios::beg);                         // returns to the beginning of fstream
     double  timePrev = 0.0;
-
+    printf("Input file opened\n");
+    
     while(true){
+        printf("Waiting to start...\n");
+        Time::delay(2.0);
         if(status==PLANNING_ON){
             if(!file.fail()){
                 cout << "Reading params config file: " << filename << endl;
@@ -143,12 +146,12 @@ void LocomotionPlannerThread::threadRelease()
 }
 
 //*************************************************************************************************************************
-void LocomotionPlannerThread::parameterUpdated(const ParamDescription &pd)
+void LocomotionPlannerThread::parameterUpdated(const ParamProxyInterface *pd)
 {
     //switch(pd.id)
     //{
     //default:
-    sendMsg("A callback is registered but not managed for the parameter "+pd.name, MSG_WARNING);
+    sendMsg("A callback is registered but not managed for the parameter "+pd->name, MSG_WARNING);
     //}
 }
 

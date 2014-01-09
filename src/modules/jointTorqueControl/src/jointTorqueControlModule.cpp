@@ -1,7 +1,7 @@
 /* 
  * Copyright (C) 2013 CoDyCo
- * Author: Andrea Del Prete
- * email:  andrea.delprete@iit.it
+ * Author: Daniele Pucci
+ * email:  daniele.pucci@iit.it
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -15,19 +15,6 @@
  * Public License for more details
 */ 
 
-#include <yarp/os/BufferedPort.h>
-#include <yarp/os/RFModule.h>
-#include <yarp/os/Time.h>
-#include <yarp/os/Network.h>
-#include <yarp/os/RateThread.h>
-#include <yarp/os/Stamp.h>
-#include <yarp/sig/Vector.h>
-#include <yarp/dev/PolyDriver.h>
-#include <yarp/dev/Drivers.h>
-#include <yarp/dev/ControlBoardInterfaces.h>
-#include <iCub/ctrl/math.h>
-#include <iCub/ctrl/adaptWinPolyEstimator.h>
-
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -37,33 +24,31 @@
 #include "jointTorqueControl/jointTorqueControlThread.h"
 #include "jointTorqueControl/jointTorqueControlModule.h"
 
-YARP_DECLARE_DEVICES(icubmod)
-
 using namespace yarp::dev;
 using namespace paramHelp;
 using namespace wbiIcub;
-using namespace locomotionPlanner;
+using namespace jointTorqueControl;
 
-LocomotionPlannerModule::LocomotionPlannerModule()
+jointTorqueControlModule::jointTorqueControlModule()
 {
     ctrlThread      = 0;
     robotInterface  = 0;
     paramHelper     = 0;
-    locoCtrl        = 0;
+    torqueCtrl      = 0;
+    period          = 10;
 }
     
-bool LocomotionPlannerModule::configure(ResourceFinder &rf)
+bool jointTorqueControlModule::configure(ResourceFinder &rf)
 {		
     //-------------------------------------------------- PARAMETER HELPER SERVER ---------------------------------------------------------
-    paramHelper = new ParamHelperServer(locomotionPlannerParamDescr, PARAM_ID_SIZE, locomotionPlannerCommandDescr, COMMAND_ID_SIZE);
-    paramHelper->linkParam(PARAM_ID_PLANNER_NAME,           &moduleName);
-    paramHelper->linkParam(PARAM_ID_ROBOT_NAME,             &robotName);
-    paramHelper->linkParam(PARAM_ID_LOCOMOTION_CTRL_NAME,   &locoCtrlName);
-    paramHelper->linkParam(PARAM_ID_FILE_NAME,              &fileName);
-
+    paramHelper = new ParamHelperServer(jointTorqueControlParamDescr, PARAM_ID_SIZE, jointTorqueControlCommandDescr, COMMAND_ID_SIZE);
+    paramHelper->linkParam(PARAM_ID_MODULE_NAME,	&moduleName);
+    paramHelper->linkParam(PARAM_ID_CTRL_PERIOD,	&period);
+    paramHelper->linkParam(PARAM_ID_ROBOT_NAME,		&robotName);
 
     paramHelper->registerCommandCallback(COMMAND_ID_HELP, this);
     paramHelper->registerCommandCallback(COMMAND_ID_QUIT, this);
+	
     // Read parameters from configuration file (or command line)
     Bottle initMsg;
     paramHelper->initializeParams(rf, initMsg);
@@ -75,27 +60,21 @@ bool LocomotionPlannerModule::configure(ResourceFinder &rf)
     rpcPort.open(("/"+moduleName+"/rpc").c_str());
     setName(moduleName.c_str());
     attach(rpcPort);
-
-    // ------------------------------------ PARAMETER HELPER CLIENT FOR LOCOMOTION CONTROLLER -----------------------------------------------
-//     locoCtrl    = new ParamHelperClient(locomotionParamDescr, locomotion::PARAM_ID_SIZE, locomotionCommandDescr, locomotion::COMMAND_ID_SIZE);
-    initMsg.clear();
-    if(!locoCtrl->init(moduleName, locoCtrlName, initMsg))
-    { printf("Error while trying to connect to LocomotionControl module:\n%s\nClosing module.\n", initMsg.toString().c_str()); return false; }
-
+    
     //--------------------------WHOLE BODY INTERFACE--------------------------
-    //robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
-    //robotInterface->addJoints(ICUB_MAIN_JOINTS);
-    //if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
+    robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
+    robotInterface->addJoints(ICUB_MAIN_JOINTS);
+    if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------
-    ctrlThread = new LocomotionPlannerThread(moduleName, robotName, paramHelper, locoCtrl, robotInterface,fileName);
-    if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing locomotion planner thread. Closing module.\n"); return false; }
+    ctrlThread = new jointTorqueControlThread(period, moduleName, robotName, paramHelper, robotInterface);
+    if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing control torque thread. Closing module.\n"); return false; }
     
-    fprintf(stderr,"Locomotion planner started\n");
+    fprintf(stderr,"Control torque module started\n");
 	return true;
 }
 
-bool LocomotionPlannerModule::respond(const Bottle& cmd, Bottle& reply) 
+bool jointTorqueControlModule::respond(const Bottle& cmd, Bottle& reply) 
 {
     paramHelper->lock();
 	if(!paramHelper->processRpcCommand(cmd, reply)) 
@@ -108,28 +87,23 @@ bool LocomotionPlannerModule::respond(const Bottle& cmd, Bottle& reply)
 	return true;	
 }
 
-void LocomotionPlannerModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
+void jointTorqueControlModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
 {
     switch(cd.id)
     {
     case COMMAND_ID_HELP:   
-        paramHelper->getHelpMessage(reply);     
+        paramHelper->getHelpMessage(reply);
         break;
-    case COMMAND_ID_QUIT:   
-        stopModule(); 
+    case COMMAND_ID_QUIT:
+        stopModule();
         reply.addString("Quitting module.");    
         break;
     }
 }
 
-bool LocomotionPlannerModule::interruptModule()
-{
-    if(ctrlThread)  ctrlThread->stop();
-    rpcPort.interrupt();
-    return true;
-}
+bool jointTorqueControlModule::interruptModule(){ return true; }
 
-bool LocomotionPlannerModule::close()
+bool jointTorqueControlModule::close()
 {
 	//stop threads
     if(ctrlThread){     ctrlThread->stop();         delete ctrlThread;      ctrlThread = 0;     }
@@ -137,15 +111,16 @@ bool LocomotionPlannerModule::close()
     if(robotInterface){ robotInterface->close();    delete robotInterface;  robotInterface = 0; }
 
 	//closing ports
+    rpcPort.interrupt();
 	rpcPort.close();
     cout << "about to close"<<endl;
     return true;
 }
 
-bool LocomotionPlannerModule::updateModule()
+bool jointTorqueControlModule::updateModule()
 {
     if (ctrlThread!=0)
         return true;
-    printf("LocomotionPlannerModule: Error, thread pointer is zero!\n");
+    printf("jointTorqueControlModule: Error, thread pointer is zero!\n");
     return false;
 }

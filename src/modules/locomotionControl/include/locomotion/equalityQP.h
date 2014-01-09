@@ -114,8 +114,6 @@ yarp::sig::Vector compute6DError(const yarp::sig::Vector &x, const yarp::sig::Ve
   * the efficiency of the computation. 
   * @param A Input mXn matrix.
   * @param tol Input threshold for the singular values of the truncated pseudoinverse.
-  * @param U Output mXm matrix, left eigenvectors of A. 
-  * @param V Output nXn matrix, right eigenvectors of A. 
   * @param Spinv Output kXk matrix (with k=min(m,n)), truncated pseudoinverse of the singular value matrix of A. 
   * @param Apinv Output nXm matrix, truncated pseudoinverse of A.
   * @param sv Output (optional) k-dim vector (with k=min(m,n)), singular values of A. */

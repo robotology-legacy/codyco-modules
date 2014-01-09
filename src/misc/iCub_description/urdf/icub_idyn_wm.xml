@@ -1,4 +1,4 @@
-<robot name="test_icub">
+<robot name="icub">
     <link name="base_link" />
     <link name="chest">
         <inertial>
@@ -973,7 +973,8 @@
         <parent link="r_ankle_1" />
         <child link="r_foot" />
     </joint>
-    <joint name="r_arm_ft_sensor" type="fixed">
+    <joint name="r_arm_ft_sensor" type="revolute">
+        <limit lower="0" upper="0" />
         <origin xyz="0.015 -8.93429e-18 0.15228" rpy="1.5708 -0 3.14159" />
         <axis xyz="0 0 0" />
         <parent link="r_upper_arm" />
