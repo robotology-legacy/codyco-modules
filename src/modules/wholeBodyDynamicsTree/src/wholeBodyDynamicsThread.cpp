@@ -80,11 +80,43 @@ bool wholeBodyDynamicsThread::readRobotStatus(bool blockingRead)
 }
 
 
-//*************************************************************************************************************************
+//*****************************************************************************
 void wholeBodyDynamicsThread::threadRelease()
 {
-    if(trajGenCom)      delete trajGenCom;
-    if(trajGenFoot)     delete trajGenFoot;
-    if(trajGenPosture)  delet
 
+}
+
+//*****************************************************************************
+void wholeBodyDynamicsThread::closePort(Contactable *_port)
+{
+    if (_port)
+    {
+        _port->interrupt();
+        _port->close();
+
+        delete _port;
+        _port = 0;
+    }
+}
+
+//*****************************************************************************
+template <class T> void wholeBodyDynamicsThread::broadcastData(T& _values, BufferedPort<T> *_port)
+{
+    if (_port && _port->getOutputCount()>0)
+    {
+        _port->setEnvelope(this->timestamp);
+        _port->prepare()  = _values ;
+        _port->write();
+    }
+}
+
+//*****************************************************************************
+void wholeBodyDynamicsThread::writeTorque(Vector _values, int _address, BufferedPort<Bottle> *_port)
+{
+    Bottle a;
+    a.addInt(_address);
+    for(size_t i=0;i<_values.length();i++)
+        a.addDouble(_values(i));
+    _port->prepare() = a;
+    _port->write();
 }

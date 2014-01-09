@@ -44,7 +44,6 @@ class wholeBodyDynamicsModule: public RFModule
 
     Port                rpcPort;        // a port to handle rpc messages
     wholeBodyDynamicsThread*   wbdThread;     // locomotion control thread
-    ParamHelperServer*  paramHelper;    // helper class for rpc set/get commands and streaming data
     wholeBodyInterface* robotInterface; // interface to communicate with the robot
 
 public:

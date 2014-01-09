@@ -41,7 +41,7 @@ using namespace wbiIcub;
 
 wholeBodyDynamicsModule::wholeBodyDynamicsModule()
 {
-    ctrlThread      = 0;
+    wbdThread      = 0;
     robotInterface  = 0;
     period          = 10;
 }
@@ -49,17 +49,17 @@ wholeBodyDynamicsModule::wholeBodyDynamicsModule()
 bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 {
 
-    //--------------------------WHOLE BODY INTERFACE--------------------------
-    robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
+    //--------------------------WHOLE BODY SENSORS--------------------------
+    robotInterface = new icubWholeBodySensors(moduleName.c_str(), robotName.c_str());
     robotInterface->addJoints(ICUB_MAIN_JOINTS);
 
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
     wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, robotInterface);
-    if(!wbdThread->start()){ fprintf(stderr, "Error while initializing locomotion control thread. Closing module.\n"); return false; }
+    if(!wbdThread->start()){ fprintf(stderr, "Error while initializing wholeBodyDynamics thread. Closing module.\n"); return false; }
     
-    fprintf(stderr,"Locomotion control started\n");
+    fprintf(stderr,"wholeBodyDynamicsThread started\n");
 
 
     return true;
