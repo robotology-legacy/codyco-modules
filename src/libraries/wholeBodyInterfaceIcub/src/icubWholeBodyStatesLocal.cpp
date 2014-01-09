@@ -30,7 +30,7 @@ using namespace yarp::sig;
 using namespace iCub::skinDynLib;
 using namespace iCub::ctrl;
 
-//\todo make it a proper parameter
+//\todo TODO make it a proper parameter
 #define ESTIMATOR_PERIOD 10
 
 // iterate over all body parts
@@ -47,7 +47,9 @@ using namespace iCub::ctrl;
 icubWholeBodyStatesLocal::icubWholeBodyStatesLocal(const char* _name, const char* _robotName, double estimationTimeWindow)
 {
     sensors = new icubWholeBodySensors(_name, _robotName);              // sensor interface
-    estimator = new icubWholeBodyDynamicsEstimator(ESTIMATOR_PERIOD, sensors);  // estimation thread
+    skin_contacts_port = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
+    skin_contacts_port->open(string("/"+_name+"/skin_contacts:i").c_str());
+    estimator = new icubWholeBodyDynamicsEstimator(ESTIMATOR_PERIOD, sensors, skin_contacts_port);  // estimation thread
 }
 
 bool icubWholeBodyStatesLocal::init()
@@ -339,10 +341,13 @@ int icubWholeBodyStatesLocal::lockAndGetSensorNumber(const SensorType st)
 //                                          ICUB WHOLE BODY DYNAMICS ESTIMATOR
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period, icubWholeBodySensors *_sensors)
-: RateThread(_period), sensors(_sensors), dqFilt(0), d2qFilt(0)
+icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period, icubWholeBodySensors *_sensors, yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts)
+: RateThread(_period), sensors(_sensors), port_skin_contacts(_port_skin_contacts), dqFilt(0), d2qFilt(0)
 {
     resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
+    resizeFTs(sensors->getSensorNumber(SENSOR_FORCE_TORQUE));
+    resizeIMUs(sensors->getSensorNumber(SENSOR_IMU));
+    
     ///< Window lengths of adaptive window filters
     dqFiltWL            = 16;
     d2qFiltWL           = 25;
@@ -362,6 +367,9 @@ icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period, icub
 bool icubWholeBodyDynamicsEstimator::threadInit()
 {
     resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
+    resizeFTs(sensors->getSensorNumber(SENSOR_FORCE_TORQUE));
+    resizeIMUs(sensors->getSensorNumber(SENSOR_IMU));
+
     ///< create derivative filters
     dqFilt = new AWLinEstimator(dqFiltWL, dqFiltTh);
     d2qFilt = new AWQuadEstimator(d2qFiltWL, d2qFiltTh);
@@ -385,6 +393,8 @@ void icubWholeBodyDynamicsEstimator::run()
     mutex.wait();
     {
         resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
+        resizeFTs(sensors->getSensorNumber(SENSOR_FORCE_TORQUE));
+        resizeIMUs(sensors->getSensorNumber(SENSOR_IMU));
         
         ///< Read encoders
         if(sensors->readSensors(SENSOR_ENCODER, q.data(), qStamps.data(), false))
@@ -407,9 +417,6 @@ void icubWholeBodyDynamicsEstimator::run()
             i++;
         }
         
-        ///< Read skin contacts
-        
-        
         ///< Read IMU
         ///< \todo TODO buffer value of available_imu_sensors to avoid memory allocation (?)
         ///< \todo TODO add filters for imu values -> 
@@ -420,6 +427,9 @@ void icubWholeBodyDynamicsEstimator::run()
             sensors->readSensor(SENSOR_IMU, *id, IMUs[i].data(), &(IMUStamps[i]),false );
             i++;
         }
+        
+        ///< Read skin contacts
+        readSkinContacts();
         
         ///< Estimate joint torque sensors from force/torque measurements
         estimateExternalForcesAndJointTorques();
@@ -449,10 +459,63 @@ void icubWholeBodyDynamicsEstimator::run()
     return;
 }
 
+void icubWholeBodyDynamicsEstimator::readSkinContacts()
+{
+    skinContactList *scl = port_skin_contacts->read(false);
+    if(scl)
+    {
+        //< \todo TODO check for envelope
+        last_reading_skin_contact_list_Stamp = Time::now();
+        if(scl->empty())   // if no skin contacts => leave the old contacts but reset pressure and contact list
+        {
+            for(skinContactList::iterator it=skinContacts.begin(); it!=skinContacts.end(); it++)
+            {
+                it->setPressure(0.0);
+                it->setActiveTaxels(0);
+            }
+            return;
+        }
+        
+        //Probably source of crazy inefficiencies, here just to reach a working state as soon as possible \todo TODO
+        map<BodyPart, skinContactList> contactsPerBp = scl->splitPerBodyPart();
+        // if there are more than 1 contact and less than 10 taxels are active then suppose zero moment
+        for(map<BodyPart,skinContactList>::iterator it=contactsPerBp.begin(); it!=contactsPerBp.end(); it++)
+            if(it->second.size()>1)
+                for(skinContactList::iterator c=it->second.begin(); c!=it->second.end(); c++)
+                    if(c->getActiveTaxels()<10)
+                        c->fixMoment();
+        
+        //TODO \todo add other parts
+        skinContacts = contactsPerBp[LEFT_ARM];
+        skinContacts.insert(skinContacts.end(), contactsPerBp[RIGHT_ARM].begin(), contactsPerBp[RIGHT_ARM].end());
+    
+    }
+    else if(Time::now()-last_reading_skin_contact_list_Stamp>SKIN_EVENTS_TIMEOUT && last_reading_skin_contact_list_Stamp!=0.0)
+    {
+        // if time is up, use default contact points \todo TODO
+        assert(false);
+        skinContacts.clear();
+    }
+}
+
+
 void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
 {
+    //Assume that only a IMU is available
     icub_model->setInertialMeasure();
+    icub_model->setAng();
+    icub_model->setDAng();
+    icub_model->setD2Ang();
     icub_model->setSensorMeasurement();
+    icub_model->setContacts();
+    
+    icub_model->kinematicRNEA();
+    icub_model->estimateContactForces();
+    icub_model->dynamicRNEA();
+    
+    icub_model->getContacts();
+    icub_model->getTorques();
+    icub_model->getBaseAcc();
 }
 
 void icubWholeBodyDynamicsEstimator::threadRelease()
@@ -486,6 +549,34 @@ void icubWholeBodyDynamicsEstimator::resizeAll(int n)
     estimates.lastDtauJ.resize(n);
     estimates.lastDtauM.resize(n);
     estimates.lastPwm.resize(n);
+}
+
+void icubWholeBodyDynamicsEstimator::lockAndResizeFTs(int n)
+{
+    mutex.wait();
+    resizeFTs(n);
+    mutex.post();
+}
+
+void icubWholeBodyDynamicsEstimator::resizeFTs(int n)
+{
+    forcetorques.resize(n,Vector(6,0.0));
+    forcetorquesStamps.resize(n);
+    estimates.lastForceTorques.resize(n,Vector(6,0.0));
+}
+
+void icubWholeBodyDynamicsEstimator::lockAndResizeIMUs(int n)
+{
+    mutex.wait();
+    resizeIMUs(n);
+    mutex.post();
+}
+
+void icubWholeBodyDynamicsEstimator::resizeIMUs(int n)
+{
+    IMUs.resize(n,Vector(12,0.0));
+    IMUStamps.resize(n);
+    estimates.lastIMUs.resize(n,Vector(12,0.0));
 }
 
 bool icubWholeBodyDynamicsEstimator::lockAndCopyVector(const Vector &src, double *dest)

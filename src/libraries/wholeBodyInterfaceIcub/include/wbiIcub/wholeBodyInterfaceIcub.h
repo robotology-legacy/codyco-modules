@@ -27,6 +27,7 @@
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 #include <iCub/ctrl/filters.h>
 #include <iCub/iDynTree/iCubTree.h>
+#include <iCub/skinDynLib/skinContactList.h>
 #include <wbiIcub/wbiIcubUtil.h>
 #include <map>
 //#if __APPLE__
@@ -325,7 +326,8 @@ namespace wbiIcub
         } 
         estimates;
 
-        /** Constructor. */
+        /** Constructor. 
+         */
         icubWholeBodyEstimator(int _period, icubWholeBodySensors *_sensors);
         
         bool lockAndSetEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
@@ -341,6 +343,9 @@ namespace wbiIcub
     };
     
     
+    
+    //< \todo TODO make SKIN_EVENTS_TIMEOUT a proper parameter
+    #define SKIN_EVENTS_TIMEOUT 0.2     // max time (in sec) a contact is kept without reading anything from the skin events port
      /** 
      * Thread that estimates the dynamic state of the iCub robot. 
      */
@@ -348,6 +353,7 @@ namespace wbiIcub
     {
     protected:
         icubWholeBodySensors        *sensors;
+        yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * port_skin_contacts;
         iCub::iDynTree::iCubTree * icub_model;
         
         //double                      estWind;        // time window for the estimation
@@ -378,9 +384,24 @@ namespace wbiIcub
         std::vector<yarp::sig::Vector> IMUs;
         yarp::sig::Vector IMUStamps;
         
+        iCub::skinDynLib::skinContactList skinContacts;
+        double skin_contact_listStamp;
+        double last_reading_skin_contact_list_Stamp;
+        
+        
         /* Resize all vectors using current number of DoFs. */
         void resizeAll(int n);
         void lockAndResizeAll(int n);
+        
+        //< \todo TODO add general interface using type (?) of sensors 
+        
+        /* Resize all FT sensors related vectors using current number of Force Torque sensors */
+        void resizeFTs(int n);
+        void lockAndResizeFTs(int n);
+        
+        /* Resize all IMU sensors related vectors using current number of IMU sensors */
+        void resizeIMUs(int n);
+        void lockAndResizeIMUs(int n);
 
         /** Set the parameters of the adaptive window filter used for velocity estimation. */
         bool setVelFiltParams(int windowLength, double threshold);
@@ -396,6 +417,9 @@ namespace wbiIcub
         bool setTauMCutFrequency(double fc);
         /** Set the cut frequency of the motor PWM low pass filter. */
         bool setPwmCutFrequency(double fc);
+        
+        
+        void readSkinContacts();
         
         /**
          * Estimate internal torques and external forces from measured sensors, using iDynTree library
@@ -424,8 +448,12 @@ namespace wbiIcub
         } 
         estimates;
 
-        /** Constructor. */
-        icubWholeBodyDynamicsEstimator(int _period, icubWholeBodySensors *_sensors);
+         /** Constructor. 
+         *
+         * @param port_skin_contacts pointer to a port reading a skinContactList from the robot skin
+         * \todo TODO skin_contacts should be read from the WholeBodySensors interface
+         */        
+        icubWholeBodyDynamicsEstimator(int _period, icubWholeBodySensors *_sensors, yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts);
         
         bool lockAndSetEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
 
@@ -545,6 +573,7 @@ namespace wbiIcub
     protected:
         icubWholeBodySensors                *sensors;       // interface to access the robot sensors
         icubWholeBodyDynamicsEstimator      *estimator;     // estimation thread
+        yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>                *skin_contacts_port; //port to the skin contacts 
         wbi::LocalIdList                    emptyList;      ///< empty list of IDs to return in case of error
         //double                      estWind;      // time window for the estimation
         
@@ -563,7 +592,7 @@ namespace wbiIcub
         
     public:
         // *** CONSTRUCTORS ***
-        icubWholeBodyStates(const char* _name, const char* _robotName, double estimationTimeWindow);
+        icubWholeBodyStatesLocal(const char* _name, const char* _robotName, double estimationTimeWindow);
         inline virtual ~icubWholeBodyStates(){ close(); }
         
         virtual bool init();
