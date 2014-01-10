@@ -162,9 +162,11 @@ static void mdlStart(SimStruct *S)
     char *String;
 
     buflen = mxGetN((ssGetSFcnParam(S, PARAM_IDX_1)))*sizeof(mxChar)+1;
-    String = mxMalloc(buflen);
+    String = static_cast<char*>(mxMalloc(buflen));
     status = mxGetString((ssGetSFcnParam(S, PARAM_IDX_1)),String,buflen);
-    string port_name = String;
+    //string port_name = String;
+
+	char *port_name = String;
 
     cout<<"Port name will be: "<<port_name<<endl;
 
@@ -200,30 +202,30 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 
 }
 
-
-/* Define to indicate that this S-Function has the mdlG[S]etSimState mothods */
-#define MDL_SIM_STATE
-
-/* Function: mdlGetSimState =====================================================
- * Abstract:
- *
- */
-static mxArray* mdlGetSimState(SimStruct* S)
-{
-    // Retrieve C++ object from the pointers vector
-    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
-    // return mxCreateDoubleScalar(da->GetPeak());
-}
-/* Function: mdlGetSimState =====================================================
- * Abstract:
- *
- */
-static void mdlSetSimState(SimStruct* S, const mxArray* ma)
-{
-    // Retrieve C++ object from the pointers vector
-    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
-    // da->SetPeak(mxGetPr(ma)[0]);
-}
+//
+///* Define to indicate that this S-Function has the mdlG[S]etSimState mothods */
+//#define MDL_SIM_STATE
+//
+///* Function: mdlGetSimState =====================================================
+// * Abstract:
+// *
+// */
+//static mxArray* mdlGetSimState(SimStruct* S)
+//{
+//    // Retrieve C++ object from the pointers vector
+//    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
+//    // return mxCreateDoubleScalar(da->GetPeak());
+//}
+///* Function: mdlGetSimState =====================================================
+// * Abstract:
+// *
+// */
+//static void mdlSetSimState(SimStruct* S, const mxArray* ma)
+//{
+//    // Retrieve C++ object from the pointers vector
+//    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
+//    // da->SetPeak(mxGetPr(ma)[0]);
+//}
 
 // Function: mdlTerminate =====================================================
 // Abstract:
