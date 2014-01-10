@@ -40,7 +40,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 add_definitions(-DMATLAB_MEX_FILE)
 
-set(SFUNCTION_SUFFIX MATLAB_MEXFILE_EXT)
+set(SFUNCTION_SUFFIX ${MATLAB_MEXFILE_EXT})
 
 link_directories(${CMAKE_BINARY_DIR})
 #link_directories("${MATLAB_PATH}/bin/glnxa86")
@@ -63,19 +63,19 @@ if(NOT "${MATLAB_ROOT}" STREQUAL "")
 	
 	
 	
-	set_target_properties(${PROJECTNAME} PROPERTIES SUFFIX SFUNCTION_SUFFIX)
+	set_target_properties(${PROJECTNAME} PROPERTIES SUFFIX .${SFUNCTION_SUFFIX})
 	set_target_properties(${PROJECTNAME} PROPERTIES PREFIX "")
 
-	if("${MATLAB_ARCH}" STREQUAL "64")
-		if(WIN32)
-			message("Flags have been passed to compiler for Windows 64bits")
-			set_target_properties(${PROJECTNAME} PROPERTIES COMPILE_FLAGS "-I$ENV{MATLAB_ROOT} -O -pthread -shared -Wl,--version-script, -Wl,--no-undefined -Wl,-rpath-link,$ENV{MATLAB_ROOT}/bin/win64 -L$ENV{MATLAB_ROOT}/bin/win64 -lmx -lmex -lmat -lm -lstdc++")
-		elseif(WIN32)
-			set_target_properties(${PROJECTNAME} PROPERTIES COMPILE_FLAGS "-I$ENV{MATLAB_ROOT} -O -pthread -shared -Wl,--version-script,$ENV{MATLAB_ROOT}/extern/lib/glnxa64/mexFunction.map -Wl,--no-undefined -Wl,-rpath-link,$ENV{MATLAB_ROOT}/bin/glnxa64 -L$ENV{MATLAB_ROOT}/bin/glnxa64 -lmx -lmex -lmat -lm -lstdc++")
-		endif(WIN32)
-	else()
-		set_target_properties(${PROJECTNAME} PROPERTIES COMPILE_FLAGS "-I$ENV{MATLAB_ROOT} -O -pthread -shared -m32 -Wl,--version-script,$ENV{MATLAB_ROOT}/extern/lib/glnx86/mexFunction.map -Wl,--no-undefined -Wl,-rpath-link,$ENV{MATLAB_ROOT}/bin/glnx86 -L$ENV{MATLAB_ROOT}/bin/glnx86 -lmx -lmex -lmat -lm -lstdc++")
-	endif()
+	# if("${MATLAB_ARCH}" STREQUAL "64")
+	# 	if(WIN32)
+	# 		message("Flags have been passed to compiler for Windows 64bits")
+	# 		set_target_properties(${PROJECTNAME} PROPERTIES COMPILE_FLAGS "-I$ENV{MATLAB_ROOT} -O -pthread -shared -Wl,--version-script, -Wl,--no-undefined -Wl,-rpath-link,$ENV{MATLAB_ROOT}/bin/win64 -L$ENV{MATLAB_ROOT}/bin/win64 -lmx -lmex -lmat -lm -lstdc++")
+	# 	elseif(WIN32)
+	# 		set_target_properties(${PROJECTNAME} PROPERTIES COMPILE_FLAGS "-I$ENV{MATLAB_ROOT} -O -pthread -shared -Wl,--version-script,$ENV{MATLAB_ROOT}/extern/lib/glnxa64/mexFunction.map -Wl,--no-undefined -Wl,-rpath-link,$ENV{MATLAB_ROOT}/bin/glnxa64 -L$ENV{MATLAB_ROOT}/bin/glnxa64 -lmx -lmex -lmat -lm -lstdc++")
+	# 	endif(WIN32)
+	# else()
+	# 	set_target_properties(${PROJECTNAME} PROPERTIES COMPILE_FLAGS "-I$ENV{MATLAB_ROOT} -O -pthread -shared -m32 -Wl,--version-script,$ENV{MATLAB_ROOT}/extern/lib/glnx86/mexFunction.map -Wl,--no-undefined -Wl,-rpath-link,$ENV{MATLAB_ROOT}/bin/glnx86 -L$ENV{MATLAB_ROOT}/bin/glnx86 -lmx -lmex -lmat -lm -lstdc++")
+	# endif()
 
 	
 	
