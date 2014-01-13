@@ -1,0 +1,76 @@
+/*
+ * Copyright (C) 2014 CoDyCo
+ * Author: Daniele Pucci, Francesco Romano
+ * email:  daniele.pucci@iit.it, francesco.romano@iit.it
+ * Permission is granted to copy, distribute, and/or modify this program
+ * under the terms of the GNU General Public License, version 2 or any
+ * later version published by the Free Software Foundation.
+ *
+ * A copy of the license can be found at
+ * http://www.robotcub.org/icub/license/gpl.txt
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details
+ */
+
+/**
+ *
+ @ingroup codyco_module
+ Copyright (C) 2014 CoDyCo Project
+ 
+ CopyPolicy: Released under the terms of the GNU GPL v2.0.
+ 
+ **/
+
+#ifndef ADAPTIVECONTROLMODULE_H
+#define ADAPTIVECONTROLMODULE_H
+
+//std libs
+#include <string>
+//yarp libs
+#include <yarp/os/RFModule.h>
+//codyco libs
+#include <paramHelp/paramHelperServer.h>
+//project includes
+
+
+namespace adaptiveControl
+{
+    class AdaptiveControlThread;
+    
+    class AdaptiveControlModule: public yarp::os::RFModule, public paramHelp::CommandObserver
+    {
+        /* module parameters */
+        std::string _moduleName;
+        std::string _robotName;
+        
+//        string  locoCtrlName;
+//        string  fileName;
+        int _period;
+        
+        yarp::os::Port _rpcPort;        // a port to handle rpc messages
+        AdaptiveControlThread *_controlThread;
+//        jointTorqueControlThread*   ctrlThread;     // locomotion control thread
+//        ParamHelperClient*          torqueCtrl;     // helper class for communicating with the locomotion controller
+        paramHelp::ParamHelperServer* _parameterServer;    // helper class for communication
+//        wholeBodyInterface*         robotInterface; // interface to communicate with the robot
+        
+    public:
+        AdaptiveControlModule();
+        
+        bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
+        bool interruptModule();                       // interrupt, e.g., the ports
+        bool close();                                 // close and shut down the module
+        bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
+        double getPeriod(){ return 0.1; }
+        bool updateModule();
+        
+        void commandReceived(const paramHelp::CommandDescription &cd, const yarp::os::Bottle &params, yarp::os::Bottle &reply);
+        
+    };
+    
+}
+
+#endif
