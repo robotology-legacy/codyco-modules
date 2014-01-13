@@ -53,6 +53,9 @@ namespace adaptiveControl {
     class AdaptiveControlThread: public yarp::os::RateThread {
         
     private:
+        //internal state variables
+        bool _controlEnabled;
+        
         //configuration parameters
         std::string &_threadName;
         std::string &_robotName;
@@ -62,6 +65,7 @@ namespace adaptiveControl {
         yarp::dev::PolyDriver* _encodersDriver;
         yarp::dev::IEncoders* _encoders;
         yarp::os::BufferedPort<yarp::os::Bottle> *_torqueControl;
+        int _outputEnabled;
         
         double _minDeterminantValue;
         
@@ -107,6 +111,8 @@ namespace adaptiveControl {
         bool threadInit();
         void run();
         void threadRelease();
+        
+        void commandReceived(const paramHelp::CommandDescription &cd, const yarp::os::Bottle &params, yarp::os::Bottle &reply);
         
     };
 }

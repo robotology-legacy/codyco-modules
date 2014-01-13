@@ -38,6 +38,7 @@ namespace adaptiveControl {
                                                  paramHelp::ParamHelperServer& paramHelperServer,
                                                  const Eigen::Vector2d &linklengths):
     RateThread(periodMilliseconds),
+    _controlEnabled(false),
     _threadName(threadName),
     _robotName(robotName),
     _paramServer(paramHelperServer),
@@ -49,10 +50,13 @@ namespace adaptiveControl {
     AdaptiveControlThread::~AdaptiveControlThread()
     { /*should be called after thread release*/ }
     
+#pragma mark - RateThread Overriding
+    
     bool AdaptiveControlThread::threadInit()
     {
         //link parameters
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDMinDeterminantValue, &_minDeterminantValue));
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDOutputEnabled, &_outputEnabled));
         //Kappa, Gamma, Lambda
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambda, &_lambda));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainKappa, _kappa.data()));
@@ -85,6 +89,9 @@ namespace adaptiveControl {
     
     void AdaptiveControlThread::run()
     {
+        if (_controlEnabled) {
+#warning move here the control
+        }
         double now = yarp::os::Time::now();
         
         //define reference trajectory
@@ -142,7 +149,9 @@ namespace adaptiveControl {
         
         //compute torques and send them to actuation
         double tau = regressor.row(1) * _pi - _kappa(1) * s(1);
-        _outputTau(3) = tau;
+        if (_outputEnabled) {
+            _outputTau(3) = tau;
+        }
         
         //compute update rule for parameters
         Vector8d dPi = - _Gamma * regressor.transpose() * s;
@@ -192,9 +201,31 @@ namespace adaptiveControl {
             delete _encodersDriver; _encodersDriver = NULL;
         }
     }
+
+#pragma mark - Parameter Helper Callbacks
+    /****************************************************************/
+    /* Parameter Helper Callbacks */
+    /****************************************************************/
     
+    void AdaptiveControlThread::commandReceived(const paramHelp::CommandDescription &cd, const Bottle &params, Bottle &reply)
+    {
+        switch(cd.id)
+        {
+            case AdaptiveControlCommandIDStart:
+                _controlEnabled = true;
+                break;
+            case AdaptiveControlCommandIDStop:
+                _controlEnabled = false;
+                break;
+            default:
+                break;
+        }
+    }
+
+#pragma mark - Private methods
     /****************************************************************/
     /* Private methods */
+    /****************************************************************/
     
     PolyDriver* AdaptiveControlThread::openDriver(std::string localName, std::string robotName, std::string bodyPartName)
     {

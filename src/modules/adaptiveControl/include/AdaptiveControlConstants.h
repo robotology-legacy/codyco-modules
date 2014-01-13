@@ -55,10 +55,13 @@ namespace adaptiveControl
     // ****************************************** PARAMETER SECTION *****************************************************************
     // ******************************************************************************************************************************
     // *** DEFAULT PARAMETER VALUES
+    //config
     static const std::string defaultModuleName = "adaptiveControl";
     static const std::string defaultRobotName = "icubSim"; // robot name
     static const int defaultModulePeriod = 10;
     static const Eigen::Vector2d defaultLinkLengths = Eigen::Vector2d::Zero();
+    //rpc
+    static const int defaultOutputEnabled = 0;
     static const double defaultMinDeterminant = 10.0;
     static const double defaultLambdaGain = 1;
     static const Eigen::Vector2d defaultKappaGain = Eigen::Vector2d::Constant(1);
@@ -80,6 +83,7 @@ namespace adaptiveControl
         AdaptiveControlParamIDPeriod,
         AdaptiveControlParamIDLinkLengths,
         //RPC in-out parameters
+        AdaptiveControlParamIDOutputEnabled,
         AdaptiveControlParamIDMinDeterminantValue,
         AdaptiveControlParamIDGainLambda,
         AdaptiveControlParamIDGainKappa,
@@ -107,6 +111,7 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<int>("period", AdaptiveControlParamIDPeriod, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_CONFIG, &defaultModulePeriod, "Name of the robot"),
         new paramHelp::ParamProxyBasic<double>("linkLengths", AdaptiveControlParamIDLinkLengths, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultLinkLengths.data(), "Length of links"),
         //RPC in/out parameters (during runtime)
+        new paramHelp::ParamProxyBasic<int>("outOn", AdaptiveControlParamIDOutputEnabled, 1, paramHelp::ParamBilatBounds<int>(0, 1), paramHelp::PARAM_IN_OUT, &defaultOutputEnabled, "Boolean for enable output to motors"),
         new paramHelp::ParamProxyBasic<double>("minDet", AdaptiveControlParamIDMinDeterminantValue, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_IN_OUT, &defaultMinDeterminant, "Minimum value for the determinant of the passive minor of the Mass Matrix"),
         new paramHelp::ParamProxyBasic<double>("lambda", AdaptiveControlParamIDGainLambda, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultLambdaGain, "Lambda gain: rate of convergence of active joints to reference"),
         new paramHelp::ParamProxyBasic<double>("kappa", AdaptiveControlParamIDGainKappa, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultKappaGain.data(), "Kappa gain: torque gain"),
