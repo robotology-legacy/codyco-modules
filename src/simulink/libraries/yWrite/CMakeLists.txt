@@ -66,16 +66,27 @@ if(NOT "${MATLAB_ROOT}" STREQUAL "")
 	set_target_properties(${PROJECTNAME} PROPERTIES SUFFIX .${SFUNCTION_SUFFIX})
 	set_target_properties(${PROJECTNAME} PROPERTIES PREFIX "")
 
-	# if("${MATLAB_ARCH}" STREQUAL "64")
-	# 	if(WIN32)
-	# 		message("Flags have been passed to compiler for Windows 64bits")
-	# 		set_target_properties(${PROJECTNAME} PROPERTIES COMPILE_FLAGS "-I$ENV{MATLAB_ROOT} -O -pthread -shared -Wl,--version-script, -Wl,--no-undefined -Wl,-rpath-link,$ENV{MATLAB_ROOT}/bin/win64 -L$ENV{MATLAB_ROOT}/bin/win64 -lmx -lmex -lmat -lm -lstdc++")
-	# 	elseif(WIN32)
-	# 		set_target_properties(${PROJECTNAME} PROPERTIES COMPILE_FLAGS "-I$ENV{MATLAB_ROOT} -O -pthread -shared -Wl,--version-script,$ENV{MATLAB_ROOT}/extern/lib/glnxa64/mexFunction.map -Wl,--no-undefined -Wl,-rpath-link,$ENV{MATLAB_ROOT}/bin/glnxa64 -L$ENV{MATLAB_ROOT}/bin/glnxa64 -lmx -lmex -lmat -lm -lstdc++")
-	# 	endif(WIN32)
-	# else()
-	# 	set_target_properties(${PROJECTNAME} PROPERTIES COMPILE_FLAGS "-I$ENV{MATLAB_ROOT} -O -pthread -shared -m32 -Wl,--version-script,$ENV{MATLAB_ROOT}/extern/lib/glnx86/mexFunction.map -Wl,--no-undefined -Wl,-rpath-link,$ENV{MATLAB_ROOT}/bin/glnx86 -L$ENV{MATLAB_ROOT}/bin/glnx86 -lmx -lmex -lmat -lm -lstdc++")
-	# endif()
+	 if("${MATLAB_ARCH}" STREQUAL "64")
+	 	if(WIN32)
+	 		message("Flags have been passed to compiler for Matlab 64bits")
+				#set_target_properties(${PROJECTNAME} PROPERTIES COMPILE_FLAGS "-I$ENV{MATLAB_ROOT} -O -pthread -shared -Wl,--version-script, -Wl,--no-undefined -Wl,-rpath-link,$ENV{MATLAB_ROOT}/bin/win64 -L$ENV{MATLAB_ROOT}/bin/win64 -lmx -lmex -lmat -lm -lstdc++")
+				if(MSVC)
+					#Setting Compiler Flags
+					set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Z7 /nologo /W3 /WX- /O2 /Oy- /D_REENTRANT /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /D_SECURE_SCL=0 /DyWrite_EXPORTS /Gm- /EHs /Zp8 /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Gd /TP /showIncludes")
+					
+					#Setting Linker Flags
+					set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /INCREMENTAL:NO /NOLOGO /MANIFEST /debug /MAP.mexw64.map /MACHINE:X64 /EXPORT:mexFunction")
+					# set_target_properties(${PROJECTNAME} PROPERTIES LINK_FLAGS /INCREMENTAL:NO /NOLOGO /MANIFEST /DEBUG /MAP":.mexw64.map" /MACHINE:X64 /EXPORT:mexFunction)
+				endif()
+	 	elseif(WIN32)
+				# 		set_target_properties(${PROJECTNAME} PROPERTIES COMPILE_FLAGS "-I$ENV{MATLAB_ROOT} -O -pthread -shared -Wl,--version-script,$ENV{MATLAB_ROOT}/extern/lib/glnxa64/mexFunction.map -Wl,--no-undefined -Wl,-rpath-link,$ENV{MATLAB_ROOT}/bin/glnxa64 -L$ENV{MATLAB_ROOT}/bin/glnxa64 -lmx -lmex -lmat -lm -lstdc++")
+	 	endif(WIN32)
+	 elseif() #if 32bits system
+			if(WIN32)
+				message("Flags have been passed to compiler for Matlab 32bits")
+			elseif(WIN32)
+			endif(WIN32)
+	 endif()
 
 	
 	
