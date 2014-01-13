@@ -71,6 +71,10 @@ namespace adaptiveControl {
         double _refAmplitude;
         double _refPhase; //in rad
         
+        //geometric parameters
+        double _link1Length;
+        double _link2Length;
+        
         //gains
         double _lambda;
         Eigen::Vector2d _kappa;
@@ -82,6 +86,9 @@ namespace adaptiveControl {
         Eigen::Vector2d _xi;
         Eigen::Vector8d _pi;
         
+        //Streaming output parameters
+        Eigen::VectorNd _outputTau;
+        
         yarp::dev::PolyDriver* openDriver(std::string localName, std::string robotName, std::string bodyPartName);
         void computeRegressor(const Eigen::Vector2d& q, /* Joint positions*/
                                           const Eigen::Vector2d& dq, /* Joint velocities*/
@@ -89,7 +96,11 @@ namespace adaptiveControl {
                                           const Eigen::Vector2d& ddq, /* Joint accelerations*/
                               Eigen::Matrix28d& regressor); /* output variable */
     public:
-        AdaptiveControlThread(std::string& threadName, std::string& robotName, int periodMilliseconds, paramHelp::ParamHelperServer&paramHelperServer);
+        AdaptiveControlThread(std::string& threadName,
+                              std::string& robotName,
+                              int periodMilliseconds,
+                              paramHelp::ParamHelperServer&paramHelperServer,
+                              const Eigen::Vector2d &linklengths);
         ~AdaptiveControlThread();
         
         /* Overrided functions (Rate Thread)*/
