@@ -40,11 +40,17 @@ namespace paramHelp {
 namespace yarp {
     namespace dev {
         class PolyDriver;
-        class IEncoders;
+        class IEncodersTimed;
     }
     namespace os {
         class Bottle;
         template <class T> class BufferedPort;
+    }
+}
+
+namespace iCub {
+    namespace ctrl {
+        class AWLinEstimator;
     }
 }
 
@@ -61,11 +67,13 @@ namespace adaptiveControl {
         std::string &_robotName;
         paramHelp::ParamHelperServer &_paramServer;
         
-        //in-out variables
+        //in-out varables
         yarp::dev::PolyDriver* _encodersDriver;
-        yarp::dev::IEncoders* _encoders;
-        yarp::os::BufferedPort<yarp::os::Bottle> *_torqueControl;
+        yarp::dev::IEncodersTimed* _encoders;
+        yarp::os::BufferedPort<yarp::os::Bottle>* _torqueOutput;
+        iCub::ctrl::AWLinEstimator* _velocityEstimator;
         int _outputEnabled;
+        
         
         double _minDeterminantValue;
         
@@ -90,8 +98,12 @@ namespace adaptiveControl {
         Eigen::Vector2d _xi;
         Eigen::Vector8d _pi;
         
+        //variables update rules
+        Eigen::Vector2d _dxi;
+        Eigen::Vector8d _dpi;
+        
         //Streaming output parameters
-        Eigen::VectorNd _outputTau;
+        yarp::sig::Vector _outputTau;
         
         yarp::dev::PolyDriver* openDriver(std::string localName, std::string robotName, std::string bodyPartName);
         void computeRegressor(const Eigen::Vector2d& q, /* Joint positions*/
@@ -99,6 +111,10 @@ namespace adaptiveControl {
                                           const Eigen::Vector2d& dq_lin, /* Joint velocities. This is the term which multiplies linearly the C(.) term */
                                           const Eigen::Vector2d& ddq, /* Joint accelerations*/
                               Eigen::Matrix28d& regressor); /* output variable */
+        bool readSensors(Eigen::Vector2d& positions, Eigen::Vector2d& velocities);
+        void computeControl();
+        void writeOutputs();
+        
     public:
         AdaptiveControlThread(std::string& threadName,
                               std::string& robotName,

@@ -51,6 +51,8 @@ namespace adaptiveControl
     const double gravity = 9.80665;
     const double pi = 3.1415926536;
     
+    inline double convertDegToRad(double degAngle) { return degAngle / 180 * pi; }
+    
     // ******************************************************************************************************************************
     // ****************************************** PARAMETER SECTION *****************************************************************
     // ******************************************************************************************************************************
@@ -70,10 +72,6 @@ namespace adaptiveControl
     static const double defaultRefFrequency = 0;
     static const double defaultRefAmplitude = 0;
     static const double defaultRefPhase = 0;
-    static const Eigen::VectorNd defaultOutTau = Eigen::VectorNd::Zero();
-    
-    
-    
     
     // *** IDs of all the module parameters
     enum AdaptiveControlParamID {
@@ -92,16 +90,13 @@ namespace adaptiveControl
         AdaptiveControlParamIDRefFrequency,
         AdaptiveControlParamIDRefAmplitude,
         AdaptiveControlParamIDRefPhase,
-        //input streaming parameters
-        
-        //output streaming parameters
-        AdaptiveControlParamIDOutputTorque,
+
     };
 
     // *****************************************************************************************************************************************
     // ****************************************** DESCRIPTION OF ALL THE MODULE AND THREAD PARAMETERS ******************************************
     // *****************************************************************************************************************************************
-    const unsigned short adaptiveControlParamDescriptorsSize = 12;
+    const unsigned short adaptiveControlParamDescriptorsSize = 13;
     const paramHelp::ParamProxyInterface *const adaptiveControlParamDescriptors[]  =
     {
         //NAME, ID, SIZE, BOUNDS, I/O ACCESS, DEFAULT VALUE, DESCRIPTION
@@ -120,9 +115,6 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<double>("refFreq", AdaptiveControlParamIDRefFrequency, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefFrequency, "Frequency for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
         new paramHelp::ParamProxyBasic<double>("refAmpl", AdaptiveControlParamIDRefAmplitude, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefAmplitude, "Amplitude for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
         new paramHelp::ParamProxyBasic<double>("refPhase", AdaptiveControlParamIDRefPhase, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefPhase, "Phase for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
-        
-        //Streaming output parameters
-        new paramHelp::ParamProxyBasic<double>("tau", AdaptiveControlParamIDOutputTorque, ICUB_PART_DOF, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_OUT_STREAM, defaultOutTau.data(), "Output torque for actuated joint"),
     };
     
     
