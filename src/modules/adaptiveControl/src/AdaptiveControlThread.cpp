@@ -260,8 +260,8 @@ namespace adaptiveControl {
         
         //compute dxi
         _dxi(1) = ddq_ref - _lambda * (_dq(1) - dq_ref);
-        _dxi(0) =  1/m11H * (_dq(0) - (1 + C11H + F1H) * _xi(0) - m12H * _dxi(1) - C12H * _xi(1) - g1H);
-#warning add _kappa(0)
+        _dxi(0) =  1/m11H * (_kappa(0) * (_dq(0) - _xi(0)) - (C11H + F1H) * _xi(0) - m12H * _dxi(1) - C12H * _xi(1) - g1H);
+//        _dxi(0) =  1/m11H * (_dq(0) - (1 + C11H + F1H) * _xi(0) - m12H * _dxi(1) - C12H * _xi(1) - g1H);
         
         
         //compute regressor
