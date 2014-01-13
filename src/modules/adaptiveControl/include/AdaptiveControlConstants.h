@@ -29,6 +29,7 @@
             fprintf(stdout, __VA_ARGS__)
 
 #define PARAMETERS_SIZE 8
+#define ICUB_PART_DOF 7
 
 //define eigen common matrices
 namespace Eigen {
@@ -39,6 +40,7 @@ namespace Eigen {
     typedef Matrix<double, 2, PARAMETERS_SIZE> Matrix28d; //define matrix for regressor
     typedef Matrix<double, PARAMETERS_SIZE, 1> Vector8d; //define vector of parameters
     typedef Matrix<double, PARAMETERS_SIZE, PARAMETERS_SIZE> Matrix8d; //define matrix for parameters gain
+    typedef Matrix<double, ICUB_PART_DOF, 1> VectorNd;
 }
 
 
@@ -56,6 +58,7 @@ namespace adaptiveControl
     static const std::string defaultModuleName = "adaptiveControl";
     static const std::string defaultRobotName = "icubSim"; // robot name
     static const int defaultModulePeriod = 10;
+    static const Eigen::Vector2d defaultLinkLengths = Eigen::Vector2d::Zero();
     static const double defaultMinDeterminant = 10.0;
     static const double defaultLambdaGain = 1;
     static const Eigen::Vector2d defaultKappaGain = Eigen::Vector2d::Constant(1);
@@ -64,8 +67,9 @@ namespace adaptiveControl
     static const double defaultRefFrequency = 0;
     static const double defaultRefAmplitude = 0;
     static const double defaultRefPhase = 0;
+    static const Eigen::VectorNd defaultOutTau = Eigen::VectorNd::Zero();
     
-    // Streaming parameters
+    
     
     
     // *** IDs of all the module parameters
@@ -74,6 +78,7 @@ namespace adaptiveControl
         AdaptiveControlParamIDModuleName,
         AdaptiveControlParamIDRobotName,
         AdaptiveControlParamIDPeriod,
+        AdaptiveControlParamIDLinkLengths,
         //RPC in-out parameters
         AdaptiveControlParamIDMinDeterminantValue,
         AdaptiveControlParamIDGainLambda,
@@ -83,12 +88,16 @@ namespace adaptiveControl
         AdaptiveControlParamIDRefFrequency,
         AdaptiveControlParamIDRefAmplitude,
         AdaptiveControlParamIDRefPhase,
+        //input streaming parameters
+        
+        //output streaming parameters
+        AdaptiveControlParamIDOutputTorque,
     };
 
     // *****************************************************************************************************************************************
     // ****************************************** DESCRIPTION OF ALL THE MODULE AND THREAD PARAMETERS ******************************************
     // *****************************************************************************************************************************************
-    const unsigned short adaptiveControlParamDescriptorsSize = 11;
+    const unsigned short adaptiveControlParamDescriptorsSize = 12;
     const paramHelp::ParamProxyInterface *const adaptiveControlParamDescriptors[]  =
     {
         //NAME, ID, SIZE, BOUNDS, I/O ACCESS, DEFAULT VALUE, DESCRIPTION
@@ -96,6 +105,7 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<std::string>("name", AdaptiveControlParamIDModuleName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultModuleName, "Name of the instance of the module"),
         new paramHelp::ParamProxyBasic<std::string>("robot", AdaptiveControlParamIDRobotName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultRobotName, "Name of the robot"),
         new paramHelp::ParamProxyBasic<int>("period", AdaptiveControlParamIDPeriod, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_CONFIG, &defaultModulePeriod, "Name of the robot"),
+        new paramHelp::ParamProxyBasic<double>("linkLengths", AdaptiveControlParamIDLinkLengths, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultLinkLengths.data(), "Length of links"),
         //RPC in/out parameters (during runtime)
         new paramHelp::ParamProxyBasic<double>("minDet", AdaptiveControlParamIDMinDeterminantValue, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_IN_OUT, &defaultMinDeterminant, "Minimum value for the determinant of the passive minor of the Mass Matrix"),
         new paramHelp::ParamProxyBasic<double>("lambda", AdaptiveControlParamIDGainLambda, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultLambdaGain, "Lambda gain: rate of convergence of active joints to reference"),
@@ -106,8 +116,8 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<double>("refAmpl", AdaptiveControlParamIDRefAmplitude, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefAmplitude, "Amplitude for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
         new paramHelp::ParamProxyBasic<double>("refPhase", AdaptiveControlParamIDRefPhase, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefPhase, "Phase for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
         
-        // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
-        // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
+        //Streaming output parameters
+        new paramHelp::ParamProxyBasic<double>("tau", AdaptiveControlParamIDOutputTorque, ICUB_PART_DOF, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_OUT_STREAM, defaultOutTau.data(), "Output torque for actuated joint"),
     };
     
     

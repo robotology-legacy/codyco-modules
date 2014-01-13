@@ -27,13 +27,10 @@
 #ifndef ADAPTIVECONTROLMODULE_H
 #define ADAPTIVECONTROLMODULE_H
 
-//std libs
 #include <string>
-//yarp libs
 #include <yarp/os/RFModule.h>
-//codyco libs
 #include <paramHelp/paramHelperServer.h>
-//project includes
+#include <Eigen/Core>
 
 
 namespace adaptiveControl
@@ -46,16 +43,14 @@ namespace adaptiveControl
         std::string _moduleName;
         std::string _robotName;
         
-//        string  locoCtrlName;
-//        string  fileName;
         int _period;
+        
+        Eigen::Vector2d _linkLengths;
         
         yarp::os::Port _rpcPort;        // a port to handle rpc messages
         AdaptiveControlThread *_controlThread;
-//        jointTorqueControlThread*   ctrlThread;     // locomotion control thread
 //        ParamHelperClient*          torqueCtrl;     // helper class for communicating with the locomotion controller
         paramHelp::ParamHelperServer* _parameterServer;    // helper class for communication
-//        wholeBodyInterface*         robotInterface; // interface to communicate with the robot
         
     public:
         AdaptiveControlModule();

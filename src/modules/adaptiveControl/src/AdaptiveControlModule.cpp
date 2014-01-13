@@ -43,6 +43,7 @@ namespace adaptiveControl {
         _parameterServer->linkParam(AdaptiveControlParamIDModuleName, &_moduleName);
         _parameterServer->linkParam(AdaptiveControlParamIDPeriod, &_period);
         _parameterServer->linkParam(AdaptiveControlParamIDRobotName, &_robotName);
+        _parameterServer->linkParam(AdaptiveControlParamIDLinkLengths, _linkLengths.data());
         
         _parameterServer->registerCommandCallback(AdaptiveControlCommandIDHelp, this);
         _parameterServer->registerCommandCallback(AdaptiveControlCommandIDQuit, this);
@@ -64,7 +65,7 @@ namespace adaptiveControl {
         initMsg.clear();
         
         //--------------------------CONTROL THREAD--------------------------
-        _controlThread = new AdaptiveControlThread(_moduleName, _robotName, _period, *_parameterServer);
+        _controlThread = new AdaptiveControlThread(_moduleName, _robotName, _period, *_parameterServer, _linkLengths);
         if (!_controlThread || !_controlThread->start()) {
             error_out("Error while initializing control thread. Closing module.\n");
             return false;
