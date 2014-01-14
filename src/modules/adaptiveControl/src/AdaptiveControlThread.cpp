@@ -94,7 +94,7 @@ namespace adaptiveControl {
         
         //torque output
         _torqueOutput = new BufferedPort<Bottle>();
-        if (!_torqueOutput || _torqueOutput->open("/" + _threadName + "/torque:o")) {
+        if (!_torqueOutput || _torqueOutput->open(("/" + _threadName + "/torque:o").c_str())) {
             error_out("Could not open port /%s/torque:o\n", _threadName.c_str());
             return false;
         }
