@@ -327,7 +327,9 @@ namespace adaptiveControl {
             myQ[0] = convertDegToRad(q[2]);
             myQ[1] = convertDegToRad(q[3]);
             
-            AWPolyElement element(myQ, timestamp[0]);
+            AWPolyElement element;
+            element.data = myQ;
+            element.time = timestamp[0];
             yarp::sig::Vector dq = _velocityEstimator->estimate(element);
             positions(0) = myQ(0);
             positions(1) = myQ(1);
