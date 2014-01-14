@@ -61,6 +61,12 @@ namespace adaptiveControl {
     private:
         //internal state variables
         bool _controlEnabled;
+        unsigned short _maxReadFailed;
+        unsigned short _failedReads;
+        bool _firstRunLoop;
+        double _initialTime;
+        double _previousTime;
+        
         
         //configuration parameters
         std::string &_threadName;
@@ -79,7 +85,7 @@ namespace adaptiveControl {
         
         //reference trajectory: for now i compute it internally. In the future we can read from a port
         double _refBaseline;
-        double _refFrequency; //in rad/s
+        double _refAngularVelocity; //in rad/s
         double _refAmplitude;
         double _refPhase; //in rad
         
@@ -96,11 +102,11 @@ namespace adaptiveControl {
         Eigen::Vector2d _q;
         Eigen::Vector2d _dq;
         Eigen::Vector2d _xi;
-        Eigen::Vector8d _pi;
+        Eigen::Vector8d _piHat;
         
         //variables update rules
         Eigen::Vector2d _dxi;
-        Eigen::Vector8d _dpi;
+        Eigen::Vector8d _dpiHat;
         
         //Streaming output parameters
         yarp::sig::Vector _outputTau;
@@ -114,6 +120,7 @@ namespace adaptiveControl {
         bool readSensors(Eigen::Vector2d& positions, Eigen::Vector2d& velocities);
         void computeControl();
         void writeOutputs();
+        void startControl();
         
     public:
         AdaptiveControlThread(std::string& threadName,
@@ -122,6 +129,9 @@ namespace adaptiveControl {
                               paramHelp::ParamHelperServer&paramHelperServer,
                               const Eigen::Vector2d &linklengths);
         ~AdaptiveControlThread();
+        
+        bool setInitialConditions(const Eigen::Vector8d& initialPiHat, const double& initialXi1);
+        bool controlEnabled();
         
         /* Overrided functions (Rate Thread)*/
         bool threadInit();

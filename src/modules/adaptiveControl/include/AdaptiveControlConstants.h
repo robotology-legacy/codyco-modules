@@ -69,9 +69,11 @@ namespace adaptiveControl
     static const Eigen::Vector2d defaultKappaGain = Eigen::Vector2d::Constant(1);
     static const Eigen::Matrix8d defaultGammaGain = Eigen::Matrix8d::Identity();
     static const double defaultRefBaseline = 0;
-    static const double defaultRefFrequency = 0;
+    static const double defaultRefAngularVelocity = 0;
     static const double defaultRefAmplitude = 0;
     static const double defaultRefPhase = 0;
+    static const Eigen::Vector8d defaultInitialPiHat = Eigen::Vector8d::Constant(1);
+    static const double defaultInitialXi1 = 1;
     
     // *** IDs of all the module parameters
     enum AdaptiveControlParamID {
@@ -87,16 +89,17 @@ namespace adaptiveControl
         AdaptiveControlParamIDGainKappa,
         AdaptiveControlParamIDGainGamma,
         AdaptiveControlParamIDRefBaseline,
-        AdaptiveControlParamIDRefFrequency,
+        AdaptiveControlParamIDRefAngularVelocity,
         AdaptiveControlParamIDRefAmplitude,
         AdaptiveControlParamIDRefPhase,
-
+        AdaptiveControlParamIDInitialPiHat,
+        AdaptiveControlParamIDInitialXi1,
     };
 
     // *****************************************************************************************************************************************
     // ****************************************** DESCRIPTION OF ALL THE MODULE AND THREAD PARAMETERS ******************************************
     // *****************************************************************************************************************************************
-    const unsigned short adaptiveControlParamDescriptorsSize = 13;
+    const unsigned short adaptiveControlParamDescriptorsSize = 15;
     const paramHelp::ParamProxyInterface *const adaptiveControlParamDescriptors[]  =
     {
         //NAME, ID, SIZE, BOUNDS, I/O ACCESS, DEFAULT VALUE, DESCRIPTION
@@ -112,9 +115,11 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<double>("kappa", AdaptiveControlParamIDGainKappa, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultKappaGain.data(), "Kappa gain: torque gain"),
         new paramHelp::ParamProxyBasic<double>("gamma", AdaptiveControlParamIDGainLambda, PARAMETERS_SIZE*PARAMETERS_SIZE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultGammaGain.data(), "Gamma gain: gain in the parameter update rule"),
         new paramHelp::ParamProxyBasic<double>("refBase", AdaptiveControlParamIDRefBaseline, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefBaseline, "Baseline for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
-        new paramHelp::ParamProxyBasic<double>("refFreq", AdaptiveControlParamIDRefFrequency, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefFrequency, "Frequency for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
+        new paramHelp::ParamProxyBasic<double>("refAngVel", AdaptiveControlParamIDRefAngularVelocity, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefAngularVelocity, "Frequency for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
         new paramHelp::ParamProxyBasic<double>("refAmpl", AdaptiveControlParamIDRefAmplitude, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefAmplitude, "Amplitude for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
         new paramHelp::ParamProxyBasic<double>("refPhase", AdaptiveControlParamIDRefPhase, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefPhase, "Phase for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
+        new paramHelp::ParamProxyBasic<double>("piHat_0", AdaptiveControlParamIDInitialPiHat, PARAMETERS_SIZE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultInitialPiHat.data(), "Initial values for pihat. They can be set only if the control is off."),
+        new paramHelp::ParamProxyBasic<double>("xi1_0", AdaptiveControlParamIDInitialXi1, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultInitialXi1, "Initial values for xi1. It can be set only if the control is off."),
     };
     
     
@@ -123,13 +128,14 @@ namespace adaptiveControl
         AdaptiveControlCommandIDStart,
         AdaptiveControlCommandIDStop,
         AdaptiveControlCommandIDHelp,
-        AdaptiveControlCommandIDQuit
+        AdaptiveControlCommandIDQuit,
+        AdaptiveControlCommandIDReset,
     };
     
     // ******************************************************************************************************************************
     // ****************************************** DESCRIPTION OF ALL THE MODULE COMMANDS ********************************************
     // ******************************************************************************************************************************
-    const unsigned short adaptiveControlCommandDescriptorsSize = 4;
+    const unsigned short adaptiveControlCommandDescriptorsSize = 5;
     const paramHelp::CommandDescription adaptiveControlCommandDescriptors[]  =
     {
         //                  NAME            ID                          DESCRIPTION
@@ -137,6 +143,7 @@ namespace adaptiveControl
         paramHelp::CommandDescription("stop", AdaptiveControlCommandIDStop, "Stop the planner"),
         paramHelp::CommandDescription("help", AdaptiveControlCommandIDHelp, "Get instructions about how to communicate with this module"),
         paramHelp::CommandDescription("quit", AdaptiveControlCommandIDQuit, "Stop the planner and quit the module"),
+        paramHelp::CommandDescription("reset", AdaptiveControlCommandIDReset, "Reset the control thread. It can be done only if the control is in the stop state"),
     };
     
 }

@@ -42,6 +42,8 @@ namespace adaptiveControl {
                                                  const Eigen::Vector2d &linklengths):
     RateThread(periodMilliseconds),
     _controlEnabled(false),
+    _maxReadFailed(3),
+    _failedReads(0),
     _threadName(threadName),
     _robotName(robotName),
     _paramServer(paramHelperServer),
@@ -49,12 +51,24 @@ namespace adaptiveControl {
     _link2Length(linklengths(1)),
     _outputTau(ICUB_PART_DOF, 0.0)
     {
-        _dpi = Vector8d::Zero();
+        _piHat = Vector8d::Zero();
+        _dpiHat = Vector8d::Zero();
+        _xi = Vector2d::Zero();
         _dxi = Vector2d::Zero();
     }
     
     AdaptiveControlThread::~AdaptiveControlThread()
     { /*should be called after thread release*/ }
+    
+    bool AdaptiveControlThread::setInitialConditions(const Eigen::Vector8d& initialPiHat, const double& initialXi1)
+    {
+        if (_controlEnabled) return false;
+        _xi(0) = initialXi1;
+        _piHat = initialPiHat;
+        return true;
+    }
+    
+    bool AdaptiveControlThread::controlEnabled() { return _controlEnabled; }
     
 #pragma mark - RateThread Overridings
     
@@ -69,7 +83,7 @@ namespace adaptiveControl {
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainGamma, _Gamma.data()));
         //reference trajectory
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefBaseline, &_refBaseline));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefFrequency, &_refFrequency));
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefAngularVelocity, &_refAngularVelocity));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefAmplitude, &_refAmplitude));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefPhase, &_refPhase));
         
@@ -137,7 +151,7 @@ namespace adaptiveControl {
         switch(cd.id)
         {
             case AdaptiveControlCommandIDStart:
-                _controlEnabled = true;
+                startControl();
                 break;
             case AdaptiveControlCommandIDStop:
                 _controlEnabled = false;
@@ -203,41 +217,55 @@ namespace adaptiveControl {
     
     void AdaptiveControlThread::computeControl()
     {
-        double now = yarp::os::Time::now();
-        static double previousTime = now; //move to instance variable?
-        
-        double dt = now - previousTime;
-        previousTime = now;
+        if (_firstRunLoop) {
+            _firstRunLoop = false;
+            _initialTime = yarp::os::Time::now();
+            _previousTime = 0;
+        }
+        double now = yarp::os::Time::now() - _initialTime;
+
+        double dt = now - _previousTime;
+        _previousTime = now;
         
         //update state variables
-        _pi = _pi + dt * _dpi;
+        _piHat = _piHat + dt * _dpiHat;
         _xi(0) = _xi(0) + dt * _dxi(0);
         
         //define reference trajectory
-        double q_ref = _refBaseline + _refAmplitude * sin(_refFrequency * now + _refPhase);
-        double dq_ref = _refAmplitude * _refFrequency * cos(_refFrequency * now + _refPhase);
-        double ddq_ref = -_refAmplitude * _refFrequency * _refFrequency * sin(_refFrequency * now + _refPhase);
+        double q_ref = _refBaseline + _refAmplitude * sin(_refAngularVelocity * now + _refPhase);
+        double dq_ref = _refAmplitude * _refAngularVelocity * cos(_refAngularVelocity * now + _refPhase);
+        double ddq_ref = -_refAmplitude * _refAngularVelocity * _refAngularVelocity * sin(_refAngularVelocity * now + _refPhase);
         
         //read data: joint positions and velocities
-        bool result = readSensors(_q, _dq);
-        if (!result) {
-#warning what should i do?
+        bool success = readSensors(_q, _dq);
+        if (!success) {
+            error_out("Failed to retrieve positions from encoders\n");
+            ++_failedReads;
+            if (_failedReads > _maxReadFailed) {
+                error_out("Reading from encoder fails more than %d times in a row. Stop control.\n", _maxReadFailed);
+                _controlEnabled = false;
+                return;
+            }
+        }
+        else {
+            _failedReads = 0;
         }
         
-        _xi(1) = dq_ref - _lambda * (_q(1) - q_ref);
+        double qTilde = _q(1) - q_ref;
+        _xi(1) = dq_ref - _lambda * (qTilde);
         
         //define variable 's'
         Vector2d s = _dq - _xi;
         
         //extract estimated parameters
-        double m1H = _pi(0);
-        double l1H = (_pi(1) / m1H) + _link1Length;
-        double I1H = _pi(2) - (_pi(1) * _pi(1) / m1H);
-        double m2H = _pi(3);
-        double l2H = (_pi(4) / m2H) + _link2Length;
-        double I2H = _pi(5) - (_pi(4) * _pi(4) / m2H);
-        double F1H = _pi(6);
-//        double F2H = _pi(7);
+        double m1H = _piHat(0);
+        double l1H = (_piHat(1) / m1H) + _link1Length;
+        double I1H = _piHat(2) - (_piHat(1) * _piHat(1) / m1H);
+        double m2H = _piHat(3);
+        double l2H = (_piHat(4) / m2H) + _link2Length;
+        double I2H = _piHat(5) - (_piHat(4) * _piHat(4) / m2H);
+        double F1H = _piHat(6);
+//        double F2H = _piHat(7);
         
         double c1 = cos(_q(0));
         double c2 = cos(_q(1)), s2 = sin(_q(1));
@@ -261,7 +289,6 @@ namespace adaptiveControl {
         //compute dxi
         _dxi(1) = ddq_ref - _lambda * (_dq(1) - dq_ref);
         _dxi(0) =  1/m11H * (_kappa(0) * (_dq(0) - _xi(0)) - (C11H + F1H) * _xi(0) - m12H * _dxi(1) - C12H * _xi(1) - g1H);
-//        _dxi(0) =  1/m11H * (_dq(0) - (1 + C11H + F1H) * _xi(0) - m12H * _dxi(1) - C12H * _xi(1) - g1H);
         
         
         //compute regressor
@@ -269,14 +296,14 @@ namespace adaptiveControl {
         computeRegressor(_q, _dq, _xi, _dxi, regressor);
         
         //compute torques and send them to actuation
-        double tau = regressor.row(1) * _pi - _kappa(1) * s(1);
+        double tau = regressor.row(1) * _piHat - _kappa(1) * s(1);
         if (_outputEnabled) {
             _outputTau(3) = tau;
             writeOutputs();
         }
         
         //compute update rule for parameters
-        _dpi = - _Gamma * regressor.transpose() * s;
+        _dpiHat = - _Gamma * regressor.transpose() * s;
         
         if (m11H <= _minDeterminantValue) {
             //I'm near a singularity for matrix Mpassive
@@ -309,7 +336,7 @@ namespace adaptiveControl {
                 //double eta = (params(1)/Mdet - zeta )/ (delta'*Gamma* delta);
                 double eta = - zeta / (delta.transpose() * _Gamma * delta);
                 //only if zeta is less than zero apply modification
-                _dpi = _dpi + eta * _Gamma * delta;
+                _dpiHat = _dpiHat + eta * _Gamma * delta;
             }
             
         }
@@ -387,5 +414,15 @@ namespace adaptiveControl {
         torqueBottle.clear();
         torqueBottle.write(_outputTau);
         _torqueOutput->write();
+    }
+    
+    void AdaptiveControlThread::startControl()
+    {
+        if (!_controlEnabled) {
+            //only if the control was in stop state
+            _controlEnabled = true;
+            _failedReads = 0;
+            _firstRunLoop = true;
+        }
     }
 }

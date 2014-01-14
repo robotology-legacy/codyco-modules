@@ -30,6 +30,7 @@
 #include <string>
 #include <yarp/os/RFModule.h>
 #include <paramHelp/paramHelperServer.h>
+#include "AdaptiveControlConstants.h"
 #include <Eigen/Core>
 
 
@@ -46,10 +47,11 @@ namespace adaptiveControl
         int _period;
         
         Eigen::Vector2d _linkLengths;
+        Eigen::Vector8d _initialPiHat;
+        double _initialXi1;
         
         yarp::os::Port _rpcPort;        // a port to handle rpc messages
         AdaptiveControlThread *_controlThread;
-//        ParamHelperClient*          torqueCtrl;     // helper class for communicating with the locomotion controller
         paramHelp::ParamHelperServer* _parameterServer;    // helper class for communication
         
     public:

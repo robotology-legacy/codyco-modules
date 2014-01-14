@@ -44,9 +44,12 @@ namespace adaptiveControl {
         _parameterServer->linkParam(AdaptiveControlParamIDPeriod, &_period);
         _parameterServer->linkParam(AdaptiveControlParamIDRobotName, &_robotName);
         _parameterServer->linkParam(AdaptiveControlParamIDLinkLengths, _linkLengths.data());
+        _parameterServer->linkParam(AdaptiveControlParamIDInitialPiHat, _initialPiHat.data());
+        _parameterServer->linkParam(AdaptiveControlParamIDInitialXi1, &_initialXi1);
         
         _parameterServer->registerCommandCallback(AdaptiveControlCommandIDHelp, this);
         _parameterServer->registerCommandCallback(AdaptiveControlCommandIDQuit, this);
+        _parameterServer->registerCommandCallback(AdaptiveControlCommandIDReset, this);
         
         // Read parameters from configuration file (or command line)
         Bottle initMsg;
@@ -70,6 +73,7 @@ namespace adaptiveControl {
             error_out("Error while initializing control thread. Closing module.\n");
             return false;
         }
+        _controlThread->setInitialConditions(_initialPiHat, _initialXi1);
         
         info_out("Control torque module started\n");
         return true;
@@ -98,6 +102,16 @@ namespace adaptiveControl {
             case AdaptiveControlCommandIDQuit:
                 stopModule();
                 reply.addString("Quitting module.");
+                break;
+            case AdaptiveControlCommandIDReset:
+                if (_controlThread && !_controlThread->controlEnabled()) {
+                    //set initial conditions
+                    bool result = _controlThread->setInitialConditions(_initialPiHat, _initialXi1);
+                    reply.addString(std::string("Reset thread returned ") + (result ? "success" : "failure"));
+                }
+                else {
+                    reply.addString("Could not reset control thread.");
+                }
                 break;
         }
     }
