@@ -495,7 +495,7 @@ public:
          return dqJ;
      }
      // ***************************************************************************************************
-     bool setCtrlMode(int ctrl_mode)
+	 bool setCtrlMode(ControlMode ctrl_mode)
      {
          if(wbInterface->setControlMode(ctrl_mode)){
              cout<<"Control Mode set"<<endl;

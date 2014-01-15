@@ -157,7 +157,7 @@ static void mdlStart(SimStruct *S)
      char *String;
 
      buflen = mxGetN((ssGetSFcnParam(S, STRING_PARAM_IDX)))*sizeof(mxChar)+1;
-     String = mxMalloc(buflen);
+     String = static_cast<char*>(mxMalloc(buflen));
      status = mxGetString((ssGetSFcnParam(S, STRING_PARAM_IDX)),String,buflen);
  //    mexPrintf("The string being passed for robotName is - %s\n ", String);
 
