@@ -77,8 +77,7 @@ namespace adaptiveControl {
 #endif
     }
     
-    AdaptiveControlThread::~AdaptiveControlThread()
-    { /*should be called after thread release*/ }
+    AdaptiveControlThread::~AdaptiveControlThread() { threadRelease(); }
     
     bool AdaptiveControlThread::setInitialConditions(const Eigen::Vector8d& initialPiHat, const double& initialXi1)
     {
@@ -485,6 +484,8 @@ namespace adaptiveControl {
 		}
 		_torqueControl->setRefTorques(_outputTau.data());
 #endif
+#else
+        //If no torque control is available I integrate the low level torque control inside
 #endif
         Bottle& torqueBottle = _torqueOutput->prepare();
         torqueBottle.clear();
@@ -536,4 +537,12 @@ namespace adaptiveControl {
         _debugPort->write();
 		
 	}
+
+#ifndef TORQUE_CONTROL
+    void AdaptiveControlThread::torqueControlledOutput()
+    {
+        //here I need to implement the low level torque control
+        //I have to write directly voltages
+    }
+#endif
 }

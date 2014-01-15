@@ -24,6 +24,17 @@
  
  **/
 
+/**
+ Notes:
+ There are two preprocessor macros: TORQUE_CONTROL  and GAZEBO_SIMULATOR.
+ Torque control defines if I can use or not the ITorqueControl interface.
+ If I have the torque control interface I can directly set the torque references to the robot (either the simulator or the real one)
+ If I do not have the torque control interface (but this is a temporary situation... with t_available -> +inf) I implement the low level (raw) torque control, by setting directly the voltages to the motors.
+ 
+ Currently (but it is late) I don't know if the GAZEBO_SIMULATOR is needed anymore....
+ 
+ */
+
 #ifndef ADAPTIVECONTROLTHREAD_H
 #define ADAPTIVECONTROLTHREAD_H
 
@@ -146,6 +157,8 @@ namespace adaptiveControl {
    		Eigen::Vector4d kv;
 		Eigen::Vector4d kc;
 #endif
+        
+        void torqueControlledOutput();
 #endif
 		
     public:
