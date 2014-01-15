@@ -9,7 +9,7 @@ PROJECT(${PROJECTNAME})
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(YARP 	REQUIRED)
-find_package(Matlab REQUIRED)
+find_package(Matlab     REQUIRED)
 
 if(MATLAB_FOUND)
 	message(STATUS "Matlab was found!! The configuration may continue")
