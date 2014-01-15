@@ -63,7 +63,7 @@ namespace adaptiveControl {
 	const int passiveJointIndex = 0;
 	const int activeJointIndex = 3;
 	
-    class AdaptiveControlThread: public yarp::os::RateThread {
+    class AdaptiveControlThread: public yarp::os::RateThread, public paramHelp::CommandObserver {
         
     private:
         //internal state variables
@@ -87,9 +87,11 @@ namespace adaptiveControl {
 #ifdef TORQUE_CONTROL
         yarp::dev::ITorqueControl* _torqueControl;
         yarp::dev::IControlMode* _controlMode;
-#else
-        yarp::os::BufferedPort<yarp::os::Bottle>* _torqueOutput;
 #endif
+        yarp::os::BufferedPort<yarp::os::Bottle>* _torqueOutput;
+
+		yarp::os::BufferedPort<yarp::os::Bottle>* _debugPort;
+		
         iCub::ctrl::AWLinEstimator* _velocityEstimator;
         int _outputEnabled;
         
@@ -135,7 +137,17 @@ namespace adaptiveControl {
         void writeOutputs();
         void startControl();
         void stopControl();
+		
+		void writeDebug();
         
+		    
+#ifdef TORQUE_CONTROL
+#ifdef GAZEBO_SIMULATOR
+   		Eigen::Vector4d kv;
+		Eigen::Vector4d kc;
+#endif
+#endif
+		
     public:
         AdaptiveControlThread(const std::string& threadName,
                               const std::string& robotName,

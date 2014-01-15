@@ -37,8 +37,8 @@ using namespace Eigen;
 using namespace iCub::ctrl;
 
 namespace adaptiveControl {
-    
-    
+
+		
     AdaptiveControlThread::AdaptiveControlThread(const std::string& threadName,
                                                  const std::string& robotName,
                                                  const std::string& robotPart,
@@ -62,6 +62,19 @@ namespace adaptiveControl {
         _dpiHat = Vector8d::Zero();
         _xi = Vector2d::Zero();
         _dxi = Vector2d::Zero();
+		
+#ifdef TORQUE_CONTROL
+#ifdef GAZEBO_SIMULATOR
+   		kv(0) = 1;
+		kv(1) = 1;
+		kv(2) = 1;
+		kv(3) = 1;
+		kc(0) = 1;
+		kc(1) = 1;
+		kc(2) = 1;
+		kc(3) = 1;
+#endif
+#endif
     }
     
     AdaptiveControlThread::~AdaptiveControlThread()
@@ -94,6 +107,9 @@ namespace adaptiveControl {
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefAmplitude, &_refAmplitude));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefPhase, &_refPhase));
         
+		_paramServer.registerCommandCallback(AdaptiveControlCommandIDStart, this);
+		_paramServer.registerCommandCallback(AdaptiveControlCommandIDStop, this);
+		
         //open ports and drivers
         //Encoder
         _driver = openDriver(_threadName, _robotName, _robotPart);
@@ -115,23 +131,27 @@ namespace adaptiveControl {
         
 #ifdef TORQUE_CONTROL
 		info_out("Using torque interface\n");
-        if (!_driver->view(_torqueControl)) {
+        if (!_driver->view(_torqueControl) || !_torqueControl) {
             error_out("Error initializing torque Control for %s\n", _robotPart.c_str());
             return false;
         }
-        if (!_driver->view(_controlMode)) {
+        if (!_driver->view(_controlMode) || !_controlMode) {
             error_out("Error initializing control mode interface for %s\n", _robotPart.c_str());
             return false;
         }
-#else
-info_out("Using torque port\n");
+#endif
         //torque output
         _torqueOutput = new BufferedPort<Bottle>();
-        if (!_torqueOutput || _torqueOutput->open(("/" + _threadName + "/torque:o").c_str())) {
+        if (!_torqueOutput || !_torqueOutput->open(("/" + _threadName + "/torque:o").c_str())) {
             error_out("Could not open port /%s/torque:o\n", _threadName.c_str());
             return false;
         }
-#endif
+        
+         _debugPort = new BufferedPort<Bottle>();
+        if (!_debugPort || !_debugPort->open(("/" + _threadName + "/debug:o").c_str())) {
+            error_out("Could not open port /%s/debug:o\n", _threadName.c_str());
+            return false;
+        }
         
         return true;
     }
@@ -153,12 +173,16 @@ info_out("Using torque port\n");
 #endif
 			delete _driver; _driver = NULL;
         }
-#ifndef TORQUE_CONTROL
         if (_torqueOutput) {
             _torqueOutput->close();
             delete _torqueOutput; _torqueOutput = NULL;
         }
-#endif
+        
+        if (_debugPort) {
+            _debugPort->close();
+            delete _debugPort; _debugPort = NULL;
+        }
+        
         if (_velocityEstimator) {
             delete _velocityEstimator; _velocityEstimator = NULL;
         }
@@ -175,9 +199,11 @@ info_out("Using torque port\n");
         {
             case AdaptiveControlCommandIDStart:
                 startControl();
+				reply.addString("Start command received.");
                 break;
             case AdaptiveControlCommandIDStop:
                 stopControl();
+				reply.addString("Stop command received.");
                 break;
             default:
                 break;
@@ -363,6 +389,8 @@ info_out("Using torque port\n");
             }
             
         }
+        
+        writeDebug();
     }
     
     bool AdaptiveControlThread::readSensors(Vector2d& positions, Vector2d& velocities)
@@ -429,22 +457,39 @@ info_out("Using torque port\n");
         //        }
         
     }
-    
+    		
     void AdaptiveControlThread::writeOutputs()
     {
 #ifdef TORQUE_CONTROL
 #ifndef GAZEBO_SIMULATOR
-        _torqueControl->setRefTorques(_outputTau.data());
-#else
-		VectorNd ficticiousFriction;
-		_torqueControl->setRefTorques((_outputTau - ficticiousFriction).data());
+		VectorNd zero = VectorNd::Zero();
+        _torqueControl->setRefTorques(zero.data());// _outputTau.data());
+#else		
+		VectorNd ficticiousFriction = VectorNd::Zero();
+		if (_dq(1) > 0.05) {		
+			ficticiousFriction(activeJointIndex) = kv(0)*_dq(1) + kc(0);
+			}
+		else if (_dq(1) < 0.05) {
+			ficticiousFriction(activeJointIndex) = kv(1)*_dq(1) - kc(1);
+		}
+		
+		if (_dq(0) > 0.05) {		
+			ficticiousFriction(passiveJointIndex) = kv(2)*_dq(0) + kc(2);
+		}
+		else if (_dq(0) < 0.05) {
+			ficticiousFriction(passiveJointIndex) = kv(3)*_dq(0) - kc(3);
+		}
+		
+		for (int i = 0; i < ICUB_PART_DOF; i++) {
+			_outputTau(i) = /*_outputTau(i)*/ - ficticiousFriction(i);
+		}
+		_torqueControl->setRefTorques(_outputTau.data());
 #endif
-#else
+#endif
         Bottle& torqueBottle = _torqueOutput->prepare();
         torqueBottle.clear();
-        torqueBottle.write(_outputTau);
+        torqueBottle.addList().read(_outputTau);
         _torqueOutput->write();
-#endif
     }
     
     void AdaptiveControlThread::startControl()
@@ -459,8 +504,11 @@ info_out("Using torque port\n");
                 _controlMode->setPositionMode(i);
             }
             _controlMode->setTorqueMode(passiveJointIndex);
+			_torqueControl->setRefTorque(passiveJointIndex, 0);
             _controlMode->setTorqueMode(activeJointIndex);
+			_torqueControl->setRefTorque(activeJointIndex, 0);
 #endif
+			info_out("Control is now enabled\n");
         }
     }
     
@@ -472,5 +520,20 @@ info_out("Using torque port\n");
             _controlMode->setPositionMode(i);
         }
 #endif
+		info_out("Control is now disabled\n");
     }
+    
+    void AdaptiveControlThread::writeDebug() {
+		
+		Bottle& debugBottle = _debugPort->prepare();
+        debugBottle.clear();
+		yarp::sig::Vector vector(2, _q.data());
+        debugBottle.addList().read(vector);
+		yarp::sig::Vector vector2(2, _dq.data());
+		debugBottle.addList().read(vector2);
+		debugBottle.addList().read(_outputTau);
+		
+        _debugPort->write();
+		
+	}
 }
