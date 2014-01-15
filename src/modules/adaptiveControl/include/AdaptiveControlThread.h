@@ -41,6 +41,10 @@ namespace yarp {
     namespace dev {
         class PolyDriver;
         class IEncodersTimed;
+#ifdef TORQUE_CONTROL
+        class ITorqueControl;
+        class IControlMode;
+#endif
     }
     namespace os {
         class Bottle;
@@ -74,9 +78,14 @@ namespace adaptiveControl {
         paramHelp::ParamHelperServer &_paramServer;
         
         //in-out varables
-        yarp::dev::PolyDriver* _encodersDriver;
+        yarp::dev::PolyDriver* _driver;
         yarp::dev::IEncodersTimed* _encoders;
+#ifdef TORQUE_CONTROL
+        yarp::dev::ITorqueControl* _torqueControl;
+        yarp::dev::IControlMode* _controlMode;
+#else
         yarp::os::BufferedPort<yarp::os::Bottle>* _torqueOutput;
+#endif
         iCub::ctrl::AWLinEstimator* _velocityEstimator;
         int _outputEnabled;
         
@@ -121,6 +130,7 @@ namespace adaptiveControl {
         void computeControl();
         void writeOutputs();
         void startControl();
+        void stopControl();
         
     public:
         AdaptiveControlThread(std::string& threadName,

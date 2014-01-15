@@ -22,6 +22,10 @@
 #include <yarp/os/Log.h>
 #include <yarp/os/Time.h>
 #include <yarp/sig/Vector.h>
+#ifdef TORQUE_CONTROL
+#include <yarp/dev/ITorqueControl.h>
+#include <yarp/dev/IControlMode.h>
+#endif
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 #include <paramHelp/paramHelperServer.h>
 #include <string>
@@ -89,13 +93,13 @@ namespace adaptiveControl {
         
         //open ports and drivers
         //Encoder
-        _encodersDriver = openDriver(_threadName, _robotName, "left_leg");
-        if (!_encodersDriver) {
+        _driver = openDriver(_threadName, _robotName, "left_leg");
+        if (!_driver) {
             error_out("Could not open driver left_leg\n");
             return false;
         }
         
-        if (!_encodersDriver->view(_encoders)) {
+        if (!_driver->view(_encoders)) {
             error_out("Error initializing encoders for left_leg\n");
             return false;
         }
@@ -106,13 +110,24 @@ namespace adaptiveControl {
             return false;
         }
         
+#ifdef TORQUE_CONTROL
+        if (!_driver->view(_torqueControl)) {
+            error_out("Error initializing torque Control for left_leg\n");
+            return false;
+        }
+        if (!_driver->view(_controlMode)) {
+            error_out("Error initializing control mode interface for left_leg\n");
+            return false;
+        }
+#else
         //torque output
         _torqueOutput = new BufferedPort<Bottle>();
         if (!_torqueOutput || _torqueOutput->open(("/" + _threadName + "/torque:o").c_str())) {
             error_out("Could not open port /%s/torque:o\n", _threadName.c_str());
             return false;
         }
-
+#endif
+        
         return true;
     }
     
@@ -125,17 +140,24 @@ namespace adaptiveControl {
     
     void AdaptiveControlThread::threadRelease()
     {
-        if (_encodersDriver) {
-            _encodersDriver->close();
+        if (_driver) {
+            _driver->close();
             if (_encoders) { //??
                 delete _encoders; _encoders = NULL;
             }
-            delete _encodersDriver; _encodersDriver = NULL;
+#ifdef TORQUE_CONTROL
+            if (_torqueControl) {
+                delete _torqueControl; _torqueControl = NULL;
+            }
+#endif
+            delete _driver; _driver = NULL;
         }
+#ifndef TORQUE_CONTROL
         if (_torqueOutput) {
             _torqueOutput->close();
             delete _torqueOutput; _torqueOutput = NULL;
         }
+#endif
         if (_velocityEstimator) {
             delete _velocityEstimator; _velocityEstimator = NULL;
         }
@@ -154,7 +176,7 @@ namespace adaptiveControl {
                 startControl();
                 break;
             case AdaptiveControlCommandIDStop:
-                _controlEnabled = false;
+                stopControl();
                 break;
             default:
                 break;
@@ -409,11 +431,14 @@ namespace adaptiveControl {
     
     void AdaptiveControlThread::writeOutputs()
     {
-        
+#ifdef TORQUE_CONTROL
+        _torqueControl->setRefTorques(_outputTau.data());
+#else
         Bottle& torqueBottle = _torqueOutput->prepare();
         torqueBottle.clear();
         torqueBottle.write(_outputTau);
         _torqueOutput->write();
+#endif
     }
     
     void AdaptiveControlThread::startControl()
@@ -423,6 +448,23 @@ namespace adaptiveControl {
             _controlEnabled = true;
             _failedReads = 0;
             _firstRunLoop = true;
+#ifdef TORQUE_CONTROL
+            for (int i = 0; i < ICUB_PART_DOF; i++) {
+                _controlMode->setPositionMode(i);
+            }
+            _controlMode->setTorqueMode(2);
+            _controlMode->setTorqueMode(3);
+#endif
         }
+    }
+    
+    void AdaptiveControlThread::stopControl()
+    {
+        _controlEnabled = false;
+#ifdef TORQUE_CONTROL
+        for (int i = 0; i < ICUB_PART_DOF; i++) {
+            _controlMode->setPositionMode(i);
+        }
+#endif
     }
 }
