@@ -43,6 +43,7 @@ namespace adaptiveControl
         /* module parameters */
         std::string _moduleName;
         std::string _robotName;
+        std::string _robotPart;
         
         int _period;
         

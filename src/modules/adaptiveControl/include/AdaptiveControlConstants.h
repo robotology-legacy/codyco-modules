@@ -60,6 +60,7 @@ namespace adaptiveControl
     //config
     static const std::string defaultModuleName = "adaptiveControl";
     static const std::string defaultRobotName = "icubSim"; // robot name
+    static const std::string defaultRobotPart = "right_leg";
     static const int defaultModulePeriod = 10;
     static const Eigen::Vector2d defaultLinkLengths = Eigen::Vector2d::Zero();
     //rpc
@@ -80,6 +81,7 @@ namespace adaptiveControl
         //Configuration IDs
         AdaptiveControlParamIDModuleName,
         AdaptiveControlParamIDRobotName,
+        AdaptiveControlParamIDRobotPartName,
         AdaptiveControlParamIDPeriod,
         AdaptiveControlParamIDLinkLengths,
         //RPC in-out parameters
@@ -99,13 +101,14 @@ namespace adaptiveControl
     // *****************************************************************************************************************************************
     // ****************************************** DESCRIPTION OF ALL THE MODULE AND THREAD PARAMETERS ******************************************
     // *****************************************************************************************************************************************
-    const unsigned short adaptiveControlParamDescriptorsSize = 15;
+    const unsigned short adaptiveControlParamDescriptorsSize = 16;
     const paramHelp::ParamProxyInterface *const adaptiveControlParamDescriptors[]  =
     {
         //NAME, ID, SIZE, BOUNDS, I/O ACCESS, DEFAULT VALUE, DESCRIPTION
         //Configuration parameters (at module launch)
         new paramHelp::ParamProxyBasic<std::string>("name", AdaptiveControlParamIDModuleName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultModuleName, "Name of the instance of the module"),
         new paramHelp::ParamProxyBasic<std::string>("robot", AdaptiveControlParamIDRobotName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultRobotName, "Name of the robot"),
+        new paramHelp::ParamProxyBasic<std::string>("side", AdaptiveControlParamIDRobotPartName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultRobotPart, "Robot part: currently only leg is supported, so specify (left|right)_leg"),
         new paramHelp::ParamProxyBasic<int>("period", AdaptiveControlParamIDPeriod, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_CONFIG, &defaultModulePeriod, "Name of the robot"),
         new paramHelp::ParamProxyBasic<double>("linkLengths", AdaptiveControlParamIDLinkLengths, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultLinkLengths.data(), "Length of links"),
         //RPC in/out parameters (during runtime)

@@ -39,10 +39,11 @@ using namespace iCub::ctrl;
 namespace adaptiveControl {
     
     
-    AdaptiveControlThread::AdaptiveControlThread(std::string& threadName,
-                                                 std::string& robotName,
+    AdaptiveControlThread::AdaptiveControlThread(const std::string& threadName,
+                                                 const std::string& robotName,
+                                                 const std::string& robotPart,
                                                  int periodMilliseconds,
-                                                 paramHelp::ParamHelperServer& paramHelperServer,
+                                                 paramHelp::ParamHelperServer&paramHelperServer,
                                                  const Eigen::Vector2d &linklengths):
     RateThread(periodMilliseconds),
     _controlEnabled(false),
@@ -50,6 +51,7 @@ namespace adaptiveControl {
     _failedReads(0),
     _threadName(threadName),
     _robotName(robotName),
+    _robotPart(robotPart),
     _paramServer(paramHelperServer),
     _link1Length(linklengths(0)),
     _link2Length(linklengths(1)),
@@ -93,14 +95,14 @@ namespace adaptiveControl {
         
         //open ports and drivers
         //Encoder
-        _driver = openDriver(_threadName, _robotName, "left_leg");
+        _driver = openDriver(_threadName, _robotName, _robotPart);
         if (!_driver) {
-            error_out("Could not open driver left_leg\n");
+            error_out("Could not open driver %s\n", _robotPart.c_str());
             return false;
         }
         
         if (!_driver->view(_encoders)) {
-            error_out("Error initializing encoders for left_leg\n");
+            error_out("Error initializing encoders for %s\n", _robotPart.c_str());
             return false;
         }
         //velocity estimator
@@ -112,11 +114,11 @@ namespace adaptiveControl {
         
 #ifdef TORQUE_CONTROL
         if (!_driver->view(_torqueControl)) {
-            error_out("Error initializing torque Control for left_leg\n");
+            error_out("Error initializing torque Control for %s\n", _robotPart.c_str());
             return false;
         }
         if (!_driver->view(_controlMode)) {
-            error_out("Error initializing control mode interface for left_leg\n");
+            error_out("Error initializing control mode interface for %s\n", _robotPart.c_str());
             return false;
         }
 #else
@@ -162,7 +164,7 @@ namespace adaptiveControl {
             delete _velocityEstimator; _velocityEstimator = NULL;
         }
     }
-
+    
 #pragma mark - Parameter Helper Callbacks
     /****************************************************************/
     /* Parameter Helper Callbacks */
@@ -182,7 +184,7 @@ namespace adaptiveControl {
                 break;
         }
     }
-
+    
 #pragma mark - Private methods
     /****************************************************************/
     /* Private methods */
@@ -245,7 +247,7 @@ namespace adaptiveControl {
             _previousTime = 0;
         }
         double now = yarp::os::Time::now() - _initialTime;
-
+        
         double dt = now - _previousTime;
         _previousTime = now;
         
@@ -287,7 +289,7 @@ namespace adaptiveControl {
         double l2H = (_piHat(4) / m2H) + _link2Length;
         double I2H = _piHat(5) - (_piHat(4) * _piHat(4) / m2H);
         double F1H = _piHat(6);
-//        double F2H = _piHat(7);
+        //        double F2H = _piHat(7);
         
         double c1 = cos(_q(0));
         double c2 = cos(_q(1)), s2 = sin(_q(1));
@@ -296,16 +298,16 @@ namespace adaptiveControl {
         //compute M, C, and g
         double m11H = I1H + m1H * l1H * l1H + I2H + m2H*(_link1Length * _link1Length + l2H * l2H + 2 * _link1Length * l2H * c2);
         double m12H = I2H + m2H * (l2H * l2H + _link1Length * l2H * c2);
-//        double m22H = I2H + m2H * l2H * l2H;
+        //        double m22H = I2H + m2H * l2H * l2H;
         
         double hH = -m2H * _link1Length * l2H * s2;
         double C11H = hH * _dq(1);
         double C12H = hH * (_dq(0) + _dq(1));
-//        double C21H = -hH * _dq(0);
-//        double C22H = 0;
+        //        double C21H = -hH * _dq(0);
+        //        double C22H = 0;
         
         double g1H = (m1H * l1H + m2H * _link1Length) * gravity * c1 + m2H * l2H * gravity * c12;
-//        double g2H = m2H * l2H * gravity * c12;
+        //        double g2H = m2H * l2H * gravity * c12;
         
         
         //compute dxi
@@ -426,7 +428,7 @@ namespace adaptiveControl {
         //            }
         //            return res || wait;
         //        }
-
+        
     }
     
     void AdaptiveControlThread::writeOutputs()

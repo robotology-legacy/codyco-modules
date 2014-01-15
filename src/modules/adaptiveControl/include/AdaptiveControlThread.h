@@ -73,8 +73,9 @@ namespace adaptiveControl {
         
         
         //configuration parameters
-        std::string &_threadName;
-        std::string &_robotName;
+        const std::string &_threadName;
+        const std::string &_robotName;
+        const std::string &_robotPart;
         paramHelp::ParamHelperServer &_paramServer;
         
         //in-out varables
@@ -133,8 +134,9 @@ namespace adaptiveControl {
         void stopControl();
         
     public:
-        AdaptiveControlThread(std::string& threadName,
-                              std::string& robotName,
+        AdaptiveControlThread(const std::string& threadName,
+                              const std::string& robotName,
+                              const std::string& robotPart,
                               int periodMilliseconds,
                               paramHelp::ParamHelperServer&paramHelperServer,
                               const Eigen::Vector2d &linklengths);
