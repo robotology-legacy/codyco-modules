@@ -114,6 +114,7 @@ namespace adaptiveControl {
         }
         
 #ifdef TORQUE_CONTROL
+		info_out("Using torque interface\n");
         if (!_driver->view(_torqueControl)) {
             error_out("Error initializing torque Control for %s\n", _robotPart.c_str());
             return false;
@@ -123,6 +124,7 @@ namespace adaptiveControl {
             return false;
         }
 #else
+info_out("Using torque port\n");
         //torque output
         _torqueOutput = new BufferedPort<Bottle>();
         if (!_torqueOutput || _torqueOutput->open(("/" + _threadName + "/torque:o").c_str())) {
@@ -145,15 +147,11 @@ namespace adaptiveControl {
     {
         if (_driver) {
             _driver->close();
-            if (_encoders) { //??
-                delete _encoders; _encoders = NULL;
-            }
+            _encoders = NULL;
 #ifdef TORQUE_CONTROL
-            if (_torqueControl) {
-                delete _torqueControl; _torqueControl = NULL;
-            }
+           _torqueControl = NULL;
 #endif
-            delete _driver; _driver = NULL;
+			delete _driver; _driver = NULL;
         }
 #ifndef TORQUE_CONTROL
         if (_torqueOutput) {
@@ -436,7 +434,7 @@ namespace adaptiveControl {
     {
 #ifdef TORQUE_CONTROL
 #ifndef GAZEBO_SIMULATOR
-        _torqueControl->setRefTorques(activeJointIndex, _outputTau(activeJointIndex));
+        _torqueControl->setRefTorques(_outputTau.data());
 #else
 		VectorNd ficticiousFriction;
 		_torqueControl->setRefTorques((_outputTau - ficticiousFriction).data());

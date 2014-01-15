@@ -36,7 +36,7 @@ namespace adaptiveControl {
         //-------------------------------------------------- PARAMETER HELPER SERVER ---------------------------------------------------------
         _parameterServer = new ParamHelperServer(adaptiveControlParamDescriptors, adaptiveControlParamDescriptorsSize,
                                                  adaptiveControlCommandDescriptors, adaptiveControlCommandDescriptorsSize);
-        if (_parameterServer) {
+        if (!_parameterServer) {
             error_out("Could not initialize parameter server. Closing module");
             return false;
         }
