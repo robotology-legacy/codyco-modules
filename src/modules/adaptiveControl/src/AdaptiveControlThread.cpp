@@ -268,7 +268,7 @@ namespace adaptiveControl {
             ++_failedReads;
             if (_failedReads > _maxReadFailed) {
                 error_out("Reading from encoder fails more than %d times in a row. Stop control.\n", _maxReadFailed);
-                _controlEnabled = false;
+                stopControl();
                 return;
             }
         }
