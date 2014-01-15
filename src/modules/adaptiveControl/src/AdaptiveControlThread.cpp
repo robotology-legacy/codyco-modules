@@ -49,6 +49,7 @@ namespace adaptiveControl {
     _controlEnabled(false),
     _maxReadFailed(3),
     _failedReads(0),
+    _firstRunLoop(true),
     _threadName(threadName),
     _robotName(robotName),
     _robotPart(robotPart),
@@ -322,7 +323,7 @@ namespace adaptiveControl {
         //compute torques and send them to actuation
         double tau = regressor.row(1) * _piHat - _kappa(1) * s(1);
         if (_outputEnabled) {
-            _outputTau(3) = tau;
+            _outputTau(activeJointIndex) = tau;
             writeOutputs();
         }
         
@@ -375,8 +376,8 @@ namespace adaptiveControl {
         if (result) {
             //I'm intereste only in two joints
             yarp::sig::Vector myQ(2, 0.0);
-            myQ[0] = convertDegToRad(q[2]);
-            myQ[1] = convertDegToRad(q[3]);
+            myQ[0] = convertDegToRad(q[passiveJointIndex]);
+            myQ[1] = convertDegToRad(q[activeJointIndex]);
             
             AWPolyElement element;
             element.data = myQ;
@@ -454,8 +455,8 @@ namespace adaptiveControl {
             for (int i = 0; i < ICUB_PART_DOF; i++) {
                 _controlMode->setPositionMode(i);
             }
-            _controlMode->setTorqueMode(2);
-            _controlMode->setTorqueMode(3);
+            _controlMode->setTorqueMode(passiveJointIndex);
+            _controlMode->setTorqueMode(activeJointIndex);
 #endif
         }
     }

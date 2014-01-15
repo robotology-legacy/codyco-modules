@@ -60,6 +60,9 @@ namespace iCub {
 
 namespace adaptiveControl {
     
+	const int passiveJointIndex = 2;
+	const int activeJointIndex = 3;
+	
     class AdaptiveControlThread: public yarp::os::RateThread {
         
     private:
