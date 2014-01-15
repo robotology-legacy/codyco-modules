@@ -68,4 +68,4 @@ else(WIN32)
 	INSTALL_TARGETS(/bin ${PROJECTNAME})
 endif(WIN32)
 
-# add_subdirectory(app)
+add_subdirectory(app)

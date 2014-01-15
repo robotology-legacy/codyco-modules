@@ -277,7 +277,7 @@ namespace adaptiveControl {
         }
         
         double qTilde = _q(1) - q_ref;
-        _xi(1) = dq_ref - _lambda * (qTilde);
+        _xi(1) = dq_ref - _lambda * qTilde;
         
         //define variable 's'
         Vector2d s = _dq - _xi;
@@ -435,7 +435,12 @@ namespace adaptiveControl {
     void AdaptiveControlThread::writeOutputs()
     {
 #ifdef TORQUE_CONTROL
-        _torqueControl->setRefTorques(_outputTau.data());
+#ifndef GAZEBO_SIMULATOR
+        _torqueControl->setRefTorques(activeJointIndex, _outputTau(activeJointIndex));
+#else
+		VectorNd ficticiousFriction;
+		_torqueControl->setRefTorques((_outputTau - ficticiousFriction).data());
+#endif
 #else
         Bottle& torqueBottle = _torqueOutput->prepare();
         torqueBottle.clear();
