@@ -108,11 +108,11 @@ namespace adaptiveControl
         //Configuration parameters (at module launch)
         new paramHelp::ParamProxyBasic<std::string>("name", AdaptiveControlParamIDModuleName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultModuleName, "Name of the instance of the module"),
         new paramHelp::ParamProxyBasic<std::string>("robot", AdaptiveControlParamIDRobotName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultRobotName, "Name of the robot"),
-        new paramHelp::ParamProxyBasic<std::string>("side", AdaptiveControlParamIDRobotPartName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultRobotPart, "Robot part: currently only leg is supported, so specify (left|right)_leg"),
+        new paramHelp::ParamProxyBasic<std::string>("part", AdaptiveControlParamIDRobotPartName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultRobotPart, "Robot part: currently only leg is supported, so specify (left|right)_leg"),
         new paramHelp::ParamProxyBasic<int>("period", AdaptiveControlParamIDPeriod, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_CONFIG, &defaultModulePeriod, "Name of the robot"),
         new paramHelp::ParamProxyBasic<double>("linkLengths", AdaptiveControlParamIDLinkLengths, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultLinkLengths.data(), "Length of links"),
         //RPC in/out parameters (during runtime)
-        new paramHelp::ParamProxyBasic<int>("outOn", AdaptiveControlParamIDOutputEnabled, 1, paramHelp::ParamBilatBounds<int>(0, 1), paramHelp::PARAM_IN_OUT, &defaultOutputEnabled, "Boolean for enable output to motors"),
+        new paramHelp::ParamProxyBasic<int>("sendCommands", AdaptiveControlParamIDOutputEnabled, 1, paramHelp::ParamBilatBounds<int>(0, 1), paramHelp::PARAM_IN_OUT, &defaultOutputEnabled, "Boolean for enable output to motors"),
         new paramHelp::ParamProxyBasic<double>("minDet", AdaptiveControlParamIDMinDeterminantValue, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_IN_OUT, &defaultMinDeterminant, "Minimum value for the determinant of the passive minor of the Mass Matrix"),
         new paramHelp::ParamProxyBasic<double>("lambda", AdaptiveControlParamIDGainLambda, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultLambdaGain, "Lambda gain: rate of convergence of active joints to reference"),
         new paramHelp::ParamProxyBasic<double>("kappa", AdaptiveControlParamIDGainKappa, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultKappaGain.data(), "Kappa gain: torque gain"),
