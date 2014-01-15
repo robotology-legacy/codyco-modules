@@ -73,4 +73,7 @@ if(EIGEN3_VERSION VERSION_LESS 3.1)
    set(CODYCO_BUILD_EIGEN31_MODULES FALSE)
 endif()
 
+#### Option for building tests
+option(CODYCO_BUILD_TESTS "Compile tests" FALSE)
+
 
