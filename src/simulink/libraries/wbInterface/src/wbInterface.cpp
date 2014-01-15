@@ -157,7 +157,7 @@ static void mdlStart(SimStruct *S)
      char *String;
 
      buflen = mxGetN((ssGetSFcnParam(S, STRING_PARAM_IDX)))*sizeof(mxChar)+1;
-     String = mxMalloc(buflen);
+     String = static_cast<char*>(mxMalloc(buflen));
      status = mxGetString((ssGetSFcnParam(S, STRING_PARAM_IDX)),String,buflen);
  //    mexPrintf("The string being passed for robotName is - %s\n ", String);
 
@@ -360,29 +360,29 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 }
 
 
-/* Define to indicate that this S-Function has the mdlG[S]etSimState mothods */
-#define MDL_SIM_STATE
+///* Define to indicate that this S-Function has the mdlG[S]etSimState mothods */
+//#define MDL_SIM_STATE
 
-/* Function: mdlGetSimState =====================================================
- * Abstract:
- *
- */
-static mxArray* mdlGetSimState(SimStruct* S)
-{
-    // Retrieve C++ object from the pointers vector
-    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
-    // return mxCreateDoubleScalar(da->GetPeak());
-}
-/* Function: mdlGetSimState =====================================================
- * Abstract:
- *
- */
-static void mdlSetSimState(SimStruct* S, const mxArray* ma)
-{
-    // Retrieve C++ object from the pointers vector
-    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
-    // da->SetPeak(mxGetPr(ma)[0]);
-}
+///* Function: mdlGetSimState =====================================================
+// * Abstract:
+// *
+// */
+//static mxArray* mdlGetSimState(SimStruct* S)
+//{
+//    // Retrieve C++ object from the pointers vector
+//    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
+//    // return mxCreateDoubleScalar(da->GetPeak());
+//}
+///* Function: mdlGetSimState =====================================================
+// * Abstract:
+// *
+// */
+//static void mdlSetSimState(SimStruct* S, const mxArray* ma)
+//{
+//    // Retrieve C++ object from the pointers vector
+//    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
+//    // da->SetPeak(mxGetPr(ma)[0]);
+//}
 
 // Function: mdlTerminate =====================================================
 // Abstract:

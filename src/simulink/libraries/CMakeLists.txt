@@ -3,10 +3,9 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 cmake_minimum_required(VERSION 2.6)
-
 add_subdirectory(wbInterface)
 add_subdirectory(minJerkGenerator)
-add_subdirectory(yRead)
+#add_subdirectory(yRead)
 add_subdirectory(yWrite)
 
 

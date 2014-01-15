@@ -20,7 +20,7 @@
 #include "yarpWrite.h"
 
 #define S_FUNCTION_LEVEL 2
-#define S_FUNCTION_NAME  yWrite
+#define S_FUNCTION_NAME yWrite
 
 // PARAMETERS MASK
 #define NPARAMS 1                                                   // Number of input parameters
