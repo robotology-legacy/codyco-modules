@@ -76,6 +76,10 @@ namespace adaptiveControl {
 	const int passiveJointIndex = 0;
 	const int activeJointIndex = 3;
 	
+#ifndef ADAPTIVECONTORL_TORQUECONTROL
+	class MotorParameters;
+#endif
+	
     class AdaptiveControlThread: public yarp::os::RateThread, public paramHelp::CommandObserver {
         
     private:
@@ -141,6 +145,15 @@ namespace adaptiveControl {
         //Streaming output parameters
         yarp::sig::Vector _outputTau;
         
+// #ifndef ADAPTIVECONTORL_TORQUECONTROL
+// 		Eigen::Vector2d _dqSign;
+// 		Eigen::Vector2d _eTau;
+// 		Eigen::Vector2d _tauM;
+// 		
+// 		// Friction constants
+// 		MotorParameters _motorParameters[2];
+// #endif
+		
         yarp::dev::PolyDriver* openDriver(std::string localName, std::string robotName, std::string bodyPartName);
         void computeRegressor(const Eigen::Vector2d& q, /* Joint positions*/
                                           const Eigen::Vector2d& dq, /* Joint velocities*/
@@ -185,6 +198,19 @@ namespace adaptiveControl {
         void commandReceived(const paramHelp::CommandDescription &cd, const yarp::os::Bottle &params, yarp::os::Bottle &reply);
         
     };
+	
+// 	class MotorParameters {
+// 	public:
+// 		double torqueConstant;
+// 		double positiveViscousFriction;
+// 		double negativeViscousFriction;
+// 		
+// 		double positiveCouloumbFriction;
+// 		double negativeCouloumbFriction;
+// 		
+// 		double 
+// 	}
+	
 }
 
 #endif

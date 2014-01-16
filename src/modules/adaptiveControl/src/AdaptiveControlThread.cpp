@@ -530,8 +530,25 @@ namespace adaptiveControl {
 #ifndef ADAPTIVECONTORL_TORQUECONTROL
     void AdaptiveControlThread::torqueControlledOutput()
     {
-        //here I need to implement the low level torque control
-        //I have to write directly voltages
+//         for (int i=0; i < N_DOF; i++)
+//         {
+//             _dqSign(i)       = fabs(dq(i))>coulombVelThr(i) ? sign(dq(i)) : pow(dq(i)/coulombVelThr(i),3);
+// 			
+// 			if (activeJoints(i) == 1) 
+//             {
+// 				_eTau(i) 			= tauM(i) - tauD(i);
+// // 				integralState(i) 	= saturation(integralState(i) + ki(i)*dt*_eTau(i), TORQUE_INTEGRAL_SATURATION, -TORQUE_INTEGRAL_SATURATION) ;
+// 				tau(i) 				= tauD(i) - kp(i)*_eTau(i); // - integralState(i);
+// 
+//                 if(dq(i)>0)
+//                     motorVoltage(i) = kt(i)*tau(i) + kvp(i)*dq(i) + kcp(i)*_dqSign(i);
+//                 else
+//                     motorVoltage(i) = kt(i)*tau(i) + kvn(i)*dq(i) + kcn(i)*_dqSign(i);
+// 					
+// 				if (sendCommands == SEND_COMMANDS_ACTIVE)
+// 					robot->setControlReference(&motorVoltage(i), i);
+// 			}
+// 		}
     }
 #endif
 }
