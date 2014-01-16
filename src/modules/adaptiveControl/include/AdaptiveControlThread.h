@@ -46,6 +46,7 @@
 
 namespace paramHelp {
     class ParamHelperServer;
+    class ParamHelperClient;
 }
 
 namespace yarp {
@@ -56,7 +57,7 @@ namespace yarp {
 #ifdef ADAPTIVECONTORL_TORQUECONTROL
         class ITorqueControl;
 #else
-        class ITorqueControlRaw;
+//        class ITorqueControlRaw;
 #endif
     }
     namespace os {
@@ -105,11 +106,15 @@ namespace adaptiveControl {
 #ifdef ADAPTIVECONTORL_TORQUECONTROL
         yarp::dev::ITorqueControl* _torqueControl;
 #else
-        yarp::dev::ITorqueControlRaw* _rawTorqueControl;
+//        yarp::dev::ITorqueControlRaw* _rawTorqueControl;
 #endif
         yarp::os::BufferedPort<yarp::os::Bottle>* _torqueOutput;
 
 		yarp::os::BufferedPort<yarp::os::Bottle>* _debugPort;
+        
+#ifndef ADAPTIVECONTORL_TORQUECONTROL
+        paramHelp::ParamHelperClient& _paramClient; //used to send torques commands to torque control
+#endif
 		
         iCub::ctrl::AWLinEstimator* _velocityEstimator;
         int _outputEnabled;
@@ -144,7 +149,7 @@ namespace adaptiveControl {
         
         //Streaming output parameters
         yarp::sig::Vector _outputTau;
-        
+   
 // #ifndef ADAPTIVECONTORL_TORQUECONTROL
 // 		Eigen::Vector2d _dqSign;
 // 		Eigen::Vector2d _eTau;
@@ -184,6 +189,9 @@ namespace adaptiveControl {
                               const std::string& robotPart,
                               int periodMilliseconds,
                               paramHelp::ParamHelperServer&paramHelperServer,
+#ifndef ADAPTIVECONTORL_TORQUECONTROL
+                              paramHelp::ParamHelperClient& paramHelperClient,
+#endif
                               const Eigen::Vector2d &linklengths);
         ~AdaptiveControlThread();
         

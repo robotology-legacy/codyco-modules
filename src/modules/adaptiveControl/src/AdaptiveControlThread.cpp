@@ -23,7 +23,12 @@
 #include <yarp/os/Time.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/dev/IControlMode.h>
-#include <yarp/dev/ITorqueControl.h> //this includes both raw and common torque control
+#ifdef ADAPTIVECONTROL_TORQUECONTOL
+#include <yarp/dev/ITorqueControl.h>
+#else
+#include <paramHelp/paramHelperClient.h>
+#include <motorFrictionIdentificationLib/jointTorqueControlParams.h>
+#endif
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 #include <paramHelp/paramHelperServer.h>
 #include <string>
@@ -42,6 +47,9 @@ namespace adaptiveControl {
                                                  const std::string& robotPart,
                                                  int periodMilliseconds,
                                                  paramHelp::ParamHelperServer&paramHelperServer,
+#ifndef ADAPTIVECONTORL_TORQUECONTROL
+                                                 paramHelp::ParamHelperClient& paramHelperClient,
+#endif
                                                  const Eigen::Vector2d &linklengths):
     RateThread(periodMilliseconds),
     _controlEnabled(false),
@@ -52,6 +60,9 @@ namespace adaptiveControl {
     _robotName(robotName),
     _robotPart(robotPart),
     _paramServer(paramHelperServer),
+#ifndef ADAPTIVECONTORL_TORQUECONTROL
+    _paramClient(paramHelperClient),
+#endif
     _link1Length(linklengths(0)),
     _link2Length(linklengths(1)),
     _outputTau(ICUB_PART_DOF, 0.0)
@@ -106,6 +117,10 @@ namespace adaptiveControl {
         
 		_paramServer.registerCommandCallback(AdaptiveControlCommandIDStart, this);
 		_paramServer.registerCommandCallback(AdaptiveControlCommandIDStop, this);
+        
+#ifndef ADAPTIVECONTORL_TORQUECONTROL
+        YARP_ASSERT(_paramClient.linkParam(jointTorqueControl::PARAM_ID_TAU_OFFSET, _outputTau.data()));
+#endif
 		
         //open ports and drivers
         //Encoder
@@ -138,13 +153,11 @@ namespace adaptiveControl {
             return false;
         }
 #else
-        info_out("Using raw torque interface\n");
-        if (!_driver->view(_rawTorqueControl) || !_rawTorqueControl) {
-            error_out("Error initializing raw torque control for %s\n", _robotPart.c_str());
-            return false;
-        }
-        
-        //i think I should read the calibration file here
+//        info_out("Using raw torque interface\n");
+//        if (!_driver->view(_rawTorqueControl) || !_rawTorqueControl) {
+//            error_out("Error initializing raw torque control for %s\n", _robotPart.c_str());
+//            return false;
+//        }
 #endif
         //torque output
         _torqueOutput = new BufferedPort<Bottle>();
@@ -180,7 +193,7 @@ namespace adaptiveControl {
 #ifdef ADAPTIVECONTORL_TORQUECONTROL
             _torqueControl = NULL;
 #else
-            _rawTorqueControl = NULL;
+//            _rawTorqueControl = NULL;
 #endif
 			delete _driver; _driver = NULL;
         }
@@ -436,9 +449,7 @@ namespace adaptiveControl {
         //set directly the torque ref to the control
         _torqueControl->setRefTorques(_outputTau.data());
 #else
-        //We integrate the torque control module inside to avoid communication delays
-        
-        torqueControlledOutput();
+        _paramClient.sendStreamParams();
 #endif
         
 //              
@@ -492,11 +503,11 @@ namespace adaptiveControl {
             _controlMode->setTorqueMode(activeJointIndex);
 			_torqueControl->setRefTorque(activeJointIndex, 0);
 #else
-            //this is what is done in iCubWholeBodyInterface
-            _controlMode->setOpenLoopMode(passiveJointIndex);
-            _controlMode->setOpenLoopMode(activeJointIndex);
-            _rawTorqueControl->setRefTorqueRaw(passiveJointIndex, 0);
-            _rawTorqueControl->setRefTorqueRaw(activeJointIndex, 0);
+//            //this is what is done in iCubWholeBodyInterface
+//            _controlMode->setOpenLoopMode(passiveJointIndex);
+//            _controlMode->setOpenLoopMode(activeJointIndex);
+//            _rawTorqueControl->setRefTorqueRaw(passiveJointIndex, 0);
+//            _rawTorqueControl->setRefTorqueRaw(activeJointIndex, 0);
 #endif
 			info_out("Control is now enabled\n");
         }

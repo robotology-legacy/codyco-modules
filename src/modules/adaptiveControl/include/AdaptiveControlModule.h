@@ -29,10 +29,14 @@
 
 #include <string>
 #include <yarp/os/RFModule.h>
-#include <paramHelp/paramHelperServer.h>
 #include "AdaptiveControlConstants.h"
 #include <Eigen/Core>
 
+
+namespace paramHelp {
+    class ParamHelperServer;
+    class ParamHelperClient;
+}
 
 namespace adaptiveControl
 {
@@ -54,6 +58,10 @@ namespace adaptiveControl
         yarp::os::Port _rpcPort;        // a port to handle rpc messages
         AdaptiveControlThread *_controlThread;
         paramHelp::ParamHelperServer* _parameterServer;    // helper class for communication
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
+        paramHelp::ParamHelperClient* _parameterClient;
+        std::string _torqueControlModuleName;
+#endif
         
     public:
         AdaptiveControlModule();

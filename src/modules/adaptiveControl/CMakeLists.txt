@@ -6,6 +6,8 @@ cmake_minimum_required(VERSION 2.8)
 SET(PROJECTNAME adaptiveControl)
 PROJECT(${PROJECTNAME})
 
+option(TORQUE_CONTROL "AdaptiveControl: Enable low level torqueControl support" OFF)
+
 find_package(YARP)
 find_package(ICUB)
 find_package(Eigen3 REQUIRED)
@@ -36,27 +38,27 @@ include(iCubOptions)
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
 INCLUDE_DIRECTORIES(${INCLUDE_FOLDER}
-                    # ${motorFrictionIdentificationLib_INCLUDE_DIRS}
-                    # ${wholeBodyInterface_INCLUDE_DIRS}
-                    # ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
                     ${Orocos-KDL_INCLUDE_DIRS}
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
                     ${paramHelp_INCLUDE_DIRS}
-                    # ${skinDynLib_INCLUDE_DIRS}
-                    # ${ctrlLib_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS} )
+
+#if torquecontrol is off I have to include jointTorqueControl dir
+IF( NOT ${TORQUE_CONTROL})
+    INCLUDE_DIRECTORIES(${motorFrictionIdentificationLib_INCLUDE_DIRS})
+    TARGET_LINK_LIBRARIES(motorFrictionIdentificationLib)
+    MESSAGE("Torque control not enabled")
+ELSE()
+    add_definitions(-DADAPTIVECONTROL_TORQUECONTROL)
+    MESSAGE("Torque control enabled")
+ENDIF()
 
 ADD_EXECUTABLE(${PROJECTNAME} ${SOURCES} ${INCLUDES})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} 
- # motorFrictionIdentificationLib
+TARGET_LINK_LIBRARIES(${PROJECTNAME}
  ${YARP_LIBRARIES}
- # skinDynLib
-#  ctrlLib
-#  wholeBodyInterface
-#  wholeBodyInterfaceIcub
  paramHelp
  iDynTree
  ${Orocos-KDL_LIBRARIES}

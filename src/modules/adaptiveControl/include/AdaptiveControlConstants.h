@@ -29,7 +29,7 @@
             fprintf(stdout, __VA_ARGS__)
 
 #define PARAMETERS_SIZE 8
-#define ICUB_PART_DOF 7
+#define ICUB_PART_DOF 6
 
 //define eigen common matrices
 namespace Eigen {

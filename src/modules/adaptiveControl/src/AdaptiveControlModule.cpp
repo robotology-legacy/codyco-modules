@@ -19,6 +19,13 @@
 #include "AdaptiveControlConstants.h"
 #include "AdaptiveControlThread.h"
 
+#include <paramHelp/paramHelperServer.h>
+
+#ifndef ADAPTIVECONTORL_TORQUECONTROL
+#include <paramHelp/paramHelperClient.h>
+#include <motorFrictionIdentificationLib/jointTorqueControlParams.h>
+#endif
+
 #include <cstdio>
 #include <string>
 
@@ -68,8 +75,26 @@ namespace adaptiveControl {
         attach(_rpcPort);
         initMsg.clear();
         
+#ifndef ADAPTIVECONTORL_TORQUECONTROL
+        _parameterClient = new ParamHelperClient(jointTorqueControl::jointTorqueControlParamDescr, jointTorqueControl::PARAM_ID_SIZE,
+                                                 jointTorqueControl::jointTorqueControlCommandDescr, jointTorqueControl::COMMAND_ID_SIZE); //todo
+        if (!_parameterClient || !_parameterClient->init(_moduleName, _torqueControlModuleName, initMsg)) {
+            error_out("Error while initializing parameter client. Closing module.\n");
+            return false;
+        }
+#endif
+        
+        
         //--------------------------CONTROL THREAD--------------------------
-        _controlThread = new AdaptiveControlThread(_moduleName, _robotName, _robotPart, _period, *_parameterServer, _linkLengths);
+        _controlThread = new AdaptiveControlThread(_moduleName,
+                                                   _robotName,
+                                                   _robotPart,
+                                                   _period,
+                                                   *_parameterServer,
+#ifndef ADAPTIVECONTORL_TORQUECONTROL
+                                                   *_parameterClient,
+#endif
+                                                   _linkLengths);
         if (!_controlThread || !_controlThread->start()) {
             error_out("Error while initializing control thread. Closing module.\n");
             return false;
