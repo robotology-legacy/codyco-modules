@@ -162,7 +162,14 @@ namespace adaptiveControl {
             delete _parameterServer;
             _parameterServer = NULL;
         }
-        
+
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
+        if(_parameterClient) {
+            _parameterClient->close();
+            delete _parameterClient;
+            _parameterClient = NULL;
+        }
+#endif
         //closing ports
         _rpcPort.close();
         info_out("about to close\n");

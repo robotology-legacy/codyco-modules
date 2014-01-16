@@ -152,12 +152,6 @@ namespace adaptiveControl {
             error_out("Error initializing torque Control for %s\n", _robotPart.c_str());
             return false;
         }
-#else
-//        info_out("Using raw torque interface\n");
-//        if (!_driver->view(_rawTorqueControl) || !_rawTorqueControl) {
-//            error_out("Error initializing raw torque control for %s\n", _robotPart.c_str());
-//            return false;
-//        }
 #endif
         //torque output
         _torqueOutput = new BufferedPort<Bottle>();
@@ -191,9 +185,7 @@ namespace adaptiveControl {
             _encoders = NULL;
             _controlMode = NULL;
 #ifdef ADAPTIVECONTROL_TORQUECONTROL
-            _torqueControl = NULL;
-#else
-//            _rawTorqueControl = NULL;
+            _torqueControl = NULL;         
 #endif
 			delete _driver; _driver = NULL;
         }
@@ -451,35 +443,6 @@ namespace adaptiveControl {
 #else
         _paramClient.sendStreamParams();
 #endif
-        
-//              
-//#ifndef GAZEBO_SIMULATOR
-//		VectorNd zero = VectorNd::Zero();
-//        _torqueControl->setRefTorques(zero.data());// _outputTau.data());
-//#else		
-//		VectorNd ficticiousFriction = VectorNd::Zero();
-//		if (_dq(1) > 0.05) {		
-//			ficticiousFriction(activeJointIndex) = kv(0)*_dq(1) + kc(0);
-//			}
-//		else if (_dq(1) < 0.05) {
-//			ficticiousFriction(activeJointIndex) = kv(1)*_dq(1) - kc(1);
-//		}
-//		
-//		if (_dq(0) > 0.05) {		
-//			ficticiousFriction(passiveJointIndex) = kv(2)*_dq(0) + kc(2);
-//		}
-//		else if (_dq(0) < 0.05) {
-//			ficticiousFriction(passiveJointIndex) = kv(3)*_dq(0) - kc(3);
-//		}
-//		
-//		for (int i = 0; i < ICUB_PART_DOF; i++) {
-//			_outputTau(i) = /*_outputTau(i)*/ - ficticiousFriction(i);
-//		}
-//		_torqueControl->setRefTorques(_outputTau.data());
-//#endif
-//#else
-//        //If no torque control is available I integrate the low level torque control inside
-//#endif
         Bottle& torqueBottle = _torqueOutput->prepare();
         torqueBottle.clear();
         torqueBottle.addList().read(_outputTau);
@@ -533,6 +496,8 @@ namespace adaptiveControl {
 		yarp::sig::Vector vector2(2, _dq.data());
 		debugBottle.addList().read(vector2);
 		debugBottle.addList().read(_outputTau);
+        yarp::sig::Vector vector8(8, _piHat.data());
+        debugBottle.addList().read(vector8);
 		
         _debugPort->write();
 		
