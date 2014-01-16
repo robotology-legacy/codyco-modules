@@ -160,7 +160,7 @@ namespace adaptiveControl {
             return false;
         }
         
-         _debugPort = new BufferedPort<Bottle>();
+         _debugPort = new BufferedPort<yarp::sig::Vector>();
         if (!_debugPort || !_debugPort->open(("/" + _threadName + "/debug:o").c_str())) {
             error_out("Could not open port /%s/debug:o\n", _threadName.c_str());
             return false;
@@ -300,6 +300,8 @@ namespace adaptiveControl {
         double q_ref = _refBaseline + _refAmplitude * sin(_refAngularVelocity * now + _refPhase);
         double dq_ref = _refAmplitude * _refAngularVelocity * cos(_refAngularVelocity * now + _refPhase);
         double ddq_ref = -_refAmplitude * _refAngularVelocity * _refAngularVelocity * sin(_refAngularVelocity * now + _refPhase);
+        
+        _currentRef = q_ref;
         
         //read data: joint positions and velocities
         bool success = readSensors(_q, _dq);
@@ -489,15 +491,35 @@ namespace adaptiveControl {
     
     void AdaptiveControlThread::writeDebug() {
 		
-		Bottle& debugBottle = _debugPort->prepare();
-        debugBottle.clear();
-		yarp::sig::Vector vector(2, _q.data());
-        debugBottle.addList().read(vector);
-		yarp::sig::Vector vector2(2, _dq.data());
-		debugBottle.addList().read(vector2);
-		debugBottle.addList().read(_outputTau);
-        yarp::sig::Vector vector8(8, _piHat.data());
-        debugBottle.addList().read(vector8);
+        //writing also to std::out
+        info_out("P:(%lf, %lf) V:(%lf, %lf) T:(%lf) e:(%lf) pi:(%lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf)\n",
+            _q(0), _q(1),
+            _dq(0), _dq(1),
+            _outputTau(activeJointIndex),
+            _currentRef - _q(1),
+            _piHat(0),_piHat(1),_piHat(2),_piHat(3),_piHat(4),_piHat(5),_piHat(6),_piHat(7)
+        );
+        
+        
+		yarp::sig::Vector& vector = _debugPort->prepare();
+//         debugBottle.clear();
+        //write everything inside bottle
+        //_q(2)
+        //_dq(2)
+        //_tau(1): only active joint
+        //_piHat(8)
+        
+        
+//         yarp::sig::Vector vector(13);
+        vector.push_back(_q(0));
+        vector.push_back(_q(1));
+        vector.push_back(_dq(0));
+        vector.push_back(_dq(1));
+        vector.push_back(_outputTau(activeJointIndex));
+        for (int i = 0; i < 8; i++) {
+            vector.push_back(_piHat(i));
+        }
+//         debugBottle.addList().read(vector);
 		
         _debugPort->write();
 		

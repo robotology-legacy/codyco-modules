@@ -40,6 +40,7 @@
 
 #include "AdaptiveControlConstants.h"
 #include <yarp/os/RateThread.h>
+#include <yarp/sig/Vector.h>
 #include <string>
 
 #include <Eigen/Core>
@@ -110,7 +111,7 @@ namespace adaptiveControl {
 #endif
         yarp::os::BufferedPort<yarp::os::Bottle>* _torqueOutput;
 
-		yarp::os::BufferedPort<yarp::os::Bottle>* _debugPort;
+		yarp::os::BufferedPort<yarp::sig::Vector>* _debugPort;
         
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
         paramHelp::ParamHelperClient& _paramClient; //used to send torques commands to torque control
@@ -127,6 +128,8 @@ namespace adaptiveControl {
         double _refAngularVelocity; //in rad/s
         double _refAmplitude;
         double _refPhase; //in rad
+        
+        double _currentRef;
         
         //geometric parameters
         double _link1Length;
@@ -149,16 +152,8 @@ namespace adaptiveControl {
         
         //Streaming output parameters
         yarp::sig::Vector _outputTau;
+        
    
-// #ifndef ADAPTIVECONTROL_TORQUECONTROL
-// 		Eigen::Vector2d _dqSign;
-// 		Eigen::Vector2d _eTau;
-// 		Eigen::Vector2d _tauM;
-// 		
-// 		// Friction constants
-// 		MotorParameters _motorParameters[2];
-// #endif
-		
         yarp::dev::PolyDriver* openDriver(std::string localName, std::string robotName, std::string bodyPartName);
         void computeRegressor(const Eigen::Vector2d& q, /* Joint positions*/
                                           const Eigen::Vector2d& dq, /* Joint velocities*/
@@ -174,11 +169,6 @@ namespace adaptiveControl {
 		void writeDebug();
         
 		    
-//#ifdef ADAPTIVECONTROL_TORQUECONTROL
-//#ifdef GAZEBO_SIMULATOR
-//   		Eigen::Vector4d kv;
-//		Eigen::Vector4d kc;
-//#endif
 #ifndef ADAPTIVECONTROL_TORQUECONTROL        
         void torqueControlledOutput();
 #endif
@@ -206,19 +196,6 @@ namespace adaptiveControl {
         void commandReceived(const paramHelp::CommandDescription &cd, const yarp::os::Bottle &params, yarp::os::Bottle &reply);
         
     };
-	
-// 	class MotorParameters {
-// 	public:
-// 		double torqueConstant;
-// 		double positiveViscousFriction;
-// 		double negativeViscousFriction;
-// 		
-// 		double positiveCouloumbFriction;
-// 		double negativeCouloumbFriction;
-// 		
-// 		double 
-// 	}
-	
 }
 
 #endif
