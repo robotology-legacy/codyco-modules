@@ -23,7 +23,7 @@
 #include <yarp/os/Time.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/dev/IControlMode.h>
-#ifdef ADAPTIVECONTROL_TORQUECONTOL
+#ifdef ADAPTIVECONTROL_TORQUECONTROL
 #include <yarp/dev/ITorqueControl.h>
 #else
 #include <paramHelp/paramHelperClient.h>
@@ -47,7 +47,7 @@ namespace adaptiveControl {
                                                  const std::string& robotPart,
                                                  int periodMilliseconds,
                                                  paramHelp::ParamHelperServer&paramHelperServer,
-#ifndef ADAPTIVECONTORL_TORQUECONTROL
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
                                                  paramHelp::ParamHelperClient& paramHelperClient,
 #endif
                                                  const Eigen::Vector2d &linklengths):
@@ -60,7 +60,7 @@ namespace adaptiveControl {
     _robotName(robotName),
     _robotPart(robotPart),
     _paramServer(paramHelperServer),
-#ifndef ADAPTIVECONTORL_TORQUECONTROL
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
     _paramClient(paramHelperClient),
 #endif
     _link1Length(linklengths(0)),
@@ -72,7 +72,7 @@ namespace adaptiveControl {
         _xi = Vector2d::Zero();
         _dxi = Vector2d::Zero();
 		
-//#ifdef ADAPTIVECONTORL_TORQUECONTROL
+//#ifdef ADAPTIVECONTROL_TORQUECONTROL
 //#ifdef GAZEBO_SIMULATOR
 //   		kv(0) = 1;
 //		kv(1) = 1;
@@ -118,7 +118,7 @@ namespace adaptiveControl {
 		_paramServer.registerCommandCallback(AdaptiveControlCommandIDStart, this);
 		_paramServer.registerCommandCallback(AdaptiveControlCommandIDStop, this);
         
-#ifndef ADAPTIVECONTORL_TORQUECONTROL
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
         YARP_ASSERT(_paramClient.linkParam(jointTorqueControl::PARAM_ID_TAU_OFFSET, _outputTau.data()));
 #endif
 		
@@ -146,7 +146,7 @@ namespace adaptiveControl {
             return false;
         }
         
-#ifdef ADAPTIVECONTORL_TORQUECONTROL
+#ifdef ADAPTIVECONTROL_TORQUECONTROL
 		info_out("Using torque interface\n");
         if (!_driver->view(_torqueControl) || !_torqueControl) {
             error_out("Error initializing torque Control for %s\n", _robotPart.c_str());
@@ -190,7 +190,7 @@ namespace adaptiveControl {
             _driver->close();
             _encoders = NULL;
             _controlMode = NULL;
-#ifdef ADAPTIVECONTORL_TORQUECONTROL
+#ifdef ADAPTIVECONTROL_TORQUECONTROL
             _torqueControl = NULL;
 #else
 //            _rawTorqueControl = NULL;
@@ -445,7 +445,7 @@ namespace adaptiveControl {
     		
     void AdaptiveControlThread::writeOutputs()
     {
-#ifdef ADAPTIVECONTORL_TORQUECONTROL
+#ifdef ADAPTIVECONTROL_TORQUECONTROL
         //set directly the torque ref to the control
         _torqueControl->setRefTorques(_outputTau.data());
 #else
@@ -497,7 +497,7 @@ namespace adaptiveControl {
                 _controlMode->setPositionMode(i);
             }
             
-#ifdef ADAPTIVECONTORL_TORQUECONTROL
+#ifdef ADAPTIVECONTROL_TORQUECONTROL
             _controlMode->setTorqueMode(passiveJointIndex);
 			_torqueControl->setRefTorque(passiveJointIndex, 0);
             _controlMode->setTorqueMode(activeJointIndex);
@@ -538,7 +538,7 @@ namespace adaptiveControl {
 		
 	}
 
-#ifndef ADAPTIVECONTORL_TORQUECONTROL
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
     void AdaptiveControlThread::torqueControlledOutput()
     {
 //         for (int i=0; i < N_DOF; i++)

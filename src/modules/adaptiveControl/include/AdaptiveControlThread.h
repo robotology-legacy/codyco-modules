@@ -54,7 +54,7 @@ namespace yarp {
         class PolyDriver;
         class IEncodersTimed;
         class IControlMode;
-#ifdef ADAPTIVECONTORL_TORQUECONTROL
+#ifdef ADAPTIVECONTROL_TORQUECONTROL
         class ITorqueControl;
 #else
 //        class ITorqueControlRaw;
@@ -77,8 +77,8 @@ namespace adaptiveControl {
 	const int passiveJointIndex = 0;
 	const int activeJointIndex = 3;
 	
-#ifndef ADAPTIVECONTORL_TORQUECONTROL
-	class MotorParameters;
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
+	//class MotorParameters;
 #endif
 	
     class AdaptiveControlThread: public yarp::os::RateThread, public paramHelp::CommandObserver {
@@ -103,7 +103,7 @@ namespace adaptiveControl {
         yarp::dev::PolyDriver* _driver;
         yarp::dev::IEncodersTimed* _encoders;
         yarp::dev::IControlMode* _controlMode;
-#ifdef ADAPTIVECONTORL_TORQUECONTROL
+#ifdef ADAPTIVECONTROL_TORQUECONTROL
         yarp::dev::ITorqueControl* _torqueControl;
 #else
 //        yarp::dev::ITorqueControlRaw* _rawTorqueControl;
@@ -112,7 +112,7 @@ namespace adaptiveControl {
 
 		yarp::os::BufferedPort<yarp::os::Bottle>* _debugPort;
         
-#ifndef ADAPTIVECONTORL_TORQUECONTROL
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
         paramHelp::ParamHelperClient& _paramClient; //used to send torques commands to torque control
 #endif
 		
@@ -150,7 +150,7 @@ namespace adaptiveControl {
         //Streaming output parameters
         yarp::sig::Vector _outputTau;
    
-// #ifndef ADAPTIVECONTORL_TORQUECONTROL
+// #ifndef ADAPTIVECONTROL_TORQUECONTROL
 // 		Eigen::Vector2d _dqSign;
 // 		Eigen::Vector2d _eTau;
 // 		Eigen::Vector2d _tauM;
@@ -174,12 +174,12 @@ namespace adaptiveControl {
 		void writeDebug();
         
 		    
-//#ifdef ADAPTIVECONTORL_TORQUECONTROL
+//#ifdef ADAPTIVECONTROL_TORQUECONTROL
 //#ifdef GAZEBO_SIMULATOR
 //   		Eigen::Vector4d kv;
 //		Eigen::Vector4d kc;
 //#endif
-#ifndef ADAPTIVECONTORL_TORQUECONTROL        
+#ifndef ADAPTIVECONTROL_TORQUECONTROL        
         void torqueControlledOutput();
 #endif
 		
@@ -189,7 +189,7 @@ namespace adaptiveControl {
                               const std::string& robotPart,
                               int periodMilliseconds,
                               paramHelp::ParamHelperServer&paramHelperServer,
-#ifndef ADAPTIVECONTORL_TORQUECONTROL
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
                               paramHelp::ParamHelperClient& paramHelperClient,
 #endif
                               const Eigen::Vector2d &linklengths);

@@ -21,7 +21,7 @@
 
 #include <paramHelp/paramHelperServer.h>
 
-#ifndef ADAPTIVECONTORL_TORQUECONTROL
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
 #include <paramHelp/paramHelperClient.h>
 #include <motorFrictionIdentificationLib/jointTorqueControlParams.h>
 #endif
@@ -75,7 +75,7 @@ namespace adaptiveControl {
         attach(_rpcPort);
         initMsg.clear();
         
-#ifndef ADAPTIVECONTORL_TORQUECONTROL
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
         _parameterClient = new ParamHelperClient(jointTorqueControl::jointTorqueControlParamDescr, jointTorqueControl::PARAM_ID_SIZE,
                                                  jointTorqueControl::jointTorqueControlCommandDescr, jointTorqueControl::COMMAND_ID_SIZE); //todo
         if (!_parameterClient || !_parameterClient->init(_moduleName, _torqueControlModuleName, initMsg)) {
@@ -91,7 +91,7 @@ namespace adaptiveControl {
                                                    _robotPart,
                                                    _period,
                                                    *_parameterServer,
-#ifndef ADAPTIVECONTORL_TORQUECONTROL
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
                                                    *_parameterClient,
 #endif
                                                    _linkLengths);
