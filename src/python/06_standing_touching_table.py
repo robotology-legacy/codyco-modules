@@ -25,7 +25,7 @@ cpath = os.path.dirname(os.path.abspath(inspect.getfile( inspect.currentframe())
 sys.path.append(cpath)
 
 # from pycontrol import VHController
-from pycontrol_smooth_contact_force2 import VHController
+from pycontrol_smooth_contact_force import VHController
 
 pi = numpy.pi
 # minimum distance for computing the local distance between shapes in possible collision
