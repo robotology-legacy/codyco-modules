@@ -52,9 +52,11 @@ namespace yarp {
     namespace dev {
         class PolyDriver;
         class IEncodersTimed;
-#ifdef TORQUE_CONTROL
-        class ITorqueControl;
         class IControlMode;
+#ifdef ADAPTIVECONTORL_TORQUECONTROL
+        class ITorqueControl;
+#else
+        class ITorqueControlRaw;
 #endif
     }
     namespace os {
@@ -95,9 +97,11 @@ namespace adaptiveControl {
         //in-out varables
         yarp::dev::PolyDriver* _driver;
         yarp::dev::IEncodersTimed* _encoders;
-#ifdef TORQUE_CONTROL
-        yarp::dev::ITorqueControl* _torqueControl;
         yarp::dev::IControlMode* _controlMode;
+#ifdef ADAPTIVECONTORL_TORQUECONTROL
+        yarp::dev::ITorqueControl* _torqueControl;
+#else
+        yarp::dev::ITorqueControlRaw* _rawTorqueControl;
 #endif
         yarp::os::BufferedPort<yarp::os::Bottle>* _torqueOutput;
 
@@ -152,12 +156,12 @@ namespace adaptiveControl {
 		void writeDebug();
         
 		    
-#ifdef TORQUE_CONTROL
-#ifdef GAZEBO_SIMULATOR
-   		Eigen::Vector4d kv;
-		Eigen::Vector4d kc;
-#endif
-        
+//#ifdef ADAPTIVECONTORL_TORQUECONTROL
+//#ifdef GAZEBO_SIMULATOR
+//   		Eigen::Vector4d kv;
+//		Eigen::Vector4d kc;
+//#endif
+#ifndef ADAPTIVECONTORL_TORQUECONTROL        
         void torqueControlledOutput();
 #endif
 		

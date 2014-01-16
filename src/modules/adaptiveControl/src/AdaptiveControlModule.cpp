@@ -76,7 +76,7 @@ namespace adaptiveControl {
         }
         _controlThread->setInitialConditions(_initialPiHat, _initialXi1);
         
-        info_out("Control torque module started\n");
+        info_out("Adaptive control module correctly initialized\n");
         return true;
     }
     

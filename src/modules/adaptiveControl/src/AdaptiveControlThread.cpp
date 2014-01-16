@@ -22,10 +22,8 @@
 #include <yarp/os/Log.h>
 #include <yarp/os/Time.h>
 #include <yarp/sig/Vector.h>
-#ifdef TORQUE_CONTROL
-#include <yarp/dev/ITorqueControl.h>
 #include <yarp/dev/IControlMode.h>
-#endif
+#include <yarp/dev/ITorqueControl.h> //this includes both raw and common torque control
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 #include <paramHelp/paramHelperServer.h>
 #include <string>
@@ -63,18 +61,18 @@ namespace adaptiveControl {
         _xi = Vector2d::Zero();
         _dxi = Vector2d::Zero();
 		
-#ifdef TORQUE_CONTROL
-#ifdef GAZEBO_SIMULATOR
-   		kv(0) = 1;
-		kv(1) = 1;
-		kv(2) = 1;
-		kv(3) = 1;
-		kc(0) = 1;
-		kc(1) = 1;
-		kc(2) = 1;
-		kc(3) = 1;
-#endif
-#endif
+//#ifdef ADAPTIVECONTORL_TORQUECONTROL
+//#ifdef GAZEBO_SIMULATOR
+//   		kv(0) = 1;
+//		kv(1) = 1;
+//		kv(2) = 1;
+//		kv(3) = 1;
+//		kc(0) = 1;
+//		kc(1) = 1;
+//		kc(2) = 1;
+//		kc(3) = 1;
+//#endif
+//#endif
     }
     
     AdaptiveControlThread::~AdaptiveControlThread() { threadRelease(); }
@@ -128,16 +126,25 @@ namespace adaptiveControl {
             return false;
         }
         
-#ifdef TORQUE_CONTROL
+        if (!_driver->view(_controlMode) || !_controlMode) {
+            error_out("Error initializing control mode interface for %s\n", _robotPart.c_str());
+            return false;
+        }
+        
+#ifdef ADAPTIVECONTORL_TORQUECONTROL
 		info_out("Using torque interface\n");
         if (!_driver->view(_torqueControl) || !_torqueControl) {
             error_out("Error initializing torque Control for %s\n", _robotPart.c_str());
             return false;
         }
-        if (!_driver->view(_controlMode) || !_controlMode) {
-            error_out("Error initializing control mode interface for %s\n", _robotPart.c_str());
+#else
+        info_out("Using raw torque interface\n");
+        if (!_driver->view(_rawTorqueControl) || !_rawTorqueControl) {
+            error_out("Error initializing raw torque control for %s\n", _robotPart.c_str());
             return false;
         }
+        
+        //i think I should read the calibration file here
 #endif
         //torque output
         _torqueOutput = new BufferedPort<Bottle>();
@@ -164,11 +171,16 @@ namespace adaptiveControl {
     
     void AdaptiveControlThread::threadRelease()
     {
+        stopControl();
+        
         if (_driver) {
             _driver->close();
             _encoders = NULL;
-#ifdef TORQUE_CONTROL
-           _torqueControl = NULL;
+            _controlMode = NULL;
+#ifdef ADAPTIVECONTORL_TORQUECONTROL
+            _torqueControl = NULL;
+#else
+            _rawTorqueControl = NULL;
 #endif
 			delete _driver; _driver = NULL;
         }
@@ -416,77 +428,47 @@ namespace adaptiveControl {
             
         }
         return result;
-        
-        //        AWPolyElement el;
-        //        el.data = q;
-        //        el.time = qStamps[0];
-        
-        //        bool icubWholeBodySensors::readEncoders(double *q, double *stamps, bool wait)
-        //        {
-        //            double qTemp[MAX_NJ], tTemp[MAX_NJ];
-        //            bool res = true, update=false;
-        //            int i=0;
-        //            FOR_ALL_BODY_PARTS_OF(itBp, encoderIdList)
-        //            {
-        //                assert(ienc[itBp->first]!=NULL);
-        //                // read encoders
-        //                while( !(update=ienc[itBp->first]->getEncodersTimed(qTemp, tTemp)) && wait)
-        //                    Time::delay(WAIT_TIME);
-        //
-        //                // if read succeeded => update data
-        //                if(update)
-        //                    for(unsigned int i=0; i<bodyPartAxes[itBp->first]; i++)
-        //                    {
-        //                        // joints 0 and 2 of the torso are swapped
-        //                        qLastRead[itBp->first][itBp->first==TORSO ? 2-i : i]        = CTRL_DEG2RAD*qTemp[i];
-        //                        qStampLastRead[itBp->first][itBp->first==TORSO ? 2-i : i]   = tTemp[i];
-        //                    }
-        //
-        //                // copy most recent data into output variables
-        //                FOR_ALL_JOINTS(itBp, itJ)
-        //                {
-        //                    q[i] = qLastRead[itBp->first][*itJ];
-        //                    if(stamps!=NULL)
-        //                        stamps[i] = qStampLastRead[itBp->first][*itJ];
-        //                    i++;
-        //                }
-        //                res = res && update;    // if read failed => return false
-        //            }
-        //            return res || wait;
-        //        }
-        
     }
     		
     void AdaptiveControlThread::writeOutputs()
     {
-#ifdef TORQUE_CONTROL
-#ifndef GAZEBO_SIMULATOR
-		VectorNd zero = VectorNd::Zero();
-        _torqueControl->setRefTorques(zero.data());// _outputTau.data());
-#else		
-		VectorNd ficticiousFriction = VectorNd::Zero();
-		if (_dq(1) > 0.05) {		
-			ficticiousFriction(activeJointIndex) = kv(0)*_dq(1) + kc(0);
-			}
-		else if (_dq(1) < 0.05) {
-			ficticiousFriction(activeJointIndex) = kv(1)*_dq(1) - kc(1);
-		}
-		
-		if (_dq(0) > 0.05) {		
-			ficticiousFriction(passiveJointIndex) = kv(2)*_dq(0) + kc(2);
-		}
-		else if (_dq(0) < 0.05) {
-			ficticiousFriction(passiveJointIndex) = kv(3)*_dq(0) - kc(3);
-		}
-		
-		for (int i = 0; i < ICUB_PART_DOF; i++) {
-			_outputTau(i) = /*_outputTau(i)*/ - ficticiousFriction(i);
-		}
-		_torqueControl->setRefTorques(_outputTau.data());
-#endif
+#ifdef ADAPTIVECONTORL_TORQUECONTROL
+        //set directly the torque ref to the control
+        _torqueControl->setRefTorques(_outputTau.data());
 #else
-        //If no torque control is available I integrate the low level torque control inside
+        //We integrate the torque control module inside to avoid communication delays
+        
+        torqueControlledOutput();
 #endif
+        
+//              
+//#ifndef GAZEBO_SIMULATOR
+//		VectorNd zero = VectorNd::Zero();
+//        _torqueControl->setRefTorques(zero.data());// _outputTau.data());
+//#else		
+//		VectorNd ficticiousFriction = VectorNd::Zero();
+//		if (_dq(1) > 0.05) {		
+//			ficticiousFriction(activeJointIndex) = kv(0)*_dq(1) + kc(0);
+//			}
+//		else if (_dq(1) < 0.05) {
+//			ficticiousFriction(activeJointIndex) = kv(1)*_dq(1) - kc(1);
+//		}
+//		
+//		if (_dq(0) > 0.05) {		
+//			ficticiousFriction(passiveJointIndex) = kv(2)*_dq(0) + kc(2);
+//		}
+//		else if (_dq(0) < 0.05) {
+//			ficticiousFriction(passiveJointIndex) = kv(3)*_dq(0) - kc(3);
+//		}
+//		
+//		for (int i = 0; i < ICUB_PART_DOF; i++) {
+//			_outputTau(i) = /*_outputTau(i)*/ - ficticiousFriction(i);
+//		}
+//		_torqueControl->setRefTorques(_outputTau.data());
+//#endif
+//#else
+//        //If no torque control is available I integrate the low level torque control inside
+//#endif
         Bottle& torqueBottle = _torqueOutput->prepare();
         torqueBottle.clear();
         torqueBottle.addList().read(_outputTau);
@@ -500,14 +482,21 @@ namespace adaptiveControl {
             _controlEnabled = true;
             _failedReads = 0;
             _firstRunLoop = true;
-#ifdef TORQUE_CONTROL
             for (int i = 0; i < ICUB_PART_DOF; i++) {
                 _controlMode->setPositionMode(i);
             }
+            
+#ifdef ADAPTIVECONTORL_TORQUECONTROL
             _controlMode->setTorqueMode(passiveJointIndex);
 			_torqueControl->setRefTorque(passiveJointIndex, 0);
             _controlMode->setTorqueMode(activeJointIndex);
 			_torqueControl->setRefTorque(activeJointIndex, 0);
+#else
+            //this is what is done in iCubWholeBodyInterface
+            _controlMode->setOpenLoopMode(passiveJointIndex);
+            _controlMode->setOpenLoopMode(activeJointIndex);
+            _rawTorqueControl->setRefTorqueRaw(passiveJointIndex, 0);
+            _rawTorqueControl->setRefTorqueRaw(activeJointIndex, 0);
 #endif
 			info_out("Control is now enabled\n");
         }
@@ -516,12 +505,12 @@ namespace adaptiveControl {
     void AdaptiveControlThread::stopControl()
     {
         _controlEnabled = false;
-#ifdef TORQUE_CONTROL
         for (int i = 0; i < ICUB_PART_DOF; i++) {
             _controlMode->setPositionMode(i);
         }
-#endif
-		info_out("Control is now disabled\n");
+        //should I set some default position here?
+        
+        info_out("Control is now disabled\n");
     }
     
     void AdaptiveControlThread::writeDebug() {
@@ -538,7 +527,7 @@ namespace adaptiveControl {
 		
 	}
 
-#ifndef TORQUE_CONTROL
+#ifndef ADAPTIVECONTORL_TORQUECONTROL
     void AdaptiveControlThread::torqueControlledOutput()
     {
         //here I need to implement the low level torque control
