@@ -370,8 +370,8 @@ namespace adaptiveControl {
         
         //compute torques and send them to actuation
         double tau = regressor.row(1) * _piHat - _kappa(1) * s(1);
+        _outputTau(activeJointIndex) = tau;
         if (_outputEnabled) {
-            _outputTau(activeJointIndex) = tau;
             writeOutputs();
         }
         
