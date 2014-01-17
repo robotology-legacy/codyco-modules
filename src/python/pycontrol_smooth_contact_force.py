@@ -15,7 +15,6 @@ import xde_isir_controller as xic
 import controlfsm
 
 
-
 class VHController(xdefw.rtt.Task):
   
   def __init__(self, name, time_step, model, rname, phy, icsync, solver, use_reduced_problem_no_ddq, jmap, observer):
@@ -23,6 +22,7 @@ class VHController(xdefw.rtt.Task):
     self.s.setPeriod(time_step)
     self.t = 0
     self.dt = time_step
+    self.rname = rname
 	
     self.ctrl = xic.ISIRController(model, rname, phy,icsync, solver, use_reduced_problem_no_ddq)           
     self.model = model
@@ -34,44 +34,54 @@ class VHController(xdefw.rtt.Task):
     waist_z = 0.58
 
     self.n = self.model.nbInternalDofs()
-    head_init = self.model.getSegmentPosition(self.model.getSegmentIndex(rname+".head"))
-    com_init = self.model.getCoMPosition()
+    head_init = self.model.getSegmentPosition(self.model.getSegmentIndex(rname+".head")).copy()
+    com_init = self.model.getCoMPosition().copy()
     self.com_init = com_init
-    rhand_init = self.model.getSegmentPosition(self.model.getSegmentIndex(rname+".r_hand"))
-    lhand_init = self.model.getSegmentPosition(self.model.getSegmentIndex(rname+".l_hand"))
+    rhand_init = self.model.getSegmentPosition(self.model.getSegmentIndex(rname+".r_hand")).copy()
+    lhand_init = self.model.getSegmentPosition(self.model.getSegmentIndex(rname+".l_hand")).copy()
     qinit = lgsm.zeros(self.n)
     # correspond to:    l_elbow_pitch     r_elbow_pitch     l_knee             r_knee             l_ankle_pitch      r_ankle_pitch        l_shoulder_roll          r_shoulder_roll
     for name, val in [("l_elbow_pitch", np.pi/2.), ("r_elbow_pitch", np.pi/2.), ("l_knee", -0.05), ("r_knee", -0.05), ("l_ankle_pitch", -0.05), ("r_ankle_pitch", -0.05), ("l_shoulder_roll", np.pi/2.), ("r_shoulder_roll", np.pi/2.)]:
       qinit[jmap[rname+"."+name]] = val
     #### WEIGHTS OF THE TASKS
-
-    Weight_head_stabilization_task = 0.5
-    Weight_waist_task = 0.4
-    Weight_COM_task = 10.0
-    Weight_hand_task = 5.0
-    Weight_hand_task_or = 4
-    Weight_force_task = 1.0
-
+    Weight_full_task = 0.001
+    Weight_back_task = 10.
+    Weight_waist_task = 1.
+    Weight_head_task = 10.    
+    Weight_COM_task = 1000.
+    Weight_hand_task = 100.
+    Weight_hand_task_or = 10.
+    Weight_force_task = 100.
+    
+    # Weight_full_task = 0.0001
+    # Weight_back_task = 0.001
+    # Weight_waist_task = 0.4
+    # Weight_head_task = 0.5    
+    # Weight_COM_task = 10.
+    # Weight_hand_task = 5.
+    # Weight_hand_task_or = 4.
+    # Weight_force_task = 1.
+    
     # the desired force is expressed in the world frame
     force_desired = lgsm.vector(0,0,0,0,0,0) # mux, muy, muz, fx, fy,fz
 
     #### TASKS
     ## full task: bring joints to the initial position
     #default: Kd= 2*sqrt(Kp)
-    self.fullTask = self.ctrl.createFullTask("full", "INTERNAL", w=0.0001, kp=0., kd=9., q_des=qinit)
+    self.fullTask = self.ctrl.createFullTask("full", "INTERNAL", w=Weight_full_task, kp=0., KD = 9., q_des=qinit)
 
     ## waist task: better balance
-    self.waistTask   = self.ctrl.createFrameTask("waist", rname+'.waist', lgsm.Displacement(), "RXYZ", w=Weight_waist_task, kp=36.,     pose_des=lgsm.Displacement(0,0,.58,1,0,0,0))
+    self.waistTask   = self.ctrl.createFrameTask("waist", rname+'.waist', lgsm.Displacement(), "R", w=Weight_waist_task, kp=10., pose_des=lgsm.Displacement(0,0,.58,1,0,0,0))
 
     ## back task: to keep the back stable
     back_dofs   = [jmap[rname+"."+n] for n in ['torso_pitch', 'torso_roll', 'torso_yaw']]
-    self.backTask    = self.ctrl.createPartialTask("back", back_dofs, w=0.001, kp=16., q_des=lgsm.zeros(3))
+    self.backTask    = self.ctrl.createPartialTask("back", back_dofs, w=Weight_back_task, kp=16., q_des=lgsm.zeros(3))
 
     ## head stabilization task: 
-    self.headTask   = self.ctrl.createFrameTask("head_task", rname+'.head', lgsm.Displacement(), "RZ", w=Weight_head_stabilization_task, kp=10., pose_des=head_init )
+    self.headTask   = self.ctrl.createFrameTask("head_task", rname+'.head', lgsm.Displacement(), "RZ", w=Weight_head_task, kp=10., pose_des=head_init )
 
     ## COM task
-    self.CoMTask     = self.ctrl.createCoMTask("com", "XY", w=Weight_COM_task, kp=20., pose_des=lgsm.Displacement(t=com_init)) 
+    self.CoMTask     = self.ctrl.createCoMTask("com", "XY", w=Weight_COM_task, kp=50., pose_des=lgsm.Displacement(t=com_init)) 
  
     ## contact tasks for the feet
     sqrt2on2 = lgsm.np.sqrt(2.)/2.
@@ -95,12 +105,12 @@ class VHController(xdefw.rtt.Task):
     #Task_hand_controlled_var = "RXYZ"  "RXYZ" "R" "XY" "Z" ..
     self.RHand_task = self.ctrl.createFrameTask("rhand", rname+'.r_hand', H_hand_tool, "XYZ", w=Weight_hand_task, kp=36., pose_des=rhand_init)
     self.LHand_task = self.ctrl.createFrameTask("lhand", rname+'.l_hand', H_hand_tool, "XYZ", w=Weight_hand_task, kp=36., pose_des=lhand_init)
-    self.orient_RHand_task = self.ctrl.createFrameTask("orient_rhand", rname+'.r_hand', H_hand_tool, "R", w=Weight_hand_task_or, kp=16., pose_des=rhand_init)
-    self.orient_LHand_task = self.ctrl.createFrameTask("orient_lhand", rname+'.l_hand', H_hand_tool, "R",w=Weight_hand_task_or, kp=16., pose_des=lhand_init)
+    self.orient_RHand_task = self.ctrl.createFrameTask("orient_rhand", rname+'.r_hand', H_hand_tool, "R", w=Weight_hand_task_or, kp=36., pose_des=rhand_init)
+    self.orient_LHand_task = self.ctrl.createFrameTask("orient_lhand", rname+'.l_hand', H_hand_tool, "R",w=Weight_hand_task_or, kp=36., pose_des=lhand_init)
 
     ## force task for touching the table
-    self.force_RHand_Task = self.ctrl.createForceTask("force_rhand", rname+".r_hand", H_hand_tool, w=Weight_force_task, kp=0.01)
-    self.force_LHand_Task = self.ctrl.createForceTask("force_lhand", rname+".l_hand", H_hand_tool, w=Weight_force_task, kp=0.01)
+    self.force_RHand_Task = self.ctrl.createForceTask("force_rhand", rname+".r_hand", H_hand_tool, w=Weight_force_task, kp=16)
+    self.force_LHand_Task = self.ctrl.createForceTask("force_lhand", rname+".l_hand", H_hand_tool, w=Weight_force_task, kp=16)
     # update the task goal
     self.force_RHand_Task.setPosition(lgsm.Displacement()) # expressed in world frame
     self.force_LHand_Task.setPosition(lgsm.Displacement()) # expressed in world frame
@@ -112,7 +122,7 @@ class VHController(xdefw.rtt.Task):
 
   def startHook(self):
     # deactivate tasks
-    #self.headTask.deactivate()
+    # self.backTask.deactivate()
     self.force_RHand_Task.deactivate()
     self.force_LHand_Task.deactivate()
     self.LHand_task.deactivate()

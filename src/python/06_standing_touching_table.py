@@ -214,7 +214,7 @@ class MyTk(tk.Frame):
         print "new weights are set"
         
 
-#activate GUI
+# activate GUI
 master = tk.Tk()
 master.geometry("300x400+300+300")
 gui = MyTk(master)
@@ -228,7 +228,7 @@ master.mainloop()
 
 
 # shell()
-#xdefw.interactive.shell_console()()
+xdefw.interactive.shell_console()()
 
 
 
@@ -247,7 +247,7 @@ ctrl_moving_wall.s.stop()
 # rf_traj = numpy.array(obs_r_foot.get_record())
 # lf_traj = numpy.array(obs_l_foot.get_record())
 tpos = tpobs.get_record()
-
+print tpos
 # pl.figure()
 # pl.plot(comtraj[:,0],label="com x")
 # pl.plot(comtraj[:,1],label="com y")
