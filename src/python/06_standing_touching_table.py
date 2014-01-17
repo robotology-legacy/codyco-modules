@@ -18,6 +18,10 @@ import pylab as pl
 import numpy
 import lgsm
 
+#GUI
+import Tkinter as tk
+#from tk import *
+
 import sys
 import os
 import inspect
@@ -26,6 +30,10 @@ sys.path.append(cpath)
 
 # from pycontrol import VHController
 from pycontrol_smooth_contact_force import VHController
+
+
+    
+    
 
 pi = numpy.pi
 # minimum distance for computing the local distance between shapes in possible collision
@@ -167,8 +175,63 @@ ctrl_moving_wall.s.start()
 wm.phy.s.agent.triggerUpdate()
 # time.sleep(1.)
 
+
+class MyTk(tk.Frame):
+   def __init__(self, parent):
+        tk.Frame.__init__(self, parent) 
+        self.parent = parent        
+        self.parent.title("Parameters")
+        self.pack(fill = tk.BOTH, expand = 1)
+
+        menubar = tk.Menu(self.parent)
+        self.parent.config(menu = menubar)
+
+        self.label1 = Label(self, border = 25, text="w1")
+        self.label2 = Label(self, border = 25, text="w2")
+        self.label1.grid(row = 1, column = 1)
+        self.label2.grid(row = 2, column = 1)
+        self.w1 = Scale(self, from_=0, to=20, length=600, tickinterval=1, orient=tk.HORIZONTAL)
+        self.w1.set(1)
+        self.w1.grid(row = 1, column = 2)
+        self.w2 = Scale(self, from_=0, to=20, length=600, tickinterval=1, orient=tk.HORIZONTAL)
+        self.w2.set(10)
+        self.w2.grid(row = 2, column = 2)
+         
+        # File Menu
+        fileMenu = tk.Menu(menubar)
+        menubar.add_cascade(label = "Menu", menu = fileMenu)
+
+        # Menu Item for Open Image
+        fileMenu.add_command(label = "Set values", command = self.onSetValue) 
+        
+   def setController(self,controller):
+        self.controller=controller
+              
+   def onSetValue(self):
+        #set Callback
+        print (self.w1.get(), self.w2.get())
+        self.controller.CoMTask.setWeight(self.w1.get())
+        print "new weights are set"
+        
+
+#activate GUI
+master = tk.Tk()
+master.geometry("300x400+300+300")
+gui = MyTk(master)
+gui.setController(controller)
+master.mainloop()
+
+
+
+
+
+
+
 # shell()
-xdefw.interactive.shell_console()()
+#xdefw.interactive.shell_console()()
+
+
+
 
 time.sleep(1.)
 wm.stopAgents()
