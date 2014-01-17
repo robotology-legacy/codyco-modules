@@ -111,8 +111,10 @@ namespace adaptiveControl {
 //        yarp::dev::ITorqueControlRaw* _rawTorqueControl;
 #endif
         yarp::os::BufferedPort<yarp::os::Bottle>* _torqueOutput;
-
 		yarp::os::BufferedPort<yarp::sig::Vector>* _debugPort;
+        
+        //Temp: to read directly from gazebo
+        yarp::os::BufferedPort<yarp::os::Bottle>* _speedInput;
         
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
         paramHelp::ParamHelperClient& _paramClient; //used to send torques commands to torque control

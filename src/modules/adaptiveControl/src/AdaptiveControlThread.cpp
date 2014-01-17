@@ -166,6 +166,13 @@ namespace adaptiveControl {
             return false;
         }
         
+        //TEMP
+        _speedInput = new BufferedPort<Bottle>();
+        if (!_speedInput || !_speedInput->open(("/coman/" + _robotPart + "/analog/speeds:o").c_str())) {
+            error_out("Could not open port _speedInput\n");
+            return false;
+        }
+        
         return true;
     }
     
@@ -200,6 +207,10 @@ namespace adaptiveControl {
         
         if (_velocityEstimator) {
             delete _velocityEstimator; _velocityEstimator = NULL;
+        }
+        
+        if (_speedInput) {
+            delete _speedInput; _speedInput = NULL;
         }
     }
     
@@ -435,8 +446,20 @@ namespace adaptiveControl {
             positions(0) = myQ(0);
             positions(1) = myQ(1);
             
-            velocities(0) = dq(0);
-            velocities(1) = dq(1);
+            Bottle *speed = _speedInput->read(false);
+            if (speed) {
+                yarp::os::Value valPassive = speed->get(passiveJointIndex);
+                yarp::os::Value valActive = speed->get(activeJointIndex);
+            
+                if (!valPassive.isNull())
+                    velocities(0) = valPassive.asDouble();
+                if (!valActive.isNull())
+                    velocities(1) = valActive.asDouble();
+
+                
+//                velocities(0) = dq(0);
+//                velocities(1) = dq(1);
+            }
             
         }
         return result;
