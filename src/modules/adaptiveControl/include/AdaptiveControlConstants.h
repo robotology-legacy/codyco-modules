@@ -52,6 +52,7 @@ namespace adaptiveControl
     const double pi = 3.1415926536;
     
     inline double convertDegToRad(double degAngle) { return degAngle / 180 * pi; }
+    inline double convertRadToDeg(double radAngle) { return radAngle * 180 / pi; }
     
     // ******************************************************************************************************************************
     // ****************************************** PARAMETER SECTION *****************************************************************

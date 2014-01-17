@@ -291,9 +291,11 @@ namespace adaptiveControl {
         double dt = now - _previousTime;
         _previousTime = now;
         
-        //update state variables
-        _piHat = _piHat + dt * _dpiHat;
-        _xi(0) = _xi(0) + dt * _dxi(0);
+        //update state variables (only if sendCommands = true, otherwise the updating law integrates a constant value)
+        if (_outputEnabled) {
+            _piHat = _piHat + dt * _dpiHat;
+            _xi(0) = _xi(0) + dt * _dxi(0);
+        }
         
         //define reference trajectory
         double q_ref = _refBaseline + _refAmplitude * sin(_refAngularVelocity * now + _refPhase);
@@ -371,7 +373,9 @@ namespace adaptiveControl {
         //compute update rule for parameters
         _dpiHat = - _Gamma * regressor.transpose() * s;
         
-        if (m11H <= _minDeterminantValue) {
+        _massMatrixDeterminant = m11H;
+        
+        if (_massMatrixDeterminant <= _minDeterminantValue) {
             //I'm near a singularity for matrix Mpassive
             //compute delta and Upsilon matrix.
             
@@ -491,13 +495,13 @@ namespace adaptiveControl {
     void AdaptiveControlThread::writeDebug() {
 		
         //writing also to std::out
-        info_out("P:(%lf, %lf) V:(%lf, %lf) T:(%lf) e:(%lf) pi:(%lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf)\n",
-            _q(0), _q(1),
-            _dq(0), _dq(1),
-            _outputTau(activeJointIndex),
-            _currentRef - _q(1),
-            _piHat(0),_piHat(1),_piHat(2),_piHat(3),_piHat(4),_piHat(5),_piHat(6),_piHat(7)
-        );
+//         info_out("P:(%lf, %lf) V:(%lf, %lf) T:(%lf) e:(%lf) pi:(%lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf)\n",
+//             _q(0), _q(1),
+//             _dq(0), _dq(1),
+//             _outputTau(activeJointIndex),
+//             _currentRef - _q(1),
+//             _piHat(0),_piHat(1),_piHat(2),_piHat(3),_piHat(4),_piHat(5),_piHat(6),_piHat(7)
+//         );
         
         
 		yarp::sig::Vector& vector = _debugPort->prepare();
@@ -508,14 +512,20 @@ namespace adaptiveControl {
         //_tau(1): only active joint
         //_piHat(8)
         
-        vector.push_back(_q(0));
-        vector.push_back(_q(1));
+        vector.push_back(convertRadToDeg(_q(0)));
+        vector.push_back(convertRadToDeg(_q(1)));
         vector.push_back(_dq(0));
         vector.push_back(_dq(1));
         vector.push_back(_outputTau(activeJointIndex));
+        vector.push_back(convertRadToDeg(_currentRef - _q(1)));
+        
+        double norm = 0;
         for (int i = 0; i < 8; i++) {
-            vector.push_back(_piHat(i));
+            norm += _piHat(i) * _piHat(i);
+//             vector.push_back(_piHat(i));
         }
+        vector.push_back(norm);
+        vector.push_back(_massMatrixDeterminant);
 		
         _debugPort->write();
 		

@@ -153,6 +153,8 @@ namespace adaptiveControl {
         //Streaming output parameters
         yarp::sig::Vector _outputTau;
         
+        //debug variables
+        double _massMatrixDeterminant;
    
         yarp::dev::PolyDriver* openDriver(std::string localName, std::string robotName, std::string bodyPartName);
         void computeRegressor(const Eigen::Vector2d& q, /* Joint positions*/
