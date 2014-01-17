@@ -178,9 +178,8 @@ namespace adaptiveControl {
     
     void AdaptiveControlThread::threadRelease()
     {
-        stopControl();
-        
         if (_driver) {
+            stopControl();
             _driver->close();
             _encoders = NULL;
             _controlMode = NULL;
