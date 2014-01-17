@@ -375,6 +375,7 @@ namespace adaptiveControl {
         
         _massMatrixDeterminant = m11H;
         
+        _piHatModificationOn = false;
         if (_massMatrixDeterminant <= _minDeterminantValue) {
             //I'm near a singularity for matrix Mpassive
             //compute delta and Upsilon matrix.
@@ -407,6 +408,7 @@ namespace adaptiveControl {
                 double eta = - zeta / (delta.transpose() * _Gamma * delta);
                 //only if zeta is less than zero apply modification
                 _dpiHat = _dpiHat + eta * _Gamma * delta;
+                _piHatModificationOn = true;
             }
             
         }
@@ -517,7 +519,7 @@ namespace adaptiveControl {
         vector.push_back(_dq(0));
         vector.push_back(_dq(1));
         vector.push_back(_outputTau(activeJointIndex));
-        vector.push_back(convertRadToDeg(_currentRef - _q(1)));
+        vector.push_back(convertRadToDeg(_q(1) - _currentRef));
         
         double norm = 0;
         for (int i = 0; i < 8; i++) {
@@ -526,6 +528,8 @@ namespace adaptiveControl {
         }
         vector.push_back(norm);
         vector.push_back(_massMatrixDeterminant);
+        vector.push_back(_minDeterminantValue);
+        vector.push_back(_piHatModificationOn ? 1 : 0);
 		
         _debugPort->write();
 		

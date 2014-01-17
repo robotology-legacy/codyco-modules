@@ -92,6 +92,7 @@ namespace adaptiveControl {
         bool _firstRunLoop;
         double _initialTime;
         double _previousTime;
+        bool _piHatModificationOn;
         
         
         //configuration parameters

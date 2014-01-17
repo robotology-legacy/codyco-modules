@@ -47,6 +47,18 @@
                title="Graph 0"
                type="lines"
                size="3" />
+         <graph remote="/adaptiveControl/debug:o"
+               index="8"
+               color="Red"
+               title="Graph 0"
+               type="lines"
+               size="3" />
+         <graph remote="/adaptiveControl/debug:o"
+               index="9"
+               color="Blue"
+               title="Graph 0"
+               type="lines"
+               size="3" />
     </plot>
     <plot gridx="0"
           gridy="1"
@@ -74,6 +86,28 @@
           gridy="2"
           hspan="3"
           vspan="1"
+          title="dQ"
+          size="60"
+          minval="-100"
+          maxval="100"
+          bgcolor="LightSlateGrey">
+        <graph remote="/adaptiveControl/debug:o"
+               index="2"
+               color="Blue"
+               title="Graph 0"
+               type="lines"
+               size="3" />
+        <graph remote="/adaptiveControl/debug:o"
+               index="3"
+               color="Red"
+               title="Graph 0"
+               type="lines"
+               size="3" />
+    </plot>
+   <!-- <plot gridx="0"
+          gridy="2"
+          hspan="3"
+          vspan="1"
           title="piHatNorm"
           size="60"
           minval="-100"
@@ -86,5 +120,5 @@
                type="lines"
                size="3" />
 
-    </plot>
+    </plot>-->
 </portscope>
