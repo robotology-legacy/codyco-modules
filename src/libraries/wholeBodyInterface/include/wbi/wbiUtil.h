@@ -114,6 +114,7 @@ namespace wbi
         LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3);
         LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4);
         LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4, const LocalIdList &lid5);
+        LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4, const LocalIdList &lid5, const LocalIdList &lid6);
         
         /** Convert a local id to a global id */
         virtual int localToGlobalId(const LocalId &i) const;
@@ -296,11 +297,11 @@ namespace wbi
         void getRotationVector(double &vX, double &vY, double &vZ) const;
         void getRotationVector(double v[3]) const { return getRotationVector(v[0], v[1], v[2]); };
 
-	    void getAxisAngle(double &axisX, double &axisY, double &axisZ, double &angle) const;
+        void getAxisAngle(double &axisX, double &axisY, double &axisZ, double &angle) const;
         /** Returns the rotation angle around the equiv. axis.
          * Taken from Wikipedia http://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation 
-	     * @param aa the rotation axis followed by the rotation angle (between [0..PI] )
-	     */
+         * @param aa the rotation axis followed by the rotation angle (between [0..PI] )
+         */
         void getAxisAngle(double aa[4]) const{ return getAxisAngle(aa[0], aa[1], aa[2], aa[3]); }
 
         /** Get the quaternion of this matrix

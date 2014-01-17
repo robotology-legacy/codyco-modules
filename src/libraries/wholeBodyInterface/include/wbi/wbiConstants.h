@@ -56,7 +56,7 @@ namespace wbi
         SENSOR_TORQUE,          // joint torque
 
         // CARTESIAN SPACE SENSORS
-        SENSOR_IMU,             // 9d inertial measurement unit (angular vel: w, angular acc: dw, linear acc: ddp)
+        SENSOR_IMU,             // 13d inertial measurement unit (4d: axis-angle orientation[rad], 3d: linear acc: ddp[m/s^2], 3d: angular vel: dw[rad/s], magnetometer[] )
         SENSOR_FORCE_TORQUE,    // 6-axis force/torque
         SENSOR_ACCELEROMETER,   // 3d linear acceleration
 
@@ -85,7 +85,7 @@ namespace wbi
     SensorTypeDescription(SENSOR_PWM,           "PWM",              1, true,  "Motor PWM"), 
     SensorTypeDescription(SENSOR_CURRENT,       "current",          1, true,  "Motor current"), 
     SensorTypeDescription(SENSOR_TORQUE,        "torque",           1, true,  "Joint torque"), 
-    SensorTypeDescription(SENSOR_IMU,           "IMU",              9, false, "Inertial Measurement Unit"), 
+    SensorTypeDescription(SENSOR_IMU,           "IMU",              13, false, "Inertial Measurement Unit"), 
     SensorTypeDescription(SENSOR_FORCE_TORQUE,  "force-torque",     6, false, "6-axis force torque"), 
     SensorTypeDescription(SENSOR_ACCELEROMETER, "accelerometer",    3, false, "3d linear acceleration"), 
     };
@@ -108,8 +108,7 @@ namespace wbi
         ESTIMATE_MOTOR_PWM,                 // motor PWM (proportional to motor voltage)
         ESTIMATE_MOTOR_CURRENT,             // motor current
         // CARTESIAN SPACE ESTIMATES
-        ESTIMATE_IMU,               // 9d inertial measurement unit (angular vel: w, angular acc: dw, linear acc: ddp)
-        ESTIMATE_FORCE_TORQUE,      // 6-axis force/torque
+        ESTIMATE_FORCE_TORQUE,      // 6-axis force/torque sensor
         ESTIMATE_ACCELERATION,      // 3d linear acceleration
         ESTIMATE_BASE_POS,          // position of the base of the robot
         ESTIMATE_BASE_VEL,          // velocity of the base of the robot

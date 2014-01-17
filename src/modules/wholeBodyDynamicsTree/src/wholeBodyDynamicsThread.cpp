@@ -15,7 +15,7 @@
  * Public License for more details
 */
 
-#include <wholeBodyDynamicsTree/wholeBodyDynamicsThread.h>
+#include "wholeBodyDynamicsTree/wholeBodyDynamicsThread.h"
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
@@ -46,26 +46,7 @@ bool wholeBodyDynamicsThread::threadInit()
 //*************************************************************************************************************************
 void wholeBodyDynamicsThread::run()
 {
-    readRobotStatus();                      // read encoders, compute positions and Jacobians
-    if(status==LOCOMOTION_ON)
-    {
-        updateReferenceTrajectories();      // compute desired velocities for all tasks
-        solver->solve(dqDes, qDegE);        // compute desired joint velocities
-
-        if(areDesiredJointVelTooLarge())    // check desired joint velocities are not too large
-        {
-            preStopOperations();            // stop the controller
-            cout<<"\n************ ERROR: CONTROLLER STOPPED BECAUSE DESIRED JOINT VELOCITIES ARE TOO LARGE: "<<toString(dqDes.transpose(),2)<<endl;
-        }
-        else
-            robot->setControlReference(dqDes.data()); // send velocities to the joint motors
-            
-        sendMsg("Solver time: "+toString(solver->solverTime)+"; iterations: "+toString(solver->solverIterations)+"; blocked joints: "+toString(solver->getBlockedJointList()), MSG_INFO);
-        sendMsg("dqDes: "+toString(1e3*dqDes.transpose(), 1), MSG_DEBUG);
-    }
-
-    paramHelper->sendStreamParams();
-    paramHelper->unlock();
+   
 
     printCountdown = (printCountdown>=PRINT_PERIOD) ? 0 : printCountdown +(int)getRate();   // countdown for next print (see sendMsg method)
 }

@@ -22,6 +22,7 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 SET(folder_source src/icubWholeBodyInterface.cpp 
                   src/icubWholeBodyModel.cpp
                   src/icubWholeBodyStates.cpp
+                  src/icubWholeBodyStatesLocal.cpp
                   src/icubWholeBodyActuators.cpp
                   src/icubWholeBodySensors.cpp)
 SET(folder_header include/wbiIcub/wholeBodyInterfaceIcub.h

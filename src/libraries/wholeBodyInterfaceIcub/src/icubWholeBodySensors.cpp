@@ -31,7 +31,7 @@ using namespace yarp::sig;
 using namespace iCub::skinDynLib;
 using namespace iCub::ctrl;
 
-#define MAX_NJ 20
+#define MAX_NJ 20 ///< Maxinum number of joints for body part (used for buffers to avoid dynamic memory allocation)
 #define WAIT_TIME 0.001
 
 // iterate over all body parts
@@ -251,6 +251,7 @@ bool icubWholeBodySensors::openPwm(const int bp)
 
 bool icubWholeBodySensors::openImu(const LocalId &i)
 {
+    imuLastRead[i].resize(sensorTypeDescriptions[SENSOR_IMU].dataSize,0.0);
     string remotePort = "/" + robot + getPortName(i, imu_2_port);
     stringstream localPort; 
     localPort << "/" << name << "/imu" << i.bodyPart << "_" << i.index << ":i";
@@ -266,7 +267,7 @@ bool icubWholeBodySensors::openImu(const LocalId &i)
 
 bool icubWholeBodySensors::openFTsens(const LocalId &i)
 {
-    ftSensLastRead[i].resize(6,0.0);
+    ftSensLastRead[i].resize(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0);
     if(isRobotSimulator(robot)) // icub simulator doesn't have force/torque sensors
         return true;
     string remotePort = "/" + robot + getPortName(i, ftSens_2_port);
@@ -490,7 +491,19 @@ bool icubWholeBodySensors::readPwms(double *pwm, double *stamps, bool wait)
 
 bool icubWholeBodySensors::readIMUs(double *inertial, double *stamps, bool wait)
 {
-    return false;
+    Vector *v;
+    int i=0;    // sensor index
+    for(map<LocalId,BufferedPort<Vector>*>::iterator it=portsIMU.begin(); it!=portsIMU.end(); it++)
+    {
+        v = it->second->read(wait);
+        if(v!=NULL)
+        {
+            imuLastRead[it->first] = *v;
+        }
+        convertIMU(inertial,imuLastRead[it->first].data());
+        i++;
+    }
+    return true;
 }
 
 bool icubWholeBodySensors::readFTsensors(double *ftSens, double *stamps, bool wait)
@@ -600,10 +613,26 @@ bool icubWholeBodySensors::readPwm(const LocalId &sid, double *pwm, double *stam
     return update || wait;  // if read failed => return false
 }
 
+bool icubWholeBodySensors::convertIMU(double * wbi_imu_readings, const double * yarp_imu_readings)
+{
+    //wbi orientation is expressed in axis-angle, yarp orientation in euler angles
+    //wbi  : orientation(4) - linear acceleration (3) - angular velocity    (3) - magnetometer (3)
+    //yarp : orientation(3) - linear acceleration (3) - angular velocity    (3) - magnetometer (3) 
+    Rotation imu_orientation = Rotation::eulerZYZ(yarp_imu_readings[0],yarp_imu_readings[1],yarp_imu_readings[2]);
+    imu_orientation.getAxisAngle(wbi_imu_readings+0);
+    memcpy(wbi_imu_readings+4,yarp_imu_readings+3,9);
+    return true;
+}
+
 bool icubWholeBodySensors::readIMU(const LocalId &sid, double *inertial, double *stamps, bool wait)
 {
-    ///< to be implemented
-    return false;
+    Vector *v = portsIMU[sid]->read(wait);
+    if(v!=NULL)
+        imuLastRead[sid] = *v;
+    
+    convertIMU(inertial,imuLastRead[sid].data());
+    
+    return true;
 }
 
 bool icubWholeBodySensors::readFTsensor(const LocalId &sid, double *ftSens, double *stamps, bool wait)

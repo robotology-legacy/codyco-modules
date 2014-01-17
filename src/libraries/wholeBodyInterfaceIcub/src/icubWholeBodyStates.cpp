@@ -79,7 +79,7 @@ bool icubWholeBodyStates::addEstimate(const EstimateType et, const LocalId &sid)
     case ESTIMATE_MOTOR_TORQUE:             return lockAndAddSensor(SENSOR_TORQUE, sid);
     case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return lockAndAddSensor(SENSOR_TORQUE, sid);
     case ESTIMATE_MOTOR_PWM:                return lockAndAddSensor(SENSOR_PWM, sid);
-    case ESTIMATE_IMU:                      return lockAndAddSensor(SENSOR_IMU, sid);
+    //case ESTIMATE_IMU:                      return lockAndAddSensor(SENSOR_IMU, sid);
     case ESTIMATE_FORCE_TORQUE:             return lockAndAddSensor(SENSOR_FORCE_TORQUE, sid);
     default: break;
     }
@@ -101,7 +101,7 @@ int icubWholeBodyStates::addEstimates(const EstimateType et, const LocalIdList &
     case ESTIMATE_MOTOR_TORQUE:             return lockAndAddSensors(SENSOR_TORQUE, sids);
     case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return lockAndAddSensors(SENSOR_TORQUE, sids);
     case ESTIMATE_MOTOR_PWM:                return lockAndAddSensors(SENSOR_PWM, sids);
-    case ESTIMATE_IMU:                      return lockAndAddSensors(SENSOR_IMU, sids);
+    //case ESTIMATE_IMU:                      return lockAndAddSensors(SENSOR_IMU, sids);
     case ESTIMATE_FORCE_TORQUE:             return lockAndAddSensors(SENSOR_FORCE_TORQUE, sids);
     default: break;
     }
@@ -123,7 +123,7 @@ bool icubWholeBodyStates::removeEstimate(const EstimateType et, const LocalId &s
     case ESTIMATE_MOTOR_TORQUE:             return lockAndRemoveSensor(SENSOR_TORQUE, sid);
     case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return lockAndRemoveSensor(SENSOR_TORQUE, sid);
     case ESTIMATE_MOTOR_PWM:                return lockAndRemoveSensor(SENSOR_PWM, sid);
-    case ESTIMATE_IMU:                      return lockAndRemoveSensor(SENSOR_IMU, sid);
+    //case ESTIMATE_IMU:                      return lockAndRemoveSensor(SENSOR_IMU, sid);
     case ESTIMATE_FORCE_TORQUE:             return lockAndRemoveSensor(SENSOR_FORCE_TORQUE, sid);
     default: break;
     }
@@ -145,7 +145,7 @@ const LocalIdList& icubWholeBodyStates::getEstimateList(const EstimateType et)
     case ESTIMATE_MOTOR_TORQUE:             return sensors->getSensorList(SENSOR_TORQUE);
     case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return sensors->getSensorList(SENSOR_TORQUE);
     case ESTIMATE_MOTOR_PWM:                return sensors->getSensorList(SENSOR_PWM);
-    case ESTIMATE_IMU:                      return sensors->getSensorList(SENSOR_IMU);
+    //case ESTIMATE_IMU:                      return sensors->getSensorList(SENSOR_IMU);
     case ESTIMATE_FORCE_TORQUE:             return sensors->getSensorList(SENSOR_FORCE_TORQUE);
     default: break;
     }
@@ -167,7 +167,7 @@ int icubWholeBodyStates::getEstimateNumber(const EstimateType et)
     case ESTIMATE_MOTOR_TORQUE:             return sensors->getSensorNumber(SENSOR_TORQUE);
     case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return sensors->getSensorNumber(SENSOR_TORQUE);
     case ESTIMATE_MOTOR_PWM:                return sensors->getSensorNumber(SENSOR_PWM);
-    case ESTIMATE_IMU:                      return sensors->getSensorNumber(SENSOR_IMU);
+    //case ESTIMATE_IMU:                      return sensors->getSensorNumber(SENSOR_IMU);
     case ESTIMATE_FORCE_TORQUE:             return sensors->getSensorNumber(SENSOR_FORCE_TORQUE);
     default: break;
     }
@@ -200,8 +200,8 @@ bool icubWholeBodyStates::getEstimate(const EstimateType et, const LocalId &sid,
         return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_TORQUE).localToGlobalId(sid), estimator->estimates.lastDtauM, data);
     case ESTIMATE_MOTOR_PWM:        
         return lockAndReadSensor(SENSOR_PWM, sid, data, time, blocking);
-    case ESTIMATE_IMU:              
-        return lockAndReadSensor(SENSOR_IMU, sid, data, time, blocking);
+    //case ESTIMATE_IMU:              
+    //    return lockAndReadSensor(SENSOR_IMU, sid, data, time, blocking);
     case ESTIMATE_FORCE_TORQUE:     
         return lockAndReadSensor(SENSOR_FORCE_TORQUE, sid, data, time, blocking);
     default: break;
@@ -224,7 +224,7 @@ bool icubWholeBodyStates::getEstimates(const EstimateType et, double *data, doub
     case ESTIMATE_MOTOR_TORQUE:             return estimator->lockAndCopyVector(estimator->estimates.lastTauM, data);
     case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return estimator->lockAndCopyVector(estimator->estimates.lastDtauM, data);
     case ESTIMATE_MOTOR_PWM:                return lockAndReadSensors(SENSOR_PWM, data, time, blocking);
-    case ESTIMATE_IMU:                      return lockAndReadSensors(SENSOR_IMU, data, time, blocking);
+    //case ESTIMATE_IMU:                      return lockAndReadSensors(SENSOR_IMU, data, time, blocking);
     case ESTIMATE_FORCE_TORQUE:             return lockAndReadSensors(SENSOR_FORCE_TORQUE, data, time, blocking);
     default: break;
     }
@@ -522,7 +522,7 @@ bool icubWholeBodyEstimator::lockAndSetEstimationParameter(const EstimateType et
             res = setPwmCutFrequency(((double*)value)[0]);
         break;
 
-    case ESTIMATE_IMU:
+    //case ESTIMATE_IMU:
     case ESTIMATE_FORCE_TORQUE:
     case ESTIMATE_JOINT_POS:
     case ESTIMATE_MOTOR_POS:    

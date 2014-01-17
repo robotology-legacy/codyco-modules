@@ -55,56 +55,24 @@ class wholeBodyDynamicsThread: public RateThread
 {
     string              name;
     string              robotName;
-    wholeBodyInterface  *robot;
+    iWholeBodyStates    *robot;
 
 
-    /************************************************* PRIVATE METHODS ******************************************************/
-    void sendMsg(const string &msg, MsgType msgType=MSG_INFO);
+  
 
-    /** Read the robot sensors and compute forward kinematics and Jacobians. */
-    bool readRobotStatus(bool blockingRead=false);
-
-    /** Update the reference trajectories to track and compute the desired velocities for all tasks. */
-    bool updateReferenceTrajectories();
-
-    /** Compute joint velocities by solving a hierarchy of QPs (1st QP for COM, 2nd for foot, 3rd for posture) */
-    bool areDesiredJointVelTooLarge();
-
-    void updateSelectionMatrix();
-
-    /** Perform all the operations needed just before starting the controller. */
-    void preStartOperations();
-    /** Perform all the operations needed just before stopping the controller. */
-    void preStopOperations();
-
-    /** Method called every time the support status changes. */
-    void numberOfConstraintsChanged();
-    /** Method called every time the support status changes. */
-    void numberOfJointsChanged();
-
-    void normalizeFootOrientation();
-
-public:	
+public:
     
     /* If you define a structure having members of fixed-size vectorizable Eigen types, you must overload 
      * its "operator new" so that it generates 16-bytes-aligned pointers. Fortunately, Eigen provides you 
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    wholeBodyDynamicsThread(string _name, string _robotName, int _period, wholeBodyInterface *_wbi);
-	
-    bool threadInit();	
+    wholeBodyDynamicsThread(string _name, string _robotName, int _period, iWholeBodyStates *_wbi);
+    
+    bool threadInit();
+    void calibrate();
     void run();
     void threadRelease();
-
-    /** Callback function for parameter updates. */
-    void parameterUpdated(const ParamProxyInterface *pd);
-    
-    /** Callback function for rpc commands. */
-    void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
-
-    /** Start the controller. */
-    void startController();
 
 };
 

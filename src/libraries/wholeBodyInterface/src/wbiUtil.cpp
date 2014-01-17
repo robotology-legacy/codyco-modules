@@ -54,6 +54,8 @@ LocalIdList::LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const
 { addIdList(lid1); addIdList(lid2); addIdList(lid3); addIdList(lid4); }
 LocalIdList::LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4, const LocalIdList &lid5)
 { addIdList(lid1); addIdList(lid2); addIdList(lid3); addIdList(lid4); addIdList(lid5); }
+LocalIdList::LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4, const LocalIdList &lid5, const LocalIdList &lid6)
+{ addIdList(lid1); addIdList(lid2); addIdList(lid3); addIdList(lid4); addIdList(lid5); addIdList(lid6); }
 
 void LocalIdList::pushId(int bp, int i)
 {

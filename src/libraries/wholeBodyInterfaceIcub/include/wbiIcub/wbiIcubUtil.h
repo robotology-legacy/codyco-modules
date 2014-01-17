@@ -37,7 +37,12 @@ namespace wbiIcub
     const wbi::LocalIdList ICUB_LEFT_LEG_JOINTS(iCub::skinDynLib::LEFT_LEG, 0, 1, 2, 3, 4, 5);
     const wbi::LocalIdList ICUB_RIGHT_LEG_JOINTS(iCub::skinDynLib::RIGHT_LEG, 0, 1, 2, 3, 4, 5);
     const wbi::LocalIdList ICUB_MAIN_JOINTS(ICUB_TORSO_JOINTS, ICUB_LEFT_ARM_JOINTS, ICUB_RIGHT_ARM_JOINTS, ICUB_LEFT_LEG_JOINTS, ICUB_RIGHT_LEG_JOINTS);
-
+    ///< Joints considered for dynamical model
+    const wbi::LocalIdList ICUB_HEAD_JOINTS(iCub::skinDynLib::HEAD, 0, 1, 2);
+    const wbi::LocalIdList ICUB_LEFT_ARM_DYNAMIC_JOINTS(iCub::skinDynLib::LEFT_ARM, 0, 1, 2, 3, 4, 5, 6);
+    const wbi::LocalIdList ICUB_RIGHT_ARM_DYNAMIC_JOINTS(iCub::skinDynLib::RIGHT_ARM, 0, 1, 2, 3, 5, 6);
+    const wbi::LocalIdList ICUB_MAIN_DYNAMIC_JOINTS(ICUB_TORSO_JOINTS, ICUB_HEAD_JOINTS, ICUB_LEFT_ARM_DYNAMIC_JOINTS, ICUB_RIGHT_ARM_DYNAMIC_JOINTS, ICUB_LEFT_LEG_JOINTS, ICUB_RIGHT_LEG_JOINTS);
+    
     ///< mapping from generic sensor id to corresponding port name
     struct id_2_PortName { wbi::LocalId id; std::string portName; };
 

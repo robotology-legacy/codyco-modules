@@ -32,9 +32,10 @@
 #include <sstream>
 #include <iomanip>
 #include <string.h>
+#include "../../../libraries/wholeBodyInterfaceIcub/include/wbiIcub/wbiIcubUtil.h"
 
-#include "wholeBodyDynamicsTree/wholeBodyDynamicsThread.h"
-#include "wholeBodyDynamicsTree/wholeBodyDynamicsModule.h"
+#include <wholeBodyDynamicsTree/wholeBodyDynamicsThread.h>
+#include <wholeBodyDynamicsTree/wholeBodyDynamicsModule.h>
 
 using namespace yarp::dev;
 using namespace wbiIcub;
@@ -51,7 +52,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 
     //--------------------------WHOLE BODY SENSORS--------------------------
     robotInterface = new icubWholeBodySensors(moduleName.c_str(), robotName.c_str());
-    robotInterface->addJoints(ICUB_MAIN_JOINTS);
+    robotInterface->addJoints(ICUB_MAIN_DYNAMIC_JOINTS);
 
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
