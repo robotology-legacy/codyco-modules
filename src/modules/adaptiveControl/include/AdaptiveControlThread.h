@@ -167,11 +167,6 @@ namespace adaptiveControl {
         void stopControl();
 		
 		void writeDebug();
-        
-		    
-#ifndef ADAPTIVECONTROL_TORQUECONTROL        
-        void torqueControlledOutput();
-#endif
 		
     public:
         AdaptiveControlThread(const std::string& threadName,

@@ -502,15 +502,13 @@ namespace adaptiveControl {
         
         
 		yarp::sig::Vector& vector = _debugPort->prepare();
-//         debugBottle.clear();
-        //write everything inside bottle
+        vector.clear();
+        //write everything inside vector
         //_q(2)
         //_dq(2)
         //_tau(1): only active joint
         //_piHat(8)
         
-        
-//         yarp::sig::Vector vector(13);
         vector.push_back(_q(0));
         vector.push_back(_q(1));
         vector.push_back(_dq(0));
@@ -519,34 +517,9 @@ namespace adaptiveControl {
         for (int i = 0; i < 8; i++) {
             vector.push_back(_piHat(i));
         }
-//         debugBottle.addList().read(vector);
 		
         _debugPort->write();
 		
 	}
 
-#ifndef ADAPTIVECONTROL_TORQUECONTROL
-    void AdaptiveControlThread::torqueControlledOutput()
-    {
-//         for (int i=0; i < N_DOF; i++)
-//         {
-//             _dqSign(i)       = fabs(dq(i))>coulombVelThr(i) ? sign(dq(i)) : pow(dq(i)/coulombVelThr(i),3);
-// 			
-// 			if (activeJoints(i) == 1) 
-//             {
-// 				_eTau(i) 			= tauM(i) - tauD(i);
-// // 				integralState(i) 	= saturation(integralState(i) + ki(i)*dt*_eTau(i), TORQUE_INTEGRAL_SATURATION, -TORQUE_INTEGRAL_SATURATION) ;
-// 				tau(i) 				= tauD(i) - kp(i)*_eTau(i); // - integralState(i);
-// 
-//                 if(dq(i)>0)
-//                     motorVoltage(i) = kt(i)*tau(i) + kvp(i)*dq(i) + kcp(i)*_dqSign(i);
-//                 else
-//                     motorVoltage(i) = kt(i)*tau(i) + kvn(i)*dq(i) + kcn(i)*_dqSign(i);
-// 					
-// 				if (sendCommands == SEND_COMMANDS_ACTIVE)
-// 					robot->setControlReference(&motorVoltage(i), i);
-// 			}
-// 		}
-    }
-#endif
 }
