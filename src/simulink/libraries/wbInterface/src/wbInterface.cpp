@@ -119,8 +119,7 @@ static void mdlInitializeSizes(SimStruct *S)
 
     ssSetOptions(S,
                  SS_OPTION_WORKS_WITH_CODE_REUSE |
-                 SS_OPTION_EXCEPTION_FREE_CODE   |
-                 SS_OPTION_CALL_TERMINATE_ON_EXIT);
+                 SS_OPTION_EXCEPTION_FREE_CODE);
 
 }
 
@@ -340,25 +339,24 @@ static void mdlOutputs(SimStruct *S, int_T tid)
          }
      }
 
-     if(btype == 4){
+     if(btype == 4 || btype == 5 || btype == 6){
+        // VELOCITY CONTROL MODE
          //GET INPUT dqDes
- //        cout<<"Entered block type 4 ... "<<endl;
          InputRealPtrsType uPtrs1 = ssGetInputPortRealSignalPtrs(S,1);    //Get the corresponding pointer to "desired position port"
- //        cout<<"Input has been read: "<<endl;
          int nu = ssGetInputPortWidth(S,1);                              //Knowing the amount of elements of the input vector/matrix
          Vector dqDestmp;
          dqDestmp.resize(ICUB_DOFS,0.0);
-         for(int j=0; j<nu; j++) {cout<< (*uPtrs1[j]) <<" "<<endl;}
+//         for(int j=0; j<nu; j++) {
+//             cout<< (*uPtrs1[j]) <<" "<<endl;
+//         }
          for(int j=0; j<nu;j++){                                         //run through all values and do sthg with them
              dqDestmp(j) = (*uPtrs1[j]);
          }
- //        cout<<"dqDestmp is now: "<<dqDestmp.toString().c_str()<<endl;
-         // SEND VELOCITIES
-         robot->setCtrlMode(CTRL_MODE_VEL);
+         // SEND REFERENCES
+         if(btype == 4) robot->setCtrlMode(CTRL_MODE_VEL);
+         if(btype == 5) robot->setCtrlMode(CTRL_MODE_POS);
          robot->setdqDes(dqDestmp);
      }
-
-
 }
 
 // Function: mdlTerminate =====================================================
