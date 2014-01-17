@@ -168,10 +168,11 @@ namespace adaptiveControl {
         
         //TEMP
         _speedInput = new BufferedPort<Bottle>();
-        if (!_speedInput || !_speedInput->open(("/coman/" + _robotPart + "/analog/speeds:o").c_str())) {
+        if (!_speedInput || !_speedInput->open(("/" + _threadName + "/speeds:i").c_str())) {
             error_out("Could not open port _speedInput\n");
             return false;
         }
+        Network::connect(("/coman/" + _robotPart + "/analog/speeds:o").c_str(), ("/" + _threadName + "/speeds:i").c_str());
         
         return true;
     }
