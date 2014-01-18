@@ -142,15 +142,16 @@ public:
         wbInterface = NULL;
 //        paramHelper = NULL;
         /**** NEED TO PASS THESE VALUES FROM mdlStart ****/
-        moduleName  = "robotSate";
-        robotName   = "icubSim";
+//        moduleName  = "robotSate";
+//        robotName   = "icubGazeboSim";
     }
     ~robotStatus(){
         if(i!=NULL){
+            creationCounter--;
             fprintf(stderr,"wbInterface in destructor: %p \n",wbInterface);
             if(wbInterface->close()){
                 delete wbInterface;
-                fprintf(stderr,"wbInterface has been closed and deleted correctly\n");
+                fprintf(stderr,"wbInterface has been closed and deleted correctly. %d to go \n",creationCounter);
                 wbInterface = NULL;
             }
             else{
@@ -176,6 +177,13 @@ public:
          return creationCounter;
      }
      // **************************************************************************************************
+     int decreaseCounter()
+     {
+        creationCounter--;
+        return creationCounter;
+     }
+
+     // **************************************************************************************************
      bool robotConfig()
      {
  //        fprintf(stderr,"Configuring...\n");
@@ -198,9 +206,9 @@ public:
 
              /*********** WHOLE BODY INTERFACE **********/
              wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str());
- //            fprintf(stderr,"new wbInterface created ...\n");
+             fprintf(stderr,"new wbInterface created ...\n");
              i = (int *) wbInterface;
- //            fprintf(stderr,"icubWholeBodyInterface has been created %p \n", wbInterface);
+             fprintf(stderr,"icubWholeBodyInterface has been created %p \n", wbInterface);
              wbInterface->addJoints(ICUB_MAIN_JOINTS);
 
              if(!wbInterface->init()){
@@ -212,6 +220,7 @@ public:
              }
 
              // SET CONTROL MODE
+             fprintf(stderr,"About to sed Control Mode\n");
              setCtrlMode(CTRL_MODE_POS);
          }
 

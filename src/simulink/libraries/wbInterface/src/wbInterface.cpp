@@ -203,12 +203,12 @@ static void mdlStart(SimStruct *S)
 
      bool res = robot->robotConfig();
      res = res && robot->robotInit(static_cast<int>(block_type), static_cast<int>(*uPtrs[0]));
- //    if(res==true)
- ////        fprintf(stderr,"Succesfully exiting robotConfig...\n");
- //    else{
- ////        fprintf(stderr,"ERROR during robotConfig and/or robotInit ... \n");
- //        return;
- //    }
+     if(res==true)
+         fprintf(stderr,"Succesfully exiting robotConfig...\n");
+     else{
+         fprintf(stderr,"ERROR during robotConfig and/or robotInit ... \n");
+         return;
+     }
 
      ssGetPWork(S)[0] = robot;
 
@@ -339,50 +339,25 @@ static void mdlOutputs(SimStruct *S, int_T tid)
          }
      }
 
-     if(btype == 4){
+     if(btype == 4 || btype == 5 || btype == 6){
+        // VELOCITY CONTROL MODE
          //GET INPUT dqDes
- //        cout<<"Entered block type 4 ... "<<endl;
          InputRealPtrsType uPtrs1 = ssGetInputPortRealSignalPtrs(S,1);    //Get the corresponding pointer to "desired position port"
- //        cout<<"Input has been read: "<<endl;
          int nu = ssGetInputPortWidth(S,1);                              //Knowing the amount of elements of the input vector/matrix
          Vector dqDestmp;
          dqDestmp.resize(ICUB_DOFS,0.0);
-         for(int j=0; j<nu; j++) {cout<< (*uPtrs1[j]) <<" "<<endl;}
+//         for(int j=0; j<nu; j++) {
+//             cout<< (*uPtrs1[j]) <<" "<<endl;
+//         }
          for(int j=0; j<nu;j++){                                         //run through all values and do sthg with them
              dqDestmp(j) = (*uPtrs1[j]);
          }
- //        cout<<"dqDestmp is now: "<<dqDestmp.toString().c_str()<<endl;
-         // SEND VELOCITIES
+         // SEND REFERENCES
+         if(btype == 4) robot->setCtrlMode(CTRL_MODE_VEL);
+         if(btype == 5) robot->setCtrlMode(CTRL_MODE_POS);
          robot->setdqDes(dqDestmp);
      }
-
-
 }
-
-
-///* Define to indicate that this S-Function has the mdlG[S]etSimState mothods */
-//#define MDL_SIM_STATE
-
-///* Function: mdlGetSimState =====================================================
-// * Abstract:
-// *
-// */
-//static mxArray* mdlGetSimState(SimStruct* S)
-//{
-//    // Retrieve C++ object from the pointers vector
-//    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
-//    // return mxCreateDoubleScalar(da->GetPeak());
-//}
-///* Function: mdlGetSimState =====================================================
-// * Abstract:
-// *
-// */
-//static void mdlSetSimState(SimStruct* S, const mxArray* ma)
-//{
-//    // Retrieve C++ object from the pointers vector
-//    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
-//    // da->SetPeak(mxGetPr(ma)[0]);
-//}
 
 // Function: mdlTerminate =====================================================
 // Abstract:
@@ -391,19 +366,19 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 //   allocated in mdlStart, this is the place to free it.
 static void mdlTerminate(SimStruct *S)
 {
-     // IF YOU FORGET TO DESTROY OBJECTS OR DEALLOCATE MEMORY, MATLAB WILL CRASH.
-     // Retrieve and destroy C++ object
-     robotStatus *robot = (robotStatus *) ssGetPWork(S)[0];
+    // IF YOU FORGET TO DESTROY OBJECTS OR DEALLOCATE MEMORY, MATLAB WILL CRASH.
+    // Retrieve and destroy C++ object
+    robotStatus *robot = (robotStatus *) ssGetPWork(S)[0];
 
-     if(robot!=NULL) {
- //        robot->preStop();
-         fprintf(stderr,"Deleting robot object %p \n",robot);
-         delete robot;
-         robot = NULL;
-     }
-     if(ssGetPWork(S) != NULL){
-         ssSetPWorkValue(S,0,NULL);
-     }
+    if(robot!=NULL) {
+        fprintf(stderr,"Inside robot object %p \n",robot);
+        if(robot->decreaseCounter()==0){
+            robot->setCtrlMode(CTRL_MODE_POS);
+            delete robot;
+            robot = NULL;
+            ssSetPWorkValue(S,0,NULL);
+        }
+    }
 }
 
 // Required S-function trailer
