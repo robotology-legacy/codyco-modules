@@ -83,11 +83,26 @@ class MyTk(Frame):
         self.kpSendButton = Button(self,text="Send these Kp to XDE", command=self.onClickKpSendButton)
         self.kpSendButton.grid(row=13,column=5)
         
-        
-        
+        # some labels to update values
+        self.cur_w=[]
+        self.cur_w_text=[] 
+        for irow in range(0,self.Ntask):
+             self.cur_w_text.append(StringVar())
+             self.cur_w.append(Label(self, border = 1, textvariable=self.cur_w_text[irow]))
+             self.cur_w[irow].grid(row = irow+2, column = 4) 
+        self.cur_k=[]
+        self.cur_k_text=[] 
+        for irow in range(0,self.Ntask):
+             self.cur_k_text.append(StringVar())
+             self.cur_k.append(Label(self, border = 1, textvariable=self.cur_k_text[irow]))
+             self.cur_k[irow].grid(row = irow+2, column = 7) 
         
         self.resetValues()
         
+        self.getFromSimuButton = Button(self,text="Get values from simulation", command=self.onClickGetFromSimuButton)
+        self.getFromSimuButton.grid(row=4,column=8)
+        self.sendFromSimuButton = Button(self,text="Send values to simulation", command=self.onClickSendToSimuButton)
+        self.sendFromSimuButton.grid(row=5,column=8)       
         
         # File Menu
         fileMenu = Menu(menubar)
@@ -100,7 +115,8 @@ class MyTk(Frame):
         simulationMenu = Menu(menubar)
         menubar.add_cascade(label = "Simulation", menu = simulationMenu)
         # Menu Item for general menu
-        simulationMenu.add_command(label = "Send values to controller", command = self.onSetValues)   
+        simulationMenu.add_command(label = "Send values to controller", command = self.onSendValues)   
+        simulationMenu.add_command(label = "Get values from controller", command = self.onGetValues) 
                
    def onResetValues(self):
        self.resetValues()
@@ -151,7 +167,29 @@ class MyTk(Frame):
 #        self.controller.orient_LHand_task.setWeight(self.weightEntry[it].get()); it+=1
 #        self.controller.force_RHand_Task.setWeight(self.weightEntry[it].get()); it+=1
 #        self.controller.force_LHand_Task.setWeight(self.weightEntry[it].get()); it+=1
-       print "GUI: new weights are set in the controller"      
+       print "GUI: new weights are set in the controller"
+       for irow in range(0,self.Ntask):
+           self.cur_w_text[irow].set(self.weightEntry[irow].get())
+           
+   def onClickWeightFromButton(self):
+       #get weights from XDE / simulation / controller
+       print "GUI: getting values for weights"          
+        # uncomment this only when using xde + isir controller 
+        #it=0
+#        self.weightEntry[it].set(self.controller.fullTask.getWeight()); it+=1
+#        self.weightEntry[it].set(self.controller.waistTask.getWeight()); it+=1
+#        self.weightEntry[it].set(self.controller.backTask.getWeight()); it+=1
+#        self.weightEntry[it].set(self.controller.headTask.getWeight()); it+=1
+#        self.weightEntry[it].set(self.controller.CoMTask.getWeight()); it+=1
+#        self.weightEntry[it].set(self.controller.RHand_task.getWeight()); it+=1
+#        self.weightEntry[it].set(self.controller.LHand_task.getWeight()); it+=1
+#        self.weightEntry[it].set(self.controller.orient_RHand_task.getWeight()); it+=1
+#        self.weightEntry[it].set(self.controller.orient_LHand_task.getWeight()); it+=1
+#        self.weightEntry[it].set(self.controller.force_RHand_Task.getWeight()); it+=1
+#        self.weightEntry[it].set(self.controller.force_LHand_Task.getWeight()); it+=1
+       for irow in range(0,self.Ntask):
+           self.cur_w_text[irow].set(self.weightEntry[irow].get())
+           
 
    def onClickKpSendButton(self):
        #send kp to XDE / simulation / controller
@@ -171,7 +209,29 @@ class MyTk(Frame):
 #        self.controller.orient_LHand_task.setStiffness(self.kpEntry[it].get()); it+=1
 #        self.controller.force_RHand_Task.setStiffness(self.kpEntry[it].get()); it+=1
 #        self.controller.force_LHand_Task.setStiffness(self.kpEntry[it].get()); it+=1
-       print "GUI: new KPs are set in the controller"      
+       print "GUI: new KPs are set in the controller"   
+       for irow in range(0,self.Ntask):
+           self.cur_k_text[irow].set(self.kpEntry[irow].get())
+           
+   def onClickKpFromButton(self):
+       #get kp from XDE / simulation / controller
+       print "GUI: getting values for kp"       
+        # uncomment this only when using xde + isir controller 
+#        it=0
+#        self.kpEntry[it].set(self.controller.fullTask.getStiffness()); it+=1
+#        self.kpEntry[it].set(self.controller.waistTask.getStiffness()); it+=1
+#        self.kpEntry[it].set(self.controller.backTask.getStiffness()); it+=1
+#        self.kpEntry[it].set(self.controller.headTask.getStiffness()); it+=1
+#        self.kpEntry[it].set(self.controller.CoMTask.getStiffness()); it+=1
+#        self.kpEntry[it].set(self.controller.RHand_task.getStiffness()); it+=1
+#        self.kpEntry[it].set(self.controller.LHand_task.getStiffness()); it+=1
+#        self.kpEntry[it].set(self.controller.orient_RHand_task.getStiffness()); it+=1
+#        self.kpEntry[it].set(self.controller.orient_LHand_task.getStiffness()); it+=1
+#        self.kpEntry[it].set(self.controller.force_RHand_Task.getStiffness()); it+=1
+#        self.kpEntry[it].set(self.controller.force_LHand_Task.getStiffness()); it+=1   
+       for irow in range(0,self.Ntask):
+           self.cur_k_text[irow].set(self.kpEntry[irow].get())           
+           
                
    def resetValues(self):
        print "GUI: Resetting values"           
@@ -216,9 +276,19 @@ class MyTk(Frame):
        spin[index].delete(0,7)
        spin[index].insert(0,value)      
                              
-   def onSetValues(self):      
-        self.onClickWeightSendButton()
-        self.onClickKpSendButton()
+   def onSendValues(self):      
+       self.onClickWeightSendButton()
+       self.onClickKpSendButton()
+       
+   def onGetValues(self):
+       self.onClickWeightFromButton()
+       self.onClickKpFromButton()
+        
+   def onClickSendToSimuButton(self):
+       self.onSendValues()
+       
+   def onClickGetFromSimuButton(self):
+       self.onGetValues()
  
    def setController(self,controller):
         self.controller=controller    
