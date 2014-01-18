@@ -15,6 +15,7 @@
 #
 
 #controller
+# not right now - only when using it with XDE
 
 #GUI
 from Tkinter import *
@@ -31,46 +32,62 @@ class MyTk(Frame):
         
         self.label_t = Label(self, border = 5, text="TASK")
         self.label_w = Label(self, border = 5, text="WEIGHT")
+        self.label_w_cur = Label(self, border = 5, text="current")
         self.label_k = Label(self, border = 5, text="KP")
+        self.label_k_cur = Label(self, border = 5, text="current")
         self.label_t.grid(row = 1, column = 1)
         self.label_w.grid(row = 1, column = 2)
+        self.label_w_cur.grid(row = 1, column = 4)
         self.label_k.grid(row = 1, column = 5)
+        self.label_k_cur.grid(row = 1, column = 7)
 
         self.label = [Label(self, border=5, text=l) for l in 
         ["full", "waist","back / torso","head stabiliz","CoM","right_hand (XYZ)",
         "left_hand  (XYZ)","right_hand (R)","left_hand  (R)","right_hand (force)",
         "left_hand  (force)"]]
+        
+        self.Ntask = len(self.label)
               
-        for irow in range(0,10):
+        for irow in range(0,self.Ntask):
             self.label[irow].grid(row = irow+2, column = 1)
               
         self.weight=[]
-        for irow in range(0,10):
-            self.weight.append(Scale(self, from_=0, to=20, length=300, tickinterval=0.1, orient=HORIZONTAL))
+        for irow in range(0,self.Ntask):
+            self.weight.append(Scale(self, from_=0, to=50, length=200, resolution=0.001, orient=HORIZONTAL, command=self.onUpdatedWeightScale))
             self.weight[irow].grid(row = irow+2, column = 2)  
             
         self.weightEntry=[]
-        for irow in range(0,10):
-            self.weightEntry.append(Spinbox(self,from_=0, to=20, increment=0.1,width=8))
+        for irow in range(0,self.Ntask):
+            self.weightEntry.append(Spinbox(self,from_=0, to=50, increment=0.001,width=8,justify=RIGHT))
             self.weightEntry[irow].grid(row = irow+2, column = 3)  
             
-        self.weightSetButton = Button(self,text="Set these weights", command=self.onClickWeightSetButton)
+        self.weightSetButton = Button(self,text="Preview weights", command=self.onClickWeightSetButton)
         self.weightSetButton.grid(row=13,column=3)
         
+        self.weightSetButton = Button(self,text="Send these weights to XDE", command=self.onClickWeightSendButton)
+        self.weightSetButton.grid(row=13,column=2)
+        
         self.kp=[]
-        for irow in range(0,10):
-            self.kp.append(Scale(self, from_=0, to=20, length=400, tickinterval=0.1, orient=HORIZONTAL))
+        for irow in range(0,self.Ntask):
+            self.kp.append(Scale(self, from_=0, to=50, length=200, resolution=0.001, orient=HORIZONTAL, command=self.onUpdatedKpScale))
             self.kp[irow].grid(row = irow+2, column = 5) 
                      
         self.kpEntry=[]
-        for irow in range(0,10):
-            self.kpEntry.append(Spinbox(self,from_=0, to=20, increment=0.1,width=8))
+        for irow in range(0,self.Ntask):
+            self.kpEntry.append(Spinbox(self,from_=0, to=50, increment=0.001,width=8,justify=RIGHT))
             self.kpEntry[irow].grid(row = irow+2, column = 6) 
             
-        self.kpSetButton = Button(self,text="Set these kp", command=self.onClickKpSetButton)
+        self.kpSetButton = Button(self,text="Preview kp", command=self.onClickKpSetButton)
         self.kpSetButton.grid(row=13,column=6)
         
+        self.kpSendButton = Button(self,text="Send these Kp to XDE", command=self.onClickKpSendButton)
+        self.kpSendButton.grid(row=13,column=5)
+        
+        
+        
+        
         self.resetValues()
+        
         
         # File Menu
         fileMenu = Menu(menubar)
@@ -83,7 +100,7 @@ class MyTk(Frame):
         simulationMenu = Menu(menubar)
         menubar.add_cascade(label = "Simulation", menu = simulationMenu)
         # Menu Item for general menu
-        simulationMenu.add_command(label = "Set values in controller", command = self.onSetValues)   
+        simulationMenu.add_command(label = "Send values to controller", command = self.onSetValues)   
                
    def onResetValues(self):
        self.resetValues()
@@ -96,56 +113,112 @@ class MyTk(Frame):
        
    def onClickWeightSetButton(self):
        print "GUI: setting weight values in the sliders"
-       for irow in range(0,10):
+       for irow in range(0,self.Ntask):
             self.weight[irow].set(self.weightEntry[irow].get())
                   
    def onClickKpSetButton(self):
        print "GUI: setting kp values in the sliders"
-       for irow in range(0,10):
+       for irow in range(0,self.Ntask):
             self.kp[irow].set(self.kpEntry[irow].get())
-                
-   def resetValues(self):
-       print "GUI: Resetting values"
-       for irow in range(0,10):
-            self.weight[irow].set(1) 
-            self.kp[irow].set(1)
-                       
-   def onSetValues(self):
-        print "GUI: current values for weights"
-        for irow in range(0,10):
-            print (irow, self.weight[irow].get() )            
+   
+   #when the sliders of KP are moved, values are updated
+   def onUpdatedKpScale(self, event):
+       #print "updates kp"
+       for irow in range(0,self.Ntask):
+           self.setEntrySpin(self.kpEntry,irow,self.kp[irow].get())
+
+    #when the sliders of the Weights are moved, values are updated
+   def onUpdatedWeightScale(self, event):
+       #print "updates weights"
+       for irow in range(0,self.Ntask):
+           self.setEntrySpin(self.weightEntry,irow,self.weight[irow].get()) 
+           
+   def onClickWeightSendButton(self):
+       #send weights to XDE / simulation / controller
+       print "GUI: current values for weights"
+       for irow in range(0,self.Ntask):
+           print (irow, self.weightEntry[irow].get() )            
         # uncomment this only when using xde + isir controller 
         #it=0
-#        self.controller.fullTask.setWeight(self.weight[it].get()); it+=1
-#        self.controller.waistTask.setWeight(self.weight[it].get()); it+=1
-#        self.controller.backTask.setWeight(self.weight[it].get()); it+=1
-#        self.controller.headTask.setWeight(self.weight[it].get()); it+=1
-#        self.controller.CoMTask.setWeight(self.weight[it].get()); it+=1
-#        self.controller.RHand_task.setWeight(self.weight[it].get()); it+=1
-#        self.controller.LHand_task.setWeight(self.weight[it].get()); it+=1
-#        self.controller.orient_RHand_task.setWeight(self.weight[it].get()); it+=1
-#        self.controller.orient_LHand_task.setWeight(self.weight[it].get()); it+=1
-#        self.controller.force_RHand_Task.setWeight(self.weight[it].get()); it+=1
-#        self.controller.force_LHand_Task.setWeight(self.weight[it].get()); it+=1
-        print "GUI: new weights are set in the controller"
-        
-        print "GUI: current values for KPs"
-        for irow in range(0,10):
-            print (irow, self.kp[irow].get() )        
+#        self.controller.fullTask.setWeight(self.weightEntry[it].get()); it+=1
+#        self.controller.waistTask.setWeight(self.weightEntry[it].get()); it+=1
+#        self.controller.backTask.setWeight(self.weightEntry[it].get()); it+=1
+#        self.controller.headTask.setWeight(self.weightEntry[it].get()); it+=1
+#        self.controller.CoMTask.setWeight(self.weightEntry[it].get()); it+=1
+#        self.controller.RHand_task.setWeight(self.weightEntry[it].get()); it+=1
+#        self.controller.LHand_task.setWeight(self.weightEntry[it].get()); it+=1
+#        self.controller.orient_RHand_task.setWeight(self.weightEntry[it].get()); it+=1
+#        self.controller.orient_LHand_task.setWeight(self.weightEntry[it].get()); it+=1
+#        self.controller.force_RHand_Task.setWeight(self.weightEntry[it].get()); it+=1
+#        self.controller.force_LHand_Task.setWeight(self.weightEntry[it].get()); it+=1
+       print "GUI: new weights are set in the controller"      
+
+   def onClickKpSendButton(self):
+       #send kp to XDE / simulation / controller
+       print "GUI: current values for kp"
+       for irow in range(0,self.Ntask):
+            print (irow, self.kpEntry[irow].get() )        
         # uncomment this only when using xde + isir controller 
 #        it=0
-#        self.controller.fullTask.setStiffness(self.kp[it].get()); it+=1
-#        self.controller.waistTask.setStiffness(self.kp[it].get()); it+=1
-#        self.controller.backTask.setStiffness(self.kp[it].get()); it+=1
-#        self.controller.headTask.setStiffness(self.kp[it].get()); it+=1
-#        self.controller.CoMTask.setStiffness(self.kp[it].get()); it+=1
-#        self.controller.RHand_task.setStiffness(self.kp[it].get()); it+=1
-#        self.controller.LHand_task.setStiffness(self.kp[it].get()); it+=1
-#        self.controller.orient_RHand_task.setStiffness(self.kp[it].get()); it+=1
-#        self.controller.orient_LHand_task.setStiffness(self.kp[it].get()); it+=1
-#        self.controller.force_RHand_Task.setStiffness(self.kp[it].get()); it+=1
-#        self.controller.force_LHand_Task.setStiffness(self.kp[it].get()); it+=1
-        print "GUI: new KPs are set in the controller"
+#        self.controller.fullTask.setStiffness(self.kpEntry[it].get()); it+=1
+#        self.controller.waistTask.setStiffness(self.kpEntry[it].get()); it+=1
+#        self.controller.backTask.setStiffness(self.kpEntry[it].get()); it+=1
+#        self.controller.headTask.setStiffness(self.kpEntry[it].get()); it+=1
+#        self.controller.CoMTask.setStiffness(self.kpkpEntryit].get()); it+=1
+#        self.controller.RHand_task.setStiffness(self.kpEntry[it].get()); it+=1
+#        self.controller.LHand_task.setStiffness(self.kpEntry[it].get()); it+=1
+#        self.controller.orient_RHand_task.setStiffness(self.kpEntry[it].get()); it+=1
+#        self.controller.orient_LHand_task.setStiffness(self.kpEntry[it].get()); it+=1
+#        self.controller.force_RHand_Task.setStiffness(self.kpEntry[it].get()); it+=1
+#        self.controller.force_LHand_Task.setStiffness(self.kpEntry[it].get()); it+=1
+       print "GUI: new KPs are set in the controller"      
+               
+   def resetValues(self):
+       print "GUI: Resetting values"           
+       #full
+       self.setEntrySpin(self.weightEntry,0,0.5)
+       self.setEntrySpin(self.kpEntry,0,0.)      
+       #waist
+       self.setEntrySpin(self.weightEntry,1,0.4)
+       self.setEntrySpin(self.kpEntry,1,36.)       
+       #back / torso
+       self.setEntrySpin(self.weightEntry,2,0.001)
+       self.setEntrySpin(self.kpEntry,2,16.)     
+       #head stabiliz
+       self.setEntrySpin(self.weightEntry,3,0.5)
+       self.setEntrySpin(self.kpEntry,3,10.)      
+       #CoM
+       self.setEntrySpin(self.weightEntry,4,10.0)
+       self.setEntrySpin(self.kpEntry,4,20.)       
+       #right_hand (XYZ)
+       self.setEntrySpin(self.weightEntry,5,5.0)
+       self.setEntrySpin(self.kpEntry,5,36.)     
+       #left_hand  (XYZ)
+       self.setEntrySpin(self.weightEntry,6,5.0)
+       self.setEntrySpin(self.kpEntry,6,36.)     
+       #right_hand (R)
+       self.setEntrySpin(self.weightEntry,7,4.0)
+       self.setEntrySpin(self.kpEntry,7,16.)      
+       #left_hand  (R)
+       self.setEntrySpin(self.weightEntry,8,4.0)
+       self.setEntrySpin(self.kpEntry,8,16.)       
+       #right_hand (force)
+       self.setEntrySpin(self.weightEntry,9,1.0)
+       self.setEntrySpin(self.kpEntry,9,0.01)        
+       #left_hand  (force)
+       self.setEntrySpin(self.weightEntry,10,1.0)
+       self.setEntrySpin(self.kpEntry,10,0.01)
+       #update values on sliders as well
+       self.onClickWeightSetButton()
+       self.onClickKpSetButton()
+     
+   def setEntrySpin(self,spin,index,value):
+       spin[index].delete(0,7)
+       spin[index].insert(0,value)      
+                             
+   def onSetValues(self):      
+        self.onClickWeightSendButton()
+        self.onClickKpSendButton()
  
    def setController(self,controller):
         self.controller=controller    
