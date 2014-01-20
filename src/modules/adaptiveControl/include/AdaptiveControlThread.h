@@ -172,6 +172,13 @@ namespace adaptiveControl {
         void stopControl();
 		
 		void writeDebug();
+        
+        void dampedPseudoInverse28(const Eigen::Matrix28d &A,
+                                 double dampingFactor,
+                                 Eigen::Matrix<double, 8, 2> &Apinv);
+         void dampedPseudoInverse88(const Eigen::Matrix<double, 8, 8> &A,
+                                 double dampingFactor,
+                                 Eigen::Matrix<double, 8, 8> &Apinv);
 		
     public:
         AdaptiveControlThread(const std::string& threadName,
