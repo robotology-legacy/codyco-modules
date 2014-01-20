@@ -32,10 +32,9 @@
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 #include <iCub/ctrl/minJerkCtrl.h>
 #include <iCub/skinDynLib/skinContactList.h>
-#include <Eigen/Core>                               // import most common Eigen types
-#include <Eigen/SVD>
 
 #include <wbi/wbi.h>
+#include <wbiIcub/wholeBodyInterfaceIcub.h>
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -55,19 +54,69 @@ class wholeBodyDynamicsThread: public RateThread
 {
     string              name;
     string              robotName;
-    iWholeBodyStates    *robot;
+    wbiIcub::icubWholeBodyStates    *robot;
+    
+    //output ports
+    BufferedPort<Bottle> *port_RATorques;
+    BufferedPort<Bottle> *port_RLTorques;
+    BufferedPort<Bottle> *port_RWTorques;
+    BufferedPort<Bottle> *port_LATorques;
+    BufferedPort<Bottle> *port_LLTorques;
+    BufferedPort<Bottle> *port_LWTorques;
+    BufferedPort<Bottle> *port_TOTorques;
+    BufferedPort<Bottle> *port_HDTorques;
+    
+    BufferedPort<Vector> *port_external_wrench_RA;
+    BufferedPort<Vector> *port_external_wrench_LA;
+    BufferedPort<Vector> *port_external_wrench_RL;
+    BufferedPort<Vector> *port_external_wrench_LL;
+    BufferedPort<Vector> *port_external_wrench_RF;
+    BufferedPort<Vector> *port_external_wrench_LF;
+    
+    BufferedPort<Vector> *port_external_cartesian_wrench_RA;
+    BufferedPort<Vector> *port_external_cartesian_wrench_LA;
+    BufferedPort<Vector> *port_external_cartesian_wrench_RL;
+    BufferedPort<Vector> *port_external_cartesian_wrench_LL;
+    BufferedPort<Vector> *port_external_cartesian_wrench_RF;
+    BufferedPort<Vector> *port_external_cartesian_wrench_LF;
+    
+    BufferedPort<Vector> *port_sensor_wrench_RL;
+    BufferedPort<Vector> *port_sensor_wrench_LL;
+    BufferedPort<Vector> *port_model_wrench_RL;
+    BufferedPort<Vector> *port_model_wrench_LL;
+    
+    BufferedPort<Vector> *port_external_wrench_TO;
+    BufferedPort<Vector> *port_com_all;
+    BufferedPort<Vector> *port_com_all_foot;
+    BufferedPort<Vector> *port_com_lb;
+    BufferedPort<Vector> *port_com_ub;
+    BufferedPort<Vector> *port_com_la;
+    BufferedPort<Vector> *port_com_ra;
+    BufferedPort<Vector> *port_com_ll;
+    BufferedPort<Vector> *port_com_rl;
+    BufferedPort<Vector> *port_com_hd;
+    BufferedPort<Vector> *port_com_to;
+    BufferedPort<Vector> *port_monitor;
+    BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts;
+    BufferedPort<Vector> *port_dumpvel;
+    BufferedPort<Vector> *port_COM_vel;
+    BufferedPort<Matrix> *port_COM_Jacobian;
+    BufferedPort<Vector> *port_all_velocities;
+    BufferedPort<Vector> *port_all_positions;
+    BufferedPort<Matrix> *port_root_position_mat;
+    BufferedPort<Vector> *port_root_position_vec;
 
+    // ports outputing the external dynamics seen at the F/T sensor
+    BufferedPort<Vector> *port_external_ft_arm_left;
+    BufferedPort<Vector> *port_external_ft_arm_right;
+    BufferedPort<Vector> *port_external_ft_leg_left;
+    BufferedPort<Vector> *port_external_ft_leg_right;
+    yarp::os::Stamp timestamp;
 
-  
 
 public:
     
-    /* If you define a structure having members of fixed-size vectorizable Eigen types, you must overload 
-     * its "operator new" so that it generates 16-bytes-aligned pointers. Fortunately, Eigen provides you 
-     * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-    wholeBodyDynamicsThread(string _name, string _robotName, int _period, iWholeBodyStates *_wbi);
+    wholeBodyDynamicsThread(string _name, string _robotName, int _period, wbiIcub::icubWholeBodyStatesLocal *_wbi);
     
     bool threadInit();
     void calibrate();

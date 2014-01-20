@@ -26,7 +26,7 @@ using namespace yarp::math;
 using namespace wbiIcub;
 
 //************************************************************************************************************************
-wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name, string _robotName, int _period, wholeBodySensors *_wbi)
+wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name, string _robotName, int _period, icubWholeBodyStatesLocal *_wbi)
     :  RateThread(_period), name(_name), robotName(_robotName), robot(_wbi)
 {
 }
@@ -34,11 +34,6 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name, string _robotName
 //*************************************************************************************************************************
 bool wholeBodyDynamicsThread::threadInit()
 {
-
-    // read robot status (to be done before initializing trajectory generators)
-    if(!readRobotStatus(true))
-        return false;
-
     printf("\n\n");
     return true;
 }
@@ -46,20 +41,11 @@ bool wholeBodyDynamicsThread::threadInit()
 //*************************************************************************************************************************
 void wholeBodyDynamicsThread::run()
 {
+    //Get data for estimator
    
-
+    //if normal mode, publish the 
     printCountdown = (printCountdown>=PRINT_PERIOD) ? 0 : printCountdown +(int)getRate();   // countdown for next print (see sendMsg method)
 }
-
-//*************************************************************************************************************************
-bool wholeBodyDynamicsThread::readRobotStatus(bool blockingRead)
-{
-    // read joint angles
-    bool res =   robot->getEstimates(ESTIMATE_JOINT_POS,    qRad.data(),    -1.0, blockingRead);
-    res = res && robot->getEstimates(ESTIMATE_JOINT_VEL,    dqJ.data(),     -1.0, blockingRead);
-    res = res && robot->getEstimates(ESTIMATE_FORCE_TORQUE, ftSens.data(),  -1.0, blockingRead);
-}
-
 
 //*****************************************************************************
 void wholeBodyDynamicsThread::threadRelease()

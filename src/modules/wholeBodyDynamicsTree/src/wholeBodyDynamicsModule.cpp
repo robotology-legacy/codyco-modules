@@ -32,7 +32,8 @@
 #include <sstream>
 #include <iomanip>
 #include <string.h>
-#include "../../../libraries/wholeBodyInterfaceIcub/include/wbiIcub/wbiIcubUtil.h"
+
+#include "wbiIcub/wholeBodyInterfaceIcub.h"
 
 #include <wholeBodyDynamicsTree/wholeBodyDynamicsThread.h>
 #include <wholeBodyDynamicsTree/wholeBodyDynamicsModule.h>
@@ -50,11 +51,13 @@ wholeBodyDynamicsModule::wholeBodyDynamicsModule()
 bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 {
 
-    //--------------------------WHOLE BODY SENSORS--------------------------
-    robotInterface = new icubWholeBodySensors(moduleName.c_str(), robotName.c_str());
-    robotInterface->addJoints(ICUB_MAIN_DYNAMIC_JOINTS);
+    //--------------------------WHOLE BODY STATES INTERFACE--------------------------
+    robotInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str());
+    robotInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
+    robotInterface->addEstimates(wbi::ESTIMATE_IMU,wbiIcub::ICUB_MAIN_IMUS);
+    robotInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE, wbiIcub::ICUB_MAIN_FOOT_FTS);
 
-    if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
+    if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body state interface. Closing module\n"); return false; }
 
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
     wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, robotInterface);
@@ -70,9 +73,6 @@ bool wholeBodyDynamicsModule::respond(const Bottle& cmd, Bottle& reply)
 {
 }
 
-void wholeBodyDynamicsModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
-{
-}
 
 bool wholeBodyDynamicsModule::interruptModule()
 {
@@ -90,7 +90,7 @@ bool wholeBodyDynamicsModule::close()
     { 
         bool res=robotInterface->close();    
         if(res)
-            printf("Error while closing robot interface\n");
+            printf("Error while closing robot estimator\n");
         delete robotInterface;  
         robotInterface = 0; 
     }

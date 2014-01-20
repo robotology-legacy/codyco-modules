@@ -44,7 +44,7 @@ class wholeBodyDynamicsModule: public RFModule
 
     Port                rpcPort;        // a port to handle rpc messages
     wholeBodyDynamicsThread*   wbdThread;     // locomotion control thread
-    wholeBodyInterface* robotInterface; // interface to communicate with the robot
+    wbiIcub::icubWholeBodyStatesLocal* robotInterface; // interface to communicate with the robot
 
 public:
     wholeBodyDynamicsModule();
@@ -55,9 +55,7 @@ public:
     bool respond(const Bottle& command, Bottle& reply);
     double getPeriod(){ return period;  }
     bool updateModule();
-
-    void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
-
+    
 };
 
 
