@@ -228,6 +228,12 @@ bool icubWholeBodySensors::openEncoder(const int bp)
     int nj=0;
     ienc[bp]->getAxes(&nj);
     bodyPartAxes[bp] = nj;
+    
+    //allocate lastRead variables
+    qLastRead[bp].resize(nj);
+    qStampLastRead[bp].resize(nj);
+    pwmLastRead[bp].resize(nj);
+    torqueSensorsLastRead[bp].resize(nj);
     return true;
 }
 
