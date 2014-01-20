@@ -436,8 +436,8 @@ bool icubWholeBodySensors::readEncoders(double *q, double *stamps, bool wait)
         if(update)
             for(unsigned int i=0; i<bodyPartAxes[itBp->first]; i++)
             {
-                // joints 0 and 2 of the torso are swapped
-                qLastRead[itBp->first][itBp->first==TORSO ? 2-i : i]        = CTRL_DEG2RAD*qTemp[i];
+                assert( i < qLastRead[itBp->first].size() );
+                qLastRead[itBp->first][itBp->first==TORSO ? 2-i : i] = CTRL_DEG2RAD*qTemp[i];;
                 qStampLastRead[itBp->first][itBp->first==TORSO ? 2-i : i]   = tTemp[i];
             }
         
