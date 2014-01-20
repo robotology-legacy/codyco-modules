@@ -56,7 +56,24 @@ namespace wbiIcub
         {wbi::LocalId(iCub::skinDynLib::LEFT_LEG,1),    "/left_foot/analog:o"}, 
         {wbi::LocalId(iCub::skinDynLib::RIGHT_LEG,1),   "/right_foot/analog:o"}, 
     };
+    
+    ///< List of FT sensors in iCub
+    const wbi::LocalIdList ICUB_LEFT_ARM_FTS(iCub::skinDynLib::LEFT_ARM, 0);
+    const wbi::LocalIdList ICUB_RIGHT_ARM_FTS(iCub::skinDynLib::RIGHT_ARM, 0);
+    const wbi::LocalIdList ICUB_LEFT_LEG_FTS(iCub::skinDynLib::LEFT_LEG, 0);
+    const wbi::LocalIdList ICUB_RIGHT_LEG_FTS(iCub::skinDynLib::RIGHT_LEG, 0);
+    const wbi::LocalIdList ICUB_LEFT_LEG_FOOT_FTS(iCub::skinDynLib::LEFT_LEG, 0, 1);
+    const wbi::LocalIdList ICUB_RIGHT_LEG_FOOT_FTS(iCub::skinDynLib::RIGHT_LEG, 0, 1);
+    
+    const wbi::LocalIdList ICUB_MAIN_FTS(ICUB_LEFT_ARM_FTS,ICUB_RIGHT_ARM_FTS,ICUB_LEFT_LEG_FTS,ICUB_RIGHT_LEG_FTS);
+    const wbi::LocalIdList ICUB_MAIN_FOOT_FTS(ICUB_LEFT_ARM_FTS,ICUB_RIGHT_ARM_FTS,ICUB_LEFT_LEG_FOOT_FTS,ICUB_RIGHT_LEG_FOOT_FTS);
 
+    
+    ///< List of IMUS in iCub
+    const wbi::LocalIdList ICUB_HEAD_IMUS(iCub::skinDynLib::HEAD, 0);
+    const wbi::LocalIdList ICUB_MAIN_IMUS(ICUB_HEAD_IMUS);
+
+    
     ///< *** Mapping from IMUs to PORT NAMES ***
     const id_2_PortName icub_IMU_2_PortName[1] = {
         {wbi::LocalId(iCub::skinDynLib::HEAD,0),    "/inertial:o" }, 
