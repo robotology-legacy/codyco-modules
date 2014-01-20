@@ -109,6 +109,7 @@ namespace wbi
         ESTIMATE_MOTOR_CURRENT,             // motor current
         // CARTESIAN SPACE ESTIMATES
         ESTIMATE_FORCE_TORQUE,      // 6-axis force/torque sensor
+        ESTIMATE_IMU,               // Same of sensor IMU, but filtered 
         ESTIMATE_ACCELERATION,      // 3d linear acceleration
         ESTIMATE_BASE_POS,          // position of the base of the robot
         ESTIMATE_BASE_VEL,          // velocity of the base of the robot
