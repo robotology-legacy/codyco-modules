@@ -615,12 +615,12 @@ bool icubWholeBodySensors::readPwm(const LocalId &sid, double *pwm, double *stam
 
 bool icubWholeBodySensors::convertIMU(double * wbi_imu_readings, const double * yarp_imu_readings)
 {
-    //wbi orientation is expressed in axis-angle, yarp orientation in euler angles
+    //wbi orientation is expressed in axis-angle, yarp orientation in euler angles (roll pitch yaw)
     //wbi  : orientation(4) - linear acceleration (3) - angular velocity    (3) - magnetometer (3)
     //yarp : orientation(3) - linear acceleration (3) - angular velocity    (3) - magnetometer (3) 
-    Rotation imu_orientation = Rotation::eulerZYZ(yarp_imu_readings[0],yarp_imu_readings[1],yarp_imu_readings[2]);
+    Rotation imu_orientation = Rotation::eulerZYX(yarp_imu_readings[0],yarp_imu_readings[1],yarp_imu_readings[2]);
     imu_orientation.getAxisAngle(wbi_imu_readings+0);
-    memcpy(wbi_imu_readings+4,yarp_imu_readings+3,9);
+    memcpy(wbi_imu_readings+4,yarp_imu_readings+3,9*sizeof(double));
     return true;
 }
 
