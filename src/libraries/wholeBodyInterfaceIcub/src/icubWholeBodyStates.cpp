@@ -367,6 +367,8 @@ bool icubWholeBodyEstimator::threadInit()
     dTauJFilt = new AWLinEstimator(dTauJFiltWL, dTauJFiltTh);
     dTauMFilt = new AWLinEstimator(dTauMFiltWL, dTauMFiltTh);
     ///< read sensors
+    std::cout << " " << estimates.lastQ.size() << " " << sensors->getSensorNumber(SENSOR_ENCODER) << std::endl;
+    assert(estimates.lastQ.size() == sensors->getSensorNumber(SENSOR_ENCODER));
     bool ok = sensors->readSensors(SENSOR_ENCODER, estimates.lastQ.data(), qStamps.data(), true);
     ok = ok && sensors->readSensors(SENSOR_TORQUE, estimates.lastTauJ.data(), tauJStamps.data(), true);
     ok = ok && sensors->readSensors(SENSOR_PWM, estimates.lastPwm.data(), pwmStamps.data(), true);
