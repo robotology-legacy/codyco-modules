@@ -414,6 +414,8 @@ namespace wbiIcub
         std::vector<yarp::sig::Vector> forcetorques;
         yarp::sig::Vector forcetorquesStamps;
         
+        std::vector<yarp::sig::Vector> forcetorques_offset;
+        
         std::vector<yarp::sig::Vector> IMUs;
         yarp::sig::Vector IMUStamps;
         
@@ -500,6 +502,8 @@ namespace wbiIcub
         icubWholeBodyDynamicsEstimator(int _period, icubWholeBodySensors *_sensors, yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts);
         
         bool lockAndSetEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
+        
+        bool lockAndSetEstimationOffset(const wbi::EstimateType et, const wbi::LocalId & sid, const void *value);
 
         bool threadInit();
         void run();
@@ -513,6 +517,8 @@ namespace wbiIcub
         bool lockAndCopyVectorOfVectors(const std::vector<yarp::sig::Vector> &src, double *dest);
         /** Take the mutex and copy the i-th Vector of a vector<Vector> of src into dest */
         bool lockAndCopyElementVectorFromVector(int i, const std::vector<yarp::sig::Vector> &src, double *dest);
+        
+       
     
 
     };
@@ -639,7 +645,7 @@ namespace wbiIcub
         
     public:
         // *** CONSTRUCTORS ***
-        icubWholeBodyStatesLocal(const char* _name, const char* _robotName, double estimationTimeWindow);
+        icubWholeBodyStatesLocal(const char* _name, const char* _robotName);
         inline virtual ~icubWholeBodyStatesLocal(){ close(); }
         
         virtual bool init();
@@ -702,6 +708,15 @@ namespace wbiIcub
          * @return True if the operation succeeded, false otherwise. */
         virtual bool setEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
         
+
+        
+        /////////////////////////////////////////////////////
+        ///< Implementation specific methods 
+        /////////////////////////////////////////////////////
+        
+        
+        bool setEstimationOffset(const wbi::EstimateType et, const wbi::LocalId & sid, const void *value);
+        
         /** Get the estimated external force/torques 
          * 
          * \note temporary interface, should be substituted by properly defining an external force/torque estimate
@@ -709,6 +724,7 @@ namespace wbiIcub
          * @return True if the operation succeeded, false otherwise.
          */
         bool getEstimatedExternalForces(iCub::skinDynLib::dynContactList & external_forces_list);
+        
     };
     
     /**
