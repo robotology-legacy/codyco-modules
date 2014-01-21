@@ -173,13 +173,12 @@ namespace adaptiveControl {
 		
 		void writeDebug();
         
-        void dampedPseudoInverse28(const Eigen::Matrix28d &A,
+        
+        template <typename Derived1, typename Derived2>
+        void dampedPseudoInverse(const Eigen::MatrixBase<Derived1>& A,
                                  double dampingFactor,
-                                 Eigen::Matrix<double, 8, 2> &Apinv);
-         void dampedPseudoInverse88(const Eigen::Matrix<double, 8, 8> &A,
-                                 double dampingFactor,
-                                 Eigen::Matrix<double, 8, 8> &Apinv);
-		
+                                 Eigen::MatrixBase<Derived2>& Apinv);
+        		
     public:
         AdaptiveControlThread(const std::string& threadName,
                               const std::string& robotName,

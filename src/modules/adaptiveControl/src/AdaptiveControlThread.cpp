@@ -95,7 +95,9 @@ namespace adaptiveControl {
         _xi(0) = initialXi1;
         //I don't want to use the input initial conditions, but I want to be sure they lie in the null space of the regressor.
         
-        Matrix28d Y;
+        //I compute everything local to this function because I don't want to mess with the state.
+        //Performances are not an issue here because this function is not called in the run loop.
+        Matrix<double, 2, 8> Y;
         Matrix<double, 8, 2> Ypinv;
         Matrix<double, PARAMETERS_SIZE, PARAMETERS_SIZE> A;
         Matrix<double, PARAMETERS_SIZE, PARAMETERS_SIZE> Apinv;
@@ -109,24 +111,12 @@ namespace adaptiveControl {
         xi(1) = dq_ref - _lambda * (q(1) - q_ref);
         
         computeRegressor(q, dq, xi, Vector2d::Zero(), Y);
-        dampedPseudoInverse28(Y, 0.02, Ypinv);
+        dampedPseudoInverse(Y, 0.02, Ypinv);
         
         A = Matrix<double, PARAMETERS_SIZE, PARAMETERS_SIZE>::Identity() - Ypinv * Y;
-        dampedPseudoInverse88(A, 0.02, Apinv);
+        dampedPseudoInverse(A, 0.02, Apinv);
         _piHat = A * Apinv * initialPiHat;
         
-//         [Y1, Y2] = regressor([q1;q2], [dq1;dq2], [xiu_0;0], [0;0], [9.81,a1,a2]);
-// 
-// Y = [ Y1; Y2];
-// 
-// A = eye(8) - pinv(Y)*Y;
-// 
-// 
-// piHo = A*pinv(A)*a;
-// 
-// Y*piHo
-// 
-// norm(piHo-a)
 //         _piHat = initialPiHat;
         return true;
     }
@@ -596,50 +586,21 @@ namespace adaptiveControl {
 		
 	}
 
+    template <typename Derived1, typename Derived2>
+    void AdaptiveControlThread::dampedPseudoInverse(const Eigen::MatrixBase<Derived1>& A,
+                                                    double dampingFactor,
+                                                    Eigen::MatrixBase<Derived2>& Apinv)
+    {
+        int m = A.rows(), n = A.cols(), k = m < n ? m : n;
+        JacobiSVD<typename MatrixBase<Derived1>::PlainObject> svd = A.jacobiSvd(Eigen::ComputeThinU|Eigen::ComputeThinV);
+        const typename JacobiSVD<typename Derived1::PlainObject>::SingularValuesType& singularValues = svd.singularValues();
+        MatrixXd sigmaDamped = MatrixXd::Zero(k, k);
+        
+        double damp = dampingFactor * dampingFactor;
+        for (int idx = 0; idx < k; idx++) {
+            sigmaDamped(idx, idx) = singularValues(idx) / (singularValues(idx) * singularValues(idx) + damp);
+        }
+        Apinv   = svd.matrixV() * sigmaDamped * svd.matrixU().transpose();   // damped pseudoinverse
+    }
 
-	void AdaptiveControlThread::dampedPseudoInverse28(const Eigen::Matrix28d &A,
-                                 double dampingFactor,
-                                Eigen::Matrix<double, 8, 2> &Apinv) {
-        int m = A.rows(), n = A.cols(), k = m < n ? m : n;
-        JacobiSVD<Matrix<double, 2, 8> > svd = A.jacobiSvd(ComputeThinU|ComputeThinV);
-        MatrixXd singularValues = svd.singularValues();
-        MatrixXd sigmaDamped = MatrixXd::Zero(k, k);
-        
-        double damp = dampingFactor * dampingFactor;
-        for (int idx = 0; idx < k; idx++) {
-            sigmaDamped(idx, idx) = singularValues(idx) / (singularValues(idx) * singularValues(idx) + damp);
-        }
-        Apinv   = svd.matrixV() * sigmaDamped * svd.matrixU().transpose();   // damped pseudoinverse
-    }
-    
-    void AdaptiveControlThread::dampedPseudoInverse88(const Eigen::Matrix<double, 8, 8> &A,
-                            double dampingFactor,
-                            Eigen::Matrix<double, 8, 8> &Apinv) {
-        int m = A.rows(), n = A.cols(), k = m < n ? m : n;
-        JacobiSVD<Matrix<double, 8, 8> > svd = A.jacobiSvd(ComputeThinU|ComputeThinV);
-        MatrixXd singularValues = svd.singularValues();
-        MatrixXd sigmaDamped = MatrixXd::Zero(k, k);
-        
-        double damp = dampingFactor * dampingFactor;
-        for (int idx = 0; idx < k; idx++) {
-            sigmaDamped(idx, idx) = singularValues(idx) / (singularValues(idx) * singularValues(idx) + damp);
-        }
-        Apinv   = svd.matrixV() * sigmaDamped * svd.matrixU().transpose();   // damped pseudoinverse
-    }
-         
-//     void AdaptiveControlThread::dampedPseudoInverse(const MatrixXd &A,
-//                                               double dampingFactor,
-//                                            MatrixXd &Apinv)
-//     {
-//         int m = A.rows(), n = A.cols(), k = m < n ? m : n;
-//         JacobiSVD<MatrixXd> svd = A.jacobiSvd(ComputeThinU|ComputeThinV);
-//         MatrixXd singularValues = svd.singularValues();
-//         MatrixXd sigmaDamped = MatrixXd::Zero(k, k);
-//         
-//         double damp = dampingFactor * dampingFactor;
-//         for (int idx = 0; idx < k; idx++) {
-//             sigmaDamped(idx, idx) = singularValues(idx) / (singularValues(idx) * singularValues(idx) + damp);
-//         }
-//         Apinv   = svd.matrixV() * sigmaDamped * svd.matrixU().transpose();   // damped pseudoinverse
-//     }
 }
