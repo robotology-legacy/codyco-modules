@@ -351,7 +351,9 @@ namespace adaptiveControl {
         }
         
         double qTilde = _q(1) - q_ref;
-        _errorIntegral = hardLimiter(_errorIntegral + dt * qTilde, -_integralSaturationLimit, _integralSaturationLimit);
+        if (_outputEnabled) {
+            _errorIntegral = hardLimiter(_errorIntegral + dt * qTilde, -_integralSaturationLimit, _integralSaturationLimit);
+        }
         _xi(1) = dq_ref - _lambda * qTilde - _lambdaIntegral * _errorIntegral;
         
         //define variable 's'
@@ -576,6 +578,7 @@ namespace adaptiveControl {
         vector.push_back(_massMatrixDeterminant);
         vector.push_back(_minDeterminantValue);
         vector.push_back(_piHatModificationOn ? 1 : 0);
+        vector.push_back(_errorIntegral);
 		
         _debugPort->write();
 		

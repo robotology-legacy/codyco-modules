@@ -64,23 +64,23 @@
           gridy="1"
           hspan="3"
           vspan="1"
-          title="Q"
+          title="Integral action"
           size="60"
           minval="-100"
           maxval="100"
           bgcolor="LightSlateGrey">
         <graph remote="/adaptiveControl/debug:o"
-               index="0"
+               index="10"
                color="Blue"
                title="Graph 0"
                type="lines"
                size="3" />
-        <graph remote="/adaptiveControl/debug:o"
+ <!--       <graph remote="/adaptiveControl/debug:o"
                index="1"
                color="Red"
                title="Graph 0"
                type="lines"
-               size="3" />
+               size="3" />-->
     </plot>
     <plot gridx="0"
           gridy="2"
