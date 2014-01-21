@@ -93,6 +93,7 @@ namespace adaptiveControl {
         double _initialTime;
         double _previousTime;
         bool _piHatModificationOn;
+        double _integralSaturationLimit;
         
         
         //configuration parameters
@@ -123,7 +124,6 @@ namespace adaptiveControl {
         iCub::ctrl::AWLinEstimator* _velocityEstimator;
         int _outputEnabled;
         
-        
         double _minDeterminantValue;
         
         //reference trajectory: for now i compute it internally. In the future we can read from a port
@@ -140,6 +140,7 @@ namespace adaptiveControl {
         
         //gains
         double _lambda;
+        double _lambdaIntegral;
         Eigen::Vector2d _kappa;
         Eigen::Matrix8d _Gamma;
         
@@ -148,6 +149,7 @@ namespace adaptiveControl {
         Eigen::Vector2d _dq;
         Eigen::Vector2d _xi;
         Eigen::Vector8d _piHat;
+        double _errorIntegral;
         
         //variables update rules
         Eigen::Vector2d _dxi;
@@ -161,9 +163,9 @@ namespace adaptiveControl {
    
         yarp::dev::PolyDriver* openDriver(std::string localName, std::string robotName, std::string bodyPartName);
         void computeRegressor(const Eigen::Vector2d& q, /* Joint positions*/
-                                          const Eigen::Vector2d& dq, /* Joint velocities*/
-                                          const Eigen::Vector2d& dq_lin, /* Joint velocities. This is the term which multiplies linearly the C(.) term */
-                                          const Eigen::Vector2d& ddq, /* Joint accelerations*/
+                              const Eigen::Vector2d& dq, /* Joint velocities*/
+                              const Eigen::Vector2d& dq_lin, /* Joint velocities. This is the term which multiplies linearly the C(.) term */
+                              const Eigen::Vector2d& ddq, /* Joint accelerations*/
                               Eigen::Matrix28d& regressor); /* output variable */
         bool readSensors(Eigen::Vector2d& positions, Eigen::Vector2d& velocities);
         void computeControl();
@@ -178,7 +180,7 @@ namespace adaptiveControl {
         void dampedPseudoInverse(const Eigen::MatrixBase<Derived1>& A,
                                  double dampingFactor,
                                  Eigen::MatrixBase<Derived2>& Apinv);
-        		
+        
     public:
         AdaptiveControlThread(const std::string& threadName,
                               const std::string& robotName,

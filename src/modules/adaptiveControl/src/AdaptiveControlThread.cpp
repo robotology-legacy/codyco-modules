@@ -72,19 +72,6 @@ namespace adaptiveControl {
         _dpiHat = Vector8d::Zero();
         _xi = Vector2d::Zero();
         _dxi = Vector2d::Zero();
-		
-//#ifdef ADAPTIVECONTROL_TORQUECONTROL
-//#ifdef GAZEBO_SIMULATOR
-//   		kv(0) = 1;
-//		kv(1) = 1;
-//		kv(2) = 1;
-//		kv(3) = 1;
-//		kc(0) = 1;
-//		kc(1) = 1;
-//		kc(2) = 1;
-//		kc(3) = 1;
-//#endif
-//#endif
     }
     
     AdaptiveControlThread::~AdaptiveControlThread() { threadRelease(); }
@@ -93,31 +80,31 @@ namespace adaptiveControl {
     {
         if (_controlEnabled) return false;
         _xi(0) = initialXi1;
-        //I don't want to use the input initial conditions, but I want to be sure they lie in the null space of the regressor.
+//        //I don't want to use the input initial conditions, but I want to be sure they lie in the null space of the regressor.
+//        
+//        //I compute everything local to this function because I don't want to mess with the state.
+//        //Performances are not an issue here because this function is not called in the run loop.
+//        Matrix<double, 2, 8> Y;
+//        Matrix<double, 8, 2> Ypinv;
+//        Matrix<double, PARAMETERS_SIZE, PARAMETERS_SIZE> A;
+//        Matrix<double, PARAMETERS_SIZE, PARAMETERS_SIZE> Apinv;
+//        Vector2d q, dq;
+//        
+//        readSensors(q, dq);
+//        double q_ref = _refBaseline;
+//        double dq_ref = _refAmplitude * _refAngularVelocity;
+//        
+//        Vector2d xi = _xi;
+//        xi(1) = dq_ref - _lambda * (q(1) - q_ref);
+//        
+//        computeRegressor(q, dq, xi, Vector2d::Zero(), Y);
+//        dampedPseudoInverse(Y, 0.02, Ypinv);
+//        
+//        A = Matrix<double, PARAMETERS_SIZE, PARAMETERS_SIZE>::Identity() - Ypinv * Y;
+//        dampedPseudoInverse(A, 0.02, Apinv);
+//        _piHat = A * Apinv * initialPiHat;
         
-        //I compute everything local to this function because I don't want to mess with the state.
-        //Performances are not an issue here because this function is not called in the run loop.
-        Matrix<double, 2, 8> Y;
-        Matrix<double, 8, 2> Ypinv;
-        Matrix<double, PARAMETERS_SIZE, PARAMETERS_SIZE> A;
-        Matrix<double, PARAMETERS_SIZE, PARAMETERS_SIZE> Apinv;
-        Vector2d q, dq;
-        
-        readSensors(q, dq);
-        double q_ref = _refBaseline;
-        double dq_ref = _refAmplitude * _refAngularVelocity;
-        
-        Vector2d xi = _xi;
-        xi(1) = dq_ref - _lambda * (q(1) - q_ref);
-        
-        computeRegressor(q, dq, xi, Vector2d::Zero(), Y);
-        dampedPseudoInverse(Y, 0.02, Ypinv);
-        
-        A = Matrix<double, PARAMETERS_SIZE, PARAMETERS_SIZE>::Identity() - Ypinv * Y;
-        dampedPseudoInverse(A, 0.02, Apinv);
-        _piHat = A * Apinv * initialPiHat;
-        
-//         _piHat = initialPiHat;
+         _piHat = initialPiHat;
         return true;
     }
     
@@ -130,8 +117,10 @@ namespace adaptiveControl {
         //link parameters
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDMinDeterminantValue, &_minDeterminantValue));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDOutputEnabled, &_outputEnabled));
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDIntegralSymmetricLimit, &_integralSaturationLimit));
         //Kappa, Gamma, Lambda
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambda, &_lambda));
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambdaIntegral, &_lambdaIntegral));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainKappa, _kappa.data()));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainGamma, _Gamma.data()));
         //reference trajectory
@@ -357,7 +346,8 @@ namespace adaptiveControl {
         }
         
         double qTilde = _q(1) - q_ref;
-        _xi(1) = dq_ref - _lambda * qTilde;
+        _errorIntegral = hardLimiter(_errorIntegral + dt * qTilde, -_integralSaturationLimit, _integralSaturationLimit);
+        _xi(1) = dq_ref - _lambda * qTilde - _lambdaIntegral * _errorIntegral;
         
         //define variable 's'
         Vector2d s = _dq - _xi;
@@ -440,7 +430,7 @@ namespace adaptiveControl {
             //(original) update law for the parameters
             double upsilon = derivativeMpFordq - Ymass * _Gamma * regressor.transpose() * s;
             double zeta = upsilon / m11H; //trace(m11Inv * upsilon);
-            if (zeta < 0) {
+            if (zeta <= 0) {
                 //double eta = (params(1)/Mdet - zeta )/ (delta'*Gamma* delta);
                 double eta = - zeta / (delta.transpose() * _Gamma * delta);
                 //only if zeta is less than zero apply modification

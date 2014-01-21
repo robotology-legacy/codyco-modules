@@ -43,7 +43,6 @@ namespace Eigen {
     typedef Matrix<double, ICUB_PART_DOF, 1> VectorNd;
 }
 
-
 namespace adaptiveControl
 {
     
@@ -53,6 +52,8 @@ namespace adaptiveControl
     
     inline double convertDegToRad(double degAngle) { return degAngle / 180 * pi; }
     inline double convertRadToDeg(double radAngle) { return radAngle * 180 / pi; }
+    inline double hardLimiter(double inputValue, double lowerLimit, double upperLimit)
+    { return inputValue > upperLimit ? upperLimit : (inputValue < lowerLimit ? lowerLimit : inputValue); }
     
     // ******************************************************************************************************************************
     // ****************************************** PARAMETER SECTION *****************************************************************
@@ -64,10 +65,12 @@ namespace adaptiveControl
     static const std::string defaultRobotPart = "right_leg";
     static const int defaultModulePeriod = 10;
     static const Eigen::Vector2d defaultLinkLengths = Eigen::Vector2d::Zero();
+    static const double defaultIntegralSymmetricLimit = 10;
     //rpc
     static const int defaultOutputEnabled = 0;
     static const double defaultMinDeterminant = 10.0;
     static const double defaultLambdaGain = 1;
+    static const double defaultLambdaIntegralGain = 0.1;
     static const Eigen::Vector2d defaultKappaGain = Eigen::Vector2d::Constant(1);
     static const Eigen::Matrix8d defaultGammaGain = Eigen::Matrix8d::Identity();
     static const double defaultRefBaseline = 0;
@@ -85,10 +88,12 @@ namespace adaptiveControl
         AdaptiveControlParamIDRobotPartName,
         AdaptiveControlParamIDPeriod,
         AdaptiveControlParamIDLinkLengths,
+        AdaptiveControlParamIDIntegralSymmetricLimit,
         //RPC in-out parameters
         AdaptiveControlParamIDOutputEnabled,
         AdaptiveControlParamIDMinDeterminantValue,
         AdaptiveControlParamIDGainLambda,
+        AdaptiveControlParamIDGainLambdaIntegral,
         AdaptiveControlParamIDGainKappa,
         AdaptiveControlParamIDGainGamma,
         AdaptiveControlParamIDRefBaseline,
@@ -102,7 +107,7 @@ namespace adaptiveControl
     // *****************************************************************************************************************************************
     // ****************************************** DESCRIPTION OF ALL THE MODULE AND THREAD PARAMETERS ******************************************
     // *****************************************************************************************************************************************
-    const unsigned short adaptiveControlParamDescriptorsSize = 16;
+    const unsigned short adaptiveControlParamDescriptorsSize = 18;
     const paramHelp::ParamProxyInterface *const adaptiveControlParamDescriptors[]  =
     {
         //NAME, ID, SIZE, BOUNDS, I/O ACCESS, DEFAULT VALUE, DESCRIPTION
@@ -112,10 +117,12 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<std::string>("part", AdaptiveControlParamIDRobotPartName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultRobotPart, "Robot part: currently only leg is supported, so specify (left|right)_leg"),
         new paramHelp::ParamProxyBasic<int>("period", AdaptiveControlParamIDPeriod, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_CONFIG, &defaultModulePeriod, "Name of the robot"),
         new paramHelp::ParamProxyBasic<double>("linkLengths", AdaptiveControlParamIDLinkLengths, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultLinkLengths.data(), "Length of links"),
+        new paramHelp::ParamProxyBasic<double>("intLimit", AdaptiveControlParamIDIntegralSymmetricLimit, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_CONFIG, &defaultIntegralSymmetricLimit, "Absolute value of the limit for the integral of the error => the integral will be between -intLimit and intLimit"),
         //RPC in/out parameters (during runtime)
         new paramHelp::ParamProxyBasic<int>("sendCommands", AdaptiveControlParamIDOutputEnabled, 1, paramHelp::ParamBilatBounds<int>(0, 1), paramHelp::PARAM_IN_OUT, &defaultOutputEnabled, "Boolean for enable output to motors"),
         new paramHelp::ParamProxyBasic<double>("minDet", AdaptiveControlParamIDMinDeterminantValue, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_IN_OUT, &defaultMinDeterminant, "Minimum value for the determinant of the passive minor of the Mass Matrix"),
         new paramHelp::ParamProxyBasic<double>("lambda", AdaptiveControlParamIDGainLambda, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultLambdaGain, "Lambda gain: rate of convergence of active joints to reference"),
+        new paramHelp::ParamProxyBasic<double>("lambdaI", AdaptiveControlParamIDGainLambdaIntegral, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultLambdaIntegralGain, "Lambda Integrale gain: integral gain for the position error"),
         new paramHelp::ParamProxyBasic<double>("kappa", AdaptiveControlParamIDGainKappa, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultKappaGain.data(), "Kappa gain: torque gain"),
         new paramHelp::ParamProxyBasic<double>("gamma", AdaptiveControlParamIDGainGamma, PARAMETERS_SIZE*PARAMETERS_SIZE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultGammaGain.data(), "Gamma gain: gain in the parameter update rule"),
         new paramHelp::ParamProxyBasic<double>("refBase", AdaptiveControlParamIDRefBaseline, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefBaseline, "Baseline for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
