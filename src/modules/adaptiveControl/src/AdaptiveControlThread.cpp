@@ -606,6 +606,8 @@ namespace adaptiveControl {
         vector.push_back(_minDeterminantValue);
         vector.push_back(_piHatModificationOn ? 1 : 0);
         vector.push_back(_errorIntegral);
+        vector.push_back(_sIntegral(0));
+        vector.push_back(_sIntegral(1));
 		
         _debugPort->write();
 		
