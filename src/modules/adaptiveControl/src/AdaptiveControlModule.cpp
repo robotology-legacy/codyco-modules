@@ -132,6 +132,7 @@ namespace adaptiveControl {
             case AdaptiveControlCommandIDReset:
                 if (_controlThread && !_controlThread->controlEnabled()) {
                     //set initial conditions
+                    _controlThread->resetState();
                     bool result = _controlThread->setInitialConditions(_initialPiHat, _initialXi1);
                     reply.addString((std::string("Reset thread returned ") + (result ? "success" : "failure")).c_str());
                 }

@@ -116,6 +116,8 @@ public:
 
     ParamProxyInterface(const std::string &_name, int _id, ParamSize _size, ParamIOType _ioType, const std::string &_descr)
         :name(_name), description(_descr), id(_id), size(_size), ioType(_ioType) {}
+    
+    virtual ~ParamProxyInterface() {}
 
     /** Clone this object. This method is used to create a copy of a subclass of ParamProxyInterface
      * so as to avoid "object slicing". In more details, the subclasses of ParamProxyinterface may

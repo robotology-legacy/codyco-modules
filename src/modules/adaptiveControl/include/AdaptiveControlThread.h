@@ -195,6 +195,7 @@ namespace adaptiveControl {
         
         bool setInitialConditions(const Eigen::Vector8d& initialPiHat, const double& initialXi1);
         bool controlEnabled();
+        void resetState();
         
         /* Overrided functions (Rate Thread)*/
         bool threadInit();

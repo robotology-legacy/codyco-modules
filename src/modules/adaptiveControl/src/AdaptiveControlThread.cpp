@@ -110,6 +110,11 @@ namespace adaptiveControl {
     
     bool AdaptiveControlThread::controlEnabled() { return _controlEnabled; }
     
+    void AdaptiveControlThread::resetState()
+    {
+        _errorIntegral = 0;
+    }
+    
 #pragma mark - RateThread Overridings
     
     bool AdaptiveControlThread::threadInit()
