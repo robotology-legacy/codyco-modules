@@ -395,25 +395,41 @@ public:
      Vector forwardKinematics(int &linkId)
      {
          // THIS FUNCTION SHOULD ACTUALLY TAKE AS INPUT THE ID OF THE DESIRED LINK
-         if(world2baseRototranslation())
-         {
-             footLinkId = linkId;
- //            bool ans = wbInterface->forwardKinematics(qRad.data(), xBase.data(), footLinkId, x_foot.data());
- //            fprintf(stderr,"fwd kinematics will be computed with footLinkId: %d and x_pose: %s", footLinkId, x_pose.toString().c_str());
-             bool ans = wbInterface->forwardKinematics(qRad.data(), xBase, footLinkId, x_pose.data());
-             if(ans){
- //                fprintf(stderr,"Forward Kinematics computed \n");
- //                fprintf(stderr,"pose: %s \n", x_pose.toString().c_str());
-                 return x_pose;
-             }
-             else
+         if(robotJntAngles(false)){
+             if(world2baseRototranslation())
              {
-                 x_pose.zero();
-                 return x_pose;
+                 footLinkId = linkId;
+     //            bool ans = wbInterface->forwardKinematics(qRad.data(), xBase.data(), footLinkId, x_foot.data());
+     //            fprintf(stderr,"fwd kinematics will be computed with footLinkId: %d and x_pose: %s", footLinkId, x_pose.toString().c_str());
+
+                 bool ans = wbInterface->forwardKinematics(qRad.data(), xBase, footLinkId, x_pose.data());
+
+                 // This is for debugging only
+//                 wbi::Frame world2base;
+//                 Vector com(7,0.0);
+//                 world2base.identity();
+//                 fprintf(stderr,"Angles torso %s \n",qRad.subVector(0,2).toString().c_str());
+//                 bool ans = wbInterface->forwardKinematics(qRad.data(), world2base, wbi::iWholeBodyModel::COM_LINK_ID, com.data());
+
+                 // Debugging is over here
+                 if(ans){
+     //                fprintf(stderr,"Forward Kinematics computed \n");
+     //                fprintf(stderr,"pose: %s \n", x_pose.toString().c_str());
+    //                 return x_pose;
+                     return x_pose;
+                 }
+                 else
+                 {
+                     x_pose.zero();
+                     return x_pose;
+                 }
+             }
+             else{
+                 fprintf(stderr,"Error computing world 2 base rototranslation!!!!!\n");
              }
          }
          else{
-             fprintf(stderr,"Error computing world 2 base rototranslation!!!!!");
+             fprintf(stderr,"ERROR: There has been an error acquiring robot joint angles \n");
          }
      }
 //     // ***************************************************************************************************
