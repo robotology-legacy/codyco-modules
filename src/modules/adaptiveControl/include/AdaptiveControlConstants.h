@@ -54,6 +54,9 @@ namespace adaptiveControl
     inline double convertRadToDeg(double radAngle) { return radAngle * 180 / pi; }
     inline double hardLimiter(double inputValue, double lowerLimit, double upperLimit)
     { return inputValue > upperLimit ? upperLimit : (inputValue < lowerLimit ? lowerLimit : inputValue); }
+//    template <typename Derived>
+//    inline void hardLimiter(Eigen::MatrixBase<Derived>& inputValue, double lowerLimit, double upperLimit, Eigen::MatrixBase<Derived>& outputValue)
+//    {  }
     
     // ******************************************************************************************************************************
     // ****************************************** PARAMETER SECTION *****************************************************************
@@ -72,7 +75,9 @@ namespace adaptiveControl
     static const double defaultLambdaGain = 1;
     static const double defaultLambdaIntegralGain = 0.1;
     static const Eigen::Vector2d defaultKappaGain = Eigen::Vector2d::Constant(1);
-    static const Eigen::Matrix8d defaultGammaGain = Eigen::Matrix8d::Identity();
+    static const Eigen::Vector2d defaultKappaIntegralGain = Eigen::Vector2d::Constant(1);
+    static const Eigen::Vector8d defaultGammaGain = Eigen::Vector8d::Constant(1);
+    
     static const double defaultRefBaseline = 0;
     static const double defaultRefAngularVelocity = 0;
     static const double defaultRefAmplitude = 0;
@@ -95,6 +100,7 @@ namespace adaptiveControl
         AdaptiveControlParamIDGainLambda,
         AdaptiveControlParamIDGainLambdaIntegral,
         AdaptiveControlParamIDGainKappa,
+        AdaptiveControlParamIDGainKappaIntegral,
         AdaptiveControlParamIDGainGamma,
         AdaptiveControlParamIDRefBaseline,
         AdaptiveControlParamIDRefAngularVelocity,
@@ -124,7 +130,8 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<double>("lambda", AdaptiveControlParamIDGainLambda, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultLambdaGain, "Lambda gain: rate of convergence of active joints to reference"),
         new paramHelp::ParamProxyBasic<double>("lambdaI", AdaptiveControlParamIDGainLambdaIntegral, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultLambdaIntegralGain, "Lambda Integrale gain: integral gain for the position error"),
         new paramHelp::ParamProxyBasic<double>("kappa", AdaptiveControlParamIDGainKappa, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultKappaGain.data(), "Kappa gain: torque gain"),
-        new paramHelp::ParamProxyBasic<double>("gamma", AdaptiveControlParamIDGainGamma, PARAMETERS_SIZE*PARAMETERS_SIZE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultGammaGain.data(), "Gamma gain: gain in the parameter update rule"),
+        new paramHelp::ParamProxyBasic<double>("kappaI", AdaptiveControlParamIDGainKappaIntegral, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultKappaIntegralGain.data(), "Kappa Integral gain: it acts on s"),
+        new paramHelp::ParamProxyBasic<double>("gamma", AdaptiveControlParamIDGainGamma, PARAMETERS_SIZE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultGammaGain.data(), "Gamma gain: gain in the parameter update rule"),
         new paramHelp::ParamProxyBasic<double>("refBase", AdaptiveControlParamIDRefBaseline, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefBaseline, "Baseline for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
         new paramHelp::ParamProxyBasic<double>("refAngVel", AdaptiveControlParamIDRefAngularVelocity, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefAngularVelocity, "Frequency for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
         new paramHelp::ParamProxyBasic<double>("refAmpl", AdaptiveControlParamIDRefAmplitude, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefAmplitude, "Amplitude for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),

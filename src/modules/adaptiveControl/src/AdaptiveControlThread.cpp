@@ -31,6 +31,7 @@
 #endif
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 #include <paramHelp/paramHelperServer.h>
+#include <paramHelp/paramProxyInterface.h>
 #include <string>
 #include <cmath>
 #include <Eigen/SVD>
@@ -66,12 +67,14 @@ namespace adaptiveControl {
 #endif
     _link1Length(linklengths(0)),
     _link2Length(linklengths(1)),
+    _errorIntegral(0),
     _outputTau(ICUB_PART_DOF, 0.0)
     {
         _piHat = Vector8d::Zero();
         _dpiHat = Vector8d::Zero();
         _xi = Vector2d::Zero();
         _dxi = Vector2d::Zero();
+        _sIntegral.setZero();
     }
     
     AdaptiveControlThread::~AdaptiveControlThread() { threadRelease(); }
@@ -113,6 +116,7 @@ namespace adaptiveControl {
     void AdaptiveControlThread::resetState()
     {
         _errorIntegral = 0;
+        _sIntegral.setZero();
     }
     
 #pragma mark - RateThread Overridings
@@ -127,6 +131,7 @@ namespace adaptiveControl {
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambda, &_lambda));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambdaIntegral, &_lambdaIntegral));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainKappa, _kappa.data()));
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainKappaIntegral, _kappaIntegral.data()));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainGamma, _Gamma.data()));
         //reference trajectory
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefBaseline, &_refBaseline));
@@ -134,8 +139,10 @@ namespace adaptiveControl {
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefAmplitude, &_refAmplitude));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefPhase, &_refPhase));
         
-		_paramServer.registerCommandCallback(AdaptiveControlCommandIDStart, this);
-		_paramServer.registerCommandCallback(AdaptiveControlCommandIDStop, this);
+        YARP_ASSERT(_paramServer.registerParamValueChangedCallback(AdaptiveControlParamIDGainGamma, this));
+        
+		YARP_ASSERT(_paramServer.registerCommandCallback(AdaptiveControlCommandIDStart, this));
+		YARP_ASSERT(_paramServer.registerCommandCallback(AdaptiveControlCommandIDStop, this));
         
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
         YARP_ASSERT(_paramClient.linkParam(jointTorqueControl::PARAM_ID_TAU_OFFSET, _outputTau.data()));
@@ -256,6 +263,17 @@ namespace adaptiveControl {
         }
     }
     
+    void AdaptiveControlThread::parameterUpdated(const paramHelp::ParamProxyInterface *proxyInterface)
+    {
+        switch (proxyInterface->id) {
+            case AdaptiveControlParamIDGainGamma:
+                _Gamma = _GammaInput.asDiagonal();
+                break;
+            default:
+                break;
+        }
+    }
+    
 #pragma mark - Private methods
     /****************************************************************/
     /* Private methods */
@@ -358,6 +376,15 @@ namespace adaptiveControl {
         
         //define variable 's'
         Vector2d s = _dq - _xi;
+        if (_outputEnabled) {
+            Vector2d temp = _sIntegral + dt * s;
+            for (int i = 0; temp.rows(); i++) {
+                if (temp(i) > _integralSaturationLimit) temp(i) = _integralSaturationLimit;
+                else if (temp(i) < -_integralSaturationLimit) temp(i) = -_integralSaturationLimit;
+            }
+//            hardLimiter(_sIntegral + dt * s, -_integralSaturationLimit, _integralSaturationLimit, _sIntegral);
+            _sIntegral = temp;
+        }
         
         //extract estimated parameters
         double m1H = _piHat(0);
@@ -390,7 +417,7 @@ namespace adaptiveControl {
         
         //compute dxi
         _dxi(1) = ddq_ref - _lambda * (_dq(1) - dq_ref);
-        _dxi(0) =  1/m11H * (_kappa(0) * (_dq(0) - _xi(0)) - (C11H + F1H) * _xi(0) - m12H * _dxi(1) - C12H * _xi(1) - g1H);
+        _dxi(0) =  1/m11H * (_kappa(0) * (_dq(0) - _xi(0)) + _kappaIntegral(0) * _sIntegral(0) - (C11H + F1H) * _xi(0) - m12H * _dxi(1) - C12H * _xi(1) - g1H);
         
         
         //compute regressor
@@ -398,7 +425,7 @@ namespace adaptiveControl {
         computeRegressor(_q, _dq, _xi, _dxi, regressor);
         
         //compute torques and send them to actuation
-        double tau = regressor.row(1) * _piHat - _kappa(1) * s(1);
+        double tau = regressor.row(1) * _piHat - _kappa(1) * s(1) - _kappaIntegral(1) * _sIntegral(1);
         _outputTau(activeJointIndex) = tau;
         if (_outputEnabled) {
             writeOutputs();

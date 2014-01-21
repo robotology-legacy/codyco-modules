@@ -57,8 +57,6 @@ namespace yarp {
         class IControlMode;
 #ifdef ADAPTIVECONTROL_TORQUECONTROL
         class ITorqueControl;
-#else
-//        class ITorqueControlRaw;
 #endif
     }
     namespace os {
@@ -82,7 +80,10 @@ namespace adaptiveControl {
 	//class MotorParameters;
 #endif
 	
-    class AdaptiveControlThread: public yarp::os::RateThread, public paramHelp::CommandObserver {
+    class AdaptiveControlThread:
+    public yarp::os::RateThread,
+    public paramHelp::CommandObserver,
+    public paramHelp::ParamValueObserver {
         
     private:
         //internal state variables
@@ -142,6 +143,8 @@ namespace adaptiveControl {
         double _lambda;
         double _lambdaIntegral;
         Eigen::Vector2d _kappa;
+        Eigen::Vector2d _kappaIntegral;
+        Eigen::Vector8d _GammaInput;
         Eigen::Matrix8d _Gamma;
         
         //Variables for computing control
@@ -150,6 +153,7 @@ namespace adaptiveControl {
         Eigen::Vector2d _xi;
         Eigen::Vector8d _piHat;
         double _errorIntegral;
+        Eigen::Vector2d _sIntegral;
         
         //variables update rules
         Eigen::Vector2d _dxi;
@@ -202,6 +206,7 @@ namespace adaptiveControl {
         void run();
         void threadRelease();
         
+        void parameterUpdated(const paramHelp::ParamProxyInterface *proxyInterface);
         void commandReceived(const paramHelp::CommandDescription &cd, const yarp::os::Bottle &params, yarp::os::Bottle &reply);
         
     };
