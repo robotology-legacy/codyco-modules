@@ -70,6 +70,7 @@ namespace adaptiveControl {
     _link1Length(linklengths(0)),
     _link2Length(linklengths(1)),
     _errorIntegral(0),
+    _kneeTorque(0),
     _outputTau(ICUB_PART_DOF, 0.0)
     {
         _piHat = Vector8d::Zero();
@@ -417,11 +418,9 @@ namespace adaptiveControl {
         computeRegressor(_q, _dq, _xi, _dxi, regressor);
         
         //compute torques and send them to actuation
-        double tau = regressor.row(1) * _piHat - _kappa(1) * s(1) - _kappaIntegral(1) * _sIntegral(1);
-        _outputTau(activeJointIndex) = tau;
-        if (_outputEnabled) {
-            writeOutputs();
-        }
+        _kneeTorque = regressor.row(1) * _piHat - _kappa(1) * s(1) - _kappaIntegral(1) * _sIntegral(1);
+        writeOutputs();
+        
         
         //compute update rule for parameters
         _dpiHat = - _Gamma * regressor.transpose() * s;
@@ -523,12 +522,17 @@ namespace adaptiveControl {
     		
     void AdaptiveControlThread::writeOutputs()
     {
+        _outputTau.zero();
+        if (_outputEnabled) {
+            _outputTau(activeJointIndex) = _kneeTorque;
+        }
 #ifdef ADAPTIVECONTROL_TORQUECONTROL
         //set directly the torque ref to the control
         _torqueControl->setRefTorques(_outputTau.data());
 #else
         _paramClient.sendStreamParams();
 #endif
+        
         Bottle& torqueBottle = _torqueOutput->prepare();
         torqueBottle.clear();
         torqueBottle.addList().read(_outputTau);

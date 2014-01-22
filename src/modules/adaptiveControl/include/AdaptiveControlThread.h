@@ -120,7 +120,7 @@ namespace adaptiveControl {
 		yarp::os::BufferedPort<yarp::sig::Vector>* _debugPort;
         
         //Temp: to read directly from gazebo
-        yarp::os::BufferedPort<yarp::os::Bottle>* _speedInput;
+//         yarp::os::BufferedPort<yarp::os::Bottle>* _speedInput;
         
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
         paramHelp::ParamHelperClient& _paramClient; //used to send torques commands to torque control
@@ -162,6 +162,8 @@ namespace adaptiveControl {
         //variables update rules
         Eigen::Vector2d _dxi;
         Eigen::Vector8d _dpiHat;
+        
+        double _kneeTorque;
         
         //Streaming output parameters
         yarp::sig::Vector _outputTau;
