@@ -23,6 +23,7 @@
 #include <yarp/os/Time.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/dev/IControlMode.h>
+#include <yarp/dev/IPositionControl.h>
 #ifdef ADAPTIVECONTROL_TORQUECONTROL
 #include <yarp/dev/ITorqueControl.h>
 #else
@@ -76,6 +77,7 @@ namespace adaptiveControl {
         _xi = Vector2d::Zero();
         _dxi = Vector2d::Zero();
         _sIntegral.setZero();
+        _GammaInput.setZero();
         _Gamma.setZero();
     }
     
@@ -85,30 +87,6 @@ namespace adaptiveControl {
     {
         if (_controlEnabled) return false;
         _xi(0) = initialXi1;
-//        //I don't want to use the input initial conditions, but I want to be sure they lie in the null space of the regressor.
-//        
-//        //I compute everything local to this function because I don't want to mess with the state.
-//        //Performances are not an issue here because this function is not called in the run loop.
-//        Matrix<double, 2, 8> Y;
-//        Matrix<double, 8, 2> Ypinv;
-//        Matrix<double, PARAMETERS_SIZE, PARAMETERS_SIZE> A;
-//        Matrix<double, PARAMETERS_SIZE, PARAMETERS_SIZE> Apinv;
-//        Vector2d q, dq;
-//        
-//        readSensors(q, dq);
-//        double q_ref = _refBaseline;
-//        double dq_ref = _refAmplitude * _refAngularVelocity;
-//        
-//        Vector2d xi = _xi;
-//        xi(1) = dq_ref - _lambda * (q(1) - q_ref);
-//        
-//        computeRegressor(q, dq, xi, Vector2d::Zero(), Y);
-//        dampedPseudoInverse(Y, 0.02, Ypinv);
-//        
-//        A = Matrix<double, PARAMETERS_SIZE, PARAMETERS_SIZE>::Identity() - Ypinv * Y;
-//        dampedPseudoInverse(A, 0.02, Apinv);
-//        _piHat = A * Apinv * initialPiHat;
-        
          _piHat = initialPiHat;
         return true;
     }
@@ -129,6 +107,7 @@ namespace adaptiveControl {
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDMinDeterminantValue, &_minDeterminantValue));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDOutputEnabled, &_outputEnabled));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDIntegralSymmetricLimit, &_integralSaturationLimit));
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDHomePositions, _homePositions.data()));
         //Kappa, Gamma, Lambda
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambda, &_lambda));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambdaIntegral, &_lambdaIntegral));
@@ -158,7 +137,7 @@ namespace adaptiveControl {
             return false;
         }
         
-        if (!_driver->view(_encoders)) {
+        if (!_driver->view(_encoders) || !_encoders) {
             error_out("Error initializing encoders for %s\n", _robotPart.c_str());
             return false;
         }
@@ -171,6 +150,11 @@ namespace adaptiveControl {
         
         if (!_driver->view(_controlMode) || !_controlMode) {
             error_out("Error initializing control mode interface for %s\n", _robotPart.c_str());
+            return false;
+        }
+        
+        if (!_driver->view(_positionControl) || !_positionControl) {
+            error_out("Error initializing position control interface for %s\n", _robotPart.c_str());
             return false;
         }
         
@@ -204,6 +188,7 @@ namespace adaptiveControl {
         
         //param server does not call the registered objects on initialization.
         _Gamma = _GammaInput.asDiagonal();
+        setRobotToHomePositions();
         
         return true;
     }
@@ -222,6 +207,7 @@ namespace adaptiveControl {
             _driver->close();
             _encoders = NULL;
             _controlMode = NULL;
+            _positionControl = NULL;
 #ifdef ADAPTIVECONTROL_TORQUECONTROL
             _torqueControl = NULL;         
 #endif
@@ -578,6 +564,12 @@ namespace adaptiveControl {
         //should I set some default position here?
         
         info_out("Control is now disabled\n");
+    }
+    
+    void AdaptiveControlThread::setRobotToHomePositions() 
+    {
+        stopControl(); //this stops torque control and sets all joints in position mode
+        _positionControl->positionMove(_homePositions.data());
     }
     
     void AdaptiveControlThread::writeDebug() {

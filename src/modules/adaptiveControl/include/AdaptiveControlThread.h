@@ -55,6 +55,7 @@ namespace yarp {
         class PolyDriver;
         class IEncodersTimed;
         class IControlMode;
+        class IPositionControl;
 #ifdef ADAPTIVECONTROL_TORQUECONTROL
         class ITorqueControl;
 #endif
@@ -103,11 +104,13 @@ namespace adaptiveControl {
         const std::string &_robotName;
         const std::string &_robotPart;
         paramHelp::ParamHelperServer &_paramServer;
+        Eigen::VectorNd _homePositions;
         
         //in-out varables
         yarp::dev::PolyDriver* _driver;
         yarp::dev::IEncodersTimed* _encoders;
         yarp::dev::IControlMode* _controlMode;
+        yarp::dev::IPositionControl* _positionControl;
 #ifdef ADAPTIVECONTROL_TORQUECONTROL
         yarp::dev::ITorqueControl* _torqueControl;
 #else
@@ -177,6 +180,7 @@ namespace adaptiveControl {
         void writeOutputs();
         void startControl();
         void stopControl();
+        void setRobotToHomePositions();
 		
 		void writeDebug();
         

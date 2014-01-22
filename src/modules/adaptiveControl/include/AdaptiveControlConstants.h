@@ -69,6 +69,7 @@ namespace adaptiveControl
     static const int defaultModulePeriod = 10;
     static const Eigen::Vector2d defaultLinkLengths = Eigen::Vector2d::Zero();
     static const double defaultIntegralSymmetricLimit = 10;
+    static const Eigen::VectorNd defaultHomePositions = Eigen::VectorNd::Zero();
     //rpc
     static const int defaultOutputEnabled = 0;
     static const double defaultMinDeterminant = 10.0;
@@ -94,6 +95,7 @@ namespace adaptiveControl
         AdaptiveControlParamIDPeriod,
         AdaptiveControlParamIDLinkLengths,
         AdaptiveControlParamIDIntegralSymmetricLimit,
+        AdaptiveControlParamIDHomePositions,
         //RPC in-out parameters
         AdaptiveControlParamIDOutputEnabled,
         AdaptiveControlParamIDMinDeterminantValue,
@@ -113,7 +115,7 @@ namespace adaptiveControl
     // *****************************************************************************************************************************************
     // ****************************************** DESCRIPTION OF ALL THE MODULE AND THREAD PARAMETERS ******************************************
     // *****************************************************************************************************************************************
-    const unsigned short adaptiveControlParamDescriptorsSize = 18;
+    const unsigned short adaptiveControlParamDescriptorsSize = 19;
     const paramHelp::ParamProxyInterface *const adaptiveControlParamDescriptors[]  =
     {
         //NAME, ID, SIZE, BOUNDS, I/O ACCESS, DEFAULT VALUE, DESCRIPTION
@@ -124,6 +126,7 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<int>("period", AdaptiveControlParamIDPeriod, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_CONFIG, &defaultModulePeriod, "Name of the robot"),
         new paramHelp::ParamProxyBasic<double>("linkLengths", AdaptiveControlParamIDLinkLengths, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultLinkLengths.data(), "Length of links"),
         new paramHelp::ParamProxyBasic<double>("intLimit", AdaptiveControlParamIDIntegralSymmetricLimit, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_CONFIG, &defaultIntegralSymmetricLimit, "Absolute value of the limit for the integral of the error => the integral will be between -intLimit and intLimit"),
+        new paramHelp::ParamProxyBasic<double>("home", AdaptiveControlParamIDHomePositions, ICUB_PART_DOF, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultHomePositions.data(), "Home positions for the robot part"),
         //RPC in/out parameters (during runtime)
         new paramHelp::ParamProxyBasic<int>("sendCommands", AdaptiveControlParamIDOutputEnabled, 1, paramHelp::ParamBilatBounds<int>(0, 1), paramHelp::PARAM_IN_OUT, &defaultOutputEnabled, "Boolean for enable output to motors"),
         new paramHelp::ParamProxyBasic<double>("minDet", AdaptiveControlParamIDMinDeterminantValue, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_IN_OUT, &defaultMinDeterminant, "Minimum value for the determinant of the passive minor of the Mass Matrix"),
