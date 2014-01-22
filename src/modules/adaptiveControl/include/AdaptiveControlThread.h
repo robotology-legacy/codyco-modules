@@ -87,6 +87,7 @@ namespace adaptiveControl {
         
     private:
         //internal state variables
+        int _period;
         bool _controlEnabled;
         unsigned short _maxReadFailed;
         unsigned short _failedReads;
@@ -186,6 +187,8 @@ namespace adaptiveControl {
                                  Eigen::MatrixBase<Derived2>& Apinv);
         
     public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+        
         AdaptiveControlThread(const std::string& threadName,
                               const std::string& robotName,
                               const std::string& robotPart,

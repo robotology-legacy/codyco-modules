@@ -54,6 +54,7 @@ namespace adaptiveControl {
 #endif
                                                  const Eigen::Vector2d &linklengths):
     RateThread(periodMilliseconds),
+    _period(periodMilliseconds),
     _controlEnabled(false),
     _maxReadFailed(3),
     _failedReads(0),
@@ -75,6 +76,7 @@ namespace adaptiveControl {
         _xi = Vector2d::Zero();
         _dxi = Vector2d::Zero();
         _sIntegral.setZero();
+        _Gamma.setZero();
     }
     
     AdaptiveControlThread::~AdaptiveControlThread() { threadRelease(); }
@@ -122,7 +124,7 @@ namespace adaptiveControl {
 #pragma mark - RateThread Overridings
     
     bool AdaptiveControlThread::threadInit()
-    {
+    {        
         //link parameters
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDMinDeterminantValue, &_minDeterminantValue));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDOutputEnabled, &_outputEnabled));
@@ -132,17 +134,17 @@ namespace adaptiveControl {
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambdaIntegral, &_lambdaIntegral));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainKappa, _kappa.data()));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainKappaIntegral, _kappaIntegral.data()));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainGamma, _Gamma.data()));
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainGamma, _GammaInput.data()));
         //reference trajectory
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefBaseline, &_refBaseline));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefAngularVelocity, &_refAngularVelocity));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefAmplitude, &_refAmplitude));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefPhase, &_refPhase));
-        
-        YARP_ASSERT(_paramServer.registerParamValueChangedCallback(AdaptiveControlParamIDGainGamma, this));
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefPhase, &_refPhase));   
         
 		YARP_ASSERT(_paramServer.registerCommandCallback(AdaptiveControlCommandIDStart, this));
 		YARP_ASSERT(_paramServer.registerCommandCallback(AdaptiveControlCommandIDStop, this));
+        
+        YARP_ASSERT(_paramServer.registerParamValueChangedCallback(AdaptiveControlParamIDGainGamma, this));
         
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
         YARP_ASSERT(_paramClient.linkParam(jointTorqueControl::PARAM_ID_TAU_OFFSET, _outputTau.data()));
@@ -161,7 +163,7 @@ namespace adaptiveControl {
             return false;
         }
         //velocity estimator
-        _velocityEstimator = new AWLinEstimator(16, 1);
+        _velocityEstimator = new AWLinEstimator(16*10/_period, 0.1);
         if (!_velocityEstimator) {
             error_out("Could not initialize velocity estimator");
             return false;
@@ -192,13 +194,16 @@ namespace adaptiveControl {
             return false;
         }
         
-        //TEMP
-        _speedInput = new BufferedPort<Bottle>();
-        if (!_speedInput || !_speedInput->open(("/" + _threadName + "/speeds:i").c_str())) {
-            error_out("Could not open port _speedInput\n");
-            return false;
-        }
-        Network::connect(("/coman/" + _robotPart + "/analog/speeds:o").c_str(), ("/" + _threadName + "/speeds:i").c_str());
+//         //TEMP x GAZEBO
+//         _speedInput = new BufferedPort<Bottle>();
+//         if (!_speedInput || !_speedInput->open(("/" + _threadName + "/speeds:i").c_str())) {
+//             error_out("Could not open port _speedInput\n");
+//             return false;
+//         }
+//         Network::connect(("/coman/" + _robotPart + "/analog/speeds:o").c_str(), ("/" + _threadName + "/speeds:i").c_str());
+        
+        //param server does not call the registered objects on initialization.
+        _Gamma = _GammaInput.asDiagonal();
         
         return true;
     }
@@ -236,9 +241,9 @@ namespace adaptiveControl {
             delete _velocityEstimator; _velocityEstimator = NULL;
         }
         
-        if (_speedInput) {
-            delete _speedInput; _speedInput = NULL;
-        }
+//         if (_speedInput) {
+//             delete _speedInput; _speedInput = NULL;
+//         }
     }
     
 #pragma mark - Parameter Helper Callbacks
@@ -369,6 +374,8 @@ namespace adaptiveControl {
         }
         
         double qTilde = _q(1) - q_ref;
+//         qTilde = qTilde * qTilde < convertDegToRad(0.1) ? 0 : qTilde;
+        
         if (_outputEnabled) {
             _errorIntegral = hardLimiter(_errorIntegral + dt * qTilde, -_integralSaturationLimit, _integralSaturationLimit);
         }
@@ -378,12 +385,10 @@ namespace adaptiveControl {
         Vector2d s = _dq - _xi;
         if (_outputEnabled) {
             Vector2d temp = _sIntegral + dt * s;
-            for (int i = 0; temp.rows(); i++) {
-                if (temp(i) > _integralSaturationLimit) temp(i) = _integralSaturationLimit;
-                else if (temp(i) < -_integralSaturationLimit) temp(i) = -_integralSaturationLimit;
-            }
-//            hardLimiter(_sIntegral + dt * s, -_integralSaturationLimit, _integralSaturationLimit, _sIntegral);
-            _sIntegral = temp;
+//             info_out("s_old =(%lf, %lf), dt=%lf, s=(%lf, %lf),xi0=%lf,  snew=(%lf, %lf)\n", _sIntegral(0), _sIntegral(1), dt, s(0), s(1),_xi(0),  temp(0), temp(1));
+            
+            for (int i = 0; i < 2; i++)
+                _sIntegral(i) = hardLimiter(_sIntegral(i) + dt * s(i), -_integralSaturationLimit, _integralSaturationLimit);           
         }
         
         //extract estimated parameters
@@ -416,9 +421,10 @@ namespace adaptiveControl {
         
         
         //compute dxi
-        _dxi(1) = ddq_ref - _lambda * (_dq(1) - dq_ref);
+        double dqError = _dq(1) - dq_ref;
+//         dqError = dqError * dqError < convertDegToRad(0.1) ? 0 : dqError;
+        _dxi(1) = ddq_ref - _lambda * (dqError);
         _dxi(0) =  1/m11H * (_kappa(0) * (_dq(0) - _xi(0)) + _kappaIntegral(0) * _sIntegral(0) - (C11H + F1H) * _xi(0) - m12H * _dxi(1) - C12H * _xi(1) - g1H);
-        
         
         //compute regressor
         Matrix28d regressor;
@@ -496,24 +502,29 @@ namespace adaptiveControl {
             positions(0) = myQ(0);
             positions(1) = myQ(1);
             
-//             velocities(0) = dq(0);
-//             velocities(1) = dq(1);
+            velocities(0) = dq(0);
+            velocities(1) = dq(1);
             
-            Bottle *speed = _speedInput->read(false);
-            if (speed) {
-                yarp::os::Value valPassive = speed->get(passiveJointIndex);
-                yarp::os::Value valActive = speed->get(activeJointIndex);
-            
-                if (!valPassive.isNull())
-                    velocities(0) = valPassive.asDouble();
-                if (!valActive.isNull())
-                    velocities(1) = valActive.asDouble();
-
-                
-
-            }
+//             Bottle *speed = _speedInput->read(false);
+//             if (speed) {
+//                 yarp::os::Value valPassive = speed->get(passiveJointIndex);
+//                 yarp::os::Value valActive = speed->get(activeJointIndex);
+//             
+//                 if (!valPassive.isNull())
+//                     velocities(0) = valPassive.asDouble();
+//                 if (!valActive.isNull())
+//                     velocities(1) = valActive.asDouble();              
+//             }
             
         }
+        
+        
+//                     if (velocities(0)*velocities(0) < convertDegToRad(5))
+//                 velocities(0) = 0; 
+//             if (velocities(1)*velocities(1) < convertDegToRad(5))
+//                 velocities(1) = 0;
+        
+        
         return result;
     }
     		
@@ -595,6 +606,9 @@ namespace adaptiveControl {
         vector.push_back(_dq(1));
         vector.push_back(_outputTau(activeJointIndex));
         vector.push_back(convertRadToDeg(_q(1) - _currentRef));
+        Vector2d s = _dq - _xi;
+
+        
         
         double norm = 0;
         for (int i = 0; i < 8; i++) {
@@ -608,7 +622,15 @@ namespace adaptiveControl {
         vector.push_back(_errorIntegral);
         vector.push_back(_sIntegral(0));
         vector.push_back(_sIntegral(1));
-		
+		vector.push_back(s(1)*s(1) + s(0)*s(0));
+        
+         Matrix28d regressor;
+        computeRegressor(_q, _dq, _xi, _dxi, regressor);
+        
+        //compute torques and send them to actuation
+        double tau = regressor.row(1) * _piHat;
+        vector.push_back(tau);
+        
         _debugPort->write();
 		
 	}

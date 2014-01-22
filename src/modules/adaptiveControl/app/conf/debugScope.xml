@@ -15,6 +15,12 @@
                title="Graph 0"
                type="lines"
                size="3" />
+        <graph remote="/adaptiveControl/debug:o"
+               index="14"
+               color="Red"
+               title="Graph 0"
+               type="lines"
+               size="3" />
     </plot>
     <plot gridx="1"
           gridy="0"
@@ -28,6 +34,12 @@
         <graph remote="/adaptiveControl/debug:o"
                index="5"
                color="Black"
+               title="Graph 0"
+               type="lines"
+               size="3" />
+        <graph remote="/adaptiveControl/debug:o"
+               index="13"
+               color="Red"
                title="Graph 0"
                type="lines"
                size="3" />
@@ -75,6 +87,18 @@
                title="Graph 0"
                type="lines"
                size="3" />
+        <graph remote="/adaptiveControl/debug:o"
+               index="11"
+               color="Red"
+               title="Graph 0"
+               type="lines"
+               size="3" />
+        <graph remote="/adaptiveControl/debug:o"
+               index="12"
+               color="Black"
+               title="Graph 0"
+               type="lines"
+               size="3" />
  <!--       <graph remote="/adaptiveControl/debug:o"
                index="1"
                color="Red"
@@ -104,7 +128,7 @@
                type="lines"
                size="3" />
     </plot>
-   <!-- <plot gridx="0"
+<!--    <plot gridx="0"
           gridy="2"
           hspan="3"
           vspan="1"
