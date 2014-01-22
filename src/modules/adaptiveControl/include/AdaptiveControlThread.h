@@ -181,6 +181,7 @@ namespace adaptiveControl {
         void startControl();
         void stopControl();
         void setRobotToHomePositions();
+        void haltControl(double* haltPositions);
 		
 		void writeDebug();
         

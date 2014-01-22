@@ -476,10 +476,14 @@ namespace adaptiveControl {
         bool result = _encoders->getEncodersTimed(q, timestamp);
         
         if (result) {
+            //convert all joints to rads
+            for (int i = 0; i < ICUB_PART_DOF; i++) {
+                q[i] = convertDegToRad(q[i]);
+            }
             //I'm intereste only in two joints
             yarp::sig::Vector myQ(2, 0.0);
-            myQ[0] = convertDegToRad(q[passiveJointIndex]);
-            myQ[1] = convertDegToRad(q[activeJointIndex]);
+            myQ[0] = q[passiveJointIndex];
+            myQ[1] = q[activeJointIndex];
             
             AWPolyElement element;
             element.data = myQ;
@@ -504,6 +508,9 @@ namespace adaptiveControl {
             
         }
         
+        //Check joint limits   
+        if (!hipPitchJoint.isInLimit(_q(0), 0.9) || !kneeJoint.isInLimit(_q(1), 0.9)) 
+            haltControl(q);
         
 //                     if (velocities(0)*velocities(0) < convertDegToRad(5))
 //                 velocities(0) = 0; 
@@ -569,8 +576,38 @@ namespace adaptiveControl {
     void AdaptiveControlThread::setRobotToHomePositions() 
     {
         stopControl(); //this stops torque control and sets all joints in position mode
-        _positionControl->positionMove(_homePositions.data());
+        VectorNd refSpeed = Eigen::VectorNd::Constant(10);
+        _positionControl->setRefSpeeds(refSpeed.data());
+        
+        double homes[ICUB_PART_DOF];
+        for (int i = 0; i < ICUB_PART_DOF; i++) {
+            homes[i] = convertRadToDeg(_homePositions(i));
+        }
+        _positionControl->positionMove(homes);
+
+        info_out("Going to Home position: ");
+        for (int i = 0; i < ICUB_PART_DOF; i++) {
+            info_out("%lf ", homes[i]);
+        }
+        info_out("\n");
     }
+    
+    void AdaptiveControlThread::haltControl(double* haltPositions) 
+    {
+        stopControl();
+        if (haltPositions) {
+            double newPos[ICUB_PART_DOF];
+            for (int i = 0; i < ICUB_PART_DOF; i++) {
+                newPos[i] = convertRadToDeg(haltPositions[i]);
+            }
+            _positionControl->positionMove(newPos);
+        }
+        info_out("Halting the robot to: ");
+        for (int i = 0; i < ICUB_PART_DOF; i++) {
+            info_out("%lf ", haltPositions[i]);
+        }
+        info_out("\n");
+    }    
     
     void AdaptiveControlThread::writeDebug() {
 		

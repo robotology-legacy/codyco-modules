@@ -57,6 +57,34 @@ namespace adaptiveControl
 //    template <typename Derived>
 //    inline void hardLimiter(Eigen::MatrixBase<Derived>& inputValue, double lowerLimit, double upperLimit, Eigen::MatrixBase<Derived>& outputValue)
 //    {  }
+
+    struct JointLimit 
+    {
+    private:
+        double delta;
+        double center;
+    public:
+        double min;
+        double max;
+        
+        JointLimit(double min, double max): min(min), max(max) 
+        {
+            delta = (max - min) / 2;
+            center = (max + min) / 2;
+        }
+        
+        bool isInLimit(double currentPosition, double scalingFactor) const
+        {
+            double newMax = center + delta * scalingFactor;
+            double newMin = center - delta * scalingFactor;
+            
+            return currentPosition < newMax && currentPosition > newMin ? true : false;
+        }
+    };
+    
+    const JointLimit kneeJoint(-2.18, 0.4);
+    const JointLimit hipPitchJoint(-0.75, 2.3);
+    
     
     // ******************************************************************************************************************************
     // ****************************************** PARAMETER SECTION *****************************************************************
