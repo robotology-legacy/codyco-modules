@@ -139,6 +139,7 @@ void jointTorqueControlThread::run()
 
 		for (int i=0; i < N_DOF; i++)
         {
+            tauD(i) = 0;
             dqSign(i)       = fabs(dq(i))>coulombVelThr(i) ? sign(dq(i)) : pow(dq(i)/coulombVelThr(i),3);
             tauD(i)         = ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i+6);
             tauD(i)        += tauOffset(i) + tauSinAmpl(i)*sin(2*M_PI*tauSinFreq(i)*currentTime);
@@ -223,7 +224,7 @@ void jointTorqueControlThread::setControlModePWMOnJoints(bool torqueActive)
 {
 	for (int i=0; i < N_DOF; i++)
 	{
-		if (activeJoints(i) == 1 && torqueActive && status==CONTROL_ON) 
+		if (activeJoints(i) == 1 && torqueActive && status==CONTROL_ON)
 			robot->setControlMode(CTRL_MODE_MOTOR_PWM, 0, i);
 		else
 			robot->setControlMode(CTRL_MODE_POS, 0, i);
