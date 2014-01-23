@@ -181,9 +181,7 @@ bool FreeMotionExcitation::setSubparam(const std::string &name, const yarp::os::
 std::string FreeMotionExcitation::toString() const
 {
     return strcat("Joint id (",jointId.transpose(),"); Initial joint configuration (",
-                  initialJointConfiguration.transpose(), "); Param covariance threshold (", fricParamCovarThresh.transpose(),")");
-//    return strcat("Joint id (",jointId.transpose(),"); Initial joint configuration (",
-//                  initialJointConfiguration.transpose(), "); Param covariance threshold (", fricParamCovarThresh.transpose(),"); a(", a.transpose(), "); a0(", a0.transpose(), "); w(", w.transpose(), ")");
+                  initialJointConfiguration.transpose(), "); Param covariance threshold (", fricParamCovarThresh.transpose()) + strcat("); a(", a.transpose(), "); a0(", a0.transpose()) + strcat("); w(", w.transpose(), "); ki:(", ki.transpose(), ")");
 }
 
 // ************************************************************************************************
