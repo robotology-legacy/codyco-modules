@@ -43,7 +43,8 @@ INCLUDE_DIRECTORIES(${INCLUDE_FOLDER}
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
                     ${paramHelp_INCLUDE_DIRS}
-                    ${YARP_INCLUDE_DIRS} )
+                    ${YARP_INCLUDE_DIRS}
+                    ${ctrlLib_INCLUDE_DIRS})
 
 #if torquecontrol is off I have to include jointTorqueControl dir
 IF( NOT ${TORQUE_CONTROL})
