@@ -30,6 +30,7 @@
 
 #define PARAMETERS_SIZE 8
 #define ICUB_PART_DOF 6
+#define JOINTTORQUECONTROL_DOFS 25
 
 //define eigen common matrices
 namespace Eigen {
@@ -45,6 +46,11 @@ namespace Eigen {
 
 namespace adaptiveControl
 {
+    //Configuration constants
+    const int passiveJointIndex = 0;
+    const int activeJointIndex = 3;
+    
+    const int robotPartStartingIndex = 13;
     
     //various constants
     const double gravity = 9.80665;
@@ -98,6 +104,9 @@ namespace adaptiveControl
     static const Eigen::Vector2d defaultLinkLengths = Eigen::Vector2d::Zero();
     static const double defaultIntegralSymmetricLimit = 10;
     static const Eigen::VectorNd defaultHomePositions = Eigen::VectorNd::Zero();
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
+    static const std::string defaultTorqueControlModuleName = "jtc";
+#endif
     //rpc
     static const int defaultOutputEnabled = 0;
     static const double defaultMinDeterminant = 10.0;
@@ -124,6 +133,9 @@ namespace adaptiveControl
         AdaptiveControlParamIDLinkLengths,
         AdaptiveControlParamIDIntegralSymmetricLimit,
         AdaptiveControlParamIDHomePositions,
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
+        AdaptiveControlParamIDJointTorqueControlModuleName,
+#endif
         //RPC in-out parameters
         AdaptiveControlParamIDOutputEnabled,
         AdaptiveControlParamIDMinDeterminantValue,
@@ -143,7 +155,11 @@ namespace adaptiveControl
     // *****************************************************************************************************************************************
     // ****************************************** DESCRIPTION OF ALL THE MODULE AND THREAD PARAMETERS ******************************************
     // *****************************************************************************************************************************************
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
+    const unsigned short adaptiveControlParamDescriptorsSize = 20;
+#else
     const unsigned short adaptiveControlParamDescriptorsSize = 19;
+#endif
     const paramHelp::ParamProxyInterface *const adaptiveControlParamDescriptors[]  =
     {
         //NAME, ID, SIZE, BOUNDS, I/O ACCESS, DEFAULT VALUE, DESCRIPTION
@@ -155,6 +171,9 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<double>("linkLengths", AdaptiveControlParamIDLinkLengths, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultLinkLengths.data(), "Length of links"),
         new paramHelp::ParamProxyBasic<double>("intLimit", AdaptiveControlParamIDIntegralSymmetricLimit, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_CONFIG, &defaultIntegralSymmetricLimit, "Absolute value of the limit for the integral of the error => the integral will be between -intLimit and intLimit"),
         new paramHelp::ParamProxyBasic<double>("home", AdaptiveControlParamIDHomePositions, ICUB_PART_DOF, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultHomePositions.data(), "Home positions for the robot part"),
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
+ new paramHelp::ParamProxyBasic<std::string>("jtcName", AdaptiveControlParamIDJointTorqueControlModuleName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultTorqueControlModuleName, "Name of the torqueControl module"),
+#endif
         //RPC in/out parameters (during runtime)
         new paramHelp::ParamProxyBasic<int>("sendCommands", AdaptiveControlParamIDOutputEnabled, 1, paramHelp::ParamBilatBounds<int>(0, 1), paramHelp::PARAM_IN_OUT, &defaultOutputEnabled, "Boolean for enable output to motors"),
         new paramHelp::ParamProxyBasic<double>("minDet", AdaptiveControlParamIDMinDeterminantValue, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_IN_OUT, &defaultMinDeterminant, "Minimum value for the determinant of the passive minor of the Mass Matrix"),

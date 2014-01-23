@@ -80,6 +80,9 @@ namespace adaptiveControl {
         _sIntegral.setZero();
         _GammaInput.setZero();
         _Gamma.setZero();
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
+        _jointTorqueControlTorques.setZero();
+#endif
     }
     
     AdaptiveControlThread::~AdaptiveControlThread() { threadRelease(); }
@@ -127,7 +130,7 @@ namespace adaptiveControl {
         YARP_ASSERT(_paramServer.registerParamValueChangedCallback(AdaptiveControlParamIDGainGamma, this));
         
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
-        YARP_ASSERT(_paramClient.linkParam(jointTorqueControl::PARAM_ID_TAU_OFFSET, _outputTau.data()));
+        YARP_ASSERT(_paramClient.linkParam(jointTorqueControl::PARAM_ID_TAU_OFFSET, _jointTorqueControlTorques.data()));
 #endif
 		
         //open ports and drivers
@@ -523,8 +526,14 @@ namespace adaptiveControl {
     void AdaptiveControlThread::writeOutputs()
     {
         _outputTau.zero();
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
+        _jointTorqueControlTorques.setZero();
+#endif
         if (_outputEnabled) {
             _outputTau(activeJointIndex) = _kneeTorque;
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
+            _jointTorqueControlTorques(robotPartStartingIndex + activeJointIndex) = _kneeTorque;
+#endif
         }
 #ifdef ADAPTIVECONTROL_TORQUECONTROL
         //set directly the torque ref to the control

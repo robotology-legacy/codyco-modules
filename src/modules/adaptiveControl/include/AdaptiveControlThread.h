@@ -73,10 +73,7 @@ namespace iCub {
 }
 
 namespace adaptiveControl {
-    
-	const int passiveJointIndex = 0;
-	const int activeJointIndex = 3;
-	
+   
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
 	//class MotorParameters;
 #endif
@@ -113,8 +110,6 @@ namespace adaptiveControl {
         yarp::dev::IPositionControl* _positionControl;
 #ifdef ADAPTIVECONTROL_TORQUECONTROL
         yarp::dev::ITorqueControl* _torqueControl;
-#else
-//        yarp::dev::ITorqueControlRaw* _rawTorqueControl;
 #endif
         yarp::os::BufferedPort<yarp::os::Bottle>* _torqueOutput;
 		yarp::os::BufferedPort<yarp::sig::Vector>* _debugPort;
@@ -124,6 +119,7 @@ namespace adaptiveControl {
         
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
         paramHelp::ParamHelperClient& _paramClient; //used to send torques commands to torque control
+        Eigen::Matrix<double, JOINTTORQUECONTROL_DOFS, 1> _jointTorqueControlTorques;
 #endif
 		
         iCub::ctrl::AWLinEstimator* _velocityEstimator;
