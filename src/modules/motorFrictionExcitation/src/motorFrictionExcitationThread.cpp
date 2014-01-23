@@ -48,6 +48,10 @@ MotorFrictionExcitationThread::MotorFrictionExcitationThread(string _name, strin
     if(!contactExc.readFromConfigFile(rf, reply))
         printf("Error while reading contact excitation from config file: \n%s\n", reply.toString().c_str());
     printf("Contact excitation value read:\n%s\n", contactExc.toString().c_str());
+    reply.clear();
+    if(!freeMotionExc.readFromConfigFile(rf, reply))
+        printf("Error while reading free motion excitation from config file: \n%s\n", reply.toString().c_str());
+    printf("Free motion excitation value read:\n%s\n", freeMotionExc.toString().c_str());
 }
 
 //*************************************************************************************************************************
@@ -68,10 +72,7 @@ bool MotorFrictionExcitationThread::threadInit()
     stdDev.kcp      =   ArrayXd::Constant(_n, 1e10);
     stdDev.kcn      =   ArrayXd::Constant(_n, 1e10);
     ///< resize std vectors
-    freeMotionExc.resize(paramHelper->getParamProxy(PARAM_FREE_MOTION_EXCIT)->size);
-
-    ///< link module rpc parameters to member variables
-    YARP_ASSERT(paramHelper->linkParam(PARAM_FREE_MOTION_EXCIT,     freeMotionExc.data()));
+    
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MIN,              qMin.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MAX,              qMax.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SEND_COMMANDS,      &sendCmdToMotors));
