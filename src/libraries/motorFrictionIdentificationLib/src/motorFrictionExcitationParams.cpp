@@ -44,7 +44,8 @@ bool FreeMotionExcitation::set(const yarp::os::Bottle &value, yarp::os::Bottle &
             reply.addString(strcat("First element of Bottle is not the subparameter name: ",subparam->toString()).c_str());
             continue;
         }
-        res = res && setSubparam(subparam->get(0).asString().c_str(), subparam->tail(), reply);
+        bool currentResult = setSubparam(subparam->get(0).asString().c_str(), subparam->tail(), reply);
+        res = res && currentResult;
     }
     return res;
 }
@@ -54,7 +55,7 @@ bool FreeMotionExcitation::setSubparam(const std::string &name, const yarp::os::
     if(value.get(0).isList())   ///< if the value is a list then unpack it
         value = *v.get(0).asList();
     bool res = false;
-    //printf("Set subparam %s to %s which has %d elements\n", name.c_str(), value.toString().c_str(), value.size());
+    
     if(name=="joint_id")
     {
         res = true;
@@ -195,7 +196,6 @@ bool FreeMotionExcitationList::readFromConfigFile(ResourceFinder &rf, Bottle &re
         reply.addString("Section freeMotionExcitation not found");
         return false;
     }
-    
     bool res = true;
     resize(b.size()-1);
     for(int i=1; i<b.size(); i++)
@@ -273,7 +273,6 @@ bool ContactExcitation::setSubparam(const string &name, const Bottle &v, Bottle 
     if(value.get(0).isList())   ///< if the value is a list then unpack it
         value = *v.get(0).asList();
     bool res = false;
-    //printf("Set subparam %s to %s which has %d elements\n", name.c_str(), value.toString().c_str(), value.size());
     if(name=="joint_id")
     {
         res = true;

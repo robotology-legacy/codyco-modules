@@ -188,6 +188,7 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
     for(unsigned int i=0; i<currentJointIds.size(); i++)
     {
         int jid = currentGlobalJointIds[i];
+    
         posIntegral[i] += freeMotionExc[freeExcCounter].ki[i]*(qDeg[jid]-freeMotionExc[freeExcCounter].initialJointConfiguration[jid]);
         ///< saturate position integral
         if(posIntegral[i]>MAX_POS_INTEGRAL) 
