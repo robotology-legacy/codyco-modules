@@ -54,6 +54,9 @@ namespace adaptiveControl {
         _parameterServer->linkParam(AdaptiveControlParamIDLinkLengths, _linkLengths.data());
         _parameterServer->linkParam(AdaptiveControlParamIDInitialPiHat, _initialPiHat.data());
         _parameterServer->linkParam(AdaptiveControlParamIDInitialXi1, &_initialXi1);
+#ifndef ADAPTIVECONTROL_TORQUECONTROL
+        _parameterServer->linkParam(AdaptiveControlParamIDJointTorqueControlModuleName, &_torqueControlModuleName);
+#endif
         
         _parameterServer->registerCommandCallback(AdaptiveControlCommandIDHelp, this);
         _parameterServer->registerCommandCallback(AdaptiveControlCommandIDQuit, this);
