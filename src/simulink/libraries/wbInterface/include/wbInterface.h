@@ -370,7 +370,7 @@ public:
  //        fprintf(stderr,"H_base_leftFoot: %s \n",H_base_leftFoot.toString().c_str());
          xBase.set4x4Matrix(H_w2b.data());
          // select which foot to control (when in double support, select the right foot)
-         footLinkId = supportPhase==SUPPORT_RIGHT ? LINK_ID_LEFT_FOOT : LINK_ID_RIGHT_FOOT;
+//         footLinkId = supportPhase==SUPPORT_RIGHT ? LINK_ID_LEFT_FOOT : LINK_ID_RIGHT_FOOT;
          return true;
 
      }
@@ -401,16 +401,8 @@ public:
                  footLinkId = linkId;
      //            bool ans = wbInterface->forwardKinematics(qRad.data(), xBase.data(), footLinkId, x_foot.data());
      //            fprintf(stderr,"fwd kinematics will be computed with footLinkId: %d and x_pose: %s", footLinkId, x_pose.toString().c_str());
-
+		  
                  bool ans = wbInterface->forwardKinematics(qRad.data(), xBase, footLinkId, x_pose.data());
-
-                 // This is for debugging only
-//                 wbi::Frame world2base;
-//                 Vector com(7,0.0);
-//                 world2base.identity();
-//                 fprintf(stderr,"Angles torso %s \n",qRad.subVector(0,2).toString().c_str());
-//                 bool ans = wbInterface->forwardKinematics(qRad.data(), world2base, wbi::iWholeBodyModel::COM_LINK_ID, com.data());
-
                  // Debugging is over here
                  if(ans){
      //                fprintf(stderr,"Forward Kinematics computed \n");
@@ -425,7 +417,7 @@ public:
                  }
              }
              else{
-                 fprintf(stderr,"Error computing world 2 base rototranslation!!!!!\n");
+                 fprintf(stderr,"ERROR computing world 2 base rototranslation!!!!!\n");
              }
          }
          else{
@@ -492,22 +484,32 @@ public:
 //     }
 
      // ***************************************************************************************************
-     JacobianMatrix jacobian(int &linkId)
-     {
- //        fprintf(stderr,"About to compute Jacobian for link %d \n", linkId);
-         footLinkId = linkId;
-         bool ans = wbInterface->computeJacobian(qRad.data(), xBase, footLinkId, JfootR.data());
-         if(ans)
-         {
-             return JfootR;
-         }
-         else
-         {
-             JfootR.setZero();
-             return JfootR;
-         }
-     }
+    JacobianMatrix jacobian(int &linkId)
+    {
+//        fprintf(stderr,"About to compute Jacobian for link %d \n", linkId);
+        if(robotJntAngles(false)) {
+            if(world2baseRototranslation()) {
 
+                footLinkId = linkId;
+                bool ans = wbInterface->computeJacobian(qRad.data(), xBase, wbi::iWholeBodyModel::COM_LINK_ID, JfootR.data());
+                if(ans)
+                {
+                    return JfootR;
+                }
+                else
+                {
+                    JfootR.setZero();
+                    return JfootR;
+                }
+            }
+            else{
+	      fprintf(stderr,"There was an error computing world to base rototranslation \n");
+	    }
+        }
+        else {
+            fprintf(stderr,"There was an error getting robot joint angles to compute Jacobians \n");
+        }
+    }
      // ***************************************************************************************************
      Vector getEncoders()
      {

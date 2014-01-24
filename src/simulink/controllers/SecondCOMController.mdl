@@ -1,12 +1,12 @@
 Model {
-  Name			  "COMPose"
+  Name			  "SecondCOMController"
   Version		  7.9
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.35"
+    ComputedModelVersion    "1.111"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -18,7 +18,7 @@ Model {
       Type		      "Cell"
       Dimension		      2
       Cell		      "HDLSubsystem"
-      Cell		      "COMPose"
+      Cell		      "SecondCOMController"
       PropName		      "mdlProps"
     }
   }
@@ -32,15 +32,15 @@ Model {
   MinMaxOverflowArchiveMode "Overwrite"
   FPTRunName		  "Run 1"
   MaxMDLFileLineLength	  120
-  Created		  "Fri Jan 17 17:13:37 2014"
+  Created		  "Fri Jan 17 17:07:04 2014"
   Creator		  "jorhabib"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Wed Jan 22 16:22:44 2014"
-  RTWModifiedTimeStamp	  312308001
-  ModelVersionFormat	  "1.%<AutoIncrement:35>"
+  LastModifiedDate	  "Fri Jan 24 01:27:21 2014"
+  RTWModifiedTimeStamp	  312426763
+  ModelVersionFormat	  "1.%<AutoIncrement:111>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -77,12 +77,12 @@ Model {
     $PropName		    "DataLoggingOverride"
     $ObjectID		    2
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
-    model_		    "COMPose"
+    model_		    "SecondCOMController"
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
       Dimension		      1
-      Cell		      "COMPose"
+      Cell		      "SecondCOMController"
       PropName		      "logAsSpecifiedByModels_"
     }
     Array {
@@ -145,7 +145,7 @@ Model {
 	  StartTime		  "0.0"
 	  StopTime		  "inf"
 	  AbsTol		  "auto"
-	  FixedStep		  "1"
+	  FixedStep		  "auto"
 	  InitialStep		  "auto"
 	  MaxNumMinSteps	  "-1"
 	  MaxOrder		  5
@@ -637,7 +637,7 @@ Model {
       }
       Name		      "Configuration"
       CurrentDlgPage	      "Solver"
-      ConfigPrmDlgPosition     [ 420, 87, 1447, 831 ] 
+      ConfigPrmDlgPosition     [ 220, 100, 1146, 648 ] 
     }
     PropName		    "ConfigurationSets"
   }
@@ -679,6 +679,12 @@ Model {
   }
   BlockParameterDefaults {
     Block {
+      BlockType		      Concatenate
+      NumInputs		      "2"
+      Mode		      "Vector"
+      ConcatenateDimension    "1"
+    }
+    Block {
       BlockType		      Constant
       Value		      "1"
       VectorParams1D	      on
@@ -698,36 +704,16 @@ Model {
       BusSelectionMode	      off
     }
     Block {
-      BlockType		      DiscreteFilter
-      NumeratorSource	      "Dialog"
-      Numerator		      "[1]"
-      DenominatorSource	      "Dialog"
-      Denominator	      "[1 0.5]"
-      InitialStatesSource     "Dialog"
-      InitialStates	      "0"
-      InputProcessing	      "Elements as channels (sample based)"
-      ExternalReset	      "None"
+      BlockType		      Display
+      Format		      "short"
+      Decimation	      "10"
+      Floating		      off
       SampleTime	      "-1"
-      a0EqualsOne	      off
-      NumCoefMin	      "[]"
-      NumCoefMax	      "[]"
-      DenCoefMin	      "[]"
-      DenCoefMax	      "[]"
-      OutMin		      "[]"
-      OutMax		      "[]"
-      StateDataTypeStr	      "Inherit: Same as input"
-      NumCoefDataTypeStr      "Inherit: Inherit via internal rule"
-      DenCoefDataTypeStr      "Inherit: Inherit via internal rule"
-      NumProductDataTypeStr   "Inherit: Inherit via internal rule"
-      DenProductDataTypeStr   "Inherit: Inherit via internal rule"
-      NumAccumDataTypeStr     "Inherit: Inherit via internal rule"
-      DenAccumDataTypeStr     "Inherit: Inherit via internal rule"
-      OutDataTypeStr	      "Inherit: Inherit via internal rule"
-      LockScale		      off
-      RndMeth		      "Floor"
-      SaturateOnIntegerOverflow	off
-      StateMustResolveToSignalObject off
-      RTWStateStorageClass    "Auto"
+    }
+    Block {
+      BlockType		      From
+      IconDisplay	      "Tag"
+      TagVisibility	      "local"
     }
     Block {
       BlockType		      Gain
@@ -745,7 +731,30 @@ Model {
       SampleTime	      "-1"
     }
     Block {
+      BlockType		      Goto
+      IconDisplay	      "Tag"
+      TagVisibility	      "local"
+    }
+    Block {
       BlockType		      Ground
+    }
+    Block {
+      BlockType		      Inport
+      Port		      "1"
+      OutputFunctionCall      off
+      OutMin		      "[]"
+      OutMax		      "[]"
+      OutDataTypeStr	      "Inherit: auto"
+      LockScale		      off
+      BusOutputAsStruct	      off
+      PortDimensions	      "-1"
+      VarSizeSig	      "Inherit"
+      SampleTime	      "-1"
+      SignalType	      "auto"
+      SamplingMode	      "auto"
+      LatchByDelayingOutsideSignal off
+      LatchInputForFeedbackSignals off
+      Interpolate	      on
     }
     Block {
       BlockType		      Mux
@@ -825,6 +834,28 @@ Model {
       SampleTime	      "-1"
     }
     Block {
+      BlockType		      Sin
+      SineType		      "Time based"
+      TimeSource	      "Use simulation time"
+      Amplitude		      "1"
+      Bias		      "0"
+      Frequency		      "1"
+      Phase		      "0"
+      Samples		      "10"
+      Offset		      "0"
+      SampleTime	      "-1"
+      VectorParams1D	      on
+    }
+    Block {
+      BlockType		      Step
+      Time		      "1"
+      Before		      "0"
+      After		      "1"
+      SampleTime	      "-1"
+      VectorParams1D	      on
+      ZeroCross		      on
+    }
+    Block {
       BlockType		      SubSystem
       ShowPortLabels	      "FromPortIcon"
       Permissions	      "ReadWrite"
@@ -848,12 +879,28 @@ Model {
       GeneratePreprocessorConditionals off
     }
     Block {
+      BlockType		      Sum
+      IconShape		      "rectangular"
+      Inputs		      "++"
+      CollapseMode	      "All dimensions"
+      CollapseDim	      "1"
+      InputSameDT	      on
+      AccumDataTypeStr	      "Inherit: Inherit via internal rule"
+      OutMin		      "[]"
+      OutMax		      "[]"
+      OutDataTypeStr	      "Inherit: Same as first input"
+      LockScale		      off
+      RndMeth		      "Floor"
+      SaturateOnIntegerOverflow	on
+      SampleTime	      "-1"
+    }
+    Block {
       BlockType		      Terminator
     }
   }
   System {
-    Name		    "COMPose"
-    Location		    [0, 53, 1440, 900]
+    Name		    "SecondCOMController"
+    Location		    [52, 81, 1366, 796]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -865,17 +912,50 @@ Model {
     TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
     TiledPageScale	    1
     ShowPageBoundaries	    off
-    ZoomFactor		    "258"
+    ZoomFactor		    "87"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "105"
+    SIDHighWatermark	    "282"
+    Block {
+      BlockType		      Scope
+      Name		      "COM"
+      SID		      "130"
+      Ports		      [1]
+      Position		      [375, 144, 405, 176]
+      ZOrder		      -3
+      Floating		      off
+      Location		      [734, 81, 1361, 284]
+      Open		      on
+      NumInputPorts	      "1"
+      ZoomMode		      "yonly"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      List {
+	ListType		ScopeGraphics
+	FigureColor		"[0.501960784313725 0.501960784313725 0.501960784313725]"
+	AxesColor		"[0 0 0]"
+	AxesTickColor		"[1 1 1]"
+	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	LineStyles		"-|-|-|-|-|-"
+	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
+	MarkerStyles		"none|none|none|none|none|none"
+      }
+      ShowLegends	      off
+      TimeRange		      "50"
+      YMin		      "-0.1"
+      YMax		      "0.175"
+      SaveName		      "ScopeData4"
+      DataFormat	      "StructureWithTime"
+      SampleTime	      "0"
+    }
     Block {
       BlockType		      SubSystem
-      Name		      "COM Jacobian"
-      SID		      "61"
+      Name		      "COM Jacobian1"
+      SID		      "165"
       Ports		      [0, 1]
-      Position		      [35, 155, 75, 215]
+      Position		      [180, 455, 220, 515]
       BackgroundColor	      "[1.000000, 0.566599, 0.544887]"
-      NamePlacement	      "alternate"
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
       RTWSystemCode	      "Auto"
@@ -884,7 +964,7 @@ Model {
       RequestExecContextInheritance off
       MaskHideContents	      off
       System {
-	Name			"COM Jacobian"
+	Name			"COM Jacobian1"
 	Location		[159, 390, 621, 739]
 	Open			off
 	ModelBrowserVisibility	off
@@ -901,14 +981,14 @@ Model {
 	Block {
 	  BlockType		  Ground
 	  Name			  "Ground"
-	  SID			  "62"
+	  SID			  "166"
 	  Position		  [65, 170, 85, 190]
 	  ZOrder		  -9
 	}
 	Block {
 	  BlockType		  Constant
 	  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
-	  SID			  "63"
+	  SID			  "167"
 	  Position		  [60, 75, 90, 105]
 	  ZOrder		  -5
 	  Value			  "0"
@@ -917,7 +997,7 @@ Model {
 	Block {
 	  BlockType		  S-Function
 	  Name			  "S-Function"
-	  SID			  "64"
+	  SID			  "168"
 	  Ports			  [2, 4]
 	  Position		  [140, 45, 245, 215]
 	  ZOrder		  -5
@@ -943,28 +1023,28 @@ Model {
 	Block {
 	  BlockType		  Terminator
 	  Name			  "Terminator"
-	  SID			  "65"
+	  SID			  "169"
 	  Position		  [310, 60, 330, 80]
 	  ZOrder		  -5
 	}
 	Block {
 	  BlockType		  Terminator
 	  Name			  "Terminator1"
-	  SID			  "66"
+	  SID			  "170"
 	  Position		  [310, 140, 330, 160]
 	  ZOrder		  -5
 	}
 	Block {
 	  BlockType		  Terminator
 	  Name			  "Terminator3"
-	  SID			  "67"
+	  SID			  "171"
 	  Position		  [310, 100, 330, 120]
 	  ZOrder		  -5
 	}
 	Block {
 	  BlockType		  Outport
 	  Name			  "Jacobian"
-	  SID			  "68"
+	  SID			  "172"
 	  Position		  [310, 183, 340, 197]
 	  ZOrder		  -9
 	  IconDisplay		  "Port number"
@@ -1008,22 +1088,22 @@ Model {
 	  DstPort		  1
 	}
 	Annotation {
-	  SID			  "72"
+	  SID			  "176"
 	  Name			  "getDq"
 	  Position		  [277, 99]
 	}
 	Annotation {
-	  SID			  "71"
+	  SID			  "175"
 	  Name			  "xFoot"
 	  Position		  [272, 142]
 	}
 	Annotation {
-	  SID			  "70"
+	  SID			  "174"
 	  Name			  "getQ"
 	  Position		  [274, 62]
 	}
 	Annotation {
-	  SID			  "69"
+	  SID			  "173"
 	  Name			  "Jacobian"
 	  Position		  [275, 183]
 	}
@@ -1031,15 +1111,322 @@ Model {
     }
     Block {
       BlockType		      Scope
-      Name		      "COM Pos"
-      SID		      "19"
+      Name		      "COM1"
+      SID		      "258"
       Ports		      [1]
-      Position		      [185, 109, 215, 141]
-      ZOrder		      -16
-      BlockMirror	      on
-      NamePlacement	      "alternate"
+      Position		      [510, 569, 540, 601]
+      ZOrder		      -3
       Floating		      off
-      Location		      [696, 371, 1418, 672]
+      Location		      [842, 81, 1269, 277]
+      Open		      off
+      NumInputPorts	      "1"
+      ZoomMode		      "yonly"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      List {
+	ListType		ScopeGraphics
+	FigureColor		"[0.501960784313725 0.501960784313725 0.501960784313725]"
+	AxesColor		"[0 0 0]"
+	AxesTickColor		"[1 1 1]"
+	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	LineStyles		"-|-|-|-|-|-"
+	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
+	MarkerStyles		"none|none|none|none|none|none"
+      }
+      ShowLegends	      off
+      TimeRange		      "50"
+      YMin		      "-0.00015"
+      YMax		      "0.0001"
+      SaveName		      "ScopeData3"
+      DataFormat	      "StructureWithTime"
+      SampleTime	      "0"
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "DampPinv2"
+      SID		      "178"
+      Ports		      [2, 1]
+      Position		      [505, 469, 550, 536]
+      BackgroundColor	      "[0.848000, 0.128048, 0.320035]"
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      Opaque		      off
+      RequestExecContextInheritance off
+      MaskHideContents	      off
+      MaskPromptString	      "Tolerance"
+      MaskStyleString	      "edit"
+      MaskVariables	      "tol=@1;"
+      MaskTunableValueString  "on"
+      MaskEnableString	      "on"
+      MaskVisibilityString    "on"
+      MaskToolTipString	      "on"
+      MaskIconFrame	      on
+      MaskIconOpaque	      on
+      MaskIconRotate	      "none"
+      MaskPortRotate	      "default"
+      MaskIconUnits	      "autoscale"
+      MaskValueString	      "1e-4"
+      System {
+	Name			"DampPinv2"
+	Location		[938, 355, 1257, 522]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"usletter"
+	PaperUnits		"inches"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+	Block {
+	  BlockType		  Inport
+	  Name			  "mat"
+	  SID			  "179"
+	  Position		  [50, 53, 80, 67]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "sigma"
+	  SID			  "180"
+	  Position		  [50, 93, 80, 107]
+	  Port			  "2"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  SubSystem
+	  Name			  "Damped Pseudo Inverse"
+	  SID			  "181"
+	  Ports			  [2, 1]
+	  Position		  [105, 39, 200, 121]
+	  ZOrder		  -4
+	  LibraryVersion	  "1.32"
+	  ErrorFcn		  "Stateflow.Translate.translate"
+	  PermitHierarchicalResolution "ExplicitOnly"
+	  TreatAsAtomicUnit	  on
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  RTWSystemCode		  "Auto"
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  RequestExecContextInheritance	off
+	  MaskHideContents	  off
+	  SFBlockType		  "MATLAB Function"
+	  MaskType		  "Stateflow"
+	  MaskDescription	  "Embedded MATLAB block"
+	  MaskSelfModifiable	  on
+	  MaskDisplay		  "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('private/"
+	  "eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  off
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "normalized"
+	  System {
+	    Name		    "Damped Pseudo Inverse"
+	    Location		    [257, 457, 812, 717]
+	    Open		    off
+	    ModelBrowserVisibility  off
+	    ModelBrowserWidth	    200
+	    ScreenColor		    "white"
+	    PaperOrientation	    "landscape"
+	    PaperPositionMode	    "auto"
+	    PaperType		    "usletter"
+	    PaperUnits		    "inches"
+	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
+	    TiledPageScale	    1
+	    ShowPageBoundaries	    off
+	    ZoomFactor		    "100"
+	    SIDHighWatermark	    "25"
+	    Block {
+	      BlockType		      Inport
+	      Name		      "mat"
+	      SID		      "181::1"
+	      Position		      [20, 101, 40, 119]
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Inport
+	      Name		      "sigma"
+	      SID		      "181::25"
+	      Position		      [20, 136, 40, 154]
+	      ZOrder		      11
+	      Port		      "2"
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Demux
+	      Name		      " Demux "
+	      SID		      "181::20"
+	      Ports		      [1, 1]
+	      Position		      [270, 205, 320, 245]
+	      ZOrder		      6
+	      Outputs		      "1"
+	    }
+	    Block {
+	      BlockType		      S-Function
+	      Name		      " SFunction "
+	      SID		      "181::19"
+	      Tag		      "Stateflow S-Function SecondCOMController 1"
+	      Ports		      [2, 2]
+	      Position		      [180, 104, 230, 206]
+	      ZOrder		      5
+	      FunctionName	      "sf_sfun"
+	      PortCounts	      "[2 2]"
+	      EnableBusSupport	      on
+	      Port {
+		PortNumber		2
+		Name			"DPinv"
+		RTWStorageClass		"Auto"
+		DataLoggingNameMode	"SignalName"
+	      }
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      " Terminator "
+	      SID		      "181::22"
+	      Position		      [460, 216, 480, 234]
+	      ZOrder		      8
+	    }
+	    Block {
+	      BlockType		      Outport
+	      Name		      "DPinv"
+	      SID		      "181::5"
+	      Position		      [460, 101, 480, 119]
+	      IconDisplay	      "Port number"
+	    }
+	    Line {
+	      SrcBlock		      " SFunction "
+	      SrcPort		      1
+	      DstBlock		      " Demux "
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      " Demux "
+	      SrcPort		      1
+	      DstBlock		      " Terminator "
+	      DstPort		      1
+	    }
+	    Line {
+	      Name		      "DPinv"
+	      Labels		      [0, 0]
+	      SrcBlock		      " SFunction "
+	      SrcPort		      2
+	      DstBlock		      "DPinv"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "sigma"
+	      SrcPort		      1
+	      DstBlock		      " SFunction "
+	      DstPort		      2
+	    }
+	    Line {
+	      SrcBlock		      "mat"
+	      SrcPort		      1
+	      DstBlock		      " SFunction "
+	      DstPort		      1
+	    }
+	  }
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "DPinv"
+	  SID			  "182"
+	  Position		  [225, 73, 255, 87]
+	  IconDisplay		  "Port number"
+	}
+	Line {
+	  SrcBlock		  "sigma"
+	  SrcPort		  1
+	  DstBlock		  "Damped Pseudo Inverse"
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "Damped Pseudo Inverse"
+	  SrcPort		  1
+	  DstBlock		  "DPinv"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "mat"
+	  SrcPort		  1
+	  DstBlock		  "Damped Pseudo Inverse"
+	  DstPort		  1
+	}
+      }
+    }
+    Block {
+      BlockType		      Demux
+      Name		      "Demux"
+      SID		      "227"
+      Ports		      [1, 2]
+      Position		      [345, 276, 350, 314]
+      ZOrder		      -6
+      ShowName		      off
+      Outputs		      "2"
+      DisplayOption	      "bar"
+    }
+    Block {
+      BlockType		      Display
+      Name		      "Display1"
+      SID		      "8"
+      Ports		      [1]
+      Position		      [985, 201, 1070, 249]
+      ZOrder		      -1
+      Decimation	      "1"
+      Lockdown		      off
+    }
+    Block {
+      BlockType		      Scope
+      Name		      "ERROR"
+      SID		      "230"
+      Ports		      [1]
+      Position		      [1130, 399, 1160, 431]
+      ZOrder		      -3
+      Floating		      off
+      Location		      [41, 383, 761, 795]
+      Open		      on
+      NumInputPorts	      "1"
+      ZoomMode		      "xonly"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      List {
+	ListType		ScopeGraphics
+	FigureColor		"[0.501960784313725 0.501960784313725 0.501960784313725]"
+	AxesColor		"[0 0 0]"
+	AxesTickColor		"[1 1 1]"
+	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	LineStyles		"-|-|-|-|-|-"
+	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
+	MarkerStyles		"none|none|none|none|none|none"
+      }
+      ShowLegends	      off
+      TimeRange		      "40"
+      YMin		      "-0.15"
+      YMax		      "0.275"
+      SaveName		      "ScopeData2"
+      DataFormat	      "StructureWithTime"
+      SampleTime	      "0"
+    }
+    Block {
+      BlockType		      Scope
+      Name		      "ERROR1"
+      SID		      "262"
+      Ports		      [1]
+      Position		      [920, 309, 950, 341]
+      ZOrder		      -3
+      Floating		      off
+      Location		      [273, 125, 899, 321]
       Open		      on
       NumInputPorts	      "1"
       ZoomMode		      "xonly"
@@ -1059,187 +1446,120 @@ Model {
       }
       ShowLegends	      off
       TimeRange		      "200"
-      YMin		      "-0.07"
-      YMax		      "0.07"
-      SaveToWorkspace	      on
+      YMin		      "-0.125"
+      YMax		      "0.175"
+      SaveName		      "ScopeData5"
       DataFormat	      "StructureWithTime"
-      SampleTime	      "0.02"
+      SampleTime	      "0"
     }
     Block {
-      BlockType		      Scope
-      Name		      "Comparison"
-      SID		      "74"
-      Ports		      [1]
-      Position		      [460, 199, 490, 231]
-      ZOrder		      -16
-      Floating		      off
-      Location		      [593, 81, 1399, 356]
-      Open		      off
-      NumInputPorts	      "1"
-      TickLabels	      "on"
-      ZoomMode		      "xonly"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.501960784313725 0.501960784313725 0.501960784313725]"
-	AxesColor		"[1 1 1]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 0 0;0 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[2 2 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      TimeRange		      "10"
-      YMin		      "2.11758e-22"
-      YMax		      "6e-06"
-      DataFormat	      "StructureWithTime"
-      SampleTime	      "0.02"
-    }
-    Block {
-      BlockType		      Scope
-      Name		      "Comparison1"
-      SID		      "105"
-      Ports		      [1]
-      Position		      [455, 74, 485, 106]
-      ZOrder		      -16
-      Floating		      off
-      Location		      [640, 142, 1446, 417]
-      Open		      off
-      NumInputPorts	      "1"
-      TickLabels	      "on"
-      ZoomMode		      "xonly"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.501960784313725 0.501960784313725 0.501960784313725]"
-	AxesColor		"[1 1 1]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 0 0;0 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[2 2 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      TimeRange		      "50"
-      YMin		      "-0.05"
-      YMax		      "0.05"
-      SaveToWorkspace	      on
-      SaveName		      "ScopeData1"
-      DataFormat	      "StructureWithTime"
-      SampleTime	      "0.02"
-    }
-    Block {
-      BlockType		      Demux
-      Name		      "Demux"
-      SID		      "18"
-      Ports		      [1, 2]
-      Position		      [265, 31, 270, 69]
-      ZOrder		      -6
+      BlockType		      From
+      Name		      "From"
+      SID		      "9"
+      Position		      [760, 266, 815, 284]
+      ZOrder		      -9
+      BackgroundColor	      "lightBlue"
       ShowName		      off
-      Outputs		      "2"
-      DisplayOption	      "bar"
+      GotoTag		      "xCOM"
     }
     Block {
-      BlockType		      Demux
-      Name		      "Demux1"
-      SID		      "99"
-      Ports		      [1, 2]
-      Position		      [350, 221, 355, 259]
-      ZOrder		      -6
+      BlockType		      From
+      Name		      "From1"
+      SID		      "233"
+      Position		      [985, 396, 1040, 414]
+      ZOrder		      -9
+      BackgroundColor	      "lightBlue"
       ShowName		      off
-      Outputs		      "2"
-      DisplayOption	      "bar"
+      GotoTag		      "xCOM"
     }
     Block {
-      BlockType		      DiscreteFilter
-      Name		      "Discrete Filter"
-      SID		      "104"
-      Ports		      [1, 1]
-      Position		      [380, 72, 440, 108]
-      ZOrder		      -6
-      InputPortMap	      "u0"
-      SampleTime	      "0.02"
+      BlockType		      From
+      Name		      "From2"
+      SID		      "234"
+      Position		      [985, 416, 1040, 434]
+      ZOrder		      -9
+      BackgroundColor	      "lightBlue"
+      ShowName		      off
+      GotoTag		      "sine"
+    }
+    Block {
+      BlockType		      From
+      Name		      "From3"
+      SID		      "256"
+      Position		      [350, 581, 405, 599]
+      ZOrder		      -9
+      BackgroundColor	      "[0.420087, 0.415623, 0.455000]"
+      ShowName		      off
+      GotoTag		      "dq"
     }
     Block {
       BlockType		      Gain
       Name		      "Gain"
-      SID		      "100"
-      Position		      [375, 215, 395, 245]
+      SID		      "200"
+      Position		      [880, 238, 920, 282]
       ZOrder		      -8
+      Gain		      "300"
       ParamDataTypeStr	      "Inherit: Inherit via internal rule"
       OutDataTypeStr	      "Inherit: Inherit via internal rule"
       SaturateOnIntegerOverflow	off
     }
     Block {
-      BlockType		      Gain
-      Name		      "Gain1"
-      SID		      "101"
-      Position		      [360, 150, 380, 180]
-      ZOrder		      -8
-      Gain		      "1e-4"
-      ParamDataTypeStr	      "Inherit: Inherit via internal rule"
-      OutDataTypeStr	      "Inherit: Inherit via internal rule"
-      SaturateOnIntegerOverflow	off
+      BlockType		      Goto
+      Name		      "Goto"
+      SID		      "11"
+      Position		      [375, 209, 430, 231]
+      ZOrder		      -10
+      BackgroundColor	      "lightBlue"
+      ShowName		      off
+      GotoTag		      "xCOM"
     }
     Block {
-      BlockType		      Scope
-      Name		      "Jacob-based\nCOM Pos"
-      SID		      "73"
-      Ports		      [1]
-      Position		      [300, 194, 330, 226]
-      ZOrder		      -16
-      NamePlacement	      "alternate"
-      Floating		      off
-      Location		      [675, 373, 1477, 674]
-      Open		      on
-      NumInputPorts	      "1"
-      ZoomMode		      "xonly"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.501960784313725 0.501960784313725 0.501960784313725]"
-	AxesColor		"[0 0 0]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      TimeRange		      "10"
-      YMin		      "-8.999999999999999e-06"
-      YMax		      "8.999999999999999e-06"
-      SaveName		      "ScopeData4"
-      DataFormat	      "StructureWithTime"
-      SampleTime	      "0.02"
+      BlockType		      Goto
+      Name		      "Goto1"
+      SID		      "91"
+      Position		      [700, 194, 755, 216]
+      ZOrder		      -10
+      BackgroundColor	      "lightBlue"
+      ShowName		      off
+      GotoTag		      "sine"
+    }
+    Block {
+      BlockType		      Goto
+      Name		      "Goto5"
+      SID		      "255"
+      Position		      [190, 589, 245, 611]
+      ZOrder		      -10
+      BackgroundColor	      "gray"
+      ShowName		      off
+      GotoTag		      "dq"
+    }
+    Block {
+      BlockType		      Goto
+      Name		      "Goto8"
+      SID		      "12"
+      Position		      [1035, 279, 1090, 301]
+      ZOrder		      -10
+      BackgroundColor	      "darkGreen"
+      ShowName		      off
+      GotoTag		      "dx_com"
     }
     Block {
       BlockType		      Mux
-      Name		      "Mux1"
-      SID		      "78"
+      Name		      "Mux"
+      SID		      "229"
       Ports		      [2, 1]
-      Position		      [415, 184, 430, 246]
-      ZOrder		      -12
+      Position		      [1095, 396, 1100, 434]
+      ZOrder		      -16
       ShowName		      off
       Inputs		      "2"
       DisplayOption	      "bar"
     }
     Block {
       BlockType		      Product
-      Name		      "Product2"
-      SID		      "80"
+      Name		      "Product1"
+      SID		      "185"
       Ports		      [2, 1]
-      Position		      [220, 182, 260, 238]
+      Position		      [650, 492, 690, 548]
       ZOrder		      -13
       ShowName		      off
       Multiplication	      "Matrix(*)"
@@ -1248,46 +1568,173 @@ Model {
       SaturateOnIntegerOverflow	off
     }
     Block {
-      BlockType		      Reshape
-      Name		      "Reshape2"
-      SID		      "81"
+      BlockType		      Product
+      Name		      "Product2"
+      SID		      "257"
+      Ports		      [2, 1]
+      Position		      [430, 547, 470, 603]
+      ZOrder		      -13
+      ShowName		      off
+      Multiplication	      "Matrix(*)"
+      InputSameDT	      off
+      OutDataTypeStr	      "Inherit: Inherit via internal rule"
+      SaturateOnIntegerOverflow	off
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "Radians\nto Degrees1"
+      SID		      "198"
       Ports		      [1, 1]
-      Position		      [95, 173, 125, 197]
+      Position		      [750, 455, 780, 485]
+      NamePlacement	      "alternate"
+      LibraryVersion	      "1.44"
+      SourceBlock	      "simulink_extras/Transformations/Radians\nto Degrees"
+      SourceType	      "RadiansToDegrees"
+    }
+    Block {
+      BlockType		      Reshape
+      Name		      "Reshape1"
+      SID		      "177"
+      Ports		      [1, 1]
+      Position		      [260, 473, 290, 497]
       ZOrder		      -23
       ShowName		      off
       OutputDimensionality    "Customize"
       OutputDimensions	      "[6,31]"
     }
     Block {
+      BlockType		      Scope
+      Name		      "Right arm angles"
+      SID		      "216"
+      Ports		      [1]
+      Position		      [910, 569, 940, 601]
+      ZOrder		      -3
+      Floating		      off
+      Location		      [836, 81, 1440, 463]
+      Open		      off
+      NumInputPorts	      "1"
+      ZoomMode		      "xonly"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      List {
+	ListType		ScopeGraphics
+	FigureColor		"[0.5 0.5 0.5]"
+	AxesColor		"[0 0 0]"
+	AxesTickColor		"[1 1 1]"
+	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	LineStyles		"-|-|-|-|-|-"
+	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
+	MarkerStyles		"none|none|none|none|none|none"
+      }
+      ShowLegends	      off
+      YMin		      "-35"
+      YMax		      "30"
+      SaveName		      "ScopeData1"
+      DataFormat	      "StructureWithTime"
+      SampleTime	      "0"
+    }
+    Block {
       BlockType		      Selector
-      Name		      "Selector"
-      SID		      "16"
+      Name		      "Selector1"
+      SID		      "14"
       Ports		      [1, 1]
-      Position		      [180, 31, 220, 69]
+      Position		      [230, 188, 275, 252]
       ZOrder		      -17
+      ShowName		      off
+      IndexMode		      "Zero-based"
       InputPortWidth	      "7"
       IndexOptions	      "Index vector (dialog)"
-      Indices		      "[1:2]"
+      Indices		      "[0:1]"
       OutputSizes	      "1"
+    }
+    Block {
+      BlockType		      Selector
+      Name		      "Selector2"
+      SID		      "203"
+      Ports		      [1, 1]
+      Position		      [835, 553, 880, 617]
+      ZOrder		      -17
+      ShowName		      off
+      IndexMode		      "Zero-based"
+      InputPortWidth	      "25"
+      IndexOptions	      "Index vector (dialog)"
+      Indices		      "[7:11]"
+      OutputSizes	      "1"
+    }
+    Block {
+      BlockType		      Scope
+      Name		      "Sent JntAnglVels"
+      SID		      "199"
+      Ports		      [1]
+      Position		      [880, 454, 910, 486]
+      ZOrder		      -3
+      Floating		      off
+      Location		      [323, 495, 886, 866]
+      Open		      off
+      NumInputPorts	      "1"
+      ZoomMode		      "yonly"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      List {
+	ListType		ScopeGraphics
+	FigureColor		"[0.5 0.5 0.5]"
+	AxesColor		"[0 0 0]"
+	AxesTickColor		"[1 1 1]"
+	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	LineStyles		"-|-|-|-|-|-"
+	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
+	MarkerStyles		"none|none|none|none|none|none"
+      }
+      ShowLegends	      off
+      YMin		      "-35"
+      YMax		      "30"
+      DataFormat	      "StructureWithTime"
+      SampleTime	      "0"
+    }
+    Block {
+      BlockType		      Sin
+      Name		      "Sine Wave2"
+      SID		      "261"
+      Ports		      [0, 1]
+      Position		      [635, 225, 665, 255]
+      ZOrder		      -21
+      Amplitude		      "0.05"
+      Bias		      "0.0244"
+      Frequency		      "0.1"
     }
     Block {
       BlockType		      Reference
       Name		      "Soft Real Time"
-      SID		      "103"
+      SID		      "85"
       Ports		      []
-      Position		      [398, 20, 485, 51]
+      Position		      [503, 45, 590, 76]
       ShowName		      off
       LibraryVersion	      "1.7"
       SourceBlock	      "utility/Soft Real Time"
       SourceType	      ""
-      x			      "0.020"
+      x			      "0.02"
+    }
+    Block {
+      BlockType		      Step
+      Name		      "Step1"
+      SID		      "260"
+      Position		      [515, 145, 545, 175]
+      ZOrder		      -22
+      Time		      "3"
+      Before		      "0.024"
+      After		      "0.05"
+      SampleTime	      "0"
     }
     Block {
       BlockType		      Reference
-      Name		      "Submatrix3"
-      SID		      "84"
+      Name		      "Submatrix4"
+      SID		      "164"
       Ports		      [1, 1]
-      Position		      [145, 165, 195, 205]
+      Position		      [325, 465, 375, 505]
       ShowName		      off
       LibraryVersion	      "1.898"
       SourceBlock	      "dspmtrx3/Submatrix"
@@ -1304,27 +1751,73 @@ Model {
       ColEndIndex	      "6"
     }
     Block {
+      BlockType		      Sum
+      Name		      "Sum"
+      SID		      "15"
+      Ports		      [2, 1]
+      Position		      [835, 238, 850, 287]
+      ZOrder		      -18
+      ShowName		      off
+      Inputs		      "+-"
+      InputSameDT	      off
+      OutDataTypeStr	      "Inherit: Inherit via internal rule"
+      SaturateOnIntegerOverflow	off
+    }
+    Block {
+      BlockType		      Terminator
+      Name		      "Terminator"
+      SID		      "239"
+      Position		      [570, 150, 590, 170]
+      ZOrder		      -5
+    }
+    Block {
+      BlockType		      Concatenate
+      Name		      "Vector\nConcatenate"
+      SID		      "88"
+      Ports		      [2, 1]
+      Position		      [725, 231, 730, 269]
+      ZOrder		      -22
+    }
+    Block {
       BlockType		      Reference
-      Name		      "XY Graph"
-      SID		      "17"
+      Name		      "XY Graph1"
+      SID		      "228"
       Ports		      [2]
-      Position		      [335, 30, 365, 65]
+      Position		      [375, 275, 405, 310]
       ZOrder		      -8
       LibraryVersion	      "1.260"
       SourceBlock	      "simulink/Sinks/XY Graph"
       SourceType	      "XY scope."
-      xmin		      "-0.1"
-      xmax		      "0.01"
+      xmin		      "-0.05"
+      xmax		      "0.05"
       ymin		      "-0.05"
       ymax		      "0.05"
       st		      "-1"
     }
     Block {
+      BlockType		      From
+      Name		      "com.b1"
+      SID		      "184"
+      Position		      [575, 524, 625, 546]
+      ZOrder		      -9
+      BackgroundColor	      "darkGreen"
+      GotoTag		      "dx_com"
+    }
+    Block {
+      BlockType		      Constant
+      Name		      "plannedCOM1"
+      SID		      "87"
+      Position		      [620, 278, 685, 302]
+      ZOrder		      -5
+      Value		      "0"
+      SampleTime	      "0.05"
+    }
+    Block {
       BlockType		      SubSystem
-      Name		      "robot angles"
-      SID		      "1"
+      Name		      "robot angles2"
+      SID		      "19"
       Ports		      [0, 1]
-      Position		      [30, 18, 85, 82]
+      Position		      [95, 188, 150, 252]
       BackgroundColor	      "lightBlue"
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -1334,8 +1827,8 @@ Model {
       RequestExecContextInheritance off
       MaskHideContents	      off
       System {
-	Name			"robot angles"
-	Location		[903, 418, 1365, 767]
+	Name			"robot angles2"
+	Location		[745, 253, 1207, 602]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -1351,14 +1844,14 @@ Model {
 	Block {
 	  BlockType		  Ground
 	  Name			  "Ground"
-	  SID			  "2"
+	  SID			  "20"
 	  Position		  [65, 185, 85, 205]
 	  ZOrder		  -9
 	}
 	Block {
 	  BlockType		  Constant
 	  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
-	  SID			  "3"
+	  SID			  "21"
 	  Position		  [65, 75, 95, 105]
 	  ZOrder		  -5
 	  Value			  "2"
@@ -1367,7 +1860,7 @@ Model {
 	Block {
 	  BlockType		  S-Function
 	  Name			  "S-Function"
-	  SID			  "4"
+	  SID			  "22"
 	  Ports			  [2, 4]
 	  Position		  [140, 45, 245, 215]
 	  ZOrder		  -5
@@ -1393,36 +1886,56 @@ Model {
 	Block {
 	  BlockType		  Terminator
 	  Name			  "Terminator1"
-	  SID			  "5"
+	  SID			  "23"
 	  Position		  [310, 100, 330, 120]
 	  ZOrder		  -5
 	}
 	Block {
 	  BlockType		  Terminator
 	  Name			  "Terminator3"
-	  SID			  "6"
+	  SID			  "24"
 	  Position		  [310, 180, 330, 200]
 	  ZOrder		  -5
 	}
 	Block {
 	  BlockType		  Terminator
 	  Name			  "Terminator4"
-	  SID			  "7"
+	  SID			  "25"
 	  Position		  [310, 60, 330, 80]
 	  ZOrder		  -5
 	}
 	Block {
 	  BlockType		  Outport
 	  Name			  "xCOM"
-	  SID			  "8"
+	  SID			  "26"
 	  Position		  [310, 143, 340, 157]
 	  ZOrder		  -9
 	  IconDisplay		  "Port number"
 	}
 	Line {
+	  SrcBlock		  "Ground"
+	  SrcPort		  1
+	  Points		  [15, 0; 0, -20]
+	  DstBlock		  "S-Function"
+	  DstPort		  2
+	}
+	Line {
+	  Labels		  [0, 0]
 	  SrcBlock		  "S-Function"
-	  SrcPort		  4
-	  DstBlock		  "Terminator3"
+	  SrcPort		  2
+	  DstBlock		  "Terminator1"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "S-Function"
+	  SrcPort		  1
+	  DstBlock		  "Terminator4"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "S-Function"
+	  SrcPort		  3
+	  DstBlock		  "xCOM"
 	  DstPort		  1
 	}
 	Line {
@@ -1433,59 +1946,40 @@ Model {
 	}
 	Line {
 	  SrcBlock		  "S-Function"
-	  SrcPort		  3
-	  DstBlock		  "xCOM"
+	  SrcPort		  4
+	  DstBlock		  "Terminator3"
 	  DstPort		  1
 	}
-	Line {
-	  SrcBlock		  "S-Function"
-	  SrcPort		  1
-	  DstBlock		  "Terminator4"
-	  DstPort		  1
-	}
-	Line {
-	  Labels		  [0, 0]
-	  SrcBlock		  "S-Function"
-	  SrcPort		  2
-	  DstBlock		  "Terminator1"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Ground"
-	  SrcPort		  1
-	  Points		  [15, 0; 0, -20]
-	  DstBlock		  "S-Function"
-	  DstPort		  2
+	Annotation {
+	  SID			  "30"
+	  Name			  "getDq"
+	  Position		  [277, 99]
 	}
 	Annotation {
-	  SID			  "12"
-	  Name			  "Jacobian"
-	  Position		  [275, 183]
-	}
-	Annotation {
-	  SID			  "11"
-	  Name			  "getQ"
-	  Position		  [274, 62]
-	}
-	Annotation {
-	  SID			  "10"
+	  SID			  "29"
 	  Name			  "xCOM"
 	  Position		  [272, 142]
 	}
 	Annotation {
-	  SID			  "9"
-	  Name			  "getDq"
-	  Position		  [277, 99]
+	  SID			  "28"
+	  Name			  "getQ"
+	  Position		  [274, 62]
+	}
+	Annotation {
+	  SID			  "27"
+	  Name			  "Jacobian"
+	  Position		  [275, 183]
 	}
       }
     }
     Block {
       BlockType		      SubSystem
       Name		      "robot angular\nveocities"
-      SID		      "85"
+      SID		      "243"
       Ports		      [0, 1]
-      Position		      [30, 224, 80, 256]
+      Position		      [95, 570, 135, 630]
       BackgroundColor	      "[0.732000, 0.463600, 0.000000]"
+      NamePlacement	      "alternate"
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
       RTWSystemCode	      "Auto"
@@ -1511,14 +2005,14 @@ Model {
 	Block {
 	  BlockType		  Ground
 	  Name			  "Ground"
-	  SID			  "86"
+	  SID			  "244"
 	  Position		  [65, 165, 85, 185]
 	  ZOrder		  -9
 	}
 	Block {
 	  BlockType		  Constant
 	  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
-	  SID			  "87"
+	  SID			  "245"
 	  Position		  [60, 75, 90, 105]
 	  ZOrder		  -5
 	  Value			  "0"
@@ -1527,7 +2021,7 @@ Model {
 	Block {
 	  BlockType		  S-Function
 	  Name			  "S-Function"
-	  SID			  "88"
+	  SID			  "246"
 	  Ports			  [2, 4]
 	  Position		  [140, 45, 245, 215]
 	  ZOrder		  -5
@@ -1553,43 +2047,48 @@ Model {
 	Block {
 	  BlockType		  Terminator
 	  Name			  "Terminator"
-	  SID			  "89"
+	  SID			  "247"
 	  Position		  [310, 60, 330, 80]
 	  ZOrder		  -5
 	}
 	Block {
 	  BlockType		  Terminator
 	  Name			  "Terminator1"
-	  SID			  "90"
+	  SID			  "248"
 	  Position		  [310, 140, 330, 160]
 	  ZOrder		  -5
 	}
 	Block {
 	  BlockType		  Terminator
 	  Name			  "Terminator2"
-	  SID			  "91"
+	  SID			  "249"
 	  Position		  [310, 180, 330, 200]
 	  ZOrder		  -5
 	}
 	Block {
 	  BlockType		  Outport
 	  Name			  "Dq"
-	  SID			  "92"
+	  SID			  "250"
 	  Position		  [305, 103, 335, 117]
 	  ZOrder		  -9
 	  IconDisplay		  "Port number"
 	}
 	Line {
-	  SrcBlock		  "Ground"
-	  SrcPort		  1
-	  DstBlock		  "S-Function"
-	  DstPort		  2
+	  SrcBlock		  "S-Function"
+	  SrcPort		  4
+	  DstBlock		  "Terminator2"
+	  DstPort		  1
 	}
 	Line {
-	  Labels		  [0, 0]
+	  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
+	  SrcPort		  1
+	  DstBlock		  "S-Function"
+	  DstPort		  1
+	}
+	Line {
 	  SrcBlock		  "S-Function"
-	  SrcPort		  2
-	  DstBlock		  "Dq"
+	  SrcPort		  3
+	  DstBlock		  "Terminator1"
 	  DstPort		  1
 	}
 	Line {
@@ -1599,9 +2098,164 @@ Model {
 	  DstPort		  1
 	}
 	Line {
+	  Labels		  [0, 0]
+	  SrcBlock		  "S-Function"
+	  SrcPort		  2
+	  DstBlock		  "Dq"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Ground"
+	  SrcPort		  1
+	  DstBlock		  "S-Function"
+	  DstPort		  2
+	}
+	Annotation {
+	  SID			  "254"
+	  Name			  "Jacobian"
+	  Position		  [275, 183]
+	}
+	Annotation {
+	  SID			  "253"
+	  Name			  "getQ"
+	  Position		  [274, 62]
+	}
+	Annotation {
+	  SID			  "252"
+	  Name			  "xFoot"
+	  Position		  [272, 142]
+	}
+	Annotation {
+	  SID			  "251"
+	  Name			  "getDq"
+	  Position		  [277, 99]
+	}
+      }
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "setVelDes1"
+      SID		      "186"
+      Ports		      [1]
+      Position		      [950, 488, 1005, 552]
+      BackgroundColor	      "orange"
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      Opaque		      off
+      RequestExecContextInheritance off
+      MaskHideContents	      off
+      System {
+	Name			"setVelDes1"
+	Location		[622, 308, 1084, 657]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"usletter"
+	PaperUnits		"inches"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+	Block {
+	  BlockType		  Inport
+	  Name			  "dqDes"
+	  SID			  "187"
+	  Position		  [55, 193, 85, 207]
+	  ZOrder		  -1
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Constant
+	  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
+	  SID			  "188"
+	  Position		  [65, 75, 95, 105]
+	  ZOrder		  -5
+	  Value			  "0"
+	  OutDataTypeStr	  "int8"
+	}
+	Block {
+	  BlockType		  S-Function
+	  Name			  "S-Function"
+	  SID			  "189"
+	  Ports			  [2, 4]
+	  Position		  [140, 45, 245, 215]
+	  ZOrder		  -5
+	  BackgroundColor	  "darkGreen"
+	  FunctionName		  "robotState"
+	  Parameters		  "val,robotname,localname"
+	  EnableBusSupport	  off
+	  MaskPromptString	  "Value|Robot Name (icub - icubSim)|Module Name"
+	  MaskStyleString	  "edit,edit,edit"
+	  MaskVariables		  "val=@1;robotname=@2;localname=@3;"
+	  MaskTunableValueString  "on,on,on"
+	  MaskCallbackString	  "||"
+	  MaskEnableString	  "on,on,on"
+	  MaskVisibilityString	  "on,on,on"
+	  MaskToolTipString	  "on,on,on"
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
+	  MaskValueString	  "4|'icubSim'|'robotState'"
+	}
+	Block {
+	  BlockType		  Terminator
+	  Name			  "Terminator1"
+	  SID			  "190"
+	  Position		  [310, 100, 330, 120]
+	  ZOrder		  -5
+	}
+	Block {
+	  BlockType		  Terminator
+	  Name			  "Terminator2"
+	  SID			  "191"
+	  Position		  [310, 140, 330, 160]
+	  ZOrder		  -5
+	}
+	Block {
+	  BlockType		  Terminator
+	  Name			  "Terminator3"
+	  SID			  "192"
+	  Position		  [310, 180, 330, 200]
+	  ZOrder		  -5
+	}
+	Block {
+	  BlockType		  Terminator
+	  Name			  "Terminator4"
+	  SID			  "193"
+	  Position		  [310, 60, 330, 80]
+	  ZOrder		  -5
+	}
+	Line {
+	  SrcBlock		  "dqDes"
+	  SrcPort		  1
+	  Points		  [15, 0; 0, -25]
+	  DstBlock		  "S-Function"
+	  DstPort		  2
+	}
+	Line {
+	  Labels		  [0, 0]
+	  SrcBlock		  "S-Function"
+	  SrcPort		  2
+	  DstBlock		  "Terminator1"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "S-Function"
+	  SrcPort		  1
+	  DstBlock		  "Terminator4"
+	  DstPort		  1
+	}
+	Line {
 	  SrcBlock		  "S-Function"
 	  SrcPort		  3
-	  DstBlock		  "Terminator1"
+	  DstBlock		  "Terminator2"
 	  DstPort		  1
 	}
 	Line {
@@ -1613,150 +2267,469 @@ Model {
 	Line {
 	  SrcBlock		  "S-Function"
 	  SrcPort		  4
-	  DstBlock		  "Terminator2"
+	  DstBlock		  "Terminator3"
 	  DstPort		  1
 	}
 	Annotation {
-	  SID			  "96"
+	  SID			  "197"
 	  Name			  "getDq"
 	  Position		  [277, 99]
 	}
 	Annotation {
-	  SID			  "95"
+	  SID			  "196"
 	  Name			  "xFoot"
 	  Position		  [272, 142]
 	}
 	Annotation {
-	  SID			  "94"
+	  SID			  "195"
 	  Name			  "getQ"
 	  Position		  [274, 62]
 	}
 	Annotation {
-	  SID			  "93"
+	  SID			  "194"
 	  Name			  "Jacobian"
 	  Position		  [275, 183]
 	}
       }
     }
+    Block {
+      BlockType		      Constant
+      Name		      "sigma2"
+      SID		      "183"
+      Position		      [455, 513, 485, 527]
+      ZOrder		      -4
+      BackgroundColor	      "red"
+      Value		      "1e-4"
+    }
     Line {
-      SrcBlock		      "robot angles"
+      SrcBlock		      "Vector\nConcatenate"
       SrcPort		      1
-      DstBlock		      "Selector"
+      DstBlock		      "Sum"
       DstPort		      1
     }
     Line {
-      SrcBlock		      "Selector"
+      SrcBlock		      "From"
       SrcPort		      1
-      Points		      [20, 0]
+      DstBlock		      "Sum"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "Sum"
+      SrcPort		      1
+      Points		      [10, 0]
       Branch {
+	DstBlock		"Gain"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 60]
+	DstBlock		"ERROR1"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Selector1"
+      SrcPort		      1
+      Points		      [40, 0]
+      Branch {
+	DstBlock		"Goto"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 75]
 	DstBlock		"Demux"
 	DstPort			1
       }
       Branch {
-	Points			[0, 40]
-	Branch {
-	  Points		  [0, 35]
-	  DstBlock		  "COM Pos"
-	  DstPort		  1
-	}
-	Branch {
-	  DstBlock		  "Discrete Filter"
-	  DstPort		  1
-	}
-      }
-    }
-    Line {
-      SrcBlock		      "Demux"
-      SrcPort		      2
-      Points		      [45, 0]
-      DstBlock		      "XY Graph"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "Demux"
-      SrcPort		      1
-      Points		      [20, 0]
-      Branch {
-	Points			[25, 0]
-	DstBlock		"XY Graph"
-	DstPort			2
-      }
-      Branch {
-	Points			[0, 125]
-	DstBlock		"Gain1"
+	Points			[0, -60]
+	DstBlock		"COM"
 	DstPort			1
       }
     }
     Line {
-      SrcBlock		      "COM Jacobian"
+      SrcBlock		      "robot angles2"
       SrcPort		      1
-      DstBlock		      "Reshape2"
+      Points		      [0, -1; 60, 0]
+      DstBlock		      "Selector1"
       DstPort		      1
     }
     Line {
-      SrcBlock		      "Reshape2"
+      SrcBlock		      "Sine Wave2"
       SrcPort		      1
-      DstBlock		      "Submatrix3"
+      Points		      [15, 0]
+      Branch {
+	DstBlock		"Vector\nConcatenate"
+	DstPort			1
+      }
+      Branch {
+	DstBlock		"Goto1"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "plannedCOM1"
+      SrcPort		      1
+      Points		      [10, 0; 0, -30]
+      DstBlock		      "Vector\nConcatenate"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "COM Jacobian1"
+      SrcPort		      1
+      DstBlock		      "Reshape1"
       DstPort		      1
     }
     Line {
-      SrcBlock		      "Submatrix3"
+      SrcBlock		      "Reshape1"
       SrcPort		      1
-      Points		      [0, 10]
-      DstBlock		      "Product2"
+      DstBlock		      "Submatrix4"
       DstPort		      1
     }
     Line {
-      SrcBlock		      "robot angular\nveocities"
+      SrcBlock		      "sigma2"
       SrcPort		      1
-      Points		      [120, 0]
+      DstBlock		      "DampPinv2"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "Submatrix4"
+      SrcPort		      1
+      Points		      [25, 0]
+      Branch {
+	DstBlock		"DampPinv2"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 75]
+	DstBlock		"Product2"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "DampPinv2"
+      SrcPort		      1
+      DstBlock		      "Product1"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "com.b1"
+      SrcPort		      1
+      DstBlock		      "Product1"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "Product1"
+      SrcPort		      1
+      Points		      [35, 0; 0, -5]
+      Branch {
+	Points			[0, -45]
+	DstBlock		"Radians\nto Degrees1"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 5]
+	DstBlock		"setVelDes1"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Radians\nto Degrees1"
+      SrcPort		      1
+      Points		      [15, 0]
+      Branch {
+	DstBlock		"Sent JntAnglVels"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 115]
+	DstBlock		"Selector2"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Gain"
+      SrcPort		      1
+      Points		      [0, 5; 30, 0]
+      Branch {
+	Points			[15, 0]
+	DstBlock		"Display1"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 25]
+	DstBlock		"Goto8"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Selector2"
+      SrcPort		      1
+      DstBlock		      "Right arm angles"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Demux"
+      SrcPort		      1
+      DstBlock		      "XY Graph1"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Demux"
+      SrcPort		      2
+      Points		      [5, 0]
+      DstBlock		      "XY Graph1"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "Mux"
+      SrcPort		      1
+      DstBlock		      "ERROR"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "From1"
+      SrcPort		      1
+      DstBlock		      "Mux"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "From2"
+      SrcPort		      1
+      DstBlock		      "Mux"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "Step1"
+      SrcPort		      1
+      DstBlock		      "Terminator"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "From3"
+      SrcPort		      1
       DstBlock		      "Product2"
       DstPort		      2
     }
     Line {
       SrcBlock		      "Product2"
       SrcPort		      1
-      Points		      [10, 0]
-      Branch {
-	DstBlock		"Jacob-based\nCOM Pos"
-	DstPort			1
+      Points		      [10, 0; 0, 10]
+      DstBlock		      "COM1"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "robot angular\nveocities"
+      SrcPort		      1
+      DstBlock		      "Goto5"
+      DstPort		      1
+    }
+    Annotation {
+      SID		      "31"
+      Name		      "xr_com"
+      Position		      [788, 239]
+      ForegroundColor	      "white"
+      BackgroundColor	      "black"
+    }
+    Annotation {
+      SID		      "32"
+      Name		      " dx_com "
+      Position		      [952, 252]
+      ForegroundColor	      "white"
+      BackgroundColor	      "black"
+    }
+    Annotation {
+      SID		      "34"
+      Name		      " COM CONTROL TASK                                                                                  "
+      "                                                                                                                "
+      "                                                                               "
+      Position		      [585, 378]
+      BackgroundColor	      "yellow"
+    }
+    Annotation {
+      SID		      "82"
+      Name		      "NAIVE COM CONTROLLER"
+      Position		      [145, 95]
+    }
+    Annotation {
+      SID		      "236"
+      Name		      "dx_com = Kp*(com_d - com)"
+      Position		      [876, 157]
+      BackgroundColor	      "cyan"
+      FontSize		      20
+    }
+    Annotation {
+      SID		      "259"
+      Name		      "default: 1e-4"
+      Position		      [470, 507]
+    }
+    Annotation {
+      SID		      "281"
+      Name		      "Jacobian, Robot Angles and Robot Angular Velocities, they all have the same structure\n[TORSO(2)  T"
+      "ORSO(1)  TORSO(0)    LEFTARM    RIGHTARM    LEFTLEG    RIGHTLEG]"
+      Position		      [363, 414]
+      FontSize		      14
+    }
+  }
+}
+# Finite State Machines
+#
+#    Stateflow Version 7.6 (R2011b) dated Jan 25 2012, 12:15:34
+#
+#
+
+
+Stateflow {
+  machine {
+    id			    1
+    name		    "SecondCOMController"
+    created		    "17-Jan-2014 17:07:45"
+    isLibrary		    0
+    firstTarget		    10
+    sfVersion		    76014001.00040001
+  }
+  chart {
+    id			    2
+    name		    "DampPinv2/Damped Pseudo Inverse"
+    windowPosition	    [417.026 260.25 200.25 189.75]
+    viewLimits		    [0 156.75 0 153.75]
+    screen		    [1 1 2806 900 1.25]
+    treeNode		    [0 3 0 0]
+    firstTransition	    5
+    firstJunction	    4
+    viewObj		    2
+    machine		    1
+    ssIdHighWaterMark	    8
+    decomposition	    CLUSTER_CHART
+    type		    EML_CHART
+    firstData		    6
+    chartFileNumber	    1
+    disableImplicitCasting  1
+    eml {
+      name		      "fcn"
+    }
+  }
+  state {
+    id			    3
+    labelString		    "eML_blk_kernel()"
+    position		    [18 64.5 118 66]
+    fontSize		    12
+    chart		    2
+    treeNode		    [2 0 0 0]
+    superState		    SUBCHART
+    subviewer		    2
+    ssIdNumber		    1
+    type		    FUNC_STATE
+    decomposition	    CLUSTER_STATE
+    eml {
+      isEML		      1
+      script		      "function DPinv  = fcn(mat,sigma)\n% Economy size svd of mat\n[U,S,V] = svd(mat,'econ');\n% Damped"
+      " version of S with sigma\nS(S>sigma)=S(S>sigma)./((S(S>sigma)).^2+sigma^2);\n% Damped pseudoinverse\nDPinv = V*p"
+      "inv(S)*U';"
+      editorLayout	      "100 M4x1[10 5 700 500]"
+    }
+  }
+  junction {
+    id			    4
+    position		    [23.5747 49.5747 7]
+    chart		    2
+    linkNode		    [2 0 0]
+    subviewer		    2
+    ssIdNumber		    3
+    type		    CONNECTIVE_JUNCTION
+  }
+  transition {
+    id			    5
+    labelString		    "{eML_blk_kernel();}"
+    labelPosition	    [32.125 19.875 102.544 14.964]
+    fontSize		    12
+    src {
+      intersection	      [0 0 1 0 23.5747 14.625 0 0]
+    }
+    dst {
+      id		      4
+      intersection	      [7 0 -1 -1 23.5747 42.5747 0 0]
+    }
+    midPoint		    [23.5747 24.9468]
+    chart		    2
+    linkNode		    [2 0 0]
+    dataLimits		    [23.575 23.575 14.625 34.575]
+    subviewer		    2
+    drawStyle		    SMART
+    executionOrder	    1
+    ssIdNumber		    2
+  }
+  data {
+    id			    6
+    ssIdNumber		    4
+    name		    "mat"
+    linkNode		    [2 0 7]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
       }
-      Branch {
-	Points			[0, 30]
-	DstBlock		"Demux1"
-	DstPort			1
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
       }
+      complexity	      SF_COMPLEX_INHERITED
     }
-    Line {
-      SrcBlock		      "Mux1"
-      SrcPort		      1
-      DstBlock		      "Comparison"
-      DstPort		      1
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    7
+    ssIdNumber		    5
+    name		    "DPinv"
+    linkNode		    [2 6 8]
+    scope		    OUTPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
     }
-    Line {
-      SrcBlock		      "Demux1"
-      SrcPort		      1
-      DstBlock		      "Gain"
-      DstPort		      1
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    8
+    ssIdNumber		    8
+    name		    "sigma"
+    linkNode		    [2 7 0]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
     }
-    Line {
-      SrcBlock		      "Gain"
-      SrcPort		      1
-      DstBlock		      "Mux1"
-      DstPort		      2
-    }
-    Line {
-      SrcBlock		      "Gain1"
-      SrcPort		      1
-      Points		      [5, 0; 0, 35]
-      DstBlock		      "Mux1"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "Discrete Filter"
-      SrcPort		      1
-      DstBlock		      "Comparison1"
-      DstPort		      1
-    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  instance {
+    id			    9
+    name		    "DampPinv2/Damped Pseudo Inverse"
+    machine		    1
+    chart		    2
+  }
+  target {
+    id			    10
+    name		    "sfun"
+    description		    "Default Simulink S-Function Target."
+    machine		    1
+    linkNode		    [1 0 0]
   }
 }
