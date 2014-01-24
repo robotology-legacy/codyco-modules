@@ -555,21 +555,12 @@ namespace adaptiveControl {
             _controlEnabled = true;
             _failedReads = 0;
             _firstRunLoop = true;
-            for (int i = 0; i < ICUB_PART_DOF; i++) {
-                _controlMode->setPositionMode(i);
-            }
-            
+
 #ifdef ADAPTIVECONTROL_TORQUECONTROL
             _controlMode->setTorqueMode(passiveJointIndex);
 			_torqueControl->setRefTorque(passiveJointIndex, 0);
             _controlMode->setTorqueMode(activeJointIndex);
 			_torqueControl->setRefTorque(activeJointIndex, 0);
-#else
-//            //this is what is done in iCubWholeBodyInterface
-//            _controlMode->setOpenLoopMode(passiveJointIndex);
-//            _controlMode->setOpenLoopMode(activeJointIndex);
-//            _rawTorqueControl->setRefTorqueRaw(passiveJointIndex, 0);
-//            _rawTorqueControl->setRefTorqueRaw(activeJointIndex, 0);
 #endif
 			info_out("Control is now enabled\n");
         }
@@ -578,9 +569,11 @@ namespace adaptiveControl {
     void AdaptiveControlThread::stopControl()
     {
         _controlEnabled = false;
+#ifdef ADAPTIVECONTROL_TORQUECONTROL
         for (int i = 0; i < ICUB_PART_DOF; i++) {
             _controlMode->setPositionMode(i);
         }
+#endif
         //should I set some default position here?
         
         info_out("Control is now disabled\n");
