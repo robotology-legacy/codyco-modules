@@ -374,9 +374,6 @@ namespace adaptiveControl {
         //define variable 's'
         Vector2d s = _dq - _xi;
         if (_outputEnabled) {
-            Vector2d temp = _sIntegral + dt * s;
-//             info_out("s_old =(%lf, %lf), dt=%lf, s=(%lf, %lf),xi0=%lf,  snew=(%lf, %lf)\n", _sIntegral(0), _sIntegral(1), dt, s(0), s(1),_xi(0),  temp(0), temp(1));
-            
             for (int i = 0; i < 2; i++)
                 _sIntegral(i) = hardLimiter(_sIntegral(i) + dt * s(i), -_integralSaturationLimit, _integralSaturationLimit);           
         }
@@ -607,12 +604,12 @@ namespace adaptiveControl {
                 newPos[i] = convertRadToDeg(haltPositions[i]);
             }
             _positionControl->positionMove(newPos);
+            info_out("Halting the robot to: ");
+            for (int i = 0; i < ICUB_PART_DOF; i++) {
+                info_out("%lf ", haltPositions[i]);
+            }
+            info_out("\n");
         }
-        info_out("Halting the robot to: ");
-        for (int i = 0; i < ICUB_PART_DOF; i++) {
-            info_out("%lf ", haltPositions[i]);
-        }
-        info_out("\n");
     }    
     
     void AdaptiveControlThread::writeDebug() {
