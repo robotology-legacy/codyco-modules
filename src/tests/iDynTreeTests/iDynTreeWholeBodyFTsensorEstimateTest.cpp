@@ -276,13 +276,13 @@ int main()
 
     
     
-    cout <<"Difference in estimate FT sensor measurements on upper body: "<<endl
-    <<" left  : "<<(fm_sens_up.getCol(1) -left_arm_ft).toString()<<endl
-    <<" right : "<<(fm_sens_up.getCol(0) -right_arm_ft).toString()<<endl
+    cout <<"Difference in estimate FT sensor measurements on upper body (iDyn return the force of the parent on the child, while iDynTree and the real robot the one of the child on the parent): "<<endl
+    <<" left  : "<<(fm_sens_up.getCol(1) +left_arm_ft).toString()<<endl
+    <<" right : "<<(fm_sens_up.getCol(0) +right_arm_ft).toString()<<endl
     <<endl
     <<"Difference in estimate FT sensor measurements on lower body: "<<endl
-    <<" left  : "<<(fm_sens_lo.getCol(1)-left_leg_ft).toString()<<endl
-    <<" right : "<<(fm_sens_lo.getCol(0)-right_leg_ft).toString()<<endl
+    <<" left  : "<<(fm_sens_lo.getCol(1)+left_leg_ft).toString()<<endl
+    <<" right : "<<(fm_sens_lo.getCol(0)+right_leg_ft).toString()<<endl
     <<endl
     
 
@@ -308,10 +308,10 @@ int main()
     << "Original COM " << com.toString() << std::endl
     << "iDynTree COM " << ((icub_tree.getCOM())).toString() << std::endl;
     
-    if( norm(fm_sens_up.getCol(1) -left_arm_ft) > tol ) { return EXIT_FAILURE; }
-    if( norm(fm_sens_up.getCol(0) -right_arm_ft) > tol ) { return EXIT_FAILURE; }
-    if( norm((fm_sens_lo.getCol(1)-left_leg_ft)) > tol ) { return EXIT_FAILURE; }
-    if( norm(fm_sens_lo.getCol(0)-right_leg_ft) > tol ) { return EXIT_FAILURE; }
+    if( norm(fm_sens_up.getCol(1) +left_arm_ft) > tol ) { return EXIT_FAILURE; }
+    if( norm(fm_sens_up.getCol(0) +right_arm_ft) > tol ) { return EXIT_FAILURE; }
+    if( norm((fm_sens_lo.getCol(1)+left_leg_ft)) > tol ) { return EXIT_FAILURE; }
+    if( norm(fm_sens_lo.getCol(0)+right_leg_ft) > tol ) { return EXIT_FAILURE; }
     
     if( norm(icub.upperTorso->getTorques("head").subVector(0,2)-icub_tree.getTorques("head")) > tol ) { return EXIT_FAILURE; }
     if( norm(icub.upperTorso->getTorques("left_arm")-icub_tree.getTorques("left_arm")) > tol ) { return EXIT_FAILURE; }
