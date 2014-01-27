@@ -1,7 +1,7 @@
 
 enable_testing()
 
-include_directories(${EIGEN3_INCLUDE_DIR} ${orocos_kdl_INCLUDE_DIRS} ${kdl_codyco_INCLUDE_DIRS})
+include_directories(${EIGEN3_INCLUDE_DIR} ${orocos_kdl_INCLUDE_DIRS} ${iDynTree_INCLUDE_DIRS} ${kdl_codyco_INCLUDE_DIRS})
 
 add_executable(iDynTreeJacobianTest iDynTreeJacobianTest.cpp)
 add_executable(iDynTreeWholeBodyFTsensorEstimateTest iDynTreeWholeBodyFTsensorEstimateTest.cpp)
