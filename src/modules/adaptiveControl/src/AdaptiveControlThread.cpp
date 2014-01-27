@@ -67,6 +67,8 @@ namespace adaptiveControl {
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
     _paramClient(paramHelperClient),
 #endif
+    _refAngularVelocity(0),
+    _refSystemGain(1),
     _link1Length(linklengths(0)),
     _link2Length(linklengths(1)),
     _errorIntegral(0),
@@ -120,7 +122,7 @@ namespace adaptiveControl {
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainGamma, _GammaInput.data()));
         //reference trajectory
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefBaseline, &_refBaseline));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefAngularVelocity, &_refAngularVelocity));
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefFrequency, &_refDesiredFrequency));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefAmplitude, &_refAmplitude));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefPhase, &_refPhase));   
         
@@ -340,6 +342,7 @@ namespace adaptiveControl {
             _piHat = _piHat + dt * _dpiHat;
             _xi(0) = _xi(0) + dt * _dxi(0);
         }
+        _refAngularVelocity = _refAngularVelocity - dt * _refSystemGain * (_refAngularVelocity - 2 * pi * - _refDesiredFrequency);
         
         //define reference trajectory
         double q_ref = _refBaseline + _refAmplitude * sin(_refAngularVelocity * now + _refPhase);

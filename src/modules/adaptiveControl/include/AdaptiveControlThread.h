@@ -132,6 +132,8 @@ namespace adaptiveControl {
         double _refAngularVelocity; //in rad/s
         double _refAmplitude;
         double _refPhase; //in rad
+        double _refDesiredFrequency; //in Hz
+        double _refSystemGain;
         
         double _currentRef;
         

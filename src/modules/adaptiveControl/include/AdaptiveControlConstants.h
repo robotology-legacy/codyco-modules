@@ -118,7 +118,7 @@ namespace adaptiveControl
     
     static const double defaultRefBaseline = 0;
     static const double defaultRefAngularVelocity = 0;
-    static const double defaultRefAmplitude = 0;
+    static const double defaultRefFrequency = 0;
     static const double defaultRefPhase = 0;
     static const Eigen::Vector8d defaultInitialPiHat = Eigen::Vector8d::Constant(1);
     static const double defaultInitialXi1 = 1;
@@ -145,7 +145,7 @@ namespace adaptiveControl
         AdaptiveControlParamIDGainKappaIntegral,
         AdaptiveControlParamIDGainGamma,
         AdaptiveControlParamIDRefBaseline,
-        AdaptiveControlParamIDRefAngularVelocity,
+        AdaptiveControlParamIDRefFrequency,
         AdaptiveControlParamIDRefAmplitude,
         AdaptiveControlParamIDRefPhase,
         AdaptiveControlParamIDInitialPiHat,
@@ -182,10 +182,10 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<double>("kappa", AdaptiveControlParamIDGainKappa, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultKappaGain.data(), "Kappa gain: torque gain"),
         new paramHelp::ParamProxyBasic<double>("kappaI", AdaptiveControlParamIDGainKappaIntegral, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultKappaIntegralGain.data(), "Kappa Integral gain: it acts on s"),
         new paramHelp::ParamProxyBasic<double>("gamma", AdaptiveControlParamIDGainGamma, PARAMETERS_SIZE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultGammaGain.data(), "Gamma gain: gain in the parameter update rule"),
-        new paramHelp::ParamProxyBasic<double>("refBase", AdaptiveControlParamIDRefBaseline, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefBaseline, "Baseline for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
-        new paramHelp::ParamProxyBasic<double>("refAngVel", AdaptiveControlParamIDRefAngularVelocity, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefAngularVelocity, "Frequency for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
-        new paramHelp::ParamProxyBasic<double>("refAmpl", AdaptiveControlParamIDRefAmplitude, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefAmplitude, "Amplitude for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
-        new paramHelp::ParamProxyBasic<double>("refPhase", AdaptiveControlParamIDRefPhase, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefPhase, "Phase for reference signal: r(t) = base + ampl * sin(freq * t + phase)"),
+        new paramHelp::ParamProxyBasic<double>("refBase", AdaptiveControlParamIDRefBaseline, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefBaseline, "Baseline for reference signal: r(t) = base + ampl * sin(2 * pi * freq * t + phase)"),
+        new paramHelp::ParamProxyBasic<double>("refFreq", AdaptiveControlParamIDRefFrequency, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefFrequency, "Frequency for reference signal: r(t) = base + ampl * sin(2 * pi * freq * t + phase)"),
+        new paramHelp::ParamProxyBasic<double>("refAmpl", AdaptiveControlParamIDRefAmplitude, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefFrequency, "Amplitude for reference signal: r(t) = base + ampl * sin(2 * pi * freq * t + phase)"),
+        new paramHelp::ParamProxyBasic<double>("refPhase", AdaptiveControlParamIDRefPhase, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefPhase, "Phase for reference signal: r(t) = base + ampl * sin(2 * pi * freq * t + phase)"),
         new paramHelp::ParamProxyBasic<double>("piHat_0", AdaptiveControlParamIDInitialPiHat, PARAMETERS_SIZE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultInitialPiHat.data(), "Initial values for pihat. They can be set only if the control is off."),
         new paramHelp::ParamProxyBasic<double>("xi1_0", AdaptiveControlParamIDInitialXi1, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultInitialXi1, "Initial values for xi1. It can be set only if the control is off."),
     };
