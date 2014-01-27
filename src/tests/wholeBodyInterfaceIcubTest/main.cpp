@@ -11,6 +11,8 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Time.h>
 
+#include <yarp/os/Property.h>
+
 #include <yarp/math/Math.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/math/Rand.h>
@@ -40,9 +42,19 @@ const double TOL = 1e-8;
 int main(int argc, char * argv[])
 {
     Network yarp; 
+    Property options;
+    options.fromCommand(argc,argv);
+    
+    std::string robotName;
+    if(options.check("robot")) {
+      robotName = options.find("robot").asString();
+    } else {
+      robotName = "icubSim";
+    }
     
     // TEST WHOLE BODY INTERFACE
-    wholeBodyInterface *icub = new icubWholeBodyInterface("wbiTest", "icubSim");
+    wholeBodyInterface *icub = new icubWholeBodyInterface("wbiTest",robotName.c_str());
+    //wholeBodyInterface *icub = new icubWholeBodyInterface("wbiTest","icubSim");
     icub->addJoints(LocalIdList(RIGHT_ARM,0,1,2,3,4));
     icub->addJoints(LocalIdList(LEFT_ARM,0,1,2,3,4));
     icub->addJoints(LocalIdList(TORSO,0,1,2));
@@ -77,10 +89,10 @@ int main(int argc, char * argv[])
         icub->getEstimates(ESTIMATE_JOINT_ACC,d2q.data());
         printf("(Q, dq, d2q):   %.2f \t %.2f \t %.2f\n", CTRL_RAD2DEG*q(j), CTRL_RAD2DEG*dq(j), CTRL_RAD2DEG*d2q(j));
         
-        /*
+        
         icub->forwardKinematics(q.data(),world2base,wbi::iWholeBodyModel::COM_LINK_ID,com.data());
-        printf("Center of Mass:  %.2f \t %.2f \t %.2f\n",com[0],com[1],com[2]);
-        */
+        printf("Center of Mass:  %.10f \t %.10f \t %.10f\n",com[0],com[1],com[2]);
+        
     }
     
     printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
