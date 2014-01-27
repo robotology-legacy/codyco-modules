@@ -57,6 +57,7 @@ class wholeBodyDynamicsThread: public RateThread
     wbiIcub::icubWholeBodyStates    *robot;
     
     //output ports
+    ///< \todo TODO add a proper structure for output ports, by dividing them for body parts or sensors
     BufferedPort<Bottle> *port_RATorques;
     BufferedPort<Bottle> *port_RLTorques;
     BufferedPort<Bottle> *port_RWTorques;
@@ -88,21 +89,16 @@ class wholeBodyDynamicsThread: public RateThread
     BufferedPort<Vector> *port_external_wrench_TO;
     BufferedPort<Vector> *port_com_all;
     BufferedPort<Vector> *port_com_all_foot;
-    BufferedPort<Vector> *port_com_lb;
-    BufferedPort<Vector> *port_com_ub;
-    BufferedPort<Vector> *port_com_la;
-    BufferedPort<Vector> *port_com_ra;
-    BufferedPort<Vector> *port_com_ll;
-    BufferedPort<Vector> *port_com_rl;
-    BufferedPort<Vector> *port_com_hd;
-    BufferedPort<Vector> *port_com_to;
     BufferedPort<Vector> *port_monitor;
+    
     BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts;
     BufferedPort<Vector> *port_dumpvel;
     BufferedPort<Vector> *port_COM_vel;
     BufferedPort<Matrix> *port_COM_Jacobian;
+    
     BufferedPort<Vector> *port_all_velocities;
     BufferedPort<Vector> *port_all_positions;
+    
     BufferedPort<Matrix> *port_root_position_mat;
     BufferedPort<Vector> *port_root_position_vec;
 

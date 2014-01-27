@@ -1,2 +1,2 @@
 add_subdirectory(urdf_iDyn)
-add_subdirectory(urdf_get_meshes)
+add_subdirectory(urdf_utils)
