@@ -8,7 +8,6 @@ add_subdirectory(tests)
 if(CODYCO_BUILD_YARP24_MODULES)
    add_subdirectory(misc/ftDumper)
 endif(CODYCO_BUILD_YARP24_MODULES)
-add_subdirectory(misc/iCub_description)
 
 if (ICUB_USE_XDE)
      add_subdirectory(reachComBalance)
