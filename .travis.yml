@@ -47,8 +47,8 @@ before_script:
 script:
   - make
   - sudo make install
-  - make test
-
+  - ctest -V
+  
 notifications:
   email:
     - pegua1@gmail.com
