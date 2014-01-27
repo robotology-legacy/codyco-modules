@@ -134,6 +134,8 @@ void set_random_q_dq_ddq(yarp::os::Random & rng, iCubTree & icub_tree)
 int main()
 {
     
+    double tol = 1e-5;
+    
     //Initializing the random number generator
     yarp::os::Random rng;
     rng.seed(yarp::os::Time::now());
@@ -213,13 +215,20 @@ int main()
     //In this example we calculate the Jacobian between the two hands
     icub_idyntree.getRelativeJacobian(r_hand_index,l_hand_index,rel_jacobian);
     
-    //v_rhand_rel_jac = rel_jacobian*icub_idyntree.getDAng() + adjoint_twist(icub_idyntree.getPosition(r_hand_index,l_hand_index))*icub_idyntree.getVel(l_hand_index);
+    v_rhand_rel_jac = rel_jacobian*icub_idyntree.getDAng() + adjoint_twist(icub_idyntree.getPosition(r_hand_index,l_hand_index))*icub_idyntree.getVel(l_hand_index,true);
     
     std::cout << "Comparison between velocities" << std::endl 
               << "Real one          " << v_rhand.toString() << std::endl
               << "Relative jacobian " << v_rhand_rel_jac.toString() << std::endl
-              << "Absolute jacobian " << v_rhand_abs_jac.toString() << std::endl;
-             
+              << "Absolute jacobian " << v_rhand_abs_jac.toString() << std::endl
+              << "Difference in norm " << norm(v_rhand-v_rhand_rel_jac) << std::endl
+              << "Difference in norm " << norm(v_rhand-v_rhand_abs_jac) << std::endl;
+
+              
+    if( norm(v_rhand-v_rhand_rel_jac) > tol ) { return EXIT_FAILURE; }
+    if( norm(v_rhand-v_rhand_abs_jac) > tol ) { return EXIT_FAILURE; }
+    
+              
     //For testing, it is also possible to check that the absolute velocity is computed correctly
     yarp::sig::Vector abs_v_rhand, abs_v_rhand_abs_jac;
     icub_idyntree.getJacobian(r_hand_index,abs_jacobian);
@@ -227,9 +236,12 @@ int main()
     abs_v_rhand_abs_jac = abs_jacobian*icub_idyntree.getDQ_fb();
          
     std::cout << "Comparison between velocities expressed in world frame" << std::endl 
-              << "Real one          " << abs_v_rhand.toString() << std::endl
-              << "Absolute jacobian " << abs_v_rhand_abs_jac.toString() << std::endl;
-             
+              << "Real one           " << abs_v_rhand.toString() << std::endl
+              << "Absolute jacobian  " << abs_v_rhand_abs_jac.toString() << std::endl
+              << "Difference in norm " << norm(abs_v_rhand-abs_v_rhand_abs_jac) << std::endl;
+          
+              
+    if( norm(abs_v_rhand-abs_v_rhand_abs_jac) > tol ) { return EXIT_FAILURE; }
              
     
     return 0;

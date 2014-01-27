@@ -50,7 +50,7 @@ int main()
     ////////////////////////////////////////////////////////////////////
     //// iDyn
     ////////////////////////////////////////////////////////////////////
-    
+    double tol = 1e-6;
     
     
     // declare an icub = head + left arm + right arm + torso + left leg + right leg
@@ -308,7 +308,27 @@ int main()
     << "Original COM " << com.toString() << std::endl
     << "iDynTree COM " << ((icub_tree.getCOM())).toString() << std::endl;
     
-    return 0;
+    if( norm(fm_sens_up.getCol(1) -left_arm_ft) > tol ) { return EXIT_FAILURE; }
+    if( norm(fm_sens_up.getCol(0) -right_arm_ft) > tol ) { return EXIT_FAILURE; }
+    if( norm((fm_sens_lo.getCol(1)-left_leg_ft)) > tol ) { return EXIT_FAILURE; }
+    if( norm(fm_sens_lo.getCol(0)-right_leg_ft) > tol ) { return EXIT_FAILURE; }
+    
+    if( norm(icub.upperTorso->getTorques("head").subVector(0,2)-icub_tree.getTorques("head")) > tol ) { return EXIT_FAILURE; }
+    if( norm(icub.upperTorso->getTorques("left_arm")-icub_tree.getTorques("left_arm")) > tol ) { return EXIT_FAILURE; }
+    if( norm(icub.upperTorso->getTorques("right_arm")-icub_tree.getTorques("right_arm")) > tol ) { return EXIT_FAILURE; }
+    if( norm(icub.lowerTorso->getTorques("left_leg")-icub_tree.getTorques("left_leg")) > tol ) { return EXIT_FAILURE; }
+    if( norm(icub.lowerTorso->getTorques("right_leg")-icub_tree.getTorques("right_leg")) > tol ) { return EXIT_FAILURE; }
+    if( norm(icub.upperTorso->getAng("head").subVector(0,2)-icub_tree.getAng("head")) > tol ) { return EXIT_FAILURE; }
+    
+    if( norm(icub.upperTorso->getAng("left_arm")-icub_tree.getAng("left_arm")) > tol ) { return EXIT_FAILURE; }
+    if( norm(icub.upperTorso->getAng("right_arm")-icub_tree.getAng("right_arm")) > tol ) { return EXIT_FAILURE; }
+    if( norm(icub.lowerTorso->getAng("torso")-icub_tree.getAng("torso")) > tol ) { return EXIT_FAILURE; }
+    if( norm(icub.lowerTorso->getAng("left_leg")-icub_tree.getAng("left_leg")) > tol ) { return EXIT_FAILURE; }
+    if( norm(icub.lowerTorso->getAng("right_leg")-icub_tree.getAng("right_leg")) > tol ) { return EXIT_FAILURE; }
+    
+    if( norm(com-icub_tree.getCOM()) > tol ) { return EXIT_FAILURE; }
+    
+    return EXIT_SUCCESS;
 }
       
       

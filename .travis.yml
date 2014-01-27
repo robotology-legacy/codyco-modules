@@ -42,11 +42,12 @@ before_script:
   # Prepare codyco build
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} ..
+  - cmake -DCODYCO_BUILD_TESTS:BOOL=ON -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} ..
 
 script:
   - make
   - sudo make install
+  - make test
 
 notifications:
   email:

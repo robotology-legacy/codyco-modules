@@ -264,6 +264,11 @@ int main()
     std::cout << "ext_f_1-int_f_1 norm: " << yarp::math::norm(ext_f_1-int_f_1) << std::endl;
     std::cout << "ext_f_2-int_f_2 norm: " << yarp::math::norm(ext_f_2-int_f_2) << std::endl;
     
+    double tol = 1e-6;
+    
+    if( fabs(yarp::math::norm(ext_f_1-int_f_1)- yarp::math::norm(sens_f_1)) > tol ) { return EXIT_FAILURE; }
+    if( fabs(yarp::math::norm(ext_f_2-int_f_2)- yarp::math::norm(sens_f_2)) > tol ) { return EXIT_FAILURE; }
+
     /*
     std::cout << "ext_w_1 norm: " << yarp::math::norm(ext_w_1) << std::endl;
     std::cout << "ext_w_2 norm: " << yarp::math::norm(ext_w_2) << std::endl;
@@ -276,4 +281,5 @@ int main()
     std::cout << "ext_w_2-int_w_2 norm: " << yarp::math::norm(ext_w_2-int_w_2) << std::endl;
     */
     
+    return EXIT_SUCCESS;
 }
