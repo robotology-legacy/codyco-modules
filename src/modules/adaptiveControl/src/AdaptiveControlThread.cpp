@@ -338,16 +338,18 @@ namespace adaptiveControl {
         _previousTime = now;
         
         //update state variables (only if sendCommands = true, otherwise the updating law integrates a constant value)
+        double dotOmega = -_refSystemGain * (_refAngularVelocity - 2 * pi * _refDesiredFrequency);
         if (_outputEnabled) {
             _piHat = _piHat + dt * _dpiHat;
             _xi(0) = _xi(0) + dt * _dxi(0);
+            _refAngularVelocity = _refAngularVelocity + dt * dotOmega;
         }
-        _refAngularVelocity = _refAngularVelocity - dt * _refSystemGain * (_refAngularVelocity - 2 * pi * - _refDesiredFrequency);
         
         //define reference trajectory
         double q_ref = _refBaseline + _refAmplitude * sin(_refAngularVelocity * now + _refPhase);
-        double dq_ref = _refAmplitude * _refAngularVelocity * cos(_refAngularVelocity * now + _refPhase);
-        double ddq_ref = -_refAmplitude * _refAngularVelocity * _refAngularVelocity * sin(_refAngularVelocity * now + _refPhase);
+        double dq_ref = _refAmplitude * cos(_refAngularVelocity * now + _refPhase) * (dotOmega * now + _refAngularVelocity);
+        double ddq_ref = -_refAmplitude * sin(_refAngularVelocity * now + _refPhase) * (dotOmega * now + _refAngularVelocity) * (dotOmega * now + _refAngularVelocity) 
+                         + _refAmplitude * cos(_refAngularVelocity * now + _refPhase) * (-_refSystemGain * dotOmega * now + 2 * dotOmega);
         
         _currentRef = q_ref;
         
