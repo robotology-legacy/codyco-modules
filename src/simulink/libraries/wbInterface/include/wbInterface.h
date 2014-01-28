@@ -513,7 +513,7 @@ public:
 // 		fprintf(stderr,"xBase: %s \n",xBase.toString().c_str());
 // 		fprintf(stderr,"qRad:  %s \n", qRad.toString().c_str());
 		
-                bool ans = wbInterface->computeJacobian(qRad.data(), xBase, linkId, JfootR.data());
+                bool ans = wbInterface->computeJacobian(qRad.data(), xBase, -1, JfootR.data());
                 if(ans)
                 {
                     return JfootR;
