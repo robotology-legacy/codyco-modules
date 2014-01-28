@@ -300,8 +300,12 @@ bool icubWholeBodyActuators::setControlParam(ControlParam paramId, const void *v
 {
     switch(paramId)
     {
-    case CTRL_PARAM_REF_VEL: return setReferenceSpeed((double*)value, joint);
-    default: break;
+        case CTRL_PARAM_REF_VEL: return setReferenceSpeed((double*)value, joint);
+        case CTRL_PARAM_KP: return false;
+        case CTRL_PARAM_KD: return false;
+        case CTRL_PARAM_KI: return false;
+        case CTRL_PARAM_OFFSET: return false;
+        default: break;
     }
     return false;
 }
@@ -342,12 +346,95 @@ ControlMode icubWholeBodyActuators::yarpToWbiCtrlMode(int yarpCtrlMode)
     return CTRL_MODE_UNKNOWN;
 }
 
+
+bool icubWholeBodyActuators::setPIDGains(const double *pValue, const double *dValue, const double *iValue, int joint)
+{
+    //The FOR_ALL atomicity is debated in github.. currently do the same as the rest of the library
+    bool result = true;
+    if (joint < 0) {
+        return false;
+//        FOR_ALL(itBp, itJ) {
+//            switch (currentCtrlModes[LocalId(itBp->first,*itJ)]) {
+//                case wbi::CTRL_MODE_TORQUE:
+//                {
+//                    //this is wrong...
+////                    Pid currentPid;
+////                    result = itrq[itBp->first]->getTorquePid(joint, &currentPid);
+////                    if (!result) break;
+////                    if (pValue != NULL)
+////                        currentPid.kp = *pValue;
+////                    if (dValue != NULL)
+////                        currentPid.kd = *dValue;
+////                    if (iValue != NULL)
+////                        currentPid.ki = *iValue;
+////                    result = itrq[itBp->first]->setTorquePid(joint, currentPid);
+////                    break;
+//                }
+//                default:
+//                    break;
+//            }
+//        }
+    }
+    else {
+        LocalId li = jointIdList.globalToLocalId(joint);
+        switch (currentCtrlModes[li]) {
+            case wbi::CTRL_MODE_TORQUE:
+            {
+                Pid currentPid;
+                result = itrq[li.bodyPart]->getTorquePid(joint, &currentPid);
+                if (!result) break;
+                if (pValue != NULL)
+                    currentPid.kp = *pValue;
+                if (dValue != NULL)
+                    currentPid.kd = *dValue;
+                if (iValue != NULL)
+                    currentPid.ki = *iValue;
+                result = itrq[li.bodyPart]->setTorquePid(joint, currentPid);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    return result;
+}
+
+
+bool icubWholeBodyActuators::setControlOffset(const double *value, int joint)
+{
+    //The FOR_ALL atomicity is debated in github.. currently do the same as the rest of the library
+    if (!value) return false;
+    
+    bool result = true;
+    if (joint < 0) {
+        //todo
+        result = false;
+    }
+    else {
+        LocalId li = jointIdList.globalToLocalId(joint);
+        switch (currentCtrlModes[li]) {
+            case wbi::CTRL_MODE_TORQUE:
+            {
+                Pid currentPid;
+                result = itrq[li.bodyPart]->getTorquePid(joint, &currentPid);
+                if (!result) break;
+                currentPid.offset = *value;
+                result = itrq[li.bodyPart]->setTorquePid(joint, currentPid);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    return result;
+}
+
 //
 //bool icubWholeBodyActuators::setTorqueRef(double *taud, int joint)
 //{
 //    if(joint> (int)dof)
 //        return false;
-//    
+//
 //    if(joint>=0)
 //    {
 //        LocalId li = jointIdList.globalToLocalId(joint);
