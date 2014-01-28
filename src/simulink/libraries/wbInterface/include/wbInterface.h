@@ -220,7 +220,7 @@ public:
              }
 
              // SET CONTROL MODE
-             fprintf(stderr,"About to sed Control Mode\n");
+             fprintf(stderr,"About to set Control Mode\n");
              setCtrlMode(CTRL_MODE_POS);
          }
 
@@ -489,9 +489,31 @@ public:
 //        fprintf(stderr,"About to compute Jacobian for link %d \n", linkId);
         if(robotJntAngles(false)) {
             if(world2baseRototranslation()) {
-
-                footLinkId = linkId;
-                bool ans = wbInterface->computeJacobian(qRad.data(), xBase, wbi::iWholeBodyModel::COM_LINK_ID, JfootR.data());
+	      
+		//BEGIN ONLY FOR DEBUGGING
+// 		qrad.zero();
+// 		qrad(3) = CTRL_DEG2RAD*(-30);
+// 		qrad(4) = CTRL_DEG2RAD*(30);
+// 		qrad(6) = CTRL_DEG2RAD*(45);
+// 		
+// 		qrad(7)  = qrad(3);
+// 		qrad(8)  = qrad(4);
+// 		qrad(10) = qrad(6);
+// 		
+// 		wbi::Rotation R(-1,	0,	0,
+// 				 0,	-1,	0,
+// 				 0,	0,	1);
+// 		
+// 		double p[3];
+// 		p[0] = 0; p[1] = -0.0681; p[2] = 0.5975;
+// 		
+// 		Frame xBase(R, p);
+		//END ONLY FOR DEBUGGING
+		
+// 		fprintf(stderr,"xBase: %s \n",xBase.toString().c_str());
+// 		fprintf(stderr,"qRad:  %s \n", qRad.toString().c_str());
+		
+                bool ans = wbInterface->computeJacobian(qRad.data(), xBase, linkId, JfootR.data());
                 if(ans)
                 {
                     return JfootR;
@@ -525,7 +547,6 @@ public:
 	 bool setCtrlMode(ControlMode ctrl_mode)
      {
          if(wbInterface->setControlMode(ctrl_mode)){
-             cout<<"Control Mode set"<<endl;
              return true;
          }
          else{
