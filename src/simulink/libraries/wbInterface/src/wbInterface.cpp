@@ -302,8 +302,9 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         }
     }
 
-    if(btype == 2 || btype == 3) {
-        //Interpreting link for either forwardKinematics or Jacobian.
+    int lid;
+
+    if(btype == 2) {
         switch ((int) *uPtrs[0])
         {
         case 0:
@@ -316,12 +317,9 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             linkName = "com";
             break;
         }
+        robot->getLinkId(linkName,lid);
 
-        robot->getLinkId(linkName,linkID);
-    }
-
-    if(btype == 2) {
-        xpose = robot->forwardKinematics(linkID);
+        xpose = robot->forwardKinematics(lid);
 
         real_T *pY3 = (real_T *)ssGetOutputPortSignal(S,2);
         for(int_T j=0; j<ssGetOutputPortWidth(S,2); j++) {
@@ -331,7 +329,21 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 
     if(btype == 3) {
         // JACOBIANS!!!!!
-        jacob = robot->jacobian(linkID);
+        switch ((int) *uPtrs[0])
+        {
+        case 0:
+            linkName = "r_sole";
+            break;
+        case 1:
+            linkName = "l_sole";
+            break;
+        case 2:
+            linkName = "com";
+            break;
+        }
+        robot->getLinkId(linkName,lid);
+        
+        jacob = robot->jacobian(lid);
         //    fprintf(stderr,"Jacobians Computed Succesfully. Jacobian is: \n");
 
         real_T *pY4 = (real_T *)ssGetOutputPortSignal(S,3);

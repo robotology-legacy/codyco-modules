@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.191"
+    ComputedModelVersion    "1.202"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -38,9 +38,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Jan 28 23:35:03 2014"
-  RTWModifiedTimeStamp	  312852113
-  ModelVersionFormat	  "1.%<AutoIncrement:191>"
+  LastModifiedDate	  "Wed Jan 29 13:02:12 2014"
+  RTWModifiedTimeStamp	  312900877
+  ModelVersionFormat	  "1.%<AutoIncrement:202>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -78,7 +78,6 @@ Model {
     $ObjectID		    2
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "SecondCOMController"
-    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -897,15 +896,15 @@ Model {
     TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
     TiledPageScale	    1
     ShowPageBoundaries	    off
-    ZoomFactor		    "66"
+    ZoomFactor		    "77"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "389"
+    SIDHighWatermark	    "391"
     Block {
       BlockType		      Scope
       Name		      "COM"
       SID		      "130"
       Ports		      [1]
-      Position		      [270, 149, 300, 181]
+      Position		      [350, 184, 380, 216]
       ZOrder		      -3
       Floating		      off
       Location		      [702, 81, 1440, 389]
@@ -939,7 +938,7 @@ Model {
       Name		      "COM1"
       SID		      "258"
       Ports		      [1]
-      Position		      [800, 649, 830, 681]
+      Position		      [690, 649, 720, 681]
       ZOrder		      -3
       Floating		      off
       Location		      [842, 81, 1269, 277]
@@ -973,7 +972,7 @@ Model {
       Name		      "COMJacobian"
       SID		      "388"
       Ports		      [0, 1]
-      Position		      [425, 536, 475, 594]
+      Position		      [315, 546, 365, 604]
       BackgroundColor	      "[1.000000, 0.000000, 0.917422]"
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -984,7 +983,7 @@ Model {
       MaskHideContents	      off
       System {
 	Name			"COMJacobian"
-	Location		[745, 345, 1319, 597]
+	Location		[747, 401, 1321, 653]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -1013,7 +1012,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "COM Jacobian1"
-	    Location		    [159, 390, 621, 739]
+	    Location		    [160, 418, 622, 767]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -1039,7 +1038,7 @@ Model {
 	      SID		      "167"
 	      Position		      [60, 75, 90, 105]
 	      ZOrder		      -5
-	      Value		      "0"
+	      Value		      "2"
 	      OutDataTypeStr	      "int8"
 	    }
 	    Block {
@@ -1212,7 +1211,7 @@ Model {
       BlockType		      Constant
       Name		      "Constant"
       SID		      "313"
-      Position		      [900, 668, 955, 702]
+      Position		      [790, 678, 845, 712]
       ZOrder		      -4
       Value		      "eye(25)"
     }
@@ -1220,7 +1219,7 @@ Model {
       BlockType		      Constant
       Name		      "Constant1"
       SID		      "315"
-      Position		      [1130, 724, 1200, 766]
+      Position		      [1020, 734, 1090, 776]
       ZOrder		      -4
       Value		      "zeros(25,1)"
     }
@@ -1229,7 +1228,7 @@ Model {
       Name		      "DampPinv2"
       SID		      "178"
       Ports		      [2, 1]
-      Position		      [795, 549, 840, 616]
+      Position		      [685, 559, 730, 626]
       BackgroundColor	      "[0.848000, 0.128048, 0.320035]"
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -1449,7 +1448,7 @@ Model {
       Name		      "Demux"
       SID		      "227"
       Ports		      [1, 2]
-      Position		      [240, 282, 245, 313]
+      Position		      [320, 317, 325, 348]
       ZOrder		      -6
       ShowName		      off
       Outputs		      "2"
@@ -1460,7 +1459,7 @@ Model {
       Name		      "Demux1"
       SID		      "289"
       Ports		      [1, 2]
-      Position		      [665, 203, 675, 292]
+      Position		      [715, 203, 725, 292]
       ZOrder		      -6
       ShowName		      off
       Outputs		      "2"
@@ -1471,7 +1470,7 @@ Model {
       Name		      "Demux2"
       SID		      "307"
       Ports		      [1, 2]
-      Position		      [1255, 475, 1265, 535]
+      Position		      [1145, 485, 1155, 545]
       ZOrder		      -6
       ShowName		      off
       Outputs		      "2"
@@ -1482,11 +1481,11 @@ Model {
       Name		      "Diff_COMx"
       SID		      "230"
       Ports		      [1]
-      Position		      [1420, 489, 1450, 521]
+      Position		      [1310, 499, 1340, 531]
       ZOrder		      -3
       Floating		      off
-      Location		      [-1292, 51, -593, 359]
-      Open		      on
+      Location		      [67, 51, 714, 359]
+      Open		      off
       NumInputPorts	      "1"
       ZoomMode		      "yonly"
       List {
@@ -1516,11 +1515,11 @@ Model {
       Name		      "Diff_COMy"
       SID		      "300"
       Ports		      [1]
-      Position		      [1410, 559, 1440, 591]
+      Position		      [1300, 569, 1330, 601]
       ZOrder		      -3
       Floating		      off
-      Location		      [-690, 52, 9, 360]
-      Open		      on
+      Location		      [715, 51, 1366, 359]
+      Open		      off
       NumInputPorts	      "1"
       ZoomMode		      "yonly"
       List {
@@ -1539,7 +1538,7 @@ Model {
       }
       ShowLegends	      off
       TimeRange		      "100"
-      YMin		      "-0.08"
+      YMin		      "-0.09"
       YMax		      "-0.0575"
       SaveName		      "ScopeData6"
       DataFormat	      "StructureWithTime"
@@ -1550,7 +1549,7 @@ Model {
       Name		      "ERROR1"
       SID		      "262"
       Ports		      [1]
-      Position		      [680, 314, 710, 346]
+      Position		      [730, 314, 760, 346]
       ZOrder		      -3
       Floating		      off
       Location		      [31, 453, 657, 866]
@@ -1583,7 +1582,7 @@ Model {
       BlockType		      From
       Name		      "From"
       SID		      "9"
-      Position		      [520, 286, 575, 304]
+      Position		      [570, 286, 625, 304]
       ZOrder		      -9
       BackgroundColor	      "lightBlue"
       ShowName		      off
@@ -1593,7 +1592,7 @@ Model {
       BlockType		      From
       Name		      "From1"
       SID		      "309"
-      Position		      [1300, 581, 1355, 599]
+      Position		      [1190, 591, 1245, 609]
       ZOrder		      -9
       BackgroundColor	      "lightBlue"
       ShowName		      off
@@ -1603,7 +1602,7 @@ Model {
       BlockType		      From
       Name		      "From2"
       SID		      "310"
-      Position		      [1295, 511, 1350, 529]
+      Position		      [1185, 521, 1240, 539]
       ZOrder		      -9
       BackgroundColor	      "lightBlue"
       ShowName		      off
@@ -1613,7 +1612,7 @@ Model {
       BlockType		      From
       Name		      "From3"
       SID		      "256"
-      Position		      [635, 661, 690, 679]
+      Position		      [525, 671, 580, 689]
       ZOrder		      -9
       BackgroundColor	      "[0.420087, 0.415623, 0.455000]"
       ShowName		      off
@@ -1623,7 +1622,7 @@ Model {
       BlockType		      From
       Name		      "From4"
       SID		      "308"
-      Position		      [1170, 496, 1225, 514]
+      Position		      [1060, 506, 1115, 524]
       ZOrder		      -9
       BackgroundColor	      "lightBlue"
       ShowName		      off
@@ -1633,7 +1632,7 @@ Model {
       BlockType		      From
       Name		      "From5"
       SID		      "385"
-      Position		      [925, 811, 980, 829]
+      Position		      [815, 821, 870, 839]
       ZOrder		      -9
       ForegroundColor	      "gray"
       BackgroundColor	      "[0.017585, 0.000000, 0.455000]"
@@ -1644,7 +1643,7 @@ Model {
       BlockType		      From
       Name		      "From6"
       SID		      "321"
-      Position		      [925, 786, 980, 804]
+      Position		      [815, 796, 870, 814]
       ZOrder		      -9
       BackgroundColor	      "[0.420087, 0.415623, 0.455000]"
       ShowName		      off
@@ -1654,7 +1653,7 @@ Model {
       BlockType		      Gain
       Name		      "Gain"
       SID		      "200"
-      Position		      [715, 209, 765, 241]
+      Position		      [765, 209, 815, 241]
       ZOrder		      -8
       Gain		      "4000"
       ParamDataTypeStr	      "Inherit: Inherit via internal rule"
@@ -1665,7 +1664,7 @@ Model {
       BlockType		      Gain
       Name		      "Gain1"
       SID		      "290"
-      Position		      [715, 254, 765, 286]
+      Position		      [765, 254, 815, 286]
       ZOrder		      -8
       Gain		      "7000"
       ParamDataTypeStr	      "Inherit: Inherit via internal rule"
@@ -1676,7 +1675,7 @@ Model {
       BlockType		      Gain
       Name		      "Gain2"
       SID		      "378"
-      Position		      [1340, 189, 1390, 221]
+      Position		      [1330, 199, 1380, 231]
       ZOrder		      -8
       ParamDataTypeStr	      "Inherit: Inherit via internal rule"
       OutDataTypeStr	      "Inherit: Inherit via internal rule"
@@ -1686,7 +1685,7 @@ Model {
       BlockType		      Goto
       Name		      "Goto"
       SID		      "11"
-      Position		      [260, 214, 315, 236]
+      Position		      [340, 249, 395, 271]
       ZOrder		      -10
       BackgroundColor	      "lightBlue"
       ShowName		      off
@@ -1696,7 +1695,7 @@ Model {
       BlockType		      Goto
       Name		      "Goto1"
       SID		      "91"
-      Position		      [460, 214, 515, 236]
+      Position		      [510, 214, 565, 236]
       ZOrder		      -10
       BackgroundColor	      "lightBlue"
       ShowName		      off
@@ -1706,7 +1705,7 @@ Model {
       BlockType		      Goto
       Name		      "Goto2"
       SID		      "295"
-      Position		      [475, 339, 530, 361]
+      Position		      [525, 339, 580, 361]
       ZOrder		      -10
       BackgroundColor	      "lightBlue"
       ShowName		      off
@@ -1716,7 +1715,7 @@ Model {
       BlockType		      Goto
       Name		      "Goto3"
       SID		      "379"
-      Position		      [1415, 194, 1470, 216]
+      Position		      [1405, 204, 1460, 226]
       ZOrder		      -10
       ForegroundColor	      "gray"
       BackgroundColor	      "[0.000000, 0.017567, 0.527000]"
@@ -1727,7 +1726,7 @@ Model {
       BlockType		      Goto
       Name		      "Goto5"
       SID		      "255"
-      Position		      [505, 714, 560, 736]
+      Position		      [395, 724, 450, 746]
       ZOrder		      -10
       BackgroundColor	      "gray"
       ShowName		      off
@@ -1737,7 +1736,7 @@ Model {
       BlockType		      Goto
       Name		      "Goto8"
       SID		      "12"
-      Position		      [985, 279, 1040, 301]
+      Position		      [930, 239, 985, 261]
       ZOrder		      -10
       BackgroundColor	      "darkGreen"
       ShowName		      off
@@ -1748,7 +1747,7 @@ Model {
       Name		      "Manual Switch"
       SID		      "312"
       Ports		      [2, 1]
-      Position		      [1250, 667, 1280, 703]
+      Position		      [1140, 677, 1170, 713]
       ZOrder		      -13
       LibraryVersion	      "1.260"
       SourceBlock	      "simulink/Signal\nRouting/Manual Switch"
@@ -1762,7 +1761,7 @@ Model {
       Name		      "Mux"
       SID		      "229"
       Ports		      [2, 1]
-      Position		      [1385, 476, 1390, 534]
+      Position		      [1275, 486, 1280, 544]
       ZOrder		      -16
       ShowName		      off
       Inputs		      "2"
@@ -1773,7 +1772,7 @@ Model {
       Name		      "Mux1"
       SID		      "291"
       Ports		      [2, 1]
-      Position		      [795, 202, 800, 293]
+      Position		      [845, 202, 850, 293]
       ZOrder		      -16
       ShowName		      off
       Inputs		      "2"
@@ -1784,7 +1783,7 @@ Model {
       Name		      "Mux2"
       SID		      "302"
       Ports		      [2, 1]
-      Position		      [1385, 546, 1390, 604]
+      Position		      [1275, 556, 1280, 614]
       ZOrder		      -16
       ShowName		      off
       Inputs		      "2"
@@ -1795,7 +1794,7 @@ Model {
       Name		      "Product1"
       SID		      "185"
       Ports		      [2, 1]
-      Position		      [940, 572, 980, 628]
+      Position		      [830, 582, 870, 638]
       ZOrder		      -13
       ShowName		      off
       Multiplication	      "Matrix(*)"
@@ -1808,7 +1807,7 @@ Model {
       Name		      "Product2"
       SID		      "257"
       Ports		      [2, 1]
-      Position		      [720, 627, 760, 683]
+      Position		      [610, 637, 650, 693]
       ZOrder		      -13
       ShowName		      off
       Multiplication	      "Matrix(*)"
@@ -1821,7 +1820,7 @@ Model {
       Name		      "Product3"
       SID		      "316"
       Ports		      [2, 1]
-      Position		      [870, 717, 910, 773]
+      Position		      [800, 727, 840, 783]
       ZOrder		      -13
       ShowName		      off
       Multiplication	      "Matrix(*)"
@@ -1834,7 +1833,7 @@ Model {
       Name		      "Product4"
       SID		      "319"
       Ports		      [2, 1]
-      Position		      [1150, 647, 1190, 703]
+      Position		      [1040, 657, 1080, 713]
       ZOrder		      -13
       ShowName		      off
       Multiplication	      "Matrix(*)"
@@ -1847,7 +1846,7 @@ Model {
       Name		      "Radians\nto Degrees1"
       SID		      "198"
       Ports		      [1, 1]
-      Position		      [1040, 535, 1070, 565]
+      Position		      [930, 545, 960, 575]
       NamePlacement	      "alternate"
       LibraryVersion	      "1.44"
       SourceBlock	      "simulink_extras/Transformations/Radians\nto Degrees"
@@ -1858,7 +1857,7 @@ Model {
       Name		      "Selector1"
       SID		      "14"
       Ports		      [1, 1]
-      Position		      [140, 193, 185, 257]
+      Position		      [220, 228, 265, 292]
       ZOrder		      -17
       ShowName		      off
       IndexMode		      "Zero-based"
@@ -1872,7 +1871,7 @@ Model {
       Name		      "Sent JntAnglVels"
       SID		      "199"
       Ports		      [1]
-      Position		      [1170, 534, 1200, 566]
+      Position		      [1060, 544, 1090, 576]
       ZOrder		      -3
       Floating		      off
       Location		      [323, 495, 886, 866]
@@ -1904,20 +1903,21 @@ Model {
       Name		      "Sine Wave2"
       SID		      "261"
       Ports		      [0, 1]
-      Position		      [395, 245, 425, 275]
+      Position		      [445, 245, 475, 275]
       ZOrder		      -21
-      Amplitude		      "0.01"
+      Amplitude		      "0.005"
       Bias		      "0.02407"
       Frequency		      "0.1"
+      Phase		      "pi/2"
     }
     Block {
       BlockType		      Sin
       Name		      "Sine y"
       SID		      "293"
       Ports		      [0, 1]
-      Position		      [395, 300, 425, 330]
+      Position		      [445, 300, 475, 330]
       ZOrder		      -21
-      Amplitude		      "0.01"
+      Amplitude		      "0.005"
       Bias		      "-0.0681"
       Frequency		      "0.1"
     }
@@ -1926,7 +1926,7 @@ Model {
       Name		      "Soft Real Time"
       SID		      "85"
       Ports		      []
-      Position		      [103, 90, 190, 121]
+      Position		      [183, 125, 270, 156]
       ShowName		      off
       LibraryVersion	      "1.7"
       SourceBlock	      "utility/Soft Real Time"
@@ -1938,7 +1938,7 @@ Model {
       Name		      "Submatrix4"
       SID		      "164"
       Ports		      [1, 1]
-      Position		      [550, 545, 600, 585]
+      Position		      [440, 555, 490, 595]
       ShowName		      off
       LibraryVersion	      "1.898"
       SourceBlock	      "dspmtrx3/Submatrix"
@@ -1959,7 +1959,7 @@ Model {
       Name		      "Sum"
       SID		      "15"
       Ports		      [2, 1]
-      Position		      [595, 258, 610, 307]
+      Position		      [645, 258, 660, 307]
       ZOrder		      -18
       ShowName		      off
       Inputs		      "+-"
@@ -1972,7 +1972,7 @@ Model {
       Name		      "Sum1"
       SID		      "314"
       Ports		      [2, 1]
-      Position		      [1005, 673, 1020, 722]
+      Position		      [895, 683, 910, 732]
       ZOrder		      -18
       ShowName		      off
       Inputs		      "+-"
@@ -1985,7 +1985,7 @@ Model {
       Name		      "Sum2"
       SID		      "320"
       Ports		      [2, 1]
-      Position		      [1320, 648, 1335, 697]
+      Position		      [1210, 658, 1225, 707]
       ZOrder		      -18
       ShowName		      off
       InputSameDT	      off
@@ -1997,7 +1997,7 @@ Model {
       Name		      "Sum3"
       SID		      "384"
       Ports		      [2, 1]
-      Position		      [1005, 783, 1020, 832]
+      Position		      [895, 793, 910, 842]
       ZOrder		      -18
       ShowName		      off
       Inputs		      "+-"
@@ -2010,7 +2010,7 @@ Model {
       Name		      "Sum5"
       SID		      "377"
       Ports		      [2, 1]
-      Position		      [1285, 178, 1300, 227]
+      Position		      [1275, 188, 1290, 237]
       ZOrder		      -18
       ShowName		      off
       Inputs		      "+-"
@@ -2023,7 +2023,7 @@ Model {
       Name		      "Vector\nConcatenate"
       SID		      "88"
       Ports		      [2, 1]
-      Position		      [485, 251, 490, 289]
+      Position		      [535, 251, 540, 289]
       ZOrder		      -22
     }
     Block {
@@ -2031,22 +2031,22 @@ Model {
       Name		      "XY Graph1"
       SID		      "228"
       Ports		      [2]
-      Position		      [270, 280, 300, 315]
+      Position		      [350, 315, 380, 350]
       ZOrder		      -8
       LibraryVersion	      "1.260"
       SourceBlock	      "simulink/Sinks/XY Graph"
       SourceType	      "XY scope."
-      xmin		      "0.01"
-      xmax		      "0.025"
-      ymin		      "-0.2"
-      ymax		      "-0.1"
+      xmin		      "0.015"
+      xmax		      "0.035"
+      ymin		      "-0.074"
+      ymax		      "-0.060"
       st		      "-1"
     }
     Block {
       BlockType		      From
       Name		      "com.b1"
       SID		      "184"
-      Position		      [865, 604, 915, 626]
+      Position		      [755, 614, 805, 636]
       ZOrder		      -9
       BackgroundColor	      "darkGreen"
       GotoTag		      "dx_com"
@@ -2055,7 +2055,7 @@ Model {
       BlockType		      Constant
       Name		      "plannedPose1"
       SID		      "364"
-      Position		      [1150, 148, 1215, 172]
+      Position		      [1140, 158, 1205, 182]
       ZOrder		      -5
       Value		      "[zeros(1,3) [ -0.5234    0.5235    0.0000    0.7853    0.0000] [-0.5234    0.5235    0.0000    0.7"
       "853    0.0000] [ 0.0000    0.1396    0.0000  0.0000  0.0000   -0.1396] [0.0000    0.1396    0.0000    0.0000   0"
@@ -2066,7 +2066,7 @@ Model {
       Name		      "robot angles2"
       SID		      "19"
       Ports		      [0, 1]
-      Position		      [50, 193, 105, 257]
+      Position		      [130, 228, 185, 292]
       BackgroundColor	      "lightBlue"
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -2077,7 +2077,7 @@ Model {
       MaskHideContents	      off
       System {
 	Name			"robot angles2"
-	Location		[745, 253, 1207, 602]
+	Location		[746, 281, 1208, 630]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -2226,7 +2226,7 @@ Model {
       Name		      "robot angles3"
       SID		      "365"
       Ports		      [0, 1]
-      Position		      [1155, 208, 1210, 272]
+      Position		      [1145, 218, 1200, 282]
       BackgroundColor	      "orange"
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -2386,7 +2386,7 @@ Model {
       Name		      "robot angular\nveocities"
       SID		      "243"
       Ports		      [0, 1]
-      Position		      [410, 695, 450, 755]
+      Position		      [300, 705, 340, 765]
       BackgroundColor	      "[0.732000, 0.463600, 0.000000]"
       NamePlacement	      "alternate"
       MinAlgLoopOccurrences   off
@@ -2546,7 +2546,7 @@ Model {
       Name		      "setVelDes1"
       SID		      "186"
       Ports		      [1]
-      Position		      [1385, 643, 1440, 707]
+      Position		      [1275, 653, 1330, 717]
       BackgroundColor	      "orange"
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -2705,7 +2705,7 @@ Model {
       BlockType		      Constant
       Name		      "sigma2"
       SID		      "183"
-      Position		      [745, 593, 775, 607]
+      Position		      [635, 603, 665, 617]
       ZOrder		      -4
       BackgroundColor	      "red"
       Value		      "1e-4"
@@ -2828,6 +2828,7 @@ Model {
 	DstPort			1
       }
       Branch {
+	Points			[0, 145]
 	DstBlock		"Product3"
 	DstPort			1
       }
@@ -2892,7 +2893,6 @@ Model {
     Line {
       SrcBlock		      "Product2"
       SrcPort		      1
-      Points		      [10, 0; 0, 10]
       DstBlock		      "COM1"
       DstPort		      1
     }
@@ -2929,7 +2929,6 @@ Model {
     Line {
       SrcBlock		      "Mux1"
       SrcPort		      1
-      Points		      [55, 0; 0, 40]
       DstBlock		      "Goto8"
       DstPort		      1
     }
@@ -2973,7 +2972,7 @@ Model {
     Line {
       SrcBlock		      "Product3"
       SrcPort		      1
-      Points		      [75, 0]
+      Points		      [35, 0]
       DstBlock		      "Sum1"
       DstPort		      2
     }
@@ -3063,14 +3062,14 @@ Model {
     Annotation {
       SID		      "31"
       Name		      "xr_com"
-      Position		      [548, 259]
+      Position		      [598, 259]
       ForegroundColor	      "white"
       BackgroundColor	      "black"
     }
     Annotation {
       SID		      "32"
       Name		      " dx_com "
-      Position		      [902, 252]
+      Position		      [892, 237]
       ForegroundColor	      "white"
       BackgroundColor	      "black"
     }
@@ -3081,31 +3080,31 @@ Model {
       "                                                                                                                "
       "                                                                                                                "
       "                                                    "
-      Position		      [960, 458]
+      Position		      [850, 468]
       BackgroundColor	      "yellow"
     }
     Annotation {
       SID		      "82"
       Name		      "NAIVE COM CONTROLLER"
-      Position		      [135, 135]
+      Position		      [215, 170]
     }
     Annotation {
       SID		      "236"
       Name		      "dx_com = Kp*(com_d - com)"
-      Position		      [481, 97]
+      Position		      [726, 152]
       BackgroundColor	      "cyan"
       FontSize		      20
     }
     Annotation {
       SID		      "259"
       Name		      "default: 1e-4"
-      Position		      [760, 587]
+      Position		      [650, 597]
     }
     Annotation {
       SID		      "281"
       Name		      "Jacobian, Robot Angles and Robot Angular Velocities, they all have the same structure\n[TORSO(2)  T"
       "ORSO(1)  TORSO(0)    LEFTARM    RIGHTARM    LEFTLEG    RIGHTLEG]"
-      Position		      [653, 494]
+      Position		      [543, 504]
       FontSize		      14
     }
     Annotation {
@@ -3113,21 +3112,20 @@ Model {
       Name		      "COM REFERENCE                                                                                      "
       "                                                                                                                "
       "                         "
-      Position		      [630, 58]
+      Position		      [520, 68]
       BackgroundColor	      "yellow"
     }
     Annotation {
       SID		      "381"
       Name		      "POSTURAL REFERENCE                                                                                 "
-      "                                                                                                                "
-      "   "
-      Position		      [1465, 58]
+      "                                                "
+      Position		      [1310, 68]
       BackgroundColor	      "yellow"
     }
     Annotation {
       SID		      "383"
       Name		      "COM Null Space"
-      Position		      [1072, 654]
+      Position		      [962, 664]
     }
   }
 }
