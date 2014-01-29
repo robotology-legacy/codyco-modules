@@ -88,8 +88,8 @@ namespace adaptiveControl
         }
     };
     
-    const JointLimit kneeJoint(-2.18, 0.4);
-    const JointLimit hipPitchJoint(-0.75, 2.3);
+    const JointLimit kneeJoint(-1.73, 0);
+    const JointLimit hipPitchJoint(-0.52, 0.92);
     
     
     // ******************************************************************************************************************************
