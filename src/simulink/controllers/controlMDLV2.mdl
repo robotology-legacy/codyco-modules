@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.64"
+    ComputedModelVersion    "1.67"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -38,9 +38,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Nov 21 12:23:28 2013"
-  RTWModifiedTimeStamp	  306936636
-  ModelVersionFormat	  "1.%<AutoIncrement:64>"
+  LastModifiedDate	  "Thu Jan 30 14:43:20 2014"
+  RTWModifiedTimeStamp	  312993797
+  ModelVersionFormat	  "1.%<AutoIncrement:67>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -78,7 +78,6 @@ Model {
     $ObjectID		    2
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "controlMDLV2"
-    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -865,7 +864,7 @@ Model {
   }
   System {
     Name		    "controlMDLV2"
-    Location		    [52, 53, 1366, 768]
+    Location		    [65, 53, 1440, 900]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -877,9 +876,9 @@ Model {
     TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
     TiledPageScale	    1
     ShowPageBoundaries	    off
-    ZoomFactor		    "72"
+    ZoomFactor		    "111"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "497"
+    SIDHighWatermark	    "499"
     Block {
       BlockType		      SubSystem
       Name		      "6DError"
@@ -1624,7 +1623,7 @@ Model {
       Name		      "COM Jacobian"
       SID		      "313"
       Ports		      [0, 1]
-      Position		      [1035, 570, 1075, 630]
+      Position		      [1000, 570, 1040, 630]
       BackgroundColor	      "[1.000000, 0.566599, 0.544887]"
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -2455,7 +2454,7 @@ Model {
       BlockType		      From
       Name		      "From14"
       SID		      "449"
-      Position		      [2095, 520, 2160, 540]
+      Position		      [2220, 635, 2285, 655]
       ZOrder		      -9
       BackgroundColor	      "[0.067189, 0.900000, 0.000000]"
       ShowName		      off
@@ -2465,7 +2464,7 @@ Model {
       BlockType		      From
       Name		      "From15"
       SID		      "450"
-      Position		      [2270, 620, 2335, 640]
+      Position		      [2395, 735, 2460, 755]
       ZOrder		      -9
       BackgroundColor	      "[0.703673, 0.839632, 1.000000]"
       ShowName		      off
@@ -2910,7 +2909,7 @@ Model {
       Name		      "Overwrite Values"
       SID		      "451"
       Ports		      [2, 1]
-      Position		      [2595, 617, 2670, 668]
+      Position		      [2720, 732, 2795, 783]
       LibraryVersion	      "1.898"
       SourceBlock	      "dspmtrx3/Overwrite Values"
       SourceType	      "Overwrite Values"
@@ -3263,7 +3262,7 @@ Model {
       Name		      "Product22"
       SID		      "452"
       Ports		      [2, 1]
-      Position		      [2190, 467, 2230, 523]
+      Position		      [2315, 582, 2355, 638]
       ZOrder		      -13
       ShowName		      off
       Multiplication	      "Matrix(*)"
@@ -3366,11 +3365,11 @@ Model {
       Name		      "Reshape2"
       SID		      "359"
       Ports		      [1, 1]
-      Position		      [1100, 588, 1130, 612]
+      Position		      [1065, 588, 1095, 612]
       ZOrder		      -23
       ShowName		      off
       OutputDimensionality    "Customize"
-      OutputDimensions	      "[6,31]"
+      OutputDimensions	      "[31,6]"
     }
     Block {
       BlockType		      SubSystem
@@ -3773,7 +3772,7 @@ Model {
       Name		      "Selector4"
       SID		      "453"
       Ports		      [2, 1]
-      Position		      [2275, 518, 2320, 582]
+      Position		      [2400, 633, 2445, 697]
       ZOrder		      -17
       ShowName		      off
       InputPortWidth	      "31"
@@ -3837,7 +3836,7 @@ Model {
       Name		      "Sum11"
       SID		      "454"
       Ports		      [2, 1]
-      Position		      [2350, 616, 2370, 674]
+      Position		      [2475, 731, 2495, 789]
       ZOrder		      -18
       ShowName		      off
       InputSameDT	      off
@@ -4004,6 +4003,19 @@ Model {
       SID		      "426"
       Ports		      [1, 1]
       Position		      [1140, 307, 1175, 333]
+      ShowName		      off
+      LibraryVersion	      "1.898"
+      SourceBlock	      "dspmtrx3/Transpose"
+      SourceType	      "Transpose"
+      Hermitian		      off
+      overflowFlag	      off
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "Transpose3"
+      SID		      "499"
+      Ports		      [1, 1]
+      Position		      [1115, 587, 1135, 613]
       ShowName		      off
       LibraryVersion	      "1.898"
       SourceBlock	      "dspmtrx3/Transpose"
@@ -4898,7 +4910,7 @@ Model {
       BlockType		      Constant
       Name		      "active jnts\n without base1"
       SID		      "455"
-      Position		      [2190, 551, 2250, 579]
+      Position		      [2315, 666, 2375, 694]
       ZOrder		      -5
       Value		      "[1:31-6]"
     }
@@ -4919,7 +4931,7 @@ Model {
       MaskHideContents	      off
       System {
 	Name			"baseVelocity1"
-	Location		[707, 497, 1343, 739]
+	Location		[403, 81, 1039, 310]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -5160,7 +5172,7 @@ Model {
       Name		      "joint vels limits"
       SID		      "456"
       Ports		      [1, 1]
-      Position		      [2425, 708, 2555, 742]
+      Position		      [2550, 823, 2680, 857]
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
       RTWSystemCode	      "Auto"
@@ -5186,8 +5198,8 @@ Model {
       MaskValueString	      "1.0"
       System {
 	Name			"joint vels limits"
-	Location		[241, 377, 767, 582]
-	Open			off
+	Location		[242, 405, 791, 610]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -5203,7 +5215,7 @@ Model {
 	  BlockType		  Inport
 	  Name			  "dqjDes"
 	  SID			  "457"
-	  Position		  [60, 53, 90, 67]
+	  Position		  [50, 68, 80, 82]
 	  IconDisplay		  "Port number"
 	}
 	Block {
@@ -5211,7 +5223,7 @@ Model {
 	  Name			  "Compare\nTo Constant"
 	  SID			  "458"
 	  Ports			  [1, 1]
-	  Position		  [130, 46, 175, 74]
+	  Position		  [120, 61, 165, 89]
 	  ZOrder		  -5
 	  ShowName		  off
 	  LibraryVersion	  "1.260"
@@ -5227,7 +5239,7 @@ Model {
 	  Name			  "Compare\nTo Constant1"
 	  SID			  "459"
 	  Ports			  [1, 1]
-	  Position		  [130, 91, 175, 119]
+	  Position		  [120, 106, 165, 134]
 	  ZOrder		  -5
 	  ShowName		  off
 	  LibraryVersion	  "1.260"
@@ -5243,7 +5255,7 @@ Model {
 	  Name			  "Compare\nTo Constant4"
 	  SID			  "460"
 	  Ports			  [1, 1]
-	  Position		  [340, 71, 385, 99]
+	  Position		  [330, 86, 375, 114]
 	  ZOrder		  -5
 	  LibraryVersion	  "1.260"
 	  SourceBlock		  "simulink/Logic and Bit\nOperations/Compare\nTo Constant"
@@ -5258,7 +5270,7 @@ Model {
 	  Name			  "Logical\nOperator3"
 	  SID			  "461"
 	  Ports			  [2, 1]
-	  Position		  [210, 67, 240, 98]
+	  Position		  [200, 82, 230, 113]
 	  ZOrder		  -17
 	  ShowName		  off
 	  Operator		  "OR"
@@ -5270,7 +5282,7 @@ Model {
 	  Name			  "Sum of\nElements"
 	  SID			  "462"
 	  Ports			  [1, 1]
-	  Position		  [270, 70, 300, 100]
+	  Position		  [260, 85, 290, 115]
 	  ZOrder		  -33
 	  Inputs		  "+"
 	  InputSameDT		  off
@@ -5281,7 +5293,7 @@ Model {
 	  BlockType		  Outport
 	  Name			  "jntVelsTooLarge?"
 	  SID			  "463"
-	  Position		  [450, 78, 480, 92]
+	  Position		  [440, 93, 470, 107]
 	  IconDisplay		  "Port number"
 	}
 	Line {
@@ -5337,7 +5349,7 @@ Model {
       Name		      "jointLimits"
       SID		      "464"
       Ports		      [2, 1]
-      Position		      [2450, 537, 2525, 588]
+      Position		      [2575, 652, 2650, 703]
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
       RTWSystemCode	      "Auto"
@@ -5752,7 +5764,7 @@ Model {
       BlockType		      Constant
       Name		      "plannedPose7"
       SID		      "481"
-      Position		      [2095, 468, 2160, 492]
+      Position		      [2220, 583, 2285, 607]
       ZOrder		      -5
       ShowName		      off
       Value		      "eye(25+6)"
@@ -5770,7 +5782,7 @@ Model {
       BlockType		      Constant
       Name		      "plannedPose9"
       SID		      "482"
-      Position		      [2495, 618, 2560, 642]
+      Position		      [2620, 733, 2685, 757]
       ZOrder		      -5
       ShowName		      off
       Value		      "eye(25+6)"
@@ -6289,7 +6301,7 @@ Model {
       BlockType		      Constant
       Name		      "safetyThreshold"
       SID		      "483"
-      Position		      [2290, 650, 2335, 670]
+      Position		      [2415, 765, 2460, 785]
       ZOrder		      -5
       BackgroundColor	      "red"
       Value		      "0.1"
@@ -7122,7 +7134,7 @@ Model {
     Line {
       SrcBlock		      "Reshape2"
       SrcPort		      1
-      DstBlock		      "Selector3"
+      DstBlock		      "Transpose3"
       DstPort		      1
     }
     Line {
@@ -7578,6 +7590,12 @@ Model {
       DstBlock		      "Scope"
       DstPort		      1
     }
+    Line {
+      SrcBlock		      "Transpose3"
+      SrcPort		      1
+      DstBlock		      "Selector3"
+      DstPort		      1
+    }
     Annotation {
       SID		      "59"
       Name		      "  qr  "
@@ -7910,48 +7928,48 @@ Model {
     Annotation {
       SID		      "484"
       Name		      " S "
-      Position		      [2131, 455]
+      Position		      [2256, 570]
       ForegroundColor	      "white"
       BackgroundColor	      "black"
     }
     Annotation {
       SID		      "485"
       Name		      "dqjDes"
-      Position		      [2256, 511]
+      Position		      [2381, 626]
     }
     Annotation {
       SID		      "486"
       Name		      ">>>  APPLYING JNTS LIMITS"
-      Position		      [2409, 516]
+      Position		      [2534, 631]
       ForegroundColor	      "white"
       BackgroundColor	      "black"
     }
     Annotation {
       SID		      "487"
       Name		      "djDes\n (dqDeswithout base)"
-      Position		      [2386, 553]
+      Position		      [2511, 668]
     }
     Annotation {
       SID		      "488"
       Name		      "SELECTION MATRIX\n (TO BROADCAST!!!!)"
-      Position		      [2674, 589]
+      Position		      [2799, 704]
     }
     Annotation {
       SID		      "489"
       Name		      " S "
-      Position		      [2526, 655]
+      Position		      [2651, 770]
       ForegroundColor	      "white"
       BackgroundColor	      "black"
     }
     Annotation {
       SID		      "490"
       Name		      "UPDATED\nSELECTION \nMATRIX"
-      Position		      [2717, 638]
+      Position		      [2842, 753]
     }
     Annotation {
       SID		      "491"
       Name		      "ATTENTION: IF THIS IS 1\nTHE SIMULATION\nSHOULD STOP"
-      Position		      [2641, 727]
+      Position		      [2766, 842]
       ForegroundColor	      "white"
       BackgroundColor	      "red"
     }
