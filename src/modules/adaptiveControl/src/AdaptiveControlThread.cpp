@@ -643,12 +643,12 @@ namespace adaptiveControl {
         //_tau(1): only active joint
         //_piHat(8)
         
-        vector.push_back(convertRadToDeg(_q(0)));
-        vector.push_back(convertRadToDeg(_q(1)));
-        vector.push_back(_dq(0));
-        vector.push_back(_dq(1));
-        vector.push_back(_outputTau(activeJointIndex));
-        vector.push_back(convertRadToDeg(_q(1) - _currentRef));
+        vector.push_back(convertRadToDeg(_q(0))); //0
+        vector.push_back(convertRadToDeg(_q(1))); //1
+        vector.push_back(_dq(0)); //2
+        vector.push_back(_dq(1)); //3
+        vector.push_back(_outputTau(activeJointIndex)); //4          <=== tau
+        vector.push_back(convertRadToDeg(_q(1) - _currentRef)); //5  <=== q_tilde
         Vector2d s = _dq - _xi;
 
         
@@ -658,21 +658,28 @@ namespace adaptiveControl {
             norm += _piHat(i) * _piHat(i);
 //             vector.push_back(_piHat(i));
         }
-        vector.push_back(norm);
-        vector.push_back(_massMatrixDeterminant);
-        vector.push_back(_minDeterminantValue);
-        vector.push_back(_piHatModificationOn ? 1 : 0);
-        vector.push_back(_errorIntegral);
-        vector.push_back(_sIntegral(0));
-        vector.push_back(_sIntegral(1));
-		vector.push_back(s(1)*s(1) + s(0)*s(0));
+        vector.push_back(norm);                        //6
+        vector.push_back(_massMatrixDeterminant);       //7    <======= det
+        vector.push_back(_minDeterminantValue);         //8    <======= det _lower limit
+        vector.push_back(_piHatModificationOn ? 1 : 0); //9
+        vector.push_back(_errorIntegral);           //10
+        vector.push_back(_sIntegral(0));            //11 
+        vector.push_back(_sIntegral(1));            //12
+        vector.push_back(s(1)*s(1) + s(0)*s(0));      //13  s norm
         
          Matrix28d regressor;
         computeRegressor(_q, _dq, _xi, _dxi, regressor);
         
-        //compute torques and send them to actuation
+        //compute feedforward torque
         double tau = regressor.row(1) * _piHat;
-        vector.push_back(tau);
+        vector.push_back(tau);                      //14
+        
+        //15 to 22
+        for (int i = 0; i < 8; i++) {
+            vector.push_back(_piHat(i));
+        }
+        vector.push_back(s(0));      //23  s 1
+        vector.push_back(s(1));      //24  s 2
         
         _debugPort->write();
 		
