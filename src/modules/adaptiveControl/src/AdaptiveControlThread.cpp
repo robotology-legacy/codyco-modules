@@ -338,18 +338,21 @@ namespace adaptiveControl {
         _previousTime = now;
         
         //update state variables (only if sendCommands = true, otherwise the updating law integrates a constant value)
-        double dotOmega = -_refSystemGain * (_refAngularVelocity - 2 * pi * _refDesiredFrequency);
+        //double dotOmega = -_refSystemGain * (_refAngularVelocity - 2 * pi * _refDesiredFrequency);
         if (_outputEnabled) {
             _piHat = _piHat + dt * _dpiHat;
             _xi(0) = _xi(0) + dt * _dxi(0);
-            _refAngularVelocity = _refAngularVelocity + dt * dotOmega;
+            //_refAngularVelocity = _refAngularVelocity + dt * dotOmega;
         }
         
         //define reference trajectory
-        double q_ref = _refBaseline + _refAmplitude * sin(_refAngularVelocity * now + _refPhase);
-        double dq_ref = _refAmplitude * cos(_refAngularVelocity * now + _refPhase) * (dotOmega * now + _refAngularVelocity);
-        double ddq_ref = -_refAmplitude * sin(_refAngularVelocity * now + _refPhase) * (dotOmega * now + _refAngularVelocity) * (dotOmega * now + _refAngularVelocity) 
-                         + _refAmplitude * cos(_refAngularVelocity * now + _refPhase) * (-_refSystemGain * dotOmega * now + 2 * dotOmega);
+        double q_ref = _refBaseline + _refAmplitude * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
+        double dq_ref = _refAmplitude * 2 * pi * _refDesiredFrequency * cos(2 * pi * _refDesiredFrequency * now + _refPhase);
+        double ddq_ref = -_refAmplitude * 4 * pi * pi * _refDesiredFrequency * _refDesiredFrequency * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
+        //double q_ref = _refBaseline + _refAmplitude * sin(_refAngularVelocity * now + _refPhase);
+        //double dq_ref = _refAmplitude * cos(_refAngularVelocity * now + _refPhase) * (dotOmega * now + _refAngularVelocity);
+        //double ddq_ref = -_refAmplitude * sin(_refAngularVelocity * now + _refPhase) * (dotOmega * now + _refAngularVelocity) * (dotOmega * now + _refAngularVelocity) 
+         //                + _refAmplitude * cos(_refAngularVelocity * now + _refPhase) * (-_refSystemGain * dotOmega * now + 2 * dotOmega);
         
         _currentRef = q_ref;
         
@@ -513,7 +516,7 @@ namespace adaptiveControl {
         }
         
         //Check joint limits   
-        if (!hipPitchJoint.isInLimit(_q(0), 0.9) || !kneeJoint.isInLimit(_q(1), 0.9)) 
+        if (!hipPitchJoint.isInLimit(_q(0), 1.95) || !kneeJoint.isInLimit(_q(1), 1.95)) 
             haltControl(q);
         
 //                     if (velocities(0)*velocities(0) < convertDegToRad(5))
@@ -607,6 +610,9 @@ namespace adaptiveControl {
             double newPos[ICUB_PART_DOF];
             for (int i = 0; i < ICUB_PART_DOF; i++) {
                 newPos[i] = convertRadToDeg(haltPositions[i]);
+            }
+            for (int i = 0; i < ICUB_PART_DOF; i++) {
+            _controlMode->setPositionMode(i);
             }
             _positionControl->positionMove(newPos);
             info_out("Halting the robot to: ");
