@@ -161,18 +161,18 @@ bool ParamHelperClient::readStreamParams(bool blockingRead)
     {
         if(!in->get(i).isList())
         {
-            logMsg(strcat("[readStreamParams] Value ",i," of read Bottle is not a list! Skipping it."), MSG_ERROR);
+            logMsg(strapp("[readStreamParams] Value ",i," of read Bottle is not a list! Skipping it."), MSG_ERROR);
             continue;
         }
         Bottle *b = in->get(i).asList();
         if(b->size()<1)
         {
-            logMsg(strcat("[readStreamParams] Value ",i," of read Bottle is an empty list! Skipping it."), MSG_ERROR);
+            logMsg(strapp("[readStreamParams] Value ",i," of read Bottle is an empty list! Skipping it."), MSG_ERROR);
             continue;
         }
         if(!b->get(0).isInt())
         {
-            logMsg(strcat("[readStreamParams] 1st element of Bottle ",i," is not an int (",b->get(0).toString().c_str()
+            logMsg(strapp("[readStreamParams] 1st element of Bottle ",i," is not an int (",b->get(0).toString().c_str()
                 ,")! Skipping it."), MSG_ERROR);
             continue;
         }
@@ -193,9 +193,9 @@ bool ParamHelperClient::setRpcParam(int paramId, Bottle *reply)
     if(!initDone)
         return false;
     ///< check that the parameter exists and it can be written
-    if(!hasParam(paramId)){ logMsg(strcat("[setRpcParam] There is no param with id ",paramId), MSG_ERROR); return false; }
+    if(!hasParam(paramId)){ logMsg(strapp("[setRpcParam] There is no param with id ",paramId), MSG_ERROR); return false; }
     ParamProxyInterface *ppi = paramList[paramId];
-    if(!ppi->ioType.canWrite()){ logMsg(strcat("[setRpcParam] Parameter ",ppi->name," cannot be written"),MSG_ERROR); return false;}
+    if(!ppi->ioType.canWrite()){ logMsg(strapp("[setRpcParam] Parameter ",ppi->name," cannot be written"),MSG_ERROR); return false;}
 
     ///< prepare the Bottle to send
     Bottle outBottle;
@@ -222,9 +222,9 @@ bool ParamHelperClient::getRpcParam(int paramId, Bottle *reply)
     if(!initDone)
         return false;
     ///< check that the parameter exists and it can be written
-    if(!hasParam(paramId)){ logMsg(strcat("[getRpcParam] There is no param with id ",paramId), MSG_ERROR); return false; }
+    if(!hasParam(paramId)){ logMsg(strapp("[getRpcParam] There is no param with id ",paramId), MSG_ERROR); return false; }
     ParamProxyInterface *ppi = paramList[paramId];
-    if(!ppi->ioType.canRead()){ logMsg(strcat("[getRpcParam] Parameter ",ppi->name," cannot be read"),MSG_ERROR); return false;}
+    if(!ppi->ioType.canRead()){ logMsg(strapp("[getRpcParam] Parameter ",ppi->name," cannot be read"),MSG_ERROR); return false;}
 
     ///< prepare the Bottle to send
     Bottle outBottle;
@@ -245,7 +245,7 @@ bool ParamHelperClient::getRpcParam(int paramId, Bottle *reply)
     ///< read the reply with the parameter value
     if(!ppi->set(value, reply))
     { 
-        logMsg(strcat("[getRpcParam] Error while setting read value of ", ppi->name,": ",value.toString().c_str()), MSG_ERROR);
+        logMsg(strapp("[getRpcParam] Error while setting read value of ", ppi->name,": ",value.toString().c_str()), MSG_ERROR);
         return false;
     }
     return true;
@@ -257,7 +257,7 @@ bool ParamHelperClient::sendRpcCommand(int cmdId, Bottle *params, Bottle *reply)
     if(!initDone)
         return false;
     ///< check that the command exists
-    if(!hasCommand(cmdId)){ logMsg(strcat("[sendRpcCommand] There is no command with id ",cmdId), MSG_ERROR); return false; }
+    if(!hasCommand(cmdId)){ logMsg(strapp("[sendRpcCommand] There is no command with id ",cmdId), MSG_ERROR); return false; }
     CommandDescription &cd = cmdList[cmdId];
 
     ///< prepare the Bottle to send

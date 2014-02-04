@@ -192,12 +192,12 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
         if(posIntegral[i]>MAX_POS_INTEGRAL) 
         {
             posIntegral[i]=MAX_POS_INTEGRAL;
-            sendMsg(strcat("WARNING: Position integral reached its maximum value: ", MAX_POS_INTEGRAL), MSG_WARNING);
+            sendMsg(strapp("WARNING: Position integral reached its maximum value: ", MAX_POS_INTEGRAL), MSG_WARNING);
         }
         else if(posIntegral[i]<-MAX_POS_INTEGRAL) 
         {
             posIntegral[i]=-MAX_POS_INTEGRAL;
-            sendMsg(strcat("WARNING: Position integral reached its minimum value: ", -MAX_POS_INTEGRAL), MSG_WARNING);
+            sendMsg(strapp("WARNING: Position integral reached its minimum value: ", -MAX_POS_INTEGRAL), MSG_WARNING);
         }
     }
 
@@ -257,7 +257,7 @@ bool MotorFrictionExcitationThread::checkContactStopConditions()
     {
         if(stdDev.kt[currentGlobalJointIds[i]] > contactExc[contactExcCounter].paramCovarThresh[i])
         {
-            sendMsg(strcat("Standard deviation of 'kt' estimate of joint ",currentJointIds[i].description," is too large: ",
+            sendMsg(strapp("Standard deviation of 'kt' estimate of joint ",currentJointIds[i].description," is too large: ",
                 stdDev.kt[currentGlobalJointIds[i]], " > ", contactExc[contactExcCounter].paramCovarThresh[i]), MSG_INFO);
             
             ktStdDevThrMonitor = contactExc[contactExcCounter].paramCovarThresh[i];

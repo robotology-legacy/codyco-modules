@@ -121,7 +121,7 @@ bool ParamHelperBase::addParam(const ParamProxyInterface* pd)
 {
     if(hasParam(pd->id)) 
     {
-        logMsg(strcat("[addParam] Parameter ",paramList[pd->id]->name," has the same id of parameter ",pd->name), MSG_ERROR);
+        logMsg(strapp("[addParam] Parameter ",paramList[pd->id]->name," has the same id of parameter ",pd->name), MSG_ERROR);
         return false;   // there exists a parameter with the same id
     }
     paramList[pd->id] = pd->clone();
@@ -133,7 +133,7 @@ bool ParamHelperBase::addCommand(const CommandDescription &cd)
 {
     if(hasCommand(cd.id))
     {
-        logMsg(strcat("[addCommand] Command ",cmdList[cd.id].name," has the same id of command ",cd.name), MSG_ERROR);
+        logMsg(strapp("[addCommand] Command ",cmdList[cd.id].name," has the same id of command ",cd.name), MSG_ERROR);
         return false;   // there exists a command with the same id
     }
     cmdList[cd.id] = cd;
@@ -178,7 +178,7 @@ bool ParamHelperBase::writeParamsOnFile(string filename, int *paramIds, int para
         {
             if(!hasParam(paramIds[i]))
             {
-                logMsg(strcat("[writeParamsOnFile] There exists no parameter with id", paramIds[i]), MSG_ERROR);
+                logMsg(strapp("[writeParamsOnFile] There exists no parameter with id", paramIds[i]), MSG_ERROR);
                 continue;
             }
             ppi = paramList[paramIds[i]];
@@ -189,7 +189,7 @@ bool ParamHelperBase::writeParamsOnFile(string filename, int *paramIds, int para
     ///< close the file and return
     char the_path[256];
     GetCurrentDir(the_path, 255);
-    logMsg(strcat("Written file ", the_path,"\\",filename), MSG_INFO);
+    logMsg(strapp("Written file ", the_path,"\\",filename), MSG_INFO);
     file<<endl;
     file.close();
     return true;
