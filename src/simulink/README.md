@@ -1,12 +1,14 @@
 Simulink Library for Whole Body Control 
 ----------------------------------------------------------
 
-This document describes basic instructions on how to use this library, *tips and tricks* to do so and a walkthrough to get you started using it. Simulink blocks consist of S-functions (http://goo.gl/1GuHVd) which allow C/C++ user specific code compiled as Matlab Executable (MEX) files, thus extending the capabilities of the Simulink environment. In other words, MEX files have been created linking YARP, iCub and **iDynTree** (a more efficient and generic YARP-based robot dynamics library than its predecessor iDyn - http://goo.gl/BnGzKr) and wrapping the **Whole Body Interface** described in http://goo.gl/dBWO3k. Soft-Real Time is ensured by slowing down the simulation to respect a user specified rate.
+This document describes basic instructions on how to use this library, *tips and tricks* to do so and a walkthrough to get you started using it. Simulink blocks consist of S-functions (http://goo.gl/1GuHVd) which allow C/C++ user specific code compiled as Matlab Executable (MEX) files, thus extending the capabilities of the Simulink environment. In other words, MEX files have been created linking YARP, iCub and **iDynTree** (a more efficient and generic YARP-based robot dynamics library than its predecessor iDyn - http://goo.gl/BnGzKr) and wrapping the **Whole Body Interface** described in http://goo.gl/dBWO3k. Soft-Real Time is ensured by slowing down the simulation to respect a user specified rate. The following video shows a quick introduction to the way it works. For further information read the sections below.
 
 
+<p align="center">
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=h2T4BtuDiJg
 " target="_blank"><img src="http://img.youtube.com/vi/h2T4BtuDiJg/0.jpg" 
-alt="IMAGE ALT TEXT HERE" width="480" height="360" border="10" /></a>
+alt="Overview of the Simulink library for Whole Body Control" width="480" height="360" border="10" /></a>
+</p>
 
 
 
@@ -21,33 +23,18 @@ alt="IMAGE ALT TEXT HERE" width="480" height="360" border="10" /></a>
 * Gazebo Simulator + yarp plugins (if you wish to use Gazebo instead of iCub_SIM)
 
 ###### Installation
-Before going ahead with the compillation of the library, make sure that you have MATLAB and Simulink properly installed and running. Then, check that the MEX compiler for MATLAB is setup and working. For this you can try compiling some of MATLAB C code examples as described in [http://www.mathworks.com/help/matlab/ref/mex.html#btz1tb5-12].
+Before going ahead with the compilation of the library, make sure that you have MATLAB and Simulink properly installed and running. Then, check that the MEX compiler for MATLAB is setup and working. For this you can try compiling some of MATLAB C code examples as described in [http://www.mathworks.com/help/matlab/ref/mex.html#btz1tb5-12].
 
-1. **Compiling the Simulink Library.** When configuring the CMakeLists for CoDyCo make sure to enable the SIMULINK_LIBRARY flag by doing
+- **Compiling the Simulink Library.** When configuring the CMakeLists for CoDyCo make sure to enable the SIMULINK_LIBRARY flag by doing
 ```bash
     cd $CODYCO_DIR
     ccmake ../
 ```
-In the UI look for *SIMULINK_LIBRARY* and press enter to turn it ON/OFF. Then as usual type c to configure until no stars (*) show up and finally g to generate. Finally to compile type
-```bash
-    make
-```
-2. **Soft Real Time**. For the time being, this block has been taken from the Matlab File Exchange [http://goo.gl/8LMWGD] and it has to be compiled from within MATLAB by changing its current directory to 
+In the UI look for *SIMULINK_LIBRARY* and press enter to turn it ON/OFF. Then as usual type c to configure until no stars (*) show up and finally g to generate. Finally to compile type `make`.
 
-```bash
-    ${CODYCO_ROOT}/simulink/controllers/RealTimeSlower
-```
-and typing 
+- **Soft Real Time.** For the time being, this block has been taken from the Matlab File Exchange [http://goo.gl/8LMWGD] and it has to be compiled from within MATLAB by changing its current directory to `${CODYCO_ROOT}/simulink/controllers/RealTimeSlower` and typing `mex sfun_time.c`. This will create a mex file according to your operating system and architecture, e.g. for a 32bits Linux-based OS you will get sfun_time.mexglx. This mex file will be used by the example models included in `${CODYCO_ROOT}/simulink/controllers/` to slow down the simulation for a user-specified rate.
 
-```bash
-    mex sfun_time.c
-```
-This will create a mex file according to your operating system and architecture, e.g. for a 32bits Linux-based OS you will get sfun_time.mexglx. This mex file will be used by the example models included in 
-```bash
-    ${CODYCO_ROOT}/simulink/controllers/
-```
-to slow down the simulation for a user-specified rate.
-
+- **Preparing the MATLAB Environment.** When starting MATLAB remember for comodity 
 
 ###### Before Using
 
