@@ -17,7 +17,7 @@ alt="Overview of the Simulink library for Whole Body Control" width="480" height
 
 
 ###### Requirements
-* Matlab V. 7.1+ (Tested with Matlab 7.14 R2012a, 7.12 R2011a)
+* Matlab V. 7.1+ and Simulink (Tested with Matlab 7.14 R2012a, 7.12 R2011a)
 * Yarp
 * CoDyCo 
 * iCub
@@ -34,7 +34,7 @@ Before going ahead with the compilation of the library, make sure that you have 
 ```
 In the UI look for *SIMULINK_LIBRARY* and press enter to turn it ON/OFF. Then as usual type c to configure until no stars (*) show up and finally g to generate. Finally to compile type `make`.
 
-- **Soft Real Time.** For the time being, this block has been taken from the Matlab File Exchange [http://goo.gl/8LMWGD] and it has to be compiled from within MATLAB by changing its current directory to `${CODYCO_ROOT}/simulink/controllers/RealTimeSlower` and typing `mex sfun_time.c`. This will create a mex file according to your operating system and architecture, e.g. for a 32bits Linux-based OS you will get sfun_time.mexglx. This mex file will be used by the example models included in `${CODYCO_ROOT}/simulink/controllers/` to slow down the simulation for a user-specified rate.
+- **Soft Real Time.** For the time being, this block has been taken from the Matlab File Exchange [http://goo.gl/8LMWGD] and it has to be compiled from within MATLAB by changing its current directory to `${CODYCO_ROOT}/simulink/controllers/RealTimeSlower` and typing `mex sfun_time.c`. This will create a mex file according to your operating system and architecture, e.g. for a 32bits Linux-based OS you will get sfun_time.mexglx. This mex file will be used by the example models included in `${CODYCO_ROOT}/simulink/controllers/` to slow down the simulation for a user-specified rate. It is recommended to define the rate in this block with a variable such as **Ts** and mask your final model where the user can later define the rate.
 
 
 ###### Before Using the Simulink Library
@@ -47,7 +47,13 @@ You can also create a .m file with these two lines and launch MATLAB from termin
 ```bash
     matlab -r yourStartupFile
 ```
-- **Test the Library.** You can test the library is working correctly and properly linking YARP by launching a `yarpserver`, after which you can go to the controllers directory in MATLAB and open yarpwrite.mdl. 
+
+Depending on what you would like to do, remember you can change the Simulink simulation settings by going to Simulation > Configuration Parameters > Solver and changing the `Stop time` to your desired value, or `inf` if you want the simulation to run 'forever'. Also, since this library is very oriented to real implementation, the `Solver Options` in the very same window should be changed to `Fixed Step` Type and `discrete(no continuous states)` as the Solver. 
+
+- **Test the Library.** In $CODYCO_ROOT/src/simulink/controllers you can find some models for testing (more on this in the readme of the aforementioned directory). In order to test that the library is working correctly and properly linking YARP you can try running a `yarpserver`, after which you can go to the controllers directory in MATLAB and open yarpwrite.mdl. Before starting the simulation, give a name to the YARP port where you want to write to by double clicking the block and editing the mask that pops up. 
+
+- **For MAC OS Users.** It has been reported that on MAC OS you need to define the place where you want MATLAB to find at runtime dynamic libraries for YARP, in case you have compiled YARP in a directory different from the default one. This can be added in `${MATLAB_ROOT}/bin/matlab7rc.sh`
+
 
 ###### Using the Simulink Library
 
@@ -59,9 +65,9 @@ Linux, Windows, MAC OS
 ###### To Do List
 - [ ] Documentation.
 - [ ] Compile the Soft Real Time mex as another module of the library. Possibly make our own.
-- [ ] Check minimum jerk generator
-- [ ] Include postural constraint in FourthCOMController
-- [ ] ZMP block
-- [ ] Reproduce COM Controller as a Force Controlled version
-- [ ] How to properly get dynamic libraries linked at runtime on MAC
-- [ ] Divide blocks into subgroups (actuators, estimators, etc)
+- [ ] Check minimum jerk generator.
+- [ ] Include postural constraint in FourthCOMController.
+- [ ] ZMP block.
+- [ ] Reproduce COM Controller as a Force Controlled version.
+- [ ] How to properly get dynamic libraries linked at runtime on MAC.
+- [ ] Divide blocks into subgroups (actuators, estimators, etc) and put them all together as a real Simulink Library :D
