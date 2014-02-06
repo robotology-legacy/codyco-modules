@@ -72,3 +72,5 @@ Linux, Windows, MAC OS
 - [ ] How to properly get dynamic libraries linked at runtime on MAC.
 - [ ] Divide blocks into subgroups (actuators, estimators, etc) and put them all together as a real Simulink Library :D
 - [ ] Debug incompatibilities with Gazebo (at the c++ whole body interface level)
+- [ ] Create icons for each block in the library.
+ 
