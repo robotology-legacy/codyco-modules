@@ -59,4 +59,9 @@ Linux, Windows, MAC OS
 ###### To Do List
 - [ ] Documentation.
 - [ ] Compile the Soft Real Time mex as another module of the library. Possibly make our own.
-- [ ] ...
+- [ ] Check minimum jerk generator
+- [ ] Include postural constraint in FourthCOMController
+- [ ] ZMP block
+- [ ] Reproduce COM Controller as a Force Controlled version
+- [ ] How to properly get dynamic libraries linked at runtime on MAC
+- [ ] Divide blocks into subgroups (actuators, estimators, etc)
