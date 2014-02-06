@@ -56,7 +56,7 @@ Depending on what you would like to do, remember you can change the Simulink sim
 
 
 ###### Using the Simulink Library
-
+You will find a few controllers that have already been tested with the iCub simulator and the real robot such as FourthCOMController. You can play with the trajectory generator as you please, which in this version is just a circular/eliptical trajectory of the COM made with two out of phase sinusoidals.
 
 
 ###### Tested OS
