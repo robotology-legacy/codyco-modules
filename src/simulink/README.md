@@ -52,7 +52,12 @@ Depending on what you would like to do, remember you can change the Simulink sim
 
 - **Test the Library.** In $CODYCO_ROOT/src/simulink/controllers you can find some models for testing (more on this in the readme of the aforementioned directory). In order to test that the library is working correctly and properly linking YARP you can try running a `yarpserver`, after which you can go to the controllers directory in MATLAB and open yarpwrite.mdl. Before starting the simulation, give a name to the YARP port where you want to write to by double clicking the block and editing the mask that pops up. 
 
-- **For MAC OS Users.** It has been reported that on MAC OS you need to define the place where you want MATLAB to find at runtime dynamic libraries for YARP, in case you have compiled YARP in a directory different from the default one. This can be added in `${MATLAB_ROOT}/bin/.matlab7rc.sh`
+- **For MAC OS Users.** It has been reported that on MAC OS you need to define the place where you want MATLAB to find at runtime dynamic libraries for YARP, in case you have compiled YARP in a directory different from the default one. This can be added in `${MATLAB_ROOT}/bin/.matlab7rc.sh`. 
+```bash
+    chmod +w .matlab7rc.sh
+    LDPATH_SUFFIX = 'YOUR_ENV_DYLD_LIBRARY_PATH'
+    chmod -w .matlab7rc.sh
+```
 
 
 ###### Using the Simulink Library
@@ -73,4 +78,5 @@ Linux, Windows, MAC OS
 - [x] Divide blocks into subgroups (actuators, estimators, etc) and put them all together as a real Simulink Library :D
 - [ ] Debug incompatibilities with Gazebo (at the c++ whole body interface level)
 - [ ] Create icons for each block in the library.
+- [ ] Modify YarpRead module so that you can specify the port you wanna read from and where you want it to connect. Connection should be done inside the block.
  
