@@ -49,7 +49,7 @@ link_directories(${CMAKE_BINARY_DIR})
 #Adding files used for the generation of the dynamic library
 add_library(${PROJECTNAME} SHARED ${folder_source} ${folder_header})
 
-set(CMAKE_CXX_FLAGS "-fpermissive")
+#set(CMAKE_CXX_FLAGS "-fpermissive")
 
 #Removing default dynamic library extensions (.dll for Windows, .so for UNIX) and prefixes (lib) otherwise automatically prepended to the mex file.
 set_target_properties(${PROJECTNAME} PROPERTIES SUFFIX .${SFUNCTION_SUFFIX})
