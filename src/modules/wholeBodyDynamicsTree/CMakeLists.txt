@@ -33,7 +33,7 @@ yarp_idl_to_dir(wholeBodyDynamics.thrift ${generated_libs_dir})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} wholeBodyInterface wholeBodyInterfaceIcub)
 
 INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
 

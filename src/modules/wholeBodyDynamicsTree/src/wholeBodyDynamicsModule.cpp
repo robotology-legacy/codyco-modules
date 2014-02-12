@@ -119,13 +119,13 @@ bool wholeBodyDynamicsModule::updateModule()
 
     wbdThread->getEstPeriod(avgTime, stdDev);
     wbdThread->getEstUsed(avgTimeUsed, stdDevUsed);     // real duration of run()
-//#ifndef NDEBUG
+    //#ifndef NDEBUG
     if(avgTime > 1.3 * period)
     {
         printf("[WARNING] wholeBodyDynamics loop is too slow. Real period: %3.3f+/-%3.3f. Expected period %d.\n", avgTime, stdDev, period);
         printf("Duration of 'run' method: %3.3f+/-%3.3f.\n", avgTimeUsed, stdDevUsed);
     }
-//#endif
+    //#endif
 
     return true;
 }

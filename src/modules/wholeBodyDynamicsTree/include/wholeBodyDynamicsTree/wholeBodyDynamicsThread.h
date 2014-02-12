@@ -26,6 +26,7 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Semaphore.h>
+#include <yarp/os/Stamp.h>
 #include <yarp/sig/Vector.h>
 
 #include <iCub/ctrl/math.h>
@@ -54,7 +55,11 @@ class wholeBodyDynamicsThread: public RateThread
 {
     string              name;
     string              robotName;
-    wbiIcub::icubWholeBodyStates    *robot;
+    wbiIcub::icubWholeBodyStatesLocal    *robot;
+    
+    int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
+    double              PRINT_PERIOD;           
+
     
     //output ports
     ///< \todo TODO add a proper structure for output ports, by dividing them for body parts or sensors
@@ -87,20 +92,13 @@ class wholeBodyDynamicsThread: public RateThread
     BufferedPort<Vector> *port_model_wrench_LL;
     
     BufferedPort<Vector> *port_external_wrench_TO;
-    BufferedPort<Vector> *port_com_all;
-    BufferedPort<Vector> *port_com_all_foot;
     BufferedPort<Vector> *port_monitor;
     
     BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts;
     BufferedPort<Vector> *port_dumpvel;
-    BufferedPort<Vector> *port_COM_vel;
-    BufferedPort<Matrix> *port_COM_Jacobian;
     
     BufferedPort<Vector> *port_all_velocities;
     BufferedPort<Vector> *port_all_positions;
-    
-    BufferedPort<Matrix> *port_root_position_mat;
-    BufferedPort<Vector> *port_root_position_vec;
 
     // ports outputing the external dynamics seen at the F/T sensor
     BufferedPort<Vector> *port_external_ft_arm_left;
@@ -108,6 +106,12 @@ class wholeBodyDynamicsThread: public RateThread
     BufferedPort<Vector> *port_external_ft_leg_left;
     BufferedPort<Vector> *port_external_ft_leg_right;
     yarp::os::Stamp timestamp;
+
+    template <class T> void broadcastData(T& _values, BufferedPort<T> *_port);
+    void closePort(Contactable *_port);
+    void writeTorque(Vector _values, int _address, BufferedPort<Bottle> *_port);
+
+
 
 
 public:

@@ -15,7 +15,7 @@
  * Public License for more details
 */
 
-#include "wholeBodyDynamicsTree/wholeBodyDynamicsThread.h"
+#include <wholeBodyDynamicsTree/wholeBodyDynamicsThread.h>
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
@@ -32,8 +32,8 @@ using namespace std;
 
 //************************************************************************************************************************
 wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name, string _robotName, int _period, icubWholeBodyStatesLocal *_wbi)
-    :  RateThread(_period), name(_name), robotName(_robotName), robot(_wbi)
-{
+    :  RateThread(_period), name(_name), robotName(_robotName), robot(_wbi), PRINT_PERIOD(1000)
+    {
     bool autoconnect = false;
     
     //Copied from old wholeBodyDynamics 
@@ -59,10 +59,9 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name, string _robotName
     port_external_cartesian_wrench_LA = new BufferedPort<Vector>;
     port_external_cartesian_wrench_RL = new BufferedPort<Vector>;
     port_external_cartesian_wrench_LL = new BufferedPort<Vector>;
-        port_external_cartesian_wrench_RF = new BufferedPort<Vector>;
-        port_external_cartesian_wrench_LF = new BufferedPort<Vector>;
-    port_com_all      = new BufferedPort<Vector>;
-    port_com_all_foot = new BufferedPort<Vector>;
+    port_external_cartesian_wrench_RF = new BufferedPort<Vector>;
+    port_external_cartesian_wrench_LF = new BufferedPort<Vector>;
+
     port_monitor = new BufferedPort<Vector>;
     port_contacts = new BufferedPort<skinContactList>;
     port_dumpvel = new BufferedPort<Vector>;
