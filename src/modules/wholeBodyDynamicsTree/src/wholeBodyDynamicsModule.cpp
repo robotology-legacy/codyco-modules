@@ -44,7 +44,7 @@ using namespace wbiIcub;
 wholeBodyDynamicsModule::wholeBodyDynamicsModule()
 {
     wbdThread      = 0;
-    robotInterface  = 0;
+    estimationInterface  = 0;
     period          = 10;
 }
     
@@ -52,15 +52,15 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 {
 
     //--------------------------WHOLE BODY STATES INTERFACE--------------------------
-    robotInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str());
-    robotInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
-    robotInterface->addEstimates(wbi::ESTIMATE_IMU,wbiIcub::ICUB_MAIN_IMUS);
-    robotInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE, wbiIcub::ICUB_MAIN_FOOT_FTS);
+    estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str());
+    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
+    estimationInterface->addEstimates(wbi::ESTIMATE_IMU,wbiIcub::ICUB_MAIN_IMUS);
+    estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE, wbiIcub::ICUB_MAIN_FOOT_FTS);
 
-    if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body state interface. Closing module\n"); return false; }
+    if(!estimationInterface->init()){ fprintf(stderr, "Error while initializing whole body state interface. Closing module\n"); return false; }
 
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
-    wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, robotInterface);
+    wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface);
     if(!wbdThread->start()){ fprintf(stderr, "Error while initializing wholeBodyDynamics thread. Closing module.\n"); return false; }
     
     fprintf(stderr,"wholeBodyDynamicsThread started\n");
@@ -86,13 +86,13 @@ bool wholeBodyDynamicsModule::close()
 {
 //stop threads
     if(wbdThread){     wbdThread->stop();         delete wbdThread;      wbdThread = 0;     }
-    if(robotInterface)
+    if(estimationInterface)
     { 
-        bool res=robotInterface->close();    
+        bool res=estimationInterface->close();    
         if(res)
             printf("Error while closing robot estimator\n");
-        delete robotInterface;  
-        robotInterface = 0; 
+        delete estimationInterface;  
+        estimationInterface = 0; 
     }
 
     //closing ports

@@ -29,7 +29,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
-                    ${Orocos-KDL_INCLUDE_DIRS}
+                    ${orocos_kdl_INCLUDE_DIRS}
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}

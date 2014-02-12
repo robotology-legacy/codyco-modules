@@ -44,7 +44,7 @@ class wholeBodyDynamicsModule: public RFModule
 
     Port                rpcPort;        // a port to handle rpc messages
     wholeBodyDynamicsThread*   wbdThread;     // locomotion control thread
-    wbiIcub::icubWholeBodyStatesLocal* robotInterface; // interface to communicate with the robot
+    wbiIcub::icubWholeBodyStatesLocal* estimationInterface; // interface to communicate with the robot
 
 public:
     wholeBodyDynamicsModule();

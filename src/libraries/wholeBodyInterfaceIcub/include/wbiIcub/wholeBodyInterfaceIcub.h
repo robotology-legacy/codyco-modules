@@ -492,7 +492,7 @@ namespace wbiIcub
         estimates;
         
         iCub::skinDynLib::dynContactList estimatedLastDynContacts;
-
+        iCub::skinDynLib::skinContactList estimatedLastSkinDynContacts;
 
          /** Constructor. 
          *
@@ -635,7 +635,7 @@ namespace wbiIcub
         virtual wbi::LocalIdList lockAndGetSensorList(const wbi::SensorType st);
         virtual int lockAndGetSensorNumber(const wbi::SensorType st);
         
-        bool lockAndReadExternalForces(iCub::skinDynLib::dynContactList & external_forces_list);
+        bool lockAndReadExternalForces(iCub::skinDynLib::skinContactList & external_forces_list);
 
 
         /** Get the velocity of the specified motor. */
@@ -708,13 +708,9 @@ namespace wbiIcub
          * @return True if the operation succeeded, false otherwise. */
         virtual bool setEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
         
-
-        
         /////////////////////////////////////////////////////
         ///< Implementation specific methods 
         /////////////////////////////////////////////////////
-        
-        
         bool setEstimationOffset(const wbi::EstimateType et, const wbi::LocalId & sid, const void *value);
         
         /** Get the estimated external force/torques 
@@ -723,7 +719,7 @@ namespace wbiIcub
          * @param external_forces_list list of estimated external wrenches
          * @return True if the operation succeeded, false otherwise.
          */
-        bool getEstimatedExternalForces(iCub::skinDynLib::dynContactList & external_forces_list);
+        bool getEstimatedExternalForces(iCub::skinDynLib::skinContactList & external_forces_list);
         
     };
     
@@ -822,7 +818,7 @@ namespace wbiIcub
          * @param external_forces_list list of estimated external wrenches
          * @return True if the operation succeeded, false otherwise.
          */
-        virtual bool getEstimatedExternalForces(iCub::skinDynLib::dynContactList & external_forces_list);
+        virtual bool getEstimatedExternalForces(iCub::skinDynLib::skinContactList & external_forces_list);
 
     };
 

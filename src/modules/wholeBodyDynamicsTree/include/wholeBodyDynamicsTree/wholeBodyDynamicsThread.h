@@ -22,6 +22,7 @@
 #include <iomanip>
 #include <stdexcept>
 #include <vector>
+#include <boost/concept_check.hpp>
 
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
@@ -55,7 +56,7 @@ class wholeBodyDynamicsThread: public RateThread
 {
     string              name;
     string              robotName;
-    wbiIcub::icubWholeBodyStatesLocal    *robot;
+    wbiIcub::icubWholeBodyStatesLocal *estimator;
     
     int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     double              PRINT_PERIOD;           
@@ -72,6 +73,7 @@ class wholeBodyDynamicsThread: public RateThread
     BufferedPort<Bottle> *port_TOTorques;
     BufferedPort<Bottle> *port_HDTorques;
     
+    /*
     BufferedPort<Vector> *port_external_wrench_RA;
     BufferedPort<Vector> *port_external_wrench_LA;
     BufferedPort<Vector> *port_external_wrench_RL;
@@ -92,14 +94,16 @@ class wholeBodyDynamicsThread: public RateThread
     BufferedPort<Vector> *port_model_wrench_LL;
     
     BufferedPort<Vector> *port_external_wrench_TO;
-    BufferedPort<Vector> *port_monitor;
+    */
     
     BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts;
-    BufferedPort<Vector> *port_dumpvel;
     
+    /*
+    BufferedPort<Vector> *port_all_accelerations;
     BufferedPort<Vector> *port_all_velocities;
     BufferedPort<Vector> *port_all_positions;
-
+    */
+    
     // ports outputing the external dynamics seen at the F/T sensor
     BufferedPort<Vector> *port_external_ft_arm_left;
     BufferedPort<Vector> *port_external_ft_arm_right;
@@ -110,8 +114,19 @@ class wholeBodyDynamicsThread: public RateThread
     template <class T> void broadcastData(T& _values, BufferedPort<T> *_port);
     void closePort(Contactable *_port);
     void writeTorque(Vector _values, int _address, BufferedPort<Bottle> *_port);
+    void publishTorques();
+    void publishContacts();
 
+    //Buffer vectors
+    yarp::sig::Vector all_torques;
+    yarp::sig::Vector TOTorques;
+    yarp::sig::Vector HDTorques;
+    yarp::sig::Vector LATorques;
+    yarp::sig::Vector RATorques;
+    yarp::sig::Vector LLTorques;
+    yarp::sig::Vector RLTorques;
 
+    iCub::skinDynLib::skinContactList external_forces_list;
 
 
 public:

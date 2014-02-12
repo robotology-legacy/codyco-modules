@@ -253,7 +253,7 @@ bool icubWholeBodyStatesLocal::setEstimationOffset(const EstimateType et, const 
 // *********************************************************************************************************************
 
 
-bool icubWholeBodyStatesLocal::getEstimatedExternalForces(iCub::skinDynLib::dynContactList & external_forces_list)
+bool icubWholeBodyStatesLocal::getEstimatedExternalForces(iCub::skinDynLib::skinContactList & external_forces_list)
 {
     return lockAndReadExternalForces(external_forces_list);
 }
@@ -315,10 +315,10 @@ bool icubWholeBodyStatesLocal::lockAndReadSensor(const SensorType st, const Loca
     return res;
 }
 
-bool icubWholeBodyStatesLocal::lockAndReadExternalForces(iCub::skinDynLib::dynContactList & external_forces_list)
+bool icubWholeBodyStatesLocal::lockAndReadExternalForces(iCub::skinDynLib::skinContactList & external_forces_list)
 {
     estimator->mutex.wait();
-    external_forces_list = estimator->estimatedLastDynContacts;
+    external_forces_list = estimator->estimatedLastSkinDynContacts;
     estimator->mutex.post();
     return true;
 }
@@ -674,10 +674,37 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     icub_model->estimateContactForces();
     icub_model->dynamicRNEA();
     
+    estimatedLastDynContacts = icub_model->getContacts();
+    
+    //Create estimatedLastSkinDynContacts using original skinContacts list read from skinManager
+    // for each dynContact find the related skinContact (if any) and set the wrench in it
+    unsigned long cId;
+    bool contactFound=false;
+    for(unsigned int i=0; i < estimatedLastDynContacts.size(); i++)
+    {
+        cId = estimatedLastDynContacts[i].getId();
+        for(unsigned int j=0; j<skinContacts.size(); j++)
+        {
+            if(cId == skinContacts[j].getId())
+            {
+                skinContacts[j].setForceMoment( dynContacts[i].getForceMoment() );
+                contactFound = true;
+                j = skinContacts.size();    // break from the inside for loop
+            }
+        }
+        // if there is no associated skin contact, create one
+        if(!contactFound)
+            skinContacts.push_back(skinContact(estimatedLastDynContacts[i]));
+        contactFound = false;
+    }
+        
     mutex.wait();
     
-    estimatedLastDynContacts = icub_model->getContacts();
+    estimatedLastSkinDynContacts = skinContacts;
+    
     estimates.lastTauJ = icub_model->getTorques();
+    
+    
 }
 
 void icubWholeBodyDynamicsEstimator::threadRelease()
