@@ -22,7 +22,6 @@
 #include <iomanip>
 #include <stdexcept>
 #include <vector>
-#include <boost/concept_check.hpp>
 
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
