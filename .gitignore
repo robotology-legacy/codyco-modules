@@ -2,3 +2,4 @@
 *~
 *.orig
 .DS_Store
+*.kdev4
