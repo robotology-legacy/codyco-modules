@@ -23,6 +23,13 @@ SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
+                    ${EIGEN3_INCLUDE_DIR}
+                    ${iDynTree_INCLUDE_DIRS}
+                    ${orocos_kdl_INCLUDE_DIRS}
+                    ${kdl_codyco_INCLUDE_DIRS}
+                    ${skinDynLib_INCLUDE_DIRS}
+                    ${ctrlLib_INCLUDE_DIRS}
+                    ${YARP_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR})
 
 #Thrift configuration
@@ -34,7 +41,7 @@ yarp_idl_to_dir(wholeBodyDynamics.thrift ${generated_libs_dir})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} wholeBodyInterface wholeBodyInterfaceIcub)
+TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} wholeBodyInterface wholeBodyInterfaceIcub iDynTree)
 
 INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
 
