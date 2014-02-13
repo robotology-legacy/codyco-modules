@@ -68,15 +68,16 @@ You will find a few controllers and models for testing that have already been te
 Linux, Windows, MAC OS X
 
 ###### To Do List
-- [ ] Documentation.
+- [ ] Debug incompatibilities with Gazebo (at the c++ whole body interface level) - with Francesco Romano
 - [ ] Compile the Soft Real Time mex as another module of the library. Possibly make our own.
-- [ ] Check minimum jerk generator.
+- [ ] Modify YarpRead module so that you can specify the port you wanna read from and where you want it to connect.         Connection should be done inside the block.
+- [ ] Documentation (Functions, etc)
 - [ ] Include postural constraint in FourthCOMController.
 - [ ] ZMP block.
+- [ ] Check minimum jerk generator.
 - [ ] Reproduce COM Controller as a Force Controlled version.
+- [x] Documentation (Installation)
 - [x] How to properly get dynamic libraries linked at runtime on MAC OS X.
-- [x] Divide blocks into subgroups (actuators, estimators, etc) and put them all together as a real Simulink Library :D
-- [ ] Debug incompatibilities with Gazebo (at the c++ whole body interface level)
-- [ ] Create icons for each block in the library.
-- [ ] Modify YarpRead module so that you can specify the port you wanna read from and where you want it to connect. Connection should be done inside the block.
+- [x] Divide blocks into subgroups (actuators, estimators, etc) and put them all together as a real Simulink               Library :D
+- [x] Create icons for each block in the library.
  
