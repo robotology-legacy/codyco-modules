@@ -120,7 +120,8 @@ static void mdlInitializeSizes(SimStruct *S)
 
     ssSetOptions(S,
                  SS_OPTION_WORKS_WITH_CODE_REUSE |
-                 SS_OPTION_EXCEPTION_FREE_CODE);
+                 SS_OPTION_EXCEPTION_FREE_CODE | //we must be sure that every function we call never throws an exception
+                 SS_OPTION_CALL_TERMINATE_ON_EXIT); //this calls the terminate function even in case of errors
 
 }
 
@@ -207,6 +208,7 @@ static void mdlStart(SimStruct *S)
     if(res==true)
         fprintf(stderr,"Succesfully exiting robotConfig...\n");
     else {
+        ssSetErrorStatus(S,"ERROR during robotConfig and/or robotInit ... \n");
         fprintf(stderr,"ERROR during robotConfig and/or robotInit ... \n");
         return;
     }
