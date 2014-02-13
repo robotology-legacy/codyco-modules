@@ -71,3 +71,26 @@ sudo make install
 ```
 
     
+Fix for OS X Mavericks (10.9) compilation and build errors
+------------
+Starting from Mac OSX 10.9 (Mavericks) the default C++ standard library changed to `libc++` (the LLVM library).
+This switch has caused (and still causes) a lot of issues because the new library is more stringent on non-standard C++.
+For example Orocos KDL uses non-standard C++ in the `TreeNode` class thus it is not possible to build it with `libc++` (see [related Github issue](https://github.com/orocos/orocos_kinematics_dynamics/pull/4)).
+
+You can (and must) build KDL by explicitly specify the old GNU C++ library.
+You can do this by toggling the advanced CCMake configuration (`t` key) and by adding in both `CMAKE_CXX_FLAGS` and `CMAKE_EXE_LINKER_FLAGS` the following string: `-stdlib=libstdc++`.
+
+One issue still remains. It is not clear if two applications can link (shared linking, not static linking) at the same time the GNU and LLVM C++ library. For sure Homebrew does not allow it.
+You can check which shared libraries an application (or another shared library) links by issuing the following commands:
+```bash
+otool -L library_name
+````
+E.g.
+```bash
+$ otool -L libYARP_OS.dylib 
+local/lib/libYARP_OS.dylib:
+    libYARP_OS.1.dylib (compatibility version 1.0.0, current version 2.3.60)
+    /usr/local/lib/libACE.dylib (compatibility version 0.0.0, current version 0.0.0)
+    /usr/lib/libstdc++.6.dylib (compatibility version 7.0.0, current version 60.0.0)
+    /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1197.1.1)
+````
