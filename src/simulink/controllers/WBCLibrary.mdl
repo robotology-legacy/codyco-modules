@@ -16,9 +16,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Feb 13 11:48:13 2014"
-  RTWModifiedTimeStamp	  314190268
-  ModelVersionFormat	  "1.%<AutoIncrement:63>"
+  LastModifiedDate	  "Thu Feb 13 16:06:25 2014"
+  RTWModifiedTimeStamp	  314208374
+  ModelVersionFormat	  "1.%<AutoIncrement:68>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -739,7 +739,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [1523, 245, 2805, 535]
+    Location		    [1618, 376, 2407, 598]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -751,7 +751,7 @@ Library {
     TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
     TiledPageScale	    1
     ShowPageBoundaries	    off
-    ZoomFactor		    "310"
+    ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
     SIDHighWatermark	    "245"
     Block {
@@ -759,7 +759,7 @@ Library {
       Name		      "Utilities"
       SID		      "192"
       Ports		      []
-      Position		      [319, 16, 358, 54]
+      Position		      [314, 26, 353, 64]
       DropShadow	      on
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -768,7 +768,7 @@ Library {
       Opaque		      off
       RequestExecContextInheritance off
       MaskHideContents	      off
-      MaskDisplay	      "image(imread('./img/utilities.jpg'))"
+      MaskDisplay	      "image(imread('./img/utilities.bmp'))"
       MaskIconFrame	      on
       MaskIconOpaque	      on
       MaskIconRotate	      "none"
@@ -5130,7 +5130,7 @@ Library {
       Name		      "wholeBodyActuators"
       SID		      "224"
       Ports		      []
-      Position		      [239, 17, 278, 55]
+      Position		      [234, 27, 273, 65]
       ZOrder		      -17
       DropShadow	      on
       MinAlgLoopOccurrences   off
@@ -5140,6 +5140,12 @@ Library {
       Opaque		      off
       RequestExecContextInheritance off
       MaskHideContents	      off
+      MaskDisplay	      "image(imread('./img/wholeBodyActuators.bmp'))"
+      MaskIconFrame	      on
+      MaskIconOpaque	      on
+      MaskIconRotate	      "none"
+      MaskPortRotate	      "default"
+      MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyActuators"
 	Location		[85, 478, 583, 778]
@@ -5396,7 +5402,7 @@ Library {
       Name		      "wholeBodyModel"
       SID		      "209"
       Ports		      []
-      Position		      [143, 15, 183, 54]
+      Position		      [138, 25, 178, 64]
       DropShadow	      on
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -6263,7 +6269,7 @@ Library {
       Name		      "wholeBodyStates"
       SID		      "206"
       Ports		      []
-      Position		      [55, 16, 94, 54]
+      Position		      [41, 25, 80, 63]
       DropShadow	      on
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -6272,7 +6278,7 @@ Library {
       Opaque		      off
       RequestExecContextInheritance off
       MaskHideContents	      off
-      MaskDisplay	      "image(imread('./img/wholeBodyStates.png'))"
+      MaskDisplay	      "image(imread('./img/wholeBodyStates.bmp'))"
       MaskIconFrame	      on
       MaskIconOpaque	      on
       MaskIconRotate	      "none"
