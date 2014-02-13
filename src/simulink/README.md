@@ -58,7 +58,7 @@ Depending on what you would like to do, remember you can change the Simulink sim
     LDPATH_SUFFIX = 'YOUR_ENV_DYLD_LIBRARY_PATH'
     chmod -w .matlab7rc.sh
 ```
-- ** Additional notes ** In case Matlab has trouble finding a specific library, a workaround is to launch it preloading the variable `LD_PRELOAD` (or `DYLD_INSERT_LIBRARIES` on Mac OS X) with the location of the missing library.
+- **Additional notes.** In case Matlab has trouble finding a specific library, a workaround is to launch it preloading the variable `LD_PRELOAD` (or `DYLD_INSERT_LIBRARIES` on Mac OS X) with the location of the missing library.
 
 ###### Using the Simulink Library
 You will find a few controllers and models for testing that have already been tested with the iCub simulator and the real robot such as FourthCOMController. You can play with the trajectory generator as you please, which in this version produces just a circular/eliptical trajectory of the COM made with two out of phase sinusoidals. For more details of the implementation, refer to the video above and the code in `${MATLAB_ROOT}/src/simulink/controllers`
