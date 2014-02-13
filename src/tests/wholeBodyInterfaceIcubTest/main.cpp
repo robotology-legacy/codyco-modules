@@ -53,16 +53,21 @@ int main(int argc, char * argv[])
     }
     
     // TEST WHOLE BODY INTERFACE
-    wholeBodyInterface *icub = new icubWholeBodyInterface("wbiTest",robotName.c_str());
-    //wholeBodyInterface *icub = new icubWholeBodyInterface("wbiTest","icubSim");
+    std::string localName = "wbiTest";
+    std::cout << "Creating icubWholeBodyInterface with robotName " << robotName << " " << localName << std::endl;
+    wholeBodyInterface *icub = new icubWholeBodyInterface(localName.c_str(),robotName.c_str());
+    
+    std::cout << "icubWholeBodyInterface created, adding joints" << std::endl;
     icub->addJoints(LocalIdList(RIGHT_ARM,0,1,2,3,4));
     icub->addJoints(LocalIdList(LEFT_ARM,0,1,2,3,4));
     icub->addJoints(LocalIdList(TORSO,0,1,2));
     //icub->addFTsens(LocalId(RIGHT_LEG,1));
+    std::cout << "Joints added, calling init method" <<  std::endl;
 
     if(!icub->init())
         return 0;
-    Time::delay(0.5);
+    
+    //Time::delay(0.5);
     
     int dof = icub->getDoFs();
     printf("Joint list: %s\n", icub->getJointList().toString().c_str());

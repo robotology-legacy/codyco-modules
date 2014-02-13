@@ -34,6 +34,10 @@ using namespace std;
 wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name, string _robotName, int _period, icubWholeBodyStatesLocal *_wbs)
     :  RateThread(_period), name(_name), robotName(_robotName), estimator(_wbs), PRINT_PERIOD(1000)
     {
+    
+    std::cout << "Launching wholeBodyDynamicsThread with name : " << _name << " and robotName " << _robotName << " and period " << _period << std::endl;
+        
+        
     bool autoconnect = false;
     
     //Resize buffer vectors

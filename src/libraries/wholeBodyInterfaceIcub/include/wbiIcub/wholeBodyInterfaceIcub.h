@@ -994,6 +994,8 @@ namespace wbiIcub
     public:
         // *** CONSTRUCTORS ***
         icubWholeBodyInterface(const char* _name, const char* _robotName, int head_version=2, int legs_version=1);
+        //icubWholeBodyInterface(const char* _name, const char* _robotName, std::string urdf_file_name);
+
         
         inline virtual ~icubWholeBodyInterface(){ close(); }
         virtual bool init();
