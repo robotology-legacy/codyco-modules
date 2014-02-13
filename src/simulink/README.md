@@ -76,8 +76,8 @@ Linux, Windows, MAC OS X
 - [ ] ZMP block.
 - [ ] Check minimum jerk generator.
 - [ ] Reproduce COM Controller as a Force Controlled version.
-- [x] Documentation (Installation)
-- [x] How to properly get dynamic libraries linked at runtime on MAC OS X.
-- [x] Divide blocks into subgroups (actuators, estimators, etc) and put them all together as a real Simulink               Library :D
-- [x] Create icons for each block in the library.
+- [x] ~~Documentation (Installation)~~
+- [x] ~~How to properly get dynamic libraries linked at runtime on MAC OS X.~~
+- [x] ~~Divide blocks into subgroups (actuators, estimators, etc) and put them all together as a real Simulink               Library :D~~
+- [x] ~~Create icons for each block in the library.~~
  
