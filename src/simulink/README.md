@@ -52,20 +52,20 @@ Depending on what you would like to do, remember you can change the Simulink sim
 
 - **Test the Library.** In $CODYCO_ROOT/src/simulink/controllers you can find some models for testing (more on this in the readme of the aforementioned directory). In order to test that the library is working correctly and properly linking YARP you can try running a `yarpserver`, after which you can go to the controllers directory in MATLAB and open yarpwrite.mdl. Before starting the simulation, give a name to the YARP port where you want to write to by double clicking the block and editing the mask that pops up. 
 
-- **For MAC OS Users.** It has been reported that on MAC OS you need to define the place where you want MATLAB to find at runtime dynamic libraries for YARP, in case you have compiled YARP in a directory different from the default one. This can be added in `${MATLAB_ROOT}/bin/.matlab7rc.sh`. 
+- **For MAC OS X Users.** It has been reported that on MAC OS you need to define the place where you want MATLAB to find at runtime dynamic libraries for YARP, in case you have compiled YARP in a directory different from the default one. This can be added in `${MATLAB_ROOT}/bin/.matlab7rc.sh`. 
 ```bash
     chmod +w .matlab7rc.sh
     LDPATH_SUFFIX = 'YOUR_ENV_DYLD_LIBRARY_PATH'
     chmod -w .matlab7rc.sh
 ```
-
+- ** Additional notes ** In case Matlab has trouble finding a specific library, a workaround is to launch it preloading the variable `LD_PRELOAD` (or `DYLD_INSERT_LIBRARIES` on Mac OS X) with the location of the missing library.
 
 ###### Using the Simulink Library
 You will find a few controllers and models for testing that have already been tested with the iCub simulator and the real robot such as FourthCOMController. You can play with the trajectory generator as you please, which in this version produces just a circular/eliptical trajectory of the COM made with two out of phase sinusoidals. For more details of the implementation, refer to the video above and the code in `${MATLAB_ROOT}/src/simulink/controllers`
 
 
 ###### Tested OS
-Linux, Windows, MAC OS
+Linux, Windows, MAC OS X
 
 ###### To Do List
 - [ ] Documentation.
@@ -74,7 +74,7 @@ Linux, Windows, MAC OS
 - [ ] Include postural constraint in FourthCOMController.
 - [ ] ZMP block.
 - [ ] Reproduce COM Controller as a Force Controlled version.
-- [x] How to properly get dynamic libraries linked at runtime on MAC.
+- [x] How to properly get dynamic libraries linked at runtime on MAC OS X.
 - [x] Divide blocks into subgroups (actuators, estimators, etc) and put them all together as a real Simulink Library :D
 - [ ] Debug incompatibilities with Gazebo (at the c++ whole body interface level)
 - [ ] Create icons for each block in the library.
