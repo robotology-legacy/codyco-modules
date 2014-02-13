@@ -10,6 +10,7 @@
  */
 #include <yarp/os/Network.h>
 #include <yarp/os/Time.h>
+#include <yarp/os/Property.h>
 
 #include <yarp/os/Property.h>
 
@@ -35,6 +36,7 @@ using namespace iCub::skinDynLib;
 using namespace std;
 using namespace wbi;
 using namespace wbiIcub;
+using namespace Eigen;
 
 const double TOL = 1e-8;
 
@@ -82,6 +84,9 @@ int main(int argc, char * argv[])
     icub->setControlParam(CTRL_PARAM_REF_VEL, refSpeed.data());
     icub->setControlReference(qd.data());
     int j = 0;
+    Eigen::Matrix<double,6,Dynamic,RowMajor> jacob; 
+    jacob.resize(6,dof+6); //13 because in this test we only have right and left arm plus torso
+
     for(int i=0; i<30; i++)
     {
         Vector com(7,0.0);
@@ -94,6 +99,8 @@ int main(int argc, char * argv[])
         icub->getEstimates(ESTIMATE_JOINT_ACC,d2q.data());
         printf("(Q, dq, d2q):   %.2f \t %.2f \t %.2f\n", CTRL_RAD2DEG*q(j), CTRL_RAD2DEG*dq(j), CTRL_RAD2DEG*d2q(j));
         
+        icub->computeJacobian(q.data(),world2base,wbi::iWholeBodyModel::COM_LINK_ID,jacob.data());
+        cout<<"COM Jacobian: "<<jacob<<endl;
         
         icub->forwardKinematics(q.data(),world2base,wbi::iWholeBodyModel::COM_LINK_ID,com.data());
         printf("Center of Mass:  %.10f \t %.10f \t %.10f\n",com[0],com[1],com[2]);

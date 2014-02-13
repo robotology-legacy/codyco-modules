@@ -152,45 +152,65 @@ message("MATLAB_ROOT = TRUE")
 				BREAK()
 			ENDIF()
 		ENDFOREACH()
-
-
-	  IF(64BIT)
-	       SET(_MATLAB_LIB_DIR "bin-NOTFOUND")
-
-		# AMD64 (Linux):
-		FIND_PATH(_MATLAB_LIB_DIR "glnxa64" ${MATLAB_ROOT}/bin/ NO_DEFAULT_PATH)
-		IF(_MATLAB_LIB_DIR)			
-			SET(MATLAB_LIB_DIR ${_MATLAB_LIB_DIR}/glnxa64)
-		ENDIF()
-	
-	   # Intel64 (OSX):
-		FIND_PATH(_MATLAB_LIB_DIR "maci64" ${MATLAB_ROOT}/bin/ NO_DEFAULT_PATH)
-		IF(_MATLAB_LIB_DIR)
-			SET(MATLAB_LIB_DIR ${_MATLAB_LIB_DIR}/maci64)
-		ENDIF()
-
-		EXECUTE_PROCESS(COMMAND "${MATLAB_ROOT}/bin/mexext" OUTPUT_VARIABLE MATLAB_MEXFILE_EXT OUTPUT_STRIP_TRAILING_WHITESPACE)		
-	  ELSE(64BIT)
-		# Regular x86
-		SET(MATLAB_LIB_DIR "${MATLAB_ROOT}/bin/glnx86/")
+		
 		EXECUTE_PROCESS(COMMAND "${MATLAB_ROOT}/bin/mexext" OUTPUT_VARIABLE MATLAB_MEXFILE_EXT OUTPUT_STRIP_TRAILING_WHITESPACE)
-	  ENDIF(64BIT)
-      FIND_LIBRARY(MATLAB_MEX_LIBRARY
-		mex
-		${MATLAB_LIB_DIR}
-        	NO_DEFAULT_PATH
-		)
-      FIND_LIBRARY(MATLAB_MX_LIBRARY
-		mx
-		${MATLAB_LIB_DIR}
-        	NO_DEFAULT_PATH
-		)
-      FIND_LIBRARY(MATLAB_ENG_LIBRARY
-		eng
-		${MATLAB_LIB_DIR}
-        	NO_DEFAULT_PATH
-		)
-	  
+		message("MATLAB_MEXFILE_EXT = ${MATLAB_MEXFILE_EXT}")
+		# The following regual expression matches the last two digits of the MEX extension given in MATLAB_MEXFILE_EXT
+		# with number 64. The reason to do this can be understood by first recalling that the MEX extensions for the different
+		# operating systems are as follows: 
+		# mexglx: 	Linux-based OS 32bits
+		# mexa64: 	Linux-based OS 64bits
+		# mexmaci64:	MAC OS 64bits
+		# mexw32:	Windows OS 32bits
+		# mexw64: 	Windows OS 64bits
+		# As you can see, all the previous extensions finish with a number corresponding to the OS version, except for
+		# mexglx. The regular expresion 64$ is used to match the number 64 at the end of the retrieved extension. If it does
+		# not match 64 it will either be empty (as it would happen for mexglx or 32 bits).
+		STRING(REGEX MATCH 64$ MATLAB_ARCH ${MATLAB_MEXFILE_EXT})
+
+		IF("${MATLAB_ARCH}" STREQUAL "64")
+		    SET(_MATLAB_LIB_DIR "bin-NOTFOUND")
+
+		      # AMD64 (Linux):
+		      FIND_PATH(_MATLAB_LIB_DIR "glnxa64" ${MATLAB_ROOT}/bin/ NO_DEFAULT_PATH)
+		      IF(_MATLAB_LIB_DIR)			
+			      message("CONFIGURING FOR LINUX 64 BITS")
+			      SET(MATLAB_LIB_DIR ${_MATLAB_LIB_DIR}/glnxa64)
+		      ENDIF()
+	      
+		      # Intel64 (OSX):
+		      FIND_PATH(_MATLAB_LIB_DIR "maci64" ${MATLAB_ROOT}/bin/ NO_DEFAULT_PATH)
+		      IF(_MATLAB_LIB_DIR)
+			      message("CONFIGURING FOR MAC")
+			      SET(MATLAB_LIB_DIR ${_MATLAB_LIB_DIR}/maci64)
+		      ENDIF()
+
+		ELSE("${MATLAB_ARCH}" STREQUAL "64")
+		      message("CONFIGURING FOR MATLAB 32 BITS")
+		      # Regular x86
+		      SET(MATLAB_LIB_DIR "${MATLAB_ROOT}/bin/glnx86/")
+		ENDIF("${MATLAB_ARCH}" STREQUAL "64")
+	    
+		FIND_LIBRARY(MATLAB_MEX_LIBRARY
+			  mex
+			  ${MATLAB_LIB_DIR}
+			  NO_DEFAULT_PATH
+			  )
+		FIND_LIBRARY(MATLAB_MX_LIBRARY
+			  mx
+			  ${MATLAB_LIB_DIR}
+			  NO_DEFAULT_PATH
+			  )
+		FIND_LIBRARY(MATLAB_ENG_LIBRARY
+			  eng
+			  ${MATLAB_LIB_DIR}
+			  NO_DEFAULT_PATH
+			  )
+		
+		message("MATLAB_MEX_LIBRARY FOUND IN = ${MATLAB_MEX_LIBRARY}")
+		message("MATLAB_MX_LIBRARY  FOUND IN = ${MATLAB_MX_LIBRARY}")
+		message("MATLAB_ENG_LIBRARY FOUND IN = ${MATLAB_ENG_LIBRARY}")
+
 	ENDIF(WIN32)
 ENDIF(NOT MATLAB_ROOT)
 

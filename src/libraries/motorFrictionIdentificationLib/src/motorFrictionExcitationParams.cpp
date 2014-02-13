@@ -249,7 +249,7 @@ string FreeMotionExcitation::toString()
 // ************************************************************************************************
 string ContactExcitation::toString() const
 {
-    return strcat("Joint id (",jointId.transpose(),"); Initial joint configuration (", 
+    return strapp("Joint id (",jointId.transpose(),"); Initial joint configuration (", 
         initialJointConfiguration.transpose(), "); Param covariance threshold (", paramCovarThresh.transpose(),")");
 }
 
@@ -263,13 +263,13 @@ bool ContactExcitation::set(const Bottle &value, Bottle &reply)
     {
         if(!value.get(i).isList())
         {
-            reply.addString(strcat("Element ",i," was expected to be a list but it is not: ",value.get(i).toString()).c_str());
+            reply.addString(strapp("Element ",i," was expected to be a list but it is not: ",value.get(i).toString()).c_str());
             continue;
         }
         subparam = value.get(i).asList();
         if(!(subparam->size()>0 && subparam->get(0).isString()))
         {
-            reply.addString(strcat("First element of Bottle is not the subparameter name: ",subparam->toString()).c_str());
+            reply.addString(strapp("First element of Bottle is not the subparameter name: ",subparam->toString()).c_str());
             continue;
         }
         res = res && setSubparam(subparam->get(0).asString().c_str(), subparam->tail(), reply);
@@ -294,7 +294,7 @@ bool ContactExcitation::setSubparam(const string &name, const Bottle &v, Bottle 
             if(!value.get(j).isInt())
             {
                 res = false;
-                reply.addString(strcat("The value ",j," of the parameter ",name," is not of the expected type").c_str());
+                reply.addString(strapp("The value ",j," of the parameter ",name," is not of the expected type").c_str());
                 continue;
             }
             jointId[j] = value.get(j).asInt();
@@ -309,7 +309,7 @@ bool ContactExcitation::setSubparam(const string &name, const Bottle &v, Bottle 
             if(!(value.get(j).isInt() || value.get(j).isDouble()))
             {
                 res = false;
-                reply.addString(strcat("The value ",j," of the parameter ",name," is not of the expected type").c_str());
+                reply.addString(strapp("The value ",j," of the parameter ",name," is not of the expected type").c_str());
                 continue;
             }
             initialJointConfiguration[j] = value.get(j).asDouble();
@@ -324,7 +324,7 @@ bool ContactExcitation::setSubparam(const string &name, const Bottle &v, Bottle 
             if(!value.get(j).isDouble())
             {
                 res = false;
-                reply.addString(strcat("The value ",j," of the parameter ",name," is not of the expected type").c_str());
+                reply.addString(strapp("The value ",j," of the parameter ",name," is not of the expected type").c_str());
                 continue;
             }
             paramCovarThresh[j] = value.get(j).asDouble();
@@ -353,12 +353,12 @@ bool ContactExcitationList::readFromConfigFile(ResourceFinder &rf, Bottle &reply
         Bottle &sb = rf.findGroup(key);     ///< find the i-th section "contact_excitation"
         if(sb.isNull())
         {
-            reply.addString(strcat("Could not find section ",key).c_str());
+            reply.addString(strapp("Could not find section ",key).c_str());
             continue;
         }
         if(!sb.get(0).isString())   ///< first element is the section name
         {
-            reply.addString(strcat("Error parsing contact_excitation param, section name not found: ",sb.get(0).toString()).c_str());
+            reply.addString(strapp("Error parsing contact_excitation param, section name not found: ",sb.get(0).toString()).c_str());
             continue;
         }
         if(sb.size()<2)

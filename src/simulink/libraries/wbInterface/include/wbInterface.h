@@ -37,6 +37,7 @@
 #include <Eigen/SVD>
 #include <iostream>
 #include <stdio.h>
+#include <string.h>
 
 #include <wbi/wbi.h>
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
@@ -142,15 +143,16 @@ public:
         wbInterface = NULL;
 //        paramHelper = NULL;
         /**** NEED TO PASS THESE VALUES FROM mdlStart ****/
-        moduleName  = "robotSate";
-        robotName   = "icubSim";
+//        moduleName  = "robotSate";
+//        robotName   = "icubGazeboSim";
     }
     ~robotStatus(){
         if(i!=NULL){
+            creationCounter--;
             fprintf(stderr,"wbInterface in destructor: %p \n",wbInterface);
             if(wbInterface->close()){
                 delete wbInterface;
-                fprintf(stderr,"wbInterface has been closed and deleted correctly\n");
+                fprintf(stderr,"wbInterface has been closed and deleted correctly. %d to go \n",creationCounter);
                 wbInterface = NULL;
             }
             else{
@@ -176,6 +178,13 @@ public:
          return creationCounter;
      }
      // **************************************************************************************************
+     int decreaseCounter()
+     {
+        creationCounter--;
+        return creationCounter;
+     }
+
+     // **************************************************************************************************
      bool robotConfig()
      {
  //        fprintf(stderr,"Configuring...\n");
@@ -198,9 +207,9 @@ public:
 
              /*********** WHOLE BODY INTERFACE **********/
              wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str());
- //            fprintf(stderr,"new wbInterface created ...\n");
+             fprintf(stderr,"new wbInterface created ...\n");
              i = (int *) wbInterface;
- //            fprintf(stderr,"icubWholeBodyInterface has been created %p \n", wbInterface);
+             fprintf(stderr,"icubWholeBodyInterface has been created %p \n", wbInterface);
              wbInterface->addJoints(ICUB_MAIN_JOINTS);
 
              if(!wbInterface->init()){
@@ -212,6 +221,7 @@ public:
              }
 
              // SET CONTROL MODE
+             fprintf(stderr,"About to set Control Mode\n");
              setCtrlMode(CTRL_MODE_POS);
          }
 
@@ -223,18 +233,14 @@ public:
          return true;
      }
      // **************************************************************************************************
-     int getLinkId(const char *linkName, int &linkId)
+     void getLinkId(const char *linkName, int &lid)
      {
-         if(linkName != "com"){
- //            fprintf(stderr,"linkName is NOT com\n");
-             wbInterface->getLinkId(linkName, linkId);
-             return linkId;
+	  char comlink[] = "com";
+         if(strcmp(linkName,comlink) != 0){ // !=0 means that they're different
+             wbInterface->getLinkId(linkName, lid);
          }
          else{
- //            fprintf(stderr,"linkName is com\n");
-             comLinkId = iWholeBodyModel::COM_LINK_ID;
-             linkId = comLinkId;
-             return linkId;
+	     lid = wbi::iWholeBodyModel::COM_LINK_ID;
          }
      }
      // **************************************************************************************************
@@ -243,19 +249,13 @@ public:
          comLinkId = iWholeBodyModel::COM_LINK_ID;
          return comLinkId;
      }
+     
 //      **************************************************************************************************
      //    This method should be called only once in mdlStart() and reflect most of what has been done in LocomotionThread::threadInit()
      bool robotInit(int btype, int link){
          getLinkId("r_sole",LINK_ID_RIGHT_FOOT);
          getLinkId("l_sole",LINK_ID_LEFT_FOOT);
          getLinkId("com");
-
-         // I must count the nonzero entries of activeJoints before calling numberOfJointsChanged (to know _n)
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_ACTIVE_JOINTS,       activeJoints.data()));
-         // I must know the support phase before calling numberOfConstraintsChanged (to know the number of constraints)
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SUPPORT_PHASE,       &supportPhase));
- //        numberOfJointsChanged();
- //        numberOfConstraintsChanged();
 
          const char *linkName;
          int default_size, linkID;
@@ -306,37 +306,6 @@ public:
 
          JfootR.resize(NoChange,ICUB_DOFS+6);
 
- ////        // map Yarp vectors to Eigen vectors
- //        new (&dxc_comE)     Map<Vector2d>(dxc_com.data());
- //        new (&dxc_footE)    Map<Vector6d>(dxc_foot.data());
-
- //        // link module rpc parameters to member variables
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KP_COM,              kp_com.data()));    // constant size
- //        fprintf(stderr,"kp_com VALUE IS: %s \n", kp_com.toString().c_str());
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KP_FOOT,             kp_foot.data()));
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KP_POSTURE,          kp_posture.data()));
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TRAJ_TIME_COM,       &tt_com));
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TRAJ_TIME_FOOT,      &tt_foot));
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TRAJ_TIME_POSTURE,   &tt_posture));
- ////        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PINV_DAMP,           &(solver->pinvDamp)));
- ////        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MAX,               solver->qMax.data()));
- ////        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MIN,               solver->qMin.data()));
- ////        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_JNT_LIM_MIN_DIST,    &(solver->safetyThreshold)));
- //        // link module input streaming parameters to member variables
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_XDES_COM,            xd_com.data()));
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_XDES_FOOT,           xd_foot.data()));
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_QDES,                qd.data()));        // constant size
- //    #ifndef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_H_W2B,               H_w2b.data()));
- //    #endif
- ////        // link module output streaming parameters to member variables
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_XREF_COM,            xr_com.data()));
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_XREF_FOOT,           xr_foot.data()));
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_QREF,                qr.data()));        // constant size
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_X_COM,               x_com.data()));
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_X_FOOT,              x_foot.data()));
- //        YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,                   qDeg.data()));      // variable size
-
          Ha.R = Rotation(0,0,1, 0,-1,0, 1,0,0);   // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
 
  //        normalizeFootOrientation();
@@ -361,7 +330,7 @@ public:
  //        fprintf(stderr,"H_base_leftFoot: %s \n",H_base_leftFoot.toString().c_str());
          xBase.set4x4Matrix(H_w2b.data());
          // select which foot to control (when in double support, select the right foot)
-         footLinkId = supportPhase==SUPPORT_RIGHT ? LINK_ID_LEFT_FOOT : LINK_ID_RIGHT_FOOT;
+//         footLinkId = supportPhase==SUPPORT_RIGHT ? LINK_ID_LEFT_FOOT : LINK_ID_RIGHT_FOOT;
          return true;
 
      }
@@ -386,25 +355,33 @@ public:
      Vector forwardKinematics(int &linkId)
      {
          // THIS FUNCTION SHOULD ACTUALLY TAKE AS INPUT THE ID OF THE DESIRED LINK
-         if(world2baseRototranslation())
-         {
-             footLinkId = linkId;
- //            bool ans = wbInterface->forwardKinematics(qRad.data(), xBase.data(), footLinkId, x_foot.data());
- //            fprintf(stderr,"fwd kinematics will be computed with footLinkId: %d and x_pose: %s", footLinkId, x_pose.toString().c_str());
-             bool ans = wbInterface->forwardKinematics(qRad.data(), xBase, footLinkId, x_pose.data());
-             if(ans){
- //                fprintf(stderr,"Forward Kinematics computed \n");
- //                fprintf(stderr,"pose: %s \n", x_pose.toString().c_str());
-                 return x_pose;
-             }
-             else
+         if(robotJntAngles(false)){
+             if(world2baseRototranslation())
              {
-                 x_pose.zero();
-                 return x_pose;
+                 footLinkId = linkId;
+     //            bool ans = wbInterface->forwardKinematics(qRad.data(), xBase.data(), footLinkId, x_foot.data());
+     //            fprintf(stderr,"fwd kinematics will be computed with footLinkId: %d and x_pose: %s", footLinkId, x_pose.toString().c_str());
+		  
+                 bool ans = wbInterface->forwardKinematics(qRad.data(), xBase, footLinkId, x_pose.data());
+                 // Debugging is over here
+                 if(ans){
+     //                fprintf(stderr,"Forward Kinematics computed \n");
+     //                fprintf(stderr,"pose: %s \n", x_pose.toString().c_str());
+    //                 return x_pose;
+                     return x_pose;
+                 }
+                 else
+                 {
+                     x_pose.zero();
+                     return x_pose;
+                 }
+             }
+             else{
+                 fprintf(stderr,"ERROR computing world 2 base rototranslation!!!!!\n");
              }
          }
          else{
-             fprintf(stderr,"Error computing world 2 base rototranslation!!!!!");
+             fprintf(stderr,"ERROR: There has been an error acquiring robot joint angles \n");
          }
      }
 //     // ***************************************************************************************************
@@ -467,22 +444,30 @@ public:
 //     }
 
      // ***************************************************************************************************
-     JacobianMatrix jacobian(int &linkId)
-     {
- //        fprintf(stderr,"About to compute Jacobian for link %d \n", linkId);
-         footLinkId = linkId;
-         bool ans = wbInterface->computeJacobian(qRad.data(), xBase, footLinkId, JfootR.data());
-         if(ans)
-         {
-             return JfootR;
-         }
-         else
-         {
-             JfootR.setZero();
-             return JfootR;
-         }
-     }
-
+    JacobianMatrix jacobian(int &lid)
+    {
+//        fprintf(stderr,"About to compute Jacobian for link %d \n", linkId);
+        if(robotJntAngles(false)) {
+            if(world2baseRototranslation()) {
+                bool ans = wbInterface->computeJacobian(qRad.data(), xBase, lid, JfootR.data());
+                if(ans)
+                {
+                    return JfootR;
+                }
+                else
+                {
+                    JfootR.setZero();
+                    return JfootR;
+                }
+            }
+            else{
+	      fprintf(stderr,"There was an error computing world to base rototranslation \n");
+	    }
+        }
+        else {
+            fprintf(stderr,"There was an error getting robot joint angles to compute Jacobians \n");
+        }
+    }
      // ***************************************************************************************************
      Vector getEncoders()
      {
@@ -498,7 +483,6 @@ public:
 	 bool setCtrlMode(ControlMode ctrl_mode)
      {
          if(wbInterface->setControlMode(ctrl_mode)){
-             cout<<"Control Mode set"<<endl;
              return true;
          }
          else{

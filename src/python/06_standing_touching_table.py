@@ -18,6 +18,8 @@ import pylab as pl
 import numpy
 import lgsm
 
+
+
 import sys
 import os
 import inspect
@@ -26,6 +28,10 @@ sys.path.append(cpath)
 
 # from pycontrol import VHController
 from pycontrol_smooth_contact_force import VHController
+
+
+    
+    
 
 pi = numpy.pi
 # minimum distance for computing the local distance between shapes in possible collision
@@ -133,12 +139,15 @@ gposdes = lgsm.zeros(1)
 gveldes = lgsm.zeros(1)
 # create full task with a very low weight for reference posture
 # lower KP if the spring of the wall is too rigid
-fullTask = ctrl_moving_wall.createFullTask("zero_wall", w=1., kp=50)  
+fullTask = ctrl_moving_wall.createFullTask("zero_wall", w=1., kp=3000)  
 fullTask.set_q(gposdes)
 fullTask.set_qdot(gveldes)
 
+## OBSERVER MOVING WALL
+tpobs = ctrl_moving_wall.add_updater(xic.observers.TorqueObserver(ctrl_moving_wall))
+
 ## controller for the robot
-controller = VHController("controller", dt, dynModel,rname, wm.phy, wm.icsync, solver, use_reduced_problem_no_ddq,jmap)
+controller = VHController("controller", dt, dynModel,rname, wm.phy, wm.icsync, solver, use_reduced_problem_no_ddq,jmap, tpobs)
 
 # ##### OBSERVERS
 
@@ -151,8 +160,7 @@ controller = VHController("controller", dt, dynModel,rname, wm.phy, wm.icsync, s
 # ## OBSERVERS ANKLE
 # all_joints_obs = ctrl.add_updater(xic.observers.JointPositionsObserver(ctrl.getModel()))
 
-# ## OBSERVER MOVING WALL
-# tpobs = ctrl_moving_wall.add_updater(xic.observers.TorqueObserver(ctrl_moving_wall))
+
 
 
 #######################################################
@@ -165,14 +173,33 @@ ctrl_moving_wall.s.start()
 wm.phy.s.agent.triggerUpdate()
 # time.sleep(1.)
 
+#GUI
+from Tkinter import *
+import guitkctrl as gui
+
+#activate GUI
+master = Tk()
+guictrl = gui.MyTk(master)
+#master.geometry("300x400+300+300")
+guictrl.setController(controller)
+master.mainloop()
+
+
+
+
+
+
+
 # shell()
-xdefw.interactive.shell_console()()
+#xdefw.interactive.shell_console()()
 
-# time.sleep(15.)
 
-# wm.stopAgents()
-# controller.s.stop()
-# ctrl_moving_wall.s.stop()
+
+
+time.sleep(1.)
+wm.stopAgents()
+controller.s.stop()
+ctrl_moving_wall.s.stop()
 
 ####################### STOP SIMU ######################""
 
@@ -182,8 +209,8 @@ xdefw.interactive.shell_console()()
 # jtraj = numpy.array(all_joints_obs.get_record())
 # rf_traj = numpy.array(obs_r_foot.get_record())
 # lf_traj = numpy.array(obs_l_foot.get_record())
-# tpos = tpobs.get_record()
-
+tpos = tpobs.get_record()
+print tpos
 # pl.figure()
 # pl.plot(comtraj[:,0],label="com x")
 # pl.plot(comtraj[:,1],label="com y")
@@ -229,14 +256,14 @@ xdefw.interactive.shell_console()()
 # #pl.legend()
 # #pl.title("right leg")
 
-# pl.figure()
-# pl.plot(tpos)
-# pl.legend()
-# pl.title("force on wall")
-# pl.savefig("results/05_touch_table_5N_force.pdf", bbox_inches='tight' )
+pl.figure()
+pl.plot(tpos)
+pl.legend()
+pl.title("force on wall")
+pl.savefig("results/05_touch_table_5N_force.pdf", bbox_inches='tight' )
 
-# #the last to show all plots
-# pl.show()
+#the last to show all plots
+pl.show()
 
 
 

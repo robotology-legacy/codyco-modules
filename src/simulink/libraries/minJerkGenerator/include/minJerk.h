@@ -105,7 +105,7 @@ public:
         }
     }
 
-    bool initialize(int RATE, int TT){
+    bool initialize(int RATE, double TT){
 
         //        TDOF = condTaskDOF(type);     //This hould be uncommented if you wanna choose from three particular tasks as described in the switch above
         SIMU_RATE = static_cast<double>(RATE)/1000;
@@ -114,7 +114,7 @@ public:
         dref.resize     (taskDOF  ,0.0);  // Result of getVel(). Reference trajectory velocity vector resizing.
         ddref.resize    (taskDOF  ,0.0);  // Result of getAcc().
 
-        trajGen = new minJerkTrajGen(taskDOF, SIMU_RATE, static_cast<double>(TT));
+        trajGen = new minJerkTrajGen(taskDOF, SIMU_RATE, TT);
         trajGen->init(pos_init);
         return true;
     }

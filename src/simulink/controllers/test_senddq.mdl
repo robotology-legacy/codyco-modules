@@ -1,12 +1,12 @@
 Model {
-  Name			  "minJerkTrajMDL"
+  Name			  "test_senddq"
   Version		  7.9
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.83"
+    ComputedModelVersion    "1.27"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -18,7 +18,7 @@ Model {
       Type		      "Cell"
       Dimension		      2
       Cell		      "HDLSubsystem"
-      Cell		      "minJerkTrajMDL"
+      Cell		      "test_senddq"
       PropName		      "mdlProps"
     }
   }
@@ -32,15 +32,15 @@ Model {
   MinMaxOverflowArchiveMode "Overwrite"
   FPTRunName		  "Run 1"
   MaxMDLFileLineLength	  120
-  Created		  "Thu Nov 07 10:05:01 2013"
+  Created		  "Thu Jan 16 12:27:58 2014"
   Creator		  "jorhabib"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Feb 03 15:53:43 2014"
-  RTWModifiedTimeStamp	  313333524
-  ModelVersionFormat	  "1.%<AutoIncrement:83>"
+  LastModifiedDate	  "Fri Jan 17 15:22:33 2014"
+  RTWModifiedTimeStamp	  311872862
+  ModelVersionFormat	  "1.%<AutoIncrement:27>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -77,13 +77,13 @@ Model {
     $PropName		    "DataLoggingOverride"
     $ObjectID		    2
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
-    model_		    "minJerkTrajMDL"
+    model_		    "test_senddq"
     signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
       Dimension		      1
-      Cell		      "minJerkTrajMDL"
+      Cell		      "test_senddq"
       PropName		      "logAsSpecifiedByModels_"
     }
     Array {
@@ -162,8 +162,8 @@ Model {
 	  SolverMode		  "Auto"
 	  EnableConcurrentExecution off
 	  ConcurrentTasks	  off
-	  Solver		  "ode3"
-	  SolverName		  "ode3"
+	  Solver		  "ode45"
+	  SolverName		  "ode45"
 	  SolverJacobianMethodControl "auto"
 	  ShapePreserveControl	  "DisableAll"
 	  ZeroCrossControl	  "UseLocalSettings"
@@ -638,7 +638,7 @@ Model {
       }
       Name		      "Configuration"
       CurrentDlgPage	      "Solver"
-      ConfigPrmDlgPosition     [ 204, 44, 1162, 664 ] 
+      ConfigPrmDlgPosition     [ 538, 52, 1438, 732 ] 
     }
     PropName		    "ConfigurationSets"
   }
@@ -680,6 +680,12 @@ Model {
   }
   BlockParameterDefaults {
     Block {
+      BlockType		      Concatenate
+      NumInputs		      "2"
+      Mode		      "Vector"
+      ConcatenateDimension    "1"
+    }
+    Block {
       BlockType		      Constant
       Value		      "1"
       VectorParams1D	      on
@@ -693,17 +699,7 @@ Model {
       PreserveConstantTs      off
     }
     Block {
-      BlockType		      Demux
-      Outputs		      "4"
-      DisplayOption	      "none"
-      BusSelectionMode	      off
-    }
-    Block {
-      BlockType		      Display
-      Format		      "short"
-      Decimation	      "10"
-      Floating		      off
-      SampleTime	      "-1"
+      BlockType		      Ground
     }
     Block {
       BlockType		      Inport
@@ -722,14 +718,6 @@ Model {
       LatchByDelayingOutsideSignal off
       LatchInputForFeedbackSignals off
       Interpolate	      on
-    }
-    Block {
-      BlockType		      Mux
-      Inputs		      "4"
-      DisplayOption	      "none"
-      UseBusObject	      off
-      BusObject		      "BusObject"
-      NonVirtualBus	      off
     }
     Block {
       BlockType		      Outport
@@ -774,19 +762,6 @@ Model {
       SampleTime	      "-1"
     }
     Block {
-      BlockType		      Sin
-      SineType		      "Time based"
-      TimeSource	      "Use simulation time"
-      Amplitude		      "1"
-      Bias		      "0"
-      Frequency		      "1"
-      Phase		      "0"
-      Samples		      "10"
-      Offset		      "0"
-      SampleTime	      "-1"
-      VectorParams1D	      on
-    }
-    Block {
       BlockType		      SubSystem
       ShowPortLabels	      "FromPortIcon"
       Permissions	      "ReadWrite"
@@ -809,14 +784,17 @@ Model {
       Variant		      off
       GeneratePreprocessorConditionals off
     }
+    Block {
+      BlockType		      Terminator
+    }
   }
   System {
-    Name		    "minJerkTrajMDL"
-    Location		    [1506, 81, 2807, 796]
+    Name		    "test_senddq"
+    Location		    [1828, 283, 2538, 494]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
-    ScreenColor		    "[0.984718, 1.000000, 0.902909]"
+    ScreenColor		    "white"
     PaperOrientation	    "landscape"
     PaperPositionMode	    "auto"
     PaperType		    "usletter"
@@ -824,16 +802,15 @@ Model {
     TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
     TiledPageScale	    1
     ShowPageBoundaries	    off
-    ZoomFactor		    "144"
+    ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "109"
+    SIDHighWatermark	    "67"
     Block {
       BlockType		      SubSystem
-      Name		      "COM minJerkGenerator"
-      SID		      "7"
-      Ports		      [2, 3]
-      Position		      [165, 83, 240, 167]
-      BackgroundColor	      "orange"
+      Name		      "Body Parts Mask"
+      SID		      "60"
+      Ports		      [0, 1]
+      Position		      [195, 75, 235, 135]
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
       RTWSystemCode	      "Auto"
@@ -842,9 +819,9 @@ Model {
       RequestExecContextInheritance off
       MaskHideContents	      off
       System {
-	Name			"COM minJerkGenerator"
-	Location		[525, 384, 987, 744]
-	Open			off
+	Name			"Body Parts Mask"
+	Location		[2215, 296, 2590, 597]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -857,208 +834,155 @@ Model {
 	ShowPageBoundaries	off
 	ZoomFactor		"100"
 	Block {
-	  BlockType		  Inport
-	  Name			  "desiredPos"
-	  SID			  "26"
-	  Position		  [75, 168, 105, 182]
-	  ZOrder		  -1
-	  IconDisplay		  "Port number"
+	  BlockType		  Reference
+	  Name			  "Degrees to\nRadians1"
+	  SID			  "57"
+	  Ports			  [1, 1]
+	  Position		  [210, 120, 240, 150]
+	  ShowName		  off
+	  LibraryVersion	  "1.44"
+	  SourceBlock		  "simulink_extras/Transformations/Degrees to\nRadians"
+	  SourceType		  "DegreesToRadians"
 	}
 	Block {
-	  BlockType		  Inport
-	  Name			  "initPos"
-	  SID			  "37"
-	  Position		  [75, 83, 105, 97]
-	  ZOrder		  -1
-	  Port			  "2"
-	  IconDisplay		  "Port number"
+	  BlockType		  Constant
+	  Name			  "Left Arm"
+	  SID			  "49"
+	  Position		  [25, 73, 115, 97]
+	  ZOrder		  -4
+	  Value			  "0*ones(1,5)"
+	  VectorParams1D	  off
 	}
 	Block {
-	  BlockType		  S-Function
-	  Name			  "S-Function"
-	  SID			  "9"
-	  Ports			  [2, 3]
-	  Position		  [140, 45, 245, 215]
-	  ZOrder		  -5
-	  BackgroundColor	  "yellow"
-	  FunctionName		  "minJerkGenerator"
-	  Parameters		  "dim, rate, tt"
-	  EnableBusSupport	  off
-	  MaskPromptString	  "Trajectory dimension (int)|Simulation rate (int) [ms]|Trajectory time [s]"
-	  MaskStyleString	  "edit,edit,edit"
-	  MaskVariables		  "dim=@1;rate=@2;tt=@3;"
-	  MaskTunableValueString  "on,on,on"
-	  MaskCallbackString	  "||"
-	  MaskEnableString	  "on,on,on"
-	  MaskVisibilityString	  "on,on,on"
-	  MaskToolTipString	  "on,on,on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "2|10|4"
+	  BlockType		  Constant
+	  Name			  "Left Arm1"
+	  SID			  "66"
+	  Position		  [25, 123, 115, 147]
+	  ZOrder		  -4
+	  Value			  "0*ones(1,5)"
+	  VectorParams1D	  off
+	}
+	Block {
+	  BlockType		  Constant
+	  Name			  "Left Leg"
+	  SID			  "58"
+	  Position		  [25, 178, 115, 202]
+	  ZOrder		  -4
+	  Value			  "0*ones(1,6)"
+	  VectorParams1D	  off
+	}
+	Block {
+	  BlockType		  Constant
+	  Name			  "Right Arm1"
+	  SID			  "67"
+	  Position		  [250, 196, 340, 224]
+	  ZOrder		  -4
+	  Value			  "[-48 54 61 102 -70]"
+	  VectorParams1D	  off
+	}
+	Block {
+	  BlockType		  Constant
+	  Name			  "Right Leg"
+	  SID			  "59"
+	  Position		  [25, 228, 115, 252]
+	  ZOrder		  -4
+	  Value			  "0*ones(1,6)"
+	  VectorParams1D	  off
+	}
+	Block {
+	  BlockType		  Constant
+	  Name			  "Torso"
+	  SID			  "50"
+	  Position		  [25, 28, 115, 52]
+	  ZOrder		  -4
+	  Value			  "[0 0 5]"
+	  VectorParams1D	  off
+	}
+	Block {
+	  BlockType		  Concatenate
+	  Name			  "Vector\nConcatenate"
+	  SID			  "55"
+	  Ports			  [5, 1]
+	  Position		  [175, 42, 185, 228]
+	  ZOrder		  -22
+	  ShowName		  off
+	  NumInputs		  "5"
 	}
 	Block {
 	  BlockType		  Outport
-	  Name			  "pos"
-	  SID			  "13"
-	  Position		  [305, 68, 335, 82]
-	  ZOrder		  -9
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "vel"
-	  SID			  "39"
-	  Position		  [305, 123, 335, 137]
-	  ZOrder		  -9
-	  Port			  "2"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "acc"
-	  SID			  "40"
-	  Position		  [305, 178, 335, 192]
-	  ZOrder		  -9
-	  Port			  "3"
+	  Name			  "mask"
+	  SID			  "61"
+	  Position		  [270, 128, 300, 142]
 	  IconDisplay		  "Port number"
 	}
 	Line {
-	  Labels		  [0, 0]
-	  SrcBlock		  "S-Function"
-	  SrcPort		  2
-	  DstBlock		  "vel"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "S-Function"
+	  SrcBlock		  "Torso"
 	  SrcPort		  1
-	  DstBlock		  "pos"
+	  Points		  [20, 0; 0, 25]
+	  DstBlock		  "Vector\nConcatenate"
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "S-Function"
-	  SrcPort		  3
-	  DstBlock		  "acc"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "initPos"
+	  SrcBlock		  "Left Arm"
 	  SrcPort		  1
-	  DstBlock		  "S-Function"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "desiredPos"
-	  SrcPort		  1
-	  DstBlock		  "S-Function"
+	  Points		  [40, 0]
+	  DstBlock		  "Vector\nConcatenate"
 	  DstPort		  2
 	}
-	Annotation {
-	  SID			  "88"
-	  Position		  [96, 113]
+	Line {
+	  SrcBlock		  "Left Arm1"
+	  SrcPort		  1
+	  DstBlock		  "Vector\nConcatenate"
+	  DstPort		  3
+	}
+	Line {
+	  SrcBlock		  "Left Leg"
+	  SrcPort		  1
+	  Points		  [20, 0; 0, -20]
+	  DstBlock		  "Vector\nConcatenate"
+	  DstPort		  4
+	}
+	Line {
+	  SrcBlock		  "Right Leg"
+	  SrcPort		  1
+	  Points		  [20, 0; 0, -35]
+	  DstBlock		  "Vector\nConcatenate"
+	  DstPort		  5
+	}
+	Line {
+	  SrcBlock		  "Vector\nConcatenate"
+	  SrcPort		  1
+	  DstBlock		  "Degrees to\nRadians1"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Degrees to\nRadians1"
+	  SrcPort		  1
+	  DstBlock		  "mask"
+	  DstPort		  1
 	}
       }
     }
     Block {
-      BlockType		      Demux
-      Name		      "Demux"
-      SID		      "104"
-      Ports		      [1, 3]
-      Position		      [520, 261, 525, 299]
-      ZOrder		      -6
-      ShowName		      off
-      Outputs		      "3"
-      DisplayOption	      "bar"
-    }
-    Block {
-      BlockType		      Display
-      Name		      "Display3"
-      SID		      "82"
-      Ports		      [1]
-      Position		      [275, 143, 435, 167]
-      ZOrder		      -1
-      ShowName		      off
-      Decimation	      "1"
-      Lockdown		      off
-    }
-    Block {
-      BlockType		      Display
-      Name		      "Display4"
-      SID		      "83"
-      Ports		      [1]
-      Position		      [275, 113, 435, 137]
-      ZOrder		      -1
-      ShowName		      off
-      Decimation	      "1"
-      Lockdown		      off
-    }
-    Block {
-      BlockType		      Display
-      Name		      "Display5"
-      SID		      "84"
-      Ports		      [1]
-      Position		      [275, 81, 435, 109]
-      ZOrder		      -1
-      Decimation	      "1"
-      Lockdown		      off
-    }
-    Block {
-      BlockType		      Mux
-      Name		      "Mux"
-      SID		      "92"
-      Ports		      [3, 1]
-      Position		      [240, 376, 245, 414]
-      ZOrder		      -12
-      ShowName		      off
-      Inputs		      "3"
-      DisplayOption	      "bar"
-    }
-    Block {
-      BlockType		      Scope
-      Name		      "Scope"
-      SID		      "85"
-      Ports		      [1]
-      Position		      [280, 264, 310, 296]
-      ZOrder		      -3
-      ShowName		      off
-      Floating		      off
-      Location		      [1420, 51, 2808, 927]
-      Open		      off
-      NumInputPorts	      "1"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.5 0.5 0.5]"
-	AxesColor		"[0 0 0]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      YMin		      "-0.275"
-      YMax		      "-0.075"
-      DataFormat	      "StructureWithTime"
-      SampleTime	      "0"
+      BlockType		      Reference
+      Name		      "Radians\nto Degrees"
+      SID		      "45"
+      Ports		      [1, 1]
+      Position		      [495, 90, 525, 120]
+      LibraryVersion	      "1.44"
+      SourceBlock	      "simulink_extras/Transformations/Radians\nto Degrees"
+      SourceType	      "RadiansToDegrees"
     }
     Block {
       BlockType		      Scope
       Name		      "Scope1"
-      SID		      "86"
+      SID		      "46"
       Ports		      [1]
-      Position		      [320, 234, 350, 266]
-      ZOrder		      -3
-      ShowName		      off
+      Position		      [575, 89, 605, 121]
+      ZOrder		      -16
       Floating		      off
-      Location		      [1507, 51, 2895, 927]
-      Open		      off
+      Location		      [847, 190, 1410, 898]
+      Open		      on
       NumInputPorts	      "1"
       List {
 	ListType		AxesTitles
@@ -1075,369 +999,31 @@ Model {
 	MarkerStyles		"none|none|none|none|none|none"
       }
       ShowLegends	      off
-      YMin		      "0.15"
-      YMax		      "0.7"
+      YMin		      "-50"
+      YMax		      "50"
       SaveName		      "ScopeData1"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
     }
     Block {
-      BlockType		      Scope
-      Name		      "Scope2"
-      SID		      "87"
-      Ports		      [1]
-      Position		      [275, 204, 305, 236]
-      ZOrder		      -3
-      ShowName		      off
-      Floating		      off
-      Location		      [1506, 23, 2807, 767]
-      Open		      off
-      NumInputPorts	      "1"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.5 0.5 0.5]"
-	AxesColor		"[0 0 0]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      YMin		      "0.9"
-      YMax		      "3"
-      SaveName		      "ScopeData2"
-      DataFormat	      "StructureWithTime"
-      SampleTime	      "0"
-    }
-    Block {
-      BlockType		      Scope
-      Name		      "Scope3"
-      SID		      "93"
-      Ports		      [1]
-      Position		      [430, 389, 460, 421]
-      ZOrder		      -3
-      ShowName		      off
-      Floating		      off
-      Location		      [1420, 51, 2808, 927]
-      Open		      off
-      NumInputPorts	      "1"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.5 0.5 0.5]"
-	AxesColor		"[0 0 0]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      YMin		      "-0.275"
-      YMax		      "-0.075"
-      SaveName		      "ScopeData3"
-      DataFormat	      "StructureWithTime"
-      SampleTime	      "0"
-    }
-    Block {
-      BlockType		      Scope
-      Name		      "Scope4"
-      SID		      "94"
-      Ports		      [1]
-      Position		      [470, 359, 500, 391]
-      ZOrder		      -3
-      ShowName		      off
-      Floating		      off
-      Location		      [1507, 51, 2895, 927]
-      Open		      off
-      NumInputPorts	      "1"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.5 0.5 0.5]"
-	AxesColor		"[0 0 0]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      YMin		      "0.15"
-      YMax		      "0.7"
-      SaveName		      "ScopeData4"
-      DataFormat	      "StructureWithTime"
-      SampleTime	      "0"
-    }
-    Block {
-      BlockType		      Scope
-      Name		      "Scope5"
-      SID		      "95"
-      Ports		      [1]
-      Position		      [425, 329, 455, 361]
-      ZOrder		      -3
-      ShowName		      off
-      Floating		      off
-      Location		      [66, 23, 1441, 899]
-      Open		      off
-      NumInputPorts	      "1"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.5 0.5 0.5]"
-	AxesColor		"[0 0 0]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      YMin		      "-1"
-      YMax		      "1"
-      SaveName		      "ScopeData5"
-      DataFormat	      "StructureWithTime"
-      SampleTime	      "0"
-    }
-    Block {
-      BlockType		      Scope
-      Name		      "Scope6"
-      SID		      "106"
-      Ports		      [1]
-      Position		      [585, 304, 615, 336]
-      ZOrder		      -3
-      ShowName		      off
-      Floating		      off
-      Location		      [67, 51, 1455, 927]
-      Open		      off
-      NumInputPorts	      "1"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.5 0.5 0.5]"
-	AxesColor		"[0 0 0]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      YMin		      "-0.0175"
-      YMax		      "0.0175"
-      SaveName		      "ScopeData6"
-      DataFormat	      "StructureWithTime"
-      SampleTime	      "0"
-    }
-    Block {
-      BlockType		      Scope
-      Name		      "Scope7"
-      SID		      "107"
-      Ports		      [1]
-      Position		      [625, 274, 655, 306]
-      ZOrder		      -3
-      ShowName		      off
-      Floating		      off
-      Location		      [189, 288, 1577, 1164]
-      Open		      off
-      NumInputPorts	      "1"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.5 0.5 0.5]"
-	AxesColor		"[0 0 0]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      YMin		      "-0.0175"
-      YMax		      "0.0175"
-      SaveName		      "ScopeData7"
-      DataFormat	      "StructureWithTime"
-      SampleTime	      "0"
-    }
-    Block {
-      BlockType		      Scope
-      Name		      "Scope8"
-      SID		      "108"
-      Ports		      [1]
-      Position		      [580, 244, 610, 276]
-      ZOrder		      -3
-      ShowName		      off
-      Floating		      off
-      Location		      [66, 23, 1441, 899]
-      Open		      off
-      NumInputPorts	      "1"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.5 0.5 0.5]"
-	AxesColor		"[0 0 0]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      YMin		      "-0"
-      YMax		      "0.09"
-      SaveName		      "ScopeData8"
-      DataFormat	      "StructureWithTime"
-      SampleTime	      "0"
-    }
-    Block {
-      BlockType		      Scope
-      Name		      "Scope9"
-      SID		      "109"
-      Ports		      [1]
-      Position		      [260, 434, 290, 466]
-      ZOrder		      -3
-      ShowName		      off
-      Floating		      off
-      Location		      [66, 23, 1441, 899]
-      Open		      off
-      NumInputPorts	      "1"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.5 0.5 0.5]"
-	AxesColor		"[0 0 0]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      YMin		      "-1"
-      YMax		      "1"
-      SaveName		      "ScopeData9"
-      DataFormat	      "StructureWithTime"
-      SampleTime	      "0"
-    }
-    Block {
-      BlockType		      Sin
-      Name		      "Sine Wave"
-      SID		      "89"
-      Ports		      [0, 1]
-      Position		      [135, 335, 165, 365]
-      ZOrder		      -21
-      Frequency		      "2*pi/(4*10e-3)"
-    }
-    Block {
-      BlockType		      Sin
-      Name		      "Sine Wave1"
-      SID		      "90"
-      Ports		      [0, 1]
-      Position		      [135, 380, 165, 410]
-      ZOrder		      -21
-    }
-    Block {
-      BlockType		      Sin
-      Name		      "Sine Wave2"
-      SID		      "91"
-      Ports		      [0, 1]
-      Position		      [135, 425, 165, 455]
-      ZOrder		      -21
-      Frequency		      "10000"
-    }
-    Block {
       BlockType		      Reference
       Name		      "Soft Real Time"
-      SID		      "18"
+      SID		      "30"
       Ports		      []
-      Position		      [62, 15, 402, 54]
-      BackgroundColor	      "yellow"
+      Position		      [35, 50, 127, 147]
+      DropShadow	      on
       ShowName		      off
       LibraryVersion	      "1.7"
       SourceBlock	      "utility/Soft Real Time"
       SourceType	      ""
-      x			      "0.01"
-    }
-    Block {
-      BlockType		      Constant
-      Name		      "desiredPos\n(read every time step)"
-      SID		      "35"
-      Position		      [65, 133, 110, 157]
-      ZOrder		      -5
-      Value		      "[1.0 2.0]"
-      OutDataTypeStr	      "double"
-    }
-    Block {
-      BlockType		      Constant
-      Name		      "desiredPos\n(read every time step)1"
-      SID		      "58"
-      Position		      [45, 257, 110, 283]
-      ZOrder		      -5
-      Value		      "[1.0 2.0 3.0]"
-      OutDataTypeStr	      "double"
-    }
-    Block {
-      BlockType		      Constant
-      Name		      "init_pos"
-      SID		      "25"
-      Position		      [65, 91, 110, 119]
-      ZOrder		      -5
-      NamePlacement	      "alternate"
-      Value		      "[0.0 0.0]"
-      OutDataTypeStr	      "double"
-    }
-    Block {
-      BlockType		      Constant
-      Name		      "init_pos1"
-      SID		      "59"
-      Position		      [45, 216, 110, 244]
-      ZOrder		      -5
-      NamePlacement	      "alternate"
-      Value		      "[0.0 0.0 0.0]"
-      OutDataTypeStr	      "double"
-    }
-    Block {
-      BlockType		      Constant
-      Name		      "init_pos2"
-      SID		      "103"
-      Position		      [220, 341, 285, 369]
-      ZOrder		      -5
-      NamePlacement	      "alternate"
-      Value		      "[0.0 0.0 0.0]"
-      OutDataTypeStr	      "double"
+      x			      "0.050"
     }
     Block {
       BlockType		      SubSystem
-      Name		      "minJerkGenerator1"
-      SID		      "60"
-      Ports		      [2, 3]
-      Position		      [165, 208, 240, 292]
+      Name		      "robot angles1"
+      SID		      "31"
+      Ports		      [0, 1]
+      Position		      [405, 73, 460, 137]
       BackgroundColor	      "orange"
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -1447,8 +1033,168 @@ Model {
       RequestExecContextInheritance off
       MaskHideContents	      off
       System {
-	Name			"minJerkGenerator1"
-	Location		[489, 344, 951, 704]
+	Name			"robot angles1"
+	Location		[715, 472, 1177, 821]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"usletter"
+	PaperUnits		"inches"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+	Block {
+	  BlockType		  Ground
+	  Name			  "Ground"
+	  SID			  "32"
+	  Position		  [65, 185, 85, 205]
+	  ZOrder		  -9
+	}
+	Block {
+	  BlockType		  Constant
+	  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
+	  SID			  "33"
+	  Position		  [65, 75, 95, 105]
+	  ZOrder		  -5
+	  Value			  "0"
+	  OutDataTypeStr	  "int8"
+	}
+	Block {
+	  BlockType		  S-Function
+	  Name			  "S-Function"
+	  SID			  "34"
+	  Ports			  [2, 4]
+	  Position		  [140, 45, 245, 215]
+	  ZOrder		  -5
+	  BackgroundColor	  "darkGreen"
+	  FunctionName		  "robotState"
+	  Parameters		  "val,robotname,localname"
+	  EnableBusSupport	  off
+	  MaskPromptString	  "Value|Robot Name (icub - icubSim)|Module Name"
+	  MaskStyleString	  "edit,edit,edit"
+	  MaskVariables		  "val=@1;robotname=@2;localname=@3;"
+	  MaskTunableValueString  "on,on,on"
+	  MaskCallbackString	  "||"
+	  MaskEnableString	  "on,on,on"
+	  MaskVisibilityString	  "on,on,on"
+	  MaskToolTipString	  "on,on,on"
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
+	  MaskValueString	  "0|'icubGazeboSim'|'robotState'"
+	}
+	Block {
+	  BlockType		  Terminator
+	  Name			  "Terminator1"
+	  SID			  "35"
+	  Position		  [310, 100, 330, 120]
+	  ZOrder		  -5
+	}
+	Block {
+	  BlockType		  Terminator
+	  Name			  "Terminator2"
+	  SID			  "36"
+	  Position		  [315, 140, 335, 160]
+	  ZOrder		  -5
+	}
+	Block {
+	  BlockType		  Terminator
+	  Name			  "Terminator3"
+	  SID			  "37"
+	  Position		  [310, 180, 330, 200]
+	  ZOrder		  -5
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "qrad"
+	  SID			  "38"
+	  Position		  [310, 63, 340, 77]
+	  ZOrder		  -9
+	  IconDisplay		  "Port number"
+	}
+	Line {
+	  SrcBlock		  "S-Function"
+	  SrcPort		  4
+	  DstBlock		  "Terminator3"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
+	  SrcPort		  1
+	  DstBlock		  "S-Function"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "S-Function"
+	  SrcPort		  3
+	  DstBlock		  "Terminator2"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "S-Function"
+	  SrcPort		  1
+	  DstBlock		  "qrad"
+	  DstPort		  1
+	}
+	Line {
+	  Labels		  [0, 0]
+	  SrcBlock		  "S-Function"
+	  SrcPort		  2
+	  DstBlock		  "Terminator1"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Ground"
+	  SrcPort		  1
+	  Points		  [15, 0; 0, -20]
+	  DstBlock		  "S-Function"
+	  DstPort		  2
+	}
+	Annotation {
+	  SID			  "42"
+	  Name			  "Jacobian"
+	  Position		  [275, 183]
+	}
+	Annotation {
+	  SID			  "41"
+	  Name			  "getQ"
+	  Position		  [274, 62]
+	}
+	Annotation {
+	  SID			  "40"
+	  Name			  "xFoot"
+	  Position		  [272, 142]
+	}
+	Annotation {
+	  SID			  "39"
+	  Name			  "getDq"
+	  Position		  [277, 99]
+	}
+      }
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "setVelDes"
+      SID		      "18"
+      Ports		      [1]
+      Position		      [285, 73, 340, 137]
+      BackgroundColor	      "orange"
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      Opaque		      off
+      RequestExecContextInheritance off
+      MaskHideContents	      off
+      System {
+	Name			"setVelDes"
+	Location		[109, 550, 571, 899]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -1463,35 +1209,35 @@ Model {
 	ZoomFactor		"100"
 	Block {
 	  BlockType		  Inport
-	  Name			  "desiredPos"
-	  SID			  "61"
-	  Position		  [75, 168, 105, 182]
+	  Name			  "dqDes"
+	  SID			  "19"
+	  Position		  [55, 193, 85, 207]
 	  ZOrder		  -1
 	  IconDisplay		  "Port number"
 	}
 	Block {
-	  BlockType		  Inport
-	  Name			  "initPos"
-	  SID			  "62"
-	  Position		  [75, 83, 105, 97]
-	  ZOrder		  -1
-	  Port			  "2"
-	  IconDisplay		  "Port number"
+	  BlockType		  Constant
+	  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
+	  SID			  "20"
+	  Position		  [65, 75, 95, 105]
+	  ZOrder		  -5
+	  Value			  "0"
+	  OutDataTypeStr	  "int8"
 	}
 	Block {
 	  BlockType		  S-Function
 	  Name			  "S-Function"
-	  SID			  "63"
-	  Ports			  [2, 3]
+	  SID			  "21"
+	  Ports			  [2, 4]
 	  Position		  [140, 45, 245, 215]
 	  ZOrder		  -5
-	  BackgroundColor	  "yellow"
-	  FunctionName		  "minJerkGenerator"
-	  Parameters		  "dim, rate, tt"
+	  BackgroundColor	  "darkGreen"
+	  FunctionName		  "robotState"
+	  Parameters		  "val,robotname,localname"
 	  EnableBusSupport	  off
-	  MaskPromptString	  "Trajectory dimension (int)|Simulation rate (int) [ms]|Trajectory time [s]"
+	  MaskPromptString	  "Value|Robot Name (icub - icubSim)|Module Name"
 	  MaskStyleString	  "edit,edit,edit"
-	  MaskVariables		  "dim=@1;rate=@2;tt=@3;"
+	  MaskVariables		  "val=@1;robotname=@2;localname=@3;"
 	  MaskTunableValueString  "on,on,on"
 	  MaskCallbackString	  "||"
 	  MaskEnableString	  "on,on,on"
@@ -1502,357 +1248,118 @@ Model {
 	  MaskIconRotate	  "none"
 	  MaskPortRotate	  "default"
 	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "3|10|1"
+	  MaskValueString	  "4|'icubSim'|'robotState'"
 	}
 	Block {
-	  BlockType		  Outport
-	  Name			  "pos"
-	  SID			  "64"
-	  Position		  [305, 68, 335, 82]
-	  ZOrder		  -9
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "vel"
-	  SID			  "65"
-	  Position		  [305, 123, 335, 137]
-	  ZOrder		  -9
-	  Port			  "2"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "acc"
-	  SID			  "66"
-	  Position		  [305, 178, 335, 192]
-	  ZOrder		  -9
-	  Port			  "3"
-	  IconDisplay		  "Port number"
-	}
-	Line {
-	  SrcBlock		  "desiredPos"
-	  SrcPort		  1
-	  DstBlock		  "S-Function"
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "initPos"
-	  SrcPort		  1
-	  DstBlock		  "S-Function"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "S-Function"
-	  SrcPort		  3
-	  DstBlock		  "acc"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "S-Function"
-	  SrcPort		  1
-	  DstBlock		  "pos"
-	  DstPort		  1
-	}
-	Line {
-	  Labels		  [0, 0]
-	  SrcBlock		  "S-Function"
-	  SrcPort		  2
-	  DstBlock		  "vel"
-	  DstPort		  1
-	}
-      }
-    }
-    Block {
-      BlockType		      SubSystem
-      Name		      "minJerkGenerator2"
-      SID		      "96"
-      Ports		      [2, 3]
-      Position		      [315, 333, 390, 417]
-      BackgroundColor	      "orange"
-      MinAlgLoopOccurrences   off
-      PropExecContextOutsideSubsystem off
-      RTWSystemCode	      "Auto"
-      FunctionWithSeparateData off
-      Opaque		      off
-      RequestExecContextInheritance off
-      MaskHideContents	      off
-      System {
-	Name			"minJerkGenerator2"
-	Location		[868, 382, 1330, 742]
-	Open			off
-	ModelBrowserVisibility	off
-	ModelBrowserWidth	200
-	ScreenColor		"white"
-	PaperOrientation	"landscape"
-	PaperPositionMode	"auto"
-	PaperType		"usletter"
-	PaperUnits		"inches"
-	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
-	TiledPageScale		1
-	ShowPageBoundaries	off
-	ZoomFactor		"100"
-	Block {
-	  BlockType		  Inport
-	  Name			  "desiredPos"
-	  SID			  "97"
-	  Position		  [75, 168, 105, 182]
-	  ZOrder		  -1
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Inport
-	  Name			  "initPos"
-	  SID			  "98"
-	  Position		  [75, 83, 105, 97]
-	  ZOrder		  -1
-	  Port			  "2"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  S-Function
-	  Name			  "S-Function"
-	  SID			  "99"
-	  Ports			  [2, 3]
-	  Position		  [140, 45, 245, 215]
+	  BlockType		  Terminator
+	  Name			  "Terminator1"
+	  SID			  "22"
+	  Position		  [310, 100, 330, 120]
 	  ZOrder		  -5
-	  BackgroundColor	  "yellow"
-	  FunctionName		  "minJerkGenerator"
-	  Parameters		  "dim, rate, tt"
-	  EnableBusSupport	  off
-	  MaskPromptString	  "Trajectory dimension (int)|Simulation rate (int) [ms]|Trajectory time [s]"
-	  MaskStyleString	  "edit,edit,edit"
-	  MaskVariables		  "dim=@1;rate=@2;tt=@3;"
-	  MaskTunableValueString  "on,on,on"
-	  MaskCallbackString	  "||"
-	  MaskEnableString	  "on,on,on"
-	  MaskVisibilityString	  "on,on,on"
-	  MaskToolTipString	  "on,on,on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "3|10|0.05"
 	}
 	Block {
-	  BlockType		  Outport
-	  Name			  "pos"
-	  SID			  "100"
-	  Position		  [305, 68, 335, 82]
-	  ZOrder		  -9
-	  IconDisplay		  "Port number"
+	  BlockType		  Terminator
+	  Name			  "Terminator2"
+	  SID			  "23"
+	  Position		  [310, 140, 330, 160]
+	  ZOrder		  -5
 	}
 	Block {
-	  BlockType		  Outport
-	  Name			  "vel"
-	  SID			  "101"
-	  Position		  [305, 123, 335, 137]
-	  ZOrder		  -9
-	  Port			  "2"
-	  IconDisplay		  "Port number"
+	  BlockType		  Terminator
+	  Name			  "Terminator3"
+	  SID			  "24"
+	  Position		  [310, 180, 330, 200]
+	  ZOrder		  -5
 	}
 	Block {
-	  BlockType		  Outport
-	  Name			  "acc"
-	  SID			  "102"
-	  Position		  [305, 178, 335, 192]
-	  ZOrder		  -9
-	  Port			  "3"
-	  IconDisplay		  "Port number"
+	  BlockType		  Terminator
+	  Name			  "Terminator4"
+	  SID			  "25"
+	  Position		  [310, 60, 330, 80]
+	  ZOrder		  -5
+	}
+	Line {
+	  SrcBlock		  "dqDes"
+	  SrcPort		  1
+	  Points		  [15, 0; 0, -25]
+	  DstBlock		  "S-Function"
+	  DstPort		  2
 	}
 	Line {
 	  Labels		  [0, 0]
 	  SrcBlock		  "S-Function"
 	  SrcPort		  2
-	  DstBlock		  "vel"
+	  DstBlock		  "Terminator1"
 	  DstPort		  1
 	}
 	Line {
 	  SrcBlock		  "S-Function"
 	  SrcPort		  1
-	  DstBlock		  "pos"
+	  DstBlock		  "Terminator4"
 	  DstPort		  1
 	}
 	Line {
 	  SrcBlock		  "S-Function"
 	  SrcPort		  3
-	  DstBlock		  "acc"
+	  DstBlock		  "Terminator2"
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "initPos"
+	  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
 	  SrcPort		  1
 	  DstBlock		  "S-Function"
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "desiredPos"
-	  SrcPort		  1
-	  DstBlock		  "S-Function"
-	  DstPort		  2
+	  SrcBlock		  "S-Function"
+	  SrcPort		  4
+	  DstBlock		  "Terminator3"
+	  DstPort		  1
+	}
+	Annotation {
+	  SID			  "29"
+	  Name			  "getDq"
+	  Position		  [277, 99]
+	}
+	Annotation {
+	  SID			  "28"
+	  Name			  "xFoot"
+	  Position		  [272, 142]
+	}
+	Annotation {
+	  SID			  "27"
+	  Name			  "getQ"
+	  Position		  [274, 62]
+	}
+	Annotation {
+	  SID			  "26"
+	  Name			  "Jacobian"
+	  Position		  [275, 183]
 	}
       }
     }
     Line {
-      SrcBlock		      "init_pos"
+      SrcBlock		      "robot angles1"
       SrcPort		      1
-      DstBlock		      "COM minJerkGenerator"
+      DstBlock		      "Radians\nto Degrees"
       DstPort		      1
     }
     Line {
-      SrcBlock		      "desiredPos\n(read every time step)"
+      SrcBlock		      "Radians\nto Degrees"
       SrcPort		      1
-      DstBlock		      "COM minJerkGenerator"
-      DstPort		      2
-    }
-    Line {
-      SrcBlock		      "COM minJerkGenerator"
-      SrcPort		      1
-      DstBlock		      "Display5"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "COM minJerkGenerator"
-      SrcPort		      2
-      DstBlock		      "Display4"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "COM minJerkGenerator"
-      SrcPort		      3
-      DstBlock		      "Display3"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "init_pos1"
-      SrcPort		      1
-      DstBlock		      "minJerkGenerator1"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "desiredPos\n(read every time step)1"
-      SrcPort		      1
-      DstBlock		      "minJerkGenerator1"
-      DstPort		      2
-    }
-    Line {
-      SrcBlock		      "minJerkGenerator1"
-      SrcPort		      2
       DstBlock		      "Scope1"
       DstPort		      1
     }
     Line {
-      SrcBlock		      "minJerkGenerator1"
-      SrcPort		      3
-      DstBlock		      "Scope"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "minJerkGenerator1"
+      SrcBlock		      "Body Parts Mask"
       SrcPort		      1
-      DstBlock		      "Scope2"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "Sine Wave"
-      SrcPort		      1
-      Points		      [25, 0; 0, 35; 15, 0]
-      Branch {
-	DstBlock		"Mux"
-	DstPort			1
-      }
-      Branch {
-	Points			[0, 65]
-	DstBlock		"Scope9"
-	DstPort			1
-      }
-    }
-    Line {
-      SrcBlock		      "Sine Wave1"
-      SrcPort		      1
-      DstBlock		      "Mux"
-      DstPort		      2
-    }
-    Line {
-      SrcBlock		      "Sine Wave2"
-      SrcPort		      1
-      Points		      [25, 0; 0, -35]
-      DstBlock		      "Mux"
-      DstPort		      3
-    }
-    Line {
-      SrcBlock		      "minJerkGenerator2"
-      SrcPort		      2
-      DstBlock		      "Scope4"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "minJerkGenerator2"
-      SrcPort		      3
-      DstBlock		      "Scope3"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "minJerkGenerator2"
-      SrcPort		      1
-      Points		      [10, 0]
-      Branch {
-	DstBlock		"Scope5"
-	DstPort			1
-      }
-      Branch {
-	Points			[0, -65]
-	DstBlock		"Demux"
-	DstPort			1
-      }
-    }
-    Line {
-      SrcBlock		      "init_pos2"
-      SrcPort		      1
-      DstBlock		      "minJerkGenerator2"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "Mux"
-      SrcPort		      1
-      DstBlock		      "minJerkGenerator2"
-      DstPort		      2
-    }
-    Line {
-      SrcBlock		      "Demux"
-      SrcPort		      1
-      Points		      [15, 0; 0, -10]
-      DstBlock		      "Scope8"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "Demux"
-      SrcPort		      2
-      Points		      [40, 0; 0, 10]
-      DstBlock		      "Scope7"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "Demux"
-      SrcPort		      3
-      Points		      [20, 0; 0, 30]
-      DstBlock		      "Scope6"
+      DstBlock		      "setVelDes"
       DstPort		      1
     }
     Annotation {
-      SID		      "19"
-      Name		      "This block needs to have the following inputs:\n1. [checked] Initial vector value, e.g. init x_com "
-      "or x_foot, etc Read only\n                    at the beginning of the simulation.\n2. [checked] Desired goal.\n\n"
-      "Block outputs:\n1. [checked] Reference position, velocity and acceleration\n\nAs parameters:\n[checked] 1. Numbe"
-      "r of DOF(dimension) of the task for which the minJerk\ntrajectory is needed.\n[checked] 2. Simulation rate (IMPO"
-      "RTANT)\n[checked] 3. Trajectory time"
-      Position		      [467, 120]
-      HorizontalAlignment     "left"
-    }
-    Annotation {
-      SID		      "27"
-      Position		      [5, 161]
+      SID		      "52"
+      Name		      "[3 DOF TORSO] [5 DOF LEFT ARM] [5 DOF RIGHT ARM] [6 LEFT LEG] [6 RIGHT LEG]"
+      Position		      [398, 41]
     }
   }
 }

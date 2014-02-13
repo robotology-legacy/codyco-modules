@@ -41,6 +41,7 @@
 #include "simstruc.h"
 
 #define VERBOSE 0
+#define TIMING 0
 
 #define IS_PARAM_DOUBLE(pVal) (mxIsNumeric(pVal) && !mxIsLogical(pVal) &&\
     !mxIsEmpty(pVal) && !mxIsSparse(pVal) && !mxIsComplex(pVal) && mxIsDouble(pVal))
@@ -54,7 +55,7 @@
 static void mdlCheckParameters(SimStruct *S)
 {
     {
-        if(!IS_PARAM_DOUBLE(BLOCK_TYPE_PARAM)){
+        if(!IS_PARAM_DOUBLE(BLOCK_TYPE_PARAM)) {
             ssSetErrorStatus(S,"1st parameter to S-function ");
             return;
         }
@@ -70,15 +71,15 @@ static void mdlInitializeSizes(SimStruct *S)
 {
     ssSetNumSFcnParams(S, NPARAMS);
 #if defined(MATLAB_MEX_FILE)
-    if(ssGetNumSFcnParams(S) == ssGetSFcnParamsCount(S)){
+    if(ssGetNumSFcnParams(S) == ssGetSFcnParamsCount(S)) {
         mdlCheckParameters(S);
-        if(ssGetErrorStatus(S)!=NULL){
+        if(ssGetErrorStatus(S)!=NULL) {
             return;
         }
-        else{
+        else {
             cout<<"BLOCK TYPE IS: "<<BLOCK_TYPE_PARAM<<endl;
         }
-    } else{
+    } else {
         return; // Parameter mismatch reported by Simulink
     }
 #endif
@@ -146,74 +147,74 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 #define MDL_START
 static void mdlStart(SimStruct *S)
 {
-     counterClass counter;
- //    fprintf(stderr,"Publicly stating that a new child has been born: %d \n", counter.getCount());
+    counterClass counter;
+//    fprintf(stderr,"Publicly stating that a new child has been born: %d \n", counter.getCount());
 
 
 
 
-     // ######## CHECKING INPUT PARAMETERS ############
-     int_T buflen, status;
-     char *String;
+    // ######## CHECKING INPUT PARAMETERS ############
+    int_T buflen, status;
+    char *String;
 
-     buflen = mxGetN((ssGetSFcnParam(S, STRING_PARAM_IDX)))*sizeof(mxChar)+1;
-     String = static_cast<char*>(mxMalloc(buflen));
-     status = mxGetString((ssGetSFcnParam(S, STRING_PARAM_IDX)),String,buflen);
- //    mexPrintf("The string being passed for robotName is - %s\n ", String);
+    buflen = mxGetN((ssGetSFcnParam(S, STRING_PARAM_IDX)))*sizeof(mxChar)+1;
+    String = static_cast<char*>(mxMalloc(buflen));
+    status = mxGetString((ssGetSFcnParam(S, STRING_PARAM_IDX)),String,buflen);
+//    mexPrintf("The string being passed for robotName is - %s\n ", String);
 
-     string robot_name = String;
+    string robot_name = String;
 
-     status = mxGetString((ssGetSFcnParam(S, LOCAL_PARAM_IDX)),String,buflen);
- //    mexPrintf("The string being passed for local is - %s \n", String);
+    status = mxGetString((ssGetSFcnParam(S, LOCAL_PARAM_IDX)),String,buflen);
+//    mexPrintf("The string being passed for local is - %s \n", String);
 
-     string local_name = String;
+    string local_name = String;
 
-     real_T block_type = mxGetScalar(ssGetSFcnParam(S,BLOCK_TYPE_IDX));
-     cout<<"BLOCK TYPE MASK PARAMETER: "<<block_type<<endl;
+    real_T block_type = mxGetScalar(ssGetSFcnParam(S,BLOCK_TYPE_IDX));
+    cout<<"BLOCK TYPE MASK PARAMETER: "<<block_type<<endl;
 
-     // This will help determining the kind of block we'll be using
-     real_T    *x = (real_T*) ssGetDWork(S,0);
-     x[0]         = block_type;
+    // This will help determining the kind of block we'll be using
+    real_T    *x = (real_T*) ssGetDWork(S,0);
+    x[0]         = block_type;
 
-     Network yarp;
+    Network yarp;
 
-     if (!yarp.checkNetwork()){
-         ssSetErrorStatus(S,"YARP server wasn't found active!! \n");
-         return;
-     }
-     else{
- //        mexPrintf("YARP is running!!\n");
-     }
-     // ############ END YARP INITALIZATION STUFF ##############
+    if (!yarp.checkNetwork()) {
+        ssSetErrorStatus(S,"YARP server wasn't found active!! \n");
+        return;
+    }
+    else {
+//        mexPrintf("YARP is running!!\n");
+    }
+    // ############ END YARP INITALIZATION STUFF ##############
 
 
 
-     // INPUT PARAMETER FOR PARAMETRIC FORWARD KINEMATICS and JACOBIANS
-     InputPtrsType           u = ssGetInputPortSignalPtrs(S,0);
-     InputInt8PtrsType   uPtrs = (InputInt8PtrsType) u;
+    // INPUT PARAMETER FOR PARAMETRIC FORWARD KINEMATICS and JACOBIANS
+    InputPtrsType           u = ssGetInputPortSignalPtrs(S,0);
+    InputInt8PtrsType   uPtrs = (InputInt8PtrsType) u;
 
-     robotStatus *robot = new robotStatus();
- //    fprintf(stderr,"An object robot of type wholeBodyInterface has been created\n");
+    robotStatus *robot = new robotStatus();
+//    fprintf(stderr,"An object robot of type wholeBodyInterface has been created\n");
 
-     //    if(counter.getCount()<2){
-     // CONFIGURE AND INITIALIZE ROBOT INTERFACE
- //    fprintf(stderr,"about to configure robot \n");
-     robot->setmoduleName(local_name);
-     robot->setRobotName(robot_name);
+    //    if(counter.getCount()<2){
+    // CONFIGURE AND INITIALIZE ROBOT INTERFACE
+//    fprintf(stderr,"about to configure robot \n");
+    robot->setmoduleName(local_name);
+    robot->setRobotName(robot_name);
 
-     bool res = robot->robotConfig();
-     res = res && robot->robotInit(static_cast<int>(block_type), static_cast<int>(*uPtrs[0]));
- //    if(res==true)
- ////        fprintf(stderr,"Succesfully exiting robotConfig...\n");
- //    else{
- ////        fprintf(stderr,"ERROR during robotConfig and/or robotInit ... \n");
- //        return;
- //    }
+    bool res = robot->robotConfig();
+    res = res && robot->robotInit(static_cast<int>(block_type), static_cast<int>(*uPtrs[0]));
+    if(res==true)
+        fprintf(stderr,"Succesfully exiting robotConfig...\n");
+    else {
+        fprintf(stderr,"ERROR during robotConfig and/or robotInit ... \n");
+        return;
+    }
 
-     ssGetPWork(S)[0] = robot;
+    ssGetPWork(S)[0] = robot;
 
-     //    }
-     // ########## GLOBAL VARIABLES INITIALIZATION ################
+    //    }
+    // ########## GLOBAL VARIABLES INITIALIZATION ################
     dotq.Zero(ICUB_DOFS);
     fprintf(stderr,"MDLSTART FINISHES HERE ... \n");
 }
@@ -223,13 +224,14 @@ static void mdlStart(SimStruct *S)
 //   In this function, you compute the outputs of your S-function
 //   block.
 static void mdlOutputs(SimStruct *S, int_T tid)
-{
+{  
+  //double tinit = Time::now();
 
-    cout<<"Simulation running ... "<<endl;
-     //Getting type of block
-     real_T *block_type = (real_T*) ssGetDWork(S,0);
+    //cout<<"Simulation running ... "<<endl;
+    //Getting type of block
+    real_T *block_type = (real_T*) ssGetDWork(S,0);
 //     cout<<"My block type ID is: "<<block_type[0]<<endl;
-     int btype = (int) block_type[0];
+    int btype = (int) block_type[0];
 //     switch(btype)
 //     {
 //    case 0:
@@ -249,140 +251,130 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 //         break;
 //     }
 
-     // READING FULL ROBOT JOINT ANGLES USING wbi AND wbiy
-     robotStatus *robot = (robotStatus *) ssGetPWork(S)[0];
-     bool blockingRead = false;
+    // READING FULL ROBOT JOINT ANGLES USING wbi
+    robotStatus *robot = (robotStatus *) ssGetPWork(S)[0];
+    bool blockingRead = false;
 
- //    fprintf(stderr,"wbInterface pointers: %p %p \n",robot->i, robot->wbInterface);
+//    fprintf(stderr,"wbInterface pointers: %p %p \n",robot->i, robot->wbInterface);
 
-     int linkID;
-     const char *linkName;
+    int linkID;
+    const char *linkName;
 
 
-     // INPUT PARAMETER FOR FORWARD KINEMATICS
-     InputPtrsType           u = ssGetInputPortSignalPtrs(S,0);
-     InputInt8PtrsType   uPtrs = (InputInt8PtrsType) u;
-     //    fprintf(stderr,"Input port value: %d \n", (int)(*uPtrs[0]));
+    // INPUT PARAMETER FOR FORWARD KINEMATICS
+    InputPtrsType           u = ssGetInputPortSignalPtrs(S,0);
+    InputInt8PtrsType   uPtrs = (InputInt8PtrsType) u;
+    //    fprintf(stderr,"Input port value: %d \n", (int)(*uPtrs[0]));
 
-     if(btype == 0){
- //        cout<<"About to send encoders to ports..."<<endl;
-         if(robot->robotJntAngles(blockingRead))
-         {
- //            fprintf(stderr,"global qrad before getting encoders: %s \n", qrad.toString().c_str());
-             qrad = robot->getEncoders();
- //            fprintf(stderr,"angles have been computed: %s \n", qrad.toString().c_str());
+    if(btype == 0) {
+//        cout<<"About to send encoders to ports..."<<endl;
+        if(robot->robotJntAngles(blockingRead))
+        {
+//            fprintf(stderr,"global qrad before getting encoders: %s \n", qrad.toString().c_str());
+            qrad = robot->getEncoders();
+//            fprintf(stderr,"angles have been computed: %s \n", qrad.toString().c_str());
 
-             real_T *pY1 = (real_T *)ssGetOutputPortSignal(S,0);
-             int_T widthPort = ssGetOutputPortWidth(S,0);
-             for(int_T i=0; i<widthPort; i++){
-                 pY1[i] = qrad((int) i);
-             }
-         }
-         else{
-             cout<<"ERROR: Robot Joint Angles could not be computed"<<endl;
-         }
+            real_T *pY1 = (real_T *)ssGetOutputPortSignal(S,0);
+            int_T widthPort = ssGetOutputPortWidth(S,0);
+            for(int_T i=0; i<widthPort; i++) {
+                pY1[i] = qrad((int) i);
+            }
+        }
+        else {
+            cout<<"ERROR: Robot Joint Angles could not be computed"<<endl;
+        }
+    }
 
-     }
+    if(btype == 1) {
+//        cout<<"About to send joint velocities to ports..."<<endl;
+        if(robot->robotJntVelocities(blockingRead))
+        {
+            dotq = robot->getJntVelocities();
+            real_T *pY2 = (real_T *)ssGetOutputPortSignal(S,1);
+            int_T widthPort = ssGetOutputPortWidth(S,1);
+            for(int_T i=0; i<widthPort; i++ ) {
+                pY2[i] = dotq((int) i);
+            }
+        }
+        else
+        {
+            cout<<"ERROR: Robot joint velocities could not be computed"<<endl;
+        }
+    }
 
-     if(btype == 1){
- //        cout<<"About to send joint velocities to ports..."<<endl;
-         if(robot->robotJntVelocities(blockingRead))
-         {
-             dotq = robot->getJntVelocities();
-             real_T *pY2 = (real_T *)ssGetOutputPortSignal(S,1);
-             int_T widthPort = ssGetOutputPortWidth(S,1);
-             for(int_T i=0; i<widthPort; i++ ){
-                 pY2[i] = dotq((int) i);
-             }
-         }
-         else
-         {
-             cout<<"ERROR: Robot joint velocities could not be computed"<<endl;
-         }
-     }
+    int lid;
 
-     if(btype == 2 || btype == 3){
-         //Interpreting link for either forwardKinematics or Jacobian.
-         switch ((int) *uPtrs[0])
-         {
-         case 0:
-             linkName = "r_sole";
-             break;
-         case 1:
-             linkName = "l_sole";
-             break;
-         case 2:
-             linkName = "com";
-             break;
-         }
+    if(btype == 2) {
+        switch ((int) *uPtrs[0])
+        {
+        case 0:
+            linkName = "r_sole";
+            break;
+        case 1:
+            linkName = "l_sole";
+            break;
+        case 2:
+            linkName = "com";
+            break;
+        }
+        robot->getLinkId(linkName,lid);
 
-         robot->getLinkId(linkName,linkID);
-     }
+        xpose = robot->forwardKinematics(lid);
 
-     if(btype == 2){
-         xpose = robot->forwardKinematics(linkID);
+        real_T *pY3 = (real_T *)ssGetOutputPortSignal(S,2);
+        for(int_T j=0; j<ssGetOutputPortWidth(S,2); j++) {
+            pY3[j] = xpose((int) j);
+        }
+    }
 
-         real_T *pY3 = (real_T *)ssGetOutputPortSignal(S,2);
-         for(int_T j=0; j<ssGetOutputPortWidth(S,2); j++){
-             pY3[j] = xpose((int) j);
-         }
-     }
+    if(btype == 3) {
+        // JACOBIANS!!!!!
+        switch ((int) *uPtrs[0])
+        {
+        case 0:
+            linkName = "r_sole";
+            break;
+        case 1:
+            linkName = "l_sole";
+            break;
+        case 2:
+            linkName = "com";
+            break;
+        }
+        robot->getLinkId(linkName,lid);
+        
+        jacob = robot->jacobian(lid);
+        //    fprintf(stderr,"Jacobians Computed Succesfully. Jacobian is: \n");
 
-     if(btype == 3){
-         // JACOBIANS!!!!!
-         jacob = robot->jacobian(linkID);
-         //    fprintf(stderr,"Jacobians Computed Succesfully. Jacobian is: \n");
+        real_T *pY4 = (real_T *)ssGetOutputPortSignal(S,3);
+        for(int_T j=0; j<ssGetOutputPortWidth(S,3); j++) {
+            pY4[j] = jacob(j);
+        }
+    }
 
-         real_T *pY4 = (real_T *)ssGetOutputPortSignal(S,3);
-         for(int_T j=0; j<ssGetOutputPortWidth(S,3); j++){
-             pY4[j] = jacob(j);
-         }
-     }
+    if(btype == 4 || btype == 5 || btype == 6) {
+        // VELOCITY CONTROL MODE
+        //GET INPUT dqDes
+        InputRealPtrsType uPtrs1 = ssGetInputPortRealSignalPtrs(S,1);    //Get the corresponding pointer to "desired position port"
+        int nu = ssGetInputPortWidth(S,1);                              //Knowing the amount of elements of the input vector/matrix
+        Vector dqDestmp;
+        dqDestmp.resize(ICUB_DOFS,0.0);
+//         for(int j=0; j<nu; j++) {
+//             cout<< (*uPtrs1[j]) <<" "<<endl;
+//         }
+        for(int j=0; j<nu; j++) {                                       //run through all values and do sthg with them
+            dqDestmp(j) = (*uPtrs1[j]);
+        }
+        // SEND REFERENCES
+        if(btype == 4) robot->setCtrlMode(CTRL_MODE_VEL);
+        if(btype == 5) robot->setCtrlMode(CTRL_MODE_POS);
+        robot->setdqDes(dqDestmp);
+    }
 
-     if(btype == 4){
-         //GET INPUT dqDes
- //        cout<<"Entered block type 4 ... "<<endl;
-         InputRealPtrsType uPtrs1 = ssGetInputPortRealSignalPtrs(S,1);    //Get the corresponding pointer to "desired position port"
- //        cout<<"Input has been read: "<<endl;
-         int nu = ssGetInputPortWidth(S,1);                              //Knowing the amount of elements of the input vector/matrix
-         Vector dqDestmp;
-         dqDestmp.resize(ICUB_DOFS,0.0);
-         for(int j=0; j<nu; j++) {cout<< (*uPtrs1[j]) <<" "<<endl;}
-         for(int j=0; j<nu;j++){                                         //run through all values and do sthg with them
-             dqDestmp(j) = (*uPtrs1[j]);
-         }
- //        cout<<"dqDestmp is now: "<<dqDestmp.toString().c_str()<<endl;
-         // SEND VELOCITIES
-         robot->setdqDes(dqDestmp);
-     }
-
+   // double tend = Time::now();
+   // fprintf(stderr,"Time elapsed: %f \n",tend-tinit);
 
 }
-
-
-///* Define to indicate that this S-Function has the mdlG[S]etSimState mothods */
-//#define MDL_SIM_STATE
-
-///* Function: mdlGetSimState =====================================================
-// * Abstract:
-// *
-// */
-//static mxArray* mdlGetSimState(SimStruct* S)
-//{
-//    // Retrieve C++ object from the pointers vector
-//    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
-//    // return mxCreateDoubleScalar(da->GetPeak());
-//}
-///* Function: mdlGetSimState =====================================================
-// * Abstract:
-// *
-// */
-//static void mdlSetSimState(SimStruct* S, const mxArray* ma)
-//{
-//    // Retrieve C++ object from the pointers vector
-//    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
-//    // da->SetPeak(mxGetPr(ma)[0]);
-//}
 
 // Function: mdlTerminate =====================================================
 // Abstract:
@@ -391,19 +383,19 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 //   allocated in mdlStart, this is the place to free it.
 static void mdlTerminate(SimStruct *S)
 {
-     // IF YOU FORGET TO DESTROY OBJECTS OR DEALLOCATE MEMORY, MATLAB WILL CRASH.
-     // Retrieve and destroy C++ object
-     robotStatus *robot = (robotStatus *) ssGetPWork(S)[0];
+    // IF YOU FORGET TO DESTROY OBJECTS OR DEALLOCATE MEMORY, MATLAB WILL CRASH.
+    // Retrieve and destroy C++ object
+    robotStatus *robot = (robotStatus *) ssGetPWork(S)[0];
 
-     if(robot!=NULL) {
- //        robot->preStop();
-         fprintf(stderr,"Deleting robot object %p \n",robot);
-         delete robot;
-         robot = NULL;
-     }
-     if(ssGetPWork(S) != NULL){
-         ssSetPWorkValue(S,0,NULL);
-     }
+    if(robot!=NULL) {
+        fprintf(stderr,"Inside robot object %p \n",robot);
+        if(robot->decreaseCounter()==0) {
+            robot->setCtrlMode(CTRL_MODE_POS);
+            delete robot;
+            robot = NULL;
+            ssSetPWorkValue(S,0,NULL);
+        }
+    }
 }
 
 // Required S-function trailer
