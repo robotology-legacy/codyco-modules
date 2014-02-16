@@ -23,10 +23,12 @@
 #define S_FUNCTION_NAME yRead
 
 // PARAMETERS MASK
-#define NPARAMS 1                                                   // Number of input parameters
+#define NPARAMS 3                                                   // Number of input parameters
 
-#define PARAM_IDX_1 0                                               // port name
-
+#define PARAM_IDX_1 0                                               // FROM port name
+#define PARAM_IDX_2 1						    // TO port name
+#define PARAM_IDX_3 2						    // Size of the port you're reading
+#define SIZE_READING_PORT mxGetScalar(ssGetSFcnParam(S,PARAM_IDX_3))    // Get first input parameter from mask
 
 // Need to include simstruc.h for the definition of the SimStruct and
 // its associated macro definitions.
@@ -77,8 +79,8 @@ static void mdlInitializeSizes(SimStruct *S)
     // INPUTS
     if(!ssSetNumInputPorts(S,0)) return;
     // OUTPUTS
-    if (!ssSetNumOutputPorts(S,NUM_OUT_PORTS)) return;
-    for (int i = 0; i < NUM_OUT_PORTS; i++)
+    if (!ssSetNumOutputPorts(S,SIZE_READING_PORT)) return;
+    for (int i = 0; i < SIZE_READING_PORT; i++)
     {
         ssSetOutputPortWidth   (S, i, 1);
         ssSetOutputPortDataType(S, i, 0);
@@ -171,18 +173,27 @@ static void mdlStart(SimStruct *S)
     String = static_cast<char*>(mxMalloc(buflen));
     status = mxGetString((ssGetSFcnParam(S, PARAM_IDX_1)),String,buflen);
     //string port_name = String;
+    
+    char *port_name = String;				//FROM port name
 
-	char *port_name = String;
+    buflen = mxGetN((ssGetSFcnParam(S, PARAM_IDX_2)))*sizeof(mxChar)+1;
+    String = static_cast<char*>(mxMalloc(buflen));
+    status = mxGetString((ssGetSFcnParam(S, PARAM_IDX_2)),String,buflen);
 
-    cout<<"Port name will be: "<<port_name<<endl;
+    char *toPort_name = String;
 
+    cout<<"From Port name will be: "<<port_name<<endl;
+    cout<<"To Port name will be:   "<<toPort_name<<endl;
+    
     // ######## CHECKING INPUT PARAMETERS ############
 
-    BufferedPort<Vector> *port;
-    port = new BufferedPort<Vector>;
-    port->open(port_name);
+    BufferedPort<Vector> *toPort;
+    toPort = new BufferedPort<Vector>;
+    toPort->open(toPort_name);
 
-    ssGetPWork(S)[0] = port;
+    ssGetPWork(S)[0] = toPort;
+    
+    Network::connect(port_name,toPort_name,"mcast");
 
 }
 
@@ -192,68 +203,43 @@ static void mdlStart(SimStruct *S)
 //   block.
 static void mdlOutputs(SimStruct *S, int_T tid)
 {
-    BufferedPort<Vector> *port = static_cast<BufferedPort<Vector>*>(ssGetPWork(S)[0]);
+    BufferedPort<Vector> *toPort = static_cast<BufferedPort<Vector>*>(ssGetPWork(S)[0]);
     
-    Vector *v = port->read(false); // Read from the port.  Waits until data arrives.
+    Vector *v = toPort->read(false); // Read from the port.  Waits until data arrives.
     if (v!=NULL)
     {
-        for (int i = 0; i < NUM_OUT_PORTS; i++)
+        for (int i = 0; i < SIZE_READING_PORT; i++)
         {
+	    cout<<"About to read and pass data..."<<endl;
             real_T *pY = (real_T *)ssGetOutputPortSignal(S,i);
             int_T widthPort = ssGetOutputPortWidth(S,i);
             if (widthPort == 1)
             {
                 for(int_T j=0; j<widthPort; j++)
-                    if (i < (v->length()))
+                    if (i < (v->length())){
                         pY[j] = v->data()[i];
+			cout<<v->data()[i]<<" ";
+		    }
                     else
                         pY[j] = 0;
             }
             else
                 cout << "ERROR: something wrong with port dimensions \n";
         }
+        cout<<endl;
     }
 }
 
-//
-///* Define to indicate that this S-Function has the mdlG[S]etSimState mothods */
-//#define MDL_SIM_STATE
-//
-///* Function: mdlGetSimState =====================================================
-// * Abstract:
-// *
-// */
-//static mxArray* mdlGetSimState(SimStruct* S)
-//{
-//    // Retrieve C++ object from the pointers vector
-//    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
-//    // return mxCreateDoubleScalar(da->GetPeak());
-//}
-///* Function: mdlGetSimState =====================================================
-// * Abstract:
-// *
-// */
-//static void mdlSetSimState(SimStruct* S, const mxArray* ma)
-//{
-//    // Retrieve C++ object from the pointers vector
-//    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
-//    // da->SetPeak(mxGetPr(ma)[0]);
-//}
-
-// Function: mdlTerminate =====================================================
-// Abstract:
-//   In this function, you should perform any actions that are necessary
-//   at the termination of a simulation.  For example, if memory was
-//   allocated in mdlStart, this is the place to free it.
 static void mdlTerminate(SimStruct *S)
 {
     // IF YOU FORGET TO DESTROY OBJECTS OR DEALLOCATE MEMORY, MATLAB WILL CRASH.
     // Retrieve and destroy C++ object
-     Port *port = static_cast<Port*>(ssGetPWork(S)[0]);
-     port->close();
+     BufferedPort<Vector> *toPort = static_cast<BufferedPort<Vector>*>(ssGetPWork(S)[0]);
+     toPort->close();
 
-     if(ssGetPWork(S) != NULL)
+     if(ssGetPWork(S) != NULL){
          ssSetPWorkValue(S,0,NULL);
+     }
 
     fprintf(stderr,"Everything was closed correctly\n");
 }
