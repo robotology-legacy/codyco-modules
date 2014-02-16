@@ -70,7 +70,7 @@ Linux, Windows, MAC OS X
 ###### To Do List
 - [ ] Debug incompatibilities with Gazebo (at the c++ whole body interface level) - with Francesco Romano
 - [x] ~~Compile the Soft Real Time mex as another module of the library. Possibly make our own.~~
-- [ ] Modify YarpRead module so that you can specify the port you wanna read from and where you want it to connect.         Connection should be done inside the block.
+- [x] ~~Modify YarpRead module so that you can specify the port you wanna read from and where you want it to connect.         Connection should be done inside the block.~~
 - [ ] Documentation (Functions, etc)
 - [ ] Include postural constraint in FourthCOMController.
 - [ ] ZMP block.
