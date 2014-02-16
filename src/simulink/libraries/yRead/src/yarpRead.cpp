@@ -210,7 +210,6 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     {
         for (int i = 0; i < SIZE_READING_PORT; i++)
         {
-	    cout<<"About to read and pass data..."<<endl;
             real_T *pY = (real_T *)ssGetOutputPortSignal(S,i);
             int_T widthPort = ssGetOutputPortWidth(S,i);
             if (widthPort == 1)
@@ -226,7 +225,6 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             else
                 cout << "ERROR: something wrong with port dimensions \n";
         }
-        cout<<endl;
     }
 }
 
