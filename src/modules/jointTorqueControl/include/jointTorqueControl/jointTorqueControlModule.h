@@ -45,7 +45,7 @@ where
 
 The relationship between the link's torque \f$ \tau \f$ and the tension \f$ V \f$ applied to the motor is assumed to be:
 \f[
-	V  = k_t \tau + k_v \dot{q} + k_c \text{sign}(\dot{q}),
+	V  = k_t \tau + k_v \dot{q} + k_c \mbox{sign}(\dot{q}),
 \f]
 with \f$k_t\f$, \f$k_v\f$, \f$k_c\f$ three constants, and \f$\dot{q}\f$ the link's velocity. 
 Since the tension \f$V(t)\f$ is a high-frequency square 
