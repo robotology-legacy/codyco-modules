@@ -9,19 +9,6 @@ PROJECT(${PROJECTNAME})
 message("COMPILING SFUN_TIME")
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-find_package(Matlab     REQUIRED)
-
-if(MATLAB_FOUND)
-        message(STATUS "Matlab was found!! The configuration may continue")
-        set(MATLAB_LIBRARIES
-                ${MATLAB_MEX_LIBRARY}
-                ${MATLAB_MX_LIBRARY}
-                ${MATLAB_ENG_LIBRARY}
-        )
-else()
-        message(FATAL_ERROR "Matlab not found")
-endif()
-
 include_directories("${MATLAB_ROOT}/simulink/include")
 include_directories("${MATLAB_ROOT}/extern/include")
 include_directories(${MATLAB_INCLUDE_DIR})
