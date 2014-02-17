@@ -42,7 +42,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name, string _robotName
     
     //Resize buffer vectors
     all_torques.resize(_wbs->getEstimateNumber(wbi::ESTIMATE_JOINT_TORQUE));
-    /// \todo hardcoded checking 
+    /// \todo hardcoded checking
+    if( _wbs->getEstimateNumber(wbi::ESTIMATE_JOINT_TORQUE) != 32 ) { std::cerr << "wholeBodyDynamicsThread() error: only " << _wbs->getEstimateNumber(wbi::ESTIMATE_JOINT_TORQUE) << " are available "  << std::endl; }
     YARP_ASSERT(all_torques.size() == 32);
     
     HDTorques.resize(3);

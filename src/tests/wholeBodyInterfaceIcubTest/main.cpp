@@ -69,7 +69,7 @@ int main(int argc, char * argv[])
     if(!icub->init())
         return 0;
     
-    //Time::delay(0.5);
+    Time::delay(0.5);
     
     int dof = icub->getDoFs();
     printf("Joint list: %s\n", icub->getJointList().toString().c_str());
@@ -93,7 +93,7 @@ int main(int argc, char * argv[])
         wbi::Frame world2base;
         world2base.identity();
         
-        Time::delay(0.1);
+        Time::delay(1);
         icub->getEstimates(ESTIMATE_JOINT_POS, q.data());
         icub->getEstimates(ESTIMATE_JOINT_VEL, dq.data());
         icub->getEstimates(ESTIMATE_JOINT_ACC,d2q.data());

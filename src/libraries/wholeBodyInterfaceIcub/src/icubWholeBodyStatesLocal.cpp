@@ -46,18 +46,21 @@ using namespace iCub::ctrl;
 //                                          ICUB WHOLE BODY STATES
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodyStatesLocal::icubWholeBodyStatesLocal(const char* _name, const char* _robotName)
+icubWholeBodyStatesLocal::icubWholeBodyStatesLocal(const char* _name, const char* _robotName, int head_version, int legs_version, int feet_version)
 {
     sensors = new icubWholeBodySensors(_name, _robotName);              // sensor interface
     skin_contacts_port = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
     skin_contacts_port->open(string("/"+string(_name)+"/skin_contacts:i").c_str());
-    estimator = new icubWholeBodyDynamicsEstimator(ESTIMATOR_PERIOD, sensors, skin_contacts_port);  // estimation thread
+    estimator = new icubWholeBodyDynamicsEstimator(ESTIMATOR_PERIOD, sensors, skin_contacts_port,head_version,legs_version,feet_version);  // estimation thread
 }
 
 bool icubWholeBodyStatesLocal::init()
 {
     bool ok = sensors->init();              // initialize sensor interface
-    return ok ? estimator->start() : false; // start estimation thread
+    if( !ok ) { std::cerr << "icubWholeBodyStatesLocal::init() failed: error in sensor initialization." << std::endl; return false; }
+    ok = estimator->start();
+    if( !ok ) { std::cerr << "icubWholeBodyStatesLocal::init() failed: error in estimator initialization." << std::endl; return false; }
+    return ok; // start estimation thread
 }
 
 bool icubWholeBodyStatesLocal::close()
@@ -76,7 +79,7 @@ bool icubWholeBodyStatesLocal::addEstimate(const EstimateType et, const LocalId 
     case ESTIMATE_JOINT_POS:                return lockAndAddSensor(SENSOR_ENCODER, sid);
     case ESTIMATE_JOINT_VEL:                return lockAndAddSensor(SENSOR_ENCODER, sid);
     case ESTIMATE_JOINT_ACC:                return lockAndAddSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_JOINT_TORQUE:             return lockAndAddSensor(SENSOR_TORQUE, sid);
+    case ESTIMATE_JOINT_TORQUE:             return lockAndAddSensor(SENSOR_ENCODER, sid);
     case ESTIMATE_JOINT_TORQUE_DERIVATIVE:  return lockAndAddSensor(SENSOR_TORQUE, sid);
     case ESTIMATE_MOTOR_POS:                return lockAndAddSensor(SENSOR_ENCODER, sid);
     case ESTIMATE_MOTOR_VEL:                return lockAndAddSensor(SENSOR_ENCODER, sid);
@@ -120,7 +123,7 @@ bool icubWholeBodyStatesLocal::removeEstimate(const EstimateType et, const Local
     case ESTIMATE_JOINT_POS:                return lockAndRemoveSensor(SENSOR_ENCODER, sid);
     case ESTIMATE_JOINT_VEL:                return lockAndRemoveSensor(SENSOR_ENCODER, sid);
     case ESTIMATE_JOINT_ACC:                return lockAndRemoveSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_JOINT_TORQUE:             return lockAndRemoveSensor(SENSOR_TORQUE, sid);
+    case ESTIMATE_JOINT_TORQUE:             return lockAndRemoveSensor(SENSOR_ENCODER, sid);
     case ESTIMATE_JOINT_TORQUE_DERIVATIVE:  return lockAndRemoveSensor(SENSOR_TORQUE, sid);
     case ESTIMATE_MOTOR_POS:                return lockAndRemoveSensor(SENSOR_ENCODER, sid);
     case ESTIMATE_MOTOR_VEL:                return lockAndRemoveSensor(SENSOR_ENCODER, sid);
@@ -368,8 +371,14 @@ int icubWholeBodyStatesLocal::lockAndGetSensorNumber(const SensorType st)
 //                                          ICUB WHOLE BODY DYNAMICS ESTIMATOR
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period, icubWholeBodySensors *_sensors, yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts)
-: RateThread(_period), sensors(_sensors), port_skin_contacts(_port_skin_contacts), dqFilt(0), d2qFilt(0)
+icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period, 
+                                                               icubWholeBodySensors *_sensors, 
+                                                               yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
+                                                               int _head_version,
+                                                               int _legs_version,
+                                                               int _feet_version)
+: RateThread(_period), sensors(_sensors), port_skin_contacts(_port_skin_contacts), dqFilt(0), d2qFilt(0), 
+                      head_version(_head_version), legs_version(_legs_version), feet_version(_feet_version)
 {
     resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
     resizeFTs(sensors->getSensorNumber(SENSOR_FORCE_TORQUE));
@@ -397,6 +406,9 @@ icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period, icub
     imuAngularVelocityCutFrequency    = 3.0;
     imuMagnetometerCutFrequency       = 3.0;
     forcetorqueCutFrequency           = 3.0;
+    
+    ///< Skin timestamp
+    last_reading_skin_contact_list_Stamp = -1000.0;
 }
 
 bool icubWholeBodyDynamicsEstimator::threadInit()
@@ -430,20 +442,36 @@ bool icubWholeBodyDynamicsEstimator::threadInit()
     }
     
      LocalIdList available_imu_sensors = sensors->getSensorList(SENSOR_IMU);
-     FOR_ALL_OF(itBp, itS, available_ft_sensors) 
+     FOR_ALL_OF(itBp, itS, available_imu_sensors) 
      {
          LocalId loc_id(itBp->first,*itS);
-         int imu_index = available_ft_sensors.localToGlobalId(loc_id);
+         int imu_index = available_imu_sensors.localToGlobalId(loc_id);
+         std::cout << "readSensor for IMU " << imu_index << std::endl;
+         assert(IMUs.size() > imu_index && IMUs[imu_index].size() == sensorTypeDescriptions[SENSOR_IMU].dataSize );
          if( sensors->readSensor(SENSOR_IMU, loc_id, IMUs[imu_index].data(), &(IMUStamps[imu_index]),false ) ) {
              imuLinearAccelerationFilters[imu_index] = new FirstOrderLowPassFilter(imuLinearAccelerationCutFrequency,getRate()*1e-3,IMUs[imu_index].subVector(4,6));  ///< linear acceleration is filtered with a low pass filter
              imuAngularVelocityFilters[imu_index] = new FirstOrderLowPassFilter(imuAngularVelocityCutFrequency,getRate()*1e-3,IMUs[imu_index].subVector(7,9));  ///< angular velocity is filtered with a low pass filter
              imuMagnetometerFilters[imu_index] = new FirstOrderLowPassFilter(imuMagnetometerCutFrequency,getRate()*1e-3,IMUs[imu_index].subVector(10,12));  ///< magnetometer readings are filtered with a low pass filter
          }
+         std::cout << "IMU measured " << std::endl;
+         std::cout << IMUs[imu_index].toString() << std::endl;
+         std::cout << "timestamp: " << IMUStamps[imu_index] << std::endl;
      }
      
      //Allocating a filter for angular acceleration estimation only for IMU used in iDynTree
     imuAngularAccelerationFilt = new AWLinEstimator(imuAngularAccelerationFiltWL, imuAngularAccelerationFiltTh);
-
+    
+    //Allocation model
+    bool ft_foot;
+    iCub::iDynTree::iCubTree_version_tag vertag;
+    vertag.head_version = head_version;
+    vertag.legs_version = legs_version;
+    if( feet_version == 2 ) {
+        ft_foot = true;
+    } else {
+        ft_foot = false;
+    }
+    icub_model = new iCub::iDynTree::iCubTree(vertag,ft_foot);
     
     return ok;
 }
@@ -453,6 +481,19 @@ void icubWholeBodyDynamicsEstimator::run()
     //Temporary workaround: icubWholeBodyStatesLocal needs all the DOF present in the dynamical model
     if( sensors->getSensorNumber(wbi::SENSOR_ENCODER) != icub_model->getNrOfDOFs() ) 
     {
+        LocalIdList list = sensors->getSensorList(wbi::SENSOR_ENCODER);
+     
+        std::cerr << "Available sensors: " << std::endl;
+        
+        for(LocalIdList::const_iterator it = list.begin(); it != list.end(); it++ ) {
+            for(int j=0; j < it->second.size(); j++ ) {
+                std::cerr << "Bp: " << it->first << " index " << it->second[j] << std::endl;
+            }
+        }
+           std::cerr << "icubWholeBodyDynamicsEstimator::run() error: " << 
+                  sensors->getSensorNumber(wbi::SENSOR_ENCODER) << " joint sensors are available, while  " << 
+                  icub_model->getNrOfDOFs() << " joints are present in the model " << std::endl;
+        assert(false);
         return;
     }
     
@@ -491,19 +532,26 @@ void icubWholeBodyDynamicsEstimator::run()
         ///< \todo TODO buffer value of available_imu_sensors to avoid memory allocation (?)
         ///< \todo TODO add filters for imu values -> 
         LocalIdList available_imu_sensors = sensors->getSensorList(SENSOR_IMU);
-        FOR_ALL_OF(itBp, itS, available_ft_sensors) 
+        FOR_ALL_OF(itBp, itS, available_imu_sensors) 
         {
             LocalId loc_id(itBp->first,*itS);
-            int imu_index = available_ft_sensors.localToGlobalId(loc_id);
+            int imu_index = available_imu_sensors.localToGlobalId(loc_id);
+            std::cout << "readSensor for IMU " << imu_index << std::endl;
+            assert(IMUs.size() > imu_index );
+            assert(IMUs[imu_index].size() == sensorTypeDescriptions[SENSOR_IMU].dataSize );
             if( sensors->readSensor(SENSOR_IMU, loc_id, IMUs[imu_index].data(), &(IMUStamps[imu_index]),false ) ) {
                 estimates.lastIMUs[imu_index].subVector(0,3) = IMUs[imu_index].subVector(0,3); ///< orientation is simply copied as already result of an estimation
                 estimates.lastIMUs[imu_index].subVector(4,6) = imuLinearAccelerationFilters[imu_index]->filt(IMUs[imu_index].subVector(4,6));  ///< linear acceleration is filtered with a low pass filter
                 estimates.lastIMUs[imu_index].subVector(7,9) = imuAngularVelocityFilters[imu_index]->filt(IMUs[imu_index].subVector(7,9));  ///< angular velocity is filtered with a low pass filter
                 estimates.lastIMUs[imu_index].subVector(10,12) = imuMagnetometerFilters[imu_index]->filt(IMUs[imu_index].subVector(10,12)); ///< magnetometer readings are filtered with a low pass filter
             }
+            std::cout << "IMU measured " << std::endl;
+            std::cout << IMUs[imu_index].toString() << std::endl;
+            std::cout << "timestamp: " << IMUStamps[imu_index] << std::endl;
         }
         
         //Estimate angular acceleration only for the IMU used in iDynTree
+        std::cout << "Angular velocity used for acceleration estimation " <<  estimates.lastIMUs[0].subVector(7,9).toString() << std::endl;
         AWPolyElement el;
         el.data = omega_used_IMU = estimates.lastIMUs[0].subVector(7,9);
         el.time = IMUStamps[0];
@@ -753,6 +801,7 @@ void icubWholeBodyDynamicsEstimator::resizeFTs(int n)
     forcetorques.resize(n,Vector(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0));
     forcetorques_offset.resize(n,Vector(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0));
     forcetorquesStamps.resize(n);
+    forcetorqueFilters.resize(n);
     estimates.lastForceTorques.resize(n,Vector(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0));
 }
 
@@ -767,6 +816,9 @@ void icubWholeBodyDynamicsEstimator::resizeIMUs(int n)
 {
     IMUs.resize(n,Vector(sensorTypeDescriptions[SENSOR_IMU].dataSize,0.0));
     IMUStamps.resize(n);
+    imuAngularVelocityFilters.resize(n);
+    imuLinearAccelerationFilters.resize(n);
+    imuMagnetometerFilters.resize(n);
     estimates.lastIMUs.resize(n,Vector(sensorTypeDescriptions[SENSOR_IMU].dataSize,0.0));
 }
 

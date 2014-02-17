@@ -50,14 +50,60 @@ wholeBodyDynamicsModule::wholeBodyDynamicsModule()
     
 bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 {
+    if( rf.check("robot") ) {
+        robotName = rf.find("robot").asString();
+    } else {
+        std::cerr << "wholeBodyDynamicsModule::configure failed: robot parameter not found. Closing module." << std::endl;
+        return false;
+    }
+    
+    if( rf.check("local") ) {
+        moduleName = rf.find("local").asString();
+    } else {
+        std::cerr << "wholeBodyDynamicsModule::configure failed: local parameter not found. Closing module." << std::endl;
+        return false;
+    }
+    
+    //Checking iCub parts version 
+    /// \todo this part should be replaced by a more general way of accessing robot parameters
+    ///       namely urdf for structure parameters and robotInterface xml (or runtime interface) to get available sensors
+    int head_version = 2;
+    if( rf.check("headV1") ) {
+        head_version = 1;
+    }
+    if( rf.check("headV2") ) {
+        head_version = 2;
+    }
+    
+    int legs_version = 2;
+    if( rf.check("legsV1") ) {
+        legs_version = 1;
+    }
+    if( rf.check("legsV2") ) {
+        legs_version = 2;
+    }
+    
+    /// \note if feet_version are 2, the presence of FT sensors in the feet is assumed
+    int feet_version = 2;
+    if( rf.check("feetV1") ) {
+        feet_version = 1;
+    }
+    if( rf.check("feetV2") ) {
+        feet_version = 2;
+    }
+    
+    
 
     //--------------------------WHOLE BODY STATES INTERFACE--------------------------
-    estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str());
+    estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str(),head_version,legs_version,feet_version);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
+    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
+    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
     estimationInterface->addEstimates(wbi::ESTIMATE_IMU,wbiIcub::ICUB_MAIN_IMUS);
     estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE, wbiIcub::ICUB_MAIN_FOOT_FTS);
+    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_TORQUE, wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
 
-    if(!estimationInterface->init()){ fprintf(stderr, "Error while initializing whole body state interface. Closing module\n"); return false; }
+    if(!estimationInterface->init()){ fprintf(stderr, "Error while initializing whole body estimator interface. Closing module\n"); return false; }
 
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
     wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface);

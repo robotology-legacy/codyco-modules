@@ -68,6 +68,7 @@ namespace wbiIcub
         std::map<int, yarp::sig::Vector>            qStampLastRead;
         std::map<int, yarp::sig::Vector>            pwmLastRead;
         std::map<int, yarp::sig::Vector>            torqueSensorsLastRead;
+        
         // the key of these maps is the sensor id
         std::map<wbi::LocalId, yarp::sig::Vector>  imuLastRead;
         std::map<wbi::LocalId, yarp::sig::Vector>  ftSensLastRead;
@@ -470,6 +471,11 @@ namespace wbiIcub
         /**  Estimate internal torques and external forces from measured sensors, using iDynTree library */
         void estimateExternalForcesAndJointTorques();
         
+        /** Version of considered iCub robot */
+        int head_version;
+        int legs_version;
+        int feet_version;
+        
     public:
         
         yarp::os::Semaphore         mutex;          // mutex for access to class global variables
@@ -499,7 +505,12 @@ namespace wbiIcub
          * @param port_skin_contacts pointer to a port reading a skinContactList from the robot skin
          * \todo TODO skin_contacts should be read from the WholeBodySensors interface
          */        
-        icubWholeBodyDynamicsEstimator(int _period, icubWholeBodySensors *_sensors, yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts);
+        icubWholeBodyDynamicsEstimator(int _period, 
+                                       icubWholeBodySensors *_sensors, 
+                                       yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
+                                       int head_version,
+                                       int legs_version,
+                                       int feet_version);
         
         bool lockAndSetEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
         
@@ -645,7 +656,7 @@ namespace wbiIcub
         
     public:
         // *** CONSTRUCTORS ***
-        icubWholeBodyStatesLocal(const char* _name, const char* _robotName);
+        icubWholeBodyStatesLocal(const char* _name, const char* _robotName, int head_version = 2, int legs_version = 2, int foot_version =2);
         inline virtual ~icubWholeBodyStatesLocal(){ close(); }
         
         virtual bool init();

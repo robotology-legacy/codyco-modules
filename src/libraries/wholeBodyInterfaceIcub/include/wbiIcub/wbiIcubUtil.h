@@ -40,7 +40,7 @@ namespace wbiIcub
     ///< Joints considered for dynamical model
     const wbi::LocalIdList ICUB_HEAD_JOINTS(iCub::skinDynLib::HEAD, 0, 1, 2);
     const wbi::LocalIdList ICUB_LEFT_ARM_DYNAMIC_JOINTS(iCub::skinDynLib::LEFT_ARM, 0, 1, 2, 3, 4, 5, 6);
-    const wbi::LocalIdList ICUB_RIGHT_ARM_DYNAMIC_JOINTS(iCub::skinDynLib::RIGHT_ARM, 0, 1, 2, 3, 5, 6);
+    const wbi::LocalIdList ICUB_RIGHT_ARM_DYNAMIC_JOINTS(iCub::skinDynLib::RIGHT_ARM, 0, 1, 2, 3, 4, 5, 6);
     const wbi::LocalIdList ICUB_MAIN_DYNAMIC_JOINTS(ICUB_TORSO_JOINTS, ICUB_HEAD_JOINTS, ICUB_LEFT_ARM_DYNAMIC_JOINTS, ICUB_RIGHT_ARM_DYNAMIC_JOINTS, ICUB_LEFT_LEG_JOINTS, ICUB_RIGHT_LEG_JOINTS);
     
     ///< mapping from generic sensor id to corresponding port name
@@ -76,7 +76,7 @@ namespace wbiIcub
     
     ///< *** Mapping from IMUs to PORT NAMES ***
     const id_2_PortName icub_IMU_2_PortName[1] = {
-        {wbi::LocalId(iCub::skinDynLib::HEAD,0),    "/inertial:o" }, 
+        {wbi::LocalId(iCub::skinDynLib::HEAD,0),    "/inertial" }, 
     };
 
     /** Find the port name into id2port corresponding to the specified local id.

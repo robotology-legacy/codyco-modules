@@ -17,6 +17,7 @@
 
 #include "wbiIcub/wholeBodyInterfaceIcub.h"
 #include <yarp/os/Time.h>
+#include <yarp/os/Stamp.h>
 #include <iCub/ctrl/math.h>
 #include <string>
 #include <sstream>
@@ -61,20 +62,25 @@ bool icubWholeBodySensors::init()
     bool initDone = true;
     FOR_ALL_BODY_PARTS_OF(itBp, encoderIdList)
         initDone = initDone && openEncoder(itBp->first);
+    if( !initDone ) { std::cerr << "icubWholeBodySensors::init() error: failing in opening encoders." << std::endl; return false; }
 
     FOR_ALL_BODY_PARTS_OF(itBp, pwmSensIdList)
         initDone = initDone && openPwm(itBp->first);
+    if( !initDone ) { std::cerr << "icubWholeBodySensors::init() error: failing in opening motor pwm inputs." << std::endl; return false; }
     
     FOR_ALL_BODY_PARTS_OF(itBp, torqueSensorIdList)
         initDone = initDone && openTorqueSensor(itBp->first);
+    if( !initDone ) { std::cerr << "icubWholeBodySensors::init() error: failing in opening torques sensors." << std::endl; return false; }
 
     for(LocalIdList::iterator itBp=ftSensIdList.begin(); itBp!=ftSensIdList.end(); itBp++)
         for(vector<int>::iterator itId=itBp->second.begin(); itId!=itBp->second.end(); itId++)
             initDone = initDone && openFTsens(LocalId(itBp->first,*itId));
+    if( !initDone ) { std::cerr << "icubWholeBodySensors::init() error: failing in opening force/torque sensors." << std::endl; return false; }
     
     for(LocalIdList::iterator itBp=imuIdList.begin(); itBp!=imuIdList.end(); itBp++)
         for(vector<int>::iterator itId=itBp->second.begin(); itId!=itBp->second.end(); itId++)
             initDone = initDone && openImu(LocalId(itBp->first,*itId));
+    if( !initDone ) { std::cerr << "icubWholeBodySensors::init() error: failing in opening imu sensors." << std::endl; return false; }
 
     return initDone;
 }
@@ -257,35 +263,58 @@ bool icubWholeBodySensors::openPwm(const int bp)
 
 bool icubWholeBodySensors::openImu(const LocalId &i)
 {
-    imuLastRead[i].resize(sensorTypeDescriptions[SENSOR_IMU].dataSize,0.0);
     string remotePort = "/" + robot + getPortName(i, imu_2_port);
     stringstream localPort; 
     localPort << "/" << name << "/imu" << i.bodyPart << "_" << i.index << ":i";
     portsIMU[i] = new BufferedPort<Vector>();
-    if(!portsIMU[i]->open(localPort.str().c_str())) // open local input port
+    if(!portsIMU[i]->open(localPort.str().c_str())) { // open local input port
+        std::cerr << "icubWholeBodySensors::openImu(): Open of localPort " << localPort << " failed " << std::endl;
         return false;
-    if(!Network::exists(remotePort.c_str()))        // check remote output port exists
+    }
+    if(!Network::exists(remotePort.c_str())) {       // check remote output port exists
+        std::cerr << "icubWholeBodySensors::openImu():  " << remotePort << " does not exist " << std::endl;
         return false;
-    if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp", true))   // connect remote to local port
+    }
+    if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp", true)) {  // connect remote to local port
+        std::cerr << "icubWholeBodySensors::openImu():  could not connect " << remotePort << " to " << localPort << std::endl;
         return false;
+    }
+    
+    //allocate lastRead variables
+    imuLastRead[i].resize(sensorTypeDescriptions[SENSOR_IMU].dataSize,0.0);
+    
     return true;
 }
 
 bool icubWholeBodySensors::openFTsens(const LocalId &i)
 {
-    ftSensLastRead[i].resize(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0);
+    /*
+     * Disable because Gazebo has FT sensor (the difference in sensor availability between simulator and real robot should be addressed in interface initialization 
     if(isRobotSimulator(robot)) // icub simulator doesn't have force/torque sensors
         return true;
+    */
     string remotePort = "/" + robot + getPortName(i, ftSens_2_port);
     stringstream localPort; 
     localPort << "/" << name << "/ftSens" << i.bodyPart << "_" << i.index << ":i";
     portsFTsens[i] = new BufferedPort<Vector>();
-    if(!portsFTsens[i]->open(localPort.str().c_str()))  // open local input port
+    if(!portsFTsens[i]->open(localPort.str().c_str())) {
+        // open local input port
+        std::cerr << "icubWholeBodySensors::openFTsens(): Open of localPort " << localPort << " failed " << std::endl;
         return false;
-    if(!Network::exists(remotePort.c_str()))            // check remote output port exists
+    }
+    if(!Network::exists(remotePort.c_str())) {            // check remote output port exists
+        std::cerr << "icubWholeBodySensors::openFTsens():  " << remotePort << " does not exist " << std::endl;
         return false;
-    if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp"))   // connect remote to local port
+    }
+    if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp")) {  // connect remote to local port
+        std::cerr << "icubWholeBodySensors::openFTsens():  could not connect " << remotePort << " to " << localPort << std::endl;
         return false;
+    }
+    
+    //allocate lastRead variables
+    ftSensLastRead[i].resize(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0);
+
+    
     return true;
 }
 
@@ -462,6 +491,8 @@ bool icubWholeBodySensors::readEncoders(double *q, double *stamps, bool wait)
 
 bool icubWholeBodySensors::readPwms(double *pwm, double *stamps, bool wait)
 {
+    //Do not support stamps on pwm
+    assert(stamps == NULL);
     ///< check that we are not in simulation, because iCub simulator does not implement pwm control
     if(isRobotSimulator(robot)) 
     {
@@ -497,6 +528,8 @@ bool icubWholeBodySensors::readPwms(double *pwm, double *stamps, bool wait)
 
 bool icubWholeBodySensors::readIMUs(double *inertial, double *stamps, bool wait)
 {
+    assert(false);
+    return false;
     Vector *v;
     int i=0;    // sensor index
     for(map<LocalId,BufferedPort<Vector>*>::iterator it=portsIMU.begin(); it!=portsIMU.end(); it++)
@@ -504,9 +537,13 @@ bool icubWholeBodySensors::readIMUs(double *inertial, double *stamps, bool wait)
         v = it->second->read(wait);
         if(v!=NULL)
         {
+            yarp::os::Stamp info;
             imuLastRead[it->first] = *v;
+            it->second->getEnvelope(info);
+            if(stamps!=NULL) 
+                stamps[i] = info.getTime();
         }
-        convertIMU(inertial,imuLastRead[it->first].data());
+        convertIMU(&inertial[13*i],imuLastRead[it->first].data());
         i++;
     }
     return true;
@@ -515,11 +552,12 @@ bool icubWholeBodySensors::readIMUs(double *inertial, double *stamps, bool wait)
 bool icubWholeBodySensors::readFTsensors(double *ftSens, double *stamps, bool wait)
 {
     ///< iCub simulator does not implement the force/torque sensors
+    /*
     if(isRobotSimulator(robot))
     {
         memset(ftSens, 0, sizeof(double) * portsFTsens.size());
         return true;
-    }
+    }*/
 
     Vector *v;
     int i=0;    // sensor index
@@ -597,6 +635,7 @@ bool icubWholeBodySensors::readEncoder(const LocalId &sid, double *q, double *st
 
 bool icubWholeBodySensors::readPwm(const LocalId &sid, double *pwm, double *stamps, bool wait)
 {
+    assert(stamp == NULL);
     if(isRobotSimulator(robot))
     {
         pwm[0] = 0.0;   // iCub simulator does not have pwm sensors
@@ -624,17 +663,37 @@ bool icubWholeBodySensors::convertIMU(double * wbi_imu_readings, const double * 
     //wbi orientation is expressed in axis-angle, yarp orientation in euler angles (roll pitch yaw)
     //wbi  : orientation(4) - linear acceleration (3) - angular velocity    (3) - magnetometer (3)
     //yarp : orientation(3) - linear acceleration (3) - angular velocity    (3) - magnetometer (3) 
+    /// \todo TODO check right semantics of yarp IMU
+    
     Rotation imu_orientation = Rotation::eulerZYX(yarp_imu_readings[0],yarp_imu_readings[1],yarp_imu_readings[2]);
-    imu_orientation.getAxisAngle(wbi_imu_readings+0);
+    imu_orientation.getAxisAngle(*wbi_imu_readings,*(wbi_imu_readings+1),*(wbi_imu_readings+2),*(wbi_imu_readings+3));
     memcpy(wbi_imu_readings+4,yarp_imu_readings+3,9*sizeof(double));
     return true;
 }
 
 bool icubWholeBodySensors::readIMU(const LocalId &sid, double *inertial, double *stamps, bool wait)
 {
+    #ifndef NDEBUG
+    if( portsIMU.find(sid) == portsIMU.end() ) { 
+        std::cerr << "icubWholeBodySensors::readIMU(..) error: no port found for localId " << sid.bodyPart << " " << sid.index << " " << sid.description << std::endl;
+        std::cerr << "Available sensors: " << std::endl; 
+        for(map<LocalId,BufferedPort<Vector>*>::iterator it=portsIMU.begin(); it!=portsIMU.end(); it++) {
+            std::cout << "Bp: " << it->first.bodyPart << " index " << it->first.index << std::endl;
+        }
+
+        return false;
+    }
+    #endif 
+    
     Vector *v = portsIMU[sid]->read(wait);
-    if(v!=NULL)
+    if(v!=NULL) {
+        yarp::os::Stamp info;
         imuLastRead[sid] = *v;
+        portsIMU[sid]->getEnvelope(info);
+        if( stamps != NULL ) { 
+            *stamps = info.getTime();
+        }
+    }
     
     convertIMU(inertial,imuLastRead[sid].data());
     
@@ -643,16 +702,27 @@ bool icubWholeBodySensors::readIMU(const LocalId &sid, double *inertial, double 
 
 bool icubWholeBodySensors::readFTsensor(const LocalId &sid, double *ftSens, double *stamps, bool wait)
 {
+    #ifndef NDEBUG
+    if( portsFTsens.find(sid) == portsFTsens.end() ) { 
+        std::cerr << "icubWholeBodySensors::readFTsensor(..) error: no port found for localId " << sid.bodyPart << " " << sid.index << " " << sid.description << std::endl;
+        return false;
+    }
+    #endif 
+    /*
     if(isRobotSimulator(robot))    // icub simulator doesn't have force/torque sensors
     {
         ftSens[0] = 0.0;
         return true;
-    }
+    }*/
 
     Vector *v = portsFTsens[sid]->read(wait);
-    if(v!=NULL)
+    if(v!=NULL) {
         ftSensLastRead[sid] = *v;
-    memcpy(&ftSens[0], ftSensLastRead[sid].data(), 6);
+        if( stamps != NULL ) {
+            *stamps = 
+        }
+    }
+    memcpy(&ftSens[0], ftSensLastRead[sid].data(), 6*sizeof(double));
 
     return true;
 }
