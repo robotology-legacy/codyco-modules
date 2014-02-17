@@ -24,7 +24,9 @@
 namespace motorFrictionIdentification
 {
 
-/** Class for performing online (i.e. recursive) estimation of parameters
+/** 
+ * 
+ * Class for performing online (i.e. recursive) estimation of parameters
  * according to a linear model of the form:
  * \f[
  * \phi x = y,

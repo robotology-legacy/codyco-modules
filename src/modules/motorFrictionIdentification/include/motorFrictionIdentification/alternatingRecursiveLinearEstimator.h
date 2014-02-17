@@ -25,7 +25,9 @@
 namespace motorFrictionIdentification
 {
 
-/** Class for performing online (i.e. recursive) estimation of the parameters
+/** 
+ * 
+ * Class for performing online (i.e. recursive) estimation of the parameters
  * of a linear model, alternating between estimating two subsets of the parameters (while
  * considering the other subset as known).
  * This estimation problem has a particular structure. The parameters are divided
@@ -33,9 +35,9 @@ namespace motorFrictionIdentification
  * estimated using a subset of the samples, while the other parameters \f$x_2\f$ 
  * have to be estimated using the remaining samples. Given the model:
  * \f[
- * \begin{bmatrix} \Phi_1 & \Phi_{12} \\ \Phi_{21} & \Phi_2 \end{bmatrix} 
- * \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} = 
- * \begin{bmatrix}b_1 \\ b_2\end{bmatrix}
+ * \left[ \begin{array}{cc} \Phi_1 & \Phi_{12} \\ \Phi_{21} & \Phi_2 \end{array} \right] 
+ * \left[ \begin{array}{c} x_1 \\ x_2 \end{array} \right] = 
+ * \left[ \begin{array}{c} b_1 \\ b_2\end{array} \right]
  * \f]
  * we want to estimate the parameters as:
  * \f[
