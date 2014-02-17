@@ -8,20 +8,6 @@ PROJECT(${PROJECTNAME})
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-find_package(YARP 	REQUIRED)
-find_package(Matlab     REQUIRED)
-
-if(MATLAB_FOUND)
-	message(STATUS "Matlab was found!! The configuration may continue")
-	set(MATLAB_LIBRARIES 
-		${MATLAB_MEX_LIBRARY}
-		${MATLAB_MX_LIBRARY}
-		${MATLAB_ENG_LIBRARY}
-	)
-else()
-	message(FATAL_ERROR "Matlab not found")
-endif()
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")

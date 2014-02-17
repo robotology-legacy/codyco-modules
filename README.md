@@ -15,12 +15,14 @@ Code documentation automatically generated: http://wiki.icub.org/codyco/dox/html
 
 Installation
 ------------
+**If you are a OS X 10.9 Mavericks user, please check [this page on the wiki](https://github.com/robotology/codyco/wiki/Fix-for-OS-X-Mavericks-%2810.9%29-compilation-and-build-errors) to address 10.9 specific issues**
+
 
 Before installing CoDyCo software it is necessary to install some dependencies:
 
 ###Yarp/iCub software 
 You can follow the instructions on: http://wiki.icub.org/wiki/ICub_Software_Installation .
-You should install at least Yarp version 2.3.22 and iCub version 1.1.13 .
+You should install at least Yarp version 2.3.22 and iCub version 1.1.13 . 
 
 **The repository is being migrated to yarp version 2.4 (current yarp master branch).**
 
@@ -69,5 +71,3 @@ ccmake ../
 make
 sudo make install
 ```
-
-    
