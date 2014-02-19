@@ -229,6 +229,26 @@ void wholeBodyDynamicsThread::run()
     
     //if normal mode, publish the 
     printCountdown = (printCountdown>=PRINT_PERIOD) ? 0 : printCountdown +(int)getRate();   // countdown for next print (see sendMsg method)
+
+    if( printCountdown == 0 ) {
+        double avgTime, stdDev, avgTimeUsed, stdDevUsed, period;
+        period = getRate();
+        getEstPeriod(avgTime, stdDev);
+        getEstUsed(avgTimeUsed, stdDevUsed);
+         printf("[PERFORMANCE INFORMATION]:\n");
+        printf("Expected period %lf ms.\nReal period: %3.1lf+/-%3.1lf ms.\n", period, avgTime, stdDev);
+        printf("Real duration of 'run' method: %3.1lf+/-%3.1lf ms.\n", avgTimeUsed, stdDevUsed);
+        if(avgTimeUsed<0.5*period)
+            printf("Next time you could set a lower period to improve the wholeBodyDynamics performance.\n");
+        else if(avgTime>1.3*period)
+            printf("The period you set was impossible to attain. Next time you could set a higher period.\n");
+        std::cout << "Torques: " << std::endl;
+        std::cout << all_torques.toString() << std::endl;
+        std::cout << "Forces: " << std::endl;
+        std::cout << external_forces_list.toString() << std::endl;
+
+    }
+    
 }
 
 //*****************************************************************************

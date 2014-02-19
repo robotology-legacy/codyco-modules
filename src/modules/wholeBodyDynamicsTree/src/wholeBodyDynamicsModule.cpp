@@ -96,11 +96,16 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 
     //--------------------------WHOLE BODY STATES INTERFACE--------------------------
     estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str(),head_version,legs_version,feet_version);
+    
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
+    if( feet_version == 2 ) {
+        estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE,wbiIcub::ICUB_MAIN_FOOT_FTS);
+    } else {
+        estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE,wbiIcub::ICUB_MAIN_FTS);
+    }
     estimationInterface->addEstimates(wbi::ESTIMATE_IMU,wbiIcub::ICUB_MAIN_IMUS);
-    estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE, wbiIcub::ICUB_MAIN_FOOT_FTS);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_TORQUE, wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
 
     if(!estimationInterface->init()){ fprintf(stderr, "Error while initializing whole body estimator interface. Closing module\n"); return false; }

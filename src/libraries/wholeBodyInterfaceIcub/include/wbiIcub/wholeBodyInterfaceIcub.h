@@ -36,6 +36,9 @@
 //#include <unordered_map>
 //#endif
 
+#define INITIAL_TIMESTAMP -1000.0
+
+
 /* CODE UNDER DEVELOPMENT */
 
 namespace wbiIcub
@@ -72,6 +75,8 @@ namespace wbiIcub
         // the key of these maps is the sensor id
         std::map<wbi::LocalId, yarp::sig::Vector>  imuLastRead;
         std::map<wbi::LocalId, yarp::sig::Vector>  ftSensLastRead;
+        std::map<wbi::LocalId, double>  imuStampLastRead;
+        std::map<wbi::LocalId, double>  ftStampSensLastRead;
 
         // yarp interfaces (the key of the maps is the body part)
         std::map<int, yarp::dev::IEncodersTimed*>       ienc;   // interface to read encoders

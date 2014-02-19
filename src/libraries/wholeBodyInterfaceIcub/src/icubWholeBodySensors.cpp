@@ -35,6 +35,7 @@ using namespace iCub::ctrl;
 #define MAX_NJ 20 ///< Maxinum number of joints for body part (used for buffers to avoid dynamic memory allocation)
 #define WAIT_TIME 0.001
 
+
 // iterate over all body parts
 #define FOR_ALL_BODY_PARTS(itBp)            FOR_ALL_BODY_PARTS_OF(itBp, jointIdList)
 // iterate over all joints of all body parts
@@ -59,7 +60,12 @@ icubWholeBodySensors::icubWholeBodySensors(const char* _name, const char* _robot
 
 bool icubWholeBodySensors::init()
 {
+    std::cout << "icubWholeBodySensors: initializing with " << encoderIdList.size() << " encoders " <<
+                                                               pwmSensIdList.size() << " pwm sensors " << 
+                                                               ftSensIdList.size() << " F/T sensors " <<
+                                                               imuIdList.size() << " IMUs " << std::endl;
     bool initDone = true;
+    
     FOR_ALL_BODY_PARTS_OF(itBp, encoderIdList)
         initDone = initDone && openEncoder(itBp->first);
     if( !initDone ) { std::cerr << "icubWholeBodySensors::init() error: failing in opening encoders." << std::endl; return false; }
@@ -82,6 +88,32 @@ bool icubWholeBodySensors::init()
             initDone = initDone && openImu(LocalId(itBp->first,*itId));
     if( !initDone ) { std::cerr << "icubWholeBodySensors::init() error: failing in opening imu sensors." << std::endl; return false; }
 
+    
+    //This should be handled by addSensor(*)
+    /**
+    FOR_ALL_BODY_PARTS_OF(itBp, encoderIdList)
+        initDone = initDone && openEncoder(itBp->first);
+    if( !initDone ) { std::cerr << "icubWholeBodySensors::init() error: failing in opening encoders." << std::endl; return false; }
+
+    FOR_ALL_BODY_PARTS_OF(itBp, pwmSensIdList)
+        initDone = initDone && openPwm(itBp->first);
+    if( !initDone ) { std::cerr << "icubWholeBodySensors::init() error: failing in opening motor pwm inputs." << std::endl; return false; }
+    
+    FOR_ALL_BODY_PARTS_OF(itBp, torqueSensorIdList)
+        initDone = initDone && openTorqueSensor(itBp->first);
+    if( !initDone ) { std::cerr << "icubWholeBodySensors::init() error: failing in opening torques sensors." << std::endl; return false; }
+
+    for(LocalIdList::iterator itBp=ftSensIdList.begin(); itBp!=ftSensIdList.end(); itBp++)
+        for(vector<int>::iterator itId=itBp->second.begin(); itId!=itBp->second.end(); itId++)
+            initDone = initDone && openFTsens(LocalId(itBp->first,*itId));
+    if( !initDone ) { std::cerr << "icubWholeBodySensors::init() error: failing in opening force/torque sensors." << std::endl; return false; }
+    
+    for(LocalIdList::iterator itBp=imuIdList.begin(); itBp!=imuIdList.end(); itBp++)
+        for(vector<int>::iterator itId=itBp->second.begin(); itId!=itBp->second.end(); itId++)
+            initDone = initDone && openImu(LocalId(itBp->first,*itId));
+    if( !initDone ) { std::cerr << "icubWholeBodySensors::init() error: failing in opening imu sensors." << std::endl; return false; }
+    */
+    
     return initDone;
 }
 
@@ -247,11 +279,11 @@ bool icubWholeBodySensors::openPwm(const int bp)
 {
     ///< check whether the motor PWM interface is already open
     if(iopl[bp]!=0)             return true;
-    ///< check that we are not in simulation, because iCub simulator does not implement pwm control
-    if(isRobotSimulator(robot)) return true;
     ///< if necessary open the poly driver
     if(dd[bp]==0 && !openPolyDriver(name, robot, dd[bp], bodyPartNames[bp]))
+    {
         return false;
+    }
 
     if(!dd[bp]->view(iopl[bp]))
     {
@@ -282,6 +314,7 @@ bool icubWholeBodySensors::openImu(const LocalId &i)
     
     //allocate lastRead variables
     imuLastRead[i].resize(sensorTypeDescriptions[SENSOR_IMU].dataSize,0.0);
+    imuStampLastRead[i] = INITIAL_TIMESTAMP;
     
     return true;
 }
@@ -313,6 +346,7 @@ bool icubWholeBodySensors::openFTsens(const LocalId &i)
     
     //allocate lastRead variables
     ftSensLastRead[i].resize(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0);
+    ftStampSensLastRead[i] = INITIAL_TIMESTAMP;
 
     
     return true;
@@ -365,6 +399,7 @@ int icubWholeBodySensors::addEncoders(const LocalIdList &jList)
 
 bool icubWholeBodySensors::addPwm(const LocalId &j)
 {
+    std::cout << "icubWholeBodySensors: Called addPwm " << j.bodyPart << " " << j.index << std::endl;
     // if initialization was done and drivers of specified body part are not open, then open them
     // if initialization was not done, drivers will be opened during initialization
     if(initDone && !pwmSensIdList.containsBodyPart(j.bodyPart))
@@ -376,6 +411,7 @@ bool icubWholeBodySensors::addPwm(const LocalId &j)
 
 int icubWholeBodySensors::addPwms(const LocalIdList &jList)
 {
+    std::cout << "icubWholeBodySensors: Called addPwms " << std::endl;
     if(initDone)
         for(LocalIdList::const_iterator it=jList.begin(); it!=jList.end(); it++)
             if(!pwmSensIdList.containsBodyPart(it->first))
@@ -480,7 +516,7 @@ bool icubWholeBodySensors::readEncoders(double *q, double *stamps, bool wait)
         FOR_ALL_JOINTS(itBp, itJ)
         {
             q[i] = qLastRead[itBp->first][*itJ];
-            if(stamps!=NULL)
+            if(stamps!=0)
                 stamps[i] = qStampLastRead[itBp->first][*itJ];
             i++;
         }
@@ -492,7 +528,7 @@ bool icubWholeBodySensors::readEncoders(double *q, double *stamps, bool wait)
 bool icubWholeBodySensors::readPwms(double *pwm, double *stamps, bool wait)
 {
     //Do not support stamps on pwm
-    assert(stamps == NULL);
+    assert(stamps == 0);
     ///< check that we are not in simulation, because iCub simulator does not implement pwm control
     if(isRobotSimulator(robot)) 
     {
@@ -535,15 +571,17 @@ bool icubWholeBodySensors::readIMUs(double *inertial, double *stamps, bool wait)
     for(map<LocalId,BufferedPort<Vector>*>::iterator it=portsIMU.begin(); it!=portsIMU.end(); it++)
     {
         v = it->second->read(wait);
-        if(v!=NULL)
+        if(v!=0)
         {
             yarp::os::Stamp info;
             imuLastRead[it->first] = *v;
             it->second->getEnvelope(info);
-            if(stamps!=NULL) 
-                stamps[i] = info.getTime();
+            imuStampLastRead[it->first] = info.getTime();
         }
-        convertIMU(&inertial[13*i],imuLastRead[it->first].data());
+        convertIMU(&inertial[sensorTypeDescriptions[SENSOR_IMU].dataSize*i],imuLastRead[it->first].data());
+        if( stamps != 0 ) {
+            stamps[i] = imuStampLastRead[it->first];
+        }
         i++;
     }
     return true;
@@ -564,11 +602,17 @@ bool icubWholeBodySensors::readFTsensors(double *ftSens, double *stamps, bool wa
     for(map<LocalId,BufferedPort<Vector>*>::iterator it=portsFTsens.begin(); it!=portsFTsens.end(); it++)
     {
         v = it->second->read(wait);
-        if(v!=NULL)
+        if(v!=0)
         {
             ftSensLastRead[it->first] = *v;
+            yarp::os::Stamp info;
+            it->second->getEnvelope(info);
+            ftStampSensLastRead[it->first] = info.getTime();
         }
-        memcpy(&ftSens[i*6], ftSensLastRead[it->first].data(), 6);
+        memcpy(&ftSens[i*6], ftSensLastRead[it->first].data(), 6*sizeof(double));
+        if( stamps != 0 ) {
+                stamps[i] = ftStampSensLastRead[it->first];
+        }
         i++;
     }
     return true;
@@ -611,7 +655,7 @@ bool icubWholeBodySensors::readEncoder(const LocalId &sid, double *q, double *st
 {
     double qTemp[MAX_NJ], tTemp[MAX_NJ];
     bool update=false;
-    assert(ienc[sid.bodyPart]!=NULL);
+    assert(ienc[sid.bodyPart]!=0);
     // read encoders
     while( !(update=ienc[sid.bodyPart]->getEncodersTimed(qTemp, tTemp)) && wait)
         Time::delay(WAIT_TIME);
@@ -627,7 +671,7 @@ bool icubWholeBodySensors::readEncoder(const LocalId &sid, double *q, double *st
         
     // copy most recent data into output variables
     q[0] = qLastRead[sid.bodyPart][sid.index];
-    if(stamps!=NULL)
+    if(stamps!=0)
         stamps[0] = qStampLastRead[sid.bodyPart][sid.index];
 
     return update || wait;  // if read failed => return false
@@ -635,7 +679,7 @@ bool icubWholeBodySensors::readEncoder(const LocalId &sid, double *q, double *st
 
 bool icubWholeBodySensors::readPwm(const LocalId &sid, double *pwm, double *stamps, bool wait)
 {
-    assert(stamp == NULL);
+    assert(stamps == 0);
     if(isRobotSimulator(robot))
     {
         pwm[0] = 0.0;   // iCub simulator does not have pwm sensors
@@ -643,7 +687,7 @@ bool icubWholeBodySensors::readPwm(const LocalId &sid, double *pwm, double *stam
     }
     double pwmTemp[MAX_NJ];
     bool update=false;
-    assert(iopl[sid.bodyPart]!=NULL);
+    assert(iopl[sid.bodyPart]!=0);
     // read motor PWM
     while( !(update=iopl[sid.bodyPart]->getOutputs(pwmTemp)) && wait)
         Time::delay(WAIT_TIME);
@@ -664,6 +708,9 @@ bool icubWholeBodySensors::convertIMU(double * wbi_imu_readings, const double * 
     //wbi  : orientation(4) - linear acceleration (3) - angular velocity    (3) - magnetometer (3)
     //yarp : orientation(3) - linear acceleration (3) - angular velocity    (3) - magnetometer (3) 
     /// \todo TODO check right semantics of yarp IMU
+    
+    //Note: this function stop working if the definition of the IMU message in the wbi changes
+    assert(sensorTypeDescriptions[SENSOR_IMU].dataSize == 13);
     
     Rotation imu_orientation = Rotation::eulerZYX(yarp_imu_readings[0],yarp_imu_readings[1],yarp_imu_readings[2]);
     imu_orientation.getAxisAngle(*wbi_imu_readings,*(wbi_imu_readings+1),*(wbi_imu_readings+2),*(wbi_imu_readings+3));
@@ -686,15 +733,15 @@ bool icubWholeBodySensors::readIMU(const LocalId &sid, double *inertial, double 
     #endif 
     
     Vector *v = portsIMU[sid]->read(wait);
-    if(v!=NULL) {
+    if(v!=0) {
         yarp::os::Stamp info;
         imuLastRead[sid] = *v;
         portsIMU[sid]->getEnvelope(info);
-        if( stamps != NULL ) { 
-            *stamps = info.getTime();
-        }
+        imuStampLastRead[sid] = info.getTime();
     }
-    
+    if( stamps != 0 ) { 
+        *stamps = imuStampLastRead[sid];
+    }
     convertIMU(inertial,imuLastRead[sid].data());
     
     return true;
@@ -718,11 +765,14 @@ bool icubWholeBodySensors::readFTsensor(const LocalId &sid, double *ftSens, doub
     Vector *v = portsFTsens[sid]->read(wait);
     if(v!=NULL) {
         ftSensLastRead[sid] = *v;
-        if( stamps != NULL ) {
-            *stamps = 
-        }
+        yarp::os::Stamp info;
+        portsFTsens[sid]->getEnvelope(info);
+        ftStampSensLastRead[sid] = info.getTime();
     }
     memcpy(&ftSens[0], ftSensLastRead[sid].data(), 6*sizeof(double));
+    if( stamps != 0 ) {
+        *stamps = ftStampSensLastRead[sid];
+    }
 
     return true;
 }
