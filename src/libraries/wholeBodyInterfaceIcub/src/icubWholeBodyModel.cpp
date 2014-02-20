@@ -338,8 +338,67 @@ bool icubWholeBodyModel::computeJacobian(double *q, const Frame &xBase, int link
     return true;
 }
 
-bool icubWholeBodyModel::computeDJdq(double *q, const Frame &xBase, double *dq, double *dxB, int linkId, double *dJdq, double *pos)
+bool icubWholeBodyModel::computeDJdq(double *q, const Frame &xBase, double *dq, double *dxB, int linkID, double *dJdq, double *pos)
 {
+    if ((linkID < 0 || linkID >= p_icub_model->getNrOfLinks()) && linkID != COM_LINK_ID) return false;
+    if (pos != 0) return false; //not implemented yet
+    
+    //joints
+    convertQ(q, all_q);
+    convertDQ(dq, all_dq);
+    all_ddq.zero();
+    
+    //base
+    convertBasePose(xBase, world_base_transformation);
+    convertBaseVelocity(dxB, v_base, omega_base);
+    a_base.zero(); domega_base.zero();
+    
+    p_icub_model->setAng(all_q);
+    p_icub_model->setDAng(all_dq);
+    p_icub_model->setD2Ang(all_ddq);
+    
+    p_icub_model->setWorldBasePose(world_base_transformation);
+    //The kinematic initial values are expressed in the imu link (in this case, the base) for iDynTree
+    yarp::sig::Matrix baseWorldRotation = world_base_transformation.submatrix(0,2,0,2).transposed();
+    
+    p_icub_model->setInertialMeasure(baseWorldRotation * omega_base,
+                                     baseWorldRotation * domega_base,
+                                     baseWorldRotation * a_base);
+    
+    p_icub_model->kinematicRNEA();
+    
+    yarp::sig::Vector accelerations = p_icub_model->getAcc(linkID);
+    //should I copy directly?
+    memcpy(dJdq, accelerations.data(), sizeof(double) * accelerations.size());
+    return true;
+    
+    
+    
+//    int dof_jacobian = dof+6;
+//    Matrix complete_jacobian(6,all_q.size()+6), reduced_jacobian(6,dof_jacobian);
+//    
+//    
+//    //Get Jacobian, the one of the link or the one of the COM
+//    if( linkId != COM_LINK_ID ) {
+//        ret_val = p_icub_model->getJacobian(linkId,complete_jacobian);
+//        if( !ret_val ) return false;
+//    } else {
+//        ret_val = p_icub_model->getCOMJacobian(complete_jacobian);
+//        if( !ret_val ) return false;
+//    }
+//    
+//    
+//    int i=0;
+//    FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
+//        FOR_ALL_JOINTS(itBp, itJ) {
+//            reduced_jacobian.setCol(i+6,complete_jacobian.getCol(6+p_icub_model->getDOFIndex(itBp->first,*itJ)));
+//            i++;
+//        }
+//    }
+//    reduced_jacobian.setSubmatrix(complete_jacobian.submatrix(0,5,0,5),0,0);
+//    memcpy(J,reduced_jacobian.data(),sizeof(double)*6*dof_jacobian);
+    
+    
     return false;    
 }
 

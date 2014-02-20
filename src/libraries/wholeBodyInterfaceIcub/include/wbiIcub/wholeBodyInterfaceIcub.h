@@ -575,11 +575,11 @@ namespace wbiIcub
           * @param q Joint angles
           * @param xBase Rototranslation from world frame to robot base frame
           * @param dq Joint velocities
-          * @param linkId Id of the link
+          * @param linkID ID of the link
           * @param dJdq Output 6-dim vector containing the product dJ*dq 
           * @param pos 3d position of the point expressed w.r.t the link reference frame
           * @return True if the operation succeeded, false otherwise (invalid input parameters) */
-        virtual bool computeDJdq(double *q, const wbi::Frame &xBase, double *dq, double *dxB, int linkId, double *dJdq, double *pos=0);
+        virtual bool computeDJdq(double *q, const wbi::Frame &xBase, double *dq, double *dxB, int linkID, double *dJdq, double *pos=0);
         
         /** Compute the forward kinematics of the specified joint.
           * @param q Joint angles.
