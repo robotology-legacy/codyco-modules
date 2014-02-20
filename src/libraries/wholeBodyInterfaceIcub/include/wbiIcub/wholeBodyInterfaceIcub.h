@@ -29,13 +29,22 @@
 #include <iCub/iDynTree/iCubTree.h>
 #include <wbiIcub/wbiIcubUtil.h>
 #include <map>
-//#if __APPLE__
-//#include <tr1/unordered_map>
-//#else
-//#include <unordered_map>
-//#endif
 
 /* CODE UNDER DEVELOPMENT */
+
+//*********TEMP************** -> for actuators //
+#include <yarp/sig/Vector.h>
+namespace paramHelp {
+    class ParamHelperClient;
+}
+//*********END TEMP**********//
+
+namespace yarp {
+    namespace os {
+        class Property;
+        class Value;
+    }
+}
 
 namespace wbiIcub
 {
@@ -185,6 +194,8 @@ namespace wbiIcub
     };
     
 
+    
+    
     /*
      * Class for communicating with iCub's motor control boards.
      */
@@ -200,6 +211,9 @@ namespace wbiIcub
         wbi::LocalIdList            jointIdList;    // list of the joint ids
         
         std::map<wbi::LocalId, wbi::ControlMode>        currentCtrlModes;    // current control mode of each actuator
+        
+//        std::map<std::string, std::string> configurationParameters; /*< Map containing parameters to be read at initialization time */
+        yarp::os::Property configurationParameters; /*< Map containing parameters to be read at initialization time */
 
         // yarp drivers
         std::map<int, yarp::dev::IPositionControl*>     ipos;
@@ -217,18 +231,38 @@ namespace wbiIcub
         /** Set the reference speed for the position control of the specified joint(s). */
         virtual bool setReferenceSpeed(double *rspd, int joint=-1);
         
+        //*********TEMP**************//
+        paramHelp::ParamHelperClient *_torqueModuleConnection; /*< connection to the torque control module */
+        yarp::sig::Vector _torqueRefs;
+        //*********END TEMP**********//
+        
     public:
         /** Constructor.
          * @param _name Name of this object, used as a stem for opening YARP ports.
          * @param _robot Name of the robot.
          * @param _bodyPartNames Vector containing the names of the body parts of iCub.
         */
-        icubWholeBodyActuators(const char* _name, const char* _robot, const std::vector<std::string> &_bodyPartNames
-            =std::vector<std::string>(iCub::skinDynLib::BodyPart_s,iCub::skinDynLib::BodyPart_s+sizeof(iCub::skinDynLib::BodyPart_s)/sizeof(std::string)));
+        icubWholeBodyActuators(const char* _name,
+                               const char* _robot,
+                               const std::vector<std::string> &_bodyPartNames = std::vector<std::string>(iCub::skinDynLib::BodyPart_s,iCub::skinDynLib::BodyPart_s+sizeof(iCub::skinDynLib::BodyPart_s)/sizeof(std::string)));
         
-        inline virtual ~icubWholeBodyActuators(){ close(); }
+        virtual ~icubWholeBodyActuators();
         virtual bool init();
         virtual bool close();
+        
+        /* Configuration parameters section */
+        static const std::string icubWholeBodyActuatorsUseExternalTorqueModule; /*< initialization parameter for iCub actuator class. The value associated is a boolean value. Default to false */
+        static const std::string icubWholeBodyActuatorsExternalTorqueModuleName; /*< initialization parameter for iCub actuator class. Name of the torque external module */
+        
+        /** @brief Sets an initialization parameter.
+         *
+         * Sets a key-value pair parameter to be used during the initialization phase.
+         * Note: this function must be called before init, otherwise it takes no effect
+         * @param parameterName key for the parameter
+         * @param parameterValue value for the parameter.
+         * @return true if, false otherwise
+        */
+        virtual bool setConfigurationParameter(const std::string& parameterName, const yarp::os::Value& parameterValue);
 
         inline virtual int getActuatorNumber(){ return dof; }
         virtual bool removeActuator(const wbi::LocalId &j);
