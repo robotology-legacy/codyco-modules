@@ -103,9 +103,9 @@ bool icubWholeBodyActuators::init()
     }
     if (ok) {
         //read options
-        yarp::os::Value found = configurationParameters.find(icubWholeBodyActuatorsUseExternalTorqueModule);
+        yarp::os::Value found = configurationParameters.find(icubWholeBodyActuatorsUseExternalTorqueModule.c_str());
         if (!found.isNull() && found.isBool() && found.asBool()) {
-            found = configurationParameters.find(icubWholeBodyActuatorsExternalTorqueModuleName);
+            found = configurationParameters.find(icubWholeBodyActuatorsExternalTorqueModuleName.c_str());
             if (found.isNull()) {
                 ok = false;
             }
@@ -114,7 +114,7 @@ bool icubWholeBodyActuators::init()
                                                                            jointTorqueControl::jointTorqueControlCommandDescr, jointTorqueControl::COMMAND_ID_SIZE);
                 
                 Bottle initMsg;
-                if (!_torqueModuleConnection || !_torqueModuleConnection->init(name, found.asString(), initMsg)) {
+                if (!_torqueModuleConnection || !_torqueModuleConnection->init(name, found.asString().c_str(), initMsg)) {
                     ok = false;
                 }
                 
@@ -152,7 +152,7 @@ bool icubWholeBodyActuators::setConfigurationParameter(const std::string &parame
     //check allowed parameters
     if (parameterName.compare(icubWholeBodyActuatorsUseExternalTorqueModule) == 0) {
         if (parameterValue.isBool()) {
-            configurationParameters.put(parameterName, parameterValue);
+            configurationParameters.put(parameterName.c_str(), parameterValue);
             return true;
         }
         return false;
@@ -160,7 +160,7 @@ bool icubWholeBodyActuators::setConfigurationParameter(const std::string &parame
     else if (parameterName.compare(icubWholeBodyActuatorsExternalTorqueModuleName) == 0) {
         //simply check value has some length
         if (parameterValue.isString() && parameterValue.asString().length() > 0) {
-            configurationParameters.put(parameterName, parameterValue);
+            configurationParameters.put(parameterName.c_str(), parameterValue);
             return true;
         }
         return false;
