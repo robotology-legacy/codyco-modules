@@ -487,7 +487,3 @@ bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq,
     return true;
 }
 
-bool icubWholeBodyModel::directDynamics(double *q, const Frame &xB, double *dq, double *dxB, double *M, double *h)
-{
-    return false;
-}
