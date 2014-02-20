@@ -40,6 +40,7 @@ INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/include
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS} 
+                    ${motorFrictionIdentificationLib_INCLUDE_DIRS}  #this is a temporary requirement
                     ${paramHelp_INCLUDE_DIRS}) #this is a temporary requirement
 
 ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
