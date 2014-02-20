@@ -600,16 +600,25 @@ namespace wbiIcub
          * @return True if the operation succeeded, false otherwise. */
         virtual bool inverseDynamics(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double *ddq, double *ddxB, double *tau);
 
-        /** Compute the direct dynamics.
-         * @param q Joint angles.
+        /** Compute the floating base Mass Matrix.
+         * @param q Joint angles (rad).
          * @param xBase Rototranslation from world frame to robot base frame
-         * @param dq Joint velocities.
-         * @param dxB Velocity of the robot base, 3 values for linear velocity and 3 values for angular velocity.
+         * @param dq Joint velocities (rad/s).
+         * @param dxB Velocity of the robot base in world reference frame, 3 values for linear and 3 for angular velocity.
          * @param M Output N+6xN+6 mass matrix, with N=number of joints.
-         * @param h Output N+6-dim vector containing all generalized bias forces (gravity+Coriolis+centrifugal).
+         * @return True if the operation succeeded, false otherwise. 
+         */
+        virtual bool computeMassMatrix(double *q, const Frame &xBase, double *dq, double *dxB, double *M) { return false; };
+    
+        /** Compute the generalized bias forces (gravity+Coriolis+centrifugal) terms.
+         * @param q Joint angles (rad).
+         * @param xBase Rototranslation from world frame to robot base frame
+         * @param dq Joint velocities (rad/s).
+         * @param dxB Velocity of the robot base in world reference frame, 3 values for linear and 3 for angular velocity.
+         * @param h Output N+6-dim vector containing all generalized bias forces (gravity+Coriolis+centrifugal), with N=number of joints.
          * @return True if the operation succeeded, false otherwise. */
-        virtual bool directDynamics(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double *M, double *h);
-    };
+        virtual bool computeGeneralizedBiasForces(double *q, const Frame &xBase, double *dq, double *dxB, double *h) { return false; };
+       };
     
 
     const int JOINT_ESTIMATE_TYPES_SIZE = 3;
