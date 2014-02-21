@@ -31,17 +31,12 @@
 #include <iostream>
 #include <stdio.h>
 
-
-YARP_DECLARE_DEVICES(icubmod)
-
 using namespace yarp::dev;
 using namespace yarp::sig;
 using namespace yarp::os;
 using namespace yarp::math;
 
 using namespace std;
-
-#define NUM_OUT_PORTS 512
 
 #endif
 

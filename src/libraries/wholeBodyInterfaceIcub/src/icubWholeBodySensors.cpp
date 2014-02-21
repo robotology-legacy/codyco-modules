@@ -272,6 +272,7 @@ bool icubWholeBodySensors::openEncoder(const int bp)
     qStampLastRead[bp].resize(nj);
     pwmLastRead[bp].resize(nj);
     torqueSensorsLastRead[bp].resize(nj);
+
     return true;
 }
 

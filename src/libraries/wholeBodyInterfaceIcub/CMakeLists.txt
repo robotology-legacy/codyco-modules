@@ -40,7 +40,9 @@ INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/include
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
-                    ${YARP_INCLUDE_DIRS} )
+                    ${YARP_INCLUDE_DIRS} 
+                    ${motorFrictionIdentificationLib_INCLUDE_DIRS}  #this is a temporary requirement
+                    ${paramHelp_INCLUDE_DIRS}) #this is a temporary requirement
 
 ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
 
@@ -50,7 +52,8 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME}
                                      ctrlLib
                                      wholeBodyInterface
                                      iDynTree
-                                     ${kdl_codyco_LIBRARIES})
+                                     ${kdl_codyco_LIBRARIES}
+                                     paramHelp) #this is a temporary requirement
 
 icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
                                    DEPENDS wholeBodyInterface

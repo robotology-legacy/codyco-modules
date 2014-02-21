@@ -474,7 +474,7 @@ bool icubWholeBodyEstimator::lockAndCopyVectorElement(int index, const Vector &s
 
 bool icubWholeBodyEstimator::lockAndSetEstimationParameter(const EstimateType et, const EstimationParameter ep, const void *value)
 {
-    bool res;
+    bool res = false;
     mutex.wait();
     switch(et)
     {

@@ -31,10 +31,10 @@
  * by the following equation:
  * The reference PWM signal \f$v(t)\f$ is a sinusoid with constant frequency \f$w\f$ and increasing amplitude:
  * \f[
- * V_m  = k_t \tau + (k_{vp} s(\dot{q}) + k_{vn} s(-\dot{q})) \dot{q} + (k_{cp} s(\dot{q}) + k_{cn} s(-\dot{q})) \text{sign}(k_s \dot{q}),
+ * V_m  = k_t \tau + (k_{vp} s(\dot{q}) + k_{vn} s(-\dot{q})) \dot{q} + (k_{cp} s(\dot{q}) + k_{cn} s(-\dot{q})) \mbox{sign}( \dot{q}),
  * \f]
  * where \f$ k_t, k_{vp}, k_{vn}, k_{cp}, k_{cn} \f$ are the parameters to identify, \f$ \dot{q} \f$ is the joint velocity,
- * \f$ s(x) \f$ is the step function (1 for \f$ x>0 \f$, 0 otherwise) and \f$ \text{sign}(x) \f$ is the sign function (1 for
+ * \f$ s(x) \f$ is the step function (1 for \f$ x>0 \f$, 0 otherwise) and \f$ \mbox{sign}(x) \f$ is the sign function (1 for
  * \f$ x>0 \f$, -1 for \f$ x<0 \f$, 0 for \f$ x=0 \f$).
  * 
  * \section sec_configuration_file Configuration File
