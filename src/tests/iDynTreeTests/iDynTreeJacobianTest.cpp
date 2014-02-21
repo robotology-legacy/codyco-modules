@@ -149,10 +149,12 @@ int main()
     icub_idyntree_version.head_version = 2;
     icub_idyntree_version.legs_version = 2;
     
+    bool ft_foot = true;
+    
     //The iCubTree is istantiated
     //note that the serialization used is the one used in iDyn, while the 
     //default one is the one used in skinDynLib
-    iCubTree icub_idyntree(icub_idyntree_version,IDYN_SERIALIZATION);
+    iCubTree icub_idyntree(icub_idyntree_version,ft_foot,IDYN_SERIALIZATION);
 
     Vector w0(3,0.0);
     Vector dw0(3,0.0);
@@ -242,7 +244,57 @@ int main()
           
               
     if( norm(abs_v_rhand-abs_v_rhand_abs_jac) > tol ) { return EXIT_FAILURE; }
-             
+    
+    //We can also add a testing on com DJdq (only on "linear" part for now)
+    Matrix com_jacobian_6d, com_jacobian;
+    icub_idyntree.getCOMJacobian(com_jacobian_6d);
+    
+    com_jacobian = com_jacobian_6d.submatrix(0,2,0,com_jacobian_6d.cols()-1);
+    yarp::sig::Vector v_com, v_com_jacobian;
+    v_com = icub_idyntree.getVelCOM();
+    YARP_ASSERT( com_jacobian.cols() == icub_idyntree.getNrOfDOFs()+6);
+    v_com_jacobian = com_jacobian*icub_idyntree.getDQ_fb();
+    
+    std::cout << "Comparison between com velocities" << std::endl
+              << "Real one     " << v_com.toString() << std::endl
+              << "Jacobian one " << v_com_jacobian.toString() << std::endl;
+    
+    if( norm(v_com-v_com_jacobian) > tol ) { return EXIT_FAILURE; }           
+              
+    //To compare real com acceleration and the one calculated with the jacobian
+    //We need to compute kinematicRNEA using root link as the kinematic source
+    std::string kinematic_base_link_name = "root_link";
+    
+    iCub::iDynTree::iCubTree waist_imu_icub(icub_idyntree_version,ft_foot,IDYN_SERIALIZATION,0,kinematic_base_link_name);
+    yarp::sig::Vector a_com, a_com_jacobian;
+    a_com = icub_idyntree.getAccCOM();
+    
+    
+    
+    //World of waist_imu_icub is the same of icub_idyntree: root_link
+    yarp::sig::Vector six_zeros(6,0.0);
+    yarp::sig::Vector dof_zeros(icub_idyntree.getNrOfDOFs(),0.0);
+    waist_imu_icub.setKinematicBaseVelAcc(icub_idyntree.getVel(icub_idyntree.getLinkIndex(kinematic_base_link_name)),
+                                          six_zeros);
+    
+    waist_imu_icub.setAng(icub_idyntree.getAng());
+    waist_imu_icub.setDAng(icub_idyntree.getDAng());
+    waist_imu_icub.setD2Ang(dof_zeros);
+    YARP_ASSERT(waist_imu_icub.kinematicRNEA());
+    
+    YARP_ASSERT(icub_idyntree.getLinkIndex(kinematic_base_link_name) == waist_imu_icub.getLinkIndex(kinematic_base_link_name)); 
+    
+    a_com_jacobian = com_jacobian*icub_idyntree.getD2Q_fb() + waist_imu_icub.getAccCOM(); 
+
+     
+    std::cout << "Comparison between com accelerations" << std::endl
+              << "Real one     " << a_com.toString() << std::endl
+              << "Jacobian one " << a_com_jacobian.toString() << std::endl;
+    
+    if( norm(a_com-a_com_jacobian) > tol ) { 
+        std::cerr << "iDynTreeJacobianTest failed: Consistency error between com accelerations " << std::endl;
+        return EXIT_FAILURE; 
+    }           
     
     return 0;
     
