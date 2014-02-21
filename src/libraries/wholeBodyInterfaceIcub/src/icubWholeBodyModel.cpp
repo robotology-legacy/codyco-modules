@@ -466,9 +466,9 @@ bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq,
     //The kinematic initial values are expressed in the imu link (in this case, the base) for iDynTree 
     yarp::sig::Matrix base_world_rotation = world_base_transformation.submatrix(0,2,0,2).transposed();
     
-    p_icub_model->setInertialMeasure(base_world_rotation*omega_base,
-                                     world_base_transformation.submatrix(0,2,0,2).transposed()*domega_base,
-                                     world_base_transformation.submatrix(0,2,0,2).transposed()*a_base);
+    p_icub_model->setInertialMeasure(base_world_rotation * omega_base,
+                                     base_world_rotation * domega_base,
+                                     base_world_rotation * a_base);
     p_icub_model->setDAng(all_dq);
     p_icub_model->setD2Ang(all_ddq);
     
@@ -486,6 +486,48 @@ bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq,
     
     return true;
 }
+
+bool icubWholeBodyModel::computeGeneralizedBiasForces(double *q, const Frame &xBase, double *dq, double *dxB, double *h)
+{
+/** \todo move all conversion (also the one relative to frames) in convert* functions */
+    //Converting local wbi positions/velocity/acceleration to iDynTree one
+    convertBasePose(xBase,world_base_transformation);
+    convertQ(q,all_q);
+    convertBaseVelocity(dxB,v_base,omega_base);
+    convertDQ(dq,all_dq);
+    yarp::sig::Vector ddxB(6, 0.0);
+    convertBaseAcceleration(ddxB.data(),a_base,domega_base);
+    yarp::sig::Vector ddq(dof, 0.0);
+    convertDDQ(ddq.data(),all_ddq);
+
+    //Setting iDynTree variables
+    p_icub_model->setWorldBasePose(world_base_transformation);
+    p_icub_model->setAng(all_q);
+    //The kinematic initial values are expressed in the imu link (in this case, the base) for iDynTree 
+    yarp::sig::Matrix base_world_rotation = world_base_transformation.submatrix(0,2,0,2).transposed();
+    
+    p_icub_model->setInertialMeasure(base_world_rotation * omega_base,
+                                     base_world_rotation * domega_base,
+                                     base_world_rotation * a_base);
+    p_icub_model->setDAng(all_dq);
+    p_icub_model->setD2Ang(all_ddq);
+    
+    //Computing inverse dynamics
+    p_icub_model->kinematicRNEA();
+    p_icub_model->dynamicRNEA();
+    
+    //Get the output floating base torques and convert them to wbi generalized torques
+    yarp::sig::Vector base_force = p_icub_model->getBaseForceTorque();
+    
+    base_force.subVector(0,2) = world_base_transformation.submatrix(0,2,0,2)*base_force.subVector(0,2);
+    base_force.subVector(3,5) = world_base_transformation.submatrix(0,2,0,2)*base_force.subVector(3,5);
+    
+    convertGeneralizedTorques(base_force,p_icub_model->getTorques(),h);
+    
+    return true;
+}
+
+
 
 bool icubWholeBodyModel::directDynamics(double *q, const Frame &xB, double *dq, double *dxB, double *M, double *h)
 {
