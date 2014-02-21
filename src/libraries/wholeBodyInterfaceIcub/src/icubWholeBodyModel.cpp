@@ -487,3 +487,12 @@ bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq,
     return true;
 }
 
+bool icubWholeBodyModel::computeMassMatrix(double *q, const wbi::Frame &xBase, double *M)
+{
+    return false;
+}
+    
+bool icubWholeBodyModel::computeGeneralizedBiasForces(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double *h)
+{
+    return false;
+}
