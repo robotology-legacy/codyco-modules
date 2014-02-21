@@ -52,7 +52,7 @@ using namespace iCub::skinDynLib;
 // *********************************************************************************************************************
 icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName, int head_version, int legs_version, 
     double* initial_q, const std::vector<std::string> &_bodyPartNames)
-    : dof(0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
+    : dof(0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0)
 {
     std::string kinematic_base_link_name = "root_link";
     version.head_version = head_version;
@@ -67,6 +67,9 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName
     v_base.resize(3,0.0);
     
     a_base = omega_base = domega_base = v_base;
+    
+    v_six_elems_base.resize(3,0.0);
+    a_six_elems_base.resize(6,0.0);
     
     if( initial_q != 0 ) {
         memcpy(all_q.data(),initial_q,all_q.size()*sizeof(double));
@@ -147,6 +150,17 @@ bool icubWholeBodyModel::convertBaseVelocity(const double *dxB, yarp::sig::Vecto
     return true;
 }
 
+bool icubWholeBodyModel::convertBaseVelocity(const double *dxB, yarp::sig::Vector & v_b)
+{
+    v_b[0] = dxB[0];
+    v_b[1] = dxB[1];
+    v_b[2] = dxB[2];
+    v_b[3] = dxB[3];
+    v_b[4] = dxB[4];
+    v_b[5] = dxB[5];
+    return true;
+}
+
 bool icubWholeBodyModel::convertBaseAcceleration(const double *ddxB, yarp::sig::Vector & a_b, yarp::sig::Vector & domega_b)
 {
     a_b[0] = ddxB[0];
@@ -155,6 +169,17 @@ bool icubWholeBodyModel::convertBaseAcceleration(const double *ddxB, yarp::sig::
     domega_b[0] = ddxB[3];
     domega_b[1] = ddxB[4];
     domega_b[2] = ddxB[5];
+    return true;
+}
+
+bool icubWholeBodyModel::convertBaseAcceleration(const double *ddxB, yarp::sig::Vector & a_b)
+{
+    a_b[0] = ddxB[0];
+    a_b[1] = ddxB[1];
+    a_b[2] = ddxB[2];
+    a_b[3] = ddxB[3];
+    a_b[4] = ddxB[4];
+    a_b[5] = ddxB[5];
     return true;
 }
 
@@ -352,56 +377,44 @@ bool icubWholeBodyModel::computeDJdq(double *q, const Frame &xBase, double *dq, 
     
     //base
     convertBasePose(xBase, world_base_transformation);
-    convertBaseVelocity(dxB, v_base, omega_base);
-    a_base.zero(); domega_base.zero();
+    convertBaseVelocity(dxB, v_six_elems_base);
+    a_six_elems_base.zero();
     
     p_icub_model->setAng(all_q);
     p_icub_model->setDAng(all_dq);
     p_icub_model->setD2Ang(all_ddq);
     
     p_icub_model->setWorldBasePose(world_base_transformation);
-    //The kinematic initial values are expressed in the imu link (in this case, the base) for iDynTree
-    yarp::sig::Matrix baseWorldRotation = world_base_transformation.submatrix(0,2,0,2).transposed();
     
-    p_icub_model->setInertialMeasure(baseWorldRotation * omega_base,
-                                     baseWorldRotation * domega_base,
-                                     baseWorldRotation * a_base);
+    //The setKinematicBaseVelAcc accepts the velocity and accelerations of the kinematic base in world orientation
+    p_icub_model->setKinematicBaseVelAcc(v_six_elems_base,a_six_elems_base);
     
     p_icub_model->kinematicRNEA();
     
-    yarp::sig::Vector accelerations = p_icub_model->getAcc(linkID);
+    bool ret;
+    
+    if( linkID != COM_LINK_ID ) {
+        ret = p_icub_model->getAcc(linkID,six_elem_buffer);
+    } else {
+        // Only the linear part of DJdq is supported for the COM
+        ret = p_icub_model->getAccCOM(three_elem_buffer);
+        for(int i=0; i < 3; i++ ) {
+            six_elem_buffer[i] = three_elem_buffer[i];
+            six_elem_buffer[i+3] = 0.0;
+        }
+    }
+    
+    if( !ret ) {
+        if( six_elem_buffer.size() != 6 ) {
+            six_elem_buffer.resize(6,0.0);
+        }
+        return false;
+    }
+    
     //should I copy directly?
-    memcpy(dJdq, accelerations.data(), sizeof(double) * accelerations.size());
+    memcpy(dJdq, six_elem_buffer.data(), sizeof(double) * six_elem_buffer.size());
     return true;
     
-    
-    
-//    int dof_jacobian = dof+6;
-//    Matrix complete_jacobian(6,all_q.size()+6), reduced_jacobian(6,dof_jacobian);
-//    
-//    
-//    //Get Jacobian, the one of the link or the one of the COM
-//    if( linkId != COM_LINK_ID ) {
-//        ret_val = p_icub_model->getJacobian(linkId,complete_jacobian);
-//        if( !ret_val ) return false;
-//    } else {
-//        ret_val = p_icub_model->getCOMJacobian(complete_jacobian);
-//        if( !ret_val ) return false;
-//    }
-//    
-//    
-//    int i=0;
-//    FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
-//        FOR_ALL_JOINTS(itBp, itJ) {
-//            reduced_jacobian.setCol(i+6,complete_jacobian.getCol(6+p_icub_model->getDOFIndex(itBp->first,*itJ)));
-//            i++;
-//        }
-//    }
-//    reduced_jacobian.setSubmatrix(complete_jacobian.submatrix(0,5,0,5),0,0);
-//    memcpy(J,reduced_jacobian.data(),sizeof(double)*6*dof_jacobian);
-    
-    
-    return false;    
 }
 
 bool icubWholeBodyModel::forwardKinematics(double *q, const Frame &xB, int linkId, double *x)

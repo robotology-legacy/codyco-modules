@@ -888,6 +888,10 @@ namespace wbiIcub
         yarp::sig::Vector v_base, a_base;
         yarp::sig::Vector omega_base, domega_base;
         
+        yarp::sig::Vector v_six_elems_base;
+        yarp::sig::Vector a_six_elems_base;
+
+        
         yarp::sig::Vector all_q;
         yarp::sig::Vector all_dq;
         yarp::sig::Vector all_ddq;
@@ -898,6 +902,8 @@ namespace wbiIcub
         yarp::sig::Vector generalized_floating_base_torques; //n+6 outputs for inverse dynamics
         yarp::sig::Matrix floating_base_mass_matrix;
         yarp::sig::Matrix reduced_floating_base_mass_matrix;
+        yarp::sig::Vector six_elem_buffer;
+        yarp::sig::Vector three_elem_buffer;
 
         // *** Variables needed for opening IControlLimits interfaces
         std::string                                 name;           // name used as root for the local ports
@@ -912,6 +918,9 @@ namespace wbiIcub
         bool convertBasePose(const wbi::Frame &xBase, yarp::sig::Matrix & H_world_base);
         bool convertBaseVelocity(const double *dxB, yarp::sig::Vector & v_b, yarp::sig::Vector & omega_b);
         bool convertBaseAcceleration(const double *ddxB, yarp::sig::Vector & a_b, yarp::sig::Vector & domega_b);
+        bool convertBaseVelocity(const double *dxB, yarp::sig::Vector & v_six_elems_b);
+        bool convertBaseAcceleration(const double *ddxB, yarp::sig::Vector & a_six_elems_b);
+     
         
         bool convertQ(const double *q_input, yarp::sig::Vector & q_complete_output);
         bool convertQ(const yarp::sig::Vector & q_complete_input, double *q_output);
@@ -986,7 +995,10 @@ namespace wbiIcub
           * @param linkID ID of the link
           * @param dJdq Output 6-dim vector containing the product dJ*dq 
           * @param pos 3d position of the point expressed w.r.t the link reference frame
-          * @return True if the operation succeeded, false otherwise (invalid input parameters) */
+          * @return True if the operation succeeded, false otherwise (invalid input parameters) 
+          * \note If linkId==COM_LINK_ID only the first three elements of dJdq (the linear part) are computed,
+          *          the angular part is zero
+          */
         virtual bool computeDJdq(double *q, const wbi::Frame &xBase, double *dq, double *dxB, int linkID, double *dJdq, double *pos=0);
         
         /** Compute the forward kinematics of the specified joint.
