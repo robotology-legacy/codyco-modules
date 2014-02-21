@@ -25,6 +25,8 @@
 
 #include <yarp/math/Math.h>
 
+#include <Eigen/Core>
+
 using namespace std;
 using namespace wbi;
 using namespace wbiIcub;
@@ -428,7 +430,75 @@ bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq,
     return true;
 }
 
-bool icubWholeBodyModel::directDynamics(double *q, const Frame &xB, double *dq, double *dxB, double *M, double *h)
+bool icubWholeBodyModel::computeMassMatrix(double *q, const Frame &xBase, double *M)
+{
+    convertBasePose(xBase,world_base_transformation);
+    convertQ(q,all_q);
+    
+    //Setting iDynTree variables
+    p_icub_model->setWorldBasePose(world_base_transformation);
+    p_icub_model->setAng(all_q);
+    
+    //iDynTree floating base mass matrix is already world orientation friendly 
+    //(i.e. expects the base velocity to be expressed in world reference frame)
+    p_icub_model->getFloatingBaseMassMatrix(floating_base_mass_matrix);
+    
+    if( reduced_floating_base_mass_matrix.cols() != 6+dof ||
+        reduced_floating_base_mass_matrix.rows() != 6+dof ) {
+        reduced_floating_base_mass_matrix.resize(6+dof,6+dof);
+    }
+    
+    //Converting the iDynTree complete floating_base_mass_matrix to the reduced one
+    //           that includes only the joint added in the wholeBodyModel interfacec
+    
+    //Given the structure of the wholeBodyModel, this manual quadratic loop is necessary
+    //To speed-up the case in which all the joint are considered, it could be possible to add a check to directly copy the mass matrix
+    
+    //Using mapped eigen matrices to avoid the overhead of using setSubmatrix / submatrix methods in yarp
+    Eigen::Map< Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > mapped_reduced_mm(reduced_floating_base_mass_matrix.data(),
+                                                                                                           reduced_floating_base_mass_matrix.rows(),
+                                                                                                           reduced_floating_base_mass_matrix.cols());
+
+    Eigen::Map< Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > mapped_complete_mm(floating_base_mass_matrix.data(),
+                                                                                                            floating_base_mass_matrix.rows(),
+                                                                                                            floating_base_mass_matrix.cols());
+
+    
+    //Left top submatrix (spatial inertia matrix)
+    mapped_reduced_mm.block<6,6>(0,0) = mapped_complete_mm.block<6,6>(0,0);
+    
+    //Rest of the matrix
+    int reduced_dof_row=0;
+    int reduced_dof_column = 0;
+    FOR_ALL_BODY_PARTS_OF(row_bp, jointIdList) {
+        FOR_ALL_JOINTS(row_bp, row_joint) {
+            int complete_dof_row = p_icub_model->getDOFIndex(row_bp->first,*row_joint);
+            
+            //Left bottom submatrix 
+            mapped_reduced_mm.block<1,6>(6+reduced_dof_row,0) = mapped_complete_mm.block<1,6>(6+complete_dof_row,0);
+            
+            ///Right top submatrix (using the row loop to avoid doing another loop)
+            mapped_reduced_mm.block<6,1>(0,6+reduced_dof_row) =  mapped_reduced_mm.block<1,6>(6+reduced_dof_row,0).transpose();
+            
+            reduced_dof_column=0;
+            FOR_ALL_BODY_PARTS_OF(column_bp, jointIdList) {
+                FOR_ALL_JOINTS(column_bp, column_joint) {
+                    int complete_dof_column = p_icub_model->getDOFIndex(column_bp->first,*column_joint);
+                    mapped_reduced_mm(6+reduced_dof_row,6+reduced_dof_column) = 
+                        mapped_complete_mm(6+complete_dof_row,6+complete_dof_column);
+                    reduced_dof_column++;
+                }
+            }
+            reduced_dof_row++;
+        }
+    }
+    
+    memcpy(M,reduced_floating_base_mass_matrix.data(),sizeof(double)*(6+dof)*(6+dof));
+    
+    return true;
+}
+    
+bool icubWholeBodyModel::computeGeneralizedBiasForces(double *q, const Frame &xBase, double *dq, double *dxB, double *h)
 {
     return false;
 }

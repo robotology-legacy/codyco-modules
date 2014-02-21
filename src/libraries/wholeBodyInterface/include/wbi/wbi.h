@@ -309,9 +309,18 @@ namespace wbi
          * @param dq Joint velocities (rad/s).
          * @param dxB Velocity of the robot base in world reference frame, 3 values for linear and 3 for angular velocity.
          * @param M Output N+6xN+6 mass matrix, with N=number of joints.
+         * @return True if the operation succeeded, false otherwise. */
+        virtual bool computeMassMatrix(double *q, const Frame &xBase, double *M) = 0;
+    
+        /** Compute the direct dynamics.
+         * @param q Joint angles (rad).
+         * @param xBase Rototranslation from world frame to robot base frame
+         * @param dq Joint velocities (rad/s).
+         * @param dxB Velocity of the robot base in world reference frame, 3 values for linear and 3 for angular velocity.
          * @param h Output N+6-dim vector containing all generalized bias forces (gravity+Coriolis+centrifugal), with N=number of joints.
          * @return True if the operation succeeded, false otherwise. */
-        virtual bool directDynamics(double *q, const Frame &xBase, double *dq, double *dxB, double *M, double *h) = 0;
+        virtual bool computeGeneralizedBiasForces(double *q, const Frame &xBase, double *dq, double *dxB, double *h) = 0;
+   
     };
     
     /**
