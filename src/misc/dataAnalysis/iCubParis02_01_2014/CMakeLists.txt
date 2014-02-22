@@ -9,7 +9,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 #### Find kdl_codyco, require that kdl_codyco version is at least kdl_codyco_REQVERSION
 
 find_package(kdl_codyco REQUIRED)
-find_package(kdl_format_io REQUIRED)
 find_package(YARP REQUIRED)
 find_file(ICUB REQUIRED)
 
