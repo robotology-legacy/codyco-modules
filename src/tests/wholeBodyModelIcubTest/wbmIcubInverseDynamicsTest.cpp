@@ -152,7 +152,7 @@ int main(int argc, char * argv[])
     
     
     for(int i = 0; i < n_checks; i++ ) {
-        if( n_checks % 100 == 0 ) std::cout << "wholeBodyModelIcub inverse dynamics : test " << i << std::endl;
+        if( i % 100 == 0 ) { std::cout << "wholeBodyModelIcub inverse dynamics : test " << i << std::endl; }
         if( ! checkInverseDynamicsAndMassMatrixConsistency(icub,ICUB_MAIN_DYNAMIC_JOINTS,TOL,true) ) {
             return EXIT_FAILURE;
         }
