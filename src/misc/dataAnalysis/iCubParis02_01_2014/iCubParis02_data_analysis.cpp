@@ -13,7 +13,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <boost/concept_check.hpp>
 
 #include <yarp/os/Property.h>
 
