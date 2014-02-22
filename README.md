@@ -73,7 +73,7 @@ make
 sudo make install
 ```
 
-###codyco
+##CoDyCo
 Finally, after installing all dependencies, it is possible to install codyco (this repository itself) from GitHub.
 ```bash
 git clone https://github.com/robotology/codyco.git
