@@ -73,7 +73,7 @@ bool checkInverseDynamicsAndMassMatrixConsistency(iWholeBodyModel * model_interf
     
     assert(nr_of_activated_joints == nr_of_considered_joints);
    
-    std::cout << "checkInverseDynamicsAndMassMatrixConsistency: nrOfPossibleJoints : " << nr_of_possible_joints << " nrOfConsiderJoints " << nr_of_considered_joints << " " << nr_of_activated_joints << std::endl;
+    //std::cout << "checkInverseDynamicsAndMassMatrixConsistency: nrOfPossibleJoints : " << nr_of_possible_joints << " nrOfConsiderJoints " << nr_of_considered_joints << " " << nr_of_activated_joints << std::endl;
     
     //Select the random input
     
@@ -112,14 +112,16 @@ bool checkInverseDynamicsAndMassMatrixConsistency(iWholeBodyModel * model_interf
         return false; 
     }
     
+    /*
     std::cout << "Mass Matrix:             " << std::endl << mass_matrix.toString() << std::endl;
     std::cout << "ddq:                     " << std::endl << ddq.toString() << std::endl;
     std::cout << "M*ddq                    " << std::endl << (mass_matrix*ddq).toString() << std::endl;
     std::cout << "M*ddq with inv dyn       " << std::endl << (generalized_torques-generalized_bias_torques).toString() << std::endl;
     std::cout << "bias:                    " << std::endl << generalized_bias_torques.toString() << std::endl;
     std::cout << "invDyn:                  " << std::endl << generalized_torques.toString() << std::endl;
+    */
     generalized_torques_computed_with_mass_matrix = mass_matrix*ddq + generalized_bias_torques;
-    std::cout << "invDyn with mass matrix: " << std::endl << generalized_torques_computed_with_mass_matrix.toString() << std::endl;
+    //std::cout << "invDyn with mass matrix: " << std::endl << generalized_torques_computed_with_mass_matrix.toString() << std::endl;
 
     
     for(int i = 0; i < generalized_torques.size(); i++ ) {
@@ -150,7 +152,7 @@ int main(int argc, char * argv[])
     
     
     for(int i = 0; i < n_checks; i++ ) {
-        std::cout << "wholeBodyModelIcub inverse dynamics : test " << i << std::endl;
+        if( n_checks % 100 == 0 ) std::cout << "wholeBodyModelIcub inverse dynamics : test " << i << std::endl;
         if( ! checkInverseDynamicsAndMassMatrixConsistency(icub,ICUB_MAIN_DYNAMIC_JOINTS,TOL,true) ) {
             return EXIT_FAILURE;
         }
