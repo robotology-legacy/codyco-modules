@@ -60,6 +60,8 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName
     p_icub_model = new iCub::iDynTree::iCubTree(version,false,iCub::iDynTree::SKINDYNLIB_SERIALIZATION,0,kinematic_base_link_name);
     all_q.resize(p_icub_model->getNrOfDOFs(),0.0);
     all_q_min = all_q_max = all_ddq = all_dq = all_q;
+    floating_base_mass_matrix.resize(p_icub_model->getNrOfDOFs(),p_icub_model->getNrOfDOFs());
+    floating_base_mass_matrix.zero();
     
     world_base_transformation.resize(4,4);
     world_base_transformation.eye();
@@ -492,10 +494,7 @@ bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq,
     p_icub_model->dynamicRNEA();
     
     //Get the output floating base torques and convert them to wbi generalized torques
-    yarp::sig::Vector base_force = p_icub_model->getBaseForceTorque();
-    
-    base_force.subVector(0,2) = world_base_transformation.submatrix(0,2,0,2)*base_force.subVector(0,2);
-    base_force.subVector(3,5) = world_base_transformation.submatrix(0,2,0,2)*base_force.subVector(3,5);
+    yarp::sig::Vector base_force = p_icub_model->getBaseForceTorque(iCub::iDynTree::WORLD_FRAME);
     
     convertGeneralizedTorques(base_force,p_icub_model->getTorques(),tau);
     
@@ -510,6 +509,8 @@ bool icubWholeBodyModel::computeMassMatrix(double *q, const Frame &xBase, double
     //Setting iDynTree variables
     p_icub_model->setWorldBasePose(world_base_transformation);
     p_icub_model->setAng(all_q);
+    
+    
     
     //iDynTree floating base mass matrix is already world orientation friendly 
     //(i.e. expects the base velocity to be expressed in world reference frame)
@@ -600,10 +601,8 @@ bool icubWholeBodyModel::computeGeneralizedBiasForces(double *q, const Frame &xB
     p_icub_model->dynamicRNEA();
     
     //Get the output floating base torques and convert them to wbi generalized torques
-    yarp::sig::Vector base_force = p_icub_model->getBaseForceTorque();
+    yarp::sig::Vector base_force = p_icub_model->getBaseForceTorque(iCub::iDynTree::WORLD_FRAME);
     
-    base_force.subVector(0,2) = world_base_transformation.submatrix(0,2,0,2)*base_force.subVector(0,2);
-    base_force.subVector(3,5) = world_base_transformation.submatrix(0,2,0,2)*base_force.subVector(3,5);
     
     convertGeneralizedTorques(base_force,p_icub_model->getTorques(),h);
     
