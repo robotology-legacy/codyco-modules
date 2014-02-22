@@ -1,8 +1,8 @@
 #include <kdl_codyco/utils.hpp>
 #include <kdl/rigidbodyinertia.hpp>
 #include <kdl/frames_io.hpp>
-#include <dirl/dataset/DynamicDatasetFile.hpp>
-#include <dirl/dynamicRegressorGenerator.hpp>
+#include <kdl_codyco/regressors/dataset/DynamicDatasetFile.hpp>
+#include <kdl_codyco/regressors/dynamicRegressorGenerator.hpp>
 #include <cstdlib>
 #include <iCub/iDynTree/iCubTree.h>
 #include <iCub/ctrl/filters.h>
@@ -211,7 +211,7 @@ int main(int argc, char ** argv)
     //iCubParis02 is a v2 robot
     tag.head_version = 2;
     tag.legs_version = 2;
-    tag.arms_version = 2;
+    //tag.arms_version = 2;
     
     iCub::iDynTree::iCubTree icub_tree_model(tag);
     

@@ -4,6 +4,7 @@ add_subdirectory(libraries)
 #add_subdirectory(wbciy)
 add_subdirectory(modules)
 add_subdirectory(tests)
+add_subdirectory(misc/dataAnalysis/iCubParis02_01_2014)
 #built ftDumper only if YARP24 is found
 if(CODYCO_BUILD_YARP24_MODULES)
    add_subdirectory(misc/ftDumper)
