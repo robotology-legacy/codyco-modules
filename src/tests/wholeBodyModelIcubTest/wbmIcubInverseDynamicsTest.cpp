@@ -56,22 +56,24 @@ bool checkInverseDynamicsAndMassMatrixConsistency(iWholeBodyModel * model_interf
     }
     
     //Select the random number of considered joints
-    int nr_of_considered_joints = possible_joints.size();//rand() % nr_of_possible_joints;
+    int nr_of_considered_joints = rand() % nr_of_possible_joints;
     int nr_of_activated_joints = 0;
     
     double threshold = ((double)nr_of_considered_joints)/((double)nr_of_possible_joints);
     
     //Select the random considered joints
-    while( nr_of_activated_joints < nr_of_considered_joints ) {
+    while(  nr_of_activated_joints < nr_of_considered_joints ) {
         FOR_ALL_OF(itBp, itJ, possible_joints) {  
             if( nr_of_activated_joints < nr_of_considered_joints && yarp::math::Rand::scalar() < threshold ) {
-                model_interface->addJoint(LocalId(itBp->first,*itJ));
-                nr_of_activated_joints++;
+                if( model_interface->addJoint(LocalId(itBp->first,*itJ)) ) {
+                    nr_of_activated_joints++;
+                }
             }
         }
     }
     
     assert(nr_of_activated_joints == nr_of_considered_joints);
+    assert(nr_of_considered_joints == model_interface->getJointList().size());
    
     //std::cout << "checkInverseDynamicsAndMassMatrixConsistency: nrOfPossibleJoints : " << nr_of_possible_joints << " nrOfConsiderJoints " << nr_of_considered_joints << " " << nr_of_activated_joints << std::endl;
     
@@ -118,8 +120,9 @@ bool checkInverseDynamicsAndMassMatrixConsistency(iWholeBodyModel * model_interf
     std::cout << "M*ddq                    " << std::endl << (mass_matrix*ddq).toString() << std::endl;
     std::cout << "M*ddq with inv dyn       " << std::endl << (generalized_torques-generalized_bias_torques).toString() << std::endl;
     std::cout << "bias:                    " << std::endl << generalized_bias_torques.toString() << std::endl;
-    std::cout << "invDyn:                  " << std::endl << generalized_torques.toString() << std::endl;
     */
+    //std::cout << "invDyn:                  " << std::endl << generalized_torques.toString() << std::endl;
+    
     generalized_torques_computed_with_mass_matrix = mass_matrix*ddq + generalized_bias_torques;
     //std::cout << "invDyn with mass matrix: " << std::endl << generalized_torques_computed_with_mass_matrix.toString() << std::endl;
 
@@ -150,7 +153,7 @@ int main(int argc, char * argv[])
     std::cout << "Creating icubWholeBodyModel with robotName " << robotName << " and localName " << localName << std::endl;
     iWholeBodyModel *icub = new icubWholeBodyModel(localName.c_str(),robotName.c_str());
     
-    Rand::init(0);
+    Rand::init();
     for(int i = 0; i < n_checks; i++ ) {
         if( i % 100 == 0 ) { std::cout << "wholeBodyModelIcub inverse dynamics : test " << i << std::endl; }
         if( ! checkInverseDynamicsAndMassMatrixConsistency(icub,ICUB_MAIN_DYNAMIC_JOINTS,TOL,true) ) {

@@ -112,8 +112,10 @@ bool icubWholeBodyModel::close()
 
 bool icubWholeBodyModel::removeJoint(const wbi::LocalId &j)
 {
-    if(!jointIdList.removeId(j))
+    if(!jointIdList.removeId(j)) 
         return false;
+    all_dq.zero();
+    all_ddq.zero();
     dof--;
     return true;
 }
