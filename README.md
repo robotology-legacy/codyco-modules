@@ -59,12 +59,25 @@ sudo make install
 ```
 
 For any further information you can check http://www.orocos.org/kdl .
+
     
 ###kdl_codyco
 It is possible to install kdl_codyco easily from GitHub.
 ```bash
 git clone https://github.com/traversaro/kdl_codyco.git
 cd kdl_codyco
+mkdir build
+cd build
+ccmake ../
+make
+sudo make install
+```
+
+###codyco
+Finally, after installing all dependencies, it is possible to install codyco (this repository itself) from GitHub.
+```bash
+git clone https://github.com/robotology/codyco.git
+cd codyco
 mkdir build
 cd build
 ccmake ../
