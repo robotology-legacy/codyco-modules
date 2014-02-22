@@ -65,8 +65,8 @@ For any further information you can check http://www.orocos.org/kdl .
 It is possible to install kdl_codyco easily from GitHub. For CoDyCo version 0.1.0 (this branch) you temporary need version 0.0.2 of kdl_codyco, in branch experimental .
 ```bash
 git clone https://github.com/traversaro/kdl_codyco.git
-git checkout experimental
 cd kdl_codyco
+git checkout experimental
 mkdir build
 cd build
 ccmake ../
