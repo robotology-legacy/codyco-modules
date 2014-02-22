@@ -150,7 +150,7 @@ int main(int argc, char * argv[])
     std::cout << "Creating icubWholeBodyModel with robotName " << robotName << " and localName " << localName << std::endl;
     iWholeBodyModel *icub = new icubWholeBodyModel(localName.c_str(),robotName.c_str());
     
-    
+    Rand::init(0);
     for(int i = 0; i < n_checks; i++ ) {
         if( i % 100 == 0 ) { std::cout << "wholeBodyModelIcub inverse dynamics : test " << i << std::endl; }
         if( ! checkInverseDynamicsAndMassMatrixConsistency(icub,ICUB_MAIN_DYNAMIC_JOINTS,TOL,true) ) {
