@@ -29,13 +29,22 @@
 #include <iCub/iDynTree/iCubTree.h>
 #include <wbiIcub/wbiIcubUtil.h>
 #include <map>
-//#if __APPLE__
-//#include <tr1/unordered_map>
-//#else
-//#include <unordered_map>
-//#endif
 
 /* CODE UNDER DEVELOPMENT */
+
+//*********TEMP************** -> for actuators //
+#include <yarp/sig/Vector.h>
+namespace paramHelp {
+    class ParamHelperClient;
+}
+//*********END TEMP**********//
+
+namespace yarp {
+    namespace os {
+        class Property;
+        class Value;
+    }
+}
 
 namespace wbiIcub
 {
@@ -185,6 +194,8 @@ namespace wbiIcub
     };
     
 
+    
+    
     /*
      * Class for communicating with iCub's motor control boards.
      */
@@ -200,6 +211,9 @@ namespace wbiIcub
         wbi::LocalIdList            jointIdList;    // list of the joint ids
         
         std::map<wbi::LocalId, wbi::ControlMode>        currentCtrlModes;    // current control mode of each actuator
+        
+//        std::map<std::string, std::string> configurationParameters; /*< Map containing parameters to be read at initialization time */
+        yarp::os::Property configurationParameters; /*< Map containing parameters to be read at initialization time */
 
         // yarp drivers
         std::map<int, yarp::dev::IPositionControl*>     ipos;
@@ -217,18 +231,38 @@ namespace wbiIcub
         /** Set the reference speed for the position control of the specified joint(s). */
         virtual bool setReferenceSpeed(double *rspd, int joint=-1);
         
+        //*********TEMP**************//
+        paramHelp::ParamHelperClient *_torqueModuleConnection; /*< connection to the torque control module */
+        yarp::sig::Vector _torqueRefs;
+        //*********END TEMP**********//
+        
     public:
         /** Constructor.
          * @param _name Name of this object, used as a stem for opening YARP ports.
          * @param _robot Name of the robot.
          * @param _bodyPartNames Vector containing the names of the body parts of iCub.
         */
-        icubWholeBodyActuators(const char* _name, const char* _robot, const std::vector<std::string> &_bodyPartNames
-            =std::vector<std::string>(iCub::skinDynLib::BodyPart_s,iCub::skinDynLib::BodyPart_s+sizeof(iCub::skinDynLib::BodyPart_s)/sizeof(std::string)));
+        icubWholeBodyActuators(const char* _name,
+                               const char* _robot,
+                               const std::vector<std::string> &_bodyPartNames = std::vector<std::string>(iCub::skinDynLib::BodyPart_s,iCub::skinDynLib::BodyPart_s+sizeof(iCub::skinDynLib::BodyPart_s)/sizeof(std::string)));
         
-        inline virtual ~icubWholeBodyActuators(){ close(); }
+        virtual ~icubWholeBodyActuators();
         virtual bool init();
         virtual bool close();
+        
+        /* Configuration parameters section */
+        static const std::string icubWholeBodyActuatorsUseExternalTorqueModule; /*< initialization parameter for iCub actuator class. The value associated is a boolean value. Default to false */
+        static const std::string icubWholeBodyActuatorsExternalTorqueModuleName; /*< initialization parameter for iCub actuator class. Name of the torque external module */
+        
+        /** @brief Sets an initialization parameter.
+         *
+         * Sets a key-value pair parameter to be used during the initialization phase.
+         * Note: this function must be called before init, otherwise it takes no effect
+         * @param parameterName key for the parameter
+         * @param parameterValue value for the parameter.
+         * @return true if, false otherwise
+        */
+        virtual bool setConfigurationParameter(const std::string& parameterName, const yarp::os::Value& parameterValue);
 
         inline virtual int getActuatorNumber(){ return dof; }
         virtual bool removeActuator(const wbi::LocalId &j);
@@ -541,11 +575,11 @@ namespace wbiIcub
           * @param q Joint angles
           * @param xBase Rototranslation from world frame to robot base frame
           * @param dq Joint velocities
-          * @param linkId Id of the link
+          * @param linkID ID of the link
           * @param dJdq Output 6-dim vector containing the product dJ*dq 
           * @param pos 3d position of the point expressed w.r.t the link reference frame
           * @return True if the operation succeeded, false otherwise (invalid input parameters) */
-        virtual bool computeDJdq(double *q, const wbi::Frame &xBase, double *dq, double *dxB, int linkId, double *dJdq, double *pos=0);
+        virtual bool computeDJdq(double *q, const wbi::Frame &xBase, double *dq, double *dxB, int linkID, double *dJdq, double *pos=0);
         
         /** Compute the forward kinematics of the specified joint.
           * @param q Joint angles.
@@ -566,16 +600,23 @@ namespace wbiIcub
          * @return True if the operation succeeded, false otherwise. */
         virtual bool inverseDynamics(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double *ddq, double *ddxB, double *tau);
 
-        /** Compute the direct dynamics.
-         * @param q Joint angles.
+        /** Compute the floating base Mass Matrix.
+         * @param q Joint angles (rad).
          * @param xBase Rototranslation from world frame to robot base frame
-         * @param dq Joint velocities.
-         * @param dxB Velocity of the robot base, 3 values for linear velocity and 3 values for angular velocity.
          * @param M Output N+6xN+6 mass matrix, with N=number of joints.
-         * @param h Output N+6-dim vector containing all generalized bias forces (gravity+Coriolis+centrifugal).
+         * @return True if the operation succeeded, false otherwise. 
+         */
+        virtual bool computeMassMatrix(double *q, const wbi::Frame &xBase, double *M);
+    
+        /** Compute the generalized bias forces (gravity+Coriolis+centrifugal) terms.
+         * @param q Joint angles (rad).
+         * @param xBase Rototranslation from world frame to robot base frame
+         * @param dq Joint velocities (rad/s).
+         * @param dxB Velocity of the robot base in world reference frame, 3 values for linear and 3 for angular velocity.
+         * @param h Output N+6-dim vector containing all generalized bias forces (gravity+Coriolis+centrifugal), with N=number of joints.
          * @return True if the operation succeeded, false otherwise. */
-        virtual bool directDynamics(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double *M, double *h);
-    };
+        virtual bool computeGeneralizedBiasForces(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double *h);
+       };
     
 
     const int JOINT_ESTIMATE_TYPES_SIZE = 3;
@@ -655,8 +696,10 @@ namespace wbiIcub
         { return modelInt->forwardKinematics(q, xB, linkId, x); }
         virtual bool inverseDynamics(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *tau)
         { return modelInt->inverseDynamics(q, xB, dq, dxB, ddq, ddxB, tau); }
-        virtual bool directDynamics(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *M, double *h)
-        { return modelInt->directDynamics(q, xB, dq, dxB, M, h); }
+        virtual bool computeMassMatrix(double *q, const wbi::Frame &xB, double *M)
+        { return modelInt->computeMassMatrix(q, xB, M); }
+        virtual bool computeGeneralizedBiasForces(double *q, const wbi::Frame &xB,  double *dq, double *dxB, double *h)
+        { return modelInt->computeGeneralizedBiasForces(q, xB, dq, dxB, h); }
     };
     
 } // end namespace wbiIcub

@@ -45,7 +45,7 @@ where
 
 The relationship between the link's torque \f$ \tau \f$ and the tension \f$ V \f$ applied to the motor is assumed to be:
 \f[
-	V  = k_t \tau + k_v \dot{q} + k_c \text{sign}(\dot{q}),
+	V  = k_t \tau + k_v \dot{q} + k_c \mbox{sign}(\dot{q}),
 \f]
 with \f$k_t\f$, \f$k_v\f$, \f$k_c\f$ three constants, and \f$\dot{q}\f$ the link's velocity. 
 Since the tension \f$V(t)\f$ is a high-frequency square 
@@ -55,7 +55,7 @@ over the time period \f$T\f$. By direct calculations, one can verify that
 	V_m = (T_{dc}/T) V_b. 
 \f]
 Also, discontinuities are always challenging in practice. So, it is best to smooth the sign function. 
-Among an infinite possible choices, we choose the hyperbolic function instead of \f$\text{sign(.)}\f$. Then one has:
+Among an infinite possible choices, we choose the hyperbolic function instead of \f$\mbox{sign(.)}\f$. Then one has:
 \f[
 	    V_m  = k_t \tau + k_v \dot{q} + k_c \tanh(k_s \dot{q}).
 \f]
@@ -67,14 +67,14 @@ values depending on this sign. Then, an improved model is:
 \f]
 where the function \f$s(x)\f$ is the step function, i.e.
 \f[
-	s(x) =  1 \quad \text{if} \quad x >= 0; s(x)=0 \quad \text{if} \quad x < 0.
+	s(x) =  1 \quad \mbox{if} \quad x >= 0; s(x)=0 \quad \mbox{if} \quad x < 0.
 \f]
 As stated, the above equation constitutes the relation between the tension applied to the motor and the link torque. 
 Then, to generate a desired torque \f$\tau_d\f$ coming from an higher control loop, it suffices to evaluate the above equation
 with \f$\tau = \tau_d\f$. In practice, however, it is a best practice to add a lower loop to generate \f$\tau\f$ so that \f$\tau\f$ 
 will converge to \f$\tau_d\f$, i.e:
 \f[
-    \tau = \tau_d - k_p e_{\tau} - k_i \int e_{\tau} \text{dt},
+    \tau = \tau_d - k_p e_{\tau} - k_i \int e_{\tau} \mbox{dt},
 \f]
 where \f$ e_{\tau} := \tau - \tau_d \f$.
 

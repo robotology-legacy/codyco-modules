@@ -115,6 +115,8 @@ namespace wbi
         LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4);
         LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4, const LocalIdList &lid5);
         
+        virtual ~LocalIdList();
+        
         /** Convert a local id to a global id */
         virtual int localToGlobalId(const LocalId &i) const;
 
