@@ -102,8 +102,6 @@ bool robotStatus::robotConfig(){
         if(DEBUGGING) fprintf(stderr,"Copying wholeBodyInterface POINTER!\n");
     }
     else{
-      if(DEBUGGING) fprintf(stderr,"update 2 ... \n");
-
         //---------------- CREATION WHOLE BODY INTERFACE ---------------------/
         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str());
         if(DEBUGGING) fprintf(stderr,"new wbInterface created ...\n");
@@ -375,11 +373,11 @@ static void mdlInitializeSizes(SimStruct *S)
 
     // Specify I/O
     if (!ssSetNumInputPorts(S, 2)) return;
-    ssSetInputPortWidth(S, 0, 1);              //Input FOR BLOCK TYPE
-    ssSetInputPortWidth(S, 1, ICUB_DOFS);    //INPUT FOR dqDes
-    ssSetInputPortDataType(S, 0, SS_INT8);     //Input data type
+    ssSetInputPortWidth(S, 0, 1);              	    //Input FOR BLOCK TYPE
+    ssSetInputPortWidth(S, 1, ICUB_DOFS);    	    //INPUT FOR dqDes
+    ssSetInputPortDataType(S, 0, SS_INT8);     	    //Input data type
     ssSetInputPortDataType(S, 1, SS_DOUBLE);
-    ssSetInputPortDirectFeedThrough(S, 0, 1);      //The input will be used in the output
+    ssSetInputPortDirectFeedThrough(S, 0, 1);       //The input will be used in the output
     ssSetInputPortDirectFeedThrough(S, 1, 1);
     if (!ssSetNumOutputPorts(S,4)) return;
     ssSetOutputPortWidth   (S, 0, ICUB_DOFS);
@@ -490,7 +488,7 @@ static void mdlStart(SimStruct *S)
     if(res==true)
         fprintf(stderr,"Succesfully exiting robotConfig...\n");
     else{
-        ssSetErrorStatus(S,"ERROR during robotConfig and/or robotInit ... \n");
+        ssSetErrorStatus(S,"ERROR in robotInit. \n");
     }
 
     ssGetPWork(S)[0] = robot;

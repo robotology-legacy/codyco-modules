@@ -31,7 +31,7 @@
 #define _WBINTERFACE_H_
 
 #define S_FUNCTION_LEVEL 2
-#define S_FUNCTION_NAME  robotState2
+#define S_FUNCTION_NAME  robotState
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
