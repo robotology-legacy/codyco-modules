@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.274"
+    ComputedModelVersion    "1.275"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -38,9 +38,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Feb 04 00:42:22 2014"
+  LastModifiedDate	  "Sun Feb 23 23:15:15 2014"
   RTWModifiedTimeStamp	  313371043
-  ModelVersionFormat	  "1.%<AutoIncrement:274>"
+  ModelVersionFormat	  "1.%<AutoIncrement:275>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -78,7 +78,6 @@ Model {
     $ObjectID		    2
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "FourthCOMController"
-    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -949,7 +948,7 @@ Model {
   }
   System {
     Name		    "FourthCOMController"
-    Location		    [843, 339, 1194, 542]
+    Location		    [844, 367, 1195, 570]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -994,7 +993,7 @@ Model {
       MaskValueString	      "'icubSim'|0.01"
       System {
 	Name			"COMController"
-	Location		[65, 821, 1366, 1536]
+	Location		[66, 81, 1367, 796]
 	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -2691,7 +2690,7 @@ Model {
 	  SID			  "200"
 	  Position		  [690, 159, 740, 191]
 	  ZOrder		  -8
-	  Gain			  "5"
+	  Gain			  "1000"
 	  ParamDataTypeStr	  "Inherit: Inherit via internal rule"
 	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
 	  SaturateOnIntegerOverflow off
