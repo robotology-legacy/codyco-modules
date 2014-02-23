@@ -57,7 +57,7 @@ static const Vector7d       	   DEFAULT_XDES_FOOT = Vector7d::Constant(0.0);
 static const Eigen::Vector2d       DEFAULT_XDES_COM  = Eigen::Vector2d::Constant(0.0);
 static const int      			   ICUB_DOFS = 25;    //This should somehow be provided by the user.
 
-// ?????? DO I REALLY NEED THESE VARIABLES TO BE GLOBAL??
+// ?????? DO I REALLY NEED THESE VARIABLES TO BE GLOBAL?? FIN A WAY TO REMOVE THEM!!! IT'S AWFUL AND DANGEROUS!!!!!!!!!
 Eigen::VectorXd dotq;
 yarp::sig::Vector qrad, xpose;
 JacobianMatrix jacob;
@@ -110,6 +110,8 @@ public:
     Eigen::VectorXd getJntVelocities();
     bool setCtrlMode(wbi::ControlMode ctrl_mode);
     void setdqDes(yarp::sig::Vector dqD);
+    bool dynamicsMassMatrix(double *massMatrix);
+    double dynamicsGenBiasForces(double *dxB, double *hterm);
 };
 
 // The initialization of this varibale must be done here because it's a pointer to static
