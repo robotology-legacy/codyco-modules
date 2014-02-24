@@ -107,7 +107,7 @@ namespace wbiIcub
 
     /** Return true if the robotName is "icubSim", false otherwise. */
     inline bool isRobotSimulator(const std::string &robotName)
-    { return false; } //return robotName=="icubSim" || robotName=="icubGazeboSim"; }
+    { return robotName=="icubSim" || robotName=="icubGazeboSim"; }
     
     /** Open a remote control board driver for the specified body part. 
      * @param localName Name to use as stem for the names of the YARP ports to open.

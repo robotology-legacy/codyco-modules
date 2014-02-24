@@ -27,9 +27,11 @@
 #define LOCAL_PARAM_IDX 2
 // END MASK PARAMETERS -----------------------------------
 
-#define VERBOSE   0
-#define DEBUGGING 0
+#define VERBOSE   1
+#define DEBUGGING 1
 #define TIMING    0
+#define NEWCODE	  0
+#define SIZE_READING_PORT 2
 
 YARP_DECLARE_DEVICES(icubmod)
 
@@ -165,6 +167,16 @@ bool robotStatus::robotInit(int btype, int link) {
 
     // This variable JfootR must be changed with a more appropriate name
     JfootR.resize(NoChange,ICUB_DOFS+6);
+    
+    // dot{J}dot{q}
+    dJdq = new double; 
+    
+    // dot{xBase} We will assume null velocity of the base for now since the estimate hasn't been implemented yet
+    dxB = 0;
+    
+    // Should the mass matrix be resized here??? In the future if the number of DOFS or limbs for which the interface will
+    // be used are input parameters, all variables could be resized here and by default leave ICUB_DOFS.
+    
     // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
     Ha.R = Rotation(0,0,1, 0,-1,0, 1,0,0);
 
@@ -226,11 +238,11 @@ Vector robotStatus::forwardKinematics(int &linkId) {
             }
         }
         else {
-            fprintf(stderr,"ERROR computing world 2 base rototranslation!!!!!\n");
+            fprintf(stderr,"ERROR computing world 2 base rototranslation in robotStatus::forwardKinematics!\n");
         }
     }
     else {
-        fprintf(stderr,"ERROR acquiring robot joint angles \n");
+        fprintf(stderr,"ERROR acquiring robot joint angles in robotStatus::forwardKinematics\n");
     }
 }
 //=========================================================================================================================
@@ -292,33 +304,64 @@ void robotStatus::setdqDes(Vector dqD) {
         fprintf(stderr, "ERROR control reference could not be set.\n");
 }
 //=========================================================================================================================
-bool robotStatus::dynamicsMassMatrix(double *massMatrix){
-    // Still not implemented
+bool robotStatus::dynamicsMassMatrix() {
     bool ans;
     if(robotJntAngles(false)) {
-    if(DEBUGGING) fprintf(stderr,"robotJntAngles computed for dynamicsMassMatrix\n");
-	if(world2baseRototranslation()) {
-	if(DEBUGGING) fprintf(stderr,"world2baseRototranslation computed for dynamicsMassMatrix\n");
-	    ans = wbInterface->computeMassMatrix(qRad.data(),xBase, massMatrix);
-	}
+        if(DEBUGGING) fprintf(stderr,"robotJntAngles computed for dynamicsMassMatrix\n");
+        if(world2baseRototranslation()) {
+            if(DEBUGGING) fprintf(stderr,"world2baseRototranslation computed for dynamicsMassMatrix\n");
+            ans = wbInterface->computeMassMatrix(qRad.data(),xBase, massMatrix.data());
+        }
     }
+    if(DEBUGGING) cout<<"Mass matrix ... "<<massMatrix<<endl;
     return ans;
 }
 //=========================================================================================================================
-double robotStatus::dynamicsGenBiasForces(double *dxB, double *hterm){
-    bool ans;
+
+#ifdef NEWCODE
+//=========================================================================================================================
+double robotStatus::dynamicsGenBiasForces(double *dxB, double *hterm) {
+    bool ans = false;
     if(robotJntAngles(false)) {
-    if(DEBUGGING) fprintf(stderr,"robotJntAngles computed for genBiasForces\n");
+        if(DEBUGGING) fprintf(stderr,"robotJntAngles computed for genBiasForces\n");
         if(robotJntVelocities(false)) {
-        if(DEBUGGING) fprintf(stderr,"robotJntVelocities computed for genBiasForces\n");
+            if(DEBUGGING) fprintf(stderr,"robotJntVelocities computed for genBiasForces\n");
             if(world2baseRototranslation()) {
-            if(DEBUGGING) fprintf(stderr,"world2baseRototranslation computed for genBiasForces\n");
+                if(DEBUGGING) fprintf(stderr,"world2baseRototranslation computed for genBiasForces\n");
                 ans = wbInterface->computeGeneralizedBiasForces(qRad.data(), xBase, dqJ.data(), dxB, hterm);
             }
         }
     }
     return ans;
 }
+//=========================================================================================================================
+bool robotStatus::robotBaseVelocity() {
+//       ans = wbInterface->getEstimate(ESTIMATE_BASE_VEL, )
+    return true;
+}
+//=========================================================================================================================
+bool robotStatus::dynamicsDJdq(int &linkId) {
+    bool ans = false;
+    double *dxB = new double;
+    if(robotJntAngles(false)) {
+        if(DEBUGGING) fprintf(stderr,"robotJntAngles computed for dynamicsDJdq\n");
+        if(robotJntVelocities(false)) {
+            if(DEBUGGING) fprintf(stderr,"robotJntVelocities computed for dynamicsDJdq\n");
+            if(world2baseRototranslation()) {
+                footLinkId = linkId;
+		forwardKinematics(footLinkId);
+		if(!robotBaseVelocity()){
+		  fprintf(stderr,"robotBaseVelocity failed in robotStatus::dynamicsDJd\n");
+		  return false;
+		}
+                wbInterface->computeDJdq(qRad.data(),xBase,dqJ.data(),dxB,footLinkId,dJdq,x_pose.data());
+            }
+        }
+    }
+    return ans;
+}
+//=========================================================================================================================
+#endif
 
 //------------------------------------------------------------------------------------------------------------------------//
 // END robotStatus implementation ----------------------------------------------------------------------------------------//
@@ -378,7 +421,8 @@ static void mdlCheckParameters(SimStruct *S)
 //    block's characteristics (number of inputs, s, states, etc.).
 static void mdlInitializeSizes(SimStruct *S)
 {
-    if(DEBUGGING) fprintf(stderr,"INITIALIZING SIZES\n");
+  
+    if(DEBUGGING) fprintf(stderr,"STARTED mdlInitializeSizes\n");
     ssSetNumSFcnParams(S, NPARAMS);
 #if defined(MATLAB_MEX_FILE)
     if(ssGetNumSFcnParams(S) == ssGetSFcnParamsCount(S)) {
@@ -401,21 +445,27 @@ static void mdlInitializeSizes(SimStruct *S)
 
     // Specify I/O
     if (!ssSetNumInputPorts(S, 2)) return;
-    ssSetInputPortWidth(S, 0, 1);              	    //Input FOR BLOCK TYPE
-    ssSetInputPortWidth(S, 1, ICUB_DOFS);    	    //INPUT FOR dqDes
-    ssSetInputPortDataType(S, 0, SS_INT8);     	    //Input data type
+    ssSetInputPortWidth(S, 0, 1);              	    		//Input FOR BLOCK TYPE
+    ssSetInputPortWidth(S, 1, ICUB_DOFS);    	    		//INPUT FOR dqDes
+    ssSetInputPortDataType(S, 0, SS_INT8);     	    		//Input data type
     ssSetInputPortDataType(S, 1, SS_DOUBLE);
-    ssSetInputPortDirectFeedThrough(S, 0, 1);       //The input will be used in the output
-    ssSetInputPortDirectFeedThrough(S, 1, 1);
-    if (!ssSetNumOutputPorts(S,4)) return;
-    ssSetOutputPortWidth   (S, 0, ICUB_DOFS);
-    ssSetOutputPortWidth   (S, 1, ICUB_DOFS);
-    ssSetOutputPortWidth   (S, 2, 7);               // foot or COM pose from fwdKinematics.
-    ssSetOutputPortWidth   (S, 3, 186);             // 6 x (N+6)
+//     ssSetInputPortDirectFeedThrough(S, 0, 1);       		//The input will be used in the output
+//     ssSetInputPortDirectFeedThrough(S, 1, 1);
+    if (!ssSetNumOutputPorts(S,7)) return;
+    ssSetOutputPortWidth   (S, 0, ICUB_DOFS);	    		// Robot joint angular positions in radians
+    ssSetOutputPortWidth   (S, 1, ICUB_DOFS);	    		// Robot joint angular velocities in radians
+    ssSetOutputPortWidth   (S, 2, 7);               		// foot or COM pose from fwdKinematics.
+    ssSetOutputPortWidth   (S, 3, 186);             		// 6 x (N+6) Jacobians for a specific link
+    ssSetOutputPortWidth   (S, 4, (ICUB_DOFS+6)*(ICUB_DOFS+6));	// Mass matrix of size (N+6 x N+6)
+    ssSetOutputPortWidth   (S, 5, ICUB_DOFS);		    	// Generalized bias forces of size (N+6 x 1)
+    ssSetOutputPortWidth   (S, 6, 6);		    		// dot{J}dot{q} term
     ssSetOutputPortDataType(S, 0, 0);
     ssSetOutputPortDataType(S, 1, 0);
     ssSetOutputPortDataType(S, 2, 0);
     ssSetOutputPortDataType(S, 3, 0);
+    ssSetOutputPortDataType(S, 4, 0);
+    ssSetOutputPortDataType(S, 5, 0);
+    ssSetOutputPortDataType(S, 6, 0);
 
     ssSetNumSampleTimes(S, 1);
 
@@ -431,8 +481,12 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetOptions(S,
                  SS_OPTION_WORKS_WITH_CODE_REUSE |
                  SS_OPTION_EXCEPTION_FREE_CODE | //we must be sure that every function we call never throws an exception
-                 SS_OPTION_CALL_TERMINATE_ON_EXIT); //this calls the terminate function even in case of errors
-    if(DEBUGGING) fprintf(stderr,"finished initializing sizes\n");
+                 SS_OPTION_ALLOW_INPUT_SCALAR_EXPANSION |
+                 SS_OPTION_USE_TLC_WITH_ACCELERATOR);
+    
+    // For FUTURE WORK this flag should be called and debug by correctly programming mdlTerminate.
+    //SS_OPTION_CALL_TERMINATE_ON_EXIT); //this calls the terminate function even in case of errors
+    if(DEBUGGING) fprintf(stderr,"FINISHED mdlInitializeSizes\n");
 
 }
 
@@ -444,11 +498,14 @@ static void mdlInitializeSizes(SimStruct *S)
 //   specified in ssSetNumSampleTimes.
 static void mdlInitializeSampleTimes(SimStruct *S)
 {
+    if(DEBUGGING) fprintf(stderr,"STARTED mdlInitializeSampleTimes\n");
     // The sampling time of this SFunction must be inherited so that the Soft Real Time sblock can be used.
     ssSetSampleTime(S, 0, INHERITED_SAMPLE_TIME);
     // ssSetSampleTime(S, 0, 10.0);
     ssSetOffsetTime(S, 0, 0.0);
     ssSetModelReferenceSampleTimeDefaultInheritance(S);
+    
+    if(DEBUGGING) fprintf(stderr,"FINISHED mdlInitializeSampleTimes\n");
 }
 
 // Function: mdlStart =======================================================
@@ -459,7 +516,7 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 #define MDL_START
 static void mdlStart(SimStruct *S)
 {
-    if(DEBUGGING) fprintf(stderr,"ENTERED MDLSTART ...\n");
+    if(DEBUGGING) fprintf(stderr,"STARTED mdlStart ...\n");
     counterClass counter;
     if(DEBUGGING) fprintf(stderr,"Publicly stating that a new child has been born: %d \n", counter.getCount());
     int_T buflen, status;
@@ -523,7 +580,7 @@ static void mdlStart(SimStruct *S)
 
     //--------------GLOBAL VARIABLES INITIALIZATION --------------
     dotq.Zero(ICUB_DOFS);
-    fprintf(stderr,"MDLSTART finished here. \n");
+    fprintf(stderr,"FINISHED mdlStart. \n");
 }
 
 // Function: mdlOutputs =======================================================
@@ -557,13 +614,13 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             break;
         case 5:
             fprintf(stderr,"This block will set positions\n");
+            break;
+        case 7:
+            fprintf(stderr,"This block will compute generalized bias forces from dynamics\n");
 	    break;
-	case 7:
-	    fprintf(stderr,"This block will compute mass matrix from dynamics\n");
-	    break;
-	case 8:
-	    fprintf(stderr,"This block will compute generalized bias forces from dynamics\n");
-	    break;
+        case 8:
+            fprintf(stderr,"This block will compute mass matrix from dynamics\n");	    
+            break;
         }
     }
 
@@ -685,26 +742,24 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 
     // h vector/expression from dynamics a.k.a. generalized bias forces
     // floating base speed. Should this be computed outside and passed to the block or implemented by some method?
-    double *dxB; dxB = new double;
-    double *hterm; hterm = new double;
-    
+    double *dxB;
+    dxB = new double;
+    double *hterm;
+    hterm = new double;
+
     if(btype == 7) {
-	robot->dynamicsGenBiasForces(dxB, hterm);
-	//send dxB and hterm contents to an output
+        robot->dynamicsGenBiasForces(dxB, hterm);
+        //send dxB and hterm contents to an output
     }
-    
-    delete dxB; 
+
+    delete dxB;
     delete hterm;
-    
+
     // massMatrix from dynamics
-    double *massMatrix; massMatrix = new double;
-    
-    if(btype == 8){
-	robot->dynamicsMassMatrix(massMatrix);
+    if(btype == 8) {
+        robot->dynamicsMassMatrix();
     }
-    
-    delete massMatrix;
-    
+
     if(TIMING) tend = Time::now();
     if(TIMING) fprintf(stderr,"Time elapsed: %f \n",tend-tinit);
 
