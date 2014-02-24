@@ -73,4 +73,14 @@ if(EIGEN3_VERSION VERSION_LESS 3.1)
    set(CODYCO_BUILD_EIGEN31_MODULES FALSE)
 endif()
 
-
+#setting options specific for OS X
+#THIS should solve issues on building on OS X until Orocos KDL fixes its standard c++ issues
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    IF (${CMAKE_GENERATOR} MATCHES "Xcode")
+        MESSAGE("Xcode generator: setting standard libraries to libstdc++")
+        SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
+    ELSE()
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libstdc++")
+    ENDIF()
+ENDIF()
