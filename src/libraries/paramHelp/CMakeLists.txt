@@ -8,7 +8,8 @@ PROJECT(${PROJECTNAME})
 
 SET(folder_source src/paramHelperBase.cpp
                   src/paramHelperClient.cpp
-                  src/paramHelperServer.cpp)
+                  src/paramHelperServer.cpp
+                  src/paramHelpUtil.cpp)
 
 SET(folder_header include/paramHelp/paramHelpUtil.h
                   include/paramHelp/paramProxyInterface.h

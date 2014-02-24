@@ -33,26 +33,27 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 include(iCubHelpers)
 include(iCubOptions)
 
-INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/include
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
+                    ${motorFrictionIdentificationLib_INCLUDE_DIRS}  #this is a temporary requirement
+                    ${paramHelp_INCLUDE_DIRS} #this is a temporary requirement
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
-                    ${YARP_INCLUDE_DIRS} 
-                    ${motorFrictionIdentificationLib_INCLUDE_DIRS}  #this is a temporary requirement
-                    ${paramHelp_INCLUDE_DIRS}) #this is a temporary requirement
+                    ${YARP_INCLUDE_DIRS}) 
 
 ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME} 
-                                     ${YARP_LIBRARIES}
-                                     skinDynLib
-                                     ctrlLib
-                                     wholeBodyInterface
-                                     iDynTree
-                                     ${kdl_codyco_LIBRARIES}
-                                     paramHelp) #this is a temporary requirement
+                        wholeBodyInterface
+                        iDynTree
+                        paramHelp #this is a temporary requirement
+                        ${YARP_LIBRARIES}
+                        skinDynLib
+                        ctrlLib
+                        ${kdl_codyco_LIBRARIES}
+                        ${ctrlLib_LIBRARIES})
 
 icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
                                    DEPENDS wholeBodyInterface
