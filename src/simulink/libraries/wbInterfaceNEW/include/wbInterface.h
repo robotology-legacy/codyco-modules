@@ -119,29 +119,30 @@ public:
     
     robotStatus();
     ~robotStatus();
-    void setmoduleName(std::string mn);
-    void setRobotName(std::string rn); //checked
-    int getCounter();
-    int decreaseCounter();
-    bool robotConfig();
-    bool robotInit(int btype, int link);
-    void getLinkId(const char *linkName, int &lid);
+    void 		setmoduleName(std::string mn);
+    void 		setRobotName(std::string rn); //checked
+    int 		getCounter();
+    int 		decreaseCounter();
+    bool 		robotConfig();
+    bool 		robotInit(int btype, int link);
+    void 		getLinkId(const char *linkName, int &lid);
     //This is especifically for the COM
-    int getLinkId(const char *linkName);
-    bool world2baseRototranslation();
-    bool robotJntAngles(bool blockingRead);
-    bool robotJntVelocities(bool blockingRead);
-    yarp::sig::Vector forwardKinematics(int &linkId);
-    JacobianMatrix jacobian(int &lid);
-    yarp::sig::Vector getEncoders();
-    Eigen::VectorXd getJntVelocities();
-    bool setCtrlMode(wbi::ControlMode ctrl_mode);
-    void setdqDes(yarp::sig::Vector dqD);
+    int 		getLinkId(const char *linkName);
+    bool 		world2baseRototranslation();
+    bool 		robotJntAngles(bool blockingRead);
+    bool 		robotJntVelocities(bool blockingRead);
+    yarp::sig::Vector 	forwardKinematics(int &linkId);
+    JacobianMatrix 	jacobian(int &lid);
+    yarp::sig::Vector 	getEncoders();
+    Eigen::VectorXd 	getJntVelocities();
+    bool 		setCtrlMode(wbi::ControlMode ctrl_mode);
+    void      		setdqDes(yarp::sig::Vector dqD);
     
-    bool dynamicsMassMatrix();
-    double dynamicsGenBiasForces(double *dxB, double *hterm);
-    bool robotBaseVelocity();
-    bool dynamicsDJdq(int &linkId);
+    bool       		dynamicsMassMatrix();
+    double     		dynamicsGenBiasForces(double *dxB, double *hterm);
+    bool       		robotBaseVelocity();
+    bool       		dynamicsDJdq(int &linkId);
+    MassMatrix 		getMassMatrix();
 };
 
 // The initialization of this varibale must be done here because it's a pointer to static

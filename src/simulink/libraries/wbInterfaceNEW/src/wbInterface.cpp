@@ -211,6 +211,7 @@ bool robotStatus::world2baseRototranslation() {
 }
 //=========================================================================================================================
 bool robotStatus::robotJntAngles(bool blockingRead) {
+    if(DEBUGGING) fprintf(stderr,"About to estimate joint positions\n");
     return wbInterface->getEstimates(ESTIMATE_JOINT_POS, qRad.data(),-1.0, blockingRead);
 }
 //=========================================================================================================================
@@ -317,6 +318,9 @@ bool robotStatus::dynamicsMassMatrix() {
     return ans;
 }
 //=========================================================================================================================
+MassMatrix robotStatus::getMassMatrix(){
+  return massMatrix;
+}
 
 #ifdef NEWCODE
 //=========================================================================================================================
@@ -449,8 +453,8 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetInputPortWidth(S, 1, ICUB_DOFS);    	    		//INPUT FOR dqDes
     ssSetInputPortDataType(S, 0, SS_INT8);     	    		//Input data type
     ssSetInputPortDataType(S, 1, SS_DOUBLE);
-//     ssSetInputPortDirectFeedThrough(S, 0, 1);       		//The input will be used in the output
-//     ssSetInputPortDirectFeedThrough(S, 1, 1);
+    ssSetInputPortDirectFeedThrough(S, 0, 1);       		//The input will be used in the output
+    ssSetInputPortDirectFeedThrough(S, 1, 1);
     if (!ssSetNumOutputPorts(S,7)) return;
     ssSetOutputPortWidth   (S, 0, ICUB_DOFS);	    		// Robot joint angular positions in radians
     ssSetOutputPortWidth   (S, 1, ICUB_DOFS);	    		// Robot joint angular velocities in radians
@@ -742,22 +746,28 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 
     // h vector/expression from dynamics a.k.a. generalized bias forces
     // floating base speed. Should this be computed outside and passed to the block or implemented by some method?
-    double *dxB;
-    dxB = new double;
-    double *hterm;
-    hterm = new double;
-
-    if(btype == 7) {
-        robot->dynamicsGenBiasForces(dxB, hterm);
-        //send dxB and hterm contents to an output
-    }
-
-    delete dxB;
-    delete hterm;
+//     double *dxB;
+//     dxB = new double;
+//     double *hterm;
+//     hterm = new double;
+// 
+//     if(btype == 7) {
+//         robot->dynamicsGenBiasForces(dxB, hterm);
+//         //send dxB and hterm contents to an output
+//     }
+// 
+//     delete dxB;
+//     delete hterm;
 
     // massMatrix from dynamics
+    MassMatrix massMatrix;
     if(btype == 8) {
+	if(DEBUGGING) fprintf(stderr,"About to compute mass matrix\n");	
         robot->dynamicsMassMatrix();
+        real_T *pY5 = (real_T *)ssGetOutputPortSignal(S,4);
+        for(int_T j=0; j<ssGetOutputPortWidth(S,4); j++) {
+            pY5[j] = massMatrix(j);
+        }
     }
 
     if(TIMING) tend = Time::now();
