@@ -31,21 +31,21 @@ SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
 
 #Include directories
+include_directories(${PROJECT_SOURCE_DIR}/include
+                    ${wholeBodyInterface_INCLUDE_DIRS}
+                    ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
+                    ${iDynTree_INCLUDE_DIRS}
+                    ${paramHelp_INCLUDE_DIRS}
+                    ${Orocos-KDL_INCLUDE_DIRS}
+                    ${kdl_codyco_INCLUDE_DIRS}
+                    ${skinDynLib_INCLUDE_DIRS}
+                    ${ctrlLib_INCLUDE_DIRS}
+                    ${EIGEN3_INCLUDE_DIR})
 include_directories("${MATLAB_ROOT}/simulink/include")
 include_directories("${MATLAB_ROOT}/extern/include")
 include_directories( ${MATLAB_INCLUDE_DIR})
 include_directories( ${YARP_INCLUDE_DIRS})
 include_directories( ${ICUB_INCLUDE_DIRS})
-include_directories(${PROJECT_SOURCE_DIR}/include
-                    ${wholeBodyInterface_INCLUDE_DIRS}
-                    ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
-                    ${iDynTree_INCLUDE_DIRS}
-                    ${Orocos-KDL_INCLUDE_DIRS}
-                    ${kdl_codyco_INCLUDE_DIRS}
-                    ${paramHelp_INCLUDE_DIRS}
-                    ${skinDynLib_INCLUDE_DIRS}
-                    ${ctrlLib_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR})
 
 #Specify preprocessor flag for MATLAB MEX FILES Compilation.
 add_definitions(-DMATLAB_MEX_FILE)
@@ -88,7 +88,19 @@ elseif(WIN32)
 endif(WIN32)
 
 # Linking libraries
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${MATLAB_LIBRARIES} ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES} skinDynLib ctrlLib wholeBodyInterface wholeBodyInterfaceIcub paramHelp iDynTree)
+target_link_libraries(${PROJECTNAME} 
+wholeBodyInterface
+wholeBodyInterfaceIcub
+paramHelp
+iDynTree
+${YARP_LIBRARIES} 
+${ICUB_LIBRARIES}
+${MATLAB_LIBRARIES}
+${Orocos-KDL_LIBRARIES}
+${kdl_codyco_LIBRARIES} 
+${skinDynLib_LIBRARIES}
+${ctrlLib_LIBRARIES}
+)
 install(TARGETS ${PROJECTNAME} DESTINATION mex)
 
 

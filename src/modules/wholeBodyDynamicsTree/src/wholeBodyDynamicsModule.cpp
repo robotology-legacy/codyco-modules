@@ -57,10 +57,10 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         return false;
     }
     
-    if( rf.check("local") ) {
-        moduleName = rf.find("local").asString();
+    if( rf.check("name") ) {
+        moduleName = rf.find("name").asString();
     } else {
-        std::cerr << "wholeBodyDynamicsModule::configure failed: local parameter not found. Closing module." << std::endl;
+        std::cerr << "wholeBodyDynamicsModule::configure failed: name parameter not found. Closing module." << std::endl;
         return false;
     }
     

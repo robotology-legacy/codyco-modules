@@ -30,8 +30,8 @@ SET(EIGEN_UNSUPPORTED_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/eigen_unsupported
 				${CMAKE_SOURCE_DIR}/extern/eigen_unsupported/Eigen/src)
 
 
-INCLUDE_DIRECTORIES(${iDyn_INCLUDE_DIRS}
-                    ${modHelp_INCLUDE_DIRS}
+INCLUDE_DIRECTORIES(${modHelp_INCLUDE_DIRS}
+                    ${iDyn_INCLUDE_DIRS}
                     ${ICUB_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
                     ${BOOST_INCLUDE_DIRS}
@@ -40,10 +40,11 @@ INCLUDE_DIRECTORIES(${iDyn_INCLUDE_DIRS}
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} iDyn
-                                     icubmod
-                                     modHelp
-                                     ${YARP_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME} 
+    modHelp
+    ${iDyn_LIBRARIES}
+    ${icubmod_LIBRARIES}
+    ${YARP_LIBRARIES})
 
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
 SET(CMAKE_INSTALL_PREFIX $ENV{ICUB_DIR} CACHE PATH "installation prefix" FORCE)
