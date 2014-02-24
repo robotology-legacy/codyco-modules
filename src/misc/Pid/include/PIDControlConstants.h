@@ -88,8 +88,8 @@ namespace adaptiveControl
         }
     };
     
-    const JointLimit kneeJoint(-1.73, 0);
-    const JointLimit hipPitchJoint(-0.52, 0.92);
+    const JointLimit kneeJoint(-2.18, 0.4);
+    const JointLimit hipPitchJoint(-0.75, 2.3);
     
     
     // ******************************************************************************************************************************
@@ -97,7 +97,7 @@ namespace adaptiveControl
     // ******************************************************************************************************************************
     // *** DEFAULT PARAMETER VALUES
     //config
-    static const std::string defaultModuleName = "adaptiveControl";
+    static const std::string defaultModuleName = "pidControl";
     static const std::string defaultRobotName = "icubSim"; // robot name
     static const std::string defaultRobotPart = "right_leg";
     static const int defaultModulePeriod = 10;
@@ -177,9 +177,9 @@ namespace adaptiveControl
         //RPC in/out parameters (during runtime)
         new paramHelp::ParamProxyBasic<int>("sendCommands", AdaptiveControlParamIDOutputEnabled, 1, paramHelp::ParamBilatBounds<int>(0, 1), paramHelp::PARAM_IN_OUT, &defaultOutputEnabled, "Boolean for enable output to motors"),
         new paramHelp::ParamProxyBasic<double>("minDet", AdaptiveControlParamIDMinDeterminantValue, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_IN_OUT, &defaultMinDeterminant, "Minimum value for the determinant of the passive minor of the Mass Matrix"),
-        new paramHelp::ParamProxyBasic<double>("lambda", AdaptiveControlParamIDGainLambda, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultLambdaGain, "Lambda gain: rate of convergence of active joints to reference"),
-        new paramHelp::ParamProxyBasic<double>("lambdaI", AdaptiveControlParamIDGainLambdaIntegral, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultLambdaIntegralGain, "Lambda Integrale gain: integral gain for the position error"),
-        new paramHelp::ParamProxyBasic<double>("kappa", AdaptiveControlParamIDGainKappa, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultKappaGain.data(), "Kappa gain: torque gain"),
+        new paramHelp::ParamProxyBasic<double>("lamda", AdaptiveControlParamIDGainLambda, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultLambdaGain, "Ki"),
+        new paramHelp::ParamProxyBasic<double>("ki", AdaptiveControlParamIDGainLambdaIntegral, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultLambdaIntegralGain, "Ki"),
+        new paramHelp::ParamProxyBasic<double>("kappa", AdaptiveControlParamIDGainKappa, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultKappaGain.data(), "Kappa gain: Kp and Kd"),
         new paramHelp::ParamProxyBasic<double>("kappaI", AdaptiveControlParamIDGainKappaIntegral, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultKappaIntegralGain.data(), "Kappa Integral gain: it acts on s"),
         new paramHelp::ParamProxyBasic<double>("gamma", AdaptiveControlParamIDGainGamma, PARAMETERS_SIZE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultGammaGain.data(), "Gamma gain: gain in the parameter update rule"),
         new paramHelp::ParamProxyBasic<double>("refBase", AdaptiveControlParamIDRefBaseline, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefBaseline, "Baseline for reference signal: r(t) = base + ampl * sin(2 * pi * freq * t + phase)"),

@@ -88,8 +88,8 @@ namespace adaptiveControl
         }
     };
     
-    const JointLimit kneeJoint(-1.73, 0);
-    const JointLimit hipPitchJoint(-0.52, 0.92);
+    const JointLimit kneeJoint(-2.18, 0.4);
+    const JointLimit hipPitchJoint(-0.75, 2.3);
     
     
     // ******************************************************************************************************************************
@@ -97,7 +97,7 @@ namespace adaptiveControl
     // ******************************************************************************************************************************
     // *** DEFAULT PARAMETER VALUES
     //config
-    static const std::string defaultModuleName = "adaptiveControl";
+    static const std::string defaultModuleName = "s_adaptiveControl";
     static const std::string defaultRobotName = "icubSim"; // robot name
     static const std::string defaultRobotPart = "right_leg";
     static const int defaultModulePeriod = 10;

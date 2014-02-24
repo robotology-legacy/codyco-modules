@@ -29,7 +29,7 @@
 
 #include <string>
 #include <yarp/os/RFModule.h>
-#include "AdaptiveControlConstants.h"
+#include "PIDControlConstants.h"
 #include <Eigen/Core>
 
 

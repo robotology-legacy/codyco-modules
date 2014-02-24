@@ -235,6 +235,21 @@ namespace wbiIcub
         paramHelp::ParamHelperClient *_torqueModuleConnection; /*< connection to the torque control module */
         yarp::sig::Vector _torqueRefs;
         //*********END TEMP**********//
+
+        /** Set the proportional, derivative and integrale gain for the current joint(s) controller.
+         * If you want to leave some values unchanged simply pass NULL to the corresponding gain
+         * @param pValue Value(s) of the proportional gain.
+         * @param dValue Value(s) of the derivative gain.
+         * @param iValue Value(s) of the integral gain.
+         * @param joint Joint number, if negative, all joints are considered.
+         * @return True if operation succeeded, false otherwise. */
+        bool setPIDGains(const double *pValue, const double *dValue, const double *iValue, int joint = -1);
+        
+        /** Set the offset (feedforward term) for the current joint(s) controller.
+         * @param value Value(s) of the parameter.
+         * @param joint Joint number, if negative, all joints are considered.
+         * @return True if operation succeeded, false otherwise. */
+        bool setControlOffset(const double *value, int joint = -1);
         
     public:
         /** Constructor.
@@ -356,7 +371,7 @@ namespace wbiIcub
             yarp::sig::Vector lastDtauJ;                // last joint torque derivative
             yarp::sig::Vector lastDtauM;                // last motor torque derivative
             yarp::sig::Vector lastPwm;                  // last motor PWM
-        } 
+        }
         estimates;
 
         /** Constructor. */

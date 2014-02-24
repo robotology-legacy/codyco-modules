@@ -38,7 +38,7 @@
 #ifndef ADAPTIVECONTROLTHREAD_H
 #define ADAPTIVECONTROLTHREAD_H
 
-#include "AdaptiveControlConstants.h"
+#include "PIDControlConstants.h"
 #include <yarp/os/RateThread.h>
 #include <yarp/sig/Vector.h>
 #include <string>
@@ -170,11 +170,6 @@ namespace adaptiveControl {
         double _massMatrixDeterminant;
    
         yarp::dev::PolyDriver* openDriver(std::string localName, std::string robotName, std::string bodyPartName);
-        void computeRegressor(const Eigen::Vector2d& q, /* Joint positions*/
-                              const Eigen::Vector2d& dq, /* Joint velocities*/
-                              const Eigen::Vector2d& dq_lin, /* Joint velocities. This is the term which multiplies linearly the C(.) term */
-                              const Eigen::Vector2d& ddq, /* Joint accelerations*/
-                              Eigen::Matrix28d& regressor); /* output variable */
         bool readSensors(Eigen::Vector2d& positions, Eigen::Vector2d& velocities);
         void computeControl();
         void writeOutputs();
@@ -184,12 +179,7 @@ namespace adaptiveControl {
         void haltControl(double* haltPositions);
 		
 		void writeDebug();
-        
-        
-        template <typename Derived1, typename Derived2>
-        void dampedPseudoInverse(const Eigen::MatrixBase<Derived1>& A,
-                                 double dampingFactor,
-                                 Eigen::MatrixBase<Derived2>& Apinv);
+
         
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW

@@ -338,26 +338,23 @@ namespace adaptiveControl {
         _previousTime = now;
         
         //update state variables (only if sendCommands = true, otherwise the updating law integrates a constant value)
-        //double dotOmega = -_refSystemGain * (_refAngularVelocity - 2 * pi * _refDesiredFrequency);
+        double dotOmega = -_refSystemGain * (_refAngularVelocity - 2 * pi * _refDesiredFrequency);
         if (_outputEnabled) {
             _piHat = _piHat + dt * _dpiHat;
             _xi(0) = _xi(0) + dt * _dxi(0);
-            //_refAngularVelocity = _refAngularVelocity + dt * dotOmega;
+            _refAngularVelocity = _refAngularVelocity + dt * dotOmega;
         }
         
         //define reference trajectory
         double q_ref = _refBaseline + _refAmplitude * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
         double dq_ref = _refAmplitude * 2 * pi * _refDesiredFrequency * cos(2 * pi * _refDesiredFrequency * now + _refPhase);
-        double ddq_ref = -_refAmplitude * 4 * pi * pi * _refDesiredFrequency * _refDesiredFrequency * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
-        //double q_ref = _refBaseline + _refAmplitude * sin(_refAngularVelocity * now + _refPhase);
-        //double dq_ref = _refAmplitude * cos(_refAngularVelocity * now + _refPhase) * (dotOmega * now + _refAngularVelocity);
-        //double ddq_ref = -_refAmplitude * sin(_refAngularVelocity * now + _refPhase) * (dotOmega * now + _refAngularVelocity) * (dotOmega * now + _refAngularVelocity) 
-         //                + _refAmplitude * cos(_refAngularVelocity * now + _refPhase) * (-_refSystemGain * dotOmega * now + 2 * dotOmega);
+        double ddq_ref = -_refAmplitude * pow(2*pi*_refDesiredFrequency, 2) * sin(2*pi*_refDesiredFrequency * now + _refPhase);
         
         _currentRef = q_ref;
         
         //read data: joint positions and velocities
         bool success = readSensors(_q, _dq);
+        _q(0) = _dq(0) = 0;
         if (!success) {
             error_out("Failed to retrieve positions from encoders\n");
             ++_failedReads;
@@ -386,40 +383,11 @@ namespace adaptiveControl {
                 _sIntegral(i) = hardLimiter(_sIntegral(i) + dt * s(i), -_integralSaturationLimit, _integralSaturationLimit);           
         }
         
-        //extract estimated parameters
-        double m1H = _piHat(0);
-        double l1H = (_piHat(1) / m1H) + _link1Length;
-        double I1H = _piHat(2) - (_piHat(1) * _piHat(1) / m1H);
-        double m2H = _piHat(3);
-        double l2H = (_piHat(4) / m2H) + _link2Length;
-        double I2H = _piHat(5) - (_piHat(4) * _piHat(4) / m2H);
-        double F1H = _piHat(6);
-        //        double F2H = _piHat(7);
-        
-        double c1 = cos(_q(0));
-        double c2 = cos(_q(1)), s2 = sin(_q(1));
-        double c12 = cos(_q(0) + _q(1));
-        
-        //compute M, C, and g
-        double m11H = I1H + m1H * l1H * l1H + I2H + m2H*(_link1Length * _link1Length + l2H * l2H + 2 * _link1Length * l2H * c2);
-        double m12H = I2H + m2H * (l2H * l2H + _link1Length * l2H * c2);
-        //        double m22H = I2H + m2H * l2H * l2H;
-        
-        double hH = -m2H * _link1Length * l2H * s2;
-        double C11H = hH * _dq(1);
-        double C12H = hH * (_dq(0) + _dq(1));
-        //        double C21H = -hH * _dq(0);
-        //        double C22H = 0;
-        
-        double g1H = (m1H * l1H + m2H * _link1Length) * gravity * c1 + m2H * l2H * gravity * c12;
-        //        double g2H = m2H * l2H * gravity * c12;
-        
-        
         //compute dxi
         double dqError = _dq(1) - dq_ref;
 //         dqError = dqError * dqError < convertDegToRad(0.1) ? 0 : dqError;
         _dxi(1) = ddq_ref - _lambda * (dqError);
-        _dxi(0) =  1/m11H * (_kappa(0) * (_dq(0) - _xi(0)) + _kappaIntegral(0) * _sIntegral(0) - (C11H + F1H) * _xi(0) - m12H * _dxi(1) - C12H * _xi(1) - g1H);
+        _dxi(0) = 0;
         
         //compute regressor
         Matrix28d regressor;
@@ -432,46 +400,6 @@ namespace adaptiveControl {
         
         //compute update rule for parameters
         _dpiHat = - _Gamma * regressor.transpose() * s;
-        
-        _massMatrixDeterminant = m11H;
-        
-        _piHatModificationOn = false;
-        if (_massMatrixDeterminant <= _minDeterminantValue) {
-            //I'm near a singularity for matrix Mpassive
-            //compute delta and Upsilon matrix.
-            
-            //compute regressor for mass matrix Y_M(q, ei) as difference between the
-            // regressor with q and qddot and regressor with only q (=> corresponds to gravity term)
-            Eigen::Vector2d zero2Vector = Eigen::Vector2d::Zero();
-            Eigen::Vector2d e1 = Eigen::Vector2d::Zero(); e1(0) = 1;
-            
-            Eigen::Matrix28d Yacc;
-            Eigen::Matrix28d Ygravity;
-            computeRegressor(_q, zero2Vector, zero2Vector, e1, Yacc);
-            computeRegressor(_q, zero2Vector, zero2Vector, zero2Vector, Ygravity);
-            
-            Eigen::Matrix<double, 1, 8> Ymass = Yacc.row(0) - Ygravity.row(0);
-            Eigen::Matrix<double, 8, 1> delta = Ymass.transpose() / m11H;
-            
-            //compute derivative of m_i w.r.t. q
-            //take the i^th column of the whole mass matrix.
-            //dmi_dq = [0, -2* m2H * _link1Length * l2H * s2] * dq;
-            double derivativeMpFordq = _dq(1) * (-2 * m2H * _link1Length * l2H * s2);
-            
-            //upsilon is the sum of two terms: 1) the dm_dq times dq  2) the
-            //derivative of m w.r.t. its parameters (=> it becomes Y_M) times the
-            //(original) update law for the parameters
-            double upsilon = derivativeMpFordq - Ymass * _Gamma * regressor.transpose() * s;
-            double zeta = upsilon / m11H; //trace(m11Inv * upsilon);
-            if (zeta <= 0) {
-                //double eta = (params(1)/Mdet - zeta )/ (delta'*Gamma* delta);
-                double eta = - zeta / (delta.transpose() * _Gamma * delta);
-                //only if zeta is less than zero apply modification
-                _dpiHat = _dpiHat + eta * _Gamma * delta;
-                _piHatModificationOn = true;
-            }
-            
-        }
         
         writeDebug();
     }
@@ -516,7 +444,7 @@ namespace adaptiveControl {
         }
         
         //Check joint limits   
-        if (!hipPitchJoint.isInLimit(_q(0), 1.95) || !kneeJoint.isInLimit(_q(1), 1.95)) 
+        if (!hipPitchJoint.isInLimit(_q(0), 0.9) || !kneeJoint.isInLimit(_q(1), 0.9)) 
             haltControl(q);
         
 //                     if (velocities(0)*velocities(0) < convertDegToRad(5))
@@ -611,9 +539,6 @@ namespace adaptiveControl {
             for (int i = 0; i < ICUB_PART_DOF; i++) {
                 newPos[i] = convertRadToDeg(haltPositions[i]);
             }
-            for (int i = 0; i < ICUB_PART_DOF; i++) {
-            _controlMode->setPositionMode(i);
-            }
             _positionControl->positionMove(newPos);
             info_out("Halting the robot to: ");
             for (int i = 0; i < ICUB_PART_DOF; i++) {
@@ -643,12 +568,12 @@ namespace adaptiveControl {
         //_tau(1): only active joint
         //_piHat(8)
         
-        vector.push_back(convertRadToDeg(_q(0))); //0
-        vector.push_back(convertRadToDeg(_q(1))); //1
-        vector.push_back(_dq(0)); //2
-        vector.push_back(_dq(1)); //3
-        vector.push_back(_outputTau(activeJointIndex)); //4          <=== tau
-        vector.push_back(convertRadToDeg(_q(1) - _currentRef)); //5  <=== q_tilde
+        vector.push_back(convertRadToDeg(_q(0)));
+        vector.push_back(convertRadToDeg(_q(1)));
+        vector.push_back(_dq(0));
+        vector.push_back(_dq(1));
+        vector.push_back(_outputTau(activeJointIndex));
+        vector.push_back(convertRadToDeg(_q(1) - _currentRef));
         Vector2d s = _dq - _xi;
 
         
@@ -658,28 +583,21 @@ namespace adaptiveControl {
             norm += _piHat(i) * _piHat(i);
 //             vector.push_back(_piHat(i));
         }
-        vector.push_back(norm);                        //6
-        vector.push_back(_massMatrixDeterminant);       //7    <======= det
-        vector.push_back(_minDeterminantValue);         //8    <======= det _lower limit
-        vector.push_back(_piHatModificationOn ? 1 : 0); //9
-        vector.push_back(_errorIntegral);           //10
-        vector.push_back(_sIntegral(0));            //11 
-        vector.push_back(_sIntegral(1));            //12
-        vector.push_back(s(1)*s(1) + s(0)*s(0));      //13  s norm
+        vector.push_back(norm);
+        vector.push_back(_massMatrixDeterminant);
+        vector.push_back(_minDeterminantValue);
+        vector.push_back(_piHatModificationOn ? 1 : 0);
+        vector.push_back(_errorIntegral);
+        vector.push_back(_sIntegral(0));
+        vector.push_back(_sIntegral(1));
+		vector.push_back(s(1)*s(1) + s(0)*s(0));
         
          Matrix28d regressor;
         computeRegressor(_q, _dq, _xi, _dxi, regressor);
         
-        //compute feedforward torque
+        //compute torques and send them to actuation
         double tau = regressor.row(1) * _piHat;
-        vector.push_back(tau);                      //14
-        
-        //15 to 22
-        for (int i = 0; i < 8; i++) {
-            vector.push_back(_piHat(i));
-        }
-        vector.push_back(s(0));      //23  s 1
-        vector.push_back(s(1));      //24  s 2
+        vector.push_back(tau);
         
         _debugPort->write();
 		

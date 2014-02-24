@@ -139,6 +139,7 @@ void jointTorqueControlThread::run()
 
 		for (int i=0; i < N_DOF; i++)
         {
+            tauD(i) = 0;
             dqSign(i)       = fabs(dq(i))>coulombVelThr(i) ? sign(dq(i)) : pow(dq(i)/coulombVelThr(i),3);
             tauD(i)         = ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i+6);
             tauD(i)        += tauOffset(i) + tauSinAmpl(i)*sin(2*M_PI*tauSinFreq(i)*currentTime);
@@ -154,8 +155,10 @@ void jointTorqueControlThread::run()
                 else
                     motorVoltage(i) = kt(i)*tau(i) + kvn(i)*dq(i) + kcn(i)*dqSign(i);
 					
-				if (sendCommands == SEND_COMMANDS_ACTIVE)
-					robot->setControlReference(&motorVoltage(i), i);
+				if (sendCommands == SEND_COMMANDS_ACTIVE) {
+//					robot->setControlReference(&motorVoltage(i), i);
+                    robot->setControlParam(wbi::CTRL_PARAM_OFFSET, &motorVoltage(i), i);
+                }
 			}
 		}
 
@@ -221,12 +224,15 @@ void jointTorqueControlThread::resetIntegralState(int j)
 //*************************************************************************************************************************
 void jointTorqueControlThread::setControlModePWMOnJoints(bool torqueActive)
 {
+    double zeroValue = 0;
 	for (int i=0; i < N_DOF; i++)
 	{
-		if (activeJoints(i) == 1 && torqueActive && status==CONTROL_ON) 
-			robot->setControlMode(CTRL_MODE_MOTOR_PWM, 0, i);
+		if (activeJoints(i) == 1 && torqueActive && status==CONTROL_ON) {
+			robot->setControlMode(CTRL_MODE_TORQUE, NULL, i);
+            robot->setControlParam(wbi::CTRL_PARAM_KP, &zeroValue);
+        }
 		else
-			robot->setControlMode(CTRL_MODE_POS, 0, i);
+			robot->setControlMode(CTRL_MODE_POS, NULL, i);
 	}
 }
 
@@ -264,17 +270,20 @@ void jointTorqueControlThread::commandReceived(const CommandDescription &cd, con
 //*************************************************************************************************************************
 bool jointTorqueControlThread::activeJointsChanged()
 {
+    double zeroValue = 0;
     for(int i=0; i<N_DOF; i++)
     {
         if(activeJoints(i)==1 && activeJointsOld(i)==0)         // joint has been activated
         {
             resetIntegralState(i);
-            if(status==CONTROL_ON && sendCommands == SEND_COMMANDS_ACTIVE)
-                robot->setControlMode(CTRL_MODE_MOTOR_PWM, 0, i);
+            if(status==CONTROL_ON && sendCommands == SEND_COMMANDS_ACTIVE) {
+                robot->setControlMode(CTRL_MODE_TORQUE, NULL, i);
+                robot->setControlParam(wbi::CTRL_PARAM_KP, &zeroValue); //why I didn't used the function "setControlModePWMOnJoints"?
+            }
         }
         else if(activeJoints(i)==0 && activeJointsOld(i)==1)    // joint has been deactivated
         {
-            robot->setControlMode(CTRL_MODE_POS, 0, i);
+            robot->setControlMode(CTRL_MODE_POS, NULL, i);
         }
     }
     activeJointsOld = activeJoints;

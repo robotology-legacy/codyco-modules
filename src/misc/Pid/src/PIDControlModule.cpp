@@ -14,10 +14,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
  */
-#include "AdaptiveControlModule.h"
+#include "PIDControlModule.h"
 
-#include "AdaptiveControlConstants.h"
-#include "AdaptiveControlThread.h"
+#include "PIDControlConstants.h"
+#include "PIDControlThread.h"
 
 #include <paramHelp/paramHelperServer.h>
 

@@ -84,7 +84,7 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     ArrayXi             currentGlobalJointIds;  // global IDs of the joints currently excited
 
     // Module parameters
-    vector<FreeMotionExcitation>    freeMotionExc;  ///< free motion excitations
+    FreeMotionExcitationList    freeMotionExc;  ///< free motion excitations
     ContactExcitationList           contactExc;     ///< in contact excitations
     ArrayXd             qMin, qMax;                 // lower and upper joint bounds
 

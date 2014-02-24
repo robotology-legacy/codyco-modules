@@ -59,7 +59,7 @@ template <class T> inline std::string toString(const std::vector<T>& v, const ch
 }
 
 template<class T1>
-std::string strapp(const T1 &s)
+std::string s(const T1 &s)
 { return toString(s); }
 
 template<class T1, class T2>

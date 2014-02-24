@@ -3,10 +3,10 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 cmake_minimum_required(VERSION 2.8)
-SET(PROJECTNAME adaptiveControl)
+SET(PROJECTNAME slotineAdaptiveControl)
 PROJECT(${PROJECTNAME})
 
-option(ADAPTIVECONTROL_TORQUECONTROL "AdaptiveControl: Enable low level torqueControl support" OFF)
+option(TORQUE_CONTROL "AdaptiveControl: Enable low level torqueControl support" OFF)
 
 find_package(YARP)
 find_package(ICUB)
@@ -47,7 +47,7 @@ INCLUDE_DIRECTORIES(${INCLUDE_FOLDER}
                     ${ctrlLib_INCLUDE_DIRS})
 
 #if torquecontrol is off I have to include jointTorqueControl dir
-IF( NOT ${ADAPTIVECONTROL_TORQUECONTROL})
+IF( NOT ${TORQUE_CONTROL})
     INCLUDE_DIRECTORIES(${motorFrictionIdentificationLib_INCLUDE_DIRS})
     TARGET_LINK_LIBRARIES(motorFrictionIdentificationLib)
     MESSAGE("Torque control not enabled")
