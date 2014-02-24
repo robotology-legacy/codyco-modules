@@ -40,6 +40,7 @@ namespace wbi
         CTRL_PARAM_KP,          // proportional gain of PID
         CTRL_PARAM_KI,          // integral gain of PID
         CTRL_PARAM_KD,          // derivative gain of PID
+        CTRL_PARAM_OFFSET,      // offset for the control
         CTRL_PARAM_STIFFNESS,   // stiffness of impedance controller
         CTRL_PARAM_DAMPING,     // damping of impedance controller
         CTRL_PARAM_REF_VEL,     // reference velocity for trajectory generator
