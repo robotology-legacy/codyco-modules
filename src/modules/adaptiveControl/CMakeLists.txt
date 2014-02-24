@@ -15,7 +15,6 @@ find_package(Eigen3 REQUIRED)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 
-
 set(SRC_FOLDER ${PROJECT_SOURCE_DIR}/src)
 set(INCLUDE_FOLDER ${PROJECT_SOURCE_DIR}/include)
 
@@ -39,11 +38,11 @@ SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
 INCLUDE_DIRECTORIES(${INCLUDE_FOLDER}
                     ${iDynTree_INCLUDE_DIRS}
+                    ${paramHelp_INCLUDE_DIRS}
+                    ${YARP_INCLUDE_DIRS}
                     ${Orocos-KDL_INCLUDE_DIRS}
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
-                    ${paramHelp_INCLUDE_DIRS}
-                    ${YARP_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS})
 
 #if torquecontrol is off I have to include jointTorqueControl dir
@@ -59,11 +58,11 @@ ENDIF()
 ADD_EXECUTABLE(${PROJECTNAME} ${SOURCES} ${INCLUDES})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME}
- ${YARP_LIBRARIES}
- paramHelp
- iDynTree
- ${Orocos-KDL_LIBRARIES}
- ${kdl_codyco_LIBRARIES})
+     paramHelp
+     iDynTree
+     ${YARP_LIBRARIES}
+     ${Orocos-KDL_LIBRARIES}
+     ${kdl_codyco_LIBRARIES})
 
 if(WIN32)
 	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})	
