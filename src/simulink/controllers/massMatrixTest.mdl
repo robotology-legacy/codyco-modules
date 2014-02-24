@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.6"
+    ComputedModelVersion    "1.1"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -18,7 +18,7 @@ Model {
       Type		      "Cell"
       Dimension		      2
       Cell		      "HDLSubsystem"
-      Cell		      "massMatrixTest"
+      Cell		      "untitled"
       PropName		      "mdlProps"
     }
   }
@@ -32,16 +32,16 @@ Model {
   MinMaxOverflowArchiveMode "Overwrite"
   FPTRunName		  "Run 1"
   MaxMDLFileLineLength	  120
-  Created		  "Mon Feb 24 18:06:02 2014"
+  Created		  "Tue Feb 25 00:23:23 2014"
   Creator		  "jorhabib"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Feb 24 19:11:03 2014"
-  RTWModifiedTimeStamp	  315169836
-  ModelVersionFormat	  "1.%<AutoIncrement:6>"
-  ConfigurationManager	  "None"
+  LastModifiedDate	  "Tue Feb 25 00:25:05 2014"
+  RTWModifiedTimeStamp	  315188690
+  ModelVersionFormat	  "1.%<AutoIncrement:1>"
+  ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
   LibraryLinkDisplay	  "disabled"
@@ -79,7 +79,7 @@ Model {
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "massMatrixTest"
     signals_		    []
-    overrideMode_	    [0.0]
+    overrideMode_	    [0U]
     Array {
       Type		      "Cell"
       Dimension		      1
@@ -144,7 +144,7 @@ Model {
 	  $ObjectID		  4
 	  Version		  "1.12.0"
 	  StartTime		  "0.0"
-	  StopTime		  "3"
+	  StopTime		  "2"
 	  AbsTol		  "auto"
 	  FixedStep		  "1"
 	  InitialStep		  "auto"
@@ -638,7 +638,7 @@ Model {
       }
       Name		      "Configuration"
       CurrentDlgPage	      "Solver"
-      ConfigPrmDlgPosition     [ 543, 107, 1439, 773 ] 
+      ConfigPrmDlgPosition     [ 235, 41, 1131, 707 ] 
     }
     PropName		    "ConfigurationSets"
   }
@@ -680,72 +680,16 @@ Model {
   }
   BlockParameterDefaults {
     Block {
-      BlockType		      Constant
-      Value		      "1"
-      VectorParams1D	      on
-      SamplingMode	      "Sample based"
-      OutMin		      "[]"
-      OutMax		      "[]"
-      OutDataTypeStr	      "Inherit: Inherit from 'Constant value'"
-      LockScale		      off
-      SampleTime	      "inf"
-      FramePeriod	      "inf"
-      PreserveConstantTs      off
-    }
-    Block {
-      BlockType		      Outport
-      Port		      "1"
-      OutMin		      "[]"
-      OutMax		      "[]"
-      OutDataTypeStr	      "Inherit: auto"
-      LockScale		      off
-      BusOutputAsStruct	      off
-      PortDimensions	      "-1"
-      VarSizeSig	      "Inherit"
+      BlockType		      Display
+      Format		      "short"
+      Decimation	      "10"
+      Floating		      off
       SampleTime	      "-1"
-      SignalType	      "auto"
-      SamplingMode	      "auto"
-      SourceOfInitialOutputValue "Dialog"
-      OutputWhenDisabled      "held"
-      InitialOutput	      "[]"
-    }
-    Block {
-      BlockType		      S-Function
-      FunctionName	      "system"
-      SFunctionModules	      "''"
-      PortCounts	      "[]"
-      SFunctionDeploymentMode off
-    }
-    Block {
-      BlockType		      SubSystem
-      ShowPortLabels	      "FromPortIcon"
-      Permissions	      "ReadWrite"
-      PermitHierarchicalResolution "All"
-      TreatAsAtomicUnit	      off
-      CheckFcnCallInpInsideContextMsg off
-      SystemSampleTime	      "-1"
-      RTWFcnNameOpts	      "Auto"
-      RTWFileNameOpts	      "Auto"
-      RTWMemSecFuncInitTerm   "Inherit from model"
-      RTWMemSecFuncExecute    "Inherit from model"
-      RTWMemSecDataConstants  "Inherit from model"
-      RTWMemSecDataInternal   "Inherit from model"
-      RTWMemSecDataParameters "Inherit from model"
-      SimViewingDevice	      off
-      DataTypeOverride	      "UseLocalSettings"
-      DataTypeOverrideAppliesTo	"AllNumericTypes"
-      MinMaxOverflowLogging   "UseLocalSettings"
-      SFBlockType	      "NONE"
-      Variant		      off
-      GeneratePreprocessorConditionals off
-    }
-    Block {
-      BlockType		      Terminator
     }
   }
   System {
     Name		    "massMatrixTest"
-    Location		    [229, 197, 809, 651]
+    Location		    [416, 182, 996, 442]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -759,13 +703,23 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "33"
+    SIDHighWatermark	    "3"
+    Block {
+      BlockType		      Display
+      Name		      "Display"
+      SID		      "3"
+      Ports		      [1]
+      Position		      [230, 43, 550, 197]
+      ZOrder		      -1
+      Decimation	      "1"
+      Lockdown		      off
+    }
     Block {
       BlockType		      Reference
       Name		      "Soft Real Time"
-      SID		      "1"
+      SID		      "2"
       Ports		      []
-      Position		      [73, 35, 160, 66]
+      Position		      [113, 25, 200, 56]
       ShowName		      off
       LibraryVersion	      "1.7"
       SourceBlock	      "utility/Soft Real Time"
@@ -773,233 +727,24 @@ Model {
       x			      "1"
     }
     Block {
-      BlockType		      SubSystem
+      BlockType		      Reference
       Name		      "massMatrix"
-      SID		      "10"
+      SID		      "1"
       Ports		      [0, 1]
-      Position		      [250, 138, 290, 202]
-      MinAlgLoopOccurrences   off
-      PropExecContextOutsideSubsystem off
-      RTWSystemCode	      "Auto"
-      FunctionWithSeparateData off
-      Opaque		      off
-      RequestExecContextInheritance off
-      MaskHideContents	      off
-      MaskPromptString	      "Block type|Robot name|Module name"
-      MaskStyleString	      "edit,edit,edit"
-      MaskVariables	      "val=@1;robotname=@2;localname=@3;"
-      MaskTunableValueString  "on,on,on"
-      MaskCallbackString      "||"
-      MaskEnableString	      "on,on,on"
-      MaskVisibilityString    "on,on,on"
-      MaskToolTipString	      "on,on,on"
-      MaskIconFrame	      on
-      MaskIconOpaque	      on
-      MaskIconRotate	      "none"
-      MaskPortRotate	      "default"
-      MaskIconUnits	      "autoscale"
-      MaskValueString	      "8|robotName|'simulink'"
-      System {
-	Name			"massMatrix"
-	Location		[822, 267, 1191, 586]
-	Open			on
-	ModelBrowserVisibility	off
-	ModelBrowserWidth	200
-	ScreenColor		"white"
-	PaperOrientation	"landscape"
-	PaperPositionMode	"auto"
-	PaperType		"usletter"
-	PaperUnits		"inches"
-	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
-	TiledPageScale		1
-	ShowPageBoundaries	off
-	ZoomFactor		"100"
-	Block {
-	  BlockType		  SubSystem
-	  Name			  "Subsystem"
-	  SID			  "20"
-	  Ports			  [0, 1]
-	  Position		  [100, 123, 180, 207]
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
-	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
-	  System {
-	    Name		    "Subsystem"
-	    Location		    [989, 270, 1254, 569]
-	    Open		    off
-	    ModelBrowserVisibility  off
-	    ModelBrowserWidth	    200
-	    ScreenColor		    "white"
-	    PaperOrientation	    "landscape"
-	    PaperPositionMode	    "auto"
-	    PaperType		    "usletter"
-	    PaperUnits		    "inches"
-	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
-	    TiledPageScale	    1
-	    ShowPageBoundaries	    off
-	    ZoomFactor		    "100"
-	    Block {
-	      BlockType		      Constant
-	      Name		      "Constant"
-	      SID		      "4"
-	      Position		      [25, 75, 55, 105]
-	      ZOrder		      -5
-	      Value		      "0"
-	      OutDataTypeStr	      "int8"
-	      SampleTime	      "-1"
-	    }
-	    Block {
-	      BlockType		      Constant
-	      Name		      "Constant1"
-	      SID		      "6"
-	      Position		      [25, 190, 55, 220]
-	      ZOrder		      -5
-	      Value		      "zeros(25,1)"
-	      OutDataTypeStr	      "double"
-	      SampleTime	      "-1"
-	    }
-	    Block {
-	      BlockType		      S-Function
-	      Name		      "S-Function"
-	      SID		      "2"
-	      Ports		      [2, 7]
-	      Position		      [90, 27, 175, 263]
-	      ZOrder		      -5
-	      FunctionName	      "robotState"
-	      Parameters	      "val,robotname,localname"
-	      EnableBusSupport	      off
-	    }
-	    Block {
-	      BlockType		      Terminator
-	      Name		      "Terminator"
-	      SID		      "28"
-	      Position		      [210, 30, 230, 50]
-	      ZOrder		      -20
-	      ShowName		      off
-	    }
-	    Block {
-	      BlockType		      Terminator
-	      Name		      "Terminator1"
-	      SID		      "29"
-	      Position		      [210, 65, 230, 85]
-	      ZOrder		      -20
-	      ShowName		      off
-	    }
-	    Block {
-	      BlockType		      Terminator
-	      Name		      "Terminator2"
-	      SID		      "30"
-	      Position		      [210, 100, 230, 120]
-	      ZOrder		      -20
-	      ShowName		      off
-	    }
-	    Block {
-	      BlockType		      Terminator
-	      Name		      "Terminator3"
-	      SID		      "31"
-	      Position		      [210, 135, 230, 155]
-	      ZOrder		      -20
-	      ShowName		      off
-	    }
-	    Block {
-	      BlockType		      Terminator
-	      Name		      "Terminator4"
-	      SID		      "32"
-	      Position		      [210, 205, 230, 225]
-	      ZOrder		      -20
-	      ShowName		      off
-	    }
-	    Block {
-	      BlockType		      Terminator
-	      Name		      "Terminator5"
-	      SID		      "33"
-	      Position		      [210, 240, 230, 260]
-	      ZOrder		      -20
-	      ShowName		      off
-	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "massMatrix"
-	      SID		      "25"
-	      Position		      [205, 173, 235, 187]
-	      ZOrder		      -9
-	      IconDisplay	      "Port number"
-	    }
-	    Line {
-	      SrcBlock		      "Constant"
-	      SrcPort		      1
-	      DstBlock		      "S-Function"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "Constant1"
-	      SrcPort		      1
-	      DstBlock		      "S-Function"
-	      DstPort		      2
-	    }
-	    Line {
-	      SrcBlock		      "S-Function"
-	      SrcPort		      5
-	      DstBlock		      "massMatrix"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "S-Function"
-	      SrcPort		      1
-	      DstBlock		      "Terminator"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "S-Function"
-	      SrcPort		      2
-	      DstBlock		      "Terminator1"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "S-Function"
-	      SrcPort		      3
-	      DstBlock		      "Terminator2"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "S-Function"
-	      SrcPort		      4
-	      DstBlock		      "Terminator3"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "S-Function"
-	      SrcPort		      6
-	      DstBlock		      "Terminator4"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "S-Function"
-	      SrcPort		      7
-	      DstBlock		      "Terminator5"
-	      DstPort		      1
-	    }
-	  }
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "Out1"
-	  SID			  "18"
-	  Position		  [265, 158, 295, 172]
-	  ZOrder		  -9
-	  IconDisplay		  "Port number"
-	}
-	Line {
-	  SrcBlock		  "Subsystem"
-	  SrcPort		  1
-	  DstBlock		  "Out1"
-	  DstPort		  1
-	}
-      }
+      Position		      [120, 99, 190, 141]
+      BackgroundColor	      "red"
+      LibraryVersion	      "1.105"
+      SourceBlock	      "WBCLibrary/wholeBodyModel/massMatrix"
+      SourceType	      ""
+      val		      "8"
+      robotname		      "'icubSim'"
+      localname		      "'simulink'"
+    }
+    Line {
+      SrcBlock		      "massMatrix"
+      SrcPort		      1
+      DstBlock		      "Display"
+      DstPort		      1
     }
   }
 }

@@ -314,13 +314,13 @@ bool robotStatus::dynamicsMassMatrix() {
             ans = wbInterface->computeMassMatrix(qRad.data(),xBase, massMatrix.data());
         }
     }
-    if(DEBUGGING) cout<<"Mass matrix ... "<<massMatrix<<endl;
     return ans;
 }
 //=========================================================================================================================
 MassMatrix robotStatus::getMassMatrix(){
   return massMatrix;
 }
+//=========================================================================================================================
 
 #ifdef NEWCODE
 //=========================================================================================================================
@@ -764,6 +764,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     if(btype == 8) {
 	if(DEBUGGING) fprintf(stderr,"About to compute mass matrix\n");	
         robot->dynamicsMassMatrix();
+	massMatrix = robot->getMassMatrix();
         real_T *pY5 = (real_T *)ssGetOutputPortSignal(S,4);
         for(int_T j=0; j<ssGetOutputPortWidth(S,4); j++) {
             pY5[j] = massMatrix(j);
