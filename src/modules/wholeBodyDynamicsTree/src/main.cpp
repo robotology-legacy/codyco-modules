@@ -39,7 +39,7 @@ int main (int argc, char * argv[])
     //Creating and preparing the Resource Finder
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultConfigFile("default.ini");         //default config file name.
+    rf.setDefaultConfigFile("defaultGazeboSim.ini");         //default config file name.
     rf.setDefaultContext(DEFAULT_YARP_CONTEXT); //when no parameters are given to the module this is the default context    
     rf.configure(argc,argv);
 
@@ -50,7 +50,7 @@ int main (int argc, char * argv[])
         cout<< "\t--from             :Name of the file.ini to be used for calibration."                                                                                       <<endl;
         cout<< "\t--rate             :Period used by the module. Default set to 10ms."                                                                                        <<endl;
         cout<< "\t--robot            :Robot name. Set to icub by default."                                                                                  <<endl;
-        cout<< "\t--local            :Prefix of the ports opened by the module. Set to the module name by default, i.e. wholeBodyDynamicsTree."                                      <<endl;        
+        cout<< "\t--name             :Prefix of the ports opened by the module. Set to the module name by default, i.e. wholeBodyDynamicsTree."                                      <<endl;        
         return 0;
     }
     
