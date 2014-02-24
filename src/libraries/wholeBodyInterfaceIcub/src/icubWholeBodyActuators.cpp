@@ -248,8 +248,15 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
                 
             case CTRL_MODE_TORQUE:
                 FOR_ALL(itBp, itJ)
-                    if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode)
+                if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode) {
+                    if (_torqueModuleConnection) {
+                        //if torque control connection is true I do not set the torqueMode
+                        ok = ok && true;
+                    }
+                    else {
                         ok = ok && icmd[itBp->first]->setTorqueMode(itBp->first==TORSO ? 2-(*itJ) : *itJ);
+                    }
+                }
                 break;
                 
             case CTRL_MODE_MOTOR_PWM:
