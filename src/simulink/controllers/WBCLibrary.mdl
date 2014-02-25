@@ -16,9 +16,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Feb 25 01:58:07 2014"
-  RTWModifiedTimeStamp	  315194253
-  ModelVersionFormat	  "1.%<AutoIncrement:108>"
+  LastModifiedDate	  "Tue Feb 25 11:23:35 2014"
+  RTWModifiedTimeStamp	  315228210
+  ModelVersionFormat	  "1.%<AutoIncrement:109>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -1793,7 +1793,7 @@ Library {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "Dynamics"
-	    Location		    [770, 276, 1055, 370]
+	    Location		    [678, 576, 963, 670]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2045,18 +2045,6 @@ Library {
 		  OutputDimensions	  "[25+6,25+6]"
 		}
 		Block {
-		  BlockType		  Reference
-		  Name			  "Transpose"
-		  SID			  "345"
-		  Ports			  [1, 1]
-		  Position		  [225, 148, 250, 172]
-		  LibraryVersion	  "1.898"
-		  SourceBlock		  "dspmtrx3/Transpose"
-		  SourceType		  "Transpose"
-		  Hermitian		  off
-		  overflowFlag		  off
-		}
-		Block {
 		  BlockType		  SubSystem
 		  Name			  "massMatrix"
 		  SID			  "346"
@@ -2232,20 +2220,14 @@ Library {
 		  BlockType		  Outport
 		  Name			  "M"
 		  SID			  "357"
-		  Position		  [280, 153, 310, 167]
+		  Position		  [240, 153, 270, 167]
 		  ZOrder		  -9
 		  IconDisplay		  "Port number"
 		}
 		Line {
-		  SrcBlock		  "Transpose"
-		  SrcPort		  1
-		  DstBlock		  "M"
-		  DstPort		  1
-		}
-		Line {
 		  SrcBlock		  "Reshape"
 		  SrcPort		  1
-		  DstBlock		  "Transpose"
+		  DstBlock		  "M"
 		  DstPort		  1
 		}
 		Line {
