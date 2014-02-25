@@ -33,7 +33,7 @@ using namespace yarp::math;
 using namespace iCub::skinDynLib;
 using namespace iCub::ctrl;
 
-//\todo TODO make it a proper parameter
+/// < \todo TODO make it a proper parameter
 #define ESTIMATOR_PERIOD 10
 
 // iterate over all body parts
@@ -66,10 +66,14 @@ bool icubWholeBodyStatesLocal::init()
 
 bool icubWholeBodyStatesLocal::close()
 {
+    std::cout << "icubWholeBodyStatesLocal::close() : closing estimator thread" << std::endl;
     if(estimator) estimator->stop();  // stop estimator BEFORE closing sensor interface
+    std::cout << "icubWholeBodyStatesLocal::close() : closing sensor interface" << std::endl;
     bool ok = (sensors ? sensors->close() : true);
-    if(sensors) delete sensors;
-    if(estimator) delete estimator;
+    std::cout << "icubWholeBodyStatesLocal::close() : deleting sensor interface" << std::endl;
+    if(sensors) { delete sensors; sensors = 0; }
+    std::cout << "icubWholeBodyStatesLocal::close() : deleting estimator thread" << std::endl;
+    if(estimator) { delete estimator; estimator = 0; }
     return ok;
 }
 
@@ -749,7 +753,7 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     
     /** \todo TODO avoid unlocking/locking a mutex locked in the calling function in the called function */
     /** \todo TODO use a different mutex to ensure that the dimensions of the sensors/states does not change? */
-    mutex.post();
+    //mutex.post();
     
     YARP_ASSERT(icub_model->kinematicRNEA());
     YARP_ASSERT(icub_model->estimateContactForces());
@@ -779,7 +783,7 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
         contactFound = false;
     }
         
-    mutex.wait();
+    //mutex.wait();
     
     estimatedLastSkinDynContacts = skinContacts;
     

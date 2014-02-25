@@ -47,6 +47,11 @@ wholeBodyDynamicsModule::wholeBodyDynamicsModule()
     estimationInterface  = 0;
     period          = 10;
 }
+
+bool wholeBodyDynamicsModule::attach(yarp::os::Port &source)
+{
+    return this->yarp().attachAsServer(source);
+}
     
 bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 {
@@ -59,6 +64,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     
     if( rf.check("name") ) {
         moduleName = rf.find("name").asString();
+        setName(moduleName.c_str());
     } else {
         std::cerr << "wholeBodyDynamicsModule::configure failed: name parameter not found. Closing module." << std::endl;
         return false;
@@ -92,7 +98,15 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         feet_version = 2;
     }
     
-    
+    //--------------------------RPC PORT--------------------------
+    attach(rpcPort);
+    std::string rpcPortName= "/";
+    rpcPortName+= getName();
+    rpcPortName += "/rpc:i";
+    if (!rpcPort.open(rpcPortName.c_str())) {           
+        std::cerr << getName() << ": Unable to open port " << rpcPortName << std::endl;  
+        return false;
+    }
 
     //--------------------------WHOLE BODY STATES INTERFACE--------------------------
     estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str(),head_version,legs_version,feet_version);
@@ -108,20 +122,16 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     estimationInterface->addEstimates(wbi::ESTIMATE_IMU,wbiIcub::ICUB_MAIN_IMUS);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_TORQUE, wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
 
-    if(!estimationInterface->init()){ fprintf(stderr, "Error while initializing whole body estimator interface. Closing module\n"); return false; }
+    if(!estimationInterface->init()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl; return false; }
 
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
     wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface);
-    if(!wbdThread->start()){ fprintf(stderr, "Error while initializing wholeBodyDynamics thread. Closing module.\n"); return false; }
+    if(!wbdThread->start()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }
     
     fprintf(stderr,"wholeBodyDynamicsThread started\n");
 
 
     return true;
-}
-
-bool wholeBodyDynamicsModule::respond(const Bottle& cmd, Bottle& reply) 
-{
 }
 
 
@@ -135,18 +145,26 @@ bool wholeBodyDynamicsModule::interruptModule()
 
 bool wholeBodyDynamicsModule::close()
 {
-//stop threads
-    if(wbdThread){     wbdThread->stop();         delete wbdThread;      wbdThread = 0;     }
+    //stop threads
+    if(wbdThread)
+    {
+        std::cout << getName() << ": closing wholeBodyDynamicsThread" << std::endl;
+        wbdThread->stop();
+        delete wbdThread;
+        wbdThread = 0;     
+    }
     if(estimationInterface)
     { 
+        std::cout << getName() << ": closing wholeBodyStateLocal interface" << std::endl;
         bool res=estimationInterface->close();    
-        if(res)
+        if(!res)
             printf("Error while closing robot estimator\n");
         delete estimationInterface;  
         estimationInterface = 0; 
     }
 
     //closing ports
+    std::cout << getName() << ": closing RPC port interface" << std::endl;
     rpcPort.close();
 
     printf("[PERFORMANCE INFORMATION]:\n");
@@ -180,3 +198,17 @@ bool wholeBodyDynamicsModule::updateModule()
 
     return true;
 }
+
+////////////////// RPC METHODS /////////////////////////////////////////
+bool wholeBodyDynamicsModule::calib(const std::string& calib_code)
+{
+    return false;
+}
+
+
+bool wholeBodyDynamicsModule::quit()
+{
+    return close();
+}
+
+
