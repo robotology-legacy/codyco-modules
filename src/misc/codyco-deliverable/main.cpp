@@ -20,12 +20,18 @@ int main(int argc, char *argv[])
     Property params;
     params.fromCommand(argc, argv);
 
+    bool isSimulator = false;
+
     if (!params.check("robot"))
     {
         fprintf(stderr, "Please specify the name of the robot\n");
         fprintf(stderr, "--robot name (e.g. icub)\n");
         return -1;
     }
+    if (params.check("isSimulator")) {
+        isSimulator = params.find("isSimulator").asBool();
+    }
+    
     std::string robotName=params.find("robot").asString().c_str();
     std::string remotePorts="/";
     remotePorts+=robotName;
@@ -48,10 +54,17 @@ int main(int argc, char *argv[])
 
     IControlMode *controlMode;
     IOpenLoopControl *pwm;
+    ITorqueControl *torque;
 
     bool ok;
-    ok = robotDevice.view(pwm);
-    ok = ok && robotDevice.view(controlMode);
+    ok = robotDevice.view(controlMode);
+    if (isSimulator) {
+        ok = ok && robotDevice.view(torque);
+    }
+    else {
+        ok = ok && robotDevice.view(pwm);
+    }
+    
 
     if (!ok) {
         printf("Problems acquiring interfaces\n");
@@ -60,12 +73,20 @@ int main(int argc, char *argv[])
 
     int hip = 0, knee = 3;
 
-    controlMode->setOpenLoopMode(hip);
-    controlMode->setOpenLoopMode(knee);
+    if (isSimulator) {
+        controlMode->setOpenLoopMode(hip);
+        controlMode->setOpenLoopMode(knee);
 
-    pwm->setOutput(hip, 0);
-    pwm->setOutput(knee, 0);
+        pwm->setOutput(hip, 0);
+        pwm->setOutput(knee, 0);
+    }
+    else {
+        controlMode->setTorqueMode(hip);
+        controlMode->setTorqueMode(knee);
 
+        pwm->setRefTorque(hip, 0);
+        pwm->setRefTorque(knee, 0);
+    }
     robotDevice.close();
     
     return 0;
