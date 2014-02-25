@@ -1,0 +1,145 @@
+<application>
+    <name>dataDumperForLeftLegState </name>
+    <dependencies>
+        <port>/icub/inertial</port>
+        <port>/icub/left_leg/state:o</port>
+        <!--<port>/icub/left_foot/analog:o</port>-->
+        <port>/icub/left_leg/analog:o</port>
+        <port> /wholeBodyDynamics/left_foot/endEffectorWrench:o</port>
+    </dependencies>
+
+    <!-- position dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/leftLegPos</parameters>
+        <node>node1</node>
+        <tag>left-leg-pos</tag>
+    </module>
+
+    <!-- velocities dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/leftLegVel</parameters>
+        <node>node1</node>
+        <tag>left-leg-vel</tag>
+    </module>
+    <module>
+        <name>velocityObserver</name>
+        <parameters>--name /icub/obs/left_leg</parameters>
+        <node>node1</node>
+        <tag>left-leg-obs</tag>
+    </module>
+    
+    <!-- accelerations dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/leftLegAcc</parameters>
+        <node>node1</node>
+        <tag>left-leg-acc</tag>
+    </module>
+
+ <!-- skin foot dumper -->
+    <!--    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/rightFootSkin</parameters>
+        <node>node1</node>
+        <tag>right-foot-skin</tag>
+    </module> -->
+    
+    <!-- FT foot dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/leftFootFT</parameters>
+        <node>node1</node>
+        <tag>left-foot-ft-sensor</tag>
+    </module>
+
+    <!-- FT leg2foot dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/leftLeg2FootFT</parameters>
+        <node>node1</node>
+        <tag>left-leg2foot-ft-sensor</tag>
+    </module>    
+    
+    <!-- FT leg dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/leftLegFT</parameters>
+        <node>node1</node>
+        <tag>left-leg-ft-sensor</tag>
+    </module>
+    
+    <!-- acc and gyro dumper -->
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name /dump/inertial</parameters>
+        <node>node1</node>
+        <tag>inertial-sensor</tag>
+    </module>
+    
+
+    <!-- pos connections -->
+    <connection>
+        <from>/icub/left_leg/state:o</from>
+        <to>/dump/leftLegPos</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <!-- vel connections -->
+    <connection>
+        <from>/icub/obs/left_leg/vel:o</from>
+        <to>/dump/leftLegVel</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/left_leg/state:o</from>
+        <to>/icub/obs/left_leg/pos:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <!-- acc connections -->
+    <connection>
+        <from>/icub/obs/left_leg/acc:o</from>
+        <to>/dump/leftLegAcc</to>
+        <protocol>udp</protocol>
+    </connection>
+    
+    <!-- skin connections -->
+    <!-- <connection>
+        <from>/icub/skin/right_foot</from>
+        <to>/dump/rightFootSkin</to>
+        <protocol>udp</protocol>
+    </connection> -->
+    
+    <!-- FT foot connections -->
+    <connection>
+        <from>/icub/left_foot/analog:o</from>
+        <to>/dump/leftFootFT</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <!-- FT leg connections -->
+    <connection>
+        <from>/icub/left_leg/analog:o</from>
+        <to>/dump/leftLegFT</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <!-- FT leg2foot connections -->
+    <connection>
+        <from>/wholeBodyDynamics/left_foot/endEffectorWrench:o</from>
+        <to>/dump/leftLeg2FootFT</to>
+        <protocol>udp</protocol>
+    </connection>
+    
+    <!-- gyro and acc connections -->
+    <connection>
+        <from>/icub/inertial</from>
+        <to>/dump/inertial</to>
+        <protocol>udp</protocol>
+    </connection>
+    
+</application>
+
+
