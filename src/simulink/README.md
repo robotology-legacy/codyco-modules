@@ -72,8 +72,9 @@ Linux, Windows, MAC OS X
 - [x] ~~Compile the Soft Real Time mex as another module of the library. Possibly make our own.~~
 - [x] ~~Modify YarpRead module so that you can specify the port you wanna read from and where you want it to connect.         Connection should be done inside the block.~~
 - [x] ~~Restructure code for wbInterface~~
-- [x] ~~Expose computeMass() and generalizedBiasForces()~~
-- [ ] Debug ~~computeMass()~~ and generalizedBiasForces()
+- [x] ~~Expose computeMass(), generalizedBiasForces() and computeDJdq()~~
+- [x] ~~Debug computeMass(),  generalizedBiasForces() and computeDjdq()~~
+- [x] ~~Add blocks for the previous methods~~
 - [ ] Documentation (Functions, etc)
 - [ ] Include postural constraint in FourthCOMController.
 - [ ] ZMP block.

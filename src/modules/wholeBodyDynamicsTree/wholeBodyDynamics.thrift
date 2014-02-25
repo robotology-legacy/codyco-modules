@@ -7,20 +7,14 @@
 */
 
 service wholeBodyDynamics_IDLServer
-{
-  /**
-  * Gets the list of available commands
-  * @return Bottle containing all available commands
-  */
-  string help();
-  
+{ 
   /**
   * Calibrate the force/torque sensors 
   * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the torso/waist)
   * @param calib_code argument to specify the sensors to calibrate (all,arms,legs,feets) 
-  * @return information about the calibration
+  * @return true/false on success/failure
   */
-  string calib(1:string calib_code)
+  bool calib(1:string calib_code)
   
   /**
   * Quit the module.

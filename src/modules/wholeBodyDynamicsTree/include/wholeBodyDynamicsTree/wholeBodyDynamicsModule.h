@@ -25,6 +25,8 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Vocab.h>
 
+#include "../wholeBodyDynamics_IDLServer.h"
+
 #include <wholeBodyDynamicsTree/wholeBodyDynamicsThread.h>
 
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
@@ -34,7 +36,7 @@ using namespace std;
 using namespace yarp::os; 
 using namespace wbi;
 
-class wholeBodyDynamicsModule: public RFModule
+class wholeBodyDynamicsModule: public RFModule, public wholeBodyDynamics_IDLServer 
 {
     /* module parameters */
     string  moduleName;
@@ -49,13 +51,27 @@ class wholeBodyDynamicsModule: public RFModule
 public:
     wholeBodyDynamicsModule();
 
+    bool attach(yarp::os::Port &source);          // Attach the module to a RPC port
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
     bool interruptModule();                       // interrupt, e.g., the ports 
     bool close();                                 // close and shut down the module
-    bool respond(const Bottle& command, Bottle& reply);
     double getPeriod(){ return period;  }
     bool updateModule();
     
+    /** RPC methods (Thrift) */
+    /**
+      * Calibrate the force/torque sensors
+      * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the torso/waist)
+      * @param calib_code argument to specify the sensors to calibrate (all,arms,legs,feets)
+      * @return true/false on success/failure
+      */
+    virtual bool calib(const std::string& calib_code);
+    
+    /**
+     * Quit the module.
+     * @return true/false on success/failure
+     */
+    virtual bool quit();    
 };
 
 

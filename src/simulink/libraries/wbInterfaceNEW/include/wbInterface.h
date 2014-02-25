@@ -145,6 +145,7 @@ public:
     bool       		robotBaseVelocity();
     bool       		dynamicsDJdq(int &linkId);
     MassMatrix 		getMassMatrix();
+    yarp::sig::Vector 	getDJdq();
 };
 
 // The initialization of this varibale must be done here because it's a pointer to static

@@ -30,8 +30,7 @@
 #define VERBOSE   0
 #define DEBUGGING 0
 #define TIMING    0
-#define NEWCODE	  0
-#define SIZE_READING_PORT 2
+#define NEWCODE	  1
 
 YARP_DECLARE_DEVICES(icubmod)
 
@@ -176,7 +175,7 @@ bool robotStatus::robotInit(int btype, int link) {
 
     // Generalized bias forces term.
     hterm.resize(6+25,0);
-    
+
     // Should the mass matrix be resized here??? In the future if the number of DOFS or limbs for which the interface will
     // be used are input parameters, all variables could be resized here and by default leave ICUB_DOFS.
 
@@ -368,14 +367,18 @@ bool robotStatus::dynamicsDJdq(int &linkId) {
                     fprintf(stderr,"robotBaseVelocity failed in robotStatus::dynamicsDJd\n");
                     return false;
                 }
-                // This method does not use yet 
-                wbInterface->computeDJdq(qRad.data(), xBase, dqJ.data(), dxB.data(), footLinkId, dJdq.data());
+                // This method does not use yet the last parameter xpose.
+                if(DEBUGGING) fprintf(stderr,"link ID is: %d",footLinkId);
+                ans = wbInterface->computeDJdq(qRad.data(), xBase, dqJ.data(), dxB.data(), footLinkId, dJdq.data());
             }
         }
     }
     return ans;
 }
 //=========================================================================================================================
+Vector robotStatus::getDJdq(){
+    return dJdq;
+}
 #endif
 
 //------------------------------------------------------------------------------------------------------------------------//
@@ -636,9 +639,9 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         case 8:
             fprintf(stderr,"This block will compute mass matrix from dynamics\n");
             break;
-	case 9:
-	    fprintf(stderr,"This block will compute dJdq\n");
-	    break;
+        case 9:
+            fprintf(stderr,"This block will compute dJdq\n");
+            break;
         }
     }
 
@@ -755,6 +758,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         // SEND REFERENCES
         if(btype == 4) robot->setCtrlMode(CTRL_MODE_VEL);
         if(btype == 5) robot->setCtrlMode(CTRL_MODE_POS);
+	if(btype == 6) robot->setCtrlMode(CTRL_MODE_TORQUE);
         robot->setdqDes(dqDestmp);
     }
 
@@ -767,7 +771,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             pY5[j] = h(j);
         }
     }
-    
+
     MassMatrix massMatrix;
     if(btype == 8) {
         if(DEBUGGING) fprintf(stderr,"About to compute mass matrix\n");
@@ -780,10 +784,37 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             pY6[j] = massMatrix(j);
         }
     }
-    
-    if(btype == 9){
-	if(DEBUGGING) fprintf(stderr,"About to compute dJdq\n");
-	
+  
+    Vector dJdq;
+    dJdq.resize(6,0);
+    if(btype == 9) {
+        if(DEBUGGING) fprintf(stderr,"About to compute dJdq\n");
+        switch ((int) *uPtrs[0])
+        {
+        case 0:
+            linkName = "r_sole";
+            break;
+        case 1:
+            linkName = "l_sole";
+            break;
+        case 2:
+            linkName = "com";
+            break;
+        }
+        
+        robot->getLinkId(linkName,lid);
+        if(!robot->dynamicsDJdq(lid)){
+	  fprintf(stderr,"ERROR dynamicsDJdq did not finish successfully\n");
+	}
+	else{
+	  dJdq = robot->getDJdq();
+	}
+        
+        real_T *pY7 = (real_T *)ssGetOutputPortSignal(S,6);
+	if(DEBUGGING) fprintf(stderr,"djdq computed is: %s \n",dJdq.toString().c_str());
+        for(int_T j=0; j<ssGetOutputPortWidth(S,6); j++) {
+            pY7[j] = dJdq(j);
+        }
     }
 
     if(TIMING) tend = Time::now();
