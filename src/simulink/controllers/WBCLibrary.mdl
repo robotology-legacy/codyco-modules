@@ -17,9 +17,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Feb 25 15:55:00 2014"
-  RTWModifiedTimeStamp	  315244471
-  ModelVersionFormat	  "1.%<AutoIncrement:143>"
+  LastModifiedDate	  "Tue Feb 25 16:36:49 2014"
+  RTWModifiedTimeStamp	  315246948
+  ModelVersionFormat	  "1.%<AutoIncrement:145>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -746,7 +746,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [196, 368, 984, 588]
+    Location		    [197, 396, 985, 616]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -760,7 +760,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "444"
+    SIDHighWatermark	    "455"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -784,7 +784,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
-	Location		[342, 181, 1148, 405]
+	Location		[343, 209, 1149, 433]
 	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -2413,8 +2413,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[1814, 331, 2459, 590]
-	Open			off
+	Location		[505, 514, 1150, 773]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -2448,8 +2448,8 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Dynamics"
-	    Location		    [865, 212, 1273, 339]
-	    Open		    off
+	    Location		    [473, 252, 1044, 379]
+	    Open		    on
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -2466,7 +2466,7 @@ Library {
 	      Name		      "computeh"
 	      SID		      "358"
 	      Ports		      [0, 1]
-	      Position		      [170, 39, 250, 81]
+	      Position		      [165, 39, 245, 81]
 	      ZOrder		      -1
 	      BackgroundColor	      "[0.850000, 0.010000, 0.698000]"
 	      MinAlgLoopOccurrences   off
@@ -2649,10 +2649,197 @@ Library {
 	    }
 	    Block {
 	      BlockType		      SubSystem
-	      Name		      "dot{J}*dot{q}"
+	      Name		      "dJ*dq LeftFoot"
+	      SID		      "445"
+	      Ports		      [0, 1]
+	      Position		      [390, 38, 470, 82]
+	      BackgroundColor	      "[0.662196, 0.000000, 1.000000]"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      RTWSystemCode	      "Auto"
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      RequestExecContextInheritance off
+	      MaskHideContents	      off
+	      MaskPromptString	      "Block type|Robot name|Local name"
+	      MaskStyleString	      "edit,edit,edit"
+	      MaskVariables	      "val=@1;robotName=@2;localName=@3;"
+	      MaskTunableValueString  "on,on,on"
+	      MaskCallbackString      "||"
+	      MaskEnableString	      "on,on,on"
+	      MaskVisibilityString    "on,on,on"
+	      MaskToolTipString	      "on,on,on"
+	      MaskInitialization      "val = 9\nrobotName = 'icubSim'\nlocalName = 'simulink'"
+	      MaskIconFrame	      on
+	      MaskIconOpaque	      on
+	      MaskIconRotate	      "none"
+	      MaskPortRotate	      "default"
+	      MaskIconUnits	      "autoscale"
+	      MaskValueString	      "9|robotName|localName"
+	      System {
+		Name			"dJ*dq LeftFoot"
+		Location		[2083, 620, 2358, 864]
+		Open			off
+		ModelBrowserVisibility	off
+		ModelBrowserWidth	200
+		ScreenColor		"white"
+		PaperOrientation	"landscape"
+		PaperPositionMode	"auto"
+		PaperType		"usletter"
+		PaperUnits		"inches"
+		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+		TiledPageScale		1
+		ShowPageBoundaries	off
+		ZoomFactor		"100"
+		Block {
+		  BlockType		  Constant
+		  Name			  "LeftFoot"
+		  SID			  "446"
+		  Position		  [25, 65, 55, 95]
+		  ZOrder		  -4
+		  OutDataTypeStr	  "int8"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  S-Function
+		  Name			  "S-Function"
+		  SID			  "447"
+		  Ports			  [2, 7]
+		  Position		  [110, 29, 195, 221]
+		  ZOrder		  -5
+		  BackgroundColor	  "darkGreen"
+		  FunctionName		  "robotState"
+		  Parameters		  "val,robotName,localName"
+		  EnableBusSupport	  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator"
+		  SID			  "448"
+		  Position		  [225, 40, 245, 60]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator1"
+		  SID			  "449"
+		  Position		  [225, 65, 245, 85]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator2"
+		  SID			  "450"
+		  Position		  [225, 90, 245, 110]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator3"
+		  SID			  "451"
+		  Position		  [225, 115, 245, 135]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator4"
+		  SID			  "452"
+		  Position		  [225, 140, 245, 160]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator5"
+		  SID			  "453"
+		  Position		  [225, 165, 245, 185]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "dummy"
+		  SID			  "454"
+		  Position		  [25, 160, 55, 190]
+		  ZOrder		  -4
+		  Value			  "zeros(25,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Outport
+		  Name			  "dJdq"
+		  SID			  "455"
+		  Position		  [220, 193, 250, 207]
+		  ZOrder		  -23
+		  IconDisplay		  "Port number"
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  6
+		  DstBlock		  "Terminator5"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  5
+		  DstBlock		  "Terminator4"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  4
+		  DstBlock		  "Terminator3"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  3
+		  DstBlock		  "Terminator2"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  2
+		  DstBlock		  "Terminator1"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  1
+		  DstBlock		  "Terminator"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  7
+		  DstBlock		  "dJdq"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "dummy"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  2
+		}
+		Line {
+		  SrcBlock		  "LeftFoot"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  1
+		}
+	      }
+	    }
+	    Block {
+	      BlockType		      SubSystem
+	      Name		      "dJ*dq RightFoot"
 	      SID		      "372"
 	      Ports		      [0, 1]
-	      Position		      [285, 39, 365, 81]
+	      Position		      [275, 39, 355, 81]
 	      BackgroundColor	      "[0.501000, 0.015000, 0.850000]"
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
@@ -2677,8 +2864,8 @@ Library {
 	      MaskIconUnits	      "autoscale"
 	      MaskValueString	      "9|robotName|localName"
 	      System {
-		Name			"dot{J}*dot{q}"
-		Location		[2074, 368, 2349, 612]
+		Name			"dJ*dq RightFoot"
+		Location		[2076, 424, 2351, 668]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -2699,16 +2886,6 @@ Library {
 		  ZOrder		  -4
 		  Value			  "0"
 		  OutDataTypeStr	  "int8"
-		  SampleTime		  "-1"
-		}
-		Block {
-		  BlockType		  Constant
-		  Name			  "RightFoot1"
-		  SID			  "374"
-		  Position		  [25, 160, 55, 190]
-		  ZOrder		  -4
-		  Value			  "zeros(25,1)"
-		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
 		Block {
@@ -2772,6 +2949,16 @@ Library {
 		  ShowName		  off
 		}
 		Block {
+		  BlockType		  Constant
+		  Name			  "dummy"
+		  SID			  "374"
+		  Position		  [25, 160, 55, 190]
+		  ZOrder		  -4
+		  Value			  "zeros(25,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
 		  BlockType		  Outport
 		  Name			  "dJdq"
 		  SID			  "382"
@@ -2822,7 +3009,7 @@ Library {
 		  DstPort		  1
 		}
 		Line {
-		  SrcBlock		  "RightFoot1"
+		  SrcBlock		  "dummy"
 		  SrcPort		  1
 		  DstBlock		  "S-Function"
 		  DstPort		  2
