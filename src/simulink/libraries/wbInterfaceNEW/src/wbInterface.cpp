@@ -758,6 +758,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         // SEND REFERENCES
         if(btype == 4) robot->setCtrlMode(CTRL_MODE_VEL);
         if(btype == 5) robot->setCtrlMode(CTRL_MODE_POS);
+	if(btype == 6) robot->setCtrlMode(CTRL_MODE_TORQUE);
         robot->setdqDes(dqDestmp);
     }
 
