@@ -1,8 +1,6 @@
 #### Find Eigen3
 find_package(Eigen3 REQUIRED)
 
-
-
 #### Find orocos_kdl, with fallback procedure to be compatible with ros installed version
 find_package(orocos_kdl)
 

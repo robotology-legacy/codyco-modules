@@ -34,12 +34,12 @@ namespace paramHelp
 {
 
 /** Suffixes of the ports opened by the ParamHelper class. */
-static const char* PORT_IN_STREAM_SUFFIX    = "/stream:i";
-static const char* PORT_OUT_STREAM_SUFFIX   = "/stream:o";
-static const char* PORT_OUT_INFO_SUFFIX     = "/info:o";
-static const char* PORT_IN_INFO_SUFFIX      = "/info:i";
-static const char* PORT_RPC_SUFFIX          = "/rpc";
-static const char* PORT_OUT_MONITOR_SUFFIX  = "/monitor:o";
+extern const char* PORT_IN_STREAM_SUFFIX;
+extern const char* PORT_OUT_STREAM_SUFFIX;
+extern const char* PORT_OUT_INFO_SUFFIX;
+extern const char* PORT_IN_INFO_SUFFIX;
+extern const char* PORT_RPC_SUFFIX;
+extern const char* PORT_OUT_MONITOR_SUFFIX;
 
 
 /** Convert a generic variable into a string (using an ostringstream). */

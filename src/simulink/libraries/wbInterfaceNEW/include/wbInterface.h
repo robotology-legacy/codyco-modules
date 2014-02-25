@@ -47,15 +47,22 @@
 #include <wbi/wbi.h>
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 
-#include "simstruc.h"				// Need to include simstruc.h for the definition of the SimStruct and its associated macro definitions.
+// Need to include simstruc.h for the definition of the SimStruct and its associated macro definitions.
+#include "simstruc.h"				     
+
+//This should somehow be provided by the user, but 25 will be the default 
+#define	ICUB_DOFS 25
 
 typedef Eigen::Matrix<double,7,1>  Vector7d;
 const int Dynamic = -1;
-typedef Eigen::Matrix<double,6,Dynamic,Eigen::RowMajor>   JacobianMatrix;     // a Jacobian is 6 rows and N columns
+// a Jacobian is 6 rows and N columns
+typedef Eigen::Matrix<double,6,Dynamic,Eigen::RowMajor>   	      JacobianMatrix;     
+// N+6 x N+6 mass matrix
+typedef Eigen::Matrix<double,ICUB_DOFS+6,ICUB_DOFS+6,Eigen::RowMajor> MassMatrix; 	  
 
 static const Vector7d       	   DEFAULT_XDES_FOOT = Vector7d::Constant(0.0);
 static const Eigen::Vector2d       DEFAULT_XDES_COM  = Eigen::Vector2d::Constant(0.0);
-static const int      			   ICUB_DOFS = 25;    //This should somehow be provided by the user.
+
 
 // ?????? DO I REALLY NEED THESE VARIABLES TO BE GLOBAL?? FIN A WAY TO REMOVE THEM!!! IT'S AWFUL AND DANGEROUS!!!!!!!!!
 Eigen::VectorXd dotq;
@@ -65,24 +72,46 @@ JacobianMatrix jacob;
 
 class robotStatus {
 private:
-    // This object is used to control reentrancy
+    // This object is used to control reentrancy.
     static int 			creationCounter;
-    int             		comLinkId;              // id of the COM
-    int             		footLinkId;             // id of the controlled (swinging) foot link
+    // id of the COM that is different from the other parts of the robot body.
+    int             		comLinkId;              
+    // id of the controlled foot link.
+    int             		footLinkId;   
+    // Current active joints (not being update at the moment 24/02/2014 12:44pm)
     int 			actJnts;
-    int                 	_n;                     // current number of active joints
+    // current number of active joints.
+    int                 	_n;     
+    // Prefix given to the ports that will be open by Simulink.
     std::string 		moduleName;
+    // name of the robot being used, e.g. 'icubSim' or 'icub'.
     std::string 		robotName;
+    // This variable map an Eigen vector to a yarp vector. 
     Eigen::Map<Eigen::VectorXd>	dqDesMap;
-    Eigen::VectorXd        	dq, dqJ;                // joint velocities (size of vectors: n+6, n, 6)
-    Eigen::Matrix4d		H_w2b;                  // rotation matrix from world to base reference frame
+    // Joint velocities (size of vectors: n+6, n, 6)
+    Eigen::VectorXd        	dq, dqJ;                
+    // rotation matrix from world to base reference frame.
+    Eigen::Matrix4d		H_w2b;                  
     Eigen::VectorXd         	dqDes;
+    // General vector initialized depending on the link for which forwardKinematics is computed as well as dJdq.
     yarp::sig::Vector        	x_pose;
+    // Robot joint angles in radians later initialized for the entire body.
     yarp::sig::Vector 		qRad;
-    JacobianMatrix  		JfootR;                 // Jacobian of the right foot
-    wbi::Frame           	Ha;                     // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
-    wbi::Frame           	H_base_leftFoot;        // rototranslation from robot base to left foot (i.e. world)
+    // General Jacobian matrix initialized depending on the link for which the Jacobian is then needed.
+    JacobianMatrix  		JfootR;                 
+     // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
+    wbi::Frame           	Ha;                    
+    // rototranslation from robot base to left foot (i.e. world).
+    wbi::Frame           	H_base_leftFoot;   
+    // Floating base 3D rototranslation from world ot base.
     wbi::Frame 			xBase;
+    // Floating base velocity.
+    yarp::sig::Vector		dxB;
+    // Generalized bias forces.
+    yarp::sig::Vector		hterm;
+    double 			*dJdq;
+    // Mass matrix
+    MassMatrix			massMatrix;
 
 
 public:
@@ -92,26 +121,30 @@ public:
     
     robotStatus();
     ~robotStatus();
-    void setmoduleName(std::string mn);
-    void setRobotName(std::string rn); //checked
-    int getCounter();
-    int decreaseCounter();
-    bool robotConfig();
-    bool robotInit(int btype, int link);
-    void getLinkId(const char *linkName, int &lid);
+    void 		setmoduleName(std::string mn);
+    void 		setRobotName(std::string rn); //checked
+    int 		getCounter();
+    int 		decreaseCounter();
+    bool 		robotConfig();
+    bool 		robotInit(int btype, int link);
+    void 		getLinkId(const char *linkName, int &lid);
     //This is especifically for the COM
-    int getLinkId(const char *linkName);
-    bool world2baseRototranslation();
-    bool robotJntAngles(bool blockingRead);
-    bool robotJntVelocities(bool blockingRead);
-    yarp::sig::Vector forwardKinematics(int &linkId);
-    JacobianMatrix jacobian(int &lid);
-    yarp::sig::Vector getEncoders();
-    Eigen::VectorXd getJntVelocities();
-    bool setCtrlMode(wbi::ControlMode ctrl_mode);
-    void setdqDes(yarp::sig::Vector dqD);
-    bool dynamicsMassMatrix(double *massMatrix);
-    double dynamicsGenBiasForces(double *dxB, double *hterm);
+    int 		getLinkId(const char *linkName);
+    bool 		world2baseRototranslation();
+    bool 		robotJntAngles(bool blockingRead);
+    bool 		robotJntVelocities(bool blockingRead);
+    yarp::sig::Vector 	forwardKinematics(int &linkId);
+    JacobianMatrix 	jacobian(int &lid);
+    yarp::sig::Vector 	getEncoders();
+    Eigen::VectorXd 	getJntVelocities();
+    bool 		setCtrlMode(wbi::ControlMode ctrl_mode);
+    void      		setdqDes(yarp::sig::Vector dqD);
+    bool       		dynamicsMassMatrix();
+    
+    yarp::sig::Vector	dynamicsGenBiasForces();
+    bool       		robotBaseVelocity();
+    bool       		dynamicsDJdq(int &linkId);
+    MassMatrix 		getMassMatrix();
 };
 
 // The initialization of this varibale must be done here because it's a pointer to static

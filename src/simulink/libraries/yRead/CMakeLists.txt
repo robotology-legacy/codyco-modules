@@ -18,11 +18,11 @@ FILE(GLOB folder_header ./include/*.h)
 source_group("Source Files" FILES ${folder_source})
 source_group("Header Files" FILES ${folder_header})
 
+include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories("${MATLAB_ROOT}/simulink/include")
 include_directories("${MATLAB_ROOT}/extern/include")
 include_directories(${MATLAB_INCLUDE_DIR})
 include_directories("${YARP_INCLUDE_DIRS}")
-include_directories(${PROJECT_SOURCE_DIR}/include)
 
 #Specific preprocessor flag for MATLAB MEX FILES compilation
 add_definitions(-DMATLAB_MEX_FILE)
