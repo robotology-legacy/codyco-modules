@@ -109,7 +109,7 @@ private:
     yarp::sig::Vector		dxB;
     // Generalized bias forces.
     yarp::sig::Vector		hterm;
-    double 			*dJdq;
+    yarp::sig::Vector    	dJdq;
     // Mass matrix
     MassMatrix			massMatrix;
 

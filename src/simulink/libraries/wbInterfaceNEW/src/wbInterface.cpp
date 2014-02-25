@@ -27,8 +27,8 @@
 #define LOCAL_PARAM_IDX 2
 // END MASK PARAMETERS -----------------------------------
 
-#define VERBOSE   1
-#define DEBUGGING 1
+#define VERBOSE   0
+#define DEBUGGING 0
 #define TIMING    0
 #define NEWCODE	  0
 #define SIZE_READING_PORT 2
@@ -169,14 +169,14 @@ bool robotStatus::robotInit(int btype, int link) {
     JfootR.resize(NoChange,ICUB_DOFS+6);
 
     // dot{J}dot{q}
-    dJdq = new double;
+    dJdq.resize(6,0);
 
     // dot{xBase} We will assume null velocity of the base for now since the estimate hasn't been implemented yet
     dxB.resize(6,0);
 
     // Generalized bias forces term.
     hterm.resize(6+25,0);
-
+    
     // Should the mass matrix be resized here??? In the future if the number of DOFS or limbs for which the interface will
     // be used are input parameters, all variables could be resized here and by default leave ICUB_DOFS.
 
@@ -340,7 +340,7 @@ Vector robotStatus::dynamicsGenBiasForces() {
         }
     }
     if(ans) {
-        fprintf(stderr,"h term: \n",hterm.toString().c_str());
+        fprintf(stderr,"h term: %s\n",hterm.toString().c_str());
         return hterm;
     }
     else {
@@ -358,19 +358,18 @@ bool robotStatus::robotBaseVelocity() {
 //=========================================================================================================================
 bool robotStatus::dynamicsDJdq(int &linkId) {
     bool ans = false;
-    double *dxB = new double;
     if(robotJntAngles(false)) {
         if(DEBUGGING) fprintf(stderr,"robotJntAngles computed for dynamicsDJdq\n");
         if(robotJntVelocities(false)) {
             if(DEBUGGING) fprintf(stderr,"robotJntVelocities computed for dynamicsDJdq\n");
             if(world2baseRototranslation()) {
                 footLinkId = linkId;
-                forwardKinematics(footLinkId);
                 if(!robotBaseVelocity()) {
                     fprintf(stderr,"robotBaseVelocity failed in robotStatus::dynamicsDJd\n");
                     return false;
                 }
-                wbInterface->computeDJdq(qRad.data(),xBase,dqJ.data(),dxB,footLinkId,dJdq,x_pose.data());
+                // This method does not use yet 
+                wbInterface->computeDJdq(qRad.data(), xBase, dqJ.data(), dxB.data(), footLinkId, dJdq.data());
             }
         }
     }
@@ -637,6 +636,9 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         case 8:
             fprintf(stderr,"This block will compute mass matrix from dynamics\n");
             break;
+	case 9:
+	    fprintf(stderr,"This block will compute dJdq\n");
+	    break;
         }
     }
 
@@ -777,6 +779,11 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         for(int_T j=0; j<ssGetOutputPortWidth(S,4); j++) {
             pY6[j] = massMatrix(j);
         }
+    }
+    
+    if(btype == 9){
+	if(DEBUGGING) fprintf(stderr,"About to compute dJdq\n");
+	
     }
 
     if(TIMING) tend = Time::now();
