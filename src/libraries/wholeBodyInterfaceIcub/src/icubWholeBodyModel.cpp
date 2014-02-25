@@ -52,7 +52,7 @@ using namespace iCub::skinDynLib;
 // *********************************************************************************************************************
 icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName, int head_version, int legs_version, 
     double* initial_q, const std::vector<std::string> &_bodyPartNames)
-    : dof(0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0)
+    : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
 {
     std::string kinematic_base_link_name = "root_link";
     version.head_version = head_version;
