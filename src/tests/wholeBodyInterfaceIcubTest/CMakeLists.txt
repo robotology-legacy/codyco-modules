@@ -31,10 +31,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 
-INCLUDE_DIRECTORIES(${YARP_INCLUDE_DIRS}
+INCLUDE_DIRECTORIES(
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
+                    ${YARP_INCLUDE_DIRS}
                     ${Orocos-KDL_INCLUDE_DIRS}
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
@@ -42,7 +43,8 @@ INCLUDE_DIRECTORIES(${YARP_INCLUDE_DIRS}
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} skinDynLib wholeBodyInterface wholeBodyInterfaceIcub iDynTree ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME} wholeBodyInterface wholeBodyInterfaceIcub iDynTree 
+${YARP_LIBRARIES} skinDynLib ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
 
 if(WIN32)
 	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})	

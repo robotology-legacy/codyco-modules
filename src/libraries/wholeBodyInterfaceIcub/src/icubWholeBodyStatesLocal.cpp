@@ -899,7 +899,7 @@ bool icubWholeBodyDynamicsEstimator::lockAndCopyVectorOfVectors(const std::vecto
 
 bool icubWholeBodyDynamicsEstimator::lockAndSetEstimationParameter(const EstimateType et, const EstimationParameter ep, const void *value)
 {
-    bool res;
+    bool res = false;
     mutex.wait();
     switch(et)
     {
@@ -967,7 +967,7 @@ bool icubWholeBodyDynamicsEstimator::lockAndSetEstimationOffset(const EstimateTy
     {
     case ESTIMATE_FORCE_TORQUE: ///< \todo TODO
         ft_index = sensors->getSensorList(SENSOR_FORCE_TORQUE).localToGlobalId(sid);
-        mempcpy(forcetorques_offset.data(),(double*)value,sizeof(double)*sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize);
+        memcpy((void*)forcetorques_offset.data(), (double*)value, sizeof(double)*sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize);
         break;
     default: 
         break;
