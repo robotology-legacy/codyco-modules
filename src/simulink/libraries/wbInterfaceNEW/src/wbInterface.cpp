@@ -30,8 +30,7 @@
 #define VERBOSE   0
 #define DEBUGGING 0
 #define TIMING    0
-#define NEWCODE	  0
-#define SIZE_READING_PORT 2
+#define NEWCODE	  1
 
 YARP_DECLARE_DEVICES(icubmod)
 
@@ -369,7 +368,8 @@ bool robotStatus::dynamicsDJdq(int &linkId) {
                     return false;
                 }
                 // This method does not use yet the last parameter xpose.
-                wbInterface->computeDJdq(qRad.data(), xBase, dqJ.data(), dxB.data(), footLinkId, dJdq.data());
+                if(DEBUGGING) fprintf(stderr,"link ID is: %d",footLinkId);
+                ans = wbInterface->computeDJdq(qRad.data(), xBase, dqJ.data(), dxB.data(), footLinkId, dJdq.data());
             }
         }
     }
@@ -785,6 +785,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     }
   
     Vector dJdq;
+    dJdq.resize(6,0);
     if(btype == 9) {
         if(DEBUGGING) fprintf(stderr,"About to compute dJdq\n");
         switch ((int) *uPtrs[0])
@@ -799,9 +800,17 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             linkName = "com";
             break;
         }
+        
         robot->getLinkId(linkName,lid);
-        robot->dynamicsDJdq(lid);
-        real_T *pY7 = (real_T *)ssGetOutputPortSignal(S,6);	
+        if(!robot->dynamicsDJdq(lid)){
+	  fprintf(stderr,"ERROR dynamicsDJdq did not finish successfully\n");
+	}
+	else{
+	  dJdq = robot->getDJdq();
+	}
+        
+        real_T *pY7 = (real_T *)ssGetOutputPortSignal(S,6);
+	if(DEBUGGING) fprintf(stderr,"djdq computed is: %s \n",dJdq.toString().c_str());
         for(int_T j=0; j<ssGetOutputPortWidth(S,6); j++) {
             pY7[j] = dJdq(j);
         }
