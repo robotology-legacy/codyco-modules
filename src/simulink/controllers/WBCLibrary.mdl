@@ -17,9 +17,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Feb 25 15:18:57 2014"
-  RTWModifiedTimeStamp	  315240491
-  ModelVersionFormat	  "1.%<AutoIncrement:140>"
+  LastModifiedDate	  "Tue Feb 25 15:28:27 2014"
+  RTWModifiedTimeStamp	  315242905
+  ModelVersionFormat	  "1.%<AutoIncrement:141>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -725,7 +725,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [1829, 313, 2617, 533]
+    Location		    [1775, 575, 2563, 795]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -2185,6 +2185,12 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
+	  MaskDisplay		  "image(imread('./img/dynamics.jpg'))"
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Dynamics"
 	    Location		    [865, 212, 1273, 339]
