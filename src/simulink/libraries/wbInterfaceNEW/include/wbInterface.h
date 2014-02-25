@@ -106,7 +106,9 @@ private:
     // Floating base 3D rototranslation from world ot base.
     wbi::Frame 			xBase;
     // Floating base velocity.
-    double 			dxB;
+    yarp::sig::Vector		dxB;
+    // Generalized bias forces.
+    yarp::sig::Vector		hterm;
     double 			*dJdq;
     // Mass matrix
     MassMatrix			massMatrix;
@@ -137,9 +139,9 @@ public:
     Eigen::VectorXd 	getJntVelocities();
     bool 		setCtrlMode(wbi::ControlMode ctrl_mode);
     void      		setdqDes(yarp::sig::Vector dqD);
-    
     bool       		dynamicsMassMatrix();
-    double     		dynamicsGenBiasForces(double *dxB, double *hterm);
+    
+    yarp::sig::Vector	dynamicsGenBiasForces();
     bool       		robotBaseVelocity();
     bool       		dynamicsDJdq(int &linkId);
     MassMatrix 		getMassMatrix();

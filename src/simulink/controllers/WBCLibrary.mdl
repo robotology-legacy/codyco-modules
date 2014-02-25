@@ -16,9 +16,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Feb 25 00:22:56 2014"
-  RTWModifiedTimeStamp	  315188566
-  ModelVersionFormat	  "1.%<AutoIncrement:105>"
+  LastModifiedDate	  "Tue Feb 25 01:58:07 2014"
+  RTWModifiedTimeStamp	  315194253
+  ModelVersionFormat	  "1.%<AutoIncrement:108>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -738,7 +738,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "357"
+    SIDHighWatermark	    "371"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -1003,7 +1003,7 @@ Library {
 	  ShowName		  off
 	  LibraryVersion	  "1.7"
 	  SourceBlock		  "utility/Soft Real Time"
-	  SourceType		  ""
+	  SourceType		  "Unknown"
 	  x			  "Ts"
 	}
 	Block {
@@ -1765,7 +1765,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[108, 177, 690, 434]
+	Location		[385, 202, 1087, 459]
 	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -1778,6 +1778,486 @@ Library {
 	TiledPageScale		1
 	ShowPageBoundaries	off
 	ZoomFactor		"100"
+	Block {
+	  BlockType		  SubSystem
+	  Name			  "Dynamics"
+	  SID			  "369"
+	  Ports			  []
+	  Position		  [387, 59, 583, 180]
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  RTWSystemCode		  "Auto"
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  RequestExecContextInheritance	off
+	  MaskHideContents	  off
+	  System {
+	    Name		    "Dynamics"
+	    Location		    [770, 276, 1055, 370]
+	    Open		    off
+	    ModelBrowserVisibility  off
+	    ModelBrowserWidth	    200
+	    ScreenColor		    "white"
+	    PaperOrientation	    "landscape"
+	    PaperPositionMode	    "auto"
+	    PaperType		    "usletter"
+	    PaperUnits		    "inches"
+	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
+	    TiledPageScale	    1
+	    ShowPageBoundaries	    off
+	    ZoomFactor		    "100"
+	    Block {
+	      BlockType		      SubSystem
+	      Name		      "computeh"
+	      SID		      "358"
+	      Ports		      [0, 1]
+	      Position		      [170, 29, 250, 71]
+	      BackgroundColor	      "magenta"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      RTWSystemCode	      "Auto"
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      RequestExecContextInheritance off
+	      MaskHideContents	      off
+	      MaskPromptString	      "Block type|Robot name|Module name"
+	      MaskStyleString	      "edit,edit,edit"
+	      MaskVariables	      "val=@1;robotname=@2;localname=@3;"
+	      MaskTunableValueString  "on,on,on"
+	      MaskCallbackString      "||"
+	      MaskEnableString	      "on,on,on"
+	      MaskVisibilityString    "on,on,on"
+	      MaskToolTipString	      "on,on,on"
+	      MaskIconFrame	      on
+	      MaskIconOpaque	      on
+	      MaskIconRotate	      "none"
+	      MaskPortRotate	      "default"
+	      MaskIconUnits	      "autoscale"
+	      MaskValueString	      "7|'icubSim'|'simulink'"
+	      System {
+		Name			"computeh"
+		Location		[643, 184, 978, 408]
+		Open			off
+		ModelBrowserVisibility	off
+		ModelBrowserWidth	200
+		ScreenColor		"white"
+		PaperOrientation	"landscape"
+		PaperPositionMode	"auto"
+		PaperType		"usletter"
+		PaperUnits		"inches"
+		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+		TiledPageScale		1
+		ShowPageBoundaries	off
+		ZoomFactor		"100"
+		Block {
+		  BlockType		  Terminator
+		  Name			  " "
+		  SID			  "359"
+		  Position		  [245, 180, 265, 200]
+		  ZOrder		  -20
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "  "
+		  SID			  "360"
+		  Position		  [245, 130, 265, 150]
+		  ZOrder		  -20
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Constant"
+		  SID			  "361"
+		  Position		  [25, 60, 55, 90]
+		  ZOrder		  -4
+		  Value			  "0"
+		  OutDataTypeStr	  "int8"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Constant1"
+		  SID			  "362"
+		  Position		  [25, 145, 55, 175]
+		  ZOrder		  -4
+		  Value			  "zeros(25,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  S-Function
+		  Name			  "S-Function"
+		  SID			  "363"
+		  Ports			  [2, 7]
+		  Position		  [95, 29, 200, 201]
+		  ZOrder		  -5
+		  BackgroundColor	  "darkGreen"
+		  FunctionName		  "robotState"
+		  Parameters		  "val,robotname,localname"
+		  EnableBusSupport	  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "h1"
+		  SID			  "364"
+		  Position		  [245, 30, 265, 50]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "h2"
+		  SID			  "365"
+		  Position		  [245, 55, 265, 75]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "h3"
+		  SID			  "366"
+		  Position		  [245, 80, 265, 100]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "h4"
+		  SID			  "367"
+		  Position		  [245, 105, 265, 125]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Outport
+		  Name			  "h"
+		  SID			  "368"
+		  Position		  [280, 158, 310, 172]
+		  ZOrder		  -23
+		  IconDisplay		  "Port number"
+		}
+		Line {
+		  SrcBlock		  "Constant"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "Constant1"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  2
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  1
+		  DstBlock		  "h1"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  2
+		  DstBlock		  "h2"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  3
+		  DstBlock		  "h3"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  4
+		  DstBlock		  "h4"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  5
+		  DstBlock		  "  "
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  7
+		  DstBlock		  " "
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  6
+		  DstBlock		  "h"
+		  DstPort		  1
+		}
+	      }
+	    }
+	    Block {
+	      BlockType		      SubSystem
+	      Name		      "massMatrix"
+	      SID		      "343"
+	      Ports		      [0, 1]
+	      Position		      [25, 29, 95, 71]
+	      BackgroundColor	      "red"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      RTWSystemCode	      "Auto"
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      RequestExecContextInheritance off
+	      MaskHideContents	      off
+	      MaskPromptString	      "Block type|Robot name|Module name"
+	      MaskStyleString	      "edit,edit,edit"
+	      MaskVariables	      "val=@1;robotname=@2;localname=@3;"
+	      MaskTunableValueString  "on,on,on"
+	      MaskCallbackString      "||"
+	      MaskEnableString	      "on,on,on"
+	      MaskVisibilityString    "on,on,on"
+	      MaskToolTipString	      "on,on,on"
+	      MaskIconFrame	      on
+	      MaskIconOpaque	      on
+	      MaskIconRotate	      "none"
+	      MaskPortRotate	      "default"
+	      MaskIconUnits	      "autoscale"
+	      MaskValueString	      "8|'icubSim'|'simulink'"
+	      System {
+		Name			"massMatrix"
+		Location		[618, 236, 987, 555]
+		Open			off
+		ModelBrowserVisibility	off
+		ModelBrowserWidth	200
+		ScreenColor		"white"
+		PaperOrientation	"landscape"
+		PaperPositionMode	"auto"
+		PaperType		"usletter"
+		PaperUnits		"inches"
+		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+		TiledPageScale		1
+		ShowPageBoundaries	off
+		ZoomFactor		"100"
+		Block {
+		  BlockType		  Reshape
+		  Name			  "Reshape"
+		  SID			  "344"
+		  Ports			  [1, 1]
+		  Position		  [165, 148, 195, 172]
+		  ZOrder		  -23
+		  OutputDimensionality	  "Customize"
+		  OutputDimensions	  "[25+6,25+6]"
+		}
+		Block {
+		  BlockType		  Reference
+		  Name			  "Transpose"
+		  SID			  "345"
+		  Ports			  [1, 1]
+		  Position		  [225, 148, 250, 172]
+		  LibraryVersion	  "1.898"
+		  SourceBlock		  "dspmtrx3/Transpose"
+		  SourceType		  "Transpose"
+		  Hermitian		  off
+		  overflowFlag		  off
+		}
+		Block {
+		  BlockType		  SubSystem
+		  Name			  "massMatrix"
+		  SID			  "346"
+		  Ports			  [0, 1]
+		  Position		  [60, 118, 140, 202]
+		  MinAlgLoopOccurrences	  off
+		  PropExecContextOutsideSubsystem off
+		  RTWSystemCode		  "Auto"
+		  FunctionWithSeparateData off
+		  Opaque		  off
+		  RequestExecContextInheritance	off
+		  MaskHideContents	  off
+		  System {
+		    Name		    "massMatrix"
+		    Location		    [264, 238, 529, 537]
+		    Open		    off
+		    ModelBrowserVisibility  off
+		    ModelBrowserWidth	    200
+		    ScreenColor		    "white"
+		    PaperOrientation	    "landscape"
+		    PaperPositionMode	    "auto"
+		    PaperType		    "usletter"
+		    PaperUnits		    "inches"
+		    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
+		    TiledPageScale	    1
+		    ShowPageBoundaries	    off
+		    ZoomFactor		    "100"
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Constant"
+		    SID			    "347"
+		    Position		    [25, 70, 55, 100]
+		    ZOrder		    -5
+		    Value		    "0"
+		    OutDataTypeStr	    "int8"
+		    SampleTime		    "-1"
+		    }
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Constant1"
+		    SID			    "348"
+		    Position		    [25, 190, 55, 220]
+		    ZOrder		    -5
+		    Value		    "zeros(25,1)"
+		    OutDataTypeStr	    "double"
+		    SampleTime		    "-1"
+		    }
+		    Block {
+		    BlockType		    S-Function
+		    Name		    "S-Function"
+		    SID			    "349"
+		    Ports		    [2, 7]
+		    Position		    [90, 27, 175, 263]
+		    ZOrder		    -5
+		    BackgroundColor	    "green"
+		    FunctionName	    "robotState"
+		    Parameters		    "val,robotname,localname"
+		    EnableBusSupport	    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "Terminator"
+		    SID			    "350"
+		    Position		    [210, 30, 230, 50]
+		    ZOrder		    -20
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "Terminator1"
+		    SID			    "351"
+		    Position		    [210, 65, 230, 85]
+		    ZOrder		    -20
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "Terminator2"
+		    SID			    "352"
+		    Position		    [210, 100, 230, 120]
+		    ZOrder		    -20
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "Terminator3"
+		    SID			    "353"
+		    Position		    [210, 135, 230, 155]
+		    ZOrder		    -20
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "Terminator4"
+		    SID			    "354"
+		    Position		    [210, 205, 230, 225]
+		    ZOrder		    -20
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "Terminator5"
+		    SID			    "355"
+		    Position		    [210, 240, 230, 260]
+		    ZOrder		    -20
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Outport
+		    Name		    "massMatrix"
+		    SID			    "356"
+		    Position		    [205, 173, 235, 187]
+		    ZOrder		    -9
+		    IconDisplay		    "Port number"
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    7
+		    DstBlock		    "Terminator5"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    6
+		    DstBlock		    "Terminator4"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    4
+		    DstBlock		    "Terminator3"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    3
+		    DstBlock		    "Terminator2"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    2
+		    DstBlock		    "Terminator1"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    1
+		    DstBlock		    "Terminator"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    5
+		    DstBlock		    "massMatrix"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "Constant1"
+		    SrcPort		    1
+		    DstBlock		    "S-Function"
+		    DstPort		    2
+		    }
+		    Line {
+		    SrcBlock		    "Constant"
+		    SrcPort		    1
+		    DstBlock		    "S-Function"
+		    DstPort		    1
+		    }
+		  }
+		}
+		Block {
+		  BlockType		  Outport
+		  Name			  "M"
+		  SID			  "357"
+		  Position		  [280, 153, 310, 167]
+		  ZOrder		  -9
+		  IconDisplay		  "Port number"
+		}
+		Line {
+		  SrcBlock		  "Transpose"
+		  SrcPort		  1
+		  DstBlock		  "M"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "Reshape"
+		  SrcPort		  1
+		  DstBlock		  "Transpose"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "massMatrix"
+		  SrcPort		  1
+		  DstBlock		  "Reshape"
+		  DstPort		  1
+		}
+	      }
+	    }
+	  }
+	}
 	Block {
 	  BlockType		  SubSystem
 	  Name			  "Forward Kinematics"
@@ -3212,271 +3692,6 @@ Library {
 	    }
 	  }
 	}
-	Block {
-	  BlockType		  SubSystem
-	  Name			  "massMatrix"
-	  SID			  "343"
-	  Ports			  [0, 1]
-	  Position		  [410, 99, 480, 141]
-	  BackgroundColor	  "red"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
-	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
-	  MaskPromptString	  "Block type|Robot name|Module name"
-	  MaskStyleString	  "edit,edit,edit"
-	  MaskVariables		  "val=@1;robotname=@2;localname=@3;"
-	  MaskTunableValueString  "on,on,on"
-	  MaskCallbackString	  "||"
-	  MaskEnableString	  "on,on,on"
-	  MaskVisibilityString	  "on,on,on"
-	  MaskToolTipString	  "on,on,on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "8|'icubSim'|'simulink'"
-	  System {
-	    Name		    "massMatrix"
-	    Location		    [618, 236, 987, 555]
-	    Open		    off
-	    ModelBrowserVisibility  off
-	    ModelBrowserWidth	    200
-	    ScreenColor		    "white"
-	    PaperOrientation	    "landscape"
-	    PaperPositionMode	    "auto"
-	    PaperType		    "usletter"
-	    PaperUnits		    "inches"
-	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
-	    TiledPageScale	    1
-	    ShowPageBoundaries	    off
-	    ZoomFactor		    "100"
-	    Block {
-	      BlockType		      Reshape
-	      Name		      "Reshape"
-	      SID		      "344"
-	      Ports		      [1, 1]
-	      Position		      [165, 148, 195, 172]
-	      ZOrder		      -23
-	      OutputDimensionality    "Customize"
-	      OutputDimensions	      "[25+6,25+6]"
-	    }
-	    Block {
-	      BlockType		      Reference
-	      Name		      "Transpose"
-	      SID		      "345"
-	      Ports		      [1, 1]
-	      Position		      [225, 148, 250, 172]
-	      LibraryVersion	      "1.898"
-	      SourceBlock	      "dspmtrx3/Transpose"
-	      SourceType	      "Transpose"
-	      Hermitian		      off
-	      overflowFlag	      off
-	    }
-	    Block {
-	      BlockType		      SubSystem
-	      Name		      "massMatrix"
-	      SID		      "346"
-	      Ports		      [0, 1]
-	      Position		      [60, 118, 140, 202]
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
-	      RequestExecContextInheritance off
-	      MaskHideContents	      off
-	      System {
-		Name			"massMatrix"
-		Location		[264, 238, 529, 537]
-		Open			off
-		ModelBrowserVisibility	off
-		ModelBrowserWidth	200
-		ScreenColor		"white"
-		PaperOrientation	"landscape"
-		PaperPositionMode	"auto"
-		PaperType		"usletter"
-		PaperUnits		"inches"
-		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
-		TiledPageScale		1
-		ShowPageBoundaries	off
-		ZoomFactor		"100"
-		Block {
-		  BlockType		  Constant
-		  Name			  "Constant"
-		  SID			  "347"
-		  Position		  [25, 70, 55, 100]
-		  ZOrder		  -5
-		  Value			  "0"
-		  OutDataTypeStr	  "int8"
-		  SampleTime		  "-1"
-		}
-		Block {
-		  BlockType		  Constant
-		  Name			  "Constant1"
-		  SID			  "348"
-		  Position		  [25, 190, 55, 220]
-		  ZOrder		  -5
-		  Value			  "zeros(25,1)"
-		  OutDataTypeStr	  "double"
-		  SampleTime		  "-1"
-		}
-		Block {
-		  BlockType		  S-Function
-		  Name			  "S-Function"
-		  SID			  "349"
-		  Ports			  [2, 7]
-		  Position		  [90, 27, 175, 263]
-		  ZOrder		  -5
-		  BackgroundColor	  "green"
-		  FunctionName		  "robotState"
-		  Parameters		  "val,robotname,localname"
-		  EnableBusSupport	  off
-		}
-		Block {
-		  BlockType		  Terminator
-		  Name			  "Terminator"
-		  SID			  "350"
-		  Position		  [210, 30, 230, 50]
-		  ZOrder		  -20
-		  ShowName		  off
-		}
-		Block {
-		  BlockType		  Terminator
-		  Name			  "Terminator1"
-		  SID			  "351"
-		  Position		  [210, 65, 230, 85]
-		  ZOrder		  -20
-		  ShowName		  off
-		}
-		Block {
-		  BlockType		  Terminator
-		  Name			  "Terminator2"
-		  SID			  "352"
-		  Position		  [210, 100, 230, 120]
-		  ZOrder		  -20
-		  ShowName		  off
-		}
-		Block {
-		  BlockType		  Terminator
-		  Name			  "Terminator3"
-		  SID			  "353"
-		  Position		  [210, 135, 230, 155]
-		  ZOrder		  -20
-		  ShowName		  off
-		}
-		Block {
-		  BlockType		  Terminator
-		  Name			  "Terminator4"
-		  SID			  "354"
-		  Position		  [210, 205, 230, 225]
-		  ZOrder		  -20
-		  ShowName		  off
-		}
-		Block {
-		  BlockType		  Terminator
-		  Name			  "Terminator5"
-		  SID			  "355"
-		  Position		  [210, 240, 230, 260]
-		  ZOrder		  -20
-		  ShowName		  off
-		}
-		Block {
-		  BlockType		  Outport
-		  Name			  "massMatrix"
-		  SID			  "356"
-		  Position		  [205, 173, 235, 187]
-		  ZOrder		  -9
-		  IconDisplay		  "Port number"
-		}
-		Line {
-		  SrcBlock		  "S-Function"
-		  SrcPort		  7
-		  DstBlock		  "Terminator5"
-		  DstPort		  1
-		}
-		Line {
-		  SrcBlock		  "S-Function"
-		  SrcPort		  6
-		  DstBlock		  "Terminator4"
-		  DstPort		  1
-		}
-		Line {
-		  SrcBlock		  "S-Function"
-		  SrcPort		  4
-		  DstBlock		  "Terminator3"
-		  DstPort		  1
-		}
-		Line {
-		  SrcBlock		  "S-Function"
-		  SrcPort		  3
-		  DstBlock		  "Terminator2"
-		  DstPort		  1
-		}
-		Line {
-		  SrcBlock		  "S-Function"
-		  SrcPort		  2
-		  DstBlock		  "Terminator1"
-		  DstPort		  1
-		}
-		Line {
-		  SrcBlock		  "S-Function"
-		  SrcPort		  1
-		  DstBlock		  "Terminator"
-		  DstPort		  1
-		}
-		Line {
-		  SrcBlock		  "S-Function"
-		  SrcPort		  5
-		  DstBlock		  "massMatrix"
-		  DstPort		  1
-		}
-		Line {
-		  SrcBlock		  "Constant1"
-		  SrcPort		  1
-		  DstBlock		  "S-Function"
-		  DstPort		  2
-		}
-		Line {
-		  SrcBlock		  "Constant"
-		  SrcPort		  1
-		  DstBlock		  "S-Function"
-		  DstPort		  1
-		}
-	      }
-	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "M"
-	      SID		      "357"
-	      Position		      [280, 153, 310, 167]
-	      ZOrder		      -9
-	      IconDisplay	      "Port number"
-	    }
-	    Line {
-	      SrcBlock		      "Transpose"
-	      SrcPort		      1
-	      DstBlock		      "M"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "Reshape"
-	      SrcPort		      1
-	      DstBlock		      "Transpose"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "massMatrix"
-	      SrcPort		      1
-	      DstBlock		      "Reshape"
-	      DstPort		      1
-	    }
-	  }
-	}
       }
     }
     Block {
@@ -3502,7 +3717,7 @@ Library {
       System {
 	Name			"wholeBodyStates"
 	Location		[904, 177, 1365, 416]
-	Open			on
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"

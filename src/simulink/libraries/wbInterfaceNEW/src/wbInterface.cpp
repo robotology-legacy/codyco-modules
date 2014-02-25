@@ -167,16 +167,19 @@ bool robotStatus::robotInit(int btype, int link) {
 
     // This variable JfootR must be changed with a more appropriate name
     JfootR.resize(NoChange,ICUB_DOFS+6);
-    
+
     // dot{J}dot{q}
-    dJdq = new double; 
-    
+    dJdq = new double;
+
     // dot{xBase} We will assume null velocity of the base for now since the estimate hasn't been implemented yet
-    dxB = 0;
-    
+    dxB.resize(6,0);
+
+    // Generalized bias forces term.
+    hterm.resize(6+25,0);
+
     // Should the mass matrix be resized here??? In the future if the number of DOFS or limbs for which the interface will
     // be used are input parameters, all variables could be resized here and by default leave ICUB_DOFS.
-    
+
     // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
     Ha.R = Rotation(0,0,1, 0,-1,0, 1,0,0);
 
@@ -317,27 +320,36 @@ bool robotStatus::dynamicsMassMatrix() {
     return ans;
 }
 //=========================================================================================================================
-MassMatrix robotStatus::getMassMatrix(){
-  return massMatrix;
+MassMatrix robotStatus::getMassMatrix() {
+    return massMatrix;
 }
 //=========================================================================================================================
-
-#ifdef NEWCODE
-//=========================================================================================================================
-double robotStatus::dynamicsGenBiasForces(double *dxB, double *hterm) {
+Vector robotStatus::dynamicsGenBiasForces() {
     bool ans = false;
     if(robotJntAngles(false)) {
-        if(DEBUGGING) fprintf(stderr,"robotJntAngles computed for genBiasForces\n");
+        if(DEBUGGING) fprintf(stderr,"robotJntAngles computed for dynamicsGenBiasForces\n");
         if(robotJntVelocities(false)) {
-            if(DEBUGGING) fprintf(stderr,"robotJntVelocities computed for genBiasForces\n");
+            if(DEBUGGING) fprintf(stderr,"robotJntVelocities computed for dynamicsGenBiasForces\n");
             if(world2baseRototranslation()) {
-                if(DEBUGGING) fprintf(stderr,"world2baseRototranslation computed for genBiasForces\n");
-                ans = wbInterface->computeGeneralizedBiasForces(qRad.data(), xBase, dqJ.data(), dxB, hterm);
+                if(DEBUGGING) fprintf(stderr,"world2baseRototranslation computed for dynamicsGenBiasForces\n");
+                if(robotBaseVelocity()) {
+                    if(DEBUGGING) fprintf(stderr,"robotBaseVelocity computed for dynamicsGenBiasForces\n");
+                    ans = wbInterface->computeGeneralizedBiasForces(qRad.data(), xBase, dqJ.data(), dxB.data(), hterm.data());
+                }
             }
         }
     }
-    return ans;
+    if(ans) {
+        fprintf(stderr,"h term: \n",hterm.toString().c_str());
+        return hterm;
+    }
+    else {
+        fprintf(stderr,"ERROR generalized bias forces were not successfully computed\n");
+        hterm.resize(25+6,0);
+        return hterm;
+    }
 }
+#ifdef NEWCODE
 //=========================================================================================================================
 bool robotStatus::robotBaseVelocity() {
 //       ans = wbInterface->getEstimate(ESTIMATE_BASE_VEL, )
@@ -353,11 +365,11 @@ bool robotStatus::dynamicsDJdq(int &linkId) {
             if(DEBUGGING) fprintf(stderr,"robotJntVelocities computed for dynamicsDJdq\n");
             if(world2baseRototranslation()) {
                 footLinkId = linkId;
-		forwardKinematics(footLinkId);
-		if(!robotBaseVelocity()){
-		  fprintf(stderr,"robotBaseVelocity failed in robotStatus::dynamicsDJd\n");
-		  return false;
-		}
+                forwardKinematics(footLinkId);
+                if(!robotBaseVelocity()) {
+                    fprintf(stderr,"robotBaseVelocity failed in robotStatus::dynamicsDJd\n");
+                    return false;
+                }
                 wbInterface->computeDJdq(qRad.data(),xBase,dqJ.data(),dxB,footLinkId,dJdq,x_pose.data());
             }
         }
@@ -425,7 +437,7 @@ static void mdlCheckParameters(SimStruct *S)
 //    block's characteristics (number of inputs, s, states, etc.).
 static void mdlInitializeSizes(SimStruct *S)
 {
-  
+
     if(DEBUGGING) fprintf(stderr,"STARTED mdlInitializeSizes\n");
     ssSetNumSFcnParams(S, NPARAMS);
 #if defined(MATLAB_MEX_FILE)
@@ -461,7 +473,7 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetOutputPortWidth   (S, 2, 7);               		// foot or COM pose from fwdKinematics.
     ssSetOutputPortWidth   (S, 3, 186);             		// 6 x (N+6) Jacobians for a specific link
     ssSetOutputPortWidth   (S, 4, (ICUB_DOFS+6)*(ICUB_DOFS+6));	// Mass matrix of size (N+6 x N+6)
-    ssSetOutputPortWidth   (S, 5, ICUB_DOFS);		    	// Generalized bias forces of size (N+6 x 1)
+    ssSetOutputPortWidth   (S, 5, ICUB_DOFS+6);		    	// Generalized bias forces of size (N+6 x 1)
     ssSetOutputPortWidth   (S, 6, 6);		    		// dot{J}dot{q} term
     ssSetOutputPortDataType(S, 0, 0);
     ssSetOutputPortDataType(S, 1, 0);
@@ -487,7 +499,7 @@ static void mdlInitializeSizes(SimStruct *S)
                  SS_OPTION_EXCEPTION_FREE_CODE | //we must be sure that every function we call never throws an exception
                  SS_OPTION_ALLOW_INPUT_SCALAR_EXPANSION |
                  SS_OPTION_USE_TLC_WITH_ACCELERATOR);
-    
+
     // For FUTURE WORK this flag should be called and debug by correctly programming mdlTerminate.
     //SS_OPTION_CALL_TERMINATE_ON_EXIT); //this calls the terminate function even in case of errors
     if(DEBUGGING) fprintf(stderr,"FINISHED mdlInitializeSizes\n");
@@ -508,7 +520,7 @@ static void mdlInitializeSampleTimes(SimStruct *S)
     // ssSetSampleTime(S, 0, 10.0);
     ssSetOffsetTime(S, 0, 0.0);
     ssSetModelReferenceSampleTimeDefaultInheritance(S);
-    
+
     if(DEBUGGING) fprintf(stderr,"FINISHED mdlInitializeSampleTimes\n");
 }
 
@@ -621,9 +633,9 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             break;
         case 7:
             fprintf(stderr,"This block will compute generalized bias forces from dynamics\n");
-	    break;
+            break;
         case 8:
-            fprintf(stderr,"This block will compute mass matrix from dynamics\n");	    
+            fprintf(stderr,"This block will compute mass matrix from dynamics\n");
             break;
         }
     }
@@ -744,30 +756,26 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         robot->setdqDes(dqDestmp);
     }
 
-    // h vector/expression from dynamics a.k.a. generalized bias forces
-    // floating base speed. Should this be computed outside and passed to the block or implemented by some method?
-//     double *dxB;
-//     dxB = new double;
-//     double *hterm;
-//     hterm = new double;
-// 
-//     if(btype == 7) {
-//         robot->dynamicsGenBiasForces(dxB, hterm);
-//         //send dxB and hterm contents to an output
-//     }
-// 
-//     delete dxB;
-//     delete hterm;
-
-    // massMatrix from dynamics
+    Vector h;
+    h.resize(ICUB_DOFS+6,0);
+    if(btype == 7) {
+        h = robot->dynamicsGenBiasForces();
+        real_T *pY5 = (real_T *)ssGetOutputPortSignal(S,5);
+        for(int_T j=0; j<ssGetOutputPortWidth(S,5); j++) {
+            pY5[j] = h(j);
+        }
+    }
+    
     MassMatrix massMatrix;
     if(btype == 8) {
-	if(DEBUGGING) fprintf(stderr,"About to compute mass matrix\n");	
-        robot->dynamicsMassMatrix();
-	massMatrix = robot->getMassMatrix();
-        real_T *pY5 = (real_T *)ssGetOutputPortSignal(S,4);
+        if(DEBUGGING) fprintf(stderr,"About to compute mass matrix\n");
+        if(!robot->dynamicsMassMatrix()) {
+            fprintf(stderr,"ERROR Mass matrix was not successfully computed\n");
+        }
+        massMatrix = robot->getMassMatrix();
+        real_T *pY6 = (real_T *)ssGetOutputPortSignal(S,4);
         for(int_T j=0; j<ssGetOutputPortWidth(S,4); j++) {
-            pY5[j] = massMatrix(j);
+            pY6[j] = massMatrix(j);
         }
     }
 
