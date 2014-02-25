@@ -301,6 +301,7 @@ template <class T> void wholeBodyDynamicsThread::broadcastData(T& _values, Buffe
 //*****************************************************************************
 void wholeBodyDynamicsThread::writeTorque(Vector _values, int _address, BufferedPort<Bottle> *_port)
 {
+    /** \todo TODO avoid (as much as feasible) dynamic memory allocation */
     Bottle a;
     a.addInt(_address);
     for(size_t i=0;i<_values.length();i++)
