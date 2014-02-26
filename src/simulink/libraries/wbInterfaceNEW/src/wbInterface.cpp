@@ -27,8 +27,8 @@
 #define LOCAL_PARAM_IDX 2
 // END MASK PARAMETERS -----------------------------------
 
-#define VERBOSE   0
-#define DEBUGGING 0
+#define VERBOSE   1
+#define DEBUGGING 1
 #define TIMING    0
 #define NEWCODE	  1
 
@@ -293,22 +293,26 @@ bool robotStatus::setCtrlMode(ControlMode ctrl_mode) {
 }
 //=========================================================================================================================
 void robotStatus::setdqDes(Vector dqD) {
-    int n = dqD.length();
-    new (&dqDesMap)    Map<VectorXd>(dqD.data(),_n);
-    if(DEBUGGING) {
-        for(int i=0; i<dqD.length(); i++) {
-            dqDes[i] = dqD[i];
-        }
-        if(DEBUGGING) fprintf(stderr,"Now printing dqDesMap: \n");
-        for(int i=0; i<dqDesMap.SizeAtCompileTime; i++)
-            fprintf(stderr,"%f \n",dqDesMap(i));
-    }
-    if(!wbInterface->setControlReference(dqDesMap.data()))
-        fprintf(stderr, "ERROR control reference could not be set.\n");
+//     int n = dqD.length();
+//     new (&dqDesMap)    Map<VectorXd>(dqD.data(),_n);
+//     if(DEBUGGING) {
+//         for(int i=0; i<dqD.length(); i++) {
+//             dqDes[i] = dqD[i];
+//         }
+//         if(DEBUGGING) fprintf(stderr,"Now printing dqDesMap: \n");
+//         for(int i=0; i<dqDesMap.SizeAtCompileTime; i++)
+//             fprintf(stderr,"%f \n",dqDesMap(i));
+//     }
+//     if(!wbInterface->setControlReference(dqDesMap.data()))
+//         fprintf(stderr, "ERROR control reference could not be set.\n");
+    fprintf(stderr,"Sono arrivato!!!!!!\n"); 
+    fprintf(stderr,"control reference to be sent is: %s\n",dqD.toString().c_str());
+    if(!wbInterface->setControlReference(dqD.data()))
+    fprintf(stderr, "ERROR control reference could not be set.\n");    
 }
 //=========================================================================================================================
 bool robotStatus::dynamicsMassMatrix() {
-    bool ans;
+    bool ans = false;
     if(robotJntAngles(false)) {
         if(DEBUGGING) fprintf(stderr,"robotJntAngles computed for dynamicsMassMatrix\n");
         if(world2baseRototranslation()) {
@@ -332,7 +336,12 @@ Vector robotStatus::dynamicsGenBiasForces() {
             if(world2baseRototranslation()) {
                 if(DEBUGGING) fprintf(stderr,"world2baseRototranslation computed for dynamicsGenBiasForces\n");
                 if(robotBaseVelocity()) {
-                    if(DEBUGGING) fprintf(stderr,"robotBaseVelocity computed for dynamicsGenBiasForces\n");
+                    if(DEBUGGING) {
+		      fprintf(stderr,"robotBaseVelocity computed for dynamicsGenBiasForces\n");		    
+		      fprintf(stderr,"Angles: %s\n",qRad.toString().c_str());
+		      cerr<<"Velocities: "<<dqJ<<endl;
+		      fprintf(stderr,"Base velocity: %s\n",dxB.toString().c_str());
+		    }
                     ans = wbInterface->computeGeneralizedBiasForces(qRad.data(), xBase, dqJ.data(), dxB.data(), hterm.data());
                 }
             }
