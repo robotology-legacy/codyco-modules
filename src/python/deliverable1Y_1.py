@@ -45,7 +45,17 @@ composite_offset = 0.001
 # initial position of the robot in the space
 x0=0
 y0=0
-z0=0.9
+z0=0.7
+# initial joint configuration
+init_l_elbow_pitch = pi/8.
+init_r_elbow_pitch = pi/8.
+init_l_knee = pi/4.
+init_r_knee = pi/4.
+init_l_ankle_pitch = 0
+init_r_ankle_pitch = 0
+init_l_shoulder_roll = pi/8.
+init_r_shoulder_roll = pi/8.
+
 
 ########### CONTROLLER ###############
 # formulation of the control problem
@@ -92,7 +102,7 @@ wm.contact.showContacts([(robot_name+"."+b,"ground.ground") for b in ["l_foot", 
 qinit = lgsm.zeros(N)
 # NEW WAY
 # correspond to:    l_elbow_pitch     r_elbow_pitch     l_knee             r_knee             l_ankle_pitch      r_ankle_pitch      l_shoulder_roll          r_shoulder_roll
-for name, val in [("l_elbow_pitch", pi/8.), ("r_elbow_pitch", pi/8.), ("l_knee", -0.05), ("r_knee", -0.05), ("l_ankle_pitch", -0.05), ("r_ankle_pitch", -0.05), ("l_shoulder_roll", pi/8.), ("r_shoulder_roll", pi/8.)]:
+for name, val in [("l_elbow_pitch", init_l_elbow_pitch), ("r_elbow_pitch", init_r_elbow_pitch), ("l_knee", init_l_knee), ("r_knee", pi/4.), ("l_ankle_pitch", 0), ("r_ankle_pitch", 0), ("l_shoulder_roll", pi/8.), ("r_shoulder_roll", pi/8.)]:
     qinit[jmap[robot_name+"."+name]] = val
 
 robot.setJointPositions(qinit)

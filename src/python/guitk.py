@@ -49,7 +49,7 @@ class MyTk(Frame):
         ["full", "waist","back / torso","head stabiliz","CoM","right_hand (XYZ)",
         "left_hand  (XYZ)","right_hand (R)","left_hand  (R)","right_hand (force)",
         "left_hand  (force)"]]
-        
+               
         self.Ntask = len(self.label)
               
         for irow in range(0,self.Ntask):
