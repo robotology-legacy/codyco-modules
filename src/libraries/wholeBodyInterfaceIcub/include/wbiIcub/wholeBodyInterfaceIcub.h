@@ -145,8 +145,10 @@ namespace wbiIcub
           * @param _ftSens_2_port List containing the port name for each force/torque sensor
           * @param _imu_2_port List containing the port name for each inertial measurement unit
           */
-        icubWholeBodySensors(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames, 
-            const std::vector<id_2_PortName> &_ftSens_2_port, const std::vector<id_2_PortName> &_imu_2_port);
+        icubWholeBodySensors(const char* _name, const char* _robotName,
+                             const std::vector<std::string> &_bodyPartNames, 
+                             const std::vector<id_2_PortName> &_ftSens_2_port,
+                             const std::vector<id_2_PortName> &_imu_2_port);
 
         virtual bool init();
         virtual bool close();
@@ -221,7 +223,7 @@ namespace wbiIcub
         
         std::map<wbi::LocalId, wbi::ControlMode>        currentCtrlModes;    // current control mode of each actuator
         
-//        std::map<std::string, std::string> configurationParameters; /*< Map containing parameters to be read at initialization time */
+        //std::map<std::string, std::string> configurationParameters; /*< Map containing parameters to be read at initialization time */
         yarp::os::Property configurationParameters; /*< Map containing parameters to be read at initialization time */
 
         // yarp drivers
@@ -1033,9 +1035,10 @@ namespace wbiIcub
           * @param dxB Velocity of the robot base, 3 values for linear velocity and 3 values for angular velocity.
           * @param ddq Joint accelerations.
           * @param ddxB Acceleration of the robot base, 3 values for linear acceleration and 3 values for angular acceleration.
+          * @param g gravity acceleration expressed in world frame (3 values)
           * @param tau Output joint torques.
          * @return True if the operation succeeded, false otherwise. */
-        virtual bool inverseDynamics(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double *ddq, double *ddxB, double *tau);
+        virtual bool inverseDynamics(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double *ddq, double *ddxB, double *g, double *tau);
 
         /** Compute the floating base Mass Matrix.
          * @param q Joint angles (rad).
@@ -1050,9 +1053,10 @@ namespace wbiIcub
          * @param xBase Rototranslation from world frame to robot base frame
          * @param dq Joint velocities (rad/s).
          * @param dxB Velocity of the robot base in world reference frame, 3 values for linear and 3 for angular velocity.
+         * @param g gravity acceleration expressed in world frame (3 values)
          * @param h Output N+6-dim vector containing all generalized bias forces (gravity+Coriolis+centrifugal), with N=number of joints.
          * @return True if the operation succeeded, false otherwise. */
-        virtual bool computeGeneralizedBiasForces(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double *h);
+        virtual bool computeGeneralizedBiasForces(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double*g, double *h);
        };
     
 
@@ -1135,12 +1139,12 @@ namespace wbiIcub
         { return modelInt->computeDJdq(q, xB, dq, dxB, linkId, dJdq, pos); }
         virtual bool forwardKinematics(double *q, const wbi::Frame &xB, int linkId, double *x)
         { return modelInt->forwardKinematics(q, xB, linkId, x); }
-        virtual bool inverseDynamics(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *tau)
-        { return modelInt->inverseDynamics(q, xB, dq, dxB, ddq, ddxB, tau); }
+        virtual bool inverseDynamics(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *g, double *tau)
+        { return modelInt->inverseDynamics(q, xB, dq, dxB, ddq, ddxB, g,tau); }
         virtual bool computeMassMatrix(double *q, const wbi::Frame &xB, double *M)
         { return modelInt->computeMassMatrix(q, xB, M); }
-        virtual bool computeGeneralizedBiasForces(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *h)
-        { return modelInt->computeGeneralizedBiasForces(q, xB, dq, dxB, h); }
+        virtual bool computeGeneralizedBiasForces(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *g, double *h)
+        { return modelInt->computeGeneralizedBiasForces(q, xB, dq, dxB, g, h); }
     };
     
 } // end namespace wbiIcub

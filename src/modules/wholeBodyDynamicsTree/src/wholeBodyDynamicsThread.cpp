@@ -229,7 +229,8 @@ bool wholeBodyDynamicsThread::threadInit()
     //Calibration variables 
     int nrOfAvailableFTSensors = estimator->getEstimateNumber(wbi::ESTIMATE_FORCE_TORQUE);
     if( nrOfAvailableFTSensors != icub_model_calibration.getNrOfFTSensors() ) {
-        std::cout << "wholeBodyDynamicsThread::threadInit() error: number of FT sensors different between model and interface" << std::endl;
+        std::cout << "wholeBodyDynamicsThread::threadInit() error: number of FT sensors different between model (" <<
+        icub_model_calibration.getNrOfFTSensors() << " and interface" << nrOfAvailableFTSensors << std::endl;
         return false;
     }
     

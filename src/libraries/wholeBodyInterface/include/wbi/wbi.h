@@ -299,9 +299,10 @@ namespace wbi
           * @param dxB Velocity of the robot base in world reference frame, 3 values for linear and 3 for angular velocity.
           * @param ddq Joint accelerations (rad/s^2).
           * @param ddxB Acceleration of the robot base in world reference frame, 3 values for linear and 3 for angular acceleration.
+          * @param g gravity acceleration expressed in world frame (3 values)
           * @param tau Output generalized forces at the joints and base (N+6 dimensional, with N=number of joints).
          * @return True if the operation succeeded, false otherwise. */
-        virtual bool inverseDynamics(double *q, const Frame &xBase, double *dq, double *dxB, double *ddq, double *ddxB, double *tau) = 0;
+        virtual bool inverseDynamics(double *q, const Frame &xBase, double *dq, double *dxB, double *ddq, double *ddxB, double *g, double *tau) = 0;
 
         /** Compute the floating base Mass Matrix.
          * @param q Joint angles (rad).
@@ -315,10 +316,11 @@ namespace wbi
          * @param xBase Rototranslation from world frame to robot base frame
          * @param dq Joint velocities (rad/s).
          * @param dxB Velocity of the robot base in world reference frame, 3 values for linear and 3 for angular velocity.
+         * @param g gravity acceleration expressed in world frame (3 values)
          * @param h Output N+6-dim vector containing all generalized bias forces (gravity+Coriolis+centrifugal), with N=number of joints.
          * @return True if the operation succeeded, false otherwise. */
 
-        virtual bool computeGeneralizedBiasForces(double *q, const Frame &xBase, double *dq, double *dxB, double *h) = 0;
+        virtual bool computeGeneralizedBiasForces(double *q, const Frame &xBase, double *dq, double *dxB, double* g, double *h) = 0;
         
     };
     

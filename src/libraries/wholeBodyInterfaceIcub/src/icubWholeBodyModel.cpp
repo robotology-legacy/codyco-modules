@@ -466,8 +466,13 @@ bool icubWholeBodyModel::forwardKinematics(double *q, const Frame &xB, int linkI
     return true;
 }
 
-bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *tau)
+bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *g, double *tau)
 {
+    //We can take into account the gravity efficiently by adding a fictional acceleration to the base
+    ddq[0] = ddq[0] - g[0];
+    ddq[1] = ddq[1] - g[1];
+    ddq[2] = ddq[2] - g[2];
+    
     /** \todo move all conversion (also the one relative to frames) in convert* functions */
     //Converting local wbi positions/velocity/acceleration to iDynTree one
     convertBasePose(xB,world_base_transformation);
@@ -571,9 +576,9 @@ bool icubWholeBodyModel::computeMassMatrix(double *q, const Frame &xBase, double
     return true;
 }
 
-bool icubWholeBodyModel::computeGeneralizedBiasForces(double *q, const Frame &xBase, double *dq, double *dxB, double *h)
-{
-/** \todo move all conversion (also the one relative to frames) in convert* functions */
+bool icubWholeBodyModel::computeGeneralizedBiasForces(double *q, const Frame &xBase, double *dq, double *dxB, double *g, double *h)
+{    
+    /** \todo move all conversion (also the one relative to frames) in convert* functions */
     //Converting local wbi positions/velocity/acceleration to iDynTree one
     convertBasePose(xBase,world_base_transformation);
     convertQ(q,all_q);
@@ -582,6 +587,12 @@ bool icubWholeBodyModel::computeGeneralizedBiasForces(double *q, const Frame &xB
     yarp::sig::Vector ddxB(6, 0.0);
     convertBaseAcceleration(ddxB.data(),a_base,domega_base);
     yarp::sig::Vector ddq(dof, 0.0);
+    
+    //We can take into account the gravity efficiently by adding a fictional acceleration to the base
+    ddq[0] = ddq[0] - g[0];
+    ddq[1] = ddq[1] - g[1];
+    ddq[2] = ddq[2] - g[2];
+    
     convertDDQ(ddq.data(),all_ddq);
 
     //Setting iDynTree variables
