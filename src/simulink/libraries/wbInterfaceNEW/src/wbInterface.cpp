@@ -234,11 +234,11 @@ Vector robotStatus::forwardKinematics(int &linkId) {
                 if(DEBUGGING) fprintf(stderr,"pose: %s \n", x_pose.toString().c_str());
                 return x_pose;
             }
-            else
-            {
-                x_pose.zero();
-                return x_pose;
-            }
+//            else
+//            {
+//                x_pose.zero();
+//                return x_pose;
+//            }
         }
         else {
             fprintf(stderr,"ERROR computing world 2 base rototranslation in robotStatus::forwardKinematics!\n");
@@ -247,6 +247,8 @@ Vector robotStatus::forwardKinematics(int &linkId) {
     else {
         fprintf(stderr,"ERROR acquiring robot joint angles in robotStatus::forwardKinematics\n");
     }
+    x_pose.zero();
+    return x_pose;
 }
 //=========================================================================================================================
 JacobianMatrix robotStatus::jacobian(int &lid) {
@@ -257,11 +259,11 @@ JacobianMatrix robotStatus::jacobian(int &lid) {
             {
                 return JfootR;
             }
-            else
-            {
-                JfootR.setZero();
-                return JfootR;
-            }
+//            else
+//            {
+//                JfootR.setZero();
+//                return JfootR;
+//            }
         }
         else {
             fprintf(stderr,"ERROR computing world to base rototranslation \n");
@@ -270,7 +272,8 @@ JacobianMatrix robotStatus::jacobian(int &lid) {
     else {
         fprintf(stderr,"ERROR getting robot joint angles to compute Jacobians \n");
     }
-
+    JfootR.setZero();
+    return JfootR;
 }
 //=========================================================================================================================
 Vector robotStatus::getEncoders() {
@@ -308,7 +311,7 @@ void robotStatus::setdqDes(Vector dqD) {
 }
 //=========================================================================================================================
 bool robotStatus::dynamicsMassMatrix() {
-    bool ans;
+    bool ans = false;
     if(robotJntAngles(false)) {
         if(DEBUGGING) fprintf(stderr,"robotJntAngles computed for dynamicsMassMatrix\n");
         if(world2baseRototranslation()) {
@@ -543,11 +546,19 @@ static void mdlStart(SimStruct *S)
     buflen = mxGetN((ssGetSFcnParam(S, STRING_PARAM_IDX)))*sizeof(mxChar)+1;
     String = static_cast<char*>(mxMalloc(buflen));
     status = mxGetString((ssGetSFcnParam(S, STRING_PARAM_IDX)),String,buflen);
+    if (status) {
+        ssSetErrorStatus(S,"Cannot retrieve string from parameter 1!! \n");
+        return;
+    }
     if(DEBUGGING) fprintf(stderr,"The string being passed for robotName is - %s\n ", String);
-
+    
     string robot_name = String;
 
     status = mxGetString((ssGetSFcnParam(S, LOCAL_PARAM_IDX)),String,buflen);
+    if (status) {
+        ssSetErrorStatus(S,"Cannot retrieve string from parameter 2!! \n");
+        return;
+    }
     if(DEBUGGING) fprintf(stderr,"The string being passed for local is - %s \n", String);
 
     string local_name = String;

@@ -64,8 +64,8 @@ bool wholeBodyDynamics_IDLServer::quit() {
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::quit()");
   }
-  bool ok = yarp().write(helper,helper);
-  return ok?helper._return:_return;
+  bool ok = yarp().write(helper, helper);
+  return ok ? helper._return : _return;
 }
 
 bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
