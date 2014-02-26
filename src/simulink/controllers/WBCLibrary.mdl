@@ -17,9 +17,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Feb 25 15:28:27 2014"
-  RTWModifiedTimeStamp	  315242905
-  ModelVersionFormat	  "1.%<AutoIncrement:141>"
+  LastModifiedDate	  "Wed Feb 26 15:03:55 2014"
+  RTWModifiedTimeStamp	  315327798
+  ModelVersionFormat	  "1.%<AutoIncrement:146>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -628,6 +628,12 @@ Library {
   }
   BlockParameterDefaults {
     Block {
+      BlockType		      Concatenate
+      NumInputs		      "2"
+      Mode		      "Vector"
+      ConcatenateDimension    "1"
+    }
+    Block {
       BlockType		      Constant
       Value		      "1"
       VectorParams1D	      on
@@ -685,6 +691,21 @@ Library {
       InitialOutput	      "[]"
     }
     Block {
+      BlockType		      Product
+      Inputs		      "2"
+      Multiplication	      "Element-wise(.*)"
+      CollapseMode	      "All dimensions"
+      CollapseDim	      "1"
+      InputSameDT	      on
+      OutMin		      "[]"
+      OutMax		      "[]"
+      OutDataTypeStr	      "Inherit: Same as first input"
+      LockScale		      off
+      RndMeth		      "Zero"
+      SaturateOnIntegerOverflow	on
+      SampleTime	      "-1"
+    }
+    Block {
       BlockType		      Reshape
       OutputDimensionality    "1-D array"
       OutputDimensions	      "[1,1]"
@@ -725,7 +746,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [1775, 575, 2563, 795]
+    Location		    [174, 146, 962, 366]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -739,7 +760,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "416"
+    SIDHighWatermark	    "455"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -763,8 +784,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
-	Location		[69, 45, 787, 555]
-	Open			off
+	Location		[685, 257, 1491, 481]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -778,10 +799,10 @@ Library {
 	ZoomFactor		"100"
 	Block {
 	  BlockType		  SubSystem
-	  Name			  "DampPinv1"
+	  Name			  "DampPinv"
 	  SID			  "104"
 	  Ports			  [2, 1]
-	  Position		  [190, 29, 260, 91]
+	  Position		  [435, 84, 505, 146]
 	  ZOrder		  -1
 	  BackgroundColor	  "[0.848000, 0.128048, 0.320035]"
 	  MinAlgLoopOccurrences	  off
@@ -805,7 +826,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  MaskValueString	  "1e-4"
 	  System {
-	    Name		    "DampPinv1"
+	    Name		    "DampPinv"
 	    Location		    [999, 549, 1366, 951]
 	    Open		    off
 	    ModelBrowserVisibility  off
@@ -1007,20 +1028,20 @@ Library {
 	  Name			  "Soft Real Time"
 	  SID			  "114"
 	  Ports			  []
-	  Position		  [328, 45, 415, 76]
+	  Position		  [25, 102, 105, 126]
 	  ZOrder		  -2
 	  ShowName		  off
 	  LibraryVersion	  "1.7"
 	  SourceBlock		  "utility/Soft Real Time"
-	  SourceType		  "Unknown"
+	  SourceType		  ""
 	  x			  "Ts"
 	}
 	Block {
 	  BlockType		  SubSystem
-	  Name			  "TruncPinv1"
+	  Name			  "TruncPinv"
 	  SID			  "109"
 	  Ports			  [2, 1]
-	  Position		  [60, 24, 130, 86]
+	  Position		  [335, 84, 405, 146]
 	  ZOrder		  -3
 	  BackgroundColor	  "[0.534601, 0.470279, 1.000000]"
 	  MinAlgLoopOccurrences	  off
@@ -1044,7 +1065,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  MaskValueString	  "1e-4"
 	  System {
-	    Name		    "TruncPinv1"
+	    Name		    "TruncPinv"
 	    Location		    [561, 279, 928, 681]
 	    Open		    off
 	    ModelBrowserVisibility  off
@@ -1243,10 +1264,244 @@ Library {
 	}
 	Block {
 	  BlockType		  SubSystem
+	  Name			  "baseVelocity"
+	  SID			  "431"
+	  Ports			  [3, 2]
+	  Position		  [535, 59, 650, 171]
+	  BackgroundColor	  "[0.753334, 1.000000, 0.112472]"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  RTWSystemCode		  "Auto"
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  RequestExecContextInheritance	off
+	  MaskHideContents	  off
+	  System {
+	    Name		    "baseVelocity"
+	    Location		    [404, 109, 1040, 338]
+	    Open		    off
+	    ModelBrowserVisibility  off
+	    ModelBrowserWidth	    200
+	    ScreenColor		    "white"
+	    PaperOrientation	    "landscape"
+	    PaperPositionMode	    "auto"
+	    PaperType		    "usletter"
+	    PaperUnits		    "inches"
+	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
+	    TiledPageScale	    1
+	    ShowPageBoundaries	    off
+	    ZoomFactor		    "100"
+	    Block {
+	      BlockType		      Inport
+	      Name		      "JacobRF"
+	      SID		      "432"
+	      Position		      [25, 33, 55, 47]
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Inport
+	      Name		      "JacobLF"
+	      SID		      "433"
+	      Position		      [25, 118, 55, 132]
+	      Port		      "2"
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Inport
+	      Name		      "dq"
+	      SID		      "434"
+	      Position		      [25, 168, 55, 182]
+	      Port		      "3"
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Concatenate
+	      Name		      "Matrix\nConcatenate"
+	      SID		      "435"
+	      Ports		      [2, 1]
+	      Position		      [135, 59, 190, 101]
+	      ZOrder		      -14
+	      ShowName		      off
+	      Mode		      "Multidimensional array"
+	    }
+	    Block {
+	      BlockType		      Product
+	      Name		      "Product"
+	      SID		      "436"
+	      Ports		      [2, 1]
+	      Position		      [375, 97, 405, 128]
+	      ZOrder		      -19
+	      Multiplication	      "Matrix(*)"
+	      InputSameDT	      off
+	      OutDataTypeStr	      "Inherit: Inherit via internal rule"
+	      SaturateOnIntegerOverflow	off
+	    }
+	    Block {
+	      BlockType		      Reference
+	      Name		      "SVD Solver"
+	      SID		      "437"
+	      Ports		      [2, 1]
+	      Position		      [455, 56, 535, 114]
+	      LibraryVersion	      "1.161"
+	      SourceBlock	      "dspsolvers/SVD Solver"
+	      SourceType	      "SVD Solver"
+	      wanterr		      off
+	    }
+	    Block {
+	      BlockType		      Reference
+	      Name		      "Submatrix"
+	      SID		      "438"
+	      Ports		      [1, 1]
+	      Position		      [255, 85, 305, 125]
+	      ShowName		      off
+	      LibraryVersion	      "1.898"
+	      SourceBlock	      "dspmtrx3/Submatrix"
+	      SourceType	      "Submatrix"
+	      RowSpan		      "Range of rows"
+	      RowStartMode	      "First"
+	      RowStartIndex	      "1"
+	      RowEndMode	      "Last"
+	      RowEndIndex	      "1"
+	      ColSpan		      "Range of columns"
+	      ColStartMode	      "Index"
+	      ColStartIndex	      "7"
+	      ColEndMode	      "Last"
+	      ColEndIndex	      "1"
+	    }
+	    Block {
+	      BlockType		      Reference
+	      Name		      "Submatrix3"
+	      SID		      "439"
+	      Ports		      [1, 1]
+	      Position		      [255, 35, 305, 75]
+	      ShowName		      off
+	      LibraryVersion	      "1.898"
+	      SourceBlock	      "dspmtrx3/Submatrix"
+	      SourceType	      "Submatrix"
+	      RowSpan		      "Range of rows"
+	      RowStartMode	      "First"
+	      RowStartIndex	      "1"
+	      RowEndMode	      "Last"
+	      RowEndIndex	      "1"
+	      ColSpan		      "Range of columns"
+	      ColStartMode	      "First"
+	      ColStartIndex	      "7"
+	      ColEndMode	      "Index"
+	      ColEndIndex	      "6"
+	    }
+	    Block {
+	      BlockType		      Outport
+	      Name		      "baseVel"
+	      SID		      "440"
+	      Position		      [570, 78, 600, 92]
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Outport
+	      Name		      "A_constraints"
+	      SID		      "441"
+	      Position		      [255, 193, 285, 207]
+	      Port		      "2"
+	      IconDisplay	      "Port number"
+	    }
+	    Line {
+	      SrcBlock		      "dq"
+	      SrcPort		      1
+	      Points		      [300, 0]
+	      DstBlock		      "Product"
+	      DstPort		      2
+	    }
+	    Line {
+	      SrcBlock		      "Product"
+	      SrcPort		      1
+	      Points		      [15, 0; 0, -15]
+	      DstBlock		      "SVD Solver"
+	      DstPort		      2
+	    }
+	    Line {
+	      SrcBlock		      "Submatrix"
+	      SrcPort		      1
+	      DstBlock		      "Product"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "JacobLF"
+	      SrcPort		      1
+	      Points		      [55, 0; 0, -35]
+	      DstBlock		      "Matrix\nConcatenate"
+	      DstPort		      2
+	    }
+	    Line {
+	      SrcBlock		      "SVD Solver"
+	      SrcPort		      1
+	      DstBlock		      "baseVel"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "JacobRF"
+	      SrcPort		      1
+	      Points		      [55, 0; 0, 30]
+	      DstBlock		      "Matrix\nConcatenate"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "Submatrix3"
+	      SrcPort		      1
+	      Points		      [115, 0; 0, 15]
+	      DstBlock		      "SVD Solver"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "Matrix\nConcatenate"
+	      SrcPort		      1
+	      Points		      [10, 0]
+	      Branch {
+		Points			[0, -25]
+		DstBlock		"Submatrix3"
+		DstPort			1
+	      }
+	      Branch {
+		Points			[0, 25]
+		Branch {
+		  DstBlock		  "Submatrix"
+		  DstPort		  1
+		}
+		Branch {
+		  Points		  [0, 95]
+		  DstBlock		  "A_constraints"
+		  DstPort		  1
+		}
+	      }
+	    }
+	    Annotation {
+	      SID		      "444"
+	      Name		      " A_constraints \n(double supp)"
+	      Position		      [249, 78]
+	      ForegroundColor	      "white"
+	      BackgroundColor	      "black"
+	    }
+	    Annotation {
+	      SID		      "443"
+	      Name		      "        CONSTRAINTS IN DOUBLE SUPPORT               \n\n\n\n\n\n\n                                "
+	      "\n\n\n                                                                   "
+	      Position		      [191, 83]
+	      BackgroundColor	      "yellow"
+	    }
+	    Annotation {
+	      SID		      "442"
+	      Name		      "The constraints block should be put outside"
+	      Position		      [431, 21]
+	      ForegroundColor	      "white"
+	      BackgroundColor	      "red"
+	    }
+	  }
+	}
+	Block {
+	  BlockType		  SubSystem
 	  Name			  "minJerkTrajGen"
 	  SID			  "25"
 	  Ports			  [2, 3]
-	  Position		  [475, 59, 560, 191]
+	  Position		  [675, 49, 760, 181]
 	  ZOrder		  -4
 	  BackgroundColor	  "[0.156255, 1.000000, 0.640991]"
 	  MinAlgLoopOccurrences	  off
@@ -1378,8 +1633,9 @@ Library {
 	  Name			  "yarp read"
 	  SID			  "249"
 	  Ports			  [0, 3]
-	  Position		  [335, 151, 405, 189]
+	  Position		  [235, 94, 305, 136]
 	  ZOrder		  -5
+	  BackgroundColor	  "black"
 	  FunctionName		  "yRead"
 	  Parameters		  "from,to,num"
 	  EnableBusSupport	  off
@@ -1403,9 +1659,8 @@ Library {
 	  Name			  "yarp write"
 	  SID			  "173"
 	  Ports			  [1]
-	  Position		  [215, 151, 290, 189]
+	  Position		  [135, 94, 205, 136]
 	  ZOrder		  -6
-	  ForegroundColor	  "gray"
 	  BackgroundColor	  "black"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -1495,7 +1750,7 @@ Library {
       System {
 	Name			"wholeBodyActuators"
 	Location		[1717, 225, 2260, 396]
-	Open			off
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -1604,13 +1859,12 @@ Library {
 	  MaskEnableString	  "on,on,on"
 	  MaskVisibilityString	  "on,on,on"
 	  MaskToolTipString	  "on,on,on"
-	  MaskInitialization	  "val = 9\nrobotName = 'icubSim'\nlocalName = 'simulink'"
 	  MaskIconFrame		  on
 	  MaskIconOpaque	  on
 	  MaskIconRotate	  "none"
 	  MaskPortRotate	  "default"
 	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "5|robotName|localName"
+	  MaskValueString	  "0|robotName|localName"
 	  System {
 	    Name		    "Set Angles"
 	    Location		    [480, 421, 755, 665]
@@ -1790,13 +2044,12 @@ Library {
 	  MaskEnableString	  "on,on,on"
 	  MaskVisibilityString	  "on,on,on"
 	  MaskToolTipString	  "on,on,on"
-	  MaskInitialization	  "val = 9\nrobotName = 'icubSim'\nlocalName = 'simulink'"
 	  MaskIconFrame		  on
 	  MaskIconOpaque	  on
 	  MaskIconRotate	  "none"
 	  MaskPortRotate	  "default"
 	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "6|'icubSim'|'simulink'"
+	  MaskValueString	  "6|robotName|localName"
 	  System {
 	    Name		    "Set Torques"
 	    Location		    [480, 421, 755, 665]
@@ -1969,6 +2222,20 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
+	  MaskPromptString	  "Block type|Robot name|Local name"
+	  MaskStyleString	  "edit,edit,edit"
+	  MaskVariables		  "val=@1;robotName=@2;localName=@3;"
+	  MaskTunableValueString  "on,on,on"
+	  MaskCallbackString	  "||"
+	  MaskEnableString	  "on,on,on"
+	  MaskVisibilityString	  "on,on,on"
+	  MaskToolTipString	  "on,on,on"
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
+	  MaskValueString	  "1|robotName|localName"
 	  System {
 	    Name		    "Set Velocities"
 	    Location		    [699, 81, 1209, 698]
@@ -2158,7 +2425,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[1813, 303, 2458, 562]
+	Location		[505, 514, 1150, 773]
 	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -2193,8 +2460,8 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Dynamics"
-	    Location		    [865, 212, 1273, 339]
-	    Open		    off
+	    Location		    [529, 362, 1100, 489]
+	    Open		    on
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -2211,7 +2478,7 @@ Library {
 	      Name		      "computeh"
 	      SID		      "358"
 	      Ports		      [0, 1]
-	      Position		      [170, 39, 250, 81]
+	      Position		      [165, 39, 245, 81]
 	      ZOrder		      -1
 	      BackgroundColor	      "[0.850000, 0.010000, 0.698000]"
 	      MinAlgLoopOccurrences   off
@@ -2394,10 +2661,197 @@ Library {
 	    }
 	    Block {
 	      BlockType		      SubSystem
-	      Name		      "dot{J}*dot{q}"
+	      Name		      "dJ*dq LeftFoot"
+	      SID		      "445"
+	      Ports		      [0, 1]
+	      Position		      [390, 38, 470, 82]
+	      BackgroundColor	      "[0.662196, 0.000000, 1.000000]"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      RTWSystemCode	      "Auto"
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      RequestExecContextInheritance off
+	      MaskHideContents	      off
+	      MaskPromptString	      "Block type|Robot name|Local name"
+	      MaskStyleString	      "edit,edit,edit"
+	      MaskVariables	      "val=@1;robotName=@2;localName=@3;"
+	      MaskTunableValueString  "on,on,on"
+	      MaskCallbackString      "||"
+	      MaskEnableString	      "on,on,on"
+	      MaskVisibilityString    "on,on,on"
+	      MaskToolTipString	      "on,on,on"
+	      MaskInitialization      "val = 9\nrobotName = 'icubSim'\nlocalName = 'simulink'"
+	      MaskIconFrame	      on
+	      MaskIconOpaque	      on
+	      MaskIconRotate	      "none"
+	      MaskPortRotate	      "default"
+	      MaskIconUnits	      "autoscale"
+	      MaskValueString	      "9|robotName|localName"
+	      System {
+		Name			"dJ*dq LeftFoot"
+		Location		[2083, 620, 2358, 864]
+		Open			off
+		ModelBrowserVisibility	off
+		ModelBrowserWidth	200
+		ScreenColor		"white"
+		PaperOrientation	"landscape"
+		PaperPositionMode	"auto"
+		PaperType		"usletter"
+		PaperUnits		"inches"
+		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+		TiledPageScale		1
+		ShowPageBoundaries	off
+		ZoomFactor		"100"
+		Block {
+		  BlockType		  Constant
+		  Name			  "LeftFoot"
+		  SID			  "446"
+		  Position		  [25, 65, 55, 95]
+		  ZOrder		  -4
+		  OutDataTypeStr	  "int8"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  S-Function
+		  Name			  "S-Function"
+		  SID			  "447"
+		  Ports			  [2, 7]
+		  Position		  [110, 29, 195, 221]
+		  ZOrder		  -5
+		  BackgroundColor	  "darkGreen"
+		  FunctionName		  "robotState"
+		  Parameters		  "val,robotName,localName"
+		  EnableBusSupport	  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator"
+		  SID			  "448"
+		  Position		  [225, 40, 245, 60]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator1"
+		  SID			  "449"
+		  Position		  [225, 65, 245, 85]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator2"
+		  SID			  "450"
+		  Position		  [225, 90, 245, 110]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator3"
+		  SID			  "451"
+		  Position		  [225, 115, 245, 135]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator4"
+		  SID			  "452"
+		  Position		  [225, 140, 245, 160]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator5"
+		  SID			  "453"
+		  Position		  [225, 165, 245, 185]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "dummy"
+		  SID			  "454"
+		  Position		  [25, 160, 55, 190]
+		  ZOrder		  -4
+		  Value			  "zeros(25,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Outport
+		  Name			  "dJdq"
+		  SID			  "455"
+		  Position		  [220, 193, 250, 207]
+		  ZOrder		  -23
+		  IconDisplay		  "Port number"
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  6
+		  DstBlock		  "Terminator5"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  5
+		  DstBlock		  "Terminator4"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  4
+		  DstBlock		  "Terminator3"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  3
+		  DstBlock		  "Terminator2"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  2
+		  DstBlock		  "Terminator1"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  1
+		  DstBlock		  "Terminator"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  7
+		  DstBlock		  "dJdq"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "dummy"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  2
+		}
+		Line {
+		  SrcBlock		  "LeftFoot"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  1
+		}
+	      }
+	    }
+	    Block {
+	      BlockType		      SubSystem
+	      Name		      "dJ*dq RightFoot"
 	      SID		      "372"
 	      Ports		      [0, 1]
-	      Position		      [285, 39, 365, 81]
+	      Position		      [275, 39, 355, 81]
 	      BackgroundColor	      "[0.501000, 0.015000, 0.850000]"
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
@@ -2422,8 +2876,8 @@ Library {
 	      MaskIconUnits	      "autoscale"
 	      MaskValueString	      "9|robotName|localName"
 	      System {
-		Name			"dot{J}*dot{q}"
-		Location		[2074, 368, 2349, 612]
+		Name			"dJ*dq RightFoot"
+		Location		[2076, 424, 2351, 668]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -2444,16 +2898,6 @@ Library {
 		  ZOrder		  -4
 		  Value			  "0"
 		  OutDataTypeStr	  "int8"
-		  SampleTime		  "-1"
-		}
-		Block {
-		  BlockType		  Constant
-		  Name			  "RightFoot1"
-		  SID			  "374"
-		  Position		  [25, 160, 55, 190]
-		  ZOrder		  -4
-		  Value			  "zeros(25,1)"
-		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
 		Block {
@@ -2517,6 +2961,16 @@ Library {
 		  ShowName		  off
 		}
 		Block {
+		  BlockType		  Constant
+		  Name			  "dummy"
+		  SID			  "374"
+		  Position		  [25, 160, 55, 190]
+		  ZOrder		  -4
+		  Value			  "zeros(25,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
 		  BlockType		  Outport
 		  Name			  "dJdq"
 		  SID			  "382"
@@ -2567,7 +3021,7 @@ Library {
 		  DstPort		  1
 		}
 		Line {
-		  SrcBlock		  "RightFoot1"
+		  SrcBlock		  "dummy"
 		  SrcPort		  1
 		  DstBlock		  "S-Function"
 		  DstPort		  2
@@ -4811,7 +5265,7 @@ Stateflow {
   }
   chart {
     id			    2
-    name		    "Utilities/DampPinv1/Damped Pseudo Inverse"
+    name		    "Utilities/DampPinv/Damped Pseudo Inverse"
     windowPosition	    [259 477 200 423]
     viewLimits		    [0 156.75 0 153.75]
     screen		    [1 1 3280 1200 1.25]
@@ -4946,13 +5400,13 @@ Stateflow {
   }
   instance {
     id			    9
-    name		    "Utilities/DampPinv1/Damped Pseudo Inverse"
+    name		    "Utilities/DampPinv/Damped Pseudo Inverse"
     machine		    1
     chart		    2
   }
   chart {
     id			    10
-    name		    "Utilities/TruncPinv1/Truncated PseudoInverse"
+    name		    "Utilities/TruncPinv/Truncated PseudoInverse"
     windowPosition	    [244 474 200 423]
     viewLimits		    [0 156.75 0 153.75]
     screen		    [1 1 3280 1200 1.25]
@@ -5087,7 +5541,7 @@ Stateflow {
   }
   instance {
     id			    17
-    name		    "Utilities/TruncPinv1/Truncated PseudoInverse"
+    name		    "Utilities/TruncPinv/Truncated PseudoInverse"
     machine		    1
     chart		    10
   }
