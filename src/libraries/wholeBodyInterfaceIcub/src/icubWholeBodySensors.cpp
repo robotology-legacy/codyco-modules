@@ -456,7 +456,8 @@ bool icubWholeBodySensors::addFTsensor(const wbi::LocalId &i)
 
 int icubWholeBodySensors::addFTsensors(const wbi::LocalIdList &jList)
 {
-    // if initialization was done, then open port of specified IMU
+    // if initialization was done, then open port of specified I
+    
     // if initialization was not done, ports will be opened during initialization
     if(initDone)
         for(LocalIdList::const_iterator itBp=jList.begin(); itBp!=jList.end(); itBp++)
