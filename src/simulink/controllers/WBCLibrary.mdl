@@ -17,9 +17,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Feb 25 16:36:49 2014"
-  RTWModifiedTimeStamp	  315246948
-  ModelVersionFormat	  "1.%<AutoIncrement:145>"
+  LastModifiedDate	  "Wed Feb 26 15:03:55 2014"
+  RTWModifiedTimeStamp	  315327798
+  ModelVersionFormat	  "1.%<AutoIncrement:146>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -746,7 +746,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [197, 396, 985, 616]
+    Location		    [174, 146, 962, 366]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -784,7 +784,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
-	Location		[343, 209, 1149, 433]
+	Location		[685, 257, 1491, 481]
 	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -1750,7 +1750,7 @@ Library {
       System {
 	Name			"wholeBodyActuators"
 	Location		[1717, 225, 2260, 396]
-	Open			off
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -1859,13 +1859,12 @@ Library {
 	  MaskEnableString	  "on,on,on"
 	  MaskVisibilityString	  "on,on,on"
 	  MaskToolTipString	  "on,on,on"
-	  MaskInitialization	  "val = 9\nrobotName = 'icubSim'\nlocalName = 'simulink'"
 	  MaskIconFrame		  on
 	  MaskIconOpaque	  on
 	  MaskIconRotate	  "none"
 	  MaskPortRotate	  "default"
 	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "5|robotName|localName"
+	  MaskValueString	  "0|robotName|localName"
 	  System {
 	    Name		    "Set Angles"
 	    Location		    [480, 421, 755, 665]
@@ -2045,13 +2044,12 @@ Library {
 	  MaskEnableString	  "on,on,on"
 	  MaskVisibilityString	  "on,on,on"
 	  MaskToolTipString	  "on,on,on"
-	  MaskInitialization	  "val = 9\nrobotName = 'icubSim'\nlocalName = 'simulink'"
 	  MaskIconFrame		  on
 	  MaskIconOpaque	  on
 	  MaskIconRotate	  "none"
 	  MaskPortRotate	  "default"
 	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "6|'icubSim'|'simulink'"
+	  MaskValueString	  "6|robotName|localName"
 	  System {
 	    Name		    "Set Torques"
 	    Location		    [480, 421, 755, 665]
@@ -2224,6 +2222,20 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
+	  MaskPromptString	  "Block type|Robot name|Local name"
+	  MaskStyleString	  "edit,edit,edit"
+	  MaskVariables		  "val=@1;robotName=@2;localName=@3;"
+	  MaskTunableValueString  "on,on,on"
+	  MaskCallbackString	  "||"
+	  MaskEnableString	  "on,on,on"
+	  MaskVisibilityString	  "on,on,on"
+	  MaskToolTipString	  "on,on,on"
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
+	  MaskValueString	  "1|robotName|localName"
 	  System {
 	    Name		    "Set Velocities"
 	    Location		    [699, 81, 1209, 698]
@@ -2448,7 +2460,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Dynamics"
-	    Location		    [473, 252, 1044, 379]
+	    Location		    [529, 362, 1100, 489]
 	    Open		    on
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
