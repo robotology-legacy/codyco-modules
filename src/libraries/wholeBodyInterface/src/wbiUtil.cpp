@@ -61,6 +61,11 @@ LocalIdList::~LocalIdList() {}
 
 void LocalIdList::pushId(int bp, int i)
 {
+    //If the bodypart is not part of the LocalIdList, create it
+    if( this->find(bp) == this->end() ) 
+    {
+        (*this)[bp] = std::vector<int>(0); 
+    }
     (*this)[bp].push_back(i);
 }
 

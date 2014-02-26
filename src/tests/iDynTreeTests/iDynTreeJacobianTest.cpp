@@ -148,13 +148,12 @@ int main()
     
     icub_idyntree_version.head_version = 2;
     icub_idyntree_version.legs_version = 2;
-    
-    bool ft_foot = true;
+    icub_idyntree_version.feet_ft = true;
     
     //The iCubTree is istantiated
     //note that the serialization used is the one used in iDyn, while the 
     //default one is the one used in skinDynLib
-    iCubTree icub_idyntree(icub_idyntree_version,ft_foot,IDYN_SERIALIZATION);
+    iCubTree icub_idyntree(icub_idyntree_version,IDYN_SERIALIZATION);
 
     Vector w0(3,0.0);
     Vector dw0(3,0.0);
@@ -265,7 +264,7 @@ int main()
     //We need to compute kinematicRNEA using root link as the kinematic source
     std::string kinematic_base_link_name = "root_link";
     
-    iCub::iDynTree::iCubTree waist_imu_icub(icub_idyntree_version,ft_foot,IDYN_SERIALIZATION,0,kinematic_base_link_name);
+    iCub::iDynTree::iCubTree waist_imu_icub(icub_idyntree_version,IDYN_SERIALIZATION,0,kinematic_base_link_name);
     yarp::sig::Vector a_com, a_com_jacobian;
     a_com = icub_idyntree.getAccCOM();
     

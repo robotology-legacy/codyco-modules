@@ -89,6 +89,7 @@ bool checkInverseDynamicsAndMassMatrixConsistency(iWholeBodyModel * model_interf
     
     yarp::sig::Vector dxB = 2*M_PI*yarp::math::Rand::vector(6);
     yarp::sig::Vector ddxB = 2*M_PI*yarp::math::Rand::vector(6);
+    yarp::sig::Vector g = yarp::math::Rand::vector(3);
     yarp::sig::Vector theta = 2*M_PI*yarp::math::Rand::vector(nr_of_considered_joints);
     yarp::sig::Vector dtheta = 2*M_PI*yarp::math::Rand::vector(nr_of_considered_joints);
     yarp::sig::Vector ddtheta = 2*M_PI*yarp::math::Rand::vector(nr_of_considered_joints);
@@ -101,7 +102,7 @@ bool checkInverseDynamicsAndMassMatrixConsistency(iWholeBodyModel * model_interf
     yarp::sig::Vector generalized_bias_torques(6+nr_of_considered_joints);
     yarp::sig::Matrix mass_matrix(6+nr_of_considered_joints,6+nr_of_considered_joints);
     
-    if( !model_interface->inverseDynamics(theta.data(),xB,dtheta.data(),dxB.data(),ddtheta.data(),ddxB.data(),generalized_torques.data()) ) { 
+    if( !model_interface->inverseDynamics(theta.data(),xB,dtheta.data(),dxB.data(),ddtheta.data(),ddxB.data(),g.data(),generalized_torques.data()) ) { 
         if( verbose ) { std::cout << "checkInverseDynamicsAndMassMatrixConsistency: inverseDynamics failed" << std::endl; }
         return false; 
     }
@@ -109,7 +110,7 @@ bool checkInverseDynamicsAndMassMatrixConsistency(iWholeBodyModel * model_interf
         if( verbose ) { std::cout << "checkInverseDynamicsAndMassMatrixConsistency: computeMassMatrix failed" << std::endl; }
         return false; 
     }
-    if( !model_interface->computeGeneralizedBiasForces(theta.data(),xB,dtheta.data(),dxB.data(),generalized_bias_torques.data()) ) {
+    if( !model_interface->computeGeneralizedBiasForces(theta.data(),xB,dtheta.data(),dxB.data(),g.data(),generalized_bias_torques.data()) ) {
         if( verbose ) { std::cout << "checkInverseDynamicsAndMassMatrixConsistency: computeGeneralizedBiasForces failed" << std::endl; }
         return false; 
     }

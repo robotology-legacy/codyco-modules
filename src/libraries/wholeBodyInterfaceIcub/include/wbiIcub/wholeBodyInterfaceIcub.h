@@ -145,8 +145,10 @@ namespace wbiIcub
           * @param _ftSens_2_port List containing the port name for each force/torque sensor
           * @param _imu_2_port List containing the port name for each inertial measurement unit
           */
-        icubWholeBodySensors(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames, 
-            const std::vector<id_2_PortName> &_ftSens_2_port, const std::vector<id_2_PortName> &_imu_2_port);
+        icubWholeBodySensors(const char* _name, const char* _robotName,
+                             const std::vector<std::string> &_bodyPartNames, 
+                             const std::vector<id_2_PortName> &_ftSens_2_port,
+                             const std::vector<id_2_PortName> &_imu_2_port);
 
         virtual bool init();
         virtual bool close();
@@ -221,7 +223,7 @@ namespace wbiIcub
         
         std::map<wbi::LocalId, wbi::ControlMode>        currentCtrlModes;    // current control mode of each actuator
         
-//        std::map<std::string, std::string> configurationParameters; /*< Map containing parameters to be read at initialization time */
+        //std::map<std::string, std::string> configurationParameters; /*< Map containing parameters to be read at initialization time */
         yarp::os::Property configurationParameters; /*< Map containing parameters to be read at initialization time */
 
         // yarp drivers
@@ -526,13 +528,13 @@ namespace wbiIcub
         void estimateExternalForcesAndJointTorques();
         
         /** Version of considered iCub robot */
-        int head_version;
-        int legs_version;
-        int feet_version;
+        iCub::iDynTree::iCubTree_version_tag icub_version;
         
     public:
         
         yarp::os::Semaphore         mutex;          // mutex for access to class global variables
+        yarp::os::Semaphore         model_mutex;    // mutex for access the dynamic model
+        yarp::os::Semaphore         run_mutex;      // mutex for avoiding multiple run being execute together
         
         // the elements of this struct are accessed by the state interface
         // the state interface takes the mutex before accessing this struct
@@ -562,9 +564,7 @@ namespace wbiIcub
         icubWholeBodyDynamicsEstimator(int _period, 
                                        icubWholeBodySensors *_sensors, 
                                        yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
-                                       int head_version,
-                                       int legs_version,
-                                       int feet_version);
+                                       iCub::iDynTree::iCubTree_version_tag icub_version);
         
         bool lockAndSetEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
         
@@ -707,10 +707,11 @@ namespace wbiIcub
         bool getMotorVel(const wbi::LocalId &sid, double *data, double time, bool blocking);
         /** Get the velocities of all the robot motors. */
         bool getMotorVel(double *data, double time, bool blocking);
+       
         
     public:
         // *** CONSTRUCTORS ***
-        icubWholeBodyStatesLocal(const char* _name, const char* _robotName, int head_version = 2, int legs_version = 2, int foot_version =2);
+        icubWholeBodyStatesLocal(const char* _name, const char* _robotName, iCub::iDynTree::iCubTree_version_tag icub_version);
         inline virtual ~icubWholeBodyStatesLocal(){ close(); }
         
         virtual bool init();
@@ -791,6 +792,7 @@ namespace wbiIcub
     /**
      * Class to access the estimates, by reading the estimation results from a remote module ( wholeBodyDynamics )
      */
+   
     class icubWholeBodyStatesRemote : public wbi::iWholeBodyStates
     {
     protected:
@@ -949,13 +951,15 @@ namespace wbiIcub
         /**
           * @param _name Local name of the interface (used as stem of port names)
           * @param _robotName Name of the robot
-          * @param head_version the version of the head of the iCub (1 or 2, default: 2)
-          * @param legs_version the version of the legs of the iCub (1 or 2, default: 1)
+          * @param icub_version version of the iCub (default: head 2 legs 2 feet_ft true)
           * @param initial_q the initial value for all the 32 joint angles (default: all 0)
           * @param _bodyPartNames Vector of names of the body part (used when opening the polydrivers)
           */
-        icubWholeBodyModel(const char* _name, const char* _robotName, int head_version=2, int legs_version=1, double* initial_q=0,
-            const std::vector<std::string> &_bodyPartNames=std::vector<std::string>(iCub::skinDynLib::BodyPart_s,iCub::skinDynLib::BodyPart_s+sizeof(iCub::skinDynLib::BodyPart_s)/sizeof(std::string)));
+        icubWholeBodyModel(const char* _name, 
+                           const char* _robotName, 
+                           const iCub::iDynTree::iCubTree_version_tag icub_version=iCub::iDynTree::iCubTree_version_tag(2,2,true), 
+                           double* initial_q=0,
+                           const std::vector<std::string> &_bodyPartNames=std::vector<std::string>(iCub::skinDynLib::BodyPart_s,iCub::skinDynLib::BodyPart_s+sizeof(iCub::skinDynLib::BodyPart_s)/sizeof(std::string)));
         
         inline virtual ~icubWholeBodyModel(){ close(); }
         virtual bool init();
@@ -1031,9 +1035,10 @@ namespace wbiIcub
           * @param dxB Velocity of the robot base, 3 values for linear velocity and 3 values for angular velocity.
           * @param ddq Joint accelerations.
           * @param ddxB Acceleration of the robot base, 3 values for linear acceleration and 3 values for angular acceleration.
+          * @param g gravity acceleration expressed in world frame (3 values)
           * @param tau Output joint torques.
          * @return True if the operation succeeded, false otherwise. */
-        virtual bool inverseDynamics(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double *ddq, double *ddxB, double *tau);
+        virtual bool inverseDynamics(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double *ddq, double *ddxB, double *g, double *tau);
 
         /** Compute the floating base Mass Matrix.
          * @param q Joint angles (rad).
@@ -1048,9 +1053,10 @@ namespace wbiIcub
          * @param xBase Rototranslation from world frame to robot base frame
          * @param dq Joint velocities (rad/s).
          * @param dxB Velocity of the robot base in world reference frame, 3 values for linear and 3 for angular velocity.
+         * @param g gravity acceleration expressed in world frame (3 values)
          * @param h Output N+6-dim vector containing all generalized bias forces (gravity+Coriolis+centrifugal), with N=number of joints.
          * @return True if the operation succeeded, false otherwise. */
-        virtual bool computeGeneralizedBiasForces(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double *h);
+        virtual bool computeGeneralizedBiasForces(double *q, const wbi::Frame &xBase, double *dq, double *dxB, double*g, double *h);
        };
     
 
@@ -1079,7 +1085,9 @@ namespace wbiIcub
        
     public:
         // *** CONSTRUCTORS ***
-        icubWholeBodyInterface(const char* _name, const char* _robotName, int head_version=2, int legs_version=1);
+        icubWholeBodyInterface(const char* _name, 
+                               const char* _robotName,
+                               iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,2,true));
         //icubWholeBodyInterface(const char* _name, const char* _robotName, std::string urdf_file_name);
 
         
@@ -1131,12 +1139,12 @@ namespace wbiIcub
         { return modelInt->computeDJdq(q, xB, dq, dxB, linkId, dJdq, pos); }
         virtual bool forwardKinematics(double *q, const wbi::Frame &xB, int linkId, double *x)
         { return modelInt->forwardKinematics(q, xB, linkId, x); }
-        virtual bool inverseDynamics(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *tau)
-        { return modelInt->inverseDynamics(q, xB, dq, dxB, ddq, ddxB, tau); }
+        virtual bool inverseDynamics(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *g, double *tau)
+        { return modelInt->inverseDynamics(q, xB, dq, dxB, ddq, ddxB, g,tau); }
         virtual bool computeMassMatrix(double *q, const wbi::Frame &xB, double *M)
         { return modelInt->computeMassMatrix(q, xB, M); }
-        virtual bool computeGeneralizedBiasForces(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *h)
-        { return modelInt->computeGeneralizedBiasForces(q, xB, dq, dxB, h); }
+        virtual bool computeGeneralizedBiasForces(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *g, double *h)
+        { return modelInt->computeGeneralizedBiasForces(q, xB, dq, dxB, g, h); }
     };
     
 } // end namespace wbiIcub
