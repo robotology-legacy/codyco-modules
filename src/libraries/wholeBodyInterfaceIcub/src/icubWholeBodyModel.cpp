@@ -50,14 +50,12 @@ using namespace iCub::skinDynLib;
 //                                          ICUB WHOLE BODY MODEL
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName, int head_version, int legs_version, 
+icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName, const iCub::iDynTree::iCubTree_version_tag version, 
     double* initial_q, const std::vector<std::string> &_bodyPartNames)
     : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
 {
     std::string kinematic_base_link_name = "root_link";
-    version.head_version = head_version;
-    version.legs_version = legs_version;
-    p_icub_model = new iCub::iDynTree::iCubTree(version,false,iCub::iDynTree::SKINDYNLIB_SERIALIZATION,0,kinematic_base_link_name);
+    p_icub_model = new iCub::iDynTree::iCubTree(version,iCub::iDynTree::SKINDYNLIB_SERIALIZATION,0,kinematic_base_link_name);
     all_q.resize(p_icub_model->getNrOfDOFs(),0.0);
     all_q_min = all_q_max = all_ddq = all_dq = all_q;
     floating_base_mass_matrix.resize(p_icub_model->getNrOfDOFs(),p_icub_model->getNrOfDOFs());

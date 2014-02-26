@@ -144,7 +144,8 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
       helpString.push_back("bool calib(const std::string& calib_code) ");
       helpString.push_back("Calibrate the force/torque sensors ");
       helpString.push_back("(WARNING: calibrate the sensors when the only external forces acting on the robot are on the torso/waist) ");
-      helpString.push_back("@param calib_code argument to specify the sensors to calibrate (all,arms,legs,feets) ");
+      helpString.push_back("@param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet) ");
+      helpString.push_back("@param nr_of_samples number of samples ");
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="quit") {
