@@ -17,9 +17,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Feb 27 11:10:18 2014"
-  RTWModifiedTimeStamp	  315343009
-  ModelVersionFormat	  "1.%<AutoIncrement:156>"
+  LastModifiedDate	  "Thu Feb 27 11:19:45 2014"
+  RTWModifiedTimeStamp	  315400645
+  ModelVersionFormat	  "1.%<AutoIncrement:162>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -743,7 +743,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [205, 255, 993, 475]
+    Location		    [207, 284, 995, 504]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -757,7 +757,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "471"
+    SIDHighWatermark	    "472"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -781,7 +781,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
-	Location		[318, 359, 1117, 527]
+	Location		[319, 387, 1118, 555]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -1746,7 +1746,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyActuators"
-	Location		[459, 95, 1002, 222]
+	Location		[460, 123, 1003, 250]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -2235,7 +2235,7 @@ Library {
 	  MaskValueString	  "1|robotName|localName"
 	  System {
 	    Name		    "Set Velocities"
-	    Location		    [700, 81, 1210, 698]
+	    Location		    [702, 137, 1212, 754]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2422,7 +2422,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[645, 459, 1290, 718]
+	Location		[646, 487, 1291, 746]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -2457,7 +2457,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Dynamics"
-	    Location		    [859, 95, 1430, 222]
+	    Location		    [860, 123, 1431, 250]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2501,7 +2501,7 @@ Library {
 	      MaskValueString	      "7|robotName|localName"
 	      System {
 		Name			"computeh"
-		Location		[609, 65, 992, 524]
+		Location		[610, 93, 993, 552]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -2687,7 +2687,7 @@ Library {
 	      MaskValueString	      "9|robotName|localName"
 	      System {
 		Name			"dJ*dq LeftFoot"
-		Location		[2084, 620, 2359, 864]
+		Location		[2085, 648, 2360, 892]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -2874,7 +2874,7 @@ Library {
 	      MaskValueString	      "9|robotName|localName"
 	      System {
 		Name			"dJ*dq RightFoot"
-		Location		[2077, 424, 2352, 668]
+		Location		[2078, 452, 2353, 696]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3062,7 +3062,7 @@ Library {
 	      MaskValueString	      "8|robotName|localName"
 	      System {
 		Name			"massMatrix"
-		Location		[352, 83, 1102, 575]
+		Location		[353, 111, 1103, 603]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3101,7 +3101,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "massMatrix"
-		    Location		    [352, 83, 1102, 575]
+		    Location		    [353, 111, 1103, 603]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -3304,7 +3304,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Forward Kinematics"
-	    Location		    [89, 95, 514, 220]
+	    Location		    [90, 123, 515, 248]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -3348,7 +3348,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"COMFwdKin "
-		Location		[166, 266, 916, 758]
+		Location		[167, 294, 917, 786]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3379,7 +3379,7 @@ Library {
 		  ZOrder		  -5
 		  ShowName		  off
 		  Value			  "zeros(25,1)"
-		  OutDataTypeStr	  "int8"
+		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
 		Block {
@@ -3546,7 +3546,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"LeftFootFwdKin"
-		Location		[353, 83, 1103, 575]
+		Location		[354, 111, 1104, 603]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3576,7 +3576,7 @@ Library {
 		  ZOrder		  -5
 		  ShowName		  off
 		  Value			  "zeros(25,1)"
-		  OutDataTypeStr	  "int8"
+		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
 		Block {
@@ -3743,7 +3743,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"RightFootFwdKin"
-		Location		[352, 83, 1102, 575]
+		Location		[353, 111, 1103, 603]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3774,7 +3774,7 @@ Library {
 		  ZOrder		  -5
 		  ShowName		  off
 		  Value			  "zeros(25,1)"
-		  OutDataTypeStr	  "int8"
+		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
 		Block {
@@ -3934,7 +3934,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Jacobians"
-	    Location		    [563, 268, 1029, 395]
+	    Location		    [540, 143, 1006, 270]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -3978,7 +3978,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Center of Mass Jacobian"
-		Location		[352, 83, 1102, 575]
+		Location		[353, 111, 1103, 603]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4009,7 +4009,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "Right Foot \nJacobian1"
-		    Location		    [352, 83, 1102, 575]
+		    Location		    [353, 111, 1103, 603]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -4040,7 +4040,7 @@ Library {
 		    ZOrder		    -5
 		    ShowName		    off
 		    Value		    "zeros(25,1)"
-		    OutDataTypeStr	    "int8"
+		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
 		    Block {
@@ -4284,7 +4284,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Left Foot Jacobian"
-		Location		[352, 83, 1102, 575]
+		Location		[353, 111, 1103, 603]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4314,7 +4314,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "Left Foot \nJacobian1"
-		    Location		    [352, 83, 1102, 575]
+		    Location		    [353, 111, 1103, 603]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -4343,7 +4343,7 @@ Library {
 		    ZOrder		    -5
 		    ShowName		    off
 		    Value		    "zeros(25,1)"
-		    OutDataTypeStr	    "int8"
+		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
 		    Block {
@@ -4563,7 +4563,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Right Foot Jacobian"
-		Location		[352, 83, 1102, 575]
+		Location		[353, 111, 1103, 603]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4594,7 +4594,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "Right Foot \nJacobian1"
-		    Location		    [352, 83, 1102, 575]
+		    Location		    [353, 111, 1103, 603]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -4625,7 +4625,7 @@ Library {
 		    ZOrder		    -5
 		    ShowName		    off
 		    Value		    "zeros(25,1)"
-		    OutDataTypeStr	    "int8"
+		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
 		    Block {
@@ -4865,7 +4865,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyStates"
-	Location		[158, 255, 512, 382]
+	Location		[159, 283, 513, 410]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -4909,7 +4909,7 @@ Library {
 	  MaskValueString	  "robotName|localName"
 	  System {
 	    Name		    "Joint Angles"
-	    Location		    [529, 126, 1426, 814]
+	    Location		    [530, 154, 1427, 842]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -4939,7 +4939,7 @@ Library {
 	      ZOrder		      -5
 	      ShowName		      off
 	      Value		      "zeros(25,1)"
-	      OutDataTypeStr	      "int8"
+	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
 	    Block {
@@ -5106,7 +5106,7 @@ Library {
 	  MaskValueString	  "robotName|localName"
 	  System {
 	    Name		    "Joint Velocities"
-	    Location		    [356, 211, 1253, 899]
+	    Location		    [357, 211, 1254, 899]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
