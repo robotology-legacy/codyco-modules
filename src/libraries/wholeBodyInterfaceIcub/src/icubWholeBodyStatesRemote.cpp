@@ -425,6 +425,29 @@ void icubWholeBodyEstimator::threadRelease()
     // this causes a memory access violation (to investigate)
     //if(dqFilt!=NULL)    delete dqFilt;
     //if(d2qFilt!=NULL)   delete d2qFilt;
+    if (dqFilt) {
+        delete dqFilt; dqFilt = 0;
+    }
+    if (d2qFilt) {
+        delete d2qFilt; d2qFilt = 0;
+    }
+    if (dTauJFilt) {
+        delete dTauJFilt; dTauJFilt = 0;
+    }
+    if (dTauMFilt) {
+        delete dTauMFilt; dTauMFilt = 0;
+    }
+    if (tauJFilt) {
+        delete tauJFilt; tauJFilt = 0;
+    }
+    if (tauMFilt) {
+        delete tauMFilt; tauMFilt = 0;
+    }
+    if (pwmFilt) {
+        delete pwmFilt; pwmFilt = 0;
+    }
+    sensors = 0;
+    
     return;
 }
 

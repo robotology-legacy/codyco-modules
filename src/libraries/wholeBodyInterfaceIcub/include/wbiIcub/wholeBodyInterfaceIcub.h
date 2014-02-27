@@ -627,7 +627,7 @@ namespace wbiIcub
     public:
         // *** CONSTRUCTORS ***
         icubWholeBodyStates(const char* _name, const char* _robotName, double estimationTimeWindow);
-        inline virtual ~icubWholeBodyStates(){ close(); }
+        virtual ~icubWholeBodyStates();
         
         virtual bool init();
         virtual bool close();
