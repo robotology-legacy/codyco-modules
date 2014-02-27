@@ -174,7 +174,7 @@ bool robotStatus::robotInit(int btype, int link) {
     dxB.resize(6,0);
 
     // Generalized bias forces term.
-    hterm.resize(6+25,0);
+    hterm.resize(6+ICUB_DOFS,0);
 
     // Should the mass matrix be resized here??? In the future if the number of DOFS or limbs for which the interface will
     // be used are input parameters, all variables could be resized here and by default leave ICUB_DOFS.
@@ -357,7 +357,7 @@ Vector robotStatus::dynamicsGenBiasForces() {
     }
     else {
         fprintf(stderr,"ERROR generalized bias forces were not successfully computed\n");
-        hterm.resize(25+6,0);
+        hterm.resize(ICUB_DOFS+6,0);
         return hterm;
     }
 }

@@ -17,6 +17,7 @@
 
 #include "wbiIcub/wholeBodyInterfaceIcub.h"
 #include <iCub/skinDynLib/common.h>
+#include <yarp/os/Os.h>
 #include <string>
 #include <cassert>
 
@@ -61,9 +62,13 @@ bool icubWholeBodyInterface::init()
 
 bool icubWholeBodyInterface::close()
 {
-    bool ok = actuatorInt->close();
-    ok = ok && stateInt->close();
-    return ok && modelInt->close();
+    bool ok = true;
+
+    if( actuatorInt ) { ok = actuatorInt->close(); delete actuatorInt; actuatorInt=0; }
+    if( stateInt ) { ok = stateInt->close(); delete stateInt; stateInt=0; }
+    if( modelInt ) { ok = modelInt->close(); delete modelInt; modelInt=0; }
+
+    return ok;
 }
 
 bool icubWholeBodyInterface::removeJoint(const LocalId &j)
