@@ -332,6 +332,7 @@ MassMatrix robotStatus::getMassMatrix() {
 //=========================================================================================================================
 Vector robotStatus::dynamicsGenBiasForces() {
     bool ans = false;
+    double grav[3]= {0, 0, -9.81};
     if(robotJntAngles(false)) {
         if(DEBUGGING) fprintf(stderr,"robotJntAngles computed for dynamicsGenBiasForces\n");
         if(robotJntVelocities(false)) {
@@ -345,7 +346,7 @@ Vector robotStatus::dynamicsGenBiasForces() {
 		      cerr<<"Velocities: "<<dqJ<<endl;
 		      fprintf(stderr,"Base velocity: %s\n",dxB.toString().c_str());
 		    }
-                    ans = wbInterface->computeGeneralizedBiasForces(qRad.data(), xBase, dqJ.data(), dxB.data(), hterm.data());
+                    ans = wbInterface->computeGeneralizedBiasForces(qRad.data(), xBase, dqJ.data(), dxB.data(), grav, hterm.data());
                 }
             }
         }

@@ -17,9 +17,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Wed Feb 26 15:03:55 2014"
-  RTWModifiedTimeStamp	  315327798
-  ModelVersionFormat	  "1.%<AutoIncrement:146>"
+  LastModifiedDate	  "Wed Feb 26 19:16:50 2014"
+  RTWModifiedTimeStamp	  315343009
+  ModelVersionFormat	  "1.%<AutoIncrement:148>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -760,7 +760,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "455"
+    SIDHighWatermark	    "464"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -784,7 +784,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
-	Location		[685, 257, 1491, 481]
+	Location		[633, 257, 1439, 481]
 	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -4844,8 +4844,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyStates"
-	Location		[645, 310, 999, 449]
-	Open			off
+	Location		[594, 279, 948, 418]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -5081,8 +5081,8 @@ Library {
 	  MaskValueString	  "robotName|localName"
 	  System {
 	    Name		    "Joint Velocities"
-	    Location		    [354, 360, 1251, 1048]
-	    Open		    off
+	    Location		    [354, 211, 1251, 899]
+	    Open		    on
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -5095,11 +5095,14 @@ Library {
 	    ShowPageBoundaries	    off
 	    ZoomFactor		    "100"
 	    Block {
-	      BlockType		      Ground
-	      Name		      "Ground"
-	      SID		      "14"
-	      Position		      [65, 225, 85, 245]
-	      ZOrder		      -9
+	      BlockType		      Constant
+	      Name		      " "
+	      SID		      "456"
+	      Position		      [60, 220, 90, 250]
+	      ZOrder		      -5
+	      Value		      "zeros(25,1)"
+	      OutDataTypeStr	      "double"
+	      SampleTime	      "-1"
 	    }
 	    Block {
 	      BlockType		      Constant
@@ -5187,7 +5190,7 @@ Library {
 	      IconDisplay	      "Port number"
 	    }
 	    Line {
-	      SrcBlock		      "Ground"
+	      SrcBlock		      " "
 	      SrcPort		      1
 	      DstBlock		      "S-Function"
 	      DstPort		      2
