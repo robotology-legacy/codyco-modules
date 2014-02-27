@@ -370,7 +370,7 @@ bool icubWholeBodyEstimator::threadInit()
     assert(estimates.lastQ.size() == sensors->getSensorNumber(SENSOR_ENCODER));
     bool ok = sensors->readSensors(SENSOR_ENCODER, estimates.lastQ.data(), qStamps.data(), true);
     ok = ok && sensors->readSensors(SENSOR_TORQUE, estimates.lastTauJ.data(), tauJStamps.data(), true);
-    ok = ok && sensors->readSensors(SENSOR_PWM, estimates.lastPwm.data(), pwmStamps.data(), true);
+    ok = ok && sensors->readSensors(SENSOR_PWM, estimates.lastPwm.data(), 0, true);
     ///< create low pass filters
     tauJFilt    = new FirstOrderLowPassFilter(tauJCutFrequency, getRate()*1e-3, estimates.lastTauJ);
     tauMFilt    = new FirstOrderLowPassFilter(tauMCutFrequency, getRate()*1e-3, estimates.lastTauJ);
@@ -413,7 +413,7 @@ void icubWholeBodyEstimator::run()
         }
 
         ///< Read motor pwm
-        sensors->readSensors(SENSOR_PWM, pwm.data(), pwmStamps.data(), false);
+        sensors->readSensors(SENSOR_PWM, pwm.data(), 0, false);
         estimates.lastPwm = pwmFilt->filt(pwm);     ///< low pass filter
     }
     mutex.post();

@@ -41,11 +41,11 @@ using namespace iCub::skinDynLib;
 //                                          ICUB WHOLE BODY INTERFACE
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _robotName, int head_version, int legs_version)
+icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _robotName, iCub::iDynTree::iCubTree_version_tag icub_version)
 {
     actuatorInt = new icubWholeBodyActuators((_name+string("actuator")).c_str(), _robotName);
     stateInt = new icubWholeBodyStates((_name+string("state")).c_str(), _robotName, 0.0);
-    modelInt = new icubWholeBodyModel((_name+string("model")).c_str(), _robotName, head_version, legs_version);
+    modelInt = new icubWholeBodyModel((_name+string("model")).c_str(), _robotName, icub_version);
 }
 
 bool icubWholeBodyInterface::init()

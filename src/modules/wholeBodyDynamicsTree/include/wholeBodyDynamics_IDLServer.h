@@ -20,7 +20,8 @@ public:
 /**
  * Calibrate the force/torque sensors
  * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the torso/waist)
- * @param calib_code argument to specify the sensors to calibrate (all,arms,legs,feets)
+ * @param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet)
+ * @param nr_of_samples number of samples
  * @return true/false on success/failure
  */
   virtual bool calib(const std::string& calib_code);

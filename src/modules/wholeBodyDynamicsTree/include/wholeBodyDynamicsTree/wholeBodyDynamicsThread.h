@@ -28,6 +28,7 @@
 #include <yarp/os/Semaphore.h>
 #include <yarp/os/Stamp.h>
 #include <yarp/sig/Vector.h>
+#include <yarp/os/Mutex.h>
 
 #include <iCub/ctrl/math.h>
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
@@ -47,6 +48,24 @@ using namespace wbi;
 using namespace Eigen;
 
 
+class iCubTreeStatus
+{
+public:
+    yarp::sig::Vector q;
+    yarp::sig::Vector dq;
+    yarp::sig::Vector ddq;
+    yarp::sig::Vector omega_imu;
+    yarp::sig::Vector domega_imu;
+    yarp::sig::Vector proper_ddp_imu;
+    yarp::sig::Vector wbi_imu;
+    std::vector<yarp::sig::Vector> measured_ft_sensors;
+    std::vector<yarp::sig::Vector> estimated_ft_sensors;
+    
+    iCubTreeStatus(int nrOfDOFs=0, int nrOfFTSensors=0);
+    bool setNrOfDOFs(int nrOfDOFs);
+    bool setNrOfFTSensors(int nrOfFTSensors);
+    bool zero();
+};
 
 /** 
  * 
@@ -60,6 +79,7 @@ class wholeBodyDynamicsThread: public RateThread
     int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     double              PRINT_PERIOD;           
 
+    enum { NORMAL, CALIBRATING } wbd_mode;     /// < Mode of operation of the thread: normal operation or calibration
     
     //output ports
     ///< \todo TODO add a proper structure for output ports, by dividing them for body parts or sensors
@@ -115,7 +135,10 @@ class wholeBodyDynamicsThread: public RateThread
     void writeTorque(Vector _values, int _address, BufferedPort<Bottle> *_port);
     void publishTorques();
     void publishContacts();
-
+    wbi::LocalId convertFTiDynTreeToFTwbi(int ft_sensor_id);
+    void normal_run();
+    void calibration_run();
+    
     //Buffer vectors
     yarp::sig::Vector all_torques;
     yarp::sig::Vector TOTorques;
@@ -126,14 +149,47 @@ class wholeBodyDynamicsThread: public RateThread
     yarp::sig::Vector RLTorques;
 
     iCub::skinDynLib::skinContactList external_forces_list;
-
+    
+    //Calibration related variables
+    yarp::os::Mutex calibration_mutex;
+    iCubTreeStatus tree_status;
+    
+    iCub::iDynTree::iCubTree icub_model_calibration;
+    iCub::iDynTree::iCubTree_version_tag icub_version;
+    
+    const int max_samples_used_for_calibration;
+    
+    int l_foot_ft_sensor_id;
+    int r_foot_ft_sensor_id;
+        
+    int l_arm_ft_sensor_id;
+    int r_arm_ft_sensor_id;
+        
+    int l_leg_ft_sensor_id;
+    int r_leg_ft_sensor_id;
+    
+    int samples_used_for_calibration;
+    
+    std::vector<bool> calibrate_ft_sensor;
+    std::vector<yarp::sig::Vector> offset_buffer;
+    //End of Calibration related variables 
 
 public:
     
-    wholeBodyDynamicsThread(string _name, string _robotName, int _period, wbiIcub::icubWholeBodyStatesLocal *_wbi);
+    wholeBodyDynamicsThread(string _name, 
+                            string _robotName,
+                            int _period, 
+                            wbiIcub::icubWholeBodyStatesLocal *_wbi, 
+                            const iCub::iDynTree::iCubTree_version_tag icub_version);
     
     bool threadInit();
-    void calibrate();
+    bool calibrateOffset(const std::string calib_code);
+    /**
+     * Wait for the calibration to end and then return.
+     * 
+     * @return always returns true
+     */
+    bool waitCalibrationDone();
     void run();
     void threadRelease();
 

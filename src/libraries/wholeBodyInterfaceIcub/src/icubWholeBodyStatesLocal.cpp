@@ -47,12 +47,12 @@ using namespace iCub::ctrl;
 //                                          ICUB WHOLE BODY STATES
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodyStatesLocal::icubWholeBodyStatesLocal(const char* _name, const char* _robotName, int head_version, int legs_version, int feet_version)
+icubWholeBodyStatesLocal::icubWholeBodyStatesLocal(const char* _name, const char* _robotName, iCub::iDynTree::iCubTree_version_tag icub_version)
 {
     sensors = new icubWholeBodySensors(_name, _robotName);              // sensor interface
     skin_contacts_port = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
     skin_contacts_port->open(string("/"+string(_name)+"/skin_contacts:i").c_str());
-    estimator = new icubWholeBodyDynamicsEstimator(ESTIMATOR_PERIOD, sensors, skin_contacts_port,head_version,legs_version,feet_version);  // estimation thread
+    estimator = new icubWholeBodyDynamicsEstimator(ESTIMATOR_PERIOD, sensors, skin_contacts_port,icub_version);  // estimation thread
 }
 
 bool icubWholeBodyStatesLocal::init()
@@ -380,11 +380,8 @@ int icubWholeBodyStatesLocal::lockAndGetSensorNumber(const SensorType st)
 icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period, 
                                                                icubWholeBodySensors *_sensors, 
                                                                yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
-                                                               int _head_version,
-                                                               int _legs_version,
-                                                               int _feet_version)
-: RateThread(_period), sensors(_sensors), port_skin_contacts(_port_skin_contacts), dqFilt(0), d2qFilt(0), 
-                      head_version(_head_version), legs_version(_legs_version), feet_version(_feet_version)
+                                                               iCub::iDynTree::iCubTree_version_tag _icub_version)
+: RateThread(_period), sensors(_sensors), port_skin_contacts(_port_skin_contacts), dqFilt(0), d2qFilt(0),  icub_version(_icub_version)
 {
     resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
     resizeFTs(sensors->getSensorNumber(SENSOR_FORCE_TORQUE));
@@ -470,22 +467,16 @@ bool icubWholeBodyDynamicsEstimator::threadInit()
     imuAngularAccelerationFilt = new AWLinEstimator(imuAngularAccelerationFiltWL, imuAngularAccelerationFiltTh);
     
     //Allocation model
-    bool ft_foot;
-    iCub::iDynTree::iCubTree_version_tag vertag;
-    vertag.head_version = head_version;
-    vertag.legs_version = legs_version;
-    if( feet_version == 2 ) {
-        ft_foot = true;
-    } else {
-        ft_foot = false;
-    }
-    icub_model = new iCub::iDynTree::iCubTree(vertag,ft_foot);
     
+    model_mutex.wait();
+    icub_model = new iCub::iDynTree::iCubTree(icub_version);
+    model_mutex.post();
     return ok;
 }
 
 void icubWholeBodyDynamicsEstimator::run()
 {
+    run_mutex.wait();
     //Temporary workaround: icubWholeBodyStatesLocal needs all the DOF present in the dynamical model
     if( sensors->getSensorNumber(wbi::SENSOR_ENCODER) != icub_model->getNrOfDOFs() ) 
     {
@@ -609,6 +600,8 @@ void icubWholeBodyDynamicsEstimator::run()
         estimates.lastPwm = pwmFilt->filt(pwm);     ///< low pass filter
     }
     mutex.post();
+    
+    run_mutex.post();
     
     return;
 }
@@ -734,6 +727,8 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     assert(omega_used_IMU.size() == 3);
     assert(domega_used_IMU.size() == 3);
     assert(ddp_used_IMU.size() == 3);
+    
+    model_mutex.wait();
     assert(estimates.lastQ.size() == icub_model->getNrOfDOFs());
     assert(estimates.lastDq.size() == icub_model->getNrOfDOFs());
     assert(estimates.lastD2q.size() == icub_model->getNrOfDOFs());
@@ -789,7 +784,7 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     
     assert(tauJ.size() == icub_model->getNrOfDOFs());
     tauJ = icub_model->getTorques();
-    
+    model_mutex.post();
     
 }
 

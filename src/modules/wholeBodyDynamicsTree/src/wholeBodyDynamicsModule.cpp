@@ -73,29 +73,30 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     //Checking iCub parts version 
     /// \todo this part should be replaced by a more general way of accessing robot parameters
     ///       namely urdf for structure parameters and robotInterface xml (or runtime interface) to get available sensors
-    int head_version = 2;
+    iCub::iDynTree::iCubTree_version_tag icub_version;
+    icub_version.head_version = 2;
     if( rf.check("headV1") ) {
-        head_version = 1;
+        icub_version.head_version = 1;
     }
     if( rf.check("headV2") ) {
-        head_version = 2;
+        icub_version.head_version = 2;
     }
     
-    int legs_version = 2;
+    icub_version.legs_version = 2;
     if( rf.check("legsV1") ) {
-        legs_version = 1;
+        icub_version.legs_version = 1;
     }
     if( rf.check("legsV2") ) {
-        legs_version = 2;
+        icub_version.legs_version = 2;
     }
     
     /// \note if feet_version are 2, the presence of FT sensors in the feet is assumed
-    int feet_version = 2;
+    icub_version.feet_ft = false;
     if( rf.check("feetV1") ) {
-        feet_version = 1;
+        icub_version.feet_ft = false;
     }
     if( rf.check("feetV2") ) {
-        feet_version = 2;
+        icub_version.feet_ft = true;
     }
     
     //--------------------------RPC PORT--------------------------
@@ -109,12 +110,12 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     }
 
     //--------------------------WHOLE BODY STATES INTERFACE--------------------------
-    estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str(),head_version,legs_version,feet_version);
+    estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str(), icub_version);
     
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
-    if( feet_version == 2 ) {
+    if( icub_version.feet_ft ) {
         estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE,wbiIcub::ICUB_MAIN_FOOT_FTS);
     } else {
         estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE,wbiIcub::ICUB_MAIN_FTS);
@@ -125,7 +126,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     if(!estimationInterface->init()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl; return false; }
 
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
-    wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface);
+    wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface, icub_version);
     if(!wbdThread->start()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }
     
     fprintf(stderr,"wholeBodyDynamicsThread started\n");
@@ -202,7 +203,15 @@ bool wholeBodyDynamicsModule::updateModule()
 ////////////////// RPC METHODS /////////////////////////////////////////
 bool wholeBodyDynamicsModule::calib(const std::string& calib_code)
 {
-    return false;
+    if(wbdThread) {
+        std::cout << getName() << ": calibration for " << calib_code << "requested" << std::endl;
+        wbdThread->calibrateOffset(calib_code);
+        wbdThread->waitCalibrationDone();
+        return true;
+    } else {
+        std::cout << getName() << ": calib failed, no wholeBodyDynamicsThread available" << std::endl;
+        return false;
+    }
 }
 
 

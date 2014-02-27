@@ -181,7 +181,7 @@ bool jointTorqueControlThread::readRobotStatus(bool blockingRead)
     res = res && robot->getEstimates(ESTIMATE_JOINT_POS,    q.data(),       -1.0, blockingRead);
     res = res && robot->getEstimates(ESTIMATE_JOINT_TORQUE, tauM.data(),    -1.0, blockingRead);
     res = res && robot->getEstimates(ESTIMATE_MOTOR_PWM,    pwmMeas.data(), -1.0, blockingRead);
-    res = res && robot->inverseDynamics(q.data(), Frame(), zeroN.data(), zero6, zeroN.data(), ddxB, tauGrav.data());
+    res = res && robot->inverseDynamics(q.data(), Frame(), zeroN.data(), zero6, zeroN.data(), ddxB, zero6, tauGrav.data());
 
     // convert angles from rad to deg
     q   *= CTRL_RAD2DEG;
