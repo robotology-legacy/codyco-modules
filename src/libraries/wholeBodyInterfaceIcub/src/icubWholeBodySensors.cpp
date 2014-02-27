@@ -145,6 +145,24 @@ bool icubWholeBodySensors::close()
         }
     }
     
+    for(map<LocalId,BufferedPort<Vector>*>::iterator it=portsIMU.begin(); it!=portsIMU.end(); it++)
+    {
+        if( it->second != 0 ) {
+            it->second->close();
+            delete it->second;
+            it->second=0;
+        } 
+    }
+    
+    for(map<LocalId,BufferedPort<Vector>*>::iterator it=portsFTsens.begin(); it!=portsFTsens.end(); it++)
+    {
+        if( it->second != 0 ) {
+            it->second->close();
+            delete it->second;
+            it->second=0;
+        } 
+    }
+    
     return ok;
 }
 

@@ -52,7 +52,18 @@ namespace yarp {
 
 namespace wbiIcub
 {
+    /**
+     * Template function to safely delete a pointer 
+     * (i.e. check if the pointer is not zero, delete it if it is zero, and set it to zero)
+     * \todo TODO put it in a better place
+     * 
+     */
     /*
+    template <class T*> void safelyDeletePointer( (T*) & ptr) {
+        if( ptr != 0 ) { delete ptr; ptr=0; }
+    } */   
+    
+    /**
      * Class for reading the sensors of iCub.
      */
     class icubWholeBodySensors: public wbi::iWholeBodySensors
