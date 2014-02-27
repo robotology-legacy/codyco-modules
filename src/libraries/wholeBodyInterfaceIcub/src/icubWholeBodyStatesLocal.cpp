@@ -788,12 +788,28 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     
 }
 
+void deleteFirstOrderFilterVector(std::vector<iCub::ctrl::FirstOrderLowPassFilter *> & vec)
+{
+    for(int i=0; i < vec.size(); i++ ) {
+        if( vec[i]!= 0 ) { delete vec[i]; vec[i]=0; }
+    }
+    vec.resize(0);
+}
+
 void icubWholeBodyDynamicsEstimator::threadRelease()
 {
-    //\todo TODO repristinate correct memory handling
-    // this causes a memory access violation (to investigate)
-    //if(dqFilt!=NULL)    delete dqFilt;
-    //if(d2qFilt!=NULL)   delete d2qFilt;
+    if(dqFilt!=0)    { delete dqFilt;  dqFilt=0; } 
+    if(d2qFilt!=0)   { delete d2qFilt; d2qFilt=0; }
+    if(dTauJFilt!=0) { delete dTauJFilt; dTauJFilt=0; }
+    if(dTauMFilt!=0) { delete dTauMFilt; dTauMFilt=0; }     // motor torque derivative filter
+    if(tauJFilt!=0)  { delete tauJFilt; tauJFilt=0; }  ///< low pass filter for joint torque
+    if(tauMFilt!=0)  { delete tauMFilt; tauMFilt=0; }  ///< low pass filter for motor torque
+    if(pwmFilt!=0)   { delete pwmFilt; pwmFilt=0;   }
+    deleteFirstOrderFilterVector(imuLinearAccelerationFilters);
+    deleteFirstOrderFilterVector(imuAngularVelocityFilters);
+    deleteFirstOrderFilterVector(imuMagnetometerFilters);
+    deleteFirstOrderFilterVector(forcetorqueFilters);
+    if(imuAngularAccelerationFilt!=0) { delete imuAngularAccelerationFilt; imuAngularAccelerationFilt=0; }
     return;
 }
 
