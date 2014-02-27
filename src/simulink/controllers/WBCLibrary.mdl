@@ -17,9 +17,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Wed Feb 26 19:16:50 2014"
+  LastModifiedDate	  "Thu Feb 27 11:10:18 2014"
   RTWModifiedTimeStamp	  315343009
-  ModelVersionFormat	  "1.%<AutoIncrement:148>"
+  ModelVersionFormat	  "1.%<AutoIncrement:156>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -653,9 +653,6 @@ Library {
       BusSelectionMode	      off
     }
     Block {
-      BlockType		      Ground
-    }
-    Block {
       BlockType		      Inport
       Port		      "1"
       OutputFunctionCall      off
@@ -746,7 +743,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [174, 146, 962, 366]
+    Location		    [205, 255, 993, 475]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -760,7 +757,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "464"
+    SIDHighWatermark	    "471"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -784,8 +781,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
-	Location		[633, 257, 1439, 481]
-	Open			on
+	Location		[318, 359, 1117, 527]
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -802,7 +799,7 @@ Library {
 	  Name			  "DampPinv"
 	  SID			  "104"
 	  Ports			  [2, 1]
-	  Position		  [435, 84, 505, 146]
+	  Position		  [440, 49, 510, 111]
 	  ZOrder		  -1
 	  BackgroundColor	  "[0.848000, 0.128048, 0.320035]"
 	  MinAlgLoopOccurrences	  off
@@ -1028,7 +1025,7 @@ Library {
 	  Name			  "Soft Real Time"
 	  SID			  "114"
 	  Ports			  []
-	  Position		  [25, 102, 105, 126]
+	  Position		  [30, 67, 110, 91]
 	  ZOrder		  -2
 	  ShowName		  off
 	  LibraryVersion	  "1.7"
@@ -1041,7 +1038,7 @@ Library {
 	  Name			  "TruncPinv"
 	  SID			  "109"
 	  Ports			  [2, 1]
-	  Position		  [335, 84, 405, 146]
+	  Position		  [340, 49, 410, 111]
 	  ZOrder		  -3
 	  BackgroundColor	  "[0.534601, 0.470279, 1.000000]"
 	  MinAlgLoopOccurrences	  off
@@ -1267,7 +1264,7 @@ Library {
 	  Name			  "baseVelocity"
 	  SID			  "431"
 	  Ports			  [3, 2]
-	  Position		  [535, 59, 650, 171]
+	  Position		  [540, 24, 655, 136]
 	  BackgroundColor	  "[0.753334, 1.000000, 0.112472]"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -1501,7 +1498,7 @@ Library {
 	  Name			  "minJerkTrajGen"
 	  SID			  "25"
 	  Ports			  [2, 3]
-	  Position		  [675, 49, 760, 181]
+	  Position		  [680, 14, 765, 146]
 	  ZOrder		  -4
 	  BackgroundColor	  "[0.156255, 1.000000, 0.640991]"
 	  MinAlgLoopOccurrences	  off
@@ -1633,7 +1630,7 @@ Library {
 	  Name			  "yarp read"
 	  SID			  "249"
 	  Ports			  [0, 3]
-	  Position		  [235, 94, 305, 136]
+	  Position		  [240, 59, 310, 101]
 	  ZOrder		  -5
 	  BackgroundColor	  "black"
 	  FunctionName		  "yRead"
@@ -1659,7 +1656,7 @@ Library {
 	  Name			  "yarp write"
 	  SID			  "173"
 	  Ports			  [1]
-	  Position		  [135, 94, 205, 136]
+	  Position		  [140, 59, 210, 101]
 	  ZOrder		  -6
 	  BackgroundColor	  "black"
 	  MinAlgLoopOccurrences	  off
@@ -1749,8 +1746,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyActuators"
-	Location		[1717, 225, 2260, 396]
-	Open			on
+	Location		[459, 95, 1002, 222]
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -2238,7 +2235,7 @@ Library {
 	  MaskValueString	  "1|robotName|localName"
 	  System {
 	    Name		    "Set Velocities"
-	    Location		    [699, 81, 1209, 698]
+	    Location		    [700, 81, 1210, 698]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2425,8 +2422,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[505, 514, 1150, 773]
-	Open			on
+	Location		[645, 459, 1290, 718]
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -2460,8 +2457,8 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Dynamics"
-	    Location		    [529, 362, 1100, 489]
-	    Open		    on
+	    Location		    [859, 95, 1430, 222]
+	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -2690,7 +2687,7 @@ Library {
 	      MaskValueString	      "9|robotName|localName"
 	      System {
 		Name			"dJ*dq LeftFoot"
-		Location		[2083, 620, 2358, 864]
+		Location		[2084, 620, 2359, 864]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -2877,7 +2874,7 @@ Library {
 	      MaskValueString	      "9|robotName|localName"
 	      System {
 		Name			"dJ*dq RightFoot"
-		Location		[2076, 424, 2351, 668]
+		Location		[2077, 424, 2352, 668]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3065,7 +3062,7 @@ Library {
 	      MaskValueString	      "8|robotName|localName"
 	      System {
 		Name			"massMatrix"
-		Location		[351, 83, 1101, 575]
+		Location		[352, 83, 1102, 575]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3104,7 +3101,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "massMatrix"
-		    Location		    [351, 83, 1101, 575]
+		    Location		    [352, 83, 1102, 575]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -3307,7 +3304,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Forward Kinematics"
-	    Location		    [928, 173, 1353, 292]
+	    Location		    [89, 95, 514, 220]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -3351,7 +3348,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"COMFwdKin "
-		Location		[351, 83, 1101, 575]
+		Location		[166, 266, 916, 758]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3365,19 +3362,23 @@ Library {
 		ShowPageBoundaries	off
 		ZoomFactor		"100"
 		Block {
-		  BlockType		  Ground
-		  Name			  "Ground"
-		  SID			  "277"
-		  Position		  [70, 230, 90, 250]
-		  ZOrder		  -9
-		}
-		Block {
 		  BlockType		  Constant
 		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
 		  SID			  "278"
 		  Position		  [65, 95, 95, 125]
 		  ZOrder		  -5
 		  Value			  "2"
+		  OutDataTypeStr	  "int8"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+		  SID			  "465"
+		  Position		  [65, 225, 95, 255]
+		  ZOrder		  -5
+		  ShowName		  off
+		  Value			  "zeros(25,1)"
 		  OutDataTypeStr	  "int8"
 		  SampleTime		  "-1"
 		}
@@ -3489,7 +3490,7 @@ Library {
 		  DstPort		  1
 		}
 		Line {
-		  SrcBlock		  "Ground"
+		  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
 		  SrcPort		  1
 		  DstBlock		  "S-Function"
 		  DstPort		  2
@@ -3545,7 +3546,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"LeftFootFwdKin"
-		Location		[351, 83, 1101, 575]
+		Location		[353, 83, 1103, 575]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3559,18 +3560,22 @@ Library {
 		ShowPageBoundaries	off
 		ZoomFactor		"100"
 		Block {
-		  BlockType		  Ground
-		  Name			  "Ground"
-		  SID			  "304"
-		  Position		  [70, 230, 90, 250]
-		  ZOrder		  -9
-		}
-		Block {
 		  BlockType		  Constant
 		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
 		  SID			  "305"
 		  Position		  [65, 95, 95, 125]
 		  ZOrder		  -5
+		  OutDataTypeStr	  "int8"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+		  SID			  "467"
+		  Position		  [60, 225, 90, 255]
+		  ZOrder		  -5
+		  ShowName		  off
+		  Value			  "zeros(25,1)"
 		  OutDataTypeStr	  "int8"
 		  SampleTime		  "-1"
 		}
@@ -3682,7 +3687,7 @@ Library {
 		  DstPort		  1
 		}
 		Line {
-		  SrcBlock		  "Ground"
+		  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
 		  SrcPort		  1
 		  DstBlock		  "S-Function"
 		  DstPort		  2
@@ -3738,7 +3743,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"RightFootFwdKin"
-		Location		[351, 83, 1101, 575]
+		Location		[352, 83, 1102, 575]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3752,19 +3757,23 @@ Library {
 		ShowPageBoundaries	off
 		ZoomFactor		"100"
 		Block {
-		  BlockType		  Ground
-		  Name			  "Ground"
-		  SID			  "293"
-		  Position		  [70, 230, 90, 250]
-		  ZOrder		  -9
-		}
-		Block {
 		  BlockType		  Constant
 		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
 		  SID			  "294"
 		  Position		  [65, 95, 95, 125]
 		  ZOrder		  -5
 		  Value			  "0"
+		  OutDataTypeStr	  "int8"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+		  SID			  "466"
+		  Position		  [60, 225, 90, 255]
+		  ZOrder		  -5
+		  ShowName		  off
+		  Value			  "zeros(25,1)"
 		  OutDataTypeStr	  "int8"
 		  SampleTime		  "-1"
 		}
@@ -3863,7 +3872,7 @@ Library {
 		  DstPort		  1
 		}
 		Line {
-		  SrcBlock		  "Ground"
+		  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
 		  SrcPort		  1
 		  DstBlock		  "S-Function"
 		  DstPort		  2
@@ -3925,7 +3934,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Jacobians"
-	    Location		    [1961, 290, 2427, 403]
+	    Location		    [563, 268, 1029, 395]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -3969,7 +3978,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Center of Mass Jacobian"
-		Location		[351, 83, 1101, 575]
+		Location		[352, 83, 1102, 575]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4000,7 +4009,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "Right Foot \nJacobian1"
-		    Location		    [351, 83, 1101, 575]
+		    Location		    [352, 83, 1102, 575]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -4014,19 +4023,23 @@ Library {
 		    ShowPageBoundaries	    off
 		    ZoomFactor		    "100"
 		    Block {
-		    BlockType		    Ground
-		    Name		    "Ground"
-		    SID			    "322"
-		    Position		    [60, 250, 80, 270]
-		    ZOrder		    -9
-		    }
-		    Block {
 		    BlockType		    Constant
 		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
 		    SID			    "323"
 		    Position		    [55, 105, 85, 135]
 		    ZOrder		    -5
 		    Value		    "2"
+		    OutDataTypeStr	    "int8"
+		    SampleTime		    "-1"
+		    }
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+		    SID			    "471"
+		    Position		    [50, 245, 80, 275]
+		    ZOrder		    -5
+		    ShowName		    off
+		    Value		    "zeros(25,1)"
 		    OutDataTypeStr	    "int8"
 		    SampleTime		    "-1"
 		    }
@@ -4160,7 +4173,7 @@ Library {
 		    DstPort		    1
 		    }
 		    Line {
-		    SrcBlock		    "Ground"
+		    SrcBlock		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
 		    SrcPort		    1
 		    DstBlock		    "S-Function"
 		    DstPort		    2
@@ -4271,7 +4284,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Left Foot Jacobian"
-		Location		[351, 83, 1101, 575]
+		Location		[352, 83, 1102, 575]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4301,7 +4314,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "Left Foot \nJacobian1"
-		    Location		    [351, 83, 1101, 575]
+		    Location		    [352, 83, 1102, 575]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -4315,19 +4328,23 @@ Library {
 		    ShowPageBoundaries	    off
 		    ZoomFactor		    "100"
 		    Block {
-		    BlockType		    Ground
-		    Name		    "Ground"
-		    SID			    "135"
-		    Position		    [65, 225, 85, 245]
-		    ZOrder		    -9
-		    }
-		    Block {
 		    BlockType		    Constant
 		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
 		    SID			    "136"
 		    Position		    [60, 95, 90, 125]
 		    ZOrder		    -5
 		    OutDataTypeStr	    "int8"
+		    }
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+		    SID			    "469"
+		    Position		    [55, 220, 85, 250]
+		    ZOrder		    -5
+		    ShowName		    off
+		    Value		    "zeros(25,1)"
+		    OutDataTypeStr	    "int8"
+		    SampleTime		    "-1"
 		    }
 		    Block {
 		    BlockType		    S-Function
@@ -4406,7 +4423,7 @@ Library {
 		    IconDisplay		    "Port number"
 		    }
 		    Line {
-		    SrcBlock		    "Ground"
+		    SrcBlock		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
 		    SrcPort		    1
 		    DstBlock		    "S-Function"
 		    DstPort		    2
@@ -4546,7 +4563,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Right Foot Jacobian"
-		Location		[351, 83, 1101, 575]
+		Location		[352, 83, 1102, 575]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4577,7 +4594,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "Right Foot \nJacobian1"
-		    Location		    [351, 83, 1101, 575]
+		    Location		    [352, 83, 1102, 575]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -4591,19 +4608,23 @@ Library {
 		    ShowPageBoundaries	    off
 		    ZoomFactor		    "100"
 		    Block {
-		    BlockType		    Ground
-		    Name		    "Ground"
-		    SID			    "147"
-		    Position		    [60, 250, 80, 270]
-		    ZOrder		    -9
-		    }
-		    Block {
 		    BlockType		    Constant
 		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
 		    SID			    "148"
 		    Position		    [55, 105, 85, 135]
 		    ZOrder		    -5
 		    Value		    "0"
+		    OutDataTypeStr	    "int8"
+		    SampleTime		    "-1"
+		    }
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+		    SID			    "470"
+		    Position		    [45, 245, 75, 275]
+		    ZOrder		    -5
+		    ShowName		    off
+		    Value		    "zeros(25,1)"
 		    OutDataTypeStr	    "int8"
 		    SampleTime		    "-1"
 		    }
@@ -4688,7 +4709,7 @@ Library {
 		    IconDisplay		    "Port number"
 		    }
 		    Line {
-		    SrcBlock		    "Ground"
+		    SrcBlock		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
 		    SrcPort		    1
 		    DstBlock		    "S-Function"
 		    DstPort		    2
@@ -4844,8 +4865,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyStates"
-	Location		[594, 279, 948, 418]
-	Open			on
+	Location		[158, 255, 512, 382]
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -4888,7 +4909,7 @@ Library {
 	  MaskValueString	  "robotName|localName"
 	  System {
 	    Name		    "Joint Angles"
-	    Location		    [528, 126, 1425, 814]
+	    Location		    [529, 126, 1426, 814]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -4902,13 +4923,6 @@ Library {
 	    ShowPageBoundaries	    off
 	    ZoomFactor		    "100"
 	    Block {
-	      BlockType		      Ground
-	      Name		      "Ground"
-	      SID		      "2"
-	      Position		      [75, 215, 95, 235]
-	      ZOrder		      -9
-	    }
-	    Block {
 	      BlockType		      Constant
 	      Name		      "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
 	      SID		      "3"
@@ -4916,6 +4930,17 @@ Library {
 	      ZOrder		      -5
 	      Value		      "0"
 	      OutDataTypeStr	      "int8"
+	    }
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+	      SID		      "468"
+	      Position		      [65, 210, 95, 240]
+	      ZOrder		      -5
+	      ShowName		      off
+	      Value		      "zeros(25,1)"
+	      OutDataTypeStr	      "int8"
+	      SampleTime	      "-1"
 	    }
 	    Block {
 	      BlockType		      Terminator
@@ -4994,7 +5019,7 @@ Library {
 	      IconDisplay	      "Port number"
 	    }
 	    Line {
-	      SrcBlock		      "Ground"
+	      SrcBlock		      "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
 	      SrcPort		      1
 	      DstBlock		      "S-Function"
 	      DstPort		      2
@@ -5081,8 +5106,8 @@ Library {
 	  MaskValueString	  "robotName|localName"
 	  System {
 	    Name		    "Joint Velocities"
-	    Location		    [354, 211, 1251, 899]
-	    Open		    on
+	    Location		    [356, 211, 1253, 899]
+	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
