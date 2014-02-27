@@ -339,7 +339,8 @@ int icubWholeBodyStates::lockAndGetSensorNumber(const SensorType st)
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 icubWholeBodyEstimator::icubWholeBodyEstimator(int _period, icubWholeBodySensors *_sensors)
-: RateThread(_period), sensors(_sensors), dqFilt(0), d2qFilt(0)
+: RateThread(_period), sensors(_sensors), dqFilt(0), d2qFilt(0), dTauJFilt(0), dTauMFilt(0),
+  tauJFilt(0), tauMFilt(0)
 {
     resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
     ///< Window lengths of adaptive window filters
@@ -423,9 +424,14 @@ void icubWholeBodyEstimator::run()
 
 void icubWholeBodyEstimator::threadRelease()
 {
-    // this causes a memory access violation (to investigate)
-    //if(dqFilt!=NULL)    delete dqFilt;
-    //if(d2qFilt!=NULL)   delete d2qFilt;
+    //this causes a memory access violation (to investigate)
+    if(dqFilt!=0)    { delete dqFilt;  dqFilt=0; } 
+    if(d2qFilt!=0)   { delete d2qFilt; d2qFilt=0; }
+    if(dTauJFilt!=0) { delete dTauJFilt; dTauJFilt=0; }
+    if(dTauMFilt!=0) { delete dTauMFilt; dTauMFilt=0; }     // motor torque derivative filter
+    if(tauJFilt!=0)  { delete tauJFilt; tauJFilt=0; }  ///< low pass filter for joint torque
+    if(tauMFilt!=0)  { delete tauMFilt; tauMFilt=0; }  ///< low pass filter for motor torque
+    if(pwmFilt!=0)   { delete pwmFilt; pwmFilt=0;   }
     return;
 }
 
