@@ -124,6 +124,7 @@ bool icubWholeBodySensors::close()
     {
         assert(dd[itBp->first]!=NULL);
         ok = ok && dd[itBp->first]->close();
+        delete dd[itBp->first];
         dd[itBp->first] = NULL;
     }
 
@@ -132,6 +133,7 @@ bool icubWholeBodySensors::close()
         if(dd[itBp->first]!=NULL)
         {
             ok = ok && dd[itBp->first]->close();
+            delete dd[itBp->first];
             dd[itBp->first] = NULL;
         }
     }
@@ -141,6 +143,7 @@ bool icubWholeBodySensors::close()
         if(dd[itBp->first])
         {
             ok = ok && dd[itBp->first]->close();
+            delete dd[itBp->first];
             dd[itBp->first] = NULL;
         }
     }

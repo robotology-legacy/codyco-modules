@@ -117,6 +117,9 @@ int main(int argc, char * argv[])
     getchar();
     
     icub->close();
+    
+    delete icub;
+    
     printf("Main returning...\n");
     return 0;
 }
