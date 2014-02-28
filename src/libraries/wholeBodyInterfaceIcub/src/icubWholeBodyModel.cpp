@@ -101,8 +101,11 @@ bool icubWholeBodyModel::close()
     bool ok = true;
     FOR_ALL_BODY_PARTS(itBp)
     {
-        assert(dd[itBp->first]!=NULL);
-        ok = ok && dd[itBp->first]->close();
+        if( dd[itBp->first] != 0 ) {
+            ok = ok && dd[itBp->first]->close();
+            delete dd[itBp->first];
+            dd[itBp->first] = 0;
+        }
     }
     if(p_icub_model) { delete p_icub_model; p_icub_model = 0; }
     return ok;
@@ -585,14 +588,14 @@ bool icubWholeBodyModel::computeGeneralizedBiasForces(double *q, const Frame &xB
     convertBaseVelocity(dxB,v_base,omega_base);
     convertDQ(dq,all_dq);
     yarp::sig::Vector ddxB(6, 0.0);
+    yarp::sig::Vector ddq(dof, 0.0);
     
     //We can take into account the gravity efficiently by adding a fictional acceleration to the base
-    ddxB[0] = ddxB[0] - g[0];
-    ddxB[1] = ddxB[1] - g[1];
-    ddxB[2] = ddxB[2] - g[2];
+    ddxB[0] = - g[0];
+    ddxB[1] = - g[1];
+    ddxB[2] = - g[2];
    
     convertBaseAcceleration(ddxB.data(),a_base,domega_base);
-    yarp::sig::Vector ddq(dof, 0.0);
     
 
     convertDDQ(ddq.data(),all_ddq);

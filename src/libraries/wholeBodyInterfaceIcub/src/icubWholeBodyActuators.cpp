@@ -23,8 +23,10 @@
 #include <cassert>
 
 //*********TEMP**************//
+#ifdef WBI_ICUB_COMPILE_PARAM_HELP
 #include <paramHelp/paramHelperClient.h>
 #include <motorFrictionIdentificationLib/jointTorqueControlParams.h>
+#endif
 //*********END TEMP**********//
 
 using namespace std;
@@ -56,7 +58,11 @@ const std::string icubWholeBodyActuators::icubWholeBodyActuatorsExternalTorqueMo
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 icubWholeBodyActuators::icubWholeBodyActuators(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames)
-: initDone(false), dof(0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames), _torqueModuleConnection(0) {}
+: initDone(false), dof(0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
+#ifdef WBI_ICUB_COMPILE_PARAM_HELP
+,_torqueModuleConnection(0)
+#endif
+{}
 
 
 icubWholeBodyActuators::~icubWholeBodyActuators()
@@ -96,6 +102,7 @@ bool icubWholeBodyActuators::init()
         }
     }
     
+    #ifdef WBI_ICUB_COMPILE_PARAM_HELP
     ///TEMP
     if (_torqueModuleConnection) {
         _torqueModuleConnection->close();
@@ -110,6 +117,7 @@ bool icubWholeBodyActuators::init()
                 ok = false;
             }
             else {
+                
                 _torqueModuleConnection = new paramHelp::ParamHelperClient(jointTorqueControl::jointTorqueControlParamDescr, jointTorqueControl::PARAM_ID_SIZE,
                                                                            jointTorqueControl::jointTorqueControlCommandDescr, jointTorqueControl::COMMAND_ID_SIZE);
                 
@@ -125,6 +133,7 @@ bool icubWholeBodyActuators::init()
         }
     }
     ///END TEMP
+    #endif
     initDone = true;
     return ok;
 }
@@ -134,14 +143,19 @@ bool icubWholeBodyActuators::close()
     bool ok = true;
     FOR_ALL_BODY_PARTS(itBp)
     {
-        assert(dd[itBp->first]!=NULL);
-        ok = dd[itBp->first]->close();
+        if( dd[itBp->first]!= 0 ) {
+            ok = dd[itBp->first]->close();
+            delete dd[itBp->first];
+            dd[itBp->first] = 0;
+        }
     }
+    #ifdef WBI_ICUB_COMPILE_PARAM_HELP
     ///TEMP
     if (_torqueModuleConnection) {
         _torqueModuleConnection->close();
         delete _torqueModuleConnection; _torqueModuleConnection = NULL;
     }
+    #endif
     
     return ok;
 }
@@ -250,11 +264,14 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
             case CTRL_MODE_TORQUE:
                 FOR_ALL(itBp, itJ)
                 if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode) {
+                    #ifdef WBI_ICUB_COMPILE_PARAM_HELP
                     if (_torqueModuleConnection) {
                         //if torque control connection is true I do not set the torqueMode
                         ok = ok && true;
                     }
-                    else {
+                    else
+                    #endif
+                    {
                         ok = ok && icmd[itBp->first]->setTorqueMode(itBp->first==TORSO ? 2-(*itJ) : *itJ);
                     }
                 }
@@ -318,6 +335,7 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
             case CTRL_MODE_VEL:         return ivel[li.bodyPart]->velocityMove(i, CTRL_RAD2DEG*(*ref));
             case CTRL_MODE_TORQUE:
             {
+                #ifdef WBI_ICUB_COMPILE_PARAM_HELP
                 //TEMP
                 if (_torqueModuleConnection) {
                     _torqueRefs.zero();
@@ -333,6 +351,7 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
                 }
                 else
                 //END TEMP
+                #endif
                     return itrq[li.bodyPart]->setRefTorque(i, *ref);
             }
             ///< iCub simulator does not implement PWM motor control
@@ -368,11 +387,13 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
         }
     }
     
+    #ifdef WBI_ICUB_COMPILE_PARAM_HELP
     //TEMP
     if (_torqueModuleConnection) {
         _torqueRefs.zero();
     }
     //END TEMP
+    #endif
     
     unsigned int i=0;
     FOR_ALL(itBp, itJ)
@@ -390,6 +411,7 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
                 break;
             case CTRL_MODE_TORQUE:
             {
+                #ifdef WBI_ICUB_COMPILE_PARAM_HELP
                 //TEMP
                 //to keep consistency: set only if ok is true
                 if (_torqueModuleConnection && ok) {
@@ -403,6 +425,7 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
                     }
                 }
                 else
+                #endif
                     ok = ok && itrq[itBp->first]->setRefTorque(j, ref[i]);
             }
                 break;
@@ -417,11 +440,13 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
         i++;
     }
     
+    #ifdef WBI_ICUB_COMPILE_PARAM_HELP
     //TEMP
     if (_torqueModuleConnection) {
         ok = ok && _torqueModuleConnection->sendStreamParams();
     }
     //END TEMP
+    #endif
     
     return ok;
 }
