@@ -37,10 +37,12 @@
 /* CODE UNDER DEVELOPMENT */
 
 //*********TEMP************** -> for actuators //
+#ifdef WBI_ICUB_COMPILE_PARAM_HELP
 #include <yarp/sig/Vector.h>
 namespace paramHelp {
     class ParamHelperClient;
 }
+#endif
 //*********END TEMP**********//
 
 namespace yarp {
@@ -254,8 +256,10 @@ namespace wbiIcub
         virtual bool setReferenceSpeed(double *rspd, int joint=-1);
         
         //*********TEMP**************//
+        #ifdef WBI_ICUB_COMPILE_PARAM_HELP
         paramHelp::ParamHelperClient *_torqueModuleConnection; /*< connection to the torque control module */
         yarp::sig::Vector _torqueRefs;
+        #endif
         //*********END TEMP**********//
 
         /** Set the proportional, derivative and integrale gain for the current joint(s) controller.
