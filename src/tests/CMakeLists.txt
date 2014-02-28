@@ -5,4 +5,5 @@ if(CODYCO_BUILD_TESTS)
 endif()
 add_subdirectory(wholeBodyInterfaceTest)
 add_subdirectory(wholeBodyInterfaceIcubTest)
+add_subdirectory(inverseDynamicsTest)
 
