@@ -85,5 +85,21 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     ENDIF()
 ENDIF()
 
+#setting debug options
+if (DEFINED CMAKE_CONFIGURATION_TYPES OR ${CMAKE_BUILD_TYPE} MATCHES "Debug")
+    if(MSVC)
+        ###
+    else()
+        ##Other systems
+        if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -pedantic -Wnon-virtual-dtor -Woverloaded-virtual")
+            MESSAGE(STATUS "Clang compiler: setting -Weverything -pedantic -Wnon-virtual-dtor -Woverloaded-virtual")
+        elseif (${CMAKE_CXX_COMPILER_ID} MATCHES "Gcc")
+            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Weffc++ -Woverloaded-virtual")
+            MESSAGE(STATUS "Gcc compiler: setting -Wall -Wextra -Wpedantic -Weffc++ -Woverloaded-virtual")
+        endif()
+    endif()
+endif()
+
 #### Option for building tests
 option(CODYCO_BUILD_TESTS "Compile tests" FALSE)
