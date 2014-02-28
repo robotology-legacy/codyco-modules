@@ -117,9 +117,10 @@ bool icubWholeBodyActuators::init()
                 if (!_torqueModuleConnection || !_torqueModuleConnection->init(name, found.asString().c_str(), initMsg)) {
                     ok = false;
                 }
-                
-                _torqueRefs.resize(jointTorqueControl::N_DOF);
-                ok = _torqueModuleConnection->linkParam(jointTorqueControl::PARAM_ID_TAU_OFFSET, _torqueRefs.data());
+                else {
+                    _torqueRefs.resize(jointTorqueControl::N_DOF);
+                    ok = _torqueModuleConnection->linkParam(jointTorqueControl::PARAM_ID_TAU_OFFSET, _torqueRefs.data());
+                }
             }
         }
     }
