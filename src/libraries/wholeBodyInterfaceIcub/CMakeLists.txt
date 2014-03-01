@@ -26,6 +26,12 @@ SET(folder_source src/icubWholeBodyInterface.cpp
                   src/icubWholeBodyActuators.cpp
                   src/icubWholeBodySensors.cpp)
 SET(folder_header include/wbiIcub/wholeBodyInterfaceIcub.h
+                  include/wbiIcub/icubWholeBodyModel.h
+                  include/wbiIcub/icubWholeBodyStates.h
+                  include/wbiIcub/icubWholeBodyStatesLocal.h
+                  include/wbiIcub/icubWholeBodyStatesRemote.h
+                  include/wbiIcub/icubWholeBodyActuators.h
+                  include/wbiIcub/icubWholeBodySensors.h 
                   include/wbiIcub/wbiIcubUtil.h)
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
