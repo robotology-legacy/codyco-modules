@@ -105,9 +105,9 @@ private:
     wbi::Frame           	H_base_leftFoot;   
     // Floating base 3D rototranslation from world ot base.
     wbi::Frame 			xBase;
-    // Floating base velocity.
+    // Floating base velocity 6x1
     yarp::sig::Vector		dxB;
-    // Generalized bias forces.
+    // Generalized bias forces N+6 dim vector
     yarp::sig::Vector		hterm;
     yarp::sig::Vector    	dJdq;
     // Mass matrix

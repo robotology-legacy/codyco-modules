@@ -332,6 +332,7 @@ MassMatrix robotStatus::getMassMatrix() {
 //=========================================================================================================================
 Vector robotStatus::dynamicsGenBiasForces() {
     bool ans = false;
+    // grav is a 3x1 dim array
     double grav[3]= {0, 0, -9.81};
     if(robotJntAngles(false)) {
         if(DEBUGGING) fprintf(stderr,"robotJntAngles computed for dynamicsGenBiasForces\n");
