@@ -17,9 +17,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Feb 27 11:19:45 2014"
-  RTWModifiedTimeStamp	  315400645
-  ModelVersionFormat	  "1.%<AutoIncrement:162>"
+  LastModifiedDate	  "Sat Mar 01 17:23:12 2014"
+  RTWModifiedTimeStamp	  315595249
+  ModelVersionFormat	  "1.%<AutoIncrement:167>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -743,7 +743,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [207, 284, 995, 504]
+    Location		    [333, 431, 1121, 651]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -757,7 +757,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "472"
+    SIDHighWatermark	    "476"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -1030,7 +1030,7 @@ Library {
 	  ShowName		  off
 	  LibraryVersion	  "1.7"
 	  SourceBlock		  "utility/Soft Real Time"
-	  SourceType		  ""
+	  SourceType		  "Unknown"
 	  x			  "Ts"
 	}
 	Block {
@@ -1746,8 +1746,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyActuators"
-	Location		[460, 123, 1003, 250]
-	Open			off
+	Location		[464, 501, 1007, 628]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -1861,10 +1861,10 @@ Library {
 	  MaskIconRotate	  "none"
 	  MaskPortRotate	  "default"
 	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "0|robotName|localName"
+	  MaskValueString	  "5|robotName|localName"
 	  System {
 	    Name		    "Set Angles"
-	    Location		    [480, 421, 755, 665]
+	    Location		    [646, 425, 921, 669]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2049,7 +2049,7 @@ Library {
 	  MaskValueString	  "6|robotName|localName"
 	  System {
 	    Name		    "Set Torques"
-	    Location		    [480, 421, 755, 665]
+	    Location		    [481, 449, 756, 693]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2232,10 +2232,10 @@ Library {
 	  MaskIconRotate	  "none"
 	  MaskPortRotate	  "default"
 	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "1|robotName|localName"
+	  MaskValueString	  "4|robotName|localName"
 	  System {
 	    Name		    "Set Velocities"
-	    Location		    [702, 137, 1212, 754]
+	    Location		    [708, 150, 1218, 767]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2289,7 +2289,7 @@ Library {
 	      MaskIconRotate	      "none"
 	      MaskPortRotate	      "default"
 	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "4|robotName|'robotState'"
+	      MaskValueString	      "val|robotName|localName"
 	    }
 	    Block {
 	      BlockType		      Terminator
@@ -2422,7 +2422,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[646, 487, 1291, 746]
+	Location		[549, 174, 1194, 433]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -4865,7 +4865,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyStates"
-	Location		[159, 283, 513, 410]
+	Location		[161, 339, 515, 466]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -5106,7 +5106,7 @@ Library {
 	  MaskValueString	  "robotName|localName"
 	  System {
 	    Name		    "Joint Velocities"
-	    Location		    [357, 211, 1254, 899]
+	    Location		    [358, 81, 1255, 769]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200

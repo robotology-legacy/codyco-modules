@@ -56,7 +56,7 @@ int *robotStatus::tmpContainer 	  = NULL;
 int  counterClass::count 	  = 0;
 
 
-robotStatus::robotStatus():dqDesMap(0,0) {
+robotStatus::robotStatus(){
     creationCounter++;
     fprintf(stderr,"ROBOTSTATUS instantiated %d times\n ",creationCounter);
     wbInterface = NULL;

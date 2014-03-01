@@ -87,7 +87,7 @@ private:
     // name of the robot being used, e.g. 'icubSim' or 'icub'.
     std::string 		robotName;
     // This variable map an Eigen vector to a yarp vector. 
-    Eigen::Map<Eigen::VectorXd>	dqDesMap;
+//     Eigen::Map<Eigen::VectorXd>	dqDesMap;
     // Joint velocities (size of vectors: n+6, n, 6)
     Eigen::VectorXd        	dq, dqJ;                
     // rotation matrix from world to base reference frame.
@@ -110,13 +110,14 @@ private:
     // Generalized bias forces N+6 dim vector
     yarp::sig::Vector		hterm;
     yarp::sig::Vector    	dJdq;
-    // Mass matrix
+    // Mass matrix N+6xN+6
     MassMatrix			massMatrix;
 
 
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     wbi::wholeBodyInterface *wbInterface;
-    // Temporal container to copy wbInterface object to other copies of this module
+    // Temporal container to copy wbInterface object for other copies of this module
     static int 		    *tmpContainer;
     
     robotStatus();
