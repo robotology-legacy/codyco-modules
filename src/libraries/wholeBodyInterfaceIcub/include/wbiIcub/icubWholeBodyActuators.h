@@ -30,6 +30,23 @@
 #include <iCub/skinDynLib/skinContactList.h>
 #include <wbiIcub/wbiIcubUtil.h>
 #include <map>
+
+//*********TEMP************** -> for actuators //
+#ifdef WBI_ICUB_COMPILE_PARAM_HELP
+#include <yarp/sig/Vector.h>
+namespace paramHelp {
+    class ParamHelperClient;
+}
+#endif
+//*********END TEMP**********//
+
+namespace yarp {
+    namespace os {
+        class Property;
+        class Value;
+    }
+}
+
  
  
 namespace wbiIcub
