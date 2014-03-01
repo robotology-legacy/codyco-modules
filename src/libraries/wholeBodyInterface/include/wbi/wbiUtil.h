@@ -297,7 +297,7 @@ namespace wbi
 
         /** Returns a vector with the direction of the equiv. axis and with a norm equivalent to the rotation angle. */
         void getRotationVector(double &vX, double &vY, double &vZ) const;
-        void getRotationVector(double v[3]) const { return getRotationVector(v[0], v[1], v[2]); };
+        void getRotationVector(double v[3]) const { return getRotationVector(v[0], v[1], v[2]); }
 
         void getAxisAngle(double &axisX, double &axisY, double &axisZ, double &angle) const;
         /** Returns the rotation angle around the equiv. axis.

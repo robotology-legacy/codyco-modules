@@ -69,8 +69,8 @@ namespace wbi
     class iWholeBodySensors
     {
     public:
-        /** Virtual destructor (to allow implementation of proper destructor in son classes). */
-        inline virtual ~iWholeBodySensors(){}
+        /** Virtual destructor (to allow implementation of proper destructor in children classes). */
+        virtual ~iWholeBodySensors();
 
         /** Initialize the object. This method should be called after adding the sensors,
          *  but before reading any sensor. */
@@ -95,7 +95,7 @@ namespace wbi
 
         /** Remove the specified sensor. 
          * @param st Type of the sensor to remove.
-         * @param j Id of the sensor to remove.
+         * @param sid Id of the sensor to remove.
          * @return True if the sensor has been removed, false otherwise.
          */
         virtual bool removeSensor(const SensorType st, const LocalId &sid) = 0;
@@ -128,7 +128,6 @@ namespace wbi
         
         /** Read all the sensors of the specified type.
          * @param st Type of the sensor to read.
-         * @param sid Id of the sensor to read.
          * @param data Output data vector.
          * @param stamps Output vector of timestamps.
          * @param blocking If true, the reading is blocking, otherwise it is not.
@@ -143,8 +142,8 @@ namespace wbi
     class iWholeBodyStates
     {
     public:
-        /** Virtual destructor (to allow implementation of proper destructor in son classes). */
-        inline virtual ~iWholeBodyStates(){}
+        /** Virtual destructor (to allow implementation of proper destructor in children classes). */
+        virtual ~iWholeBodyStates();
         virtual bool init() = 0;
         virtual bool close() = 0;
 
@@ -164,7 +163,7 @@ namespace wbi
 
         /** Remove the specified estimate. 
          * @param st Type of the estimate to remove.
-         * @param j Id of the estimate to remove.
+         * @param sid Id of the estimate to remove.
          * @return True if the estimate has been removed, false otherwise.
          */
         virtual bool removeEstimate(const EstimateType st, const LocalId &sid) = 0;
@@ -223,7 +222,7 @@ namespace wbi
           * associated to the center of mass. */
         static const int COM_LINK_ID = -1; 
 
-        inline virtual ~iWholeBodyModel(){}
+        virtual ~iWholeBodyModel();
         virtual bool init() = 0;
         virtual bool close() = 0;
 
@@ -330,7 +329,7 @@ namespace wbi
     class iWholeBodyActuators
     {
     public:
-        inline virtual ~iWholeBodyActuators(){}
+        virtual ~iWholeBodyActuators();
         virtual bool init() = 0;
         virtual bool close() = 0;
 
@@ -367,7 +366,7 @@ namespace wbi
     class wholeBodyInterface: public iWholeBodyStates, public iWholeBodyModel, public iWholeBodyActuators
     {
     public:
-        inline virtual ~wholeBodyInterface(){}
+        virtual ~wholeBodyInterface();
         virtual bool init() = 0;
         virtual bool close() = 0;
         
