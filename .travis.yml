@@ -42,7 +42,7 @@ before_script:
   # Prepare codyco build
   - mkdir build
   - cd build
-  - cmake -DCODYCO_BUILD_TESTS:BOOL=ON -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} ..
+  - cmake -DCODYCO_BUILD_TESTS:BOOL=ON -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} -DCODYCO_TRAVIS_CI:BOOL=ON ..
 
 script:
   - make
