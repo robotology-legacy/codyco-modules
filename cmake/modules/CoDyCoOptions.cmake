@@ -86,20 +86,22 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 ENDIF()
 
 #setting debug options
-if (DEFINED CMAKE_CONFIGURATION_TYPES OR ${CMAKE_BUILD_TYPE} MATCHES "Debug")
-    if(MSVC)
-        ###
-    else()
-        ##Other systems
-        if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -pedantic -Wnon-virtual-dtor -Woverloaded-virtual")
-            MESSAGE(STATUS "Clang compiler: setting -Weverything -pedantic -Wnon-virtual-dtor -Woverloaded-virtual")
-        elseif (${CMAKE_CXX_COMPILER_ID} MATCHES "Gcc")
-            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Weffc++ -Woverloaded-virtual")
-            MESSAGE(STATUS "Gcc compiler: setting -Wall -Wextra -Wpedantic -Weffc++ -Woverloaded-virtual")
-        endif()
+# if (DEFINED CMAKE_CONFIGURATION_TYPES OR ${CMAKE_BUILD_TYPE} MATCHES "Debug")
+if(MSVC)
+    ###
+else()
+    ##Other systems
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Weverything -pedantic -Wnon-virtual-dtor -Woverloaded-virtual")
+        #for now disable documentation warnings and padding alignment warnings
+        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wno-documentation -Wno-documentation-unknown-command -Wno-padded")
+        MESSAGE(STATUS "Clang compiler - Debug configuration flags: -Weverything -pedantic -Wnon-virtual-dtor -Woverloaded-virtual")
+    elseif (${CMAKE_CXX_COMPILER_ID} MATCHES "Gcc")
+        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wpedantic -Weffc++ -Woverloaded-virtual")
+        MESSAGE(STATUS "Gcc compiler - Debug configuration flags: -Wall -Wextra -Wpedantic -Weffc++ -Woverloaded-virtual")
     endif()
 endif()
+# endif()
 
 #### Option for building tests
 option(CODYCO_BUILD_TESTS "Compile tests" FALSE)
