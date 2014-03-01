@@ -105,7 +105,7 @@ namespace wbiIcub
     inline std::string getPortName(const wbi::LocalId &lid, const std::vector<id_2_PortName> id2port)
     {return getPortName(lid, &id2port[0], id2port.size());}
 
-    /** Return true if the robotName is "icubSim", false otherwise. */
+    /** Return true if the robotName is "icubSim" or "icubGazeboSim", false otherwise (deprecated function, do not use). */
     inline bool isRobotSimulator(const std::string &robotName)
     { return robotName=="icubSim" || robotName=="icubGazeboSim"; }
     
