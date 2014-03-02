@@ -27,8 +27,8 @@
  * Public License for more details
  */
 
-#ifndef _WBINTERFACE_H_
-#define _WBINTERFACE_H_
+#ifndef _WBINTERFACENEW_INCLUDE_WBINTERFACE_H_
+#define _WBINTERFACENEW_INCLUDE_WBINTERFACE_H_
 
 #define S_FUNCTION_LEVEL 2
 #define S_FUNCTION_NAME  robotState
@@ -72,13 +72,13 @@ JacobianMatrix jacob;
 
 class robotStatus {
 private:
-    // This object is used to control reentrancy.
+    // This object is used to control reentrancy. Counts the times the class robotStatus has been created.
     static int 			creationCounter;
     // id of the COM that is different from the other parts of the robot body.
     int             		comLinkId;              
     // id of the controlled foot link.
     int             		footLinkId;   
-    // Current active joints (not being update at the moment 24/02/2014 12:44pm)
+    // Current active joints (not being updated at the moment 24/02/2014 12:44pm).
     int 			actJnts;
     // current number of active joints.
     int                 	_n;     
@@ -88,10 +88,11 @@ private:
     std::string 		robotName;
     // This variable map an Eigen vector to a yarp vector. 
 //     Eigen::Map<Eigen::VectorXd>	dqDesMap;
-    // Joint velocities (size of vectors: n+6, n, 6)
+    // Joint velocities (size of vectors: n+6, n, 6).
     Eigen::VectorXd        	dq, dqJ;                
     // rotation matrix from world to base reference frame.
-    Eigen::Matrix4d		H_w2b;                  
+    Eigen::Matrix4d		H_w2b; 
+    // \todo This variable has a wrong name because when the library was born it was meant to send only velocity commands. With its scalation it started using this very same vector for references to the other control modes available.
     Eigen::VectorXd         	dqDes;
     // General vector initialized depending on the link for which forwardKinematics is computed as well as dJdq.
     yarp::sig::Vector        	x_pose;
@@ -124,8 +125,8 @@ public:
     ~robotStatus();
     void 		setmoduleName(std::string mn);
     void 		setRobotName(std::string rn); //checked
-    int 		getCounter();
     int 		decreaseCounter();
+    void 		resetCounter();
     bool 		robotConfig();
     bool 		robotInit(int btype, int link);
     void 		getLinkId(const char *linkName, int &lid);
@@ -149,10 +150,6 @@ public:
     yarp::sig::Vector 	getDJdq();
 };
 
-// The initialization of this varibale must be done here because it's a pointer to static
-// int robotStatus::creationCounter = 0;
-// int *robotStatus::tmpContainer = NULL;
-
 class counterClass {
 private:
     static int count;
@@ -160,8 +157,5 @@ public:
     counterClass();
     int getCount();
 };
-
-// The initialization of this varibale must be done here because it's a pointer to static
-// int counterClass::count = 0;
 
 #endif
