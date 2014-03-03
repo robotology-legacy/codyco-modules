@@ -10,6 +10,11 @@ Library {
   OverrideScopeRefreshTime on
   DisableAllScopes	  off
   FPTRunName		  "Run 1"
+  ForwardingTableString	  "||__slOldName__||WBCLibrary/wholeBodyModel/Jacobians/COM Jacobian||__slNewName__||WBCLibrar"
+  "y/wholeBodyModel/Jacobians/Center of Mass Jacobian||__slOldName__||WBCLibrary/wholeBodyModel/Jacobians/Right Foot Ja"
+  "cobian1||__slNewName__||WBCLibrary/wholeBodyModel/Jacobians/Right Foot Jacobian||__slOldName__||WBCLibrary/wholeBody"
+  "Actuators/setVelDes1||__slNewName__||WBCLibrary/wholeBodyActuators/Set Velocities||__slOldName__||WBCLibrary/wholeBo"
+  "dyActuators/setVelDes||__slNewName__||WBCLibrary/wholeBodyActuators/Set Velocities"
   MaxMDLFileLineLength	  120
   Created		  "Thu Feb 06 11:21:39 2014"
   Creator		  "jorhabib"
@@ -17,9 +22,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Sat Mar 01 17:23:12 2014"
-  RTWModifiedTimeStamp	  315595249
-  ModelVersionFormat	  "1.%<AutoIncrement:167>"
+  LastModifiedDate	  "Mon Mar 03 14:41:16 2014"
+  RTWModifiedTimeStamp	  315758402
+  ModelVersionFormat	  "1.%<AutoIncrement:196>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -743,11 +748,11 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [333, 431, 1121, 651]
+    Location		    [462, 318, 1250, 578]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
-    ScreenColor		    "white"
+    ScreenColor		    "gray"
     PaperOrientation	    "landscape"
     PaperPositionMode	    "auto"
     PaperType		    "usletter"
@@ -757,13 +762,13 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "476"
+    SIDHighWatermark	    "484"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
       SID		      "192"
       Ports		      []
-      Position		      [324, 27, 362, 64]
+      Position		      [329, 17, 367, 54]
       ZOrder		      -1
       DropShadow	      on
       MinAlgLoopOccurrences   off
@@ -773,7 +778,7 @@ Library {
       Opaque		      off
       RequestExecContextInheritance off
       MaskHideContents	      off
-      MaskDisplay	      "image(imread('./img/utilities.bmp'))"
+      MaskDisplay	      "image(imread('utilities.bmp'))"
       MaskIconFrame	      on
       MaskIconOpaque	      on
       MaskIconRotate	      "none"
@@ -781,7 +786,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
-	Location		[319, 387, 1118, 555]
+	Location		[1, 81, 800, 249]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -799,7 +804,7 @@ Library {
 	  Name			  "DampPinv"
 	  SID			  "104"
 	  Ports			  [2, 1]
-	  Position		  [440, 49, 510, 111]
+	  Position		  [435, 58, 505, 102]
 	  ZOrder		  -1
 	  BackgroundColor	  "[0.848000, 0.128048, 0.320035]"
 	  MinAlgLoopOccurrences	  off
@@ -1025,12 +1030,12 @@ Library {
 	  Name			  "Soft Real Time"
 	  SID			  "114"
 	  Ports			  []
-	  Position		  [30, 67, 110, 91]
+	  Position		  [33, 57, 107, 100]
 	  ZOrder		  -2
 	  ShowName		  off
 	  LibraryVersion	  "1.7"
 	  SourceBlock		  "utility/Soft Real Time"
-	  SourceType		  "Unknown"
+	  SourceType		  ""
 	  x			  "Ts"
 	}
 	Block {
@@ -1038,7 +1043,7 @@ Library {
 	  Name			  "TruncPinv"
 	  SID			  "109"
 	  Ports			  [2, 1]
-	  Position		  [340, 49, 410, 111]
+	  Position		  [335, 58, 405, 102]
 	  ZOrder		  -3
 	  BackgroundColor	  "[0.534601, 0.470279, 1.000000]"
 	  MinAlgLoopOccurrences	  off
@@ -1264,7 +1269,7 @@ Library {
 	  Name			  "baseVelocity"
 	  SID			  "431"
 	  Ports			  [3, 2]
-	  Position		  [540, 24, 655, 136]
+	  Position		  [535, 58, 645, 102]
 	  BackgroundColor	  "[0.753334, 1.000000, 0.112472]"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -1273,6 +1278,13 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
+	  MaskType		  "baseVelocity"
+	  MaskDescription	  "This block computes the velocity of the floating base of a bipedal robot"
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "baseVelocity"
 	    Location		    [404, 109, 1040, 338]
@@ -1498,7 +1510,7 @@ Library {
 	  Name			  "minJerkTrajGen"
 	  SID			  "25"
 	  Ports			  [2, 3]
-	  Position		  [680, 14, 765, 146]
+	  Position		  [670, 58, 775, 102]
 	  ZOrder		  -4
 	  BackgroundColor	  "[0.156255, 1.000000, 0.640991]"
 	  MinAlgLoopOccurrences	  off
@@ -1508,6 +1520,16 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
+	  MaskType		  "minJerkTrajGen  "
+	  MaskDescription	  "This block wraps the minJerkTrajGen class from iCub::ctrl::minJerkTrajGen.\n\nThe min jerk traje"
+	  "ctory is approximated using a 3rd order LTI dynamical system (for more details see Pattacini2010). Position, veloci"
+	  "ty and acceleration trajectories are computed. The main advantage with respect to the standard polynomial form is t"
+	  "hat if the reference value yd changes there is no need to recompute the filter coefficients."
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "minJerkTrajGen"
 	    Location		    [208, 124, 718, 719]
@@ -1630,7 +1652,7 @@ Library {
 	  Name			  "yarp read"
 	  SID			  "249"
 	  Ports			  [0, 3]
-	  Position		  [240, 59, 310, 101]
+	  Position		  [235, 58, 305, 102]
 	  ZOrder		  -5
 	  BackgroundColor	  "black"
 	  FunctionName		  "yRead"
@@ -1656,7 +1678,7 @@ Library {
 	  Name			  "yarp write"
 	  SID			  "173"
 	  Ports			  [1]
-	  Position		  [140, 59, 210, 101]
+	  Position		  [135, 58, 205, 102]
 	  ZOrder		  -6
 	  BackgroundColor	  "black"
 	  MinAlgLoopOccurrences	  off
@@ -1728,7 +1750,7 @@ Library {
       Name		      "wholeBodyActuators"
       SID		      "224"
       Ports		      []
-      Position		      [233, 27, 270, 63]
+      Position		      [231, 17, 267, 52]
       ZOrder		      -17
       DropShadow	      on
       MinAlgLoopOccurrences   off
@@ -1738,7 +1760,7 @@ Library {
       Opaque		      off
       RequestExecContextInheritance off
       MaskHideContents	      off
-      MaskDisplay	      "image(imread('./img/wholeBodyActuators.bmp'))"
+      MaskDisplay	      "image(imread('wholeBodyActuators.bmp'),'center')"
       MaskIconFrame	      on
       MaskIconOpaque	      on
       MaskIconRotate	      "none"
@@ -1746,8 +1768,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyActuators"
-	Location		[464, 501, 1007, 628]
-	Open			on
+	Location		[85, 192, 628, 349]
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -1783,12 +1805,12 @@ Library {
 	  MaskToolTipString	  "on"
 	  MaskInitialization	  "switch ctrlMode\n    case 'Velocity'\n%         display('Velocity Mode selected')\n        cu"
 	  "rrent = gcb;\n        block = find_system(current,...\n            'LookUnderMasks','on',...\n            'FollowLi"
-	  "nks','on','Name','setVelDes1');\n        if ~isempty(block)\n%             display('setVelDes will be deleted')\n  "
-	  "          delete_block(block)\n%             display('setVelDes has been deleted')\n            add_block('WBCLibra"
-	  "ry/wholeBodyActuators/setVelDes1', [current,'/setVelDes1'])            \n%             display('New setVelDes has b"
-	  "een created')\n            add_line(current,'In1/1',[current '/setVelDes1/1'])\n        else\n%             display"
-	  "('A new setVelDes will be created')\n            add_block('WBCLibrary/wholeBodyActuators/setVelDes1', [current,'/s"
-	  "etVelDes1'])            \n        end\nend"
+	  "nks','on','Name','set Velocities');\n        if ~isempty(block)\n%             display('setVelDes will be deleted')"
+	  "\n            delete_block(block)\n%             display('setVelDes has been deleted')\n            add_block('WBCL"
+	  "ibrary/wholeBodyActuators/set Velocities', [current,'/setVelDes1'])            \n%             display('New setVelD"
+	  "es has been created')\n            add_line(current,'In1/1',[current '/set Velocities/1'])\n        else\n%        "
+	  "     display('A new setVelDes will be created')\n            add_block('WBCLibrary/wholeBodyActuators/set Velocitie"
+	  "s', [current,'/setVelDes1'])            \n        end\nend"
 	  MaskSelfModifiable	  on
 	  MaskIconFrame		  on
 	  MaskIconOpaque	  on
@@ -1798,7 +1820,7 @@ Library {
 	  MaskValueString	  "Velocity"
 	  System {
 	    Name		    "ControlMode"
-	    Location		    [594, 361, 1140, 896]
+	    Location		    [893, 309, 1439, 844]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -1819,18 +1841,6 @@ Library {
 	      Position		      [110, 103, 140, 117]
 	      ZOrder		      -1
 	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Reference
-	      Name		      "setVelDes1"
-	      SID		      "239:305"
-	      Ports		      [1]
-	      Position		      [185, 78, 240, 142]
-	      ZOrder		      52
-	      BackgroundColor	      "orange"
-	      LibraryVersion	      "1.101"
-	      SourceBlock	      "WBCLibrary/wholeBodyActuators/setVelDes1"
-	      SourceType	      "SubSystem"
 	    }
 	  }
 	}
@@ -2404,7 +2414,7 @@ Library {
       Name		      "wholeBodyModel"
       SID		      "209"
       Ports		      []
-      Position		      [142, 27, 180, 64]
+      Position		      [134, 17, 171, 53]
       ZOrder		      -3
       DropShadow	      on
       MinAlgLoopOccurrences   off
@@ -2414,7 +2424,7 @@ Library {
       Opaque		      off
       RequestExecContextInheritance off
       MaskHideContents	      off
-      MaskDisplay	      "image(imread('./img/wholeBodyModel.bmp'),'center')"
+      MaskDisplay	      "image(imread('wholeBodyModel.bmp'),'center')"
       MaskIconFrame	      on
       MaskIconOpaque	      on
       MaskIconRotate	      "none"
@@ -2422,7 +2432,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[549, 174, 1194, 433]
+	Location		[160, 230, 724, 395]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -2440,8 +2450,9 @@ Library {
 	  Name			  "Dynamics"
 	  SID			  "369"
 	  Ports			  []
-	  Position		  [387, 59, 583, 180]
+	  Position		  [342, 14, 538, 135]
 	  ZOrder		  -1
+	  DropShadow		  on
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
 	  RTWSystemCode		  "Auto"
@@ -2457,7 +2468,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Dynamics"
-	    Location		    [860, 123, 1431, 250]
+	    Location		    [329, 328, 900, 484]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2475,7 +2486,7 @@ Library {
 	      Name		      "computeh"
 	      SID		      "358"
 	      Ports		      [0, 1]
-	      Position		      [165, 39, 245, 81]
+	      Position		      [195, 48, 260, 92]
 	      ZOrder		      -1
 	      BackgroundColor	      "[0.850000, 0.010000, 0.698000]"
 	      MinAlgLoopOccurrences   off
@@ -2661,7 +2672,7 @@ Library {
 	      Name		      "dJ*dq LeftFoot"
 	      SID		      "445"
 	      Ports		      [0, 1]
-	      Position		      [390, 38, 470, 82]
+	      Position		      [415, 48, 485, 92]
 	      BackgroundColor	      "[0.662196, 0.000000, 1.000000]"
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
@@ -2848,7 +2859,7 @@ Library {
 	      Name		      "dJ*dq RightFoot"
 	      SID		      "372"
 	      Ports		      [0, 1]
-	      Position		      [275, 39, 355, 81]
+	      Position		      [305, 48, 370, 92]
 	      BackgroundColor	      "[0.501000, 0.015000, 0.850000]"
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
@@ -3036,7 +3047,7 @@ Library {
 	      Name		      "massMatrix"
 	      SID		      "343"
 	      Ports		      [0, 1]
-	      Position		      [55, 39, 135, 81]
+	      Position		      [80, 48, 150, 92]
 	      ZOrder		      -2
 	      BackgroundColor	      "[0.970000, 0.060000, 0.376000]"
 	      MinAlgLoopOccurrences   off
@@ -3287,8 +3298,9 @@ Library {
 	  Name			  "Forward Kinematics"
 	  SID			  "176"
 	  Ports			  []
-	  Position		  [80, 60, 146, 181]
+	  Position		  [35, 15, 101, 136]
 	  ZOrder		  -17
+	  DropShadow		  on
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
 	  RTWSystemCode		  "Auto"
@@ -3304,7 +3316,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Forward Kinematics"
-	    Location		    [90, 123, 515, 248]
+	    Location		    [248, 333, 673, 458]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -3322,7 +3334,7 @@ Library {
 	      Name		      "COMFwdKin "
 	      SID		      "276"
 	      Ports		      [0, 1]
-	      Position		      [35, 36, 120, 74]
+	      Position		      [40, 33, 115, 77]
 	      ZOrder		      -1
 	      BackgroundColor	      "[0.243000, 0.074000, 0.972000]"
 	      MinAlgLoopOccurrences   off
@@ -3520,7 +3532,7 @@ Library {
 	      Name		      "LeftFootFwdKin"
 	      SID		      "303"
 	      Ports		      [0, 1]
-	      Position		      [295, 36, 375, 74]
+	      Position		      [300, 33, 370, 77]
 	      ZOrder		      -2
 	      BackgroundColor	      "[0.031000, 0.800000, 0.970000]"
 	      MinAlgLoopOccurrences   off
@@ -3717,7 +3729,7 @@ Library {
 	      Name		      "RightFootFwdKin"
 	      SID		      "292"
 	      Ports		      [0, 1]
-	      Position		      [165, 36, 250, 74]
+	      Position		      [170, 33, 245, 77]
 	      ZOrder		      -3
 	      BackgroundColor	      "[0.074000, 0.349000, 0.941000]"
 	      MinAlgLoopOccurrences   off
@@ -3917,8 +3929,9 @@ Library {
 	  Name			  "Jacobians"
 	  SID			  "202"
 	  Ports			  []
-	  Position		  [165, 60, 362, 182]
+	  Position		  [120, 15, 317, 137]
 	  ZOrder		  -3
+	  DropShadow		  on
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
 	  RTWSystemCode		  "Auto"
@@ -3934,7 +3947,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Jacobians"
-	    Location		    [540, 143, 1006, 270]
+	    Location		    [778, 453, 1274, 611]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -3952,9 +3965,9 @@ Library {
 	      Name		      "Center of Mass Jacobian"
 	      SID		      "320"
 	      Ports		      [0, 1]
-	      Position		      [325, 31, 445, 69]
+	      Position		      [350, 43, 420, 87]
 	      ZOrder		      -3
-	      BackgroundColor	      "[0.996109, 0.000000, 0.996109]"
+	      BackgroundColor	      "[0.000000, 0.910000, 0.177000]"
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
 	      RTWSystemCode	      "Auto"
@@ -3978,7 +3991,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Center of Mass Jacobian"
-		Location		[353, 111, 1103, 603]
+		Location		[636, 592, 923, 681]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3999,7 +4012,6 @@ Library {
 		  Position		  [25, 29, 70, 51]
 		  ZOrder		  -1
 		  BackgroundColor	  "[1.000000, 0.566599, 0.544887]"
-		  NamePlacement		  "alternate"
 		  MinAlgLoopOccurrences	  off
 		  PropExecContextOutsideSubsystem off
 		  RTWSystemCode		  "Auto"
@@ -4258,9 +4270,9 @@ Library {
 	      Name		      "Left Foot Jacobian"
 	      SID		      "165"
 	      Ports		      [0, 1]
-	      Position		      [35, 31, 150, 69]
+	      Position		      [55, 43, 130, 87]
 	      ZOrder		      -1
-	      BackgroundColor	      "magenta"
+	      BackgroundColor	      "[0.047000, 0.909000, 0.803000]"
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
 	      RTWSystemCode	      "Auto"
@@ -4284,7 +4296,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Left Foot Jacobian"
-		Location		[353, 111, 1103, 603]
+		Location		[367, 232, 654, 322]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4537,9 +4549,9 @@ Library {
 	      Name		      "Right Foot Jacobian"
 	      SID		      "163"
 	      Ports		      [0, 1]
-	      Position		      [180, 31, 295, 69]
+	      Position		      [205, 43, 275, 87]
 	      ZOrder		      -2
-	      BackgroundColor	      "[0.996109, 0.000000, 0.996109]"
+	      BackgroundColor	      "[0.000000, 1.000000, 0.533000]"
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
 	      RTWSystemCode	      "Auto"
@@ -4563,7 +4575,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Right Foot Jacobian"
-		Location		[353, 111, 1103, 603]
+		Location		[396, 467, 684, 556]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4584,7 +4596,6 @@ Library {
 		  Position		  [25, 29, 70, 51]
 		  ZOrder		  -1
 		  BackgroundColor	  "[1.000000, 0.566599, 0.544887]"
-		  NamePlacement		  "alternate"
 		  MinAlgLoopOccurrences	  off
 		  PropExecContextOutsideSubsystem off
 		  RTWSystemCode		  "Auto"
@@ -4847,7 +4858,7 @@ Library {
       Name		      "wholeBodyStates"
       SID		      "206"
       Ports		      []
-      Position		      [51, 27, 89, 64]
+      Position		      [36, 17, 74, 54]
       ZOrder		      -4
       DropShadow	      on
       MinAlgLoopOccurrences   off
@@ -4857,7 +4868,7 @@ Library {
       Opaque		      off
       RequestExecContextInheritance off
       MaskHideContents	      off
-      MaskDisplay	      "image(imread('./img/wholeBodyStates.bmp'))"
+      MaskDisplay	      "image(imread('wholeBodyStates.bmp'),'center');"
       MaskIconFrame	      on
       MaskIconOpaque	      on
       MaskIconRotate	      "none"
@@ -4865,7 +4876,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyStates"
-	Location		[161, 339, 515, 466]
+	Location		[773, 434, 1127, 593]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -4883,7 +4894,7 @@ Library {
 	  Name			  "Joint Angles"
 	  SID			  "1"
 	  Ports			  [0, 1]
-	  Position		  [190, 38, 255, 82]
+	  Position		  [185, 38, 260, 82]
 	  ZOrder		  -1
 	  BackgroundColor	  "orange"
 	  MinAlgLoopOccurrences	  off
@@ -5272,6 +5283,24 @@ Library {
 	  }
 	}
       }
+    }
+    Annotation {
+      SID		      "483"
+      Name		      "ROBOTICS YARP BASED WHOLE BODY CONTROL TOOLBOX"
+      Position		      [201, 93]
+      ForegroundColor	      "white"
+      BackgroundColor	      "gray"
+      FontSize		      5
+    }
+    Annotation {
+      SID		      "484"
+      Name		      "Copyright  2013-3014 Robotics, Brain and Cognitive Sciences Department, Istituto Italiano di Tecnol"
+      "ogia\nThis software was supported by the FP7 EU Project CoDyCO (No. 600716 ICT 2011.2.1 Cognitive Systems and Ro"
+      "botics (b)\nhttp://www.codyco.eu"
+      Position		      [205, 109]
+      ForegroundColor	      "white"
+      BackgroundColor	      "gray"
+      FontSize		      5
     }
   }
 }
