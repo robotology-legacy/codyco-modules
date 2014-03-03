@@ -100,7 +100,7 @@ else()
         SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wno-padded -Wno-cast-align")
         if (CODYCO_TRAVIS_CI)
             #disable documentation warnings and sign comparison. This is for Travis-CI
-            MESSAGE("Disabling some warning for Travis-CI")
+            MESSAGE(STATUS "Disabling some warning for Travis-CI")
             SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wno-documentation -Wno-documentation-unknown-command -Wno-sign-conversion")
         endif()
         MESSAGE(STATUS "Clang compiler - Debug configuration flags: -Weverything -pedantic -Wnon-virtual-dtor -Woverloaded-virtual")
