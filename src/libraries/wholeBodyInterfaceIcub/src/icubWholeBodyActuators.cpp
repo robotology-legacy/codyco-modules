@@ -56,7 +56,7 @@ const std::string icubWholeBodyActuators::icubWholeBodyActuatorsExternalTorqueMo
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 icubWholeBodyActuators::icubWholeBodyActuators(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames)
-: initDone(false), dof(0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames){}
+: initDone(false), dof(0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames),_torqueModuleConnection(0){}
 
 
 icubWholeBodyActuators::~icubWholeBodyActuators()
