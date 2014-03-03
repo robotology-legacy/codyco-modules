@@ -32,6 +32,6 @@ function blkStruct = slblocks
 
 Browser.Library   = 'WBCLibrary';     %Name of the .mdl file
 Browser.Name      = 'WBC Library';    
-Browser.IsFlat    =  1;
+Browser.IsFlat    =  0;
 
 blkStruct.Browser =  Browser;

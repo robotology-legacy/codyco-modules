@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.32"
+    ComputedModelVersion    "1.33"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -38,9 +38,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Mar 03 10:49:37 2014"
-  RTWModifiedTimeStamp	  315709897
-  ModelVersionFormat	  "1.%<AutoIncrement:32>"
+  LastModifiedDate	  "Mon Mar 03 16:04:13 2014"
+  RTWModifiedTimeStamp	  315763450
+  ModelVersionFormat	  "1.%<AutoIncrement:33>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -78,7 +78,6 @@ Model {
     $ObjectID		    2
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "test_senddq2"
-    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -759,7 +758,7 @@ Model {
   }
   System {
     Name		    "test_senddq2"
-    Location		    [741, 501, 1451, 712]
+    Location		    [729, 502, 1439, 713]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -864,7 +863,7 @@ Model {
 	  SID			  "50"
 	  Position		  [25, 28, 115, 52]
 	  ZOrder		  -4
-	  Value			  "[0 50 -50]"
+	  Value			  "[0 50 50]"
 	  VectorParams1D	  off
 	}
 	Block {
@@ -940,7 +939,7 @@ Model {
       Position		      [390, 83, 455, 127]
       ZOrder		      -1
       BackgroundColor	      "orange"
-      LibraryVersion	      "1.167"
+      LibraryVersion	      "1.196"
       SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Angles"
       SourceType	      ""
       robotName		      "robotName"
@@ -965,7 +964,7 @@ Model {
       ZOrder		      -16
       Floating		      off
       Location		      [800, 86, 1363, 794]
-      Open		      on
+      Open		      off
       NumInputPorts	      "1"
       List {
 	ListType		AxesTitles
@@ -996,7 +995,7 @@ Model {
       Position		      [290, 83, 365, 127]
       ZOrder		      -18
       BackgroundColor	      "[0.976000, 0.635000, 0.140000]"
-      LibraryVersion	      "1.167"
+      LibraryVersion	      "1.196"
       SourceBlock	      "WBCLibrary/wholeBodyActuators/Set Velocities"
       SourceType	      ""
       val		      "4"
