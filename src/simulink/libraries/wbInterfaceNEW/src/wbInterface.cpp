@@ -93,7 +93,7 @@ int robotStatus::decreaseCounter() {
 }
 //=========================================================================================================================
 void robotStatus::resetCounter() {
-  creationCounter = 0;
+    creationCounter = 0;
 }
 //=========================================================================================================================
 bool robotStatus::robotConfig() {
@@ -129,6 +129,10 @@ bool robotStatus::robotConfig() {
     actJnts = wbInterface->getJointList().size();
     qRad.resize(actJnts,0.0);
     dqJ.resize(actJnts);
+
+    ddqJ.resize(actJnts,0.0);
+    tauJ.resize(actJnts,0.0);
+
 
     return true;
 
@@ -170,11 +174,20 @@ bool robotStatus::robotInit(int btype, int link) {
     // dot{J}dot{q}
     dJdq.resize(6,0);
 
-    // dot{xBase} We will assume null velocity of the base for now since the estimate hasn't been implemented yet
+    /** \todo dot{xB} We will assume null velocity of the base for now since the estimate hasn't been implemented yet */
     dxB.resize(6,0);
+
+    /** \todo ddot{xB} Assuming null acceleration for now since its estimation hasn't been implemented yet */
+    ddxB.resize(6,0);
+
+    /** \todo ity vector is assumed constant and oriented to the ground but this should vary according to the world reference frame */
+    grav[0] = grav[1] = 0;
+    grav[2] = -9.81;
 
     // Generalized bias forces term.
     hterm.resize(6+ICUB_DOFS,0);
+
+
 
     // Should the mass matrix be resized here??? In the future if the number of DOFS or limbs for which the interface will
     // be used are input parameters, all variables could be resized here and by default leave ICUB_DOFS.
@@ -202,6 +215,7 @@ int robotStatus::getLinkId(const char *linkName) {
 }
 //=========================================================================================================================
 bool robotStatus::world2baseRototranslation() {
+    /** \todo This method should take as input the link you wanna use for to define the world reference frame. Right now it's hard coded to be the left foot. */
     int LINK_ID_LEFT_FOOT;
     getLinkId("l_sole",LINK_ID_LEFT_FOOT);
     wbInterface->computeH(qRad.data(), Frame(), LINK_ID_LEFT_FOOT, H_base_leftFoot);
@@ -219,6 +233,14 @@ bool robotStatus::robotJntAngles(bool blockingRead) {
 //=========================================================================================================================
 bool robotStatus::robotJntVelocities(bool blockingRead) {
     return wbInterface->getEstimates(ESTIMATE_JOINT_VEL, dqJ.data(),-1.0, blockingRead);
+}
+//=========================================================================================================================
+bool robotStatus::robotJntAccelerations(bool blockingRead) {
+    return wbInterface->getEstimates(ESTIMATE_JOINT_ACC, ddqJ.data(),-1.0, blockingRead);
+}
+//=========================================================================================================================
+bool robotStatus::robotJntTorques(bool blockingRead) {
+    return wbInterface->getEstimates(ESTIMATE_JOINT_TORQUE, tauJ.data(),-1.0, blockingRead);
 }
 //=========================================================================================================================
 Vector robotStatus::forwardKinematics(int &linkId) {
@@ -284,6 +306,14 @@ VectorXd robotStatus::getJntVelocities() {
     return dqJ;
 }
 //=========================================================================================================================
+Vector robotStatus::getJntAccelerations() {
+    return  ddqJ;
+}
+//=========================================================================================================================
+Vector robotStatus::getJntTorques() {
+    return tauJ;
+}
+//=========================================================================================================================
 bool robotStatus::setCtrlMode(ControlMode ctrl_mode) {
     if(wbInterface->setControlMode(ctrl_mode)) {
         return true;
@@ -312,12 +342,20 @@ void robotStatus::setdqDes(Vector dqD) {
         fprintf(stderr, "ERROR [robotStatus::setdqDes] control reference could not be set.\n");
 }
 //=========================================================================================================================
+bool robotStatus::inverseDynamics(double *qrad_input, double *dq_input, double *ddq_input, double *tauJ_computed) {
+    bool ans = false;
+    if(world2baseRototranslation()) {
+        if(DEBUGGING) fprintf(stderr,"robotStatus::inverseDynamics >> world2baseRototranslation computed\n");
+        wbInterface->inverseDynamics(qrad_input, xBase, dq_input, dxB.data(), ddq_input, ddxB.data(), grav.data(), tauJ_computed);
+    }
+}
+//=========================================================================================================================
 bool robotStatus::dynamicsMassMatrix() {
     bool ans = false;
     if(robotJntAngles(false)) {
-        if(DEBUGGING) fprintf(stderr,"robotStatus::dynamicsMassMatrix >> robotJntAngles computed for dynamicsMassMatrix\n");
+        if(DEBUGGING) fprintf(stderr,"robotStatus::dynamicsMassMatrix >> robotJntAngles computed\n");
         if(world2baseRototranslation()) {
-            if(DEBUGGING) fprintf(stderr,"robotStatus::dynamicsMassMatrix >> world2baseRototranslation computed for dynamicsMassMatrix\n");
+            if(DEBUGGING) fprintf(stderr,"robotStatus::dynamicsMassMatrix >> world2baseRototranslation computed\n");
             ans = wbInterface->computeMassMatrix(qRad.data(),xBase, massMatrix.data());
         }
     }
@@ -344,8 +382,8 @@ Vector robotStatus::dynamicsGenBiasForces() {
                         std::cerr<<"robotStatus::dynamicsGenBiasForces >> Velocities: "<<dqJ<<endl;
                         fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Base velocity: %s\n",dxB.toString().c_str());
                     }
-                    double grav[3]= {0, 0, -9.81};
-                    ans = wbInterface->computeGeneralizedBiasForces(qRad.data(), xBase, dqJ.data(), dxB.data(), grav, hterm.data());
+//                     double grav[3]= {0, 0, -9.81};
+                    ans = wbInterface->computeGeneralizedBiasForces(qRad.data(), xBase, dqJ.data(), dxB.data(), grav.data(), hterm.data());
                 }
             }
         }
@@ -474,14 +512,23 @@ static void mdlInitializeSizes(SimStruct *S)
     }
 
     // Specify I/O
-    if (!ssSetNumInputPorts(S, 2)) return;
-    ssSetInputPortWidth(S, 0, 1);              	    		//Input FOR BLOCK TYPE
-    ssSetInputPortWidth(S, 1, ICUB_DOFS);    	    		//INPUT FOR dqDes
+    if (!ssSetNumInputPorts(S, 5)) return;
+    ssSetInputPortWidth(S, 0, 1);              	    		//INPUT for BLOCK TYPE
+    ssSetInputPortWidth(S, 1, ICUB_DOFS);    	    		//INPUT for dqDes (control reference, for setting positions, velocities or torques)
+    ssSetInputPortWidth(S, 2, ICUB_DOFS);			//INPUT for q (input angles different maybe from current ones)
+    ssSetInputPortWidth(S, 3, ICUB_DOFS);			//INPUT for dq (input joint velocities maybe different from current ones)
+    ssSetInputPortWidth(S, 4, ICUB_DOFS);			//INPUT for ddq (input joint accelerations maybe different from current ones)
     ssSetInputPortDataType(S, 0, SS_INT8);     	    		//Input data type
     ssSetInputPortDataType(S, 1, SS_DOUBLE);
+    ssSetInputPortDataType(S, 2, SS_DOUBLE);
+    ssSetInputPortDataType(S, 3, SS_DOUBLE);
+    ssSetInputPortDataType(S, 4, SS_DOUBLE);
     ssSetInputPortDirectFeedThrough(S, 0, 1);       		//The input will be used in the output
     ssSetInputPortDirectFeedThrough(S, 1, 1);
-    if (!ssSetNumOutputPorts(S,7)) return;
+    ssSetInputPortDirectFeedThrough(S, 2, 1);
+    ssSetInputPortDirectFeedThrough(S, 3, 1);
+    ssSetInputPortDirectFeedThrough(S, 4, 1);
+    if (!ssSetNumOutputPorts(S,10)) return;
     ssSetOutputPortWidth   (S, 0, ICUB_DOFS);	    		// Robot joint angular positions in radians
     ssSetOutputPortWidth   (S, 1, ICUB_DOFS);	    		// Robot joint angular velocities in radians
     ssSetOutputPortWidth   (S, 2, 7);               		// foot or COM pose from fwdKinematics.
@@ -489,6 +536,9 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetOutputPortWidth   (S, 4, (ICUB_DOFS+6)*(ICUB_DOFS+6));	// Mass matrix of size (N+6 x N+6)
     ssSetOutputPortWidth   (S, 5, ICUB_DOFS+6);		    	// Generalized bias forces of size (N+6 x 1)
     ssSetOutputPortWidth   (S, 6, 6);		    		// dot{J}dot{q} term
+    ssSetOutputPortWidth   (S, 7, ICUB_DOFS);			// Joint accelerations
+    ssSetOutputPortWidth   (S, 8, ICUB_DOFS);			// Joint torques
+    ssSetOutputPortWidth   (S, 9, ICUB_DOFS);			// Compute torques with inverse dynamics
     ssSetOutputPortDataType(S, 0, 0);
     ssSetOutputPortDataType(S, 1, 0);
     ssSetOutputPortDataType(S, 2, 0);
@@ -496,6 +546,9 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetOutputPortDataType(S, 4, 0);
     ssSetOutputPortDataType(S, 5, 0);
     ssSetOutputPortDataType(S, 6, 0);
+    ssSetOutputPortDataType(S, 7, 0);
+    ssSetOutputPortDataType(S, 8, 0);
+    ssSetOutputPortDataType(S, 9, 0);
 
     ssSetNumSampleTimes(S, 1);
 
@@ -666,6 +719,15 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         case 9:
             fprintf(stderr,"mdlOutputs: This block will compute dJdq\n");
             break;
+        case 10:
+            fprintf(stderr,"mdlOutputs: This block will retrieve joint accelerations\n");
+            break;
+        case 11:
+            fprintf(stderr,"mldOutputs: This block will retrieve joint torques\n");
+            break;
+        case 12:
+            fprintf(stderr,"mdlOutputs: This block will compute inverse dynamics\n");
+            break;
         default:
             fprintf(stderr,"ERROR: [mdlOutputs] The type of this block has not been defined\n");
         }
@@ -723,7 +785,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     }
 
     int lid = 0;
-  
+
     // This block will compute forward kinematics of the specified link
     if(btype == 2) {
         switch ((int) *uPtrs[0])
@@ -746,8 +808,8 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         case 5:
             linkName = "head";
             break;
-	default:
-	    fprintf(stderr,"ERROR: [mdlOutputs] No body part has been specified to compute forward kinematics\n");
+        default:
+            fprintf(stderr,"ERROR: [mdlOutputs] No body part has been specified to compute forward kinematics\n");
         }
         robot->getLinkId(linkName,lid);
 
@@ -781,8 +843,8 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         case 5:
             linkName = "head";
             break;
-	default:
-	    fprintf(stderr,"ERROR: [mdlOutputs] No body part has been specified to compute jacobians\n");
+        default:
+            fprintf(stderr,"ERROR: [mdlOutputs] No body part has been specified to compute jacobians\n");
         }
         robot->getLinkId(linkName,lid);
 
@@ -861,8 +923,8 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         case 5:
             linkName = "head";
             break;
-	default:
-	    fprintf(stderr,"ERROR: [mdlOutputs] No body part has been specified to compute forward kinematics\n");
+        default:
+            fprintf(stderr,"ERROR: [mdlOutputs] No body part has been specified to compute forward kinematics\n");
         }
         robot->getLinkId(linkName,lid);
         if(!robot->dynamicsDJdq(lid)) {
@@ -876,6 +938,81 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         if(DEBUGGING) fprintf(stderr,"mdlOutputs: djdq computed is: %s \n",dJdq.toString().c_str());
         for(int_T j=0; j<ssGetOutputPortWidth(S,6); j++) {
             pY7[j] = dJdq(j);
+        }
+    }
+
+
+    yarp::sig::Vector ddqJ(ICUB_DOFS);
+    // This block will retrieve joint accelerations
+    if(btype == 10) {
+        if(robot->robotJntAccelerations(blockingRead)) {
+            ddqJ = robot->getJntAccelerations();
+            //Stream joint accelerations
+            real_T *pY8 = (real_T*)ssGetOutputPortSignal(S,7);
+            for(int_T j=0; j<ssGetOutputPortWidth(S,7); j++) {
+                pY8[j] = ddqJ(j);
+            }
+        }
+        else {
+            fprintf(stderr,"ERROR: [mdlOutputs] Joint accelerations could not be retrieved\n");
+        }
+    }
+
+    // This block will retrieve joint torques
+    yarp::sig::Vector tauJ(ICUB_DOFS);
+    if(btype == 11) {
+        if(robot->robotJntTorques(blockingRead)) {
+            tauJ = robot->getJntTorques();
+            //Stream joint torques
+            real_T *pY9 = (real_T*)ssGetOutputPortSignal(S,8);
+            for(int_T j=0; j<ssGetOutputPortWidth(S,8); j++) {
+                pY9[j] = tauJ(j);
+            }
+        }
+        else {
+            fprintf(stderr,"ERROR: [mdlOutputs) Joint torques could not be retrieved\n");
+        }
+    }
+
+    // This block will compute inverse dynamics
+    if(btype == 12) {
+        int nu;
+        //READ INPUT ANGLES
+        InputRealPtrsType uPtrs2 = ssGetInputPortRealSignalPtrs(S,2);   //Get the corresponding pointer to "input joint angles port"
+        nu = ssGetInputPortWidth(S,2);                              	//Getting the amount of elements of the input vector/matrix
+        Vector qrad_in;
+        qrad_in.resize(ICUB_DOFS,0.0);
+        for(int j=0; j<nu; j++) {                                       //Reading inpute reference
+            qrad_in(j) = (*uPtrs2[j]);
+        }
+
+        //READ INPUT JOINT VELOCITIES
+        InputRealPtrsType uPtrs3 = ssGetInputPortRealSignalPtrs(S,3);   //Get the corresponding pointer to "input joint angles port"
+        nu = ssGetInputPortWidth(S,3);                              	//Getting the amount of elements of the input vector/matrix
+        Vector dqrad_in;
+        dqrad_in.resize(ICUB_DOFS,0.0);
+        for(int j=0; j<nu; j++) {                                       //Reading inpute reference
+            dqrad_in(j) = (*uPtrs3[j]);
+        }
+
+        //READ INPUT JOINT ACCELERATIONS
+        InputRealPtrsType uPtrs4 = ssGetInputPortRealSignalPtrs(S,4);   //Get the corresponding pointer to "input joint angles port"
+        nu = ssGetInputPortWidth(S,4);                              	//Getting the amount of elements of the input vector/matrix
+        Vector ddqrad_in;
+        ddqrad_in.resize(ICUB_DOFS,0.0);
+        for(int j=0; j<nu; j++) {                                       //Reading inpute reference
+            ddqrad_in(j) = (*uPtrs4[j]);
+        }
+
+        yarp::sig::Vector tau_computed(ICUB_DOFS);
+        if(robot->inverseDynamics(qrad_in.data(), dqrad_in.data(), ddqrad_in.data(), tau_computed.data())) {
+            if(DEBUGGING) fprintf(stderr,"mdlOutputs: Inverse dynamics has been computed correctly\n");
+            if(DEBUGGING) fprintf(stderr,"mdlOutputs: Computed torques are: \n%s\n", tau_computed.toString().c_str());
+            //Stream computed joint torques by inverseDynamics
+            real_T *pY10 = (real_T*)ssGetOutputPortSignal(S,9);
+            for(int_T j=0; j<ssGetOutputPortWidth(S,9); j++) {
+                pY10[j] = tau_computed(j);
+            }
         }
     }
 
@@ -894,19 +1031,18 @@ static void mdlTerminate(SimStruct *S)
     // IF YOU FORGET TO DESTROY OBJECTS OR DEALLOCATE MEMORY, MATLAB WILL CRASH.
     // Retrieve and destroy C++ object
     robotStatus *robot = (robotStatus *) ssGetPWork(S)[0];
-  
-    if(DEBUGGING){
-      fprintf(stderr,"mdlTerminate: Control variable states: \n");
-      fprintf(stderr,"mdlTerminate: robot pointer: %p\n", robot);
-      fprintf(stderr,"mdlTerminate: creationCounter: %d\n", robot);
+
+    if(DEBUGGING) {
+        fprintf(stderr,"mdlTerminate: Control variable states: \n");
+        fprintf(stderr,"mdlTerminate: robot pointer: %p\n", robot);
     }
-    
+
     if(robot!=NULL) {
         fprintf(stderr,"mdlTerminate >> Inside robot object %p \n",robot);
         if(robot->decreaseCounter()==0) {
             robot->setCtrlMode(CTRL_MODE_POS);
             delete robot;
-	    robot->resetCounter();
+            robot->resetCounter();
             robot = NULL;
             ssSetPWorkValue(S,0,NULL);
         }
@@ -919,3 +1055,4 @@ static void mdlTerminate(SimStruct *S)
 #else
 #include "cg_sfun.h"       /* Code generation registration function */
 #endif
+
