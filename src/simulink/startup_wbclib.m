@@ -1,4 +1,3 @@
-clc, clear all;
 disp(sprintf('\n'));
 disp(sprintf('Yarp Based Robotics Whole Body Control Library\n'))
 wbclibroot = fileparts(mfilename('fullpath'));
