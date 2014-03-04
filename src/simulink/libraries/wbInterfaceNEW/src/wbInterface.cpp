@@ -28,7 +28,7 @@
 // END MASK PARAMETERS -----------------------------------
 
 #define VERBOSE   0
-#define DEBUGGING 0
+#define DEBUGGING 1
 #define TIMING    0
 #define NEWCODE	  1
 
@@ -351,6 +351,13 @@ bool robotStatus::inverseDynamics(double *qrad_input, double *dq_input, double *
     if(world2baseRototranslation()) {
         if(DEBUGGING) fprintf(stderr,"robotStatus::inverseDynamics >> world2baseRototranslation computed\n");
         wbInterface->inverseDynamics(qrad_input, xBase, dq_input, dxB.data(), ddq_input, ddxB.data(), grav.data(), tauJ_computed);
+        if(DEBUGGING)
+        {
+            cout << "Going to print all torques\n";
+            for (int i = 0; i < ICUB_DOFS; i++)
+                cout << tauJ_computed[i];
+            cout << "\n";
+        }
     }
 }
 //=========================================================================================================================
