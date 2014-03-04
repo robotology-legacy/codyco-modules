@@ -22,9 +22,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Mar 04 10:44:56 2014"
-  RTWModifiedTimeStamp	  315828680
-  ModelVersionFormat	  "1.%<AutoIncrement:201>"
+  LastModifiedDate	  "Tue Mar 04 12:12:26 2014"
+  RTWModifiedTimeStamp	  315835821
+  ModelVersionFormat	  "1.%<AutoIncrement:207>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -748,7 +748,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [96, 192, 884, 452]
+    Location		    [338, 306, 1126, 566]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -762,7 +762,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "486"
+    SIDHighWatermark	    "571"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -787,7 +787,7 @@ Library {
       System {
 	Name			"Utilities"
 	Location		[386, 241, 1185, 409]
-	Open			on
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -1032,6 +1032,7 @@ Library {
 	  Ports			  []
 	  Position		  [35, 58, 104, 101]
 	  ZOrder		  -5
+	  ForegroundColor	  "red"
 	  ShowName		  off
 	  FunctionName		  "sfun_time"
 	  Parameters		  "rate"
@@ -2482,7 +2483,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Dynamics"
-	    Location		    [329, 328, 1030, 484]
+	    Location		    [414, 315, 1133, 471]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2497,10 +2498,284 @@ Library {
 	    ZoomFactor		    "100"
 	    Block {
 	      BlockType		      SubSystem
+	      Name		      "Inverse Dynamics"
+	      SID		      "521"
+	      Ports		      [3, 1]
+	      Position		      [545, 48, 610, 92]
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      RTWSystemCode	      "Auto"
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      RequestExecContextInheritance off
+	      MaskHideContents	      off
+	      MaskType		      "Inverse Dynamics"
+	      MaskPromptString	      "Robot name|Local name"
+	      MaskStyleString	      "edit,edit"
+	      MaskVariables	      "robotName=@1;localName=@2;"
+	      MaskTunableValueString  "on,on"
+	      MaskCallbackString      "|"
+	      MaskEnableString	      "on,on"
+	      MaskVisibilityString    "on,on"
+	      MaskToolTipString	      "on,on"
+	      MaskIconFrame	      on
+	      MaskIconOpaque	      on
+	      MaskIconRotate	      "none"
+	      MaskPortRotate	      "default"
+	      MaskIconUnits	      "autoscale"
+	      MaskValueString	      "robotName|localName"
+	      System {
+		Name			"Inverse Dynamics"
+		Location		[778, 294, 1108, 617]
+		Open			off
+		ModelBrowserVisibility	off
+		ModelBrowserWidth	200
+		ScreenColor		"white"
+		PaperOrientation	"landscape"
+		PaperPositionMode	"auto"
+		PaperType		"usletter"
+		PaperUnits		"inches"
+		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+		TiledPageScale		1
+		ShowPageBoundaries	off
+		ZoomFactor		"100"
+		Block {
+		  BlockType		  Inport
+		  Name			  "q"
+		  SID			  "522"
+		  Position		  [25, 158, 55, 172]
+		  ZOrder		  -1
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Inport
+		  Name			  "dq"
+		  SID			  "523"
+		  Position		  [25, 213, 55, 227]
+		  ZOrder		  -1
+		  Port			  "2"
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Inport
+		  Name			  "ddq"
+		  SID			  "524"
+		  Position		  [25, 268, 55, 282]
+		  ZOrder		  -1
+		  Port			  "3"
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Constant"
+		  SID			  "525"
+		  Position		  [25, 95, 55, 125]
+		  ZOrder		  -4
+		  ShowName		  off
+		  Value			  "zeros(25,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Constant2"
+		  SID			  "526"
+		  Position		  [25, 40, 55, 70]
+		  ZOrder		  -4
+		  ShowName		  off
+		  Value			  "0"
+		  OutDataTypeStr	  "int8"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  S-Function
+		  Name			  "S-Function"
+		  SID			  "527"
+		  Ports			  [5, 10]
+		  Position		  [115, 27, 235, 298]
+		  ZOrder		  -5
+		  FunctionName		  "robotState"
+		  Parameters		  "11,robotName,localName"
+		  EnableBusSupport	  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator"
+		  SID			  "528"
+		  Position		  [285, 40, 305, 60]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator1"
+		  SID			  "529"
+		  Position		  [285, 65, 305, 85]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator2"
+		  SID			  "530"
+		  Position		  [285, 90, 305, 110]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator3"
+		  SID			  "531"
+		  Position		  [285, 115, 305, 135]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator4"
+		  SID			  "532"
+		  Position		  [285, 140, 305, 160]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator5"
+		  SID			  "533"
+		  Position		  [285, 165, 305, 185]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator6"
+		  SID			  "534"
+		  Position		  [285, 190, 305, 210]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator7"
+		  SID			  "535"
+		  Position		  [285, 215, 305, 235]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator8"
+		  SID			  "536"
+		  Position		  [285, 240, 305, 260]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Outport
+		  Name			  "tau"
+		  SID			  "537"
+		  Position		  [280, 268, 310, 282]
+		  ZOrder		  -9
+		  IconDisplay		  "Port number"
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  10
+		  DstBlock		  "tau"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  9
+		  DstBlock		  "Terminator8"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "Constant"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  2
+		}
+		Line {
+		  SrcBlock		  "Constant2"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "q"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  3
+		}
+		Line {
+		  SrcBlock		  "dq"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  4
+		}
+		Line {
+		  SrcBlock		  "ddq"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  5
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  1
+		  DstBlock		  "Terminator"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  2
+		  DstBlock		  "Terminator1"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  3
+		  DstBlock		  "Terminator2"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  4
+		  DstBlock		  "Terminator3"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  5
+		  DstBlock		  "Terminator4"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  6
+		  DstBlock		  "Terminator5"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  7
+		  DstBlock		  "Terminator6"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  8
+		  DstBlock		  "Terminator7"
+		  DstPort		  1
+		}
+	      }
+	    }
+	    Block {
+	      BlockType		      SubSystem
 	      Name		      "computeh"
 	      SID		      "358"
 	      Ports		      [0, 1]
-	      Position		      [195, 48, 260, 92]
+	      Position		      [200, 48, 265, 92]
 	      ZOrder		      -1
 	      BackgroundColor	      "[0.850000, 0.010000, 0.698000]"
 	      MinAlgLoopOccurrences   off
@@ -2686,7 +2961,7 @@ Library {
 	      Name		      "dJ*dq LeftFoot"
 	      SID		      "445"
 	      Ports		      [0, 1]
-	      Position		      [415, 48, 485, 92]
+	      Position		      [430, 48, 500, 92]
 	      BackgroundColor	      "[0.662196, 0.000000, 1.000000]"
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
@@ -2873,7 +3148,7 @@ Library {
 	      Name		      "dJ*dq RightFoot"
 	      SID		      "372"
 	      Ports		      [0, 1]
-	      Position		      [305, 48, 370, 92]
+	      Position		      [315, 48, 380, 92]
 	      BackgroundColor	      "[0.501000, 0.015000, 0.850000]"
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
@@ -3126,7 +3401,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "massMatrix"
-		    Location		    [353, 111, 1103, 603]
+		    Location		    [353, 117, 1103, 609]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -4890,7 +5165,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyStates"
-	Location		[773, 434, 1127, 593]
+	Location		[458, 364, 999, 523]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -4905,10 +5180,290 @@ Library {
 	ZoomFactor		"100"
 	Block {
 	  BlockType		  SubSystem
+	  Name			  "Joint Accelerations"
+	  SID			  "555"
+	  Ports			  [0, 1]
+	  Position		  [420, 48, 495, 92]
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  RTWSystemCode		  "Auto"
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  RequestExecContextInheritance	off
+	  MaskHideContents	  off
+	  MaskType		  "Get Joint Accelerations"
+	  MaskPromptString	  "Robot name|Local name"
+	  MaskStyleString	  "edit,edit"
+	  MaskVariables		  "robotName=@1;localName=@2;"
+	  MaskTunableValueString  "on,on"
+	  MaskCallbackString	  "|"
+	  MaskEnableString	  "on,on"
+	  MaskVisibilityString	  "on,on"
+	  MaskToolTipString	  "on,on"
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
+	  MaskValueString	  "robotName|localName"
+	  System {
+	    Name		    "Joint Accelerations"
+	    Location		    [155, 311, 485, 641]
+	    Open		    off
+	    ModelBrowserVisibility  off
+	    ModelBrowserWidth	    200
+	    ScreenColor		    "white"
+	    PaperOrientation	    "landscape"
+	    PaperPositionMode	    "auto"
+	    PaperType		    "usletter"
+	    PaperUnits		    "inches"
+	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
+	    TiledPageScale	    1
+	    ShowPageBoundaries	    off
+	    ZoomFactor		    "100"
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant"
+	      SID		      "556"
+	      Position		      [25, 95, 55, 125]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25,1)"
+	      OutDataTypeStr	      "double"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant1"
+	      SID		      "557"
+	      Position		      [25, 145, 55, 175]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25,1)"
+	      OutDataTypeStr	      "double"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant2"
+	      SID		      "558"
+	      Position		      [25, 45, 55, 75]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "0"
+	      OutDataTypeStr	      "int8"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant3"
+	      SID		      "559"
+	      Position		      [25, 195, 55, 225]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25,1)"
+	      OutDataTypeStr	      "double"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant4"
+	      SID		      "560"
+	      Position		      [25, 245, 55, 275]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25,1)"
+	      OutDataTypeStr	      "double"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      S-Function
+	      Name		      "S-Function"
+	      SID		      "561"
+	      Ports		      [5, 10]
+	      Position		      [115, 27, 230, 288]
+	      ZOrder		      -5
+	      FunctionName	      "robotState"
+	      Parameters	      "10,robotName,localName"
+	      EnableBusSupport	      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator"
+	      SID		      "562"
+	      Position		      [285, 35, 305, 55]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator1"
+	      SID		      "563"
+	      Position		      [285, 60, 305, 80]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator2"
+	      SID		      "564"
+	      Position		      [285, 85, 305, 105]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator3"
+	      SID		      "565"
+	      Position		      [285, 110, 305, 130]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator4"
+	      SID		      "566"
+	      Position		      [285, 135, 305, 155]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator5"
+	      SID		      "567"
+	      Position		      [285, 160, 305, 180]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator6"
+	      SID		      "568"
+	      Position		      [285, 185, 305, 205]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator7"
+	      SID		      "569"
+	      Position		      [285, 235, 305, 255]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator8"
+	      SID		      "570"
+	      Position		      [285, 260, 305, 280]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Outport
+	      Name		      "ddqJ"
+	      SID		      "571"
+	      Position		      [250, 213, 280, 227]
+	      IconDisplay	      "Port number"
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      8
+	      DstBlock		      "ddqJ"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      10
+	      DstBlock		      "Terminator8"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      9
+	      DstBlock		      "Terminator7"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      7
+	      DstBlock		      "Terminator6"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      6
+	      DstBlock		      "Terminator5"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      5
+	      DstBlock		      "Terminator4"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      4
+	      DstBlock		      "Terminator3"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      3
+	      DstBlock		      "Terminator2"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      2
+	      DstBlock		      "Terminator1"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      1
+	      DstBlock		      "Terminator"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "Constant4"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      5
+	    }
+	    Line {
+	      SrcBlock		      "Constant3"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      4
+	    }
+	    Line {
+	      SrcBlock		      "Constant1"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      3
+	    }
+	    Line {
+	      SrcBlock		      "Constant2"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "Constant"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      2
+	    }
+	  }
+	}
+	Block {
+	  BlockType		  SubSystem
 	  Name			  "Joint Angles"
 	  SID			  "1"
 	  Ports			  [0, 1]
-	  Position		  [185, 38, 260, 82]
+	  Position		  [185, 48, 260, 92]
 	  ZOrder		  -1
 	  BackgroundColor	  "orange"
 	  MinAlgLoopOccurrences	  off
@@ -5102,10 +5657,290 @@ Library {
 	}
 	Block {
 	  BlockType		  SubSystem
+	  Name			  "Joint Torques"
+	  SID			  "538"
+	  Ports			  [0, 1]
+	  Position		  [300, 48, 375, 92]
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  RTWSystemCode		  "Auto"
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  RequestExecContextInheritance	off
+	  MaskHideContents	  off
+	  MaskType		  "Get Joint Torques"
+	  MaskPromptString	  "Robot name|Local name"
+	  MaskStyleString	  "edit,edit"
+	  MaskVariables		  "robotName=@1;localName=@2;"
+	  MaskTunableValueString  "on,on"
+	  MaskCallbackString	  "|"
+	  MaskEnableString	  "on,on"
+	  MaskVisibilityString	  "on,on"
+	  MaskToolTipString	  "on,on"
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
+	  MaskValueString	  "robotName|localName"
+	  System {
+	    Name		    "Joint Torques"
+	    Location		    [562, 309, 892, 632]
+	    Open		    off
+	    ModelBrowserVisibility  off
+	    ModelBrowserWidth	    200
+	    ScreenColor		    "white"
+	    PaperOrientation	    "landscape"
+	    PaperPositionMode	    "auto"
+	    PaperType		    "usletter"
+	    PaperUnits		    "inches"
+	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
+	    TiledPageScale	    1
+	    ShowPageBoundaries	    off
+	    ZoomFactor		    "100"
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant"
+	      SID		      "539"
+	      Position		      [25, 95, 55, 125]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25,1)"
+	      OutDataTypeStr	      "double"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant1"
+	      SID		      "540"
+	      Position		      [25, 150, 55, 180]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25,1)"
+	      OutDataTypeStr	      "double"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant2"
+	      SID		      "541"
+	      Position		      [25, 40, 55, 70]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "0"
+	      OutDataTypeStr	      "int8"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant3"
+	      SID		      "542"
+	      Position		      [25, 205, 55, 235]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25,1)"
+	      OutDataTypeStr	      "double"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant4"
+	      SID		      "543"
+	      Position		      [25, 260, 55, 290]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25,1)"
+	      OutDataTypeStr	      "double"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      S-Function
+	      Name		      "S-Function"
+	      SID		      "544"
+	      Ports		      [5, 10]
+	      Position		      [115, 27, 235, 298]
+	      ZOrder		      -5
+	      FunctionName	      "robotState"
+	      Parameters	      "11,robotName,localName"
+	      EnableBusSupport	      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator"
+	      SID		      "545"
+	      Position		      [285, 40, 305, 60]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator1"
+	      SID		      "546"
+	      Position		      [285, 65, 305, 85]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator2"
+	      SID		      "547"
+	      Position		      [285, 90, 305, 110]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator3"
+	      SID		      "548"
+	      Position		      [285, 115, 305, 135]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator4"
+	      SID		      "549"
+	      Position		      [285, 140, 305, 160]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator5"
+	      SID		      "550"
+	      Position		      [285, 165, 305, 185]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator6"
+	      SID		      "551"
+	      Position		      [285, 190, 305, 210]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator7"
+	      SID		      "552"
+	      Position		      [285, 215, 305, 235]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator8"
+	      SID		      "553"
+	      Position		      [285, 265, 305, 285]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Outport
+	      Name		      "tauJ"
+	      SID		      "554"
+	      Position		      [255, 243, 285, 257]
+	      IconDisplay	      "Port number"
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      10
+	      DstBlock		      "Terminator8"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      8
+	      DstBlock		      "Terminator7"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      7
+	      DstBlock		      "Terminator6"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      6
+	      DstBlock		      "Terminator5"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      5
+	      DstBlock		      "Terminator4"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      4
+	      DstBlock		      "Terminator3"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      3
+	      DstBlock		      "Terminator2"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      2
+	      DstBlock		      "Terminator1"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      1
+	      DstBlock		      "Terminator"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      9
+	      DstBlock		      "tauJ"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "Constant4"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      5
+	    }
+	    Line {
+	      SrcBlock		      "Constant3"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      4
+	    }
+	    Line {
+	      SrcBlock		      "Constant1"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      3
+	    }
+	    Line {
+	      SrcBlock		      "Constant2"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "Constant"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      2
+	    }
+	  }
+	}
+	Block {
+	  BlockType		  SubSystem
 	  Name			  "Joint Velocities"
 	  SID			  "13"
 	  Ports			  [0, 1]
-	  Position		  [75, 38, 145, 82]
+	  Position		  [75, 48, 145, 92]
 	  ZOrder		  -2
 	  BackgroundColor	  "[0.732000, 0.463600, 0.000000]"
 	  MinAlgLoopOccurrences	  off

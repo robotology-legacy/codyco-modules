@@ -27,8 +27,8 @@
 #define LOCAL_PARAM_IDX 2
 // END MASK PARAMETERS -----------------------------------
 
-#define VERBOSE   0
-#define DEBUGGING 0
+#define VERBOSE   1
+#define DEBUGGING 1
 #define TIMING    0
 #define NEWCODE	  1
 
@@ -132,6 +132,7 @@ bool robotStatus::robotConfig() {
 
     ddqJ.resize(actJnts,0.0);
     tauJ.resize(actJnts,0.0);
+    tauJ_out.resize(actJnts,0.0);
 
 
     return true;
@@ -144,6 +145,7 @@ bool robotStatus::robotInit(int btype, int link) {
     //forward kinematics or jacobians, it is necessary to know for what
     //it is desired. So far, we have it only for right and left leg and
     //center of mass
+    /** There might be additional block types that should be considered here. Check out*/
     if(btype == 2 || btype == 3) {
         const char *linkName;
         int default_size = 0;
@@ -181,8 +183,10 @@ bool robotStatus::robotInit(int btype, int link) {
     ddxB.resize(6,0);
 
     /** \todo ity vector is assumed constant and oriented to the ground but this should vary according to the world reference frame */
+    grav.resize(3,1);
     grav[0] = grav[1] = 0;
     grav[2] = -9.81;
+    if(DEBUGGING) fprintf(stderr,"robotStatus::robotInit: reached here after setting gravity!\n");
 
     // Generalized bias forces term.
     hterm.resize(6+ICUB_DOFS,0);
@@ -941,10 +945,10 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         }
     }
 
-
-    yarp::sig::Vector ddqJ(ICUB_DOFS);
     // This block will retrieve joint accelerations
     if(btype == 10) {
+        Vector ddqJ;
+        ddqJ.resize(ICUB_DOFS,0);
         if(robot->robotJntAccelerations(blockingRead)) {
             ddqJ = robot->getJntAccelerations();
             //Stream joint accelerations
@@ -1005,7 +1009,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         }
 
         yarp::sig::Vector tau_computed(ICUB_DOFS);
-	//TODO bla
+        //TODO bla
         if(robot->inverseDynamics(qrad_in.data(), dqrad_in.data(), ddqrad_in.data(), tau_computed.data())) {
             if(DEBUGGING) fprintf(stderr,"mdlOutputs: Inverse dynamics has been computed correctly\n");
             if(DEBUGGING) fprintf(stderr,"mdlOutputs: Computed torques are: \n%s\n", tau_computed.toString().c_str());
