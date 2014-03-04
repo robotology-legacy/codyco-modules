@@ -140,7 +140,9 @@ wm.contact.showContacts([(rname+"."+b,"moving_wall.moving_wall") for b in ["l_ha
 ##### SET INITIAL STATE OF THE ROBOT
 qinit = lgsm.zeros(N)
 # correspond to:    l_elbow_pitch     r_elbow_pitch     l_knee             r_knee             l_ankle_pitch      r_ankle_pitch      l_shoulder_roll          r_shoulder_roll
-for name, val in [("l_elbow_pitch", pi/2.), ("r_elbow_pitch", pi/2.), ("l_knee", -0.05), ("r_knee", -0.05), ("l_ankle_pitch", -0.05), ("r_ankle_pitch", -0.05), ("l_shoulder_roll", pi/2.), ("r_shoulder_roll", pi/2.)]:
+for name, val in [("l_elbow_pitch", pi/2.), 
+                  ("r_elbow_pitch", pi/2.), 
+                    ("l_knee", -0.05), ("r_knee", -0.05), ("l_ankle_pitch", -0.05), ("r_ankle_pitch", -0.05), ("l_shoulder_roll", pi/2.), ("r_shoulder_roll", pi/2.)]:
     qinit[jmap[rname+"."+name]] = val    
 
 robot.setJointPositions(qinit)
