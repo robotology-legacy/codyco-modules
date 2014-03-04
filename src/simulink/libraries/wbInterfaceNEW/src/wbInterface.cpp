@@ -27,8 +27,8 @@
 #define LOCAL_PARAM_IDX 2
 // END MASK PARAMETERS -----------------------------------
 
-#define VERBOSE   1
-#define DEBUGGING 1
+#define VERBOSE   0
+#define DEBUGGING 0
 #define TIMING    0
 #define NEWCODE	  1
 
