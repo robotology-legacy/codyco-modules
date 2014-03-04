@@ -219,28 +219,7 @@ namespace wbiIcub
         return wbi::LocalId(iCub::skinDynLib::BODY_PART_UNKNOWN, 0);
     }
     
-    bool loadBodyPartsFromConfig(yarp::os::Property & wbi_yarp_properties, std::vector<std::string> & body_parts_vector)
-    {
-        yarp::os::Bottle parts_config = wbi_yarp_properties.findGroup("WBI_YARP_BODY_PARTS");
-        const std::string numBodyPartsOption = "numBodyParts";
-        if( !parts_config.check(numBodyPartsOption) ) {
-            std::cout << "wbiIcub::loadBodyPartsFromConfig error: " << numBodyPartsOption << " option not found" << std::endl;
-            return false;
-        }
-        int numBodyParts = parts_config.find(numBodyPartsOption).asInt();
-        body_parts_vector.resize(numBodyParts);
-        for(int bp=0; bp < numBodyParts; bp++ ) {
-            std::ostringstream bodyPart_strm;
-            bodyPart_strm<<"bodyPart"<<bp;
-            std::string bodyPart = bodyPart_strm.str();
-            if( ! parts_config.check(bodyPart) ) {
-                std::cout << "wbiIcub::loadBodyPartsFromConfig error: " << bodyPart << " name not found" << std::endl;
-                return false;
-            }
-            body_parts_vector[bp] = parts_config.find(bodyPart).asString().c_str();
-        }   
-        return true;
-    }
+bool loadBodyPartsFromConfig(yarp::os::Property & wbi_yarp_properties, std::vector<std::string> & body_parts_vector);
 
     
 } // end namespace wbiIcub

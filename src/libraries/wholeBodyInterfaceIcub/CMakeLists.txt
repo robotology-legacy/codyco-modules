@@ -19,7 +19,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
      ENDIF(CMAKE_COMPILER_IS_GNUCC)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-SET(folder_source src/icubWholeBodyInterface.cpp 
+SET(folder_source src/wbiIcubUtil.cpp
+                  src/icubWholeBodyInterface.cpp 
                   src/icubWholeBodyModel.cpp
                   src/icubWholeBodyStates.cpp
                   src/icubWholeBodyStatesLocal.cpp
