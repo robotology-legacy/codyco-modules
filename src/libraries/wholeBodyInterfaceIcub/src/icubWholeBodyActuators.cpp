@@ -60,23 +60,30 @@ const std::string icubWholeBodyActuators::icubWholeBodyActuatorsExternalTorqueMo
 icubWholeBodyActuators::icubWholeBodyActuators(const char* _name, 
                                                const char* _robotName, 
                                                const std::vector<std::string> &_bodyPartNames)
-: initDone(false), dof(0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
+: initDone(false), dof(0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames), reverse_torso_joints(true)
 #ifdef WBI_ICUB_COMPILE_PARAM_HELP
 ,_torqueModuleConnection(0)
 #endif
 {}
 
-// icubWholeBodyActuators::icubWholeBodyActuators(const char* _name,
-//                                                const char* _robotName, 
-//                                                const yarp::os::Property & yarp_wbi_properties)
-// : initDone(false), dof(0), name(_name), robot(_robotName)
-// #ifdef WBI_ICUB_COMPILE_PARAM_HELP
-// ,_torqueModuleConnection(0)
-// #endif
-// {
-//     loadBodyPartsFromConfig(yarp_wbi_properties,bodyPartNames);
-// }
-// 
+icubWholeBodyActuators::icubWholeBodyActuators(const char* _name,
+                                               const char* _robotName, 
+                                               const yarp::os::Property & yarp_wbi_properties)
+: initDone(false), dof(0), name(_name), robot(_robotName)
+#ifdef WBI_ICUB_COMPILE_PARAM_HELP
+,_torqueModuleConnection(0)
+#endif
+{
+    yarp::os::Property yarp_wbi_properties_not_const = yarp_wbi_properties;
+    loadBodyPartsFromConfig(yarp_wbi_properties_not_const,bodyPartNames);
+    Bottle bot = yarp_wbi_properties_not_const.findGroup("WBI_YARP_BODY_PARTS_REMAPPING");
+    if( bot.check("reverse_torso_joints") ) {
+        reverse_torso_joints = true;
+    } else {
+        reverse_torso_joints = false;
+    }
+}
+
 
 
 icubWholeBodyActuators::~icubWholeBodyActuators()
@@ -111,8 +118,13 @@ bool icubWholeBodyActuators::init()
         if(ok)
         {
             icmd[itBp->first]->getControlModes(tmp);
-            for(vector<int>::const_iterator itJ=itBp->second.begin(); itJ!=itBp->second.end(); itJ++)
-                currentCtrlModes[LocalId(itBp->first,*itJ)] = yarpToWbiCtrlMode(tmp[itBp->first==TORSO?2-*itJ:*itJ]);
+            for(vector<int>::const_iterator itJ=itBp->second.begin(); itJ!=itBp->second.end(); itJ++) {
+                if( reverse_torso_joints ) {
+                    currentCtrlModes[LocalId(itBp->first,*itJ)] = yarpToWbiCtrlMode(tmp[itBp->first==TORSO?2-*itJ:*itJ]);
+                } else {
+                    currentCtrlModes[LocalId(itBp->first,*itJ)] = yarpToWbiCtrlMode(tmp[*itJ]);
+                }
+            }
         }
     }
     
@@ -220,7 +232,11 @@ bool icubWholeBodyActuators::addActuator(const LocalId &j)
     if(initDone)
     {
         int tmp=-1;
-        icmd[j.bodyPart]->getControlMode(j.bodyPart==TORSO?2-j.index:j.index, &tmp);
+        if( reverse_torso_joints ) {
+            icmd[j.bodyPart]->getControlMode(j.bodyPart==TORSO?2-j.index:j.index, &tmp);
+        } else {
+            icmd[j.bodyPart]->getControlMode(j.index, &tmp);
+        }
         currentCtrlModes[j] = yarpToWbiCtrlMode(tmp);
     }
     
@@ -242,8 +258,13 @@ int icubWholeBodyActuators::addActuators(const LocalIdList &jList)
                     return 0;
                 
                 icmd[it->first]->getControlModes(tmp);
-                for(vector<int>::const_iterator itJ=it->second.begin(); itJ!=it->second.end(); itJ++)
-                    currentCtrlModes[LocalId(it->first,*itJ)] = yarpToWbiCtrlMode(tmp[it->first==TORSO?2-*itJ:*itJ]);
+                for(vector<int>::const_iterator itJ=it->second.begin(); itJ!=it->second.end(); itJ++) {
+                    if( reverse_torso_joints ) {
+                        currentCtrlModes[LocalId(it->first,*itJ)] = yarpToWbiCtrlMode(tmp[it->first==TORSO?2-*itJ:*itJ]);
+                    } else {
+                        currentCtrlModes[LocalId(it->first,*itJ)] = yarpToWbiCtrlMode(tmp[*itJ]);
+                    }
+                }
             }
     }
     int count = jointIdList.addIdList(jList);
@@ -263,39 +284,63 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
         switch(controlMode)
         {
             case CTRL_MODE_POS:
-                FOR_ALL(itBp, itJ)
-                    if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode)
-                        ok = ok && icmd[itBp->first]->setPositionMode(itBp->first==TORSO ? 2-(*itJ) : *itJ);
-                        ///< icub's torso joints are in reverse order
-                break;
-                
-            case CTRL_MODE_VEL:
-                FOR_ALL(itBp, itJ)
-                    if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode)
-                        ok = ok && icmd[itBp->first]->setVelocityMode(itBp->first==TORSO ? 2-(*itJ) : *itJ);
-                break;
-                
-            case CTRL_MODE_TORQUE:
-                FOR_ALL(itBp, itJ)
-                if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode) {
-                    #ifdef WBI_ICUB_COMPILE_PARAM_HELP
-                    if (_torqueModuleConnection) {
-                        //if torque control connection is true I do not set the torqueMode
-                        ok = ok && true;
-                    }
-                    else
-                    #endif
-                    {
-                        ok = ok && icmd[itBp->first]->setTorqueMode(itBp->first==TORSO ? 2-(*itJ) : *itJ);
+                FOR_ALL(itBp, itJ) {
+                    if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode) {
+                        if( reverse_torso_joints ) {
+                            ok = ok && icmd[itBp->first]->setPositionMode(itBp->first==TORSO ? 2-(*itJ) : *itJ);
+                            ///< icub's torso joints are in reverse order
+                        } else {
+                            ok = ok && icmd[itBp->first]->setPositionMode(*itJ);
+                        }
                     }
                 }
                 break;
                 
+            case CTRL_MODE_VEL:
+                FOR_ALL(itBp, itJ) {
+                    if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode) {
+                        if( reverse_torso_joints ) {
+                            ok = ok && icmd[itBp->first]->setVelocityMode(itBp->first==TORSO ? 2-(*itJ) : *itJ);
+                        } else {
+                            ok = ok && icmd[itBp->first]->setVelocityMode(*itJ);
+                        }
+                    }
+                }
+                break;
+                
+            case CTRL_MODE_TORQUE:
+                FOR_ALL(itBp, itJ) {
+                    if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode) {
+                        #ifdef WBI_ICUB_COMPILE_PARAM_HELP
+                        if (_torqueModuleConnection) {
+                            //if torque control connection is true I do not set the torqueMode
+                            ok = ok && true;
+                        }
+                        else
+                        #endif
+                        {
+                            if( reverse_torso_joints ) {
+                                ok = ok && icmd[itBp->first]->setTorqueMode(itBp->first==TORSO ? 2-(*itJ) : *itJ);
+                            } else {
+                                ok = ok && icmd[itBp->first]->setTorqueMode(*itJ);
+                            }
+                        }
+                    }
+                }
+                
+                break;
+                
             case CTRL_MODE_MOTOR_PWM:
                 if(!isRobotSimulator(robot)) ///< iCub simulator does not implement PWM motor control
-                    FOR_ALL(itBp, itJ)
-                        if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode)
-                            ok = ok && icmd[itBp->first]->setOpenLoopMode(itBp->first==TORSO ? 2-(*itJ) : *itJ);
+                    FOR_ALL(itBp, itJ) {
+                        if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode) {
+                            if( reverse_torso_joints ) {
+                                ok = ok && icmd[itBp->first]->setOpenLoopMode(itBp->first==TORSO ? 2-(*itJ) : *itJ);
+                            } else {
+                                ok = ok && icmd[itBp->first]->setOpenLoopMode(*itJ);
+                            }
+                        }
+                    }
                 break;
 
             default:
@@ -315,7 +360,12 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
     LocalId li = jointIdList.globalToLocalId(joint);
     if(currentCtrlModes[li]!=controlMode)   ///< check that joint is not already in the specified control mode
     {
-        int i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
+        int i;
+        if( reverse_torso_joints ) {
+            i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
+        } else {
+            i = li.index;
+        }
         switch(controlMode)
         {
             case CTRL_MODE_POS:         ok = icmd[li.bodyPart]->setPositionMode(i); break;
@@ -342,7 +392,12 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
     if(joint>=0)    // set control reference for the specified joint
     {
         LocalId li = jointIdList.globalToLocalId(joint);
-        int i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
+        int i;
+        if( reverse_torso_joints ) {
+            i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
+        } else {
+            i = li.index;
+        }
         switch(currentCtrlModes[li])
         {
             case CTRL_MODE_POS:         return ipos[li.bodyPart]->positionMove(i, CTRL_RAD2DEG*(*ref));
@@ -391,7 +446,11 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
                 if(currentCtrlModes[LocalId(itBp->first, itBp->second[j])]==CTRL_MODE_VEL)
                 {
                     // icub's torso joints are in reverse order
-                    jointIds[j] = itBp->first==TORSO ? 2-itBp->second[j] : itBp->second[j];
+                    if( reverse_torso_joints ) {
+                        jointIds[j] = itBp->first==TORSO ? 2-itBp->second[j] : itBp->second[j];
+                    } else {
+                        jointIds[j] = itBp->second[j];
+                    }
                     spd[j] = CTRL_RAD2DEG*ref[i];           // convert joint vel from rad to deg
                     njVelCtrl++;
                 }
@@ -412,7 +471,12 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
     unsigned int i=0;
     FOR_ALL(itBp, itJ)
     {
-        int j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
+        int j;
+        if( reverse_torso_joints ) {
+            j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
+        } else {
+            j = *itJ;
+        }
         LocalId localID = LocalId(itBp->first,*itJ);
         switch(currentCtrlModes[localID])
         {
@@ -487,7 +551,12 @@ bool icubWholeBodyActuators::setReferenceSpeed(double *rspd, int joint)
     if(joint>=0)
     {
         LocalId li = jointIdList.globalToLocalId(joint);
-        int i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
+        int i;
+        if( reverse_torso_joints ) {
+            i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
+        } else {
+            i = li.index;
+        }
         return ipos[li.bodyPart]->setRefSpeed(i, CTRL_RAD2DEG*(*rspd));
     }
     
@@ -495,7 +564,12 @@ bool icubWholeBodyActuators::setReferenceSpeed(double *rspd, int joint)
     unsigned int i=0;
     FOR_ALL(itBp, itJ)
     {
-        int j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
+        int j;
+        if( reverse_torso_joints ) {
+            j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
+        } else {
+            j = *itJ;
+        }
         ok = ok && ipos[itBp->first]->setRefSpeed(j, CTRL_RAD2DEG*rspd[i]);
         i++;
     }
@@ -607,7 +681,12 @@ bool icubWholeBodyActuators::setControlOffset(const double *value, int joint)
 //    if(joint>=0)
 //    {
 //        LocalId li = jointIdList.globalToLocalId(joint);
-//        int i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
+//        int i;
+//        if( reverse_torso_joints ) {
+//            i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
+//        } else {
+//            i = li.index;
+//        }
 //        return itrq[li.bodyPart]->setRefTorque(i, *taud);
 //    }
 //    
@@ -615,7 +694,12 @@ bool icubWholeBodyActuators::setControlOffset(const double *value, int joint)
 //    unsigned int i=0;
 //    FOR_ALL(itBp, itJ)
 //    {
-//        int j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
+//        int j;
+//        if( reverse_torso_joints ) {
+//           j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
+//        } else {
+//           j = *itJ;
+//        }
 //        ok = ok && itrq[itBp->first]->setRefTorque(j, taud[i]);
 //        i++;
 //    }
@@ -631,6 +715,7 @@ bool icubWholeBodyActuators::setControlOffset(const double *value, int joint)
 //    if(joint>=0)
 //    {
 //        LocalId li = jointIdList.globalToLocalId(joint);
+//        assert(false) (add reverse_torso_joints logic)
 //        int i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
 //        return ipos[li.bodyPart]->positionMove(i, CTRL_RAD2DEG*(*qd));
 //    }
@@ -655,6 +740,7 @@ bool icubWholeBodyActuators::setControlOffset(const double *value, int joint)
 //    if(joint>=0)
 //    {
 //        LocalId li = jointIdList.globalToLocalId(joint);
+//        assert(false) (add reverse_torso_joints logic)
 //        int i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
 //        return ivel[li.bodyPart]->velocityMove(i, CTRL_RAD2DEG*(*dqd));
 //    }
@@ -665,6 +751,7 @@ bool icubWholeBodyActuators::setControlOffset(const double *value, int joint)
 //    {
 //        FOR_ALL(itBp, itJ)
 //        {
+//        assert(false) (add reverse_torso_joints logic)
 //            int j = itBp->first==TORSO ? 2-(*itJ) : *itJ; // icub's torso joints are in reverse order
 //            ok = ok && ivel[itBp->first]->velocityMove(j, CTRL_RAD2DEG*dqd[i]);
 //            i++;
@@ -680,6 +767,7 @@ bool icubWholeBodyActuators::setControlOffset(const double *value, int joint)
 //        nj = itBp->second.size();   // number of joints of this body part
 //        for(int j=0;j<nj;j++)
 //        {
+//        assert(false) (add reverse_torso_joints logic)
 //            if(itBp->first==TORSO)
 //                jointIds[j] = 2-itBp->second[j];    // icub's torso joints are in reverse order
 //            else
@@ -700,6 +788,7 @@ bool icubWholeBodyActuators::setControlOffset(const double *value, int joint)
 //    if(joint>=0)
 //    {
 //        LocalId li = jointIdList.globalToLocalId(joint);
+//        assert(false) (add reverse_torso_joints logic)
 //        int i = li.bodyPart==TORSO ? 2-li.index : li.index; // icub's torso joints are in reverse order
 //        return iopl[li.bodyPart]->setOutput(i, *pwmd);
 //    }

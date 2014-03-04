@@ -87,6 +87,9 @@ namespace wbiIcub
         /** Set the reference speed for the position control of the specified joint(s). */
         virtual bool setReferenceSpeed(double *rspd, int joint=-1);
         
+        //iCub specific option (for iCub should be true, for all other false [just a temporary workaround])
+        bool reverse_torso_joints;
+        
         //*********TEMP**************//
         #ifdef WBI_ICUB_COMPILE_PARAM_HELP
         paramHelp::ParamHelperClient *_torqueModuleConnection; /*< connection to the torque control module */
@@ -119,14 +122,14 @@ namespace wbiIcub
                                const char* _robot,
                                const std::vector<std::string> &_bodyPartNames = std::vector<std::string>(iCub::skinDynLib::BodyPart_s,iCub::skinDynLib::BodyPart_s+sizeof(iCub::skinDynLib::BodyPart_s)/sizeof(std::string)));
         
-//         /** Constructor.
-//          * @param _name Name of this object, used as a stem for opening YARP ports.
-//          * @param _robot Name of the robot, prefix for its yarp ports
-//          * @param yarp_wbi_properties yarp::os::Property object used to configure the interface
-//         */
-//         icubWholeBodyActuators(const char* _name,
-//                                const char* _robot,
-//                                const yarp::os::Property & yarp_wbi_properties);
+        /** Constructor.
+         * @param _name Name of this object, used as a stem for opening YARP ports.
+         * @param _robot Name of the robot, prefix for its yarp ports
+         * @param yarp_wbi_properties yarp::os::Property object used to configure the interface
+        */
+        icubWholeBodyActuators(const char* _name,
+                               const char* _robot,
+                               const yarp::os::Property & yarp_wbi_properties);
 
         
         virtual ~icubWholeBodyActuators();
