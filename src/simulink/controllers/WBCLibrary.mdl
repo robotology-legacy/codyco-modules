@@ -22,9 +22,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Mar 04 13:17:03 2014"
-  RTWModifiedTimeStamp	  315838566
-  ModelVersionFormat	  "1.%<AutoIncrement:235>"
+  LastModifiedDate	  "Tue Mar 04 14:46:08 2014"
+  RTWModifiedTimeStamp	  315845138
+  ModelVersionFormat	  "1.%<AutoIncrement:238>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -1784,7 +1784,7 @@ Library {
       System {
 	Name			"wholeBodyActuators"
 	Location		[85, 192, 628, 349]
-	Open			on
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -2733,8 +2733,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[569, 563, 1133, 728]
-	Open			off
+	Location		[450, 636, 1014, 801]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -2761,7 +2761,7 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskDisplay		  "image(imread('./img/dynamics.jpg'))"
+	  MaskDisplay		  "image(imread('dynamics.jpg'))"
 	  MaskIconFrame		  on
 	  MaskIconOpaque	  on
 	  MaskIconRotate	  "none"
@@ -2882,7 +2882,7 @@ Library {
 		  Position		  [115, 27, 235, 298]
 		  ZOrder		  -5
 		  FunctionName		  "robotState"
-		  Parameters		  "11,robotName,localName"
+		  Parameters		  "12,robotName,localName"
 		  EnableBusSupport	  off
 		}
 		Block {
@@ -4256,7 +4256,7 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskDisplay		  "image(imread('./img/rightLeg.jpg'))"
+	  MaskDisplay		  "image(imread('rightLeg.jpg'))"
 	  MaskIconFrame		  on
 	  MaskIconOpaque	  on
 	  MaskIconRotate	  "none"
@@ -5143,7 +5143,7 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskDisplay		  "image(imread('./img/jacobian.png'))"
+	  MaskDisplay		  "image(imread('jacobian.png'))"
 	  MaskIconFrame		  on
 	  MaskIconOpaque	  on
 	  MaskIconRotate	  "none"
@@ -6339,7 +6339,7 @@ Library {
       System {
 	Name			"wholeBodyStates"
 	Location		[128, 416, 669, 575]
-	Open			off
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
