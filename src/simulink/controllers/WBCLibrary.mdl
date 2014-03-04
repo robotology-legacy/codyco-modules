@@ -22,9 +22,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Mar 03 14:41:16 2014"
-  RTWModifiedTimeStamp	  315758402
-  ModelVersionFormat	  "1.%<AutoIncrement:196>"
+  LastModifiedDate	  "Tue Mar 04 10:44:56 2014"
+  RTWModifiedTimeStamp	  315828680
+  ModelVersionFormat	  "1.%<AutoIncrement:201>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -748,7 +748,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [462, 318, 1250, 578]
+    Location		    [96, 192, 884, 452]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -762,7 +762,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "484"
+    SIDHighWatermark	    "486"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -786,8 +786,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
-	Location		[1, 81, 800, 249]
-	Open			off
+	Location		[386, 241, 1185, 409]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -804,7 +804,7 @@ Library {
 	  Name			  "DampPinv"
 	  SID			  "104"
 	  Ports			  [2, 1]
-	  Position		  [435, 58, 505, 102]
+	  Position		  [430, 58, 500, 102]
 	  ZOrder		  -1
 	  BackgroundColor	  "[0.848000, 0.128048, 0.320035]"
 	  MinAlgLoopOccurrences	  off
@@ -1026,24 +1026,38 @@ Library {
 	  }
 	}
 	Block {
-	  BlockType		  Reference
-	  Name			  "Soft Real Time"
-	  SID			  "114"
+	  BlockType		  S-Function
+	  Name			  "S-Function"
+	  SID			  "485"
 	  Ports			  []
-	  Position		  [33, 57, 107, 100]
-	  ZOrder		  -2
+	  Position		  [35, 58, 104, 101]
+	  ZOrder		  -5
 	  ShowName		  off
-	  LibraryVersion	  "1.7"
-	  SourceBlock		  "utility/Soft Real Time"
-	  SourceType		  ""
-	  x			  "Ts"
+	  FunctionName		  "sfun_time"
+	  Parameters		  "rate"
+	  EnableBusSupport	  off
+	  MaskType		  "Soft Real Time"
+	  MaskPromptString	  "Simulation rate"
+	  MaskStyleString	  "edit"
+	  MaskVariables		  "rate=@1;"
+	  MaskTunableValueString  "on"
+	  MaskEnableString	  "on"
+	  MaskVisibilityString	  "on"
+	  MaskToolTipString	  "on"
+	  MaskDisplay		  "disp('SoftRealTime')"
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
+	  MaskValueString	  "0.010"
 	}
 	Block {
 	  BlockType		  SubSystem
 	  Name			  "TruncPinv"
 	  SID			  "109"
 	  Ports			  [2, 1]
-	  Position		  [335, 58, 405, 102]
+	  Position		  [330, 58, 400, 102]
 	  ZOrder		  -3
 	  BackgroundColor	  "[0.534601, 0.470279, 1.000000]"
 	  MinAlgLoopOccurrences	  off
@@ -1269,7 +1283,7 @@ Library {
 	  Name			  "baseVelocity"
 	  SID			  "431"
 	  Ports			  [3, 2]
-	  Position		  [535, 58, 645, 102]
+	  Position		  [530, 58, 640, 102]
 	  BackgroundColor	  "[0.753334, 1.000000, 0.112472]"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -1652,7 +1666,7 @@ Library {
 	  Name			  "yarp read"
 	  SID			  "249"
 	  Ports			  [0, 3]
-	  Position		  [235, 58, 305, 102]
+	  Position		  [230, 58, 300, 102]
 	  ZOrder		  -5
 	  BackgroundColor	  "black"
 	  FunctionName		  "yRead"
@@ -1678,7 +1692,7 @@ Library {
 	  Name			  "yarp write"
 	  SID			  "173"
 	  Ports			  [1]
-	  Position		  [135, 58, 205, 102]
+	  Position		  [135, 58, 200, 102]
 	  ZOrder		  -6
 	  BackgroundColor	  "black"
 	  MinAlgLoopOccurrences	  off
@@ -2432,8 +2446,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[160, 230, 724, 395]
-	Open			off
+	Location		[569, 563, 1133, 728]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -2468,7 +2482,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Dynamics"
-	    Location		    [329, 328, 900, 484]
+	    Location		    [329, 328, 1030, 484]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200

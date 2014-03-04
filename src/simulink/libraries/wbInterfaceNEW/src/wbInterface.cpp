@@ -1005,6 +1005,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         }
 
         yarp::sig::Vector tau_computed(ICUB_DOFS);
+	//TODO bla
         if(robot->inverseDynamics(qrad_in.data(), dqrad_in.data(), ddqrad_in.data(), tau_computed.data())) {
             if(DEBUGGING) fprintf(stderr,"mdlOutputs: Inverse dynamics has been computed correctly\n");
             if(DEBUGGING) fprintf(stderr,"mdlOutputs: Computed torques are: \n%s\n", tau_computed.toString().c_str());
