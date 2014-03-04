@@ -350,7 +350,7 @@ bool robotStatus::inverseDynamics(double *qrad_input, double *dq_input, double *
     bool ans = false;
     if(world2baseRototranslation()) {
         if(DEBUGGING) fprintf(stderr,"robotStatus::inverseDynamics >> world2baseRototranslation computed\n");
-        wbInterface->inverseDynamics(qrad_input, xBase, dq_input, dxB.data(), ddq_input, ddxB.data(), grav.data(), tauJ_computed);
+        ans = wbInterface->inverseDynamics(qrad_input, xBase, dq_input, dxB.data(), ddq_input, ddxB.data(), grav.data(), tauJ_computed);
         if(DEBUGGING)
         {
             cout << "Going to print all torques\n";
@@ -359,6 +359,7 @@ bool robotStatus::inverseDynamics(double *qrad_input, double *dq_input, double *
             cout << "\n";
         }
     }
+    return ans;
 }
 //=========================================================================================================================
 bool robotStatus::dynamicsMassMatrix() {
