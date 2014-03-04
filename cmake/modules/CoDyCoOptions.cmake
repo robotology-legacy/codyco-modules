@@ -89,7 +89,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 ENDIF()
 
 #setting debug options
-# if (DEFINED CMAKE_CONFIGURATION_TYPES OR ${CMAKE_BUILD_TYPE} MATCHES "Debug")
 if(MSVC)
     ###
 else()
@@ -112,7 +111,14 @@ else()
         endif()
     endif()
 endif()
-# endif()
+
+#define debug flag
+# SET(COMPILE_DEFINITIONS_DEBUG "${COMPILE_DEFINITIONS_DEBUG};DEBUG=1")
+# add_definitions(-DDEBUG=1) 
+set_property( 
+    DIRECTORY 
+    APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG DEBUG=1 
+) 
 
 #### Option for building tests
 option(CODYCO_BUILD_TESTS "Compile tests" FALSE)
