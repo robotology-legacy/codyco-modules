@@ -227,11 +227,12 @@ namespace wbiIcub
             std::cout << "wbiIcub::loadBodyPartsFromConfig error: " << numBodyPartsOption << " option not found" << std::endl;
             return false;
         }
-        int numBodyParts = parts_config.find(numBodyPartsOption);
+        int numBodyParts = parts_config.find(numBodyPartsOption).asInt();
         body_parts_vector.resize(numBodyParts);
         for(int bp=0; bp < numBodyParts; bp++ ) {
-            std::ostringstream bodyPart;
-            bodyPart<<"bodyPart"<<bp;
+            std::ostringstream bodyPart_strm;
+            bodyPart_strm<<"bodyPart"<<bp;
+            std::string bodyPart = bodyPart_strm.str();
             if( ! parts_config.check(bodyPart) ) {
                 std::cout << "wbiIcub::loadBodyPartsFromConfig error: " << bodyPart << " name not found" << std::endl;
                 return false;
