@@ -57,12 +57,26 @@ const std::string icubWholeBodyActuators::icubWholeBodyActuatorsExternalTorqueMo
 //                                          YARP WHOLE BODY ACTUATOR
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodyActuators::icubWholeBodyActuators(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames)
+icubWholeBodyActuators::icubWholeBodyActuators(const char* _name, 
+                                               const char* _robotName, 
+                                               const std::vector<std::string> &_bodyPartNames)
 : initDone(false), dof(0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
 #ifdef WBI_ICUB_COMPILE_PARAM_HELP
 ,_torqueModuleConnection(0)
 #endif
 {}
+
+// icubWholeBodyActuators::icubWholeBodyActuators(const char* _name,
+//                                                const char* _robotName, 
+//                                                const yarp::os::Property & yarp_wbi_properties)
+// : initDone(false), dof(0), name(_name), robot(_robotName)
+// #ifdef WBI_ICUB_COMPILE_PARAM_HELP
+// ,_torqueModuleConnection(0)
+// #endif
+// {
+//     loadBodyPartsFromConfig(yarp_wbi_properties,bodyPartNames);
+// }
+// 
 
 
 icubWholeBodyActuators::~icubWholeBodyActuators()

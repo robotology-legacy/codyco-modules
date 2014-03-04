@@ -119,6 +119,16 @@ namespace wbiIcub
                                const char* _robot,
                                const std::vector<std::string> &_bodyPartNames = std::vector<std::string>(iCub::skinDynLib::BodyPart_s,iCub::skinDynLib::BodyPart_s+sizeof(iCub::skinDynLib::BodyPart_s)/sizeof(std::string)));
         
+//         /** Constructor.
+//          * @param _name Name of this object, used as a stem for opening YARP ports.
+//          * @param _robot Name of the robot, prefix for its yarp ports
+//          * @param yarp_wbi_properties yarp::os::Property object used to configure the interface
+//         */
+//         icubWholeBodyActuators(const char* _name,
+//                                const char* _robot,
+//                                const yarp::os::Property & yarp_wbi_properties);
+
+        
         virtual ~icubWholeBodyActuators();
         virtual bool init();
         virtual bool close();
