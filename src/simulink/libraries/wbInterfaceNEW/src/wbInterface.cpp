@@ -350,15 +350,16 @@ bool robotStatus::inverseDynamics(double *qrad_input, double *dq_input, double *
     bool ans = false;
     if(world2baseRototranslation()) {
         if(DEBUGGING) fprintf(stderr,"robotStatus::inverseDynamics >> world2baseRototranslation computed\n");
-        wbInterface->inverseDynamics(qrad_input, xBase, dq_input, dxB.data(), ddq_input, ddxB.data(), grav.data(), tauJ_computed);
+        ans = wbInterface->inverseDynamics(qrad_input, xBase, dq_input, dxB.data(), ddq_input, ddxB.data(), grav.data(), tauJ_computed);
         if(DEBUGGING)
         {
             cout << "Going to print all torques\n";
-            for (int i = 0; i < ICUB_DOFS; i++)
+            for (int i = 0; i < ICUB_DOFS+6; i++)
                 cout << tauJ_computed[i];
             cout << "\n";
         }
     }
+    return ans;
 }
 //=========================================================================================================================
 bool robotStatus::dynamicsMassMatrix() {
@@ -1015,15 +1016,18 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             ddqrad_in(j) = (*uPtrs4[j]);
         }
 
-        yarp::sig::Vector tau_computed(ICUB_DOFS);
+        yarp::sig::Vector tau_computed;
+	tau_computed.resize(ICUB_DOFS+6,0.0);
         //TODO bla
         if(robot->inverseDynamics(qrad_in.data(), dqrad_in.data(), ddqrad_in.data(), tau_computed.data())) {
             if(DEBUGGING) fprintf(stderr,"mdlOutputs: Inverse dynamics has been computed correctly\n");
+	    if(DEBUGGING) fprintf(stderr,"mdlOutputs: Size of tau_computed is: \n%d\n",tau_computed.size());
             if(DEBUGGING) fprintf(stderr,"mdlOutputs: Computed torques are: \n%s\n", tau_computed.toString().c_str());
             //Stream computed joint torques by inverseDynamics
             real_T *pY10 = (real_T*)ssGetOutputPortSignal(S,9);
             for(int_T j=0; j<ssGetOutputPortWidth(S,9); j++) {
-                pY10[j] = tau_computed(j);
+		/**\todo Decide if we want to stream tau_computed including floating base torques */
+                pY10[j] = tau_computed(j+6);
             }
         }
     }
