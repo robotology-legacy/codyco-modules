@@ -98,9 +98,10 @@ int main(int argc, char * argv[])
     
     int linkId;
     
-    Vector dxB;
-    // Assuming null base velocity
+    Vector dxB, d2xB;
+    // Assuming null base velocity and accelerations
     dxB.resize(6, 0);
+    d2xB.resize(6, 0);
     
     Vector biasForce;
     biasForce.resize(dof+6,0);
@@ -112,7 +113,7 @@ int main(int argc, char * argv[])
     double grav[3];
     grav[0] = 0.0;
     grav[1] = 0.0;
-    grav[2] = 0;//+9.81;
+    grav[2] = 9.8;
 
     Vector com(7,0.0);
     wbi::Frame world2base;
@@ -122,6 +123,7 @@ int main(int argc, char * argv[])
     Matrix Mj(25, 25);
     Vector subV;
     Vector torques;
+    Vector invDynTau(dof);
     
     Vector zeroVel;
     zeroVel.resize(dof, 0);
@@ -144,6 +146,14 @@ int main(int argc, char * argv[])
         else{
           fprintf(stderr,"ERROR in computeMassMatrix\n");    
         }
+
+        if(icub->inverseDynamics(q.data(), xBase, dq.data(), dxB.data(), d2q.data(), d2xB.data(), grav, invDynTau.data())){
+            fprintf(stderr,"inverseDynamics ok\n");
+        }
+        else{
+            fprintf(stderr,"ERROR in inverseDynamics\n");
+        }
+        
         
         subV =  biasForce.subVector(6, biasForce.size()-1);
         torques = - 1 * Mj * (0.1 * (q - qInit) + 0.1* dq);
