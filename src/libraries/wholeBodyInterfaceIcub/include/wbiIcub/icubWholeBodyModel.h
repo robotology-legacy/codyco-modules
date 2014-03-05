@@ -42,7 +42,12 @@ namespace wbiIcub
     protected:
         wbi::LocalIdList jointIdList;
         int dof;
+        
+        iCub::iDynTree::DynTree * p_model;
+        
         iCub::iDynTree::iCubTree * p_icub_model;
+       
+        
         iCub::iDynTree::iCubTree_version_tag version;
         
         yarp::sig::Matrix world_base_transformation;
@@ -75,7 +80,11 @@ namespace wbiIcub
         std::map<int, yarp::dev::PolyDriver*>       dd;
         std::map<int, yarp::dev::IControlLimits*>   ilim;
 
+        bool reverse_torso_joints;
+        
         bool openDrivers(int bp);
+        
+        int bodyPartJointMapping(int bodypart_id, int local_id);
         
         bool convertBasePose(const wbi::Frame &xBase, yarp::sig::Matrix & H_world_base);
         bool convertBaseVelocity(const double *dxB, yarp::sig::Vector & v_b, yarp::sig::Vector & omega_b);
@@ -105,6 +114,23 @@ namespace wbiIcub
                            const iCub::iDynTree::iCubTree_version_tag icub_version=iCub::iDynTree::iCubTree_version_tag(2,2,true), 
                            double* initial_q=0,
                            const std::vector<std::string> &_bodyPartNames=std::vector<std::string>(iCub::skinDynLib::BodyPart_s,iCub::skinDynLib::BodyPart_s+sizeof(iCub::skinDynLib::BodyPart_s)/sizeof(std::string)));
+        
+        
+        #ifdef CODYCO_USES_URDFDOM
+         /**
+          * @param _name Local name of the interface (used as stem of port names)
+          * @param _robotName Name of the robot
+          * @param urdf_file path to the urdf file describing the dynamics model
+          * @param initial_q the initial value for all the 32 joint angles (default: all 0)
+          * @param wbi_yarp_conf the yarp::os::Property containg the options for wbi
+          * @param _bodyPartNames Vector of names of the body part (used when opening the polydrivers)
+          */
+        icubWholeBodyModel(const char* _name, 
+                           const char* _robotName, 
+                           const char* _urdf_file,
+                           yarp::os::Property & wbi_yarp_conf,
+                           double* initial_q=0);
+        #endif
         
         inline virtual ~icubWholeBodyModel(){ close(); }
         virtual bool init();

@@ -45,7 +45,7 @@ namespace wbiIcub
         std::string                 name;           // name used as root for the local ports
         std::string                 robot;          // name of the robot
 
-        std::vector<int>            bodyParts;      // list of the body parts
+        //std::vector<int>            bodyParts;      // list of the body parts
         std::vector<std::string>    bodyPartNames;  // names of the body parts
         std::vector<id_2_PortName>  ftSens_2_port;  // list containing the port name for each force/torque sensor
         std::vector<id_2_PortName>  imu_2_port;     // list containing the port name for each IMU
@@ -80,6 +80,12 @@ namespace wbiIcub
         std::map<wbi::LocalId, yarp::os::BufferedPort<yarp::sig::Vector>*>   portsFTsens;
         std::map<wbi::LocalId, yarp::os::BufferedPort<yarp::sig::Vector>*>   portsIMU;
         std::map<wbi::LocalId, yarp::os::BufferedPort<yarp::sig::Vector>*>   portsTorqueSensor;
+        
+        // iCub specific option to invert torso joints
+        bool reverse_torso_joints;
+        
+        // Function to retrive custom bodypart joint mapping (as the torso in iCub)
+        int bodyPartJointMapping(int bodypart_id, int local_id);
         
         bool openPwm(const int bodyPart);
         bool openEncoder(const int bodyPart);
@@ -120,6 +126,14 @@ namespace wbiIcub
     public:
         // *** CONSTRUCTORS ***
         icubWholeBodySensors(const char* _name, const char* _robotName);
+        
+        /**
+          * @param _name Local name of the interface (used as stem of port names)
+          * @param _robotName Name of the robot
+          * @param _yarp_wbi_properties yarp::os::Property object used to configure the interface
+          */
+        icubWholeBodySensors(const char* _name, const char* _robotName,
+                             yarp::os::Property & _yarp_wbi_properties);
 
         /**
           * @param _name Local name of the interface (used as stem of port names)

@@ -20,6 +20,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 SET(folder_source src/wbiIcubUtil.cpp
+                  src/yarpWholeBodyInterface.cpp
                   src/icubWholeBodyInterface.cpp 
                   src/icubWholeBodyModel.cpp
                   src/icubWholeBodyStates.cpp
@@ -27,6 +28,7 @@ SET(folder_source src/wbiIcubUtil.cpp
                   src/icubWholeBodyActuators.cpp
                   src/icubWholeBodySensors.cpp)
 SET(folder_header include/wbiIcub/wholeBodyInterfaceIcub.h
+                  include/wbiIcub/yarpWholeBodyInterface.h
                   include/wbiIcub/icubWholeBodyModel.h
                   include/wbiIcub/icubWholeBodyStates.h
                   include/wbiIcub/icubWholeBodyStatesLocal.h

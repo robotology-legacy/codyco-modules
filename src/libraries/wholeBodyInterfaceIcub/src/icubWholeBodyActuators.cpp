@@ -76,12 +76,7 @@ icubWholeBodyActuators::icubWholeBodyActuators(const char* _name,
 {
     yarp::os::Property yarp_wbi_properties_not_const = yarp_wbi_properties;
     loadBodyPartsFromConfig(yarp_wbi_properties_not_const,bodyPartNames);
-    Bottle bot = yarp_wbi_properties_not_const.findGroup("WBI_YARP_BODY_PARTS_REMAPPING");
-    if( bot.check("reverse_torso_joints") ) {
-        reverse_torso_joints = true;
-    } else {
-        reverse_torso_joints = false;
-    }
+    loadReverseTorsoJointsFromConfig(yarp_wbi_properties_not_const,reverse_torso_joints);
 }
 
 
