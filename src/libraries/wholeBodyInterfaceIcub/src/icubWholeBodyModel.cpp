@@ -54,8 +54,11 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName
     double* initial_q, const std::vector<std::string> &_bodyPartNames)
     : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
 {
+    reverse_torso_joints = true;
+    
     std::string kinematic_base_link_name = "root_link";
     p_icub_model = new iCub::iDynTree::iCubTree(version,iCub::iDynTree::SKINDYNLIB_SERIALIZATION,0,kinematic_base_link_name);
+    p_model = (iCub::iDynTree::DynTree *) p_icub_model;
     all_q.resize(p_icub_model->getNrOfDOFs(),0.0);
     all_q_min = all_q_max = all_ddq = all_dq = all_q;
     floating_base_mass_matrix.resize(p_icub_model->getNrOfDOFs(),p_icub_model->getNrOfDOFs());
@@ -76,12 +79,47 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName
     }
 }
 
+#ifdef CODYCO_USES_URDFDOM
+icubWholeBodyModel::icubWholeBodyModel(const char* _name,
+                                       const char* _robotName, 
+                                       const char* urdf_file, 
+                                       yarp::os::Property & wbi_yarp_conf,
+                                       double* initial_q)
+    : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName)
+{
+    std::string kinematic_base_link_name = ""; //Default value interpreted by DynTree constructor as "the base of the urdf file"
+    p_model = new iCub::iDynTree::DynTree(std::string(urdf_file),std::vector<std::string>(0),kinematic_base_link_name);
+    p_icub_model = 0;
+    all_q.resize(p_model->getNrOfDOFs(),0.0);
+    all_q_min = all_q_max = all_ddq = all_dq = all_q;
+    floating_base_mass_matrix.resize(p_model->getNrOfDOFs(),p_model->getNrOfDOFs());
+    floating_base_mass_matrix.zero();
+    
+    world_base_transformation.resize(4,4);
+    world_base_transformation.eye();
+    
+    v_base.resize(3,0.0);
+    
+    a_base = omega_base = domega_base = v_base;
+    
+    v_six_elems_base.resize(3,0.0);
+    a_six_elems_base.resize(6,0.0);
+    
+    loadBodyPartsFromConfig(wbi_yarp_conf,bodyPartNames);
+    loadReverseTorsoJointsFromConfig(wbi_yarp_conf,reverse_torso_joints);
+    
+    if( initial_q != 0 ) {
+        memcpy(all_q.data(),initial_q,all_q.size()*sizeof(double));
+    }
+}
+#endif
+
 bool icubWholeBodyModel::init()
 {
     bool initDone = true;
     FOR_ALL_BODY_PARTS(itBp)
         initDone = initDone && openDrivers(itBp->first);
-    return initDone && (p_icub_model->getNrOfDOFs() > 0);
+    return initDone && (p_model->getNrOfDOFs() > 0);
 }
 
 bool icubWholeBodyModel::openDrivers(int bp)
@@ -107,7 +145,8 @@ bool icubWholeBodyModel::close()
             dd[itBp->first] = 0;
         }
     }
-    if(p_icub_model) { delete p_icub_model; p_icub_model = 0; }
+    if(p_model) { delete p_model; p_model=0; }
+    if(p_icub_model) { p_icub_model = 0; }
     return ok;
 }
 
@@ -242,7 +281,7 @@ bool icubWholeBodyModel::convertDDQ(const double *_ddq_input, yarp::sig::Vector 
 
 bool icubWholeBodyModel::convertGeneralizedTorques(yarp::sig::Vector idyntree_base_force, yarp::sig::Vector idyntree_torques, double * tau)
 {
-    if( idyntree_base_force.size() != 6 && idyntree_torques.size() != p_icub_model->getNrOfDOFs() ) { return false; }
+    if( idyntree_base_force.size() != 6 && (int)idyntree_torques.size() != p_icub_model->getNrOfDOFs() ) { return false; }
     for(int j = 0; j < 6; j++ ) {
         tau[j] = idyntree_base_force[j];
     }
@@ -256,6 +295,15 @@ bool icubWholeBodyModel::convertGeneralizedTorques(yarp::sig::Vector idyntree_ba
     return true;
 }
 
+int icubWholeBodyModel::bodyPartJointMapping(int bodypart_id, int local_id)
+{
+    if( reverse_torso_joints ) {
+        return bodypart_id==TORSO ? 2-local_id : local_id;
+    } else {
+        return local_id;
+    }
+}
+
 bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
 {
     if( (joint < 0 || joint >= (int)jointIdList.size()) && joint != -1 ) { return false; }
@@ -263,7 +311,7 @@ bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
     if(joint>=0)
     {
         LocalId lid = jointIdList.globalToLocalId(joint);
-        int index = lid.bodyPart==TORSO ? 2-lid.index : lid.index;
+        int index = bodyPartJointMapping(lid.bodyPart,lid.index);
         assert(ilim[lid.bodyPart]!=NULL);
         bool res = ilim[lid.bodyPart]->getLimits(index, qMin, qMax);
         if(res)
@@ -471,10 +519,12 @@ bool icubWholeBodyModel::forwardKinematics(double *q, const Frame &xB, int linkI
 
 bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *g, double *tau)
 {
+    double dummy_ddxB[6];
+    mempcpy(dummy_ddxB,ddxB,6*sizeof(double));
     //We can take into account the gravity efficiently by adding a fictional acceleration to the base
-    ddxB[0] = ddxB[0] - g[0];
-    ddxB[1] = ddxB[1] - g[1];
-    ddxB[2] = ddxB[2] - g[2];
+    dummy_ddxB[0] = dummy_ddxB[0] - g[0];
+    dummy_ddxB[1] = dummy_ddxB[1] - g[1];
+    dummy_ddxB[2] = dummy_ddxB[2] - g[2];
     
     /** \todo move all conversion (also the one relative to frames) in convert* functions */
     //Converting local wbi positions/velocity/acceleration to iDynTree one

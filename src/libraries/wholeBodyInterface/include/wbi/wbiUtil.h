@@ -76,8 +76,8 @@ namespace wbi
         std::string description;    ///< description
         
         // CONSTRUCTORS
-        LocalId(): bodyPart(0), index(0) {}
-        LocalId(int _bp, unsigned int _j): bodyPart(_bp), index(_j) {}
+        LocalId(): bodyPart(0), index(0), description("") {}
+        LocalId(int _bp, unsigned int _j): bodyPart(_bp), index(_j), description("") {}
         LocalId(int _bp, unsigned int _j, const std::string &_desc): bodyPart(_bp), index(_j), description(_desc) {}
 
         // OPERATORS

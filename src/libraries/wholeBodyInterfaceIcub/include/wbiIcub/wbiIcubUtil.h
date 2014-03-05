@@ -219,7 +219,14 @@ namespace wbiIcub
         return wbi::LocalId(iCub::skinDynLib::BODY_PART_UNKNOWN, 0);
     }
     
-bool loadBodyPartsFromConfig(yarp::os::Property & wbi_yarp_properties, std::vector<std::string> & body_parts_vector);
+    bool loadBodyPartsFromConfig(yarp::os::Property & wbi_yarp_properties, std::vector<std::string> & body_parts_vector);
+    bool loadReverseTorsoJointsFromConfig(yarp::os::Property & wbi_yarp_properties, bool &reverse_torso_joints);
+    bool loadFTSensorPortsFromConfig(yarp::os::Property & wbi_yarp_properties, 
+                                     const std::vector<std::string> & body_parts_vector,
+                                     std::vector<id_2_PortName> &imu_ports);
+    bool loadIMUSensorPortsFromConfig(yarp::os::Property & wbi_yarp_properties, 
+                                      const std::vector<std::string> & body_parts_vector, 
+                                      std::vector<id_2_PortName> &imu_ports);
 
     
 } // end namespace wbiIcub
