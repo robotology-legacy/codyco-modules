@@ -22,7 +22,7 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Mar 04 14:46:08 2014"
+  LastModifiedDate	  "Tue Mar 04 14:56:10 2014"
   RTWModifiedTimeStamp	  315845138
   ModelVersionFormat	  "1.%<AutoIncrement:238>"
   ConfigurationManager	  "None"
@@ -2770,7 +2770,7 @@ Library {
 	  System {
 	    Name		    "Dynamics"
 	    Location		    [414, 315, 1133, 471]
-	    Open		    off
+	    Open		    on
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -6339,7 +6339,7 @@ Library {
       System {
 	Name			"wholeBodyStates"
 	Location		[128, 416, 669, 575]
-	Open			on
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
