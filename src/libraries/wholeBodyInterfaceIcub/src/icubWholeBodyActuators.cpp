@@ -88,6 +88,11 @@ icubWholeBodyActuators::~icubWholeBodyActuators()
 
 bool icubWholeBodyActuators::openDrivers(int bp)
 {
+    if( bp >= bodyPartNames.size() || bp < 0 ) { 
+        std::cerr << "icubWholeBodyActuators::openDrivers error: called with bodypart " << bp << 
+                     " but the total number of bodyparts is " << bodyPartNames.size() << std::endl;
+        return false;
+    }
     itrq[bp]=0; iimp[bp]=0; icmd[bp]=0; ivel[bp]=0; ipos[bp]=0; iopl[bp]=0;  dd[bp]=0;
     if(!openPolyDriver(name, robot, dd[bp], bodyPartNames[bp].c_str()))
         return false;

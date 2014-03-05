@@ -16,8 +16,6 @@
  * Public License for more details
  */
 
-#if CODYCO_USES_URDFDOM
-
 #ifndef WBI_YARP_H
 #define WBI_YARP_H
 
@@ -134,7 +132,5 @@ namespace wbiIcub
     };
     
 } // end namespace wbiIcub
-
-#endif
 
 #endif

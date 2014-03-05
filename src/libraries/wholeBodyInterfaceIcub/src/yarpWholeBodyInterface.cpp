@@ -15,8 +15,6 @@
  * Public License for more details
  */
 
-#ifdef CODYCO_USES_URDFDOM
-
 #include "wbiIcub/yarpWholeBodyInterface.h"
 #include <iCub/skinDynLib/common.h>
 #include <yarp/os/Os.h>
@@ -103,5 +101,3 @@ int yarpWholeBodyInterface::addJoints(const LocalIdList &jList)
     assert(res1==res4);
     return res1;
 }
-
-#endif

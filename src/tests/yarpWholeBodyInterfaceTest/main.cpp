@@ -20,7 +20,9 @@
 
 #include <iCub/skinDynLib/common.h>
 
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <wbiIcub/yarpWholeBodyInterface.h>
+#include <wbiIcub/icubWholeBodySensors.h>
+#include <wbi/wbi.h>
 
 #include <stdio.h>
 #include <math.h>
@@ -51,41 +53,63 @@ int main(int argc, char * argv[])
     if(options.check("robot")) {
       robotName = options.find("robot").asString();
     } else {
-      robotName = "icubSim";
+      robotName = "double_pendulum";
     }
+    
+    std::string urdfFile;
+    if(options.check("urdf")) {
+        urdfFile = options.find("urdf").asString();
+    } else {
+        std::cerr << "Error: --urdf option not specified" << std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    std::string paramFile;
+    if(options.check("from")) {
+        paramFile = options.find("from").asString();
+    } else {
+        std::cerr << "Error: --from option not specified" << std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    Property wbi_options;
+    wbi_options.fromConfigFile(paramFile.c_str());
     
     // TEST WHOLE BODY INTERFACE
     std::string localName = "wbiTest";
-    std::cout << "Creating icubWholeBodyInterface with robotName " << robotName << " " << localName << std::endl;
-    wholeBodyInterface *icub = new icubWholeBodyInterface(localName.c_str(),robotName.c_str());
+    std::cout << "Creating yarpWholeBodyInterface with robotName " << robotName << " " << localName << std::endl;
+    wholeBodyInterface *double_pendulum = new yarpWholeBodyInterface(localName.c_str(),robotName.c_str(),urdfFile.c_str(),wbi_options);
+    //wholeBodyStates still not ready, we use directly the wholeBodySensor
+    iWholeBodySensors * double_pendulum_sensor = new icubWholeBodySensors(localName.c_str(),robotName.c_str(),wbi_options);
     
-    std::cout << "icubWholeBodyInterface created, adding joints" << std::endl;
-    icub->addJoints(LocalIdList(RIGHT_ARM,0,1,2,3,4));
-    icub->addJoints(LocalIdList(LEFT_ARM,0,1,2,3,4));
-    icub->addJoints(LocalIdList(TORSO,0,1,2));
-    //icub->addFTsens(LocalId(RIGHT_LEG,1));
+    std::cout << "yarpWholeBodyInterface created, adding joints" << std::endl;
+    //(the pendulum has only one body part whose ID is 0
+    double_pendulum->addJoints(LocalIdList(0,0,1));
+    double_pendulum_sensor->addSensors(wbi::SENSOR_ENCODER,LocalIdList(0,0,1));
     std::cout << "Joints added, calling init method" <<  std::endl;
 
-    if(!icub->init())
-        return 0;
+    if(!double_pendulum->init())
+        return -1;
+    
+    if(!double_pendulum_sensor->init())
+        return -1;
     
     Time::delay(0.5);
     
-    int dof = icub->getDoFs();
-    printf("Joint list: %s\n", icub->getJointList().toString().c_str());
+    int dof = double_pendulum->getDoFs();
+    printf("Joint list: %s\n", double_pendulum->getJointList().toString().c_str());
     printf("Number of DoFs: %d\n", dof);
     
     Vector q(dof), dq(dof), d2q(dof);
-    icub->getEstimates(ESTIMATE_JOINT_POS, q.data());
+    double_pendulum_sensor->readSensors(wbi::SENSOR_ENCODER, q.data(),0,true);
     Vector refSpeed(dof, CTRL_DEG2RAD*10.0), qd = q;
     qd += 15.0*CTRL_DEG2RAD;
     printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
     printf("Qd:  %s\n", (CTRL_RAD2DEG*qd).toString(1).c_str());
-    icub->setControlParam(CTRL_PARAM_REF_VEL, refSpeed.data());
-    icub->setControlReference(qd.data());
+    double_pendulum->setControlParam(CTRL_PARAM_REF_VEL, refSpeed.data());
+    double_pendulum->setControlReference(qd.data());
+    
     int j = 0;
-    Eigen::Matrix<double,6,Dynamic,RowMajor> jacob; 
-    jacob.resize(6,dof+6); //13 because in this test we only have right and left arm plus torso
 
     for(int i=0; i<30; i++)
     {
@@ -94,31 +118,32 @@ int main(int argc, char * argv[])
         world2base.identity();
         
         Time::delay(1);
-        icub->getEstimates(ESTIMATE_JOINT_POS, q.data());
-        icub->getEstimates(ESTIMATE_JOINT_VEL, dq.data());
-        icub->getEstimates(ESTIMATE_JOINT_ACC,d2q.data());
-        printf("(Q, dq, d2q):   %.2f \t %.2f \t %.2f\n", CTRL_RAD2DEG*q(j), CTRL_RAD2DEG*dq(j), CTRL_RAD2DEG*d2q(j));
+        double_pendulum_sensor->readSensors(SENSOR_ENCODER, q.data());
+        printf("(Q):   %.2f \n", CTRL_RAD2DEG*q(j));
         
-        icub->computeJacobian(q.data(),world2base,wbi::iWholeBodyModel::COM_LINK_ID,jacob.data());
-        //cout<<"COM Jacobian: "<<jacob<<endl;
+        yarp::sig::Matrix mass_matrix(6+dof,6+dof);
+        mass_matrix.zero();
         
-        icub->forwardKinematics(q.data(),world2base,wbi::iWholeBodyModel::COM_LINK_ID,com.data());
-        //printf("Center of Mass:  %.10f \t %.10f \t %.10f\n",com[0],com[1],com[2]);
-                
+        wbi::Frame id = wbi::Frame::identity();
+        double_pendulum->computeMassMatrix(q.data(),id,mass_matrix.data());
+        
+        std::cout << "Joint mass matrix: " << std::endl;
+        std::cout << mass_matrix.submatrix(6,6+dof-1,6,6+dof-1).toString() << std::endl;
     }
     
     printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
 
     qd -= CTRL_DEG2RAD*15.0;
-    icub->setControlReference(qd.data());
+    double_pendulum->setControlReference(qd.data());
 
     Time::delay(1.0);
-    printf("Test finished. Press return to exit.");
-    getchar();
+    printf("Test finished..");
     
-    icub->close();
+    double_pendulum->close();
+    double_pendulum_sensor->close();
     
-    delete icub;
+    delete double_pendulum;
+    delete double_pendulum_sensor;
     
     printf("Main returning...\n");
     return 0;
