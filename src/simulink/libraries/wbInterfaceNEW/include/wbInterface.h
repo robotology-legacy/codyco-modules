@@ -27,8 +27,8 @@
  * Public License for more details
  */
 
-#ifndef _WBINTERFACE_H_
-#define _WBINTERFACE_H_
+#ifndef _WBINTERFACENEW_INCLUDE_WBINTERFACE_H_
+#define _WBINTERFACENEW_INCLUDE_WBINTERFACE_H_
 
 #define S_FUNCTION_LEVEL 2
 #define S_FUNCTION_NAME  robotState
@@ -48,7 +48,7 @@
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 
 // Need to include simstruc.h for the definition of the SimStruct and its associated macro definitions.
-#include "simstruc.h"				     
+#include "simstruc.h"
 
 //This should somehow be provided by the user, but 25 will be the default 
 #define	ICUB_DOFS 25
@@ -72,59 +72,98 @@ JacobianMatrix jacob;
 
 class robotStatus {
 private:
-    // This object is used to control reentrancy.
+    /** This object is used to control reentrancy. Counts the times the class robotStatus has been created.*/
     static int 			creationCounter;
-    // id of the COM that is different from the other parts of the robot body.
+    
+    /** id of the COM that is different from the other parts of the robot body.*/
     int             		comLinkId;              
-    // id of the controlled foot link.
+    
+    /** id of the controlled foot link.*/
     int             		footLinkId;   
-    // Current active joints (not being update at the moment 24/02/2014 12:44pm)
+    
+    /** Current active joints (not being updated at the moment 24/02/2014 12:44pm). */
     int 			actJnts;
-    // current number of active joints.
+    
+    /** current number of active joints. */
     int                 	_n;     
-    // Prefix given to the ports that will be open by Simulink.
+    
+    /** Prefix given to the ports that will be open by Simulink. */
     std::string 		moduleName;
-    // name of the robot being used, e.g. 'icubSim' or 'icub'.
+    
+    /** name of the robot being used, e.g. 'icubSim' or 'icub'. */
     std::string 		robotName;
-    // This variable map an Eigen vector to a yarp vector. 
-    Eigen::Map<Eigen::VectorXd>	dqDesMap;
-    // Joint velocities (size of vectors: n+6, n, 6)
+    // This variable map an Eigen vector to a yarp vector. //
+    // Eigen::Map<Eigen::VectorXd>	dqDesMap; //
+    
+    /** Joint velocities (size of vectors: n+6, n, 6). */
     Eigen::VectorXd        	dq, dqJ;                
-    // rotation matrix from world to base reference frame.
-    Eigen::Matrix4d		H_w2b;                  
+    
+    /** rotation matrix from world to base reference frame. */	
+    Eigen::Matrix4d		H_w2b; 
+    
+    /** \todo This variable has a wrong name because when the library was born it was meant to send only velocity commands. With its scalation it started using this very same vector for references to the other control modes available. */
     Eigen::VectorXd         	dqDes;
-    // General vector initialized depending on the link for which forwardKinematics is computed as well as dJdq.
+    
+    /** General vector initialized depending on the link for which forwardKinematics is computed as well as dJdq. */
     yarp::sig::Vector        	x_pose;
-    // Robot joint angles in radians later initialized for the entire body.
+    
+    /** Robot joint angles in radians later initialized for the entire body. */
     yarp::sig::Vector 		qRad;
-    // General Jacobian matrix initialized depending on the link for which the Jacobian is then needed.
+    
+    /** Robot joint accelerations ROBOT_DOFS-dim */
+    yarp::sig::Vector		ddqJ;
+    
+    /** Robot joint torques*/
+    yarp::sig::Vector 		tauJ;
+    
+    /** Robot joint torques computed by inverseDynamics*/
+    yarp::sig::Vector		tauJ_out;
+    
+    /** General Jacobian matrix initialized depending on the link for which the Jacobian is then needed.*/
     JacobianMatrix  		JfootR;                 
-     // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
+    
+    /** rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1] */
     wbi::Frame           	Ha;                    
-    // rototranslation from robot base to left foot (i.e. world).
+    
+    /** rototranslation from robot base to left foot (i.e. world)*/
     wbi::Frame           	H_base_leftFoot;   
-    // Floating base 3D rototranslation from world ot base.
+    
+    /** Floating base 3D rototranslation from world ot base.*/
     wbi::Frame 			xBase;
-    // Floating base velocity.
+    
+    /** Floating base velocity 6x1 */
     yarp::sig::Vector		dxB;
-    // Generalized bias forces.
+    
+    /** Floating base acceleration 6x1*/
+    yarp::sig::Vector		ddxB;
+    
+    /** Generalized bias forces N+6 dim vector */
     yarp::sig::Vector		hterm;
+    
+    /** Gravity vector for now constant */
+    yarp::sig::Vector 		grav; 
+    
+    /** Variable to store the product dot{J}*dot{q} */
     yarp::sig::Vector    	dJdq;
-    // Mass matrix
+    
+    /** Mass matrix N+6xN+6 */
     MassMatrix			massMatrix;
+    
+
 
 
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     wbi::wholeBodyInterface *wbInterface;
-    // Temporal container to copy wbInterface object to other copies of this module
+    // Temporal container to copy wbInterface object for other copies of this module
     static int 		    *tmpContainer;
     
     robotStatus();
     ~robotStatus();
     void 		setmoduleName(std::string mn);
     void 		setRobotName(std::string rn); //checked
-    int 		getCounter();
     int 		decreaseCounter();
+    void 		resetCounter();
     bool 		robotConfig();
     bool 		robotInit(int btype, int link);
     void 		getLinkId(const char *linkName, int &lid);
@@ -133,24 +172,26 @@ public:
     bool 		world2baseRototranslation();
     bool 		robotJntAngles(bool blockingRead);
     bool 		robotJntVelocities(bool blockingRead);
+    bool 		robotJntAccelerations(bool blockingRead);
+    bool 		robotJntTorques(bool blockingRead);
     yarp::sig::Vector 	forwardKinematics(int &linkId);
     JacobianMatrix 	jacobian(int &lid);
     yarp::sig::Vector 	getEncoders();
     Eigen::VectorXd 	getJntVelocities();
+    yarp::sig::Vector 	getJntTorques();
+    
     bool 		setCtrlMode(wbi::ControlMode ctrl_mode);
     void      		setdqDes(yarp::sig::Vector dqD);
-    bool       		dynamicsMassMatrix();
     
+    bool 		inverseDynamics(double* qrad_input, double* dq_input, double* ddq_input, double* tau_computed);
+    bool       		dynamicsMassMatrix();
     yarp::sig::Vector	dynamicsGenBiasForces();
     bool       		robotBaseVelocity();
     bool       		dynamicsDJdq(int &linkId);
     MassMatrix 		getMassMatrix();
     yarp::sig::Vector 	getDJdq();
+    yarp::sig::Vector 	getJntAccelerations();
 };
-
-// The initialization of this varibale must be done here because it's a pointer to static
-// int robotStatus::creationCounter = 0;
-// int *robotStatus::tmpContainer = NULL;
 
 class counterClass {
 private:
@@ -159,8 +200,5 @@ public:
     counterClass();
     int getCount();
 };
-
-// The initialization of this varibale must be done here because it's a pointer to static
-// int counterClass::count = 0;
 
 #endif

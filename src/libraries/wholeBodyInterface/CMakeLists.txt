@@ -6,7 +6,13 @@ SET(PROJECTNAME wholeBodyInterface)
 
 PROJECT(${PROJECTNAME})
 
-SET(folder_source src/wbiUtil.cpp )
+SET(folder_source src/wbiUtil.cpp 
+                  src/iWholeBodyModel.cpp
+                  src/iWholeBodyStates.cpp
+                  src/iWholeBodySensors.cpp
+                  src/iWholeBodyActuators.cpp
+                  src/wholeBodyInterface.cpp)
+                  
 SET(folder_header include/wbi/wbi.h 
                   include/wbi/wbiConstants.h 
                   include/wbi/wbiUtil.h 

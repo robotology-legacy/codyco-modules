@@ -101,8 +101,11 @@ bool icubWholeBodyModel::close()
     bool ok = true;
     FOR_ALL_BODY_PARTS(itBp)
     {
-        assert(dd[itBp->first]!=NULL);
-        ok = ok && dd[itBp->first]->close();
+        if( dd[itBp->first] != 0 ) {
+            ok = ok && dd[itBp->first]->close();
+            delete dd[itBp->first];
+            dd[itBp->first] = 0;
+        }
     }
     if(p_icub_model) { delete p_icub_model; p_icub_model = 0; }
     return ok;
@@ -469,18 +472,19 @@ bool icubWholeBodyModel::forwardKinematics(double *q, const Frame &xB, int linkI
 bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *g, double *tau)
 {
     //We can take into account the gravity efficiently by adding a fictional acceleration to the base
-    ddxB[0] = ddxB[0] - g[0];
-    ddxB[1] = ddxB[1] - g[1];
-    ddxB[2] = ddxB[2] - g[2];
+    double baseAcceleration[3] = {0, 0, 0};
+    baseAcceleration[0] = ddxB[0] - g[0];
+    baseAcceleration[1] = ddxB[1] - g[1];
+    baseAcceleration[2] = ddxB[2] - g[2];
     
     /** \todo move all conversion (also the one relative to frames) in convert* functions */
     //Converting local wbi positions/velocity/acceleration to iDynTree one
-    convertBasePose(xB,world_base_transformation);
-    convertQ(q,all_q);
-    convertBaseVelocity(dxB,v_base,omega_base);
-    convertDQ(dq,all_dq);
-    convertBaseAcceleration(ddxB,a_base,domega_base);
-    convertDDQ(ddq,all_ddq);
+    convertBasePose(xB, world_base_transformation);
+    convertQ(q, all_q);
+    convertBaseVelocity(dxB, v_base,omega_base);
+    convertDQ(dq, all_dq);
+    convertBaseAcceleration(baseAcceleration, a_base,domega_base);
+    convertDDQ(ddq, all_ddq);
 
     //Setting iDynTree variables
     p_icub_model->setWorldBasePose(world_base_transformation);
@@ -585,14 +589,14 @@ bool icubWholeBodyModel::computeGeneralizedBiasForces(double *q, const Frame &xB
     convertBaseVelocity(dxB,v_base,omega_base);
     convertDQ(dq,all_dq);
     yarp::sig::Vector ddxB(6, 0.0);
+    yarp::sig::Vector ddq(dof, 0.0);
     
     //We can take into account the gravity efficiently by adding a fictional acceleration to the base
-    ddxB[0] = ddxB[0] - g[0];
-    ddxB[1] = ddxB[1] - g[1];
-    ddxB[2] = ddxB[2] - g[2];
+    ddxB[0] = - g[0];
+    ddxB[1] = - g[1];
+    ddxB[2] = - g[2];
    
     convertBaseAcceleration(ddxB.data(),a_base,domega_base);
-    yarp::sig::Vector ddq(dof, 0.0);
     
 
     convertDDQ(ddq.data(),all_ddq);

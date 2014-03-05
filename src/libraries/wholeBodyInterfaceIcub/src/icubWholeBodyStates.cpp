@@ -49,6 +49,11 @@ icubWholeBodyStates::icubWholeBodyStates(const char* _name, const char* _robotNa
     estimator = new icubWholeBodyEstimator(ESTIMATOR_PERIOD, sensors);  // estimation thread
 }
 
+icubWholeBodyStates::~icubWholeBodyStates()
+{ 
+    close();     
+}
+
 bool icubWholeBodyStates::init()
 {
     bool ok = sensors->init();              // initialize sensor interface
@@ -57,10 +62,10 @@ bool icubWholeBodyStates::init()
 
 bool icubWholeBodyStates::close()
 {
-    if(estimator)   estimator->stop();  // stop estimator BEFORE closing sensor interface
+    if(estimator) estimator->stop();  // stop estimator BEFORE closing sensor interface
     bool ok = (sensors ? sensors->close() : true);
-    if(sensors)     delete sensors;
-    if(estimator)   delete estimator;
+    if(sensors) { delete sensors; sensors = 0; }
+    if(estimator) { delete estimator; estimator = 0; }
     return ok;
 }
 

@@ -75,6 +75,8 @@ Linux, Windows, MAC OS X
 - [x] ~~Expose computeMass(), generalizedBiasForces() and computeDJdq()~~
 - [x] ~~Debug computeMass(),  generalizedBiasForces() and computeDjdq()~~
 - [x] ~~Add blocks for the previous methods~~
+- [ ] Add block for inverse dynamics
+- [ ] Check whether there are still memory leaks
 - [ ] Documentation (Functions, etc)
 - [ ] Include postural constraint in FourthCOMController.
 - [ ] ZMP block.

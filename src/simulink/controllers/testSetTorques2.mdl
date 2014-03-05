@@ -1,12 +1,12 @@
 Model {
-  Name			  "test_senddq"
+  Name			  "testSetTorques2"
   Version		  7.9
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.28"
+    ComputedModelVersion    "1.8"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -18,7 +18,7 @@ Model {
       Type		      "Cell"
       Dimension		      2
       Cell		      "HDLSubsystem"
-      Cell		      "test_senddq"
+      Cell		      "testSetTorques2"
       PropName		      "mdlProps"
     }
   }
@@ -32,21 +32,21 @@ Model {
   MinMaxOverflowArchiveMode "Overwrite"
   FPTRunName		  "Run 1"
   MaxMDLFileLineLength	  120
-  Created		  "Thu Jan 16 12:27:58 2014"
+  Created		  "Wed Feb 26 15:12:48 2014"
   Creator		  "jorhabib"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
-  LastModifiedBy	  "root"
+  LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Sat Mar 01 17:00:45 2014"
-  RTWModifiedTimeStamp	  315591853
-  ModelVersionFormat	  "1.%<AutoIncrement:28>"
+  LastModifiedDate	  "Thu Feb 27 12:39:31 2014"
+  RTWModifiedTimeStamp	  315405567
+  ModelVersionFormat	  "1.%<AutoIncrement:8>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
   LibraryLinkDisplay	  "disabled"
   WideLines		  off
-  ShowLineDimensions	  off
+  ShowLineDimensions	  on
   ShowPortDataTypes	  off
   ShowDesignRanges	  off
   ShowLoopsOnError	  on
@@ -77,13 +77,13 @@ Model {
     $PropName		    "DataLoggingOverride"
     $ObjectID		    2
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
-    model_		    "test_senddq"
+    model_		    "testSetTorques2"
     signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
       Dimension		      1
-      Cell		      "test_senddq"
+      Cell		      "testSetTorques2"
       PropName		      "logAsSpecifiedByModels_"
     }
     Array {
@@ -146,7 +146,7 @@ Model {
 	  StartTime		  "0.0"
 	  StopTime		  "inf"
 	  AbsTol		  "auto"
-	  FixedStep		  "auto"
+	  FixedStep		  "1"
 	  InitialStep		  "auto"
 	  MaxNumMinSteps	  "-1"
 	  MaxOrder		  5
@@ -162,8 +162,8 @@ Model {
 	  SolverMode		  "Auto"
 	  EnableConcurrentExecution off
 	  ConcurrentTasks	  off
-	  Solver		  "ode45"
-	  SolverName		  "ode45"
+	  Solver		  "ode3"
+	  SolverName		  "ode3"
 	  SolverJacobianMethodControl "auto"
 	  ShapePreserveControl	  "DisableAll"
 	  ZeroCrossControl	  "UseLocalSettings"
@@ -638,7 +638,7 @@ Model {
       }
       Name		      "Configuration"
       CurrentDlgPage	      "Solver"
-      ConfigPrmDlgPosition     [ 538, 52, 1438, 732 ] 
+      ConfigPrmDlgPosition     [ 535, 79, 1447, 781 ] 
     }
     PropName		    "ConfigurationSets"
   }
@@ -680,12 +680,6 @@ Model {
   }
   BlockParameterDefaults {
     Block {
-      BlockType		      Concatenate
-      NumInputs		      "2"
-      Mode		      "Vector"
-      ConcatenateDimension    "1"
-    }
-    Block {
       BlockType		      Constant
       Value		      "1"
       VectorParams1D	      on
@@ -699,67 +693,16 @@ Model {
       PreserveConstantTs      off
     }
     Block {
-      BlockType		      Outport
-      Port		      "1"
-      OutMin		      "[]"
-      OutMax		      "[]"
-      OutDataTypeStr	      "Inherit: auto"
-      LockScale		      off
-      BusOutputAsStruct	      off
-      PortDimensions	      "-1"
-      VarSizeSig	      "Inherit"
-      SampleTime	      "-1"
-      SignalType	      "auto"
-      SamplingMode	      "auto"
-      SourceOfInitialOutputValue "Dialog"
-      OutputWhenDisabled      "held"
-      InitialOutput	      "[]"
-    }
-    Block {
-      BlockType		      Scope
-      ModelBased	      off
-      TickLabels	      "OneTimeTick"
-      ZoomMode		      "on"
-      Grid		      "on"
-      TimeRange		      "auto"
-      YMin		      "-5"
-      YMax		      "5"
-      SaveToWorkspace	      off
-      SaveName		      "ScopeData"
-      DataFormat	      "Array"
-      LimitDataPoints	      on
-      MaxDataPoints	      "5000"
-      Decimation	      "1"
-      SampleInput	      off
-      SampleTime	      "-1"
-    }
-    Block {
-      BlockType		      SubSystem
-      ShowPortLabels	      "FromPortIcon"
-      Permissions	      "ReadWrite"
-      PermitHierarchicalResolution "All"
-      TreatAsAtomicUnit	      off
-      CheckFcnCallInpInsideContextMsg off
-      SystemSampleTime	      "-1"
-      RTWFcnNameOpts	      "Auto"
-      RTWFileNameOpts	      "Auto"
-      RTWMemSecFuncInitTerm   "Inherit from model"
-      RTWMemSecFuncExecute    "Inherit from model"
-      RTWMemSecDataConstants  "Inherit from model"
-      RTWMemSecDataInternal   "Inherit from model"
-      RTWMemSecDataParameters "Inherit from model"
-      SimViewingDevice	      off
-      DataTypeOverride	      "UseLocalSettings"
-      DataTypeOverrideAppliesTo	"AllNumericTypes"
-      MinMaxOverflowLogging   "UseLocalSettings"
-      SFBlockType	      "NONE"
-      Variant		      off
-      GeneratePreprocessorConditionals off
+      BlockType		      S-Function
+      FunctionName	      "system"
+      SFunctionModules	      "''"
+      PortCounts	      "[]"
+      SFunctionDeploymentMode off
     }
   }
   System {
-    Name		    "test_senddq"
-    Location		    [606, 459, 1316, 670]
+    Name		    "testSetTorques2"
+    Location		    [1680, 372, 2260, 632]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -773,271 +716,71 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "69"
+    SIDHighWatermark	    "5"
     Block {
-      BlockType		      SubSystem
-      Name		      "Body Parts Mask"
-      SID		      "60"
-      Ports		      [0, 1]
-      Position		      [195, 75, 235, 135]
-      MinAlgLoopOccurrences   off
-      PropExecContextOutsideSubsystem off
-      RTWSystemCode	      "Auto"
-      FunctionWithSeparateData off
-      Opaque		      off
-      RequestExecContextInheritance off
-      MaskHideContents	      off
-      System {
-	Name			"Body Parts Mask"
-	Location		[495, 233, 870, 534]
-	Open			on
-	ModelBrowserVisibility	off
-	ModelBrowserWidth	200
-	ScreenColor		"white"
-	PaperOrientation	"landscape"
-	PaperPositionMode	"auto"
-	PaperType		"usletter"
-	PaperUnits		"inches"
-	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
-	TiledPageScale		1
-	ShowPageBoundaries	off
-	ZoomFactor		"100"
-	Block {
-	  BlockType		  Reference
-	  Name			  "Degrees to\nRadians1"
-	  SID			  "57"
-	  Ports			  [1, 1]
-	  Position		  [210, 120, 240, 150]
-	  ShowName		  off
-	  LibraryVersion	  "1.44"
-	  SourceBlock		  "simulink_extras/Transformations/Degrees to\nRadians"
-	  SourceType		  "DegreesToRadians"
-	}
-	Block {
-	  BlockType		  Constant
-	  Name			  "Left Arm"
-	  SID			  "49"
-	  Position		  [25, 73, 115, 97]
-	  ZOrder		  -4
-	  Value			  "0*ones(1,5)"
-	  VectorParams1D	  off
-	}
-	Block {
-	  BlockType		  Constant
-	  Name			  "Left Leg"
-	  SID			  "58"
-	  Position		  [25, 178, 115, 202]
-	  ZOrder		  -4
-	  Value			  "0*ones(1,6)"
-	  VectorParams1D	  off
-	}
-	Block {
-	  BlockType		  Constant
-	  Name			  "Right Arm1"
-	  SID			  "67"
-	  Position		  [250, 196, 340, 224]
-	  ZOrder		  -4
-	  Value			  "[-48 54 61 102 -70]"
-	  VectorParams1D	  off
-	}
-	Block {
-	  BlockType		  Constant
-	  Name			  "Right Arm2"
-	  SID			  "66"
-	  Position		  [25, 123, 115, 147]
-	  ZOrder		  -4
-	  Value			  "0*ones(1,5)"
-	  VectorParams1D	  off
-	}
-	Block {
-	  BlockType		  Constant
-	  Name			  "Right Leg"
-	  SID			  "59"
-	  Position		  [25, 228, 115, 252]
-	  ZOrder		  -4
-	  Value			  "0*ones(1,6)"
-	  VectorParams1D	  off
-	}
-	Block {
-	  BlockType		  Constant
-	  Name			  "Torso"
-	  SID			  "50"
-	  Position		  [25, 28, 115, 52]
-	  ZOrder		  -4
-	  Value			  "[0 0 5]"
-	  VectorParams1D	  off
-	}
-	Block {
-	  BlockType		  Concatenate
-	  Name			  "Vector\nConcatenate"
-	  SID			  "55"
-	  Ports			  [5, 1]
-	  Position		  [175, 42, 185, 228]
-	  ZOrder		  -22
-	  ShowName		  off
-	  NumInputs		  "5"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "mask"
-	  SID			  "61"
-	  Position		  [270, 128, 300, 142]
-	  IconDisplay		  "Port number"
-	}
-	Line {
-	  SrcBlock		  "Torso"
-	  SrcPort		  1
-	  Points		  [20, 0; 0, 25]
-	  DstBlock		  "Vector\nConcatenate"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Left Arm"
-	  SrcPort		  1
-	  Points		  [40, 0]
-	  DstBlock		  "Vector\nConcatenate"
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "Right Arm2"
-	  SrcPort		  1
-	  DstBlock		  "Vector\nConcatenate"
-	  DstPort		  3
-	}
-	Line {
-	  SrcBlock		  "Left Leg"
-	  SrcPort		  1
-	  Points		  [20, 0; 0, -20]
-	  DstBlock		  "Vector\nConcatenate"
-	  DstPort		  4
-	}
-	Line {
-	  SrcBlock		  "Right Leg"
-	  SrcPort		  1
-	  Points		  [20, 0; 0, -35]
-	  DstBlock		  "Vector\nConcatenate"
-	  DstPort		  5
-	}
-	Line {
-	  SrcBlock		  "Vector\nConcatenate"
-	  SrcPort		  1
-	  DstBlock		  "Degrees to\nRadians1"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Degrees to\nRadians1"
-	  SrcPort		  1
-	  DstBlock		  "mask"
-	  DstPort		  1
-	}
-      }
+      BlockType		      Constant
+      Name		      "Constant"
+      SID		      "2"
+      Position		      [165, 145, 195, 175]
+      ZOrder		      -4
+      Value		      "hFixed"
+      SampleTime	      "-1"
     }
     Block {
-      BlockType		      Reference
-      Name		      "Joint Angles"
-      SID		      "69"
-      Ports		      [0, 1]
-      Position		      [390, 83, 455, 127]
-      ZOrder		      -1
-      BackgroundColor	      "orange"
-      LibraryVersion	      "1.162"
-      SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Angles"
-      SourceType	      ""
-      robotName		      "robotName"
-      localName		      "localName"
+      BlockType		      Constant
+      Name		      "Constant1"
+      SID		      "5"
+      Position		      [75, 155, 105, 185]
+      ZOrder		      -4
+      Value		      "[0 0 -5.12   0 0 0 0 0   -1.826 1.415 -0.216 0.810 0.018 -2.659 -0.49 0 -2.73 2.8 -0.273 -2.51 -0."
+      "25 0 -2.58 2.64 -0.273]"
+      SampleTime	      "-1"
     }
     Block {
-      BlockType		      Reference
-      Name		      "Radians\nto Degrees"
-      SID		      "45"
-      Ports		      [1, 1]
-      Position		      [495, 90, 525, 120]
-      LibraryVersion	      "1.44"
-      SourceBlock	      "simulink_extras/Transformations/Radians\nto Degrees"
-      SourceType	      "RadiansToDegrees"
+      BlockType		      Constant
+      Name		      "RightFoot"
+      SID		      "3"
+      Position		      [165, 85, 195, 115]
+      ZOrder		      -4
+      Value		      "0"
+      OutDataTypeStr	      "int8"
+      SampleTime	      "-1"
     }
     Block {
-      BlockType		      Scope
-      Name		      "Scope1"
-      SID		      "46"
-      Ports		      [1]
-      Position		      [575, 89, 605, 121]
-      ZOrder		      -16
-      Floating		      off
-      Location		      [798, 54, 1361, 762]
-      Open		      on
-      NumInputPorts	      "1"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.5 0.5 0.5]"
-	AxesColor		"[0 0 0]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      YMin		      "-50"
-      YMax		      "50"
-      SaveName		      "ScopeData1"
-      DataFormat	      "StructureWithTime"
-      SampleTime	      "0"
-    }
-    Block {
-      BlockType		      Reference
-      Name		      "Set Velocities"
-      SID		      "68"
-      Ports		      [1]
-      Position		      [290, 83, 365, 127]
-      ZOrder		      -18
-      BackgroundColor	      "[0.976000, 0.635000, 0.140000]"
-      LibraryVersion	      "1.162"
-      SourceBlock	      "WBCLibrary/wholeBodyActuators/Set Velocities"
-      SourceType	      ""
-      val		      "1"
-      robotName		      "robotName"
-      localName		      "localName"
+      BlockType		      S-Function
+      Name		      "S-Function"
+      SID		      "1"
+      Ports		      [2, 7]
+      Position		      [230, 69, 305, 191]
+      ZOrder		      -5
+      FunctionName	      "robotState"
+      Parameters	      "6,'icubGazeboSim','simulink'"
+      EnableBusSupport	      off
     }
     Block {
       BlockType		      Reference
       Name		      "Soft Real Time"
-      SID		      "30"
+      SID		      "4"
       Ports		      []
-      Position		      [35, 50, 127, 147]
-      DropShadow	      on
+      Position		      [205, 22, 285, 46]
+      ZOrder		      -2
       ShowName		      off
       LibraryVersion	      "1.7"
       SourceBlock	      "utility/Soft Real Time"
       SourceType	      ""
-      x			      "0.050"
+      x			      "0.01"
     }
     Line {
-      SrcBlock		      "Joint Angles"
+      SrcBlock		      "RightFoot"
       SrcPort		      1
-      DstBlock		      "Radians\nto Degrees"
+      DstBlock		      "S-Function"
       DstPort		      1
     }
     Line {
-      SrcBlock		      "Radians\nto Degrees"
+      SrcBlock		      "Constant"
       SrcPort		      1
-      DstBlock		      "Scope1"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "Body Parts Mask"
-      SrcPort		      1
-      DstBlock		      "Set Velocities"
-      DstPort		      1
-    }
-    Annotation {
-      SID		      "52"
-      Name		      "[3 DOF TORSO] [5 DOF LEFT ARM] [5 DOF RIGHT ARM] [6 LEFT LEG] [6 RIGHT LEG]"
-      Position		      [398, 41]
+      DstBlock		      "S-Function"
+      DstPort		      2
     }
   }
 }

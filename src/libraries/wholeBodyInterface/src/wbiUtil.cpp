@@ -25,7 +25,7 @@ using namespace wbi;
 const double PI         = 3.1415926535897932384626433832795;
 const double deg2rad    = 0.01745329251994329576923690768488;
 const double rad2deg    = 57.2957795130823208767981548141052;
-double epsilon          = 0.000001;
+const double epsilon          = 0.000001;
 
 
 
@@ -230,9 +230,9 @@ void Rotation::getQuaternion(double& x, double& y, double& z, double& w) const
 
 void Rotation::getRPY(double& roll,double& pitch,double& yaw) const
 {
-	double epsilon=1E-12;
+	double rpyEpsilon = 1E-12;
 	pitch = atan2(-data[6], sqrt( sqr(data[0]) +sqr(data[3]) )  );
-    if ( fabs(pitch) > (PI/2.0-epsilon) ) 
+    if ( fabs(pitch) > (PI/2.0 - rpyEpsilon) )
     {
         yaw = atan2(-data[1], data[4]);
         roll  = 0.0;
