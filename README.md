@@ -74,6 +74,11 @@ make
 sudo make install
 ```
 
+###kdl_format_io
+To enable URDF support in iDynTree and wholeBodyInterface, you need to install the kdl_format_io library and all its dependecies, following the instructions in [kdl_format_io README](https://github.com/traversaro/kdl_format_io).
+
+After the instalation, you should compile codyco enabling the CODYCO_USES_URDFDOM CMake flag. If a dependency is not found the CODYCO_USES_URDFDOM option is automatically disabled, so pay attention to properly install all the dependencies. 
+
 ##CoDyCo
 Finally, after installing all dependencies, it is possible to install codyco (this repository itself) from GitHub.
 ```bash

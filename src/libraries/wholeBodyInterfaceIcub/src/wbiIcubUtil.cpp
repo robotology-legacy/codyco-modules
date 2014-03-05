@@ -26,6 +26,7 @@ namespace wbiIcub
 
 bool loadBodyPartsFromConfig(yarp::os::Property & wbi_yarp_properties, std::vector<std::string> & body_parts_vector)
 {
+        std::cout << "wbiIcub::loadBodyPartsFromConfig : config passed " << wbi_yarp_properties.toString() << std::endl;
         yarp::os::Bottle parts_config = wbi_yarp_properties.findGroup("WBI_YARP_BODY_PARTS");
         const std::string numBodyPartsOption = "numBodyParts";
         if( !parts_config.check(numBodyPartsOption) ) {
@@ -33,6 +34,7 @@ bool loadBodyPartsFromConfig(yarp::os::Property & wbi_yarp_properties, std::vect
             return false;
         }
         int numBodyParts = parts_config.find(numBodyPartsOption).asInt();
+        std::cout << "wbiIcub::loadBodyPartsFromConfig : Loading body parts: expecting " << numBodyParts << " parts " << std::endl;
         body_parts_vector.resize(numBodyParts);
         for(int bp=0; bp < numBodyParts; bp++ ) {
             std::ostringstream bodyPart_strm;
@@ -44,6 +46,9 @@ bool loadBodyPartsFromConfig(yarp::os::Property & wbi_yarp_properties, std::vect
             }
             body_parts_vector[bp] = parts_config.find(bodyPart).asString().c_str();
         }   
+        std::cout << "wbiIcub::loadBodyPartsFromConfig: Loaded body parts: ";
+        for(int i=0; i < body_parts_vector.size(); i++ ) { std::cout << " " << body_parts_vector[i] << std::endl; }
+        std::cout << std::endl;
         return true;
 }
 
