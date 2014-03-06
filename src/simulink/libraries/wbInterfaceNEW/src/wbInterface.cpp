@@ -222,10 +222,12 @@ bool robotStatus::world2baseRototranslation() {
     /** \todo This method should take as input the link you wanna use for to define the world reference frame. Right now it's hard coded to be the left foot. */
     int LINK_ID_LEFT_FOOT;
     getLinkId("l_sole",LINK_ID_LEFT_FOOT);
+    if(!robotJntAngles(false)) fprintf(stderr,"ERROR [robotStatus::world2baseRototranslation] acquiring robot joint angles in robotStatus::forwardKinematics\n");
     wbInterface->computeH(qRad.data(), Frame(), LINK_ID_LEFT_FOOT, H_base_leftFoot);
     H_base_leftFoot = H_base_leftFoot*Ha;
     H_base_leftFoot.setToInverse().get4x4Matrix(H_w2b.data());
     if(DEBUGGING) fprintf(stderr,"robotStatus::world2baseRototranslation >> H_base_leftFoot: %s \n",H_base_leftFoot.toString().c_str());
+    if(DEBUGGING) fprintf(stderr,"robotStatus::world2baseRototranslation >> qRad           : %s \n",qRad.toString().c_str());
     xBase.set4x4Matrix(H_w2b.data());
     return true;
 }
@@ -390,9 +392,9 @@ Vector robotStatus::dynamicsGenBiasForces() {
                     
                     if(DEBUGGING) {
                         Vector dqRad(ICUB_DOFS, dqJ.data());
+                        fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Base vel: %s\n", dxB.toString().c_str());
                         fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Angs: %s\n",qRad.toString().c_str());
                         fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Vels: %s\n",  dqRad.toString().c_str());
-                        fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Base vel: %s\n", dxB.toString().c_str());
                     }
                     ans = wbInterface->computeGeneralizedBiasForces(qRad.data(), xBase, dqJ.data(), dxB.data(), grav.data(), hterm.data());
                 }

@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.46"
+    ComputedModelVersion    "1.49"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -28,9 +28,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Mar  6 16:51:57 2014"
-  RTWModifiedTimeStamp	  316025392
-  ModelVersionFormat	  "1.%<AutoIncrement:46>"
+  LastModifiedDate	  "Thu Mar  6 17:47:54 2014"
+  RTWModifiedTimeStamp	  316028716
+  ModelVersionFormat	  "1.%<AutoIncrement:49>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -67,6 +67,7 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "simple"
+    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -804,7 +805,7 @@ Model {
   }
   System {
     Name		    "inverseDynamicsStandingTest"
-    Location		    [139, 89, 1077, 839]
+    Location		    [341, 105, 1279, 855]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -818,7 +819,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "237"
+    SIDHighWatermark	    "239"
     Block {
       BlockType		      Sum
       Name		      "Add"
@@ -1182,15 +1183,16 @@ Model {
       Ports		      [1]
       Position		      [865, 204, 895, 236]
       Floating		      off
-      Location		      [-882, 592, -175, 1018]
+      Location		      [6, 346, 713, 772]
       Open		      on
       NumInputPorts	      "1"
       List {
 	ListType		AxesTitles
 	axes1			"%<SignalLabel>"
       }
-      YMin		      "-0.0025"
-      YMax		      "0.025"
+      TimeRange		      "0.28"
+      YMin		      "-0.4"
+      YMax		      "0.4"
       SaveName		      "ScopeData1"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
@@ -1205,6 +1207,29 @@ Model {
       IndexOptions	      "Index vector (dialog)"
       Indices		      "[7:31]"
       OutputSizes	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "Set Torques"
+      SID		      "238"
+      Ports		      [1]
+      Position		      [825, 298, 895, 342]
+      BackgroundColor	      "[0.941000, 0.415000, 0.192000]"
+      LibraryVersion	      "1.238"
+      SourceBlock	      "WBCLibrary/wholeBodyActuators/Set Torques"
+      SourceType	      ""
+      ShowPortLabels	      "FromPortIcon"
+      SystemSampleTime	      "-1"
+      FunctionWithSeparateData off
+      RTWMemSecFuncInitTerm   "Inherit from model"
+      RTWMemSecFuncExecute    "Inherit from model"
+      RTWMemSecDataConstants  "Inherit from model"
+      RTWMemSecDataInternal   "Inherit from model"
+      RTWMemSecDataParameters "Inherit from model"
+      GeneratePreprocessorConditionals off
+      val		      "6"
+      robotName		      "robotName"
+      localName		      "localName"
     }
     Block {
       BlockType		      Reference
@@ -1908,6 +1933,14 @@ Model {
       BackgroundColor	      "gray"
       Value		      "zeros(6,1)"
     }
+    Block {
+      BlockType		      Constant
+      Name		      "tau base1"
+      SID		      "239"
+      Position		      [725, 298, 795, 342]
+      BackgroundColor	      "gray"
+      Value		      "ones(25,1)"
+    }
     Line {
       SrcBlock		      "massMatrix"
       SrcPort		      1
@@ -2043,6 +2076,12 @@ Model {
       Points		      [20, 0; 0, -415]
       DstBlock		      "Add"
       DstPort		      2
+    }
+    Line {
+      SrcBlock		      "tau base1"
+      SrcPort		      1
+      DstBlock		      "Set Torques"
+      DstPort		      1
     }
   }
 }
