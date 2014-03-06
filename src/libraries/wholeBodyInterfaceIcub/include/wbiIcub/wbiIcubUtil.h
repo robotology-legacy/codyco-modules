@@ -26,6 +26,9 @@
 #include <vector>
 #include <cstdio>
 
+#include <kdl_codyco/treeserialization.hpp>
+#include <kdl_codyco/treepartition.hpp>
+
 /* CODE UNDER DEVELOPMENT */
 
 namespace wbiIcub
@@ -227,6 +230,10 @@ namespace wbiIcub
     bool loadIMUSensorPortsFromConfig(yarp::os::Property & wbi_yarp_properties, 
                                       const std::vector<std::string> & body_parts_vector, 
                                       std::vector<id_2_PortName> &imu_ports);
+    bool loadTreeSerializationFromConfig(yarp::os::Property & wbi_yarp_properties,
+                                         KDL::CoDyCo::TreeSerialization& serialization);
+    bool loadTreePartitionFromConfig(yarp::os::Property & wbi_yarp_properties,
+                                     KDL::CoDyCo::TreePartition& serialization);
 
     
 } // end namespace wbiIcub
