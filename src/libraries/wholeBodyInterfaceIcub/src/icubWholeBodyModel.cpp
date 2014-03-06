@@ -522,7 +522,7 @@ bool icubWholeBodyModel::forwardKinematics(double *q, const Frame &xB, int linkI
 bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *g, double *tau)
 {
     double dummy_ddxB[6];
-    mempcpy(dummy_ddxB,ddxB,6*sizeof(double));
+    memcpy(dummy_ddxB,ddxB,6*sizeof(double));
     //We can take into account the gravity efficiently by adding a fictional acceleration to the base
     double baseAcceleration[3] = {0, 0, 0};
     baseAcceleration[0] = ddxB[0] - g[0];
