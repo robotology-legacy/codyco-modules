@@ -198,7 +198,9 @@ namespace wbiIcub
         
         bool lockAndSetEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
         
-        bool lockAndSetEstimationOffset(const wbi::EstimateType et, const wbi::LocalId & sid, const void *value);
+        bool lockAndSetEstimationOffset(const wbi::EstimateType et, const wbi::LocalId & sid, const double *value);
+        bool lockAndGetEstimationOffset(const wbi::EstimateType et, const wbi::LocalId & sid, double *value);
+
 
         bool threadInit();
         void run();
@@ -318,7 +320,10 @@ namespace wbiIcub
         /////////////////////////////////////////////////////
         ///< Implementation specific methods 
         /////////////////////////////////////////////////////
-        bool setEstimationOffset(const wbi::EstimateType et, const wbi::LocalId & sid, const void *value);
+        bool setEstimationOffset(const wbi::EstimateType et, const wbi::LocalId & sid, const double *value);
+
+        bool getEstimationOffset(const wbi::EstimateType et, const wbi::LocalId & sid, double *value);
+
         
         /** Get the estimated external force/torques 
          * 

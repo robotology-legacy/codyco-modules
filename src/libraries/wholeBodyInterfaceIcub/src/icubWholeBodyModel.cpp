@@ -524,10 +524,13 @@ bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq,
     double dummy_ddxB[6];
     memcpy(dummy_ddxB,ddxB,6*sizeof(double));
     //We can take into account the gravity efficiently by adding a fictional acceleration to the base
-    double baseAcceleration[3] = {0, 0, 0};
+    double baseAcceleration[6] = {0, 0, 0, 0, 0, 0};
     baseAcceleration[0] = ddxB[0] - g[0];
     baseAcceleration[1] = ddxB[1] - g[1];
     baseAcceleration[2] = ddxB[2] - g[2];
+    baseAcceleration[3] = ddxB[3];
+    baseAcceleration[4] = ddxB[4];
+    baseAcceleration[5] = ddxB[5];
     
     /** \todo move all conversion (also the one relative to frames) in convert* functions */
     //Converting local wbi positions/velocity/acceleration to iDynTree one

@@ -50,7 +50,10 @@ int main (int argc, char * argv[])
         cout<< "\t--from             :Name of the file.ini to be used for calibration."                                                                                       <<endl;
         cout<< "\t--rate             :Period used by the module. Default set to 10ms."                                                                                        <<endl;
         cout<< "\t--robot            :Robot name. Set to icub by default."                                                                                  <<endl;
-        cout<< "\t--name             :Prefix of the ports opened by the module. Set to the module name by default, i.e. wholeBodyDynamicsTree."                                      <<endl;        
+        cout<< "\t--name             :Prefix of the ports opened by the module. Set to the module name by default, i.e. wholeBodyDynamicsTree."                                      <<endl;  
+        cout<< "\t--headV1/headV2    :Version of the head."  <<endl;        
+        cout<< "\t--legsV1/legsV2    :Version of the legs."  <<endl;        
+        cout<< "\t--feetV1/feetV2    :Version of the feet."  <<endl;
         return 0;
     }
     

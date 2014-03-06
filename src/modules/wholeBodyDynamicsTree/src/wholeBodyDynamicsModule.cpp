@@ -176,6 +176,7 @@ bool wholeBodyDynamicsModule::close()
     std::cout << getName() << ": closing RPC port interface" << std::endl;
     rpcPort.close();
 
+    
     printf("[PERFORMANCE INFORMATION]:\n");
     printf("Expected period %d ms.\nReal period: %3.1f+/-%3.1f ms.\n", period, avgTime, stdDev);
     printf("Real duration of 'run' method: %3.1f+/-%3.1f ms.\n", avgTimeUsed, stdDevUsed);
@@ -183,7 +184,8 @@ bool wholeBodyDynamicsModule::close()
         printf("Next time you could set a lower period to improve the wholeBodyDynamics performance.\n");
     else if(avgTime>1.3*period)
         printf("The period you set was impossible to attain. Next time you could set a higher period.\n");
-
+    
+    
     return true;
 }
 
