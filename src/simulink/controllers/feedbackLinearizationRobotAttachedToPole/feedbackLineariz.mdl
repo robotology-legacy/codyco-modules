@@ -68,7 +68,7 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "daniele"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Mar 06 14:20:15 2014"
+  LastModifiedDate	  "Thu Mar 06 14:28:16 2014"
   RTWModifiedTimeStamp	  316010536
   ModelVersionFormat	  "1.%<AutoIncrement:176>"
   ConfigurationManager	  "None"
@@ -1494,7 +1494,7 @@ Model {
       ShowName		      off
       Floating		      off
       Location		      [2127, 398, 3807, 1386]
-      Open		      on
+      Open		      off
       NumInputPorts	      "2"
       List {
 	ListType		AxesTitles
