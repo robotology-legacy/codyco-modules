@@ -52,6 +52,7 @@ initDone(false), name(_name), robot(_robotName)
     bodyPartNames = vector<string>(BodyPart_s, BodyPart_s + sizeof(BodyPart_s) / sizeof(string) );
     ftSens_2_port = vector<id_2_PortName>(icub_FTsens_2_PortName, icub_FTsens_2_PortName + sizeof(icub_FTsens_2_PortName)/sizeof(id_2_PortName));
     imu_2_port = vector<id_2_PortName>(icub_IMU_2_PortName, icub_IMU_2_PortName + sizeof(icub_IMU_2_PortName)/sizeof(id_2_PortName));
+    reverse_torso_joints = true;
 }
 
 
