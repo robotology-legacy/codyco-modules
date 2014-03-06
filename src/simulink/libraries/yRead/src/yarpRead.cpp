@@ -225,7 +225,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
                 for(int_T j=0; j<widthPort; j++)
                     if (i < (v->length())){
                         pY[j] = v->data()[i];
-			cout<<v->data()[i]<<" ";
+			//cout<<v->data()[i]<<" ";
 		    }
                     else
                         pY[j] = 0;
