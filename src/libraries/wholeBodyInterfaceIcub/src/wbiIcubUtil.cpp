@@ -109,4 +109,49 @@ bool loadIMUSensorPortsFromConfig(yarp::os::Property & wbi_yarp_properties,
     return loadSensorPortsFromConfig(wbi_yarp_properties,body_parts_vector,imu_ports,"WBI_YARP_IMU_PORTS");
 }
 
+bool loadTreeSerializationFromConfig(yarp::os::Property & wbi_yarp_properties,
+                                     KDL::Tree& tree,
+                                     KDL::CoDyCo::TreeSerialization& serialization)
+{
+    std::string dofSerializationParamName = "idyntree_dof_serialization";
+    std::string linkSerializationParamName = "idyntree_link_serialization";
+
+    if( !wbi_yarp_properties.check(dofSerializationParamName) ) { return false; }
+    if( !wbi_yarp_properties.check(linkSerializationParamName) ) { return false; }
+        
+    yarp::os::Bottle * dofs_bot = wbi_yarp_properties.find(dofSerializationParamName).asList();
+    yarp::os::Bottle * links_bot = wbi_yarp_properties.find(linkSerializationParamName).asList();
+
+    if( !dofs_bot || !links_bot ) { return false; }
+    
+    int serializationDOFs = dofs_bot->size()-1;
+    int serializationLinks = links_bot->size()-1;
+    
+    std::vector<std::string> links;
+    links.resize(serializationLinks);
+    
+    std::vector<std::string> dofs;
+    dofs.resize(serializationDOFs);
+    
+    for(int link=0; link < serializationLinks; link++) {
+        links[link] = links_bot[link+1].toString().c_str();
+    }
+    
+    for(int dof=0; dof < serializationDOFs; dof++) {
+        dofs[dof] = dofs_bot[dof+1].toString().c_str();
+    }
+    
+    serialization = KDL::CoDyCo::TreeSerialization(tree,links,dofs);
+    
+    return serialization.is_consistent(tree);
+}
+
+bool loadTreePartitionFromConfig(yarp::os::Property & wbi_yarp_properties,
+                                 KDL::CoDyCo::TreePartition& partition)
+{
+    wbi_yarp_properties.find("idyntree_serialization");
+    return false;
+}
+
+
 }
