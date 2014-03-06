@@ -96,10 +96,10 @@ unsigned int sf_feedbackLineariz_process_check_sum_call( int nlhs, mxArray *
       return 0;
     }
   } else {
-    ((real_T *)mxGetPr((plhs[0])))[0] = (real_T)(660414231U);
-    ((real_T *)mxGetPr((plhs[0])))[1] = (real_T)(1892182113U);
-    ((real_T *)mxGetPr((plhs[0])))[2] = (real_T)(2641483621U);
-    ((real_T *)mxGetPr((plhs[0])))[3] = (real_T)(1235503624U);
+    ((real_T *)mxGetPr((plhs[0])))[0] = (real_T)(2027011109U);
+    ((real_T *)mxGetPr((plhs[0])))[1] = (real_T)(3214925059U);
+    ((real_T *)mxGetPr((plhs[0])))[2] = (real_T)(1359677881U);
+    ((real_T *)mxGetPr((plhs[0])))[3] = (real_T)(1231390133U);
   }
 
   return 1;
@@ -137,7 +137,7 @@ unsigned int sf_feedbackLineariz_autoinheritance_info( int nlhs, mxArray * plhs[
     switch (chartFileNumber) {
      case 2:
       {
-        if (strcmp(aiChksum, "NCQHNK7ONwh5xYTx0nwGdE") == 0) {
+        if (strcmp(aiChksum, "l0F9WjIyuW3IFSXCnkzsvH") == 0) {
           extern mxArray *sf_c2_feedbackLineariz_get_autoinheritance_info(void);
           plhs[0] = sf_c2_feedbackLineariz_get_autoinheritance_info();
           break;

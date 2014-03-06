@@ -6,11 +6,12 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.134"
+    ComputedModelVersion    "1.175"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
   SavedCharacterEncoding  "UTF-8"
+  PreLoadFcn		  "initFeedLin;"
   SaveDefaultBlockParams  on
   ScopeRefreshTime	  0.035000
   OverrideScopeRefreshTime on
@@ -31,7 +32,7 @@ Model {
       $ObjectID		      2
       $ClassName	      "Simulink.WindowInfo"
       IsActive		      [1]
-      Location		      [34.0, 81.0, 1030.0, 1155.0]
+      Location		      [-9.0, 19.0, 840.0, 1190.0]
       Object {
 	$PropName		"ModelBrowserInfo"
 	$ObjectID		3
@@ -55,9 +56,9 @@ Model {
 	IsActive		[1]
 	ViewObjType		"SimulinkTopLevel"
 	LoadSaveID		"0"
-	Extents			[974.0, 958.0]
+	Extents			[784.0, 993.0]
 	ZoomFactor		[1.0]
-	Offset			[6.0, -21.0]
+	Offset			[51.0, -183.30000000000007]
       }
     }
   }
@@ -67,9 +68,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "daniele"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Wed Mar 05 20:53:27 2014"
-  RTWModifiedTimeStamp	  315948344
-  ModelVersionFormat	  "1.%<AutoIncrement:134>"
+  LastModifiedDate	  "Thu Mar 06 14:11:28 2014"
+  RTWModifiedTimeStamp	  316010536
+  ModelVersionFormat	  "1.%<AutoIncrement:175>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -757,6 +758,30 @@ Model {
       SampleTime	      "1"
     }
     Block {
+      BlockType		      DiscreteIntegrator
+      IntegratorMethod	      "Integration: Forward Euler"
+      gainval		      "1.0"
+      ExternalReset	      "none"
+      InitialConditionSource  "internal"
+      InitialCondition	      "0"
+      InitialConditionMode    "State and output"
+      SampleTime	      "1"
+      OutMin		      "[]"
+      OutMax		      "[]"
+      OutDataTypeStr	      "Inherit: Inherit via internal rule"
+      LockScale		      off
+      RndMeth		      "Floor"
+      SaturateOnIntegerOverflow	off
+      LimitOutput	      off
+      UpperSaturationLimit    "inf"
+      LowerSaturationLimit    "-inf"
+      ShowSaturationPort      off
+      ShowStatePort	      off
+      IgnoreLimit	      off
+      StateMustResolveToSignalObject off
+      RTWStateStorageClass    "Auto"
+    }
+    Block {
       BlockType		      Display
       Format		      "short"
       Decimation	      "10"
@@ -877,22 +902,6 @@ Model {
       GeneratePreprocessorConditionals off
     }
     Block {
-      BlockType		      Sum
-      IconShape		      "rectangular"
-      Inputs		      "++"
-      CollapseMode	      "All dimensions"
-      CollapseDim	      "1"
-      InputSameDT	      on
-      AccumDataTypeStr	      "Inherit: Inherit via internal rule"
-      OutMin		      "[]"
-      OutMax		      "[]"
-      OutDataTypeStr	      "Inherit: Same as first input"
-      LockScale		      off
-      RndMeth		      "Floor"
-      SaturateOnIntegerOverflow	on
-      SampleTime	      "-1"
-    }
-    Block {
       BlockType		      Switch
       Criteria		      "u2 >= Threshold"
       Threshold		      "0"
@@ -913,7 +922,7 @@ Model {
   }
   System {
     Name		    "feedbackLineariz"
-    Location		    [34, 81, 1064, 1236]
+    Location		    [-9, 19, 831, 1209]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -927,21 +936,30 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "241"
+    SIDHighWatermark	    "254"
     Block {
       BlockType		      Constant
       Name		      "Constant"
       SID		      "177"
-      Position		      [150, 400, 180, 430]
+      Position		      [325, 270, 355, 290]
       ZOrder		      37
       ShowName		      off
-      Value		      "kp"
+      Value		      "gains"
+    }
+    Block {
+      BlockType		      Constant
+      Name		      "Constant1"
+      SID		      "244"
+      Position		      [325, 245, 355, 265]
+      ZOrder		      55
+      ShowName		      off
+      Value		      "qDes"
     }
     Block {
       BlockType		      DigitalClock
       Name		      "Digital Clock"
       SID		      "144"
-      Position		      [75, 178, 140, 202]
+      Position		      [75, 93, 140, 117]
       ZOrder		      24
       ShowName		      off
       SampleTime	      "-1"
@@ -950,7 +968,7 @@ Model {
       BlockType		      DigitalClock
       Name		      "Digital Clock1"
       SID		      "145"
-      Position		      [470, 423, 535, 447]
+      Position		      [435, 487, 475, 503]
       ZOrder		      32
       BlockMirror	      on
       NamePlacement	      "alternate"
@@ -958,11 +976,26 @@ Model {
       SampleTime	      "-1"
     }
     Block {
+      BlockType		      DiscreteIntegrator
+      Name		      "Discrete-Time Integrator"
+      SID		      "247"
+      Ports		      [1, 1]
+      Position		      [465, 349, 500, 381]
+      ZOrder		      58
+      BlockMirror	      on
+      NamePlacement	      "alternate"
+      ShowName		      off
+      InitialCondition	      "zeros(25,1)"
+      SampleTime	      "Ts"
+      ICPrevOutput	      "DiscIntNeverNeededParam"
+      ICPrevScaledInput	      "DiscIntNeverNeededParam"
+    }
+    Block {
       BlockType		      Display
       Name		      "Display"
       SID		      "143"
       Ports		      [1]
-      Position		      [265, 90, 355, 120]
+      Position		      [265, 0, 355, 30]
       ZOrder		      23
       ShowName		      off
       Decimation	      "1"
@@ -972,8 +1005,9 @@ Model {
       BlockType		      Gain
       Name		      "Gain"
       SID		      "10"
-      Position		      [130, 345, 160, 375]
+      Position		      [125, 240, 155, 270]
       ZOrder		      -2
+      ShowName		      off
       Gain		      "0"
       ParamDataTypeStr	      "Inherit: Inherit via internal rule"
       OutDataTypeStr	      "Inherit: Inherit via internal rule"
@@ -984,9 +1018,10 @@ Model {
       Name		      "Inverse Dynamics"
       SID		      "13"
       Ports		      [3, 1]
-      Position		      [205, 288, 270, 332]
+      Position		      [195, 158, 260, 202]
       ZOrder		      -3
       BackgroundColor	      "[0.287374, 0.000000, 1.000000]"
+      ShowName		      off
       LibraryVersion	      "1.238"
       SourceBlock	      "WBCLibrary/wholeBodyModel/Dynamics/Inverse Dynamics"
       SourceType	      "Inverse Dynamics"
@@ -998,9 +1033,10 @@ Model {
       Name		      "Inverse Dynamics1"
       SID		      "225"
       Ports		      [3, 1]
-      Position		      [205, 483, 270, 527]
+      Position		      [195, 218, 260, 262]
       ZOrder		      48
       BackgroundColor	      "[0.287374, 0.000000, 1.000000]"
+      ShowName		      off
       LibraryVersion	      "1.238"
       SourceBlock	      "WBCLibrary/wholeBodyModel/Dynamics/Inverse Dynamics"
       SourceType	      "Inverse Dynamics"
@@ -1012,9 +1048,10 @@ Model {
       Name		      "Joint Angles"
       SID		      "6"
       Ports		      [0, 1]
-      Position		      [20, 273, 95, 317]
+      Position		      [60, 155, 90, 175]
       ZOrder		      -1
       BackgroundColor	      "orange"
+      ShowName		      off
       LibraryVersion	      "1.238"
       SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Angles"
       SourceType	      ""
@@ -1026,7 +1063,7 @@ Model {
       Name		      "Joint Velocities"
       SID		      "112"
       Ports		      [0, 1]
-      Position		      [265, 230, 305, 260]
+      Position		      [265, 145, 305, 165]
       ZOrder		      4
       BackgroundColor	      "[0.732000, 0.463600, 0.000000]"
       ShowName		      off
@@ -1040,8 +1077,8 @@ Model {
       BlockType		      SubSystem
       Name		      "MATLAB Function"
       SID		      "111"
-      Ports		      [8, 4]
-      Position		      [390, 186, 560, 364]
+      Ports		      [10, 6]
+      Position		      [390, 91, 560, 319]
       ZOrder		      3
       ShowName		      off
       LibraryVersion	      "1.32"
@@ -1083,7 +1120,7 @@ Model {
 	TiledPageScale		1
 	ShowPageBoundaries	off
 	ZoomFactor		"100"
-	SIDHighWatermark	"32"
+	SIDHighWatermark	"39"
 	Block {
 	  BlockType		  Inport
 	  Name			  "qInit"
@@ -1121,38 +1158,56 @@ Model {
 	}
 	Block {
 	  BlockType		  Inport
-	  Name			  "gin"
-	  SID			  "111::27"
-	  Position		  [20, 246, 40, 264]
-	  ZOrder		  13
-	  Port			  "5"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Inport
-	  Name			  "kp"
-	  SID			  "111::29"
-	  Position		  [20, 281, 40, 299]
-	  ZOrder		  15
-	  Port			  "6"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Inport
 	  Name			  "M"
 	  SID			  "111::31"
-	  Position		  [20, 316, 40, 334]
+	  Position		  [20, 246, 40, 264]
 	  ZOrder		  17
-	  Port			  "7"
+	  Port			  "5"
 	  IconDisplay		  "Port number"
 	}
 	Block {
 	  BlockType		  Inport
 	  Name			  "h"
 	  SID			  "111::32"
-	  Position		  [20, 351, 40, 369]
+	  Position		  [20, 281, 40, 299]
 	  ZOrder		  18
+	  Port			  "6"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "hBlock"
+	  SID			  "111::37"
+	  Position		  [20, 316, 40, 334]
+	  ZOrder		  23
+	  Port			  "7"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "qDes"
+	  SID			  "111::33"
+	  Position		  [20, 351, 40, 369]
+	  ZOrder		  19
 	  Port			  "8"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "gains"
+	  SID			  "111::34"
+	  Position		  [20, 386, 40, 404]
+	  ZOrder		  20
+	  Port			  "9"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "integral_e"
+	  SID			  "111::27"
+	  Position		  [20, 426, 40, 444]
+	  ZOrder		  13
+	  Port			  "10"
 	  IconDisplay		  "Port number"
 	}
 	Block {
@@ -1160,7 +1215,7 @@ Model {
 	  Name			  " Demux "
 	  SID			  "111::20"
 	  Ports			  [1, 1]
-	  Position		  [270, 285, 320, 325]
+	  Position		  [270, 335, 320, 375]
 	  ZOrder		  6
 	  Outputs		  "1"
 	}
@@ -1169,11 +1224,11 @@ Model {
 	  Name			  " SFunction "
 	  SID			  "111::19"
 	  Tag			  "Stateflow S-Function feedbackLineariz 2"
-	  Ports			  [8, 5]
-	  Position		  [180, 105, 230, 285]
+	  Ports			  [10, 7]
+	  Position		  [180, 115, 230, 335]
 	  ZOrder		  5
 	  FunctionName		  "sf_sfun"
-	  PortCounts		  "[8 5]"
+	  PortCounts		  "[10 7]"
 	  EnableBusSupport	  on
 	  Port {
 	    PortNumber		    2
@@ -1189,12 +1244,24 @@ Model {
 	  }
 	  Port {
 	    PortNumber		    4
-	    Name		    "gOut"
+	    Name		    "errorH"
 	    RTWStorageClass	    "Auto"
 	    DataLoggingNameMode	    "SignalName"
 	  }
 	  Port {
 	    PortNumber		    5
+	    Name		    "hMinus_g"
+	    RTWStorageClass	    "Auto"
+	    DataLoggingNameMode	    "SignalName"
+	  }
+	  Port {
+	    PortNumber		    6
+	    Name		    "Norm_e"
+	    RTWStorageClass	    "Auto"
+	    DataLoggingNameMode	    "SignalName"
+	  }
+	  Port {
+	    PortNumber		    7
 	    Name		    "e"
 	    RTWStorageClass	    "Auto"
 	    DataLoggingNameMode	    "SignalName"
@@ -1204,7 +1271,7 @@ Model {
 	  BlockType		  Terminator
 	  Name			  " Terminator "
 	  SID			  "111::22"
-	  Position		  [460, 296, 480, 314]
+	  Position		  [460, 346, 480, 364]
 	  ZOrder		  8
 	}
 	Block {
@@ -1226,20 +1293,38 @@ Model {
 	}
 	Block {
 	  BlockType		  Outport
-	  Name			  "gOut"
-	  SID			  "111::28"
+	  Name			  "errorH"
+	  SID			  "111::38"
 	  Position		  [460, 171, 480, 189]
-	  ZOrder		  14
+	  ZOrder		  24
 	  Port			  "3"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "hMinus_g"
+	  SID			  "111::39"
+	  Position		  [460, 206, 480, 224]
+	  ZOrder		  25
+	  Port			  "4"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "Norm_e"
+	  SID			  "111::36"
+	  Position		  [460, 246, 480, 264]
+	  ZOrder		  22
+	  Port			  "5"
 	  IconDisplay		  "Port number"
 	}
 	Block {
 	  BlockType		  Outport
 	  Name			  "e"
 	  SID			  "111::30"
-	  Position		  [460, 206, 480, 224]
+	  Position		  [460, 281, 480, 299]
 	  ZOrder		  16
-	  Port			  "4"
+	  Port			  "6"
 	  IconDisplay		  "Port number"
 	}
 	Line {
@@ -1267,28 +1352,40 @@ Model {
 	  DstPort		  4
 	}
 	Line {
-	  SrcBlock		  "gin"
+	  SrcBlock		  "M"
 	  SrcPort		  1
 	  DstBlock		  " SFunction "
 	  DstPort		  5
 	}
 	Line {
-	  SrcBlock		  "kp"
+	  SrcBlock		  "h"
 	  SrcPort		  1
 	  DstBlock		  " SFunction "
 	  DstPort		  6
 	}
 	Line {
-	  SrcBlock		  "M"
+	  SrcBlock		  "hBlock"
 	  SrcPort		  1
 	  DstBlock		  " SFunction "
 	  DstPort		  7
 	}
 	Line {
-	  SrcBlock		  "h"
+	  SrcBlock		  "qDes"
 	  SrcPort		  1
 	  DstBlock		  " SFunction "
 	  DstPort		  8
+	}
+	Line {
+	  SrcBlock		  "gains"
+	  SrcPort		  1
+	  DstBlock		  " SFunction "
+	  DstPort		  9
+	}
+	Line {
+	  SrcBlock		  "integral_e"
+	  SrcPort		  1
+	  DstBlock		  " SFunction "
+	  DstPort		  10
 	}
 	Line {
 	  Name			  "qInitOut"
@@ -1307,18 +1404,34 @@ Model {
 	  DstPort		  1
 	}
 	Line {
-	  Name			  "gOut"
+	  Name			  "errorH"
 	  Labels		  [0, 0]
 	  SrcBlock		  " SFunction "
 	  SrcPort		  4
-	  DstBlock		  "gOut"
+	  DstBlock		  "errorH"
+	  DstPort		  1
+	}
+	Line {
+	  Name			  "hMinus_g"
+	  Labels		  [0, 0]
+	  SrcBlock		  " SFunction "
+	  SrcPort		  5
+	  DstBlock		  "hMinus_g"
+	  DstPort		  1
+	}
+	Line {
+	  Name			  "Norm_e"
+	  Labels		  [0, 0]
+	  SrcBlock		  " SFunction "
+	  SrcPort		  6
+	  DstBlock		  "Norm_e"
 	  DstPort		  1
 	}
 	Line {
 	  Name			  "e"
 	  Labels		  [0, 0]
 	  SrcBlock		  " SFunction "
-	  SrcPort		  5
+	  SrcPort		  7
 	  DstBlock		  "e"
 	  DstPort		  1
 	}
@@ -1339,15 +1452,15 @@ Model {
     Block {
       BlockType		      Scope
       Name		      "Scope1"
-      SID		      "174"
+      SID		      "248"
       Ports		      [1]
-      Position		      [265, 424, 295, 456]
-      ZOrder		      34
+      Position		      [300, 349, 330, 381]
+      ZOrder		      59
       BlockMirror	      on
       NamePlacement	      "alternate"
       ShowName		      off
       Floating		      off
-      Location		      [930, 494, 1544, 1013]
+      Location		      [-384, 1051, 636, 1509]
       Open		      off
       NumInputPorts	      "1"
       List {
@@ -1365,8 +1478,8 @@ Model {
 	MarkerStyles		"none|none|none|none|none|none"
       }
       ShowLegends	      off
-      YMin		      "-0.6"
-      YMax		      "0.8"
+      YMin		      "-1"
+      YMax		      "1.5"
       DataFormat	      "StructureWithTime"
       LimitDataPoints	      off
       SampleTime	      "0"
@@ -1374,14 +1487,14 @@ Model {
     Block {
       BlockType		      Scope
       Name		      "Scope2"
-      SID		      "182"
+      SID		      "254"
       Ports		      [2]
-      Position		      [840, 16, 870, 49]
-      ZOrder		      41
+      Position		      [655, 211, 685, 244]
+      ZOrder		      64
       ShowName		      off
       Floating		      off
-      Location		      [103, 721, 1123, 1179]
-      Open		      off
+      Location		      [2148, 474, 3168, 932]
+      Open		      on
       NumInputPorts	      "2"
       List {
 	ListType		AxesTitles
@@ -1399,43 +1512,9 @@ Model {
 	MarkerStyles		"none|none|none|none|none|none"
       }
       ShowLegends	      off
-      YMin		      "-7~-5"
-      YMax		      "6~5"
+      YMin		      "-25~-5"
+      YMax		      "20~5"
       SaveName		      "ScopeData1"
-      DataFormat	      "StructureWithTime"
-      LimitDataPoints	      off
-      SampleTime	      "0"
-    }
-    Block {
-      BlockType		      Scope
-      Name		      "Scope3"
-      SID		      "124"
-      Ports		      [1]
-      Position		      [200, 234, 230, 266]
-      ZOrder		      16
-      ShowName		      off
-      Floating		      off
-      Location		      [276, 720, 1296, 1178]
-      Open		      off
-      NumInputPorts	      "1"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.501960784313725 0.501960784313725 0.501960784313725]"
-	AxesColor		"[0 0 0]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      YMin		      "-0.6"
-      YMax		      "0.8"
-      SaveName		      "ScopeData3"
       DataFormat	      "StructureWithTime"
       LimitDataPoints	      off
       SampleTime	      "0"
@@ -1445,7 +1524,7 @@ Model {
       Name		      "Scope4"
       SID		      "141"
       Ports		      [1]
-      Position		      [530, 144, 560, 176]
+      Position		      [350, 49, 380, 81]
       ZOrder		      21
       ShowName		      off
       Floating		      off
@@ -1478,14 +1557,14 @@ Model {
       BlockType		      Scope
       Name		      "Scope5"
       SID		      "228"
-      Ports		      [5]
-      Position		      [860, 311, 975, 479]
+      Ports		      [6]
+      Position		      [740, 240, 790, 325]
       ZOrder		      52
       ShowName		      off
       Floating		      off
-      Location		      [26, 340, 1142, 1070]
+      Location		      [2418, 61, 3257, 1048]
       Open		      on
-      NumInputPorts	      "5"
+      NumInputPorts	      "6"
       List {
 	ListType		AxesTitles
 	axes1			"%<SignalLabel>"
@@ -1493,6 +1572,7 @@ Model {
 	axes3			"%<SignalLabel>"
 	axes4			"%<SignalLabel>"
 	axes5			"%<SignalLabel>"
+	axes6			"%<SignalLabel>"
       }
       List {
 	ListType		ScopeGraphics
@@ -1505,48 +1585,10 @@ Model {
 	MarkerStyles		"none|none|none|none|none|none"
       }
       ShowLegends	      off
-      TimeRange		      "4.5"
-      YMin		      "-0.1~-0.1~-0.2~-0.1~-0.1"
-      YMax		      "0.3~0.3~0.2~0.3~0.3"
+      TimeRange		      "18"
+      YMin		      "0~-2.5~-1~-0.75~-0.6~-5"
+      YMax		      "120~1.5~1~1~1~5"
       SaveName		      "ScopeData2"
-      DataFormat	      "StructureWithTime"
-      LimitDataPoints	      off
-      SampleTime	      "0"
-    }
-    Block {
-      BlockType		      Scope
-      Name		      "Scope7"
-      SID		      "226"
-      Ports		      [5]
-      Position		      [585, 626, 700, 794]
-      ZOrder		      49
-      ShowName		      off
-      Floating		      off
-      Location		      [206, 389, 1322, 1119]
-      Open		      off
-      NumInputPorts	      "5"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-	axes2			"%<SignalLabel>"
-	axes3			"%<SignalLabel>"
-	axes4			"%<SignalLabel>"
-	axes5			"%<SignalLabel>"
-      }
-      List {
-	ListType		ScopeGraphics
-	FigureColor		"[0.501960784313725 0.501960784313725 0.501960784313725]"
-	AxesColor		"[0 0 0]"
-	AxesTickColor		"[1 1 1]"
-	LineColors		"[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	LineStyles		"-|-|-|-|-|-"
-	LineWidths		"[0.5 0.5 0.5 0.5 0.5 0.5]"
-	MarkerStyles		"none|none|none|none|none|none"
-      }
-      ShowLegends	      off
-      YMin		      "-0.5~-5~-5~-5~-5"
-      YMax		      "4.75~5~5~5~5"
-      SaveName		      "ScopeData6"
       DataFormat	      "StructureWithTime"
       LimitDataPoints	      off
       SampleTime	      "0"
@@ -1556,7 +1598,7 @@ Model {
       Name		      "Set Torques"
       SID		      "139"
       Ports		      [1]
-      Position		      [645, 233, 715, 277]
+      Position		      [645, 158, 715, 202]
       ZOrder		      19
       BackgroundColor	      "[0.941000, 0.415000, 0.192000]"
       ShowName		      off
@@ -1572,7 +1614,7 @@ Model {
       Name		      "Soft Real Time"
       SID		      "18"
       Ports		      []
-      Position		      [688, 125, 775, 156]
+      Position		      [688, 35, 775, 66]
       ZOrder		      -10
       ShowName		      off
       LibraryVersion	      "1.7"
@@ -1581,24 +1623,10 @@ Model {
       x			      "Ts"
     }
     Block {
-      BlockType		      Sum
-      Name		      "Sum"
-      SID		      "196"
-      Ports		      [2, 1]
-      Position		      [645, 20, 665, 40]
-      ZOrder		      43
-      ShowName		      off
-      IconShape		      "round"
-      Inputs		      "|+-"
-      InputSameDT	      off
-      OutDataTypeStr	      "Inherit: Inherit via internal rule"
-      SaturateOnIntegerOverflow	off
-    }
-    Block {
       BlockType		      Switch
       Name		      "Switch"
       SID		      "110"
-      Position		      [195, 170, 245, 210]
+      Position		      [195, 85, 245, 125]
       ZOrder		      2
       ShowName		      off
       Criteria		      "u2 > Threshold"
@@ -1609,7 +1637,7 @@ Model {
       BlockType		      Switch
       Name		      "Switch1"
       SID		      "146"
-      Position		      [360, 415, 410, 455]
+      Position		      [360, 475, 410, 515]
       ZOrder		      31
       BlockMirror	      on
       NamePlacement	      "alternate"
@@ -1623,7 +1651,7 @@ Model {
       Name		      "WBI to yarp"
       SID		      "183"
       Ports		      [1, 5]
-      Position		      [680, 18, 780, 102]
+      Position		      [490, 588, 590, 672]
       ZOrder		      42
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -1634,7 +1662,7 @@ Model {
       MaskHideContents	      off
       System {
 	Name			"WBI to yarp"
-	Location		[972, 302, 1349, 926]
+	Location		[-753, 27, 47, 1200]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -1800,240 +1828,12 @@ Model {
 	  SrcPort		  1
 	  Points		  [25, 0]
 	  Branch {
-	    Points		    [0, -60]
+	    Points		    [0, -55]
 	    Branch {
 	      DstBlock		      "Selector"
 	      DstPort		      1
 	    }
 	    Branch {
-	      Points		      [0, 5]
-	      DstBlock		      "Selector1"
-	      DstPort		      1
-	    }
-	  }
-	  Branch {
-	    Points		    [0, 10]
-	    Branch {
-	      DstBlock		      "Selector2"
-	      DstPort		      1
-	    }
-	    Branch {
-	      Points		      [0, 65]
-	      Branch {
-		Points			[0, 70]
-		DstBlock		"Selector4"
-		DstPort			1
-	      }
-	      Branch {
-		DstBlock		"Selector3"
-		DstPort			1
-	      }
-	    }
-	  }
-	}
-	Line {
-	  SrcBlock		  "Selector"
-	  SrcPort		  1
-	  DstBlock		  "Selector5"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Selector5"
-	  SrcPort		  1
-	  DstBlock		  "torso"
-	  DstPort		  1
-	}
-      }
-    }
-    Block {
-      BlockType		      SubSystem
-      Name		      "WBI to yarp1"
-      SID		      "197"
-      Ports		      [1, 5]
-      Position		      [305, 603, 405, 687]
-      ZOrder		      44
-      MinAlgLoopOccurrences   off
-      PropExecContextOutsideSubsystem off
-      RTWSystemCode	      "Auto"
-      FunctionWithSeparateData off
-      Opaque		      off
-      RequestExecContextInheritance off
-      MaskHideContents	      off
-      System {
-	Name			"WBI to yarp1"
-	Location		[972, 302, 1349, 926]
-	Open			off
-	ModelBrowserVisibility	off
-	ModelBrowserWidth	200
-	ScreenColor		"white"
-	PaperOrientation	"landscape"
-	PaperPositionMode	"auto"
-	PaperType		"usletter"
-	PaperUnits		"inches"
-	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
-	TiledPageScale		1
-	ShowPageBoundaries	off
-	ZoomFactor		"100"
-	Block {
-	  BlockType		  Inport
-	  Name			  "WBI ordered"
-	  SID			  "198"
-	  Position		  [25, 145, 40, 175]
-	  ZOrder		  -1
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Selector
-	  Name			  "Selector"
-	  SID			  "199"
-	  Ports			  [1, 1]
-	  Position		  [85, 26, 125, 64]
-	  ZOrder		  -2
-	  InputPortWidth	  "25"
-	  IndexOptions		  "Index vector (dialog)"
-	  Indices		  "[1 2 3]"
-	  OutputSizes		  "1"
-	}
-	Block {
-	  BlockType		  Selector
-	  Name			  "Selector1"
-	  SID			  "200"
-	  Ports			  [1, 1]
-	  Position		  [110, 86, 150, 124]
-	  ZOrder		  -3
-	  InputPortWidth	  "25"
-	  IndexOptions		  "Index vector (dialog)"
-	  Indices		  "[4 5 6 7 8]"
-	  OutputSizes		  "1"
-	}
-	Block {
-	  BlockType		  Selector
-	  Name			  "Selector2"
-	  SID			  "201"
-	  Ports			  [1, 1]
-	  Position		  [110, 151, 150, 189]
-	  ZOrder		  -4
-	  InputPortWidth	  "25"
-	  IndexOptions		  "Index vector (dialog)"
-	  Indices		  "[9 10 11 12 13]"
-	  OutputSizes		  "1"
-	}
-	Block {
-	  BlockType		  Selector
-	  Name			  "Selector3"
-	  SID			  "202"
-	  Ports			  [1, 1]
-	  Position		  [110, 216, 150, 254]
-	  ZOrder		  -5
-	  InputPortWidth	  "25"
-	  IndexOptions		  "Index vector (dialog)"
-	  Indices		  "[14 15 16 17 18 19]"
-	  OutputSizes		  "1"
-	}
-	Block {
-	  BlockType		  Selector
-	  Name			  "Selector4"
-	  SID			  "203"
-	  Ports			  [1, 1]
-	  Position		  [110, 286, 150, 324]
-	  ZOrder		  -6
-	  InputPortWidth	  "25"
-	  IndexOptions		  "Index vector (dialog)"
-	  Indices		  "[20 21 22 23 24 25]"
-	  OutputSizes		  "1"
-	}
-	Block {
-	  BlockType		  Selector
-	  Name			  "Selector5"
-	  SID			  "204"
-	  Ports			  [1, 1]
-	  Position		  [145, 29, 200, 61]
-	  ZOrder		  -7
-	  InputPortWidth	  "3"
-	  IndexOptions		  "Index vector (dialog)"
-	  Indices		  "[3 2 1]"
-	  OutputSizes		  "1"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "torso"
-	  SID			  "205"
-	  Position		  [215, 38, 245, 52]
-	  ZOrder		  -8
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "leftArm"
-	  SID			  "206"
-	  Position		  [175, 98, 205, 112]
-	  ZOrder		  -9
-	  Port			  "2"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "rightArm"
-	  SID			  "207"
-	  Position		  [175, 163, 205, 177]
-	  ZOrder		  -10
-	  Port			  "3"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "leftLeg"
-	  SID			  "208"
-	  Position		  [175, 228, 205, 242]
-	  ZOrder		  -11
-	  Port			  "4"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "rightLeg"
-	  SID			  "209"
-	  Position		  [175, 298, 205, 312]
-	  ZOrder		  -12
-	  Port			  "5"
-	  IconDisplay		  "Port number"
-	}
-	Line {
-	  SrcBlock		  "Selector1"
-	  SrcPort		  1
-	  DstBlock		  "leftArm"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Selector2"
-	  SrcPort		  1
-	  DstBlock		  "rightArm"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Selector3"
-	  SrcPort		  1
-	  DstBlock		  "leftLeg"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Selector4"
-	  SrcPort		  1
-	  DstBlock		  "rightLeg"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "WBI ordered"
-	  SrcPort		  1
-	  Points		  [25, 0]
-	  Branch {
-	    Points		    [0, -60]
-	    Branch {
-	      DstBlock		      "Selector"
-	      DstPort		      1
-	    }
-	    Branch {
-	      Points		      [0, 5]
 	      DstBlock		      "Selector1"
 	      DstPort		      1
 	    }
@@ -2077,8 +1877,9 @@ Model {
       Name		      "WBI to yarp2"
       SID		      "229"
       Ports		      [1, 5]
-      Position		      [685, 353, 785, 437]
+      Position		      [605, 248, 705, 332]
       ZOrder		      51
+      ShowName		      off
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
       RTWSystemCode	      "Auto"
@@ -2301,10 +2102,26 @@ Model {
     }
     Block {
       BlockType		      Reference
+      Name		      "computeh"
+      SID		      "253"
+      Ports		      [0, 1]
+      Position		      [325, 225, 355, 245]
+      ZOrder		      63
+      BackgroundColor	      "[0.850000, 0.010000, 0.698000]"
+      ShowName		      off
+      LibraryVersion	      "1.238"
+      SourceBlock	      "WBCLibrary/wholeBodyModel/Dynamics/computeh"
+      SourceType	      ""
+      val		      "7"
+      robotname		      "robotName"
+      localname		      "localName"
+    }
+    Block {
+      BlockType		      Reference
       Name		      "massMatrix"
       SID		      "179"
       Ports		      [0, 1]
-      Position		      [230, 355, 270, 395]
+      Position		      [325, 185, 355, 205]
       ZOrder		      39
       BackgroundColor	      "[0.970000, 0.060000, 0.376000]"
       ShowName		      off
@@ -2320,7 +2137,7 @@ Model {
       Name		      "tau from ports"
       SID		      "149"
       Ports		      [0, 5]
-      Position		      [640, 499, 680, 581]
+      Position		      [640, 469, 680, 551]
       ZOrder		      30
       BlockMirror	      on
       NamePlacement	      "alternate"
@@ -2708,10 +2525,11 @@ Model {
       Name		      "yarp to WBI"
       SID		      "165"
       Ports		      [5, 1]
-      Position		      [480, 497, 595, 583]
+      Position		      [480, 467, 595, 553]
       ZOrder		      29
       BlockMirror	      on
       NamePlacement	      "alternate"
+      ShowName		      off
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
       RTWSystemCode	      "Auto"
@@ -2856,46 +2674,32 @@ Model {
     Line {
       SrcBlock		      "Joint Angles"
       SrcPort		      1
-      Points		      [15, 0]
+      Points		      [10, 0]
       Branch {
-	Points			[0, 65]
+	Points			[0, 60]
 	Branch {
-	  Points		  [0, 130]
-	  Branch {
-	    DstBlock		    "Inverse Dynamics1"
-	    DstPort		    1
-	  }
-	  Branch {
-	    Points		    [0, 155]
-	    DstBlock		    "WBI to yarp1"
-	    DstPort		    1
-	  }
+	  DstBlock		  "Inverse Dynamics1"
+	  DstPort		  1
 	}
 	Branch {
+	  Points		  [0, 30]
 	  DstBlock		  "Gain"
 	  DstPort		  1
 	}
       }
       Branch {
-	Points			[53, 0]
+	Points			[63, 0]
 	Branch {
-	  Points		  [0, -45]
+	  Points		  [0, -35]
 	  Branch {
-	    DstBlock		    "Scope3"
-	    DstPort		    1
+	    Points		    [0, -10]
+	    DstBlock		    "Switch"
+	    DstPort		    3
 	  }
 	  Branch {
-	    Points		    [0, -35]
-	    Branch {
-	      Points		      [179, 0; 0, 10]
-	      DstBlock		      "MATLAB Function"
-	      DstPort		      2
-	    }
-	    Branch {
-	      Points		      [0, -10]
-	      DstBlock		      "Switch"
-	      DstPort		      3
-	    }
+	    Points		    [207, 0]
+	    DstBlock		    "MATLAB Function"
+	    DstPort		    2
 	  }
 	}
 	Branch {
@@ -2907,9 +2711,9 @@ Model {
     Line {
       SrcBlock		      "Gain"
       SrcPort		      1
-      Points		      [15, 0]
+      Points		      [10, 0]
       Branch {
-	Points			[0, -35]
+	Points			[0, -60]
 	Branch {
 	  Points		  [0, -15]
 	  DstBlock		  "Inverse Dynamics"
@@ -2921,7 +2725,6 @@ Model {
 	}
       }
       Branch {
-	Points			[0, 25; 6, 0; 0, 135]
 	DstBlock		"Inverse Dynamics1"
 	DstPort			3
       }
@@ -2931,7 +2734,7 @@ Model {
       SrcPort		      1
       Points		      [12, 0]
       Branch {
-	Points			[0, -85]
+	Points			[0, -90]
 	DstBlock		"Display"
 	DstPort			1
       }
@@ -2945,12 +2748,12 @@ Model {
       SrcPort		      1
       Points		      [68, 0]
       Branch {
-	Points			[0, -30]
+	Points			[0, -40]
 	DstBlock		"Scope4"
 	DstPort			1
       }
       Branch {
-	Points			[0, 15]
+	Points			[57, 0]
 	DstBlock		"MATLAB Function"
 	DstPort			1
       }
@@ -2958,7 +2761,7 @@ Model {
     Line {
       SrcBlock		      "MATLAB Function"
       SrcPort		      1
-      Points		      [17, 0; 0, -33; 26, 0; 0, -44; -434, 0; 0, 42]
+      Points		      [17, 0; 0, -62; -408, 0; 0, 47]
       DstBlock		      "Switch"
       DstPort		      1
     }
@@ -2967,27 +2770,13 @@ Model {
       SrcPort		      1
       Points		      [25, 0]
       Branch {
-	Points			[0, -23; -143, 0; 0, 283]
+	Points			[0, -16; -145, 0; 0, 101]
 	DstBlock		"Inverse Dynamics1"
 	DstPort			2
       }
       Branch {
 	DstBlock		"MATLAB Function"
 	DstPort			3
-      }
-    }
-    Line {
-      SrcBlock		      "MATLAB Function"
-      SrcPort		      2
-      Points		      [55, 0]
-      Branch {
-	Points			[0, -225]
-	DstBlock		"Sum"
-	DstPort			1
-      }
-      Branch {
-	DstBlock		"Set Torques"
-	DstPort			1
       }
     }
     Line {
@@ -3027,159 +2816,135 @@ Model {
       DstPort		      5
     }
     Line {
-      SrcBlock		      "Switch1"
-      SrcPort		      1
-      Points		      [-6, 0]
-      Branch {
-	Points			[0, 5]
-	DstBlock		"Scope1"
-	DstPort			1
-      }
-      Branch {
-	Points			[0, -29; 22, 0; 0, -121]
-	DstBlock		"MATLAB Function"
-	DstPort			5
-      }
-    }
-    Line {
-      SrcBlock		      "MATLAB Function"
-      SrcPort		      3
-      Points		      [14, 0; 0, 15]
-      Branch {
-	Points			[151, 0; 0, -148; -75, 0]
-	DstBlock		"Sum"
-	DstPort			2
-      }
-      Branch {
-	Points			[0, 99; -138, 0; 0, 6]
-	DstBlock		"Switch1"
-	DstPort			1
-      }
-    }
-    Line {
       SrcBlock		      "yarp to WBI"
       SrcPort		      1
-      Points		      [-34, 0; 0, -90]
       DstBlock		      "Switch1"
       DstPort		      3
     }
     Line {
-      SrcBlock		      "Constant"
-      SrcPort		      1
-      Points		      [125, 0; 0, -110]
-      DstBlock		      "MATLAB Function"
-      DstPort		      6
-    }
-    Line {
       SrcBlock		      "Inverse Dynamics"
       SrcPort		      1
-      Points		      [16, 0; 0, -35; 45, 0; 0, -10]
+      Points		      [110, 0]
       DstBlock		      "MATLAB Function"
       DstPort		      4
     }
     Line {
       SrcBlock		      "massMatrix"
       SrcPort		      1
-      Points		      [7, 0; 0, -50]
       DstBlock		      "MATLAB Function"
-      DstPort		      7
+      DstPort		      5
     }
     Line {
       SrcBlock		      "Inverse Dynamics1"
       SrcPort		      1
-      Points		      [55, 0; 0, -160]
+      Points		      [47, 0; 0, -25]
+      DstBlock		      "MATLAB Function"
+      DstPort		      6
+    }
+    Line {
+      SrcBlock		      "MATLAB Function"
+      SrcPort		      6
+      Points		      [0, -15; 15, 0]
+      Branch {
+	DstBlock		"WBI to yarp2"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 75]
+	DstBlock		"Discrete-Time Integrator"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Constant1"
+      SrcPort		      1
       DstBlock		      "MATLAB Function"
       DstPort		      8
     }
     Line {
-      SrcBlock		      "WBI to yarp"
+      SrcBlock		      "Discrete-Time Integrator"
       SrcPort		      1
-      Points		      [40, 0]
+      Points		      [-94, 0]
+      Branch {
+	DstBlock		"Scope1"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, -70]
+	DstBlock		"MATLAB Function"
+	DstPort			10
+      }
+    }
+    Line {
+      SrcBlock		      "Constant"
+      SrcPort		      1
+      Points		      [15, 0]
+      DstBlock		      "MATLAB Function"
+      DstPort		      9
+    }
+    Line {
+      SrcBlock		      "WBI to yarp2"
+      SrcPort		      5
+      DstBlock		      "Scope5"
+      DstPort		      6
+    }
+    Line {
+      SrcBlock		      "WBI to yarp2"
+      SrcPort		      4
+      DstBlock		      "Scope5"
+      DstPort		      5
+    }
+    Line {
+      SrcBlock		      "WBI to yarp2"
+      SrcPort		      3
+      DstBlock		      "Scope5"
+      DstPort		      4
+    }
+    Line {
+      SrcBlock		      "WBI to yarp2"
+      SrcPort		      2
+      DstBlock		      "Scope5"
+      DstPort		      3
+    }
+    Line {
+      SrcBlock		      "WBI to yarp2"
+      SrcPort		      1
+      DstBlock		      "Scope5"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "MATLAB Function"
+      SrcPort		      5
+      Points		      [157, 0; 0, -20]
+      DstBlock		      "Scope5"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "MATLAB Function"
+      SrcPort		      2
+      Points		      [0, 35]
+      DstBlock		      "Set Torques"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "computeh"
+      SrcPort		      1
+      DstBlock		      "MATLAB Function"
+      DstPort		      7
+    }
+    Line {
+      SrcBlock		      "MATLAB Function"
+      SrcPort		      3
+      Points		      [37, 0; 0, 35]
       DstBlock		      "Scope2"
       DstPort		      1
     }
     Line {
-      SrcBlock		      "Sum"
-      SrcPort		      1
-      Points		      [2, 0; 0, 30]
-      DstBlock		      "WBI to yarp"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "WBI to yarp1"
-      SrcPort		      1
-      Points		      [85, 0; 0, 25]
-      DstBlock		      "Scope7"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "WBI to yarp1"
-      SrcPort		      2
-      Points		      [40, 0; 0, 45]
-      DstBlock		      "Scope7"
-      DstPort		      2
-    }
-    Line {
-      SrcBlock		      "WBI to yarp1"
-      SrcPort		      3
-      Points		      [18, 0; 0, 65]
-      DstBlock		      "Scope7"
-      DstPort		      3
-    }
-    Line {
-      SrcBlock		      "WBI to yarp1"
-      SrcPort		      4
-      Points		      [7, 0; 0, 85]
-      DstBlock		      "Scope7"
-      DstPort		      4
-    }
-    Line {
-      SrcBlock		      "WBI to yarp1"
-      SrcPort		      5
-      Points		      [1, 0; 0, 105]
-      DstBlock		      "Scope7"
-      DstPort		      5
-    }
-    Line {
-      SrcBlock		      "WBI to yarp2"
-      SrcPort		      2
-      Points		      [32, 0; 0, -20]
-      DstBlock		      "Scope5"
-      DstPort		      2
-    }
-    Line {
-      SrcBlock		      "WBI to yarp2"
-      SrcPort		      1
-      Points		      [14, 0; 0, -40]
-      DstBlock		      "Scope5"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "WBI to yarp2"
-      SrcPort		      3
-      DstBlock		      "Scope5"
-      DstPort		      3
-    }
-    Line {
-      SrcBlock		      "WBI to yarp2"
-      SrcPort		      4
-      Points		      [20, 0; 0, 20]
-      DstBlock		      "Scope5"
-      DstPort		      4
-    }
-    Line {
-      SrcBlock		      "WBI to yarp2"
-      SrcPort		      5
-      Points		      [8, 0; 0, 40]
-      DstBlock		      "Scope5"
-      DstPort		      5
-    }
-    Line {
       SrcBlock		      "MATLAB Function"
       SrcPort		      4
-      Points		      [87, 0; 0, 50]
-      DstBlock		      "WBI to yarp2"
-      DstPort		      1
+      Points		      [42, 0; 0, 10]
+      DstBlock		      "Scope2"
+      DstPort		      2
     }
   }
 }
@@ -3195,7 +2960,7 @@ Stateflow {
     name		    "feedbackLineariz"
     created		    "05-Mar-2014 11:42:47"
     isLibrary		    0
-    firstTarget		    19
+    firstTarget		    23
     sfVersion		    76014001.001
   }
   chart {
@@ -3205,14 +2970,14 @@ Stateflow {
     viewLimits		    [0 156.75 0 153.75]
     screen		    [1 1 1280 1024 1.041666666666667]
     treeNode		    [0 3 0 0]
-    firstTransition	    17
-    firstJunction	    16
+    firstTransition	    21
+    firstJunction	    20
     viewObj		    2
     visible		    1
     machine		    1
     subviewS {
     }
-    ssIdHighWaterMark	    15
+    ssIdHighWaterMark	    22
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
     firstData		    4
@@ -3236,10 +3001,10 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      "function [qInitOut,tau,gOut,e] = fcn(qInit,q,qD,g,gin,kp,M,h)\n%#codegen\n\nqInitOut = qInit;\n\n"
-      "kd = 0.3;\n\nqDes = qInit-0.1;\n% qDes(1) = qDes(1)+0.1;\n% qDes(2) = qDes(2)-0.1;\ne = (q-qDes);\n\ngOut = gin;"
-      "\n\n% h = h(7:end);\nM = M(7:end,7:end);\n\n\ntau = g-(kp*e+kd.*qD);\n% e = g - h;\n% tau(3) = 0;\n% tau(2) = 0;"
-      "\n% tau(1) = -14.6;\n"
+      script		      "function [qInitOut,tau,errorH,hMinus_g,Norm_e,e] = fcn(qInit,q,qD,g,M,h,hBlock,qDes,gains,integra"
+      "l_e)\n%#codegen\n\nqInitOut = qInit;\n\ne = q-qDes;\n\nNorm_e = norm(e)*180/pi;\n\nkp = gains(:,1:25);\nki = gai"
+      "ns(:,26:50);\nkd = gains(:,51:75);\n\ntau = g - (kp*e + ki*integral_e + kd*qD);\n\nerrorH = h - hBlock(7:end);\n"
+      "\nhMinus_g = h - g; \n"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
@@ -3328,75 +3093,9 @@ Stateflow {
   }
   data {
     id			    8
-    ssIdNumber		    7
-    name		    "qD"
+    ssIdNumber		    21
+    name		    "errorH"
     linkNode		    [2 7 9]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    9
-    ssIdNumber		    8
-    name		    "g"
-    linkNode		    [2 8 10]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    10
-    ssIdNumber		    10
-    name		    "gin"
-    linkNode		    [2 9 11]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    11
-    ssIdNumber		    11
-    name		    "gOut"
-    linkNode		    [2 10 12]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -3415,9 +3114,75 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
+    id			    9
+    ssIdNumber		    22
+    name		    "hMinus_g"
+    linkNode		    [2 8 10]
+    scope		    OUTPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    10
+    ssIdNumber		    19
+    name		    "Norm_e"
+    linkNode		    [2 9 11]
+    scope		    OUTPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    11
+    ssIdNumber		    7
+    name		    "qD"
+    linkNode		    [2 10 12]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
     id			    12
-    ssIdNumber		    12
-    name		    "kp"
+    ssIdNumber		    8
+    name		    "g"
     linkNode		    [2 11 13]
     scope		    INPUT_DATA
     machine		    1
@@ -3438,10 +3203,10 @@ Stateflow {
   }
   data {
     id			    13
-    ssIdNumber		    13
-    name		    "e"
+    ssIdNumber		    14
+    name		    "M"
     linkNode		    [2 12 14]
-    scope		    OUTPUT_DATA
+    scope		    INPUT_DATA
     machine		    1
     props {
       array {
@@ -3454,14 +3219,14 @@ Stateflow {
 	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
+      frame		      SF_FRAME_INHERITED
     }
     dataType		    "Inherit: Same as Simulink"
   }
   data {
     id			    14
-    ssIdNumber		    14
-    name		    "M"
+    ssIdNumber		    15
+    name		    "h"
     linkNode		    [2 13 15]
     scope		    INPUT_DATA
     machine		    1
@@ -3482,9 +3247,9 @@ Stateflow {
   }
   data {
     id			    15
-    ssIdNumber		    15
-    name		    "h"
-    linkNode		    [2 14 0]
+    ssIdNumber		    20
+    name		    "hBlock"
+    linkNode		    [2 14 16]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -3502,8 +3267,96 @@ Stateflow {
     }
     dataType		    "Inherit: Same as Simulink"
   }
-  junction {
+  data {
     id			    16
+    ssIdNumber		    16
+    name		    "qDes"
+    linkNode		    [2 15 17]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    17
+    ssIdNumber		    17
+    name		    "gains"
+    linkNode		    [2 16 18]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    18
+    ssIdNumber		    10
+    name		    "integral_e"
+    linkNode		    [2 17 19]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    19
+    ssIdNumber		    13
+    name		    "e"
+    linkNode		    [2 18 0]
+    scope		    OUTPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  junction {
+    id			    20
     position		    [23.5747 49.5747 7]
     chart		    2
     linkNode		    [2 0 0]
@@ -3512,7 +3365,7 @@ Stateflow {
     type		    CONNECTIVE_JUNCTION
   }
   transition {
-    id			    17
+    id			    21
     labelString		    "{eML_blk_kernel();}"
     labelPosition	    [32.125 19.875 102.544 14.964]
     fontSize		    12
@@ -3520,7 +3373,7 @@ Stateflow {
       intersection	      [0 0 1 0 23.5747 14.625 0 0]
     }
     dst {
-      id		      16
+      id		      20
       intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
     }
     midPoint		    [23.5747 24.9468]
@@ -3536,13 +3389,13 @@ Stateflow {
     ssIdNumber		    2
   }
   instance {
-    id			    18
+    id			    22
     name		    "MATLAB Function"
     machine		    1
     chart		    2
   }
   target {
-    id			    19
+    id			    23
     name		    "sfun"
     description		    "Default Simulink S-Function Target."
     machine		    1
