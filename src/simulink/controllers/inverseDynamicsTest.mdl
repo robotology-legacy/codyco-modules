@@ -1,12 +1,12 @@
 Model {
-  Name			  "simple"
+  Name			  "inverseDynamicsTest"
   Version		  7.7
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.24"
+    ComputedModelVersion    "1.37"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -26,9 +26,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Wed Mar  5 09:43:51 2014"
-  RTWModifiedTimeStamp	  315911497
-  ModelVersionFormat	  "1.%<AutoIncrement:24>"
+  LastModifiedDate	  "Thu Mar  6 12:56:50 2014"
+  RTWModifiedTimeStamp	  316011398
+  ModelVersionFormat	  "1.%<AutoIncrement:37>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -65,7 +65,6 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "simple"
-    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -131,9 +130,9 @@ Model {
 	  $ObjectID		  3
 	  Version		  "1.11.0"
 	  StartTime		  "0.0"
-	  StopTime		  "inf"
+	  StopTime		  "1000"
 	  AbsTol		  "auto"
-	  FixedStep		  "auto"
+	  FixedStep		  "0.01"
 	  InitialStep		  "auto"
 	  MaxNumMinSteps	  "-1"
 	  MaxOrder		  5
@@ -784,8 +783,8 @@ Model {
     }
   }
   System {
-    Name		    "simple"
-    Location		    [566, 301, 1503, 1021]
+    Name		    "inverseDynamicsTest"
+    Location		    [351, 176, 1288, 896]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -799,7 +798,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "108"
+    SIDHighWatermark	    "132"
     Block {
       BlockType		      Sum
       Name		      "Add"
@@ -909,15 +908,15 @@ Model {
       Ports		      [1]
       Position		      [545, 409, 575, 441]
       Floating		      off
-      Location		      [481, 314, 1158, 793]
-      Open		      on
+      Location		      [-1336, 78, -659, 557]
+      Open		      off
       NumInputPorts	      "1"
       List {
 	ListType		AxesTitles
 	axes1			"%<SignalLabel>"
       }
-      YMin		      "-1"
-      YMax		      "5.5"
+      YMin		      "-1.75"
+      YMax		      "2.5"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
     }
@@ -931,7 +930,7 @@ Model {
       LibraryVersion	      "1.7"
       SourceBlock	      "utility/Soft Real Time"
       SourceType	      ""
-      x			      "1"
+      x			      "0.01"
     }
     Block {
       BlockType		      ToWorkspace
@@ -1175,15 +1174,14 @@ Model {
       Position		      [434, 135, 466, 165]
       BlockRotation	      270
       Floating		      off
-      Location		      [-754, 626, -430, 865]
+      Location		      [6, 533, 330, 772]
       Open		      off
       NumInputPorts	      "1"
       List {
 	ListType		AxesTitles
 	axes1			"%<SignalLabel>"
       }
-      YMin		      "-0.5"
-      YMax		      "0.5"
+      YMax		      "1.5"
       SaveName		      "ScopeData1"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
@@ -1276,7 +1274,7 @@ Model {
 	  BackgroundColor	  "black"
 	  LibraryVersion	  "1.238"
 	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
+	  SourceType		  "Unknown"
 	  from			  "'/icubGazeboSim/left_arm/analog:o/torques'"
 	  to			  "'/tmp2:i'"
 	  num			  "5"
@@ -1291,7 +1289,7 @@ Model {
 	  BackgroundColor	  "black"
 	  LibraryVersion	  "1.238"
 	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
+	  SourceType		  "Unknown"
 	  from			  "'/icubGazeboSim/right_arm/analog:o/torques'"
 	  to			  "'/tmp3:i'"
 	  num			  "5"
@@ -1306,7 +1304,7 @@ Model {
 	  BackgroundColor	  "black"
 	  LibraryVersion	  "1.238"
 	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
+	  SourceType		  "Unknown"
 	  from			  "'/icubGazeboSim/left_leg/analog:o/torques'"
 	  to			  "'/tmp4:i'"
 	  num			  "6"
@@ -1321,7 +1319,7 @@ Model {
 	  BackgroundColor	  "black"
 	  LibraryVersion	  "1.238"
 	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
+	  SourceType		  "Unknown"
 	  from			  "'/icubGazeboSim/right_leg/analog:o/torques'"
 	  to			  "'/tmp5:i'"
 	  num			  "6"
@@ -1336,7 +1334,7 @@ Model {
 	  BackgroundColor	  "black"
 	  LibraryVersion	  "1.238"
 	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
+	  SourceType		  "Unknown"
 	  from			  "'/icubGazeboSim/torso/analog:o/torques'"
 	  to			  "'/tmp1:i'"
 	  num			  "3"
@@ -1578,8 +1576,8 @@ Model {
       MaskHideContents	      off
       System {
 	Name			"yarp to WBI"
-	Location		[160, 667, 425, 855]
-	Open			on
+	Location		[160, 689, 425, 877]
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -1832,5 +1830,35 @@ Model {
       DstBlock		      "yarp to WBI"
       DstPort		      4
     }
+    Annotation {
+      Position		      [369, 182]
+    }
+    Annotation {
+      Position		      [369, 185]
+    }
+  }
+}
+# Finite State Machines
+#
+#    Stateflow Version 7.5 (R2010a) dated Mar  4 2011, 20:02:43
+#
+#
+
+
+Stateflow {
+  machine {
+    id			    1
+    name		    "inverseDynamicsTest"
+    created		    "05-Mar-2014 18:21:08"
+    isLibrary		    0
+    firstTarget		    2
+    sfVersion		    75014001
+  }
+  target {
+    id			    2
+    name		    "sfun"
+    description		    "Default Simulink S-Function Target."
+    machine		    1
+    linkNode		    [1 0 0]
   }
 }
