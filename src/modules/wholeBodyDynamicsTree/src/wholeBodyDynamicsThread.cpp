@@ -85,10 +85,10 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        robotName(_robotName), 
        estimator(_wbs), 
        printCountdown(0), 
-       PRINT_PERIOD(1000),
+       PRINT_PERIOD(30000),
        icub_model_calibration(icub_version),
        icub_version(_icub_version),
-       max_samples_used_for_calibration(10),
+       max_samples_used_for_calibration(50),
        samples_used_for_calibration(0)
     {
     
@@ -230,13 +230,14 @@ bool wholeBodyDynamicsThread::threadInit()
     int nrOfAvailableFTSensors = estimator->getEstimateNumber(wbi::ESTIMATE_FORCE_TORQUE);
     if( nrOfAvailableFTSensors != icub_model_calibration.getNrOfFTSensors() ) {
         std::cout << "wholeBodyDynamicsThread::threadInit() error: number of FT sensors different between model (" <<
-        icub_model_calibration.getNrOfFTSensors() << " and interface" << nrOfAvailableFTSensors << std::endl;
+        icub_model_calibration.getNrOfFTSensors() << ") and interface (" << nrOfAvailableFTSensors << " ) " << std::endl;
         return false;
     }
     
     offset_buffer.resize(nrOfAvailableFTSensors,yarp::sig::Vector(6,0.0));
     calibrate_ft_sensor.resize(nrOfAvailableFTSensors,false);
     tree_status.setNrOfDOFs(icub_model_calibration.getNrOfDOFs());
+    tree_status.setNrOfFTSensors(nrOfAvailableFTSensors);
     
     //the serialization is this one for foot v1 : 0 left arm  1 right arm 
     //                                            2 left leg  3 right leg 
@@ -267,6 +268,7 @@ bool wholeBodyDynamicsThread::threadInit()
 //*************************************************************************************************************************
 bool wholeBodyDynamicsThread::calibrateOffset(const std::string calib_code)
 {
+    std::cout << "wholeBodyDynamicsThread::calibrateOffset called with code " << calib_code << std::endl;
     if( max_samples_used_for_calibration <= 0 ) {
         std::cout << "wholeBodyDynamicsThread::calibrateOffset error: requested calibration with a negative (" << max_samples_used_for_calibration << ") number of samples." << std::endl;
         return false;
@@ -299,7 +301,20 @@ bool wholeBodyDynamicsThread::calibrateOffset(const std::string calib_code)
         return false;
     }
     
+    //Resetting the offset for the sensor being calibrated, to get the raw values
+    for(int ft_id = 0; ft_id < calibrate_ft_sensor.size(); ft_id++ ) {
+        if( calibrate_ft_sensor[ft_id] ) {
+            double ft_off[6];
+	    estimator->getEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE,convertFTiDynTreeToFTwbi(ft_id),ft_off);
+            std::cout << "wholeBodyDynamicsThread::calibrateOffset: current calibration for FT " << ft_id << " is " << 
+                         ft_off[0] << " " << ft_off[1] << " " << ft_off[2] << " " << ft_off[3] << " " << ft_off[4] << " " << ft_off[5] << std::endl;
+            ft_off[0] = ft_off[1] = ft_off[2] = ft_off[3] = ft_off[4] = ft_off[5] = 0.0;
+            estimator->setEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE,convertFTiDynTreeToFTwbi(ft_id),ft_off);
+        }
+    }
+    
     calibration_mutex.lock();
+    std::cout << "wholeBodyDynamicsThread::calibrateOffset " << calib_code  << " called successfully, starting calibration." << std::endl;
     wbd_mode = CALIBRATING;
     
     return true;
@@ -311,6 +326,7 @@ bool wholeBodyDynamicsThread::waitCalibrationDone()
     calibration_mutex.lock();
     assert(wbd_mode == NORMAL);
     calibration_mutex.unlock();
+    std::cout << "wholeBodyDynamicsThread::waitCalibrationDone() returning: calibration finished with success" << std::endl;
     return true;
 }
 
@@ -399,6 +415,7 @@ void wholeBodyDynamicsThread::normal_run()
     printCountdown = (printCountdown>=PRINT_PERIOD) ? 0 : printCountdown +(int)getRate();   // countdown for next print (see sendMsg method)
 
     if( printCountdown == 0 ) {
+ 
         double avgTime, stdDev, avgTimeUsed, stdDevUsed, period;
         period = getRate();
         getEstPeriod(avgTime, stdDev);
@@ -422,6 +439,7 @@ void wholeBodyDynamicsThread::normal_run()
 //*************************************************************************************************************************
 void wholeBodyDynamicsThread::calibration_run()
 {   
+    std::cout << "wholeBodyDynamicsThread::calibration_run() " << samples_used_for_calibration << " / " << max_samples_used_for_calibration << "  called" << std::endl;
     bool ret;
     ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
     ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_VEL,tree_status.dq.data());
@@ -429,6 +447,8 @@ void wholeBodyDynamicsThread::calibration_run()
     ret = ret && estimator->getEstimates(wbi::ESTIMATE_IMU,tree_status.wbi_imu.data());
     YARP_ASSERT(ret);    
     
+    std::cout << "wholeBodyDynamicsThread::calibration_run(): estimates obtained" << std::endl;
+
     //Setting imu proper acceleration from measure (assuming omega e domega = 0)
     //acceleration are measures 4:6 (check wbi documentation)
     tree_status.proper_ddp_imu[0] = tree_status.wbi_imu[4];
@@ -446,22 +466,32 @@ void wholeBodyDynamicsThread::calibration_run()
     
     icub_model_calibration.kinematicRNEA();
     icub_model_calibration.dynamicRNEA();
+    
+    //std::cout << "wholeBodyDynamicsThread::calibration_run(): F/T estimates computed" << std::endl;
 
     for(int ft_sensor_id=0; ft_sensor_id < offset_buffer.size(); ft_sensor_id++ ) {
         if( calibrate_ft_sensor[ft_sensor_id] ) {
             icub_model_calibration.getSensorMeasurement(ft_sensor_id,tree_status.estimated_ft_sensors[ft_sensor_id]);       
+	    assert(offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
             offset_buffer[ft_sensor_id] += tree_status.measured_ft_sensors[ft_sensor_id]-tree_status.estimated_ft_sensors[ft_sensor_id];   
         } 
-        samples_used_for_calibration++;
     }
     
-    
+    samples_used_for_calibration++;
+       
+        
     if( samples_used_for_calibration >= max_samples_used_for_calibration ) {
         //Calculating offset
         for(int ft_sensor_id=0; ft_sensor_id < offset_buffer.size(); ft_sensor_id++ ) {
-            offset_buffer[ft_sensor_id] *= (1.0/(double)samples_used_for_calibration);
-            assert(offset_buffer.size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
-            estimator->setEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE,convertFTiDynTreeToFTwbi(ft_sensor_id),offset_buffer.data());
+            if( calibrate_ft_sensor[ft_sensor_id] ) {
+                offset_buffer[ft_sensor_id] *= (1.0/(double)samples_used_for_calibration);
+                assert(offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
+                estimator->setEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE,convertFTiDynTreeToFTwbi(ft_sensor_id),offset_buffer[ft_sensor_id].data());
+                double ft_off[6];
+                estimator->getEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE,convertFTiDynTreeToFTwbi(ft_sensor_id),ft_off);
+                std::cout << "wholeBodyDynamicsThread: new calibration for FT " << ft_sensor_id << " is " << 
+                            ft_off[0] << " " << ft_off[1] << " " << ft_off[2] << " " << ft_off[3] << " " << ft_off[4] << " " << ft_off[5] << std::endl;
+            }
         }
         
         
@@ -476,6 +506,7 @@ void wholeBodyDynamicsThread::calibration_run()
         calibration_mutex.unlock();
     }
     
+    std::cout << "wholeBodyDynamicsThread::calibration_run() " << samples_used_for_calibration << " / " << max_samples_used_for_calibration << "  finished" << std::endl;
 }
 
 //*****************************************************************************

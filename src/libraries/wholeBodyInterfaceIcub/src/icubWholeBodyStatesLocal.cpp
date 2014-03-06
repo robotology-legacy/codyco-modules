@@ -250,9 +250,14 @@ bool icubWholeBodyStatesLocal::setEstimationParameter(const EstimateType et, con
     return estimator->lockAndSetEstimationParameter(et, ep, value);
 }
 
-bool icubWholeBodyStatesLocal::setEstimationOffset(const EstimateType et, const LocalId & sid, const void *value)
+bool icubWholeBodyStatesLocal::setEstimationOffset(const EstimateType et, const LocalId & sid, const double *value)
 {
     return estimator->lockAndSetEstimationOffset(et,sid,value);
+}
+
+bool icubWholeBodyStatesLocal::getEstimationOffset(const EstimateType et, const LocalId & sid, double *value)
+{
+    return estimator->lockAndGetEstimationOffset(et,sid,value);
 }
 
 // *********************************************************************************************************************
@@ -973,7 +978,7 @@ bool icubWholeBodyDynamicsEstimator::lockAndSetEstimationParameter(const Estimat
     return res;
 }
 
-bool icubWholeBodyDynamicsEstimator::lockAndSetEstimationOffset(const EstimateType et, const LocalId & sid, const void *value)
+bool icubWholeBodyDynamicsEstimator::lockAndSetEstimationOffset(const EstimateType et, const LocalId & sid, const double *value)
 {
     bool res = true;
     int ft_index;
@@ -982,7 +987,7 @@ bool icubWholeBodyDynamicsEstimator::lockAndSetEstimationOffset(const EstimateTy
     {
     case ESTIMATE_FORCE_TORQUE: ///< \todo TODO
         ft_index = sensors->getSensorList(SENSOR_FORCE_TORQUE).localToGlobalId(sid);
-        memcpy((void*)forcetorques_offset.data(), (double*)value, sizeof(double)*sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize);
+        memcpy(forcetorques_offset[ft_index].data(), (double*)value, sizeof(double)*sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize);
         break;
     default: 
         break;
@@ -990,6 +995,25 @@ bool icubWholeBodyDynamicsEstimator::lockAndSetEstimationOffset(const EstimateTy
     mutex.post();
     return res;
 }
+
+bool icubWholeBodyDynamicsEstimator::lockAndGetEstimationOffset(const EstimateType et, const LocalId & sid, double *value)
+{
+    bool res = true;
+    int ft_index;
+    mutex.wait();
+    switch(et)
+    {
+    case ESTIMATE_FORCE_TORQUE: ///< \todo TODO
+        ft_index = sensors->getSensorList(SENSOR_FORCE_TORQUE).localToGlobalId(sid);
+        memcpy(value, forcetorques_offset[ft_index].data(), sizeof(double)*sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize);
+        break;
+    default: 
+        break;
+    }
+    mutex.post();
+    return res;
+}
+
 
 
 bool icubWholeBodyDynamicsEstimator::setVelFiltParams(int windowLength, double threshold)
