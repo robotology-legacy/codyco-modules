@@ -344,20 +344,29 @@ int icubWholeBodyStates::lockAndGetSensorNumber(const SensorType st)
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 icubWholeBodyEstimator::icubWholeBodyEstimator(int _period, icubWholeBodySensors *_sensors)
-: RateThread(_period), sensors(_sensors), dqFilt(0), d2qFilt(0), dTauJFilt(0), dTauMFilt(0),
-  tauJFilt(0), tauMFilt(0)
+: RateThread(_period), 
+  sensors(_sensors), 
+  dqFilt(0), 
+  d2qFilt(0), 
+  dTauJFilt(0), 
+  dTauMFilt(0),
+  tauJFilt(0), 
+  tauMFilt(0)
 {
     resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
+    
     ///< Window lengths of adaptive window filters
     dqFiltWL            = 16;
     d2qFiltWL           = 25;
     dTauJFiltWL         = 30;
     dTauMFiltWL         = 30;
+    
     ///< Threshold of adaptive window filters
     dqFiltTh            = 1.0;      
     d2qFiltTh           = 1.0;
     dTauJFiltTh         = 0.2;
     dTauMFiltTh         = 0.2;
+    
     ///< Cut frequencies
     tauJCutFrequency    =   3.0;
     tauMCutFrequency    =   3.0;
