@@ -176,13 +176,13 @@ bool robotStatus::robotInit(int btype, int link) {
     // dot{J}dot{q}
     dJdq.resize(6,0);
 
-    /** \todo dot{xB} We will assume null velocity of the base for now since the estimate hasn't been implemented yet */
+    /** TODO dot{xB} We will assume null velocity of the base for now since the estimate hasn't been implemented yet */
     dxB.resize(6,0);
 
-    /** \todo ddot{xB} Assuming null acceleration for now since its estimation hasn't been implemented yet */
+    /** TODO ddot{xB} Assuming null acceleration for now since its estimation hasn't been implemented yet */
     ddxB.resize(6,0);
 
-    /** \todo ity vector is assumed constant and oriented to the ground but this should vary according to the world reference frame */
+    /** TODO gravity vector is assumed constant and oriented to the ground but this should vary according to the world reference frame */
     grav.resize(3,1);
     grav[0] = grav[1] = 0;
     grav[2] = -9.81;
@@ -219,7 +219,7 @@ int robotStatus::getLinkId(const char *linkName) {
 }
 //=========================================================================================================================
 bool robotStatus::world2baseRototranslation() {
-    /** \todo This method should take as input the link you wanna use for to define the world reference frame. Right now it's hard coded to be the left foot. */
+    /** TODO This method should take as input the link you wanna use for to define the world reference frame. Right now it's hard coded to be the left foot. */
     int LINK_ID_LEFT_FOOT;
     getLinkId("l_sole",LINK_ID_LEFT_FOOT);
     wbInterface->computeH(qRad.data(), Frame(), LINK_ID_LEFT_FOOT, H_base_leftFoot);
@@ -359,6 +359,7 @@ bool robotStatus::inverseDynamics(double *qrad_input, double *dq_input, double *
             cout << "\n";
         }
     }
+    
     return ans;
 }
 //=========================================================================================================================
@@ -1018,7 +1019,6 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 
         yarp::sig::Vector tau_computed;
 	tau_computed.resize(ICUB_DOFS+6,0.0);
-        //TODO bla
         if(robot->inverseDynamics(qrad_in.data(), dqrad_in.data(), ddqrad_in.data(), tau_computed.data())) {
             if(DEBUGGING) fprintf(stderr,"mdlOutputs: Inverse dynamics has been computed correctly\n");
 	    if(DEBUGGING) fprintf(stderr,"mdlOutputs: Size of tau_computed is: \n%d\n",tau_computed.size());
@@ -1026,7 +1026,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             //Stream computed joint torques by inverseDynamics
             real_T *pY10 = (real_T*)ssGetOutputPortSignal(S,9);
             for(int_T j=0; j<ssGetOutputPortWidth(S,9); j++) {
-		/**\todo Decide if we want to stream tau_computed including floating base torques */
+		/**TODO Decide if we want to stream tau_computed including floating base torques */
                 pY10[j] = tau_computed(j+6);
             }
         }
@@ -1071,4 +1071,5 @@ static void mdlTerminate(SimStruct *S)
 #else
 #include "cg_sfun.h"       /* Code generation registration function */
 #endif
+
 
