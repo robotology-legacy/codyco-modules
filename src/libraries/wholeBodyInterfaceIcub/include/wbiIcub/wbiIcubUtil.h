@@ -26,6 +26,9 @@
 #include <vector>
 #include <cstdio>
 
+#include <kdl_codyco/treeserialization.hpp>
+#include <kdl_codyco/treepartition.hpp>
+
 /* CODE UNDER DEVELOPMENT */
 
 namespace wbiIcub
@@ -219,7 +222,18 @@ namespace wbiIcub
         return wbi::LocalId(iCub::skinDynLib::BODY_PART_UNKNOWN, 0);
     }
     
-bool loadBodyPartsFromConfig(yarp::os::Property & wbi_yarp_properties, std::vector<std::string> & body_parts_vector);
+    bool loadBodyPartsFromConfig(yarp::os::Property & wbi_yarp_properties, std::vector<std::string> & body_parts_vector);
+    bool loadReverseTorsoJointsFromConfig(yarp::os::Property & wbi_yarp_properties, bool &reverse_torso_joints);
+    bool loadFTSensorPortsFromConfig(yarp::os::Property & wbi_yarp_properties, 
+                                     const std::vector<std::string> & body_parts_vector,
+                                     std::vector<id_2_PortName> &imu_ports);
+    bool loadIMUSensorPortsFromConfig(yarp::os::Property & wbi_yarp_properties, 
+                                      const std::vector<std::string> & body_parts_vector, 
+                                      std::vector<id_2_PortName> &imu_ports);
+    bool loadTreeSerializationFromConfig(yarp::os::Property & wbi_yarp_properties,
+                                         KDL::CoDyCo::TreeSerialization& serialization);
+    bool loadTreePartitionFromConfig(yarp::os::Property & wbi_yarp_properties,
+                                     KDL::CoDyCo::TreePartition& serialization);
 
     
 } // end namespace wbiIcub

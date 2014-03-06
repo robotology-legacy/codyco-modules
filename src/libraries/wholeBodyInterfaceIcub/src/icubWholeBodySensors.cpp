@@ -46,15 +46,30 @@ using namespace iCub::ctrl;
 //                                          ICUB WHOLE BODY SENSORS
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodySensors::icubWholeBodySensors(const char* _name, const char* _robotName): initDone(false), name(_name), robot(_robotName)
+icubWholeBodySensors::icubWholeBodySensors(const char* _name, const char* _robotName): 
+initDone(false), name(_name), robot(_robotName)
 {
     bodyPartNames = vector<string>(BodyPart_s, BodyPart_s + sizeof(BodyPart_s) / sizeof(string) );
     ftSens_2_port = vector<id_2_PortName>(icub_FTsens_2_PortName, icub_FTsens_2_PortName + sizeof(icub_FTsens_2_PortName)/sizeof(id_2_PortName));
     imu_2_port = vector<id_2_PortName>(icub_IMU_2_PortName, icub_IMU_2_PortName + sizeof(icub_IMU_2_PortName)/sizeof(id_2_PortName));
+    reverse_torso_joints = true;
 }
 
-icubWholeBodySensors::icubWholeBodySensors(const char* _name, const char* _robotName, const std::vector<std::string> &_bodyPartNames, 
-                                           const std::vector<id_2_PortName> &_ftSens_2_port, const std::vector<id_2_PortName> &_imu_2_port)
+
+icubWholeBodySensors::icubWholeBodySensors(const char* _name, const char* _robotName, yarp::os::Property & opt): 
+initDone(false), name(_name), robot(_robotName)
+{
+    loadBodyPartsFromConfig(opt,bodyPartNames);
+    loadReverseTorsoJointsFromConfig(opt,reverse_torso_joints);
+    loadFTSensorPortsFromConfig(opt,bodyPartNames,ftSens_2_port);
+    loadIMUSensorPortsFromConfig(opt,bodyPartNames,imu_2_port);
+}
+
+icubWholeBodySensors::icubWholeBodySensors(const char* _name, 
+                                           const char* _robotName, 
+                                           const std::vector<std::string> &_bodyPartNames, 
+                                           const std::vector<id_2_PortName> &_ftSens_2_port, 
+                                           const std::vector<id_2_PortName> &_imu_2_port)
     : initDone(false), name(_name), robot(_robotName) , bodyPartNames(_bodyPartNames), ftSens_2_port(_ftSens_2_port), imu_2_port(_imu_2_port)
 {}
 
@@ -531,8 +546,8 @@ bool icubWholeBodySensors::readEncoders(double *q, double *stamps, bool wait)
             for(unsigned int i=0; i<bodyPartAxes[itBp->first]; i++)
             {
                 assert( i < qLastRead[itBp->first].size() );
-                qLastRead[itBp->first][itBp->first==TORSO ? 2-i : i] = CTRL_DEG2RAD*qTemp[i];;
-                qStampLastRead[itBp->first][itBp->first==TORSO ? 2-i : i]   = tTemp[i];
+                qLastRead[itBp->first][bodyPartJointMapping(itBp->first,i)] = CTRL_DEG2RAD*qTemp[i];;
+                qStampLastRead[itBp->first][bodyPartJointMapping(itBp->first,i)]   = tTemp[i];
             }
         
         // copy most recent data into output variables
@@ -571,7 +586,7 @@ bool icubWholeBodySensors::readPwms(double *pwm, double *stamps, bool wait)
         // if reading has succeeded, update last read data
         if(update)
             for(unsigned int i=0; i<bodyPartAxes[itBp->first]; i++)
-                pwmLastRead[itBp->first][itBp->first==TORSO ? 2-i : i] = pwmTemp[i];    // joints of the torso are in reverse order
+                pwmLastRead[itBp->first][bodyPartJointMapping(itBp->first,i)] = pwmTemp[i];    // joints of the torso are in reverse order
         
         // copy data in output vector
         FOR_ALL_JOINTS(itBp, itJ)
@@ -661,7 +676,7 @@ bool icubWholeBodySensors::readTorqueSensors(double *jointSens, double *stamps, 
         // if reading has succeeded, update last read data
         if(update)
             for(unsigned int i = 0; i < bodyPartAxes[itBp->first]; i++)
-                torqueSensorsLastRead[itBp->first][itBp->first == TORSO ? 2 - i : i] = torqueTemp[i];    // joints of the torso are in reverse order
+                torqueSensorsLastRead[itBp->first][bodyPartJointMapping(itBp->first,i)] = torqueTemp[i];    // joints of the torso are in reverse order
         
         // copy data in output vector
         FOR_ALL_JOINTS(itBp, itJ)
@@ -688,8 +703,8 @@ bool icubWholeBodySensors::readEncoder(const LocalId &sid, double *q, double *st
         for(unsigned int i=0; i<bodyPartAxes[sid.bodyPart]; i++)
         {
             // joints 0 and 2 of the torso are swapped
-            qLastRead[sid.bodyPart][sid.bodyPart==TORSO ? 2-i : i]        = CTRL_DEG2RAD*qTemp[i];
-            qStampLastRead[sid.bodyPart][sid.bodyPart==TORSO ? 2-i : i]   = tTemp[i];
+            qLastRead[sid.bodyPart][bodyPartJointMapping(sid.bodyPart,i)]        = CTRL_DEG2RAD*qTemp[i];
+            qStampLastRead[sid.bodyPart][bodyPartJointMapping(sid.bodyPart,i)]   = tTemp[i];
         }
         
     // copy most recent data into output variables
@@ -717,7 +732,7 @@ bool icubWholeBodySensors::readPwm(const LocalId &sid, double *pwm, double *stam
     
     // if read succeeded => update data
     if(update) // joints 0 and 2 of the torso are swapped
-        pwmLastRead[sid.bodyPart][sid.bodyPart==TORSO ? 2-sid.index : sid.index] = pwmTemp[sid.index];
+        pwmLastRead[sid.bodyPart][bodyPartJointMapping(sid.bodyPart,sid.index)] = pwmTemp[sid.index];
     
     // copy most recent data into output variables
     pwm[0] = pwmLastRead[sid.bodyPart][sid.index];
@@ -812,7 +827,7 @@ bool icubWholeBodySensors::readTorqueSensor(const LocalId &sid, double *jointTor
     assert(itrq[sid.bodyPart]!=0);
 
     // read joint torque
-    int jointIndex = sid.bodyPart==TORSO ? 2-sid.index : sid.index;
+    int jointIndex = bodyPartJointMapping(sid.bodyPart,sid.index);
     while(!(update = itrq[sid.bodyPart]->getTorque(jointIndex, &torqueTemp)) && wait)
         Time::delay(WAIT_TIME);
     
@@ -824,4 +839,13 @@ bool icubWholeBodySensors::readTorqueSensor(const LocalId &sid, double *jointTor
     jointTorque[0] = torqueSensorsLastRead[sid.bodyPart][jointIndex];
     
     return update || wait;  // if read failed => return false
+}
+
+int icubWholeBodySensors::bodyPartJointMapping(int bodypart_id, int local_id)
+{
+    if( reverse_torso_joints ) {
+        return bodypart_id==TORSO ? 2-local_id : local_id;
+    } else {
+        return local_id;
+    }
 }

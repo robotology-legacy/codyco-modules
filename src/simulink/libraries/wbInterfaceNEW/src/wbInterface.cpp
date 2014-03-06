@@ -28,7 +28,7 @@
 // END MASK PARAMETERS -----------------------------------
 
 #define VERBOSE   0
-#define DEBUGGING 1
+#define DEBUGGING 0
 #define TIMING    0
 #define NEWCODE	  1
 
@@ -222,10 +222,12 @@ bool robotStatus::world2baseRototranslation() {
     /** TODO This method should take as input the link you wanna use for to define the world reference frame. Right now it's hard coded to be the left foot. */
     int LINK_ID_LEFT_FOOT;
     getLinkId("l_sole",LINK_ID_LEFT_FOOT);
+    if(!robotJntAngles(false)) fprintf(stderr,"ERROR [robotStatus::world2baseRototranslation] acquiring robot joint angles in robotStatus::forwardKinematics\n");
     wbInterface->computeH(qRad.data(), Frame(), LINK_ID_LEFT_FOOT, H_base_leftFoot);
     H_base_leftFoot = H_base_leftFoot*Ha;
     H_base_leftFoot.setToInverse().get4x4Matrix(H_w2b.data());
     if(DEBUGGING) fprintf(stderr,"robotStatus::world2baseRototranslation >> H_base_leftFoot: %s \n",H_base_leftFoot.toString().c_str());
+    if(DEBUGGING) fprintf(stderr,"robotStatus::world2baseRototranslation >> qRad           : %s \n",qRad.toString().c_str());
     xBase.set4x4Matrix(H_w2b.data());
     return true;
 }
@@ -351,12 +353,11 @@ bool robotStatus::inverseDynamics(double *qrad_input, double *dq_input, double *
     if(world2baseRototranslation()) {
         if(DEBUGGING) fprintf(stderr,"robotStatus::inverseDynamics >> world2baseRototranslation computed\n");
         ans = wbInterface->inverseDynamics(qrad_input, xBase, dq_input, dxB.data(), ddq_input, ddxB.data(), grav.data(), tauJ_computed);
+        
         if(DEBUGGING)
         {
-            cout << "Going to print all torques\n";
-            for (int i = 0; i < ICUB_DOFS+6; i++)
-                cout << tauJ_computed[i];
-            cout << "\n";
+            fprintf(stderr,"robotStatus::inverseDynamics >> Base vel: %s\n", dxB.toString().c_str());
+            fprintf(stderr,"robotStatus::inverseDynamics >> Base acc: %s\n",ddxB.toString().c_str());
         }
     }
     
@@ -389,13 +390,13 @@ Vector robotStatus::dynamicsGenBiasForces() {
             if(world2baseRototranslation()) {
                 if(DEBUGGING) fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> world2baseRototranslation computed for dynamicsGenBiasForces\n");
                 if(robotBaseVelocity()) {
+                    
                     if(DEBUGGING) {
-                        fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> robotBaseVelocity computed for dynamicsGenBiasForces\n");
-                        fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Angles: %s\n",qRad.toString().c_str());
-                        std::cerr<<"robotStatus::dynamicsGenBiasForces >> Velocities: "<<dqJ<<endl;
-                        fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Base velocity: %s\n",dxB.toString().c_str());
+                        Vector dqRad(ICUB_DOFS, dqJ.data());
+                        fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Base vel: %s\n", dxB.toString().c_str());
+                        fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Angs: %s\n",qRad.toString().c_str());
+                        fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Vels: %s\n",  dqRad.toString().c_str());
                     }
-//                     double grav[3]= {0, 0, -9.81};
                     ans = wbInterface->computeGeneralizedBiasForces(qRad.data(), xBase, dqJ.data(), dxB.data(), grav.data(), hterm.data());
                 }
             }
@@ -1020,9 +1021,15 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         yarp::sig::Vector tau_computed;
 	tau_computed.resize(ICUB_DOFS+6,0.0);
         if(robot->inverseDynamics(qrad_in.data(), dqrad_in.data(), ddqrad_in.data(), tau_computed.data())) {
-            if(DEBUGGING) fprintf(stderr,"mdlOutputs: Inverse dynamics has been computed correctly\n");
-	    if(DEBUGGING) fprintf(stderr,"mdlOutputs: Size of tau_computed is: \n%d\n",tau_computed.size());
-            if(DEBUGGING) fprintf(stderr,"mdlOutputs: Computed torques are: \n%s\n", tau_computed.toString().c_str());
+            if(DEBUGGING) {
+                fprintf(stderr,"robotStatus::inverseDynamics >> Inverse dynamics has been computed correctly\n");
+                fprintf(stderr,"robotStatus::inverseDynamics >> Angs: %s\n",qrad_in.toString().c_str());
+                fprintf(stderr,"robotStatus::inverseDynamics >> Vels: %s\n",  dqrad_in.toString().c_str());
+                fprintf(stderr,"robotStatus::inverseDynamics >> Accs: %s\n", ddqrad_in.toString().c_str());
+            }
+
+	    if(DEBUGGING) fprintf(stderr,"robotStatus::inverseDynamics >> Size of tau_computed is: \n%d\n",tau_computed.size());
+            if(DEBUGGING) fprintf(stderr,"robotStatus::inverseDynamics >> Computed torques are: \n%s\n", tau_computed.toString().c_str());
             //Stream computed joint torques by inverseDynamics
             real_T *pY10 = (real_T*)ssGetOutputPortSignal(S,9);
             for(int_T j=0; j<ssGetOutputPortWidth(S,9); j++) {

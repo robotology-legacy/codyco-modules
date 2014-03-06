@@ -76,12 +76,7 @@ icubWholeBodyActuators::icubWholeBodyActuators(const char* _name,
 {
     yarp::os::Property yarp_wbi_properties_not_const = yarp_wbi_properties;
     loadBodyPartsFromConfig(yarp_wbi_properties_not_const,bodyPartNames);
-    Bottle bot = yarp_wbi_properties_not_const.findGroup("WBI_YARP_BODY_PARTS_REMAPPING");
-    if( bot.check("reverse_torso_joints") ) {
-        reverse_torso_joints = true;
-    } else {
-        reverse_torso_joints = false;
-    }
+    loadReverseTorsoJointsFromConfig(yarp_wbi_properties_not_const,reverse_torso_joints);
 }
 
 
@@ -93,6 +88,11 @@ icubWholeBodyActuators::~icubWholeBodyActuators()
 
 bool icubWholeBodyActuators::openDrivers(int bp)
 {
+    if( bp >= bodyPartNames.size() || bp < 0 ) { 
+        std::cerr << "icubWholeBodyActuators::openDrivers error: called with bodypart " << bp << 
+                     " but the total number of bodyparts is " << bodyPartNames.size() << std::endl;
+        return false;
+    }
     itrq[bp]=0; iimp[bp]=0; icmd[bp]=0; ivel[bp]=0; ipos[bp]=0; iopl[bp]=0;  dd[bp]=0;
     if(!openPolyDriver(name, robot, dd[bp], bodyPartNames[bp].c_str()))
         return false;

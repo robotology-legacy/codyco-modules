@@ -91,7 +91,6 @@ int main(int argc, char * argv[])
     Frame H_base_leftFoot, Ha, xBase;
     //Matrix4d            H_w2b;                  // rototranslation from world to base reference frame
     
-    int LINK_ID_LEFT_FOOT;    
     const char *linkName;
     linkName = "l_sole";
     Ha.R = Rotation(0,0,1, 0,-1,0, 1,0,0);
