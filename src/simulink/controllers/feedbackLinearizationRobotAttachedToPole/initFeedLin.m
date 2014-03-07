@@ -1,11 +1,5 @@
 clear all;
 
-% Add path to MATLAB
-addpath(genpath('/home/daniele/MATLAB'))
-addpath(genpath('/home/daniele/src/codyco/build'))
-addpath(genpath('/home/daniele/src/codyco/src/simulink/controllers'))
-cd '/home/daniele/src/codyco/src/simulink/controllers/Rovereto2014'
-
 robotName = 'icubGazeboSim';
 localName = 'torqueControlTests';
  
