@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.176"
+    ComputedModelVersion    "1.190"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -32,7 +32,7 @@ Model {
       $ObjectID		      2
       $ClassName	      "Simulink.WindowInfo"
       IsActive		      [1]
-      Location		      [-9.0, 19.0, 840.0, 1190.0]
+      Location		      [6.0, 19.0, 840.0, 1190.0]
       Object {
 	$PropName		"ModelBrowserInfo"
 	$ObjectID		3
@@ -58,7 +58,7 @@ Model {
 	LoadSaveID		"0"
 	Extents			[784.0, 993.0]
 	ZoomFactor		[1.0]
-	Offset			[51.0, -183.30000000000007]
+	Offset			[46.0, -183.30000000000007]
       }
     }
   }
@@ -68,9 +68,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "daniele"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Mar 06 14:28:16 2014"
-  RTWModifiedTimeStamp	  316010536
-  ModelVersionFormat	  "1.%<AutoIncrement:176>"
+  LastModifiedDate	  "Fri Mar 07 09:59:31 2014"
+  RTWModifiedTimeStamp	  316087139
+  ModelVersionFormat	  "1.%<AutoIncrement:190>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -922,7 +922,7 @@ Model {
   }
   System {
     Name		    "feedbackLineariz"
-    Location		    [-9, 19, 831, 1209]
+    Location		    [6, 19, 846, 1209]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -936,7 +936,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "254"
+    SIDHighWatermark	    "256"
     Block {
       BlockType		      Constant
       Name		      "Constant"
@@ -1489,11 +1489,11 @@ Model {
       Name		      "Scope2"
       SID		      "254"
       Ports		      [2]
-      Position		      [655, 211, 685, 244]
+      Position		      [655, 191, 685, 224]
       ZOrder		      64
       ShowName		      off
       Floating		      off
-      Location		      [2127, 398, 3807, 1386]
+      Location		      [109, 264, 1591, 1126]
       Open		      off
       NumInputPorts	      "2"
       List {
@@ -1512,8 +1512,8 @@ Model {
 	MarkerStyles		"none|none|none|none|none|none"
       }
       ShowLegends	      off
-      YMin		      "-25~-5"
-      YMax		      "20~5"
+      YMin		      "-25~-0.0005"
+      YMax		      "20~0.001"
       SaveName		      "ScopeData1"
       DataFormat	      "StructureWithTime"
       LimitDataPoints	      off
@@ -1558,11 +1558,11 @@ Model {
       Name		      "Scope5"
       SID		      "228"
       Ports		      [6]
-      Position		      [740, 240, 790, 325]
+      Position		      [740, 255, 790, 340]
       ZOrder		      52
       ShowName		      off
       Floating		      off
-      Location		      [2418, 61, 3257, 1048]
+      Location		      [862, 116, 1591, 1112]
       Open		      on
       NumInputPorts	      "6"
       List {
@@ -1587,7 +1587,7 @@ Model {
       ShowLegends	      off
       TimeRange		      "18"
       YMin		      "0~-2.5~-1~-0.75~-0.6~-5"
-      YMax		      "120~1.5~1~1~1~5"
+      YMax		      "175~1.5~1~1~1~5"
       SaveName		      "ScopeData2"
       DataFormat	      "StructureWithTime"
       LimitDataPoints	      off
@@ -1596,10 +1596,10 @@ Model {
     Block {
       BlockType		      Reference
       Name		      "Set Torques"
-      SID		      "139"
+      SID		      "256"
       Ports		      [1]
-      Position		      [645, 158, 715, 202]
-      ZOrder		      19
+      Position		      [685, 123, 755, 167]
+      ZOrder		      66
       BackgroundColor	      "[0.941000, 0.415000, 0.192000]"
       ShowName		      off
       LibraryVersion	      "1.238"
@@ -1877,7 +1877,7 @@ Model {
       Name		      "WBI to yarp2"
       SID		      "229"
       Ports		      [1, 5]
-      Position		      [605, 248, 705, 332]
+      Position		      [605, 263, 705, 347]
       ZOrder		      51
       ShowName		      off
       MinAlgLoopOccurrences   off
@@ -2228,7 +2228,7 @@ Model {
 	  BackgroundColor	  "black"
 	  LibraryVersion	  "1.238"
 	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
+	  SourceType		  "Unknown"
 	  from			  "'/icubGazeboSim/left_arm/analog:o/torques'"
 	  to			  "'/tmp2:i'"
 	  num			  "5"
@@ -2243,7 +2243,7 @@ Model {
 	  BackgroundColor	  "black"
 	  LibraryVersion	  "1.238"
 	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
+	  SourceType		  "Unknown"
 	  from			  "'/icubGazeboSim/right_arm/analog:o/torques'"
 	  to			  "'/tmp3:i'"
 	  num			  "5"
@@ -2258,7 +2258,7 @@ Model {
 	  BackgroundColor	  "black"
 	  LibraryVersion	  "1.238"
 	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
+	  SourceType		  "Unknown"
 	  from			  "'/icubGazeboSim/left_leg/analog:o/torques'"
 	  to			  "'/tmp4:i'"
 	  num			  "6"
@@ -2273,7 +2273,7 @@ Model {
 	  BackgroundColor	  "black"
 	  LibraryVersion	  "1.238"
 	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
+	  SourceType		  "Unknown"
 	  from			  "'/icubGazeboSim/right_leg/analog:o/torques'"
 	  to			  "'/tmp5:i'"
 	  num			  "6"
@@ -2288,7 +2288,7 @@ Model {
 	  BackgroundColor	  "black"
 	  LibraryVersion	  "1.238"
 	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
+	  SourceType		  "Unknown"
 	  from			  "'/icubGazeboSim/torso/analog:o/torques'"
 	  to			  "'/tmp1:i'"
 	  num			  "3"
@@ -2844,13 +2844,13 @@ Model {
     Line {
       SrcBlock		      "MATLAB Function"
       SrcPort		      6
-      Points		      [0, -15; 15, 0]
+      Points		      [15, 0]
       Branch {
 	DstBlock		"WBI to yarp2"
 	DstPort			1
       }
       Branch {
-	Points			[0, 75]
+	Points			[0, 60]
 	DstBlock		"Discrete-Time Integrator"
 	DstPort			1
       }
@@ -2915,15 +2915,8 @@ Model {
     Line {
       SrcBlock		      "MATLAB Function"
       SrcPort		      5
-      Points		      [157, 0; 0, -20]
+      Points		      [24, 0; 0, -5]
       DstBlock		      "Scope5"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "MATLAB Function"
-      SrcPort		      2
-      Points		      [0, 35]
-      DstBlock		      "Set Torques"
       DstPort		      1
     }
     Line {
@@ -2935,16 +2928,22 @@ Model {
     Line {
       SrcBlock		      "MATLAB Function"
       SrcPort		      3
-      Points		      [37, 0; 0, 35]
+      Points		      [37, 0; 0, 15]
       DstBlock		      "Scope2"
       DstPort		      1
     }
     Line {
       SrcBlock		      "MATLAB Function"
       SrcPort		      4
-      Points		      [42, 0; 0, 10]
+      Points		      [35, 0; 0, -10]
       DstBlock		      "Scope2"
       DstPort		      2
+    }
+    Line {
+      SrcBlock		      "MATLAB Function"
+      SrcPort		      2
+      DstBlock		      "Set Torques"
+      DstPort		      1
     }
   }
 }
@@ -3002,9 +3001,9 @@ Stateflow {
     eml {
       isEML		      1
       script		      "function [qInitOut,tau,errorH,hMinus_g,Norm_e,e] = fcn(qInit,q,qD,g,M,h,hBlock,qDes,gains,integra"
-      "l_e)\n%#codegen\n\nqInitOut = qInit;\n\ne = q-qDes;\n\nNorm_e = norm(e)*180/pi;\n\nkp = gains(:,1:25);\nki = gai"
-      "ns(:,26:50);\nkd = gains(:,51:75);\n\ntau = g - (kp*e + ki*integral_e + kd*qD);\n\nerrorH = h - hBlock(7:end);\n"
-      "\nhMinus_g = h - g; \n"
+      "l_e)\n%#codegen\n\nqInitOut = qInit;\n\nqDes(end-12:end-6) = qInit(end-12:end-6);\ne = q-qDes;\n\nNorm_e = norm("
+      "e)*180/pi;\n\nkp = gains(:,1:25);\nki = gains(:,26:50);\nkd = gains(:,51:75);\n\nM = M(7:end,7:end);\n\ntau = g "
+      "- (kp*e + ki*integral_e + kd*qD);\n\nerrorH = h - hBlock(7:end);\n\nhMinus_g = h - g; \n"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
