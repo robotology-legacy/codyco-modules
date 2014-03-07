@@ -111,7 +111,7 @@ namespace wbiIcub
           */
         icubWholeBodyModel(const char* _name, 
                            const char* _robotName, 
-                           const iCub::iDynTree::iCubTree_version_tag icub_version=iCub::iDynTree::iCubTree_version_tag(2,2,true), 
+                           const iCub::iDynTree::iCubTree_version_tag icub_version=iCub::iDynTree::iCubTree_version_tag(2,1,true), 
                            double* initial_q=0,
                            const std::vector<std::string> &_bodyPartNames=std::vector<std::string>(iCub::skinDynLib::BodyPart_s,iCub::skinDynLib::BodyPart_s+sizeof(iCub::skinDynLib::BodyPart_s)/sizeof(std::string)));
         

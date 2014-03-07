@@ -1,9 +1,14 @@
 clear all;
 
+% Add path to MATLAB
+addpath(genpath('/home/daniele/MATLAB'))
+addpath(genpath('/home/daniele/src/codyco/build'))
+addpath(genpath('/home/daniele/src/codyco/src/simulink/controllers'))
+
 robotName = 'icubGazeboSim';
 localName = 'torqueControlTests';
  
- gains = [diag([30*ones(1,3),7*ones(1,22)]),1*eye(25),0.2*eye(25)];
+ gains = [diag([30*ones(1,3),5*ones(1,22)]),0.1*eye(25),0.2*eye(25)];
  
  Ts = 0.01;
  qDes = [ 1.1695	
