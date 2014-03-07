@@ -31,6 +31,7 @@
 #define DEBUGGING 0
 #define TIMING    0
 #define NEWCODE	  1
+#define ICUB_FIXED
 
 YARP_DECLARE_DEVICES(icubmod)
 
@@ -218,13 +219,19 @@ int robotStatus::getLinkId(const char *linkName) {
     return comLinkId;
 }
 //=========================================================================================================================
-bool robotStatus::world2baseRototranslation() {
-    /** TODO This method should take as input the link you wanna use for to define the world reference frame. Right now it's hard coded to be the left foot. */
+bool robotStatus::world2baseRototranslation(double *q) {
+    /** \todo This method should take as input the link you wanna use for to define the world reference frame. Right now it's hard coded to be the left foot. */
+#ifndef ICUB_FIXED
     int LINK_ID_LEFT_FOOT;
     getLinkId("l_sole",LINK_ID_LEFT_FOOT);
-    if(!robotJntAngles(false)) fprintf(stderr,"ERROR [robotStatus::world2baseRototranslation] acquiring robot joint angles in robotStatus::forwardKinematics\n");
-    wbInterface->computeH(qRad.data(), Frame(), LINK_ID_LEFT_FOOT, H_base_leftFoot);
+    wbInterface->computeH(q, Frame(), LINK_ID_LEFT_FOOT, H_base_leftFoot);
     H_base_leftFoot = H_base_leftFoot*Ha;
+#else
+    int LINK_ROOT;
+    getLinkId("root_link",LINK_ROOT);
+    wbInterface->computeH(q, Frame(), LINK_ROOT, H_base_leftFoot);
+    H_base_leftFoot = H_base_leftFoot;
+#endif
     H_base_leftFoot.setToInverse().get4x4Matrix(H_w2b.data());
     if(DEBUGGING) fprintf(stderr,"robotStatus::world2baseRototranslation >> H_base_leftFoot: %s \n",H_base_leftFoot.toString().c_str());
     if(DEBUGGING) fprintf(stderr,"robotStatus::world2baseRototranslation >> qRad           : %s \n",qRad.toString().c_str());
@@ -251,7 +258,7 @@ bool robotStatus::robotJntTorques(bool blockingRead) {
 //=========================================================================================================================
 Vector robotStatus::forwardKinematics(int &linkId) {
     if(robotJntAngles(false)) {
-        if(world2baseRototranslation())
+        if(world2baseRototranslation(qRad.data()))
         {
             footLinkId = linkId;
             if(DEBUGGING) fprintf(stderr,"robotStatus::forwardKinematics >> Forward kinematics will be computed with footLinkId: %d and x_pose: %s \n", footLinkId, x_pose.toString().c_str());
@@ -281,7 +288,7 @@ Vector robotStatus::forwardKinematics(int &linkId) {
 //=========================================================================================================================
 JacobianMatrix robotStatus::jacobian(int &lid) {
     if(robotJntAngles(false)) {
-        if(world2baseRototranslation()) {
+        if(world2baseRototranslation(qRad.data())) {
             bool ans = wbInterface->computeJacobian(qRad.data(), xBase, lid, JfootR.data());
             if(ans)
             {
@@ -350,7 +357,7 @@ void robotStatus::setdqDes(Vector dqD) {
 //=========================================================================================================================
 bool robotStatus::inverseDynamics(double *qrad_input, double *dq_input, double *ddq_input, double *tauJ_computed) {
     bool ans = false;
-    if(world2baseRototranslation()) {
+    if(world2baseRototranslation(qrad_input)) {
         if(DEBUGGING) fprintf(stderr,"robotStatus::inverseDynamics >> world2baseRototranslation computed\n");
         ans = wbInterface->inverseDynamics(qrad_input, xBase, dq_input, dxB.data(), ddq_input, ddxB.data(), grav.data(), tauJ_computed);
         
@@ -368,7 +375,7 @@ bool robotStatus::dynamicsMassMatrix() {
     bool ans = false;
     if(robotJntAngles(false)) {
         if(DEBUGGING) fprintf(stderr,"robotStatus::dynamicsMassMatrix >> robotJntAngles computed\n");
-        if(world2baseRototranslation()) {
+        if(world2baseRototranslation(qRad.data())) {
             if(DEBUGGING) fprintf(stderr,"robotStatus::dynamicsMassMatrix >> world2baseRototranslation computed\n");
             ans = wbInterface->computeMassMatrix(qRad.data(),xBase, massMatrix.data());
         }
@@ -387,7 +394,7 @@ Vector robotStatus::dynamicsGenBiasForces() {
         if(DEBUGGING) fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> robotJntAngles computed for dynamicsGenBiasForces\n");
         if(robotJntVelocities(false)) {
             if(DEBUGGING) fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> robotJntVelocities computed for dynamicsGenBiasForces\n");
-            if(world2baseRototranslation()) {
+            if(world2baseRototranslation(qRad.data())) {
                 if(DEBUGGING) fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> world2baseRototranslation computed for dynamicsGenBiasForces\n");
                 if(robotBaseVelocity()) {
                     
@@ -425,7 +432,7 @@ bool robotStatus::dynamicsDJdq(int &linkId) {
         if(DEBUGGING) fprintf(stderr,"robotStatus::dynamicsDJd >> robotJntAngles computed for dynamicsDJdq\n");
         if(robotJntVelocities(false)) {
             if(DEBUGGING) fprintf(stderr,"robotStatus::dynamicsDJd >> robotJntVelocities computed for dynamicsDJdq\n");
-            if(world2baseRototranslation()) {
+            if(world2baseRototranslation(qRad.data())) {
                 footLinkId = linkId;
                 if(!robotBaseVelocity()) {
                     fprintf(stderr,"robotStatus::dynamicsDJd >> robotBaseVelocity failed in robotStatus::dynamicsDJd\n");

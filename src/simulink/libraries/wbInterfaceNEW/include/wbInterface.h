@@ -169,7 +169,7 @@ public:
     void 		getLinkId(const char *linkName, int &lid);
     //This is especifically for the COM
     int 		getLinkId(const char *linkName);
-    bool 		world2baseRototranslation();
+    bool 		world2baseRototranslation(double *q);
     bool 		robotJntAngles(bool blockingRead);
     bool 		robotJntVelocities(bool blockingRead);
     bool 		robotJntAccelerations(bool blockingRead);
