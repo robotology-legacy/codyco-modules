@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.1"
+    ComputedModelVersion    "1.2"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -20,16 +20,16 @@ Model {
   MinMaxOverflowLogging	  "UseLocalSettings"
   MinMaxOverflowArchiveMode "Overwrite"
   MaxMDLFileLineLength	  120
-  InitFcn		  "robotName = 'icubGazeboSim';\nlocalName = 'SimulinkiCubGazeboSim';\nTs = 0.01;"
+  InitFcn		  "robotName = 'icubGazeboSim';\nlocalName = 'SimulinkiCubGazeboSim';\nTs = 0.1;"
   Created		  "Thu Mar  6 17:53:51 2014"
   Creator		  "iron"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Mar  6 18:06:15 2014"
-  RTWModifiedTimeStamp	  316029948
-  ModelVersionFormat	  "1.%<AutoIncrement:1>"
+  LastModifiedDate	  "Thu Mar  6 18:21:10 2014"
+  RTWModifiedTimeStamp	  316030849
+  ModelVersionFormat	  "1.%<AutoIncrement:2>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -66,8 +66,7 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "computeH"
-    signals_		    []
-    overrideMode_	    [0U]
+    overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
       Dimension		      1
@@ -132,7 +131,7 @@ Model {
 	  $ObjectID		  3
 	  Version		  "1.11.0"
 	  StartTime		  "0.0"
-	  StopTime		  "10.0"
+	  StopTime		  "100.0"
 	  AbsTol		  "auto"
 	  FixedStep		  "Ts"
 	  InitialStep		  "auto"
@@ -607,7 +606,7 @@ Model {
       }
       Name		      "Configuration"
       CurrentDlgPage	      "Solver"
-      ConfigPrmDlgPosition     [ 200, 74, 1080, 704 ] 
+      ConfigPrmDlgPosition     [ -1266, 236, -413, 791 ] 
     }
     PropName		    "ConfigurationSets"
   }
@@ -745,7 +744,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "15"
+    SIDHighWatermark	    "16"
     Block {
       BlockType		      Sum
       Name		      "Add"
@@ -853,9 +852,9 @@ Model {
 	ListType		AxesTitles
 	axes1			"%<SignalLabel>"
       }
-      TimeRange		      "0.28"
-      YMin		      "-0.4"
-      YMax		      "0.4"
+      TimeRange		      "10"
+      YMin		      "-0.1"
+      YMax		      "0.175"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
     }
@@ -907,14 +906,14 @@ Model {
     Block {
       BlockType		      Reference
       Name		      "Soft Real Time"
-      SID		      "12"
+      SID		      "16"
       Ports		      []
-      Position		      [42, 19, 111, 62]
+      Position		      [403, 185, 490, 216]
       ShowName		      off
       LibraryVersion	      "1.7"
       SourceBlock	      "utility/Soft Real Time"
       SourceType	      ""
-      x			      "Ts"
+      x			      "1"
     }
     Block {
       BlockType		      Reference
@@ -956,7 +955,7 @@ Model {
       Position		      [110, 318, 180, 362]
       BackgroundColor	      "gray"
       ShowName		      off
-      Value		      "ones(25,1)"
+      Value		      "ones(25,1).*10"
     }
     Line {
       SrcBlock		      "Joint Angles"
