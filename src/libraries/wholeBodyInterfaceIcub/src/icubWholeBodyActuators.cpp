@@ -88,7 +88,7 @@ icubWholeBodyActuators::~icubWholeBodyActuators()
 
 bool icubWholeBodyActuators::openDrivers(int bp)
 {
-    if( bp >= bodyPartNames.size() || bp < 0 ) { 
+    if( bp >= (int)bodyPartNames.size() || bp < 0 ) { 
         std::cerr << "icubWholeBodyActuators::openDrivers error: called with bodypart " << bp << 
                      " but the total number of bodyparts is " << bodyPartNames.size() << std::endl;
         return false;

@@ -386,7 +386,7 @@ icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period,
                                                                icubWholeBodySensors *_sensors, 
                                                                yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
                                                                iCub::iDynTree::iCubTree_version_tag _icub_version)
-: RateThread(_period), sensors(_sensors), port_skin_contacts(_port_skin_contacts), dqFilt(0), d2qFilt(0),  icub_version(_icub_version)
+: RateThread(_period), sensors(_sensors), port_skin_contacts(_port_skin_contacts), dqFilt(0), d2qFilt(0),  icub_version(_icub_version), enable_omega_domega_IMU(false)
 {
     resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
     resizeFTs(sensors->getSensorNumber(SENSOR_FORCE_TORQUE));
@@ -531,7 +531,7 @@ void icubWholeBodyDynamicsEstimator::run()
                 estimates.lastForceTorques[ft_index] = forcetorqueFilters[ft_index]->filt(forcetorques[ft_index]); ///< low pass filter
                 estimates.lastForceTorques[ft_index] = estimates.lastForceTorques[ft_index] - forcetorques_offset[ft_index]; /// remove offset
             } else {
-                std::cout << "icubWholeBodyStatesLocal: Error in reading IMU, exiting" << std::endl;
+                std::cout << "icubWholeBodyStatesLocal: Error in reading F/T sensors, exiting" << std::endl;
                 YARP_ASSERT(false);
             }
         }
@@ -732,6 +732,11 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     assert(omega_used_IMU.size() == 3);
     assert(domega_used_IMU.size() == 3);
     assert(ddp_used_IMU.size() == 3);
+    
+    if( !enable_omega_domega_IMU ) {
+        domega_used_IMU.zero();
+        omega_used_IMU.zero();
+    }
     
     model_mutex.wait();
     assert(estimates.lastQ.size() == icub_model->getNrOfDOFs());
@@ -942,6 +947,8 @@ bool icubWholeBodyDynamicsEstimator::lockAndSetEstimationParameter(const Estimat
     case ESTIMATE_JOINT_TORQUE:
         if(ep==ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ)
             res = setTauJCutFrequency(((double*)value)[0]);
+        else if(ep==wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU)
+            res = setEnableOmegaDomegaIMU(*((bool*)value));
         break;
 
     case ESTIMATE_JOINT_TORQUE_DERIVATIVE:
@@ -1093,4 +1100,10 @@ bool icubWholeBodyDynamicsEstimator::setTauMCutFrequency(double fc)
 bool icubWholeBodyDynamicsEstimator::setPwmCutFrequency(double fc)
 {
     return pwmFilt->setCutFrequency(fc);
+}
+
+bool icubWholeBodyDynamicsEstimator::setEnableOmegaDomegaIMU(bool _enabled_omega_domega_IMU)
+{
+    enable_omega_domega_IMU = _enabled_omega_domega_IMU;
+    return true;
 }

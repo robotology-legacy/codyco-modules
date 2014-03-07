@@ -73,7 +73,7 @@ bool checkInverseDynamicsAndMassMatrixConsistency(iWholeBodyModel * model_interf
     }
     
     assert(nr_of_activated_joints == nr_of_considered_joints);
-    assert(nr_of_considered_joints == model_interface->getJointList().size());
+    assert(nr_of_considered_joints == (int)model_interface->getJointList().size());
    
     //std::cout << "checkInverseDynamicsAndMassMatrixConsistency: nrOfPossibleJoints : " << nr_of_possible_joints << " nrOfConsiderJoints " << nr_of_considered_joints << " " << nr_of_activated_joints << std::endl;
     
@@ -128,7 +128,7 @@ bool checkInverseDynamicsAndMassMatrixConsistency(iWholeBodyModel * model_interf
     //std::cout << "invDyn with mass matrix: " << std::endl << generalized_torques_computed_with_mass_matrix.toString() << std::endl;
 
     
-    for(int i = 0; i < generalized_torques.size(); i++ ) {
+    for(int i = 0; i < (int)generalized_torques.size(); i++ ) {
         if( fabs(generalized_torques[i]-generalized_torques_computed_with_mass_matrix[i]) > tol ) { 
             if( verbose ) { std::cout << "checkInverseDynamicsAndMassMatrixConsistency: generalized torque " << i << " is different, failing" << std::endl; }
             return false;

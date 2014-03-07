@@ -154,9 +154,9 @@ class wholeBodyDynamicsThread: public RateThread
     yarp::os::Mutex calibration_mutex;
     iCubTreeStatus tree_status;
     
-    iCub::iDynTree::iCubTree icub_model_calibration;
     iCub::iDynTree::iCubTree_version_tag icub_version;
-    
+    iCub::iDynTree::iCubTree icub_model_calibration;
+
     const int max_samples_used_for_calibration;
     
     int l_foot_ft_sensor_id;
