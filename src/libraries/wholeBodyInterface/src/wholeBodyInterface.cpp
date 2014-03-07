@@ -1,3 +1,3 @@
-#include <wbi/wbi.h>
+#include <wbi/wholeBodyInterface.h>
 
 wbi::wholeBodyInterface::~wholeBodyInterface() {}
