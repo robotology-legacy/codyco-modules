@@ -175,6 +175,11 @@ int main(int argc, char * argv[])
     
     const double g = 9.8;
     
+    
+    dq(0) = dq1 = 55;
+    dq(1) = dq2 = -65.3;
+    
+    
     grav1 = (m1 * l1 + m2 * a1) * g * cos(-q1) + m2 * l2 * g * cos(-q1 - q2);
     grav2 = m2 * l2 * g * cos(-q1 - q2);
     
