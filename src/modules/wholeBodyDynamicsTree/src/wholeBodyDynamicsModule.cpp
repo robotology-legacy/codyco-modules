@@ -91,7 +91,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     }
     
     /// \note if feet_version are 2, the presence of FT sensors in the feet is assumed
-    icub_version.feet_ft = false;
+    icub_version.feet_ft = true;
     if( rf.check("feetV1") ) {
         icub_version.feet_ft = false;
     }
@@ -117,13 +117,13 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
     if( icub_version.feet_ft ) {
         int added_ft_sensors = estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE,wbiIcub::ICUB_MAIN_FOOT_FTS);
-        if( added_ft_sensors != wbiIcub::ICUB_MAIN_FOOT_FTS.size() ) {
+        if( added_ft_sensors != (int)wbiIcub::ICUB_MAIN_FOOT_FTS.size() ) {
             std::cout << "Error in adding F/T estimates" << std::endl;
             return false;
         }
     } else {
         int added_ft_sensors = estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE,wbiIcub::ICUB_MAIN_FTS);
-        if( added_ft_sensors != wbiIcub::ICUB_MAIN_FTS.size() ) {
+        if( added_ft_sensors != (int)wbiIcub::ICUB_MAIN_FTS.size() ) {
             std::cout << "Error in adding F/T estimates" << std::endl;
             return false;
         }
@@ -133,6 +133,19 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 
     if(!estimationInterface->init()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl; return false; }
 
+    bool use_ang_vel_acc = true;
+    if( rf.check("enable_w0_dw0") ) {
+        std::cout << "enable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration." << std::endl;
+        use_ang_vel_acc = true;
+        estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
+    } 
+    
+    if( rf.check("disable_w0_dw0") ) {
+        std::cout << "disable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration." << std::endl;
+        use_ang_vel_acc = false;
+        estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
+    }
+    
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
     wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface, icub_version);
     if(!wbdThread->start()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }

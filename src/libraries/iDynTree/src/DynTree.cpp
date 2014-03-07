@@ -1016,6 +1016,10 @@ bool DynTree::kinematicRNEA()
 
 bool DynTree::estimateContactForces()
 {
+    #ifndef NDEBUG
+    std::cout << "DynTree::estimateContactForces " << std::endl;
+    #endif
+    
     double tol = 1e-7; /**< value extracted from old iDynContact */
     buildAb_contacts();
     for(int i=0; i < NrOfDynamicSubGraphs; i++ ) {
@@ -1029,6 +1033,7 @@ bool DynTree::estimateContactForces()
         #endif 
         x_contacts[i] = yarp::math::pinv(A_contacts[i],tol)*b_contacts[i];
         #ifndef NDEBUG
+
         /*
         std::string contacts_string = x_contacts[i].toString();
         
