@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.11"
+    ComputedModelVersion    "1.27"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -28,9 +28,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Mar  6 22:34:31 2014"
-  RTWModifiedTimeStamp	  316046026
-  ModelVersionFormat	  "1.%<AutoIncrement:11>"
+  LastModifiedDate	  "Fri Mar  7 11:46:13 2014"
+  RTWModifiedTimeStamp	  316092726
+  ModelVersionFormat	  "1.%<AutoIncrement:27>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -132,7 +132,7 @@ Model {
 	  $ObjectID		  3
 	  Version		  "1.11.0"
 	  StartTime		  "0.0"
-	  StopTime		  "Inf"
+	  StopTime		  "3"
 	  AbsTol		  "auto"
 	  FixedStep		  "Ts"
 	  InitialStep		  "auto"
@@ -799,7 +799,7 @@ Model {
   }
   System {
     Name		    "feedbackLineariz2"
-    Location		    [388, 122, 1304, 704]
+    Location		    [388, 144, 1304, 726]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -813,7 +813,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "53"
+    SIDHighWatermark	    "54"
     Block {
       BlockType		      Constant
       Name		      "Constant"
@@ -1339,11 +1339,11 @@ Model {
       Name		      "Scope2"
       SID		      "32"
       Ports		      [2]
-      Position		      [610, 226, 640, 259]
+      Position		      [560, 186, 590, 219]
       ZOrder		      64
       ShowName		      off
       Floating		      off
-      Location		      [1, 71, 1681, 799]
+      Location		      [-1439, 142, 241, 870]
       Open		      off
       NumInputPorts	      "2"
       List {
@@ -1360,6 +1360,29 @@ Model {
     }
     Block {
       BlockType		      Scope
+      Name		      "Scope3"
+      SID		      "54"
+      Ports		      [1]
+      Position		      [560, 53, 590, 87]
+      ZOrder		      64
+      ShowName		      off
+      Floating		      off
+      Location		      [1, 71, 1681, 799]
+      Open		      off
+      NumInputPorts	      "1"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      YMin		      "0"
+      YMax		      "8.5e-17"
+      SaveName		      "ScopeData3"
+      DataFormat	      "StructureWithTime"
+      LimitDataPoints	      off
+      SampleTime	      "0"
+    }
+    Block {
+      BlockType		      Scope
       Name		      "Scope5"
       SID		      "34"
       Ports		      [6]
@@ -1367,8 +1390,8 @@ Model {
       ZOrder		      52
       ShowName		      off
       Floating		      off
-      Location		      [6, 71, 845, 799]
-      Open		      on
+      Location		      [21, 71, 860, 799]
+      Open		      off
       NumInputPorts	      "6"
       List {
 	ListType		AxesTitles
@@ -1380,8 +1403,8 @@ Model {
 	axes6			"%<SignalLabel>"
       }
       TimeRange		      "18"
-      YMin		      "50~-0.75~-0.75~-1~-1~-1.5"
-      YMax		      "170~1.5~0.75~1~1~1.25"
+      YMin		      "0~-1.25~-1~-1~-0.75~-0.75"
+      YMax		      "120~0.5~0.75~0.75~1~1"
       SaveName		      "ScopeData2"
       DataFormat	      "StructureWithTime"
       LimitDataPoints	      off
@@ -1392,7 +1415,7 @@ Model {
       Name		      "Set Torques"
       SID		      "35"
       Ports		      [1]
-      Position		      [570, 163, 640, 207]
+      Position		      [560, 123, 630, 167]
       ZOrder		      19
       BackgroundColor	      "[0.941000, 0.415000, 0.192000]"
       ShowName		      off
@@ -1683,7 +1706,7 @@ Model {
       Name		      "massMatrix"
       SID		      "52"
       Ports		      [0, 1]
-      Position		      [280, 200, 310, 220]
+      Position		      [255, 205, 285, 225]
       ZOrder		      39
       BackgroundColor	      "[0.970000, 0.060000, 0.376000]"
       ShowName		      off
@@ -1778,7 +1801,7 @@ Model {
     Line {
       SrcBlock		      "massMatrix"
       SrcPort		      1
-      Points		      [20, 0]
+      Points		      [45, 0]
       DstBlock		      "MATLAB Function"
       DstPort		      5
     }
@@ -1876,24 +1899,31 @@ Model {
     }
     Line {
       SrcBlock		      "MATLAB Function"
+      SrcPort		      2
+      Points		      [15, 0]
+      Branch {
+	DstBlock		"Set Torques"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, -75]
+	DstBlock		"Scope3"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "MATLAB Function"
       SrcPort		      3
-      Points		      [0, 50]
+      Points		      [25, 0; 0, 10]
       DstBlock		      "Scope2"
       DstPort		      1
     }
     Line {
       SrcBlock		      "MATLAB Function"
       SrcPort		      4
-      Points		      [0, 25]
+      Points		      [25, 0; 0, -15]
       DstBlock		      "Scope2"
       DstPort		      2
-    }
-    Line {
-      SrcBlock		      "MATLAB Function"
-      SrcPort		      2
-      Points		      [0, 40]
-      DstBlock		      "Set Torques"
-      DstPort		      1
     }
   }
 }
@@ -1950,9 +1980,9 @@ Stateflow {
     eml {
       isEML		      1
       script		      "function [qInitOut,tau,errorH,hMinus_g,Norm_e,e] = fcn(qInit,q,qD,g,M,h,hBlock,qDes,gains,integra"
-      "l_e)\n%#codegen\n\nqInitOut = qInit;\n\ne = q-qDes;\n\nNorm_e = norm(e)*180/pi;\n\nkp = gains(:,1:25);\nki = gai"
-      "ns(:,26:50);\nkd = gains(:,51:75);\n\ntau = - (kp*e + ki*integral_e + kd*qD);\n\nerrorH = h - hBlock(7:end);\n\n"
-      "hMinus_g = h - g;\n"
+      "l_e)\n%#codegen\n\nqInitOut = qInit;\n\ne = q-qDes;\n\nNorm_e = norm(e)*180/pi;\n\nM  = M(7:end, 7:end);\n\nkp ="
+      " gains(:,1:25);\nki = gains(:,26:50);\nkd = gains(:,51:75);\n\ntau = g - (kp*e + 0*ki*integral_e + kd*qD);\n\ner"
+      "rorH = h - hBlock(7:end);\n\nhMinus_g = h - g;\n"
       editorLayout	      "100 M4x1[154 57 1080 733]"
     }
   }
