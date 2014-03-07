@@ -148,8 +148,8 @@ int main(int argc, char * argv[])
     const double l1  = 0.5;
     const double l2  = 0.5;
     const double a1  = 1;
-    const double Il1 = 1.0/12.0;
-    const double Il2 = 1.0/12.0;
+    const double Il1 = 1.0; //inertia like in the URDF model, w.r.t COM
+    const double Il2 = 1.0; //inertia like in the URDF model, w.r.t COM
     
     double tau1 = 0;
     double tau2 = 0;
@@ -175,15 +175,15 @@ int main(int argc, char * argv[])
     
     const double g = 9.8;
     
-    grav1 = (m1 * l1 + m2 * a1) * g * cos(q1) + m2 * l2 * g * cos(q1 + q2);
-    grav2 = m2 * l2 * g * cos(q1 + q2);
+    grav1 = (m1 * l1 + m2 * a1) * g * cos(-q1) + m2 * l2 * g * cos(-q1 - q2);
+    grav2 = m2 * l2 * g * cos(-q1 - q2);
     
-    cH = -m2 * a1 * l2 * sin(q2);
-    cTerm1 = cH * dq2 * dq1 + cH * (dq1 + dq2) * dq2;
-    cTerm2 = -cH * dq1 * dq1;
+    cH = -m2 * a1 * l2 * sin(-q2);
+    cTerm1 = cH * -dq2 * -dq1 + cH * (-dq1 - dq2) * -dq2;
+    cTerm2 = -cH * -dq1 * -dq1;
     
-    m11 = Il1 + m1 * l1 * l1 + Il2 + m2 * (a1 * a1 + l2 * l2 + 2 * a1* l2 * cos(q2));
-    m12 = Il2 + m2 * (l2 * l2 + a1* l2 * cos(q2));
+    m11 = Il1 + m1 * l1 * l1 + Il2 + m2 * (a1 * a1 + l2 * l2 + 2 * a1* l2 * cos(-q2));
+    m12 = Il2 + m2 * (l2 * l2 + a1* l2 * cos(-q2));
     m22 = Il2 + m2 * l2 * l2;
     
     yarp::sig::Matrix M(6 + dof, 6 + dof);
@@ -199,11 +199,12 @@ int main(int argc, char * argv[])
 //    grav(0) = grav1;
 //    grav(1) = grav2;
     yarp::sig::Vector tempTau(dof + 6);
-    yarp::sig::Vector zeroVec(dof + 6);
+    yarp::sig::Vector zeroVec(dof);
     zeroVec.zero();
     
     Frame xBase = Frame::identity();
     //try the base to coicide with the origin of the upper link
+    xBase.p[2] = 0;
     double baseVelocity[6] = {0, 0, 0, 0, 0, 0};
     double baseAcc[6] = {0, 0, 0, 0, 0, 0};
     double gravity[3] = {0, 0, -g};
