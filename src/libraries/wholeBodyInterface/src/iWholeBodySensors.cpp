@@ -1,3 +1,3 @@
-#include <wbi/wbi.h>
+#include <wbi/iWholeBodySensors.h>
 
 wbi::iWholeBodySensors::~iWholeBodySensors() {}

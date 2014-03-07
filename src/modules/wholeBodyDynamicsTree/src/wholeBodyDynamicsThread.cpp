@@ -85,7 +85,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        robotName(_robotName), 
        estimator(_wbs), 
        printCountdown(0), 
-       PRINT_PERIOD(30000),
+       PRINT_PERIOD(2000),
        icub_version(_icub_version),
        icub_model_calibration(_icub_version),
        max_samples_used_for_calibration(50),
@@ -427,10 +427,12 @@ void wholeBodyDynamicsThread::normal_run()
             printf("Next time you could set a lower period to improve the wholeBodyDynamics performance.\n");
         else if(avgTime>1.3*period)
             printf("The period you set was impossible to attain. Next time you could set a higher period.\n");
+        
         std::cout << "Torques: " << std::endl;
         std::cout << all_torques.toString() << std::endl;
         std::cout << "Forces: " << std::endl;
         std::cout << external_forces_list.toString() << std::endl;
+        
 
     }
     
@@ -471,7 +473,10 @@ void wholeBodyDynamicsThread::calibration_run()
 
     for(int ft_sensor_id=0; ft_sensor_id < offset_buffer.size(); ft_sensor_id++ ) {
         if( calibrate_ft_sensor[ft_sensor_id] ) {
-            icub_model_calibration.getSensorMeasurement(ft_sensor_id,tree_status.estimated_ft_sensors[ft_sensor_id]);       
+            //Get sensor estimated from model
+            icub_model_calibration.getSensorMeasurement(ft_sensor_id,tree_status.estimated_ft_sensors[ft_sensor_id]);
+            //Get sensor measure
+            estimator->getEstimate(wbi::ESTIMATE_FORCE_TORQUE,convertFTiDynTreeToFTwbi(ft_sensor_id),tree_status.measured_ft_sensors[ft_sensor_id].data());
 	    assert(offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
             offset_buffer[ft_sensor_id] += tree_status.measured_ft_sensors[ft_sensor_id]-tree_status.estimated_ft_sensors[ft_sensor_id];   
         } 
