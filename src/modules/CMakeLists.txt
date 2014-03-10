@@ -1,5 +1,5 @@
 if(CODYCO_BUILD_YARP24_MODULES)
-    add_subdirectory(comStepper)
+    #add_subdirectory(comStepper)
     add_subdirectory(wholeBodyDynamicsTree)
     add_subdirectory(adaptiveControl)
 endif()
