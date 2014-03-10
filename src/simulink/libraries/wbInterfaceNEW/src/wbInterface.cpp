@@ -105,7 +105,8 @@ bool robotStatus::robotConfig() {
     }
     else {
         //---------------- CREATION WHOLE BODY INTERFACE ---------------------/
-        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str());
+        iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,1,true);
+        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
         if(DEBUGGING) fprintf(stderr,"robotStatus::robotConfig >> new wbInterface created ...\n");
         tmpContainer = (int *) wbInterface;
         if(DEBUGGING) fprintf(stderr,"robotStatus::robotConfig >> icubWholeBodyInterface has been created %p \n", wbInterface);

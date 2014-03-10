@@ -54,10 +54,31 @@ int main(int argc, char * argv[])
       robotName = "icubSim";
     }
     
+    bool use_urdf = false;
+    
+    #ifdef CODYCO_USES_URDFDOM
+    std::string urdf_file;
+    if(options.check("urdf")) { 
+        use_urdf = true;
+        urdf_file = options.find("urdf").asString();
+    } else {
+        use_urdf = false;
+    }
+    #endif
+    
     // TEST WHOLE BODY INTERFACE
     std::string localName = "wbiTest";
-    std::cout << "Creating icubWholeBodyInterface with robotName " << robotName << " " << localName << std::endl;
-    wholeBodyInterface *icub = new icubWholeBodyInterface(localName.c_str(),robotName.c_str());
+    
+    wholeBodyInterface *icub;
+    if( !use_urdf ) {
+        std::cout << "Creating icubWholeBodyInterface with robotName " << robotName << " " << localName << std::endl;
+        icub = new icubWholeBodyInterface(localName.c_str(),robotName.c_str());
+    } else {
+#ifdef CODYCO_USES_URDFDOM
+        std::cout << "Creating icubWholeBodyInterface with robotName " << robotName << " " << localName << " " << " and urdf file " << urdf_file << std::endl;
+        icub = new icubWholeBodyInterface(localName.c_str(),robotName.c_str(),iCub::iDynTree::iCubTree_version_tag(2,2,true),urdf_file);
+#endif
+    }
     
     std::cout << "icubWholeBodyInterface created, adding joints" << std::endl;
     icub->addJoints(LocalIdList(RIGHT_ARM,0,1,2,3,4));
@@ -103,7 +124,7 @@ int main(int argc, char * argv[])
         //cout<<"COM Jacobian: "<<jacob<<endl;
         
         icub->forwardKinematics(q.data(),world2base,wbi::iWholeBodyModel::COM_LINK_ID,com.data());
-        //printf("Center of Mass:  %.10f \t %.10f \t %.10f\n",com[0],com[1],com[2]);
+        printf("Center of Mass:  %.10f \t %.10f \t %.10f\n",com[0],com[1],com[2]);
                 
     }
     

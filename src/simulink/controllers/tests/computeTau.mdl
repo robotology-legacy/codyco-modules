@@ -1,12 +1,12 @@
 Model {
-  Name			  "inverseDynamicsStandingTest"
+  Name			  "computeTau"
   Version		  7.7
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.49"
+    ComputedModelVersion    "1.118"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -28,9 +28,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Mar  6 17:47:54 2014"
-  RTWModifiedTimeStamp	  316028716
-  ModelVersionFormat	  "1.%<AutoIncrement:49>"
+  LastModifiedDate	  "Mon Mar 10 10:02:45 2014"
+  RTWModifiedTimeStamp	  316344867
+  ModelVersionFormat	  "1.%<AutoIncrement:118>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -133,7 +133,7 @@ Model {
 	  $ObjectID		  3
 	  Version		  "1.11.0"
 	  StartTime		  "0.0"
-	  StopTime		  "1000"
+	  StopTime		  "5"
 	  AbsTol		  "auto"
 	  FixedStep		  "0.01"
 	  InitialStep		  "auto"
@@ -649,6 +649,10 @@ Model {
   }
   BlockParameterDefaults {
     Block {
+      BlockType		      Clock
+      DisplayTime	      off
+    }
+    Block {
       BlockType		      Concatenate
       NumInputs		      "2"
       ConcatenateDimension    "1"
@@ -673,21 +677,6 @@ Model {
       BusSelectionMode	      off
     }
     Block {
-      BlockType		      Gain
-      Gain		      "1"
-      Multiplication	      "Element-wise(K.*u)"
-      ParamMin		      "[]"
-      ParamMax		      "[]"
-      ParamDataTypeStr	      "Inherit: Same as input"
-      OutMin		      "[]"
-      OutMax		      "[]"
-      OutDataTypeStr	      "Inherit: Same as input"
-      LockScale		      off
-      RndMeth		      "Floor"
-      SaturateOnIntegerOverflow	on
-      SampleTime	      "-1"
-    }
-    Block {
       BlockType		      Inport
       Port		      "1"
       OutputFunctionCall      off
@@ -704,6 +693,15 @@ Model {
       LatchByDelayingOutsideSignal off
       LatchInputForFeedbackSignals off
       Interpolate	      on
+    }
+    Block {
+      BlockType		      Memory
+      X0		      "0"
+      InheritSampleTime	      off
+      LinearizeMemory	      off
+      LinearizeAsDelay	      off
+      StateMustResolveToSignalObject off
+      RTWStateStorageClass    "Auto"
     }
     Block {
       BlockType		      Mux
@@ -729,6 +727,21 @@ Model {
       SourceOfInitialOutputValue "Dialog"
       OutputWhenDisabled      "held"
       InitialOutput	      "[]"
+    }
+    Block {
+      BlockType		      Product
+      Inputs		      "2"
+      Multiplication	      "Element-wise(.*)"
+      CollapseMode	      "All dimensions"
+      CollapseDim	      "1"
+      InputSameDT	      on
+      OutMin		      "[]"
+      OutMax		      "[]"
+      OutDataTypeStr	      "Inherit: Same as first input"
+      LockScale		      off
+      RndMeth		      "Zero"
+      SaturateOnIntegerOverflow	on
+      SampleTime	      "-1"
     }
     Block {
       BlockType		      S-Function
@@ -760,6 +773,9 @@ Model {
       IndexMode		      "One-based"
       InputPortWidth	      "-1"
       SampleTime	      "-1"
+    }
+    Block {
+      BlockType		      Stop
     }
     Block {
       BlockType		      SubSystem
@@ -800,12 +816,27 @@ Model {
       SampleTime	      "-1"
     }
     Block {
+      BlockType		      Switch
+      Criteria		      "u2 >= Threshold"
+      Threshold		      "0"
+      InputSameDT	      on
+      OutMin		      "[]"
+      OutMax		      "[]"
+      OutDataTypeStr	      "Inherit: Inherit via internal rule"
+      LockScale		      off
+      RndMeth		      "Floor"
+      SaturateOnIntegerOverflow	on
+      ZeroCross		      on
+      SampleTime	      "-1"
+      AllowDiffInputSizes     off
+    }
+    Block {
       BlockType		      Terminator
     }
   }
   System {
-    Name		    "inverseDynamicsStandingTest"
-    Location		    [341, 105, 1279, 855]
+    Name		    "computeTau"
+    Location		    [515, 285, 1453, 1013]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -819,108 +850,21 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "239"
+    SIDHighWatermark	    "340"
     Block {
-      BlockType		      Sum
-      Name		      "Add"
-      SID		      "229"
-      Ports		      [2, 1]
-      Position		      [740, 202, 770, 233]
-      Inputs		      "+-"
-      InputSameDT	      off
-      OutDataTypeStr	      "Inherit: Inherit via internal rule"
-      SaturateOnIntegerOverflow	off
-    }
-    Block {
-      BlockType		      Gain
-      Name		      "Gain"
-      SID		      "227"
-      Position		      [555, 680, 585, 710]
-      ZOrder		      -2
-      ShowName		      off
-      Gain		      "0"
-      ParamDataTypeStr	      "Inherit: Inherit via internal rule"
-      OutDataTypeStr	      "Inherit: Inherit via internal rule"
-      SaturateOnIntegerOverflow	off
-    }
-    Block {
-      BlockType		      Reference
-      Name		      "Inverse Dynamics1"
-      SID		      "224"
-      Ports		      [3, 1]
-      Position		      [615, 618, 680, 662]
-      ZOrder		      48
-      BackgroundColor	      "[0.287374, 0.000000, 1.000000]"
-      ShowName		      off
-      LibraryVersion	      "1.238"
-      SourceBlock	      "WBCLibrary/wholeBodyModel/Dynamics/Inverse Dynamics"
-      SourceType	      "Inverse Dynamics"
-      ShowPortLabels	      "FromPortIcon"
-      SystemSampleTime	      "-1"
-      FunctionWithSeparateData off
-      RTWMemSecFuncInitTerm   "Inherit from model"
-      RTWMemSecFuncExecute    "Inherit from model"
-      RTWMemSecDataConstants  "Inherit from model"
-      RTWMemSecDataInternal   "Inherit from model"
-      RTWMemSecDataParameters "Inherit from model"
-      GeneratePreprocessorConditionals off
-      robotName		      "robotName"
-      localName		      "localName"
-    }
-    Block {
-      BlockType		      Reference
-      Name		      "Joint Angles"
-      SID		      "225"
-      Ports		      [0, 1]
-      Position		      [480, 615, 520, 635]
-      ZOrder		      -1
-      BackgroundColor	      "orange"
-      ShowName		      off
-      LibraryVersion	      "1.238"
-      SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Angles"
-      SourceType	      ""
-      ShowPortLabels	      "FromPortIcon"
-      SystemSampleTime	      "-1"
-      FunctionWithSeparateData off
-      RTWMemSecFuncInitTerm   "Inherit from model"
-      RTWMemSecFuncExecute    "Inherit from model"
-      RTWMemSecDataConstants  "Inherit from model"
-      RTWMemSecDataInternal   "Inherit from model"
-      RTWMemSecDataParameters "Inherit from model"
-      GeneratePreprocessorConditionals off
-      robotName		      "robotName"
-      localName		      "localName"
-    }
-    Block {
-      BlockType		      Reference
-      Name		      "Joint Velocities"
-      SID		      "226"
-      Ports		      [0, 1]
-      Position		      [480, 645, 520, 665]
-      ZOrder		      4
-      BackgroundColor	      "[0.732000, 0.463600, 0.000000]"
-      ShowName		      off
-      LibraryVersion	      "1.238"
-      SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Velocities"
-      SourceType	      ""
-      ShowPortLabels	      "FromPortIcon"
-      SystemSampleTime	      "-1"
-      FunctionWithSeparateData off
-      RTWMemSecFuncInitTerm   "Inherit from model"
-      RTWMemSecFuncExecute    "Inherit from model"
-      RTWMemSecDataConstants  "Inherit from model"
-      RTWMemSecDataInternal   "Inherit from model"
-      RTWMemSecDataParameters "Inherit from model"
-      GeneratePreprocessorConditionals off
-      robotName		      "robotName"
-      localName		      "localName"
+      BlockType		      Constant
+      Name		      "Constant"
+      SID		      "327"
+      Position		      [310, 199, 375, 231]
+      BackgroundColor	      "gray"
+      Value		      "zeros(31,1)"
     }
     Block {
       BlockType		      Reference
       Name		      "Left Foot Jacobian"
       SID		      "193"
       Ports		      [0, 1]
-      Position		      [305, 308, 370, 352]
+      Position		      [310, 258, 375, 302]
       ZOrder		      -1
       BackgroundColor	      "[0.047000, 0.909000, 0.803000]"
       LibraryVersion	      "1.238"
@@ -939,199 +883,11 @@ Model {
       localName		      "localName"
     }
     Block {
-      BlockType		      SubSystem
-      Name		      "MATLAB Function"
-      SID		      "133"
-      Ports		      [5, 1]
-      Position		      [585, 61, 655, 159]
-      LibraryVersion	      "1.32"
-      ErrorFcn		      "Stateflow.Translate.translate"
-      PermitHierarchicalResolution "ExplicitOnly"
-      TreatAsAtomicUnit	      on
-      MinAlgLoopOccurrences   off
-      PropExecContextOutsideSubsystem off
-      RTWSystemCode	      "Auto"
-      FunctionWithSeparateData off
-      Opaque		      off
-      RequestExecContextInheritance off
-      MaskHideContents	      off
-      MaskType		      "Stateflow"
-      MaskDescription	      "Embedded MATLAB block"
-      MaskSelfModifiable      on
-      MaskDisplay	      "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('pr"
-      "ivate/eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
-      MaskIconFrame	      on
-      MaskIconOpaque	      off
-      MaskIconRotate	      "none"
-      MaskPortRotate	      "default"
-      MaskIconUnits	      "normalized"
-      System {
-	Name			"MATLAB Function"
-	Location		[257, 457, 812, 717]
-	Open			off
-	ModelBrowserVisibility	off
-	ModelBrowserWidth	200
-	ScreenColor		"white"
-	PaperOrientation	"landscape"
-	PaperPositionMode	"auto"
-	PaperType		"usletter"
-	PaperUnits		"inches"
-	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
-	TiledPageScale		1
-	ShowPageBoundaries	off
-	ZoomFactor		"100"
-	SIDHighWatermark	"21"
-	Block {
-	  BlockType		  Inport
-	  Name			  "M"
-	  SID			  "133::1"
-	  Position		  [20, 101, 40, 119]
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Inport
-	  Name			  "h"
-	  SID			  "133::18"
-	  Position		  [20, 136, 40, 154]
-	  Port			  "2"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Inport
-	  Name			  "tau"
-	  SID			  "133::19"
-	  Position		  [20, 171, 40, 189]
-	  Port			  "3"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Inport
-	  Name			  "J"
-	  SID			  "133::20"
-	  Position		  [20, 206, 40, 224]
-	  Port			  "4"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Inport
-	  Name			  "dJdq"
-	  SID			  "133::21"
-	  Position		  [20, 246, 40, 264]
-	  Port			  "5"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Demux
-	  Name			  " Demux "
-	  SID			  "133::15"
-	  Ports			  [1, 1]
-	  Position		  [270, 220, 320, 260]
-	  Outputs		  "1"
-	}
-	Block {
-	  BlockType		  S-Function
-	  Name			  " SFunction "
-	  SID			  "133::14"
-	  Tag			  "Stateflow S-Function inverseDynamicsStandingTest 2"
-	  Ports			  [5, 2]
-	  Position		  [180, 100, 230, 220]
-	  FunctionName		  "sf_sfun"
-	  PortCounts		  "[5 2]"
-	  EnableBusSupport	  on
-	  Port {
-	    PortNumber		    2
-	    Name		    "f"
-	    RTWStorageClass	    "Auto"
-	    DataLoggingNameMode	    "SignalName"
-	  }
-	}
-	Block {
-	  BlockType		  Terminator
-	  Name			  " Terminator "
-	  SID			  "133::17"
-	  Position		  [460, 231, 480, 249]
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "f"
-	  SID			  "133::5"
-	  Position		  [460, 101, 480, 119]
-	  IconDisplay		  "Port number"
-	}
-	Line {
-	  SrcBlock		  "M"
-	  SrcPort		  1
-	  DstBlock		  " SFunction "
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "h"
-	  SrcPort		  1
-	  DstBlock		  " SFunction "
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "tau"
-	  SrcPort		  1
-	  DstBlock		  " SFunction "
-	  DstPort		  3
-	}
-	Line {
-	  SrcBlock		  "J"
-	  SrcPort		  1
-	  DstBlock		  " SFunction "
-	  DstPort		  4
-	}
-	Line {
-	  SrcBlock		  "dJdq"
-	  SrcPort		  1
-	  DstBlock		  " SFunction "
-	  DstPort		  5
-	}
-	Line {
-	  Name			  "f"
-	  Labels		  [0, 0; 0, 0]
-	  SrcBlock		  " SFunction "
-	  SrcPort		  2
-	  DstBlock		  "f"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  " Demux "
-	  SrcPort		  1
-	  DstBlock		  " Terminator "
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  " SFunction "
-	  SrcPort		  1
-	  DstBlock		  " Demux "
-	  DstPort		  1
-	}
-      }
-    }
-    Block {
       BlockType		      Concatenate
       Name		      "Matrix\nConcatenate"
       SID		      "188"
       Ports		      [2, 1]
-      Position		      [435, 344, 490, 386]
-      Mode		      "Multidimensional array"
-    }
-    Block {
-      BlockType		      Concatenate
-      Name		      "Matrix\nConcatenate1"
-      SID		      "191"
-      Ports		      [2, 1]
-      Position		      [430, 489, 485, 531]
-      Mode		      "Multidimensional array"
-    }
-    Block {
-      BlockType		      Concatenate
-      Name		      "Matrix\nConcatenate2"
-      SID		      "196"
-      Ports		      [2, 1]
-      Position		      [420, 219, 475, 261]
+      Position		      [440, 294, 495, 336]
       Mode		      "Multidimensional array"
     }
     Block {
@@ -1139,7 +895,7 @@ Model {
       Name		      "Right Foot Jacobian"
       SID		      "192"
       Ports		      [0, 1]
-      Position		      [305, 373, 375, 417]
+      Position		      [310, 323, 380, 367]
       ZOrder		      -2
       BackgroundColor	      "[0.000000, 1.000000, 0.533000]"
       LibraryVersion	      "1.238"
@@ -1159,29 +915,30 @@ Model {
     }
     Block {
       BlockType		      Scope
-      Name		      "Scope"
-      SID		      "194"
+      Name		      "Scope1"
+      SID		      "242"
       Ports		      [1]
-      Position		      [765, 94, 795, 126]
+      Position		      [850, 179, 880, 211]
       Floating		      off
-      Location		      [-1047, 346, -340, 772]
+      Location		      [-1470, 589, -763, 1015]
       Open		      off
       NumInputPorts	      "1"
       List {
 	ListType		AxesTitles
 	axes1			"%<SignalLabel>"
       }
-      YMin		      "-250"
-      YMax		      "25"
+      YMin		      "-60"
+      YMax		      "60"
+      SaveName		      "ScopeData1"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
     }
     Block {
       BlockType		      Scope
-      Name		      "Scope1"
-      SID		      "236"
+      Name		      "Scope2"
+      SID		      "243"
       Ports		      [1]
-      Position		      [865, 204, 895, 236]
+      Position		      [760, 244, 790, 276]
       Floating		      off
       Location		      [6, 346, 713, 772]
       Open		      on
@@ -1190,30 +947,98 @@ Model {
 	ListType		AxesTitles
 	axes1			"%<SignalLabel>"
       }
-      TimeRange		      "0.28"
-      YMin		      "-0.4"
-      YMax		      "0.4"
-      SaveName		      "ScopeData1"
+      YMin		      "-5.5"
+      YMax		      "3"
+      SaveName		      "ScopeData2"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
     }
     Block {
-      BlockType		      Selector
-      Name		      "Selector1"
-      SID		      "237"
-      Ports		      [1, 1]
-      Position		      [660, 191, 700, 229]
-      InputPortWidth	      "31"
-      IndexOptions	      "Index vector (dialog)"
-      Indices		      "[7:31]"
-      OutputSizes	      "1"
+      BlockType		      Scope
+      Name		      "Scope3"
+      SID		      "312"
+      Ports		      [1]
+      Position		      [850, 244, 880, 276]
+      NamePlacement	      "alternate"
+      Floating		      off
+      Location		      [440, 309, 1147, 735]
+      Open		      off
+      NumInputPorts	      "1"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      YMin		      "-5.5"
+      YMax		      "3"
+      SaveName		      "ScopeData3"
+      DataFormat	      "StructureWithTime"
+      SampleTime	      "0"
+    }
+    Block {
+      BlockType		      Scope
+      Name		      "Scope4"
+      SID		      "295"
+      Ports		      [1]
+      Position		      [530, 19, 560, 51]
+      Floating		      off
+      Location		      [130, 272, 837, 698]
+      Open		      off
+      NumInputPorts	      "1"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      YMax		      "2"
+      SaveName		      "ScopeData4"
+      DataFormat	      "StructureWithTime"
+      SampleTime	      "0"
+    }
+    Block {
+      BlockType		      Scope
+      Name		      "Scope6"
+      SID		      "328"
+      Ports		      [1]
+      Position		      [775, 49, 805, 81]
+      Floating		      off
+      Location		      [-858, 459, -151, 885]
+      Open		      off
+      NumInputPorts	      "1"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      YMin		      "-60"
+      YMax		      "60"
+      SaveName		      "ScopeData6"
+      DataFormat	      "StructureWithTime"
+      SampleTime	      "0"
+    }
+    Block {
+      BlockType		      Scope
+      Name		      "Scope7"
+      SID		      "335"
+      Ports		      [1]
+      Position		      [850, 104, 880, 136]
+      Floating		      off
+      Location		      [6, 346, 713, 772]
+      Open		      off
+      NumInputPorts	      "1"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      YMin		      "-60"
+      YMax		      "60"
+      SaveName		      "ScopeData7"
+      DataFormat	      "StructureWithTime"
+      SampleTime	      "0"
     }
     Block {
       BlockType		      Reference
-      Name		      "Set Torques"
-      SID		      "238"
+      Name		      "Set Torques1"
+      SID		      "326"
       Ports		      [1]
-      Position		      [825, 298, 895, 342]
+      Position		      [830, 303, 900, 347]
       BackgroundColor	      "[0.941000, 0.415000, 0.192000]"
       LibraryVersion	      "1.238"
       SourceBlock	      "WBCLibrary/wholeBodyActuators/Set Torques"
@@ -1241,7 +1066,194 @@ Model {
       LibraryVersion	      "1.7"
       SourceBlock	      "utility/Soft Real Time"
       SourceType	      ""
-      x			      "0.01"
+      x			      "1"
+    }
+    Block {
+      BlockType		      Stop
+      Name		      "Stop Simulation"
+      SID		      "320"
+      Position		      [675, 137, 710, 173]
+      ShowName		      off
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "computeTau"
+      SID		      "133"
+      Ports		      [4, 2]
+      Position		      [585, 75, 655, 180]
+      LibraryVersion	      "1.32"
+      ErrorFcn		      "Stateflow.Translate.translate"
+      PermitHierarchicalResolution "ExplicitOnly"
+      TreatAsAtomicUnit	      on
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      Opaque		      off
+      RequestExecContextInheritance off
+      MaskHideContents	      off
+      MaskType		      "Stateflow"
+      MaskDescription	      "Embedded MATLAB block"
+      MaskSelfModifiable      on
+      MaskDisplay	      "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('pr"
+      "ivate/eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
+      MaskIconFrame	      on
+      MaskIconOpaque	      off
+      MaskIconRotate	      "none"
+      MaskPortRotate	      "default"
+      MaskIconUnits	      "normalized"
+      System {
+	Name			"computeTau"
+	Location		[257, 457, 812, 717]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"usletter"
+	PaperUnits		"inches"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+	SIDHighWatermark	"27"
+	Block {
+	  BlockType		  Inport
+	  Name			  "M"
+	  SID			  "133::1"
+	  Position		  [20, 101, 40, 119]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "h"
+	  SID			  "133::18"
+	  Position		  [20, 136, 40, 154]
+	  Port			  "2"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "d2q"
+	  SID			  "133::27"
+	  Position		  [20, 171, 40, 189]
+	  Port			  "3"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "Jc"
+	  SID			  "133::20"
+	  Position		  [20, 206, 40, 224]
+	  Port			  "4"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Demux
+	  Name			  " Demux "
+	  SID			  "133::15"
+	  Ports			  [1, 1]
+	  Position		  [270, 255, 320, 295]
+	  Outputs		  "1"
+	}
+	Block {
+	  BlockType		  S-Function
+	  Name			  " SFunction "
+	  SID			  "133::14"
+	  Tag			  "Stateflow S-Function computeTau 2"
+	  Ports			  [4, 3]
+	  Position		  [180, 110, 230, 255]
+	  FunctionName		  "sf_sfun"
+	  PortCounts		  "[4 3]"
+	  EnableBusSupport	  on
+	  Port {
+	    PortNumber		    2
+	    Name		    "tau"
+	    RTWStorageClass	    "Auto"
+	    DataLoggingNameMode	    "SignalName"
+	  }
+	  Port {
+	    PortNumber		    3
+	    Name		    "stop"
+	    RTWStorageClass	    "Auto"
+	    DataLoggingNameMode	    "SignalName"
+	  }
+	}
+	Block {
+	  BlockType		  Terminator
+	  Name			  " Terminator "
+	  SID			  "133::17"
+	  Position		  [460, 266, 480, 284]
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "tau"
+	  SID			  "133::22"
+	  Position		  [460, 101, 480, 119]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "stop"
+	  SID			  "133::25"
+	  Position		  [460, 136, 480, 154]
+	  Port			  "2"
+	  IconDisplay		  "Port number"
+	}
+	Line {
+	  SrcBlock		  "M"
+	  SrcPort		  1
+	  DstBlock		  " SFunction "
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "h"
+	  SrcPort		  1
+	  DstBlock		  " SFunction "
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "d2q"
+	  SrcPort		  1
+	  DstBlock		  " SFunction "
+	  DstPort		  3
+	}
+	Line {
+	  SrcBlock		  "Jc"
+	  SrcPort		  1
+	  DstBlock		  " SFunction "
+	  DstPort		  4
+	}
+	Line {
+	  Name			  "tau"
+	  Labels		  [0, 0; 0, 0]
+	  SrcBlock		  " SFunction "
+	  SrcPort		  2
+	  DstBlock		  "tau"
+	  DstPort		  1
+	}
+	Line {
+	  Name			  "stop"
+	  Labels		  [0, 0; 0, 0]
+	  SrcBlock		  " SFunction "
+	  SrcPort		  3
+	  DstBlock		  "stop"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  " Demux "
+	  SrcPort		  1
+	  DstBlock		  " Terminator "
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  " SFunction "
+	  SrcPort		  1
+	  DstBlock		  " Demux "
+	  DstPort		  1
+	}
+      }
     }
     Block {
       BlockType		      Reference
@@ -1268,57 +1280,135 @@ Model {
       localname		      "localName"
     }
     Block {
-      BlockType		      Reference
-      Name		      "dJ*dq LeftFoot"
-      SID		      "189"
-      Ports		      [0, 1]
-      Position		      [305, 453, 375, 497]
-      BackgroundColor	      "[0.662196, 0.000000, 1.000000]"
-      LibraryVersion	      "1.238"
-      SourceBlock	      "WBCLibrary/wholeBodyModel/Dynamics/dJ*dq LeftFoot"
-      SourceType	      ""
-      ShowPortLabels	      "FromPortIcon"
-      SystemSampleTime	      "-1"
+      BlockType		      SubSystem
+      Name		      "errors"
+      SID		      "336"
+      Ports		      [2, 2]
+      Position		      [740, 125, 810, 185]
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      RTWSystemCode	      "Auto"
       FunctionWithSeparateData off
-      RTWMemSecFuncInitTerm   "Inherit from model"
-      RTWMemSecFuncExecute    "Inherit from model"
-      RTWMemSecDataConstants  "Inherit from model"
-      RTWMemSecDataInternal   "Inherit from model"
-      RTWMemSecDataParameters "Inherit from model"
-      GeneratePreprocessorConditionals off
-      val		      "9"
-      robotName		      "robotName"
-      localName		      "localName"
-    }
-    Block {
-      BlockType		      Reference
-      Name		      "dJ*dq RightFoot"
-      SID		      "190"
-      Ports		      [0, 1]
-      Position		      [310, 528, 375, 572]
-      BackgroundColor	      "[0.501000, 0.015000, 0.850000]"
-      LibraryVersion	      "1.238"
-      SourceBlock	      "WBCLibrary/wholeBodyModel/Dynamics/dJ*dq RightFoot"
-      SourceType	      ""
-      ShowPortLabels	      "FromPortIcon"
-      SystemSampleTime	      "-1"
-      FunctionWithSeparateData off
-      RTWMemSecFuncInitTerm   "Inherit from model"
-      RTWMemSecFuncExecute    "Inherit from model"
-      RTWMemSecDataConstants  "Inherit from model"
-      RTWMemSecDataInternal   "Inherit from model"
-      RTWMemSecDataParameters "Inherit from model"
-      GeneratePreprocessorConditionals off
-      val		      "9"
-      robotName		      "robotName"
-      localName		      "localName"
+      Opaque		      off
+      RequestExecContextInheritance off
+      MaskHideContents	      off
+      System {
+	Name			"errors"
+	Location		[650, 212, 925, 354]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"usletter"
+	PaperUnits		"inches"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+	Block {
+	  BlockType		  Inport
+	  Name			  "x"
+	  SID			  "338"
+	  Position		  [30, 28, 60, 42]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "y"
+	  SID			  "339"
+	  Position		  [25, 103, 55, 117]
+	  Port			  "2"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Sum
+	  Name			  "Add"
+	  SID			  "241"
+	  Ports			  [2, 1]
+	  Position		  [95, 27, 125, 58]
+	  Inputs		  "+-"
+	  InputSameDT		  off
+	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
+	  SaturateOnIntegerOverflow off
+	}
+	Block {
+	  BlockType		  Product
+	  Name			  "Divide"
+	  SID			  "334"
+	  Ports			  [2, 1]
+	  Position		  [165, 37, 195, 68]
+	  Inputs		  "*/"
+	  InputSameDT		  off
+	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
+	  RndMeth		  "Floor"
+	  SaturateOnIntegerOverflow off
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "x-y"
+	  SID			  "337"
+	  Position		  [225, 13, 255, 27]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "(x-y)./y"
+	  SID			  "340"
+	  Position		  [220, 48, 250, 62]
+	  Port			  "2"
+	  IconDisplay		  "Port number"
+	}
+	Line {
+	  SrcBlock		  "Add"
+	  SrcPort		  1
+	  Points		  [10, 0]
+	  Branch {
+	    DstBlock		    "Divide"
+	    DstPort		    1
+	  }
+	  Branch {
+	    Points		    [0, -25]
+	    DstBlock		    "x-y"
+	    DstPort		    1
+	  }
+	}
+	Line {
+	  SrcBlock		  "x"
+	  SrcPort		  1
+	  DstBlock		  "Add"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "y"
+	  SrcPort		  1
+	  Points		  [15, 0]
+	  Branch {
+	    Points		    [0, -60]
+	    DstBlock		    "Add"
+	    DstPort		    2
+	  }
+	  Branch {
+	    Points		    [60, 0; 0, -50]
+	    DstBlock		    "Divide"
+	    DstPort		    2
+	  }
+	}
+	Line {
+	  SrcBlock		  "Divide"
+	  SrcPort		  1
+	  DstBlock		  "(x-y)./y"
+	  DstPort		  1
+	}
+      }
     }
     Block {
       BlockType		      SubSystem
       Name		      "gazebo joint tau"
       SID		      "197"
       Ports		      [0, 1]
-      Position		      [305, 248, 375, 292]
+      Position		      [640, 203, 710, 247]
       BackgroundColor	      "orange"
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -1329,7 +1419,7 @@ Model {
       MaskHideContents	      off
       System {
 	Name			"gazebo joint tau"
-	Location		[401, 469, 706, 607]
+	Location		[401, 601, 706, 739]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -1902,6 +1992,169 @@ Model {
       }
     }
     Block {
+      BlockType		      SubSystem
+      Name		      "holder"
+      SID		      "299"
+      Ports		      [1, 1]
+      Position		      [750, 295, 790, 355]
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      Opaque		      off
+      RequestExecContextInheritance off
+      MaskHideContents	      off
+      System {
+	Name			"holder"
+	Location		[371, 331, 909, 542]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"usletter"
+	PaperUnits		"inches"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+	Block {
+	  BlockType		  Inport
+	  Name			  "s"
+	  SID			  "300"
+	  Position		  [80, 128, 110, 142]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Clock
+	  Name			  "Clock"
+	  SID			  "301"
+	  Position		  [165, 45, 185, 65]
+	  Decimation		  "10"
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "Compare\nTo Constant"
+	  SID			  "302"
+	  Ports			  [1, 1]
+	  Position		  [210, 40, 240, 70]
+	  LibraryVersion	  "1.236"
+	  SourceBlock		  "simulink/Logic and Bit\nOperations/Compare\nTo Constant"
+	  SourceType		  "Compare To Constant"
+	  ShowPortLabels	  "FromPortIcon"
+	  SystemSampleTime	  "-1"
+	  FunctionWithSeparateData off
+	  RTWMemSecFuncInitTerm	  "Inherit from model"
+	  RTWMemSecFuncExecute	  "Inherit from model"
+	  RTWMemSecDataConstants  "Inherit from model"
+	  RTWMemSecDataInternal	  "Inherit from model"
+	  RTWMemSecDataParameters "Inherit from model"
+	  GeneratePreprocessorConditionals off
+	  relop			  "=="
+	  const			  "0"
+	  LogicOutDataTypeMode	  "boolean"
+	  ZeroCross		  on
+	}
+	Block {
+	  BlockType		  Memory
+	  Name			  "Memory"
+	  SID			  "311"
+	  Position		  [165, 120, 195, 150]
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "Sample\nand Hold"
+	  SID			  "303"
+	  Ports			  [1, 1, 0, 1]
+	  Position		  [230, 114, 305, 156]
+	  LibraryVersion	  "1.716"
+	  SourceBlock		  "dspsigops/Sample\nand Hold"
+	  SourceType		  "Sample and Hold"
+	  ShowPortLabels	  "FromPortIcon"
+	  SystemSampleTime	  "-1"
+	  FunctionWithSeparateData off
+	  RTWMemSecFuncInitTerm	  "Inherit from model"
+	  RTWMemSecFuncExecute	  "Inherit from model"
+	  RTWMemSecDataConstants  "Inherit from model"
+	  RTWMemSecDataInternal	  "Inherit from model"
+	  RTWMemSecDataParameters "Inherit from model"
+	  GeneratePreprocessorConditionals off
+	  trig			  "Falling edge"
+	  initCond		  "0"
+	  latchinput		  off
+	}
+	Block {
+	  BlockType		  Switch
+	  Name			  "Switch"
+	  SID			  "305"
+	  Position		  [405, 100, 455, 140]
+	  Criteria		  "u2 > Threshold"
+	  InputSameDT		  off
+	  SaturateOnIntegerOverflow off
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "s(0)"
+	  SID			  "306"
+	  Position		  [480, 113, 510, 127]
+	  IconDisplay		  "Port number"
+	}
+	Line {
+	  SrcBlock		  "s"
+	  SrcPort		  1
+	  Points		  [15, 0]
+	  Branch {
+	    Points		    [0, -105; 260, 0]
+	    DstBlock		    "Switch"
+	    DstPort		    1
+	  }
+	  Branch {
+	    DstBlock		    "Memory"
+	    DstPort		    1
+	  }
+	}
+	Line {
+	  SrcBlock		  "Clock"
+	  SrcPort		  1
+	  DstBlock		  "Compare\nTo Constant"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Compare\nTo Constant"
+	  SrcPort		  1
+	  Points		  [20, 0; 0, 20]
+	  Branch {
+	    DstBlock		    "Sample\nand Hold"
+	    DstPort		    trigger
+	  }
+	  Branch {
+	    Points		    [75, 0; 0, 45]
+	    DstBlock		    "Switch"
+	    DstPort		    2
+	  }
+	}
+	Line {
+	  SrcBlock		  "Sample\nand Hold"
+	  SrcPort		  1
+	  DstBlock		  "Switch"
+	  DstPort		  3
+	}
+	Line {
+	  SrcBlock		  "Switch"
+	  SrcPort		  1
+	  DstBlock		  "s(0)"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Memory"
+	  SrcPort		  1
+	  DstBlock		  "Sample\nand Hold"
+	  DstPort		  1
+	}
+      }
+    }
+    Block {
       BlockType		      Reference
       Name		      "massMatrix"
       SID		      "134"
@@ -1925,39 +2178,25 @@ Model {
       robotname		      "robotName"
       localname		      "localName"
     }
-    Block {
-      BlockType		      Constant
-      Name		      "tau base"
-      SID		      "195"
-      Position		      [305, 188, 375, 232]
-      BackgroundColor	      "gray"
-      Value		      "zeros(6,1)"
-    }
-    Block {
-      BlockType		      Constant
-      Name		      "tau base1"
-      SID		      "239"
-      Position		      [725, 298, 795, 342]
-      BackgroundColor	      "gray"
-      Value		      "ones(25,1)"
-    }
     Line {
       SrcBlock		      "massMatrix"
       SrcPort		      1
-      DstBlock		      "MATLAB Function"
+      Points		      [185, 0]
+      DstBlock		      "computeTau"
       DstPort		      1
     }
     Line {
       SrcBlock		      "computeh"
       SrcPort		      1
-      Points		      [120, 0; 0, -55; 40, 0]
+      Points		      [120, 0; 0, -45]
       Branch {
-	DstBlock		"MATLAB Function"
+	Points			[70, 0]
+	DstBlock		"computeTau"
 	DstPort			2
       }
       Branch {
-	Points			[0, 120]
-	DstBlock		"Selector1"
+	Points			[0, -65]
+	DstBlock		"Scope4"
 	DstPort			1
       }
     }
@@ -1978,109 +2217,85 @@ Model {
     Line {
       SrcBlock		      "Matrix\nConcatenate"
       SrcPort		      1
-      Points		      [35, 0; 0, -235]
-      DstBlock		      "MATLAB Function"
+      Points		      [35, 0; 0, -150]
+      DstBlock		      "computeTau"
       DstPort		      4
-    }
-    Line {
-      SrcBlock		      "dJ*dq LeftFoot"
-      SrcPort		      1
-      Points		      [15, 0; 0, 25]
-      DstBlock		      "Matrix\nConcatenate1"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "dJ*dq RightFoot"
-      SrcPort		      1
-      Points		      [15, 0; 0, -30]
-      DstBlock		      "Matrix\nConcatenate1"
-      DstPort		      2
-    }
-    Line {
-      SrcBlock		      "Matrix\nConcatenate1"
-      SrcPort		      1
-      Points		      [80, 0]
-      DstBlock		      "MATLAB Function"
-      DstPort		      5
-    }
-    Line {
-      SrcBlock		      "MATLAB Function"
-      SrcPort		      1
-      DstBlock		      "Scope"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "tau base"
-      SrcPort		      1
-      Points		      [15, 0; 0, 20]
-      DstBlock		      "Matrix\nConcatenate2"
-      DstPort		      1
     }
     Line {
       SrcBlock		      "gazebo joint tau"
       SrcPort		      1
-      Points		      [15, 0; 0, -20]
-      DstBlock		      "Matrix\nConcatenate2"
-      DstPort		      2
-    }
-    Line {
-      SrcBlock		      "Matrix\nConcatenate2"
-      SrcPort		      1
-      Points		      [30, 0; 0, -130]
-      DstBlock		      "MATLAB Function"
-      DstPort		      3
-    }
-    Line {
-      SrcBlock		      "Joint Velocities"
-      SrcPort		      1
-      Points		      [5, 0]
+      Points		      [10, 0]
       Branch {
-	Points			[0, 40]
-	DstBlock		"Gain"
-	DstPort			1
+	Points			[0, 35]
+	Branch {
+	  DstBlock		  "Scope2"
+	  DstPort		  1
+	}
+	Branch {
+	  Points		  [0, 65]
+	  DstBlock		  "holder"
+	  DstPort		  1
+	}
       }
       Branch {
-	Points			[0, -15]
-	DstBlock		"Inverse Dynamics1"
+	Labels			[0, 0]
+	DstBlock		"errors"
 	DstPort			2
       }
     }
     Line {
-      SrcBlock		      "Gain"
+      SrcBlock		      "holder"
       SrcPort		      1
-      Points		      [5, 0; 0, -40]
-      DstBlock		      "Inverse Dynamics1"
-      DstPort		      3
+      Points		      [15, 0]
+      Branch {
+	Points			[0, -65]
+	DstBlock		"Scope3"
+	DstPort			1
+      }
+      Branch {
+	DstBlock		"Set Torques1"
+	DstPort			1
+      }
     }
     Line {
-      SrcBlock		      "Joint Angles"
-      SrcPort		      1
-      DstBlock		      "Inverse Dynamics1"
+      SrcBlock		      "computeTau"
+      SrcPort		      2
+      DstBlock		      "Stop Simulation"
       DstPort		      1
     }
     Line {
-      SrcBlock		      "Add"
+      SrcBlock		      "computeTau"
       SrcPort		      1
+      Points		      [65, 0]
+      Branch {
+	Points			[0, -40]
+	DstBlock		"Scope6"
+	DstPort			1
+      }
+      Branch {
+	DstBlock		"errors"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Constant"
+      SrcPort		      1
+      Points		      [145, 0; 0, -75]
+      DstBlock		      "computeTau"
+      DstPort		      3
+    }
+    Line {
+      SrcBlock		      "errors"
+      SrcPort		      2
+      Points		      [20, 0]
       DstBlock		      "Scope1"
       DstPort		      1
     }
     Line {
-      SrcBlock		      "Selector1"
+      SrcBlock		      "errors"
       SrcPort		      1
-      DstBlock		      "Add"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "Inverse Dynamics1"
-      SrcPort		      1
-      Points		      [20, 0; 0, -415]
-      DstBlock		      "Add"
-      DstPort		      2
-    }
-    Line {
-      SrcBlock		      "tau base1"
-      SrcPort		      1
-      DstBlock		      "Set Torques"
+      Points		      [20, 0]
+      DstBlock		      "Scope7"
       DstPort		      1
     }
   }
@@ -2095,7 +2310,7 @@ Model {
 Stateflow {
   machine {
     id			    1
-    name		    "inverseDynamicsStandingTest"
+    name		    "computeTau"
     created		    "05-Mar-2014 18:21:08"
     isLibrary		    0
     firstTarget		    13
@@ -2103,7 +2318,7 @@ Stateflow {
   }
   chart {
     id			    2
-    name		    "MATLAB Function"
+    name		    "computeTau"
     windowPosition	    [375.119 276.764 200.25 189.75]
     viewLimits		    [0 156.75 0 153.75]
     screen		    [1 1 1280 778 1.001682887266829]
@@ -2112,7 +2327,7 @@ Stateflow {
     firstJunction	    4
     viewObj		    2
     machine		    1
-    ssIdHighWaterMark	    9
+    ssIdHighWaterMark	    14
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
     firstData		    6
@@ -2136,12 +2351,14 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      "function f = fcn(M, h, tau, J, dJdq)\n\n% Francesco Nori\n% Genova 6 Marzo 2014\n% CODYCO project"
-      "\n%\n% This code computes the forces f acting on a kinematic chain\n% subject to a set of constraints. The kinem"
-      "atic chain dynamics\n% are described as follows:\n%\n% M d2q + h + J' * f = tau  \n%\n% The constraints are desc"
-      "ribed in a differential form:\n%\n% J dq = 0\n%\n% whose derivative is:\n%\n% dJ dq  + J d2q = 0\n%\n\nMinv = in"
-      "v(M);\nf = (J*Minv*J')\\(J*Minv*(tau - h)+ dJdq);"
-      editorLayout	      "100 M4x1[25 47 694 486]"
+      script		      "function [tau, stop] = fcn(M, h, d2q, Jc)\n\n% Francesco Nori\n% Genova 6 Marzo 2014\n% CODYCO pr"
+      "oject\n%\n% This code computes the torques tau necessary to obtain a desired\n% acceleration d2q in a kinematic "
+      "chain with contacts. These \n% computations are described in (DelPrete,2013) Ph.D. thesis\n% and can be found al"
+      "so in [Aghili 2005; Righetti et al. 2011]. It can\n% be shown that:\n%\n% tau = pinv(Nc' S') Nc (M d2q  + h)  \n"
+      "%\n% with Nc = (I-pinv(Jc)Jc) and the constraints being described as:\n%\n% Jc dq = 0\n%\n% Jc d2q + dJcdq= 0\n\n"
+      "[~, n] = size(Jc);\nn = n - 6;\nS = [zeros(n,6) eye(n)];\n\nNc = (eye(n+6)-pinv(Jc, 1e-2)*Jc);\ntau = pinv(Nc' *"
+      " S', 1e-2) * Nc *(M * d2q  + h);\n\nstop = norm(tau)>50;\n\n"
+      editorLayout	      "100 M4x1[205 563 693 486]"
     }
   }
   junction {
@@ -2195,10 +2412,10 @@ Stateflow {
   }
   data {
     id			    7
-    ssIdNumber		    5
-    name		    "f"
+    ssIdNumber		    6
+    name		    "h"
     linkNode		    [2 6 8]
-    scope		    OUTPUT_DATA
+    scope		    INPUT_DATA
     machine		    1
     props {
       array {
@@ -2207,16 +2424,18 @@ Stateflow {
       type {
 	method			SF_INHERITED_TYPE
 	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
+      frame		      SF_FRAME_INHERITED
     }
     dataType		    "Inherit: Same as Simulink"
   }
   data {
     id			    8
-    ssIdNumber		    6
-    name		    "h"
+    ssIdNumber		    14
+    name		    "d2q"
     linkNode		    [2 7 9]
     scope		    INPUT_DATA
     machine		    1
@@ -2240,7 +2459,7 @@ Stateflow {
     ssIdNumber		    7
     name		    "tau"
     linkNode		    [2 8 10]
-    scope		    INPUT_DATA
+    scope		    OUTPUT_DATA
     machine		    1
     props {
       array {
@@ -2253,14 +2472,14 @@ Stateflow {
 	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
+      frame		      SF_FRAME_NO
     }
     dataType		    "Inherit: Same as Simulink"
   }
   data {
     id			    10
     ssIdNumber		    8
-    name		    "J"
+    name		    "Jc"
     linkNode		    [2 9 11]
     scope		    INPUT_DATA
     machine		    1
@@ -2281,10 +2500,10 @@ Stateflow {
   }
   data {
     id			    11
-    ssIdNumber		    9
-    name		    "dJdq"
+    ssIdNumber		    12
+    name		    "stop"
     linkNode		    [2 10 0]
-    scope		    INPUT_DATA
+    scope		    OUTPUT_DATA
     machine		    1
     props {
       array {
@@ -2297,13 +2516,13 @@ Stateflow {
 	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
+      frame		      SF_FRAME_NO
     }
     dataType		    "Inherit: Same as Simulink"
   }
   instance {
     id			    12
-    name		    "MATLAB Function"
+    name		    "computeTau"
     machine		    1
     chart		    2
   }

@@ -49,6 +49,15 @@ icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _r
     modelInt = new icubWholeBodyModel((_name+string("model")).c_str(), _robotName, icub_version);
 }
 
+#ifdef CODYCO_USES_URDFDOM
+icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _robotName, iCub::iDynTree::iCubTree_version_tag icub_version, std::string urdf_file)
+{
+    actuatorInt = new icubWholeBodyActuators((_name+string("actuator")).c_str(), _robotName);
+    stateInt = new icubWholeBodyStates((_name+string("state")).c_str(), _robotName, 0.0);
+    modelInt = new icubWholeBodyModel((_name+string("model")).c_str(), _robotName, icub_version, urdf_file);
+}
+#endif
+
 bool icubWholeBodyInterface::init()
 {
     bool ok = actuatorInt->init();

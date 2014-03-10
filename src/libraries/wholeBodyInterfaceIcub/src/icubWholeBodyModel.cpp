@@ -80,6 +80,38 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName
 }
 
 #ifdef CODYCO_USES_URDFDOM
+icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName, const iCub::iDynTree::iCubTree_version_tag version,
+    const std::string urdf_file,
+    double* initial_q, const std::vector<std::string> &_bodyPartNames)
+    : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
+{
+    reverse_torso_joints = true;
+    
+    std::string kinematic_base_link_name = "root_link";
+    p_icub_model = new iCub::iDynTree::iCubTree(version,urdf_file,iCub::iDynTree::SKINDYNLIB_SERIALIZATION,0,kinematic_base_link_name);
+    p_model = (iCub::iDynTree::DynTree *) p_icub_model;
+    all_q.resize(p_model->getNrOfDOFs(),0.0);
+    all_q_min = all_q_max = all_ddq = all_dq = all_q;
+    floating_base_mass_matrix.resize(p_model->getNrOfDOFs(),p_model->getNrOfDOFs());
+    floating_base_mass_matrix.zero();
+    
+    world_base_transformation.resize(4,4);
+    world_base_transformation.eye();
+    
+    v_base.resize(3,0.0);
+    
+    a_base = omega_base = domega_base = v_base;
+    
+    v_six_elems_base.resize(3,0.0);
+    a_six_elems_base.resize(6,0.0);
+    
+    if( initial_q != 0 ) {
+        memcpy(all_q.data(),initial_q,all_q.size()*sizeof(double));
+    }
+}
+
+
+
 icubWholeBodyModel::icubWholeBodyModel(const char* _name,
                                        const char* _robotName, 
                                        const char* urdf_file, 
@@ -521,8 +553,6 @@ bool icubWholeBodyModel::forwardKinematics(double *q, const Frame &xB, int linkI
 
 bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *g, double *tau)
 {
-    double dummy_ddxB[6];
-    memcpy(dummy_ddxB,ddxB,6*sizeof(double));
     //We can take into account the gravity efficiently by adding a fictional acceleration to the base
     double baseAcceleration[6] = {0, 0, 0, 0, 0, 0};
     baseAcceleration[0] = ddxB[0] - g[0];
@@ -548,8 +578,8 @@ bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq,
     yarp::sig::Matrix base_world_rotation = world_base_transformation.submatrix(0,2,0,2).transposed();
     
     p_model->setInertialMeasure(base_world_rotation * omega_base,
-                                     base_world_rotation * domega_base,
-                                     base_world_rotation * a_base);
+                                base_world_rotation * domega_base,
+                                base_world_rotation * a_base);
     p_model->setDAng(all_dq);
     p_model->setD2Ang(all_ddq);
     
@@ -560,9 +590,7 @@ bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq,
     //Get the output floating base torques and convert them to wbi generalized torques
     yarp::sig::Vector base_force = p_model->getBaseForceTorque(iCub::iDynTree::WORLD_FRAME);
     
-    convertGeneralizedTorques(base_force,p_model->getTorques(),tau);
-    
-    return true;
+    return convertGeneralizedTorques(base_force,p_model->getTorques(),tau);
 }
 
 bool icubWholeBodyModel::computeMassMatrix(double *q, const Frame &xBase, double *M)

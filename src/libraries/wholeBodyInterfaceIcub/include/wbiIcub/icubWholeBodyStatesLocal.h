@@ -114,6 +114,8 @@ namespace wbiIcub
         iCub::skinDynLib::dynContactList dynContacts;
         
         //Data structures related to IMU used for dynamical model
+        bool enable_omega_domega_IMU;
+        
         yarp::sig::Vector omega_used_IMU;
         yarp::sig::Vector domega_used_IMU;
         yarp::sig::Vector ddp_used_IMU;
@@ -146,6 +148,8 @@ namespace wbiIcub
         bool setTauMCutFrequency(double fc);
         /** Set the cut frequency of the motor PWM low pass filter. */
         bool setPwmCutFrequency(double fc);
+        /** Enable or disable the use of IMU angular velocity and acceleration in external force estimation */
+        bool setEnableOmegaDomegaIMU(bool opt);
         
         /** Read the skin contacts and generated the contact points for external wrenches  estimation */
         void readSkinContacts();
