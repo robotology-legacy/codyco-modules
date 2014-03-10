@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.117"
+    ComputedModelVersion    "1.118"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -28,9 +28,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Mar 10 09:23:57 2014"
-  RTWModifiedTimeStamp	  316344231
-  ModelVersionFormat	  "1.%<AutoIncrement:117>"
+  LastModifiedDate	  "Mon Mar 10 10:02:45 2014"
+  RTWModifiedTimeStamp	  316344867
+  ModelVersionFormat	  "1.%<AutoIncrement:118>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -67,6 +67,7 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "simple"
+    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -835,7 +836,7 @@ Model {
   }
   System {
     Name		    "computeTau"
-    Location		    [0, 73, 938, 801]
+    Location		    [515, 285, 1453, 1013]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -939,8 +940,8 @@ Model {
       Ports		      [1]
       Position		      [760, 244, 790, 276]
       Floating		      off
-      Location		      [-1540, 549, -833, 975]
-      Open		      off
+      Location		      [6, 346, 713, 772]
+      Open		      on
       NumInputPorts	      "1"
       List {
 	ListType		AxesTitles
@@ -999,7 +1000,7 @@ Model {
       Ports		      [1]
       Position		      [775, 49, 805, 81]
       Floating		      off
-      Location		      [-779, 557, -72, 983]
+      Location		      [-858, 459, -151, 885]
       Open		      off
       NumInputPorts	      "1"
       List {
@@ -1019,7 +1020,7 @@ Model {
       Ports		      [1]
       Position		      [850, 104, 880, 136]
       Floating		      off
-      Location		      [-953, 461, -246, 887]
+      Location		      [6, 346, 713, 772]
       Open		      off
       NumInputPorts	      "1"
       List {
@@ -1418,7 +1419,7 @@ Model {
       MaskHideContents	      off
       System {
 	Name			"gazebo joint tau"
-	Location		[401, 579, 706, 717]
+	Location		[401, 601, 706, 739]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -2005,7 +2006,7 @@ Model {
       MaskHideContents	      off
       System {
 	Name			"holder"
-	Location		[371, 309, 909, 520]
+	Location		[371, 331, 909, 542]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200

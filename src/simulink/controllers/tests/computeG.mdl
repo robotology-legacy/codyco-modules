@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.29"
+    ComputedModelVersion    "1.30"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -27,9 +27,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri Mar  7 11:11:36 2014"
-  RTWModifiedTimeStamp	  316091454
-  ModelVersionFormat	  "1.%<AutoIncrement:29>"
+  LastModifiedDate	  "Mon Mar 10 10:23:25 2014"
+  RTWModifiedTimeStamp	  316347739
+  ModelVersionFormat	  "1.%<AutoIncrement:30>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -66,6 +66,7 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "computeG"
+    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -822,7 +823,7 @@ Model {
   }
   System {
     Name		    "computeG"
-    Location		    [238, 138, 1027, 713]
+    Location		    [238, 160, 1027, 735]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -1106,7 +1107,7 @@ Model {
       Ports		      [3]
       Position		      [510, 154, 540, 186]
       Floating		      off
-      Location		      [-998, 431, -291, 857]
+      Location		      [6, 346, 713, 772]
       Open		      on
       NumInputPorts	      "3"
       List {
@@ -1128,7 +1129,7 @@ Model {
       Ports		      [2]
       Position		      [290, 346, 320, 379]
       Floating		      off
-      Location		      [-1141, 505, -434, 931]
+      Location		      [6, 346, 713, 772]
       Open		      on
       NumInputPorts	      "2"
       List {
@@ -1138,7 +1139,7 @@ Model {
       }
       TimeRange		      "10"
       YMin		      "-0.6~-0.9"
-      YMax		      "0.8~0.9"
+      YMax		      "0.8~1"
       SaveName		      "ScopeData1"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
