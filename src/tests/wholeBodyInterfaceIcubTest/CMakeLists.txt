@@ -21,6 +21,8 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 include(iCubHelpers)
 include(iCubOptions)
 
+
+
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
 
@@ -29,6 +31,10 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
      ENDIF(CMAKE_COMPILER_IS_GNUCC)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
+if(CODYCO_USES_URDFDOM)
+add_definitions(-DCODYCO_USES_URDFDOM)
+endif()
 
 
 INCLUDE_DIRECTORIES(
