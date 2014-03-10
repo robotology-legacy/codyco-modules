@@ -792,7 +792,7 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     
     estimatedLastSkinDynContacts = skinContacts;
     
-    assert(tauJ.size() == icub_model->getNrOfDOFs());
+    assert((int)tauJ.size() == icub_model->getNrOfDOFs());
     tauJ = icub_model->getTorques();
     model_mutex.post();
     
@@ -800,7 +800,7 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
 
 void deleteFirstOrderFilterVector(std::vector<iCub::ctrl::FirstOrderLowPassFilter *> & vec)
 {
-    for(int i=0; i < vec.size(); i++ ) {
+    for(int i=0; i < (int)vec.size(); i++ ) {
         if( vec[i]!= 0 ) { delete vec[i]; vec[i]=0; }
     }
     vec.resize(0);
@@ -914,7 +914,7 @@ bool icubWholeBodyDynamicsEstimator::lockAndCopyVectorOfVectors(const std::vecto
     if(dest==0)
         return false;
     mutex.wait();
-    for(int i=0, offset = 0; i < src.size(); i++) {
+    for(int i=0, offset = 0; i < (int)src.size(); i++) {
         memcpy(dest+offset,src[i].data(),sizeof(double)*src[i].size());
         offset += src[i].size();
     }

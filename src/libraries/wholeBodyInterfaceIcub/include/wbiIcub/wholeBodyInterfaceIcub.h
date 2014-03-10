@@ -75,6 +75,12 @@ namespace wbiIcub
                                iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,2,true));
         //icubWholeBodyInterface(const char* _name, const char* _robotName, std::string urdf_file_name);
 
+        #ifdef CODYCO_USES_URDFDOM
+        icubWholeBodyInterface(const char* _name, 
+                               const char* _robotName,
+                               iCub::iDynTree::iCubTree_version_tag icub_version,
+                               std::string urdf_file_name);
+        #endif
         
         inline virtual ~icubWholeBodyInterface(){ close(); }
         virtual bool init();
