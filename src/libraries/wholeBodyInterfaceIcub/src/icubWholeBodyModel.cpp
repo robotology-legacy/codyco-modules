@@ -521,8 +521,6 @@ bool icubWholeBodyModel::forwardKinematics(double *q, const Frame &xB, int linkI
 
 bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq, double *dxB, double *ddq, double *ddxB, double *g, double *tau)
 {
-    double dummy_ddxB[6];
-    memcpy(dummy_ddxB,ddxB,6*sizeof(double));
     //We can take into account the gravity efficiently by adding a fictional acceleration to the base
     double baseAcceleration[6] = {0, 0, 0, 0, 0, 0};
     baseAcceleration[0] = ddxB[0] - g[0];
@@ -548,8 +546,8 @@ bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq,
     yarp::sig::Matrix base_world_rotation = world_base_transformation.submatrix(0,2,0,2).transposed();
     
     p_model->setInertialMeasure(base_world_rotation * omega_base,
-                                     base_world_rotation * domega_base,
-                                     base_world_rotation * a_base);
+                                base_world_rotation * domega_base,
+                                base_world_rotation * a_base);
     p_model->setDAng(all_dq);
     p_model->setD2Ang(all_ddq);
     
@@ -560,9 +558,7 @@ bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq,
     //Get the output floating base torques and convert them to wbi generalized torques
     yarp::sig::Vector base_force = p_model->getBaseForceTorque(iCub::iDynTree::WORLD_FRAME);
     
-    convertGeneralizedTorques(base_force,p_model->getTorques(),tau);
-    
-    return true;
+    return convertGeneralizedTorques(base_force,p_model->getTorques(),tau);
 }
 
 bool icubWholeBodyModel::computeMassMatrix(double *q, const Frame &xBase, double *M)
