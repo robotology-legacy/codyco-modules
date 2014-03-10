@@ -31,7 +31,7 @@
 #define DEBUGGING 0
 #define TIMING    0
 #define NEWCODE	  1
-#define ICUB_FIXED
+//#define ICUB_FIXED
 
 YARP_DECLARE_DEVICES(icubmod)
 

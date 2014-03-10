@@ -7,8 +7,13 @@ addpath(genpath('/home/daniele/src/codyco/src/simulink/controllers'))
 
 robotName = 'icubGazeboSim';
 localName = 'torqueControlTests';
+%%              TORSO       LEFT ARM     RIGHT ARM    LEFT LEG     LEFT ANKLE   RIGHT LEG    RIGHT ANKLE
+ kp = diag([   ones(1,3),   ones(1,5),   ones(1,5),   ones(1,4),   ones(1,2),   ones(1,4),   ones(1,2)]);
+ ki = diag([   ones(1,3),   ones(1,5),   ones(1,5),   ones(1,4),   ones(1,2),   ones(1,4),   ones(1,2)]);
+ kd = diag([   ones(1,3),   ones(1,5),   ones(1,5),   ones(1,4),   ones(1,2),   ones(1,4),   ones(1,2)]);
  
- gains = [diag([30*ones(1,3),5*ones(1,22)]),0.1*eye(25),0.2*eye(25)];
+ gains = [50*kp,ki*10,kd*7];
+ delete kp ki kd;
  
  Ts = 0.01;
  qDes = [ 1.1695	
