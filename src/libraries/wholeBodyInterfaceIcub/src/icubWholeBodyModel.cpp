@@ -80,6 +80,38 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName
 }
 
 #ifdef CODYCO_USES_URDFDOM
+icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName, const iCub::iDynTree::iCubTree_version_tag version,
+    const std::string urdf_file,
+    double* initial_q, const std::vector<std::string> &_bodyPartNames)
+    : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
+{
+    reverse_torso_joints = true;
+    
+    std::string kinematic_base_link_name = "root_link";
+    p_icub_model = new iCub::iDynTree::iCubTree(version,urdf_file,iCub::iDynTree::SKINDYNLIB_SERIALIZATION,0,kinematic_base_link_name);
+    p_model = (iCub::iDynTree::DynTree *) p_icub_model;
+    all_q.resize(p_model->getNrOfDOFs(),0.0);
+    all_q_min = all_q_max = all_ddq = all_dq = all_q;
+    floating_base_mass_matrix.resize(p_model->getNrOfDOFs(),p_model->getNrOfDOFs());
+    floating_base_mass_matrix.zero();
+    
+    world_base_transformation.resize(4,4);
+    world_base_transformation.eye();
+    
+    v_base.resize(3,0.0);
+    
+    a_base = omega_base = domega_base = v_base;
+    
+    v_six_elems_base.resize(3,0.0);
+    a_six_elems_base.resize(6,0.0);
+    
+    if( initial_q != 0 ) {
+        memcpy(all_q.data(),initial_q,all_q.size()*sizeof(double));
+    }
+}
+
+
+
 icubWholeBodyModel::icubWholeBodyModel(const char* _name,
                                        const char* _robotName, 
                                        const char* urdf_file, 
