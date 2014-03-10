@@ -7,6 +7,9 @@
 
 ## URDF file format support
 option(CODYCO_USES_URDFDOM "Enable support for URDF input in iDynTree" FALSE)
+if(CODYCO_USES_URDFDOM)
+	add_definitions(-DCODYCO_USES_URDFDOM)
+endif()
 
 
 # SET(CODYCO_TRAVIS_CI FALSE CACHE BOOL "Set if build is done with Travis-CI flags")

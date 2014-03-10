@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.118"
+    ComputedModelVersion    "1.119"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -28,9 +28,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Mar 10 10:02:45 2014"
-  RTWModifiedTimeStamp	  316344867
-  ModelVersionFormat	  "1.%<AutoIncrement:118>"
+  LastModifiedDate	  "Mon Mar 10 11:40:55 2014"
+  RTWModifiedTimeStamp	  316352452
+  ModelVersionFormat	  "1.%<AutoIncrement:119>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -67,7 +67,6 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "simple"
-    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -836,7 +835,7 @@ Model {
   }
   System {
     Name		    "computeTau"
-    Location		    [515, 285, 1453, 1013]
+    Location		    [515, 307, 1453, 1035]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -850,7 +849,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "340"
+    SIDHighWatermark	    "350"
     Block {
       BlockType		      Constant
       Name		      "Constant"
@@ -867,7 +866,7 @@ Model {
       Position		      [310, 258, 375, 302]
       ZOrder		      -1
       BackgroundColor	      "[0.047000, 0.909000, 0.803000]"
-      LibraryVersion	      "1.238"
+      LibraryVersion	      "1.240"
       SourceBlock	      "WBCLibrary/wholeBodyModel/Jacobians/Left Foot Jacobian"
       SourceType	      ""
       ShowPortLabels	      "FromPortIcon"
@@ -898,7 +897,7 @@ Model {
       Position		      [310, 323, 380, 367]
       ZOrder		      -2
       BackgroundColor	      "[0.000000, 1.000000, 0.533000]"
-      LibraryVersion	      "1.238"
+      LibraryVersion	      "1.240"
       SourceBlock	      "WBCLibrary/wholeBodyModel/Jacobians/Right Foot Jacobian"
       SourceType	      ""
       ShowPortLabels	      "FromPortIcon"
@@ -962,7 +961,7 @@ Model {
       NamePlacement	      "alternate"
       Floating		      off
       Location		      [440, 309, 1147, 735]
-      Open		      off
+      Open		      on
       NumInputPorts	      "1"
       List {
 	ListType		AxesTitles
@@ -1040,7 +1039,7 @@ Model {
       Ports		      [1]
       Position		      [830, 303, 900, 347]
       BackgroundColor	      "[0.941000, 0.415000, 0.192000]"
-      LibraryVersion	      "1.238"
+      LibraryVersion	      "1.240"
       SourceBlock	      "WBCLibrary/wholeBodyActuators/Set Torques"
       SourceType	      ""
       ShowPortLabels	      "FromPortIcon"
@@ -1263,7 +1262,7 @@ Model {
       Position		      [310, 123, 375, 167]
       ZOrder		      -1
       BackgroundColor	      "[0.850000, 0.010000, 0.698000]"
-      LibraryVersion	      "1.238"
+      LibraryVersion	      "1.240"
       SourceBlock	      "WBCLibrary/wholeBodyModel/Dynamics/computeh"
       SourceType	      ""
       ShowPortLabels	      "FromPortIcon"
@@ -1518,7 +1517,7 @@ Model {
 	      Position		      [25, 116, 95, 184]
 	      ZOrder		      -5
 	      BackgroundColor	      "black"
-	      LibraryVersion	      "1.238"
+	      LibraryVersion	      "1.240"
 	      SourceBlock	      "WBCLibrary/Utilities/yarp read"
 	      SourceType	      ""
 	      from		      "'/icubGazeboSim/left_arm/analog:o/torques'"
@@ -1533,7 +1532,7 @@ Model {
 	      Position		      [25, 201, 95, 269]
 	      ZOrder		      -5
 	      BackgroundColor	      "black"
-	      LibraryVersion	      "1.238"
+	      LibraryVersion	      "1.240"
 	      SourceBlock	      "WBCLibrary/Utilities/yarp read"
 	      SourceType	      ""
 	      from		      "'/icubGazeboSim/right_arm/analog:o/torques'"
@@ -1548,7 +1547,7 @@ Model {
 	      Position		      [25, 286, 95, 354]
 	      ZOrder		      -5
 	      BackgroundColor	      "black"
-	      LibraryVersion	      "1.238"
+	      LibraryVersion	      "1.240"
 	      SourceBlock	      "WBCLibrary/Utilities/yarp read"
 	      SourceType	      ""
 	      from		      "'/icubGazeboSim/left_leg/analog:o/torques'"
@@ -1563,7 +1562,7 @@ Model {
 	      Position		      [25, 396, 95, 464]
 	      ZOrder		      -5
 	      BackgroundColor	      "black"
-	      LibraryVersion	      "1.238"
+	      LibraryVersion	      "1.240"
 	      SourceBlock	      "WBCLibrary/Utilities/yarp read"
 	      SourceType	      ""
 	      from		      "'/icubGazeboSim/right_leg/analog:o/torques'"
@@ -1578,7 +1577,7 @@ Model {
 	      Position		      [25, 26, 95, 94]
 	      ZOrder		      -5
 	      BackgroundColor	      "black"
-	      LibraryVersion	      "1.238"
+	      LibraryVersion	      "1.240"
 	      SourceBlock	      "WBCLibrary/Utilities/yarp read"
 	      SourceType	      ""
 	      from		      "'/icubGazeboSim/torso/analog:o/torques'"
@@ -2162,7 +2161,7 @@ Model {
       Position		      [310, 48, 380, 92]
       ZOrder		      -2
       BackgroundColor	      "[0.970000, 0.060000, 0.376000]"
-      LibraryVersion	      "1.238"
+      LibraryVersion	      "1.240"
       SourceBlock	      "WBCLibrary/wholeBodyModel/Dynamics/massMatrix"
       SourceType	      ""
       ShowPortLabels	      "FromPortIcon"

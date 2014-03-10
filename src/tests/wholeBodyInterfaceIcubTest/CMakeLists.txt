@@ -32,11 +32,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
      ENDIF(CMAKE_COMPILER_IS_GNUCC)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-if(CODYCO_USES_URDFDOM)
-add_definitions(-DCODYCO_USES_URDFDOM)
-endif()
-
-
 INCLUDE_DIRECTORIES(
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}

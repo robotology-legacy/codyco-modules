@@ -45,10 +45,13 @@
 #include <Eigen/Core>                           // import most common Eigen types
 #include <Eigen/SVD>
 #include <wbi/wbi.h>
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
 
 // Need to include simstruc.h for the definition of the SimStruct and its associated macro definitions.
 #include "simstruc.h"
+
+namespace wbi{
+    class wholeBodyInterface;
+}
 
 //This should somehow be provided by the user, but 25 will be the default 
 #define	ICUB_DOFS 25

@@ -30,6 +30,10 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
      ENDIF(CMAKE_COMPILER_IS_GNUCC)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
+if(CODYCO_USES_URDFDOM)
+     find_package(Boost REQUIRED thread)
+     INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+endif()
 
 INCLUDE_DIRECTORIES(
                     ${wholeBodyInterface_INCLUDE_DIRS}

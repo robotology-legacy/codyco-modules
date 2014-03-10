@@ -18,6 +18,7 @@
  */
 
 #include "wbInterface.h"
+#include <wbiIcub/wholeBodyInterfaceIcub.h>
 
 // MASK PARAMETERS --------------------------------------
 #define NPARAMS 3                                  		// Number of input parameters
