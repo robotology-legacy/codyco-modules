@@ -22,9 +22,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Mar 04 14:56:10 2014"
-  RTWModifiedTimeStamp	  315845138
-  ModelVersionFormat	  "1.%<AutoIncrement:238>"
+  LastModifiedDate	  "Mon Mar 10 11:29:51 2014"
+  RTWModifiedTimeStamp	  316351668
+  ModelVersionFormat	  "1.%<AutoIncrement:240>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -658,6 +658,21 @@ Library {
       BusSelectionMode	      off
     }
     Block {
+      BlockType		      Gain
+      Gain		      "1"
+      Multiplication	      "Element-wise(K.*u)"
+      ParamMin		      "[]"
+      ParamMax		      "[]"
+      ParamDataTypeStr	      "Inherit: Same as input"
+      OutMin		      "[]"
+      OutMax		      "[]"
+      OutDataTypeStr	      "Inherit: Same as input"
+      LockScale		      off
+      RndMeth		      "Floor"
+      SaturateOnIntegerOverflow	on
+      SampleTime	      "-1"
+    }
+    Block {
       BlockType		      Inport
       Port		      "1"
       OutputFunctionCall      off
@@ -762,7 +777,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "668"
+    SIDHighWatermark	    "670"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -787,7 +802,7 @@ Library {
       System {
 	Name			"Utilities"
 	Location		[386, 241, 1185, 409]
-	Open			off
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -1283,7 +1298,7 @@ Library {
 	  BlockType		  SubSystem
 	  Name			  "baseVelocity"
 	  SID			  "431"
-	  Ports			  [3, 2]
+	  Ports			  [3, 1]
 	  Position		  [530, 58, 640, 102]
 	  BackgroundColor	  "[0.753334, 1.000000, 0.112472]"
 	  MinAlgLoopOccurrences	  off
@@ -1303,7 +1318,7 @@ Library {
 	  System {
 	    Name		    "baseVelocity"
 	    Location		    [404, 109, 1040, 338]
-	    Open		    off
+	    Open		    on
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -1337,6 +1352,17 @@ Library {
 	      Position		      [25, 168, 55, 182]
 	      Port		      "3"
 	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Gain
+	      Name		      "Gain"
+	      SID		      "670"
+	      Position		      [315, 160, 345, 190]
+	      ZOrder		      -8
+	      Gain		      "-1"
+	      ParamDataTypeStr	      "Inherit: Inherit via internal rule"
+	      OutDataTypeStr	      "Inherit: Inherit via internal rule"
+	      SaturateOnIntegerOverflow	off
 	    }
 	    Block {
 	      BlockType		      Concatenate
@@ -1420,20 +1446,11 @@ Library {
 	      Position		      [570, 78, 600, 92]
 	      IconDisplay	      "Port number"
 	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "A_constraints"
-	      SID		      "441"
-	      Position		      [255, 193, 285, 207]
-	      Port		      "2"
-	      IconDisplay	      "Port number"
-	    }
 	    Line {
 	      SrcBlock		      "dq"
 	      SrcPort		      1
-	      Points		      [300, 0]
-	      DstBlock		      "Product"
-	      DstPort		      2
+	      DstBlock		      "Gain"
+	      DstPort		      1
 	    }
 	    Line {
 	      SrcBlock		      "Product"
@@ -1486,16 +1503,16 @@ Library {
 	      }
 	      Branch {
 		Points			[0, 25]
-		Branch {
-		  DstBlock		  "Submatrix"
-		  DstPort		  1
-		}
-		Branch {
-		  Points		  [0, 95]
-		  DstBlock		  "A_constraints"
-		  DstPort		  1
-		}
+		DstBlock		"Submatrix"
+		DstPort			1
 	      }
+	    }
+	    Line {
+	      SrcBlock		      "Gain"
+	      SrcPort		      1
+	      Points		      [10, 0]
+	      DstBlock		      "Product"
+	      DstPort		      2
 	    }
 	    Annotation {
 	      SID		      "444"
@@ -2733,8 +2750,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[450, 636, 1014, 801]
-	Open			on
+	Location		[450, 602, 1014, 767]
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -6338,8 +6355,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyStates"
-	Location		[128, 416, 669, 575]
-	Open			off
+	Location		[261, 498, 802, 657]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
