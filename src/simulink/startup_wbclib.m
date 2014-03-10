@@ -10,8 +10,8 @@ if exist(wbclibroot,'dir')
     imgDir = [controllersDir filesep 'img'];
     addpath(libDir);        %Path where mex libs are compiled
     addpath(imgDir);
-    delete([pwd filesep 'pathdef.m'])
     cd(controllersDir);     % Go back to controllers dir
+    delete([pwd filesep 'pathdef.m'])
     if (~savepath([pwd filesep 'pathdef.m']))
         usrpath = userpath;
         usrpath(end)=[];   
