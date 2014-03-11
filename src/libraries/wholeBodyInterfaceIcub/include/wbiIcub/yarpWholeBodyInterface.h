@@ -129,6 +129,9 @@ namespace wbiIcub
         { return modelInt->computeMassMatrix(q, xB, M); }
         virtual bool computeGeneralizedBiasForces(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *g, double *h)
         { return modelInt->computeGeneralizedBiasForces(q, xB, dq, dxB, g, h); }
+         virtual bool computeCentroidalMomentum(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *h)
+        { return modelInt->computeCentroidalMomentum(q, xB, dq, dxB, h); }
+   
     };
     
 } // end namespace wbiIcub
