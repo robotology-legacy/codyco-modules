@@ -156,8 +156,8 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 static void mdlStart(SimStruct *S)
 {
     // ######### YARP INITIALIZATION STUFF ##################
-    fprintf(stderr,"YARP NETWORK INITIALIZED\n");
     Network yarp;
+    fprintf(stderr,"YARP NETWORK INITIALIZED\n");
 
     if (!yarp.checkNetwork()){
         ssSetErrorStatus(S,"YARP server wasn't found active!! \n");
@@ -189,15 +189,16 @@ static void mdlStart(SimStruct *S)
     }
 
     char *toPort_name = String;
-
-    cout<<"From Port name will be: "<<port_name<<endl;
-    cout<<"To Port name will be:   "<<toPort_name<<endl;
     
     // ######## CHECKING INPUT PARAMETERS ############
 
     BufferedPort<Vector> *toPort;
     toPort = new BufferedPort<Vector>;
     toPort->open(toPort_name);
+    
+    cout<<"[From] Port name will be: "<<port_name<<endl;
+    cout<<"[To] Port name will be:   "<<toPort->getName()<<endl;
+
 
     ssGetPWork(S)[0] = toPort;
     
