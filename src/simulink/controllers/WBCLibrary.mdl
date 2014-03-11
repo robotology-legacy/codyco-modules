@@ -22,9 +22,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Mar 11 12:12:38 2014"
-  RTWModifiedTimeStamp	  316440664
-  ModelVersionFormat	  "1.%<AutoIncrement:249>"
+  LastModifiedDate	  "Tue Mar 11 19:02:06 2014"
+  RTWModifiedTimeStamp	  316464904
+  ModelVersionFormat	  "1.%<AutoIncrement:260>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -823,7 +823,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [413, 525, 1201, 785]
+    Location		    [531, 443, 1319, 703]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -837,7 +837,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "742"
+    SIDHighWatermark	    "744"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -861,8 +861,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
-	Location		[654, 156, 1346, 424]
-	Open			on
+	Location		[673, 277, 1365, 545]
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -2485,7 +2485,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyActuators"
-	Location		[85, 192, 628, 349]
+	Location		[87, 248, 630, 405]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -2537,7 +2537,7 @@ Library {
 	  MaskValueString	  "Velocity"
 	  System {
 	    Name		    "ControlMode"
-	    Location		    [893, 309, 1439, 844]
+	    Location		    [819, 232, 1365, 767]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2591,7 +2591,7 @@ Library {
 	  MaskValueString	  "5|robotName|localName"
 	  System {
 	    Name		    "Set Angles"
-	    Location		    [298, 190, 575, 512]
+	    Location		    [299, 218, 576, 540]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2619,7 +2619,7 @@ Library {
 	      Position		      [20, 150, 50, 180]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(28,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -2630,7 +2630,7 @@ Library {
 	      Position		      [20, 200, 50, 230]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(31,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -2641,7 +2641,7 @@ Library {
 	      Position		      [20, 250, 50, 280]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(31,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -2869,7 +2869,7 @@ Library {
 	  MaskValueString	  "6|robotName|localName"
 	  System {
 	    Name		    "Set Torques"
-	    Location		    [654, 135, 955, 510]
+	    Location		    [656, 191, 957, 566]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2897,7 +2897,7 @@ Library {
 	      Position		      [30, 150, 60, 180]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(28,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -2908,7 +2908,7 @@ Library {
 	      Position		      [30, 205, 60, 235]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(31,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -2919,7 +2919,7 @@ Library {
 	      Position		      [30, 260, 60, 290]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(31,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -3148,7 +3148,7 @@ Library {
 	  MaskValueString	  "4|robotName|localName"
 	  System {
 	    Name		    "Set Velocities"
-	    Location		    [217, 159, 613, 685]
+	    Location		    [218, 187, 614, 713]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -3185,7 +3185,7 @@ Library {
 	      Position		      [65, 235, 95, 265]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(28,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -3196,7 +3196,7 @@ Library {
 	      Position		      [65, 315, 95, 345]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(31,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -3207,7 +3207,7 @@ Library {
 	      Position		      [65, 395, 95, 425]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(31,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -3435,7 +3435,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[450, 602, 1014, 767]
+	Location		[343, 236, 907, 401]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -3471,7 +3471,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Dynamics"
-	    Location		    [414, 315, 1133, 471]
+	    Location		    [416, 371, 1135, 527]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -3515,7 +3515,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Inverse Dynamics"
-		Location		[778, 294, 1108, 617]
+		Location		[779, 322, 1109, 645]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3790,7 +3790,7 @@ Library {
 	      MaskValueString	      "7|robotName|localName"
 	      System {
 		Name			"computeh"
-		Location		[762, 168, 1102, 495]
+		Location		[763, 196, 1103, 523]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3853,7 +3853,7 @@ Library {
 		  Position		  [25, 140, 55, 170]
 		  ZOrder		  -4
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(28,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -3864,7 +3864,7 @@ Library {
 		  Position		  [25, 195, 55, 225]
 		  ZOrder		  -4
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(31,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -3875,7 +3875,7 @@ Library {
 		  Position		  [25, 250, 55, 280]
 		  ZOrder		  -4
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(31,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -4070,7 +4070,7 @@ Library {
 	      MaskValueString	      "9|robotName|localName"
 	      System {
 		Name			"dJ*dq LeftFoot"
-		Location		[444, 245, 771, 703]
+		Location		[445, 273, 772, 731]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4194,7 +4194,7 @@ Library {
 		  Position		  [25, 150, 55, 180]
 		  ZOrder		  -4
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(28,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -4205,7 +4205,7 @@ Library {
 		  Position		  [25, 205, 55, 235]
 		  ZOrder		  -4
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(31,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -4216,7 +4216,7 @@ Library {
 		  Position		  [25, 260, 55, 290]
 		  ZOrder		  -4
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(31,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -4351,7 +4351,7 @@ Library {
 	      MaskValueString	      "9|robotName|localName"
 	      System {
 		Name			"dJ*dq RightFoot"
-		Location		[680, 143, 975, 528]
+		Location		[681, 171, 976, 556]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4476,7 +4476,7 @@ Library {
 		  Position		  [25, 170, 55, 200]
 		  ZOrder		  -4
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(28,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -4487,7 +4487,7 @@ Library {
 		  Position		  [25, 235, 55, 265]
 		  ZOrder		  -4
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(31,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -4498,7 +4498,7 @@ Library {
 		  Position		  [25, 300, 55, 330]
 		  ZOrder		  -4
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(31,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -4633,7 +4633,7 @@ Library {
 	      MaskValueString	      "8|robotName|localName"
 	      System {
 		Name			"massMatrix"
-		Location		[71, 115, 389, 301]
+		Location		[72, 143, 390, 329]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4672,7 +4672,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "massMatrix"
-		    Location		    [519, 184, 832, 555]
+		    Location		    [520, 212, 833, 583]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -4711,7 +4711,7 @@ Library {
 		    SID			    "623"
 		    Position		    [25, 160, 55, 190]
 		    ZOrder		    -5
-		    Value		    "zeros(25,1)"
+		    Value		    "zeros(28,1)"
 		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
@@ -4721,7 +4721,7 @@ Library {
 		    SID			    "624"
 		    Position		    [25, 225, 55, 255]
 		    ZOrder		    -5
-		    Value		    "zeros(25,1)"
+		    Value		    "zeros(31,1)"
 		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
@@ -4731,7 +4731,7 @@ Library {
 		    SID			    "625"
 		    Position		    [25, 290, 55, 320]
 		    ZOrder		    -5
-		    Value		    "zeros(25,1)"
+		    Value		    "zeros(31,1)"
 		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
@@ -4966,7 +4966,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Forward Kinematics"
-	    Location		    [248, 333, 673, 458]
+	    Location		    [249, 361, 674, 486]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -5010,7 +5010,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"COMFwdKin "
-		Location		[411, 205, 853, 697]
+		Location		[412, 233, 854, 725]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -5051,7 +5051,7 @@ Library {
 		  Position		  [65, 215, 95, 245]
 		  ZOrder		  -5
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(28,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -5062,7 +5062,7 @@ Library {
 		  Position		  [65, 285, 95, 315]
 		  ZOrder		  -5
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(31,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -5073,7 +5073,7 @@ Library {
 		  Position		  [65, 355, 95, 385]
 		  ZOrder		  -5
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(31,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -5307,7 +5307,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"LeftFootFwdKin"
-		Location		[354, 111, 1104, 603]
+		Location		[355, 139, 1105, 631]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -5347,7 +5347,7 @@ Library {
 		  Position		  [70, 210, 100, 240]
 		  ZOrder		  -5
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(28,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -5358,7 +5358,7 @@ Library {
 		  Position		  [70, 280, 100, 310]
 		  ZOrder		  -5
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(31,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -5369,7 +5369,7 @@ Library {
 		  Position		  [70, 350, 100, 380]
 		  ZOrder		  -5
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(31,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -5561,7 +5561,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"RightFootFwdKin"
-		Location		[353, 111, 1103, 603]
+		Location		[354, 139, 1104, 631]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -5603,7 +5603,7 @@ Library {
 		  Position		  [60, 205, 90, 235]
 		  ZOrder		  -5
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(28,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -5614,7 +5614,7 @@ Library {
 		  Position		  [60, 275, 90, 305]
 		  ZOrder		  -5
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(31,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -5625,7 +5625,7 @@ Library {
 		  Position		  [60, 345, 90, 375]
 		  ZOrder		  -5
 		  ShowName		  off
-		  Value			  "zeros(25,1)"
+		  Value			  "zeros(31,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -5853,7 +5853,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Jacobians"
-	    Location		    [235, 273, 731, 431]
+	    Location		    [236, 301, 732, 459]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -5897,7 +5897,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Center of Mass Jacobian"
-		Location		[637, 594, 924, 683]
+		Location		[598, 522, 885, 611]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -5927,7 +5927,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "Right Foot \nJacobian1"
-		    Location		    [353, 111, 1103, 603]
+		    Location		    [355, 167, 1105, 659]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -5968,7 +5968,7 @@ Library {
 		    Position		    [55, 235, 85, 265]
 		    ZOrder		    -5
 		    ShowName		    off
-		    Value		    "zeros(25,1)"
+		    Value		    "zeros(28,1)"
 		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
@@ -5979,7 +5979,7 @@ Library {
 		    Position		    [55, 315, 85, 345]
 		    ZOrder		    -5
 		    ShowName		    off
-		    Value		    "zeros(25,1)"
+		    Value		    "zeros(31,1)"
 		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
@@ -5990,7 +5990,7 @@ Library {
 		    Position		    [55, 395, 85, 425]
 		    ZOrder		    -5
 		    ShowName		    off
-		    Value		    "zeros(25,1)"
+		    Value		    "zeros(31,1)"
 		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
@@ -6281,7 +6281,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Left Foot Jacobian"
-		Location		[367, 232, 654, 322]
+		Location		[368, 260, 655, 350]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -6311,7 +6311,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "Left Foot \nJacobian1"
-		    Location		    [353, 111, 1103, 603]
+		    Location		    [354, 139, 1104, 631]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -6350,7 +6350,7 @@ Library {
 		    Position		    [55, 210, 85, 240]
 		    ZOrder		    -5
 		    ShowName		    off
-		    Value		    "zeros(25,1)"
+		    Value		    "zeros(28,1)"
 		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
@@ -6361,7 +6361,7 @@ Library {
 		    Position		    [55, 280, 85, 310]
 		    ZOrder		    -5
 		    ShowName		    off
-		    Value		    "zeros(25,1)"
+		    Value		    "zeros(31,1)"
 		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
@@ -6372,7 +6372,7 @@ Library {
 		    Position		    [55, 350, 85, 380]
 		    ZOrder		    -5
 		    ShowName		    off
-		    Value		    "zeros(25,1)"
+		    Value		    "zeros(31,1)"
 		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
@@ -6659,7 +6659,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Right Foot Jacobian"
-		Location		[396, 467, 684, 556]
+		Location		[397, 495, 685, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -6689,7 +6689,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "Right Foot \nJacobian1"
-		    Location		    [353, 111, 1103, 603]
+		    Location		    [354, 139, 1104, 631]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -6730,7 +6730,7 @@ Library {
 		    Position		    [55, 220, 85, 250]
 		    ZOrder		    -5
 		    ShowName		    off
-		    Value		    "zeros(25,1)"
+		    Value		    "zeros(28,1)"
 		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
@@ -6741,7 +6741,7 @@ Library {
 		    Position		    [55, 295, 85, 325]
 		    ZOrder		    -5
 		    ShowName		    off
-		    Value		    "zeros(25,1)"
+		    Value		    "zeros(31,1)"
 		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
@@ -6752,7 +6752,7 @@ Library {
 		    Position		    [55, 370, 85, 400]
 		    ZOrder		    -5
 		    ShowName		    off
-		    Value		    "zeros(25,1)"
+		    Value		    "zeros(31,1)"
 		    OutDataTypeStr	    "double"
 		    SampleTime		    "-1"
 		    }
@@ -7040,7 +7040,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyStates"
-	Location		[454, 373, 1165, 532]
+	Location		[470, 158, 1181, 317]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -7084,7 +7084,7 @@ Library {
 	  MaskValueString	  "robotName|localName"
 	  System {
 	    Name		    "DUMMY Joint Torques"
-	    Location		    [694, 344, 999, 482]
+	    Location		    [695, 372, 1000, 510]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -7112,7 +7112,7 @@ Library {
 	      MaskHideContents	      off
 	      System {
 		Name			"tau from ports"
-		Location		[226, 168, 456, 658]
+		Location		[228, 224, 458, 714]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -7183,11 +7183,11 @@ Library {
 		  Position		  [25, 116, 95, 184]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
-		  LibraryVersion	  "1.240"
+		  LibraryVersion	  "1.252"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/left_arm/analog:o/torques']"
-		  to			  "'/tmp2:i'"
+		  to			  "'...'"
 		  num			  "5"
 		}
 		Block {
@@ -7198,11 +7198,11 @@ Library {
 		  Position		  [25, 201, 95, 269]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
-		  LibraryVersion	  "1.240"
+		  LibraryVersion	  "1.252"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/right_arm/analog:o/torques']"
-		  to			  "'/tmp3:i'"
+		  to			  "'...'"
 		  num			  "5"
 		}
 		Block {
@@ -7213,11 +7213,11 @@ Library {
 		  Position		  [25, 286, 95, 354]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
-		  LibraryVersion	  "1.240"
+		  LibraryVersion	  "1.252"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/left_leg/analog:o/torques']"
-		  to			  "'/tmp4:i'"
+		  to			  "'...'"
 		  num			  "6"
 		}
 		Block {
@@ -7228,11 +7228,11 @@ Library {
 		  Position		  [25, 371, 95, 439]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
-		  LibraryVersion	  "1.240"
+		  LibraryVersion	  "1.252"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/right_leg/analog:o/torques']"
-		  to			  "'/tmp5:i'"
+		  to			  "'...i'"
 		  num			  "6"
 		}
 		Block {
@@ -7243,11 +7243,11 @@ Library {
 		  Position		  [25, 26, 95, 94]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
-		  LibraryVersion	  "1.240"
+		  LibraryVersion	  "1.252"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/torso/analog:o/torques']"
-		  to			  "'/tmp1:i'"
+		  to			  "'...'"
 		  num			  "3"
 		}
 		Block {
@@ -7308,6 +7308,7 @@ Library {
 		  DstPort		  4
 		}
 		Line {
+		  Labels		  [0, 0]
 		  SrcBlock		  "yarp legR"
 		  SrcPort		  3
 		  DstBlock		  "Mux4"
@@ -7687,7 +7688,7 @@ Library {
 	  MaskValueString	  "robotName|localName"
 	  System {
 	    Name		    "Joint Accelerations"
-	    Location		    [155, 311, 485, 641]
+	    Location		    [156, 339, 486, 669]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -7718,7 +7719,7 @@ Library {
 	      Position		      [25, 145, 55, 175]
 	      ZOrder		      -4
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(28,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -7740,7 +7741,7 @@ Library {
 	      Position		      [25, 195, 55, 225]
 	      ZOrder		      -4
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(31,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -7751,7 +7752,7 @@ Library {
 	      Position		      [25, 245, 55, 275]
 	      ZOrder		      -4
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(31,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -7969,7 +7970,7 @@ Library {
 	  MaskValueString	  "robotName|localName"
 	  System {
 	    Name		    "Joint Angles"
-	    Location		    [530, 154, 1427, 842]
+	    Location		    [468, 81, 1365, 769]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -8031,7 +8032,7 @@ Library {
 	      Position		      [65, 210, 95, 240]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(28,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -8042,7 +8043,7 @@ Library {
 	      Position		      [65, 280, 95, 310]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(31,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -8053,7 +8054,7 @@ Library {
 	      Position		      [65, 350, 95, 380]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(31,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -8258,7 +8259,7 @@ Library {
 	  MaskValueString	  "robotName|localName"
 	  System {
 	    Name		    "Joint Torques"
-	    Location		    [562, 309, 892, 632]
+	    Location		    [563, 337, 893, 660]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -8289,7 +8290,7 @@ Library {
 	      Position		      [25, 150, 55, 180]
 	      ZOrder		      -4
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(28,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -8311,7 +8312,7 @@ Library {
 	      Position		      [25, 205, 55, 235]
 	      ZOrder		      -4
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(31,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -8322,7 +8323,7 @@ Library {
 	      Position		      [25, 260, 55, 290]
 	      ZOrder		      -4
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(31,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -8570,7 +8571,7 @@ Library {
 	      Position		      [60, 190, 90, 220]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(28,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -8581,7 +8582,7 @@ Library {
 	      Position		      [60, 250, 90, 280]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(31,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
@@ -8592,7 +8593,7 @@ Library {
 	      Position		      [60, 310, 90, 340]
 	      ZOrder		      -5
 	      ShowName		      off
-	      Value		      "zeros(25,1)"
+	      Value		      "zeros(31,1)"
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }

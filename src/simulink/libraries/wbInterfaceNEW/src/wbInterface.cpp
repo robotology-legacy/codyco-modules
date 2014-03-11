@@ -19,7 +19,7 @@
 
 #include "wbInterface.h"
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
-
+#include <boost/concept_check.hpp>
 // MASK PARAMETERS --------------------------------------
 #define NPARAMS 3                                  		// Number of input parameters
 #define BLOCK_TYPE_IDX 0                                  	// Index number for first input parameter
@@ -29,10 +29,10 @@
 // END MASK PARAMETERS -----------------------------------
 
 #define VERBOSE   0
-#define DEBUGGING 0
+#define DEBUGGING 1
 #define TIMING    0
 #define NEWCODE	  1
-//#define ICUB_FIXED
+#define ICUB_FIXED
 
 YARP_DECLARE_DEVICES(icubmod)
 
@@ -107,7 +107,7 @@ bool robotStatus::robotConfig() {
     else {
         //---------------- CREATION WHOLE BODY INTERFACE ---------------------/
         iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,1,true);
-        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
+        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/home/jorhabib/Software/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
         if(DEBUGGING) fprintf(stderr,"robotStatus::robotConfig >> new wbInterface created ...\n");
         tmpContainer = (int *) wbInterface;
         if(DEBUGGING) fprintf(stderr,"robotStatus::robotConfig >> icubWholeBodyInterface has been created %p \n", wbInterface);
@@ -361,14 +361,42 @@ void robotStatus::setdqDes(Vector dqD) {
 //=========================================================================================================================
 bool robotStatus::inverseDynamics(double *qrad_input, double *dq_input, double *ddq_input, double *tauJ_computed) {
     bool ans = false;
+    /** TODO qrad_input, dq_input, ddq_input will include in the first six components the corresponding floating base information*/
     if(world2baseRototranslation(qrad_input)) {
         if(DEBUGGING) fprintf(stderr,"robotStatus::inverseDynamics >> world2baseRototranslation computed\n");
-        ans = wbInterface->inverseDynamics(qrad_input, xBase, dq_input, dxB.data(), ddq_input, ddxB.data(), grav.data(), tauJ_computed);
+        double qrad_base[3] = {0.0, 0.0, 0.0};
+        double dq_base[6]   = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        double ddq_base[6]  = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+        double *qrad_robot = &qrad_input[3];
+        double *dq_robot   = &dq_input[6];
+        double *ddq_robot  = &ddq_input[6];
+
+        double zero3[3] = {0.0, 0.0, 0.0};
+        double zero6[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        Vector zero25(25);
+        zero25.resize(25,0);
+
+        for(int i=0; i<3; i++)
+            qrad_base[i] = *(qrad_input + i);
+        for(int i=0; i<6; i++)
+            dq_base[i] = *(dq_input + i);
+        for(int i=0; i<6; i++)
+            ddq_base[i] = *(ddq_input + i);
+
+        ans = wbInterface->inverseDynamics(qrad_robot, xBase, zero25.data(), zero6, zero25.data(), zero6, grav.data(), tauJ_computed);
         
         if(DEBUGGING)
         {
-            fprintf(stderr,"robotStatus::inverseDynamics >> Base vel: %s\n", dxB.toString().c_str());
-            fprintf(stderr,"robotStatus::inverseDynamics >> Base acc: %s\n",ddxB.toString().c_str());
+            fprintf(stderr,"robotStatus::inverseDynamics qrad_robot: >> \n");
+            for(int i=0; i<25; i++)
+                fprintf(stderr,"%lf ",qrad_robot[i]);
+            fprintf(stderr,"\n");
+            fprintf(stderr,"robotStatus::inverseDynamics >> qrad_base: (%f, %f, %f) \n",qrad_base[0], qrad_base[1], qrad_base[2]);
+            fprintf(stderr,"robotStatus::inverseDynamics >> qrad_robot: (%f, %f, %f ...) \n",qrad_robot[0], qrad_robot[1], qrad_robot[2]);
+
+//             fprintf(stderr,"robotStatus::inverseDynamics >> Base vel: %s\n", dxB.toString().c_str());
+//             fprintf(stderr,"robotStatus::inverseDynamics >> Base acc: %s\n",ddxB.toString().c_str());
         }
     }
     
@@ -541,9 +569,10 @@ static void mdlInitializeSizes(SimStruct *S)
     if (!ssSetNumInputPorts(S, 5)) return;
     ssSetInputPortWidth(S, 0, 1);              	    		//INPUT for BLOCK TYPE
     ssSetInputPortWidth(S, 1, ICUB_DOFS);    	    		//INPUT for dqDes (control reference, for setting positions, velocities or torques)
-    ssSetInputPortWidth(S, 2, ICUB_DOFS);			//INPUT for q (input angles different maybe from current ones)
-    ssSetInputPortWidth(S, 3, ICUB_DOFS);			//INPUT for dq (input joint velocities maybe different from current ones)
-    ssSetInputPortWidth(S, 4, ICUB_DOFS);			//INPUT for ddq (input joint accelerations maybe different from current ones)
+    /** TODO Temporary changed this to ICUB_DOFS+6 so that Inverse Dynamics can accept the right dimensioned inputs*/
+    ssSetInputPortWidth(S, 2, ICUB_DOFS+3);			//INPUT for q (input angles different maybe from current ones)
+    ssSetInputPortWidth(S, 3, ICUB_DOFS+6);			//INPUT for dq (input joint velocities maybe different from current ones)
+    ssSetInputPortWidth(S, 4, ICUB_DOFS+6);			//INPUT for ddq (input joint accelerations maybe different from current ones)
     ssSetInputPortDataType(S, 0, SS_INT8);     	    		//Input data type
     ssSetInputPortDataType(S, 1, SS_DOUBLE);
     ssSetInputPortDataType(S, 2, SS_DOUBLE);
@@ -1007,7 +1036,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         InputRealPtrsType uPtrs2 = ssGetInputPortRealSignalPtrs(S,2);   //Get the corresponding pointer to "input joint angles port"
         nu = ssGetInputPortWidth(S,2);                              	//Getting the amount of elements of the input vector/matrix
         Vector qrad_in;
-        qrad_in.resize(ICUB_DOFS,0.0);
+        qrad_in.resize(nu,0.0);
         for(int j=0; j<nu; j++) {                                       //Reading inpute reference
             qrad_in(j) = (*uPtrs2[j]);
         }
@@ -1016,7 +1045,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         InputRealPtrsType uPtrs3 = ssGetInputPortRealSignalPtrs(S,3);   //Get the corresponding pointer to "input joint angles port"
         nu = ssGetInputPortWidth(S,3);                              	//Getting the amount of elements of the input vector/matrix
         Vector dqrad_in;
-        dqrad_in.resize(ICUB_DOFS,0.0);
+        dqrad_in.resize(nu,0.0);
         for(int j=0; j<nu; j++) {                                       //Reading inpute reference
             dqrad_in(j) = (*uPtrs3[j]);
         }
@@ -1025,7 +1054,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         InputRealPtrsType uPtrs4 = ssGetInputPortRealSignalPtrs(S,4);   //Get the corresponding pointer to "input joint angles port"
         nu = ssGetInputPortWidth(S,4);                              	//Getting the amount of elements of the input vector/matrix
         Vector ddqrad_in;
-        ddqrad_in.resize(ICUB_DOFS,0.0);
+        ddqrad_in.resize(nu,0.0);
         for(int j=0; j<nu; j++) {                                       //Reading inpute reference
             ddqrad_in(j) = (*uPtrs4[j]);
         }
