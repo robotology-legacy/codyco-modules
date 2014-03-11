@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.119"
+    ComputedModelVersion    "1.177"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -28,9 +28,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Mar 10 11:40:55 2014"
-  RTWModifiedTimeStamp	  316352452
-  ModelVersionFormat	  "1.%<AutoIncrement:119>"
+  LastModifiedDate	  "Tue Mar 11 09:02:49 2014"
+  RTWModifiedTimeStamp	  316429345
+  ModelVersionFormat	  "1.%<AutoIncrement:177>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -676,6 +676,15 @@ Model {
       BusSelectionMode	      off
     }
     Block {
+      BlockType		      From
+      IconDisplay	      "Tag"
+      TagVisibility	      "local"
+    }
+    Block {
+      BlockType		      Goto
+      IconDisplay	      "Tag"
+    }
+    Block {
       BlockType		      Inport
       Port		      "1"
       OutputFunctionCall      off
@@ -774,9 +783,6 @@ Model {
       SampleTime	      "-1"
     }
     Block {
-      BlockType		      Stop
-    }
-    Block {
       BlockType		      SubSystem
       ShowPortLabels	      "FromPortIcon"
       Permissions	      "ReadWrite"
@@ -832,10 +838,19 @@ Model {
     Block {
       BlockType		      Terminator
     }
+    Block {
+      BlockType		      ToWorkspace
+      VariableName	      "simulink_output"
+      MaxDataPoints	      "1000"
+      Decimation	      "1"
+      SampleTime	      "0"
+      FixptAsFi		      off
+      NumInputs		      "1"
+    }
   }
   System {
     Name		    "computeTau"
-    Location		    [515, 307, 1453, 1035]
+    Location		    [181, 99, 1119, 827]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -849,7 +864,19 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "350"
+    SIDHighWatermark	    "406"
+    Block {
+      BlockType		      Sum
+      Name		      "Add"
+      SID		      "406"
+      Ports		      [2, 1]
+      Position		      [350, 552, 380, 583]
+      BlockMirror	      on
+      NamePlacement	      "alternate"
+      InputSameDT	      off
+      OutDataTypeStr	      "Inherit: Inherit via internal rule"
+      SaturateOnIntegerOverflow	off
+    }
     Block {
       BlockType		      Constant
       Name		      "Constant"
@@ -859,11 +886,74 @@ Model {
       Value		      "zeros(31,1)"
     }
     Block {
+      BlockType		      From
+      Name		      "From"
+      SID		      "390"
+      Position		      [565, 411, 605, 439]
+      GotoTag		      "h"
+    }
+    Block {
+      BlockType		      From
+      Name		      "From1"
+      SID		      "391"
+      Position		      [625, 446, 665, 474]
+      GotoTag		      "tau"
+    }
+    Block {
+      BlockType		      From
+      Name		      "From2"
+      SID		      "397"
+      Position		      [445, 456, 485, 484]
+      BlockMirror	      on
+      NamePlacement	      "alternate"
+      GotoTag		      "tau"
+    }
+    Block {
+      BlockType		      From
+      Name		      "From3"
+      SID		      "400"
+      Position		      [555, 481, 595, 509]
+      GotoTag		      "JL"
+    }
+    Block {
+      BlockType		      From
+      Name		      "From4"
+      SID		      "404"
+      Position		      [505, 556, 545, 584]
+      BlockMirror	      on
+      NamePlacement	      "alternate"
+      GotoTag		      "h"
+    }
+    Block {
+      BlockType		      Goto
+      Name		      "Goto"
+      SID		      "396"
+      Position		      [445, 167, 485, 183]
+      GotoTag		      "h"
+      TagVisibility	      "local"
+    }
+    Block {
+      BlockType		      Goto
+      Name		      "Goto1"
+      SID		      "395"
+      Position		      [755, 217, 795, 233]
+      GotoTag		      "tau"
+      TagVisibility	      "local"
+    }
+    Block {
+      BlockType		      Goto
+      Name		      "Goto2"
+      SID		      "398"
+      Position		      [450, 232, 490, 248]
+      GotoTag		      "JL"
+      TagVisibility	      "local"
+    }
+    Block {
       BlockType		      Reference
-      Name		      "Left Foot Jacobian"
-      SID		      "193"
+      Name		      "Left Foot Jacobian1"
+      SID		      "386"
       Ports		      [0, 1]
-      Position		      [310, 258, 375, 302]
+      Position		      [310, 248, 385, 292]
       ZOrder		      -1
       BackgroundColor	      "[0.047000, 0.909000, 0.803000]"
       LibraryVersion	      "1.240"
@@ -884,17 +974,17 @@ Model {
     Block {
       BlockType		      Concatenate
       Name		      "Matrix\nConcatenate"
-      SID		      "188"
+      SID		      "383"
       Ports		      [2, 1]
-      Position		      [440, 294, 495, 336]
+      Position		      [435, 274, 490, 316]
       Mode		      "Multidimensional array"
     }
     Block {
       BlockType		      Reference
       Name		      "Right Foot Jacobian"
-      SID		      "192"
+      SID		      "381"
       Ports		      [0, 1]
-      Position		      [310, 323, 380, 367]
+      Position		      [310, 308, 380, 352]
       ZOrder		      -2
       BackgroundColor	      "[0.000000, 1.000000, 0.533000]"
       LibraryVersion	      "1.240"
@@ -915,40 +1005,42 @@ Model {
     Block {
       BlockType		      Scope
       Name		      "Scope1"
-      SID		      "242"
+      SID		      "392"
       Ports		      [1]
-      Position		      [850, 179, 880, 211]
+      Position		      [830, 489, 860, 521]
+      NamePlacement	      "alternate"
       Floating		      off
-      Location		      [-1470, 589, -763, 1015]
+      Location		      [6, 346, 713, 772]
       Open		      off
       NumInputPorts	      "1"
       List {
 	ListType		AxesTitles
 	axes1			"%<SignalLabel>"
       }
-      YMin		      "-60"
-      YMax		      "60"
-      SaveName		      "ScopeData1"
+      YMin		      "-1.5"
+      YMax		      "5.5"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
     }
     Block {
       BlockType		      Scope
-      Name		      "Scope2"
-      SID		      "243"
-      Ports		      [1]
-      Position		      [760, 244, 790, 276]
+      Name		      "Scope10"
+      SID		      "376"
+      Ports		      [2]
+      Position		      [95, 446, 125, 479]
+      BlockMirror	      on
       Floating		      off
-      Location		      [6, 346, 713, 772]
-      Open		      on
-      NumInputPorts	      "1"
+      Location		      [6, 200, 713, 626]
+      Open		      off
+      NumInputPorts	      "2"
       List {
 	ListType		AxesTitles
 	axes1			"%<SignalLabel>"
+	axes2			"%<SignalLabel>"
       }
-      YMin		      "-5.5"
-      YMax		      "3"
-      SaveName		      "ScopeData2"
+      YMin		      "-5~-5"
+      YMax		      "10~5"
+      SaveName		      "ScopeData9"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
     }
@@ -957,11 +1049,11 @@ Model {
       Name		      "Scope3"
       SID		      "312"
       Ports		      [1]
-      Position		      [850, 244, 880, 276]
+      Position		      [830, 309, 860, 341]
       NamePlacement	      "alternate"
       Floating		      off
       Location		      [440, 309, 1147, 735]
-      Open		      on
+      Open		      off
       NumInputPorts	      "1"
       List {
 	ListType		AxesTitles
@@ -975,40 +1067,21 @@ Model {
     }
     Block {
       BlockType		      Scope
-      Name		      "Scope4"
-      SID		      "295"
+      Name		      "Scope5"
+      SID		      "393"
       Ports		      [1]
-      Position		      [530, 19, 560, 51]
+      Position		      [825, 409, 855, 441]
+      NamePlacement	      "alternate"
       Floating		      off
-      Location		      [130, 272, 837, 698]
+      Location		      [6, 346, 713, 772]
       Open		      off
       NumInputPorts	      "1"
       List {
 	ListType		AxesTitles
 	axes1			"%<SignalLabel>"
       }
-      YMax		      "2"
-      SaveName		      "ScopeData4"
-      DataFormat	      "StructureWithTime"
-      SampleTime	      "0"
-    }
-    Block {
-      BlockType		      Scope
-      Name		      "Scope6"
-      SID		      "328"
-      Ports		      [1]
-      Position		      [775, 49, 805, 81]
-      Floating		      off
-      Location		      [-858, 459, -151, 885]
-      Open		      off
-      NumInputPorts	      "1"
-      List {
-	ListType		AxesTitles
-	axes1			"%<SignalLabel>"
-      }
-      YMin		      "-60"
-      YMax		      "60"
-      SaveName		      "ScopeData6"
+      YMax		      "10"
+      SaveName		      "ScopeData1"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
     }
@@ -1026,34 +1099,45 @@ Model {
 	ListType		AxesTitles
 	axes1			"%<SignalLabel>"
       }
-      YMin		      "-60"
-      YMax		      "60"
+      YMin		      "-4"
+      YMax		      "4"
       SaveName		      "ScopeData7"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
     }
     Block {
-      BlockType		      Reference
-      Name		      "Set Torques1"
-      SID		      "326"
+      BlockType		      Scope
+      Name		      "Scope9"
+      SID		      "387"
       Ports		      [1]
-      Position		      [830, 303, 900, 347]
-      BackgroundColor	      "[0.941000, 0.415000, 0.192000]"
-      LibraryVersion	      "1.240"
-      SourceBlock	      "WBCLibrary/wholeBodyActuators/Set Torques"
-      SourceType	      ""
-      ShowPortLabels	      "FromPortIcon"
-      SystemSampleTime	      "-1"
-      FunctionWithSeparateData off
-      RTWMemSecFuncInitTerm   "Inherit from model"
-      RTWMemSecFuncExecute    "Inherit from model"
-      RTWMemSecDataConstants  "Inherit from model"
-      RTWMemSecDataInternal   "Inherit from model"
-      RTWMemSecDataParameters "Inherit from model"
-      GeneratePreprocessorConditionals off
-      val		      "6"
-      robotName		      "robotName"
-      localName		      "localName"
+      Position		      [450, 359, 480, 391]
+      NamePlacement	      "alternate"
+      Floating		      off
+      Location		      [6, 346, 713, 772]
+      Open		      off
+      NumInputPorts	      "1"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      YMin		      "-1"
+      YMax		      "1.1"
+      SaveName		      "ScopeData8"
+      DataFormat	      "StructureWithTime"
+      SampleTime	      "0"
+    }
+    Block {
+      BlockType		      Selector
+      Name		      "Selector"
+      SID		      "405"
+      Ports		      [1, 1]
+      Position		      [430, 551, 470, 589]
+      BlockMirror	      on
+      NamePlacement	      "alternate"
+      InputPortWidth	      "31"
+      IndexOptions	      "Index vector (dialog)"
+      Indices		      "[7:31]"
+      OutputSizes	      "1"
     }
     Block {
       BlockType		      Reference
@@ -1068,11 +1152,410 @@ Model {
       x			      "1"
     }
     Block {
-      BlockType		      Stop
-      Name		      "Stop Simulation"
-      SID		      "320"
-      Position		      [675, 137, 710, 173]
+      BlockType		      ToWorkspace
+      Name		      "To Workspace"
+      SID		      "401"
+      Ports		      [1]
+      Position		      [710, 545, 770, 575]
+      VariableName	      "simout"
+      MaxDataPoints	      "inf"
+      SampleTime	      "-1"
+      SaveFormat	      "Structure"
+    }
+    Block {
+      BlockType		      ToWorkspace
+      Name		      "To Workspace1"
+      SID		      "402"
+      Ports		      [1]
+      Position		      [685, 595, 745, 625]
+      VariableName	      "simout1"
+      MaxDataPoints	      "inf"
+      SampleTime	      "-1"
+      SaveFormat	      "Structure"
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "WBI to yarp"
+      SID		      "363"
+      Ports		      [1, 5]
+      Position		      [225, 428, 325, 512]
+      BlockMirror	      on
+      BackgroundColor	      "[0.180000, 0.348000, 0.600000]"
+      NamePlacement	      "alternate"
       ShowName		      off
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      Opaque		      off
+      RequestExecContextInheritance off
+      MaskHideContents	      off
+      System {
+	Name			"WBI to yarp"
+	Location		[1006, 421, 1335, 810]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"usletter"
+	PaperUnits		"inches"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+	Block {
+	  BlockType		  Inport
+	  Name			  "WBI ordered"
+	  SID			  "364"
+	  Position		  [25, 145, 40, 175]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Selector
+	  Name			  "Selector"
+	  SID			  "365"
+	  Ports			  [1, 1]
+	  Position		  [85, 26, 125, 64]
+	  InputPortWidth	  "25"
+	  IndexOptions		  "Index vector (dialog)"
+	  Indices		  "[1 2 3]"
+	  OutputSizes		  "1"
+	}
+	Block {
+	  BlockType		  Selector
+	  Name			  "Selector1"
+	  SID			  "366"
+	  Ports			  [1, 1]
+	  Position		  [110, 86, 150, 124]
+	  InputPortWidth	  "25"
+	  IndexOptions		  "Index vector (dialog)"
+	  Indices		  "[4 5 6 7 8]"
+	  OutputSizes		  "1"
+	}
+	Block {
+	  BlockType		  Selector
+	  Name			  "Selector2"
+	  SID			  "367"
+	  Ports			  [1, 1]
+	  Position		  [110, 151, 150, 189]
+	  InputPortWidth	  "25"
+	  IndexOptions		  "Index vector (dialog)"
+	  Indices		  "[9 10 11 12 13]"
+	  OutputSizes		  "1"
+	}
+	Block {
+	  BlockType		  Selector
+	  Name			  "Selector3"
+	  SID			  "368"
+	  Ports			  [1, 1]
+	  Position		  [110, 216, 150, 254]
+	  InputPortWidth	  "25"
+	  IndexOptions		  "Index vector (dialog)"
+	  Indices		  "[14 15 16 17 18 19]"
+	  OutputSizes		  "1"
+	}
+	Block {
+	  BlockType		  Selector
+	  Name			  "Selector4"
+	  SID			  "369"
+	  Ports			  [1, 1]
+	  Position		  [110, 286, 150, 324]
+	  InputPortWidth	  "25"
+	  IndexOptions		  "Index vector (dialog)"
+	  Indices		  "[20 21 22 23 24 25]"
+	  OutputSizes		  "1"
+	}
+	Block {
+	  BlockType		  Selector
+	  Name			  "Selector5"
+	  SID			  "370"
+	  Ports			  [1, 1]
+	  Position		  [145, 29, 200, 61]
+	  InputPortWidth	  "3"
+	  IndexOptions		  "Index vector (dialog)"
+	  Indices		  "[3 2 1]"
+	  OutputSizes		  "1"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "torso"
+	  SID			  "371"
+	  Position		  [215, 38, 245, 52]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "leftArm"
+	  SID			  "372"
+	  Position		  [175, 98, 205, 112]
+	  Port			  "2"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "rightArm"
+	  SID			  "373"
+	  Position		  [175, 163, 205, 177]
+	  Port			  "3"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "leftLeg"
+	  SID			  "374"
+	  Position		  [175, 228, 205, 242]
+	  Port			  "4"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "rightLeg"
+	  SID			  "375"
+	  Position		  [175, 298, 205, 312]
+	  Port			  "5"
+	  IconDisplay		  "Port number"
+	}
+	Line {
+	  SrcBlock		  "Selector1"
+	  SrcPort		  1
+	  DstBlock		  "leftArm"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Selector2"
+	  SrcPort		  1
+	  DstBlock		  "rightArm"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Selector3"
+	  SrcPort		  1
+	  DstBlock		  "leftLeg"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Selector4"
+	  SrcPort		  1
+	  DstBlock		  "rightLeg"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "WBI ordered"
+	  SrcPort		  1
+	  Points		  [25, 0]
+	  Branch {
+	    Points		    [0, -60]
+	    Branch {
+	      DstBlock		      "Selector"
+	      DstPort		      1
+	    }
+	    Branch {
+	      Points		      [0, 5]
+	      DstBlock		      "Selector1"
+	      DstPort		      1
+	    }
+	  }
+	  Branch {
+	    Points		    [0, 10]
+	    Branch {
+	      DstBlock		      "Selector2"
+	      DstPort		      1
+	    }
+	    Branch {
+	      Points		      [0, 65]
+	      Branch {
+		Points			[0, 70]
+		DstBlock		"Selector4"
+		DstPort			1
+	      }
+	      Branch {
+		DstBlock		"Selector3"
+		DstPort			1
+	      }
+	    }
+	  }
+	}
+	Line {
+	  SrcBlock		  "Selector"
+	  SrcPort		  1
+	  DstBlock		  "Selector5"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Selector5"
+	  SrcPort		  1
+	  DstBlock		  "torso"
+	  DstPort		  1
+	}
+      }
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "computeD2q"
+      SID		      "394"
+      Ports		      [3, 2]
+      Position		      [720, 405, 790, 515]
+      LibraryVersion	      "1.32"
+      ErrorFcn		      "Stateflow.Translate.translate"
+      PermitHierarchicalResolution "ExplicitOnly"
+      TreatAsAtomicUnit	      on
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      Opaque		      off
+      RequestExecContextInheritance off
+      MaskHideContents	      off
+      MaskType		      "Stateflow"
+      MaskDescription	      "Embedded MATLAB block"
+      MaskSelfModifiable      on
+      MaskDisplay	      "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('pr"
+      "ivate/eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
+      MaskIconFrame	      on
+      MaskIconOpaque	      off
+      MaskIconRotate	      "none"
+      MaskPortRotate	      "default"
+      MaskIconUnits	      "normalized"
+      System {
+	Name			"computeD2q"
+	Location		[257, 457, 812, 717]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"usletter"
+	PaperUnits		"inches"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+	SIDHighWatermark	"32"
+	Block {
+	  BlockType		  Inport
+	  Name			  "h"
+	  SID			  "394::18"
+	  Position		  [20, 101, 40, 119]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "tau"
+	  SID			  "394::28"
+	  Position		  [20, 136, 40, 154]
+	  Port			  "2"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "J"
+	  SID			  "394::20"
+	  Position		  [20, 171, 40, 189]
+	  Port			  "3"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Demux
+	  Name			  " Demux "
+	  SID			  "394::15"
+	  Ports			  [1, 1]
+	  Position		  [270, 270, 320, 310]
+	  Outputs		  "1"
+	}
+	Block {
+	  BlockType		  S-Function
+	  Name			  " SFunction "
+	  SID			  "394::14"
+	  Tag			  "Stateflow S-Function computeTau 1"
+	  Ports			  [3, 3]
+	  Position		  [180, 120, 230, 270]
+	  FunctionName		  "sf_sfun"
+	  PortCounts		  "[3 3]"
+	  EnableBusSupport	  on
+	  Port {
+	    PortNumber		    2
+	    Name		    "f"
+	    RTWStorageClass	    "Auto"
+	    DataLoggingNameMode	    "SignalName"
+	  }
+	  Port {
+	    PortNumber		    3
+	    Name		    "res"
+	    RTWStorageClass	    "Auto"
+	    DataLoggingNameMode	    "SignalName"
+	  }
+	}
+	Block {
+	  BlockType		  Terminator
+	  Name			  " Terminator "
+	  SID			  "394::17"
+	  Position		  [460, 281, 480, 299]
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "f"
+	  SID			  "394::31"
+	  Position		  [460, 101, 480, 119]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "res"
+	  SID			  "394::32"
+	  Position		  [460, 136, 480, 154]
+	  Port			  "2"
+	  IconDisplay		  "Port number"
+	}
+	Line {
+	  SrcBlock		  "h"
+	  SrcPort		  1
+	  DstBlock		  " SFunction "
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "tau"
+	  SrcPort		  1
+	  DstBlock		  " SFunction "
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "J"
+	  SrcPort		  1
+	  DstBlock		  " SFunction "
+	  DstPort		  3
+	}
+	Line {
+	  Name			  "f"
+	  Labels		  [0, 0; 0, 0]
+	  SrcBlock		  " SFunction "
+	  SrcPort		  2
+	  DstBlock		  "f"
+	  DstPort		  1
+	}
+	Line {
+	  Name			  "res"
+	  Labels		  [0, 0; 0, 0]
+	  SrcBlock		  " SFunction "
+	  SrcPort		  3
+	  DstBlock		  "res"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  " Demux "
+	  SrcPort		  1
+	  DstBlock		  " Terminator "
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  " SFunction "
+	  SrcPort		  1
+	  DstBlock		  " Demux "
+	  DstPort		  1
+	}
+      }
     }
     Block {
       BlockType		      SubSystem
@@ -1293,7 +1776,7 @@ Model {
       MaskHideContents	      off
       System {
 	Name			"errors"
-	Location		[650, 212, 925, 354]
+	Location		[650, 234, 955, 379]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -1337,7 +1820,7 @@ Model {
 	  Name			  "Divide"
 	  SID			  "334"
 	  Ports			  [2, 1]
-	  Position		  [165, 37, 195, 68]
+	  Position		  [170, 37, 200, 68]
 	  Inputs		  "*/"
 	  InputSameDT		  off
 	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
@@ -1355,7 +1838,7 @@ Model {
 	  BlockType		  Outport
 	  Name			  "(x-y)./y"
 	  SID			  "340"
-	  Position		  [220, 48, 250, 62]
+	  Position		  [225, 48, 255, 62]
 	  Port			  "2"
 	  IconDisplay		  "Port number"
 	}
@@ -1364,12 +1847,12 @@ Model {
 	  SrcPort		  1
 	  Points		  [10, 0]
 	  Branch {
-	    DstBlock		    "Divide"
+	    Points		    [0, -25]
+	    DstBlock		    "x-y"
 	    DstPort		    1
 	  }
 	  Branch {
-	    Points		    [0, -25]
-	    DstBlock		    "x-y"
+	    DstBlock		    "Divide"
 	    DstPort		    1
 	  }
 	}
@@ -1418,7 +1901,7 @@ Model {
       MaskHideContents	      off
       System {
 	Name			"gazebo joint tau"
-	Location		[401, 601, 706, 739]
+	Location		[401, 623, 706, 761]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -2187,94 +2670,54 @@ Model {
     Line {
       SrcBlock		      "computeh"
       SrcPort		      1
-      Points		      [120, 0; 0, -45]
+      Points		      [45, 0]
       Branch {
-	Points			[70, 0]
+	Points			[0, 30]
+	DstBlock		"Goto"
+	DstPort			1
+      }
+      Branch {
+	Points			[75, 0; 0, -45; 70, 0]
 	DstBlock		"computeTau"
 	DstPort			2
       }
-      Branch {
-	Points			[0, -65]
-	DstBlock		"Scope4"
-	DstPort			1
-      }
-    }
-    Line {
-      SrcBlock		      "Left Foot Jacobian"
-      SrcPort		      1
-      Points		      [20, 0; 0, 25]
-      DstBlock		      "Matrix\nConcatenate"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "Right Foot Jacobian"
-      SrcPort		      1
-      Points		      [15, 0; 0, -20]
-      DstBlock		      "Matrix\nConcatenate"
-      DstPort		      2
-    }
-    Line {
-      SrcBlock		      "Matrix\nConcatenate"
-      SrcPort		      1
-      Points		      [35, 0; 0, -150]
-      DstBlock		      "computeTau"
-      DstPort		      4
     }
     Line {
       SrcBlock		      "gazebo joint tau"
       SrcPort		      1
       Points		      [10, 0]
       Branch {
-	Points			[0, 35]
-	Branch {
-	  DstBlock		  "Scope2"
-	  DstPort		  1
-	}
-	Branch {
-	  Points		  [0, 65]
-	  DstBlock		  "holder"
-	  DstPort		  1
-	}
-      }
-      Branch {
 	Labels			[0, 0]
 	DstBlock		"errors"
 	DstPort			2
+      }
+      Branch {
+	Points			[0, 100]
+	DstBlock		"holder"
+	DstPort			1
+      }
+      Branch {
+	DstBlock		"Goto1"
+	DstPort			1
       }
     }
     Line {
       SrcBlock		      "holder"
       SrcPort		      1
-      Points		      [15, 0]
-      Branch {
-	Points			[0, -65]
-	DstBlock		"Scope3"
-	DstPort			1
-      }
-      Branch {
-	DstBlock		"Set Torques1"
-	DstPort			1
-      }
+      DstBlock		      "Scope3"
+      DstPort		      1
     }
     Line {
       SrcBlock		      "computeTau"
       SrcPort		      2
-      DstBlock		      "Stop Simulation"
-      DstPort		      1
+      Points		      [10, 0]
     }
     Line {
       SrcBlock		      "computeTau"
       SrcPort		      1
       Points		      [65, 0]
-      Branch {
-	Points			[0, -40]
-	DstBlock		"Scope6"
-	DstPort			1
-      }
-      Branch {
-	DstBlock		"errors"
-	DstPort			1
-      }
+      DstBlock		      "errors"
+      DstPort		      1
     }
     Line {
       SrcBlock		      "Constant"
@@ -2285,17 +2728,137 @@ Model {
     }
     Line {
       SrcBlock		      "errors"
-      SrcPort		      2
-      Points		      [20, 0]
-      DstBlock		      "Scope1"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "errors"
       SrcPort		      1
       Points		      [20, 0]
       DstBlock		      "Scope7"
       DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Matrix\nConcatenate"
+      SrcPort		      1
+      Points		      [75, 0]
+      DstBlock		      "computeTau"
+      DstPort		      4
+    }
+    Line {
+      SrcBlock		      "Right Foot Jacobian"
+      SrcPort		      1
+      Points		      [15, 0]
+      Branch {
+	Points			[0, -25]
+	DstBlock		"Matrix\nConcatenate"
+	DstPort			2
+      }
+      Branch {
+	Points			[0, 45]
+	DstBlock		"Scope9"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Left Foot Jacobian1"
+      SrcPort		      1
+      Points		      [15, 0]
+      Branch {
+	Points			[0, 15]
+	DstBlock		"Matrix\nConcatenate"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, -30]
+	DstBlock		"Goto2"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "From1"
+      SrcPort		      1
+      DstBlock		      "computeD2q"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "computeD2q"
+      SrcPort		      2
+      Points		      [5, 0; 0, 15]
+      DstBlock		      "Scope1"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "computeD2q"
+      SrcPort		      1
+      Points		      [5, 0; 0, -10]
+      DstBlock		      "Scope5"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "From"
+      SrcPort		      1
+      Points		      [75, 0]
+      Branch {
+	DstBlock		"computeD2q"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 135]
+	DstBlock		"To Workspace"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "From2"
+      SrcPort		      1
+      Points		      [-35, 0; 0, 90]
+      DstBlock		      "Add"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "From3"
+      SrcPort		      1
+      Points		      [35, 0]
+      Branch {
+	DstBlock		"computeD2q"
+	DstPort			3
+      }
+      Branch {
+	Points			[0, 115]
+	DstBlock		"To Workspace1"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "From4"
+      SrcPort		      1
+      DstBlock		      "Selector"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Selector"
+      SrcPort		      1
+      Points		      [-15, 0; 0, 5]
+      DstBlock		      "Add"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "Add"
+      SrcPort		      1
+      Points		      [0, -100]
+      DstBlock		      "WBI to yarp"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "WBI to yarp"
+      SrcPort		      2
+      DstBlock		      "Scope10"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "WBI to yarp"
+      SrcPort		      3
+      DstBlock		      "Scope10"
+      DstPort		      2
+    }
+    Annotation {
+      Position		      [343, 347]
     }
   }
 }
@@ -2312,13 +2875,13 @@ Stateflow {
     name		    "computeTau"
     created		    "05-Mar-2014 18:21:08"
     isLibrary		    0
-    firstTarget		    13
+    firstTarget		    23
     sfVersion		    75014001
   }
   chart {
     id			    2
-    name		    "computeTau"
-    windowPosition	    [375.119 276.764 200.25 189.75]
+    name		    "computeD2q"
+    windowPosition	    [420.119 231.764 200.25 189.75]
     viewLimits		    [0 156.75 0 153.75]
     screen		    [1 1 1280 778 1.001682887266829]
     treeNode		    [0 3 0 0]
@@ -2326,11 +2889,11 @@ Stateflow {
     firstJunction	    4
     viewObj		    2
     machine		    1
-    ssIdHighWaterMark	    14
+    ssIdHighWaterMark	    17
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
     firstData		    6
-    chartFileNumber	    2
+    chartFileNumber	    1
     disableImplicitCasting  1
     eml {
       name		      "fcn"
@@ -2350,14 +2913,12 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      "function [tau, stop] = fcn(M, h, d2q, Jc)\n\n% Francesco Nori\n% Genova 6 Marzo 2014\n% CODYCO pr"
-      "oject\n%\n% This code computes the torques tau necessary to obtain a desired\n% acceleration d2q in a kinematic "
-      "chain with contacts. These \n% computations are described in (DelPrete,2013) Ph.D. thesis\n% and can be found al"
-      "so in [Aghili 2005; Righetti et al. 2011]. It can\n% be shown that:\n%\n% tau = pinv(Nc' S') Nc (M d2q  + h)  \n"
-      "%\n% with Nc = (I-pinv(Jc)Jc) and the constraints being described as:\n%\n% Jc dq = 0\n%\n% Jc d2q + dJcdq= 0\n\n"
-      "[~, n] = size(Jc);\nn = n - 6;\nS = [zeros(n,6) eye(n)];\n\nNc = (eye(n+6)-pinv(Jc, 1e-2)*Jc);\ntau = pinv(Nc' *"
-      " S', 1e-2) * Nc *(M * d2q  + h);\n\nstop = norm(tau)>50;\n\n"
-      editorLayout	      "100 M4x1[205 563 693 486]"
+      script		      "function [f, res] = fcn(h, tau, J)\n\n% Francesco Nori\n% Genova 10 Marzo 2014\n% CODYCO project\n"
+      "%\n% This code computes the d2q given the currently applied torques,\n% assuming contacts at both feet.\n%\n% M "
+      "d2q + h - J' f = S' tau  \n%\n% with the constraints being described as:\n%\n% J dq = 0\n%\n% J d2q + dJdq= 0\n\n"
+      "[~, n] = size(J);\nS = [zeros(n-6, 6), eye(n-6)];\nf = -pinv(J')*(S'*tau - h);\nres = J'*f + S'*tau - h;\n\n% re"
+      "s = h(7:31) - tau;\n% f = 0;"
+      editorLayout	      "100 M4x1[45 67 693 486]"
     }
   }
   junction {
@@ -2392,28 +2953,9 @@ Stateflow {
   }
   data {
     id			    6
-    ssIdNumber		    4
-    name		    "M"
-    linkNode		    [2 0 7]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-      }
-      complexity	      SF_COMPLEX_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    7
     ssIdNumber		    6
     name		    "h"
-    linkNode		    [2 6 8]
+    linkNode		    [2 0 7]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -2432,9 +2974,31 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
+    id			    7
+    ssIdNumber		    7
+    name		    "tau"
+    linkNode		    [2 6 8]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
     id			    8
-    ssIdNumber		    14
-    name		    "d2q"
+    ssIdNumber		    8
+    name		    "J"
     linkNode		    [2 7 9]
     scope		    INPUT_DATA
     machine		    1
@@ -2455,8 +3019,8 @@ Stateflow {
   }
   data {
     id			    9
-    ssIdNumber		    7
-    name		    "tau"
+    ssIdNumber		    16
+    name		    "f"
     linkNode		    [2 8 10]
     scope		    OUTPUT_DATA
     machine		    1
@@ -2477,31 +3041,9 @@ Stateflow {
   }
   data {
     id			    10
-    ssIdNumber		    8
-    name		    "Jc"
-    linkNode		    [2 9 11]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    11
-    ssIdNumber		    12
-    name		    "stop"
-    linkNode		    [2 10 0]
+    ssIdNumber		    17
+    name		    "res"
+    linkNode		    [2 9 0]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -2520,13 +3062,223 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   instance {
-    id			    12
-    name		    "computeTau"
+    id			    11
+    name		    "computeD2q"
     machine		    1
     chart		    2
   }
-  target {
+  chart {
+    id			    12
+    name		    "computeTau"
+    windowPosition	    [375.119 276.764 200.25 189.75]
+    viewLimits		    [0 156.75 0 153.75]
+    screen		    [1 1 1280 778 1.001682887266829]
+    treeNode		    [0 13 0 0]
+    firstTransition	    15
+    firstJunction	    14
+    viewObj		    12
+    machine		    1
+    ssIdHighWaterMark	    14
+    decomposition	    CLUSTER_CHART
+    type		    EML_CHART
+    firstData		    16
+    chartFileNumber	    2
+    disableImplicitCasting  1
+    eml {
+      name		      "fcn"
+    }
+  }
+  state {
     id			    13
+    labelString		    "eML_blk_kernel()"
+    position		    [18 64.5 118 66]
+    fontSize		    12
+    chart		    12
+    treeNode		    [12 0 0 0]
+    superState		    SUBCHART
+    subviewer		    12
+    ssIdNumber		    1
+    type		    FUNC_STATE
+    decomposition	    CLUSTER_STATE
+    eml {
+      isEML		      1
+      script		      "function [tau, stop] = fcn(M, h, d2q, Jc)\n\n% Francesco Nori\n% Genova 6 Marzo 2014\n% CODYCO pr"
+      "oject\n%\n% This code computes the torques tau necessary to obtain a desired\n% acceleration d2q in a kinematic "
+      "chain with contacts. These \n% computations are described in (DelPrete,2013) Ph.D. thesis\n% and can be found al"
+      "so in [Aghili 2005; Righetti et al. 2011]. It can\n% be shown that:\n%\n% tau = pinv(Nc' S') Nc (M d2q  + h)  \n"
+      "%\n% with Nc = (I-pinv(Jc)Jc) and the constraints being described as:\n%\n% Jc dq = 0\n%\n% Jc d2q + dJcdq= 0\n\n"
+      "[~, n] = size(Jc);\nn = n - 6;\nS = [zeros(n,6) eye(n)];\n\nNc = (eye(n+6)-pinv(Jc, 1e-2)*Jc);\ntau = pinv(Nc' *"
+      " S', 1e-2) * Nc *(M * d2q  + h);\n\nstop = norm(tau)>50;\n\n"
+      editorLayout	      "100 M4x1[205 563 693 486]"
+    }
+  }
+  junction {
+    id			    14
+    position		    [23.5747 49.5747 7]
+    chart		    12
+    linkNode		    [12 0 0]
+    subviewer		    12
+    ssIdNumber		    3
+    type		    CONNECTIVE_JUNCTION
+  }
+  transition {
+    id			    15
+    labelString		    "{eML_blk_kernel();}"
+    labelPosition	    [32.125 19.875 102.544 14.964]
+    fontSize		    12
+    src {
+      intersection	      [0 0 1 0 23.5747 14.625 0 0]
+    }
+    dst {
+      id		      14
+      intersection	      [7 0 -1 -1 23.5747 42.5747 0 0]
+    }
+    midPoint		    [23.5747 24.9468]
+    chart		    12
+    linkNode		    [12 0 0]
+    dataLimits		    [23.575 23.575 14.625 34.575]
+    subviewer		    12
+    drawStyle		    SMART
+    executionOrder	    1
+    ssIdNumber		    2
+  }
+  data {
+    id			    16
+    ssIdNumber		    4
+    name		    "M"
+    linkNode		    [12 0 17]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+      }
+      complexity	      SF_COMPLEX_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    17
+    ssIdNumber		    6
+    name		    "h"
+    linkNode		    [12 16 18]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    18
+    ssIdNumber		    14
+    name		    "d2q"
+    linkNode		    [12 17 19]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    19
+    ssIdNumber		    7
+    name		    "tau"
+    linkNode		    [12 18 20]
+    scope		    OUTPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    20
+    ssIdNumber		    8
+    name		    "Jc"
+    linkNode		    [12 19 21]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    21
+    ssIdNumber		    12
+    name		    "stop"
+    linkNode		    [12 20 0]
+    scope		    OUTPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  instance {
+    id			    22
+    name		    "computeTau"
+    machine		    1
+    chart		    12
+  }
+  target {
+    id			    23
     name		    "sfun"
     description		    "Default Simulink S-Function Target."
     machine		    1

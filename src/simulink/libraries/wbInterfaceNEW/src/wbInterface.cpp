@@ -232,9 +232,9 @@ bool robotStatus::world2baseRototranslation(double *q) {
     int LINK_ROOT;
     getLinkId("root_link",LINK_ROOT);
     wbInterface->computeH(q, Frame(), LINK_ROOT, H_base_leftFoot);
-    H_base_leftFoot = H_base_leftFoot;
 #endif
     H_base_leftFoot.setToInverse().get4x4Matrix(H_w2b.data());
+    if(DEBUGGING) fprintf(stderr,"robotStatus::world2baseRototranslation >> Ha             : %s \n",Ha.toString().c_str());
     if(DEBUGGING) fprintf(stderr,"robotStatus::world2baseRototranslation >> H_base_leftFoot: %s \n",H_base_leftFoot.toString().c_str());
     if(DEBUGGING) fprintf(stderr,"robotStatus::world2baseRototranslation >> qRad           : %s \n",qRad.toString().c_str());
     xBase.set4x4Matrix(H_w2b.data());
@@ -294,6 +294,8 @@ JacobianMatrix robotStatus::jacobian(int &lid) {
             bool ans = wbInterface->computeJacobian(qRad.data(), xBase, lid, JfootR.data());
             if(ans)
             {
+                if(DEBUGGING)
+                    fprintf(stderr,"robotStatus::jacobian >> Base pos: %s\n", xBase.toString().c_str());
                 return JfootR;
             }
 //            else
@@ -402,6 +404,7 @@ Vector robotStatus::dynamicsGenBiasForces() {
                     
                     if(DEBUGGING) {
                         Vector dqRad(ICUB_DOFS, dqJ.data());
+                        fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Base pos: %s\n", xBase.toString().c_str());
                         fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Base vel: %s\n", dxB.toString().c_str());
                         fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Angs: %s\n",qRad.toString().c_str());
                         fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Vels: %s\n",  dqRad.toString().c_str());
