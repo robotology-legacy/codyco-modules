@@ -352,11 +352,11 @@ int main()
               << "Real one     " << centroidal_momentum.toString() << std::endl
               << "Jacobian one " << centroidal_momentum_with_jac.toString() << std::endl;
     
-    /*
+    
     if( norm(centroidal_momentum-centroidal_momentum_with_jac) > tol ) { 
         std::cerr << "iDynTreeJacobianTest failed: Consistency error between centroidal momentums " << std::endl;
         return EXIT_FAILURE; 
-    } */          
+    }           
     
     
     return 0;
