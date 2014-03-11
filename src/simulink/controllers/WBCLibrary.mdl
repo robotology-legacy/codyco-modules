@@ -22,9 +22,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Mar 10 14:47:28 2014"
-  RTWModifiedTimeStamp	  316358768
-  ModelVersionFormat	  "1.%<AutoIncrement:247>"
+  LastModifiedDate	  "Tue Mar 11 12:12:38 2014"
+  RTWModifiedTimeStamp	  316440664
+  ModelVersionFormat	  "1.%<AutoIncrement:249>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -823,7 +823,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [276, 178, 1064, 438]
+    Location		    [413, 525, 1201, 785]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -861,7 +861,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
-	Location		[489, 161, 1181, 429]
+	Location		[654, 156, 1346, 424]
 	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -2248,7 +2248,7 @@ Library {
 	  MaskIconRotate	  "none"
 	  MaskPortRotate	  "default"
 	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "'/icubSim/torso/state:o'|'/tmp:i'|3"
+	  MaskValueString	  "['/' robotName '/torso/state:o']|'...'|3"
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -2417,7 +2417,7 @@ Library {
 	  MaskIconRotate	  "none"
 	  MaskPortRotate	  "default"
 	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "'/test:o'"
+	  MaskValueString	  "'...'"
 	  System {
 	    Name		    "yarp write"
 	    Location		    [636, 387, 904, 704]
@@ -7040,7 +7040,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyStates"
-	Location		[453, 345, 1164, 504]
+	Location		[454, 373, 1165, 532]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
