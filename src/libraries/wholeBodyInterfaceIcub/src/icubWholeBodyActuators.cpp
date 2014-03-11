@@ -537,7 +537,7 @@ bool icubWholeBodyActuators::setControlParam(ControlParam paramId, const void *v
         case CTRL_PARAM_KP: return false;
         case CTRL_PARAM_KD: return false;
         case CTRL_PARAM_KI: return false;
-        case CTRL_PARAM_OFFSET: return false;
+        case CTRL_PARAM_OFFSET: return setControlOffset((double*)value, joint);
         default: break;
     }
     return false;

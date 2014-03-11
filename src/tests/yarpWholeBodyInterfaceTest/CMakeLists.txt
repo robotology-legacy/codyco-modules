@@ -31,7 +31,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 if(CODYCO_USES_URDFDOM)
-     find_package(Boost REQUIRED thread)
+     find_package(Boost REQUIRED)
      INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 endif()
 
