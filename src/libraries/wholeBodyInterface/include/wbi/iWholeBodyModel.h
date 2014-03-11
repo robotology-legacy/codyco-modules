@@ -133,6 +133,16 @@ namespace wbi {
          * @return True if the operation succeeded, false otherwise. */
         
         virtual bool computeGeneralizedBiasForces(double *q, const Frame &xBase, double *dq, double *dxB, double* g, double *h) = 0;
+       
+        /** Compute the 6 element centroidal momentum, as defined in:
+         * Centroidal dynamics of a humanoid robot - DE Orin, A Goswami, SH Lee - Autonomous Robots 35 (2-3), 161-176
+         * @param q Joint angles (in radians) 
+         * @param xBase Rototranslation from world frame to robot base frame (\f${}^w H_b \f$)
+         * @param dq Joint velocities (rad/s).
+         * @param dxB Velocity of the robot base in world reference frame, 3 values for linear and 3 for angular velocity
+         * @param h output 6-element vector containg the centroidal momentum (3 value for linear momentum and 3 for angular momentum)
+         * @return True if the operation succeeded, false otherwise. */
+        virtual bool computeCentroidalMomentum(double *q, const Frame &xBase, double *dq, double *dxB, double *h) = 0;
         
     };
     

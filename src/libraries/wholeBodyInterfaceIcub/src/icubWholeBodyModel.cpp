@@ -710,4 +710,36 @@ bool icubWholeBodyModel::computeGeneralizedBiasForces(double *q, const Frame &xB
 }
 
 
+bool icubWholeBodyModel::computeCentroidalMomentum(double *q, const Frame &xBase, double *dq, double *dxB, double *h)
+{    
+    /** \todo move all conversion (also the one relative to frames) in convert* functions */
+    //Converting local wbi positions/velocity/acceleration to iDynTree one
+    convertBasePose(xBase,world_base_transformation);
+    convertQ(q,all_q);
+    
+    convertBaseVelocity(dxB, v_six_elems_base);
+    convertDQ(dq,all_dq);
+    
+    a_six_elems_base.zero();
+
+    //Setting iDynTree variables
+    p_model->setWorldBasePose(world_base_transformation);
+    p_model->setKinematicBaseVelAcc(v_six_elems_base,a_six_elems_base);
+    p_model->setAng(all_q);
+    p_model->setDAng(all_dq);
+    p_model->setD2Ang(all_ddq);
+    
+    //Computing centroidal momentum
+    if( six_elem_buffer.size() != 6 ) {
+        six_elem_buffer.resize(6,0.0);
+    }
+    
+    six_elem_buffer = p_model->getCentroidalMomentum();
+    
+    memcpy(h,six_elem_buffer.data(),6*sizeof(double));
+    
+    return true;
+}
+
+
     
