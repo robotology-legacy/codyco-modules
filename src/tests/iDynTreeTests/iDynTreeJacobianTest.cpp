@@ -295,6 +295,25 @@ int main()
         return EXIT_FAILURE; 
     }           
     
+    //Test the new getCentroidalMomentum
+    yarp::sig::Vector centroidal_momentum = icub_idyntree.getCentroidalMomentum();
+    
+    yarp::sig::Matrix centroidal_momentum_jacobian;
+    
+    icub_idyntree.getCentroidalMomentumJacobian(centroidal_momentum_jacobian);
+    
+    yarp::sig::Vector centroidal_momentum_with_jac = centroidal_momentum_jacobian*icub_idyntree.getDQ_fb();
+   
+     std::cout << "Comparison between centroidal momentums" << std::endl
+              << "Real one     " << centroidal_momentum.toString() << std::endl
+              << "Jacobian one " << centroidal_momentum_with_jac.toString() << std::endl;
+    
+    if( norm(centroidal_momentum-centroidal_momentum_with_jac) > tol ) { 
+        std::cerr << "iDynTreeJacobianTest failed: Consistency error between centroidal momentums " << std::endl;
+        return EXIT_FAILURE; 
+    }           
+    
+    
     return 0;
     
 }
