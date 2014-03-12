@@ -195,6 +195,7 @@ static void mdlStart(SimStruct *S)
     BufferedPort<Vector> *toPort;
     toPort = new BufferedPort<Vector>;
     toPort->open(toPort_name);
+    ConstString toPortName = toPort->getName();
     
     cout<<"[From] Port name will be: "<<port_name<<endl;
     cout<<"[To] Port name will be:   "<<toPort->getName()<<endl;
@@ -202,7 +203,7 @@ static void mdlStart(SimStruct *S)
 
     ssGetPWork(S)[0] = toPort;
     
-    Network::connect(port_name,toPort_name,"mcast");
+    Network::connect(port_name,toPortName,"mcast");
 
 }
 

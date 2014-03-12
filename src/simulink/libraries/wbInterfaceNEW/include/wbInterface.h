@@ -187,10 +187,10 @@ public:
     void      		setdqDes(yarp::sig::Vector dqD);
     
     bool 		inverseDynamics(double* qrad_input, double* dq_input, double* ddq_input, double* tau_computed);
-    bool       		dynamicsMassMatrix();
-    yarp::sig::Vector	dynamicsGenBiasForces();
+    bool       		dynamicsMassMatrix(double* qrad_input);
+    yarp::sig::Vector	dynamicsGenBiasForces(double* qrad_input, double* dq_input);
     bool       		robotBaseVelocity();
-    bool       		dynamicsDJdq(int &linkId);
+    bool       		dynamicsDJdq(int& linkId, double* qrad_input, double* dq_input);
     MassMatrix 		getMassMatrix();
     yarp::sig::Vector 	getDJdq();
     yarp::sig::Vector 	getJntAccelerations();
