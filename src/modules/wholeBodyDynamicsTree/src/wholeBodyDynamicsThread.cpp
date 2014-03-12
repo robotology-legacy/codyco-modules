@@ -79,7 +79,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
                                                  string _robotName,
                                                  int _period, 
                                                  icubWholeBodyStatesLocal *_wbs,
-                                                 const iCub::iDynTree::iCubTree_version_tag _icub_version)
+                                                 const iCub::iDynTree::iCubTree_version_tag _icub_version,
+                                                 bool autoconnect)
     :  RateThread(_period),
        name(_name),
        robotName(_robotName), 
@@ -94,8 +95,6 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     
     std::cout << "Launching wholeBodyDynamicsThread with name : " << _name << " and robotName " << _robotName << " and period " << _period << std::endl;
         
-        
-    bool autoconnect = false;
     
     //Resize buffer vectors
     all_torques.resize(_wbs->getEstimateNumber(wbi::ESTIMATE_JOINT_TORQUE));
@@ -193,6 +192,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     
     if (autoconnect)
     {
+        
+        std::cout << "wholeBodyDynamicsThread: autoconnect option enabled, autoconnecting." << std::endl;
         //from wholeBodyDynamics to iCub (mandatory)
         Network::connect(string("/"+local_name+"/left_arm/Torques:o").c_str(), string("/"+robot_name+"/joint_vsens/left_arm:i").c_str(),"tcp",false);
         Network::connect(string("/"+local_name+"/right_arm/Torques:o").c_str(),string("/"+robot_name+"/joint_vsens/right_arm:i").c_str(),"tcp",false);
@@ -259,7 +260,8 @@ bool wholeBodyDynamicsThread::threadInit()
         r_foot_ft_sensor_id = -1;
     }
     
-    wbd_mode = NORMAL;
+    //Start with calibration
+    calibrateOffset("all");
     printf("\n\n");
     return true;
 }
