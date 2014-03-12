@@ -194,6 +194,7 @@ public:
     MassMatrix 		getMassMatrix();
     yarp::sig::Vector 	getDJdq();
     yarp::sig::Vector 	getJntAccelerations();
+    bool		getJointLimits(double* qminLims, double* qmaxlims, const int jnt);
 };
 
 class counterClass {

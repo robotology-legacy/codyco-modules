@@ -19,7 +19,7 @@
 
 #include "wbInterface.h"
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
-
+#include <boost/concept_check.hpp>
 // MASK PARAMETERS --------------------------------------
 #define NPARAMS 3                                  		// Number of input parameters
 #define BLOCK_TYPE_IDX 0                                  	// Index number for first input parameter
@@ -364,14 +364,14 @@ bool robotStatus::inverseDynamics(double *qrad_input, double *dq_input, double *
     if(world2baseRototranslation(qrad_input)) {
         if(DEBUGGING) fprintf(stderr,"robotStatus::inverseDynamics >> world2baseRototranslation computed\n");
         ans = wbInterface->inverseDynamics(qrad_input, xBase, dq_input, dxB.data(), ddq_input, ddxB.data(), grav.data(), tauJ_computed);
-        
+
         if(DEBUGGING)
         {
             fprintf(stderr,"robotStatus::inverseDynamics >> Base vel: %s\n", dxB.toString().c_str());
             fprintf(stderr,"robotStatus::inverseDynamics >> Base acc: %s\n",ddxB.toString().c_str());
         }
     }
-    
+
     return ans;
 }
 //=========================================================================================================================
@@ -401,7 +401,7 @@ Vector robotStatus::dynamicsGenBiasForces() {
             if(world2baseRototranslation(qRad.data())) {
                 if(DEBUGGING) fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> world2baseRototranslation computed for dynamicsGenBiasForces\n");
                 if(robotBaseVelocity()) {
-                    
+
                     if(DEBUGGING) {
                         Vector dqRad(ICUB_DOFS, dqJ.data());
                         fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Base pos: %s\n", xBase.toString().c_str());
@@ -457,6 +457,18 @@ Vector robotStatus::getDJdq() {
 }
 #endif
 
+/** Returns joints limits in radians.*/
+bool robotStatus::getJointLimits(double *qminLims, double *qmaxLims, const int jnt) {
+    bool ans = false;
+    if(!wbInterface->getJointLimits(qminLims, qmaxLims,jnt)) {
+        fprintf(stderr,"ERROR [robotStatus::getJointLimits] wbInterface->getJointLimits failed\n");
+        return ans;
+    }
+    else {
+        ans = true;
+        return ans;
+    }
+}
 //------------------------------------------------------------------------------------------------------------------------//
 // END robotStatus implementation ----------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------------------------------------//
@@ -554,7 +566,7 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetInputPortDirectFeedThrough(S, 2, 1);
     ssSetInputPortDirectFeedThrough(S, 3, 1);
     ssSetInputPortDirectFeedThrough(S, 4, 1);
-    if (!ssSetNumOutputPorts(S,10)) return;
+    if (!ssSetNumOutputPorts(S,12)) return;
     ssSetOutputPortWidth   (S, 0, ICUB_DOFS);	    		// Robot joint angular positions in radians
     ssSetOutputPortWidth   (S, 1, ICUB_DOFS);	    		// Robot joint angular velocities in radians
     ssSetOutputPortWidth   (S, 2, 7);               		// foot or COM pose from fwdKinematics.
@@ -565,6 +577,8 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetOutputPortWidth   (S, 7, ICUB_DOFS);			// Joint accelerations
     ssSetOutputPortWidth   (S, 8, ICUB_DOFS);			// Joint torques
     ssSetOutputPortWidth   (S, 9, ICUB_DOFS);			// Compute torques with inverse dynamics
+    ssSetOutputPortWidth   (S, 10, ICUB_DOFS); 			// Min joint limits;
+    ssSetOutputPortWidth   (S, 11, ICUB_DOFS);			// Max joint limits;
     ssSetOutputPortDataType(S, 0, 0);
     ssSetOutputPortDataType(S, 1, 0);
     ssSetOutputPortDataType(S, 2, 0);
@@ -575,6 +589,8 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetOutputPortDataType(S, 7, 0);
     ssSetOutputPortDataType(S, 8, 0);
     ssSetOutputPortDataType(S, 9, 0);
+    ssSetOutputPortDataType(S, 10,0);
+    ssSetOutputPortDataType(S, 11,0);
 
     ssSetNumSampleTimes(S, 1);
 
@@ -1031,7 +1047,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         }
 
         yarp::sig::Vector tau_computed;
-	tau_computed.resize(ICUB_DOFS+6,0.0);
+        tau_computed.resize(ICUB_DOFS+6,0.0);
         if(robot->inverseDynamics(qrad_in.data(), dqrad_in.data(), ddqrad_in.data(), tau_computed.data())) {
             if(DEBUGGING) {
                 fprintf(stderr,"robotStatus::inverseDynamics >> Inverse dynamics has been computed correctly\n");
@@ -1040,16 +1056,42 @@ static void mdlOutputs(SimStruct *S, int_T tid)
                 fprintf(stderr,"robotStatus::inverseDynamics >> Accs: %s\n", ddqrad_in.toString().c_str());
             }
 
-	    if(DEBUGGING) fprintf(stderr,"robotStatus::inverseDynamics >> Size of tau_computed is: \n%d\n",tau_computed.size());
+            if(DEBUGGING) fprintf(stderr,"robotStatus::inverseDynamics >> Size of tau_computed is: \n%d\n",tau_computed.size());
             if(DEBUGGING) fprintf(stderr,"robotStatus::inverseDynamics >> Computed torques are: \n%s\n", tau_computed.toString().c_str());
             //Stream computed joint torques by inverseDynamics
             real_T *pY10 = (real_T*)ssGetOutputPortSignal(S,9);
             for(int_T j=0; j<ssGetOutputPortWidth(S,9); j++) {
-		/**TODO Decide if we want to stream tau_computed including floating base torques */
+                /**TODO Decide if we want to stream tau_computed including floating base torques */
                 pY10[j] = tau_computed(j+6);
             }
         }
     }
+
+    // min/max joint limits
+    if(btype == 13) {
+        Vector minJntLimits(ICUB_DOFS);
+        minJntLimits.zero();
+        Vector maxJntLimits(ICUB_DOFS);
+        maxJntLimits.zero();
+        // Gets joint limits for the entire body since we're still using ICUB_DOFS as default
+        if(!robot->getJointLimits(minJntLimits.data(), maxJntLimits.data(),-1)) {
+            ssSetErrorStatus(S,"ERROR [mdlOutput] Joint limits could not be computed\n");
+        }
+        else {
+            if(DEBUGGING) fprintf(stderr,"minJntLimits are: \n%s\n maxJntLimits are: \n%s\n", minJntLimits.toString().c_str(), maxJntLimits.toString().c_str());
+            real_T *pY11 = (real_T*)ssGetOutputPortSignal(S,10);
+            real_T *pY12 = (real_T*)ssGetOutputPortSignal(S,11);
+            for(int_T j=0; j<ssGetOutputPortWidth(S,10); j++) {
+                /**TODO Decide if we want to stream tau_computed including floating base torques */
+                pY11[j] = minJntLimits[j];
+            }
+            for(int_T j=0; j<ssGetOutputPortWidth(S,11); j++) {
+                /**TODO Decide if we want to stream tau_computed including floating base torques */
+                pY12[j] = maxJntLimits[j];
+            }
+        }
+    }
+
 
     if(TIMING) tend = Time::now();
     if(TIMING) fprintf(stderr,"Time elapsed: %f \n",tend-tinit);
@@ -1061,8 +1103,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 //   In this function, you should perform any actions that are necessary
 //   at the termination of a simulation.  For example, if memory was
 //   allocated in mdlStart, this is the place to free it.
-static void mdlTerminate(SimStruct *S)
-{
+static void mdlTerminate(SimStruct *S) {
     // IF YOU FORGET TO DESTROY OBJECTS OR DEALLOCATE MEMORY, MATLAB WILL CRASH.
     // Retrieve and destroy C++ object
     robotStatus *robot = (robotStatus *) ssGetPWork(S)[0];
