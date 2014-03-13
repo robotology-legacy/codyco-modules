@@ -66,10 +66,25 @@ bool yarpWholeBodyInterface::init()
 bool yarpWholeBodyInterface::close()
 {
     bool ok = true;
-
-    if( actuatorInt ) { ok = actuatorInt->close(); delete actuatorInt; actuatorInt=0; }
+    if (actuatorInt) {
+        if (actuatorInt->close()) {
+            delete actuatorInt;
+            actuatorInt = 0;
+        }
+        else {
+            ok = false;
+        }
+    }
     //if( stateInt ) { ok = stateInt->close(); delete stateInt; stateInt=0; }
-    if( modelInt ) { ok = modelInt->close(); delete modelInt; modelInt=0; }
+    if (modelInt) {
+        if(modelInt->close()) {
+            delete modelInt;
+            modelInt = 0;
+        }
+        else {
+            ok = false;
+        }
+    }
 
     return ok;
 }
