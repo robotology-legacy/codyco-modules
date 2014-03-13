@@ -1292,6 +1292,11 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             }
         }
     }
+    
+    // angular momentum
+    if(btype == 14){
+      
+    }
 
 
 

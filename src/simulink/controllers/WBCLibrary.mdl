@@ -22,9 +22,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Mar 11 21:44:46 2014"
-  RTWModifiedTimeStamp	  316472562
-  ModelVersionFormat	  "1.%<AutoIncrement:278>"
+  LastModifiedDate	  "Wed Mar 12 15:33:17 2014"
+  RTWModifiedTimeStamp	  316539180
+  ModelVersionFormat	  "1.%<AutoIncrement:280>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -837,7 +837,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "749"
+    SIDHighWatermark	    "768"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -3426,8 +3426,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[216, 165, 780, 330]
-	Open			off
+	Location		[216, 165, 784, 425]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -7018,6 +7018,316 @@ Library {
 	    }
 	  }
 	}
+	Block {
+	  BlockType		  SubSystem
+	  Name			  "Joint Limits"
+	  SID			  "750"
+	  Ports			  [0, 2]
+	  Position		  [30, 165, 105, 225]
+	  BackgroundColor	  "[1.000000, 0.125886, 0.356697]"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  RTWSystemCode		  "Auto"
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  RequestExecContextInheritance	off
+	  MaskHideContents	  off
+	  MaskPromptString	  "Robot name|Local name"
+	  MaskStyleString	  "edit,edit"
+	  MaskVariables		  "robotName=@1;localName=@2;"
+	  MaskTunableValueString  "on,on"
+	  MaskCallbackString	  "|"
+	  MaskEnableString	  "on,on"
+	  MaskVisibilityString	  "on,on"
+	  MaskToolTipString	  "on,on"
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
+	  MaskValueString	  "robotName|localName"
+	  System {
+	    Name		    "Joint Limits"
+	    Location		    [508, 200, 863, 610]
+	    Open		    off
+	    ModelBrowserVisibility  off
+	    ModelBrowserWidth	    200
+	    ScreenColor		    "white"
+	    PaperOrientation	    "landscape"
+	    PaperPositionMode	    "auto"
+	    PaperType		    "usletter"
+	    PaperUnits		    "inches"
+	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
+	    TiledPageScale	    1
+	    ShowPageBoundaries	    off
+	    ZoomFactor		    "100"
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant"
+	      SID		      "751"
+	      Position		      [25, 50, 55, 80]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "0"
+	      OutDataTypeStr	      "int8"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant1"
+	      SID		      "752"
+	      Position		      [25, 120, 55, 150]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25,1)"
+	      OutDataTypeStr	      "double"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant2"
+	      SID		      "753"
+	      Position		      [25, 190, 55, 220]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25+16,1)"
+	      OutDataTypeStr	      "double"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant3"
+	      SID		      "754"
+	      Position		      [25, 260, 55, 290]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25+6,1)"
+	      OutDataTypeStr	      "double"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant4"
+	      SID		      "755"
+	      Position		      [25, 330, 55, 360]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25+6,1)"
+	      OutDataTypeStr	      "double"
+	      SampleTime	      "-1"
+	    }
+	    Block {
+	      BlockType		      S-Function
+	      Name		      "S-Function"
+	      SID		      "756"
+	      Ports		      [5, 12]
+	      Position		      [100, 26, 245, 384]
+	      ZOrder		      -5
+	      FunctionName	      "robotState"
+	      Parameters	      "13,robotName,localName"
+	      EnableBusSupport	      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator"
+	      SID		      "757"
+	      Position		      [305, 30, 325, 50]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator1"
+	      SID		      "758"
+	      Position		      [305, 60, 325, 80]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator2"
+	      SID		      "759"
+	      Position		      [305, 90, 325, 110]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator3"
+	      SID		      "760"
+	      Position		      [305, 120, 325, 140]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator4"
+	      SID		      "761"
+	      Position		      [305, 150, 325, 170]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator5"
+	      SID		      "762"
+	      Position		      [305, 180, 325, 200]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator6"
+	      SID		      "763"
+	      Position		      [305, 210, 325, 230]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator7"
+	      SID		      "764"
+	      Position		      [305, 240, 325, 260]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator8"
+	      SID		      "765"
+	      Position		      [305, 270, 325, 290]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      "Terminator9"
+	      SID		      "766"
+	      Position		      [305, 300, 325, 320]
+	      ZOrder		      -20
+	      ShowName		      off
+	    }
+	    Block {
+	      BlockType		      Outport
+	      Name		      "qMin"
+	      SID		      "767"
+	      Position		      [300, 333, 330, 347]
+	      ZOrder		      -9
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Outport
+	      Name		      "qMax"
+	      SID		      "768"
+	      Position		      [300, 363, 330, 377]
+	      ZOrder		      -9
+	      Port		      "2"
+	      IconDisplay	      "Port number"
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      12
+	      DstBlock		      "qMax"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      11
+	      DstBlock		      "qMin"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      10
+	      DstBlock		      "Terminator9"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      9
+	      DstBlock		      "Terminator8"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      8
+	      DstBlock		      "Terminator7"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      7
+	      DstBlock		      "Terminator6"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      6
+	      DstBlock		      "Terminator5"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      5
+	      DstBlock		      "Terminator4"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      4
+	      DstBlock		      "Terminator3"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      3
+	      DstBlock		      "Terminator2"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      2
+	      DstBlock		      "Terminator1"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "S-Function"
+	      SrcPort		      1
+	      DstBlock		      "Terminator"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "Constant4"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      5
+	    }
+	    Line {
+	      SrcBlock		      "Constant3"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      4
+	    }
+	    Line {
+	      SrcBlock		      "Constant2"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      3
+	    }
+	    Line {
+	      SrcBlock		      "Constant1"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      2
+	    }
+	    Line {
+	      SrcBlock		      "Constant"
+	      SrcPort		      1
+	      DstBlock		      "S-Function"
+	      DstPort		      1
+	    }
+	  }
+	}
       }
     }
     Block {
@@ -7188,7 +7498,7 @@ Library {
 		  BackgroundColor	  "black"
 		  LibraryVersion	  "1.267"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  ""
+		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/left_arm/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "5"
@@ -7203,7 +7513,7 @@ Library {
 		  BackgroundColor	  "black"
 		  LibraryVersion	  "1.267"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  ""
+		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/right_arm/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "5"
@@ -7218,7 +7528,7 @@ Library {
 		  BackgroundColor	  "black"
 		  LibraryVersion	  "1.267"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  ""
+		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/left_leg/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "6"
@@ -7233,7 +7543,7 @@ Library {
 		  BackgroundColor	  "black"
 		  LibraryVersion	  "1.267"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  ""
+		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/right_leg/analog:o/torques']"
 		  to			  "'...i'"
 		  num			  "6"
@@ -7248,7 +7558,7 @@ Library {
 		  BackgroundColor	  "black"
 		  LibraryVersion	  "1.267"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  ""
+		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/torso/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "3"
