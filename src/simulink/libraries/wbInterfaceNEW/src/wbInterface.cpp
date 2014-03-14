@@ -1354,9 +1354,8 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         Vector momentum(6);
         momentum.zero();
         robot->centroidalMomentum(qrad_in.data(), dqrad_in.data(), momentum.data());
+	/** TODO Write to new output port*/
     }
-
-
 
     if(TIMING) tend = Time::now();
     if(TIMING) fprintf(stderr,"Time elapsed: %f \n",tend-tinit);
