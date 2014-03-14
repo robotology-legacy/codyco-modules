@@ -47,10 +47,12 @@ MotorFrictionExcitationThread::MotorFrictionExcitationThread(string _name, strin
     Bottle reply;
     if(!contactExc.readFromConfigFile(rf, reply))
         printf("Error while reading contact excitation from config file: \n%s\n", reply.toString().c_str());
+    printf("Results of contact excitation reading: %s\n", reply.toString().c_str());
     printf("Contact excitation value read:\n%s\n", contactExc.toString().c_str());
     reply.clear();
     if(!freeMotionExc.readFromConfigFile(rf, reply))
         printf("Error while reading free motion excitation from config file: \n%s\n", reply.toString().c_str());
+    printf("Results of free motion excitation reading: %s\n", reply.toString().c_str());
     printf("Free motion excitation value read:\n%s\n", freeMotionExc.toString().c_str());
 }
 

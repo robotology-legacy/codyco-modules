@@ -92,7 +92,7 @@ bool FreeMotionExcitation::setSubparam(const std::string &name, const yarp::os::
         fricParamCovarThresh.resize(value.size());
         for(int j=0; j<value.size(); j++)
         {
-            if(!value.get(j).isDouble())
+            if(!(value.get(j).isDouble() || value.get(j).isInt()))
             {
                 res = false;
                 reply.addString(strapp("The value ",j," of the parameter ",name," is not of the expected type").c_str());
@@ -107,7 +107,7 @@ bool FreeMotionExcitation::setSubparam(const std::string &name, const yarp::os::
         a.resize(value.size());
         for(int j=0; j<value.size(); j++)
         {
-            if(!value.get(j).isDouble())
+            if(!(value.get(j).isDouble() || value.get(j).isInt()))
             {
                 res = false;
                 reply.addString(strapp("The value ",j," of the parameter ",name," is not of the expected type").c_str());
@@ -122,7 +122,7 @@ bool FreeMotionExcitation::setSubparam(const std::string &name, const yarp::os::
         a0.resize(value.size());
         for(int j=0; j<value.size(); j++)
         {
-            if(!value.get(j).isDouble())
+            if(!(value.get(j).isDouble() || value.get(j).isInt()))
             {
                 res = false;
                 reply.addString(strapp("The value ",j," of the parameter ",name," is not of the expected type").c_str());
@@ -137,7 +137,7 @@ bool FreeMotionExcitation::setSubparam(const std::string &name, const yarp::os::
         w.resize(value.size());
         for(int j=0; j<value.size(); j++)
         {
-            if(!value.get(j).isDouble())
+            if(!(value.get(j).isDouble() || value.get(j).isInt()))
             {
                 res = false;
                 reply.addString(strapp("The value ",j," of the parameter ",name," is not of the expected type").c_str());
@@ -152,7 +152,7 @@ bool FreeMotionExcitation::setSubparam(const std::string &name, const yarp::os::
         jointLimitThresh.resize(value.size());
         for(int j=0; j<value.size(); j++)
         {
-            if(!value.get(j).isDouble())
+            if(!(value.get(j).isDouble() || value.get(j).isInt()))
             {
                 res = false;
                 reply.addString(strapp("The value ",j," of the parameter ",name," is not of the expected type").c_str());
@@ -167,7 +167,7 @@ bool FreeMotionExcitation::setSubparam(const std::string &name, const yarp::os::
         ki.resize(value.size());
         for(int j=0; j<value.size(); j++)
         {
-            if(!value.get(j).isDouble())
+            if(!(value.get(j).isDouble() || value.get(j).isInt()))
             {
                 res = false;
                 reply.addString(strapp("The value ",j," of the parameter ",name," is not of the expected type").c_str());
