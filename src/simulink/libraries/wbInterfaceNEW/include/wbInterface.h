@@ -66,13 +66,6 @@ typedef Eigen::Matrix<double,ICUB_DOFS+6,ICUB_DOFS+6,Eigen::RowMajor> MassMatrix
 static const Vector7d       	   DEFAULT_XDES_FOOT = Vector7d::Constant(0.0);
 static const Eigen::Vector2d       DEFAULT_XDES_COM  = Eigen::Vector2d::Constant(0.0);
 
-
-// ?????? DO I REALLY NEED THESE VARIABLES TO BE GLOBAL?? FIN A WAY TO REMOVE THEM!!! IT'S AWFUL AND DANGEROUS!!!!!!!!!
-Eigen::VectorXd dotq;
-yarp::sig::Vector qrad, xpose;
-JacobianMatrix jacob;
-
-
 class robotStatus {
 private:
     /** This object is used to control reentrancy. Counts the times the class robotStatus has been created.*/
@@ -195,6 +188,7 @@ public:
     yarp::sig::Vector 	getDJdq();
     yarp::sig::Vector 	getJntAccelerations();
     bool 		getJointLimits(double *qminLims, double *qmaxLims, const int jnt);
+    bool 		centroidalMomentum(double* qrad_input, double* dq_input, double* h);
     
 };
 
