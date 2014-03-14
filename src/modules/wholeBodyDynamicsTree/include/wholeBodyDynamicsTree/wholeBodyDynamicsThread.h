@@ -180,7 +180,8 @@ public:
                             string _robotName,
                             int _period, 
                             wbiIcub::icubWholeBodyStatesLocal *_wbi, 
-                            const iCub::iDynTree::iCubTree_version_tag icub_version);
+                            const iCub::iDynTree::iCubTree_version_tag icub_version,
+                            bool autoconnect);
     
     bool threadInit();
     bool calibrateOffset(const std::string calib_code);
