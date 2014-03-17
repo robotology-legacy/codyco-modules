@@ -63,7 +63,7 @@ bool jointTorqueControlThread::threadInit()
 	
     // link module output streaming parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VM,		            motorVoltage.data()));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU,	            tau.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU,	            tauM.data()));
 	
 	//link monitored variables
 	YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_MEAS,	        &monitor.tauMeas));
@@ -140,8 +140,8 @@ void jointTorqueControlThread::run()
 		for (int i=0; i < N_DOF; i++)
         {
             dqSign(i)       = fabs(dq(i))>coulombVelThr(i) ? sign(dq(i)) : pow(dq(i)/coulombVelThr(i),3);
-            //tauD(i)         = ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i+6);
-            tauD(i)        = 0;//tauOffset(i);// + tauSinAmpl(i)*sin(2*M_PI*tauSinFreq(i)*currentTime);
+            tauD(i)         = ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i+6);
+            tauD(i)        += tauOffset(i) + tauSinAmpl(i)*sin(2*M_PI*tauSinFreq(i)*currentTime);
 
 			if (activeJoints(i) == 1) 
             {
@@ -154,14 +154,15 @@ void jointTorqueControlThread::run()
                 else
                     motorVoltage(i) = kt(i)*tau(i) + kvn(i)*dq(i) + kcn(i)*dqSign(i);
 
-		if (sendCommands == SEND_COMMANDS_ACTIVE) {
-			robot->setControlReference(&motorVoltage(i), i);
+                if (sendCommands == SEND_COMMANDS_ACTIVE) 
+                {
+                    robot->setControlReference(&motorVoltage(i), i);
                     //robot->setControlParam(wbi::CTRL_PARAM_OFFSET, &motorVoltage(i), i);
                 }
-	    }
-	}
+            }
+        }
 
-		oldTime = currentTime;
+        oldTime = currentTime;
     }
 
     prepareMonitorData();
@@ -185,6 +186,7 @@ bool jointTorqueControlThread::readRobotStatus(bool blockingRead)
     // convert angles from rad to deg
     q   *= CTRL_RAD2DEG;
     dq  *= CTRL_RAD2DEG;
+    
     return res;
 }
 
