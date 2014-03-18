@@ -32,7 +32,7 @@
 #define DEBUGGING 1
 #define TIMING    0
 #define NEWCODE	  1
-#define ICUB_FIXED
+// #define ICUB_FIXED
 // #define WORLD2BASE_EXTERNAL
 
 YARP_DECLARE_DEVICES(icubmod)
@@ -110,8 +110,8 @@ bool robotStatus::robotConfig() {
     else {
         //---------------- CREATION WHOLE BODY INTERFACE ---------------------/
         iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,2,true);
-//         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/home/jorhabib/Software/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
-        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
+        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/home/jorhabib/Software/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
+//         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
 #ifdef DEBUG
         fprintf(stderr,"robotStatus::robotConfig >> new wbInterface created ...\n");
 #endif
@@ -397,16 +397,16 @@ bool robotStatus::inverseDynamics(double *qrad_input, double *dq_input, double *
 
 #ifdef WORLD2BASE_EXTERNAL
         wbi::Frame qBaseFrame = wbi::Frame(qrad_base.data());
-#ifdef DEBUG
-        fprintf(stderr,"robotStatus::inverseDynamics >> This is the rototranslation \
-	  matrix for the base that has been read: \n%s\n",qBaseFrame.toString().c_str());
-        fprintf(stderr,"robotStatus::inverseDynamics >> Reading external world to base rototranslation\n");
-#endif
+  #ifdef DEBUG
+	  fprintf(stderr,"robotStatus::inverseDynamics >> This is the rototranslation \
+	    matrix for the base that has been read: \n%s\n",qBaseFrame.toString().c_str());
+	  fprintf(stderr,"robotStatus::inverseDynamics >> Reading external world to base rototranslation\n");
+  #endif
         ans = wbInterface->inverseDynamics(qrad_robot, qBaseFrame, dq_robot, dq_base.data(), ddq_robot, ddq_base.data(), grav.data(), tauJ_computed);
 #else
-#ifdef DEBUG
-        fprintf(stderr,"robotStatus::inverseDynamics >> Computing world to base rototranslation\n");
-#endif
+  #ifdef DEBUG
+	  fprintf(stderr,"robotStatus::inverseDynamics >> Computing world to base rototranslation\n");
+  #endif
         ans = wbInterface->inverseDynamics(qrad_robot, xBase, dq_robot, dq_base.data(), ddq_robot, ddq_base.data(), grav.data(), tauJ_computed);
 #endif
 

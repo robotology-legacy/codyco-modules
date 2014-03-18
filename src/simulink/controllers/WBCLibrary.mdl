@@ -22,9 +22,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Wed Mar 12 15:33:17 2014"
-  RTWModifiedTimeStamp	  316539180
-  ModelVersionFormat	  "1.%<AutoIncrement:280>"
+  LastModifiedDate	  "Tue Mar 18 10:20:57 2014"
+  RTWModifiedTimeStamp	  317038780
+  ModelVersionFormat	  "1.%<AutoIncrement:284>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -837,7 +837,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "768"
+    SIDHighWatermark	    "780"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -3427,7 +3427,7 @@ Library {
       System {
 	Name			"wholeBodyModel"
 	Location		[216, 165, 784, 425]
-	Open			on
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -3462,8 +3462,8 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Dynamics"
-	    Location		    [308, 380, 1027, 536]
-	    Open		    off
+	    Location		    [525, 605, 1244, 761]
+	    Open		    on
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -3506,7 +3506,7 @@ Library {
 	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Inverse Dynamics"
-		Location		[780, 350, 1110, 673]
+		Location		[98, 291, 428, 614]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3754,7 +3754,7 @@ Library {
 	      BlockType		      SubSystem
 	      Name		      "computeh"
 	      SID		      "358"
-	      Ports		      [0, 1]
+	      Ports		      [2, 1]
 	      Position		      [200, 48, 265, 92]
 	      ZOrder		      -1
 	      BackgroundColor	      "[0.850000, 0.010000, 0.698000]"
@@ -3781,7 +3781,7 @@ Library {
 	      MaskValueString	      "7|robotName|localName"
 	      System {
 		Name			"computeh"
-		Location		[764, 224, 1104, 551]
+		Location		[205, 178, 545, 505]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3794,6 +3794,23 @@ Library {
 		TiledPageScale		1
 		ShowPageBoundaries	off
 		ZoomFactor		"100"
+		Block {
+		  BlockType		  Inport
+		  Name			  "q"
+		  SID			  "775"
+		  Position		  [25, 148, 55, 162]
+		  ZOrder		  -1
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Inport
+		  Name			  "dq"
+		  SID			  "776"
+		  Position		  [25, 203, 55, 217]
+		  ZOrder		  -1
+		  Port			  "2"
+		  IconDisplay		  "Port number"
+		}
 		Block {
 		  BlockType		  Terminator
 		  Name			  " "
@@ -3834,28 +3851,6 @@ Library {
 		  ZOrder		  -4
 		  ShowName		  off
 		  Value			  "zeros(25,1)"
-		  OutDataTypeStr	  "double"
-		  SampleTime		  "-1"
-		}
-		Block {
-		  BlockType		  Constant
-		  Name			  "Constant2"
-		  SID			  "630"
-		  Position		  [25, 140, 55, 170]
-		  ZOrder		  -4
-		  ShowName		  off
-		  Value			  "zeros(25+16,1)"
-		  OutDataTypeStr	  "double"
-		  SampleTime		  "-1"
-		}
-		Block {
-		  BlockType		  Constant
-		  Name			  "Constant3"
-		  SID			  "631"
-		  Position		  [25, 195, 55, 225]
-		  ZOrder		  -4
-		  ShowName		  off
-		  Value			  "zeros(31,1)"
 		  OutDataTypeStr	  "double"
 		  SampleTime		  "-1"
 		}
@@ -4011,13 +4006,13 @@ Library {
 		  DstPort		  1
 		}
 		Line {
-		  SrcBlock		  "Constant2"
+		  SrcBlock		  "q"
 		  SrcPort		  1
 		  DstBlock		  "S-Function"
 		  DstPort		  3
 		}
 		Line {
-		  SrcBlock		  "Constant3"
+		  SrcBlock		  "dq"
 		  SrcPort		  1
 		  DstBlock		  "S-Function"
 		  DstPort		  4
@@ -4034,7 +4029,7 @@ Library {
 	      BlockType		      SubSystem
 	      Name		      "dJ*dq LeftFoot"
 	      SID		      "445"
-	      Ports		      [0, 1]
+	      Ports		      [2, 1]
 	      Position		      [430, 48, 500, 92]
 	      BackgroundColor	      "[0.662196, 0.000000, 1.000000]"
 	      MinAlgLoopOccurrences   off
@@ -4061,7 +4056,7 @@ Library {
 	      MaskValueString	      "9|robotName|localName"
 	      System {
 		Name			"dJ*dq LeftFoot"
-		Location		[446, 301, 773, 759]
+		Location		[988, 90, 1282, 425]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4074,6 +4069,23 @@ Library {
 		TiledPageScale		1
 		ShowPageBoundaries	off
 		ZoomFactor		"100"
+		Block {
+		  BlockType		  Inport
+		  Name			  "q"
+		  SID			  "779"
+		  Position		  [25, 158, 55, 172]
+		  ZOrder		  -1
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Inport
+		  Name			  "dq"
+		  SID			  "780"
+		  Position		  [25, 213, 55, 227]
+		  ZOrder		  -1
+		  Port			  "2"
+		  IconDisplay		  "Port number"
+		}
 		Block {
 		  BlockType		  Constant
 		  Name			  "LeftFoot"
@@ -4180,28 +4192,6 @@ Library {
 		}
 		Block {
 		  BlockType		  Constant
-		  Name			  "dummy1"
-		  SID			  "643"
-		  Position		  [25, 150, 55, 180]
-		  ZOrder		  -4
-		  ShowName		  off
-		  Value			  "zeros(25+16,1)"
-		  OutDataTypeStr	  "double"
-		  SampleTime		  "-1"
-		}
-		Block {
-		  BlockType		  Constant
-		  Name			  "dummy2"
-		  SID			  "644"
-		  Position		  [25, 205, 55, 235]
-		  ZOrder		  -4
-		  ShowName		  off
-		  Value			  "zeros(31,1)"
-		  OutDataTypeStr	  "double"
-		  SampleTime		  "-1"
-		}
-		Block {
-		  BlockType		  Constant
 		  Name			  "dummy3"
 		  SID			  "645"
 		  Position		  [25, 260, 55, 290]
@@ -4292,13 +4282,13 @@ Library {
 		  DstPort		  1
 		}
 		Line {
-		  SrcBlock		  "dummy1"
+		  SrcBlock		  "q"
 		  SrcPort		  1
 		  DstBlock		  "S-Function"
 		  DstPort		  3
 		}
 		Line {
-		  SrcBlock		  "dummy2"
+		  SrcBlock		  "dq"
 		  SrcPort		  1
 		  DstBlock		  "S-Function"
 		  DstPort		  4
@@ -4315,7 +4305,7 @@ Library {
 	      BlockType		      SubSystem
 	      Name		      "dJ*dq RightFoot"
 	      SID		      "372"
-	      Ports		      [0, 1]
+	      Ports		      [2, 1]
 	      Position		      [315, 48, 380, 92]
 	      BackgroundColor	      "[0.501000, 0.015000, 0.850000]"
 	      MinAlgLoopOccurrences   off
@@ -4355,6 +4345,23 @@ Library {
 		TiledPageScale		1
 		ShowPageBoundaries	off
 		ZoomFactor		"100"
+		Block {
+		  BlockType		  Inport
+		  Name			  "q"
+		  SID			  "777"
+		  Position		  [25, 178, 55, 192]
+		  ZOrder		  -1
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Inport
+		  Name			  "dq"
+		  SID			  "778"
+		  Position		  [25, 243, 55, 257]
+		  ZOrder		  -1
+		  Port			  "2"
+		  IconDisplay		  "Port number"
+		}
 		Block {
 		  BlockType		  Constant
 		  Name			  "RightFoot"
@@ -4462,28 +4469,6 @@ Library {
 		}
 		Block {
 		  BlockType		  Constant
-		  Name			  "dummy1"
-		  SID			  "636"
-		  Position		  [25, 170, 55, 200]
-		  ZOrder		  -4
-		  ShowName		  off
-		  Value			  "zeros(25+16,1)"
-		  OutDataTypeStr	  "double"
-		  SampleTime		  "-1"
-		}
-		Block {
-		  BlockType		  Constant
-		  Name			  "dummy2"
-		  SID			  "637"
-		  Position		  [25, 235, 55, 265]
-		  ZOrder		  -4
-		  ShowName		  off
-		  Value			  "zeros(31,1)"
-		  OutDataTypeStr	  "double"
-		  SampleTime		  "-1"
-		}
-		Block {
-		  BlockType		  Constant
 		  Name			  "dummy3"
 		  SID			  "638"
 		  Position		  [25, 300, 55, 330]
@@ -4574,13 +4559,13 @@ Library {
 		  DstPort		  1
 		}
 		Line {
-		  SrcBlock		  "dummy1"
+		  SrcBlock		  "q"
 		  SrcPort		  1
 		  DstBlock		  "S-Function"
 		  DstPort		  3
 		}
 		Line {
-		  SrcBlock		  "dummy2"
+		  SrcBlock		  "dq"
 		  SrcPort		  1
 		  DstBlock		  "S-Function"
 		  DstPort		  4
@@ -7397,7 +7382,7 @@ Library {
 	  MaskValueString	  "robotName|localName"
 	  System {
 	    Name		    "DUMMY Joint Torques"
-	    Location		    [696, 400, 1001, 538]
+	    Location		    [656, 206, 961, 344]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -7496,7 +7481,7 @@ Library {
 		  Position		  [25, 116, 95, 184]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
-		  LibraryVersion	  "1.267"
+		  LibraryVersion	  "1.280"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
 		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/left_arm/analog:o/torques']"
@@ -7511,7 +7496,7 @@ Library {
 		  Position		  [25, 201, 95, 269]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
-		  LibraryVersion	  "1.267"
+		  LibraryVersion	  "1.280"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
 		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/right_arm/analog:o/torques']"
@@ -7526,7 +7511,7 @@ Library {
 		  Position		  [25, 286, 95, 354]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
-		  LibraryVersion	  "1.267"
+		  LibraryVersion	  "1.280"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
 		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/left_leg/analog:o/torques']"
@@ -7541,11 +7526,11 @@ Library {
 		  Position		  [25, 371, 95, 439]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
-		  LibraryVersion	  "1.267"
+		  LibraryVersion	  "1.280"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
 		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/right_leg/analog:o/torques']"
-		  to			  "'...i'"
+		  to			  "'...'"
 		  num			  "6"
 		}
 		Block {
@@ -7556,7 +7541,7 @@ Library {
 		  Position		  [25, 26, 95, 94]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
-		  LibraryVersion	  "1.267"
+		  LibraryVersion	  "1.280"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
 		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/torso/analog:o/torques']"

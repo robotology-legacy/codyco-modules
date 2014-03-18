@@ -203,7 +203,7 @@ static void mdlStart(SimStruct *S)
 
     ssGetPWork(S)[0] = toPort;
     
-    Network::connect(port_name,toPortName,"mcast");
+    Network::connect(port_name,toPortName);
 
 }
 
