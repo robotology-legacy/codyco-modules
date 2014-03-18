@@ -60,8 +60,9 @@ ADD_EXECUTABLE(${PROJECTNAME} ${SOURCES} ${INCLUDES})
 TARGET_LINK_LIBRARIES(${PROJECTNAME}
      paramHelp
      iDynTree
+     ctrlLib
      ${YARP_LIBRARIES}
-     ${Orocos-KDL_LIBRARIES}
+     ${orocos_kdl_LIBRARIES}
      ${kdl_codyco_LIBRARIES})
 
 if(WIN32)
