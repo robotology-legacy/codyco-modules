@@ -57,6 +57,8 @@ namespace wbiIcub
      */
     class icubWholeBodyActuators : public wbi::iWholeBodyActuators
     {
+    private:
+        unsigned char *m_commandedParts; /*< This map is used during the setControlReference for whole-part set */
     protected:
         bool                        initDone;       // true after init has been called, false before
         int                         dof;            // number of actuators considered
