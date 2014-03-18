@@ -440,8 +440,8 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
         double positionReferences[MAX_NJ]; //vector of reference positions
         memset(positionReferences, 0, sizeof(double) * MAX_NJ); //set to zero all the references positions
         
-        char commandedParts[MAX_NJ]; //vector of reference positions
-        memset(commandedParts, 0, sizeof(char) * MAX_NJ); //set to zero all the references positions
+        unsigned char commandedParts[MAX_NJ]; //vector of reference positions
+        memset(commandedParts, 0, sizeof(unsigned char) * MAX_NJ); //set to zero all the references positions
         
         int velocityJointIDs[MAX_NJ];   // vector of joint ids for velocity move (implementing more advanced velocity function)
         unsigned int i = 0;                // counter of controlled joints
@@ -500,17 +500,17 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
                 case wbi::CTRL_MODE_VEL:
                     ok = ok && ivel[itBp->first]->velocityMove(njVelCtrl, velocityJointIDs, speedReferences);
                     //save joints commanded
-                    memset(commandedParts + i - jointsInPart, 1, sizeof(char) * jointsInPart);
+                    memset(commandedParts + i - jointsInPart, 1, sizeof(unsigned char) * jointsInPart);
                     printf("[%s:%d]Setting whole-part velocity mode for part num %d\n", __FILE__, __LINE__, itBp->first);
                     break;
                 case wbi::CTRL_MODE_TORQUE:
                     ok = ok && itrq[itBp->first]->setRefTorques(torqueReferences);
-                    memset(commandedParts + i - jointsInPart, 1, sizeof(char) * jointsInPart);
+                    memset(commandedParts + i - jointsInPart, 1, sizeof(unsigned char) * jointsInPart);
                     printf("[%s:%d]Setting whole-part torque mode for part num %d\n", __FILE__, __LINE__, itBp->first);
                     break;
                 case wbi::CTRL_MODE_POS:
                     ok = ok && ipos[itBp->first]->positionMove(positionReferences);
-                    memset(commandedParts + i - jointsInPart, 1, sizeof(char) * jointsInPart);
+                    memset(commandedParts + i - jointsInPart, 1, sizeof(unsigned char) * jointsInPart);
                     printf("[%s:%d]Setting whole-part position mode for part num %d\n", __FILE__, __LINE__, itBp->first);
                     break;
                 default:
