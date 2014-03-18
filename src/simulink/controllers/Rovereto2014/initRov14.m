@@ -1,7 +1,7 @@
 % Add path to MATLAB
-% addpath(genpath('/home/daniele/MATLAB'))
-% addpath(genpath('/home/daniele/src/codyco/build'))
-% addpath(genpath('/home/daniele/src/codyco/src/simulink/controllers'))
+addpath(genpath('/home/daniele/MATLAB'))
+addpath(genpath('/home/daniele/src/codyco/build'))
+addpath(genpath('/home/daniele/src/codyco/src/simulink'))
 % Controller period
 Ts = 0.01;
 
@@ -14,9 +14,9 @@ qDes = [0.0012;         5.3057e-04;    -1.4774e-05;     -0.8198;        1.4814;
 
 
 % Controller gains
-k = [ 0.1 0.1 0
+k = [ 10  1   1
       0.1 0.1 0
-      0.1 0.1 0 ]*0.1;
+      1 1   0 ];
   
 % Robot's weight
 m = 21;

@@ -672,8 +672,10 @@ bool DynTree::setKinematicBaseVelAcc(const yarp::sig::Vector &base_vel, const ya
     YarptoKDL(base_vel,base_vel_kdl);
     YarptoKDL(base_classical_acc,base_classical_acc_kdl);
     KDL::CoDyCo::conventionalToSpatialAcceleration(base_classical_acc_kdl,base_vel_kdl,base_spatial_acc_kdl);
-    imu_velocity = world_base_frame.M.Inverse(base_vel_kdl);
-    imu_acceleration = world_base_frame.M.Inverse(base_spatial_acc_kdl);
+    computePositions();
+    imu_velocity = (world_base_frame*X_dynamic_base[kinematic_traversal.getBaseLink()->getLinkIndex()]).M.Inverse(base_vel_kdl);
+    imu_acceleration = (world_base_frame*X_dynamic_base[kinematic_traversal.getBaseLink()->getLinkIndex()]).M.Inverse(base_spatial_acc_kdl);
+    
     return true;
 }
 
@@ -884,7 +886,7 @@ bool DynTree::getAcc(const int link_index, yarp::sig::Vector & acc, const bool l
         return_acc = classical_acc;
     }
     
-    return KDLtoYarp(classical_acc,acc);
+    return KDLtoYarp(return_acc,acc);
 }
 
 yarp::sig::Vector DynTree::getBaseForceTorque(int frame_link)
@@ -1174,9 +1176,9 @@ bool DynTree::getCOMJacobian(yarp::sig::Matrix & jac, yarp::sig::Matrix & moment
     getMomentumJacobianLoop(undirected_tree,q,dynamic_traversal,X_dynamic_base,momentum_jacobian,com_jac_buffer,momentum_jac_buffer,base_total_inertia,part_id);
 
     
-    momentum_jacobian.changeRefFrame(world_base_frame);
+    momentum_jacobian.changeRefFrame(KDL::Frame(world_base_frame.M));
     
-    total_inertia = world_base_frame*base_total_inertia;
+    total_inertia = KDL::Frame(world_base_frame.M)*base_total_inertia;
     
     if( total_inertia.getMass() == 0 ) {  std::cerr << "getCOMJacobian error: Tree has no mass " << std::endl; return false; }
     
@@ -1224,11 +1226,34 @@ bool DynTree::getCentroidalMomentumJacobian(yarp::sig::Matrix & momentum_jac)
     
     getMomentumJacobianLoop(undirected_tree,q,dynamic_traversal,X_dynamic_base,momentum_jacobian,com_jac_buffer,momentum_jac_buffer,base_total_inertia);
 
-    momentum_jacobian.changeRefFrame(world_base_frame);
    
-    total_inertia = world_base_frame*base_total_inertia;
-
+    //Fixed base mass matrix (the n x n bottom right submatrix) is ok in this way
+    //but the other submatrices must be changed, as iDynTree express all velocities/accelerations (also the base one) in world orientation
+    //while kdl_codyco express the velocities in base orientation
+    KDL::Frame world_base_rotation = KDL::Frame(world_base_frame.M);
     
+    //As the transformation is a rotation, the adjoint trasformation is the same for both twist and wrenches 
+    //Additionally, the inverse of the adjoint matrix is simply the transpose
+    Eigen::Matrix< double, 6, 6> world_base_rotation_adjoint_transformation = KDL::CoDyCo::WrenchTransformationMatrix(world_base_rotation);
+    
+    
+    //Modification of 6x6 left upper submatrix (spatial inertia)
+    // doing some moltiplication by zero (inefficient? ) 
+    //fb_jnt_mass_matrix.data.block<6,6>(0,0) = world_base_rotation_adjoint_transformation*fb_jnt_mass_matrix.data.block<6,6>(0,0); 
+    //fb_jnt_mass_matrix.data.block<6,6>(0,0) = fb_jnt_mass_matrix.data.block<6,6>(0,0)*world_base_rotation_adjoint_transformation.transpose();
+    Eigen::Matrix<double,6,6> buffer_mat_six_six =  world_base_rotation_adjoint_transformation* momentum_jacobian.data.block<6,6>(0,0);
+    momentum_jacobian.data.block<6,6>(0,0) = buffer_mat_six_six*(world_base_rotation_adjoint_transformation.transpose());
+    
+    for(int dof=0; dof < undirected_tree.getNrOfDOFs(); dof++ ) {
+        //fb_jnt_mass_matrix.data.block<6,1>(0,6+dof) = world_base_rotation_adjoint_transformation*fb_jnt_mass_matrix.data.block<6,1>(0,6+dof);
+        //fb_jnt_mass_matrix.data.block<1,6>(6+dof,0) = fb_jnt_mass_matrix.data.block<6,1>(0,6+dof).transpose();
+        Eigen::Matrix<double,6,1> buffer_vec_six = world_base_rotation_adjoint_transformation*momentum_jacobian.data.block<6,1>(0,6+dof);
+        momentum_jacobian.data.block<6,1>(0,6+dof) = buffer_vec_six.transpose();
+    }
+
+   
+    total_inertia = (KDL::Frame(world_base_frame.M))*base_total_inertia;
+
     momentum_jacobian.changeRefPoint(total_inertia.getCOG());
     
     //std::cout << "Total inertia test " << total_inertia.RefPoint(total_inertia.getCOG()).getCOG() << std::endl;
@@ -1395,15 +1420,16 @@ bool DynTree::getJacobian(const int link_index, yarp::sig::Matrix & jac, bool lo
 
         abs_jacobian.changeBase((world_base_frame*X_dynamic_base[link_index]).M);
         
-        KDL::Vector dist_world_link = (world_base_frame*X_dynamic_base[link_index]).p;
+        KDL::Vector dist_base_link = (KDL::Frame(world_base_frame.M)*X_dynamic_base[link_index]).p;
+         //KDL::Vector dist_base_link = (KDL::Frame(world_base_frame)*X_dynamic_base[link_index]).p;
         
         //As in iDynTree the base twist is expressed in the world frame, the first six columns are always the identity
-        abs_jacobian.setColumn(0,KDL::Twist(KDL::Vector(1,0,0),KDL::Vector(0,0,0)).RefPoint(dist_world_link));
-        abs_jacobian.setColumn(1,KDL::Twist(KDL::Vector(0,1,0),KDL::Vector(0,0,0)).RefPoint(dist_world_link));
-        abs_jacobian.setColumn(2,KDL::Twist(KDL::Vector(0,0,1),KDL::Vector(0,0,0)).RefPoint(dist_world_link));
-        abs_jacobian.setColumn(3,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(1,0,0)).RefPoint(dist_world_link));
-        abs_jacobian.setColumn(4,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,1,0)).RefPoint(dist_world_link));
-        abs_jacobian.setColumn(5,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,0,1)).RefPoint(dist_world_link));
+        abs_jacobian.setColumn(0,KDL::Twist(KDL::Vector(1,0,0),KDL::Vector(0,0,0)).RefPoint(dist_base_link));
+        abs_jacobian.setColumn(1,KDL::Twist(KDL::Vector(0,1,0),KDL::Vector(0,0,0)).RefPoint(dist_base_link));
+        abs_jacobian.setColumn(2,KDL::Twist(KDL::Vector(0,0,1),KDL::Vector(0,0,0)).RefPoint(dist_base_link));
+        abs_jacobian.setColumn(3,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(1,0,0)).RefPoint(dist_base_link));
+        abs_jacobian.setColumn(4,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,1,0)).RefPoint(dist_base_link));
+        abs_jacobian.setColumn(5,KDL::Twist(KDL::Vector(0,0,0),KDL::Vector(0,0,1)).RefPoint(dist_base_link));
     } else {
         //The first 6 columns should be the transformation between world and the local frame
         //in kdl_codyco the velocity of the base twist is expressed in the base frame
@@ -1524,6 +1550,7 @@ bool DynTree::getFloatingBaseMassMatrix(yarp::sig::Matrix & fb_mass_matrix)
         //fb_jnt_mass_matrix.data.block<1,6>(6+dof,0) = fb_jnt_mass_matrix.data.block<6,1>(0,6+dof).transpose();
         Eigen::Matrix<double,6,1> buffer_vec_six = world_base_rotation_adjoint_transformation*fb_jnt_mass_matrix.data.block<6,1>(0,6+dof);
         fb_jnt_mass_matrix.data.block<1,6>(6+dof,0) = buffer_vec_six.transpose();
+        fb_jnt_mass_matrix.data.block<6,1>(0,6+dof) = buffer_vec_six;
     }
     
     //std::cout << "fb jnt mass matrix " << std::endl << fb_jnt_mass_matrix.data.block<6,6>(0,0) << std::endl;

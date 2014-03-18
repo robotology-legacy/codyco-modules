@@ -22,9 +22,15 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
+<<<<<<< HEAD
   LastModifiedDate	  "Tue Mar 18 10:20:57 2014"
   RTWModifiedTimeStamp	  317038780
   ModelVersionFormat	  "1.%<AutoIncrement:284>"
+=======
+  LastModifiedDate	  "Wed Mar 12 11:33:24 2014"
+  RTWModifiedTimeStamp	  316524340
+  ModelVersionFormat	  "1.%<AutoIncrement:254>"
+>>>>>>> rovereto
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -823,7 +829,11 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
+<<<<<<< HEAD
     Location		    [82, 290, 870, 550]
+=======
+    Location		    [232, 431, 1020, 691]
+>>>>>>> rovereto
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -837,7 +847,11 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
+<<<<<<< HEAD
     SIDHighWatermark	    "780"
+=======
+    SIDHighWatermark	    "763"
+>>>>>>> rovereto
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -861,8 +875,13 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
+<<<<<<< HEAD
 	Location		[673, 333, 1365, 601]
 	Open			off
+=======
+	Location		[622, 356, 1314, 651]
+	Open			on
+>>>>>>> rovereto
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -2471,7 +2490,11 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyActuators"
+<<<<<<< HEAD
 	Location		[89, 304, 632, 461]
+=======
+	Location		[88, 276, 631, 433]
+>>>>>>> rovereto
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -3426,7 +3449,11 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
+<<<<<<< HEAD
 	Location		[216, 165, 784, 425]
+=======
+	Location		[627, 170, 1191, 428]
+>>>>>>> rovereto
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -4936,7 +4963,7 @@ Library {
 	  Name			  "Forward Kinematics"
 	  SID			  "176"
 	  Ports			  []
-	  Position		  [35, 15, 101, 136]
+	  Position		  [35, 15, 97, 132]
 	  ZOrder		  -17
 	  DropShadow		  on
 	  MinAlgLoopOccurrences	  off
@@ -5841,7 +5868,11 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Jacobians"
+<<<<<<< HEAD
 	    Location		    [238, 357, 734, 515]
+=======
+	    Location		    [225, 421, 721, 579]
+>>>>>>> rovereto
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -7006,10 +7037,17 @@ Library {
 	Block {
 	  BlockType		  SubSystem
 	  Name			  "Joint Limits"
+<<<<<<< HEAD
 	  SID			  "750"
 	  Ports			  [0, 2]
 	  Position		  [30, 165, 105, 225]
 	  BackgroundColor	  "[1.000000, 0.125886, 0.356697]"
+=======
+	  SID			  "744"
+	  Ports			  [0, 2]
+	  Position		  [35, 173, 100, 217]
+	  BackgroundColor	  "[1.000000, 0.247733, 0.215168]"
+>>>>>>> rovereto
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
 	  RTWSystemCode		  "Auto"
@@ -7033,7 +7071,11 @@ Library {
 	  MaskValueString	  "robotName|localName"
 	  System {
 	    Name		    "Joint Limits"
+<<<<<<< HEAD
 	    Location		    [508, 200, 863, 610]
+=======
+	    Location		    [509, 228, 864, 638]
+>>>>>>> rovereto
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -7049,7 +7091,11 @@ Library {
 	    Block {
 	      BlockType		      Constant
 	      Name		      "Constant"
+<<<<<<< HEAD
 	      SID		      "751"
+=======
+	      SID		      "745"
+>>>>>>> rovereto
 	      Position		      [25, 50, 55, 80]
 	      ZOrder		      -4
 	      ShowName		      off
@@ -7060,7 +7106,11 @@ Library {
 	    Block {
 	      BlockType		      Constant
 	      Name		      "Constant1"
+<<<<<<< HEAD
 	      SID		      "752"
+=======
+	      SID		      "746"
+>>>>>>> rovereto
 	      Position		      [25, 120, 55, 150]
 	      ZOrder		      -4
 	      ShowName		      off
@@ -7071,40 +7121,68 @@ Library {
 	    Block {
 	      BlockType		      Constant
 	      Name		      "Constant2"
+<<<<<<< HEAD
 	      SID		      "753"
 	      Position		      [25, 190, 55, 220]
 	      ZOrder		      -4
 	      ShowName		      off
 	      Value		      "zeros(25+16,1)"
+=======
+	      SID		      "747"
+	      Position		      [25, 190, 55, 220]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25,1)"
+>>>>>>> rovereto
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
 	    Block {
 	      BlockType		      Constant
 	      Name		      "Constant3"
+<<<<<<< HEAD
 	      SID		      "754"
 	      Position		      [25, 260, 55, 290]
 	      ZOrder		      -4
 	      ShowName		      off
 	      Value		      "zeros(25+6,1)"
+=======
+	      SID		      "748"
+	      Position		      [25, 260, 55, 290]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25,1)"
+>>>>>>> rovereto
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
 	    Block {
 	      BlockType		      Constant
 	      Name		      "Constant4"
+<<<<<<< HEAD
 	      SID		      "755"
 	      Position		      [25, 330, 55, 360]
 	      ZOrder		      -4
 	      ShowName		      off
 	      Value		      "zeros(25+6,1)"
+=======
+	      SID		      "749"
+	      Position		      [25, 330, 55, 360]
+	      ZOrder		      -4
+	      ShowName		      off
+	      Value		      "zeros(25,1)"
+>>>>>>> rovereto
 	      OutDataTypeStr	      "double"
 	      SampleTime	      "-1"
 	    }
 	    Block {
 	      BlockType		      S-Function
 	      Name		      "S-Function"
+<<<<<<< HEAD
 	      SID		      "756"
+=======
+	      SID		      "750"
+>>>>>>> rovereto
 	      Ports		      [5, 12]
 	      Position		      [100, 26, 245, 384]
 	      ZOrder		      -5
@@ -7115,7 +7193,11 @@ Library {
 	    Block {
 	      BlockType		      Terminator
 	      Name		      "Terminator"
+<<<<<<< HEAD
 	      SID		      "757"
+=======
+	      SID		      "751"
+>>>>>>> rovereto
 	      Position		      [305, 30, 325, 50]
 	      ZOrder		      -20
 	      ShowName		      off
@@ -7123,7 +7205,11 @@ Library {
 	    Block {
 	      BlockType		      Terminator
 	      Name		      "Terminator1"
+<<<<<<< HEAD
 	      SID		      "758"
+=======
+	      SID		      "752"
+>>>>>>> rovereto
 	      Position		      [305, 60, 325, 80]
 	      ZOrder		      -20
 	      ShowName		      off
@@ -7131,7 +7217,11 @@ Library {
 	    Block {
 	      BlockType		      Terminator
 	      Name		      "Terminator2"
+<<<<<<< HEAD
 	      SID		      "759"
+=======
+	      SID		      "753"
+>>>>>>> rovereto
 	      Position		      [305, 90, 325, 110]
 	      ZOrder		      -20
 	      ShowName		      off
@@ -7139,7 +7229,11 @@ Library {
 	    Block {
 	      BlockType		      Terminator
 	      Name		      "Terminator3"
+<<<<<<< HEAD
 	      SID		      "760"
+=======
+	      SID		      "754"
+>>>>>>> rovereto
 	      Position		      [305, 120, 325, 140]
 	      ZOrder		      -20
 	      ShowName		      off
@@ -7147,7 +7241,11 @@ Library {
 	    Block {
 	      BlockType		      Terminator
 	      Name		      "Terminator4"
+<<<<<<< HEAD
 	      SID		      "761"
+=======
+	      SID		      "755"
+>>>>>>> rovereto
 	      Position		      [305, 150, 325, 170]
 	      ZOrder		      -20
 	      ShowName		      off
@@ -7155,7 +7253,11 @@ Library {
 	    Block {
 	      BlockType		      Terminator
 	      Name		      "Terminator5"
+<<<<<<< HEAD
 	      SID		      "762"
+=======
+	      SID		      "756"
+>>>>>>> rovereto
 	      Position		      [305, 180, 325, 200]
 	      ZOrder		      -20
 	      ShowName		      off
@@ -7163,7 +7265,11 @@ Library {
 	    Block {
 	      BlockType		      Terminator
 	      Name		      "Terminator6"
+<<<<<<< HEAD
 	      SID		      "763"
+=======
+	      SID		      "757"
+>>>>>>> rovereto
 	      Position		      [305, 210, 325, 230]
 	      ZOrder		      -20
 	      ShowName		      off
@@ -7171,7 +7277,11 @@ Library {
 	    Block {
 	      BlockType		      Terminator
 	      Name		      "Terminator7"
+<<<<<<< HEAD
 	      SID		      "764"
+=======
+	      SID		      "758"
+>>>>>>> rovereto
 	      Position		      [305, 240, 325, 260]
 	      ZOrder		      -20
 	      ShowName		      off
@@ -7179,7 +7289,11 @@ Library {
 	    Block {
 	      BlockType		      Terminator
 	      Name		      "Terminator8"
+<<<<<<< HEAD
 	      SID		      "765"
+=======
+	      SID		      "759"
+>>>>>>> rovereto
 	      Position		      [305, 270, 325, 290]
 	      ZOrder		      -20
 	      ShowName		      off
@@ -7187,7 +7301,11 @@ Library {
 	    Block {
 	      BlockType		      Terminator
 	      Name		      "Terminator9"
+<<<<<<< HEAD
 	      SID		      "766"
+=======
+	      SID		      "760"
+>>>>>>> rovereto
 	      Position		      [305, 300, 325, 320]
 	      ZOrder		      -20
 	      ShowName		      off
@@ -7195,7 +7313,11 @@ Library {
 	    Block {
 	      BlockType		      Outport
 	      Name		      "qMin"
+<<<<<<< HEAD
 	      SID		      "767"
+=======
+	      SID		      "761"
+>>>>>>> rovereto
 	      Position		      [300, 333, 330, 347]
 	      ZOrder		      -9
 	      IconDisplay	      "Port number"
@@ -7203,7 +7325,11 @@ Library {
 	    Block {
 	      BlockType		      Outport
 	      Name		      "qMax"
+<<<<<<< HEAD
 	      SID		      "768"
+=======
+	      SID		      "762"
+>>>>>>> rovereto
 	      Position		      [300, 363, 330, 377]
 	      ZOrder		      -9
 	      Port		      "2"
@@ -7338,8 +7464,13 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyStates"
+<<<<<<< HEAD
 	Location		[473, 242, 1184, 401]
 	Open			off
+=======
+	Location		[533, 236, 1244, 395]
+	Open			on
+>>>>>>> rovereto
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -7382,8 +7513,13 @@ Library {
 	  MaskValueString	  "robotName|localName"
 	  System {
 	    Name		    "DUMMY Joint Torques"
+<<<<<<< HEAD
 	    Location		    [656, 206, 961, 344]
 	    Open		    off
+=======
+	    Location		    [764, 493, 1069, 631]
+	    Open		    on
+>>>>>>> rovereto
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -7410,8 +7546,13 @@ Library {
 	      MaskHideContents	      off
 	      System {
 		Name			"tau from ports"
+<<<<<<< HEAD
 		Location		[229, 252, 459, 742]
 		Open			off
+=======
+		Location		[227, 196, 457, 686]
+		Open			on
+>>>>>>> rovereto
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
 		ScreenColor		"white"
@@ -7481,9 +7622,13 @@ Library {
 		  Position		  [25, 116, 95, 184]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
+<<<<<<< HEAD
 		  LibraryVersion	  "1.280"
+=======
+		  LibraryVersion	  "1.253"
+>>>>>>> rovereto
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/left_arm/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "5"
@@ -7496,9 +7641,13 @@ Library {
 		  Position		  [25, 201, 95, 269]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
+<<<<<<< HEAD
 		  LibraryVersion	  "1.280"
+=======
+		  LibraryVersion	  "1.253"
+>>>>>>> rovereto
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/right_arm/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "5"
@@ -7511,9 +7660,13 @@ Library {
 		  Position		  [25, 286, 95, 354]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
+<<<<<<< HEAD
 		  LibraryVersion	  "1.280"
+=======
+		  LibraryVersion	  "1.253"
+>>>>>>> rovereto
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/left_leg/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "6"
@@ -7526,9 +7679,13 @@ Library {
 		  Position		  [25, 371, 95, 439]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
+<<<<<<< HEAD
 		  LibraryVersion	  "1.280"
+=======
+		  LibraryVersion	  "1.253"
+>>>>>>> rovereto
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/right_leg/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "6"
@@ -7541,9 +7698,13 @@ Library {
 		  Position		  [25, 26, 95, 94]
 		  ZOrder		  -5
 		  BackgroundColor	  "black"
+<<<<<<< HEAD
 		  LibraryVersion	  "1.280"
+=======
+		  LibraryVersion	  "1.253"
+>>>>>>> rovereto
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/torso/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "3"

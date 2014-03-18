@@ -189,7 +189,6 @@ public:
     yarp::sig::Vector 	getJntAccelerations();
     bool 		getJointLimits(double *qminLims, double *qmaxLims, const int jnt);
     bool 		centroidalMomentum(double* qrad_input, double* dq_input, double* h);
-    
 };
 
 class counterClass {

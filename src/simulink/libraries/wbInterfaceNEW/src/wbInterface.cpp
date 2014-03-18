@@ -371,10 +371,6 @@ bool robotStatus::inverseDynamics(double *qrad_input, double *dq_input, double *
     bool ans = false;
     /** TODO qrad_input, dq_input, ddq_input will include in the first sixteen components the corresponding floating base information*/
     if(world2baseRototranslation(qrad_input)) {
-#ifdef DEBUG
-        fprintf(stderr,"robotStatus::inverseDynamics >> world2baseRototranslation computed\n");
-#endif
-
         Vector qrad_base(16);
         qrad_base.resize(16,0.0);
         Vector dq_base(6)  ;
@@ -480,13 +476,6 @@ Vector robotStatus::dynamicsGenBiasForces(double *qrad_input, double *dq_input) 
                 fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> world2baseRototranslation computed for dynamicsGenBiasForces\n");
 #endif
                 if(robotBaseVelocity()) {
-#ifdef DEBUG
-                    Vector dqRad(ICUB_DOFS, dqJ.data());
-                    fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Base pos: %s\n", xBase.toString().c_str());
-                    fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Base vel: %s\n", dxB.toString().c_str());
-                    fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Angs: %s\n",qRad.toString().c_str());
-                    fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> Vels: %s\n",  dqRad.toString().c_str());
-#endif
                     Vector qrad_base(16);
                     qrad_base.resize(16,0.0);
                     Vector dq_base(6)  ;
@@ -616,6 +605,8 @@ bool robotStatus::centroidalMomentum(double* qrad_input, double* dq_input, doubl
     return ans;
 }
 //=========================================================================================================================
+=======
+>>>>>>> rovereto
 /** Returns joints limits in radians.*/
 bool robotStatus::getJointLimits(double *qminLims, double *qmaxLims, const int jnt) {
     bool ans = false;
@@ -1367,8 +1358,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 //   In this function, you should perform any actions that are necessary
 //   at the termination of a simulation.  For example, if memory was
 //   allocated in mdlStart, this is the place to free it.
-static void mdlTerminate(SimStruct *S)
-{
+static void mdlTerminate(SimStruct *S) {
     // IF YOU FORGET TO DESTROY OBJECTS OR DEALLOCATE MEMORY, MATLAB WILL CRASH.
     // Retrieve and destroy C++ object
     robotStatus *robot = (robotStatus *) ssGetPWork(S)[0];

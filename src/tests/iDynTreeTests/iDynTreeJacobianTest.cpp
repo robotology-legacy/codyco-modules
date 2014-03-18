@@ -112,27 +112,74 @@ void iDynTree_print_velocity_acceleration(DynTree & icub_idyntree, const std::st
 void set_random_q_dq_ddq(yarp::os::Random & rng, iCubTree & icub_tree)
 {
     double pos_c = 0.0,vel_c = 0.0,acc_c =0.0;
-    pos_c = 2.0;
+    
+    yarp::sig::Matrix H_w2b(4,4);
+    H_w2b.eye();
+    
+    pos_c = 1.0;
     vel_c = 1.0;
-    acc_c = 4.0;
+    acc_c = 1.0;
+    
+    double world_orient = 1.0;
+    double world_pos = 1.0;
+    
+    double base_vel_c = 1.0;
+    double base_acc_c = 1.0;
+    
+    KDL::Frame H_w2b_kdl;
+    
+    H_w2b_kdl.M = KDL::Rotation::EulerZYX(world_orient*rng.uniform(),world_orient*rng.uniform(),world_orient*rng.uniform());
+    
+    H_w2b_kdl.p[0] = world_pos*M_PI*rng.uniform();
+    H_w2b_kdl.p[1] = world_pos*M_PI*rng.uniform();
+    H_w2b_kdl.p[2] = world_pos*M_PI*rng.uniform();
+    
+   
+    H_w2b_kdl.Make4x4(H_w2b.data());
+    
+    YARP_ASSERT(icub_tree.setWorldBasePose(H_w2b));
+
+    std::cout << "iDynTree Jacobian test world pose " << icub_tree.getWorldBasePose().toString() << std::endl;
+    
+    
     Vector q(icub_tree.getNrOfDOFs());            
     set_random_vector(q,rng,pos_c);
     icub_tree.setAng(q);
     
     Vector dq(icub_tree.getNrOfDOFs());            
     set_random_vector(dq,rng,vel_c);
-    dq[1] = 1000.0;
+    //dq[1] = 1000.0;
     icub_tree.setDAng(dq);
 
     Vector ddq(icub_tree.getNrOfDOFs());            
     set_random_vector(ddq,rng,acc_c);
     icub_tree.setD2Ang(ddq);
     
+    Vector base_vel(6,0.0), base_acc(6,0.0);
+    
+    set_random_vector(base_vel,rng,base_vel_c);
+    set_random_vector(base_acc,rng,base_acc_c);
+    
+    base_acc[3] = base_acc[4] = base_acc[5] = 0.0;
+    
+    icub_tree.setKinematicBaseVelAcc(base_vel,base_acc);
+    
+    //std::cout << "iDynTreeJacobianTest: Setting base_acc " << base_acc.toString() << " ( " << norm(base_acc) << " ) " <<  std::endl;
+    
+    YARP_ASSERT(icub_tree.kinematicRNEA());
+    
+    //std::cout << "iDynTreeJacobianTest: Acc at the base " << icub_tree.getAcc(icub_tree.getLinkIndex("root_link")).toString() << " ( " << norm(icub_tree.getAcc(icub_tree.getLinkIndex("root_link"))) << " ) " << std::endl;
+
+    
     return;
 }
 
 int main()
 {
+    
+    //To compare real com acceleration and the one calculated with the jacobian
+    //We need to compute kinematicRNEA using root link as the kinematic source
+    std::string kinematic_base_link_name = "root_link";
     
     double tol = 1e-5;
     
@@ -153,15 +200,7 @@ int main()
     //The iCubTree is istantiated
     //note that the serialization used is the one used in iDyn, while the 
     //default one is the one used in skinDynLib
-    iCubTree icub_idyntree(icub_idyntree_version,IDYN_SERIALIZATION);
-
-    Vector w0(3,0.0);
-    Vector dw0(3,0.0);
-    Vector ddp0(3,0.0);
-    ddp0[2] = 9.8;
-    
-    //The setInertialMeasure impose the velocity in the imu, like in iCubWholeBody
-    icub_idyntree.setInertialMeasure(w0,dw0,ddp0);
+    iCubTree icub_idyntree(icub_idyntree_version,IDYN_SERIALIZATION,1,kinematic_base_link_name);
     
     //We fill the robot state with random values, for testing
     //in reality this should be filled with value read from the robot 
@@ -204,29 +243,29 @@ int main()
     
     //By default the returned velocity is expressed in global reference frame (but with local reference point)
     //but it is possible to specify, via the local flag, to express them in local cordinates
-    v_rhand = icub_idyntree.getVel(r_hand_index,true);
+    v_rhand = icub_idyntree.getVel(r_hand_index);
     
     //By default the absloute jacobian is expressed in global reference frame
     //but it is possible to specify, via the local flag, to express them in local cordinates
-    icub_idyntree.getJacobian(r_hand_index,abs_jacobian,true);
+    icub_idyntree.getJacobian(r_hand_index,abs_jacobian);
 
     v_rhand_abs_jac = abs_jacobian*icub_idyntree.getDQ_fb();
     
     //The relative jacobian is instead by default expressed in local coordinates
     //In this example we calculate the Jacobian between the two hands
-    icub_idyntree.getRelativeJacobian(r_hand_index,l_hand_index,rel_jacobian);
+    //icub_idyntree.getRelativeJacobian(r_hand_index,l_hand_index,rel_jacobian);
     
-    v_rhand_rel_jac = rel_jacobian*icub_idyntree.getDAng() + adjoint_twist(icub_idyntree.getPosition(r_hand_index,l_hand_index))*icub_idyntree.getVel(l_hand_index,true);
+    //v_rhand_rel_jac = rel_jacobian*icub_idyntree.getDAng() + adjoint_twist(icub_idyntree.getPosition(r_hand_index,l_hand_index))*icub_idyntree.getVel(l_hand_index,true);
     
     std::cout << "Comparison between velocities" << std::endl 
               << "Real one          " << v_rhand.toString() << std::endl
-              << "Relative jacobian " << v_rhand_rel_jac.toString() << std::endl
+              //<< "Relative jacobian " << v_rhand_rel_jac.toString() << std::endl
               << "Absolute jacobian " << v_rhand_abs_jac.toString() << std::endl
-              << "Difference in norm " << norm(v_rhand-v_rhand_rel_jac) << std::endl
+              //<< "Difference in norm " << norm(v_rhand-v_rhand_rel_jac) << std::endl
               << "Difference in norm " << norm(v_rhand-v_rhand_abs_jac) << std::endl;
 
               
-    if( norm(v_rhand-v_rhand_rel_jac) > tol ) { return EXIT_FAILURE; }
+    //if( norm(v_rhand-v_rhand_rel_jac) > tol ) { return EXIT_FAILURE; }
     if( norm(v_rhand-v_rhand_abs_jac) > tol ) { return EXIT_FAILURE; }
     
               
@@ -241,8 +280,8 @@ int main()
               << "Absolute jacobian  " << abs_v_rhand_abs_jac.toString() << std::endl
               << "Difference in norm " << norm(abs_v_rhand-abs_v_rhand_abs_jac) << std::endl;
           
-              
     if( norm(abs_v_rhand-abs_v_rhand_abs_jac) > tol ) { return EXIT_FAILURE; }
+    
     
     //We can also add a testing on com DJdq (only on "linear" part for now)
     Matrix com_jacobian_6d, com_jacobian;
@@ -260,19 +299,18 @@ int main()
     
     if( norm(v_com-v_com_jacobian) > tol ) { return EXIT_FAILURE; }           
               
-    //To compare real com acceleration and the one calculated with the jacobian
-    //We need to compute kinematicRNEA using root link as the kinematic source
-    std::string kinematic_base_link_name = "root_link";
+
     
     iCub::iDynTree::iCubTree waist_imu_icub(icub_idyntree_version,IDYN_SERIALIZATION,0,kinematic_base_link_name);
     yarp::sig::Vector a_com, a_com_jacobian;
     a_com = icub_idyntree.getAccCOM();
     
     
-    
     //World of waist_imu_icub is the same of icub_idyntree: root_link
     yarp::sig::Vector six_zeros(6,0.0);
     yarp::sig::Vector dof_zeros(icub_idyntree.getNrOfDOFs(),0.0);
+    
+    YARP_ASSERT(waist_imu_icub.setWorldBasePose(icub_idyntree.getWorldBasePose()));
     waist_imu_icub.setKinematicBaseVelAcc(icub_idyntree.getVel(icub_idyntree.getLinkIndex(kinematic_base_link_name)),
                                           six_zeros);
     
@@ -280,15 +318,21 @@ int main()
     waist_imu_icub.setDAng(icub_idyntree.getDAng());
     waist_imu_icub.setD2Ang(dof_zeros);
     YARP_ASSERT(waist_imu_icub.kinematicRNEA());
+    YARP_ASSERT(icub_idyntree.kinematicRNEA());
     
     YARP_ASSERT(icub_idyntree.getLinkIndex(kinematic_base_link_name) == waist_imu_icub.getLinkIndex(kinematic_base_link_name)); 
     
+    std::cout << "Acc at the base " << icub_idyntree.getAcc(icub_idyntree.getLinkIndex(kinematic_base_link_name)).toString() << std::endl;
     a_com_jacobian = com_jacobian*icub_idyntree.getD2Q_fb() + waist_imu_icub.getAccCOM(); 
 
+    
      
     std::cout << "Comparison between com accelerations" << std::endl
               << "Real one     " << a_com.toString() << std::endl
-              << "Jacobian one " << a_com_jacobian.toString() << std::endl;
+              << "Jacobian one " << a_com_jacobian.toString() << std::endl
+              << "First part " << std::endl << (com_jacobian).submatrix(0,5,0,5).toString() << std::endl
+              << "First part vec " << icub_idyntree.getD2Q_fb().toString() << std::endl
+              << "Second part " << waist_imu_icub.getAccCOM().toString() << std::endl;
     
     if( norm(a_com-a_com_jacobian) > tol ) { 
         std::cerr << "iDynTreeJacobianTest failed: Consistency error between com accelerations " << std::endl;
@@ -304,9 +348,10 @@ int main()
     
     yarp::sig::Vector centroidal_momentum_with_jac = centroidal_momentum_jacobian*icub_idyntree.getDQ_fb();
    
-     std::cout << "Comparison between centroidal momentums" << std::endl
+    std::cout << "Comparison between centroidal momentums" << std::endl
               << "Real one     " << centroidal_momentum.toString() << std::endl
               << "Jacobian one " << centroidal_momentum_with_jac.toString() << std::endl;
+    
     
     if( norm(centroidal_momentum-centroidal_momentum_with_jac) > tol ) { 
         std::cerr << "iDynTreeJacobianTest failed: Consistency error between centroidal momentums " << std::endl;
