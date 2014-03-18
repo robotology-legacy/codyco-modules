@@ -146,8 +146,14 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
     }
     
+    bool autoconnect = false;
+    if( rf.check("autoconnect") ) {
+        std::cout << "autoconnect option found, enabling the autoconnection." << std::endl;
+        autoconnect = true;
+    }
+    
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
-    wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface, icub_version);
+    wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface, icub_version, autoconnect);
     if(!wbdThread->start()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }
     
     fprintf(stderr,"wholeBodyDynamicsThread started\n");

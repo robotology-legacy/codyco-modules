@@ -55,6 +55,7 @@ int main (int argc, char * argv[])
         cout<< "\t--legsV1/legsV2    :Version of the legs."  <<endl;        
         cout<< "\t--feetV1/feetV2    :Version of the feet."  <<endl;
         cout<< "\t--enable_w0_dw0/disable_w0_dw0    :Enable/disable use of angular velocity and acceleration measured from the IMU (default: disabled)." << endl; 
+        cout<< "\t--autoconnect      :Autoconnect torques port for low-level torque feedback. " << endl;
         return 0;
     }
     
