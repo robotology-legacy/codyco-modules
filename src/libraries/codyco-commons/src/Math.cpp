@@ -1,4 +1,4 @@
-#include "Math.h"
+#include "codyco/Math.h"
 #include <Eigen/SVD>
 
 namespace codyco {

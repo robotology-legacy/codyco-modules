@@ -5,7 +5,7 @@
 cmake_minimum_required( VERSION 2.8 FATAL_ERROR )
 
 
-SET(PROJECTNAME libCoDyCo)
+SET(PROJECTNAME codyco_commons)
 
 PROJECT(${PROJECTNAME})
 

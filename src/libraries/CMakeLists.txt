@@ -9,7 +9,7 @@
 # ADD_SUBDIRECTORY(A)
 # ADD_SUBDIRECTORY(B)
 
-add_subdirectory(libCoDyCo)
+add_subdirectory(codyco-commons)
 add_subdirectory(wholeBodyInterface)
 add_subdirectory(modHelp)
 add_subdirectory(paramHelp)
