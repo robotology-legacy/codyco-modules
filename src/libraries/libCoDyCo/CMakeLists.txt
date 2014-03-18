@@ -15,14 +15,17 @@ PROJECT(${PROJECTNAME})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 
-SET(SRCS  )
+find_package(EIGEN3 REQUIRED)
 
-SET(HEADERS  include/Common.h)
+SET(SRCS  src/Math.cpp)
+
+SET(HEADERS  include/codyco/Common.h
+             include/codyco/Math.h)
                           
 SOURCE_GROUP("Source Files" FILES ${SRCS})
 SOURCE_GROUP("Header Files" FILES ${HEADERS})
 
-INCLUDE_DIRECTORIES(include)
+INCLUDE_DIRECTORIES(include ${EIGEN3_INCLUDE_DIR})
                     
 ADD_LIBRARY(${PROJECTNAME} ${SRCS} ${HEADERS})
 
