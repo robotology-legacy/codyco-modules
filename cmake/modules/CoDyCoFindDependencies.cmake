@@ -46,3 +46,5 @@ if(CODYCO_USES_URDFDOM)
         set(CODYCO_USES_URDFDOM FALSE)
     endif()
 endif()
+
+find_package(iDynTree REQUIRED)
