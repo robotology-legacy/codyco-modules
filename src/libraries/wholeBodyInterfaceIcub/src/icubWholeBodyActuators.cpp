@@ -426,6 +426,7 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
             int njVelCtrl = 0;              // number of joints that are velocity controlled
             int jointsInPart = itBp->second.size();   // number of joints of this body part
             printf("Trying to control part %d (%d joints)\n", itBp->first, jointsInPart);
+            int jointIndex = 0;
             for(int j = 0; j < jointsInPart; j++)
             {
                 LocalId localId = LocalId(itBp->first, itBp->second[j]);
@@ -441,16 +442,22 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
                     //should save parts done
                 }
                 
+                jointIndex = j;
+                if (reverse_torso_joints) {
+                    jointIndex = itBp->first == TORSO ? 2 - j : j; // icub's torso joints are in reverse order
+                }
+                
                 if(currentControlMode == CTRL_MODE_VEL)
                 {
                     partControlMode = CTRL_MODE_VEL;
                     // icub's torso joints are in reverse order
-                    if( reverse_torso_joints ) {
-                        velocityJointIDs[j] = itBp->first==TORSO ? 2-itBp->second[j] : itBp->second[j];
-                    } else {
-                        velocityJointIDs[j] = itBp->second[j];
-                    }
-                    speedReferences[j] = CTRL_RAD2DEG * ref[i];           // convert joint vel from rad to deg
+//                    if( reverse_torso_joints ) {
+//                        velocityJointIDs[jointIndex] = itBp->first==TORSO ? 2-itBp->second[jointIndex] : itBp->second[jointIndex];
+//                    } else {
+//                        velocityJointIDs[jointIndex] = itBp->second[jointIndex];
+//                    }
+                    velocityJointIDs[jointIndex] = jointIndex;
+                    speedReferences[jointIndex] = CTRL_RAD2DEG * ref[i];           // convert joint vel from rad to deg
                     njVelCtrl++;
                 }
                 else if (currentControlMode == CTRL_MODE_TORQUE) {
@@ -462,11 +469,11 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
                         break;
                     }
 #endif
-                    torqueReferences[j] = ref[i];           // convert joint vel from rad to deg
+                    torqueReferences[jointIndex] = ref[i];           // convert joint vel from rad to deg
                 }
                 else if (currentControlMode == CTRL_MODE_POS) {
                     partControlMode = CTRL_MODE_POS;
-                    positionReferences[j] = CTRL_RAD2DEG * ref[i];
+                    positionReferences[jointIndex] = CTRL_RAD2DEG * ref[i];
                 }
                 i++;
             }
