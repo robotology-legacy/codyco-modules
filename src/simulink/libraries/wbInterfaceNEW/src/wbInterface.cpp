@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2013 Robotics, Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
- * Author: Jorhabib Eljaik Gomez
+ * Authors: Jorhabib Eljaik Gomez, Francesco Nori
  * email: jorhabib.eljaik@iit.it
  *
  * The development of this software was supported by the FP7 EU project
@@ -32,7 +32,7 @@
 #define DEBUGGING 1
 #define TIMING    0
 #define NEWCODE	  1
-// #define ICUB_FIXED
+#define ICUB_FIXED
 // #define WORLD2BASE_EXTERNAL
 
 YARP_DECLARE_DEVICES(icubmod)
@@ -605,8 +605,6 @@ bool robotStatus::centroidalMomentum(double* qrad_input, double* dq_input, doubl
     return ans;
 }
 //=========================================================================================================================
-=======
->>>>>>> rovereto
 /** Returns joints limits in radians.*/
 bool robotStatus::getJointLimits(double *qminLims, double *qmaxLims, const int jnt) {
     bool ans = false;
@@ -1305,7 +1303,9 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             ssSetErrorStatus(S,"ERROR [mdlOutput] Joint limits could not be computed\n");
         }
         else {
+#ifdef DEBUG
             if(DEBUGGING) fprintf(stderr,"minJntLimits are: \n%s\n maxJntLimits are: \n%s\n", minJntLimits.toString().c_str(), maxJntLimits.toString().c_str());
+#endif
             real_T *pY11 = (real_T*)ssGetOutputPortSignal(S,10);
             real_T *pY12 = (real_T*)ssGetOutputPortSignal(S,11);
             for(int_T j=0; j<ssGetOutputPortWidth(S,10); j++) {
