@@ -11,6 +11,7 @@ OPTION(ICUBWBI_USE_EXTERNAL_TORQUE_CONTROL "Set if iCub WBI implementation uses 
 find_package(YARP)
 find_package(ICUB)
 find_package(kdl_codyco REQUIRED)
+find_package(iDynTree REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
@@ -71,7 +72,7 @@ ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME} 
                         wholeBodyInterface
-                        iDynTree
+                    	${IDYNTREE_LIBRARIES}
                         paramHelp #this is a temporary requirement
                         ${YARP_LIBRARIES}
                         skinDynLib
