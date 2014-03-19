@@ -47,7 +47,6 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME}
     wholeBodyInterfaceIcub
     paramHelp
     ${ctrlLib_LIBRARIES}
-    ${iDynTree_LIBRARIES}
     ${YARP_LIBRARIES}
     ${Orocos-KDL_LIBRARIES}
     ${kdl_codyco_LIBRARIES})

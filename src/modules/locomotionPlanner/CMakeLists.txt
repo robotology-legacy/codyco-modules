@@ -46,7 +46,6 @@ ctrlLib
 wholeBodyInterface
 wholeBodyInterfaceIcub
 paramHelp
-iDynTree
 ${YARP_LIBRARIES}
 ${Orocos-KDL_LIBRARIES}
 ${kdl_codyco_LIBRARIES})

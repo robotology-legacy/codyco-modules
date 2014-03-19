@@ -59,7 +59,7 @@ ADD_EXECUTABLE(${PROJECTNAME} ${SOURCES} ${INCLUDES})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME}
      paramHelp
-     iDynTree
+     ${iDynTree_LIBRARIES}
      ctrlLib
      ${YARP_LIBRARIES}
      ${orocos_kdl_LIBRARIES}

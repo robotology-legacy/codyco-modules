@@ -50,7 +50,6 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME}
     wholeBodyInterface
     wholeBodyInterfaceIcub
     paramHelp
-    iDynTree
     ${ctrlLib_LIBRARIES}
     ${YARP_LIBRARIES} 
     ${Orocos-KDL_LIBRARIES} 
