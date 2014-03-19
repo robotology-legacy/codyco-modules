@@ -109,8 +109,17 @@ namespace wbiIcub
     {return getPortName(lid, &id2port[0], id2port.size());}
 
     /** Return true if the robotName is "icubSim" or "icubGazeboSim", false otherwise (deprecated function, do not use). */
+    inline bool isICubSimulator(const std::string &robotName)
+    { return robotName=="icubSim"; }
+    
+    /** Return true if the robotName is "icubSim" or "icubGazeboSim", false otherwise (deprecated function, do not use). */
+    inline bool isGazeboSimulator(const std::string &robotName)
+    { return robotName=="icubGazeboSim"; }
+    
+    /** Return true if the robotName is "icubSim" or "icubGazeboSim", false otherwise (deprecated function, do not use). */
     inline bool isRobotSimulator(const std::string &robotName)
-    { return robotName=="icubSim" || robotName=="icubGazeboSim"; }
+    { return isICubSimulator(robotName) || isGazeboSimulator(robotName);}
+    
     
     /** Open a remote control board driver for the specified body part. 
      * @param localName Name to use as stem for the names of the YARP ports to open.
