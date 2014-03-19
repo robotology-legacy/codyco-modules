@@ -405,7 +405,6 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
         return false;
     }
     // set control references for all joints
-//    unsigned int i = 0;                // counter of controlled joints
     ///< on robot use new method which set all joint vel of one body part at the same time (much faster!)
 //    if(!isRobotSimulator(robot)) //Why not on robot simulator? Shouldn't iCub_SIM implement these methods?
 //    {
@@ -425,19 +424,17 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
             wbi::ControlMode partControlMode = CTRL_MODE_UNKNOWN;
             int njVelCtrl = 0;              // number of joints that are velocity controlled
             int jointsInPart = itBp->second.size();   // number of joints of this body part
-            printf("Trying to control part %d (%d joints)\n", itBp->first, jointsInPart);
             int jointIndex = 0;
             for(int j = 0; j < jointsInPart; j++)
             {
                 LocalId localId = LocalId(itBp->first, itBp->second[j]);
                 wbi::ControlMode currentControlMode = currentCtrlModes[localId];
-                printf("\tjoint %d\n", j);
+                
                 if (partControlMode != CTRL_MODE_UNKNOWN
                     && partControlMode != currentControlMode) {
                     //a different control mode for a joint in the part
                     partControlMode = CTRL_MODE_UNKNOWN;
                     i += jointsInPart - j; //to be checked
-                    printf("\t-----------joint %d is not compatible with other joints\n", j);
                     break;
                     //should save parts done
                 }
@@ -450,12 +447,6 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
                 if(currentControlMode == CTRL_MODE_VEL)
                 {
                     partControlMode = CTRL_MODE_VEL;
-                    // icub's torso joints are in reverse order
-//                    if( reverse_torso_joints ) {
-//                        velocityJointIDs[jointIndex] = itBp->first==TORSO ? 2-itBp->second[jointIndex] : itBp->second[jointIndex];
-//                    } else {
-//                        velocityJointIDs[jointIndex] = itBp->second[jointIndex];
-//                    }
                     velocityJointIDs[jointIndex] = jointIndex;
                     speedReferences[jointIndex] = CTRL_RAD2DEG * ref[i];           // convert joint vel from rad to deg
                     njVelCtrl++;
@@ -482,20 +473,16 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
                     ok = ok && ivel[itBp->first]->velocityMove(njVelCtrl, velocityJointIDs, speedReferences);
                     //save joints commanded
                     memset(m_commandedParts + i - jointsInPart, 1, sizeof(unsigned char) * jointsInPart);
-                    printf("[%s:%d]Setting whole-part velocity mode for part num %d\n", __FILE__, __LINE__, itBp->first);
                     break;
                 case wbi::CTRL_MODE_TORQUE:
                     ok = ok && itrq[itBp->first]->setRefTorques(torqueReferences);
                     memset(m_commandedParts + i - jointsInPart, 1, sizeof(unsigned char) * jointsInPart);
-                    printf("[%s:%d]Setting whole-part torque mode for part num %d\n", __FILE__, __LINE__, itBp->first);
                     break;
                 case wbi::CTRL_MODE_POS:
                     ok = ok && ipos[itBp->first]->positionMove(positionReferences);
                     memset(m_commandedParts + i - jointsInPart, 1, sizeof(unsigned char) * jointsInPart);
-                    printf("[%s:%d]Setting whole-part position mode for part num %d\n", __FILE__, __LINE__, itBp->first);
                     break;
                 default:
-                    printf("[%s:%d]No control mode recognized for part num %d\n", __FILE__, __LINE__, itBp->first);
                     break;
             }
         }
@@ -509,19 +496,11 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
     //END TEMP
 #endif
     
-    printf("Command mask");
-    for (int k = 0; k < MAX_NJ; k++) {
-        printf("%d ", m_commandedParts[k]);
-    }
-    printf("\n");
-    
-    
-//    unsigned int i=0;
     i = 0;
     FOR_ALL(itBp, itJ)
     {
         if (m_commandedParts[i]) { //skip if joint is already controlled
-            printf("---- skipping part-joint %d-%d\n", itBp->first, *itJ);
+            i++;
             continue;
         }
         int j;
