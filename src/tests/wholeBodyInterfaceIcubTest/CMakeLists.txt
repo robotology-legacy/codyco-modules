@@ -44,7 +44,7 @@ INCLUDE_DIRECTORIES(
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} wholeBodyInterface wholeBodyInterfaceIcub iDynTree 
+TARGET_LINK_LIBRARIES(${PROJECTNAME} wholeBodyInterface wholeBodyInterfaceIcub
 ${YARP_LIBRARIES} skinDynLib ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
 
 if(WIN32)
