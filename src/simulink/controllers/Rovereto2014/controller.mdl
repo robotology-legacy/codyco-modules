@@ -1,12 +1,12 @@
 Model {
   Name			  "controller"
-  Version		  7.7
+  Version		  8.0
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.277"
+    ComputedModelVersion    "1.338"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -19,23 +19,95 @@ Model {
   DataTypeOverrideAppliesTo "AllNumericTypes"
   MinMaxOverflowLogging	  "UseLocalSettings"
   MinMaxOverflowArchiveMode "Overwrite"
+  FPTRunName		  "Run 1"
   MaxMDLFileLineLength	  120
   InitFcn		  "initRov14;"
+  Object {
+    $PropName		    "BdWindowsInfo"
+    $ObjectID		    1
+    $ClassName		    "Simulink.BDWindowsInfo"
+    Object {
+      $PropName		      "WindowsInfo"
+      $ObjectID		      2
+      $ClassName	      "Simulink.WindowInfo"
+      IsActive		      [1]
+      Location		      [1.0, 27.0, 1600.0, 1173.0]
+      Object {
+	$PropName		"ModelBrowserInfo"
+	$ObjectID		3
+	$ClassName		"Simulink.ModelBrowserInfo"
+	Visible			[1]
+	DockPosition		"Left"
+	Width			[50]
+	Height			[50]
+	Filter			[9]
+      }
+      Object {
+	$PropName		"ExplorerBarInfo"
+	$ObjectID		4
+	$ClassName		"Simulink.ExplorerBarInfo"
+	Visible			[1]
+      }
+      Array {
+	Type			"Simulink.EditorInfo"
+	Dimension		4
+	Object {
+	  $ObjectID		  5
+	  IsActive		  [0]
+	  ViewObjType		  "SimulinkTopLevel"
+	  LoadSaveID		  "0"
+	  Extents		  [1369.0, 993.0]
+	  ZoomFactor		  [1.0]
+	  Offset		  [0.0, 0.0]
+	}
+	Object {
+	  $ObjectID		  6
+	  IsActive		  [1]
+	  ViewObjType		  "SimulinkSubsys"
+	  LoadSaveID		  "61"
+	  Extents		  [1369.0, 993.0]
+	  ZoomFactor		  [0.8]
+	  Offset		  [-319.35476190476152, -25.343340543622858]
+	}
+	Object {
+	  $ObjectID		  7
+	  IsActive		  [0]
+	  ViewObjType		  "SimulinkSubsys"
+	  LoadSaveID		  "229"
+	  Extents		  [1369.0, 993.0]
+	  ZoomFactor		  [1.25]
+	  Offset		  [72.399999999999977, -302.2]
+	}
+	Object {
+	  $ObjectID		  8
+	  IsActive		  [0]
+	  ViewObjType		  "SimulinkSubsys"
+	  LoadSaveID		  "263"
+	  Extents		  [1369.0, 993.0]
+	  ZoomFactor		  [1.0]
+	  Offset		  [-644.5, -221.5]
+	}
+	PropName		"EditorsInfo"
+      }
+    }
+  }
   Created		  "Tue Feb 18 10:13:36 2014"
   Creator		  "daniele"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "daniele"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Mar 11 20:47:00 2014"
-  RTWModifiedTimeStamp	  316468827
-  ModelVersionFormat	  "1.%<AutoIncrement:277>"
+  LastModifiedDate	  "Tue Mar 18 17:03:20 2014"
+  RTWModifiedTimeStamp	  317036612
+  ModelVersionFormat	  "1.%<AutoIncrement:338>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
+  LibraryLinkDisplay	  "disabled"
   WideLines		  off
   ShowLineDimensions	  off
   ShowPortDataTypes	  off
+  ShowDesignRanges	  off
   ShowLoopsOnError	  on
   IgnoreBidirectionalLines off
   ShowStorageClass	  off
@@ -62,7 +134,7 @@ Model {
   TryForcingSFcnDF	  off
   Object {
     $PropName		    "DataLoggingOverride"
-    $ObjectID		    7
+    $ObjectID		    9
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "controller"
     overrideMode_	    [0.0]
@@ -121,14 +193,14 @@ Model {
     Type		    "Handle"
     Dimension		    1
     Simulink.ConfigSet {
-      $ObjectID		      8
-      Version		      "1.11.0"
+      $ObjectID		      10
+      Version		      "1.12.1"
       Array {
 	Type			"Handle"
 	Dimension		8
 	Simulink.SolverCC {
-	  $ObjectID		  9
-	  Version		  "1.11.0"
+	  $ObjectID		  11
+	  Version		  "1.12.1"
 	  StartTime		  "0.0"
 	  StopTime		  "inf"
 	  AbsTol		  "auto"
@@ -146,6 +218,7 @@ Model {
 	  MaxConsecutiveMinStep	  "1"
 	  RelTol		  "1e-3"
 	  SolverMode		  "Auto"
+	  EnableConcurrentExecution off
 	  ConcurrentTasks	  off
 	  Solver		  "FixedStepDiscrete"
 	  SolverName		  "FixedStepDiscrete"
@@ -161,8 +234,8 @@ Model {
 	  InsertRTBMode		  "Whenever possible"
 	}
 	Simulink.DataIOCC {
-	  $ObjectID		  10
-	  Version		  "1.11.0"
+	  $ObjectID		  12
+	  Version		  "1.12.1"
 	  Decimation		  "1"
 	  ExternalInput		  "[t, u]"
 	  FinalStateName	  "xFinal"
@@ -193,8 +266,8 @@ Model {
 	  Refine		  "1"
 	}
 	Simulink.OptimizationCC {
-	  $ObjectID		  11
-	  Version		  "1.11.0"
+	  $ObjectID		  13
+	  Version		  "1.12.1"
 	  Array {
 	    Type		    "Cell"
 	    Dimension		    8
@@ -213,6 +286,7 @@ Model {
 	  ConditionallyExecuteInputs on
 	  InlineParams		  off
 	  UseIntDivNetSlope	  off
+	  UseFloatMulNetSlope	  off
 	  UseSpecifiedMinMax	  off
 	  InlineInvariantSignals  off
 	  OptimizeBlockIOStorage  on
@@ -248,8 +322,8 @@ Model {
 	  ParallelExecutionInRapidAccelerator on
 	}
 	Simulink.DebuggingCC {
-	  $ObjectID		  12
-	  Version		  "1.11.0"
+	  $ObjectID		  14
+	  Version		  "1.12.1"
 	  RTPrefix		  "error"
 	  ConsistencyChecking	  "none"
 	  ArrayBoundsChecking	  "none"
@@ -298,12 +372,13 @@ Model {
 	  UnnecessaryDatatypeConvMsg "none"
 	  VectorMatrixConversionMsg "none"
 	  InvalidFcnCallConnMsg	  "error"
-	  FcnCallInpInsideContextMsg "Enable All"
+	  FcnCallInpInsideContextMsg "EnableAllAsWarning"
 	  SignalLabelMismatchMsg  "none"
 	  UnconnectedInputMsg	  "warning"
 	  UnconnectedOutputMsg	  "warning"
 	  UnconnectedLineMsg	  "warning"
 	  SFcnCompatibilityMsg	  "none"
+	  FrameProcessingCompatibilityMsg "warning"
 	  UniqueDataStoreMsg	  "none"
 	  BusObjectLabelMismatch  "warning"
 	  RootOutportRequireBusObject "warning"
@@ -337,8 +412,8 @@ Model {
 	  SFTransitionActionBeforeConditionDiag	"warning"
 	}
 	Simulink.HardwareCC {
-	  $ObjectID		  13
-	  Version		  "1.11.0"
+	  $ObjectID		  15
+	  Version		  "1.12.1"
 	  ProdBitPerChar	  8
 	  ProdBitPerShort	  16
 	  ProdBitPerInt		  32
@@ -374,8 +449,8 @@ Model {
 	  ProdEqTarget		  on
 	}
 	Simulink.ModelReferenceCC {
-	  $ObjectID		  14
-	  Version		  "1.11.0"
+	  $ObjectID		  16
+	  Version		  "1.12.1"
 	  UpdateModelReferenceTargets "IfOutOfDateOrStructuralChange"
 	  CheckModelReferenceTargetMessage "error"
 	  EnableParallelModelReferenceBuilds off
@@ -389,8 +464,8 @@ Model {
 	  SupportModelReferenceSimTargetCustomCode off
 	}
 	Simulink.SFSimCC {
-	  $ObjectID		  15
-	  Version		  "1.11.0"
+	  $ObjectID		  17
+	  Version		  "1.12.1"
 	  SFSimEnableDebug	  on
 	  SFSimOverflowDetection  on
 	  SFSimEcho		  on
@@ -404,8 +479,8 @@ Model {
 	}
 	Simulink.RTWCC {
 	  $BackupClass		  "Simulink.RTWCC"
-	  $ObjectID		  16
-	  Version		  "1.11.0"
+	  $ObjectID		  18
+	  Version		  "1.12.1"
 	  Array {
 	    Type		    "Cell"
 	    Dimension		    15
@@ -430,6 +505,7 @@ Model {
 	  GenCodeOnly		  off
 	  MakeCommand		  "make_rtw"
 	  GenerateMakefile	  on
+	  PackageGeneratedCodeAndArtifacts off
 	  TemplateMakefile	  "grt_default_tmf"
 	  GenerateReport	  off
 	  SaveLog		  off
@@ -446,6 +522,13 @@ Model {
 	  RTWUseSimCustomCode	  off
 	  IncludeHyperlinkInReport off
 	  LaunchReport		  off
+	  PortableWordSizes	  off
+	  GenerateErtSFunction	  off
+	  CreateSILPILBlock	  "None"
+	  CodeExecutionProfiling  off
+	  CodeExecutionProfileVariable "executionProfile"
+	  CodeProfilingSaveOptions "SummaryOnly"
+	  CodeProfilingInstrumentation off
 	  TargetLang		  "C"
 	  IncludeBusHierarchyInRTWFileBlockHierarchyMap	off
 	  IncludeERTFirstTime	  off
@@ -455,7 +538,9 @@ Model {
 	  GenerateTraceReportSf	  off
 	  GenerateTraceReportEml  off
 	  GenerateCodeInfo	  off
+	  GenerateWebview	  off
 	  GenerateCodeMetricsReport off
+	  GenerateCodeReplacementReport	off
 	  RTWCompilerOptimization "Off"
 	  CheckMdlBeforeBuild	  "Off"
 	  CustomRebuildMode	  "OnUpdate"
@@ -463,8 +548,8 @@ Model {
 	    Type		    "Handle"
 	    Dimension		    2
 	    Simulink.CodeAppCC {
-	      $ObjectID		      17
-	      Version		      "1.11.0"
+	      $ObjectID		      19
+	      Version		      "1.12.1"
 	      Array {
 		Type			"Cell"
 		Dimension		22
@@ -501,6 +586,7 @@ Model {
 	      PreserveName	      off
 	      PreserveNameWithParent  off
 	      ShowEliminatedStatement off
+	      OperatorAnnotations     off
 	      IncAutoGenComments      off
 	      SimulinkDataObjDesc     off
 	      SFDataObjDesc	      off
@@ -523,14 +609,15 @@ Model {
 	      SimulinkBlockComments   on
 	      MATLABSourceComments    off
 	      EnableCustomComments    off
+	      InternalIdentifier      "Classic"
 	      InlinedPrmAccess	      "Literals"
 	      ReqsInCode	      off
 	      UseSimReservedNames     off
 	    }
 	    Simulink.GRTTargetCC {
 	      $BackupClass	      "Simulink.TargetCC"
-	      $ObjectID		      18
-	      Version		      "1.11.0"
+	      $ObjectID		      20
+	      Version		      "1.12.1"
 	      Array {
 		Type			"Cell"
 		Dimension		15
@@ -554,7 +641,7 @@ Model {
 	      TargetFcnLib	      "ansi_tfl_table_tmw.mat"
 	      TargetLibSuffix	      ""
 	      TargetPreCompLibLocation ""
-	      TargetFunctionLibrary  "ANSI_C"
+	      CodeReplacementLibrary  "ANSI_C"
 	      UtilityFuncGeneration   "Auto"
 	      ERTMultiwordTypeDef     "System defined"
 	      ERTMultiwordLength      256
@@ -566,9 +653,10 @@ Model {
 	      ModelReferenceCompliant on
 	      ParMdlRefBuildCompliant on
 	      CompOptLevelCompliant   on
+	      ConcurrentExecutionCompliant on
 	      IncludeMdlTerminateFcn  on
 	      GeneratePreprocessorConditionals "Disable all"
-	      CombineOutputUpdateFcns on
+	      CombineOutputUpdateFcns off
 	      CombineSignalStateStructs	off
 	      SuppressErrorStatus     off
 	      ERTFirstTimeCompliant   off
@@ -589,6 +677,7 @@ Model {
 	      ModelStepFunctionPrototypeControlCompliant off
 	      CPPClassGenCompliant    off
 	      AutosarCompliant	      off
+	      GRTInterface	      on
 	      UseMalloc		      off
 	      ExtMode		      off
 	      ExtModeStaticAlloc      off
@@ -616,8 +705,19 @@ Model {
   }
   Simulink.ConfigSet {
     $PropName		    "ActiveConfigurationSet"
-    $ObjectID		    8
+    $ObjectID		    10
   }
+  Object {
+    $PropName		    "DataTransfer"
+    $ObjectID		    21
+    $ClassName		    "Simulink.GlobalDataTransfer"
+    DefaultTransitionBetweenSyncTasks "Ensure deterministic transfer (maximum delay)"
+    DefaultTransitionBetweenAsyncTasks "Ensure data integrity only"
+    DefaultTransitionBetweenContTasks "Ensure deterministic transfer (minimum delay)"
+    DefaultExtrapolationMethodBetweenContTasks "None"
+    AutoInsertRateTranBlk   [0]
+  }
+  ExplicitPartitioning	  off
   BlockDefaults {
     ForegroundColor	    "black"
     BackgroundColor	    "white"
@@ -648,6 +748,25 @@ Model {
     FontSize		    9
     FontWeight		    "normal"
     FontAngle		    "normal"
+  }
+  MaskDefaults {
+    SelfModifiable	    "off"
+    IconFrame		    "on"
+    IconOpaque		    "on"
+    RunInitForIconRedraw    "off"
+    IconRotate		    "none"
+    PortRotate		    "default"
+    IconUnits		    "autoscale"
+  }
+  MaskParameterDefaults {
+    Evaluate		    "on"
+    Tunable		    "on"
+    NeverSave		    "off"
+    Internal		    "off"
+    ReadOnly		    "off"
+    Enabled		    "on"
+    Visible		    "on"
+    ToolTip		    "on"
   }
   BlockParameterDefaults {
     Block {
@@ -708,13 +827,6 @@ Model {
       IgnoreLimit	      off
       StateMustResolveToSignalObject off
       RTWStateStorageClass    "Auto"
-    }
-    Block {
-      BlockType		      Display
-      Format		      "short"
-      Decimation	      "10"
-      Floating		      off
-      SampleTime	      "-1"
     }
     Block {
       BlockType		      Inport
@@ -810,6 +922,13 @@ Model {
       SampleTime	      "-1"
     }
     Block {
+      BlockType		      Selector
+      NumberOfDimensions      "1"
+      IndexMode		      "One-based"
+      InputPortWidth	      "-1"
+      SampleTime	      "-1"
+    }
+    Block {
       BlockType		      Stop
     }
     Block {
@@ -831,6 +950,7 @@ Model {
       DataTypeOverride	      "UseLocalSettings"
       DataTypeOverrideAppliesTo	"AllNumericTypes"
       MinMaxOverflowLogging   "UseLocalSettings"
+      SFBlockType	      "NONE"
       Variant		      off
       GeneratePreprocessorConditionals off
     }
@@ -855,8 +975,8 @@ Model {
   }
   System {
     Name		    "controller"
-    Location		    [86, 95, 1509, 1162]
-    Open		    off
+    Location		    [1, 27, 1601, 1200]
+    Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
     ScreenColor		    "white"
@@ -869,7 +989,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "256"
+    SIDHighWatermark	    "268"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -884,24 +1004,41 @@ Model {
       Opaque		      off
       RequestExecContextInheritance off
       MaskHideContents	      off
-      MaskPromptString	      "robot name|Ts|module name"
-      MaskStyleString	      "edit,edit,edit"
-      MaskVariables	      "robotName=@1;Ts=@2;localName=@3;"
-      MaskTunableValueString  "on,on,on"
-      MaskCallbackString      "||"
-      MaskEnableString	      "on,on,on"
-      MaskVisibilityString    "on,on,on"
-      MaskToolTipString	      "on,on,on"
-      MaskIconFrame	      on
-      MaskIconOpaque	      on
-      MaskIconRotate	      "none"
-      MaskPortRotate	      "default"
-      MaskIconUnits	      "autoscale"
-      MaskValueString	      "'icubGazeboSim'|0.01|'dynamicBalancing'"
+      Object {
+	$PropName		"MaskObject"
+	$ObjectID		22
+	$ClassName		"Simulink.Mask"
+	Array {
+	  Type			  "Simulink.MaskParameter"
+	  Dimension		  3
+	  Object {
+	    $ObjectID		    23
+	    Type		    "edit"
+	    Name		    "robotName"
+	    Prompt		    "robot name"
+	    Value		    "'icubGazeboSim'"
+	  }
+	  Object {
+	    $ObjectID		    24
+	    Type		    "edit"
+	    Name		    "Ts"
+	    Prompt		    "Ts"
+	    Value		    "0.01"
+	  }
+	  Object {
+	    $ObjectID		    25
+	    Type		    "edit"
+	    Name		    "localName"
+	    Prompt		    "module name"
+	    Value		    "'dynamicBalancing'"
+	  }
+	  PropName		  "Parameters"
+	}
+      }
       System {
 	Name			"Subsystem"
 	Location		[1, 27, 1601, 1200]
-	Open			off
+	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -912,29 +1049,20 @@ Model {
 	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
 	TiledPageScale		1
 	ShowPageBoundaries	off
-	ZoomFactor		"100"
+	ZoomFactor		"80"
 	Block {
 	  BlockType		  Constant
 	  Name			  "\n\n  "
 	  SID			  "11"
-	  Position		  [430, 804, 480, 836]
+	  Position		  [455, 789, 505, 821]
 	  ZOrder		  10
 	  Value			  "k"
 	}
 	Block {
 	  BlockType		  Constant
-	  Name			  "\n\n2"
-	  SID			  "53"
-	  Position		  [435, 489, 485, 521]
-	  ZOrder		  34
-	  ShowName		  off
-	  Value			  "qDes"
-	}
-	Block {
-	  BlockType		  Constant
 	  Name			  "\n\n3"
 	  SID			  "244"
-	  Position		  [1160, 89, 1235, 121]
+	  Position		  [25, 38, 90, 82]
 	  ZOrder		  101
 	  ShowName		  off
 	  Value			  "40"
@@ -944,25 +1072,16 @@ Model {
 	  Name			  " "
 	  SID			  "7"
 	  Ports			  [2, 1]
-	  Position		  [430, 398, 480, 427]
+	  Position		  [480, 438, 530, 467]
 	  ZOrder		  6
 	  Mode			  "Multidimensional array"
-	}
-	Block {
-	  BlockType		  Constant
-	  Name			  "  1"
-	  SID			  "41"
-	  Position		  [430, 759, 480, 791]
-	  ZOrder		  22
-	  ShowName		  off
-	  Value			  "m"
 	}
 	Block {
 	  BlockType		  Concatenate
 	  Name			  " 1"
 	  SID			  "54"
 	  Ports			  [2, 1]
-	  Position		  [430, 443, 480, 472]
+	  Position		  [480, 488, 530, 517]
 	  ZOrder		  35
 	  ShowName		  off
 	  Mode			  "Multidimensional array"
@@ -972,11 +1091,11 @@ Model {
 	  Name			  "COMFwdKin "
 	  SID			  "64"
 	  Ports			  [0, 1]
-	  Position		  [120, 634, 200, 666]
+	  Position		  [220, 654, 260, 686]
 	  ZOrder		  42
 	  BackgroundColor	  "lightBlue"
 	  ShowName		  off
-	  LibraryVersion	  "1.249"
+	  LibraryVersion	  "1.254"
 	  SourceBlock		  "WBCLibrary/wholeBodyModel/Forward Kinematics/COMFwdKin "
 	  SourceType		  ""
 	  robotName		  "robotName"
@@ -987,11 +1106,11 @@ Model {
 	  Name			  "Center of Mass Jacobian"
 	  SID			  "66"
 	  Ports			  [0, 1]
-	  Position		  [300, 534, 380, 566]
+	  Position		  [480, 540, 530, 570]
 	  ZOrder		  44
 	  BackgroundColor	  "[0.996109, 0.000000, 0.996109]"
 	  ShowName		  off
-	  LibraryVersion	  "1.249"
+	  LibraryVersion	  "1.254"
 	  SourceBlock		  "WBCLibrary/wholeBodyModel/Jacobians/Center of Mass Jacobian"
 	  SourceType		  ""
 	  robotName		  "robotName"
@@ -1001,15 +1120,63 @@ Model {
 	  BlockType		  Clock
 	  Name			  "Clock"
 	  SID			  "71"
-	  Position		  [365, 710, 385, 730]
+	  Position		  [390, 735, 410, 755]
 	  ZOrder		  49
 	  ShowName		  off
+	}
+	Block {
+	  BlockType		  Selector
+	  Name			  "CoM6D -> CoMXYZ"
+	  SID			  "258"
+	  Ports			  [1, 1]
+	  Position		  [290, 651, 330, 689]
+	  ZOrder		  111
+	  InputPortWidth	  "7"
+	  IndexOptions		  "Index vector (dialog)"
+	  Indices		  "[1 2 3]"
+	  OutputSizes		  "1"
+	}
+	Block {
+	  BlockType		  Scope
+	  Name			  "CoMError - \nCoM - CoMDes\n"
+	  SID			  "260"
+	  Ports			  [3]
+	  Position		  [1195, 882, 1225, 918]
+	  ZOrder		  113
+	  Floating		  off
+	  Location		  [1602, 61, 3202, 1048]
+	  Open			  on
+	  NumInputPorts		  "3"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	    axes2		    "%<SignalLabel>"
+	    axes3		    "%<SignalLabel>"
+	  }
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.5 0.5 0.5]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
+	  }
+	  ShowLegends		  off
+	  TimeRange		  "45"
+	  YMin			  "-0.25~-0.2~-0.2"
+	  YMax			  "0.25~0.6~0.6"
+	  SaveName		  "ScopeData6"
+	  DataFormat		  "StructureWithTime"
+	  LimitDataPoints	  off
+	  SampleTime		  "0"
 	}
 	Block {
 	  BlockType		  Constant
 	  Name			  "Constant"
 	  SID			  "117"
-	  Position		  [430, 849, 480, 881]
+	  Position		  [455, 839, 505, 871]
 	  ZOrder		  69
 	  ShowName		  off
 	  Value			  "fake"
@@ -1019,7 +1186,7 @@ Model {
 	  Name			  "Discrete-Time Integrator"
 	  SID			  "211"
 	  Ports			  [1, 1]
-	  Position		  [820, 966, 895, 1034]
+	  Position		  [810, 961, 885, 1029]
 	  ZOrder		  92
 	  BlockMirror		  on
 	  NamePlacement		  "alternate"
@@ -1029,61 +1196,15 @@ Model {
 	  ICPrevScaledInput	  "DiscIntNeverNeededParam"
 	}
 	Block {
-	  BlockType		  Display
-	  Name			  "Display"
-	  SID			  "207"
-	  Ports			  [1]
-	  Position		  [815, 667, 895, 723]
-	  ZOrder		  88
-	  ShowName		  off
-	  Decimation		  "1"
-	  Lockdown		  off
-	}
-	Block {
-	  BlockType		  Display
-	  Name			  "Display1"
-	  SID			  "208"
-	  Ports			  [1]
-	  Position		  [700, 667, 780, 723]
-	  ZOrder		  89
-	  ShowName		  off
-	  Decimation		  "1"
-	  Lockdown		  off
-	}
-	Block {
-	  BlockType		  Display
-	  Name			  "Display2"
-	  SID			  "209"
-	  Ports			  [1]
-	  Position		  [920, 667, 1000, 723]
-	  ZOrder		  90
-	  BlockMirror		  on
-	  NamePlacement		  "alternate"
-	  ShowName		  off
-	  Decimation		  "1"
-	  Lockdown		  off
-	}
-	Block {
-	  BlockType		  Display
-	  Name			  "Display3"
-	  SID			  "249"
-	  Ports			  [1]
-	  Position		  [420, 910, 510, 940]
-	  ZOrder		  104
-	  ShowName		  off
-	  Decimation		  "1"
-	  Lockdown		  off
-	}
-	Block {
 	  BlockType		  Reference
 	  Name			  "Joint Angles"
 	  SID			  "58"
 	  Ports			  [0, 1]
-	  Position		  [340, 109, 390, 141]
+	  Position		  [395, 139, 445, 171]
 	  ZOrder		  39
 	  BackgroundColor	  "orange"
 	  ShowName		  off
-	  LibraryVersion	  "1.249"
+	  LibraryVersion	  "1.254"
 	  SourceBlock		  "WBCLibrary/wholeBodyStates/Joint Angles"
 	  SourceType		  ""
 	  robotName		  "robotName"
@@ -1091,16 +1212,16 @@ Model {
 	}
 	Block {
 	  BlockType		  Reference
-	  Name			  "Joint Torques"
-	  SID			  "252"
-	  Ports			  [0, 1]
-	  Position		  [1160, 44, 1235, 76]
-	  ZOrder		  107
-	  BackgroundColor	  "[1.000000, 0.634000, 0.268000]"
+	  Name			  "Joint Limits"
+	  SID			  "263"
+	  Ports			  [0, 2]
+	  Position		  [20, 103, 85, 147]
+	  ZOrder		  114
+	  BackgroundColor	  "[1.000000, 0.247733, 0.215168]"
 	  ShowName		  off
-	  LibraryVersion	  "1.249"
-	  SourceBlock		  "WBCLibrary/wholeBodyStates/Joint Torques"
-	  SourceType		  "Get Joint Torques"
+	  LibraryVersion	  "1.254"
+	  SourceBlock		  "WBCLibrary/wholeBodyModel/Joint Limits"
+	  SourceType		  ""
 	  robotName		  "robotName"
 	  localName		  "localName"
 	}
@@ -1109,11 +1230,11 @@ Model {
 	  Name			  "Joint Velocities"
 	  SID			  "59"
 	  Ports			  [0, 1]
-	  Position		  [455, 219, 505, 251]
+	  Position		  [480, 239, 530, 271]
 	  ZOrder		  40
 	  BackgroundColor	  "[0.732000, 0.463600, 0.000000]"
 	  ShowName		  off
-	  LibraryVersion	  "1.249"
+	  LibraryVersion	  "1.254"
 	  SourceBlock		  "WBCLibrary/wholeBodyStates/Joint Velocities"
 	  SourceType		  ""
 	  robotName		  "robotName"
@@ -1124,27 +1245,515 @@ Model {
 	  Name			  "Left Foot Jacobian"
 	  SID			  "45"
 	  Ports			  [0, 1]
-	  Position		  [300, 369, 380, 401]
+	  Position		  [385, 410, 435, 440]
 	  ZOrder		  26
 	  BackgroundColor	  "[1.000000, 0.258824, 0.819608]"
 	  ShowName		  off
-	  LibraryVersion	  "1.249"
+	  LibraryVersion	  "1.254"
 	  SourceBlock		  "WBCLibrary/wholeBodyModel/Jacobians/Left Foot Jacobian"
 	  SourceType		  ""
 	  robotName		  "robotName"
 	  localName		  "localName"
 	}
 	Block {
-	  BlockType		  SubSystem
-	  Name			  "MATLAB Function"
-	  SID			  "3"
-	  Ports			  [18, 7]
-	  Position		  [545, 111, 1090, 944]
-	  ZOrder		  2
+	  BlockType		  Scope
+	  Name			  "ML"
+	  SID			  "210"
+	  Ports			  [2]
+	  Position		  [1190, 691, 1220, 724]
+	  ZOrder		  91
+	  NamePlacement		  "alternate"
+	  Floating		  off
+	  Location		  [34, 191, 578, 1139]
+	  Open			  off
+	  NumInputPorts		  "2"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	    axes2		    "%<SignalLabel>"
+	  }
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.501960784313725 0.501960784313725 0.501960784313725]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
+	  }
+	  ShowLegends		  off
+	  TimeRange		  "20"
+	  YMin			  "-8~-8"
+	  YMax			  "6~6"
+	  DataFormat		  "StructureWithTime"
+	  LimitDataPoints	  off
+	  SampleTime		  "0"
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "Right Foot Jacobian"
+	  SID			  "46"
+	  Ports			  [0, 1]
+	  Position		  [385, 445, 435, 475]
+	  ZOrder		  27
+	  BackgroundColor	  "[0.996078, 0.000000, 0.996078]"
 	  ShowName		  off
+	  LibraryVersion	  "1.254"
+	  SourceBlock		  "WBCLibrary/wholeBodyModel/Jacobians/Right Foot Jacobian"
+	  SourceType		  ""
+	  robotName		  "robotName"
+	  localName		  "localName"
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "RightFootFwdKin"
+	  SID			  "206"
+	  Ports			  [0, 1]
+	  Position		  [480, 389, 530, 421]
+	  ZOrder		  87
+	  BackgroundColor	  "[0.074000, 0.349000, 0.941000]"
+	  ShowName		  off
+	  LibraryVersion	  "1.254"
+	  SourceBlock		  "WBCLibrary/wholeBodyModel/Forward Kinematics/RightFootFwdKin"
+	  SourceType		  ""
+	  robotName		  "robotName"
+	  localName		  "localName"
+	}
+	Block {
+	  BlockType		  Saturate
+	  Name			  "Saturation"
+	  SID			  "251"
+	  Ports			  [1, 1]
+	  Position		  [1200, 155, 1230, 185]
+	  ZOrder		  106
+	  ShowName		  off
+	  InputPortMap		  "u0"
+	  UpperLimit		  "40"
+	  LowerLimit		  "-40"
+	  SampleTime		  "Ts"
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "Set Torques"
+	  SID			  "205"
+	  Ports			  [1]
+	  Position		  [1285, 148, 1355, 192]
+	  ZOrder		  86
+	  BackgroundColor	  "[0.941000, 0.415000, 0.192000]"
+	  ShowName		  off
+	  LibraryVersion	  "1.254"
+	  SourceBlock		  "WBCLibrary/wholeBodyActuators/Set Torques"
+	  SourceType		  ""
+	  val			  "6"
+	  robotName		  "robotName"
+	  localName		  "localName"
+	}
+	Block {
+	  BlockType		  SubSystem
+	  Name			  "Subsystem"
+	  SID			  "229"
+	  Ports			  [3]
+	  Position		  [110, 40, 210, 170]
+	  ZOrder		  98
+	  ForegroundColor	  "[0.901961, 0.000000, 0.000000]"
+	  BackgroundColor	  "[0.901961, 0.000000, 0.000000]"
+	  ShowName		  off
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  RTWSystemCode		  "Auto"
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  RequestExecContextInheritance	off
+	  MaskHideContents	  off
+	  System {
+	    Name		    "Subsystem"
+	    Location		    [1, 27, 1601, 1200]
+	    Open		    on
+	    ModelBrowserVisibility  on
+	    ModelBrowserWidth	    200
+	    ScreenColor		    "white"
+	    PaperOrientation	    "landscape"
+	    PaperPositionMode	    "auto"
+	    PaperType		    "usletter"
+	    PaperUnits		    "inches"
+	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
+	    TiledPageScale	    1
+	    ShowPageBoundaries	    off
+	    ZoomFactor		    "125"
+	    Block {
+	      BlockType		      Inport
+	      Name		      "maxTau"
+	      SID		      "232"
+	      Position		      [305, 158, 335, 172]
+	      ZOrder		      1
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Inport
+	      Name		      "minQ"
+	      SID		      "264"
+	      Position		      [290, 238, 320, 252]
+	      ZOrder		      10
+	      Port		      "2"
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Inport
+	      Name		      "maxQ"
+	      SID		      "265"
+	      Position		      [290, 278, 320, 292]
+	      ZOrder		      11
+	      Port		      "3"
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Assertion
+	      Name		      "Assertion"
+	      SID		      "253"
+	      Position		      [590, 72, 650, 118]
+	      ZOrder		      8
+	      ShowName		      off
+	      Enabled		      on
+	      SampleTime	      "Ts"
+	    }
+	    Block {
+	      BlockType		      Reference
+	      Name		      "Joint Angles"
+	      SID		      "266"
+	      Ports		      [0, 1]
+	      Position		      [290, 193, 325, 217]
+	      ZOrder		      12
+	      BackgroundColor	      "[0.375000, 0.187500, 0.000000]"
+	      ShowName		      off
+	      LibraryVersion	      "1.254"
+	      SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Angles"
+	      SourceType	      ""
+	      robotName		      "robotName"
+	      localName		      "localName"
+	    }
+	    Block {
+	      BlockType		      Reference
+	      Name		      "Joint Torques"
+	      SID		      "252"
+	      Ports		      [0, 1]
+	      Position		      [290, 113, 325, 137]
+	      ZOrder		      108
+	      BackgroundColor	      "[1.000000, 0.634000, 0.268000]"
+	      ShowName		      off
+	      LibraryVersion	      "1.254"
+	      SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Torques"
+	      SourceType	      "Get Joint Torques"
+	      robotName		      "robotName"
+	      localName		      "localName"
+	    }
+	    Block {
+	      BlockType		      Logic
+	      Name		      "Logical Operator"
+	      SID		      "254"
+	      Ports		      [1, 1]
+	      Position		      [530, 79, 560, 111]
+	      ZOrder		      9
+	      ShowName		      off
+	      Operator		      "NOT"
+	      AllPortsSameDT	      off
+	      OutDataTypeStr	      "boolean"
+	    }
+	    Block {
+	      BlockType		      SubSystem
+	      Name		      "MATLAB Function"
+	      SID		      "234"
+	      Ports		      [5, 2]
+	      Position		      [355, 100, 445, 310]
+	      ZOrder		      3
+	      ShowName		      off
+	      LibraryVersion	      "1.32"
+	      ErrorFcn		      "Stateflow.Translate.translate"
+	      PermitHierarchicalResolution "ExplicitOnly"
+	      TreatAsAtomicUnit	      on
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      RTWSystemCode	      "Auto"
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      RequestExecContextInheritance off
+	      MaskHideContents	      off
+	      SFBlockType	      "MATLAB Function"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		26
+		$ClassName		"Simulink.Mask"
+		Type			"Stateflow"
+		Description		"Embedded MATLAB block"
+		SelfModifiable		"on"
+		Display			"bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('private/eml_me"
+		"mbrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
+		IconOpaque		"off"
+		IconUnits		"normalized"
+	      }
+	      System {
+		Name			"MATLAB Function"
+		Location		[189, 219, 840, 949]
+		Open			off
+		ModelBrowserVisibility	on
+		ModelBrowserWidth	200
+		ScreenColor		"white"
+		PaperOrientation	"landscape"
+		PaperPositionMode	"auto"
+		PaperType		"usletter"
+		PaperUnits		"inches"
+		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+		TiledPageScale		1
+		ShowPageBoundaries	off
+		ZoomFactor		"100"
+		SIDHighWatermark	"32"
+		Block {
+		  BlockType		  Inport
+		  Name			  "ut"
+		  SID			  "234::24"
+		  Position		  [20, 101, 40, 119]
+		  ZOrder		  10
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Inport
+		  Name			  "maxU"
+		  SID			  "234::1"
+		  Position		  [20, 136, 40, 154]
+		  ZOrder		  -1
+		  Port			  "2"
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Inport
+		  Name			  "q"
+		  SID			  "234::30"
+		  Position		  [20, 171, 40, 189]
+		  ZOrder		  16
+		  Port			  "3"
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Inport
+		  Name			  "minQ"
+		  SID			  "234::31"
+		  Position		  [20, 206, 40, 224]
+		  ZOrder		  17
+		  Port			  "4"
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Inport
+		  Name			  "maxQ"
+		  SID			  "234::32"
+		  Position		  [20, 246, 40, 264]
+		  ZOrder		  18
+		  Port			  "5"
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Demux
+		  Name			  " Demux "
+		  SID			  "234::27"
+		  Ports			  [1, 1]
+		  Position		  [270, 220, 320, 260]
+		  ZOrder		  13
+		  Outputs		  "1"
+		}
+		Block {
+		  BlockType		  S-Function
+		  Name			  " SFunction "
+		  SID			  "234::26"
+		  Tag			  "Stateflow S-Function controller 4"
+		  Ports			  [5, 3]
+		  Position		  [180, 100, 230, 220]
+		  ZOrder		  12
+		  FunctionName		  "sf_sfun"
+		  PortCounts		  "[5 3]"
+		  EnableBusSupport	  on
+		  Port {
+		    PortNumber		    2
+		    Name		    "stop"
+		    RTWStorageClass	    "Auto"
+		    DataLoggingNameMode	    "SignalName"
+		  }
+		  Port {
+		    PortNumber		    3
+		    Name		    "out"
+		    RTWStorageClass	    "Auto"
+		    DataLoggingNameMode	    "SignalName"
+		  }
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  " Terminator "
+		  SID			  "234::29"
+		  Position		  [460, 231, 480, 249]
+		  ZOrder		  15
+		}
+		Block {
+		  BlockType		  Outport
+		  Name			  "stop"
+		  SID			  "234::5"
+		  Position		  [460, 101, 480, 119]
+		  ZOrder		  -5
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Outport
+		  Name			  "out"
+		  SID			  "234::25"
+		  Position		  [460, 136, 480, 154]
+		  ZOrder		  11
+		  Port			  "2"
+		  IconDisplay		  "Port number"
+		}
+		Line {
+		  SrcBlock		  "ut"
+		  SrcPort		  1
+		  DstBlock		  " SFunction "
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "maxU"
+		  SrcPort		  1
+		  DstBlock		  " SFunction "
+		  DstPort		  2
+		}
+		Line {
+		  SrcBlock		  "q"
+		  SrcPort		  1
+		  DstBlock		  " SFunction "
+		  DstPort		  3
+		}
+		Line {
+		  SrcBlock		  "minQ"
+		  SrcPort		  1
+		  DstBlock		  " SFunction "
+		  DstPort		  4
+		}
+		Line {
+		  SrcBlock		  "maxQ"
+		  SrcPort		  1
+		  DstBlock		  " SFunction "
+		  DstPort		  5
+		}
+		Line {
+		  Name			  "stop"
+		  Labels		  [0, 0]
+		  SrcBlock		  " SFunction "
+		  SrcPort		  2
+		  DstBlock		  "stop"
+		  DstPort		  1
+		}
+		Line {
+		  Name			  "out"
+		  Labels		  [0, 0]
+		  SrcBlock		  " SFunction "
+		  SrcPort		  3
+		  DstBlock		  "out"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  " Demux "
+		  SrcPort		  1
+		  DstBlock		  " Terminator "
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  " SFunction "
+		  SrcPort		  1
+		  DstBlock		  " Demux "
+		  DstPort		  1
+		}
+	      }
+	    }
+	    Block {
+	      BlockType		      Stop
+	      Name		      "Stop Simulation"
+	      SID		      "235"
+	      Position		      [515, 137, 550, 173]
+	      ZOrder		      4
+	      ShowName		      off
+	    }
+	    Line {
+	      SrcBlock		      "Joint Torques"
+	      SrcPort		      1
+	      DstBlock		      "MATLAB Function"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "maxTau"
+	      SrcPort		      1
+	      DstBlock		      "MATLAB Function"
+	      DstPort		      2
+	    }
+	    Line {
+	      SrcBlock		      "Logical Operator"
+	      SrcPort		      1
+	      DstBlock		      "Assertion"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "maxQ"
+	      SrcPort		      1
+	      DstBlock		      "MATLAB Function"
+	      DstPort		      5
+	    }
+	    Line {
+	      SrcBlock		      "minQ"
+	      SrcPort		      1
+	      DstBlock		      "MATLAB Function"
+	      DstPort		      4
+	    }
+	    Line {
+	      SrcBlock		      "Joint Angles"
+	      SrcPort		      1
+	      DstBlock		      "MATLAB Function"
+	      DstPort		      3
+	    }
+	    Line {
+	      SrcBlock		      "MATLAB Function"
+	      SrcPort		      1
+	      Points		      [39, 0]
+	      Branch {
+		Points			[0, -60]
+		DstBlock		"Logical Operator"
+		DstPort			1
+	      }
+	      Branch {
+		DstBlock		"Stop Simulation"
+		DstPort			1
+	      }
+	    }
+	  }
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "computeh"
+	  SID			  "48"
+	  Ports			  [0, 1]
+	  Position		  [480, 339, 530, 371]
+	  ZOrder		  29
+	  BackgroundColor	  "magenta"
+	  ShowName		  off
+	  LibraryVersion	  "1.254"
+	  SourceBlock		  "WBCLibrary/wholeBodyModel/Dynamics/computeh"
+	  SourceType		  ""
+	  val			  "7"
+	  robotname		  "robotName"
+	  localname		  "localName"
+	}
+	Block {
+	  BlockType		  SubSystem
+	  Name			  "controllerMatlab"
+	  SID			  "3"
+	  Ports			  [16, 7]
+	  Position		  [570, 113, 1115, 947]
+	  ZOrder		  2
 	  LibraryVersion	  "1.32"
 	  ErrorFcn		  "Stateflow.Translate.translate"
-	  PermitHierarchicalResolution "ParametersOnly"
+	  PermitHierarchicalResolution "ExplicitOnly"
 	  TreatAsAtomicUnit	  on
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -1153,19 +1762,22 @@ Model {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskType		  "Stateflow"
-	  MaskDescription	  "Embedded MATLAB block"
-	  MaskSelfModifiable	  on
-	  MaskDisplay		  "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('private/"
-	  "eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  off
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "normalized"
+	  SFBlockType		  "MATLAB Function"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    27
+	    $ClassName		    "Simulink.Mask"
+	    Type		    "Stateflow"
+	    Description		    "Embedded MATLAB block"
+	    SelfModifiable	    "on"
+	    Display		    "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('private/"
+	    "eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
+	    IconOpaque		    "off"
+	    IconUnits		    "normalized"
+	  }
 	  System {
-	    Name		    "MATLAB Function"
-	    Location		    [223, 338, 826, 833]
+	    Name		    "controllerMatlab"
+	    Location		    [189, 219, 840, 949]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -1178,7 +1790,7 @@ Model {
 	    TiledPageScale	    1
 	    ShowPageBoundaries	    off
 	    ZoomFactor		    "100"
-	    SIDHighWatermark	    "56"
+	    SIDHighWatermark	    "62"
 	    Block {
 	      BlockType		      Inport
 	      Name		      "q"
@@ -1252,113 +1864,95 @@ Model {
 	    }
 	    Block {
 	      BlockType		      Inport
-	      Name		      "qDes"
-	      SID		      "3::29"
-	      Position		      [20, 386, 40, 404]
-	      ZOrder		      15
-	      Port		      "9"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Inport
 	      Name		      "Jcom"
 	      SID		      "3::39"
-	      Position		      [20, 426, 40, 444]
+	      Position		      [20, 386, 40, 404]
 	      ZOrder		      25
-	      Port		      "10"
+	      Port		      "9"
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
 	      BlockType		      Inport
 	      Name		      "xcom"
 	      SID		      "3::44"
-	      Position		      [20, 461, 40, 479]
+	      Position		      [20, 426, 40, 444]
 	      ZOrder		      30
-	      Port		      "11"
+	      Port		      "10"
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
 	      BlockType		      Inport
 	      Name		      "xcomDes"
 	      SID		      "3::43"
-	      Position		      [20, 496, 40, 514]
+	      Position		      [20, 461, 40, 479]
 	      ZOrder		      29
-	      Port		      "12"
+	      Port		      "11"
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
 	      BlockType		      Inport
 	      Name		      "xDcomDes"
 	      SID		      "3::32"
-	      Position		      [20, 531, 40, 549]
+	      Position		      [20, 496, 40, 514]
 	      ZOrder		      18
-	      Port		      "13"
+	      Port		      "12"
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
 	      BlockType		      Inport
 	      Name		      "xDDcomDes"
 	      SID		      "3::36"
-	      Position		      [20, 566, 40, 584]
+	      Position		      [20, 531, 40, 549]
 	      ZOrder		      22
-	      Port		      "14"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Inport
-	      Name		      "m"
-	      SID		      "3::40"
-	      Position		      [20, 606, 40, 624]
-	      ZOrder		      26
-	      Port		      "15"
+	      Port		      "13"
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
 	      BlockType		      Inport
 	      Name		      "k"
 	      SID		      "3::33"
-	      Position		      [20, 641, 40, 659]
+	      Position		      [20, 566, 40, 584]
 	      ZOrder		      19
-	      Port		      "16"
+	      Port		      "14"
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
 	      BlockType		      Inport
 	      Name		      "fake"
 	      SID		      "3::45"
-	      Position		      [20, 676, 40, 694]
+	      Position		      [20, 606, 40, 624]
 	      ZOrder		      31
-	      Port		      "17"
+	      Port		      "15"
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
 	      BlockType		      Inport
 	      Name		      "IntErrorCoM"
 	      SID		      "3::55"
-	      Position		      [20, 711, 40, 729]
+	      Position		      [20, 641, 40, 659]
 	      ZOrder		      40
-	      Port		      "18"
+	      Port		      "16"
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
 	      BlockType		      Demux
 	      Name		      " Demux "
-	      SID		      "3::20"
+	      SID		      "3::58"
 	      Ports		      [1, 1]
-	      Position		      [270, 550, 320, 590]
-	      ZOrder		      6
+	      Position		      [270, 485, 320, 525]
+	      ZOrder		      43
 	      Outputs		      "1"
 	    }
 	    Block {
 	      BlockType		      S-Function
 	      Name		      " SFunction "
-	      SID		      "3::19"
+	      SID		      "3::57"
 	      Tag		      "Stateflow S-Function controller 2"
-	      Ports		      [18, 8]
-	      Position		      [180, 152, 230, 548]
-	      ZOrder		      5
+	      Ports		      [16, 8]
+	      Position		      [180, 102, 230, 483]
+	      ZOrder		      42
 	      FunctionName	      "sf_sfun"
-	      PortCounts	      "[18 8]"
+	      PortCounts	      "[16 8]"
 	      EnableBusSupport	      on
 	      Port {
 		PortNumber		2
@@ -1380,25 +1974,25 @@ Model {
 	      }
 	      Port {
 		PortNumber		5
-		Name			"ML"
+		Name			"forceError"
 		RTWStorageClass		"Auto"
 		DataLoggingNameMode	"SignalName"
 	      }
 	      Port {
 		PortNumber		6
-		Name			"MR"
+		Name			"ML"
 		RTWStorageClass		"Auto"
 		DataLoggingNameMode	"SignalName"
 	      }
 	      Port {
 		PortNumber		7
-		Name			"CoMError"
+		Name			"MR"
 		RTWStorageClass		"Auto"
 		DataLoggingNameMode	"SignalName"
 	      }
 	      Port {
 		PortNumber		8
-		Name			"xDDcomStar"
+		Name			"CoMError"
 		RTWStorageClass		"Auto"
 		DataLoggingNameMode	"SignalName"
 	      }
@@ -1406,9 +2000,9 @@ Model {
 	    Block {
 	      BlockType		      Terminator
 	      Name		      " Terminator "
-	      SID		      "3::22"
-	      Position		      [460, 561, 480, 579]
-	      ZOrder		      8
+	      SID		      "3::60"
+	      Position		      [460, 496, 480, 514]
+	      ZOrder		      45
 	    }
 	    Block {
 	      BlockType		      Outport
@@ -1438,37 +2032,37 @@ Model {
 	    }
 	    Block {
 	      BlockType		      Outport
+	      Name		      "forceError"
+	      SID		      "3::61"
+	      Position		      [460, 206, 480, 224]
+	      ZOrder		      46
+	      Port		      "4"
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Outport
 	      Name		      "ML"
 	      SID		      "3::53"
-	      Position		      [460, 206, 480, 224]
+	      Position		      [460, 246, 480, 264]
 	      ZOrder		      38
-	      Port		      "4"
+	      Port		      "5"
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
 	      BlockType		      Outport
 	      Name		      "MR"
 	      SID		      "3::54"
-	      Position		      [460, 246, 480, 264]
+	      Position		      [460, 281, 480, 299]
 	      ZOrder		      39
-	      Port		      "5"
+	      Port		      "6"
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
 	      BlockType		      Outport
 	      Name		      "CoMError"
 	      SID		      "3::47"
-	      Position		      [460, 281, 480, 299]
-	      ZOrder		      33
-	      Port		      "6"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "xDDcomStar"
-	      SID		      "3::56"
 	      Position		      [460, 316, 480, 334]
-	      ZOrder		      41
+	      ZOrder		      33
 	      Port		      "7"
 	      IconDisplay	      "Port number"
 	    }
@@ -1521,64 +2115,52 @@ Model {
 	      DstPort		      8
 	    }
 	    Line {
-	      SrcBlock		      "qDes"
+	      SrcBlock		      "Jcom"
 	      SrcPort		      1
 	      DstBlock		      " SFunction "
 	      DstPort		      9
 	    }
 	    Line {
-	      SrcBlock		      "Jcom"
+	      SrcBlock		      "xcom"
 	      SrcPort		      1
 	      DstBlock		      " SFunction "
 	      DstPort		      10
 	    }
 	    Line {
-	      SrcBlock		      "xcom"
+	      SrcBlock		      "xcomDes"
 	      SrcPort		      1
 	      DstBlock		      " SFunction "
 	      DstPort		      11
 	    }
 	    Line {
-	      SrcBlock		      "xcomDes"
+	      SrcBlock		      "xDcomDes"
 	      SrcPort		      1
 	      DstBlock		      " SFunction "
 	      DstPort		      12
 	    }
 	    Line {
-	      SrcBlock		      "xDcomDes"
+	      SrcBlock		      "xDDcomDes"
 	      SrcPort		      1
 	      DstBlock		      " SFunction "
 	      DstPort		      13
 	    }
 	    Line {
-	      SrcBlock		      "xDDcomDes"
+	      SrcBlock		      "k"
 	      SrcPort		      1
 	      DstBlock		      " SFunction "
 	      DstPort		      14
 	    }
 	    Line {
-	      SrcBlock		      "m"
+	      SrcBlock		      "fake"
 	      SrcPort		      1
 	      DstBlock		      " SFunction "
 	      DstPort		      15
 	    }
 	    Line {
-	      SrcBlock		      "k"
-	      SrcPort		      1
-	      DstBlock		      " SFunction "
-	      DstPort		      16
-	    }
-	    Line {
-	      SrcBlock		      "fake"
-	      SrcPort		      1
-	      DstBlock		      " SFunction "
-	      DstPort		      17
-	    }
-	    Line {
 	      SrcBlock		      "IntErrorCoM"
 	      SrcPort		      1
 	      DstBlock		      " SFunction "
-	      DstPort		      18
+	      DstPort		      16
 	    }
 	    Line {
 	      Name		      "tau"
@@ -1605,10 +2187,18 @@ Model {
 	      DstPort		      1
 	    }
 	    Line {
-	      Name		      "ML"
+	      Name		      "forceError"
 	      Labels		      [0, 0]
 	      SrcBlock		      " SFunction "
 	      SrcPort		      5
+	      DstBlock		      "forceError"
+	      DstPort		      1
+	    }
+	    Line {
+	      Name		      "ML"
+	      Labels		      [0, 0]
+	      SrcBlock		      " SFunction "
+	      SrcPort		      6
 	      DstBlock		      "ML"
 	      DstPort		      1
 	    }
@@ -1616,7 +2206,7 @@ Model {
 	      Name		      "MR"
 	      Labels		      [0, 0]
 	      SrcBlock		      " SFunction "
-	      SrcPort		      6
+	      SrcPort		      7
 	      DstBlock		      "MR"
 	      DstPort		      1
 	    }
@@ -1624,19 +2214,11 @@ Model {
 	      Name		      "CoMError"
 	      Labels		      [0, 0]
 	      SrcBlock		      " SFunction "
-	      SrcPort		      7
+	      SrcPort		      8
 	      DstBlock		      "CoMError"
 	      DstPort		      1
 	    }
 	    Line {
-	      Name		      "xDDcomStar"
-	      Labels		      [0, 0]
-	      SrcBlock		      " SFunction "
-	      SrcPort		      8
-	      DstBlock		      "xDDcomStar"
-	      DstPort		      1
-	    }
-	    Line {
 	      SrcBlock		      " Demux "
 	      SrcPort		      1
 	      DstBlock		      " Terminator "
@@ -1649,727 +2231,17 @@ Model {
 	      DstPort		      1
 	    }
 	  }
-	}
-	Block {
-	  BlockType		  SubSystem
-	  Name			  "MATLAB Function1"
-	  SID			  "70"
-	  Ports			  [2, 3]
-	  Position		  [405, 614, 510, 756]
-	  ZOrder		  48
-	  ShowName		  off
-	  LibraryVersion	  "1.32"
-	  ErrorFcn		  "Stateflow.Translate.translate"
-	  PermitHierarchicalResolution "ParametersOnly"
-	  TreatAsAtomicUnit	  on
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
-	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
-	  MaskType		  "Stateflow"
-	  MaskDescription	  "Embedded MATLAB block"
-	  MaskSelfModifiable	  on
-	  MaskDisplay		  "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('private/"
-	  "eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  off
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "normalized"
-	  System {
-	    Name		    "MATLAB Function1"
-	    Location		    [223, 338, 826, 833]
-	    Open		    off
-	    ModelBrowserVisibility  on
-	    ModelBrowserWidth	    200
-	    ScreenColor		    "white"
-	    PaperOrientation	    "landscape"
-	    PaperPositionMode	    "auto"
-	    PaperType		    "usletter"
-	    PaperUnits		    "inches"
-	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
-	    TiledPageScale	    1
-	    ShowPageBoundaries	    off
-	    ZoomFactor		    "100"
-	    SIDHighWatermark	    "48"
-	    Block {
-	      BlockType		      Inport
-	      Name		      "xCom0"
-	      SID		      "70::24"
-	      Position		      [20, 101, 40, 119]
-	      ZOrder		      10
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Inport
-	      Name		      "t"
-	      SID		      "70::48"
-	      Position		      [20, 136, 40, 154]
-	      ZOrder		      34
-	      Port		      "2"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Demux
-	      Name		      " Demux "
-	      SID		      "70::20"
-	      Ports		      [1, 1]
-	      Position		      [270, 535, 320, 575]
-	      ZOrder		      6
-	      Outputs		      "1"
-	    }
-	    Block {
-	      BlockType		      S-Function
-	      Name		      " SFunction "
-	      SID		      "70::19"
-	      Tag		      "Stateflow S-Function controller 1"
-	      Ports		      [2, 4]
-	      Position		      [180, 144, 230, 536]
-	      ZOrder		      5
-	      FunctionName	      "sf_sfun"
-	      PortCounts	      "[2 4]"
-	      EnableBusSupport	      on
-	      Port {
-		PortNumber		2
-		Name			"xcomDes"
-		RTWStorageClass		"Auto"
-		DataLoggingNameMode	"SignalName"
-	      }
-	      Port {
-		PortNumber		3
-		Name			"xDcomDes"
-		RTWStorageClass		"Auto"
-		DataLoggingNameMode	"SignalName"
-	      }
-	      Port {
-		PortNumber		4
-		Name			"xDDcomDes"
-		RTWStorageClass		"Auto"
-		DataLoggingNameMode	"SignalName"
-	      }
-	    }
-	    Block {
-	      BlockType		      Terminator
-	      Name		      " Terminator "
-	      SID		      "70::22"
-	      Position		      [460, 546, 480, 564]
-	      ZOrder		      8
-	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "xcomDes"
-	      SID		      "70::45"
-	      Position		      [460, 101, 480, 119]
-	      ZOrder		      31
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "xDcomDes"
-	      SID		      "70::46"
-	      Position		      [460, 136, 480, 154]
-	      ZOrder		      32
-	      Port		      "2"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "xDDcomDes"
-	      SID		      "70::47"
-	      Position		      [460, 171, 480, 189]
-	      ZOrder		      33
-	      Port		      "3"
-	      IconDisplay	      "Port number"
-	    }
-	    Line {
-	      SrcBlock		      "xCom0"
-	      SrcPort		      1
-	      DstBlock		      " SFunction "
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "t"
-	      SrcPort		      1
-	      DstBlock		      " SFunction "
-	      DstPort		      2
-	    }
-	    Line {
-	      Name		      "xcomDes"
-	      Labels		      [0, 0]
-	      SrcBlock		      " SFunction "
-	      SrcPort		      2
-	      DstBlock		      "xcomDes"
-	      DstPort		      1
-	    }
-	    Line {
-	      Name		      "xDcomDes"
-	      Labels		      [0, 0]
-	      SrcBlock		      " SFunction "
-	      SrcPort		      3
-	      DstBlock		      "xDcomDes"
-	      DstPort		      1
-	    }
-	    Line {
-	      Name		      "xDDcomDes"
-	      Labels		      [0, 0]
-	      SrcBlock		      " SFunction "
-	      SrcPort		      4
-	      DstBlock		      "xDDcomDes"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      " Demux "
-	      SrcPort		      1
-	      DstBlock		      " Terminator "
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      " SFunction "
-	      SrcPort		      1
-	      DstBlock		      " Demux "
-	      DstPort		      1
-	    }
-	  }
-	}
-	Block {
-	  BlockType		  SubSystem
-	  Name			  "MATLAB Function2"
-	  SID			  "78"
-	  Ports			  [1, 1]
-	  Position		  [220, 628, 300, 672]
-	  ZOrder		  56
-	  ShowName		  off
-	  LibraryVersion	  "1.32"
-	  ErrorFcn		  "Stateflow.Translate.translate"
-	  PermitHierarchicalResolution "ParametersOnly"
-	  TreatAsAtomicUnit	  on
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
-	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
-	  MaskType		  "Stateflow"
-	  MaskDescription	  "Embedded MATLAB block"
-	  MaskSelfModifiable	  on
-	  MaskDisplay		  "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('private/"
-	  "eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  off
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "normalized"
-	  System {
-	    Name		    "MATLAB Function2"
-	    Location		    [223, 338, 826, 833]
-	    Open		    off
-	    ModelBrowserVisibility  on
-	    ModelBrowserWidth	    200
-	    ScreenColor		    "white"
-	    PaperOrientation	    "landscape"
-	    PaperPositionMode	    "auto"
-	    PaperType		    "usletter"
-	    PaperUnits		    "inches"
-	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
-	    TiledPageScale	    1
-	    ShowPageBoundaries	    off
-	    ZoomFactor		    "100"
-	    SIDHighWatermark	    "48"
-	    Block {
-	      BlockType		      Inport
-	      Name		      "xCom0"
-	      SID		      "78::24"
-	      Position		      [20, 101, 40, 119]
-	      ZOrder		      10
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Demux
-	      Name		      " Demux "
-	      SID		      "78::20"
-	      Ports		      [1, 1]
-	      Position		      [270, 540, 320, 580]
-	      ZOrder		      6
-	      Outputs		      "1"
-	    }
-	    Block {
-	      BlockType		      S-Function
-	      Name		      " SFunction "
-	      SID		      "78::19"
-	      Tag		      "Stateflow S-Function controller 3"
-	      Ports		      [1, 2]
-	      Position		      [180, 146, 230, 539]
-	      ZOrder		      5
-	      FunctionName	      "sf_sfun"
-	      PortCounts	      "[1 2]"
-	      EnableBusSupport	      on
-	      Port {
-		PortNumber		2
-		Name			"xComOut"
-		RTWStorageClass		"Auto"
-		DataLoggingNameMode	"SignalName"
-	      }
-	    }
-	    Block {
-	      BlockType		      Terminator
-	      Name		      " Terminator "
-	      SID		      "78::22"
-	      Position		      [460, 551, 480, 569]
-	      ZOrder		      8
-	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "xComOut"
-	      SID		      "78::5"
-	      Position		      [460, 101, 480, 119]
-	      ZOrder		      -5
-	      IconDisplay	      "Port number"
-	    }
-	    Line {
-	      SrcBlock		      "xCom0"
-	      SrcPort		      1
-	      DstBlock		      " SFunction "
-	      DstPort		      1
-	    }
-	    Line {
-	      Name		      "xComOut"
-	      Labels		      [0, 0]
-	      SrcBlock		      " SFunction "
-	      SrcPort		      2
-	      DstBlock		      "xComOut"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      " Demux "
-	      SrcPort		      1
-	      DstBlock		      " Terminator "
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      " SFunction "
-	      SrcPort		      1
-	      DstBlock		      " Demux "
-	      DstPort		      1
-	    }
-	  }
-	}
-	Block {
-	  BlockType		  Scope
-	  Name			  "ML"
-	  SID			  "210"
-	  Ports			  [2]
-	  Position		  [1190, 656, 1220, 689]
-	  ZOrder		  91
-	  NamePlacement		  "alternate"
-	  Floating		  off
-	  Location		  [43, 199, 587, 1147]
-	  Open			  off
-	  NumInputPorts		  "2"
-	  List {
-	    ListType		    AxesTitles
-	    axes1		    "%<SignalLabel>"
-	    axes2		    "%<SignalLabel>"
-	  }
-	  TimeRange		  "70"
-	  YMin			  "-20~-20"
-	  YMax			  "120~120"
-	  DataFormat		  "StructureWithTime"
-	  SampleTime		  "0"
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "Right Foot Jacobian"
-	  SID			  "46"
-	  Ports			  [0, 1]
-	  Position		  [300, 404, 380, 436]
-	  ZOrder		  27
-	  BackgroundColor	  "[0.996078, 0.000000, 0.996078]"
-	  ShowName		  off
-	  LibraryVersion	  "1.249"
-	  SourceBlock		  "WBCLibrary/wholeBodyModel/Jacobians/Right Foot Jacobian"
-	  SourceType		  ""
-	  robotName		  "robotName"
-	  localName		  "localName"
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "RightFootFwdKin"
-	  SID			  "206"
-	  Ports			  [0, 1]
-	  Position		  [455, 354, 505, 386]
-	  ZOrder		  87
-	  BackgroundColor	  "[0.074000, 0.349000, 0.941000]"
-	  ShowName		  off
-	  LibraryVersion	  "1.249"
-	  SourceBlock		  "WBCLibrary/wholeBodyModel/Forward Kinematics/RightFootFwdKin"
-	  SourceType		  ""
-	  robotName		  "robotName"
-	  localName		  "localName"
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "S-Function"
-	  SID			  "147"
-	  Ports			  []
-	  Position		  [791, 17, 860, 60]
-	  ZOrder		  78
-	  ForegroundColor	  "red"
-	  ShowName		  off
-	  LibraryVersion	  "1.249"
-	  SourceBlock		  "WBCLibrary/Utilities/S-Function"
-	  SourceType		  "Soft Real Time"
-	  rate			  "Ts"
-	}
-	Block {
-	  BlockType		  Saturate
-	  Name			  "Saturation"
-	  SID			  "251"
-	  Ports			  [1, 1]
-	  Position		  [1180, 165, 1210, 195]
-	  ZOrder		  106
-	  ShowName		  off
-	  InputPortMap		  "u0"
-	  UpperLimit		  "40"
-	  LowerLimit		  "-40"
-	  SampleTime		  "Ts"
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "Set Torques"
-	  SID			  "205"
-	  Ports			  [1]
-	  Position		  [1260, 158, 1330, 202]
-	  ZOrder		  86
-	  BackgroundColor	  "[0.941000, 0.415000, 0.192000]"
-	  ShowName		  off
-	  LibraryVersion	  "1.249"
-	  SourceBlock		  "WBCLibrary/wholeBodyActuators/Set Torques"
-	  SourceType		  ""
-	  val			  "6"
-	  robotName		  "robotName"
-	  localName		  "localName"
-	}
-	Block {
-	  BlockType		  SubSystem
-	  Name			  "Subsystem"
-	  SID			  "229"
-	  Ports			  [2]
-	  Position		  [1255, 36, 1335, 129]
-	  ZOrder		  98
-	  ForegroundColor	  "[0.901961, 0.000000, 0.000000]"
-	  BackgroundColor	  "[0.901961, 0.000000, 0.000000]"
-	  ShowName		  off
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
-	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
-	  System {
-	    Name		    "Subsystem"
-	    Location		    [1, 27, 1601, 1200]
-	    Open		    off
-	    ModelBrowserVisibility  on
-	    ModelBrowserWidth	    200
-	    ScreenColor		    "white"
-	    PaperOrientation	    "landscape"
-	    PaperPositionMode	    "auto"
-	    PaperType		    "usletter"
-	    PaperUnits		    "inches"
-	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
-	    TiledPageScale	    1
-	    ShowPageBoundaries	    off
-	    ZoomFactor		    "125"
-	    Block {
-	      BlockType		      Inport
-	      Name		      "ut"
-	      SID		      "230"
-	      Position		      [305, 103, 335, 117]
-	      ZOrder		      -1
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Inport
-	      Name		      "maxU"
-	      SID		      "232"
-	      Position		      [305, 133, 335, 147]
-	      ZOrder		      1
-	      Port		      "2"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Assertion
-	      Name		      "Assertion"
-	      SID		      "253"
-	      Position		      [590, 27, 650, 73]
-	      ZOrder		      8
-	      ShowName		      off
-	      Enabled		      on
-	      SampleTime	      "Ts"
-	    }
-	    Block {
-	      BlockType		      Display
-	      Name		      "Display"
-	      SID		      "246"
-	      Ports		      [1]
-	      Position		      [505, 169, 585, 381]
-	      ZOrder		      7
-	      Decimation	      "1"
-	      Lockdown		      off
-	    }
-	    Block {
-	      BlockType		      Logic
-	      Name		      "Logical Operator"
-	      SID		      "254"
-	      Ports		      [1, 1]
-	      Position		      [530, 34, 560, 66]
-	      ZOrder		      9
-	      ShowName		      off
-	      Operator		      "NOT"
-	      AllPortsSameDT	      off
-	      OutDataTypeStr	      "boolean"
-	    }
-	    Block {
-	      BlockType		      SubSystem
-	      Name		      "MATLAB Function"
-	      SID		      "234"
-	      Ports		      [2, 2]
-	      Position		      [355, 94, 450, 156]
-	      ZOrder		      3
-	      ShowName		      off
-	      LibraryVersion	      "1.32"
-	      ErrorFcn		      "Stateflow.Translate.translate"
-	      PermitHierarchicalResolution "ParametersOnly"
-	      TreatAsAtomicUnit	      on
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
-	      RequestExecContextInheritance off
-	      MaskHideContents	      off
-	      MaskType		      "Stateflow"
-	      MaskDescription	      "Embedded MATLAB block"
-	      MaskSelfModifiable      on
-	      MaskDisplay	      "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('p"
-	      "rivate/eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      off
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "normalized"
-	      System {
-		Name			"MATLAB Function"
-		Location		[223, 338, 826, 833]
-		Open			off
-		ModelBrowserVisibility	on
-		ModelBrowserWidth	200
-		ScreenColor		"white"
-		PaperOrientation	"landscape"
-		PaperPositionMode	"auto"
-		PaperType		"usletter"
-		PaperUnits		"inches"
-		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
-		TiledPageScale		1
-		ShowPageBoundaries	off
-		ZoomFactor		"100"
-		SIDHighWatermark	"25"
-		Block {
-		  BlockType		  Inport
-		  Name			  "ut"
-		  SID			  "234::24"
-		  Position		  [20, 101, 40, 119]
-		  ZOrder		  10
-		  IconDisplay		  "Port number"
-		}
-		Block {
-		  BlockType		  Inport
-		  Name			  "maxU"
-		  SID			  "234::1"
-		  Position		  [20, 136, 40, 154]
-		  ZOrder		  -1
-		  Port			  "2"
-		  IconDisplay		  "Port number"
-		}
-		Block {
-		  BlockType		  Demux
-		  Name			  " Demux "
-		  SID			  "234::20"
-		  Ports			  [1, 1]
-		  Position		  [270, 180, 320, 220]
-		  ZOrder		  6
-		  Outputs		  "1"
-		}
-		Block {
-		  BlockType		  S-Function
-		  Name			  " SFunction "
-		  SID			  "234::19"
-		  Tag			  "Stateflow S-Function controller 4"
-		  Ports			  [2, 3]
-		  Position		  [180, 100, 230, 180]
-		  ZOrder		  5
-		  FunctionName		  "sf_sfun"
-		  PortCounts		  "[2 3]"
-		  EnableBusSupport	  on
-		  Port {
-		    PortNumber		    2
-		    Name		    "stop"
-		    RTWStorageClass	    "Auto"
-		    DataLoggingNameMode	    "SignalName"
-		  }
-		  Port {
-		    PortNumber		    3
-		    Name		    "out"
-		    RTWStorageClass	    "Auto"
-		    DataLoggingNameMode	    "SignalName"
-		  }
-		}
-		Block {
-		  BlockType		  Terminator
-		  Name			  " Terminator "
-		  SID			  "234::22"
-		  Position		  [460, 191, 480, 209]
-		  ZOrder		  8
-		}
-		Block {
-		  BlockType		  Outport
-		  Name			  "stop"
-		  SID			  "234::5"
-		  Position		  [460, 101, 480, 119]
-		  ZOrder		  -5
-		  IconDisplay		  "Port number"
-		}
-		Block {
-		  BlockType		  Outport
-		  Name			  "out"
-		  SID			  "234::25"
-		  Position		  [460, 136, 480, 154]
-		  ZOrder		  11
-		  Port			  "2"
-		  IconDisplay		  "Port number"
-		}
-		Line {
-		  SrcBlock		  "ut"
-		  SrcPort		  1
-		  DstBlock		  " SFunction "
-		  DstPort		  1
-		}
-		Line {
-		  SrcBlock		  "maxU"
-		  SrcPort		  1
-		  DstBlock		  " SFunction "
-		  DstPort		  2
-		}
-		Line {
-		  Name			  "stop"
-		  Labels		  [0, 0]
-		  SrcBlock		  " SFunction "
-		  SrcPort		  2
-		  DstBlock		  "stop"
-		  DstPort		  1
-		}
-		Line {
-		  Name			  "out"
-		  Labels		  [0, 0]
-		  SrcBlock		  " SFunction "
-		  SrcPort		  3
-		  DstBlock		  "out"
-		  DstPort		  1
-		}
-		Line {
-		  SrcBlock		  " Demux "
-		  SrcPort		  1
-		  DstBlock		  " Terminator "
-		  DstPort		  1
-		}
-		Line {
-		  SrcBlock		  " SFunction "
-		  SrcPort		  1
-		  DstBlock		  " Demux "
-		  DstPort		  1
-		}
-	      }
-	    }
-	    Block {
-	      BlockType		      Stop
-	      Name		      "Stop Simulation"
-	      SID		      "235"
-	      Position		      [515, 92, 550, 128]
-	      ZOrder		      4
-	      ShowName		      off
-	    }
-	    Line {
-	      SrcBlock		      "MATLAB Function"
-	      SrcPort		      1
-	      Points		      [29, 0]
-	      Branch {
-		Points			[0, -60]
-		DstBlock		"Logical Operator"
-		DstPort			1
-	      }
-	      Branch {
-		DstBlock		"Stop Simulation"
-		DstPort			1
-	      }
-	    }
-	    Line {
-	      SrcBlock		      "MATLAB Function"
-	      SrcPort		      2
-	      Points		      [22, 0; 0, 135]
-	      DstBlock		      "Display"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "ut"
-	      SrcPort		      1
-	      DstBlock		      "MATLAB Function"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "maxU"
-	      SrcPort		      1
-	      DstBlock		      "MATLAB Function"
-	      DstPort		      2
-	    }
-	    Line {
-	      SrcBlock		      "Logical Operator"
-	      SrcPort		      1
-	      DstBlock		      "Assertion"
-	      DstPort		      1
-	    }
-	  }
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "computeh"
-	  SID			  "48"
-	  Ports			  [0, 1]
-	  Position		  [455, 309, 505, 341]
-	  ZOrder		  29
-	  BackgroundColor	  "magenta"
-	  ShowName		  off
-	  LibraryVersion	  "1.249"
-	  SourceBlock		  "WBCLibrary/wholeBodyModel/Dynamics/computeh"
-	  SourceType		  ""
-	  val			  "7"
-	  robotname		  "robotName"
-	  localname		  "localName"
 	}
 	Block {
 	  BlockType		  Reference
 	  Name			  "dJ*dq LeftFoot"
 	  SID			  "75"
 	  Ports			  [0, 1]
-	  Position		  [300, 439, 380, 471]
+	  Position		  [385, 480, 435, 510]
 	  ZOrder		  53
 	  BackgroundColor	  "[0.662196, 0.000000, 1.000000]"
 	  ShowName		  off
-	  LibraryVersion	  "1.249"
+	  LibraryVersion	  "1.254"
 	  SourceBlock		  "WBCLibrary/wholeBodyModel/Dynamics/dJ*dq LeftFoot"
 	  SourceType		  ""
 	  val			  "9"
@@ -2381,11 +2253,11 @@ Model {
 	  Name			  "dJ*dq RightFoot"
 	  SID			  "74"
 	  Ports			  [0, 1]
-	  Position		  [300, 474, 380, 506]
+	  Position		  [385, 515, 435, 545]
 	  ZOrder		  52
 	  BackgroundColor	  "[0.501000, 0.015000, 0.850000]"
 	  ShowName		  off
-	  LibraryVersion	  "1.249"
+	  LibraryVersion	  "1.254"
 	  SourceBlock		  "WBCLibrary/wholeBodyModel/Dynamics/dJ*dq RightFoot"
 	  SourceType		  ""
 	  val			  "9"
@@ -2396,22 +2268,34 @@ Model {
 	  BlockType		  Scope
 	  Name			  "fL"
 	  SID			  "143"
-	  Ports			  [2]
-	  Position		  [1200, 381, 1230, 414]
+	  Ports			  [3]
+	  Position		  [1190, 393, 1220, 427]
 	  ZOrder		  74
 	  NamePlacement		  "alternate"
 	  Floating		  off
-	  Location		  [2, 170, 546, 1118]
+	  Location		  [53, 189, 597, 1137]
 	  Open			  off
-	  NumInputPorts		  "2"
+	  NumInputPorts		  "3"
 	  List {
 	    ListType		    AxesTitles
 	    axes1		    "%<SignalLabel>"
 	    axes2		    "%<SignalLabel>"
+	    axes3		    "%<SignalLabel>"
 	  }
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.5 0.5 0.5]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
+	  }
+	  ShowLegends		  off
 	  TimeRange		  "70"
-	  YMin			  "-20~-20"
-	  YMax			  "120~120"
+	  YMin			  "-20~-20~-5"
+	  YMax			  "120~120~5"
 	  SaveName		  "ScopeData2"
 	  DataFormat		  "StructureWithTime"
 	  SampleTime		  "0"
@@ -2421,7 +2305,7 @@ Model {
 	  Name			  "holder"
 	  SID			  "118"
 	  Ports			  [1, 1]
-	  Position		  [455, 159, 505, 191]
+	  Position		  [480, 189, 530, 221]
 	  ZOrder		  70
 	  ShowName		  off
 	  MinAlgLoopOccurrences	  off
@@ -2433,7 +2317,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "holder"
-	    Location		    [1633, 120, 3064, 1151]
+	    Location		    [1599, 45, 3078, 1311]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -2473,7 +2357,7 @@ Model {
 	      SourceType	      "Compare To Constant"
 	      relop		      "=="
 	      const		      "0"
-	      LogicOutDataTypeMode	      "boolean"
+	      OutDataTypeStr	      "boolean"
 	      ZeroCross		      on
 	    }
 	    Block {
@@ -2574,7 +2458,7 @@ Model {
 	  Name			  "holder1"
 	  SID			  "134"
 	  Ports			  [1, 1]
-	  Position		  [340, 635, 385, 665]
+	  Position		  [365, 655, 410, 685]
 	  ZOrder		  72
 	  ShowName		  off
 	  MinAlgLoopOccurrences	  off
@@ -2586,7 +2470,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "holder1"
-	    Location		    [1633, 120, 3064, 1151]
+	    Location		    [1599, 45, 3078, 1311]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -2626,7 +2510,7 @@ Model {
 	      SourceType	      "Compare To Constant"
 	      relop		      "=="
 	      const		      "0"
-	      LogicOutDataTypeMode	      "boolean"
+	      OutDataTypeStr	      "boolean"
 	      ZeroCross		      on
 	    }
 	    Block {
@@ -2723,89 +2607,15 @@ Model {
 	  }
 	}
 	Block {
-	  BlockType		  Scope
-	  Name			  "integralErrorCoM\n"
-	  SID			  "213"
-	  Ports			  [1]
-	  Position		  [420, 984, 450, 1016]
-	  ZOrder		  94
-	  BlockMirror		  on
-	  NamePlacement		  "alternate"
-	  ShowName		  off
-	  Floating		  off
-	  Location		  [2, 670, 402, 1099]
-	  Open			  off
-	  NumInputPorts		  "1"
-	  List {
-	    ListType		    AxesTitles
-	    axes1		    "%<SignalLabel>"
-	  }
-	  YMin			  "-3.5"
-	  YMax			  "-0.75"
-	  SaveName		  "ScopeData1"
-	  DataFormat		  "StructureWithTime"
-	  LimitDataPoints	  off
-	  SampleTime		  "0"
-	}
-	Block {
-	  BlockType		  Scope
-	  Name			  "integralErrorCoM\n1"
-	  SID			  "250"
-	  Ports			  [1]
-	  Position		  [1140, 814, 1170, 846]
-	  ZOrder		  105
-	  BlockMirror		  on
-	  NamePlacement		  "alternate"
-	  ShowName		  off
-	  Floating		  off
-	  Location		  [955, 353, 1571, 957]
-	  Open			  off
-	  NumInputPorts		  "1"
-	  List {
-	    ListType		    AxesTitles
-	    axes1		    "%<SignalLabel>"
-	  }
-	  YMin			  "-0.3"
-	  YMax			  "0.075"
-	  SaveName		  "ScopeData3"
-	  DataFormat		  "StructureWithTime"
-	  LimitDataPoints	  off
-	  SampleTime		  "0"
-	}
-	Block {
-	  BlockType		  Scope
-	  Name			  "integralErrorCoM\n2"
-	  SID			  "255"
-	  Ports			  [2]
-	  Position		  [1260, 276, 1290, 309]
-	  ZOrder		  108
-	  ShowName		  off
-	  Floating		  off
-	  Location		  [421, 476, 2021, 1587]
-	  Open			  off
-	  NumInputPorts		  "2"
-	  List {
-	    ListType		    AxesTitles
-	    axes1		    "%<SignalLabel>"
-	    axes2		    "%<SignalLabel>"
-	  }
-	  YMin			  "-20~-30"
-	  YMax			  "20~30"
-	  SaveName		  "ScopeData4"
-	  DataFormat		  "StructureWithTime"
-	  LimitDataPoints	  off
-	  SampleTime		  "0"
-	}
-	Block {
 	  BlockType		  Reference
 	  Name			  "massMatrix"
 	  SID			  "49"
 	  Ports			  [0, 1]
-	  Position		  [455, 264, 505, 296]
+	  Position		  [480, 289, 530, 321]
 	  ZOrder		  30
 	  BackgroundColor	  "red"
 	  ShowName		  off
-	  LibraryVersion	  "1.249"
+	  LibraryVersion	  "1.254"
 	  SourceBlock		  "WBCLibrary/wholeBodyModel/Dynamics/massMatrix"
 	  SourceType		  ""
 	  val			  "8"
@@ -2814,100 +2624,286 @@ Model {
 	}
 	Block {
 	  BlockType		  Scope
-	  Name			  "xDDstar"
-	  SID			  "256"
-	  Ports			  [1]
-	  Position		  [1160, 874, 1190, 906]
-	  ZOrder		  109
+	  Name			  "tau"
+	  SID			  "255"
+	  Ports			  [2]
+	  Position		  [1285, 226, 1315, 259]
+	  ZOrder		  108
 	  Floating		  off
-	  Location		  [376, 207, 992, 811]
+	  Location		  [257, 219, 1011, 1016]
 	  Open			  off
-	  NumInputPorts		  "1"
+	  NumInputPorts		  "2"
 	  List {
 	    ListType		    AxesTitles
 	    axes1		    "%<SignalLabel>"
+	    axes2		    "%<SignalLabel>"
 	  }
-	  YMin			  "-1"
-	  YMax			  "1.5"
-	  SaveName		  "ScopeData5"
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.5 0.5 0.5]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
+	  }
+	  ShowLegends		  off
+	  YMin			  "-20~-30"
+	  YMax			  "20~30"
+	  SaveName		  "ScopeData4"
 	  DataFormat		  "StructureWithTime"
 	  LimitDataPoints	  off
 	  SampleTime		  "0"
 	}
+	Block {
+	  BlockType		  SubSystem
+	  Name			  "trajectoryGeneratorCoM"
+	  SID			  "70"
+	  Ports			  [2, 3]
+	  Position		  [430, 631, 535, 779]
+	  ZOrder		  48
+	  ShowName		  off
+	  LibraryVersion	  "1.32"
+	  ErrorFcn		  "Stateflow.Translate.translate"
+	  PermitHierarchicalResolution "ExplicitOnly"
+	  TreatAsAtomicUnit	  on
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  RTWSystemCode		  "Auto"
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  RequestExecContextInheritance	off
+	  MaskHideContents	  off
+	  SFBlockType		  "MATLAB Function"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    28
+	    $ClassName		    "Simulink.Mask"
+	    Type		    "Stateflow"
+	    Description		    "Embedded MATLAB block"
+	    SelfModifiable	    "on"
+	    Display		    "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('private/"
+	    "eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
+	    IconOpaque		    "off"
+	    IconUnits		    "normalized"
+	  }
+	  System {
+	    Name		    "trajectoryGeneratorCoM"
+	    Location		    [189, 219, 840, 949]
+	    Open		    off
+	    ModelBrowserVisibility  on
+	    ModelBrowserWidth	    200
+	    ScreenColor		    "white"
+	    PaperOrientation	    "landscape"
+	    PaperPositionMode	    "auto"
+	    PaperType		    "usletter"
+	    PaperUnits		    "inches"
+	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
+	    TiledPageScale	    1
+	    ShowPageBoundaries	    off
+	    ZoomFactor		    "100"
+	    SIDHighWatermark	    "52"
+	    Block {
+	      BlockType		      Inport
+	      Name		      "xCom0"
+	      SID		      "70::24"
+	      Position		      [20, 101, 40, 119]
+	      ZOrder		      10
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Inport
+	      Name		      "t"
+	      SID		      "70::48"
+	      Position		      [20, 136, 40, 154]
+	      ZOrder		      34
+	      Port		      "2"
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Demux
+	      Name		      " Demux "
+	      SID		      "70::50"
+	      Ports		      [1, 1]
+	      Position		      [270, 210, 320, 250]
+	      ZOrder		      36
+	      Outputs		      "1"
+	    }
+	    Block {
+	      BlockType		      S-Function
+	      Name		      " SFunction "
+	      SID		      "70::49"
+	      Tag		      "Stateflow S-Function controller 1"
+	      Ports		      [2, 4]
+	      Position		      [180, 102, 230, 203]
+	      ZOrder		      35
+	      FunctionName	      "sf_sfun"
+	      PortCounts	      "[2 4]"
+	      EnableBusSupport	      on
+	      Port {
+		PortNumber		2
+		Name			"xcomDes"
+		RTWStorageClass		"Auto"
+		DataLoggingNameMode	"SignalName"
+	      }
+	      Port {
+		PortNumber		3
+		Name			"xDcomDes"
+		RTWStorageClass		"Auto"
+		DataLoggingNameMode	"SignalName"
+	      }
+	      Port {
+		PortNumber		4
+		Name			"xDDcomDes"
+		RTWStorageClass		"Auto"
+		DataLoggingNameMode	"SignalName"
+	      }
+	    }
+	    Block {
+	      BlockType		      Terminator
+	      Name		      " Terminator "
+	      SID		      "70::52"
+	      Position		      [460, 221, 480, 239]
+	      ZOrder		      38
+	    }
+	    Block {
+	      BlockType		      Outport
+	      Name		      "xcomDes"
+	      SID		      "70::45"
+	      Position		      [460, 101, 480, 119]
+	      ZOrder		      31
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Outport
+	      Name		      "xDcomDes"
+	      SID		      "70::46"
+	      Position		      [460, 136, 480, 154]
+	      ZOrder		      32
+	      Port		      "2"
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Outport
+	      Name		      "xDDcomDes"
+	      SID		      "70::47"
+	      Position		      [460, 171, 480, 189]
+	      ZOrder		      33
+	      Port		      "3"
+	      IconDisplay	      "Port number"
+	    }
+	    Line {
+	      SrcBlock		      "xCom0"
+	      SrcPort		      1
+	      DstBlock		      " SFunction "
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "t"
+	      SrcPort		      1
+	      DstBlock		      " SFunction "
+	      DstPort		      2
+	    }
+	    Line {
+	      Name		      "xcomDes"
+	      Labels		      [0, 0]
+	      SrcBlock		      " SFunction "
+	      SrcPort		      2
+	      DstBlock		      "xcomDes"
+	      DstPort		      1
+	    }
+	    Line {
+	      Name		      "xDcomDes"
+	      Labels		      [0, 0]
+	      SrcBlock		      " SFunction "
+	      SrcPort		      3
+	      DstBlock		      "xDcomDes"
+	      DstPort		      1
+	    }
+	    Line {
+	      Name		      "xDDcomDes"
+	      Labels		      [0, 0]
+	      SrcBlock		      " SFunction "
+	      SrcPort		      4
+	      DstBlock		      "xDDcomDes"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      " Demux "
+	      SrcPort		      1
+	      DstBlock		      " Terminator "
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      " SFunction "
+	      SrcPort		      1
+	      DstBlock		      " Demux "
+	      DstPort		      1
+	    }
+	  }
+	}
 	Line {
 	  SrcBlock		  "Joint Velocities"
 	  SrcPort		  1
-	  DstBlock		  "MATLAB Function"
+	  DstBlock		  "controllerMatlab"
 	  DstPort		  3
 	}
 	Line {
 	  SrcBlock		  "computeh"
 	  SrcPort		  1
-	  DstBlock		  "MATLAB Function"
+	  DstBlock		  "controllerMatlab"
 	  DstPort		  5
 	}
 	Line {
 	  SrcBlock		  "massMatrix"
 	  SrcPort		  1
-	  DstBlock		  "MATLAB Function"
+	  DstBlock		  "controllerMatlab"
 	  DstPort		  4
-	}
-	Line {
-	  SrcBlock		  "\n\n2"
-	  SrcPort		  1
-	  DstBlock		  "MATLAB Function"
-	  DstPort		  9
 	}
 	Line {
 	  SrcBlock		  "Joint Angles"
 	  SrcPort		  1
-	  Points		  [32, 0]
+	  Points		  [13, 0]
 	  Branch {
 	    Points		    [0, 50]
 	    DstBlock		    "holder"
 	    DstPort		    1
 	  }
 	  Branch {
-	    Points		    [103, 0]
-	    DstBlock		    "MATLAB Function"
+	    DstBlock		    "controllerMatlab"
 	    DstPort		    1
 	  }
 	}
 	Line {
 	  SrcBlock		  "Center of Mass Jacobian"
 	  SrcPort		  1
-	  DstBlock		  "MATLAB Function"
-	  DstPort		  10
+	  DstBlock		  "controllerMatlab"
+	  DstPort		  9
 	}
 	Line {
 	  SrcBlock		  " "
 	  SrcPort		  1
-	  DstBlock		  "MATLAB Function"
+	  DstBlock		  "controllerMatlab"
 	  DstPort		  7
 	}
 	Line {
 	  SrcBlock		  "\n\n  "
 	  SrcPort		  1
-	  DstBlock		  "MATLAB Function"
-	  DstPort		  16
-	}
-	Line {
-	  SrcBlock		  "  1"
-	  SrcPort		  1
-	  DstBlock		  "MATLAB Function"
-	  DstPort		  15
+	  DstBlock		  "controllerMatlab"
+	  DstPort		  14
 	}
 	Line {
 	  SrcBlock		  "Left Foot Jacobian"
 	  SrcPort		  1
-	  Points		  [4, 0; 0, 20]
+	  Points		  [14, 0; 0, 20]
 	  DstBlock		  " "
 	  DstPort		  1
 	}
 	Line {
 	  SrcBlock		  " 1"
 	  SrcPort		  1
-	  DstBlock		  "MATLAB Function"
+	  DstBlock		  "controllerMatlab"
 	  DstPort		  8
 	}
 	Line {
@@ -2917,127 +2913,116 @@ Model {
 	  DstPort		  2
 	}
 	Line {
-	  SrcBlock		  "MATLAB Function1"
+	  SrcBlock		  "trajectoryGeneratorCoM"
 	  SrcPort		  1
-	  Points		  [15, 0]
+	  Points		  [5, 0]
 	  Branch {
-	    Points		    [0, 14; 155, 0]
-	    DstBlock		    "Display1"
-	    DstPort		    1
+	    DstBlock		    "controllerMatlab"
+	    DstPort		    11
 	  }
 	  Branch {
-	    DstBlock		    "MATLAB Function"
-	    DstPort		    12
+	    Points		    [0, 383; 614, 0; 0, -128]
+	    DstBlock		    "CoMError - \nCoM - CoMDes\n"
+	    DstPort		    3
 	  }
 	}
 	Line {
-	  SrcBlock		  "MATLAB Function1"
+	  SrcBlock		  "trajectoryGeneratorCoM"
 	  SrcPort		  2
-	  DstBlock		  "MATLAB Function"
-	  DstPort		  13
+	  DstBlock		  "controllerMatlab"
+	  DstPort		  12
 	}
 	Line {
-	  SrcBlock		  "MATLAB Function1"
+	  SrcBlock		  "trajectoryGeneratorCoM"
 	  SrcPort		  3
-	  DstBlock		  "MATLAB Function"
-	  DstPort		  14
+	  DstBlock		  "controllerMatlab"
+	  DstPort		  13
 	}
 	Line {
 	  SrcBlock		  "Clock"
 	  SrcPort		  1
-	  Points		  [0, 0]
-	  Branch {
-	    Points		    [0, 205]
-	    DstBlock		    "Display3"
-	    DstPort		    1
-	  }
-	  Branch {
-	    DstBlock		    "MATLAB Function1"
-	    DstPort		    2
-	  }
+	  DstBlock		  "trajectoryGeneratorCoM"
+	  DstPort		  2
 	}
 	Line {
 	  SrcBlock		  "holder1"
 	  SrcPort		  1
-	  Points		  [0, 0]
-	  Branch {
-	    Points		    [0, -43; 396, 0; 0, 88]
-	    DstBlock		    "Display"
-	    DstPort		    1
-	  }
-	  Branch {
-	    DstBlock		    "MATLAB Function1"
-	    DstPort		    1
-	  }
+	  DstBlock		  "trajectoryGeneratorCoM"
+	  DstPort		  1
 	}
 	Line {
 	  SrcBlock		  "dJ*dq LeftFoot"
 	  SrcPort		  1
-	  Points		  [30, 0]
 	  DstBlock		  " 1"
 	  DstPort		  1
 	}
 	Line {
 	  SrcBlock		  "dJ*dq RightFoot"
 	  SrcPort		  1
-	  Points		  [9, 0; 0, -25]
+	  Points		  [10, 0; 0, -20]
 	  DstBlock		  " 1"
 	  DstPort		  2
 	}
 	Line {
 	  SrcBlock		  "COMFwdKin "
 	  SrcPort		  1
-	  DstBlock		  "MATLAB Function2"
+	  DstBlock		  "CoM6D -> CoMXYZ"
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "MATLAB Function2"
+	  SrcBlock		  "CoM6D -> CoMXYZ"
 	  SrcPort		  1
-	  Points		  [14, 0]
+	  Points		  [9, 0]
 	  Branch {
-	    Points		    [0, -50; 211, 0]
-	    DstBlock		    "MATLAB Function"
-	    DstPort		    11
+	    Points		    [0, -65]
+	    DstBlock		    "controllerMatlab"
+	    DstPort		    10
 	  }
 	  Branch {
-	    DstBlock		    "holder1"
-	    DstPort		    1
+	    Points		    [6, 0]
+	    Branch {
+	      Points		      [8, 0; 0, 375; 814, 0; 0, -145]
+	      DstBlock		      "CoMError - \nCoM - CoMDes\n"
+	      DstPort		      2
+	    }
+	    Branch {
+	      DstBlock		      "holder1"
+	      DstPort		      1
+	    }
 	  }
 	}
 	Line {
 	  SrcBlock		  "Constant"
 	  SrcPort		  1
-	  DstBlock		  "MATLAB Function"
-	  DstPort		  17
+	  DstBlock		  "controllerMatlab"
+	  DstPort		  15
 	}
 	Line {
 	  SrcBlock		  "holder"
 	  SrcPort		  1
-	  Points		  [20, 0]
-	  DstBlock		  "MATLAB Function"
+	  DstBlock		  "controllerMatlab"
 	  DstPort		  2
 	}
 	Line {
-	  SrcBlock		  "MATLAB Function"
+	  SrcBlock		  "controllerMatlab"
 	  SrcPort		  2
-	  Points		  [19, 0; 0, 100]
+	  Points		  [19, 0; 0, 110]
 	  DstBlock		  "fL"
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "MATLAB Function"
+	  SrcBlock		  "controllerMatlab"
 	  SrcPort		  3
-	  Points		  [17, 0; 0, -5]
 	  DstBlock		  "fL"
 	  DstPort		  2
 	}
 	Line {
-	  SrcBlock		  "MATLAB Function"
+	  SrcBlock		  "controllerMatlab"
 	  SrcPort		  1
-	  Points		  [0, 10; 44, 0]
+	  Points		  [44, 0]
 	  Branch {
-	    Points		    [0, 120]
-	    DstBlock		    "integralErrorCoM\n2"
+	    Points		    [0, 80]
+	    DstBlock		    "tau"
 	    DstPort		    2
 	  }
 	  Branch {
@@ -3048,71 +3033,57 @@ Model {
 	Line {
 	  SrcBlock		  "RightFootFwdKin"
 	  SrcPort		  1
-	  DstBlock		  "MATLAB Function"
+	  DstBlock		  "controllerMatlab"
 	  DstPort		  6
 	}
 	Line {
-	  SrcBlock		  "MATLAB Function"
-	  SrcPort		  4
-	  Points		  [67, 0; 0, 135]
+	  SrcBlock		  "controllerMatlab"
+	  SrcPort		  5
+	  Points		  [38, 0; 0, 50]
 	  DstBlock		  "ML"
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "MATLAB Function"
-	  SrcPort		  5
-	  Points		  [57, 0; 0, 30]
+	  SrcBlock		  "controllerMatlab"
+	  SrcPort		  6
+	  Points		  [36, 0; 0, -55]
 	  DstBlock		  "ML"
 	  DstPort		  2
 	}
 	Line {
-	  SrcBlock		  "MATLAB Function"
-	  SrcPort		  6
-	  Points		  [151, 0]
+	  SrcBlock		  "controllerMatlab"
+	  SrcPort		  7
+	  Points		  [31, 0]
 	  Branch {
-	    Points		    [0, 60]
-	    Branch {
-	      Points		      [0, 170]
-	      DstBlock		      "Discrete-Time Integrator"
-	      DstPort		      1
-	    }
-	    Branch {
-	      DstBlock		      "integralErrorCoM\n1"
-	      DstPort		      1
-	    }
+	    DstBlock		    "CoMError - \nCoM - CoMDes\n"
+	    DstPort		    1
 	  }
 	  Branch {
-	    Points		    [0, -75]
-	    DstBlock		    "Display2"
+	    Points		    [0, 105]
+	    DstBlock		    "Discrete-Time Integrator"
 	    DstPort		    1
 	  }
 	}
 	Line {
 	  SrcBlock		  "Discrete-Time Integrator"
 	  SrcPort		  1
-	  Points		  [-285, 0]
-	  Branch {
-	    DstBlock		    "MATLAB Function"
-	    DstPort		    18
-	  }
-	  Branch {
-	    DstBlock		    "integralErrorCoM\n"
-	    DstPort		    1
-	  }
+	  Points		  [-250, 0]
+	  DstBlock		  "controllerMatlab"
+	  DstPort		  16
 	}
 	Line {
 	  SrcBlock		  "\n\n3"
 	  SrcPort		  1
 	  DstBlock		  "Subsystem"
-	  DstPort		  2
+	  DstPort		  1
 	}
 	Line {
 	  SrcBlock		  "Saturation"
 	  SrcPort		  1
-	  Points		  [11, 0]
+	  Points		  [16, 0]
 	  Branch {
-	    Points		    [0, 105]
-	    DstBlock		    "integralErrorCoM\n2"
+	    Points		    [0, 65]
+	    DstBlock		    "tau"
 	    DstPort		    1
 	  }
 	  Branch {
@@ -3121,41 +3092,59 @@ Model {
 	  }
 	}
 	Line {
-	  SrcBlock		  "Joint Torques"
-	  SrcPort		  1
-	  DstBlock		  "Subsystem"
-	  DstPort		  1
+	  SrcBlock		  "controllerMatlab"
+	  SrcPort		  4
+	  Points		  [18, 0; 0, -110]
+	  DstBlock		  "fL"
+	  DstPort		  3
 	}
 	Line {
-	  SrcBlock		  "MATLAB Function"
-	  SrcPort		  7
-	  DstBlock		  "xDDstar"
-	  DstPort		  1
+	  SrcBlock		  "Joint Limits"
+	  SrcPort		  1
+	  Points		  [10, 0; 0, -10]
+	  DstBlock		  "Subsystem"
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "Joint Limits"
+	  SrcPort		  2
+	  Points		  [10, 0; 0, 15]
+	  DstBlock		  "Subsystem"
+	  DstPort		  3
 	}
       }
     }
   }
 }
+# Finite State Machines
+#
+#    Stateflow Version 7.6 (R2012b) dated Jul 26 2012, 17:33:50
+#
+#
+
 Stateflow {
   machine {
     id			    1
-    name		    "tpf4ddf643_0708_4104_b53a_f74bea0caf25_saveas"
+    name		    "controller"
     created		    "18-Feb-2014 10:14:40"
     isLibrary		    0
-    firstTarget		    58
-    sfVersion		    75014001.0001
+    firstTarget		    52
+    sfVersion		    76014001.001
   }
   chart {
     id			    2
-    name		    "Subsystem/MATLAB Function1"
-    windowPosition	    [357.12 483.496 167 391]
+    name		    "Subsystem/trajectoryGeneratorCoM"
+    windowPosition	    [442 45 158 675]
     viewLimits		    [0 156.75 0 153.75]
-    screen		    [1 1 1280 1024 1.041666666666667]
+    screen		    [1 1 3280 1200 1.25]
     treeNode		    [0 3 0 0]
     firstTransition	    10
     firstJunction	    9
     viewObj		    2
+    visible		    1
     machine		    1
+    subviewS {
+    }
     ssIdHighWaterMark	    28
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
@@ -3180,8 +3169,8 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;1;0];\nA = 0.1;\nf ="
-      " 0.1;\n\nxcomDes    = xCom0 + A*sin(2*pi*f*t)*e3  ;\nxDcomDes   = A*2*pi*f*cos(2*pi*f*t)*e3;\nxDDcomDes  = -A*(2"
+      script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;0;1];\nA = 0.2;\nf ="
+      " 0.2;\n\nxcomDes    = xCom0 + A*sin(2*pi*f*t)*e3  ;\nxDcomDes   = A*2*pi*f*cos(2*pi*f*t)*e3;\nxDDcomDes  = -A*(2"
       "*pi*f)^2*sin(2*pi*f*t)*e3;"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
@@ -3331,22 +3320,25 @@ Stateflow {
   }
   instance {
     id			    11
-    name		    "Subsystem/MATLAB Function1"
+    name		    "Subsystem/trajectoryGeneratorCoM"
     machine		    1
     chart		    2
   }
   chart {
     id			    12
-    name		    "Subsystem/MATLAB Function"
-    windowPosition	    [357.12 483.496 167 391]
+    name		    "Subsystem/controllerMatlab"
+    windowPosition	    [442 45 158 675]
     viewLimits		    [0 156.75 0 153.75]
-    screen		    [1 1 1280 1024 1.041666666666667]
+    screen		    [1 1 3280 1200 1.25]
     treeNode		    [0 13 0 0]
-    firstTransition	    40
-    firstJunction	    39
+    firstTransition	    38
+    firstJunction	    37
     viewObj		    12
+    visible		    1
     machine		    1
-    ssIdHighWaterMark	    39
+    subviewS {
+    }
+    ssIdHighWaterMark	    41
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
     firstData		    14
@@ -3370,26 +3362,26 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      " function [tau,fL,fR,ML,MR,CoMError,xDDcomStar] = fcn(q,qInit,  qD, M, h, PosRightFoot, JcIn, JcD"
-      "qD, qDes, Jcom, xcom, xcomDes, xDcomDes, xDDcomDes, m, k, fake,IntErrorCoM)\n%#codegen\n\nPINV_TOL = 1e-5;\ng   "
-      "     = 9.81;\n\nDL = 13;            %DeltaIndexOnlyLegs\n\nn = size(fake, 1);\nif DL ~= 0\n   Jc = [JcIn(:,1:6),"
-      "JcIn(:,7 + DL:end)]; \nelse\n   Jc = JcIn; \nend\n\nm     = M(1,1);\nMb    = M(1:6,1:6);\nMbInv = inv(Mb);\nMbj "
-      "  = M(1:6,7 + DL :end); \nMj    = M(7 + DL :end,7 + DL:end);\nU     = [eye(6) , zeros(6,n)];\nJcb   = Jc*U';\nSB"
-      "ar  = [  -MbInv*Mbj \n           eye(n)      ];\nNjInv = Mj - Mbj'*MbInv*Mbj;\n\ngrav = [0;0;-m*g;zeros(3,1)];\n"
-      "\nJcSBar     = Jc*SBar;\nJcSBarPinv = pinv(JcSBar, PINV_TOL);\n\n% Definition of reference accelerations for CoM"
-      " and Joints that ensure\n% stabilization of desired trajectories xDcomDes and qDes \nvb         = -pinv(JcIn(:,1"
-      ":6))*JcIn(:,7:end)*qD;\nxDcom      = Jcom*[vb;qD];\nxDDcomStar = xDDcomDes -  k(1,1)*(xDcom(1:3) - xDcomDes) - k"
-      "(1,2)*(xcom - xcomDes) - k(1,3)*IntErrorCoM;\nq_starIn  =            -  k(2,1)*qD                      - k(2,2)*"
-      "(q - qDes);\nif DL ~= 0\n   q_star = q_starIn(DL+1:end); \nelse\n   q_star = q_starIn;\n    \nend\nPr =  PosRigh"
-      "tFoot(1:3) - xcom; % Application point of the contact force on the right foot w.r.t. CoM\nA  = [ eye(3),   zeros"
-      "(3),eye(3), zeros(3);\n      -Sf(xcom),  eye(3), Sf(Pr), eye(3) ];\n\n% The following expressions for Ic and IcD"
-      " hold only if the control \n% objective is the stabilization of the CoM's position\nhDes = [ m*xDDcomStar ;\n   "
-      "      zeros(3,1)  ]; \n\nfd = pinv(A)*(hDes-grav);\n\nJcDqD = JcDqD*0;\n\nLambdaStar = JcSBarPinv*(Jcb*MbInv*(h("
-      "1:6) - Jcb'*fd) - JcDqD);\n\nNP0 = eye(n) - JcSBarPinv*JcSBar;\n\nLambdaStar = LambdaStar + NP0 * q_star;\n\ntau"
-      "Legs = - JcSBar'*fd + NjInv*LambdaStar + SBar'*[h(1:6);h(DL + 7:end)];\n\nif DL ~= 0\n   tau = h(7:end) - k(3,1)"
-      "*qD   - k(3,2)*(q - qInit);   \n   tau(DL+1:end) = tauLegs;\nelse\n    tau = tauLegs;\nend\n\n\nMinv = inv([Mb,M"
-      "bj;Mbj',Mj]);\nf = -(Jc*Minv*Jc')\\(JcDqD + Jc*Minv*([zeros(6,1);tauLegs] - [h(1:6);h(DL + 7:end)])); \nCoMError"
-      " = (xcom - xcomDes);\nfL = f(1:3);\nfR = f(7:9);\nML = f(4:6);\nMR = f(10:12);\n\n"
+      script		      " function [tau,fL,fR,forceError,ML,MR,CoMError] = fcn(q,qInit,  qD, M, h, PosRightFoot, JcIn, JcD"
+      "qD, Jcom, xcom, xcomDes, xDcomDes, xDDcomDes, k, fake,IntErrorCoM)\n%#codegen\n\nPINV_TOL = 1e-5;\ng        = 9."
+      "81;\n\nDL = 13;            %DeltaIndexOnlyLegs\n\nn = size(fake, 1);\nif DL ~= 0\n   Jc = [JcIn(:,1:6),JcIn(:,7 "
+      "+ DL:end)]; \nelse\n   Jc = JcIn; \nend\n\nm     = M(1,1);\nMb    = M(1:6,1:6);\nMbInv = inv(Mb);\nMbj   = M(1:6"
+      ",7 + DL :end); \nMj    = M(7 + DL :end,7 + DL:end);\nU     = [eye(6) , zeros(6,n)];\nJcb   = Jc*U';\nSBar  = [  "
+      "-MbInv*Mbj \n           eye(n)      ];\nNjInv = Mj - Mbj'*MbInv*Mbj;\n\ngrav = [zeros(2,1);-m*g;zeros(3,1)];\n\n"
+      "JcSBar     = Jc*SBar;\nJcSBarPinv = pinv(JcSBar, PINV_TOL);\n\n% Definition of reference accelerations for CoM a"
+      "nd Joints that ensure\n% stabilization of desired trajectories xDcomDes and qDes \nvb         = -pinv(JcIn(:,1:6"
+      "))*JcIn(:,7:end)*qD;\nxDcom      = Jcom(1:3,:)*[vb;qD];\nxDDcomStar = xDDcomDes - k(1,1)*(xcom - xcomDes) - k(1,"
+      "2)*IntErrorCoM - k(1,3)*(xDcom - xDcomDes)  ;\nq_starIn   =           - k(2,1)*(q - qInit)                      "
+      "      - k(2,3)*qD;\nif DL ~= 0\n   q_star = q_starIn(DL+1:end); \nelse\n   q_star = q_starIn;\n    \nend\nPr =  "
+      "PosRightFoot(1:3) - xcom; % Application point of the contact force on the right foot w.r.t. CoM\nA  = [ eye(3), "
+      "  zeros(3),eye(3), zeros(3);\n      -Sf(xcom),  eye(3), Sf(Pr), eye(3) ];\n\n% The following expressions for Ic "
+      "and IcD hold only if the control \n% objective is the stabilization of the CoM's position\nhDotDes = [ m*xDDcomS"
+      "tar ;\n            zeros(3,1)  ]; \n\nfd = pinv(A)*(hDotDes-grav);\n\nLambdaStar = JcSBarPinv*(Jcb*MbInv*(h(1:6)"
+      " - Jcb'*fd) - JcDqD);\n\nNP0 = eye(n) - JcSBarPinv*JcSBar;\n\nLambdaStar = LambdaStar + NP0 * q_star;\n\ntauLegs"
+      " = - JcSBar'*fd + NjInv*LambdaStar + SBar'*[h(1:6);h(DL + 7:end)];\n\nif DL ~= 0\n   tau = h(7:end) - k(3,1)*(q "
+      "- qInit) - k(3,3)*qD   ;   \n   tau(DL+1:end) = tauLegs;\nelse\n    tau = tauLegs;\nend\n\nMinv = inv([Mb,Mbj;Mb"
+      "j',Mj]);\nf = -(Jc*Minv*Jc')\\(JcDqD + Jc*Minv*([zeros(6,1);tauLegs] - [h(1:6);h(DL + 7:end)])); \nCoMError    ="
+      " xcom - xcomDes;\nforceError  = f - fd;\nfL = f(1:3);\nfR = f(7:9);\nML = f(4:6);\nMR = f(10:12);\n\n"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
@@ -3635,8 +3627,8 @@ Stateflow {
   }
   data {
     id			    25
-    ssIdNumber		    36
-    name		    "ML"
+    ssIdNumber		    40
+    name		    "forceError"
     linkNode		    [12 24 26]
     scope		    OUTPUT_DATA
     machine		    1
@@ -3657,8 +3649,8 @@ Stateflow {
   }
   data {
     id			    26
-    ssIdNumber		    37
-    name		    "MR"
+    ssIdNumber		    36
+    name		    "ML"
     linkNode		    [12 25 27]
     scope		    OUTPUT_DATA
     machine		    1
@@ -3679,10 +3671,10 @@ Stateflow {
   }
   data {
     id			    27
-    ssIdNumber		    12
-    name		    "qDes"
+    ssIdNumber		    37
+    name		    "MR"
     linkNode		    [12 26 28]
-    scope		    INPUT_DATA
+    scope		    OUTPUT_DATA
     machine		    1
     props {
       array {
@@ -3695,7 +3687,7 @@ Stateflow {
 	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
+      frame		      SF_FRAME_NO
     }
     dataType		    "Inherit: Same as Simulink"
   }
@@ -3811,8 +3803,8 @@ Stateflow {
   }
   data {
     id			    33
-    ssIdNumber		    23
-    name		    "m"
+    ssIdNumber		    16
+    name		    "k"
     linkNode		    [12 32 34]
     scope		    INPUT_DATA
     machine		    1
@@ -3833,8 +3825,8 @@ Stateflow {
   }
   data {
     id			    34
-    ssIdNumber		    16
-    name		    "k"
+    ssIdNumber		    28
+    name		    "fake"
     linkNode		    [12 33 35]
     scope		    INPUT_DATA
     machine		    1
@@ -3855,10 +3847,10 @@ Stateflow {
   }
   data {
     id			    35
-    ssIdNumber		    28
-    name		    "fake"
+    ssIdNumber		    30
+    name		    "CoMError"
     linkNode		    [12 34 36]
-    scope		    INPUT_DATA
+    scope		    OUTPUT_DATA
     machine		    1
     props {
       array {
@@ -3871,37 +3863,15 @@ Stateflow {
 	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
+      frame		      SF_FRAME_NO
     }
     dataType		    "Inherit: Same as Simulink"
   }
   data {
     id			    36
-    ssIdNumber		    30
-    name		    "CoMError"
-    linkNode		    [12 35 37]
-    scope		    OUTPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    37
     ssIdNumber		    38
     name		    "IntErrorCoM"
-    linkNode		    [12 36 38]
+    linkNode		    [12 35 0]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -3919,30 +3889,8 @@ Stateflow {
     }
     dataType		    "Inherit: Same as Simulink"
   }
-  data {
-    id			    38
-    ssIdNumber		    39
-    name		    "xDDcomStar"
-    linkNode		    [12 37 0]
-    scope		    OUTPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
   junction {
-    id			    39
+    id			    37
     position		    [23.5747 49.5747 7]
     chart		    12
     linkNode		    [12 0 0]
@@ -3951,7 +3899,7 @@ Stateflow {
     type		    CONNECTIVE_JUNCTION
   }
   transition {
-    id			    40
+    id			    38
     labelString		    "{eML_blk_kernel();}"
     labelPosition	    [32.125 19.875 102.544 14.964]
     fontSize		    12
@@ -3959,7 +3907,7 @@ Stateflow {
       intersection	      [0 0 1 0 23.5747 14.625 0 0]
     }
     dst {
-      id		      39
+      id		      37
       intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
     }
     midPoint		    [23.5747 24.9468]
@@ -3975,55 +3923,101 @@ Stateflow {
     ssIdNumber		    2
   }
   instance {
-    id			    41
-    name		    "Subsystem/MATLAB Function"
+    id			    39
+    name		    "Subsystem/controllerMatlab"
     machine		    1
     chart		    12
   }
   chart {
-    id			    42
-    name		    "Subsystem/MATLAB Function2"
-    windowPosition	    [357.12 483.496 167 391]
+    id			    40
+    name		    "Subsystem/Subsystem/MATLAB Function"
+    windowPosition	    [442 45 158 675]
     viewLimits		    [0 156.75 0 153.75]
-    screen		    [1 1 1280 1024 1.041666666666667]
-    treeNode		    [0 43 0 0]
-    firstTransition	    47
-    firstJunction	    46
-    viewObj		    42
+    screen		    [1 1 3280 1200 1.25]
+    treeNode		    [0 41 0 0]
+    firstTransition	    50
+    firstJunction	    49
+    viewObj		    40
+    visible		    1
     machine		    1
-    ssIdHighWaterMark	    28
+    subviewS {
+    }
+    ssIdHighWaterMark	    11
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
-    firstData		    44
-    chartFileNumber	    3
+    firstData		    42
+    chartFileNumber	    4
     disableImplicitCasting  1
     eml {
       name		      "fcn"
     }
   }
   state {
-    id			    43
+    id			    41
     labelString		    "eML_blk_kernel()"
     position		    [18 64.5 118 66]
     fontSize		    12
-    chart		    42
-    treeNode		    [42 0 0 0]
+    chart		    40
+    treeNode		    [40 0 0 0]
     superState		    SUBCHART
-    subviewer		    42
+    subviewer		    40
     ssIdNumber		    1
     type		    FUNC_STATE
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      "function xComOut = fcn(xCom0)\n%#codegen\n\nxComOut    = xCom0(1:3);"
+      script		      "function [stop,out] = fcn(ut,maxU,q,minQ,maxQ)\n%#codegen\n\nif (ones(1,length(ut))*(abs(ut) > ma"
+      "xU) > 0) %|| (ones(1,length(q))*(q > maxQ) > 0) || (ones(1,length(q))*(q < minQ) > 0);\n   stop = 1;\nelse \n   "
+      "stop = 0;\nend\nout = ut;"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
   data {
+    id			    42
+    ssIdNumber		    7
+    name		    "ut"
+    linkNode		    [40 0 43]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    43
+    ssIdNumber		    4
+    name		    "maxU"
+    linkNode		    [40 42 44]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+      }
+      complexity	      SF_COMPLEX_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
     id			    44
     ssIdNumber		    5
-    name		    "xComOut"
-    linkNode		    [42 0 45]
+    name		    "stop"
+    linkNode		    [40 43 45]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -4041,171 +4035,9 @@ Stateflow {
   }
   data {
     id			    45
-    ssIdNumber		    7
-    name		    "xCom0"
-    linkNode		    [42 44 0]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  junction {
-    id			    46
-    position		    [23.5747 49.5747 7]
-    chart		    42
-    linkNode		    [42 0 0]
-    subviewer		    42
-    ssIdNumber		    3
-    type		    CONNECTIVE_JUNCTION
-  }
-  transition {
-    id			    47
-    labelString		    "{eML_blk_kernel();}"
-    labelPosition	    [32.125 19.875 102.544 14.964]
-    fontSize		    12
-    src {
-      intersection	      [0 0 1 0 23.5747 14.625 0 0]
-    }
-    dst {
-      id		      46
-      intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
-    }
-    midPoint		    [23.5747 24.9468]
-    chart		    42
-    linkNode		    [42 0 0]
-    dataLimits		    [21.175 25.975 14.625 42.575]
-    subviewer		    42
-    drawStyle		    SMART
-    slide {
-      sticky		      BOTH_STICK
-    }
-    executionOrder	    1
-    ssIdNumber		    2
-  }
-  instance {
-    id			    48
-    name		    "Subsystem/MATLAB Function2"
-    machine		    1
-    chart		    42
-  }
-  chart {
-    id			    49
-    name		    "Subsystem/Subsystem/MATLAB Function"
-    windowPosition	    [357.12 483.496 167 391]
-    viewLimits		    [0 156.75 0 153.75]
-    screen		    [1 1 1280 1024 1.041666666666667]
-    treeNode		    [0 50 0 0]
-    firstTransition	    56
-    firstJunction	    55
-    viewObj		    49
-    machine		    1
-    ssIdHighWaterMark	    8
-    decomposition	    CLUSTER_CHART
-    type		    EML_CHART
-    firstData		    51
-    chartFileNumber	    4
-    disableImplicitCasting  1
-    eml {
-      name		      "fcn"
-    }
-  }
-  state {
-    id			    50
-    labelString		    "eML_blk_kernel()"
-    position		    [18 64.5 118 66]
-    fontSize		    12
-    chart		    49
-    treeNode		    [49 0 0 0]
-    superState		    SUBCHART
-    subviewer		    49
-    ssIdNumber		    1
-    type		    FUNC_STATE
-    decomposition	    CLUSTER_STATE
-    eml {
-      isEML		      1
-      script		      "function [stop,out] = fcn(ut,maxU)\n%#codegen\n\nif ones(1,length(ut))*(abs(ut) > maxU) > 0;\n   "
-      "stop = 1;\nelse \n   stop = 0;\nend\nout = ut;"
-      editorLayout	      "100 M4x1[10 5 700 500]"
-    }
-  }
-  data {
-    id			    51
-    ssIdNumber		    7
-    name		    "ut"
-    linkNode		    [49 0 52]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    52
-    ssIdNumber		    4
-    name		    "maxU"
-    linkNode		    [49 51 53]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-      }
-      complexity	      SF_COMPLEX_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    53
-    ssIdNumber		    5
-    name		    "stop"
-    linkNode		    [49 52 54]
-    scope		    OUTPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    54
     ssIdNumber		    8
     name		    "out"
-    linkNode		    [49 53 0]
+    linkNode		    [40 44 46]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -4223,17 +4055,83 @@ Stateflow {
     }
     dataType		    "Inherit: Same as Simulink"
   }
+  data {
+    id			    46
+    ssIdNumber		    9
+    name		    "q"
+    linkNode		    [40 45 47]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    47
+    ssIdNumber		    10
+    name		    "minQ"
+    linkNode		    [40 46 48]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    48
+    ssIdNumber		    11
+    name		    "maxQ"
+    linkNode		    [40 47 0]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
   junction {
-    id			    55
+    id			    49
     position		    [23.5747 49.5747 7]
-    chart		    49
-    linkNode		    [49 0 0]
-    subviewer		    49
+    chart		    40
+    linkNode		    [40 0 0]
+    subviewer		    40
     ssIdNumber		    3
     type		    CONNECTIVE_JUNCTION
   }
   transition {
-    id			    56
+    id			    50
     labelString		    "{eML_blk_kernel();}"
     labelPosition	    [32.125 19.875 102.544 14.964]
     fontSize		    12
@@ -4241,14 +4139,14 @@ Stateflow {
       intersection	      [0 0 1 0 23.5747 14.625 0 0]
     }
     dst {
-      id		      55
+      id		      49
       intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
     }
     midPoint		    [23.5747 24.9468]
-    chart		    49
-    linkNode		    [49 0 0]
+    chart		    40
+    linkNode		    [40 0 0]
     dataLimits		    [21.175 25.975 14.625 42.575]
-    subviewer		    49
+    subviewer		    40
     drawStyle		    SMART
     slide {
       sticky		      BOTH_STICK
@@ -4257,13 +4155,13 @@ Stateflow {
     ssIdNumber		    2
   }
   instance {
-    id			    57
+    id			    51
     name		    "Subsystem/Subsystem/MATLAB Function"
     machine		    1
-    chart		    49
+    chart		    40
   }
   target {
-    id			    58
+    id			    52
     name		    "sfun"
     description		    "Default Simulink S-Function Target."
     machine		    1
