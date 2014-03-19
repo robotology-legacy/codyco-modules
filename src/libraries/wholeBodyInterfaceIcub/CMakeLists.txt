@@ -72,7 +72,7 @@ ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME} 
                         wholeBodyInterface
-                    	${IDYNTREE_LIBRARIES}
+                    	${iDynTree_LIBRARIES}
                         paramHelp #this is a temporary requirement
                         ${YARP_LIBRARIES}
                         skinDynLib

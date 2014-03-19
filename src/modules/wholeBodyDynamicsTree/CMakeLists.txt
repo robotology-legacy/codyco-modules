@@ -25,7 +25,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
-                    ${IDYNTREE_INCLUDE_DIRS}
+                    ${iDynTree_INCLUDE_DIRS}
                     ${orocos_kdl_INCLUDE_DIRS}
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
@@ -42,7 +42,7 @@ yarp_idl_to_dir(wholeBodyDynamics.thrift ${generated_libs_dir})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} wholeBodyInterface wholeBodyInterfaceIcub ${IDYNTREE_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} wholeBodyInterface wholeBodyInterfaceIcub ${iDynTree_LIBRARIES})
 
 INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
 
