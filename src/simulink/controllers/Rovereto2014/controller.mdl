@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.340"
+    ComputedModelVersion    "1.349"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -28,9 +28,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Wed Mar 19 11:22:33 2014"
-  RTWModifiedTimeStamp	  317128654
-  ModelVersionFormat	  "1.%<AutoIncrement:340>"
+  LastModifiedDate	  "Wed Mar 19 12:27:23 2014"
+  RTWModifiedTimeStamp	  317129678
+  ModelVersionFormat	  "1.%<AutoIncrement:349>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -68,6 +68,7 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "controller"
+    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -133,7 +134,7 @@ Model {
 	  $ObjectID		  3
 	  Version		  "1.12.0"
 	  StartTime		  "0.0"
-	  StopTime		  "inf"
+	  StopTime		  "Ts"
 	  AbsTol		  "auto"
 	  FixedStep		  "auto"
 	  InitialStep		  "auto"
@@ -620,7 +621,7 @@ Model {
       }
       Name		      "Configuration"
       CurrentDlgPage	      "Solver"
-      ConfigPrmDlgPosition     [ 1601, 213, 2501, 893 ] 
+      ConfigPrmDlgPosition     [ 198, 24, 1241, 804 ] 
     }
     PropName		    "ConfigurationSets"
   }
@@ -719,6 +720,13 @@ Model {
       IgnoreLimit	      off
       StateMustResolveToSignalObject off
       RTWStateStorageClass    "Auto"
+    }
+    Block {
+      BlockType		      Display
+      Format		      "short"
+      Decimation	      "10"
+      Floating		      off
+      SampleTime	      "-1"
     }
     Block {
       BlockType		      From
@@ -839,6 +847,9 @@ Model {
       SampleTime	      "-1"
     }
     Block {
+      BlockType		      Stop
+    }
+    Block {
       BlockType		      SubSystem
       ShowPortLabels	      "FromPortIcon"
       Permissions	      "ReadWrite"
@@ -896,7 +907,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "283"
+    SIDHighWatermark	    "292"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -927,7 +938,7 @@ Model {
       MaskValueString	      "'icubGazeboSim'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[0, 53, 1440, 900]
+	Location		[1, 81, 1441, 928]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -955,7 +966,7 @@ Model {
 	  Position		  [25, 38, 90, 82]
 	  ZOrder		  101
 	  ShowName		  off
-	  Value			  "40"
+	  Value			  "0"
 	}
 	Block {
 	  BlockType		  Concatenate
@@ -1034,8 +1045,8 @@ Model {
 	  Position		  [1195, 882, 1225, 918]
 	  ZOrder		  113
 	  Floating		  off
-	  Location		  [1507, 183, 3107, 1083]
-	  Open			  on
+	  Location		  [1201, 81, 2801, 981]
+	  Open			  off
 	  NumInputPorts		  "3"
 	  List {
 	    ListType		    AxesTitles
@@ -1086,6 +1097,24 @@ Model {
 	  ICPrevScaledInput	  "DiscIntNeverNeededParam"
 	}
 	Block {
+	  BlockType		  Display
+	  Name			  "Display"
+	  SID			  "286"
+	  Ports			  [1]
+	  Position		  [620, 174, 1080, 686]
+	  ZOrder		  -1
+	  Decimation		  "1"
+	  Lockdown		  off
+	}
+	Block {
+	  BlockType		  From
+	  Name			  "From"
+	  SID			  "292"
+	  Position		  [175, 241, 215, 269]
+	  ZOrder		  -9
+	  GotoTag		  "dxB"
+	}
+	Block {
 	  BlockType		  Goto
 	  Name			  "Goto"
 	  SID			  "281"
@@ -1128,7 +1157,7 @@ Model {
 	  Name			  "Joint Limits"
 	  SID			  "263"
 	  Ports			  [0, 2]
-	  Position		  [20, 103, 85, 147]
+	  Position		  [15, 118, 80, 162]
 	  ZOrder		  114
 	  BackgroundColor	  "[1.000000, 0.247733, 0.215168]"
 	  ShowName		  off
@@ -1247,22 +1276,6 @@ Model {
 	  SampleTime		  "Ts"
 	}
 	Block {
-	  BlockType		  Reference
-	  Name			  "Set Torques"
-	  SID			  "205"
-	  Ports			  [1]
-	  Position		  [1285, 148, 1355, 192]
-	  ZOrder		  86
-	  BackgroundColor	  "[0.941000, 0.415000, 0.192000]"
-	  ShowName		  off
-	  LibraryVersion	  "1.2"
-	  SourceBlock		  "WBCLibrary/wholeBodyActuators/Set Torques"
-	  SourceType		  ""
-	  val			  "6"
-	  robotName		  "robotName"
-	  localName		  "localName"
-	}
-	Block {
 	  BlockType		  SubSystem
 	  Name			  "Subsystem"
 	  SID			  "229"
@@ -1339,7 +1352,7 @@ Model {
 	      ZOrder		      12
 	      BackgroundColor	      "[0.375000, 0.187500, 0.000000]"
 	      ShowName		      off
-	      LibraryVersion	      "1.0"
+	      LibraryVersion	      "1.2"
 	      SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Angles"
 	      SourceType	      ""
 	      robotName		      "robotName"
@@ -1354,7 +1367,7 @@ Model {
 	      ZOrder		      108
 	      BackgroundColor	      "[1.000000, 0.634000, 0.268000]"
 	      ShowName		      off
-	      LibraryVersion	      "1.0"
+	      LibraryVersion	      "1.2"
 	      SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Torques"
 	      SourceType	      "Get Joint Torques"
 	      robotName		      "robotName"
@@ -1579,6 +1592,13 @@ Model {
 		}
 	      }
 	    }
+	    Block {
+	      BlockType		      Stop
+	      Name		      "Stop Simulation"
+	      SID		      "284"
+	      Position		      [545, 137, 580, 173]
+	      ZOrder		      -4
+	    }
 	    Line {
 	      SrcBlock		      "Joint Torques"
 	      SrcPort		      1
@@ -1615,13 +1635,6 @@ Model {
 	      DstBlock		      "MATLAB Function"
 	      DstPort		      3
 	    }
-	    Line {
-	      SrcBlock		      "MATLAB Function"
-	      SrcPort		      1
-	      Points		      [39, 0; 0, -60]
-	      DstBlock		      "Logical Operator"
-	      DstPort		      1
-	    }
 	  }
 	}
 	Block {
@@ -1639,7 +1652,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "base + dq'"
-	    Location		    [92, 109, 549, 342]
+	    Location		    [25, 261, 482, 494]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -1663,6 +1676,14 @@ Model {
 	      TagVisibility	      "global"
 	    }
 	    Block {
+	      BlockType		      Goto
+	      Name		      "Goto"
+	      SID		      "291"
+	      Position		      [385, 40, 425, 70]
+	      ZOrder		      -10
+	      GotoTag		      "dxB"
+	    }
+	    Block {
 	      BlockType		      Reference
 	      Name		      "Left Foot Jacobian"
 	      SID		      "271"
@@ -1670,9 +1691,9 @@ Model {
 	      Position		      [65, 93, 140, 137]
 	      ZOrder		      -1
 	      BackgroundColor	      "[0.047000, 0.909000, 0.803000]"
-	      LibraryVersion	      "1.0"
+	      LibraryVersion	      "1.2"
 	      SourceBlock	      "WBCLibrary/wholeBodyModel/Jacobians/Left Foot Jacobian"
-	      SourceType	      "Unknown"
+	      SourceType	      ""
 	      robotName		      "robotName"
 	      localName		      "localName"
 	    }
@@ -1695,9 +1716,9 @@ Model {
 	      Position		      [70, 28, 140, 72]
 	      ZOrder		      -2
 	      BackgroundColor	      "[0.000000, 1.000000, 0.533000]"
-	      LibraryVersion	      "1.0"
+	      LibraryVersion	      "1.2"
 	      SourceBlock	      "WBCLibrary/wholeBodyModel/Jacobians/Right Foot Jacobian"
-	      SourceType	      "Unknown"
+	      SourceType	      ""
 	      robotName		      "robotName"
 	      localName		      "localName"
 	    }
@@ -1708,7 +1729,7 @@ Model {
 	      Ports		      [3, 1]
 	      Position		      [180, 68, 290, 112]
 	      BackgroundColor	      "[0.753334, 1.000000, 0.112472]"
-	      LibraryVersion	      "1.0"
+	      LibraryVersion	      "1.2"
 	      SourceBlock	      "WBCLibrary/Utilities/baseVelocity"
 	      SourceType	      "baseVelocity"
 	    }
@@ -1736,9 +1757,17 @@ Model {
 	    Line {
 	      SrcBlock		      "baseVelocity"
 	      SrcPort		      1
-	      Points		      [35, 0]
-	      DstBlock		      "Mux"
-	      DstPort		      1
+	      Points		      [20, 0]
+	      Branch {
+		Points			[15, 0]
+		DstBlock		"Mux"
+		DstPort			1
+	      }
+	      Branch {
+		Points			[0, -35]
+		DstBlock		"Goto"
+		DstPort			1
+	      }
 	    }
 	    Line {
 	      SrcBlock		      "From"
@@ -3156,13 +3185,14 @@ Model {
 	  SrcPort		  1
 	  Points		  [44, 0]
 	  Branch {
+	    DstBlock		    "Saturation"
+	    DstPort		    1
+	  }
+	  Branch {
+	    Labels		    [2, 0]
 	    Points		    [0, 80]
 	    DstBlock		    "tau"
 	    DstPort		    2
-	  }
-	  Branch {
-	    DstBlock		    "Saturation"
-	    DstPort		    1
 	  }
 	}
 	Line {
@@ -3215,36 +3245,15 @@ Model {
 	Line {
 	  SrcBlock		  "Saturation"
 	  SrcPort		  1
-	  Points		  [16, 0]
-	  Branch {
-	    Points		    [0, 65]
-	    DstBlock		    "tau"
-	    DstPort		    1
-	  }
-	  Branch {
-	    DstBlock		    "Set Torques"
-	    DstPort		    1
-	  }
+	  Points		  [16, 0; 0, 65]
+	  DstBlock		  "tau"
+	  DstPort		  1
 	}
 	Line {
 	  SrcBlock		  "controllerMatlab"
 	  SrcPort		  4
 	  Points		  [18, 0; 0, -110]
 	  DstBlock		  "fL"
-	  DstPort		  3
-	}
-	Line {
-	  SrcBlock		  "Joint Limits"
-	  SrcPort		  1
-	  Points		  [10, 0; 0, -10]
-	  DstBlock		  "Subsystem"
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "Joint Limits"
-	  SrcPort		  2
-	  Points		  [10, 0; 0, 15]
-	  DstBlock		  "Subsystem"
 	  DstPort		  3
 	}
 	Line {
@@ -3297,6 +3306,19 @@ Model {
 	    }
 	  }
 	}
+	Line {
+	  SrcBlock		  "Joint Limits"
+	  SrcPort		  1
+	  Points		  [10, 0]
+	  DstBlock		  "Subsystem"
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "Joint Limits"
+	  SrcPort		  2
+	  DstBlock		  "Subsystem"
+	  DstPort		  3
+	}
       }
     }
   }
@@ -3328,8 +3350,6 @@ Stateflow {
     firstJunction	    4
     viewObj		    2
     machine		    1
-    subviewS {
-    }
     ssIdHighWaterMark	    28
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
@@ -3520,8 +3540,6 @@ Stateflow {
     firstJunction	    14
     viewObj		    12
     machine		    1
-    subviewS {
-    }
     ssIdHighWaterMark	    41
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
@@ -4123,8 +4141,6 @@ Stateflow {
     firstJunction	    42
     viewObj		    40
     machine		    1
-    subviewS {
-    }
     ssIdHighWaterMark	    11
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
@@ -4150,8 +4166,8 @@ Stateflow {
     eml {
       isEML		      1
       script		      "function [stop,out] = fcn(ut,maxU,q,minQ,maxQ)\n%#codegen\n\nif (ones(1,length(ut))*(abs(ut) > ma"
-      "xU) > 0) %|| (ones(1,length(q))*(q > maxQ) > 0) || (ones(1,length(q))*(q < minQ) > 0);\n   stop = 1;\nelse \n   "
-      "stop = 0;\nend\nout = ut;"
+      "xU) > 0) || (ones(1,length(q))*(q > maxQ) > 0) || (ones(1,length(q))*(q < minQ) > 0);\n   stop = 1;\nelse \n   s"
+      "top = 0;\nend\nout = ut;"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
