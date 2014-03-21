@@ -51,7 +51,7 @@ int main(int argc, char * argv[])
     if(options.check("robot")) {
       robotName = options.find("robot").asString();
     } else {
-      robotName = "icubSim";
+      robotName = "icubGazeboSim";
     }
     
     bool use_urdf = false;
@@ -98,7 +98,7 @@ int main(int argc, char * argv[])
     printf("Number of DoFs: %d\n", dof);
     
     Vector q(dof), dq(dof), d2q(dof), qInit(dof), qd(dof);
-    icub->getEstimates(ESTIMATE_JOINT_POS, q.data());
+    icub->getEstimates(ESTIMATE_JOINT_TORQUE, q.data());
     qInit = q;
     qd = q;
 //    Vector refSpeed(dof, CTRL_DEG2RAD*10.0), qd = q;
@@ -130,26 +130,26 @@ int main(int argc, char * argv[])
 //        printf("Center of Mass:  %.10f \t %.10f \t %.10f\n",com[0],com[1],com[2]);
 //                
 //    }
-    
-    Vector zeroVec;
-    zeroVec.resize(dof, 0);
-    icub->setControlMode(CTRL_MODE_TORQUE);
-    icub->setControlReference(zeroVec.data());
-    
-    printf("Test finished. Press return to exit.");
-    getchar();
-    
-//    printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
-
-    qd -= CTRL_DEG2RAD*15.0;
-    icub->setControlMode(CTRL_MODE_POS);
-    icub->setControlReference(qd.data());
-
-    Time::delay(1.0);
-    printf("Test finished. Press return to exit.");
-    getchar();
-    
-    icub->setControlReference(qInit.data());
+//    
+//    Vector zeroVec;
+//    zeroVec.resize(dof, 0);
+//    icub->setControlMode(CTRL_MODE_TORQUE);
+//    icub->setControlReference(zeroVec.data());
+//    
+//    printf("Test finished. Press return to exit.");
+//    getchar();
+//    
+////    printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
+//
+//    qd -= CTRL_DEG2RAD*15.0;
+//    icub->setControlMode(CTRL_MODE_POS);
+//    icub->setControlReference(qd.data());
+//
+//    Time::delay(1.0);
+//    printf("Test finished. Press return to exit.");
+//    getchar();
+//    
+//    icub->setControlReference(qInit.data());
     
     printf("Test finished. Press return to exit.");
     getchar();

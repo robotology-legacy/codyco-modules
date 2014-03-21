@@ -363,6 +363,9 @@ bool icubWholeBodySensors::openFTsens(const LocalId &i)
     if(isRobotSimulator(robot)) // icub simulator doesn't have force/torque sensors
         return true;
     */
+    if (isICubSimulator(robot))
+        return true;
+    
     string remotePort = "/" + robot + getPortName(i, ftSens_2_port);
     stringstream localPort; 
     localPort << "/" << name << "/ftSens" << i.bodyPart << "_" << i.index << ":i";
@@ -393,7 +396,7 @@ bool icubWholeBodySensors::openTorqueSensor(const int bp)
 {
 //    torqueSensorsLastRead[bp].resize(6,0.0);
     ///< check that we are not in simulation, because iCub simulator does not implement torque sensors
-    if(isRobotSimulator(robot))
+    if(isICubSimulator(robot))
         return true;
     
     ///< check whether the joint control interface is already open
@@ -628,12 +631,12 @@ bool icubWholeBodySensors::readIMUs(double *inertial, double *stamps, bool wait)
 bool icubWholeBodySensors::readFTsensors(double *ftSens, double *stamps, bool wait)
 {
     ///< iCub simulator does not implement the force/torque sensors
-    /*
-    if(isRobotSimulator(robot))
+    
+    if(isICubSimulator(robot))
     {
         memset(ftSens, 0, sizeof(double) * portsFTsens.size());
         return true;
-    }*/
+    }
 
     Vector *v;
     int i=0;    // sensor index
@@ -658,7 +661,7 @@ bool icubWholeBodySensors::readFTsensors(double *ftSens, double *stamps, bool wa
 
 bool icubWholeBodySensors::readTorqueSensors(double *jointSens, double *stamps, bool wait)
 {
-    if(isRobotSimulator(robot)) 
+    if(isICubSimulator(robot))
     {
         memset(jointSens, 0, sizeof(double) * torqueSensorIdList.size());
         return true;
@@ -793,12 +796,12 @@ bool icubWholeBodySensors::readFTsensor(const LocalId &sid, double *ftSens, doub
         return false;
     }
     #endif 
-    /*
-    if(isRobotSimulator(robot))    // icub simulator doesn't have force/torque sensors
+    
+    if(isICubSimulator(robot))    // icub simulator doesn't have force/torque sensors
     {
         ftSens[0] = 0.0;
         return true;
-    }*/
+    }
 
     Vector *v = portsFTsens[sid]->read(wait);
     if(v!=NULL) {
@@ -817,7 +820,7 @@ bool icubWholeBodySensors::readFTsensor(const LocalId &sid, double *ftSens, doub
 
 bool icubWholeBodySensors::readTorqueSensor(const LocalId &sid, double *jointTorque, double *stamps, bool wait)
 {
-    if(isRobotSimulator(robot))
+    if(isICubSimulator(robot))
     {
         jointTorque[0] = 0.0;   // iCub simulator does not have joint torque sensors
         return true;            // does not return false, so programs can be tested in simulation
