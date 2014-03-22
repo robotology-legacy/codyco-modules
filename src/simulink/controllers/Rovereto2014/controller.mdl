@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.349"
+    ComputedModelVersion    "1.380"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -28,9 +28,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Wed Mar 19 12:27:23 2014"
-  RTWModifiedTimeStamp	  317129678
-  ModelVersionFormat	  "1.%<AutoIncrement:349>"
+  LastModifiedDate	  "Fri Mar 21 20:35:40 2014"
+  RTWModifiedTimeStamp	  317329785
+  ModelVersionFormat	  "1.%<AutoIncrement:380>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -68,7 +68,6 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "controller"
-    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -134,7 +133,7 @@ Model {
 	  $ObjectID		  3
 	  Version		  "1.12.0"
 	  StartTime		  "0.0"
-	  StopTime		  "Ts"
+	  StopTime		  "inf"
 	  AbsTol		  "auto"
 	  FixedStep		  "auto"
 	  InitialStep		  "auto"
@@ -621,7 +620,7 @@ Model {
       }
       Name		      "Configuration"
       CurrentDlgPage	      "Solver"
-      ConfigPrmDlgPosition     [ 198, 24, 1241, 804 ] 
+      ConfigPrmDlgPosition     [ 220, 100, 1146, 648 ] 
     }
     PropName		    "ConfigurationSets"
   }
@@ -893,7 +892,7 @@ Model {
   }
   System {
     Name		    "controller"
-    Location		    [448, 525, 821, 731]
+    Location		    [110, 194, 483, 400]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -907,13 +906,13 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "292"
+    SIDHighWatermark	    "295"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
       SID		      "61"
       Ports		      []
-      Position		      [160, 40, 200, 100]
+      Position		      [160, 65, 200, 125]
       ZOrder		      42
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -938,7 +937,7 @@ Model {
       MaskValueString	      "'icubGazeboSim'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[1, 81, 1441, 928]
+	Location		[66, 81, 716, 768]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -1021,7 +1020,7 @@ Model {
 	  BlockType		  Clock
 	  Name			  "Clock"
 	  SID			  "71"
-	  Position		  [390, 735, 410, 755]
+	  Position		  [290, 735, 310, 755]
 	  ZOrder		  49
 	  ShowName		  off
 	}
@@ -1045,7 +1044,45 @@ Model {
 	  Position		  [1195, 882, 1225, 918]
 	  ZOrder		  113
 	  Floating		  off
-	  Location		  [1201, 81, 2801, 981]
+	  Location		  [163, 120, 813, 805]
+	  Open			  on
+	  NumInputPorts		  "3"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	    axes2		    "%<SignalLabel>"
+	    axes3		    "%<SignalLabel>"
+	  }
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.501960784313725 0.501960784313725 0.501960784313725]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
+	  }
+	  ShowLegends		  on
+	  LegendLocations	  "0.62423     0.86006     0.32077    0.083577\n0.67962     0.55102     0.26538    0.083577\n0.5611"
+	  "5     0.24344     0.38385    0.083577"
+	  TimeRange		  "5"
+	  YMin			  "-0.325~-0.2~-0.2"
+	  YMax			  "0.05~0.6~0.6"
+	  SaveName		  "ScopeData6"
+	  DataFormat		  "StructureWithTime"
+	  LimitDataPoints	  off
+	  SampleTime		  "0"
+	}
+	Block {
+	  BlockType		  Scope
+	  Name			  "CoMError - \nCoM - CoMDes\n1"
+	  SID			  "295"
+	  Ports			  [3]
+	  Position		  [465, 922, 495, 958]
+	  ZOrder		  113
+	  Floating		  off
+	  Location		  [67, 81, 717, 767]
 	  Open			  off
 	  NumInputPorts		  "3"
 	  List {
@@ -1056,7 +1093,7 @@ Model {
 	  }
 	  List {
 	    ListType		    ScopeGraphics
-	    FigureColor		    "[0.5 0.5 0.5]"
+	    FigureColor		    "[0 0 0]"
 	    AxesColor		    "[0 0 0]"
 	    AxesTickColor	    "[1 1 1]"
 	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
@@ -1064,11 +1101,11 @@ Model {
 	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
 	    MarkerStyles	    "none|none|none|none|none|none"
 	  }
-	  ShowLegends		  off
+	  ShowLegends		  on
 	  TimeRange		  "45"
-	  YMin			  "-0.25~-0.2~-0.2"
-	  YMax			  "0.25~0.6~0.6"
-	  SaveName		  "ScopeData6"
+	  YMin			  "-0.1~-0.1~-0.2"
+	  YMax			  "1~0.45~0.6"
+	  SaveName		  "ScopeData1"
 	  DataFormat		  "StructureWithTime"
 	  LimitDataPoints	  off
 	  SampleTime		  "0"
@@ -1276,6 +1313,20 @@ Model {
 	  SampleTime		  "Ts"
 	}
 	Block {
+	  BlockType		  Reference
+	  Name			  "Set Torques"
+	  SID			  "293"
+	  Ports			  [1]
+	  Position		  [1270, 138, 1340, 182]
+	  BackgroundColor	  "[0.941000, 0.415000, 0.192000]"
+	  LibraryVersion	  "1.2"
+	  SourceBlock		  "WBCLibrary/wholeBodyActuators/Set Torques"
+	  SourceType		  ""
+	  val			  "6"
+	  robotName		  "robotName"
+	  localName		  "localName"
+	}
+	Block {
 	  BlockType		  SubSystem
 	  Name			  "Subsystem"
 	  SID			  "229"
@@ -1294,7 +1345,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "Subsystem"
-	    Location		    [1, 81, 1601, 952]
+	    Location		    [66, 81, 716, 768]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -1652,7 +1703,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "base + dq'"
-	    Location		    [25, 261, 482, 494]
+	    Location		    [79, 290, 536, 523]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -1807,7 +1858,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "base + q"
-	    Location		    [172, 279, 352, 405]
+	    Location		    [173, 307, 353, 433]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -2779,7 +2830,7 @@ Model {
 	  Position		  [1285, 226, 1315, 259]
 	  ZOrder		  108
 	  Floating		  off
-	  Location		  [257, 219, 1011, 1016]
+	  Location		  [66, 23, 1367, 767]
 	  Open			  off
 	  NumInputPorts		  "2"
 	  List {
@@ -3084,9 +3135,17 @@ Model {
 	    DstPort		    11
 	  }
 	  Branch {
-	    Points		    [0, 383; 614, 0; 0, -128]
-	    DstBlock		    "CoMError - \nCoM - CoMDes\n"
-	    DstPort		    3
+	    Points		    [0, 355]
+	    Branch {
+	      Points		      [0, 28; 614, 0; 0, -128]
+	      DstBlock		      "CoMError - \nCoM - CoMDes\n"
+	      DstPort		      3
+	    }
+	    Branch {
+	      Points		      [-95, 0]
+	      DstBlock		      "CoMError - \nCoM - CoMDes\n1"
+	      DstPort		      2
+	    }
 	  }
 	}
 	Line {
@@ -3130,8 +3189,16 @@ Model {
 	Line {
 	  SrcBlock		  "COMFwdKin "
 	  SrcPort		  1
-	  DstBlock		  "CoM6D -> CoMXYZ"
-	  DstPort		  1
+	  Points		  [10, 0]
+	  Branch {
+	    DstBlock		    "CoM6D -> CoMXYZ"
+	    DstPort		    1
+	  }
+	  Branch {
+	    Points		    [0, 260]
+	    DstBlock		    "CoMError - \nCoM - CoMDes\n1"
+	    DstPort		    1
+	  }
 	}
 	Line {
 	  SrcBlock		  "CoM6D -> CoMXYZ"
@@ -3145,7 +3212,7 @@ Model {
 	  Branch {
 	    Points		    [6, 0]
 	    Branch {
-	      Points		      [8, 0; 0, 375; 814, 0; 0, -145]
+	      Points		      [-2, 0; 0, 375; 814, 0; 0, -145]
 	      DstBlock		      "CoMError - \nCoM - CoMDes\n"
 	      DstPort		      2
 	    }
@@ -3232,7 +3299,7 @@ Model {
 	Line {
 	  SrcBlock		  "Discrete-Time Integrator"
 	  SrcPort		  1
-	  Points		  [-250, 0]
+	  Points		  [-255, 0; 0, -90]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  16
 	}
@@ -3245,9 +3312,17 @@ Model {
 	Line {
 	  SrcBlock		  "Saturation"
 	  SrcPort		  1
-	  Points		  [16, 0; 0, 65]
-	  DstBlock		  "tau"
-	  DstPort		  1
+	  Points		  [5, 0]
+	  Branch {
+	    Points		    [11, 0; 0, 65]
+	    DstBlock		    "tau"
+	    DstPort		    1
+	  }
+	  Branch {
+	    Points		    [10, 0; 0, -10]
+	    DstBlock		    "Set Torques"
+	    DstPort		    1
+	  }
 	}
 	Line {
 	  SrcBlock		  "controllerMatlab"
@@ -3374,9 +3449,10 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;0;1];\nA = 0.2;\nf ="
-      " 0.2;\n\nxcomDes    = xCom0 + A*sin(2*pi*f*t)*e3  ;\nxDcomDes   = A*2*pi*f*cos(2*pi*f*t)*e3;\nxDDcomDes  = -A*(2"
-      "*pi*f)^2*sin(2*pi*f*t)*e3;"
+      script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;0;1];\nA = 0/25;\nf "
+      "= 0.2;\n\n% xcomDes    = xCom0 - A*sin(2*pi*f*t)*e3  ;\n% xDcomDes   = A*2*pi*f*cos(2*pi*f*t)*e3;\n% xDDcomDes  "
+      "= -A*(2*pi*f)^2*sin(2*pi*f*t)*e3;\n\nxcomDes    = [xCom0(1:2);0] + (xCom0(3)*A)*cos(2*pi*f*t)*e3 + 3*xCom0(3)/4 "
+      ";\nxDcomDes   = -xCom0(3)*A*2*pi*f*sin(2*pi*f*t)*e3;\nxDDcomDes  = -xCom0(3)*A*(2*pi*f)^2*cos(2*pi*f*t)*e3;"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }

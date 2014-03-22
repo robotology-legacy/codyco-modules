@@ -32,7 +32,7 @@
 #define DEBUGGING 1
 #define TIMING    0
 #define NEWCODE	  1
-#define ICUB_FIXED
+// #define ICUB_FIXED
 // #define WORLD2BASE_EXTERNAL
 
 YARP_DECLARE_DEVICES(icubmod)
@@ -393,16 +393,16 @@ bool robotStatus::inverseDynamics(double *qrad_input, double *dq_input, double *
 
 #ifdef WORLD2BASE_EXTERNAL
         wbi::Frame qBaseFrame = wbi::Frame(qrad_base.data());
-  #ifdef DEBUG
-	  fprintf(stderr,"robotStatus::inverseDynamics >> This is the rototranslation \
+#ifdef DEBUG
+        fprintf(stderr,"robotStatus::inverseDynamics >> This is the rototranslation \
 	    matrix for the base that has been read: \n%s\n",qBaseFrame.toString().c_str());
-	  fprintf(stderr,"robotStatus::inverseDynamics >> Reading external world to base rototranslation\n");
-  #endif
+        fprintf(stderr,"robotStatus::inverseDynamics >> Reading external world to base rototranslation\n");
+#endif
         ans = wbInterface->inverseDynamics(qrad_robot, qBaseFrame, dq_robot, dq_base.data(), ddq_robot, ddq_base.data(), grav.data(), tauJ_computed);
 #else
-  #ifdef DEBUG
-	  fprintf(stderr,"robotStatus::inverseDynamics >> Computing world to base rototranslation\n");
-  #endif
+#ifdef DEBUG
+        fprintf(stderr,"robotStatus::inverseDynamics >> Computing world to base rototranslation\n");
+#endif
         ans = wbInterface->inverseDynamics(qrad_robot, xBase, dq_robot, dq_base.data(), ddq_robot, ddq_base.data(), grav.data(), tauJ_computed);
 #endif
 
@@ -463,6 +463,20 @@ MassMatrix robotStatus::getMassMatrix() {
 Vector robotStatus::dynamicsGenBiasForces(double *qrad_input, double *dq_input) {
     bool ans = false;
     // grav is a 3x1 dim array
+    Vector qrad_base(16);
+    qrad_base.resize(16,0.0);
+    Vector dq_base(6)  ;
+    dq_base.resize(6,0.0);
+
+    double *qrad_robot = &qrad_input[16];
+    double *dq_robot   = &dq_input[6];
+
+    for(unsigned int i=0; i<qrad_base.size(); i++)
+        qrad_base[i] = *(qrad_input + i);
+
+    for(unsigned int i=0; i<dq_base.size(); i++)
+        dq_base[i] = *(dq_input + i);
+    
     if(robotJntAngles(false)) {
 #ifdef DEBUG
         fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> robotJntAngles computed for dynamicsGenBiasForces\n");
@@ -476,20 +490,7 @@ Vector robotStatus::dynamicsGenBiasForces(double *qrad_input, double *dq_input) 
                 fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> world2baseRototranslation computed for dynamicsGenBiasForces\n");
 #endif
                 if(robotBaseVelocity()) {
-                    Vector qrad_base(16);
-                    qrad_base.resize(16,0.0);
-                    Vector dq_base(6)  ;
-                    dq_base.resize(6,0.0);
 
-                    double *qrad_robot = &qrad_input[16];
-                    double *dq_robot   = &dq_input[6];
-
-                    for(unsigned int i=0; i<qrad_base.size(); i++) {
-                        qrad_base[i] = *(qrad_input + i);
-                    }
-
-                    for(unsigned int i=0; i<dq_base.size(); i++)
-                        dq_base[i] = *(dq_input + i);
 #ifdef WORLD2BASE_EXTERNAL
                     wbi::Frame qBaseFrame = wbi::Frame(qrad_base.data());
 #ifdef DEBUG
@@ -497,7 +498,21 @@ Vector robotStatus::dynamicsGenBiasForces(double *qrad_input, double *dq_input) 
 #endif
                     ans = wbInterface->computeGeneralizedBiasForces(qrad_robot, qBaseFrame, dq_robot, dq_base.data(), grav.data(), hterm.data());
 #else
-                    ans = wbInterface->computeGeneralizedBiasForces(qrad_robot, xBase, dq_robot, dq_base.data(), grav.data(), hterm.data());
+		    
+#ifdef DEBUG
+		    printf("computeGeneralizedBiasForces, computed with: \n");
+		    printf("qrad_robot: \n");
+		    for(unsigned int i=0; i<ICUB_DOFS;i++)
+		      printf("%f ",qrad_robot[i]);
+		    printf("\n");
+		    printf("xBase: \n%s\n",xBase.toString().c_str());
+		    printf("dq_robot: \n");
+		    for(unsigned int i=0;i<ICUB_DOFS;i++)
+		      printf("%f ",dq_robot[i]);
+		    printf("dq_base: \n%s\n",dq_base.toString().c_str());
+		    printf("grav: \n%s\n",grav.toString().c_str());
+#endif
+		    ans = wbInterface->computeGeneralizedBiasForces(qrad_robot, xBase, dq_robot, dq_base.data(), grav.data(), hterm.data());
 #endif
                 }
             }
@@ -1036,7 +1051,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     // This block will compute Jacobians for the specified link
     if(btype == 3) {
         JacobianMatrix jacob;
-        switch ((int) *uPtrs[0]){
+        switch ((int) *uPtrs[0]) {
         case 0:
             linkName = "r_sole";
             break;
@@ -1345,7 +1360,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         Vector momentum(6);
         momentum.zero();
         robot->centroidalMomentum(qrad_in.data(), dqrad_in.data(), momentum.data());
-	/** TODO Write to new output port*/
+        /** TODO Write to new output port*/
     }
 
     if(TIMING) tend = Time::now();
