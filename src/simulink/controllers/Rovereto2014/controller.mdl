@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.380"
+    ComputedModelVersion    "1.403"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -28,9 +28,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri Mar 21 20:35:40 2014"
-  RTWModifiedTimeStamp	  317329785
-  ModelVersionFormat	  "1.%<AutoIncrement:380>"
+  LastModifiedDate	  "Sun Mar 23 16:09:00 2014"
+  RTWModifiedTimeStamp	  317491420
+  ModelVersionFormat	  "1.%<AutoIncrement:403>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -892,7 +892,7 @@ Model {
   }
   System {
     Name		    "controller"
-    Location		    [110, 194, 483, 400]
+    Location		    [231, 112, 604, 318]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -914,6 +914,7 @@ Model {
       Ports		      []
       Position		      [160, 65, 200, 125]
       ZOrder		      42
+      BlockMirror	      on
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
       RTWSystemCode	      "Auto"
@@ -1044,7 +1045,7 @@ Model {
 	  Position		  [1195, 882, 1225, 918]
 	  ZOrder		  113
 	  Floating		  off
-	  Location		  [163, 120, 813, 805]
+	  Location		  [74, 81, 724, 766]
 	  Open			  on
 	  NumInputPorts		  "3"
 	  List {
@@ -1064,11 +1065,11 @@ Model {
 	    MarkerStyles	    "none|none|none|none|none|none"
 	  }
 	  ShowLegends		  on
-	  LegendLocations	  "0.62423     0.86006     0.32077    0.083577\n0.67962     0.55102     0.26538    0.083577\n0.5611"
-	  "5     0.24344     0.38385    0.083577"
+	  LegendLocations	  "0.62423     0.85985     0.32077    0.083577\n0.67962     0.55182     0.26538    0.083577\n0.5611"
+	  "5     0.24234     0.38385    0.083577"
 	  TimeRange		  "5"
-	  YMin			  "-0.325~-0.2~-0.2"
-	  YMax			  "0.05~0.6~0.6"
+	  YMin			  "-0.4~-0.4~-0.3"
+	  YMax			  "0.5~0.5~0.8"
 	  SaveName		  "ScopeData6"
 	  DataFormat		  "StructureWithTime"
 	  LimitDataPoints	  off
@@ -1082,7 +1083,7 @@ Model {
 	  Position		  [465, 922, 495, 958]
 	  ZOrder		  113
 	  Floating		  off
-	  Location		  [67, 81, 717, 767]
+	  Location		  [67, 81, 717, 766]
 	  Open			  off
 	  NumInputPorts		  "3"
 	  List {
@@ -3449,10 +3450,9 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;0;1];\nA = 0/25;\nf "
-      "= 0.2;\n\n% xcomDes    = xCom0 - A*sin(2*pi*f*t)*e3  ;\n% xDcomDes   = A*2*pi*f*cos(2*pi*f*t)*e3;\n% xDDcomDes  "
-      "= -A*(2*pi*f)^2*sin(2*pi*f*t)*e3;\n\nxcomDes    = [xCom0(1:2);0] + (xCom0(3)*A)*cos(2*pi*f*t)*e3 + 3*xCom0(3)/4 "
-      ";\nxDcomDes   = -xCom0(3)*A*2*pi*f*sin(2*pi*f*t)*e3;\nxDDcomDes  = -xCom0(3)*A*(2*pi*f)^2*cos(2*pi*f*t)*e3;"
+      script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;0;1];\nA = 1/10;\nf "
+      "= 0.2;\n\nxcomDes    = [xCom0(1:2); (1/A-1)*A*xCom0(3)] + A*xCom0(3)*cos(2*pi*f*t)*e3;\nxDcomDes   = -xCom0(3)*A"
+      "*2*pi*f*sin(2*pi*f*t)*e3;\nxDDcomDes  = -xCom0(3)*A*(2*pi*f)^2*cos(2*pi*f*t)*e3;"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
