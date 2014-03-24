@@ -22,9 +22,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Wed Mar 19 11:22:32 2014"
-  RTWModifiedTimeStamp	  317128889
-  ModelVersionFormat	  "1.%<AutoIncrement:2>"
+  LastModifiedDate	  "Mon Mar 24 10:13:59 2014"
+  RTWModifiedTimeStamp	  317556159
+  ModelVersionFormat	  "1.%<AutoIncrement:4>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -823,7 +823,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [449, 240, 1237, 500]
+    Location		    [444, 335, 1232, 595]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -837,7 +837,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "977"
+    SIDHighWatermark	    "979"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -3426,8 +3426,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[302, 204, 866, 462]
-	Open			off
+	Location		[746, 276, 1310, 534]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -7313,6 +7313,15 @@ Library {
 	    }
 	  }
 	}
+	Block {
+	  BlockType		  S-Function
+	  Name			  "S-Function"
+	  SID			  "979"
+	  Ports			  [1, 1]
+	  Position		  [175, 185, 235, 215]
+	  ZOrder		  -5
+	  EnableBusSupport	  off
+	}
       }
     }
     Block {
@@ -7482,7 +7491,7 @@ Library {
 		  ZOrder		  -5
 		  LibraryVersion	  "1.0"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  ""
+		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/left_arm/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "5"
@@ -7496,7 +7505,7 @@ Library {
 		  ZOrder		  -5
 		  LibraryVersion	  "1.0"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  ""
+		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/right_arm/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "5"
@@ -7510,7 +7519,7 @@ Library {
 		  ZOrder		  -5
 		  LibraryVersion	  "1.0"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  ""
+		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/left_leg/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "6"
@@ -7524,7 +7533,7 @@ Library {
 		  ZOrder		  -5
 		  LibraryVersion	  "1.0"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  ""
+		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/right_leg/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "6"
@@ -7538,7 +7547,7 @@ Library {
 		  ZOrder		  -5
 		  LibraryVersion	  "1.0"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  ""
+		  SourceType		  "Unknown"
 		  from			  "['/' robotName '/torso/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "3"
