@@ -93,6 +93,19 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     ArrayXd             dqSignNeg;              ///< negative samples of the motor velocity signes
     ArrayXd             pwm;                    ///< motor PWMs
     vector<VectorXd>    inputSamples;           ///< input samples to use for identification
+    
+    Matrix3d            leftShoulderTorqueCouplingMatrix;
+    Matrix3d            leftShoulderVelocityCouplingMatrix;
+    Matrix3d            rightShoulderTorqueCouplingMatrix;
+    Matrix3d            rightShoulderVelocityCouplingMatrix;
+    Matrix2d            torsoTorqueCouplingMatrix;
+    Matrix2d            torsoVelocityCouplingMatrix;
+    Vector2d             torsoVelocities;
+    Vector2d             torsoTorques;
+    Vector3d             leftShoulderTorques;
+    Vector3d             leftShoulderVelocities;
+    Vector3d             rightShoulderTorques;
+    Vector3d             rightShoulderVelocities;
 
     ///< *************** INPUT MODULE PARAMETERS ********************
     ArrayXi     activeJoints;       ///< List of flags (0,1) indicating for which motors the identification is active

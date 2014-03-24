@@ -21,6 +21,7 @@
 #include <yarp/os/Time.h>
 #include <yarp/os/Random.h>
 #include <yarp/os/Log.h>
+#include <iCub/skinDynLib/common.h>
 
 using namespace yarp::math;
 using namespace wbiIcub;
@@ -160,6 +161,25 @@ bool MotorFrictionIdentificationThread::threadInit()
     if(!readRobotStatus(true))
         return false;
     
+    leftShoulderTorqueCouplingMatrix = Matrix3d::Zero();
+    leftShoulderTorqueCouplingMatrix(0,0) = 1;
+    leftShoulderTorqueCouplingMatrix(1, 0) = leftShoulderTorqueCouplingMatrix(2, 0) = -1;
+    leftShoulderTorqueCouplingMatrix(1, 1) = leftShoulderTorqueCouplingMatrix(2, 1) = leftShoulderTorqueCouplingMatrix(2, 2) = 1;
+    
+    leftShoulderVelocityCouplingMatrix = Matrix3d::Zero();
+    leftShoulderVelocityCouplingMatrix(0,0) = leftShoulderVelocityCouplingMatrix(1,1) = leftShoulderVelocityCouplingMatrix(2,2) = 1;
+    leftShoulderVelocityCouplingMatrix(2,0) = 1;
+    leftShoulderVelocityCouplingMatrix(2,1) = -1;
+    
+    rightShoulderTorqueCouplingMatrix = leftShoulderTorqueCouplingMatrix;
+    rightShoulderVelocityCouplingMatrix = leftShoulderVelocityCouplingMatrix;
+    
+    torsoTorqueCouplingMatrix = Matrix2d::Zero();
+    torsoTorqueCouplingMatrix(0,0) = torsoTorqueCouplingMatrix(0,1) =  torsoTorqueCouplingMatrix(1,0) = 1;
+    torsoTorqueCouplingMatrix(1,1) = -1;
+    torsoVelocityCouplingMatrix = 0.5 * torsoTorqueCouplingMatrix;
+    
+    
     printf("\n\n");
     return true;
 }
@@ -216,6 +236,14 @@ bool MotorFrictionIdentificationThread::readRobotStatus(bool blockingRead)
 bool MotorFrictionIdentificationThread::computeInputSamples()
 {
     ///< compute velocity signs
+    wbi::LocalIdList jointList = robot->getJointList();
+    torsoVelocities = Vector2d::Zero();
+    torsoTorques = Vector2d::Zero();
+    leftShoulderTorques = Vector3d::Zero();
+    leftShoulderVelocities = Vector3d::Zero();
+    rightShoulderTorques = Vector3d::Zero();
+    rightShoulderVelocities = Vector3d::Zero();
+    
     for(int i=0; i<_n; i++)
     {
         dqPos[i]        = dq[i]>zeroJointVelThr  ?   dq[i]   :   0.0;
@@ -229,7 +257,25 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
         inputSamples[i][INDEX_K_VN]   = dqNeg[i];
         inputSamples[i][INDEX_K_CP]   = dqSignPos[i];
         inputSamples[i][INDEX_K_CN]   = dqSignNeg[i];
-
+        
+        wbi::LocalId lid = jointList.globalToLocalId(i);
+        if (lid.bodyPart == iCub::skinDynLib::TORSO
+            && lid.index >= 0 && lid.index <= 1) 
+        {
+            torsoTorques(lid.index) = torques[i];
+            torsoVelocities(lid.index) = dq[i];
+        }
+        else if (lid.bodyPart == iCub::skinDynLib::LEFT_ARM
+            && lid.index >= 0 && lid.index <= 2) {
+            leftShoulderTorques(lid.index) = torques[i];
+            leftShoulderVelocities(lid.index) = dq[i];
+        }
+        else if (lid.bodyPart == iCub::skinDynLib::RIGHT_ARM
+            && lid.index >= 0 && lid.index <= 2) {
+            rightShoulderTorques(lid.index) = torques[i];
+            rightShoulderVelocities(lid.index) = dq[i];
+        }
+        
         ///< on the simulator generate random data samples
         if(robotName=="icubSim")
         {
@@ -239,6 +285,56 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
             pwm[i] = inputSamples[i].dot(xRand) + Random::normal(0, 10.0);
         }
     }
+    
+    torsoTorques = torsoTorqueCouplingMatrix * torsoTorques;
+    torsoVelocities = torsoVelocityCouplingMatrix * torsoVelocities;
+    leftShoulderTorques = leftShoulderTorqueCouplingMatrix * leftShoulderTorques;
+    leftShoulderVelocities = leftShoulderVelocityCouplingMatrix * leftShoulderVelocities;
+    rightShoulderTorques = rightShoulderTorqueCouplingMatrix * rightShoulderTorques;
+    rightShoulderVelocities = rightShoulderVelocityCouplingMatrix * rightShoulderVelocities;
+    
+    for(int i=0; i<_n; i++)
+    {
+        wbi::LocalId lid = jointList.globalToLocalId(i);
+        //skip if body part or joint is not the right one
+        if (!(lid.bodyPart == iCub::skinDynLib::TORSO && lid.index >= 0 && lid.index <= 1) 
+            || !(lid.bodyPart == iCub::skinDynLib::LEFT_ARM && lid.index >= 0 && lid.index <= 2)
+            || !(lid.bodyPart == iCub::skinDynLib::RIGHT_ARM && lid.index >= 0 && lid.index <= 2))
+        {
+           continue;
+        }
+        
+        if (lid.bodyPart == iCub::skinDynLib::TORSO
+            && lid.index >= 0 && lid.index <= 1) 
+        {
+            torques[i] = torsoTorques(lid.index);
+            dq[i] = torsoVelocities(lid.index);
+        }
+        else if (lid.bodyPart == iCub::skinDynLib::LEFT_ARM
+            && lid.index >= 0 && lid.index <= 2) {
+            torques[i] = leftShoulderTorques(lid.index);
+            dq[i] = leftShoulderVelocities(lid.index);
+        }
+        else if (lid.bodyPart == iCub::skinDynLib::RIGHT_ARM
+            && lid.index >= 0 && lid.index <= 2) {
+            torques[i] = rightShoulderTorques(lid.index);
+            dq[i] = rightShoulderVelocities(lid.index);
+        }
+       
+        dqPos[i]        = dq[i]>zeroJointVelThr  ?   dq[i]   :   0.0;
+        dqNeg[i]        = dq[i]<-zeroJointVelThr ?   dq[i]   :   0.0;
+        dqSignPos[i]    = dq[i]>zeroJointVelThr  ?   1.0     :   0.0;
+        dqSignNeg[i]    = dq[i]<-zeroJointVelThr ?   -1.0    :   0.0;
+        dqSign[i]       = dqSignPos[i] + dqSignNeg[i];
+        
+        inputSamples[i][INDEX_K_TAO]  = torques[i];
+        inputSamples[i][INDEX_K_VP]   = dqPos[i];
+        inputSamples[i][INDEX_K_VN]   = dqNeg[i];
+        inputSamples[i][INDEX_K_CP]   = dqSignPos[i];
+        inputSamples[i][INDEX_K_CN]   = dqSignNeg[i];
+       
+    }
+    
 
     return true;
 }
