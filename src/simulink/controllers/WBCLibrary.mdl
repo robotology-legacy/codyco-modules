@@ -22,9 +22,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Mar 24 10:13:59 2014"
-  RTWModifiedTimeStamp	  317556159
-  ModelVersionFormat	  "1.%<AutoIncrement:4>"
+  LastModifiedDate	  "Mon Mar 24 17:39:21 2014"
+  RTWModifiedTimeStamp	  317583392
+  ModelVersionFormat	  "1.%<AutoIncrement:19>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -638,12 +638,6 @@ Library {
       Decimation	      "10"
     }
     Block {
-      BlockType		      Concatenate
-      NumInputs		      "2"
-      Mode		      "Vector"
-      ConcatenateDimension    "1"
-    }
-    Block {
       BlockType		      Constant
       Value		      "1"
       VectorParams1D	      on
@@ -661,21 +655,6 @@ Library {
       Outputs		      "4"
       DisplayOption	      "none"
       BusSelectionMode	      off
-    }
-    Block {
-      BlockType		      Gain
-      Gain		      "1"
-      Multiplication	      "Element-wise(K.*u)"
-      ParamMin		      "[]"
-      ParamMax		      "[]"
-      ParamDataTypeStr	      "Inherit: Same as input"
-      OutMin		      "[]"
-      OutMax		      "[]"
-      OutDataTypeStr	      "Inherit: Same as input"
-      LockScale		      off
-      RndMeth		      "Floor"
-      SaturateOnIntegerOverflow	on
-      SampleTime	      "-1"
     }
     Block {
       BlockType		      Inport
@@ -823,7 +802,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [444, 335, 1232, 595]
+    Location		    [532, 509, 1320, 769]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -837,7 +816,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "979"
+    SIDHighWatermark	    "1031"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -861,8 +840,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
-	Location		[621, 355, 1313, 650]
-	Open			off
+	Location		[10, 287, 702, 582]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -1592,8 +1571,8 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "baseVelocity"
-	    Location		    [406, 165, 1042, 394]
-	    Open		    off
+	    Location		    [754, 458, 1132, 687]
+	    Open		    on
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -1609,14 +1588,14 @@ Library {
 	      BlockType		      Inport
 	      Name		      "JacobRF"
 	      SID		      "432"
-	      Position		      [25, 33, 55, 47]
+	      Position		      [75, 63, 105, 77]
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
 	      BlockType		      Inport
 	      Name		      "JacobLF"
 	      SID		      "433"
-	      Position		      [25, 118, 55, 132]
+	      Position		      [75, 93, 105, 107]
 	      Port		      "2"
 	      IconDisplay	      "Port number"
 	    }
@@ -1624,131 +1603,176 @@ Library {
 	      BlockType		      Inport
 	      Name		      "dq"
 	      SID		      "434"
-	      Position		      [25, 168, 55, 182]
+	      Position		      [75, 123, 105, 137]
 	      Port		      "3"
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
-	      BlockType		      Gain
-	      Name		      "Gain"
-	      SID		      "670"
-	      Position		      [315, 160, 345, 190]
-	      ZOrder		      -8
-	      Gain		      "-1"
-	      ParamDataTypeStr	      "Inherit: Inherit via internal rule"
-	      OutDataTypeStr	      "Inherit: Inherit via internal rule"
-	      SaturateOnIntegerOverflow	off
-	    }
-	    Block {
-	      BlockType		      Concatenate
-	      Name		      "Matrix\nConcatenate"
-	      SID		      "435"
-	      Ports		      [2, 1]
-	      Position		      [135, 59, 190, 101]
-	      ZOrder		      -14
-	      ShowName		      off
-	      Mode		      "Multidimensional array"
-	    }
-	    Block {
-	      BlockType		      Product
-	      Name		      "Product"
-	      SID		      "436"
-	      Ports		      [2, 1]
-	      Position		      [375, 97, 405, 128]
-	      ZOrder		      -19
-	      Multiplication	      "Matrix(*)"
-	      InputSameDT	      off
-	      OutDataTypeStr	      "Inherit: Inherit via internal rule"
-	      SaturateOnIntegerOverflow	off
-	    }
-	    Block {
-	      BlockType		      Reference
-	      Name		      "SVD Solver"
-	      SID		      "437"
-	      Ports		      [2, 1]
-	      Position		      [455, 56, 535, 114]
-	      LibraryVersion	      "1.161"
-	      SourceBlock	      "dspsolvers/SVD Solver"
-	      SourceType	      "SVD Solver"
-	      wanterr		      off
-	    }
-	    Block {
-	      BlockType		      Reference
-	      Name		      "Submatrix"
-	      SID		      "438"
-	      Ports		      [1, 1]
-	      Position		      [255, 85, 305, 125]
-	      ShowName		      off
-	      LibraryVersion	      "1.898"
-	      SourceBlock	      "dspmtrx3/Submatrix"
-	      SourceType	      "Submatrix"
-	      RowSpan		      "Range of rows"
-	      RowStartMode	      "First"
-	      RowStartIndex	      "1"
-	      RowEndMode	      "Last"
-	      RowEndIndex	      "1"
-	      ColSpan		      "Range of columns"
-	      ColStartMode	      "Index"
-	      ColStartIndex	      "7"
-	      ColEndMode	      "Last"
-	      ColEndIndex	      "1"
-	    }
-	    Block {
-	      BlockType		      Reference
-	      Name		      "Submatrix3"
-	      SID		      "439"
-	      Ports		      [1, 1]
-	      Position		      [255, 35, 305, 75]
-	      ShowName		      off
-	      LibraryVersion	      "1.898"
-	      SourceBlock	      "dspmtrx3/Submatrix"
-	      SourceType	      "Submatrix"
-	      RowSpan		      "Range of rows"
-	      RowStartMode	      "First"
-	      RowStartIndex	      "1"
-	      RowEndMode	      "Last"
-	      RowEndIndex	      "1"
-	      ColSpan		      "Range of columns"
-	      ColStartMode	      "First"
-	      ColStartIndex	      "7"
-	      ColEndMode	      "Index"
-	      ColEndIndex	      "6"
+	      BlockType		      SubSystem
+	      Name		      "MATLAB Function"
+	      SID		      "1030"
+	      Ports		      [3, 1]
+	      Position		      [150, 51, 255, 149]
+	      ZOrder		      -4
+	      LibraryVersion	      "1.32"
+	      ErrorFcn		      "Stateflow.Translate.translate"
+	      PermitHierarchicalResolution "ExplicitOnly"
+	      TreatAsAtomicUnit	      on
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      RTWSystemCode	      "Auto"
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      RequestExecContextInheritance off
+	      MaskHideContents	      off
+	      SFBlockType	      "MATLAB Function"
+	      MaskType		      "Stateflow"
+	      MaskDescription	      "Embedded MATLAB block"
+	      MaskSelfModifiable      on
+	      MaskDisplay	      "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('p"
+	      "rivate/eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
+	      MaskIconFrame	      on
+	      MaskIconOpaque	      off
+	      MaskIconRotate	      "none"
+	      MaskPortRotate	      "default"
+	      MaskIconUnits	      "normalized"
+	      System {
+		Name			"MATLAB Function"
+		Location		[257, 457, 812, 717]
+		Open			off
+		ModelBrowserVisibility	off
+		ModelBrowserWidth	200
+		ScreenColor		"white"
+		PaperOrientation	"landscape"
+		PaperPositionMode	"auto"
+		PaperType		"usletter"
+		PaperUnits		"inches"
+		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+		TiledPageScale		1
+		ShowPageBoundaries	off
+		ZoomFactor		"100"
+		SIDHighWatermark	"24"
+		Block {
+		  BlockType		  Inport
+		  Name			  "JacobRF"
+		  SID			  "1030::1"
+		  Position		  [20, 101, 40, 119]
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Inport
+		  Name			  "JacobLF"
+		  SID			  "1030::24"
+		  Position		  [20, 136, 40, 154]
+		  ZOrder		  10
+		  Port			  "2"
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Inport
+		  Name			  "qD"
+		  SID			  "1030::23"
+		  Position		  [20, 171, 40, 189]
+		  ZOrder		  9
+		  Port			  "3"
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Demux
+		  Name			  " Demux "
+		  SID			  "1030::20"
+		  Ports			  [1, 1]
+		  Position		  [270, 180, 320, 220]
+		  ZOrder		  6
+		  Outputs		  "1"
+		}
+		Block {
+		  BlockType		  S-Function
+		  Name			  " SFunction "
+		  SID			  "1030::19"
+		  Tag			  "Stateflow S-Function WBCLibrary 2"
+		  Ports			  [3, 2]
+		  Position		  [180, 100, 230, 180]
+		  ZOrder		  5
+		  FunctionName		  "sf_sfun"
+		  PortCounts		  "[3 2]"
+		  EnableBusSupport	  off
+		  Port {
+		    PortNumber		    2
+		    Name		    "y"
+		    RTWStorageClass	    "Auto"
+		    DataLoggingNameMode	    "SignalName"
+		  }
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  " Terminator "
+		  SID			  "1030::22"
+		  Position		  [460, 191, 480, 209]
+		  ZOrder		  8
+		}
+		Block {
+		  BlockType		  Outport
+		  Name			  "y"
+		  SID			  "1030::5"
+		  Position		  [460, 101, 480, 119]
+		  IconDisplay		  "Port number"
+		}
+		Line {
+		  SrcBlock		  "JacobRF"
+		  SrcPort		  1
+		  DstBlock		  " SFunction "
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "JacobLF"
+		  SrcPort		  1
+		  DstBlock		  " SFunction "
+		  DstPort		  2
+		}
+		Line {
+		  SrcBlock		  "qD"
+		  SrcPort		  1
+		  DstBlock		  " SFunction "
+		  DstPort		  3
+		}
+		Line {
+		  Name			  "y"
+		  Labels		  [0, 0]
+		  SrcBlock		  " SFunction "
+		  SrcPort		  2
+		  DstBlock		  "y"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  " Demux "
+		  SrcPort		  1
+		  DstBlock		  " Terminator "
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  " SFunction "
+		  SrcPort		  1
+		  DstBlock		  " Demux "
+		  DstPort		  1
+		}
+	      }
 	    }
 	    Block {
 	      BlockType		      Outport
 	      Name		      "baseVel"
 	      SID		      "440"
-	      Position		      [570, 78, 600, 92]
+	      Position		      [290, 93, 320, 107]
 	      IconDisplay	      "Port number"
 	    }
 	    Line {
 	      SrcBlock		      "dq"
 	      SrcPort		      1
-	      DstBlock		      "Gain"
-	      DstPort		      1
+	      DstBlock		      "MATLAB Function"
+	      DstPort		      3
 	    }
 	    Line {
-	      SrcBlock		      "Product"
-	      SrcPort		      1
-	      Points		      [15, 0; 0, -15]
-	      DstBlock		      "SVD Solver"
-	      DstPort		      2
-	    }
-	    Line {
-	      SrcBlock		      "Submatrix"
-	      SrcPort		      1
-	      DstBlock		      "Product"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "JacobLF"
-	      SrcPort		      1
-	      Points		      [55, 0; 0, -35]
-	      DstBlock		      "Matrix\nConcatenate"
-	      DstPort		      2
-	    }
-	    Line {
-	      SrcBlock		      "SVD Solver"
+	      SrcBlock		      "MATLAB Function"
 	      SrcPort		      1
 	      DstBlock		      "baseVel"
 	      DstPort		      1
@@ -1756,45 +1780,14 @@ Library {
 	    Line {
 	      SrcBlock		      "JacobRF"
 	      SrcPort		      1
-	      Points		      [55, 0; 0, 30]
-	      DstBlock		      "Matrix\nConcatenate"
+	      DstBlock		      "MATLAB Function"
 	      DstPort		      1
 	    }
 	    Line {
-	      SrcBlock		      "Submatrix3"
+	      SrcBlock		      "JacobLF"
 	      SrcPort		      1
-	      Points		      [115, 0; 0, 15]
-	      DstBlock		      "SVD Solver"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "Matrix\nConcatenate"
-	      SrcPort		      1
-	      Points		      [10, 0]
-	      Branch {
-		Points			[0, -25]
-		DstBlock		"Submatrix3"
-		DstPort			1
-	      }
-	      Branch {
-		Points			[0, 25]
-		DstBlock		"Submatrix"
-		DstPort			1
-	      }
-	    }
-	    Line {
-	      SrcBlock		      "Gain"
-	      SrcPort		      1
-	      Points		      [10, 0]
-	      DstBlock		      "Product"
+	      DstBlock		      "MATLAB Function"
 	      DstPort		      2
-	    }
-	    Annotation {
-	      SID		      "442"
-	      Name		      "The constraints block should be put outside"
-	      Position		      [431, 21]
-	      ForegroundColor	      "white"
-	      BackgroundColor	      "red"
 	    }
 	  }
 	}
@@ -3408,7 +3401,7 @@ Library {
       Name		      "wholeBodyModel"
       SID		      "209"
       Ports		      []
-      Position		      [134, 17, 171, 53]
+      Position		      [135, 17, 170, 53]
       ZOrder		      -3
       DropShadow	      on
       MinAlgLoopOccurrences   off
@@ -3426,7 +3419,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[746, 276, 1310, 534]
+	Location		[670, 584, 1249, 859]
 	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -3462,8 +3455,8 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Dynamics"
-	    Location		    [675, 128, 1394, 284]
-	    Open		    off
+	    Location		    [600, 218, 1379, 391]
+	    Open		    on
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -3475,6 +3468,308 @@ Library {
 	    TiledPageScale	    1
 	    ShowPageBoundaries	    off
 	    ZoomFactor		    "100"
+	    Block {
+	      BlockType		      SubSystem
+	      Name		      "Cent Momentum"
+	      SID		      "1008"
+	      Ports		      [2, 1]
+	      Position		      [660, 48, 725, 92]
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      RTWSystemCode	      "Auto"
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      RequestExecContextInheritance off
+	      MaskHideContents	      off
+	      System {
+		Name			"Cent Momentum"
+		Location		[1887, 355, 2207, 735]
+		Open			off
+		ModelBrowserVisibility	off
+		ModelBrowserWidth	200
+		ScreenColor		"white"
+		PaperOrientation	"landscape"
+		PaperPositionMode	"auto"
+		PaperType		"usletter"
+		PaperUnits		"inches"
+		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+		TiledPageScale		1
+		ShowPageBoundaries	off
+		ZoomFactor		"100"
+		Block {
+		  BlockType		  Inport
+		  Name			  "q"
+		  SID			  "1009"
+		  Position		  [25, 183, 55, 197]
+		  ZOrder		  -1
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Inport
+		  Name			  "dq"
+		  SID			  "1010"
+		  Position		  [25, 248, 55, 262]
+		  ZOrder		  -1
+		  Port			  "2"
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "RightFoot"
+		  SID			  "1011"
+		  Position		  [25, 45, 55, 75]
+		  ZOrder		  -4
+		  Value			  "0"
+		  OutDataTypeStr	  "int8"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  S-Function
+		  Name			  "S-Function"
+		  SID			  "1012"
+		  Ports			  [5, 13]
+		  Position		  [120, 26, 220, 354]
+		  ZOrder		  -5
+		  FunctionName		  "robotState"
+		  Parameters		  "14,robotName,localName"
+		  EnableBusSupport	  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator"
+		  SID			  "1013"
+		  Position		  [270, 30, 290, 50]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator1"
+		  SID			  "1014"
+		  Position		  [270, 55, 290, 75]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator10"
+		  SID			  "1015"
+		  Position		  [270, 280, 290, 300]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator11"
+		  SID			  "1016"
+		  Position		  [270, 305, 290, 325]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator2"
+		  SID			  "1017"
+		  Position		  [270, 80, 290, 100]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator3"
+		  SID			  "1018"
+		  Position		  [270, 105, 290, 125]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator4"
+		  SID			  "1019"
+		  Position		  [270, 130, 290, 150]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator5"
+		  SID			  "1020"
+		  Position		  [270, 155, 290, 175]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator6"
+		  SID			  "1021"
+		  Position		  [270, 180, 290, 200]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator7"
+		  SID			  "1022"
+		  Position		  [270, 205, 290, 225]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator8"
+		  SID			  "1023"
+		  Position		  [270, 230, 290, 250]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Terminator9"
+		  SID			  "1024"
+		  Position		  [270, 255, 290, 275]
+		  ZOrder		  -20
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "dummy"
+		  SID			  "1025"
+		  Position		  [25, 110, 55, 140]
+		  ZOrder		  -4
+		  ShowName		  off
+		  Value			  "zeros(25,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "dummy3"
+		  SID			  "1026"
+		  Position		  [25, 305, 55, 335]
+		  ZOrder		  -4
+		  ShowName		  off
+		  Value			  "zeros(31,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Outport
+		  Name			  "H"
+		  SID			  "1027"
+		  Position		  [265, 333, 295, 347]
+		  ZOrder		  -9
+		  IconDisplay		  "Port number"
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  13
+		  DstBlock		  "H"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "dummy3"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  5
+		}
+		Line {
+		  SrcBlock		  "dq"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  4
+		}
+		Line {
+		  SrcBlock		  "q"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  3
+		}
+		Line {
+		  SrcBlock		  "dummy"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  2
+		}
+		Line {
+		  SrcBlock		  "RightFoot"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  12
+		  DstBlock		  "Terminator11"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  11
+		  DstBlock		  "Terminator10"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  10
+		  DstBlock		  "Terminator9"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  9
+		  DstBlock		  "Terminator8"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  8
+		  DstBlock		  "Terminator7"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  7
+		  DstBlock		  "Terminator6"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  6
+		  DstBlock		  "Terminator5"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  5
+		  DstBlock		  "Terminator4"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  4
+		  DstBlock		  "Terminator3"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  3
+		  DstBlock		  "Terminator2"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  2
+		  DstBlock		  "Terminator1"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  1
+		  DstBlock		  "Terminator"
+		  DstPort		  1
+		}
+	      }
+	    }
 	    Block {
 	      BlockType		      SubSystem
 	      Name		      "Inverse Dynamics"
@@ -7033,8 +7328,8 @@ Library {
 	  MaskValueString	  "robotName|localName"
 	  System {
 	    Name		    "Joint Limits"
-	    Location		    [508, 200, 863, 610]
-	    Open		    off
+	    Location		    [246, 221, 605, 641]
+	    Open		    on
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -7312,15 +7607,6 @@ Library {
 	      DstPort		      1
 	    }
 	  }
-	}
-	Block {
-	  BlockType		  S-Function
-	  Name			  "S-Function"
-	  SID			  "979"
-	  Ports			  [1, 1]
-	  Position		  [175, 185, 235, 215]
-	  ZOrder		  -5
-	  EnableBusSupport	  off
 	}
       }
     }
@@ -9142,25 +9428,26 @@ Stateflow {
     name		    "WBCLibrary"
     created		    "06-Feb-2014 11:51:26"
     isLibrary		    1
-    firstTarget		    18
+    firstTarget		    27
     sfVersion		    76014001.00040001
   }
   chart {
     id			    2
-    name		    "Utilities/DampPinv/Damped Pseudo Inverse"
-    windowPosition	    [259 477 200 423]
+    name		    "Utilities/baseVelocity/MATLAB Function"
+    windowPosition	    [375.75 203.25 200.25 189.75]
     viewLimits		    [0 156.75 0 153.75]
-    screen		    [1 1 3280 1200 1.25]
+    screen		    [1 1 2806 900 1.25]
     treeNode		    [0 3 0 0]
     firstTransition	    5
     firstJunction	    4
     viewObj		    2
     machine		    1
-    ssIdHighWaterMark	    8
+    toolbarMode		    LIBRARY_TOOLBAR
+    ssIdHighWaterMark	    7
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
     firstData		    6
-    chartFileNumber	    6
+    chartFileNumber	    2
     disableImplicitCasting  1
     eml {
       name		      "fcn"
@@ -9180,9 +9467,7 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      "function DPinv  = fcn(mat,sigma)\n% Economody size svd of mat\n[U,S,V] = svd(mat,'econ');\n% Damp"
-      "ed version of S with sigma\nS(S>sigma)=S(S>sigma)./((S(S>sigma)).^2+sigma^2);\n% Damped pseudoinverse\nDPinv = V"
-      "*pinv(S)*U';"
+      script		      "function y = fcn(JacobRF, JacobLF, qD)\n%#codegen\ny = -pinv(JacobRF*JacobLF*qD)"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
@@ -9205,7 +9490,7 @@ Stateflow {
     }
     dst {
       id		      4
-      intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
+      intersection	      [7 0 -1 -1 23.5747 42.5747 0 0]
     }
     midPoint		    [23.5747 24.9468]
     chart		    2
@@ -9213,16 +9498,13 @@ Stateflow {
     dataLimits		    [23.575 23.575 14.625 34.575]
     subviewer		    2
     drawStyle		    SMART
-    slide {
-      sticky		      BOTH_STICK
-    }
     executionOrder	    1
     ssIdNumber		    2
   }
   data {
     id			    6
     ssIdNumber		    4
-    name		    "mat"
+    name		    "JacobRF"
     linkNode		    [2 0 7]
     scope		    INPUT_DATA
     machine		    1
@@ -9240,9 +9522,31 @@ Stateflow {
   }
   data {
     id			    7
-    ssIdNumber		    5
-    name		    "DPinv"
+    ssIdNumber		    7
+    name		    "JacobLF"
     linkNode		    [2 6 8]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    8
+    ssIdNumber		    5
+    name		    "y"
+    linkNode		    [2 7 9]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -9259,10 +9563,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    8
-    ssIdNumber		    8
-    name		    "sigma"
-    linkNode		    [2 7 0]
+    id			    9
+    ssIdNumber		    6
+    name		    "qD"
+    linkNode		    [2 8 0]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -9281,27 +9585,168 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   instance {
-    id			    9
-    name		    "Utilities/DampPinv/Damped Pseudo Inverse"
+    id			    10
+    name		    "Utilities/baseVelocity/MATLAB Function"
     machine		    1
     chart		    2
   }
   chart {
-    id			    10
+    id			    11
+    name		    "Utilities/DampPinv/Damped Pseudo Inverse"
+    windowPosition	    [259 477 200 423]
+    viewLimits		    [0 156.75 0 153.75]
+    screen		    [1 1 3280 1200 1.25]
+    treeNode		    [0 12 0 0]
+    firstTransition	    14
+    firstJunction	    13
+    viewObj		    11
+    machine		    1
+    ssIdHighWaterMark	    8
+    decomposition	    CLUSTER_CHART
+    type		    EML_CHART
+    firstData		    15
+    chartFileNumber	    6
+    disableImplicitCasting  1
+    eml {
+      name		      "fcn"
+    }
+  }
+  state {
+    id			    12
+    labelString		    "eML_blk_kernel()"
+    position		    [18 64.5 118 66]
+    fontSize		    12
+    chart		    11
+    treeNode		    [11 0 0 0]
+    superState		    SUBCHART
+    subviewer		    11
+    ssIdNumber		    1
+    type		    FUNC_STATE
+    decomposition	    CLUSTER_STATE
+    eml {
+      isEML		      1
+      script		      "function DPinv  = fcn(mat,sigma)\n% Economody size svd of mat\n[U,S,V] = svd(mat,'econ');\n% Damp"
+      "ed version of S with sigma\nS(S>sigma)=S(S>sigma)./((S(S>sigma)).^2+sigma^2);\n% Damped pseudoinverse\nDPinv = V"
+      "*pinv(S)*U';"
+      editorLayout	      "100 M4x1[10 5 700 500]"
+    }
+  }
+  junction {
+    id			    13
+    position		    [23.5747 49.5747 7]
+    chart		    11
+    linkNode		    [11 0 0]
+    subviewer		    11
+    ssIdNumber		    3
+    type		    CONNECTIVE_JUNCTION
+  }
+  transition {
+    id			    14
+    labelString		    "{eML_blk_kernel();}"
+    labelPosition	    [32.125 19.875 102.544 14.964]
+    fontSize		    12
+    src {
+      intersection	      [0 0 1 0 23.5747 14.625 0 0]
+    }
+    dst {
+      id		      13
+      intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
+    }
+    midPoint		    [23.5747 24.9468]
+    chart		    11
+    linkNode		    [11 0 0]
+    dataLimits		    [23.575 23.575 14.625 34.575]
+    subviewer		    11
+    drawStyle		    SMART
+    slide {
+      sticky		      BOTH_STICK
+    }
+    executionOrder	    1
+    ssIdNumber		    2
+  }
+  data {
+    id			    15
+    ssIdNumber		    4
+    name		    "mat"
+    linkNode		    [11 0 16]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+      }
+      complexity	      SF_COMPLEX_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    16
+    ssIdNumber		    5
+    name		    "DPinv"
+    linkNode		    [11 15 17]
+    scope		    OUTPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    17
+    ssIdNumber		    8
+    name		    "sigma"
+    linkNode		    [11 16 0]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  instance {
+    id			    18
+    name		    "Utilities/DampPinv/Damped Pseudo Inverse"
+    machine		    1
+    chart		    11
+  }
+  chart {
+    id			    19
     name		    "Utilities/TruncPinv/Truncated PseudoInverse"
     windowPosition	    [244 474 200 423]
     viewLimits		    [0 156.75 0 153.75]
     screen		    [1 1 3280 1200 1.25]
-    treeNode		    [0 11 0 0]
-    firstTransition	    13
-    firstJunction	    12
-    viewObj		    10
+    treeNode		    [0 20 0 0]
+    firstTransition	    22
+    firstJunction	    21
+    viewObj		    19
     machine		    1
     toolbarMode		    LIBRARY_TOOLBAR
     ssIdHighWaterMark	    8
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
-    firstData		    14
+    firstData		    23
     chartFileNumber	    7
     disableImplicitCasting  1
     eml {
@@ -9309,14 +9754,14 @@ Stateflow {
     }
   }
   state {
-    id			    11
+    id			    20
     labelString		    "eML_blk_kernel()"
     position		    [18 64.5 118 66]
     fontSize		    12
-    chart		    10
-    treeNode		    [10 0 0 0]
+    chart		    19
+    treeNode		    [19 0 0 0]
     superState		    SUBCHART
-    subviewer		    10
+    subviewer		    19
     ssIdNumber		    1
     type		    FUNC_STATE
     decomposition	    CLUSTER_STATE
@@ -9328,16 +9773,16 @@ Stateflow {
     }
   }
   junction {
-    id			    12
+    id			    21
     position		    [23.5747 49.5747 7]
-    chart		    10
-    linkNode		    [10 0 0]
-    subviewer		    10
+    chart		    19
+    linkNode		    [19 0 0]
+    subviewer		    19
     ssIdNumber		    3
     type		    CONNECTIVE_JUNCTION
   }
   transition {
-    id			    13
+    id			    22
     labelString		    "{eML_blk_kernel();}"
     labelPosition	    [32.125 19.875 102.544 14.964]
     fontSize		    12
@@ -9345,14 +9790,14 @@ Stateflow {
       intersection	      [0 0 1 0 23.5747 14.625 0 0]
     }
     dst {
-      id		      12
+      id		      21
       intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
     }
     midPoint		    [23.5747 24.9468]
-    chart		    10
-    linkNode		    [10 0 0]
+    chart		    19
+    linkNode		    [19 0 0]
     dataLimits		    [23.575 23.575 14.625 34.575]
-    subviewer		    10
+    subviewer		    19
     drawStyle		    SMART
     slide {
       sticky		      BOTH_STICK
@@ -9361,10 +9806,10 @@ Stateflow {
     ssIdNumber		    2
   }
   data {
-    id			    14
+    id			    23
     ssIdNumber		    4
     name		    "mat"
-    linkNode		    [10 0 15]
+    linkNode		    [19 0 24]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -9380,10 +9825,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    15
+    id			    24
     ssIdNumber		    5
     name		    "TPinv"
-    linkNode		    [10 14 16]
+    linkNode		    [19 23 25]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -9400,10 +9845,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    16
+    id			    25
     ssIdNumber		    8
     name		    "tol"
-    linkNode		    [10 15 0]
+    linkNode		    [19 24 0]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -9422,13 +9867,13 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   instance {
-    id			    17
+    id			    26
     name		    "Utilities/TruncPinv/Truncated PseudoInverse"
     machine		    1
-    chart		    10
+    chart		    19
   }
   target {
-    id			    18
+    id			    27
     name		    "sfun"
     description		    "Default Simulink S-Function Target."
     machine		    1

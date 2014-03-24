@@ -190,13 +190,10 @@ bool robotStatus::robotInit(int btype, int link) {
     // dot{J}dot{q}
     dJdq.resize(6,0);
 
-    /** TODO dot{xB} We will assume null velocity of the base for now since the estimate hasn't been implemented yet */
     dxB.resize(6,0);
 
-    /** TODO ddot{xB} Assuming null acceleration for now since its estimation hasn't been implemented yet */
     ddxB.resize(6,0);
 
-    /** TODO gravity vector is assumed constant and oriented to the ground but this should vary according to the world reference frame */
     grav.resize(3,1);
     grav[0] = grav[1] = 0;
     grav[2] = -9.81;
@@ -730,7 +727,7 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetInputPortDirectFeedThrough(S, 2, 1);
     ssSetInputPortDirectFeedThrough(S, 3, 1);
     ssSetInputPortDirectFeedThrough(S, 4, 1);
-    if (!ssSetNumOutputPorts(S,12)) return;
+    if (!ssSetNumOutputPorts(S,13)) return;
     ssSetOutputPortWidth   (S, 0, ICUB_DOFS);	    		// Robot joint angular positions in radians
     ssSetOutputPortWidth   (S, 1, ICUB_DOFS);	    		// Robot joint angular velocities in radians
     ssSetOutputPortWidth   (S, 2, 7);               		// foot or COM pose from fwdKinematics.
@@ -743,6 +740,7 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetOutputPortWidth   (S, 9, ICUB_DOFS);			// Compute torques with inverse dynamics
     ssSetOutputPortWidth   (S, 10,ICUB_DOFS);			// Min joint limits;
     ssSetOutputPortWidth   (S, 11, ICUB_DOFS);			// Max joint limits;
+    ssSetOutputPortWidth   (S, 12, 6);				//Centroidal momentum
     ssSetOutputPortDataType(S, 0, 0);
     ssSetOutputPortDataType(S, 1, 0);
     ssSetOutputPortDataType(S, 2, 0);
@@ -755,6 +753,7 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetOutputPortDataType(S, 9, 0);
     ssSetOutputPortDataType(S, 10,0);
     ssSetOutputPortDataType(S, 11,0);
+    ssSetOutputPortDataType(S, 12,0);
 
     ssSetNumSampleTimes(S, 1);
 
@@ -1324,11 +1323,9 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             real_T *pY11 = (real_T*)ssGetOutputPortSignal(S,10);
             real_T *pY12 = (real_T*)ssGetOutputPortSignal(S,11);
             for(int_T j=0; j<ssGetOutputPortWidth(S,10); j++) {
-                /**TODO Decide if we want to stream tau_computed including floating base torques */
                 pY11[j] = minJntLimits[j];
             }
             for(int_T j=0; j<ssGetOutputPortWidth(S,11); j++) {
-                /**TODO Decide if we want to stream tau_computed including floating base torques */
                 pY12[j] = maxJntLimits[j];
             }
         }
@@ -1359,8 +1356,11 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         // Centroidal momentum
         Vector momentum(6);
         momentum.zero();
-        robot->centroidalMomentum(qrad_in.data(), dqrad_in.data(), momentum.data());
-        /** TODO Write to new output port*/
+        if(!robot->centroidalMomentum(qrad_in.data(), dqrad_in.data(), momentum.data()))
+	  fprintf(stderr,"ERROR [mdlOutput] in robot->centroidalMomentum");
+	real_T *pY13 = (real_T*)ssGetOutputPortSignal(S,12);
+	for(int_T j=0; j<ssGetOutputPortWidth(S,12); j++)
+	  pY13[j] = momentum[j];
     }
 
     if(TIMING) tend = Time::now();
