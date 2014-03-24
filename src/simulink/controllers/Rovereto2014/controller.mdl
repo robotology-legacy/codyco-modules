@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.406"
+    ComputedModelVersion    "1.409"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -28,9 +28,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Mar 24 17:59:48 2014"
+  LastModifiedDate	  "Mon Mar 24 18:04:33 2014"
   RTWModifiedTimeStamp	  317584665
-  ModelVersionFormat	  "1.%<AutoIncrement:406>"
+  ModelVersionFormat	  "1.%<AutoIncrement:409>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -907,7 +907,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "295"
+    SIDHighWatermark	    "297"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -1002,6 +1002,16 @@ Model {
 	  SourceType		  ""
 	  robotName		  "robotName"
 	  localName		  "localName"
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "Cent Momentum"
+	  SID			  "296"
+	  Ports			  [2, 1]
+	  Position		  [385, 908, 450, 952]
+	  LibraryVersion	  "1.26"
+	  SourceBlock		  "WBCLibrary/wholeBodyModel/Dynamics/Cent Momentum"
+	  SourceType		  "SubSystem"
 	}
 	Block {
 	  BlockType		  Reference
@@ -1659,7 +1669,7 @@ Model {
 	  Name			  "base + dq'"
 	  SID			  "269"
 	  Ports			  [0, 1]
-	  Position		  [275, 324, 325, 356]
+	  Position		  [110, 324, 160, 356]
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
 	  RTWSystemCode		  "Auto"
@@ -1670,7 +1680,7 @@ Model {
 	  System {
 	    Name		    "base + dq'"
 	    Location		    [1593, 590, 2050, 823]
-	    Open		    on
+	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -1813,7 +1823,7 @@ Model {
 	  Name			  "base + q"
 	  SID			  "276"
 	  Ports			  [0, 1]
-	  Position		  [275, 284, 325, 316]
+	  Position		  [110, 284, 160, 316]
 	  NamePlacement		  "alternate"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -1916,7 +1926,7 @@ Model {
 	  BlockType		  SubSystem
 	  Name			  "controllerMatlab"
 	  SID			  "3"
-	  Ports			  [16, 7]
+	  Ports			  [17, 7]
 	  Position		  [570, 113, 1115, 947]
 	  ZOrder		  2
 	  LibraryVersion	  "1.32"
@@ -1956,7 +1966,7 @@ Model {
 	    TiledPageScale	    1
 	    ShowPageBoundaries	    off
 	    ZoomFactor		    "100"
-	    SIDHighWatermark	    "62"
+	    SIDHighWatermark	    "63"
 	    Block {
 	      BlockType		      Inport
 	      Name		      "q"
@@ -2101,6 +2111,15 @@ Model {
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
+	      BlockType		      Inport
+	      Name		      "H"
+	      SID		      "3::63"
+	      Position		      [20, 676, 40, 694]
+	      ZOrder		      47
+	      Port		      "17"
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
 	      BlockType		      Demux
 	      Name		      " Demux "
 	      SID		      "3::58"
@@ -2114,11 +2133,11 @@ Model {
 	      Name		      " SFunction "
 	      SID		      "3::57"
 	      Tag		      "Stateflow S-Function controller 2"
-	      Ports		      [16, 8]
-	      Position		      [180, 102, 230, 483]
+	      Ports		      [17, 8]
+	      Position		      [180, 104, 230, 486]
 	      ZOrder		      42
 	      FunctionName	      "sf_sfun"
-	      PortCounts	      "[16 8]"
+	      PortCounts	      "[17 8]"
 	      EnableBusSupport	      on
 	      Port {
 		PortNumber		2
@@ -2327,6 +2346,12 @@ Model {
 	      SrcPort		      1
 	      DstBlock		      " SFunction "
 	      DstPort		      16
+	    }
+	    Line {
+	      SrcBlock		      "H"
+	      SrcPort		      1
+	      DstBlock		      " SFunction "
+	      DstPort		      17
 	    }
 	    Line {
 	      Name		      "tau"
@@ -3012,6 +3037,7 @@ Model {
 	  SrcPort		  1
 	  Points		  [5, 0]
 	  Branch {
+	    Points		    [15, 0]
 	    DstBlock		    "controllerMatlab"
 	    DstPort		    3
 	  }
@@ -3024,13 +3050,14 @@ Model {
 	Line {
 	  SrcBlock		  "computeh"
 	  SrcPort		  1
-	  Points		  [0, -5]
+	  Points		  [0, -30]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  5
 	}
 	Line {
 	  SrcBlock		  "massMatrix"
 	  SrcPort		  1
+	  Points		  [20, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  4
 	}
@@ -3046,6 +3073,7 @@ Model {
 	  Branch {
 	    Points		    [47, 0]
 	    Branch {
+	      Points		      [45, 0]
 	      DstBlock		      "controllerMatlab"
 	      DstPort		      1
 	    }
@@ -3058,18 +3086,21 @@ Model {
 	Line {
 	  SrcBlock		  "Center of Mass Jacobian"
 	  SrcPort		  1
+	  Points		  [20, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  9
 	}
 	Line {
 	  SrcBlock		  " "
 	  SrcPort		  1
+	  Points		  [20, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  7
 	}
 	Line {
 	  SrcBlock		  "\n\n  "
 	  SrcPort		  1
+	  Points		  [45, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  14
 	}
@@ -3083,6 +3114,7 @@ Model {
 	Line {
 	  SrcBlock		  " 1"
 	  SrcPort		  1
+	  Points		  [20, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  8
 	}
@@ -3097,6 +3129,7 @@ Model {
 	  SrcPort		  1
 	  Points		  [5, 0]
 	  Branch {
+	    Points		    [10, 0]
 	    DstBlock		    "controllerMatlab"
 	    DstPort		    11
 	  }
@@ -3109,12 +3142,14 @@ Model {
 	Line {
 	  SrcBlock		  "trajectoryGeneratorCoM"
 	  SrcPort		  2
+	  Points		  [15, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  12
 	}
 	Line {
 	  SrcBlock		  "trajectoryGeneratorCoM"
 	  SrcPort		  3
+	  Points		  [15, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  13
 	}
@@ -3155,7 +3190,7 @@ Model {
 	  SrcPort		  1
 	  Points		  [9, 0]
 	  Branch {
-	    Points		    [0, -65]
+	    Points		    [0, -90]
 	    DstBlock		    "controllerMatlab"
 	    DstPort		    10
 	  }
@@ -3175,12 +3210,14 @@ Model {
 	Line {
 	  SrcBlock		  "Constant"
 	  SrcPort		  1
+	  Points		  [45, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  15
 	}
 	Line {
 	  SrcBlock		  "holder"
 	  SrcPort		  1
+	  Points		  [20, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  2
 	}
@@ -3215,6 +3252,7 @@ Model {
 	Line {
 	  SrcBlock		  "RightFootFwdKin"
 	  SrcPort		  1
+	  Points		  [20, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  6
 	}
@@ -3249,7 +3287,7 @@ Model {
 	Line {
 	  SrcBlock		  "Discrete-Time Integrator"
 	  SrcPort		  1
-	  Points		  [-255, 0; 0, -90]
+	  Points		  [-255, 0; 0, -115]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  16
 	}
@@ -3286,49 +3324,65 @@ Model {
 	  SrcPort		  1
 	  Points		  [40, 0]
 	  Branch {
-	    Points		    [25, 0; 0, 5; 35, 0]
+	    Points		    [165, 0]
 	    Branch {
-	      DstBlock		      "massMatrix"
-	      DstPort		      1
+	      Points		      [25, 0; 0, 5; 35, 0]
+	      Branch {
+		DstBlock		"massMatrix"
+		DstPort			1
+	      }
+	      Branch {
+		Points			[0, 45]
+		DstBlock		"computeh"
+		DstPort			1
+	      }
 	    }
 	    Branch {
-	      Points		      [0, 45]
-	      DstBlock		      "computeh"
-	      DstPort		      1
+	      Points		      [0, 190]
+	      Branch {
+		DstBlock		"dJ*dq LeftFoot"
+		DstPort			1
+	      }
+	      Branch {
+		DstBlock		"dJ*dq RightFoot"
+		DstPort			1
+	      }
 	    }
 	  }
 	  Branch {
-	    Points		    [0, 190]
-	    Branch {
-	      DstBlock		      "dJ*dq LeftFoot"
-	      DstPort		      1
-	    }
-	    Branch {
-	      DstBlock		      "dJ*dq RightFoot"
-	      DstPort		      1
-	    }
+	    Points		    [0, 620]
+	    DstBlock		    "Cent Momentum"
+	    DstPort		    1
 	  }
 	}
 	Line {
 	  SrcBlock		  "base + dq'"
 	  SrcPort		  1
-	  Points		  [25, 0]
+	  Points		  [20, 0]
 	  Branch {
-	    Points		    [40, 0; 0, 25]
-	    DstBlock		    "computeh"
-	    DstPort		    2
+	    Points		    [170, 0]
+	    Branch {
+	      Points		      [40, 0; 0, 25]
+	      DstBlock		      "computeh"
+	      DstPort		      2
+	    }
+	    Branch {
+	      Points		      [5, 0; 0, 165]
+	      Branch {
+		DstBlock		"dJ*dq LeftFoot"
+		DstPort			2
+	      }
+	      Branch {
+		Points			[0, 35]
+		DstBlock		"dJ*dq RightFoot"
+		DstPort			2
+	      }
+	    }
 	  }
 	  Branch {
-	    Points		    [5, 0; 0, 165]
-	    Branch {
-	      DstBlock		      "dJ*dq LeftFoot"
-	      DstPort		      2
-	    }
-	    Branch {
-	      Points		      [0, 35]
-	      DstBlock		      "dJ*dq RightFoot"
-	      DstPort		      2
-	    }
+	    Points		    [0, 600]
+	    DstBlock		    "Cent Momentum"
+	    DstPort		    2
 	  }
 	}
 	Line {
@@ -3343,6 +3397,12 @@ Model {
 	  SrcPort		  2
 	  DstBlock		  "Subsystem"
 	  DstPort		  3
+	}
+	Line {
+	  SrcBlock		  "Cent Momentum"
+	  SrcPort		  1
+	  DstBlock		  "controllerMatlab"
+	  DstPort		  17
 	}
       }
     }
@@ -3361,7 +3421,7 @@ Stateflow {
     name		    "controller"
     created		    "18-Feb-2014 10:14:40"
     isLibrary		    0
-    firstTarget		    52
+    firstTarget		    53
     sfVersion		    76014001.00040001
   }
   chart {
@@ -3565,7 +3625,7 @@ Stateflow {
     firstJunction	    14
     viewObj		    12
     machine		    1
-    ssIdHighWaterMark	    41
+    ssIdHighWaterMark	    42
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
     firstData		    16
@@ -3590,25 +3650,25 @@ Stateflow {
     eml {
       isEML		      1
       script		      " function [tau,fL,fR,forceError,ML,MR,CoMError] = fcn(q,qInit,  qD, M, h, PosRightFoot, JcIn, JcD"
-      "qD, Jcom, xcom, xcomDes, xDcomDes, xDDcomDes, k, fake,IntErrorCoM)\n%#codegen\n\nPINV_TOL = 1e-5;\ng        = 9."
-      "81;\n\nDL = 13;            %DeltaIndexOnlyLegs\n\nn = size(fake, 1);\nif DL ~= 0\n   Jc = [JcIn(:,1:6),JcIn(:,7 "
-      "+ DL:end)]; \nelse\n   Jc = JcIn; \nend\n\nm     = M(1,1);\nMb    = M(1:6,1:6);\nMbInv = inv(Mb);\nMbj   = M(1:6"
-      ",7 + DL :end); \nMj    = M(7 + DL :end,7 + DL:end);\nU     = [eye(6) , zeros(6,n)];\nJcb   = Jc*U';\nSBar  = [  "
-      "-MbInv*Mbj \n           eye(n)      ];\nNjInv = Mj - Mbj'*MbInv*Mbj;\n\ngrav = [zeros(2,1);-m*g;zeros(3,1)];\n\n"
-      "JcSBar     = Jc*SBar;\nJcSBarPinv = pinv(JcSBar, PINV_TOL);\n\n% Definition of reference accelerations for CoM a"
-      "nd Joints that ensure\n% stabilization of desired trajectories xDcomDes and qDes \nvb         = -pinv(JcIn(:,1:6"
-      "))*JcIn(:,7:end)*qD;\nxDcom      = Jcom(1:3,:)*[vb;qD];\nxDDcomStar = xDDcomDes - k(1,1)*(xcom - xcomDes) - k(1,"
-      "2)*IntErrorCoM - k(1,3)*(xDcom - xDcomDes)  ;\nq_starIn   =           - k(2,1)*(q - qInit)                      "
-      "      - k(2,3)*qD;\nif DL ~= 0\n   q_star = q_starIn(DL+1:end); \nelse\n   q_star = q_starIn;\n    \nend\nPr =  "
-      "PosRightFoot(1:3) - xcom; % Application point of the contact force on the right foot w.r.t. CoM\nA  = [ eye(3), "
-      "  zeros(3),eye(3), zeros(3);\n      -Sf(xcom),  eye(3), Sf(Pr), eye(3) ];\n\n% The following expressions for Ic "
-      "and IcD hold only if the control \n% objective is the stabilization of the CoM's position\nhDotDes = [ m*xDDcomS"
-      "tar ;\n            zeros(3,1)  ]; \n\nfd = pinv(A)*(hDotDes-grav);\n\nLambdaStar = JcSBarPinv*(Jcb*MbInv*(h(1:6)"
-      " - Jcb'*fd) - JcDqD);\n\nNP0 = eye(n) - JcSBarPinv*JcSBar;\n\nLambdaStar = LambdaStar + NP0 * q_star;\n\ntauLegs"
-      " = - JcSBar'*fd + NjInv*LambdaStar + SBar'*[h(1:6);h(DL + 7:end)];\n\nif DL ~= 0\n   tau = h(7:end) - k(3,1)*(q "
-      "- qInit) - k(3,3)*qD   ;   \n   tau(DL+1:end) = tauLegs;\nelse\n    tau = tauLegs;\nend\n\nMinv = inv([Mb,Mbj;Mb"
-      "j',Mj]);\nf = -(Jc*Minv*Jc')\\(JcDqD + Jc*Minv*([zeros(6,1);tauLegs] - [h(1:6);h(DL + 7:end)])); \nCoMError    ="
-      " xcom - xcomDes;\nforceError  = f - fd;\nfL = f(1:3);\nfR = f(7:9);\nML = f(4:6);\nMR = f(10:12);\n\n"
+      "qD, Jcom, xcom, xcomDes, xDcomDes, xDDcomDes, k, fake,IntErrorCoM, H)\n%#codegen\n\nPINV_TOL = 1e-5;\ng        ="
+      " 9.81;\n\nDL = 13;            %DeltaIndexOnlyLegs\n\nn = size(fake, 1);\nif DL ~= 0\n   Jc = [JcIn(:,1:6),JcIn(:"
+      ",7 + DL:end)]; \nelse\n   Jc = JcIn; \nend\n\nm     = M(1,1);\nMb    = M(1:6,1:6);\nMbInv = inv(Mb);\nMbj   = M("
+      "1:6,7 + DL :end); \nMj    = M(7 + DL :end,7 + DL:end);\nU     = [eye(6) , zeros(6,n)];\nJcb   = Jc*U';\nSBar  = "
+      "[  -MbInv*Mbj \n           eye(n)      ];\nNjInv = Mj - Mbj'*MbInv*Mbj;\n\ngrav = [zeros(2,1);-m*g;zeros(3,1)];\n"
+      "\nJcSBar     = Jc*SBar;\nJcSBarPinv = pinv(JcSBar, PINV_TOL);\n\n% Definition of reference accelerations for CoM"
+      " and Joints that ensure\n% stabilization of desired trajectories xDcomDes and qDes \nvb         = -pinv(JcIn(:,1"
+      ":6))*JcIn(:,7:end)*qD;\nxDcom      = Jcom(1:3,:)*[vb;qD];\nxDDcomStar = xDDcomDes - k(1,1)*(xcom - xcomDes) - k("
+      "1,2)*IntErrorCoM - k(1,3)*(xDcom - xDcomDes)  ;\nq_starIn   =           - k(2,1)*(q - qInit)                    "
+      "        - k(2,3)*qD;\nif DL ~= 0\n   q_star = q_starIn(DL+1:end); \nelse\n   q_star = q_starIn;\n    \nend\nPr ="
+      "  PosRightFoot(1:3) - xcom; % Application point of the contact force on the right foot w.r.t. CoM\nA  = [ eye(3)"
+      ",   zeros(3),eye(3), zeros(3);\n      -Sf(xcom),  eye(3), Sf(Pr), eye(3) ];\n\n% The following expressions for I"
+      "c and IcD hold only if the control \n% objective is the stabilization of the CoM's position\nhDotDes = [ m*xDDco"
+      "mStar ;\n            zeros(3,1)  ]; \n\nfd = pinv(A)*(hDotDes-grav);\n\nLambdaStar = JcSBarPinv*(Jcb*MbInv*(h(1:"
+      "6) - Jcb'*fd) - JcDqD);\n\nNP0 = eye(n) - JcSBarPinv*JcSBar;\n\nLambdaStar = LambdaStar + NP0 * q_star;\n\ntauLe"
+      "gs = - JcSBar'*fd + NjInv*LambdaStar + SBar'*[h(1:6);h(DL + 7:end)];\n\nif DL ~= 0\n   tau = h(7:end) - k(3,1)*("
+      "q - qInit) - k(3,3)*qD   ;   \n   tau(DL+1:end) = tauLegs;\nelse\n    tau = tauLegs;\nend\n\nMinv = inv([Mb,Mbj;"
+      "Mbj',Mj]);\nf = -(Jc*Minv*Jc')\\(JcDqD + Jc*Minv*([zeros(6,1);tauLegs] - [h(1:6);h(DL + 7:end)])); \nCoMError   "
+      " = xcom - xcomDes;\nforceError  = f - fd;\nfL = f(1:3);\nfR = f(7:9);\nML = f(4:6);\nMR = f(10:12);\n\n"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
@@ -4131,7 +4191,29 @@ Stateflow {
     id			    38
     ssIdNumber		    38
     name		    "IntErrorCoM"
-    linkNode		    [12 37 0]
+    linkNode		    [12 37 39]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    39
+    ssIdNumber		    42
+    name		    "H"
+    linkNode		    [12 38 0]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -4150,26 +4232,26 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   instance {
-    id			    39
+    id			    40
     name		    "Subsystem/controllerMatlab"
     machine		    1
     chart		    12
   }
   chart {
-    id			    40
+    id			    41
     name		    "Subsystem/Subsystem/MATLAB Function"
     windowPosition	    [379.2 0.8 158.4 640]
     viewLimits		    [0 112 0 601]
     screen		    [1 1 2806 900 1.25]
-    treeNode		    [0 41 0 0]
-    firstTransition	    43
-    firstJunction	    42
-    viewObj		    40
+    treeNode		    [0 42 0 0]
+    firstTransition	    44
+    firstJunction	    43
+    viewObj		    41
     machine		    1
     ssIdHighWaterMark	    11
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
-    firstData		    44
+    firstData		    45
     chartFileNumber	    4
     disableImplicitCasting  1
     eml {
@@ -4177,14 +4259,14 @@ Stateflow {
     }
   }
   state {
-    id			    41
+    id			    42
     labelString		    "eML_blk_kernel()"
     position		    [18 64.5 118 66]
     fontSize		    12
-    chart		    40
-    treeNode		    [40 0 0 0]
+    chart		    41
+    treeNode		    [41 0 0 0]
     superState		    SUBCHART
-    subviewer		    40
+    subviewer		    41
     ssIdNumber		    1
     type		    FUNC_STATE
     decomposition	    CLUSTER_STATE
@@ -4197,16 +4279,16 @@ Stateflow {
     }
   }
   junction {
-    id			    42
+    id			    43
     position		    [23.5747 49.5747 7]
-    chart		    40
-    linkNode		    [40 0 0]
-    subviewer		    40
+    chart		    41
+    linkNode		    [41 0 0]
+    subviewer		    41
     ssIdNumber		    3
     type		    CONNECTIVE_JUNCTION
   }
   transition {
-    id			    43
+    id			    44
     labelString		    "{eML_blk_kernel();}"
     labelPosition	    [32.125 19.875 104 16.042]
     fontSize		    12
@@ -4214,14 +4296,14 @@ Stateflow {
       intersection	      [0 0 1 0 23.5747 14.625 0 0]
     }
     dst {
-      id		      42
+      id		      43
       intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
     }
     midPoint		    [23.5747 24.9468]
-    chart		    40
-    linkNode		    [40 0 0]
+    chart		    41
+    linkNode		    [41 0 0]
     dataLimits		    [21.175 25.975 14.625 42.575]
-    subviewer		    40
+    subviewer		    41
     drawStyle		    SMART
     slide {
       sticky		      BOTH_STICK
@@ -4230,10 +4312,10 @@ Stateflow {
     ssIdNumber		    2
   }
   data {
-    id			    44
+    id			    45
     ssIdNumber		    7
     name		    "ut"
-    linkNode		    [40 0 45]
+    linkNode		    [41 0 46]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -4252,10 +4334,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    45
+    id			    46
     ssIdNumber		    4
     name		    "maxU"
-    linkNode		    [40 44 46]
+    linkNode		    [41 45 47]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -4271,10 +4353,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    46
+    id			    47
     ssIdNumber		    5
     name		    "stop"
-    linkNode		    [40 45 47]
+    linkNode		    [41 46 48]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -4284,28 +4366,6 @@ Stateflow {
       type {
 	method			SF_INHERITED_TYPE
 	primitive		SF_DOUBLE_TYPE
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    47
-    ssIdNumber		    8
-    name		    "out"
-    linkNode		    [40 46 48]
-    scope		    OUTPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
       frame		      SF_FRAME_NO
@@ -4314,10 +4374,10 @@ Stateflow {
   }
   data {
     id			    48
-    ssIdNumber		    9
-    name		    "q"
-    linkNode		    [40 47 49]
-    scope		    INPUT_DATA
+    ssIdNumber		    8
+    name		    "out"
+    linkNode		    [41 47 49]
+    scope		    OUTPUT_DATA
     machine		    1
     props {
       array {
@@ -4330,15 +4390,15 @@ Stateflow {
 	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
+      frame		      SF_FRAME_NO
     }
     dataType		    "Inherit: Same as Simulink"
   }
   data {
     id			    49
-    ssIdNumber		    10
-    name		    "minQ"
-    linkNode		    [40 48 50]
+    ssIdNumber		    9
+    name		    "q"
+    linkNode		    [41 48 50]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -4358,9 +4418,31 @@ Stateflow {
   }
   data {
     id			    50
+    ssIdNumber		    10
+    name		    "minQ"
+    linkNode		    [41 49 51]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    51
     ssIdNumber		    11
     name		    "maxQ"
-    linkNode		    [40 49 0]
+    linkNode		    [41 50 0]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -4379,13 +4461,13 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   instance {
-    id			    51
+    id			    52
     name		    "Subsystem/Subsystem/MATLAB Function"
     machine		    1
-    chart		    40
+    chart		    41
   }
   target {
-    id			    52
+    id			    53
     name		    "sfun"
     description		    "Default Simulink S-Function Target."
     machine		    1
