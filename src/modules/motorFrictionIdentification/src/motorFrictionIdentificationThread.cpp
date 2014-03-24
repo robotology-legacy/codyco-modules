@@ -177,7 +177,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     torsoTorqueCouplingMatrix = Matrix2d::Zero();
     torsoTorqueCouplingMatrix(0,0) = torsoTorqueCouplingMatrix(0,1) =  torsoTorqueCouplingMatrix(1,0) = 1;
     torsoTorqueCouplingMatrix(1,1) = -1;
-    torsoVelocityCouplingMatrix = 0.5 * torsoTorqueCouplingMatrix;
+    torsoVelocityCouplingMatrix = torsoTorqueCouplingMatrix;
     
     
     printf("\n\n");
@@ -237,12 +237,12 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
 {
     ///< compute velocity signs
     wbi::LocalIdList jointList = robot->getJointList();
-    torsoVelocities = Vector2d::Zero();
-    torsoTorques = Vector2d::Zero();
-    leftShoulderTorques = Vector3d::Zero();
-    leftShoulderVelocities = Vector3d::Zero();
-    rightShoulderTorques = Vector3d::Zero();
-    rightShoulderVelocities = Vector3d::Zero();
+    torsoVelocities.setZero();
+    torsoTorques.setZero();
+    leftShoulderTorques.setZero();
+    leftShoulderVelocities.setZero();
+    rightShoulderTorques.setZero();
+    rightShoulderVelocities.setZero();
     
     for(int i=0; i<_n; i++)
     {
