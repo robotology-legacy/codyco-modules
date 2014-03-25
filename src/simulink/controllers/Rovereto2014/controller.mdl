@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.409"
+    ComputedModelVersion    "1.432"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -28,9 +28,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Mar 24 18:04:33 2014"
-  RTWModifiedTimeStamp	  317584665
-  ModelVersionFormat	  "1.%<AutoIncrement:409>"
+  LastModifiedDate	  "Tue Mar 25 11:52:43 2014"
+  RTWModifiedTimeStamp	  317641748
+  ModelVersionFormat	  "1.%<AutoIncrement:432>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -68,7 +68,6 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "controller"
-    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -893,7 +892,7 @@ Model {
   }
   System {
     Name		    "controller"
-    Location		    [496, 178, 869, 384]
+    Location		    [862, 131, 1235, 337]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -939,7 +938,7 @@ Model {
       MaskValueString	      "'icubGazeboSim'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[1505, 185, 2806, 900]
+	Location		[652, 126, 1372, 865]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -1057,7 +1056,7 @@ Model {
 	  ZOrder		  113
 	  Floating		  off
 	  Location		  [2, 81, 722, 899]
-	  Open			  off
+	  Open			  on
 	  NumInputPorts		  "3"
 	  List {
 	    ListType		    AxesTitles
@@ -1076,8 +1075,8 @@ Model {
 	    MarkerStyles	    "none|none|none|none|none|none"
 	  }
 	  ShowLegends		  on
-	  LegendLocations	  "0.63982     0.86664     0.28958    0.069988\n0.69252     0.55861     0.23958    0.069988\n0.5659"
-	  "6     0.12359     0.34653    0.069988"
+	  LegendLocations	  "0.63982     0.86668     0.28958    0.069988\n0.69252     0.55865     0.23958    0.069988\n0.5659"
+	  "6     0.12363     0.34653    0.069988"
 	  TimeRange		  "5"
 	  YMin			  "-0.4~-0.4~-0.3"
 	  YMax			  "0.5~0.5~0.8"
@@ -1161,21 +1160,6 @@ Model {
 	  ShowName		  off
 	  LibraryVersion	  "1.26"
 	  SourceBlock		  "WBCLibrary/wholeBodyStates/Joint Angles"
-	  SourceType		  ""
-	  robotName		  "robotName"
-	  localName		  "localName"
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "Joint Limits"
-	  SID			  "263"
-	  Ports			  [0, 2]
-	  Position		  [15, 118, 80, 162]
-	  ZOrder		  114
-	  BackgroundColor	  "[1.000000, 0.247733, 0.215168]"
-	  ShowName		  off
-	  LibraryVersion	  "1.26"
-	  SourceBlock		  "WBCLibrary/wholeBodyModel/Joint Limits"
 	  SourceType		  ""
 	  robotName		  "robotName"
 	  localName		  "localName"
@@ -1926,7 +1910,7 @@ Model {
 	  BlockType		  SubSystem
 	  Name			  "controllerMatlab"
 	  SID			  "3"
-	  Ports			  [17, 7]
+	  Ports			  [17, 2]
 	  Position		  [570, 113, 1115, 947]
 	  ZOrder		  2
 	  LibraryVersion	  "1.32"
@@ -2133,11 +2117,11 @@ Model {
 	      Name		      " SFunction "
 	      SID		      "3::57"
 	      Tag		      "Stateflow S-Function controller 2"
-	      Ports		      [17, 8]
+	      Ports		      [17, 3]
 	      Position		      [180, 104, 230, 486]
 	      ZOrder		      42
 	      FunctionName	      "sf_sfun"
-	      PortCounts	      "[17 8]"
+	      PortCounts	      "[17 3]"
 	      EnableBusSupport	      on
 	      Port {
 		PortNumber		2
@@ -2147,36 +2131,6 @@ Model {
 	      }
 	      Port {
 		PortNumber		3
-		Name			"fL"
-		RTWStorageClass		"Auto"
-		DataLoggingNameMode	"SignalName"
-	      }
-	      Port {
-		PortNumber		4
-		Name			"fR"
-		RTWStorageClass		"Auto"
-		DataLoggingNameMode	"SignalName"
-	      }
-	      Port {
-		PortNumber		5
-		Name			"forceError"
-		RTWStorageClass		"Auto"
-		DataLoggingNameMode	"SignalName"
-	      }
-	      Port {
-		PortNumber		6
-		Name			"ML"
-		RTWStorageClass		"Auto"
-		DataLoggingNameMode	"SignalName"
-	      }
-	      Port {
-		PortNumber		7
-		Name			"MR"
-		RTWStorageClass		"Auto"
-		DataLoggingNameMode	"SignalName"
-	      }
-	      Port {
-		PortNumber		8
 		Name			"CoMError"
 		RTWStorageClass		"Auto"
 		DataLoggingNameMode	"SignalName"
@@ -2199,56 +2153,11 @@ Model {
 	    }
 	    Block {
 	      BlockType		      Outport
-	      Name		      "fL"
-	      SID		      "3::48"
-	      Position		      [460, 136, 480, 154]
-	      ZOrder		      34
-	      Port		      "2"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "fR"
-	      SID		      "3::50"
-	      Position		      [460, 171, 480, 189]
-	      ZOrder		      36
-	      Port		      "3"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "forceError"
-	      SID		      "3::61"
-	      Position		      [460, 206, 480, 224]
-	      ZOrder		      46
-	      Port		      "4"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "ML"
-	      SID		      "3::53"
-	      Position		      [460, 246, 480, 264]
-	      ZOrder		      38
-	      Port		      "5"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "MR"
-	      SID		      "3::54"
-	      Position		      [460, 281, 480, 299]
-	      ZOrder		      39
-	      Port		      "6"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Outport
 	      Name		      "CoMError"
 	      SID		      "3::47"
-	      Position		      [460, 316, 480, 334]
+	      Position		      [460, 136, 480, 154]
 	      ZOrder		      33
-	      Port		      "7"
+	      Port		      "2"
 	      IconDisplay	      "Port number"
 	    }
 	    Line {
@@ -2362,50 +2271,10 @@ Model {
 	      DstPort		      1
 	    }
 	    Line {
-	      Name		      "fL"
-	      Labels		      [0, 0]
-	      SrcBlock		      " SFunction "
-	      SrcPort		      3
-	      DstBlock		      "fL"
-	      DstPort		      1
-	    }
-	    Line {
-	      Name		      "fR"
-	      Labels		      [0, 0]
-	      SrcBlock		      " SFunction "
-	      SrcPort		      4
-	      DstBlock		      "fR"
-	      DstPort		      1
-	    }
-	    Line {
-	      Name		      "forceError"
-	      Labels		      [0, 0]
-	      SrcBlock		      " SFunction "
-	      SrcPort		      5
-	      DstBlock		      "forceError"
-	      DstPort		      1
-	    }
-	    Line {
-	      Name		      "ML"
-	      Labels		      [0, 0]
-	      SrcBlock		      " SFunction "
-	      SrcPort		      6
-	      DstBlock		      "ML"
-	      DstPort		      1
-	    }
-	    Line {
-	      Name		      "MR"
-	      Labels		      [0, 0]
-	      SrcBlock		      " SFunction "
-	      SrcPort		      7
-	      DstBlock		      "MR"
-	      DstPort		      1
-	    }
-	    Line {
 	      Name		      "CoMError"
 	      Labels		      [0, 0]
 	      SrcBlock		      " SFunction "
-	      SrcPort		      8
+	      SrcPort		      3
 	      DstBlock		      "CoMError"
 	      DstPort		      1
 	    }
@@ -3222,22 +3091,19 @@ Model {
 	  DstPort		  2
 	}
 	Line {
-	  SrcBlock		  "controllerMatlab"
-	  SrcPort		  2
-	  Points		  [19, 0; 0, 110]
+	  Points		  [1120, 290; 19, 0; 0, 110]
 	  DstBlock		  "fL"
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "controllerMatlab"
-	  SrcPort		  3
+	  Points		  [1120, 320; 0, 90]
 	  DstBlock		  "fL"
 	  DstPort		  2
 	}
 	Line {
 	  SrcBlock		  "controllerMatlab"
 	  SrcPort		  1
-	  Points		  [44, 0]
+	  Points		  [0, -155; 44, 0]
 	  Branch {
 	    DstBlock		    "Saturation"
 	    DstPort		    1
@@ -3257,23 +3123,19 @@ Model {
 	  DstPort		  6
 	}
 	Line {
-	  SrcBlock		  "controllerMatlab"
-	  SrcPort		  5
-	  Points		  [38, 0; 0, 50]
+	  Points		  [1120, 425; 38, 0; 0, 275]
 	  DstBlock		  "ML"
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "controllerMatlab"
-	  SrcPort		  6
-	  Points		  [36, 0; 0, -55]
+	  Points		  [1120, 530; 36, 0; 0, 185]
 	  DstBlock		  "ML"
 	  DstPort		  2
 	}
 	Line {
 	  SrcBlock		  "controllerMatlab"
-	  SrcPort		  7
-	  Points		  [31, 0]
+	  SrcPort		  2
+	  Points		  [0, 150; 31, 0]
 	  Branch {
 	    DstBlock		    "CoMError - \nCoM - CoMDes\n"
 	    DstPort		    1
@@ -3313,9 +3175,7 @@ Model {
 	  }
 	}
 	Line {
-	  SrcBlock		  "controllerMatlab"
-	  SrcPort		  4
-	  Points		  [18, 0; 0, -110]
+	  Points		  [1120, 365; 18, 0; 0, 55]
 	  DstBlock		  "fL"
 	  DstPort		  3
 	}
@@ -3386,15 +3246,12 @@ Model {
 	  }
 	}
 	Line {
-	  SrcBlock		  "Joint Limits"
-	  SrcPort		  1
-	  Points		  [10, 0]
+	  Points		  [85, 130; 10, 0]
 	  DstBlock		  "Subsystem"
 	  DstPort		  2
 	}
 	Line {
-	  SrcBlock		  "Joint Limits"
-	  SrcPort		  2
+	  Points		  [85, 150]
 	  DstBlock		  "Subsystem"
 	  DstPort		  3
 	}
@@ -3421,7 +3278,7 @@ Stateflow {
     name		    "controller"
     created		    "18-Feb-2014 10:14:40"
     isLibrary		    0
-    firstTarget		    53
+    firstTarget		    48
     sfVersion		    76014001.00040001
   }
   chart {
@@ -3459,9 +3316,9 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;0;1];\nA = 1/10;\nf "
-      "= 0.2;\n\nxcomDes    = [xCom0(1:2); (1/A-1)*A*xCom0(3)] + A*xCom0(3)*cos(2*pi*f*t)*e3;\nxDcomDes   = -xCom0(3)*A"
-      "*2*pi*f*sin(2*pi*f*t)*e3;\nxDDcomDes  = -xCom0(3)*A*(2*pi*f)^2*cos(2*pi*f*t)*e3;"
+      script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;1;0];\nA = 1/10;\nf "
+      "= 0.2;\nt = t;\nxcomDes    = [xCom0(1:2); (1/A-1)*A*xCom0(3)] + A*xCom0(3)*cos(2*pi*f*t)*e3;\nxDcomDes   = -xCom"
+      "0(3)*A*2*pi*f*sin(2*pi*f*t)*e3;\nxDDcomDes  = -xCom0(3)*A*(2*pi*f)^2*cos(2*pi*f*t)*e3;"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
@@ -3649,26 +3506,25 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      " function [tau,fL,fR,forceError,ML,MR,CoMError] = fcn(q,qInit,  qD, M, h, PosRightFoot, JcIn, JcD"
-      "qD, Jcom, xcom, xcomDes, xDcomDes, xDDcomDes, k, fake,IntErrorCoM, H)\n%#codegen\n\nPINV_TOL = 1e-5;\ng        ="
-      " 9.81;\n\nDL = 13;            %DeltaIndexOnlyLegs\n\nn = size(fake, 1);\nif DL ~= 0\n   Jc = [JcIn(:,1:6),JcIn(:"
-      ",7 + DL:end)]; \nelse\n   Jc = JcIn; \nend\n\nm     = M(1,1);\nMb    = M(1:6,1:6);\nMbInv = inv(Mb);\nMbj   = M("
-      "1:6,7 + DL :end); \nMj    = M(7 + DL :end,7 + DL:end);\nU     = [eye(6) , zeros(6,n)];\nJcb   = Jc*U';\nSBar  = "
-      "[  -MbInv*Mbj \n           eye(n)      ];\nNjInv = Mj - Mbj'*MbInv*Mbj;\n\ngrav = [zeros(2,1);-m*g;zeros(3,1)];\n"
-      "\nJcSBar     = Jc*SBar;\nJcSBarPinv = pinv(JcSBar, PINV_TOL);\n\n% Definition of reference accelerations for CoM"
-      " and Joints that ensure\n% stabilization of desired trajectories xDcomDes and qDes \nvb         = -pinv(JcIn(:,1"
-      ":6))*JcIn(:,7:end)*qD;\nxDcom      = Jcom(1:3,:)*[vb;qD];\nxDDcomStar = xDDcomDes - k(1,1)*(xcom - xcomDes) - k("
-      "1,2)*IntErrorCoM - k(1,3)*(xDcom - xDcomDes)  ;\nq_starIn   =           - k(2,1)*(q - qInit)                    "
-      "        - k(2,3)*qD;\nif DL ~= 0\n   q_star = q_starIn(DL+1:end); \nelse\n   q_star = q_starIn;\n    \nend\nPr ="
-      "  PosRightFoot(1:3) - xcom; % Application point of the contact force on the right foot w.r.t. CoM\nA  = [ eye(3)"
-      ",   zeros(3),eye(3), zeros(3);\n      -Sf(xcom),  eye(3), Sf(Pr), eye(3) ];\n\n% The following expressions for I"
-      "c and IcD hold only if the control \n% objective is the stabilization of the CoM's position\nhDotDes = [ m*xDDco"
-      "mStar ;\n            zeros(3,1)  ]; \n\nfd = pinv(A)*(hDotDes-grav);\n\nLambdaStar = JcSBarPinv*(Jcb*MbInv*(h(1:"
-      "6) - Jcb'*fd) - JcDqD);\n\nNP0 = eye(n) - JcSBarPinv*JcSBar;\n\nLambdaStar = LambdaStar + NP0 * q_star;\n\ntauLe"
-      "gs = - JcSBar'*fd + NjInv*LambdaStar + SBar'*[h(1:6);h(DL + 7:end)];\n\nif DL ~= 0\n   tau = h(7:end) - k(3,1)*("
-      "q - qInit) - k(3,3)*qD   ;   \n   tau(DL+1:end) = tauLegs;\nelse\n    tau = tauLegs;\nend\n\nMinv = inv([Mb,Mbj;"
-      "Mbj',Mj]);\nf = -(Jc*Minv*Jc')\\(JcDqD + Jc*Minv*([zeros(6,1);tauLegs] - [h(1:6);h(DL + 7:end)])); \nCoMError   "
-      " = xcom - xcomDes;\nforceError  = f - fd;\nfL = f(1:3);\nfR = f(7:9);\nML = f(4:6);\nMR = f(10:12);\n\n"
+      script		      " function [tau,CoMError] = fcn(q,qInit,  qD, M, h, PosRightFoot, JcIn, JcDqD, Jcom, xcom, xcomDes"
+      ", xDcomDes, xDDcomDes, k, fake,IntErrorCoM, H)\n%#codegen\n\nPINV_TOL = 1e-5;\ng        = 9.81;\n\nn = size(fake"
+      ", 1);\n\nDL = 25-n;            %DeltaIndexOnlyLegs\n\nif DL ~= 0\n   Jc = [JcIn(:,1:6),JcIn(:,7 + DL:end)]; \nel"
+      "se\n   Jc = JcIn; \nend\n\nm     = M(1,1);\nMb    = M(1:6,1:6);\nMbInv = inv(Mb);\nMbj   = M(1:6,7 + DL :end); \n"
+      "Mj    = M(7 + DL :end,7 + DL:end);\nU     = [eye(6) , zeros(6,n)];\nJcb   = Jc*U';\nSBar  = [  -MbInv*Mbj \n    "
+      "       eye(n)      ];\nNjInv = Mj - Mbj'*MbInv*Mbj;\n\ngrav = [zeros(2,1);-m*g;zeros(3,1)];\n\nJcSBar     = Jc*S"
+      "Bar;\nJcSBarPinv = pinv(JcSBar, PINV_TOL);\n\n% Definition of reference accelerations for CoM and Joints that en"
+      "sure\n% stabilization of desired trajectories xDcomDes and qDes \nvb         = -pinv(JcIn(:,1:6))*JcIn(:,7:end)*"
+      "qD;\nxDcom      = Jcom(1:3,:)*[vb;qD];\nxDDcomStar = xDDcomDes - k(1,1)*(xcom - xcomDes) - k(1,2)*IntErrorCoM - "
+      "k(1,3)*(xDcom - xDcomDes)  ;\nq_starIn   =           - k(2,1)*(q - qInit)                            - k(2,3)*qD"
+      ";\nif DL ~= 0\n   q_star = q_starIn(DL+1:end); \nelse\n   q_star = q_starIn;\n    \nend\nPr =  PosRightFoot(1:3)"
+      " - xcom; % Application point of the contact force on the right foot w.r.t. CoM\nA  = [ eye(3),   zeros(3),eye(3)"
+      ", zeros(3);\n      -Sf(xcom),  eye(3), Sf(Pr), eye(3) ];\n\n% The following expressions for Ic and IcD hold only"
+      " if the control \n% objective is the stabilization of the CoM's position\nkw = 10;\nhwDotDes = H(4:end);\nhDotDe"
+      "s = [ m*xDDcomStar ;\n            -kw*hwDotDes  ]; \n\nfd = pinv(A)*(hDotDes-grav);\n\nLambdaStar = JcSBarPinv*("
+      "Jcb*MbInv*(h(1:6) - Jcb'*fd) - JcDqD);\n\nNP0 = eye(n) - JcSBarPinv*JcSBar;\n\nLambdaStar = LambdaStar + NP0 * q"
+      "_star;\n\ntauLegs = - JcSBar'*fd + NjInv*LambdaStar + SBar'*[h(1:6);h(DL + 7:end)];\n\nif DL ~= 0\n   tau = h(7:"
+      "end) - k(3,1)*(q - qInit) - k(3,3)*qD   ;   \n   tau(DL+1:end) = tauLegs;\nelse\n    tau = tauLegs;\nend\n\nCoME"
+      "rror    = xcom - xcomDes;\n"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
@@ -3903,10 +3759,10 @@ Stateflow {
   }
   data {
     id			    25
-    ssIdNumber		    31
-    name		    "fL"
+    ssIdNumber		    22
+    name		    "Jcom"
     linkNode		    [12 24 26]
-    scope		    OUTPUT_DATA
+    scope		    INPUT_DATA
     machine		    1
     props {
       array {
@@ -3919,16 +3775,16 @@ Stateflow {
 	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
+      frame		      SF_FRAME_INHERITED
     }
     dataType		    "Inherit: Same as Simulink"
   }
   data {
     id			    26
-    ssIdNumber		    33
-    name		    "fR"
+    ssIdNumber		    27
+    name		    "xcom"
     linkNode		    [12 25 27]
-    scope		    OUTPUT_DATA
+    scope		    INPUT_DATA
     machine		    1
     props {
       array {
@@ -3941,16 +3797,16 @@ Stateflow {
 	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
+      frame		      SF_FRAME_INHERITED
     }
     dataType		    "Inherit: Same as Simulink"
   }
   data {
     id			    27
-    ssIdNumber		    40
-    name		    "forceError"
+    ssIdNumber		    26
+    name		    "xcomDes"
     linkNode		    [12 26 28]
-    scope		    OUTPUT_DATA
+    scope		    INPUT_DATA
     machine		    1
     props {
       array {
@@ -3963,16 +3819,16 @@ Stateflow {
 	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
+      frame		      SF_FRAME_INHERITED
     }
     dataType		    "Inherit: Same as Simulink"
   }
   data {
     id			    28
-    ssIdNumber		    36
-    name		    "ML"
+    ssIdNumber		    15
+    name		    "xDcomDes"
     linkNode		    [12 27 29]
-    scope		    OUTPUT_DATA
+    scope		    INPUT_DATA
     machine		    1
     props {
       array {
@@ -3985,16 +3841,16 @@ Stateflow {
 	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
+      frame		      SF_FRAME_INHERITED
     }
     dataType		    "Inherit: Same as Simulink"
   }
   data {
     id			    29
-    ssIdNumber		    37
-    name		    "MR"
+    ssIdNumber		    19
+    name		    "xDDcomDes"
     linkNode		    [12 28 30]
-    scope		    OUTPUT_DATA
+    scope		    INPUT_DATA
     machine		    1
     props {
       array {
@@ -4007,14 +3863,14 @@ Stateflow {
 	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
+      frame		      SF_FRAME_INHERITED
     }
     dataType		    "Inherit: Same as Simulink"
   }
   data {
     id			    30
-    ssIdNumber		    22
-    name		    "Jcom"
+    ssIdNumber		    16
+    name		    "k"
     linkNode		    [12 29 31]
     scope		    INPUT_DATA
     machine		    1
@@ -4035,8 +3891,8 @@ Stateflow {
   }
   data {
     id			    31
-    ssIdNumber		    27
-    name		    "xcom"
+    ssIdNumber		    28
+    name		    "fake"
     linkNode		    [12 30 32]
     scope		    INPUT_DATA
     machine		    1
@@ -4057,10 +3913,10 @@ Stateflow {
   }
   data {
     id			    32
-    ssIdNumber		    26
-    name		    "xcomDes"
+    ssIdNumber		    30
+    name		    "CoMError"
     linkNode		    [12 31 33]
-    scope		    INPUT_DATA
+    scope		    OUTPUT_DATA
     machine		    1
     props {
       array {
@@ -4073,14 +3929,14 @@ Stateflow {
 	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
+      frame		      SF_FRAME_NO
     }
     dataType		    "Inherit: Same as Simulink"
   }
   data {
     id			    33
-    ssIdNumber		    15
-    name		    "xDcomDes"
+    ssIdNumber		    38
+    name		    "IntErrorCoM"
     linkNode		    [12 32 34]
     scope		    INPUT_DATA
     machine		    1
@@ -4101,119 +3957,9 @@ Stateflow {
   }
   data {
     id			    34
-    ssIdNumber		    19
-    name		    "xDDcomDes"
-    linkNode		    [12 33 35]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    35
-    ssIdNumber		    16
-    name		    "k"
-    linkNode		    [12 34 36]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    36
-    ssIdNumber		    28
-    name		    "fake"
-    linkNode		    [12 35 37]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    37
-    ssIdNumber		    30
-    name		    "CoMError"
-    linkNode		    [12 36 38]
-    scope		    OUTPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    38
-    ssIdNumber		    38
-    name		    "IntErrorCoM"
-    linkNode		    [12 37 39]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    39
     ssIdNumber		    42
     name		    "H"
-    linkNode		    [12 38 0]
+    linkNode		    [12 33 0]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -4232,26 +3978,26 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   instance {
-    id			    40
+    id			    35
     name		    "Subsystem/controllerMatlab"
     machine		    1
     chart		    12
   }
   chart {
-    id			    41
+    id			    36
     name		    "Subsystem/Subsystem/MATLAB Function"
     windowPosition	    [379.2 0.8 158.4 640]
     viewLimits		    [0 112 0 601]
     screen		    [1 1 2806 900 1.25]
-    treeNode		    [0 42 0 0]
-    firstTransition	    44
-    firstJunction	    43
-    viewObj		    41
+    treeNode		    [0 37 0 0]
+    firstTransition	    39
+    firstJunction	    38
+    viewObj		    36
     machine		    1
     ssIdHighWaterMark	    11
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
-    firstData		    45
+    firstData		    40
     chartFileNumber	    4
     disableImplicitCasting  1
     eml {
@@ -4259,14 +4005,14 @@ Stateflow {
     }
   }
   state {
-    id			    42
+    id			    37
     labelString		    "eML_blk_kernel()"
     position		    [18 64.5 118 66]
     fontSize		    12
-    chart		    41
-    treeNode		    [41 0 0 0]
+    chart		    36
+    treeNode		    [36 0 0 0]
     superState		    SUBCHART
-    subviewer		    41
+    subviewer		    36
     ssIdNumber		    1
     type		    FUNC_STATE
     decomposition	    CLUSTER_STATE
@@ -4279,16 +4025,16 @@ Stateflow {
     }
   }
   junction {
-    id			    43
+    id			    38
     position		    [23.5747 49.5747 7]
-    chart		    41
-    linkNode		    [41 0 0]
-    subviewer		    41
+    chart		    36
+    linkNode		    [36 0 0]
+    subviewer		    36
     ssIdNumber		    3
     type		    CONNECTIVE_JUNCTION
   }
   transition {
-    id			    44
+    id			    39
     labelString		    "{eML_blk_kernel();}"
     labelPosition	    [32.125 19.875 104 16.042]
     fontSize		    12
@@ -4296,14 +4042,14 @@ Stateflow {
       intersection	      [0 0 1 0 23.5747 14.625 0 0]
     }
     dst {
-      id		      43
+      id		      38
       intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
     }
     midPoint		    [23.5747 24.9468]
-    chart		    41
-    linkNode		    [41 0 0]
+    chart		    36
+    linkNode		    [36 0 0]
     dataLimits		    [21.175 25.975 14.625 42.575]
-    subviewer		    41
+    subviewer		    36
     drawStyle		    SMART
     slide {
       sticky		      BOTH_STICK
@@ -4312,10 +4058,115 @@ Stateflow {
     ssIdNumber		    2
   }
   data {
-    id			    45
+    id			    40
     ssIdNumber		    7
     name		    "ut"
-    linkNode		    [41 0 46]
+    linkNode		    [36 0 41]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    41
+    ssIdNumber		    4
+    name		    "maxU"
+    linkNode		    [36 40 42]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+      }
+      complexity	      SF_COMPLEX_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    42
+    ssIdNumber		    5
+    name		    "stop"
+    linkNode		    [36 41 43]
+    scope		    OUTPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    43
+    ssIdNumber		    8
+    name		    "out"
+    linkNode		    [36 42 44]
+    scope		    OUTPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    44
+    ssIdNumber		    9
+    name		    "q"
+    linkNode		    [36 43 45]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    45
+    ssIdNumber		    10
+    name		    "minQ"
+    linkNode		    [36 44 46]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -4335,114 +4186,9 @@ Stateflow {
   }
   data {
     id			    46
-    ssIdNumber		    4
-    name		    "maxU"
-    linkNode		    [41 45 47]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-      }
-      complexity	      SF_COMPLEX_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    47
-    ssIdNumber		    5
-    name		    "stop"
-    linkNode		    [41 46 48]
-    scope		    OUTPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    48
-    ssIdNumber		    8
-    name		    "out"
-    linkNode		    [41 47 49]
-    scope		    OUTPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    49
-    ssIdNumber		    9
-    name		    "q"
-    linkNode		    [41 48 50]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    50
-    ssIdNumber		    10
-    name		    "minQ"
-    linkNode		    [41 49 51]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    51
     ssIdNumber		    11
     name		    "maxQ"
-    linkNode		    [41 50 0]
+    linkNode		    [36 45 0]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -4461,13 +4207,13 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   instance {
-    id			    52
+    id			    47
     name		    "Subsystem/Subsystem/MATLAB Function"
     machine		    1
-    chart		    41
+    chart		    36
   }
   target {
-    id			    53
+    id			    48
     name		    "sfun"
     description		    "Default Simulink S-Function Target."
     machine		    1
