@@ -3,6 +3,8 @@
 
 #define TIME_SCALE_FACTOR(S) ssGetSFcnParam(S,0)
 
+
+#include <cstdlib>
 /*
  * Need to include simstruc.h for the definition of the SimStruct and
  * its associated macro definitions.

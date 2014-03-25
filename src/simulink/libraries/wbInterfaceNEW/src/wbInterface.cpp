@@ -150,7 +150,7 @@ bool robotStatus::robotInit(int btype, int link) {
     //center of mass
     /** There might be additional block types that should be considered here. Check out*/
     if(btype == 2 || btype == 3) {
-        const char *linkName;
+        const char *linkName = "";
         int default_size = 0;
         int linkID = 0;
         switch (link)
