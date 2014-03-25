@@ -6,6 +6,6 @@ include_directories(${EIGEN3_INCLUDE_DIR} ${wholeBodyInterface_INCLUDE_DIRS}  ${
 
 add_executable(wbmIcubInvDynTest wbmIcubInverseDynamicsTest.cpp)
 
-target_link_libraries(wbmIcubInvDynTest ${ICUB_LIBRARIES} ${orocos_kdl_LIBRARIES} wholeBodyInterface wholeBodyInterfaceIcub kdl_codyco )
+target_link_libraries(wbmIcubInvDynTest ${ICUB_LIBRARIES} ${kdl_codyco_LIBRARIES} wholeBodyInterface wholeBodyInterfaceIcub )
 
 add_test(NAME test_wbmIcubInvDynTest COMMAND wbmIcubInvDynTest)
