@@ -233,7 +233,7 @@ int robotStatus::getLinkId(const char *linkName) {
 }
 //=========================================================================================================================
 bool robotStatus::world2baseRototranslation(double *q) {
-    /** \todo This method should take as input the link you wanna use for to define the world reference frame. Right now it's hard coded to be the left foot. */
+    /** TODO This method should take as input the link you wanna use to define the world reference frame. Right now it's hard coded to be the left foot. */
 #ifndef ICUB_FIXED
     int LINK_ID_LEFT_FOOT;
     getLinkId("l_sole",LINK_ID_LEFT_FOOT);
@@ -366,7 +366,6 @@ void robotStatus::setdqDes(Vector dqD) {
 //=========================================================================================================================
 bool robotStatus::inverseDynamics(double *qrad_input, double *dq_input, double *ddq_input, double *tauJ_computed) {
     bool ans = false;
-    /** TODO qrad_input, dq_input, ddq_input will include in the first sixteen components the corresponding floating base information*/
     if(world2baseRototranslation(qrad_input)) {
         Vector qrad_base(16);
         qrad_base.resize(16,0.0);
@@ -713,7 +712,6 @@ static void mdlInitializeSizes(SimStruct *S)
     if (!ssSetNumInputPorts(S, 5)) return;
     ssSetInputPortWidth(S, 0, 1);              	    		//INPUT for BLOCK TYPE
     ssSetInputPortWidth(S, 1, ICUB_DOFS);    	    		//INPUT for dqDes (control reference, for setting positions, velocities or torques)
-    /** TODO Temporary changed this to ICUB_DOFS+6 so that Inverse Dynamics can accept the right dimensioned inputs*/
     ssSetInputPortWidth(S, 2, ICUB_DOFS+16);			//INPUT for q (input angles different maybe from current ones)
     ssSetInputPortWidth(S, 3, ICUB_DOFS+6);			//INPUT for dq (input joint velocities maybe different from current ones)
     ssSetInputPortWidth(S, 4, ICUB_DOFS+6);			//INPUT for ddq (input joint accelerations maybe different from current ones)
@@ -1300,7 +1298,6 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             //Stream computed joint torques by inverseDynamics
             real_T *pY10 = (real_T*)ssGetOutputPortSignal(S,9);
             for(int_T j=0; j<ssGetOutputPortWidth(S,9); j++) {
-                /**TODO Decide if we want to stream tau_computed including floating base torques */
                 pY10[j] = tau_computed(j+6);
             }
         }

@@ -22,9 +22,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Mar 24 17:56:20 2014"
-  RTWModifiedTimeStamp	  317584127
-  ModelVersionFormat	  "1.%<AutoIncrement:26>"
+  LastModifiedDate	  "Mon Mar 31 10:59:12 2014"
+  RTWModifiedTimeStamp	  318163658
+  ModelVersionFormat	  "1.%<AutoIncrement:33>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -809,7 +809,7 @@ Library {
   System {
     Name		    "WBCLibrary"
     Location		    [532, 509, 1320, 769]
-    Open		    on
+    Open		    off
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
     ScreenColor		    "gray"
@@ -822,7 +822,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "1054"
+    SIDHighWatermark	    "1057"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -846,7 +846,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
-	Location		[403, 508, 1095, 803]
+	Location		[11, 394, 703, 747]
 	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -1353,6 +1353,13 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
+	  MaskType		  "WBI to YARP"
+	  MaskDescription	  "Swaps first and third joints of the torso from a WBI whole body state reading."
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "WBI to yarp"
 	    Location		    [1006, 421, 1335, 810]
@@ -1814,9 +1821,17 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
+	  MaskType		  "Errors"
+	  MaskDescription	  "Computes two kinds of errors. The first is just the difference between x\nand y while the second"
+	  " is the ratio (x-y)/y."
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "errors"
-	    Location		    [650, 256, 925, 398]
+	    Location		    [522, 255, 797, 397]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -1939,6 +1954,13 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
+	  MaskType		  "Holder"
+	  MaskDescription	  "Holds the first value read by the block at the beginning of the simulation."
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "holder"
 	    Location		    [371, 331, 909, 542]
@@ -2214,6 +2236,39 @@ Library {
 	}
 	Block {
 	  BlockType		  S-Function
+	  Name			  "synchronize"
+	  SID			  "1056"
+	  Ports			  [0, 1]
+	  Position		  [30, 239, 115, 281]
+	  ZOrder		  -5
+	  ForegroundColor	  "[0.900000, 0.000000, 0.472153]"
+	  ShowName		  off
+	  FunctionName		  "ySynchronizer"
+	  Parameters		  "rate"
+	  EnableBusSupport	  off
+	  MaskType		  "ySynchronizer"
+	  MaskDescription	  "Slows down the simulation and synchronizes all blocks with Yarp time.\nThis block takes two inpu"
+	  "t parameters: \n\nPeriod: rate at which you want the simulation to run. It must coincide with the \"Fixed-step size"
+	  "\" \nset in \"Solver Options\" within the configuration parameters of your simulation.\n\nScale Factor: If your sim"
+	  "ulation runs faster than your desired rate, this block \nwill slow down the simulation to make it match the specifi"
+	  "ed rate (in the case the scale factor is 1)."
+	  MaskPromptString	  "Period |Scale factor"
+	  MaskStyleString	  "edit,edit"
+	  MaskVariables		  "rate=@1;scaleFactor=@2;"
+	  MaskTunableValueString  "on,on"
+	  MaskCallbackString	  "|"
+	  MaskEnableString	  "on,on"
+	  MaskVisibilityString	  "on,on"
+	  MaskToolTipString	  "on,on"
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
+	  MaskValueString	  "0.010|1"
+	}
+	Block {
+	  BlockType		  S-Function
 	  Name			  "yarp read"
 	  SID			  "249"
 	  Ports			  [0, 3]
@@ -2252,6 +2307,14 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
+	  MaskType		  "YARP to wbi"
+	  MaskDescription	  "This is an iCub specific block which swaps the readings of the first and \nthird joint of the to"
+	  "rso."
+	  MaskIconFrame		  on
+	  MaskIconOpaque	  on
+	  MaskIconRotate	  "none"
+	  MaskPortRotate	  "default"
+	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "yarp to WBI"
 	    Location		    [160, 689, 425, 877]
@@ -3429,7 +3492,7 @@ Library {
       System {
 	Name			"wholeBodyModel"
 	Location		[670, 584, 1249, 859]
-	Open			on
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -3464,7 +3527,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Dynamics"
-	    Location		    [600, 218, 1379, 391]
+	    Location		    [136, 125, 915, 298]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -3490,9 +3553,23 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
+	      MaskPromptString	      "Robot name|Local name"
+	      MaskStyleString	      "edit,edit"
+	      MaskVariables	      "robotName=@1;localName=@2;"
+	      MaskTunableValueString  "on,on"
+	      MaskCallbackString      "|"
+	      MaskEnableString	      "on,on"
+	      MaskVisibilityString    "on,on"
+	      MaskToolTipString	      "on,on"
+	      MaskIconFrame	      on
+	      MaskIconOpaque	      on
+	      MaskIconRotate	      "none"
+	      MaskPortRotate	      "default"
+	      MaskIconUnits	      "autoscale"
+	      MaskValueString	      "robotName|localName"
 	      System {
 		Name			"Cent Momentum"
-		Location		[1887, 355, 2207, 735]
+		Location		[523, 194, 843, 574]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
