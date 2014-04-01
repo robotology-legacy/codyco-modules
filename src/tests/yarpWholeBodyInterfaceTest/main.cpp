@@ -107,13 +107,20 @@ int main(int argc, char * argv[])
     Vector q(dof), dq(dof), d2q(dof);
     
     double_pendulum_sensor->readSensors(wbi::SENSOR_ENCODER, q.data(),0,true);
+    
+    /*
+    q(0) = 0;
+    q(1) = 0;
+    */
 //    Vector refSpeed(dof, CTRL_DEG2RAD*10.0), qd = q;
 //    qd += 15.0*CTRL_DEG2RAD;
     printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
 //    printf("Qd:  %s\n", (CTRL_RAD2DEG*qd).toString(1).c_str());
 //    double_pendulum->setControlParam(CTRL_PARAM_REF_VEL, refSpeed.data());
     
-    dq.zero();
+    dq(0) = 0;
+    dq(1) = 0;
+    
     d2q.zero();
     //    double_pendulum->setControlReference(qd.data());
     //
@@ -176,8 +183,8 @@ int main(int argc, char * argv[])
     
     double q1 = q(0);
     double q2 = q(1);
-    double dq1 = 0;
-    double dq2 = 0;
+    double dq1 = dq(0);
+    double dq2 = dq(1);
     
     const double g = 9.8;
     
@@ -247,6 +254,9 @@ int main(int argc, char * argv[])
     qq(0) = q[0];
     qq(1) = q[1];
     
+    dqq(0) = dq[0];
+    dqq(1) = dq[1];
+    
     KDL::Wrench f_base;
     KDL::Twist a,v;
     a = v = KDL::Twist::Zero();
@@ -272,13 +282,13 @@ int main(int argc, char * argv[])
             fprintf(stderr, "Inverse Dynamics failed \n");
     }
     Cdq = tempTau - grav;
-    if (cTerm1 != Cdq(6 + 0)) {
+    //if (cTerm1 != Cdq(6 + 0)) {
         fprintf(stderr, "C term is %lf but should be %lf\n", Cdq(6), cTerm1);
-    }
-    if(cTerm2 != Cdq(6 + 1))
-    {
+    //}
+    //if(cTerm2 != Cdq(6 + 1))
+    //{
         fprintf(stderr, "C Term is %lf but should be %lf\n", Cdq(7), cTerm2);
-    }
+    //}
     
     if(!double_pendulum->computeMassMatrix(q.data(), xBase, M.data())) {
         fprintf(stderr, "Mass Matrix failed \n");
