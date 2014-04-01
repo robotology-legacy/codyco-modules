@@ -10,8 +10,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(ICUB       REQUIRED)
 find_package(Eigen3     REQUIRED)
-find_package(orocos_kdl REQUIRED)
-find_package(kdl_codyco REQUIRED)
+find_package(iDynTree   REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
@@ -40,8 +39,6 @@ include_directories(${PROJECT_SOURCE_DIR}/include
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
-                    ${Orocos-KDL_INCLUDE_DIRS}
-                    ${kdl_codyco_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
@@ -88,7 +85,7 @@ elseif(WIN32)
 endif(WIN32)
 
 # Linking libraries
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${MATLAB_LIBRARIES} ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES} skinDynLib ctrlLib wholeBodyInterface wholeBodyInterfaceIcub paramHelp iDynTree)
+target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${MATLAB_LIBRARIES} ${iDynTree_LIBRARIES} skinDynLib ctrlLib wholeBodyInterface wholeBodyInterfaceIcub paramHelp )
 install(TARGETS ${PROJECTNAME} DESTINATION mex)
 
 

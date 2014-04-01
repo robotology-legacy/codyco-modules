@@ -10,8 +10,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(ICUB       REQUIRED)
 find_package(Eigen3     REQUIRED)
-find_package(orocos_kdl REQUIRED)
-find_package(kdl_codyco REQUIRED)
+find_package(iDynTree   REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
@@ -92,12 +91,10 @@ target_link_libraries(${PROJECTNAME}
 wholeBodyInterface
 wholeBodyInterfaceIcub
 paramHelp
-iDynTree
+${iDynTree_LIBRARIES}
 ${YARP_LIBRARIES} 
 ${ICUB_LIBRARIES}
 ${MATLAB_LIBRARIES}
-${Orocos-KDL_LIBRARIES}
-${kdl_codyco_LIBRARIES} 
 ${skinDynLib_LIBRARIES}
 ${ctrlLib_LIBRARIES}
 )
