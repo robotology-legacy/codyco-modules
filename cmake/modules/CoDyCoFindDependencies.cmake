@@ -1,9 +1,13 @@
 #### Find Eigen3
 find_package(Eigen3 REQUIRED)
 
+find_package(orocos_kdl 1.2.3 QUIET)
+if (NOT orocos_kdl_FOUND)
+    set(OROCOS_KDL_OLDVERSION 1)
+endif(NOT orocos_kdl_FOUND)
+
 #### Find orocos_kdl, with fallback procedure to be compatible with ros installed version
 find_package(orocos_kdl)
-
 #support also for the old version of kdl cmake package
 if(NOT orocos_kdl_FOUND)
    find_package(Orocos-KDL)
