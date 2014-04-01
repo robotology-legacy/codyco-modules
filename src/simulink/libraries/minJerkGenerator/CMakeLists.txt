@@ -74,5 +74,5 @@ elseif(WIN32)
 endif(WIN32)
 
 # Linking Libraries
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${MATLAB_LIBRARIES} ${ctrlLib_LIBRARIES})
+target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${MATLAB_LIBRARIES} ctrlLib)
 install(TARGETS ${PROJECTNAME} DESTINATION mex)
