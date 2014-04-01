@@ -16,7 +16,7 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
         "
     HAS_CHAR16_T_TYPE)
     if (NOT HAS_CHAR16_T_TYPE)
-        add_definitions(-Dchar16_t=uint16_t)
+        # add_definitions(-Dchar16_t=uint16_t)
     endif(NOT HAS_CHAR16_T_TYPE)
 endif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 
