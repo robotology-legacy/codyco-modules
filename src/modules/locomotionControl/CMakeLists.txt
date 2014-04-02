@@ -44,7 +44,7 @@ wholeBodyInterface
 wholeBodyInterfaceIcub
 paramHelp
 iDynTree
-${ctrlLib_LIBRARIES}
+ctrlLib
 ${YARP_LIBRARIES} 
 ${Orocos-KDL_LIBRARIES}
 ${kdl_codyco_LIBRARIES})

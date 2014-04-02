@@ -7,9 +7,9 @@ add_executable(iDynTreeJacobianTest iDynTreeJacobianTest.cpp)
 #add_executable(iDynTreeWholeBodyFTsensorEstimateTest iDynTreeWholeBodyFTsensorEstimateTest.cpp)
 add_executable(iDynTreeExternalWrenchesEstimationTest iDynTreeExternalWrenchesEstimationTest.cpp)
 
-target_link_libraries(iDynTreeJacobianTest iDynTree ${ICUB_LIBRARIES} ${kdl_codyco_LIBRARIES} )
-#target_link_libraries(iDynTreeWholeBodyFTsensorEstimateTest iDynTree ${ICUB_LIBRARIES} ${orocos_kdl_LIBRARIES} {kdl_codyco_LIBRARIES})
-target_link_libraries(iDynTreeExternalWrenchesEstimationTest iDynTree ${ICUB_LIBRARIES} ${orocos_kdl_LIBRARIES} ${kdl_codyco_LIBRARIES} )
+target_link_libraries(iDynTreeJacobianTest iDynTree ${kdl_codyco_LIBRARIES} )
+#target_link_libraries(iDynTreeWholeBodyFTsensorEstimateTest iDynTree  ${orocos_kdl_LIBRARIES} {kdl_codyco_LIBRARIES})
+target_link_libraries(iDynTreeExternalWrenchesEstimationTest iDynTree ${orocos_kdl_LIBRARIES} ${kdl_codyco_LIBRARIES} )
 
 add_test(NAME test_iDynTreeJacobianTest COMMAND iDynTreeJacobianTest)
 #add_test(NAME test_iDynTreeWholeBodyFTsensorEstimateTest COMMAND iDynTreeWholeBodyFTsensorEstimateTest)
