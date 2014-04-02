@@ -175,6 +175,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     rightShoulderVelocityCouplingMatrix = leftShoulderVelocityCouplingMatrix;
     
     torsoTorqueCouplingMatrix = Matrix2d::Zero();
+    
     torsoTorqueCouplingMatrix(0,0) = torsoTorqueCouplingMatrix(0,1) =  torsoTorqueCouplingMatrix(1,0) = 1;
     torsoTorqueCouplingMatrix(1,1) = -1;
     torsoVelocityCouplingMatrix = torsoTorqueCouplingMatrix;
@@ -344,17 +345,19 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
 {
     ///< ***************************** OUTPUT STREAMING VARIABLES
     for(int i=0; i<_n; i++)
-    {
-        estimators[i].updateParameterEstimate();
-        estimators[i].getCovarianceMatrix(sigmaMonitor);
-        stdDev.kt[i]    = sqrt(sigmaMonitor.diagonal()[INDEX_K_TAO]);
-        stdDev.kvp[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_VP]);
-        stdDev.kvn[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_VN]);
-        stdDev.kcp[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_CP]);
-        stdDev.kcn[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_CN]);
+    {        
+        if(activeJoints[i]==1)
+        {
+            estimators[i].updateParameterEstimate();
+            estimators[i].getCovarianceMatrix(sigmaMonitor);
+            stdDev.kt[i]    = sqrt(sigmaMonitor.diagonal()[INDEX_K_TAO]);
+            stdDev.kvp[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_VP]);
+            stdDev.kvn[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_VN]);
+            stdDev.kcp[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_CP]);
+            stdDev.kcn[i]   = sqrt(sigmaMonitor.diagonal()[INDEX_K_CN]);
+        }        
     }
     
-
     ///< ***************************** MONITOR VARIABLES
     int jid = jointMonitor;
     ///< saturate standard deviations to 1.0 to make plots nice
@@ -493,18 +496,29 @@ bool MotorFrictionIdentificationThread::saveParametersOnFile(const Bottle &param
     VectorXd b(PARAM_NUMBER);
     for(int i=0; i<_n; i++)
     {
-        estimators[i].updateParameterEstimate();
-        estimators[i].getParameterEstimate(estimateMonitor, sigmaMonitor);
-        kt[i]   = estimateMonitor[INDEX_K_TAO];
-        kvp[i]  = estimateMonitor[INDEX_K_VP];
-        kvn[i]  = estimateMonitor[INDEX_K_VN];
-        kcp[i]  = estimateMonitor[INDEX_K_CP];
-        kcn[i]  = estimateMonitor[INDEX_K_CN];
-
+        if(activeJoints[i]==1)
+        {
+            estimators[i].updateParameterEstimate();
+            estimators[i].getParameterEstimate(estimateMonitor, sigmaMonitor);
+            kt[i]   = estimateMonitor[INDEX_K_TAO];
+            kvp[i]  = estimateMonitor[INDEX_K_VP];
+            kvn[i]  = estimateMonitor[INDEX_K_VN];
+            kcp[i]  = estimateMonitor[INDEX_K_CP];
+            kcn[i]  = estimateMonitor[INDEX_K_CN];
+            
+            if(i<5) cout<<"Covariance of joint "<<i<<":\n"<<A<<endl;
+        }
+        else
+        {
+            kt[i]   = 0.0;
+            kvp[i]  = 0.0;
+            kvn[i]  = 0.0;
+            kcp[i]  = 0.0;
+            kcn[i]  = 0.0;
+        }
         estimators[i].getEstimationState(A, b);
         covarianceInv.block(i*PARAM_NUMBER,0,PARAM_NUMBER,PARAM_NUMBER)  = A;
-        rhs.row(i) = b;
-        if(i<5) cout<<"Covariance of joint "<<i<<":\n"<<A<<endl;
+        rhs.row(i) = b;  
     }
     
     ///< save the estimations of the parameters on text file
