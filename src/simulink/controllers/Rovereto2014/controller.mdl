@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.477"
+    ComputedModelVersion    "1.479"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -27,9 +27,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "daniele"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Apr 03 10:16:03 2014"
-  RTWModifiedTimeStamp	  318419190
-  ModelVersionFormat	  "1.%<AutoIncrement:477>"
+  LastModifiedDate	  "Thu Apr 03 10:50:22 2014"
+  RTWModifiedTimeStamp	  318421297
+  ModelVersionFormat	  "1.%<AutoIncrement:479>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -705,13 +705,6 @@ Model {
       RTWStateStorageClass    "Auto"
     }
     Block {
-      BlockType		      Display
-      Format		      "short"
-      Decimation	      "10"
-      Floating		      off
-      SampleTime	      "-1"
-    }
-    Block {
       BlockType		      From
       GotoTag		      "A"
       IconDisplay	      "Tag"
@@ -910,7 +903,7 @@ Model {
       MaskValueString	      "'icubGazeboSim'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[168, 694, 1599, 1703]
+	Location		[168, 694, 1768, 1867]
 	Open			off
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -922,7 +915,7 @@ Model {
 	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
 	TiledPageScale		1
 	ShowPageBoundaries	off
-	ZoomFactor		"59"
+	ZoomFactor		"80"
 	Block {
 	  BlockType		  Constant
 	  Name			  "\n\n  "
@@ -1021,7 +1014,7 @@ Model {
 	  Position		  [1225, 729, 1310, 821]
 	  ZOrder		  113
 	  Floating		  off
-	  Location		  [1602, 60, 2441, 1047]
+	  Location		  [1602, 61, 2441, 1048]
 	  Open			  off
 	  NumInputPorts		  "3"
 	  List {
@@ -1060,16 +1053,6 @@ Model {
 	  SampleTime		  "Ts"
 	  ICPrevOutput		  "DiscIntNeverNeededParam"
 	  ICPrevScaledInput	  "DiscIntNeverNeededParam"
-	}
-	Block {
-	  BlockType		  Display
-	  Name			  "Display"
-	  SID			  "286"
-	  Ports			  [1]
-	  Position		  [620, 174, 1080, 686]
-	  ZOrder		  -1
-	  Decimation		  "1"
-	  Lockdown		  off
 	}
 	Block {
 	  BlockType		  Goto
@@ -2482,12 +2465,6 @@ Model {
 	  DstPort		  9
 	}
 	Line {
-	  SrcBlock		  " "
-	  SrcPort		  1
-	  DstBlock		  "controllerMatlab"
-	  DstPort		  7
-	}
-	Line {
 	  SrcBlock		  "\n\n  "
 	  SrcPort		  1
 	  DstBlock		  "controllerMatlab"
@@ -2499,12 +2476,6 @@ Model {
 	  Points		  [14, 0; 0, 20]
 	  DstBlock		  " "
 	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  " 1"
-	  SrcPort		  1
-	  DstBlock		  "controllerMatlab"
-	  DstPort		  8
 	}
 	Line {
 	  SrcBlock		  "Right Foot Jacobian"
@@ -2536,6 +2507,7 @@ Model {
 	Line {
 	  SrcBlock		  "trajectoryGeneratorCoM"
 	  SrcPort		  3
+	  Points		  [20, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  13
 	}
@@ -2742,9 +2714,21 @@ Model {
 	Line {
 	  SrcBlock		  "controllerMatlab"
 	  SrcPort		  3
-	  Points		  [60, 0; 0, -45]
+	  Points		  [52, 0; 0, -16; 16, 0; 0, -29]
 	  DstBlock		  "CoMError - \nCoM - CoMDes\n"
 	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  " 1"
+	  SrcPort		  1
+	  DstBlock		  "controllerMatlab"
+	  DstPort		  8
+	}
+	Line {
+	  SrcBlock		  " "
+	  SrcPort		  1
+	  DstBlock		  "controllerMatlab"
+	  DstPort		  7
 	}
       }
     }
@@ -2753,7 +2737,7 @@ Model {
 Stateflow {
   machine {
     id			    1
-    name		    "tp6ba8fa13_44c7_49e0_96bc_98754f0456a6_saveas"
+    name		    "tp8528c27b_4f9e_49df_9d8a_c3dd3104bb32_saveas"
     created		    "18-Feb-2014 10:14:40"
     isLibrary		    0
     firstTarget		    38
@@ -2794,7 +2778,7 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;0;1];\nA = 0.1;\nf ="
+      script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;1;0];\nA = 0.1;\nf ="
       " 0.1;\nt = t*0.8;\n% xcomDes    = [xCom0(1:2); (1/A-1)*A*xCom0(3)] + A*xCom0(3)*cos(2*pi*f*t)*e3;\n% xDcomDes   "
       "= -xCom0(3)*A*2*pi*f*sin(2*pi*f*t)*e3;\n% xDDcomDes  = -xCom0(3)*A*(2*pi*f)^2*cos(2*pi*f*t)*e3;\n\nxcomDes    = "
       "xCom0 + A*sin(2*pi*f*t)*e3;\nxDcomDes   =         A*2*pi*f*cos(2*pi*f*t)*e3;\nxDDcomDes  =        -A*(2*pi*f)^2*"
