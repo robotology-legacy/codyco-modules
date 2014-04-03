@@ -1,7 +1,10 @@
-Simulink Library for Whole Body Control 
-----------------------------------------------------------
+WBI Toolbox (WBI-T) - Simulink Wrapper for Whole Body Control
+-------------------------------------------------------------
 
-This document describes basic instructions on how to use this library, *tips and tricks* to do so and a walkthrough to get you started using it. Simulink blocks consist of S-functions (http://goo.gl/1GuHVd) which allow C/C++ user specific code compiled as Matlab Executable (MEX) files, thus extending the capabilities of the Simulink environment. In other words, MEX files have been created linking YARP, iCub and **iDynTree** (a more efficient and generic YARP-based robot dynamics library than its predecessor iDyn - http://goo.gl/BnGzKr) and wrapping the **Whole Body Interface** described in http://goo.gl/dBWO3k. Soft-Real Time is ensured by slowing down the simulation to respect a user specified rate. The following video shows a quick introduction to the way it works. For further information read the sections below.
+
+NEWS: The WBI Toolbox will be presented at ICRA 2014 with a live demo on the Gazebo simulator and (probably) on the real robot!!!  Check out the whole program here: http://goo.gl/L76DbM
+
+This document describes basic instructions on how to use this library, *tips and tricks* to do so and a walkthrough to get you started using it. Simulink blocks consist of S-functions (http://goo.gl/1GuHVd) which allow C/C++ user specific code compiled as Matlab Executable (MEX) files, thus extending the capabilities of the Simulink environment. In other words, MEX files have been created linking YARP, iCub and **iDynTree** (a more efficient and generic YARP-based robot dynamics library than its predecessor iDyn - http://goo.gl/BnGzKr) andcodyco wrapping the **Whole Body Interface** described in http://goo.gl/dBWO3k. Soft-Real Time is ensured by slowing down the simulation to respect a user specified rate. The following video shows a quick introduction to the way it works. For further information read the sections below.
 
 
 <p align="center">
@@ -25,7 +28,7 @@ alt="Overview of the Simulink library for Whole Body Control" width="480" height
 
 
 ###### Installation
-Before going ahead with the compilation of the library, make sure that you have MATLAB and Simulink properly installed and running. Then, check that the MEX compiler for MATLAB is setup and working. For this you can try compiling some of MATLAB C code examples as described in [http://www.mathworks.com/help/matlab/ref/mex.html#btz1tb5-12].
+Before going ahead with the compilation of the library, make sure that you have MATLAB and Simulink properly installed and running. Then, check that the MEX compiler for MATLAB is setup and working. For this you can try compiling some of MATLAB C code examples as described in [http://www.mathworks.com/help/matlab/ref/mex.html#btz1tb5-12]. In the following steps assume that `$CODYCO_DIR` points to the `/build` directory of your CoDyCo installation and `$CODYCO_ROOT` to the corresponding `/src` directory.
 
 - **Compiling the Simulink Library.** When configuring the CMakeLists for CoDyCo make sure to enable the SIMULINK_LIBRARY flag by doing
 ```bash
@@ -34,7 +37,7 @@ Before going ahead with the compilation of the library, make sure that you have 
 ```
 In the UI look for *SIMULINK_LIBRARY* and press enter to turn it ON/OFF. Then as usual type c to configure until no stars (*) show up and finally g to generate. Finally to compile type `make`.
 
-- **Soft Real Time.** For the time being, this block has been taken from the Matlab File Exchange [http://goo.gl/8LMWGD] and it has to be compiled from within MATLAB by changing its current directory to `${CODYCO_ROOT}/simulink/controllers/RealTimeSlower` and typing `mex sfun_time.c`. This will create a mex file according to your operating system and architecture, e.g. for a 32bits Linux-based OS you will get sfun_time.mexglx. This mex file will be used by the example models included in `${CODYCO_ROOT}/simulink/controllers/` to slow down the simulation for a user-specified rate. It is recommended to define the rate in this block with a variable such as **Ts** and mask your final model where the user can later define the rate.
+~~**Soft Real Time.** For the time being, this block has been taken from the Matlab File Exchange [http://goo.gl/8LMWGD] and it has to be compiled from within MATLAB by changing its current directory to `${CODYCO_ROOT}/simulink/controllers/RealTimeSlower` and typing `mex sfun_time.c`. This will create a mex file according to your operating system and architecture, e.g. for a 32bits Linux-based OS you will get sfun_time.mexglx. This mex file will be used by the example models included in `${CODYCO_ROOT}/simulink/controllers/` to slow down the simulation for a user-specified rate. It is recommended to define the rate in this block with a variable such as **Ts** and mask your final model where the user can later define the rate.~~ This block will be soon deprecated and replaced by the ySynchronizer block. It is still present in the library and the user does not need to compile it manually.
 
 
 ###### Before Using the Simulink Library
@@ -68,17 +71,17 @@ You will find a few controllers and models for testing that have already been te
 Linux, Windows, MAC OS X
 
 ###### To Do List
-- [ ] Debug incompatibilities with Gazebo (at the c++ whole body interface level) - with Francesco Romano
+- [x] ~~Debug incompatibilities with Gazebo (at the c++ whole body interface level)~~ - with Francesco Romano
 - [x] ~~Compile the Soft Real Time mex as another module of the library. Possibly make our own.~~
 - [x] ~~Modify YarpRead module so that you can specify the port you wanna read from and where you want it to connect.         Connection should be done inside the block.~~
 - [x] ~~Restructure code for wbInterface~~
 - [x] ~~Expose computeMass() and generalizedBiasForces()~~
-- [ ] Debug computeMass() and generalizedBiasForces()
+- [x] ~~Debug computeMass() and generalizedBiasForces()~~
 - [ ] Documentation (Functions, etc)
 - [ ] Include postural constraint in FourthCOMController.
 - [ ] ZMP block.
 - [ ] Check minimum jerk generator.
-- [ ] Reproduce COM Controller as a Force Controlled version.
+- [x] ~~Reproduce COM Controller as a Force Controlled version.~~
 - [x] ~~Documentation (Installation)~~
 - [x] ~~How to properly get dynamic libraries linked at runtime on MAC OS X.~~
 - [x] ~~Divide blocks into subgroups (actuators, estimators, etc) and put them all together as a real Simulink               Library :D~~
