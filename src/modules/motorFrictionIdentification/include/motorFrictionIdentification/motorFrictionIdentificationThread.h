@@ -98,10 +98,10 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     Matrix3d            leftShoulderVelocityCouplingMatrix;
     Matrix3d            rightShoulderTorqueCouplingMatrix;
     Matrix3d            rightShoulderVelocityCouplingMatrix;
-    Matrix2d            torsoTorqueCouplingMatrix;
-    Matrix2d            torsoVelocityCouplingMatrix;
-    Vector2d             torsoVelocities;
-    Vector2d             torsoTorques;
+    Matrix3d            torsoTorqueCouplingMatrix;
+    Matrix3d            torsoVelocityCouplingMatrix;
+    Vector3d             torsoVelocities;
+    Vector3d             torsoTorques;
     Vector3d             leftShoulderTorques;
     Vector3d             leftShoulderVelocities;
     Vector3d             rightShoulderTorques;

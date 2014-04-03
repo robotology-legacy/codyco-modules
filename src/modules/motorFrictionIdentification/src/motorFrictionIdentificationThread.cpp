@@ -22,6 +22,7 @@
 #include <yarp/os/Random.h>
 #include <yarp/os/Log.h>
 #include <iCub/skinDynLib/common.h>
+#include <Eigen/LU>
 
 using namespace yarp::math;
 using namespace wbiIcub;
@@ -174,13 +175,20 @@ bool MotorFrictionIdentificationThread::threadInit()
     rightShoulderTorqueCouplingMatrix = leftShoulderTorqueCouplingMatrix;
     rightShoulderVelocityCouplingMatrix = leftShoulderVelocityCouplingMatrix;
     
-    torsoTorqueCouplingMatrix = Matrix2d::Zero();
+    torsoVelocityCouplingMatrix = Matrix3d::Zero();
     
-    torsoTorqueCouplingMatrix(0,0) = torsoTorqueCouplingMatrix(0,1) =  torsoTorqueCouplingMatrix(1,0) = 1;
-    torsoTorqueCouplingMatrix(1,1) = -1;
-    torsoVelocityCouplingMatrix = torsoTorqueCouplingMatrix;
+    torsoVelocityCouplingMatrix(0,0) = -0.5; 
+    torsoVelocityCouplingMatrix(0,1) =  0.5;
+    torsoVelocityCouplingMatrix(1,0) =  0.5;
+    torsoVelocityCouplingMatrix(1,1) =  0.5; 
+    torsoVelocityCouplingMatrix(2,0) =  0.25;
+    torsoVelocityCouplingMatrix(2,1) =  0.25;
+    torsoVelocityCouplingMatrix(2,2) =  0.5;
     
+    torsoTorqueCouplingMatrix  = torsoVelocityCouplingMatrix.transpose();
+    torsoVelocityCouplingMatrix = torsoVelocityCouplingMatrix.inverse();
     
+        
     printf("\n\n");
     return true;
 }
@@ -261,7 +269,7 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
         
         wbi::LocalId lid = jointList.globalToLocalId(i);
         if (lid.bodyPart == iCub::skinDynLib::TORSO
-            && lid.index >= 0 && lid.index <= 1) 
+            && lid.index >= 0 && lid.index <= 2) 
         {
             torsoTorques(lid.index) = torques[i];
             torsoVelocities(lid.index) = dq[i];
@@ -304,9 +312,10 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
         {
            continue;
         }
+        cout << "Considering  coupling\n";
         
         if (lid.bodyPart == iCub::skinDynLib::TORSO
-            && lid.index >= 0 && lid.index <= 1) 
+            && lid.index >= 0 && lid.index <= 2) 
         {
             torques[i] = torsoTorques(lid.index);
             dq[i] = torsoVelocities(lid.index);
@@ -496,7 +505,7 @@ bool MotorFrictionIdentificationThread::saveParametersOnFile(const Bottle &param
     VectorXd b(PARAM_NUMBER);
     for(int i=0; i<_n; i++)
     {
-        if(activeJoints[i]==1)
+       //if(activeJoints[i]==1)
         {
             estimators[i].updateParameterEstimate();
             estimators[i].getParameterEstimate(estimateMonitor, sigmaMonitor);
@@ -506,16 +515,16 @@ bool MotorFrictionIdentificationThread::saveParametersOnFile(const Bottle &param
             kcp[i]  = estimateMonitor[INDEX_K_CP];
             kcn[i]  = estimateMonitor[INDEX_K_CN];
             
-            if(i<5) cout<<"Covariance of joint "<<i<<":\n"<<A<<endl;
+            cout<<"\n Joint " << i << "\n Mean: " << estimateMonitor << "\n Covariance " << sigmaMonitor <<endl;
         }
-        else
+        /*else
         {
             kt[i]   = 0.0;
             kvp[i]  = 0.0;
             kvn[i]  = 0.0;
             kcp[i]  = 0.0;
             kcn[i]  = 0.0;
-        }
+        }*/
         estimators[i].getEstimationState(A, b);
         covarianceInv.block(i*PARAM_NUMBER,0,PARAM_NUMBER,PARAM_NUMBER)  = A;
         rhs.row(i) = b;  
