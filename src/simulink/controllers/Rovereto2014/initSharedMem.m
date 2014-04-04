@@ -11,7 +11,7 @@ Ts = 0.01;
  
 % Controller gains in P I D order
 k = [ 20    5   15
-      1000  1   150
-      100   0   1 ];
+      100  1   15
+      50   0   1 ];
 
 kw = 1;  
