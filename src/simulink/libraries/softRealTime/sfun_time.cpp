@@ -3,6 +3,8 @@
 
 #define TIME_SCALE_FACTOR(S) ssGetSFcnParam(S,0)
 
+
+#include <cstdlib>
 /*
  * Need to include simstruc.h for the definition of the SimStruct and
  * its associated macro definitions.
@@ -41,7 +43,7 @@ static void mdlInitializeSizes(SimStruct *S)
 #define MDL_INITIALIZE_SAMPLE_TIMES
 static void mdlInitializeSampleTimes(SimStruct *S)
 {
-   ssSetSampleTime(S, 0, CONTINUOUS_SAMPLE_TIME);
+   ssSetSampleTime(S, 0, INHERITED_SAMPLE_TIME);
    ssSetOffsetTime(S, 0, 0.0);
 }
 
@@ -67,7 +69,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
    dt = (t_SimTime - t_previousSimTime) * (scaleFactor[0]);
    /* Get clock time at the beginning of this step*/   
    t_previous = (real_T)clock()/CLOCKS_PER_SEC;
-   t_0 = (real_T)clock()/CLOCKS_PER_SEC;
+   t_0 = t_previous;
 
    /* Wait to reach the desired time */
    while (t_diff<dt){
