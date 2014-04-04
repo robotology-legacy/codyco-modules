@@ -49,7 +49,7 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME}
     skinDynLib
     wholeBodyInterface
     wholeBodyInterfaceIcub
-    paramHelp
+    ${paramHelp_LIBRARIES}
     ${ctrlLib_LIBRARIES}
     ${YARP_LIBRARIES} 
     ${Orocos-KDL_LIBRARIES} 

@@ -90,7 +90,7 @@ endif(WIN32)
 target_link_libraries(${PROJECTNAME} 
 wholeBodyInterface
 wholeBodyInterfaceIcub
-paramHelp
+${paramHelp_LIBRARIES}
 ${iDynTree_LIBRARIES}
 ${YARP_LIBRARIES} 
 ${ICUB_LIBRARIES}

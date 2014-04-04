@@ -54,7 +54,7 @@ skinDynLib
 ctrlLib
 wholeBodyInterface
 wholeBodyInterfaceIcub
-paramHelp
+${paramHelp_LIBRARIES}
 ${YARP_LIBRARIES}
 ${Orocos-KDL_LIBRARIES}
 ${kdl_codyco_LIBRARIES})

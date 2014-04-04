@@ -73,7 +73,7 @@ ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
 TARGET_LINK_LIBRARIES(${PROJECTNAME} 
                         wholeBodyInterface
                     	${iDynTree_LIBRARIES}
-                        paramHelp #this is a temporary requirement
+                        ${paramHelp_LIBRARIES} #this is a temporary requirement
                         ${YARP_LIBRARIES}
                         skinDynLib
                         ctrlLib

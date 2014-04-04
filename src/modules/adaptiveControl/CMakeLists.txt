@@ -58,7 +58,7 @@ ENDIF()
 ADD_EXECUTABLE(${PROJECTNAME} ${SOURCES} ${INCLUDES})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME}
-     paramHelp
+     ${paramHelp_LIBRARIES}
      ${iDynTree_LIBRARIES}
      ctrlLib
      ${YARP_LIBRARIES}
