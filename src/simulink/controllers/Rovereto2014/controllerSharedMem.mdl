@@ -1,12 +1,12 @@
 Model {
-  Name			  "controller"
+  Name			  "controllerSharedMem"
   Version		  7.7
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.534"
+    ComputedModelVersion    "1.560"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -20,16 +20,16 @@ Model {
   MinMaxOverflowLogging	  "UseLocalSettings"
   MinMaxOverflowArchiveMode "Overwrite"
   MaxMDLFileLineLength	  120
-  InitFcn		  "initRov14;"
+  InitFcn		  "initSharedMem;"
   Created		  "Tue Feb 18 10:13:36 2014"
   Creator		  "daniele"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Apr  3 22:07:06 2014"
-  RTWModifiedTimeStamp	  318463403
-  ModelVersionFormat	  "1.%<AutoIncrement:534>"
+  LastModifiedDate	  "Fri Apr  4 12:58:23 2014"
+  RTWModifiedTimeStamp	  318516370
+  ModelVersionFormat	  "1.%<AutoIncrement:560>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -43,7 +43,7 @@ Model {
   ShowTestPointIcons	  on
   ShowSignalResolutionIcons on
   ShowViewerIcons	  on
-  SortedOrder		  off
+  SortedOrder		  on
   ExecutionContextIcon	  off
   ShowLinearizationAnnotations on
   BlockNameDataTip	  off
@@ -407,22 +407,15 @@ Model {
 	  Version		  "1.11.0"
 	  Array {
 	    Type		    "Cell"
-	    Dimension		    15
+	    Dimension		    8
 	    Cell		    "IncludeHyperlinkInReport"
 	    Cell		    "GenerateTraceInfo"
 	    Cell		    "GenerateTraceReport"
 	    Cell		    "GenerateTraceReportSl"
 	    Cell		    "GenerateTraceReportSf"
 	    Cell		    "GenerateTraceReportEml"
-	    Cell		    "PortableWordSizes"
-	    Cell		    "GenerateWebview"
 	    Cell		    "GenerateCodeMetricsReport"
-	    Cell		    "GenerateCodeReplacementReport"
-	    Cell		    "GenerateErtSFunction"
-	    Cell		    "CreateSILPILBlock"
-	    Cell		    "CodeExecutionProfiling"
-	    Cell		    "CodeProfilingSaveOptions"
-	    Cell		    "CodeProfilingInstrumentation"
+	    Cell		    "GenerateSLWebview"
 	    PropName		    "DisabledProps"
 	  }
 	  SystemTargetFile	  "grt.tlc"
@@ -533,7 +526,7 @@ Model {
 	      Version		      "1.11.0"
 	      Array {
 		Type			"Cell"
-		Dimension		15
+		Dimension		16
 		Cell			"GeneratePreprocessorConditionals"
 		Cell			"IncludeMdlTerminateFcn"
 		Cell			"CombineOutputUpdateFcns"
@@ -549,6 +542,7 @@ Model {
 		Cell			"SupportAbsoluteTime"
 		Cell			"SupportContinuousTime"
 		Cell			"SupportNonInlinedSFcns"
+		Cell			"PortableWordSizes"
 		PropName		"DisabledProps"
 	      }
 	      TargetFcnLib	      "ansi_tfl_table_tmw.mat"
@@ -613,6 +607,7 @@ Model {
 	PropName		"Components"
       }
       Name		      "Configuration"
+      ExtraOptions	      "-aGenerateTraceInfo=0 -aIgnoreTestpoints=0 "
       CurrentDlgPage	      "Solver"
       ConfigPrmDlgPosition     [ 220, 100, 1146, 648 ] 
     }
@@ -865,8 +860,8 @@ Model {
     }
   }
   System {
-    Name		    "controller"
-    Location		    [2, 162, 319, 435]
+    Name		    "controllerSharedMem"
+    Location		    [2, 250, 319, 523]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -880,7 +875,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "394"
+    SIDHighWatermark	    "411"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -912,7 +907,7 @@ Model {
       MaskValueString	      "'icubGazeboSim'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[281, 180, 1561, 930]
+	Location		[258, 245, 1538, 995]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -924,7 +919,7 @@ Model {
 	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
 	TiledPageScale		1
 	ShowPageBoundaries	off
-	ZoomFactor		"100"
+	ZoomFactor		"125"
 	Block {
 	  BlockType		  Constant
 	  Name			  "\n\n  "
@@ -1082,136 +1077,151 @@ Model {
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite"
-	  SID			  "332"
+	  SID			  "404"
 	  Ports			  [1]
 	  Position		  [1110, 380, 1140, 410]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "qj"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite1"
-	  SID			  "315"
+	  SID			  "402"
 	  Ports			  [1]
 	  Position		  [1110, 290, 1140, 320]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "qj_0"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite10"
-	  SID			  "359"
+	  SID			  "398"
 	  Ports			  [1]
 	  Position		  [1110, 80, 1140, 110]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "xcom"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite11"
-	  SID			  "352"
+	  SID			  "397"
 	  Ports			  [1]
 	  Position		  [1110, 25, 1140, 55]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "k"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite12"
-	  SID			  "367"
+	  SID			  "411"
 	  Ports			  [1]
 	  Position		  [1110, 734, 1150, 766]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "H"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite13"
-	  SID			  "371"
+	  SID			  "399"
 	  Ports			  [1]
 	  Position		  [1110, 135, 1140, 165]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "kw"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite14"
-	  SID			  "393"
+	  SID			  "405"
 	  Ports			  [1]
 	  Position		  [1110, 420, 1140, 450]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "dqj"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite2"
-	  SID			  "344"
+	  SID			  "407"
 	  Ports			  [1]
 	  Position		  [1110, 500, 1140, 530]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "dq"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite3"
-	  SID			  "327"
+	  SID			  "408"
 	  Ports			  [1]
 	  Position		  [1110, 545, 1140, 575]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "M"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite4"
-	  SID			  "328"
+	  SID			  "409"
 	  Ports			  [1]
 	  Position		  [1110, 590, 1140, 620]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "h"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite5"
-	  SID			  "336"
+	  SID			  "403"
 	  Ports			  [1]
 	  Position		  [1110, 335, 1140, 365]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "x_rf"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite6"
-	  SID			  "340"
+	  SID			  "401"
 	  Ports			  [1]
 	  Position		  [1110, 235, 1140, 265]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "Jc"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite7"
-	  SID			  "342"
+	  SID			  "406"
 	  Ports			  [1]
 	  Position		  [1110, 460, 1140, 490]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "q"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite8"
-	  SID			  "363"
+	  SID			  "410"
 	  Ports			  [1]
 	  Position		  [1110, 659, 1150, 691]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "dJc_dq"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite9"
-	  SID			  "355"
+	  SID			  "400"
 	  Ports			  [1]
 	  Position		  [1110, 185, 1140, 215]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "Jcom"
 	}
 	Block {
@@ -1259,7 +1269,7 @@ Model {
 	  ZOrder		  113
 	  NamePlacement		  "alternate"
 	  Floating		  off
-	  Location		  [-945, 281, -106, 1009]
+	  Location		  [6, 71, 845, 799]
 	  Open			  on
 	  NumInputPorts		  "2"
 	  List {
@@ -1268,9 +1278,36 @@ Model {
 	    axes2		    "%<SignalLabel>"
 	  }
 	  TimeRange		  "70"
-	  YMin			  "0~-0.045"
-	  YMax			  "0.0475~0.05"
+	  YMin			  "0~-0.15"
+	  YMax			  "0.17~0.1"
 	  SaveName		  "ScopeData6"
+	  DataFormat		  "StructureWithTime"
+	  LimitDataPoints	  off
+	  SampleTime		  "0"
+	}
+	Block {
+	  BlockType		  Scope
+	  Name			  "Errors1"
+	  SID			  "395"
+	  Ports			  [5]
+	  Position		  [650, 450, 700, 490]
+	  ZOrder		  113
+	  NamePlacement		  "alternate"
+	  Floating		  off
+	  Location		  [9, 71, 848, 799]
+	  Open			  on
+	  NumInputPorts		  "5"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	    axes2		    "%<SignalLabel>"
+	    axes3		    "%<SignalLabel>"
+	    axes4		    "%<SignalLabel>"
+	    axes5		    "%<SignalLabel>"
+	  }
+	  TimeRange		  "70"
+	  YMin			  "-0.35~-0.125~-0.125~-0.5~-0.5"
+	  YMax			  "0.15~0.125~0.125~0.6~0.6"
 	  DataFormat		  "StructureWithTime"
 	  LimitDataPoints	  off
 	  SampleTime		  "0"
@@ -1420,6 +1457,26 @@ Model {
 	}
 	Block {
 	  BlockType		  Reference
+	  Name			  "WBI to yarp"
+	  SID			  "396"
+	  Ports			  [1, 5]
+	  Position		  [485, 427, 595, 513]
+	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
+	  LibraryVersion	  "1.33"
+	  SourceBlock		  "WBCLibrary/Utilities/WBI to yarp"
+	  SourceType		  "WBI to YARP"
+	  ShowPortLabels	  "FromPortIcon"
+	  SystemSampleTime	  "-1"
+	  FunctionWithSeparateData off
+	  RTWMemSecFuncInitTerm	  "Inherit from model"
+	  RTWMemSecFuncExecute	  "Inherit from model"
+	  RTWMemSecDataConstants  "Inherit from model"
+	  RTWMemSecDataInternal	  "Inherit from model"
+	  RTWMemSecDataParameters "Inherit from model"
+	  GeneratePreprocessorConditionals off
+	}
+	Block {
+	  BlockType		  Reference
 	  Name			  "computeh"
 	  SID			  "48"
 	  Ports			  [2, 1]
@@ -1516,7 +1573,7 @@ Model {
 	      BlockType		      S-Function
 	      Name		      " SFunction "
 	      SID		      "3::64"
-	      Tag		      "Stateflow S-Function controller 2"
+	      Tag		      "Stateflow S-Function controllerSharedMem 2"
 	      Ports		      [2, 2]
 	      Position		      [180, 114, 230, 521]
 	      ZOrder		      48
@@ -1885,7 +1942,7 @@ Model {
 	      BlockType		      S-Function
 	      Name		      " SFunction "
 	      SID		      "374::53"
-	      Tag		      "Stateflow S-Function controller 3"
+	      Tag		      "Stateflow S-Function controllerSharedMem 3"
 	      Ports		      [4, 4]
 	      Position		      [180, 105, 230, 225]
 	      ZOrder		      39
@@ -2095,7 +2152,7 @@ Model {
 	      BlockType		      S-Function
 	      Name		      " SFunction "
 	      SID		      "383::53"
-	      Tag		      "Stateflow S-Function controller 4"
+	      Tag		      "Stateflow S-Function controllerSharedMem 4"
 	      Ports		      [4, 3]
 	      Position		      [180, 105, 230, 225]
 	      ZOrder		      39
@@ -2553,7 +2610,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "holder2"
-	    Location		    [1565, 45, 3092, 1546]
+	    Location		    [198, 91, 1478, 841]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -2747,6 +2804,7 @@ Model {
 	  SID			  "313"
 	  Position		  [1155, 380, 1187, 410]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "qj"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -2762,6 +2820,7 @@ Model {
 	  SID			  "356"
 	  Position		  [1155, 185, 1187, 215]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "Jcom"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -2777,6 +2836,7 @@ Model {
 	  SID			  "360"
 	  Position		  [1155, 80, 1187, 110]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "xcom"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -2792,6 +2852,7 @@ Model {
 	  SID			  "353"
 	  Position		  [1155, 25, 1187, 55]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "k"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -2807,6 +2868,7 @@ Model {
 	  SID			  "368"
 	  Position		  [1160, 735, 1207, 766]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "H"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -2822,6 +2884,7 @@ Model {
 	  SID			  "372"
 	  Position		  [1155, 135, 1187, 165]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "kw"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -2837,6 +2900,7 @@ Model {
 	  SID			  "394"
 	  Position		  [1155, 420, 1187, 450]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "dqj"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -2852,6 +2916,7 @@ Model {
 	  SID			  "316"
 	  Position		  [1155, 290, 1187, 320]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "qj_0"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -2867,6 +2932,7 @@ Model {
 	  SID			  "323"
 	  Position		  [1155, 500, 1187, 530]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "dq"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -2882,6 +2948,7 @@ Model {
 	  SID			  "325"
 	  Position		  [1155, 545, 1187, 575]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "M"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -2897,6 +2964,7 @@ Model {
 	  SID			  "326"
 	  Position		  [1155, 590, 1187, 620]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "h"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -2912,6 +2980,7 @@ Model {
 	  SID			  "338"
 	  Position		  [1155, 335, 1187, 365]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "x_rf"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -2927,6 +2996,7 @@ Model {
 	  SID			  "366"
 	  Position		  [1160, 660, 1207, 691]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "dJc_dq"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -2942,6 +3012,7 @@ Model {
 	  SID			  "343"
 	  Position		  [1155, 460, 1187, 490]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "q"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -2957,6 +3028,7 @@ Model {
 	  SID			  "347"
 	  Position		  [1155, 235, 1187, 265]
 	  ShowName		  off
+	  Priority		  "-1"
 	  DataStoreName		  "Jc"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
@@ -3128,7 +3200,7 @@ Model {
 	      BlockType		      S-Function
 	      Name		      " SFunction "
 	      SID		      "70::53"
-	      Tag		      "Stateflow S-Function controller 1"
+	      Tag		      "Stateflow S-Function controllerSharedMem 1"
 	      Ports		      [2, 4]
 	      Position		      [180, 106, 230, 209]
 	      ZOrder		      39
@@ -3310,7 +3382,7 @@ Model {
 	      BlockType		      S-Function
 	      Name		      " SFunction "
 	      SID		      "392::53"
-	      Tag		      "Stateflow S-Function controller 5"
+	      Tag		      "Stateflow S-Function controllerSharedMem 5"
 	      Ports		      [2, 4]
 	      Position		      [180, 106, 230, 209]
 	      ZOrder		      39
@@ -3434,11 +3506,6 @@ Model {
 	  SrcPort		  1
 	  Points		  [20, 0]
 	  Branch {
-	    Points		    [0, -85]
-	    DstBlock		    "Data Store\nWrite7"
-	    DstPort		    1
-	  }
-	  Branch {
 	    Points		    [35, 0]
 	    Branch {
 	      DstBlock		      "massMatrix"
@@ -3468,6 +3535,11 @@ Model {
 	      }
 	    }
 	  }
+	  Branch {
+	    Points		    [0, -85]
+	    DstBlock		    "Data Store\nWrite7"
+	    DstPort		    1
+	  }
 	}
 	Line {
 	  SrcBlock		  "dqb + dqj"
@@ -3476,11 +3548,6 @@ Model {
 	  Branch {
 	    DstBlock		    "computeh"
 	    DstPort		    2
-	  }
-	  Branch {
-	    Points		    [0, -95]
-	    DstBlock		    "Data Store\nWrite2"
-	    DstPort		    1
 	  }
 	  Branch {
 	    Points		    [0, 50]
@@ -3500,6 +3567,11 @@ Model {
 		DstPort			2
 	      }
 	    }
+	  }
+	  Branch {
+	    Points		    [0, -95]
+	    DstBlock		    "Data Store\nWrite2"
+	    DstPort		    1
 	  }
 	}
 	Line {
@@ -3719,9 +3791,16 @@ Model {
 	Line {
 	  SrcBlock		  "feedback on trajectory generator1"
 	  SrcPort		  2
-	  Points		  [5, 0; 0, 75]
-	  DstBlock		  "Discrete-Time Integrator1"
-	  DstPort		  1
+	  Points		  [5, 0]
+	  Branch {
+	    Points		    [0, 75]
+	    DstBlock		    "Discrete-Time Integrator1"
+	    DstPort		    1
+	  }
+	  Branch {
+	    DstBlock		    "WBI to yarp"
+	    DstPort		    1
+	  }
 	}
 	Line {
 	  SrcBlock		  "Joint Angles"
@@ -3757,6 +3836,40 @@ Model {
 	  Points		  [30, 0; 0, -95]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "WBI to yarp"
+	  SrcPort		  1
+	  Points		  [25, 0; 0, 10]
+	  DstBlock		  "Errors1"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "WBI to yarp"
+	  SrcPort		  2
+	  Points		  [20, 0; 0, 5]
+	  DstBlock		  "Errors1"
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "WBI to yarp"
+	  SrcPort		  3
+	  DstBlock		  "Errors1"
+	  DstPort		  3
+	}
+	Line {
+	  SrcBlock		  "WBI to yarp"
+	  SrcPort		  4
+	  Points		  [15, 0; 0, -5]
+	  DstBlock		  "Errors1"
+	  DstPort		  4
+	}
+	Line {
+	  SrcBlock		  "WBI to yarp"
+	  SrcPort		  5
+	  Points		  [30, 0; 0, -10]
+	  DstBlock		  "Errors1"
+	  DstPort		  5
 	}
 	Annotation {
 	  Position		  [874, 67]
@@ -3802,7 +3915,7 @@ Model {
 Stateflow {
   machine {
     id			    1
-    name		    "controller"
+    name		    "controllerSharedMem"
     created		    "18-Feb-2014 10:14:40"
     isLibrary		    0
     firstTarget		    79
@@ -4847,7 +4960,7 @@ Stateflow {
       isEML		      1
       script		      "function [d2qj_star, qjErr]   = fcn(qj_des, dqj_des, d2qj_des, qjErr_int)\n%#codegen\n\nglobal k "
       "qj dqj\n\nd2qj_star   = d2qj_des - k(2,1)*(qj - qj_des) - k(2,2)*qjErr_int- k(2,3)*(dqj - dqj_des);\n\nqjErr = q"
-      "j - qj_des;"
+      "j - qj_des;\n\nd2qj_star(abs(qjErr) < 0.1) = 0;"
       editorLayout	      "100 M4x1[10 22 700 500]"
     }
   }
@@ -5370,6 +5483,12 @@ Stateflow {
     name		    "sfun"
     description		    "Default Simulink S-Function Target."
     machine		    1
-    linkNode		    [1 0 0]
+    linkNode		    [1 0 80]
+  }
+  target {
+    id			    80
+    name		    "rtw"
+    machine		    1
+    linkNode		    [1 79 0]
   }
 }
