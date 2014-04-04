@@ -141,3 +141,79 @@ class VHController(xdefw.rtt.Task):
   def updateHook(self):
     self.fsm.update(self.dt) 
     self.t += self.dt
+
+
+
+
+# this class is used for the controller for the Deliverable 1st Year
+# it contains an observers for the joints pos and velocity
+# it also enables swithcing off the torques -> as to "fault" 
+class Deliverable1YController(xdefw.rtt.Task):
+  
+  def __init__(self, name, time_step, model, rname, phy, icsync, solver, use_reduced_problem_no_ddq, jmap):
+    super(Deliverable1YController, self).__init__(rtt.PyTaskFactory.CreateTask(rname))
+    self.s.setPeriod(time_step)
+    self.t = 0
+    self.dt = time_step
+    self.rname = rname
+    	
+    self.ctrl = xic.ISIRController(model, rname, phy,icsync, solver, use_reduced_problem_no_ddq)           
+    self.model = model
+    
+    print "declaring observers"
+    #observers for joints pos and vel
+    self.observer_q =[]
+    self.observer_dq=[]
+    
+    # we need some task to keep the robot upper body stable
+    pi = np.pi
+    rad2deg = 180.0/pi;   
+    # initial joint configuration
+    init_l_shoulder_roll = pi/8.
+    init_r_shoulder_roll = pi/8.
+    init_l_elbow_pitch = pi/2.
+    init_r_elbow_pitch = pi/2.
+
+    Weight_back_task = 10.
+    Weight_head_task = 10. 
+    Weight_arm_task = 10.
+      
+    ## back task: to keep the back stable
+    print "creation back task"
+    back_dofs   = [jmap[rname+"."+n] for n in ['torso_pitch', 'torso_roll', 'torso_yaw']]
+    back_init = lgsm.zeros(3)
+    self.backTask    = self.ctrl.createPartialTask("back", back_dofs, w=Weight_back_task, kp=16., q_des=back_init)
+
+    ## head stabilization task: 
+    print "creation head task"
+    head_init = self.model.getSegmentPosition(self.model.getSegmentIndex(rname+".head")).copy() 
+    self.headTask   = self.ctrl.createFrameTask("head_task", rname+'.head', lgsm.Displacement(), "RZ", w=Weight_head_task, kp=10., pose_des=head_init )
+    
+    ## arm task: to not move the arms
+    print "creation r_arm task"
+    r_arm_dofs =[jmap[rname+"."+n] for n in ['r_shoulder_roll','r_shoulder_yaw','r_shoulder_pitch','r_elbow_pitch', 'r_elbow_yaw','r_wrist_pitch']]
+    r_arm_init = lgsm.vector(init_r_shoulder_roll,0.,0.,init_r_elbow_pitch,0.,0.)
+    self.rArmTask= self.ctrl.createPartialTask("r_arm", r_arm_dofs, w=Weight_arm_task, kp=16., q_des=r_arm_init)
+    print "creation l_arm task"
+    l_arm_dofs =[jmap[rname+"."+n] for n in ['l_shoulder_roll','l_shoulder_yaw','l_shoulder_pitch','l_elbow_pitch', 'l_elbow_yaw','l_wrist_pitch']]
+    l_arm_init = lgsm.vector(init_l_shoulder_roll,0.,0.,init_l_elbow_pitch,0.,0.)
+    self.lArmTask= self.ctrl.createPartialTask("l_arm", l_arm_dofs, w=Weight_arm_task, kp=16., q_des=l_arm_init)   
+   
+    self.fi = 0.
+
+  def startHook(self):
+    # no tasks
+    self.ctrl.s.start()
+    
+  def stopHook(self):
+    #pass
+     self.ctrl.s.stop()
+    
+  def updateHook(self):
+    self.t += self.dt   
+    #update joints pos and vels
+    q=self.model.getJointPositions()
+    dq=self.model.getJointVelocities()
+    self.observer_q.append(q)
+    self.observer_dq.append(dq)
+    

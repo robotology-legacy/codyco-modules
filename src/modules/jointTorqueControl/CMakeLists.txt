@@ -30,17 +30,27 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
+                    ${paramHelp_INCLUDE_DIRS}
                     ${Orocos-KDL_INCLUDE_DIRS}
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
-                    ${paramHelp_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS} )
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} motorFrictionIdentificationLib ${YARP_LIBRARIES} skinDynLib ctrlLib wholeBodyInterface wholeBodyInterfaceIcub paramHelp iDynTree ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME} 
+    motorFrictionIdentificationLib
+    skinDynLib
+    wholeBodyInterface
+    wholeBodyInterfaceIcub
+    paramHelp
+    ${ctrlLib_LIBRARIES}
+    ${iDynTree_LIBRARIES}
+    ${YARP_LIBRARIES}
+    ${Orocos-KDL_LIBRARIES}
+    ${kdl_codyco_LIBRARIES})
 
 if(WIN32)
 	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})	

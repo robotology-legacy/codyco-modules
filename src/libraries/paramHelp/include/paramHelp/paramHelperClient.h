@@ -71,7 +71,7 @@ public:
     ParamHelperClient(const ParamProxyInterface *const *pdList=0, int pdListSize=0, const CommandDescription *cdList=0, int cdListSize=0);
 
     // Destructor.
-    ~ParamHelperClient();
+    virtual ~ParamHelperClient();
 
     /** Open 4 ports:
       * - "/localName/remoteName/rpc": Rpc Port for synchronous set/get operations on module parameters

@@ -8,7 +8,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # MATLAB and YARP is searched before adding the different modules because they will be used by all of them
 find_package(YARP       REQUIRED)
-find_package(Matlab 	REQUIRED)
+find_package(Matlab	 REQUIRED)
 
 if(MATLAB_FOUND)
         message(STATUS "Matlab was found!! The configuration may continue")
@@ -22,10 +22,10 @@ else()
 endif()
 
 
-add_subdirectory(wbInterface)
+#add_subdirectory(wbInterface)
 add_subdirectory(minJerkGenerator)
 add_subdirectory(yRead)
 add_subdirectory(yWrite)
 add_subdirectory(softRealTime)
-
-
+add_subdirectory(wbInterfaceNEW)
+add_subdirectory(ySynchronizer)

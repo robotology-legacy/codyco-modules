@@ -55,6 +55,22 @@ bool YarptoKDL(const yarp::sig::Vector & yarpVector, KDL::JntArray & kdlJntArray
     return true;
 }
 
+bool YarptoKDL(const yarp::sig::Vector & yarpVector, KDL::Wrench & kdlWrench)
+{
+    if( yarpVector.size() != 6 ) return false;
+    memcpy(kdlWrench.force.data,yarpVector.data(),3*sizeof(double));
+    memcpy(kdlWrench.torque.data,yarpVector.data()+3,3*sizeof(double));
+    return true;
+}
+
+bool YarptoKDL(const yarp::sig::Vector & yarpVector, KDL::Twist & kdlTwist)
+{
+    if( yarpVector.size() != 6 ) return false;
+    memcpy(kdlTwist.vel.data,yarpVector.data(),3*sizeof(double));
+    memcpy(kdlTwist.rot.data,yarpVector.data()+3,3*sizeof(double));
+    return true;
+}
+
 
 bool KDLtoYarp(const KDL::Vector & kdlVector,yarp::sig::Vector & yarpVector)
 {
@@ -62,6 +78,23 @@ bool KDLtoYarp(const KDL::Vector & kdlVector,yarp::sig::Vector & yarpVector)
     memcpy(yarpVector.data(),kdlVector.data,3*sizeof(double));
     return true;
 }
+
+bool KDLtoYarp(const KDL::Twist & kdlTwist,yarp::sig::Vector & yarpVector)
+{
+    if( yarpVector.size() != 6 ) { yarpVector.resize(6); }
+    memcpy(yarpVector.data(),kdlTwist.vel.data,3*sizeof(double));
+    memcpy(yarpVector.data()+3,kdlTwist.rot.data,3*sizeof(double));
+    return true;
+}
+
+bool KDLtoYarp(const KDL::Wrench & kdlWrench,yarp::sig::Vector & yarpVector)
+{
+    if( yarpVector.size() != 6 ) { yarpVector.resize(6); }
+    memcpy(yarpVector.data(),kdlWrench.force.data,3*sizeof(double));
+    memcpy(yarpVector.data()+3,kdlWrench.torque.data,3*sizeof(double));
+    return true;
+}
+
 
 yarp::sig::Vector KDLtoYarp(const KDL::Vector & kdlVector)
 {

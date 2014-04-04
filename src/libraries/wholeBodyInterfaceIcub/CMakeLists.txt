@@ -6,6 +6,8 @@ SET(PROJECTNAME wholeBodyInterfaceIcub)
 
 PROJECT(${PROJECTNAME})
 
+OPTION(ICUBWBI_USE_EXTERNAL_TORQUE_CONTROL "Set if iCub WBI implementation uses external torque control. False to use YARP Torque Control." FALSE)
+
 find_package(YARP)
 find_package(ICUB)
 find_package(kdl_codyco REQUIRED)
@@ -19,13 +21,35 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
      ENDIF(CMAKE_COMPILER_IS_GNUCC)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-SET(folder_source src/icubWholeBodyInterface.cpp 
+
+SET(folder_source src/wbiIcubUtil.cpp
+                  src/icubWholeBodyInterface.cpp 
                   src/icubWholeBodyModel.cpp
                   src/icubWholeBodyStates.cpp
+                  src/icubWholeBodyStatesLocal.cpp
                   src/icubWholeBodyActuators.cpp
                   src/icubWholeBodySensors.cpp)
 SET(folder_header include/wbiIcub/wholeBodyInterfaceIcub.h
+                  include/wbiIcub/icubWholeBodyModel.h
+                  include/wbiIcub/icubWholeBodyStates.h
+                  include/wbiIcub/icubWholeBodyStatesLocal.h
+                  include/wbiIcub/icubWholeBodyStatesRemote.h
+                  include/wbiIcub/icubWholeBodyActuators.h
+                  include/wbiIcub/icubWholeBodySensors.h 
                   include/wbiIcub/wbiIcubUtil.h)
+
+if(CODYCO_USES_URDFDOM) 
+    SET(folder_source ${folder_source}
+                      src/yarpWholeBodyInterface.cpp)
+    SET(folder_header ${folder_header}
+                      include/wbiIcub/yarpWholeBodyInterface.h)
+    add_definitions(-DCODYCO_USES_URDFDOM)
+endif()
+
+if (ICUBWBI_USE_EXTERNAL_TORQUE_CONTROL)
+    add_definitions(-DWBI_ICUB_COMPILE_PARAM_HELP)
+endif()
+
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
@@ -33,26 +57,27 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 include(iCubHelpers)
 include(iCubOptions)
 
-INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/include
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
+                    ${motorFrictionIdentificationLib_INCLUDE_DIRS}  #this is a temporary requirement
+                    ${paramHelp_INCLUDE_DIRS} #this is a temporary requirement
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
-                    ${YARP_INCLUDE_DIRS} 
-                    ${motorFrictionIdentificationLib_INCLUDE_DIRS}  #this is a temporary requirement
-                    ${paramHelp_INCLUDE_DIRS}) #this is a temporary requirement
+                    ${YARP_INCLUDE_DIRS}) 
 
 ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME} 
-                                     ${YARP_LIBRARIES}
-                                     skinDynLib
-                                     ctrlLib
-                                     wholeBodyInterface
-                                     iDynTree
-                                     ${kdl_codyco_LIBRARIES}
-                                     paramHelp) #this is a temporary requirement
+                        wholeBodyInterface
+                        iDynTree
+                        paramHelp #this is a temporary requirement
+                        ${YARP_LIBRARIES}
+                        skinDynLib
+                        ctrlLib
+                        ${kdl_codyco_LIBRARIES}
+                        ${ctrlLib_LIBRARIES})
 
 icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
                                    DEPENDS wholeBodyInterface

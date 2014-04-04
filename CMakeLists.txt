@@ -18,8 +18,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 project(CoDyCo)
 
 set(CODYCO_VERSION_MAJOR "0")
-set(CODYCO_VERSION_MINOR "0")
-set(CODYCO_VERSION_PATCH "1")
+set(CODYCO_VERSION_MINOR "1")
+set(CODYCO_VERSION_PATCH "0")
 set(CODYCO_VERSION "${CODYCO_VERSION_MAJOR}.${CODYCO_VERSION_MINOR}.${CODYCO_VERSION_PATCH}")
 
 
@@ -35,7 +35,6 @@ if(YARP_REQVERSION_TWEAK)
 else()
     set(YARP_REQVERSION ${YARP_REQVERSION_MAJOR}.${YARP_REQVERSION_MINOR}.${YARP_REQVERSION_PATCH})
 endif()
-
 
 find_package(YARP REQUIRED)
 
@@ -90,16 +89,11 @@ set(CMAKE_MODULE_PATH ${ICUB_MODULE_PATH} ${CMAKE_MODULE_PATH})
 # add functionalities like icub_add_library/icub_add_executable
 include(iCubHelpers)
 
-
-
-
 #### Set binary dir to ${CMAKE_BINARY_DIR}/bin
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 make_directory(${EXECUTABLE_OUTPUT_PATH})
 message(STATUS "Executables go to ${EXECUTABLE_OUTPUT_PATH}")
 mark_as_advanced(EXECUTABLE_OUTPUT_PATH)
-
-
 
 #### Set library dir to ${CMAKE_BINARY_DIR}/lib
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
@@ -107,23 +101,14 @@ make_directory(${LIBRARY_OUTPUT_PATH})
 message(STATUS "Libraries go to ${LIBRARY_OUTPUT_PATH}")
 mark_as_advanced(LIBRARY_OUTPUT_PATH)
 
-
-
-
-
-
-
 ### enable testing
 option(CODYCO_DASHBOARD_SUBMIT "Submit compile tests to cdash" FALSE)
 option(ICUB_USE_XDE "Experimental ISIR modules based on XDE" FALSE)
 option(SIMULINK_LIBRARY "Experimental Simulink library" FALSE)
 
-if (CODYCO_DASHBOARD_SUBMIT)
+if (CODYCO_DASHBOARD_SUBMIT OR CODYCO_BUILD_TESTS)
    include (CTest)
 endif()
-
-
-
 
 #### add the "uninstall" target
 configure_file(

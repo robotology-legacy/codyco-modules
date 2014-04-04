@@ -1,0 +1,167 @@
+/*
+ * Author: Andrea Del Prete.
+ * Copyright (C) 2013 The Robotcub consortium.
+ * CopyPolicy: Released under the terms of the LGPLv2.1 or later, see LGPL.TXT
+ */
+
+
+/**
+ * \infile Tests for wholeBodyInterfaceYarp.
+ */
+#include <yarp/os/Network.h>
+#include <yarp/os/Time.h>
+#include <yarp/os/Property.h>
+
+#include <yarp/math/Math.h>
+#include <yarp/sig/Vector.h>
+#include <yarp/math/Rand.h>
+
+#include <iCub/skinDynLib/common.h>
+
+#include <wbiIcub/wholeBodyInterfaceIcub.h>
+
+#include <stdio.h>
+#include <math.h>
+#include <string>
+
+#include <iostream>
+#include <typeinfo>
+
+using namespace yarp::os;
+using namespace yarp::sig;
+using namespace yarp::math;
+using namespace iCub::skinDynLib;
+using namespace std;
+using namespace wbi;
+using namespace wbiIcub;
+using namespace Eigen;
+
+const double TOL = 1e-8;
+
+
+int main(int argc, char * argv[])
+{
+    Network yarp;
+    Property options;
+    options.fromCommand(argc,argv);
+
+    std::string robotName;
+    if(options.check("robot")) {
+        robotName = options.find("robot").asString();
+    } else {
+        robotName = "icubSim";
+    }
+
+    // TEST WHOLE BODY INTERFACE
+    wholeBodyInterface *icub = new icubWholeBodyInterface("wbiTest",robotName.c_str());
+    //wholeBodyInterface *icub = new icubWholeBodyInterface("wbiTest","icubSim");
+//     icub->addJoints(LocalIdList(RIGHT_ARM,0,1,2,3,4));
+//     icub->addJoints(LocalIdList(LEFT_ARM,0,1,2,3,4));
+//     icub->addJoints(LocalIdList(TORSO,0,1,2));
+//     icub->addJoints(LocalIdList());
+    icub->addJoints(ICUB_MAIN_JOINTS);
+    //icub->addFTsens(LocalId(RIGHT_LEG,1));
+
+    if(!icub->init())
+        return 0;
+    Time::delay(0.5);
+
+    int dof = icub->getDoFs();
+    printf("Joint list: %s\n", icub->getJointList().toString().c_str());
+    printf("Number of DoFs: %d\n", dof);
+
+    Vector q(dof), dq(dof), d2q(dof);
+    icub->getEstimates(ESTIMATE_JOINT_POS, q.data());
+    Vector qInit = q;
+    Vector refSpeed(dof, CTRL_DEG2RAD*10.0), qd = q;
+    
+//     qd += 15.0*CTRL_DEG2RAD;
+    printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
+//     printf("Qd:  %s\n", (CTRL_RAD2DEG*qd).toString(1).c_str());
+    icub->setControlParam(CTRL_PARAM_REF_VEL, refSpeed.data());
+    //icub->setControlReference(qd.data());
+    icub->setControlMode(CTRL_MODE_TORQUE);
+    
+    int j = 0;
+    Eigen::Matrix<double,6,Dynamic,RowMajor> jacob;
+    Frame H_base_leftFoot, Ha, xBase;
+    Matrix4d            H_w2b;                  // rototranslation from world to base reference frame
+    
+    int LINK_ID_LEFT_FOOT;    
+    const char *linkName;
+    linkName = "l_sole";
+    Ha.R = Rotation(0,0,1, 0,-1,0, 1,0,0);
+    
+    int linkId;
+    
+    Vector dxB;
+    // Assuming null base velocity
+    dxB.resize(6,0);
+    
+    Vector gravity;
+    gravity.resize(dof+6,0);
+    
+    jacob.resize(6,dof+6); //13 because in this test we only have right and left arm plus torso
+    icub->getLinkId(linkName, linkId);
+    double grav[3];
+    grav[0] = 0.0;
+    grav[1] = 0.0;
+    grav[2] = -9.8;
+
+    for(int i=0; i<1; i++)
+    {
+        Vector com(7,0.0);
+        wbi::Frame world2base;
+        world2base.identity();
+
+        //Time::delay(0.1);
+        //double tinit = Time::now();
+        icub->getEstimates(ESTIMATE_JOINT_POS, q.data());
+        icub->getEstimates(ESTIMATE_JOINT_VEL, dq.data());
+        icub->getEstimates(ESTIMATE_JOINT_ACC,d2q.data());
+        fprintf(stderr,"(Q, dq, d2q):   %.2f \t %.2f \t %.2f\n", CTRL_RAD2DEG*q(j), CTRL_RAD2DEG*dq(j), CTRL_RAD2DEG*d2q(j));
+
+//         icub->computeH(q.data(), Frame(), linkId, H_base_leftFoot);
+// 	fprintf(stderr,"\nH_base_leftFoot: \n %s \n",H_base_leftFoot.toString().c_str());
+//         H_base_leftFoot = H_base_leftFoot*Ha;
+//         H_base_leftFoot.setToInverse().get4x4Matrix(H_w2b.data());
+// 	cerr<<"\nH_w2b: "<<endl<<H_w2b<<endl;
+// //        fprintf(stderr,"H_base_leftFoot: %s \n",H_base_leftFoot.toString().c_str());
+//         xBase.set4x4Matrix(H_w2b.data());
+	xBase=Frame::identity();
+	fprintf(stderr,"xBase: %s \n", xBase.toString().c_str());
+	
+	fprintf(stderr,"\nxBase: %s \n",xBase.toString().c_str());
+        icub->computeJacobian(q.data(),xBase,wbi::iWholeBodyModel::COM_LINK_ID,jacob.data());
+        cerr<<"\nCOM Jacobian: \n"<<jacob<<endl;
+
+        icub->forwardKinematics(q.data(),xBase,wbi::iWholeBodyModel::COM_LINK_ID,com.data());
+        fprintf(stderr,"\nCenter of Mass:  %.10f \t %.10f \t %.10f\n",com[0],com[1],com[2]);
+	
+	if(icub->computeGeneralizedBiasForces(q.data(),xBase,dq.data(),dxB.data(),grav, gravity.data())){
+	  fprintf(stderr,"GRAVITY VEC: %s\n", gravity.toString().c_str());
+	  icub->setControlReference(gravity.data());
+	}
+	else{
+	  fprintf(stderr,"ERROR in computeGeneraliezdBiasForces\n");	
+	}
+    }
+
+    printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
+
+//     qd -= CTRL_DEG2RAD*15.0;
+
+    icub->setControlMode(CTRL_MODE_POS);
+    icub->setControlReference(qInit.data());
+
+    Time::delay(1.0);
+    printf("Test finished. Press return to exit.");
+    getchar();
+
+    icub->close();
+    delete icub;
+    printf("Main returning...\n");
+    return 0;
+}
+
+

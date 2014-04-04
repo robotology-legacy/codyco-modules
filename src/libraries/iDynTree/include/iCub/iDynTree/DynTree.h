@@ -13,7 +13,7 @@
  * 
  * YARP based Robot dynamics library 
  *
- * \note <b>SI units adopted</b>: meters for lengths and radians
+ * \note <b>SI units adopted</b>: meters for lengths and radiants
  *       for angles.
  *
  * \section dep_sec Dependencies 
@@ -63,8 +63,8 @@
  * 
  **/ 
 
-#ifndef __DYNTREE_H__
-#define __DYNTREE_H__
+#ifndef IDYNTREE_H
+#define IDYNTREE_H
 
 #if defined(__GNUC__) || defined(__clang__) //clang defines also __GNUC__, but I check for it anyway
 #define IDYN_DEPRECATED __attribute__((deprecated))
@@ -81,8 +81,9 @@
 
 #include <kdl_codyco/treeserialization.hpp>
 #include <kdl_codyco/treepartition.hpp>
-#include <kdl_codyco/treegraph.hpp>
+#include <kdl_codyco/undirectedtree.hpp>
 #include <kdl_codyco/momentumjacobian.hpp>
+#include <kdl_codyco/floatingjntspaceinertiamatrix.hpp>
 
 #include <kdl_codyco/ftsensor.hpp>
 
@@ -117,7 +118,7 @@ const int DEFAULT_INDEX_VALUE = -20;
  */
 class DynTree  {
     private:
-        KDL::CoDyCo::TreeGraph tree_graph; /**< TreeGraph object: it encodes the TreeSerialization and the TreePartition */
+        KDL::CoDyCo::UndirectedTree undirected_tree; /**< UndirectedTree object: it encodes the TreeSerialization and the TreePartition */
         KDL::CoDyCo::TreePartition partition; /**< TreePartition object explicit present as it is conventient to encode/decode dynContact objects */
         
         //Violating DRY principle, but for code clarity 
@@ -178,8 +179,17 @@ class DynTree  {
         std::vector<int> subgraph_index2root_link; /**< for each subgraph, return the index of the root */
         bool are_contact_estimated;
         
-        int getSubGraphIndex(int link_index) { return link2subgraph_index[link_index]; }
-        bool isSubGraphRoot(int link_index) { return link_is_subgraph_root[link_index]; }
+        int getSubGraphIndex(int link_index) {
+            assert(link_index >= 0);
+            assert(link_index < (int)link2subgraph_index.size());
+            assert((int)link2subgraph_index.size() == this->getNrOfLinks());
+            return link2subgraph_index[link_index];
+        }
+    
+        bool isSubGraphRoot(int link_index) {
+            assert((int)link_is_subgraph_root.size() == this->getNrOfLinks());
+            return link_is_subgraph_root[link_index];
+        }
         
         int buildSubGraphStructure(const std::vector<std::string> & ft_names);
         
@@ -203,10 +213,7 @@ class DynTree  {
          */
         void buildAb_contacts();
         
-        /**
-         * 
-         * 
-         */
+        /** store contacts results */
         void store_contacts_results();
         
         /**
@@ -229,6 +236,9 @@ class DynTree  {
         //Buffer 
         yarp::sig::Matrix _H_w_b;
         
+        //Generic 3d buffer
+        yarp::sig::Vector com_yarp;
+        
         //Jacobian related quantities
         //all this variable are defined once in the class to avoid dynamic memory allocation at each method call
         KDL::Jacobian rel_jacobian; /**< dummy variable used by getRelativeJacobian */
@@ -240,17 +250,27 @@ class DynTree  {
         KDL::CoDyCo::MomentumJacobian momentum_jacobian;
         KDL::Jacobian com_jac_buffer;
         KDL::CoDyCo::MomentumJacobian momentum_jac_buffer;
-        yarp::sig::Vector com_yarp;
         std::vector<KDL::Vector> subtree_COM;
         std::vector<double> subtree_mass;
         KDL::RigidBodyInertia total_inertia;
+        
+        //MassMatrix
+        KDL::CoDyCo::FloatingJntSpaceInertiaMatrix fb_jnt_mass_matrix;
+        std::vector<KDL::RigidBodyInertia> subtree_crbi;
+        
+        //Flag set to true if the object was correctly configured
+        bool correctly_configure;
 
         
     public:
         DynTree();
  
-        void constructor(const KDL::Tree & _tree, const std::vector<std::string> & joint_sensor_names, const std::string & imu_link_name, 
-                         KDL::CoDyCo::TreeSerialization  serialization=KDL::CoDyCo::TreeSerialization(), KDL::CoDyCo::TreePartition partition=KDL::CoDyCo::TreePartition(), std::vector<KDL::Frame> parent_sensor_transforms=std::vector<KDL::Frame>(0));
+        void constructor(const KDL::Tree & _tree, 
+                         const std::vector<std::string> & joint_ft_sensor_names, 
+                         const std::string & imu_link_name, 
+                         KDL::CoDyCo::TreeSerialization  serialization=KDL::CoDyCo::TreeSerialization(),
+                         KDL::CoDyCo::TreePartition partition=KDL::CoDyCo::TreePartition(), 
+                         std::vector<KDL::Frame> parent_sensor_transforms=std::vector<KDL::Frame>(0));
 
     
         /**
@@ -264,9 +284,32 @@ class DynTree  {
          * @param partition (optional) a partition of the tree (division of the links and DOFs in non-overlapping sets)
          *
          */
-        DynTree(const KDL::Tree & _tree, const std::vector<std::string> & joint_sensor_names, const std::string & imu_link_name, KDL::CoDyCo::TreeSerialization  serialization=KDL::CoDyCo::TreeSerialization(), KDL::CoDyCo::TreePartition partition=KDL::CoDyCo::TreePartition());
+        DynTree(const KDL::Tree & _tree, 
+                const std::vector<std::string> & joint_sensor_names, 
+                const std::string & imu_link_name, 
+                KDL::CoDyCo::TreeSerialization  serialization=KDL::CoDyCo::TreeSerialization(), 
+                KDL::CoDyCo::TreePartition partition=KDL::CoDyCo::TreePartition());
         
-        ~DynTree();
+        #ifdef CODYCO_USES_URDFDOM
+        /**
+         * Constructor for DynTree
+         * 
+         * @param urdf_file the URDF file used for loading the structure of the model
+         * @param joint_sensor_names the names of the joint that should 
+         *        be considered as FT sensors
+         * @param imu_link_name name of the link considered the IMU sensor
+         * @param serialization (optional) an explicit serialization of tree links and DOFs
+         * @param partition (optional) a partition of the tree (division of the links and DOFs in non-overlapping sets)
+         *
+         */
+        DynTree(const std::string urdf_file, 
+                const std::vector<std::string> & joint_sensor_names, 
+                const std::string & imu_link_name, 
+                KDL::CoDyCo::TreeSerialization  serialization=KDL::CoDyCo::TreeSerialization(), 
+                KDL::CoDyCo::TreePartition partition=KDL::CoDyCo::TreePartition());
+        #endif
+        
+        virtual ~DynTree();
         
         /**
          * Get the number of (internal) degrees of freedom of the tree
@@ -284,6 +327,18 @@ class DynTree  {
         int getNrOfLinks();
         
         /**
+         * Get the number of 6-axis Force Torque sensors
+         * 
+         */
+        int getNrOfFTSensors();
+        
+        /**
+         * Get the number of IMUs
+         *
+         */
+        int getNrOfIMUs();
+       
+        /**
          * Get the global index for a link, given a link name
          * @param link_name the name of the link
          * @return an index between 0..getNrOfLinks()-1 if all went well, -1 otherwise
@@ -298,6 +353,17 @@ class DynTree  {
          */
         int getDOFIndex(const std::string & dof_name);
         
+        /**
+         * Get the global index of a FT sensor, given the FT sensor name 
+         * 
+         */
+        int getFTSensorIndex(const std::string & ft_sensor_name);
+        
+        /** 
+         * Get the global index of a IMU, given the IMU name
+         * 
+         */
+        int getIMUIndex(const std::string & imu_name);
         
          /**
          * Get the global index for a link, given a part and a part local index
@@ -409,10 +475,33 @@ class DynTree  {
         * @param w0 a 3x1 vector with the initial/measured angular velocity
         * @param dw0 a 3x1 vector with the initial/measured angular acceleration
         * @param ddp0 a 3x1 vector with the initial/measured 3D proper (with gravity) linear acceleration
-        * @param frame_link the reference frame in which 
         * @return true if succeeds (correct vectors size), false otherwise
+        * 
+        * \note this variables are considered to be in **base** reference frame
         */
         virtual bool setInertialMeasure(const yarp::sig::Vector &w0, const yarp::sig::Vector &dw0, const yarp::sig::Vector &ddp0);
+        
+        /**
+        * Set the inertial sensor measurements 
+        * @param dp0 a 3x1 vector with the initial/measured 3D proper (with gravity) linear acceleration
+        * @param w0 a 3x1 vector with the initial/measured angular velocity
+        * @param ddp0 a 3x1 vector with the initial/measured 3D proper (with gravity) linear acceleration
+        * @param dw0 a 3x1 vector with the initial/measured angular acceleration
+        * @return true if succeeds (correct vectors size), false otherwise
+        * 
+        * \note this variables are considered in **base** reference frame
+        */
+        virtual bool setInertialMeasureAndLinearVelocity(const yarp::sig::Vector &dp0, const yarp::sig::Vector &w0, const yarp::sig::Vector &ddp0, const yarp::sig::Vector &dw0);
+       
+        /**
+         * Set the kinematic base (IMU) velocity and acceleration, expressed in world frame
+         * @param base_vel a 6x1 vector with lin/rot velocity (the one that will be returned by getVel(kinematic_base)
+         * @param base_classical_acc a 6x1 vector with lin/rot acceleration (the one that will be returned by getAcc(kinematic_base)
+         * 
+         * \note this variables are considered in **world** reference frame
+         */
+        virtual bool setKinematicBaseVelAcc(const yarp::sig::Vector &base_vel, const yarp::sig::Vector &base_classical_acc);
+
         
         /**
         * Get the inertial sensor measurements 
@@ -558,32 +647,37 @@ class DynTree  {
         virtual yarp::sig::Matrix getPosition(const int first_link, const int second_link) const;
         
         /**
+         * 
+         * \todo TODO add getVel with output reference parameters
         * Get the velocity of the specified link, expressed in the world reference frame, but using as reference point
         * the origin of the link local reference frame
         * @param link_index the index of the link 
-        * @param if true, return the velocity expressed in the link local frame
+        * @param local if true, return the velocity expressed in the link local frame (default: false)
         * @return a 6x1 vector with linear velocity \f$ {}^wv_i \f$ (0:2) and angular velocity \f$ {}^w\omega_i\f$ (3:5)
         */
-        virtual yarp::sig::Vector getVel(const int link_index, bool local=false) const;
+        virtual yarp::sig::Vector getVel(const int link_index, const bool local=false) const;
     
-        /**
-        * Get the acceleration of the specified link, expressed in the link local reference frame
+        
+       /**
+        * Get the classical acceleration of the origin of the specified link, expressed in the world reference frame
         * @param link_index the index of the link 
+        * @param acc a 6x1 vector with linear acc \f$ {}^ia_i \f$(0:2) and angular acceleration \f$ {}^i\dot{\omega}_i \f$ (3:5)
+        * @param local if true, return the velocity expressed in the link local frame (default: false)
+        * @return true if all went well, false otherwise
+        *
+        * \note This function returns the classical/conventional linear acceleration, not the spatial one
+        */
+        virtual bool getAcc(const int link_index, yarp::sig::Vector & acc, const bool local=false) const;
+        
+        /**
+        * Get the classical acceleration of the origin of the specified link, expressed in the world reference frame
+        * @param link_index the index of the link 
+        * @param local if true, return the velocity expressed in the link local frame (default: false)
         * @return a 6x1 vector with linear acc \f$ {}^ia_i \f$(0:2) and angular acceleration \f$ {}^i\dot{\omega}_i \f$ (3:5)
         *
-        * \note This function returns the classical linear acceleration, not the spatial one
+        * \note This function returns the classical/conventional linear acceleration, not the spatial one
         */
-        IDYN_DEPRECATED virtual yarp::sig::Vector getAcc(const int link_index) const;
-
-        /**
-         * Get the acceleration of the specified link, expressed in the link local reference frame
-         * @param link_index the index of the link
-         * @param a 6x1 vector with linear acc \f$ {}^ia_i \f$(0:2) and angular acceleration \f$ {}^i\dot{\omega}_i \f$ (3:5)
-         * @return true if input parameters are valid. False otherwise.
-         *
-         * \note This function returns the classical linear acceleration, not the spatial one
-         */
-        virtual bool getAcc(const int link_index, yarp::sig::Vector& acceleration) const;
+        IDYN_DEPRECATED virtual yarp::sig::Vector getAcc(const int link_index, const bool local=false) const;
     
         /**
          * Get the base link force torque, calculated with the dynamic recursive newton euler loop
@@ -617,7 +711,7 @@ class DynTree  {
         
         /**
         * Set the unknown contacts
-        * @param contacts the list of the contacts on the DynTree
+        * @param contacts_list the list of the contacts on the DynTree
         * @return true if operation succeeded, false otherwise
         */
         virtual bool setContacts(const iCub::skinDynLib::dynContactList &contacts_list);
@@ -660,7 +754,12 @@ class DynTree  {
         */
         virtual yarp::sig::Vector getDQ_fb() const;
         
-        //virtual yarp::sig::Vector getD2Q_fb() const;
+        /**
+        * Get the 6+getNrOfDOFs() yarp::sig::Vector, characterizing the floating base acceleration of the tree
+        * @return a vector where the 0:5 elements are the one of the dynamic base expressed in the world frame (the same that are obtained calling
+        *         getAcc(dynamic_base_index), while the 6:6+getNrOfDOFs()-1 elements are the joint accelerations
+        */
+        virtual yarp::sig::Vector getD2Q_fb() const;
         
         
         /**
@@ -709,18 +808,63 @@ class DynTree  {
          */
         virtual bool getCOMJacobian(yarp::sig::Matrix & jac, yarp::sig::Matrix & momentum_jac, const std::string & part_name="");
 
+        /**
+         * Temporary function, do not use.
+         * 
+         */
+        virtual bool getCentroidalMomentumJacobian(yarp::sig::Matrix & jac);
+
         
         /**
-        * Get Velocity of the Center of Mass of the specified part (if no part 
-        * is specified, get the velocity of the center of mass of all tree) expressed
-        * in the world frame 
-        * @param part_name optional: the name of the part of joints to get
+        * Get Velocity of the Center of Mass of the robot expressed in the world frame
         * @return velocity of Center of Mass vector
         */
         yarp::sig::Vector getVelCOM();
+    
+       /**
+        * Get the acceleration (3d) of the Center of Mass of the 
+        * robot expressed in the world frame 
+        * @return acceleration of Center of Mass vector
+        */
+        yarp::sig::Vector getAccCOM();
+        
+       /**
+        * Get the acceleration (3d) of the Center of Mass of the 
+        * robot expressed in the world frame 
+        * @param com_acceleration the output vector for acceleration of Center of Mass vector
+        * @return true if all went well, false otherwise
+        */
+        bool getAccCOM(yarp::sig::Vector & com_acceleration);
         
         yarp::sig::Vector getMomentum();
+        yarp::sig::Vector getCentroidalMomentum();
+        
 
+        //@}
+        
+                
+        /** @name Methods related to mass matrix computations
+        * 
+        * 
+        */
+        //@{
+        
+        /**
+         * Return the (6+n_dof)x(6+n_dof) floating base mass matrix \f[ \mathbf{M} \f], such that the kinematic energy 
+         * of the system is given by:
+         * \f[
+         *  \dot{\mathbf{q}}^\top \mathbf{M} \dot{\mathbf{q}}  
+         * \f]
+         * where \f[ \dot{\mathbf{q}} \in \mathbb{R}^{6+n} \f] is defined by abuse of notation as the concatenation of 
+         * \f[ {}^w \mathbf{v} \in \mathbb{R}^6 \f] (the floating base origin velocity expressed in world frame) and
+         * \f[ {}^w \dot{\boldsymbol\theta} \in \mathbb{R}^n \f] (the joint velocity vector)
+         * 
+         * @param fb_mass_matrix the yarp::sig::Matrix used to return the mass matrix, it will be resized if not \f[ {}^w \mathbf{v} \in \mathbb{R}^6 \f]
+         * @return true if all went well, false otherwise
+         */
+        bool getFloatingBaseMassMatrix(yarp::sig::Matrix & fb_mass_matrix);
+       
+        
         //@}
         
         /** @name Methods related to inertial parameters regressor 
@@ -745,9 +889,22 @@ class DynTree  {
         virtual bool getDynamicsParameters(yarp::sig::Vector & vet);
         //@} 
 
-        KDL::Tree getKDLTree() { return tree_graph.getTree(); }
+        /** 
+         * @name Methods related to debug
+        * 
+        * 
+        */
+        //@{
+        KDL::Tree getKDLTree() { return undirected_tree.getTree(); }
         
-        KDL::CoDyCo::TreeGraph getKDLUndirectedTree() { return tree_graph; }
+        KDL::CoDyCo::UndirectedTree getKDLUndirectedTree() { return undirected_tree; }
+        
+        /**
+         * Get a list of wrenches that are the internal dynamics (base link M(q)ddq + C(q,dq)dq + n(q))
+         * of each subtree, expressed in the world reference frame, with respect to the world origin
+         */
+        std::vector<yarp::sig::Vector> getSubTreeInternalDynamics();
+        //@} 
     
 };
 
@@ -757,4 +914,4 @@ class DynTree  {
 
 #undef IDYN_DEPRECATED
 
-#endif
+#endif //end IDYNTREE_H

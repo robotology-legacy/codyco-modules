@@ -88,7 +88,7 @@ elseif(WIN32)
 endif(WIN32)
 
 # Linking libraries
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${ICUB_LIBRARIES} ${MATLAB_LIBRARIES} ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES} skinDynLib ctrlLib wholeBodyInterface wholeBodyInterfaceIcub paramHelp iDynTree)
+target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${MATLAB_LIBRARIES} ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES} skinDynLib ctrlLib wholeBodyInterface wholeBodyInterfaceIcub paramHelp iDynTree)
 install(TARGETS ${PROJECTNAME} DESTINATION mex)
 
 
