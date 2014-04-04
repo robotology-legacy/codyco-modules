@@ -5,8 +5,8 @@
  *
  */
 
-#ifndef __YARP_KDL_H__
-#define __YARP_KDL_H__
+#ifndef YARP_KDL_H
+#define YARP_KDL_H
 
 #include <yarp/sig/Matrix.h>
 #include <yarp/sig/Vector.h>
@@ -50,6 +50,22 @@ bool YarptoKDL(const yarp::sig::Matrix & yarpMatrix, KDL::Rotation & kdlRotation
 bool YarptoKDL(const yarp::sig::Vector & yarpVector, KDL::Vector & kdlVector);
 
 
+/**
+ * Convert a yarp::sig::Vector to a KDL::Twist
+ * @param yarpVector yarp::sig::Vector input
+ * @param kdlTwist KDL::Twist output
+ * @return true if conversion was successful, false otherwise
+ */
+bool YarptoKDL(const yarp::sig::Vector & yarpVector, KDL::Twist & kdlTwist);
+
+/**
+ * Convert a yarp::sig::Vector to a KDL::Wrench
+ * @param yarpVector yarp::sig::Vector input
+ * @param kdlWrench KDL::Wrench output
+ * @return true if conversion was successful, false otherwise
+ */
+bool YarptoKDL(const yarp::sig::Vector & yarpVector, KDL::Wrench & kdlWrench);
+
 
 /**
  * Convert a yarp::sig::Vector to a KDL::JntArray
@@ -61,10 +77,26 @@ bool YarptoKDL(const yarp::sig::Vector & yarpVector, KDL::JntArray & kdlJntArray
 /**
  * Convert a KDL::Vector to a yarp::sig::Vector 
  * @param kdlVector KDL::Vector input
- * @param idynVector yarp::sig::Vector output
+ * @param yarpVector yarp::sig::Vector output
  * @return true if conversion was successful, false otherwise
  */
 bool KDLtoYarp(const KDL::Vector & kdlVector,yarp::sig::Vector & yarpVector);
+
+/**
+ * Convert a KDL::Twist to a yarp::sig::Vector 
+ * @param kdlTwist KDL::Twist input
+ * @param yarpVector yarp::sig::Vector output
+ * @return true if conversion was successful, false otherwise
+ */
+bool KDLtoYarp(const KDL::Twist & kdlTwist,yarp::sig::Vector & yarpVector);
+
+/**
+ * Convert a KDL::Wrench to a yarp::sig::Vector 
+ * @param kdlWrench KDL::Wrench input
+ * @param yarpVector yarp::sig::Vector output
+ * @return true if conversion was successful, false otherwise
+ */
+bool KDLtoYarp(const KDL::Wrench & kdlWrench,yarp::sig::Vector & yarpVector);
 
 /**
  * Convert a KDL::Vector to a yarp::sig::Vector 

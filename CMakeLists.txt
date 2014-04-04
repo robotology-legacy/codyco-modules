@@ -106,7 +106,7 @@ option(CODYCO_DASHBOARD_SUBMIT "Submit compile tests to cdash" FALSE)
 option(ICUB_USE_XDE "Experimental ISIR modules based on XDE" FALSE)
 option(SIMULINK_LIBRARY "Experimental Simulink library" FALSE)
 
-if (CODYCO_DASHBOARD_SUBMIT)
+if (CODYCO_DASHBOARD_SUBMIT OR CODYCO_BUILD_TESTS)
    include (CTest)
 endif()
 

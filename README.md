@@ -62,16 +62,22 @@ For any further information you can check http://www.orocos.org/kdl .
 
     
 ###kdl_codyco
-It is possible to install kdl_codyco easily from GitHub.
+It is possible to install kdl_codyco easily from GitHub. For CoDyCo version 0.1.0 (this branch) you temporary need version 0.0.2 of kdl_codyco, in branch experimental .
 ```bash
 git clone https://github.com/traversaro/kdl_codyco.git
 cd kdl_codyco
+git checkout experimental
 mkdir build
 cd build
 ccmake ../
 make
 sudo make install
 ```
+
+###kdl_format_io
+To enable URDF support in iDynTree and wholeBodyInterface, you need to install the kdl_format_io library and all its dependecies, following the instructions in [kdl_format_io README](https://github.com/traversaro/kdl_format_io).
+
+After the instalation, you should compile codyco enabling the CODYCO_USES_URDFDOM CMake flag. If a dependency is not found the CODYCO_USES_URDFDOM option is automatically disabled, so pay attention to properly install all the dependencies. 
 
 ##CoDyCo
 Finally, after installing all dependencies, it is possible to install codyco (this repository itself) from GitHub.

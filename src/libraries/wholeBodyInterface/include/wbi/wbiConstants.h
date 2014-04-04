@@ -30,9 +30,9 @@ namespace wbi
         CTRL_MODE_MOTOR_PWM,    // motor PWM
         CTRL_MODE_POS,          // joint position
         CTRL_MODE_VEL,          // joint velocity
-        CTRL_MODE_TORQUE,       // joint torque
-        CTRL_MODE_SIZE
+        CTRL_MODE_TORQUE       // joint torque
     };
+    const int CTRL_MODE_SIZE = 5; //number of elements in the ControlMode enum
 
     /** List of available parameters for the various control modes. */
     enum ControlParam
@@ -57,12 +57,11 @@ namespace wbi
         SENSOR_TORQUE,          // joint torque
 
         // CARTESIAN SPACE SENSORS
-        SENSOR_IMU,             // 9d inertial measurement unit (angular vel: w, angular acc: dw, linear acc: ddp)
+        SENSOR_IMU,             // 13d inertial measurement unit (4d: axis-angle orientation[rad], 3d: linear acc: ddp[m/s^2], 3d: angular vel: dw[rad/s], magnetometer[] )
         SENSOR_FORCE_TORQUE,    // 6-axis force/torque
-        SENSOR_ACCELEROMETER,   // 3d linear acceleration
-
-        SENSOR_TYPE_SIZE
+        SENSOR_ACCELEROMETER   // 3d linear acceleration
     };
+    const int SENSOR_TYPE_SIZE = 7; //number of elements in SensorType enum
 
     /** Collection of data to describe a sensor type. */
     class SensorTypeDescription
@@ -74,22 +73,22 @@ namespace wbi
         int dataSize;               // size of the data vector returned by a sensor reading
         bool isJointSensor;         // true if this sensor type is associated to a joint
 
-        SensorTypeDescription(SensorType _id, std::string _name, int _dataSize, bool _isJoint, std::string _descr="")
-            : id(_id), name(_name), description(_descr), dataSize(_dataSize), isJointSensor(_isJoint){}
-        bool operator ==(const SensorTypeDescription &st){ return st.id==this->id; }
+        SensorTypeDescription(SensorType _id, std::string _name, int _dataSize, bool _isJoint, std::string _descr="");
+        bool operator ==(const SensorTypeDescription &st);
     };
 
     /** Descriptions of the available sensor types. */
-    const SensorTypeDescription sensorTypeDescriptions[SENSOR_TYPE_SIZE]  = 
-    { 
-    SensorTypeDescription(SENSOR_ENCODER,       "encoder",          1, true,  "Joint position"), 
-    SensorTypeDescription(SENSOR_PWM,           "PWM",              1, true,  "Motor PWM"), 
-    SensorTypeDescription(SENSOR_CURRENT,       "current",          1, true,  "Motor current"), 
-    SensorTypeDescription(SENSOR_TORQUE,        "torque",           1, true,  "Joint torque"), 
-    SensorTypeDescription(SENSOR_IMU,           "IMU",              9, false, "Inertial Measurement Unit"), 
-    SensorTypeDescription(SENSOR_FORCE_TORQUE,  "force-torque",     6, false, "6-axis force torque"), 
-    SensorTypeDescription(SENSOR_ACCELEROMETER, "accelerometer",    3, false, "3d linear acceleration"), 
-    };
+    extern const SensorTypeDescription sensorTypeDescriptions[SENSOR_TYPE_SIZE];
+//    =
+//    { 
+//    SensorTypeDescription(SENSOR_ENCODER,       "encoder",          1, true,  "Joint position"), 
+//    SensorTypeDescription(SENSOR_PWM,           "PWM",              1, true,  "Motor PWM"), 
+//    SensorTypeDescription(SENSOR_CURRENT,       "current",          1, true,  "Motor current"), 
+//    SensorTypeDescription(SENSOR_TORQUE,        "torque",           1, true,  "Joint torque"), 
+//    SensorTypeDescription(SENSOR_IMU,           "IMU",              13, false, "Inertial Measurement Unit"), 
+//    SensorTypeDescription(SENSOR_FORCE_TORQUE,  "force-torque",     6, false, "6-axis force torque"), 
+//    SensorTypeDescription(SENSOR_ACCELEROMETER, "accelerometer",    3, false, "3d linear acceleration"), 
+//    };
 
     /** List of available estimates. */
     enum EstimateType
@@ -109,22 +108,22 @@ namespace wbi
         ESTIMATE_MOTOR_PWM,                 // motor PWM (proportional to motor voltage)
         ESTIMATE_MOTOR_CURRENT,             // motor current
         // CARTESIAN SPACE ESTIMATES
-        ESTIMATE_IMU,               // 9d inertial measurement unit (angular vel: w, angular acc: dw, linear acc: ddp)
-        ESTIMATE_FORCE_TORQUE,      // 6-axis force/torque
+        ESTIMATE_FORCE_TORQUE,      // 6-axis force/torque sensor
+        ESTIMATE_IMU,               // Same of sensor IMU, but filtered 
         ESTIMATE_ACCELERATION,      // 3d linear acceleration
         ESTIMATE_BASE_POS,          // position of the base of the robot
         ESTIMATE_BASE_VEL,          // velocity of the base of the robot
-        ESTIMATE_BASE_ACC,          // acceleration of the base of the robot
-
-        ESTIMATE_TYPE_SIZE
+        ESTIMATE_BASE_ACC          // acceleration of the base of the robot
     };
+    const int ESTIMATE_TYPE_SIZE = 18; //number of elements in EstimateType enum
 
     /** List of parameters of estimation algorithms. */
     enum EstimationParameter
     {
         ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE,
         ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD,
-        ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ
+        ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ,
+        ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU
     };
     
 } // end namespace

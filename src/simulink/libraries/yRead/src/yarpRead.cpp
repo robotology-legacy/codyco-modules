@@ -156,8 +156,8 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 static void mdlStart(SimStruct *S)
 {
     // ######### YARP INITIALIZATION STUFF ##################
-    fprintf(stderr,"YARP NETWORK INITIALIZED\n");
     Network yarp;
+    fprintf(stderr,"YARP NETWORK INITIALIZED\n");
 
     if (!yarp.checkNetwork()){
         ssSetErrorStatus(S,"YARP server wasn't found active!! \n");
@@ -172,6 +172,10 @@ static void mdlStart(SimStruct *S)
     buflen = mxGetN((ssGetSFcnParam(S, PARAM_IDX_1)))*sizeof(mxChar)+1;
     String = static_cast<char*>(mxMalloc(buflen));
     status = mxGetString((ssGetSFcnParam(S, PARAM_IDX_1)),String,buflen);
+    if (status) {
+        ssSetErrorStatus(S,"Cannot retrieve string from parameter 1!! \n");
+        return;
+    }
     //string port_name = String;
     
     char *port_name = String;				//FROM port name
@@ -179,22 +183,27 @@ static void mdlStart(SimStruct *S)
     buflen = mxGetN((ssGetSFcnParam(S, PARAM_IDX_2)))*sizeof(mxChar)+1;
     String = static_cast<char*>(mxMalloc(buflen));
     status = mxGetString((ssGetSFcnParam(S, PARAM_IDX_2)),String,buflen);
+    if (status) {
+        ssSetErrorStatus(S,"Cannot retrieve string from parameter 2!! \n");
+        return;
+    }
 
     char *toPort_name = String;
-
-    cout<<"From Port name will be: "<<port_name<<endl;
-    cout<<"To Port name will be:   "<<toPort_name<<endl;
     
     // ######## CHECKING INPUT PARAMETERS ############
 
     BufferedPort<Vector> *toPort;
     toPort = new BufferedPort<Vector>;
     toPort->open(toPort_name);
+    ConstString toPortName = toPort->getName();
+    
+    cout<<"[From] Port name will be: "<<port_name<<endl;
+    cout<<"[To] Port name will be:   "<<toPort->getName()<<endl;
+
 
     ssGetPWork(S)[0] = toPort;
     
-    Network::connect(port_name,toPort_name,"mcast");
-
+    Network::connect(port_name,toPortName);
 }
 
 // Function: mdlOutputs =======================================================
@@ -217,7 +226,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
                 for(int_T j=0; j<widthPort; j++)
                     if (i < (v->length())){
                         pY[j] = v->data()[i];
-			cout<<v->data()[i]<<" ";
+			//cout<<v->data()[i]<<" ";
 		    }
                     else
                         pY[j] = 0;

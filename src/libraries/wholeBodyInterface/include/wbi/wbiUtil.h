@@ -76,8 +76,8 @@ namespace wbi
         std::string description;    ///< description
         
         // CONSTRUCTORS
-        LocalId(): bodyPart(0), index(0) {}
-        LocalId(int _bp, unsigned int _j): bodyPart(_bp), index(_j) {}
+        LocalId(): bodyPart(0), index(0), description("") {}
+        LocalId(int _bp, unsigned int _j): bodyPart(_bp), index(_j), description("") {}
         LocalId(int _bp, unsigned int _j, const std::string &_desc): bodyPart(_bp), index(_j), description(_desc) {}
 
         // OPERATORS
@@ -114,6 +114,7 @@ namespace wbi
         LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3);
         LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4);
         LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4, const LocalIdList &lid5);
+        LocalIdList(const LocalIdList &lid1, const LocalIdList &lid2, const LocalIdList &lid3, const LocalIdList &lid4, const LocalIdList &lid5, const LocalIdList &lid6);
         
         virtual ~LocalIdList();
         
@@ -296,13 +297,13 @@ namespace wbi
 
         /** Returns a vector with the direction of the equiv. axis and with a norm equivalent to the rotation angle. */
         void getRotationVector(double &vX, double &vY, double &vZ) const;
-        void getRotationVector(double v[3]) const { return getRotationVector(v[0], v[1], v[2]); };
+        void getRotationVector(double v[3]) const { return getRotationVector(v[0], v[1], v[2]); }
 
-	    void getAxisAngle(double &axisX, double &axisY, double &axisZ, double &angle) const;
+        void getAxisAngle(double &axisX, double &axisY, double &axisZ, double &angle) const;
         /** Returns the rotation angle around the equiv. axis.
          * Taken from Wikipedia http://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation 
-	     * @param aa the rotation axis followed by the rotation angle (between [0..PI] )
-	     */
+         * @param aa the rotation axis followed by the rotation angle (between [0..PI] )
+         */
         void getAxisAngle(double aa[4]) const{ return getAxisAngle(aa[0], aa[1], aa[2], aa[3]); }
 
         /** Get the quaternion of this matrix

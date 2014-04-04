@@ -5,6 +5,16 @@
 
 #### Options
 
+## URDF file format support
+option(CODYCO_USES_URDFDOM "Enable support for URDF input in iDynTree" FALSE)
+if(CODYCO_USES_URDFDOM)
+	add_definitions(-DCODYCO_USES_URDFDOM)
+endif()
+
+
+# SET(CODYCO_TRAVIS_CI FALSE CACHE BOOL "Set if build is done with Travis-CI flags")
+OPTION(CODYCO_TRAVIS_CI "Set if build is done with Travis-CI flags" FALSE)
+
 if(MSVC)
     MESSAGE(STATUS "Running on windows")
 
@@ -74,13 +84,55 @@ if(EIGEN3_VERSION VERSION_LESS 3.1)
 endif()
 
 #setting options specific for OS X
-#THIS should solve issues on building on OS X until Orocos KDL fixes its standard c++ issues
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    IF (${CMAKE_GENERATOR} MATCHES "Xcode")
-        MESSAGE("Xcode generator: setting standard libraries to libstdc++")
-        SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
-    ELSE()
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
-        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libstdc++")
-    ENDIF()
-ENDIF()
+#THIS should solve issues on building on OS X depending current system and Orocos KDL version
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    option(CODYCO_OSX_STDLIB "Compile CoDyCo by explicitly linking to the old GNU stdc++ library instead of the default one" FALSE)
+    if (OROCOS_KDL_OLDVERSION)
+        set(CODYCO_OSX_STDLIB TRUE)
+    endif()
+    
+    if (CODYCO_OSX_STDLIB)
+        if (${CMAKE_GENERATOR} MATCHES "Xcode")
+            MESSAGE("Xcode generator: setting standard libraries to libstdc++")
+            SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
+        else()
+            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+            SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libstdc++")
+        endif()
+    endif(CODYCO_OSX_STDLIB)
+endif()
+
+#setting debug options
+if(MSVC)
+    ###
+else()
+    ##Other systems
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Weverything -pedantic -Wnon-virtual-dtor -Woverloaded-virtual")
+        #disable padding alignment warnings. Cast align is more subtle. On X86 it should not create any problem but for different architecture we should handle this warning better.
+        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wno-padded -Wno-cast-align")
+        if (CODYCO_TRAVIS_CI)
+            #disable documentation warnings and sign comparison. This is for Travis-CI
+            MESSAGE(STATUS "Disabling some warning for Travis-CI")
+            SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wno-documentation -Wno-documentation-unknown-command -Wno-sign-conversion")
+        endif()
+        MESSAGE(STATUS "Clang compiler - Debug configuration flags: -Weverything -pedantic -Wnon-virtual-dtor -Woverloaded-virtual")
+    elseif(${CMAKE_COMPILER_IS_GNUCC})
+        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra")
+        if (NOT CODYCO_TRAVIS_CI)
+            MESSAGE(STATUS "Gcc compiler - Debug configuration flags: -Wall -Wextra -pedantic -Weffc++ -Woverloaded-virtual")
+            SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pedantic -Weffc++ -Woverloaded-virtual")
+        endif()
+    endif()
+endif()
+
+#define debug flag
+# SET(COMPILE_DEFINITIONS_DEBUG "${COMPILE_DEFINITIONS_DEBUG};DEBUG=1")
+# add_definitions(-DDEBUG=1) 
+set_property( 
+    DIRECTORY 
+    APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG DEBUG=1 
+) 
+
+#### Option for building tests
+option(CODYCO_BUILD_TESTS "Compile tests" FALSE)

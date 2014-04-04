@@ -15,7 +15,6 @@ if(CODYCO_BUILD_YARP24_MODULES)
    add_subdirectory(misc/ftDumper)
 endif(CODYCO_BUILD_YARP24_MODULES)
 
-
 if (ICUB_USE_XDE)
      add_subdirectory(reachComBalance)
      add_subdirectory(tests/ISIRControllerYarpTest)

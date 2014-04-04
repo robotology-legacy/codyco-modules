@@ -30,7 +30,6 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
-                    ${Orocos-KDL_INCLUDE_DIRS}
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
@@ -45,7 +44,7 @@ wholeBodyInterface
 wholeBodyInterfaceIcub
 paramHelp
 iDynTree
-${ctrlLib_LIBRARIES}
+ctrlLib
 ${YARP_LIBRARIES} 
 ${Orocos-KDL_LIBRARIES}
 ${kdl_codyco_LIBRARIES})

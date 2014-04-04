@@ -88,6 +88,8 @@ private:
         case 2: //POSE
             return DEFAULT_POSE_TASK;
             break;
+        default:
+            return -1;
         }
     }
     int taskDOF;

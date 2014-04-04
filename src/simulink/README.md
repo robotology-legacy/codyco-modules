@@ -1,8 +1,7 @@
 WBI Toolbox (WBI-T) - Simulink Wrapper for Whole Body Control
 -------------------------------------------------------------
 
-
-NEWS: The WBI Toolbox will be presented at ICRA 2014 with a live demo on the Gazebo simulator and (probably) on the real robot!!!  Check out the whole program here: http://goo.gl/L76DbM
+**NEWS: The WBI Toolbox will be presented at ICRA 2014 with a live demo on the Gazebo simulator and (probably) on the real robot!!!  Check out the whole program here: http://goo.gl/L76DbM**
 
 This document describes basic instructions on how to use this library, *tips and tricks* to do so and a walkthrough to get you started using it. Simulink blocks consist of S-functions (http://goo.gl/1GuHVd) which allow C/C++ user specific code compiled as Matlab Executable (MEX) files, thus extending the capabilities of the Simulink environment. In other words, MEX files have been created linking YARP, iCub and **iDynTree** (a more efficient and generic YARP-based robot dynamics library than its predecessor iDyn - http://goo.gl/BnGzKr) andcodyco wrapping the **Whole Body Interface** described in http://goo.gl/dBWO3k. Soft-Real Time is ensured by slowing down the simulation to respect a user specified rate. The following video shows a quick introduction to the way it works. For further information read the sections below.
 

@@ -47,10 +47,12 @@ MotorFrictionExcitationThread::MotorFrictionExcitationThread(string _name, strin
     Bottle reply;
     if(!contactExc.readFromConfigFile(rf, reply))
         printf("Error while reading contact excitation from config file: \n%s\n", reply.toString().c_str());
+    printf("Results of contact excitation reading: %s\n", reply.toString().c_str());
     printf("Contact excitation value read:\n%s\n", contactExc.toString().c_str());
     reply.clear();
     if(!freeMotionExc.readFromConfigFile(rf, reply))
         printf("Error while reading free motion excitation from config file: \n%s\n", reply.toString().c_str());
+    printf("Results of free motion excitation reading: %s\n", reply.toString().c_str());
     printf("Free motion excitation value read:\n%s\n", freeMotionExc.toString().c_str());
 }
 
@@ -209,7 +211,7 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
         return false;
     ///< these operations are coefficient-wise because I'm using arrays (not matrices)
     pwmDes = pwmOffset - posIntegral + (fme->a0 + fme->a*t) * (6.28 * fme->w * t).sin();
-    
+	std::cout << "Compute pwmDes: offset" << pwmOffset << "        posIntegral " <<  posIntegral << "      a0 " << fme->a0 << "     at " << fme->a*t << "     sin " << (6.28 * fme->w * t).sin() << "\n";
     pwmDesSingleJoint = pwmDes[0];
     return true;
 }
@@ -293,20 +295,24 @@ bool MotorFrictionExcitationThread::areDesiredMotorPwmTooLarge()
 //*************************************************************************************************************************
 bool MotorFrictionExcitationThread::sendMotorCommands()
 {
+printf("In sendMotorCommands\n");
     if(sendCmdToMotors==DO_NOT_SEND_COMMANDS_TO_MOTORS)
         return true;
 
     int wbiId = -1;
+printf("Sending:\n");
     for(unsigned int i=0; i<currentJointIds.size(); i++)
     {
         wbiId = robot->getJointList().localToGlobalId(currentJointIds[i]);
         assert(wbiId>=0);
+	printf("%d_%lf ", wbiId, *(pwmDes.data()+i));
         if(!robot->setControlReference(pwmDes.data()+i, wbiId))
         {
             printf("Error while setting joint %s control reference.\n", currentJointIds[i].description.c_str());
             return false;
         }
     }
+printf("\n");
     return true;
 }
 

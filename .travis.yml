@@ -31,6 +31,7 @@ before_script:
   # Build kdl_codyco and install it in a local directory
   - git clone https://github.com/traversaro/kdl_codyco
   - cd kdl_codyco
+  - git checkout rovereto
   - mkdir build
   - cd build
   - mkdir local_install
@@ -41,12 +42,13 @@ before_script:
   # Prepare codyco build
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} ..
+  - cmake -DCODYCO_BUILD_TESTS:BOOL=ON -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} -DCODYCO_TRAVIS_CI:BOOL=ON ..
 
 script:
   - make
   - sudo make install
-
+  - ctest -V
+  
 notifications:
   email:
     - pegua1@gmail.com

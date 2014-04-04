@@ -26,6 +26,9 @@
 #include <vector>
 #include <cstdio>
 
+#include <kdl_codyco/treeserialization.hpp>
+#include <kdl_codyco/treepartition.hpp>
+
 /* CODE UNDER DEVELOPMENT */
 
 namespace wbiIcub
@@ -37,7 +40,12 @@ namespace wbiIcub
     const wbi::LocalIdList ICUB_LEFT_LEG_JOINTS(iCub::skinDynLib::LEFT_LEG, 0, 1, 2, 3, 4, 5);
     const wbi::LocalIdList ICUB_RIGHT_LEG_JOINTS(iCub::skinDynLib::RIGHT_LEG, 0, 1, 2, 3, 4, 5);
     const wbi::LocalIdList ICUB_MAIN_JOINTS(ICUB_TORSO_JOINTS, ICUB_LEFT_ARM_JOINTS, ICUB_RIGHT_ARM_JOINTS, ICUB_LEFT_LEG_JOINTS, ICUB_RIGHT_LEG_JOINTS);
-
+    ///< Joints considered for dynamical model
+    const wbi::LocalIdList ICUB_HEAD_JOINTS(iCub::skinDynLib::HEAD, 0, 1, 2);
+    const wbi::LocalIdList ICUB_LEFT_ARM_DYNAMIC_JOINTS(iCub::skinDynLib::LEFT_ARM, 0, 1, 2, 3, 4, 5, 6);
+    const wbi::LocalIdList ICUB_RIGHT_ARM_DYNAMIC_JOINTS(iCub::skinDynLib::RIGHT_ARM, 0, 1, 2, 3, 4, 5, 6);
+    const wbi::LocalIdList ICUB_MAIN_DYNAMIC_JOINTS(ICUB_TORSO_JOINTS, ICUB_HEAD_JOINTS, ICUB_LEFT_ARM_DYNAMIC_JOINTS, ICUB_RIGHT_ARM_DYNAMIC_JOINTS, ICUB_LEFT_LEG_JOINTS, ICUB_RIGHT_LEG_JOINTS);
+    
     ///< mapping from generic sensor id to corresponding port name
     struct id_2_PortName { wbi::LocalId id; std::string portName; };
 
@@ -51,10 +59,27 @@ namespace wbiIcub
         {wbi::LocalId(iCub::skinDynLib::LEFT_LEG,1),    "/left_foot/analog:o"}, 
         {wbi::LocalId(iCub::skinDynLib::RIGHT_LEG,1),   "/right_foot/analog:o"}, 
     };
+    
+    ///< List of FT sensors in iCub
+    const wbi::LocalIdList ICUB_LEFT_ARM_FTS(iCub::skinDynLib::LEFT_ARM, 0);
+    const wbi::LocalIdList ICUB_RIGHT_ARM_FTS(iCub::skinDynLib::RIGHT_ARM, 0);
+    const wbi::LocalIdList ICUB_LEFT_LEG_FTS(iCub::skinDynLib::LEFT_LEG, 0);
+    const wbi::LocalIdList ICUB_RIGHT_LEG_FTS(iCub::skinDynLib::RIGHT_LEG, 0);
+    const wbi::LocalIdList ICUB_LEFT_LEG_FOOT_FTS(iCub::skinDynLib::LEFT_LEG, 0, 1);
+    const wbi::LocalIdList ICUB_RIGHT_LEG_FOOT_FTS(iCub::skinDynLib::RIGHT_LEG, 0, 1);
+    
+    const wbi::LocalIdList ICUB_MAIN_FTS(ICUB_LEFT_ARM_FTS,ICUB_RIGHT_ARM_FTS,ICUB_LEFT_LEG_FTS,ICUB_RIGHT_LEG_FTS);
+    const wbi::LocalIdList ICUB_MAIN_FOOT_FTS(ICUB_LEFT_ARM_FTS,ICUB_RIGHT_ARM_FTS,ICUB_LEFT_LEG_FTS,ICUB_LEFT_LEG_FOOT_FTS,ICUB_RIGHT_LEG_FTS,ICUB_RIGHT_LEG_FOOT_FTS);
 
+    
+    ///< List of IMUS in iCub
+    const wbi::LocalIdList ICUB_HEAD_IMUS(iCub::skinDynLib::HEAD, 0);
+    const wbi::LocalIdList ICUB_MAIN_IMUS(ICUB_HEAD_IMUS);
+
+    
     ///< *** Mapping from IMUs to PORT NAMES ***
     const id_2_PortName icub_IMU_2_PortName[1] = {
-        {wbi::LocalId(iCub::skinDynLib::HEAD,0),    "/inertial:o" }, 
+        {wbi::LocalId(iCub::skinDynLib::HEAD,0),    "/inertial" }, 
     };
 
     /** Find the port name into id2port corresponding to the specified local id.
@@ -83,9 +108,18 @@ namespace wbiIcub
     inline std::string getPortName(const wbi::LocalId &lid, const std::vector<id_2_PortName> id2port)
     {return getPortName(lid, &id2port[0], id2port.size());}
 
-    /** Return true if the robotName is "icubSim", false otherwise. */
+    /** Return true if the robotName is "icubSim" or "icubGazeboSim", false otherwise (deprecated function, do not use). */
+    inline bool isICubSimulator(const std::string &robotName)
+    { return robotName=="icubSim"; }
+    
+    /** Return true if the robotName is "icubSim" or "icubGazeboSim", false otherwise (deprecated function, do not use). */
+    inline bool isGazeboSimulator(const std::string &robotName)
+    { return robotName=="icubGazeboSim"; }
+    
+    /** Return true if the robotName is "icubSim" or "icubGazeboSim", false otherwise (deprecated function, do not use). */
     inline bool isRobotSimulator(const std::string &robotName)
-    { return robotName=="icubSim" || robotName=="icubGazeboSim"; }
+    { return isICubSimulator(robotName) || isGazeboSimulator(robotName);}
+    
     
     /** Open a remote control board driver for the specified body part. 
      * @param localName Name to use as stem for the names of the YARP ports to open.
@@ -196,6 +230,20 @@ namespace wbiIcub
         printf("ERROR Unknown global joint name: %s\n", jointName.c_str());
         return wbi::LocalId(iCub::skinDynLib::BODY_PART_UNKNOWN, 0);
     }
+    
+    bool loadBodyPartsFromConfig(yarp::os::Property & wbi_yarp_properties, std::vector<std::string> & body_parts_vector);
+    bool loadReverseTorsoJointsFromConfig(yarp::os::Property & wbi_yarp_properties, bool &reverse_torso_joints);
+    bool loadFTSensorPortsFromConfig(yarp::os::Property & wbi_yarp_properties, 
+                                     const std::vector<std::string> & body_parts_vector,
+                                     std::vector<id_2_PortName> &imu_ports);
+    bool loadIMUSensorPortsFromConfig(yarp::os::Property & wbi_yarp_properties, 
+                                      const std::vector<std::string> & body_parts_vector, 
+                                      std::vector<id_2_PortName> &imu_ports);
+    bool loadTreeSerializationFromConfig(yarp::os::Property & wbi_yarp_properties,
+                                         KDL::CoDyCo::TreeSerialization& serialization);
+    bool loadTreePartitionFromConfig(yarp::os::Property & wbi_yarp_properties,
+                                     KDL::CoDyCo::TreePartition& serialization);
+
     
 } // end namespace wbiIcub
 

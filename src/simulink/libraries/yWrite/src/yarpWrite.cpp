@@ -164,6 +164,10 @@ static void mdlStart(SimStruct *S)
     buflen = mxGetN((ssGetSFcnParam(S, PARAM_IDX_1)))*sizeof(mxChar)+1;
     String = static_cast<char*>(mxMalloc(buflen));
     status = mxGetString((ssGetSFcnParam(S, PARAM_IDX_1)),String,buflen);
+    if (status) {
+        ssSetErrorStatus(S,"Cannot retrieve string from parameter 1!! \n");
+        return;
+    }
     //string port_name = String;
 
 	char *port_name = String;

@@ -17,6 +17,7 @@
 
 #include "wbiIcub/wholeBodyInterfaceIcub.h"
 #include <iCub/skinDynLib/common.h>
+#include <yarp/os/Os.h>
 #include <string>
 #include <cassert>
 
@@ -41,12 +42,21 @@ using namespace iCub::skinDynLib;
 //                                          ICUB WHOLE BODY INTERFACE
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _robotName, int head_version, int legs_version)
+icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _robotName, iCub::iDynTree::iCubTree_version_tag icub_version)
 {
     actuatorInt = new icubWholeBodyActuators((_name+string("actuator")).c_str(), _robotName);
     stateInt = new icubWholeBodyStates((_name+string("state")).c_str(), _robotName, 0.0);
-    modelInt = new icubWholeBodyModel((_name+string("model")).c_str(), _robotName, head_version, legs_version);
+    modelInt = new icubWholeBodyModel((_name+string("model")).c_str(), _robotName, icub_version);
 }
+
+#ifdef CODYCO_USES_URDFDOM
+icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _robotName, iCub::iDynTree::iCubTree_version_tag icub_version, std::string urdf_file)
+{
+    actuatorInt = new icubWholeBodyActuators((_name+string("actuator")).c_str(), _robotName);
+    stateInt = new icubWholeBodyStates((_name+string("state")).c_str(), _robotName, 0.0);
+    modelInt = new icubWholeBodyModel((_name+string("model")).c_str(), _robotName, icub_version, urdf_file);
+}
+#endif
 
 bool icubWholeBodyInterface::init()
 {
@@ -61,9 +71,13 @@ bool icubWholeBodyInterface::init()
 
 bool icubWholeBodyInterface::close()
 {
-    bool ok = actuatorInt->close();
-    ok = ok && stateInt->close();
-    return ok && modelInt->close();
+    bool ok = true;
+
+    if( actuatorInt ) { ok = actuatorInt->close(); delete actuatorInt; actuatorInt=0; }
+    if( stateInt ) { ok = stateInt->close(); delete stateInt; stateInt=0; }
+    if( modelInt ) { ok = modelInt->close(); delete modelInt; modelInt=0; }
+
+    return ok;
 }
 
 bool icubWholeBodyInterface::removeJoint(const LocalId &j)
