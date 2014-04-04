@@ -199,19 +199,53 @@ void MotorFrictionIdentificationThread::run()
     paramHelper->lock();
     paramHelper->readStreamParams();
 
+    wbi::LocalIdList jointList = robot->getJointList();
     readRobotStatus();
     computeInputSamples();
 
     for(int i=0; i<_n; i++)
     {
-        if(activeJoints[i]==1)
+        if(activeJoints[i]==1 && i == jointMonitor)
         {
             ///< if joint is moving, estimate friction
             ///< otherwise, if there is external force, estimate motor gain
             if(fabs(dq[i])>zeroJointVelThr)
                 estimators[i].feedSampleForGroup2(inputSamples[i], pwm[i]);
-            else if(fabs(extTorques[i])>extTorqueThr[i] && fabs(torques[i])<TORQUE_SENSOR_SATURATION)
+            else if(fabs(extTorques[i])>extTorqueThr[i] && fabs(torques[i])<TORQUE_SENSOR_SATURATION) {
+                wbi::LocalId lid = jointList.globalToLocalId(i);
+                if (lid.bodyPart == iCub::skinDynLib::TORSO)
+                {
+                    if (lid.index == 0 || lid.index == 1) {
+                        int joint3GID = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 2));
+                        if (fabs(torques[joint3GID]) > ZERO_TORQUE_THRESHOLD)
+                            continue;
+                    }
+//                     else if (lid.index == 2) {
+//                         int joint3GID0 = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 0));
+//                         int joint3GID1 = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 1));
+//                         if (fabs(extTorques[joint3GID0]) > extTorqueThr[joint3GID0]
+//                             || fabs(extTorques[joint3GID1]) > extTorqueThr[joint3GID1])
+//                             continue;
+//                     }
+                }
+                else if (lid.bodyPart == iCub::skinDynLib::LEFT_ARM) {
+                    if (lid.index == 0) {
+                        int joint3GID = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 1));
+                        if (fabs(torques[joint3GID]) > ZERO_TORQUE_THRESHOLD)
+                            continue;
+                    }
+                    else if (lid.index == 1) {
+                        int joint3GID = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 2));
+                        if (fabs(torques[joint3GID]) > ZERO_TORQUE_THRESHOLD)
+                            continue;
+                    }
+
+                }
+                else if (lid.bodyPart == iCub::skinDynLib::RIGHT_ARM) {
+
+                }
                 estimators[i].feedSampleForGroup1(inputSamples[i], pwm[i]);
+            }
         }
     }
     
@@ -273,6 +307,7 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
         {
             torsoTorques(lid.index) = torques[i];
             torsoVelocities(lid.index) = dq[i];
+            
         }
         else if (lid.bodyPart == iCub::skinDynLib::LEFT_ARM
             && lid.index >= 0 && lid.index <= 2) {
