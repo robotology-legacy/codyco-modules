@@ -138,8 +138,7 @@ void MotorFrictionExcitationThread::run()
     else if(status==EXCITATION_FREE_MOTION)
     {
         updateReferenceTrajectories();
-        areDesiredMotorPwmTooLarge();
-        if(checkFreeMotionStopConditions())
+        if(areDesiredMotorPwmTooLarge() || checkFreeMotionStopConditions())
             status = EXCITATION_FREE_MOTION_FINISHED;   // stop current excitation and move to the next one
         else if(!sendMotorCommands())
             preStopOperations();
@@ -290,11 +289,13 @@ bool MotorFrictionExcitationThread::areDesiredMotorPwmTooLarge()
         {
             printf("Desired reference position %d is too large. Limiting it.\n", i);
             pwmDes(i) = qMax(i)*CTRL_DEG2RAD;
+            return true;
         }
         if(pwmDes(i) < qMin(i)*CTRL_DEG2RAD)
         {
             printf("Desired reference position %d is too low. Limiting it.\n", i);
             pwmDes(i) = qMin(i)*CTRL_DEG2RAD;
+            return true;
         }
     }
     return false;

@@ -98,7 +98,8 @@ bool icubWholeBodyActuators::openDrivers(int bp)
         return false;
     
     bool ok = dd[bp]->view(itrq[bp]) && dd[bp]->view(iimp[bp]) && dd[bp]->view(icmd[bp])
-              && dd[bp]->view(ivel[bp]) && dd[bp]->view(ipos[bp]) && dd[bp]->view(iopl[bp]);
+              && dd[bp]->view(ivel[bp]) && dd[bp]->view(ipos[bp]) && dd[bp]->view(iopl[bp])
+              && dd[bp]->view(positionDirectInterface[bp]);
     if(!ok)
     {
         fprintf(stderr, "Problem initializing drivers of %s\n", bodyPartNames[bp].c_str());
@@ -259,6 +260,7 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
         switch(controlMode)
         {
             case CTRL_MODE_POS:
+            case CTRL_MODE_DIRECT_POSITION:
                 FOR_ALL(itBp, itJ) {
                     if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode) {
                         if( reverse_torso_joints ) {
@@ -270,7 +272,7 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
                     }
                 }
                 break;
-                
+               
             case CTRL_MODE_VEL:
                 FOR_ALL(itBp, itJ) {
                     if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode) {
@@ -306,7 +308,7 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
                 break;
                 
             case CTRL_MODE_MOTOR_PWM:
-                if(!isRobotSimulator(robot)) ///< iCub simulator does not implement PWM motor control
+                if(!isICubSimulator(robot)) ///< iCub simulator does not implement PWM motor control
                     FOR_ALL(itBp, itJ) {
                         if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode) {
                             if( reverse_torso_joints ) {
@@ -343,11 +345,13 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
         }
         switch(controlMode)
         {
-            case CTRL_MODE_POS:         ok = icmd[li.bodyPart]->setPositionMode(i); break;
+            case CTRL_MODE_POS:
+            case CTRL_MODE_DIRECT_POSITION:
+                ok = icmd[li.bodyPart]->setPositionMode(i); break;
             case CTRL_MODE_VEL:         ok = icmd[li.bodyPart]->setVelocityMode(i); break;
             case CTRL_MODE_TORQUE:      ok = icmd[li.bodyPart]->setTorqueMode(i);   break;
             ///< iCub simulator does not implement PWM motor control
-            case CTRL_MODE_MOTOR_PWM:   ok = isRobotSimulator(robot) ? true : icmd[li.bodyPart]->setOpenLoopMode(i); break;
+            case CTRL_MODE_MOTOR_PWM:   ok = isICubSimulator(robot) ? true : icmd[li.bodyPart]->setOpenLoopMode(i); break;
             default: break;
         }
         if(ok)
@@ -376,6 +380,7 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
         switch(currentCtrlModes[li])
         {
             case CTRL_MODE_POS:         return ipos[li.bodyPart]->positionMove(i, CTRL_RAD2DEG*(*ref));
+            case CTRL_MODE_DIRECT_POSITION: return positionDirectInterface[li.bodyPart]->setPosition(i, CTRL_RAD2DEG*(*ref));
             case CTRL_MODE_VEL:         return ivel[li.bodyPart]->velocityMove(i, CTRL_RAD2DEG*(*ref));
             case CTRL_MODE_TORQUE:
             {
@@ -399,7 +404,7 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
                     return itrq[li.bodyPart]->setRefTorque(i, *ref);
             }
             ///< iCub simulator does not implement PWM motor control
-            case CTRL_MODE_MOTOR_PWM:   return isRobotSimulator(robot) ? true : iopl[li.bodyPart]->setOutput(i, *ref);
+            case CTRL_MODE_MOTOR_PWM:   return isICubSimulator(robot) ? true : iopl[li.bodyPart]->setOutput(i, *ref);
             default: break;
         }
         return false;
@@ -466,6 +471,10 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
                     partControlMode = CTRL_MODE_POS;
                     positionReferences[jointIndex] = CTRL_RAD2DEG * ref[i];
                 }
+                else if (currentControlMode == wbi::CTRL_MODE_DIRECT_POSITION) {
+                    partControlMode = CTRL_MODE_DIRECT_POSITION;
+                    positionReferences[jointIndex] = CTRL_RAD2DEG * ref[i];
+                }
                 i++;
             }
             switch (partControlMode) {
@@ -480,6 +489,10 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
                     break;
                 case wbi::CTRL_MODE_POS:
                     ok = ok && ipos[itBp->first]->positionMove(positionReferences);
+                    memset(m_commandedParts + i - jointsInPart, 1, sizeof(unsigned char) * jointsInPart);
+                    break;
+                case wbi::CTRL_MODE_DIRECT_POSITION:
+                    ok = ok && positionDirectInterface[itBp->first]->setPositions(positionReferences);
                     memset(m_commandedParts + i - jointsInPart, 1, sizeof(unsigned char) * jointsInPart);
                     break;
                 default:
@@ -516,6 +529,9 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
             case CTRL_MODE_POS:         
                 ok = ok && ipos[itBp->first]->positionMove(j, CTRL_RAD2DEG*ref[i]); 
                 break;
+            case CTRL_MODE_DIRECT_POSITION:         
+                ok = ok && positionDirectInterface[itBp->first]->setPosition(j, CTRL_RAD2DEG*ref[i]); 
+                break;
             case CTRL_MODE_VEL:         
                 if(isRobotSimulator(robot)) ///< velocity controlled joints have already been managed (for the real robot)
                     ok = ok && ivel[itBp->first]->velocityMove(j, CTRL_RAD2DEG*ref[i]); 
@@ -541,7 +557,7 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
             }
                 break;
             case CTRL_MODE_MOTOR_PWM:   
-                if(!isRobotSimulator(robot)) ///< iCub simulator does not implement PWM motor control
+                if(!isICubSimulator(robot)) ///< iCub simulator does not implement PWM motor control
                     ok = ok && iopl[itBp->first]->setOutput(j, ref[i]); 
                 break;
             default: 
