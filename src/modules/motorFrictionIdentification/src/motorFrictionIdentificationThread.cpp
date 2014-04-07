@@ -162,15 +162,17 @@ bool MotorFrictionIdentificationThread::threadInit()
     if(!readRobotStatus(true))
         return false;
     
-    leftShoulderTorqueCouplingMatrix = Matrix3d::Zero();
-    leftShoulderTorqueCouplingMatrix(0,0) = 1;
-    leftShoulderTorqueCouplingMatrix(1, 0) = leftShoulderTorqueCouplingMatrix(2, 0) = -1;
-    leftShoulderTorqueCouplingMatrix(1, 1) = leftShoulderTorqueCouplingMatrix(2, 1) = leftShoulderTorqueCouplingMatrix(2, 2) = 1;
-    
     leftShoulderVelocityCouplingMatrix = Matrix3d::Zero();
-    leftShoulderVelocityCouplingMatrix(0,0) = leftShoulderVelocityCouplingMatrix(1,1) = leftShoulderVelocityCouplingMatrix(2,2) = 1;
-    leftShoulderVelocityCouplingMatrix(2,0) = 1;
-    leftShoulderVelocityCouplingMatrix(2,1) = -1;
+    leftShoulderVelocityCouplingMatrix(0,0) =  1;
+    leftShoulderVelocityCouplingMatrix(1,0) = -1;
+    leftShoulderVelocityCouplingMatrix(2,0) = -1;
+    leftShoulderVelocityCouplingMatrix(1,1) =  1;
+    leftShoulderVelocityCouplingMatrix(2,1) =  1;
+    leftShoulderVelocityCouplingMatrix(2,2) =  1;
+    
+    leftShoulderTorqueCouplingMatrix = Matrix3d::Zero();
+    leftShoulderTorqueCouplingMatrix = leftShoulderVelocityCouplingMatrix.transpose();
+    leftShoulderTorqueCouplingMatrix = leftShoulderVelocityCouplingMatrix.inverse().eval();
     
     rightShoulderTorqueCouplingMatrix = leftShoulderTorqueCouplingMatrix;
     rightShoulderVelocityCouplingMatrix = leftShoulderVelocityCouplingMatrix;
@@ -183,9 +185,9 @@ bool MotorFrictionIdentificationThread::threadInit()
     torsoVelocityCouplingMatrix(1,1) =  0.5; 
     torsoVelocityCouplingMatrix(2,0) =  0.5*PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
     torsoVelocityCouplingMatrix(2,1) =  0.5*PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
-    torsoVelocityCouplingMatrix(2,2) =  0.5;
+    torsoVelocityCouplingMatrix(2,2) =      PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
     
-    torsoTorqueCouplingMatrix  = torsoVelocityCouplingMatrix.transpose();
+    torsoTorqueCouplingMatrix   = torsoVelocityCouplingMatrix.transpose();
     torsoVelocityCouplingMatrix = torsoVelocityCouplingMatrix.inverse().eval();
     
         
