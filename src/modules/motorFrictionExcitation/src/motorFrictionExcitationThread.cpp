@@ -73,6 +73,9 @@ bool MotorFrictionExcitationThread::threadInit()
     stdDev.kvn      =   ArrayXd::Constant(_n, 1e10);
     stdDev.kcp      =   ArrayXd::Constant(_n, 1e10);
     stdDev.kcn      =   ArrayXd::Constant(_n, 1e10);
+//     qMinOfCurrentJointFME = 0; 
+//     qMaxOfCurrentJointFME = 0;
+    
     ///< resize std vectors
     
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_MIN,              qMin.data()));
@@ -285,16 +288,16 @@ bool MotorFrictionExcitationThread::areDesiredMotorPwmTooLarge()
 {
     for(int i=0; i<pwmDes.size(); i++)
     {
-        if(pwmDes(i) > qMax(i)*CTRL_DEG2RAD)
+        if(pwmDes(i) > qMaxOfCurrentJointFME[i])
         {
-            printf("Desired position = %lf (of joint %d) is too large. Limiting it to %lf.\n", pwmDes(i) * CTRL_RAD2DEG, i, qMax(i));
-            pwmDes(i) = qMax(i)*CTRL_DEG2RAD;
+            printf("Desired position = %lf (of joint %d) is too large. Limiting it to %lf.\n", pwmDes(i) * CTRL_RAD2DEG, i, qMaxOfCurrentJointFME[i]* CTRL_RAD2DEG);
+            pwmDes(i) = qMaxOfCurrentJointFME[i];
             return true;
         }
-        if(pwmDes(i) < qMin(i)*CTRL_DEG2RAD)
+        if(pwmDes(i) < qMinOfCurrentJointFME[i])
         {
-            printf("Desired position = %lf (of joint %d) is too low. Limiting it to %lf.\n", pwmDes(i) * CTRL_RAD2DEG, i, qMin(i));
-            pwmDes(i) = qMin(i)*CTRL_DEG2RAD;
+            printf("Desired position = %lf (of joint %d) is too low. Limiting it to %lf.\n", pwmDes(i) * CTRL_RAD2DEG, i, qMinOfCurrentJointFME[i]* CTRL_RAD2DEG);
+            pwmDes(i) = qMinOfCurrentJointFME[i];
             return true;
         }
     }
@@ -390,6 +393,8 @@ bool MotorFrictionExcitationThread::initFreeMotionExcitation()
     currentJointIds.resize(cjn);
     currentGlobalJointIds.resize(cjn);
     posIntegral.resize(cjn); posIntegral.setZero();
+    qMinOfCurrentJointFME.resize(cjn);
+    qMaxOfCurrentJointFME.resize(cjn);
 //     EstimateType estType = isRobotSimulator(robotName) ? ESTIMATE_JOINT_VEL : ESTIMATE_MOTOR_PWM;
 //     double pwmUp, pwmDown, q0_rad, qDes_rad, qRad_i;
     double q0_rad = 0;
@@ -406,6 +411,8 @@ bool MotorFrictionExcitationThread::initFreeMotionExcitation()
         jointName.clear();
         
         q0_rad = initialJointConf_deg[currentGlobalJointIds[i]] * CTRL_DEG2RAD;
+        qMinOfCurrentJointFME[i] = qMin[currentGlobalJointIds[i]] * CTRL_DEG2RAD;
+        qMaxOfCurrentJointFME[i] = qMax[currentGlobalJointIds[i]] * CTRL_DEG2RAD;
 //         qDes_rad = q0_rad + 3.0*CTRL_DEG2RAD;
 //         qRad_i = 0.0;
 // 
