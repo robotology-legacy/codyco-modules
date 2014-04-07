@@ -94,7 +94,7 @@ wholeBodyInterfaceIcub
 paramHelp
 iDynTree
 ${YARP_LIBRARIES} 
-${ICUB_LIBRARIES}
+# ${ICUB_LIBRARIES}
 ${MATLAB_LIBRARIES}
 ${Orocos-KDL_LIBRARIES}
 ${kdl_codyco_LIBRARIES} 

@@ -84,16 +84,23 @@ if(EIGEN3_VERSION VERSION_LESS 3.1)
 endif()
 
 #setting options specific for OS X
-#THIS should solve issues on building on OS X until Orocos KDL fixes its standard c++ issues
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    IF (${CMAKE_GENERATOR} MATCHES "Xcode")
-        MESSAGE("Xcode generator: setting standard libraries to libstdc++")
-        SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
-    ELSE()
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
-        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libstdc++")
-    ENDIF()
-ENDIF()
+#THIS should solve issues on building on OS X depending current system and Orocos KDL version
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    option(CODYCO_OSX_STDLIB "Compile CoDyCo by explicitly linking to the old GNU stdc++ library instead of the default one" FALSE)
+    if (OROCOS_KDL_OLDVERSION)
+        set(CODYCO_OSX_STDLIB TRUE)
+    endif()
+    
+    if (CODYCO_OSX_STDLIB)
+        if (${CMAKE_GENERATOR} MATCHES "Xcode")
+            MESSAGE("Xcode generator: setting standard libraries to libstdc++")
+            SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
+        else()
+            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+            SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libstdc++")
+        endif()
+    endif(CODYCO_OSX_STDLIB)
+endif()
 
 #setting debug options
 if(MSVC)

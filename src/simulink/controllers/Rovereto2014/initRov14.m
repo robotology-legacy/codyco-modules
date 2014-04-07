@@ -5,7 +5,7 @@ addpath(genpath('/home/daniele/src/codyco/build'))
 addpath(genpath('/home/daniele/src/codyco/src/simulink'))
 
 % Controller period
-Ts = 0.01;
+Ts = 0.01; 
  
 % Controller gains in P I D order
 k = [ 20   5   15
@@ -13,4 +13,4 @@ k = [ 20   5   15
       10   0   1 ];
   
 % 
-fake = eye(12);
+fake = eye(25);

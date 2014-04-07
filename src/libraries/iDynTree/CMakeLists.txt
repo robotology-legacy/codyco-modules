@@ -48,12 +48,11 @@ INCLUDE_DIRECTORIES(include
 ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME} iDyn
-                                     ${ICUB_LIBRARIES}
                                      ${GSL_LIBRARIES}
                                      ${YARP_LIBRARIES}
                                      ${kdl_codyco_LIBRARIES}
                                      ${kdl_format_io_LIBRARIES}
-				                     ${Boost_LIBRARIES})
+				     ${Boost_LIBRARIES})
 
 
 icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
