@@ -181,12 +181,12 @@ bool MotorFrictionIdentificationThread::threadInit()
     torsoVelocityCouplingMatrix(0,1) =  0.5;
     torsoVelocityCouplingMatrix(1,0) =  0.5;
     torsoVelocityCouplingMatrix(1,1) =  0.5; 
-    torsoVelocityCouplingMatrix(2,0) =  0.25;
-    torsoVelocityCouplingMatrix(2,1) =  0.25;
+    torsoVelocityCouplingMatrix(2,0) =  0.5*PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
+    torsoVelocityCouplingMatrix(2,1) =  0.5*PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
     torsoVelocityCouplingMatrix(2,2) =  0.5;
     
     torsoTorqueCouplingMatrix  = torsoVelocityCouplingMatrix.transpose();
-    torsoVelocityCouplingMatrix = torsoVelocityCouplingMatrix.inverse();
+    torsoVelocityCouplingMatrix = torsoVelocityCouplingMatrix.inverse().eval();
     
         
     printf("\n\n");
