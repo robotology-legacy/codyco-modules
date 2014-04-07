@@ -571,7 +571,7 @@ bool icubWholeBodySensors::readPwms(double *pwm, double *stamps, bool wait)
     //Do not support stamps on pwm
     assert(stamps == 0);
     ///< check that we are not in simulation, because iCub simulator does not implement pwm control
-    if(isRobotSimulator(robot)) 
+    if(isICubSimulator(robot)) 
     {
         memset(pwm, 0, sizeof(double) * pwmSensIdList.size());
         return true;
@@ -721,7 +721,7 @@ bool icubWholeBodySensors::readEncoder(const LocalId &sid, double *q, double *st
 bool icubWholeBodySensors::readPwm(const LocalId &sid, double *pwm, double *stamps, bool wait)
 {
     assert(stamps == 0);
-    if(isRobotSimulator(robot))
+    if(isICubSimulator(robot))
     {
         pwm[0] = 0.0;   // iCub simulator does not have pwm sensors
         return true;    // does not return false, so programs can be tested in simulation

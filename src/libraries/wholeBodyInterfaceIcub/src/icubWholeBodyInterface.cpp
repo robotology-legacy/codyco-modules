@@ -64,6 +64,7 @@ bool icubWholeBodyInterface::init()
     if(!ok) printf("Error while initializing actuator interface.\n");
     if(ok) ok = stateInt->init();
     if(!ok) printf("Error while initializing state interface.\n");
+    printf("Model.\n");
     if(ok) ok = modelInt->init();
     if(!ok) printf("Error while initializing model interface.\n");
     return ok;
