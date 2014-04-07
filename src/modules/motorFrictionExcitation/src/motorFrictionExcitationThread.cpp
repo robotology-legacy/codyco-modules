@@ -287,13 +287,13 @@ bool MotorFrictionExcitationThread::areDesiredMotorPwmTooLarge()
     {
         if(pwmDes(i) > qMax(i)*CTRL_DEG2RAD)
         {
-            printf("Desired reference position %d is too large. Limiting it.\n", i);
+            printf("Desired position = %lf (of joint %d) is too large. Limiting it to %lf.\n", pwmDes(i) * CTRL_RAD2DEG, i, qMax(i));
             pwmDes(i) = qMax(i)*CTRL_DEG2RAD;
             return true;
         }
         if(pwmDes(i) < qMin(i)*CTRL_DEG2RAD)
         {
-            printf("Desired reference position %d is too low. Limiting it.\n", i);
+            printf("Desired position = %lf (of joint %d) is too low. Limiting it to %lf.\n", pwmDes(i) * CTRL_RAD2DEG, i, qMin(i));
             pwmDes(i) = qMin(i)*CTRL_DEG2RAD;
             return true;
         }
