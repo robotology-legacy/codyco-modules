@@ -159,7 +159,7 @@ public:
     void 		setmoduleName(std::string mn);
     void 		setRobotName(std::string rn); //checked
     int 		decreaseCounter();
-    void 		resetCounter();
+    static void		resetCounter();
     bool 		robotConfig();
     bool 		robotInit(int btype, int link);
     void 		getLinkId(const char *linkName, int &lid);
