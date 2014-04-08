@@ -34,6 +34,7 @@ static const double     STD_DEV_SATURATION          = 0.3;          ///< value a
 static const double     ZERO_TORQUE_THRESHOLD       = 0.07;         ///< Lower threshold for a torque measure in order to consider it zero.
 static const double     PULLEY_RADIUS_ROLL_JOINT    = 0.08;         ///< Radius roll joint pulley.
 static const double     PULLEY_RADIUS_ROLL_MOTOR    = 0.044;        ///< Radius roll motor pulley.
+static const double     TRANSMISSION_RATIO_SHOULDER = 1.6;          ///< Transmission ratio for shoulders.
 
 template<class VectorType>
 inline void resizeAndSetToZero(VectorType &v, unsigned int size)

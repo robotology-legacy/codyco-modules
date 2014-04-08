@@ -164,11 +164,11 @@ bool MotorFrictionIdentificationThread::threadInit()
     
     leftShoulderVelocityCouplingMatrix = Matrix3d::Zero();
     leftShoulderVelocityCouplingMatrix(0,0) =  1;
-    leftShoulderVelocityCouplingMatrix(1,0) = -1;
-    leftShoulderVelocityCouplingMatrix(2,0) = -1;
-    leftShoulderVelocityCouplingMatrix(1,1) =  1;
-    leftShoulderVelocityCouplingMatrix(2,1) =  1;
-    leftShoulderVelocityCouplingMatrix(2,2) =  1;
+    leftShoulderVelocityCouplingMatrix(1,0) = -TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(1,1) =  TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(2,0) = -TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(2,1) =  TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(2,2) =  TRANSMISSION_RATIO_SHOULDER;
     
     leftShoulderTorqueCouplingMatrix = Matrix3d::Zero();
     leftShoulderTorqueCouplingMatrix = leftShoulderVelocityCouplingMatrix.transpose();
