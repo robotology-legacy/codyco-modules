@@ -10,8 +10,8 @@ nc = 12;   %number of contraints
 Ts = 0.01; 
  
 % Controller gains in P I D order
-k = [ 20   5   15
-      100   1   0.1
-      10   0   1 ];
+k = [ 20    5   15
+      100  1   15
+      50   0   1 ];
 
 kw = 1;  
