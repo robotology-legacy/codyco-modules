@@ -7,6 +7,10 @@ compiler:
 env:
   - CODYCO_TRAVIS_BUILD_TYPE=Debug
   - CODYCO_TRAVIS_BUILD_TYPE=Release
+  
+branches:
+  except:
+    - superbuild
 
 install:
   - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
