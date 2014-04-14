@@ -31,7 +31,10 @@ static const int        PRINT_MSG_LEVEL             = MSG_DEBUG;    ///< only me
 static const double     MODULE_PERIOD               = 20.0;         ///< period of the module (in sec)
 static const double     TORQUE_SENSOR_SATURATION    = 13.0;         ///< value at which the joint torque sensors saturate
 static const double     STD_DEV_SATURATION          = 0.3;          ///< value at which the standard deviation written on the output monitoring port are saturated
-static const double     ZERO_TORQUE_THRESHOLD       = 0.07;          ///< Lower threshold for a torque measure in order to consider it zero.
+static const double     ZERO_TORQUE_THRESHOLD       = 0.07;         ///< Lower threshold for a torque measure in order to consider it zero.
+static const double     PULLEY_RADIUS_ROLL_JOINT    = 0.08;         ///< Radius roll joint pulley.
+static const double     PULLEY_RADIUS_ROLL_MOTOR    = 0.044;        ///< Radius roll motor pulley.
+static const double     TRANSMISSION_RATIO_SHOULDER = 1.625;          ///< Transmission ratio for shoulders.
 
 template<class VectorType>
 inline void resizeAndSetToZero(VectorType &v, unsigned int size)

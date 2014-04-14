@@ -162,31 +162,59 @@ bool MotorFrictionIdentificationThread::threadInit()
     if(!readRobotStatus(true))
         return false;
     
-    leftShoulderTorqueCouplingMatrix = Matrix3d::Zero();
-    leftShoulderTorqueCouplingMatrix(0,0) = 1;
-    leftShoulderTorqueCouplingMatrix(1, 0) = leftShoulderTorqueCouplingMatrix(2, 0) = -1;
-    leftShoulderTorqueCouplingMatrix(1, 1) = leftShoulderTorqueCouplingMatrix(2, 1) = leftShoulderTorqueCouplingMatrix(2, 2) = 1;
-    
     leftShoulderVelocityCouplingMatrix = Matrix3d::Zero();
-    leftShoulderVelocityCouplingMatrix(0,0) = leftShoulderVelocityCouplingMatrix(1,1) = leftShoulderVelocityCouplingMatrix(2,2) = 1;
-    leftShoulderVelocityCouplingMatrix(2,0) = 1;
-    leftShoulderVelocityCouplingMatrix(2,1) = -1;
+    leftShoulderVelocityCouplingMatrix(0,0) =  -1.0;
+    leftShoulderVelocityCouplingMatrix(0,1) =   0.0;
+    leftShoulderVelocityCouplingMatrix(0,2) =   0.0;
     
-    rightShoulderTorqueCouplingMatrix = leftShoulderTorqueCouplingMatrix;
-    rightShoulderVelocityCouplingMatrix = leftShoulderVelocityCouplingMatrix;
+    leftShoulderVelocityCouplingMatrix(1,0) =   TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(1,1) =  -TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(1,2) =   0.0;
     
-    torsoVelocityCouplingMatrix = Matrix3d::Zero();
+    leftShoulderVelocityCouplingMatrix(2,0) =   TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(2,1) =  -TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(2,2) =  -TRANSMISSION_RATIO_SHOULDER;
     
-    torsoVelocityCouplingMatrix(0,0) = -0.5; 
-    torsoVelocityCouplingMatrix(0,1) =  0.5;
-    torsoVelocityCouplingMatrix(1,0) =  0.5;
-    torsoVelocityCouplingMatrix(1,1) =  0.5; 
-    torsoVelocityCouplingMatrix(2,0) =  0.25;
-    torsoVelocityCouplingMatrix(2,1) =  0.25;
-    torsoVelocityCouplingMatrix(2,2) =  0.5;
     
-    torsoTorqueCouplingMatrix  = torsoVelocityCouplingMatrix.transpose();
-    torsoVelocityCouplingMatrix = torsoVelocityCouplingMatrix.inverse();
+    leftShoulderTorqueCouplingMatrix = Matrix3d::Zero();
+    Matrix3d leftShoulderVelocityCouplingMatrixTranspose = leftShoulderVelocityCouplingMatrix.transpose();
+    leftShoulderTorqueCouplingMatrix = leftShoulderVelocityCouplingMatrixTranspose.inverse().eval();
+    
+    rightShoulderVelocityCouplingMatrix = Matrix3d::Zero();
+    rightShoulderVelocityCouplingMatrix(0,0) =  1.0;
+    rightShoulderVelocityCouplingMatrix(0,1) =  0.0;
+    rightShoulderVelocityCouplingMatrix(0,2) =  0.0;
+    
+    rightShoulderVelocityCouplingMatrix(1,0) = -TRANSMISSION_RATIO_SHOULDER;
+    rightShoulderVelocityCouplingMatrix(1,1) =  TRANSMISSION_RATIO_SHOULDER;
+    rightShoulderVelocityCouplingMatrix(1,2) =  0.0;
+    
+    rightShoulderVelocityCouplingMatrix(2,0) = -TRANSMISSION_RATIO_SHOULDER;
+    rightShoulderVelocityCouplingMatrix(2,1) =  TRANSMISSION_RATIO_SHOULDER;
+    rightShoulderVelocityCouplingMatrix(2,2) =  TRANSMISSION_RATIO_SHOULDER;
+    
+    
+    rightShoulderTorqueCouplingMatrix = Matrix3d::Zero();
+    Matrix3d rightShoulderVelocityCouplingMatrixTranspose = rightShoulderVelocityCouplingMatrix.transpose();
+    rightShoulderTorqueCouplingMatrix = rightShoulderVelocityCouplingMatrixTranspose.inverse().eval();
+    
+    
+    Matrix3d torsoVelocityCouplingMatrixInverse = Matrix3d::Zero();
+    
+    torsoVelocityCouplingMatrixInverse(0,0) =  0.5; 
+    torsoVelocityCouplingMatrixInverse(0,1) = -0.5;
+    torsoVelocityCouplingMatrixInverse(0,2) =  0.0;
+    
+    torsoVelocityCouplingMatrixInverse(1,0) =  0.5;
+    torsoVelocityCouplingMatrixInverse(1,1) =  0.5; 
+    torsoVelocityCouplingMatrixInverse(1,2) =  0.0; 
+    
+    torsoVelocityCouplingMatrixInverse(2,0) =  0.5*PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
+    torsoVelocityCouplingMatrixInverse(2,1) =  0.5*PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
+    torsoVelocityCouplingMatrixInverse(2,2) =      PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
+    
+    torsoTorqueCouplingMatrix   = torsoVelocityCouplingMatrixInverse.transpose();
+    torsoVelocityCouplingMatrix = torsoVelocityCouplingMatrixInverse.inverse().eval();
     
         
     printf("\n\n");
@@ -220,15 +248,9 @@ void MotorFrictionIdentificationThread::run()
                         if (fabs(torques[joint3GID]) > ZERO_TORQUE_THRESHOLD)
                             continue;
                     }
-//                     else if (lid.index == 2) {
-//                         int joint3GID0 = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 0));
-//                         int joint3GID1 = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 1));
-//                         if (fabs(extTorques[joint3GID0]) > extTorqueThr[joint3GID0]
-//                             || fabs(extTorques[joint3GID1]) > extTorqueThr[joint3GID1])
-//                             continue;
-//                     }
                 }
-                else if (lid.bodyPart == iCub::skinDynLib::LEFT_ARM) {
+                else if (lid.bodyPart == iCub::skinDynLib::LEFT_ARM
+                    || lid.bodyPart == iCub::skinDynLib::RIGHT_ARM) {
                     if (lid.index == 0) {
                         int joint3GID = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 1));
                         if (fabs(torques[joint3GID]) > ZERO_TORQUE_THRESHOLD)
@@ -239,9 +261,6 @@ void MotorFrictionIdentificationThread::run()
                         if (fabs(torques[joint3GID]) > ZERO_TORQUE_THRESHOLD)
                             continue;
                     }
-
-                }
-                else if (lid.bodyPart == iCub::skinDynLib::RIGHT_ARM) {
 
                 }
                 estimators[i].feedSampleForGroup1(inputSamples[i], pwm[i]);
@@ -330,18 +349,23 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
         }
     }
     
-    torsoTorques = torsoTorqueCouplingMatrix * torsoTorques;
-    torsoVelocities = torsoVelocityCouplingMatrix * torsoVelocities;
-    leftShoulderTorques = leftShoulderTorqueCouplingMatrix * leftShoulderTorques;
-    leftShoulderVelocities = leftShoulderVelocityCouplingMatrix * leftShoulderVelocities;
-    rightShoulderTorques = rightShoulderTorqueCouplingMatrix * rightShoulderTorques;
-    rightShoulderVelocities = rightShoulderVelocityCouplingMatrix * rightShoulderVelocities;
+    // Transformations from joint torques and velocities of torso into motors torques and velocities 
+    Vector3d torsoMotorTorques    = torsoTorqueCouplingMatrix   * torsoTorques;
+    Vector3d torsoMotorVelocities = torsoVelocityCouplingMatrix * torsoVelocities;
+    
+    // Transformations from joint torques and velocities of left shoulder into motors torques and velocities 
+    Vector3d leftShoulderMotorTorques     = leftShoulderTorqueCouplingMatrix   * leftShoulderTorques;
+    Vector3d leftShoulderMotorVelocities  = leftShoulderVelocityCouplingMatrix * leftShoulderVelocities;
+    
+    // Transformations from joint torques and velocities of right shoulder into motors torques and velocities 
+    Vector3d rightShoulderMotorTorques     =  rightShoulderTorqueCouplingMatrix   * rightShoulderTorques;
+    Vector3d rightShoulderMotorVelocities  =  rightShoulderVelocityCouplingMatrix * rightShoulderVelocities;
     
     for(int i=0; i<_n; i++)
     {
         wbi::LocalId lid = jointList.globalToLocalId(i);
         //skip if body part or joint is not the right one
-        if (!(lid.bodyPart == iCub::skinDynLib::TORSO && lid.index >= 0 && lid.index <= 1) 
+        if (   !(lid.bodyPart == iCub::skinDynLib::TORSO && lid.index >= 0 && lid.index <= 1) 
             || !(lid.bodyPart == iCub::skinDynLib::LEFT_ARM && lid.index >= 0 && lid.index <= 2)
             || !(lid.bodyPart == iCub::skinDynLib::RIGHT_ARM && lid.index >= 0 && lid.index <= 2))
         {
@@ -352,18 +376,18 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
         if (lid.bodyPart == iCub::skinDynLib::TORSO
             && lid.index >= 0 && lid.index <= 2) 
         {
-            torques[i] = torsoTorques(lid.index);
-            dq[i] = torsoVelocities(lid.index);
+            torques[i] = torsoMotorTorques(lid.index);
+            dq[i]      = torsoMotorVelocities(lid.index);
         }
         else if (lid.bodyPart == iCub::skinDynLib::LEFT_ARM
             && lid.index >= 0 && lid.index <= 2) {
-            torques[i] = leftShoulderTorques(lid.index);
-            dq[i] = leftShoulderVelocities(lid.index);
+            torques[i] = leftShoulderMotorTorques(lid.index);
+            dq[i]      = leftShoulderMotorVelocities(lid.index);
         }
         else if (lid.bodyPart == iCub::skinDynLib::RIGHT_ARM
             && lid.index >= 0 && lid.index <= 2) {
-            torques[i] = rightShoulderTorques(lid.index);
-            dq[i] = rightShoulderVelocities(lid.index);
+            torques[i] = rightShoulderMotorTorques(lid.index);
+            dq[i]      = rightShoulderMotorVelocities(lid.index);
         }
        
         dqPos[i]        = dq[i]>zeroJointVelThr  ?   dq[i]   :   0.0;
@@ -418,7 +442,7 @@ void MotorFrictionIdentificationThread::prepareMonitorData()
     extTorqueMonitor    = extTorques[jid];              ///< External torque of the monitored joint
     ///< Prediction of current motor pwm
     estimators[jid].predictOutput(inputSamples[jid], pwmPredMonitor);   
-    ///< Prediction of motor torque: tau = -(1/k_tau)(-k_tau*pwm/k_tau + k_v\dot{q} + k_c sign(\dot{q}))
+    ///< Prediction of motor torque: tau = -(1/k_tau)(-k_tau*pwm/k_tau + k_v\dotq + k_c sign(\dotq))
     VectorXd phi = inputSamples[jid];
     double k_tau_inv = fabs(estimateMonitor[INDEX_K_TAO])>0.1 ? 1.0/estimateMonitor[INDEX_K_TAO] : 10.0;
     phi[INDEX_K_TAO] = -pwm[jid] * k_tau_inv;
