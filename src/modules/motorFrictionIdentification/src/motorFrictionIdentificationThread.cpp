@@ -163,25 +163,40 @@ bool MotorFrictionIdentificationThread::threadInit()
         return false;
     
     leftShoulderVelocityCouplingMatrix = Matrix3d::Zero();
-    leftShoulderVelocityCouplingMatrix(0,0) =  1.0;
-    leftShoulderVelocityCouplingMatrix(0,1) =  0.0;
-    leftShoulderVelocityCouplingMatrix(0,2) =  0.0;
+    leftShoulderVelocityCouplingMatrix(0,0) =  -1.0;
+    leftShoulderVelocityCouplingMatrix(0,1) =   0.0;
+    leftShoulderVelocityCouplingMatrix(0,2) =   0.0;
     
-    leftShoulderVelocityCouplingMatrix(1,0) = -TRANSMISSION_RATIO_SHOULDER;
-    leftShoulderVelocityCouplingMatrix(1,1) =  TRANSMISSION_RATIO_SHOULDER;
-    leftShoulderVelocityCouplingMatrix(1,2) =  0.0;
+    leftShoulderVelocityCouplingMatrix(1,0) =   TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(1,1) =  -TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(1,2) =   0.0;
     
-    leftShoulderVelocityCouplingMatrix(2,0) = -TRANSMISSION_RATIO_SHOULDER;
-    leftShoulderVelocityCouplingMatrix(2,1) =  TRANSMISSION_RATIO_SHOULDER;
-    leftShoulderVelocityCouplingMatrix(2,2) =  TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(2,0) =   TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(2,1) =  -TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(2,2) =  -TRANSMISSION_RATIO_SHOULDER;
     
     
     leftShoulderTorqueCouplingMatrix = Matrix3d::Zero();
     Matrix3d leftShoulderVelocityCouplingMatrixTranspose = leftShoulderVelocityCouplingMatrix.transpose();
     leftShoulderTorqueCouplingMatrix = leftShoulderVelocityCouplingMatrixTranspose.inverse().eval();
     
-    rightShoulderTorqueCouplingMatrix = leftShoulderTorqueCouplingMatrix;
-    rightShoulderVelocityCouplingMatrix = leftShoulderVelocityCouplingMatrix;
+    rightShoulderVelocityCouplingMatrix = Matrix3d::Zero();
+    rightShoulderVelocityCouplingMatrix(0,0) =  1.0;
+    rightShoulderVelocityCouplingMatrix(0,1) =  0.0;
+    rightShoulderVelocityCouplingMatrix(0,2) =  0.0;
+    
+    rightShoulderVelocityCouplingMatrix(1,0) = -TRANSMISSION_RATIO_SHOULDER;
+    rightShoulderVelocityCouplingMatrix(1,1) =  TRANSMISSION_RATIO_SHOULDER;
+    rightShoulderVelocityCouplingMatrix(1,2) =  0.0;
+    
+    rightShoulderVelocityCouplingMatrix(2,0) = -TRANSMISSION_RATIO_SHOULDER;
+    rightShoulderVelocityCouplingMatrix(2,1) =  TRANSMISSION_RATIO_SHOULDER;
+    rightShoulderVelocityCouplingMatrix(2,2) =  TRANSMISSION_RATIO_SHOULDER;
+    
+    
+    rightShoulderTorqueCouplingMatrix = Matrix3d::Zero();
+    Matrix3d rightShoulderVelocityCouplingMatrixTranspose = rightShoulderVelocityCouplingMatrix.transpose();
+    rightShoulderTorqueCouplingMatrix = rightShoulderVelocityCouplingMatrixTranspose.inverse().eval();
     
     
     Matrix3d torsoVelocityCouplingMatrixInverse = Matrix3d::Zero();
