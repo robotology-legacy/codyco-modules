@@ -258,24 +258,23 @@ void jointTorqueControlThread::run()
                     int leftShoulderPitchGID = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 0));
                     int leftShoulderRollGID  = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 1));
                     int leftShoulderYawGID   = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 2));
-                    cout << "In LEFT SHOULDER handeler \n";
                     if (i == leftShoulderPitchGID)
                     {
-                        cout << "In Left shoulder pitch handeler \n";
+//                         cout << "In Left shoulder pitch handeler \n";
                         tauMotor = leftShoulderTorqueCouplingMatrix(0,0)  * tau(i) +  leftShoulderTorqueCouplingMatrix(0,1)  * tau(i+1) + leftShoulderTorqueCouplingMatrix(0,2)  * tau(i+2);
                         dqMotor  = leftShoulderVelocityCouplingMatrix(0,0) * dq(i) +  leftShoulderVelocityCouplingMatrix(0,1) * dq(i+1) + leftShoulderVelocityCouplingMatrix(0,2) * dq(i+2);
                         dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
                     }
                     if (i == leftShoulderRollGID)
                     {
-                        cout << "In Left shoulder roll handeler \n";
+//                         cout << "In Left shoulder roll handeler \n";
                         tauMotor = leftShoulderTorqueCouplingMatrix(1,0)  * tau(i-1) +  leftShoulderTorqueCouplingMatrix(1,1)  * tau(i) + leftShoulderTorqueCouplingMatrix(1,2)  * tau(i+1);
                         dqMotor  = leftShoulderVelocityCouplingMatrix(1,0) * dq(i-1) +  leftShoulderVelocityCouplingMatrix(1,1) * dq(i) + leftShoulderVelocityCouplingMatrix(1,2) * dq(i+1);
                         dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
                     }
                     if (i == leftShoulderYawGID)
                     {
-                        cout << "In Left shoulder yaw handeler \n";
+//                         cout << "In Left shoulder yaw handeler \n";
                         tauMotor = leftShoulderTorqueCouplingMatrix(2,0)  * tau(i-2) +  leftShoulderTorqueCouplingMatrix(2,1)  * tau(i-1) + leftShoulderTorqueCouplingMatrix(2,2)  * tau(i);
                         dqMotor  = leftShoulderVelocityCouplingMatrix(2,0) * dq(i-2) +  leftShoulderVelocityCouplingMatrix(2,1) * dq(i-1) + leftShoulderVelocityCouplingMatrix(2,2) * dq(i);
                         dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
@@ -288,21 +287,21 @@ void jointTorqueControlThread::run()
                     cout << "In RIGHT SHOULDER handeler \n";
                     if (i == rightShoulderPitchGID)
                     {
-                        cout << "In Right shoulder pitch handeler \n";
+//                         cout << "In Right shoulder pitch handeler \n";
                         tauMotor = rightShoulderTorqueCouplingMatrix(0,0)  * tau(i) +  rightShoulderTorqueCouplingMatrix(0,1)  * tau(i+1) + rightShoulderTorqueCouplingMatrix(0,2)  * tau(i+2);
                         dqMotor  = rightShoulderVelocityCouplingMatrix(0,0) * dq(i) +  rightShoulderVelocityCouplingMatrix(0,1) * dq(i+1) + rightShoulderVelocityCouplingMatrix(0,2) * dq(i+2);
                         dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
                     }
                     if (i == rightShoulderRollGID)
                     {
-                        cout << "In Right shoulder roll handeler \n";
+//                         cout << "In Right shoulder roll handeler \n";
                         tauMotor = rightShoulderTorqueCouplingMatrix(1,0)  * tau(i-1) +   rightShoulderTorqueCouplingMatrix(1,1) * tau(i) + rightShoulderTorqueCouplingMatrix(1,2)  * tau(i+1);
                         dqMotor  = rightShoulderVelocityCouplingMatrix(1,0) * dq(i-1) +  rightShoulderVelocityCouplingMatrix(1,1) * dq(i) + rightShoulderVelocityCouplingMatrix(1,2) * dq(i+1);
                         dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
                     }
                     if (i == rightShoulderYawGID)
                     {
-                        cout << "In Right shoulder yaw handeler \n";
+//                         cout << "In Right shoulder yaw handeler \n";
                         tauMotor = rightShoulderTorqueCouplingMatrix(2,0)  * tau(i-2) +  rightShoulderTorqueCouplingMatrix(2,1)  * tau(i-1) + rightShoulderTorqueCouplingMatrix(2,2)  * tau(i);
                         dqMotor  = rightShoulderVelocityCouplingMatrix(2,0) * dq(i-2) +  rightShoulderVelocityCouplingMatrix(2,1) * dq(i-1) + rightShoulderVelocityCouplingMatrix(2,2) * dq(i);
                         dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
@@ -315,6 +314,7 @@ void jointTorqueControlThread::run()
                 Voltage = motorVoltage(i);
                 if (lid.bodyPart == iCub::skinDynLib::TORSO)
                 {
+                    cout << "IN torso handler"; 
                     if (i == torsoYawGID)
                     {
                         Voltage = motorVoltage(i) - motorVoltage(i+1);
@@ -330,14 +330,14 @@ void jointTorqueControlThread::run()
                     robot->setControlReference(&Voltage, i);
                     //robot->setControlParam(wbi::CTRL_PARAM_OFFSET, &motorVoltage(i), i);
                 }
-//                 cout << "desiredJointTorque = " << tauD(i) << "\n";
+//                 cout << "desiredJointTorque"  << i << " = " << tauD(i) << "\n \n";
 //                 cout << "JointTorque = " << tau(i) << "\n";
-//                 cout << "tauMotor = " << tauMotor << "\n";
+//                 cout << "tauMotor" << i << tauMotor << "\n";
 //                 cout << "kt = " << kt(i) << "\n";  
 //                 cout << "ks = " << ks(i) << "\n";  
 //                 cout << "error = " << error << "\n";  
 //                 cout << "Motor" << i << "\n";
-//                 cout << "tauMotor = " << tauMotor << "\n";
+                cout << "tauMotor" << i << " = " << tauMotor << "\n";
 //                 cout << "dqMotor = " << dqMotor << "\n";  
 //                 cout << "motorVoltageRead" << i << " = " <<  pwmMeas(i) << "\n";
 //                 cout << "motorVoltageSet" << i << "  = " << (int) motorVoltage(i) << "\n \n";

@@ -163,32 +163,43 @@ bool MotorFrictionIdentificationThread::threadInit()
         return false;
     
     leftShoulderVelocityCouplingMatrix = Matrix3d::Zero();
-    leftShoulderVelocityCouplingMatrix(0,0) =  1;
+    leftShoulderVelocityCouplingMatrix(0,0) =  1.0;
+    leftShoulderVelocityCouplingMatrix(0,1) =  0.0;
+    leftShoulderVelocityCouplingMatrix(0,2) =  0.0;
+    
     leftShoulderVelocityCouplingMatrix(1,0) = -TRANSMISSION_RATIO_SHOULDER;
     leftShoulderVelocityCouplingMatrix(1,1) =  TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(1,2) =  0.0;
+    
     leftShoulderVelocityCouplingMatrix(2,0) = -TRANSMISSION_RATIO_SHOULDER;
     leftShoulderVelocityCouplingMatrix(2,1) =  TRANSMISSION_RATIO_SHOULDER;
     leftShoulderVelocityCouplingMatrix(2,2) =  TRANSMISSION_RATIO_SHOULDER;
     
+    
     leftShoulderTorqueCouplingMatrix = Matrix3d::Zero();
-    leftShoulderTorqueCouplingMatrix = leftShoulderVelocityCouplingMatrix.transpose();
-    leftShoulderTorqueCouplingMatrix = leftShoulderVelocityCouplingMatrix.inverse().eval();
+    Matrix3d leftShoulderVelocityCouplingMatrixTranspose = leftShoulderVelocityCouplingMatrix.transpose();
+    leftShoulderTorqueCouplingMatrix = leftShoulderVelocityCouplingMatrixTranspose.inverse().eval();
     
     rightShoulderTorqueCouplingMatrix = leftShoulderTorqueCouplingMatrix;
     rightShoulderVelocityCouplingMatrix = leftShoulderVelocityCouplingMatrix;
     
-    torsoVelocityCouplingMatrix = Matrix3d::Zero();
     
-    torsoVelocityCouplingMatrix(0,0) = -0.5; 
-    torsoVelocityCouplingMatrix(0,1) =  0.5;
-    torsoVelocityCouplingMatrix(1,0) =  0.5;
-    torsoVelocityCouplingMatrix(1,1) =  0.5; 
-    torsoVelocityCouplingMatrix(2,0) =  0.5*PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
-    torsoVelocityCouplingMatrix(2,1) =  0.5*PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
-    torsoVelocityCouplingMatrix(2,2) =      PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
+    Matrix3d torsoVelocityCouplingMatrixInverse = Matrix3d::Zero();
     
-    torsoTorqueCouplingMatrix   = torsoVelocityCouplingMatrix.transpose();
-    torsoVelocityCouplingMatrix = torsoVelocityCouplingMatrix.inverse().eval();
+    torsoVelocityCouplingMatrixInverse(0,0) =  0.5; 
+    torsoVelocityCouplingMatrixInverse(0,1) = -0.5;
+    torsoVelocityCouplingMatrixInverse(0,2) =  0.0;
+    
+    torsoVelocityCouplingMatrixInverse(1,0) =  0.5;
+    torsoVelocityCouplingMatrixInverse(1,1) =  0.5; 
+    torsoVelocityCouplingMatrixInverse(1,2) =  0.0; 
+    
+    torsoVelocityCouplingMatrixInverse(2,0) =  0.5*PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
+    torsoVelocityCouplingMatrixInverse(2,1) =  0.5*PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
+    torsoVelocityCouplingMatrixInverse(2,2) =      PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
+    
+    torsoTorqueCouplingMatrix   = torsoVelocityCouplingMatrixInverse.transpose();
+    torsoVelocityCouplingMatrix = torsoVelocityCouplingMatrixInverse.inverse().eval();
     
         
     printf("\n\n");
