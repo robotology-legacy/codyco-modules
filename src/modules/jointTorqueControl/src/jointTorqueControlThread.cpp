@@ -352,10 +352,10 @@ void jointTorqueControlThread::run()
 //                 cout << "ks = " << ks(i) << "\n";  
 //                 cout << "error = " << error << "\n";  
 //                 cout << "Motor" << i << "\n";
-                cout << "tauMotor" << i << " = " << tauMotor << "\n";
+//                 cout << "tauMotor" << i << " = " << tauMotor << "\n";
 //                 cout << "dqMotor = " << dqMotor << "\n";  
-//                 cout << "motorVoltageRead" << i << " = " <<  pwmMeas(i) << "\n";
-//                 cout << "motorVoltageSet" << i << "  = " << (int) motorVoltage(i) << "\n \n";
+                cout << "motorVoltageRead" << i << " = " <<  pwmMeas(i);
+                cout << " motorVoltageSet" << i << "  = " << (int) motorVoltage(i) << "\n \n";
             }
         }
         oldTime = currentTime;

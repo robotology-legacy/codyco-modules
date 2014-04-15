@@ -223,14 +223,14 @@ bool MotorFrictionIdentificationThread::threadInit()
 
 //*************************************************************************************************************************
 void MotorFrictionIdentificationThread::run()
-{
+{    
     paramHelper->lock();
     paramHelper->readStreamParams();
 
     wbi::LocalIdList jointList = robot->getJointList();
     readRobotStatus();
     computeInputSamples();
-
+    
     for(int i=0; i<_n; i++)
     {
         if(activeJoints[i]==1 && i == jointMonitor)
@@ -365,43 +365,43 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
     {
         wbi::LocalId lid = jointList.globalToLocalId(i);
         //skip if body part or joint is not the right one
-        if (   !(lid.bodyPart == iCub::skinDynLib::TORSO && lid.index >= 0 && lid.index <= 1) 
-            || !(lid.bodyPart == iCub::skinDynLib::LEFT_ARM && lid.index >= 0 && lid.index <= 2)
-            || !(lid.bodyPart == iCub::skinDynLib::RIGHT_ARM && lid.index >= 0 && lid.index <= 2))
+        if (   (lid.bodyPart == iCub::skinDynLib::TORSO && lid.index >= 0 && lid.index <= 2) 
+            || (lid.bodyPart == iCub::skinDynLib::LEFT_ARM && lid.index >= 0 && lid.index <= 2)
+            || (lid.bodyPart == iCub::skinDynLib::RIGHT_ARM && lid.index >= 0 && lid.index <= 2))
         {
-           continue;
-        }
-        cout << "Considering  coupling\n";
+            cout << "Considering  coupling\n";
         
-        if (lid.bodyPart == iCub::skinDynLib::TORSO
-            && lid.index >= 0 && lid.index <= 2) 
-        {
-            torques[i] = torsoMotorTorques(lid.index);
-            dq[i]      = torsoMotorVelocities(lid.index);
-        }
-        else if (lid.bodyPart == iCub::skinDynLib::LEFT_ARM
-            && lid.index >= 0 && lid.index <= 2) {
-            torques[i] = leftShoulderMotorTorques(lid.index);
-            dq[i]      = leftShoulderMotorVelocities(lid.index);
-        }
-        else if (lid.bodyPart == iCub::skinDynLib::RIGHT_ARM
-            && lid.index >= 0 && lid.index <= 2) {
-            torques[i] = rightShoulderMotorTorques(lid.index);
-            dq[i]      = rightShoulderMotorVelocities(lid.index);
-        }
+            if (lid.bodyPart == iCub::skinDynLib::TORSO
+                && lid.index >= 0 && lid.index <= 2) 
+            {
+                torques[i] = torsoMotorTorques(lid.index);
+                dq[i]      = torsoMotorVelocities(lid.index);
+            }
+            else if (lid.bodyPart == iCub::skinDynLib::LEFT_ARM
+                && lid.index >= 0 && lid.index <= 2) {
+                torques[i] = leftShoulderMotorTorques(lid.index);
+                dq[i]      = leftShoulderMotorVelocities(lid.index);
+            }
+            else if (lid.bodyPart == iCub::skinDynLib::RIGHT_ARM
+                && lid.index >= 0 && lid.index <= 2) {
+                torques[i] = rightShoulderMotorTorques(lid.index);
+                dq[i]      = rightShoulderMotorVelocities(lid.index);
+            }
        
-        dqPos[i]        = dq[i]>zeroJointVelThr  ?   dq[i]   :   0.0;
-        dqNeg[i]        = dq[i]<-zeroJointVelThr ?   dq[i]   :   0.0;
-        dqSignPos[i]    = dq[i]>zeroJointVelThr  ?   1.0     :   0.0;
-        dqSignNeg[i]    = dq[i]<-zeroJointVelThr ?   -1.0    :   0.0;
-        dqSign[i]       = dqSignPos[i] + dqSignNeg[i];
-        
-        inputSamples[i][INDEX_K_TAO]  = torques[i];
-        inputSamples[i][INDEX_K_VP]   = dqPos[i];
-        inputSamples[i][INDEX_K_VN]   = dqNeg[i];
-        inputSamples[i][INDEX_K_CP]   = dqSignPos[i];
-        inputSamples[i][INDEX_K_CN]   = dqSignNeg[i];
-       
+            dqPos[i]        = dq[i]>zeroJointVelThr  ?   dq[i]   :   0.0;
+            dqNeg[i]        = dq[i]<-zeroJointVelThr ?   dq[i]   :   0.0;
+            dqSignPos[i]    = dq[i]>zeroJointVelThr  ?   1.0     :   0.0;
+            dqSignNeg[i]    = dq[i]<-zeroJointVelThr ?   -1.0    :   0.0;
+            dqSign[i]       = dqSignPos[i] + dqSignNeg[i];
+            
+            inputSamples[i][INDEX_K_TAO]  = torques[i];
+            inputSamples[i][INDEX_K_VP]   = dqPos[i];
+            inputSamples[i][INDEX_K_VN]   = dqNeg[i];
+            inputSamples[i][INDEX_K_CP]   = dqSignPos[i];
+            inputSamples[i][INDEX_K_CN]   = dqSignNeg[i];
+            
+        }
+               
     }
     
 
