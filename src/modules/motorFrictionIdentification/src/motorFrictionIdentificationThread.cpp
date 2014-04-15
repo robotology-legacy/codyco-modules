@@ -237,29 +237,35 @@ void MotorFrictionIdentificationThread::run()
         {
             ///< if joint is moving, estimate friction
             ///< otherwise, if there is external force, estimate motor gain
-            if(fabs(dq[i])>zeroJointVelThr)
+            if(fabs(dq[i])>zeroJointVelThr && fabs(extTorques[i]) < extTorqueThr[i]/10 )
                 estimators[i].feedSampleForGroup2(inputSamples[i], pwm[i]);
-            else if(fabs(extTorques[i])>extTorqueThr[i] && fabs(torques[i])<TORQUE_SENSOR_SATURATION) {
+            else if(fabs(extTorques[i]) > extTorqueThr[i] && fabs(torques[i]) < TORQUE_SENSOR_SATURATION) {
                 wbi::LocalId lid = jointList.globalToLocalId(i);
                 if (lid.bodyPart == iCub::skinDynLib::TORSO)
                 {
                     if (lid.index == 0 || lid.index == 1) {
                         int joint3GID = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 2));
-                        if (fabs(torques[joint3GID]) > ZERO_TORQUE_THRESHOLD)
+                        if (fabs(torques[joint3GID]) > ZERO_TORQUE_THRESHOLD) {
+                            cout << "Skipping estimation of joint " << i << ". fabs(torques[-]) = " << fabs(torques[joint3GID]) << " ZERO_TORQUE_THRESHOLD = " << ZERO_TORQUE_THRESHOLD << "\n";
                             continue;
+                        }
                     }
                 }
                 else if (lid.bodyPart == iCub::skinDynLib::LEFT_ARM
                     || lid.bodyPart == iCub::skinDynLib::RIGHT_ARM) {
                     if (lid.index == 0) {
                         int joint3GID = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 1));
-                        if (fabs(torques[joint3GID]) > ZERO_TORQUE_THRESHOLD)
+                        if (fabs(torques[joint3GID]) > ZERO_TORQUE_THRESHOLD) {
+                            cout << "Skipping estimation of joint " << i << ". fabs(torques[-]) = " << fabs(torques[joint3GID]) << " ZERO_TORQUE_THRESHOLD = " << ZERO_TORQUE_THRESHOLD<< "\n";
                             continue;
+                        }
                     }
                     else if (lid.index == 1) {
                         int joint3GID = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 2));
-                        if (fabs(torques[joint3GID]) > ZERO_TORQUE_THRESHOLD)
+                        if (fabs(torques[joint3GID]) > ZERO_TORQUE_THRESHOLD) {
+                            cout << "Skipping estimation of joint " << i << ". fabs(torques[-]) = " << fabs(torques[joint3GID]) << " ZERO_TORQUE_THRESHOLD = " << ZERO_TORQUE_THRESHOLD<< "\n";
                             continue;
+                        }
                     }
 
                 }
@@ -364,13 +370,11 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
     for(int i=0; i<_n; i++)
     {
         wbi::LocalId lid = jointList.globalToLocalId(i);
-        //skip if body part or joint is not the right one
+        //do the following code if body part or joint is one of the coupled ones
         if (   (lid.bodyPart == iCub::skinDynLib::TORSO && lid.index >= 0 && lid.index <= 2) 
             || (lid.bodyPart == iCub::skinDynLib::LEFT_ARM && lid.index >= 0 && lid.index <= 2)
             || (lid.bodyPart == iCub::skinDynLib::RIGHT_ARM && lid.index >= 0 && lid.index <= 2))
         {
-            cout << "Considering  coupling\n";
-        
             if (lid.bodyPart == iCub::skinDynLib::TORSO
                 && lid.index >= 0 && lid.index <= 2) 
             {
@@ -388,10 +392,10 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
                 dq[i]      = rightShoulderMotorVelocities(lid.index);
             }
        
-            dqPos[i]        = dq[i]>zeroJointVelThr  ?   dq[i]   :   0.0;
-            dqNeg[i]        = dq[i]<-zeroJointVelThr ?   dq[i]   :   0.0;
-            dqSignPos[i]    = dq[i]>zeroJointVelThr  ?   1.0     :   0.0;
-            dqSignNeg[i]    = dq[i]<-zeroJointVelThr ?   -1.0    :   0.0;
+            dqPos[i]        = dq[i] >  zeroJointVelThr  ?    dq[i]   :   0.0;
+            dqNeg[i]        = dq[i] < -zeroJointVelThr  ?    dq[i]   :   0.0;
+            dqSignPos[i]    = dq[i] >  zeroJointVelThr  ?    1.0     :   0.0;
+            dqSignNeg[i]    = dq[i] < -zeroJointVelThr  ?   -1.0     :   0.0;
             dqSign[i]       = dqSignPos[i] + dqSignNeg[i];
             
             inputSamples[i][INDEX_K_TAO]  = torques[i];
