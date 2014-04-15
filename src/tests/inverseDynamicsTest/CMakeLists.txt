@@ -43,11 +43,11 @@ INCLUDE_DIRECTORIES(
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} wholeBodyInterface wholeBodyInterfaceIcub iDynTree 
-${YARP_LIBRARIES} skinDynLib ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME} wholeBodyInterface wholeBodyInterfaceIcub
+${YARP_LIBRARIES} skinDynLib ${iDynTree_LIBRARIES})
 
 if(WIN32)
-	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})	
+	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})
 else(WIN32)
 	INSTALL_TARGETS(/bin ${PROJECTNAME})
 endif(WIN32)
