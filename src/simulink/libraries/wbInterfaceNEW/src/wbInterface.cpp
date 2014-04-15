@@ -110,8 +110,8 @@ bool robotStatus::robotConfig() {
     else {
         //---------------- CREATION WHOLE BODY INTERFACE ---------------------/
         iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,2,true);
-//         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/home/icub/Software/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
-        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
+        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/home/jorhabib/Software/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
+//         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
 #ifdef DEBUG
         fprintf(stderr,"robotStatus::robotConfig >> new wbInterface created ...\n");
 #endif
@@ -472,7 +472,7 @@ Vector robotStatus::dynamicsGenBiasForces(double *qrad_input, double *dq_input) 
 
     for(unsigned int i=0; i<dq_base.size(); i++)
         dq_base[i] = *(dq_input + i);
-    
+
     if(robotJntAngles(false)) {
 #ifdef DEBUG
         fprintf(stderr,"robotStatus::dynamicsGenBiasForces >> robotJntAngles computed for dynamicsGenBiasForces\n");
@@ -494,21 +494,21 @@ Vector robotStatus::dynamicsGenBiasForces(double *qrad_input, double *dq_input) 
 #endif
                     ans = wbInterface->computeGeneralizedBiasForces(qrad_robot, qBaseFrame, dq_robot, dq_base.data(), grav.data(), hterm.data());
 #else
-		    
+
 #ifdef DEBUG
-		    printf("computeGeneralizedBiasForces, computed with: \n");
-		    printf("qrad_robot: \n");
-		    for(unsigned int i=0; i<ICUB_DOFS;i++)
-		      printf("%f ",qrad_robot[i]);
-		    printf("\n");
-		    printf("xBase: \n%s\n",xBase.toString().c_str());
-		    printf("dq_robot: \n");
-		    for(unsigned int i=0;i<ICUB_DOFS;i++)
-		      printf("%f ",dq_robot[i]);
-		    printf("dq_base: \n%s\n",dq_base.toString().c_str());
-		    printf("grav: \n%s\n",grav.toString().c_str());
+                    printf("computeGeneralizedBiasForces, computed with: \n");
+                    printf("qrad_robot: \n");
+                    for(unsigned int i=0; i<ICUB_DOFS; i++)
+                        printf("%f ",qrad_robot[i]);
+                    printf("\n");
+                    printf("xBase: \n%s\n",xBase.toString().c_str());
+                    printf("dq_robot: \n");
+                    for(unsigned int i=0; i<ICUB_DOFS; i++)
+                        printf("%f ",dq_robot[i]);
+                    printf("dq_base: \n%s\n",dq_base.toString().c_str());
+                    printf("grav: \n%s\n",grav.toString().c_str());
 #endif
-		    ans = wbInterface->computeGeneralizedBiasForces(qrad_robot, xBase, dq_robot, dq_base.data(), grav.data(), hterm.data());
+                    ans = wbInterface->computeGeneralizedBiasForces(qrad_robot, xBase, dq_robot, dq_base.data(), grav.data(), hterm.data());
 #endif
                 }
             }
@@ -756,7 +756,7 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetNumSampleTimes(S, 1);
 
     // Reserve place for C++ object
-    ssSetNumPWork(S, 1);
+    ssSetNumPWork(S, 3);
 
     ssSetNumDWork(S, 1);
     ssSetDWorkWidth(S, 0, 1);
@@ -928,7 +928,18 @@ static void mdlStart(SimStruct *S)
         ssSetErrorStatus(S,"ERROR [mdlStart] in robotInit. \n");
     }
 
+    double *minJntLimits = new double[ICUB_DOFS];
+    double *maxJntLimits = new double[ICUB_DOFS];
+
+    if(!robot->getJointLimits(&minJntLimits[0], &maxJntLimits[0],-1)) {
+        ssSetErrorStatus(S,"ERROR [mdlOutput] Joint limits could not be computed\n");
+    }
+    printf("got limits right");
+
     ssGetPWork(S)[0] = robot;
+    ssGetPWork(S)[1] = &minJntLimits[0];
+    ssGetPWork(S)[2] = &maxJntLimits[0];
+    
 
     //--------------GLOBAL VARIABLES INITIALIZATION --------------
 //     dotq.Zero(ICUB_DOFS);
@@ -1305,20 +1316,20 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 
     // min/max joint limits
     if(btype == 13) {
-        Vector minJntLimits(ICUB_DOFS);
-        minJntLimits.zero();
-        Vector maxJntLimits(ICUB_DOFS);
-        maxJntLimits.zero();
+        double *minJntLimits = 0;// new double[ICUB_DOFS];
+        double *maxJntLimits = 0; //new double[ICUB_DOFS];
         // Gets joint limits for the entire body since we're still using ICUB_DOFS as default
-        if(!robot->getJointLimits(minJntLimits.data(), maxJntLimits.data(),-1)) {
+        if(!ssGetPWork(S)[1] & !ssGetPWork(S)[2]) {
             ssSetErrorStatus(S,"ERROR [mdlOutput] Joint limits could not be computed\n");
         }
         else {
 #ifdef DEBUG
-            if(DEBUGGING) fprintf(stderr,"minJntLimits are: \n%s\n maxJntLimits are: \n%s\n", minJntLimits.toString().c_str(), maxJntLimits.toString().c_str());
+//             fprintf(stderr,"minJntLimits are: \n%s\n maxJntLimits are: \n%s\n", minJntLimits.toString().c_str(), maxJntLimits.toString().c_str());
 #endif
-            real_T *pY11 = (real_T*)ssGetOutputPortSignal(S,10);
-            real_T *pY12 = (real_T*)ssGetOutputPortSignal(S,11);
+            minJntLimits = (double *)ssGetPWork(S)[1];
+            maxJntLimits = (double *)ssGetPWork(S)[2];
+            real_T *pY11 = (real_T *)ssGetOutputPortSignal(S,10);
+            real_T *pY12 = (real_T *)ssGetOutputPortSignal(S,11);
             for(int_T j=0; j<ssGetOutputPortWidth(S,10); j++) {
                 pY11[j] = minJntLimits[j];
             }
@@ -1328,7 +1339,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         }
     }
 
-    // angular momentum
+    // angular momentumminJntLimits
     if(btype == 14) {
 
         int nu;
@@ -1354,10 +1365,10 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         Vector momentum(6);
         momentum.zero();
         if(!robot->centroidalMomentum(qrad_in.data(), dqrad_in.data(), momentum.data()))
-	  fprintf(stderr,"ERROR [mdlOutput] in robot->centroidalMomentum");
-	real_T *pY13 = (real_T*)ssGetOutputPortSignal(S,12);
-	for(int_T j=0; j<ssGetOutputPortWidth(S,12); j++)
-	  pY13[j] = momentum[j];
+            fprintf(stderr,"ERROR [mdlOutput] in robot->centroidalMomentum");
+        real_T *pY13 = (real_T*)ssGetOutputPortSignal(S,12);
+        for(int_T j=0; j<ssGetOutputPortWidth(S,12); j++)
+            pY13[j] = momentum[j];
     }
 
     if(TIMING) tend = Time::now();
@@ -1374,6 +1385,11 @@ static void mdlTerminate(SimStruct *S) {
     // IF YOU FORGET TO DESTROY OBJECTS OR DEALLOCATE MEMORY, MATLAB WILL CRASH.
     // Retrieve and destroy C++ object
     robotStatus *robot = (robotStatus *) ssGetPWork(S)[0];
+    double *minJntLimits = 0;//new double[ICUB_DOFS];
+    double *maxJntLimits = 0;//new double[ICUB_DOFS];
+
+    minJntLimits = (double *)ssGetPWork(S)[1];
+    maxJntLimits = (double *)ssGetPWork(S)[2];
 
 #ifdef DEBUG
     fprintf(stderr,"mdlTerminate: robot pointer: %p\n", robot);
@@ -1384,10 +1400,20 @@ static void mdlTerminate(SimStruct *S) {
         fprintf(stderr,"mdlTerminate >> Inside robot object %p \n",robot);
         if(robot->decreaseCounter()==0) {
             robot->setCtrlMode(CTRL_MODE_POS);
+            printf("ctrl mode set\n");
             delete robot;
-            robot->resetCounter();
-            robot = NULL;
+            printf("robot deleted\n");
+            delete[] minJntLimits;
+            printf("minJntLimits deleted\n");
+            delete[] maxJntLimits;
+            printf("maxJntLimits deleted\n");
+            robotStatus::resetCounter();
+            robot        = NULL;
+            minJntLimits = NULL;
+            maxJntLimits = NULL;
             ssSetPWorkValue(S,0,NULL);
+            ssSetPWorkValue(S,1,NULL);
+            ssSetPWorkValue(S,2,NULL);
         }
     }
 }

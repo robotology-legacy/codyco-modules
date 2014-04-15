@@ -4,6 +4,7 @@
 #define RATE(S) ssGetSFcnParam(S,0)
 #define SAMPLING_TIME 1
 
+#include <cstdlib> //this is needed before simstruc.h to properly compile under OS X - clang 5.1
 /*
  * Need to include simstruc.h for the definition of the SimStruct and
  * its associated macro definitions.
