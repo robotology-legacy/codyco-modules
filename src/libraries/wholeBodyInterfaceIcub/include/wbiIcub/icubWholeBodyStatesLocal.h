@@ -15,7 +15,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
  */
- 
+
 #ifndef WBSTATESLOCAL_ICUB_H
 #define WBSTATESLOCAL_ICUB_H
 
@@ -30,13 +30,13 @@
 #include <iCub/skinDynLib/skinContactList.h>
 #include <wbiIcub/wbiIcubUtil.h>
 #include <map>
- 
- 
+
+
 namespace wbiIcub
-{   
+{
     /**
-     * Enum of iCub subtrees 
-     * 
+     * Enum of iCub subtrees
+     *
      */
     enum iCubSubtree {
         TORSO_SUBTREE,
@@ -48,11 +48,11 @@ namespace wbiIcub
         RIGHT_FOOT_SUBTREE
     };
 
-    
+
     //< \todo TODO make SKIN_EVENTS_TIMEOUT a proper parameter
     #define SKIN_EVENTS_TIMEOUT 0.2     // max time (in sec) a contact is kept without reading anything from the skin events port
-     /** 
-     * Thread that estimates the dynamic state of the iCub robot. 
+     /**
+     * Thread that estimates the dynamic state of the iCub robot.
      */
     class icubWholeBodyDynamicsEstimator: public yarp::os::RateThread
     {
@@ -60,9 +60,9 @@ namespace wbiIcub
         icubWholeBodySensors        *sensors;
         yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * port_skin_contacts;
         iCub::iDynTree::iCubTree * icub_model;
-        
+
         //double                      estWind;        // time window for the estimation
-        
+
         iCub::ctrl::AWLinEstimator  *dqFilt;        // joint velocity filter
         iCub::ctrl::AWQuadEstimator *d2qFilt;       // joint acceleration filter
         iCub::ctrl::AWLinEstimator  *dTauJFilt;     // joint torque derivative filter
@@ -74,9 +74,9 @@ namespace wbiIcub
         std::vector<iCub::ctrl::FirstOrderLowPassFilter *> imuAngularVelocityFilters; ///< low pass filters for IMU angular velocity
         std::vector<iCub::ctrl::FirstOrderLowPassFilter *> imuMagnetometerFilters; ///< low pass filters for IMU magnetometer
         std::vector<iCub::ctrl::FirstOrderLowPassFilter *> forcetorqueFilters; ///< low pass filters for ForceTorque sensors
-        
+
         iCub::ctrl::AWLinEstimator * imuAngularAccelerationFilt;
-        
+
         int dqFiltWL, d2qFiltWL;                    // window lengths of adaptive window filters
         double dqFiltTh, d2qFiltTh;                 // threshold of adaptive window filters
         int dTauMFiltWL, dTauJFiltWL;               // window lengths of adaptive window filters
@@ -88,48 +88,48 @@ namespace wbiIcub
         double imuAngularVelocityCutFrequency;
         double imuMagnetometerCutFrequency;
         double forcetorqueCutFrequency;
-        
+
         double imuAngularAccelerationFiltTh;
         int imuAngularAccelerationFiltWL;
-        
-      
-        
+
+
+
         yarp::sig::Vector           q, qStamps;         // last joint position estimation
         yarp::sig::Vector           tauJ, tauJStamps;
         yarp::sig::Vector           pwm, pwmStamps;
-        
+
         std::vector<yarp::sig::Vector> forcetorques;
         yarp::sig::Vector forcetorquesStamps;
-        
+
         std::vector<yarp::sig::Vector> forcetorques_offset;
-        
+
         std::vector<yarp::sig::Vector> IMUs;
         yarp::sig::Vector IMUStamps;
-        
+
         //Data structures related to skin
         iCub::skinDynLib::skinContactList skinContacts;
         double skin_contact_listStamp;
         double last_reading_skin_contact_list_Stamp;
-        
+
         iCub::skinDynLib::dynContactList dynContacts;
-        
+
         //Data structures related to IMU used for dynamical model
         bool enable_omega_domega_IMU;
-        
+
         yarp::sig::Vector omega_used_IMU;
         yarp::sig::Vector domega_used_IMU;
         yarp::sig::Vector ddp_used_IMU;
-        
+
         /* Resize all vectors using current number of DoFs. */
         void resizeAll(int n);
         void lockAndResizeAll(int n);
-        
-        //< \todo TODO add general interface using type (?) of sensors 
-        
+
+        //< \todo TODO add general interface using type (?) of sensors
+
         /* Resize all FT sensors related vectors using current number of Force Torque sensors */
         void resizeFTs(int n);
         void lockAndResizeFTs(int n);
-        
+
         /* Resize all IMU sensors related vectors using current number of IMU sensors */
         void resizeIMUs(int n);
         void lockAndResizeIMUs(int n);
@@ -150,29 +150,29 @@ namespace wbiIcub
         bool setPwmCutFrequency(double fc);
         /** Enable or disable the use of IMU angular velocity and acceleration in external force estimation */
         bool setEnableOmegaDomegaIMU(bool opt);
-        
+
         /** Read the skin contacts and generated the contact points for external wrenches  estimation */
         void readSkinContacts();
-        
+
         /** For a given subtree, get the default contact point (the one used if there are now contacts coming from the skin */
         iCub::skinDynLib::dynContact getDefaultContact(const iCubSubtree icub_subtree);
 
-        
+
         /**  Estimate internal torques and external forces from measured sensors, using iDynTree library */
         void estimateExternalForcesAndJointTorques();
-        
+
         /** Version of considered iCub robot */
         iCub::iDynTree::iCubTree_version_tag icub_version;
-        
+
     public:
-        
+
         yarp::os::Semaphore         mutex;          // mutex for access to class global variables
         yarp::os::Semaphore         model_mutex;    // mutex for access the dynamic model
         yarp::os::Semaphore         run_mutex;      // mutex for avoiding multiple run being execute together
-        
+
         // the elements of this struct are accessed by the state interface
         // the state interface takes the mutex before accessing this struct
-        struct 
+        struct
         {
             yarp::sig::Vector lastQ;                    // last joint position estimation
             yarp::sig::Vector lastDq;                   // last joint velocity estimation
@@ -184,24 +184,24 @@ namespace wbiIcub
             yarp::sig::Vector lastPwm;                  // last motor PWM
             std::vector<yarp::sig::Vector> lastForceTorques; //last Force/torques sensors estimation
             std::vector<yarp::sig::Vector> lastIMUs;    //last IMU sensors estimation
-        } 
+        }
         estimates;
-        
+
         iCub::skinDynLib::dynContactList estimatedLastDynContacts;
         iCub::skinDynLib::skinContactList estimatedLastSkinDynContacts;
 
-         /** Constructor. 
+         /** Constructor.
          *
          * @param port_skin_contacts pointer to a port reading a skinContactList from the robot skin
          * \todo TODO skin_contacts should be read from the WholeBodySensors interface
-         */        
-        icubWholeBodyDynamicsEstimator(int _period, 
-                                       icubWholeBodySensors *_sensors, 
+         */
+        icubWholeBodyDynamicsEstimator(int _period,
+                                       icubWholeBodySensors *_sensors,
                                        yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
                                        iCub::iDynTree::iCubTree_version_tag icub_version);
-        
+
         bool lockAndSetEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
-        
+
         bool lockAndSetEstimationOffset(const wbi::EstimateType et, const wbi::LocalId & sid, const double *value);
         bool lockAndGetEstimationOffset(const wbi::EstimateType et, const wbi::LocalId & sid, double *value);
 
@@ -209,7 +209,7 @@ namespace wbiIcub
         bool threadInit();
         void run();
         void threadRelease();
-        
+
         /** Take the mutex and copy the content of src into dest. */
         bool lockAndCopyVector(const yarp::sig::Vector &src, double *dest);
         /** Take the mutex and copy the i-th element of src into dest. */
@@ -218,27 +218,24 @@ namespace wbiIcub
         bool lockAndCopyVectorOfVectors(const std::vector<yarp::sig::Vector> &src, double *dest);
         /** Take the mutex and copy the i-th Vector of a vector<Vector> of src into dest */
         bool lockAndCopyElementVectorFromVector(int i, const std::vector<yarp::sig::Vector> &src, double *dest);
-        
-       
-    
 
     };
-    
 
 
-    
+
+
      /**
-     * Class to access the estimates, by doing a local estimation 
+     * Class to access the estimates, by doing a local estimation
      */
     class icubWholeBodyStatesLocal : public wbi::iWholeBodyStates
     {
     protected:
         icubWholeBodySensors                *sensors;       // interface to access the robot sensors
         icubWholeBodyDynamicsEstimator      *estimator;     // estimation thread
-        yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>                *skin_contacts_port; //port to the skin contacts 
+        yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>                *skin_contacts_port; //port to the skin contacts
         wbi::LocalIdList                    emptyList;      ///< empty list of IDs to return in case of error
         //double                      estWind;      // time window for the estimation
-        
+
         virtual bool lockAndReadSensor(const wbi::SensorType st, const wbi::LocalId sid, double *data, double time, bool blocking);
         virtual bool lockAndReadSensors(const wbi::SensorType st, double *data, double time, bool blocking);
         virtual bool lockAndAddSensor(const wbi::SensorType st, const wbi::LocalId &sid);
@@ -246,7 +243,7 @@ namespace wbiIcub
         virtual bool lockAndRemoveSensor(const wbi::SensorType st, const wbi::LocalId &sid);
         virtual wbi::LocalIdList lockAndGetSensorList(const wbi::SensorType st);
         virtual int lockAndGetSensorNumber(const wbi::SensorType st);
-        
+
         bool lockAndReadExternalForces(iCub::skinDynLib::skinContactList & external_forces_list);
 
 
@@ -254,42 +251,42 @@ namespace wbiIcub
         bool getMotorVel(const wbi::LocalId &sid, double *data, double time, bool blocking);
         /** Get the velocities of all the robot motors. */
         bool getMotorVel(double *data, double time, bool blocking);
-       
-        
+
+
     public:
         // *** CONSTRUCTORS ***
         icubWholeBodyStatesLocal(const char* _name, const char* _robotName, iCub::iDynTree::iCubTree_version_tag icub_version);
         inline virtual ~icubWholeBodyStatesLocal(){ close(); }
-        
+
         virtual bool init();
         virtual bool close();
-        
-        /** Add the specified estimate so that it can be read. 
+
+        /** Add the specified estimate so that it can be read.
          * @param st Type of estimate.
          * @param sid Id of the estimate.
          * @return True if the estimate has been added, false otherwise (e.g. the estimate has been already added).
          */
         virtual bool addEstimate(const wbi::EstimateType st, const wbi::LocalId &sid);
-        
-        /** Add the specified estimates so that they can be read. 
+
+        /** Add the specified estimates so that they can be read.
          * @param st Type of estimates.
          * @param sids Ids of the estimates.
          * @return True if the estimate has been added, false otherwise (e.g. the estimate has been already added).
          */
         virtual int addEstimates(const wbi::EstimateType st, const wbi::LocalIdList &sids);
 
-        /** Remove the specified estimate. 
+        /** Remove the specified estimate.
          * @param st Type of the estimate to remove.
          * @param j Id of the estimate to remove.
          * @return True if the estimate has been removed, false otherwise.
          */
         virtual bool removeEstimate(const wbi::EstimateType st, const wbi::LocalId &sid);
-        
+
         /** Get a copy of the estimate list of the specified estimate type.
          * @param st Type of estimate.
          * @return A copy of the estimate list. */
         virtual const wbi::LocalIdList& getEstimateList(const wbi::EstimateType st);
-        
+
         /** Get the number of estimates of the specified type.
          * @return The number of estimates of the specified type. */
         virtual int getEstimateNumber(const wbi::EstimateType st);
@@ -320,23 +317,23 @@ namespace wbiIcub
          * @param value Value of the parameter to set.
          * @return True if the operation succeeded, false otherwise. */
         virtual bool setEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
-        
+
         /////////////////////////////////////////////////////
-        ///< Implementation specific methods 
+        ///< Implementation specific methods
         /////////////////////////////////////////////////////
         bool setEstimationOffset(const wbi::EstimateType et, const wbi::LocalId & sid, const double *value);
 
         bool getEstimationOffset(const wbi::EstimateType et, const wbi::LocalId & sid, double *value);
 
-        
-        /** Get the estimated external force/torques 
-         * 
+
+        /** Get the estimated external force/torques
+         *
          * \note temporary interface, should be substituted by properly defining an external force/torque estimate
          * @param external_forces_list list of estimated external wrenches
          * @return True if the operation succeeded, false otherwise.
          */
         bool getEstimatedExternalForces(iCub::skinDynLib::skinContactList & external_forces_list);
-        
+
     };
 }
 

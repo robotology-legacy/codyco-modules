@@ -116,7 +116,7 @@ int icubWholeBodyStatesLocal::addEstimates(const EstimateType et, const LocalIdL
     case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return lockAndAddSensors(SENSOR_ENCODER, sids);
     case ESTIMATE_MOTOR_PWM:                return lockAndAddSensors(SENSOR_PWM, sids);
     case ESTIMATE_IMU:                      return lockAndAddSensors(SENSOR_IMU, sids);
-    case ESTIMATE_FORCE_TORQUE_SENSOR:             return lockAndAddSensors(SENSOR_FORCE_TORQUE, sids);
+    case ESTIMATE_FORCE_TORQUE_SENSOR:      return lockAndAddSensors(SENSOR_FORCE_TORQUE, sids);
     default: break;
     }
     return false;
