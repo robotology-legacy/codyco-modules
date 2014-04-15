@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -13,7 +13,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/ 
+*/
 
 #include <iostream>
 #include <sstream>
@@ -42,11 +42,11 @@ MotorFrictionExcitationModule::MotorFrictionExcitationModule()
     robotInterface  = 0;
     paramHelper     = 0;
 }
-    
+
 bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
-{		
+{
     //--------------------------PARAMETER HELPER SERVER--------------------------
-    paramHelper = new ParamHelperServer(motorFrictionExcitationParamDescr,      PARAM_ID_SIZE, 
+    paramHelper = new ParamHelperServer(motorFrictionExcitationParamDescr,      PARAM_ID_SIZE,
                                         motorFrictionExcitationCommandDescr,    COMMAND_ID_SIZE);
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_FRICTION_IDENTIFICATION_NAME, &motorFrictionIdentificationName));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MODULE_NAME,                        &moduleName));
@@ -84,19 +84,19 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
     if(!identificationModule->init(moduleName, motorFrictionIdentificationName, initMsg))
         printf("Could not connect to motorFrictionIdentification module with name %s\n", motorFrictionIdentificationName.c_str());
     printBottle(initMsg);
-    
+
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
     robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
     robotInterface->addJoints(ICUB_MAIN_JOINTS);
-    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE, LocalId(RIGHT_LEG,0));  // right get ft sens
-    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE, LocalId(LEFT_LEG,0));   // left leg ft sens
+    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE_SENSOR, LocalId(RIGHT_LEG,0));  // right get ft sens
+    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE_SENSOR, LocalId(LEFT_LEG,0));   // left leg ft sens
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------
     ctrlThread = new MotorFrictionExcitationThread(moduleName, robotName, threadPeriod, paramHelper, robotInterface, rf, identificationModule);
     if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing motorFrictionExcitation control thread. Closing module.\n"); return false; }
-    
+
     fprintf(stderr,"MotorFrictionExcitation control started\n");
 
     if(startInFound)
@@ -105,29 +105,29 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
 	return true;
 }
 
-bool MotorFrictionExcitationModule::respond(const Bottle& cmd, Bottle& reply) 
+bool MotorFrictionExcitationModule::respond(const Bottle& cmd, Bottle& reply)
 {
     paramHelper->lock();
-	if(!paramHelper->processRpcCommand(cmd, reply)) 
+	if(!paramHelper->processRpcCommand(cmd, reply))
 	    reply.addString( (string("Command ")+cmd.toString().c_str()+" not recognized.").c_str());
     paramHelper->unlock();
 
     // if reply is empty put something into it, otherwise the rpc communication gets stuck
     if(reply.size()==0)
         reply.addString( (string("Command ")+cmd.toString().c_str()+" received.").c_str());
-	return true;	
+	return true;
 }
 
 void MotorFrictionExcitationModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
 {
     switch(cd.id)
     {
-    case COMMAND_ID_HELP:   
-        paramHelper->getHelpMessage(reply);     
+    case COMMAND_ID_HELP:
+        paramHelper->getHelpMessage(reply);
         break;
-    case COMMAND_ID_QUIT:   
-        stopModule(); 
-        reply.addString("Quitting module.");    
+    case COMMAND_ID_QUIT:
+        stopModule();
+        reply.addString("Quitting module.");
         break;
     }
 }
@@ -143,12 +143,12 @@ bool MotorFrictionExcitationModule::close()
     if(ctrlThread){     ctrlThread->suspend();      ctrlThread->stop();     delete ctrlThread;      ctrlThread = 0;     }
     if(paramHelper){    paramHelper->close();       delete paramHelper;     paramHelper = 0;    }
     if(robotInterface)
-    { 
-        bool res=robotInterface->close();    
+    {
+        bool res=robotInterface->close();
         if(res)
             printf("Error while closing robot interface\n");
-        delete robotInterface;  
-        robotInterface = 0; 
+        delete robotInterface;
+        robotInterface = 0;
     }
 
 	//closing ports

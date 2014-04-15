@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -28,7 +28,7 @@ using namespace wbiIcub;
 
 //*************************************************************************************************************************
 LocomotionThread::LocomotionThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
-    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), 
+    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi),
     dxc_comE(0), dxc_footE(0), dqcE(0,0), qDegE(0,0)
 {
     status = LOCOMOTION_OFF;
@@ -49,7 +49,7 @@ bool LocomotionThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SUPPORT_PHASE,       &supportPhase));
     numberOfJointsChanged();
     numberOfConstraintsChanged();
-    
+
     // resize all Yarp vectors
     x_com.resize(DEFAULT_XDES_COM.size(), 0.0);         // measured pos
     x_foot.resize(DEFAULT_XDES_FOOT.size(), 0.0);       // measured pos
@@ -106,7 +106,7 @@ bool LocomotionThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_X_COM,               x_com.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_X_FOOT,              x_foot.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,                   qDeg.data()));      // variable size
-    
+
     // Register callbacks for some module parameters
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_XDES_FOOT,           this));
     YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TRAJ_TIME_COM,       this));
@@ -160,7 +160,7 @@ void LocomotionThread::run()
         }
         else
             robot->setControlReference(dqDes.data()); // send velocities to the joint motors
-            
+
         sendMsg("Solver time: "+toString(solver->solverTime)+"; iterations: "+toString(solver->solverIterations)+"; blocked joints: "+toString(solver->getBlockedJointList()), MSG_INFO);
         sendMsg("dqDes: "+toString(1e3*dqDes.transpose(), 1), MSG_DEBUG);
     }
@@ -177,9 +177,9 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     // read joint angles
     bool res =   robot->getEstimates(ESTIMATE_JOINT_POS,    qRad.data(),    -1.0, blockingRead);
     res = res && robot->getEstimates(ESTIMATE_JOINT_VEL,    dqJ.data(),     -1.0, blockingRead);
-    res = res && robot->getEstimates(ESTIMATE_FORCE_TORQUE, ftSens.data(),  -1.0, blockingRead);
+    res = res && robot->getEstimates(ESTIMATE_FORCE_TORQUE_SENSOR, ftSens.data(),  -1.0, blockingRead);
     qDeg = CTRL_RAD2DEG*qRad;
-    
+
     // base orientation conversion
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
     robot->computeH(qRad.data(), Frame(), LINK_ID_LEFT_FOOT, H_base_leftFoot);
@@ -214,7 +214,7 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     svdJcb = Jcb.jacobiSvd(ComputeThinU | ComputeThinV);
     dq.head<6>() = svdJcb.solve(solver->constraints.A.rightCols(_n)*dqJ);
     dq.tail(_n) = dqJ;
-    
+
     //sendMsg("Time to compute Jacobians and FK: "+toString(Time::now()-t0), MSG_INFO);
     //sendMsg("ft sens: "+toString(ftSens.transpose(),1), MSG_DEBUG);
     //sendMsg("q rad: "+string(qRad.toString(2)), MSG_INFO);
@@ -295,7 +295,7 @@ void LocomotionThread::preStopOperations()
 //*************************************************************************************************************************
 void LocomotionThread::numberOfConstraintsChanged()
 {
-    _k = supportPhase==SUPPORT_DOUBLE ? 12 : 6;     // current number of constraints 
+    _k = supportPhase==SUPPORT_DOUBLE ? 12 : 6;     // current number of constraints
     solver->resize(_k, _n+6);
 }
 
@@ -391,15 +391,15 @@ void LocomotionThread::parameterUpdated(const ParamProxyInterface *pd)
     {
     case PARAM_ID_XDES_FOOT:
         normalizeFootOrientation(); break;
-    case PARAM_ID_TRAJ_TIME_COM: 
+    case PARAM_ID_TRAJ_TIME_COM:
         trajGenCom->setT(tt_com); break;
-    case PARAM_ID_TRAJ_TIME_FOOT: 
+    case PARAM_ID_TRAJ_TIME_FOOT:
         trajGenFoot->setT(tt_foot); break;
-    case PARAM_ID_TRAJ_TIME_POSTURE: 
+    case PARAM_ID_TRAJ_TIME_POSTURE:
         trajGenPosture->setT(tt_posture); break;
-    case PARAM_ID_ACTIVE_JOINTS: 
+    case PARAM_ID_ACTIVE_JOINTS:
         numberOfJointsChanged(); break;
-    case PARAM_ID_SUPPORT_PHASE: 
+    case PARAM_ID_SUPPORT_PHASE:
         numberOfConstraintsChanged(); break;
     default:
         sendMsg("A callback is registered but not managed for the parameter "+pd->name, MSG_WARNING);

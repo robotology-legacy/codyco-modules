@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -13,7 +13,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/ 
+*/
 
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RFModule.h>
@@ -51,9 +51,9 @@ LocomotionModule::LocomotionModule()
     paramHelper     = 0;
     period          = 10;
 }
-    
+
 bool LocomotionModule::configure(ResourceFinder &rf)
-{		
+{
     //--------------------------PARAMETER HELPER--------------------------
     paramHelper = new ParamHelperServer(locomotionParamDescr, PARAM_ID_SIZE, locomotionCommandDescr, COMMAND_ID_SIZE);
     paramHelper->linkParam(PARAM_ID_MODULE_NAME, &moduleName);
@@ -76,14 +76,14 @@ bool LocomotionModule::configure(ResourceFinder &rf)
     //--------------------------WHOLE BODY INTERFACE--------------------------
     robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
     robotInterface->addJoints(ICUB_MAIN_JOINTS);
-    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE, LocalId(RIGHT_LEG,1));  // right ankle ft sens
-    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE, LocalId(LEFT_LEG,1));   // left ankle ft sens
+    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE_SENSOR, LocalId(RIGHT_LEG,1));  // right ankle ft sens
+    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE_SENSOR, LocalId(LEFT_LEG,1));   // left ankle ft sens
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------
     ctrlThread = new LocomotionThread(moduleName, robotName, period, paramHelper, robotInterface);
     if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing locomotion control thread. Closing module.\n"); return false; }
-    
+
     fprintf(stderr,"Locomotion control started\n");
 
     //-------------------------- CHECK startNow FLAG ---------------------
@@ -96,29 +96,29 @@ bool LocomotionModule::configure(ResourceFinder &rf)
 	return true;
 }
 
-bool LocomotionModule::respond(const Bottle& cmd, Bottle& reply) 
+bool LocomotionModule::respond(const Bottle& cmd, Bottle& reply)
 {
     paramHelper->lock();
-	if(!paramHelper->processRpcCommand(cmd, reply)) 
+	if(!paramHelper->processRpcCommand(cmd, reply))
 	    reply.addString( (string("Command ")+cmd.toString().c_str()+" not recognized.").c_str());
     paramHelper->unlock();
 
     // if reply is empty put something into it, otherwise the rpc communication gets stuck
     if(reply.size()==0)
         reply.addString( (string("Command ")+cmd.toString().c_str()+" received.").c_str());
-	return true;	
+	return true;
 }
 
 void LocomotionModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
 {
     switch(cd.id)
     {
-    case COMMAND_ID_HELP:   
-        paramHelper->getHelpMessage(reply);     
+    case COMMAND_ID_HELP:
+        paramHelper->getHelpMessage(reply);
         break;
-    case COMMAND_ID_QUIT:   
-        stopModule(); 
-        reply.addString("Quitting module.");    
+    case COMMAND_ID_QUIT:
+        stopModule();
+        reply.addString("Quitting module.");
         break;
     }
 }
@@ -137,12 +137,12 @@ bool LocomotionModule::close()
     if(ctrlThread){     ctrlThread->stop();         delete ctrlThread;      ctrlThread = 0;     }
     if(paramHelper){    paramHelper->close();       delete paramHelper;     paramHelper = 0;    }
     if(robotInterface)
-    { 
-        bool res=robotInterface->close();    
+    {
+        bool res=robotInterface->close();
         if(res)
             printf("Error while closing robot interface\n");
-        delete robotInterface;  
-        robotInterface = 0; 
+        delete robotInterface;
+        robotInterface = 0;
     }
 
 	//closing ports

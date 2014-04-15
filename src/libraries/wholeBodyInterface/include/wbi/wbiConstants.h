@@ -24,7 +24,7 @@
 namespace wbi
 {
     /** List of available joint control modes. */
-    enum ControlMode 
+    enum ControlMode
     {
         CTRL_MODE_UNKNOWN,
         CTRL_MODE_MOTOR_PWM,    // motor PWM
@@ -46,7 +46,7 @@ namespace wbi
         CTRL_PARAM_REF_VEL,     // reference velocity for trajectory generator
         CTRL_PARAM_REF_ACC      // reference acceleration for trajectory generator
     };
-   
+
     /** List of available sensor types. */
     enum SensorType
     {
@@ -59,7 +59,7 @@ namespace wbi
         // CARTESIAN SPACE SENSORS
         SENSOR_IMU,             // 13d inertial measurement unit (4d: axis-angle orientation[rad], 3d: linear acc: ddp[m/s^2], 3d: angular vel: dw[rad/s], magnetometer[] )
         SENSOR_FORCE_TORQUE,    // 6-axis force/torque
-        SENSOR_ACCELEROMETER   // 3d linear acceleration
+        SENSOR_ACCELEROMETER    // 3d linear acceleration
     };
     const int SENSOR_TYPE_SIZE = 7; //number of elements in SensorType enum
 
@@ -80,14 +80,14 @@ namespace wbi
     /** Descriptions of the available sensor types. */
     extern const SensorTypeDescription sensorTypeDescriptions[SENSOR_TYPE_SIZE];
 //    =
-//    { 
-//    SensorTypeDescription(SENSOR_ENCODER,       "encoder",          1, true,  "Joint position"), 
-//    SensorTypeDescription(SENSOR_PWM,           "PWM",              1, true,  "Motor PWM"), 
-//    SensorTypeDescription(SENSOR_CURRENT,       "current",          1, true,  "Motor current"), 
-//    SensorTypeDescription(SENSOR_TORQUE,        "torque",           1, true,  "Joint torque"), 
-//    SensorTypeDescription(SENSOR_IMU,           "IMU",              13, false, "Inertial Measurement Unit"), 
-//    SensorTypeDescription(SENSOR_FORCE_TORQUE,  "force-torque",     6, false, "6-axis force torque"), 
-//    SensorTypeDescription(SENSOR_ACCELEROMETER, "accelerometer",    3, false, "3d linear acceleration"), 
+//    {
+//    SensorTypeDescription(SENSOR_ENCODER,       "encoder",          1, true,  "Joint position"),
+//    SensorTypeDescription(SENSOR_PWM,           "PWM",              1, true,  "Motor PWM"),
+//    SensorTypeDescription(SENSOR_CURRENT,       "current",          1, true,  "Motor current"),
+//    SensorTypeDescription(SENSOR_TORQUE,        "torque",           1, true,  "Joint torque"),
+//    SensorTypeDescription(SENSOR_IMU,           "IMU",              13, false, "Inertial Measurement Unit"),
+//    SensorTypeDescription(SENSOR_FORCE_TORQUE,  "force-torque",     6, false, "6-axis force torque"),
+//    SensorTypeDescription(SENSOR_ACCELEROMETER, "accelerometer",    3, false, "3d linear acceleration"),
 //    };
 
     /** List of available estimates. */
@@ -108,14 +108,15 @@ namespace wbi
         ESTIMATE_MOTOR_PWM,                 // motor PWM (proportional to motor voltage)
         ESTIMATE_MOTOR_CURRENT,             // motor current
         // CARTESIAN SPACE ESTIMATES
-        ESTIMATE_FORCE_TORQUE,      // 6-axis force/torque sensor
-        ESTIMATE_IMU,               // Same of sensor IMU, but filtered 
-        ESTIMATE_ACCELERATION,      // 3d linear acceleration
-        ESTIMATE_BASE_POS,          // position of the base of the robot
-        ESTIMATE_BASE_VEL,          // velocity of the base of the robot
-        ESTIMATE_BASE_ACC          // acceleration of the base of the robot
+        ESTIMATE_FORCE_TORQUE_SENSOR,       // 6-axis force/torque sensor
+        ESTIMATE_IMU,                       // Same of sensor IMU, but filtered
+        ESTIMATE_ACCELERATION,              // 3d linear acceleration
+        ESTIMATE_BASE_POS,                  // position of the base of the robot
+        ESTIMATE_BASE_VEL,                  // velocity of the base of the robot
+        ESTIMATE_BASE_ACC,                  // acceleration of the base of the robot
+        ESTIMATE_EXTERNAL_FORCE_TORQUE      // 6-axis external force/torque acting on a link
     };
-    const int ESTIMATE_TYPE_SIZE = 18; //number of elements in EstimateType enum
+    const int ESTIMATE_TYPE_SIZE = 20; //number of elements in EstimateType enum
 
     /** List of parameters of estimation algorithms. */
     enum EstimationParameter
@@ -125,7 +126,7 @@ namespace wbi
         ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ,
         ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU
     };
-    
+
 } // end namespace
 
 #endif
