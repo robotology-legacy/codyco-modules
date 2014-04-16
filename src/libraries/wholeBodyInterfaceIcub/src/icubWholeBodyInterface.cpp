@@ -108,3 +108,10 @@ int icubWholeBodyInterface::addJoints(const LocalIdList &jList)
     assert(res1==res4);
     return res1;
 }
+
+bool icubWholeBodyInterface::setActuactorConfigurationParameter(const std::string& parameterName, const yarp::os::Value& parameterValue)
+{
+    if (actuatorInt)
+        return actuatorInt->setConfigurationParameter(parameterName, parameterValue);
+    return false;
+}

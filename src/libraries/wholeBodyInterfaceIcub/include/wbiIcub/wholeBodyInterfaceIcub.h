@@ -101,6 +101,7 @@ namespace wbiIcub
         { return actuatorInt->setControlReference(ref, jnt); }
         virtual bool setControlParam(wbi::ControlParam parId, const void *val, int jnt=-1)
         { return actuatorInt->setControlParam(parId, val, jnt); }
+        virtual bool setActuactorConfigurationParameter(const std::string& parameterName, const yarp::os::Value& parameterValue);
 
         // STATES
         virtual bool addEstimate(const wbi::EstimateType st, const wbi::LocalId &sid){      return stateInt->addEstimate(st, sid); }
