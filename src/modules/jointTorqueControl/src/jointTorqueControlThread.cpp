@@ -299,7 +299,7 @@ void jointTorqueControlThread::run()
                     int rightShoulderPitchGID = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 0));
                     int rightShoulderRollGID  = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 1));
                     int rightShoulderYawGID   = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 2));
-                    cout << "In RIGHT SHOULDER handeler \n";
+//                     cout << "In RIGHT SHOULDER handeler \n";
                     if (i == rightShoulderPitchGID)
                     {
 //                         cout << "In Right shoulder pitch handeler \n";
@@ -329,7 +329,7 @@ void jointTorqueControlThread::run()
                 Voltage = motorVoltage(i);
                 if (lid.bodyPart == iCub::skinDynLib::TORSO)
                 {
-                    cout << "IN torso handler"; 
+//                     cout << "In torso handler \n"; 
                     if (i == torsoYawGID)
                     {
                         Voltage = motorVoltage(i) - motorVoltage(i+1);
@@ -354,8 +354,8 @@ void jointTorqueControlThread::run()
 //                 cout << "Motor" << i << "\n";
 //                 cout << "tauMotor" << i << " = " << tauMotor << "\n";
 //                 cout << "dqMotor = " << dqMotor << "\n";  
-                cout << "motorVoltageRead" << i << " = " <<  pwmMeas(i);
-                cout << " motorVoltageSet" << i << "  = " << (int) motorVoltage(i) << "\n \n";
+//                 cout << "motorVoltageRead" << i << " = " <<  pwmMeas(i);
+//                 cout << " motorVoltageSet" << i << "  = " << (int) motorVoltage(i) << "\n \n";
             }
         }
         oldTime = currentTime;
@@ -493,18 +493,28 @@ bool jointTorqueControlThread::activeJointsChanged()
 void jointTorqueControlThread::prepareMonitorData()
 {
     int j = monitoredJointId;
+    cout << j;
+    monitor.tauMeas         = tauM(j);
+    monitor.tauDes          = tauD(j);
+    monitor.tauMeas1        = tauM(j+1);
+    monitor.tauDes1         = tauD(j+1);
+    monitor.tauMeas2        = tauM(j+2);
+    monitor.tauDes2         = tauD(j+2);
+    monitor.tadDesPlusPI    = tau(j);
+    double NormSquareTorqueError = 0;
+    for(int i=0; i<N_DOF; i++)
+    {
+        if(activeJoints(i) == 1 )    
+        {
+            NormSquareTorqueError += etau(i)*etau(i);
+        }
+    }
+    monitor.tauErr          = sqrt(NormSquareTorqueError);
     monitor.q               = q(j);
     monitor.qDes            = qDes(j);
     monitor.dq              = dq(j);
     monitor.dqSign          = dqSign(j);
-    monitor.tauMeas         = tauM(j);
-    monitor.tauDes          = tauD(j);
-    monitor.tauMeas1         = tauM(j+1);
-    monitor.tauDes1          = tauD(j+1);
-    monitor.tauMeas2         = tauM(j+2);
-    monitor.tauDes2          = tauD(j+2);
-    monitor.tadDesPlusPI    = tau(j);
-    monitor.tauErr          = etau(j);
+    
     monitor.pwmDes          = motorVoltage(j);
     monitor.pwmMeas         = pwmMeas(j);
     monitor.pwmTorqueFF     = kt(j)*tauD(j);

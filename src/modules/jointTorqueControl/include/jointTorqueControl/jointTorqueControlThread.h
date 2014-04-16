@@ -117,22 +117,22 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     {
         double tauMeas;         //      0
         double tauDes;          //      1
-        double tadDesPlusPI;    //      2
-        double tauErr;          //      3
-        double q;               //      4
-        double qDes;            //      5
-        double dq;              //      6
-        double dqSign;          //      7
-        double pwmDes;          //      8
-        double pwmMeas;         //      9
-        double pwmFF;           //      10
-        double pwmFB;           //      11
-        double pwmTorqueFF;     //      12
-        double pwmFrictionFF;   //      13
-        double tauMeas1;        //      14
-        double tauDes1;         //      15
-        double tauMeas2;        //      16
-        double tauDes2;         //      17
+        double tauMeas1;        //      2
+        double tauDes1;         //      3
+        double tauMeas2;        //      4
+        double tauDes2;         //      5
+        double tadDesPlusPI;    //      6
+        double tauErr;          //      7
+        double q;               //      8
+        double qDes;            //      9
+        double dq;              //      10
+        double dqSign;          //      11
+        double pwmDes;          //      12
+        double pwmMeas;         //      13
+        double pwmFF;           //      14
+        double pwmFB;           //      15
+        double pwmTorqueFF;     //      16
+        double pwmFrictionFF;   //      17
     } monitor;
 	
     // Input streaming parameters
