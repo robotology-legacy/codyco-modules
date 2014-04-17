@@ -462,6 +462,7 @@ bool icubWholeBodyActuators::setControlReference(double *ref, int joint)
                     if (_torqueModuleConnection) {
                         //in this case skip to second part
                         i += jointsInPart - j; //to be checked
+                        partControlMode = CTRL_MODE_UNKNOWN;
                         break;
                     }
 #endif

@@ -25,8 +25,8 @@
 using namespace jointTorqueControl;
 using namespace wbiIcub;
 
-#define IMPEDANCE_CONTROL;
-// #define GAZEBO_SIM;
+// #define IMPEDANCE_CONTROL
+#define GAZEBO_SIM
 
 jointTorqueControlThread::jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
 : RateThread(period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), sendCommands(SEND_COMMANDS_NONACTIVE),
@@ -493,7 +493,7 @@ bool jointTorqueControlThread::activeJointsChanged()
 void jointTorqueControlThread::prepareMonitorData()
 {
     int j = monitoredJointId;
-    cout << j;
+//     cout << j;
     monitor.tauMeas         = tauM(j);
     monitor.tauDes          = tauD(j);
     monitor.tauMeas1        = tauM(j+1);
