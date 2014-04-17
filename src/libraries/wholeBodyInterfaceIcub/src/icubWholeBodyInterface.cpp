@@ -64,6 +64,7 @@ bool icubWholeBodyInterface::init()
     if(!ok) printf("Error while initializing actuator interface.\n");
     if(ok) ok = stateInt->init();
     if(!ok) printf("Error while initializing state interface.\n");
+    printf("Model.\n");
     if(ok) ok = modelInt->init();
     if(!ok) printf("Error while initializing model interface.\n");
     return ok;
@@ -106,4 +107,11 @@ int icubWholeBodyInterface::addJoints(const LocalIdList &jList)
     int res4 = modelInt->addJoints(jList);
     assert(res1==res4);
     return res1;
+}
+
+bool icubWholeBodyInterface::setActuactorConfigurationParameter(const std::string& parameterName, const yarp::os::Value& parameterValue)
+{
+    if (actuatorInt)
+        return actuatorInt->setConfigurationParameter(parameterName, parameterValue);
+    return false;
 }

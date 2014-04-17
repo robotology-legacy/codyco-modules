@@ -123,6 +123,11 @@ bool robotStatus::robotConfig() {
         // Add main iCub joints
         wbInterface->addJoints(ICUB_MAIN_JOINTS);
         // Initializing whole body interface
+      
+        yarp::os::Value trueValue;
+        trueValue.fromString("true");
+        ((icubWholeBodyInterface*)wbInterface)->setActuactorConfigurationParameter(icubWholeBodyActuators::icubWholeBodyActuatorsUseExternalTorqueModule, trueValue);
+        ((icubWholeBodyInterface*)wbInterface)->setActuactorConfigurationParameter(icubWholeBodyActuators::icubWholeBodyActuatorsExternalTorqueModuleName, Value("jtc"));
         if(!wbInterface->init()) {
             fprintf(stderr,"ERROR [robotStatus::robotConfig] Initializing Whole Body Interface!\n");
             return false;
