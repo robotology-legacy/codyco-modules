@@ -24,46 +24,27 @@
  * \section intro_sec Background
  *
  * The robot's motors are controlled by using 
- * the PWM technique, i.e. the tension applied to each motor is a square wave of constant frequency and amplitude, 
- * and the duty cycle of this wave is used as control input. 
-
-    V(t) ^           Tdc
-             |         /-----/ 
-          Vb | _  _  _  _____             ____ _
-             |         |     |           |
-             |         |     |           |
-             |         |     |           |
-             |_________|_____|___________|_______ 
-                       /-----------------/       t
-                                  T 
-
-where
-* \f$T\f$: period of the square wave;
-* \f$V\f$: tension applied to the motor;
-* \f$V_b\f$: (positive) amplitude of the square wave;
-* \f$T_{dc}\f$: duty cycle time.
-
-The relationship between the link's torque \f$ \tau \f$ and the tension \f$ V \f$ applied to the motor is assumed to be:
+ * PWM signals applied to the motors. Assuming that each motors affects the position of only one link 
+ * via rigid transmission mechanisms, the relationship between the link's torque \f$ \tau \f$ and the motor's duty cycle \f$ PWM \f$ is assumed to be:
 \f[
-	V  = k_t \tau + k_v \dot{q} + k_c \mbox{sign}(\dot{q}),
+	PWM  = k_t \tau + k_v \dot{q} + k_c \mbox{sign}(\dot{q}),
 \f]
 with \f$k_t\f$, \f$k_v\f$, \f$k_c\f$ three constants, and \f$\dot{q}\f$ the link's velocity. 
-Since the tension \f$V(t)\f$ is a high-frequency square 
-wave, we can assume that the above relationship holds for \f$V = V_m\f$, where \f$V_m\f$ stands for the "mean tension value" 
-over the time period \f$T\f$. By direct calculations, one can verify that 
+Since discontinuities may be challenging in practice, it is best to smooth the sign function. 
+For the sake of simplicity during the implementation process, we choose a pseudo sign function defined as follows: 
 \f[
-	V_m = (T_{dc}/T) V_b. 
+        PWM  = k_t \tau + k_v \dot{q} + k_c \tanh(k_s \dot{q}).
 \f]
-Also, discontinuities are always challenging in practice. So, it is best to smooth the sign function. 
-Among an infinite possible choices, we choose the hyperbolic function instead of \f$\mbox{sign(.)}\f$. Then one has:
+
+Then one has:
 \f[
-	    V_m  = k_t \tau + k_v \dot{q} + k_c \tanh(k_s \dot{q}).
+	    PWM  = k_t \tau + k_v \dot{q} + k_c \tanh(k_s \dot{q}).
 \f]
 This model can be improved by considering possible parameters' asymmetries with respect to the joint velocity \f$\dot{q}\f$.
 In particular, the parameters \f$k_v\f$ and \f$k_c\f$ may depend on the sign of \f$\dot{q}\f$, and have different 
 values depending on this sign. Then, an improved model is:
 \f[
-	V_m  = k_t \tau + [k_{vp} s(\dot{q}) + k_{vn} s(-\dot{q})] \dot{q} + [k_{cp} s(\dot{q}) + k_{cn} s(-\dot{q})] \tanh(k_s \dot{q}),
+	PWM  = k_t \tau + [k_{vp} s(\dot{q}) + k_{vn} s(-\dot{q})] \dot{q} + [k_{cp} s(\dot{q}) + k_{cn} s(-\dot{q})] \tanh(k_s \dot{q}),
 \f]
 where the function \f$s(x)\f$ is the step function, i.e.
 \f[
