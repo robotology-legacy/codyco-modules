@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.587"
+    ComputedModelVersion    "1.670"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -27,15 +27,15 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri Apr  4 13:46:18 2014"
-  RTWModifiedTimeStamp	  318516370
-  ModelVersionFormat	  "1.%<AutoIncrement:587>"
+  LastModifiedDate	  "Thu Apr 17 10:23:25 2014"
+  RTWModifiedTimeStamp	  319628886
+  ModelVersionFormat	  "1.%<AutoIncrement:670>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
   LibraryLinkDisplay	  "none"
   WideLines		  off
-  ShowLineDimensions	  on
+  ShowLineDimensions	  off
   ShowPortDataTypes	  off
   ShowLoopsOnError	  on
   IgnoreBidirectionalLines off
@@ -43,7 +43,7 @@ Model {
   ShowTestPointIcons	  on
   ShowSignalResolutionIcons on
   ShowViewerIcons	  on
-  SortedOrder		  on
+  SortedOrder		  off
   ExecutionContextIcon	  off
   ShowLinearizationAnnotations on
   BlockNameDataTip	  off
@@ -841,6 +841,22 @@ Model {
       GeneratePreprocessorConditionals off
     }
     Block {
+      BlockType		      Sum
+      IconShape		      "rectangular"
+      Inputs		      "++"
+      CollapseMode	      "All dimensions"
+      CollapseDim	      "1"
+      InputSameDT	      on
+      AccumDataTypeStr	      "Inherit: Inherit via internal rule"
+      OutMin		      "[]"
+      OutMax		      "[]"
+      OutDataTypeStr	      "Inherit: Same as first input"
+      LockScale		      off
+      RndMeth		      "Floor"
+      SaturateOnIntegerOverflow	on
+      SampleTime	      "-1"
+    }
+    Block {
       BlockType		      Switch
       Criteria		      "u2 >= Threshold"
       Threshold		      "0"
@@ -861,7 +877,7 @@ Model {
   }
   System {
     Name		    "controllerSharedMem"
-    Location		    [2, 250, 319, 523]
+    Location		    [3, 428, 320, 701]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -875,7 +891,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "411"
+    SIDHighWatermark	    "426"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -907,7 +923,7 @@ Model {
       MaskValueString	      "'icubGazeboSim'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[258, 245, 1538, 995]
+	Location		[100, 245, 1380, 995]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -919,14 +935,32 @@ Model {
 	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
 	TiledPageScale		1
 	ShowPageBoundaries	off
-	ZoomFactor		"125"
+	ZoomFactor		"100"
 	Block {
 	  BlockType		  Constant
 	  Name			  "\n\n  "
-	  SID			  "11"
-	  Position		  [980, 31, 1005, 49]
+	  SID			  "414"
+	  Position		  [965, 788, 1025, 812]
 	  ZOrder		  10
-	  Value			  "k"
+	  Value			  "k_com"
+	}
+	Block {
+	  BlockType		  Constant
+	  Name			  "\n\n  1"
+	  SID			  "417"
+	  Position		  [960, 823, 1025, 847]
+	  ZOrder		  10
+	  ShowName		  off
+	  Value			  "k_pst"
+	}
+	Block {
+	  BlockType		  Constant
+	  Name			  "\n\n  2"
+	  SID			  "420"
+	  Position		  [960, 858, 1025, 882]
+	  ZOrder		  10
+	  ShowName		  off
+	  Value			  "k_pos"
 	}
 	Block {
 	  BlockType		  Concatenate
@@ -946,6 +980,17 @@ Model {
 	  ZOrder		  35
 	  ShowName		  off
 	  Mode			  "Multidimensional array"
+	}
+	Block {
+	  BlockType		  Sum
+	  Name			  "Add"
+	  SID			  "426"
+	  Ports			  [2, 1]
+	  Position		  [150, 242, 180, 273]
+	  Inputs		  "+-"
+	  InputSameDT		  off
+	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
+	  SaturateOnIntegerOverflow off
 	}
 	Block {
 	  BlockType		  Reference
@@ -1021,7 +1066,7 @@ Model {
 	  BlockType		  Clock
 	  Name			  "Clock"
 	  SID			  "71"
-	  Position		  [85, 170, 105, 190]
+	  Position		  [110, 175, 130, 195]
 	  ZOrder		  49
 	  ShowName		  off
 	  Decimation		  "10"
@@ -1030,7 +1075,7 @@ Model {
 	  BlockType		  Clock
 	  Name			  "Clock1"
 	  SID			  "378"
-	  Position		  [85, 415, 105, 435]
+	  Position		  [100, 420, 120, 440]
 	  ZOrder		  49
 	  ShowName		  off
 	  Decimation		  "10"
@@ -1107,12 +1152,12 @@ Model {
 	Block {
 	  BlockType		  DataStoreWrite
 	  Name			  "Data Store\nWrite11"
-	  SID			  "397"
+	  SID			  "415"
 	  Ports			  [1]
-	  Position		  [1110, 25, 1140, 55]
+	  Position		  [1110, 785, 1140, 815]
 	  ShowName		  off
 	  Priority		  "-1"
-	  DataStoreName		  "k"
+	  DataStoreName		  "k_com"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
@@ -1143,6 +1188,26 @@ Model {
 	  ShowName		  off
 	  Priority		  "-1"
 	  DataStoreName		  "dqj"
+	}
+	Block {
+	  BlockType		  DataStoreWrite
+	  Name			  "Data Store\nWrite15"
+	  SID			  "418"
+	  Ports			  [1]
+	  Position		  [1110, 820, 1140, 850]
+	  ShowName		  off
+	  Priority		  "-1"
+	  DataStoreName		  "k_pst"
+	}
+	Block {
+	  BlockType		  DataStoreWrite
+	  Name			  "Data Store\nWrite16"
+	  SID			  "421"
+	  Ports			  [1]
+	  Position		  [1110, 855, 1140, 885]
+	  ShowName		  off
+	  Priority		  "-1"
+	  DataStoreName		  "k_pos"
 	}
 	Block {
 	  BlockType		  DataStoreWrite
@@ -1265,11 +1330,11 @@ Model {
 	  Name			  "Errors"
 	  SID			  "260"
 	  Ports			  [2]
-	  Position		  [475, 157, 505, 253]
+	  Position		  [465, 159, 495, 246]
 	  ZOrder		  113
 	  NamePlacement		  "alternate"
 	  Floating		  off
-	  Location		  [-946, 100, -107, 828]
+	  Location		  [6, 71, 845, 799]
 	  Open			  on
 	  NumInputPorts		  "2"
 	  List {
@@ -1279,7 +1344,7 @@ Model {
 	  }
 	  TimeRange		  "70"
 	  YMin			  "0~-0.025"
-	  YMax			  "0.0325~0.0325"
+	  YMax			  "0.05~0.05"
 	  SaveName		  "ScopeData6"
 	  DataFormat		  "StructureWithTime"
 	  LimitDataPoints	  off
@@ -1290,11 +1355,11 @@ Model {
 	  Name			  "Errors1"
 	  SID			  "395"
 	  Ports			  [5]
-	  Position		  [650, 446, 700, 514]
+	  Position		  [650, 551, 700, 619]
 	  ZOrder		  113
 	  NamePlacement		  "alternate"
 	  Floating		  off
-	  Location		  [-1615, 286, -776, 1014]
+	  Location		  [-1053, 86, -214, 814]
 	  Open			  on
 	  NumInputPorts		  "5"
 	  List {
@@ -1306,8 +1371,61 @@ Model {
 	    axes5		    "%<SignalLabel>"
 	  }
 	  TimeRange		  "70"
-	  YMin			  "-0.2~-0.1~-0.075~-0.25~-0.2"
-	  YMax			  "0.25~0.075~0.1~0.25~0.25"
+	  YMin			  "-0.075~-0.075~-0.07~-0.06~-0.06"
+	  YMax			  "0.075~0.075~0.06~0.07~0.08"
+	  DataFormat		  "StructureWithTime"
+	  LimitDataPoints	  off
+	  SampleTime		  "0"
+	}
+	Block {
+	  BlockType		  Scope
+	  Name			  "Errors2"
+	  SID			  "413"
+	  Ports			  [5]
+	  Position		  [650, 436, 700, 504]
+	  ZOrder		  113
+	  NamePlacement		  "alternate"
+	  Floating		  off
+	  Location		  [-1355, 251, -516, 979]
+	  Open			  off
+	  NumInputPorts		  "5"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	    axes2		    "%<SignalLabel>"
+	    axes3		    "%<SignalLabel>"
+	    axes4		    "%<SignalLabel>"
+	    axes5		    "%<SignalLabel>"
+	  }
+	  TimeRange		  "70"
+	  YMin			  "-125~-300~-250~-350~-350"
+	  YMax			  "125~100~150~100~100"
+	  SaveName		  "ScopeData1"
+	  DataFormat		  "StructureWithTime"
+	  LimitDataPoints	  off
+	  SampleTime		  "0"
+	}
+	Block {
+	  BlockType		  Scope
+	  Name			  "Errors3"
+	  SID			  "425"
+	  Ports			  [2]
+	  Position		  [205, 239, 235, 326]
+	  ZOrder		  113
+	  NamePlacement		  "alternate"
+	  Floating		  off
+	  Location		  [6, 71, 845, 799]
+	  Open			  on
+	  NumInputPorts		  "2"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	    axes2		    "%<SignalLabel>"
+	  }
+	  TimeRange		  "5"
+	  YMin			  "-0.1~-0.8"
+	  YMax			  "0.07~0.9"
+	  SaveName		  "ScopeData2"
 	  DataFormat		  "StructureWithTime"
 	  LimitDataPoints	  off
 	  SampleTime		  "0"
@@ -1460,7 +1578,27 @@ Model {
 	  Name			  "WBI to yarp"
 	  SID			  "396"
 	  Ports			  [1, 5]
-	  Position		  [485, 437, 595, 523]
+	  Position		  [485, 542, 595, 628]
+	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
+	  LibraryVersion	  "1.33"
+	  SourceBlock		  "WBCLibrary/Utilities/WBI to yarp"
+	  SourceType		  "WBI to YARP"
+	  ShowPortLabels	  "FromPortIcon"
+	  SystemSampleTime	  "-1"
+	  FunctionWithSeparateData off
+	  RTWMemSecFuncInitTerm	  "Inherit from model"
+	  RTWMemSecFuncExecute	  "Inherit from model"
+	  RTWMemSecDataConstants  "Inherit from model"
+	  RTWMemSecDataInternal	  "Inherit from model"
+	  RTWMemSecDataParameters "Inherit from model"
+	  GeneratePreprocessorConditionals off
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "WBI to yarp1"
+	  SID			  "412"
+	  Ports			  [1, 5]
+	  Position		  [485, 427, 595, 513]
 	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/Utilities/WBI to yarp"
@@ -1505,7 +1643,7 @@ Model {
 	  Name			  "controllerMatlab"
 	  SID			  "3"
 	  Ports			  [3, 1]
-	  Position		  [530, 52, 785, 388]
+	  Position		  [535, 82, 790, 388]
 	  ZOrder		  2
 	  LibraryVersion	  "1.32"
 	  ErrorFcn		  "Stateflow.Translate.translate"
@@ -2080,7 +2218,7 @@ Model {
 	  Name			  "feedback on trajectory generator1"
 	  SID			  "383"
 	  Ports			  [4, 3]
-	  Position		  [340, 354, 445, 506]
+	  Position		  [320, 336, 425, 504]
 	  ZOrder		  48
 	  ShowName		  off
 	  LibraryVersion	  "1.32"
@@ -2634,7 +2772,7 @@ Model {
 	  Name			  "holder2"
 	  SID			  "384"
 	  Ports			  [1, 1]
-	  Position		  [85, 365, 130, 395]
+	  Position		  [85, 355, 130, 385]
 	  ZOrder		  72
 	  ShowName		  off
 	  MinAlgLoopOccurrences	  off
@@ -2885,15 +3023,15 @@ Model {
 	Block {
 	  BlockType		  DataStoreMemory
 	  Name			  "q12"
-	  SID			  "353"
-	  Position		  [1155, 25, 1187, 55]
+	  SID			  "416"
+	  Position		  [1155, 785, 1187, 815]
 	  ShowName		  off
 	  Priority		  "-1"
-	  DataStoreName		  "k"
+	  DataStoreName		  "k_com"
 	  ReadBeforeWriteMsg	  "warning"
 	  WriteAfterWriteMsg	  "warning"
 	  WriteAfterReadMsg	  "warning"
-	  InitialValue		  "k"
+	  InitialValue		  "k_com"
 	  VectorParams1D	  off
 	  OutDataTypeStr	  "double"
 	  SignalType		  "real"
@@ -2942,6 +3080,38 @@ Model {
 	  WriteAfterWriteMsg	  "warning"
 	  WriteAfterReadMsg	  "warning"
 	  InitialValue		  "zeros(nj,1)"
+	  VectorParams1D	  off
+	  OutDataTypeStr	  "double"
+	  SignalType		  "real"
+	}
+	Block {
+	  BlockType		  DataStoreMemory
+	  Name			  "q16"
+	  SID			  "419"
+	  Position		  [1155, 820, 1187, 850]
+	  ShowName		  off
+	  Priority		  "-1"
+	  DataStoreName		  "k_pst"
+	  ReadBeforeWriteMsg	  "warning"
+	  WriteAfterWriteMsg	  "warning"
+	  WriteAfterReadMsg	  "warning"
+	  InitialValue		  "k_pst"
+	  VectorParams1D	  off
+	  OutDataTypeStr	  "double"
+	  SignalType		  "real"
+	}
+	Block {
+	  BlockType		  DataStoreMemory
+	  Name			  "q17"
+	  SID			  "422"
+	  Position		  [1155, 855, 1187, 885]
+	  ShowName		  off
+	  Priority		  "-1"
+	  DataStoreName		  "k_pos"
+	  ReadBeforeWriteMsg	  "warning"
+	  WriteAfterWriteMsg	  "warning"
+	  WriteAfterReadMsg	  "warning"
+	  InitialValue		  "k_pos"
 	  VectorParams1D	  off
 	  OutDataTypeStr	  "double"
 	  SignalType		  "real"
@@ -3166,7 +3336,7 @@ Model {
 	  Name			  "trajectoryGeneratorCoM"
 	  SID			  "70"
 	  Ports			  [2, 3]
-	  Position		  [155, 112, 255, 208]
+	  Position		  [155, 107, 255, 213]
 	  ZOrder		  48
 	  ShowName		  off
 	  LibraryVersion	  "1.32"
@@ -3348,7 +3518,7 @@ Model {
 	  Name			  "trajectoryGeneratorCoM1"
 	  SID			  "392"
 	  Ports			  [2, 3]
-	  Position		  [155, 357, 255, 443]
+	  Position		  [155, 342, 255, 458]
 	  ZOrder		  48
 	  ShowName		  off
 	  LibraryVersion	  "1.32"
@@ -3661,12 +3831,6 @@ Model {
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "\n\n  "
-	  SrcPort		  1
-	  DstBlock		  "Data Store\nWrite11"
-	  DstPort		  1
-	}
-	Line {
 	  SrcBlock		  "Center of Mass Jacobian"
 	  SrcPort		  1
 	  DstBlock		  "Data Store\nWrite9"
@@ -3687,7 +3851,6 @@ Model {
 	Line {
 	  SrcBlock		  "Clock"
 	  SrcPort		  1
-	  Points		  [30, 0]
 	  DstBlock		  "trajectoryGeneratorCoM"
 	  DstPort		  2
 	}
@@ -3730,7 +3893,7 @@ Model {
 	Line {
 	  SrcBlock		  "controllerMatlab"
 	  SrcPort		  1
-	  Points		  [35, 0]
+	  Points		  [30, 0]
 	  DstBlock		  "Set Torques"
 	  DstPort		  1
 	}
@@ -3743,7 +3906,6 @@ Model {
 	Line {
 	  SrcBlock		  "trajectoryGeneratorCoM"
 	  SrcPort		  1
-	  Points		  [0, -5]
 	  DstBlock		  "feedback on trajectory generator"
 	  DstPort		  1
 	}
@@ -3756,14 +3918,12 @@ Model {
 	Line {
 	  SrcBlock		  "trajectoryGeneratorCoM"
 	  SrcPort		  3
-	  Points		  [60, 0]
 	  DstBlock		  "feedback on trajectory generator"
 	  DstPort		  3
 	}
 	Line {
 	  SrcBlock		  "feedback on trajectory generator"
 	  SrcPort		  1
-	  Points		  [70, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  1
 	}
@@ -3775,12 +3935,6 @@ Model {
 	  DstPort		  4
 	}
 	Line {
-	  SrcBlock		  "feedback on trajectory generator"
-	  SrcPort		  2
-	  DstBlock		  "Errors"
-	  DstPort		  1
-	}
-	Line {
 	  SrcBlock		  "Clock1"
 	  SrcPort		  1
 	  DstBlock		  "trajectoryGeneratorCoM1"
@@ -3789,14 +3943,37 @@ Model {
 	Line {
 	  SrcBlock		  "holder2"
 	  SrcPort		  1
-	  DstBlock		  "trajectoryGeneratorCoM1"
-	  DstPort		  1
+	  Points		  [5, 0]
+	  Branch {
+	    DstBlock		    "trajectoryGeneratorCoM1"
+	    DstPort		    1
+	  }
+	  Branch {
+	    Points		    [0, -65]
+	    Branch {
+	      DstBlock		      "Errors3"
+	      DstPort		      2
+	    }
+	    Branch {
+	      Points		      [-5, 0]
+	      DstBlock		      "Add"
+	      DstPort		      2
+	    }
+	  }
 	}
 	Line {
 	  SrcBlock		  "Data Store\nRead4"
 	  SrcPort		  1
-	  DstBlock		  "holder2"
-	  DstPort		  1
+	  Points		  [0, 0]
+	  Branch {
+	    DstBlock		    "holder2"
+	    DstPort		    1
+	  }
+	  Branch {
+	    Points		    [0, -120]
+	    DstBlock		    "Add"
+	    DstPort		    1
+	  }
 	}
 	Line {
 	  SrcBlock		  "trajectoryGeneratorCoM1"
@@ -3807,21 +3984,19 @@ Model {
 	Line {
 	  SrcBlock		  "trajectoryGeneratorCoM1"
 	  SrcPort		  2
-	  Points		  [65, 0]
 	  DstBlock		  "feedback on trajectory generator1"
 	  DstPort		  2
 	}
 	Line {
 	  SrcBlock		  "trajectoryGeneratorCoM1"
 	  SrcPort		  3
-	  Points		  [65, 0]
 	  DstBlock		  "feedback on trajectory generator1"
 	  DstPort		  3
 	}
 	Line {
 	  SrcBlock		  "Discrete-Time Integrator1"
 	  SrcPort		  1
-	  Points		  [-35, 0; 0, -55]
+	  Points		  [-45, 0]
 	  DstBlock		  "feedback on trajectory generator1"
 	  DstPort		  4
 	}
@@ -3838,27 +4013,6 @@ Model {
 	    DstBlock		    "Data Store\nWrite"
 	    DstPort		    1
 	  }
-	}
-	Line {
-	  SrcBlock		  "feedback on trajectory generator"
-	  SrcPort		  3
-	  Points		  [0, 5; 10, 0]
-	  Branch {
-	    DstBlock		    "Errors"
-	    DstPort		    2
-	  }
-	  Branch {
-	    Points		    [0, 70]
-	    DstBlock		    "Discrete-Time Integrator"
-	    DstPort		    1
-	  }
-	}
-	Line {
-	  SrcBlock		  "feedback on trajectory generator1"
-	  SrcPort		  1
-	  Points		  [60, 0; 0, -160]
-	  DstBlock		  "controllerMatlab"
-	  DstPort		  2
 	}
 	Line {
 	  SrcBlock		  "WBI to yarp"
@@ -3891,25 +4045,114 @@ Model {
 	  DstPort		  5
 	}
 	Line {
-	  SrcBlock		  "feedback on trajectory generator1"
+	  SrcBlock		  "WBI to yarp1"
+	  SrcPort		  1
+	  DstBlock		  "Errors2"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "WBI to yarp1"
+	  SrcPort		  2
+	  DstBlock		  "Errors2"
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "WBI to yarp1"
 	  SrcPort		  3
-	  Points		  [10, 0]
+	  DstBlock		  "Errors2"
+	  DstPort		  3
+	}
+	Line {
+	  SrcBlock		  "WBI to yarp1"
+	  SrcPort		  4
+	  DstBlock		  "Errors2"
+	  DstPort		  4
+	}
+	Line {
+	  SrcBlock		  "WBI to yarp1"
+	  SrcPort		  5
+	  DstBlock		  "Errors2"
+	  DstPort		  5
+	}
+	Line {
+	  SrcBlock		  "\n\n  "
+	  SrcPort		  1
+	  DstBlock		  "Data Store\nWrite11"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "\n\n  1"
+	  SrcPort		  1
+	  DstBlock		  "Data Store\nWrite15"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "\n\n  2"
+	  SrcPort		  1
+	  DstBlock		  "Data Store\nWrite16"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "feedback on trajectory generator"
+	  SrcPort		  2
+	  DstBlock		  "Errors"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "feedback on trajectory generator"
+	  SrcPort		  3
+	  Points		  [5, 0]
 	  Branch {
-	    DstBlock		    "WBI to yarp"
-	    DstPort		    1
+	    DstBlock		    "Errors"
+	    DstPort		    2
 	  }
 	  Branch {
-	    Points		    [0, 65]
-	    DstBlock		    "Discrete-Time Integrator1"
+	    Points		    [0, 75]
+	    DstBlock		    "Discrete-Time Integrator"
 	    DstPort		    1
 	  }
 	}
 	Line {
 	  SrcBlock		  "feedback on trajectory generator1"
-	  SrcPort		  2
-	  Points		  [65, 0]
+	  SrcPort		  1
+	  Points		  [80, 0; 0, -130]
 	  DstBlock		  "controllerMatlab"
-	  DstPort		  3
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "feedback on trajectory generator1"
+	  SrcPort		  3
+	  Points		  [15, 0; 0, 70]
+	  Branch {
+	    DstBlock		    "Discrete-Time Integrator1"
+	    DstPort		    1
+	  }
+	  Branch {
+	    Points		    [0, 40]
+	    DstBlock		    "WBI to yarp"
+	    DstPort		    1
+	  }
+	}
+	Line {
+	  SrcBlock		  "Add"
+	  SrcPort		  1
+	  DstBlock		  "Errors3"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "feedback on trajectory generator1"
+	  SrcPort		  2
+	  Points		  [30, 0]
+	  Branch {
+	    Points		    [60, 0]
+	    DstBlock		    "controllerMatlab"
+	    DstPort		    3
+	  }
+	  Branch {
+	    Points		    [0, 50]
+	    DstBlock		    "WBI to yarp1"
+	    DstPort		    1
+	  }
 	}
 	Annotation {
 	  Position		  [874, 67]
@@ -3958,9 +4201,7 @@ Stateflow {
     name		    "controllerSharedMem"
     created		    "18-Feb-2014 10:14:40"
     isLibrary		    0
-    firstTarget		    81
-    debug {
-    }
+    firstTarget		    79
     sfVersion		    75014001
   }
   chart {
@@ -3999,10 +4240,10 @@ Stateflow {
     eml {
       isEML		      1
       script		      "function [xcomDes, xDcomDes, xDDcomDes]  = trajGen(xCom0,t)\n%#codegen\n\n\ne3 = [0;1;0];\nA = 0."
-      "1;\nf = 0.1;\nt = t*0.8;\n% xcomDes    = [xCom0(1:2); (1/A-1)*A*xCom0(3)] + A*xCom0(3)*cos(2*pi*f*t)*e3;\n% xDco"
-      "mDes   = -xCom0(3)*A*2*pi*f*sin(2*pi*f*t)*e3;\n% xDDcomDes  = -xCom0(3)*A*(2*pi*f)^2*cos(2*pi*f*t)*e3;\n\nxcomDe"
-      "s    = xCom0 + A*sin(2*pi*f*t)*e3;\nxDcomDes   =         A*2*pi*f*cos(2*pi*f*t)*e3;\nxDDcomDes  =        -A*(2*p"
-      "i*f)^2*sin(2*pi*f*t)*e3;\n"
+      "02;\nf = 0.1;\nt = t*0.8;\n% xcomDes    = [xCom0(1:2); (1/A-1)*A*xCom0(3)] + A*xCom0(3)*cos(2*pi*f*t)*e3;\n% xDc"
+      "omDes   = -xCom0(3)*A*2*pi*f*sin(2*pi*f*t)*e3;\n% xDDcomDes  = -xCom0(3)*A*(2*pi*f)^2*cos(2*pi*f*t)*e3;\n\nxcomD"
+      "es    = xCom0 + A*sin(2*pi*f*t)*e3;\nxDcomDes   =         A*2*pi*f*cos(2*pi*f*t)*e3;\nxDDcomDes  =        -A*(2*"
+      "pi*f)^2*sin(2*pi*f*t)*e3;\n"
       editorLayout	      "100 M4x1[10 22 700 500]"
     }
   }
@@ -4175,29 +4416,7 @@ Stateflow {
     id			    12
     ssIdNumber		    33
     name		    "dq"
-    linkNode		    [2 11 13]
-    scope		    DATA_STORE_MEMORY_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    13
-    ssIdNumber		    34
-    name		    "k"
-    linkNode		    [2 12 0]
+    linkNode		    [2 11 0]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -4216,26 +4435,26 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   instance {
-    id			    14
+    id			    13
     name		    "Subsystem/trajectoryGeneratorCoM"
     machine		    1
     chart		    2
   }
   chart {
-    id			    15
+    id			    14
     name		    "Subsystem/controllerMatlab"
     windowPosition	    [470 -182 148 986]
     viewLimits		    [0 112 0 601]
     screen		    [1 1 3840 1080 1.25]
-    treeNode		    [0 16 0 0]
-    firstTransition	    18
-    firstJunction	    17
-    viewObj		    15
+    treeNode		    [0 15 0 0]
+    firstTransition	    17
+    firstJunction	    16
+    viewObj		    14
     machine		    1
     ssIdHighWaterMark	    52
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
-    firstData		    19
+    firstData		    18
     chartFileNumber	    2
     disableImplicitCasting  1
     eml {
@@ -4243,48 +4462,49 @@ Stateflow {
     }
   }
   state {
-    id			    16
+    id			    15
     labelString		    "eML_blk_kernel()"
     position		    [18 64.5 118 66]
     fontSize		    12
-    chart		    15
-    treeNode		    [15 0 0 0]
+    chart		    14
+    treeNode		    [14 0 0 0]
     superState		    SUBCHART
-    subviewer		    15
+    subviewer		    14
     ssIdNumber		    1
     type		    FUNC_STATE
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
       script		      "function tau  = computeTau(xDDcomStar, qDDstar, mask)\n%#codegen\n\nglobal qj dq qj_0 \nglobal M "
-      "h Jc dJc_dq H\nglobal x_rf xcom k kw\n\nnt = 25;\n\nPINV_TOL = 1e-5;\ng        = 9.81;\n\nDL = 25-nt;           "
-      " %DeltaIndexOnlyLegs\n\nif DL ~= 0\n   Jcr = [Jc(:,1:6),Jc(:,7 + DL:end)]; \nelse\n   Jcr = Jc; \nend\n\nm     ="
-      " M(1,1);\nMb    = M(1:6,1:6);\nMbInv = inv(Mb);\nMbj   = M(1:6,7 + DL :end); \nMj    = M(7 + DL :end,7 + DL:end)"
-      ";\nU     = [eye(6) , zeros(6,nt)];\nJcb   = Jcr*U';\nSBar  = [  -MbInv*Mbj \n           eye(nt)      ];\nNjInv ="
-      " Mj - Mbj'*MbInv*Mbj;\n\ngrav = [zeros(2,1);-m*g;zeros(3,1)];\n\nJcSBar     = Jcr*SBar;\nJcSBarPinv = pinv(JcSBa"
-      "r, PINV_TOL);\n\n% Definition of reference accelerations for CoM and Joints that ensure\n% stabilization of desi"
-      "red trajectories xDcomDes and qDes \n\nif DL ~= 0\n   q_star = qDDstar(DL+1:end); \nelse\n   q_star = qDDstar;\n"
-      "    \nend\nPr =  x_rf(1:3) - xcom; % Application point of the contact force on the right foot w.r.t. CoM\nA  = ["
-      " eye(3),   zeros(3),eye(3), zeros(3);\n      -Sf(xcom),  eye(3), Sf(Pr), eye(3) ];\n\n% The following expression"
-      "s for Ic and IcD hold only if the control \n% objective is the stabilization of the CoM's position\n% kw = 0.1;\n"
-      "hwDotDes = H(4:end);\nhDotDes = [ m*xDDcomStar ;\n            -kw*hwDotDes  ]; \n\nfd = pinv(A)*(hDotDes-grav);\n"
-      "\nLambdaStar = JcSBarPinv*(Jcb*MbInv*(h(1:6) - Jcb'*fd) - dJc_dq);\n\nNP0 = eye(nt) - JcSBarPinv*JcSBar;\n\nLamb"
-      "daStar = LambdaStar + NP0 * q_star;\n\ntauLegs = - JcSBar'*fd + NjInv*LambdaStar + SBar'*[h(1:6);h(DL + 7:end)];"
-      "\n\ntau = h(7:end) - k(3,1)*(qj - qj_0) - k(3,3)*dq(7:end);   \ntau(mask) = tauLegs(mask);\n\n"
-      editorLayout	      "100 M4x1[25 47 693 486]"
+      "h Jc dJc_dq H\nglobal x_rf xcom k_pos kw\n\nnt = 25;\n\nPINV_TOL = 1e-5;\ng        = 9.81;\n\nDL = 25-nt;       "
+      "     %DeltaIndexOnlyLegs\n\nif DL ~= 0\n   Jcr = [Jc(:,1:6),Jc(:,7 + DL:end)]; \nelse\n   Jcr = Jc; \nend\n\nm  "
+      "   = M(1,1);\nMb    = M(1:6,1:6);\nMbInv = inv(Mb);\nMbj   = M(1:6,7 + DL :end); \nMj    = M(7 + DL :end,7 + DL:"
+      "end);\nU     = [eye(6) , zeros(6,nt)];\nJcb   = Jcr*U';\nSBar  = [  -MbInv*Mbj \n           eye(nt)      ];\nNjI"
+      "nv = Mj - Mbj'*MbInv*Mbj;\n\ngrav = [zeros(2,1);-m*g;zeros(3,1)];\n\nJcSBar     = Jcr*SBar;\nJcSBarPinv = pinv(J"
+      "cSBar, PINV_TOL);\n\n% Definition of reference accelerations for CoM and Joints that ensure\n% stabilization of "
+      "desired trajectories xDcomDes and qDes \n\nif DL ~= 0\n   q_star = qDDstar(DL+1:end); \nelse\n   q_star = qDDsta"
+      "r;\n    \nend\nPr =  x_rf(1:3) - xcom; % Application point of the contact force on the right foot w.r.t. CoM\nA "
+      " = [ eye(3),   zeros(3),eye(3), zeros(3);\n      -Sf(xcom),  eye(3), Sf(Pr), eye(3) ];\n\n% The following expres"
+      "sions for Ic and IcD hold only if the control \n% objective is the stabilization of the CoM's position\n% kw = 0"
+      ".1;\nhwDotDes = H(4:end);\nhDotDes = [ m*xDDcomStar ;\n            -kw*hwDotDes  ]; \n\nfd = pinv(A)*(hDotDes-gr"
+      "av);\n\nLambdaStar = JcSBarPinv*(Jcb*MbInv*(h(1:6) - Jcb'*fd) - dJc_dq);\n\nNP0 = eye(nt) - JcSBarPinv*JcSBar;\n"
+      "\nindex = find(mask==1);\nq_star(index) = zeros(length(index),1);\nLambdaStar = LambdaStar + NP0 * q_star;\n\nta"
+      "uLegs = - JcSBar'*fd + NjInv*LambdaStar + SBar'*[h(1:6);h(DL + 7:end)];\n\ntau = h(7:end) - k_pos(1,1)*(qj - qj_"
+      "0) - k_pos(1,3)*dq(7:end);   \ntau(index) = tauLegs(index);\n"
+      editorLayout	      "100 M4x1[10 22 700 500]"
     }
   }
   junction {
-    id			    17
+    id			    16
     position		    [23.5747 49.5747 7]
-    chart		    15
-    linkNode		    [15 0 0]
-    subviewer		    15
+    chart		    14
+    linkNode		    [14 0 0]
+    subviewer		    14
     ssIdNumber		    3
     type		    CONNECTIVE_JUNCTION
   }
   transition {
-    id			    18
+    id			    17
     labelString		    "{eML_blk_kernel();}"
     labelPosition	    [32.125 19.875 104 16.042]
     fontSize		    12
@@ -4292,14 +4512,14 @@ Stateflow {
       intersection	      [0 0 1 0 23.5747 14.625 0 0]
     }
     dst {
-      id		      17
+      id		      16
       intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
     }
     midPoint		    [23.5747 24.9468]
-    chart		    15
-    linkNode		    [15 0 0]
+    chart		    14
+    linkNode		    [14 0 0]
     dataLimits		    [21.175 25.975 14.625 42.575]
-    subviewer		    15
+    subviewer		    14
     drawStyle		    SMART
     slide {
       sticky		      BOTH_STICK
@@ -4308,10 +4528,32 @@ Stateflow {
     ssIdNumber		    2
   }
   data {
-    id			    19
+    id			    18
     ssIdNumber		    6
     name		    "qj"
-    linkNode		    [15 0 20]
+    linkNode		    [14 0 19]
+    scope		    DATA_STORE_MEMORY_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    19
+    ssIdNumber		    29
+    name		    "qj_0"
+    linkNode		    [14 18 20]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -4331,9 +4573,9 @@ Stateflow {
   }
   data {
     id			    20
-    ssIdNumber		    29
-    name		    "qj_0"
-    linkNode		    [15 19 21]
+    ssIdNumber		    7
+    name		    "dq"
+    linkNode		    [14 19 21]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -4353,9 +4595,9 @@ Stateflow {
   }
   data {
     id			    21
-    ssIdNumber		    7
-    name		    "dq"
-    linkNode		    [15 20 22]
+    ssIdNumber		    8
+    name		    "M"
+    linkNode		    [14 20 22]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -4375,9 +4617,9 @@ Stateflow {
   }
   data {
     id			    22
-    ssIdNumber		    8
-    name		    "M"
-    linkNode		    [15 21 23]
+    ssIdNumber		    9
+    name		    "h"
+    linkNode		    [14 21 23]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -4397,9 +4639,9 @@ Stateflow {
   }
   data {
     id			    23
-    ssIdNumber		    9
-    name		    "h"
-    linkNode		    [15 22 24]
+    ssIdNumber		    35
+    name		    "x_rf"
+    linkNode		    [14 22 24]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -4419,9 +4661,9 @@ Stateflow {
   }
   data {
     id			    24
-    ssIdNumber		    35
-    name		    "x_rf"
-    linkNode		    [15 23 25]
+    ssIdNumber		    10
+    name		    "Jc"
+    linkNode		    [14 23 25]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -4441,31 +4683,9 @@ Stateflow {
   }
   data {
     id			    25
-    ssIdNumber		    10
-    name		    "Jc"
-    linkNode		    [15 24 26]
-    scope		    DATA_STORE_MEMORY_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    26
     ssIdNumber		    5
     name		    "tau"
-    linkNode		    [15 25 27]
+    linkNode		    [14 24 26]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -4482,10 +4702,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    27
+    id			    26
     ssIdNumber		    27
     name		    "xcom"
-    linkNode		    [15 26 28]
+    linkNode		    [14 25 27]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -4504,10 +4724,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    28
+    id			    27
     ssIdNumber		    26
     name		    "xDDcomStar"
-    linkNode		    [15 27 29]
+    linkNode		    [14 26 28]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -4526,10 +4746,32 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    29
+    id			    28
     ssIdNumber		    42
     name		    "H"
-    linkNode		    [15 28 30]
+    linkNode		    [14 27 29]
+    scope		    DATA_STORE_MEMORY_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    29
+    ssIdNumber		    46
+    name		    "dJc_dq"
+    linkNode		    [14 28 30]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -4549,9 +4791,9 @@ Stateflow {
   }
   data {
     id			    30
-    ssIdNumber		    46
-    name		    "dJc_dq"
-    linkNode		    [15 29 31]
+    ssIdNumber		    47
+    name		    "k_pos"
+    linkNode		    [14 29 31]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -4571,9 +4813,9 @@ Stateflow {
   }
   data {
     id			    31
-    ssIdNumber		    47
-    name		    "k"
-    linkNode		    [15 30 32]
+    ssIdNumber		    49
+    name		    "kw"
+    linkNode		    [14 30 32]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -4593,10 +4835,10 @@ Stateflow {
   }
   data {
     id			    32
-    ssIdNumber		    49
-    name		    "kw"
-    linkNode		    [15 31 33]
-    scope		    DATA_STORE_MEMORY_DATA
+    ssIdNumber		    50
+    name		    "qDDstar"
+    linkNode		    [14 31 33]
+    scope		    INPUT_DATA
     machine		    1
     props {
       array {
@@ -4615,31 +4857,9 @@ Stateflow {
   }
   data {
     id			    33
-    ssIdNumber		    50
-    name		    "qDDstar"
-    linkNode		    [15 32 34]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    34
     ssIdNumber		    52
     name		    "mask"
-    linkNode		    [15 33 0]
+    linkNode		    [14 32 0]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -4658,26 +4878,26 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   instance {
-    id			    35
+    id			    34
     name		    "Subsystem/controllerMatlab"
     machine		    1
-    chart		    15
+    chart		    14
   }
   chart {
-    id			    36
+    id			    35
     name		    "Subsystem/feedback on trajectory generator"
     windowPosition	    [201.744 -198.112 148 676.861]
     viewLimits		    [0 112 0 601]
     screen		    [1 1 1280 778 1.001682887266829]
-    treeNode		    [0 37 0 0]
-    firstTransition	    39
-    firstJunction	    38
-    viewObj		    36
+    treeNode		    [0 36 0 0]
+    firstTransition	    38
+    firstJunction	    37
+    viewObj		    35
     machine		    1
     ssIdHighWaterMark	    37
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
-    firstData		    40
+    firstData		    39
     chartFileNumber	    3
     disableImplicitCasting  1
     eml {
@@ -4685,37 +4905,37 @@ Stateflow {
     }
   }
   state {
-    id			    37
+    id			    36
     labelString		    "eML_blk_kernel()"
     position		    [18 64.5 118 66]
     fontSize		    12
-    chart		    36
-    treeNode		    [36 0 0 0]
+    chart		    35
+    treeNode		    [35 0 0 0]
     superState		    SUBCHART
-    subviewer		    36
+    subviewer		    35
     ssIdNumber		    1
     type		    FUNC_STATE
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
       script		      "function [xDDcomStar, normError, CoMError]  = fcn(xcomDes, xDcomDes, xDDcomDes, IntErrorCoM)\n%#c"
-      "odegen\n\nglobal Jcom dq k xcom\n\nxDcom      = Jcom(1:3,:)*dq;\nxDDcomStar = xDDcomDes - k(1,1)*(xcom - xcomDes"
-      ") - k(1,2)*IntErrorCoM - k(1,3)*(xDcom - xDcomDes)  ;\n\nCoMError    = xcom - xcomDes;\nnormError   = norm(CoMEr"
-      "ror);"
+      "odegen\n\nglobal Jcom dq k_com xcom\n\nxDcom      = Jcom(1:3,:)*dq;\nxDDcomStar = xDDcomDes - k_com(1,1)*(xcom -"
+      " xcomDes) - k_com(1,2)*IntErrorCoM - k_com(1,3)*(xDcom - xDcomDes)  ;\n\nCoMError    = xcom - xcomDes;\nnormErro"
+      "r   = norm(CoMError);"
       editorLayout	      "100 M4x1[10 22 700 500]"
     }
   }
   junction {
-    id			    38
+    id			    37
     position		    [23.5747 49.5747 7]
-    chart		    36
-    linkNode		    [36 0 0]
-    subviewer		    36
+    chart		    35
+    linkNode		    [35 0 0]
+    subviewer		    35
     ssIdNumber		    3
     type		    CONNECTIVE_JUNCTION
   }
   transition {
-    id			    39
+    id			    38
     labelString		    "{eML_blk_kernel();}"
     labelPosition	    [32.125 19.875 104 16.042]
     fontSize		    12
@@ -4723,14 +4943,14 @@ Stateflow {
       intersection	      [0 0 1 0 23.5747 14.625 0 0]
     }
     dst {
-      id		      38
+      id		      37
       intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
     }
     midPoint		    [23.5747 24.9468]
-    chart		    36
-    linkNode		    [36 0 0]
+    chart		    35
+    linkNode		    [35 0 0]
     dataLimits		    [23.575 23.575 14.625 34.575]
-    subviewer		    36
+    subviewer		    35
     drawStyle		    SMART
     slide {
       sticky		      BOTH_STICK
@@ -4739,10 +4959,32 @@ Stateflow {
     ssIdNumber		    2
   }
   data {
-    id			    40
+    id			    39
     ssIdNumber		    26
     name		    "xDDcomStar"
-    linkNode		    [36 0 41]
+    linkNode		    [35 0 40]
+    scope		    OUTPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    40
+    ssIdNumber		    32
+    name		    "normError"
+    linkNode		    [35 39 41]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -4762,10 +5004,10 @@ Stateflow {
   }
   data {
     id			    41
-    ssIdNumber		    32
-    name		    "normError"
-    linkNode		    [36 40 42]
-    scope		    OUTPUT_DATA
+    ssIdNumber		    7
+    name		    "xcomDes"
+    linkNode		    [35 40 42]
+    scope		    INPUT_DATA
     machine		    1
     props {
       array {
@@ -4778,15 +5020,15 @@ Stateflow {
 	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
+      frame		      SF_FRAME_INHERITED
     }
     dataType		    "Inherit: Same as Simulink"
   }
   data {
     id			    42
-    ssIdNumber		    7
-    name		    "xcomDes"
-    linkNode		    [36 41 43]
+    ssIdNumber		    28
+    name		    "xDcomDes"
+    linkNode		    [35 41 43]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -4806,9 +5048,9 @@ Stateflow {
   }
   data {
     id			    43
-    ssIdNumber		    28
-    name		    "xDcomDes"
-    linkNode		    [36 42 44]
+    ssIdNumber		    36
+    name		    "xDDcomDes"
+    linkNode		    [35 42 44]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -4828,9 +5070,9 @@ Stateflow {
   }
   data {
     id			    44
-    ssIdNumber		    36
-    name		    "xDDcomDes"
-    linkNode		    [36 43 45]
+    ssIdNumber		    30
+    name		    "IntErrorCoM"
+    linkNode		    [35 43 45]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -4850,31 +5092,9 @@ Stateflow {
   }
   data {
     id			    45
-    ssIdNumber		    30
-    name		    "IntErrorCoM"
-    linkNode		    [36 44 46]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    46
     ssIdNumber		    29
     name		    "Jcom"
-    linkNode		    [36 45 47]
+    linkNode		    [35 44 46]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -4893,10 +5113,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    47
+    id			    46
     ssIdNumber		    31
     name		    "CoMError"
-    linkNode		    [36 46 48]
+    linkNode		    [35 45 47]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -4915,10 +5135,32 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    48
+    id			    47
     ssIdNumber		    33
     name		    "dq"
-    linkNode		    [36 47 49]
+    linkNode		    [35 46 48]
+    scope		    DATA_STORE_MEMORY_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    48
+    ssIdNumber		    34
+    name		    "k_com"
+    linkNode		    [35 47 49]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -4938,31 +5180,9 @@ Stateflow {
   }
   data {
     id			    49
-    ssIdNumber		    34
-    name		    "k"
-    linkNode		    [36 48 50]
-    scope		    DATA_STORE_MEMORY_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    50
     ssIdNumber		    37
     name		    "xcom"
-    linkNode		    [36 49 0]
+    linkNode		    [35 48 0]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -4981,26 +5201,26 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   instance {
-    id			    51
+    id			    50
     name		    "Subsystem/feedback on trajectory generator"
     machine		    1
-    chart		    36
+    chart		    35
   }
   chart {
-    id			    52
+    id			    51
     name		    "Subsystem/feedback on trajectory generator1"
     windowPosition	    [216.744 -213.112 148 676.861]
     viewLimits		    [0 112 0 601]
     screen		    [1 1 1280 778 1.001682887266829]
-    treeNode		    [0 53 0 0]
-    firstTransition	    55
-    firstJunction	    54
-    viewObj		    52
+    treeNode		    [0 52 0 0]
+    firstTransition	    54
+    firstJunction	    53
+    viewObj		    51
     machine		    1
     ssIdHighWaterMark	    40
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
-    firstData		    56
+    firstData		    55
     chartFileNumber	    4
     disableImplicitCasting  1
     eml {
@@ -5008,36 +5228,36 @@ Stateflow {
     }
   }
   state {
-    id			    53
+    id			    52
     labelString		    "eML_blk_kernel()"
     position		    [18 64.5 118 66]
     fontSize		    12
-    chart		    52
-    treeNode		    [52 0 0 0]
+    chart		    51
+    treeNode		    [51 0 0 0]
     superState		    SUBCHART
-    subviewer		    52
+    subviewer		    51
     ssIdNumber		    1
     type		    FUNC_STATE
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
       script		      "function [d2qj_star, mask, qjErr]   = fcn(qj_des, dqj_des, d2qj_des, qjErr_int)\n%#codegen\n\nglo"
-      "bal k qj dqj\n\nd2qj_star   = d2qj_des - k(2,1)*(qj - qj_des) - k(2,2)*qjErr_int- k(2,3)*(dqj - dqj_des);\n\nqjE"
-      "rr = qj - qj_des;\n\nmask = (abs(qjErr) < 0.2);"
-      editorLayout	      "100 M4x1[25 47 693 486]"
+      "bal k_pst qj dqj\n\nd2qj_star   = d2qj_des - k_pst(1:25,1:25)*(qj - qj_des) - k_pst(1:25, 26:50)*qjErr_int- k_ps"
+      "t(1:25,51:75)*(dqj - dqj_des);\n\nqjErr = qj - qj_des;\n\nmask = (abs(qjErr) < 0.05);\n"
+      editorLayout	      "100 M4x1[10 22 700 500]"
     }
   }
   junction {
-    id			    54
+    id			    53
     position		    [23.5747 49.5747 7]
-    chart		    52
-    linkNode		    [52 0 0]
-    subviewer		    52
+    chart		    51
+    linkNode		    [51 0 0]
+    subviewer		    51
     ssIdNumber		    3
     type		    CONNECTIVE_JUNCTION
   }
   transition {
-    id			    55
+    id			    54
     labelString		    "{eML_blk_kernel();}"
     labelPosition	    [32.125 19.875 104 16.042]
     fontSize		    12
@@ -5045,14 +5265,14 @@ Stateflow {
       intersection	      [0 0 1 0 23.5747 14.625 0 0]
     }
     dst {
-      id		      54
+      id		      53
       intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
     }
     midPoint		    [23.5747 24.9468]
-    chart		    52
-    linkNode		    [52 0 0]
+    chart		    51
+    linkNode		    [51 0 0]
     dataLimits		    [23.575 23.575 14.625 34.575]
-    subviewer		    52
+    subviewer		    51
     drawStyle		    SMART
     slide {
       sticky		      BOTH_STICK
@@ -5061,10 +5281,32 @@ Stateflow {
     ssIdNumber		    2
   }
   data {
-    id			    56
+    id			    55
     ssIdNumber		    26
     name		    "d2qj_star"
-    linkNode		    [52 0 57]
+    linkNode		    [51 0 56]
+    scope		    OUTPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    56
+    ssIdNumber		    40
+    name		    "mask"
+    linkNode		    [51 55 57]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -5084,10 +5326,10 @@ Stateflow {
   }
   data {
     id			    57
-    ssIdNumber		    40
-    name		    "mask"
-    linkNode		    [52 56 58]
-    scope		    OUTPUT_DATA
+    ssIdNumber		    7
+    name		    "qj_des"
+    linkNode		    [51 56 58]
+    scope		    INPUT_DATA
     machine		    1
     props {
       array {
@@ -5100,15 +5342,15 @@ Stateflow {
 	wordLength		"16"
       }
       complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
+      frame		      SF_FRAME_INHERITED
     }
     dataType		    "Inherit: Same as Simulink"
   }
   data {
     id			    58
-    ssIdNumber		    7
-    name		    "qj_des"
-    linkNode		    [52 57 59]
+    ssIdNumber		    28
+    name		    "dqj_des"
+    linkNode		    [51 57 59]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -5128,9 +5370,9 @@ Stateflow {
   }
   data {
     id			    59
-    ssIdNumber		    28
-    name		    "dqj_des"
-    linkNode		    [52 58 60]
+    ssIdNumber		    36
+    name		    "d2qj_des"
+    linkNode		    [51 58 60]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -5150,31 +5392,9 @@ Stateflow {
   }
   data {
     id			    60
-    ssIdNumber		    36
-    name		    "d2qj_des"
-    linkNode		    [52 59 61]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    61
     ssIdNumber		    30
     name		    "qjErr"
-    linkNode		    [52 60 62]
+    linkNode		    [51 59 61]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -5193,10 +5413,32 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    62
+    id			    61
     ssIdNumber		    29
     name		    "Jcom"
-    linkNode		    [52 61 63]
+    linkNode		    [51 60 62]
+    scope		    DATA_STORE_MEMORY_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    62
+    ssIdNumber		    34
+    name		    "k_pst"
+    linkNode		    [51 61 63]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -5216,31 +5458,9 @@ Stateflow {
   }
   data {
     id			    63
-    ssIdNumber		    34
-    name		    "k"
-    linkNode		    [52 62 64]
-    scope		    DATA_STORE_MEMORY_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    64
     ssIdNumber		    37
     name		    "qjErr_int"
-    linkNode		    [52 63 65]
+    linkNode		    [51 62 64]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -5259,10 +5479,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    65
+    id			    64
     ssIdNumber		    38
     name		    "qj"
-    linkNode		    [52 64 66]
+    linkNode		    [51 63 65]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -5281,10 +5501,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    66
+    id			    65
     ssIdNumber		    39
     name		    "dqj"
-    linkNode		    [52 65 0]
+    linkNode		    [51 64 0]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -5303,26 +5523,26 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   instance {
-    id			    67
+    id			    66
     name		    "Subsystem/feedback on trajectory generator1"
     machine		    1
-    chart		    52
+    chart		    51
   }
   chart {
-    id			    68
+    id			    67
     name		    "Subsystem/trajectoryGeneratorCoM1"
     windowPosition	    [201.744 -198.112 148 676.861]
     viewLimits		    [0 112 0 601]
     screen		    [1 1 1280 778 1.001682887266829]
-    treeNode		    [0 69 0 0]
-    firstTransition	    71
-    firstJunction	    70
-    viewObj		    68
+    treeNode		    [0 68 0 0]
+    firstTransition	    70
+    firstJunction	    69
+    viewObj		    67
     machine		    1
     ssIdHighWaterMark	    35
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
-    firstData		    72
+    firstData		    71
     chartFileNumber	    5
     disableImplicitCasting  1
     eml {
@@ -5330,14 +5550,14 @@ Stateflow {
     }
   }
   state {
-    id			    69
+    id			    68
     labelString		    "eML_blk_kernel()"
     position		    [18 64.5 118 66]
     fontSize		    12
-    chart		    68
-    treeNode		    [68 0 0 0]
+    chart		    67
+    treeNode		    [67 0 0 0]
     superState		    SUBCHART
-    subviewer		    68
+    subviewer		    67
     ssIdNumber		    1
     type		    FUNC_STATE
     decomposition	    CLUSTER_STATE
@@ -5349,16 +5569,16 @@ Stateflow {
     }
   }
   junction {
-    id			    70
+    id			    69
     position		    [23.5747 49.5747 7]
-    chart		    68
-    linkNode		    [68 0 0]
-    subviewer		    68
+    chart		    67
+    linkNode		    [67 0 0]
+    subviewer		    67
     ssIdNumber		    3
     type		    CONNECTIVE_JUNCTION
   }
   transition {
-    id			    71
+    id			    70
     labelString		    "{eML_blk_kernel();}"
     labelPosition	    [32.125 19.875 104 16.042]
     fontSize		    12
@@ -5366,14 +5586,14 @@ Stateflow {
       intersection	      [0 0 1 0 23.5747 14.625 0 0]
     }
     dst {
-      id		      70
+      id		      69
       intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
     }
     midPoint		    [23.5747 24.9468]
-    chart		    68
-    linkNode		    [68 0 0]
+    chart		    67
+    linkNode		    [67 0 0]
     dataLimits		    [23.575 23.575 14.625 34.575]
-    subviewer		    68
+    subviewer		    67
     drawStyle		    SMART
     slide {
       sticky		      BOTH_STICK
@@ -5382,10 +5602,10 @@ Stateflow {
     ssIdNumber		    2
   }
   data {
-    id			    72
+    id			    71
     ssIdNumber		    26
     name		    "qj_des"
-    linkNode		    [68 0 73]
+    linkNode		    [67 0 72]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -5404,10 +5624,32 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    73
+    id			    72
     ssIdNumber		    7
     name		    "qj_0"
-    linkNode		    [68 72 74]
+    linkNode		    [67 71 73]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    73
+    ssIdNumber		    28
+    name		    "t"
+    linkNode		    [67 72 74]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -5427,31 +5669,9 @@ Stateflow {
   }
   data {
     id			    74
-    ssIdNumber		    28
-    name		    "t"
-    linkNode		    [68 73 75]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    75
     ssIdNumber		    29
     name		    "Jcom"
-    linkNode		    [68 74 76]
+    linkNode		    [67 73 75]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -5470,10 +5690,32 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    76
+    id			    75
     ssIdNumber		    31
     name		    "dqj_des"
-    linkNode		    [68 75 77]
+    linkNode		    [67 74 76]
+    scope		    OUTPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    76
+    ssIdNumber		    32
+    name		    "d2qj_des"
+    linkNode		    [67 75 77]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -5493,53 +5735,9 @@ Stateflow {
   }
   data {
     id			    77
-    ssIdNumber		    32
-    name		    "d2qj_des"
-    linkNode		    [68 76 78]
-    scope		    OUTPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    78
     ssIdNumber		    33
     name		    "dq"
-    linkNode		    [68 77 79]
-    scope		    DATA_STORE_MEMORY_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    79
-    ssIdNumber		    34
-    name		    "k"
-    linkNode		    [68 78 0]
+    linkNode		    [67 76 0]
     scope		    DATA_STORE_MEMORY_DATA
     machine		    1
     props {
@@ -5558,22 +5756,22 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   instance {
-    id			    80
+    id			    78
     name		    "Subsystem/trajectoryGeneratorCoM1"
     machine		    1
-    chart		    68
+    chart		    67
   }
   target {
-    id			    81
+    id			    79
     name		    "sfun"
     description		    "Default Simulink S-Function Target."
     machine		    1
-    linkNode		    [1 0 82]
+    linkNode		    [1 0 80]
   }
   target {
-    id			    82
+    id			    80
     name		    "rtw"
     machine		    1
-    linkNode		    [1 81 0]
+    linkNode		    [1 79 0]
   }
 }
