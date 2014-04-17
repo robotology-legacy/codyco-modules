@@ -1,5 +1,7 @@
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    INCLUDE (CheckCXXSourceCompiles)
+    unset(CODYCO_HAS_CHAR16)
+    include(CheckCXXSourceCompiles)
+    # SET(CMAKE_REQUIRED_FLAGS "-std=c++11")
     CHECK_CXX_SOURCE_COMPILES("
         #if defined(__STDC_UTF_16__) || (defined(_HAS_CHAR16_T_LANGUAGE_SUPPORT) && _HAS_CHAR16_T_LANGUAGE_SUPPORT)
         typedef char16_t CHAR16_T;
@@ -8,16 +10,18 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
         #else
         typedef UINT16_T CHAR16_T;
         #endif
-
+    
         int main() {
+            CHAR16_T myVar;
             return 0;
         }
-
+    
         "
-    HAS_CHAR16_T_TYPE)
-    if (NOT HAS_CHAR16_T_TYPE)
-        # add_definitions(-Dchar16_t=uint16_t)
-    endif(NOT HAS_CHAR16_T_TYPE)
+    CODYCO_HAS_CHAR16)
+    if (NOT CODYCO_HAS_CHAR16)
+        add_definitions(-Dchar16_t=UINT16_T)
+    else()
+    endif(NOT CODYCO_HAS_CHAR16)
 endif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 
 add_subdirectory(libraries)
