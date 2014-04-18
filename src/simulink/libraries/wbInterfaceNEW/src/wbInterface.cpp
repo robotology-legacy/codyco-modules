@@ -893,9 +893,9 @@ static void mdlStart(SimStruct *S)
         ssSetErrorStatus(S,"ERROR: [mdlOutputs] The type of this block has not been defined\n");
     }
 
-    Network yarp;
+    Network::init();
 
-    if (!yarp.checkNetwork()) {
+    if (!Network::checkNetwork()) {
         ssSetErrorStatus(S,"mdlStart >> YARP server wasn't found active!! \n");
         return;
     }
@@ -1416,6 +1416,7 @@ static void mdlTerminate(SimStruct *S) {
             ssSetPWorkValue(S,2,NULL);
         }
     }
+    Network::fini();
 }
 
 // Required S-function trailer

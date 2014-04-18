@@ -156,10 +156,10 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 static void mdlStart(SimStruct *S)
 {
     // ######### YARP INITIALIZATION STUFF ##################
-    Network yarp;
+    Network::init();
     fprintf(stderr,"YARP NETWORK INITIALIZED\n");
 
-    if (!yarp.checkNetwork()){
+    if (!Network::checkNetwork()){
         ssSetErrorStatus(S,"YARP server wasn't found active!! \n");
         return;
     }
@@ -248,6 +248,7 @@ static void mdlTerminate(SimStruct *S)
          ssSetPWorkValue(S,0,NULL);
      }
 
+    Network::fini();
     fprintf(stderr,"Everything was closed correctly\n");
 }
 
