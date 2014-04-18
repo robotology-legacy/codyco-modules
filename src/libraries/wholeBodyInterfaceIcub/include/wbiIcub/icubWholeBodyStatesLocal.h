@@ -113,6 +113,34 @@ namespace wbiIcub
 
         iCub::skinDynLib::dynContactList dynContacts;
 
+        //Data structures related to end effector wrenches
+        yarp::sig::Vector left_gripper_ee_wrench;
+        yarp::sig::Vector right_gripper_ee_wrench;
+        yarp::sig::Vector left_sole_ee_wrench;
+        yarp::sig::Vector right_sole_ee_wrench;
+
+        yarp::sig::Vector left_hand_ee_wrench;
+        yarp::sig::Vector right_hand_ee_wrench;
+        yarp::sig::Vector left_foot_ee_wrench;
+        yarp::sig::Vector right_foot_ee_wrench;
+
+
+        int left_hand_link_id;
+        int right_hand_link_id;
+        int left_foot_link_id;
+        int right_foot_link_id;
+
+        int left_gripper_frame_id;
+        int right_gripper_frame_id;
+        int left_sole_frame_id;
+        int right_sole_frame_id;
+
+        bool left_arm_ee_contact_found;
+        bool right_arm_ee_contact_found;
+        bool left_leg_ee_contact_found;
+        bool right_leg_ee_contact_found;
+
+
         //Data structures related to IMU used for dynamical model
         bool enable_omega_domega_IMU;
 
@@ -160,6 +188,9 @@ namespace wbiIcub
 
         /**  Estimate internal torques and external forces from measured sensors, using iDynTree library */
         void estimateExternalForcesAndJointTorques();
+
+        /** Store external wrenches ad the end effectors */
+        void readEndEffectorsExternalWrench();
 
         /** Version of considered iCub robot */
         iCub::iDynTree::iCubTree_version_tag icub_version;
@@ -219,6 +250,9 @@ namespace wbiIcub
         /** Take the mutex and copy the i-th Vector of a vector<Vector> of src into dest */
         bool lockAndCopyElementVectorFromVector(int i, const std::vector<yarp::sig::Vector> &src, double *dest);
 
+        /** Take the mutex and copy the external force/torque acting on link sid */
+
+
     };
 
 
@@ -245,6 +279,7 @@ namespace wbiIcub
         virtual int lockAndGetSensorNumber(const wbi::SensorType st);
 
         bool lockAndReadExternalForces(iCub::skinDynLib::skinContactList & external_forces_list);
+        bool lockAndReadExternalForceTorque();
 
 
         /** Get the velocity of the specified motor. */

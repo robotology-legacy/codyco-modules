@@ -218,6 +218,8 @@ bool icubWholeBodyStatesLocal::getEstimate(const EstimateType et, const LocalId 
         return estimator->lockAndCopyElementVectorFromVector(sensors->getSensorList(SENSOR_IMU).localToGlobalId(sid), estimator->estimates.lastIMUs, data);
     case ESTIMATE_FORCE_TORQUE_SENSOR:
         return estimator->lockAndCopyElementVectorFromVector(sensors->getSensorList(SENSOR_FORCE_TORQUE).localToGlobalId(sid), estimator->estimates.lastForceTorques, data);
+    case ESTIMATE_EXTERNAL_FORCE_TORQUE:
+        return estimator->lockAndCopyExternalForceTorque(sid,data);
     default: break;
     }
     return false;
@@ -239,7 +241,7 @@ bool icubWholeBodyStatesLocal::getEstimates(const EstimateType et, double *data,
     case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return estimator->lockAndCopyVector(estimator->estimates.lastDtauM, data);
     case ESTIMATE_MOTOR_PWM:                return lockAndReadSensors(SENSOR_PWM, data, time, blocking);
     case ESTIMATE_IMU:                      return estimator->lockAndCopyVectorOfVectors(estimator->estimates.lastIMUs, data);
-    case ESTIMATE_FORCE_TORQUE_SENSOR:             return estimator->lockAndCopyVectorOfVectors(estimator->estimates.lastForceTorques, data);
+    case ESTIMATE_FORCE_TORQUE_SENSOR:      return estimator->lockAndCopyVectorOfVectors(estimator->estimates.lastForceTorques, data);
     default: break;
     }
     return false;
@@ -600,6 +602,9 @@ void icubWholeBodyDynamicsEstimator::run()
             estimates.lastDtauM = dTauMFilt->estimate(el);  ///< derivative filter
         }
 
+        ///< Read external wrench ad the end effectors
+        readEndEffectorsExternalWrench();
+
         ///< Read motor pwm
         sensors->readSensors(SENSOR_PWM, pwm.data(),0, false);
         estimates.lastPwm = pwmFilt->filt(pwm);     ///< low pass filter
@@ -786,10 +791,32 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
         if(!contactFound)
             skinContacts.push_back(skinContact(estimatedLastDynContacts[i]));
         contactFound = false;
+
+        //If a dyn contact is found on the end effector, store its value
+        if( estimatedLastDynContacts[i].getBodyPart() == LEFT_ARM &&
+            estimatedLastDynContacts[i].getLink() ==  left_hand_link_id )
+        {
+            left_arm_ee_contact_found = true;
+            left_hand_ee_wrench =
+        }
+        if( estimatedLastDynContacts[i].getBodyPart() == RIGHT_ARM &&
+            estimatedLastDynContacts[i].getLink() ==  right_hand_link_id )
+        {
+            right_arm_ee_contact_found = true;
+        }
+        if( estimatedLastDynContacts[i].getBodyPart() == LEFT_LEG &&
+            estimatedLastDynContacts[i].getLink() ==  left_foot_link_id )
+        {
+            left_leg_ee_contact_found = true;
+        }
+        if( estimatedLastDynContacts[i].getBodyPart() == RIGHT_LEG &&
+            estimatedLastDynContacts[i].getLink() ==  right_foot_link_id )
+        {
+            right_leg_ee_contact_found = true;
+        }
     }
 
     //mutex.wait();
-
     estimatedLastSkinDynContacts = skinContacts;
 
     assert((int)tauJ.size() == icub_model->getNrOfDOFs());
@@ -797,6 +824,16 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     model_mutex.post();
 
 }
+
+
+void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
+{
+    //Use lastEstimatedDynContacts to get forces acting on end effectors
+
+}
+
+
+
 
 void deleteFirstOrderFilterVector(std::vector<iCub::ctrl::FirstOrderLowPassFilter *> & vec)
 {
