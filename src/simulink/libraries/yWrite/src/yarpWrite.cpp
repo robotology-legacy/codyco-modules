@@ -151,7 +151,7 @@ static void mdlStart(SimStruct *S)
     fprintf(stderr,"YARP NETWORK INITIALIZED\n");
     Network::init();
 
-    if (!Network::checkNetwork()){
+    if (!Network::checkNetwork() || !Network::initialized()){
         ssSetErrorStatus(S,"YARP server wasn't found active!! \n");
         return;
     }
