@@ -105,8 +105,8 @@ block.SimStateCompliance = 'DefaultSimState';
 %% provided for each function for more information.
 %% -----------------------------------------------------------------
 
-% block.RegBlockMethod('PostPropagationSetup',    @DoPostPropSetup);
-% block.RegBlockMethod('InitializeConditions', @InitializeConditions);
+block.RegBlockMethod('PostPropagationSetup',    @DoPostPropSetup);
+block.RegBlockMethod('InitializeConditions', @InitializeConditions);
 % block.RegBlockMethod('Start', @Start);
 block.RegBlockMethod('Outputs', @Outputs);     % Required
 % block.RegBlockMethod('Update', @Update);
@@ -122,15 +122,17 @@ block.RegBlockMethod('Terminate', @Terminate); % Required
 %%   Required         : No
 %%   C-Mex counterpart: mdlSetWorkWidths
 %%
-% function DoPostPropSetup(block)
-% block.NumDworks = 1;
-%   
-%   block.Dwork(1).Name            = 'x1';
-%   block.Dwork(1).Dimensions      = 1;
-%   block.Dwork(1).DatatypeID      = 0;      % double
-%   block.Dwork(1).Complexity      = 'Real'; % real
-%   block.Dwork(1).UsedAsDiscState = true;
+function DoPostPropSetup(block)
 
+numberOfPoints = 2; %number of points in a quadrant
+block.NumDworks = 1;
+  
+  block.Dwork(1).Name            = 'A';
+  block.Dwork(1).Dimensions      = 2 * 12 * (4 * (numberOfPoints - 2) + 4);
+  block.Dwork(1).DatatypeID      = 0;      % double
+  block.Dwork(1).Complexity      = 'Real'; % real
+  block.Dwork(1).UsedAsDiscState = false;
+  
 
 %%
 %% InitializeConditions:
@@ -141,9 +143,59 @@ block.RegBlockMethod('Terminate', @Terminate); % Required
 %%   Required         : No
 %%   C-MEX counterpart: mdlInitializeConditions
 %%
-% function InitializeConditions(block)
+function InitializeConditions(block)
 
-%end InitializeConditions
+%compute friction cones contraints
+staticFrictionCoefficient = 0.001745331024189;
+%approximation with straight lines
+numberOfPoints = 2; %number of points in a quadrant
+
+%split the pi/2 angle into numberOfPoints - 1;
+segmentAngle = pi/2 / (numberOfPoints - 1);
+
+%define angle
+angle = 0 : segmentAngle : (2 * pi - segmentAngle);
+points = [cos(angle); sin(angle)];
+numberOfEquations = size(points, 2);
+assert(size(points, 2) == (4 * (numberOfPoints - 2) + 4));
+
+%A*x <= b, with b is all zeros.
+A = zeros(numberOfEquations, 6);
+
+%define equations
+for i = 1 : numberOfEquations
+   firstPoint = points(:, i);
+   secondPoint = points(:, rem(i, numberOfEquations) + 1);
+   
+   %define line passing through the above points
+   angularCoefficients = (secondPoint(2) - firstPoint(2)) / (secondPoint(1) - firstPoint(1));
+   offsets = firstPoint(2) - angularCoefficients * firstPoint(1);
+
+   inequalityFactor = +1;
+   %if any of the two points are between pi and 2pi, then the inequality is
+   %in the form of y >= m*x + q, and I need to change the sign of it.
+   if (angle(i) > pi || angle(rem(i, numberOfEquations) + 1) > pi)
+       inequalityFactor = -1;
+   end
+   
+   %a force is 6 dimensional f = [fx, fy, fz, mux, muy, muz]'
+   %I have constraints on fx and fy, and the offset will be multiplied by
+   %mu * fz
+   
+   A(i,:) = inequalityFactor .* [-angularCoefficients, 1, -offsets * staticFrictionCoefficient, 0, 0, 0];
+   
+end
+
+%I have to duplicate the matrices and vector for the two feet
+A = [A, zeros(size(A));
+    zeros(size(A)), A];
+
+%reshape matrix into single vector
+A = reshape(A, 12 * 2 * numberOfEquations, 1);
+block.Dwork(1).Data = A;
+
+
+% end InitializeConditions
 
 
 %%
@@ -202,15 +254,20 @@ quadraticTerm = A' * A;
 
 opts = optimset('Algorithm','active-set','Display','off');
 
-% lb = -Inf * ones(12,1);
-% lb(3) = 0;
-% lb(9) = 0;
-lb = [];
+%read cone friction constraints
+Aineq = block.Dwork(1).Data;
+numberOfEquations = size(Aineq, 1) / (2 * 12);
+Aineq = reshape(Aineq, 2 * numberOfEquations, 12);
+bineq = zeros(2 * numberOfEquations, 1);
+
+lb = -Inf * ones(12,1);
+lb(3) = 0;
+lb(9) = 0;
 
 % [optForces, objVal, exitFlag, output, lambda] = ...
 optForces = ...
 quadprog(quadraticTerm, linearTerm, ...
-          [], [], ... %inequalities
+          Aineq, bineq, ... %inequalities
           [], [], ... %equalities
           lb, [], ... %bounds
           [],     ... %initial solution
