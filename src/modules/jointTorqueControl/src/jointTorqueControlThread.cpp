@@ -20,13 +20,16 @@
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
 #include <wbiIcub/wbiIcubUtil.h>
+#include <Eigen/LU>
 
 using namespace jointTorqueControl;
 using namespace wbiIcub;
 
+#define IMPEDANCE_CONTROL
+// #define GAZEBO_SIM
 
 jointTorqueControlThread::jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
-: RateThread(period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), sendCommands(SEND_COMMANDS_NONACTIVE),
+: RateThread(period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), frictionCompensationFactor(0), sendCommands(SEND_COMMANDS_NONACTIVE),
 monitoredJointId(0)
 {
     mustStop = false;
@@ -56,6 +59,8 @@ bool jointTorqueControlThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SENDCMD,            &sendCommands));
 	YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MONITORED_JOINT,    &monitoredJointName));
     
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_FRICTION_COMPENSATION, &frictionCompensationFactor));
+    
     // link controller input streaming parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_OFFSET,	        tauOffset.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_SIN_AMPL,	    tauSinAmpl.data()));
@@ -67,7 +72,11 @@ bool jointTorqueControlThread::threadInit()
 	
 	//link monitored variables
 	YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_MEAS,	        &monitor.tauMeas));
-	YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAUD_MONITOR,	    &monitor.tauDes));
+	YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAUD_MONITOR,	    &monitor.tauDes));    
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_MEAS1,          &monitor.tauMeas1));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAUD_MONITOR1,      &monitor.tauDes1));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_MEAS2,          &monitor.tauMeas2));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAUD_MONITOR2,      &monitor.tauDes2));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAUD_PLUS_PI,	    &monitor.tadDesPlusPI));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_ERR,	        &monitor.tauErr));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q,	                &monitor.q));
@@ -121,6 +130,77 @@ bool jointTorqueControlThread::threadInit()
     
     qDes = q;
     
+    
+#ifdef GAZEBO_SIM
+    
+    leftShoulderVelocityCouplingMatrix = Matrix3d::Identity();   
+    leftShoulderTorqueCouplingMatrix = Matrix3d::Identity(); 
+    
+    rightShoulderTorqueCouplingMatrix = leftShoulderTorqueCouplingMatrix;
+    rightShoulderVelocityCouplingMatrix = leftShoulderVelocityCouplingMatrix;
+    
+    torsoVelocityCouplingMatrix = Matrix3d::Identity();    
+    
+    torsoTorqueCouplingMatrix = torsoVelocityCouplingMatrix;
+    
+#else 
+    leftShoulderVelocityCouplingMatrix = Matrix3d::Zero();
+    leftShoulderVelocityCouplingMatrix(0,0) =  -1.0;
+    leftShoulderVelocityCouplingMatrix(0,1) =   0.0;
+    leftShoulderVelocityCouplingMatrix(0,2) =   0.0;
+    
+    leftShoulderVelocityCouplingMatrix(1,0) =   TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(1,1) =  -TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(1,2) =   0.0;
+    
+    leftShoulderVelocityCouplingMatrix(2,0) =   TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(2,1) =  -TRANSMISSION_RATIO_SHOULDER;
+    leftShoulderVelocityCouplingMatrix(2,2) =  -TRANSMISSION_RATIO_SHOULDER;
+    
+    
+    leftShoulderTorqueCouplingMatrix = Matrix3d::Zero();
+    Matrix3d leftShoulderVelocityCouplingMatrixTranspose = leftShoulderVelocityCouplingMatrix.transpose();
+    leftShoulderTorqueCouplingMatrix = leftShoulderVelocityCouplingMatrixTranspose.inverse().eval();
+    
+    rightShoulderVelocityCouplingMatrix = Matrix3d::Zero();
+    rightShoulderVelocityCouplingMatrix(0,0) =  1.0;
+    rightShoulderVelocityCouplingMatrix(0,1) =  0.0;
+    rightShoulderVelocityCouplingMatrix(0,2) =  0.0;
+    
+    rightShoulderVelocityCouplingMatrix(1,0) = -TRANSMISSION_RATIO_SHOULDER;
+    rightShoulderVelocityCouplingMatrix(1,1) =  TRANSMISSION_RATIO_SHOULDER;
+    rightShoulderVelocityCouplingMatrix(1,2) =  0.0;
+    
+    rightShoulderVelocityCouplingMatrix(2,0) = -TRANSMISSION_RATIO_SHOULDER;
+    rightShoulderVelocityCouplingMatrix(2,1) =  TRANSMISSION_RATIO_SHOULDER;
+    rightShoulderVelocityCouplingMatrix(2,2) =  TRANSMISSION_RATIO_SHOULDER;
+    
+    
+    rightShoulderTorqueCouplingMatrix = Matrix3d::Zero();
+    Matrix3d rightShoulderVelocityCouplingMatrixTranspose = rightShoulderVelocityCouplingMatrix.transpose();
+    rightShoulderTorqueCouplingMatrix = rightShoulderVelocityCouplingMatrixTranspose.inverse().eval();
+    
+    
+    Matrix3d torsoVelocityCouplingMatrixInverse = Matrix3d::Zero();
+    
+    torsoVelocityCouplingMatrixInverse(0,0) =  0.5; 
+    torsoVelocityCouplingMatrixInverse(0,1) = -0.5;
+    torsoVelocityCouplingMatrixInverse(0,2) =  0.0;
+    
+    torsoVelocityCouplingMatrixInverse(1,0) =  0.5;
+    torsoVelocityCouplingMatrixInverse(1,1) =  0.5; 
+    torsoVelocityCouplingMatrixInverse(1,2) =  0.0; 
+    
+    torsoVelocityCouplingMatrixInverse(2,0) =  0.5*PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
+    torsoVelocityCouplingMatrixInverse(2,1) =  0.5*PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
+    torsoVelocityCouplingMatrixInverse(2,2) =      PULLEY_RADIUS_ROLL_MOTOR/PULLEY_RADIUS_ROLL_JOINT;
+    
+    torsoTorqueCouplingMatrix   = torsoVelocityCouplingMatrixInverse.transpose();
+    torsoVelocityCouplingMatrix = torsoVelocityCouplingMatrixInverse.inverse().eval();
+        
+#endif
+    
+    
     return true;
 }
 
@@ -137,38 +217,155 @@ void jointTorqueControlThread::run()
 		
 		readRobotStatus(false);
         
+        wbi::LocalIdList jointList = robot->getJointList();
+        
 		for (int i=0; i < N_DOF; i++)
         {
-#ifdef IMPEDANCE_CONTROL
-            dqSign(i)       = fabs(dq(i))>coulombVelThr(i) ? sign(dq(i)) : pow(dq(i)/coulombVelThr(i),3);
-            tauD(i)         = ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i+6);
-            tauD(i)        += tauOffset(i) + tauSinAmpl(i)*sin(2*M_PI*tauSinFreq(i)*currentTime);
-
-			if (activeJoints(i) == 1) 
-#else /* IMPEDANCE_CONTROL */
+            
             dqSign(i) = fabs(dq(i))>coulombVelThr(i) ? sign(dq(i)) : pow(dq(i)/coulombVelThr(i),3);
-            //tauD(i)         = ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i+6);
+#ifdef IMPEDANCE_CONTROL
+            double error = qDes(i)-q(i);
+            double dumpingAndGrav =  gravityCompOn*tauGrav(i+6);
+            tauD(i)         = ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i+6);
+
+#else /* IMPEDANCE_CONTROL */
             tauD(i) = tauOffset(i);// + tauSinAmpl(i)*sin(2*M_PI*tauSinFreq(i)*currentTime);
             
-			if (activeJoints(i) == 1)
 #endif /* IMPEDANCE_CONTROL */
+            if (activeJoints(i) == 1)          
             {
-				etau(i) 			= tauM(i) - tauD(i);
-				integralState(i) 	= saturation(integralState(i) + ki(i)*dt*etau(i), TORQUE_INTEGRAL_SATURATION, -TORQUE_INTEGRAL_SATURATION) ;
-				tau(i) 				= tauD(i) - kp(i)*etau(i) - integralState(i);
+                etau(i)             = tauM(i) - tauD(i);
+                integralState(i)    = saturation(integralState(i) + ki(i)*dt*etau(i), TORQUE_INTEGRAL_SATURATION, -TORQUE_INTEGRAL_SATURATION) ;
+                tau(i)              = tauD(i) - kp(i)*etau(i) - integralState(i);
                 
-                if(dq(i)>0)
-                    motorVoltage(i) = kt(i)*tau(i) + kvp(i)*dq(i) + kcp(i)*dqSign(i);
+                wbi::LocalId lid = jointList.globalToLocalId(i);
+                tauMotor    = tau(i);
+                dqMotor     = dq(i);
+                dqSignMotor = dqSign(i);
+                
+                int torsoYawGID    = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 0));
+                int torsoRollGID   = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 1));
+                int torsoPitchGID  = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 2));
+                if (lid.bodyPart == iCub::skinDynLib::TORSO)
+                {
+//                     cout << "In TORSO handeler \n";
+                    if (i == torsoYawGID)
+                    {
+                        tauMotor = torsoTorqueCouplingMatrix(0,0)  * tau(i) +  torsoTorqueCouplingMatrix(0,1)  * tau(i+1) + torsoTorqueCouplingMatrix(0,2)  * tau(i+2);
+                        dqMotor  = torsoVelocityCouplingMatrix(0,0) * dq(i) +  torsoVelocityCouplingMatrix(0,1) * dq(i+1) + torsoVelocityCouplingMatrix(0,2) * dq(i+2);
+                        dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3); 
+//                         cout << "Motor 1 \n";
+                    }
+                    if (i == torsoRollGID)
+                    {
+                        tauMotor = torsoTorqueCouplingMatrix(1,0)  * tau(i-1) +  torsoTorqueCouplingMatrix(1,1)  * tau(i) + torsoTorqueCouplingMatrix(1,2)  * tau(i+1);
+                        dqMotor  = torsoVelocityCouplingMatrix(1,0) * dq(i-1) +  torsoVelocityCouplingMatrix(1,1) * dq(i) + torsoVelocityCouplingMatrix(1,2) * dq(i+1);
+                        dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
+//                         cout << "Motor 2 \n";
+                    }
+                    if (i == torsoPitchGID)
+                    {
+                        tauMotor = torsoTorqueCouplingMatrix(2,0)  * tau(i-2) +  torsoTorqueCouplingMatrix(2,1)  * tau(i-1) + torsoTorqueCouplingMatrix(2,2)  * tau(i);
+                        dqMotor  = torsoVelocityCouplingMatrix(2,0) * dq(i-2) +  torsoVelocityCouplingMatrix(2,1) * dq(i-1) + torsoVelocityCouplingMatrix(2,2) * dq(i);
+                        dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
+//                         cout << "Motor 3 \n";
+                    }
+                }
+                if (lid.bodyPart == iCub::skinDynLib::LEFT_ARM) {
+                    int leftShoulderPitchGID = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 0));
+                    int leftShoulderRollGID  = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 1));
+                    int leftShoulderYawGID   = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 2));
+                    if (i == leftShoulderPitchGID)
+                    {
+//                         cout << "In Left shoulder pitch handeler \n";
+                        tauMotor = leftShoulderTorqueCouplingMatrix(0,0)  * tau(i) +  leftShoulderTorqueCouplingMatrix(0,1)  * tau(i+1) + leftShoulderTorqueCouplingMatrix(0,2)  * tau(i+2);
+                        dqMotor  = leftShoulderVelocityCouplingMatrix(0,0) * dq(i) +  leftShoulderVelocityCouplingMatrix(0,1) * dq(i+1) + leftShoulderVelocityCouplingMatrix(0,2) * dq(i+2);
+                        dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
+                    }
+                    if (i == leftShoulderRollGID)
+                    {
+//                         cout << "In Left shoulder roll handeler \n";
+                        tauMotor = leftShoulderTorqueCouplingMatrix(1,0)  * tau(i-1) +  leftShoulderTorqueCouplingMatrix(1,1)  * tau(i) + leftShoulderTorqueCouplingMatrix(1,2)  * tau(i+1);
+                        dqMotor  = leftShoulderVelocityCouplingMatrix(1,0) * dq(i-1) +  leftShoulderVelocityCouplingMatrix(1,1) * dq(i) + leftShoulderVelocityCouplingMatrix(1,2) * dq(i+1);
+                        dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
+                    }
+                    if (i == leftShoulderYawGID)
+                    {
+//                         cout << "In Left shoulder yaw handeler \n";
+                        tauMotor = leftShoulderTorqueCouplingMatrix(2,0)  * tau(i-2) +  leftShoulderTorqueCouplingMatrix(2,1)  * tau(i-1) + leftShoulderTorqueCouplingMatrix(2,2)  * tau(i);
+                        dqMotor  = leftShoulderVelocityCouplingMatrix(2,0) * dq(i-2) +  leftShoulderVelocityCouplingMatrix(2,1) * dq(i-1) + leftShoulderVelocityCouplingMatrix(2,2) * dq(i);
+                        dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
+                    }
+                }
+                if (lid.bodyPart == iCub::skinDynLib::RIGHT_ARM) {
+                    int rightShoulderPitchGID = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 0));
+                    int rightShoulderRollGID  = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 1));
+                    int rightShoulderYawGID   = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 2));
+//                     cout << "In RIGHT SHOULDER handeler \n";
+                    if (i == rightShoulderPitchGID)
+                    {
+//                         cout << "In Right shoulder pitch handeler \n";
+                        tauMotor = rightShoulderTorqueCouplingMatrix(0,0)  * tau(i) +  rightShoulderTorqueCouplingMatrix(0,1)  * tau(i+1) + rightShoulderTorqueCouplingMatrix(0,2)  * tau(i+2);
+                        dqMotor  = rightShoulderVelocityCouplingMatrix(0,0) * dq(i) +  rightShoulderVelocityCouplingMatrix(0,1) * dq(i+1) + rightShoulderVelocityCouplingMatrix(0,2) * dq(i+2);
+                        dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
+                    }
+                    if (i == rightShoulderRollGID)
+                    {
+//                         cout << "In Right shoulder roll handeler \n";
+                        tauMotor = rightShoulderTorqueCouplingMatrix(1,0)  * tau(i-1) +   rightShoulderTorqueCouplingMatrix(1,1) * tau(i) + rightShoulderTorqueCouplingMatrix(1,2)  * tau(i+1);
+                        dqMotor  = rightShoulderVelocityCouplingMatrix(1,0) * dq(i-1) +  rightShoulderVelocityCouplingMatrix(1,1) * dq(i) + rightShoulderVelocityCouplingMatrix(1,2) * dq(i+1);
+                        dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
+                    }
+                    if (i == rightShoulderYawGID)
+                    {
+//                         cout << "In Right shoulder yaw handeler \n";
+                        tauMotor = rightShoulderTorqueCouplingMatrix(2,0)  * tau(i-2) +  rightShoulderTorqueCouplingMatrix(2,1)  * tau(i-1) + rightShoulderTorqueCouplingMatrix(2,2)  * tau(i);
+                        dqMotor  = rightShoulderVelocityCouplingMatrix(2,0) * dq(i-2) +  rightShoulderVelocityCouplingMatrix(2,1) * dq(i-1) + rightShoulderVelocityCouplingMatrix(2,2) * dq(i);
+                        dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
+                    }
+                }
+                
+                //These three lines should be moved into a callback /setter of frictionCompensationFactor
+                if (frictionCompensationFactor < 0 || frictionCompensationFactor > 1) {
+                    frictionCompensationFactor = 0; //Safest thing: do not compensate for friction
+                }
+                
+                if(dqMotor>0)
+                    motorVoltage(i) = kt(i)*tauMotor + frictionCompensationFactor * kvp(i)*dqMotor + frictionCompensationFactor * kcp(i)*dqSignMotor;
                 else
-                    motorVoltage(i) = kt(i)*tau(i) + kvn(i)*dq(i) + kcn(i)*dqSign(i);
+                    motorVoltage(i) = kt(i)*tauMotor + frictionCompensationFactor * kvn(i)*dqMotor + frictionCompensationFactor * kcn(i)*dqSignMotor;
+                Voltage = motorVoltage(i);
+                if (lid.bodyPart == iCub::skinDynLib::TORSO)
+                {
+//                     cout << "In torso handler \n"; 
+                    if (i == torsoYawGID)
+                    {
+                        Voltage = motorVoltage(i) - motorVoltage(i+1);
+                    }
+                    if (i == torsoRollGID)
+                    {
+                        Voltage = motorVoltage(i-1) + motorVoltage(i);                        
+                    }
+                }
                 if (sendCommands == SEND_COMMANDS_ACTIVE) 
                 {
-                    robot->setControlReference(&motorVoltage(i), i);
+//                     cout << "Sending PWM" << "\n";
+                    robot->setControlReference(&Voltage, i);
                     //robot->setControlParam(wbi::CTRL_PARAM_OFFSET, &motorVoltage(i), i);
                 }
+//                 cout << "desiredJointTorque"  << i << " = " << tauD(i) << "\n \n";
+//                 cout << "JointTorque = " << tau(i) << "\n";
+//                 cout << "tauMotor" << i << tauMotor << "\n";
+//                 cout << "kt = " << kt(i) << "\n";  
+//                 cout << "ks = " << ks(i) << "\n";  
+//                 cout << "error = " << error << "\n";  
+//                 cout << "Motor" << i << "\n";
+//                 cout << "tauMotor" << i << " = " << tauMotor << "\n";
+//                 cout << "dqMotor = " << dqMotor << "\n";  
+//                 cout << "motorVoltageRead" << i << " = " <<  pwmMeas(i);
+//                 cout << " motorVoltageSet" << i << "  = " << (int) motorVoltage(i) << "\n \n";
             }
         }
-
         oldTime = currentTime;
     }
     
@@ -304,18 +501,32 @@ bool jointTorqueControlThread::activeJointsChanged()
 void jointTorqueControlThread::prepareMonitorData()
 {
     int j = monitoredJointId;
+//     cout << j;
+    monitor.tauMeas         = tauM(j);
+    monitor.tauDes          = tauD(j);
+    monitor.tauMeas1        = tauM(j+1);
+    monitor.tauDes1         = tauD(j+1);
+    monitor.tauMeas2        = tauM(j+2);
+    monitor.tauDes2         = tauD(j+2);
+    monitor.tadDesPlusPI    = tau(j);
+    double NormSquareTorqueError = 0;
+    for(int i=0; i<N_DOF; i++)
+    {
+        if(activeJoints(i) == 1 )    
+        {
+            NormSquareTorqueError += etau(i)*etau(i);
+        }
+    }
+    monitor.tauErr          = sqrt(NormSquareTorqueError);
     monitor.q               = q(j);
     monitor.qDes            = qDes(j);
     monitor.dq              = dq(j);
     monitor.dqSign          = dqSign(j);
-    monitor.tauMeas         = tauM(j);
-    monitor.tauDes          = tauD(j);
-    monitor.tadDesPlusPI    = tau(j);
-    monitor.tauErr          = etau(j);
+    
     monitor.pwmDes          = motorVoltage(j);
     monitor.pwmMeas         = pwmMeas(j);
     monitor.pwmTorqueFF     = kt(j)*tauD(j);
-    monitor.pwmFrictionFF   = dq(j)>0 ? kvp(j)*dq(j) + kcp(j)*dqSign(j) : kvn(j)*dq(j) + kcn(j)*dqSign(j);
+    monitor.pwmFrictionFF   = dq(j)>0 ? frictionCompensationFactor *kvp(j)*dq(j) + frictionCompensationFactor *kcp(j)*dqSign(j) : frictionCompensationFactor *kvn(j)*dq(j) + frictionCompensationFactor *kcn(j)*dqSign(j);
     monitor.pwmFF           = monitor.pwmTorqueFF + monitor.pwmFrictionFF;
     monitor.pwmFB           = -kt(j)*(kp(j)*etau(j) + integralState(j));
 }

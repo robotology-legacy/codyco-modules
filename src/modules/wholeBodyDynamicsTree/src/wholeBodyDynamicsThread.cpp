@@ -89,7 +89,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        PRINT_PERIOD(2000),
        icub_version(_icub_version),
        icub_model_calibration(_icub_version),
-       max_samples_used_for_calibration(50),
+       max_samples_used_for_calibration(1000),
        samples_used_for_calibration(0)
     {
     

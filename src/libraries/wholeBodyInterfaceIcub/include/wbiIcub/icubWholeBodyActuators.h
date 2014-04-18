@@ -75,6 +75,7 @@ namespace wbiIcub
 
         // yarp drivers
         std::map<int, yarp::dev::IPositionControl*>     ipos;
+        std::map<int, yarp::dev::IPositionDirect*>      positionDirectInterface;
         std::map<int, yarp::dev::ITorqueControl*>       itrq;
         std::map<int, yarp::dev::IImpedanceControl*>    iimp;
         std::map<int, yarp::dev::IControlMode*>         icmd;
