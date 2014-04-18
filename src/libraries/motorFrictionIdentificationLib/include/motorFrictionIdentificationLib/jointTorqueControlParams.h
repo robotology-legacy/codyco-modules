@@ -59,7 +59,7 @@ static const VectorNd	DEFAULT_COULOMB_VEL_THR	    = VectorNd::Constant(5.0);
 
 static const VectorNd	DEFAULT_TAUD			= VectorNd::Constant(0.0);
     
-static const double     DEFAULT_FRICTION_COMPENSATION = 1;
+static const double     DEFAULT_FRICTION_COMPENSATION = 0;
 
 static const VectorNd	DEFAULT_VMAX			= VectorNd::Constant(100.0);
 static const double		KT_MAX 		         	= 100.0;     
