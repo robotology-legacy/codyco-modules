@@ -100,6 +100,7 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     VectorNd	etau;			// Errors between actual and desired torques 
     VectorNd	tau;			// Vector of nDOF floats representing the desired torques plus the PI terms
 
+    double      frictionCompensationFactor;
     int			sendCommands;
     int         gravityCompOn;  // 1 if gravity compensation is on, 0 otherwise
 	string      monitoredJointName;     ///< name of the monitored joint

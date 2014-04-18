@@ -57,7 +57,9 @@ static const VectorNd	DEFAULT_KI				    = VectorNd::Constant(0.0);
 static const VectorNd	DEFAULT_KP				    = VectorNd::Constant(0.0);  
 static const VectorNd	DEFAULT_COULOMB_VEL_THR	    = VectorNd::Constant(5.0);
 
-static const VectorNd	DEFAULT_TAUD			= VectorNd::Constant(0.0);  
+static const VectorNd	DEFAULT_TAUD			= VectorNd::Constant(0.0);
+    
+static const double     DEFAULT_FRICTION_COMPENSATION = 1;
 
 static const VectorNd	DEFAULT_VMAX			= VectorNd::Constant(100.0);
 static const double		KT_MAX 		         	= 100.0;     
@@ -72,7 +74,8 @@ static const double		V_MAX 	       		  	= 100.0;
 static const double		TAUD_MIN          		= -10.0;     
 static const double		TAUD_MAX 	        	= 10.0;  
 static const double		VM_MIN          		= -1333.0;     
-static const double		VM_MAX	 	        	= 1333.0;       
+static const double		VM_MAX	 	        	= 1333.0;
+    
 
 
 // *** IDs of all the module parameters
@@ -84,7 +87,7 @@ enum jointTorqueControlParamId {
     PARAM_ID_KI,	        PARAM_ID_KP,	            PARAM_ID_COULOMB_VEL_THR,
     PARAM_ID_VMAX,	        PARAM_ID_SENDCMD,           PARAM_ID_MONITORED_JOINT,
     PARAM_ID_KS,            PARAM_ID_KD,                PARAM_ID_GRAV_COMP_ON,
-    PARAM_ID_Q_DES,
+    PARAM_ID_Q_DES, PARAM_ID_FRICTION_COMPENSATION,
     /* STREAMING INPUT PARAMETERS */
     PARAM_ID_TAU_OFFSET,    PARAM_ID_TAU_SIN_AMPL,      PARAM_ID_TAU_SIN_FREQ,
     /* STREAMING OUTPUT PARAMETERS */
@@ -127,7 +130,8 @@ new ParamProxyBasic<string>("monitored joint",     	PARAM_ID_MONITORED_JOINT,	1,
 new ParamProxyBasic<double>("ks",          	        PARAM_ID_KS,				N_DOF,		ParamBilatBounds<double>(0.0, 100.0),		    PARAM_IN_OUT,       DEFAULT_ZEROS_NDOF.data(),		"Joint stiffnesses"), 
 new ParamProxyBasic<double>("kd",          	        PARAM_ID_KD,				N_DOF,		ParamBilatBounds<double>(0.0, 100.0),		    PARAM_IN_OUT,       DEFAULT_ZEROS_NDOF.data(),		"Joint dampings"), 
 new ParamProxyBasic<int>(   "grav comp on",         PARAM_ID_GRAV_COMP_ON,		1,		    ParamBilatBounds<int>(0, 1),		            PARAM_IN_OUT,       &DEFAULT_GRAV_COMP_ON,		    "1 if gravity compensation is on, 0 otherwise"), 
-new ParamProxyBasic<double>("qDes",          	    PARAM_ID_Q_DES,				N_DOF,		ParamBilatBounds<double>(-180.0, 180.0),		PARAM_IN_OUT,       DEFAULT_ZEROS_NDOF.data(),		"Desired joint angles"), 
+new ParamProxyBasic<double>("qDes",          	    PARAM_ID_Q_DES,				N_DOF,		ParamBilatBounds<double>(-180.0, 180.0),		PARAM_IN_OUT,       DEFAULT_ZEROS_NDOF.data(),		"Desired joint angles"),
+new ParamProxyBasic<double>("fcomp",          	    PARAM_ID_FRICTION_COMPENSATION, 1,		ParamBilatBounds<double>(0, 1.0),		PARAM_IN_OUT,       &DEFAULT_FRICTION_COMPENSATION,		"Viscous friction compensation factor (from 0.0 to 1.0)"),
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("tauOffset",        	PARAM_ID_TAU_OFFSET,        N_DOF,      ParamBilatBounds<double>(TAUD_MIN, TAUD_MAX),   PARAM_IN_STREAM,    DEFAULT_TAUD.data(),			"Constant offset added to the desired joint torques"),
 new ParamProxyBasic<double>("tauSinAmpl",        	PARAM_ID_TAU_SIN_AMPL,      N_DOF,      ParamBilatBounds<double>(0.0, TAUD_MAX),        PARAM_IN_STREAM,    DEFAULT_ZEROS_NDOF.data(),		"Amplitudes of the sinusoidal signals that are added to the desired joint torques"),
