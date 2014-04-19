@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.123"
+    ComputedModelVersion    "1.124"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -28,9 +28,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Mar 10 10:51:02 2014"
-  RTWModifiedTimeStamp	  316349372
-  ModelVersionFormat	  "1.%<AutoIncrement:123>"
+  LastModifiedDate	  "Sat Apr 19 11:13:38 2014"
+  RTWModifiedTimeStamp	  319806816
+  ModelVersionFormat	  "1.%<AutoIncrement:124>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -67,7 +67,6 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "computeDx"
-    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -673,6 +672,11 @@ Model {
       BusSelectionMode	      off
     }
     Block {
+      BlockType		      From
+      IconDisplay	      "Tag"
+      TagVisibility	      "local"
+    }
+    Block {
       BlockType		      Gain
       Gain		      "1"
       Multiplication	      "Element-wise(K.*u)"
@@ -686,6 +690,10 @@ Model {
       RndMeth		      "Floor"
       SaturateOnIntegerOverflow	on
       SampleTime	      "-1"
+    }
+    Block {
+      BlockType		      Goto
+      IconDisplay	      "Tag"
     }
     Block {
       BlockType		      Inport
@@ -704,6 +712,14 @@ Model {
       LatchByDelayingOutsideSignal off
       LatchInputForFeedbackSignals off
       Interpolate	      on
+    }
+    Block {
+      BlockType		      Mux
+      Inputs		      "4"
+      DisplayOption	      "none"
+      UseBusObject	      off
+      BusObject		      "BusObject"
+      NonVirtualBus	      off
     }
     Block {
       BlockType		      Outport
@@ -774,7 +790,7 @@ Model {
   }
   System {
     Name		    "computeDx"
-    Location		    [1, 96, 939, 824]
+    Location		    [327, 50, 1265, 778]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -788,7 +804,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "369"
+    SIDHighWatermark	    "389"
     Block {
       BlockType		      Constant
       Name		      "Constant"
@@ -848,6 +864,34 @@ Model {
       DoSatur		      off
     }
     Block {
+      BlockType		      From
+      Name		      "From2"
+      SID		      "386"
+      Position		      [200, 261, 240, 289]
+      GotoTag		      "q"
+    }
+    Block {
+      BlockType		      From
+      Name		      "From3"
+      SID		      "387"
+      Position		      [200, 326, 240, 354]
+      GotoTag		      "q"
+    }
+    Block {
+      BlockType		      From
+      Name		      "From4"
+      SID		      "388"
+      Position		      [255, 281, 295, 309]
+      GotoTag		      "dq"
+    }
+    Block {
+      BlockType		      From
+      Name		      "From6"
+      SID		      "389"
+      Position		      [255, 346, 295, 374]
+      GotoTag		      "dq"
+    }
+    Block {
       BlockType		      Gain
       Name		      "Gain"
       SID		      "347"
@@ -860,6 +904,45 @@ Model {
       SaturateOnIntegerOverflow	off
     }
     Block {
+      BlockType		      Goto
+      Name		      "Goto"
+      SID		      "370"
+      Position		      [250, 430, 290, 460]
+      GotoTag		      "q"
+      TagVisibility	      "local"
+    }
+    Block {
+      BlockType		      Goto
+      Name		      "Goto1"
+      SID		      "371"
+      Position		      [245, 505, 285, 535]
+      GotoTag		      "dq"
+      TagVisibility	      "local"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "Joint Angles"
+      SID		      "372"
+      Ports		      [0, 1]
+      Position		      [80, 423, 150, 467]
+      ZOrder		      -1
+      BackgroundColor	      "[0.375000, 0.187500, 0.000000]"
+      LibraryVersion	      "1.33"
+      SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Angles"
+      SourceType	      ""
+      ShowPortLabels	      "FromPortIcon"
+      SystemSampleTime	      "-1"
+      FunctionWithSeparateData off
+      RTWMemSecFuncInitTerm   "Inherit from model"
+      RTWMemSecFuncExecute    "Inherit from model"
+      RTWMemSecDataConstants  "Inherit from model"
+      RTWMemSecDataInternal   "Inherit from model"
+      RTWMemSecDataParameters "Inherit from model"
+      GeneratePreprocessorConditionals off
+      robotName		      "robotName"
+      localName		      "localName"
+    }
+    Block {
       BlockType		      Reference
       Name		      "Joint Velocities"
       SID		      "318"
@@ -867,7 +950,30 @@ Model {
       Position		      [340, 168, 410, 212]
       ZOrder		      -2
       BackgroundColor	      "[0.732000, 0.463600, 0.000000]"
-      LibraryVersion	      "1.238"
+      LibraryVersion	      "1.33"
+      SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Velocities"
+      SourceType	      ""
+      ShowPortLabels	      "FromPortIcon"
+      SystemSampleTime	      "-1"
+      FunctionWithSeparateData off
+      RTWMemSecFuncInitTerm   "Inherit from model"
+      RTWMemSecFuncExecute    "Inherit from model"
+      RTWMemSecDataConstants  "Inherit from model"
+      RTWMemSecDataInternal   "Inherit from model"
+      RTWMemSecDataParameters "Inherit from model"
+      GeneratePreprocessorConditionals off
+      robotName		      "robotName"
+      localName		      "localName"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "Joint Velocities1"
+      SID		      "373"
+      Ports		      [0, 1]
+      Position		      [80, 498, 150, 542]
+      ZOrder		      -2
+      BackgroundColor	      "[0.634000, 0.401533, 0.000000]"
+      LibraryVersion	      "1.33"
       SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Velocities"
       SourceType	      ""
       ShowPortLabels	      "FromPortIcon"
@@ -890,7 +996,7 @@ Model {
       Position		      [340, 23, 405, 67]
       ZOrder		      -1
       BackgroundColor	      "[0.047000, 0.909000, 0.803000]"
-      LibraryVersion	      "1.238"
+      LibraryVersion	      "1.33"
       SourceBlock	      "WBCLibrary/wholeBodyModel/Jacobians/Left Foot Jacobian"
       SourceType	      ""
       ShowPortLabels	      "FromPortIcon"
@@ -929,7 +1035,7 @@ Model {
       Position		      [340, 88, 410, 132]
       ZOrder		      -2
       BackgroundColor	      "[0.000000, 1.000000, 0.533000]"
-      LibraryVersion	      "1.238"
+      LibraryVersion	      "1.33"
       SourceBlock	      "WBCLibrary/wholeBodyModel/Jacobians/Right Foot Jacobian"
       SourceType	      ""
       ShowPortLabels	      "FromPortIcon"
@@ -951,8 +1057,8 @@ Model {
       Ports		      [6]
       Position		      [845, 256, 875, 289]
       Floating		      off
-      Location		      [-1262, 142, -30, 870]
-      Open		      on
+      Location		      [2, 71, 1234, 799]
+      Open		      off
       NumInputPorts	      "6"
       ZoomMode		      "yonly"
       List {
@@ -976,8 +1082,8 @@ Model {
       Ports		      [6]
       Position		      [860, 206, 890, 239]
       Floating		      off
-      Location		      [1, 71, 1233, 799]
-      Open		      on
+      Location		      [2, 71, 1234, 799]
+      Open		      off
       NumInputPorts	      "6"
       ZoomMode		      "yonly"
       List {
@@ -1002,7 +1108,7 @@ Model {
       Ports		      [1]
       Position		      [620, 438, 690, 482]
       BackgroundColor	      "[0.941000, 0.415000, 0.192000]"
-      LibraryVersion	      "1.238"
+      LibraryVersion	      "1.33"
       SourceBlock	      "WBCLibrary/wholeBodyActuators/Set Torques"
       SourceType	      ""
       ShowPortLabels	      "FromPortIcon"
@@ -1020,24 +1126,12 @@ Model {
     }
     Block {
       BlockType		      Reference
-      Name		      "Soft Real Time"
-      SID		      "18"
-      Ports		      []
-      Position		      [197, 94, 266, 137]
-      ShowName		      off
-      LibraryVersion	      "1.7"
-      SourceBlock	      "utility/Soft Real Time"
-      SourceType	      ""
-      x			      "1"
-    }
-    Block {
-      BlockType		      Reference
       Name		      "baseVelocity"
       SID		      "341"
-      Ports		      [3, 2]
+      Ports		      [3, 1]
       Position		      [655, 73, 765, 117]
       BackgroundColor	      "[0.753334, 1.000000, 0.112472]"
-      LibraryVersion	      "1.238"
+      LibraryVersion	      "1.33"
       SourceBlock	      "WBCLibrary/Utilities/baseVelocity"
       SourceType	      "baseVelocity"
       ShowPortLabels	      "FromPortIcon"
@@ -1234,10 +1328,10 @@ Model {
       BlockType		      Reference
       Name		      "dJ*dq LeftFoot"
       SID		      "316"
-      Ports		      [0, 1]
+      Ports		      [2, 1]
       Position		      [340, 263, 410, 307]
       BackgroundColor	      "[0.662196, 0.000000, 1.000000]"
-      LibraryVersion	      "1.238"
+      LibraryVersion	      "1.33"
       SourceBlock	      "WBCLibrary/wholeBodyModel/Dynamics/dJ*dq LeftFoot"
       SourceType	      ""
       ShowPortLabels	      "FromPortIcon"
@@ -1257,10 +1351,10 @@ Model {
       BlockType		      Reference
       Name		      "dJ*dq RightFoot"
       SID		      "315"
-      Ports		      [0, 1]
+      Ports		      [2, 1]
       Position		      [340, 328, 405, 372]
       BackgroundColor	      "[0.501000, 0.015000, 0.850000]"
-      LibraryVersion	      "1.238"
+      LibraryVersion	      "1.33"
       SourceBlock	      "WBCLibrary/wholeBodyModel/Dynamics/dJ*dq RightFoot"
       SourceType	      ""
       ShowPortLabels	      "FromPortIcon"
@@ -1275,6 +1369,255 @@ Model {
       val		      "9"
       robotName		      "robotName"
       localName		      "localName"
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "dqb + dqj"
+      SID		      "374"
+      Ports		      [1, 1]
+      Position		      [170, 503, 220, 537]
+      ZOrder		      -26
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      Opaque		      off
+      RequestExecContextInheritance off
+      MaskHideContents	      off
+      System {
+	Name			"dqb + dqj"
+	Location		[521, 727, 1078, 1088]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"usletter"
+	PaperUnits		"inches"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+	Block {
+	  BlockType		  Inport
+	  Name			  "dqj"
+	  SID			  "375"
+	  Position		  [280, 148, 310, 162]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "Left Foot Jacobian"
+	  SID			  "376"
+	  Ports			  [0, 1]
+	  Position		  [65, 93, 140, 137]
+	  ZOrder		  -1
+	  BackgroundColor	  "[0.047000, 0.909000, 0.803000]"
+	  SourceBlock		  "WBCLibrary/wholeBodyModel/Jacobians/Left Foot Jacobian"
+	  SourceType		  "Unknown"
+	  ShowPortLabels	  "FromPortIcon"
+	  SystemSampleTime	  "-1"
+	  FunctionWithSeparateData off
+	  RTWMemSecFuncInitTerm	  "Inherit from model"
+	  RTWMemSecFuncExecute	  "Inherit from model"
+	  RTWMemSecDataConstants  "Inherit from model"
+	  RTWMemSecDataInternal	  "Inherit from model"
+	  RTWMemSecDataParameters "Inherit from model"
+	  GeneratePreprocessorConditionals off
+	  robotName		  "robotName"
+	  localName		  "localName"
+	}
+	Block {
+	  BlockType		  Mux
+	  Name			  "Mux"
+	  SID			  "377"
+	  Ports			  [2, 1]
+	  Position		  [345, 111, 350, 149]
+	  ZOrder		  -12
+	  ShowName		  off
+	  Inputs		  "2"
+	  DisplayOption		  "bar"
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "Right Foot Jacobian"
+	  SID			  "378"
+	  Ports			  [0, 1]
+	  Position		  [70, 28, 140, 72]
+	  ZOrder		  -2
+	  BackgroundColor	  "[0.000000, 1.000000, 0.533000]"
+	  SourceBlock		  "WBCLibrary/wholeBodyModel/Jacobians/Right Foot Jacobian"
+	  SourceType		  "Unknown"
+	  ShowPortLabels	  "FromPortIcon"
+	  SystemSampleTime	  "-1"
+	  FunctionWithSeparateData off
+	  RTWMemSecFuncInitTerm	  "Inherit from model"
+	  RTWMemSecFuncExecute	  "Inherit from model"
+	  RTWMemSecDataConstants  "Inherit from model"
+	  RTWMemSecDataInternal	  "Inherit from model"
+	  RTWMemSecDataParameters "Inherit from model"
+	  GeneratePreprocessorConditionals off
+	  robotName		  "robotName"
+	  localName		  "localName"
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "baseVelocity"
+	  SID			  "379"
+	  Ports			  [3, 1]
+	  Position		  [180, 68, 290, 112]
+	  ZOrder		  -14
+	  BackgroundColor	  "[0.753334, 1.000000, 0.112472]"
+	  SourceBlock		  "WBCLibrary/Utilities/baseVelocity"
+	  SourceType		  "baseVelocity"
+	  ShowPortLabels	  "FromPortIcon"
+	  SystemSampleTime	  "-1"
+	  FunctionWithSeparateData off
+	  RTWMemSecFuncInitTerm	  "Inherit from model"
+	  RTWMemSecFuncExecute	  "Inherit from model"
+	  RTWMemSecDataConstants  "Inherit from model"
+	  RTWMemSecDataInternal	  "Inherit from model"
+	  RTWMemSecDataParameters "Inherit from model"
+	  GeneratePreprocessorConditionals off
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "dq"
+	  SID			  "380"
+	  Position		  [375, 123, 405, 137]
+	  ZOrder		  -15
+	  IconDisplay		  "Port number"
+	}
+	Line {
+	  SrcBlock		  "Left Foot Jacobian"
+	  SrcPort		  1
+	  Points		  [10, 0; 0, -25]
+	  DstBlock		  "baseVelocity"
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "Right Foot Jacobian"
+	  SrcPort		  1
+	  Points		  [10, 0; 0, 25]
+	  DstBlock		  "baseVelocity"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "baseVelocity"
+	  SrcPort		  1
+	  Points		  [35, 0]
+	  DstBlock		  "Mux"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "dqj"
+	  SrcPort		  1
+	  Points		  [15, 0]
+	  Branch {
+	    Points		    [0, 55; -165, 0]
+	    DstBlock		    "baseVelocity"
+	    DstPort		    3
+	  }
+	  Branch {
+	    DstBlock		    "Mux"
+	    DstPort		    2
+	  }
+	}
+	Line {
+	  SrcBlock		  "Mux"
+	  SrcPort		  1
+	  DstBlock		  "dq"
+	  DstPort		  1
+	}
+      }
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "qb + qj"
+      SID		      "381"
+      Ports		      [1, 1]
+      Position		      [170, 429, 220, 461]
+      ZOrder		      -27
+      NamePlacement	      "alternate"
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      Opaque		      off
+      RequestExecContextInheritance off
+      MaskHideContents	      off
+      System {
+	Name			"qb + qj"
+	Location		[1085, 441, 1519, 801]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"usletter"
+	PaperUnits		"inches"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+	Block {
+	  BlockType		  Inport
+	  Name			  "qj"
+	  SID			  "382"
+	  Position		  [30, 68, 60, 82]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Constant
+	  Name			  "Constant1"
+	  SID			  "383"
+	  Position		  [30, 25, 60, 55]
+	  ZOrder		  -4
+	  ShowName		  off
+	  Value			  "[1 0 0 0, 0 1 0 0, 0 0 1 0, 0 0 0 1]"
+	}
+	Block {
+	  BlockType		  Mux
+	  Name			  "Mux"
+	  SID			  "384"
+	  Ports			  [2, 1]
+	  Position		  [95, 41, 100, 79]
+	  ZOrder		  -12
+	  ShowName		  off
+	  Inputs		  "2"
+	  DisplayOption		  "bar"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "q"
+	  SID			  "385"
+	  Position		  [125, 53, 155, 67]
+	  ZOrder		  -13
+	  IconDisplay		  "Port number"
+	}
+	Line {
+	  SrcBlock		  "Mux"
+	  SrcPort		  1
+	  DstBlock		  "q"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "qj"
+	  SrcPort		  1
+	  Points		  [5, 0; 0, -5]
+	  DstBlock		  "Mux"
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "Constant1"
+	  SrcPort		  1
+	  Points		  [15, 0]
+	  DstBlock		  "Mux"
+	  DstPort		  1
+	}
+      }
     }
     Line {
       SrcBlock		      "Left Foot Jacobian"
@@ -1451,7 +1794,7 @@ Model {
     Line {
       SrcBlock		      "baseVelocity"
       SrcPort		      1
-      Points		      [10, 0; 0, 140]
+      Points		      [10, 0; 0, 130]
       DstBlock		      "Demux1"
       DstPort		      1
     }
@@ -1460,6 +1803,54 @@ Model {
       SrcPort		      2
       DstBlock		      "Demux"
       DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Joint Angles"
+      SrcPort		      1
+      DstBlock		      "qb + qj"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Joint Velocities1"
+      SrcPort		      1
+      DstBlock		      "dqb + dqj"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "qb + qj"
+      SrcPort		      1
+      DstBlock		      "Goto"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "dqb + dqj"
+      SrcPort		      1
+      DstBlock		      "Goto1"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "From2"
+      SrcPort		      1
+      DstBlock		      "dJ*dq LeftFoot"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "From3"
+      SrcPort		      1
+      DstBlock		      "dJ*dq RightFoot"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "From4"
+      SrcPort		      1
+      DstBlock		      "dJ*dq LeftFoot"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "From6"
+      SrcPort		      1
+      DstBlock		      "dJ*dq RightFoot"
+      DstPort		      2
     }
   }
 }
