@@ -146,7 +146,7 @@ block.NumDworks = 1;
 function InitializeConditions(block)
 
 %compute friction cones contraints
-staticFrictionCoefficient = 0.001745331024189;
+staticFrictionCoefficient = 0.45;
 %approximation with straight lines
 numberOfPoints = 2; %number of points in a quadrant
 
@@ -263,15 +263,39 @@ bineq = zeros(2 * numberOfEquations, 1);
 lb = -Inf * ones(12,1);
 lb(3) = 0;
 lb(9) = 0;
+ub = [];
+x0 = [];%- pinv(A)*(-hDotDes + grav);
+% ub = 1e+4 * ones(12, 1);
 
 % [optForces, objVal, exitFlag, output, lambda] = ...
-optForces = ...
+[optForces, ~, ~, ~, ~] = ...
 quadprog(quadraticTerm, linearTerm, ...
           Aineq, bineq, ... %inequalities
           [], [], ... %equalities
-          lb, [], ... %bounds
-          [],     ... %initial solution
+          lb, ub, ... %bounds
+          x0,     ... %initial solution
           opts);
+
+% options = qpOASES_options( 'reliable','enableFarBounds',1, 'enableFlippingBounds', 1, 'enableRegularisation', 0);
+% [x,fval,exitflag,iter,lambda,workingSet] = ...
+% qpOASES( quadraticTerm,linearTerm,[],[],options);
+% [exitflag, iter]
+% [x, optForces]
+% [fval, objVal]
+% 
+% eigenvalues = eig(quadraticTerm);
+% if (any(eigenvalues) < 0)
+%     eigenvalues 
+% end
+% 
+% if (exitFlag ~= 1)
+%     eigenvalues
+%     [exitFlag , objVal]
+%    optForces
+%    A
+%    (-hDotDes + grav)
+% end
+      
         
 block.OutputPort(1).Data = optForces;
 

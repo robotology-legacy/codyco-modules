@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.678"
+    ComputedModelVersion    "1.682"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -31,7 +31,7 @@ Model {
       $ObjectID		      2
       $ClassName	      "Simulink.WindowInfo"
       IsActive		      [1]
-      Location		      [1450.0, 22.0, 908.0, 517.0]
+      Location		      [1450.0, 22.0, 1509.0, 885.0]
       Object {
 	$PropName		"ModelBrowserInfo"
 	$ObjectID		3
@@ -48,16 +48,28 @@ Model {
 	$ClassName		"Simulink.ExplorerBarInfo"
 	Visible			[1]
       }
-      Object {
-	$PropName		"EditorsInfo"
-	$ObjectID		5
-	$ClassName		"Simulink.EditorInfo"
-	IsActive		[1]
-	ViewObjType		"SimulinkSubsys"
-	LoadSaveID		"61"
-	Extents			[684.0, 346.0]
-	ZoomFactor		[1.0]
-	Offset			[0.0, 0.0]
+      Array {
+	Type			"Simulink.EditorInfo"
+	Dimension		2
+	Object {
+	  $ObjectID		  5
+	  IsActive		  [1]
+	  ViewObjType		  "SimulinkSubsys"
+	  LoadSaveID		  "61"
+	  Extents		  [1285.0, 714.0]
+	  ZoomFactor		  [0.73526259378349412]
+	  Offset		  [-140.33746355685128, 41.95918367346939]
+	}
+	Object {
+	  $ObjectID		  6
+	  IsActive		  [0]
+	  ViewObjType		  "SimulinkTopLevel"
+	  LoadSaveID		  "0"
+	  Extents		  [1285.0, 714.0]
+	  ZoomFactor		  [1.0]
+	  Offset		  [0.0, 0.0]
+	}
+	PropName		"EditorsInfo"
       }
     }
   }
@@ -67,9 +79,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "makaveli"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri Apr 18 12:38:13 2014"
-  RTWModifiedTimeStamp	  319724333
-  ModelVersionFormat	  "1.%<AutoIncrement:678>"
+  LastModifiedDate	  "Tue Apr 22 13:51:12 2014"
+  RTWModifiedTimeStamp	  320069275
+  ModelVersionFormat	  "1.%<AutoIncrement:682>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -104,7 +116,7 @@ Model {
   TryForcingSFcnDF	  off
   Object {
     $PropName		    "DataLoggingOverride"
-    $ObjectID		    6
+    $ObjectID		    7
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "controller"
     signals_		    []
@@ -164,13 +176,13 @@ Model {
     Type		    "Handle"
     Dimension		    1
     Simulink.ConfigSet {
-      $ObjectID		      7
+      $ObjectID		      8
       Version		      "1.12.1"
       Array {
 	Type			"Handle"
 	Dimension		8
 	Simulink.SolverCC {
-	  $ObjectID		  8
+	  $ObjectID		  9
 	  Version		  "1.12.1"
 	  StartTime		  "0.0"
 	  StopTime		  "inf"
@@ -205,7 +217,7 @@ Model {
 	  InsertRTBMode		  "Whenever possible"
 	}
 	Simulink.DataIOCC {
-	  $ObjectID		  9
+	  $ObjectID		  10
 	  Version		  "1.12.1"
 	  Decimation		  "1"
 	  ExternalInput		  "[t, u]"
@@ -237,7 +249,7 @@ Model {
 	  Refine		  "1"
 	}
 	Simulink.OptimizationCC {
-	  $ObjectID		  10
+	  $ObjectID		  11
 	  Version		  "1.12.1"
 	  Array {
 	    Type		    "Cell"
@@ -293,7 +305,7 @@ Model {
 	  ParallelExecutionInRapidAccelerator on
 	}
 	Simulink.DebuggingCC {
-	  $ObjectID		  11
+	  $ObjectID		  12
 	  Version		  "1.12.1"
 	  RTPrefix		  "error"
 	  ConsistencyChecking	  "none"
@@ -383,7 +395,7 @@ Model {
 	  SFTransitionActionBeforeConditionDiag	"warning"
 	}
 	Simulink.HardwareCC {
-	  $ObjectID		  12
+	  $ObjectID		  13
 	  Version		  "1.12.1"
 	  ProdBitPerChar	  8
 	  ProdBitPerShort	  16
@@ -420,7 +432,7 @@ Model {
 	  ProdEqTarget		  on
 	}
 	Simulink.ModelReferenceCC {
-	  $ObjectID		  13
+	  $ObjectID		  14
 	  Version		  "1.12.1"
 	  UpdateModelReferenceTargets "IfOutOfDateOrStructuralChange"
 	  CheckModelReferenceTargetMessage "error"
@@ -435,7 +447,7 @@ Model {
 	  SupportModelReferenceSimTargetCustomCode off
 	}
 	Simulink.SFSimCC {
-	  $ObjectID		  14
+	  $ObjectID		  15
 	  Version		  "1.12.1"
 	  SFSimEnableDebug	  on
 	  SFSimOverflowDetection  on
@@ -450,7 +462,7 @@ Model {
 	}
 	Simulink.RTWCC {
 	  $BackupClass		  "Simulink.RTWCC"
-	  $ObjectID		  15
+	  $ObjectID		  16
 	  Version		  "1.12.1"
 	  Array {
 	    Type		    "Cell"
@@ -512,7 +524,7 @@ Model {
 	    Type		    "Handle"
 	    Dimension		    2
 	    Simulink.CodeAppCC {
-	      $ObjectID		      16
+	      $ObjectID		      17
 	      Version		      "1.12.1"
 	      Array {
 		Type			"Cell"
@@ -580,7 +592,7 @@ Model {
 	    }
 	    Simulink.GRTTargetCC {
 	      $BackupClass	      "Simulink.TargetCC"
-	      $ObjectID		      17
+	      $ObjectID		      18
 	      Version		      "1.12.1"
 	      Array {
 		Type			"Cell"
@@ -671,11 +683,11 @@ Model {
   }
   Simulink.ConfigSet {
     $PropName		    "ActiveConfigurationSet"
-    $ObjectID		    7
+    $ObjectID		    8
   }
   Object {
     $PropName		    "DataTransfer"
-    $ObjectID		    18
+    $ObjectID		    19
     $ClassName		    "Simulink.GlobalDataTransfer"
     DefaultTransitionBetweenSyncTasks "Ensure deterministic transfer (maximum delay)"
     DefaultTransitionBetweenAsyncTasks "Ensure data integrity only"
@@ -822,6 +834,13 @@ Model {
       IgnoreLimit	      off
       StateMustResolveToSignalObject off
       RTWStateStorageClass    "Auto"
+    }
+    Block {
+      BlockType		      Display
+      Format		      "short"
+      Decimation	      "10"
+      Floating		      off
+      SampleTime	      "-1"
     }
     Block {
       BlockType		      Inport
@@ -972,8 +991,8 @@ Model {
   }
   System {
     Name		    "controllerSharedMem"
-    Location		    [1450, 22, 2358, 539]
-    Open		    off
+    Location		    [1450, 22, 2959, 907]
+    Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
     ScreenColor		    "white"
@@ -986,7 +1005,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "448"
+    SIDHighWatermark	    "456"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -1004,27 +1023,27 @@ Model {
       MaskHideContents	      off
       Object {
 	$PropName		"MaskObject"
-	$ObjectID		19
+	$ObjectID		20
 	$ClassName		"Simulink.Mask"
 	Array {
 	  Type			  "Simulink.MaskParameter"
 	  Dimension		  3
 	  Object {
-	    $ObjectID		    20
+	    $ObjectID		    21
 	    Type		    "edit"
 	    Name		    "robotName"
 	    Prompt		    "robot name"
 	    Value		    "'icubGazeboSim'"
 	  }
 	  Object {
-	    $ObjectID		    21
+	    $ObjectID		    22
 	    Type		    "edit"
 	    Name		    "Ts"
 	    Prompt		    "Ts"
 	    Value		    "0.01"
 	  }
 	  Object {
-	    $ObjectID		    22
+	    $ObjectID		    23
 	    Type		    "edit"
 	    Name		    "localName"
 	    Prompt		    "module name"
@@ -1035,7 +1054,7 @@ Model {
       }
       System {
 	Name			"Subsystem"
-	Location		[1450, 22, 2358, 539]
+	Location		[1450, 22, 2959, 907]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -1047,7 +1066,7 @@ Model {
 	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
 	TiledPageScale		1
 	ShowPageBoundaries	off
-	ZoomFactor		"100"
+	ZoomFactor		"73"
 	Block {
 	  BlockType		  Constant
 	  Name			  "\n\n  "
@@ -1424,6 +1443,16 @@ Model {
 	  ICPrevScaledInput	  "DiscIntNeverNeededParam"
 	}
 	Block {
+	  BlockType		  Display
+	  Name			  "Display"
+	  SID			  "455"
+	  Ports			  [1]
+	  Position		  [410, 620, 480, 980]
+	  ZOrder		  135
+	  Decimation		  "1"
+	  Lockdown		  off
+	}
+	Block {
 	  BlockType		  Scope
 	  Name			  "Errors"
 	  SID			  "260"
@@ -1578,7 +1607,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "Force computation"
-	    Location		    [1450, 22, 2358, 539]
+	    Location		    [1450, 22, 2959, 907]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -1590,7 +1619,7 @@ Model {
 	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
 	    TiledPageScale	    1
 	    ShowPageBoundaries	    off
-	    ZoomFactor		    "100"
+	    ZoomFactor		    "258"
 	    Block {
 	      BlockType		      Inport
 	      Name		      "desired_com_acceleration"
@@ -1696,16 +1725,9 @@ Model {
 	      BlockType		      Outport
 	      Name		      "Desired Force"
 	      SID		      "448"
-	      Position		      [460, 173, 490, 187]
+	      Position		      [580, 183, 610, 197]
 	      ZOrder		      131
 	      IconDisplay	      "Port number"
-	    }
-	    Line {
-	      SrcBlock		      "forceGenerator"
-	      SrcPort		      1
-	      Points		      [32, 0; 0, -30]
-	      DstBlock		      "Desired Force"
-	      DstPort		      1
 	    }
 	    Line {
 	      SrcBlock		      "mass selection"
@@ -1766,6 +1788,13 @@ Model {
 	      Points		      [149, 0; 0, -155]
 	      DstBlock		      "forceGenerator"
 	      DstPort		      6
+	    }
+	    Line {
+	      SrcBlock		      "forceGenerator"
+	      SrcPort		      1
+	      Points		      [86, 0; 0, -20]
+	      DstBlock		      "Desired Force"
+	      DstPort		      1
 	    }
 	  }
 	}
@@ -1847,10 +1876,10 @@ Model {
 	Block {
 	  BlockType		  Reference
 	  Name			  "Set Torques"
-	  SID			  "373"
+	  SID			  "456"
 	  Ports			  [1]
-	  Position		  [1080, 123, 1150, 167]
-	  ZOrder		  -44
+	  Position		  [1080, 128, 1150, 172]
+	  ZOrder		  136
 	  BackgroundColor	  "[0.941000, 0.415000, 0.192000]"
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/wholeBodyActuators/Set Torques"
@@ -1920,7 +1949,7 @@ Model {
 	  SFBlockType		  "MATLAB Function"
 	  Object {
 	    $PropName		    "MaskObject"
-	    $ObjectID		    23
+	    $ObjectID		    24
 	    $ClassName		    "Simulink.Mask"
 	    Type		    "Stateflow"
 	    Description		    "Embedded MATLAB block"
@@ -2247,7 +2276,7 @@ Model {
 	  SFBlockType		  "MATLAB Function"
 	  Object {
 	    $PropName		    "MaskObject"
-	    $ObjectID		    24
+	    $ObjectID		    25
 	    $ClassName		    "Simulink.Mask"
 	    Type		    "Stateflow"
 	    Description		    "Embedded MATLAB block"
@@ -2464,7 +2493,7 @@ Model {
 	  SFBlockType		  "MATLAB Function"
 	  Object {
 	    $PropName		    "MaskObject"
-	    $ObjectID		    25
+	    $ObjectID		    26
 	    $ClassName		    "Simulink.Mask"
 	    Type		    "Stateflow"
 	    Description		    "Embedded MATLAB block"
@@ -3541,7 +3570,7 @@ Model {
 	  SFBlockType		  "MATLAB Function"
 	  Object {
 	    $PropName		    "MaskObject"
-	    $ObjectID		    26
+	    $ObjectID		    27
 	    $ClassName		    "Simulink.Mask"
 	    Type		    "Stateflow"
 	    Description		    "Embedded MATLAB block"
@@ -3728,7 +3757,7 @@ Model {
 	  SFBlockType		  "MATLAB Function"
 	  Object {
 	    $PropName		    "MaskObject"
-	    $ObjectID		    27
+	    $ObjectID		    28
 	    $ClassName		    "Simulink.Mask"
 	    Type		    "Stateflow"
 	    Description		    "Embedded MATLAB block"
@@ -4089,13 +4118,6 @@ Model {
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "controllerMatlab"
-	  SrcPort		  1
-	  Points		  [30, 0]
-	  DstBlock		  "Set Torques"
-	  DstPort		  1
-	}
-	Line {
 	  SrcBlock		  "Data Store\nRead3"
 	  SrcPort		  1
 	  DstBlock		  "holder1"
@@ -4349,13 +4371,28 @@ Model {
 	Line {
 	  SrcBlock		  "Force computation"
 	  SrcPort		  1
-	  DstBlock		  "controllerMatlab"
-	  DstPort		  1
+	  Points		  [12, 0]
+	  Branch {
+	    Points		    [0, 192; -439, 0; 0, 473]
+	    DstBlock		    "Display"
+	    DstPort		    1
+	  }
+	  Branch {
+	    DstBlock		    "controllerMatlab"
+	    DstPort		    1
+	  }
 	}
 	Line {
 	  SrcBlock		  "feedback on trajectory generator"
 	  SrcPort		  1
 	  DstBlock		  "Force computation"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "controllerMatlab"
+	  SrcPort		  1
+	  Points		  [20, 0; 0, -85]
+	  DstBlock		  "Set Torques"
 	  DstPort		  1
 	}
 	Annotation {
