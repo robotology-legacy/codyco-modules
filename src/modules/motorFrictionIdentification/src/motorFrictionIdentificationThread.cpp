@@ -237,7 +237,7 @@ void MotorFrictionIdentificationThread::run()
         {
             ///< if joint is moving, estimate friction
             ///< otherwise, if there is external force, estimate motor gain
-            if(fabs(dq[i])>zeroJointVelThr) // && fabs(extTorques[i]) < extTorqueThr[i]/10 )
+            if((fabs(dq[i])>zeroJointVelThr) && fabs(extTorques[i]) < extTorqueThr[i]/10 )
                 estimators[i].feedSampleForGroup2(inputSamples[i], pwm[i]);
             else if(fabs(extTorques[i]) > extTorqueThr[i] && fabs(torques[i]) < TORQUE_SENSOR_SATURATION) {
                 wbi::LocalId lid = jointList.globalToLocalId(i);

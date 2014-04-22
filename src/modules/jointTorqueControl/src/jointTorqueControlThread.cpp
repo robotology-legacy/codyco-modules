@@ -510,14 +510,15 @@ void jointTorqueControlThread::prepareMonitorData()
     monitor.tauDes2         = tauD(j+2);
     monitor.tadDesPlusPI    = tau(j);
     double NormSquareTorqueError = 0;
-    for(int i=0; i<N_DOF; i++)
+    for(int i = 0; i < N_DOF; i++)
     {
         if(activeJoints(i) == 1 )    
         {
-            NormSquareTorqueError += etau(i)*etau(i);
+            NormSquareTorqueError = NormSquareTorqueError + etau(i)*etau(i);
         }
     }
     monitor.tauErr          = sqrt(NormSquareTorqueError);
+    //cout << "|tauErr| = " << monitor.tauErr << "\n";
     monitor.q               = q(j);
     monitor.qDes            = qDes(j);
     monitor.dq              = dq(j);
