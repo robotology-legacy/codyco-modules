@@ -15,10 +15,10 @@
  * Public License for more details
  */
  
- 
-#include "wbiIcub/wbiIcubUtil.h"
-
+#include <iostream>
 #include <algorithm>
+
+#include "wbiIcub/wbiIcubUtil.h"
 
 
 namespace wbiIcub
