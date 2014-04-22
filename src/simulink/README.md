@@ -20,10 +20,11 @@ alt="Overview of the Simulink library for Whole Body Control" width="480" height
 
 ###### Requirements
 * Matlab V. 7.1+ and Simulink (Tested with Matlab 7.14 R2012a, 7.12 R2011a)
-* Yarp
+* Yarp (compiled as shared library)
 * CoDyCo 
 * iCub
 * Gazebo Simulator + yarp plugins (if you wish to use Gazebo instead of iCub_SIM)
+
 
 
 ###### Installation

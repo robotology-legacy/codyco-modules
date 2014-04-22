@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.40"
+    ComputedModelVersion    "1.43"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -27,9 +27,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Mar 10 23:07:20 2014"
-  RTWModifiedTimeStamp	  316391154
-  ModelVersionFormat	  "1.%<AutoIncrement:40>"
+  LastModifiedDate	  "Fri Apr 18 15:22:03 2014"
+  RTWModifiedTimeStamp	  319735138
+  ModelVersionFormat	  "1.%<AutoIncrement:43>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -841,7 +841,7 @@ Model {
   }
   System {
     Name		    "computeG"
-    Location		    [179, 165, 968, 740]
+    Location		    [179, 187, 968, 762]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -855,7 +855,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "138"
+    SIDHighWatermark	    "178"
     Block {
       BlockType		      Sum
       Name		      "Add"
@@ -909,6 +909,27 @@ Model {
       GotoTag		      "tau"
     }
     Block {
+      BlockType		      From
+      Name		      "From2"
+      SID		      "176"
+      Position		      [55, 196, 95, 224]
+      GotoTag		      "q"
+    }
+    Block {
+      BlockType		      From
+      Name		      "From6"
+      SID		      "171"
+      Position		      [15, 111, 55, 139]
+      GotoTag		      "q"
+    }
+    Block {
+      BlockType		      From
+      Name		      "From7"
+      SID		      "172"
+      Position		      [55, 131, 95, 159]
+      GotoTag		      "dq"
+    }
+    Block {
       BlockType		      Goto
       Name		      "Goto"
       SID		      "134"
@@ -925,6 +946,22 @@ Model {
       TagVisibility	      "local"
     }
     Block {
+      BlockType		      Goto
+      Name		      "Goto3"
+      SID		      "155"
+      Position		      [680, 20, 720, 50]
+      GotoTag		      "q"
+      TagVisibility	      "local"
+    }
+    Block {
+      BlockType		      Goto
+      Name		      "Goto4"
+      SID		      "156"
+      Position		      [675, 95, 715, 125]
+      GotoTag		      "dq"
+      TagVisibility	      "local"
+    }
+    Block {
       BlockType		      Reference
       Name		      "Inverse Dynamics1"
       SID		      "3"
@@ -933,7 +970,7 @@ Model {
       ZOrder		      48
       BackgroundColor	      "[0.287374, 0.000000, 1.000000]"
       ShowName		      off
-      LibraryVersion	      "1.240"
+      LibraryVersion	      "1.33"
       SourceBlock	      "WBCLibrary/wholeBodyModel/Dynamics/Inverse Dynamics"
       SourceType	      "Inverse Dynamics"
       ShowPortLabels	      "FromPortIcon"
@@ -950,15 +987,59 @@ Model {
     }
     Block {
       BlockType		      Reference
-      Name		      "Joint Angles"
-      SID		      "4"
+      Name		      "Joint Angles1"
+      SID		      "157"
       Ports		      [0, 1]
-      Position		      [110, 188, 180, 232]
+      Position		      [510, 13, 580, 57]
       ZOrder		      -1
-      BackgroundColor	      "orange"
-      ShowName		      off
-      LibraryVersion	      "1.240"
+      BackgroundColor	      "[0.375000, 0.187500, 0.000000]"
+      LibraryVersion	      "1.33"
       SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Angles"
+      SourceType	      ""
+      ShowPortLabels	      "FromPortIcon"
+      SystemSampleTime	      "-1"
+      FunctionWithSeparateData off
+      RTWMemSecFuncInitTerm   "Inherit from model"
+      RTWMemSecFuncExecute    "Inherit from model"
+      RTWMemSecDataConstants  "Inherit from model"
+      RTWMemSecDataInternal   "Inherit from model"
+      RTWMemSecDataParameters "Inherit from model"
+      GeneratePreprocessorConditionals off
+      robotName		      "robotName"
+      localName		      "localName"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "Joint Torques"
+      SID		      "174"
+      Ports		      [0, 1]
+      Position		      [210, 33, 280, 77]
+      BackgroundColor	      "[1.000000, 0.634000, 0.268000]"
+      LibraryVersion	      "1.33"
+      SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Torques"
+      SourceType	      "Get Joint Torques"
+      ShowPortLabels	      "FromPortIcon"
+      SystemSampleTime	      "-1"
+      FunctionWithSeparateData off
+      RTWMemSecFuncInitTerm   "Inherit from model"
+      RTWMemSecFuncExecute    "Inherit from model"
+      RTWMemSecDataConstants  "Inherit from model"
+      RTWMemSecDataInternal   "Inherit from model"
+      RTWMemSecDataParameters "Inherit from model"
+      GeneratePreprocessorConditionals off
+      robotName		      "robotName"
+      localName		      "localName"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "Joint Velocities"
+      SID		      "158"
+      Ports		      [0, 1]
+      Position		      [510, 88, 580, 132]
+      ZOrder		      -2
+      BackgroundColor	      "[0.634000, 0.401533, 0.000000]"
+      LibraryVersion	      "1.33"
+      SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Velocities"
       SourceType	      ""
       ShowPortLabels	      "FromPortIcon"
       SystemSampleTime	      "-1"
@@ -1109,9 +1190,9 @@ Model {
     Block {
       BlockType		      Reference
       Name		      "Manual Switch"
-      SID		      "54"
+      SID		      "178"
       Ports		      [2, 1]
-      Position		      [345, 122, 375, 158]
+      Position		      [350, 167, 380, 203]
       ShowName		      off
       LibraryVersion	      "1.236"
       SourceBlock	      "simulink/Signal\nRouting/Manual Switch"
@@ -1125,7 +1206,7 @@ Model {
       RTWMemSecDataInternal   "Inherit from model"
       RTWMemSecDataParameters "Inherit from model"
       GeneratePreprocessorConditionals off
-      sw		      "1"
+      sw		      "0"
       action		      "0"
       varsize		      off
     }
@@ -1164,8 +1245,8 @@ Model {
       Ports		      [3]
       Position		      [510, 154, 540, 186]
       Floating		      off
-      Location		      [6, 346, 713, 772]
-      Open		      off
+      Location		      [6, 71, 713, 497]
+      Open		      on
       NumInputPorts	      "3"
       List {
 	ListType		AxesTitles
@@ -1173,9 +1254,9 @@ Model {
 	axes2			"%<SignalLabel>"
 	axes3			"%<SignalLabel>"
       }
-      TimeRange		      "10"
-      YMin		      "-6~-7.5e-06~-6"
-      YMax		      "2~1.25e-05~2"
+      TimeRange		      "600"
+      YMin		      "-15~-5~-15"
+      YMax		      "5~10~5"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
     }
@@ -1265,18 +1346,6 @@ Model {
       Phase		      "pi/2"
       Samples		      "100"
       SampleTime	      "Ts"
-    }
-    Block {
-      BlockType		      Reference
-      Name		      "Soft Real Time"
-      SID		      "16"
-      Ports		      []
-      Position		      [48, 345, 135, 376]
-      ShowName		      off
-      LibraryVersion	      "1.7"
-      SourceBlock	      "utility/Soft Real Time"
-      SourceType	      ""
-      x			      "1"
     }
     Block {
       BlockType		      ToWorkspace
@@ -1684,11 +1753,11 @@ Model {
       BlockType		      Reference
       Name		      "computeh"
       SID		      "1"
-      Ports		      [0, 1]
+      Ports		      [2, 1]
       Position		      [115, 113, 180, 157]
       ZOrder		      -1
       BackgroundColor	      "[0.850000, 0.010000, 0.698000]"
-      LibraryVersion	      "1.240"
+      LibraryVersion	      "1.33"
       SourceBlock	      "WBCLibrary/wholeBodyModel/Dynamics/computeh"
       SourceType	      ""
       ShowPortLabels	      "FromPortIcon"
@@ -1703,6 +1772,258 @@ Model {
       val		      "7"
       robotname		      "robotName"
       localname		      "localName"
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "dqb + dqj"
+      SID		      "159"
+      Ports		      [1, 1]
+      Position		      [600, 93, 650, 127]
+      ZOrder		      -26
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      Opaque		      off
+      RequestExecContextInheritance off
+      MaskHideContents	      off
+      System {
+	Name			"dqb + dqj"
+	Location		[521, 683, 1078, 1044]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"usletter"
+	PaperUnits		"inches"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+	Block {
+	  BlockType		  Inport
+	  Name			  "dqj"
+	  SID			  "160"
+	  Position		  [280, 148, 310, 162]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "Left Foot Jacobian"
+	  SID			  "161"
+	  Ports			  [0, 1]
+	  Position		  [65, 93, 140, 137]
+	  ZOrder		  -1
+	  BackgroundColor	  "[0.047000, 0.909000, 0.803000]"
+	  LibraryVersion	  "1.33"
+	  SourceBlock		  "WBCLibrary/wholeBodyModel/Jacobians/Left Foot Jacobian"
+	  SourceType		  ""
+	  ShowPortLabels	  "FromPortIcon"
+	  SystemSampleTime	  "-1"
+	  FunctionWithSeparateData off
+	  RTWMemSecFuncInitTerm	  "Inherit from model"
+	  RTWMemSecFuncExecute	  "Inherit from model"
+	  RTWMemSecDataConstants  "Inherit from model"
+	  RTWMemSecDataInternal	  "Inherit from model"
+	  RTWMemSecDataParameters "Inherit from model"
+	  GeneratePreprocessorConditionals off
+	  robotName		  "robotName"
+	  localName		  "localName"
+	}
+	Block {
+	  BlockType		  Mux
+	  Name			  "Mux"
+	  SID			  "162"
+	  Ports			  [2, 1]
+	  Position		  [345, 111, 350, 149]
+	  ZOrder		  -12
+	  ShowName		  off
+	  Inputs		  "2"
+	  DisplayOption		  "bar"
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "Right Foot Jacobian"
+	  SID			  "163"
+	  Ports			  [0, 1]
+	  Position		  [70, 28, 140, 72]
+	  ZOrder		  -2
+	  BackgroundColor	  "[0.000000, 1.000000, 0.533000]"
+	  LibraryVersion	  "1.33"
+	  SourceBlock		  "WBCLibrary/wholeBodyModel/Jacobians/Right Foot Jacobian"
+	  SourceType		  ""
+	  ShowPortLabels	  "FromPortIcon"
+	  SystemSampleTime	  "-1"
+	  FunctionWithSeparateData off
+	  RTWMemSecFuncInitTerm	  "Inherit from model"
+	  RTWMemSecFuncExecute	  "Inherit from model"
+	  RTWMemSecDataConstants  "Inherit from model"
+	  RTWMemSecDataInternal	  "Inherit from model"
+	  RTWMemSecDataParameters "Inherit from model"
+	  GeneratePreprocessorConditionals off
+	  robotName		  "robotName"
+	  localName		  "localName"
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "baseVelocity"
+	  SID			  "164"
+	  Ports			  [3, 1]
+	  Position		  [180, 68, 290, 112]
+	  ZOrder		  -14
+	  BackgroundColor	  "[0.753334, 1.000000, 0.112472]"
+	  LibraryVersion	  "1.33"
+	  SourceBlock		  "WBCLibrary/Utilities/baseVelocity"
+	  SourceType		  "baseVelocity"
+	  ShowPortLabels	  "FromPortIcon"
+	  SystemSampleTime	  "-1"
+	  FunctionWithSeparateData off
+	  RTWMemSecFuncInitTerm	  "Inherit from model"
+	  RTWMemSecFuncExecute	  "Inherit from model"
+	  RTWMemSecDataConstants  "Inherit from model"
+	  RTWMemSecDataInternal	  "Inherit from model"
+	  RTWMemSecDataParameters "Inherit from model"
+	  GeneratePreprocessorConditionals off
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "dq"
+	  SID			  "165"
+	  Position		  [375, 123, 405, 137]
+	  ZOrder		  -15
+	  IconDisplay		  "Port number"
+	}
+	Line {
+	  SrcBlock		  "Left Foot Jacobian"
+	  SrcPort		  1
+	  Points		  [10, 0; 0, -25]
+	  DstBlock		  "baseVelocity"
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "Right Foot Jacobian"
+	  SrcPort		  1
+	  Points		  [10, 0; 0, 25]
+	  DstBlock		  "baseVelocity"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "baseVelocity"
+	  SrcPort		  1
+	  Points		  [35, 0]
+	  DstBlock		  "Mux"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "dqj"
+	  SrcPort		  1
+	  Points		  [15, 0]
+	  Branch {
+	    Points		    [0, 55; -165, 0]
+	    DstBlock		    "baseVelocity"
+	    DstPort		    3
+	  }
+	  Branch {
+	    DstBlock		    "Mux"
+	    DstPort		    2
+	  }
+	}
+	Line {
+	  SrcBlock		  "Mux"
+	  SrcPort		  1
+	  DstBlock		  "dq"
+	  DstPort		  1
+	}
+      }
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "qb + qj"
+      SID		      "166"
+      Ports		      [1, 1]
+      Position		      [600, 19, 650, 51]
+      ZOrder		      -27
+      NamePlacement	      "alternate"
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      Opaque		      off
+      RequestExecContextInheritance off
+      MaskHideContents	      off
+      System {
+	Name			"qb + qj"
+	Location		[310, 692, 538, 1053]
+	Open			on
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"usletter"
+	PaperUnits		"inches"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+	Block {
+	  BlockType		  Inport
+	  Name			  "qj"
+	  SID			  "167"
+	  Position		  [30, 68, 60, 82]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Constant
+	  Name			  "Constant1"
+	  SID			  "168"
+	  Position		  [30, 25, 60, 55]
+	  ZOrder		  -4
+	  ShowName		  off
+	  Value			  "[1 0 0 0, 0 1 0 0, 0 0 1 0, 0 0 0 1]"
+	}
+	Block {
+	  BlockType		  Mux
+	  Name			  "Mux"
+	  SID			  "169"
+	  Ports			  [2, 1]
+	  Position		  [95, 41, 100, 79]
+	  ZOrder		  -12
+	  ShowName		  off
+	  Inputs		  "2"
+	  DisplayOption		  "bar"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "q"
+	  SID			  "170"
+	  Position		  [125, 53, 155, 67]
+	  ZOrder		  -13
+	  IconDisplay		  "Port number"
+	}
+	Line {
+	  SrcBlock		  "Mux"
+	  SrcPort		  1
+	  DstBlock		  "q"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Constant1"
+	  SrcPort		  1
+	  Points		  [15, 0]
+	  DstBlock		  "Mux"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "qj"
+	  SrcPort		  1
+	  Points		  [5, 0; 0, -5]
+	  DstBlock		  "Mux"
+	  DstPort		  2
+	}
+      }
     }
     Block {
       BlockType		      Constant
@@ -1720,7 +2041,7 @@ Model {
       Position		      [110, 288, 180, 332]
       BackgroundColor	      "cyan"
       ShowName		      off
-      Value		      "zeros(25,1)"
+      Value		      "zeros(31,1)"
     }
     Block {
       BlockType		      Constant
@@ -1729,526 +2050,12 @@ Model {
       Position		      [110, 238, 180, 282]
       BackgroundColor	      "cyan"
       ShowName		      off
-      Value		      "zeros(25,1)"
-    }
-    Block {
-      BlockType		      SubSystem
-      Name		      "tau from ports"
-      SID		      "29"
-      Ports		      [0, 5]
-      Position		      [45, 14, 85, 96]
-      MinAlgLoopOccurrences   off
-      PropExecContextOutsideSubsystem off
-      RTWSystemCode	      "Auto"
-      FunctionWithSeparateData off
-      Opaque		      off
-      RequestExecContextInheritance off
-      MaskHideContents	      off
-      System {
-	Name			"tau from ports"
-	Location		[100, 475, 330, 965]
-	Open			off
-	ModelBrowserVisibility	off
-	ModelBrowserWidth	200
-	ScreenColor		"white"
-	PaperOrientation	"landscape"
-	PaperPositionMode	"auto"
-	PaperType		"usletter"
-	PaperUnits		"inches"
-	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
-	TiledPageScale		1
-	ShowPageBoundaries	off
-	ZoomFactor		"100"
-	Block {
-	  BlockType		  Mux
-	  Name			  "Mux"
-	  SID			  "30"
-	  Ports			  [5, 1]
-	  Position		  [125, 202, 150, 268]
-	  ShowName		  off
-	  Inputs		  "5"
-	  DisplayOption		  "bar"
-	}
-	Block {
-	  BlockType		  Mux
-	  Name			  "Mux1"
-	  SID			  "31"
-	  Ports			  [5, 1]
-	  Position		  [125, 117, 150, 183]
-	  ShowName		  off
-	  Inputs		  "5"
-	  DisplayOption		  "bar"
-	}
-	Block {
-	  BlockType		  Mux
-	  Name			  "Mux2"
-	  SID			  "32"
-	  Ports			  [3, 1]
-	  Position		  [125, 27, 150, 93]
-	  ShowName		  off
-	  Inputs		  "3"
-	  DisplayOption		  "bar"
-	}
-	Block {
-	  BlockType		  Mux
-	  Name			  "Mux4"
-	  SID			  "33"
-	  Ports			  [6, 1]
-	  Position		  [125, 397, 145, 463]
-	  ShowName		  off
-	  Inputs		  "6"
-	  DisplayOption		  "bar"
-	}
-	Block {
-	  BlockType		  Mux
-	  Name			  "Mux5"
-	  SID			  "34"
-	  Ports			  [6, 1]
-	  Position		  [125, 287, 150, 353]
-	  ShowName		  off
-	  Inputs		  "6"
-	  DisplayOption		  "bar"
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "yarp armL"
-	  SID			  "35"
-	  Ports			  [0, 5]
-	  Position		  [25, 116, 95, 184]
-	  ZOrder		  -5
-	  BackgroundColor	  "black"
-	  LibraryVersion	  "1.240"
-	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
-	  from			  "'/icubGazeboSim/left_arm/analog:o/torques'"
-	  to			  "'/tmp2:i'"
-	  num			  "5"
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "yarp armR"
-	  SID			  "36"
-	  Ports			  [0, 5]
-	  Position		  [25, 201, 95, 269]
-	  ZOrder		  -5
-	  BackgroundColor	  "black"
-	  LibraryVersion	  "1.240"
-	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
-	  from			  "'/icubGazeboSim/right_arm/analog:o/torques'"
-	  to			  "'/tmp3:i'"
-	  num			  "5"
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "yarp legL"
-	  SID			  "37"
-	  Ports			  [0, 6]
-	  Position		  [25, 286, 95, 354]
-	  ZOrder		  -5
-	  BackgroundColor	  "black"
-	  LibraryVersion	  "1.240"
-	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
-	  from			  "'/icubGazeboSim/left_leg/analog:o/torques'"
-	  to			  "'/tmp4:i'"
-	  num			  "6"
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "yarp legR"
-	  SID			  "38"
-	  Ports			  [0, 6]
-	  Position		  [25, 396, 95, 464]
-	  ZOrder		  -5
-	  BackgroundColor	  "black"
-	  LibraryVersion	  "1.240"
-	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
-	  from			  "'/icubGazeboSim/right_leg/analog:o/torques'"
-	  to			  "'/tmp5:i'"
-	  num			  "6"
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "yarp torso"
-	  SID			  "39"
-	  Ports			  [0, 3]
-	  Position		  [25, 26, 95, 94]
-	  ZOrder		  -5
-	  BackgroundColor	  "black"
-	  LibraryVersion	  "1.240"
-	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  ""
-	  from			  "'/icubGazeboSim/torso/analog:o/torques'"
-	  to			  "'/tmp1:i'"
-	  num			  "3"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "torso"
-	  SID			  "40"
-	  Position		  [175, 53, 205, 67]
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "leftArm"
-	  SID			  "41"
-	  Position		  [175, 143, 205, 157]
-	  Port			  "2"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "rightArm"
-	  SID			  "42"
-	  Position		  [175, 228, 205, 242]
-	  Port			  "3"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "leftLeg"
-	  SID			  "43"
-	  Position		  [175, 313, 205, 327]
-	  Port			  "4"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "rightLeg"
-	  SID			  "44"
-	  Position		  [170, 423, 200, 437]
-	  Port			  "5"
-	  IconDisplay		  "Port number"
-	}
-	Line {
-	  SrcBlock		  "yarp armR"
-	  SrcPort		  1
-	  DstBlock		  "Mux"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "yarp armR"
-	  SrcPort		  2
-	  DstBlock		  "Mux"
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "yarp armR"
-	  SrcPort		  3
-	  DstBlock		  "Mux"
-	  DstPort		  3
-	}
-	Line {
-	  SrcBlock		  "yarp armR"
-	  SrcPort		  4
-	  DstBlock		  "Mux"
-	  DstPort		  4
-	}
-	Line {
-	  SrcBlock		  "yarp armR"
-	  SrcPort		  5
-	  DstBlock		  "Mux"
-	  DstPort		  5
-	}
-	Line {
-	  Labels		  [0, 0]
-	  SrcBlock		  "yarp armL"
-	  SrcPort		  1
-	  DstBlock		  "Mux1"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "yarp armL"
-	  SrcPort		  2
-	  DstBlock		  "Mux1"
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "yarp armL"
-	  SrcPort		  3
-	  DstBlock		  "Mux1"
-	  DstPort		  3
-	}
-	Line {
-	  SrcBlock		  "yarp armL"
-	  SrcPort		  4
-	  DstBlock		  "Mux1"
-	  DstPort		  4
-	}
-	Line {
-	  SrcBlock		  "yarp armL"
-	  SrcPort		  5
-	  DstBlock		  "Mux1"
-	  DstPort		  5
-	}
-	Line {
-	  SrcBlock		  "yarp torso"
-	  SrcPort		  1
-	  DstBlock		  "Mux2"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "yarp torso"
-	  SrcPort		  2
-	  DstBlock		  "Mux2"
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "yarp torso"
-	  SrcPort		  3
-	  DstBlock		  "Mux2"
-	  DstPort		  3
-	}
-	Line {
-	  SrcBlock		  "yarp legL"
-	  SrcPort		  1
-	  DstBlock		  "Mux5"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "yarp legL"
-	  SrcPort		  2
-	  DstBlock		  "Mux5"
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "yarp legL"
-	  SrcPort		  3
-	  DstBlock		  "Mux5"
-	  DstPort		  3
-	}
-	Line {
-	  SrcBlock		  "yarp legL"
-	  SrcPort		  4
-	  DstBlock		  "Mux5"
-	  DstPort		  4
-	}
-	Line {
-	  SrcBlock		  "yarp legL"
-	  SrcPort		  5
-	  DstBlock		  "Mux5"
-	  DstPort		  5
-	}
-	Line {
-	  SrcBlock		  "yarp legL"
-	  SrcPort		  6
-	  DstBlock		  "Mux5"
-	  DstPort		  6
-	}
-	Line {
-	  SrcBlock		  "yarp legR"
-	  SrcPort		  1
-	  DstBlock		  "Mux4"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "yarp legR"
-	  SrcPort		  2
-	  DstBlock		  "Mux4"
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "yarp legR"
-	  SrcPort		  3
-	  DstBlock		  "Mux4"
-	  DstPort		  3
-	}
-	Line {
-	  SrcBlock		  "yarp legR"
-	  SrcPort		  4
-	  DstBlock		  "Mux4"
-	  DstPort		  4
-	}
-	Line {
-	  SrcBlock		  "yarp legR"
-	  SrcPort		  5
-	  DstBlock		  "Mux4"
-	  DstPort		  5
-	}
-	Line {
-	  SrcBlock		  "yarp legR"
-	  SrcPort		  6
-	  DstBlock		  "Mux4"
-	  DstPort		  6
-	}
-	Line {
-	  SrcBlock		  "Mux2"
-	  SrcPort		  1
-	  DstBlock		  "torso"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Mux1"
-	  SrcPort		  1
-	  DstBlock		  "leftArm"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Mux"
-	  SrcPort		  1
-	  DstBlock		  "rightArm"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Mux5"
-	  SrcPort		  1
-	  DstBlock		  "leftLeg"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Mux4"
-	  SrcPort		  1
-	  DstBlock		  "rightLeg"
-	  DstPort		  1
-	}
-      }
-    }
-    Block {
-      BlockType		      SubSystem
-      Name		      "yarp to WBI"
-      SID		      "45"
-      Ports		      [5, 1]
-      Position		      [170, 12, 285, 98]
-      MinAlgLoopOccurrences   off
-      PropExecContextOutsideSubsystem off
-      RTWSystemCode	      "Auto"
-      FunctionWithSeparateData off
-      Opaque		      off
-      RequestExecContextInheritance off
-      MaskHideContents	      off
-      System {
-	Name			"yarp to WBI"
-	Location		[160, 711, 425, 899]
-	Open			off
-	ModelBrowserVisibility	off
-	ModelBrowserWidth	200
-	ScreenColor		"white"
-	PaperOrientation	"landscape"
-	PaperPositionMode	"auto"
-	PaperType		"usletter"
-	PaperUnits		"inches"
-	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
-	TiledPageScale		1
-	ShowPageBoundaries	off
-	ZoomFactor		"100"
-	Block {
-	  BlockType		  Inport
-	  Name			  "torso"
-	  SID			  "46"
-	  Position		  [25, 23, 55, 37]
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Inport
-	  Name			  "leftArm"
-	  SID			  "47"
-	  Position		  [25, 53, 55, 67]
-	  Port			  "2"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Inport
-	  Name			  "rightArm"
-	  SID			  "48"
-	  Position		  [25, 83, 55, 97]
-	  Port			  "3"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Inport
-	  Name			  "leftLeg"
-	  SID			  "49"
-	  Position		  [25, 113, 55, 127]
-	  Port			  "4"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Inport
-	  Name			  "rightLeg"
-	  SID			  "50"
-	  Position		  [25, 143, 55, 157]
-	  Port			  "5"
-	  IconDisplay		  "Port number"
-	}
-	Block {
-	  BlockType		  Mux
-	  Name			  "Mux3"
-	  SID			  "51"
-	  Ports			  [5, 1]
-	  Position		  [180, 13, 185, 167]
-	  ShowName		  off
-	  Inputs		  "5"
-	  DisplayOption		  "bar"
-	}
-	Block {
-	  BlockType		  Selector
-	  Name			  "Selector"
-	  SID			  "52"
-	  Ports			  [1, 1]
-	  Position		  [85, 14, 140, 46]
-	  InputPortWidth	  "3"
-	  IndexOptions		  "Index vector (dialog)"
-	  Indices		  "[3 2 1]"
-	  OutputSizes		  "1"
-	}
-	Block {
-	  BlockType		  Outport
-	  Name			  "WBI ordered"
-	  SID			  "53"
-	  Position		  [210, 83, 240, 97]
-	  IconDisplay		  "Port number"
-	}
-	Line {
-	  SrcBlock		  "Selector"
-	  SrcPort		  1
-	  DstBlock		  "Mux3"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "torso"
-	  SrcPort		  1
-	  DstBlock		  "Selector"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "leftArm"
-	  SrcPort		  1
-	  DstBlock		  "Mux3"
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "rightArm"
-	  SrcPort		  1
-	  DstBlock		  "Mux3"
-	  DstPort		  3
-	}
-	Line {
-	  SrcBlock		  "Mux3"
-	  SrcPort		  1
-	  DstBlock		  "WBI ordered"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "leftLeg"
-	  SrcPort		  1
-	  DstBlock		  "Mux3"
-	  DstPort		  4
-	}
-	Line {
-	  SrcBlock		  "rightLeg"
-	  SrcPort		  1
-	  DstBlock		  "Mux3"
-	  DstPort		  5
-	}
-      }
+      Value		      "zeros(31,1)"
     }
     Line {
-      SrcBlock		      "Joint Angles"
+      SrcBlock		      "From2"
       SrcPort		      1
-      Points		      [60, 0]
+      Points		      [145, 0]
       Branch {
 	DstBlock		"Inverse Dynamics1"
 	DstPort			1
@@ -2285,29 +2092,6 @@ Model {
       }
     }
     Line {
-      SrcBlock		      "Inverse Dynamics1"
-      SrcPort		      1
-      Points		      [25, 0; 0, -60; 30, 0]
-      Branch {
-	Points			[0, -25]
-	DstBlock		"Add"
-	DstPort			2
-      }
-      Branch {
-	Points			[75, 0]
-	Branch {
-	  Points		  [35, 0]
-	  DstBlock		  "Scope1"
-	  DstPort		  3
-	}
-	Branch {
-	  Points		  [0, 135]
-	  DstBlock		  "WBI to yarp"
-	  DstPort		  1
-	}
-      }
-    }
-    Line {
       SrcBlock		      "Add2"
       SrcPort		      1
       Points		      [15, 0; 0, -50]
@@ -2333,69 +2117,25 @@ Model {
       DstPort		      1
     }
     Line {
-      SrcBlock		      "tau from ports"
-      SrcPort		      2
-      DstBlock		      "yarp to WBI"
-      DstPort		      2
-    }
-    Line {
-      SrcBlock		      "tau from ports"
+      SrcBlock		      "Joint Torques"
       SrcPort		      1
-      DstBlock		      "yarp to WBI"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "tau from ports"
-      SrcPort		      5
-      DstBlock		      "yarp to WBI"
-      DstPort		      5
-    }
-    Line {
-      SrcBlock		      "tau from ports"
-      SrcPort		      3
-      DstBlock		      "yarp to WBI"
-      DstPort		      3
-    }
-    Line {
-      SrcBlock		      "tau from ports"
-      SrcPort		      4
-      DstBlock		      "yarp to WBI"
-      DstPort		      4
-    }
-    Line {
-      SrcBlock		      "yarp to WBI"
-      SrcPort		      1
-      Points		      [20, 0]
-      Branch {
-	Points			[0, 75]
-	DstBlock		"Manual Switch"
-	DstPort			1
-      }
+      Points		      [40, 0]
       Branch {
 	DstBlock		"Goto1"
 	DstPort			1
       }
-    }
-    Line {
-      SrcBlock		      "Selector1"
-      SrcPort		      1
-      Points		      [10, 0; 0, 15]
-      DstBlock		      "Manual Switch"
-      DstPort		      2
-    }
-    Line {
-      SrcBlock		      "Manual Switch"
-      SrcPort		      1
-      Points		      [5, 0]
       Branch {
-	Points			[0, 20]
-	DstBlock		"Add"
-	DstPort			1
-      }
-      Branch {
-	Points			[110, 0]
-	DstBlock		"Scope1"
-	DstPort			1
+	Points			[0, 80; 60, 0]
+	Branch {
+	  Points		  [110, 0]
+	  DstBlock		  "Scope1"
+	  DstPort		  1
+	}
+	Branch {
+	  Points		  [0, 25]
+	  DstBlock		  "Add"
+	  DstPort		  1
+	}
       }
     }
     Line {
@@ -2492,6 +2232,79 @@ Model {
       SrcPort		      1
       DstBlock		      "computeD2q"
       DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Joint Angles1"
+      SrcPort		      1
+      DstBlock		      "qb + qj"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "qb + qj"
+      SrcPort		      1
+      DstBlock		      "Goto3"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "From6"
+      SrcPort		      1
+      DstBlock		      "computeh"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "From7"
+      SrcPort		      1
+      DstBlock		      "computeh"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "Joint Velocities"
+      SrcPort		      1
+      DstBlock		      "dqb + dqj"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "dqb + dqj"
+      SrcPort		      1
+      DstBlock		      "Goto4"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Manual Switch"
+      SrcPort		      1
+      Points		      [10, 0]
+      Branch {
+	Points			[0, -10]
+	DstBlock		"Add"
+	DstPort			2
+      }
+      Branch {
+	Points			[0, 25]
+	Branch {
+	  Points		  [0, 125]
+	  DstBlock		  "WBI to yarp"
+	  DstPort		  1
+	}
+	Branch {
+	  Points		  [100, 0]
+	  DstBlock		  "Scope1"
+	  DstPort		  3
+	}
+      }
+    }
+    Line {
+      SrcBlock		      "Selector1"
+      SrcPort		      1
+      Points		      [20, 0; 0, 40]
+      DstBlock		      "Manual Switch"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Inverse Dynamics1"
+      SrcPort		      1
+      Points		      [0, -65]
+      DstBlock		      "Manual Switch"
+      DstPort		      2
     }
   }
 }

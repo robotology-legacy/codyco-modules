@@ -1,12 +1,12 @@
 Model {
-  Name			  "computeF"
+  Name			  "computeFnull"
   Version		  7.7
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.77"
+    ComputedModelVersion    "1.120"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -28,9 +28,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Sat Apr 19 08:38:14 2014"
-  RTWModifiedTimeStamp	  319797472
-  ModelVersionFormat	  "1.%<AutoIncrement:77>"
+  LastModifiedDate	  "Sat Apr 19 11:04:39 2014"
+  RTWModifiedTimeStamp	  319798767
+  ModelVersionFormat	  "1.%<AutoIncrement:120>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -67,6 +67,7 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "simple"
+    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -132,7 +133,7 @@ Model {
 	  $ObjectID		  3
 	  Version		  "1.11.0"
 	  StartTime		  "0.0"
-	  StopTime		  "1000"
+	  StopTime		  "2"
 	  AbsTol		  "auto"
 	  FixedStep		  "0.01"
 	  InitialStep		  "auto"
@@ -770,12 +771,37 @@ Model {
       GeneratePreprocessorConditionals off
     }
     Block {
+      BlockType		      Sum
+      IconShape		      "rectangular"
+      Inputs		      "++"
+      CollapseMode	      "All dimensions"
+      CollapseDim	      "1"
+      InputSameDT	      on
+      AccumDataTypeStr	      "Inherit: Inherit via internal rule"
+      OutMin		      "[]"
+      OutMax		      "[]"
+      OutDataTypeStr	      "Inherit: Same as first input"
+      LockScale		      off
+      RndMeth		      "Floor"
+      SaturateOnIntegerOverflow	on
+      SampleTime	      "-1"
+    }
+    Block {
       BlockType		      Terminator
+    }
+    Block {
+      BlockType		      ToWorkspace
+      VariableName	      "simulink_output"
+      MaxDataPoints	      "1000"
+      Decimation	      "1"
+      SampleTime	      "0"
+      FixptAsFi		      off
+      NumInputs		      "1"
     }
   }
   System {
-    Name		    "computeF"
-    Location		    [117, 50, 1055, 800]
+    Name		    "computeFnull"
+    Location		    [91, 86, 1029, 836]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -789,7 +815,18 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "302"
+    SIDHighWatermark	    "308"
+    Block {
+      BlockType		      Sum
+      Name		      "Add"
+      SID		      "307"
+      Ports		      [2, 1]
+      Position		      [585, 12, 615, 43]
+      Inputs		      "+-"
+      InputSameDT	      off
+      OutDataTypeStr	      "Inherit: Inherit via internal rule"
+      SaturateOnIntegerOverflow	off
+    }
     Block {
       BlockType		      From
       Name		      "From1"
@@ -995,7 +1032,7 @@ Model {
 	  BackgroundColor	  "black"
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  "Unknown"
+	  SourceType		  ""
 	  from			  "['/' robotName '/left_foot/analog:o']"
 	  to			  "'/left_foot/FT'"
 	  num			  "6"
@@ -1055,8 +1092,8 @@ Model {
       BlockType		      SubSystem
       Name		      "MATLAB Function"
       SID		      "133"
-      Ports		      [5, 1]
-      Position		      [585, 61, 655, 159]
+      Ports		      [6, 2]
+      Position		      [585, 63, 655, 162]
       LibraryVersion	      "1.32"
       ErrorFcn		      "Stateflow.Translate.translate"
       PermitHierarchicalResolution "ExplicitOnly"
@@ -1093,7 +1130,7 @@ Model {
 	TiledPageScale		1
 	ShowPageBoundaries	off
 	ZoomFactor		"100"
-	SIDHighWatermark	"22"
+	SIDHighWatermark	"23"
 	Block {
 	  BlockType		  Inport
 	  Name			  "M"
@@ -1112,25 +1149,33 @@ Model {
 	Block {
 	  BlockType		  Inport
 	  Name			  "tau"
-	  SID			  "133::19"
+	  SID			  "133::23"
 	  Position		  [20, 171, 40, 189]
 	  Port			  "3"
 	  IconDisplay		  "Port number"
 	}
 	Block {
 	  BlockType		  Inport
-	  Name			  "J"
-	  SID			  "133::20"
+	  Name			  "tau0"
+	  SID			  "133::19"
 	  Position		  [20, 206, 40, 224]
 	  Port			  "4"
 	  IconDisplay		  "Port number"
 	}
 	Block {
 	  BlockType		  Inport
-	  Name			  "dJdq"
-	  SID			  "133::21"
+	  Name			  "J"
+	  SID			  "133::20"
 	  Position		  [20, 246, 40, 264]
 	  Port			  "5"
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Inport
+	  Name			  "dJdq"
+	  SID			  "133::21"
+	  Position		  [20, 281, 40, 299]
+	  Port			  "6"
 	  IconDisplay		  "Port number"
 	}
 	Block {
@@ -1138,22 +1183,28 @@ Model {
 	  Name			  " Demux "
 	  SID			  "133::15"
 	  Ports			  [1, 1]
-	  Position		  [270, 220, 320, 260]
+	  Position		  [270, 245, 320, 285]
 	  Outputs		  "1"
 	}
 	Block {
 	  BlockType		  S-Function
 	  Name			  " SFunction "
 	  SID			  "133::14"
-	  Tag			  "Stateflow S-Function computeF 2"
-	  Ports			  [5, 2]
-	  Position		  [180, 100, 230, 220]
+	  Tag			  "Stateflow S-Function computeFnull 2"
+	  Ports			  [6, 3]
+	  Position		  [180, 102, 230, 243]
 	  FunctionName		  "sf_sfun"
-	  PortCounts		  "[5 2]"
+	  PortCounts		  "[6 3]"
 	  EnableBusSupport	  on
 	  Port {
 	    PortNumber		    2
 	    Name		    "f"
+	    RTWStorageClass	    "Auto"
+	    DataLoggingNameMode	    "SignalName"
+	  }
+	  Port {
+	    PortNumber		    3
+	    Name		    "tauN"
 	    RTWStorageClass	    "Auto"
 	    DataLoggingNameMode	    "SignalName"
 	  }
@@ -1162,13 +1213,21 @@ Model {
 	  BlockType		  Terminator
 	  Name			  " Terminator "
 	  SID			  "133::17"
-	  Position		  [460, 231, 480, 249]
+	  Position		  [460, 256, 480, 274]
 	}
 	Block {
 	  BlockType		  Outport
 	  Name			  "f"
 	  SID			  "133::5"
 	  Position		  [460, 101, 480, 119]
+	  IconDisplay		  "Port number"
+	}
+	Block {
+	  BlockType		  Outport
+	  Name			  "tauN"
+	  SID			  "133::22"
+	  Position		  [460, 136, 480, 154]
+	  Port			  "2"
 	  IconDisplay		  "Port number"
 	}
 	Line {
@@ -1190,16 +1249,22 @@ Model {
 	  DstPort		  3
 	}
 	Line {
-	  SrcBlock		  "J"
+	  SrcBlock		  "tau0"
 	  SrcPort		  1
 	  DstBlock		  " SFunction "
 	  DstPort		  4
 	}
 	Line {
-	  SrcBlock		  "dJdq"
+	  SrcBlock		  "J"
 	  SrcPort		  1
 	  DstBlock		  " SFunction "
 	  DstPort		  5
+	}
+	Line {
+	  SrcBlock		  "dJdq"
+	  SrcPort		  1
+	  DstBlock		  " SFunction "
+	  DstPort		  6
 	}
 	Line {
 	  Name			  "f"
@@ -1207,6 +1272,14 @@ Model {
 	  SrcBlock		  " SFunction "
 	  SrcPort		  2
 	  DstBlock		  "f"
+	  DstPort		  1
+	}
+	Line {
+	  Name			  "tauN"
+	  Labels		  [0, 0; 0, 0]
+	  SrcBlock		  " SFunction "
+	  SrcPort		  3
+	  DstBlock		  "tauN"
 	  DstPort		  1
 	}
 	Line {
@@ -1319,7 +1392,7 @@ Model {
 	  BackgroundColor	  "black"
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-	  SourceType		  "Unknown"
+	  SourceType		  ""
 	  from			  "['/' robotName '/right_foot/analog:o']"
 	  to			  "'/right_foot/FT'"
 	  num			  "6"
@@ -1380,11 +1453,12 @@ Model {
       Name		      "Scope"
       SID		      "194"
       Ports		      [1]
-      Position		      [765, 94, 795, 126]
+      Position		      [690, 74, 720, 106]
       Floating		      off
       Location		      [6, 379, 948, 772]
       Open		      on
       NumInputPorts	      "1"
+      ZoomMode		      "yonly"
       List {
 	ListType		AxesTitles
 	axes1			"%<SignalLabel>"
@@ -1402,9 +1476,10 @@ Model {
       Ports		      [1]
       Position		      [840, 394, 870, 426]
       Floating		      off
-      Location		      [6, 101, 917, 536]
+      Location		      [6, 102, 917, 537]
       Open		      on
       NumInputPorts	      "1"
+      ZoomMode		      "yonly"
       List {
 	ListType		AxesTitles
 	axes1			"%<SignalLabel>"
@@ -1415,6 +1490,61 @@ Model {
       SaveName		      "ScopeData1"
       DataFormat	      "StructureWithTime"
       SampleTime	      "0"
+    }
+    Block {
+      BlockType		      Scope
+      Name		      "Scope3"
+      SID		      "306"
+      Ports		      [1]
+      Position		      [665, 14, 695, 46]
+      Floating		      off
+      Location		      [259, 321, 1201, 714]
+      Open		      on
+      NumInputPorts	      "1"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      TimeRange		      "0.9"
+      YMin		      "-0.025"
+      YMax		      "0.225"
+      SaveName		      "ScopeData3"
+      DataFormat	      "StructureWithTime"
+      SampleTime	      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "Set Torques"
+      SID		      "300"
+      Ports		      [1]
+      Position		      [790, 118, 860, 162]
+      BackgroundColor	      "[0.941000, 0.415000, 0.192000]"
+      LibraryVersion	      "1.33"
+      SourceBlock	      "WBCLibrary/wholeBodyActuators/Set Torques"
+      SourceType	      ""
+      ShowPortLabels	      "FromPortIcon"
+      SystemSampleTime	      "-1"
+      FunctionWithSeparateData off
+      RTWMemSecFuncInitTerm   "Inherit from model"
+      RTWMemSecFuncExecute    "Inherit from model"
+      RTWMemSecDataConstants  "Inherit from model"
+      RTWMemSecDataInternal   "Inherit from model"
+      RTWMemSecDataParameters "Inherit from model"
+      GeneratePreprocessorConditionals off
+      val		      "6"
+      robotName		      "robotName"
+      localName		      "localName"
+    }
+    Block {
+      BlockType		      ToWorkspace
+      Name		      "To Workspace"
+      SID		      "308"
+      Ports		      [1]
+      Position		      [865, 180, 925, 210]
+      VariableName	      "simout"
+      MaxDataPoints	      "inf"
+      SampleTime	      "-1"
+      SaveFormat	      "Structure"
     }
     Block {
       BlockType		      Reference
@@ -1532,7 +1662,7 @@ Model {
 	  BackgroundColor	  "[0.047000, 0.909000, 0.803000]"
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/wholeBodyModel/Jacobians/Left Foot Jacobian"
-	  SourceType		  "Unknown"
+	  SourceType		  ""
 	  ShowPortLabels	  "FromPortIcon"
 	  SystemSampleTime	  "-1"
 	  FunctionWithSeparateData off
@@ -1566,7 +1696,7 @@ Model {
 	  BackgroundColor	  "[0.000000, 1.000000, 0.533000]"
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/wholeBodyModel/Jacobians/Right Foot Jacobian"
-	  SourceType		  "Unknown"
+	  SourceType		  ""
 	  ShowPortLabels	  "FromPortIcon"
 	  SystemSampleTime	  "-1"
 	  FunctionWithSeparateData off
@@ -1650,6 +1780,26 @@ Model {
 	  DstPort		  1
 	}
       }
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "holder"
+      SID		      "303"
+      Ports		      [1, 1]
+      Position		      [430, 193, 490, 237]
+      BackgroundColor	      "[0.270000, 0.522000, 0.900000]"
+      LibraryVersion	      "1.33"
+      SourceBlock	      "WBCLibrary/Utilities/holder"
+      SourceType	      "Holder"
+      ShowPortLabels	      "FromPortIcon"
+      SystemSampleTime	      "-1"
+      FunctionWithSeparateData off
+      RTWMemSecFuncInitTerm   "Inherit from model"
+      RTWMemSecFuncExecute    "Inherit from model"
+      RTWMemSecDataConstants  "Inherit from model"
+      RTWMemSecDataInternal   "Inherit from model"
+      RTWMemSecDataParameters "Inherit from model"
+      GeneratePreprocessorConditionals off
     }
     Block {
       BlockType		      Reference
@@ -1765,6 +1915,7 @@ Model {
     Line {
       SrcBlock		      "massMatrix"
       SrcPort		      1
+      Points		      [185, 0]
       DstBlock		      "MATLAB Function"
       DstPort		      1
     }
@@ -1792,9 +1943,9 @@ Model {
     Line {
       SrcBlock		      "Matrix\nConcatenate"
       SrcPort		      1
-      Points		      [35, 0; 0, -180]
+      Points		      [35, 0; 0, -175]
       DstBlock		      "MATLAB Function"
-      DstPort		      4
+      DstPort		      5
     }
     Line {
       SrcBlock		      "dJ*dq LeftFoot"
@@ -1815,9 +1966,10 @@ Model {
       SrcPort		      1
       Points		      [80, 0]
       DstBlock		      "MATLAB Function"
-      DstPort		      5
+      DstPort		      6
     }
     Line {
+      Labels		      [1, 0]
       SrcBlock		      "MATLAB Function"
       SrcPort		      1
       DstBlock		      "Scope"
@@ -1846,8 +1998,16 @@ Model {
     Line {
       SrcBlock		      "Joint Angles"
       SrcPort		      1
-      DstBlock		      "qb + qj"
-      DstPort		      1
+      Points		      [0, 0]
+      Branch {
+	DstBlock		"qb + qj"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, -45]
+	DstBlock		"To Workspace"
+	DstPort			1
+      }
     }
     Line {
       SrcBlock		      "Joint Velocities"
@@ -1910,11 +2070,51 @@ Model {
       DstPort		      2
     }
     Line {
+      SrcBlock		      "MATLAB Function"
+      SrcPort		      2
+      DstBlock		      "Set Torques"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "holder"
+      SrcPort		      1
+      Points		      [25, 0; 0, -95; 30, 0]
+      Branch {
+	DstBlock		"MATLAB Function"
+	DstPort			4
+      }
+      Branch {
+	Points			[0, -85]
+	DstBlock		"Add"
+	DstPort			2
+      }
+    }
+    Line {
       SrcBlock		      "Joint Torques"
       SrcPort		      1
-      Points		      [140, 0; 0, -105]
-      DstBlock		      "MATLAB Function"
-      DstPort		      3
+      Points		      [40, 0]
+      Branch {
+	DstBlock		"holder"
+	DstPort			1
+      }
+      Branch {
+	Points			[-10, 0; 0, -45; 100, 0; 0, -65; 25, 0]
+	Branch {
+	  DstBlock		  "MATLAB Function"
+	  DstPort		  3
+	}
+	Branch {
+	  Points		  [0, -85]
+	  DstBlock		  "Add"
+	  DstPort		  1
+	}
+      }
+    }
+    Line {
+      SrcBlock		      "Add"
+      SrcPort		      1
+      DstBlock		      "Scope3"
+      DstPort		      1
     }
   }
 }
@@ -1928,10 +2128,12 @@ Model {
 Stateflow {
   machine {
     id			    1
-    name		    "computeF"
+    name		    "computeFnull"
     created		    "05-Mar-2014 18:21:08"
     isLibrary		    0
-    firstTarget		    13
+    firstTarget		    15
+    debug {
+    }
     sfVersion		    75014001
   }
   chart {
@@ -1945,7 +2147,7 @@ Stateflow {
     firstJunction	    4
     viewObj		    2
     machine		    1
-    ssIdHighWaterMark	    10
+    ssIdHighWaterMark	    11
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
     firstData		    6
@@ -1969,11 +2171,22 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      "function f  = fcn(M, h, tau, J, dJdq)\n\n% Francesco Nori\n% Genova 6 Marzo 2014\n% CODYCO projec"
-      "t\n%\n% This code computes the forces f acting on a kinematic chain\n% subject to a set of constraints. The kine"
-      "matic chain dynamics\n% are described as follows:\n%\n% M d2q + h - J' f = tau  \n%\n% The constraints are descr"
-      "ibed in a differential form:\n%\n% J dq = 0\n%\n% whose derivative is:\n%\n% dJ dq  + J d2q = 0\n%\n\nS = [zeros"
-      "(25,6) eye(25)];\nMinv = inv(M);\nf = -(J*Minv*J')\\(J*Minv*(S'*tau - h)+ dJdq); "
+      script		      "function [f, tauN] = fcn(M, h, tau, tau0, J, dJdq)\n\n% Francesco Nori\n% Genova 6 Marzo 2014\n% "
+      "CODYCO project\n%\n% This code computes the forces f acting on a kinematic chain\n% subject to a set of constrai"
+      "nts. The kinematic chain dynamics\n% are described as follows:\n%\n% M d2q + h - J' f = tau  \n%\n% The constrai"
+      "nts are described in a differential form:\n%\n% J dq = 0\n%\n% whose derivative is:\n%\n% dJ dq  + J d2q = 0\n%\n"
+      "% The output tauN belongs to the null space of f. The projector\n% on the null space of f is computed in differe"
+      "nt forms. First\n% it is observed that:\n% \n% f = -(J*Minv*J')^(-1)(J*Minv*(S'*tau - h)+ dJdq); \n%\n% and ther"
+      "efore given that f = A*tau + b, the nullspace for f\n% can be constructed as (I - pinv(A)*A). Moreover since we "
+      "have\n% f = (J*Minv*J')^(-1)*B*tau + b we can also compute vectors in\n% the nullspace of f with (I - pinv(B)*B)"
+      ". Finally, as reported\n% in Del Prete, Ph.D. thesis we can also express the very same\n% matrix as Nj_inv*(eye("
+      "25) - pinv(C) * C).\n\nMinv = inv(M);\n\nMb     = M(1:6 ,  1:6);\nMj     = M(7:31, 7:31);\nMbj    = M(1:6 , 7:31"
+      ");\nNj_inv = Mj - Mbj' * Mb^(-1) * Mbj;\nNj     = Minv(7:31, 7:31);\n\nSbar = [-Mb^(-1) * Mbj; eye(25)];\nS    ="
+      " [zeros(25,6) eye(25)];\n\nf = -(J*Minv*J')\\(J*Minv*(S'*tau - h)+ dJdq); \n\n% A = (J*Minv*J')\\(J*Minv*S');\n%"
+      " tauN = tau0 + (eye(25) - pinv(A)*A)*(ones(size(tau)).*10);\n\n% V  = Nj_inv*Nj_inv;\n% B  = J*Minv*S';\n% Bp = "
+      "V*B'/(B*V*B'); \n% tauN = tau0 + (eye(25) - Bp*B)*(ones(size(tau)));\n\nC = J*Sbar;\ntauN = tau0 + Nj_inv*(eye(2"
+      "5) - pinv(C) * C)*Nj*(ones(size(tau)));\n% norm(Nj_inv*(eye(25) - pinv(C) * C)*Nj - (eye(25) - Bp*B));\n% tauN ="
+      " zeros(size(tauN));\n"
       editorLayout	      "100 M4x1[10 143 704 618]"
     }
   }
@@ -2070,7 +2283,7 @@ Stateflow {
   }
   data {
     id			    9
-    ssIdNumber		    7
+    ssIdNumber		    11
     name		    "tau"
     linkNode		    [2 8 10]
     scope		    INPUT_DATA
@@ -2092,8 +2305,8 @@ Stateflow {
   }
   data {
     id			    10
-    ssIdNumber		    8
-    name		    "J"
+    ssIdNumber		    7
+    name		    "tau0"
     linkNode		    [2 9 11]
     scope		    INPUT_DATA
     machine		    1
@@ -2114,9 +2327,9 @@ Stateflow {
   }
   data {
     id			    11
-    ssIdNumber		    9
-    name		    "dJdq"
-    linkNode		    [2 10 0]
+    ssIdNumber		    8
+    name		    "J"
+    linkNode		    [2 10 12]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -2134,14 +2347,58 @@ Stateflow {
     }
     dataType		    "Inherit: Same as Simulink"
   }
-  instance {
+  data {
     id			    12
+    ssIdNumber		    9
+    name		    "dJdq"
+    linkNode		    [2 11 13]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    13
+    ssIdNumber		    10
+    name		    "tauN"
+    linkNode		    [2 12 0]
+    scope		    OUTPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  instance {
+    id			    14
     name		    "MATLAB Function"
     machine		    1
     chart		    2
   }
   target {
-    id			    13
+    id			    15
     name		    "sfun"
     description		    "Default Simulink S-Function Target."
     machine		    1
