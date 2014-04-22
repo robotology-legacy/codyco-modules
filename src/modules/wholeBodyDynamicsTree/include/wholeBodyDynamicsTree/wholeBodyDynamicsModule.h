@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2014 Fondazione Istituto Italiano di Tecnologia - Italian Institute of Technology
  * Author: Silvio Traversaro
  * email:  silvio.traversaro@iit.it
@@ -33,10 +33,10 @@
 
 
 using namespace std;
-using namespace yarp::os; 
+using namespace yarp::os;
 using namespace wbi;
 
-class wholeBodyDynamicsModule: public RFModule, public wholeBodyDynamics_IDLServer 
+class wholeBodyDynamicsModule: public RFModule, public wholeBodyDynamics_IDLServer
 {
     /* module parameters */
     string  moduleName;
@@ -53,25 +53,34 @@ public:
 
     bool attach(yarp::os::Port &source);          // Attach the module to a RPC port
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
-    bool interruptModule();                       // interrupt, e.g., the ports 
+    bool interruptModule();                       // interrupt, e.g., the ports
     bool close();                                 // close and shut down the module
     double getPeriod(){ return period;  }
     bool updateModule();
-    
+
     /** RPC methods (Thrift) */
     /**
       * Calibrate the force/torque sensors
       * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the torso/waist)
       * @param calib_code argument to specify the sensors to calibrate (all,arms,legs,feets)
+      * @param nr_of_samples argument to specify the number of samples to use for calibration
       * @return true/false on success/failure
       */
-    virtual bool calib(const std::string& calib_code);
-    
+    virtual bool calib(const std::string& calib_code, const int32_t nr_of_samples);
+
+    /**
+     * Reset the sensor offset to 0 0 0 0 0 0 (six zeros).
+     * @param calib_code argument to specify the sensors to reset (all,arms,legs,feet)
+     * @return true/false on success/failure
+     */
+    virtual bool resetOffset(const std::string& calib_code);
+
+
     /**
      * Quit the module.
      * @return true/false on success/failure
      */
-    virtual bool quit();    
+    virtual bool quit();
 };
 
 

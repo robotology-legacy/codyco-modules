@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2014 Fondazione Istituto Italiano di Tecnologia - Italian Institute of Technology
  * Author: Silvio Traversaro
  * email:  silvio.traversaro@iit.it
@@ -13,7 +13,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/ 
+*/
 
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RFModule.h>
@@ -52,7 +52,7 @@ bool wholeBodyDynamicsModule::attach(yarp::os::Port &source)
 {
     return this->yarp().attachAsServer(source);
 }
-    
+
 bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 {
     if( rf.check("robot") ) {
@@ -61,7 +61,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         std::cerr << "wholeBodyDynamicsModule::configure failed: robot parameter not found. Closing module." << std::endl;
         return false;
     }
-    
+
     if( rf.check("name") ) {
         moduleName = rf.find("name").asString();
         setName(moduleName.c_str());
@@ -69,8 +69,8 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         std::cerr << "wholeBodyDynamicsModule::configure failed: name parameter not found. Closing module." << std::endl;
         return false;
     }
-    
-    //Checking iCub parts version 
+
+    //Checking iCub parts version
     /// \todo this part should be replaced by a more general way of accessing robot parameters
     ///       namely urdf for structure parameters and robotInterface xml (or runtime interface) to get available sensors
     iCub::iDynTree::iCubTree_version_tag icub_version;
@@ -81,7 +81,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     if( rf.check("headV2") ) {
         icub_version.head_version = 2;
     }
-    
+
     icub_version.legs_version = 2;
     if( rf.check("legsV1") ) {
         icub_version.legs_version = 1;
@@ -89,7 +89,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     if( rf.check("legsV2") ) {
         icub_version.legs_version = 2;
     }
-    
+
     /// \note if feet_version are 2, the presence of FT sensors in the feet is assumed
     icub_version.feet_ft = true;
     if( rf.check("feetV1") ) {
@@ -98,20 +98,20 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     if( rf.check("feetV2") ) {
         icub_version.feet_ft = true;
     }
-    
+
     //--------------------------RPC PORT--------------------------
     attach(rpcPort);
     std::string rpcPortName= "/";
     rpcPortName+= getName();
     rpcPortName += "/rpc:i";
-    if (!rpcPort.open(rpcPortName.c_str())) {           
-        std::cerr << getName() << ": Unable to open port " << rpcPortName << std::endl;  
+    if (!rpcPort.open(rpcPortName.c_str())) {
+        std::cerr << getName() << ": Unable to open port " << rpcPortName << std::endl;
         return false;
     }
 
     //--------------------------WHOLE BODY STATES INTERFACE--------------------------
     estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str(), icub_version);
-    
+
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
@@ -138,24 +138,24 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         std::cout << "enable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration." << std::endl;
         use_ang_vel_acc = true;
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
-    } 
-    
+    }
+
     if( rf.check("disable_w0_dw0") ) {
         std::cout << "disable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration." << std::endl;
         use_ang_vel_acc = false;
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
     }
-    
+
     bool autoconnect = false;
     if( rf.check("autoconnect") ) {
         std::cout << "autoconnect option found, enabling the autoconnection." << std::endl;
         autoconnect = true;
     }
-    
+
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
     wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface, icub_version, autoconnect);
     if(!wbdThread->start()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }
-    
+
     fprintf(stderr,"wholeBodyDynamicsThread started\n");
 
 
@@ -179,23 +179,23 @@ bool wholeBodyDynamicsModule::close()
         std::cout << getName() << ": closing wholeBodyDynamicsThread" << std::endl;
         wbdThread->stop();
         delete wbdThread;
-        wbdThread = 0;     
+        wbdThread = 0;
     }
     if(estimationInterface)
-    { 
+    {
         std::cout << getName() << ": closing wholeBodyStateLocal interface" << std::endl;
-        bool res=estimationInterface->close();    
+        bool res=estimationInterface->close();
         if(!res)
             printf("Error while closing robot estimator\n");
-        delete estimationInterface;  
-        estimationInterface = 0; 
+        delete estimationInterface;
+        estimationInterface = 0;
     }
 
     //closing ports
     std::cout << getName() << ": closing RPC port interface" << std::endl;
     rpcPort.close();
 
-    
+
     printf("[PERFORMANCE INFORMATION]:\n");
     printf("Expected period %d ms.\nReal period: %3.1f+/-%3.1f ms.\n", period, avgTime, stdDev);
     printf("Real duration of 'run' method: %3.1f+/-%3.1f ms.\n", avgTimeUsed, stdDevUsed);
@@ -203,8 +203,8 @@ bool wholeBodyDynamicsModule::close()
         printf("Next time you could set a lower period to improve the wholeBodyDynamics performance.\n");
     else if(avgTime>1.3*period)
         printf("The period you set was impossible to attain. Next time you could set a higher period.\n");
-    
-    
+
+
     return true;
 }
 
@@ -230,12 +230,24 @@ bool wholeBodyDynamicsModule::updateModule()
 }
 
 ////////////////// RPC METHODS /////////////////////////////////////////
-bool wholeBodyDynamicsModule::calib(const std::string& calib_code)
+bool wholeBodyDynamicsModule::calib(const std::string& calib_code, const int32_t nr_of_samples)
 {
     if(wbdThread) {
         std::cout << getName() << ": calibration for " << calib_code << "requested" << std::endl;
-        wbdThread->calibrateOffset(calib_code);
+        wbdThread->calibrateOffset(calib_code,nr_of_samples);
         wbdThread->waitCalibrationDone();
+        return true;
+    } else {
+        std::cout << getName() << ": calib failed, no wholeBodyDynamicsThread available" << std::endl;
+        return false;
+    }
+}
+
+bool wholeBodyDynamicsModule::resetOffset(const std::string& calib_code)
+{
+    if(wbdThread) {
+        std::cout << getName() << ": offset reset for " << calib_code << "requested" << std::endl;
+        wbdThread->resetOffset(calib_code);
         return true;
     } else {
         std::cout << getName() << ": calib failed, no wholeBodyDynamicsThread available" << std::endl;
@@ -246,7 +258,7 @@ bool wholeBodyDynamicsModule::calib(const std::string& calib_code)
 
 bool wholeBodyDynamicsModule::quit()
 {
-    return close();
+    return this->close();
 }
 
 
