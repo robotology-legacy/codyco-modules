@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.983"
+    ComputedModelVersion    "1.1055"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -27,9 +27,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue Apr 22 22:34:27 2014"
-  RTWModifiedTimeStamp	  320101202
-  ModelVersionFormat	  "1.%<AutoIncrement:983>"
+  LastModifiedDate	  "Thu Apr 24 19:22:38 2014"
+  RTWModifiedTimeStamp	  320267092
+  ModelVersionFormat	  "1.%<AutoIncrement:1055>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -66,6 +66,7 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "controller"
+    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -131,7 +132,7 @@ Model {
 	  $ObjectID		  3
 	  Version		  "1.11.0"
 	  StartTime		  "0.0"
-	  StopTime		  "Inf"
+	  StopTime		  "inf"
 	  AbsTol		  "auto"
 	  FixedStep		  "1"
 	  InitialStep		  "auto"
@@ -740,11 +741,6 @@ Model {
       RTWStateStorageClass    "Auto"
     }
     Block {
-      BlockType		      From
-      IconDisplay	      "Tag"
-      TagVisibility	      "local"
-    }
-    Block {
       BlockType		      Gain
       Gain		      "1"
       Multiplication	      "Element-wise(K.*u)"
@@ -925,10 +921,19 @@ Model {
     Block {
       BlockType		      Terminator
     }
+    Block {
+      BlockType		      ToWorkspace
+      VariableName	      "simulink_output"
+      MaxDataPoints	      "1000"
+      Decimation	      "1"
+      SampleTime	      "0"
+      FixptAsFi		      off
+      NumInputs		      "1"
+    }
   }
   System {
     Name		    "controllerSharedMemFast"
-    Location		    [574, 605, 864, 750]
+    Location		    [399, 502, 689, 647]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -942,7 +947,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "613"
+    SIDHighWatermark	    "619"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -974,7 +979,7 @@ Model {
       MaskValueString	      "'icubGazeboSim'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[289, 52, 1569, 802]
+	Location		[204, 297, 1484, 1047]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -1172,42 +1177,6 @@ Model {
 	  SID			  "561"
 	  Ports			  [0, 1]
 	  Position		  [610, 355, 640, 385]
-	  ShowName		  off
-	  DataStoreName		  "dJc_dq"
-	}
-	Block {
-	  BlockType		  DataStoreRead
-	  Name			  "Data Store\nRead12"
-	  SID			  "566"
-	  Ports			  [0, 1]
-	  Position		  [70, 690, 100, 720]
-	  ShowName		  off
-	  DataStoreName		  "M"
-	}
-	Block {
-	  BlockType		  DataStoreRead
-	  Name			  "Data Store\nRead13"
-	  SID			  "567"
-	  Ports			  [0, 1]
-	  Position		  [115, 710, 145, 740]
-	  ShowName		  off
-	  DataStoreName		  "Jc"
-	}
-	Block {
-	  BlockType		  DataStoreRead
-	  Name			  "Data Store\nRead14"
-	  SID			  "568"
-	  Ports			  [0, 1]
-	  Position		  [160, 730, 190, 760]
-	  ShowName		  off
-	  DataStoreName		  "h"
-	}
-	Block {
-	  BlockType		  DataStoreRead
-	  Name			  "Data Store\nRead15"
-	  SID			  "569"
-	  Ports			  [0, 1]
-	  Position		  [200, 750, 230, 780]
 	  ShowName		  off
 	  DataStoreName		  "dJc_dq"
 	}
@@ -1461,34 +1430,6 @@ Model {
 	  ShowName		  off
 	  Priority		  "-1"
 	  DataStoreName		  "Jcom"
-	}
-	Block {
-	  BlockType		  From
-	  Name			  "From"
-	  SID			  "571"
-	  Position		  [40, 771, 80, 799]
-	  GotoTag		  "tau"
-	}
-	Block {
-	  BlockType		  From
-	  Name			  "From1"
-	  SID			  "581"
-	  Position		  [85, 791, 160, 819]
-	  GotoTag		  "d2qStar"
-	}
-	Block {
-	  BlockType		  From
-	  Name			  "From2"
-	  SID			  "586"
-	  Position		  [160, 811, 235, 839]
-	  GotoTag		  "index"
-	}
-	Block {
-	  BlockType		  From
-	  Name			  "From3"
-	  SID			  "587"
-	  Position		  [430, 711, 505, 739]
-	  GotoTag		  "d2qStar"
 	}
 	Block {
 	  BlockType		  Goto
@@ -1786,206 +1727,6 @@ Model {
 	  }
 	}
 	Block {
-	  BlockType		  SubSystem
-	  Name			  "MATLAB Function1"
-	  SID			  "574"
-	  Ports			  [7, 1]
-	  Position		  [265, 686, 410, 844]
-	  LibraryVersion	  "1.32"
-	  ErrorFcn		  "Stateflow.Translate.translate"
-	  PermitHierarchicalResolution "ExplicitOnly"
-	  TreatAsAtomicUnit	  on
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
-	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
-	  MaskType		  "Stateflow"
-	  MaskDescription	  "Embedded MATLAB block"
-	  MaskSelfModifiable	  on
-	  MaskDisplay		  "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('private/"
-	  "eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'computeD2q']);"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  off
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "normalized"
-	  System {
-	    Name		    "MATLAB Function1"
-	    Location		    [257, 457, 812, 717]
-	    Open		    off
-	    ModelBrowserVisibility  on
-	    ModelBrowserWidth	    200
-	    ScreenColor		    "white"
-	    PaperOrientation	    "landscape"
-	    PaperPositionMode	    "auto"
-	    PaperType		    "usletter"
-	    PaperUnits		    "inches"
-	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
-	    TiledPageScale	    1
-	    ShowPageBoundaries	    off
-	    ZoomFactor		    "100"
-	    SIDHighWatermark	    "31"
-	    Block {
-	      BlockType		      Inport
-	      Name		      "M"
-	      SID		      "574::1"
-	      Position		      [20, 101, 40, 119]
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Inport
-	      Name		      "J"
-	      SID		      "574::20"
-	      Position		      [20, 136, 40, 154]
-	      Port		      "2"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Inport
-	      Name		      "h"
-	      SID		      "574::26"
-	      Position		      [20, 171, 40, 189]
-	      Port		      "3"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Inport
-	      Name		      "dJdq"
-	      SID		      "574::28"
-	      Position		      [20, 206, 40, 224]
-	      Port		      "4"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Inport
-	      Name		      "tau"
-	      SID		      "574::24"
-	      Position		      [20, 246, 40, 264]
-	      Port		      "5"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Inport
-	      Name		      "d2qStar"
-	      SID		      "574::29"
-	      Position		      [20, 281, 40, 299]
-	      Port		      "6"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Inport
-	      Name		      "index"
-	      SID		      "574::30"
-	      Position		      [20, 316, 40, 334]
-	      Port		      "7"
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Demux
-	      Name		      " Demux "
-	      SID		      "574::15"
-	      Ports		      [1, 1]
-	      Position		      [270, 280, 320, 320]
-	      Outputs		      "1"
-	    }
-	    Block {
-	      BlockType		      S-Function
-	      Name		      " SFunction "
-	      SID		      "574::14"
-	      Tag		      "Stateflow S-Function controllerSharedMemFast 9"
-	      Ports		      [7, 2]
-	      Position		      [180, 119, 230, 281]
-	      FunctionName	      "sf_sfun"
-	      PortCounts	      "[7 2]"
-	      EnableBusSupport	      on
-	      Port {
-		PortNumber		2
-		Name			"d2q_err"
-		RTWStorageClass		"Auto"
-		DataLoggingNameMode	"SignalName"
-	      }
-	    }
-	    Block {
-	      BlockType		      Terminator
-	      Name		      " Terminator "
-	      SID		      "574::17"
-	      Position		      [460, 291, 480, 309]
-	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "d2q_err"
-	      SID		      "574::22"
-	      Position		      [460, 101, 480, 119]
-	      IconDisplay	      "Port number"
-	    }
-	    Line {
-	      SrcBlock		      "M"
-	      SrcPort		      1
-	      DstBlock		      " SFunction "
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "J"
-	      SrcPort		      1
-	      DstBlock		      " SFunction "
-	      DstPort		      2
-	    }
-	    Line {
-	      SrcBlock		      "h"
-	      SrcPort		      1
-	      DstBlock		      " SFunction "
-	      DstPort		      3
-	    }
-	    Line {
-	      SrcBlock		      "dJdq"
-	      SrcPort		      1
-	      DstBlock		      " SFunction "
-	      DstPort		      4
-	    }
-	    Line {
-	      SrcBlock		      "tau"
-	      SrcPort		      1
-	      DstBlock		      " SFunction "
-	      DstPort		      5
-	    }
-	    Line {
-	      SrcBlock		      "d2qStar"
-	      SrcPort		      1
-	      DstBlock		      " SFunction "
-	      DstPort		      6
-	    }
-	    Line {
-	      SrcBlock		      "index"
-	      SrcPort		      1
-	      DstBlock		      " SFunction "
-	      DstPort		      7
-	    }
-	    Line {
-	      Name		      "d2q_err"
-	      Labels		      [0, 0; 0, 0]
-	      SrcBlock		      " SFunction "
-	      SrcPort		      2
-	      DstBlock		      "d2q_err"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      " Demux "
-	      SrcPort		      1
-	      DstBlock		      " Terminator "
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      " SFunction "
-	      SrcPort		      1
-	      DstBlock		      " Demux "
-	      DstPort		      1
-	    }
-	  }
-	}
-	Block {
 	  BlockType		  Product
 	  Name			  "Product"
 	  SID			  "544"
@@ -2053,8 +1794,8 @@ Model {
 	  BlockMirror		  on
 	  NamePlacement		  "alternate"
 	  Floating		  off
-	  Location		  [6, 156, 878, 772]
-	  Open			  on
+	  Location		  [6, 71, 697, 799]
+	  Open			  off
 	  NumInputPorts		  "2"
 	  List {
 	    ListType		    AxesTitles
@@ -2062,8 +1803,8 @@ Model {
 	    axes2		    "%<SignalLabel>"
 	  }
 	  TimeRange		  "2500"
-	  YMin			  "-0.07~0"
-	  YMax			  "0.07~0.07"
+	  YMin			  "-0.015~0"
+	  YMax			  "0.015~0.017"
 	  DataFormat		  "StructureWithTime"
 	  SampleTime		  "0"
 	}
@@ -2072,58 +1813,10 @@ Model {
 	  Name			  "Scope1"
 	  SID			  "557"
 	  Ports			  [5]
-	  Position		  [645, 544, 705, 636]
+	  Position		  [655, 644, 715, 736]
 	  Floating		  off
-	  Location		  [-1022, 252, -118, 909]
+	  Location		  [6, 71, 738, 799]
 	  Open			  on
-	  NumInputPorts		  "5"
-	  List {
-	    ListType		    AxesTitles
-	    axes1		    "%<SignalLabel>"
-	    axes2		    "%<SignalLabel>"
-	    axes3		    "%<SignalLabel>"
-	    axes4		    "%<SignalLabel>"
-	    axes5		    "%<SignalLabel>"
-	  }
-	  TimeRange		  "3000"
-	  YMin			  "-0.15~-0.6~-0.4~-0.2~-0.2"
-	  YMax			  "0.25~0.1~0.15~0.2~0.2"
-	  SaveName		  "ScopeData1"
-	  DataFormat		  "StructureWithTime"
-	  LimitDataPoints	  off
-	  SampleTime		  "0"
-	}
-	Block {
-	  BlockType		  Scope
-	  Name			  "Scope3"
-	  SID			  "575"
-	  Ports			  [2]
-	  Position		  [560, 741, 590, 774]
-	  Floating		  off
-	  Location		  [-961, 752, -32, 1049]
-	  Open			  on
-	  NumInputPorts		  "2"
-	  List {
-	    ListType		    AxesTitles
-	    axes1		    "%<SignalLabel>"
-	    axes2		    "%<SignalLabel>"
-	  }
-	  TimeRange		  "1200"
-	  YMin			  "-1~-2.5e-13"
-	  YMax			  "1~2e-13"
-	  SaveName		  "ScopeData4"
-	  DataFormat		  "StructureWithTime"
-	  SampleTime		  "0"
-	}
-	Block {
-	  BlockType		  Scope
-	  Name			  "Scope4"
-	  SID			  "589"
-	  Ports			  [5]
-	  Position		  [775, 679, 835, 771]
-	  Floating		  off
-	  Location		  [6, 115, 910, 772]
-	  Open			  off
 	  NumInputPorts		  "5"
 	  ZoomMode		  "yonly"
 	  List {
@@ -2134,10 +1827,36 @@ Model {
 	    axes4		    "%<SignalLabel>"
 	    axes5		    "%<SignalLabel>"
 	  }
-	  TimeRange		  "1400"
-	  YMin			  "-15~-15~-12.5~-30~-30"
-	  YMax			  "20~10~10~30~30"
-	  SaveName		  "ScopeData3"
+	  TimeRange		  "3000"
+	  YMin			  "-0.03~-0.15~-0.2~-0.4~-0.35"
+	  YMax			  "0.015~0.5~0.5~0.1~0.1"
+	  SaveName		  "ScopeData1"
+	  DataFormat		  "StructureWithTime"
+	  LimitDataPoints	  off
+	  SampleTime		  "0"
+	}
+	Block {
+	  BlockType		  Scope
+	  Name			  "Scope2"
+	  SID			  "618"
+	  Ports			  [5]
+	  Position		  [655, 524, 715, 616]
+	  Floating		  off
+	  Location		  [6, 71, 738, 799]
+	  Open			  off
+	  NumInputPorts		  "5"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	    axes2		    "%<SignalLabel>"
+	    axes3		    "%<SignalLabel>"
+	    axes4		    "%<SignalLabel>"
+	    axes5		    "%<SignalLabel>"
+	  }
+	  TimeRange		  "3000"
+	  YMin			  "-0.025~-0.3~-0.3~-0.025~-0.025"
+	  YMax			  "0.2~0.5~0.5~0.275~0.275"
+	  SaveName		  "ScopeData2"
 	  DataFormat		  "StructureWithTime"
 	  LimitDataPoints	  off
 	  SampleTime		  "0"
@@ -2177,11 +1896,33 @@ Model {
 	  localName		  "localName"
 	}
 	Block {
+	  BlockType		  ToWorkspace
+	  Name			  "To Workspace"
+	  SID			  "614"
+	  Ports			  [1]
+	  Position		  [855, 335, 915, 365]
+	  VariableName		  "simout"
+	  MaxDataPoints		  "inf"
+	  SampleTime		  "-1"
+	  SaveFormat		  "Structure"
+	}
+	Block {
+	  BlockType		  ToWorkspace
+	  Name			  "To Workspace1"
+	  SID			  "615"
+	  Ports			  [1]
+	  Position		  [835, 280, 895, 310]
+	  VariableName		  "tau"
+	  MaxDataPoints		  "inf"
+	  SampleTime		  "-1"
+	  SaveFormat		  "Structure"
+	}
+	Block {
 	  BlockType		  Reference
 	  Name			  "WBI to yarp"
 	  SID			  "563"
 	  Ports			  [1, 5]
-	  Position		  [505, 547, 615, 633]
+	  Position		  [515, 647, 625, 733]
 	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/Utilities/WBI to yarp"
@@ -2199,9 +1940,9 @@ Model {
 	Block {
 	  BlockType		  Reference
 	  Name			  "WBI to yarp1"
-	  SID			  "588"
+	  SID			  "619"
 	  Ports			  [1, 5]
-	  Position		  [620, 682, 730, 768]
+	  Position		  [515, 527, 625, 613]
 	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/Utilities/WBI to yarp"
@@ -2516,7 +2257,7 @@ Model {
 	  MaskValueString	  "k_pst(1:25,1:25)|k_pst(1:25,26:50)|k_pst(1:25,51:75)"
 	  System {
 	    Name		    "computeStar_pst"
-	    Location		    [578, 792, 1252, 1123]
+	    Location		    [303, 245, 977, 576]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -2788,7 +2529,7 @@ Model {
 	  Name			  "controllerMatlab"
 	  SID			  "3"
 	  Ports			  [7, 1]
-	  Position		  [670, 90, 780, 400]
+	  Position		  [665, 95, 775, 405]
 	  ZOrder		  2
 	  LibraryVersion	  "1.32"
 	  ErrorFcn		  "Stateflow.Translate.translate"
@@ -3675,7 +3416,7 @@ Model {
 	  Name			  "index"
 	  SID			  "584"
 	  Position		  [610, 420, 640, 450]
-	  Value			  "[1:13]"
+	  Value			  "[1:3]"
 	  VectorParams1D	  off
 	}
 	Block {
@@ -4557,13 +4298,19 @@ Model {
 	  SrcPort		  1
 	  Points		  [40, 0]
 	  Branch {
-	    Points		    [-5, 0; 0, -175]
-	    DstBlock		    "Data Store\nWrite14"
+	    DstBlock		    "dqb + dqj"
 	    DstPort		    1
 	  }
 	  Branch {
-	    DstBlock		    "dqb + dqj"
-	    DstPort		    1
+	    Points		    [-5, 0; 0, -175]
+	    Branch {
+	      DstBlock		      "Data Store\nWrite14"
+	      DstPort		      1
+	    }
+	    Branch {
+	      DstBlock		      "To Workspace"
+	      DstPort		      1
+	    }
 	  }
 	}
 	Line {
@@ -4692,14 +4439,22 @@ Model {
 	Line {
 	  SrcBlock		  "controllerMatlab"
 	  SrcPort		  1
-	  Points		  [25, 0; 0, -65]
+	  Points		  [30, 0]
 	  Branch {
-	    DstBlock		    "Goto"
-	    DstPort		    1
+	    Points		    [0, -70]
+	    Branch {
+	      DstBlock		      "Goto"
+	      DstPort		      1
+	    }
+	    Branch {
+	      Points		      [0, -75]
+	      DstBlock		      "Set Torques"
+	      DstPort		      1
+	    }
 	  }
 	  Branch {
-	    Points		    [0, -75]
-	    DstBlock		    "Set Torques"
+	    Points		    [0, 45]
+	    DstBlock		    "To Workspace1"
 	    DstPort		    1
 	  }
 	}
@@ -4813,7 +4568,7 @@ Model {
 	  SrcPort		  1
 	  Points		  [15, 0]
 	  Branch {
-	    Points		    [20, 0]
+	    Points		    [15, 0]
 	    DstBlock		    "controllerMatlab"
 	    DstPort		    1
 	  }
@@ -4826,42 +4581,50 @@ Model {
 	Line {
 	  SrcBlock		  "computeStar_pst"
 	  SrcPort		  1
-	  Points		  [125, 0]
+	  Points		  [15, 0]
 	  Branch {
-	    Points		    [0, -290; 50, 0]
-	    DstBlock		    "controllerMatlab"
-	    DstPort		    2
+	    Points		    [110, 0]
+	    Branch {
+	      Points		      [0, -290; 45, 0]
+	      DstBlock		      "controllerMatlab"
+	      DstPort		      2
+	    }
+	    Branch {
+	      DstBlock		      "Goto1"
+	      DstPort		      1
+	    }
 	  }
 	  Branch {
-	    DstBlock		    "Goto1"
+	    Points		    [0, 80]
+	    DstBlock		    "WBI to yarp1"
 	    DstPort		    1
 	  }
 	}
 	Line {
 	  SrcBlock		  "Data Store\nRead8"
 	  SrcPort		  1
-	  Points		  [10, 0]
+	  Points		  [5, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  3
 	}
 	Line {
 	  SrcBlock		  "Data Store\nRead9"
 	  SrcPort		  1
-	  Points		  [10, 0]
+	  Points		  [5, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  4
 	}
 	Line {
 	  SrcBlock		  "Data Store\nRead10"
 	  SrcPort		  1
-	  Points		  [10, 0]
+	  Points		  [5, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  5
 	}
 	Line {
 	  SrcBlock		  "Data Store\nRead11"
 	  SrcPort		  1
-	  Points		  [10, 0]
+	  Points		  [5, 0]
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  6
 	}
@@ -4902,6 +4665,7 @@ Model {
 	Line {
 	  SrcBlock		  "computeStar_pst"
 	  SrcPort		  2
+	  Points		  [20, 0]
 	  DstBlock		  "WBI to yarp"
 	  DstPort		  1
 	}
@@ -4914,6 +4678,7 @@ Model {
 	    DstPort		    1
 	  }
 	  Branch {
+	    Points		    [0, -50]
 	    DstBlock		    "controllerMatlab"
 	    DstPort		    7
 	  }
@@ -4943,106 +4708,44 @@ Model {
 	  DstPort		  4
 	}
 	Line {
-	  SrcBlock		  "From"
+	  SrcBlock		  "MATLAB Function"
 	  SrcPort		  1
-	  DstBlock		  "MATLAB Function1"
-	  DstPort		  5
-	}
-	Line {
-	  SrcBlock		  "From1"
-	  SrcPort		  1
-	  DstBlock		  "MATLAB Function1"
-	  DstPort		  6
-	}
-	Line {
-	  SrcBlock		  "From2"
-	  SrcPort		  1
-	  DstBlock		  "MATLAB Function1"
-	  DstPort		  7
-	}
-	Line {
-	  SrcBlock		  "Data Store\nRead13"
-	  SrcPort		  1
-	  DstBlock		  "MATLAB Function1"
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "Data Store\nRead14"
-	  SrcPort		  1
-	  DstBlock		  "MATLAB Function1"
-	  DstPort		  3
-	}
-	Line {
-	  SrcBlock		  "Data Store\nRead15"
-	  SrcPort		  1
-	  DstBlock		  "MATLAB Function1"
-	  DstPort		  4
-	}
-	Line {
-	  SrcBlock		  "Data Store\nRead12"
-	  SrcPort		  1
-	  DstBlock		  "MATLAB Function1"
+	  DstBlock		  "Assertion"
 	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "MATLAB Function1"
-	  SrcPort		  1
-	  DstBlock		  "Scope3"
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "From3"
-	  SrcPort		  1
-	  Points		  [15, 0]
-	  Branch {
-	    Points		    [0, 25]
-	    DstBlock		    "Scope3"
-	    DstPort		    1
-	  }
-	  Branch {
-	    DstBlock		    "WBI to yarp1"
-	    DstPort		    1
-	  }
 	}
 	Line {
 	  SrcBlock		  "WBI to yarp1"
 	  SrcPort		  1
-	  Points		  [10, 0; 0, -10]
-	  DstBlock		  "Scope4"
+	  Points		  [10, 0]
+	  DstBlock		  "Scope2"
 	  DstPort		  1
 	}
 	Line {
 	  SrcBlock		  "WBI to yarp1"
 	  SrcPort		  2
-	  Points		  [20, 0; 0, -5]
-	  DstBlock		  "Scope4"
+	  Points		  [10, 0]
+	  DstBlock		  "Scope2"
 	  DstPort		  2
 	}
 	Line {
 	  SrcBlock		  "WBI to yarp1"
 	  SrcPort		  3
-	  DstBlock		  "Scope4"
+	  DstBlock		  "Scope2"
 	  DstPort		  3
 	}
 	Line {
 	  SrcBlock		  "WBI to yarp1"
 	  SrcPort		  4
-	  Points		  [15, 0; 0, 5]
-	  DstBlock		  "Scope4"
+	  Points		  [10, 0]
+	  DstBlock		  "Scope2"
 	  DstPort		  4
 	}
 	Line {
 	  SrcBlock		  "WBI to yarp1"
 	  SrcPort		  5
-	  Points		  [10, 0; 0, 10]
-	  DstBlock		  "Scope4"
+	  Points		  [10, 0]
+	  DstBlock		  "Scope2"
 	  DstPort		  5
-	}
-	Line {
-	  SrcBlock		  "MATLAB Function"
-	  SrcPort		  1
-	  DstBlock		  "Assertion"
-	  DstPort		  1
 	}
 	Annotation {
 	  Position		  [874, 67]
@@ -5091,9 +4794,7 @@ Stateflow {
     name		    "controllerSharedMemFast"
     created		    "18-Feb-2014 10:14:40"
     isLibrary		    0
-    firstTarget		    81
-    debug {
-    }
+    firstTarget		    68
     sfVersion		    75014001
   }
   chart {
@@ -5132,11 +4833,11 @@ Stateflow {
     eml {
       isEML		      1
       script		      "function [xDDcomDes, xDcomDes, xcomDes]  = trajGen(xCom0,t)\n%#codegen\n\n\ne3 = [0;1;0];\nA = 0."
-      "1;\nf = 0.001;\n% t = t*0.8;\n% xcomDes    = [xCom0(1:2); (1/A-1)*A*xCom0(3)] + A*xCom0(3)*cos(2*pi*f*t)*e3;\n% "
+      "0;\nf = 0.001;\n% t = t*0.8;\n% xcomDes    = [xCom0(1:2); (1/A-1)*A*xCom0(3)] + A*xCom0(3)*cos(2*pi*f*t)*e3;\n% "
       "xDcomDes   = -xCom0(3)*A*2*pi*f*sin(2*pi*f*t)*e3;\n% xDDcomDes  = -xCom0(3)*A*(2*pi*f)^2*cos(2*pi*f*t)*e3;\n\nxc"
       "omDes    = xCom0 + A*sin(2*pi*f*t)*e3;\nxDcomDes   =         A*2*pi*f*cos(2*pi*f*t)*e3;\nxDDcomDes  =        -A*"
       "(2*pi*f)^2*sin(2*pi*f*t)*e3;\n"
-      editorLayout	      "100 M4x1[154 343 1080 733]"
+      editorLayout	      "100 M4x1[419 314 690 486]"
     }
   }
   junction {
@@ -5372,14 +5073,14 @@ Stateflow {
       "     = [eye(6) , zeros(6,25)];\nJcb   = Jc*U';\nSBar  = [  -MbInv*Mbj \n           eye(25)      ];\nNjInv = Mj -"
       " Mbj'*MbInv*Mbj;\n\nJcSBar     = Jc*SBar;\nJcSBarPinv = pinv(JcSBar, PINV_TOL);\n\n% Definition of reference acc"
       "elerations for CoM and Joints that ensure\n% stabilization of desired trajectories xDcomDes and qDes \n\nJi     "
-      "= [zeros(25,6), eye(25)];\nJi     = Ji(index,:);\nq_star = qDDstar(index);\n\n\n% We apply the recursion in Del "
-      "Prete Ph.D. thesis (6.27)\n% with N = 2 and d2q_0 = 0. We have:\n%\n% i = 2 = N\n% d2q_2 = JcSBarPinv*(Jcb*MbInv"
-      "*(h(1:6) - Jcb'*fStar) - dJc_dq);\n% N_p2  = I\n%\n% i = 1\n% d2q_1 = d2q_2 + JiSBarN_p1Pinv*(d2x_i - Ji SBar d2"
-      "q_2)\n% N_p1  = N_p2 - pinv(JcSbarN_p2)*JcSbarN_p2\n\nd2q_2 = JcSBarPinv*(Jcb*MbInv*(h(1:6) - Jcb'*fStar) - dJc_"
-      "dq);\nN_p1  = eye(25) - JcSBarPinv * JcSBar;\nd2q_1 = d2q_2 + pinv(Ji*SBar*N_p1, PINV_TOL)*(q_star - Ji * SBar *"
-      " d2q_2);\n% d2q_1 = d2q_2;\n% tauN  = NjInv*N_p1*d2q_1;\n\ntau = - JcSBar'*fStar + NjInv*d2q_1 + SBar'*[h(1:6);h"
-      "(7:end)];"
-      editorLayout	      "100 M4x1[10 468 1152 560]"
+      "= [zeros(25,6), eye(25)];\nJi     = Ji(index,:);\nq_star = qDDstar(index);\n% q_star =   -5.*ones(size(q_star));"
+      "\n\n% We apply the recursion in Del Prete Ph.D. thesis (6.27)\n% with N = 2 and d2q_0 = 0. We have:\n%\n% i = 2 "
+      "= N\n% d2q_2 = JcSBarPinv*(Jcb*MbInv*(h(1:6) - Jcb'*fStar) - dJc_dq);\n% N_p2  = I\n%\n% i = 1\n% d2q_1 = d2q_2 "
+      "+ JiSBarN_p1Pinv*(d2x_i - Ji SBar d2q_2)\n% N_p1  = N_p2 - pinv(JcSbarN_p2)*JcSbarN_p2\n\nd2q_2 = JcSBarPinv*(Jc"
+      "b*MbInv*(h(1:6) - Jcb'*fStar) - dJc_dq);\nN_p1  = eye(25) - JcSBarPinv * JcSBar;\nd2q_1 = d2q_2 + pinv(Ji*SBar*N"
+      "_p1, PINV_TOL)*(q_star - Ji * SBar * d2q_2);\n% d2q_1 = d2q_2;\n% tauN  = NjInv*N_p1*d2q_1;\n\ntau = - JcSBar'*f"
+      "Star + NjInv*d2q_1 + SBar'*[h(1:6);h(7:end)];"
+      editorLayout	      "100 M4x1[419 314 690 486]"
       breakpoints	      "100 M[77]"
     }
   }
@@ -5607,8 +5308,6 @@ Stateflow {
     firstJunction	    29
     viewObj		    27
     machine		    1
-    subviewS {
-    }
     ssIdHighWaterMark	    8
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
@@ -6403,274 +6102,17 @@ Stateflow {
     machine		    1
     chart		    49
   }
-  chart {
-    id			    68
-    name		    "Subsystem/MATLAB Function1"
-    windowPosition	    [420.119 231.764 200.25 189.75]
-    viewLimits		    [0 156.75 0 153.75]
-    screen		    [1 1 1280 778 1.001682887266829]
-    treeNode		    [0 69 0 0]
-    firstTransition	    71
-    firstJunction	    70
-    viewObj		    68
-    machine		    1
-    ssIdHighWaterMark	    18
-    decomposition	    CLUSTER_CHART
-    type		    EML_CHART
-    firstData		    72
-    chartFileNumber	    9
-    disableImplicitCasting  1
-    eml {
-      name		      "computeD2q"
-    }
-  }
-  state {
-    id			    69
-    labelString		    "eML_blk_kernel()"
-    position		    [18 64.5 118 66]
-    fontSize		    12
-    chart		    68
-    treeNode		    [68 0 0 0]
-    superState		    SUBCHART
-    subviewer		    68
-    ssIdNumber		    1
-    type		    FUNC_STATE
-    decomposition	    CLUSTER_STATE
-    eml {
-      isEML		      1
-      script		      "function d2q_err   = computeD2q(M, J, h, dJdq, tau, d2qStar, index)\n\n% Francesco Nori\n% Genova"
-      " 6 Marzo 2014\n% CODYCO project\n%\n% This code computes the forces f acting on a kinematic chain\n% subject to "
-      "a set of constraints. The kinematic chain dynamics\n% are described as follows:\n%\n% M d2q + h - J' f = tau  \n"
-      "%\n% The constraints are described in a differential form:\n%\n% J dq = 0\n%\n% whose derivative is:\n%\n% dJ dq"
-      "  + J d2q = 0\n%\n\nS = [zeros(25,6) eye(25)];\nMinv = inv(M);\nf = -(J*Minv*J')\\(J*Minv*(S'*tau - h)+ dJdq); \n"
-      "\n% Francesco Nori\n% Genova 6 Marzo 2014\n% CODYCO project\n%\n% This code computes the forces accelerations d2"
-      "q\n% resulting from torques and forces acting on a \n% kinematic chain. The model is the following:\n%\n% M d2q "
-      "+ h - J' f = S' tau \n%\n% d2q = M^(-1) * (S' tau - h + J' f)\n\nS    = [zeros(25,6) eye(25)];\nd2q = Minv * (S'"
-      " * tau - h + J' * f);\n\nd2q_err = d2q(6+index) - d2qStar(index);\n\n\n"
-      editorLayout	      "100 M4x1[10 410 1152 560]"
-      breakpoints	      "100 M[43]"
-    }
-  }
-  junction {
-    id			    70
-    position		    [23.5747 49.5747 7]
-    chart		    68
-    linkNode		    [68 0 0]
-    subviewer		    68
-    ssIdNumber		    3
-    type		    CONNECTIVE_JUNCTION
-  }
-  transition {
-    id			    71
-    labelString		    "{eML_blk_kernel();}"
-    labelPosition	    [32.125 19.875 102.544 14.964]
-    fontSize		    12
-    src {
-      intersection	      [0 0 1 0 23.5747 14.625 0 0]
-    }
-    dst {
-      id		      70
-      intersection	      [7 0 -1 -1 23.5747 42.5747 0 0]
-    }
-    midPoint		    [23.5747 24.9468]
-    chart		    68
-    linkNode		    [68 0 0]
-    dataLimits		    [23.575 23.575 14.625 34.575]
-    subviewer		    68
-    drawStyle		    SMART
-    executionOrder	    1
-    ssIdNumber		    2
-  }
-  data {
-    id			    72
-    ssIdNumber		    4
-    name		    "M"
-    linkNode		    [68 0 73]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-      }
-      complexity	      SF_COMPLEX_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    73
-    ssIdNumber		    8
-    name		    "J"
-    linkNode		    [68 72 74]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    74
-    ssIdNumber		    14
-    name		    "h"
-    linkNode		    [68 73 75]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    75
-    ssIdNumber		    15
-    name		    "dJdq"
-    linkNode		    [68 74 76]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    76
-    ssIdNumber		    10
-    name		    "d2q_err"
-    linkNode		    [68 75 77]
-    scope		    OUTPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_NO
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    77
-    ssIdNumber		    12
-    name		    "tau"
-    linkNode		    [68 76 78]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    78
-    ssIdNumber		    16
-    name		    "d2qStar"
-    linkNode		    [68 77 79]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    79
-    ssIdNumber		    17
-    name		    "index"
-    linkNode		    [68 78 0]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-	isSigned		1
-	wordLength		"16"
-      }
-      complexity	      SF_COMPLEX_INHERITED
-      frame		      SF_FRAME_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  instance {
-    id			    80
-    name		    "Subsystem/MATLAB Function1"
-    machine		    1
-    chart		    68
-  }
   target {
-    id			    81
+    id			    68
     name		    "sfun"
     description		    "Default Simulink S-Function Target."
     machine		    1
-    linkNode		    [1 0 82]
+    linkNode		    [1 0 69]
   }
   target {
-    id			    82
+    id			    69
     name		    "rtw"
     machine		    1
-    linkNode		    [1 81 0]
+    linkNode		    [1 68 0]
   }
 }
