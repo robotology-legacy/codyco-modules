@@ -21,6 +21,7 @@
 #include <string>
 #include <iostream>
 #include <yarp/os/Log.h>
+#include <iCub/iDynTree/yarp_kdl.h>
 
 
 using namespace std;
@@ -474,7 +475,6 @@ bool icubWholeBodyDynamicsEstimator::threadInit()
     imuAngularAccelerationFilt = new AWLinEstimator(imuAngularAccelerationFiltWL, imuAngularAccelerationFiltTh);
 
     //Allocation model
-
     model_mutex.wait();
     icub_model = new iCub::iDynTree::iCubTree(icub_version);
     model_mutex.post();
@@ -602,9 +602,6 @@ void icubWholeBodyDynamicsEstimator::run()
             estimates.lastDtauM = dTauMFilt->estimate(el);  ///< derivative filter
         }
 
-        ///< Read external wrench ad the end effectors
-        readEndEffectorsExternalWrench();
-
         ///< Read motor pwm
         sensors->readSensors(SENSOR_PWM, pwm.data(),0, false);
         estimates.lastPwm = pwmFilt->filt(pwm);     ///< low pass filter
@@ -707,6 +704,7 @@ dynContact icubWholeBodyDynamicsEstimator::getDefaultContact(const iCubSubtree i
             return_value = dynContact(LEFT_ARM,6,Vector(3,0.0));
             break;
         case TORSO_SUBTREE:
+            // \todo TODO if floating base, use dynContact(TORSO,0,Vector(3,0.0))
             return_value = dynContact(TORSO,0,Vector(3,0.0));
             break;
         case RIGHT_LEG_SUBTREE:
@@ -727,6 +725,27 @@ dynContact icubWholeBodyDynamicsEstimator::getDefaultContact(const iCubSubtree i
             break;
     }
     return return_value;
+}
+
+void getEEWrench(const iCub::iDynTree::iCubTree & icub_model,
+                 const iCub::skinDynLib::dynContact & dyn_contact,
+                 bool & contact_found,
+                 yarp::sig::Vector & link_wrench,
+                 yarp::sig::Vector & gripper_wrench)
+{
+    contact_found = true;
+    KDL::Wrench f_gripper, f_link, f_contact;
+    KDL::Vector COP;
+    YarptoKDL(dyn_contact.getCoP(),COP);
+    YarptoKDL(dyn_contact.getForceMoment(),f_contact);
+    KDL::Frame H_link_contact(COP);
+    f_link = H_link_contact*f_contact;
+    KDLtoYarp(f_link,link_wrench);
+    yarp::sig::Matrix H_gripper_link_yarp = icub_model->getPosition(gripper_id,ee_id);
+    KDL::Frame H_gripper_link;
+    YarptoKDL(H_gripper_link_yarp,H_gripper_link);
+    f_gripper = H_gripper_link*f_link;
+    KDLtoYarp(f_gripper,gripper_wrench);
 }
 
 void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
@@ -768,6 +787,7 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     YARP_ASSERT(icub_model->kinematicRNEA());
     YARP_ASSERT(icub_model->estimateContactForces());
     YARP_ASSERT(icub_model->dynamicRNEA());
+    YARP_ASSERT(icub_model->computePositions());
 
     estimatedLastDynContacts = icub_model->getContacts();
 
@@ -796,23 +816,26 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
         if( estimatedLastDynContacts[i].getBodyPart() == LEFT_ARM &&
             estimatedLastDynContacts[i].getLink() ==  left_hand_link_id )
         {
-            left_arm_ee_contact_found = true;
-            left_hand_ee_wrench =
+            getEEWrench(icub_model,estimatedLastDynContacts[i],left_arm_ee_contact_found,
+                        left_hand_ee_wrench,left_gripper_ee_wrench);
         }
         if( estimatedLastDynContacts[i].getBodyPart() == RIGHT_ARM &&
             estimatedLastDynContacts[i].getLink() ==  right_hand_link_id )
         {
-            right_arm_ee_contact_found = true;
+            getEEWrench(icub_model,estimatedLastDynContacts[i],right_arm_ee_contact_found,
+                        right_hand_ee_wrench,right_gripper_ee_wrench);
         }
         if( estimatedLastDynContacts[i].getBodyPart() == LEFT_LEG &&
             estimatedLastDynContacts[i].getLink() ==  left_foot_link_id )
         {
-            left_leg_ee_contact_found = true;
+            getEEWrench(icub_model,estimatedLastDynContacts[i],left_leg_ee_contact_found,
+                        left_foot_ee_wrench,left_sole_ee_wrench);
         }
         if( estimatedLastDynContacts[i].getBodyPart() == RIGHT_LEG &&
             estimatedLastDynContacts[i].getLink() ==  right_foot_link_id )
         {
-            right_leg_ee_contact_found = true;
+            getEEWrench(icub_model,estimatedLastDynContacts[i],right_leg_ee_contact_found,
+                        right_foot_ee_wrench,right_sole_ee_wrench);
         }
     }
 
@@ -824,15 +847,6 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     model_mutex.post();
 
 }
-
-
-void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
-{
-    //Use lastEstimatedDynContacts to get forces acting on end effectors
-
-}
-
-
 
 
 void deleteFirstOrderFilterVector(std::vector<iCub::ctrl::FirstOrderLowPassFilter *> & vec)
@@ -957,6 +971,72 @@ bool icubWholeBodyDynamicsEstimator::lockAndCopyVectorOfVectors(const std::vecto
     }
     mutex.post();
     return true;
+}
+
+void copyVector(const yarp::sig::Vector & src, double * dest)
+{
+    memcpy(src.data(),dest,src.size()*sizeof(double));
+}
+
+bool icubWholeBodyDynamicsEstimator::lockAndCopyExternalForceTorque(const LocalId & sid, double * dest)
+{
+    bool external_ft_available = false;
+    if(dest==0)
+    {
+        return false;
+    }
+    switch(sid.bodyPart)
+    {
+        case LEFT_ARM:
+            if( sid.index == left_hand_link_id )
+            {
+                copyVector(left_hand_ee_wrench,dest);
+                external_ft_available = true;
+            }
+            else if ( sid.index == left_gripper_frame_id )
+            {
+                copyVector(left_gripper_ee_wrench,dest);
+                external_ft_available = true;
+            }
+        break;
+        case RIGHT_ARM:
+            if( sid.index == right_hand_link_id )
+            {
+                copyVector(right_hand_ee_wrench,dest);
+                external_ft_available = true;
+            }
+            else if ( sid.index == right_gripper_frame_id )
+            {
+                copyVector(right_gripper_ee_wrench,dest);
+                external_ft_available = true;
+            }
+        break;
+        case LEFT_LEG:
+            if( sid.index == left_foot_link_id )
+            {
+                copyVector(left_foot_ee_wrench,dest);
+                external_ft_available = true;
+            }
+            else if ( sid.index == left_sole_frame_id )
+            {
+                copyVector(left_sole_ee_wrench,dest);
+                external_ft_available = true;
+            }
+        break;
+        case RIGHT_LEG:
+            if( sid.index == right_foot_link_id )
+            {
+                copyVector(right_foot_ee_wrench,dest);
+                external_ft_available = true;
+            }
+            else if ( sid.index == right_sole_frame_id )
+            {
+                copyVector(right_sole_ee_wrench,dest);
+                external_ft_available = true;
+            }
+        break;
+    }
+    return external_ft_available;
 }
 
 bool icubWholeBodyDynamicsEstimator::lockAndSetEstimationParameter(const EstimateType et, const EstimationParameter ep, const void *value)

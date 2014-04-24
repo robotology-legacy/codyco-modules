@@ -124,7 +124,6 @@ namespace wbiIcub
         yarp::sig::Vector left_foot_ee_wrench;
         yarp::sig::Vector right_foot_ee_wrench;
 
-
         int left_hand_link_id;
         int right_hand_link_id;
         int left_foot_link_id;

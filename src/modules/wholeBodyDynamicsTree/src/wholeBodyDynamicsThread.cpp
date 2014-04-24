@@ -109,6 +109,15 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     LLTorques.resize(6);
     RLTorques.resize(6);
 
+    LAExternalWrench.resize(6);
+    RAExternalWrench.resize(6);
+    LLExternalWrench.resize(6);
+    RLExternalWrench.resize(6);
+
+    LACartesianExternalWrench.resize(6);
+    RACartesianExternalWrench.resize(6);
+    LLCartesianExternalWrench.resize(6);
+    RLCartesianExternalWrench.resize(6);
 
     //Copied from old wholeBodyDynamics
     std::string robot_name = robotName;
@@ -122,19 +131,19 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     port_TOTorques = new BufferedPort<Bottle>;
     port_HDTorques = new BufferedPort<Bottle>;
 
-    /*
+
     port_external_wrench_RA = new BufferedPort<Vector>;
     port_external_wrench_LA = new BufferedPort<Vector>;
     port_external_wrench_RL = new BufferedPort<Vector>;
     port_external_wrench_LL = new BufferedPort<Vector>;
-    port_external_wrench_RF = new BufferedPort<Vector>;
-    port_external_wrench_LF = new BufferedPort<Vector>;
-    port_external_wrench_TO = new BufferedPort<Vector>;
+
 
     port_external_cartesian_wrench_RA = new BufferedPort<Vector>;
     port_external_cartesian_wrench_LA = new BufferedPort<Vector>;
     port_external_cartesian_wrench_RL = new BufferedPort<Vector>;
     port_external_cartesian_wrench_LL = new BufferedPort<Vector>;
+
+    /*
     port_external_cartesian_wrench_RF = new BufferedPort<Vector>;
     port_external_cartesian_wrench_LF = new BufferedPort<Vector>;
 
@@ -163,18 +172,22 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 
     port_contacts->open(string("/"+local_name+"/contacts:o").c_str());
 
-    /*
+
     port_external_wrench_RA->open(string("/"+local_name+"/right_arm/endEffectorWrench:o").c_str());
     port_external_wrench_LA->open(string("/"+local_name+"/left_arm/endEffectorWrench:o").c_str());
     port_external_wrench_RL->open(string("/"+local_name+"/right_leg/endEffectorWrench:o").c_str());
     port_external_wrench_LL->open(string("/"+local_name+"/left_leg/endEffectorWrench:o").c_str());
+    /*
     port_external_wrench_RF->open(string("/"+local_name+"/right_foot/endEffectorWrench:o").c_str());
     port_external_wrench_LF->open(string("/"+local_name+"/left_foot/endEffectorWrench:o").c_str());
+    */
 
     port_external_cartesian_wrench_RA->open(string("/"+local_name+"/right_arm/cartesianEndEffectorWrench:o").c_str());
     port_external_cartesian_wrench_LA->open(string("/"+local_name+"/left_arm/cartesianEndEffectorWrench:o").c_str());
     port_external_cartesian_wrench_RL->open(string("/"+local_name+"/right_leg/cartesianEndEffectorWrench:o").c_str());
     port_external_cartesian_wrench_LL->open(string("/"+local_name+"/left_leg/cartesianEndEffectorWrench:o").c_str());
+
+    /*
     port_external_cartesian_wrench_RF->open(string("/"+local_name+"/right_foot/cartesianEndEffectorWrench:o").c_str());
     port_external_cartesian_wrench_LF->open(string("/"+local_name+"/left_foot/cartesianEndEffectorWrench:o").c_str());
     port_external_wrench_TO->open(string("/"+local_name+"/torso/Wrench:o").c_str());
@@ -184,7 +197,6 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     port_external_ft_arm_right->open(string("/"+local_name+"/right_arm/ext_ft_sens:o").c_str());
     port_external_ft_leg_left->open(string("/"+local_name+"/left_leg/ext_ft_sens:o").c_str());
     port_external_ft_leg_right->open(string("/"+local_name+"/right_leg/ext_ft_sens:o").c_str());
-
     */
 
 
@@ -332,6 +344,27 @@ bool wholeBodyDynamicsThread::waitCalibrationDone()
     return true;
 }
 
+//****************************************************************************
+void wholeBodyDynamicsThread::getEndEffectorWrenches()
+{
+    bool ret;
+    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, sid_LA_ee_frame, LAExternalWrench);
+    YARP_ASSERT(ret);
+    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, sid_RA_ee_frame, RAExternalWrench);
+    YARP_ASSERT(ret);
+    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, sid_LL_ee_frame, LAExternalWrench);
+    YARP_ASSERT(ret);
+    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, sid_RL_ee_frame, LAExternalWrench);
+    YARP_ASSERT(ret);
+
+    ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
+    YARP_ASSERT(ret);
+
+    icub_model_calibration->setAng(tree_status.q);
+
+    icub_model_calibration->getPosition(icub_);
+
+}
 
 //*************************************************************************************************************************
 void wholeBodyDynamicsThread::publishTorques()
@@ -382,6 +415,12 @@ void wholeBodyDynamicsThread::publishContacts()
 }
 
 //*************************************************************************************************************************
+void wholeBodyDynamicsThread::publishEndEffectorWrench()
+{
+    broadcastData<yarp::sig::Vector>(, port_external_wrench_LA);
+}
+
+//*************************************************************************************************************************
 void wholeBodyDynamicsThread::run()
 {
     if( wbd_mode == CALIBRATING ) {
@@ -407,11 +446,17 @@ void wholeBodyDynamicsThread::normal_run()
     ret = estimator->getEstimatedExternalForces(external_forces_list);
     YARP_ASSERT(ret);
 
+    //Get estimated external ee wrenches
+    getEndEffectorWrenches();
+
     //Send torques
     publishTorques();
 
     //Send external contacts
     publishContacts();
+
+    //Send external wrench estimates
+    publishEndEffectorWrench();
 
     //if normal mode, publish the
     printCountdown = (printCountdown>=PRINT_PERIOD) ? 0 : printCountdown +(int)getRate();   // countdown for next print (see sendMsg method)
@@ -537,6 +582,15 @@ void wholeBodyDynamicsThread::threadRelease()
     closePort(port_HDTorques);
     std::cerr << "Closing contacts port\n";
     closePort(port_contacts);
+    std::cerr << "Closing end effector wrenches port\n";
+    closePort(port_external_cartesian_wrench_LA);
+    closePort(port_external_cartesian_wrench_RA);
+    closePort(port_external_cartesian_wrench_LL);
+    closePort(port_external_cartesian_wrench_RL);
+    closePort(port_cartesian_wrench_LA);
+    closePort(port_cartesian_wrench_RA);
+    closePort(port_cartesian_wrench_LL);
+    closePort(port_cartesian_wrench_RL);
 }
 
 //*****************************************************************************
