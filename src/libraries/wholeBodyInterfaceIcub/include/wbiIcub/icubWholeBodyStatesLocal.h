@@ -134,6 +134,16 @@ namespace wbiIcub
         int left_sole_frame_id;
         int right_sole_frame_id;
 
+        int left_hand_link_idyntree_id;
+        int right_hand_link_idyntree_id;
+        int left_foot_link_idyntree_id;
+        int right_foot_link_idyntree_id;
+
+        int left_gripper_frame_idyntree_id;
+        int right_gripper_frame_idyntree_id;
+        int left_sole_frame_idyntree_id;
+        int right_sole_frame_idyntree_id;
+
         bool left_arm_ee_contact_found;
         bool right_arm_ee_contact_found;
         bool left_leg_ee_contact_found;
@@ -248,8 +258,8 @@ namespace wbiIcub
         bool lockAndCopyVectorOfVectors(const std::vector<yarp::sig::Vector> &src, double *dest);
         /** Take the mutex and copy the i-th Vector of a vector<Vector> of src into dest */
         bool lockAndCopyElementVectorFromVector(int i, const std::vector<yarp::sig::Vector> &src, double *dest);
-
         /** Take the mutex and copy the external force/torque acting on link sid */
+        bool lockAndCopyExternalForceTorque(const wbi::LocalId & sid, double * dest);
 
 
     };

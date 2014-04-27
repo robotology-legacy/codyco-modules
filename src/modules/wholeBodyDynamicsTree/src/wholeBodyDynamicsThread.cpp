@@ -272,6 +272,43 @@ bool wholeBodyDynamicsThread::threadInit()
         r_foot_ft_sensor_id = -1;
     }
 
+    //Find end effector ids
+    //Find end effector ids
+    left_hand_link_idyntree_id = icub_model_calibration.getLinkIndex("r_hand");
+    YARP_ASSERT(left_hand_link_idyntree_id >= 0);
+    right_hand_link_idyntree_id = icub_model_calibration.getLinkIndex("r_hand");
+    YARP_ASSERT(right_hand_link_idyntree_id >= 0);
+    left_foot_link_idyntree_id = icub_model_calibration.getLinkIndex("l_foot");
+    YARP_ASSERT(left_foot_link_idyntree_id >= 0);
+    right_foot_link_idyntree_id = icub_model_calibration.getLinkIndex("r_foot");
+    YARP_ASSERT(right_foot_link_idyntree_id >= 0);
+
+    left_gripper_frame_idyntree_id = icub_model_calibration.getLinkIndex("l_gripper");
+    YARP_ASSERT(left_gripper_frame_idyntree_id >= 0);
+    right_gripper_frame_idyntree_id = icub_model_calibration.getLinkIndex("r_gripper");
+    YARP_ASSERT(right_hand_link_idyntree_id >= 0);
+    left_sole_frame_idyntree_id = icub_model_calibration.getLinkIndex("l_sole");
+    YARP_ASSERT(left_sole_frame_idyntree_id >= 0);
+    right_sole_frame_idyntree_id = icub_model_calibration.getLinkIndex("r_sole");
+    YARP_ASSERT(right_sole_frame_idyntree_id >= 0);
+
+    KDL::CoDyCo::TreePartition icub_partition = icub_model_calibration.getKDLUndirectedTree().getPartition();
+
+    std::cout << icub_partition.toString() << std::endl;
+
+    left_hand_link_id = icub_partition.getLocalLinkIndex(left_hand_link_idyntree_id);
+    YARP_ASSERT(left_hand_link_id == 6);
+    YARP_ASSERT(left_hand_link_id >= 0);
+    right_hand_link_id = icub_partition.getLocalLinkIndex(right_hand_link_idyntree_id);
+    YARP_ASSERT(right_hand_link_id >= 0);
+    left_foot_link_id = icub_partition.getLocalLinkIndex(left_foot_link_idyntree_id);
+    right_foot_link_id = icub_partition.getLocalLinkIndex(right_foot_link_idyntree_id);
+
+    left_gripper_frame_id = icub_partition.getLocalLinkIndex(left_gripper_frame_idyntree_id);
+    right_gripper_frame_id = icub_partition.getLocalLinkIndex(right_gripper_frame_idyntree_id);
+    left_sole_frame_id = icub_partition.getLocalLinkIndex(left_sole_frame_idyntree_id);
+    right_sole_frame_id = icub_partition.getLocalLinkIndex(right_sole_frame_idyntree_id);
+
     //Start with calibration
     calibrateOffset("all");
     printf("\n\n");
@@ -348,22 +385,48 @@ bool wholeBodyDynamicsThread::waitCalibrationDone()
 void wholeBodyDynamicsThread::getEndEffectorWrenches()
 {
     bool ret;
-    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, sid_LA_ee_frame, LAExternalWrench);
-    YARP_ASSERT(ret);
-    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, sid_RA_ee_frame, RAExternalWrench);
-    YARP_ASSERT(ret);
-    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, sid_LL_ee_frame, LAExternalWrench);
-    YARP_ASSERT(ret);
-    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, sid_RL_ee_frame, LAExternalWrench);
-    YARP_ASSERT(ret);
-
     ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
+    if(!ret)
+    {
+        std::cout << "wholeBodyDynamicsThread::getEndEffectorWrenches(): Unable to get estimates of joint positions " << std::endl;
+        return;
+    }
     YARP_ASSERT(ret);
+    icub_model_calibration.setAng(tree_status.q);
 
-    icub_model_calibration->setAng(tree_status.q);
+    LocalId sid_LA_ee_frame(LEFT_ARM,left_gripper_frame_id);
+    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, sid_LA_ee_frame, LAExternalWrench.data());
+    if(!ret)
+    {
+        std::cout << "wholeBodyDynamicsThread::getEndEffectorWrenches(): Unable to get estimates of left gripper" << std::endl;
+        return;
+    }
+    YARP_ASSERT(ret);
+    transform_mat_buffer = icub_model_calibration.getPosition(root_link_idyntree_id,left_gripper_frame_idyntree_id);
+    LACartesianExternalWrench.setSubvector(0,transform_mat_buffer.submatrix(0,2,0,2)*LAExternalWrench.subVector(0,2));
+    LACartesianExternalWrench.setSubvector(3,transform_mat_buffer.submatrix(0,2,0,2)*LAExternalWrench.subVector(3,5));
 
-    icub_model_calibration->getPosition(icub_);
+    LocalId sid_RA_ee_frame(RIGHT_ARM,right_gripper_frame_id);
+    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, sid_RA_ee_frame, RAExternalWrench.data());
+    YARP_ASSERT(ret);
+    transform_mat_buffer = icub_model_calibration.getPosition(root_link_idyntree_id,right_gripper_frame_idyntree_id);
+    RACartesianExternalWrench.setSubvector(0,transform_mat_buffer.submatrix(0,2,0,2)*RAExternalWrench.subVector(0,2));
+    RACartesianExternalWrench.setSubvector(3,transform_mat_buffer.submatrix(0,2,0,2)*RAExternalWrench.subVector(3,5));
 
+    LocalId sid_LL_ee_frame(LEFT_LEG,left_sole_frame_id);
+    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, sid_LL_ee_frame, LLExternalWrench.data());
+    YARP_ASSERT(ret);
+    transform_mat_buffer = icub_model_calibration.getPosition(root_link_idyntree_id,left_sole_frame_idyntree_id);
+    LLCartesianExternalWrench.setSubvector(0,transform_mat_buffer.submatrix(0,2,0,2)*LLExternalWrench.subVector(0,2));
+    LLCartesianExternalWrench.setSubvector(3,transform_mat_buffer.submatrix(0,2,0,2)*LLExternalWrench.subVector(3,5));
+
+
+    LocalId sid_RL_ee_frame(RIGHT_LEG,right_sole_frame_id);
+    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, sid_RL_ee_frame, RLExternalWrench.data());
+    YARP_ASSERT(ret);
+    transform_mat_buffer = icub_model_calibration.getPosition(root_link_idyntree_id,right_sole_frame_idyntree_id);
+    RLCartesianExternalWrench.setSubvector(0,transform_mat_buffer.submatrix(0,2,0,2)*RLExternalWrench.subVector(0,2));
+    RLCartesianExternalWrench.setSubvector(3,transform_mat_buffer.submatrix(0,2,0,2)*RLExternalWrench.subVector(3,5));
 }
 
 //*************************************************************************************************************************
@@ -417,7 +480,15 @@ void wholeBodyDynamicsThread::publishContacts()
 //*************************************************************************************************************************
 void wholeBodyDynamicsThread::publishEndEffectorWrench()
 {
-    broadcastData<yarp::sig::Vector>(, port_external_wrench_LA);
+    broadcastData<yarp::sig::Vector>(LAExternalWrench, port_external_wrench_LA);
+    broadcastData<yarp::sig::Vector>(RAExternalWrench, port_external_wrench_RA);
+    broadcastData<yarp::sig::Vector>(LLExternalWrench, port_external_wrench_LL);
+    broadcastData<yarp::sig::Vector>(RLExternalWrench, port_external_wrench_RL);
+
+    broadcastData<yarp::sig::Vector>(LACartesianExternalWrench, port_external_cartesian_wrench_LA);
+    broadcastData<yarp::sig::Vector>(RACartesianExternalWrench, port_external_cartesian_wrench_RA);
+    broadcastData<yarp::sig::Vector>(LLCartesianExternalWrench, port_external_cartesian_wrench_LL);
+    broadcastData<yarp::sig::Vector>(RLCartesianExternalWrench, port_external_cartesian_wrench_RL);
 }
 
 //*************************************************************************************************************************
@@ -587,10 +658,10 @@ void wholeBodyDynamicsThread::threadRelease()
     closePort(port_external_cartesian_wrench_RA);
     closePort(port_external_cartesian_wrench_LL);
     closePort(port_external_cartesian_wrench_RL);
-    closePort(port_cartesian_wrench_LA);
-    closePort(port_cartesian_wrench_RA);
-    closePort(port_cartesian_wrench_LL);
-    closePort(port_cartesian_wrench_RL);
+    closePort(port_external_wrench_LA);
+    closePort(port_external_wrench_LL);
+    closePort(port_external_wrench_RA);
+    closePort(port_external_wrench_RL);
 }
 
 //*****************************************************************************

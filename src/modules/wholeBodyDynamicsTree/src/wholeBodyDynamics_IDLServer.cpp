@@ -138,6 +138,7 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
     helpString.push_back("*** Available commands:");
     helpString.push_back("calib");
     helpString.push_back("quit");
+    helpString.push_back("help");
   }
   else {
     if (functionName=="calib") {
@@ -152,6 +153,12 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
       helpString.push_back("bool quit() ");
       helpString.push_back("Quit the module. ");
       helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="help") {
+      helpString.push_back("std::vector<std::string> help(const std::string& functionName=\"--all\")");
+      helpString.push_back("Return list of available commands, or help message for a specific function");
+      helpString.push_back("@param functionName name of command for which to get a detailed description. If none or '--all' is provided, print list of available commands");
+      helpString.push_back("@return list of strings (one string per line)");
     }
   }
   if ( helpString.empty()) helpString.push_back("Command not found");
