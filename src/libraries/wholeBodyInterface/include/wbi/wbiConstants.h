@@ -29,10 +29,11 @@ namespace wbi
         CTRL_MODE_UNKNOWN,
         CTRL_MODE_MOTOR_PWM,    // motor PWM
         CTRL_MODE_POS,          // joint position
+        CTRL_MODE_DIRECT_POSITION, //joint direct position (without trajectory generator)
         CTRL_MODE_VEL,          // joint velocity
         CTRL_MODE_TORQUE       // joint torque
     };
-    const int CTRL_MODE_SIZE = 5; //number of elements in the ControlMode enum
+    const int CTRL_MODE_SIZE = 6; //number of elements in the ControlMode enum
 
     /** List of available parameters for the various control modes. */
     enum ControlParam

@@ -230,12 +230,24 @@ bool wholeBodyDynamicsModule::updateModule()
 }
 
 ////////////////// RPC METHODS /////////////////////////////////////////
-bool wholeBodyDynamicsModule::calib(const std::string& calib_code)
+bool wholeBodyDynamicsModule::calib(const std::string& calib_code, const int32_t nr_of_samples)
 {
     if(wbdThread) {
         std::cout << getName() << ": calibration for " << calib_code << "requested" << std::endl;
-        wbdThread->calibrateOffset(calib_code);
+        wbdThread->calibrateOffset(calib_code,nr_of_samples);
         wbdThread->waitCalibrationDone();
+        return true;
+    } else {
+        std::cout << getName() << ": calib failed, no wholeBodyDynamicsThread available" << std::endl;
+        return false;
+    }
+}
+
+bool wholeBodyDynamicsModule::resetOffset(const std::string& calib_code)
+{
+    if(wbdThread) {
+        std::cout << getName() << ": offset reset for " << calib_code << "requested" << std::endl;
+        wbdThread->resetOffset(calib_code);
         return true;
     } else {
         std::cout << getName() << ": calib failed, no wholeBodyDynamicsThread available" << std::endl;
@@ -246,7 +258,7 @@ bool wholeBodyDynamicsModule::calib(const std::string& calib_code)
 
 bool wholeBodyDynamicsModule::quit()
 {
-    return close();
+    return this->close();
 }
 
 

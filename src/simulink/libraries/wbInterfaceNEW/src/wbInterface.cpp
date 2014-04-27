@@ -110,7 +110,7 @@ bool robotStatus::robotConfig() {
     else {
         //---------------- CREATION WHOLE BODY INTERFACE ---------------------/
         iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,2,true);
-        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/home/jorhabib/Software/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
+        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/Users/iron/Code/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
 //         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
 #ifdef DEBUG
         fprintf(stderr,"robotStatus::robotConfig >> new wbInterface created ...\n");
@@ -123,6 +123,11 @@ bool robotStatus::robotConfig() {
         // Add main iCub joints
         wbInterface->addJoints(ICUB_MAIN_JOINTS);
         // Initializing whole body interface
+      
+        yarp::os::Value trueValue;
+        trueValue.fromString("true");
+        ((icubWholeBodyInterface*)wbInterface)->setActuactorConfigurationParameter(icubWholeBodyActuators::icubWholeBodyActuatorsUseExternalTorqueModule, trueValue);
+        ((icubWholeBodyInterface*)wbInterface)->setActuactorConfigurationParameter(icubWholeBodyActuators::icubWholeBodyActuatorsExternalTorqueModuleName, Value("jtc"));
         if(!wbInterface->init()) {
             fprintf(stderr,"ERROR [robotStatus::robotConfig] Initializing Whole Body Interface!\n");
             return false;
@@ -893,9 +898,9 @@ static void mdlStart(SimStruct *S)
         ssSetErrorStatus(S,"ERROR: [mdlOutputs] The type of this block has not been defined\n");
     }
 
-    Network yarp;
+    Network::init();
 
-    if (!yarp.checkNetwork()) {
+    if (!Network::checkNetwork() || !Network::initialized()) {
         ssSetErrorStatus(S,"mdlStart >> YARP server wasn't found active!! \n");
         return;
     }
@@ -1416,6 +1421,7 @@ static void mdlTerminate(SimStruct *S) {
             ssSetPWorkValue(S,2,NULL);
         }
     }
+    Network::fini();
 }
 
 // Required S-function trailer

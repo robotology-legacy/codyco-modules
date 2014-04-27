@@ -103,15 +103,12 @@ class wholeBodyDynamicsThread: public RateThread
     BufferedPort<Vector> *port_external_cartesian_wrench_RL;
     BufferedPort<Vector> *port_external_cartesian_wrench_LL;
 
-    /*
 
     BufferedPort<Vector> *port_sensor_wrench_RL;
     BufferedPort<Vector> *port_sensor_wrench_LL;
     BufferedPort<Vector> *port_model_wrench_RL;
     BufferedPort<Vector> *port_model_wrench_LL;
 
-    BufferedPort<Vector> *port_external_wrench_TO;
-    */
 
     BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts;
 
@@ -163,14 +160,15 @@ class wholeBodyDynamicsThread: public RateThread
     yarp::sig::Vector RLCartesianExternalWrench;
 
     //Calibration related variables
+    yarp::os::Mutex run_mutex;
     yarp::os::Mutex calibration_mutex;
     iCubTreeStatus tree_status;
 
     iCub::iDynTree::iCubTree_version_tag icub_version;
     iCub::iDynTree::iCubTree icub_model_calibration;
 
-    const int max_samples_used_for_calibration;
-
+    int samples_requested_for_calibration;
+    int max_samples_for_calibration;
     int l_foot_ft_sensor_id;
     int r_foot_ft_sensor_id;
 
@@ -220,7 +218,9 @@ public:
                             bool autoconnect);
 
     bool threadInit();
-    bool calibrateOffset(const std::string calib_code);
+    bool calibrateOffset(const std::string calib_code, const int nr_of_samples );
+    bool resetOffset(const std::string calib_code);
+
     /**
      * Wait for the calibration to end and then return.
      *

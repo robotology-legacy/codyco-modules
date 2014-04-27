@@ -1161,6 +1161,13 @@ bool DynTree::getCOMJacobian(yarp::sig::Matrix & jac, yarp::sig::Matrix & moment
         momentum_jac.resize(6,6+undirected_tree.getNrOfDOFs());
     }
 
+    SetToZero(com_jacobian);
+    SetToZero(momentum_jacobian);
+    SetToZero(com_jac_buffer);
+    SetToZero(momentum_jac_buffer);
+    jac.zero();
+    momentum_jac.zero();
+
     int part_id;
     if( part_name.length() == 0 ) {
         part_id = -1;
@@ -1219,6 +1226,10 @@ bool DynTree::getCentroidalMomentumJacobian(yarp::sig::Matrix & momentum_jac)
         momentum_jac.resize(6,6+undirected_tree.getNrOfDOFs());
     }
 
+
+    momentum_jac.zero();
+    SetToZero(momentum_jacobian);
+    SetToZero(momentum_jac_buffer);
 
     computePositions();
 
@@ -1408,7 +1419,11 @@ bool DynTree::getJacobian(const int link_index, yarp::sig::Matrix & jac, bool lo
         jac.resize(6,6+undirected_tree.getNrOfDOFs());
     }
 
+
     if( abs_jacobian.rows() != 6 || abs_jacobian.columns() != 6+undirected_tree.getNrOfDOFs() ) { abs_jacobian.resize(6+undirected_tree.getNrOfDOFs()); }
+
+    SetToZero(abs_jacobian);
+    jac.zero();
 
     getFloatingBaseJacobianLoop(undirected_tree,q,dynamic_traversal,link_index,abs_jacobian);
 
@@ -1500,8 +1515,10 @@ bool DynTree::getFloatingBaseMassMatrix(yarp::sig::Matrix & fb_mass_matrix)
     if( fb_mass_matrix.rows() != (int)(6+undirected_tree.getNrOfDOFs())
         || fb_mass_matrix.cols() != (int)(6+undirected_tree.getNrOfDOFs()) ) {
         fb_mass_matrix.resize(6+undirected_tree.getNrOfDOFs(),6+undirected_tree.getNrOfDOFs());
-        fb_mass_matrix.zero();
     }
+
+    fb_mass_matrix.zero();
+
 
     //Calculate the result directly in the output matrix
     /**
@@ -1513,8 +1530,9 @@ bool DynTree::getFloatingBaseMassMatrix(yarp::sig::Matrix & fb_mass_matrix)
     if( fb_jnt_mass_matrix.rows() != (6+undirected_tree.getNrOfDOFs())
         || fb_jnt_mass_matrix.columns() != (6+undirected_tree.getNrOfDOFs()) ) {
         fb_jnt_mass_matrix.resize(6+undirected_tree.getNrOfDOFs());
-        SetToZero(fb_jnt_mass_matrix);
     }
+
+    SetToZero(fb_jnt_mass_matrix);
 
     if( subtree_crbi.size() != undirected_tree.getNrOfLinks() ) { subtree_crbi.resize(undirected_tree.getNrOfLinks()); };
 

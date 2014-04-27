@@ -15,8 +15,6 @@ Code documentation automatically generated: http://wiki.icub.org/codyco/dox/html
 
 Installation
 ------------
-**If you are a OS X 10.9 Mavericks user, please check [this page on the wiki](https://github.com/robotology/codyco/wiki/Fix-for-OS-X-Mavericks-%2810.9%29-compilation-and-build-errors) to address 10.9 specific issues**
-
 
 Before installing CoDyCo software it is necessary to install some dependencies:
 

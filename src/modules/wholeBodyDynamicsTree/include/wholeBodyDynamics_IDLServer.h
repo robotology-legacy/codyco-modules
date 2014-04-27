@@ -24,7 +24,13 @@ public:
  * @param nr_of_samples number of samples
  * @return true/false on success/failure
  */
-  virtual bool calib(const std::string& calib_code);
+  virtual bool calib(const std::string& calib_code, const int32_t nr_of_samples = 100);
+/**
+ * Reset the sensor offset to 0 0 0 0 0 0 (six zeros).
+ * @param calib_code argument to specify the sensors to reset (all,arms,legs,feet)
+ * @return true/false on success/failure
+ */
+  virtual bool resetOffset(const std::string& calib_code);
 /**
  * Quit the module.
  * @return true/false on success/failure

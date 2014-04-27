@@ -24,6 +24,7 @@
 #include <iCub/ctrl/math.h>
 
 #include <yarp/math/Math.h>
+#include <yarp/os/Log.h>
 
 #include <Eigen/Core>
 
@@ -50,12 +51,12 @@ using namespace iCub::skinDynLib;
 //                                          ICUB WHOLE BODY MODEL
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName, const iCub::iDynTree::iCubTree_version_tag version, 
+icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName, const iCub::iDynTree::iCubTree_version_tag version,
     double* initial_q, const std::vector<std::string> &_bodyPartNames)
     : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
 {
     reverse_torso_joints = true;
-    
+
     std::string kinematic_base_link_name = "root_link";
     p_icub_model = new iCub::iDynTree::iCubTree(version,iCub::iDynTree::SKINDYNLIB_SERIALIZATION,0,kinematic_base_link_name);
     p_model = (iCub::iDynTree::DynTree *) p_icub_model;
@@ -63,17 +64,17 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName
     all_q_min = all_q_max = all_ddq = all_dq = all_q;
     floating_base_mass_matrix.resize(p_model->getNrOfDOFs(),p_model->getNrOfDOFs());
     floating_base_mass_matrix.zero();
-    
+
     world_base_transformation.resize(4,4);
     world_base_transformation.eye();
-    
+
     v_base.resize(3,0.0);
-    
+
     a_base = omega_base = domega_base = v_base;
-    
+
     v_six_elems_base.resize(3,0.0);
     a_six_elems_base.resize(6,0.0);
-    
+
     if( initial_q != 0 ) {
         memcpy(all_q.data(),initial_q,all_q.size()*sizeof(double));
     }
@@ -86,7 +87,7 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName
     : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
 {
     reverse_torso_joints = true;
-    
+
     std::string kinematic_base_link_name = "root_link";
     p_icub_model = new iCub::iDynTree::iCubTree(version,urdf_file,iCub::iDynTree::SKINDYNLIB_SERIALIZATION,0,kinematic_base_link_name);
     p_model = (iCub::iDynTree::DynTree *) p_icub_model;
@@ -94,17 +95,17 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName
     all_q_min = all_q_max = all_ddq = all_dq = all_q;
     floating_base_mass_matrix.resize(p_model->getNrOfDOFs(),p_model->getNrOfDOFs());
     floating_base_mass_matrix.zero();
-    
+
     world_base_transformation.resize(4,4);
     world_base_transformation.eye();
-    
+
     v_base.resize(3,0.0);
-    
+
     a_base = omega_base = domega_base = v_base;
-    
+
     v_six_elems_base.resize(3,0.0);
     a_six_elems_base.resize(6,0.0);
-    
+
     if( initial_q != 0 ) {
         memcpy(all_q.data(),initial_q,all_q.size()*sizeof(double));
     }
@@ -113,8 +114,8 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName
 
 
 icubWholeBodyModel::icubWholeBodyModel(const char* _name,
-                                       const char* _robotName, 
-                                       const char* urdf_file, 
+                                       const char* _robotName,
+                                       const char* urdf_file,
                                        yarp::os::Property & wbi_yarp_conf,
                                        double* initial_q)
     : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName)
@@ -128,20 +129,20 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name,
     all_q_min = all_q_max = all_ddq = all_dq = all_q;
     floating_base_mass_matrix.resize(p_model->getNrOfDOFs(),p_model->getNrOfDOFs());
     floating_base_mass_matrix.zero();
-    
+
     world_base_transformation.resize(4,4);
     world_base_transformation.eye();
-    
+
     v_base.resize(3,0.0);
-    
+
     a_base = omega_base = domega_base = v_base;
-    
+
     v_six_elems_base.resize(3,0.0);
     a_six_elems_base.resize(6,0.0);
-    
+
     loadBodyPartsFromConfig(wbi_yarp_conf,bodyPartNames);
     loadReverseTorsoJointsFromConfig(wbi_yarp_conf,reverse_torso_joints);
-    
+
     if( initial_q != 0 ) {
         memcpy(all_q.data(),initial_q,all_q.size()*sizeof(double));
     }
@@ -162,7 +163,7 @@ bool icubWholeBodyModel::openDrivers(int bp)
     if(!openPolyDriver(name, robot, dd[bp], bodyPartNames[bp]))
         return false;
     bool ok = dd[bp]->view(ilim[bp]);   //if(!isRobotSimulator(robot))
-    if(ok) 
+    if(ok)
         return true;
     fprintf(stderr, "Problem initializing drivers of %s\n", bodyPartNames[bp].c_str());
     return false;
@@ -186,7 +187,7 @@ bool icubWholeBodyModel::close()
 
 bool icubWholeBodyModel::removeJoint(const wbi::LocalId &j)
 {
-    if(!jointIdList.removeId(j)) 
+    if(!jointIdList.removeId(j))
         return false;
     all_dq.zero();
     all_ddq.zero();
@@ -355,7 +356,7 @@ bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
         }
         return res;
     }
-    
+
     bool res = true;
     int n = jointIdList.size();
     for(int i=0; i<n; i++)
@@ -382,14 +383,15 @@ bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
 bool icubWholeBodyModel::computeH(double *q, const Frame &xBase, int linkId, Frame &H)
 {
     if( (linkId < 0 || linkId >= p_model->getNrOfLinks()) && linkId != COM_LINK_ID ) return false;
-    
+
     convertBasePose(xBase,world_base_transformation);
     convertQ(q,all_q);
 
     p_model->setWorldBasePose(world_base_transformation);
     p_model->setAng(all_q);
-    
+
     Matrix H_result;
+    H_result.zero();
     if( linkId != COM_LINK_ID ) {
         H_result = p_model->getPosition(linkId);
         if( H_result.cols() != 4 || H_result.rows() != 4 ) { return false; }
@@ -409,20 +411,22 @@ bool icubWholeBodyModel::computeH(double *q, const Frame &xBase, int linkId, Fra
 bool icubWholeBodyModel::computeJacobian(double *q, const Frame &xBase, int linkId, double *J, double *pos)
 {
     if( (linkId < 0 || linkId >= p_model->getNrOfLinks()) && linkId != COM_LINK_ID ) return false;
-    
+
     if( pos != 0 ) return false; //not implemented yet
-    
+
     bool ret_val;
-    
+
     int dof_jacobian = dof+6;
     Matrix complete_jacobian(6,all_q.size()+6), reduced_jacobian(6,dof_jacobian);
-    
+    complete_jacobian.zero();
+    reduced_jacobian.zero();
+
     convertBasePose(xBase,world_base_transformation);
     convertQ(q,all_q);
-    
+
     p_model->setWorldBasePose(world_base_transformation);
     p_model->setAng(all_q);
-    
+
     //Get Jacobian, the one of the link or the one of the COM
     if( linkId != COM_LINK_ID ) {
          ret_val = p_model->getJacobian(linkId,complete_jacobian);
@@ -432,7 +436,7 @@ bool icubWholeBodyModel::computeJacobian(double *q, const Frame &xBase, int link
          if( !ret_val ) return false;
     }
 
-    
+
     int i=0;
     FOR_ALL_BODY_PARTS_OF(itBp, jointIdList) {
         FOR_ALL_JOINTS(itBp, itJ) {
@@ -448,7 +452,7 @@ bool icubWholeBodyModel::computeJacobian(double *q, const Frame &xBase, int link
     //printf("J of link %d:\n%s\n", linkId, reduced_jacobian.submatrix(0,5,10,19).toString(1).c_str());
     //printf("J of link %d:\n%s\n", linkId, reduced_jacobian.submatrix(0,5,20,29).toString(1).c_str());
 #endif
-    
+
     return true;
 }
 
@@ -456,30 +460,30 @@ bool icubWholeBodyModel::computeDJdq(double *q, const Frame &xBase, double *dq, 
 {
     if ((linkID < 0 || linkID >= p_model->getNrOfLinks()) && linkID != COM_LINK_ID) return false;
     if (pos != 0) return false; //not implemented yet
-    
+
     //joints
     convertQ(q, all_q);
     convertDQ(dq, all_dq);
     all_ddq.zero();
-    
+
     //base
     convertBasePose(xBase, world_base_transformation);
     convertBaseVelocity(dxB, v_six_elems_base);
     a_six_elems_base.zero();
-    
+
     p_model->setAng(all_q);
     p_model->setDAng(all_dq);
     p_model->setD2Ang(all_ddq);
-    
+
     p_model->setWorldBasePose(world_base_transformation);
-    
+
     //The setKinematicBaseVelAcc accepts the velocity and accelerations of the kinematic base in world orientation
     p_model->setKinematicBaseVelAcc(v_six_elems_base,a_six_elems_base);
-    
+
     p_model->kinematicRNEA();
-    
+
     bool ret;
-    
+
     if( linkID != COM_LINK_ID ) {
         ret = p_model->getAcc(linkID,six_elem_buffer);
     } else {
@@ -490,30 +494,31 @@ bool icubWholeBodyModel::computeDJdq(double *q, const Frame &xBase, double *dq, 
             six_elem_buffer[i+3] = 0.0;
         }
     }
-    
+
     if( !ret ) {
         if( six_elem_buffer.size() != 6 ) {
             six_elem_buffer.resize(6,0.0);
         }
         return false;
     }
-    
+
     //should I copy directly?
+    YARP_ASSERT(six_elem_buffer.size() == 6);
     memcpy(dJdq, six_elem_buffer.data(), sizeof(double) * six_elem_buffer.size());
     return true;
-    
+
 }
 
 bool icubWholeBodyModel::forwardKinematics(double *q, const Frame &xB, int linkId, double *x)
 {
     if( (linkId < 0 || linkId >= p_model->getNrOfLinks()) && linkId != COM_LINK_ID ) return false;
-    
+
     convertBasePose(xB,world_base_transformation);
     convertQ(q,all_q);
 
     p_model->setWorldBasePose(world_base_transformation);
     p_model->setAng(all_q);
-    
+
     Matrix H_result;
 
     if( linkId != COM_LINK_ID ) {
@@ -527,16 +532,16 @@ bool icubWholeBodyModel::forwardKinematics(double *q, const Frame &xB, int linkI
        H_result.setSubcol(com,0,3);
     }
 
-    
-    
+
+
     Vector axisangle(4);
-    
+
     x[0] = H_result(0,3);
     x[1] = H_result(1,3);
     x[2] = H_result(2,3);
-    
+
     axisangle = iCub::ctrl::dcm2axis(H_result.submatrix(0,2,0,2));
-    
+
     x[3] = axisangle(0);
     x[4] = axisangle(1);
     x[5] = axisangle(2);
@@ -547,7 +552,7 @@ bool icubWholeBodyModel::forwardKinematics(double *q, const Frame &xB, int linkI
 //    PRINT_VECTOR("q", jointIdList.size(), q);
 //    PRINT_MATRIX("world_base_transformation", 4, 4, world_base_transformation.data());
 //#endif
-    
+
     return true;
 }
 
@@ -561,7 +566,7 @@ bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq,
     baseAcceleration[3] = ddxB[3];
     baseAcceleration[4] = ddxB[4];
     baseAcceleration[5] = ddxB[5];
-    
+
     /** \todo move all conversion (also the one relative to frames) in convert* functions */
     //Converting local wbi positions/velocity/acceleration to iDynTree one
     convertBasePose(xB, world_base_transformation);
@@ -574,22 +579,22 @@ bool icubWholeBodyModel::inverseDynamics(double *q, const Frame &xB, double *dq,
     //Setting iDynTree variables
     p_model->setWorldBasePose(world_base_transformation);
     p_model->setAng(all_q);
-    //The kinematic initial values are expressed in the imu link (in this case, the base) for iDynTree 
+    //The kinematic initial values are expressed in the imu link (in this case, the base) for iDynTree
     yarp::sig::Matrix base_world_rotation = world_base_transformation.submatrix(0,2,0,2).transposed();
-    
+
     p_model->setInertialMeasure(base_world_rotation * omega_base,
                                 base_world_rotation * domega_base,
                                 base_world_rotation * a_base);
     p_model->setDAng(all_dq);
     p_model->setD2Ang(all_ddq);
-    
+
     //Computing inverse dynamics
     p_model->kinematicRNEA();
     p_model->dynamicRNEA();
-    
+
     //Get the output floating base torques and convert them to wbi generalized torques
     yarp::sig::Vector base_force = p_model->getBaseForceTorque(iCub::iDynTree::WORLD_FRAME);
-    
+
     return convertGeneralizedTorques(base_force,p_model->getTorques(),tau);
 }
 
@@ -597,28 +602,31 @@ bool icubWholeBodyModel::computeMassMatrix(double *q, const Frame &xBase, double
 {
     convertBasePose(xBase,world_base_transformation);
     convertQ(q,all_q);
-    
+
     //Setting iDynTree variables
     p_model->setWorldBasePose(world_base_transformation);
     p_model->setAng(all_q);
-    
-    
-    
-    //iDynTree floating base mass matrix is already world orientation friendly 
+
+
+
+    //iDynTree floating base mass matrix is already world orientation friendly
     //(i.e. expects the base velocity to be expressed in world reference frame)
+    floating_base_mass_matrix.zero();
     p_model->getFloatingBaseMassMatrix(floating_base_mass_matrix);
-    
+
     if( reduced_floating_base_mass_matrix.cols() != 6+dof ||
         reduced_floating_base_mass_matrix.rows() != 6+dof ) {
         reduced_floating_base_mass_matrix.resize(6+dof,6+dof);
     }
-    
+
+    reduced_floating_base_mass_matrix.zero();
+
     //Converting the iDynTree complete floating_base_mass_matrix to the reduced one
     //           that includes only the joint added in the wholeBodyModel interfacec
-    
+
     //Given the structure of the wholeBodyModel, this manual quadratic loop is necessary
     //To speed-up the case in which all the joint are considered, it could be possible to add a check to directly copy the mass matrix
-    
+
     //Using mapped eigen matrices to avoid the overhead of using setSubmatrix / submatrix methods in yarp
     Eigen::Map< Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > mapped_reduced_mm(reduced_floating_base_mass_matrix.data(),
                                                                                                            reduced_floating_base_mass_matrix.rows(),
@@ -628,28 +636,28 @@ bool icubWholeBodyModel::computeMassMatrix(double *q, const Frame &xBase, double
                                                                                                             floating_base_mass_matrix.rows(),
                                                                                                             floating_base_mass_matrix.cols());
 
-    
+
     //Left top submatrix (spatial inertia matrix)
     mapped_reduced_mm.block<6,6>(0,0) = mapped_complete_mm.block<6,6>(0,0);
-    
+
     //Rest of the matrix
     int reduced_dof_row=0;
     int reduced_dof_column = 0;
     FOR_ALL_BODY_PARTS_OF(row_bp, jointIdList) {
         FOR_ALL_JOINTS(row_bp, row_joint) {
             int complete_dof_row = p_model->getDOFIndex(row_bp->first,*row_joint);
-            
-            //Left bottom submatrix 
+
+            //Left bottom submatrix
             mapped_reduced_mm.block<1,6>(6+reduced_dof_row,0) = mapped_complete_mm.block<1,6>(6+complete_dof_row,0);
-            
+
             ///Right top submatrix (using the row loop to avoid doing another loop)
             mapped_reduced_mm.block<6,1>(0,6+reduced_dof_row) =  mapped_reduced_mm.block<1,6>(6+reduced_dof_row,0).transpose();
-            
+
             reduced_dof_column=0;
             FOR_ALL_BODY_PARTS_OF(column_bp, jointIdList) {
                 FOR_ALL_JOINTS(column_bp, column_joint) {
                     int complete_dof_column = p_model->getDOFIndex(column_bp->first,*column_joint);
-                    mapped_reduced_mm(6+reduced_dof_row,6+reduced_dof_column) = 
+                    mapped_reduced_mm(6+reduced_dof_row,6+reduced_dof_column) =
                         mapped_complete_mm(6+complete_dof_row,6+complete_dof_column);
                     reduced_dof_column++;
                 }
@@ -657,14 +665,14 @@ bool icubWholeBodyModel::computeMassMatrix(double *q, const Frame &xBase, double
             reduced_dof_row++;
         }
     }
-    
+
     memcpy(M,reduced_floating_base_mass_matrix.data(),sizeof(double)*(6+dof)*(6+dof));
-    
+
     return true;
 }
 
 bool icubWholeBodyModel::computeGeneralizedBiasForces(double *q, const Frame &xBase, double *dq, double *dxB, double *g, double *h)
-{    
+{
     /** \todo move all conversion (also the one relative to frames) in convert* functions */
     //Converting local wbi positions/velocity/acceleration to iDynTree one
     convertBasePose(xBase,world_base_transformation);
@@ -673,53 +681,53 @@ bool icubWholeBodyModel::computeGeneralizedBiasForces(double *q, const Frame &xB
     convertDQ(dq,all_dq);
     yarp::sig::Vector ddxB(6, 0.0);
     yarp::sig::Vector ddq(dof, 0.0);
-    
+
     //We can take into account the gravity efficiently by adding a fictional acceleration to the base
     ddxB[0] = - g[0];
     ddxB[1] = - g[1];
     ddxB[2] = - g[2];
-   
+
     convertBaseAcceleration(ddxB.data(),a_base,domega_base);
-    
+
 
     convertDDQ(ddq.data(),all_ddq);
 
     //Setting iDynTree variables
     p_model->setWorldBasePose(world_base_transformation);
     p_model->setAng(all_q);
-    //The kinematic initial values are expressed in the imu link (in this case, the base) for iDynTree 
+    //The kinematic initial values are expressed in the imu link (in this case, the base) for iDynTree
     yarp::sig::Matrix base_world_rotation = world_base_transformation.submatrix(0,2,0,2).transposed();
-    
+
     p_model->setInertialMeasure(base_world_rotation * omega_base,
                                      base_world_rotation * domega_base,
                                      base_world_rotation * a_base);
     p_model->setDAng(all_dq);
     p_model->setD2Ang(all_ddq);
-    
+
     //Computing inverse dynamics
     p_model->kinematicRNEA();
     p_model->dynamicRNEA();
-    
+
     //Get the output floating base torques and convert them to wbi generalized torques
     yarp::sig::Vector base_force = p_model->getBaseForceTorque(iCub::iDynTree::WORLD_FRAME);
-    
-    
+
+
     convertGeneralizedTorques(base_force,p_model->getTorques(),h);
-    
+
     return true;
 }
 
 
 bool icubWholeBodyModel::computeCentroidalMomentum(double *q, const Frame &xBase, double *dq, double *dxB, double *h)
-{    
+{
     /** \todo move all conversion (also the one relative to frames) in convert* functions */
     //Converting local wbi positions/velocity/acceleration to iDynTree one
     convertBasePose(xBase,world_base_transformation);
     convertQ(q,all_q);
-    
+
     convertBaseVelocity(dxB, v_six_elems_base);
     convertDQ(dq,all_dq);
-    
+
     a_six_elems_base.zero();
 
     //Setting iDynTree variables
@@ -728,18 +736,18 @@ bool icubWholeBodyModel::computeCentroidalMomentum(double *q, const Frame &xBase
     p_model->setAng(all_q);
     p_model->setDAng(all_dq);
     p_model->setD2Ang(all_ddq);
-    
+
     //Computing centroidal momentum
     if( six_elem_buffer.size() != 6 ) {
         six_elem_buffer.resize(6,0.0);
     }
-    
+
     six_elem_buffer = p_model->getCentroidalMomentum();
-    
+
     memcpy(h,six_elem_buffer.data(),6*sizeof(double));
-    
+
     return true;
 }
 
 
-    
+

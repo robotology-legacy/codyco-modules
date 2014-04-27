@@ -95,12 +95,13 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
         ok = robotInterface->addJoint(lid);
         jointNames[i] = lid.description;
     }
+    
     if(!ok || !robotInterface->init())
     { 
         fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); 
         return false; 
     }
-
+fprintf(stderr, "After initialize interface\n"); 
     //--------------------------CTRL THREAD--------------------------
     identificationThread = new MotorFrictionIdentificationThread(moduleName, robotName, threadPeriod, paramHelper, robotInterface, torqueController);
     if(!identificationThread->start())

@@ -1,54 +1,44 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!-- Plotting monitor parameters of jtc module, that are:
-0		tauMeas			Torque of the monitored motor
-1		tauDes			Desired torque of the monitored motor
-2		tauDesPlusPI	Desired torque plus proportional and integral terms of the monitored motor
-3		dq				Velocity of the monitored motor
-4		sign dq			Sign of the velocity of the monitored motor
-5		pwmOut			PWM commanded to the monitored motor
-6		pwmFF			Feedforward part of the PWM commanded to the monitored motor
-7		pwmFB			Feedback part of the PWM commanded to the monitored motor
-8		pwmTorqueFF		Torque feedforward term of the PWM commanded to the monitored motor
-9		pwmFrictionFF	Friction feedforward term of the PWM commanded to the monitored motor
-10		pwmMeas			Measured motor PWM
-11		tauErr			Torque tracking error
-12		q				Joint angle
-13		qDes			Desired joint angle
+        tauMeas;         //      0
+        tauDes;          //      1
+        tauMeas1;        //      2
+        tauDes1;         //      3
+        tauMeas2;        //      4
+        tauDes2;         //      5
+        tadDesPlusPI;    //      6
+        tauErr;          //      7
+        q;               //      8
+        qDes;            //      9
+        dq;              //      10
+        dqSign;          //      11
+        pwmDes;          //      12
+        pwmMeas;         //      13
+        pwmFF;           //      14
+        pwmFB;           //      15
+        pwmTorqueFF;     //      16
+        pwmFrictionFF;   //      17
 -->
 
-<portscope rows="5" columns="1">
-	<!-- plotting dq and sign(dq) -->
-    <!--<plot gridx="0" gridy="0" hspan="1" vspan="1" title="Joint Vel (deg/sec)" size="500" minval="-50" maxval="50" bgcolor="white">
-        <graph remote="/jtc/monitor:o" index="3" color="Red" title="dq" type="lines" size="2" />
-		<graph remote="/jtc/monitor:o" index="4" color="Blue" title="sign dq" type="lines" size="2" />
-    </plot>-->
-	<plot gridx="0" gridy="0" hspan="1" vspan="1" title="Joint angle (red desired, blue measure)" size="500" minval="-50" maxval="50" bgcolor="white">
-		<graph remote="/jtc/monitor:o" index="13" color="Red" title="qDes" type="lines" size="2" />
-		<graph remote="/jtc/monitor:o" index="12" color="Blue" title="q" type="lines" size="2" />
+<portscope rows="4" columns="1">
+	<plot gridx="0" gridy="0" hspan="1" vspan="1" title="Norm of the torque error" size="500" minval="-50" maxval="50" bgcolor="white">
+		<graph remote="/jtc/monitor:o" index="7" color="Red" title="|TorqueError|" type="lines" size="2" />
 	</plot>
 
     <!-- plotting torque -->
-    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Motor Torque (red desired, blue measure)" size="500" minval="-13" maxval="13" bgcolor="white">
-		<graph remote="/jtc/monitor:o" index="0" color="Blue" title="Motor torque measure" type="lines" size="2" />
-		<graph remote="/jtc/monitor:o" index="1" color="Red" title="Motor torque desired" type="lines" size="2" />
-	</plot>
+    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Link Torque 1 (red desired, blue measure)" size="500" minval="-13" maxval="13" bgcolor="white">
+		<graph remote="/jtc/monitor:o" index="0" color="Blue" title="Measured" type="lines" size="2" />
+		<graph remote="/jtc/monitor:o" index="1" color="Red" title="Desired" type="lines" size="2" />
+    </plot>
+    <plot gridx="0" gridy="2" hspan="1" vspan="1" title="Link Torque 2 (red desired, blue measure)" size="500" minval="-13" maxval="13" bgcolor="white">
+		<graph remote="/jtc/monitor:o" index="2" color="Blue" title="Measured" type="lines" size="2" />
+		<graph remote="/jtc/monitor:o" index="3" color="Red" title="Desired" type="lines" size="2" />
+    </plot>
+    <plot gridx="0" gridy="3" hspan="1" vspan="1" title="Link Torque 3 (red desired, blue measure)" size="500" minval="-13" maxval="13" bgcolor="white">
+		<graph remote="/jtc/monitor:o" index="4" color="Blue" title="Measured" type="lines" size="2" />
+		<graph remote="/jtc/monitor:o" index="5" color="Red" title="Desired" type="lines" size="2" />
+    </plot>
 
-	<!-- plotting torque -->
-	<plot gridx="0" gridy="2" hspan="1" vspan="1" title="Motor Torque (blue error)" size="500" minval="-10" maxval="10" bgcolor="white">
-		<graph remote="/jtc/monitor:o" index="11" color="Blue" title="Motor torque tracking error" type="lines" size="2" />
-	</plot>
-
-	<!-- plotting PWM -->
-	<plot gridx="0" gridy="3" hspan="1" vspan="1" title="Motor PWM (red desired, blue feedforward)" size="500" minval="-100" maxval="100" bgcolor="white">
-		<graph remote="/jtc/monitor:o" index="5" color="Red" title="Desired Motor PWM" type="lines" size="2" />
-		<graph remote="/jtc/monitor:o" index="6" color="Blue" title="Measured Motor PWM" type="lines" size="2" />
-	</plot>
-
-	<!-- plotting PWM-->
-	<plot gridx="0" gridy="4" hspan="1" vspan="1" title="Motor PWM (red FF, blue friction FF)" size="500" minval="-100" maxval="100" bgcolor="white">
-		<graph remote="/jtc/monitor:o" index="6" color="Red" title="Feedforward PWM" type="lines" size="2" />
-		<graph remote="/jtc/monitor:o" index="9" color="Blue" title="Friction feedforward PWM" type="lines" size="2" />
-	</plot>
 
 </portscope>
