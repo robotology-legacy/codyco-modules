@@ -19,7 +19,8 @@
 #include <iCub/skinDynLib/common.h>
 #include <yarp/os/Time.h>
 #include <string>
-
+#include <yarp/os/Log.h>
+#include <yarp/math/api.h>
 
 using namespace std;
 using namespace wbi;
@@ -29,6 +30,7 @@ using namespace yarp::dev;
 using namespace yarp::sig;
 using namespace iCub::skinDynLib;
 using namespace iCub::ctrl;
+using namespace yarp::math;
 
 #define ESTIMATOR_PERIOD 10
 
@@ -67,6 +69,11 @@ bool icubWholeBodyStates::close()
     if(sensors) { delete sensors; sensors = 0; }
     if(estimator) { delete estimator; estimator = 0; }
     return ok;
+}
+
+bool icubWholeBodyStates::setWorldBasePosition(const wbi::Frame & xB)
+{
+    return estimator->setWorldBasePosition(xB);
 }
 
 bool icubWholeBodyStates::addEstimate(const EstimateType et, const LocalId &sid)
@@ -108,8 +115,8 @@ int icubWholeBodyStates::addEstimates(const EstimateType et, const LocalIdList &
     case ESTIMATE_MOTOR_TORQUE:             return lockAndAddSensors(SENSOR_TORQUE, sids);
     case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return lockAndAddSensors(SENSOR_TORQUE, sids);
     case ESTIMATE_MOTOR_PWM:                return lockAndAddSensors(SENSOR_PWM, sids);
-    //case ESTIMATE_IMU:                      return lockAndAddSensors(SENSOR_IMU, sids);
-    case ESTIMATE_FORCE_TORQUE_SENSOR:             return lockAndAddSensors(SENSOR_FORCE_TORQUE, sids);
+    //case ESTIMATE_IMU:                    return lockAndAddSensors(SENSOR_IMU, sids);
+    case ESTIMATE_FORCE_TORQUE_SENSOR:      return lockAndAddSensors(SENSOR_FORCE_TORQUE, sids);
     ///< \todo TODO properly account for external forque torque
     case ESTIMATE_EXTERNAL_FORCE_TORQUE:    return true;
     default: break;
@@ -216,7 +223,7 @@ bool icubWholeBodyStates::getEstimate(const EstimateType et, const LocalId &sid,
     case ESTIMATE_FORCE_TORQUE_SENSOR:
         return lockAndReadSensor(SENSOR_FORCE_TORQUE, sid, data, time, blocking);
     case ESTIMATE_EXTERNAL_FORCE_TORQUE:
-        return false;
+        return lockAndGetExternalWrench(sid,data);
     default: break;
     }
     return false;
@@ -304,6 +311,30 @@ bool icubWholeBodyStates::lockAndReadSensor(const SensorType st, const LocalId s
     bool res = sensors->readSensor(st, sid, data, 0, blocking);
     estimator->mutex.post();
     return res;
+}
+
+bool icubWholeBodyStates::lockAndGetExternalWrench(const LocalId sid, double * data)
+{
+    bool return_value = false;
+    estimator->mutex.wait();
+    if( sid == estimator->right_gripper_local_id )
+    {
+        memcpy(data,estimator->RAExtWrench.data(),6*sizeof(double));
+    }
+    else if( sid == estimator->left_gripper_local_id )
+    {
+        memcpy(data,estimator->LAExtWrench.data(),6*sizeof(double));
+    }
+    else if( sid == estimator->right_sole_local_id )
+    {
+        memcpy(data,estimator->RLExtWrench.data(),6*sizeof(double));
+    }
+    else if( sid == estimator->left_sole_local_id )
+    {
+        memcpy(data,estimator->LLExtWrench.data(),6*sizeof(double));
+    }
+    estimator->mutex.post();
+    return return_value;
 }
 
 bool icubWholeBodyStates::lockAndAddSensor(const SensorType st, const LocalId &sid)
@@ -398,7 +429,23 @@ bool icubWholeBodyEstimator::threadInit()
     tauJFilt    = new FirstOrderLowPassFilter(tauJCutFrequency, getRate()*1e-3, estimates.lastTauJ);
     tauMFilt    = new FirstOrderLowPassFilter(tauMCutFrequency, getRate()*1e-3, estimates.lastTauJ);
     pwmFilt     = new FirstOrderLowPassFilter(pwmCutFrequency, getRate()*1e-3, estimates.lastPwm);
+
+    H_world_base.resize(4,4);
+    right_gripper_local_id = wbi::LocalId(RIGHT_ARM,8);
+    left_gripper_local_id = wbi::LocalId(LEFT_ARM,8);
+    left_sole_local_id = wbi::LocalId(LEFT_LEG,8);
+    right_sole_local_id = wbi::LocalId(RIGHT_LEG,8);
+
     return ok;
+}
+
+bool icubWholeBodyEstimator::setWorldBasePosition(const wbi::Frame & xB)
+{
+    mutex.wait();
+    H_world_base.resize(4,4);
+    xB.get4x4Matrix(H_world_base.data());
+    mutex.post();
+    return true;
 }
 
 void icubWholeBodyEstimator::run()
@@ -438,10 +485,86 @@ void icubWholeBodyEstimator::run()
         ///< Read motor pwm
         sensors->readSensors(SENSOR_PWM, pwm.data(), 0, false);
         estimates.lastPwm = pwmFilt->filt(pwm);     ///< low pass filter
+
+        ///< Read end effector wrenches
+        readEEWrenches(right_gripper_local_id,RAExtWrench);
+        readEEWrenches(left_gripper_local_id,LAExtWrench);
+        readEEWrenches(right_sole_local_id,RLExtWrench);
+        readEEWrenches(left_sole_local_id,LLExtWrench);
     }
     mutex.post();
 
     return;
+}
+
+std::string getPartName(const wbi::LocalId & local_id)
+{
+    std::string part = "";
+    if( local_id.bodyPart == RIGHT_ARM )
+    {
+        part = "right_arm";
+    }
+    else if( local_id.bodyPart == LEFT_ARM )
+    {
+        part = "left_arm";
+    }
+    else if( local_id.bodyPart == RIGHT_LEG )
+    {
+        part = "right_leg";
+    }
+    else if( local_id.bodyPart == LEFT_LEG )
+    {
+        part = "left_leg";
+    }
+    return part;
+}
+
+
+void icubWholeBodyEstimator::openEEWrenchPorts(const wbi::LocalId & local_id)
+{
+    std::string wbd_module_name = "wholeBodyDynamicsTree";
+    std::string part, remotePort;
+    part = getPartName(local_id);
+    if( part == "")
+    {
+        std::cerr << "icubWholeBodyEstimator::openEEWrenchPorts: local_id not found " << std::endl;
+    }
+    remotePort = "/" + wbd_module_name + "/" + part + "/" + "cartesianEndEffectorWrench:o";
+    stringstream localPort;
+    localPort << "/" << "icubWholeBodyEstimator" << "/eeWrench" << local_id.bodyPart << "_" << local_id.index << ":i";
+    portsEEWrenches[local_id] = new BufferedPort<Vector>();
+    if(!portsEEWrenches[local_id]->open(localPort.str().c_str())) {
+        // open local input port
+        std::cerr << " icubWholeBodyEstimator::openEEWrenchPorts: Open of localPort " << localPort << " failed " << std::endl;
+        YARP_ASSERT(false);
+    }
+    if(!Network::exists(remotePort.c_str())) {            // check remote output port exists
+        std::cerr << "icubWholeBodyEstimator::openEEWrenchPorts:  " << remotePort << " does not exist " << std::endl;
+        YARP_ASSERT(false);
+    }
+    if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp")) {  // connect remote to local port
+        std::cerr << "icubWholeBodyEstimator::openEEWrenchPorts:  could not connect " << remotePort << " to " << localPort << std::endl;
+        YARP_ASSERT(false);
+    }
+
+    //allocate lastRead variables
+    lastEEWrenches[local_id].resize(6,0.0);
+
+}
+
+void icubWholeBodyEstimator::readEEWrenches(const wbi::LocalId & local_id, yarp::sig::Vector & vec)
+{
+    vec.resize(6);
+    yarp::sig::Vector*res= portsEEWrenches[local_id]->read();
+    vec.subVector(0,2) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(0,2);
+    vec.subVector(3,5) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(3,5);
+    vec = *res;
+}
+
+void icubWholeBodyEstimator::closeEEWrenchPorts(const wbi::LocalId & local_id)
+{
+    portsEEWrenches[local_id]->close();
+    delete portsEEWrenches[local_id];
 }
 
 void icubWholeBodyEstimator::threadRelease()
@@ -454,6 +577,12 @@ void icubWholeBodyEstimator::threadRelease()
     if(tauJFilt!=0)  { delete tauJFilt; tauJFilt=0; }  ///< low pass filter for joint torque
     if(tauMFilt!=0)  { delete tauMFilt; tauMFilt=0; }  ///< low pass filter for motor torque
     if(pwmFilt!=0)   { delete pwmFilt; pwmFilt=0;   }
+
+    closeEEWrenchPorts(right_gripper_local_id);
+    closeEEWrenchPorts(left_gripper_local_id);
+    closeEEWrenchPorts(right_sole_local_id);
+    closeEEWrenchPorts(left_sole_local_id);
+
     return;
 }
 
