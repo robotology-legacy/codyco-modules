@@ -526,15 +526,18 @@ void wholeBodyDynamicsThread::calibration_run()
     tree_status.omega_imu[2] = 0.0*tree_status.wbi_imu[9];
 
     //Estimating sensors
-    icub_model_calibration.setInertialMeasure(tree_status.omega_imu,tree_status.domega_imu,tree_status.proper_ddp_imu);
+    icub_model_calibration.setInertialMeasure(0.0*tree_status.omega_imu,0.0*tree_status.domega_imu,tree_status.proper_ddp_imu);
     icub_model_calibration.setAng(tree_status.q);
-    icub_model_calibration.setDAng(tree_status.dq);
-    icub_model_calibration.setD2Ang(tree_status.ddq);
+    icub_model_calibration.setDAng(0.0*tree_status.dq);
+    icub_model_calibration.setD2Ang(0.0*tree_status.ddq);
 
     icub_model_calibration.kinematicRNEA();
     icub_model_calibration.dynamicRNEA();
 
     //std::cout << "wholeBodyDynamicsThread::calibration_run(): F/T estimates computed" << std::endl;
+	std::cout << "wholeBodyDynamicsThread::calibration_run() : imu proper acceleration " << tree_status.proper_ddp_imu.toString() << std::endl;
+	std::cout << "wholeBodyDynamicsThread::calibration_run() : q " << tree_status.q.toString() << std::endl;
+
 
     for(int ft_sensor_id=0; ft_sensor_id < (int)offset_buffer.size(); ft_sensor_id++ ) {
         if( calibrate_ft_sensor[ft_sensor_id] ) {
