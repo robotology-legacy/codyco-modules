@@ -117,7 +117,7 @@ namespace wbi
         ESTIMATE_BASE_ACC,                  // acceleration of the base of the robot
         ESTIMATE_EXTERNAL_FORCE_TORQUE      // 6-axis external force/torque acting on a link
     };
-    const int ESTIMATE_TYPE_SIZE = 20; //number of elements in EstimateType enum
+    const int ESTIMATE_TYPE_SIZE = 19; //number of elements in EstimateType enum
 
     /** List of parameters of estimation algorithms. */
     enum EstimationParameter
