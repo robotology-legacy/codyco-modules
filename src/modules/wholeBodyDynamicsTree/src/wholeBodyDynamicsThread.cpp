@@ -490,7 +490,14 @@ void wholeBodyDynamicsThread::normal_run()
         std::cout << all_torques.toString() << std::endl;
         std::cout << "Forces: " << std::endl;
         std::cout << external_forces_list.toString() << std::endl;
-
+        std::cout << "Measured Force Torque Sensors: " << std::endl;
+        yarp::sig::Vector ft_mes(6*6,0.0); 
+        ret = estimator->getEstimates(wbi::ESTIMATE_FORCE_TORQUE,ft_mes.data());
+        for(int i=0; i < 6; i++ ) 
+        {
+            std::cout << "FT sensor " << i << " : " << std::endl;
+            std::cout << ft_mes.subVector(6*i,6*i+5).toString() << std::endl;
+        }
 
     }
 
