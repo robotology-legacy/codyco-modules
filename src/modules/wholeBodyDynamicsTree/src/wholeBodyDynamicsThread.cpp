@@ -521,9 +521,9 @@ void wholeBodyDynamicsThread::calibration_run()
     tree_status.proper_ddp_imu[0] = tree_status.wbi_imu[4];
     tree_status.proper_ddp_imu[1] = tree_status.wbi_imu[5];
     tree_status.proper_ddp_imu[2] = tree_status.wbi_imu[6];
-    tree_status.omega_imu[0] = tree_status.wbi_imu[7];
-    tree_status.omega_imu[1] = tree_status.wbi_imu[8];
-    tree_status.omega_imu[2] = tree_status.wbi_imu[9];
+    tree_status.omega_imu[0] = 0.0*tree_status.wbi_imu[7];
+    tree_status.omega_imu[1] = 0.0*tree_status.wbi_imu[8];
+    tree_status.omega_imu[2] = 0.0*tree_status.wbi_imu[9];
 
     //Estimating sensors
     icub_model_calibration.setInertialMeasure(tree_status.omega_imu,tree_status.domega_imu,tree_status.proper_ddp_imu);
@@ -542,8 +542,9 @@ void wholeBodyDynamicsThread::calibration_run()
             icub_model_calibration.getSensorMeasurement(ft_sensor_id,tree_status.estimated_ft_sensors[ft_sensor_id]);
             //Get sensor measure
             estimator->getEstimate(wbi::ESTIMATE_FORCE_TORQUE,convertFTiDynTreeToFTwbi(ft_sensor_id),tree_status.measured_ft_sensors[ft_sensor_id].data());
-	    assert((int)offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
+	        assert((int)offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
             offset_buffer[ft_sensor_id] += tree_status.measured_ft_sensors[ft_sensor_id]-tree_status.estimated_ft_sensors[ft_sensor_id];
+            std::cout << "Estimated ft sensor " << ft_sensor_id << " : " << tree_status.estimated_ft_sensors[ft_sensor_id].toString() << std::endl;
         }
     }
 
