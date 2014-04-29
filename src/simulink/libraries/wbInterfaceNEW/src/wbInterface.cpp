@@ -111,8 +111,8 @@ bool robotStatus::robotConfig() {
         //---------------- CREATION WHOLE BODY INTERFACE ---------------------/
         iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,2,true);
 //         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/Users/iron/Code/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
-//         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
-        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/home/daniele/src/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
+        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
+//         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/home/daniele/src/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
 #ifdef DEBUG
         fprintf(stderr,"robotStatus::robotConfig >> new wbInterface created ...\n");
 #endif

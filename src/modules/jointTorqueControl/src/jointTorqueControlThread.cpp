@@ -25,7 +25,7 @@
 using namespace jointTorqueControl;
 using namespace wbiIcub;
 
-#define IMPEDANCE_CONTROL
+// #define IMPEDANCE_CONTROL
 // #define GAZEBO_SIM
 
 jointTorqueControlThread::jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
