@@ -156,7 +156,7 @@ class wholeBodyDynamicsThread: public RateThread
     iCubTreeStatus tree_status;
 
     iCub::iDynTree::iCubTree_version_tag icub_version;
-    iCub::iDynTree::iCubTree icub_model_calibration;
+    iCub::iDynTree::iCubTree * icub_model_calibration;
 
     int samples_requested_for_calibration;
     int max_samples_for_calibration;
@@ -176,6 +176,8 @@ class wholeBodyDynamicsThread: public RateThread
     std::vector<yarp::sig::Vector> offset_buffer;
     //End of Calibration related variables
 
+    bool assume_fixed_base;
+
 public:
 
     wholeBodyDynamicsThread(string _name,
@@ -183,7 +185,8 @@ public:
                             int _period,
                             wbiIcub::icubWholeBodyStatesLocal *_wbi,
                             const iCub::iDynTree::iCubTree_version_tag icub_version,
-                            bool autoconnect);
+                            bool autoconnect,
+                            bool assume_fixed_base);
 
     bool threadInit();
     bool calibrateOffset(const std::string calib_code, const int nr_of_samples );
