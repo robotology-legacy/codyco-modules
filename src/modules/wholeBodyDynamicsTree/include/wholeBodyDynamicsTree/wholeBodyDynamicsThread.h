@@ -156,7 +156,7 @@ class wholeBodyDynamicsThread: public RateThread
     iCubTreeStatus tree_status;
 
     iCub::iDynTree::iCubTree_version_tag icub_version;
-    iCub::iDynTree::iCubTree icub_model_calibration;
+    iCub::iDynTree::iCubTree * icub_model_calibration;
 
     int samples_requested_for_calibration;
     int max_samples_for_calibration;
