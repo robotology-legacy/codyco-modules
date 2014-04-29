@@ -147,7 +147,7 @@ namespace wbiIcub
         
         /* Configuration parameters section */
         static const std::string icubWholeBodyActuatorsUseExternalTorqueModule; /*< initialization parameter for iCub actuator class. The value associated is a boolean value. Default to false */
-        static const std::string icubWholeBodyActuatorsExternalTorqueModuleAutoconnect; /*< initialization parameter for iCub actuator class. The value associated is a boolean value. It specifies if the external torque module should be started automatically by the WBI. Default to true */
+        static const std::string icubWholeBodyActuatorsExternalTorqueModuleAutoconnect; /*< initialization parameter for iCub actuator class. The value associated is a boolean value. It specifies if the external torque module should be started automatically by the WBI. Default to false */
         static const std::string icubWholeBodyActuatorsExternalTorqueModuleName; /*< initialization parameter for iCub actuator class. Name of the torque external module */
         
         /** @brief Sets an initialization parameter.
