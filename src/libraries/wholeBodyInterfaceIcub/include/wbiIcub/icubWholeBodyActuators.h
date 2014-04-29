@@ -32,7 +32,6 @@
 #include <map>
 
 //*********TEMP************** -> for actuators //
-#define WBI_ICUB_COMPILE_PARAM_HELP
 #ifdef WBI_ICUB_COMPILE_PARAM_HELP
 #include <yarp/os/RpcClient.h>
 #include <yarp/os/RpcServer.h>
