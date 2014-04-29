@@ -518,9 +518,11 @@ void wholeBodyDynamicsThread::calibration_run()
 
     //Setting imu proper acceleration from measure (assuming omega e domega = 0)
     //acceleration are measures 4:6 (check wbi documentation)
-    tree_status.proper_ddp_imu[0] = tree_status.wbi_imu[4];
-    tree_status.proper_ddp_imu[1] = tree_status.wbi_imu[5];
-    tree_status.proper_ddp_imu[2] = tree_status.wbi_imu[6];
+    //tree_status.proper_ddp_imu[0] = tree_status.wbi_imu[4];
+    //tree_status.proper_ddp_imu[1] = tree_status.wbi_imu[5];
+    //tree_status.proper_ddp_imu[2] = tree_status.wbi_imu[6];
+    tree_status.proper_ddp_imu[0] = tree_status.proper_ddp_imu[1] = 0.0;
+    tree_status.proper_ddp_imu[2] = 9.8;
     tree_status.omega_imu[0] = 0.0*tree_status.wbi_imu[7];
     tree_status.omega_imu[1] = 0.0*tree_status.wbi_imu[8];
     tree_status.omega_imu[2] = 0.0*tree_status.wbi_imu[9];
