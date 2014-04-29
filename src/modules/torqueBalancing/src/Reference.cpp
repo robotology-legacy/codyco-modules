@@ -14,11 +14,4 @@
  * Public License for more details
  */
 
-#include "ReferenceGenerator.h"
-
-namespace codyco {
-    namespace torquebalancing {
-        
-        
-    }
-}
+#include "Reference.h"

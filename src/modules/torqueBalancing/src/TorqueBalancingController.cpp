@@ -15,6 +15,7 @@
  */
 
 #include "TorqueBalancingController.h"
+#include "Reference.h"
 #include <wbi/wholeBodyInterface.h>
 #include <wbi/wbiUtil.h>
 
@@ -25,8 +26,10 @@
 namespace codyco {
     namespace torquebalancing {
         
-        TorqueBalancingController::TorqueBalancingController(int period)
-        : RateThread(period){}
+        TorqueBalancingController::TorqueBalancingController(int period, ControllerReferences references)
+        : RateThread(period)
+        , m_robot(0)
+        , m_references(references){}
         
         TorqueBalancingController::~TorqueBalancingController() {}
 
@@ -68,7 +71,14 @@ namespace codyco {
             
             
         }
-     
+        
+#pragma mark - Controller methods
+        
+        void TorqueBalancingController::readReferences()
+        {
+            m_desiredCOMAcceleration = m_references.desiredCOMAcceleration.value();
+        }
+        
         bool TorqueBalancingController::updateRobotState()
         {
             //read positions and velocities

@@ -24,6 +24,7 @@ namespace codyco {
             Apinv = svd.matrixV() * sigmaDamped * svd.matrixU().transpose();   // damped pseudoinverse
         }
         
+        template <typename Derived1, typename Derived2>
         void pseudoInverse(const Eigen::MatrixBase<Derived1>& A,
                            double tolerance,
                            Eigen::MatrixBase<Derived2>& Apinv)

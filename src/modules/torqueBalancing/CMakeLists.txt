@@ -18,12 +18,15 @@ set(HEADERS_FOLDER include/torquebalancing)
 set(HEADERS    ${HEADERS_FOLDER}/TorqueBalancingModule.h
                ${HEADERS_FOLDER}/TorqueBalancingController.h
                ${HEADERS_FOLDER}/ReferenceGenerator.h
+               ${HEADERS_FOLDER}/Reference.h
+               ${HEADERS_FOLDER}/Reference.hpp
                ${HEADERS_FOLDER}/config.h)
 
 set(SOURCES    ${SRC_FOLDER}/TorqueBalancingModule.cpp
                ${SRC_FOLDER}/TorqueBalancingController.cpp
                ${SRC_FOLDER}/ReferenceGenerator.cpp
                ${SRC_FOLDER}/config.cpp
+               ${SRC_FOLDER}/Reference.cpp
                ${SRC_FOLDER}/main.cpp)
                                
 source_group("Source Files" FILES ${SOURCES})

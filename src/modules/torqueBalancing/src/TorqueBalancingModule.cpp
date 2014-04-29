@@ -16,6 +16,8 @@
 
 #include "TorqueBalancingModule.h"
 #include "TorqueBalancingController.h"
+#include "Reference.h"
+#include "ReferenceGenerator.h"
 
 namespace codyco {
     namespace torquebalancing {
@@ -25,8 +27,12 @@ namespace codyco {
         
         bool TorqueBalancingModule::configure(yarp::os::ResourceFinder& rf)
         {
+            //Create reference variable
+            ControllerReferences references;
             
-            TorqueBalancingController *controller = new TorqueBalancingController(10);
+            new ReferenceGenerator<ControllerReferences::COMAccelerationType>(10, references.desiredCOMAcceleration);
+            
+            TorqueBalancingController *controller = new TorqueBalancingController(10, references);
             
             return true;
         }

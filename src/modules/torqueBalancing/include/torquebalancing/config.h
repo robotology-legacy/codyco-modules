@@ -20,12 +20,37 @@
 #define ACTUATED_DOFS 25
 #define TOTAL_DOFS 31
 
+namespace yarp {
+    namespace os {
+        class Mutex;
+    }
+}
+
 namespace codyco {
     namespace torquebalancing {
         //cannot use extern on the template.. this is quite strange. To be investigated.
 //        extern const int actuatedDOFs; /*!< number of actuated degree of freedom */
 //        extern const int totalDOFs; /*!< total number of degree of freedom. For a floating base robot this is usually the number of actuated joints plus 6 fictitious joints*/
         extern const int PseudoInverseTolerance;
+        
+        //move this class in codyco commons
+        /** @class provides a lock guard around a Yarp Mutex.
+         * This class implements the same behaviour of std::unique_lock in C++11
+         */
+        class LockGuard
+        {
+        public:
+            explicit LockGuard(yarp::os::Mutex& mutex);
+            ~LockGuard();
+            
+        private:
+            //disable copy constructor and assignment operator
+            LockGuard(const LockGuard&);
+            LockGuard& operator=(const LockGuard&);
+            
+            yarp::os::Mutex& m_mutex;
+        };
+        
     }
 }
 

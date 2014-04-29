@@ -14,10 +14,30 @@
  * Public License for more details
  */
 
+#include "config.h"
+#include <yarp/os/Mutex.h>
+
+
 namespace codyco {
     namespace torquebalancing {
 //        const int actuatedDOFs = 25;
 //        const int totalDOFs = actuatedDOFs + 6;
         const int PseudoInverseTolerance = 1e-5;
+        
+        
+        LockGuard::LockGuard(yarp::os::Mutex& mutex)
+        : m_mutex(mutex)
+        {
+            m_mutex.lock();
+        }
+        
+        LockGuard::~LockGuard()
+        {
+            m_mutex.unlock();
+        }
+        
+        LockGuard::LockGuard(const LockGuard& lg)
+        : m_mutex(lg.m_mutex) { }
+        LockGuard& LockGuard::operator=(const LockGuard&) { return *this; }
     }
 }

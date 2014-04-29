@@ -17,6 +17,33 @@
 #ifndef REFERENCEGENERATOR_H
 #define REFERENCEGENERATOR_H
 
+#include <yarp/os/RateThread.h>
+#include "Reference.h"
+
+namespace codyco {
+    namespace torquebalancing {
+        
+        template<class ReferenceType>
+        class ReferenceGenerator: public ::yarp::os::RateThread
+        {
+        public:
+            ReferenceGenerator(int period, Reference<ReferenceType>& reference);
+            
+            virtual bool threadInit();
+            virtual void threadRelease();
+            virtual void run();
+            
+        private:
+            Reference<ReferenceType>& m_reference;
+        };
+        
+        template<class ReferenceType>
+        ReferenceGenerator<ReferenceType>::ReferenceGenerator(int period, Reference<ReferenceType>& reference)
+        : RateThread(period)
+        , m_reference(reference) {}
+        
+    }
+}
 
 
 #endif /* end of include guard: REFERENCEGENERATOR_H */

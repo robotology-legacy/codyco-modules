@@ -29,13 +29,15 @@ namespace wbi {
 namespace codyco {
     namespace torquebalancing {
         
+        struct ControllerReferences;
+        
         /** @brief Represents the actual controller
          *
          */
         class TorqueBalancingController: public yarp::os::RateThread
         {
         public:
-            TorqueBalancingController(int period);
+            TorqueBalancingController(int period, ControllerReferences references);
             virtual ~TorqueBalancingController();
             
 #pragma mark - RateThread methods
@@ -44,14 +46,14 @@ namespace codyco {
             virtual void run();
             
         private:
-            
+            void readReferences();
             bool updateRobotState();
             void computeFeetForces(const Eigen::Matrix<double, 3, 1>& desiredCOMAcceleration, Eigen::Matrix<double, 12, 1>& desiredFeetForces);
             void computeTorques(const Eigen::Matrix<double, 12, 1>& desiredFeetForces, Eigen::Matrix<double, ACTUATED_DOFS, 1>& torques);
             
             //return value should be optimized by compiler RVO
             void skewSymmentricMatrix(const Eigen::Vector3d& vector, Eigen::Matrix3d& skewSymmetricMatrix);
-            
+
             wbi::wholeBodyInterface* m_robot;
             wbi::Frame m_worldFrame;
             
@@ -59,6 +61,8 @@ namespace codyco {
             int m_leftFootLinkID;
             int m_rightFootLinkID;
             int m_centerOfMassLinkID;
+            
+            ControllerReferences& m_references;
             
             //Gains
             double m_centroidalMomentumGain;
