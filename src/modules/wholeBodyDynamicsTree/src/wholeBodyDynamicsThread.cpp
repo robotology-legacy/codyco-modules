@@ -80,7 +80,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
                                                  int _period,
                                                  icubWholeBodyStatesLocal *_wbs,
                                                  const iCub::iDynTree::iCubTree_version_tag _icub_version,
-                                                 bool autoconnect)
+                                                 bool autoconnect,
+                                                 bool _assume_fixed_base)
     :  RateThread(_period),
        name(_name),
        robotName(_robotName),
@@ -88,13 +89,19 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        printCountdown(0),
        PRINT_PERIOD(2000),
        icub_version(_icub_version),
-       icub_model_calibration(_icub_version),
        samples_requested_for_calibration(200),
        max_samples_for_calibration(2000),
-       samples_used_for_calibration(0)
+       samples_used_for_calibration(0),
+       assume_fixed_base(_assume_fixed_base),
+       icub_model_calibration(_icub_version)
     {
 
-    std::cout << "Launching wholeBodyDynamicsThread with name : " << _name << " and robotName " << _robotName << " and period " << _period << std::endl;
+       std::cout << "Launching wholeBodyDynamicsThread with name : " << _name << " and robotName " << _robotName << " and period " << _period << std::endl;
+       if( assume_fixed_base ) {
+           icub_model_calibration = iCub::iDynTree::iCubTree(_icub_version,"root_link");
+       } else {
+           icub_model_calibration = iCub::iDynTree::iCubTree(_icub_version);
+       }
 
 
     //Resize buffer vectors
@@ -518,9 +525,18 @@ void wholeBodyDynamicsThread::calibration_run()
 
     //Setting imu proper acceleration from measure (assuming omega e domega = 0)
     //acceleration are measures 4:6 (check wbi documentation)
-    tree_status.proper_ddp_imu[0] = tree_status.wbi_imu[4];
-    tree_status.proper_ddp_imu[1] = tree_status.wbi_imu[5];
-    tree_status.proper_ddp_imu[2] = tree_status.wbi_imu[6];
+    if( assume_fixed_base )
+    {
+        tree_status.proper_ddp_imu[0] = 0.0;
+        tree_status.proper_ddp_imu[1] = 0.0;
+        tree_status.proper_ddp_imu[2] = 9.8;
+    }
+    else
+    {
+        tree_status.proper_ddp_imu[0] = tree_status.wbi_imu[4];
+        tree_status.proper_ddp_imu[1] = tree_status.wbi_imu[5];
+        tree_status.proper_ddp_imu[2] = tree_status.wbi_imu[6];
+    }
     tree_status.omega_imu[0] = 0.0*tree_status.wbi_imu[7];
     tree_status.omega_imu[1] = 0.0*tree_status.wbi_imu[8];
     tree_status.omega_imu[2] = 0.0*tree_status.wbi_imu[9];

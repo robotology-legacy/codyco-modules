@@ -119,6 +119,7 @@ namespace wbiIcub
 
         //Data structures related to IMU used for dynamical model
         bool enable_omega_domega_IMU;
+        bool assume_fixed_base;
 
         yarp::sig::Vector omega_used_IMU;
         yarp::sig::Vector domega_used_IMU;
@@ -202,13 +203,16 @@ namespace wbiIcub
         icubWholeBodyDynamicsEstimator(int _period,
                                        icubWholeBodySensors *_sensors,
                                        yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
-                                       iCub::iDynTree::iCubTree_version_tag icub_version);
+                                       iCub::iDynTree::iCubTree_version_tag icub_version,
+                                       bool assume_fixed_base
+                                      );
 
         #ifdef CODYCO_USES_URDFDOM
         icubWholeBodyDynamicsEstimator(int _period,
                                        icubWholeBodySensors *_sensors,
                                        yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
                                        iCub::iDynTree::iCubTree_version_tag icub_version,
+                                       bool assume_fixed_base,
                                        const std::string urdf_file);
         #endif
 
@@ -272,12 +276,15 @@ namespace wbiIcub
         // *** CONSTRUCTORS ***
         icubWholeBodyStatesLocal(const char* _name,
                                  const char* _robotName,
-                                 iCub::iDynTree::iCubTree_version_tag icub_version);
+                                 iCub::iDynTree::iCubTree_version_tag icub_version,
+                                 bool assume_fixed_base
+                                );
 
         #ifdef CODYCO_USES_URDFDOM
         icubWholeBodyStatesLocal(const char* _name,
                                  const char* _robotName,
                                  iCub::iDynTree::iCubTree_version_tag icub_version,
+                                 bool assume_fixed_base,
                                  const std::string urdf_file);
 
         #endif
