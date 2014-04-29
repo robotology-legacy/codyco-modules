@@ -281,6 +281,9 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
     bool ok = true;
     if(joint<0)     ///< set all joints to the specified control mode
     {
+#ifdef WBI_ICUB_COMPILE_PARAM_HELP
+        bool controlModeChanged = false;
+#endif
         switch(controlMode)
         {
             case CTRL_MODE_POS:
@@ -313,6 +316,7 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
                 FOR_ALL(itBp, itJ) {
                     if(currentCtrlModes[LocalId(itBp->first,*itJ)]!=controlMode) {
 #ifdef WBI_ICUB_COMPILE_PARAM_HELP
+                        controlModeChanged = true;
                         if (_torqueModuleConnection) {
                             //if torque control connection is true I do not set the torqueMode
                             ok = ok && true;
@@ -355,7 +359,7 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
         }
 #ifdef WBI_ICUB_COMPILE_PARAM_HELP
         //send start or stop via RPC to torque module
-        if (_rpcAutoConnect) {
+        if (_rpcAutoConnect && controlModeChanged) {
             Bottle startCmd;
             if (controlMode == CTRL_MODE_TORQUE) {
                 startCmd.addString("start");
