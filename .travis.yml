@@ -52,6 +52,7 @@ script:
   - make
   - sudo make install
   - ctest -V
+  - sudo make uninstall
   
 notifications:
   email:

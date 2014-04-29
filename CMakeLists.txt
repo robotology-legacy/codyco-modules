@@ -110,18 +110,12 @@ if (CODYCO_DASHBOARD_SUBMIT OR CODYCO_BUILD_TESTS)
    include (CTest)
 endif()
 
-#### add the "uninstall" target
-configure_file(
-  "${CMAKE_SOURCE_DIR}/cmake_uninstall.cmake.in"
-  "${CMAKE_BINARY_DIR}/cmake_uninstall.cmake"
-  @ONLY)
-
-add_custom_target(uninstall_CoDyCo
-  "${CMAKE_COMMAND}" -P "${CMAKE_BINARY_DIR}/icub-config-uninstall.cmake")
-
-
 #### Add external modules
 #add_subdirectory(extern)
 
 add_subdirectory(src)
 add_subdirectory(doc)
+
+
+#### add the "uninstall" target
+include(AddUninstallTarget)
