@@ -32,7 +32,7 @@
 #define DEBUGGING 1
 #define TIMING    0
 #define NEWCODE	  1
-// #define ICUB_FIXED
+#define ICUB_FIXED
 // #define WORLD2BASE_EXTERNAL
 
 YARP_DECLARE_DEVICES(icubmod)
@@ -123,12 +123,14 @@ bool robotStatus::robotConfig() {
         // Add main iCub joints
         wbInterface->addJoints(ICUB_MAIN_JOINTS);
         // Initializing whole body interface
-      
+
+#ifdef WBI_ICUB_COMPILE_PARAM_HELP
         yarp::os::Value trueValue;
         trueValue.fromString("true");
         ((icubWholeBodyInterface*)wbInterface)->setActuactorConfigurationParameter(icubWholeBodyActuators::icubWholeBodyActuatorsUseExternalTorqueModule, trueValue);
         ((icubWholeBodyInterface*)wbInterface)->setActuactorConfigurationParameter(icubWholeBodyActuators::icubWholeBodyActuatorsExternalTorqueModuleAutoconnect, trueValue);
         ((icubWholeBodyInterface*)wbInterface)->setActuactorConfigurationParameter(icubWholeBodyActuators::icubWholeBodyActuatorsExternalTorqueModuleName, Value("jtc"));
+#endif
         if(!wbInterface->init()) {
             fprintf(stderr,"ERROR [robotStatus::robotConfig] Initializing Whole Body Interface!\n");
             return false;
