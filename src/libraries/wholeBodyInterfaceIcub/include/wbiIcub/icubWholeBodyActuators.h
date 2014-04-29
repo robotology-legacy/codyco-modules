@@ -32,7 +32,10 @@
 #include <map>
 
 //*********TEMP************** -> for actuators //
+#define WBI_ICUB_COMPILE_PARAM_HELP
 #ifdef WBI_ICUB_COMPILE_PARAM_HELP
+#include <yarp/os/RpcClient.h>
+#include <yarp/os/RpcServer.h>
 #include <yarp/sig/Vector.h>
 namespace paramHelp {
     class ParamHelperClient;
@@ -95,6 +98,9 @@ namespace wbiIcub
         
         //*********TEMP**************//
         #ifdef WBI_ICUB_COMPILE_PARAM_HELP
+        std::string _rpcLocalName;
+        std::string _rpcRemoteName;
+        yarp::os::RpcClient _torqueModuleRPCClientPort;
         paramHelp::ParamHelperClient *_torqueModuleConnection; /*< connection to the torque control module */
         yarp::sig::Vector _torqueRefs;
         #endif
