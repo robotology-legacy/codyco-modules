@@ -100,7 +100,7 @@ class iCubTree : public DynTree
      * @param verbose level of verbosity: 0 if no output is requested, 1 to have output messages (default is 0)
      * @param imu_link_name name of the link to consider as imu (default: "imu_link")
      */
-     iCubTree(iCubTree_version_tag version, std::string urdf_file, std::string imu_link_name = ICUB_IMU_LINK_NAME, iCubTree_serialization_tag serial=SKINDYNLIB_SERIALIZATION,  unsigned int verbose=0 );
+     iCubTree(std::string urdf_file, iCubTree_version_tag version, std::string imu_link_name = ICUB_IMU_LINK_NAME, iCubTree_serialization_tag serial=SKINDYNLIB_SERIALIZATION,  unsigned int verbose=0 );
     #endif
 
 

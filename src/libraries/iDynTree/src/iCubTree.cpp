@@ -91,7 +91,11 @@ iCubTree::iCubTree(iCubTree_version_tag version, std::string imu_link_name, iCub
 
 
 #ifdef CODYCO_USES_URDFDOM
-iCubTree::iCubTree(iCubTree_version_tag version, std::string urdf_file, std::string imu_link_name, iCubTree_serialization_tag serial_tag, unsigned int verbose)
+iCubTree::iCubTree(std::string urdf_file,
+                   iCubTree_version_tag version,
+                   std::string imu_link_name,
+                   iCubTree_serialization_tag serial_tag,
+                   unsigned int verbose)
 {
     yarp::sig::Vector q_min_yarp, q_max_yarp;
     KDL::JntArray q_min_kdl, q_max_kdl;

@@ -15,12 +15,15 @@
  * Public License for more details
  */
 
-#include "wbiIcub/wholeBodyInterfaceIcub.h"
+#include "wbiIcub/icubWholeBodyStatesLocal.h"
+#include "wbiIcub/icubWholeBodySensors.h"
 #include <iCub/skinDynLib/common.h>
 #include <yarp/os/Time.h>
 #include <string>
 #include <iostream>
 #include <yarp/os/Log.h>
+
+#define INITIAL_TIMESTAMP -1000.0
 
 
 using namespace std;
@@ -547,7 +550,7 @@ bool icubWholeBodyDynamicsEstimator::threadInit()
     #ifdef CODYCO_USES_URDFDOM
     if( use_urdf )
     {
-        icub_model = new iCub::iDynTree::iCubTree(icub_version,urdf_file_name);
+        icub_model = new iCub::iDynTree::iCubTree(urdf_file_name,icub_version);
     }
     else
     {

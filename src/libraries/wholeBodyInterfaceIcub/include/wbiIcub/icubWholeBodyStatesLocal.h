@@ -31,6 +31,7 @@
 #include <wbiIcub/wbiIcubUtil.h>
 #include <map>
 
+#include "wbiIcub/icubWholeBodySensors.h"
 
 namespace wbiIcub
 {

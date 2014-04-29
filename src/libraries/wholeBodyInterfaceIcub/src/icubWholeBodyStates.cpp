@@ -50,8 +50,8 @@ icubWholeBodyStates::icubWholeBodyStates(const char* _name, const char* _robotNa
 }
 
 icubWholeBodyStates::~icubWholeBodyStates()
-{ 
-    close();     
+{
+    close();
 }
 
 bool icubWholeBodyStates::init()
@@ -90,7 +90,7 @@ bool icubWholeBodyStates::addEstimate(const EstimateType et, const LocalId &sid)
     }
     return false;
 }
-        
+
 int icubWholeBodyStates::addEstimates(const EstimateType et, const LocalIdList &sids)
 {
     switch(et)
@@ -134,7 +134,7 @@ bool icubWholeBodyStates::removeEstimate(const EstimateType et, const LocalId &s
     }
     return false;
 }
-        
+
 const LocalIdList& icubWholeBodyStates::getEstimateList(const EstimateType et)
 {
     switch(et)
@@ -156,7 +156,7 @@ const LocalIdList& icubWholeBodyStates::getEstimateList(const EstimateType et)
     }
     return emptyList;
 }
-        
+
 int icubWholeBodyStates::getEstimateNumber(const EstimateType et)
 {
     switch(et)
@@ -189,25 +189,25 @@ bool icubWholeBodyStates::getEstimate(const EstimateType et, const LocalId &sid,
         return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_ENCODER).localToGlobalId(sid), estimator->estimates.lastDq, data);
     case ESTIMATE_JOINT_ACC:
         return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_ENCODER).localToGlobalId(sid), estimator->estimates.lastD2q, data);
-    case ESTIMATE_JOINT_TORQUE:     
+    case ESTIMATE_JOINT_TORQUE:
         return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_TORQUE).localToGlobalId(sid), estimator->estimates.lastTauJ, data);
     case ESTIMATE_JOINT_TORQUE_DERIVATIVE:
         return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_TORQUE).localToGlobalId(sid), estimator->estimates.lastDtauJ, data);
-    case ESTIMATE_MOTOR_POS:        
+    case ESTIMATE_MOTOR_POS:
         return false;
-    case ESTIMATE_MOTOR_VEL:        
+    case ESTIMATE_MOTOR_VEL:
         return getMotorVel(sid, data, time, blocking);
-    case ESTIMATE_MOTOR_ACC:        
+    case ESTIMATE_MOTOR_ACC:
         return false;
-    case ESTIMATE_MOTOR_TORQUE:     
+    case ESTIMATE_MOTOR_TORQUE:
         return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_TORQUE).localToGlobalId(sid), estimator->estimates.lastTauM, data);
-    case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:     
+    case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:
         return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_TORQUE).localToGlobalId(sid), estimator->estimates.lastDtauM, data);
-    case ESTIMATE_MOTOR_PWM:        
+    case ESTIMATE_MOTOR_PWM:
         return lockAndReadSensor(SENSOR_PWM, sid, data, time, blocking);
-    //case ESTIMATE_IMU:              
+    //case ESTIMATE_IMU:
     //    return lockAndReadSensor(SENSOR_IMU, sid, data, time, blocking);
-    case ESTIMATE_FORCE_TORQUE:     
+    case ESTIMATE_FORCE_TORQUE:
         return lockAndReadSensor(SENSOR_FORCE_TORQUE, sid, data, time, blocking);
     default: break;
     }
@@ -285,7 +285,7 @@ bool icubWholeBodyStates::getMotorVel(const LocalId &lid, double *data, double t
 bool icubWholeBodyStates::lockAndReadSensors(const SensorType st, double *data, double time, bool blocking)
 {
     estimator->mutex.wait();
-    bool res = sensors->readSensors(st, data, 0, blocking); 
+    bool res = sensors->readSensors(st, data, 0, blocking);
     estimator->mutex.post();
     return res;
 }
@@ -293,7 +293,7 @@ bool icubWholeBodyStates::lockAndReadSensors(const SensorType st, double *data, 
 bool icubWholeBodyStates::lockAndReadSensor(const SensorType st, const LocalId sid, double *data, double time, bool blocking)
 {
     estimator->mutex.wait();
-    bool res = sensors->readSensor(st, sid, data, 0, blocking); 
+    bool res = sensors->readSensor(st, sid, data, 0, blocking);
     estimator->mutex.post();
     return res;
 }
@@ -301,7 +301,7 @@ bool icubWholeBodyStates::lockAndReadSensor(const SensorType st, const LocalId s
 bool icubWholeBodyStates::lockAndAddSensor(const SensorType st, const LocalId &sid)
 {
     estimator->mutex.wait();
-    bool res = sensors->addSensor(st, sid); 
+    bool res = sensors->addSensor(st, sid);
     estimator->mutex.post();
     return res;
 }
@@ -325,7 +325,7 @@ bool icubWholeBodyStates::lockAndRemoveSensor(const SensorType st, const LocalId
 LocalIdList icubWholeBodyStates::lockAndGetSensorList(const SensorType st)
 {
     estimator->mutex.wait();
-    LocalIdList res = sensors->getSensorList(st); 
+    LocalIdList res = sensors->getSensorList(st);
     estimator->mutex.post();
     return res;
 }
@@ -344,29 +344,29 @@ int icubWholeBodyStates::lockAndGetSensorNumber(const SensorType st)
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 icubWholeBodyEstimator::icubWholeBodyEstimator(int _period, icubWholeBodySensors *_sensors)
-: RateThread(_period), 
-  sensors(_sensors), 
-  dqFilt(0), 
-  d2qFilt(0), 
-  dTauJFilt(0), 
+: RateThread(_period),
+  sensors(_sensors),
+  dqFilt(0),
+  d2qFilt(0),
+  dTauJFilt(0),
   dTauMFilt(0),
-  tauJFilt(0), 
+  tauJFilt(0),
   tauMFilt(0)
 {
     resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
-    
+
     ///< Window lengths of adaptive window filters
     dqFiltWL            = 16;
     d2qFiltWL           = 25;
     dTauJFiltWL         = 30;
     dTauMFiltWL         = 30;
-    
+
     ///< Threshold of adaptive window filters
-    dqFiltTh            = 1.0;      
+    dqFiltTh            = 1.0;
     d2qFiltTh           = 1.0;
     dTauJFiltTh         = 0.2;
     dTauMFiltTh         = 0.2;
-    
+
     ///< Cut frequencies
     tauJCutFrequency    =   3.0;
     tauMCutFrequency    =   3.0;
@@ -398,7 +398,7 @@ void icubWholeBodyEstimator::run()
     mutex.wait();
     {
         resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
-        
+
         ///< Read encoders
         if(sensors->readSensors(SENSOR_ENCODER, q.data(), qStamps.data(), false))
         {
@@ -409,7 +409,7 @@ void icubWholeBodyEstimator::run()
             estimates.lastDq = dqFilt->estimate(el);
             estimates.lastD2q = d2qFilt->estimate(el);
         }
-        
+
         ///< Read joint torque sensors
         if(sensors->readSensors(SENSOR_TORQUE, tauJ.data(), tauJStamps.data(), false))
         {
@@ -432,14 +432,14 @@ void icubWholeBodyEstimator::run()
         estimates.lastPwm = pwmFilt->filt(pwm);     ///< low pass filter
     }
     mutex.post();
-    
+
     return;
 }
 
 void icubWholeBodyEstimator::threadRelease()
 {
     //this causes a memory access violation (to investigate)
-    if(dqFilt!=0)    { delete dqFilt;  dqFilt=0; } 
+    if(dqFilt!=0)    { delete dqFilt;  dqFilt=0; }
     if(d2qFilt!=0)   { delete d2qFilt; d2qFilt=0; }
     if(dTauJFilt!=0) { delete dTauJFilt; dTauJFilt=0; }
     if(dTauMFilt!=0) { delete dTauMFilt; dTauMFilt=0; }     // motor torque derivative filter
@@ -500,7 +500,7 @@ bool icubWholeBodyEstimator::lockAndSetEstimationParameter(const EstimateType et
     {
     case ESTIMATE_JOINT_VEL:
     case ESTIMATE_MOTOR_VEL:
-        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE) 
+        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE)
             res = setVelFiltParams(((int*)value)[0], dqFiltTh);
         else if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD)
             res = setVelFiltParams(dqFiltWL, ((double*)value)[0]);
@@ -508,7 +508,7 @@ bool icubWholeBodyEstimator::lockAndSetEstimationParameter(const EstimateType et
 
     case ESTIMATE_JOINT_ACC:
     case ESTIMATE_MOTOR_ACC:
-        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE) 
+        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE)
             res = setAccFiltParams(((int*)value)[0], d2qFiltTh);
         else if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD)
             res = setAccFiltParams(d2qFiltWL, ((double*)value)[0]);
@@ -520,7 +520,7 @@ bool icubWholeBodyEstimator::lockAndSetEstimationParameter(const EstimateType et
         break;
 
     case ESTIMATE_JOINT_TORQUE_DERIVATIVE:
-        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE) 
+        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE)
             res = setDtauJFiltParams(((int*)value)[0], dTauJFiltTh);
         else if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD)
             res = setDtauJFiltParams(dTauJFiltWL, ((double*)value)[0]);
@@ -532,12 +532,12 @@ bool icubWholeBodyEstimator::lockAndSetEstimationParameter(const EstimateType et
         break;
 
     case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:
-        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE) 
+        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE)
             res = setDtauMFiltParams(((int*)value)[0], dTauMFiltTh);
         else if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD)
             res = setDtauMFiltParams(dTauMFiltWL, ((double*)value)[0]);
         break;
-    
+
     case ESTIMATE_MOTOR_PWM:
         if(ep==ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ)
             res = setPwmCutFrequency(((double*)value)[0]);
@@ -546,7 +546,7 @@ bool icubWholeBodyEstimator::lockAndSetEstimationParameter(const EstimateType et
     //case ESTIMATE_IMU:
     case ESTIMATE_FORCE_TORQUE:
     case ESTIMATE_JOINT_POS:
-    case ESTIMATE_MOTOR_POS:    
+    case ESTIMATE_MOTOR_POS:
     default: break;
     }
     mutex.post();
