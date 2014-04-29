@@ -45,6 +45,7 @@ void set_random_vector(yarp::sig::Vector & vec, yarp::os::Random & rng, double c
     }
 }
 
+#define degTOrad (M_PI/180.0)
 
 int main()
 {
@@ -82,13 +83,23 @@ int main()
     // by the inertial sensor on the head
     yarp::sig::Vector ddp0(3,0.0), w0, dw0;
     w0 = dw0 = ddp0;
-    ddp0[2] = 10.0;
+    ddp0[2] = 9.8;
     yarp::sig::Vector q(icub_tree.getNrOfDOFs(),0.0);
     q.zero();
+    yarp::sig::Vector q_arm(7,0.0);
+    q_arm[0] = degTOrad*(-30);
+    q_arm[1] = degTOrad*30;
+    q_arm[3] = degTOrad*45;
+
     icub_tree.setInertialMeasure(0*w0,0*dw0,ddp0);
     icub_tree.setAng(q);
     icub_tree.setDAng(q);
     icub_tree.setD2Ang(q);
+
+    icub_tree.setAng(q_arm,"right_arm");
+    icub_tree.setAng(q_arm,"left_arm");
+
+    std::cout << "q : " << icub_tree.getAng().toString() << std::endl;
 
     icub_tree.kinematicRNEA();
     icub_tree.dynamicRNEA();
@@ -103,8 +114,8 @@ int main()
     <<" right : "<<right_arm_ft.toString()<<endl
     <<endl;
     cout<<"Mass: " <<endl
-        <<" left : " << norm(left_arm_ft.subVector(0,2))/norm(ddp0) <<endl
-        <<" right: " <<  norm(left_arm_ft.subVector(0,2))/norm(ddp0)<<endl;
+        <<" left : " << norm(left_arm_ft.subVector(0,2)) << " / " << norm(ddp0) << " = "  << norm(left_arm_ft.subVector(0,2))/norm(ddp0) <<endl
+        <<" right: " << norm(right_arm_ft.subVector(0,2)) << " / " << norm(ddp0) << " = " <<  norm(right_arm_ft.subVector(0,2))/norm(ddp0)<<endl;
 
     return EXIT_SUCCESS;
 }
