@@ -51,6 +51,7 @@ using namespace iCub::ctrl;
 //constants
 const std::string icubWholeBodyActuators::icubWholeBodyActuatorsUseExternalTorqueModule = "icubWholeBodyActuatorsUseExternalTorqueModuleKey";
 const std::string icubWholeBodyActuators::icubWholeBodyActuatorsExternalTorqueModuleName = "icubWholeBodyActuatorsExternalTorqueModuleNameKey";
+const std::string icubWholeBodyActuators::icubWholeBodyActuatorsExternalTorqueModuleAutoconnect = "icubWholeBodyActuatorsExternalTorqueModuleAutoconnect";
 
 // *********************************************************************************************************************
 // *********************************************************************************************************************
@@ -140,7 +141,14 @@ bool icubWholeBodyActuators::init()
     }
     if (ok) {
         //read options
-        yarp::os::Value found = configurationParameters.find(icubWholeBodyActuatorsUseExternalTorqueModule.c_str());
+        yarp::os::Value found;
+        _rpcAutoConnect = false;
+        found = configurationParameters.find(icubWholeBodyActuatorsExternalTorqueModuleAutoconnect.c_str());
+        
+        if (!found.isNull() && found.isBool()) {
+            _rpcAutoConnect = found.asBool();
+        }
+        found = configurationParameters.find(icubWholeBodyActuatorsUseExternalTorqueModule.c_str());
         if (!found.isNull() && found.isBool() && found.asBool()) {
             found = configurationParameters.find(icubWholeBodyActuatorsExternalTorqueModuleName.c_str());
             if (found.isNull()) {
@@ -158,6 +166,12 @@ bool icubWholeBodyActuators::init()
                 else {
                     _torqueRefs.resize(jointTorqueControl::N_DOF);
                     ok = _torqueModuleConnection->linkParam(jointTorqueControl::PARAM_ID_TAU_OFFSET, _torqueRefs.data());
+                    if (_rpcAutoConnect) {
+                        _rpcLocalName = "/" + name + "/rpc:o";
+                        _rpcRemoteName = "/" + found.asString() + "/rpc";
+                        ok = ok && _torqueModuleRPCClientPort.open(_rpcLocalName);
+                        ok = ok && Network::connect(_rpcLocalName, _rpcRemoteName);
+                    }
                 }
             }
         }
@@ -189,6 +203,11 @@ bool icubWholeBodyActuators::close()
         _torqueModuleConnection->close();
         delete _torqueModuleConnection; _torqueModuleConnection = NULL;
     }
+    if (_rpcAutoConnect) {
+        Network::disconnect(_rpcLocalName, _rpcRemoteName);
+        _torqueModuleRPCClientPort.close();
+    }
+    
 #endif
     
     return ok;
@@ -205,8 +224,13 @@ bool icubWholeBodyActuators::setConfigurationParameter(const std::string &parame
             return true;
         }
         return false;
-    }
-    else if (parameterName.compare(icubWholeBodyActuatorsExternalTorqueModuleName) == 0) {
+    } else if (parameterName.compare(icubWholeBodyActuatorsExternalTorqueModuleAutoconnect) == 0) {
+        if (parameterValue.isBool()) {
+            configurationParameters.put(parameterName.c_str(), parameterValue);
+            return true;
+        }
+        return false;
+    } else if (parameterName.compare(icubWholeBodyActuatorsExternalTorqueModuleName) == 0) {
         //simply check value has some length
         if (parameterValue.isString() && parameterValue.asString().length() > 0) {
             configurationParameters.put(parameterName.c_str(), parameterValue);
@@ -304,7 +328,6 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
                         }
                     }
                 }
-                
                 break;
                 
             case CTRL_MODE_MOTOR_PWM:
@@ -330,6 +353,18 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
             if(ref!=0)
                 ok = ok && setControlReference(ref);
         }
+#ifdef WBI_ICUB_COMPILE_PARAM_HELP
+        //send start or stop via RPC to torque module
+        if (_rpcAutoConnect) {
+            Bottle startCmd;
+            if (controlMode == CTRL_MODE_TORQUE) {
+                startCmd.addString("start");
+            } else {
+                startCmd.addString("stop");
+            }
+            ok = ok && _torqueModuleRPCClientPort.write(startCmd);
+        }
+#endif
         return ok;
     }
     
