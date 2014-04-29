@@ -29,6 +29,11 @@ namespace codyco {
         void dampedPseudoInverse(const Eigen::MatrixBase<Derived1>& A,
                                  double dampingFactor,
                                  Eigen::MatrixBase<Derived2>& Apinv);
+        
+        template <typename Derived1, typename Derived2>
+        void pseudoInverse(const Eigen::MatrixBase<Derived1>& A,
+                           double tolerance,
+                           Eigen::MatrixBase<Derived2>& Apinv);
     }
 }
 #endif
