@@ -58,7 +58,7 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName
     reverse_torso_joints = true;
 
     std::string kinematic_base_link_name = "root_link";
-    p_icub_model = new iCub::iDynTree::iCubTree(version,iCub::iDynTree::SKINDYNLIB_SERIALIZATION,0,kinematic_base_link_name);
+    p_icub_model = new iCub::iDynTree::iCubTree(version,kinematic_base_link_name,iCub::iDynTree::SKINDYNLIB_SERIALIZATION,0);
     p_model = (iCub::iDynTree::DynTree *) p_icub_model;
     all_q.resize(p_model->getNrOfDOFs(),0.0);
     all_q_min = all_q_max = all_ddq = all_dq = all_q;

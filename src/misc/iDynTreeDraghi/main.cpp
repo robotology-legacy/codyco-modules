@@ -87,6 +87,11 @@ int main()
     yarp::sig::Vector q(icub_tree.getNrOfDOFs(),0.0);
     q.zero();
     yarp::sig::Vector q_arm(7,0.0);
+    yarp::sig::Vector q_leg(6,0.0);
+
+    q_leg[1] = 0.14;
+    q_leg[5] = -0.14;
+
     q_arm[0] = degTOrad*(-30);
     q_arm[1] = degTOrad*30;
     q_arm[3] = degTOrad*45;
@@ -98,6 +103,8 @@ int main()
 
     icub_tree.setAng(q_arm,"right_arm");
     icub_tree.setAng(q_arm,"left_arm");
+    icub_tree.setAng(q_leg,"right_leg");
+    icub_tree.setAng(q_leg,"left_leg");
 
     std::cout << "q : " << icub_tree.getAng().toString() << std::endl;
 
