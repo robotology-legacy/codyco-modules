@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.1066"
+    ComputedModelVersion    "1.1068"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -27,9 +27,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Apr 28 16:42:30 2014"
-  RTWModifiedTimeStamp	  320604141
-  ModelVersionFormat	  "1.%<AutoIncrement:1066>"
+  LastModifiedDate	  "Tue Apr 29 13:40:08 2014"
+  RTWModifiedTimeStamp	  320679445
+  ModelVersionFormat	  "1.%<AutoIncrement:1068>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -66,6 +66,7 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "controller"
+    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -816,6 +817,21 @@ Model {
       InitialOutput	      "[]"
     }
     Block {
+      BlockType		      Product
+      Inputs		      "2"
+      Multiplication	      "Element-wise(.*)"
+      CollapseMode	      "All dimensions"
+      CollapseDim	      "1"
+      InputSameDT	      on
+      OutMin		      "[]"
+      OutMax		      "[]"
+      OutDataTypeStr	      "Inherit: Same as first input"
+      LockScale		      off
+      RndMeth		      "Zero"
+      SaturateOnIntegerOverflow	on
+      SampleTime	      "-1"
+    }
+    Block {
       BlockType		      S-Function
       FunctionName	      "system"
       SFunctionModules	      "''"
@@ -914,7 +930,7 @@ Model {
   }
   System {
     Name		    "controllerComputedTorque"
-    Location		    [551, 432, 841, 577]
+    Location		    [551, 498, 841, 643]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -928,7 +944,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "683"
+    SIDHighWatermark	    "693"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -960,7 +976,7 @@ Model {
       MaskValueString	      "'icubGazeboSim'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[260, 73, 1540, 823]
+	Location		[230, 64, 1510, 814]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -1023,16 +1039,29 @@ Model {
 	  Name			  " 2"
 	  SID			  "683"
 	  Ports			  [2, 1]
-	  Position		  [540, 69, 575, 136]
+	  Position		  [540, 219, 575, 286]
 	  ZOrder		  35
 	  ShowName		  off
 	  Mode			  "Multidimensional array"
 	}
 	Block {
+	  BlockType		  Sum
+	  Name			  "Add"
+	  SID			  "684"
+	  Ports			  [2, 1]
+	  Position		  [15, 310, 45, 350]
+	  ShowName		  off
+	  IconShape		  "round"
+	  Inputs		  "+|+"
+	  InputSameDT		  off
+	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
+	  SaturateOnIntegerOverflow off
+	}
+	Block {
 	  BlockType		  Assertion
 	  Name			  "Assertion"
-	  SID			  "613"
-	  Position		  [435, 472, 495, 518]
+	  SID			  "686"
+	  Position		  [405, 122, 465, 168]
 	  Enabled		  on
 	}
 	Block {
@@ -1109,7 +1138,7 @@ Model {
 	  BlockType		  Clock
 	  Name			  "Clock1"
 	  SID			  "652"
-	  Position		  [55, 230, 75, 250]
+	  Position		  [55, 380, 75, 400]
 	  ZOrder		  49
 	  ShowName		  off
 	  Decimation		  "1"
@@ -1140,16 +1169,16 @@ Model {
 	  Name			  "Data Store\nRead1"
 	  SID			  "677"
 	  Ports			  [0, 1]
-	  Position		  [585, 15, 615, 45]
+	  Position		  [585, 165, 615, 195]
 	  ShowName		  off
 	  DataStoreName		  "q"
 	}
 	Block {
 	  BlockType		  DataStoreRead
 	  Name			  "Data Store\nRead16"
-	  SID			  "608"
+	  SID			  "687"
 	  Ports			  [0, 1]
-	  Position		  [185, 490, 215, 520]
+	  Position		  [155, 140, 185, 170]
 	  ShowName		  off
 	  DataStoreName		  "qj"
 	}
@@ -1158,7 +1187,7 @@ Model {
 	  Name			  "Data Store\nRead2"
 	  SID			  "678"
 	  Ports			  [0, 1]
-	  Position		  [585, 55, 615, 85]
+	  Position		  [585, 205, 615, 235]
 	  ShowName		  off
 	  DataStoreName		  "dq"
 	}
@@ -1167,7 +1196,7 @@ Model {
 	  Name			  "Data Store\nRead3"
 	  SID			  "653"
 	  Ports			  [0, 1]
-	  Position		  [180, 275, 210, 305]
+	  Position		  [180, 425, 210, 455]
 	  ShowName		  off
 	  DataStoreName		  "qj"
 	}
@@ -1176,7 +1205,7 @@ Model {
 	  Name			  "Data Store\nRead5"
 	  SID			  "654"
 	  Ports			  [0, 1]
-	  Position		  [180, 315, 210, 345]
+	  Position		  [180, 465, 210, 495]
 	  ShowName		  off
 	  DataStoreName		  "dqj"
 	}
@@ -1185,7 +1214,8 @@ Model {
 	  Name			  "Data Store\nRead6"
 	  SID			  "655"
 	  Ports			  [0, 1]
-	  Position		  [50, 165, 80, 195]
+	  Position		  [15, 375, 45, 405]
+	  BlockRotation		  270
 	  ShowName		  off
 	  DataStoreName		  "qj_0"
 	}
@@ -1363,7 +1393,7 @@ Model {
 	  BlockType		  From
 	  Name			  "From2"
 	  SID			  "676"
-	  Position		  [400, 121, 475, 149]
+	  Position		  [400, 271, 475, 299]
 	  GotoTag		  "d2qStar"
 	}
 	Block {
@@ -1378,7 +1408,7 @@ Model {
 	  BlockType		  Goto
 	  Name			  "Goto1"
 	  SID			  "621"
-	  Position		  [470, 188, 560, 212]
+	  Position		  [470, 338, 560, 362]
 	  GotoTag		  "d2qStar"
 	  TagVisibility		  "local"
 	}
@@ -1387,7 +1417,7 @@ Model {
 	  Name			  "Inverse Dynamics"
 	  SID			  "675"
 	  Ports			  [3, 1]
-	  Position		  [690, 38, 755, 82]
+	  Position		  [690, 188, 755, 232]
 	  BackgroundColor	  "[0.287374, 0.000000, 1.000000]"
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/wholeBodyModel/Dynamics/Inverse Dynamics"
@@ -1431,9 +1461,9 @@ Model {
 	Block {
 	  BlockType		  Reference
 	  Name			  "Joint Limits"
-	  SID			  "606"
+	  SID			  "688"
 	  Ports			  [0, 2]
-	  Position		  [105, 453, 170, 497]
+	  Position		  [75, 103, 140, 147]
 	  BackgroundColor	  "[1.000000, 0.202946, 0.028293]"
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/wholeBodyModel/Joint Limits"
@@ -1501,9 +1531,9 @@ Model {
 	Block {
 	  BlockType		  SubSystem
 	  Name			  "MATLAB Function"
-	  SID			  "610"
+	  SID			  "689"
 	  Ports			  [4, 1]
-	  Position		  [290, 450, 390, 540]
+	  Position		  [260, 100, 360, 190]
 	  LibraryVersion	  "1.32"
 	  ErrorFcn		  "Stateflow.Translate.translate"
 	  PermitHierarchicalResolution "ExplicitOnly"
@@ -1544,14 +1574,14 @@ Model {
 	    Block {
 	      BlockType		      Inport
 	      Name		      "umin"
-	      SID		      "610::18"
+	      SID		      "689::18"
 	      Position		      [20, 101, 40, 119]
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
 	      BlockType		      Inport
 	      Name		      "umax"
-	      SID		      "610::19"
+	      SID		      "689::19"
 	      Position		      [20, 136, 40, 154]
 	      Port		      "2"
 	      IconDisplay	      "Port number"
@@ -1559,7 +1589,7 @@ Model {
 	    Block {
 	      BlockType		      Inport
 	      Name		      "u"
-	      SID		      "610::1"
+	      SID		      "689::1"
 	      Position		      [20, 171, 40, 189]
 	      Port		      "3"
 	      IconDisplay	      "Port number"
@@ -1567,7 +1597,7 @@ Model {
 	    Block {
 	      BlockType		      Inport
 	      Name		      "tol"
-	      SID		      "610::20"
+	      SID		      "689::20"
 	      Position		      [20, 206, 40, 224]
 	      Port		      "4"
 	      IconDisplay	      "Port number"
@@ -1575,7 +1605,7 @@ Model {
 	    Block {
 	      BlockType		      Demux
 	      Name		      " Demux "
-	      SID		      "610::15"
+	      SID		      "689::15"
 	      Ports		      [1, 1]
 	      Position		      [270, 205, 320, 245]
 	      Outputs		      "1"
@@ -1583,7 +1613,7 @@ Model {
 	    Block {
 	      BlockType		      S-Function
 	      Name		      " SFunction "
-	      SID		      "610::14"
+	      SID		      "689::14"
 	      Tag		      "Stateflow S-Function controllerComputedTorque 3"
 	      Ports		      [4, 2]
 	      Position		      [180, 102, 230, 203]
@@ -1600,13 +1630,13 @@ Model {
 	    Block {
 	      BlockType		      Terminator
 	      Name		      " Terminator "
-	      SID		      "610::17"
+	      SID		      "689::17"
 	      Position		      [460, 216, 480, 234]
 	    }
 	    Block {
 	      BlockType		      Outport
 	      Name		      "inRange"
-	      SID		      "610::5"
+	      SID		      "689::5"
 	      Position		      [460, 101, 480, 119]
 	      IconDisplay	      "Port number"
 	    }
@@ -1655,6 +1685,41 @@ Model {
 	      DstPort		      1
 	    }
 	  }
+	}
+	Block {
+	  BlockType		  Product
+	  Name			  "Product"
+	  SID			  "691"
+	  Ports			  [2, 1]
+	  Position		  [75, 242, 105, 273]
+	  BlockMirror		  on
+	  NamePlacement		  "alternate"
+	  InputSameDT		  off
+	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
+	  SaturateOnIntegerOverflow off
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "Repeating\nSequence"
+	  SID			  "692"
+	  Ports			  [0, 1]
+	  Position		  [250, 255, 320, 285]
+	  BlockMirror		  on
+	  NamePlacement		  "alternate"
+	  LibraryVersion	  "1.236"
+	  SourceBlock		  "simulink/Sources/Repeating\nSequence"
+	  SourceType		  "Repeating table"
+	  ShowPortLabels	  "FromPortIcon"
+	  SystemSampleTime	  "-1"
+	  FunctionWithSeparateData off
+	  RTWMemSecFuncInitTerm	  "Inherit from model"
+	  RTWMemSecFuncExecute	  "Inherit from model"
+	  RTWMemSecDataConstants  "Inherit from model"
+	  RTWMemSecDataInternal	  "Inherit from model"
+	  RTWMemSecDataParameters "Inherit from model"
+	  GeneratePreprocessorConditionals off
+	  rep_seq_t		  "[0 1 2 10 11 ].*1000"
+	  rep_seq_y		  "[0 0 0.1 0.1 0]"
 	}
 	Block {
 	  BlockType		  Reference
@@ -1709,10 +1774,10 @@ Model {
 	  Name			  "Scope1"
 	  SID			  "672"
 	  Ports			  [5]
-	  Position		  [545, 254, 605, 346]
+	  Position		  [545, 404, 605, 496]
 	  Floating		  off
-	  Location		  [-966, 348, -62, 1005]
-	  Open			  off
+	  Location		  [6, 115, 910, 772]
+	  Open			  on
 	  NumInputPorts		  "5"
 	  ZoomMode		  "yonly"
 	  List {
@@ -1724,8 +1789,31 @@ Model {
 	    axes5		    "%<SignalLabel>"
 	  }
 	  TimeRange		  "1400"
-	  YMin			  "-15~-15~-12.5~-30~-30"
-	  YMax			  "20~10~10~30~30"
+	  YMin			  "-0.01~-0.01~-0.07~-0.05~-0.05"
+	  YMax			  "0.06~0.08~0.05~0.05~0.05"
+	  DataFormat		  "StructureWithTime"
+	  LimitDataPoints	  off
+	  SampleTime		  "0"
+	}
+	Block {
+	  BlockType		  Scope
+	  Name			  "Scope2"
+	  SID			  "693"
+	  Ports			  [1]
+	  Position		  [100, 469, 160, 561]
+	  Floating		  off
+	  Location		  [6, 115, 910, 772]
+	  Open			  on
+	  NumInputPorts		  "1"
+	  ZoomMode		  "yonly"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	  }
+	  TimeRange		  "1400"
+	  YMin			  "-0.5"
+	  YMax			  "0.9"
+	  SaveName		  "ScopeData1"
 	  DataFormat		  "StructureWithTime"
 	  LimitDataPoints	  off
 	  SampleTime		  "0"
@@ -1780,7 +1868,7 @@ Model {
 	  Name			  "WBI to yarp2"
 	  SID			  "673"
 	  Ports			  [1, 5]
-	  Position		  [405, 257, 515, 343]
+	  Position		  [405, 407, 515, 493]
 	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/Utilities/WBI to yarp"
@@ -1800,7 +1888,7 @@ Model {
 	  Name			  "computeStar_pst"
 	  SID			  "656"
 	  Ports			  [5, 2]
-	  Position		  [280, 152, 380, 348]
+	  Position		  [280, 302, 380, 498]
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
 	  RTWSystemCode		  "Auto"
@@ -2481,16 +2569,26 @@ Model {
 	Block {
 	  BlockType		  Constant
 	  Name			  "index1"
-	  SID			  "611"
-	  Position		  [225, 510, 255, 540]
+	  SID			  "690"
+	  Position		  [195, 160, 225, 190]
 	  Value			  "0.01"
+	  VectorParams1D	  off
+	}
+	Block {
+	  BlockType		  Constant
+	  Name			  "index2"
+	  SID			  "685"
+	  Position		  [130, 235, 225, 265]
+	  BlockMirror		  on
+	  NamePlacement		  "alternate"
+	  Value			  "ones(25,1)"
 	  VectorParams1D	  off
 	}
 	Block {
 	  BlockType		  Constant
 	  Name			  "index3"
 	  SID			  "682"
-	  Position		  [375, 70, 470, 100]
+	  Position		  [375, 220, 470, 250]
 	  Value			  "zeros(6,1)"
 	  VectorParams1D	  off
 	}
@@ -2891,7 +2989,7 @@ Model {
 	  Name			  "trajectoryGeneratorCoM1"
 	  SID			  "671"
 	  Ports			  [2, 3]
-	  Position		  [110, 152, 210, 268]
+	  Position		  [110, 302, 210, 418]
 	  ZOrder		  48
 	  ShowName		  off
 	  LibraryVersion	  "1.32"
@@ -3291,46 +3389,10 @@ Model {
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "Joint Limits"
-	  SrcPort		  1
-	  DstBlock		  "MATLAB Function"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Joint Limits"
-	  SrcPort		  2
-	  DstBlock		  "MATLAB Function"
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "Data Store\nRead16"
-	  SrcPort		  1
-	  DstBlock		  "MATLAB Function"
-	  DstPort		  3
-	}
-	Line {
-	  SrcBlock		  "index1"
-	  SrcPort		  1
-	  DstBlock		  "MATLAB Function"
-	  DstPort		  4
-	}
-	Line {
-	  SrcBlock		  "MATLAB Function"
-	  SrcPort		  1
-	  DstBlock		  "Assertion"
-	  DstPort		  1
-	}
-	Line {
 	  SrcBlock		  "Clock1"
 	  SrcPort		  1
 	  DstBlock		  "trajectoryGeneratorCoM1"
 	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "Data Store\nRead6"
-	  SrcPort		  1
-	  DstBlock		  "trajectoryGeneratorCoM1"
-	  DstPort		  1
 	}
 	Line {
 	  SrcBlock		  "trajectoryGeneratorCoM1"
@@ -3445,7 +3507,7 @@ Model {
 	Line {
 	  SrcBlock		  "Inverse Dynamics"
 	  SrcPort		  1
-	  Points		  [35, 0; 0, 45]
+	  Points		  [0, -105; 35, 0]
 	  Branch {
 	    DstBlock		    "Set Torques"
 	    DstPort		    1
@@ -3463,6 +3525,76 @@ Model {
 	    }
 	  }
 	}
+	Line {
+	  SrcBlock		  "Data Store\nRead6"
+	  SrcPort		  1
+	  DstBlock		  "Add"
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "Add"
+	  SrcPort		  1
+	  Points		  [10, 0]
+	  Branch {
+	    DstBlock		    "trajectoryGeneratorCoM1"
+	    DstPort		    1
+	  }
+	  Branch {
+	    Points		    [0, 185]
+	    DstBlock		    "Scope2"
+	    DstPort		    1
+	  }
+	}
+	Line {
+	  SrcBlock		  "Joint Limits"
+	  SrcPort		  1
+	  DstBlock		  "MATLAB Function"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Joint Limits"
+	  SrcPort		  2
+	  DstBlock		  "MATLAB Function"
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "Data Store\nRead16"
+	  SrcPort		  1
+	  DstBlock		  "MATLAB Function"
+	  DstPort		  3
+	}
+	Line {
+	  SrcBlock		  "index1"
+	  SrcPort		  1
+	  DstBlock		  "MATLAB Function"
+	  DstPort		  4
+	}
+	Line {
+	  SrcBlock		  "MATLAB Function"
+	  SrcPort		  1
+	  DstBlock		  "Assertion"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Product"
+	  SrcPort		  1
+	  Points		  [-40, 0]
+	  DstBlock		  "Add"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "index2"
+	  SrcPort		  1
+	  DstBlock		  "Product"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Repeating\nSequence"
+	  SrcPort		  1
+	  Points		  [-125, 0]
+	  DstBlock		  "Product"
+	  DstPort		  2
+	}
 	Annotation {
 	  Position		  [874, 67]
 	}
@@ -3494,7 +3626,7 @@ Model {
 	  Position		  [874, 67]
 	}
 	Annotation {
-	  Position		  [413, 368]
+	  Position		  [413, 518]
 	}
       }
     }
@@ -3519,7 +3651,7 @@ Stateflow {
   chart {
     id			    2
     name		    "Subsystem/MATLAB Function"
-    windowPosition	    [375.119 276.764 200.25 189.75]
+    windowPosition	    [390.119 261.764 200.25 189.75]
     viewLimits		    [0 156.75 0 153.75]
     screen		    [1 1 1280 778 1.001682887266829]
     treeNode		    [0 3 0 0]

@@ -27,6 +27,12 @@ source_group("Header Files" FILES ${folder_header})
 include(iCubHelpers)
 include(iCubOptions)
 
+# Check if externl torque control is to be used
+if (ICUBWBI_USE_EXTERNAL_TORQUE_CONTROL)
+    message("Adding external torque control.")
+    add_definitions(-DWBI_ICUB_COMPILE_PARAM_HELP)
+endif()
+
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
 
