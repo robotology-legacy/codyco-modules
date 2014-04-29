@@ -359,14 +359,18 @@ bool icubWholeBodyActuators::setControlMode(ControlMode controlMode, double *ref
         }
 #ifdef WBI_ICUB_COMPILE_PARAM_HELP
         //send start or stop via RPC to torque module
-        if (_rpcAutoConnect && controlModeChanged) {
+        if (_rpcAutoConnect) {
             Bottle startCmd;
             if (controlMode == CTRL_MODE_TORQUE) {
-                startCmd.addString("start");
-            } else {
+                if (controlModeChanged) {
+                    startCmd.addString("start");
+                    ok = ok && _torqueModuleRPCClientPort.write(startCmd);
+                }
+            } else if (controlMode == CTRL_MODE_POS) {
                 startCmd.addString("stop");
+                ok = ok && _torqueModuleRPCClientPort.write(startCmd);
             }
-            ok = ok && _torqueModuleRPCClientPort.write(startCmd);
+            
         }
 #endif
         return ok;

@@ -26,7 +26,7 @@ using namespace jointTorqueControl;
 using namespace wbiIcub;
 
 // #define IMPEDANCE_CONTROL
-// #define GAZEBO_SIM
+#define GAZEBO_SIM
 
 jointTorqueControlThread::jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
 : RateThread(period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), frictionCompensationFactor(0), sendCommands(SEND_COMMANDS_NONACTIVE),
@@ -397,24 +397,30 @@ bool jointTorqueControlThread::readRobotStatus(bool blockingRead)
 //*************************************************************************************************************************
 void jointTorqueControlThread::startSending()
 {
-    resetIntegralState(-1);
+    if (status != CONTROL_ON) {
+        resetIntegralState(-1);
 #ifdef IMPEDANCE_CONTROL
-    //reset desired positions for impedance control
-    readRobotStatus(false);
-    qDes = q;
+        //reset desired positions for impedance control
+        readRobotStatus(false);
+        qDes = q;
 #endif
-    status = CONTROL_ON;       //sets thread status to ON
-	setControlModePWMOnJoints(sendCommands == SEND_COMMANDS_ACTIVE);
-    oldTime = yarp::os::Time::now();
-    printf("Activating the torque control.\n");
+        status = CONTROL_ON;       //sets thread status to ON
+        setControlModePWMOnJoints(sendCommands == SEND_COMMANDS_ACTIVE);
+        oldTime = yarp::os::Time::now();
+        printf("Activating the torque control.\n");
+    } else
+        printf("Joint torque control already on.\n");
 }
 
 //*************************************************************************************************************************
 void jointTorqueControlThread::stopSending()
 {
-    status = CONTROL_OFF;
-    setControlModePWMOnJoints(false);
-    printf("Deactivating the torque control.\n");
+    if (status != CONTROL_OFF) {
+        status = CONTROL_OFF;
+        setControlModePWMOnJoints(false);
+        printf("Deactivating the torque control.\n");
+    } else
+        printf("Joint torque control already off.\n");
 }
 
 //*************************************************************************************************************************
@@ -439,12 +445,17 @@ void jointTorqueControlThread::setControlModePWMOnJoints(bool torqueActive)
 	{
 		if (activeJoints(i) == 1 && torqueActive && status==CONTROL_ON) {
 			robot->setControlMode(CTRL_MODE_MOTOR_PWM, NULL, i);
+//             cout << "PWM active for joint " << i << " \n";
 			//robot->setControlMode(CTRL_MODE_TORQUE, NULL, i);
             //robot->setControlParam(wbi::CTRL_PARAM_KP, &zeroValue);
         }
-		else
+		else 
+        {
 			robot->setControlMode(CTRL_MODE_POS, NULL, i);
-	}
+//             cout << "Postion active \n";
+//             cout << "torqueActive = " << torqueActive  << " status = " <<  status <<"\n";
+        }
+    }
 }
 
 //*************************************************************************************************************************
