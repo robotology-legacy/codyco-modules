@@ -144,8 +144,10 @@ bool icubWholeBodyActuators::init()
         yarp::os::Value found;
         _rpcAutoConnect = false;
         found = configurationParameters.find(icubWholeBodyActuatorsExternalTorqueModuleAutoconnect.c_str());
-        if (!found.isNull() && found.isBool())
+        
+        if (!found.isNull() && found.isBool()) {
             _rpcAutoConnect = found.asBool();
+        }
         found = configurationParameters.find(icubWholeBodyActuatorsUseExternalTorqueModule.c_str());
         if (!found.isNull() && found.isBool() && found.asBool()) {
             found = configurationParameters.find(icubWholeBodyActuatorsExternalTorqueModuleName.c_str());
@@ -165,8 +167,8 @@ bool icubWholeBodyActuators::init()
                     _torqueRefs.resize(jointTorqueControl::N_DOF);
                     ok = _torqueModuleConnection->linkParam(jointTorqueControl::PARAM_ID_TAU_OFFSET, _torqueRefs.data());
                     if (_rpcAutoConnect) {
-                        _rpcLocalName = name + "/rpc:o";
-                        _rpcRemoteName = found.asString() + "/rpc";
+                        _rpcLocalName = "/" + name + "/rpc:o";
+                        _rpcRemoteName = "/" + found.asString() + "/rpc";
                         ok = ok && _torqueModuleRPCClientPort.open(_rpcLocalName);
                         ok = ok && Network::connect(_rpcLocalName, _rpcRemoteName);
                     }
@@ -222,8 +224,13 @@ bool icubWholeBodyActuators::setConfigurationParameter(const std::string &parame
             return true;
         }
         return false;
-    }
-    else if (parameterName.compare(icubWholeBodyActuatorsExternalTorqueModuleName) == 0) {
+    } else if (parameterName.compare(icubWholeBodyActuatorsExternalTorqueModuleAutoconnect) == 0) {
+        if (parameterValue.isBool()) {
+            configurationParameters.put(parameterName.c_str(), parameterValue);
+            return true;
+        }
+        return false;
+    } else if (parameterName.compare(icubWholeBodyActuatorsExternalTorqueModuleName) == 0) {
         //simply check value has some length
         if (parameterValue.isString() && parameterValue.asString().length() > 0) {
             configurationParameters.put(parameterName.c_str(), parameterValue);
