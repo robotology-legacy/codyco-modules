@@ -398,6 +398,11 @@ bool jointTorqueControlThread::readRobotStatus(bool blockingRead)
 void jointTorqueControlThread::startSending()
 {
     resetIntegralState(-1);
+#ifdef IMPEDANCE_CONTROL
+    //reset desired positions for impedance control
+    readRobotStatus(false);
+    qDes = q;
+#endif
     status = CONTROL_ON;       //sets thread status to ON
 	setControlModePWMOnJoints(sendCommands == SEND_COMMANDS_ACTIVE);
     oldTime = yarp::os::Time::now();
