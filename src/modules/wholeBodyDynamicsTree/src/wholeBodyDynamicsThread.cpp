@@ -491,9 +491,9 @@ void wholeBodyDynamicsThread::normal_run()
         std::cout << "Forces: " << std::endl;
         std::cout << external_forces_list.toString() << std::endl;
         std::cout << "Measured Force Torque Sensors: " << std::endl;
-        yarp::sig::Vector ft_mes(6*6,0.0); 
+        yarp::sig::Vector ft_mes(6*6,0.0);
         ret = estimator->getEstimates(wbi::ESTIMATE_FORCE_TORQUE,ft_mes.data());
-        for(int i=0; i < 6; i++ ) 
+        for(int i=0; i < 6; i++ )
         {
             std::cout << "FT sensor " << i << " : " << std::endl;
             std::cout << ft_mes.subVector(6*i,6*i+5).toString() << std::endl;
@@ -535,8 +535,8 @@ void wholeBodyDynamicsThread::calibration_run()
     icub_model_calibration.dynamicRNEA();
 
     //std::cout << "wholeBodyDynamicsThread::calibration_run(): F/T estimates computed" << std::endl;
-	std::cout << "wholeBodyDynamicsThread::calibration_run() : imu proper acceleration " << tree_status.proper_ddp_imu.toString() << std::endl;
-	std::cout << "wholeBodyDynamicsThread::calibration_run() : q " << tree_status.q.toString() << std::endl;
+    std::cout << "wholeBodyDynamicsThread::calibration_run() : imu proper acceleration " << tree_status.proper_ddp_imu.toString() << std::endl;
+    std::cout << "wholeBodyDynamicsThread::calibration_run() : q " << tree_status.q.toString() << std::endl;
 
 
     for(int ft_sensor_id=0; ft_sensor_id < (int)offset_buffer.size(); ft_sensor_id++ ) {
@@ -545,9 +545,10 @@ void wholeBodyDynamicsThread::calibration_run()
             icub_model_calibration.getSensorMeasurement(ft_sensor_id,tree_status.estimated_ft_sensors[ft_sensor_id]);
             //Get sensor measure
             estimator->getEstimate(wbi::ESTIMATE_FORCE_TORQUE,convertFTiDynTreeToFTwbi(ft_sensor_id),tree_status.measured_ft_sensors[ft_sensor_id].data());
-	        assert((int)offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
+            assert((int)offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
             offset_buffer[ft_sensor_id] += tree_status.measured_ft_sensors[ft_sensor_id]-tree_status.estimated_ft_sensors[ft_sensor_id];
             std::cout << "Estimated ft sensor " << ft_sensor_id << " : " << tree_status.estimated_ft_sensors[ft_sensor_id].toString() << std::endl;
+            std::cout << "Subchain mass : " << norm(tree_status.estimated_ft_sensors[ft_sensor_id].subVector(0,2))/norm( tree_status.proper_ddp_imu) << std::endl;
         }
     }
 
