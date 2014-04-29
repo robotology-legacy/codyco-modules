@@ -50,24 +50,28 @@ using namespace iCub::ctrl;
 //                                          ICUB WHOLE BODY STATES
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodyStatesLocal::icubWholeBodyStatesLocal(const char* _name, const char* _robotName, iCub::iDynTree::iCubTree_version_tag icub_version)
+icubWholeBodyStatesLocal::icubWholeBodyStatesLocal(const char* _name,
+                                                   const char* _robotName,
+                                                   iCub::iDynTree::iCubTree_version_tag icub_version,
+                                                   bool assume_fixed_base)
 {
     sensors = new icubWholeBodySensors(_name, _robotName);              // sensor interface
     skin_contacts_port = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
     skin_contacts_port->open(string("/"+string(_name)+"/skin_contacts:i").c_str());
-    estimator = new icubWholeBodyDynamicsEstimator(ESTIMATOR_PERIOD, sensors, skin_contacts_port,icub_version);  // estimation thread
+    estimator = new icubWholeBodyDynamicsEstimator(ESTIMATOR_PERIOD, sensors, skin_contacts_port, icub_version, assume_fixed_base);  // estimation thread
 }
 
 #ifdef CODYCO_USES_URDFDOM
 icubWholeBodyStatesLocal::icubWholeBodyStatesLocal(const char* _name,
                                                    const char* _robotName,
                                                    iCub::iDynTree::iCubTree_version_tag icub_version,
+                                                   bool assume_fixed_base,
                                                    std::string urdf_file)
 {
     sensors = new icubWholeBodySensors(_name, _robotName);              // sensor interface
     skin_contacts_port = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
     skin_contacts_port->open(string("/"+string(_name)+"/skin_contacts:i").c_str());
-    estimator = new icubWholeBodyDynamicsEstimator(ESTIMATOR_PERIOD, sensors, skin_contacts_port,icub_version,urdf_file);  // estimation thread
+    estimator = new icubWholeBodyDynamicsEstimator(ESTIMATOR_PERIOD, sensors, skin_contacts_port,icub_version,assume_fixed_base,urdf_file);  // estimation thread
 }
 
 #endif
@@ -402,13 +406,16 @@ int icubWholeBodyStatesLocal::lockAndGetSensorNumber(const SensorType st)
 icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period,
                                                                icubWholeBodySensors *_sensors,
                                                                yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
-                                                               iCub::iDynTree::iCubTree_version_tag _icub_version)
+                                                               iCub::iDynTree::iCubTree_version_tag _icub_version,
+                                                               bool _assume_fixed_base
+                                                              )
 : RateThread(_period),
    sensors(_sensors),
    port_skin_contacts(_port_skin_contacts),
    dqFilt(0), d2qFilt(0),
    icub_version(_icub_version),
-   enable_omega_domega_IMU(false)
+   enable_omega_domega_IMU(false),
+   assume_fixed_base(_assume_fixed_base)
 {
     #ifdef CODYCO_USES_URDFDOM
     use_urdf = false;
@@ -450,13 +457,15 @@ icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period,
                                                                icubWholeBodySensors *_sensors,
                                                                yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
                                                                iCub::iDynTree::iCubTree_version_tag _icub_version,
-                                                               std::string urdf_file)
+                                                               bool _assume_fixed_base,
+                                                               std::string urdf_file )
 : RateThread(_period),
    sensors(_sensors),
    port_skin_contacts(_port_skin_contacts),
    dqFilt(0), d2qFilt(0),
    icub_version(_icub_version),
    enable_omega_domega_IMU(false),
+   assume_fixed_base(_assume_fixed_base),
    use_urdf(true),
    urdf_file_name(urdf_file)
 {
@@ -550,14 +559,31 @@ bool icubWholeBodyDynamicsEstimator::threadInit()
     #ifdef CODYCO_USES_URDFDOM
     if( use_urdf )
     {
-        icub_model = new iCub::iDynTree::iCubTree(urdf_file_name,icub_version);
+        if( !assume_fixed_base )
+        {
+            icub_model = new iCub::iDynTree::iCubTree(urdf_file_name,icub_version);
+        }
+        else
+        {
+            icub_model = new iCub::iDynTree::iCubTree(urdf_file_name,icub_version,"root_link");
+        }
     }
     else
     {
-        icub_model = new iCub::iDynTree::iCubTree(icub_version);
+        if( !assume_fixed_base )
+        {
+            icub_model = new iCub::iDynTree::iCubTree(icub_version);
+        } else {
+            icub_model = new iCub::iDynTree::iCubTree(icub_version,"root_link");
+        }
     }
     #else
-    icub_model = new iCub::iDynTree::iCubTree(icub_version);
+    if( !assume_fixed_base )
+    {
+        icub_model = new iCub::iDynTree::iCubTree(icub_version);
+    } else {
+        icub_model = new iCub::iDynTree::iCubTree(icub_version,"root_link");
+    }
     #endif
     model_mutex.post();
     return ok;
@@ -820,6 +846,13 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     if( !enable_omega_domega_IMU ) {
         domega_used_IMU.zero();
         omega_used_IMU.zero();
+    }
+
+    if( assume_fixed_base ) {
+        domega_used_IMU.zero();
+        omega_used_IMU.zero();
+        ddp_used_IMU.zero();
+        ddp_used_IMU[2] = 9.8;
     }
 
     model_mutex.wait();

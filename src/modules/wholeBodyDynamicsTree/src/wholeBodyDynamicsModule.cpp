@@ -99,6 +99,12 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         icub_version.feet_ft = true;
     }
 
+    bool fixed_base = false;
+    if( rf.check("assume_fixed_base") ) {
+        std::cout << "assume_fixed_base option found, using the fixed base as a kinematic root instead of the imu." << std::endl;
+        fixed_base = true;
+    }
+
     //--------------------------RPC PORT--------------------------
     attach(rpcPort);
     std::string rpcPortName= "/";
@@ -110,7 +116,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     }
 
     //--------------------------WHOLE BODY STATES INTERFACE--------------------------
-    estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str(), icub_version);
+    estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str(), icub_version, fixed_base);
 
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
@@ -152,8 +158,10 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         autoconnect = true;
     }
 
+
+
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
-    wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface, icub_version, autoconnect);
+    wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface, icub_version, autoconnect, fixed_base);
     if(!wbdThread->start()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }
 
     fprintf(stderr,"wholeBodyDynamicsThread started\n");
