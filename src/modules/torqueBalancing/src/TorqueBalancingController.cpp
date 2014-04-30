@@ -76,7 +76,8 @@ namespace codyco {
         
         void TorqueBalancingController::readReferences()
         {
-            m_desiredCOMAcceleration = m_references.desiredCOMAcceleration.value();
+            m_desiredCOMAcceleration = m_references.desiredCOMAcceleration().value();
+            
         }
         
         bool TorqueBalancingController::updateRobotState()

@@ -18,6 +18,7 @@
 #include "TorqueBalancingController.h"
 #include "Reference.h"
 #include "ReferenceGenerator.h"
+#include "ReferenceGeneratorInputReaderImpl.h"
 
 namespace codyco {
     namespace torquebalancing {
@@ -28,15 +29,50 @@ namespace codyco {
         bool TorqueBalancingModule::configure(yarp::os::ResourceFinder& rf)
         {
             //Create reference variable
-            ControllerReferences references;
+            m_references = new ControllerReferences();
             
-            new ReferenceGenerator<ControllerReferences::COMAccelerationType>(10, references.desiredCOMAcceleration);
+            //create generators
+            ReferenceGeneratorInputReader* reader = 0;
+            ReferenceGenerator* generator = 0;
             
-            TorqueBalancingController *controller = new TorqueBalancingController(10, references);
+            reader = new COMReader(*m_robot, *m_world2BaseFrame);
+            generator = new ReferenceGenerator(10, m_references->desiredCOMAcceleration(), *reader);
+            
+            m_generatorReaders.push_back(reader);
+            m_referenceGenerators.push_back(generator);
+            
+            reader = new HandsForceReader(*m_robot, *m_world2BaseFrame);
+            generator = new ReferenceGenerator(10, m_references->desiredHandsPosition(), *reader);
+            
+            m_generatorReaders.push_back(reader);
+            m_referenceGenerators.push_back(generator);
+            
+            reader = new HandsPositionReader(*m_robot, *m_world2BaseFrame);
+            generator = new ReferenceGenerator(10, m_references->desiredHandsPosition(), *reader);
+            
+            m_generatorReaders.push_back(reader);
+            m_referenceGenerators.push_back(generator);
+            
+            m_controller = new TorqueBalancingController(10, *m_references);
             
             return true;
         }
         bool TorqueBalancingModule::updateModule() { return true; }
-        bool TorqueBalancingModule::close() { return true; }
+        bool TorqueBalancingModule::close()
+        {
+            for (std::vector<ReferenceGenerator*>::iterator it = m_referenceGenerators.begin(); it != m_referenceGenerators.end(); it++) {
+                
+//                it->stop();
+                delete *it;
+            }
+            m_referenceGenerators.clear();
+            
+            for (std::vector<ReferenceGeneratorInputReader*>::iterator it = m_generatorReaders.begin(); it != m_generatorReaders.end(); it++) {
+                delete *it;
+            }
+            m_generatorReaders.clear();
+            
+            return true;
+        }
     }
 }

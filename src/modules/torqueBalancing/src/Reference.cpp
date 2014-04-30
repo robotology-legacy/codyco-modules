@@ -15,3 +15,52 @@
  */
 
 #include "Reference.h"
+#include "config.h"
+
+
+namespace codyco {
+    namespace torquebalancing {
+
+#pragma mark - Reference implementation
+        
+        Reference::Reference(int referenceSize)
+        : m_value(referenceSize) {}
+        
+        Reference::~Reference() {}
+        
+        Eigen::VectorXd& Reference::value()
+        {
+            codyco::torquebalancing::LockGuard guard(m_lock);
+            return m_value;
+        }
+        
+        void Reference::setValue(Eigen::VectorXd& _value)
+        {
+            codyco::torquebalancing::LockGuard guard(m_lock);
+            m_value = _value;
+        }
+        
+#pragma mark - ControllerReferences implementation
+        
+        ControllerReferences::ControllerReferences()
+        : m_desiredCOMAcceleration(3)
+        , m_desiredHandsPosition(14)
+        , m_desiredHandsForce(12)
+        {}
+        
+        Reference& ControllerReferences::desiredCOMAcceleration()
+        {
+            return m_desiredCOMAcceleration;
+        }
+        
+        Reference& ControllerReferences::desiredHandsPosition()
+        {
+            return m_desiredHandsPosition;
+        }
+        
+        Reference& ControllerReferences::desiredHandsForce()
+        {
+            return m_desiredHandsForce;
+        }
+    }
+}

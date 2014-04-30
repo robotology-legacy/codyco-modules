@@ -18,13 +18,14 @@ set(HEADERS_FOLDER include/torquebalancing)
 set(HEADERS    ${HEADERS_FOLDER}/TorqueBalancingModule.h
                ${HEADERS_FOLDER}/TorqueBalancingController.h
                ${HEADERS_FOLDER}/ReferenceGenerator.h
+               ${HEADERS_FOLDER}/ReferenceGeneratorInputReaderImpl.h
                ${HEADERS_FOLDER}/Reference.h
-               ${HEADERS_FOLDER}/Reference.hpp
                ${HEADERS_FOLDER}/config.h)
 
 set(SOURCES    ${SRC_FOLDER}/TorqueBalancingModule.cpp
                ${SRC_FOLDER}/TorqueBalancingController.cpp
                ${SRC_FOLDER}/ReferenceGenerator.cpp
+               ${SRC_FOLDER}/ReferenceGeneratorInputReaderImpl.cpp
                ${SRC_FOLDER}/config.cpp
                ${SRC_FOLDER}/Reference.cpp
                ${SRC_FOLDER}/main.cpp)
@@ -35,9 +36,9 @@ source_group("Header Files" FILES ${HEADERS})
 message("Codyco common: ${codyco_commons_INCLUDE_DIRS}")
 
 include_directories(${HEADERS_FOLDER}
-    ${codyco_commons_INCLUDE_DIRS}
-                    # ${wholeBodyInterface_INCLUDE_DIRS}
-                    # ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
+                    ${codyco_commons_INCLUDE_DIRS}
+                    ${wholeBodyInterface_INCLUDE_DIRS}
+                    ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     # ${EIGEN3_INCLUDE_DIR}
                     # ${iDynTree_INCLUDE_DIRS}
                     # ${orocos_kdl_INCLUDE_DIRS}
@@ -49,7 +50,10 @@ include_directories(${HEADERS_FOLDER}
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
-target_link_libraries(${PROJECT_NAME} codyco_commons ${YARP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} codyco_commons
+                 ${wholeBodyInterface_LIBRARIES}
+                 ${wholeBodyInterfaceIcub_LIBRARIES}
+                 ${YARP_LIBRARIES})
 
 # install(TARGETS ${PROJECTNAME} DESTINATION bin)
 

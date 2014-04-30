@@ -18,9 +18,20 @@
 #define TORQUEBALANCINGMODULE_H
 
 #include <yarp/os/RFModule.h>
+#include <vector>
+
+namespace wbi {
+    class wholeBodyInterface;
+    class Frame;
+}
 
 namespace codyco {
     namespace torquebalancing {
+        
+        class ControllerReferences;
+        class TorqueBalancingController;
+        class ReferenceGenerator;
+        class ReferenceGeneratorInputReader;
         
         /** @brief Main module for the torque balancing module.
          *
@@ -35,6 +46,15 @@ namespace codyco {
             virtual bool updateModule();
             virtual bool close();
             
+        private:
+            wbi::wholeBodyInterface* m_robot;
+            wbi::Frame* m_world2BaseFrame;
+            
+            TorqueBalancingController* m_controller;
+            ControllerReferences* m_references;
+            
+            std::vector<ReferenceGeneratorInputReader*> m_generatorReaders;
+            std::vector<ReferenceGenerator*> m_referenceGenerators;
         };
     }
 }

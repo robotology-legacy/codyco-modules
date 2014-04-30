@@ -15,10 +15,40 @@
  */
 
 #include "ReferenceGenerator.h"
+#include "Reference.h"
+#include <wbi/wholeBodyInterface.h>
 
 namespace codyco {
     namespace torquebalancing {
         
+        ReferenceGenerator::ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader)
+        : RateThread(period)
+        , m_reference(reference)
+        , m_reader(reader)
+        , m_proportionalGains(reference.value().size())
+        , m_derivativeGains(reference.value().size())
+        , m_integralGains(reference.value().size()){}
+
+        bool ReferenceGenerator::threadInit()
+        {
+            return true;
+        }
+        
+        void ReferenceGenerator::threadRelease()
+        {
+            
+        }
+        
+        void ReferenceGenerator::run()
+        {
+            
+            //compute pid
+            
+            
+        }
+        
+        ReferenceGeneratorInputReader::~ReferenceGeneratorInputReader() {}
+
         
     }
 }

@@ -18,30 +18,43 @@
 #define REFERENCEGENERATOR_H
 
 #include <yarp/os/RateThread.h>
-#include "Reference.h"
+#include <Eigen/Core>
+
+namespace wbi {
+    class wholeBodyIterface;
+}
 
 namespace codyco {
     namespace torquebalancing {
         
-        template<class ReferenceType>
+        class ReferenceGeneratorInputReader;
+        class Reference;
+        
         class ReferenceGenerator: public ::yarp::os::RateThread
         {
         public:
-            ReferenceGenerator(int period, Reference<ReferenceType>& reference);
+            ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader);
             
             virtual bool threadInit();
             virtual void threadRelease();
             virtual void run();
             
         private:
-            Reference<ReferenceType>& m_reference;
+            Reference& m_reference;
+            ReferenceGeneratorInputReader& m_reader;
+            
+            Eigen::VectorXd m_proportionalGains;
+            Eigen::VectorXd m_derivativeGains;
+            Eigen::VectorXd m_integralGains;
         };
         
-        template<class ReferenceType>
-        ReferenceGenerator<ReferenceType>::ReferenceGenerator(int period, Reference<ReferenceType>& reference)
-        : RateThread(period)
-        , m_reference(reference) {}
-        
+        class ReferenceGeneratorInputReader {
+        public:
+            virtual ~ReferenceGeneratorInputReader();
+            virtual Eigen::VectorXd& getSignal() = 0;
+            virtual Eigen::VectorXd& getSignalDerivative() = 0;
+        };
+
     }
 }
 

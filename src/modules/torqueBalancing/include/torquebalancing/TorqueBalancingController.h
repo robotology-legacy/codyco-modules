@@ -29,7 +29,7 @@ namespace wbi {
 namespace codyco {
     namespace torquebalancing {
         
-        struct ControllerReferences;
+        class ControllerReferences;
         
         /** @brief Represents the actual controller
          *
@@ -66,7 +66,8 @@ namespace codyco {
             
             //Gains
             double m_centroidalMomentumGain;
-            
+
+//TODO: migrate to dynamic matrices.
             //references
             Eigen::Vector3d m_desiredCOMAcceleration;
             Eigen::Matrix<double, 12, 1> m_desiredFeetForces;

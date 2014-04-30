@@ -20,63 +20,49 @@
 #include <yarp/os/Mutex.h>
 #include "Eigen/Core"
 
-
 namespace codyco {
     namespace torquebalancing {
         
-        template <class T>
         class Reference
         {
         public:
-            Reference();
+            explicit Reference(int referenceSize);
             ~Reference();
             
-            T& value();
-            void setValue(T& _value);
+            Eigen::VectorXd& value();
+            void setValue(Eigen::VectorXd& _value);
             
         private:
             yarp::os::Mutex m_lock;
-            T m_value;
+            Eigen::VectorXd m_value;
         };
         
-        struct ControllerReferences
+        class ControllerReferences
         {
         public:
+            ControllerReferences();
             
-            typedef Eigen::Matrix<double, 3, 1> COMAccelerationType;
-            typedef Eigen::Matrix<double, 14, 1> HandsPositionType;
-            typedef Eigen::Matrix<double, 12, 1> HandsForceType;
+            /** @brief returns the desired COM acceleration 3-dim reference.
+             * @return desired COM acceleration (3 dim)
+             */
+            Reference& desiredCOMAcceleration();
             
-            Reference<Eigen::Matrix<double, 3, 1> > desiredCOMAcceleration;
-            Reference<Eigen::Matrix<double, 14, 1> > desiredHandsPosition;
-            Reference<Eigen::Matrix<double, 12, 1> > desiredHandsForce;
+            /** @brief returns the desired Hands positions reference.
+             * The vector is a 14 dimension vector, 7 (position and angle-axis representation) for each hand.
+             * @return desired desired Hands positions (14 dim)
+             */
+            Reference& desiredHandsPosition();
+            
+            /** @brief returns the desired Hands force reference.
+             * The vector is a 12 dimension vector, 6 for each hand.
+             * @return desired Hands force (12 dim)
+             */
+            Reference& desiredHandsForce();
+        private:
+            Reference m_desiredCOMAcceleration;
+            Reference m_desiredHandsPosition;
+            Reference m_desiredHandsForce;
         };
-        
-        
-        
-//#include "Reference.hpp"
-#include "config.h"
-        
-        template<class T>
-        Reference<T>::Reference() {}
-        
-        template<class T>
-        Reference<T>::~Reference() {}
-        
-        template<class T>
-        T& Reference<T>::value()
-        {
-            codyco::torquebalancing::LockGuard guard(m_lock);
-            return m_value;
-        }
-        
-        template<class T>
-        void Reference<T>::setValue(T& _value)
-        {
-            codyco::torquebalancing::LockGuard guard(m_lock);
-            m_value = _value;
-        }
-
         
     }
 }
