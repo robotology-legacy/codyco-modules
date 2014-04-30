@@ -32,9 +32,12 @@ namespace codyco {
             Eigen::VectorXd& value();
             void setValue(Eigen::VectorXd& _value);
             
+            const int valueSize() const;
+            
         private:
             yarp::os::Mutex m_lock;
             Eigen::VectorXd m_value;
+            const int m_valueSize;
         };
         
         class ControllerReferences

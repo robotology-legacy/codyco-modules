@@ -17,20 +17,39 @@
 #include "ReferenceGenerator.h"
 #include "Reference.h"
 #include <wbi/wholeBodyInterface.h>
+#include <yarp/os/Time.h>
 
 namespace codyco {
     namespace torquebalancing {
         
+#pragma mark - ReferenceGenerator methods
+        
         ReferenceGenerator::ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader)
         : RateThread(period)
-        , m_reference(reference)
+        , m_outputReference(reference)
         , m_reader(reader)
-        , m_proportionalGains(reference.value().size())
-        , m_derivativeGains(reference.value().size())
-        , m_integralGains(reference.value().size()){}
+        , m_computedReference(reference.valueSize())
+        , m_integralTerm(reader.signalSize())
+        , m_proportionalGains(reader.signalSize())
+        , m_derivativeGains(reader.signalSize())
+        , m_integralGains(reader.signalSize())
+        , m_signalReference(reference.valueSize())
+        , m_signalDerivativeReference(reference.valueSize())
+        , m_signalFeedForward(reference.valueSize()) {}
 
         bool ReferenceGenerator::threadInit()
         {
+            m_proportionalGains.setZero();
+            m_derivativeGains.setZero();
+            m_integralGains.setZero();
+            
+            m_computedReference.setZero();
+            m_integralTerm.setZero();
+            
+            m_signalReference.setZero();
+            m_signalDerivativeReference.setZero();
+            m_signalFeedForward.setZero();
+            
             return true;
         }
         
@@ -41,14 +60,56 @@ namespace codyco {
         
         void ReferenceGenerator::run()
         {
-            
+            double now = yarp::os::Time::now();
+            double dt = now - m_previousTime;
+
             //compute pid
+            Eigen::VectorXd error = m_signalReference - m_reader.getSignal();
             
+            m_integralTerm += dt * error;
             
+            m_computedReference = m_signalFeedForward
+            + m_proportionalGains.asDiagonal() * error
+            + m_derivativeGains.asDiagonal() * (m_signalDerivativeReference - m_reader.getSignalDerivative())
+            + m_integralGains.asDiagonal() * m_integralTerm;
+            // ???: should I scale the output for dt?
+            m_outputReference.setValue(m_computedReference);
+            
+            m_previousTime = now;
         }
         
+        Eigen::VectorXd& ReferenceGenerator::signalReference()
+        {
+            return m_signalReference;
+        }
+        
+        void ReferenceGenerator::setSignalReference(Eigen::VectorXd& reference)
+        {
+            m_signalReference = reference;
+        }
+        
+        Eigen::VectorXd ReferenceGenerator::signalDerivativeReference()
+        {
+            return m_signalDerivativeReference;
+        }
+        
+        void ReferenceGenerator::setSignalDerivativeReference(Eigen::VectorXd& derivativeReference)
+        {
+            m_signalDerivativeReference = derivativeReference;
+        }
+        
+        Eigen::VectorXd& ReferenceGenerator::signalFeedForward()
+        {
+            return m_signalFeedForward;
+        }
+        
+        void ReferenceGenerator::setSignalFeedForward(Eigen::VectorXd& feedforward)
+        {
+            m_signalFeedForward = feedforward;
+        }
+        
+#pragma mark - ReferenceGeneratorInputReader methods
         ReferenceGeneratorInputReader::~ReferenceGeneratorInputReader() {}
-
         
     }
 }

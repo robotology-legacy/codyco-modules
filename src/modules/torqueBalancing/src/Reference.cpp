@@ -24,7 +24,8 @@ namespace codyco {
 #pragma mark - Reference implementation
         
         Reference::Reference(int referenceSize)
-        : m_value(referenceSize) {}
+        : m_value(referenceSize)
+        , m_valueSize(referenceSize) {}
         
         Reference::~Reference() {}
         
@@ -38,6 +39,11 @@ namespace codyco {
         {
             codyco::torquebalancing::LockGuard guard(m_lock);
             m_value = _value;
+        }
+        
+        const int Reference::valueSize() const
+        {
+            return m_valueSize;
         }
         
 #pragma mark - ControllerReferences implementation

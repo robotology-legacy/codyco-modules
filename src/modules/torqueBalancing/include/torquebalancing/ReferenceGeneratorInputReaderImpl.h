@@ -49,6 +49,7 @@ namespace codyco {
             virtual ~COMReader();
             virtual Eigen::VectorXd& getSignal();
             virtual Eigen::VectorXd& getSignalDerivative();
+            virtual int signalSize() const;
             
         };
         
@@ -73,6 +74,7 @@ namespace codyco {
             virtual ~HandsPositionReader();
             virtual Eigen::VectorXd& getSignal();
             virtual Eigen::VectorXd& getSignalDerivative();
+            virtual int signalSize() const;
         };
         
         class HandsForceReader : public ReferenceGeneratorInputReader {
@@ -92,6 +94,8 @@ namespace codyco {
             virtual ~HandsForceReader();
             virtual Eigen::VectorXd& getSignal();
             virtual Eigen::VectorXd& getSignalDerivative();
+            virtual int signalSize() const;
+            
         };
     }
 }

@@ -59,6 +59,8 @@ namespace codyco {
             return m_outputSignalDerivative;
         }
         
+        int COMReader::signalSize() const { return 3; }
+        
 #pragma mark - HandsPositionReader implementation
         HandsPositionReader::HandsPositionReader(wbi::wholeBodyInterface& robot, const wbi::Frame& world2BaseFrame)
         : m_robot(robot)
@@ -92,6 +94,9 @@ namespace codyco {
             updateStatus();
             return m_outputSignalDerivative;
         }
+        
+        int HandsPositionReader::signalSize() const { return 14; }
+        
 #pragma mark - HandsForceReader implementation
         HandsForceReader::HandsForceReader(wbi::wholeBodyInterface& robot, const wbi::Frame& world2BaseFrame)
         : m_robot(robot)
@@ -123,5 +128,7 @@ namespace codyco {
             updateStatus();
             return m_outputSignalDerivative;
         }
+        
+        int HandsForceReader::signalSize() const { return 12; }
     }
 }

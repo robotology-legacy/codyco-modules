@@ -39,13 +39,31 @@ namespace codyco {
             virtual void threadRelease();
             virtual void run();
             
+            Eigen::VectorXd& signalReference();
+            void setSignalReference(Eigen::VectorXd& reference);
+            
+            Eigen::VectorXd signalDerivativeReference();
+            void setSignalDerivativeReference(Eigen::VectorXd& derivativeReference);
+            
+            Eigen::VectorXd& signalFeedForward();
+            void setSignalFeedForward(Eigen::VectorXd& reference);
+            
         private:
-            Reference& m_reference;
+            Reference& m_outputReference;
             ReferenceGeneratorInputReader& m_reader;
+            
+            Eigen::VectorXd m_computedReference;
+            Eigen::VectorXd m_integralTerm;
             
             Eigen::VectorXd m_proportionalGains;
             Eigen::VectorXd m_derivativeGains;
             Eigen::VectorXd m_integralGains;
+            
+            Eigen::VectorXd m_signalReference;
+            Eigen::VectorXd m_signalDerivativeReference;
+            Eigen::VectorXd m_signalFeedForward;
+            
+            double m_previousTime;
         };
         
         class ReferenceGeneratorInputReader {
@@ -53,6 +71,7 @@ namespace codyco {
             virtual ~ReferenceGeneratorInputReader();
             virtual Eigen::VectorXd& getSignal() = 0;
             virtual Eigen::VectorXd& getSignalDerivative() = 0;
+            virtual int signalSize() const = 0;
         };
 
     }
