@@ -15,16 +15,23 @@
  * Public License for more details
  */
 
-#ifndef CODYCOLIB_COMMON_H
-#define CODYCOLIB_COMMON_H
+#include "LockGuard.h"
+#include <yarp/os/Mutex.h>
 
-#include <cstdio>
-
-//this is standard in C99 and C++11, but not on previous version of C++. GCC, Clang and MSVS should support it anyway
-#define DLOG(format, ...) \
-    printf(("[%s:%d] " format), __FILE__, __LINE__, ##__VA_ARGS__)
-
-namespace codyco {}
-
-
-#endif
+namespace codyco {
+    
+    LockGuard::LockGuard(yarp::os::Mutex& mutex)
+    : m_mutex(mutex)
+    {
+        m_mutex.lock();
+    }
+    
+    LockGuard::~LockGuard()
+    {
+        m_mutex.unlock();
+    }
+    
+    LockGuard::LockGuard(const LockGuard& lg)
+    : m_mutex(lg.m_mutex) { }
+    LockGuard& LockGuard::operator=(const LockGuard&) { return *this; }
+}
