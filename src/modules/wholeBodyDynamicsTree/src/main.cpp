@@ -34,6 +34,13 @@ using namespace yarp::sig;
 using namespace yarp::os;
 using namespace std;
 
+void iCubPartVersionOptionsPrint()
+{
+    cout<< "\t--headV1/headV2    :Version of the head."  <<endl;
+    cout<< "\t--legsV1/legsV2    :Version of the legs."  <<endl;
+    cout<< "\t--feetV1/feetV2    :Version of the feet."  <<endl;
+}
+
 int main (int argc, char * argv[])
 {
     //Creating and preparing the Resource Finder
@@ -51,9 +58,7 @@ int main (int argc, char * argv[])
         cout<< "\t--rate             :Period used by the module. Default set to 10ms."                                                                                        <<endl;
         cout<< "\t--robot            :Robot name. Set to icub by default."                                                                                  <<endl;
         cout<< "\t--name             :Prefix of the ports opened by the module. Set to the module name by default, i.e. wholeBodyDynamicsTree."                                      <<endl;
-        cout<< "\t--headV1/headV2    :Version of the head."  <<endl;
-        cout<< "\t--legsV1/legsV2    :Version of the legs."  <<endl;
-        cout<< "\t--feetV1/feetV2    :Version of the feet."  <<endl;
+        iCubPartVersionOptionsPrint();
         cout<< "\t--enable_w0_dw0/disable_w0_dw0    :Enable/disable use of angular velocity and acceleration measured from the IMU (default: disabled)." << endl;
         cout<< "\t--autoconnect      :Autoconnect torques port for low-level torque feedback. " << endl;
         cout<< "\t--assume_fixed_base:Use the fixed-base as a kinematic root (assuming a constant gravity)." <<endl;
