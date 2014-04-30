@@ -53,27 +53,11 @@ bool wholeBodyDynamicsModule::attach(yarp::os::Port &source)
     return this->yarp().attachAsServer(source);
 }
 
-bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
+void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag & icub_version)
 {
-    if( rf.check("robot") ) {
-        robotName = rf.find("robot").asString();
-    } else {
-        std::cerr << "wholeBodyDynamicsModule::configure failed: robot parameter not found. Closing module." << std::endl;
-        return false;
-    }
-
-    if( rf.check("name") ) {
-        moduleName = rf.find("name").asString();
-        setName(moduleName.c_str());
-    } else {
-        std::cerr << "wholeBodyDynamicsModule::configure failed: name parameter not found. Closing module." << std::endl;
-        return false;
-    }
-
     //Checking iCub parts version
     /// \todo this part should be replaced by a more general way of accessing robot parameters
     ///       namely urdf for structure parameters and robotInterface xml (or runtime interface) to get available sensors
-    iCub::iDynTree::iCubTree_version_tag icub_version;
     icub_version.head_version = 2;
     if( rf.check("headV1") ) {
         icub_version.head_version = 1;
@@ -98,6 +82,28 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     if( rf.check("feetV2") ) {
         icub_version.feet_ft = true;
     }
+}
+
+bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
+{
+    if( rf.check("robot") ) {
+        robotName = rf.find("robot").asString();
+    } else {
+        std::cerr << "wholeBodyDynamicsModule::configure failed: robot parameter not found. Closing module." << std::endl;
+        return false;
+    }
+
+    if( rf.check("name") ) {
+        moduleName = rf.find("name").asString();
+        setName(moduleName.c_str());
+    } else {
+        std::cerr << "wholeBodyDynamicsModule::configure failed: name parameter not found. Closing module." << std::endl;
+        return false;
+    }
+
+    iCub::iDynTree::iCubTree_version_tag icub_version;
+    iCubVersionFromRf(rf,icub_version);
+
 
     bool fixed_base = false;
     if( rf.check("assume_fixed_base") ) {
