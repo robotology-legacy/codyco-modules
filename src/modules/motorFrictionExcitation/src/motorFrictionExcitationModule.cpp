@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -13,7 +13,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/ 
+*/
 
 #include <iostream>
 #include <sstream>
@@ -36,17 +36,48 @@ using namespace wbiIcub;
 using namespace iCub::skinDynLib;
 using namespace motorFrictionExcitation;
 
+void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag & icub_version)
+{
+    //Checking iCub parts version
+    /// \todo this part should be replaced by a more general way of accessing robot parameters
+    ///       namely urdf for structure parameters and robotInterface xml (or runtime interface) to get available sensors
+    icub_version.head_version = 2;
+    if( rf.check("headV1") ) {
+        icub_version.head_version = 1;
+    }
+    if( rf.check("headV2") ) {
+        icub_version.head_version = 2;
+    }
+
+    icub_version.legs_version = 2;
+    if( rf.check("legsV1") ) {
+        icub_version.legs_version = 1;
+    }
+    if( rf.check("legsV2") ) {
+        icub_version.legs_version = 2;
+    }
+
+    /// \note if feet_version are 2, the presence of FT sensors in the feet is assumed
+    icub_version.feet_ft = true;
+    if( rf.check("feetV1") ) {
+        icub_version.feet_ft = false;
+    }
+    if( rf.check("feetV2") ) {
+        icub_version.feet_ft = true;
+    }
+}
+
 MotorFrictionExcitationModule::MotorFrictionExcitationModule()
 {
     ctrlThread      = 0;
     robotInterface  = 0;
     paramHelper     = 0;
 }
-    
+
 bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
-{		
+{
     //--------------------------PARAMETER HELPER SERVER--------------------------
-    paramHelper = new ParamHelperServer(motorFrictionExcitationParamDescr,      PARAM_ID_SIZE, 
+    paramHelper = new ParamHelperServer(motorFrictionExcitationParamDescr,      PARAM_ID_SIZE,
                                         motorFrictionExcitationCommandDescr,    COMMAND_ID_SIZE);
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MOTOR_FRICTION_IDENTIFICATION_NAME, &motorFrictionIdentificationName));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MODULE_NAME,                        &moduleName));
@@ -84,10 +115,12 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
     if(!identificationModule->init(moduleName, motorFrictionIdentificationName, initMsg))
         printf("Could not connect to motorFrictionIdentification module with name %s\n", motorFrictionIdentificationName.c_str());
     printBottle(initMsg);
-    
+
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
-    robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
+    iCub::iDynTree::iCubTree_version_tag icub_version;
+    iCubVersionFromRf(rf,icub_version);
+    robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str(),icub_version);
     robotInterface->addJoints(ICUB_MAIN_JOINTS);
     robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE, LocalId(RIGHT_LEG,0));  // right get ft sens
     robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE, LocalId(LEFT_LEG,0));   // left leg ft sens
@@ -96,7 +129,7 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
     //--------------------------CTRL THREAD--------------------------
     ctrlThread = new MotorFrictionExcitationThread(moduleName, robotName, threadPeriod, paramHelper, robotInterface, rf, identificationModule);
     if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing motorFrictionExcitation control thread. Closing module.\n"); return false; }
-    
+
     fprintf(stderr,"MotorFrictionExcitation control started\n");
 
     if(startInFound)
@@ -105,29 +138,29 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
 	return true;
 }
 
-bool MotorFrictionExcitationModule::respond(const Bottle& cmd, Bottle& reply) 
+bool MotorFrictionExcitationModule::respond(const Bottle& cmd, Bottle& reply)
 {
     paramHelper->lock();
-	if(!paramHelper->processRpcCommand(cmd, reply)) 
+	if(!paramHelper->processRpcCommand(cmd, reply))
 	    reply.addString( (string("Command ")+cmd.toString().c_str()+" not recognized.").c_str());
     paramHelper->unlock();
 
     // if reply is empty put something into it, otherwise the rpc communication gets stuck
     if(reply.size()==0)
         reply.addString( (string("Command ")+cmd.toString().c_str()+" received.").c_str());
-	return true;	
+	return true;
 }
 
 void MotorFrictionExcitationModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
 {
     switch(cd.id)
     {
-    case COMMAND_ID_HELP:   
-        paramHelper->getHelpMessage(reply);     
+    case COMMAND_ID_HELP:
+        paramHelper->getHelpMessage(reply);
         break;
-    case COMMAND_ID_QUIT:   
-        stopModule(); 
-        reply.addString("Quitting module.");    
+    case COMMAND_ID_QUIT:
+        stopModule();
+        reply.addString("Quitting module.");
         break;
     }
 }
@@ -143,12 +176,12 @@ bool MotorFrictionExcitationModule::close()
     if(ctrlThread){     ctrlThread->suspend();      ctrlThread->stop();     delete ctrlThread;      ctrlThread = 0;     }
     if(paramHelper){    paramHelper->close();       delete paramHelper;     paramHelper = 0;    }
     if(robotInterface)
-    { 
-        bool res=robotInterface->close();    
+    {
+        bool res=robotInterface->close();
         if(res)
             printf("Error while closing robot interface\n");
-        delete robotInterface;  
-        robotInterface = 0; 
+        delete robotInterface;
+        robotInterface = 0;
     }
 
 	//closing ports

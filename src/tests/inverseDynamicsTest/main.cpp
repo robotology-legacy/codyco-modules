@@ -52,8 +52,8 @@ int main(int argc, char * argv[])
         robotName = "icubSim";
     }
 
-    // TEST WHOLE BODY INTERFACE
-    wholeBodyInterface *icub = new icubWholeBodyInterface("wbiTest",robotName.c_str());
+    iCub::iDynTree::iCubTree_version_tag icub_version;
+    wholeBodyInterface *icub = new icubWholeBodyInterface("wbiTest",robotName.c_str(),icub_version);
     //wholeBodyInterface *icub = new icubWholeBodyInterface("wbiTest","icubSim");
 //      icub->addJoints(LocalIdList(RIGHT_ARM,0,1,2,3,4));
 //      icub->addJoints(LocalIdList(LEFT_ARM,0,1,2,3,4));
@@ -74,11 +74,11 @@ int main(int argc, char * argv[])
     icub->getEstimates(ESTIMATE_JOINT_POS, q.data());
     Vector qInit = q;
     Vector refSpeed(dof, CTRL_DEG2RAD*10.0), qd = q;
-    
+
     Vector biasQ;
     biasQ.resize(dof, 0.3);
     qInit += 0.3 * qInit + biasQ;
-    
+
 //     qd += 15.0*CTRL_DEG2RAD;
     printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
 //     printf("Qd:  %s\n", (CTRL_RAD2DEG*qd).toString(1).c_str());
@@ -90,23 +90,23 @@ int main(int argc, char * argv[])
     //Eigen::Matrix<double,6,Dynamic,RowMajor> jacob;
     Frame H_base_leftFoot, Ha, xBase;
     //Matrix4d            H_w2b;                  // rototranslation from world to base reference frame
-    
+
     const char *linkName;
     linkName = "l_sole";
     Ha.R = Rotation(0,0,1, 0,-1,0, 1,0,0);
-    
+
     int linkId;
-    
+
     Vector dxB, d2xB;
     // Assuming null base velocity and accelerations
     dxB.resize(6, 0);
     d2xB.resize(6, 0);
-    
+
     Vector biasForce;
     biasForce.resize(dof+6,0);
-    
+
     Matrix M(dof + 6, dof+6);
-    
+
     //jacob.resize(6,dof+6); //13 because in this test we only have right and left arm plus torso
     icub->getLinkId(linkName, linkId);
     double grav[3];
@@ -118,15 +118,15 @@ int main(int argc, char * argv[])
     wbi::Frame world2base;
     world2base.identity();
     xBase=Frame::identity();
-    
+
     Matrix Mj(25, 25);
     Vector subV;
     Vector torques;
     Vector invDynTau(dof);
-    
+
     Vector zeroVel;
     zeroVel.resize(dof, 0);
-    
+
     for(int i=0; true; i++)
     {
         icub->getEstimates(ESTIMATE_JOINT_POS, q.data());
@@ -136,14 +136,14 @@ int main(int argc, char * argv[])
           //fprintf(stderr,"GRAVITY VEC ok\n");
         }
         else{
-          fprintf(stderr,"ERROR in computeGeneraliezdBiasForces\n");    
+          fprintf(stderr,"ERROR in computeGeneraliezdBiasForces\n");
         }
-        
+
         if(icub->computeMassMatrix(q.data(),xBase,M.data())){
             Mj = M.submatrix(6, dof + 5, 6, dof + 5);
         }
         else{
-          fprintf(stderr,"ERROR in computeMassMatrix\n");    
+          fprintf(stderr,"ERROR in computeMassMatrix\n");
         }
 
         if(icub->inverseDynamics(q.data(), xBase, dq.data(), dxB.data(), d2q.data(), d2xB.data(), grav, invDynTau.data())){
@@ -152,8 +152,8 @@ int main(int argc, char * argv[])
         else{
             fprintf(stderr,"ERROR in inverseDynamics\n");
         }
-        
-        
+
+
         subV =  biasForce.subVector(6, biasForce.size()-1);
         torques = - 1 * Mj * (0.1 * (q - qInit) + 0.1* dq);
         printf("Error norm: %lf\n", yarp::math::norm(q - qInit));
