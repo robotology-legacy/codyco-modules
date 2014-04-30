@@ -29,13 +29,14 @@ using namespace wbiIcub;
 #define GAZEBO_SIM
 
 jointTorqueControlThread::jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
-: RateThread(period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), frictionCompensationFactor(0), sendCommands(SEND_COMMANDS_NONACTIVE),
+: RateThread(period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), sendCommands(SEND_COMMANDS_NONACTIVE),
 monitoredJointId(0)
 {
     mustStop = false;
     status = CONTROL_OFF;
     printCountdown = 0;
     gravityCompOn = 0;
+    frictionCompensationFactor.setZero();
 }
 
 //*************************************************************************************************************************
@@ -59,7 +60,7 @@ bool jointTorqueControlThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SENDCMD,            &sendCommands));
 	YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MONITORED_JOINT,    &monitoredJointName));
     
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_FRICTION_COMPENSATION, &frictionCompensationFactor));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_FRICTION_COMPENSATION, frictionCompensationFactor.data()));
     
     // link controller input streaming parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_OFFSET,	        tauOffset.data()));
@@ -326,14 +327,14 @@ void jointTorqueControlThread::run()
                 }
                 
                 //These three lines should be moved into a callback /setter of frictionCompensationFactor
-                if (frictionCompensationFactor < 0 || frictionCompensationFactor > 1) {
-                    frictionCompensationFactor = 0; //Safest thing: do not compensate for friction
+                if (frictionCompensationFactor(i) < 0 || frictionCompensationFactor(i) > 1) {
+                    frictionCompensationFactor(i) = 0; //Safest thing: do not compensate for friction
                 }
                 
                 if(dqMotor>0)
-                    motorVoltage(i) = kt(i)*tauMotor + frictionCompensationFactor * kvp(i)*dqMotor + frictionCompensationFactor * kcp(i)*dqSignMotor;
+                    motorVoltage(i) = kt(i)*tauMotor + frictionCompensationFactor(i) * kvp(i)*dqMotor + frictionCompensationFactor(i) * kcp(i)*dqSignMotor;
                 else
-                    motorVoltage(i) = kt(i)*tauMotor + frictionCompensationFactor * kvn(i)*dqMotor + frictionCompensationFactor * kcn(i)*dqSignMotor;
+                    motorVoltage(i) = kt(i)*tauMotor + frictionCompensationFactor(i) * kvn(i)*dqMotor + frictionCompensationFactor(i) * kcn(i)*dqSignMotor;
                 Voltage = motorVoltage(i);
                 if (lid.bodyPart == iCub::skinDynLib::TORSO)
                 {
@@ -543,7 +544,7 @@ void jointTorqueControlThread::prepareMonitorData()
     monitor.pwmDes          = motorVoltage(j);
     monitor.pwmMeas         = pwmMeas(j);
     monitor.pwmTorqueFF     = kt(j)*tauD(j);
-    monitor.pwmFrictionFF   = dq(j)>0 ? frictionCompensationFactor *kvp(j)*dq(j) + frictionCompensationFactor *kcp(j)*dqSign(j) : frictionCompensationFactor *kvn(j)*dq(j) + frictionCompensationFactor *kcn(j)*dqSign(j);
+    monitor.pwmFrictionFF   = dq(j)>0 ? frictionCompensationFactor(j) *kvp(j)*dq(j) + frictionCompensationFactor(j) *kcp(j)*dqSign(j) : frictionCompensationFactor(j) *kvn(j)*dq(j) + frictionCompensationFactor(j) *kcn(j)*dqSign(j);
     monitor.pwmFF           = monitor.pwmTorqueFF + monitor.pwmFrictionFF;
     monitor.pwmFB           = -kt(j)*(kp(j)*etau(j) + integralState(j));
 }
