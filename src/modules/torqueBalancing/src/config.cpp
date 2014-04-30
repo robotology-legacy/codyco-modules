@@ -15,8 +15,6 @@
  */
 
 #include "config.h"
-#include <yarp/os/Mutex.h>
-
 
 namespace codyco {
     namespace torquebalancing {
@@ -25,19 +23,5 @@ namespace codyco {
         const int PseudoInverseTolerance = 1e-5;
         
         
-        LockGuard::LockGuard(yarp::os::Mutex& mutex)
-        : m_mutex(mutex)
-        {
-            m_mutex.lock();
-        }
-        
-        LockGuard::~LockGuard()
-        {
-            m_mutex.unlock();
-        }
-        
-        LockGuard::LockGuard(const LockGuard& lg)
-        : m_mutex(lg.m_mutex) { }
-        LockGuard& LockGuard::operator=(const LockGuard&) { return *this; }
     }
 }

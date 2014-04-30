@@ -47,6 +47,6 @@ int main(int argc, char **argv)
         return -1;
     }
     
-    codyco::torquebalancing::TorqueBalancingModule mainModule;
+    codyco::torquebalancing::TorqueBalancingModule mainModule("", "");
     return mainModule.runModule(resourceFinder);
 }

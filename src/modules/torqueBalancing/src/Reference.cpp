@@ -16,6 +16,7 @@
 
 #include "Reference.h"
 #include "config.h"
+#include <codyco/LockGuard.h>
 
 
 namespace codyco {
@@ -25,23 +26,37 @@ namespace codyco {
         
         Reference::Reference(int referenceSize)
         : m_value(referenceSize)
+        , m_valid(false)
         , m_valueSize(referenceSize) {}
         
         Reference::~Reference() {}
         
         Eigen::VectorXd& Reference::value()
         {
-            codyco::torquebalancing::LockGuard guard(m_lock);
+            codyco::LockGuard guard(m_lock);
             return m_value;
         }
         
         void Reference::setValue(Eigen::VectorXd& _value)
         {
-            codyco::torquebalancing::LockGuard guard(m_lock);
+            codyco::LockGuard guard(m_lock);
             m_value = _value;
+            m_valid = true;
         }
         
-        const int Reference::valueSize() const
+        void Reference::setValid(bool isValid)
+        {
+            codyco::LockGuard guard(m_lock);
+            m_valid = isValid;
+        }
+        
+        bool Reference::isValid()
+        {
+            codyco::LockGuard guard(m_lock);
+            return m_valid;
+        }
+        
+        int Reference::valueSize() const
         {
             return m_valueSize;
         }

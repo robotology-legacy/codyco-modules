@@ -30,9 +30,22 @@ namespace codyco {
         class ReferenceGeneratorInputReader;
         class Reference;
         
+        /** This class is responsible of generating a proper reference signal.
+         *
+         * This class is agnostic of the reference type and dimension.
+         * It generates a reference signal as the output of a PID (min jerk trajectory also in the future?). It reads the current value for the signal and signal derivatives from a class which implements the ReferenceGeneratorInputReader protocol.
+         * It then writes the computed reference to the reference object.
+         *
+         */
         class ReferenceGenerator: public ::yarp::os::RateThread
         {
         public:
+            /** Constructor.
+             *
+             * @param period thread period
+             * @param reference object in which to save the computed reference trajectory
+             * @param reader object implementing the ReferenceGeneratorInputReader protocol used to obtain the current state of the system.
+             */
             ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader);
             
             virtual bool threadInit();
@@ -47,6 +60,9 @@ namespace codyco {
             
             Eigen::VectorXd& signalFeedForward();
             void setSignalFeedForward(Eigen::VectorXd& reference);
+            
+            void setActiveState(bool isActive);
+            bool isActiveState();
             
         private:
             Reference& m_outputReference;
@@ -64,6 +80,7 @@ namespace codyco {
             Eigen::VectorXd m_signalFeedForward;
             
             double m_previousTime;
+            bool m_active;
         };
         
         class ReferenceGeneratorInputReader {

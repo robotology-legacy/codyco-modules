@@ -23,20 +23,53 @@
 namespace codyco {
     namespace torquebalancing {
         
+        //TODO: maybe another name is better, as it is a quite generic class
+        /** This class wraps the concept of a generic vector value.
+         * The size is passed at construction and cannot be changed. It can be obtained by calling valueSize() function.
+         * The content of this object which is not valid is not guaranteed to contain meaningful values (i.e. it can be garbage, so do not use it).
+         * This class is thread-safe for setting and reading values.
+         */
         class Reference
         {
         public:
             explicit Reference(int referenceSize);
             ~Reference();
             
+            /** Return the current value.
+             * Before using the value is some computation check if it is valid or not.
+             * @return the current value
+             */
             Eigen::VectorXd& value();
+            
+            /** Sets the value for the current reference.
+             * The state of the reference automatically switch to active.
+             *
+             * @param _value value of the new reference to be saved.
+             */
             void setValue(Eigen::VectorXd& _value);
             
-            const int valueSize() const;
+            /** Set the valid state of the reference explicitly
+             *
+             * @param isValid true if the reference value is not garbage. False otherwise
+             */
+            void setValid(bool isValid);
+            
+            /** returns the state of the reference.
+             * If a reference is not valid its value is not guarantee to be something meaningful
+             * @return if the reference is valid or not.
+             */
+            bool isValid();
+            
+            /** returns the size of the currently hold value, i.e. the size of the vector returned by value().
+             *
+             * @return the size of the value
+             */
+            int valueSize() const;
             
         private:
             yarp::os::Mutex m_lock;
             Eigen::VectorXd m_value;
+            bool m_valid;
             const int m_valueSize;
         };
         

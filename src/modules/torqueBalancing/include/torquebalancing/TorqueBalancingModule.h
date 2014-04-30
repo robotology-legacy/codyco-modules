@@ -19,6 +19,7 @@
 
 #include <yarp/os/RFModule.h>
 #include <vector>
+#include <string>
 
 namespace wbi {
     class wholeBodyInterface;
@@ -39,14 +40,23 @@ namespace codyco {
         class TorqueBalancingModule : public yarp::os::RFModule
         {
         public:
-            TorqueBalancingModule();
+            TorqueBalancingModule(std::string moduleName, std::string robotName);
             virtual ~TorqueBalancingModule();
           
             virtual bool configure(yarp::os::ResourceFinder& resourceFinder);
             virtual bool updateModule();
             virtual bool close();
             
+            void cleanup();
+            
         private:
+            
+            int m_referenceThreadPeriod;
+            int m_controllerThreadPeriod;
+            
+            std::string m_moduleName;
+            std::string m_robotName;
+            
             wbi::wholeBodyInterface* m_robot;
             wbi::Frame* m_world2BaseFrame;
             

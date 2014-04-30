@@ -22,6 +22,7 @@
 namespace codyco {
     namespace torquebalancing {
         
+//TODO: add min jerk ?
 #pragma mark - ReferenceGenerator methods
         
         ReferenceGenerator::ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader)
@@ -35,7 +36,9 @@ namespace codyco {
         , m_integralGains(reader.signalSize())
         , m_signalReference(reference.valueSize())
         , m_signalDerivativeReference(reference.valueSize())
-        , m_signalFeedForward(reference.valueSize()) {}
+        , m_signalFeedForward(reference.valueSize())
+        , m_previousTime(-1)
+        , m_active(false) {}
 
         bool ReferenceGenerator::threadInit()
         {
@@ -50,6 +53,10 @@ namespace codyco {
             m_signalDerivativeReference.setZero();
             m_signalFeedForward.setZero();
             
+            //avoid garbage in the generated reference
+            m_outputReference.setValue(m_computedReference);
+            m_outputReference.setValid(false);
+            
             return true;
         }
         
@@ -60,22 +67,25 @@ namespace codyco {
         
         void ReferenceGenerator::run()
         {
-            double now = yarp::os::Time::now();
-            double dt = now - m_previousTime;
-
-            //compute pid
-            Eigen::VectorXd error = m_signalReference - m_reader.getSignal();
-            
-            m_integralTerm += dt * error;
-            
-            m_computedReference = m_signalFeedForward
-            + m_proportionalGains.asDiagonal() * error
-            + m_derivativeGains.asDiagonal() * (m_signalDerivativeReference - m_reader.getSignalDerivative())
-            + m_integralGains.asDiagonal() * m_integralTerm;
-            // ???: should I scale the output for dt?
-            m_outputReference.setValue(m_computedReference);
-            
-            m_previousTime = now;
+            if (isActiveState()) {
+                double now = yarp::os::Time::now();
+                if (m_previousTime < 0) m_previousTime = now;
+                double dt = now - m_previousTime;
+                
+                //compute pid
+                Eigen::VectorXd error = m_signalReference - m_reader.getSignal();
+                
+                //TODO: Add integral limits
+                m_integralTerm += dt * error;
+                
+                m_computedReference = m_signalFeedForward
+                + m_proportionalGains.asDiagonal() * error
+                + m_derivativeGains.asDiagonal() * (m_signalDerivativeReference - m_reader.getSignalDerivative())
+                + m_integralGains.asDiagonal() * m_integralTerm;
+                m_outputReference.setValue(m_computedReference);
+                
+                m_previousTime = now;
+            }
         }
         
         Eigen::VectorXd& ReferenceGenerator::signalReference()
@@ -106,6 +116,25 @@ namespace codyco {
         void ReferenceGenerator::setSignalFeedForward(Eigen::VectorXd& feedforward)
         {
             m_signalFeedForward = feedforward;
+        }
+        
+        void ReferenceGenerator::setActiveState(bool isActive)
+        {
+            if (m_active == isActive) return;
+            if (isActive) {
+                //reset integral state
+                m_integralTerm.setZero();
+                m_previousTime = -1;
+                
+            } else {
+                m_outputReference.setValid(false);
+            }
+            m_active = isActive;
+        }
+        
+        bool ReferenceGenerator::isActiveState()
+        {
+            return m_active;
         }
         
 #pragma mark - ReferenceGeneratorInputReader methods
