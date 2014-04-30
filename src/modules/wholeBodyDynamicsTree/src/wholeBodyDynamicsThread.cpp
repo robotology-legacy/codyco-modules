@@ -81,7 +81,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
                                                  icubWholeBodyStatesLocal *_wbs,
                                                  const iCub::iDynTree::iCubTree_version_tag _icub_version,
                                                  bool autoconnect,
-                                                 bool _assume_fixed_base)
+                                                 bool _assume_fixed_base_calibration)
     :  RateThread(_period),
        name(_name),
        robotName(_robotName),
@@ -92,11 +92,11 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        samples_requested_for_calibration(200),
        max_samples_for_calibration(2000),
        samples_used_for_calibration(0),
-       assume_fixed_base(_assume_fixed_base)
+       assume_fixed_base_calibration(_assume_fixed_base_calibration)
     {
 
        std::cout << "Launching wholeBodyDynamicsThread with name : " << _name << " and robotName " << _robotName << " and period " << _period << std::endl;
-       if( assume_fixed_base ) {
+       if( assume_fixed_base_calibration ) {
            icub_model_calibration = new iCub::iDynTree::iCubTree(_icub_version,"root_link");
        } else {
            icub_model_calibration = new iCub::iDynTree::iCubTree(_icub_version);
@@ -524,7 +524,7 @@ void wholeBodyDynamicsThread::calibration_run()
 
     //Setting imu proper acceleration from measure (assuming omega e domega = 0)
     //acceleration are measures 4:6 (check wbi documentation)
-    if( assume_fixed_base )
+    if( assume_fixed_base_calibration )
     {
         tree_status.proper_ddp_imu[0] = 0.0;
         tree_status.proper_ddp_imu[1] = 0.0;
