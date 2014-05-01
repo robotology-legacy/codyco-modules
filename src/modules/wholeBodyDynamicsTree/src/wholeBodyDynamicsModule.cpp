@@ -32,7 +32,6 @@
 #include <sstream>
 #include <iomanip>
 #include <string.h>
-#include <boost/concept_check.hpp>
 
 #include "wbiIcub/wholeBodyInterfaceIcub.h"
 
