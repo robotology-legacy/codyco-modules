@@ -21,7 +21,6 @@
 #include <yarp/os/Time.h>
 #include <string>
 #include <iostream>
-#include <boost/concept_check.hpp>
 #include <yarp/os/Log.h>
 
 #define INITIAL_TIMESTAMP -1000.0
