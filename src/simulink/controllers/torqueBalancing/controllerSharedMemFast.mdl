@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.1094"
+    ComputedModelVersion    "1.1096"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -79,9 +79,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "daniele"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri May 02 10:24:55 2014"
-  RTWModifiedTimeStamp	  320925712
-  ModelVersionFormat	  "1.%<AutoIncrement:1094>"
+  LastModifiedDate	  "Fri May 02 12:30:31 2014"
+  RTWModifiedTimeStamp	  320934607
+  ModelVersionFormat	  "1.%<AutoIncrement:1096>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -1039,16 +1039,6 @@ Model {
     Block {
       BlockType		      Terminator
     }
-    Block {
-      BlockType		      ToWorkspace
-      VariableName	      "simulink_output"
-      MaxDataPoints	      "1000"
-      Decimation	      "1"
-      SampleTime	      "0"
-      SaveFormat	      "Array"
-      FixptAsFi		      off
-      NumInputs		      "1"
-    }
   }
   System {
     Name		    "controllerSharedMemFast"
@@ -1573,6 +1563,7 @@ Model {
 	  SID			  "473"
 	  Position		  [700, 35, 740, 65]
 	  ZOrder		  -45
+	  ShowName		  off
 	  GotoTag		  "fStar"
 	}
 	Block {
@@ -1618,6 +1609,7 @@ Model {
 	  Position		  [475, 803, 540, 847]
 	  ZOrder		  -49
 	  BackgroundColor	  "[1.000000, 0.202946, 0.028293]"
+	  ShowName		  off
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/wholeBodyModel/Joint Limits"
 	  SourceType		  ""
@@ -1831,6 +1823,7 @@ Model {
 	  Ports			  [2, 1]
 	  Position		  [155, 286, 220, 324]
 	  ZOrder		  -53
+	  ShowName		  off
 	  Multiplication	  "Matrix(*)"
 	  InputSameDT		  off
 	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
@@ -1873,6 +1866,7 @@ Model {
 	  Ports			  [1, 1]
 	  Position		  [830, 90, 860, 120]
 	  ZOrder		  116
+	  ShowName		  off
 	  InputPortMap		  "u0"
 	  UpperLimit		  "12"
 	  LowerLimit		  "-12"
@@ -1960,6 +1954,7 @@ Model {
 	  Ports			  [1, 1]
 	  Position		  [240, 286, 280, 324]
 	  ZOrder		  -59
+	  ShowName		  off
 	  InputPortWidth	  "6"
 	  IndexOptions		  "Index vector (dialog)"
 	  Indices		  "[1:3]"
@@ -1981,30 +1976,6 @@ Model {
 	  localName		  "localName"
 	}
 	Block {
-	  BlockType		  ToWorkspace
-	  Name			  "To Workspace"
-	  SID			  "614"
-	  Ports			  [1]
-	  Position		  [855, 335, 915, 365]
-	  ZOrder		  -61
-	  VariableName		  "simout"
-	  MaxDataPoints		  "inf"
-	  SampleTime		  "-1"
-	  SaveFormat		  "Structure"
-	}
-	Block {
-	  BlockType		  ToWorkspace
-	  Name			  "To Workspace1"
-	  SID			  "615"
-	  Ports			  [1]
-	  Position		  [835, 280, 895, 310]
-	  ZOrder		  -62
-	  VariableName		  "tau"
-	  MaxDataPoints		  "inf"
-	  SampleTime		  "-1"
-	  SaveFormat		  "Structure"
-	}
-	Block {
 	  BlockType		  Reference
 	  Name			  "WBI to yarp"
 	  SID			  "563"
@@ -2012,6 +1983,7 @@ Model {
 	  Position		  [515, 547, 625, 633]
 	  ZOrder		  -63
 	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
+	  ShowName		  off
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/Utilities/WBI to yarp"
 	  SourceType		  "WBI to YARP"
@@ -3054,7 +3026,7 @@ Model {
 	      BackgroundColor	      "[0.047000, 0.909000, 0.803000]"
 	      LibraryVersion	      "1.33"
 	      SourceBlock	      "WBCLibrary/wholeBodyModel/Jacobians/Left Foot Jacobian"
-	      SourceType	      ""
+	      SourceType	      "Unknown"
 	      robotName		      "robotName"
 	      localName		      "localName"
 	    }
@@ -3079,7 +3051,7 @@ Model {
 	      BackgroundColor	      "[0.000000, 1.000000, 0.533000]"
 	      LibraryVersion	      "1.33"
 	      SourceBlock	      "WBCLibrary/wholeBodyModel/Jacobians/Right Foot Jacobian"
-	      SourceType	      ""
+	      SourceType	      "Unknown"
 	      robotName		      "robotName"
 	      localName		      "localName"
 	    }
@@ -4348,14 +4320,8 @@ Model {
 	  }
 	  Branch {
 	    Points		    [0, -175]
-	    Branch {
-	      DstBlock		      "Data Store\nWrite14"
-	      DstPort		      1
-	    }
-	    Branch {
-	      DstBlock		      "To Workspace"
-	      DstPort		      1
-	    }
+	    DstBlock		    "Data Store\nWrite14"
+	    DstPort		    1
 	  }
 	}
 	Line {
@@ -4478,22 +4444,14 @@ Model {
 	Line {
 	  SrcBlock		  "controllerMatlab"
 	  SrcPort		  1
-	  Points		  [30, 0]
+	  Points		  [30, 0; 0, -70]
 	  Branch {
-	    Points		    [0, -70]
-	    Branch {
-	      DstBlock		      "Goto"
-	      DstPort		      1
-	    }
-	    Branch {
-	      Points		      [0, -75]
-	      DstBlock		      "Saturation"
-	      DstPort		      1
-	    }
+	    DstBlock		    "Goto"
+	    DstPort		    1
 	  }
 	  Branch {
-	    Points		    [0, 45]
-	    DstBlock		    "To Workspace1"
+	    Points		    [0, -75]
+	    DstBlock		    "Saturation"
 	    DstPort		    1
 	  }
 	}
@@ -4828,10 +4786,7 @@ Stateflow {
     firstTransition	    12
     firstJunction	    11
     viewObj		    2
-    visible		    1
     machine		    1
-    subviewS {
-    }
     ssIdHighWaterMark	    35
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
@@ -5515,10 +5470,7 @@ Stateflow {
     firstTransition	    47
     firstJunction	    46
     viewObj		    37
-    visible		    1
     machine		    1
-    subviewS {
-    }
     ssIdHighWaterMark	    35
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
