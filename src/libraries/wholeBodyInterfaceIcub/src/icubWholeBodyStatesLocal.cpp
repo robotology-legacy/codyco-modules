@@ -455,21 +455,24 @@ icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period,
     ///< Skin timestamp
     last_reading_skin_contact_list_Stamp = -1000.0;
 
-    if( _fixed_link == "root_link" )
+    if( assume_fixed_base )
     {
-        fixed_link = FIXED_ROOT_LINK;
-    }
-    else if( _fixed_link == "l_sole" )
-    {
-        fixed_link = FIXED_L_SOLE;
-    }
-    else if( _fixed_link == "r_sole" )
-    {
-        fixed_link = FIXED_R_SOLE;
-    }
-    else
-    {
-        YARP_ASSERT(false);
+        if( _fixed_link == "root_link" )
+        {
+            fixed_link = FIXED_ROOT_LINK;
+        }
+        else if( _fixed_link == "l_sole" )
+        {
+            fixed_link = FIXED_L_SOLE;
+        }
+        else if( _fixed_link == "r_sole" )
+        {
+            fixed_link = FIXED_R_SOLE;
+        }
+        else
+        {
+            YARP_ASSERT(false);
+        }
     }
 }
 
@@ -521,21 +524,24 @@ icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period,
     ///< Skin timestamp
     last_reading_skin_contact_list_Stamp = -1000.0;
 
+    if( assume_fixed_base )
+    {
         if( _fixed_link == "root_link" )
-    {
-        fixed_link = FIXED_ROOT_LINK;
-    }
-    else if( _fixed_link == "l_sole" )
-    {
-        fixed_link = FIXED_L_SOLE;
-    }
-    else if( _fixed_link == "r_sole" )
-    {
-        fixed_link = FIXED_R_SOLE;
-    }
-    else
-    {
-        YARP_ASSERT(false);
+        {
+            fixed_link = FIXED_ROOT_LINK;
+        }
+        else if( _fixed_link == "l_sole" )
+        {
+            fixed_link = FIXED_L_SOLE;
+        }
+        else if( _fixed_link == "r_sole" )
+        {
+            fixed_link = FIXED_R_SOLE;
+        }
+        else
+        {
+            YARP_ASSERT(false);
+        }
     }
 }
 #endif
