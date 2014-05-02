@@ -1021,7 +1021,7 @@ bool DynTree::kinematicRNEA()
 bool DynTree::estimateContactForces()
 {
     #ifndef NDEBUG
-    std::cout << "DynTree::estimateContactForces " << std::endl;
+    //std::cout << "DynTree::estimateContactForces " << std::endl;
     #endif
 
     double tol = 1e-7; /**< value extracted from old iDynContact */
