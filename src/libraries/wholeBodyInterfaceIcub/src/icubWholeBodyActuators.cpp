@@ -22,6 +22,7 @@
 #include <string>
 #include <cassert>
 
+#define WBI_ICUB_COMPILE_PARAM_HELP
 //*********TEMP**************//
 #ifdef WBI_ICUB_COMPILE_PARAM_HELP
 #include <paramHelp/paramHelperClient.h>

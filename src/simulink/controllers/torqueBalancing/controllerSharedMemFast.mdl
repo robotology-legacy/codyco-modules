@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.1069"
+    ComputedModelVersion    "1.1094"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -31,7 +31,7 @@ Model {
       $ObjectID		      2
       $ClassName	      "Simulink.WindowInfo"
       IsActive		      [1]
-      Location		      [-134.0, 307.0, 1600.0, 1173.0]
+      Location		      [1.0, 27.0, 1600.0, 1173.0]
       Object {
 	$PropName		"ModelBrowserInfo"
 	$ObjectID		3
@@ -79,9 +79,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "daniele"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Sun Apr 27 18:26:07 2014"
-  RTWModifiedTimeStamp	  320268948
-  ModelVersionFormat	  "1.%<AutoIncrement:1069>"
+  LastModifiedDate	  "Fri May 02 10:24:55 2014"
+  RTWModifiedTimeStamp	  320925712
+  ModelVersionFormat	  "1.%<AutoIncrement:1094>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -1052,7 +1052,7 @@ Model {
   }
   System {
     Name		    "controllerSharedMemFast"
-    Location		    [-134, 307, 1466, 1480]
+    Location		    [1, 27, 1601, 1200]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -1066,7 +1066,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "632"
+    SIDHighWatermark	    "634"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -1115,7 +1115,7 @@ Model {
       }
       System {
 	Name			"Subsystem"
-	Location		[-134, 307, 1466, 1480]
+	Location		[1, 27, 1601, 1200]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -1167,9 +1167,9 @@ Model {
 	Block {
 	  BlockType		  Assertion
 	  Name			  "Assertion"
-	  SID			  "613"
-	  Position		  [870, 822, 930, 868]
-	  ZOrder		  -6
+	  SID			  "634"
+	  Position		  [810, 822, 870, 868]
+	  ZOrder		  118
 	  Enabled		  on
 	}
 	Block {
@@ -1290,7 +1290,7 @@ Model {
 	  Name			  "Data Store\nRead16"
 	  SID			  "608"
 	  Ports			  [0, 1]
-	  Position		  [620, 840, 650, 870]
+	  Position		  [555, 840, 585, 870]
 	  ZOrder		  -17
 	  ShowName		  off
 	  DataStoreName		  "qj"
@@ -1615,7 +1615,7 @@ Model {
 	  Name			  "Joint Limits"
 	  SID			  "606"
 	  Ports			  [0, 2]
-	  Position		  [540, 803, 605, 847]
+	  Position		  [475, 803, 540, 847]
 	  ZOrder		  -49
 	  BackgroundColor	  "[1.000000, 0.202946, 0.028293]"
 	  LibraryVersion	  "1.33"
@@ -1659,7 +1659,7 @@ Model {
 	  Name			  "MATLAB Function"
 	  SID			  "610"
 	  Ports			  [4, 1]
-	  Position		  [725, 800, 825, 890]
+	  Position		  [660, 800, 760, 890]
 	  ZOrder		  -52
 	  LibraryVersion	  "1.32"
 	  ErrorFcn		  "Stateflow.Translate.translate"
@@ -1881,19 +1881,21 @@ Model {
 	  BlockType		  Scope
 	  Name			  "Scope"
 	  SID			  "554"
-	  Ports			  [2]
+	  Ports			  [3]
 	  Position		  [300, 341, 335, 399]
 	  ZOrder		  -56
 	  BlockMirror		  on
 	  NamePlacement		  "alternate"
+	  ShowName		  off
 	  Floating		  off
-	  Location		  [2, 88, 693, 816]
+	  Location		  [779, 402, 1470, 1130]
 	  Open			  off
-	  NumInputPorts		  "2"
+	  NumInputPorts		  "3"
 	  List {
 	    ListType		    AxesTitles
 	    axes1		    "%<SignalLabel>"
 	    axes2		    "%<SignalLabel>"
+	    axes3		    "%<SignalLabel>"
 	  }
 	  List {
 	    ListType		    ScopeGraphics
@@ -1907,8 +1909,8 @@ Model {
 	  }
 	  ShowLegends		  off
 	  TimeRange		  "2500"
-	  YMin			  "-0.015~0"
-	  YMax			  "0.015~0.017"
+	  YMin			  "-0.03~0.005~-0.075"
+	  YMax			  "0.06~0.065~0.005"
 	  DataFormat		  "StructureWithTime"
 	  SampleTime		  "0"
 	}
@@ -1966,10 +1968,10 @@ Model {
 	Block {
 	  BlockType		  Reference
 	  Name			  "Set Torques"
-	  SID			  "461"
+	  SID			  "633"
 	  Ports			  [1]
 	  Position		  [880, 83, 950, 127]
-	  ZOrder		  -60
+	  ZOrder		  117
 	  BackgroundColor	  "[0.941000, 0.415000, 0.192000]"
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/wholeBodyActuators/Set Torques"
@@ -2854,6 +2856,7 @@ Model {
 	  Ports			  [1, 1]
 	  Position		  [490, 126, 615, 194]
 	  ZOrder		  2
+	  ShowName		  off
 	  LibraryVersion	  "1.32"
 	  ErrorFcn		  "Stateflow.Translate.translate"
 	  PermitHierarchicalResolution "ExplicitOnly"
@@ -3462,7 +3465,7 @@ Model {
 	  BlockType		  Constant
 	  Name			  "index1"
 	  SID			  "611"
-	  Position		  [660, 860, 690, 890]
+	  Position		  [595, 860, 625, 890]
 	  ZOrder		  -76
 	  Value			  "0.01"
 	  VectorParams1D	  off
@@ -4563,8 +4566,16 @@ Model {
 	Line {
 	  SrcBlock		  "Data Store\nRead7"
 	  SrcPort		  1
-	  DstBlock		  "computeStar_com"
-	  DstPort		  4
+	  Points		  [10, 0]
+	  Branch {
+	    Points		    [0, 73; 26, 0; 0, 57]
+	    DstBlock		    "Scope"
+	    DstPort		    3
+	  }
+	  Branch {
+	    DstBlock		    "computeStar_com"
+	    DstPort		    4
+	  }
 	}
 	Line {
 	  SrcBlock		  "Data Store\nRead5"
@@ -4582,6 +4593,7 @@ Model {
 	Line {
 	  SrcBlock		  "Interpreted MATLAB\nFunction"
 	  SrcPort		  1
+	  Points		  [-40, 0]
 	  DstBlock		  "Scope"
 	  DstPort		  2
 	}
@@ -4595,6 +4607,7 @@ Model {
 	    DstPort		    1
 	  }
 	  Branch {
+	    Points		    [-140, 0]
 	    DstBlock		    "Scope"
 	    DstPort		    1
 	  }
@@ -4815,7 +4828,10 @@ Stateflow {
     firstTransition	    12
     firstJunction	    11
     viewObj		    2
+    visible		    1
     machine		    1
+    subviewS {
+    }
     ssIdHighWaterMark	    35
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
@@ -4841,11 +4857,11 @@ Stateflow {
     eml {
       isEML		      1
       script		      "function [xDDcomDes, xDcomDes, xcomDes]  = trajGen(xCom0,t)\n%#codegen\n\n\ne3 = [0;1;0];\nA = 0."
-      "0;\nf = 0.001;\n% t = t*0.8;\n% xcomDes    = [xCom0(1:2); (1/A-1)*A*xCom0(3)] + A*xCom0(3)*cos(2*pi*f*t)*e3;\n% "
-      "xDcomDes   = -xCom0(3)*A*2*pi*f*sin(2*pi*f*t)*e3;\n% xDDcomDes  = -xCom0(3)*A*(2*pi*f)^2*cos(2*pi*f*t)*e3;\n\nxc"
-      "omDes    = xCom0 + A*sin(2*pi*f*t)*e3;\nxDcomDes   =         A*2*pi*f*cos(2*pi*f*t)*e3;\nxDDcomDes  =        -A*"
-      "(2*pi*f)^2*sin(2*pi*f*t)*e3;\n"
-      editorLayout	      "100 M4x1[419 314 690 486]"
+      "05;\nf = 0.1;\n% t = t*0.8;\n% xcomDes    = [xCom0(1:2); (1/A-1)*A*xCom0(3)] + A*xCom0(3)*cos(2*pi*f*t)*e3;\n% x"
+      "DcomDes   = -xCom0(3)*A*2*pi*f*sin(2*pi*f*t)*e3;\n% xDDcomDes  = -xCom0(3)*A*(2*pi*f)^2*cos(2*pi*f*t)*e3;\n\nxco"
+      "mDes    = xCom0 +  A*sin(2*pi*f*t)*e3;\nxcomDes(1) =  xcomDes(1) + 0.05;\nxDcomDes   =         A*2*pi*f*cos(2*pi"
+      "*f*t)*e3;\nxDDcomDes  =        -A*(2*pi*f)^2*sin(2*pi*f*t)*e3;\n"
+      editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
   data {
@@ -5051,10 +5067,7 @@ Stateflow {
     firstTransition	    25
     firstJunction	    24
     viewObj		    14
-    visible		    1
     machine		    1
-    subviewS {
-    }
     ssIdHighWaterMark	    53
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
@@ -5502,7 +5515,10 @@ Stateflow {
     firstTransition	    47
     firstJunction	    46
     viewObj		    37
+    visible		    1
     machine		    1
+    subviewS {
+    }
     ssIdHighWaterMark	    35
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
@@ -5529,7 +5545,7 @@ Stateflow {
       isEML		      1
       script		      "function [d2qj_des, dqj_des, qj_des]  = trajGen(qj_0,t)\n%#codegen\n\n\nqj_des    = qj_0;\ndqj_de"
       "s   = zeros(size(qj_0));\nd2qj_des  = zeros(size(qj_0));\n"
-      editorLayout	      "100 M4x1[10 240 1152 560]"
+      editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
   data {
@@ -5710,7 +5726,7 @@ Stateflow {
     midPoint		    [23.5747 24.9468]
     chart		    37
     linkNode		    [37 0 0]
-    dataLimits		    [23.575 23.575 14.625 34.575]
+    dataLimits		    [21.175 25.975 14.625 42.575]
     subviewer		    37
     drawStyle		    SMART
     slide {
