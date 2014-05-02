@@ -22,8 +22,8 @@
 #include <string>
 #include <cassert>
 
-#define WBI_ICUB_COMPILE_PARAM_HELP
 //*********TEMP**************//
+//#define WBI_ICUB_COMPILE_PARAM_HELP
 #ifdef WBI_ICUB_COMPILE_PARAM_HELP
 #include <paramHelp/paramHelperClient.h>
 #include <motorFrictionIdentificationLib/jointTorqueControlParams.h>
