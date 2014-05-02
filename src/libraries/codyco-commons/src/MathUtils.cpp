@@ -41,20 +41,54 @@ namespace codyco {
             Apinv = svd.matrixV() * sigmaDamped * svd.matrixU().transpose();   // damped pseudoinverse
         }
         
-        template <typename Derived1, typename Derived2>
-        void pseudoInverse(const Eigen::MatrixBase<Derived1>& A,
+//        template <typename Derived1, typename Derived2>
+//        void pseudoInverse(const Eigen::MatrixBase<Derived1>& A,
+//                           double tolerance,
+//                           Eigen::MatrixBase<Derived2>& Apinv)
+//        {
+//            using namespace Eigen;
+//            JacobiSVD<typename MatrixBase<Derived1>::PlainObject> svd = A.jacobiSvd(Eigen::ComputeThinU|Eigen::ComputeThinV);
+//            typename JacobiSVD<typename Derived1::PlainObject>::SingularValuesType singularValues = svd.singularValues();
+//            
+//            for (int idx = 0; idx < singularValues.size(); idx++) {
+//                singularValues(idx) = tolerance > 0 && singularValues(idx) > tolerance ? 1.0 / singularValues(idx) : 0.0;
+//            }
+//            
+//            Apinv = svd.matrixV() * singularValues.asDiagonal() * svd.matrixU().adJoint();   //pseudoinverse
+////            using namespace Eigen;
+////            JacobiSVD<typename MatrixBase<Derived1>::PlainObject> svd = A.jacobiSvd(Eigen::ComputeThinU|Eigen::ComputeThinV);
+////            typename JacobiSVD<typename Derived1::PlainObject>::SingularValuesType singularValues = svd.singularValues();
+////            //I don't get why I cannot use the singular vector as in http://eigen.tuxfamily.org/bz/show_bug.cgi?id=257
+////            MatrixXd singularInverse = singularValues.asDiagonal();
+////            
+////            for (int idx = 0; idx < singularValues.size(); idx++) {
+////                singularInverse(idx, idx) = tolerance > 0 && singularValues(idx) > tolerance ? 1.0 / singularValues(idx) : 0.0;
+////            }
+////            
+////            //            for (int idx = 0; idx < singularValues.size(); idx++) {
+////            //                singularValues(idx) = tolerance > 0 && singularValues(idx) > tolerance ? 1.0 / singularValues(idx) : 0.0;
+////            //            }
+////            //            auto var = svd.matrixV() * sigmaDamped;
+////            //            auto var2 = sigmaDamped * svd.matrixU().transpose();
+////            //
+////            //            Apinv = var * svd.matrixU().transpose();
+////            
+////            Apinv = (svd.matrixV() * singularInverse * svd.matrixU().adjoint());   //pseudoinverse
+//        }
+        
+        
+        void pseudoInverse(const Eigen::Ref<const Eigen::MatrixXd>& A,
                            double tolerance,
-                           Eigen::MatrixBase<Derived2>& Apinv)
+                           Eigen::Ref<Eigen::MatrixXd> Apinv)
+
         {
             using namespace Eigen;
-            JacobiSVD<typename MatrixBase<Derived1>::PlainObject> svd = A.jacobiSvd(Eigen::ComputeThinU|Eigen::ComputeThinV);
-            typename JacobiSVD<typename Derived1::PlainObject>::SingularValuesType singularValues = svd.singularValues();
-            
+            JacobiSVD<typename MatrixXd::PlainObject> svd = A.jacobiSvd(ComputeThinU | ComputeThinV);
+            typename JacobiSVD<typename MatrixXd::PlainObject>::SingularValuesType singularValues = svd.singularValues();
             for (int idx = 0; idx < singularValues.size(); idx++) {
                 singularValues(idx) = tolerance > 0 && singularValues(idx) > tolerance ? 1.0 / singularValues(idx) : 0.0;
             }
-            
-            Apinv = svd.matrixV() * singularValues.asDiagonal() * svd.matrixU().adJoint();   //pseudoinverse
+            Apinv = svd.matrixV() * singularValues.asDiagonal() * svd.matrixU().adjoint();
         }
     }
 }

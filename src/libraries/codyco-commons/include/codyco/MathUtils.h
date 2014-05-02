@@ -18,9 +18,15 @@
 #ifndef CODYCOLIB_MATH_H
 #define CODYCOLIB_MATH_H
 
-namespace Eigen {
-    template<typename Derived> class MatrixBase;
-}
+#include <Eigen/Core>
+
+//namespace Eigen {
+//    template<typename Derived> class MatrixBase;
+//    template<typename _Scalar, int _Rows, int _Cols>//, int _Options, int _MaxRows, int _MaxCols>
+//    class Matrix;
+//    template<typename PlainObjectType> class Ref;
+//    extern const int Dynamic = -1;
+//}
 
 namespace codyco {
     namespace math {
@@ -30,10 +36,14 @@ namespace codyco {
                                  double dampingFactor,
                                  Eigen::MatrixBase<Derived2>& Apinv);
         
-        template <typename Derived1, typename Derived2>
-        void pseudoInverse(const Eigen::MatrixBase<Derived1>& A,
+//        template <typename Derived1, typename Derived2>
+//        void pseudoInverse(const Eigen::MatrixBase<Derived1>& A,
+//                           double tolerance,
+//                           Eigen::MatrixBase<Derived2>& Apinv);
+        
+        void pseudoInverse(const Eigen::Ref<const Eigen::MatrixXd>& A,
                            double tolerance,
-                           Eigen::MatrixBase<Derived2>& Apinv);
+                           Eigen::Ref<Eigen::MatrixXd> Apinv);
     }
 }
 #endif
