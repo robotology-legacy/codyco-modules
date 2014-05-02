@@ -85,6 +85,7 @@ namespace codyco {
         void TorqueBalancingController::run()
         {
             //read references
+            readReferences();
             
             //read / update state
             updateRobotState();
@@ -96,7 +97,7 @@ namespace codyco {
             computeTorques(m_desiredFeetForces, m_torques);
             
             //write torques
-            
+            writeTorques();
             
         }
         
@@ -104,7 +105,8 @@ namespace codyco {
         
         void TorqueBalancingController::readReferences()
         {
-            m_desiredCOMAcceleration = m_references.desiredCOMAcceleration().value();
+            if (m_references.desiredCOMAcceleration().isValid())
+                m_desiredCOMAcceleration = m_references.desiredCOMAcceleration().value();
             
         }
         
@@ -126,7 +128,7 @@ namespace codyco {
             return true;
         }
         
-        void TorqueBalancingController::computeFeetForces(const Eigen::Matrix<double, 3, 1>& desiredCOMAcceleration, Eigen::Matrix<double, 12, 1>& desiredFeetForces)
+        void TorqueBalancingController::computeFeetForces(const Eigen::Ref<Eigen::MatrixXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::MatrixXd> desiredFeetForces)
         {
             using namespace Eigen;
             double mass = m_massMatrix(0, 0);
@@ -143,7 +145,7 @@ namespace codyco {
             
         }
         
-        void TorqueBalancingController::computeTorques(const Eigen::Matrix<double, 12, 1>& desiredFeetForces, Eigen::Matrix<double, ACTUATED_DOFS, 1>& torques)
+        void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::MatrixXd>& desiredFeetForces, Eigen::Ref<Eigen::MatrixXd> torques)
         {
             using namespace Eigen;
             m_inverseBaseMassMatrix = m_massMatrix.topLeftCorner<6, 6>().inverse().eval();
@@ -206,6 +208,11 @@ namespace codyco {
 //            tau = - JcSBar'*fStar + NjInv*d2q_1 + SBar'*[h(1:6);h(7:end)];
             
 
+        }
+        
+        void TorqueBalancingController::writeTorques()
+        {
+            
         }
         
 #pragma mark - Auxiliary functions

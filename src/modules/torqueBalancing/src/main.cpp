@@ -47,6 +47,7 @@ int main(int argc, char **argv)
         return -1;
     }
     
+    //module and robot name can be moved inside paramhelp/similar class
     codyco::torquebalancing::TorqueBalancingModule mainModule("", "");
     return mainModule.runModule(resourceFinder);
 }

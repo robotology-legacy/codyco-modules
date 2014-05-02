@@ -65,6 +65,9 @@ namespace codyco {
             bool isActiveState();
             
         private:
+            
+            void limitIntegral(const Eigen::Ref<Eigen::VectorXd>& integral, Eigen::Ref<Eigen::VectorXd> limitedIntegral);
+            
             Reference& m_outputReference;
             ReferenceGeneratorInputReader& m_reader;
             

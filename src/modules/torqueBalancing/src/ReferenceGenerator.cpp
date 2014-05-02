@@ -75,8 +75,10 @@ namespace codyco {
                 //compute pid
                 Eigen::VectorXd error = m_signalReference - m_reader.getSignal();
                 
-                //TODO: Add integral limits
                 m_integralTerm += dt * error;
+                //TODO: Add integral limits
+                limitIntegral(m_integralTerm, m_integralTerm);
+//                m_integralTerm += dt * error;
                 
                 m_computedReference = m_signalFeedForward
                 + m_proportionalGains.asDiagonal() * error
@@ -135,6 +137,11 @@ namespace codyco {
         bool ReferenceGenerator::isActiveState()
         {
             return m_active;
+        }
+        
+        void ReferenceGenerator::limitIntegral(const Eigen::Ref<Eigen::VectorXd>& integral, Eigen::Ref<Eigen::VectorXd> limitedIntegral)
+        {
+            limitedIntegral = integral;
         }
         
 #pragma mark - ReferenceGeneratorInputReader methods

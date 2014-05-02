@@ -24,6 +24,7 @@
 
 namespace wbi {
     class wholeBodyInterface;
+    class Frame;
 }
 
 namespace codyco {
@@ -48,8 +49,9 @@ namespace codyco {
         private:
             void readReferences();
             bool updateRobotState();
-            void computeFeetForces(const Eigen::Matrix<double, 3, 1>& desiredCOMAcceleration, Eigen::Matrix<double, 12, 1>& desiredFeetForces);
-            void computeTorques(const Eigen::Matrix<double, 12, 1>& desiredFeetForces, Eigen::Matrix<double, ACTUATED_DOFS, 1>& torques);
+            void computeFeetForces(const Eigen::Ref<Eigen::MatrixXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::MatrixXd> desiredFeetForces);
+            void computeTorques(const Eigen::Ref<Eigen::MatrixXd>& desiredFeetForces, Eigen::Ref<Eigen::MatrixXd> torques);
+            void writeTorques();
             
             //return value should be optimized by compiler RVO
             void skewSymmentricMatrix(const Eigen::Ref<const Eigen::Vector3d>& vector, Eigen::Ref<Eigen::Matrix3d> skewSymmetricMatrix);
