@@ -176,7 +176,7 @@ class wholeBodyDynamicsThread: public RateThread
     std::vector<yarp::sig::Vector> offset_buffer;
     //End of Calibration related variables
 
-    bool assume_fixed_base;
+    bool assume_fixed_base_calibration;
 
 public:
 
@@ -186,7 +186,7 @@ public:
                             wbiIcub::icubWholeBodyStatesLocal *_wbi,
                             const iCub::iDynTree::iCubTree_version_tag icub_version,
                             bool autoconnect,
-                            bool assume_fixed_base);
+                            bool assume_fixed_base_calibration);
 
     bool threadInit();
     bool calibrateOffset(const std::string calib_code, const int nr_of_samples );

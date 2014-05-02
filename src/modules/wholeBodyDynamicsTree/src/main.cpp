@@ -61,7 +61,8 @@ int main (int argc, char * argv[])
         iCubPartVersionOptionsPrint();
         cout<< "\t--enable_w0_dw0/disable_w0_dw0    :Enable/disable use of angular velocity and acceleration measured from the IMU (default: disabled)." << endl;
         cout<< "\t--autoconnect      :Autoconnect torques port for low-level torque feedback. " << endl;
-        cout<< "\t--assume_fixed_base:Use the fixed-base as a kinematic root (assuming a constant gravity)." <<endl;
+        cout<< "\t--assume_fixed     :Use a link as a kinematic root in estimation (assuming a constant gravity). Possible options: (root_link, l_sole, r_sole)." <<endl;
+        cout<< "\t--assume_calibration_fixed_root :Use the root link as a kinematic root  in calibration (assuming constant gravity)." <<endl;
         return 0;
     }
 
