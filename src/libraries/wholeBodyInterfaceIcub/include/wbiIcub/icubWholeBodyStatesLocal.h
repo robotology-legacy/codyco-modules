@@ -120,6 +120,7 @@ namespace wbiIcub
         //Data structures related to IMU used for dynamical model
         bool enable_omega_domega_IMU;
         bool assume_fixed_base;
+        enum { FIXED_ROOT_LINK, FIXED_L_SOLE, FIXED_R_SOLE } fixed_link;
 
         yarp::sig::Vector omega_used_IMU;
         yarp::sig::Vector domega_used_IMU;
@@ -204,7 +205,8 @@ namespace wbiIcub
                                        icubWholeBodySensors *_sensors,
                                        yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
                                        iCub::iDynTree::iCubTree_version_tag icub_version,
-                                       bool assume_fixed_base
+                                       bool assume_fixed_base,
+                                       std::string fixed_link
                                       );
 
         #ifdef CODYCO_USES_URDFDOM
@@ -213,6 +215,7 @@ namespace wbiIcub
                                        yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
                                        iCub::iDynTree::iCubTree_version_tag icub_version,
                                        bool assume_fixed_base,
+                                       std::string fixed_link,
                                        const std::string urdf_file);
         #endif
 
@@ -277,7 +280,8 @@ namespace wbiIcub
         icubWholeBodyStatesLocal(const char* _name,
                                  const char* _robotName,
                                  iCub::iDynTree::iCubTree_version_tag icub_version,
-                                 bool assume_fixed_base
+                                 bool assume_fixed_base,
+                                 std::string fixed_link
                                 );
 
         #ifdef CODYCO_USES_URDFDOM
@@ -285,6 +289,7 @@ namespace wbiIcub
                                  const char* _robotName,
                                  iCub::iDynTree::iCubTree_version_tag icub_version,
                                  bool assume_fixed_base,
+                                 std::string fixed_link,
                                  const std::string urdf_file);
 
         #endif

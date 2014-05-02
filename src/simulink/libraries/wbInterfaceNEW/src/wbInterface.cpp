@@ -32,7 +32,9 @@
 #define DEBUGGING 1
 #define TIMING    0
 #define NEWCODE	  1
-#define ICUB_FIXED
+// #define ICUB_FIXED
+#define WBI_ICUB_COMPILE_PARAM_HELP
+
 // #define WORLD2BASE_EXTERNAL
 
 YARP_DECLARE_DEVICES(icubmod)
@@ -109,8 +111,9 @@ bool robotStatus::robotConfig() {
     }
     else {
         //---------------- CREATION WHOLE BODY INTERFACE ---------------------/
-        iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,2,true);
-        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/home/daniele/src/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
+        iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,1,true);
+//         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/home/daniele/src/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
+        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
 
 #ifdef DEBUG
         fprintf(stderr,"robotStatus::robotConfig >> new wbInterface created ...\n");

@@ -21,18 +21,18 @@ SET(SRCS  src/Math.cpp)
 
 SET(HEADERS  include/codyco/Common.h
              include/codyco/Math.h)
-                          
+
 SOURCE_GROUP("Source Files" FILES ${SRCS})
 SOURCE_GROUP("Header Files" FILES ${HEADERS})
 
 INCLUDE_DIRECTORIES(include ${EIGEN3_INCLUDE_DIR})
-                    
+
 ADD_LIBRARY(${PROJECTNAME} ${SRCS} ${HEADERS})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME} )
 
-# 
-# icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
-#                                    DESTINATION include/iCub/iDynTree
-#                                    FILES ${folder_header})
-                                  
+
+icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
+                                   DESTINATION include/codyco
+                                   FILES ${folder_header})
+

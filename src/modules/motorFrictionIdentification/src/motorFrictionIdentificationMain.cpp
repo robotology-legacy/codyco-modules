@@ -34,6 +34,12 @@ using namespace yarp::os;
 using namespace std;
 using namespace motorFrictionIdentification;
 
+void iCubPartVersionOptionsPrint()
+{
+    cout<< "\t--headV1/headV2    :Version of the head."  <<endl;
+    cout<< "\t--legsV1/legsV2    :Version of the legs."  <<endl;
+    cout<< "\t--feetV1/feetV2    :Version of the feet."  <<endl;
+}
 
 int main (int argc, char * argv[])
 {
@@ -53,9 +59,7 @@ int main (int argc, char * argv[])
         cout<< "\t--rate             :Period used by the module. Default set to 10ms."                                                                                        <<endl;
         cout<< "\t--robot            :Robot name (icubSim or icub). Set to icub by default."                                                                                  <<endl;
         cout<< "\t--local            :Prefix of the ports opened by the module. Set to the module name by default, i.e. motorFrictionIdentificationCtrl."                                      <<endl;
-        cout<< "\t--headV1/headV2    :Version of the head."  <<endl;
-        cout<< "\t--legsV1/legsV2    :Version of the legs."  <<endl;
-        cout<< "\t--feetV1/feetV2    :Version of the feet."  <<endl;
+        iCubPartVersionOptionsPrint();
         return 0;
     }
 
