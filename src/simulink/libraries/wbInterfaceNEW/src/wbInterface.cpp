@@ -33,7 +33,7 @@
 #define TIMING    0
 #define NEWCODE	  1
 // #define ICUB_FIXED
-#define WBI_ICUB_COMPILE_PARAM_HELP
+//#define WBI_ICUB_COMPILE_PARAM_HELP
 
 // #define WORLD2BASE_EXTERNAL
 
@@ -823,7 +823,7 @@ static void mdlStart(SimStruct *S)
     counterClass counter;
     fprintf(stderr,"mdlStart >> Publicly stating that a new child has been born: %d \n", counter.getCount());
 
-    
+
     char* cString = mxArrayToString(ssGetSFcnParam(S, STRING_PARAM_IDX));
     if (!cString) {
         ssSetErrorStatus(S,"mdlStart >> Cannot retrieve string from parameter 1.\n");
@@ -832,7 +832,7 @@ static void mdlStart(SimStruct *S)
     fprintf(stderr,"mdlStart >> The string being passed for robotName is - %s\n ", cString);
     std::string robot_name(cString);
     mxFree(cString); cString = 0;
-    
+
     cString = mxArrayToString(ssGetSFcnParam(S, LOCAL_PARAM_IDX));
     if (!cString) {
         ssSetErrorStatus(S,"mdlStart >> Cannot retrieve string from parameter 2.\n");
@@ -840,8 +840,8 @@ static void mdlStart(SimStruct *S)
     }
     std::string local_name(cString);
     mxFree(cString); cString = 0;
-    
-    
+
+
 //     size_t stringLength = 0;
 //     int status;
 //     char *string = 0;
@@ -857,7 +857,7 @@ static void mdlStart(SimStruct *S)
 //     }
 //     fprintf(stderr,"mdlStart >> The string being passed for robotName is - %s\n ", string);
 //     std::string robot_name = string;
-//     
+//
 //     mxFree(string); string = 0;
 //     stringLength = mxGetN(ssGetSFcnParam(S, LOCAL_PARAM_IDX));
 //     string = static_cast<char*>(mxMalloc((stringLength + 1) * sizeof(char)));
@@ -976,7 +976,7 @@ static void mdlStart(SimStruct *S)
     ssGetPWork(S)[0] = robot;
     ssGetPWork(S)[1] = &minJntLimits[0];
     ssGetPWork(S)[2] = &maxJntLimits[0];
-    
+
 
     //--------------GLOBAL VARIABLES INITIALIZATION --------------
 //     dotq.Zero(ICUB_DOFS);
