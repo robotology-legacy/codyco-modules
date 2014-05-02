@@ -11,6 +11,7 @@ env:
 branches:
   except:
     - superbuild
+    - module/torqueBalancing
 
 install:
   - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
@@ -34,7 +35,7 @@ before_script:
   # Build kdl_codyco and install it in a local directory
   - git clone https://github.com/traversaro/kdl_codyco
   - cd kdl_codyco
-  - git checkout rovereto
+  - git checkout master
   - mkdir build
   - cd build
   - mkdir local_install
