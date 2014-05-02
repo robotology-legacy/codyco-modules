@@ -24,8 +24,8 @@
 namespace codyco {
     namespace torquebalancing {
         //cannot use extern on the template.. this is quite strange. To be investigated.
-//        extern const int actuatedDOFs; /*!< number of actuated degree of freedom */
-//        extern const int totalDOFs; /*!< total number of degree of freedom. For a floating base robot this is usually the number of actuated joints plus 6 fictitious joints*/
+        extern const int actuatedDOFs; /*!< number of actuated degree of freedom */
+        extern const int totalDOFs; /*!< total number of degree of freedom. For a floating base robot this is usually the number of actuated joints plus 6 fictitious joints*/
         extern const int PseudoInverseTolerance;
         
     }

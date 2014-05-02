@@ -18,6 +18,7 @@
 #include "Reference.h"
 #include <wbi/wholeBodyInterface.h>
 #include <wbi/wbiUtil.h>
+#include <codyco/MathUtils.h>
 
 
 #include <Eigen/LU>
@@ -29,7 +30,34 @@ namespace codyco {
         TorqueBalancingController::TorqueBalancingController(int period, ControllerReferences references)
         : RateThread(period)
         , m_robot(0)
-        , m_references(references){}
+        , m_references(references)
+        , m_desiredCOMAcceleration(3)
+        , m_desiredFeetForces(12)
+        , m_desiredCentroidalMomentum(6)
+        , m_jointPositions(totalDOFs)
+        , m_jointVelocities(totalDOFs)
+        , m_torques(actuatedDOFs)
+        , m_baseVelocity(6)
+        , m_centerOfMassPosition(3)
+        , m_rightFootPosition(7)
+        , m_leftFootPosition(7)
+        , m_feetJacobian(6 + 6, totalDOFs)
+        , m_feetDJacobianDq(12, totalDOFs)
+        , m_massMatrix(totalDOFs, totalDOFs)
+        , m_inverseBaseMassMatrix(6, 6)
+        , m_massMatrixSchurComplement(actuatedDOFs, actuatedDOFs)
+        , m_generalizedBiasForces(totalDOFs)
+        , m_centroidalMomentum(6)
+        , m_SBar(totalDOFs, actuatedDOFs)
+        , m_feetJacobianTimesSBar(12, actuatedDOFs)
+        , m_feetJacobianTimesSBarPseudoInverse(actuatedDOFs, 12)
+        , m_centroidalForceMatrix(6, 12)
+        , m_gravityForce(6)
+//        , m_3DMatrix(3, 3)
+        , m_desiredJointAcceleration1(actuatedDOFs)
+        , m_desiredJointAcceleration2(actuatedDOFs)
+        , m_UMatrix(6, totalDOFs)
+        , m_rotoTranslationVector(7) {}
         
         TorqueBalancingController::~TorqueBalancingController() {}
 
@@ -105,10 +133,8 @@ namespace codyco {
             m_gravityForce(2) = -mass * 9.81;
             
             //building centroidalForceMatrix
-            skewSymmentricMatrix(m_leftFootPosition.head<3>() - m_centerOfMassPosition, m_3DMatrix);
-            m_centroidalForceMatrix.block<3, 3>(3, 0) = m_3DMatrix;
-            skewSymmentricMatrix(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_3DMatrix);
-            m_centroidalForceMatrix.block<3, 3>(3, 6) = m_3DMatrix;
+            skewSymmentricMatrix(m_leftFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 0));
+            skewSymmentricMatrix(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 6));
             
             m_desiredCentroidalMomentum.head<3>() = mass * desiredCOMAcceleration;
             m_desiredCentroidalMomentum.tail<3>() = -m_centroidalMomentumGain * m_centroidalMomentum.tail<3>();
@@ -120,24 +146,23 @@ namespace codyco {
         void TorqueBalancingController::computeTorques(const Eigen::Matrix<double, 12, 1>& desiredFeetForces, Eigen::Matrix<double, ACTUATED_DOFS, 1>& torques)
         {
             using namespace Eigen;
-            //update mass matrix
-//            m_inverseBaseMassMatrix = m_massMatrix.topLeftCorner<6, 6>().inverse().eval();
-//            m_massMatrixSchurComplement = m_massMatrix.block<ACTUATED_DOFS, ACTUATED_DOFS>(6, 6) - m_massMatrix.block<ACTUATED_DOFS, 6>(6, 0) * m_inverseBaseMassMatrix * m_massMatrix.block<6, ACTUATED_DOFS>(0, 6);
-//            
-//            //update jacobians (both feet in one variable)
-//            m_robot->computeJacobian(m_jointPositions.data(), m_worldFrame, m_leftFootLinkID, m_feetJacobian.data());
-//            m_robot->computeJacobian(m_jointPositions.data(), m_worldFrame, m_rightFootLinkID, m_feetJacobian.data() + (sizeof(double) * 6 * TOTAL_DOFS));
-//            
-//            m_robot->computeDJdq(m_jointPositions.data(), m_worldFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_leftFootLinkID, m_feetDJacobianDq.data());
-//            m_robot->computeDJdq(m_jointPositions.data(), m_worldFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_rightFootLinkID, m_feetDJacobianDq.data() + (sizeof(double) * 6 * TOTAL_DOFS));
-//            
-//            //update auxiliary variables
-//            //SBar(1:6, :) = - M(1:6, 1:6)^-1 * M(1:6, 7:end)
-//            m_SBar.block<6, ACTUATED_DOFS>(0, 0) = -m_inverseBaseMassMatrix * m_massMatrix.block<6, ACTUATED_DOFS>(0, 6);
+            m_inverseBaseMassMatrix = m_massMatrix.topLeftCorner<6, 6>().inverse().eval();
+            m_massMatrixSchurComplement = m_massMatrix.block(6, 6, actuatedDOFs, actuatedDOFs) - m_massMatrix.block(6, 0, actuatedDOFs, 6) * m_inverseBaseMassMatrix * m_massMatrix.block(0, 6, 6, actuatedDOFs);
+
+            //update jacobians (both feet in one variable)
+            m_robot->computeJacobian(m_jointPositions.data(), m_worldFrame, m_leftFootLinkID, m_feetJacobian.topRows(6).data());
+            m_robot->computeJacobian(m_jointPositions.data(), m_worldFrame, m_rightFootLinkID, m_feetJacobian.bottomRows(6).data());
+
+            m_robot->computeDJdq(m_jointPositions.data(), m_worldFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_leftFootLinkID, m_feetDJacobianDq.topRows(6).data());
+            m_robot->computeDJdq(m_jointPositions.data(), m_worldFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_rightFootLinkID, m_feetDJacobianDq.bottomRows(6).data());
+
+            //update auxiliary variables
+            //SBar(1:6, :) = - M(1:6, 1:6)^-1 * M(1:6, 7:end)
+            m_SBar.block(0, 0, 6, actuatedDOFs) = -m_inverseBaseMassMatrix * m_massMatrix.block(0, 6, 6, actuatedDOFs);
+
+            m_feetJacobianTimesSBar = m_feetJacobian * m_SBar;
+            math::pseudoInverse(m_feetJacobianTimesSBar, PseudoInverseTolerance, m_feetJacobianTimesSBarPseudoInverse);
 //
-//            m_feetJacobianTimesSBar = m_feetJacobian * m_SBar;
-//            pseudoInverse(m_feetJacobianTimesSBar, PseudoInverseTolerance, m_feetJacobianTimesSBarPseudoInverse);
-//            
 //            m_robot->computeGeneralizedBiasForces(m_jointPositions.data(), m_worldFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_gravityUnitVector, m_generalizedBiasForces.data());
 //
 //            m_desiredJointAcceleration2 = m_feetJacobianTimesSBarPseudoInverse * (m_feetJacobian * m_UMatrix.transpose() * m_inverseBaseMassMatrix * (m_generalizedBiasForces.block<6, 1>(0,0) - m_feetJacobian.transpose() * desiredFeetForces) - m_feetDJacobianDq);
@@ -185,8 +210,7 @@ namespace codyco {
         
 #pragma mark - Auxiliary functions
         
-        //return value should be optimized by compiler RVO
-        void TorqueBalancingController::skewSymmentricMatrix(const Eigen::Vector3d& vector, Eigen::Matrix3d& skewSymmetricMatrix)
+        void TorqueBalancingController::skewSymmentricMatrix(const Eigen::Ref<const Eigen::Vector3d>& vector, Eigen::Ref<Eigen::Matrix3d> skewSymmetricMatrix)
         {
             skewSymmetricMatrix.setZero();
 //            S = [   0,   -w(3),    w(2);
@@ -196,32 +220,6 @@ namespace codyco {
             skewSymmetricMatrix(0, 2) = vector(1);
             skewSymmetricMatrix(1, 2) = -vector(0);
             skewSymmetricMatrix.bottomLeftCorner<2, 2>() = -skewSymmetricMatrix.topRightCorner<2, 2>().transpose();
-        }
-        
-        template <typename Derived1, typename Derived2>
-        void TorqueBalancingController::pseudoInverse(const Eigen::MatrixBase<Derived1>& A,
-                           double tolerance,
-                           Eigen::MatrixBase<Derived2>& Apinv)
-        {
-            using namespace Eigen;
-            JacobiSVD<typename MatrixBase<Derived1>::PlainObject> svd = A.jacobiSvd(Eigen::ComputeThinU|Eigen::ComputeThinV);
-            typename JacobiSVD<typename Derived1::PlainObject>::SingularValuesType singularValues = svd.singularValues();
-            //I don't get why I cannot use the singular vector as in http://eigen.tuxfamily.org/bz/show_bug.cgi?id=257
-            MatrixXd singularInverse = singularValues.asDiagonal();
-
-            for (int idx = 0; idx < singularValues.size(); idx++) {
-                singularInverse(idx, idx) = tolerance > 0 && singularValues(idx) > tolerance ? 1.0 / singularValues(idx) : 0.0;
-            }
-
-//            for (int idx = 0; idx < singularValues.size(); idx++) {
-//                singularValues(idx) = tolerance > 0 && singularValues(idx) > tolerance ? 1.0 / singularValues(idx) : 0.0;
-//            }
-//            auto var = svd.matrixV() * sigmaDamped;
-//            auto var2 = sigmaDamped * svd.matrixU().transpose();
-//            
-//            Apinv = var * svd.matrixU().transpose();
-            
-            Apinv = (svd.matrixV() * singularInverse * svd.matrixU().adjoint());   //pseudoinverse
         }
         
     }

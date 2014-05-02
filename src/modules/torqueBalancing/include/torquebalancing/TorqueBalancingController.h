@@ -52,7 +52,7 @@ namespace codyco {
             void computeTorques(const Eigen::Matrix<double, 12, 1>& desiredFeetForces, Eigen::Matrix<double, ACTUATED_DOFS, 1>& torques);
             
             //return value should be optimized by compiler RVO
-            void skewSymmentricMatrix(const Eigen::Vector3d& vector, Eigen::Matrix3d& skewSymmetricMatrix);
+            void skewSymmentricMatrix(const Eigen::Ref<const Eigen::Vector3d>& vector, Eigen::Ref<Eigen::Matrix3d> skewSymmetricMatrix);
 
             wbi::wholeBodyInterface* m_robot;
             wbi::Frame m_worldFrame;
@@ -67,7 +67,7 @@ namespace codyco {
             //Gains
             double m_centroidalMomentumGain;
 
-//TODO: migrate to dynamic matrices.
+//TODO: migrate to dynamic matrices. The constructor already support dynamic matrices. I postpone the task in order to have compile time support to matrix size
             //references
             Eigen::Vector3d m_desiredCOMAcceleration;
             Eigen::Matrix<double, 12, 1> m_desiredFeetForces;
@@ -101,11 +101,11 @@ namespace codyco {
             Eigen::Matrix<double, 6, 12> m_centroidalForceMatrix;
             Eigen::Matrix<double, 6, 1> m_gravityForce;
 
-            Eigen::Matrix3d m_3DMatrix;
+//            Eigen::Matrix3d m_3DMatrix;
 
             //Tasks variables
-            Eigen::Matrix<double, ACTUATED_DOFS, 1> m_desiredJointAcceleration2;
             Eigen::Matrix<double, ACTUATED_DOFS, 1> m_desiredJointAcceleration1;
+            Eigen::Matrix<double, ACTUATED_DOFS, 1> m_desiredJointAcceleration2;
 //            Eigen::Matrix<double, ACTUATED_DOFS, something> m_task2PseudoInverse;
             
             
@@ -113,12 +113,6 @@ namespace codyco {
             Eigen::Matrix<double, 6, TOTAL_DOFS> m_UMatrix;
             double m_gravityUnitVector[3];
             Eigen::Matrix<double, 7, 1> m_rotoTranslationVector;
-            
-            //to be moved in codyco_math
-            template <typename Derived1, typename Derived2>
-            void pseudoInverse(const Eigen::MatrixBase<Derived1>& A,
-                               double tolerance,
-                               Eigen::MatrixBase<Derived2>& Apinv);
             
         };
     }
