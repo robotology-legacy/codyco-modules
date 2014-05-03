@@ -11,6 +11,7 @@ env:
 branches:
   except:
     - superbuild
+    - module/torqueBalancing
 
 install:
   - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
@@ -23,7 +24,6 @@ before_script:
   # Build orocos_kinematics_dynamics and install it in a local directory
   - git clone https://github.com/orocos/orocos_kinematics_dynamics
   - cd orocos_kinematics_dynamics
-  - git checkout v1.2.1
   - cd orocos_kdl
   - mkdir build
   - cd build
