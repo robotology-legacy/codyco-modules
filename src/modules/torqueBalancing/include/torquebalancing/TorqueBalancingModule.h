@@ -18,8 +18,10 @@
 #define TORQUEBALANCINGMODULE_H
 
 #include <yarp/os/RFModule.h>
-#include <vector>
+#include <map>
 #include <string>
+#include <paramHelp/paramProxyInterface.h>
+#include <Eigen/Core>
 
 namespace paramHelp {
     class ParamHelperServer;
@@ -45,6 +47,12 @@ namespace codyco {
         class ReferenceGenerator;
         class ReferenceGeneratorInputReader;
         
+        typedef enum {
+            TaskTypeCOM,
+            TaskTypeHandsPosition,
+            TaskTypeHandsForce
+        } TaskType;
+        
         /** @brief Main module for the torque balancing module.
          *
          */
@@ -62,6 +70,8 @@ namespace codyco {
             
         private:
             
+            class ParamHelperManager;
+            
             int m_referenceThreadPeriod;
             int m_controllerThreadPeriod;
             
@@ -74,12 +84,47 @@ namespace codyco {
             TorqueBalancingController* m_controller;
             ControllerReferences* m_references;
             
-            std::vector<ReferenceGeneratorInputReader*> m_generatorReaders;
-            std::vector<ReferenceGenerator*> m_referenceGenerators;
+            std::map<TaskType, ReferenceGeneratorInputReader*> m_generatorReaders;
+            std::map<TaskType, ReferenceGenerator*> m_referenceGenerators;
             
             paramHelp::ParamHelperServer* m_parameterServer;
             
             yarp::os::Port* m_rpcPort;
+            
+            ParamHelperManager* m_paramHelperManager;
+            
+        };
+        
+        class TorqueBalancingModule::ParamHelperManager : public paramHelp::ParamValueObserver {
+            
+            TorqueBalancingController& m_controller;
+            std::map<TaskType, ReferenceGenerator*>& m_referenceGenerators;
+            paramHelp::ParamHelperServer& m_parameterServer;
+            
+            Eigen::VectorXd m_comProportionalGain;
+            Eigen::VectorXd m_comDerivativeGain;
+            Eigen::VectorXd m_comIntegralGain;
+            double m_comIntegralLimit;
+            
+            Eigen::VectorXd m_handsPositionProportionalGain;
+            Eigen::VectorXd m_handsPositionDerivativeGain;
+            Eigen::VectorXd m_handsPositionIntegralGain;
+            double m_handsPositionIntegralLimit;
+            
+            Eigen::VectorXd m_handsForceProportionalGain;
+            Eigen::VectorXd m_handsForceDerivativeGain;
+            Eigen::VectorXd m_handsForceIntegralGain;
+            double m_handsForceIntegralLimit;
+            
+            double m_centroidalGain;
+            
+        public:
+            ParamHelperManager(TorqueBalancingController& controller, std::map<TaskType, ReferenceGenerator*>& generators, paramHelp::ParamHelperServer& parameterServer);
+            
+            bool linkVariables();
+                        
+            virtual ~ParamHelperManager();
+            virtual void parameterUpdated(const paramHelp::ParamProxyInterface *proxyInterface);
         };
     }
 }

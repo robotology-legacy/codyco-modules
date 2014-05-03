@@ -19,6 +19,7 @@
 #include <wbi/wholeBodyInterface.h>
 #include <wbi/wbiUtil.h>
 #include <codyco/MathUtils.h>
+#include <codyco/LockGuard.h>
 
 
 #include <Eigen/LU>
@@ -101,6 +102,20 @@ namespace codyco {
             
         }
         
+#pragma mark - Getter and setter
+        
+        double TorqueBalancingController::centroidalMomentumGain()
+        {
+            codyco::LockGuard guard(m_mutex);
+            return m_centroidalMomentumGain;
+        }
+        
+        void TorqueBalancingController::setCentroidalMomentumGain(double centroidalMomentumGain)
+        {
+            codyco::LockGuard guard(m_mutex);
+            m_centroidalMomentumGain = centroidalMomentumGain;
+        }
+        
 #pragma mark - Controller methods
         
         void TorqueBalancingController::readReferences()
@@ -139,7 +154,7 @@ namespace codyco {
             skewSymmentricMatrix(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 6));
             
             m_desiredCentroidalMomentum.head<3>() = mass * desiredCOMAcceleration;
-            m_desiredCentroidalMomentum.tail<3>() = -m_centroidalMomentumGain * m_centroidalMomentum.tail<3>();
+            m_desiredCentroidalMomentum.tail<3>() = -centroidalMomentumGain() * m_centroidalMomentum.tail<3>();
 
             desiredFeetForces = m_centroidalForceMatrix.jacobiSvd(ComputeThinU | ComputeThinV).solve(m_desiredCentroidalMomentum - m_gravityForce);
             

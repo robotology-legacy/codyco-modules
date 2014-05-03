@@ -19,6 +19,7 @@
 
 #include "config.h"
 #include <yarp/os/RateThread.h>
+#include <yarp/os/Mutex.h>
 #include <wbi/wbiUtil.h>
 #include <Eigen/Core>
 
@@ -46,6 +47,11 @@ namespace codyco {
             virtual void threadRelease();
             virtual void run();
             
+#pragma mark - Getter and setter
+            
+            double centroidalMomentumGain();
+            void setCentroidalMomentumGain(double centroidalMomentumGain);
+            
         private:
             void readReferences();
             bool updateRobotState();
@@ -58,6 +64,8 @@ namespace codyco {
 
             wbi::wholeBodyInterface* m_robot;
             wbi::Frame m_worldFrame;
+            
+            yarp::os::Mutex m_mutex;
             
             //configuration-time constants
             int m_leftFootLinkID;

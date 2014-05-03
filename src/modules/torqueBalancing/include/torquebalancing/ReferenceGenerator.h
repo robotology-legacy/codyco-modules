@@ -54,6 +54,8 @@ namespace codyco {
             virtual void threadRelease();
             virtual void run();
             
+#pragma mark - Getter and setter
+            
             const Eigen::VectorXd& signalReference();
             void setSignalReference(const Eigen::VectorXd& reference);
             
