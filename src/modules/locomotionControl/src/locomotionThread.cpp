@@ -26,6 +26,7 @@ using namespace locomotion;
 using namespace yarp::math;
 using namespace wbiIcub;
 
+
 //*************************************************************************************************************************
 LocomotionThread::LocomotionThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
     :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi),

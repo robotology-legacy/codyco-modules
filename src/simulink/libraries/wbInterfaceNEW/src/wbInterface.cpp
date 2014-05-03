@@ -33,6 +33,8 @@
 #define TIMING    0
 #define NEWCODE	  1
 // #define ICUB_FIXED
+//#define WBI_ICUB_COMPILE_PARAM_HELP
+
 // #define WORLD2BASE_EXTERNAL
 
 YARP_DECLARE_DEVICES(icubmod)
@@ -109,9 +111,10 @@ bool robotStatus::robotConfig() {
     }
     else {
         //---------------- CREATION WHOLE BODY INTERFACE ---------------------/
-        iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,2,true);
-        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/Users/iron/Code/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
-//         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
+        iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,1,true);
+//         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/home/daniele/src/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
+        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
+
 #ifdef DEBUG
         fprintf(stderr,"robotStatus::robotConfig >> new wbInterface created ...\n");
 #endif
@@ -123,11 +126,14 @@ bool robotStatus::robotConfig() {
         // Add main iCub joints
         wbInterface->addJoints(ICUB_MAIN_JOINTS);
         // Initializing whole body interface
-      
+
+#ifdef WBI_ICUB_COMPILE_PARAM_HELP
         yarp::os::Value trueValue;
         trueValue.fromString("true");
         ((icubWholeBodyInterface*)wbInterface)->setActuactorConfigurationParameter(icubWholeBodyActuators::icubWholeBodyActuatorsUseExternalTorqueModule, trueValue);
+        ((icubWholeBodyInterface*)wbInterface)->setActuactorConfigurationParameter(icubWholeBodyActuators::icubWholeBodyActuatorsExternalTorqueModuleAutoconnect, trueValue);
         ((icubWholeBodyInterface*)wbInterface)->setActuactorConfigurationParameter(icubWholeBodyActuators::icubWholeBodyActuatorsExternalTorqueModuleName, Value("jtc"));
+#endif
         if(!wbInterface->init()) {
             fprintf(stderr,"ERROR [robotStatus::robotConfig] Initializing Whole Body Interface!\n");
             return false;
@@ -817,28 +823,54 @@ static void mdlStart(SimStruct *S)
     counterClass counter;
     fprintf(stderr,"mdlStart >> Publicly stating that a new child has been born: %d \n", counter.getCount());
 
-    int_T buflen, status;
-    char *String;
 
-    buflen = mxGetN((ssGetSFcnParam(S, STRING_PARAM_IDX)))*sizeof(mxChar)+1;
-    String = static_cast<char*>(mxMalloc(buflen));
-    status = mxGetString((ssGetSFcnParam(S, STRING_PARAM_IDX)),String,buflen);
-    if (status) {
-        ssSetErrorStatus(S,"mdlStart >> Cannot retrieve string from parameter 1!! \n");
+    char* cString = mxArrayToString(ssGetSFcnParam(S, STRING_PARAM_IDX));
+    if (!cString) {
+        ssSetErrorStatus(S,"mdlStart >> Cannot retrieve string from parameter 1.\n");
         return;
     }
-    fprintf(stderr,"mdlStart >> The string being passed for robotName is - %s\n ", String);
+    fprintf(stderr,"mdlStart >> The string being passed for robotName is - %s\n ", cString);
+    std::string robot_name(cString);
+    mxFree(cString); cString = 0;
 
-    string robot_name = String;
-
-    status = mxGetString((ssGetSFcnParam(S, LOCAL_PARAM_IDX)),String,buflen);
-    if (status) {
-        ssSetErrorStatus(S,"mdlStart >> Cannot retrieve string from parameter 2!! \n");
+    cString = mxArrayToString(ssGetSFcnParam(S, LOCAL_PARAM_IDX));
+    if (!cString) {
+        ssSetErrorStatus(S,"mdlStart >> Cannot retrieve string from parameter 2.\n");
         return;
     }
-    fprintf(stderr,"mdlStart >> The string being passed for local is - %s \n", String);
+    std::string local_name(cString);
+    mxFree(cString); cString = 0;
 
-    string local_name = String;
+
+//     size_t stringLength = 0;
+//     int status;
+//     char *string = 0;
+//     stringLength = mxGetN(ssGetSFcnParam(S, STRING_PARAM_IDX));
+//     string = (char*)(mxMalloc((stringLength + 1) * sizeof(char)));
+//     status = mxGetString((ssGetSFcnParam(S, STRING_PARAM_IDX)), string, stringLength + 1);
+//     if (status) {
+//         char buf[1024];
+//         sprintf(buf, "mdlStart >> Cannot retrieve string from parameter 1: error %d, %s.\n", status, string);
+//         ssSetErrorStatus(S,buf);
+// //         ssSetErrorStatus(S,"mdlStart >> Cannot retrieve string from parameter 1.\n");
+//         return;
+//     }
+//     fprintf(stderr,"mdlStart >> The string being passed for robotName is - %s\n ", string);
+//     std::string robot_name = string;
+//
+//     mxFree(string); string = 0;
+//     stringLength = mxGetN(ssGetSFcnParam(S, LOCAL_PARAM_IDX));
+//     string = static_cast<char*>(mxMalloc((stringLength + 1) * sizeof(char)));
+//     status = mxGetString((ssGetSFcnParam(S, LOCAL_PARAM_IDX)), string, stringLength + 1);
+//     if (status) {
+//         char buf[512];
+//         sprintf(buf, "mdlStart >> Cannot retrieve string from parameter 2: error %d.\n", status);
+//         ssSetErrorStatus(S,buf);
+//         return;
+//     }
+//     fprintf(stderr,"mdlStart >> The string being passed for local is - %s \n", string);
+//     std::string local_name = string;
+//     mxFree(string); string = 0;
 
     real_T block_type = mxGetScalar(ssGetSFcnParam(S,BLOCK_TYPE_IDX));
     fprintf(stderr,"mdlStart >> BLOCK TYPE MASK PARAMETER: %f\n",block_type);
@@ -944,7 +976,7 @@ static void mdlStart(SimStruct *S)
     ssGetPWork(S)[0] = robot;
     ssGetPWork(S)[1] = &minJntLimits[0];
     ssGetPWork(S)[2] = &maxJntLimits[0];
-    
+
 
     //--------------GLOBAL VARIABLES INITIALIZATION --------------
 //     dotq.Zero(ICUB_DOFS);

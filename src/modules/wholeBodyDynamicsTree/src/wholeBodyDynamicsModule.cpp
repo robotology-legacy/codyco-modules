@@ -53,27 +53,11 @@ bool wholeBodyDynamicsModule::attach(yarp::os::Port &source)
     return this->yarp().attachAsServer(source);
 }
 
-bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
+void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag & icub_version)
 {
-    if( rf.check("robot") ) {
-        robotName = rf.find("robot").asString();
-    } else {
-        std::cerr << "wholeBodyDynamicsModule::configure failed: robot parameter not found. Closing module." << std::endl;
-        return false;
-    }
-
-    if( rf.check("name") ) {
-        moduleName = rf.find("name").asString();
-        setName(moduleName.c_str());
-    } else {
-        std::cerr << "wholeBodyDynamicsModule::configure failed: name parameter not found. Closing module." << std::endl;
-        return false;
-    }
-
     //Checking iCub parts version
     /// \todo this part should be replaced by a more general way of accessing robot parameters
     ///       namely urdf for structure parameters and robotInterface xml (or runtime interface) to get available sensors
-    iCub::iDynTree::iCubTree_version_tag icub_version;
     icub_version.head_version = 2;
     if( rf.check("headV1") ) {
         icub_version.head_version = 1;
@@ -98,6 +82,52 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     if( rf.check("feetV2") ) {
         icub_version.feet_ft = true;
     }
+}
+
+bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
+{
+    if( rf.check("robot") ) {
+        robotName = rf.find("robot").asString();
+    } else {
+        std::cerr << "wholeBodyDynamicsModule::configure failed: robot parameter not found. Closing module." << std::endl;
+        return false;
+    }
+
+    if( rf.check("name") ) {
+        moduleName = rf.find("name").asString();
+        setName(moduleName.c_str());
+    } else {
+        std::cerr << "wholeBodyDynamicsModule::configure failed: name parameter not found. Closing module." << std::endl;
+        return false;
+    }
+
+    iCub::iDynTree::iCubTree_version_tag icub_version;
+    iCubVersionFromRf(rf,icub_version);
+
+
+    bool fixed_base = false;
+    std::string fixed_link;
+    if( rf.check("assume_fixed") ) {
+        fixed_link = rf.find("assume_fixed").asString().c_str();
+        if( fixed_link != "root_link" &&
+            fixed_link != "l_sole" &&
+            fixed_link != "r_sole" )
+        {
+            std::cout << "assume_fixed option found, but disabled because " << fixed_link << " is not a recognized fixed_link " << std::endl;
+        } else {
+            std::cout << "assume_fixed option found, using a fixed link as a kinematic root instead of the imu." << std::endl;
+            fixed_base = true;
+        }
+    }
+
+    bool fixed_base_calibration = false;
+    if( rf.check("assume_fixed_base_calibration") )
+    {
+        std::cout << "assume_fixed_base_calibration option found" << std::endl;
+        fixed_base_calibration = true;
+    }
+
+
 
     //--------------------------RPC PORT--------------------------
     attach(rpcPort);
@@ -110,7 +140,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     }
 
     //--------------------------WHOLE BODY STATES INTERFACE--------------------------
-    estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str(), icub_version);
+    estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str(), icub_version, fixed_base, fixed_link);
 
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
@@ -152,8 +182,10 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         autoconnect = true;
     }
 
+
+
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
-    wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface, icub_version, autoconnect);
+    wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface, icub_version, autoconnect, fixed_base_calibration);
     if(!wbdThread->start()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }
 
     fprintf(stderr,"wholeBodyDynamicsThread started\n");

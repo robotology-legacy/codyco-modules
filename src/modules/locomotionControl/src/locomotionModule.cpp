@@ -44,6 +44,37 @@ using namespace paramHelp;
 using namespace wbiIcub;
 using namespace locomotion;
 
+void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag & icub_version)
+{
+    //Checking iCub parts version
+    /// \todo this part should be replaced by a more general way of accessing robot parameters
+    ///       namely urdf for structure parameters and robotInterface xml (or runtime interface) to get available sensors
+    icub_version.head_version = 2;
+    if( rf.check("headV1") ) {
+        icub_version.head_version = 1;
+    }
+    if( rf.check("headV2") ) {
+        icub_version.head_version = 2;
+    }
+
+    icub_version.legs_version = 2;
+    if( rf.check("legsV1") ) {
+        icub_version.legs_version = 1;
+    }
+    if( rf.check("legsV2") ) {
+        icub_version.legs_version = 2;
+    }
+
+    /// \note if feet_version are 2, the presence of FT sensors in the feet is assumed
+    icub_version.feet_ft = true;
+    if( rf.check("feetV1") ) {
+        icub_version.feet_ft = false;
+    }
+    if( rf.check("feetV2") ) {
+        icub_version.feet_ft = true;
+    }
+}
+
 LocomotionModule::LocomotionModule()
 {
     ctrlThread      = 0;
@@ -74,7 +105,9 @@ bool LocomotionModule::configure(ResourceFinder &rf)
     attach(rpcPort);
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
-    robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
+    iCub::iDynTree::iCubTree_version_tag icub_version;
+    iCubVersionFromRf(rf,icub_version);
+    robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str(),icub_version);
     robotInterface->addJoints(ICUB_MAIN_JOINTS);
     robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE_SENSOR, LocalId(RIGHT_LEG,1));  // right ankle ft sens
     robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE_SENSOR, LocalId(LEFT_LEG,1));   // left ankle ft sens

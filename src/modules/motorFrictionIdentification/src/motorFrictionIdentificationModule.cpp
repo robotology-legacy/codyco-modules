@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -13,7 +13,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/ 
+*/
 
 #include <iostream>
 #include <sstream>
@@ -39,11 +39,44 @@ MotorFrictionIdentificationModule::MotorFrictionIdentificationModule()
     modulePeriod            = MODULE_PERIOD;
     threadPeriod            = 0;
 }
-    
+
+void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag & icub_version)
+{
+    //Checking iCub parts version
+    /// \todo this part should be replaced by a more general way of accessing robot parameters
+    ///       namely urdf for structure parameters and robotInterface xml (or runtime interface) to get available sensors
+    icub_version.head_version = 2;
+    if( rf.check("headV1") ) {
+        icub_version.head_version = 1;
+    }
+    if( rf.check("headV2") ) {
+        icub_version.head_version = 2;
+    }
+
+    icub_version.legs_version = 2;
+    if( rf.check("legsV1") ) {
+        icub_version.legs_version = 1;
+    }
+    if( rf.check("legsV2") ) {
+        icub_version.legs_version = 2;
+    }
+
+    /// \note if feet_version are 2, the presence of FT sensors in the feet is assumed
+    icub_version.feet_ft = true;
+    if( rf.check("feetV1") ) {
+        icub_version.feet_ft = false;
+    }
+    if( rf.check("feetV2") ) {
+        icub_version.feet_ft = true;
+    }
+}
+
 bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
-{		
+{
+
+
     //--------------------------PARAMETER HELPER--------------------------
-    paramHelper = new ParamHelperServer(motorFrictionIdentificationParamDescr, PARAM_ID_SIZE, 
+    paramHelper = new ParamHelperServer(motorFrictionIdentificationParamDescr, PARAM_ID_SIZE,
                                         motorFrictionIdentificationCommandDescr, COMMAND_ID_SIZE);
     paramHelper->linkParam(PARAM_ID_MODULE_NAME,    &moduleName);
     paramHelper->linkParam(PARAM_ID_CTRL_PERIOD,    &threadPeriod);
@@ -70,16 +103,20 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
 
     // Open ports for communicating with other modules
     if(!paramHelper->init(moduleName))
-    { 
-        fprintf(stderr, "Error while initializing parameter helper. Closing module.\n"); 
-        return false; 
+    {
+        fprintf(stderr, "Error while initializing parameter helper. Closing module.\n");
+        return false;
     }
     rpcPort.open(("/"+moduleName+"/rpc").c_str());
     setName(moduleName.c_str());
     attach(rpcPort);
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
-    robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
+    iCub::iDynTree::iCubTree_version_tag icub_version;
+    iCubVersionFromRf(rf,icub_version);
+    robotInterface = new icubWholeBodyInterface(moduleName.c_str(),
+                                                robotName.c_str(),
+                                                icub_version);
     ///< read the parameter "joint list" from configuration file to configure the WBI
     jointList.resize(paramHelper->getParamProxy(PARAM_ID_JOINT_LIST)->size);
     paramHelper->getParamProxy(PARAM_ID_JOINT_LIST)->linkToVariable(jointList.data());
@@ -95,48 +132,48 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
         ok = robotInterface->addJoint(lid);
         jointNames[i] = lid.description;
     }
-    
+
     if(!ok || !robotInterface->init())
-    { 
-        fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); 
-        return false; 
+    {
+        fprintf(stderr, "Error while initializing whole body interface. Closing module\n");
+        return false;
     }
-fprintf(stderr, "After initialize interface\n"); 
+fprintf(stderr, "After initialize interface\n");
     //--------------------------CTRL THREAD--------------------------
     identificationThread = new MotorFrictionIdentificationThread(moduleName, robotName, threadPeriod, paramHelper, robotInterface, torqueController);
     if(!identificationThread->start())
-    { 
-        fprintf(stderr, "Error while initializing motorFrictionIdentification control thread. Closing module.\n"); 
-        return false; 
+    {
+        fprintf(stderr, "Error while initializing motorFrictionIdentification control thread. Closing module.\n");
+        return false;
     }
-    
+
     fprintf(stderr,"MotorFrictionIdentification control started\n");
 	return true;
 }
 
-bool MotorFrictionIdentificationModule::respond(const Bottle& cmd, Bottle& reply) 
+bool MotorFrictionIdentificationModule::respond(const Bottle& cmd, Bottle& reply)
 {
     paramHelper->lock();
-	if(!paramHelper->processRpcCommand(cmd, reply)) 
-	    reply.addString( (string("Command ")+cmd.toString().c_str()+" not recognized.").c_str());
+    if(!paramHelper->processRpcCommand(cmd, reply))
+        reply.addString( (string("Command ")+cmd.toString().c_str()+" not recognized.").c_str());
     paramHelper->unlock();
 
     // if reply is empty put something into it, otherwise the rpc communication gets stuck
     if(reply.size()==0)
         reply.addString( (string("Command ")+cmd.toString().c_str()+" received.").c_str());
-	return true;	
+	return true;
 }
 
 void MotorFrictionIdentificationModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
 {
     switch(cd.id)
     {
-    case COMMAND_ID_HELP:   
-        paramHelper->getHelpMessage(reply);     
+    case COMMAND_ID_HELP:
+        paramHelper->getHelpMessage(reply);
         break;
-    case COMMAND_ID_QUIT:   
-        stopModule(); 
-        reply.addString("Quitting module.");    
+    case COMMAND_ID_QUIT:
+        stopModule();
+        reply.addString("Quitting module.");
         break;
     }
 }
@@ -149,28 +186,28 @@ bool MotorFrictionIdentificationModule::interruptModule()
 
 bool MotorFrictionIdentificationModule::close()
 {
-    ///< This method is called by the module thread, which is not the same managing the 
+    ///< This method is called by the module thread, which is not the same managing the
     ///< RPC calls
     if(identificationThread)
-    { 
+    {
         identificationThread->suspend();
-        identificationThread->stop(); 
-        delete identificationThread; 
-        identificationThread = 0; 
+        identificationThread->stop();
+        delete identificationThread;
+        identificationThread = 0;
     }
     if(paramHelper)
-    {          
-        paramHelper->close();         
-        delete paramHelper;          
-        paramHelper = 0;          
+    {
+        paramHelper->close();
+        delete paramHelper;
+        paramHelper = 0;
     }
     if(robotInterface)
-    { 
-        bool res=robotInterface->close();    
+    {
+        bool res=robotInterface->close();
         if(res)
             printf("Error while closing robot interface\n");
-        delete robotInterface;  
-        robotInterface = 0; 
+        delete robotInterface;
+        robotInterface = 0;
     }
 
 	//closing ports

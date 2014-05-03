@@ -15,7 +15,8 @@
  * Public License for more details
  */
 
-#include "wbiIcub/wholeBodyInterfaceIcub.h"
+#include "wbiIcub/icubWholeBodyStatesLocal.h"
+#include "wbiIcub/icubWholeBodySensors.h"
 #include <iCub/skinDynLib/common.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
@@ -24,6 +25,8 @@
 #include <yarp/os/Log.h>
 #include <iCub/iDynTree/yarp_kdl.h>
 #include <kdl/frames_io.hpp>
+
+#define INITIAL_TIMESTAMP -1000.0
 
 
 using namespace std;
@@ -50,13 +53,34 @@ using namespace iCub::ctrl;
 //                                          ICUB WHOLE BODY STATES
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-icubWholeBodyStatesLocal::icubWholeBodyStatesLocal(const char* _name, const char* _robotName, iCub::iDynTree::iCubTree_version_tag icub_version)
+icubWholeBodyStatesLocal::icubWholeBodyStatesLocal(const char* _name,
+                                                   const char* _robotName,
+                                                   iCub::iDynTree::iCubTree_version_tag icub_version,
+                                                   bool assume_fixed_base,
+                                                   std::string fixed_link
+                                                  )
 {
     sensors = new icubWholeBodySensors(_name, _robotName);              // sensor interface
     skin_contacts_port = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
     skin_contacts_port->open(string("/"+string(_name)+"/skin_contacts:i").c_str());
-    estimator = new icubWholeBodyDynamicsEstimator(ESTIMATOR_PERIOD, sensors, skin_contacts_port,icub_version);  // estimation thread
+    estimator = new icubWholeBodyDynamicsEstimator(ESTIMATOR_PERIOD, sensors, skin_contacts_port, icub_version, assume_fixed_base,fixed_link);  // estimation thread
 }
+
+#ifdef CODYCO_USES_URDFDOM
+icubWholeBodyStatesLocal::icubWholeBodyStatesLocal(const char* _name,
+                                                   const char* _robotName,
+                                                   iCub::iDynTree::iCubTree_version_tag icub_version,
+                                                   bool assume_fixed_base,
+                                                   std::string fixed_link,
+                                                   std::string urdf_file)
+{
+    sensors = new icubWholeBodySensors(_name, _robotName);              // sensor interface
+    skin_contacts_port = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
+    skin_contacts_port->open(string("/"+string(_name)+"/skin_contacts:i").c_str());
+    estimator = new icubWholeBodyDynamicsEstimator(ESTIMATOR_PERIOD, sensors, skin_contacts_port,icub_version,assume_fixed_base,urdf_file);  // estimation thread
+}
+
+#endif
 
 bool icubWholeBodyStatesLocal::init()
 {
@@ -390,8 +414,90 @@ int icubWholeBodyStatesLocal::lockAndGetSensorNumber(const SensorType st)
 icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period,
                                                                icubWholeBodySensors *_sensors,
                                                                yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
-                                                               iCub::iDynTree::iCubTree_version_tag _icub_version)
-: RateThread(_period), sensors(_sensors), port_skin_contacts(_port_skin_contacts), dqFilt(0), d2qFilt(0),  icub_version(_icub_version), enable_omega_domega_IMU(false)
+                                                               iCub::iDynTree::iCubTree_version_tag _icub_version,
+                                                               bool _assume_fixed_base,
+                                                               std::string _fixed_link
+                                                              )
+: RateThread(_period),
+   sensors(_sensors),
+   port_skin_contacts(_port_skin_contacts),
+   dqFilt(0), d2qFilt(0),
+   icub_version(_icub_version),
+   enable_omega_domega_IMU(false),
+   assume_fixed_base(_assume_fixed_base)
+{
+    #ifdef CODYCO_USES_URDFDOM
+    use_urdf = false;
+    #endif
+
+    resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
+    resizeFTs(sensors->getSensorNumber(SENSOR_FORCE_TORQUE));
+    resizeIMUs(sensors->getSensorNumber(SENSOR_IMU));
+
+    ///< Window lengths of adaptive window filters
+    dqFiltWL            = 16;
+    d2qFiltWL           = 25;
+    dTauJFiltWL         = 30;
+    dTauMFiltWL         = 30;
+    imuAngularAccelerationFiltWL = 25;
+
+    ///< Threshold of adaptive window filters
+    dqFiltTh            = 1.0;
+    d2qFiltTh           = 1.0;
+    dTauJFiltTh         = 0.2;
+    dTauMFiltTh         = 0.2;
+    imuAngularAccelerationFiltTh = 1.0;
+
+    ///< Cut frequencies
+    tauJCutFrequency    =   3.0;
+    tauMCutFrequency    =   3.0;
+    pwmCutFrequency     =   3.0;
+    imuLinearAccelerationCutFrequency = 3.0;
+    imuAngularVelocityCutFrequency    = 3.0;
+    imuMagnetometerCutFrequency       = 3.0;
+    forcetorqueCutFrequency           = 3.0;
+
+    ///< Skin timestamp
+    last_reading_skin_contact_list_Stamp = -1000.0;
+
+    if( assume_fixed_base )
+    {
+        if( _fixed_link == "root_link" )
+        {
+            fixed_link = FIXED_ROOT_LINK;
+        }
+        else if( _fixed_link == "l_sole" )
+        {
+            fixed_link = FIXED_L_SOLE;
+        }
+        else if( _fixed_link == "r_sole" )
+        {
+            fixed_link = FIXED_R_SOLE;
+        }
+        else
+        {
+            YARP_ASSERT(false);
+        }
+    }
+}
+
+#ifdef CODYCO_USES_URDFDOM
+icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period,
+                                                               icubWholeBodySensors *_sensors,
+                                                               yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
+                                                               iCub::iDynTree::iCubTree_version_tag _icub_version,
+                                                               bool _assume_fixed_base,
+                                                               std::string _fixed_link,
+                                                               std::string urdf_file )
+: RateThread(_period),
+   sensors(_sensors),
+   port_skin_contacts(_port_skin_contacts),
+   dqFilt(0), d2qFilt(0),
+   icub_version(_icub_version),
+   enable_omega_domega_IMU(false),
+   assume_fixed_base(_assume_fixed_base),
+   use_urdf(true),
+   urdf_file_name(urdf_file)
 {
     resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
     resizeFTs(sensors->getSensorNumber(SENSOR_FORCE_TORQUE));
@@ -422,7 +528,28 @@ icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period,
 
     ///< Skin timestamp
     last_reading_skin_contact_list_Stamp = -1000.0;
+
+    if( assume_fixed_base )
+    {
+        if( _fixed_link == "root_link" )
+        {
+            fixed_link = FIXED_ROOT_LINK;
+        }
+        else if( _fixed_link == "l_sole" )
+        {
+            fixed_link = FIXED_L_SOLE;
+        }
+        else if( _fixed_link == "r_sole" )
+        {
+            fixed_link = FIXED_R_SOLE;
+        }
+        else
+        {
+            YARP_ASSERT(false);
+        }
+    }
 }
+#endif
 
 bool icubWholeBodyDynamicsEstimator::threadInit()
 {
@@ -477,8 +604,52 @@ bool icubWholeBodyDynamicsEstimator::threadInit()
     imuAngularAccelerationFilt = new AWLinEstimator(imuAngularAccelerationFiltWL, imuAngularAccelerationFiltTh);
 
     //Allocation model
+    std::string fixed_link_name;
+    if( assume_fixed_base )
+    {
+        switch( fixed_link )
+        {
+            case FIXED_ROOT_LINK:
+                fixed_link_name = "root_link";
+            break;
+            case FIXED_R_SOLE:
+                fixed_link_name = "r_sole";
+            break;
+            case FIXED_L_SOLE:
+                fixed_link_name = "l_sole";
+            break;
+        }
+    }
     model_mutex.wait();
-    icub_model = new iCub::iDynTree::iCubTree(icub_version);
+    #ifdef CODYCO_USES_URDFDOM
+    if( use_urdf )
+    {
+        if( !assume_fixed_base )
+        {
+            icub_model = new iCub::iDynTree::iCubTree(urdf_file_name,icub_version);
+        }
+        else
+        {
+            icub_model = new iCub::iDynTree::iCubTree(urdf_file_name,icub_version,fixed_link_name);
+        }
+    }
+    else
+    {
+        if( !assume_fixed_base )
+        {
+            icub_model = new iCub::iDynTree::iCubTree(icub_version);
+        } else {
+            icub_model = new iCub::iDynTree::iCubTree(icub_version,fixed_link_name);
+        }
+    }
+    #else
+    if( !assume_fixed_base )
+    {
+        icub_model = new iCub::iDynTree::iCubTree(icub_version);
+    } else {
+        icub_model = new iCub::iDynTree::iCubTree(icub_version,fixed_link_name);
+    }
+    #endif
     model_mutex.post();
 
     //Find end effector ids
@@ -799,9 +970,29 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     assert(domega_used_IMU.size() == 3);
     assert(ddp_used_IMU.size() == 3);
 
-    if( !enable_omega_domega_IMU ) {
+    if( !enable_omega_domega_IMU )
+    {
         domega_used_IMU.zero();
         omega_used_IMU.zero();
+    }
+
+    double gravity = 9.8;
+
+    if( assume_fixed_base )
+    {
+        domega_used_IMU.zero();
+        omega_used_IMU.zero();
+        ddp_used_IMU.zero();
+        switch( fixed_link )
+        {
+            case FIXED_ROOT_LINK:
+                ddp_used_IMU[2] = gravity;
+            break;
+            case FIXED_L_SOLE:
+            case FIXED_R_SOLE:
+                ddp_used_IMU[0] = gravity;
+            break;
+        }
     }
 
     model_mutex.wait();
@@ -887,6 +1078,7 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     }
 
     //mutex.wait();
+
     estimatedLastSkinDynContacts = skinContacts;
 
     assert((int)tauJ.size() == icub_model->getNrOfDOFs());

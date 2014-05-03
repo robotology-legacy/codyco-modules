@@ -32,6 +32,8 @@
 #include <map>
 
 
+#include "wbiIcub/icubWholeBodySensors.h"
+
 namespace wbiIcub
 {
     /**
@@ -92,7 +94,10 @@ namespace wbiIcub
         double imuAngularAccelerationFiltTh;
         int imuAngularAccelerationFiltWL;
 
-
+        #ifdef CODYCO_USES_URDFDOM
+        bool use_urdf;
+        std::string urdf_file_name;
+        #endif
 
         yarp::sig::Vector           q, qStamps;         // last joint position estimation
         yarp::sig::Vector           tauJ, tauJStamps;
@@ -152,6 +157,9 @@ namespace wbiIcub
 
         //Data structures related to IMU used for dynamical model
         bool enable_omega_domega_IMU;
+
+        bool assume_fixed_base;
+        enum { FIXED_ROOT_LINK, FIXED_L_SOLE, FIXED_R_SOLE } fixed_link;
 
         yarp::sig::Vector omega_used_IMU;
         yarp::sig::Vector domega_used_IMU;
@@ -238,7 +246,21 @@ namespace wbiIcub
         icubWholeBodyDynamicsEstimator(int _period,
                                        icubWholeBodySensors *_sensors,
                                        yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
-                                       iCub::iDynTree::iCubTree_version_tag icub_version);
+
+                                       iCub::iDynTree::iCubTree_version_tag icub_version,
+                                       bool assume_fixed_base,
+                                       std::string fixed_link
+                                      );
+
+        #ifdef CODYCO_USES_URDFDOM
+        icubWholeBodyDynamicsEstimator(int _period,
+                                       icubWholeBodySensors *_sensors,
+                                       yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
+                                       iCub::iDynTree::iCubTree_version_tag icub_version,
+                                       bool assume_fixed_base,
+                                       std::string fixed_link,
+                                       const std::string urdf_file);
+        #endif
 
         bool lockAndSetEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
 
@@ -260,6 +282,7 @@ namespace wbiIcub
         bool lockAndCopyElementVectorFromVector(int i, const std::vector<yarp::sig::Vector> &src, double *dest);
         /** Take the mutex and copy the external force/torque acting on link sid */
         bool lockAndCopyExternalForceTorque(const wbi::LocalId & sid, double * dest);
+
 
 
     };
@@ -299,7 +322,23 @@ namespace wbiIcub
 
     public:
         // *** CONSTRUCTORS ***
-        icubWholeBodyStatesLocal(const char* _name, const char* _robotName, iCub::iDynTree::iCubTree_version_tag icub_version);
+        icubWholeBodyStatesLocal(const char* _name,
+                                 const char* _robotName,
+                                 iCub::iDynTree::iCubTree_version_tag icub_version,
+                                 bool assume_fixed_base,
+                                 std::string fixed_link
+                                );
+
+        #ifdef CODYCO_USES_URDFDOM
+        icubWholeBodyStatesLocal(const char* _name,
+                                 const char* _robotName,
+                                 iCub::iDynTree::iCubTree_version_tag icub_version,
+                                 bool assume_fixed_base,
+                                 std::string fixed_link,
+                                 const std::string urdf_file);
+
+        #endif
+
         inline virtual ~icubWholeBodyStatesLocal(){ close(); }
 
         virtual bool init();

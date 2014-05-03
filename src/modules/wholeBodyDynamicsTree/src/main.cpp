@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2014 Fondazione Istituto Italiano di Tecnologia - Italian Institute of Technology
  * Author: Silvio Traversaro
  * email:  silvio.traversaro@iit.it
@@ -34,13 +34,20 @@ using namespace yarp::sig;
 using namespace yarp::os;
 using namespace std;
 
+void iCubPartVersionOptionsPrint()
+{
+    cout<< "\t--headV1/headV2    :Version of the head."  <<endl;
+    cout<< "\t--legsV1/legsV2    :Version of the legs."  <<endl;
+    cout<< "\t--feetV1/feetV2    :Version of the feet."  <<endl;
+}
+
 int main (int argc, char * argv[])
 {
     //Creating and preparing the Resource Finder
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("default.ini");         //default config file name.
-    rf.setDefaultContext(DEFAULT_YARP_CONTEXT); //when no parameters are given to the module this is the default context    
+    rf.setDefaultContext(DEFAULT_YARP_CONTEXT); //when no parameters are given to the module this is the default context
     rf.configure(argc,argv);
 
     if (rf.check("help"))
@@ -50,15 +57,15 @@ int main (int argc, char * argv[])
         cout<< "\t--from             :Name of the file.ini to be used for calibration."                                                                                       <<endl;
         cout<< "\t--rate             :Period used by the module. Default set to 10ms."                                                                                        <<endl;
         cout<< "\t--robot            :Robot name. Set to icub by default."                                                                                  <<endl;
-        cout<< "\t--name             :Prefix of the ports opened by the module. Set to the module name by default, i.e. wholeBodyDynamicsTree."                                      <<endl;  
-        cout<< "\t--headV1/headV2    :Version of the head."  <<endl;        
-        cout<< "\t--legsV1/legsV2    :Version of the legs."  <<endl;        
-        cout<< "\t--feetV1/feetV2    :Version of the feet."  <<endl;
-        cout<< "\t--enable_w0_dw0/disable_w0_dw0    :Enable/disable use of angular velocity and acceleration measured from the IMU (default: disabled)." << endl; 
+        cout<< "\t--name             :Prefix of the ports opened by the module. Set to the module name by default, i.e. wholeBodyDynamicsTree."                                      <<endl;
+        iCubPartVersionOptionsPrint();
+        cout<< "\t--enable_w0_dw0/disable_w0_dw0    :Enable/disable use of angular velocity and acceleration measured from the IMU (default: disabled)." << endl;
         cout<< "\t--autoconnect      :Autoconnect torques port for low-level torque feedback. " << endl;
+        cout<< "\t--assume_fixed     :Use a link as a kinematic root in estimation (assuming a constant gravity). Possible options: (root_link, l_sole, r_sole)." <<endl;
+        cout<< "\t--assume_calibration_fixed_root :Use the root link as a kinematic root  in calibration (assuming constant gravity)." <<endl;
         return 0;
     }
-    
+
     Network yarp;
 
     if (!yarp.checkNetwork())
