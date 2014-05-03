@@ -73,6 +73,14 @@ public:
  * @return true/false on success/failure
  */
   virtual bool quit();
+
+  /**
+ * Save the estimated inertial parameters in a URDF file.
+ * @param fileName the name of the save file.
+ * @param robotName the name of the robot model in the URDF file.
+ * @return true/false on success/failure
+ */
+  virtual bool saveURDF(const std::string& fileName, const std::string& robotName = "test_icub");
 };
 
 

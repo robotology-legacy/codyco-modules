@@ -46,6 +46,30 @@ public:
   }
 };
 
+class staticInertiaIdentification_IDLServer_saveURDF : public yarp::os::Portable {
+public:
+  std::string fileName;
+  std::string robotName;
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(3)) return false;
+    if (!writer.writeTag("saveURDF",1,1)) return false;
+    if (!writer.writeString(fileName)) return false;
+    if (!writer.writeString(robotName)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
 class staticInertiaIdentification_IDLServer_quit : public yarp::os::Portable {
 public:
   bool _return;
@@ -84,6 +108,17 @@ bool staticInertiaIdentification_IDLServer::stop() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool staticInertiaIdentification_IDLServer::saveURDF(const std::string& fileName, const std::string& robotName) {
+  bool _return = false;
+  staticInertiaIdentification_IDLServer_saveURDF helper;
+  helper.fileName = fileName;
+  helper.robotName = robotName;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool staticInertiaIdentification_IDLServer::saveURDF(const std::string& fileName, const std::string& robotName)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 bool staticInertiaIdentification_IDLServer::quit() {
   bool _return = false;
   staticInertiaIdentification_IDLServer_quit helper;
@@ -115,6 +150,26 @@ bool staticInertiaIdentification_IDLServer::read(yarp::os::ConnectionReader& con
     if (tag == "stop") {
       bool _return;
       _return = stop();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "saveURDF") {
+      std::string fileName;
+      std::string robotName;
+      if (!reader.readString(fileName)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readString(robotName)) {
+        robotName = "test_icub";
+      }
+      bool _return;
+      _return = saveURDF(fileName,robotName);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -170,6 +225,7 @@ std::vector<std::string> staticInertiaIdentification_IDLServer::help(const std::
     helpString.push_back("*** Available commands:");
     helpString.push_back("start");
     helpString.push_back("stop");
+    helpString.push_back("saveURDF");
     helpString.push_back("quit");
     helpString.push_back("help");
   }
@@ -182,6 +238,13 @@ std::vector<std::string> staticInertiaIdentification_IDLServer::help(const std::
     if (functionName=="stop") {
       helpString.push_back("bool stop() ");
       helpString.push_back("stop the estimation. ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="saveURDF") {
+      helpString.push_back("bool saveURDF(const std::string& fileName, const std::string& robotName = \"test_icub\") ");
+      helpString.push_back("Save the estimated inertial parameters in a URDF file. ");
+      helpString.push_back("@param fileName the name of the save file. ");
+      helpString.push_back("@param robotName the name of the robot model in the URDF file. ");
       helpString.push_back("@return true/false on success/failure ");
     }
     if (functionName=="quit") {

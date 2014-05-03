@@ -8,6 +8,7 @@ PROJECT(${PROJECTNAME})
 
 find_package(YARP)
 find_package(ICUB)
+find_package(TinyXML REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
@@ -26,6 +27,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${EIGEN3_INCLUDE_DIR}
                     ${iDynTree_INCLUDE_DIRS}
                     ${orocos_kdl_INCLUDE_DIRS}
+                    ${TinyXML_INCLUDE_DIRS}
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
@@ -41,7 +43,7 @@ yarp_idl_to_dir(staticInertiaIdentification.thrift ${generated_libs_dir})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} wholeBodyInterface wholeBodyInterfaceIcub iDynTree)
+TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES}  ${TinyXML_LIBRARIES} wholeBodyInterface wholeBodyInterfaceIcub iDynTree ${kdl_format_io_LIBRARIES})
 
 INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
 

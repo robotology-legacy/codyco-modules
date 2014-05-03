@@ -107,10 +107,18 @@ class staticInertiaIdentificationThread: public RateThread
     //Flags
     bool is_static_sample;
     bool is_sample_a_new_pose;
+    bool is_external_contact_sample;
+    bool estimation_disabled_for_external_contact;
+
+    //Timestamps
+    double timestamp_of_last_external_contact;
 
     //Threshold
     double velocity_static_threshold;
     double position_norm_threshold;
+
+    //Ports
+    BufferedPort<iCub::skinDynLib::skinContactList> *port_skin_contacts;
 
     bool configureRegressorGenerator();
 
@@ -125,7 +133,11 @@ class staticInertiaIdentificationThread: public RateThread
     bool isSamplePositionDifferent(const KDL::CoDyCo::Regressors::DynamicSample & sample,
                                    const KDL::JntArray & previous_position);
 
+    bool isSampleCorruptedByExternalContact();
+
     bool useCurrentSampleForIdentification();
+
+    void closePort(Contactable *_port);
 
 
 public:
@@ -144,6 +156,9 @@ public:
 
     bool startEstimation();
     bool stopEstimation();
+
+    bool saveURDF(const std::string & urdf_filename, const std::string & robotName);
+
 
 };
 

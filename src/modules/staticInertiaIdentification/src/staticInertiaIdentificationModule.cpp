@@ -283,4 +283,8 @@ bool staticInertiaIdentificationModule::quit()
     return this->close();
 }
 
+bool staticInertiaIdentificationModule::saveURDF(const std::string& fileName, const std::string& robotName)
+{
+    return siiThread->saveURDF(fileName,robotName);
+}
 

@@ -24,6 +24,9 @@
 
 #include <string.h>
 
+#include <urdf_parser/urdf_parser.h>
+#include <urdf_model/model.h>
+#include <kdl_format_io/urdf_export.hpp>
 
 using namespace yarp::math;
 using namespace yarp::sig;
@@ -54,6 +57,9 @@ staticInertiaIdentificationThread::staticInertiaIdentificationThread(string _nam
        maxNrOfSamplesForPose(10),
        is_static_sample(false),
        is_sample_a_new_pose(false),
+       is_external_contact_sample(false),
+       estimation_disabled_for_external_contact(false),
+       timestamp_of_last_external_contact(-1000.0),
        velocity_static_threshold(0.0),
        position_norm_threshold(0.0)
 {
@@ -268,6 +274,11 @@ bool staticInertiaIdentificationThread::threadInit()
     singular_value_buffer.resize(identificable_subspace_basis.cols());
     singular_vectors_buffer.resize(identificable_subspace_basis.cols(),identificable_subspace_basis.cols());
 
+    //Open ports
+    port_skin_contacts = new BufferedPort<skinContactList>;
+    std::string local_name = opts.find("name").asString().c_str();
+    port_skin_contacts->open(string("/"+local_name+"/skin_contacts:i").c_str());
+
     //Start in not estimating mode
     thread_state = NOT_ESTIMATING;
 
@@ -317,6 +328,7 @@ void staticInertiaIdentificationThread::run()
     //Compute flags
     is_static_sample = isSampleStatic(*robot_status);
     is_sample_a_new_pose = isSamplePositionDifferent(*robot_status,last_joint_position_used_for_identification);
+    is_external_contact_sample = isSampleCorruptedByExternalContact();
 
     if( useCurrentSampleForIdentification() )
     {
@@ -350,6 +362,7 @@ bool staticInertiaIdentificationThread::useCurrentSampleForIdentification()
     if(    thread_state == ESTIMATING
         && is_static_sample
         && ( is_sample_a_new_pose || currentPoseSampleCount < maxNrOfSamplesForPose )
+        && !is_external_contact_sample
       )
     {
         return true;
@@ -385,6 +398,31 @@ bool staticInertiaIdentificationThread::isSamplePositionDifferent(const KDL::CoD
     }
 }
 
+bool staticInertiaIdentificationThread::isSampleCorruptedByExternalContact()
+{
+    skinContactList *scl = port_skin_contacts->read(false);
+    if( !scl || scl->empty() )
+    {
+        if( estimation_disabled_for_external_contact )
+        {
+            if( fabs(yarp::os::Time::now()-timestamp_of_last_external_contact) < 1.0 )
+            {
+                return true;
+            } else {
+                estimation_disabled_for_external_contact = false;
+                return false;
+            }
+        }
+        return false;
+    }
+
+    //Contact found, disabling estimation for a second
+    estimation_disabled_for_external_contact = true;
+    timestamp_of_last_external_contact = yarp::os::Time::now();
+
+    return true;
+}
+
 
 void staticInertiaIdentificationThread::printStatus()
 {
@@ -413,6 +451,10 @@ void staticInertiaIdentificationThread::printStatus()
         else
         {
             std::cout << "Robot is not in a new pose. " << std::endl;
+        }
+        if( is_external_contact_sample )
+        {
+            std::cout << "The robot is in contact with something with the skin, temporarly disabling identification" << std::endl;
         }
 
         std::cout << "Pose acquired    : " << poseCount << std::endl;
@@ -453,6 +495,7 @@ void staticInertiaIdentificationThread::threadRelease()
     run_mutex.lock();
     delete icub_regressor_generator; icub_regressor_generator = 0;
     delete robot_status; robot_status = 0;
+    closePort(port_skin_contacts);
     run_mutex.unlock();
 }
 
@@ -474,9 +517,60 @@ bool staticInertiaIdentificationThread::stopEstimation()
     return true;
 }
 
+//*****************************************************************************
+bool staticInertiaIdentificationThread::saveURDF(const std::string & urdf_filename, const std::string & robotName)
+{
+    Eigen::VectorXd model_regressor_parameters(icub_regressor_generator->getNrOfParameters());
+    Eigen::VectorXd estimated_base_parameters(parameter_estimator.getParamSize());
+    run_mutex.lock();
+    //We have to compose the existing parameters with the one already in the model,
+    //considering that we are only estimating the base parameters for the given regressor
+    estimated_base_parameters = parameter_estimator.getParameterEstimate();
+
+    icub_regressor_generator->getModelParameters(model_regressor_parameters);
+    run_mutex.unlock();
+
+    //Create a new urdf data structure
+    boost::shared_ptr<urdf::ModelInterface> icub_ptr(new urdf::ModelInterface);
+
+
+    int nr_of_base_parameters = identificable_subspace_basis.cols();
+    Eigen::MatrixXd not_identifiable_subspace_projector =
+        Eigen::MatrixXd::Identity(nr_of_base_parameters,nr_of_base_parameters)
+        - identificable_subspace_basis*identificable_subspace_basis.transpose();
+
+    Eigen::VectorXd estimated_parameters =
+         identificable_subspace_basis*estimated_base_parameters
+         + not_identifiable_subspace_projector*model_regressor_parameters;
+
+    KDL::CoDyCo::UndirectedTree identified_undirect_tree_model;
+
+    icub_regressor_generator->getUpdatedModel(estimated_parameters,identified_undirect_tree_model);
+
+    KDL::Tree identified_tree_model = identified_undirect_tree_model.getTree();
+
+    bool success = kdl_format_io::treeToUrdfModel(identified_tree_model,robotName,*icub_ptr);
+
+    if( !success )
+    {
+        std::cout << "staticInertiaIdentification saveURDF: error in KDL - URDF conversion. " << std::endl;
+        return false;
+    }
+
+    TiXmlDocument* xml_doc = urdf::exportURDF(icub_ptr);
+    success = xml_doc->SaveFile(urdf_filename);
+
+    if( !success )
+    {
+        std::cout << "staticInertiaIdentification saveURDF: error in saving " << urdf_filename << " URDF file. " << std::endl;
+        return false;
+    }
+
+    return success;
+}
+
 
 //*****************************************************************************
-/*
 void staticInertiaIdentificationThread::closePort(Contactable *_port)
 {
     if (_port)
@@ -487,7 +581,7 @@ void staticInertiaIdentificationThread::closePort(Contactable *_port)
         delete _port;
         _port = 0;
     }
-}*/
+}
 
 //*****************************************************************************
 /*
