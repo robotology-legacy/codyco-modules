@@ -20,24 +20,64 @@
 #include "ReferenceGenerator.h"
 #include "ReferenceGeneratorInputReaderImpl.h"
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <yarp/os/Port.h>
+
+#include <paramHelp/paramHelperServer.h>
+#include "ParamHelperConfig.h"
 
 namespace codyco {
     namespace torquebalancing {
         
-        TorqueBalancingModule::TorqueBalancingModule(std::string moduleName, std::string robotName)
+        TorqueBalancingModule::TorqueBalancingModule()
         : m_referenceThreadPeriod(10)
         , m_controllerThreadPeriod(10)
-        , m_moduleName(moduleName)
-        , m_robotName(robotName)
         , m_robot(0)
         , m_world2BaseFrame(0)
         , m_controller(0)
-        , m_references(0) {}
+        , m_references(0)
+        , m_parameterServer(0)
+        , m_rpcPort(0) {}
         
         TorqueBalancingModule::~TorqueBalancingModule() { cleanup(); }
         
         bool TorqueBalancingModule::configure(yarp::os::ResourceFinder& rf)
         {
+            //PARAMETERS SECTION
+            //Creating parameter server
+            m_parameterServer = new paramHelp::ParamHelperServer(TorqueBalancingModuleParameterDescriptions,
+                                                                 TorqueBalancingModuleParameterSize,
+                                                                 TorqueBalancingModuleCommandDescriptions,
+                                                                 TorqueBalancingModuleCommandSize);
+            if (!m_parameterServer) {
+                return false;
+            }
+            
+            bool linkedVariable = true;
+            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterModuleName, &m_moduleName);
+            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterRobotName, &m_robotName);
+            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterPeriod, &m_controllerThreadPeriod);
+            
+            if (!linkedVariable) {
+                return false;
+            }
+            
+            yarp::os::Bottle replyBottle;
+            m_parameterServer->initializeParams(rf, replyBottle);
+            
+            if (!m_parameterServer->init(m_moduleName)) {
+                return false;
+            }
+            
+            //END PARAMETER SECTION
+            
+            m_rpcPort = new yarp::os::Port();
+            if (!m_rpcPort
+                || !m_rpcPort->open(("/" + m_moduleName + "/rpc").c_str())) {
+                return false;
+            }
+            setName(m_moduleName.c_str());
+            attach(*m_rpcPort);
+            
             //Create reference variable
             m_references = new ControllerReferences();
             if (!m_references) {
@@ -134,6 +174,19 @@ namespace codyco {
         
         void TorqueBalancingModule::cleanup()
         {
+            //Close parameter server
+            if (m_parameterServer) {
+                m_parameterServer->close();
+                delete m_parameterServer;
+                m_parameterServer = 0;
+            }
+            
+            if (m_rpcPort) {
+                m_rpcPort->close();
+                delete m_rpcPort;
+                m_rpcPort = 0;
+            }
+            
             //close controller thread
             if (m_controller) {
                 m_controller->stop();

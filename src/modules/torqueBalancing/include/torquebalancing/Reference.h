@@ -39,7 +39,7 @@ namespace codyco {
              * Before using the value is some computation check if it is valid or not.
              * @return the current value
              */
-            Eigen::VectorXd& value();
+            const Eigen::VectorXd& value();
             
             /** Sets the value for the current reference.
              * The state of the reference automatically switch to active.
@@ -94,6 +94,7 @@ namespace codyco {
              * @return desired Hands force (12 dim)
              */
             Reference& desiredHandsForce();
+            
         private:
             Reference m_desiredCOMAcceleration;
             Reference m_desiredHandsPosition;

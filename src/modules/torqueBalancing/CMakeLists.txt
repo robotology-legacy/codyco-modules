@@ -21,7 +21,8 @@ set(HEADERS    ${HEADERS_FOLDER}/TorqueBalancingModule.h
                ${HEADERS_FOLDER}/ReferenceGenerator.h
                ${HEADERS_FOLDER}/ReferenceGeneratorInputReaderImpl.h
                ${HEADERS_FOLDER}/Reference.h
-               ${HEADERS_FOLDER}/config.h)
+               ${HEADERS_FOLDER}/config.h
+               ${HEADERS_FOLDER}/ParamHelperConfig.h)
 
 set(SOURCES    ${SRC_FOLDER}/TorqueBalancingModule.cpp
                ${SRC_FOLDER}/TorqueBalancingController.cpp
@@ -40,11 +41,7 @@ include_directories(${HEADERS_FOLDER}
                     ${codyco_commons_INCLUDE_DIRS}
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
-                    # ${iDynTree_INCLUDE_DIRS}
-                    # ${orocos_kdl_INCLUDE_DIRS}
-                    # ${kdl_codyco_INCLUDE_DIRS}
-                    # ${skinDynLib_INCLUDE_DIRS}
-                    # ${ctrlLib_INCLUDE_DIRS}
+                    ${paramHelp_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
                     ${YARP_INCLUDE_DIRS})
@@ -55,6 +52,7 @@ target_link_libraries(  ${PROJECT_NAME}
                         codyco_commons
                         wholeBodyInterface
                         wholeBodyInterfaceIcub
+                        paramHelp
                         ${YARP_LIBRARIES})
 
 # install(TARGETS ${PROJECTNAME} DESTINATION bin)

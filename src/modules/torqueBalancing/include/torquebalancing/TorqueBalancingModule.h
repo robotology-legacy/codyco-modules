@@ -21,9 +21,20 @@
 #include <vector>
 #include <string>
 
+namespace paramHelp {
+    class ParamHelperServer;
+}
+
+
 namespace wbi {
     class wholeBodyInterface;
     class Frame;
+}
+
+namespace yarp {
+    namespace os {
+        class Port;
+    }
 }
 
 namespace codyco {
@@ -40,7 +51,7 @@ namespace codyco {
         class TorqueBalancingModule : public yarp::os::RFModule
         {
         public:
-            TorqueBalancingModule(std::string moduleName, std::string robotName);
+            TorqueBalancingModule();
             virtual ~TorqueBalancingModule();
           
             virtual bool configure(yarp::os::ResourceFinder& resourceFinder);
@@ -65,6 +76,10 @@ namespace codyco {
             
             std::vector<ReferenceGeneratorInputReader*> m_generatorReaders;
             std::vector<ReferenceGenerator*> m_referenceGenerators;
+            
+            paramHelp::ParamHelperServer* m_parameterServer;
+            
+            yarp::os::Port* m_rpcPort;
         };
     }
 }

@@ -25,13 +25,13 @@ namespace codyco {
         COMReader::COMReader(wbi::wholeBodyInterface& robot, const wbi::Frame& world2BaseFrame)
         : m_robot(robot)
         , m_world2BaseFrame(world2BaseFrame)
-        , m_jointsPosition(TOTAL_DOFS)
-        , m_jointsVelocity(TOTAL_DOFS)
+        , m_jointsPosition(totalDOFs)
+        , m_jointsVelocity(totalDOFs)
         , m_comPosition(7)
         , m_comVelocity(7)
         , m_outputSignal(3)
         , m_outputSignalDerivative(3)
-        , m_jacobian(7, TOTAL_DOFS) {}
+        , m_jacobian(7, totalDOFs) {}
         
         COMReader::~COMReader() {}
         
@@ -46,14 +46,14 @@ namespace codyco {
             m_outputSignalDerivative = (m_jacobian * m_comVelocity).head(3);
         }
         
-        Eigen::VectorXd& COMReader::getSignal()
+        const Eigen::VectorXd& COMReader::getSignal()
         {
             //TODO: Optimize call to status. For example asking for a "context" variable in input If it is different from the last one update the status.
             updateStatus();
             return m_outputSignal;
         }
         
-        Eigen::VectorXd& COMReader::getSignalDerivative()
+        const Eigen::VectorXd& COMReader::getSignalDerivative()
         {
             updateStatus();
             return m_outputSignalDerivative;
@@ -65,11 +65,11 @@ namespace codyco {
         HandsPositionReader::HandsPositionReader(wbi::wholeBodyInterface& robot, const wbi::Frame& world2BaseFrame)
         : m_robot(robot)
         , m_world2BaseFrame(world2BaseFrame)
-        , m_jointsPosition(TOTAL_DOFS)
-        , m_jointsVelocity(TOTAL_DOFS)
+        , m_jointsPosition(totalDOFs)
+        , m_jointsVelocity(totalDOFs)
         , m_outputSignal(14)
         , m_outputSignalDerivative(14)
-        , m_jacobian(14, TOTAL_DOFS) {}
+        , m_jacobian(14, totalDOFs) {}
         
         HandsPositionReader::~HandsPositionReader() {}
         
@@ -83,13 +83,13 @@ namespace codyco {
             m_robot.computeJacobian(m_jointsPosition.data(), m_world2BaseFrame, m_leftHandLinkID, m_jacobian.bottomRows(7).data());
         }
         
-        Eigen::VectorXd& HandsPositionReader::getSignal()
+        const Eigen::VectorXd& HandsPositionReader::getSignal()
         {
             updateStatus();
             return m_outputSignal;
         }
         
-        Eigen::VectorXd& HandsPositionReader::getSignalDerivative()
+        const Eigen::VectorXd& HandsPositionReader::getSignalDerivative()
         {
             updateStatus();
             return m_outputSignalDerivative;
@@ -101,8 +101,8 @@ namespace codyco {
         HandsForceReader::HandsForceReader(wbi::wholeBodyInterface& robot, const wbi::Frame& world2BaseFrame)
         : m_robot(robot)
         , m_world2BaseFrame(world2BaseFrame)
-        , m_jointsPosition(TOTAL_DOFS)
-        , m_jointsVelocity(TOTAL_DOFS)
+        , m_jointsPosition(totalDOFs)
+        , m_jointsVelocity(totalDOFs)
         , m_outputSignal(12)
         , m_outputSignalDerivative(12) {}
         
@@ -117,13 +117,13 @@ namespace codyco {
 //            m_outputSignal = m_comPosition.head(3);
         }
         
-        Eigen::VectorXd& HandsForceReader::getSignal()
+        const Eigen::VectorXd& HandsForceReader::getSignal()
         {
             updateStatus();
             return m_outputSignal;
         }
         
-        Eigen::VectorXd& HandsForceReader::getSignalDerivative()
+        const Eigen::VectorXd& HandsForceReader::getSignalDerivative()
         {
             updateStatus();
             return m_outputSignalDerivative;

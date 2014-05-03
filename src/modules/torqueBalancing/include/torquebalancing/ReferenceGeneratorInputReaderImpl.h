@@ -47,8 +47,8 @@ namespace codyco {
             COMReader(wbi::wholeBodyInterface& robot, const wbi::Frame& world2BaseFrame);
             
             virtual ~COMReader();
-            virtual Eigen::VectorXd& getSignal();
-            virtual Eigen::VectorXd& getSignalDerivative();
+            virtual const Eigen::VectorXd& getSignal();
+            virtual const Eigen::VectorXd& getSignalDerivative();
             virtual int signalSize() const;
             
         };
@@ -72,8 +72,8 @@ namespace codyco {
         public:
             HandsPositionReader(wbi::wholeBodyInterface& robot, const wbi::Frame& world2BaseFrame);
             virtual ~HandsPositionReader();
-            virtual Eigen::VectorXd& getSignal();
-            virtual Eigen::VectorXd& getSignalDerivative();
+            virtual const Eigen::VectorXd& getSignal();
+            virtual const Eigen::VectorXd& getSignalDerivative();
             virtual int signalSize() const;
         };
         
@@ -92,8 +92,8 @@ namespace codyco {
             HandsForceReader(wbi::wholeBodyInterface& robot, const wbi::Frame& world2BaseFrame);
             
             virtual ~HandsForceReader();
-            virtual Eigen::VectorXd& getSignal();
-            virtual Eigen::VectorXd& getSignalDerivative();
+            virtual const Eigen::VectorXd& getSignal();
+            virtual const Eigen::VectorXd& getSignalDerivative();
             virtual int signalSize() const;
             
         };

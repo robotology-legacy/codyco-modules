@@ -19,6 +19,8 @@
 
 #include <yarp/os/RateThread.h>
 #include <Eigen/Core>
+#include <cmath>
+#include <yarp/os/Mutex.h>
 
 namespace wbi {
     class wholeBodyIterface;
@@ -52,17 +54,60 @@ namespace codyco {
             virtual void threadRelease();
             virtual void run();
             
-            Eigen::VectorXd& signalReference();
-            void setSignalReference(Eigen::VectorXd& reference);
+            const Eigen::VectorXd& signalReference();
+            void setSignalReference(const Eigen::VectorXd& reference);
             
-            Eigen::VectorXd signalDerivativeReference();
-            void setSignalDerivativeReference(Eigen::VectorXd& derivativeReference);
+            const Eigen::VectorXd signalDerivativeReference();
+            void setSignalDerivativeReference(const Eigen::VectorXd& derivativeReference);
             
-            Eigen::VectorXd& signalFeedForward();
-            void setSignalFeedForward(Eigen::VectorXd& reference);
+            const Eigen::VectorXd& signalFeedForward();
+            void setSignalFeedForward(const Eigen::VectorXd& feedforward);
             
+            /** Sets all the controller references at once.
+             *
+             * Use this method if you need to set all the references of the controller.
+             * @param reference the reference of the signal
+             * @param derivativeReference the reference of the derivative of the signal
+             * @param feedforward the feedforward term
+             */
+            void setAllReferences(const Eigen::VectorXd& reference,
+                                  const Eigen::VectorXd& derivativeReference,
+                                  const Eigen::VectorXd& feedforward);
+            
+            /** Sets the state of the controller.
+             *
+             * If the state is active the controller start to compute and to update the trajectory. If false the controller does nothing.
+             * If the controller is already in the state requested as input the command is ignored.
+             * @param isActive the new state of the controller
+             */
             void setActiveState(bool isActive);
             bool isActiveState();
+            
+            const Eigen::VectorXd& proportionalGains();
+            void setProportionalGains(const Eigen::VectorXd& proportionalGains);
+            
+            const Eigen::VectorXd& derivativeGains();
+            void setDerivativeGains(const Eigen::VectorXd& derivativeGains);
+            
+            const Eigen::VectorXd& integralGains();
+            void setIntegralGains(const Eigen::VectorXd& integralGains);
+            
+            double integralLimit();
+            void setIntegralLimit(double integralLimit);
+            
+            /** Sets all gain for the PID controller.
+             *
+             * This function sets all the gains of the controller in one shot.
+             * If the new integral limit is NAN (C99 cmath constant) then it is ignored. Pass std::numeric_limits<double>::max() to disable integral limit.
+             * @param proportionalGains the new proportional gains
+             * @param derivativeGains the new derivative gains
+             * @param integralGains the new integral gains.
+             * @param integralLimit the new integral limit or NAN to ignore it
+             */
+            void setAllGains(const Eigen::VectorXd& proportionalGains,
+                             const Eigen::VectorXd& derivativeGains,
+                             const Eigen::VectorXd& integralGains,
+                             double integralLimit = NAN);
             
         private:
             
@@ -78,19 +123,23 @@ namespace codyco {
             Eigen::VectorXd m_derivativeGains;
             Eigen::VectorXd m_integralGains;
             
+            double m_integralLimit;
+            
             Eigen::VectorXd m_signalReference;
             Eigen::VectorXd m_signalDerivativeReference;
             Eigen::VectorXd m_signalFeedForward;
             
             double m_previousTime;
             bool m_active;
+            
+            yarp::os::Mutex m_mutex;
         };
         
         class ReferenceGeneratorInputReader {
         public:
             virtual ~ReferenceGeneratorInputReader();
-            virtual Eigen::VectorXd& getSignal() = 0;
-            virtual Eigen::VectorXd& getSignalDerivative() = 0;
+            virtual const Eigen::VectorXd& getSignal() = 0;
+            virtual const Eigen::VectorXd& getSignalDerivative() = 0;
             virtual int signalSize() const = 0;
         };
 

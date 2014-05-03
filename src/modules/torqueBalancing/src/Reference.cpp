@@ -31,7 +31,7 @@ namespace codyco {
         
         Reference::~Reference() {}
         
-        Eigen::VectorXd& Reference::value()
+        const Eigen::VectorXd& Reference::value()
         {
             codyco::LockGuard guard(m_lock);
             return m_value;
