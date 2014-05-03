@@ -178,7 +178,7 @@ bool LocomotionThread::readRobotStatus(bool blockingRead)
     // read joint angles
     bool res =   robot->getEstimates(ESTIMATE_JOINT_POS,    qRad.data(),    -1.0, blockingRead);
     res = res && robot->getEstimates(ESTIMATE_JOINT_VEL,    dqJ.data(),     -1.0, blockingRead);
-    res = res && robot->getEstimates(ESTIMATE_FORCE_TORQUE, ftSens.data(),  -1.0, blockingRead);
+    res = res && robot->getEstimates(ESTIMATE_FORCE_TORQUE_SENSOR, ftSens.data(),  -1.0, blockingRead);
     qDeg = CTRL_RAD2DEG*qRad;
 
     // base orientation conversion

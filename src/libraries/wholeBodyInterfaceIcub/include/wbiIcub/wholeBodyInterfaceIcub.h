@@ -38,7 +38,6 @@
 #include "wbiIcub/icubWholeBodySensors.h"
 #include "wbiIcub/icubWholeBodyStates.h"
 #include "wbiIcub/icubWholeBodyStatesLocal.h"
-#include "wbiIcub/icubWholeBodyStatesRemote.h"
 
 /* CODE UNDER DEVELOPMENT */
 
@@ -115,6 +114,10 @@ namespace wbiIcub
         { return stateInt->getEstimates(et, data, time, blocking); }
         virtual bool setEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value)
         { return stateInt->setEstimationParameter(et, ep, value); }
+        virtual bool setWorldBasePosition(const wbi::Frame & xB)
+        {
+            return stateInt->setWorldBasePosition(xB);
+        }
 
         // MODEL
         virtual int getDoFs(){ return modelInt->getDoFs(); }

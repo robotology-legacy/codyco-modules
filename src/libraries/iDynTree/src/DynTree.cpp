@@ -1226,6 +1226,7 @@ bool DynTree::getCentroidalMomentumJacobian(yarp::sig::Matrix & momentum_jac)
         momentum_jac.resize(6,6+undirected_tree.getNrOfDOFs());
     }
 
+
     momentum_jac.zero();
     SetToZero(momentum_jacobian);
     SetToZero(momentum_jac_buffer);

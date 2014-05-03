@@ -23,7 +23,7 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 
 SET(folder_source src/wbiIcubUtil.cpp
-                  src/icubWholeBodyInterface.cpp 
+                  src/icubWholeBodyInterface.cpp
                   src/icubWholeBodyModel.cpp
                   src/icubWholeBodyStates.cpp
                   src/icubWholeBodyStatesLocal.cpp
@@ -33,12 +33,11 @@ SET(folder_header include/wbiIcub/wholeBodyInterfaceIcub.h
                   include/wbiIcub/icubWholeBodyModel.h
                   include/wbiIcub/icubWholeBodyStates.h
                   include/wbiIcub/icubWholeBodyStatesLocal.h
-                  include/wbiIcub/icubWholeBodyStatesRemote.h
                   include/wbiIcub/icubWholeBodyActuators.h
-                  include/wbiIcub/icubWholeBodySensors.h 
+                  include/wbiIcub/icubWholeBodySensors.h
                   include/wbiIcub/wbiIcubUtil.h)
 
-if(CODYCO_USES_URDFDOM) 
+if(CODYCO_USES_URDFDOM)
     SET(folder_source ${folder_source}
                       src/yarpWholeBodyInterface.cpp)
     SET(folder_header ${folder_header}
@@ -65,11 +64,11 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
-                    ${YARP_INCLUDE_DIRS}) 
+                    ${YARP_INCLUDE_DIRS})
 
 ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} 
+TARGET_LINK_LIBRARIES(${PROJECTNAME}
                         wholeBodyInterface
                         iDynTree
                         paramHelp #this is a temporary requirement

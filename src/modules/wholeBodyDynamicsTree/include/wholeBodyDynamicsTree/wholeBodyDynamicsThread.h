@@ -92,28 +92,23 @@ class wholeBodyDynamicsThread: public RateThread
     BufferedPort<Bottle> *port_TOTorques;
     BufferedPort<Bottle> *port_HDTorques;
 
-    /*
+
     BufferedPort<Vector> *port_external_wrench_RA;
     BufferedPort<Vector> *port_external_wrench_LA;
     BufferedPort<Vector> *port_external_wrench_RL;
     BufferedPort<Vector> *port_external_wrench_LL;
-    BufferedPort<Vector> *port_external_wrench_RF;
-    BufferedPort<Vector> *port_external_wrench_LF;
 
     BufferedPort<Vector> *port_external_cartesian_wrench_RA;
     BufferedPort<Vector> *port_external_cartesian_wrench_LA;
     BufferedPort<Vector> *port_external_cartesian_wrench_RL;
     BufferedPort<Vector> *port_external_cartesian_wrench_LL;
-    BufferedPort<Vector> *port_external_cartesian_wrench_RF;
-    BufferedPort<Vector> *port_external_cartesian_wrench_LF;
+
 
     BufferedPort<Vector> *port_sensor_wrench_RL;
     BufferedPort<Vector> *port_sensor_wrench_LL;
     BufferedPort<Vector> *port_model_wrench_RL;
     BufferedPort<Vector> *port_model_wrench_LL;
 
-    BufferedPort<Vector> *port_external_wrench_TO;
-    */
 
     BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts;
 
@@ -124,10 +119,12 @@ class wholeBodyDynamicsThread: public RateThread
     */
 
     // ports outputing the external dynamics seen at the F/T sensor
+    /*
     BufferedPort<Vector> *port_external_ft_arm_left;
     BufferedPort<Vector> *port_external_ft_arm_right;
     BufferedPort<Vector> *port_external_ft_leg_left;
     BufferedPort<Vector> *port_external_ft_leg_right;
+    */
     yarp::os::Stamp timestamp;
 
     template <class T> void broadcastData(T& _values, BufferedPort<T> *_port);
@@ -135,6 +132,8 @@ class wholeBodyDynamicsThread: public RateThread
     void writeTorque(Vector _values, int _address, BufferedPort<Bottle> *_port);
     void publishTorques();
     void publishContacts();
+    void getEndEffectorWrenches();
+    void publishEndEffectorWrench();
     wbi::LocalId convertFTiDynTreeToFTwbi(int ft_sensor_id);
     void normal_run();
     void calibration_run();
@@ -150,6 +149,16 @@ class wholeBodyDynamicsThread: public RateThread
 
     iCub::skinDynLib::skinContactList external_forces_list;
 
+    yarp::sig::Vector LAExternalWrench;
+    yarp::sig::Vector RAExternalWrench;
+    yarp::sig::Vector LLExternalWrench;
+    yarp::sig::Vector RLExternalWrench;
+
+    yarp::sig::Vector LACartesianExternalWrench;
+    yarp::sig::Vector RACartesianExternalWrench;
+    yarp::sig::Vector LLCartesianExternalWrench;
+    yarp::sig::Vector RLCartesianExternalWrench;
+
     //Calibration related variables
     yarp::os::Mutex run_mutex;
     yarp::os::Mutex calibration_mutex;
@@ -160,7 +169,6 @@ class wholeBodyDynamicsThread: public RateThread
 
     int samples_requested_for_calibration;
     int max_samples_for_calibration;
-
     int l_foot_ft_sensor_id;
     int r_foot_ft_sensor_id;
 
@@ -169,6 +177,30 @@ class wholeBodyDynamicsThread: public RateThread
 
     int l_leg_ft_sensor_id;
     int r_leg_ft_sensor_id;
+
+    int left_hand_link_id;
+    int right_hand_link_id;
+    int left_foot_link_id;
+    int right_foot_link_id;
+
+    int left_gripper_frame_id;
+    int right_gripper_frame_id;
+    int left_sole_frame_id;
+    int right_sole_frame_id;
+
+    int left_hand_link_idyntree_id;
+    int right_hand_link_idyntree_id;
+    int left_foot_link_idyntree_id;
+    int right_foot_link_idyntree_id;
+
+    int root_link_idyntree_id;
+
+    int left_gripper_frame_idyntree_id;
+    int right_gripper_frame_idyntree_id;
+    int left_sole_frame_idyntree_id;
+    int right_sole_frame_idyntree_id;
+
+    yarp::sig::Matrix transform_mat_buffer;
 
     int samples_used_for_calibration;
 
