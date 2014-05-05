@@ -35,7 +35,7 @@ before_script:
   # Build kdl_codyco and install it in a local directory
   - git clone https://github.com/traversaro/kdl_codyco
   - cd kdl_codyco
-  - git checkout rovereto
+  - git checkout master
   - mkdir build
   - cd build
   - mkdir local_install
@@ -52,6 +52,7 @@ script:
   - make
   - sudo make install
   - ctest -V
+  - sudo make uninstall
   
 notifications:
   email:

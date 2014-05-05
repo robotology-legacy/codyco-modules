@@ -1021,7 +1021,7 @@ bool DynTree::kinematicRNEA()
 bool DynTree::estimateContactForces()
 {
     #ifndef NDEBUG
-    std::cout << "DynTree::estimateContactForces " << std::endl;
+    //std::cout << "DynTree::estimateContactForces " << std::endl;
     #endif
 
     double tol = 1e-7; /**< value extracted from old iDynContact */
@@ -1225,6 +1225,7 @@ bool DynTree::getCentroidalMomentumJacobian(yarp::sig::Matrix & momentum_jac)
     if( momentum_jac.rows() != (int)(6) || momentum_jac.cols() != (int)(6+undirected_tree.getNrOfDOFs()) ) {
         momentum_jac.resize(6,6+undirected_tree.getNrOfDOFs());
     }
+
 
     momentum_jac.zero();
     SetToZero(momentum_jacobian);
