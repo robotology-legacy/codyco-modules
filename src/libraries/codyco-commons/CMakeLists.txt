@@ -17,12 +17,14 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 find_package(Eigen3 REQUIRED)
 
 set(SRCS    src/MathUtils.cpp
-            src/LockGuard.cpp)
+            src/LockGuard.cpp
+            src/ControllerThread.cpp)
 
 set(HEADERS  include/codyco/Commons.h
              include/codyco/Utils.h
              include/codyco/LockGuard.h
-             include/codyco/MathUtils.h)
+             include/codyco/MathUtils.h
+             include/codyco/ControllerThread.h)
                           
 source_group("Source Files" FILES ${SRCS})
 source_group("Header Files" FILES ${HEADERS})
