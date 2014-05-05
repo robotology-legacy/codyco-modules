@@ -39,6 +39,9 @@ void iCubPartVersionOptionsPrint()
     cout<< "\t--headV1/headV2    :Version of the head."  <<endl;
     cout<< "\t--legsV1/legsV2    :Version of the legs."  <<endl;
     cout<< "\t--feetV1/feetV2    :Version of the feet."  <<endl;
+    #ifdef CODYCO_USES_URDFDOM
+    cout<< "\t--urdf             :URDF file to load."    <<endl;
+    #endif
 }
 
 int main (int argc, char * argv[])

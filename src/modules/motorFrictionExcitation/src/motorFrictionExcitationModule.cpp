@@ -65,6 +65,14 @@ void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag
     if( rf.check("feetV2") ) {
         icub_version.feet_ft = true;
     }
+
+    #ifdef CODYCO_USES_URDFDOM
+    if( rf.check("urdf") )
+    {
+        icub_version.uses_urdf = true;
+        icub_version.urdf_file = rf.find("urdf").asString().c_str();
+    }
+    #endif
 }
 
 MotorFrictionExcitationModule::MotorFrictionExcitationModule()

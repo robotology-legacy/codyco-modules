@@ -82,6 +82,14 @@ void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag
     if( rf.check("feetV2") ) {
         icub_version.feet_ft = true;
     }
+
+    #ifdef CODYCO_USES_URDFDOM
+    if( rf.check("urdf") )
+    {
+        icub_version.uses_urdf = true;
+        icub_version.urdf_file = rf.find("urdf").asString().c_str();
+    }
+    #endif
 }
 
 bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
@@ -107,7 +115,8 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 
     bool fixed_base = false;
     std::string fixed_link;
-    if( rf.check("assume_fixed") ) {
+    if( rf.check("assume_fixed") )
+    {
         fixed_link = rf.find("assume_fixed").asString().c_str();
         if( fixed_link != "root_link" &&
             fixed_link != "l_sole" &&

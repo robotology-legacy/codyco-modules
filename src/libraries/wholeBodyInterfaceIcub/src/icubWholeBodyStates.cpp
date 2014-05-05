@@ -262,7 +262,7 @@ bool icubWholeBodyStates::setEstimationParameter(const EstimateType et, const Es
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 
-bool icubWholeBodyStates::getMotorVel(double *data, double time, bool blocking)
+bool icubWholeBodyStates::getMotorVel(double *data, double time, bool /*blocking*/)
 {
     bool res = estimator->lockAndCopyVector(estimator->estimates.lastDq, data);    ///< read joint vel
     if(!res) return false;
@@ -291,13 +291,13 @@ bool icubWholeBodyStates::getMotorVel(double *data, double time, bool blocking)
     return true;
 }
 
-bool icubWholeBodyStates::getMotorVel(const LocalId &lid, double *data, double time, bool blocking)
+bool icubWholeBodyStates::getMotorVel(const LocalId &lid, double *data, double /*time*/, bool /*blocking*/)
 {
     ///< read joint vel
     return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_ENCODER).localToGlobalId(lid), estimator->estimates.lastDq, data);
 }
 
-bool icubWholeBodyStates::lockAndReadSensors(const SensorType st, double *data, double time, bool blocking)
+bool icubWholeBodyStates::lockAndReadSensors(const SensorType st, double *data, double /*time*/, bool blocking)
 {
     estimator->mutex.wait();
     bool res = sensors->readSensors(st, data, 0, blocking);
@@ -421,7 +421,7 @@ bool icubWholeBodyEstimator::threadInit()
     dTauJFilt = new AWLinEstimator(dTauJFiltWL, dTauJFiltTh);
     dTauMFilt = new AWLinEstimator(dTauMFiltWL, dTauMFiltTh);
     ///< read sensors
-    assert(estimates.lastQ.size() == sensors->getSensorNumber(SENSOR_ENCODER));
+    assert((int)estimates.lastQ.size() == sensors->getSensorNumber(SENSOR_ENCODER));
     bool ok = sensors->readSensors(SENSOR_ENCODER, estimates.lastQ.data(), qStamps.data(), true);
     ok = ok && sensors->readSensors(SENSOR_TORQUE, estimates.lastTauJ.data(), tauJStamps.data(), true);
     ok = ok && sensors->readSensors(SENSOR_PWM, estimates.lastPwm.data(), 0, true);
@@ -431,10 +431,19 @@ bool icubWholeBodyEstimator::threadInit()
     pwmFilt     = new FirstOrderLowPassFilter(pwmCutFrequency, getRate()*1e-3, estimates.lastPwm);
 
     H_world_base.resize(4,4);
+    H_world_base.eye();
     right_gripper_local_id = wbi::LocalId(RIGHT_ARM,8);
     left_gripper_local_id = wbi::LocalId(LEFT_ARM,8);
     left_sole_local_id = wbi::LocalId(LEFT_LEG,8);
     right_sole_local_id = wbi::LocalId(RIGHT_LEG,8);
+
+    bool okEE = true;
+    okEE = okEE && openEEWrenchPorts(right_gripper_local_id);
+    okEE = okEE && openEEWrenchPorts(left_gripper_local_id);
+    okEE = okEE && openEEWrenchPorts(right_sole_local_id);
+    okEE = okEE && openEEWrenchPorts(left_sole_local_id);
+
+    ee_wrenches_enabled = okEE;
 
     return ok;
 }
@@ -520,7 +529,7 @@ std::string getPartName(const wbi::LocalId & local_id)
 }
 
 
-void icubWholeBodyEstimator::openEEWrenchPorts(const wbi::LocalId & local_id)
+bool icubWholeBodyEstimator::openEEWrenchPorts(const wbi::LocalId & local_id)
 {
     std::string wbd_module_name = "wholeBodyDynamicsTree";
     std::string part, remotePort;
@@ -536,35 +545,51 @@ void icubWholeBodyEstimator::openEEWrenchPorts(const wbi::LocalId & local_id)
     if(!portsEEWrenches[local_id]->open(localPort.str().c_str())) {
         // open local input port
         std::cerr << " icubWholeBodyEstimator::openEEWrenchPorts: Open of localPort " << localPort << " failed " << std::endl;
-        YARP_ASSERT(false);
+        //YARP_ASSERT(false);
+        ee_wrenches_enabled = false;
+        return false;
     }
     if(!Network::exists(remotePort.c_str())) {            // check remote output port exists
         std::cerr << "icubWholeBodyEstimator::openEEWrenchPorts:  " << remotePort << " does not exist " << std::endl;
-        YARP_ASSERT(false);
+        //YARP_ASSERT(false);
+        ee_wrenches_enabled = false;
+        return false;
     }
     if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp")) {  // connect remote to local port
         std::cerr << "icubWholeBodyEstimator::openEEWrenchPorts:  could not connect " << remotePort << " to " << localPort << std::endl;
-        YARP_ASSERT(false);
+        //YARP_ASSERT(false);
+        ee_wrenches_enabled = false;
+        return false;
     }
 
     //allocate lastRead variables
     lastEEWrenches[local_id].resize(6,0.0);
+    ee_wrenches_enabled = true;
 
+    return true;
 }
 
 void icubWholeBodyEstimator::readEEWrenches(const wbi::LocalId & local_id, yarp::sig::Vector & vec)
 {
     vec.resize(6);
-    yarp::sig::Vector*res= portsEEWrenches[local_id]->read();
-    vec.subVector(0,2) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(0,2);
-    vec.subVector(3,5) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(3,5);
-    vec = *res;
+    if( ee_wrenches_enabled )
+    {
+        yarp::sig::Vector*res = portsEEWrenches[local_id]->read();
+        if( res )
+        {
+            vec.subVector(0,2) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(0,2);
+            vec.subVector(3,5) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(3,5);
+        }
+    }
 }
 
 void icubWholeBodyEstimator::closeEEWrenchPorts(const wbi::LocalId & local_id)
 {
-    portsEEWrenches[local_id]->close();
-    delete portsEEWrenches[local_id];
+    if( ee_wrenches_enabled )
+    {
+        portsEEWrenches[local_id]->close();
+        delete portsEEWrenches[local_id];
+    }
 }
 
 void icubWholeBodyEstimator::threadRelease()

@@ -82,6 +82,14 @@ void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag
     if( rf.check("feetV2") ) {
         icub_version.feet_ft = true;
     }
+
+    #ifdef CODYCO_USES_URDFDOM
+    if( rf.check("urdf") )
+    {
+        icub_version.uses_urdf = true;
+        icub_version.urdf_file = rf.find("urdf").asString().c_str();
+    }
+    #endif
 }
 
 bool staticInertiaIdentificationModule::configure(ResourceFinder &rf)
@@ -130,13 +138,13 @@ bool staticInertiaIdentificationModule::configure(ResourceFinder &rf)
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
     if( icub_version.feet_ft ) {
-        int added_ft_sensors = estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE,wbiIcub::ICUB_MAIN_FOOT_FTS);
+        int added_ft_sensors = estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,wbiIcub::ICUB_MAIN_FOOT_FTS);
         if( added_ft_sensors != (int)wbiIcub::ICUB_MAIN_FOOT_FTS.size() ) {
             std::cout << "Error in adding F/T estimates" << std::endl;
             return false;
         }
     } else {
-        int added_ft_sensors = estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE,wbiIcub::ICUB_MAIN_FTS);
+        int added_ft_sensors = estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,wbiIcub::ICUB_MAIN_FTS);
         if( added_ft_sensors != (int)wbiIcub::ICUB_MAIN_FTS.size() ) {
             std::cout << "Error in adding F/T estimates" << std::endl;
             return false;

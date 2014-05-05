@@ -23,6 +23,8 @@ extern const std::string ICUB_IMU_LINK_NAME;
 /**
  * Struct for describing the version of the parts of an iCubTree
  */
+
+#ifndef CODYCO_USES_URDFDOM
 struct iCubTree_version_tag
 {
     int head_version; /**< Head version: can be 1 or 2 (default: 1) */
@@ -42,9 +44,45 @@ struct iCubTree_version_tag
         legs_version=_legs_version;
         feet_ft=_feet_ft;
     }
-
-
 };
+#endif
+
+#ifdef CODYCO_USES_URDFDOM
+struct iCubTree_version_tag
+{
+    int head_version; /**< Head version: can be 1 or 2 (default: 1) */
+    int legs_version; /**< Legs version: can be 1 or 2 (default: 1) */
+    bool feet_ft; /**< Feet ft: can be true (structure with FT) or false (default: true) */
+    bool uses_urdf; /**< Flag to indicate if is necessary to load the robot model from urdf */
+    std::string urdf_file;
+
+    iCubTree_version_tag ()
+    {
+        head_version=1;
+        legs_version=1;
+        feet_ft=true;
+        uses_urdf=false;
+    }
+
+    iCubTree_version_tag (int _head_version, int _legs_version, bool _feet_ft)
+    {
+        head_version=_head_version;
+        legs_version=_legs_version;
+        feet_ft=_feet_ft;
+        uses_urdf=false;
+    }
+
+    iCubTree_version_tag (int _head_version, int _legs_version, bool _feet_ft, std::string _urdf_file)
+    {
+        head_version=_head_version;
+        legs_version=_legs_version;
+        feet_ft=_feet_ft;
+        uses_urdf=true;
+        urdf_file = _urdf_file;
+    }
+};
+#endif
+
 
 /**
  * Enum for describing the serialization used for iCubTree
