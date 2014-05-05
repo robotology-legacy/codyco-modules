@@ -14,6 +14,7 @@ branches:
 
 install:
   - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
+  - sudo apt-get update
   - sudo apt-get --force-yes install icub
 
   
