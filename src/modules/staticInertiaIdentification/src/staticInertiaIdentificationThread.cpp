@@ -80,7 +80,8 @@ wbi::LocalId staticInertiaIdentificationThread::convertFTiDynTreeToFTwbi(int ft_
     } else {
         return ICUB_MAIN_FTS.globalToLocalId(ft_sensor_id);
     }
-}*/
+}
+*/
 
 bool staticInertiaIdentificationThread::configureRegressorGenerator()
 {
@@ -214,7 +215,7 @@ bool staticInertiaIdentificationThread::configureParameterEstimator()
 bool staticInertiaIdentificationThread::threadInit()
 {
     //Calibration variables
-    int nrOfAvailableFTSensors = estimator->getEstimateNumber(wbi::ESTIMATE_FORCE_TORQUE);
+    int nrOfAvailableFTSensors = estimator->getEstimateNumber(wbi::ESTIMATE_FORCE_TORQUE_SENSOR);
 
     if( nrOfAvailableFTSensors != icub_tree_model.getNrOfFTSensors() )
     {
@@ -235,6 +236,8 @@ bool staticInertiaIdentificationThread::threadInit()
     velocity_static_threshold = opts.check("velocityThreshold",0.02,"Threshold on joint velocity norm to consider a sample static").asDouble();
     position_norm_threshold   = opts.check("positionThreshold",0.02,"Threshold on joint position difference norm to consider two sample different").asDouble();
     maxNrOfSamplesForPose = opts.check("maxNrOfSamplesForPose",100,"Maximum number of samples to consider for a given pose, to avoid overfitting").asInt();
+
+    printPeriod = opts.check("printPeriod",printPeriod,"Period (in ms) for the debug print").asDouble();
 
     if( ! configureRegressorGenerator() )
     {
@@ -308,7 +311,7 @@ void staticInertiaIdentificationThread::run()
     SetToZero(robot_status->base_vel);
 
     //Get FT sensors data
-    estimator->getEstimates(wbi::ESTIMATE_FORCE_TORQUE,ft_data_buffer.data());
+    estimator->getEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,ft_data_buffer.data());
 
     for(int i=0; i < robot_status->getNrOfWrenchSensors(); i++ )
     {
@@ -340,6 +343,8 @@ void staticInertiaIdentificationThread::run()
         // Reset sample counter for this pose and increase poseCounter
         if( is_sample_a_new_pose )
         {
+
+
             poseCount++;
             currentPoseSampleCount = 0;
         }
@@ -349,9 +354,12 @@ void staticInertiaIdentificationThread::run()
 
     printCountdown = (printCountdown>=printPeriod) ? 0 : printCountdown +(int)getRate();
 
+    //std::cout << "printCountdown : " << printCountdown << std::endl;
+
     if( printCountdown == 0 )
     {
         printStatus();
+        printCountdown = 0;
     }
 
     run_mutex.unlock();
@@ -426,6 +434,7 @@ bool staticInertiaIdentificationThread::isSampleCorruptedByExternalContact()
 
 void staticInertiaIdentificationThread::printStatus()
 {
+    std::cout <<"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"<< std::endl;
         std::cout << "Thread status: ";
         if( thread_state == ESTIMATING )
         {
@@ -470,11 +479,12 @@ void staticInertiaIdentificationThread::printStatus()
             parameter_estimator.updateParameterEstimate();
             std::cout << "Estimated parameters" << std::endl
                       <<  parameter_estimator.getParameterEstimate() << std::endl;
-            std::cout << "Estimated parameters" << std::endl;
-            std::cout << icub_regressor_generator->getDescriptionOfParameters(identificable_subspace_basis*parameter_estimator.getParameterEstimate());
+            //std::cout << "Estimated parameters" << std::endl;
+            //std::cout << icub_regressor_generator->getDescriptionOfParameters(identificable_subspace_basis*parameter_estimator.getParameterEstimate());
 
             std::cout << "Singular values: " << std::endl
                       << singular_value_buffer << std::endl;
+            std::cout << "Condition number: " << sqrt(singular_value_buffer[0]/singular_value_buffer[singular_value_buffer.rows()-1]) << std::endl;
             //std::cout << "SVD V Matrix : " << std::endl;
             //std::cout << singular_vectors_buffer << std::endl;
             //double essential_parameters_threshold;
@@ -486,7 +496,6 @@ void staticInertiaIdentificationThread::printStatus()
         std::cout << "dq norm " << robot_status->dq.data.norm() << std::endl;
         std::cout << "ddq norm " << robot_status->ddq.data.norm() << std::endl;
         std::cout << "difference in q norm " << (last_joint_position_used_for_identification.data-robot_status->q.data).norm() << std::endl;
-        last_joint_position_used_for_identification = robot_status->q;
 }
 
 //*****************************************************************************
@@ -520,6 +529,8 @@ bool staticInertiaIdentificationThread::stopEstimation()
 //*****************************************************************************
 bool staticInertiaIdentificationThread::saveURDF(const std::string & urdf_filename, const std::string & robotName)
 {
+    std::cout << "staticInertiaIdentificationThread::saveURDF called with " <<
+                 urdf_filename << " " << robotName << std::endl;
     Eigen::VectorXd model_regressor_parameters(icub_regressor_generator->getNrOfParameters());
     Eigen::VectorXd estimated_base_parameters(parameter_estimator.getParamSize());
     run_mutex.lock();
@@ -532,7 +543,6 @@ bool staticInertiaIdentificationThread::saveURDF(const std::string & urdf_filena
 
     //Create a new urdf data structure
     boost::shared_ptr<urdf::ModelInterface> icub_ptr(new urdf::ModelInterface);
-
 
     int nr_of_base_parameters = identificable_subspace_basis.cols();
     Eigen::MatrixXd not_identifiable_subspace_projector =
