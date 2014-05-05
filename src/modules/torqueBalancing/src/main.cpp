@@ -1,4 +1,3 @@
-<<<<<<< Local Changes
 /**
  * Copyright (C) 2014 CoDyCo
  * @author: Francesco Romano
