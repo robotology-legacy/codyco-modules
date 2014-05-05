@@ -1,3 +1,4 @@
+<<<<<<< Local Changes
 /**
  * Copyright (C) 2014 CoDyCo
  * @author: Francesco Romano
@@ -26,9 +27,9 @@ int main(int argc, char **argv)
     yarp::os::ResourceFinder resourceFinder;
     
     resourceFinder.setVerbose(true);
-//    resourceFinder.setDefaultConfigFile("default.ini");         //default config file name.
-//    resourceFinder.setDefaultContext("adaptiveControl/conf"); //when no parameters are given to the module this is the default context
-//    resourceFinder.configure("ICUB_ROOT", argc,argv);
+    resourceFinder.setDefaultConfigFile("default.ini");         //default config file name.
+    resourceFinder.setDefaultContext("torqueBalancing"); //when no parameters are given to the module this is the default context
+    resourceFinder.configure(argc,argv);
     
     if (resourceFinder.check("help")) {
         std::cout<< "Possible parameters" << std::endl << std::endl;

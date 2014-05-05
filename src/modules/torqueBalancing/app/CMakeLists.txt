@@ -1,4 +1,4 @@
-set(modulename TorqueBalancing)
+set(modulename ${PROJECT_NAME})
 #set(yscopename yarpscope)
 
 # icub_app(${appname})
