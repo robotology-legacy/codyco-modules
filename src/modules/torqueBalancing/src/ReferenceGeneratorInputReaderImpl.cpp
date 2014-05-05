@@ -69,7 +69,12 @@ namespace codyco {
         , m_jointsVelocity(totalDOFs)
         , m_outputSignal(14)
         , m_outputSignalDerivative(14)
-        , m_jacobian(14, totalDOFs) {}
+        , m_jacobian(14, totalDOFs)
+        {
+            //TODO: this class can become in the future more generic: it can compute the position of a generic link
+            m_robot.getLinkId("l_gripper", m_leftHandLinkID);
+            m_robot.getLinkId("r_gripper", m_rightHandLinkID);
+        }
         
         HandsPositionReader::~HandsPositionReader() {}
         
@@ -112,9 +117,7 @@ namespace codyco {
         {
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.data());
-//            m_robot.forwardKinematics(m_jointsPosition.data(), m_world2BaseFrame, wbi::iWholeBodyModel::COM_LINK_ID, m_comPosition.data());
-//            
-//            m_outputSignal = m_comPosition.head(3);
+            //TODO: read forces at end-effector
         }
         
         const Eigen::VectorXd& HandsForceReader::getSignal()

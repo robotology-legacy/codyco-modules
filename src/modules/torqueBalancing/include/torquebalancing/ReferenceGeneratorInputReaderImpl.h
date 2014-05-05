@@ -28,6 +28,13 @@ namespace wbi {
 namespace codyco {
     namespace torquebalancing {
         
+        /** @class Implementation of ReferenceGeneratorInputReader to read the Center Of Mass position
+         * of the robot.
+         *
+         * It handles a 3-dimension vector representing the x,y,z coordinates of the center of mass of the robot.
+         *
+         * @note this class is not thread safe: avoid cuncurrent calls to its methods.
+         */
         class COMReader : public ReferenceGeneratorInputReader {
         private:
             wbi::wholeBodyInterface& m_robot;
@@ -53,6 +60,15 @@ namespace codyco {
             
         };
         
+        /** @class Implementation of ReferenceGeneratorInputReader to read the hands position
+         * of the robot.
+         *
+         * It handles a 14-dimension vector splitted in two subvectors of 7-dimension each.
+         * Each vector represents the homogenous transformation of the hand position w.r.t. the world frame. The rotational component is expressed as angle-axis.
+         * The first vector is the LEFT hand, the second vector is the RIGHT hand.
+         *
+         * @note this class is not thread safe: avoid cuncurrent calls to its methods.
+         */
         class HandsPositionReader : public ReferenceGeneratorInputReader {
         private:
             wbi::wholeBodyInterface& m_robot;
@@ -77,6 +93,15 @@ namespace codyco {
             virtual int signalSize() const;
         };
         
+        /** @class Implementation of ReferenceGeneratorInputReader to read the forces acting on the 
+         * hands of the robot.
+         *
+         * It handles a 12-dimension vector splitted in two subvectors of 6-dimension each.
+         * Each vector represents the forces and torques acting on the hand.
+         * The first vector is the LEFT hand, the second vector is the RIGHT hand.
+         *
+         * @note this class is not thread safe: avoid cuncurrent calls to its methods.
+         */
         class HandsForceReader : public ReferenceGeneratorInputReader {
         private:
             wbi::wholeBodyInterface& m_robot;

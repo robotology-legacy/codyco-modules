@@ -66,7 +66,15 @@ namespace codyco {
             virtual bool updateModule();
             virtual bool close();
             
+            /** Cleanups all the variable and threads managed by this module
+             */
             void cleanup();
+            
+            /** Set the active state of all the threads managed by this module
+             *
+             * @param isActive the new active state for all the threads.
+             */
+            void setControllersActiveState(bool isActive);
             
         private:
             
@@ -95,8 +103,11 @@ namespace codyco {
             
         };
         
-        class TorqueBalancingModule::ParamHelperManager : public paramHelp::ParamValueObserver {
+        class TorqueBalancingModule::ParamHelperManager : public
+        paramHelp::ParamValueObserver,
+        paramHelp::CommandObserver {
             
+            TorqueBalancingModule& m_module;
             TorqueBalancingController& m_controller;
             std::map<TaskType, ReferenceGenerator*>& m_referenceGenerators;
             paramHelp::ParamHelperServer& m_parameterServer;
@@ -119,12 +130,14 @@ namespace codyco {
             double m_centroidalGain;
             
         public:
-            ParamHelperManager(TorqueBalancingController& controller, std::map<TaskType, ReferenceGenerator*>& generators, paramHelp::ParamHelperServer& parameterServer);
+            ParamHelperManager(TorqueBalancingModule& module, TorqueBalancingController& controller, std::map<TaskType, ReferenceGenerator*>& generators, paramHelp::ParamHelperServer& parameterServer);
             
             bool linkVariables();
+            bool registerCommandCallbacks();
                         
             virtual ~ParamHelperManager();
             virtual void parameterUpdated(const paramHelp::ParamProxyInterface *proxyInterface);
+            virtual void commandReceived(const paramHelp::CommandDescription& commandDescription, const yarp::os::Bottle& params, yarp::os::Bottle& reply);
         };
     }
 }

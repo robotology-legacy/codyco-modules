@@ -39,7 +39,7 @@ namespace codyco {
         class TorqueBalancingController: public yarp::os::RateThread
         {
         public:
-            TorqueBalancingController(int period, ControllerReferences references);
+            TorqueBalancingController(int period, ControllerReferences& references, wbi::wholeBodyInterface& robot);
             virtual ~TorqueBalancingController();
             
 #pragma mark - RateThread methods
@@ -52,6 +52,18 @@ namespace codyco {
             double centroidalMomentumGain();
             void setCentroidalMomentumGain(double centroidalMomentumGain);
             
+            /** Sets the state of the controller.
+             *
+             * If the controller is already in the state requested as input the command is ignored.
+             * @param isActive the new state of the controller
+             */
+            void setActiveState(bool isActive);
+            
+            /** Returns the current state of the controller
+             * @return true if the controller is active. False otherwise.
+             */
+            bool isActiveState();
+            
         private:
             void readReferences();
             bool updateRobotState();
@@ -62,10 +74,12 @@ namespace codyco {
             //return value should be optimized by compiler RVO
             void skewSymmentricMatrix(const Eigen::Ref<const Eigen::Vector3d>& vector, Eigen::Ref<Eigen::Matrix3d> skewSymmetricMatrix);
 
-            wbi::wholeBodyInterface* m_robot;
+            wbi::wholeBodyInterface& m_robot;
             wbi::Frame m_worldFrame;
             
             yarp::os::Mutex m_mutex;
+            
+            bool m_active;
             
             //configuration-time constants
             int m_leftFootLinkID;

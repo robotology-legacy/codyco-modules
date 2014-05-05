@@ -72,9 +72,8 @@ namespace codyco {
         
         void ReferenceGenerator::run()
         {
-            if (isActiveState()) {
-                codyco::LockGuard guard(m_mutex);
-                
+            codyco::LockGuard guard(m_mutex);
+            if (m_active) {
                 double now = yarp::os::Time::now();
                 if (m_previousTime < 0) m_previousTime = now;
                 double dt = now - m_previousTime;
@@ -83,9 +82,7 @@ namespace codyco {
                 Eigen::VectorXd error = m_signalReference - m_reader.getSignal();
                 
                 m_integralTerm += dt * error;
-                //TODO: Add integral limits
                 limitIntegral(m_integralTerm, m_integralTerm);
-//                m_integralTerm += dt * error;
                 
                 m_computedReference = m_signalFeedForward
                 + m_proportionalGains.asDiagonal() * error
@@ -145,6 +142,7 @@ namespace codyco {
         
         void ReferenceGenerator::setActiveState(bool isActive)
         {
+            codyco::LockGuard guard(m_mutex);
             if (m_active == isActive) return;
             if (isActive) {
                 //reset integral state
@@ -159,6 +157,7 @@ namespace codyco {
         
         bool ReferenceGenerator::isActiveState()
         {
+            codyco::LockGuard guard(m_mutex);
             return m_active;
         }
         
@@ -206,8 +205,10 @@ namespace codyco {
         
         void ReferenceGenerator::setIntegralLimit(double integralLimit)
         {
-            codyco::LockGuard guard(m_mutex);
-            m_integralLimit = std::abs(integralLimit);
+            if (!isnan(integralLimit)) {
+                codyco::LockGuard guard(m_mutex);
+                m_integralLimit = std::abs(integralLimit);
+            }
         }
         
         void ReferenceGenerator::limitIntegral(const Eigen::Ref<Eigen::VectorXd>& integral, Eigen::Ref<Eigen::VectorXd> limitedIntegral)

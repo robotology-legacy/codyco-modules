@@ -36,12 +36,14 @@ namespace codyco {
         , m_controller(0)
         , m_references(0)
         , m_parameterServer(0)
-        , m_rpcPort(0) {}
+        , m_rpcPort(0)
+        , m_paramHelperManager(0) {}
         
         TorqueBalancingModule::~TorqueBalancingModule() { cleanup(); }
         
         bool TorqueBalancingModule::configure(yarp::os::ResourceFinder& rf)
         {
+            //TODO: world to base frame???
             //PARAMETERS SECTION
             //Creating parameter server
             m_parameterServer = new paramHelp::ParamHelperServer(TorqueBalancingModuleParameterDescriptions,
@@ -84,6 +86,7 @@ namespace codyco {
                 return false;
             }
             
+            //TODO: proper initialization
             //create reference to wbi
             m_robot = new wbiIcub::icubWholeBodyInterface(m_moduleName.c_str(), m_robotName.c_str());//, iCub::iDynTree::iCubTree_version_tag icub_version, std::string urdf_file);
             if (!m_robot) {
@@ -139,14 +142,14 @@ namespace codyco {
                 return false;
             }
             
-            m_controller = new TorqueBalancingController(m_controllerThreadPeriod, *m_references);
+            m_controller = new TorqueBalancingController(m_controllerThreadPeriod, *m_references, *m_robot);
             if (!m_controller) {
                 return false;
             }
             
             //link controller and references variables to param helper manager
-            m_paramHelperManager = new ParamHelperManager(*m_controller, m_referenceGenerators, *m_parameterServer);
-            if (!m_paramHelperManager || !m_paramHelperManager->linkVariables()) {
+            m_paramHelperManager = new ParamHelperManager(*this, *m_controller, m_referenceGenerators, *m_parameterServer);
+            if (!m_paramHelperManager || !m_paramHelperManager->linkVariables() || !m_paramHelperManager->registerCommandCallbacks()) {
                 return false;
             }
             
@@ -236,10 +239,26 @@ namespace codyco {
                 delete m_references;
                 m_references = 0;
             }
+            
+            if (m_world2BaseFrame) {
+                delete m_world2BaseFrame;
+                m_world2BaseFrame = 0;
+            }
         }
         
-        TorqueBalancingModule::ParamHelperManager::ParamHelperManager(TorqueBalancingController& controller, std::map<TaskType, ReferenceGenerator*>& generators, paramHelp::ParamHelperServer& parameterServer)
-        : m_controller(controller)
+        void TorqueBalancingModule::setControllersActiveState(bool isActive)
+        {
+            for (std::map<TaskType, ReferenceGenerator*>::iterator referenceIterator = m_referenceGenerators.begin(); referenceIterator != m_referenceGenerators.end(); referenceIterator++) {
+                referenceIterator->second->setActiveState(isActive);
+            }
+            m_controller->setActiveState(isActive);
+        }
+        
+#pragma mark - ParamHelperManager methods
+        
+        TorqueBalancingModule::ParamHelperManager::ParamHelperManager(TorqueBalancingModule& module, TorqueBalancingController& controller, std::map<TaskType, ReferenceGenerator*>& generators, paramHelp::ParamHelperServer& parameterServer)
+        : m_module(module)
+        , m_controller(controller)
         , m_referenceGenerators(generators)
         , m_parameterServer(parameterServer) {}
         
@@ -267,6 +286,17 @@ namespace codyco {
             linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterCentroidalGain, &m_centroidalGain);
             
             return linked;
+        }
+        
+        bool TorqueBalancingModule::ParamHelperManager::registerCommandCallbacks()
+        {
+            bool commandRegistered = true;
+            commandRegistered = commandRegistered && m_parameterServer.registerCommandCallback(TorqueBalancingModuleCommandStart, this);
+            commandRegistered = commandRegistered && m_parameterServer.registerCommandCallback(TorqueBalancingModuleCommandStop, this);
+            commandRegistered = commandRegistered && m_parameterServer.registerCommandCallback(TorqueBalancingModuleCommandQuit, this);
+            commandRegistered = commandRegistered && m_parameterServer.registerCommandCallback(TorqueBalancingModuleCommandHelp, this);
+            
+            return commandRegistered;
         }
         
         void TorqueBalancingModule::ParamHelperManager::parameterUpdated(const paramHelp::ParamProxyInterface *proxyInterface)
@@ -353,6 +383,30 @@ namespace codyco {
                     m_controller.setCentroidalMomentumGain(m_centroidalGain);
                     break;
             }
+        }
+        
+        void TorqueBalancingModule::ParamHelperManager::commandReceived(const paramHelp::CommandDescription& commandDescription, const yarp::os::Bottle& params, yarp::os::Bottle& reply)
+        {
+            switch (commandDescription.id) {
+                case TorqueBalancingModuleCommandStart:
+                    m_module.setControllersActiveState(true);
+                    reply.addString("Controller actived");
+                    break;
+                case TorqueBalancingModuleCommandStop:
+                    m_module.setControllersActiveState(false);
+                    reply.addString("Controller stopped");
+                    break;
+                case TorqueBalancingModuleCommandQuit:
+                    m_module.stopModule();
+                    reply.addString("Quitting module");
+                    break;
+                case TorqueBalancingModuleCommandHelp:
+                    m_parameterServer.getHelpMessage(reply);
+                    break;
+                default:
+                    break;
+            }
+            
         }
     }
 }
