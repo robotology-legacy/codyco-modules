@@ -1,12 +1,12 @@
 Model {
-  Name			  "monitorSim"
+  Name			  "monitor"
   Version		  7.7
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.1190"
+    ComputedModelVersion    "1.1191"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -20,16 +20,16 @@ Model {
   MinMaxOverflowLogging	  "UseLocalSettings"
   MinMaxOverflowArchiveMode "Overwrite"
   MaxMDLFileLineLength	  120
-  InitFcn		  "initMonitorSim;"
+  InitFcn		  "initMonitor;"
   Created		  "Tue Feb 18 10:13:36 2014"
   Creator		  "daniele"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon May  5 15:03:42 2014"
-  RTWModifiedTimeStamp	  321202963
-  ModelVersionFormat	  "1.%<AutoIncrement:1190>"
+  LastModifiedDate	  "Mon May  5 15:05:29 2014"
+  RTWModifiedTimeStamp	  321194078
+  ModelVersionFormat	  "1.%<AutoIncrement:1191>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -860,7 +860,7 @@ Model {
     }
   }
   System {
-    Name		    "monitorSim"
+    Name		    "monitor"
     Location		    [908, 799, 1162, 962]
     Open		    on
     ModelBrowserVisibility  on
@@ -907,8 +907,8 @@ Model {
       MaskValueString	      "'icubGazeboSim'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[309, 171, 1589, 888]
-	Open			off
+	Location		[318, 346, 1598, 1063]
+	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -1387,7 +1387,7 @@ Model {
 	  ZOrder		  -57
 	  Floating		  off
 	  Location		  [6, 71, 595, 799]
-	  Open			  off
+	  Open			  on
 	  NumInputPorts		  "5"
 	  ZoomMode		  "yonly"
 	  List {
@@ -1828,7 +1828,7 @@ Model {
 	  Position		  [775, 543, 830, 612]
 	  Floating		  off
 	  Location		  [6, 71, 631, 776]
-	  Open			  off
+	  Open			  on
 	  NumInputPorts		  "2"
 	  List {
 	    ListType		    AxesTitles
@@ -1852,7 +1852,7 @@ Model {
 	  Position		  [890, 68, 945, 137]
 	  Floating		  off
 	  Location		  [606, 71, 1231, 776]
-	  Open			  off
+	  Open			  on
 	  NumInputPorts		  "2"
 	  List {
 	    ListType		    AxesTitles
@@ -2699,7 +2699,7 @@ Model {
 Stateflow {
   machine {
     id			    1
-    name		    "monitorSim"
+    name		    "monitor"
     created		    "18-Feb-2014 10:14:40"
     isLibrary		    0
     firstTarget		    2
