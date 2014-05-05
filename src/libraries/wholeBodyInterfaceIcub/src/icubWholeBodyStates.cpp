@@ -262,7 +262,7 @@ bool icubWholeBodyStates::setEstimationParameter(const EstimateType et, const Es
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 
-bool icubWholeBodyStates::getMotorVel(double *data, double time, bool blocking)
+bool icubWholeBodyStates::getMotorVel(double *data, double time, bool /*blocking*/)
 {
     bool res = estimator->lockAndCopyVector(estimator->estimates.lastDq, data);    ///< read joint vel
     if(!res) return false;
@@ -291,13 +291,13 @@ bool icubWholeBodyStates::getMotorVel(double *data, double time, bool blocking)
     return true;
 }
 
-bool icubWholeBodyStates::getMotorVel(const LocalId &lid, double *data, double time, bool blocking)
+bool icubWholeBodyStates::getMotorVel(const LocalId &lid, double *data, double /*time*/, bool /*blocking*/)
 {
     ///< read joint vel
     return estimator->lockAndCopyVectorElement(sensors->getSensorList(SENSOR_ENCODER).localToGlobalId(lid), estimator->estimates.lastDq, data);
 }
 
-bool icubWholeBodyStates::lockAndReadSensors(const SensorType st, double *data, double time, bool blocking)
+bool icubWholeBodyStates::lockAndReadSensors(const SensorType st, double *data, double /*time*/, bool blocking)
 {
     estimator->mutex.wait();
     bool res = sensors->readSensors(st, data, 0, blocking);
@@ -421,7 +421,7 @@ bool icubWholeBodyEstimator::threadInit()
     dTauJFilt = new AWLinEstimator(dTauJFiltWL, dTauJFiltTh);
     dTauMFilt = new AWLinEstimator(dTauMFiltWL, dTauMFiltTh);
     ///< read sensors
-    assert(estimates.lastQ.size() == sensors->getSensorNumber(SENSOR_ENCODER));
+    assert((int)estimates.lastQ.size() == sensors->getSensorNumber(SENSOR_ENCODER));
     bool ok = sensors->readSensors(SENSOR_ENCODER, estimates.lastQ.data(), qStamps.data(), true);
     ok = ok && sensors->readSensors(SENSOR_TORQUE, estimates.lastTauJ.data(), tauJStamps.data(), true);
     ok = ok && sensors->readSensors(SENSOR_PWM, estimates.lastPwm.data(), 0, true);
@@ -431,6 +431,7 @@ bool icubWholeBodyEstimator::threadInit()
     pwmFilt     = new FirstOrderLowPassFilter(pwmCutFrequency, getRate()*1e-3, estimates.lastPwm);
 
     H_world_base.resize(4,4);
+    H_world_base.eye();
     right_gripper_local_id = wbi::LocalId(RIGHT_ARM,8);
     left_gripper_local_id = wbi::LocalId(LEFT_ARM,8);
     left_sole_local_id = wbi::LocalId(LEFT_LEG,8);
@@ -487,10 +488,10 @@ void icubWholeBodyEstimator::run()
         estimates.lastPwm = pwmFilt->filt(pwm);     ///< low pass filter
 
         ///< Read end effector wrenches
-        readEEWrenches(right_gripper_local_id,RAExtWrench);
-        readEEWrenches(left_gripper_local_id,LAExtWrench);
-        readEEWrenches(right_sole_local_id,RLExtWrench);
-        readEEWrenches(left_sole_local_id,LLExtWrench);
+        //readEEWrenches(right_gripper_local_id,RAExtWrench);
+        //readEEWrenches(left_gripper_local_id,LAExtWrench);
+        //readEEWrenches(right_sole_local_id,RLExtWrench);
+        //readEEWrenches(left_sole_local_id,LLExtWrench);
     }
     mutex.post();
 
@@ -555,10 +556,12 @@ void icubWholeBodyEstimator::openEEWrenchPorts(const wbi::LocalId & local_id)
 void icubWholeBodyEstimator::readEEWrenches(const wbi::LocalId & local_id, yarp::sig::Vector & vec)
 {
     vec.resize(6);
-    yarp::sig::Vector*res= portsEEWrenches[local_id]->read();
-    vec.subVector(0,2) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(0,2);
-    vec.subVector(3,5) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(3,5);
-    vec = *res;
+    yarp::sig::Vector*res = portsEEWrenches[local_id]->read();
+    if( res ) 
+    {
+        vec.subVector(0,2) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(0,2);
+        vec.subVector(3,5) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(3,5);
+    }
 }
 
 void icubWholeBodyEstimator::closeEEWrenchPorts(const wbi::LocalId & local_id)
@@ -578,10 +581,10 @@ void icubWholeBodyEstimator::threadRelease()
     if(tauMFilt!=0)  { delete tauMFilt; tauMFilt=0; }  ///< low pass filter for motor torque
     if(pwmFilt!=0)   { delete pwmFilt; pwmFilt=0;   }
 
-    closeEEWrenchPorts(right_gripper_local_id);
-    closeEEWrenchPorts(left_gripper_local_id);
-    closeEEWrenchPorts(right_sole_local_id);
-    closeEEWrenchPorts(left_sole_local_id);
+    //closeEEWrenchPorts(right_gripper_local_id);
+    //closeEEWrenchPorts(left_gripper_local_id);
+    //closeEEWrenchPorts(right_sole_local_id);
+    //closeEEWrenchPorts(left_sole_local_id);
 
     return;
 }
