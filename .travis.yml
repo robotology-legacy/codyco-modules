@@ -14,14 +14,22 @@ branches:
 
 install:
   - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
-  #eigen 3.2 support
-  - sudo add-apt-repository -y ppa:kalakris/eigen
-  - sudo apt-get update
-  - sudo apt-get install -qq eigen3
   - sudo apt-get --force-yes install icub
+
+  
 
 before_script:
   - cmake --version
+    #eigen 3.2 support
+  - hg clone https://bitbucket.org/eigen/eigen/
+  - cd eigen
+  - hg checkout 3.2.0 
+  - mkdir build 
+  - cd build
+  - cmake ..
+  - make 
+  - sudo make install
+  - cd ../..
   # Build orocos_kinematics_dynamics and install it in a local directory
   - git clone https://github.com/orocos/orocos_kinematics_dynamics
   - cd orocos_kinematics_dynamics
