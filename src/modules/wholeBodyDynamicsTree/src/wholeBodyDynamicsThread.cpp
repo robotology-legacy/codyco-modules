@@ -254,23 +254,26 @@ bool wholeBodyDynamicsThread::threadInit()
 
     //Find end effector ids
     //Find end effector ids
+    int max_id = 100;
+    root_link_idyntree_id = icub_model_calibration->getLinkIndex("root_link");
+    YARP_ASSERT(root_link_idyntree_id >= 0 && root_link_idyntree_id < max_id );
     left_hand_link_idyntree_id = icub_model_calibration->getLinkIndex("r_hand");
-    YARP_ASSERT(left_hand_link_idyntree_id >= 0);
+    YARP_ASSERT(left_hand_link_idyntree_id >= 0 && left_hand_link_idyntree_id < max_id );
     right_hand_link_idyntree_id = icub_model_calibration->getLinkIndex("r_hand");
-    YARP_ASSERT(right_hand_link_idyntree_id >= 0);
+    YARP_ASSERT(right_hand_link_idyntree_id >= 0 && right_hand_link_idyntree_id < max_id );
     left_foot_link_idyntree_id = icub_model_calibration->getLinkIndex("l_foot");
-    YARP_ASSERT(left_foot_link_idyntree_id >= 0);
+    YARP_ASSERT(left_foot_link_idyntree_id >= 0  && left_foot_link_idyntree_id < max_id);
     right_foot_link_idyntree_id = icub_model_calibration->getLinkIndex("r_foot");
-    YARP_ASSERT(right_foot_link_idyntree_id >= 0);
+    YARP_ASSERT(right_foot_link_idyntree_id >= 0 && right_foot_link_idyntree_id < max_id);
 
     left_gripper_frame_idyntree_id = icub_model_calibration->getLinkIndex("l_gripper");
-    YARP_ASSERT(left_gripper_frame_idyntree_id >= 0);
+    YARP_ASSERT(left_gripper_frame_idyntree_id >= 0 && left_gripper_frame_idyntree_id < max_id);
     right_gripper_frame_idyntree_id = icub_model_calibration->getLinkIndex("r_gripper");
-    YARP_ASSERT(right_hand_link_idyntree_id >= 0);
+    YARP_ASSERT(right_hand_link_idyntree_id >= 0 && right_gripper_frame_idyntree_id < max_id);
     left_sole_frame_idyntree_id = icub_model_calibration->getLinkIndex("l_sole");
-    YARP_ASSERT(left_sole_frame_idyntree_id >= 0);
+    YARP_ASSERT(left_sole_frame_idyntree_id >= 0 && left_sole_frame_idyntree_id < max_id);
     right_sole_frame_idyntree_id = icub_model_calibration->getLinkIndex("r_sole");
-    YARP_ASSERT(right_sole_frame_idyntree_id >= 0);
+    YARP_ASSERT(right_sole_frame_idyntree_id >= 0 && right_sole_frame_idyntree_id < max_id);
 
     KDL::CoDyCo::TreePartition icub_partition = icub_model_calibration->getKDLUndirectedTree().getPartition();
 
