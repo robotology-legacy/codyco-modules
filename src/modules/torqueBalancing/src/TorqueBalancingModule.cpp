@@ -88,7 +88,7 @@ namespace codyco {
             
             //TODO: proper initialization
             //create reference to wbi
-            m_robot = new wbiIcub::icubWholeBodyInterface(m_moduleName.c_str(), m_robotName.c_str());//, iCub::iDynTree::iCubTree_version_tag icub_version, std::string urdf_file);
+            m_robot = new wbiIcub::icubWholeBodyInterface(m_moduleName.c_str(), m_robotName.c_str(), iCub::iDynTree::iCubTree_version_tag(), "");
             if (!m_robot) {
                 return false;
             }
