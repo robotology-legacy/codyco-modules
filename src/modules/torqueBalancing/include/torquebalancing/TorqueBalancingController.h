@@ -75,7 +75,8 @@ namespace codyco {
             void skewSymmentricMatrix(const Eigen::Ref<const Eigen::Vector3d>& vector, Eigen::Ref<Eigen::Matrix3d> skewSymmetricMatrix);
 
             wbi::wholeBodyInterface& m_robot;
-            wbi::Frame m_worldFrame;
+            wbi::Frame m_world2BaseFrame;
+            wbi::Frame m_leftFootToBaseRotationFrame;
             
             yarp::os::Mutex m_mutex;
             

@@ -30,7 +30,6 @@ namespace paramHelp {
 
 namespace wbi {
     class wholeBodyInterface;
-    class Frame;
 }
 
 namespace yarp {
@@ -87,7 +86,6 @@ namespace codyco {
             std::string m_robotName;
             
             wbi::wholeBodyInterface* m_robot;
-            wbi::Frame* m_world2BaseFrame;
             
             TorqueBalancingController* m_controller;
             ControllerReferences* m_references;

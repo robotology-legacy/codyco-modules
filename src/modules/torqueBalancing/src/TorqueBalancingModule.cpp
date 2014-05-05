@@ -32,7 +32,6 @@ namespace codyco {
         : m_referenceThreadPeriod(10)
         , m_controllerThreadPeriod(10)
         , m_robot(0)
-        , m_world2BaseFrame(0)
         , m_controller(0)
         , m_references(0)
         , m_parameterServer(0)
@@ -102,7 +101,7 @@ namespace codyco {
             ReferenceGeneratorInputReader* reader = 0;
             ReferenceGenerator* generator = 0;
             
-            reader = new COMReader(*m_robot, *m_world2BaseFrame);
+            reader = new COMReader(*m_robot);
             if (reader) {
                 m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeCOM, reader));
             } else {
@@ -116,7 +115,7 @@ namespace codyco {
                 return false;
             }
             
-            reader = new HandsPositionReader(*m_robot, *m_world2BaseFrame);
+            reader = new HandsPositionReader(*m_robot);
             if (reader) {
                 m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeHandsPosition, reader));
             } else {
@@ -129,7 +128,7 @@ namespace codyco {
                 return false;
             }
             
-            reader = new HandsForceReader(*m_robot, *m_world2BaseFrame);
+            reader = new HandsForceReader(*m_robot);
             if (reader) {
                 m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeHandsForce, reader));
             } else {
@@ -238,11 +237,6 @@ namespace codyco {
             if (m_references) {
                 delete m_references;
                 m_references = 0;
-            }
-            
-            if (m_world2BaseFrame) {
-                delete m_world2BaseFrame;
-                m_world2BaseFrame = 0;
             }
         }
         

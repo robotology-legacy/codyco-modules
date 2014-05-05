@@ -18,6 +18,7 @@
 #define REFERENCEGENERATORINPUTREADERIMPL_H
 
 #include "ReferenceGenerator.h"
+#include <wbi/wbiUtil.h>
 #include <Eigen/Core>
 
 namespace wbi {
@@ -38,7 +39,8 @@ namespace codyco {
         class COMReader : public ReferenceGeneratorInputReader {
         private:
             wbi::wholeBodyInterface& m_robot;
-            const wbi::Frame& m_world2BaseFrame;
+            wbi::Frame m_world2BaseFrame;
+            wbi::Frame m_leftFootToBaseRotationFrame;
             
             Eigen::VectorXd m_jointsPosition;
             Eigen::VectorXd m_jointsVelocity;
@@ -49,9 +51,11 @@ namespace codyco {
 
             Eigen::MatrixXd m_jacobian;
             
+            int m_leftFootLinkID;
+            
             void updateStatus();
         public:
-            COMReader(wbi::wholeBodyInterface& robot, const wbi::Frame& world2BaseFrame);
+            COMReader(wbi::wholeBodyInterface& robot);
             
             virtual ~COMReader();
             virtual const Eigen::VectorXd& getSignal();
@@ -72,10 +76,12 @@ namespace codyco {
         class HandsPositionReader : public ReferenceGeneratorInputReader {
         private:
             wbi::wholeBodyInterface& m_robot;
-            const wbi::Frame& m_world2BaseFrame;
+            wbi::Frame m_world2BaseFrame;
+            wbi::Frame m_leftFootToBaseRotationFrame;
             
             int m_leftHandLinkID;
             int m_rightHandLinkID;
+            int m_leftFootLinkID;
             
             Eigen::VectorXd m_jointsPosition;
             Eigen::VectorXd m_jointsVelocity;
@@ -86,7 +92,7 @@ namespace codyco {
             
             void updateStatus();
         public:
-            HandsPositionReader(wbi::wholeBodyInterface& robot, const wbi::Frame& world2BaseFrame);
+            HandsPositionReader(wbi::wholeBodyInterface& robot);
             virtual ~HandsPositionReader();
             virtual const Eigen::VectorXd& getSignal();
             virtual const Eigen::VectorXd& getSignalDerivative();
@@ -105,7 +111,7 @@ namespace codyco {
         class HandsForceReader : public ReferenceGeneratorInputReader {
         private:
             wbi::wholeBodyInterface& m_robot;
-            const wbi::Frame& m_world2BaseFrame;
+            wbi::Frame m_world2BaseFrame;
             
             Eigen::VectorXd m_jointsPosition;
             Eigen::VectorXd m_jointsVelocity;
@@ -114,7 +120,7 @@ namespace codyco {
             
             void updateStatus();
         public:
-            HandsForceReader(wbi::wholeBodyInterface& robot, const wbi::Frame& world2BaseFrame);
+            HandsForceReader(wbi::wholeBodyInterface& robot);
             
             virtual ~HandsForceReader();
             virtual const Eigen::VectorXd& getSignal();

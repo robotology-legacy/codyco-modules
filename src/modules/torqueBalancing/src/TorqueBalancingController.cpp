@@ -72,6 +72,10 @@ namespace codyco {
             m_robot.getLinkId("r_sole", m_rightFootLinkID);
             m_robot.getLinkId("com", m_centerOfMassLinkID);
             
+            m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
+                                                            0, -1, 0,
+                                                            1, 0, 0);
+            
             //centroidal force matrix
             m_centroidalForceMatrix.setZero();
             m_centroidalForceMatrix.block<3, 3>(0, 0) = Matrix3d::Identity();
@@ -154,18 +158,23 @@ namespace codyco {
         
         bool TorqueBalancingController::updateRobotState()
         {
+            //update world to base frame
+            m_robot.computeH(m_jointPositions.data(), wbi::Frame(), m_leftFootLinkID, m_world2BaseFrame);
+            m_world2BaseFrame = m_world2BaseFrame * m_leftFootToBaseRotationFrame;
+            m_world2BaseFrame.setToInverse();
+            
             //read positions and velocities
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointPositions.data());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointVelocities.data());
             
             //update mass matrix
-            m_robot.computeMassMatrix(m_jointPositions.data(), m_worldFrame, m_massMatrix.data());
-            m_robot.computeCentroidalMomentum(m_jointPositions.data(), m_worldFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_centroidalMomentum.data());
+            m_robot.computeMassMatrix(m_jointPositions.data(), m_world2BaseFrame, m_massMatrix.data());
+            m_robot.computeCentroidalMomentum(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_centroidalMomentum.data());
 
-            m_robot.forwardKinematics(m_jointPositions.data(), m_worldFrame, m_centerOfMassLinkID, m_rotoTranslationVector.data());
+            m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_centerOfMassLinkID, m_rotoTranslationVector.data());
             m_centerOfMassPosition = m_rotoTranslationVector.head<3>();
-            m_robot.forwardKinematics(m_jointPositions.data(), m_worldFrame, m_leftFootLinkID, m_leftFootPosition.data());
-            m_robot.forwardKinematics(m_jointPositions.data(), m_worldFrame, m_rightFootLinkID, m_rightFootPosition.data());
+            m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_leftFootPosition.data());
+            m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_rightFootPosition.data());
             
             return true;
         }
@@ -194,11 +203,11 @@ namespace codyco {
             m_massMatrixSchurComplement = m_massMatrix.block(6, 6, actuatedDOFs, actuatedDOFs) - m_massMatrix.block(6, 0, actuatedDOFs, 6) * m_inverseBaseMassMatrix * m_massMatrix.block(0, 6, 6, actuatedDOFs);
 
             //update jacobians (both feet in one variable)
-            m_robot.computeJacobian(m_jointPositions.data(), m_worldFrame, m_leftFootLinkID, m_feetJacobian.topRows(6).data());
-            m_robot.computeJacobian(m_jointPositions.data(), m_worldFrame, m_rightFootLinkID, m_feetJacobian.bottomRows(6).data());
+            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_feetJacobian.topRows(6).data());
+            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_feetJacobian.bottomRows(6).data());
 
-            m_robot.computeDJdq(m_jointPositions.data(), m_worldFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_leftFootLinkID, m_feetDJacobianDq.topRows(6).data());
-            m_robot.computeDJdq(m_jointPositions.data(), m_worldFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_rightFootLinkID, m_feetDJacobianDq.bottomRows(6).data());
+            m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_leftFootLinkID, m_feetDJacobianDq.topRows(6).data());
+            m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_rightFootLinkID, m_feetDJacobianDq.bottomRows(6).data());
 
             //update auxiliary variables
             //SBar(1:6, :) = - M(1:6, 1:6)^-1 * M(1:6, 7:end)
@@ -207,7 +216,7 @@ namespace codyco {
             m_feetJacobianTimesSBar = m_feetJacobian * m_SBar;
             math::pseudoInverse(m_feetJacobianTimesSBar, PseudoInverseTolerance, m_feetJacobianTimesSBarPseudoInverse);
 //
-//            m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_worldFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_gravityUnitVector, m_generalizedBiasForces.data());
+//            m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_gravityUnitVector, m_generalizedBiasForces.data());
 //
 //            m_desiredJointAcceleration2 = m_feetJacobianTimesSBarPseudoInverse * (m_feetJacobian * m_UMatrix.transpose() * m_inverseBaseMassMatrix * (m_generalizedBiasForces.block<6, 1>(0,0) - m_feetJacobian.transpose() * desiredFeetForces) - m_feetDJacobianDq);
 //            //TODO: wait to complete this function for a proper test on matlab
