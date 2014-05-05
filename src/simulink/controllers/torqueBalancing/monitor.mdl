@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.1191"
+    ComputedModelVersion    "1.1200"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -27,9 +27,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon May  5 15:05:29 2014"
-  RTWModifiedTimeStamp	  321194078
-  ModelVersionFormat	  "1.%<AutoIncrement:1191>"
+  LastModifiedDate	  "Mon May  5 15:38:03 2014"
+  RTWModifiedTimeStamp	  321204117
+  ModelVersionFormat	  "1.%<AutoIncrement:1200>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -861,7 +861,7 @@ Model {
   }
   System {
     Name		    "monitor"
-    Location		    [908, 799, 1162, 962]
+    Location		    [513, 351, 767, 514]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -875,7 +875,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "735"
+    SIDHighWatermark	    "737"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -904,10 +904,10 @@ Model {
       MaskIconRotate	      "none"
       MaskPortRotate	      "default"
       MaskIconUnits	      "autoscale"
-      MaskValueString	      "'icubGazeboSim'|0.01|'dynamicBalancing'"
+      MaskValueString	      "'icub'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[318, 346, 1598, 1063]
+	Location		[405, 291, 1685, 1008]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -1050,8 +1050,8 @@ Model {
 	Block {
 	  BlockType		  Gain
 	  Name			  "Gain"
-	  SID			  "704"
-	  Position		  [150, 141, 210, 169]
+	  SID			  "736"
+	  Position		  [180, 141, 240, 169]
 	  Gain			  "Rf"
 	  Multiplication	  "Matrix(K*u)"
 	  ParamDataTypeStr	  "Inherit: Inherit via internal rule"
@@ -1061,8 +1061,8 @@ Model {
 	Block {
 	  BlockType		  Gain
 	  Name			  "Gain1"
-	  SID			  "705"
-	  Position		  [150, 210, 205, 240]
+	  SID			  "737"
+	  Position		  [180, 211, 240, 239]
 	  Gain			  "Rf"
 	  Multiplication	  "Matrix(K*u)"
 	  ParamDataTypeStr	  "Inherit: Inherit via internal rule"
@@ -1161,7 +1161,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "Left foot FT"
-	    Location		    [525, 416, 755, 538]
+	    Location		    [525, 482, 755, 604]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -1195,7 +1195,7 @@ Model {
 	      LibraryVersion	      "1.33"
 	      SourceBlock	      "WBCLibrary/Utilities/yarp read"
 	      SourceType	      ""
-	      from		      "['/' robotName '/left_foot/analog:o']"
+	      from		      "'/wholeBodyDyanmicsTree/left_leg/endEffectorWrench:o'"
 	      to		      "'...'"
 	      num		      "6"
 	    }
@@ -1266,7 +1266,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "Right foot FT"
-	    Location		    [525, 416, 755, 538]
+	    Location		    [525, 482, 755, 604]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -1300,7 +1300,7 @@ Model {
 	      LibraryVersion	      "1.33"
 	      SourceBlock	      "WBCLibrary/Utilities/yarp read"
 	      SourceType	      ""
-	      from		      "['/' robotName '/right_foot/analog:o']"
+	      from		      "'/wholeBodyDyanmicsTree/right_leg/endEffectorWrench:o'"
 	      to		      "'...'"
 	      num		      "6"
 	    }
@@ -1387,7 +1387,7 @@ Model {
 	  ZOrder		  -57
 	  Floating		  off
 	  Location		  [6, 71, 595, 799]
-	  Open			  on
+	  Open			  off
 	  NumInputPorts		  "5"
 	  ZoomMode		  "yonly"
 	  List {
@@ -1836,8 +1836,8 @@ Model {
 	    axes2		    "%<SignalLabel>"
 	  }
 	  TimeRange		  "1800"
-	  YMin			  "-10~-3"
-	  YMax			  "120~0.25"
+	  YMin			  "-40~1.25"
+	  YMax			  "150~5.5"
 	  SaveToWorkspace	  on
 	  SaveName		  "ScopeData5"
 	  DataFormat		  "StructureWithTime"
@@ -1860,8 +1860,8 @@ Model {
 	    axes2		    "%<SignalLabel>"
 	  }
 	  TimeRange		  "1800"
-	  YMin			  "-20~-2.75"
-	  YMax			  "120~0.25"
+	  YMin			  "-50~-7.5"
+	  YMax			  "150~0.5"
 	  SaveToWorkspace	  on
 	  SaveName		  "ScopeData4"
 	  DataFormat		  "StructureWithTime"
@@ -2576,18 +2576,6 @@ Model {
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "Gain"
-	  SrcPort		  1
-	  DstBlock		  "Goto3"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Gain1"
-	  SrcPort		  1
-	  DstBlock		  "Goto4"
-	  DstPort		  1
-	}
-	Line {
 	  SrcBlock		  " 1"
 	  SrcPort		  1
 	  Points		  [10, 0]
@@ -2684,6 +2672,18 @@ Model {
 	  SrcPort		  1
 	  DstBlock		  "fl"
 	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "Gain"
+	  SrcPort		  1
+	  DstBlock		  "Goto3"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Gain1"
+	  SrcPort		  1
+	  DstBlock		  "Goto4"
+	  DstPort		  1
 	}
       }
     }
