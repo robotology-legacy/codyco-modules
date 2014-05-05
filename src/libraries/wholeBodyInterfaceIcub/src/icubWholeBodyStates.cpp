@@ -437,6 +437,14 @@ bool icubWholeBodyEstimator::threadInit()
     left_sole_local_id = wbi::LocalId(LEFT_LEG,8);
     right_sole_local_id = wbi::LocalId(RIGHT_LEG,8);
 
+    bool okEE = true;
+    okEE = okEE && openEEWrenchPorts(right_gripper_local_id);
+    okEE = okEE && openEEWrenchPorts(left_gripper_local_id);
+    okEE = okEE && openEEWrenchPorts(right_sole_local_id);
+    okEE = okEE && openEEWrenchPorts(left_sole_local_id);
+
+    ee_wrenches_enabled = okEE;
+
     return ok;
 }
 
@@ -488,10 +496,10 @@ void icubWholeBodyEstimator::run()
         estimates.lastPwm = pwmFilt->filt(pwm);     ///< low pass filter
 
         ///< Read end effector wrenches
-        //readEEWrenches(right_gripper_local_id,RAExtWrench);
-        //readEEWrenches(left_gripper_local_id,LAExtWrench);
-        //readEEWrenches(right_sole_local_id,RLExtWrench);
-        //readEEWrenches(left_sole_local_id,LLExtWrench);
+        readEEWrenches(right_gripper_local_id,RAExtWrench);
+        readEEWrenches(left_gripper_local_id,LAExtWrench);
+        readEEWrenches(right_sole_local_id,RLExtWrench);
+        readEEWrenches(left_sole_local_id,LLExtWrench);
     }
     mutex.post();
 
@@ -521,7 +529,7 @@ std::string getPartName(const wbi::LocalId & local_id)
 }
 
 
-void icubWholeBodyEstimator::openEEWrenchPorts(const wbi::LocalId & local_id)
+bool icubWholeBodyEstimator::openEEWrenchPorts(const wbi::LocalId & local_id)
 {
     std::string wbd_module_name = "wholeBodyDynamicsTree";
     std::string part, remotePort;
@@ -537,37 +545,51 @@ void icubWholeBodyEstimator::openEEWrenchPorts(const wbi::LocalId & local_id)
     if(!portsEEWrenches[local_id]->open(localPort.str().c_str())) {
         // open local input port
         std::cerr << " icubWholeBodyEstimator::openEEWrenchPorts: Open of localPort " << localPort << " failed " << std::endl;
-        YARP_ASSERT(false);
+        //YARP_ASSERT(false);
+        ee_wrenches_enabled = false;
+        return false;
     }
     if(!Network::exists(remotePort.c_str())) {            // check remote output port exists
         std::cerr << "icubWholeBodyEstimator::openEEWrenchPorts:  " << remotePort << " does not exist " << std::endl;
-        YARP_ASSERT(false);
+        //YARP_ASSERT(false);
+        ee_wrenches_enabled = false;
+        return false;
     }
     if(!Network::connect(remotePort.c_str(), localPort.str().c_str(), "udp")) {  // connect remote to local port
         std::cerr << "icubWholeBodyEstimator::openEEWrenchPorts:  could not connect " << remotePort << " to " << localPort << std::endl;
-        YARP_ASSERT(false);
+        //YARP_ASSERT(false);
+        ee_wrenches_enabled = false;
+        return false;
     }
 
     //allocate lastRead variables
     lastEEWrenches[local_id].resize(6,0.0);
+    ee_wrenches_enabled = true;
 
+    return true;
 }
 
 void icubWholeBodyEstimator::readEEWrenches(const wbi::LocalId & local_id, yarp::sig::Vector & vec)
 {
     vec.resize(6);
-    yarp::sig::Vector*res = portsEEWrenches[local_id]->read();
-    if( res ) 
+    if( ee_wrenches_enabled )
     {
-        vec.subVector(0,2) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(0,2);
-        vec.subVector(3,5) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(3,5);
+        yarp::sig::Vector*res = portsEEWrenches[local_id]->read();
+        if( res )
+        {
+            vec.subVector(0,2) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(0,2);
+            vec.subVector(3,5) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(3,5);
+        }
     }
 }
 
 void icubWholeBodyEstimator::closeEEWrenchPorts(const wbi::LocalId & local_id)
 {
-    portsEEWrenches[local_id]->close();
-    delete portsEEWrenches[local_id];
+    if( ee_wrenches_enabled )
+    {
+        portsEEWrenches[local_id]->close();
+        delete portsEEWrenches[local_id];
+    }
 }
 
 void icubWholeBodyEstimator::threadRelease()
@@ -581,10 +603,10 @@ void icubWholeBodyEstimator::threadRelease()
     if(tauMFilt!=0)  { delete tauMFilt; tauMFilt=0; }  ///< low pass filter for motor torque
     if(pwmFilt!=0)   { delete pwmFilt; pwmFilt=0;   }
 
-    //closeEEWrenchPorts(right_gripper_local_id);
-    //closeEEWrenchPorts(left_gripper_local_id);
-    //closeEEWrenchPorts(right_sole_local_id);
-    //closeEEWrenchPorts(left_sole_local_id);
+    closeEEWrenchPorts(right_gripper_local_id);
+    closeEEWrenchPorts(left_gripper_local_id);
+    closeEEWrenchPorts(right_sole_local_id);
+    closeEEWrenchPorts(left_sole_local_id);
 
     return;
 }

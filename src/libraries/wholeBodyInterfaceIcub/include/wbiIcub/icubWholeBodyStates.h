@@ -83,13 +83,11 @@ namespace wbiIcub
         bool setPwmCutFrequency(double fc);
 
         // end effector wrenches ports (the key of the maps is the sensor id)
+        bool ee_wrenches_enabled;
         std::map<wbi::LocalId, yarp::os::BufferedPort<yarp::sig::Vector>*>  portsEEWrenches;
         std::map<wbi::LocalId, yarp::sig::Vector>  lastEEWrenches;
 
-
-
-
-        void openEEWrenchPorts(const wbi::LocalId & local_id);
+        bool openEEWrenchPorts(const wbi::LocalId & local_id);
         void readEEWrenches(const wbi::LocalId & local_id,yarp::sig::Vector & vec);
         void closeEEWrenchPorts(const wbi::LocalId & local_id);
 
