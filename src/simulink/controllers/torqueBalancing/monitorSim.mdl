@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.1190"
+    ComputedModelVersion    "1.1191"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -27,9 +27,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon May  5 15:03:42 2014"
-  RTWModifiedTimeStamp	  321202963
-  ModelVersionFormat	  "1.%<AutoIncrement:1190>"
+  LastModifiedDate	  "Mon May  5 18:44:03 2014"
+  RTWModifiedTimeStamp	  321216170
+  ModelVersionFormat	  "1.%<AutoIncrement:1191>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -861,7 +861,7 @@ Model {
   }
   System {
     Name		    "monitorSim"
-    Location		    [908, 799, 1162, 962]
+    Location		    [513, 329, 767, 492]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -875,7 +875,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "735"
+    SIDHighWatermark	    "738"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -907,8 +907,8 @@ Model {
       MaskValueString	      "'icubGazeboSim'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[309, 171, 1589, 888]
-	Open			off
+	Location		[309, 193, 1589, 910]
+	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -1109,6 +1109,28 @@ Model {
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/wholeBodyStates/Joint Angles"
 	  SourceType		  ""
+	  ShowPortLabels	  "FromPortIcon"
+	  SystemSampleTime	  "-1"
+	  FunctionWithSeparateData off
+	  RTWMemSecFuncInitTerm	  "Inherit from model"
+	  RTWMemSecFuncExecute	  "Inherit from model"
+	  RTWMemSecDataConstants  "Inherit from model"
+	  RTWMemSecDataInternal	  "Inherit from model"
+	  RTWMemSecDataParameters "Inherit from model"
+	  GeneratePreprocessorConditionals off
+	  robotName		  "robotName"
+	  localName		  "localName"
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "Joint Torques"
+	  SID			  "736"
+	  Ports			  [0, 1]
+	  Position		  [575, 653, 645, 697]
+	  BackgroundColor	  "[1.000000, 0.634000, 0.268000]"
+	  LibraryVersion	  "1.33"
+	  SourceBlock		  "WBCLibrary/wholeBodyStates/Joint Torques"
+	  SourceType		  "Get Joint Torques"
 	  ShowPortLabels	  "FromPortIcon"
 	  SystemSampleTime	  "-1"
 	  FunctionWithSeparateData off
@@ -1549,6 +1571,28 @@ Model {
 	  SID			  "563"
 	  Ports			  [1, 5]
 	  Position		  [305, 562, 415, 648]
+	  ZOrder		  -63
+	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
+	  ShowName		  off
+	  LibraryVersion	  "1.33"
+	  SourceBlock		  "WBCLibrary/Utilities/WBI to yarp"
+	  SourceType		  "WBI to YARP"
+	  ShowPortLabels	  "FromPortIcon"
+	  SystemSampleTime	  "-1"
+	  FunctionWithSeparateData off
+	  RTWMemSecFuncInitTerm	  "Inherit from model"
+	  RTWMemSecFuncExecute	  "Inherit from model"
+	  RTWMemSecDataConstants  "Inherit from model"
+	  RTWMemSecDataInternal	  "Inherit from model"
+	  RTWMemSecDataParameters "Inherit from model"
+	  GeneratePreprocessorConditionals off
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "WBI to yarp1"
+	  SID			  "738"
+	  Ports			  [1, 5]
+	  Position		  [910, 592, 1020, 678]
 	  ZOrder		  -63
 	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
 	  ShowName		  off
@@ -2400,6 +2444,35 @@ Model {
 	  rate			  "0.010"
 	  scaleFactor		  "1"
 	}
+	Block {
+	  BlockType		  Scope
+	  Name			  "tau"
+	  SID			  "737"
+	  Ports			  [5]
+	  Position		  [1060, 589, 1120, 681]
+	  ZOrder		  -57
+	  Floating		  off
+	  Location		  [6, 71, 595, 799]
+	  Open			  on
+	  NumInputPorts		  "5"
+	  ZoomMode		  "yonly"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	    axes2		    "%<SignalLabel>"
+	    axes3		    "%<SignalLabel>"
+	    axes4		    "%<SignalLabel>"
+	    axes5		    "%<SignalLabel>"
+	  }
+	  TimeRange		  "2000"
+	  YMin			  "-8~-1.75~-1.75~-2~-2"
+	  YMax			  "1~1.25~1.25~6~6"
+	  SaveToWorkspace	  on
+	  SaveName		  "ScopeData6"
+	  DataFormat		  "StructureWithTime"
+	  LimitDataPoints	  off
+	  SampleTime		  "0"
+	}
 	Line {
 	  SrcBlock		  "qb + qj"
 	  SrcPort		  1
@@ -2684,6 +2757,47 @@ Model {
 	  SrcPort		  1
 	  DstBlock		  "fl"
 	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "WBI to yarp1"
+	  SrcPort		  1
+	  Points		  [20, 0]
+	  DstBlock		  "tau"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "WBI to yarp1"
+	  SrcPort		  2
+	  Points		  [20, 0]
+	  DstBlock		  "tau"
+	  DstPort		  2
+	}
+	Line {
+	  SrcBlock		  "WBI to yarp1"
+	  SrcPort		  3
+	  DstBlock		  "tau"
+	  DstPort		  3
+	}
+	Line {
+	  SrcBlock		  "WBI to yarp1"
+	  SrcPort		  4
+	  Points		  [20, 0]
+	  DstBlock		  "tau"
+	  DstPort		  4
+	}
+	Line {
+	  SrcBlock		  "WBI to yarp1"
+	  SrcPort		  5
+	  Points		  [20, 0]
+	  DstBlock		  "tau"
+	  DstPort		  5
+	}
+	Line {
+	  SrcBlock		  "Joint Torques"
+	  SrcPort		  1
+	  Points		  [120, 0; 0, -40]
+	  DstBlock		  "WBI to yarp1"
+	  DstPort		  1
 	}
       }
     }
