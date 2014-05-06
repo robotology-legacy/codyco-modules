@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.1217"
+    ComputedModelVersion    "1.1218"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -27,9 +27,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon May  5 21:58:04 2014"
-  RTWModifiedTimeStamp	  321223089
-  ModelVersionFormat	  "1.%<AutoIncrement:1217>"
+  LastModifiedDate	  "Tue May  6 11:48:40 2014"
+  RTWModifiedTimeStamp	  321276422
+  ModelVersionFormat	  "1.%<AutoIncrement:1218>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -66,6 +66,7 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "controller"
+    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -905,7 +906,7 @@ Model {
   }
   System {
     Name		    "partialForceControl"
-    Location		    [513, 351, 767, 514]
+    Location		    [513, 373, 767, 536]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -951,7 +952,7 @@ Model {
       MaskValueString	      "'icub'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[176, 329, 1456, 1069]
+	Location		[176, 373, 1456, 1113]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -2127,8 +2128,8 @@ Model {
 	  BlockMirror		  on
 	  NamePlacement		  "alternate"
 	  Floating		  off
-	  Location		  [-634, 183, -45, 911]
-	  Open			  on
+	  Location		  [6, 71, 595, 799]
+	  Open			  off
 	  NumInputPorts		  "5"
 	  List {
 	    ListType		    AxesTitles
@@ -2155,7 +2156,7 @@ Model {
 	  ZOrder		  -57
 	  Floating		  off
 	  Location		  [6, 71, 595, 799]
-	  Open			  on
+	  Open			  off
 	  NumInputPorts		  "1"
 	  List {
 	    ListType		    AxesTitles
