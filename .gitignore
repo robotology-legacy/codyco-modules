@@ -3,3 +3,8 @@
 *.orig
 .DS_Store
 *.kdev4
+*.autosave
+*.original
+*.mexmaci64
+*.mexa64
+*/slprj/

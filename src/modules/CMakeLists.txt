@@ -11,3 +11,5 @@ add_subdirectory(motorFrictionExcitation)
 if(CODYCO_BUILD_EIGEN31_MODULES)
     add_subdirectory(motorFrictionIdentification)
 endif()
+
+add_subdirectory(codycoCoordinatorDemo1Y)

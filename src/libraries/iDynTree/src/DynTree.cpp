@@ -5,9 +5,8 @@
  *
  */
 
-#include <iCub/iDynTree/DynTree.h>
-
-#include <iCub/iDynTree/yarp_kdl.h>
+#include "iCub/iDynTree/DynTree.h"
+#include "iCub/iDynTree/yarp_kdl.h"
 
 //Loops from KDL_CoDyCo
 #include <kdl_codyco/position_loops.hpp>
@@ -813,21 +812,42 @@ bool DynTree::getConstraint(unsigned int i) { return constrained[i]; }
 
 yarp::sig::Matrix DynTree::getPosition(const int link_index,bool inverse) const
 {
-    if( link_index < 0 || link_index >= (int)undirected_tree.getNrOfLinks() ) { std::cerr << "DynTree::getPosition: link index " << link_index <<  " out of bounds" << std::endl; return yarp::sig::Matrix(0,0); }
+    return KDLtoYarp_position(getPositionKDL(link_index,inverse));
+}
+
+KDL::Frame DynTree::getPositionKDL(const int link_index,bool inverse) const
+{
+    if( link_index < 0 || link_index >= (int)undirected_tree.getNrOfLinks() ) { std::cerr << "DynTree::getPosition: link index " << link_index <<  " out of bounds" << std::endl; return error_frame; }
     computePositions();
     if( !inverse ) {
-        return KDLtoYarp_position(world_base_frame*X_dynamic_base[link_index]);
+        return (world_base_frame*X_dynamic_base[link_index]);
     } else {
-        return KDLtoYarp_position((world_base_frame*X_dynamic_base[link_index]).Inverse());
+        return ((world_base_frame*X_dynamic_base[link_index]).Inverse());
     }
 }
 
 yarp::sig::Matrix DynTree::getPosition(const int first_link, const int second_link) const
 {
-   if( first_link < 0 || first_link >= (int)undirected_tree.getNrOfLinks() ) { std::cerr << "DynTree::getPosition: link index " << first_link <<  " out of bounds" << std::endl; return yarp::sig::Matrix(0,0); }
-   if( second_link < 0 || second_link >= (int)undirected_tree.getNrOfLinks() ) { std::cerr << "DynTree::getPosition: link index " << second_link <<  " out of bounds" << std::endl; return yarp::sig::Matrix(0,0); }
+    return KDLtoYarp_position(getPositionKDL(first_link,second_link));
+}
+
+KDL::Frame DynTree::getPositionKDL(const int first_link, const int second_link) const
+{
+   if( first_link < 0
+       || first_link >= (int)undirected_tree.getNrOfLinks() )
+   {
+       std::cerr << "DynTree::getPosition: link index " << first_link <<  " out of bounds" << std::endl;
+       return error_frame;
+   }
+
+   if( second_link < 0
+       || second_link >= (int)undirected_tree.getNrOfLinks() )
+   {
+       std::cerr << "DynTree::getPosition: link index " << second_link <<  " out of bounds" << std::endl;
+       return error_frame;
+   }
    computePositions();
-   return KDLtoYarp_position(X_dynamic_base[first_link].Inverse()*X_dynamic_base[second_link]);
+   return (X_dynamic_base[first_link].Inverse()*X_dynamic_base[second_link]);
 }
 
 yarp::sig::Vector DynTree::getVel(const int link_index, const bool local) const
@@ -992,6 +1012,10 @@ const iCub::skinDynLib::dynContactList DynTree::getContacts() const
 bool DynTree::computePositions() const
 {
     if( !is_X_dynamic_base_updated ) {
+        sixteen_double_zero.resize(16);
+        sixteen_double_zero.zero();
+        error_frame.Make4x4(sixteen_double_zero.data());
+
         if(X_dynamic_base.size() != undirected_tree.getNrOfLinks()) { X_dynamic_base.resize(undirected_tree.getNrOfLinks()); }
         if( getFramesLoop(undirected_tree,q,dynamic_traversal,X_dynamic_base) == 0 ) {
             is_X_dynamic_base_updated = true;
@@ -1011,6 +1035,11 @@ bool DynTree::kinematicRNEA()
     //ret = rneaKinematicLoop(undirected_tree,q,dq,ddq,kinematic_traversal,imu_velocity,imu_acceleration,v,a);
     ret = rneaKinematicLoop(undirected_tree,q,dq,ddq,kinematic_traversal,imu_velocity,imu_acceleration,v,a,f_gi);
 
+    for( int i = 0; i < f_ext.size(); i++ )
+    {
+        SetToZero(f_ext[i]);
+    }
+
     are_contact_estimated = false;
 
     if( ret < 0 ) return false;
@@ -1018,7 +1047,7 @@ bool DynTree::kinematicRNEA()
     return true;
 }
 
-bool DynTree::estimateContactForces()
+bool DynTree::estimateContactForcesFromSkin()
 {
     #ifndef NDEBUG
     //std::cout << "DynTree::estimateContactForces " << std::endl;
@@ -1051,13 +1080,98 @@ bool DynTree::estimateContactForces()
     return true;
 }
 
+void pseudoInverse(const Eigen::Matrix<double, 6, 6+6> A,
+                                                        double tol,
+                                                         Eigen::Matrix<double, 6+6, 6>& Apinv)
+{
+            using namespace Eigen;
+
+            int m = A.rows(), n = A.cols(), k = m < n ? m : n;
+            Eigen::JacobiSVD< Eigen::Matrix<double, 6, 6+6> > svd(A,Eigen::ComputeFullU|Eigen::ComputeFullV);
+            const typename JacobiSVD< Eigen::Matrix<double, 6, 6+6> >::SingularValuesType& singularValues = svd.singularValues();
+            Eigen::Matrix<double, 12, 6> invSinValues;
+            invSinValues.setZero();
+            for (int idx = 0; idx < singularValues.size(); idx++)
+            {
+                if( idx < singularValues.size() )
+                {
+                    invSinValues(idx,idx) = tol > 0 && singularValues(idx) > tol ? 1.0 / singularValues(idx) : 0.0;
+                }
+            }
+            //std::cout << "singularValues: " << singularValues << std::endl;
+            //std::cout << "invSinValues : " << invSinValues << std::endl;
+            Eigen::Matrix<double, 12, 12> V = svd.matrixV();
+            Eigen::Matrix<double, 6, 6> U = svd.matrixU();
+            //std::cout << "V " << V << std::endl;
+            //std::cout << "U " << U << std::endl;
+            Apinv =  V * invSinValues * U.transpose(); // damped pseudoinverse
+}
+
+bool DynTree::estimateDoubleSupportContactForce(int left_foot_id, int right_foot_id)
+{
+    KDL::CoDyCo::rneaDynamicLoop(undirected_tree,q,dynamic_traversal,f_gi,f_ext,f,torques,base_residual_f);
+
+    double tol = 1e-2;
+
+    //now base_residual_f is locate at the root link, we want to divide this constribution in the two
+    //wrenches at the feet
+    computePositions();
+    KDL::Frame H_root_leftFoot = X_dynamic_base[left_foot_id];
+    KDL::Frame H_root_rightFoot = X_dynamic_base[right_foot_id];
+
+    Eigen::Matrix<double, 6, 1> residual_f_eigen = KDL::CoDyCo::toEigen(base_residual_f);
+
+    Eigen::Matrix<double, 6, 6+6> regressor;
+
+    Eigen::Matrix<double, 6+6, 6> regressorPinv;
+
+    Eigen::Matrix<double, 6+6, 1> unknown_wrenches;
+
+    regressor.block<6,6>(0,0) = KDL::CoDyCo::WrenchTransformationMatrix(H_root_leftFoot);
+    regressor.block<6,6>(0,6) = KDL::CoDyCo::WrenchTransformationMatrix(H_root_rightFoot);
+
+    pseudoInverse(regressor,tol,regressorPinv);
+
+    unknown_wrenches = regressorPinv*(residual_f_eigen);
+
+    Eigen::Matrix<double, 6, 1> f_left_foot = unknown_wrenches.segment<6>(0);
+    Eigen::Matrix<double, 6, 1> f_right_foot = unknown_wrenches.segment<6>(6);
+    f_ext[left_foot_id] = KDL::CoDyCo::toKDLWrench(f_left_foot);
+    f_ext[right_foot_id] = KDL::CoDyCo::toKDLWrench(f_right_foot);
+
+
+    /*
+    std::cout << "Known term " << base_residual_f << std::endl;
+    std::cout << "Known term " << residual_f_eigen << std::endl;
+    */
+    /*
+    std::cout << "Regressor " << regressor << std::endl;
+    std::cout << "Regressor pinv " << regressorPinv << std::endl;
+    */
+    /*
+    std::cout << "Estimated wrenches " << unknown_wrenches << std::endl;
+        std::cout << "Estimate wrench for left foot " << f_left_foot << std::endl;
+    std::cout << "Estimate wrench for right foot " << f_right_foot << std::endl;
+    std::cout << "Estimate wrench for left foot " << f_ext[left_foot_id] << std::endl;
+    std::cout << "Estimate wrench for right foot " << f_ext[right_foot_id] << std::endl;
+
+    std::cout << "left foot id " << getLinkIndex("l_foot") << " used id " << left_foot_id << std::endl;
+    std::cout << "right foot id " << getLinkIndex("r_foot") << " used id " << right_foot_id << std::endl;
+
+    std::cout << "tree         : " << undirected_tree.toString() << std::endl;
+    std::cout << "serialization: " <<  undirected_tree.getSerialization().toString() << std::endl;
+    */
+    return true;
+}
+
 bool DynTree::dynamicRNEA()
 {
     int ret;
     //ret = rneaDynamicLoop(undirected_tree,q,dynamic_traversal,v,a,f_ext,f,torques,base_residual_f);
-    ret = rneaDynamicLoop(undirected_tree,q,dynamic_traversal,f_gi,f_ext,f,torques,base_residual_f);
+    ret = KDL::CoDyCo::rneaDynamicLoop(undirected_tree,q,dynamic_traversal,f_gi,f_ext,f,torques,base_residual_f);
     //Check base force: if estimate contact was called, it should be zero
-    if( are_contact_estimated == true ) {
+    if( are_contact_estimated == true )
+    {
         //If the force were estimated wright
         #ifndef NDEBUG
         /*
@@ -1082,12 +1196,13 @@ bool DynTree::dynamicRNEA()
             assert( residual.torque.Norm() < 1e-5 );
             #endif //NDEBUG
         }
-
-
-    } else {
+    }
+    else
+    {
         //In case contacts forces where not estimated, the sensor values have
         //to be calculated from the RNEA
-        for(int i=0; i < NrOfFTSensors; i++ ) {
+        for(int i=0; i < NrOfFTSensors; i++ )
+        {
             //Todo add case that the force/wrench is the one of the parent ?
             #ifndef NDEBUG
             //std::cerr << "Project sensor " << i << "from link " << ft_list.ft_sensors_vector[i].getChild() << " to sensor " << std::endl;
