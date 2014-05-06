@@ -10,12 +10,12 @@ nf = 6;    %number of controlled contraints
 % Controller period
 Ts = 0.01; 
 
-k_pst_torso = [600 600 100]*0;
-k_pst_arm   = [200 200 200 200 200]*0;
-k_pst_leg   = [200 200 200 200 200  200]*0;
+k_pst_torso = [600 600 100];
+k_pst_arm   = [200 200 200 200 200];
+k_pst_leg   = [100 100 100 100 100  100];
 
-k_f_linear  = [0.050 0.050 0.050];
-k_f_rotatio = [0.008 0.008 0.008];
+k_f_linear  = [0.010 0.010 0.010];
+k_f_rotatio = [0.003 0.003 0.003];
 
 k_f   = diag([k_f_linear k_f_rotatio]);
 k_pst = [ diag([k_pst_torso k_pst_arm k_pst_arm k_pst_leg k_pst_leg])    0*eye(25)   0*eye(25)];   
