@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.1218"
+    ComputedModelVersion    "1.1219"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -27,9 +27,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue May  6 11:26:51 2014"
+  LastModifiedDate	  "Tue May  6 11:48:34 2014"
   RTWModifiedTimeStamp	  321275648
-  ModelVersionFormat	  "1.%<AutoIncrement:1218>"
+  ModelVersionFormat	  "1.%<AutoIncrement:1219>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -913,7 +913,7 @@ Model {
       MaskValueString	      "'icub'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[187, 237, 1467, 954]
+	Location		[376, 212, 1656, 929]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -2478,7 +2478,7 @@ Model {
 	  Location		  [6, 71, 595, 799]
 	  Open			  on
 	  NumInputPorts		  "5"
-	  ZoomMode		  "yonly"
+	  ZoomMode		  "xonly"
 	  List {
 	    ListType		    AxesTitles
 	    axes1		    "%<SignalLabel>"
@@ -2855,8 +2855,6 @@ Stateflow {
     created		    "18-Feb-2014 10:14:40"
     isLibrary		    0
     firstTarget		    2
-    debug {
-    }
     sfVersion		    75014001
   }
   target {
