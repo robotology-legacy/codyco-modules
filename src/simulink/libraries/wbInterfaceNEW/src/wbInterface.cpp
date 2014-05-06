@@ -109,10 +109,25 @@ bool robotStatus::robotConfig() {
 #endif
     }
     else {
+      ResourceFinder rf;
+      rf.setVerbose(true);
+      rf.setDefaultContext("wbit");
+      rf.setDefaultConfigFile("WBITconfig.ini");
+      rf.configure(1,0);
+      
+      ConstString robotNamefromConfigFile = rf.find("robot").asString();
+      std::string urdf_file = rf.find("urdf").asString();
+      
+      cout<<"After reading from config file, params are "<<endl;
+      cout<<"robot name: "<<robotNamefromConfigFile.c_str()<<endl;	
+      cout<<"urdf file:  "<<urdf_file.c_str()<<endl;
+      
+      
         //---------------- CREATION WHOLE BODY INTERFACE ---------------------/
         iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,1,true);
-//         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/home/daniele/src/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
-        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
+	wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version, urdf_file);
+//         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/home/jorhabib/Software/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
+//         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
 
 #ifdef DEBUG
         fprintf(stderr,"robotStatus::robotConfig >> new wbInterface created ...\n");

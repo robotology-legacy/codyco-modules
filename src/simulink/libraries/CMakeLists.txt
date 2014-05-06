@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 2.6)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # MATLAB and YARP is searched before adding the different modules because they will be used by all of them
-find_package(YARP       REQUIRED)
+find_package(YARP        REQUIRED)
 find_package(Matlab	 REQUIRED)
 
 if(MATLAB_FOUND)
@@ -21,6 +21,9 @@ else()
         message(FATAL_ERROR "Matlab not found")
 endif()
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
+include(YarpInstallationHelpers)
+yarp_configure_external_installation(codyco)
 
 #add_subdirectory(wbInterface)
 add_subdirectory(minJerkGenerator)

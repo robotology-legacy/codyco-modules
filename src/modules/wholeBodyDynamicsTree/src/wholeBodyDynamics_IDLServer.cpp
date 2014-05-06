@@ -30,6 +30,30 @@ public:
   }
 };
 
+class wholeBodyDynamics_IDLServer_calibOnDoubleSupport : public yarp::os::Portable {
+public:
+  std::string calib_code;
+  int32_t nr_of_samples;
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(3)) return false;
+    if (!writer.writeTag("calibOnDoubleSupport",1,1)) return false;
+    if (!writer.writeString(calib_code)) return false;
+    if (!writer.writeI32(nr_of_samples)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
 class wholeBodyDynamics_IDLServer_resetOffset : public yarp::os::Portable {
 public:
   std::string calib_code;
@@ -83,6 +107,17 @@ bool wholeBodyDynamics_IDLServer::calib(const std::string& calib_code, const int
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
+bool wholeBodyDynamics_IDLServer::calibOnDoubleSupport(const std::string& calib_code, const int32_t nr_of_samples) {
+  bool _return = false;
+  wholeBodyDynamics_IDLServer_calibOnDoubleSupport helper;
+  helper.calib_code = calib_code;
+  helper.nr_of_samples = nr_of_samples;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::calibOnDoubleSupport(const std::string& calib_code, const int32_t nr_of_samples)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 bool wholeBodyDynamics_IDLServer::resetOffset(const std::string& calib_code) {
   bool _return = false;
   wholeBodyDynamics_IDLServer_resetOffset helper;
@@ -122,6 +157,26 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
       }
       bool _return;
       _return = calib(calib_code,nr_of_samples);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "calibOnDoubleSupport") {
+      std::string calib_code;
+      int32_t nr_of_samples;
+      if (!reader.readString(calib_code)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readI32(nr_of_samples)) {
+        nr_of_samples = 100;
+      }
+      bool _return;
+      _return = calibOnDoubleSupport(calib_code,nr_of_samples);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -192,6 +247,7 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
   if(showAll) {
     helpString.push_back("*** Available commands:");
     helpString.push_back("calib");
+    helpString.push_back("calibOnDoubleSupport");
     helpString.push_back("resetOffset");
     helpString.push_back("quit");
     helpString.push_back("help");
@@ -201,6 +257,15 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
       helpString.push_back("bool calib(const std::string& calib_code, const int32_t nr_of_samples = 100) ");
       helpString.push_back("Calibrate the force/torque sensors ");
       helpString.push_back("(WARNING: calibrate the sensors when the only external forces acting on the robot are on the torso/waist) ");
+      helpString.push_back("@param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet) ");
+      helpString.push_back("@param nr_of_samples number of samples ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="calibOnDoubleSupport") {
+      helpString.push_back("bool calibOnDoubleSupport(const std::string& calib_code, const int32_t nr_of_samples = 100) ");
+      helpString.push_back("Calibrate the force/torque sensors when on double support ");
+      helpString.push_back("(WARNING: calibrate the sensors when the only external forces acting on the robot are on the sole). ");
+      helpString.push_back("For this calibration the strong assumption of simmetry of the robot and its pose is done. ");
       helpString.push_back("@param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet) ");
       helpString.push_back("@param nr_of_samples number of samples ");
       helpString.push_back("@return true/false on success/failure ");

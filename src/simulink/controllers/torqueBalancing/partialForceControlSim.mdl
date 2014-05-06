@@ -1,12 +1,12 @@
 Model {
-  Name			  "partialForceControl"
+  Name			  "partialForceControlSim"
   Version		  7.7
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.1217"
+    ComputedModelVersion    "1.1195"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -20,16 +20,16 @@ Model {
   MinMaxOverflowLogging	  "UseLocalSettings"
   MinMaxOverflowArchiveMode "Overwrite"
   MaxMDLFileLineLength	  120
-  InitFcn		  "initPartialForceControl;"
+  InitFcn		  "initPartialForceControlSim;"
   Created		  "Tue Feb 18 10:13:36 2014"
   Creator		  "daniele"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon May  5 21:58:04 2014"
-  RTWModifiedTimeStamp	  321223089
-  ModelVersionFormat	  "1.%<AutoIncrement:1217>"
+  LastModifiedDate	  "Mon May  5 18:46:18 2014"
+  RTWModifiedTimeStamp	  321216295
+  ModelVersionFormat	  "1.%<AutoIncrement:1195>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -904,8 +904,8 @@ Model {
     }
   }
   System {
-    Name		    "partialForceControl"
-    Location		    [513, 351, 767, 514]
+    Name		    "partialForceControlSim"
+    Location		    [989, 815, 1243, 978]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -919,7 +919,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "892"
+    SIDHighWatermark	    "864"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -948,10 +948,10 @@ Model {
       MaskIconRotate	      "none"
       MaskPortRotate	      "default"
       MaskIconUnits	      "autoscale"
-      MaskValueString	      "'icub'|0.01|'dynamicBalancing'"
+      MaskValueString	      "'icubGazeboSim'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[176, 329, 1456, 1069]
+	Location		[29, 183, 1309, 933]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -972,38 +972,6 @@ Model {
 	  ZOrder		  10
 	  ShowName		  off
 	  Value			  "k_pst"
-	}
-	Block {
-	  BlockType		  Sum
-	  Name			  "Add"
-	  SID			  "878"
-	  Ports			  [2, 1]
-	  Position		  [1050, 302, 1080, 333]
-	  Inputs		  "-+"
-	  InputSameDT		  off
-	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
-	  SaturateOnIntegerOverflow off
-	}
-	Block {
-	  BlockType		  Sum
-	  Name			  "Add1"
-	  SID			  "879"
-	  Ports			  [2, 1]
-	  Position		  [1140, 172, 1170, 203]
-	  InputSameDT		  off
-	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
-	  SaturateOnIntegerOverflow off
-	}
-	Block {
-	  BlockType		  Sum
-	  Name			  "Add2"
-	  SID			  "885"
-	  Ports			  [2, 1]
-	  Position		  [1100, 377, 1130, 408]
-	  Inputs		  "-+"
-	  InputSameDT		  off
-	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
-	  SaturateOnIntegerOverflow off
 	}
 	Block {
 	  BlockType		  Assertion
@@ -1421,24 +1389,11 @@ Model {
 	  SaturateOnIntegerOverflow off
 	}
 	Block {
-	  BlockType		  Gain
-	  Name			  "Gain2"
-	  SID			  "886"
-	  Position		  [735, 506, 795, 534]
-	  Gain			  "Rf"
-	  Multiplication	  "Matrix(K*u)"
-	  ParamDataTypeStr	  "Inherit: Inherit via internal rule"
-	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
-	  SaturateOnIntegerOverflow off
-	}
-	Block {
 	  BlockType		  Goto
 	  Name			  "Goto"
 	  SID			  "764"
-	  Position		  [1060, 130, 1100, 160]
+	  Position		  [1015, 145, 1055, 175]
 	  ZOrder		  -43
-	  BlockMirror		  on
-	  NamePlacement		  "alternate"
 	  GotoTag		  "tau"
 	  TagVisibility		  "local"
 	}
@@ -1496,28 +1451,6 @@ Model {
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/wholeBodyModel/Joint Limits"
 	  SourceType		  ""
-	  ShowPortLabels	  "FromPortIcon"
-	  SystemSampleTime	  "-1"
-	  FunctionWithSeparateData off
-	  RTWMemSecFuncInitTerm	  "Inherit from model"
-	  RTWMemSecFuncExecute	  "Inherit from model"
-	  RTWMemSecDataConstants  "Inherit from model"
-	  RTWMemSecDataInternal	  "Inherit from model"
-	  RTWMemSecDataParameters "Inherit from model"
-	  GeneratePreprocessorConditionals off
-	  robotName		  "robotName"
-	  localName		  "localName"
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "Joint Torques"
-	  SID			  "876"
-	  Ports			  [0, 1]
-	  Position		  [955, 303, 1025, 347]
-	  BackgroundColor	  "[1.000000, 0.634000, 0.268000]"
-	  LibraryVersion	  "1.33"
-	  SourceBlock		  "WBCLibrary/wholeBodyStates/Joint Torques"
-	  SourceType		  "Get Joint Torques"
 	  ShowPortLabels	  "FromPortIcon"
 	  SystemSampleTime	  "-1"
 	  FunctionWithSeparateData off
@@ -1628,7 +1561,7 @@ Model {
 	      LibraryVersion	      "1.33"
 	      SourceBlock	      "WBCLibrary/Utilities/yarp read"
 	      SourceType	      ""
-	      from		      "'/wholeBodyDyanmicsTree/left_leg/endEffectorWrench:o'"
+	      from		      "['/' robotName '/left_foot/analog:o']"
 	      to		      "'...'"
 	      num		      "6"
 	    }
@@ -1775,7 +1708,7 @@ Model {
 	      BlockType		      S-Function
 	      Name		      " SFunction "
 	      SID		      "638::21"
-	      Tag		      "Stateflow S-Function partialForceControl 3"
+	      Tag		      "Stateflow S-Function partialForceControlSim 3"
 	      Ports		      [4, 2]
 	      Position		      [180, 102, 230, 203]
 	      ZOrder		      1
@@ -1932,7 +1865,7 @@ Model {
 	      LibraryVersion	      "1.33"
 	      SourceBlock	      "WBCLibrary/Utilities/yarp read"
 	      SourceType	      ""
-	      from		      "'/wholeBodyDyanmicsTree/right_leg/endEffectorWrench:o'"
+	      from		      "['/' robotName '/right_foot/analog:o']"
 	      to		      "'...'"
 	      num		      "6"
 	    }
@@ -1940,111 +1873,6 @@ Model {
 	      BlockType		      Outport
 	      Name		      "FT right"
 	      SID		      "821"
-	      Position		      [175, 53, 205, 67]
-	      IconDisplay	      "Port number"
-	    }
-	    Line {
-	      SrcBlock		      "yarp read"
-	      SrcPort		      1
-	      DstBlock		      "Mux"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "yarp read"
-	      SrcPort		      2
-	      DstBlock		      "Mux"
-	      DstPort		      2
-	    }
-	    Line {
-	      SrcBlock		      "yarp read"
-	      SrcPort		      3
-	      DstBlock		      "Mux"
-	      DstPort		      3
-	    }
-	    Line {
-	      SrcBlock		      "yarp read"
-	      SrcPort		      4
-	      DstBlock		      "Mux"
-	      DstPort		      4
-	    }
-	    Line {
-	      SrcBlock		      "yarp read"
-	      SrcPort		      5
-	      DstBlock		      "Mux"
-	      DstPort		      5
-	    }
-	    Line {
-	      SrcBlock		      "yarp read"
-	      SrcPort		      6
-	      DstBlock		      "Mux"
-	      DstPort		      6
-	    }
-	    Line {
-	      SrcBlock		      "Mux"
-	      SrcPort		      1
-	      DstBlock		      "FT right"
-	      DstPort		      1
-	    }
-	  }
-	}
-	Block {
-	  BlockType		  SubSystem
-	  Name			  "Right foot FT1"
-	  SID			  "888"
-	  Ports			  [0, 1]
-	  Position		  [625, 498, 685, 542]
-	  BackgroundColor	  "orange"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
-	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
-	  System {
-	    Name		    "Right foot FT1"
-	    Location		    [525, 482, 755, 604]
-	    Open		    off
-	    ModelBrowserVisibility  on
-	    ModelBrowserWidth	    200
-	    ScreenColor		    "white"
-	    PaperOrientation	    "landscape"
-	    PaperPositionMode	    "auto"
-	    PaperType		    "usletter"
-	    PaperUnits		    "inches"
-	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
-	    TiledPageScale	    1
-	    ShowPageBoundaries	    off
-	    ZoomFactor		    "100"
-	    Block {
-	      BlockType		      Mux
-	      Name		      "Mux"
-	      SID		      "889"
-	      Ports		      [6, 1]
-	      Position		      [140, 26, 150, 94]
-	      ShowName		      off
-	      Inputs		      "6"
-	      DisplayOption	      "bar"
-	    }
-	    Block {
-	      BlockType		      Reference
-	      Name		      "yarp read"
-	      SID		      "890"
-	      Ports		      [0, 6]
-	      Position		      [25, 25, 95, 95]
-	      ZOrder		      -5
-	      BackgroundColor	      "black"
-	      LibraryVersion	      "1.33"
-	      SourceBlock	      "WBCLibrary/Utilities/yarp read"
-	      SourceType	      ""
-	      from		      "'/wholeBodyDyanmicsTree/right_leg/endEffectorWrench:o'"
-	      to		      "'...'"
-	      num		      "6"
-	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "FT right"
-	      SID		      "891"
 	      Position		      [175, 53, 205, 67]
 	      IconDisplay	      "Port number"
 	    }
@@ -2117,95 +1945,13 @@ Model {
 	  localName		  "localName"
 	}
 	Block {
-	  BlockType		  Scope
-	  Name			  "Scope1"
-	  SID			  "881"
-	  Ports			  [5]
-	  Position		  [1114, 600, 1206, 660]
-	  ZOrder		  -57
-	  BlockRotation		  270
-	  BlockMirror		  on
-	  NamePlacement		  "alternate"
-	  Floating		  off
-	  Location		  [-634, 183, -45, 911]
-	  Open			  on
-	  NumInputPorts		  "5"
-	  List {
-	    ListType		    AxesTitles
-	    axes1		    "%<SignalLabel>"
-	    axes2		    "%<SignalLabel>"
-	    axes3		    "%<SignalLabel>"
-	    axes4		    "%<SignalLabel>"
-	    axes5		    "%<SignalLabel>"
-	  }
-	  TimeRange		  "2000"
-	  YMin			  "-1~-1.5~-1.5~-15~-15"
-	  YMax			  "11~1.25~1.25~7.5~10"
-	  SaveToWorkspace	  on
-	  DataFormat		  "StructureWithTime"
-	  LimitDataPoints	  off
-	  SampleTime		  "0"
-	}
-	Block {
-	  BlockType		  Scope
-	  Name			  "Scope2"
-	  SID			  "892"
-	  Ports			  [1]
-	  Position		  [940, 474, 1000, 566]
-	  ZOrder		  -57
-	  Floating		  off
-	  Location		  [6, 71, 595, 799]
-	  Open			  on
-	  NumInputPorts		  "1"
-	  List {
-	    ListType		    AxesTitles
-	    axes1		    "%<SignalLabel>"
-	  }
-	  TimeRange		  "2000"
-	  YMin			  "-1"
-	  YMax			  "11"
-	  SaveToWorkspace	  on
-	  SaveName		  "ScopeData1"
-	  DataFormat		  "StructureWithTime"
-	  LimitDataPoints	  off
-	  SampleTime		  "0"
-	}
-	Block {
 	  BlockType		  Reference
-	  Name			  "Set Torques"
-	  SID			  "880"
-	  Ports			  [1]
-	  Position		  [1000, 28, 1070, 72]
-	  BlockMirror		  on
-	  BackgroundColor	  "[0.941000, 0.415000, 0.192000]"
-	  NamePlacement		  "alternate"
-	  LibraryVersion	  "1.33"
-	  SourceBlock		  "WBCLibrary/wholeBodyActuators/Set Torques"
-	  SourceType		  ""
-	  ShowPortLabels	  "FromPortIcon"
-	  SystemSampleTime	  "-1"
-	  FunctionWithSeparateData off
-	  RTWMemSecFuncInitTerm	  "Inherit from model"
-	  RTWMemSecFuncExecute	  "Inherit from model"
-	  RTWMemSecDataConstants  "Inherit from model"
-	  RTWMemSecDataInternal	  "Inherit from model"
-	  RTWMemSecDataParameters "Inherit from model"
-	  GeneratePreprocessorConditionals off
-	  val			  "6"
-	  robotName		  "robotName"
-	  localName		  "localName"
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "WBI to yarp"
-	  SID			  "882"
+	  Name			  "WBI to yarp1"
+	  SID			  "863"
 	  Ports			  [1, 5]
-	  Position		  [1117, 450, 1203, 560]
+	  Position		  [945, 507, 1055, 593]
 	  ZOrder		  -63
-	  BlockRotation		  270
-	  BlockMirror		  on
 	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
-	  NamePlacement		  "alternate"
 	  ShowName		  off
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/Utilities/WBI to yarp"
@@ -2817,7 +2563,7 @@ Model {
 	      BlockType		      S-Function
 	      Name		      " SFunction "
 	      SID		      "774::81"
-	      Tag		      "Stateflow S-Function partialForceControl 2"
+	      Tag		      "Stateflow S-Function partialForceControlSim 2"
 	      Ports		      [9, 2]
 	      Position		      [180, 104, 230, 306]
 	      ZOrder		      52
@@ -3483,50 +3229,6 @@ Model {
 	  }
 	}
 	Block {
-	  BlockType		  Reference
-	  Name			  "holder2"
-	  SID			  "877"
-	  Ports			  [1, 1]
-	  Position		  [1103, 245, 1147, 305]
-	  BlockRotation		  270
-	  BackgroundColor	  "[0.270000, 0.522000, 0.900000]"
-	  ShowName		  off
-	  LibraryVersion	  "1.33"
-	  SourceBlock		  "WBCLibrary/Utilities/holder"
-	  SourceType		  "Holder"
-	  ShowPortLabels	  "FromPortIcon"
-	  SystemSampleTime	  "-1"
-	  FunctionWithSeparateData off
-	  RTWMemSecFuncInitTerm	  "Inherit from model"
-	  RTWMemSecFuncExecute	  "Inherit from model"
-	  RTWMemSecDataConstants  "Inherit from model"
-	  RTWMemSecDataInternal	  "Inherit from model"
-	  RTWMemSecDataParameters "Inherit from model"
-	  GeneratePreprocessorConditionals off
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "holder3"
-	  SID			  "884"
-	  Ports			  [1, 1]
-	  Position		  [1105, 28, 1165, 72]
-	  BlockMirror		  on
-	  BackgroundColor	  "[0.270000, 0.522000, 0.900000]"
-	  ShowName		  off
-	  LibraryVersion	  "1.33"
-	  SourceBlock		  "WBCLibrary/Utilities/holder"
-	  SourceType		  "Holder"
-	  ShowPortLabels	  "FromPortIcon"
-	  SystemSampleTime	  "-1"
-	  FunctionWithSeparateData off
-	  RTWMemSecFuncInitTerm	  "Inherit from model"
-	  RTWMemSecFuncExecute	  "Inherit from model"
-	  RTWMemSecDataConstants  "Inherit from model"
-	  RTWMemSecDataInternal	  "Inherit from model"
-	  RTWMemSecDataParameters "Inherit from model"
-	  GeneratePreprocessorConditionals off
-	}
-	Block {
 	  BlockType		  Constant
 	  Name			  "index"
 	  SID			  "783"
@@ -3940,6 +3642,34 @@ Model {
 	  }
 	}
 	Block {
+	  BlockType		  Scope
+	  Name			  "tau"
+	  SID			  "864"
+	  Ports			  [5]
+	  Position		  [1095, 504, 1155, 596]
+	  ZOrder		  -57
+	  Floating		  off
+	  Location		  [-632, 64, -43, 792]
+	  Open			  on
+	  NumInputPorts		  "5"
+	  ZoomMode		  "yonly"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	    axes2		    "%<SignalLabel>"
+	    axes3		    "%<SignalLabel>"
+	    axes4		    "%<SignalLabel>"
+	    axes5		    "%<SignalLabel>"
+	  }
+	  TimeRange		  "2000"
+	  YMin			  "-8~-1.75~-1.75~-2~-2"
+	  YMax			  "1~1.25~1.25~6~6"
+	  SaveToWorkspace	  on
+	  DataFormat		  "StructureWithTime"
+	  LimitDataPoints	  off
+	  SampleTime		  "0"
+	}
+	Block {
 	  BlockType		  SubSystem
 	  Name			  "trajectoryGeneratorCoM1"
 	  SID			  "392"
@@ -4014,7 +3744,7 @@ Model {
 	      BlockType		      S-Function
 	      Name		      " SFunction "
 	      SID		      "392::64"
-	      Tag		      "Stateflow S-Function partialForceControl 5"
+	      Tag		      "Stateflow S-Function partialForceControlSim 5"
 	      Ports		      [2, 4]
 	      Position		      [180, 102, 230, 203]
 	      ZOrder		      43
@@ -4220,6 +3950,21 @@ Model {
 	  SrcPort		  1
 	  DstBlock		  "controllerMatlab"
 	  DstPort		  9
+	}
+	Line {
+	  SrcBlock		  "controllerMatlab"
+	  SrcPort		  1
+	  Points		  [30, 0]
+	  Branch {
+	    Points		    [0, 255; -50, 0]
+	    DstBlock		    "WBI to yarp1"
+	    DstPort		    1
+	  }
+	  Branch {
+	    Points		    [0, -75]
+	    DstBlock		    "Goto"
+	    DstPort		    1
+	  }
 	}
 	Line {
 	  SrcBlock		  "Data Store\nRead8"
@@ -4493,127 +4238,38 @@ Model {
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "controllerMatlab"
+	  SrcBlock		  "WBI to yarp1"
 	  SrcPort		  1
-	  Points		  [85, 0]
-	  Branch {
-	    DstBlock		    "Add"
-	    DstPort		    1
-	  }
-	  Branch {
-	    Points		    [0, -55]
-	    DstBlock		    "Add1"
-	    DstPort		    1
-	  }
-	}
-	Line {
-	  SrcBlock		  "Joint Torques"
-	  SrcPort		  1
-	  Points		  [5, 0]
-	  Branch {
-	    DstBlock		    "Add"
-	    DstPort		    2
-	  }
-	  Branch {
-	    Points		    [0, 75]
-	    DstBlock		    "Add2"
-	    DstPort		    2
-	  }
-	}
-	Line {
-	  SrcBlock		  "Add"
-	  SrcPort		  1
-	  DstBlock		  "holder2"
+	  Points		  [20, 0]
+	  DstBlock		  "tau"
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "holder2"
-	  SrcPort		  1
-	  DstBlock		  "Add1"
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "Add1"
-	  SrcPort		  1
-	  Points		  [5, 0; 0, -45]
-	  Branch {
-	    DstBlock		    "Goto"
-	    DstPort		    1
-	  }
-	  Branch {
-	    DstBlock		    "holder3"
-	    DstPort		    1
-	  }
-	}
-	Line {
-	  SrcBlock		  "WBI to yarp"
-	  SrcPort		  1
-	  Points		  [-10, 0]
-	  DstBlock		  "Scope1"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "WBI to yarp"
+	  SrcBlock		  "WBI to yarp1"
 	  SrcPort		  2
-	  Points		  [0, 20]
-	  DstBlock		  "Scope1"
+	  Points		  [20, 0]
+	  DstBlock		  "tau"
 	  DstPort		  2
 	}
 	Line {
-	  SrcBlock		  "WBI to yarp"
+	  SrcBlock		  "WBI to yarp1"
 	  SrcPort		  3
-	  DstBlock		  "Scope1"
+	  DstBlock		  "tau"
 	  DstPort		  3
 	}
 	Line {
-	  SrcBlock		  "WBI to yarp"
+	  SrcBlock		  "WBI to yarp1"
 	  SrcPort		  4
-	  Points		  [5, 0]
-	  DstBlock		  "Scope1"
+	  Points		  [20, 0]
+	  DstBlock		  "tau"
 	  DstPort		  4
 	}
 	Line {
-	  SrcBlock		  "WBI to yarp"
+	  SrcBlock		  "WBI to yarp1"
 	  SrcPort		  5
-	  Points		  [10, 0]
-	  DstBlock		  "Scope1"
+	  Points		  [20, 0]
+	  DstBlock		  "tau"
 	  DstPort		  5
-	}
-	Line {
-	  SrcBlock		  "holder3"
-	  SrcPort		  1
-	  Points		  [-10, 0]
-	  Branch {
-	    DstBlock		    "Set Torques"
-	    DstPort		    1
-	  }
-	  Branch {
-	    Points		    [-5, 0]
-	    DstBlock		    "Add2"
-	    DstPort		    1
-	  }
-	}
-	Line {
-	  SrcBlock		  "Add2"
-	  SrcPort		  1
-	  Points		  [25, 0]
-	  DstBlock		  "WBI to yarp"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Right foot FT1"
-	  SrcPort		  1
-	  DstBlock		  "Gain2"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "Gain2"
-	  SrcPort		  1
-	  DstBlock		  "Scope2"
-	  DstPort		  1
-	}
-	Annotation {
-	  Position		  [175, 1]
 	}
       }
     }
@@ -4629,7 +4285,7 @@ Model {
 Stateflow {
   machine {
     id			    1
-    name		    "partialForceControl"
+    name		    "partialForceControlSim"
     created		    "18-Feb-2014 10:14:40"
     isLibrary		    0
     firstTarget		    39

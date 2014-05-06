@@ -180,13 +180,48 @@ bool staticInertiaIdentificationThread::configureGeneratedRegressor()
         }
     }
 
+    //Get option for identifiable subspace
+    yarp::os::Bottle & blocked_joints = opts.findGroup("BLOCKED_JOINTS");
 
+    if( !blocked_joints.isNull() )
+    {
+    }
+
+    std::vector<int> fixed_jnts;
+    std::vector<double> fixed_jnts_values;
     std::cout << "staticInertiaIdentification : computing identifiable subspace using gautier algorithm. " << std::endl;
+    if( !blocked_joints.isNull() )
+    {
+        std::cout << "with blocked joints: ";
+        for(int l=1; l < blocked_joints.size(); l++ )
+        {
+            std::string blocked_joint = blocked_joints.get(l).asList()->get(0).asString().c_str();
+            std::cout << blocked_joint + " ";
+            int fixed_jnt_id = icub_tree_model.getDOFIndex(blocked_joint);
+            if( fixed_jnt_id < 0 || fixed_jnt_id > icub_tree_model.getNrOfDOFs() )
+            {
+                std::cout << std::endl << "Error dof " << blocked_joint << " not found " << std::endl;
+                return false;
+            }
+            fixed_jnts.push_back(fixed_jnt_id);
+            fixed_jnts_values.push_back(0.0);
+        }
+        std::cout << std::endl;
+    }
+
     //Compute static base parameter subspace
     bool consider_only_static_pose = true;
     int n_samples = 100;
+    double tol_default = -1;
+    bool fixed_base = false;
+    KDL::Vector dummy_gravity;
     YARP_ASSERT(icub_regressor_generator->computeNumericalIdentifiableSubspace(identificable_subspace_basis,
                                                                                consider_only_static_pose,
+                                                                               fixed_base,
+                                                                               dummy_gravity,
+                                                                               fixed_jnts,
+                                                                               fixed_jnts_values,
+                                                                               tol_default,
                                                                                n_samples) == 0);
 
     std::cout << "staticInertiaIdentification. Identified static base parameters subspace: " << std::endl;

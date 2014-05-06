@@ -82,6 +82,14 @@ void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag
     if( rf.check("feetV2") ) {
         icub_version.feet_ft = true;
     }
+
+    #ifdef CODYCO_USES_URDFDOM
+    if( rf.check("urdf") )
+    {
+        icub_version.uses_urdf = true;
+        icub_version.urdf_file = rf.find("urdf").asString().c_str();
+    }
+    #endif
 }
 
 bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
@@ -107,7 +115,8 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 
     bool fixed_base = false;
     std::string fixed_link;
-    if( rf.check("assume_fixed") ) {
+    if( rf.check("assume_fixed") )
+    {
         fixed_link = rf.find("assume_fixed").asString().c_str();
         if( fixed_link != "root_link" &&
             fixed_link != "l_sole" &&
@@ -145,15 +154,20 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
-    if( icub_version.feet_ft ) {
+    if( icub_version.feet_ft )
+    {
         int added_ft_sensors = estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,wbiIcub::ICUB_MAIN_FOOT_FTS);
-        if( added_ft_sensors != (int)wbiIcub::ICUB_MAIN_FOOT_FTS.size() ) {
+        if( added_ft_sensors != (int)wbiIcub::ICUB_MAIN_FOOT_FTS.size() )
+        {
             std::cout << "Error in adding F/T estimates" << std::endl;
             return false;
         }
-    } else {
+    }
+    else
+    {
         int added_ft_sensors = estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,wbiIcub::ICUB_MAIN_FTS);
-        if( added_ft_sensors != (int)wbiIcub::ICUB_MAIN_FTS.size() ) {
+        if( added_ft_sensors != (int)wbiIcub::ICUB_MAIN_FTS.size() )
+        {
             std::cout << "Error in adding F/T estimates" << std::endl;
             return false;
         }
@@ -164,25 +178,26 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     if(!estimationInterface->init()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl; return false; }
 
     bool use_ang_vel_acc = true;
-    if( rf.check("enable_w0_dw0") ) {
+    if( rf.check("enable_w0_dw0") )
+    {
         std::cout << "enable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration." << std::endl;
         use_ang_vel_acc = true;
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
     }
 
-    if( rf.check("disable_w0_dw0") ) {
+    if( rf.check("disable_w0_dw0") )
+    {
         std::cout << "disable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration." << std::endl;
         use_ang_vel_acc = false;
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
     }
 
     bool autoconnect = false;
-    if( rf.check("autoconnect") ) {
+    if( rf.check("autoconnect") )
+    {
         std::cout << "autoconnect option found, enabling the autoconnection." << std::endl;
         autoconnect = true;
     }
-
-
 
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
     wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface, icub_version, autoconnect, fixed_base_calibration);
@@ -264,12 +279,33 @@ bool wholeBodyDynamicsModule::updateModule()
 ////////////////// RPC METHODS /////////////////////////////////////////
 bool wholeBodyDynamicsModule::calib(const std::string& calib_code, const int32_t nr_of_samples)
 {
-    if(wbdThread) {
+    if(wbdThread)
+    {
         std::cout << getName() << ": calibration for " << calib_code << "requested" << std::endl;
         wbdThread->calibrateOffset(calib_code,nr_of_samples);
         wbdThread->waitCalibrationDone();
         return true;
-    } else {
+    }
+    else
+    {
+        std::cout << getName() << ": calib failed, no wholeBodyDynamicsThread available" << std::endl;
+        return false;
+    }
+}
+
+////////////////// RPC METHODS /////////////////////////////////////////
+bool wholeBodyDynamicsModule::calibOnDoubleSupport(const std::string& calib_code,
+                                                   const int32_t nr_of_samples)
+{
+    if(wbdThread)
+    {
+        std::cout << getName() << ": calibration for " << calib_code << "requested" << std::endl;
+        wbdThread->calibrateOffsetOnDoubleSupport(calib_code,nr_of_samples);
+        wbdThread->waitCalibrationDone();
+        return true;
+    }
+    else
+    {
         std::cout << getName() << ": calib failed, no wholeBodyDynamicsThread available" << std::endl;
         return false;
     }
