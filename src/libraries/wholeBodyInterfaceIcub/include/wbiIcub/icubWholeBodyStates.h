@@ -82,8 +82,7 @@ namespace wbiIcub
         /** Set the cut frequency of the motor PWM low pass filter. */
         bool setPwmCutFrequency(double fc);
 
-        // end effector wrenches ports (the key of the maps is the sensor id)
-        bool ee_wrenches_enabled;
+
         std::map<wbi::LocalId, yarp::os::BufferedPort<yarp::sig::Vector>*>  portsEEWrenches;
         std::map<wbi::LocalId, yarp::sig::Vector>  lastEEWrenches;
 
@@ -94,6 +93,10 @@ namespace wbiIcub
         yarp::sig::Matrix H_world_base;
 
     public:
+        // end effector wrenches ports (the key of the maps is the sensor id)
+        bool ee_wrenches_enabled;
+        bool openEEWrenchPorts();
+
 
         yarp::sig::Vector RAExtWrench;
         yarp::sig::Vector LAExtWrench;
