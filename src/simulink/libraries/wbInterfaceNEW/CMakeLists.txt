@@ -107,6 +107,13 @@ ${kdl_codyco_LIBRARIES}
 ${skinDynLib_LIBRARIES}
 ${ctrlLib_LIBRARIES}
 )
+
+set(appname wbit)
+file(GLOB robotstate ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini)
+yarp_install(FILES       ${robotstate} 
+	     DESTINATION ${CODYCO_CONTEXTS_INSTALL_DIR}/${appname}) 
+
+
 install(TARGETS ${PROJECTNAME} DESTINATION mex)
 
 
