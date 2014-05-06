@@ -29,7 +29,9 @@ namespace codyco {
             TorqueBalancingModuleParameterModuleName,
             TorqueBalancingModuleParameterRobotName,
             TorqueBalancingModuleParameterPeriod,
+            TorqueBalancingModuleParameterURDFFilePath,
             //RPC parameters
+            TorqueBalancingModuleParameterCurrentState,
             //PIDs
             //COM
             TorqueBalancingModuleParameterCOMIntegralLimit,
@@ -51,7 +53,7 @@ namespace codyco {
             
         } TorqueBalancingModuleParameter;
         
-        static const int TorqueBalancingModuleParameterSize = 16;
+        static const int TorqueBalancingModuleParameterSize = 18;
         
         
         static const std::string defaultModuleName = "torqueBalancing";
@@ -70,7 +72,9 @@ namespace codyco {
             new paramHelp::ParamProxyBasic<std::string>("name", TorqueBalancingModuleParameterModuleName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultModuleName, "Name of the instance of the module"),
             new paramHelp::ParamProxyBasic<std::string>("robot", TorqueBalancingModuleParameterRobotName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultRobotName, "Name of the robot"),
             new paramHelp::ParamProxyBasic<int>("period", TorqueBalancingModuleParameterPeriod, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_CONFIG, &defaultControllerPeriod, "Period of the controller"),
+            new paramHelp::ParamProxyBasic<std::string>("urdfPath", TorqueBalancingModuleParameterURDFFilePath, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, 0, "Path to the URDF model of the robot. If empty string the fallback is the iDyn version with default legs/head version"),
             //RPC parameters
+            new paramHelp::ParamProxyBasic<int>("state", TorqueBalancingModuleParameterCurrentState, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_IN_OUT, 0, "State of the module"),
             //COM
             new paramHelp::ParamProxyBasic<double>("comIntLimit", TorqueBalancingModuleParameterCOMIntegralLimit, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultIntegralLimit, "Integral limit on COM PID"),
             new paramHelp::ParamProxyBasic<double>("comKp", TorqueBalancingModuleParameterCOMProportionalGain, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultCOMGains.data(), "Proportional gains of COM PID"),

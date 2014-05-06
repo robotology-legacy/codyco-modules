@@ -24,6 +24,16 @@
 #define DLOG(format, ...) \
     printf(("[%s:%d] " format), __FILE__, __LINE__, ##__VA_ARGS__)
 
+#ifndef FUNCTION_NAME
+#ifdef _MSC_VER
+#define FUNCTION_NAME __FUNCTION__
+#elseif __GNUC__
+#define FUNCTION_NAME __PRETTY_FUNCTION__
+#else
+#define FUNCTION_NAME ""
+#endif
+#endif
+
 namespace codyco {}
 
 

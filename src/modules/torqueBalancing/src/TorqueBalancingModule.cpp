@@ -26,6 +26,11 @@
 #include <paramHelp/paramHelperServer.h>
 #include "ParamHelperConfig.h"
 
+#ifdef DEBUG
+#include <codyco/Utils.h>
+#include <iostream>
+#endif
+
 namespace codyco {
     namespace torquebalancing {
         
@@ -67,6 +72,7 @@ namespace codyco {
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterModuleName, &m_moduleName);
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterRobotName, &m_robotName);
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterPeriod, &m_controllerThreadPeriod);
+            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterURDFFilePath, &m_urdfFilePath);
             
             if (!linkedVariable) {
                 return false;
@@ -95,9 +101,18 @@ namespace codyco {
                 return false;
             }
             
-            //TODO: proper initialization
             //create reference to wbi
-            m_robot = new wbiIcub::icubWholeBodyInterface(m_moduleName.c_str(), m_robotName.c_str(), iCub::iDynTree::iCubTree_version_tag(), "");
+            if (m_urdfFilePath.empty()) {
+                m_robot = new wbiIcub::icubWholeBodyInterface(m_moduleName.c_str(), m_robotName.c_str(), iCub::iDynTree::iCubTree_version_tag());
+#ifdef DEBUG
+                std::cerr << "Initializing wbi with default iCub Model" << std::endl;
+#endif
+            } else {
+                m_robot = new wbiIcub::icubWholeBodyInterface(m_moduleName.c_str(), m_robotName.c_str(), iCub::iDynTree::iCubTree_version_tag(), m_urdfFilePath);
+#ifdef DEBUG
+                std::cerr << "Initializing wbi with URDF model specified in" << m_urdfFilePath << std::endl;
+#endif
+            }
             if (!m_robot) {
                 return false;
             }
@@ -272,6 +287,9 @@ namespace codyco {
         {
             if (isActive == m_active) return;
             m_active = isActive;
+#ifdef DEBUG
+            std::cerr << FUNCTION_NAME << ": Module new state is " << (m_active ? "on" : "off") << std::endl;
+#endif
             updateModuleCoordinationStatus();
         }
         
@@ -287,17 +305,40 @@ namespace codyco {
                 case TorqueBalancingModuleStateDoubleSupportSeekingContactBothHands:
                     leftHandPositionTaskActive = m_active;
                     rightHandForceTaskActive = m_active;
+#ifdef DEBUG
+                    std::cerr << FUNCTION_NAME << ": State Double support with hands" << std::endl;
+#endif
                     break;
                 case TorqueBalancingModuleStateTripleSupportSeekingContactLeftHand:
                     leftHandPositionTaskActive = m_active;
                     rightHandForceTaskActive = m_active;
+#ifdef DEBUG
+                    std::cerr << FUNCTION_NAME << ": State Triple support. Left hand searches contact" << std::endl;
+#endif
                     break;
                 case TorqueBalancingModuleStateTripleSupportSeekingContactRightHand:
                     rightHandPositionTaskActive = m_active;
                     leftHandForceTaskActive = m_active;
+#ifdef DEBUG
+                    std::cerr << FUNCTION_NAME << ": State Triple support. Right hand searches contact" << std::endl;
+#endif
                     break;
                 case TorqueBalancingModuleStateQuadrupleSupport:
                     leftHandForceTaskActive = rightHandForceTaskActive = m_active;
+#ifdef DEBUG
+                    std::cerr << FUNCTION_NAME << ": State Quad support" << std::endl;
+#endif
+                    break;
+                case TorqueBalancingModuleStateDoubleSupportStable:
+#ifdef DEBUG
+                    std::cerr << FUNCTION_NAME << ": State Double support" << std::endl;
+#endif
+
+                    break;
+                default:
+#ifdef DEBUG
+                    std::cerr << FUNCTION_NAME << ": State not recognized" << std::endl;
+#endif
                     break;
             }
             
@@ -328,6 +369,8 @@ namespace codyco {
         bool TorqueBalancingModule::ParamHelperManager::linkVariables()
         {
             bool linked = true;
+            
+            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterCurrentState, &m_module.m_moduleState);
             //COM
             linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterCOMProportionalGain, m_comProportionalGain.data());
             linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterCOMDerivativeGain, m_comDerivativeGain.data());
@@ -364,6 +407,9 @@ namespace codyco {
         {
             std::map<TaskType, ReferenceGenerator*>::iterator foundController;
             switch (proxyInterface->id) {
+                case TorqueBalancingModuleParameterCurrentState:
+                    m_module.updateModuleCoordinationStatus();
+                    break;
                     //COM
                 case TorqueBalancingModuleParameterCOMProportionalGain:
                     foundController = m_referenceGenerators.find(TaskTypeCOM);

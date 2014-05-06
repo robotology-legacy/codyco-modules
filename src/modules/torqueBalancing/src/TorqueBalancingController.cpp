@@ -193,6 +193,8 @@ namespace codyco {
             m_desiredCentroidalMomentum.tail<3>() = -centroidalMomentumGain() * m_centroidalMomentum.tail<3>();
 
             desiredFeetForces = m_centroidalForceMatrix.jacobiSvd(ComputeThinU | ComputeThinV).solve(m_desiredCentroidalMomentum - m_gravityForce);
+            //TODO: we can also test LDLT decomposition since it requires positive semidefinite matrix
+//            desiredFeetForces = m_centroidalForceMatrix.ldlt().solve(m_desiredCentroidalMomentum - m_gravityForce);
             
         }
         

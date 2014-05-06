@@ -90,10 +90,9 @@ namespace codyco {
             void setControllersActiveState(bool isActive);
             
         private:
+            class ParamHelperManager;
             
             void updateModuleCoordinationStatus();
-            
-            class ParamHelperManager;
             
             TorqueBalancingModuleState m_moduleState;
             int m_referenceThreadPeriod;
@@ -102,6 +101,7 @@ namespace codyco {
             
             std::string m_moduleName;
             std::string m_robotName;
+            std::string m_urdfFilePath;
             
             wbi::wholeBodyInterface* m_robot;
             
