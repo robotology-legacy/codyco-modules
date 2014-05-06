@@ -83,22 +83,36 @@ namespace codyco {
              */
             Reference& desiredCOMAcceleration();
             
-            /** @brief returns the desired Hands positions reference.
-             * The vector is a 14 dimension vector, 7 (position and angle-axis representation) for each hand.
-             * @return desired desired Hands positions (14 dim)
+            /** @brief returns the desired left hand position reference.
+             * The vector is a 7 dimension vector (position and angle-axis representation).
+             * @return desired desired left hand position (7 dim)
              */
-            Reference& desiredHandsPosition();
+            Reference& desiredLeftHandPosition();
             
-            /** @brief returns the desired Hands force reference.
-             * The vector is a 12 dimension vector, 6 for each hand.
-             * @return desired Hands force (12 dim)
+            /** @brief returns the desired right hand position reference.
+             * The vector is a 7 dimension vector (position and angle-axis representation).
+             * @return desired desired right hand position (7 dim)
              */
-            Reference& desiredHandsForce();
+            Reference& desiredRightHandPosition();
+            
+            /** @brief returns the desired left hand force reference.
+             * The vector is a 6 dimension vector (3 forces, 3 torques)
+             * @return desired left hand force (6 dim)
+             */
+            Reference& desiredLeftHandForce();
+            
+            /** @brief returns the desired right hand force reference.
+             * The vector is a 6 dimension vector (3 forces, 3 torques)
+             * @return desired right hand force (6 dim)
+             */
+            Reference& desiredRightHandForce();
             
         private:
             Reference m_desiredCOMAcceleration;
-            Reference m_desiredHandsPosition;
-            Reference m_desiredHandsForce;
+            Reference m_desiredLeftHandPosition;
+            Reference m_desiredRightHandPosition;
+            Reference m_desiredLeftHandForce;
+            Reference m_desiredRightHandForce;
         };
         
     }

@@ -7,6 +7,8 @@ project(torqueBalancing)
 
 find_package(YARP)
 find_package(Eigen3 REQUIRED)
+find_package(Boost)
+# find_package(ICUB)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 # set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
@@ -40,6 +42,7 @@ include_directories(${HEADERS_FOLDER}
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
+                    ${Boost_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
                     ${YARP_INCLUDE_DIRS})
 

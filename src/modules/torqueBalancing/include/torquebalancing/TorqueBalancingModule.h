@@ -46,11 +46,25 @@ namespace codyco {
         class ReferenceGenerator;
         class ReferenceGeneratorInputReader;
         
+        /** Possible tasks */
         typedef enum {
-            TaskTypeCOM,
-            TaskTypeHandsPosition,
-            TaskTypeHandsForce
+            TaskTypeCOM, /*!< Center of Mass control task */
+            TaskTypeLeftHandPosition, /*!< Left hand position control task */
+            TaskTypeRightHandPosition,  /*!< Right hand position control task */
+            TaskTypeLeftHandForce,  /*!< Left hand force control task */
+            TaskTypeRightHandForce  /*!< Right hand force control task */
         } TaskType;
+        
+        /** Defines the possible states for the module
+         */
+        typedef enum {
+            TorqueBalancingModuleStateDoubleSupportStable = 0x1, /*!< Robot is standing on its feet, i.e. only COM/Feet forces task */
+            TorqueBalancingModuleStateDoubleSupportSeekingContactBothHands = 0x2, /*!< Robot is standing on its feet, and it seeks contacts with both hands */
+            TorqueBalancingModuleStateTripleSupportSeekingContactRightHand = 0x4, /*!< Robot is standing on its feet and keep contact with the left hand. The right hand is seeking contact */
+            TorqueBalancingModuleStateTripleSupportSeekingContactLeftHand = 0x8, /*!< Robot is standing on its feet and keep contact with the right hand. The left hand is seeking contact */
+            TorqueBalancingModuleStateQuadrupleSupport = 0x10 /*!< Robot balances with both its feet and both its hands */
+        } TorqueBalancingModuleState;
+        
         
         /** @brief Main module for the torque balancing module.
          *
@@ -77,10 +91,14 @@ namespace codyco {
             
         private:
             
+            void updateModuleCoordinationStatus();
+            
             class ParamHelperManager;
             
+            TorqueBalancingModuleState m_moduleState;
             int m_referenceThreadPeriod;
             int m_controllerThreadPeriod;
+            bool m_active;
             
             std::string m_moduleName;
             std::string m_robotName;

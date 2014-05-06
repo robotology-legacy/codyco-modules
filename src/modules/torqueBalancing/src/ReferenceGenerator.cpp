@@ -232,7 +232,10 @@ namespace codyco {
 
         
 #pragma mark - ReferenceGeneratorInputReader methods
+        
         ReferenceGeneratorInputReader::~ReferenceGeneratorInputReader() {}
+        
+        bool ReferenceGeneratorInputReader::init() { return true; }
         
     }
 }

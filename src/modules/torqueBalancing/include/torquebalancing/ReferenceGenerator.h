@@ -218,6 +218,11 @@ namespace codyco {
              */
             virtual ~ReferenceGeneratorInputReader();
             
+            /** Perform configuration time initialization.
+             * By default this method returns true.
+             */
+            virtual bool init();
+            
             /** Gets the current value of the signal
              * @return the current value of the signal
              */

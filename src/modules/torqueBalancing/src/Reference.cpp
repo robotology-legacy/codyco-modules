@@ -65,8 +65,10 @@ namespace codyco {
         
         ControllerReferences::ControllerReferences()
         : m_desiredCOMAcceleration(3)
-        , m_desiredHandsPosition(14)
-        , m_desiredHandsForce(12)
+        , m_desiredLeftHandPosition(7)
+        , m_desiredRightHandPosition(7)
+        , m_desiredLeftHandForce(6)
+        , m_desiredRightHandForce(6)
         {}
         
         Reference& ControllerReferences::desiredCOMAcceleration()
@@ -74,14 +76,24 @@ namespace codyco {
             return m_desiredCOMAcceleration;
         }
         
-        Reference& ControllerReferences::desiredHandsPosition()
+        Reference& ControllerReferences::desiredLeftHandPosition()
         {
-            return m_desiredHandsPosition;
+            return m_desiredLeftHandPosition;
+        }
+
+        Reference& ControllerReferences::desiredRightHandPosition()
+        {
+            return m_desiredRightHandPosition;
         }
         
-        Reference& ControllerReferences::desiredHandsForce()
+        Reference& ControllerReferences::desiredLeftHandForce()
         {
-            return m_desiredHandsForce;
+            return m_desiredLeftHandForce;
+        }
+        
+        Reference& ControllerReferences::desiredRightHandForce()
+        {
+            return m_desiredRightHandForce;
         }
     }
 }

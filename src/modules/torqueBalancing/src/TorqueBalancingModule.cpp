@@ -21,6 +21,7 @@
 #include "ReferenceGeneratorInputReaderImpl.h"
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <yarp/os/Port.h>
+#include <vector>
 
 #include <paramHelp/paramHelperServer.h>
 #include "ParamHelperConfig.h"
@@ -28,9 +29,19 @@
 namespace codyco {
     namespace torquebalancing {
         
+        //Utility structure used inside the module
+        struct TaskInformation {
+            TaskType taskType;
+            std::string referredLinkName;
+            Reference& reference;
+        };
+        
+        
         TorqueBalancingModule::TorqueBalancingModule()
-        : m_referenceThreadPeriod(10)
+        : m_moduleState(TorqueBalancingModuleStateDoubleSupportStable)
+        , m_referenceThreadPeriod(10)
         , m_controllerThreadPeriod(10)
+        , m_active(false)
         , m_robot(0)
         , m_controller(0)
         , m_references(0)
@@ -42,7 +53,6 @@ namespace codyco {
         
         bool TorqueBalancingModule::configure(yarp::os::ResourceFinder& rf)
         {
-            //TODO: world to base frame???
             //PARAMETERS SECTION
             //Creating parameter server
             m_parameterServer = new paramHelp::ParamHelperServer(TorqueBalancingModuleParameterDescriptions,
@@ -115,30 +125,48 @@ namespace codyco {
                 return false;
             }
             
-            reader = new HandsPositionReader(*m_robot);
-            if (reader) {
-                m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeHandsPosition, reader));
-            } else {
-                return false;
-            }
-            generator = new ReferenceGenerator(m_referenceThreadPeriod, m_references->desiredHandsPosition(), *reader);
-            if (generator) {
-                m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeHandsPosition, generator));
-            } else {
-                return false;
+            //position tasks
+            std::vector<TaskInformation> tasks;
+            TaskInformation task1 = {TaskTypeLeftHandPosition, "l_gripper", m_references->desiredLeftHandPosition()};
+            tasks.push_back(task1);
+            TaskInformation task2 = {TaskTypeRightHandPosition, "r_gripper", m_references->desiredRightHandPosition()};
+            tasks.push_back(task2);
+            
+            for (std::vector<TaskInformation>::iterator it = tasks.begin(); it != tasks.end(); it++) {
+                reader = new EndEffectorPositionReader(*m_robot, it->referredLinkName);
+                if (reader) {
+                    m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(it->taskType, reader));
+                } else {
+                    return false;
+                }
+                generator = new ReferenceGenerator(m_referenceThreadPeriod, it->reference, *reader);
+                if (generator) {
+                    m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(it->taskType, generator));
+                } else {
+                    return false;
+                }
             }
             
-            reader = new HandsForceReader(*m_robot);
-            if (reader) {
-                m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeHandsForce, reader));
-            } else {
-                return false;
-            }
-            generator = new ReferenceGenerator(m_referenceThreadPeriod, m_references->desiredHandsForce(), *reader);
-            if (generator) {
-                m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeHandsForce, generator));
-            } else {
-                return false;
+            //force tasks
+            tasks.clear();
+            TaskInformation task3 = {TaskTypeLeftHandForce, "l_gripper", m_references->desiredLeftHandPosition()};
+            tasks.push_back(task1);
+            TaskInformation task4 = {TaskTypeRightHandForce, "r_gripper", m_references->desiredRightHandPosition()};
+            tasks.push_back(task2);
+            
+            for (std::vector<TaskInformation>::iterator it = tasks.begin(); it != tasks.end(); it++) {
+                reader = new EndEffectorForceReader(*m_robot);//, it->referredLinkName);
+                if (reader) {
+                    m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(it->taskType, reader));
+                } else {
+                    return false;
+                }
+                generator = new ReferenceGenerator(m_referenceThreadPeriod, it->reference, *reader);
+                if (generator) {
+                    m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(it->taskType, generator));
+                } else {
+                    return false;
+                }
             }
             
             m_controller = new TorqueBalancingController(m_controllerThreadPeriod, *m_references, *m_robot);
@@ -242,10 +270,49 @@ namespace codyco {
         
         void TorqueBalancingModule::setControllersActiveState(bool isActive)
         {
-            for (std::map<TaskType, ReferenceGenerator*>::iterator referenceIterator = m_referenceGenerators.begin(); referenceIterator != m_referenceGenerators.end(); referenceIterator++) {
-                referenceIterator->second->setActiveState(isActive);
+            if (isActive == m_active) return;
+            m_active = isActive;
+            updateModuleCoordinationStatus();
+        }
+        
+        void TorqueBalancingModule::updateModuleCoordinationStatus()
+        {
+            bool comTaskActive = m_active;
+            bool leftHandPositionTaskActive = false;
+            bool rightHandPositionTaskActive = false;
+            bool leftHandForceTaskActive = false;
+            bool rightHandForceTaskActive = false;
+            
+            switch (m_moduleState) {
+                case TorqueBalancingModuleStateDoubleSupportSeekingContactBothHands:
+                    leftHandPositionTaskActive = m_active;
+                    rightHandForceTaskActive = m_active;
+                    break;
+                case TorqueBalancingModuleStateTripleSupportSeekingContactLeftHand:
+                    leftHandPositionTaskActive = m_active;
+                    rightHandForceTaskActive = m_active;
+                    break;
+                case TorqueBalancingModuleStateTripleSupportSeekingContactRightHand:
+                    rightHandPositionTaskActive = m_active;
+                    leftHandForceTaskActive = m_active;
+                    break;
+                case TorqueBalancingModuleStateQuadrupleSupport:
+                    leftHandForceTaskActive = rightHandForceTaskActive = m_active;
+                    break;
             }
-            m_controller->setActiveState(isActive);
+            
+            bool controlSet = true;
+            std::map<TaskType, ReferenceGenerator*>::iterator found;
+            bool tasksState[5] = {comTaskActive, leftHandPositionTaskActive, rightHandPositionTaskActive, leftHandForceTaskActive, rightHandForceTaskActive};
+            TaskType tasksType[5] = { TaskTypeCOM, TaskTypeLeftHandPosition, TaskTypeRightHandPosition, TaskTypeLeftHandForce, TaskTypeRightHandForce};
+            
+            for (int i = 0; i < 5; i++) {
+                found = m_referenceGenerators.find(tasksType[i]);
+                controlSet = controlSet && found != m_referenceGenerators.end();
+                if (controlSet)
+                    found->second->setActiveState(tasksState[i]);
+            }
+            m_controller->setActiveState(m_active && controlSet);
         }
         
 #pragma mark - ParamHelperManager methods
@@ -324,50 +391,83 @@ namespace codyco {
                     break;
                 // Hands position
                 case TorqueBalancingModuleParameterHandsPositionProportionalGain:
-                    foundController = m_referenceGenerators.find(TaskTypeHandsPosition);
+                    foundController = m_referenceGenerators.find(TaskTypeLeftHandPosition);
+                    if (foundController != m_referenceGenerators.end()) {
+                        foundController->second->setProportionalGains(m_handsPositionProportionalGain);
+                    }
+                    foundController = m_referenceGenerators.find(TaskTypeRightHandPosition);
                     if (foundController != m_referenceGenerators.end()) {
                         foundController->second->setProportionalGains(m_handsPositionProportionalGain);
                     }
                     break;
                 case TorqueBalancingModuleParameterHandsPositionDerivativeGain:
-                    foundController = m_referenceGenerators.find(TaskTypeHandsPosition);
+                    foundController = m_referenceGenerators.find(TaskTypeLeftHandPosition);
                     if (foundController != m_referenceGenerators.end()) {
                         foundController->second->setDerivativeGains(m_handsPositionDerivativeGain);
                     }
+                    foundController = m_referenceGenerators.find(TaskTypeRightHandPosition);
+                    if (foundController != m_referenceGenerators.end()) {
+                        foundController->second->setDerivativeGains(m_handsPositionDerivativeGain);
+                    }
+
                     break;
                 case TorqueBalancingModuleParameterHandsPositionIntegralGain:
-                    foundController = m_referenceGenerators.find(TaskTypeHandsPosition);
+                    foundController = m_referenceGenerators.find(TaskTypeLeftHandPosition);
+                    if (foundController != m_referenceGenerators.end()) {
+                        foundController->second->setIntegralGains(m_handsPositionIntegralGain);
+                    }
+                    foundController = m_referenceGenerators.find(TaskTypeRightHandPosition);
                     if (foundController != m_referenceGenerators.end()) {
                         foundController->second->setIntegralGains(m_handsPositionIntegralGain);
                     }
                     break;
                 case TorqueBalancingModuleParameterHandsPositionIntegralLimit:
-                    foundController = m_referenceGenerators.find(TaskTypeHandsPosition);
+                    foundController = m_referenceGenerators.find(TaskTypeLeftHandPosition);
+                    if (foundController != m_referenceGenerators.end()) {
+                        foundController->second->setIntegralLimit(m_handsPositionIntegralLimit);
+                    }
+                    foundController = m_referenceGenerators.find(TaskTypeRightHandPosition);
                     if (foundController != m_referenceGenerators.end()) {
                         foundController->second->setIntegralLimit(m_handsPositionIntegralLimit);
                     }
                     break;
                 //Hands forces
                 case TorqueBalancingModuleParameterHandsForceProportionalGain:
-                    foundController = m_referenceGenerators.find(TaskTypeHandsForce);
+                    foundController = m_referenceGenerators.find(TaskTypeLeftHandForce);
+                    if (foundController != m_referenceGenerators.end()) {
+                        foundController->second->setProportionalGains(m_handsForceProportionalGain);
+                    }
+                    foundController = m_referenceGenerators.find(TaskTypeRightHandForce);
                     if (foundController != m_referenceGenerators.end()) {
                         foundController->second->setProportionalGains(m_handsForceProportionalGain);
                     }
                     break;
                 case TorqueBalancingModuleParameterHandsForceDerivativeGain:
-                    foundController = m_referenceGenerators.find(TaskTypeHandsForce);
+                    foundController = m_referenceGenerators.find(TaskTypeLeftHandForce);
+                    if (foundController != m_referenceGenerators.end()) {
+                        foundController->second->setDerivativeGains(m_handsForceDerivativeGain);
+                    }
+                    foundController = m_referenceGenerators.find(TaskTypeRightHandForce);
                     if (foundController != m_referenceGenerators.end()) {
                         foundController->second->setDerivativeGains(m_handsForceDerivativeGain);
                     }
                     break;
                 case TorqueBalancingModuleParameterHandsForceIntegralGain:
-                    foundController = m_referenceGenerators.find(TaskTypeHandsForce);
+                    foundController = m_referenceGenerators.find(TaskTypeLeftHandForce);
+                    if (foundController != m_referenceGenerators.end()) {
+                        foundController->second->setIntegralGains(m_handsForceIntegralGain);
+                    }
+                    foundController = m_referenceGenerators.find(TaskTypeRightHandForce);
                     if (foundController != m_referenceGenerators.end()) {
                         foundController->second->setIntegralGains(m_handsForceIntegralGain);
                     }
                     break;
                 case TorqueBalancingModuleParameterHandsForceIntegralLimit:
-                    foundController = m_referenceGenerators.find(TaskTypeHandsForce);
+                    foundController = m_referenceGenerators.find(TaskTypeLeftHandForce);
+                    if (foundController != m_referenceGenerators.end()) {
+                        foundController->second->setIntegralLimit(m_handsForceIntegralLimit);
+                    }
+                    foundController = m_referenceGenerators.find(TaskTypeRightHandForce);
                     if (foundController != m_referenceGenerators.end()) {
                         foundController->second->setIntegralLimit(m_handsForceIntegralLimit);
                     }
