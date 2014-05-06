@@ -82,6 +82,8 @@ namespace wbiIcub
 
         bool reverse_torso_joints;
 
+        bool initDriversDone;
+        
         bool openDrivers(int bp);
 
         int bodyPartJointMapping(int bodypart_id, int local_id);

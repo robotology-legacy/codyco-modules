@@ -122,6 +122,7 @@ bool robotStatus::robotConfig() {
       int         headVfromConfigFile     = rf.find("headV").asInt();
       int         legsVfromConfigFile     = rf.find("legsV").asInt();
       bool        feetFTfromConfigFile    = rf.find("feetFT").asBool();
+      bool        uses_urdf           = rf.find("uses_urdf").asBool();
       std::string urdf_file 		  = rf.find("urdf").asString();      
 
 #ifdef DEBUG      
@@ -135,8 +136,9 @@ bool robotStatus::robotConfig() {
 #endif
       
         //---------------- CREATION WHOLE BODY INTERFACE ---------------------/
-        iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(headVfromConfigFile,legsVfromConfigFile,feetFTfromConfigFile);
-	wbInterface = new icubWholeBodyInterface(localNamefromConfigFile.c_str(),robotNamefromConfigFile.c_str(), icub_version, urdf_file);
+        iCub::iDynTree::iCubTree_version_tag icub_version = 
+          iCub::iDynTree::iCubTree_version_tag(headVfromConfigFile,legsVfromConfigFile,feetFTfromConfigFile,uses_urdf,urdf_file);
+	wbInterface = new icubWholeBodyInterface(localNamefromConfigFile.c_str(),robotNamefromConfigFile.c_str(), icub_version);
 
 #ifdef DEBUG
         fprintf(stderr,"robotStatus::robotConfig >> new wbInterface created ...\n");

@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.813"
+    ComputedModelVersion    "1.827"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -50,15 +50,15 @@ Model {
       }
       Array {
 	Type			"Simulink.EditorInfo"
-	Dimension		2
+	Dimension		3
 	Object {
 	  $ObjectID		  5
 	  IsActive		  [1]
 	  ViewObjType		  "SimulinkSubsys"
 	  LoadSaveID		  "61"
 	  Extents		  [1369.0, 993.0]
-	  ZoomFactor		  [1.25]
-	  Offset		  [431.08444776075692, 50.280835337287236]
+	  ZoomFactor		  [1.0]
+	  Offset		  [74.918383448049156, 192.58303813705911]
 	}
 	Object {
 	  $ObjectID		  6
@@ -68,6 +68,15 @@ Model {
 	  Extents		  [1369.0, 993.0]
 	  ZoomFactor		  [1.0]
 	  Offset		  [0.0, 0.0]
+	}
+	Object {
+	  $ObjectID		  7
+	  IsActive		  [0]
+	  ViewObjType		  "SimulinkSubsys"
+	  LoadSaveID		  "359"
+	  Extents		  [1369.0, 993.0]
+	  ZoomFactor		  [1.0]
+	  Offset		  [-512.0, -291.5]
 	}
 	PropName		"EditorsInfo"
       }
@@ -79,9 +88,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "daniele"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue May 06 16:43:45 2014"
-  RTWModifiedTimeStamp	  321287617
-  ModelVersionFormat	  "1.%<AutoIncrement:813>"
+  LastModifiedDate	  "Tue May 06 18:55:39 2014"
+  RTWModifiedTimeStamp	  321300804
+  ModelVersionFormat	  "1.%<AutoIncrement:827>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  on
@@ -116,7 +125,7 @@ Model {
   TryForcingSFcnDF	  off
   Object {
     $PropName		    "DataLoggingOverride"
-    $ObjectID		    7
+    $ObjectID		    8
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "controller"
     signals_		    []
@@ -176,13 +185,13 @@ Model {
     Type		    "Handle"
     Dimension		    1
     Simulink.ConfigSet {
-      $ObjectID		      8
+      $ObjectID		      9
       Version		      "1.12.1"
       Array {
 	Type			"Handle"
 	Dimension		8
 	Simulink.SolverCC {
-	  $ObjectID		  9
+	  $ObjectID		  10
 	  Version		  "1.12.1"
 	  StartTime		  "0.0"
 	  StopTime		  "inf"
@@ -217,7 +226,7 @@ Model {
 	  InsertRTBMode		  "Whenever possible"
 	}
 	Simulink.DataIOCC {
-	  $ObjectID		  10
+	  $ObjectID		  11
 	  Version		  "1.12.1"
 	  Decimation		  "1"
 	  ExternalInput		  "[t, u]"
@@ -249,7 +258,7 @@ Model {
 	  Refine		  "1"
 	}
 	Simulink.OptimizationCC {
-	  $ObjectID		  11
+	  $ObjectID		  12
 	  Version		  "1.12.1"
 	  Array {
 	    Type		    "Cell"
@@ -305,7 +314,7 @@ Model {
 	  ParallelExecutionInRapidAccelerator on
 	}
 	Simulink.DebuggingCC {
-	  $ObjectID		  12
+	  $ObjectID		  13
 	  Version		  "1.12.1"
 	  RTPrefix		  "error"
 	  ConsistencyChecking	  "none"
@@ -395,7 +404,7 @@ Model {
 	  SFTransitionActionBeforeConditionDiag	"warning"
 	}
 	Simulink.HardwareCC {
-	  $ObjectID		  13
+	  $ObjectID		  14
 	  Version		  "1.12.1"
 	  ProdBitPerChar	  8
 	  ProdBitPerShort	  16
@@ -432,7 +441,7 @@ Model {
 	  ProdEqTarget		  on
 	}
 	Simulink.ModelReferenceCC {
-	  $ObjectID		  14
+	  $ObjectID		  15
 	  Version		  "1.12.1"
 	  UpdateModelReferenceTargets "IfOutOfDateOrStructuralChange"
 	  CheckModelReferenceTargetMessage "error"
@@ -447,7 +456,7 @@ Model {
 	  SupportModelReferenceSimTargetCustomCode off
 	}
 	Simulink.SFSimCC {
-	  $ObjectID		  15
+	  $ObjectID		  16
 	  Version		  "1.12.1"
 	  SFSimEnableDebug	  on
 	  SFSimOverflowDetection  on
@@ -462,7 +471,7 @@ Model {
 	}
 	Simulink.RTWCC {
 	  $BackupClass		  "Simulink.RTWCC"
-	  $ObjectID		  16
+	  $ObjectID		  17
 	  Version		  "1.12.1"
 	  Array {
 	    Type		    "Cell"
@@ -531,7 +540,7 @@ Model {
 	    Type		    "Handle"
 	    Dimension		    2
 	    Simulink.CodeAppCC {
-	      $ObjectID		      17
+	      $ObjectID		      18
 	      Version		      "1.12.1"
 	      Array {
 		Type			"Cell"
@@ -599,7 +608,7 @@ Model {
 	    }
 	    Simulink.GRTTargetCC {
 	      $BackupClass	      "Simulink.TargetCC"
-	      $ObjectID		      18
+	      $ObjectID		      19
 	      Version		      "1.12.1"
 	      Array {
 		Type			"Cell"
@@ -688,11 +697,11 @@ Model {
   }
   Simulink.ConfigSet {
     $PropName		    "ActiveConfigurationSet"
-    $ObjectID		    8
+    $ObjectID		    9
   }
   Object {
     $PropName		    "DataTransfer"
-    $ObjectID		    19
+    $ObjectID		    20
     $ClassName		    "Simulink.GlobalDataTransfer"
     DefaultTransitionBetweenSyncTasks "Ensure deterministic transfer (maximum delay)"
     DefaultTransitionBetweenAsyncTasks "Ensure data integrity only"
@@ -995,7 +1004,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "401"
+    SIDHighWatermark	    "402"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -1013,27 +1022,27 @@ Model {
       MaskHideContents	      off
       Object {
 	$PropName		"MaskObject"
-	$ObjectID		20
+	$ObjectID		21
 	$ClassName		"Simulink.Mask"
 	Array {
 	  Type			  "Simulink.MaskParameter"
 	  Dimension		  3
 	  Object {
-	    $ObjectID		    21
+	    $ObjectID		    22
 	    Type		    "edit"
 	    Name		    "robotName"
 	    Prompt		    "robot name"
-	    Value		    "'icub'"
+	    Value		    "'iCubGenova03'"
 	  }
 	  Object {
-	    $ObjectID		    22
+	    $ObjectID		    23
 	    Type		    "edit"
 	    Name		    "Ts"
 	    Prompt		    "Ts"
 	    Value		    "0.01"
 	  }
 	  Object {
-	    $ObjectID		    23
+	    $ObjectID		    24
 	    Type		    "edit"
 	    Name		    "localName"
 	    Prompt		    "module name"
@@ -1056,7 +1065,7 @@ Model {
 	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
 	TiledPageScale		1
 	ShowPageBoundaries	off
-	ZoomFactor		"125"
+	ZoomFactor		"100"
 	Block {
 	  BlockType		  Constant
 	  Name			  "\n\n  "
@@ -1193,7 +1202,7 @@ Model {
 	  Position		  [1410, 613, 1495, 707]
 	  ZOrder		  113
 	  Floating		  off
-	  Location		  [11, 69, 1431, 889]
+	  Location		  [2, 61, 1289, 801]
 	  Open			  off
 	  NumInputPorts		  "3"
 	  List {
@@ -1433,7 +1442,7 @@ Model {
 	      BackgroundColor	      "black"
 	      LibraryVersion	      "1.33"
 	      SourceBlock	      "WBCLibrary/Utilities/yarp read"
-	      SourceType	      "Unknown"
+	      SourceType	      ""
 	      from		      "'/wholeBodyDyanmicsTree/left_leg/endEffectorWrench:o'"
 	      to		      "'...'"
 	      num		      "6"
@@ -1512,7 +1521,7 @@ Model {
 	  SFBlockType		  "MATLAB Function"
 	  Object {
 	    $PropName		    "MaskObject"
-	    $ObjectID		    24
+	    $ObjectID		    25
 	    $ClassName		    "Simulink.Mask"
 	    Type		    "Stateflow"
 	    Description		    "Embedded MATLAB block"
@@ -1728,7 +1737,7 @@ Model {
 	      BackgroundColor	      "black"
 	      LibraryVersion	      "1.33"
 	      SourceBlock	      "WBCLibrary/Utilities/yarp read"
-	      SourceType	      "Unknown"
+	      SourceType	      ""
 	      from		      "'/wholeBodyDyanmicsTree/right_leg/endEffectorWrench:o'"
 	      to		      "'...'"
 	      num		      "6"
@@ -1803,11 +1812,12 @@ Model {
 	Block {
 	  BlockType		  Reference
 	  Name			  "Set Torques"
-	  SID			  "293"
+	  SID			  "402"
 	  Ports			  [1]
-	  Position		  [1705, 168, 1775, 212]
-	  ZOrder		  -24
+	  Position		  [1660, 198, 1730, 242]
+	  ZOrder		  185
 	  BackgroundColor	  "[0.941000, 0.415000, 0.192000]"
+	  ShowName		  off
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/wholeBodyActuators/Set Torques"
 	  SourceType		  ""
@@ -1834,7 +1844,7 @@ Model {
 	  Name			  "Sum1"
 	  SID			  "392"
 	  Ports			  [2, 1]
-	  Position		  [1580, 230, 1610, 270]
+	  Position		  [1580, 285, 1610, 325]
 	  ZOrder		  175
 	  ShowName		  off
 	  IconShape		  "round"
@@ -1960,7 +1970,7 @@ Model {
 	      ShowName		      off
 	      LibraryVersion	      "1.33"
 	      SourceBlock	      "WBCLibrary/wholeBodyStates/Joint Velocities"
-	      SourceType	      "Unknown"
+	      SourceType	      ""
 	      robotName		      "robotName"
 	      localName		      "localName"
 	    }
@@ -1974,7 +1984,7 @@ Model {
 	      BackgroundColor	      "[0.047000, 0.909000, 0.803000]"
 	      LibraryVersion	      "1.33"
 	      SourceBlock	      "WBCLibrary/wholeBodyModel/Jacobians/Left Foot Jacobian"
-	      SourceType	      "Unknown"
+	      SourceType	      ""
 	      robotName		      "robotName"
 	      localName		      "localName"
 	    }
@@ -1999,7 +2009,7 @@ Model {
 	      BackgroundColor	      "[0.000000, 1.000000, 0.533000]"
 	      LibraryVersion	      "1.33"
 	      SourceBlock	      "WBCLibrary/wholeBodyModel/Jacobians/Right Foot Jacobian"
-	      SourceType	      "Unknown"
+	      SourceType	      ""
 	      robotName		      "robotName"
 	      localName		      "localName"
 	    }
@@ -2209,7 +2219,7 @@ Model {
 	  SFBlockType		  "MATLAB Function"
 	  Object {
 	    $PropName		    "MaskObject"
-	    $ObjectID		    25
+	    $ObjectID		    26
 	    $ClassName		    "Simulink.Mask"
 	    Type		    "Stateflow"
 	    Description		    "Embedded MATLAB block"
@@ -3025,7 +3035,7 @@ Model {
 	  Name			  "holder2"
 	  SID			  "384"
 	  Ports			  [1, 1]
-	  Position		  [1520, 339, 1570, 371]
+	  Position		  [1520, 404, 1570, 436]
 	  ZOrder		  174
 	  ShowName		  off
 	  MinAlgLoopOccurrences	  off
@@ -3230,7 +3240,7 @@ Model {
 	  SFBlockType		  "MATLAB Function"
 	  Object {
 	    $PropName		    "MaskObject"
-	    $ObjectID		    26
+	    $ObjectID		    27
 	    $ClassName		    "Simulink.Mask"
 	    Type		    "Stateflow"
 	    Description		    "Embedded MATLAB block"
@@ -3681,7 +3691,6 @@ Model {
 	Line {
 	  SrcBlock		  "Sum"
 	  SrcPort		  1
-	  Points		  [24, 0; 0, -65]
 	  DstBlock		  "holder2"
 	  DstPort		  1
 	}
@@ -3696,9 +3705,16 @@ Model {
 	  SrcPort		  1
 	  Points		  [94, 0]
 	  Branch {
-	    Points		    [0, -170]
-	    DstBlock		    "Sum1"
-	    DstPort		    1
+	    Points		    [0, -115]
+	    Branch {
+	      DstBlock		      "Sum1"
+	      DstPort		      1
+	    }
+	    Branch {
+	      Points		      [0, -85]
+	      DstBlock		      "Set Torques"
+	      DstPort		      1
+	    }
 	  }
 	  Branch {
 	    DstBlock		    "Sum"
@@ -3845,17 +3861,8 @@ Model {
 	Line {
 	  SrcBlock		  "Sum1"
 	  SrcPort		  1
-	  Points		  [28, 0]
-	  Branch {
-	    Points		    [0, 55]
-	    DstBlock		    "Sum2"
-	    DstPort		    1
-	  }
-	  Branch {
-	    Points		    [0, -60]
-	    DstBlock		    "Set Torques"
-	    DstPort		    1
-	  }
+	  DstBlock		  "Sum2"
+	  DstPort		  1
 	}
 	Line {
 	  SrcBlock		  "Sum2"
@@ -3922,7 +3929,10 @@ Stateflow {
     firstTransition	    10
     firstJunction	    9
     viewObj		    2
+    visible		    1
     machine		    1
+    subviewS {
+    }
     ssIdHighWaterMark	    28
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
@@ -3947,11 +3957,11 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;1;0];\nA = 0.00;\nf "
+      script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;1;0];\nA = 0.02;\nf "
       "= 0.05;\n% t = t*0.8;\n% xcomDes    = [xCom0(1:2); (1/A-1)*A*xCom0(3)] + A*xCom0(3)*cos(2*pi*f*t)*e3;\n% xDcomDe"
       "s   = -xCom0(3)*A*2*pi*f*sin(2*pi*f*t)*e3;\n% xDDcomDes  = -xCom0(3)*A*(2*pi*f)^2*cos(2*pi*f*t)*e3;\n\nxcomDes  "
-      "  = xCom0 + A*sin(2*pi*f*t)*e3;\nxcomDes(1) =  xcomDes(1) + 0.02;\nxDcomDes   =         A*2*pi*f*cos(2*pi*f*t)*e"
-      "3;\nxDDcomDes  =        -A*(2*pi*f)^2*sin(2*pi*f*t)*e3;"
+      "  = xCom0 + A*sin(2*pi*f*t)*e3;\n% xcomDes(1) =  xcomDes(1) + 0.02;\nxDcomDes   =         A*2*pi*f*cos(2*pi*f*t)"
+      "*e3;\nxDDcomDes  =        -A*(2*pi*f)^2*sin(2*pi*f*t)*e3;"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
