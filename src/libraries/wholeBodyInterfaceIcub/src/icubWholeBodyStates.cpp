@@ -94,7 +94,7 @@ bool icubWholeBodyStates::addEstimate(const EstimateType et, const LocalId &sid)
     //case ESTIMATE_IMU:                      return lockAndAddSensor(SENSOR_IMU, sid);
     case ESTIMATE_FORCE_TORQUE_SENSOR:      return lockAndAddSensor(SENSOR_FORCE_TORQUE, sid);
     ///< \todo TODO properly account for external forque torque
-    case ESTIMATE_EXTERNAL_FORCE_TORQUE:    return true;
+    case ESTIMATE_EXTERNAL_FORCE_TORQUE:    return estimator->openEEWrenchPorts();
     default: break;
     }
     return false;
@@ -315,8 +315,13 @@ bool icubWholeBodyStates::lockAndReadSensor(const SensorType st, const LocalId s
 
 bool icubWholeBodyStates::lockAndGetExternalWrench(const LocalId sid, double * data)
 {
-    bool return_value = false;
     estimator->mutex.wait();
+    if( estimator->ee_wrenches_enabled )
+    {
+        estimator->mutex.post();
+        return false;
+    }
+
     if( sid == estimator->right_gripper_local_id )
     {
         memcpy(data,estimator->RAExtWrench.data(),6*sizeof(double));
@@ -334,7 +339,7 @@ bool icubWholeBodyStates::lockAndGetExternalWrench(const LocalId sid, double * d
         memcpy(data,estimator->LLExtWrench.data(),6*sizeof(double));
     }
     estimator->mutex.post();
-    return return_value;
+    return true;
 }
 
 bool icubWholeBodyStates::lockAndAddSensor(const SensorType st, const LocalId &sid)
@@ -437,15 +442,22 @@ bool icubWholeBodyEstimator::threadInit()
     left_sole_local_id = wbi::LocalId(LEFT_LEG,8);
     right_sole_local_id = wbi::LocalId(RIGHT_LEG,8);
 
+    return ok;
+}
+
+bool icubWholeBodyEstimator::openEEWrenchPorts()
+{
     bool okEE = true;
+    if( ee_wrenches_enabled ) return true;
+    mutex.wait();
     okEE = okEE && openEEWrenchPorts(right_gripper_local_id);
     okEE = okEE && openEEWrenchPorts(left_gripper_local_id);
     okEE = okEE && openEEWrenchPorts(right_sole_local_id);
     okEE = okEE && openEEWrenchPorts(left_sole_local_id);
-
     ee_wrenches_enabled = okEE;
+    mutex.post();
 
-    return ok;
+    return okEE;
 }
 
 bool icubWholeBodyEstimator::setWorldBasePosition(const wbi::Frame & xB)
@@ -496,10 +508,13 @@ void icubWholeBodyEstimator::run()
         estimates.lastPwm = pwmFilt->filt(pwm);     ///< low pass filter
 
         ///< Read end effector wrenches
-        readEEWrenches(right_gripper_local_id,RAExtWrench);
-        readEEWrenches(left_gripper_local_id,LAExtWrench);
-        readEEWrenches(right_sole_local_id,RLExtWrench);
-        readEEWrenches(left_sole_local_id,LLExtWrench);
+        if( ee_wrenches_enabled )
+        {
+            readEEWrenches(right_gripper_local_id,RAExtWrench);
+            readEEWrenches(left_gripper_local_id,LAExtWrench);
+            readEEWrenches(right_sole_local_id,RLExtWrench);
+            readEEWrenches(left_sole_local_id,LLExtWrench);
+        }
     }
     mutex.post();
 
@@ -603,10 +618,13 @@ void icubWholeBodyEstimator::threadRelease()
     if(tauMFilt!=0)  { delete tauMFilt; tauMFilt=0; }  ///< low pass filter for motor torque
     if(pwmFilt!=0)   { delete pwmFilt; pwmFilt=0;   }
 
-    closeEEWrenchPorts(right_gripper_local_id);
-    closeEEWrenchPorts(left_gripper_local_id);
-    closeEEWrenchPorts(right_sole_local_id);
-    closeEEWrenchPorts(left_sole_local_id);
+    if( ee_wrenches_enabled )
+    {
+        closeEEWrenchPorts(right_gripper_local_id);
+        closeEEWrenchPorts(left_gripper_local_id);
+        closeEEWrenchPorts(right_sole_local_id);
+        closeEEWrenchPorts(left_sole_local_id);
+    }
 
     return;
 }
