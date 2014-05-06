@@ -95,7 +95,9 @@ namespace wbiIcub
     public:
         // end effector wrenches ports (the key of the maps is the sensor id)
         bool ee_wrenches_enabled;
-        
+        bool openEEWrenchPorts();
+
+
         yarp::sig::Vector RAExtWrench;
         yarp::sig::Vector LAExtWrench;
         yarp::sig::Vector RLExtWrench;
