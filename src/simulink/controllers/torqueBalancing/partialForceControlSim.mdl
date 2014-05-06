@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.1193"
+    ComputedModelVersion    "1.1195"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -27,9 +27,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "iron"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon May  5 12:34:12 2014"
-  RTWModifiedTimeStamp	  321194036
-  ModelVersionFormat	  "1.%<AutoIncrement:1193>"
+  LastModifiedDate	  "Mon May  5 18:46:18 2014"
+  RTWModifiedTimeStamp	  321216295
+  ModelVersionFormat	  "1.%<AutoIncrement:1195>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -66,7 +66,6 @@ Model {
     $ObjectID		    1
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "controller"
-    signals_		    []
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
@@ -824,6 +823,23 @@ Model {
       SFunctionDeploymentMode off
     }
     Block {
+      BlockType		      Scope
+      ModelBased	      off
+      TickLabels	      "OneTimeTick"
+      ZoomMode		      "on"
+      Grid		      "on"
+      TimeRange		      "auto"
+      YMin		      "-5"
+      YMax		      "5"
+      SaveToWorkspace	      off
+      SaveName		      "ScopeData"
+      LimitDataPoints	      on
+      MaxDataPoints	      "5000"
+      Decimation	      "1"
+      SampleInput	      off
+      SampleTime	      "-1"
+    }
+    Block {
       BlockType		      Selector
       NumberOfDimensions      "1"
       IndexMode		      "One-based"
@@ -889,7 +905,7 @@ Model {
   }
   System {
     Name		    "partialForceControlSim"
-    Location		    [650, 776, 904, 939]
+    Location		    [989, 815, 1243, 978]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -903,7 +919,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "862"
+    SIDHighWatermark	    "864"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -935,7 +951,7 @@ Model {
       MaskValueString	      "'icubGazeboSim'|0.01|'dynamicBalancing'"
       System {
 	Name			"Subsystem"
-	Location		[29, 161, 1309, 911]
+	Location		[29, 183, 1309, 933]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -1930,15 +1946,16 @@ Model {
 	}
 	Block {
 	  BlockType		  Reference
-	  Name			  "Set Torques"
-	  SID			  "765"
-	  Ports			  [1]
-	  Position		  [1050, 63, 1120, 107]
-	  ZOrder		  117
-	  BackgroundColor	  "[0.941000, 0.415000, 0.192000]"
+	  Name			  "WBI to yarp1"
+	  SID			  "863"
+	  Ports			  [1, 5]
+	  Position		  [945, 507, 1055, 593]
+	  ZOrder		  -63
+	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
+	  ShowName		  off
 	  LibraryVersion	  "1.33"
-	  SourceBlock		  "WBCLibrary/wholeBodyActuators/Set Torques"
-	  SourceType		  ""
+	  SourceBlock		  "WBCLibrary/Utilities/WBI to yarp"
+	  SourceType		  "WBI to YARP"
 	  ShowPortLabels	  "FromPortIcon"
 	  SystemSampleTime	  "-1"
 	  FunctionWithSeparateData off
@@ -1948,9 +1965,6 @@ Model {
 	  RTWMemSecDataInternal	  "Inherit from model"
 	  RTWMemSecDataParameters "Inherit from model"
 	  GeneratePreprocessorConditionals off
-	  val			  "6"
-	  robotName		  "robotName"
-	  localName		  "localName"
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -3628,6 +3642,34 @@ Model {
 	  }
 	}
 	Block {
+	  BlockType		  Scope
+	  Name			  "tau"
+	  SID			  "864"
+	  Ports			  [5]
+	  Position		  [1095, 504, 1155, 596]
+	  ZOrder		  -57
+	  Floating		  off
+	  Location		  [-632, 64, -43, 792]
+	  Open			  on
+	  NumInputPorts		  "5"
+	  ZoomMode		  "yonly"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	    axes2		    "%<SignalLabel>"
+	    axes3		    "%<SignalLabel>"
+	    axes4		    "%<SignalLabel>"
+	    axes5		    "%<SignalLabel>"
+	  }
+	  TimeRange		  "2000"
+	  YMin			  "-8~-1.75~-1.75~-2~-2"
+	  YMax			  "1~1.25~1.25~6~6"
+	  SaveToWorkspace	  on
+	  DataFormat		  "StructureWithTime"
+	  LimitDataPoints	  off
+	  SampleTime		  "0"
+	}
+	Block {
 	  BlockType		  SubSystem
 	  Name			  "trajectoryGeneratorCoM1"
 	  SID			  "392"
@@ -3912,14 +3954,15 @@ Model {
 	Line {
 	  SrcBlock		  "controllerMatlab"
 	  SrcPort		  1
-	  Points		  [30, 0; 0, -75]
+	  Points		  [30, 0]
 	  Branch {
-	    DstBlock		    "Goto"
+	    Points		    [0, 255; -50, 0]
+	    DstBlock		    "WBI to yarp1"
 	    DstPort		    1
 	  }
 	  Branch {
 	    Points		    [0, -75]
-	    DstBlock		    "Set Torques"
+	    DstBlock		    "Goto"
 	    DstPort		    1
 	  }
 	}
@@ -4194,35 +4237,39 @@ Model {
 	  DstBlock		  "Goto4"
 	  DstPort		  1
 	}
-	Annotation {
-	  Position		  [1026, 127]
+	Line {
+	  SrcBlock		  "WBI to yarp1"
+	  SrcPort		  1
+	  Points		  [20, 0]
+	  DstBlock		  "tau"
+	  DstPort		  1
 	}
-	Annotation {
-	  Position		  [1026, 127]
+	Line {
+	  SrcBlock		  "WBI to yarp1"
+	  SrcPort		  2
+	  Points		  [20, 0]
+	  DstBlock		  "tau"
+	  DstPort		  2
 	}
-	Annotation {
-	  Position		  [1044, 47]
+	Line {
+	  SrcBlock		  "WBI to yarp1"
+	  SrcPort		  3
+	  DstBlock		  "tau"
+	  DstPort		  3
 	}
-	Annotation {
-	  Position		  [1044, 47]
+	Line {
+	  SrcBlock		  "WBI to yarp1"
+	  SrcPort		  4
+	  Points		  [20, 0]
+	  DstBlock		  "tau"
+	  DstPort		  4
 	}
-	Annotation {
-	  Position		  [1044, 47]
-	}
-	Annotation {
-	  Position		  [1044, 47]
-	}
-	Annotation {
-	  Position		  [1044, 47]
-	}
-	Annotation {
-	  Position		  [1044, 47]
-	}
-	Annotation {
-	  Position		  [1044, 47]
-	}
-	Annotation {
-	  Position		  [1044, 47]
+	Line {
+	  SrcBlock		  "WBI to yarp1"
+	  SrcPort		  5
+	  Points		  [20, 0]
+	  DstBlock		  "tau"
+	  DstPort		  5
 	}
       }
     }
