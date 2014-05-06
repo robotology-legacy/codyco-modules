@@ -108,12 +108,9 @@ ${skinDynLib_LIBRARIES}
 ${ctrlLib_LIBRARIES}
 )
 
-set(appname wbit)
-file(GLOB robotstate ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini)
+set(simContext wbit)
+file(GLOB robotstate ${CMAKE_CURRENT_SOURCE_DIR}/conf/wbit/*.ini)
 yarp_install(FILES       ${robotstate} 
-	     DESTINATION ${CODYCO_CONTEXTS_INSTALL_DIR}/${appname}) 
-
+	     DESTINATION ${CODYCO_CONTEXTS_INSTALL_DIR}/${simContext}) 
 
 install(TARGETS ${PROJECTNAME} DESTINATION mex)
-
-
