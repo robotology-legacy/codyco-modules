@@ -348,6 +348,7 @@ bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
         LocalId lid = jointIdList.globalToLocalId(joint);
         int index = bodyPartJointMapping(lid.bodyPart,lid.index);
         assert(ilim[lid.bodyPart]!=NULL);
+//         std::cout << "Getting limits for bp " << lid.bodyPart << " " << lid.index <<  std::endl;
         bool res = ilim[lid.bodyPart]->getLimits(index, qMin, qMax);
         if(res)
         {

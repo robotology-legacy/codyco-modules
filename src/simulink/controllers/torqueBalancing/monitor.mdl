@@ -1,12 +1,12 @@
 Model {
   Name			  "monitor"
-  Version		  7.7
+  Version		  8.0
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.1218"
+    ComputedModelVersion    "1.1219"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -19,17 +19,57 @@ Model {
   DataTypeOverrideAppliesTo "AllNumericTypes"
   MinMaxOverflowLogging	  "UseLocalSettings"
   MinMaxOverflowArchiveMode "Overwrite"
+  FPTRunName		  "Run 1"
   MaxMDLFileLineLength	  120
   InitFcn		  "initMonitor;"
+  Object {
+    $PropName		    "BdWindowsInfo"
+    $ObjectID		    1
+    $ClassName		    "Simulink.BDWindowsInfo"
+    Object {
+      $PropName		      "WindowsInfo"
+      $ObjectID		      2
+      $ClassName	      "Simulink.WindowInfo"
+      IsActive		      [1]
+      Location		      [0.0, 0.0, 1440.0, 900.0]
+      Object {
+	$PropName		"ModelBrowserInfo"
+	$ObjectID		3
+	$ClassName		"Simulink.ModelBrowserInfo"
+	Visible			[1]
+	DockPosition		"Left"
+	Width			[50]
+	Height			[50]
+	Filter			[10]
+      }
+      Object {
+	$PropName		"ExplorerBarInfo"
+	$ObjectID		4
+	$ClassName		"Simulink.ExplorerBarInfo"
+	Visible			[1]
+      }
+      Object {
+	$PropName		"EditorsInfo"
+	$ObjectID		5
+	$ClassName		"Simulink.EditorInfo"
+	IsActive		[1]
+	ViewObjType		"SimulinkTopLevel"
+	LoadSaveID		"0"
+	Extents			[1253.0, 721.0]
+	ZoomFactor		[1.0]
+	Offset			[0.0, 0.0]
+      }
+    }
+  }
   Created		  "Tue Feb 18 10:13:36 2014"
   Creator		  "daniele"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
-  LastModifiedBy	  "iron"
+  LastModifiedBy	  "daniele"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue May  6 11:26:51 2014"
-  RTWModifiedTimeStamp	  321275648
-  ModelVersionFormat	  "1.%<AutoIncrement:1218>"
+  LastModifiedDate	  "Tue May 06 12:32:56 2014"
+  RTWModifiedTimeStamp	  321277642
+  ModelVersionFormat	  "1.%<AutoIncrement:1219>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -37,6 +77,7 @@ Model {
   WideLines		  off
   ShowLineDimensions	  off
   ShowPortDataTypes	  off
+  ShowDesignRanges	  off
   ShowLoopsOnError	  on
   IgnoreBidirectionalLines off
   ShowStorageClass	  off
@@ -63,7 +104,7 @@ Model {
   TryForcingSFcnDF	  off
   Object {
     $PropName		    "DataLoggingOverride"
-    $ObjectID		    1
+    $ObjectID		    6
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "controller"
     overrideMode_	    [0.0]
@@ -122,14 +163,14 @@ Model {
     Type		    "Handle"
     Dimension		    1
     Simulink.ConfigSet {
-      $ObjectID		      2
-      Version		      "1.11.0"
+      $ObjectID		      7
+      Version		      "1.12.1"
       Array {
 	Type			"Handle"
 	Dimension		8
 	Simulink.SolverCC {
-	  $ObjectID		  3
-	  Version		  "1.11.0"
+	  $ObjectID		  8
+	  Version		  "1.12.1"
 	  StartTime		  "0.0"
 	  StopTime		  "inf"
 	  AbsTol		  "auto"
@@ -147,6 +188,7 @@ Model {
 	  MaxConsecutiveMinStep	  "1"
 	  RelTol		  "1e-3"
 	  SolverMode		  "Auto"
+	  EnableConcurrentExecution off
 	  ConcurrentTasks	  off
 	  Solver		  "FixedStepDiscrete"
 	  SolverName		  "FixedStepDiscrete"
@@ -162,8 +204,8 @@ Model {
 	  InsertRTBMode		  "Whenever possible"
 	}
 	Simulink.DataIOCC {
-	  $ObjectID		  4
-	  Version		  "1.11.0"
+	  $ObjectID		  9
+	  Version		  "1.12.1"
 	  Decimation		  "1"
 	  ExternalInput		  "[t, u]"
 	  FinalStateName	  "xFinal"
@@ -194,8 +236,8 @@ Model {
 	  Refine		  "1"
 	}
 	Simulink.OptimizationCC {
-	  $ObjectID		  5
-	  Version		  "1.11.0"
+	  $ObjectID		  10
+	  Version		  "1.12.1"
 	  Array {
 	    Type		    "Cell"
 	    Dimension		    8
@@ -214,6 +256,7 @@ Model {
 	  ConditionallyExecuteInputs on
 	  InlineParams		  off
 	  UseIntDivNetSlope	  off
+	  UseFloatMulNetSlope	  off
 	  UseSpecifiedMinMax	  off
 	  InlineInvariantSignals  off
 	  OptimizeBlockIOStorage  on
@@ -246,11 +289,11 @@ Model {
 	  BufferReusableBoundary  on
 	  SimCompilerOptimization "Off"
 	  AccelVerboseBuild	  off
-	  AccelParallelForEachSubsystem	on
+	  ParallelExecutionInRapidAccelerator on
 	}
 	Simulink.DebuggingCC {
-	  $ObjectID		  6
-	  Version		  "1.11.0"
+	  $ObjectID		  11
+	  Version		  "1.12.1"
 	  RTPrefix		  "error"
 	  ConsistencyChecking	  "none"
 	  ArrayBoundsChecking	  "none"
@@ -299,12 +342,13 @@ Model {
 	  UnnecessaryDatatypeConvMsg "none"
 	  VectorMatrixConversionMsg "none"
 	  InvalidFcnCallConnMsg	  "error"
-	  FcnCallInpInsideContextMsg "Enable All"
+	  FcnCallInpInsideContextMsg "EnableAllAsWarning"
 	  SignalLabelMismatchMsg  "none"
 	  UnconnectedInputMsg	  "warning"
 	  UnconnectedOutputMsg	  "warning"
 	  UnconnectedLineMsg	  "warning"
 	  SFcnCompatibilityMsg	  "none"
+	  FrameProcessingCompatibilityMsg "warning"
 	  UniqueDataStoreMsg	  "none"
 	  BusObjectLabelMismatch  "warning"
 	  RootOutportRequireBusObject "warning"
@@ -333,10 +377,13 @@ Model {
 	  SFInvalidInputDataAccessInChartInitDiag "warning"
 	  SFNoUnconditionalDefaultTransitionDiag "warning"
 	  SFTransitionOutsideNaturalParentDiag "warning"
+	  SFUnconditionalTransitionShadowingDiag "warning"
+	  SFUndirectedBroadcastEventsDiag "warning"
+	  SFTransitionActionBeforeConditionDiag	"warning"
 	}
 	Simulink.HardwareCC {
-	  $ObjectID		  7
-	  Version		  "1.11.0"
+	  $ObjectID		  12
+	  Version		  "1.12.1"
 	  ProdBitPerChar	  8
 	  ProdBitPerShort	  16
 	  ProdBitPerInt		  32
@@ -372,8 +419,8 @@ Model {
 	  ProdEqTarget		  on
 	}
 	Simulink.ModelReferenceCC {
-	  $ObjectID		  8
-	  Version		  "1.11.0"
+	  $ObjectID		  13
+	  Version		  "1.12.1"
 	  UpdateModelReferenceTargets "IfOutOfDateOrStructuralChange"
 	  CheckModelReferenceTargetMessage "error"
 	  EnableParallelModelReferenceBuilds off
@@ -387,8 +434,8 @@ Model {
 	  SupportModelReferenceSimTargetCustomCode off
 	}
 	Simulink.SFSimCC {
-	  $ObjectID		  9
-	  Version		  "1.11.0"
+	  $ObjectID		  14
+	  Version		  "1.12.1"
 	  SFSimEnableDebug	  on
 	  SFSimOverflowDetection  on
 	  SFSimEcho		  on
@@ -402,8 +449,8 @@ Model {
 	}
 	Simulink.RTWCC {
 	  $BackupClass		  "Simulink.RTWCC"
-	  $ObjectID		  10
-	  Version		  "1.11.0"
+	  $ObjectID		  15
+	  Version		  "1.12.1"
 	  Array {
 	    Type		    "Cell"
 	    Dimension		    8
@@ -421,6 +468,7 @@ Model {
 	  GenCodeOnly		  off
 	  MakeCommand		  "make_rtw"
 	  GenerateMakefile	  on
+	  PackageGeneratedCodeAndArtifacts off
 	  TemplateMakefile	  "grt_default_tmf"
 	  GenerateReport	  off
 	  SaveLog		  off
@@ -437,6 +485,13 @@ Model {
 	  RTWUseSimCustomCode	  off
 	  IncludeHyperlinkInReport off
 	  LaunchReport		  off
+	  PortableWordSizes	  off
+	  GenerateErtSFunction	  off
+	  CreateSILPILBlock	  "None"
+	  CodeExecutionProfiling  off
+	  CodeExecutionProfileVariable "executionProfile"
+	  CodeProfilingSaveOptions "SummaryOnly"
+	  CodeProfilingInstrumentation off
 	  TargetLang		  "C"
 	  IncludeBusHierarchyInRTWFileBlockHierarchyMap	off
 	  IncludeERTFirstTime	  off
@@ -446,8 +501,9 @@ Model {
 	  GenerateTraceReportSf	  off
 	  GenerateTraceReportEml  off
 	  GenerateCodeInfo	  off
-	  GenerateSLWebview	  off
+	  GenerateWebview	  off
 	  GenerateCodeMetricsReport off
+	  GenerateCodeReplacementReport	off
 	  RTWCompilerOptimization "Off"
 	  CheckMdlBeforeBuild	  "Off"
 	  CustomRebuildMode	  "OnUpdate"
@@ -455,8 +511,8 @@ Model {
 	    Type		    "Handle"
 	    Dimension		    2
 	    Simulink.CodeAppCC {
-	      $ObjectID		      11
-	      Version		      "1.11.0"
+	      $ObjectID		      16
+	      Version		      "1.12.1"
 	      Array {
 		Type			"Cell"
 		Dimension		22
@@ -493,6 +549,7 @@ Model {
 	      PreserveName	      off
 	      PreserveNameWithParent  off
 	      ShowEliminatedStatement off
+	      OperatorAnnotations     off
 	      IncAutoGenComments      off
 	      SimulinkDataObjDesc     off
 	      SFDataObjDesc	      off
@@ -515,14 +572,15 @@ Model {
 	      SimulinkBlockComments   on
 	      MATLABSourceComments    off
 	      EnableCustomComments    off
+	      InternalIdentifier      "Classic"
 	      InlinedPrmAccess	      "Literals"
 	      ReqsInCode	      off
 	      UseSimReservedNames     off
 	    }
 	    Simulink.GRTTargetCC {
 	      $BackupClass	      "Simulink.TargetCC"
-	      $ObjectID		      12
-	      Version		      "1.11.0"
+	      $ObjectID		      17
+	      Version		      "1.12.1"
 	      Array {
 		Type			"Cell"
 		Dimension		16
@@ -547,12 +605,9 @@ Model {
 	      TargetFcnLib	      "ansi_tfl_table_tmw.mat"
 	      TargetLibSuffix	      ""
 	      TargetPreCompLibLocation ""
-	      TargetFunctionLibrary   "ANSI_C"
+	      CodeReplacementLibrary  "ANSI_C"
 	      UtilityFuncGeneration   "Auto"
 	      ERTMultiwordTypeDef     "System defined"
-	      FunctionExecutionProfile off
-	      CodeExecutionProfiling  off
-	      ERTCodeCoverageTool     "None"
 	      ERTMultiwordLength      256
 	      MultiwordLength	      2048
 	      GenerateFullHeader      on
@@ -562,6 +617,7 @@ Model {
 	      ModelReferenceCompliant on
 	      ParMdlRefBuildCompliant on
 	      CompOptLevelCompliant   on
+	      ConcurrentExecutionCompliant on
 	      IncludeMdlTerminateFcn  on
 	      GeneratePreprocessorConditionals "Disable all"
 	      CombineOutputUpdateFcns off
@@ -582,10 +638,10 @@ Model {
 	      SupportVariableSizeSignals off
 	      EnableShiftOperators    on
 	      ParenthesesLevel	      "Nominal"
-	      PortableWordSizes	      off
 	      ModelStepFunctionPrototypeControlCompliant off
 	      CPPClassGenCompliant    off
 	      AutosarCompliant	      off
+	      GRTInterface	      on
 	      UseMalloc		      off
 	      ExtMode		      off
 	      ExtModeStaticAlloc      off
@@ -614,8 +670,19 @@ Model {
   }
   Simulink.ConfigSet {
     $PropName		    "ActiveConfigurationSet"
-    $ObjectID		    2
+    $ObjectID		    7
   }
+  Object {
+    $PropName		    "DataTransfer"
+    $ObjectID		    18
+    $ClassName		    "Simulink.GlobalDataTransfer"
+    DefaultTransitionBetweenSyncTasks "Ensure deterministic transfer (maximum delay)"
+    DefaultTransitionBetweenAsyncTasks "Ensure data integrity only"
+    DefaultTransitionBetweenContTasks "Ensure deterministic transfer (minimum delay)"
+    DefaultExtrapolationMethodBetweenContTasks "None"
+    AutoInsertRateTranBlk   [0]
+  }
+  ExplicitPartitioning	  off
   BlockDefaults {
     ForegroundColor	    "black"
     BackgroundColor	    "white"
@@ -647,14 +714,35 @@ Model {
     FontWeight		    "normal"
     FontAngle		    "normal"
   }
+  MaskDefaults {
+    SelfModifiable	    "off"
+    IconFrame		    "on"
+    IconOpaque		    "on"
+    RunInitForIconRedraw    "off"
+    IconRotate		    "none"
+    PortRotate		    "default"
+    IconUnits		    "autoscale"
+  }
+  MaskParameterDefaults {
+    Evaluate		    "on"
+    Tunable		    "on"
+    NeverSave		    "off"
+    Internal		    "off"
+    ReadOnly		    "off"
+    Enabled		    "on"
+    Visible		    "on"
+    ToolTip		    "on"
+  }
   BlockParameterDefaults {
     Block {
       BlockType		      Clock
       DisplayTime	      off
+      Decimation	      "10"
     }
     Block {
       BlockType		      Concatenate
       NumInputs		      "2"
+      Mode		      "Vector"
       ConcatenateDimension    "1"
     }
     Block {
@@ -713,6 +801,7 @@ Model {
     }
     Block {
       BlockType		      From
+      GotoTag		      "A"
       IconDisplay	      "Tag"
       TagVisibility	      "local"
     }
@@ -734,6 +823,7 @@ Model {
     Block {
       BlockType		      Goto
       IconDisplay	      "Tag"
+      TagVisibility	      "local"
     }
     Block {
       BlockType		      Inport
@@ -798,6 +888,7 @@ Model {
       YMax		      "5"
       SaveToWorkspace	      off
       SaveName		      "ScopeData"
+      DataFormat	      "Array"
       LimitDataPoints	      on
       MaxDataPoints	      "5000"
       Decimation	      "1"
@@ -830,6 +921,7 @@ Model {
       DataTypeOverride	      "UseLocalSettings"
       DataTypeOverrideAppliesTo	"AllNumericTypes"
       MinMaxOverflowLogging   "UseLocalSettings"
+      SFBlockType	      "NONE"
       Variant		      off
       GeneratePreprocessorConditionals off
     }
@@ -867,7 +959,7 @@ Model {
   }
   System {
     Name		    "monitor"
-    Location		    [1130, 359, 1384, 522]
+    Location		    [0, 0, 1440, 900]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -897,24 +989,41 @@ Model {
       Opaque		      off
       RequestExecContextInheritance off
       MaskHideContents	      off
-      MaskPromptString	      "robot name|Ts|module name"
-      MaskStyleString	      "edit,edit,edit"
-      MaskVariables	      "robotName=@1;Ts=@2;localName=@3;"
-      MaskTunableValueString  "on,on,on"
-      MaskCallbackString      "||"
-      MaskEnableString	      "on,on,on"
-      MaskVisibilityString    "on,on,on"
-      MaskToolTipString	      "on,on,on"
-      MaskIconFrame	      on
-      MaskIconOpaque	      on
-      MaskIconRotate	      "none"
-      MaskPortRotate	      "default"
-      MaskIconUnits	      "autoscale"
-      MaskValueString	      "'icub'|0.01|'dynamicBalancing'"
+      Object {
+	$PropName		"MaskObject"
+	$ObjectID		19
+	$ClassName		"Simulink.Mask"
+	Array {
+	  Type			  "Simulink.MaskParameter"
+	  Dimension		  3
+	  Object {
+	    $ObjectID		    20
+	    Type		    "edit"
+	    Name		    "robotName"
+	    Prompt		    "robot name"
+	    Value		    "'icub'"
+	  }
+	  Object {
+	    $ObjectID		    21
+	    Type		    "edit"
+	    Name		    "Ts"
+	    Prompt		    "Ts"
+	    Value		    "0.01"
+	  }
+	  Object {
+	    $ObjectID		    22
+	    Type		    "edit"
+	    Name		    "localName"
+	    Prompt		    "module name"
+	    Value		    "'dynamicBalancing'"
+	  }
+	  PropName		  "Parameters"
+	}
+      }
       System {
 	Name			"Subsystem"
-	Location		[187, 237, 1467, 954]
-	Open			on
+	Location		[153, 118, 1481, 1035]
+	Open			off
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -942,6 +1051,7 @@ Model {
 	  SID			  "680"
 	  Ports			  [2, 1]
 	  Position		  [590, 292, 620, 323]
+	  ZOrder		  -2
 	  Inputs		  "+-"
 	  InputSameDT		  off
 	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
@@ -1028,6 +1138,7 @@ Model {
 	  SID			  "743"
 	  Ports			  [1]
 	  Position		  [1150, 389, 1245, 571]
+	  ZOrder		  -41
 	  Decimation		  "1"
 	  Lockdown		  off
 	}
@@ -1037,6 +1148,7 @@ Model {
 	  SID			  "744"
 	  Ports			  [1]
 	  Position		  [1030, 389, 1120, 571]
+	  ZOrder		  -42
 	  Decimation		  "1"
 	  Lockdown		  off
 	}
@@ -1045,6 +1157,7 @@ Model {
 	  Name			  "From"
 	  SID			  "677"
 	  Position		  [475, 301, 515, 329]
+	  ZOrder		  -43
 	  GotoTag		  "fd"
 	}
 	Block {
@@ -1052,6 +1165,7 @@ Model {
 	  Name			  "From2"
 	  SID			  "716"
 	  Position		  [475, 141, 540, 169]
+	  ZOrder		  -44
 	  ShowName		  off
 	  GotoTag		  "fr"
 	}
@@ -1060,6 +1174,7 @@ Model {
 	  Name			  "From3"
 	  SID			  "723"
 	  Position		  [470, 406, 535, 434]
+	  ZOrder		  -45
 	  ShowName		  off
 	  GotoTag		  "fr"
 	}
@@ -1068,6 +1183,7 @@ Model {
 	  Name			  "From4"
 	  SID			  "724"
 	  Position		  [470, 456, 535, 484]
+	  ZOrder		  -46
 	  ShowName		  off
 	  GotoTag		  "fl"
 	}
@@ -1076,6 +1192,7 @@ Model {
 	  Name			  "Gain"
 	  SID			  "736"
 	  Position		  [180, 141, 240, 169]
+	  ZOrder		  -47
 	  Gain			  "Rf"
 	  Multiplication	  "Matrix(K*u)"
 	  ParamDataTypeStr	  "Inherit: Inherit via internal rule"
@@ -1087,6 +1204,7 @@ Model {
 	  Name			  "Gain1"
 	  SID			  "737"
 	  Position		  [180, 211, 240, 239]
+	  ZOrder		  -48
 	  Gain			  "Rf"
 	  Multiplication	  "Matrix(K*u)"
 	  ParamDataTypeStr	  "Inherit: Inherit via internal rule"
@@ -1101,7 +1219,6 @@ Model {
 	  ZOrder		  -45
 	  ShowName		  off
 	  GotoTag		  "fd"
-	  TagVisibility		  "local"
 	}
 	Block {
 	  BlockType		  Goto
@@ -1110,7 +1227,6 @@ Model {
 	  Position		  [330, 140, 410, 170]
 	  ZOrder		  -44
 	  GotoTag		  "fr"
-	  TagVisibility		  "local"
 	}
 	Block {
 	  BlockType		  Goto
@@ -1119,7 +1235,6 @@ Model {
 	  Position		  [330, 210, 410, 240]
 	  ZOrder		  -44
 	  GotoTag		  "fl"
-	  TagVisibility		  "local"
 	}
 	Block {
 	  BlockType		  Reference
@@ -1133,15 +1248,6 @@ Model {
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/wholeBodyStates/Joint Angles"
 	  SourceType		  ""
-	  ShowPortLabels	  "FromPortIcon"
-	  SystemSampleTime	  "-1"
-	  FunctionWithSeparateData off
-	  RTWMemSecFuncInitTerm	  "Inherit from model"
-	  RTWMemSecFuncExecute	  "Inherit from model"
-	  RTWMemSecDataConstants  "Inherit from model"
-	  RTWMemSecDataInternal	  "Inherit from model"
-	  RTWMemSecDataParameters "Inherit from model"
-	  GeneratePreprocessorConditionals off
 	  robotName		  "robotName"
 	  localName		  "localName"
 	}
@@ -1151,19 +1257,11 @@ Model {
 	  SID			  "739"
 	  Ports			  [0, 1]
 	  Position		  [615, 623, 685, 667]
+	  ZOrder		  -53
 	  BackgroundColor	  "[1.000000, 0.634000, 0.268000]"
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/wholeBodyStates/Joint Torques"
 	  SourceType		  "Get Joint Torques"
-	  ShowPortLabels	  "FromPortIcon"
-	  SystemSampleTime	  "-1"
-	  FunctionWithSeparateData off
-	  RTWMemSecFuncInitTerm	  "Inherit from model"
-	  RTWMemSecFuncExecute	  "Inherit from model"
-	  RTWMemSecDataConstants  "Inherit from model"
-	  RTWMemSecDataInternal	  "Inherit from model"
-	  RTWMemSecDataParameters "Inherit from model"
-	  GeneratePreprocessorConditionals off
 	  robotName		  "robotName"
 	  localName		  "localName"
 	}
@@ -1179,15 +1277,6 @@ Model {
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/wholeBodyStates/Joint Velocities"
 	  SourceType		  ""
-	  ShowPortLabels	  "FromPortIcon"
-	  SystemSampleTime	  "-1"
-	  FunctionWithSeparateData off
-	  RTWMemSecFuncInitTerm	  "Inherit from model"
-	  RTWMemSecFuncExecute	  "Inherit from model"
-	  RTWMemSecDataConstants  "Inherit from model"
-	  RTWMemSecDataInternal	  "Inherit from model"
-	  RTWMemSecDataParameters "Inherit from model"
-	  GeneratePreprocessorConditionals off
 	  robotName		  "robotName"
 	  localName		  "localName"
 	}
@@ -1197,6 +1286,7 @@ Model {
 	  SID			  "706"
 	  Ports			  [0, 1]
 	  Position		  [70, 203, 130, 247]
+	  ZOrder		  -55
 	  BackgroundColor	  "darkGreen"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -1207,7 +1297,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "Left foot FT"
-	    Location		    [525, 482, 755, 604]
+	    Location		    [491, 363, 769, 720]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -1226,6 +1316,7 @@ Model {
 	      SID		      "707"
 	      Ports		      [6, 1]
 	      Position		      [140, 26, 150, 94]
+	      ZOrder		      -1
 	      ShowName		      off
 	      Inputs		      "6"
 	      DisplayOption	      "bar"
@@ -1250,6 +1341,7 @@ Model {
 	      Name		      "FT  left"
 	      SID		      "709"
 	      Position		      [175, 53, 205, 67]
+	      ZOrder		      -6
 	      IconDisplay	      "Port number"
 	    }
 	    Line {
@@ -1302,6 +1394,7 @@ Model {
 	  SID			  "710"
 	  Ports			  [0, 1]
 	  Position		  [70, 133, 130, 177]
+	  ZOrder		  -56
 	  BackgroundColor	  "orange"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -1312,7 +1405,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "Right foot FT"
-	    Location		    [525, 482, 755, 604]
+	    Location		    [491, 363, 769, 720]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -1331,6 +1424,7 @@ Model {
 	      SID		      "711"
 	      Ports		      [6, 1]
 	      Position		      [140, 26, 150, 94]
+	      ZOrder		      -1
 	      ShowName		      off
 	      Inputs		      "6"
 	      DisplayOption	      "bar"
@@ -1355,6 +1449,7 @@ Model {
 	      Name		      "FT right"
 	      SID		      "713"
 	      Position		      [175, 53, 205, 67]
+	      ZOrder		      -6
 	      IconDisplay	      "Port number"
 	    }
 	    Line {
@@ -1407,6 +1502,7 @@ Model {
 	  SID			  "679"
 	  Ports			  [2]
 	  Position		  [785, 293, 840, 362]
+	  ZOrder		  -57
 	  Floating		  off
 	  Location		  [6, 71, 631, 776]
 	  Open			  off
@@ -1416,6 +1512,7 @@ Model {
 	    axes1		    "%<SignalLabel>"
 	    axes2		    "%<SignalLabel>"
 	  }
+	  ShowLegends		  off
 	  TimeRange		  "1200"
 	  YMin			  "-9.5~-5"
 	  YMax			  "2~1.5"
@@ -1432,7 +1529,7 @@ Model {
 	  Position		  [455, 559, 515, 651]
 	  ZOrder		  -57
 	  Floating		  off
-	  Location		  [6, 71, 595, 799]
+	  Location		  [2, 63, 591, 791]
 	  Open			  off
 	  NumInputPorts		  "5"
 	  List {
@@ -1443,6 +1540,17 @@ Model {
 	    axes4		    "%<SignalLabel>"
 	    axes5		    "%<SignalLabel>"
 	  }
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.5 0.5 0.5]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
+	  }
+	  ShowLegends		  off
 	  TimeRange		  "2000"
 	  YMin			  "-0.45~-0.3~-0.2~-0.4~-0.5"
 	  YMax			  "2.77556e-17~0.5~0.25~0.4~0.2"
@@ -1458,6 +1566,7 @@ Model {
 	  SID			  "720"
 	  Ports			  [2]
 	  Position		  [775, 423, 830, 492]
+	  ZOrder		  -59
 	  Floating		  off
 	  Location		  [534, 71, 1159, 776]
 	  Open			  off
@@ -1467,6 +1576,7 @@ Model {
 	    axes1		    "%<SignalLabel>"
 	    axes2		    "%<SignalLabel>"
 	  }
+	  ShowLegends		  off
 	  TimeRange		  "1200"
 	  YMin			  "-10~-2.75"
 	  YMax			  "120~0.25"
@@ -1482,6 +1592,7 @@ Model {
 	  SID			  "729"
 	  Ports			  [2]
 	  Position		  [195, 34, 245, 96]
+	  ZOrder		  -60
 	  Floating		  off
 	  Location		  [6, 71, 631, 776]
 	  Open			  off
@@ -1491,6 +1602,7 @@ Model {
 	    axes1		    "%<SignalLabel>"
 	    axes2		    "%<SignalLabel>"
 	  }
+	  ShowLegends		  off
 	  TimeRange		  "1200"
 	  YMin			  "-14~-5"
 	  YMax			  "6~5"
@@ -1506,6 +1618,7 @@ Model {
 	  SID			  "681"
 	  Ports			  [1, 1]
 	  Position		  [655, 291, 695, 329]
+	  ZOrder		  -61
 	  InputPortWidth	  "6"
 	  IndexOptions		  "Index vector (dialog)"
 	  Indices		  "[1:3]"
@@ -1517,6 +1630,7 @@ Model {
 	  SID			  "682"
 	  Ports			  [1, 1]
 	  Position		  [715, 326, 755, 364]
+	  ZOrder		  -62
 	  InputPortWidth	  "6"
 	  IndexOptions		  "Index vector (dialog)"
 	  Indices		  "[4:6]"
@@ -1528,6 +1642,7 @@ Model {
 	  SID			  "721"
 	  Ports			  [1, 1]
 	  Position		  [645, 421, 685, 459]
+	  ZOrder		  -63
 	  InputPortWidth	  "12"
 	  IndexOptions		  "Index vector (dialog)"
 	  Indices		  "[1:3 7:9]"
@@ -1539,6 +1654,7 @@ Model {
 	  SID			  "722"
 	  Ports			  [1, 1]
 	  Position		  [705, 456, 745, 494]
+	  ZOrder		  -64
 	  InputPortWidth	  "12"
 	  IndexOptions		  "Index vector (dialog)"
 	  Indices		  "[4:6 10:12]"
@@ -1550,6 +1666,7 @@ Model {
 	  SID			  "731"
 	  Ports			  [1, 1]
 	  Position		  [760, 66, 800, 104]
+	  ZOrder		  -65
 	  InputPortWidth	  "6"
 	  IndexOptions		  "Index vector (dialog)"
 	  Indices		  "[1:3]"
@@ -1561,6 +1678,7 @@ Model {
 	  SID			  "732"
 	  Ports			  [1, 1]
 	  Position		  [820, 101, 860, 139]
+	  ZOrder		  -66
 	  InputPortWidth	  "6"
 	  IndexOptions		  "Index vector (dialog)"
 	  Indices		  "[4:6]"
@@ -1572,6 +1690,7 @@ Model {
 	  SID			  "733"
 	  Ports			  [1, 1]
 	  Position		  [645, 541, 685, 579]
+	  ZOrder		  -67
 	  InputPortWidth	  "6"
 	  IndexOptions		  "Index vector (dialog)"
 	  Indices		  "[1:3]"
@@ -1583,6 +1702,7 @@ Model {
 	  SID			  "734"
 	  Ports			  [1, 1]
 	  Position		  [705, 576, 745, 614]
+	  ZOrder		  -68
 	  InputPortWidth	  "6"
 	  IndexOptions		  "Index vector (dialog)"
 	  Indices		  "[4:6]"
@@ -1600,15 +1720,6 @@ Model {
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/Utilities/WBI to yarp"
 	  SourceType		  "WBI to YARP"
-	  ShowPortLabels	  "FromPortIcon"
-	  SystemSampleTime	  "-1"
-	  FunctionWithSeparateData off
-	  RTWMemSecFuncInitTerm	  "Inherit from model"
-	  RTWMemSecFuncExecute	  "Inherit from model"
-	  RTWMemSecDataConstants  "Inherit from model"
-	  RTWMemSecDataInternal	  "Inherit from model"
-	  RTWMemSecDataParameters "Inherit from model"
-	  GeneratePreprocessorConditionals off
 	}
 	Block {
 	  BlockType		  Reference
@@ -1622,15 +1733,6 @@ Model {
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/Utilities/WBI to yarp"
 	  SourceType		  "WBI to YARP"
-	  ShowPortLabels	  "FromPortIcon"
-	  SystemSampleTime	  "-1"
-	  FunctionWithSeparateData off
-	  RTWMemSecFuncInitTerm	  "Inherit from model"
-	  RTWMemSecFuncExecute	  "Inherit from model"
-	  RTWMemSecDataConstants  "Inherit from model"
-	  RTWMemSecDataInternal	  "Inherit from model"
-	  RTWMemSecDataParameters "Inherit from model"
-	  GeneratePreprocessorConditionals off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -1648,7 +1750,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "computeStar_pst"
-	    Location		    [269, 170, 991, 736]
+	    Location		    [235, 51, 1005, 852]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -1737,7 +1839,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "dqb + dqj"
-	    Location		    [487, 476, 1092, 1072]
+	    Location		    [453, 357, 1106, 1188]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -1769,15 +1871,6 @@ Model {
 	      LibraryVersion	      "1.33"
 	      SourceBlock	      "WBCLibrary/wholeBodyModel/Jacobians/Left Foot Jacobian"
 	      SourceType	      ""
-	      ShowPortLabels	      "FromPortIcon"
-	      SystemSampleTime	      "-1"
-	      FunctionWithSeparateData off
-	      RTWMemSecFuncInitTerm   "Inherit from model"
-	      RTWMemSecFuncExecute    "Inherit from model"
-	      RTWMemSecDataConstants  "Inherit from model"
-	      RTWMemSecDataInternal   "Inherit from model"
-	      RTWMemSecDataParameters "Inherit from model"
-	      GeneratePreprocessorConditionals off
 	      robotName		      "robotName"
 	      localName		      "localName"
 	    }
@@ -1803,15 +1896,6 @@ Model {
 	      LibraryVersion	      "1.33"
 	      SourceBlock	      "WBCLibrary/wholeBodyModel/Jacobians/Right Foot Jacobian"
 	      SourceType	      ""
-	      ShowPortLabels	      "FromPortIcon"
-	      SystemSampleTime	      "-1"
-	      FunctionWithSeparateData off
-	      RTWMemSecFuncInitTerm   "Inherit from model"
-	      RTWMemSecFuncExecute    "Inherit from model"
-	      RTWMemSecDataConstants  "Inherit from model"
-	      RTWMemSecDataInternal   "Inherit from model"
-	      RTWMemSecDataParameters "Inherit from model"
-	      GeneratePreprocessorConditionals off
 	      robotName		      "robotName"
 	      localName		      "localName"
 	    }
@@ -1826,15 +1910,6 @@ Model {
 	      LibraryVersion	      "1.33"
 	      SourceBlock	      "WBCLibrary/Utilities/baseVelocity"
 	      SourceType	      "baseVelocity"
-	      ShowPortLabels	      "FromPortIcon"
-	      SystemSampleTime	      "-1"
-	      FunctionWithSeparateData off
-	      RTWMemSecFuncInitTerm   "Inherit from model"
-	      RTWMemSecFuncExecute    "Inherit from model"
-	      RTWMemSecDataConstants  "Inherit from model"
-	      RTWMemSecDataInternal   "Inherit from model"
-	      RTWMemSecDataParameters "Inherit from model"
-	      GeneratePreprocessorConditionals off
 	    }
 	    Block {
 	      BlockType		      Outport
@@ -1893,6 +1968,7 @@ Model {
 	  SID			  "735"
 	  Ports			  [2]
 	  Position		  [775, 543, 830, 612]
+	  ZOrder		  -73
 	  Floating		  off
 	  Location		  [6, 71, 631, 776]
 	  Open			  off
@@ -1902,6 +1978,7 @@ Model {
 	    axes1		    "%<SignalLabel>"
 	    axes2		    "%<SignalLabel>"
 	  }
+	  ShowLegends		  off
 	  TimeRange		  "1800"
 	  YMin			  "-30~-2.25"
 	  YMax			  "170~3.5"
@@ -1917,8 +1994,9 @@ Model {
 	  SID			  "730"
 	  Ports			  [2]
 	  Position		  [890, 68, 945, 137]
+	  ZOrder		  -74
 	  Floating		  off
-	  Location		  [606, 71, 1231, 776]
+	  Location		  [597, 63, 1222, 768]
 	  Open			  off
 	  NumInputPorts		  "2"
 	  List {
@@ -1926,6 +2004,17 @@ Model {
 	    axes1		    "%<SignalLabel>"
 	    axes2		    "%<SignalLabel>"
 	  }
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.5 0.5 0.5]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
+	  }
+	  ShowLegends		  off
 	  TimeRange		  "1800"
 	  YMin			  "-50~-16"
 	  YMax			  "170~3"
@@ -1952,7 +2041,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "holder"
-	    Location		    [1531, 45, 3106, 1781]
+	    Location		    [1497, 45, 3120, 2016]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -1979,7 +2068,6 @@ Model {
 	      SID		      "307"
 	      Position		      [165, 45, 185, 65]
 	      ZOrder		      -2
-	      Decimation	      "10"
 	    }
 	    Block {
 	      BlockType		      Reference
@@ -1988,21 +2076,12 @@ Model {
 	      Ports		      [1, 1]
 	      Position		      [210, 40, 240, 70]
 	      ZOrder		      -3
-	      LibraryVersion	      "1.236"
+	      LibraryVersion	      "1.281"
 	      SourceBlock	      "simulink/Logic and Bit\nOperations/Compare\nTo Constant"
 	      SourceType	      "Compare To Constant"
-	      ShowPortLabels	      "FromPortIcon"
-	      SystemSampleTime	      "-1"
-	      FunctionWithSeparateData off
-	      RTWMemSecFuncInitTerm   "Inherit from model"
-	      RTWMemSecFuncExecute    "Inherit from model"
-	      RTWMemSecDataConstants  "Inherit from model"
-	      RTWMemSecDataInternal   "Inherit from model"
-	      RTWMemSecDataParameters "Inherit from model"
-	      GeneratePreprocessorConditionals off
 	      relop		      "=="
 	      const		      "0"
-	      LogicOutDataTypeMode    "boolean"
+	      OutDataTypeStr	      "boolean"
 	      ZeroCross		      on
 	    }
 	    Block {
@@ -2019,18 +2098,9 @@ Model {
 	      Ports		      [1, 1, 0, 1]
 	      Position		      [230, 114, 305, 156]
 	      ZOrder		      -5
-	      LibraryVersion	      "1.716"
+	      LibraryVersion	      "1.726"
 	      SourceBlock	      "dspsigops/Sample\nand Hold"
 	      SourceType	      "Sample and Hold"
-	      ShowPortLabels	      "FromPortIcon"
-	      SystemSampleTime	      "-1"
-	      FunctionWithSeparateData off
-	      RTWMemSecFuncInitTerm   "Inherit from model"
-	      RTWMemSecFuncExecute    "Inherit from model"
-	      RTWMemSecDataConstants  "Inherit from model"
-	      RTWMemSecDataInternal   "Inherit from model"
-	      RTWMemSecDataParameters "Inherit from model"
-	      GeneratePreprocessorConditionals off
 	      trig		      "Falling edge"
 	      initCond		      "0"
 	      latchinput	      off
@@ -2124,7 +2194,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "holder1"
-	    Location		    [1531, 45, 3106, 1781]
+	    Location		    [1497, 45, 3120, 2016]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -2151,7 +2221,6 @@ Model {
 	      SID		      "654"
 	      Position		      [165, 45, 185, 65]
 	      ZOrder		      -2
-	      Decimation	      "10"
 	    }
 	    Block {
 	      BlockType		      Reference
@@ -2160,21 +2229,12 @@ Model {
 	      Ports		      [1, 1]
 	      Position		      [210, 40, 240, 70]
 	      ZOrder		      -3
-	      LibraryVersion	      "1.236"
+	      LibraryVersion	      "1.281"
 	      SourceBlock	      "simulink/Logic and Bit\nOperations/Compare\nTo Constant"
 	      SourceType	      "Compare To Constant"
-	      ShowPortLabels	      "FromPortIcon"
-	      SystemSampleTime	      "-1"
-	      FunctionWithSeparateData off
-	      RTWMemSecFuncInitTerm   "Inherit from model"
-	      RTWMemSecFuncExecute    "Inherit from model"
-	      RTWMemSecDataConstants  "Inherit from model"
-	      RTWMemSecDataInternal   "Inherit from model"
-	      RTWMemSecDataParameters "Inherit from model"
-	      GeneratePreprocessorConditionals off
 	      relop		      "=="
 	      const		      "0"
-	      LogicOutDataTypeMode    "boolean"
+	      OutDataTypeStr	      "boolean"
 	      ZeroCross		      on
 	    }
 	    Block {
@@ -2191,18 +2251,9 @@ Model {
 	      Ports		      [1, 1, 0, 1]
 	      Position		      [230, 114, 305, 156]
 	      ZOrder		      -5
-	      LibraryVersion	      "1.716"
+	      LibraryVersion	      "1.726"
 	      SourceBlock	      "dspsigops/Sample\nand Hold"
 	      SourceType	      "Sample and Hold"
-	      ShowPortLabels	      "FromPortIcon"
-	      SystemSampleTime	      "-1"
-	      FunctionWithSeparateData off
-	      RTWMemSecFuncInitTerm   "Inherit from model"
-	      RTWMemSecFuncExecute    "Inherit from model"
-	      RTWMemSecDataConstants  "Inherit from model"
-	      RTWMemSecDataInternal   "Inherit from model"
-	      RTWMemSecDataParameters "Inherit from model"
-	      GeneratePreprocessorConditionals off
 	      trig		      "Falling edge"
 	      initCond		      "0"
 	      latchinput	      off
@@ -2381,7 +2432,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "qb + qj"
-	    Location		    [276, 463, 552, 1059]
+	    Location		    [242, 344, 566, 1175]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -2475,8 +2526,8 @@ Model {
 	  Position		  [1030, 599, 1090, 691]
 	  ZOrder		  -57
 	  Floating		  off
-	  Location		  [6, 71, 595, 799]
-	  Open			  on
+	  Location		  [2, 63, 591, 791]
+	  Open			  off
 	  NumInputPorts		  "5"
 	  ZoomMode		  "yonly"
 	  List {
@@ -2487,6 +2538,17 @@ Model {
 	    axes4		    "%<SignalLabel>"
 	    axes5		    "%<SignalLabel>"
 	  }
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.5 0.5 0.5]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
+	  }
+	  ShowLegends		  off
 	  TimeRange		  "2000"
 	  YMin			  "-12.5~-1.5~-1.5~-8~-6"
 	  YMax			  "2.5~1.5~1.5~6~8"
@@ -2843,10 +2905,9 @@ Model {
 }
 # Finite State Machines
 #
-#    Stateflow Version 7.5 (R2010a) dated Mar  4 2011, 20:02:43
+#    Stateflow Version 7.6 (R2012b) dated Jul 26 2012, 17:33:50
 #
 #
-
 
 Stateflow {
   machine {
@@ -2855,9 +2916,7 @@ Stateflow {
     created		    "18-Feb-2014 10:14:40"
     isLibrary		    0
     firstTarget		    2
-    debug {
-    }
-    sfVersion		    75014001
+    sfVersion		    76014001.001
   }
   target {
     id			    2
