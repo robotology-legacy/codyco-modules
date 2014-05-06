@@ -25,7 +25,7 @@ service wholeBodyDynamics_IDLServer
   * @param nr_of_samples number of samples
   * @return true/false on success/failure
   */
-  bool calibOnDoubleSupport(1:string calib_code, 2:i32 nr_of_samples=100)
+  bool calibStanding(1:string calib_code, 2:i32 nr_of_samples=100)
 
   /**
   * Reset the sensor offset to 0 0 0 0 0 0 (six zeros).
