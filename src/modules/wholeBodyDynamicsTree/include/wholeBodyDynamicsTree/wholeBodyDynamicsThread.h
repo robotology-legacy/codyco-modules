@@ -79,7 +79,7 @@ class wholeBodyDynamicsThread: public RateThread
     int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     double              PRINT_PERIOD;
 
-    enum { NORMAL, CALIBRATING } wbd_mode;     /// < Mode of operation of the thread: normal operation or calibration
+    enum { NORMAL, CALIBRATING, CALIBRATING_ON_DOUBLE_SUPPORT } wbd_mode;     /// < Mode of operation of the thread: normal operation or calibration
 
     //output ports
     ///< \todo TODO add a proper structure for output ports, by dividing them for body parts or sensors
@@ -137,6 +137,8 @@ class wholeBodyDynamicsThread: public RateThread
     wbi::LocalId convertFTiDynTreeToFTwbi(int ft_sensor_id);
     void normal_run();
     void calibration_run();
+    void calibration_on_double_support_run();
+
 
     //Buffer vectors
     yarp::sig::Vector all_torques;
@@ -222,6 +224,7 @@ public:
 
     bool threadInit();
     bool calibrateOffset(const std::string calib_code, const int nr_of_samples );
+    bool calibrateOffsetOnDoubleSupport(const std::string calib_code, const int nr_of_samples );
     bool resetOffset(const std::string calib_code);
 
     /**

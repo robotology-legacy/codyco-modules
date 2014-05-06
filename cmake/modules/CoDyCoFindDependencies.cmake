@@ -21,8 +21,8 @@ if(NOT orocos_kdl_FOUND)
    endif(NOT Orocos-KDL_FOUND)
 endif(NOT orocos_kdl_FOUND)
 
-#### Find kdl_codyco, require that kdl_codyco version 
-find_package(kdl_codyco 0.0.3 REQUIRED)
+#### Find kdl_codyco, require that kdl_codyco version
+find_package(kdl_codyco 0.1.1 REQUIRED)
 
 
 if(CODYCO_USES_URDFDOM)

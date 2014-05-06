@@ -1018,7 +1018,7 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     //mutex.post();
 
     YARP_ASSERT(icub_model->kinematicRNEA());
-    YARP_ASSERT(icub_model->estimateContactForces());
+    YARP_ASSERT(icub_model->estimateContactForcesFromSkin());
     YARP_ASSERT(icub_model->dynamicRNEA());
     YARP_ASSERT(icub_model->computePositions());
 
