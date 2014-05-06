@@ -294,7 +294,7 @@ bool wholeBodyDynamicsModule::calib(const std::string& calib_code, const int32_t
 }
 
 ////////////////// RPC METHODS /////////////////////////////////////////
-bool wholeBodyDynamicsModule::calibOnDoubleSupport(const std::string& calib_code,
+bool wholeBodyDynamicsModule::calibStanding(const std::string& calib_code,
                                                    const int32_t nr_of_samples)
 {
     if(wbdThread)

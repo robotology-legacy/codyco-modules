@@ -380,7 +380,23 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport(const std::string c
         return false;
     }
 
-    if ( calib_code == "legs" )
+
+    if( calib_code == "all" ) {
+        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
+        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
+        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
+        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
+        if( icub_version.feet_ft ) {
+            calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
+            calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
+        }
+    }
+    else if ( calib_code == "arms" )
+    {
+        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
+        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
+    }
+    else if ( calib_code == "legs" )
     {
         calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
         calibrate_ft_sensor[r_leg_ft_sensor_id] = true;

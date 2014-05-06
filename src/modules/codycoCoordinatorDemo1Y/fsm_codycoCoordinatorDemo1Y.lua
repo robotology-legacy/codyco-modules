@@ -3,14 +3,14 @@ return rfsm.state {
     -------------------------------------------------------------------
     -- state DOUBLESUPPORT_STABLE                                --
     -- This is the S_1 state from deliverable D5.1                   --
-    -- In this state the robot is balancing on its two feet.          -- 
+    -- In this state the robot is balancing on its two feet.          --
     -------------------------------------------------------------------
     ST_DOUBLESUPPORT_STABLE = rfsm.state{
         entry=function()
             print("ST_DOUBLESUPPORT_FEET_STABLE entry.")
         end
     },
-    
+
     -----------------------------------------------------------------------------
     -- state DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT                                     --
     -- This is the S_2 state from deliverable D5.1                             --
@@ -58,7 +58,7 @@ return rfsm.state {
             print("ST_QUADRUPLESUPPORT_STABLE entry.")
         end
     },
-    
+
     ----------------------------------
     -- setting the transitions      --
     ----------------------------------
@@ -76,6 +76,6 @@ return rfsm.state {
     rfsm.transition { src='ST_QUADRUPLESUPPORT_STABLE', tgt='ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT', events={ 'e_no_contacts_on_hands' } },
     rfsm.transition { src='ST_QUADRUPLESUPPORT_STABLE', tgt='ST_TRIPLESUPPORT_RIGHT_HAND_SEEKING_CONTACT', events={ 'e_contacts_only_on_left_hand' } },
     rfsm.transition { src='ST_QUADRUPLESUPPORT_STABLE', tgt='ST_TRIPLESUPPORT_LEFT_HAND_SEEKING_CONTACT', events={ 'e_contacts_only_on_right_hand' } },
-    
+
 }
 
