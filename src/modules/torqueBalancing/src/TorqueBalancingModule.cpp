@@ -50,7 +50,6 @@ namespace codyco {
         , m_robot(0)
         , m_controller(0)
         , m_references(0)
-        , m_parameterServer(0)
         , m_rpcPort(0)
         , m_paramHelperManager(0) {}
         
@@ -59,32 +58,12 @@ namespace codyco {
         bool TorqueBalancingModule::configure(yarp::os::ResourceFinder& rf)
         {
             //PARAMETERS SECTION
-            //Creating parameter server
-            m_parameterServer = new paramHelp::ParamHelperServer(TorqueBalancingModuleParameterDescriptions,
-                                                                 TorqueBalancingModuleParameterSize,
-                                                                 TorqueBalancingModuleCommandDescriptions,
-                                                                 TorqueBalancingModuleCommandSize);
-            if (!m_parameterServer) {
+            //Creating parameter server helper
+            //link controller and references variables to param helper manager
+            m_paramHelperManager = new ParamHelperManager(*this);
+            if (!m_paramHelperManager || !m_paramHelperManager->init(rf)) {
                 return false;
             }
-            
-            bool linkedVariable = true;
-            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterModuleName, &m_moduleName);
-            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterRobotName, &m_robotName);
-            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterControllerPeriod, &m_controllerThreadPeriod);
-            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterURDFFilePath, &m_urdfFilePath);
-            
-            if (!linkedVariable) {
-                return false;
-            }
-            
-            yarp::os::Bottle replyBottle;
-            m_parameterServer->initializeParams(rf, replyBottle);
-            
-            if (!m_parameterServer->init(m_moduleName)) {
-                return false;
-            }
-            
             //END PARAMETER SECTION
             
             m_rpcPort = new yarp::os::Port();
@@ -190,8 +169,7 @@ namespace codyco {
             }
             
             //link controller and references variables to param helper manager
-            m_paramHelperManager = new ParamHelperManager(*this);
-            if (!m_paramHelperManager || !m_paramHelperManager->linkVariables() || !m_paramHelperManager->registerCommandCallbacks()) {
+            if (!m_paramHelperManager->linkVariables() || !m_paramHelperManager->registerCommandCallbacks()) {
                 return false;
             }
             
@@ -236,13 +214,6 @@ namespace codyco {
             if (m_paramHelperManager) {
                 delete m_paramHelperManager;
                 m_paramHelperManager = 0;
-            }
-            
-            //Close parameter server
-            if (m_parameterServer) {
-                m_parameterServer->close();
-                delete m_parameterServer;
-                m_parameterServer = 0;
             }
             
             if (m_rpcPort) {
@@ -296,6 +267,11 @@ namespace codyco {
             std::cerr << FUNCTION_NAME << ": Module new state is " << (m_active ? "on" : "off") << std::endl;
 #endif
             updateModuleCoordinationStatus();
+        }
+        
+        void TorqueBalancingModule::monitorVariables()
+        {
+            m_paramHelperManager->sendMonitoredVariables();
         }
         
         void TorqueBalancingModule::updateModuleCoordinationStatus()
@@ -365,6 +341,8 @@ namespace codyco {
         
         TorqueBalancingModule::ParamHelperManager::ParamHelperManager(TorqueBalancingModule& module)
         : m_module(module)
+        , m_initialized(false)
+        , m_parameterServer(0)
         , m_comReference(3)
         , m_handsPositionReference(14)
         , m_handsForceReference(12)
@@ -382,52 +360,107 @@ namespace codyco {
         , m_handsForceIntegralLimit(std::numeric_limits<double>::max())
         , m_centroidalGain(0) {}
         
-        TorqueBalancingModule::ParamHelperManager::~ParamHelperManager() {}
+        TorqueBalancingModule::ParamHelperManager::~ParamHelperManager()
+        {
+            if (m_parameterServer) {
+                m_parameterServer->close();
+                delete m_parameterServer;
+                m_parameterServer = 0;
+            }
+        }
+        
+        bool TorqueBalancingModule::ParamHelperManager::init(yarp::os::ResourceFinder& resourceFinder)
+        {
+            if (m_initialized) return false;
+            m_parameterServer = new paramHelp::ParamHelperServer(TorqueBalancingModuleParameterDescriptions,
+                                                                 TorqueBalancingModuleParameterSize,
+                                                                 TorqueBalancingModuleCommandDescriptions,
+                                                                 TorqueBalancingModuleCommandSize);
+            if (!m_parameterServer) {
+                return false;
+            }
+            
+            bool linkedVariable = true;
+            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterModuleName, &m_module.m_moduleName);
+            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterRobotName, &m_module.m_robotName);
+            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterControllerPeriod, &m_module.m_controllerThreadPeriod);
+            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterURDFFilePath, &m_module.m_urdfFilePath);
+            
+            if (!linkedVariable) {
+                return false;
+            }
+            
+            yarp::os::Bottle replyBottle;
+            m_parameterServer->initializeParams(resourceFinder, replyBottle);
+            
+            if (!m_parameterServer->init(m_module.m_moduleName)) {
+                return false;
+            }
+            m_initialized = true;
+            return true;
+        }
         
         bool TorqueBalancingModule::ParamHelperManager::linkVariables()
         {
+            if (!m_initialized) return false;
             bool linked = true;
             
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCurrentState, &m_module.m_moduleState);
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterModulePeriod, &m_module.m_modulePeriod);
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCurrentState, &m_module.m_moduleState);
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterModulePeriod, &m_module.m_modulePeriod);
             //References
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMReference, m_comReference.data());
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionReference, m_handsPositionReference.data());
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceReference, m_handsForceReference.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMReference, m_comReference.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionReference, m_handsPositionReference.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceReference, m_handsForceReference.data());
             //COM
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMProportionalGain, m_comProportionalGain.data());
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMDerivativeGain, m_comDerivativeGain.data());
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMIntegralGain, m_comIntegralGain.data());
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMIntegralLimit, &m_comIntegralLimit);
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMProportionalGain, m_comProportionalGain.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMDerivativeGain, m_comDerivativeGain.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMIntegralGain, m_comIntegralGain.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMIntegralLimit, &m_comIntegralLimit);
             //Hands position
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionDerivativeGain, m_handsPositionProportionalGain.data());
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionDerivativeGain, m_handsPositionDerivativeGain.data());
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionIntegralGain, m_handsPositionIntegralGain.data());
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionIntegralLimit, &m_handsPositionIntegralLimit);
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionDerivativeGain, m_handsPositionProportionalGain.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionDerivativeGain, m_handsPositionDerivativeGain.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionIntegralGain, m_handsPositionIntegralGain.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionIntegralLimit, &m_handsPositionIntegralLimit);
             //Hands forces
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceProportionalGain, m_handsForceProportionalGain.data());
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceDerivativeGain, m_handsForceDerivativeGain.data());
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceIntegralGain, m_handsForceIntegralGain.data());
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceIntegralLimit, &m_handsForceIntegralLimit);
-            //Centroidal momentum
-            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCentroidalGain, &m_centroidalGain);
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceProportionalGain, m_handsForceProportionalGain.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceDerivativeGain, m_handsForceDerivativeGain.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceIntegralGain, m_handsForceIntegralGain.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceIntegralLimit, &m_handsForceIntegralLimit);
+            //Centroidal moment
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCentroidalGain, &m_centroidalGain);
+            
+            return linked;
+        }
+        
+        bool TorqueBalancingModule::ParamHelperManager::linkMonitoredVariables()
+        {
+            if (!m_initialized) return false;
+            bool linked = true;
             
             return linked;
         }
         
         bool TorqueBalancingModule::ParamHelperManager::registerCommandCallbacks()
         {
+            if (!m_initialized) return false;
             bool commandRegistered = true;
-            commandRegistered = commandRegistered && m_module.m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandStart, this);
-            commandRegistered = commandRegistered && m_module.m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandStop, this);
-            commandRegistered = commandRegistered && m_module.m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandQuit, this);
-            commandRegistered = commandRegistered && m_module.m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandHelp, this);
+            commandRegistered = commandRegistered && m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandStart, this);
+            commandRegistered = commandRegistered && m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandStop, this);
+            commandRegistered = commandRegistered && m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandQuit, this);
+            commandRegistered = commandRegistered && m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandHelp, this);
             
             return commandRegistered;
         }
         
+        void TorqueBalancingModule::ParamHelperManager::sendMonitoredVariables()
+        {
+            assert(m_parameterServer);
+            
+        }
+        
         void TorqueBalancingModule::ParamHelperManager::parameterUpdated(const paramHelp::ParamProxyInterface *proxyInterface)
         {
+            assert(m_parameterServer);
             std::map<TaskType, ReferenceGenerator*>::iterator foundController;
             switch (proxyInterface->id) {
                 case TorqueBalancingModuleParameterCurrentState:
@@ -577,6 +610,7 @@ namespace codyco {
         
         void TorqueBalancingModule::ParamHelperManager::commandReceived(const paramHelp::CommandDescription& commandDescription, const yarp::os::Bottle& params, yarp::os::Bottle& reply)
         {
+            assert(m_parameterServer);
             switch (commandDescription.id) {
                 case TorqueBalancingModuleCommandStart:
                     m_module.setControllersActiveState(true);
@@ -591,7 +625,7 @@ namespace codyco {
                     reply.addString("Quitting module");
                     break;
                 case TorqueBalancingModuleCommandHelp:
-                    m_module.m_parameterServer->getHelpMessage(reply);
+                    m_parameterServer->getHelpMessage(reply);
                     break;
                 default:
                     break;

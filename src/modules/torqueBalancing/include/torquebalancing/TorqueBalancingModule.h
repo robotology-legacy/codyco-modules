@@ -90,6 +90,10 @@ namespace codyco {
              */
             void setControllersActiveState(bool isActive);
             
+            /** Updates and print the variables to be monitored
+             */
+            void monitorVariables();
+            
         private:
             class ParamHelperManager;
             
@@ -112,8 +116,6 @@ namespace codyco {
             std::map<TaskType, ReferenceGeneratorInputReader*> m_generatorReaders;
             std::map<TaskType, ReferenceGenerator*> m_referenceGenerators;
             
-            paramHelp::ParamHelperServer* m_parameterServer;
-            
             yarp::os::Port* m_rpcPort;
             
             ParamHelperManager* m_paramHelperManager;
@@ -125,6 +127,9 @@ namespace codyco {
         paramHelp::CommandObserver {
             
             TorqueBalancingModule& m_module;
+            
+            bool m_initialized;
+            paramHelp::ParamHelperServer* m_parameterServer;
             
             Eigen::VectorXd m_comReference;
             Eigen::VectorXd m_handsPositionReference;
@@ -147,11 +152,17 @@ namespace codyco {
             
             double m_centroidalGain;
             
+            //Monitored variables
+            
         public:
             ParamHelperManager(TorqueBalancingModule& module);
             
+            bool init(yarp::os::ResourceFinder& resourceFinder);
             bool linkVariables();
+            bool linkMonitoredVariables();
             bool registerCommandCallbacks();
+            
+            void sendMonitoredVariables();
                         
             virtual ~ParamHelperManager();
             virtual void parameterUpdated(const paramHelp::ParamProxyInterface *proxyInterface);
