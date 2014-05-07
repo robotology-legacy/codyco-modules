@@ -64,6 +64,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
+                    ${EIGEN3_INCLUDE_DIR} #this should not be needed if we do not explicitly use it in the module
                     ${YARP_INCLUDE_DIRS})
 
 ADD_LIBRARY(${PROJECTNAME} ${folder_source} ${folder_header})

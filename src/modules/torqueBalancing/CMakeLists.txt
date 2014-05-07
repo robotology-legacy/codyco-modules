@@ -35,8 +35,6 @@ set(SOURCES    ${SRC_FOLDER}/TorqueBalancingModule.cpp
 source_group("Source Files" FILES ${SOURCES})
 source_group("Header Files" FILES ${HEADERS})
 
-message("Codyco common: ${codyco_commons_INCLUDE_DIRS}")
-
 include_directories(${HEADERS_FOLDER}
                     ${codyco_commons_INCLUDE_DIRS}
                     ${wholeBodyInterface_INCLUDE_DIRS}
