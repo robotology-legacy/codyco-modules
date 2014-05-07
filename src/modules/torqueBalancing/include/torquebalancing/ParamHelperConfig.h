@@ -65,6 +65,7 @@ namespace codyco {
         
         static const std::string defaultModuleName = "torqueBalancing";
         static const std::string defaultRobotName = "icub";
+        static const int defaultModuleState = 1;
         static const int defaultControllerPeriod = 10; //ms
         static const double defaultModulePeriod = 1.0; //s
         static const double defaultIntegralLimit = std::numeric_limits<double>::max(); //no limit
@@ -83,7 +84,7 @@ namespace codyco {
             new paramHelp::ParamProxyBasic<std::string>("urdfPath", TorqueBalancingModuleParameterURDFFilePath, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, 0, "Path to the URDF model of the robot. If empty string the fallback is the iDyn version with default legs/head version"),
             //RPC parameters
             new paramHelp::ParamProxyBasic<double>("modulePeriod", TorqueBalancingModuleParameterModulePeriod, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultModulePeriod, "Period of the module. Used to update monitored variables."),
-            new paramHelp::ParamProxyBasic<int>("state", TorqueBalancingModuleParameterCurrentState, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_IN_OUT, 0, "State of the module"),
+            new paramHelp::ParamProxyBasic<int>("state", TorqueBalancingModuleParameterCurrentState, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_IN_OUT, &defaultModuleState, "State of the module"),
             new paramHelp::ParamProxyBasic<double>("comRef", TorqueBalancingModuleParameterCOMReference, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "COM reference (x,y,z)"),
             new paramHelp::ParamProxyBasic<double>("handPosRef", TorqueBalancingModuleParameterHandsPositionReference, 14, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Hands position reference, position + angle axis. Left then Right hand"),
             new paramHelp::ParamProxyBasic<double>("handForcesRef", TorqueBalancingModuleParameterHandsForceReference, 12, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Hands forces reference, forces + torques. Left then Right hand"),
