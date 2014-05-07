@@ -24,13 +24,14 @@ namespace codyco {
         
         template <typename Derived1, typename Derived2>
         void dampedPseudoInverse(const Eigen::MatrixBase<Derived1>& A,
-                                                        double dampingFactor,
-                                                        Eigen::MatrixBase<Derived2>& Apinv)
+                                 double dampingFactor,
+                                 Eigen::MatrixBase<Derived2>& Apinv,
+                                 unsigned int computationOptions)
         {
             using namespace Eigen;
             
             int m = A.rows(), n = A.cols(), k = m < n ? m : n;
-            JacobiSVD<typename MatrixBase<Derived1>::PlainObject> svd = A.jacobiSvd(Eigen::ComputeThinU|Eigen::ComputeThinV);
+            JacobiSVD<typename MatrixBase<Derived1>::PlainObject> svd = A.jacobiSvd(computationOptions);
             const typename JacobiSVD<typename Derived1::PlainObject>::SingularValuesType& singularValues = svd.singularValues();
             MatrixXd sigmaDamped = MatrixXd::Zero(k, k);
             
@@ -79,11 +80,12 @@ namespace codyco {
         
         void pseudoInverse(const Eigen::Ref<const Eigen::MatrixXd>& A,
                            double tolerance,
-                           Eigen::Ref<Eigen::MatrixXd> Apinv)
+                           Eigen::Ref<Eigen::MatrixXd> Apinv,
+                           unsigned int computationOptions)
 
         {
             using namespace Eigen;
-            JacobiSVD<typename MatrixXd::PlainObject> svd = A.jacobiSvd(ComputeThinU | ComputeThinV);
+            JacobiSVD<typename MatrixXd::PlainObject> svd = A.jacobiSvd(computationOptions);
             typename JacobiSVD<typename MatrixXd::PlainObject>::SingularValuesType singularValues = svd.singularValues();
             for (int idx = 0; idx < singularValues.size(); idx++) {
                 singularValues(idx) = tolerance > 0 && singularValues(idx) > tolerance ? 1.0 / singularValues(idx) : 0.0;

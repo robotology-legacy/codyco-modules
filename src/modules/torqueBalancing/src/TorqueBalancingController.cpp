@@ -84,7 +84,7 @@ namespace codyco {
             m_centroidalForceMatrix.block<3, 3>(3, 9) = Matrix3d::Identity();
             //gravity
             m_gravityForce.setZero();
-            m_gravityUnitVector[0] = m_gravityUnitVector[1];
+            m_gravityUnitVector[0] = m_gravityUnitVector[1] = 0;
             //TODO: check sign of gravity
             m_gravityUnitVector[2] = -9.81;
             return true;

@@ -126,8 +126,6 @@ namespace codyco {
             Eigen::Matrix<double, 6, 12> m_centroidalForceMatrix;
             Eigen::Matrix<double, 6, 1> m_gravityForce;
 
-//            Eigen::Matrix3d m_3DMatrix;
-
             //Tasks variables
             Eigen::Matrix<double, ACTUATED_DOFS, 1> m_desiredJointAcceleration1;
             Eigen::Matrix<double, ACTUATED_DOFS, 1> m_desiredJointAcceleration2;
