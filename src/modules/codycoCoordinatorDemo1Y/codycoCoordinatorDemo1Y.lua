@@ -2,15 +2,37 @@
 
 require("rfsm")
 require("yarp")
+require("rfsm_timeevent")
 
-yarp.Network()
+print("[codycoCoordinatorDemo1Y] opening yarp")
+yarpNetwork = yarp.Network()
+--yarpNetworkTimeout = 10
+--if( not yarp.checkNetwork(yarpNetworkTimeout) ) then
+--    print("[codycoCoordinatorDemo1Y] yarp server not found, exiting")
+--end
 
 --action_status = 'idle'
 
+-- enabling use rfsm_timeevent with yarp::os::Time::now()
+--   in this way if you use gazebo_yarp_plugins the 
+--   fsm is synchronized with the simulation 
+-- Actually not possible for now because yarp bindings 
+--   do not containg yarp::os::Time::Now() :(
+--   sticking to low-resolution Wall lua time
+function gettime() 
+    return os.time(), 0 
+end
+
+rfsm_timeevent.set_gettime_hook(gettime)
+
+--parameters
+fsm_update_period = 0.1
+fsm_simple_balancing_time = 10.0 
+
 ----events
-event_no_contact = "e_no_contacts_on_hands"
-event_contact_on_left_hand = "e_contacts_only_on_left_hand"
-event_contact_on_right_hand = "e_contacts_only_on_right_hand"
+event_no_contact             = "e_no_contacts_on_hands"
+event_contact_on_left_hand   = "e_contacts_only_on_left_hand"
+event_contact_on_right_hand  = "e_contacts_only_on_right_hand"
 event_contacts_on_both_hands = "e_contacts_on_both_hands"
 
 ----definitions
@@ -20,7 +42,7 @@ bodyPart_right_arm = 4
 
 -------
 function update_skin_events()
-   while true do
+    while true do
         --Use last received skinContactsList
         skin_contacts = event_port:read(false)
         if skin_contacts ~= nil then
@@ -65,25 +87,28 @@ end
 shouldExit = false
 
 -- initilization
+print("[codycoCoordinatorDemo1Y] opening ports")
 cmd_action_rpc = yarp.RpcClient()
 cmd_action_rpc:open("/codycoCoordinator1Y/cmd_action:o")
 
 event_port = yarp.BufferedPortBottle()
 event_port:open("/codycoCoordinator1Y/skin_events:i")
 
+print("[codycoCoordinatorDemo1Y] loading rFSM state machine")
 -- load state machine model and initalize it
-fsm_model = rfsm.load("./fsm_codycoCoordinator1Y.lua")
+fsm_model = rfsm.load("fsm_codycoCoordinatorDemo1Y.lua")
 fsm = rfsm.init(fsm_model)
 
-co_updater = coroutine.create(update_events)
+co_updater = coroutine.create(update_skin_events)
 
+print("[codycoCoordinatorDemo1Y] starting main loop")
 repeat
     coroutine.resume(co_updater)
     rfsm.run(fsm)
-    yarp.Time_delay(0.1)
+    yarp.Time_delay(fsm_update_period)
 until shouldExit ~= false
 
-print("finishing")
+print("[codycoCoordinatorDemo1Y] finishing")
 coroutine.resume(co_updater, true)
 
 event_port:close()

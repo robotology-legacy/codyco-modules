@@ -1,0 +1,46 @@
+<application>
+
+    <!-- Generic information-->
+    <name>codycoDemo1Y</name>
+    <description>First year demo for CoDyCo project</description>
+    <version>0.1</version>
+
+    <authors email="jorhabib.eljaik@iit.it">Jorhabib Eljaik</author>
+    <authors email="daniele.pucci@iit.it">Daniele Pucci</author>
+    <authors email="francesco.romano@iit.it">Francesco Romano</author>
+    <authors email="silvio.traversaro@iit.it">Silvio Traversaro</author>
+    <authors email="francesco.nori@iit.it">Francesco Nori</author>
+
+    <!-- Modules -->
+    <module>
+        <name>codycoDemo1Y.lua</name>
+        <parameters></parameters>
+        <node>node1</node>
+        <tag></tag>
+        <deployer>lua</deployer>
+    </module>
+
+    <!--
+    <module>
+        <name>torqueBalancing</name>
+        <parameters></parameters>
+        <node>node1</node>
+        <tag></tag>
+    </module>
+    -->
+
+    <connection>
+        <from>/skinManager/skin_events:o</from>
+        <to>/codycoCoordinator1Y/skin_events:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <!--
+    <connection>
+        <from>/codycoCoordinator1Y/cmd_action:o</from>
+        <to>/torqueBalancing/rpc_action:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    -->
+
+</application>
