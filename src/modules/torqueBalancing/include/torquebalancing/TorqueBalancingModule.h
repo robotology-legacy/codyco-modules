@@ -125,6 +125,10 @@ namespace codyco {
             
             TorqueBalancingModule& m_module;
             
+            Eigen::VectorXd m_comReference;
+            Eigen::VectorXd m_handsPositionReference;
+            Eigen::VectorXd m_handsForceReference;
+            
             Eigen::VectorXd m_comProportionalGain;
             Eigen::VectorXd m_comDerivativeGain;
             Eigen::VectorXd m_comIntegralGain;

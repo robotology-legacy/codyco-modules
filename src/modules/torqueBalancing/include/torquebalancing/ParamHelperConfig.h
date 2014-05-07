@@ -80,6 +80,8 @@ namespace codyco {
             //RPC parameters
             new paramHelp::ParamProxyBasic<int>("state", TorqueBalancingModuleParameterCurrentState, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_IN_OUT, 0, "State of the module"),
             new paramHelp::ParamProxyBasic<double>("comRef", TorqueBalancingModuleParameterCOMReference, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "COM reference (x,y,z)"),
+            new paramHelp::ParamProxyBasic<double>("handPosRef", TorqueBalancingModuleParameterHandsPositionReference, 14, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Hands position reference, position + angle axis. Left then Right hand"),
+            new paramHelp::ParamProxyBasic<double>("handForcesRef", TorqueBalancingModuleParameterHandsForceReference, 12, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Hands forces reference, forces + torques. Left then Right hand"),
             //COM
             new paramHelp::ParamProxyBasic<double>("comIntLimit", TorqueBalancingModuleParameterCOMIntegralLimit, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultIntegralLimit, "Integral limit on COM PID"),
             new paramHelp::ParamProxyBasic<double>("comKp", TorqueBalancingModuleParameterCOMProportionalGain, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultCOMGains.data(), "Proportional gains of COM PID"),

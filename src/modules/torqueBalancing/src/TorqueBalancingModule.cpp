@@ -360,6 +360,9 @@ namespace codyco {
         
         TorqueBalancingModule::ParamHelperManager::ParamHelperManager(TorqueBalancingModule& module)
         : m_module(module)
+        , m_comReference(3)
+        , m_handsPositionReference(14)
+        , m_handsForceReference(12)
         , m_comProportionalGain(3)
         , m_comDerivativeGain(3)
         , m_comIntegralGain(3)
@@ -381,6 +384,10 @@ namespace codyco {
             bool linked = true;
             
             linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCurrentState, &m_module.m_moduleState);
+            //References
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMReference, m_comReference.data());
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionReference, m_handsPositionReference.data());
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceReference, m_handsForceReference.data());
             //COM
             linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMProportionalGain, m_comProportionalGain.data());
             linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMDerivativeGain, m_comDerivativeGain.data());
@@ -419,6 +426,33 @@ namespace codyco {
             switch (proxyInterface->id) {
                 case TorqueBalancingModuleParameterCurrentState:
                     m_module.updateModuleCoordinationStatus();
+                    break;
+                    //References
+                case TorqueBalancingModuleParameterCOMReference:
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeCOM);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setSignalReference(m_comReference);
+                    }
+                    break;
+                case TorqueBalancingModuleParameterHandsPositionReference:
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setSignalReference(m_handsPositionReference.head(7));
+                    }
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandPosition);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setSignalReference(m_handsPositionReference.tail(7));
+                    }
+                    break;
+                case TorqueBalancingModuleParameterHandsForceReference:
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandForce);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setSignalReference(m_handsPositionReference.head(6));
+                    }
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandForce);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setSignalReference(m_handsPositionReference.tail(6));
+                    }
                     break;
                     //COM
                 case TorqueBalancingModuleParameterCOMProportionalGain:
