@@ -33,7 +33,7 @@ public:
  * @param nr_of_samples number of samples
  * @return true/false on success/failure
  */
-  virtual bool calibOnDoubleSupport(const std::string& calib_code, const int32_t nr_of_samples = 100);
+  virtual bool calibStanding(const std::string& calib_code, const int32_t nr_of_samples = 100);
 /**
  * Reset the sensor offset to 0 0 0 0 0 0 (six zeros).
  * @param calib_code argument to specify the sensors to reset (all,arms,legs,feet)

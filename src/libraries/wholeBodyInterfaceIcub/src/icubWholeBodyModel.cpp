@@ -53,7 +53,7 @@ using namespace iCub::skinDynLib;
 // *********************************************************************************************************************
 icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName, const iCub::iDynTree::iCubTree_version_tag version,
     double* initial_q, const std::vector<std::string> &_bodyPartNames)
-    : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
+    : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames), initDriversDone(false)
 {
     reverse_torso_joints = true;
 
@@ -84,7 +84,7 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName
 icubWholeBodyModel::icubWholeBodyModel(const char* _name, const char* _robotName, const iCub::iDynTree::iCubTree_version_tag version,
     const std::string urdf_file,
     double* initial_q, const std::vector<std::string> &_bodyPartNames)
-    : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames)
+    : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName), bodyPartNames(_bodyPartNames), initDriversDone(false)
 {
     reverse_torso_joints = true;
 
@@ -118,7 +118,7 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name,
                                        const char* urdf_file,
                                        yarp::os::Property & wbi_yarp_conf,
                                        double* initial_q)
-    : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName)
+    : dof(0), six_elem_buffer(6,0.0), three_elem_buffer(3,0.0), name(_name), robot(_robotName), initDriversDone(false)
 {
     std::string kinematic_base_link_name = ""; //Default value interpreted by DynTree constructor as "the base of the urdf file"
     std::vector<std::string> joint_names;
@@ -151,16 +151,21 @@ icubWholeBodyModel::icubWholeBodyModel(const char* _name,
 
 bool icubWholeBodyModel::init()
 {
+    this->initDriversDone = false;
     bool initDone = true;
     FOR_ALL_BODY_PARTS(itBp)
         initDone = initDone && openDrivers(itBp->first);
-    return initDone && (p_model->getNrOfDOFs() > 0);
+    if( initDone && (p_model->getNrOfDOFs() > 0) )
+    {
+        this->initDriversDone = true;
+    }
+    return this->initDriversDone;
 }
 
 bool icubWholeBodyModel::openDrivers(int bp)
 {
     ilim[bp]=0; dd[bp]=0;
-    if(!openPolyDriver(name, robot, dd[bp], bodyPartNames[bp]))
+    if(!openPolyDriver(name+"model", robot, dd[bp], bodyPartNames[bp]))
         return false;
     bool ok = dd[bp]->view(ilim[bp]);   //if(!isRobotSimulator(robot))
     if(ok)
@@ -341,6 +346,7 @@ int icubWholeBodyModel::bodyPartJointMapping(int bodypart_id, int local_id)
 
 bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
 {
+    if( !this->initDriversDone ) return false; 
     if( (joint < 0 || joint >= (int)jointIdList.size()) && joint != -1 ) { return false; }
 
     if(joint>=0)
@@ -348,6 +354,7 @@ bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
         LocalId lid = jointIdList.globalToLocalId(joint);
         int index = bodyPartJointMapping(lid.bodyPart,lid.index);
         assert(ilim[lid.bodyPart]!=NULL);
+//         std::cout << "Getting limits for bp " << lid.bodyPart << " " << lid.index <<  std::endl;
         bool res = ilim[lid.bodyPart]->getLimits(index, qMin, qMax);
         if(res)
         {

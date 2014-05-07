@@ -1,7 +1,7 @@
 if(CODYCO_BUILD_YARP24_MODULES)
     add_subdirectory(wholeBodyDynamicsTree)
     add_subdirectory(adaptiveControl)
-    add_subdirectory(staticInertiaIdentification)
+    #add_subdirectory(staticInertiaIdentification)
 endif()
 add_subdirectory(locomotionControl)
 add_subdirectory(locomotionPlanner)

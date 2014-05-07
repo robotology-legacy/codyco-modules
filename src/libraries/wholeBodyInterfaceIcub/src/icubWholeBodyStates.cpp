@@ -395,7 +395,8 @@ icubWholeBodyEstimator::icubWholeBodyEstimator(int _period, icubWholeBodySensors
   dTauJFilt(0),
   dTauMFilt(0),
   tauJFilt(0),
-  tauMFilt(0)
+  tauMFilt(0),
+  ee_wrenches_enabled(false)
 {
     resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
 

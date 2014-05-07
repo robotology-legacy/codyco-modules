@@ -71,6 +71,15 @@ struct iCubTree_version_tag
         feet_ft=_feet_ft;
         uses_urdf=false;
     }
+     
+    iCubTree_version_tag (int _head_version, int _legs_version, bool _feet_ft, bool _uses_urdf, std::string _urdf_file)
+    {
+        head_version=_head_version;
+        legs_version=_legs_version;
+        feet_ft=_feet_ft;
+        uses_urdf=_uses_urdf;
+        urdf_file = _urdf_file;
+    }
 
     iCubTree_version_tag (int _head_version, int _legs_version, bool _feet_ft, std::string _urdf_file)
     {

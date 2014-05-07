@@ -68,7 +68,7 @@ public:
       */
     virtual bool calib(const std::string& calib_code, const int32_t nr_of_samples);
 
-    virtual bool calibOnDoubleSupport(const std::string& calib_code, const int32_t nr_of_samples);
+    virtual bool calibStanding(const std::string& calib_code, const int32_t nr_of_samples);
 
     /**
      * Reset the sensor offset to 0 0 0 0 0 0 (six zeros).
