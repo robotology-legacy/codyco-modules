@@ -169,7 +169,9 @@ namespace codyco {
             }
             
             //link controller and references variables to param helper manager
-            if (!m_paramHelperManager->linkVariables() || !m_paramHelperManager->registerCommandCallbacks()) {
+            if (!m_paramHelperManager->linkVariables()
+                || !m_paramHelperManager->linkMonitoredVariables()
+                || !m_paramHelperManager->registerCommandCallbacks()) {
                 return false;
             }
             
@@ -358,7 +360,8 @@ namespace codyco {
         , m_handsForceDerivativeGain(12)
         , m_handsForceIntegralGain(12)
         , m_handsForceIntegralLimit(std::numeric_limits<double>::max())
-        , m_centroidalGain(0) {}
+        , m_centroidalGain(0)
+        , m_monitoredDesiredCOMAcceleration(3) {}
         
         TorqueBalancingModule::ParamHelperManager::~ParamHelperManager()
         {
@@ -436,7 +439,7 @@ namespace codyco {
         {
             if (!m_initialized) return false;
             bool linked = true;
-            
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration, m_monitoredDesiredCOMAcceleration.data());
             return linked;
         }
         
@@ -455,6 +458,16 @@ namespace codyco {
         void TorqueBalancingModule::ParamHelperManager::sendMonitoredVariables()
         {
             assert(m_parameterServer);
+            //copy updated varables to internal monitor variables
+            std::map<TaskType, ReferenceGenerator*>::iterator foundController;
+            ReferenceGenerator* comGenerator = 0;
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeCOM)) != m_module.m_referenceGenerators.end()) {
+                comGenerator = foundController->second;
+            }
+            
+            m_monitoredDesiredCOMAcceleration = comGenerator->computedReference();
+            //send variables
+            m_parameterServer->sendStreamParams();
             
         }
         

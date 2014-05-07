@@ -153,6 +153,7 @@ namespace codyco {
             double m_centroidalGain;
             
             //Monitored variables
+            Eigen::VectorXd m_monitoredDesiredCOMAcceleration;
             
         public:
             ParamHelperManager(TorqueBalancingModule& module);

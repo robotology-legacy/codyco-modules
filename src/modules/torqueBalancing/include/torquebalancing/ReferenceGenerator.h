@@ -187,7 +187,7 @@ namespace codyco {
              *
              * @return the output of this controller
              */
-            const Eigen::VectorXd& computedReference() const;
+            const Eigen::VectorXd& computedReference();
             
         private:
             

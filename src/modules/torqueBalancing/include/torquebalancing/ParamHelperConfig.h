@@ -54,11 +54,13 @@ namespace codyco {
             TorqueBalancingModuleParameterHandsForceDerivativeGain,
             TorqueBalancingModuleParameterHandsForceIntegralGain,
             //Centroidal gain
-            TorqueBalancingModuleParameterCentroidalGain
+            TorqueBalancingModuleParameterCentroidalGain,
+            //MonitoredVariables
+            TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration,
             
         } TorqueBalancingModuleParameter;
         
-        static const int TorqueBalancingModuleParameterSize = 22;
+        static const int TorqueBalancingModuleParameterSize = 23;
         
         
         static const std::string defaultModuleName = "torqueBalancing";
@@ -102,6 +104,9 @@ namespace codyco {
             new paramHelp::ParamProxyBasic<double>("comKi", TorqueBalancingModuleParameterHandsForceIntegralGain, 12, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultHandsForceGains.data(), "Integral gains of Hands forces PID"),
             //Centroidal gain
             new paramHelp::ParamProxyBasic<double>("kw", TorqueBalancingModuleParameterCentroidalGain, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultCentroidalGain, "Gain for the centroidal-based controller"),
+            
+            //Monitored variables
+            new paramHelp::ParamProxyBasic<double>("desCOMAcc", TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Desired COM acceleration computed by the controller"),
         };
         
         

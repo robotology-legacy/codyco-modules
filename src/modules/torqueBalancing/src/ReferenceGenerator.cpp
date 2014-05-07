@@ -234,7 +234,7 @@ namespace codyco {
             }
         }
         
-        const Eigen::VectorXd& ReferenceGenerator::computedReference() const
+        const Eigen::VectorXd& ReferenceGenerator::computedReference()
         {
             codyco::LockGuard guard(m_mutex);
             return m_computedReference;
