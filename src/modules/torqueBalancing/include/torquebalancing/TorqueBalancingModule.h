@@ -124,9 +124,6 @@ namespace codyco {
         paramHelp::CommandObserver {
             
             TorqueBalancingModule& m_module;
-            TorqueBalancingController& m_controller;
-            std::map<TaskType, ReferenceGenerator*>& m_referenceGenerators;
-            paramHelp::ParamHelperServer& m_parameterServer;
             
             Eigen::VectorXd m_comProportionalGain;
             Eigen::VectorXd m_comDerivativeGain;
@@ -146,7 +143,7 @@ namespace codyco {
             double m_centroidalGain;
             
         public:
-            ParamHelperManager(TorqueBalancingModule& module, TorqueBalancingController& controller, std::map<TaskType, ReferenceGenerator*>& generators, paramHelp::ParamHelperServer& parameterServer);
+            ParamHelperManager(TorqueBalancingModule& module);
             
             bool linkVariables();
             bool registerCommandCallbacks();

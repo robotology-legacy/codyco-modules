@@ -148,6 +148,10 @@ namespace codyco {
                 //reset integral state
                 m_integralTerm.setZero();
                 m_previousTime = -1;
+                //reset references
+                m_signalReference = m_reader.getSignal();
+                m_signalDerivativeReference = m_reader.getSignalDerivative();
+                m_signalFeedForward.setZero();
                 
             } else {
                 m_outputReference.setValid(false);

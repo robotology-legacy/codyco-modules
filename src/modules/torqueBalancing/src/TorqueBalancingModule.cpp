@@ -190,7 +190,7 @@ namespace codyco {
             }
             
             //link controller and references variables to param helper manager
-            m_paramHelperManager = new ParamHelperManager(*this, *m_controller, m_referenceGenerators, *m_parameterServer);
+            m_paramHelperManager = new ParamHelperManager(*this);
             if (!m_paramHelperManager || !m_paramHelperManager->linkVariables() || !m_paramHelperManager->registerCommandCallbacks()) {
                 return false;
             }
@@ -358,11 +358,8 @@ namespace codyco {
         
 #pragma mark - ParamHelperManager methods
         
-        TorqueBalancingModule::ParamHelperManager::ParamHelperManager(TorqueBalancingModule& module, TorqueBalancingController& controller, std::map<TaskType, ReferenceGenerator*>& generators, paramHelp::ParamHelperServer& parameterServer)
+        TorqueBalancingModule::ParamHelperManager::ParamHelperManager(TorqueBalancingModule& module)
         : m_module(module)
-        , m_controller(controller)
-        , m_referenceGenerators(generators)
-        , m_parameterServer(parameterServer)
         , m_comProportionalGain(3)
         , m_comDerivativeGain(3)
         , m_comIntegralGain(3)
@@ -383,24 +380,24 @@ namespace codyco {
         {
             bool linked = true;
             
-            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterCurrentState, &m_module.m_moduleState);
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCurrentState, &m_module.m_moduleState);
             //COM
-            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterCOMProportionalGain, m_comProportionalGain.data());
-            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterCOMDerivativeGain, m_comDerivativeGain.data());
-            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterCOMIntegralGain, m_comIntegralGain.data());
-            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterCOMIntegralLimit, &m_comIntegralLimit);
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMProportionalGain, m_comProportionalGain.data());
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMDerivativeGain, m_comDerivativeGain.data());
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMIntegralGain, m_comIntegralGain.data());
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMIntegralLimit, &m_comIntegralLimit);
             //Hands position
-            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterHandsPositionDerivativeGain, m_handsPositionProportionalGain.data());
-            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterHandsPositionDerivativeGain, m_handsPositionDerivativeGain.data());
-            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterHandsPositionIntegralGain, m_handsPositionIntegralGain.data());
-            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterHandsPositionIntegralLimit, &m_handsPositionIntegralLimit);
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionDerivativeGain, m_handsPositionProportionalGain.data());
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionDerivativeGain, m_handsPositionDerivativeGain.data());
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionIntegralGain, m_handsPositionIntegralGain.data());
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionIntegralLimit, &m_handsPositionIntegralLimit);
             //Hands forces
-            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterHandsForceProportionalGain, m_handsForceProportionalGain.data());
-            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterHandsForceDerivativeGain, m_handsForceDerivativeGain.data());
-            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterHandsForceIntegralGain, m_handsForceIntegralGain.data());
-            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterHandsForceIntegralLimit, &m_handsForceIntegralLimit);
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceProportionalGain, m_handsForceProportionalGain.data());
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceDerivativeGain, m_handsForceDerivativeGain.data());
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceIntegralGain, m_handsForceIntegralGain.data());
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceIntegralLimit, &m_handsForceIntegralLimit);
             //Centroidal momentum
-            linked = linked && m_parameterServer.linkParam(TorqueBalancingModuleParameterCentroidalGain, &m_centroidalGain);
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCentroidalGain, &m_centroidalGain);
             
             return linked;
         }
@@ -408,10 +405,10 @@ namespace codyco {
         bool TorqueBalancingModule::ParamHelperManager::registerCommandCallbacks()
         {
             bool commandRegistered = true;
-            commandRegistered = commandRegistered && m_parameterServer.registerCommandCallback(TorqueBalancingModuleCommandStart, this);
-            commandRegistered = commandRegistered && m_parameterServer.registerCommandCallback(TorqueBalancingModuleCommandStop, this);
-            commandRegistered = commandRegistered && m_parameterServer.registerCommandCallback(TorqueBalancingModuleCommandQuit, this);
-            commandRegistered = commandRegistered && m_parameterServer.registerCommandCallback(TorqueBalancingModuleCommandHelp, this);
+            commandRegistered = commandRegistered && m_module.m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandStart, this);
+            commandRegistered = commandRegistered && m_module.m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandStop, this);
+            commandRegistered = commandRegistered && m_module.m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandQuit, this);
+            commandRegistered = commandRegistered && m_module.m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandHelp, this);
             
             return commandRegistered;
         }
@@ -425,115 +422,115 @@ namespace codyco {
                     break;
                     //COM
                 case TorqueBalancingModuleParameterCOMProportionalGain:
-                    foundController = m_referenceGenerators.find(TaskTypeCOM);
-                    if (foundController != m_referenceGenerators.end()) {
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeCOM);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
                         foundController->second->setProportionalGains(m_comProportionalGain);
                     }
                     break;
                 case TorqueBalancingModuleParameterCOMDerivativeGain:
-                    foundController = m_referenceGenerators.find(TaskTypeCOM);
-                    if (foundController != m_referenceGenerators.end()) {
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeCOM);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
                         foundController->second->setDerivativeGains(m_comDerivativeGain);
                     }
                     break;
                 case TorqueBalancingModuleParameterCOMIntegralGain:
-                    foundController = m_referenceGenerators.find(TaskTypeCOM);
-                    if (foundController != m_referenceGenerators.end()) {
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeCOM);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
                         foundController->second->setIntegralGains(m_comIntegralGain);
                     }
                     break;
                 case TorqueBalancingModuleParameterCOMIntegralLimit:
-                    foundController = m_referenceGenerators.find(TaskTypeCOM);
-                    if (foundController != m_referenceGenerators.end()) {
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeCOM);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
                         foundController->second->setIntegralLimit(m_comIntegralLimit);
                     }
                     break;
                 // Hands position
                 case TorqueBalancingModuleParameterHandsPositionProportionalGain:
-                    foundController = m_referenceGenerators.find(TaskTypeLeftHandPosition);
-                    if (foundController != m_referenceGenerators.end()) {
-                        foundController->second->setProportionalGains(m_handsPositionProportionalGain);
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setProportionalGains(m_handsPositionProportionalGain.head(7));
                     }
-                    foundController = m_referenceGenerators.find(TaskTypeRightHandPosition);
-                    if (foundController != m_referenceGenerators.end()) {
-                        foundController->second->setProportionalGains(m_handsPositionProportionalGain);
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandPosition);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setProportionalGains(m_handsPositionProportionalGain.tail(7));
                     }
                     break;
                 case TorqueBalancingModuleParameterHandsPositionDerivativeGain:
-                    foundController = m_referenceGenerators.find(TaskTypeLeftHandPosition);
-                    if (foundController != m_referenceGenerators.end()) {
-                        foundController->second->setDerivativeGains(m_handsPositionDerivativeGain);
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setDerivativeGains(m_handsPositionDerivativeGain.head(7));
                     }
-                    foundController = m_referenceGenerators.find(TaskTypeRightHandPosition);
-                    if (foundController != m_referenceGenerators.end()) {
-                        foundController->second->setDerivativeGains(m_handsPositionDerivativeGain);
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandPosition);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setDerivativeGains(m_handsPositionDerivativeGain.tail(7));
                     }
 
                     break;
                 case TorqueBalancingModuleParameterHandsPositionIntegralGain:
-                    foundController = m_referenceGenerators.find(TaskTypeLeftHandPosition);
-                    if (foundController != m_referenceGenerators.end()) {
-                        foundController->second->setIntegralGains(m_handsPositionIntegralGain);
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setIntegralGains(m_handsPositionIntegralGain.head(7));
                     }
-                    foundController = m_referenceGenerators.find(TaskTypeRightHandPosition);
-                    if (foundController != m_referenceGenerators.end()) {
-                        foundController->second->setIntegralGains(m_handsPositionIntegralGain);
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandPosition);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setIntegralGains(m_handsPositionIntegralGain.tail(7));
                     }
                     break;
                 case TorqueBalancingModuleParameterHandsPositionIntegralLimit:
-                    foundController = m_referenceGenerators.find(TaskTypeLeftHandPosition);
-                    if (foundController != m_referenceGenerators.end()) {
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
                         foundController->second->setIntegralLimit(m_handsPositionIntegralLimit);
                     }
-                    foundController = m_referenceGenerators.find(TaskTypeRightHandPosition);
-                    if (foundController != m_referenceGenerators.end()) {
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandPosition);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
                         foundController->second->setIntegralLimit(m_handsPositionIntegralLimit);
                     }
                     break;
                 //Hands forces
                 case TorqueBalancingModuleParameterHandsForceProportionalGain:
-                    foundController = m_referenceGenerators.find(TaskTypeLeftHandForce);
-                    if (foundController != m_referenceGenerators.end()) {
-                        foundController->second->setProportionalGains(m_handsForceProportionalGain);
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandForce);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setProportionalGains(m_handsForceProportionalGain.head(6));
                     }
-                    foundController = m_referenceGenerators.find(TaskTypeRightHandForce);
-                    if (foundController != m_referenceGenerators.end()) {
-                        foundController->second->setProportionalGains(m_handsForceProportionalGain);
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandForce);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setProportionalGains(m_handsForceProportionalGain.tail(6));
                     }
                     break;
                 case TorqueBalancingModuleParameterHandsForceDerivativeGain:
-                    foundController = m_referenceGenerators.find(TaskTypeLeftHandForce);
-                    if (foundController != m_referenceGenerators.end()) {
-                        foundController->second->setDerivativeGains(m_handsForceDerivativeGain);
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandForce);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setDerivativeGains(m_handsForceDerivativeGain.head(6));
                     }
-                    foundController = m_referenceGenerators.find(TaskTypeRightHandForce);
-                    if (foundController != m_referenceGenerators.end()) {
-                        foundController->second->setDerivativeGains(m_handsForceDerivativeGain);
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandForce);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setDerivativeGains(m_handsForceDerivativeGain.tail(6));
                     }
                     break;
                 case TorqueBalancingModuleParameterHandsForceIntegralGain:
-                    foundController = m_referenceGenerators.find(TaskTypeLeftHandForce);
-                    if (foundController != m_referenceGenerators.end()) {
-                        foundController->second->setIntegralGains(m_handsForceIntegralGain);
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandForce);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setIntegralGains(m_handsForceIntegralGain.head(6));
                     }
-                    foundController = m_referenceGenerators.find(TaskTypeRightHandForce);
-                    if (foundController != m_referenceGenerators.end()) {
-                        foundController->second->setIntegralGains(m_handsForceIntegralGain);
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandForce);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
+                        foundController->second->setIntegralGains(m_handsForceIntegralGain.tail(6));
                     }
                     break;
                 case TorqueBalancingModuleParameterHandsForceIntegralLimit:
-                    foundController = m_referenceGenerators.find(TaskTypeLeftHandForce);
-                    if (foundController != m_referenceGenerators.end()) {
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandForce);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
                         foundController->second->setIntegralLimit(m_handsForceIntegralLimit);
                     }
-                    foundController = m_referenceGenerators.find(TaskTypeRightHandForce);
-                    if (foundController != m_referenceGenerators.end()) {
+                    foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandForce);
+                    if (foundController != m_module.m_referenceGenerators.end()) {
                         foundController->second->setIntegralLimit(m_handsForceIntegralLimit);
                     }
                     break;
                 //Centroidal
                 case TorqueBalancingModuleParameterCentroidalGain:
-                    m_controller.setCentroidalMomentumGain(m_centroidalGain);
+                    m_module.m_controller->setCentroidalMomentumGain(m_centroidalGain);
                     break;
             }
         }
@@ -554,7 +551,7 @@ namespace codyco {
                     reply.addString("Quitting module");
                     break;
                 case TorqueBalancingModuleCommandHelp:
-                    m_parameterServer.getHelpMessage(reply);
+                    m_module.m_parameterServer->getHelpMessage(reply);
                     break;
                 default:
                     break;
