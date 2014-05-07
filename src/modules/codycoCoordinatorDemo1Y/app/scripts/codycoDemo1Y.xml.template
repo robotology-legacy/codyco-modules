@@ -5,19 +5,24 @@
     <description>First year demo for CoDyCo project</description>
     <version>0.1</version>
 
-    <authors email="jorhabib.eljaik@iit.it">Jorhabib Eljaik</author>
-    <authors email="daniele.pucci@iit.it">Daniele Pucci</author>
-    <authors email="francesco.romano@iit.it">Francesco Romano</author>
-    <authors email="silvio.traversaro@iit.it">Silvio Traversaro</author>
-    <authors email="francesco.nori@iit.it">Francesco Nori</author>
+    <authors>
+        <author email="jorhabib.eljaik@iit.it">Jorhabib Eljaik</author>
+        <author email="daniele.pucci@iit.it">Daniele Pucci</author>
+        <author email="francesco.romano@iit.it">Francesco Romano</author>
+        <author email="silvio.traversaro@iit.it">Silvio Traversaro</author>
+        <author email="francesco.nori@iit.it">Francesco Nori</author>
+    </authors>
 
     <!-- Modules -->
     <module>
-        <name>codycoDemo1Y.lua</name>
-        <parameters></parameters>
-        <node>node1</node>
-        <tag></tag>
+        <name>codycoCoordinatorDemo1Y.lua</name>
         <deployer>lua</deployer>
+        <node>localhost</node>
+        <!--
+        <dependencies>
+            <port timeout="10">/iSpeak</port>
+        </dependencies>
+        -->
     </module>
 
     <!--
