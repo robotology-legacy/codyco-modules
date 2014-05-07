@@ -79,6 +79,7 @@ namespace codyco {
             virtual bool updateModule();
             virtual bool close();
             virtual double getPeriod();
+            virtual bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
             
             /** Cleanups all the variable and threads managed by this module
              */
@@ -163,6 +164,7 @@ namespace codyco {
             bool linkMonitoredVariables();
             bool registerCommandCallbacks();
             
+            bool processRPCCommand(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
             void sendMonitoredVariables();
                         
             virtual ~ParamHelperManager();

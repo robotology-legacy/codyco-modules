@@ -183,6 +183,8 @@ namespace codyco {
             
             threadsStarted = threadsStarted && m_controller->start();
             
+            std::cout << "Module " << m_moduleName << " ready." << std::endl;
+            
             return threadsStarted;
         }
         
@@ -259,6 +261,18 @@ namespace codyco {
         double TorqueBalancingModule::getPeriod()
         {
             return m_modulePeriod;
+        }
+        
+        bool TorqueBalancingModule::respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply)
+        {
+            if (!m_paramHelperManager->processRPCCommand(command, reply)) {
+                reply.addString((std::string("Command ") + command.toString().c_str() + " not recognized.").c_str());
+            }
+            
+            // if reply is empty put something into it, otherwise the rpc communication gets stuck
+            if (reply.size() == 0)
+                reply.addString((std::string("Command ") + command.toString().c_str() + " received.").c_str());
+            return true;
         }
         
         void TorqueBalancingModule::setControllersActiveState(bool isActive)
@@ -453,6 +467,12 @@ namespace codyco {
             commandRegistered = commandRegistered && m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandHelp, this);
             
             return commandRegistered;
+        }
+        
+        bool TorqueBalancingModule::ParamHelperManager::processRPCCommand(const yarp::os::Bottle &command, yarp::os::Bottle &reply)
+        {
+            assert(m_parameterServer);
+            return m_parameterServer->processRpcCommand(command, reply);
         }
         
         void TorqueBalancingModule::ParamHelperManager::sendMonitoredVariables()
