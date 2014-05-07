@@ -38,7 +38,7 @@ namespace codyco {
         struct TaskInformation {
             TaskType taskType;
             std::string referredLinkName;
-            Reference& reference;
+            Reference* reference; //I cannot use a reference because object must be Assignable to be used inside std::vector
         };
         
         
@@ -121,9 +121,9 @@ namespace codyco {
             
             //position tasks
             std::vector<TaskInformation> tasks;
-            TaskInformation task1 = {TaskTypeLeftHandPosition, "l_gripper", m_references->desiredLeftHandPosition()};
+            TaskInformation task1 = {TaskTypeLeftHandPosition, "l_gripper", &m_references->desiredLeftHandPosition()};
             tasks.push_back(task1);
-            TaskInformation task2 = {TaskTypeRightHandPosition, "r_gripper", m_references->desiredRightHandPosition()};
+            TaskInformation task2 = {TaskTypeRightHandPosition, "r_gripper", &m_references->desiredRightHandPosition()};
             tasks.push_back(task2);
             
             for (std::vector<TaskInformation>::iterator it = tasks.begin(); it != tasks.end(); it++) {
@@ -133,7 +133,7 @@ namespace codyco {
                 } else {
                     return false;
                 }
-                generator = new ReferenceGenerator(m_controllerThreadPeriod, it->reference, *reader);
+                generator = new ReferenceGenerator(m_controllerThreadPeriod, *(it->reference), *reader);
                 if (generator) {
                     m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(it->taskType, generator));
                 } else {
@@ -143,9 +143,9 @@ namespace codyco {
             
             //force tasks
             tasks.clear();
-            TaskInformation task3 = {TaskTypeLeftHandForce, "l_gripper", m_references->desiredLeftHandPosition()};
+            TaskInformation task3 = {TaskTypeLeftHandForce, "l_gripper", &m_references->desiredLeftHandPosition()};
             tasks.push_back(task1);
-            TaskInformation task4 = {TaskTypeRightHandForce, "r_gripper", m_references->desiredRightHandPosition()};
+            TaskInformation task4 = {TaskTypeRightHandForce, "r_gripper", &m_references->desiredRightHandPosition()};
             tasks.push_back(task2);
             
             for (std::vector<TaskInformation>::iterator it = tasks.begin(); it != tasks.end(); it++) {
@@ -155,7 +155,7 @@ namespace codyco {
                 } else {
                     return false;
                 }
-                generator = new ReferenceGenerator(m_controllerThreadPeriod, it->reference, *reader);
+                generator = new ReferenceGenerator(m_controllerThreadPeriod, *(it->reference), *reader);
                 if (generator) {
                     m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(it->taskType, generator));
                 } else {
