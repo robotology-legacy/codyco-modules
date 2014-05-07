@@ -32,6 +32,7 @@ namespace codyco {
         : RateThread(period)
         , m_robot(robot)
         , m_active(false)
+        , m_centerOfMassLinkID(wbi::wholeBodyInterface::COM_LINK_ID)
         , m_references(references)
         , m_centroidalMomentumGain(0)
         , m_desiredCOMAcceleration(3)
@@ -70,7 +71,6 @@ namespace codyco {
             //Initialize constant variables
             m_robot.getLinkId("l_sole", m_leftFootLinkID);
             m_robot.getLinkId("r_sole", m_rightFootLinkID);
-            m_robot.getLinkId("com", m_centerOfMassLinkID);
             
             m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
                                                             0, -1, 0,

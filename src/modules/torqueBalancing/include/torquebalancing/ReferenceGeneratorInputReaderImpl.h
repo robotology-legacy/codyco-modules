@@ -43,7 +43,6 @@ namespace codyco {
             wbi::Frame m_world2BaseFrame;
             wbi::Frame m_leftFootToBaseRotationFrame;
             
-            const std::string& m_endEffectorLinkName;
             int m_endEffectorLinkID;
             int m_leftFootLinkID; /*!< this is temporary to allow robot localization */
             
@@ -55,10 +54,11 @@ namespace codyco {
             Eigen::MatrixXd m_jacobian;
             
             void updateStatus();
+            void initializer();
         public:
             EndEffectorPositionReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName);
+            EndEffectorPositionReader(wbi::wholeBodyInterface& robot, int linkID);
             virtual ~EndEffectorPositionReader();
-            virtual bool init();
             virtual const Eigen::VectorXd& getSignal();
             virtual const Eigen::VectorXd& getSignalDerivative();
             virtual int signalSize() const;

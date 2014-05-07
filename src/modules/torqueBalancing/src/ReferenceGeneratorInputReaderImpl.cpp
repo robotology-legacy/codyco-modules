@@ -24,24 +24,36 @@ namespace codyco {
 #pragma mark - HandsPositionReader implementation
         EndEffectorPositionReader::EndEffectorPositionReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName)
         : m_robot(robot)
-        , m_endEffectorLinkName(endEffectorLinkName)
         , m_jointsPosition(totalDOFs)
         , m_jointsVelocity(totalDOFs)
         , m_outputSignal(7)
         , m_outputSignalDerivative(7)
         , m_jacobian(7, totalDOFs)
         {
-            m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
-                                                            0, -1, 0,
-                                                            1, 0, 0);
+            m_robot.getLinkId(endEffectorLinkName.c_str(), m_endEffectorLinkID);
+            initializer();
+        }
+        
+        EndEffectorPositionReader::EndEffectorPositionReader(wbi::wholeBodyInterface& robot, int linkID)
+        : m_robot(robot)
+        , m_endEffectorLinkID(linkID)
+        , m_jointsPosition(totalDOFs)
+        , m_jointsVelocity(totalDOFs)
+        , m_outputSignal(7)
+        , m_outputSignalDerivative(7)
+        , m_jacobian(7, totalDOFs)
+        {
+            initializer();
         }
         
         EndEffectorPositionReader::~EndEffectorPositionReader() {}
         
-        bool EndEffectorPositionReader::init()
+        void EndEffectorPositionReader::initializer()
         {
-            return m_robot.getLinkId(m_endEffectorLinkName.c_str(), m_endEffectorLinkID)
-            && m_robot.getLinkId("l_sole", m_leftFootLinkID);
+            m_robot.getLinkId("l_sole", m_leftFootLinkID);
+            m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
+                                                            0, -1, 0,
+                                                            1, 0, 0);
         }
         
         void EndEffectorPositionReader::updateStatus()
@@ -76,7 +88,7 @@ namespace codyco {
         
 #pragma mark - COMReader implementation
         COMReader::COMReader(wbi::wholeBodyInterface& robot)
-        : EndEffectorPositionReader(robot, "l_com")
+        : EndEffectorPositionReader(robot, wbi::wholeBodyInterface::COM_LINK_ID)
         , m_outputSignal(3)
         , m_outputSignalDerivative(3) {}
 

@@ -362,7 +362,20 @@ namespace codyco {
         : m_module(module)
         , m_controller(controller)
         , m_referenceGenerators(generators)
-        , m_parameterServer(parameterServer) {}
+        , m_parameterServer(parameterServer)
+        , m_comProportionalGain(3)
+        , m_comDerivativeGain(3)
+        , m_comIntegralGain(3)
+        , m_comIntegralLimit(std::numeric_limits<double>::max())
+        , m_handsPositionProportionalGain(14)
+        , m_handsPositionDerivativeGain(14)
+        , m_handsPositionIntegralGain(14)
+        , m_handsPositionIntegralLimit(std::numeric_limits<double>::max())
+        , m_handsForceProportionalGain(12)
+        , m_handsForceDerivativeGain(12)
+        , m_handsForceIntegralGain(12)
+        , m_handsForceIntegralLimit(std::numeric_limits<double>::max())
+        , m_centroidalGain(0) {}
         
         TorqueBalancingModule::ParamHelperManager::~ParamHelperManager() {}
         

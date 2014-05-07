@@ -41,6 +41,7 @@ include_directories(${HEADERS_FOLDER}
                     ${codyco_commons_INCLUDE_DIRS}
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
+                    ${iDynTree_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
