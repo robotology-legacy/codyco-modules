@@ -11,7 +11,7 @@ iCub  the theoretical advances of the project.
 
 More info at http://codyco.eu/
 
-Code documentation automatically generated: http://wiki.icub.org/codyco/dox/html/index.html
+Code documentation automatically generated: http://wiki.icub.org/codyco/html/index.html
 
 Installation
 ------------
