@@ -64,6 +64,8 @@ namespace codyco {
              */
             bool isActiveState();
             
+#pragma mark - Monitorable variables
+            
         private:
             void readReferences();
             bool updateRobotState();

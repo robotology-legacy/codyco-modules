@@ -28,7 +28,8 @@ namespace codyco {
             //Initialization parameters (for module)
             TorqueBalancingModuleParameterModuleName,
             TorqueBalancingModuleParameterRobotName,
-            TorqueBalancingModuleParameterPeriod,
+            TorqueBalancingModuleParameterControllerPeriod,
+            TorqueBalancingModuleParameterModulePeriod,
             TorqueBalancingModuleParameterURDFFilePath,
             //RPC parameters
             TorqueBalancingModuleParameterCurrentState,
@@ -57,12 +58,13 @@ namespace codyco {
             
         } TorqueBalancingModuleParameter;
         
-        static const int TorqueBalancingModuleParameterSize = 21;
+        static const int TorqueBalancingModuleParameterSize = 22;
         
         
         static const std::string defaultModuleName = "torqueBalancing";
         static const std::string defaultRobotName = "icub";
-        static const int defaultControllerPeriod = 10;
+        static const int defaultControllerPeriod = 10; //ms
+        static const double defaultModulePeriod = 1.0; //s
         static const double defaultIntegralLimit = std::numeric_limits<double>::max(); //no limit
         static const Eigen::VectorXd defaultCOMGains = Eigen::VectorXd(3).setZero();
         static const Eigen::VectorXd defaultHandsPositionGains = Eigen::VectorXd(14).setZero();
@@ -75,9 +77,10 @@ namespace codyco {
             //config parameters
             new paramHelp::ParamProxyBasic<std::string>("name", TorqueBalancingModuleParameterModuleName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultModuleName, "Name of the instance of the module"),
             new paramHelp::ParamProxyBasic<std::string>("robot", TorqueBalancingModuleParameterRobotName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultRobotName, "Name of the robot"),
-            new paramHelp::ParamProxyBasic<int>("period", TorqueBalancingModuleParameterPeriod, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_CONFIG, &defaultControllerPeriod, "Period of the controller"),
+            new paramHelp::ParamProxyBasic<int>("period", TorqueBalancingModuleParameterControllerPeriod, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_CONFIG, &defaultControllerPeriod, "Period of the controller"),
             new paramHelp::ParamProxyBasic<std::string>("urdfPath", TorqueBalancingModuleParameterURDFFilePath, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, 0, "Path to the URDF model of the robot. If empty string the fallback is the iDyn version with default legs/head version"),
             //RPC parameters
+            new paramHelp::ParamProxyBasic<double>("modulePeriod", TorqueBalancingModuleParameterModulePeriod, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultModulePeriod, "Period of the module. Used to update monitored variables."),
             new paramHelp::ParamProxyBasic<int>("state", TorqueBalancingModuleParameterCurrentState, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_IN_OUT, 0, "State of the module"),
             new paramHelp::ParamProxyBasic<double>("comRef", TorqueBalancingModuleParameterCOMReference, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "COM reference (x,y,z)"),
             new paramHelp::ParamProxyBasic<double>("handPosRef", TorqueBalancingModuleParameterHandsPositionReference, 14, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Hands position reference, position + angle axis. Left then Right hand"),

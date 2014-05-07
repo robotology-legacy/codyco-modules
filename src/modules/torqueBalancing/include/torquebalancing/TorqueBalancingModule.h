@@ -78,6 +78,7 @@ namespace codyco {
             virtual bool configure(yarp::os::ResourceFinder& resourceFinder);
             virtual bool updateModule();
             virtual bool close();
+            virtual double getPeriod();
             
             /** Cleanups all the variable and threads managed by this module
              */
@@ -95,8 +96,8 @@ namespace codyco {
             void updateModuleCoordinationStatus();
             
             TorqueBalancingModuleState m_moduleState;
-            int m_referenceThreadPeriod;
             int m_controllerThreadPeriod;
+            double m_modulePeriod;
             bool m_active;
             
             std::string m_moduleName;

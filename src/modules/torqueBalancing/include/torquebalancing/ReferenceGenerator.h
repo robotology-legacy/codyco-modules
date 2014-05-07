@@ -183,6 +183,12 @@ namespace codyco {
                              const Eigen::VectorXd& integralGains,
                              double integralLimit = NAN);
             
+            /** Returns the computed reference signal by this controller
+             *
+             * @return the output of this controller
+             */
+            const Eigen::VectorXd& computedReference() const;
+            
         private:
             
             void limitIntegral(const Eigen::Ref<Eigen::VectorXd>& integral, Eigen::Ref<Eigen::VectorXd> limitedIntegral);

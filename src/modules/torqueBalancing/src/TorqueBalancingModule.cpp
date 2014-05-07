@@ -44,8 +44,8 @@ namespace codyco {
         
         TorqueBalancingModule::TorqueBalancingModule()
         : m_moduleState(TorqueBalancingModuleStateDoubleSupportStable)
-        , m_referenceThreadPeriod(10)
         , m_controllerThreadPeriod(10)
+        , m_modulePeriod(1.0)
         , m_active(false)
         , m_robot(0)
         , m_controller(0)
@@ -71,7 +71,7 @@ namespace codyco {
             bool linkedVariable = true;
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterModuleName, &m_moduleName);
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterRobotName, &m_robotName);
-            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterPeriod, &m_controllerThreadPeriod);
+            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterControllerPeriod, &m_controllerThreadPeriod);
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterURDFFilePath, &m_urdfFilePath);
             
             if (!linkedVariable) {
@@ -133,7 +133,7 @@ namespace codyco {
                 return false;
             }
             
-            generator = new ReferenceGenerator(m_referenceThreadPeriod, m_references->desiredCOMAcceleration(), *reader);
+            generator = new ReferenceGenerator(m_controllerThreadPeriod, m_references->desiredCOMAcceleration(), *reader);
             if (generator) {
                 m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeCOM, generator));
             } else {
@@ -154,7 +154,7 @@ namespace codyco {
                 } else {
                     return false;
                 }
-                generator = new ReferenceGenerator(m_referenceThreadPeriod, it->reference, *reader);
+                generator = new ReferenceGenerator(m_controllerThreadPeriod, it->reference, *reader);
                 if (generator) {
                     m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(it->taskType, generator));
                 } else {
@@ -176,7 +176,7 @@ namespace codyco {
                 } else {
                     return false;
                 }
-                generator = new ReferenceGenerator(m_referenceThreadPeriod, it->reference, *reader);
+                generator = new ReferenceGenerator(m_controllerThreadPeriod, it->reference, *reader);
                 if (generator) {
                     m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(it->taskType, generator));
                 } else {
@@ -283,6 +283,11 @@ namespace codyco {
             }
         }
         
+        double TorqueBalancingModule::getPeriod()
+        {
+            return m_modulePeriod;
+        }
+        
         void TorqueBalancingModule::setControllersActiveState(bool isActive)
         {
             if (isActive == m_active) return;
@@ -384,6 +389,7 @@ namespace codyco {
             bool linked = true;
             
             linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCurrentState, &m_module.m_moduleState);
+            linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterModulePeriod, &m_module.m_modulePeriod);
             //References
             linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMReference, m_comReference.data());
             linked = linked && m_module.m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionReference, m_handsPositionReference.data());

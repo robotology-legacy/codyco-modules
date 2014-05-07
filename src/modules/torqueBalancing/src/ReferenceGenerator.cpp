@@ -233,6 +233,11 @@ namespace codyco {
                 m_integralLimit = std::abs(integralLimit);
             }
         }
+        
+        const Eigen::VectorXd& ReferenceGenerator::computedReference() const
+        {
+            return m_computedReference;
+        }
 
         
 #pragma mark - ReferenceGeneratorInputReader methods
