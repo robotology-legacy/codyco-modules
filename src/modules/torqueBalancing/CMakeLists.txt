@@ -7,7 +7,9 @@ project(torqueBalancing)
 
 find_package(YARP)
 find_package(Eigen3 REQUIRED)
-find_package(Boost)
+if(${CODYCO_USES_URDFDOM})
+    find_package(Boost)
+endif()
 # find_package(ICUB)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
@@ -35,6 +37,7 @@ set(SOURCES    ${SRC_FOLDER}/TorqueBalancingModule.cpp
 source_group("Source Files" FILES ${SOURCES})
 source_group("Header Files" FILES ${HEADERS})
 
+ifdef(${CODYCO_USES_URDFDOM})
 include_directories(${HEADERS_FOLDER}
                     ${codyco_commons_INCLUDE_DIRS}
                     ${wholeBodyInterface_INCLUDE_DIRS}
@@ -43,7 +46,17 @@ include_directories(${HEADERS_FOLDER}
                     ${paramHelp_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
-                    ${YARP_INCLUDE_DIRS})
+                    ${YARP_INCLUDE_DIRS}
+else()
+include_directories(${HEADERS_FOLDER}
+                    ${codyco_commons_INCLUDE_DIRS}
+                    ${wholeBodyInterface_INCLUDE_DIRS}
+                    ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
+                    ${iDynTree_INCLUDE_DIRS}
+                    ${paramHelp_INCLUDE_DIRS}
+                    ${EIGEN3_INCLUDE_DIR}
+                    ${YARP_INCLUDE_DIRS}
+endif()
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
