@@ -980,6 +980,7 @@ static void mdlStart(SimStruct *S)
         fprintf(stderr,"mdlStart >> Succesfully exited robotConfig.\n");
     else {
         ssSetErrorStatus(S,"ERROR [mdlStart] in robotConfig.\n");
+        return;
     }
 
     res = res && robot->robotInit(static_cast<int>(block_type), static_cast<int>(*uPtrs[0]));
@@ -994,6 +995,7 @@ static void mdlStart(SimStruct *S)
 
     if(!robot->getJointLimits(&minJntLimits[0], &maxJntLimits[0],-1)) {
         ssSetErrorStatus(S,"ERROR [mdlOutput] Joint limits could not be computed\n");
+        return;
     }
     printf("got limits right");
 
