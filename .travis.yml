@@ -7,7 +7,7 @@ compiler:
 env:
   - CODYCO_TRAVIS_BUILD_TYPE=Debug
   - CODYCO_TRAVIS_BUILD_TYPE=Release
-  
+
 branches:
   except:
     - superbuild
@@ -17,18 +17,18 @@ install:
   - sudo apt-get update
   - sudo apt-get --force-yes install icub
 
-  
+
 
 before_script:
   - cmake --version
     #eigen 3.2 support
   - hg clone https://bitbucket.org/eigen/eigen/
   - cd eigen
-  - hg checkout 3.2.0 
-  - mkdir build 
+  - hg checkout 3.2.0
+  - mkdir build
   - cd build
   - cmake ..
-  - make 
+  - make
   - sudo make install
   - cd ../..
   # Build orocos_kinematics_dynamics and install it in a local directory
@@ -53,17 +53,28 @@ before_script:
   - make
   - make install
   - cd ../..
+  # Build kdl_format_io and install it in a local directory
+  - sudo chmod +x ./codyco/.travis/build_urdfdom
+  - ./codyco/.travis/build_urdfdom
+  - git clone https://github.com/traversaro/kdl_format_io
+  - cd kdl_format_io
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} ..
+  - make
+  - sudo make install
+  - cd ../..
   # Prepare codyco build
   - mkdir build
   - cd build
-  - cmake -DCODYCO_BUILD_TESTS:BOOL=ON -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} -DCODYCO_TRAVIS_CI:BOOL=ON ..
+  - cmake -DCODYCO_BUILD_TESTS:BOOL=ON -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} -DCODYCO_TRAVIS_CI:BOOL=ON -DCODYCO_USES_URDFDOM:BOOL=ON ..
 
 script:
   - make
   - sudo make install
   - ctest -V
   - sudo make uninstall
-  
+
 notifications:
   email:
     - pegua1@gmail.com
