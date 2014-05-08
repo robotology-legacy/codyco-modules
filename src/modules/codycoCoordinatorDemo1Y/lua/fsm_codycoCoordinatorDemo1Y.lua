@@ -7,7 +7,7 @@ return rfsm.state {
     -------------------------------------------------------------------
     ST_DOUBLESUPPORT_STABLE = rfsm.state{
         entry=function()
-            print("ST_DOUBLESUPPORT_FEET_STABLE entry.")
+            print("[codycoCoordinatorDemo1Y][rFSM] ST_DOUBLESUPPORT_STABLE entry.")
         end
     },
 
@@ -19,7 +19,7 @@ return rfsm.state {
     -----------------------------------------------------------------------------
     ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT = rfsm.state{
         entry=function()
-            print("ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT entry.")
+            print("[codycoCoordinatorDemo1Y][rFSM] ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT entry.")
         end
     },
 
@@ -31,7 +31,7 @@ return rfsm.state {
     -----------------------------------------------------------------------------
     ST_TRIPLESUPPORT_LEFT_HAND_SEEKING_CONTACT = rfsm.state{
         entry=function()
-            print("ST_TRIPLESUPPORT_LEFT_HAND_SEEKING_CONTACT entry.")
+            print("[codycoCoordinatorDemo1Y][rFSM] ST_TRIPLESUPPORT_LEFT_HAND_SEEKING_CONTACT entry.")
         end
     },
 
@@ -43,7 +43,7 @@ return rfsm.state {
     -----------------------------------------------------------------------------
     ST_TRIPLESUPPORT_RIGHT_HAND_SEEKING_CONTACT = rfsm.state{
         entry=function()
-            print("ST_TRIPLESUPPORT_RIGHT_HAND_SEEKING_CONTACT entry.")
+            print("[codycoCoordinatorDemo1Y][rFSM] ST_TRIPLESUPPORT_RIGHT_HAND_SEEKING_CONTACT entry.")
         end
     },
 
@@ -55,7 +55,7 @@ return rfsm.state {
     -----------------------------------------------------------------------------
     ST_QUADRUPLESUPPORT_STABLE = rfsm.state{
         entry=function()
-            print("ST_QUADRUPLESUPPORT_STABLE entry.")
+            print("[codycoCoordinatorDemo1Y][rFSM] ST_QUADRUPLESUPPORT_STABLE entry.")
         end
     },
 
@@ -63,7 +63,13 @@ return rfsm.state {
     -- setting the transitions      --
     ----------------------------------
 
-    rfsm.transition { src='initial', tgt='ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT' },
+    -- Initial transition
+    rfsm.transition { src='initial', tgt='ST_DOUBLESUPPORT_STABLE' },
+    
+    -- Time transition
+    rfsm.transition { src='ST_DOUBLESUPPORT_STABLE', tgt='ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT', events={ 'e_after(' .. fsm_simple_balancing_time .. ')' } },
+    
+    -- Skin transitions 
     rfsm.transition { src='ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT', tgt='ST_TRIPLESUPPORT_LEFT_HAND_SEEKING_CONTACT', events={ 'e_contacts_only_on_right_hand' } },
     rfsm.transition { src='ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT', tgt='ST_TRIPLESUPPORT_RIGHT_HAND_SEEKING_CONTACT', events={ 'e_contacts_only_on_left_hand' } },
     rfsm.transition { src='ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT', tgt='ST_QUADRUPLESUPPORT_STABLE', events={ 'e_contacts_on_both_hands' } },
