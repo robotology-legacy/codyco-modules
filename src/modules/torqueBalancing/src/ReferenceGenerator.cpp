@@ -217,7 +217,11 @@ namespace codyco {
         
         void ReferenceGenerator::limitIntegral(const Eigen::Ref<Eigen::VectorXd>& integral, Eigen::Ref<Eigen::VectorXd> limitedIntegral)
         {
-            limitedIntegral = integral.array().cwiseMin(m_integralLimit).cwiseMax(-m_integralLimit).matrix();
+//            limitedIntegral = integral.array().cwiseMin(m_integralLimit).cwiseMax(-m_integralLimit).matrix();
+            for (int i = 0; i < integral.rows(); i++) {
+                limitedIntegral(i) = integral(i) > m_integralLimit ? m_integralLimit
+                : (integral(i) < -m_integralLimit ? -m_integralLimit : integral(i));
+            }
         }
         
         void ReferenceGenerator::setAllGains(const Eigen::VectorXd& proportionalGains,
