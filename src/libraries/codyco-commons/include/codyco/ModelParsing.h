@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2014 RobotCub Consortium
- * Author: Francesco Romano
+ * Copyright (C) 2014 Istituto Italiano di Tecnologia
+ * Author: Silvio Traversaro
  *
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -15,12 +15,27 @@
  * Public License for more details
  */
 
-#ifndef CODYCOLIB_COMMONS_H
-#define CODYCOLIB_COMMONS_H
+#ifndef CODYCOLIB_MODELPARSING_H
+#define CODYCOLIB_MODELPARSING_H
 
-#include "MathUtils.h"
-#include "Utils.h"
-#include "LockGuard.h"
-#include "ModelParsing.h"
+namespace yarp {
+    namespace os {
+        class ResourceFinder;
+    }
+}
+
+namespace iCub {
+    namespace iDynTree {
+        class iCubTree_version_tag;
+    }
+}
+
+namespace codyco
+{
+    bool iCubVersionFromRf(yarp::os::ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag & icub_version);
+
+    void iCubPartVersionOptionsPrint();
+}
+
 
 #endif
