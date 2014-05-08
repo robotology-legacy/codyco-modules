@@ -1,5 +1,5 @@
 # Copyright (C) 2014 Fondazione Istituto Italiano di Tecnologia
-# Author: Francesco Romano, 
+# Author: Francesco Romano,
 # CopyPolicy: Released under the terms of the GNU GPL v2.0 or any later version.
 
 cmake_minimum_required(VERSION 2.8)
@@ -33,16 +33,18 @@ set(SOURCES    ${SRC_FOLDER}/TorqueBalancingModule.cpp
                ${SRC_FOLDER}/config.cpp
                ${SRC_FOLDER}/Reference.cpp
                ${SRC_FOLDER}/main.cpp)
-                               
+
 source_group("Source Files" FILES ${SOURCES})
 source_group("Header Files" FILES ${HEADERS})
 
-ifdef(${CODYCO_USES_URDFDOM})
+if(${CODYCO_USES_URDFDOM})
 include_directories(${HEADERS_FOLDER}
                     ${codyco_commons_INCLUDE_DIRS}
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
+                    ${orocos_kdl_INCLUDE_DIRS}
+                    ${kdl_codyco_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
@@ -53,6 +55,8 @@ include_directories(${HEADERS_FOLDER}
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
+                    ${orocos_kdl_INCLUDE_DIRS}
+                    ${kdl_codyco_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
                     ${YARP_INCLUDE_DIRS})
@@ -60,7 +64,7 @@ endif()
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
-target_link_libraries(  ${PROJECT_NAME} 
+target_link_libraries(  ${PROJECT_NAME}
                         codyco_commons
                         wholeBodyInterface
                         wholeBodyInterfaceIcub
