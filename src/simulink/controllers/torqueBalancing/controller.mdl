@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.827"
+    ComputedModelVersion    "1.856"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -21,7 +21,7 @@ Model {
   MinMaxOverflowArchiveMode "Overwrite"
   FPTRunName		  "Run 1"
   MaxMDLFileLineLength	  120
-  InitFcn		  "initRov14;"
+  InitFcn		  "initTorqueBalancing;"
   Object {
     $PropName		    "BdWindowsInfo"
     $ObjectID		    1
@@ -50,7 +50,7 @@ Model {
       }
       Array {
 	Type			"Simulink.EditorInfo"
-	Dimension		3
+	Dimension		2
 	Object {
 	  $ObjectID		  5
 	  IsActive		  [1]
@@ -58,7 +58,7 @@ Model {
 	  LoadSaveID		  "61"
 	  Extents		  [1369.0, 993.0]
 	  ZoomFactor		  [1.0]
-	  Offset		  [74.918383448049156, 192.58303813705911]
+	  Offset		  [945.90418087470414, -279.14018244142608]
 	}
 	Object {
 	  $ObjectID		  6
@@ -68,15 +68,6 @@ Model {
 	  Extents		  [1369.0, 993.0]
 	  ZoomFactor		  [1.0]
 	  Offset		  [0.0, 0.0]
-	}
-	Object {
-	  $ObjectID		  7
-	  IsActive		  [0]
-	  ViewObjType		  "SimulinkSubsys"
-	  LoadSaveID		  "359"
-	  Extents		  [1369.0, 993.0]
-	  ZoomFactor		  [1.0]
-	  Offset		  [-512.0, -291.5]
 	}
 	PropName		"EditorsInfo"
       }
@@ -88,9 +79,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "daniele"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Tue May 06 18:55:39 2014"
-  RTWModifiedTimeStamp	  321300804
-  ModelVersionFormat	  "1.%<AutoIncrement:827>"
+  LastModifiedDate	  "Thu May 08 09:40:38 2014"
+  RTWModifiedTimeStamp	  321395118
+  ModelVersionFormat	  "1.%<AutoIncrement:856>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  on
@@ -125,7 +116,7 @@ Model {
   TryForcingSFcnDF	  off
   Object {
     $PropName		    "DataLoggingOverride"
-    $ObjectID		    8
+    $ObjectID		    7
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "controller"
     signals_		    []
@@ -185,13 +176,13 @@ Model {
     Type		    "Handle"
     Dimension		    1
     Simulink.ConfigSet {
-      $ObjectID		      9
+      $ObjectID		      8
       Version		      "1.12.1"
       Array {
 	Type			"Handle"
 	Dimension		8
 	Simulink.SolverCC {
-	  $ObjectID		  10
+	  $ObjectID		  9
 	  Version		  "1.12.1"
 	  StartTime		  "0.0"
 	  StopTime		  "inf"
@@ -226,7 +217,7 @@ Model {
 	  InsertRTBMode		  "Whenever possible"
 	}
 	Simulink.DataIOCC {
-	  $ObjectID		  11
+	  $ObjectID		  10
 	  Version		  "1.12.1"
 	  Decimation		  "1"
 	  ExternalInput		  "[t, u]"
@@ -258,7 +249,7 @@ Model {
 	  Refine		  "1"
 	}
 	Simulink.OptimizationCC {
-	  $ObjectID		  12
+	  $ObjectID		  11
 	  Version		  "1.12.1"
 	  Array {
 	    Type		    "Cell"
@@ -314,7 +305,7 @@ Model {
 	  ParallelExecutionInRapidAccelerator on
 	}
 	Simulink.DebuggingCC {
-	  $ObjectID		  13
+	  $ObjectID		  12
 	  Version		  "1.12.1"
 	  RTPrefix		  "error"
 	  ConsistencyChecking	  "none"
@@ -404,7 +395,7 @@ Model {
 	  SFTransitionActionBeforeConditionDiag	"warning"
 	}
 	Simulink.HardwareCC {
-	  $ObjectID		  14
+	  $ObjectID		  13
 	  Version		  "1.12.1"
 	  ProdBitPerChar	  8
 	  ProdBitPerShort	  16
@@ -441,7 +432,7 @@ Model {
 	  ProdEqTarget		  on
 	}
 	Simulink.ModelReferenceCC {
-	  $ObjectID		  15
+	  $ObjectID		  14
 	  Version		  "1.12.1"
 	  UpdateModelReferenceTargets "IfOutOfDateOrStructuralChange"
 	  CheckModelReferenceTargetMessage "error"
@@ -456,7 +447,7 @@ Model {
 	  SupportModelReferenceSimTargetCustomCode off
 	}
 	Simulink.SFSimCC {
-	  $ObjectID		  16
+	  $ObjectID		  15
 	  Version		  "1.12.1"
 	  SFSimEnableDebug	  on
 	  SFSimOverflowDetection  on
@@ -471,7 +462,7 @@ Model {
 	}
 	Simulink.RTWCC {
 	  $BackupClass		  "Simulink.RTWCC"
-	  $ObjectID		  17
+	  $ObjectID		  16
 	  Version		  "1.12.1"
 	  Array {
 	    Type		    "Cell"
@@ -540,7 +531,7 @@ Model {
 	    Type		    "Handle"
 	    Dimension		    2
 	    Simulink.CodeAppCC {
-	      $ObjectID		      18
+	      $ObjectID		      17
 	      Version		      "1.12.1"
 	      Array {
 		Type			"Cell"
@@ -608,7 +599,7 @@ Model {
 	    }
 	    Simulink.GRTTargetCC {
 	      $BackupClass	      "Simulink.TargetCC"
-	      $ObjectID		      19
+	      $ObjectID		      18
 	      Version		      "1.12.1"
 	      Array {
 		Type			"Cell"
@@ -697,11 +688,11 @@ Model {
   }
   Simulink.ConfigSet {
     $PropName		    "ActiveConfigurationSet"
-    $ObjectID		    9
+    $ObjectID		    8
   }
   Object {
     $PropName		    "DataTransfer"
-    $ObjectID		    20
+    $ObjectID		    19
     $ClassName		    "Simulink.GlobalDataTransfer"
     DefaultTransitionBetweenSyncTasks "Ensure deterministic transfer (maximum delay)"
     DefaultTransitionBetweenAsyncTasks "Ensure data integrity only"
@@ -1004,7 +995,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "402"
+    SIDHighWatermark	    "408"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
@@ -1022,27 +1013,27 @@ Model {
       MaskHideContents	      off
       Object {
 	$PropName		"MaskObject"
-	$ObjectID		21
+	$ObjectID		20
 	$ClassName		"Simulink.Mask"
 	Array {
 	  Type			  "Simulink.MaskParameter"
 	  Dimension		  3
 	  Object {
-	    $ObjectID		    22
+	    $ObjectID		    21
 	    Type		    "edit"
 	    Name		    "robotName"
 	    Prompt		    "robot name"
 	    Value		    "'iCubGenova03'"
 	  }
 	  Object {
-	    $ObjectID		    23
+	    $ObjectID		    22
 	    Type		    "edit"
 	    Name		    "Ts"
 	    Prompt		    "Ts"
 	    Value		    "0.01"
 	  }
 	  Object {
-	    $ObjectID		    24
+	    $ObjectID		    23
 	    Type		    "edit"
 	    Name		    "localName"
 	    Prompt		    "module name"
@@ -1202,7 +1193,7 @@ Model {
 	  Position		  [1410, 613, 1495, 707]
 	  ZOrder		  113
 	  Floating		  off
-	  Location		  [2, 61, 1289, 801]
+	  Location		  [4, 77, 1291, 817]
 	  Open			  off
 	  NumInputPorts		  "3"
 	  List {
@@ -1244,42 +1235,6 @@ Model {
 	  SampleTime		  "Ts"
 	  ICPrevOutput		  "DiscIntNeverNeededParam"
 	  ICPrevScaledInput	  "DiscIntNeverNeededParam"
-	}
-	Block {
-	  BlockType		  Scope
-	  Name			  "ErrorTau"
-	  SID			  "330"
-	  Ports			  [5]
-	  Position		  [1865, 261, 1905, 349]
-	  ZOrder		  130
-	  Floating		  off
-	  Location		  [1441, 88, 3041, 1199]
-	  Open			  off
-	  NumInputPorts		  "5"
-	  List {
-	    ListType		    AxesTitles
-	    axes1		    "%<SignalLabel>"
-	    axes2		    "%<SignalLabel>"
-	    axes3		    "%<SignalLabel>"
-	    axes4		    "%<SignalLabel>"
-	    axes5		    "%<SignalLabel>"
-	  }
-	  List {
-	    ListType		    ScopeGraphics
-	    FigureColor		    "[0.5 0.5 0.5]"
-	    AxesColor		    "[0 0 0]"
-	    AxesTickColor	    "[1 1 1]"
-	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	    LineStyles		    "-|-|-|-|-|-"
-	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
-	    MarkerStyles	    "none|none|none|none|none|none"
-	  }
-	  ShowLegends		  off
-	  YMin			  "-12~-5~-5~-5~-5"
-	  YMax			  "12~5~5~5~5"
-	  DataFormat		  "StructureWithTime"
-	  LimitDataPoints	  off
-	  SampleTime		  "0"
 	}
 	Block {
 	  BlockType		  Gain
@@ -1363,10 +1318,11 @@ Model {
 	Block {
 	  BlockType		  Reference
 	  Name			  "Joint Torques"
-	  SID			  "303"
+	  SID			  "405"
 	  Ports			  [0, 1]
-	  Position		  [1375, 449, 1425, 481]
-	  ZOrder		  117
+	  Position		  [1498, 505, 1542, 575]
+	  ZOrder		  188
+	  BlockRotation		  270
 	  BackgroundColor	  "[1.000000, 0.634000, 0.268000]"
 	  ShowName		  off
 	  LibraryVersion	  "1.33"
@@ -1521,7 +1477,7 @@ Model {
 	  SFBlockType		  "MATLAB Function"
 	  Object {
 	    $PropName		    "MaskObject"
-	    $ObjectID		    25
+	    $ObjectID		    24
 	    $ClassName		    "Simulink.Mask"
 	    Type		    "Stateflow"
 	    Description		    "Embedded MATLAB block"
@@ -1814,7 +1770,7 @@ Model {
 	  Name			  "Set Torques"
 	  SID			  "402"
 	  Ports			  [1]
-	  Position		  [1660, 198, 1730, 242]
+	  Position		  [1605, 398, 1675, 442]
 	  ZOrder		  185
 	  BackgroundColor	  "[0.941000, 0.415000, 0.192000]"
 	  ShowName		  off
@@ -1828,102 +1784,24 @@ Model {
 	Block {
 	  BlockType		  Sum
 	  Name			  "Sum"
-	  SID			  "312"
+	  SID			  "406"
 	  Ports			  [2, 1]
-	  Position		  [1440, 400, 1470, 440]
-	  ZOrder		  120
+	  Position		  [1510, 465, 1530, 485]
+	  ZOrder		  189
 	  ShowName		  off
 	  IconShape		  "round"
-	  Inputs		  "|-+"
+	  Inputs		  "|+-"
 	  InputSameDT		  off
 	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
 	  SaturateOnIntegerOverflow off
-	}
-	Block {
-	  BlockType		  Sum
-	  Name			  "Sum1"
-	  SID			  "392"
-	  Ports			  [2, 1]
-	  Position		  [1580, 285, 1610, 325]
-	  ZOrder		  175
-	  ShowName		  off
-	  IconShape		  "round"
-	  Inputs		  "|++"
-	  InputSameDT		  off
-	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
-	  SaturateOnIntegerOverflow off
-	}
-	Block {
-	  BlockType		  Sum
-	  Name			  "Sum2"
-	  SID			  "393"
-	  Ports			  [2, 1]
-	  Position		  [1665, 285, 1695, 325]
-	  ZOrder		  176
-	  ShowName		  off
-	  IconShape		  "round"
-	  Inputs		  "|-+"
-	  InputSameDT		  off
-	  OutDataTypeStr	  "Inherit: Inherit via internal rule"
-	  SaturateOnIntegerOverflow off
-	}
-	Block {
-	  BlockType		  Scope
-	  Name			  "TauMeasured"
-	  SID			  "400"
-	  Ports			  [5]
-	  Position		  [1865, 371, 1905, 459]
-	  ZOrder		  184
-	  Floating		  off
-	  Location		  [9, 88, 1440, 1078]
-	  Open			  off
-	  NumInputPorts		  "5"
-	  List {
-	    ListType		    AxesTitles
-	    axes1		    "%<SignalLabel>"
-	    axes2		    "%<SignalLabel>"
-	    axes3		    "%<SignalLabel>"
-	    axes4		    "%<SignalLabel>"
-	    axes5		    "%<SignalLabel>"
-	  }
-	  List {
-	    ListType		    ScopeGraphics
-	    FigureColor		    "[0.5 0.5 0.5]"
-	    AxesColor		    "[0 0 0]"
-	    AxesTickColor	    "[1 1 1]"
-	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	    LineStyles		    "-|-|-|-|-|-"
-	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
-	    MarkerStyles	    "none|none|none|none|none|none"
-	  }
-	  ShowLegends		  off
-	  YMin			  "-12~-5~-5~-5~-5"
-	  YMax			  "12~5~5~5~5"
-	  SaveName		  "ScopeData5"
-	  DataFormat		  "StructureWithTime"
-	  LimitDataPoints	  off
-	  SampleTime		  "0"
 	}
 	Block {
 	  BlockType		  Reference
-	  Name			  "WBI to yarp1"
-	  SID			  "329"
+	  Name			  "WBI to yarp"
+	  SID			  "407"
 	  Ports			  [1, 5]
-	  Position		  [1710, 262, 1820, 348]
-	  ZOrder		  129
-	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
-	  ShowName		  off
-	  LibraryVersion	  "1.33"
-	  SourceBlock		  "WBCLibrary/Utilities/WBI to yarp"
-	  SourceType		  "WBI to YARP"
-	}
-	Block {
-	  BlockType		  Reference
-	  Name			  "WBI to yarp6"
-	  SID			  "401"
-	  Ports			  [1, 5]
-	  Position		  [1710, 372, 1820, 458]
-	  ZOrder		  183
+	  Position		  [1715, 432, 1825, 518]
+	  ZOrder		  190
 	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
 	  ShowName		  off
 	  LibraryVersion	  "1.33"
@@ -2219,7 +2097,7 @@ Model {
 	  SFBlockType		  "MATLAB Function"
 	  Object {
 	    $PropName		    "MaskObject"
-	    $ObjectID		    26
+	    $ObjectID		    25
 	    $ClassName		    "Simulink.Mask"
 	    Type		    "Stateflow"
 	    Description		    "Embedded MATLAB block"
@@ -2725,6 +2603,44 @@ Model {
 	  localName		  "localName"
 	}
 	Block {
+	  BlockType		  Scope
+	  Name			  "errorTau"
+	  SID			  "408"
+	  Ports			  [5]
+	  Position		  [1870, 435, 1925, 515]
+	  ZOrder		  191
+	  Floating		  off
+	  Location		  [2, 61, 1289, 801]
+	  Open			  on
+	  NumInputPorts		  "5"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	    axes2		    "%<SignalLabel>"
+	    axes3		    "%<SignalLabel>"
+	    axes4		    "%<SignalLabel>"
+	    axes5		    "%<SignalLabel>"
+	  }
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.501960784313725 0.501960784313725 0.501960784313725]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
+	  }
+	  ShowLegends		  off
+	  TimeRange		  "20"
+	  YMin			  "-12~-5~-5~-5~-5"
+	  YMax			  "6~5~5~5~5"
+	  SaveName		  "ScopeData1"
+	  DataFormat		  "StructureWithTime"
+	  LimitDataPoints	  off
+	  SampleTime		  "0"
+	}
+	Block {
 	  BlockType		  SubSystem
 	  Name			  "holder"
 	  SID			  "118"
@@ -3031,159 +2947,6 @@ Model {
 	  }
 	}
 	Block {
-	  BlockType		  SubSystem
-	  Name			  "holder2"
-	  SID			  "384"
-	  Ports			  [1, 1]
-	  Position		  [1520, 404, 1570, 436]
-	  ZOrder		  174
-	  ShowName		  off
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
-	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
-	  System {
-	    Name		    "holder2"
-	    Location		    [1531, 45, 3106, 1781]
-	    Open		    off
-	    ModelBrowserVisibility  on
-	    ModelBrowserWidth	    200
-	    ScreenColor		    "white"
-	    PaperOrientation	    "landscape"
-	    PaperPositionMode	    "auto"
-	    PaperType		    "usletter"
-	    PaperUnits		    "inches"
-	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
-	    TiledPageScale	    1
-	    ShowPageBoundaries	    off
-	    ZoomFactor		    "100"
-	    Block {
-	      BlockType		      Inport
-	      Name		      "s"
-	      SID		      "385"
-	      Position		      [80, 128, 110, 142]
-	      ZOrder		      -1
-	      IconDisplay	      "Port number"
-	    }
-	    Block {
-	      BlockType		      Clock
-	      Name		      "Clock"
-	      SID		      "386"
-	      Position		      [165, 45, 185, 65]
-	      ZOrder		      -2
-	    }
-	    Block {
-	      BlockType		      Reference
-	      Name		      "Compare\nTo Constant"
-	      SID		      "387"
-	      Ports		      [1, 1]
-	      Position		      [210, 40, 240, 70]
-	      ZOrder		      -3
-	      LibraryVersion	      "1.281"
-	      SourceBlock	      "simulink/Logic and Bit\nOperations/Compare\nTo Constant"
-	      SourceType	      "Compare To Constant"
-	      relop		      "=="
-	      const		      "0"
-	      OutDataTypeStr	      "boolean"
-	      ZeroCross		      on
-	    }
-	    Block {
-	      BlockType		      Memory
-	      Name		      "Memory"
-	      SID		      "388"
-	      Position		      [165, 120, 195, 150]
-	      ZOrder		      -4
-	    }
-	    Block {
-	      BlockType		      Reference
-	      Name		      "Sample\nand Hold"
-	      SID		      "389"
-	      Ports		      [1, 1, 0, 1]
-	      Position		      [230, 114, 305, 156]
-	      ZOrder		      -5
-	      LibraryVersion	      "1.726"
-	      SourceBlock	      "dspsigops/Sample\nand Hold"
-	      SourceType	      "Sample and Hold"
-	      trig		      "Falling edge"
-	      initCond		      "0"
-	      latchinput	      off
-	    }
-	    Block {
-	      BlockType		      Switch
-	      Name		      "Switch"
-	      SID		      "390"
-	      Position		      [405, 100, 455, 140]
-	      ZOrder		      -6
-	      Criteria		      "u2 > Threshold"
-	      InputSameDT	      off
-	      SaturateOnIntegerOverflow	off
-	    }
-	    Block {
-	      BlockType		      Outport
-	      Name		      "s(0)"
-	      SID		      "391"
-	      Position		      [480, 113, 510, 127]
-	      ZOrder		      -7
-	      IconDisplay	      "Port number"
-	    }
-	    Line {
-	      SrcBlock		      "s"
-	      SrcPort		      1
-	      Points		      [15, 0]
-	      Branch {
-		Points			[0, -105; 260, 0]
-		DstBlock		"Switch"
-		DstPort			1
-	      }
-	      Branch {
-		DstBlock		"Memory"
-		DstPort			1
-	      }
-	    }
-	    Line {
-	      SrcBlock		      "Clock"
-	      SrcPort		      1
-	      DstBlock		      "Compare\nTo Constant"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "Compare\nTo Constant"
-	      SrcPort		      1
-	      Points		      [20, 0; 0, 20]
-	      Branch {
-		DstBlock		"Sample\nand Hold"
-		DstPort			trigger
-	      }
-	      Branch {
-		Points			[75, 0; 0, 45]
-		DstBlock		"Switch"
-		DstPort			2
-	      }
-	    }
-	    Line {
-	      SrcBlock		      "Sample\nand Hold"
-	      SrcPort		      1
-	      DstBlock		      "Switch"
-	      DstPort		      3
-	    }
-	    Line {
-	      SrcBlock		      "Switch"
-	      SrcPort		      1
-	      DstBlock		      "s(0)"
-	      DstPort		      1
-	    }
-	    Line {
-	      SrcBlock		      "Memory"
-	      SrcPort		      1
-	      DstBlock		      "Sample\nand Hold"
-	      DstPort		      1
-	    }
-	  }
-	}
-	Block {
 	  BlockType		  Constant
 	  Name			  "index1"
 	  SID			  "361"
@@ -3219,6 +2982,39 @@ Model {
 	  localname		  "localName"
 	}
 	Block {
+	  BlockType		  Scope
+	  Name			  "tau\n"
+	  SID			  "404"
+	  Ports			  [1]
+	  Position		  [1605, 313, 1660, 367]
+	  ZOrder		  187
+	  Floating		  off
+	  Location		  [2, 61, 1289, 801]
+	  Open			  off
+	  NumInputPorts		  "1"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	  }
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.5 0.5 0.5]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
+	  }
+	  ShowLegends		  off
+	  TimeRange		  "20"
+	  YMin			  "-12"
+	  YMax			  "6"
+	  DataFormat		  "StructureWithTime"
+	  LimitDataPoints	  off
+	  SampleTime		  "0"
+	}
+	Block {
 	  BlockType		  SubSystem
 	  Name			  "trajectoryGeneratorCoM"
 	  SID			  "70"
@@ -3240,7 +3036,7 @@ Model {
 	  SFBlockType		  "MATLAB Function"
 	  Object {
 	    $PropName		    "MaskObject"
-	    $ObjectID		    27
+	    $ObjectID		    26
 	    $ClassName		    "Simulink.Mask"
 	    Type		    "Stateflow"
 	    Description		    "Embedded MATLAB block"
@@ -3645,83 +3441,6 @@ Model {
 	  DstPort		  9
 	}
 	Line {
-	  SrcBlock		  "Joint Torques"
-	  SrcPort		  1
-	  Points		  [25, 0]
-	  Branch {
-	    Points		    [225, 0; 0, -50]
-	    Branch {
-	      DstBlock		      "WBI to yarp6"
-	      DstPort		      1
-	    }
-	    Branch {
-	      DstBlock		      "Sum2"
-	      DstPort		      2
-	    }
-	  }
-	  Branch {
-	    DstBlock		    "Sum"
-	    DstPort		    2
-	  }
-	}
-	Line {
-	  SrcBlock		  "WBI to yarp1"
-	  SrcPort		  1
-	  DstBlock		  "ErrorTau"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "WBI to yarp1"
-	  SrcPort		  2
-	  DstBlock		  "ErrorTau"
-	  DstPort		  2
-	}
-	Line {
-	  SrcBlock		  "WBI to yarp1"
-	  SrcPort		  3
-	  DstBlock		  "ErrorTau"
-	  DstPort		  3
-	}
-	Line {
-	  SrcBlock		  "WBI to yarp1"
-	  SrcPort		  4
-	  DstBlock		  "ErrorTau"
-	  DstPort		  4
-	}
-	Line {
-	  SrcBlock		  "Sum"
-	  SrcPort		  1
-	  DstBlock		  "holder2"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "WBI to yarp1"
-	  SrcPort		  5
-	  DstBlock		  "ErrorTau"
-	  DstPort		  5
-	}
-	Line {
-	  SrcBlock		  "controllerMatlab"
-	  SrcPort		  1
-	  Points		  [94, 0]
-	  Branch {
-	    Points		    [0, -115]
-	    Branch {
-	      DstBlock		      "Sum1"
-	      DstPort		      1
-	    }
-	    Branch {
-	      Points		      [0, -85]
-	      DstBlock		      "Set Torques"
-	      DstPort		      1
-	    }
-	  }
-	  Branch {
-	    DstBlock		    "Sum"
-	    DstPort		    1
-	  }
-	}
-	Line {
 	  SrcBlock		  "Joint Limits1"
 	  SrcPort		  1
 	  DstBlock		  "MATLAB Function"
@@ -3852,52 +3571,64 @@ Model {
 	  DstPort		  18
 	}
 	Line {
-	  SrcBlock		  "holder2"
+	  SrcBlock		  "controllerMatlab"
 	  SrcPort		  1
-	  Points		  [20, 0]
-	  DstBlock		  "Sum1"
+	  Points		  [184, 0]
+	  Branch {
+	    Points		    [0, 55]
+	    DstBlock		    "Sum"
+	    DstPort		    1
+	  }
+	  Branch {
+	    DstBlock		    "Set Torques"
+	    DstPort		    1
+	  }
+	  Branch {
+	    Points		    [0, -80]
+	    DstBlock		    "tau\n"
+	    DstPort		    1
+	  }
+	}
+	Line {
+	  SrcBlock		  "Joint Torques"
+	  SrcPort		  1
+	  DstBlock		  "Sum"
 	  DstPort		  2
 	}
 	Line {
-	  SrcBlock		  "Sum1"
+	  SrcBlock		  "Sum"
 	  SrcPort		  1
-	  DstBlock		  "Sum2"
+	  DstBlock		  "WBI to yarp"
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "Sum2"
+	  SrcBlock		  "WBI to yarp"
 	  SrcPort		  1
-	  DstBlock		  "WBI to yarp1"
+	  DstBlock		  "errorTau"
 	  DstPort		  1
 	}
 	Line {
-	  SrcBlock		  "WBI to yarp6"
-	  SrcPort		  1
-	  DstBlock		  "TauMeasured"
-	  DstPort		  1
-	}
-	Line {
-	  SrcBlock		  "WBI to yarp6"
+	  SrcBlock		  "WBI to yarp"
 	  SrcPort		  2
-	  DstBlock		  "TauMeasured"
+	  DstBlock		  "errorTau"
 	  DstPort		  2
 	}
 	Line {
-	  SrcBlock		  "WBI to yarp6"
+	  SrcBlock		  "WBI to yarp"
 	  SrcPort		  3
-	  DstBlock		  "TauMeasured"
+	  DstBlock		  "errorTau"
 	  DstPort		  3
 	}
 	Line {
-	  SrcBlock		  "WBI to yarp6"
+	  SrcBlock		  "WBI to yarp"
 	  SrcPort		  4
-	  DstBlock		  "TauMeasured"
+	  DstBlock		  "errorTau"
 	  DstPort		  4
 	}
 	Line {
-	  SrcBlock		  "WBI to yarp6"
+	  SrcBlock		  "WBI to yarp"
 	  SrcPort		  5
-	  DstBlock		  "TauMeasured"
+	  DstBlock		  "errorTau"
 	  DstPort		  5
 	}
       }
@@ -3958,10 +3689,8 @@ Stateflow {
     eml {
       isEML		      1
       script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;1;0];\nA = 0.02;\nf "
-      "= 0.05;\n% t = t*0.8;\n% xcomDes    = [xCom0(1:2); (1/A-1)*A*xCom0(3)] + A*xCom0(3)*cos(2*pi*f*t)*e3;\n% xDcomDe"
-      "s   = -xCom0(3)*A*2*pi*f*sin(2*pi*f*t)*e3;\n% xDDcomDes  = -xCom0(3)*A*(2*pi*f)^2*cos(2*pi*f*t)*e3;\n\nxcomDes  "
-      "  = xCom0 + A*sin(2*pi*f*t)*e3;\n% xcomDes(1) =  xcomDes(1) + 0.02;\nxDcomDes   =         A*2*pi*f*cos(2*pi*f*t)"
-      "*e3;\nxDDcomDes  =        -A*(2*pi*f)^2*sin(2*pi*f*t)*e3;"
+      "= 0.04;\n\nxcomDes    = xCom0 + A*sin(2*pi*f*t)*e3;\nxcomDes(1) =  xcomDes(1) + 0.01;\nxDcomDes   =         A*2*"
+      "pi*f*cos(2*pi*f*t)*e3;\nxDDcomDes  =        -A*(2*pi*f)^2*sin(2*pi*f*t)*e3;"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
