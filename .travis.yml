@@ -21,6 +21,7 @@ install:
 
 before_script:
   - cmake --version
+  - cd .. 
     #eigen 3.2 support
   - hg clone https://bitbucket.org/eigen/eigen/
   - cd eigen
@@ -65,6 +66,7 @@ before_script:
   - sudo make install
   - cd ../..
   # Prepare codyco build
+  - cd codyco
   - mkdir build
   - cd build
   - cmake -DCODYCO_BUILD_TESTS:BOOL=ON -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} -DCODYCO_TRAVIS_CI:BOOL=ON -DCODYCO_USES_URDFDOM:BOOL=ON ..
