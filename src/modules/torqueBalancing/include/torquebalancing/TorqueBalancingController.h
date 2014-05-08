@@ -55,7 +55,7 @@ namespace codyco {
             double centroidalMomentumGain();
             
             /** Sets the gain to be used in the centroidal momentum computation
-             * @param centroidalMomentumGain
+             * @param centroidalMomentumGain the new centroidal momentum gain
              */
             void setCentroidalMomentumGain(double centroidalMomentumGain);
             
@@ -120,49 +120,48 @@ namespace codyco {
             
             //References
             ControllerReferences& m_references;
-            Eigen::VectorXd m_desiredJointsConfiguration;
-            Eigen::VectorXd m_internal_desiredJointsConfiguration;
+            Eigen::VectorXd m_desiredJointsConfiguration; /*!< actuatedDOFs */
+            Eigen::VectorXd m_internal_desiredJointsConfiguration; /*!< actuatedDOFs */
             
             //Gains
             double m_centroidalMomentumGain;
             double m_internal_centroidalMomentumGain;
-            Eigen::VectorXd m_impedanceGains;
-            Eigen::VectorXd m_internal_impedanceGains;
+            Eigen::VectorXd m_impedanceGains; /*!< actuatedDOFs */
+            Eigen::VectorXd m_internal_impedanceGains; /*!< actuatedDOFs */
 
-//TODO: migrate to dynamic matrices. The constructor already support dynamic matrices. I postpone the task in order to have compile time support to matrix size
             //references
             Eigen::Vector3d m_desiredCOMAcceleration;
-            Eigen::Matrix<double, 12, 1> m_desiredFeetForces;
-            Eigen::Matrix<double, 6, 1> m_desiredCentroidalMomentum;
+            Eigen::VectorXd m_desiredFeetForces; /*!< 12 */
+            Eigen::VectorXd m_desiredCentroidalMomentum;  /*!< 6 */
             
             //state of the robot
-            Eigen::Matrix<double, TOTAL_DOFS, 1> m_jointPositions;
-            Eigen::Matrix<double, TOTAL_DOFS, 1> m_jointVelocities;
-            Eigen::Matrix<double, ACTUATED_DOFS, 1> m_torques;
-            Eigen::Matrix<double, 6, 1> m_baseVelocity;
+            Eigen::VectorXd m_jointPositions;  /*!< totalDOFs */
+            Eigen::VectorXd m_jointVelocities;  /*!< totalDOFs */
+            Eigen::VectorXd m_torques; /*!< actuatedDOFs */
+            Eigen::VectorXd m_baseVelocity; /*!< 6 */
             Eigen::Vector3d m_centerOfMassPosition;
-            Eigen::Matrix<double, 7, 1> m_rightFootPosition;
-            Eigen::Matrix<double, 7, 1> m_leftFootPosition;
+            Eigen::VectorXd m_rightFootPosition; /*!< 7 */
+            Eigen::VectorXd m_leftFootPosition; /*!< 7 */
             
             //Jacobians
-            Eigen::Matrix<double, 6 + 6, TOTAL_DOFS> m_feetJacobian;
-            Eigen::Matrix<double, 6 + 6, 1> m_feetDJacobianDq;
+            Eigen::MatrixXd m_feetJacobian; /*!< 12 x totalDOFs */
+            Eigen::VectorXd m_feetDJacobianDq; /*!< 12 */
             
             //Kinematic and dynamic variables
-            Eigen::Matrix<double, TOTAL_DOFS, TOTAL_DOFS> m_massMatrix;
-            Eigen::Matrix<double, TOTAL_DOFS, 1> m_generalizedBiasForces;
-            Eigen::Matrix<double, TOTAL_DOFS, 1> m_gravityBiasTorques;
-            Eigen::Matrix<double, 6, 1> m_centroidalMomentum;
+            Eigen::MatrixXd m_massMatrix; /*!< totalDOFs x totalDOFs */
+            Eigen::VectorXd m_generalizedBiasForces; /*!< totalDOFs */
+            Eigen::VectorXd m_gravityBiasTorques; /*!< totalDOFs */
+            Eigen::VectorXd m_centroidalMomentum; /*!< 6 */
             
             //variables used in computation.
-            Eigen::Matrix<double, ACTUATED_DOFS, 12> m_pseudoInverseOfJcMInvSt;
-            Eigen::Matrix<double, 6, 12> m_centroidalForceMatrix;
-            Eigen::Matrix<double, 6, 1> m_gravityForce;
-            Eigen::Matrix<double, TOTAL_DOFS, ACTUATED_DOFS> m_torquesSelector;
+            Eigen::MatrixXd m_pseudoInverseOfJcMInvSt; /*!< actuatedDOFs x 12 */
+            Eigen::MatrixXd m_centroidalForceMatrix; /*!< 6 x 12 */
+            Eigen::VectorXd m_gravityForce; /*!< 6 */
+            Eigen::MatrixXd m_torquesSelector; /*!< totalDOFs x actuatedDOFs */
             
             //constant auxiliary variables
             double m_gravityUnitVector[3];
-            Eigen::Matrix<double, 7, 1> m_rotoTranslationVector;
+            Eigen::Matrix<double, 7, 1> m_rotoTranslationVector; /*!< 7 */
             
         };
     }

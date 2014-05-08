@@ -248,7 +248,7 @@ namespace codyco {
             MatrixXd JcMInv = m_feetJacobian * m_massMatrix.inverse();
             MatrixXd JcMInvTorqueSelector = JcMInv * m_torquesSelector;
             
-            math::pseudoInverse(JcMInvTorqueSelector, 1e-5, m_pseudoInverseOfJcMInvSt);
+            math::pseudoInverse(JcMInvTorqueSelector, PseudoInverseTolerance, m_pseudoInverseOfJcMInvSt);
             MatrixXd nullSpaceProjector = MatrixXd::Identity(actuatedDOFs, actuatedDOFs) - m_pseudoInverseOfJcMInvSt * JcMInvTorqueSelector;
                         
             m_torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_feetDJacobianDq - JcMInv * m_feetJacobian.transpose() * desiredFeetForces);

@@ -20,7 +20,7 @@ namespace codyco {
     namespace torquebalancing {
         const int actuatedDOFs = 25;
         const int totalDOFs = actuatedDOFs + 6;
-        const int PseudoInverseTolerance = 1e-5;
+        const double PseudoInverseTolerance = 1e-5;
         
         
     }

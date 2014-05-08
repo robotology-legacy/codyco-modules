@@ -17,27 +17,13 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define ACTUATED_DOFS 25
-#define TOTAL_DOFS 31
-
-
 namespace codyco {
     namespace torquebalancing {
-        //cannot use extern on the template.. this is quite strange. To be investigated.
         extern const int actuatedDOFs; /*!< number of actuated degree of freedom */
         extern const int totalDOFs; /*!< total number of degree of freedom. For a floating base robot this is usually the number of actuated joints plus 6 fictitious joints*/
-        extern const int PseudoInverseTolerance;
+        extern const double PseudoInverseTolerance;
         
     }
 }
-
-//namespace Eigen {
-//    template<typename _Scalar, int _Rows, int _Cols>
-//    class Matrix;
-//    
-//    typedef Eigen::Matrix<double, TOTAL_DOFS, 1> JointVector;
-//    typedef Eigen::Matrix<double, ACTUATED_DOFS, 1> ActuatedVector;
-//}
-
 
 #endif //CONFIG_H
