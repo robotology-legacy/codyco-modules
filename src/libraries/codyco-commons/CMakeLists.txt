@@ -33,9 +33,16 @@ source_group("Header Files" FILES ${HEADERS})
 
 include_directories(include/codyco
                     ${EIGEN3_INCLUDE_DIR}
+                    ${YARP_INCLUDE_DIRS}
+                    ${iDynTree_INCLUDE_DIRS}
+                    ${kdl_codyco_INCLUDE_DIRS}
+                    ${orocos_kdl_INCLUDE_DIRS}
+                    ${skinDynLib_INCLUDE_DIRS}
+                    ${ctrlLib_INCLUDE_DIRS}
+                    ${EIGEN3_INCLUDE_DIR} #this should not be needed if we do not explicitly use it in the module
                     ${YARP_INCLUDE_DIRS})
 
-add_library(${PROJECT_NAME} SHARED ${SRCS} ${HEADERS})
+add_library(${PROJECT_NAME} ${SRCS} ${HEADERS})
 
 target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
 
