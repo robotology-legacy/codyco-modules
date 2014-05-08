@@ -32,6 +32,7 @@ namespace codyco {
         class ReferenceGeneratorInputReader;
         class Reference;
         
+        //TODO: either change name to PIDController, or implement inside a sort of reference smoothing
         /** @class This class is responsible of generating a proper reference signal.
          *
          * This class is agnostic of the reference type and dimension.
@@ -189,6 +190,11 @@ namespace codyco {
              */
             const Eigen::VectorXd& computedReference();
             
+            /** Returns the instantaneous error between the signal reference and its measured value.
+             * @return the instantaneous error
+             */
+            const Eigen::VectorXd& instantaneousError();
+            
         private:
             
             void limitIntegral(const Eigen::Ref<Eigen::VectorXd>& integral, Eigen::Ref<Eigen::VectorXd> limitedIntegral);
@@ -198,6 +204,7 @@ namespace codyco {
             
             Eigen::VectorXd m_computedReference;
             Eigen::VectorXd m_integralTerm;
+            Eigen::VectorXd m_error;
             
             Eigen::VectorXd m_proportionalGains;
             Eigen::VectorXd m_derivativeGains;

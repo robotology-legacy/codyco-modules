@@ -375,7 +375,8 @@ namespace codyco {
         , m_handsForceIntegralGain(12)
         , m_handsForceIntegralLimit(std::numeric_limits<double>::max())
         , m_centroidalGain(0)
-        , m_monitoredDesiredCOMAcceleration(3) {}
+        , m_monitoredDesiredCOMAcceleration(3)
+        , m_monitoredCOMError(3) {}
         
         TorqueBalancingModule::ParamHelperManager::~ParamHelperManager()
         {
@@ -472,6 +473,7 @@ namespace codyco {
             if (!m_initialized) return false;
             bool linked = true;
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration, m_monitoredDesiredCOMAcceleration.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorCOMError, m_monitoredCOMError.data());
             return linked;
         }
         
@@ -502,8 +504,12 @@ namespace codyco {
             if ((foundController = m_module.m_referenceGenerators.find(TaskTypeCOM)) != m_module.m_referenceGenerators.end()) {
                 comGenerator = foundController->second;
             }
+
+            if (comGenerator) {
+                m_monitoredDesiredCOMAcceleration = comGenerator->computedReference();
+                m_monitoredCOMError = comGenerator->instantaneousError();
+            }
             
-            m_monitoredDesiredCOMAcceleration = comGenerator->computedReference();
             //send variables
             m_parameterServer->sendStreamParams();
             

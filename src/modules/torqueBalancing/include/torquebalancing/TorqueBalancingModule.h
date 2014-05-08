@@ -155,6 +155,7 @@ namespace codyco {
             
             //Monitored variables
             Eigen::VectorXd m_monitoredDesiredCOMAcceleration;
+            Eigen::VectorXd m_monitoredCOMError;
             
         public:
             ParamHelperManager(TorqueBalancingModule& module);

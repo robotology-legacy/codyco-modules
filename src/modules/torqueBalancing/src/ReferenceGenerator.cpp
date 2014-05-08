@@ -24,7 +24,6 @@
 namespace codyco {
     namespace torquebalancing {
         
-//TODO: add min jerk ?
 #pragma mark - ReferenceGenerator methods
         
         ReferenceGenerator::ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader)
@@ -33,6 +32,7 @@ namespace codyco {
         , m_reader(reader)
         , m_computedReference(reference.valueSize())
         , m_integralTerm(reader.signalSize())
+        , m_error(reader.signalSize())
         , m_proportionalGains(reader.signalSize())
         , m_derivativeGains(reader.signalSize())
         , m_integralGains(reader.signalSize())
@@ -79,13 +79,13 @@ namespace codyco {
                 double dt = now - m_previousTime;
                 
                 //compute pid
-                Eigen::VectorXd error = m_signalReference - m_reader.getSignal();
+                m_error = m_signalReference - m_reader.getSignal();
                 
-                m_integralTerm += dt * error;
+                m_integralTerm += dt * m_error;
                 limitIntegral(m_integralTerm, m_integralTerm);
                 
                 m_computedReference = m_signalFeedForward
-                + m_proportionalGains.asDiagonal() * error
+                + m_proportionalGains.asDiagonal() * m_error
                 + m_derivativeGains.asDiagonal() * (m_signalDerivativeReference - m_reader.getSignalDerivative())
                 + m_integralGains.asDiagonal() * m_integralTerm;
                 m_outputReference.setValue(m_computedReference);
@@ -238,6 +238,13 @@ namespace codyco {
         {
             codyco::LockGuard guard(m_mutex);
             return m_computedReference;
+        }
+        
+        const Eigen::VectorXd& ReferenceGenerator::instantaneousError()
+        {
+            codyco::LockGuard guard(m_mutex);
+            return m_error;
+            
         }
 
         

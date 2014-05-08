@@ -57,10 +57,11 @@ namespace codyco {
             TorqueBalancingModuleParameterCentroidalGain,
             //MonitoredVariables
             TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration,
+            TorqueBalancingModuleParameterMonitorCOMError,
             
         } TorqueBalancingModuleParameter;
         
-        static const int TorqueBalancingModuleParameterSize = 23;
+        static const int TorqueBalancingModuleParameterSize = 24;
         
         
         static const std::string defaultModuleName = "torqueBalancing";
@@ -108,6 +109,7 @@ namespace codyco {
             
             //Monitored variables
             new paramHelp::ParamProxyBasic<double>("desCOMAcc", TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Desired COM acceleration computed by the controller"),
+            new paramHelp::ParamProxyBasic<double>("comError", TorqueBalancingModuleParameterMonitorCOMError, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Instantaneous COM error"),
         };
         
         
