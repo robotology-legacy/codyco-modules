@@ -175,6 +175,11 @@ namespace codyco {
                 return false;
             }
             
+            //load initial configuration for the impedance control
+            Eigen::VectorXd positions(actuatedDOFs);
+            m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, positions.data());
+            m_controller->setDesiredJointsConfiguration(positions);
+            
             bool threadsStarted = true;
             
             for (std::map<TaskType, ReferenceGenerator*>::iterator it = m_referenceGenerators.begin(); it != m_referenceGenerators.end(); it++) {
@@ -375,6 +380,7 @@ namespace codyco {
         , m_handsForceIntegralGain(12)
         , m_handsForceIntegralLimit(std::numeric_limits<double>::max())
         , m_centroidalGain(0)
+        , m_impedanceControlGains(actuatedDOFs)
         , m_monitoredDesiredCOMAcceleration(3)
         , m_monitoredCOMError(3) {}
         
@@ -460,10 +466,11 @@ namespace codyco {
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsForceIntegralGain, this);
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceIntegralLimit, &m_handsForceIntegralLimit)
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsForceIntegralLimit, this);
-            //Centroidal moment
+            //Centroidal moment / Gains
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCentroidalGain, &m_centroidalGain)
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCentroidalGain, this);
-            
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterImpedanceGain, m_impedanceControlGains.data())
+            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterImpedanceGain, this);
             
             return linked;
         }
@@ -661,9 +668,12 @@ namespace codyco {
                         foundController->second->setIntegralLimit(m_handsForceIntegralLimit);
                     }
                     break;
-                //Centroidal
+                //Centroidal and gains
                 case TorqueBalancingModuleParameterCentroidalGain:
                     m_module.m_controller->setCentroidalMomentumGain(m_centroidalGain);
+                    break;
+                case TorqueBalancingModuleParameterImpedanceGain:
+                    m_module.m_controller->setImpedanceGains(m_impedanceControlGains);
                     break;
             }
         }

@@ -49,8 +49,25 @@ namespace codyco {
             
 #pragma mark - Getter and setter
             
+            /** Returns the currently used gain in the centroidal momentum computation
+             * @return the centroidal momentum gain
+             */
             double centroidalMomentumGain();
+            
+            /** Sets the gain to be used in the centroidal momentum computation
+             * @param centroidalMomentumGain
+             */
             void setCentroidalMomentumGain(double centroidalMomentumGain);
+            
+            /** Returns the gains used in the impedance control
+             * @return the gains for the impedance control
+             */
+            const Eigen::VectorXd& impedanceGains();
+            
+            /** Sets the new gains to be used in the impedance control
+             * @param impedanceGains the new gains for the impedance control
+             */
+            void setImpedanceGains(Eigen::VectorXd& impedanceGains);
             
             /** Sets the state of the controller.
              *
@@ -63,6 +80,18 @@ namespace codyco {
              * @return true if the controller is active. False otherwise.
              */
             bool isActiveState();
+            
+            /** Returns the currently used desired joints configuration
+             *  for the impedance/postural task.
+             * @return the currently used desired joints configuration
+             */
+            const Eigen::VectorXd& desiredJointsConfiguration();
+
+            /** Sets the new desired joints configuration
+             *  for the impedance/postural task.
+             * @param desiredJointsConfiguration the new desired joints configuration
+             */
+            void setDesiredJointsConfiguration(Eigen::VectorXd& desiredJointsConfiguration);
             
 #pragma mark - Monitorable variables
             
@@ -89,10 +118,16 @@ namespace codyco {
             int m_rightFootLinkID;
             int m_centerOfMassLinkID;
             
+            //References
             ControllerReferences& m_references;
+            Eigen::VectorXd m_desiredJointsConfiguration;
+            Eigen::VectorXd m_internal_desiredJointsConfiguration;
             
             //Gains
             double m_centroidalMomentumGain;
+            double m_internal_centroidalMomentumGain;
+            Eigen::VectorXd m_impedanceGains;
+            Eigen::VectorXd m_internal_impedanceGains;
 
 //TODO: migrate to dynamic matrices. The constructor already support dynamic matrices. I postpone the task in order to have compile time support to matrix size
             //references
@@ -111,31 +146,21 @@ namespace codyco {
             
             //Jacobians
             Eigen::Matrix<double, 6 + 6, TOTAL_DOFS> m_feetJacobian;
-            Eigen::Matrix<double, 6 + 6, TOTAL_DOFS> m_feetDJacobianDq;
+            Eigen::Matrix<double, 6 + 6, 1> m_feetDJacobianDq;
             
             //Kinematic and dynamic variables
             Eigen::Matrix<double, TOTAL_DOFS, TOTAL_DOFS> m_massMatrix;
-            Eigen::Matrix<double, 6, 6> m_inverseBaseMassMatrix;
-            Eigen::Matrix<double, ACTUATED_DOFS, ACTUATED_DOFS> m_massMatrixSchurComplement;
             Eigen::Matrix<double, TOTAL_DOFS, 1> m_generalizedBiasForces;
+            Eigen::Matrix<double, TOTAL_DOFS, 1> m_gravityBiasTorques;
             Eigen::Matrix<double, 6, 1> m_centroidalMomentum;
             
             //variables used in computation.
-            //variables names (when possible) are taken from the [DelPrete 2013] PhD thesis
-            Eigen::Matrix<double, TOTAL_DOFS, ACTUATED_DOFS> m_SBar;
-            Eigen::Matrix<double, 12, ACTUATED_DOFS> m_feetJacobianTimesSBar;
-            Eigen::Matrix<double, ACTUATED_DOFS, 12> m_feetJacobianTimesSBarPseudoInverse;
+            Eigen::Matrix<double, ACTUATED_DOFS, 12> m_pseudoInverseOfJcMInvSt;
             Eigen::Matrix<double, 6, 12> m_centroidalForceMatrix;
             Eigen::Matrix<double, 6, 1> m_gravityForce;
-
-            //Tasks variables
-            Eigen::Matrix<double, ACTUATED_DOFS, 1> m_desiredJointAcceleration1;
-            Eigen::Matrix<double, ACTUATED_DOFS, 1> m_desiredJointAcceleration2;
-//            Eigen::Matrix<double, ACTUATED_DOFS, something> m_task2PseudoInverse;
-            
+            Eigen::Matrix<double, TOTAL_DOFS, ACTUATED_DOFS> m_torquesSelector;
             
             //constant auxiliary variables
-            Eigen::Matrix<double, 6, TOTAL_DOFS> m_UMatrix;
             double m_gravityUnitVector[3];
             Eigen::Matrix<double, 7, 1> m_rotoTranslationVector;
             

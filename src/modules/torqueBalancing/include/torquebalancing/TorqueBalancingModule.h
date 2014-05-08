@@ -152,6 +152,7 @@ namespace codyco {
             double m_handsForceIntegralLimit;
             
             double m_centroidalGain;
+            Eigen::VectorXd m_impedanceControlGains;
             
             //Monitored variables
             Eigen::VectorXd m_monitoredDesiredCOMAcceleration;
