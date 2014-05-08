@@ -37,7 +37,7 @@ set(SOURCES    ${SRC_FOLDER}/TorqueBalancingModule.cpp
 source_group("Source Files" FILES ${SOURCES})
 source_group("Header Files" FILES ${HEADERS})
 
-ifdef(${CODYCO_USES_URDFDOM})
+if(${CODYCO_USES_URDFDOM})
 include_directories(${HEADERS_FOLDER}
                     ${codyco_commons_INCLUDE_DIRS}
                     ${wholeBodyInterface_INCLUDE_DIRS}
