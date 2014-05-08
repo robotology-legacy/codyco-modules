@@ -1,18 +1,18 @@
 [head] 
-/home/icub/Desktop/homePosBalancing.poshead 
+./homePosBalancing.poshead 
 
 [torso] 
-/home/icub/Desktop/homePosBalancing.postorso 
+./homePosBalancing.postorso 
 
 [left_arm] 
-/home/icub/Desktop/homePosBalancing.posleft_arm 
+./homePosBalancing.posleft_arm 
 
 [right_arm] 
-/home/icub/Desktop/homePosBalancing.posright_arm 
+./homePosBalancing.posright_arm 
 
 [right_leg] 
-/home/icub/Desktop/homePosBalancing.posright_leg 
+./homePosBalancing.posright_leg 
 
 [left_leg] 
-/home/icub/Desktop/homePosBalancing.posleft_leg 
+./homePosBalancing.posleft_leg 
 
