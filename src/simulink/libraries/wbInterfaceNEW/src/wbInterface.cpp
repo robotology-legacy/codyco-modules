@@ -33,7 +33,6 @@
 #define TIMING    0
 #define NEWCODE	  1
 // #define ICUB_FIXED
-//#define WBI_ICUB_COMPILE_PARAM_HELP
 
 // #define WORLD2BASE_EXTERNAL
 

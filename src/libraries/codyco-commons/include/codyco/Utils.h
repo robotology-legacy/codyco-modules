@@ -15,14 +15,24 @@
  * Public License for more details
  */
 
-#ifndef CODYCOLIB_COMMON_H
-#define CODYCOLIB_COMMON_H
+#ifndef CODYCOLIB_UTILS_H
+#define CODYCOLIB_UTILS_H
 
 #include <cstdio>
 
 //this is standard in C99 and C++11, but not on previous version of C++. GCC, Clang and MSVS should support it anyway
 #define DLOG(format, ...) \
     printf(("[%s:%d] " format), __FILE__, __LINE__, ##__VA_ARGS__)
+
+#ifndef FUNCTION_NAME
+#if defined(_MSC_VER)
+#define FUNCTION_NAME __FUNCTION__
+#elif defined(__GNUC__) || defined(__clang__)
+#define FUNCTION_NAME __PRETTY_FUNCTION__
+#else
+#define FUNCTION_NAME ""
+#endif
+#endif
 
 namespace codyco {}
 

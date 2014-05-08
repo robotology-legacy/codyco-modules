@@ -15,20 +15,23 @@
  * Public License for more details
  */
 
-#ifndef CODYCOLIB_MATH_H
-#define CODYCOLIB_MATH_H
-
-namespace Eigen {
-    template<typename Derived> class MatrixBase;
-}
+#include "LockGuard.h"
+#include <yarp/os/Mutex.h>
 
 namespace codyco {
-    namespace math {
-        
-        template <typename Derived1, typename Derived2>
-        void dampedPseudoInverse(const Eigen::MatrixBase<Derived1>& A,
-                                 double dampingFactor,
-                                 Eigen::MatrixBase<Derived2>& Apinv);
+    
+    LockGuard::LockGuard(yarp::os::Mutex& mutex)
+    : m_mutex(mutex)
+    {
+        m_mutex.lock();
     }
+    
+    LockGuard::~LockGuard()
+    {
+        m_mutex.unlock();
+    }
+    
+    LockGuard::LockGuard(const LockGuard& lg)
+    : m_mutex(lg.m_mutex) { }
+    LockGuard& LockGuard::operator=(const LockGuard&) { return *this; }
 }
-#endif

@@ -1,5 +1,4 @@
 if(CODYCO_BUILD_YARP24_MODULES)
-    #add_subdirectory(comStepper)
     add_subdirectory(wholeBodyDynamicsTree)
     add_subdirectory(adaptiveControl)
     #add_subdirectory(staticInertiaIdentification)
@@ -10,6 +9,7 @@ add_subdirectory(jointTorqueControl)
 add_subdirectory(motorFrictionExcitation)
 if(CODYCO_BUILD_EIGEN31_MODULES)
     add_subdirectory(motorFrictionIdentification)
+    add_subdirectory(torqueBalancing)
 endif()
 
 add_subdirectory(codycoCoordinatorDemo1Y)

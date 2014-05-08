@@ -7,20 +7,31 @@ compiler:
 env:
   - CODYCO_TRAVIS_BUILD_TYPE=Debug
   - CODYCO_TRAVIS_BUILD_TYPE=Release
-  
+
 branches:
   except:
     - superbuild
-    - module/torqueBalancing
 
 install:
   - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
   - sudo apt-get update
-  - sudo apt-get install -qq libeigen3-dev
-  - sudo apt-get --force-yes install icub
+  - sudo apt-get --force-yes install icub libboost-system-dev libboost-thread-dev libtinyxml-dev 
+
+
 
 before_script:
   - cmake --version
+  - cd .. 
+    #eigen 3.2 support
+  - hg clone https://bitbucket.org/eigen/eigen/
+  - cd eigen
+  - hg checkout 3.2.0
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make
+  - sudo make install
+  - cd ../..
   # Build orocos_kinematics_dynamics and install it in a local directory
   - git clone https://github.com/orocos/orocos_kinematics_dynamics
   - cd orocos_kinematics_dynamics
@@ -43,17 +54,29 @@ before_script:
   - make
   - make install
   - cd ../..
-  # Prepare codyco build
+  # Build kdl_format_io and install it in a local directory
+  - sudo chmod +x ./codyco/.travis/build_urdfdom
+  - ./codyco/.travis/build_urdfdom
+  - git clone https://github.com/traversaro/kdl_format_io
+  - cd kdl_format_io
   - mkdir build
   - cd build
-  - cmake -DCODYCO_BUILD_TESTS:BOOL=ON -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} -DCODYCO_TRAVIS_CI:BOOL=ON ..
+  - cmake -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} ..
+  - make
+  - sudo make install
+  - cd ../..
+  # Prepare codyco build
+  - cd codyco
+  - mkdir build
+  - cd build
+  - cmake -DCODYCO_BUILD_TESTS:BOOL=ON -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} -DCODYCO_TRAVIS_CI:BOOL=ON -DCODYCO_USES_URDFDOM:BOOL=ON ..
 
 script:
   - make
   - sudo make install
   - ctest -V
   - sudo make uninstall
-  
+
 notifications:
   email:
     - pegua1@gmail.com

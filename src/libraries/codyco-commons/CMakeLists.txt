@@ -2,12 +2,11 @@
 # Authors: Silvio Traversaro
 # CopyPolicy: Released under the terms of the GNU GPL v2.0 (or any later version).
 
-cmake_minimum_required( VERSION 2.8 FATAL_ERROR )
+cmake_minimum_required( VERSION 2.8 FATAL_ERROR)
 
+project(codyco_commons)
 
-SET(PROJECTNAME codyco_commons)
-
-PROJECT(${PROJECTNAME})
+find_package(YARP)
 
 # set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -17,22 +16,26 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 
 find_package(Eigen3 REQUIRED)
 
-SET(SRCS  src/Math.cpp)
+set(SRCS    src/MathUtils.cpp
+            src/LockGuard.cpp
+            src/ControllerThread.cpp)
 
-SET(HEADERS  include/codyco/Common.h
-             include/codyco/Math.h)
+set(HEADERS  include/codyco/Commons.h
+             include/codyco/Utils.h
+             include/codyco/LockGuard.h
+             include/codyco/MathUtils.h
+             include/codyco/ControllerThread.h)
+                          
+source_group("Source Files" FILES ${SRCS})
+source_group("Header Files" FILES ${HEADERS})
 
-SOURCE_GROUP("Source Files" FILES ${SRCS})
-SOURCE_GROUP("Header Files" FILES ${HEADERS})
+include_directories(include/codyco ${EIGEN3_INCLUDE_DIR} ${YARP_INCLUDE_DIRS})
+                    
+add_library(${PROJECT_NAME} SHARED ${SRCS} ${HEADERS})
 
-INCLUDE_DIRECTORIES(include ${EIGEN3_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES})
 
-ADD_LIBRARY(${PROJECTNAME} ${SRCS} ${HEADERS})
-
-TARGET_LINK_LIBRARIES(${PROJECTNAME} )
-
-
-icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
-                                   DESTINATION include/codyco
-                                   FILES ${folder_header})
-
+icub_export_library(${PROJECT_NAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
+                                    DESTINATION include/codyco
+                                    FILES ${HEADERS})
+                                  
