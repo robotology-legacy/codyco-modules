@@ -231,18 +231,17 @@ namespace codyco {
             using namespace Eigen;
             double mass = m_massMatrix(0, 0);
             m_gravityForce(2) = -mass * 9.81;
-            
+
             //building centroidalForceMatrix
             skewSymmentricMatrix(m_leftFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 0));
             skewSymmentricMatrix(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 6));
-            
+
             m_desiredCentroidalMomentum.head<3>() = mass * desiredCOMAcceleration;
             m_desiredCentroidalMomentum.tail<3>() = -m_internal_centroidalMomentumGain * m_centroidalMomentum.tail<3>();
 
             desiredFeetForces = m_centroidalForceMatrix.jacobiSvd(ComputeThinU | ComputeThinV).solve(m_desiredCentroidalMomentum - m_gravityForce);
             //TODO: we can also test LDLT decomposition since it requires positive semidefinite matrix
 //            desiredFeetForces = m_centroidalForceMatrix.ldlt().solve(m_desiredCentroidalMomentum - m_gravityForce);
-            
         }
         
         void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::MatrixXd>& desiredFeetForces, Eigen::Ref<Eigen::MatrixXd> torques)
@@ -259,7 +258,8 @@ namespace codyco {
                         
             m_torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_feetDJacobianDq - JcMInv * m_feetJacobian.transpose() * desiredFeetForces);
             
-            VectorXd torques0 = m_gravityBiasTorques.tail(actuatedDOFs) - m_feetJacobian.block(0, 6, totalDOFs, actuatedDOFs).transpose() * desiredFeetForces - m_internal_impedanceGains.asDiagonal() * (m_jointPositions - m_internal_desiredJointsConfiguration);
+            VectorXd torques0 = m_gravityBiasTorques.tail(actuatedDOFs) - m_feetJacobian.rightCols(actuatedDOFs).transpose() * desiredFeetForces 
+            - m_internal_impedanceGains.asDiagonal() * (m_jointPositions - m_internal_desiredJointsConfiguration);
             
             m_torques += nullSpaceProjector * torques0;
             
