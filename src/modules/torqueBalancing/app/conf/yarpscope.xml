@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<portscope rows="2" columns="1" carrier="mcast">
+    <plot gridx="0"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="Desired COM Accelearation"
+          size="60"
+          minval="-100"
+          maxval="100"
+          bgcolor="LightSlateGrey">
+        <graph remote="/torqueBalancing/monitor:o"
+               index="0"
+               color="Black"
+               title="Graph 0"
+               type="lines"
+               size="3" />
+          </plot>
+          
+          <plot gridx="0"
+                gridy="1"
+                hspan="1"
+                vspan="1"
+                title="COM Error"
+                size="60"
+                minval="-100"
+                maxval="100"
+                bgcolor="LightSlateGrey">
+              <graph remote="/torqueBalancing/monitor:o"
+                     index="1"
+                     color="Black"
+                     title="Graph 0"
+                     type="lines"
+                     size="3" />
+                </plot>
+</portscope>
