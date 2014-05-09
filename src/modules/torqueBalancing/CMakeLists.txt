@@ -48,7 +48,9 @@ include_directories(${HEADERS_FOLDER}
                     ${paramHelp_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
-                    ${YARP_INCLUDE_DIRS})
+                    ${YARP_INCLUDE_DIRS}
+                    ${skinDynLib_INCLUDE_DIRS}
+                    ${ctrlLib_INCLUDE_DIRS})
 else()
 include_directories(${HEADERS_FOLDER}
                     ${codyco_commons_INCLUDE_DIRS}
@@ -59,7 +61,9 @@ include_directories(${HEADERS_FOLDER}
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
-                    ${YARP_INCLUDE_DIRS})
+                    ${YARP_INCLUDE_DIRS}
+                    ${skinDynLib_INCLUDE_DIRS}
+                    ${ctrlLib_INCLUDE_DIRS})
 endif()
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
