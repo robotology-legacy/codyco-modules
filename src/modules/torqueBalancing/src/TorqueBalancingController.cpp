@@ -95,6 +95,9 @@ namespace codyco {
             m_torquesSelector.bottomRows(actuatedDOFs).setIdentity();
             
             m_jointsZeroVector.setZero();
+            
+            //zeroing gains
+            m_impedanceGains.setZero();
            
             //zeroing monitored variables
             m_desiredFeetForces.setZero();
@@ -264,11 +267,11 @@ namespace codyco {
             
             //TODO: decide later if there is a performance benefit in moving the declaration of the variables in the class (or if this becomes a "new" at runtime)
             //Names are taken from "math" from brevity
-            MatrixXd JcMInv = m_feetJacobian * m_massMatrix.inverse();
-            MatrixXd JcMInvTorqueSelector = JcMInv * m_torquesSelector;
+            MatrixXd JcMInv = m_feetJacobian * m_massMatrix.inverse(); //to become instance (?)
+            MatrixXd JcMInvTorqueSelector = JcMInv * m_torquesSelector; //to become instance (?)
             
             math::pseudoInverse(JcMInvTorqueSelector, m_pseudoInverseOfJcMInvSt, PseudoInverseTolerance);
-            MatrixXd nullSpaceProjector = MatrixXd::Identity(actuatedDOFs, actuatedDOFs) - m_pseudoInverseOfJcMInvSt * JcMInvTorqueSelector;
+            MatrixXd nullSpaceProjector = MatrixXd::Identity(actuatedDOFs, actuatedDOFs) - m_pseudoInverseOfJcMInvSt * JcMInvTorqueSelector; //to be inlined in m_torques
                         
             m_torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_feetDJacobianDq - JcMInv * m_feetJacobian.transpose() * desiredFeetForces);
             
