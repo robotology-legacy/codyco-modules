@@ -97,6 +97,20 @@ namespace codyco {
             
             m_jointsZeroVector.setZero();
             
+            //reset status to zeroing
+            m_jointPositions.setZero();
+            m_jointVelocities.setZero();
+            m_baseVelocity.setZero();
+            m_centerOfMassPosition.setZero();
+            m_rightFootPosition.setZero();
+            m_leftFootPosition.setZero();
+            m_feetJacobian.setZero();
+            m_feetDJacobianDq.setZero();
+            m_generalizedBiasForces.setZero();
+            m_gravityBiasTorques.setZero();
+            m_centroidalMomentum.setZero();
+            m_massMatrix.setZero();
+            
             //zeroing gains
             m_impedanceGains.setZero();
            
@@ -275,7 +289,7 @@ namespace codyco {
             //Names are taken from "math" from brevity
             MatrixXd JcMInv = m_feetJacobian * m_massMatrix.inverse(); //to become instance (?)
             MatrixXd JcMInvTorqueSelector = JcMInv * m_torquesSelector; //to become instance (?)
-            
+
             math::pseudoInverse(JcMInvTorqueSelector, m_pseudoInverseOfJcMInvSt, PseudoInverseTolerance);
             MatrixXd nullSpaceProjector = MatrixXd::Identity(actuatedDOFs, actuatedDOFs) - m_pseudoInverseOfJcMInvSt * JcMInvTorqueSelector; //to be inlined in m_torques
                         
