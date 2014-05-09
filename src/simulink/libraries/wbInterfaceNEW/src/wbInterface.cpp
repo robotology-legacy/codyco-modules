@@ -201,6 +201,7 @@ bool robotStatus::robotInit(int btype, int link) {
         const char *linkName = "";
         int default_size = 0;
         int linkID = 0;
+	printf("READ LINK IS: %d \n", link);
         switch (link)
         {
         case 0:
@@ -215,6 +216,14 @@ bool robotStatus::robotInit(int btype, int link) {
             linkName = "com";
             default_size = DEFAULT_XDES_COM.size();
             break;
+	case 3:
+	    linkName = "r_gripper";
+	    default_size = DEFAULT_XDES_FOOT.size();
+	    break;
+	case 4:
+	    linkName = "l_gripper";
+	    default_size = DEFAULT_XDES_FOOT.size();
+	    break;
         default:
             fprintf(stderr,"ERROR: No link has been specified for this block\n");
             return false;
@@ -391,7 +400,7 @@ bool robotStatus::setCtrlMode(ControlMode ctrl_mode) {
         return true;
     }
     else {
-        fprintf(stderr,"ERROR [robotStatus::setCtrlMode] >> Velocity control mode could not be set\n");
+        fprintf(stderr,"ERROR [robotStatus::setCtrlMode] >> Control mode could not be set\n");
         return false;
     }
 }
@@ -1002,7 +1011,10 @@ static void mdlStart(SimStruct *S)
         ssSetErrorStatus(S,"ERROR [mdlOutput] Joint limits could not be computed\n");
         return;
     }
+    
+#ifdef DEBUG    
     printf("got limits right");
+#endif
 
     ssGetPWork(S)[0] = robot;
     ssGetPWork(S)[1] = &minJntLimits[0];
@@ -1010,7 +1022,6 @@ static void mdlStart(SimStruct *S)
 
 
     //--------------GLOBAL VARIABLES INITIALIZATION --------------
-//     dotq.Zero(ICUB_DOFS);
     fprintf(stderr,"mdlStart >> FINISHED\n\n");
 }
 

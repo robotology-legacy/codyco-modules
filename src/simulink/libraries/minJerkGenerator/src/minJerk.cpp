@@ -114,7 +114,7 @@ static void mdlInitializeSizes(SimStruct *S)
 
     // DWork vectors
     ssSetNumDWork(S, 3);
-    ssSetDWorkWidth(S, 0, 1);
+    ssSetDWorkWidth(S, 0, 3);
     ssSetDWorkWidth(S, 1, 1);
     ssSetDWorkWidth(S, 2, 1);
     ssSetDWorkDataType(S, 0, SS_DOUBLE);
@@ -165,7 +165,7 @@ static void mdlStart(SimStruct *S)
 
     // ######## CHECKING INPUT PARAMETERS ############
     int param_taskDOF     = static_cast<int>(mxGetScalar(ssGetSFcnParam(S,PARAM_IDX_1)));
-    int param_rate        = static_cast<int>(mxGetScalar(ssGetSFcnParam(S,PARAM_IDX_2)));
+    double param_rate        = mxGetScalar(ssGetSFcnParam(S,PARAM_IDX_2));
     double param_trajtime = static_cast<double>(mxGetScalar(ssGetSFcnParam(S,PARAM_IDX_3)));
     cout<<"BLOCK TASK DOF PARAMETER:  "<<param_taskDOF <<endl;
     cout<<"SIMULATION RATE PARAMETER: "<<param_rate    <<endl;
@@ -183,25 +183,28 @@ static void mdlStart(SimStruct *S)
     fprintf(stderr,"An object minJerkTraj has been created\n");
 
     //############ DEALING WITH INPUT VALUES ###################
-    // Reading all input ports
-    int_T i,j;
-    int_T nInputPorts = ssGetNumInputPorts(S);                          //First retrieve number of input ports
-    for(i = 0; i < nInputPorts; i++){                                   //Then for each input port
-        InputRealPtrsType uPtrs = ssGetInputPortRealSignalPtrs(S,i);    //Get the corresponding pointer to that port
-        int_T nu = ssGetInputPortWidth(S,i);                            //Knowing the amount of elements of the input vector/matrix
-        for(j=0; j<nu;j++){                                             //run through all values and do sthg with them
-            if(i==1) minJerkTraj->setInitPos(j,*uPtrs[j]);              //in our case we want to store them as vectors
-        }
-    }
+//     // Reading all input ports
+//     int_T i,j;
+//     int_T nInputPorts = ssGetNumInputPorts(S);                          //First retrieve number of input ports
+//     for(i = 0; i < nInputPorts; i++){                                   //Then for each input port
+//         InputRealPtrsType uPtrs = ssGetInputPortRealSignalPtrs(S,i);    //Get the corresponding pointer to that port
+//         int_T nu = ssGetInputPortWidth(S,i);                            //Knowing the amount of elements of the input vector/matrix
+//         for(j=0; j<nu;j++){                                             //run through all values and do sthg with them
+//             if(i==0) minJerkTraj->setInitPos(j,*uPtrs[j]);              //in our case we want to store them as vectors
+//         }
+//     }
+    
 
-
-    fprintf(stderr,"initPos contains: %s \n", (minJerkTraj->getInitPos()).toString().c_str());
-    // Configure and initalize minJerkTraj
-    if(minJerkTraj->initialize(param_rate, param_trajtime))
-        fprintf(stderr,"successfully initialized minJerkTraj\n");
+//     fprintf(stderr,"initPos contains: %s \n", (minJerkTraj->getInitPos()).toString().c_str());
+//     Configure and initalize minJerkTraj
+//     if(minJerkTraj->initialize(param_rate, param_trajtime))
+//         fprintf(stderr,"successfully initialized minJerkTraj\n");
     // ########### END MINIMUM JERK INITALIZATION #############
 
     ssGetPWork(S)[0] = minJerkTraj;
+    real_T    *flag = (real_T*) ssGetDWork(S,1);
+    flag[0]         = 1;
+    
 
     fprintf(stderr,"MDLSTART FINISHES HERE ... \n");
 }
@@ -216,10 +219,32 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     //MinJerkGenerator
     minJerkTrajGenerator *minJerkTraj = static_cast<minJerkTrajGenerator*>(ssGetPWork(S)[0]);
 
+    real_T *flag = (real_T *) ssGetDWork(S,1);
+    real_T    *x = (real_T*) ssGetDWork(S,0);
+    
+    if(flag[0]){    
+    int_T i,j;
+    int_T nInputPorts = ssGetNumInputPorts(S);                          //First retrieve number of input ports
+    for(i = 0; i < nInputPorts; i++){                                   //Then for each input port
+        InputRealPtrsType uPtrs = ssGetInputPortRealSignalPtrs(S,i);    //Get the corresponding pointer to that port
+        int_T nu = ssGetInputPortWidth(S,i);                            //Knowing the amount of elements of the input vector/matrix
+        for(j=0; j<nu;j++){                                             //run through all values and do sthg with them
+            if(i==0) minJerkTraj->setInitPos(j,*uPtrs[j]);              //in our case we want to store them as vectors
+        }
+    }    
+    
+    fprintf(stderr,"initPos contains: %s \n", (minJerkTraj->getInitPos()).toString().c_str());
+    double param_rate     = x[1];
+    double param_trajtime = x[2];
+    if(minJerkTraj->initialize(param_rate, param_trajtime))
+        fprintf(stderr,"successfully initialized minJerkTraj\n");
+    
+    flag[0] = 0;
+    }
     //############ DEALING WITH INPUT VALUES ###################
     // Reading DESIRED POS port
-    InputRealPtrsType uPtrs = ssGetInputPortRealSignalPtrs(S,0);    //Get the corresponding pointer to "desired position port"
-    int nu = ssGetInputPortWidth(S,0);                              //Knowing the amount of elements of the input vector/matrix
+    InputRealPtrsType uPtrs = ssGetInputPortRealSignalPtrs(S,1);    //Get the corresponding pointer to "desired position port"
+    int nu = ssGetInputPortWidth(S,1);                              //Knowing the amount of elements of the input vector/matrix
     for(int j=0; j<nu;j++){                                         //run through all values and do sthg with them
         minJerkTraj->setPos(j,*uPtrs[j]);                           //in our case we want to store them as vectors
     }
@@ -231,7 +256,9 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     Vector tmpPos = minJerkTraj->getPosition();
     Vector tmpVel = minJerkTraj->getVelocity();
     Vector tmpAcc = minJerkTraj->getAcceleration();
-
+    for(int i=0; i<tmpPos.length(); i++)
+        fprintf(stderr,"%f ",tmpPos[i]);
+    printf("\n");
 //    fprintf(stderr,"About to send data to ports \n");
     int_T nOutputPorts = ssGetNumOutputPorts(S);   // FOR THE FIRST TWO OUTPUT PORTS (q and dq)
     for(int_T i=0; i<nOutputPorts; i++){
@@ -248,36 +275,6 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 
 }
 
-//
-///* Define to indicate that this S-Function has the mdlG[S]etSimState mothods */
-//#define MDL_SIM_STATE
-//
-///* Function: mdlGetSimState =====================================================
-// * Abstract:
-// *
-// */
-//static mxArray* mdlGetSimState(SimStruct* S)
-//{
-//    // Retrieve C++ object from the pointers vector
-//    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
-//    // return mxCreateDoubleScalar(da->GetPeak());
-//}
-///* Function: mdlGetSimState =====================================================
-// * Abstract:
-// *
-// */
-//static void mdlSetSimState(SimStruct* S, const mxArray* ma)
-//{
-//    // Retrieve C++ object from the pointers vector
-//    // DoubleAdder *da = static_cast<DoubleAdder*>(ssGetPWork(S)[0]);
-//    // da->SetPeak(mxGetPr(ma)[0]);
-//}
-
-// Function: mdlTerminate =====================================================
-// Abstract:
-//   In this function, you should perform any actions that are necessary
-//   at the termination of a simulation.  For example, if memory was
-//   allocated in mdlStart, this is the place to free it.
 static void mdlTerminate(SimStruct *S)
 {
     // IF YOU FORGET TO DESTROY OBJECTS OR DEALLOCATE MEMORY, MATLAB WILL CRASH.

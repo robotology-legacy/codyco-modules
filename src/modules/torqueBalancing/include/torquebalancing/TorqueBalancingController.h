@@ -159,6 +159,7 @@ namespace codyco {
             Eigen::MatrixXd m_centroidalForceMatrix; /*!< 6 x 12 */
             Eigen::VectorXd m_gravityForce; /*!< 6 */
             Eigen::MatrixXd m_torquesSelector; /*!< totalDOFs x actuatedDOFs */
+            Eigen::MatrixXd m_pseudoInverseOfJcBase; /*!< 6 x 12 */
             
             //constant auxiliary variables
             double m_gravityUnitVector[3];
