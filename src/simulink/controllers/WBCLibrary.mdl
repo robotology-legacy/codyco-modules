@@ -21,9 +21,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri May 09 16:05:58 2014"
-  RTWModifiedTimeStamp	  321552092
-  ModelVersionFormat	  "1.%<AutoIncrement:43>"
+  LastModifiedDate	  "Fri May 09 17:07:56 2014"
+  RTWModifiedTimeStamp	  321556074
+  ModelVersionFormat	  "1.%<AutoIncrement:45>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -807,7 +807,7 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [524, 298, 1312, 558]
+    Location		    [683, 437, 1471, 697]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -845,7 +845,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
-	Location		[66, 394, 758, 747]
+	Location		[68, 460, 760, 813]
 	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -2111,15 +2111,24 @@ Library {
 	  "ctory is approximated using a 3rd order LTI dynamical system (for more details see Pattacini2010). Position, veloci"
 	  "ty and acceleration trajectories are computed. The main advantage with respect to the standard polynomial form is t"
 	  "hat if the reference value yd changes there is no need to recompute the filter coefficients."
+	  MaskPromptString	  "Trajectory dimension (int)|Simulation rate (int) [sec]|Trajectory time (double) [sec]"
+	  MaskStyleString	  "edit,edit,edit"
+	  MaskVariables		  "dim=@1;Ts=@2;Tt=@3;"
+	  MaskTunableValueString  "on,on,on"
+	  MaskCallbackString	  "||"
+	  MaskEnableString	  "on,on,on"
+	  MaskVisibilityString	  "on,on,on"
+	  MaskToolTipString	  "on,on,on"
 	  MaskIconFrame		  on
 	  MaskIconOpaque	  on
 	  MaskIconRotate	  "none"
 	  MaskPortRotate	  "default"
 	  MaskIconUnits		  "autoscale"
+	  MaskValueString	  "3|Ts|Tt"
 	  System {
 	    Name		    "minJerkTrajGen"
-	    Location		    [208, 124, 718, 719]
-	    Open		    off
+	    Location		    [467, 113, 977, 708]
+	    Open		    on
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -2172,7 +2181,7 @@ Library {
 	      MaskIconRotate	      "none"
 	      MaskPortRotate	      "default"
 	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "25|10|4"
+	      MaskValueString	      "dim|Ts|Tt"
 	    }
 	    Block {
 	      BlockType		      Outport
@@ -6818,7 +6827,7 @@ Library {
 	  System {
 	    Name		    "Jacobians"
 	    Location		    [212, 286, 1002, 444]
-	    Open		    on
+	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
