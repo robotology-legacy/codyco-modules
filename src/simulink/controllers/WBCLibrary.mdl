@@ -5,7 +5,6 @@ Library {
   SavedCharacterEncoding  "UTF-8"
   LibraryType		  "BlockLibrary"
   SaveDefaultBlockParams  on
-  LockLinksToLibrary	  on
   ScopeRefreshTime	  0.035000
   OverrideScopeRefreshTime on
   DisableAllScopes	  off
@@ -22,9 +21,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Mar 31 10:59:12 2014"
-  RTWModifiedTimeStamp	  318163658
-  ModelVersionFormat	  "1.%<AutoIncrement:33>"
+  LastModifiedDate	  "Fri May 09 16:05:58 2014"
+  RTWModifiedTimeStamp	  321552092
+  ModelVersionFormat	  "1.%<AutoIncrement:43>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -808,8 +807,8 @@ Library {
   }
   System {
     Name		    "WBCLibrary"
-    Location		    [532, 509, 1320, 769]
-    Open		    off
+    Location		    [524, 298, 1312, 558]
+    Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
     ScreenColor		    "gray"
@@ -822,7 +821,7 @@ Library {
     ShowPageBoundaries	    off
     ZoomFactor		    "198"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "1057"
+    SIDHighWatermark	    "1137"
     Block {
       BlockType		      SubSystem
       Name		      "Utilities"
@@ -846,7 +845,7 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"Utilities"
-	Location		[11, 394, 703, 747]
+	Location		[66, 394, 758, 747]
 	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -3491,8 +3490,8 @@ Library {
       MaskIconUnits	      "autoscale"
       System {
 	Name			"wholeBodyModel"
-	Location		[670, 584, 1249, 859]
-	Open			off
+	Location		[670, 492, 1249, 767]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -5335,7 +5334,7 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Forward Kinematics"
-	    Location		    [250, 389, 675, 514]
+	    Location		    [1813, 388, 2482, 513]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -5901,6 +5900,304 @@ Library {
 	    }
 	    Block {
 	      BlockType		      SubSystem
+	      Name		      "LeftHandFwdKin"
+	      SID		      "1078"
+	      Ports		      [0, 1]
+	      Position		      [555, 33, 630, 77]
+	      ZOrder		      -3
+	      BackgroundColor	      "[0.031000, 0.800000, 0.970000]"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      RTWSystemCode	      "Auto"
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      RequestExecContextInheritance off
+	      MaskHideContents	      off
+	      MaskPromptString	      "robot name|local name"
+	      MaskStyleString	      "edit,edit"
+	      MaskVariables	      "robotName=@1;localName=@2;"
+	      MaskTunableValueString  "on,on"
+	      MaskCallbackString      "|"
+	      MaskEnableString	      "on,on"
+	      MaskVisibilityString    "on,on"
+	      MaskToolTipString	      "on,on"
+	      MaskIconFrame	      on
+	      MaskIconOpaque	      on
+	      MaskIconRotate	      "none"
+	      MaskPortRotate	      "default"
+	      MaskIconUnits	      "autoscale"
+	      MaskValueString	      "robotName|localName"
+	      System {
+		Name			"LeftHandFwdKin"
+		Location		[2412, 594, 3162, 1086]
+		Open			off
+		ModelBrowserVisibility	off
+		ModelBrowserWidth	200
+		ScreenColor		"white"
+		PaperOrientation	"landscape"
+		PaperPositionMode	"auto"
+		PaperType		"usletter"
+		PaperUnits		"inches"
+		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+		TiledPageScale		1
+		ShowPageBoundaries	off
+		ZoomFactor		"100"
+		Block {
+		  BlockType		  Constant
+		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
+		  SID			  "1079"
+		  Position		  [60, 65, 90, 95]
+		  ZOrder		  -5
+		  ShowName		  off
+		  Value			  "4"
+		  OutDataTypeStr	  "int8"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+		  SID			  "1080"
+		  Position		  [60, 135, 90, 165]
+		  ZOrder		  -5
+		  ShowName		  off
+		  Value			  "zeros(25,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 2"
+		  SID			  "1081"
+		  Position		  [60, 205, 90, 235]
+		  ZOrder		  -5
+		  ShowName		  off
+		  Value			  "zeros(25+16,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 3"
+		  SID			  "1082"
+		  Position		  [60, 275, 90, 305]
+		  ZOrder		  -5
+		  ShowName		  off
+		  Value			  "zeros(31,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 4"
+		  SID			  "1083"
+		  Position		  [60, 345, 90, 375]
+		  ZOrder		  -5
+		  ShowName		  off
+		  Value			  "zeros(31,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Jacobian"
+		  SID			  "1084"
+		  Position		  [310, 155, 330, 175]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  S-Function
+		  Name			  "S-Function"
+		  SID			  "1085"
+		  Ports			  [5, 10]
+		  Position		  [140, 47, 250, 388]
+		  ZOrder		  -5
+		  BackgroundColor	  "darkGreen"
+		  FunctionName		  "robotState"
+		  Parameters		  "val,robotname,localname"
+		  EnableBusSupport	  off
+		  MaskPromptString	  "Value|Robot Name (icub - icubSim)|Module Name"
+		  MaskStyleString	  "edit,edit,edit"
+		  MaskVariables		  "val=@1;robotname=@2;localname=@3;"
+		  MaskTunableValueString  "on,on,on"
+		  MaskCallbackString	  "||"
+		  MaskEnableString	  "on,on,on"
+		  MaskVisibilityString	  "on,on,on"
+		  MaskToolTipString	  "on,on,on"
+		  MaskIconFrame		  on
+		  MaskIconOpaque	  on
+		  MaskIconRotate	  "none"
+		  MaskPortRotate	  "default"
+		  MaskIconUnits		  "autoscale"
+		  MaskValueString	  "2|robotName|localName"
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "dJ dq"
+		  SID			  "1086"
+		  Position		  [310, 260, 330, 280]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "dJ dq1"
+		  SID			  "1087"
+		  Position		  [310, 295, 330, 315]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "dJ dq2"
+		  SID			  "1088"
+		  Position		  [310, 330, 330, 350]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "dJ dq3"
+		  SID			  "1089"
+		  Position		  [310, 365, 330, 385]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "getDq"
+		  SID			  "1090"
+		  Position		  [310, 85, 330, 105]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "h"
+		  SID			  "1091"
+		  Position		  [310, 225, 330, 245]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "massMatrix"
+		  SID			  "1092"
+		  Position		  [310, 190, 330, 210]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "qrad"
+		  SID			  "1093"
+		  Position		  [310, 50, 330, 70]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Outport
+		  Name			  "xLeftHand"
+		  SID			  "1094"
+		  Position		  [305, 123, 335, 137]
+		  ZOrder		  -9
+		  IconDisplay		  "Port number"
+		}
+		Line {
+		  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 4"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  5
+		}
+		Line {
+		  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 3"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  4
+		}
+		Line {
+		  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 2"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  3
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  10
+		  DstBlock		  "dJ dq3"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  9
+		  DstBlock		  "dJ dq2"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  8
+		  DstBlock		  "dJ dq1"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  4
+		  DstBlock		  "Jacobian"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  3
+		  DstBlock		  "xLeftHand"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  1
+		  DstBlock		  "qrad"
+		  DstPort		  1
+		}
+		Line {
+		  Labels		  [0, 0]
+		  SrcBlock		  "S-Function"
+		  SrcPort		  2
+		  DstBlock		  "getDq"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  2
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  5
+		  DstBlock		  "massMatrix"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  6
+		  DstBlock		  "h"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  7
+		  DstBlock		  "dJ dq"
+		  DstPort		  1
+		}
+	      }
+	    }
+	    Block {
+	      BlockType		      SubSystem
 	      Name		      "RightFootFwdKin"
 	      SID		      "292"
 	      Ports		      [0, 1]
@@ -6197,6 +6494,304 @@ Library {
 		}
 	      }
 	    }
+	    Block {
+	      BlockType		      SubSystem
+	      Name		      "RightHandFwdKin"
+	      SID		      "1061"
+	      Ports		      [0, 1]
+	      Position		      [425, 33, 500, 77]
+	      ZOrder		      -3
+	      BackgroundColor	      "[0.074000, 0.349000, 0.941000]"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      RTWSystemCode	      "Auto"
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      RequestExecContextInheritance off
+	      MaskHideContents	      off
+	      MaskPromptString	      "robot name|local name"
+	      MaskStyleString	      "edit,edit"
+	      MaskVariables	      "robotName=@1;localName=@2;"
+	      MaskTunableValueString  "on,on"
+	      MaskCallbackString      "|"
+	      MaskEnableString	      "on,on"
+	      MaskVisibilityString    "on,on"
+	      MaskToolTipString	      "on,on"
+	      MaskIconFrame	      on
+	      MaskIconOpaque	      on
+	      MaskIconRotate	      "none"
+	      MaskPortRotate	      "default"
+	      MaskIconUnits	      "autoscale"
+	      MaskValueString	      "robotName|localName"
+	      System {
+		Name			"RightHandFwdKin"
+		Location		[2412, 594, 3162, 1086]
+		Open			off
+		ModelBrowserVisibility	off
+		ModelBrowserWidth	200
+		ScreenColor		"white"
+		PaperOrientation	"landscape"
+		PaperPositionMode	"auto"
+		PaperType		"usletter"
+		PaperUnits		"inches"
+		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+		TiledPageScale		1
+		ShowPageBoundaries	off
+		ZoomFactor		"100"
+		Block {
+		  BlockType		  Constant
+		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
+		  SID			  "1062"
+		  Position		  [60, 65, 90, 95]
+		  ZOrder		  -5
+		  ShowName		  off
+		  Value			  "3"
+		  OutDataTypeStr	  "int8"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+		  SID			  "1063"
+		  Position		  [60, 135, 90, 165]
+		  ZOrder		  -5
+		  ShowName		  off
+		  Value			  "zeros(25,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 2"
+		  SID			  "1064"
+		  Position		  [60, 205, 90, 235]
+		  ZOrder		  -5
+		  ShowName		  off
+		  Value			  "zeros(25+16,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 3"
+		  SID			  "1065"
+		  Position		  [60, 275, 90, 305]
+		  ZOrder		  -5
+		  ShowName		  off
+		  Value			  "zeros(31,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Constant
+		  Name			  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 4"
+		  SID			  "1066"
+		  Position		  [60, 345, 90, 375]
+		  ZOrder		  -5
+		  ShowName		  off
+		  Value			  "zeros(31,1)"
+		  OutDataTypeStr	  "double"
+		  SampleTime		  "-1"
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "Jacobian"
+		  SID			  "1067"
+		  Position		  [310, 155, 330, 175]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  S-Function
+		  Name			  "S-Function"
+		  SID			  "1068"
+		  Ports			  [5, 10]
+		  Position		  [140, 47, 250, 388]
+		  ZOrder		  -5
+		  BackgroundColor	  "darkGreen"
+		  FunctionName		  "robotState"
+		  Parameters		  "val,robotname,localname"
+		  EnableBusSupport	  off
+		  MaskPromptString	  "Value|Robot Name (icub - icubSim)|Module Name"
+		  MaskStyleString	  "edit,edit,edit"
+		  MaskVariables		  "val=@1;robotname=@2;localname=@3;"
+		  MaskTunableValueString  "on,on,on"
+		  MaskCallbackString	  "||"
+		  MaskEnableString	  "on,on,on"
+		  MaskVisibilityString	  "on,on,on"
+		  MaskToolTipString	  "on,on,on"
+		  MaskIconFrame		  on
+		  MaskIconOpaque	  on
+		  MaskIconRotate	  "none"
+		  MaskPortRotate	  "default"
+		  MaskIconUnits		  "autoscale"
+		  MaskValueString	  "2|robotName|localName"
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "dJ dq"
+		  SID			  "1069"
+		  Position		  [310, 260, 330, 280]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "dJ dq1"
+		  SID			  "1070"
+		  Position		  [310, 295, 330, 315]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "dJ dq2"
+		  SID			  "1071"
+		  Position		  [310, 330, 330, 350]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "dJ dq3"
+		  SID			  "1072"
+		  Position		  [310, 365, 330, 385]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "getDq"
+		  SID			  "1073"
+		  Position		  [310, 85, 330, 105]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "h"
+		  SID			  "1074"
+		  Position		  [310, 225, 330, 245]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "massMatrix"
+		  SID			  "1075"
+		  Position		  [310, 190, 330, 210]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  "qrad"
+		  SID			  "1076"
+		  Position		  [310, 50, 330, 70]
+		  ZOrder		  -5
+		  ShowName		  off
+		}
+		Block {
+		  BlockType		  Outport
+		  Name			  "xRightHand"
+		  SID			  "1077"
+		  Position		  [305, 123, 335, 137]
+		  ZOrder		  -9
+		  IconDisplay		  "Port number"
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  7
+		  DstBlock		  "dJ dq"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  6
+		  DstBlock		  "h"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  5
+		  DstBlock		  "massMatrix"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  2
+		}
+		Line {
+		  Labels		  [0, 0]
+		  SrcBlock		  "S-Function"
+		  SrcPort		  2
+		  DstBlock		  "getDq"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  1
+		  DstBlock		  "qrad"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  3
+		  DstBlock		  "xRightHand"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  4
+		  DstBlock		  "Jacobian"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  8
+		  DstBlock		  "dJ dq1"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  9
+		  DstBlock		  "dJ dq2"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "S-Function"
+		  SrcPort		  10
+		  DstBlock		  "dJ dq3"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 2"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  3
+		}
+		Line {
+		  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 3"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  4
+		}
+		Line {
+		  SrcBlock		  "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 4"
+		  SrcPort		  1
+		  DstBlock		  "S-Function"
+		  DstPort		  5
+		}
+	      }
+	    }
 	  }
 	}
 	Block {
@@ -6222,8 +6817,8 @@ Library {
 	  MaskIconUnits		  "autoscale"
 	  System {
 	    Name		    "Jacobians"
-	    Location		    [225, 421, 721, 579]
-	    Open		    off
+	    Location		    [212, 286, 1002, 444]
+	    Open		    on
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -6999,6 +7594,385 @@ Library {
 	    }
 	    Block {
 	      BlockType		      SubSystem
+	      Name		      "Left Hand Jacobian"
+	      SID		      "1117"
+	      Ports		      [0, 1]
+	      Position		      [630, 43, 705, 87]
+	      ZOrder		      -1
+	      BackgroundColor	      "[0.047000, 0.909000, 0.803000]"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      RTWSystemCode	      "Auto"
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      RequestExecContextInheritance off
+	      MaskHideContents	      off
+	      MaskPromptString	      "robot name|local name"
+	      MaskStyleString	      "edit,edit"
+	      MaskVariables	      "robotName=@1;localName=@2;"
+	      MaskTunableValueString  "on,on"
+	      MaskCallbackString      "|"
+	      MaskEnableString	      "on,on"
+	      MaskVisibilityString    "on,on"
+	      MaskToolTipString	      "on,on"
+	      MaskIconFrame	      on
+	      MaskIconOpaque	      on
+	      MaskIconRotate	      "none"
+	      MaskPortRotate	      "default"
+	      MaskIconUnits	      "autoscale"
+	      MaskValueString	      "robotName|localName"
+	      System {
+		Name			"Left Hand Jacobian"
+		Location		[370, 316, 657, 406]
+		Open			off
+		ModelBrowserVisibility	off
+		ModelBrowserWidth	200
+		ScreenColor		"white"
+		PaperOrientation	"landscape"
+		PaperPositionMode	"auto"
+		PaperType		"usletter"
+		PaperUnits		"inches"
+		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+		TiledPageScale		1
+		ShowPageBoundaries	off
+		ZoomFactor		"100"
+		Block {
+		  BlockType		  SubSystem
+		  Name			  "Left Hand \nJacobian"
+		  SID			  "1118"
+		  Ports			  [0, 1]
+		  Position		  [25, 28, 70, 52]
+		  ZOrder		  -1
+		  BackgroundColor	  "[1.000000, 0.566599, 0.544887]"
+		  MinAlgLoopOccurrences	  off
+		  PropExecContextOutsideSubsystem off
+		  RTWSystemCode		  "Auto"
+		  FunctionWithSeparateData off
+		  Opaque		  off
+		  RequestExecContextInheritance	off
+		  MaskHideContents	  off
+		  System {
+		    Name		    "Left Hand \nJacobian"
+		    Location		    [356, 195, 1106, 687]
+		    Open		    off
+		    ModelBrowserVisibility  off
+		    ModelBrowserWidth	    200
+		    ScreenColor		    "white"
+		    PaperOrientation	    "landscape"
+		    PaperPositionMode	    "auto"
+		    PaperType		    "usletter"
+		    PaperUnits		    "inches"
+		    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
+		    TiledPageScale	    1
+		    ShowPageBoundaries	    off
+		    ZoomFactor		    "100"
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
+		    SID			    "1119"
+		    Position		    [55, 70, 85, 100]
+		    ZOrder		    -5
+		    Value		    "4"
+		    OutDataTypeStr	    "int8"
+		    }
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+		    SID			    "1120"
+		    Position		    [55, 140, 85, 170]
+		    ZOrder		    -5
+		    ShowName		    off
+		    Value		    "zeros(25,1)"
+		    OutDataTypeStr	    "double"
+		    SampleTime		    "-1"
+		    }
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 2"
+		    SID			    "1121"
+		    Position		    [55, 210, 85, 240]
+		    ZOrder		    -5
+		    ShowName		    off
+		    Value		    "zeros(25+16,1)"
+		    OutDataTypeStr	    "double"
+		    SampleTime		    "-1"
+		    }
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 3"
+		    SID			    "1122"
+		    Position		    [55, 280, 85, 310]
+		    ZOrder		    -5
+		    ShowName		    off
+		    Value		    "zeros(31,1)"
+		    OutDataTypeStr	    "double"
+		    SampleTime		    "-1"
+		    }
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 4"
+		    SID			    "1123"
+		    Position		    [55, 350, 85, 380]
+		    ZOrder		    -5
+		    ShowName		    off
+		    Value		    "zeros(31,1)"
+		    OutDataTypeStr	    "double"
+		    SampleTime		    "-1"
+		    }
+		    Block {
+		    BlockType		    S-Function
+		    Name		    "S-Function"
+		    SID			    "1124"
+		    Ports		    [5, 10]
+		    Position		    [140, 45, 255, 400]
+		    ZOrder		    -5
+		    BackgroundColor	    "darkGreen"
+		    FunctionName	    "robotState"
+		    Parameters		    "val,robotname,localname"
+		    EnableBusSupport	    off
+		    MaskPromptString	    "Value|Robot Name (icub - icubSim)|Module Name"
+		    MaskStyleString	    "edit,edit,edit"
+		    MaskVariables	    "val=@1;robotname=@2;localname=@3;"
+		    MaskTunableValueString  "on,on,on"
+		    MaskCallbackString	    "||"
+		    MaskEnableString	    "on,on,on"
+		    MaskVisibilityString    "on,on,on"
+		    MaskToolTipString	    "on,on,on"
+		    MaskIconFrame	    on
+		    MaskIconOpaque	    on
+		    MaskIconRotate	    "none"
+		    MaskPortRotate	    "default"
+		    MaskIconUnits	    "autoscale"
+		    MaskValueString	    "3|robotName|localName"
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "Terminator1"
+		    SID			    "1125"
+		    Position		    [310, 125, 330, 145]
+		    ZOrder		    -5
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "Terminator2"
+		    SID			    "1126"
+		    Position		    [310, 335, 330, 355]
+		    ZOrder		    -5
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "Terminator3"
+		    SID			    "1127"
+		    Position		    [310, 230, 330, 250]
+		    ZOrder		    -5
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "dqrad"
+		    SID			    "1128"
+		    Position		    [310, 90, 330, 110]
+		    ZOrder		    -5
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "dqrad1"
+		    SID			    "1129"
+		    Position		    [310, 265, 330, 285]
+		    ZOrder		    -5
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "dqrad2"
+		    SID			    "1130"
+		    Position		    [310, 370, 330, 390]
+		    ZOrder		    -5
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "massMatrix"
+		    SID			    "1131"
+		    Position		    [310, 195, 330, 215]
+		    ZOrder		    -5
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "massMatrix1"
+		    SID			    "1132"
+		    Position		    [310, 300, 330, 320]
+		    ZOrder		    -5
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "qrad"
+		    SID			    "1133"
+		    Position		    [310, 55, 330, 75]
+		    ZOrder		    -5
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Outport
+		    Name		    "Jacobian"
+		    SID			    "1134"
+		    Position		    [305, 163, 335, 177]
+		    ZOrder		    -9
+		    IconDisplay		    "Port number"
+		    }
+		    Line {
+		    SrcBlock		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 4"
+		    SrcPort		    1
+		    DstBlock		    "S-Function"
+		    DstPort		    5
+		    }
+		    Line {
+		    SrcBlock		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 3"
+		    SrcPort		    1
+		    DstBlock		    "S-Function"
+		    DstPort		    4
+		    }
+		    Line {
+		    SrcBlock		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 2"
+		    SrcPort		    1
+		    DstBlock		    "S-Function"
+		    DstPort		    3
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    10
+		    DstBlock		    "dqrad2"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    9
+		    DstBlock		    "Terminator2"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    8
+		    DstBlock		    "massMatrix1"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    7
+		    DstBlock		    "dqrad1"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    6
+		    DstBlock		    "Terminator3"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    5
+		    DstBlock		    "massMatrix"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    4
+		    DstBlock		    "Jacobian"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
+		    SrcPort		    1
+		    DstBlock		    "S-Function"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    3
+		    DstBlock		    "Terminator1"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    1
+		    DstBlock		    "qrad"
+		    DstPort		    1
+		    }
+		    Line {
+		    Labels		    [0, 0]
+		    SrcBlock		    "S-Function"
+		    SrcPort		    2
+		    DstBlock		    "dqrad"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+		    SrcPort		    1
+		    DstBlock		    "S-Function"
+		    DstPort		    2
+		    }
+		  }
+		}
+		Block {
+		  BlockType		  Reference
+		  Name			  "Transpose1"
+		  SID			  "1135"
+		  Ports			  [1, 1]
+		  Position		  [145, 27, 180, 53]
+		  ZOrder		  -2
+		  ShowName		  off
+		  LibraryVersion	  "1.898"
+		  SourceBlock		  "dspmtrx3/Transpose"
+		  SourceType		  "Transpose"
+		  Hermitian		  off
+		  overflowFlag		  off
+		}
+		Block {
+		  BlockType		  Reshape
+		  Name			  "rs2"
+		  SID			  "1136"
+		  Ports			  [1, 1]
+		  Position		  [95, 28, 125, 52]
+		  ZOrder		  -23
+		  ShowName		  off
+		  OutputDimensionality	  "Customize"
+		  OutputDimensions	  "[31,6]"
+		}
+		Block {
+		  BlockType		  Outport
+		  Name			  "LHandJacob"
+		  SID			  "1137"
+		  Position		  [205, 33, 235, 47]
+		  ZOrder		  -24
+		  IconDisplay		  "Port number"
+		}
+		Line {
+		  SrcBlock		  "Transpose1"
+		  SrcPort		  1
+		  DstBlock		  "LHandJacob"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "rs2"
+		  SrcPort		  1
+		  DstBlock		  "Transpose1"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "Left Hand \nJacobian"
+		  SrcPort		  1
+		  DstBlock		  "rs2"
+		  DstPort		  1
+		}
+	      }
+	    }
+	    Block {
+	      BlockType		      SubSystem
 	      Name		      "Right Foot Jacobian"
 	      SID		      "163"
 	      Ports		      [0, 1]
@@ -7378,6 +8352,391 @@ Library {
 		  SrcBlock		  "Transpose2"
 		  SrcPort		  1
 		  DstBlock		  "RFootJacob"
+		  DstPort		  1
+		}
+	      }
+	    }
+	    Block {
+	      BlockType		      SubSystem
+	      Name		      "Right Hand Jacobian"
+	      SID		      "1095"
+	      Ports		      [0, 1]
+	      Position		      [495, 43, 565, 87]
+	      ZOrder		      -2
+	      BackgroundColor	      "[0.000000, 1.000000, 0.533000]"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      RTWSystemCode	      "Auto"
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      RequestExecContextInheritance off
+	      MaskHideContents	      off
+	      MaskPromptString	      "robot name|local name"
+	      MaskStyleString	      "edit,edit"
+	      MaskVariables	      "robotName=@1;localName=@2;"
+	      MaskTunableValueString  "on,on"
+	      MaskCallbackString      "|"
+	      MaskEnableString	      "on,on"
+	      MaskVisibilityString    "on,on"
+	      MaskToolTipString	      "on,on"
+	      MaskIconFrame	      on
+	      MaskIconOpaque	      on
+	      MaskIconRotate	      "none"
+	      MaskPortRotate	      "default"
+	      MaskIconUnits	      "autoscale"
+	      MaskValueString	      "robotName|localName"
+	      System {
+		Name			"Right Hand Jacobian"
+		Location		[618, 200, 906, 289]
+		Open			off
+		ModelBrowserVisibility	off
+		ModelBrowserWidth	200
+		ScreenColor		"white"
+		PaperOrientation	"landscape"
+		PaperPositionMode	"auto"
+		PaperType		"usletter"
+		PaperUnits		"inches"
+		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+		TiledPageScale		1
+		ShowPageBoundaries	off
+		ZoomFactor		"100"
+		Block {
+		  BlockType		  SubSystem
+		  Name			  "Right Hand\nJacobian"
+		  SID			  "1096"
+		  Ports			  [0, 1]
+		  Position		  [25, 29, 70, 51]
+		  ZOrder		  -1
+		  BackgroundColor	  "[1.000000, 0.566599, 0.544887]"
+		  MinAlgLoopOccurrences	  off
+		  PropExecContextOutsideSubsystem off
+		  RTWSystemCode		  "Auto"
+		  FunctionWithSeparateData off
+		  Opaque		  off
+		  RequestExecContextInheritance	off
+		  MaskHideContents	  off
+		  System {
+		    Name		    "Right Hand\nJacobian"
+		    Location		    [615, 209, 1365, 701]
+		    Open		    off
+		    ModelBrowserVisibility  off
+		    ModelBrowserWidth	    200
+		    ScreenColor		    "white"
+		    PaperOrientation	    "landscape"
+		    PaperPositionMode	    "auto"
+		    PaperType		    "usletter"
+		    PaperUnits		    "inches"
+		    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
+		    TiledPageScale	    1
+		    ShowPageBoundaries	    off
+		    ZoomFactor		    "100"
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
+		    SID			    "1097"
+		    Position		    [55, 70, 85, 100]
+		    ZOrder		    -5
+		    Value		    "3"
+		    OutDataTypeStr	    "int8"
+		    SampleTime		    "-1"
+		    }
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+		    SID			    "1098"
+		    Position		    [55, 145, 85, 175]
+		    ZOrder		    -5
+		    ShowName		    off
+		    Value		    "zeros(25,1)"
+		    OutDataTypeStr	    "double"
+		    SampleTime		    "-1"
+		    }
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 2"
+		    SID			    "1099"
+		    Position		    [55, 220, 85, 250]
+		    ZOrder		    -5
+		    ShowName		    off
+		    Value		    "zeros(25+16,1)"
+		    OutDataTypeStr	    "double"
+		    SampleTime		    "-1"
+		    }
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 3"
+		    SID			    "1100"
+		    Position		    [55, 295, 85, 325]
+		    ZOrder		    -5
+		    ShowName		    off
+		    Value		    "zeros(31,1)"
+		    OutDataTypeStr	    "double"
+		    SampleTime		    "-1"
+		    }
+		    Block {
+		    BlockType		    Constant
+		    Name		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 4"
+		    SID			    "1101"
+		    Position		    [55, 370, 85, 400]
+		    ZOrder		    -5
+		    ShowName		    off
+		    Value		    "zeros(31,1)"
+		    OutDataTypeStr	    "double"
+		    SampleTime		    "-1"
+		    }
+		    Block {
+		    BlockType		    S-Function
+		    Name		    "S-Function"
+		    SID			    "1102"
+		    Ports		    [5, 10]
+		    Position		    [140, 48, 255, 417]
+		    ZOrder		    -5
+		    BackgroundColor	    "darkGreen"
+		    FunctionName	    "robotState"
+		    Parameters		    "val,robotname,localname"
+		    EnableBusSupport	    off
+		    MaskPromptString	    "Value|Robot Name (icub - icubSim)|Module Name"
+		    MaskStyleString	    "edit,edit,edit"
+		    MaskVariables	    "val=@1;robotname=@2;localname=@3;"
+		    MaskTunableValueString  "on,on,on"
+		    MaskCallbackString	    "||"
+		    MaskEnableString	    "on,on,on"
+		    MaskVisibilityString    "on,on,on"
+		    MaskToolTipString	    "on,on,on"
+		    MaskIconFrame	    on
+		    MaskIconOpaque	    on
+		    MaskIconRotate	    "none"
+		    MaskPortRotate	    "default"
+		    MaskIconUnits	    "autoscale"
+		    MaskValueString	    "3|robotName|localName"
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "Terminator1"
+		    SID			    "1103"
+		    Position		    [310, 310, 330, 330]
+		    ZOrder		    -5
+		    NamePlacement	    "alternate"
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "Terminator2"
+		    SID			    "1104"
+		    Position		    [310, 345, 330, 365]
+		    ZOrder		    -5
+		    NamePlacement	    "alternate"
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "Terminator3"
+		    SID			    "1105"
+		    Position		    [310, 380, 330, 400]
+		    ZOrder		    -5
+		    NamePlacement	    "alternate"
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "Terminator4"
+		    SID			    "1106"
+		    Position		    [310, 240, 330, 260]
+		    ZOrder		    -5
+		    NamePlacement	    "alternate"
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "Terminator5"
+		    SID			    "1107"
+		    Position		    [310, 275, 330, 295]
+		    ZOrder		    -5
+		    NamePlacement	    "alternate"
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "dqRad"
+		    SID			    "1108"
+		    Position		    [310, 100, 330, 120]
+		    ZOrder		    -5
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "massMatrix"
+		    SID			    "1109"
+		    Position		    [310, 205, 330, 225]
+		    ZOrder		    -5
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "qRad"
+		    SID			    "1110"
+		    Position		    [310, 65, 330, 85]
+		    ZOrder		    -5
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Terminator
+		    Name		    "x"
+		    SID			    "1111"
+		    Position		    [310, 135, 330, 155]
+		    ZOrder		    -5
+		    ShowName		    off
+		    }
+		    Block {
+		    BlockType		    Outport
+		    Name		    "Jacobian"
+		    SID			    "1112"
+		    Position		    [305, 173, 335, 187]
+		    ZOrder		    -9
+		    IconDisplay		    "Port number"
+		    }
+		    Line {
+		    SrcBlock		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 4"
+		    SrcPort		    1
+		    DstBlock		    "S-Function"
+		    DstPort		    5
+		    }
+		    Line {
+		    SrcBlock		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 3"
+		    SrcPort		    1
+		    DstBlock		    "S-Function"
+		    DstPort		    4
+		    }
+		    Line {
+		    SrcBlock		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 2"
+		    SrcPort		    1
+		    DstBlock		    "S-Function"
+		    DstPort		    3
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    10
+		    DstBlock		    "Terminator3"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    9
+		    DstBlock		    "Terminator2"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    8
+		    DstBlock		    "Terminator1"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    7
+		    DstBlock		    "Terminator5"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    6
+		    DstBlock		    "Terminator4"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    5
+		    DstBlock		    "massMatrix"
+		    DstPort		    1
+		    }
+		    Line {
+		    Labels		    [0, 0]
+		    SrcBlock		    "S-Function"
+		    SrcPort		    2
+		    DstBlock		    "dqRad"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    1
+		    DstBlock		    "qRad"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    3
+		    DstBlock		    "x"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians "
+		    SrcPort		    1
+		    DstBlock		    "S-Function"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "S-Function"
+		    SrcPort		    4
+		    DstBlock		    "Jacobian"
+		    DstPort		    1
+		    }
+		    Line {
+		    SrcBlock		    "Input Param. for\nforwardKinematics\nand \ncomputeJacobians 1"
+		    SrcPort		    1
+		    DstBlock		    "S-Function"
+		    DstPort		    2
+		    }
+		  }
+		}
+		Block {
+		  BlockType		  Reference
+		  Name			  "Transpose2"
+		  SID			  "1113"
+		  Ports			  [1, 1]
+		  Position		  [145, 27, 180, 53]
+		  ZOrder		  -2
+		  ShowName		  off
+		  LibraryVersion	  "1.898"
+		  SourceBlock		  "dspmtrx3/Transpose"
+		  SourceType		  "Transpose"
+		  Hermitian		  off
+		  overflowFlag		  off
+		}
+		Block {
+		  BlockType		  Reshape
+		  Name			  "rs1"
+		  SID			  "1114"
+		  Ports			  [1, 1]
+		  Position		  [95, 28, 125, 52]
+		  ZOrder		  -23
+		  ShowName		  off
+		  OutputDimensionality	  "Customize"
+		  OutputDimensions	  "[31,6]"
+		}
+		Block {
+		  BlockType		  Outport
+		  Name			  "RHandJacob"
+		  SID			  "1115"
+		  Position		  [205, 33, 235, 47]
+		  ZOrder		  -24
+		  IconDisplay		  "Port number"
+		}
+		Line {
+		  SrcBlock		  "Transpose2"
+		  SrcPort		  1
+		  DstBlock		  "RHandJacob"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "rs1"
+		  SrcPort		  1
+		  DstBlock		  "Transpose2"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "Right Hand\nJacobian"
+		  SrcPort		  1
+		  DstBlock		  "rs1"
 		  DstPort		  1
 		}
 	      }
