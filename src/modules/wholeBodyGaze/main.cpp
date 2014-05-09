@@ -46,7 +46,7 @@ class wholeBodyGazeThread:public RFModule
     IEncoders *encs;
     
     //number of joints
-    int nj=0;
+    int nj;
 
     //leg chain
     iKinChain *chain;
