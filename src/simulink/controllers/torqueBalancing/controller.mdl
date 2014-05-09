@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.856"
+    ComputedModelVersion    "1.917"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -31,7 +31,7 @@ Model {
       $ObjectID		      2
       $ClassName	      "Simulink.WindowInfo"
       IsActive		      [1]
-      Location		      [1441.0, 27.0, 1600.0, 1173.0]
+      Location		      [1681.0, 0.0, 1680.0, 1050.0]
       Object {
 	$PropName		"ModelBrowserInfo"
 	$ObjectID		3
@@ -50,22 +50,40 @@ Model {
       }
       Array {
 	Type			"Simulink.EditorInfo"
-	Dimension		2
+	Dimension		4
 	Object {
 	  $ObjectID		  5
 	  IsActive		  [1]
 	  ViewObjType		  "SimulinkSubsys"
 	  LoadSaveID		  "61"
-	  Extents		  [1369.0, 993.0]
+	  Extents		  [1449.0, 870.0]
 	  ZoomFactor		  [1.0]
-	  Offset		  [945.90418087470414, -279.14018244142608]
+	  Offset		  [6.0, 225.7578125]
 	}
 	Object {
 	  $ObjectID		  6
 	  IsActive		  [0]
+	  ViewObjType		  "SimulinkSubsys"
+	  LoadSaveID		  "415"
+	  Extents		  [1449.0, 870.0]
+	  ZoomFactor		  [1.5]
+	  Offset		  [-117.0968501271069, 64.430183460440219]
+	}
+	Object {
+	  $ObjectID		  7
+	  IsActive		  [0]
+	  ViewObjType		  "SimulinkSubsys"
+	  LoadSaveID		  "359"
+	  Extents		  [1449.0, 870.0]
+	  ZoomFactor		  [1.0]
+	  Offset		  [-552.0, -230.0]
+	}
+	Object {
+	  $ObjectID		  8
+	  IsActive		  [0]
 	  ViewObjType		  "SimulinkTopLevel"
 	  LoadSaveID		  "0"
-	  Extents		  [1369.0, 993.0]
+	  Extents		  [1449.0, 870.0]
 	  ZoomFactor		  [1.0]
 	  Offset		  [0.0, 0.0]
 	}
@@ -79,9 +97,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "daniele"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu May 08 09:40:38 2014"
-  RTWModifiedTimeStamp	  321395118
-  ModelVersionFormat	  "1.%<AutoIncrement:856>"
+  LastModifiedDate	  "Fri May 09 19:16:07 2014"
+  RTWModifiedTimeStamp	  321556985
+  ModelVersionFormat	  "1.%<AutoIncrement:917>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  on
@@ -116,7 +134,7 @@ Model {
   TryForcingSFcnDF	  off
   Object {
     $PropName		    "DataLoggingOverride"
-    $ObjectID		    7
+    $ObjectID		    9
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
     model_		    "controller"
     signals_		    []
@@ -176,13 +194,13 @@ Model {
     Type		    "Handle"
     Dimension		    1
     Simulink.ConfigSet {
-      $ObjectID		      8
+      $ObjectID		      10
       Version		      "1.12.1"
       Array {
 	Type			"Handle"
 	Dimension		8
 	Simulink.SolverCC {
-	  $ObjectID		  9
+	  $ObjectID		  11
 	  Version		  "1.12.1"
 	  StartTime		  "0.0"
 	  StopTime		  "inf"
@@ -217,7 +235,7 @@ Model {
 	  InsertRTBMode		  "Whenever possible"
 	}
 	Simulink.DataIOCC {
-	  $ObjectID		  10
+	  $ObjectID		  12
 	  Version		  "1.12.1"
 	  Decimation		  "1"
 	  ExternalInput		  "[t, u]"
@@ -249,7 +267,7 @@ Model {
 	  Refine		  "1"
 	}
 	Simulink.OptimizationCC {
-	  $ObjectID		  11
+	  $ObjectID		  13
 	  Version		  "1.12.1"
 	  Array {
 	    Type		    "Cell"
@@ -305,7 +323,7 @@ Model {
 	  ParallelExecutionInRapidAccelerator on
 	}
 	Simulink.DebuggingCC {
-	  $ObjectID		  12
+	  $ObjectID		  14
 	  Version		  "1.12.1"
 	  RTPrefix		  "error"
 	  ConsistencyChecking	  "none"
@@ -395,7 +413,7 @@ Model {
 	  SFTransitionActionBeforeConditionDiag	"warning"
 	}
 	Simulink.HardwareCC {
-	  $ObjectID		  13
+	  $ObjectID		  15
 	  Version		  "1.12.1"
 	  ProdBitPerChar	  8
 	  ProdBitPerShort	  16
@@ -432,7 +450,7 @@ Model {
 	  ProdEqTarget		  on
 	}
 	Simulink.ModelReferenceCC {
-	  $ObjectID		  14
+	  $ObjectID		  16
 	  Version		  "1.12.1"
 	  UpdateModelReferenceTargets "IfOutOfDateOrStructuralChange"
 	  CheckModelReferenceTargetMessage "error"
@@ -447,7 +465,7 @@ Model {
 	  SupportModelReferenceSimTargetCustomCode off
 	}
 	Simulink.SFSimCC {
-	  $ObjectID		  15
+	  $ObjectID		  17
 	  Version		  "1.12.1"
 	  SFSimEnableDebug	  on
 	  SFSimOverflowDetection  on
@@ -462,7 +480,7 @@ Model {
 	}
 	Simulink.RTWCC {
 	  $BackupClass		  "Simulink.RTWCC"
-	  $ObjectID		  16
+	  $ObjectID		  18
 	  Version		  "1.12.1"
 	  Array {
 	    Type		    "Cell"
@@ -531,7 +549,7 @@ Model {
 	    Type		    "Handle"
 	    Dimension		    2
 	    Simulink.CodeAppCC {
-	      $ObjectID		      17
+	      $ObjectID		      19
 	      Version		      "1.12.1"
 	      Array {
 		Type			"Cell"
@@ -599,7 +617,7 @@ Model {
 	    }
 	    Simulink.GRTTargetCC {
 	      $BackupClass	      "Simulink.TargetCC"
-	      $ObjectID		      18
+	      $ObjectID		      20
 	      Version		      "1.12.1"
 	      Array {
 		Type			"Cell"
@@ -688,11 +706,11 @@ Model {
   }
   Simulink.ConfigSet {
     $PropName		    "ActiveConfigurationSet"
-    $ObjectID		    8
+    $ObjectID		    10
   }
   Object {
     $PropName		    "DataTransfer"
-    $ObjectID		    19
+    $ObjectID		    21
     $ClassName		    "Simulink.GlobalDataTransfer"
     DefaultTransitionBetweenSyncTasks "Ensure deterministic transfer (maximum delay)"
     DefaultTransitionBetweenAsyncTasks "Ensure data integrity only"
@@ -856,6 +874,14 @@ Model {
       Interpolate	      on
     }
     Block {
+      BlockType		      MATLABFcn
+      MATLABFcn		      "sin"
+      OutputDimensions	      "-1"
+      OutputSignalType	      "auto"
+      Output1D		      on
+      SampleTime	      "-1"
+    }
+    Block {
       BlockType		      Memory
       X0		      "0"
       InheritSampleTime	      off
@@ -890,6 +916,21 @@ Model {
       InitialOutput	      "[]"
     }
     Block {
+      BlockType		      Product
+      Inputs		      "2"
+      Multiplication	      "Element-wise(.*)"
+      CollapseMode	      "All dimensions"
+      CollapseDim	      "1"
+      InputSameDT	      on
+      OutMin		      "[]"
+      OutMax		      "[]"
+      OutDataTypeStr	      "Inherit: Same as first input"
+      LockScale		      off
+      RndMeth		      "Zero"
+      SaturateOnIntegerOverflow	on
+      SampleTime	      "-1"
+    }
+    Block {
       BlockType		      S-Function
       FunctionName	      "system"
       SFunctionModules	      "''"
@@ -920,6 +961,19 @@ Model {
       IndexMode		      "One-based"
       InputPortWidth	      "-1"
       SampleTime	      "-1"
+    }
+    Block {
+      BlockType		      Sin
+      SineType		      "Time based"
+      TimeSource	      "Use simulation time"
+      Amplitude		      "1"
+      Bias		      "0"
+      Frequency		      "1"
+      Phase		      "0"
+      Samples		      "10"
+      Offset		      "0"
+      SampleTime	      "-1"
+      VectorParams1D	      on
     }
     Block {
       BlockType		      SubSystem
@@ -981,7 +1035,7 @@ Model {
   }
   System {
     Name		    "controller"
-    Location		    [1441, 27, 3041, 1200]
+    Location		    [1681, 0, 3361, 1050]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -995,13 +1049,13 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "408"
+    SIDHighWatermark	    "429"
     Block {
       BlockType		      SubSystem
       Name		      "Subsystem"
       SID		      "61"
       Ports		      []
-      Position		      [160, 65, 200, 125]
+      Position		      [155, 65, 195, 125]
       ZOrder		      42
       BlockMirror	      on
       MinAlgLoopOccurrences   off
@@ -1013,27 +1067,27 @@ Model {
       MaskHideContents	      off
       Object {
 	$PropName		"MaskObject"
-	$ObjectID		20
+	$ObjectID		22
 	$ClassName		"Simulink.Mask"
 	Array {
 	  Type			  "Simulink.MaskParameter"
 	  Dimension		  3
 	  Object {
-	    $ObjectID		    21
+	    $ObjectID		    23
 	    Type		    "edit"
 	    Name		    "robotName"
 	    Prompt		    "robot name"
-	    Value		    "'iCubGenova03'"
+	    Value		    "'iCubGenova01'"
 	  }
 	  Object {
-	    $ObjectID		    22
+	    $ObjectID		    24
 	    Type		    "edit"
 	    Name		    "Ts"
 	    Prompt		    "Ts"
 	    Value		    "0.01"
 	  }
 	  Object {
-	    $ObjectID		    23
+	    $ObjectID		    25
 	    Type		    "edit"
 	    Name		    "localName"
 	    Prompt		    "module name"
@@ -1044,7 +1098,7 @@ Model {
       }
       System {
 	Name			"Subsystem"
-	Location		[1441, 27, 3041, 1200]
+	Location		[1681, 0, 3361, 1050]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -1189,22 +1243,21 @@ Model {
 	  BlockType		  Scope
 	  Name			  "CoMErrors - normCoMError - \n CoMDes\n"
 	  SID			  "260"
-	  Ports			  [3]
-	  Position		  [1410, 613, 1495, 707]
+	  Ports			  [2]
+	  Position		  [1410, 605, 1495, 700]
 	  ZOrder		  113
 	  Floating		  off
-	  Location		  [4, 77, 1291, 817]
+	  Location		  [1681, 61, 3361, 1049]
 	  Open			  off
-	  NumInputPorts		  "3"
+	  NumInputPorts		  "2"
 	  List {
 	    ListType		    AxesTitles
 	    axes1		    "%<SignalLabel>"
 	    axes2		    "%<SignalLabel>"
-	    axes3		    "%<SignalLabel>"
 	  }
 	  List {
 	    ListType		    ScopeGraphics
-	    FigureColor		    "[0.5 0.5 0.5]"
+	    FigureColor		    "[0.501960784313725 0.501960784313725 0.501960784313725]"
 	    AxesColor		    "[0 0 0]"
 	    AxesTickColor	    "[1 1 1]"
 	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
@@ -1212,11 +1265,13 @@ Model {
 	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
 	    MarkerStyles	    "none|none|none|none|none|none"
 	  }
-	  ShowLegends		  off
-	  TimeRange		  "1.6"
-	  YMin			  "-0.025~0~0"
-	  YMax			  "0.005~0.04~4e-13"
-	  SaveName		  "ScopeData6"
+	  ShowLegends		  on
+	  LegendLocations	  "0.84955     0.90891     0.12887    0.051872\n0.84241     0.46584     0.13601    0.020243"
+	  TimeRange		  "35"
+	  YMin			  "-0.1~0"
+	  YMax			  "0.04000000000000001~0.007"
+	  SaveToWorkspace	  on
+	  SaveName		  "CoMErrors"
 	  DataFormat		  "StructureWithTime"
 	  LimitDataPoints	  off
 	  SampleTime		  "0"
@@ -1286,6 +1341,16 @@ Model {
 	  TagVisibility		  "global"
 	}
 	Block {
+	  BlockType		  MATLABFcn
+	  Name			  "Interpreted MATLAB Function"
+	  SID			  "411"
+	  Ports			  [1, 1]
+	  Position		  [1725, 565, 1795, 595]
+	  ZOrder		  194
+	  ShowName		  off
+	  MATLABFcn		  "sqrt(u'*u)"
+	}
+	Block {
 	  BlockType		  Reference
 	  Name			  "Joint Angles"
 	  SID			  "58"
@@ -1323,7 +1388,7 @@ Model {
 	  Position		  [1498, 505, 1542, 575]
 	  ZOrder		  188
 	  BlockRotation		  270
-	  BackgroundColor	  "[1.000000, 0.634000, 0.268000]"
+	  BackgroundColor	  "[1.000000, 0.635294, 0.266667]"
 	  ShowName		  off
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/wholeBodyStates/Joint Torques"
@@ -1477,7 +1542,7 @@ Model {
 	  SFBlockType		  "MATLAB Function"
 	  Object {
 	    $PropName		    "MaskObject"
-	    $ObjectID		    24
+	    $ObjectID		    26
 	    $ClassName		    "Simulink.Mask"
 	    Type		    "Stateflow"
 	    Description		    "Embedded MATLAB block"
@@ -1782,6 +1847,298 @@ Model {
 	  localName		  "localName"
 	}
 	Block {
+	  BlockType		  SubSystem
+	  Name			  "Subsystem"
+	  SID			  "415"
+	  Ports			  [1, 1]
+	  Position		  [460, 354, 560, 396]
+	  ZOrder		  199
+	  ShowName		  off
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  RTWSystemCode		  "Auto"
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  RequestExecContextInheritance	off
+	  MaskHideContents	  off
+	  System {
+	    Name		    "Subsystem"
+	    Location		    [1681, 0, 3361, 1050]
+	    Open		    on
+	    ModelBrowserVisibility  on
+	    ModelBrowserWidth	    200
+	    ScreenColor		    "white"
+	    PaperOrientation	    "landscape"
+	    PaperPositionMode	    "auto"
+	    PaperType		    "usletter"
+	    PaperUnits		    "inches"
+	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
+	    TiledPageScale	    1
+	    ShowPageBoundaries	    off
+	    ZoomFactor		    "150"
+	    Block {
+	      BlockType		      Inport
+	      Name		      "q(0)"
+	      SID		      "416"
+	      Position		      [45, 263, 75, 277]
+	      ZOrder		      -1
+	      IconDisplay	      "Port number"
+	    }
+	    Block {
+	      BlockType		      Clock
+	      Name		      "Clock"
+	      SID		      "417"
+	      Position		      [25, 360, 45, 380]
+	      ZOrder		      195
+	      ShowName		      off
+	      Decimation	      "1"
+	    }
+	    Block {
+	      BlockType		      Constant
+	      Name		      "Constant"
+	      SID		      "418"
+	      Position		      [145, 315, 175, 335]
+	      ZOrder		      193
+	      ShowName		      off
+	      Value		      "qFin"
+	    }
+	    Block {
+	      BlockType		      Product
+	      Name		      "Divide"
+	      SID		      "428"
+	      Ports		      [2, 1]
+	      Position		      [155, 362, 185, 393]
+	      ZOrder		      202
+	      ShowName		      off
+	      Inputs		      "**"
+	      InputSameDT	      off
+	      OutDataTypeStr	      "Inherit: Inherit via internal rule"
+	      RndMeth		      "Floor"
+	      SaturateOnIntegerOverflow	off
+	    }
+	    Block {
+	      BlockType		      SubSystem
+	      Name		      "MATLAB Function1"
+	      SID		      "420"
+	      Ports		      [3, 1]
+	      Position		      [240, 244, 400, 406]
+	      ZOrder		      189
+	      ShowName		      off
+	      LibraryVersion	      "1.32"
+	      ErrorFcn		      "Stateflow.Translate.translate"
+	      PermitHierarchicalResolution "ExplicitOnly"
+	      TreatAsAtomicUnit	      on
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      RTWSystemCode	      "Auto"
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      RequestExecContextInheritance off
+	      MaskHideContents	      off
+	      SFBlockType	      "MATLAB Function"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		27
+		$ClassName		"Simulink.Mask"
+		Type			"Stateflow"
+		Description		"Embedded MATLAB block"
+		SelfModifiable		"on"
+		Display			"bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('private/eml_me"
+		"mbrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'checkRange']);"
+		IconOpaque		"off"
+		IconUnits		"normalized"
+	      }
+	      System {
+		Name			"MATLAB Function1"
+		Location		[189, 219, 840, 949]
+		Open			off
+		ModelBrowserVisibility	on
+		ModelBrowserWidth	200
+		ScreenColor		"white"
+		PaperOrientation	"landscape"
+		PaperPositionMode	"auto"
+		PaperType		"usletter"
+		PaperUnits		"inches"
+		TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+		TiledPageScale		1
+		ShowPageBoundaries	off
+		ZoomFactor		"100"
+		SIDHighWatermark	"29"
+		Block {
+		  BlockType		  Inport
+		  Name			  "qInit"
+		  SID			  "420::18"
+		  Position		  [20, 101, 40, 119]
+		  ZOrder		  -1
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Inport
+		  Name			  "qFin"
+		  SID			  "420::19"
+		  Position		  [20, 136, 40, 154]
+		  ZOrder		  -2
+		  Port			  "2"
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Inport
+		  Name			  "a"
+		  SID			  "420::29"
+		  Position		  [20, 171, 40, 189]
+		  ZOrder		  9
+		  Port			  "3"
+		  IconDisplay		  "Port number"
+		}
+		Block {
+		  BlockType		  Demux
+		  Name			  " Demux "
+		  SID			  "420::26"
+		  Ports			  [1, 1]
+		  Position		  [270, 210, 320, 250]
+		  ZOrder		  6
+		  Outputs		  "1"
+		}
+		Block {
+		  BlockType		  S-Function
+		  Name			  " SFunction "
+		  SID			  "420::25"
+		  Tag			  "Stateflow S-Function controller 3"
+		  Ports			  [3, 2]
+		  Position		  [180, 108, 230, 212]
+		  ZOrder		  5
+		  FunctionName		  "sf_sfun"
+		  PortCounts		  "[3 2]"
+		  EnableBusSupport	  on
+		  Port {
+		    PortNumber		    2
+		    Name		    "qDes"
+		    RTWStorageClass	    "Auto"
+		    DataLoggingNameMode	    "SignalName"
+		  }
+		}
+		Block {
+		  BlockType		  Terminator
+		  Name			  " Terminator "
+		  SID			  "420::28"
+		  Position		  [460, 221, 480, 239]
+		  ZOrder		  8
+		}
+		Block {
+		  BlockType		  Outport
+		  Name			  "qDes"
+		  SID			  "420::5"
+		  Position		  [460, 101, 480, 119]
+		  ZOrder		  -8
+		  IconDisplay		  "Port number"
+		}
+		Line {
+		  SrcBlock		  "qInit"
+		  SrcPort		  1
+		  DstBlock		  " SFunction "
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  "qFin"
+		  SrcPort		  1
+		  DstBlock		  " SFunction "
+		  DstPort		  2
+		}
+		Line {
+		  SrcBlock		  "a"
+		  SrcPort		  1
+		  DstBlock		  " SFunction "
+		  DstPort		  3
+		}
+		Line {
+		  Name			  "qDes"
+		  Labels		  [0, 0]
+		  SrcBlock		  " SFunction "
+		  SrcPort		  2
+		  DstBlock		  "qDes"
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  " Demux "
+		  SrcPort		  1
+		  DstBlock		  " Terminator "
+		  DstPort		  1
+		}
+		Line {
+		  SrcBlock		  " SFunction "
+		  SrcPort		  1
+		  DstBlock		  " Demux "
+		  DstPort		  1
+		}
+	      }
+	    }
+	    Block {
+	      BlockType		      Sin
+	      Name		      "Sine Wave Function"
+	      SID		      "429"
+	      Ports		      [1, 1]
+	      Position		      [90, 355, 120, 385]
+	      ZOrder		      203
+	      ShowName		      off
+	      TimeSource	      "Use external signal"
+	      Frequency		      "pi/DT"
+	      SampleTime	      "0"
+	    }
+	    Block {
+	      BlockType		      Outport
+	      Name		      "qDes(t)"
+	      SID		      "422"
+	      Position		      [470, 318, 500, 332]
+	      ZOrder		      -2
+	      IconDisplay	      "Port number"
+	    }
+	    Line {
+	      SrcBlock		      "q(0)"
+	      SrcPort		      1
+	      DstBlock		      "MATLAB Function1"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "MATLAB Function1"
+	      SrcPort		      1
+	      DstBlock		      "qDes(t)"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "Constant"
+	      SrcPort		      1
+	      DstBlock		      "MATLAB Function1"
+	      DstPort		      2
+	    }
+	    Line {
+	      SrcBlock		      "Clock"
+	      SrcPort		      1
+	      DstBlock		      "Sine Wave Function"
+	      DstPort		      1
+	    }
+	    Line {
+	      SrcBlock		      "Sine Wave Function"
+	      SrcPort		      1
+	      Points		      [11, 0]
+	      Branch {
+		Points			[0, 15]
+		DstBlock		"Divide"
+		DstPort			2
+	      }
+	      Branch {
+		DstBlock		"Divide"
+		DstPort			1
+	      }
+	    }
+	    Line {
+	      SrcBlock		      "Divide"
+	      SrcPort		      1
+	      DstBlock		      "MATLAB Function1"
+	      DstPort		      3
+	    }
+	  }
+	}
+	Block {
 	  BlockType		  Sum
 	  Name			  "Sum"
 	  SID			  "406"
@@ -1800,9 +2157,9 @@ Model {
 	  Name			  "WBI to yarp"
 	  SID			  "407"
 	  Ports			  [1, 5]
-	  Position		  [1715, 432, 1825, 518]
-	  ZOrder		  190
-	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
+	  Position		  [1725, 432, 1835, 518]
+	  ZOrder		  197
+	  BackgroundColor	  "[0.180392, 0.349020, 0.600000]"
 	  ShowName		  off
 	  LibraryVersion	  "1.33"
 	  SourceBlock		  "WBCLibrary/Utilities/WBI to yarp"
@@ -2097,7 +2454,7 @@ Model {
 	  SFBlockType		  "MATLAB Function"
 	  Object {
 	    $PropName		    "MaskObject"
-	    $ObjectID		    25
+	    $ObjectID		    28
 	    $ClassName		    "Simulink.Mask"
 	    Type		    "Stateflow"
 	    Description		    "Embedded MATLAB block"
@@ -2607,11 +2964,11 @@ Model {
 	  Name			  "errorTau"
 	  SID			  "408"
 	  Ports			  [5]
-	  Position		  [1870, 435, 1925, 515]
-	  ZOrder		  191
+	  Position		  [1880, 435, 1935, 515]
+	  ZOrder		  198
 	  Floating		  off
-	  Location		  [2, 61, 1289, 801]
-	  Open			  on
+	  Location		  [1682, 61, 3360, 1048]
+	  Open			  off
 	  NumInputPorts		  "5"
 	  List {
 	    ListType		    AxesTitles
@@ -2645,7 +3002,7 @@ Model {
 	  Name			  "holder"
 	  SID			  "118"
 	  Ports			  [1, 1]
-	  Position		  [295, 359, 345, 391]
+	  Position		  [345, 359, 395, 391]
 	  ZOrder		  70
 	  ShowName		  off
 	  MinAlgLoopOccurrences	  off
@@ -2983,13 +3340,13 @@ Model {
 	}
 	Block {
 	  BlockType		  Scope
-	  Name			  "tau\n"
-	  SID			  "404"
+	  Name			  "normTauError"
+	  SID			  "413"
 	  Ports			  [1]
-	  Position		  [1605, 313, 1660, 367]
-	  ZOrder		  187
+	  Position		  [1870, 553, 1925, 607]
+	  ZOrder		  196
 	  Floating		  off
-	  Location		  [2, 61, 1289, 801]
+	  Location		  [19, 88, 1306, 828]
 	  Open			  off
 	  NumInputPorts		  "1"
 	  List {
@@ -3007,9 +3364,11 @@ Model {
 	    MarkerStyles	    "none|none|none|none|none|none"
 	  }
 	  ShowLegends		  off
-	  TimeRange		  "20"
-	  YMin			  "-12"
-	  YMax			  "6"
+	  TimeRange		  "80"
+	  YMin			  "0"
+	  YMax			  "60"
+	  SaveToWorkspace	  on
+	  SaveName		  "normTauError"
 	  DataFormat		  "StructureWithTime"
 	  LimitDataPoints	  off
 	  SampleTime		  "0"
@@ -3036,7 +3395,7 @@ Model {
 	  SFBlockType		  "MATLAB Function"
 	  Object {
 	    $PropName		    "MaskObject"
-	    $ObjectID		    26
+	    $ObjectID		    29
 	    $ClassName		    "Simulink.Mask"
 	    Type		    "Stateflow"
 	    Description		    "Embedded MATLAB block"
@@ -3242,16 +3601,8 @@ Model {
 	Line {
 	  SrcBlock		  "trajectoryGeneratorCoM"
 	  SrcPort		  1
-	  Points		  [38, 0]
-	  Branch {
-	    Points		    [0, 429; 662, 0; 0, -554]
-	    DstBlock		    "CoMErrors - normCoMError - \n CoMDes\n"
-	    DstPort		    3
-	  }
-	  Branch {
-	    DstBlock		    "controllerMatlab"
-	    DstPort		    13
-	  }
+	  DstBlock		  "controllerMatlab"
+	  DstPort		  13
 	}
 	Line {
 	  SrcBlock		  "trajectoryGeneratorCoM"
@@ -3314,8 +3665,8 @@ Model {
 	Line {
 	  SrcBlock		  "holder"
 	  SrcPort		  1
-	  DstBlock		  "controllerMatlab"
-	  DstPort		  2
+	  DstBlock		  "Subsystem"
+	  DstPort		  1
 	}
 	Line {
 	  SrcBlock		  "RightFootFwdKin"
@@ -3504,7 +3855,7 @@ Model {
 	Line {
 	  SrcBlock		  "controllerMatlab"
 	  SrcPort		  4
-	  Points		  [56, 0; 0, -390]
+	  Points		  [56, 0; 0, -375]
 	  DstBlock		  "CoMErrors - normCoMError - \n CoMDes\n"
 	  DstPort		  2
 	}
@@ -3583,11 +3934,6 @@ Model {
 	    DstBlock		    "Set Torques"
 	    DstPort		    1
 	  }
-	  Branch {
-	    Points		    [0, -80]
-	    DstBlock		    "tau\n"
-	    DstPort		    1
-	  }
 	}
 	Line {
 	  SrcBlock		  "Joint Torques"
@@ -3596,10 +3942,24 @@ Model {
 	  DstPort		  2
 	}
 	Line {
+	  SrcBlock		  "Interpreted MATLAB Function"
+	  SrcPort		  1
+	  DstBlock		  "normTauError"
+	  DstPort		  1
+	}
+	Line {
 	  SrcBlock		  "Sum"
 	  SrcPort		  1
-	  DstBlock		  "WBI to yarp"
-	  DstPort		  1
+	  Points		  [110, 0]
+	  Branch {
+	    DstBlock		    "WBI to yarp"
+	    DstPort		    1
+	  }
+	  Branch {
+	    Points		    [0, 105]
+	    DstBlock		    "Interpreted MATLAB Function"
+	    DstPort		    1
+	  }
 	}
 	Line {
 	  SrcBlock		  "WBI to yarp"
@@ -3631,6 +3991,12 @@ Model {
 	  DstBlock		  "errorTau"
 	  DstPort		  5
 	}
+	Line {
+	  SrcBlock		  "Subsystem"
+	  SrcPort		  1
+	  DstBlock		  "controllerMatlab"
+	  DstPort		  2
+	}
       }
     }
   }
@@ -3647,7 +4013,7 @@ Stateflow {
     name		    "controller"
     created		    "18-Feb-2014 10:14:40"
     isLibrary		    0
-    firstTarget		    52
+    firstTarget		    61
     sfVersion		    76014001.001
   }
   chart {
@@ -3688,9 +4054,9 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;1;0];\nA = 0.02;\nf "
-      "= 0.04;\n\nxcomDes    = xCom0 + A*sin(2*pi*f*t)*e3;\nxcomDes(1) =  xcomDes(1) + 0.01;\nxDcomDes   =         A*2*"
-      "pi*f*cos(2*pi*f*t)*e3;\nxDDcomDes  =        -A*(2*pi*f)^2*sin(2*pi*f*t)*e3;"
+      script		      "function [xcomDes, xDcomDes, xDDcomDes] = fcn(xCom0,t)\n%#codegen\n\ne3 = [0;1;0];\nA = 0.015;\nf"
+      " = 0.15;\n\nxcomDes    = xCom0 + A*sin(2*pi*f*t)*e3;\n% xcomDes(3) =  xcomDes(3) + 0.01;\nxDcomDes   =         A"
+      "*2*pi*f*cos(2*pi*f*t)*e3;\nxDDcomDes  =        -A*(2*pi*f)^2*sin(2*pi*f*t)*e3;"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
@@ -4487,20 +4853,20 @@ Stateflow {
   }
   chart {
     id			    42
-    name		    "Subsystem/MATLAB Function"
+    name		    "Subsystem/Subsystem/MATLAB Function1"
     windowPosition	    [534.78 45 200 715]
     viewLimits		    [0 156.75 0 153.75]
     screen		    [1 1 3040 1200 1.25]
     treeNode		    [0 43 0 0]
-    firstTransition	    50
-    firstJunction	    49
+    firstTransition	    49
+    firstJunction	    48
     viewObj		    42
     machine		    1
-    ssIdHighWaterMark	    8
+    ssIdHighWaterMark	    10
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
     firstData		    44
-    chartFileNumber	    4
+    chartFileNumber	    3
     disableImplicitCasting  1
     eml {
       name		      "checkRange"
@@ -4520,16 +4886,15 @@ Stateflow {
     decomposition	    CLUSTER_STATE
     eml {
       isEML		      1
-      script		      "function inRange = checkRange(umin, umax, u, tol)\n%#codegen\n\nres = u < umin + tol | u > umax -"
-      " tol;\nres = sum(res);\nif res==0\n    inRange = 1;\nelse\n    inRange = 0;\n    u < umin + tol | u > umax - tol"
-      "\nend"
+      script		      "function qDes = checkRange(qInit,qFin,a)\n%#codegen\n \nqFin(qFin == -5) = qInit(qFin == -5);\n\n"
+      "qDes = qInit + a*(qFin-qInit);\n"
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
   data {
     id			    44
     ssIdNumber		    6
-    name		    "umin"
+    name		    "qInit"
     linkNode		    [42 0 45]
     scope		    INPUT_DATA
     machine		    1
@@ -4551,7 +4916,7 @@ Stateflow {
   data {
     id			    45
     ssIdNumber		    7
-    name		    "umax"
+    name		    "qFin"
     linkNode		    [42 44 46]
     scope		    INPUT_DATA
     machine		    1
@@ -4572,28 +4937,9 @@ Stateflow {
   }
   data {
     id			    46
-    ssIdNumber		    4
-    name		    "u"
-    linkNode		    [42 45 47]
-    scope		    INPUT_DATA
-    machine		    1
-    props {
-      array {
-	size			"-1"
-      }
-      type {
-	method			SF_INHERITED_TYPE
-	primitive		SF_DOUBLE_TYPE
-      }
-      complexity	      SF_COMPLEX_INHERITED
-    }
-    dataType		    "Inherit: Same as Simulink"
-  }
-  data {
-    id			    47
     ssIdNumber		    5
-    name		    "inRange"
-    linkNode		    [42 46 48]
+    name		    "qDes"
+    linkNode		    [42 45 47]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -4610,10 +4956,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    48
-    ssIdNumber		    8
-    name		    "tol"
-    linkNode		    [42 47 0]
+    id			    47
+    ssIdNumber		    9
+    name		    "a"
+    linkNode		    [42 46 0]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -4632,7 +4978,7 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   junction {
-    id			    49
+    id			    48
     position		    [23.5747 49.5747 7]
     chart		    42
     linkNode		    [42 0 0]
@@ -4641,7 +4987,7 @@ Stateflow {
     type		    CONNECTIVE_JUNCTION
   }
   transition {
-    id			    50
+    id			    49
     labelString		    "{eML_blk_kernel();}"
     labelPosition	    [32.125 19.875 102.544 14.964]
     fontSize		    12
@@ -4649,7 +4995,7 @@ Stateflow {
       intersection	      [0 0 1 0 23.5747 14.625 0 0]
     }
     dst {
-      id		      49
+      id		      48
       intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
     }
     midPoint		    [23.5747 24.9468]
@@ -4665,13 +5011,198 @@ Stateflow {
     ssIdNumber		    2
   }
   instance {
-    id			    51
-    name		    "Subsystem/MATLAB Function"
+    id			    50
+    name		    "Subsystem/Subsystem/MATLAB Function1"
     machine		    1
     chart		    42
   }
-  target {
+  chart {
+    id			    51
+    name		    "Subsystem/MATLAB Function"
+    windowPosition	    [534.78 45 200 715]
+    viewLimits		    [0 156.75 0 153.75]
+    screen		    [1 1 3040 1200 1.25]
+    treeNode		    [0 52 0 0]
+    firstTransition	    59
+    firstJunction	    58
+    viewObj		    51
+    machine		    1
+    ssIdHighWaterMark	    8
+    decomposition	    CLUSTER_CHART
+    type		    EML_CHART
+    firstData		    53
+    chartFileNumber	    4
+    disableImplicitCasting  1
+    eml {
+      name		      "checkRange"
+    }
+  }
+  state {
     id			    52
+    labelString		    "eML_blk_kernel()"
+    position		    [18 64.5 118 66]
+    fontSize		    12
+    chart		    51
+    treeNode		    [51 0 0 0]
+    superState		    SUBCHART
+    subviewer		    51
+    ssIdNumber		    1
+    type		    FUNC_STATE
+    decomposition	    CLUSTER_STATE
+    eml {
+      isEML		      1
+      script		      "function inRange = checkRange(umin, umax, u, tol)\n%#codegen\n\nres = u < umin + tol | u > umax -"
+      " tol;\nres = sum(res);\nif res==0\n    inRange = 1;\nelse\n    inRange = 0;\n    u < umin + tol | u > umax - tol"
+      "\nend"
+      editorLayout	      "100 M4x1[10 5 700 500]"
+    }
+  }
+  data {
+    id			    53
+    ssIdNumber		    6
+    name		    "umin"
+    linkNode		    [51 0 54]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    54
+    ssIdNumber		    7
+    name		    "umax"
+    linkNode		    [51 53 55]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    55
+    ssIdNumber		    4
+    name		    "u"
+    linkNode		    [51 54 56]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+      }
+      complexity	      SF_COMPLEX_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    56
+    ssIdNumber		    5
+    name		    "inRange"
+    linkNode		    [51 55 57]
+    scope		    OUTPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_NO
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  data {
+    id			    57
+    ssIdNumber		    8
+    name		    "tol"
+    linkNode		    [51 56 0]
+    scope		    INPUT_DATA
+    machine		    1
+    props {
+      array {
+	size			"-1"
+      }
+      type {
+	method			SF_INHERITED_TYPE
+	primitive		SF_DOUBLE_TYPE
+	isSigned		1
+	wordLength		"16"
+      }
+      complexity	      SF_COMPLEX_INHERITED
+      frame		      SF_FRAME_INHERITED
+    }
+    dataType		    "Inherit: Same as Simulink"
+  }
+  junction {
+    id			    58
+    position		    [23.5747 49.5747 7]
+    chart		    51
+    linkNode		    [51 0 0]
+    subviewer		    51
+    ssIdNumber		    3
+    type		    CONNECTIVE_JUNCTION
+  }
+  transition {
+    id			    59
+    labelString		    "{eML_blk_kernel();}"
+    labelPosition	    [32.125 19.875 102.544 14.964]
+    fontSize		    12
+    src {
+      intersection	      [0 0 1 0 23.5747 14.625 0 0]
+    }
+    dst {
+      id		      58
+      intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
+    }
+    midPoint		    [23.5747 24.9468]
+    chart		    51
+    linkNode		    [51 0 0]
+    dataLimits		    [21.175 25.975 14.625 42.575]
+    subviewer		    51
+    drawStyle		    SMART
+    slide {
+      sticky		      BOTH_STICK
+    }
+    executionOrder	    1
+    ssIdNumber		    2
+  }
+  instance {
+    id			    60
+    name		    "Subsystem/MATLAB Function"
+    machine		    1
+    chart		    51
+  }
+  target {
+    id			    61
     name		    "sfun"
     description		    "Default Simulink S-Function Target."
     machine		    1
