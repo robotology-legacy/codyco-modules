@@ -1,0 +1,83 @@
+<application>
+<name>iCubStartupDemoCoDyCo</name>
+
+        <dependencies>
+        </dependencies>
+   
+
+ <module>
+    <name>wholeBodyDynamicsTree</name>
+    <parameters>--autoconnect --headV2 --legsV2 --feetV2 --name wholeBodyDynamicsTree --robot icub </parameters>
+    <node>powerNode1</node>
+    <tag>wholeBodyDynamicsTree</tag>
+ </module>
+ <module>
+    <name>iCubGui</name>
+    <parameters>--xpos 1500 --ypos 50 --width 370</parameters> 
+    <node>display</node>
+    <tag>iCubGui</tag>
+  </module>
+
+<module>
+    <name>iKinGazeCtrl</name>
+    <parameters></parameters> 
+    <node>powerNode2</node>
+    <tag>ikg</tag>
+  </module>
+
+ <module>
+    <name>wholeBodyGaze</name>
+    <parameters>--robot icub --part left_leg</parameters> 
+    <node>powerNode1</node>
+    <tag>wbg</tag>
+  </module>
+
+  <connection>
+    <from>/wholeBodyDynamicsTree/contacts:o</from>
+    <to>/iCubGui/forces</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/head/state:o</from>
+    <to>/iCubGui/head:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/inertial</from>
+    <to>/iCubGui/inertial:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/left_arm/state:o</from>
+    <to>/iCubGui/left_arm:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/right_arm/state:o</from>
+    <to>/iCubGui/right_arm:i</to>
+    <protocol>udp</protocol>
+  </connection>
+   <connection>
+    <from>/icub/left_leg/state:o</from>
+    <to>/iCubGui/left_leg:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/right_leg/state:o</from>
+    <to>/iCubGui/right_leg:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/torso/state:o</from>
+    <to>/iCubGui/torso:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/wholeBodyGaze/xd:o</from>
+    <to>/iKinGazeCtrl/xd:i</to>
+    <protocol>udp</protocol>
+  </connection>
+
+		
+
+</application>
