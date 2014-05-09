@@ -144,9 +144,9 @@ namespace codyco {
             //force tasks
             tasks.clear();
             TaskInformation task3 = {TaskTypeLeftHandForce, "l_gripper", &m_references->desiredLeftHandPosition()};
-            tasks.push_back(task1);
+            tasks.push_back(task3);
             TaskInformation task4 = {TaskTypeRightHandForce, "r_gripper", &m_references->desiredRightHandPosition()};
-            tasks.push_back(task2);
+            tasks.push_back(task4);
             
             for (std::vector<TaskInformation>::iterator it = tasks.begin(); it != tasks.end(); it++) {
                 reader = new EndEffectorForceReader(*m_robot);//, it->referredLinkName);
@@ -179,6 +179,24 @@ namespace codyco {
             Eigen::VectorXd positions(actuatedDOFs);
             m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, positions.data());
             m_controller->setDesiredJointsConfiguration(positions);
+            
+            int leftFootLinkID = -1;
+            m_robot->getLinkId("l_sole", leftFootLinkID);
+            
+            wbi::Frame frame;
+            m_robot->computeH(positions.data(), wbi::Frame(), leftFootLinkID, frame);
+            
+            frame = frame * wbi::Frame(wbi::Rotation(0, 0, 1,
+                                                     0, -1, 0,
+                                                     1, 0, 0));
+            frame.setToInverse();
+            
+            Eigen::VectorXd initialCOM(7);
+            //set initial com to be equal to the read one
+            m_robot->forwardKinematics(positions.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, initialCOM.data());
+            Eigen::VectorXd comPosition = initialCOM.head(3);
+            
+            m_references->desiredCOMAcceleration().setValue(comPosition);
             
             bool threadsStarted = true;
             
