@@ -19,6 +19,7 @@
 #define CODYCOLIB_MATH_H
 
 #include <Eigen/Core>
+#include <Eigen/SVD>
 
 //namespace Eigen {
 //    template<typename Derived> class MatrixBase;
@@ -42,9 +43,16 @@ namespace codyco {
 //                           double tolerance,
 //                           Eigen::MatrixBase<Derived2>& Apinv);
         
+        //TODO: add default tolerance
         void pseudoInverse(const Eigen::Ref<const Eigen::MatrixXd>& A,
-                           double tolerance,
                            Eigen::Ref<Eigen::MatrixXd> Apinv,
+                           double tolerance,
+                           unsigned int computationOptions = Eigen::ComputeThinU|Eigen::ComputeThinV);
+        
+        void pseudoInverse(const Eigen::Ref<const Eigen::MatrixXd>& A,
+                           Eigen::JacobiSVD<typename Eigen::MatrixXd::PlainObject>& svdDecomposition,
+                           Eigen::Ref<Eigen::MatrixXd> Apinv,
+                           double tolerance,
                            unsigned int computationOptions = Eigen::ComputeThinU|Eigen::ComputeThinV);
     }
 }

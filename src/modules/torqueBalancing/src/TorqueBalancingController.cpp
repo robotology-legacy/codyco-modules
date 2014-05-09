@@ -91,8 +91,11 @@ namespace codyco {
             //TODO: check sign of gravity
             m_gravityUnitVector[2] = -9.81;
             
-            m_jointsZeroVector.setZero();
+            m_torquesSelector.setZero();
+            m_torquesSelector.bottomRows(actuatedDOFs).setIdentity();
             
+            m_jointsZeroVector.setZero();
+           
             //zeroing monitored variables
             m_desiredFeetForces.setZero();
             m_torques.setZero();
@@ -259,12 +262,12 @@ namespace codyco {
         {
             using namespace Eigen;
             
-            //TODO: decide later if there is a performance benefit in moving the declaration of the variables in the class
+            //TODO: decide later if there is a performance benefit in moving the declaration of the variables in the class (or if this becomes a "new" at runtime)
             //Names are taken from "math" from brevity
             MatrixXd JcMInv = m_feetJacobian * m_massMatrix.inverse();
             MatrixXd JcMInvTorqueSelector = JcMInv * m_torquesSelector;
             
-            math::pseudoInverse(JcMInvTorqueSelector, PseudoInverseTolerance, m_pseudoInverseOfJcMInvSt);
+            math::pseudoInverse(JcMInvTorqueSelector, m_pseudoInverseOfJcMInvSt, PseudoInverseTolerance);
             MatrixXd nullSpaceProjector = MatrixXd::Identity(actuatedDOFs, actuatedDOFs) - m_pseudoInverseOfJcMInvSt * JcMInvTorqueSelector;
                         
             m_torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_feetDJacobianDq - JcMInv * m_feetJacobian.transpose() * desiredFeetForces);
