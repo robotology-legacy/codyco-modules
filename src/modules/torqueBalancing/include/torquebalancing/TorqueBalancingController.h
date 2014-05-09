@@ -95,6 +95,10 @@ namespace codyco {
             
 #pragma mark - Monitorable variables
             
+            const Eigen::VectorXd& desiredFeetForces();
+            
+            const Eigen::VectorXd& outputTorques();
+            
         private:
             void readReferences();
             bool updateRobotState();
@@ -121,13 +125,10 @@ namespace codyco {
             //References
             ControllerReferences& m_references;
             Eigen::VectorXd m_desiredJointsConfiguration; /*!< actuatedDOFs */
-            Eigen::VectorXd m_internal_desiredJointsConfiguration; /*!< actuatedDOFs */
             
             //Gains
             double m_centroidalMomentumGain;
-            double m_internal_centroidalMomentumGain;
             Eigen::VectorXd m_impedanceGains; /*!< actuatedDOFs */
-            Eigen::VectorXd m_internal_impedanceGains; /*!< actuatedDOFs */
 
             //references
             Eigen::Vector3d m_desiredCOMAcceleration;
@@ -162,6 +163,8 @@ namespace codyco {
             //constant auxiliary variables
             double m_gravityUnitVector[3];
             Eigen::Matrix<double, 7, 1> m_rotoTranslationVector; /*!< 7 */
+            Eigen::VectorXd m_jointsZeroVector; /*!< actuatedDOFs */
+            Eigen::Matrix<double, 6, 1> m_esaZeroVector; /*!< 6 */
             
         };
     }
