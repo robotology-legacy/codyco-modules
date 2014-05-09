@@ -61,6 +61,7 @@ namespace codyco {
         , m_centroidalForceMatrix(6, 12)
         , m_gravityForce(6)
         , m_torquesSelector(totalDOFs, actuatedDOFs)
+        , m_pseudoInverseOfJcBase(6, 12)
         , m_rotoTranslationVector(7)
         , m_jointsZeroVector(actuatedDOFs)
         , m_esaZeroVector(6) {}
@@ -72,8 +73,9 @@ namespace codyco {
         {
             using namespace Eigen;
             //Initialize constant variables
-            m_robot.getLinkId("l_sole", m_leftFootLinkID);
-            m_robot.getLinkId("r_sole", m_rightFootLinkID);
+            bool linkFound = true;
+            linkFound = m_robot.getLinkId("l_sole", m_leftFootLinkID);
+            linkFound = linkFound && m_robot.getLinkId("r_sole", m_rightFootLinkID);
             
             m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
                                                             0, -1, 0,
@@ -88,7 +90,6 @@ namespace codyco {
             //gravity
             m_gravityForce.setZero();
             m_gravityUnitVector[0] = m_gravityUnitVector[1] = 0;
-            //TODO: check sign of gravity
             m_gravityUnitVector[2] = -9.81;
             
             m_torquesSelector.setZero();
@@ -102,7 +103,7 @@ namespace codyco {
             //zeroing monitored variables
             m_desiredFeetForces.setZero();
             m_torques.setZero();
-            return true;
+            return linkFound;
         }
         
         void TorqueBalancingController::threadRelease()
@@ -220,22 +221,27 @@ namespace codyco {
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointPositions.data());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointVelocities.data());
             
-            //update mass matrix
-            m_robot.computeMassMatrix(m_jointPositions.data(), m_world2BaseFrame, m_massMatrix.data());
-            m_robot.computeCentroidalMomentum(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_centroidalMomentum.data());
+            //update jacobians (both feet in one variable)
+            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_feetJacobian.topRows(6).data());
+            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_feetJacobian.bottomRows(6).data());
             
+            //update kinematic quantities
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_centerOfMassLinkID, m_rotoTranslationVector.data());
             m_centerOfMassPosition = m_rotoTranslationVector.head<3>();
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_leftFootPosition.data());
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_rightFootPosition.data());
             
-            //update jacobians (both feet in one variable)
-            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_feetJacobian.topRows(6).data());
-            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_feetJacobian.bottomRows(6).data());
-  
+            //update base velocity (to be moved in wbi state)
+            math::pseudoInverse(m_feetJacobian.leftCols(6), m_pseudoInverseOfJcBase, PseudoInverseTolerance);
+            m_baseVelocity = -m_pseudoInverseOfJcBase * m_feetJacobian.rightCols(actuatedDOFs) * m_jointVelocities;
+            
+            //update dynamic quantities
+            m_robot.computeMassMatrix(m_jointPositions.data(), m_world2BaseFrame, m_massMatrix.data());
+            m_robot.computeCentroidalMomentum(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_centroidalMomentum.data());
+            
             m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_leftFootLinkID, m_feetDJacobianDq.head(6).data());
             m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_rightFootLinkID, m_feetDJacobianDq.tail(6).data());
-  
+            
             //Compute bias forces
             m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_gravityUnitVector, m_generalizedBiasForces.data());
             m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_world2BaseFrame, m_jointsZeroVector.data(), m_esaZeroVector.data(), m_gravityUnitVector, m_gravityBiasTorques.data());
