@@ -126,6 +126,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     LLCartesianExternalWrench.resize(6);
     RLCartesianExternalWrench.resize(6);
 
+    iCubGuiBase.resize(6);
+
     //Copied from old wholeBodyDynamics
     std::string robot_name = robotName;
     std::string local_name = name;
@@ -181,6 +183,10 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 
 
     //port_all_velocities->open(string("/"+local_name+"/all_velocities:o").c_str());
+
+    //Open port for iCubGui
+    port_icubgui_base = new BufferedPort<Vector>;
+    port_icubgui_base->open(string("/"+local_name+"/base:o"));
 
     if (autoconnect)
     {
@@ -607,6 +613,61 @@ void wholeBodyDynamicsThread::publishEndEffectorWrench()
 }
 
 //*************************************************************************************************************************
+void wholeBodyDynamicsThread::publishBaseToGui()
+{
+    bool ret;
+    ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
+    YARP_ASSERT(ret);
+
+    //For the icubGui, the world is the root frame when q == 0
+    //So we have to find the transformation between the root now
+    //and the root when q == 0
+    icub_model_calibration->setAng(tree_status.q);
+
+    // {}^{leftFoot} H_{currentRoot}
+    KDL::Frame H_leftFoot_currentRoot
+       = icub_model_calibration->getPositionKDL(left_foot_link_idyntree_id,root_link_idyntree_id);
+
+    tree_status.q.zero();
+    icub_model_calibration->setAng(tree_status.q);
+
+    //{}^world H_{leftFoot}
+    KDL::Frame H_world_leftFoot
+        = icub_model_calibration->getPositionKDL(root_link_idyntree_id,left_foot_link_idyntree_id);
+
+    KDL::Frame H_world_currentRoot
+        = H_world_leftFoot*H_leftFoot_currentRoot;
+
+    iCubGuiBase.zero();
+
+    //Set angular part
+    double roll,pitch,yaw;
+    H_world_currentRoot.M.GetRPY(roll,pitch,yaw);
+    //H_world_currentRoot.M.Inverse().GetRPY(roll,pitch,yaw);
+
+    const double RAD2DEG = 180.0/(3.1415);
+
+    iCubGuiBase[0] = RAD2DEG*yaw;
+    iCubGuiBase[1] = RAD2DEG*pitch;
+    iCubGuiBase[2] = RAD2DEG*roll;
+
+    /*
+    iCubGuiBase[0] = RAD2DEG*roll;
+    iCubGuiBase[1] = RAD2DEG*pitch;
+    iCubGuiBase[2] = RAD2DEG*yaw;
+    */
+
+    //Set linear part (iCubGui wants the root offset in millimeters)
+    const double METERS2MILLIMETERS = 1000.0;
+    iCubGuiBase[3] = METERS2MILLIMETERS*H_world_currentRoot.p(0);
+    iCubGuiBase[4] = METERS2MILLIMETERS*H_world_currentRoot.p(1);
+    iCubGuiBase[5] = METERS2MILLIMETERS*H_world_currentRoot.p(2);
+
+    broadcastData<yarp::sig::Vector>(iCubGuiBase,port_icubgui_base);
+}
+
+
+//*************************************************************************************************************************
 void wholeBodyDynamicsThread::run()
 {
     run_mutex.lock();
@@ -652,6 +713,9 @@ void wholeBodyDynamicsThread::normal_run()
 
     //Send external wrench estimates
     publishEndEffectorWrench();
+
+    //Send base information to iCubGui
+    publishBaseToGui();
 
     //if normal mode, publish the
     printCountdown = (printCountdown>=PRINT_PERIOD) ? 0 : printCountdown +(int)getRate();   // countdown for next print (see sendMsg method)
@@ -911,6 +975,8 @@ void wholeBodyDynamicsThread::threadRelease()
     closePort(port_external_wrench_LL);
     closePort(port_external_wrench_RA);
     closePort(port_external_wrench_RL);
+    std::cerr << "Closing iCubGui base port\n";
+    closePort(port_icubgui_base);
 
     delete icub_model_calibration;
 

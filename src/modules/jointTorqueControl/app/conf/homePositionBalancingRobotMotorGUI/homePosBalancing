@@ -1,18 +1,18 @@
 [head] 
-./homePosBalancing.poshead 
+./homeBalancingCoDyCo.poshead 
 
 [torso] 
-./homePosBalancing.postorso 
+./homeBalancingCoDyCo.postorso 
 
 [left_arm] 
-./homePosBalancing.posleft_arm 
+./homeBalancingCoDyCo.posleft_arm 
 
 [right_arm] 
-./homePosBalancing.posright_arm 
+./homeBalancingCoDyCo.posright_arm 
 
 [right_leg] 
-./homePosBalancing.posright_leg 
+./homeBalancingCoDyCo.posright_leg 
 
 [left_leg] 
-./homePosBalancing.posleft_leg 
+./homeBalancingCoDyCo.posleft_leg 
 

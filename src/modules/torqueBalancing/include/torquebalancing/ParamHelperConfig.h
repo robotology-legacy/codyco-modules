@@ -61,10 +61,12 @@ namespace codyco {
             //MonitoredVariables
             TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration,
             TorqueBalancingModuleParameterMonitorCOMError,
+            TorqueBalancingModuleParameterMonitorFeetForces,
+            TorqueBalancingModuleParameterMonitorOutputTorques,
             
         } TorqueBalancingModuleParameter;
         
-        static const int TorqueBalancingModuleParameterSize = 26;
+        static const int TorqueBalancingModuleParameterSize = 28;
         
         
         static const std::string defaultModuleName = "torqueBalancing";
@@ -74,10 +76,10 @@ namespace codyco {
         static const double defaultModulePeriod = 1.0; //s
         static const double defaultIntegralLimit = std::numeric_limits<double>::max(); //no limit
         static const Eigen::VectorXd defaultCOMGains = Eigen::VectorXd(3).setZero();
-        static const Eigen::VectorXd defaultHandsPositionGains = Eigen::VectorXd(14).setZero();
-        static const Eigen::VectorXd defaultHandsForceGains = Eigen::VectorXd(12).setZero();
+        static const Eigen::VectorXd defaultHandsPositionGains = Eigen::VectorXd::Zero(14);
+        static const Eigen::VectorXd defaultHandsForceGains = Eigen::VectorXd::Zero(12);
         static const double defaultCentroidalGain = 0;
-        static const Eigen::VectorXd defaultImpedanceGains = Eigen::VectorXd(actuatedDOFs).setZero();
+        static const Eigen::VectorXd defaultImpedanceGains = Eigen::VectorXd::Zero(actuatedDOFs);
         
         const paramHelp::ParamProxyInterface *const TorqueBalancingModuleParameterDescriptions[]  =
         {
@@ -108,12 +110,14 @@ namespace codyco {
             new paramHelp::ParamProxyBasic<double>("comKp", TorqueBalancingModuleParameterHandsForceProportionalGain, 12, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultHandsForceGains.data(), "Proportional gains of Hands forces PID"),
             new paramHelp::ParamProxyBasic<double>("comKd", TorqueBalancingModuleParameterHandsForceDerivativeGain, 12, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultHandsForceGains.data(), "Derivative gains of Hands forces PID"),
             new paramHelp::ParamProxyBasic<double>("comKi", TorqueBalancingModuleParameterHandsForceIntegralGain, 12, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultHandsForceGains.data(), "Integral gains of Hands forces PID"),
-            //Centroidal gain
+            //gains
             new paramHelp::ParamProxyBasic<double>("kw", TorqueBalancingModuleParameterCentroidalGain, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultCentroidalGain, "Gain for the centroidal-based controller"),
             new paramHelp::ParamProxyBasic<double>("kImp", TorqueBalancingModuleParameterImpedanceGain, actuatedDOFs, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultImpedanceGains.data(), "Gain for the impedance control task."),
             //Monitored variables
             new paramHelp::ParamProxyBasic<double>("desCOMAcc", TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Desired COM acceleration computed by the controller"),
             new paramHelp::ParamProxyBasic<double>("comError", TorqueBalancingModuleParameterMonitorCOMError, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Instantaneous COM error"),
+            new paramHelp::ParamProxyBasic<double>("feetForces", TorqueBalancingModuleParameterMonitorFeetForces, 12, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Desired feet forces"),
+            new paramHelp::ParamProxyBasic<double>("outTorques", TorqueBalancingModuleParameterMonitorOutputTorques, actuatedDOFs, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Output torques of the controller"),
         };
         
         
