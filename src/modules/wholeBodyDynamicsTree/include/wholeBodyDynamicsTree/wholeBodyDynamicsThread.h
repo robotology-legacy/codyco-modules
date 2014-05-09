@@ -92,7 +92,6 @@ class wholeBodyDynamicsThread: public RateThread
     BufferedPort<Bottle> *port_TOTorques;
     BufferedPort<Bottle> *port_HDTorques;
 
-
     BufferedPort<Vector> *port_external_wrench_RA;
     BufferedPort<Vector> *port_external_wrench_LA;
     BufferedPort<Vector> *port_external_wrench_RL;
@@ -102,7 +101,6 @@ class wholeBodyDynamicsThread: public RateThread
     BufferedPort<Vector> *port_external_cartesian_wrench_LA;
     BufferedPort<Vector> *port_external_cartesian_wrench_RL;
     BufferedPort<Vector> *port_external_cartesian_wrench_LL;
-
 
     BufferedPort<Vector> *port_sensor_wrench_RL;
     BufferedPort<Vector> *port_sensor_wrench_LL;
@@ -125,6 +123,9 @@ class wholeBodyDynamicsThread: public RateThread
     BufferedPort<Vector> *port_external_ft_leg_left;
     BufferedPort<Vector> *port_external_ft_leg_right;
     */
+
+    BufferedPort<Vector> * port_icubgui_base;
+
     yarp::os::Stamp timestamp;
 
     template <class T> void broadcastData(T& _values, BufferedPort<T> *_port);
@@ -134,6 +135,7 @@ class wholeBodyDynamicsThread: public RateThread
     void publishContacts();
     void getEndEffectorWrenches();
     void publishEndEffectorWrench();
+    void publishBaseToGui();
     wbi::LocalId convertFTiDynTreeToFTwbi(int ft_sensor_id);
     void normal_run();
     void calibration_run();
@@ -160,6 +162,8 @@ class wholeBodyDynamicsThread: public RateThread
     yarp::sig::Vector RACartesianExternalWrench;
     yarp::sig::Vector LLCartesianExternalWrench;
     yarp::sig::Vector RLCartesianExternalWrench;
+
+    yarp::sig::Vector iCubGuiBase;
 
     //Calibration related variables
     yarp::os::Mutex run_mutex;

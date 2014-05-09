@@ -44,8 +44,7 @@ int main(int argc, char **argv)
 
     //initialize the network
     yarp::os::Network yarp;
-// ???: Ask silvio if timeout is needed or not
-    if (!yarp::os::Network::checkNetwork()) {
+    if (!yarp::os::Network::checkNetwork(5)) {
         std::cerr << "YARP network is not available" << std::endl;
         return -1;
     }

@@ -79,18 +79,28 @@ namespace codyco {
         
         
         void pseudoInverse(const Eigen::Ref<const Eigen::MatrixXd>& A,
-                           double tolerance,
                            Eigen::Ref<Eigen::MatrixXd> Apinv,
+                           double tolerance,
                            unsigned int computationOptions)
 
         {
+            Eigen::JacobiSVD<typename Eigen::MatrixXd::PlainObject> svdDecomposition(A.rows(), A.cols());
+            pseudoInverse(A, svdDecomposition, Apinv, tolerance, computationOptions);
+        }
+        
+        void pseudoInverse(const Eigen::Ref<const Eigen::MatrixXd>& A,
+                           Eigen::JacobiSVD<typename Eigen::MatrixXd::PlainObject>& svdDecomposition,
+                           Eigen::Ref<Eigen::MatrixXd> Apinv,
+                           double tolerance,
+                           unsigned int computationOptions)
+        {
             using namespace Eigen;
-            JacobiSVD<typename MatrixXd::PlainObject> svd = A.jacobiSvd(computationOptions);
-            typename JacobiSVD<typename MatrixXd::PlainObject>::SingularValuesType singularValues = svd.singularValues();
+            svdDecomposition.compute(A, computationOptions);
+            typename JacobiSVD<typename MatrixXd::PlainObject>::SingularValuesType singularValues = svdDecomposition.singularValues();
             for (int idx = 0; idx < singularValues.size(); idx++) {
                 singularValues(idx) = tolerance > 0 && singularValues(idx) > tolerance ? 1.0 / singularValues(idx) : 0.0;
             }
-            Apinv = svd.matrixV() * singularValues.asDiagonal() * svd.matrixU().adjoint();
+            Apinv = svdDecomposition.matrixV() * singularValues.asDiagonal() * svdDecomposition.matrixU().adjoint();
         }
     }
 }
