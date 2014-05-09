@@ -212,14 +212,14 @@ namespace codyco {
         
         bool TorqueBalancingController::updateRobotState()
         {
+            //read positions and velocities
+            m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointPositions.data());
+            m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointVelocities.data());
+            
             //update world to base frame
             m_robot.computeH(m_jointPositions.data(), wbi::Frame(), m_leftFootLinkID, m_world2BaseFrame);
             m_world2BaseFrame = m_world2BaseFrame * m_leftFootToBaseRotationFrame;
             m_world2BaseFrame.setToInverse();
-            
-            //read positions and velocities
-            m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointPositions.data());
-            m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointVelocities.data());
             
             //update jacobians (both feet in one variable)
             m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_feetJacobian.topRows(6).data());
