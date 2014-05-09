@@ -39,11 +39,8 @@ namespace codyco {
         , m_centerOfMassLinkID(wbi::wholeBodyInterface::COM_LINK_ID)
         , m_references(references)
         , m_desiredJointsConfiguration(actuatedDOFs)
-        , m_internal_desiredJointsConfiguration(actuatedDOFs)
         , m_centroidalMomentumGain(0)
-        , m_internal_centroidalMomentumGain(0)
         , m_impedanceGains(actuatedDOFs)
-        , m_internal_impedanceGains(actuatedDOFs)
         , m_desiredCOMAcceleration(3)
         , m_desiredFeetForces(12)
         , m_desiredCentroidalMomentum(6)
@@ -95,6 +92,10 @@ namespace codyco {
             m_gravityUnitVector[2] = -9.81;
             
             m_jointsZeroVector.setZero();
+            
+            //zeroing monitored variables
+            m_desiredFeetForces.setZero();
+            m_torques.setZero();
             return true;
         }
         
@@ -105,7 +106,8 @@ namespace codyco {
         
         void TorqueBalancingController::run()
         {
-            if (!this->isActiveState()) return;
+            codyco::LockGuard guard(m_mutex);
+            if (!m_active) return;
             //read references
             readReferences();
             
@@ -120,7 +122,6 @@ namespace codyco {
             
             //write torques
             writeTorques();
-            
         }
         
 #pragma mark - Getter and setter
@@ -180,16 +181,26 @@ namespace codyco {
             return m_active;
         }
         
+#pragma mark - Monitorable variables
+            
+        const Eigen::VectorXd& TorqueBalancingController::desiredFeetForces()
+        {
+            codyco::LockGuard guard(m_mutex);
+            return m_desiredFeetForces;
+        }
+        
+        const Eigen::VectorXd& TorqueBalancingController::outputTorques()
+        {
+            codyco::LockGuard guard(m_mutex);
+            return m_torques;
+        }
+            
 #pragma mark - Controller methods
         
         void TorqueBalancingController::readReferences()
         {
             if (m_references.desiredCOMAcceleration().isValid())
                 m_desiredCOMAcceleration = m_references.desiredCOMAcceleration().value();
-            codyco::LockGuard guard(m_mutex);
-            m_internal_centroidalMomentumGain = m_centroidalMomentumGain;
-            m_internal_desiredJointsConfiguration = m_internal_desiredJointsConfiguration;
-            m_internal_impedanceGains = m_impedanceGains;
         }
         
         bool TorqueBalancingController::updateRobotState()
@@ -237,7 +248,7 @@ namespace codyco {
             skewSymmentricMatrix(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 6));
 
             m_desiredCentroidalMomentum.head<3>() = mass * desiredCOMAcceleration;
-            m_desiredCentroidalMomentum.tail<3>() = -m_internal_centroidalMomentumGain * m_centroidalMomentum.tail<3>();
+            m_desiredCentroidalMomentum.tail<3>() = -m_centroidalMomentumGain * m_centroidalMomentum.tail<3>();
 
             desiredFeetForces = m_centroidalForceMatrix.jacobiSvd(ComputeThinU | ComputeThinV).solve(m_desiredCentroidalMomentum - m_gravityForce);
             //TODO: we can also test LDLT decomposition since it requires positive semidefinite matrix
@@ -259,10 +270,9 @@ namespace codyco {
             m_torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_feetDJacobianDq - JcMInv * m_feetJacobian.transpose() * desiredFeetForces);
             
             VectorXd torques0 = m_gravityBiasTorques.tail(actuatedDOFs) - m_feetJacobian.rightCols(actuatedDOFs).transpose() * desiredFeetForces 
-            - m_internal_impedanceGains.asDiagonal() * (m_jointPositions - m_internal_desiredJointsConfiguration);
+            - m_impedanceGains.asDiagonal() * (m_jointPositions - m_desiredJointsConfiguration);
             
             m_torques += nullSpaceProjector * torques0;
-            
         }
         
         void TorqueBalancingController::writeTorques()
