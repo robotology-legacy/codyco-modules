@@ -21,6 +21,8 @@
 
 #include "TorqueBalancingModule.h"
 
+#include <codyco/ModelParsing.h>
+
 int main(int argc, char **argv)
 {
     yarp::os::ResourceFinder resourceFinder;
@@ -36,6 +38,7 @@ int main(int argc, char **argv)
         std::cout<< "\t--rate             :Period used by the module. Default set to 10ms." << std::endl;
         std::cout<< "\t--robot            :Robot name (icubSim or icub). Set to icub by default." << std::endl;
         std::cout<< "\t--local            :Prefix of the ports opened by the module. Set to the module name by default, i.e. adaptiveControl." << std::endl;
+        codyco::iCubPartVersionOptionsPrint();
         return 0;
     }
 

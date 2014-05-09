@@ -26,10 +26,10 @@
 #include <paramHelp/paramHelperServer.h>
 #include "ParamHelperConfig.h"
 
-#ifdef DEBUG
-#include <codyco/Utils.h>
+#include <codyco/ModelParsing.h>
 #include <iostream>
-#endif
+#include <codyco/Utils.h>
+
 
 namespace codyco {
     namespace torquebalancing {
@@ -81,6 +81,11 @@ namespace codyco {
             }
             
             //create reference to wbi
+            iCub::iDynTree::iCubTree_version_tag iCubVersion;
+            codyco::iCubVersionFromRf(rf, iCubVersion);
+            m_robot = new wbiIcub::icubWholeBodyInterface(m_moduleName.c_str(), m_robotName.c_str(), iCubVersion);
+            
+            /*
             if (m_urdfFilePath.empty()) {
                 m_robot = new wbiIcub::icubWholeBodyInterface(m_moduleName.c_str(), m_robotName.c_str(), iCub::iDynTree::iCubTree_version_tag());
 #ifdef DEBUG
@@ -91,7 +96,7 @@ namespace codyco {
 #ifdef DEBUG
                 std::cerr << "Initializing wbi with URDF model specified in" << m_urdfFilePath << std::endl;
 #endif
-            }
+            }*/
             if (!m_robot) {
                 return false;
             }
@@ -101,6 +106,12 @@ namespace codyco {
                 return false;
             }
             
+            //Sanity checks
+            if (wbiIcub::ICUB_MAIN_JOINTS.size() != actuatedDOFs) {
+                std::cerr << FUNCTION_NAME << ":Error in initializing wbi, the number of joints is different from the expected" << std::endl;
+                return false;
+            }
+                       
             //create generators
             ReferenceGeneratorInputReader* reader = 0;
             ReferenceGenerator* generator = 0;
@@ -185,7 +196,7 @@ namespace codyco {
             
             wbi::Frame frame;
             m_robot->computeH(positions.data(), wbi::Frame(), leftFootLinkID, frame);
-            
+          
             frame = frame * wbi::Frame(wbi::Rotation(0, 0, 1,
                                                      0, -1, 0,
                                                      1, 0, 0));

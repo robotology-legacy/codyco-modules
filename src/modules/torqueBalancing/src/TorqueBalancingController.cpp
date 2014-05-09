@@ -21,6 +21,10 @@
 #include <codyco/MathUtils.h>
 #include <codyco/LockGuard.h>
 
+#ifdef DEBUG
+#include <codyco/Utils.h>
+#include <iostream>
+#endif
 
 #include <Eigen/LU>
 #include <Eigen/SVD>
@@ -43,8 +47,8 @@ namespace codyco {
         , m_desiredCOMAcceleration(3)
         , m_desiredFeetForces(12)
         , m_desiredCentroidalMomentum(6)
-        , m_jointPositions(totalDOFs)
-        , m_jointVelocities(totalDOFs)
+        , m_jointPositions(actuatedDOFs)
+        , m_jointVelocities(actuatedDOFs)
         , m_torques(actuatedDOFs)
         , m_baseVelocity(6)
         , m_centerOfMassPosition(3)
@@ -60,7 +64,9 @@ namespace codyco {
         , m_centroidalForceMatrix(6, 12)
         , m_gravityForce(6)
         , m_torquesSelector(totalDOFs, actuatedDOFs)
-        , m_rotoTranslationVector(7) {}
+        , m_rotoTranslationVector(7)
+        , m_jointsZeroVector(actuatedDOFs)
+        , m_esaZeroVector(6) {}
         
         TorqueBalancingController::~TorqueBalancingController() {}
 
@@ -87,6 +93,8 @@ namespace codyco {
             m_gravityUnitVector[0] = m_gravityUnitVector[1] = 0;
             //TODO: check sign of gravity
             m_gravityUnitVector[2] = -9.81;
+            
+            m_jointsZeroVector.setZero();
             return true;
         }
         
@@ -198,7 +206,7 @@ namespace codyco {
             //update mass matrix
             m_robot.computeMassMatrix(m_jointPositions.data(), m_world2BaseFrame, m_massMatrix.data());
             m_robot.computeCentroidalMomentum(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_centroidalMomentum.data());
-
+            
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_centerOfMassLinkID, m_rotoTranslationVector.data());
             m_centerOfMassPosition = m_rotoTranslationVector.head<3>();
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_leftFootPosition.data());
@@ -207,16 +215,14 @@ namespace codyco {
             //update jacobians (both feet in one variable)
             m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_feetJacobian.topRows(6).data());
             m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_feetJacobian.bottomRows(6).data());
-            
+  
             m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_leftFootLinkID, m_feetDJacobianDq.head(6).data());
             m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_rightFootLinkID, m_feetDJacobianDq.tail(6).data());
-
-            
+  
             //Compute bias forces
             m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_gravityUnitVector, m_generalizedBiasForces.data());
-            m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_world2BaseFrame, 0, 0, m_gravityUnitVector, m_gravityBiasTorques.data());
+            m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_world2BaseFrame, m_jointsZeroVector.data(), m_esaZeroVector.data(), m_gravityUnitVector, m_gravityBiasTorques.data());
 
-            
             return true;
         }
         
@@ -253,7 +259,7 @@ namespace codyco {
                         
             m_torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_feetDJacobianDq - JcMInv * m_feetJacobian.transpose() * desiredFeetForces);
             
-            VectorXd torques0 = m_gravityBiasTorques.tail(actuatedDOFs) - m_feetJacobian.block(0, 6, totalDOFs, actuatedDOFs).transpose() * desiredFeetForces - m_internal_impedanceGains.asDiagonal() * (m_jointPositions.tail(actuatedDOFs) - m_internal_desiredJointsConfiguration);
+            VectorXd torques0 = m_gravityBiasTorques.tail(actuatedDOFs) - m_feetJacobian.block(0, 6, totalDOFs, actuatedDOFs).transpose() * desiredFeetForces - m_internal_impedanceGains.asDiagonal() * (m_jointPositions - m_internal_desiredJointsConfiguration);
             
             m_torques += nullSpaceProjector * torques0;
             

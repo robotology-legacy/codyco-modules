@@ -162,6 +162,8 @@ namespace codyco {
             //constant auxiliary variables
             double m_gravityUnitVector[3];
             Eigen::Matrix<double, 7, 1> m_rotoTranslationVector; /*!< 7 */
+            Eigen::VectorXd m_jointsZeroVector; /*!< actuatedDOFs */
+            Eigen::Matrix<double, 6, 1> m_esaZeroVector; /*!< 6 */
             
         };
     }
