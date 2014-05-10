@@ -38,6 +38,11 @@
     <protocol>udp</protocol>
   </connection>
   <connection>
+    <from>/wholeBodyDynamicsTree/base:o</from>
+    <to>/iCubGui/base:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
     <from>/icub/head/state:o</from>
     <to>/iCubGui/head:i</to>
     <protocol>udp</protocol>
@@ -78,6 +83,7 @@
     <protocol>udp</protocol>
   </connection>
 
+    
 		
 
 </application>
