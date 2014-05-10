@@ -31,7 +31,6 @@ namespace codyco {
             TorqueBalancingModuleParameterRobotName,
             TorqueBalancingModuleParameterControllerPeriod,
             TorqueBalancingModuleParameterModulePeriod,
-            TorqueBalancingModuleParameterURDFFilePath,
             //RPC parameters
             TorqueBalancingModuleParameterCurrentState,
             //References
@@ -66,7 +65,7 @@ namespace codyco {
             
         } TorqueBalancingModuleParameter;
         
-        static const int TorqueBalancingModuleParameterSize = 28;
+        static const int TorqueBalancingModuleParameterSize = 27;
         
         
         static const std::string defaultModuleName = "torqueBalancing";
@@ -87,7 +86,6 @@ namespace codyco {
             new paramHelp::ParamProxyBasic<std::string>("name", TorqueBalancingModuleParameterModuleName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultModuleName, "Name of the instance of the module"),
             new paramHelp::ParamProxyBasic<std::string>("robot", TorqueBalancingModuleParameterRobotName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultRobotName, "Name of the robot"),
             new paramHelp::ParamProxyBasic<int>("period", TorqueBalancingModuleParameterControllerPeriod, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_CONFIG, &defaultControllerPeriod, "Period of the controller"),
-            new paramHelp::ParamProxyBasic<std::string>("urdfPath", TorqueBalancingModuleParameterURDFFilePath, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, 0, "Path to the URDF model of the robot. If empty string the fallback is the iDyn version with default legs/head version"),
             //RPC parameters
             new paramHelp::ParamProxyBasic<double>("modulePeriod", TorqueBalancingModuleParameterModulePeriod, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultModulePeriod, "Period of the module. Used to update monitored variables."),
             new paramHelp::ParamProxyBasic<int>("state", TorqueBalancingModuleParameterCurrentState, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_IN_OUT, &defaultModuleState, "State of the module"),

@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     resourceFinder.setVerbose(true);
     resourceFinder.setDefaultConfigFile("default.ini");         //default config file name.
     resourceFinder.setDefaultContext("torqueBalancing"); //when no parameters are given to the module this is the default context
-    resourceFinder.configure(argc,argv);
+    resourceFinder.configure(argc, argv);
     
     if (resourceFinder.check("help")) {
         std::cout<< "Possible parameters" << std::endl << std::endl;
