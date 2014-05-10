@@ -59,6 +59,11 @@ class wholeBodyGazeThread:public RFModule
     Vector fixation_root;
 public:
     
+    double getPeriod()
+    {
+        return 0.1;
+    }
+
     bool configure (yarp::os::ResourceFinder &rf)
     {        
         cout << "Configurig module" << endl;
@@ -144,12 +149,16 @@ public:
         cout << "Encoders are " << q.toString().c_str() << endl;
         
         port.open(moduleName+"/xd:o");
+
+        cout << "Configuration successfully terminated. Now running..." << endl;
         return true;
     }
     
     bool close()
     {
         printf("ControlThread:stopping the robot\n");
+
+        port.close();
         
         if (robotDevice!=NULL)
         {
@@ -184,7 +193,7 @@ public:
         // Matrix Heffector_root = SE3inv(Hroot_effector);
         // cout << "Current root pose: " << endl << Heffector_root.toString().c_str() << endl;
         
-        fixation_effector(4);
+        fixation_effector.resize(4);
         fixation_effector(0) = 1.0;  fixation_effector(1) = 0.0;
         fixation_effector(2) = 3.0;  fixation_effector(3) = 1.0;
         
@@ -195,6 +204,7 @@ public:
         b.resize(3);
         b = fixation_root.subVector(0, 2);
         port.write();
+        // cout << "Write desired fixation point to port" << endl;
         return true;
     }
 };
