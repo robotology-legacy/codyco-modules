@@ -274,8 +274,8 @@ namespace codyco {
             m_gravityForce(2) = -mass * 9.81;
 
             //building centroidalForceMatrix
-            skewSymmentricMatrix(m_leftFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 0));
-            skewSymmentricMatrix(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 6));
+            math::skewSymmentricMatrixFrom3DVector(m_leftFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 0));
+            math::skewSymmentricMatrixFrom3DVector(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 6));
 
             m_desiredCentroidalMomentum.head<3>() = mass * desiredCOMAcceleration;
             m_desiredCentroidalMomentum.tail<3>() = -m_centroidalMomentumGain * m_centroidalMomentum.tail<3>();
@@ -316,18 +316,6 @@ namespace codyco {
         }
         
 #pragma mark - Auxiliary functions
-        
-        void TorqueBalancingController::skewSymmentricMatrix(const Eigen::Ref<const Eigen::Vector3d>& vector, Eigen::Ref<Eigen::Matrix3d> skewSymmetricMatrix)
-        {
-            skewSymmetricMatrix.setZero();
-//            S = [   0,   -w(3),    w(2);
-//                 w(3),   0,     -w(1);
-//                 -w(2),  w(1),     0   ];
-            skewSymmetricMatrix(0, 1) = -vector(2);
-            skewSymmetricMatrix(0, 2) = vector(1);
-            skewSymmetricMatrix(1, 2) = -vector(0);
-            skewSymmetricMatrix.bottomLeftCorner<2, 2>() = -skewSymmetricMatrix.topRightCorner<2, 2>().transpose();
-        }
         
     }
 }
