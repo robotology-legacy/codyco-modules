@@ -59,6 +59,11 @@ class wholeBodyGazeThread:public RFModule
     Vector fixation_root;
 public:
     
+    double getPeriod()
+    {
+        return 0.1;
+    }
+
     bool configure (yarp::os::ResourceFinder &rf)
     {        
         cout << "Configurig module" << endl;
@@ -145,7 +150,7 @@ public:
         
         port.open(moduleName+"/xd:o");
 
-        cout << "Closing configuration " << endl;
+        cout << "Configuration successfully terminated. Now running..." << endl;
         return true;
     }
     
