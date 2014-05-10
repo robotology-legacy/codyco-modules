@@ -647,9 +647,9 @@ void wholeBodyDynamicsThread::publishBaseToGui()
 
     const double RAD2DEG = 180.0/(3.1415);
 
-    iCubGuiBase[0] = RAD2DEG*yaw;
+    iCubGuiBase[0] = RAD2DEG*roll;
     iCubGuiBase[1] = RAD2DEG*pitch;
-    iCubGuiBase[2] = RAD2DEG*roll;
+    iCubGuiBase[2] = RAD2DEG*yaw;
 
     /*
     iCubGuiBase[0] = RAD2DEG*roll;
