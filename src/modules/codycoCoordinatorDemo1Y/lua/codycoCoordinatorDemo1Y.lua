@@ -42,7 +42,6 @@ bodyPart_right_arm = 4
 
 -------
 function update_skin_events()
-    while true do
         --Use last received skinContactsList
         skin_contacts = event_port:read(false)
         if skin_contacts ~= nil then
@@ -52,8 +51,9 @@ function update_skin_events()
         --Count contacts on left_arm and right_arm
         contact_left_arm = 0
         contact_right_arm = 0
-        for i = 1,buffer_skin_contacts:size() do
-            bp_contact = buffer_skin_contacts:get(i):asList():get(0):asList():get(1)
+        last_contact = buffer_skin_contacts:size()-1
+        for i = 0,last_contact do
+            bp_contact = buffer_skin_contacts:get(i):asList():get(0):asList():get(1):asInt()
             if( bp_contact == bodyPart_left_arm ) then
                 contact_left_arm = contact_left_arm + 1
             end
@@ -77,8 +77,6 @@ function update_skin_events()
         end
 
         rfsm.send_events(fsm, event_to_send)
-        if coroutine.yield() == true then break end
-   end
 end
 
 -------
@@ -125,12 +123,14 @@ print("[codycoCoordinatorDemo1Y] loading rFSM state machine")
 fsm_model = rfsm.load(fsm_file)
 fsm = rfsm.init(fsm_model)
 
-co_updater = coroutine.create(update_skin_events)
-
+buffer_skin_contacts = yarp.Bottle()
 print("[codycoCoordinatorDemo1Y] starting main loop")
 repeat
-    coroutine.resume(co_updater)
+    -- print("[codycoCoordinatorDemo1Y] updating skin events")
+    update_skin_events()
+    -- print("[codycoCoordinatorDemo1Y] running fsm")
     rfsm.run(fsm)
+    -- print("[codycoCoordinatorDemo1Y] waiting for " .. fsm_update_period)
     yarp.Time_delay(fsm_update_period)
 until shouldExit ~= false
 
