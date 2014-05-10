@@ -27,7 +27,6 @@
 #endif
 
 #include <Eigen/LU>
-#include <Eigen/SVD>
 
 namespace codyco {
     namespace torquebalancing {
@@ -57,11 +56,15 @@ namespace codyco {
         , m_generalizedBiasForces(totalDOFs)
         , m_gravityBiasTorques(totalDOFs)
         , m_centroidalMomentum(6)
-        , m_pseudoInverseOfJcMInvSt(actuatedDOFs, 12)
         , m_centroidalForceMatrix(6, 12)
         , m_gravityForce(6)
         , m_torquesSelector(totalDOFs, actuatedDOFs)
+        , m_pseudoInverseOfJcMInvSt(actuatedDOFs, 12)
         , m_pseudoInverseOfJcBase(6, 12)
+        , m_pseudoInverseOfCentroidalForceMatrix(12, 6)
+        , m_svdDecompositionOfJcMInvSt(12, actuatedDOFs)
+        , m_svdDecompositionOfJcBase(12, 6)
+        , m_svdDecompositionOfCentroidalForceMatrix(6, 12)
         , m_rotoTranslationVector(7)
         , m_jointsZeroVector(actuatedDOFs)
         , m_esaZeroVector(6) {}
@@ -246,7 +249,8 @@ namespace codyco {
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_rightFootPosition.data());
             
             //update base velocity (to be moved in wbi state)
-            math::pseudoInverse(m_feetJacobian.leftCols(6), m_pseudoInverseOfJcBase, PseudoInverseTolerance);
+            math::pseudoInverse(m_feetJacobian.leftCols(6), m_svdDecompositionOfJcBase,
+                                m_pseudoInverseOfJcBase, PseudoInverseTolerance);
             m_baseVelocity = -m_pseudoInverseOfJcBase * m_feetJacobian.rightCols(actuatedDOFs) * m_jointVelocities;
             
             //update dynamic quantities
@@ -276,9 +280,13 @@ namespace codyco {
             m_desiredCentroidalMomentum.head<3>() = mass * desiredCOMAcceleration;
             m_desiredCentroidalMomentum.tail<3>() = -m_centroidalMomentumGain * m_centroidalMomentum.tail<3>();
 
-            desiredFeetForces = m_centroidalForceMatrix.jacobiSvd(ComputeThinU | ComputeThinV).solve(m_desiredCentroidalMomentum - m_gravityForce);
-            //TODO: we can also test LDLT decomposition since it requires positive semidefinite matrix
-//            desiredFeetForces = m_centroidalForceMatrix.ldlt().solve(m_desiredCentroidalMomentum - m_gravityForce);
+            //Eigen 3.3 will allow to set a threashold directly on the decomposition
+            //thus allowing the method solve to work "properly".
+            //Becaues it is not stable yet we use the explicit computation of the SVD
+//            m_svdDecompositionOfCentroidalForceMatrix.compute(m_centroidalForceMatrix).solve(m_desiredCentroidalMomentum - m_gravityForce);            
+            math::pseudoInverse(m_centroidalForceMatrix, m_svdDecompositionOfCentroidalForceMatrix,
+                                m_pseudoInverseOfCentroidalForceMatrix, PseudoInverseTolerance);
+            desiredFeetForces = m_pseudoInverseOfCentroidalForceMatrix * (m_desiredCentroidalMomentum - m_gravityForce);
         }
         
         void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::MatrixXd>& desiredFeetForces, Eigen::Ref<Eigen::MatrixXd> torques)
@@ -290,7 +298,8 @@ namespace codyco {
             MatrixXd JcMInv = m_feetJacobian * m_massMatrix.inverse(); //to become instance (?)
             MatrixXd JcMInvTorqueSelector = JcMInv * m_torquesSelector; //to become instance (?)
 
-            math::pseudoInverse(JcMInvTorqueSelector, m_pseudoInverseOfJcMInvSt, PseudoInverseTolerance);
+            math::pseudoInverse(JcMInvTorqueSelector, m_svdDecompositionOfJcMInvSt,
+                                m_pseudoInverseOfJcMInvSt, PseudoInverseTolerance);
             MatrixXd nullSpaceProjector = MatrixXd::Identity(actuatedDOFs, actuatedDOFs) - m_pseudoInverseOfJcMInvSt * JcMInvTorqueSelector; //to be inlined in m_torques
                         
             m_torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_feetDJacobianDq - JcMInv * m_feetJacobian.transpose() * desiredFeetForces);

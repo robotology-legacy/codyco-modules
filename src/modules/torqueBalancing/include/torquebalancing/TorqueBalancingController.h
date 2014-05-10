@@ -22,6 +22,7 @@
 #include <yarp/os/Mutex.h>
 #include <wbi/wbiUtil.h>
 #include <Eigen/Core>
+#include <Eigen/SVD>
 
 namespace wbi {
     class wholeBodyInterface;
@@ -155,11 +156,16 @@ namespace codyco {
             Eigen::VectorXd m_centroidalMomentum; /*!< 6 */
             
             //variables used in computation.
-            Eigen::MatrixXd m_pseudoInverseOfJcMInvSt; /*!< actuatedDOFs x 12 */
             Eigen::MatrixXd m_centroidalForceMatrix; /*!< 6 x 12 */
             Eigen::VectorXd m_gravityForce; /*!< 6 */
             Eigen::MatrixXd m_torquesSelector; /*!< totalDOFs x actuatedDOFs */
+            //pseuo inverses
+            Eigen::MatrixXd m_pseudoInverseOfJcMInvSt; /*!< actuatedDOFs x 12 */
             Eigen::MatrixXd m_pseudoInverseOfJcBase; /*!< 6 x 12 */
+            Eigen::MatrixXd m_pseudoInverseOfCentroidalForceMatrix; /*!< 12 x 6 */
+            Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfJcMInvSt; /*!< 12 x actuatedDOFs */
+            Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfJcBase; /*!< 12 x 6 */
+            Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfCentroidalForceMatrix; /*!< 6 x 12 */
             
             //constant auxiliary variables
             double m_gravityUnitVector[3];
