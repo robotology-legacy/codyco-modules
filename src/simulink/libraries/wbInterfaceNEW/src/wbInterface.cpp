@@ -19,7 +19,6 @@
 
 #include "wbInterface.h"
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
-#include <boost/concept_check.hpp>
 // MASK PARAMETERS --------------------------------------
 #define NPARAMS 3                                  		// Number of input parameters
 #define BLOCK_TYPE_IDX 0                                  	// Index number for first input parameter
@@ -135,15 +134,16 @@ bool robotStatus::robotConfig() {
 #endif
 
         //---------------- CREATION WHOLE BODY INTERFACE ---------------------/
-#ifdef CODYCO_USES_URDFDOM
-        iCub::iDynTree::iCubTree_version_tag icub_version =
+#ifdef CODYCO_USES_URDFDOM 
+        iCub::iDynTree::iCubTree_version_tag icub_version = 
           iCub::iDynTree::iCubTree_version_tag(headVfromConfigFile,legsVfromConfigFile,feetFTfromConfigFile,uses_urdf,urdf_file);
 #else
-        iCub::iDynTree::iCubTree_version_tag icub_version =
+	iCub::iDynTree::iCubTree_version_tag icub_version = 
           iCub::iDynTree::iCubTree_version_tag(headVfromConfigFile,legsVfromConfigFile,feetFTfromConfigFile);
 #endif
-          
-        wbInterface = new icubWholeBodyInterface(localNamefromConfigFile.c_str(),robotNamefromConfigFile.c_str(), icub_version);
+
+	    wbInterface = new icubWholeBodyInterface(localNamefromConfigFile.c_str(),robotNamefromConfigFile.c_str(), icub_version);
+
 
 #ifdef DEBUG
         fprintf(stderr,"robotStatus::robotConfig >> new wbInterface created ...\n");
