@@ -112,32 +112,38 @@ bool robotStatus::robotConfig() {
       ResourceFinder rf;
       rf.setVerbose(true);
       rf.setDefaultContext("wbit");
-      
+
       rf.setDefaultConfigFile(string(robotName + ".ini").c_str());
       rf.configure(1,0);
-      
+
       ConstString robotNamefromConfigFile = rf.find("robot").asString();
       ConstString localNamefromConfigFile = rf.find("local").asString();
       int         headVfromConfigFile     = rf.find("headV").asInt();
       int         legsVfromConfigFile     = rf.find("legsV").asInt();
       bool        feetFTfromConfigFile    = rf.find("feetFT").asBool();
       bool        uses_urdf           = rf.find("uses_urdf").asBool();
-      std::string urdf_file 		  = rf.find("urdf").asString();      
+      std::string urdf_file 		  = rf.find("urdf").asString();
 
-#ifdef DEBUG      
+#ifdef DEBUG
       cout<<"After reading from config file, params are "<<endl;
-      cout<<"robot name:   "<<robotNamefromConfigFile.c_str()<<endl;	
-      cout<<"urdf file:    "<<urdf_file.c_str()<<endl;
+      cout<<"robot name:   "<<robotNamefromConfigFile.c_str()<<endl;
+      cout<<"urdf file:    "<<urdf_file.c_s             tr()<<endl;
       cout<<"local name:   "<<localNamefromConfigFile.c_str()<<endl;
       cout<<"head version: "<<headVfromConfigFile<<endl;
       cout<<"legs version: "<<legsVfromConfigFile<<endl;
       cout<<"feet version: "<<feetFTfromConfigFile<<endl;
 #endif
-      
+
         //---------------- CREATION WHOLE BODY INTERFACE ---------------------/
-        iCub::iDynTree::iCubTree_version_tag icub_version = 
+#ifdef CODYCO_USES_URDFDOM
+        iCub::iDynTree::iCubTree_version_tag icub_version =
           iCub::iDynTree::iCubTree_version_tag(headVfromConfigFile,legsVfromConfigFile,feetFTfromConfigFile,uses_urdf,urdf_file);
-	wbInterface = new icubWholeBodyInterface(localNamefromConfigFile.c_str(),robotNamefromConfigFile.c_str(), icub_version);
+#else
+        iCub::iDynTree::iCubTree_version_tag icub_version =
+          iCub::iDynTree::iCubTree_version_tag(headVfromConfigFile,legsVfromConfigFile,feetFTfromConfigFile);
+#endif
+          
+        wbInterface = new icubWholeBodyInterface(localNamefromConfigFile.c_str(),robotNamefromConfigFile.c_str(), icub_version);
 
 #ifdef DEBUG
         fprintf(stderr,"robotStatus::robotConfig >> new wbInterface created ...\n");
@@ -1006,8 +1012,8 @@ static void mdlStart(SimStruct *S)
         ssSetErrorStatus(S,"ERROR [mdlOutput] Joint limits could not be computed\n");
         return;
     }
-    
-#ifdef DEBUG    
+
+#ifdef DEBUG
     printf("got limits right");
 #endif
 
