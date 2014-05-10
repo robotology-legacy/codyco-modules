@@ -31,7 +31,7 @@
     <node>powerNode1</node>
     <tag>wbg</tag>
   </module>
-
+    
   <connection>
     <from>/wholeBodyDynamicsTree/contacts:o</from>
     <to>/iCubGui/forces</to>
