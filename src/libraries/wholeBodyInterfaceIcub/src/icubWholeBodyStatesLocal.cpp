@@ -1040,7 +1040,7 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
         {
             if(cId == skinContacts[j].getId())
             {
-                skinContacts[j].setForceMoment( dynContacts[i].getForceMoment() );
+                skinContacts[j].setForceMoment( estimatedLastDynContacts[i].getForceMoment() );
                 contactFound = true;
                 j = skinContacts.size();    // break from the inside for loop
             }
