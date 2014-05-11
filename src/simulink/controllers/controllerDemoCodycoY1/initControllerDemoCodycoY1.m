@@ -17,22 +17,22 @@ Ts = 0.01;
 % angular part of the centroidal momentum convergence, i.e. 
 %
 % hwDot = -kH(4)*hwDotDes  
-kH  = [  70    2   0 4];
 
+kH  = [  70    2   2 4];
 
-
-% Impedence acting in the null space of HDDDes 
-
-kImpTorso = [3 2 3]*4; 
+kImpTorso = [3 2 3]*10; 
 kImpArms  = [2 2 2 2 1]*5;
-kImpLegs  = [35 50 0.1 30 2 10]; 
+kImpLegs  = [10 50 0.1 30 2 10];  
 
 kImp  = [kImpTorso,kImpArms,kImpArms,kImpLegs,kImpLegs];
 
 
-DT = 20;
+DT = 7.5;
 
-qFinHands     = [ -15   15   15   20  5;
+DTF = 10;
+p   = 0.8;
+
+qFinHands     = [ -60   60    0   20  0;
                   -60   60    0   20  0]*pi/180;
 
 if (min(min(qFinHands)) < -3.14 || max(max(qFinHands)) > 3.14)
@@ -50,6 +50,8 @@ Rf  = [R, zeros(3,3); zeros(3,3), R];
 % Fourth element:  contact on the right hand is occurred
 
 states = [1 2 4 8 16];
+
+desiredHandForces = [ 0 0 10 0 0 10]';
 
 
 %% GAINS FOR Gazebo
@@ -69,10 +71,10 @@ states = [1 2 4 8 16];
 %% Right left 
 % A = 0.02;
 % f = 0.15; up to 0.17
-% kCom  = [  70    2   0 ];
+% kH  = [  70    2   0 4];
 % kImpTorso = [3 2 3]*4; 
-% kImpArms  = [2 2 2 2 1]*8;
-% kImpLegs  = [35 50 0.1 30 2 10]; 
+% kImpArms  = [2 2 2 2 1]*5;
+% kImpLegs  = [35 50 0.1 30 2 10];  
 
 %% GAINS FOR iCubGenova03
 %
