@@ -1,4 +1,4 @@
-#!/usr/bin/lua5.1
+#!/usr/bin/lua
 
 require("yarp")
 require("rfsm")
@@ -40,9 +40,15 @@ event_contacts_on_both_hands = "e_contacts_on_both_hands"
 bodyPart_left_arm  = 3
 bodyPart_right_arm = 4
 
+----State constants
+st_doublesupport_stable_int  = 1
+st_doublesupport_both_hands_seeking_contact_int = 2
+st_triplesupport_left_hand_seeking_contact_int = 4
+st_triplesupport_right_hand_seeking_contact_int = 8
+st_quadruplesupport_stable_int = 16
+
 -------
 function update_skin_events()
-    while true do
         --Use last received skinContactsList
         skin_contacts = event_port:read(false)
         if skin_contacts ~= nil then
@@ -52,8 +58,9 @@ function update_skin_events()
         --Count contacts on left_arm and right_arm
         contact_left_arm = 0
         contact_right_arm = 0
-        for i = 1,buffer_skin_contacts:size() do
-            bp_contact = buffer_skin_contacts:get(i):asList():get(0):asList():get(1)
+        last_contact = buffer_skin_contacts:size()-1
+        for i = 0,last_contact do
+            bp_contact = buffer_skin_contacts:get(i):asList():get(0):asList():get(1):asInt()
             if( bp_contact == bodyPart_left_arm ) then
                 contact_left_arm = contact_left_arm + 1
             end
@@ -77,8 +84,6 @@ function update_skin_events()
         end
 
         rfsm.send_events(fsm, event_to_send)
-        if coroutine.yield() == true then break end
-   end
 end
 
 -------
@@ -114,23 +119,32 @@ end
 fsm_file = rf:findFile("lua/fsm_codycoCoordinatorDemo1Y.lua")
 
 print("[codycoCoordinatorDemo1Y] opening ports")
+
+-- rpc port, for communicating with C++ module torqueBalancing
 cmd_action_rpc = yarp.RpcClient()
 cmd_action_rpc:open("/codycoCoordinator1Y/cmd_action:o")
 
+-- Input port for reading skinEvents from skinManager
 event_port = yarp.BufferedPortBottle()
 event_port:open("/codycoCoordinator1Y/skin_events:i")
+
+-- Streaming port continuously broadcasting the state
+state_port = yarp.BufferedPortBottle()
+state_port:open("/codycoCoordinator1Y/state:o")
 
 print("[codycoCoordinatorDemo1Y] loading rFSM state machine")
 -- load state machine model and initalize it
 fsm_model = rfsm.load(fsm_file)
 fsm = rfsm.init(fsm_model)
 
-co_updater = coroutine.create(update_skin_events)
-
+buffer_skin_contacts = yarp.Bottle()
 print("[codycoCoordinatorDemo1Y] starting main loop")
 repeat
-    coroutine.resume(co_updater)
+    -- print("[codycoCoordinatorDemo1Y] updating skin events")
+    update_skin_events()
+    -- print("[codycoCoordinatorDemo1Y] running fsm")
     rfsm.run(fsm)
+    -- print("[codycoCoordinatorDemo1Y] waiting for " .. fsm_update_period)
     yarp.Time_delay(fsm_update_period)
 until shouldExit ~= false
 

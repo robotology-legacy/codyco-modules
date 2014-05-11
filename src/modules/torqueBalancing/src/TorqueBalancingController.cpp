@@ -27,7 +27,6 @@
 #endif
 
 #include <Eigen/LU>
-#include <Eigen/SVD>
 
 namespace codyco {
     namespace torquebalancing {
@@ -57,11 +56,15 @@ namespace codyco {
         , m_generalizedBiasForces(totalDOFs)
         , m_gravityBiasTorques(totalDOFs)
         , m_centroidalMomentum(6)
-        , m_pseudoInverseOfJcMInvSt(actuatedDOFs, 12)
         , m_centroidalForceMatrix(6, 12)
         , m_gravityForce(6)
         , m_torquesSelector(totalDOFs, actuatedDOFs)
+        , m_pseudoInverseOfJcMInvSt(actuatedDOFs, 12)
         , m_pseudoInverseOfJcBase(6, 12)
+        , m_pseudoInverseOfCentroidalForceMatrix(12, 6)
+        , m_svdDecompositionOfJcMInvSt(12, actuatedDOFs)
+        , m_svdDecompositionOfJcBase(12, 6)
+        , m_svdDecompositionOfCentroidalForceMatrix(6, 12)
         , m_rotoTranslationVector(7)
         , m_jointsZeroVector(actuatedDOFs)
         , m_esaZeroVector(6) {}
@@ -96,6 +99,20 @@ namespace codyco {
             m_torquesSelector.bottomRows(actuatedDOFs).setIdentity();
             
             m_jointsZeroVector.setZero();
+            
+            //reset status to zeroing
+            m_jointPositions.setZero();
+            m_jointVelocities.setZero();
+            m_baseVelocity.setZero();
+            m_centerOfMassPosition.setZero();
+            m_rightFootPosition.setZero();
+            m_leftFootPosition.setZero();
+            m_feetJacobian.setZero();
+            m_feetDJacobianDq.setZero();
+            m_generalizedBiasForces.setZero();
+            m_gravityBiasTorques.setZero();
+            m_centroidalMomentum.setZero();
+            m_massMatrix.setZero();
             
             //zeroing gains
             m_impedanceGains.setZero();
@@ -232,7 +249,8 @@ namespace codyco {
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_rightFootPosition.data());
             
             //update base velocity (to be moved in wbi state)
-            math::pseudoInverse(m_feetJacobian.leftCols(6), m_pseudoInverseOfJcBase, PseudoInverseTolerance);
+            math::pseudoInverse(m_feetJacobian.leftCols(6), m_svdDecompositionOfJcBase,
+                                m_pseudoInverseOfJcBase, PseudoInverseTolerance);
             m_baseVelocity = -m_pseudoInverseOfJcBase * m_feetJacobian.rightCols(actuatedDOFs) * m_jointVelocities;
             
             //update dynamic quantities
@@ -256,15 +274,19 @@ namespace codyco {
             m_gravityForce(2) = -mass * 9.81;
 
             //building centroidalForceMatrix
-            skewSymmentricMatrix(m_leftFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 0));
-            skewSymmentricMatrix(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 6));
+            math::skewSymmentricMatrixFrom3DVector(m_leftFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 0));
+            math::skewSymmentricMatrixFrom3DVector(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 6));
 
             m_desiredCentroidalMomentum.head<3>() = mass * desiredCOMAcceleration;
             m_desiredCentroidalMomentum.tail<3>() = -m_centroidalMomentumGain * m_centroidalMomentum.tail<3>();
 
-            desiredFeetForces = m_centroidalForceMatrix.jacobiSvd(ComputeThinU | ComputeThinV).solve(m_desiredCentroidalMomentum - m_gravityForce);
-            //TODO: we can also test LDLT decomposition since it requires positive semidefinite matrix
-//            desiredFeetForces = m_centroidalForceMatrix.ldlt().solve(m_desiredCentroidalMomentum - m_gravityForce);
+            //Eigen 3.3 will allow to set a threashold directly on the decomposition
+            //thus allowing the method solve to work "properly".
+            //Becaues it is not stable yet we use the explicit computation of the SVD
+//            m_svdDecompositionOfCentroidalForceMatrix.compute(m_centroidalForceMatrix).solve(m_desiredCentroidalMomentum - m_gravityForce);            
+            math::pseudoInverse(m_centroidalForceMatrix, m_svdDecompositionOfCentroidalForceMatrix,
+                                m_pseudoInverseOfCentroidalForceMatrix, PseudoInverseTolerance);
+            desiredFeetForces = m_pseudoInverseOfCentroidalForceMatrix * (m_desiredCentroidalMomentum - m_gravityForce);
         }
         
         void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::MatrixXd>& desiredFeetForces, Eigen::Ref<Eigen::MatrixXd> torques)
@@ -275,8 +297,9 @@ namespace codyco {
             //Names are taken from "math" from brevity
             MatrixXd JcMInv = m_feetJacobian * m_massMatrix.inverse(); //to become instance (?)
             MatrixXd JcMInvTorqueSelector = JcMInv * m_torquesSelector; //to become instance (?)
-            
-            math::pseudoInverse(JcMInvTorqueSelector, m_pseudoInverseOfJcMInvSt, PseudoInverseTolerance);
+
+            math::pseudoInverse(JcMInvTorqueSelector, m_svdDecompositionOfJcMInvSt,
+                                m_pseudoInverseOfJcMInvSt, PseudoInverseTolerance);
             MatrixXd nullSpaceProjector = MatrixXd::Identity(actuatedDOFs, actuatedDOFs) - m_pseudoInverseOfJcMInvSt * JcMInvTorqueSelector; //to be inlined in m_torques
                         
             m_torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_feetDJacobianDq - JcMInv * m_feetJacobian.transpose() * desiredFeetForces);
@@ -293,18 +316,6 @@ namespace codyco {
         }
         
 #pragma mark - Auxiliary functions
-        
-        void TorqueBalancingController::skewSymmentricMatrix(const Eigen::Ref<const Eigen::Vector3d>& vector, Eigen::Ref<Eigen::Matrix3d> skewSymmetricMatrix)
-        {
-            skewSymmetricMatrix.setZero();
-//            S = [   0,   -w(3),    w(2);
-//                 w(3),   0,     -w(1);
-//                 -w(2),  w(1),     0   ];
-            skewSymmetricMatrix(0, 1) = -vector(2);
-            skewSymmetricMatrix(0, 2) = vector(1);
-            skewSymmetricMatrix(1, 2) = -vector(0);
-            skewSymmetricMatrix.bottomLeftCorner<2, 2>() = -skewSymmetricMatrix.topRightCorner<2, 2>().transpose();
-        }
         
     }
 }

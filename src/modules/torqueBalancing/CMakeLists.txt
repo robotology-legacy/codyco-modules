@@ -37,30 +37,22 @@ set(SOURCES    ${SRC_FOLDER}/TorqueBalancingModule.cpp
 source_group("Source Files" FILES ${SOURCES})
 source_group("Header Files" FILES ${HEADERS})
 
+include_directories(${HEADERS_FOLDER}
+                    ${codyco_commons_INCLUDE_DIRS}
+                    ${wholeBodyInterface_INCLUDE_DIRS}
+                    ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
+                    ${iDynTree_INCLUDE_DIRS}
+                    ${orocos_kdl_INCLUDE_DIRS}
+                    ${kdl_codyco_INCLUDE_DIRS}
+                    ${paramHelp_INCLUDE_DIRS}
+                    ${EIGEN3_INCLUDE_DIR}
+                    ${YARP_INCLUDE_DIRS}
+                    ${skinDynLib_INCLUDE_DIRS}
+                    ${ctrlLib_INCLUDE_DIRS})
+
 if(${CODYCO_USES_URDFDOM})
-include_directories(${HEADERS_FOLDER}
-                    ${codyco_commons_INCLUDE_DIRS}
-                    ${wholeBodyInterface_INCLUDE_DIRS}
-                    ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
-                    ${iDynTree_INCLUDE_DIRS}
-                    ${orocos_kdl_INCLUDE_DIRS}
-                    ${kdl_codyco_INCLUDE_DIRS}
-                    ${paramHelp_INCLUDE_DIRS}
-                    ${Boost_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR}
-                    ${YARP_INCLUDE_DIRS})
-else()
-include_directories(${HEADERS_FOLDER}
-                    ${codyco_commons_INCLUDE_DIRS}
-                    ${wholeBodyInterface_INCLUDE_DIRS}
-                    ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
-                    ${iDynTree_INCLUDE_DIRS}
-                    ${orocos_kdl_INCLUDE_DIRS}
-                    ${kdl_codyco_INCLUDE_DIRS}
-                    ${paramHelp_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR}
-                    ${YARP_INCLUDE_DIRS})
-endif()
+    include_directories(${Boost_INCLUDE_DIRS})
+endif(${CODYCO_USES_URDFDOM})
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
@@ -71,6 +63,6 @@ target_link_libraries(  ${PROJECT_NAME}
                         paramHelp
                         ${YARP_LIBRARIES})
 
-# install(TARGETS ${PROJECTNAME} DESTINATION bin)
+# install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
 # add_subdirectory(app)

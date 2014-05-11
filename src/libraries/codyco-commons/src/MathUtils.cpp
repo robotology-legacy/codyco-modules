@@ -102,5 +102,17 @@ namespace codyco {
             }
             Apinv = svdDecomposition.matrixV() * singularValues.asDiagonal() * svdDecomposition.matrixU().adjoint();
         }
+        
+        void skewSymmentricMatrixFrom3DVector(const Eigen::Ref<const Eigen::Vector3d>& vector, Eigen::Ref<Eigen::Matrix3d> skewSymmetricMatrix)
+        {
+            skewSymmetricMatrix.setZero();
+            //            S = [   0,   -w(3),    w(2);
+            //                 w(3),   0,     -w(1);
+            //                 -w(2),  w(1),     0   ];
+            skewSymmetricMatrix(0, 1) = -vector(2);
+            skewSymmetricMatrix(0, 2) = vector(1);
+            skewSymmetricMatrix(1, 2) = -vector(0);
+            skewSymmetricMatrix.bottomLeftCorner<2, 2>() = -skewSymmetricMatrix.topRightCorner<2, 2>().transpose();
+        }
     }
 }

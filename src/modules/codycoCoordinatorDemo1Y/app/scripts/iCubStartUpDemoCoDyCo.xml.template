@@ -31,10 +31,15 @@
     <node>powerNode1</node>
     <tag>wbg</tag>
   </module>
-
+    
   <connection>
     <from>/wholeBodyDynamicsTree/contacts:o</from>
     <to>/iCubGui/forces</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/wholeBodyDynamicsTree/base:o</from>
+    <to>/iCubGui/base:i</to>
     <protocol>udp</protocol>
   </connection>
   <connection>
@@ -78,6 +83,7 @@
     <protocol>udp</protocol>
   </connection>
 
+    
 		
 
 </application>

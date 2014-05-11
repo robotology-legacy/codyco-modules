@@ -88,18 +88,6 @@ namespace codyco {
             codyco::iCubVersionFromRf(rf, iCubVersion);
             m_robot = new wbiIcub::icubWholeBodyInterface(m_moduleName.c_str(), m_robotName.c_str(), iCubVersion);
             
-            /*
-            if (m_urdfFilePath.empty()) {
-                m_robot = new wbiIcub::icubWholeBodyInterface(m_moduleName.c_str(), m_robotName.c_str(), iCub::iDynTree::iCubTree_version_tag());
-#ifdef DEBUG
-                std::cerr << "Initializing wbi with default iCub Model" << std::endl;
-#endif
-            } else {
-                m_robot = new wbiIcub::icubWholeBodyInterface(m_moduleName.c_str(), m_robotName.c_str(), iCub::iDynTree::iCubTree_version_tag(), m_urdfFilePath);
-#ifdef DEBUG
-                std::cerr << "Initializing wbi with URDF model specified in" << m_urdfFilePath << std::endl;
-#endif
-            }*/
             if (!m_robot) {
                 std::cerr << "Could not create wbi object." << std::endl;
                 return false;
@@ -461,7 +449,6 @@ namespace codyco {
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterModuleName, &m_module.m_moduleName);
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterRobotName, &m_module.m_robotName);
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterControllerPeriod, &m_module.m_controllerThreadPeriod);
-            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterURDFFilePath, &m_module.m_urdfFilePath);
             
             if (!linkedVariable) {
                 return false;

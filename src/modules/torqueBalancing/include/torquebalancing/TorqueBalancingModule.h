@@ -107,7 +107,6 @@ namespace codyco {
             
             std::string m_moduleName;
             std::string m_robotName;
-            std::string m_urdfFilePath;
             
             wbi::wholeBodyInterface* m_robot;
             
