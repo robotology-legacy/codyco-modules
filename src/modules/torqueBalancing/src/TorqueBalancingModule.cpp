@@ -426,6 +426,7 @@ namespace codyco {
         , m_impedanceControlGains(actuatedDOFs)
         , m_monitoredDesiredCOMAcceleration(3)
         , m_monitoredCOMError(3)
+        , m_monitoredCOMIntegralError(3)
         , m_monitoredFeetForces(12)
         , m_monitoredOutputTorques(actuatedDOFs) {}
         
