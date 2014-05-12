@@ -18,7 +18,10 @@
 #define REFERENCEGENERATOR_H
 
 #include <yarp/os/RateThread.h>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include <Eigen/Core>
+#pragma clang diagnostic pop
 #include <cmath>
 #include <yarp/os/Mutex.h>
 
@@ -194,6 +197,11 @@ namespace codyco {
              * @return the instantaneous error
              */
             const Eigen::VectorXd& instantaneousError();
+            
+            /** Returns the integral of the error from the activation time to now
+             * @return the integral of the error
+             */
+            const Eigen::VectorXd& errorIntegral();
             
         private:
             

@@ -3,7 +3,7 @@
 
         <dependencies>
         </dependencies>
-   
+
 
  <module>
     <name>wholeBodyDynamicsTree</name>
@@ -13,25 +13,36 @@
  </module>
  <module>
     <name>iCubGui</name>
-    <parameters>--xpos 1500 --ypos 50 --width 370</parameters> 
+    <parameters>--xpos 1500 --ypos 50 --width 370</parameters>
     <node>display</node>
     <tag>iCubGui</tag>
   </module>
 
 <module>
     <name>iKinGazeCtrl</name>
-    <parameters></parameters> 
+    <parameters></parameters>
     <node>powerNode2</node>
     <tag>ikg</tag>
   </module>
 
  <module>
     <name>wholeBodyGaze</name>
-    <parameters>--robot icub --part left_leg</parameters> 
+    <parameters>--robot icub --part left_leg</parameters>
     <node>powerNode1</node>
     <tag>wbg</tag>
   </module>
-    
+
+  <module>
+        <name>codycoCoordinatorDemo1Y.lua</name>
+        <deployer>lua</deployer>
+        <node>terminal</node>
+        <!--
+        <dependencies>
+            <port timeout="10">/iSpeak</port>
+        </dependencies>
+        -->
+    </module>
+
   <connection>
     <from>/wholeBodyDynamicsTree/contacts:o</from>
     <to>/iCubGui/forces</to>
@@ -83,7 +94,28 @@
     <protocol>udp</protocol>
   </connection>
 
-    
-		
+  <connection>
+    <from>/skinManager/skin_events:o</from>
+    <to>/wholeBodyDynamicsTree/skin_contacts:i</to>
+  </connection>
+
+  <connection>
+    <from>/skinManager/skin_events:o</from>
+    <to>/codycoCoordinator1Y/skin_events:i</to>
+  </connection>
+
+  <connection>
+    <from>/wholeBodyDynamicsTree/left_arm/endEffectorWrench:o</from>
+    <to>/codycoCoordinator1Y/left_wrench:i</to>
+  </connection>
+
+  <connection>
+    <from>/wholeBodyDynamicsTree/right_arm/endEffectorWrench:o</from>
+    <to>/codycoCoordinator1Y/right_wrench:i</to>
+  </connection>
+
+
+
+
 
 </application>

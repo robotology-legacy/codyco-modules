@@ -106,6 +106,12 @@ namespace codyco {
              * @return desired right hand force (6 dim)
              */
             Reference& desiredRightHandForce();
+
+            /** @brief returns the desired joint configuration reference.
+             * The vector has the size of the actuated joints
+             * @return desired joints configuration (actuated joints)
+             */
+            Reference& desiredJointsConfiguration();
             
         private:
             Reference m_desiredCOMAcceleration;
@@ -113,6 +119,7 @@ namespace codyco {
             Reference m_desiredRightHandPosition;
             Reference m_desiredLeftHandForce;
             Reference m_desiredRightHandForce;
+            Reference m_desiredJointsConfiguration;
         };
         
     }

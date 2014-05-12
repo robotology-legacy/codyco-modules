@@ -26,7 +26,10 @@
 #include <iostream>
 #endif
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include <Eigen/LU>
+#pragma clang diagnostic pop
 
 namespace codyco {
     namespace torquebalancing {
@@ -174,17 +177,17 @@ namespace codyco {
             m_impedanceGains = impedanceGains;
         }
         
-        const Eigen::VectorXd& TorqueBalancingController::desiredJointsConfiguration()
-        {
-            codyco::LockGuard guard(m_mutex);
-            return m_desiredJointsConfiguration;
-        }
-        
-        void TorqueBalancingController::setDesiredJointsConfiguration(Eigen::VectorXd& desiredJointsConfiguration)
-        {
-            codyco::LockGuard guard(m_mutex);
-            m_desiredJointsConfiguration = desiredJointsConfiguration;
-        }
+//        const Eigen::VectorXd& TorqueBalancingController::desiredJointsConfiguration()
+//        {
+//            codyco::LockGuard guard(m_mutex);
+//            return m_desiredJointsConfiguration;
+//        }
+//        
+//        void TorqueBalancingController::setDesiredJointsConfiguration(Eigen::VectorXd& desiredJointsConfiguration)
+//        {
+//            codyco::LockGuard guard(m_mutex);
+//            m_desiredJointsConfiguration = desiredJointsConfiguration;
+//        }
         
         void TorqueBalancingController::setActiveState(bool isActive)
         {
@@ -225,6 +228,8 @@ namespace codyco {
         {
             if (m_references.desiredCOMAcceleration().isValid())
                 m_desiredCOMAcceleration = m_references.desiredCOMAcceleration().value();
+            if (m_references.desiredJointsConfiguration().isValid())
+                m_desiredJointsConfiguration = m_references.desiredJointsConfiguration().value();
         }
         
         bool TorqueBalancingController::updateRobotState()

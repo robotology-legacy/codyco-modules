@@ -69,7 +69,7 @@ namespace codyco {
         , m_desiredRightHandPosition(7)
         , m_desiredLeftHandForce(6)
         , m_desiredRightHandForce(6)
-        {}
+        , m_desiredJointsConfiguration(actuatedDOFs) {}
         
         Reference& ControllerReferences::desiredCOMAcceleration()
         {
@@ -94,6 +94,11 @@ namespace codyco {
         Reference& ControllerReferences::desiredRightHandForce()
         {
             return m_desiredRightHandForce;
+        }
+        
+        Reference& ControllerReferences::desiredJointsConfiguration()
+        {
+            return m_desiredJointsConfiguration;
         }
     }
 }

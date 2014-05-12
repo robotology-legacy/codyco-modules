@@ -247,10 +247,14 @@ namespace codyco {
         const Eigen::VectorXd& ReferenceGenerator::instantaneousError()
         {
             codyco::LockGuard guard(m_mutex);
-            return m_error;
-            
+            return m_error;   
         }
-
+        
+        const Eigen::VectorXd& ReferenceGenerator::errorIntegral()
+        {
+            codyco::LockGuard guard(m_mutex);
+            return m_integralTerm;
+        }
         
 #pragma mark - ReferenceGeneratorInputReader methods
         

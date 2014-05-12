@@ -15,6 +15,7 @@
  */
 
 #include "TorqueBalancingModule.h"
+#include "config.h"
 #include "TorqueBalancingController.h"
 #include "Reference.h"
 #include "ReferenceGenerator.h"
@@ -51,7 +52,11 @@ namespace codyco {
         , m_controller(0)
         , m_references(0)
         , m_rpcPort(0)
-        , m_paramHelperManager(0) {}
+        , m_paramHelperManager(0)
+        , m_initialJointsConfiguration(actuatedDOFs)
+        , m_impedanceDoubleSupportReference(actuatedDOFs)
+        , m_impedanceLeftHandReference(5)
+        , m_impedanceRightHandReference(5) {}
         
         TorqueBalancingModule::~TorqueBalancingModule() { cleanup(); }
         
@@ -109,6 +114,7 @@ namespace codyco {
             ReferenceGeneratorInputReader* reader = 0;
             ReferenceGenerator* generator = 0;
             
+            //COM task
             reader = new COMReader(*m_robot);
             if (reader) {
                 m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeCOM, reader));
@@ -125,39 +131,57 @@ namespace codyco {
                 return false;
             }
             
-            //position tasks
-            std::vector<TaskInformation> tasks;
-            TaskInformation task1 = {TaskTypeLeftHandPosition, "l_gripper", &m_references->desiredLeftHandPosition()};
-            tasks.push_back(task1);
-            TaskInformation task2 = {TaskTypeRightHandPosition, "r_gripper", &m_references->desiredRightHandPosition()};
-            tasks.push_back(task2);
-            
-            for (std::vector<TaskInformation>::iterator it = tasks.begin(); it != tasks.end(); it++) {
-                reader = new EndEffectorPositionReader(*m_robot, it->referredLinkName);
-                if (reader) {
-                    m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(it->taskType, reader));
-                } else {
-                    std::cerr << "Could not create end effector (" << it->referredLinkName << ") position reader object." << std::endl;
-                    return false;
-                }
-                generator = new ReferenceGenerator(m_controllerThreadPeriod, *(it->reference), *reader);
-                if (generator) {
-                    m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(it->taskType, generator));
-                } else {
-                    std::cerr << "Could not create end effector (" << it->referredLinkName << ") position controller object." << std::endl;
-                    return false;
-                }
+            //Impedance task
+            reader = new VoidReader();
+            if (reader) {
+                m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeImpedanceControl, reader));
+            } else {
+                std::cerr << "Could not create impedance control reader object." << std::endl;
+                return false;
             }
             
+            generator = new ReferenceGenerator(m_controllerThreadPeriod, m_references->desiredJointsConfiguration(), *reader);
+            if (generator) {
+                m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeImpedanceControl, generator));
+            } else {
+                std::cerr << "Could not create impedance controller object." << std::endl;
+                return false;
+            }
+
+            
+//            //position tasks
+//            std::vector<TaskInformation> tasks;
+//            TaskInformation task1 = {TaskTypeLeftHandPosition, "l_gripper", &m_references->desiredLeftHandPosition()};
+//            tasks.push_back(task1);
+//            TaskInformation task2 = {TaskTypeRightHandPosition, "r_gripper", &m_references->desiredRightHandPosition()};
+//            tasks.push_back(task2);
+//            
+//            for (std::vector<TaskInformation>::iterator it = tasks.begin(); it != tasks.end(); it++) {
+//                reader = new EndEffectorPositionReader(*m_robot, it->referredLinkName);
+//                if (reader) {
+//                    m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(it->taskType, reader));
+//                } else {
+//                    std::cerr << "Could not create end effector (" << it->referredLinkName << ") position reader object." << std::endl;
+//                    return false;
+//                }
+//                generator = new ReferenceGenerator(m_controllerThreadPeriod, *(it->reference), *reader);
+//                if (generator) {
+//                    m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(it->taskType, generator));
+//                } else {
+//                    std::cerr << "Could not create end effector (" << it->referredLinkName << ") position controller object." << std::endl;
+//                    return false;
+//                }
+//            }
+            
             //force tasks
-            tasks.clear();
+            std::vector<TaskInformation> tasks;
             TaskInformation task3 = {TaskTypeLeftHandForce, "l_gripper", &m_references->desiredLeftHandPosition()};
             tasks.push_back(task3);
             TaskInformation task4 = {TaskTypeRightHandForce, "r_gripper", &m_references->desiredRightHandPosition()};
             tasks.push_back(task4);
             
             for (std::vector<TaskInformation>::iterator it = tasks.begin(); it != tasks.end(); it++) {
-                reader = new EndEffectorForceReader(*m_robot);//, it->referredLinkName);
+                reader = new EndEffectorForceReader(*m_robot, it->referredLinkName);
                 if (reader) {
                     m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(it->taskType, reader));
                 } else {
@@ -186,17 +210,18 @@ namespace codyco {
                 std::cerr << "Could not link parameter helper variables." << std::endl;
                 return false;
             }
-            
+
             //load initial configuration for the impedance control
-            Eigen::VectorXd positions(actuatedDOFs);
-            m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, positions.data());
-            m_controller->setDesiredJointsConfiguration(positions);
+            m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_initialJointsConfiguration.data());
+//            m_controller->setDesiredJointsConfiguration(m_initialJointsConfiguration);
+            m_references->desiredJointsConfiguration().setValue(m_initialJointsConfiguration);
+            m_impedanceDoubleSupportReference = m_initialJointsConfiguration; //copy into double support state
             
             int leftFootLinkID = -1;
             m_robot->getLinkId("l_sole", leftFootLinkID);
             
             wbi::Frame frame;
-            m_robot->computeH(positions.data(), wbi::Frame(), leftFootLinkID, frame);
+            m_robot->computeH(m_initialJointsConfiguration.data(), wbi::Frame(), leftFootLinkID, frame);
           
             frame = frame * wbi::Frame(wbi::Rotation(0, 0, 1,
                                                      0, -1, 0,
@@ -205,18 +230,21 @@ namespace codyco {
             
             Eigen::VectorXd initialCOM(7);
             //set initial com to be equal to the read one
-            m_robot->forwardKinematics(positions.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, initialCOM.data());
+            m_robot->forwardKinematics(m_initialJointsConfiguration.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, initialCOM.data());
             Eigen::VectorXd comPosition = initialCOM.head(3);
             
             m_references->desiredCOMAcceleration().setValue(comPosition);
-            
+
+            //start threads. Controllers start always in inactive state
+            //This is needed because they have to be initialized before setting gains, etc..
             bool threadsStarted = true;
             
             for (std::map<TaskType, ReferenceGenerator*>::iterator it = m_referenceGenerators.begin(); it != m_referenceGenerators.end(); it++) {
                 threadsStarted = threadsStarted && it->second->start();
             }
-            
             threadsStarted = threadsStarted && m_controller->start();
+            
+            m_paramHelperManager->loadDefaultVariables();
             
             std::cout << "Module " << m_moduleName << " ready." << std::endl;
             
@@ -230,6 +258,7 @@ namespace codyco {
                 return false;
             }
 
+            m_paramHelperManager->syncLinkedVariables();
             monitorVariables();
             
             static int counter = 0;
@@ -337,44 +366,52 @@ namespace codyco {
         void TorqueBalancingModule::updateModuleCoordinationStatus()
         {
             bool comTaskActive = m_active;
+            bool impedanceTaskActive = m_active;
             bool leftHandPositionTaskActive = false;
             bool rightHandPositionTaskActive = false;
             bool leftHandForceTaskActive = false;
             bool rightHandForceTaskActive = false;
+            Eigen::VectorXd impedanceReference = m_impedanceDoubleSupportReference;
             
             switch (m_moduleState) {
+                case TorqueBalancingModuleStateDoubleSupportStable:
+#ifdef DEBUG
+                    std::cerr << FUNCTION_NAME << ": State Double support" << std::endl;
+#endif
+                    break;
                 case TorqueBalancingModuleStateDoubleSupportSeekingContactBothHands:
-                    leftHandPositionTaskActive = m_active;
-                    rightHandForceTaskActive = m_active;
+//                    leftHandPositionTaskActive = m_active;
+//                    rightHandForceTaskActive = m_active;
+                    impedanceReference.segment(3, 5) = m_impedanceLeftHandReference;
+                    impedanceReference.segment(8, 5) = m_impedanceRightHandReference;
 #ifdef DEBUG
                     std::cerr << FUNCTION_NAME << ": State Double support with hands" << std::endl;
 #endif
                     break;
                 case TorqueBalancingModuleStateTripleSupportSeekingContactLeftHand:
-                    leftHandPositionTaskActive = m_active;
+//                    leftHandPositionTaskActive = m_active;
                     rightHandForceTaskActive = m_active;
+                    m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, impedanceReference.data());
+                    impedanceReference.segment(3, 5) = m_impedanceLeftHandReference;
 #ifdef DEBUG
                     std::cerr << FUNCTION_NAME << ": State Triple support. Left hand searches contact" << std::endl;
 #endif
                     break;
                 case TorqueBalancingModuleStateTripleSupportSeekingContactRightHand:
-                    rightHandPositionTaskActive = m_active;
+//                    rightHandPositionTaskActive = m_active;
                     leftHandForceTaskActive = m_active;
+                    m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, impedanceReference.data());
+                    impedanceReference.segment(8, 5) = m_impedanceRightHandReference;
 #ifdef DEBUG
                     std::cerr << FUNCTION_NAME << ": State Triple support. Right hand searches contact" << std::endl;
 #endif
                     break;
                 case TorqueBalancingModuleStateQuadrupleSupport:
                     leftHandForceTaskActive = rightHandForceTaskActive = m_active;
+                    m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, impedanceReference.data());
 #ifdef DEBUG
                     std::cerr << FUNCTION_NAME << ": State Quad support" << std::endl;
 #endif
-                    break;
-                case TorqueBalancingModuleStateDoubleSupportStable:
-#ifdef DEBUG
-                    std::cerr << FUNCTION_NAME << ": State Double support" << std::endl;
-#endif
-
                     break;
                 default:
 #ifdef DEBUG
@@ -385,14 +422,20 @@ namespace codyco {
             
             bool controlSet = true;
             std::map<TaskType, ReferenceGenerator*>::iterator found;
-            bool tasksState[5] = {comTaskActive, leftHandPositionTaskActive, rightHandPositionTaskActive, leftHandForceTaskActive, rightHandForceTaskActive};
-            TaskType tasksType[5] = { TaskTypeCOM, TaskTypeLeftHandPosition, TaskTypeRightHandPosition, TaskTypeLeftHandForce, TaskTypeRightHandForce};
+//            bool tasksState[5] = {comTaskActive, leftHandPositionTaskActive, rightHandPositionTaskActive, leftHandForceTaskActive, rightHandForceTaskActive};
+//            TaskType tasksType[5] = { TaskTypeCOM, TaskTypeLeftHandPosition, TaskTypeRightHandPosition, TaskTypeLeftHandForce, TaskTypeRightHandForce};
+//
+            bool tasksState[4] = {comTaskActive, leftHandForceTaskActive, rightHandForceTaskActive, impedanceTaskActive};
+            TaskType tasksType[4] = {TaskTypeCOM, TaskTypeLeftHandForce, TaskTypeRightHandForce, TaskTypeImpedanceControl};
             
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 3; i++) {
                 found = m_referenceGenerators.find(tasksType[i]);
                 controlSet = controlSet && found != m_referenceGenerators.end();
-                if (controlSet)
+                if (controlSet) {
                     found->second->setActiveState(tasksState[i]);
+                    if (tasksType[i] == TaskTypeImpedanceControl)
+                        found->second->setSignalFeedForward(impedanceReference);
+                }
             }
             m_controller->setActiveState(m_active && controlSet);
         }
@@ -422,6 +465,7 @@ namespace codyco {
         , m_impedanceControlGains(actuatedDOFs)
         , m_monitoredDesiredCOMAcceleration(3)
         , m_monitoredCOMError(3)
+        , m_monitoredCOMIntegralError(3)
         , m_monitoredFeetForces(12)
         , m_monitoredOutputTorques(actuatedDOFs) {}
         
@@ -488,24 +532,36 @@ namespace codyco {
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCOMIntegralGain, this);
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMIntegralLimit, &m_comIntegralLimit)
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCOMIntegralLimit, this);
-            //Hands position
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionDerivativeGain, m_handsPositionProportionalGain.data())
-            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsPositionDerivativeGain, this);
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionDerivativeGain, m_handsPositionDerivativeGain.data())
-            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsPositionDerivativeGain, this);
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionIntegralGain, m_handsPositionIntegralGain.data())
-            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsPositionIntegralGain, this);
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionIntegralLimit, &m_handsPositionIntegralLimit)
-            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsPositionIntegralLimit, this);
+//            //Hands position
+//            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionDerivativeGain, m_handsPositionProportionalGain.data())
+//            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsPositionDerivativeGain, this);
+//            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionDerivativeGain, m_handsPositionDerivativeGain.data())
+//            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsPositionDerivativeGain, this);
+//            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionIntegralGain, m_handsPositionIntegralGain.data())
+//            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsPositionIntegralGain, this);
+//            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionIntegralLimit, &m_handsPositionIntegralLimit)
+//            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsPositionIntegralLimit, this);
             //Hands forces
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceProportionalGain, m_handsForceProportionalGain.data())
-            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsForceProportionalGain, this);
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceDerivativeGain, m_handsForceDerivativeGain.data())
-            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsForceDerivativeGain, this);
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceIntegralGain, m_handsForceIntegralGain.data())
-            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsForceIntegralGain, this);
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceIntegralLimit, &m_handsForceIntegralLimit)
-            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsForceIntegralLimit, this);
+            //Forces are controlled in open-loop for now
+//            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceProportionalGain, m_handsForceProportionalGain.data())
+//            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsForceProportionalGain, this);
+//            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceDerivativeGain, m_handsForceDerivativeGain.data())
+//            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsForceDerivativeGain, this);
+//            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceIntegralGain, m_handsForceIntegralGain.data())
+//            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsForceIntegralGain, this);
+//            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceIntegralLimit, &m_handsForceIntegralLimit)
+//            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsForceIntegralLimit, this);
+            //Impedance gains
+            //Double support for now is loaded at startup
+//            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterDesiredJointsConfigurationStateDoubleSupport,
+//                                                            m_module.m_impedanceDoubleSupportReference.data())
+//            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterDesiredJointsConfigurationStateDoubleSupport, this);
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterDesiredJointsConfigurationStateLeftHandPosition,
+                                                            m_module.m_impedanceLeftHandReference.data())
+            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterDesiredJointsConfigurationStateLeftHandPosition, this);
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterDesiredJointsConfigurationStateRightHandPosition,
+                                                            m_module.m_impedanceRightHandReference.data())
+            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterDesiredJointsConfigurationStateRightHandPosition, this);
             //Centroidal moment / Gains
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCentroidalGain, &m_centroidalGain)
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCentroidalGain, this);
@@ -521,6 +577,7 @@ namespace codyco {
             bool linked = true;
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration, m_monitoredDesiredCOMAcceleration.data());
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorCOMError, m_monitoredCOMError.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorCOMIntegralError, m_monitoredCOMIntegralError.data());
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorFeetForces, m_monitoredFeetForces.data());
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorOutputTorques, m_monitoredOutputTorques.data());
             
@@ -537,6 +594,40 @@ namespace codyco {
             commandRegistered = commandRegistered && m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandHelp, this);
             
             return commandRegistered;
+        }
+        
+        void TorqueBalancingModule::ParamHelperManager::loadDefaultVariables()
+        {
+            std::map<TaskType, ReferenceGenerator*>::iterator foundController;
+            ReferenceGenerator* comGenerator = 0;
+            ReferenceGenerator* leftHandPositionGenerator = 0;
+            ReferenceGenerator* rightHandPositionGenerator = 0;
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeCOM)) != m_module.m_referenceGenerators.end()) {
+                comGenerator = foundController->second;
+            }
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition)) != m_module.m_referenceGenerators.end()) {
+                leftHandPositionGenerator = foundController->second;
+            }
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandPosition)) != m_module.m_referenceGenerators.end()) {
+                rightHandPositionGenerator = foundController->second;
+            }
+            
+            if (comGenerator) {
+                comGenerator->setProportionalGains(m_comProportionalGain);
+                comGenerator->setDerivativeGains(m_comDerivativeGain);
+                comGenerator->setIntegralGains(m_comIntegralGain);
+//                 comGenerator->setAllGains(m_comProportionalGain, m_comDerivativeGain, m_comIntegralGain);
+            }
+            if (leftHandPositionGenerator) {
+                leftHandPositionGenerator->setProportionalGains(m_handsPositionProportionalGain);
+                leftHandPositionGenerator->setDerivativeGains(m_handsPositionDerivativeGain);
+                leftHandPositionGenerator->setIntegralGains(m_handsPositionIntegralGain);
+            }
+            if (rightHandPositionGenerator) {
+                rightHandPositionGenerator->setProportionalGains(m_handsPositionProportionalGain);
+                rightHandPositionGenerator->setDerivativeGains(m_handsPositionDerivativeGain);
+                rightHandPositionGenerator->setIntegralGains(m_handsPositionIntegralGain);
+            }
         }
         
         bool TorqueBalancingModule::ParamHelperManager::processRPCCommand(const yarp::os::Bottle &command, yarp::os::Bottle &reply)
@@ -561,6 +652,7 @@ namespace codyco {
             if (comGenerator) {
                 m_monitoredDesiredCOMAcceleration = comGenerator->computedReference();
                 m_monitoredCOMError = comGenerator->instantaneousError();
+                m_monitoredCOMIntegralError = comGenerator->errorIntegral();
             }
             m_monitoredFeetForces = m_module.m_controller->desiredFeetForces();
             m_monitoredOutputTorques = m_module.m_controller->outputTorques();
@@ -568,6 +660,41 @@ namespace codyco {
             //send variables
             m_parameterServer->sendStreamParams();
             
+        }
+        
+        void TorqueBalancingModule::ParamHelperManager::syncLinkedVariables()
+        {
+            std::map<TaskType, ReferenceGenerator*>::iterator foundController;
+            ReferenceGenerator* comGenerator = 0;
+//            ReferenceGenerator* leftHandPositionGenerator = 0;
+            //ReferenceGenerator* rightHandPositionGenerator = 0;
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeCOM)) != m_module.m_referenceGenerators.end()) {
+                comGenerator = foundController->second;
+            }
+//            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition)) != m_module.m_referenceGenerators.end()) {
+//                leftHandPositionGenerator = foundController->second;
+//            }
+//             if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition)) != m_module.m_referenceGenerators.end()) {
+//                 rightHandPositionGenerator = foundController->second;
+//             }
+            
+            if (comGenerator) {
+                m_comProportionalGain = comGenerator->proportionalGains();
+                m_comDerivativeGain = comGenerator->derivativeGains();
+                m_comIntegralGain = comGenerator->integralGains();
+                m_comIntegralLimit = comGenerator->integralLimit();
+            }
+//            if (leftHandPositionGenerator) {
+//                m_handsPositionProportionalGain = leftHandPositionGenerator->proportionalGains();
+//                m_handsPositionDerivativeGain = leftHandPositionGenerator->derivativeGains();
+//                m_handsPositionIntegralGain = leftHandPositionGenerator->integralGains();
+//                m_handsPositionIntegralLimit = leftHandPositionGenerator->integralLimit();
+//            }
+//             if (rightHandPositionGenerator) {
+//                 rightHandPositionGenerator->setProportionalGains(m_handsPositionProportionalGain);
+//                 rightHandPositionGenerator->setDerivativeGains(m_handsPositionDerivativeGain);
+//                 rightHandPositionGenerator->setIntegralGains(m_handsPositionIntegralGain);
+//             }
         }
         
         void TorqueBalancingModule::ParamHelperManager::parameterUpdated(const paramHelp::ParamProxyInterface *proxyInterface)
@@ -580,6 +707,7 @@ namespace codyco {
                     std::cerr << FUNCTION_NAME << ": State updated to " << m_module.m_moduleState << std::endl;
 #endif
                     m_module.updateModuleCoordinationStatus();
+                    sendReferencesToControllers();
                     break;
                     //References
                 case TorqueBalancingModuleParameterCOMReference:
@@ -732,6 +860,7 @@ namespace codyco {
             switch (commandDescription.id) {
                 case TorqueBalancingModuleCommandStart:
                     m_module.setControllersActiveState(true);
+                    sendReferencesToControllers();
                     reply.addString("Controller actived");
                     break;
                 case TorqueBalancingModuleCommandStop:
@@ -748,7 +877,31 @@ namespace codyco {
                 default:
                     break;
             }
+        }
+        
+        void TorqueBalancingModule::ParamHelperManager::sendReferencesToControllers()
+        {
+            std::map<TaskType, ReferenceGenerator*>::iterator foundController;
+            ReferenceGenerator* generator = 0;
             
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeCOM)) != m_module.m_referenceGenerators.end()
+                && foundController->second) {
+                foundController->second->setSignalReference(m_comReference);
+            }
+            
+            //Hands position task are handles as a different equilibrium configuration for the impedance task.
+            //this is done in the update status function of the module
+            
+            //Hands force task are handled like feedforward (currently are open-loop)
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandForce)) != m_module.m_referenceGenerators.end()
+                && foundController->second) {
+                foundController->second->setSignalFeedForward(m_handsForceReference.head(6));
+            }
+            
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandForce)) != m_module.m_referenceGenerators.end()
+                && foundController->second) {
+                foundController->second->setSignalFeedForward(m_handsForceReference.tail(6));
+            }
         }
     }
 }
