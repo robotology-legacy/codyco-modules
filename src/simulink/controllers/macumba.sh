@@ -40,6 +40,7 @@ done
 echo "!!Now I will calib the wholeBodyDynamics!!"
 sleep 5
 echo "calibStanding all 200"  | yarp rpc /wholeBodyDynamicsTree/rpc:i
+sleep 2
 yarp clean --timeout 0.2
 
 

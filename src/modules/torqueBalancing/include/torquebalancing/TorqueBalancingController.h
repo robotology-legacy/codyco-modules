@@ -143,11 +143,11 @@ namespace codyco {
             Eigen::VectorXd m_leftFootPosition; /*!< 7 */
             
             //Jacobians
-            Eigen::MatrixXd m_feetJacobian; /*!< 12 x totalDOFs */
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_feetJacobian; /*!< 12 x totalDOFs */
             Eigen::VectorXd m_feetDJacobianDq; /*!< 12 */
             
             //Kinematic and dynamic variables
-            Eigen::MatrixXd m_massMatrix; /*!< totalDOFs x totalDOFs */
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_massMatrix; /*!< totalDOFs x totalDOFs */
             Eigen::VectorXd m_generalizedBiasForces; /*!< totalDOFs */
             Eigen::VectorXd m_gravityBiasTorques; /*!< totalDOFs */
             Eigen::VectorXd m_centroidalMomentum; /*!< 6 */

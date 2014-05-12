@@ -126,7 +126,7 @@ bool robotStatus::robotConfig() {
 #ifdef DEBUG
       cout<<"After reading from config file, params are "<<endl;
       cout<<"robot name:   "<<robotNamefromConfigFile.c_str()<<endl;
-      cout<<"urdf file:    "<<urdf_file.c_s             tr()<<endl;
+      cout<<"urdf file:    "<<urdf_file.c_str()<<endl;
       cout<<"local name:   "<<localNamefromConfigFile.c_str()<<endl;
       cout<<"head version: "<<headVfromConfigFile<<endl;
       cout<<"legs version: "<<legsVfromConfigFile<<endl;
