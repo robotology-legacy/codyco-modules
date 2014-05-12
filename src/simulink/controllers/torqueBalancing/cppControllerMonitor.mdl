@@ -6,7 +6,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.12"
+    ComputedModelVersion    "1.13"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -30,7 +30,7 @@ Model {
       $ObjectID		      2
       $ClassName	      "Simulink.WindowInfo"
       IsActive		      [1]
-      Location		      [129.0, 24.0, 1374.0, 923.0]
+      Location		      [1912.0, -4.0, 1936.0, 1092.0]
       Object {
 	$PropName		"ModelBrowserInfo"
 	$ObjectID		3
@@ -64,7 +64,7 @@ Model {
 	  IsActive		  [1]
 	  ViewObjType		  "SimulinkSubsys"
 	  LoadSaveID		  "20"
-	  Extents		  [1127.0, 739.0]
+	  Extents		  [1689.0, 908.0]
 	  ZoomFactor		  [2.46]
 	  Offset		  [0.0, -2.8421709430404007e-14]
 	}
@@ -78,9 +78,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "icub"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon May 12 14:31:15 2014"
+  LastModifiedDate	  "Mon May 12 14:42:38 2014"
   RTWModifiedTimeStamp	  321805753
-  ModelVersionFormat	  "1.%<AutoIncrement:12>"
+  ModelVersionFormat	  "1.%<AutoIncrement:13>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -185,7 +185,7 @@ Model {
 	  StartTime		  "0.0"
 	  StopTime		  "inf"
 	  AbsTol		  "auto"
-	  FixedStep		  "0.5"
+	  FixedStep		  "0.01"
 	  InitialStep		  "auto"
 	  MaxNumMinSteps	  "-1"
 	  MaxOrder		  5
@@ -680,7 +680,7 @@ Model {
       }
       Name		      "Configuration"
       CurrentDlgPage	      "Solver"
-      ConfigPrmDlgPosition     [ 280, 135, 1160, 765 ] 
+      ConfigPrmDlgPosition     [ 264, 79, 1176, 781 ] 
     }
     PropName		    "ConfigurationSets"
   }
@@ -833,7 +833,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "246"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "23"
+    SIDHighWatermark	    "24"
     Block {
       BlockType		      SubSystem
       Name		      "Monitor"
@@ -874,7 +874,7 @@ Model {
       }
       System {
 	Name			"Monitor"
-	Location		[129, 24, 1503, 947]
+	Location		[1912, -4, 3848, 1088]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -1377,6 +1377,20 @@ Model {
 	  }
 	}
 	Block {
+	  BlockType		  Reference
+	  Name			  "S-Function"
+	  SID			  "24"
+	  Ports			  []
+	  Position		  [404, 18, 473, 61]
+	  ZOrder		  13
+	  ForegroundColor	  "red"
+	  ShowName		  off
+	  LibraryVersion	  "1.47"
+	  SourceBlock		  "WBCLibrary/Utilities/S-Function"
+	  SourceType		  "Soft Real Time"
+	  rate			  "0.010"
+	}
+	Block {
 	  BlockType		  Scope
 	  Name			  "Scope"
 	  SID			  "16"
@@ -1385,12 +1399,22 @@ Model {
 	  ZOrder		  8
 	  ShowName		  off
 	  Floating		  off
-	  Location		  [188, 390, 512, 629]
+	  Location		  [741, 182, 1554, 814]
 	  Open			  off
 	  NumInputPorts		  "1"
 	  List {
 	    ListType		    AxesTitles
 	    axes1		    "%<SignalLabel>"
+	  }
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.5 0.5 0.5]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
 	  }
 	  ShowLegends		  off
 	  DataFormat		  "StructureWithTime"
@@ -1405,14 +1429,26 @@ Model {
 	  ZOrder		  9
 	  ShowName		  off
 	  Floating		  off
-	  Location		  [188, 390, 512, 629]
-	  Open			  off
+	  Location		  [1987, 116, 2874, 924]
+	  Open			  on
 	  NumInputPorts		  "1"
 	  List {
 	    ListType		    AxesTitles
 	    axes1		    "%<SignalLabel>"
 	  }
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.5 0.5 0.5]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
+	  }
 	  ShowLegends		  off
+	  YMin			  "-0.1"
+	  YMax			  "0.6"
 	  SaveName		  "ScopeData1"
 	  DataFormat		  "StructureWithTime"
 	  SampleTime		  "0"
@@ -1468,12 +1504,22 @@ Model {
 	  ZOrder		  12
 	  ShowName		  off
 	  Floating		  off
-	  Location		  [188, 390, 512, 629]
-	  Open			  off
+	  Location		  [152, 223, 904, 782]
+	  Open			  on
 	  NumInputPorts		  "1"
 	  List {
 	    ListType		    AxesTitles
 	    axes1		    "%<SignalLabel>"
+	  }
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.5 0.5 0.5]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
 	  }
 	  ShowLegends		  off
 	  SaveName		  "ScopeData4"
