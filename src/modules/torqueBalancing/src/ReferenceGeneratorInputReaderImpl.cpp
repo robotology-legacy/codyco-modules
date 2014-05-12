@@ -162,18 +162,21 @@ namespace codyco {
         int EndEffectorForceReader::signalSize() const { return 6; }
         
 #pragma mark - VoidReader implementation
+        
         VoidReader::VoidReader()
         : m_voidVector(0) {}
+        
         VoidReader~VoidReader() {}
-            const Eigen::VectorXd& VoidReader::getSignal()
+        
+        const Eigen::VectorXd& VoidReader::getSignal()
         {
             return m_voidVector;
         }
-            const Eigen::VectorXd& VoidReader::getSignalDerivative()
+        const Eigen::VectorXd& VoidReader::getSignalDerivative()
         {
             return m_voidVector;
         }
+        
         int VoidReader::signalSize() const { return 0; }
-        };
     }
 }
