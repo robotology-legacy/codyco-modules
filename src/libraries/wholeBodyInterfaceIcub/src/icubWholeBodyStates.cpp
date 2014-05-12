@@ -316,7 +316,7 @@ bool icubWholeBodyStates::lockAndReadSensor(const SensorType st, const LocalId s
 bool icubWholeBodyStates::lockAndGetExternalWrench(const LocalId sid, double * data)
 {
     estimator->mutex.wait();
-    if( estimator->ee_wrenches_enabled )
+    if( !estimator->ee_wrenches_enabled )
     {
         estimator->mutex.post();
         return false;
