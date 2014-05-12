@@ -186,6 +186,7 @@ namespace codyco {
                 std::cerr << "Could not link parameter helper variables." << std::endl;
                 return false;
             }
+            m_paramHelperManager->loadDefaultVariables();
             
             //load initial configuration for the impedance control
             Eigen::VectorXd positions(actuatedDOFs);
@@ -230,6 +231,7 @@ namespace codyco {
                 return false;
             }
 
+            m_paramHelperManager->syncLinkedVariables();
             monitorVariables();
             
             static int counter = 0;
@@ -539,6 +541,39 @@ namespace codyco {
             return commandRegistered;
         }
         
+        void TorqueBalancingModule::ParamHelperManager::loadDefaultVariables()
+        {
+            std::map<TaskType, ReferenceGenerator*>::iterator foundController;
+            ReferenceGenerator* comGenerator = 0;
+            ReferenceGenerator* leftHandPositionGenerator = 0;
+            ReferenceGenerator* rightHandPositionGenerator = 0;
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeCOM)) != m_module.m_referenceGenerators.end()) {
+                comGenerator = foundController->second;
+            }
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition)) != m_module.m_referenceGenerators.end()) {
+                leftHandPositionGenerator = foundController->second;
+            }
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition)) != m_module.m_referenceGenerators.end()) {
+                rightHandPositionGenerator = foundController->second;
+            }
+            
+            if (comGenerator) {
+                comGenerator->setProportionalGains(m_comProportionalGain);
+                comGenerator->setDerivativeGains(m_comDerivativeGain);
+                comGenerator->setIntegralGains(m_comIntegralGain);
+            }
+            if (leftHandPositionGenerator) {
+                leftHandPositionGenerator->setProportionalGains(m_handsPositionProportionalGain);
+                leftHandPositionGenerator->setDerivativeGains(m_handsPositionDerivativeGain);
+                leftHandPositionGenerator->setIntegralGains(m_handsPositionIntegralGain);
+            }
+            if (rightHandPositionGenerator) {
+                rightHandPositionGenerator->setProportionalGains(m_handsPositionProportionalGain);
+                rightHandPositionGenerator->setDerivativeGains(m_handsPositionDerivativeGain);
+                rightHandPositionGenerator->setIntegralGains(m_handsPositionIntegralGain);
+            }
+        }
+        
         bool TorqueBalancingModule::ParamHelperManager::processRPCCommand(const yarp::os::Bottle &command, yarp::os::Bottle &reply)
         {
             assert(m_parameterServer);
@@ -568,6 +603,41 @@ namespace codyco {
             //send variables
             m_parameterServer->sendStreamParams();
             
+        }
+        
+        void TorqueBalancingModule::ParamHelperManager::syncLinkedVariables()
+        {
+            std::map<TaskType, ReferenceGenerator*>::iterator foundController;
+            ReferenceGenerator* comGenerator = 0;
+            ReferenceGenerator* leftHandPositionGenerator = 0;
+            //ReferenceGenerator* rightHandPositionGenerator = 0;
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeCOM)) != m_module.m_referenceGenerators.end()) {
+                comGenerator = foundController->second;
+            }
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition)) != m_module.m_referenceGenerators.end()) {
+                leftHandPositionGenerator = foundController->second;
+            }
+//             if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition)) != m_module.m_referenceGenerators.end()) {
+//                 rightHandPositionGenerator = foundController->second;
+//             }
+            
+            if (comGenerator) {
+                m_comProportionalGain = comGenerator->proportionalGains();
+                m_comDerivativeGain = comGenerator->derivativeGains();
+                m_comIntegralGain = comGenerator->integralGains();
+                m_comIntegralLimit = comGenerator->integralLimit();
+            }
+            if (leftHandPositionGenerator) {
+                m_handsPositionProportionalGain = leftHandPositionGenerator->proportionalGains();
+                m_handsPositionDerivativeGain = leftHandPositionGenerator->derivativeGains();
+                m_handsPositionIntegralGain = leftHandPositionGenerator->integralGains();
+                m_handsPositionIntegralLimit = leftHandPositionGenerator->integralLimit();
+            }
+//             if (rightHandPositionGenerator) {
+//                 rightHandPositionGenerator->setProportionalGains(m_handsPositionProportionalGain);
+//                 rightHandPositionGenerator->setDerivativeGains(m_handsPositionDerivativeGain);
+//                 rightHandPositionGenerator->setIntegralGains(m_handsPositionIntegralGain);
+//             }
         }
         
         void TorqueBalancingModule::ParamHelperManager::parameterUpdated(const paramHelp::ParamProxyInterface *proxyInterface)

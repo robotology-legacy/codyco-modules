@@ -68,7 +68,7 @@ namespace codyco {
 
             
             m_robot.forwardKinematics(m_jointsPosition.data(), m_world2BaseFrame, m_endEffectorLinkID, m_outputSignal.data());
-            m_robot.computeJacobian(m_jointsPosition.data(), m_world2BaseFrame, m_endEffectorLinkID, m_jacobian.topRows(7).data());
+            m_robot.computeJacobian(m_jointsPosition.data(), m_world2BaseFrame, m_endEffectorLinkID, m_jacobian.data());
             m_outputSignalDerivative = m_jacobian * m_jointsVelocity;
         }
         

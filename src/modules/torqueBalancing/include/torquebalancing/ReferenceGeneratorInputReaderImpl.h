@@ -51,7 +51,7 @@ namespace codyco {
             Eigen::VectorXd m_outputSignal;
             Eigen::VectorXd m_outputSignalDerivative;
             
-            Eigen::MatrixXd m_jacobian;
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_jacobian;
             
             void updateStatus();
             void initializer();

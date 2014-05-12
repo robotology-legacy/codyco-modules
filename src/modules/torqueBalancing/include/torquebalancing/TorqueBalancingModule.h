@@ -166,9 +166,11 @@ namespace codyco {
             bool linkVariables();
             bool linkMonitoredVariables();
             bool registerCommandCallbacks();
+            void loadDefaultVariables();
             
             bool processRPCCommand(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
             void sendMonitoredVariables();
+            void syncLinkedVariables();
                         
             virtual ~ParamHelperManager();
             virtual void parameterUpdated(const paramHelp::ParamProxyInterface *proxyInterface);
