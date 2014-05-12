@@ -8,6 +8,8 @@ script_name = "codycoCoordinator1Y"
 print("[" .. script_name .. "] opening yarp")
 yarp.Network()
 
+verbose = false
+
 yarpNetworkTimeout = 10
 if( not yarp.NetworkBase_checkNetwork(yarpNetworkTimeout) ) then
     print("[" .. script_name .. "] yarp server not found, exiting")
@@ -128,10 +130,12 @@ end
 
 -------
 function produce_events()
-    print("[codycoCoordinator1Y][debug] skin_contact_left_arm = " ..  skin_contact_left_hand )
-    print("[codycoCoordinator1Y][debug] skin_contact_right_arm  = " ..  skin_contact_right_hand  )
-    print("[codycoCoordinator1Y][debug] buffer_left_force_norm = " .. buffer_left_force_norm )
-    print("[codycoCoordinator1Y][debug] buffer_right_force_norm = " .. buffer_right_force_norm )
+    if( verbose ) then
+        print("[codycoCoordinator1Y][debug] skin_contact_left_arm = " ..  skin_contact_left_hand )
+        print("[codycoCoordinator1Y][debug] skin_contact_right_arm  = " ..  skin_contact_right_hand  )
+        print("[codycoCoordinator1Y][debug] buffer_left_force_norm = " .. buffer_left_force_norm )
+        print("[codycoCoordinator1Y][debug] buffer_right_force_norm = " .. buffer_right_force_norm )
+    end
     if( skin_contact_left_hand > 0 or buffer_left_force_norm > fsm_force_threshold ) then
         contact_left_hand = true
     else
