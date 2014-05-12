@@ -1028,6 +1028,10 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     // for each dynContact find the related skinContact (if any) and set the wrench in it
     unsigned long cId;
     bool contactFound=false;
+
+    bool raContactFound, laContactFound, rlContactFound, llContactFound;
+    raContactFound = laContactFound = rlContactFound = llContactFound = false;
+
     for(unsigned int i=0; i < estimatedLastDynContacts.size(); i++)
     {
         /*
@@ -1056,26 +1060,55 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
         {
             getEEWrench(*icub_model,estimatedLastDynContacts[i],left_arm_ee_contact_found,
                         left_hand_ee_wrench,left_gripper_ee_wrench,left_gripper_frame_idyntree_id,left_hand_link_idyntree_id);
+            laContactFound = true;
         }
         if( estimatedLastDynContacts[i].getBodyPart() == RIGHT_ARM &&
             estimatedLastDynContacts[i].getLinkNumber() ==  right_hand_link_id )
         {
             getEEWrench(*icub_model,estimatedLastDynContacts[i],right_arm_ee_contact_found,
                         right_hand_ee_wrench,right_gripper_ee_wrench,right_gripper_frame_idyntree_id,right_hand_link_idyntree_id);
+            raContactFound = true;
         }
         if( estimatedLastDynContacts[i].getBodyPart() == LEFT_LEG &&
             estimatedLastDynContacts[i].getLinkNumber() ==  left_foot_link_id )
         {
             getEEWrench(*icub_model,estimatedLastDynContacts[i],left_leg_ee_contact_found,
                         left_foot_ee_wrench,left_sole_ee_wrench,left_sole_frame_idyntree_id,left_foot_link_idyntree_id);
+            llContactFound = true;
         }
         if( estimatedLastDynContacts[i].getBodyPart() == RIGHT_LEG &&
             estimatedLastDynContacts[i].getLinkNumber() ==  right_foot_link_id )
         {
             getEEWrench(*icub_model,estimatedLastDynContacts[i],right_leg_ee_contact_found,
                         right_foot_ee_wrench,right_sole_ee_wrench,right_sole_frame_idyntree_id,right_foot_link_idyntree_id);
+            rlContactFound = true;
         }
     }
+
+    if( !laContactFound )
+    {
+        left_gripper_ee_wrench.zero();
+        left_hand_ee_wrench.zero();
+    }
+
+    if( !raContactFound )
+    {
+        right_gripper_ee_wrench.zero();
+        right_hand_ee_wrench.zero();
+    }
+    
+    if( !llContactFound )
+    {
+        left_sole_ee_wrench.zero();
+        left_foot_ee_wrench.zero();
+    }
+
+    if( !raContactFound )
+    {
+        right_sole_ee_wrench.zero();
+        right_foot_ee_wrench.zero();
+    }
+
 
     //mutex.wait();
 

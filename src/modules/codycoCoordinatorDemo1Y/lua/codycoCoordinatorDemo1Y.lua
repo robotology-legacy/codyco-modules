@@ -8,6 +8,8 @@ script_name = "codycoCoordinator1Y"
 print("[" .. script_name .. "] opening yarp")
 yarp.Network()
 
+verbose = false
+
 yarpNetworkTimeout = 10
 if( not yarp.NetworkBase_checkNetwork(yarpNetworkTimeout) ) then
     print("[" .. script_name .. "] yarp server not found, exiting")
@@ -98,13 +100,13 @@ function update_buffers()
     new_right_wrench = right_wrench_port:read(false)
     if new_right_wrench ~= nil then
         buffer_right_wrench = new_right_wrench
-        buffer_right_force_norm = yarpBottleNorm(bot,3)
+        buffer_right_force_norm = yarpBottleNorm(buffer_right_wrench,3)
     end
 
     new_left_wrench = left_wrench_port:read(false)
     if new_left_wrench ~= nil then
-        buffer_left_wrench = new_right_wrench
-        buffer_left_force_norm = yarpBottleNorm(bot,3)
+        buffer_left_wrench = new_left_wrench
+        buffer_left_force_norm = yarpBottleNorm(buffer_left_wrench,3)
     end
 end
 
@@ -128,30 +130,34 @@ end
 
 -------
 function produce_events()
-    print("[codycoCoordinator1Y][debug] buffer_left_force_norm = " .. buffer_left_force_norm )
-    print("[codycoCoordinator1Y][debug] buffer_right_force_norm = " .. buffer_right_force_norm )
-    if( skin_contact_left_arm > 0 or buffer_left_force_norm > fsm_force_threshold ) then
-        contact_left_arm = true
+    if( verbose ) then
+        print("[codycoCoordinator1Y][debug] skin_contact_left_arm = " ..  skin_contact_left_hand )
+        print("[codycoCoordinator1Y][debug] skin_contact_right_arm  = " ..  skin_contact_right_hand  )
+        print("[codycoCoordinator1Y][debug] buffer_left_force_norm = " .. buffer_left_force_norm )
+        print("[codycoCoordinator1Y][debug] buffer_right_force_norm = " .. buffer_right_force_norm )
+    end
+    if( skin_contact_left_hand > 0 or buffer_left_force_norm > fsm_force_threshold ) then
+        contact_left_hand = true
     else
-        contact_left_arm = false
+        contact_left_hand = false
     end
 
-    if( skin_contact_right_arm > 0 or buffer_right_force_norm > fsm_force_threshold ) then
-        contact_right_arm = true
+    if( skin_contact_right_hand > 0 or buffer_right_force_norm > fsm_force_threshold ) then
+        contact_right_hand = true
     else
-        contact_right_arm = false
+        contact_right_hand = false
     end
 
-    if( contact_left_arm and contact_right_arm ) then
+    if( contact_left_hand and contact_right_hand ) then
         event_to_send = event_contacts_on_both_hands
     end
-    if( not contact_left_arm and contact_right_arm ) then
+    if( not contact_left_hand and contact_right_hand ) then
         event_to_send = event_contact_on_right_hand
     end
-    if( contact_left_arm  and not contact_right_arm ) then
+    if( contact_left_hand  and not contact_right_hand ) then
         event_to_send = event_contact_on_left_hand
     end
-    if( not contact_left_arm and not contact_right_arm ) then
+    if( not contact_left_hand and not contact_right_hand ) then
         event_to_send = event_no_contact
     end
 end
@@ -199,6 +205,7 @@ function update_skin_events()
         count_contacts()
 
         -- Produce proper events given the contact state
+        produce_events()
         rfsm.send_events(fsm, event_to_send)
 end
 
