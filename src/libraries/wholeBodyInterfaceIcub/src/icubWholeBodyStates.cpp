@@ -588,14 +588,16 @@ bool icubWholeBodyEstimator::openEEWrenchPorts(const wbi::LocalId & local_id)
 void icubWholeBodyEstimator::readEEWrenches(const wbi::LocalId & local_id, yarp::sig::Vector & vec)
 {
     vec.resize(6);
+    vec.zero();
     if( ee_wrenches_enabled )
     {
         yarp::sig::Vector*res = portsEEWrenches[local_id]->read();
         if( res )
         {
-            vec.subVector(0,2) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(0,2);
-            vec.subVector(3,5) = H_world_base.submatrix(0,2,0,2)*(*res).subVector(3,5);
+            lastEEWrenches[local_id].setSubvector(0,H_world_base.submatrix(0,2,0,2)*(*res).subVector(0,2));
+            lastEEWrenches[local_id].setSubvector(3,H_world_base.submatrix(0,2,0,2)*(*res).subVector(3,5));
         }
+        vec = lastEEWrenches[local_id];
     }
 }
 
