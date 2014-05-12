@@ -186,8 +186,7 @@ namespace codyco {
                 std::cerr << "Could not link parameter helper variables." << std::endl;
                 return false;
             }
-            m_paramHelperManager->loadDefaultVariables();
-            
+
             //load initial configuration for the impedance control
             Eigen::VectorXd positions(actuatedDOFs);
             m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, positions.data());
@@ -210,14 +209,17 @@ namespace codyco {
             Eigen::VectorXd comPosition = initialCOM.head(3);
             
             m_references->desiredCOMAcceleration().setValue(comPosition);
-            
+
+            //start threads. Controllers start always in inactive state
+            //This is needed because they have to be initialized before setting gains, etc..
             bool threadsStarted = true;
             
             for (std::map<TaskType, ReferenceGenerator*>::iterator it = m_referenceGenerators.begin(); it != m_referenceGenerators.end(); it++) {
                 threadsStarted = threadsStarted && it->second->start();
             }
-            
             threadsStarted = threadsStarted && m_controller->start();
+            
+            m_paramHelperManager->loadDefaultVariables();
             
             std::cout << "Module " << m_moduleName << " ready." << std::endl;
             
@@ -553,7 +555,7 @@ namespace codyco {
             if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition)) != m_module.m_referenceGenerators.end()) {
                 leftHandPositionGenerator = foundController->second;
             }
-            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition)) != m_module.m_referenceGenerators.end()) {
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandPosition)) != m_module.m_referenceGenerators.end()) {
                 rightHandPositionGenerator = foundController->second;
             }
             
@@ -561,6 +563,7 @@ namespace codyco {
                 comGenerator->setProportionalGains(m_comProportionalGain);
                 comGenerator->setDerivativeGains(m_comDerivativeGain);
                 comGenerator->setIntegralGains(m_comIntegralGain);
+//                 comGenerator->setAllGains(m_comProportionalGain, m_comDerivativeGain, m_comIntegralGain);
             }
             if (leftHandPositionGenerator) {
                 leftHandPositionGenerator->setProportionalGains(m_handsPositionProportionalGain);
