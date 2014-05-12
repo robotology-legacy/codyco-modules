@@ -19,12 +19,16 @@
 
 #include "ReferenceGenerator.h"
 #include <wbi/wbiUtil.h>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include <Eigen/Core>
+#pragma clang diagnostic pop
 #include <string>
 
 namespace wbi {
     class wholeBodyInterface;
     class Frame;
+    class LocalId;
 }
 
 namespace codyco {
@@ -77,7 +81,6 @@ namespace codyco {
 
             Eigen::VectorXd m_outputSignal;
             Eigen::VectorXd m_outputSignalDerivative;
-//            void updateStatus();
         public:
             COMReader(wbi::wholeBodyInterface& robot);
             
@@ -99,15 +102,18 @@ namespace codyco {
         private:
             wbi::wholeBodyInterface& m_robot;
             wbi::Frame m_world2BaseFrame;
+            wbi::Frame m_leftFootToBaseRotationFrame;
+            
+            int m_leftFootLinkID; /*!< this is temporary to allow robot localization */
+            wbi::LocalId m_endEffectorLocalID;
             
             Eigen::VectorXd m_jointsPosition;
             Eigen::VectorXd m_jointsVelocity;
             Eigen::VectorXd m_outputSignal;
-            Eigen::VectorXd m_outputSignalDerivative;
             
             void updateStatus();
         public:
-            EndEffectorForceReader(wbi::wholeBodyInterface& robot);
+            EndEffectorForceReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName);
             
             virtual ~EndEffectorForceReader();
             virtual const Eigen::VectorXd& getSignal();
@@ -115,6 +121,22 @@ namespace codyco {
             virtual int signalSize() const;
             
         };
+        
+        /** @class Void implementation of ReferenceGeneratorInputReader.
+         *
+         * It outputs a zero vector size zero.
+         */
+        class VoidReader : public ReferenceGeneratorInputReader {
+        private:
+            Eigen::VectorXd m_voidVector;
+        public:
+            VoidReader();
+            virtual ~VoidReader();
+            virtual const Eigen::VectorXd& getSignal();
+            virtual const Eigen::VectorXd& getSignalDerivative();
+            virtual int signalSize() const;
+        };
+
     }
 }
 

@@ -18,6 +18,10 @@
 #include "config.h"
 #include <wbi/wholeBodyInterface.h>
 
+//this is temporary until a fix of @traversaro
+//TODO: move methods to generic interface
+#include <wbiIcub/wholeBodyInterfaceIcub.h>
+
 namespace codyco {
     namespace torquebalancing {
         
@@ -109,12 +113,22 @@ namespace codyco {
         int COMReader::signalSize() const { return 3; }
         
 #pragma mark - HandsForceReader implementation
-        EndEffectorForceReader::EndEffectorForceReader(wbi::wholeBodyInterface& robot)
+        EndEffectorForceReader::EndEffectorForceReader(wbi::wholeBodyInterface& robot,
+                                                       std::string endEffectorLinkName)
         : m_robot(robot)
         , m_jointsPosition(totalDOFs)
         , m_jointsVelocity(totalDOFs)
         , m_outputSignal(6)
-        , m_outputSignalDerivative(6) {}
+        {
+            m_robot.getLinkId("l_sole", m_leftFootLinkID);
+            m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
+                                                            0, -1, 0,
+                                                            1, 0, 0);
+            int endEffectorGlobalID = -1;
+            m_robot.getLinkId(endEffectorLinkName.c_str(), endEffectorGlobalID);
+            m_endEffectorLocalID = m_robot.getJointList().globalToLocalId(endEffectorGlobalID);
+            
+        }
         
         EndEffectorForceReader::~EndEffectorForceReader() {}
         
@@ -122,7 +136,16 @@ namespace codyco {
         {
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.data());
-            //TODO: read forces at end-effector
+            
+            //update world to base frame
+            m_robot.computeH(m_jointsPosition.data(), wbi::Frame(), m_leftFootLinkID, m_world2BaseFrame);
+            m_world2BaseFrame = m_world2BaseFrame * m_leftFootToBaseRotationFrame;
+            m_world2BaseFrame.setToInverse();
+            
+            //TODO: to be fixed
+            ((wbiIcub::icubWholeBodyInterface&)m_robot).setWorldBasePosition(m_world2BaseFrame);
+
+            m_robot.getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, m_endEffectorLocalID, m_outputSignal.data());
         }
         
         const Eigen::VectorXd& EndEffectorForceReader::getSignal()
@@ -133,10 +156,24 @@ namespace codyco {
         
         const Eigen::VectorXd& EndEffectorForceReader::getSignalDerivative()
         {
-            updateStatus();
-            return m_outputSignalDerivative;
+            return Eigen::VectorXd::Zero(signalSize());
         }
         
         int EndEffectorForceReader::signalSize() const { return 6; }
+        
+#pragma mark - VoidReader implementation
+        VoidReader::VoidReader()
+        : m_voidVector(0) {}
+        VoidReader~VoidReader() {}
+            const Eigen::VectorXd& VoidReader::getSignal()
+        {
+            return m_voidVector;
+        }
+            const Eigen::VectorXd& VoidReader::getSignalDerivative()
+        {
+            return m_voidVector;
+        }
+        int VoidReader::signalSize() const { return 0; }
+        };
     }
 }
