@@ -160,6 +160,8 @@ namespace codyco {
             Eigen::VectorXd m_monitoredFeetForces;
             Eigen::VectorXd m_monitoredOutputTorques;
             
+            void sendReferencesToControllers();
+            
         public:
             ParamHelperManager(TorqueBalancingModule& module);
             

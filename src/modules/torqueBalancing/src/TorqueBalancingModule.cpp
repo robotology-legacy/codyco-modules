@@ -656,6 +656,7 @@ namespace codyco {
                     std::cerr << FUNCTION_NAME << ": State updated to " << m_module.m_moduleState << std::endl;
 #endif
                     m_module.updateModuleCoordinationStatus();
+                    sendReferencesToControllers();
                     break;
                     //References
                 case TorqueBalancingModuleParameterCOMReference:
@@ -808,6 +809,7 @@ namespace codyco {
             switch (commandDescription.id) {
                 case TorqueBalancingModuleCommandStart:
                     m_module.setControllersActiveState(true);
+                    sendReferencesToControllers();
                     reply.addString("Controller actived");
                     break;
                 case TorqueBalancingModuleCommandStop:
@@ -825,6 +827,37 @@ namespace codyco {
                     break;
             }
             
+        }
+        
+        void TorqueBalancingModule::ParamHelperManager::sendReferencesToControllers()
+        {
+            std::map<TaskType, ReferenceGenerator*>::iterator foundController;
+            ReferenceGenerator* generator = 0;
+            
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeCOM)) != m_module.m_referenceGenerators.end()
+                && foundController->second) {
+                foundController->second->setSignalReference(m_comReference);
+            }
+            
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition)) != m_module.m_referenceGenerators.end()
+                && foundController->second) {
+                foundController->second->setSignalReference(m_handsPositionReference.head(7));
+            }
+            
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandPosition)) != m_module.m_referenceGenerators.end()
+                && foundController->second) {
+                foundController->second->setSignalReference(m_handsPositionReference.tail(7));
+            }
+            
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandForce)) != m_module.m_referenceGenerators.end()
+                && foundController->second) {
+                foundController->second->setSignalReference(m_handsForceReference.head(6));
+            }
+            
+            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandForce)) != m_module.m_referenceGenerators.end()
+                && foundController->second) {
+                foundController->second->setSignalReference(m_handsForceReference.tail(6));
+            }
         }
     }
 }
