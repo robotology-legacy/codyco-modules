@@ -124,13 +124,15 @@ namespace codyco {
         
         /** @class Void implementation of ReferenceGeneratorInputReader.
          *
-         * It outputs a zero vector size zero.
+         * Specify in the constructor the size of the vectors returned by objects of this class
+         * It outputs a zero vector of size signalSize()
          */
         class VoidReader : public ReferenceGeneratorInputReader {
         private:
+            const int m_size;
             Eigen::VectorXd m_voidVector;
         public:
-            VoidReader();
+            explicit VoidReader(int size);
             virtual ~VoidReader();
             virtual const Eigen::VectorXd& getSignal();
             virtual const Eigen::VectorXd& getSignalDerivative();

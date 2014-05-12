@@ -163,8 +163,9 @@ namespace codyco {
         
 #pragma mark - VoidReader implementation
         
-        VoidReader::VoidReader()
-        : m_voidVector() {}
+        VoidReader::VoidReader(int size)
+        : m_size(size)
+        , m_voidVector(size) { m_voidVector.setZero(); }
         
         VoidReader::~VoidReader() {}
         
@@ -177,6 +178,6 @@ namespace codyco {
             return m_voidVector;
         }
         
-        int VoidReader::signalSize() const { return 0; }
+        int VoidReader::signalSize() const { return m_size; }
     }
 }
