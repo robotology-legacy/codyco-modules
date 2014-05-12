@@ -58,15 +58,15 @@ linkId_right_hand  = 6
 ----State constants
 st_doublesupport_stable_int  = 1
 st_doublesupport_both_hands_seeking_contact_int = 2
-st_triplesupport_left_hand_seeking_contact_int = 4
-st_triplesupport_right_hand_seeking_contact_int = 8
+st_triplesupport_right_hand_seeking_contact_int = 4
+st_triplesupport_left_hand_seeking_contact_int = 8
 st_quadruplesupport_stable_int = 16
 
 states = {
     st_doublesupport_stable_int,
     st_doublesupport_both_hands_seeking_contact_int,
-    st_triplesupport_left_hand_seeking_contact_int,
     st_triplesupport_right_hand_seeking_contact_int,
+    st_triplesupport_left_hand_seeking_contact_int,
     st_quadruplesupport_stable_int
 }
 
