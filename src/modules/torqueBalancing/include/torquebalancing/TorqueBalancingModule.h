@@ -21,7 +21,10 @@
 #include <map>
 #include <string>
 #include <paramHelp/paramProxyInterface.h>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include <Eigen/Core>
+#pragma clang diagnostic pop
 
 namespace paramHelp {
     class ParamHelperServer;
@@ -52,7 +55,8 @@ namespace codyco {
             TaskTypeLeftHandPosition, /*!< Left hand position control task */
             TaskTypeRightHandPosition,  /*!< Right hand position control task */
             TaskTypeLeftHandForce,  /*!< Left hand force control task */
-            TaskTypeRightHandForce  /*!< Right hand force control task */
+            TaskTypeRightHandForce,  /*!< Right hand force control task */
+            TaskTypeImpedanceControl,  /*!< Impedance control (same meaning of postural task) */
         } TaskType;
         
         /** Defines the possible states for the module
@@ -120,6 +124,12 @@ namespace codyco {
             
             ParamHelperManager* m_paramHelperManager;
             
+            Eigen::VectorXd m_initialJointsConfiguration; /*!< This is used for swithing between module states. (Hands position are implemented with the impedance control. */
+            //Impedance references
+            Eigen::VectorXd m_impedanceDoubleSupportReference;
+            Eigen::VectorXd m_impedanceLeftHandReference;
+            Eigen::VectorXd m_impedanceRightHandReference;
+            
         };
         
         class TorqueBalancingModule::ParamHelperManager : public
@@ -140,11 +150,13 @@ namespace codyco {
             Eigen::VectorXd m_comIntegralGain;
             double m_comIntegralLimit;
             
+            //not used now
             Eigen::VectorXd m_handsPositionProportionalGain;
             Eigen::VectorXd m_handsPositionDerivativeGain;
             Eigen::VectorXd m_handsPositionIntegralGain;
             double m_handsPositionIntegralLimit;
-            
+
+            //not used now
             Eigen::VectorXd m_handsForceProportionalGain;
             Eigen::VectorXd m_handsForceDerivativeGain;
             Eigen::VectorXd m_handsForceIntegralGain;

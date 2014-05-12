@@ -21,8 +21,12 @@
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Mutex.h>
 #include <wbi/wbiUtil.h>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include <Eigen/Core>
 #include <Eigen/SVD>
+#pragma clang diagnostic pop
+
 
 namespace wbi {
     class wholeBodyInterface;
@@ -82,18 +86,18 @@ namespace codyco {
              */
             bool isActiveState();
             
-            /** Returns the currently used desired joints configuration
-             *  for the impedance/postural task.
-             * @return the currently used desired joints configuration
-             */
-            const Eigen::VectorXd& desiredJointsConfiguration();
-
-            /** Sets the new desired joints configuration
-             *  for the impedance/postural task.
-             * @param desiredJointsConfiguration the new desired joints configuration
-             */
-            void setDesiredJointsConfiguration(Eigen::VectorXd& desiredJointsConfiguration);
-            
+//            /** Returns the currently used desired joints configuration
+//             *  for the impedance/postural task.
+//             * @return the currently used desired joints configuration
+//             */
+//            const Eigen::VectorXd& desiredJointsConfiguration();
+//
+//            /** Sets the new desired joints configuration
+//             *  for the impedance/postural task.
+//             * @param desiredJointsConfiguration the new desired joints configuration
+//             */
+//            void setDesiredJointsConfiguration(Eigen::VectorXd& desiredJointsConfiguration);
+//            
 #pragma mark - Monitorable variables
             
             const Eigen::VectorXd& desiredFeetForces();

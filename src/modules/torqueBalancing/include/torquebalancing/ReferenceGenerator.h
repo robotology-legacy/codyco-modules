@@ -18,7 +18,10 @@
 #define REFERENCEGENERATOR_H
 
 #include <yarp/os/RateThread.h>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include <Eigen/Core>
+#pragma clang diagnostic pop
 #include <cmath>
 #include <yarp/os/Mutex.h>
 

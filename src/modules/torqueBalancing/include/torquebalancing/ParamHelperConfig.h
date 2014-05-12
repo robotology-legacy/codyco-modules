@@ -18,7 +18,10 @@
 #define PARAMHELPERCONFIG_H
 
 #include <paramHelp/paramProxyBasic.h>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include <Eigen/Core>
+#pragma clang diagnostic pop
 #include <limits>
 #include "config.h"
 
@@ -37,19 +40,21 @@ namespace codyco {
             TorqueBalancingModuleParameterCOMReference,
             TorqueBalancingModuleParameterHandsPositionReference, //??migrate to separate hand?
             TorqueBalancingModuleParameterHandsForceReference, //??migrate to separate hand? (also for gains)
-            TorqueBalancingModuleParameterDesiredJointsConfiguration,
+            TorqueBalancingModuleParameterDesiredJointsConfigurationStateDoubleSupport,
+            TorqueBalancingModuleParameterDesiredJointsConfigurationStateLeftHandPosition,
+            TorqueBalancingModuleParameterDesiredJointsConfigurationStateRightHandPosition,
             //PIDs
             //COM
             TorqueBalancingModuleParameterCOMIntegralLimit,
             TorqueBalancingModuleParameterCOMProportionalGain,
             TorqueBalancingModuleParameterCOMDerivativeGain,
             TorqueBalancingModuleParameterCOMIntegralGain,
-            //Hands Position
+            //Hands Position (not used for now)
             TorqueBalancingModuleParameterHandsPositionIntegralLimit,
             TorqueBalancingModuleParameterHandsPositionProportionalGain,
             TorqueBalancingModuleParameterHandsPositionDerivativeGain,
             TorqueBalancingModuleParameterHandsPositionIntegralGain,
-            //Hands Force
+            //Hands Force (not used for now)
             TorqueBalancingModuleParameterHandsForceIntegralLimit,
             TorqueBalancingModuleParameterHandsForceProportionalGain,
             TorqueBalancingModuleParameterHandsForceDerivativeGain,
@@ -66,7 +71,7 @@ namespace codyco {
             
         } TorqueBalancingModuleParameter;
         
-        static const int TorqueBalancingModuleParameterSize = 28;
+        static const int TorqueBalancingModuleParameterSize = 30;
         
         
         static const std::string defaultModuleName = "torqueBalancing";
@@ -90,10 +95,13 @@ namespace codyco {
             //RPC parameters
             new paramHelp::ParamProxyBasic<double>("modulePeriod", TorqueBalancingModuleParameterModulePeriod, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultModulePeriod, "Period of the module. Used to update monitored variables."),
             new paramHelp::ParamProxyBasic<int>("state", TorqueBalancingModuleParameterCurrentState, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_IN_OUT, &defaultModuleState, "State of the module"),
+            //References
             new paramHelp::ParamProxyBasic<double>("comRef", TorqueBalancingModuleParameterCOMReference, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "COM reference (x,y,z)"),
             new paramHelp::ParamProxyBasic<double>("handPosRef", TorqueBalancingModuleParameterHandsPositionReference, 14, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Hands position reference, position + angle axis. Left then Right hand"),
             new paramHelp::ParamProxyBasic<double>("handForcesRef", TorqueBalancingModuleParameterHandsForceReference, 12, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Hands forces reference, forces + torques. Left then Right hand"),
-            new paramHelp::ParamProxyBasic<double>("qDes", TorqueBalancingModuleParameterDesiredJointsConfiguration, actuatedDOFs, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Desired joints configuration for impedance control"),
+            new paramHelp::ParamProxyBasic<double>("qDes_2support", TorqueBalancingModuleParameterDesiredJointsConfigurationStateDoubleSupport, actuatedDOFs, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Desired joints configuration for impedance control"),
+            new paramHelp::ParamProxyBasic<double>("qDes_3support_leftForce", TorqueBalancingModuleParameterDesiredJointsConfigurationStateLeftHandPosition, 5, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Desired joints configuration for impedance control"),
+            new paramHelp::ParamProxyBasic<double>("qDes_3support_rightForce", TorqueBalancingModuleParameterDesiredJointsConfigurationStateRightHandPosition, 5, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Desired joints configuration for impedance control"),
             //COM
             new paramHelp::ParamProxyBasic<double>("comIntLimit", TorqueBalancingModuleParameterCOMIntegralLimit, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultIntegralLimit, "Integral limit on COM PID"),
             new paramHelp::ParamProxyBasic<double>("comKp", TorqueBalancingModuleParameterCOMProportionalGain, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultCOMGains.data(), "Proportional gains of COM PID"),

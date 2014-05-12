@@ -164,9 +164,9 @@ namespace codyco {
 #pragma mark - VoidReader implementation
         
         VoidReader::VoidReader()
-        : m_voidVector(0) {}
+        : m_voidVector() {}
         
-        VoidReader~VoidReader() {}
+        VoidReader::~VoidReader() {}
         
         const Eigen::VectorXd& VoidReader::getSignal()
         {
