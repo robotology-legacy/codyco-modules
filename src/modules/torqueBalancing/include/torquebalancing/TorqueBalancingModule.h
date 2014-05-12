@@ -156,6 +156,7 @@ namespace codyco {
             //Monitored variables
             Eigen::VectorXd m_monitoredDesiredCOMAcceleration;
             Eigen::VectorXd m_monitoredCOMError;
+            Eigen::VectorXd m_monitoredCOMIntegralError;
             Eigen::VectorXd m_monitoredFeetForces;
             Eigen::VectorXd m_monitoredOutputTorques;
             

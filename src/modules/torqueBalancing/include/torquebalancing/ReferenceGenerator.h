@@ -195,6 +195,11 @@ namespace codyco {
              */
             const Eigen::VectorXd& instantaneousError();
             
+            /** Returns the integral of the error from the activation time to now
+             * @return the integral of the error
+             */
+            const Eigen::VectorXd& errorIntegral();
+            
         private:
             
             void limitIntegral(const Eigen::Ref<Eigen::VectorXd>& integral, Eigen::Ref<Eigen::VectorXd> limitedIntegral);

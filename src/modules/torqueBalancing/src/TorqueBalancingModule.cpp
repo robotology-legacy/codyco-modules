@@ -525,6 +525,7 @@ namespace codyco {
             bool linked = true;
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration, m_monitoredDesiredCOMAcceleration.data());
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorCOMError, m_monitoredCOMError.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorCOMIntegralError, m_monitoredCOMIntegralError.data());
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorFeetForces, m_monitoredFeetForces.data());
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorOutputTorques, m_monitoredOutputTorques.data());
             
@@ -599,6 +600,7 @@ namespace codyco {
             if (comGenerator) {
                 m_monitoredDesiredCOMAcceleration = comGenerator->computedReference();
                 m_monitoredCOMError = comGenerator->instantaneousError();
+                m_monitoredCOMIntegralError = comGenerator->errorIntegral();
             }
             m_monitoredFeetForces = m_module.m_controller->desiredFeetForces();
             m_monitoredOutputTorques = m_module.m_controller->outputTorques();

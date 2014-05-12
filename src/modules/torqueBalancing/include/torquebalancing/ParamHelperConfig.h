@@ -60,12 +60,13 @@ namespace codyco {
             //MonitoredVariables
             TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration,
             TorqueBalancingModuleParameterMonitorCOMError,
+            TorqueBalancingModuleParameterMonitorCOMIntegralError,
             TorqueBalancingModuleParameterMonitorFeetForces,
             TorqueBalancingModuleParameterMonitorOutputTorques,
             
         } TorqueBalancingModuleParameter;
         
-        static const int TorqueBalancingModuleParameterSize = 27;
+        static const int TorqueBalancingModuleParameterSize = 28;
         
         
         static const std::string defaultModuleName = "torqueBalancing";
@@ -114,6 +115,7 @@ namespace codyco {
             //Monitored variables
             new paramHelp::ParamProxyBasic<double>("desCOMAcc", TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Desired COM acceleration computed by the controller"),
             new paramHelp::ParamProxyBasic<double>("comError", TorqueBalancingModuleParameterMonitorCOMError, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Instantaneous COM error"),
+            new paramHelp::ParamProxyBasic<double>("comIntError", TorqueBalancingModuleParameterMonitorCOMIntegralError, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Integral of COM error"),
             new paramHelp::ParamProxyBasic<double>("feetForces", TorqueBalancingModuleParameterMonitorFeetForces, 12, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Desired feet forces"),
             new paramHelp::ParamProxyBasic<double>("outTorques", TorqueBalancingModuleParameterMonitorOutputTorques, actuatedDOFs, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Output torques of the controller"),
         };
