@@ -32,11 +32,22 @@ end
 rfsm_timeevent.set_gettime_hook(gettime)
 
 
-----events
+----events (contact)
 event_no_contact             = "e_no_contacts_on_hands"
 event_contact_on_left_hand   = "e_contacts_only_on_left_hand"
 event_contact_on_right_hand  = "e_contacts_only_on_right_hand"
 event_contacts_on_both_hands = "e_contacts_on_both_hands"
+
+----events (input rpc)
+event_reset = "e_reset"
+
+events = {
+    event_no_contact,
+    event_contact_on_left_hand,
+    event_contact_on_right_hand,
+    event_contacts_on_both_hands,
+    event_reset
+}
 
 ----definitions
 ----copied from skinDynLib common.h
@@ -131,10 +142,11 @@ end
 -------
 function produce_events()
     if( verbose ) then
-        print("[codycoCoordinator1Y][debug] skin_contact_left_arm = " ..  skin_contact_left_hand )
-        print("[codycoCoordinator1Y][debug] skin_contact_right_arm  = " ..  skin_contact_right_hand  )
-        print("[codycoCoordinator1Y][debug] buffer_left_force_norm = " .. buffer_left_force_norm )
-        print("[codycoCoordinator1Y][debug] buffer_right_force_norm = " .. buffer_right_force_norm )
+        print("["..script_name.."][debug] current state = " .. current_state )
+        print("["..script_name.."][debug] skin_contact_left_arm = " ..  skin_contact_left_hand )
+        print("["..script_name.."][debug] skin_contact_right_arm  = " ..  skin_contact_right_hand  )
+        print("["..script_name.."][debug] buffer_left_force_norm = " .. buffer_left_force_norm )
+        print("["..script_name.."][debug] buffer_right_force_norm = " .. buffer_right_force_norm )
     end
     if( skin_contact_left_hand > 0 or buffer_left_force_norm > fsm_force_threshold ) then
         contact_left_hand = true
@@ -162,6 +174,20 @@ function produce_events()
     end
 end
 
+-------
+function produce_events_input()
+    local cmd = yarp.Bottle();
+    cmd = input_events:read(false)
+    if( cmd ~= nil ) then
+        input_event = cmd:get(0):asString()
+         for _,ev in pairs(events) do
+            if( ev == input_event ) then
+                event_to_send = input_event
+            end
+        end
+    end
+end
+
 function yarp_rf_find_double(rf,var_name)
     if( rf:check(var_name) ) then
         local var = rf:find(var_name):asDouble()
@@ -174,10 +200,11 @@ function yarp_rf_find_double(rf,var_name)
     end
 end
 
-function yarp_rf_find_int(rf,var,var_name)
+function yarp_rf_find_int(rf,var_name)
     if( rf:check(var_name) ) then
-        var = rf:find(var_name):asInt()
+        local var = rf:find(var_name):asInt()
         print("[" .. script_name .. "] setting " .. var_name .. " to " .. var)
+        return var
     else
         print("[" .. script_name .. "] " .. var_name .." parameter not found, exiting")
         yarp.Network_fini()
@@ -185,10 +212,11 @@ function yarp_rf_find_int(rf,var,var_name)
     end
 end
 
-function yarp_rf_find_string(rf,var,var_name)
+function yarp_rf_find_string(rf,var_name)
     if( rf:check(var_name) ) then
-        var = rf:find(var_name):asString()
+        local var = rf:find(var_name):asString()
         print("[" .. script_name .. "] setting " .. var_name .. " to " .. var)
+        return var
     else
         print("[" .. script_name .. "] " .. var_name .." parameter not found, exiting")
         yarp.Network_fini()
@@ -206,6 +234,12 @@ function update_skin_events()
 
         -- Produce proper events given the contact state
         produce_events()
+
+        -- Produce events readed from outside
+        -- note: this will override the events produced by produce_events()
+        produce_events_input()
+
+        -- Send produced events to the fsm
         rfsm.send_events(fsm, event_to_send)
 end
 
@@ -231,7 +265,7 @@ end
 
 ------
 function state_entry(state_code)
-    print("[" .. script_name .. "] entering in state " .. state_code)
+    ---- print("[" .. script_name .. "] entering in state " .. state_code)
     ---- reset timer
     last_switch_time = yarp.Time_now();
 
@@ -257,7 +291,7 @@ function broadcast_data()
     ---- broadcast to state port
     local wb = state_port:prepare()
     wb:clear()
-    wb:addInt(current_state)
+    wb:addDouble(current_state)
     state_port:write()
 
     --- broadcast smooth state port
@@ -267,23 +301,35 @@ function broadcast_data()
         wb:addDouble(current_smooth_state[st])
     end
     smooth_state_port:write()
+
+    --- broadcast monitor information
+    local wb = monitor_port:prepare()
+    wb:clear()
+    wb:addDouble(current_state)
+    wb:addDouble(buffer_left_force_norm)
+    wb:addDouble(buffer_right_force_norm)
+    wb:addDouble(skin_contact_left_hand)
+    wb:addDouble(skin_contact_right_hand)
+    monitor_port:write()
+
 end
 
 -------
 shouldExit = false
 
 -- initialization
-print("[codycoCoordinatorDemo1Y] opening resource finder")
+print("["..script_name.."] opening resource finder")
 rf = yarp.ResourceFinder()
 rf:setDefaultConfigFile("default.ini")
 rf:setDefaultContext("codycoCoordinatorDemo1Y")
-print("[codycoCoordinatorDemo1Y] configuring resource finder")
+print("["..script_name.."] configuring resource finder")
 rf:configure(arg)
 
-
 -- handling parameters
-yarp_rf_find_string(rf,script_name,"script_name")
+script_name = yarp_rf_find_string(rf,"script_name")
 
+
+--[[
 if( rf:check("fsm_update_period") ) then
     fsm_update_period = rf:find("fsm_update_period"):asDouble()
     print("[" .. script_name .. "] setting fsm_update_period to " .. fsm_update_period)
@@ -292,7 +338,6 @@ else
     yarp.Network_fini()
     os.exit()
 end
-
 
 if( rf:check("fsm_simple_balancing_time") ) then
     fsm_simple_balancing_time = rf:find("fsm_simple_balancing_time"):asDouble()
@@ -312,12 +357,12 @@ else
     yarp.Network_fini()
     os.exit()
 end
+--]]
 
---yarp_rf_find_double(rf,fsm_update_period,"fsm_update_period")
---yarp_rf_find_double(rf,fsm_simple_balancing_time,"fsm_simple_balancing_time")
---yarp_rf_find_double(rf,fsm_force_threshold,"fsm_force_threshold")
+fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
+fsm_simple_balancing_time = yarp_rf_find_double(rf,"fsm_simple_balancing_time")
+fsm_force_threshold = yarp_rf_find_double(rf,"fsm_force_threshold")
 fsm_state_smoothing_time_constant = yarp_rf_find_double(rf,"fsm_state_smoothing_time_constant")
-print("fsm_state_smoothing_time_constant set to " .. fsm_state_smoothing_time_constant)
 
 fsm_file = rf:findFile("lua/fsm_codycoCoordinatorDemo1Y.lua")
 
@@ -326,6 +371,10 @@ print("[" .. script_name .. "] opening ports")
 -- rpc port, for communicating with C++ module torqueBalancing
 cmd_action_rpc = yarp.RpcClient()
 cmd_action_rpc:open("/".. script_name .."/cmd_action:o")
+
+-- rpc input port, for communicating user
+input_events = yarp.BufferedPortBottle()
+input_events:open("/".. script_name .."/input_events:i")
 
 -- Input port for reading skinEvents from skinManager
 skin_event_port = yarp.BufferedPortBottle()
@@ -344,6 +393,11 @@ state_port:open("/".. script_name .. "/state:o")
 -- Streaming port continuously broadcasting the state in a smooth way
 smooth_state_port = yarp.BufferedPortBottle()
 smooth_state_port:open("/".. script_name .. "/smooth_state:o")
+
+-- Streaming port continuously broadcasting some monitor information
+monitor_port = yarp.BufferedPortBottle()
+monitor_port:open("/".. script_name .. "/monitor:o")
+
 
 print("[" .. script_name .. "] loading rFSM state machine")
 -- load state machine model and initalize it
@@ -384,6 +438,8 @@ skin_event_port:close()
 cmd_action_rpc:close()
 state_port:close()
 smooth_state_port:close()
+input_events:close()
+monitor_port:close()
 
 -- Deinitialize yarp network
 yarp.Network_fini()

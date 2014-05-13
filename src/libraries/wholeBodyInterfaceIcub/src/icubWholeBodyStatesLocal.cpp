@@ -901,6 +901,14 @@ void icubWholeBodyDynamicsEstimator::readSkinContacts()
 dynContact icubWholeBodyDynamicsEstimator::getDefaultContact(const iCubSubtree icub_subtree)
 {
     dynContact return_value;
+    Vector r_knee_pos(3,0.0);
+    r_knee_pos[0] = 0.18;
+    r_knee_pos[1] = 0.04;
+    r_knee_pos[2] = 0.0;
+    Vector l_knee_pos(3,0.0);
+    l_knee_pos[0] = 0.18;
+    l_knee_pos[1] = 0.04;
+    l_knee_pos[2] = 0.0;
     switch( icub_subtree ) {
         case RIGHT_ARM_SUBTREE:
             //Copied by iDynContactSolver::computeExternalContacts
@@ -915,10 +923,10 @@ dynContact icubWholeBodyDynamicsEstimator::getDefaultContact(const iCubSubtree i
             return_value = dynContact(TORSO,0,Vector(3,0.0));
             break;
         case RIGHT_LEG_SUBTREE:
-            return_value = dynContact(RIGHT_LEG,3,Vector(3,0.0)); //Random contact
+            return_value = dynContact(RIGHT_LEG,3,r_knee_pos); //Approximate position of the knee
             break;
         case LEFT_LEG_SUBTREE:
-            return_value = dynContact(LEFT_LEG,3,Vector(3,0.0));  //Random contact
+            return_value = dynContact(LEFT_LEG,3,l_knee_pos);  //Approximate position of the knee
             break;
         case RIGHT_FOOT_SUBTREE:
             //Copied by wholeBodyDynamics run() method
@@ -1096,7 +1104,7 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
         right_gripper_ee_wrench.zero();
         right_hand_ee_wrench.zero();
     }
-    
+
     if( !llContactFound )
     {
         left_sole_ee_wrench.zero();

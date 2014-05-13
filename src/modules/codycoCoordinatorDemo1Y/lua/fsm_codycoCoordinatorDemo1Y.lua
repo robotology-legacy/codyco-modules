@@ -7,7 +7,7 @@ return rfsm.state {
     -------------------------------------------------------------------
     ST_DOUBLESUPPORT_STABLE = rfsm.state{
         entry=function()
-            print("[codycoCoordinatorDemo1Y][rFSM] ST_DOUBLESUPPORT_STABLE entry.")
+            print("["..script_name.."][rFSM] ST_DOUBLESUPPORT_STABLE entry.")
             state_entry(st_doublesupport_stable_int)
         end,
     },
@@ -20,7 +20,7 @@ return rfsm.state {
     -----------------------------------------------------------------------------
     ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT = rfsm.state{
         entry=function()
-            print("[codycoCoordinatorDemo1Y][rFSM] ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT entry.")
+            print("["..script_name.."][rFSM] ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT entry.")
             state_entry(st_doublesupport_both_hands_seeking_contact_int)
         end,
         doo=function()
@@ -39,7 +39,7 @@ return rfsm.state {
     -----------------------------------------------------------------------------
     ST_TRIPLESUPPORT_LEFT_HAND_SEEKING_CONTACT = rfsm.state{
         entry=function()
-            print("[codycoCoordinatorDemo1Y][rFSM] ST_TRIPLESUPPORT_LEFT_HAND_SEEKING_CONTACT entry.")
+            print("["..script_name.."][rFSM] ST_TRIPLESUPPORT_LEFT_HAND_SEEKING_CONTACT entry.")
             state_entry(st_triplesupport_left_hand_seeking_contact_int)
         end,
     },
@@ -52,7 +52,7 @@ return rfsm.state {
     -----------------------------------------------------------------------------
     ST_TRIPLESUPPORT_RIGHT_HAND_SEEKING_CONTACT = rfsm.state{
         entry=function()
-            print("[codycoCoordinatorDemo1Y][rFSM] ST_TRIPLESUPPORT_RIGHT_HAND_SEEKING_CONTACT entry.")
+            print("["..script_name.."][rFSM] ST_TRIPLESUPPORT_RIGHT_HAND_SEEKING_CONTACT entry.")
             state_entry(st_triplesupport_right_hand_seeking_contact_int)
         end,
     },
@@ -60,12 +60,12 @@ return rfsm.state {
 
     -----------------------------------------------------------------------------
     -- state QUADRUPLESUPPORT_STABLE                     --
-    -- This is the S_4 state from deliverable D5.1                             --
+    -- This is the S_5 state from deliverable D5.1                             --
     -- In this state the robot is balancing on its two feet and on its two hands.                   --
     -----------------------------------------------------------------------------
     ST_QUADRUPLESUPPORT_STABLE = rfsm.state{
         entry=function()
-            print("[codycoCoordinatorDemo1Y][rFSM] ST_QUADRUPLESUPPORT_STABLE entry.")
+            print("["..script_name.."][rFSM] ST_QUADRUPLESUPPORT_STABLE entry.")
             state_entry(st_quadruplesupport_stable_int)
         end,
     },
@@ -94,5 +94,10 @@ return rfsm.state {
     rfsm.transition { src='ST_QUADRUPLESUPPORT_STABLE', tgt='ST_TRIPLESUPPORT_RIGHT_HAND_SEEKING_CONTACT', events={ 'e_contacts_only_on_left_hand' } },
     rfsm.transition { src='ST_QUADRUPLESUPPORT_STABLE', tgt='ST_TRIPLESUPPORT_LEFT_HAND_SEEKING_CONTACT', events={ 'e_contacts_only_on_right_hand' } },
 
+    -- RPC transitions (should be address with a hierarchical FSM)
+    rfsm.transition { src='ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT', tgt='ST_DOUBLESUPPORT_STABLE', events={ 'e_reset' } },
+    rfsm.transition { src='ST_TRIPLESUPPORT_LEFT_HAND_SEEKING_CONTACT',  tgt='ST_DOUBLESUPPORT_STABLE', events={ 'e_reset' } },
+    rfsm.transition { src='ST_TRIPLESUPPORT_RIGHT_HAND_SEEKING_CONTACT',  tgt='ST_DOUBLESUPPORT_STABLE', events={ 'e_reset' } },
+    rfsm.transition { src='ST_QUADRUPLESUPPORT_STABLE', tgt='ST_DOUBLESUPPORT_STABLE', events={ 'e_reset' } },
 }
 
