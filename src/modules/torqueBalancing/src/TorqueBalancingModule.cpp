@@ -132,7 +132,7 @@ namespace codyco {
             }
             
             //Impedance task
-            reader = new VoidReader();
+            reader = new VoidReader(actuatedDOFs);
             if (reader) {
                 m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeImpedanceControl, reader));
             } else {
