@@ -31,7 +31,6 @@ end
 
 rfsm_timeevent.set_gettime_hook(gettime)
 
-
 ----events (contact)
 event_no_contact             = "e_no_contacts_on_hands"
 event_contact_on_left_hand   = "e_contacts_only_on_left_hand"
@@ -102,6 +101,23 @@ function yarpBottleNorm(bot,val)
 end
 
 -------
+function close_script()
+    --- close ports
+    left_wrench_port:close()
+    right_wrench_port:close()
+    skin_event_port:close()
+    cmd_action_rpc:close()
+    state_port:close()
+    smooth_state_port:close()
+    input_events:close()
+    monitor_port:close()
+
+    -- Deinitialize yarp network
+    yarp.Network_fini()
+    os.exit()
+end
+
+-------
 function update_buffers()
     skin_contacts = skin_event_port:read(false)
     if skin_contacts ~= nil then
@@ -148,13 +164,15 @@ function produce_events()
         print("["..script_name.."][debug] buffer_left_force_norm = " .. buffer_left_force_norm )
         print("["..script_name.."][debug] buffer_right_force_norm = " .. buffer_right_force_norm )
     end
-    if( skin_contact_left_hand > 0 or buffer_left_force_norm > fsm_force_threshold ) then
+    if( ( skin_contact_left_hand > 0                    and enable_skin_feedback ) or
+        ( buffer_left_force_norm > fsm_force_threshold  and enable_force_feedback ) ) then
         contact_left_hand = true
     else
         contact_left_hand = false
     end
 
-    if( skin_contact_right_hand > 0 or buffer_right_force_norm > fsm_force_threshold ) then
+    if( ( skin_contact_right_hand > 0                    and enable_skin_feedback  ) or
+        ( buffer_right_force_norm > fsm_force_threshold  and enable_force_feedback ) ) then
         contact_right_hand = true
     else
         contact_right_hand = false
@@ -195,8 +213,7 @@ function yarp_rf_find_double(rf,var_name)
         return var
     else
         print("[" .. script_name .. "] " .. var_name .." parameter not found, exiting")
-        yarp.Network_fini()
-        os.exit()
+        close_script()
     end
 end
 
@@ -207,8 +224,7 @@ function yarp_rf_find_int(rf,var_name)
         return var
     else
         print("[" .. script_name .. "] " .. var_name .." parameter not found, exiting")
-        yarp.Network_fini()
-        os.exit()
+        close_script()
     end
 end
 
@@ -219,8 +235,7 @@ function yarp_rf_find_string(rf,var_name)
         return var
     else
         print("[" .. script_name .. "] " .. var_name .." parameter not found, exiting")
-        yarp.Network_fini()
-        os.exit()
+        close_script()
     end
 end
 
@@ -315,6 +330,21 @@ function broadcast_data()
 end
 
 -------
+function print_help()
+    ---- list options
+    print("["..script_name.."]: --verbose                        : enable verbose output")
+    print("["..script_name.."]: --fsm_update_period       period : update period of the FSM (in seconds)")
+    print("["..script_name.."]: --fsm_simple_balancing_time time : time (in seconds) to switch from simple balancing to hand seeking phase")
+    print("["..script_name.."]: --fsm_state_smoothing_time_constant : time (in seconds) to switch the smooth state")
+    print("["..script_name.."]: --fsm_force_threshold threshold : threshold (in Newtons) on external force norm to trigger external contact")
+    print("["..script_name.."]: --enable_force_feedback : use external force to detect contacts")
+    print("["..script_name.."]: --enable_skin_feedback : use skin to detect contacts")
+    print("["..script_name.."]: --disable_force_feedback : NOT use external force to detect contacts (has priority on enable)")
+    print("["..script_name.."]: --disable_skin_feedback : NOT use skin to detect contacts (has priority on enable)")
+    print("["..script_name.."]: --help : print this help")
+end
+
+-------
 shouldExit = false
 
 -- initialization
@@ -328,36 +358,31 @@ rf:configure(arg)
 -- handling parameters
 script_name = yarp_rf_find_string(rf,"script_name")
 
-
---[[
-if( rf:check("fsm_update_period") ) then
-    fsm_update_period = rf:find("fsm_update_period"):asDouble()
-    print("[" .. script_name .. "] setting fsm_update_period to " .. fsm_update_period)
-else
-    print("[" .. script_name .. "] fsm_update_period parameter not found, exiting")
-    yarp.Network_fini()
-    os.exit()
+if( rf:check("verbose") ) then
+    print("["..script_name.."]: verbose option found")
+    verbose = true
 end
 
-if( rf:check("fsm_simple_balancing_time") ) then
-    fsm_simple_balancing_time = rf:find("fsm_simple_balancing_time"):asDouble()
-    print("[" .. script_name .. "] setting fsm_simple_balancing_time to " .. fsm_simple_balancing_time)
-else
-    print("[" .. script_name .. "] fsm_simple_balancing_time parameter not found, exiting")
-    yarp.Network_fini()
-    os.exit()
+if( rf:check("help") ) then
+    print_help()
+    close_script()
 end
 
-
-if( rf:check("fsm_force_threshold") ) then
-    fsm_force_threshold = rf:find("fsm_force_threshold"):asDouble()
-    print("[" .. script_name .. "] setting fsm_force_threshold to " .. fsm_force_threshold)
+if( rf:check("enable_force_feedback") and not rf::check("disable_force_feedback") ) then
+    print("["..script_name.."]: using force to detect contacts")
+    enable_force_feedback = true
 else
-    print("[" .. script_name .. "] fsm_force_threshold parameter not found, exiting")
-    yarp.Network_fini()
-    os.exit()
+    print("["..script_name.."]: NOT using force to detect contacts")
+    enable_force_feedback = false
 end
---]]
+
+if( rf:check("enable_skin_feedback") and not rf::check("disable_skin_feedback") ) then
+    print("["..script_name.."]: using skin to detect contacts")
+    enable_skin_feedback = true
+else
+    print("["..script_name.."]: NOT using skin to detect contacts")
+    enable_skin_feedback = false
+end
 
 fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
 fsm_simple_balancing_time = yarp_rf_find_double(rf,"fsm_simple_balancing_time")
@@ -432,15 +457,4 @@ until shouldExit ~= false
 
 print("[" .. script_name .. "] finishing")
 
-left_wrench_port:close()
-right_wrench_port:close()
-skin_event_port:close()
-cmd_action_rpc:close()
-state_port:close()
-smooth_state_port:close()
-input_events:close()
-monitor_port:close()
-
--- Deinitialize yarp network
-yarp.Network_fini()
-
+close_script()
