@@ -251,8 +251,8 @@ KDL::CoDyCo::TreePartition iCubTree::get_iCub_partition(const KDL::CoDyCo::TreeS
 
     torso.addLink(icub_serialization.getLinkID("root_link"));
     torso.addLink(icub_serialization.getLinkID("lap_belt_1"));
-    torso.addLink(icub_serialization.getLinkID("lap_belt_2"));
     torso.addLink(icub_serialization.getLinkID("chest"));
+    torso.addLink(icub_serialization.getLinkID("lap_belt_2"));
     torso.addLink(icub_serialization.getLinkID("torso"));
 
 
