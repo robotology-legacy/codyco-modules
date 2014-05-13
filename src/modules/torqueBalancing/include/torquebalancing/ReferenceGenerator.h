@@ -44,6 +44,7 @@ namespace codyco {
     namespace torquebalancing {
         
         class ReferenceGeneratorInputReader;
+        class InputFilter;
         class Reference;
         
         //TODO: either change name to PIDController, or implement inside a sort of reference smoothing
@@ -71,6 +72,13 @@ namespace codyco {
             virtual void run();
             
 #pragma mark - Getter and setter
+            
+            //TODO: should I copy the object inside?
+            //and use the same filter for the different references?
+            void setInputFilter(InputFilter* inputFilter);
+            
+            const InputFilter* inputFilter();
+            
             
             /** Returns the current signal reference used by this controller
              * @return the current signal reference
@@ -220,6 +228,7 @@ namespace codyco {
             
             Reference& m_outputReference;
             ReferenceGeneratorInputReader& m_reader;
+            InputFilter* m_inputFilter;
             
             Eigen::VectorXd m_computedReference;
             Eigen::VectorXd m_integralTerm;
@@ -269,6 +278,17 @@ namespace codyco {
              * @return the size of the vectors returned by the implementation of this protocol
              */
             virtual int signalSize() const = 0;
+        };
+        
+        class InputFilter {
+        public:
+            virtual ~InputFilter();
+            
+            virtual bool initializeFilterWithReferenceAndInitialTimeAndDuration(const Eigen::VectorXd& reference,
+                                                                                double initialTime,
+                                                                                double duration) = 0;
+            
+            virtual Eigen::VectorXd getValueForCurrentTime(double currentTime) = 0;
         };
     }
 }

@@ -31,7 +31,8 @@
 #pragma clang diagnostic pop
 #elif defined(__GNUC__)
 #pragma GCC diagnostic pop
-#endif#include <string>
+#endif
+#include <string>
 
 namespace wbi {
     class wholeBodyInterface;

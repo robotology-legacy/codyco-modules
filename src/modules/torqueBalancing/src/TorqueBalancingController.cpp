@@ -21,10 +21,8 @@
 #include <codyco/MathUtils.h>
 #include <codyco/LockGuard.h>
 
-#ifdef DEBUG
 #include <codyco/Utils.h>
 #include <iostream>
-#endif
 
 #if defined(__clang__)
 #pragma clang diagnostic push

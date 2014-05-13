@@ -30,6 +30,7 @@ namespace codyco {
         : RateThread(period)
         , m_outputReference(reference)
         , m_reader(reader)
+        , m_inputFilter(0)
         , m_computedReference(reference.valueSize())
         , m_integralTerm(reader.signalSize())
         , m_error(reader.signalSize())
@@ -78,6 +79,10 @@ namespace codyco {
                 if (m_previousTime < 0) m_previousTime = now;
                 double dt = now - m_previousTime;
                 
+                if (m_inputFilter) {
+                    //TODO: obtain references from input filter
+                    //Should I have differente filters for feedforward / reference?
+                }
                 //compute pid
                 m_error = m_signalReference - m_reader.getSignal();
                 
@@ -94,6 +99,19 @@ namespace codyco {
             }
         }
         
+#pragma mark - Getter and setter
+        
+        void ReferenceGenerator::setInputFilter(InputFilter* inputFilter)
+        {
+            if (this->isRunning()) return;
+            m_inputFilter = inputFilter;
+        }
+        
+        const InputFilter* ReferenceGenerator::inputFilter()
+        {
+            return m_inputFilter;
+        }
+        
         const Eigen::VectorXd& ReferenceGenerator::signalReference()
         {
             codyco::LockGuard guard(m_mutex);
@@ -104,6 +122,10 @@ namespace codyco {
         {
             codyco::LockGuard guard(m_mutex);
             m_signalReference = reference;
+            if (m_inputFilter) {
+                //TODO: initialize filter.
+                //Do the same for feedforward, derivative (?) and all references
+            }
         }
         
         const Eigen::VectorXd ReferenceGenerator::signalDerivativeReference()
@@ -152,6 +174,9 @@ namespace codyco {
                 m_signalReference = m_reader.getSignal();
                 m_signalDerivativeReference = m_reader.getSignalDerivative();
                 m_signalFeedForward.setZero();
+                if (m_inputFilter) {
+                    //TODO: initialize filter.
+                }
                 
             } else {
                 m_outputReference.setValid(false);
@@ -261,6 +286,10 @@ namespace codyco {
         ReferenceGeneratorInputReader::~ReferenceGeneratorInputReader() {}
         
         bool ReferenceGeneratorInputReader::init() { return true; }
+        
+#pragma mark - InputFilter methods
+
+        InputFilter::~InputFilter() {}
         
     }
 }
