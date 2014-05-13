@@ -121,6 +121,7 @@ bool robotStatus::robotConfig() {
         int         legsVfromConfigFile     = rf.find("legsV").asInt();
         bool        feetFTfromConfigFile    = rf.find("feetFT").asBool();
         bool        uses_urdf               = rf.find("uses_urdf").asBool();
+	icub_fixed                          = rf.find("icub_fixed").asBool();
         std::string urdf_file 		    = rf.find("urdf").asString();
 
 #ifdef DEBUG
@@ -286,16 +287,17 @@ int robotStatus::getLinkId(const char *linkName) {
 //=========================================================================================================================
 bool robotStatus::world2baseRototranslation(double *q) {
     /** TODO This method should take as input the link you wanna use to define the world reference frame. Right now it's hard coded to be the left foot. */
-#ifndef ICUB_FIXED
+ if(!icub_fixed){
     int LINK_ID_LEFT_FOOT;
     getLinkId("l_sole",LINK_ID_LEFT_FOOT);
     wbInterface->computeH(q, Frame(), LINK_ID_LEFT_FOOT, H_base_leftFoot);
     H_base_leftFoot = H_base_leftFoot*Ha;
-#else
+ }
+ else{
     int LINK_ROOT;
     getLinkId("root_link",LINK_ROOT);
     wbInterface->computeH(q, Frame(), LINK_ROOT, H_base_leftFoot);
-#endif
+ }
     H_base_leftFoot.setToInverse().get4x4Matrix(H_w2b.data());
 #ifdef DEBUG
     fprintf(stderr,"robotStatus::world2baseRototranslation >> Ha             : %s \n",Ha.toString().c_str());
@@ -845,7 +847,7 @@ static void mdlInitializeSizes(SimStruct *S)
 
     ssSetNumDWork(S, 2);
     ssSetDWorkWidth(S, 0, 1);
-    ssSetDWorkWidth(S, 1, 1);
+    ssSetDWorkWidth(S, 1, 2);
     ssSetDWorkDataType(S, 0, SS_DOUBLE);
     ssSetDWorkDataType(S, 1, SS_INTEGER);
 
@@ -960,6 +962,7 @@ static void mdlStart(SimStruct *S)
     // Control flag for end effector wrench add method
     int_T *flag = (int_T*) ssGetDWork(S,1);
     flag[0]     = 1;
+    
 
     switch(static_cast<int>(block_type))
     {
