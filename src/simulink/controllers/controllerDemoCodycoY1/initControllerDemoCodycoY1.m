@@ -14,20 +14,20 @@ Ts = 0.01;
 %
 % hwDot = -kH(4)*hw  
 
-kH  = [  70    2   0 4];
+kH  = [  50    0   0 2];
 
-kImpTorso = [20 20 20]; 
-kImpArms  = [15 15 15 14 1];
-kImpLegs  = [40 50 10 30 2 10];  
+kImpTorso = [30 20 20]; 
+kImpArms  = [10 10 20 10 1];
+kImpLegs  = [50 50 10 30 2 10];  
 
 
 kImp  = [kImpTorso,kImpArms,kImpArms,kImpLegs,kImpLegs];
 
-transitionLengths = [7 2 2];
+transitionLengths = [7 10 2];
 
               
-qFinHands     = [ -30.02 20.0 0.0 24.0  0;
-                  -30.02 20.0 0.0 24.0  0]*pi/180;
+qFinHands     = [ -30 20 0 50  0;
+                  -30 20 0 50  0]*pi/180;
 
 if (min(min(qFinHands)) < -3.14 || max(max(qFinHands)) > 3.14)
    error('qFinMovingPart is not valid. Some of its elements do not belong to [-3.14,3.14]'); 
@@ -46,7 +46,7 @@ Rf  = [R, zeros(3,3); zeros(3,3), R];
 states = [1 2 4 8 16];
 
 desiredHandForces    = [ 0 0 10 0 0 10]';
-threasholdHandForces = [ 0 0 3  0 0 3]';
+threasholdHandForces = [ 0 0 2  0 0 2]';
 
 
 %% GAINS FOR Gazebo
