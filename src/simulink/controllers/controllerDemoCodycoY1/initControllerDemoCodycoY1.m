@@ -1,14 +1,10 @@
 clear all
- % Add path to MATLAB 
-% addpath(genpath('/home/daniele/MATLAB'))
-% addpath(genpath('/home/daniele/src/codyco/build'))
-% addpath(genpath('/home/daniele/src/codyco/src/simulink'))
 
 % Controller period
 Ts = 0.01; 
  
 % Controller gains for convergence of the desired centroidal momentum. 
-% The first three elements are the Proportional, Intagral, and dDerivative
+% The first three elements are the Proportional, Intagral, and the Derivative
 % gains taking place in xComDDStart, i.e. 
 %
 % xComDDStart = xDDcomDes - kH(1)*(xcom - xcomDes) - kH(2)*IntErrorCoM - kH(3)*(xDcom - xDcomDes)  
@@ -16,24 +12,22 @@ Ts = 0.01;
 % The fourth element is the gain for the 
 % angular part of the centroidal momentum convergence, i.e. 
 %
-% hwDot = -kH(4)*hwDotDes  
+% hwDot = -kH(4)*hw  
 
-kH  = [  70    2   2 4];
+kH  = [  70    2   0 4];
 
-kImpTorso = [3 2 3]*10; 
-kImpArms  = [2 2 2 2 1]*5;
-kImpLegs  = [10 50 0.1 30 2 10];  
+kImpTorso = [20 20 20]; 
+kImpArms  = [15 15 15 14 1];
+kImpLegs  = [40 50 10 30 2 10];  
+
 
 kImp  = [kImpTorso,kImpArms,kImpArms,kImpLegs,kImpLegs];
 
+transitionLengths = [7 2 2];
 
-DT = 7.5;
-
-DTF = 10;
-p   = 0.8;
-
-qFinHands     = [ -60   60    0   20  0;
-                  -60   60    0   20  0]*pi/180;
+              
+qFinHands     = [ -30.02 20.0 0.0 24.0  0;
+                  -30.02 20.0 0.0 24.0  0]*pi/180;
 
 if (min(min(qFinHands)) < -3.14 || max(max(qFinHands)) > 3.14)
    error('qFinMovingPart is not valid. Some of its elements do not belong to [-3.14,3.14]'); 
@@ -51,7 +45,8 @@ Rf  = [R, zeros(3,3); zeros(3,3), R];
 
 states = [1 2 4 8 16];
 
-desiredHandForces = [ 0 0 10 0 0 10]';
+desiredHandForces    = [ 0 0 10 0 0 10]';
+threasholdHandForces = [ 0 0 3  0 0 3]';
 
 
 %% GAINS FOR Gazebo
