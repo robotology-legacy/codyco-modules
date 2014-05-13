@@ -137,6 +137,10 @@ bool robotStatus::robotConfig() {
             fprintf(stderr,"ERROR [robotStatus::robotConfig] No option icub_fixed in the config file!\n");
             return false;
         }
+        if(icub_fixed)
+            fprintf(stderr,"[robotStatus::robotConfig] icub_fixed is true!\n");
+        else
+            fprintf(stderr,"[robotStatus::robotConfig] icub_fixed is false!\n");  
 
 #ifdef DEBUG
         cout<<"After reading from config file, params are "<<endl;
