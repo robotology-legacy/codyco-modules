@@ -1042,6 +1042,14 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
 
     for(unsigned int i=0; i < estimatedLastDynContacts.size(); i++)
     {
+        //Workaround for bug in iCubGui
+        if( estimatedLastDynContacts[i].getBodyPart() == TORSO &&
+            estimatedLastSkinDynContacts.getLinkNumber() == 2 )
+        {
+            
+        }
+
+
         /*
         std::cout << "Found contact at " << estimatedLastDynContacts[i].getBodyPart() <<
                      " " << estimatedLastDynContacts[i].getLinkNumber() << std::endl;
