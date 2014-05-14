@@ -79,6 +79,7 @@ return rfsm.state {
 
     -- Time transition
     rfsm.transition { src='ST_DOUBLESUPPORT_STABLE', tgt='ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT', events={ 'e_after(' .. fsm_simple_balancing_time .. ')' } },
+    rfsm.transition { src='ST_QUADRUPLESUPPORT_STABLE', tgt='ST_DOUBLESUPPORT_STABLE', events={ 'e_after(' .. fsm_quadruple_balancing_time .. ')' } },
 
     -- Skin transitions
     rfsm.transition { src='ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT', tgt='ST_TRIPLESUPPORT_LEFT_HAND_SEEKING_CONTACT', events={ 'e_contacts_only_on_right_hand' } },
@@ -95,6 +96,7 @@ return rfsm.state {
     rfsm.transition { src='ST_QUADRUPLESUPPORT_STABLE', tgt='ST_TRIPLESUPPORT_LEFT_HAND_SEEKING_CONTACT', events={ 'e_contacts_only_on_right_hand' } },
 
     -- RPC transitions (should be address with a hierarchical FSM)
+    rfsm.transition { src='ST_DOUBLESUPPORT_STABLE', tgt='ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT', events={ 'e_start' } },
     rfsm.transition { src='ST_DOUBLESUPPORT_BOTH_HANDS_SEEKING_CONTACT', tgt='ST_DOUBLESUPPORT_STABLE', events={ 'e_reset' } },
     rfsm.transition { src='ST_TRIPLESUPPORT_LEFT_HAND_SEEKING_CONTACT',  tgt='ST_DOUBLESUPPORT_STABLE', events={ 'e_reset' } },
     rfsm.transition { src='ST_TRIPLESUPPORT_RIGHT_HAND_SEEKING_CONTACT',  tgt='ST_DOUBLESUPPORT_STABLE', events={ 'e_reset' } },
