@@ -39,13 +39,15 @@ event_contacts_on_both_hands = "e_contacts_on_both_hands"
 
 ----events (input rpc)
 event_reset = "e_reset"
+event_start= "e_start"
 
 events = {
     event_no_contact,
     event_contact_on_left_hand,
     event_contact_on_right_hand,
     event_contacts_on_both_hands,
-    event_reset
+    event_reset,
+    event_start
 }
 
 ----definitions
