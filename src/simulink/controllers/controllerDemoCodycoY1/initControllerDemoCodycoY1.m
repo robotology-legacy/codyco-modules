@@ -14,11 +14,16 @@ Ts = 0.01;
 %
 % hwDot = -kH(4)*hw  
 
-kH  = [  50    0   0 2];
+% kH  = [  60    0   0 2];
+% 
+% kImpTorso = [30 30 30]; 
+% kImpArms  = [20 20 20 20 1];
+% kImpLegs  = [50 50 10 30 2 10];  
 
-kImpTorso = [30 20 20]; 
-kImpArms  = [10 10 20 10 1];
-kImpLegs  = [50 50 10 30 2 10];  
+kH  = [  80    0   0 1];
+kImpTorso = [60 15 25]; 
+kImpArms  = [20 20 20 20 1];
+kImpLegs  = [50 50 0.1 30 2 10];  
 
 
 kImp  = [kImpTorso,kImpArms,kImpArms,kImpLegs,kImpLegs];
@@ -45,7 +50,7 @@ Rf  = [R, zeros(3,3); zeros(3,3), R];
 
 states = [1 2 4 8 16];
 
-desiredHandForces    = [ 0 0 10 0 0 10]';
+desiredHandForces    = [ 0 0 5 0 0 5]';
 threasholdHandForces = [ 0 0 2  0 0 2]';
 
 

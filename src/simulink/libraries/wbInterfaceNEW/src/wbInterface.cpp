@@ -122,8 +122,26 @@ bool robotStatus::robotConfig() {
         int         legsVfromConfigFile     = rf.find("legsV").asInt();
         bool        feetFTfromConfigFile    = rf.find("feetFT").asBool();
         bool        uses_urdf               = rf.find("uses_urdf").asBool();
-	icub_fixed                          = rf.find("icub_fixed").asBool();
         std::string urdf_file 		    = rf.find("urdf").asString();
+        if(rf.check("icub_fixed"))
+        {
+            if(rf.find("icub_fixed").isBool())
+                icub_fixed                  = rf.find("icub_fixed").asBool();
+            else
+            {
+                fprintf(stderr,"ERROR [robotStatus::robotConfig] Wrong icub_fixed in the config file!\n");
+                return false;
+            }
+        }
+        else
+        {
+            fprintf(stderr,"ERROR [robotStatus::robotConfig] No option icub_fixed in the config file!\n");
+            return false;
+        }
+        if(icub_fixed)
+            fprintf(stderr,"[robotStatus::robotConfig] icub_fixed is true!\n");
+        else
+            fprintf(stderr,"[robotStatus::robotConfig] icub_fixed is false!\n");  
 
 #ifdef DEBUG
         cout<<"After reading from config file, params are "<<endl;
