@@ -57,6 +57,7 @@ using namespace wbiIcub;
 int  robotStatus::creationCounter = 0;
 int *robotStatus::tmpContainer 	  = NULL;
 int  counterClass::count 	  = 0;
+bool robotStatus::icub_fixed      = false;
 
 
 robotStatus::robotStatus() {

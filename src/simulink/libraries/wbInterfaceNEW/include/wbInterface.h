@@ -148,6 +148,8 @@ private:
     /** End effector wrench */
     yarp::sig::Vector		EEWrench;
     
+    static bool		     icub_fixed;
+    
 
 
 
@@ -156,7 +158,6 @@ public:
     wbi::wholeBodyInterface *wbInterface;
     // Temporal container to copy wbInterface object for other copies of this module
     static int 		    *tmpContainer;
-    bool		     icub_fixed;
     
     robotStatus();
     ~robotStatus();
