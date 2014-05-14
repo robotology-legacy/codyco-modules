@@ -1044,9 +1044,13 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     {
         //Workaround for bug in iCubGui
         if( estimatedLastDynContacts[i].getBodyPart() == TORSO &&
-            estimatedLastSkinDynContacts[i].getLinkNumber() == 2 )
+            estimatedLastDynContacts[i].getLinkNumber() == 2 )
         {
-
+            //Invert second component
+            yarp::sig::Vector wrench = estimatedLastDynContacts[i].getForceMoment();
+            wrench[1] = -wrench[1];
+            wrench[3+1] = -wrench[3+1];
+            estimatedLastDynContacts[i].setForceMoment(wrench);
         }
 
 

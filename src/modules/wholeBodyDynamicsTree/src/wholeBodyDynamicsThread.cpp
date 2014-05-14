@@ -663,6 +663,9 @@ void wholeBodyDynamicsThread::publishBaseToGui()
     iCubGuiBase[4] = METERS2MILLIMETERS*H_world_currentRoot.p(1);
     iCubGuiBase[5] = METERS2MILLIMETERS*H_world_currentRoot.p(2);
 
+    //Add offset to avoid lower forces to be hided by the floor
+    iCubGuiBase[5] = iCubGuiBase[5] + 1000.0;
+
     broadcastData<yarp::sig::Vector>(iCubGuiBase,port_icubgui_base);
 }
 
