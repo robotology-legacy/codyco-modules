@@ -424,6 +424,7 @@ icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period,
    dqFilt(0), d2qFilt(0),
    icub_version(_icub_version),
    enable_omega_domega_IMU(false),
+   min_taxel(0),
    assume_fixed_base(_assume_fixed_base)
 {
     #ifdef CODYCO_USES_URDFDOM
@@ -495,6 +496,7 @@ icubWholeBodyDynamicsEstimator::icubWholeBodyDynamicsEstimator(int _period,
    dqFilt(0), d2qFilt(0),
    icub_version(_icub_version),
    enable_omega_domega_IMU(false),
+   min_taxel(0),
    assume_fixed_base(_assume_fixed_base),
    use_urdf(true),
    urdf_file_name(urdf_file)
@@ -841,18 +843,35 @@ void icubWholeBodyDynamicsEstimator::readSkinContacts()
         //Probably source of crazy inefficiencies, here just to reach a working state as soon as possible \todo TODO
         map<BodyPart, skinContactList> contactsPerBp = scl->splitPerBodyPart();
 
+        skinContacts.clear();
 
         // if there are more than 1 contact and less than 10 taxels are active then suppose zero moment
         for(map<BodyPart,skinContactList>::iterator it=contactsPerBp.begin(); it!=contactsPerBp.end(); it++)
+        {
             if(it->second.size()>1)
+            {
                 for(skinContactList::iterator c=it->second.begin(); c!=it->second.end(); c++)
-                    if(c->getActiveTaxels()<10)
+                {
+                    if( c->getActiveTaxels()<10 )
+                    {
                         c->fixMoment();
+                    }
+
+                    //Insert a contact in skinContacts only if the number of taxel is greater than ActiveTaxels
+                    if( c->getActiveTaxels() > min_taxel )
+                    {
+                        skinContacts.insert(skinContacts.end(),*c);
+                    }
+                }
+            }
+        }
 
         //TODO \todo add other parts
+        /*
         skinContacts = contactsPerBp[LEFT_ARM];
         skinContacts.insert(skinContacts.end(), contactsPerBp[RIGHT_ARM].begin(), contactsPerBp[RIGHT_ARM].end());
         skinContacts.insert(skinContacts.end(), contactsPerBp[TORSO].begin(), contactsPerBp[TORSO].end());
+        */
         //skinContacts.insert(skinContacts.end(), contactsPerBp[LEFT_LEG].begin(), contactsPerBp[LEFT_LEG].end());
         //skinContacts.insert(skinContacts.end(), contactsPerBp[RIGHT_LEG].begin(), contactsPerBp[RIGHT_LEG].end());
     }
@@ -1346,6 +1365,8 @@ bool icubWholeBodyDynamicsEstimator::lockAndSetEstimationParameter(const Estimat
             res = setTauJCutFrequency(((double*)value)[0]);
         else if(ep==wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU)
             res = setEnableOmegaDomegaIMU(*((bool*)value));
+        else if(ep==wbi::ESTIMATION_PARAM_MIN_TAXEL)
+            res = setMinTaxel(*((int*)value));
         break;
 
     case ESTIMATE_JOINT_TORQUE_DERIVATIVE:
@@ -1502,5 +1523,15 @@ bool icubWholeBodyDynamicsEstimator::setPwmCutFrequency(double fc)
 bool icubWholeBodyDynamicsEstimator::setEnableOmegaDomegaIMU(bool _enabled_omega_domega_IMU)
 {
     enable_omega_domega_IMU = _enabled_omega_domega_IMU;
+    return true;
+}
+
+bool icubWholeBodyDynamicsEstimator::setMinTaxel(const int _min_taxel)
+{
+    if( _min_taxel < 0 )
+    {
+        return false;
+    }
+    min_taxel = _min_taxel;
     return true;
 }

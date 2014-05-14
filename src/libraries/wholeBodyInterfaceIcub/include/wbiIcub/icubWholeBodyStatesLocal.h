@@ -155,9 +155,9 @@ namespace wbiIcub
         bool right_leg_ee_contact_found;
 
 
-        //Data structures related to IMU used for dynamical model
+        //Estimation options
         bool enable_omega_domega_IMU;
-
+        int min_taxel;
         bool assume_fixed_base;
         enum { FIXED_ROOT_LINK, FIXED_L_SOLE, FIXED_R_SOLE } fixed_link;
 
@@ -195,6 +195,8 @@ namespace wbiIcub
         bool setPwmCutFrequency(double fc);
         /** Enable or disable the use of IMU angular velocity and acceleration in external force estimation */
         bool setEnableOmegaDomegaIMU(bool opt);
+        /** Set the minimum number of activated taxels an skin contact should have to be considered by the estimation  */
+        bool setMinTaxel(const int min_taxel);
 
         /** Read the skin contacts and generated the contact points for external wrenches  estimation */
         void readSkinContacts();
