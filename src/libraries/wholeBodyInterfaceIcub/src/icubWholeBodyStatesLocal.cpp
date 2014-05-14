@@ -1044,9 +1044,9 @@ void icubWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
     {
         //Workaround for bug in iCubGui
         if( estimatedLastDynContacts[i].getBodyPart() == TORSO &&
-            estimatedLastSkinDynContacts.getLinkNumber() == 2 )
+            estimatedLastSkinDynContacts[i].getLinkNumber() == 2 )
         {
-            
+
         }
 
 
