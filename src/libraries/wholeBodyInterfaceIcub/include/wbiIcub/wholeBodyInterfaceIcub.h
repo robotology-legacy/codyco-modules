@@ -38,12 +38,11 @@
 #include "wbiIcub/icubWholeBodySensors.h"
 #include "wbiIcub/icubWholeBodyStates.h"
 #include "wbiIcub/icubWholeBodyStatesLocal.h"
-#include "wbiIcub/icubWholeBodyStatesRemote.h"
 
 /* CODE UNDER DEVELOPMENT */
 
 namespace wbiIcub
-{ 
+{
 
     const int JOINT_ESTIMATE_TYPES_SIZE = 3;
     ///< estimate types that are automatically added when calling addJoint(s) and automatically removed when calling removeJoint
@@ -57,7 +56,7 @@ namespace wbiIcub
         //wbi::ESTIMATE_MOTOR_TORQUE,      // motor torque
         wbi::ESTIMATE_MOTOR_PWM,         // motor PWM (proportional to motor voltage)
     };
-    
+
     /**
      * Class to communicate with iCub.
      */
@@ -67,28 +66,28 @@ namespace wbiIcub
         icubWholeBodyStates     *stateInt;
         icubWholeBodyActuators  *actuatorInt;
         icubWholeBodyModel      *modelInt;
-       
+
     public:
         // *** CONSTRUCTORS ***
-        icubWholeBodyInterface(const char* _name, 
+        icubWholeBodyInterface(const char* _name,
                                const char* _robotName,
-                               iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,2,true));
+                               iCub::iDynTree::iCubTree_version_tag icub_version /* = iCub::iDynTree::iCubTree_version_tag(2,2,true)*/);
         //icubWholeBodyInterface(const char* _name, const char* _robotName, std::string urdf_file_name);
 
         #ifdef CODYCO_USES_URDFDOM
-        icubWholeBodyInterface(const char* _name, 
+        icubWholeBodyInterface(const char* _name,
                                const char* _robotName,
                                iCub::iDynTree::iCubTree_version_tag icub_version,
                                std::string urdf_file_name);
         #endif
-        
+
         inline virtual ~icubWholeBodyInterface(){ close(); }
         virtual bool init();
         virtual bool close();
         virtual bool removeJoint(const wbi::LocalId &j);
         virtual bool addJoint(const wbi::LocalId &j);
         virtual int addJoints(const wbi::LocalIdList &j);
-   
+
         // ACTUATORS
         virtual int getActuatorNumber(){                        return actuatorInt->getActuatorNumber(); }
         virtual bool removeActuator(const wbi::LocalId &j){     return actuatorInt->removeActuator(j); }
@@ -101,6 +100,7 @@ namespace wbiIcub
         { return actuatorInt->setControlReference(ref, jnt); }
         virtual bool setControlParam(wbi::ControlParam parId, const void *val, int jnt=-1)
         { return actuatorInt->setControlParam(parId, val, jnt); }
+        virtual bool setActuactorConfigurationParameter(const std::string& parameterName, const yarp::os::Value& parameterValue);
 
         // STATES
         virtual bool addEstimate(const wbi::EstimateType st, const wbi::LocalId &sid){      return stateInt->addEstimate(st, sid); }
@@ -114,7 +114,11 @@ namespace wbiIcub
         { return stateInt->getEstimates(et, data, time, blocking); }
         virtual bool setEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value)
         { return stateInt->setEstimationParameter(et, ep, value); }
-        
+        virtual bool setWorldBasePosition(const wbi::Frame & xB)
+        {
+            return stateInt->setWorldBasePosition(xB);
+        }
+
         // MODEL
         virtual int getDoFs(){ return modelInt->getDoFs(); }
         virtual const wbi::LocalIdList& getJointList(){ return modelInt->getJointList(); }
@@ -139,7 +143,7 @@ namespace wbiIcub
         virtual bool computeCentroidalMomentum(double *q, const wbi::Frame &xB, double *dq, double *dxB, double *h)
         { return modelInt->computeCentroidalMomentum(q, xB, dq, dxB, h); }
     };
-    
+
 } // end namespace wbiIcub
 
 #endif

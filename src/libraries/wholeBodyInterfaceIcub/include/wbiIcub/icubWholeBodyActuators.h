@@ -33,6 +33,8 @@
 
 //*********TEMP************** -> for actuators //
 #ifdef WBI_ICUB_COMPILE_PARAM_HELP
+#include <yarp/os/RpcClient.h>
+#include <yarp/os/RpcServer.h>
 #include <yarp/sig/Vector.h>
 namespace paramHelp {
     class ParamHelperClient;
@@ -75,6 +77,7 @@ namespace wbiIcub
 
         // yarp drivers
         std::map<int, yarp::dev::IPositionControl*>     ipos;
+        std::map<int, yarp::dev::IPositionDirect*>      positionDirectInterface;
         std::map<int, yarp::dev::ITorqueControl*>       itrq;
         std::map<int, yarp::dev::IImpedanceControl*>    iimp;
         std::map<int, yarp::dev::IControlMode*>         icmd;
@@ -94,6 +97,10 @@ namespace wbiIcub
         
         //*********TEMP**************//
         #ifdef WBI_ICUB_COMPILE_PARAM_HELP
+        bool _rpcAutoConnect;
+        std::string _rpcLocalName;
+        std::string _rpcRemoteName;
+        yarp::os::RpcClient _torqueModuleRPCClientPort;
         paramHelp::ParamHelperClient *_torqueModuleConnection; /*< connection to the torque control module */
         yarp::sig::Vector _torqueRefs;
         #endif
@@ -140,6 +147,7 @@ namespace wbiIcub
         
         /* Configuration parameters section */
         static const std::string icubWholeBodyActuatorsUseExternalTorqueModule; /*< initialization parameter for iCub actuator class. The value associated is a boolean value. Default to false */
+        static const std::string icubWholeBodyActuatorsExternalTorqueModuleAutoconnect; /*< initialization parameter for iCub actuator class. The value associated is a boolean value. It specifies if the external torque module should be started automatically by the WBI. Default to false */
         static const std::string icubWholeBodyActuatorsExternalTorqueModuleName; /*< initialization parameter for iCub actuator class. Name of the torque external module */
         
         /** @brief Sets an initialization parameter.

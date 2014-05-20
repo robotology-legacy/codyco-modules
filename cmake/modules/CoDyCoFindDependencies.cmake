@@ -1,5 +1,5 @@
 #### Find Eigen3
-find_package(Eigen3 REQUIRED)
+find_package(Eigen3 3.2 REQUIRED)
 
 find_package(orocos_kdl 1.2.3 QUIET)
 if (NOT orocos_kdl_FOUND)
@@ -21,8 +21,8 @@ if(NOT orocos_kdl_FOUND)
    endif(NOT Orocos-KDL_FOUND)
 endif(NOT orocos_kdl_FOUND)
 
-#### Find kdl_codyco, require that kdl_codyco version 
-find_package(kdl_codyco 0.0.3 REQUIRED)
+#### Find kdl_codyco, require that kdl_codyco version
+find_package(kdl_codyco 0.1.1 REQUIRED)
 
 
 if(CODYCO_USES_URDFDOM)

@@ -26,6 +26,12 @@ source_group("Header Files" FILES ${folder_header})
 include(iCubHelpers)
 include(iCubOptions)
 
+# Check if externl torque control is to be used
+if (ICUBWBI_USE_EXTERNAL_TORQUE_CONTROL)
+    message("Adding external torque control.")
+    add_definitions(-DWBI_ICUB_COMPILE_PARAM_HELP)
+endif()
+
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
 
@@ -98,6 +104,10 @@ ${MATLAB_LIBRARIES}
 ${skinDynLib_LIBRARIES}
 ${ctrlLib_LIBRARIES}
 )
+
+set(simContext wbit)
+file(GLOB robotstate ${CMAKE_CURRENT_SOURCE_DIR}/conf/wbit/*.ini)
+yarp_install(FILES       ${robotstate} 
+	     DESTINATION ${CODYCO_CONTEXTS_INSTALL_DIR}/${simContext}) 
+
 install(TARGETS ${PROJECTNAME} DESTINATION mex)
-
-

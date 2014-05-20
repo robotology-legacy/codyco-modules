@@ -15,7 +15,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
  */
- 
+
 #ifndef WBSTATES_ICUB_H
 #define WBSTATES_ICUB_H
 
@@ -30,19 +30,19 @@
 #include <iCub/skinDynLib/skinContactList.h>
 #include <wbiIcub/wbiIcubUtil.h>
 #include <map>
- 
- 
+
+
 namespace wbiIcub
-{   
-    /** 
-     * Thread that estimates the state of the iCub robot. 
+{
+    /**
+     * Thread that estimates the state of the iCub robot.
      */
     class icubWholeBodyEstimator: public yarp::os::RateThread
     {
     protected:
         icubWholeBodySensors        *sensors;
         //double                      estWind;        // time window for the estimation
-        
+
         iCub::ctrl::AWLinEstimator  *dqFilt;        // joint velocity filter
         iCub::ctrl::AWQuadEstimator *d2qFilt;       // joint acceleration filter
         iCub::ctrl::AWLinEstimator  *dTauJFilt;     // joint torque derivative filter
@@ -50,7 +50,7 @@ namespace wbiIcub
         iCub::ctrl::FirstOrderLowPassFilter *tauJFilt;  ///< low pass filter for joint torque
         iCub::ctrl::FirstOrderLowPassFilter *tauMFilt;  ///< low pass filter for motor torque
         iCub::ctrl::FirstOrderLowPassFilter *pwmFilt;   ///< low pass filter for motor PWM
-        
+
         int dqFiltWL, d2qFiltWL;                    // window lengths of adaptive window filters
         double dqFiltTh, d2qFiltTh;                 // threshold of adaptive window filters
         int dTauMFiltWL, dTauJFiltWL;               // window lengths of adaptive window filters
@@ -58,11 +58,11 @@ namespace wbiIcub
         double tauJCutFrequency;
         double tauMCutFrequency;
         double pwmCutFrequency;
-        
+
         yarp::sig::Vector           q, qStamps;         // last joint position estimation
         yarp::sig::Vector           tauJ, tauJStamps;
         yarp::sig::Vector           pwm, pwmStamps;
-        
+
         /* Resize all vectors using current number of DoFs. */
         void resizeAll(int n);
         void lockAndResizeAll(int n);
@@ -81,14 +81,38 @@ namespace wbiIcub
         bool setTauMCutFrequency(double fc);
         /** Set the cut frequency of the motor PWM low pass filter. */
         bool setPwmCutFrequency(double fc);
-        
+
+
+        std::map<wbi::LocalId, yarp::os::BufferedPort<yarp::sig::Vector>*>  portsEEWrenches;
+        std::map<wbi::LocalId, yarp::sig::Vector>  lastEEWrenches;
+
+        bool openEEWrenchPorts(const wbi::LocalId & local_id);
+        void readEEWrenches(const wbi::LocalId & local_id,yarp::sig::Vector & vec);
+        void closeEEWrenchPorts(const wbi::LocalId & local_id);
+
+        yarp::sig::Matrix H_world_base;
+
     public:
-        
+        // end effector wrenches ports (the key of the maps is the sensor id)
+        bool ee_wrenches_enabled;
+        bool openEEWrenchPorts();
+
+
+        yarp::sig::Vector RAExtWrench;
+        yarp::sig::Vector LAExtWrench;
+        yarp::sig::Vector RLExtWrench;
+        yarp::sig::Vector LLExtWrench;
+
+        wbi::LocalId right_gripper_local_id;
+        wbi::LocalId left_gripper_local_id;
+        wbi::LocalId left_sole_local_id;
+        wbi::LocalId right_sole_local_id;
+
         yarp::os::Semaphore         mutex;          // mutex for access to class global variables
-        
+
         // the elements of this struct are accessed by the state interface
         // the state interface takes the mutex before accessing this struct
-        struct 
+        struct
         {
             yarp::sig::Vector lastQ;                    // last joint position estimation
             yarp::sig::Vector lastDq;                   // last joint velocity estimation
@@ -101,23 +125,26 @@ namespace wbiIcub
         }
         estimates;
 
-        /** Constructor. 
+        /** Constructor.
          */
         icubWholeBodyEstimator(int _period, icubWholeBodySensors *_sensors);
-        
+
         bool lockAndSetEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
 
         bool threadInit();
         void run();
         void threadRelease();
-        
+
         /** Take the mutex and copy the content of src into dest. */
         bool lockAndCopyVector(const yarp::sig::Vector &src, double *dest);
         /** Take the mutex and copy the i-th element of src into dest. */
         bool lockAndCopyVectorElement(int i, const yarp::sig::Vector &src, double *dest);
+
+        bool setWorldBasePosition(const wbi::Frame & xB);
+
     };
-    
-    
+
+
     /**
      * Class to access the estimates of the states of iCub.
      */
@@ -128,7 +155,7 @@ namespace wbiIcub
         icubWholeBodyEstimator      *estimator;     // estimation thread
         wbi::LocalIdList            emptyList;      ///< empty list of IDs to return in case of error
         //double                      estWind;      // time window for the estimation
-        
+
         virtual bool lockAndReadSensor(const wbi::SensorType st, const wbi::LocalId sid, double *data, double time, bool blocking);
         virtual bool lockAndReadSensors(const wbi::SensorType st, double *data, double time, bool blocking);
         virtual bool lockAndAddSensor(const wbi::SensorType st, const wbi::LocalId &sid);
@@ -136,46 +163,47 @@ namespace wbiIcub
         virtual bool lockAndRemoveSensor(const wbi::SensorType st, const wbi::LocalId &sid);
         virtual wbi::LocalIdList lockAndGetSensorList(const wbi::SensorType st);
         virtual int lockAndGetSensorNumber(const wbi::SensorType st);
+        virtual bool lockAndGetExternalWrench(const wbi::LocalId sid, double * data);
 
         /** Get the velocity of the specified motor. */
         bool getMotorVel(const wbi::LocalId &sid, double *data, double time, bool blocking);
         /** Get the velocities of all the robot motors. */
         bool getMotorVel(double *data, double time, bool blocking);
-        
+
     public:
         // *** CONSTRUCTORS ***
         icubWholeBodyStates(const char* _name, const char* _robotName, double estimationTimeWindow);
         virtual ~icubWholeBodyStates();
-        
+
         virtual bool init();
         virtual bool close();
-        
-        /** Add the specified estimate so that it can be read. 
+
+        /** Add the specified estimate so that it can be read.
          * @param st Type of estimate.
          * @param sid Id of the estimate.
          * @return True if the estimate has been added, false otherwise (e.g. the estimate has been already added).
          */
         virtual bool addEstimate(const wbi::EstimateType st, const wbi::LocalId &sid);
-        
-        /** Add the specified estimates so that they can be read. 
+
+        /** Add the specified estimates so that they can be read.
          * @param st Type of estimates.
          * @param sids Ids of the estimates.
          * @return True if the estimate has been added, false otherwise (e.g. the estimate has been already added).
          */
         virtual int addEstimates(const wbi::EstimateType st, const wbi::LocalIdList &sids);
 
-        /** Remove the specified estimate. 
+        /** Remove the specified estimate.
          * @param st Type of the estimate to remove.
          * @param j Id of the estimate to remove.
          * @return True if the estimate has been removed, false otherwise.
          */
         virtual bool removeEstimate(const wbi::EstimateType st, const wbi::LocalId &sid);
-        
+
         /** Get a copy of the estimate list of the specified estimate type.
          * @param st Type of estimate.
          * @return A copy of the estimate list. */
         virtual const wbi::LocalIdList& getEstimateList(const wbi::EstimateType st);
-        
+
         /** Get the number of estimates of the specified type.
          * @return The number of estimates of the specified type. */
         virtual int getEstimateNumber(const wbi::EstimateType st);
@@ -206,10 +234,11 @@ namespace wbiIcub
          * @param value Value of the parameter to set.
          * @return True if the operation succeeded, false otherwise. */
         virtual bool setEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
+
+        virtual bool setWorldBasePosition(const wbi::Frame & xB);
     };
-    
-    
+
+
 }
 
 #endif
-    

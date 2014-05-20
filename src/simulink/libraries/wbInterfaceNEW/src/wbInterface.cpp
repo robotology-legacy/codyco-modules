@@ -19,7 +19,6 @@
 
 #include "wbInterface.h"
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
-#include <boost/concept_check.hpp>
 // MASK PARAMETERS --------------------------------------
 #define NPARAMS 3                                  		// Number of input parameters
 #define BLOCK_TYPE_IDX 0                                  	// Index number for first input parameter
@@ -33,6 +32,7 @@
 #define TIMING    0
 #define NEWCODE	  1
 // #define ICUB_FIXED
+
 // #define WORLD2BASE_EXTERNAL
 
 YARP_DECLARE_DEVICES(icubmod)
@@ -57,6 +57,7 @@ using namespace wbiIcub;
 int  robotStatus::creationCounter = 0;
 int *robotStatus::tmpContainer 	  = NULL;
 int  counterClass::count 	  = 0;
+bool robotStatus::icub_fixed      = false;
 
 
 robotStatus::robotStatus() {
@@ -108,10 +109,62 @@ bool robotStatus::robotConfig() {
 #endif
     }
     else {
+        ResourceFinder rf;
+        rf.setVerbose(true);
+        rf.setDefaultContext("wbit");
+
+        rf.setDefaultConfigFile(string(robotName + ".ini").c_str());
+        rf.configure(1,0);
+
+        ConstString robotNamefromConfigFile = rf.find("robot").asString();
+        ConstString localNamefromConfigFile = rf.find("local").asString();
+        int         headVfromConfigFile     = rf.find("headV").asInt();
+        int         legsVfromConfigFile     = rf.find("legsV").asInt();
+        bool        feetFTfromConfigFile    = rf.find("feetFT").asBool();
+        bool        uses_urdf               = rf.find("uses_urdf").asBool();
+        std::string urdf_file 		    = rf.find("urdf").asString();
+        if(rf.check("icub_fixed"))
+        {
+            if(rf.find("icub_fixed").isBool())
+                icub_fixed                  = rf.find("icub_fixed").asBool();
+            else
+            {
+                fprintf(stderr,"ERROR [robotStatus::robotConfig] Wrong icub_fixed in the config file!\n");
+                return false;
+            }
+        }
+        else
+        {
+            fprintf(stderr,"ERROR [robotStatus::robotConfig] No option icub_fixed in the config file!\n");
+            return false;
+        }
+        if(icub_fixed)
+            fprintf(stderr,"[robotStatus::robotConfig] icub_fixed is true!\n");
+        else
+            fprintf(stderr,"[robotStatus::robotConfig] icub_fixed is false!\n");  
+
+#ifdef DEBUG
+        cout<<"After reading from config file, params are "<<endl;
+        cout<<"robot name:   "<<robotNamefromConfigFile.c_str()<<endl;
+        cout<<"urdf file:    "<<urdf_file.c_str()<<endl;
+        cout<<"local name:   "<<localNamefromConfigFile.c_str()<<endl;
+        cout<<"head version: "<<headVfromConfigFile<<endl;
+        cout<<"legs version: "<<legsVfromConfigFile<<endl;
+        cout<<"feet version: "<<feetFTfromConfigFile<<endl;
+#endif
+
         //---------------- CREATION WHOLE BODY INTERFACE ---------------------/
-        iCub::iDynTree::iCubTree_version_tag icub_version = iCub::iDynTree::iCubTree_version_tag(2,2,true);
-        wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version,"/home/jorhabib/Software/icub-model-generator/generated/gazebo_models/iCubGenova03/icub_simulation.urdf");
-//         wbInterface = new icubWholeBodyInterface(moduleName.c_str(),robotName.c_str(), icub_version);
+#ifdef CODYCO_USES_URDFDOM
+        iCub::iDynTree::iCubTree_version_tag icub_version =
+            iCub::iDynTree::iCubTree_version_tag(headVfromConfigFile,legsVfromConfigFile,feetFTfromConfigFile,uses_urdf,urdf_file);
+#else
+        iCub::iDynTree::iCubTree_version_tag icub_version =
+            iCub::iDynTree::iCubTree_version_tag(headVfromConfigFile,legsVfromConfigFile,feetFTfromConfigFile);
+#endif
+
+        wbInterface = new icubWholeBodyInterface(localNamefromConfigFile.c_str(),robotNamefromConfigFile.c_str(), icub_version);
+
+
 #ifdef DEBUG
         fprintf(stderr,"robotStatus::robotConfig >> new wbInterface created ...\n");
 #endif
@@ -123,6 +176,14 @@ bool robotStatus::robotConfig() {
         // Add main iCub joints
         wbInterface->addJoints(ICUB_MAIN_JOINTS);
         // Initializing whole body interface
+
+#ifdef WBI_ICUB_COMPILE_PARAM_HELP
+        yarp::os::Value trueValue;
+        trueValue.fromString("true");
+        ((icubWholeBodyInterface*)wbInterface)->setActuactorConfigurationParameter(icubWholeBodyActuators::icubWholeBodyActuatorsUseExternalTorqueModule, trueValue);
+        ((icubWholeBodyInterface*)wbInterface)->setActuactorConfigurationParameter(icubWholeBodyActuators::icubWholeBodyActuatorsExternalTorqueModuleAutoconnect, trueValue);
+        ((icubWholeBodyInterface*)wbInterface)->setActuactorConfigurationParameter(icubWholeBodyActuators::icubWholeBodyActuatorsExternalTorqueModuleName, Value("jtc"));
+#endif
         if(!wbInterface->init()) {
             fprintf(stderr,"ERROR [robotStatus::robotConfig] Initializing Whole Body Interface!\n");
             return false;
@@ -161,6 +222,7 @@ bool robotStatus::robotInit(int btype, int link) {
         const char *linkName = "";
         int default_size = 0;
         int linkID = 0;
+        printf("READ LINK IS: %d \n", link);
         switch (link)
         {
         case 0:
@@ -174,6 +236,14 @@ bool robotStatus::robotInit(int btype, int link) {
         case 2:
             linkName = "com";
             default_size = DEFAULT_XDES_COM.size();
+            break;
+        case 3:
+            linkName = "r_gripper";
+            default_size = DEFAULT_XDES_FOOT.size();
+            break;
+        case 4:
+            linkName = "l_gripper";
+            default_size = DEFAULT_XDES_FOOT.size();
             break;
         default:
             fprintf(stderr,"ERROR: No link has been specified for this block\n");
@@ -211,6 +281,8 @@ bool robotStatus::robotInit(int btype, int link) {
 
     // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
     Ha.R = Rotation(0,0,1, 0,-1,0, 1,0,0);
+    
+    EEWrench.resize(6,0);
 
     return true;
 }
@@ -234,16 +306,17 @@ int robotStatus::getLinkId(const char *linkName) {
 //=========================================================================================================================
 bool robotStatus::world2baseRototranslation(double *q) {
     /** TODO This method should take as input the link you wanna use to define the world reference frame. Right now it's hard coded to be the left foot. */
-#ifndef ICUB_FIXED
+ if(!icub_fixed){
     int LINK_ID_LEFT_FOOT;
     getLinkId("l_sole",LINK_ID_LEFT_FOOT);
     wbInterface->computeH(q, Frame(), LINK_ID_LEFT_FOOT, H_base_leftFoot);
     H_base_leftFoot = H_base_leftFoot*Ha;
-#else
+ }
+ else{
     int LINK_ROOT;
     getLinkId("root_link",LINK_ROOT);
     wbInterface->computeH(q, Frame(), LINK_ROOT, H_base_leftFoot);
-#endif
+ }
     H_base_leftFoot.setToInverse().get4x4Matrix(H_w2b.data());
 #ifdef DEBUG
     fprintf(stderr,"robotStatus::world2baseRototranslation >> Ha             : %s \n",Ha.toString().c_str());
@@ -272,6 +345,10 @@ bool robotStatus::robotJntAccelerations(bool blockingRead) {
 bool robotStatus::robotJntTorques(bool blockingRead) {
     return wbInterface->getEstimates(ESTIMATE_JOINT_TORQUE, tauJ.data(),-1.0, blockingRead);
 }
+//=========================================================================================================================
+// bool robotStatus::robotEEWrenches(int &linkId) {
+//   return wbInterface->getEstimate(ESTIMATE_EXTERNAL_FORCE_TORQUE,);
+// }
 //=========================================================================================================================
 Vector robotStatus::forwardKinematics(int &linkId) {
     if(robotJntAngles(false)) {
@@ -346,12 +423,16 @@ Vector robotStatus::getJntTorques() {
     return tauJ;
 }
 //=========================================================================================================================
+Vector robotStatus::getEEWrench(){
+    return EEWrench;
+}
+//=========================================================================================================================
 bool robotStatus::setCtrlMode(ControlMode ctrl_mode) {
     if(wbInterface->setControlMode(ctrl_mode)) {
         return true;
     }
     else {
-        fprintf(stderr,"ERROR [robotStatus::setCtrlMode] >> Velocity control mode could not be set\n");
+        fprintf(stderr,"ERROR [robotStatus::setCtrlMode] >> Control mode could not be set\n");
         return false;
     }
 }
@@ -628,6 +709,31 @@ bool robotStatus::getJointLimits(double *qminLims, double *qmaxLims, const int j
         return ans;
     }
 }
+//==========================================================================================================================
+bool robotStatus::robotEEWrenches(wbi::LocalId LID){
+  bool ans = false;
+  if(robotJntAngles(false)){
+    if(world2baseRototranslation(qRad.data())){
+      if(((icubWholeBodyInterface*) wbInterface)->setWorldBasePosition(xBase)){
+	if(wbInterface->getEstimate(ESTIMATE_EXTERNAL_FORCE_TORQUE, LID, EEWrench.data())){
+#ifdef DEBUG	  
+	  printf("End effector wrench retrieved: \n %s",EEWrench.toString().c_str());
+#endif
+	  ans = true;
+	  return ans;
+	}
+      }
+    }
+  }
+  return ans;
+}
+//==========================================================================================================================
+bool robotStatus::addEstimate(){
+    if(wbInterface->addEstimate(ESTIMATE_EXTERNAL_FORCE_TORQUE, wbi::LocalId(iCub::skinDynLib::LEFT_LEG,8)))
+      return true;
+    else
+      return false;
+}
 //------------------------------------------------------------------------------------------------------------------------//
 // END robotStatus implementation ----------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------------------------------------//
@@ -758,9 +864,11 @@ static void mdlInitializeSizes(SimStruct *S)
     // Reserve place for C++ object
     ssSetNumPWork(S, 3);
 
-    ssSetNumDWork(S, 1);
+    ssSetNumDWork(S, 2);
     ssSetDWorkWidth(S, 0, 1);
+    ssSetDWorkWidth(S, 1, 2);
     ssSetDWorkDataType(S, 0, SS_DOUBLE);
+    ssSetDWorkDataType(S, 1, SS_INTEGER);
 
     ssSetSimStateCompliance(S, USE_CUSTOM_SIM_STATE);
 
@@ -812,28 +920,56 @@ static void mdlStart(SimStruct *S)
     counterClass counter;
     fprintf(stderr,"mdlStart >> Publicly stating that a new child has been born: %d \n", counter.getCount());
 
-    int_T buflen, status;
-    char *String;
 
-    buflen = mxGetN((ssGetSFcnParam(S, STRING_PARAM_IDX)))*sizeof(mxChar)+1;
-    String = static_cast<char*>(mxMalloc(buflen));
-    status = mxGetString((ssGetSFcnParam(S, STRING_PARAM_IDX)),String,buflen);
-    if (status) {
-        ssSetErrorStatus(S,"mdlStart >> Cannot retrieve string from parameter 1!! \n");
+    char* cString = mxArrayToString(ssGetSFcnParam(S, STRING_PARAM_IDX));
+    if (!cString) {
+        ssSetErrorStatus(S,"mdlStart >> Cannot retrieve string from parameter 1.\n");
         return;
     }
-    fprintf(stderr,"mdlStart >> The string being passed for robotName is - %s\n ", String);
+    fprintf(stderr,"mdlStart >> The string being passed for robotName is - %s\n ", cString);
+    std::string robot_name(cString);
+    mxFree(cString);
+    cString = 0;
 
-    string robot_name = String;
-
-    status = mxGetString((ssGetSFcnParam(S, LOCAL_PARAM_IDX)),String,buflen);
-    if (status) {
-        ssSetErrorStatus(S,"mdlStart >> Cannot retrieve string from parameter 2!! \n");
+    cString = mxArrayToString(ssGetSFcnParam(S, LOCAL_PARAM_IDX));
+    if (!cString) {
+        ssSetErrorStatus(S,"mdlStart >> Cannot retrieve string from parameter 2.\n");
         return;
     }
-    fprintf(stderr,"mdlStart >> The string being passed for local is - %s \n", String);
+    std::string local_name(cString);
+    mxFree(cString);
+    cString = 0;
 
-    string local_name = String;
+
+//     size_t stringLength = 0;
+//     int status;
+//     char *string = 0;
+//     stringLength = mxGetN(ssGetSFcnParam(S, STRING_PARAM_IDX));
+//     string = (char*)(mxMalloc((stringLength + 1) * sizeof(char)));
+//     status = mxGetString((ssGetSFcnParam(S, STRING_PARAM_IDX)), string, stringLength + 1);
+//     if (status) {
+//         char buf[1024];
+//         sprintf(buf, "mdlStart >> Cannot retrieve string from parameter 1: error %d, %s.\n", status, string);
+//         ssSetErrorStatus(S,buf);
+// //         ssSetErrorStatus(S,"mdlStart >> Cannot retrieve string from parameter 1.\n");
+//         return;
+//     }
+//     fprintf(stderr,"mdlStart >> The string being passed for robotName is - %s\n ", string);
+//     std::string robot_name = string;
+//
+//     mxFree(string); string = 0;
+//     stringLength = mxGetN(ssGetSFcnParam(S, LOCAL_PARAM_IDX));
+//     string = static_cast<char*>(mxMalloc((stringLength + 1) * sizeof(char)));
+//     status = mxGetString((ssGetSFcnParam(S, LOCAL_PARAM_IDX)), string, stringLength + 1);
+//     if (status) {
+//         char buf[512];
+//         sprintf(buf, "mdlStart >> Cannot retrieve string from parameter 2: error %d.\n", status);
+//         ssSetErrorStatus(S,buf);
+//         return;
+//     }
+//     fprintf(stderr,"mdlStart >> The string being passed for local is - %s \n", string);
+//     std::string local_name = string;
+//     mxFree(string); string = 0;
 
     real_T block_type = mxGetScalar(ssGetSFcnParam(S,BLOCK_TYPE_IDX));
     fprintf(stderr,"mdlStart >> BLOCK TYPE MASK PARAMETER: %f\n",block_type);
@@ -841,6 +977,11 @@ static void mdlStart(SimStruct *S)
     // This will help determining the kind of block we'll be using
     real_T *x = (real_T*) ssGetDWork(S,0);
     x[0]      = block_type;
+    
+    // Control flag for end effector wrench add method
+    int_T *flag = (int_T*) ssGetDWork(S,1);
+    flag[0]     = 1;
+    
 
     switch(static_cast<int>(block_type))
     {
@@ -889,13 +1030,16 @@ static void mdlStart(SimStruct *S)
     case 14:
         fprintf(stderr,"mdlOutputs: This block will retrieve the centroidal momentum\n");
         break;
+    case 15:
+	fprintf(stderr,"mldOutputs: This block will retrieve end-effector wrenches for legs or arms\n");
+	break;
     default:
         ssSetErrorStatus(S,"ERROR: [mdlOutputs] The type of this block has not been defined\n");
     }
 
-    Network yarp;
+    Network::init();
 
-    if (!yarp.checkNetwork()) {
+    if (!Network::checkNetwork() || !Network::initialized()) {
         ssSetErrorStatus(S,"mdlStart >> YARP server wasn't found active!! \n");
         return;
     }
@@ -919,6 +1063,7 @@ static void mdlStart(SimStruct *S)
         fprintf(stderr,"mdlStart >> Succesfully exited robotConfig.\n");
     else {
         ssSetErrorStatus(S,"ERROR [mdlStart] in robotConfig.\n");
+        return;
     }
 
     res = res && robot->robotInit(static_cast<int>(block_type), static_cast<int>(*uPtrs[0]));
@@ -933,16 +1078,19 @@ static void mdlStart(SimStruct *S)
 
     if(!robot->getJointLimits(&minJntLimits[0], &maxJntLimits[0],-1)) {
         ssSetErrorStatus(S,"ERROR [mdlOutput] Joint limits could not be computed\n");
+        return;
     }
+
+#ifdef DEBUG
     printf("got limits right");
+#endif
 
     ssGetPWork(S)[0] = robot;
     ssGetPWork(S)[1] = &minJntLimits[0];
     ssGetPWork(S)[2] = &maxJntLimits[0];
-    
+
 
     //--------------GLOBAL VARIABLES INITIALIZATION --------------
-//     dotq.Zero(ICUB_DOFS);
     fprintf(stderr,"mdlStart >> FINISHED\n\n");
 }
 
@@ -957,6 +1105,9 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     //Getting type of block
     real_T *block_type = (real_T*) ssGetDWork(S,0);
     int btype = (int) block_type[0];
+    
+    int_T *flag = (int_T*) ssGetDWork(S,1);
+    int Flag = (int) flag[0];
 
     robotStatus *robot = (robotStatus *) ssGetPWork(S)[0];
     bool blockingRead = false;
@@ -1371,52 +1522,101 @@ static void mdlOutputs(SimStruct *S, int_T tid)
             pY13[j] = momentum[j];
     }
 
-    if(TIMING) tend = Time::now();
-    if(TIMING) fprintf(stderr,"Time elapsed: %f \n",tend-tinit);
+    // This block will retrieve force/torque estimates at the end effectors of the arms and legs of the robot
+    if(btype == 15) {
+        wbi::LocalId LID = wbi::LocalId(0,0);
+        switch ((int) *uPtrs[0]) {
+        case 0:
+            linkName = "r_sole";
+            LID = wbi::LocalId(iCub::skinDynLib::RIGHT_LEG, 8);
+            break;
+        case 1:
+            linkName = "l_sole";
+            LID = wbi::LocalId(iCub::skinDynLib::LEFT_LEG, 8);
+            break;
+        case 2:
+            linkName = "r_gripper";
+            LID = wbi::LocalId(iCub::skinDynLib::RIGHT_ARM, 8);
+            break;
+        case 3:
+            linkName = "l_gripper";
+            LID = wbi::LocalId(iCub::skinDynLib::LEFT_ARM, 8);
+            break;
+        default:
+            fprintf(stderr,"ERROR: [mdlOutputs] No body part has been specified to compute end effectors wrenches\n");
+	}
 
-}
+	if(flag){
+	  if(robot->addEstimate()){
+#ifdef DEBUG
+	    printf("mdlOutputs: addEstimate exited correctly");
+#endif	    
+	    flag = 0;
+	  }
+	}	  
+	  
+	Vector tmp(6);
+	tmp.zero();
+            if(!robot->robotEEWrenches(LID)){
+	      printf("Error obtaining es for ... \n");	      
+	    }
+	    else{
+	      tmp = robot->getEEWrench();
+	    }
+	    
+	    // We're gonna use in this case the same six-dimensional output used for dJdq
+	    real_T *pY15 = (real_T*) ssGetOutputPortSignal(S,6);
+	    for(int_T j=0; j<ssGetOutputPortWidth(S,6); j++)
+	      pY15[j] = tmp(j);
+        }
+
+        if(TIMING) tend = Time::now();
+        if(TIMING) fprintf(stderr,"Time elapsed: %f \n",tend-tinit);
+
+    }
 
 // Function: mdlTerminate =====================================================
 // Abstract:
 //   In this function, you should perform any actions that are necessary
 //   at the termination of a simulation.  For example, if memory was
 //   allocated in mdlStart, this is the place to free it.
-static void mdlTerminate(SimStruct *S) {
-    // IF YOU FORGET TO DESTROY OBJECTS OR DEALLOCATE MEMORY, MATLAB WILL CRASH.
-    // Retrieve and destroy C++ object
-    robotStatus *robot = (robotStatus *) ssGetPWork(S)[0];
-    double *minJntLimits = 0;//new double[ICUB_DOFS];
-    double *maxJntLimits = 0;//new double[ICUB_DOFS];
+    static void mdlTerminate(SimStruct *S) {
+        // IF YOU FORGET TO DESTROY OBJECTS OR DEALLOCATE MEMORY, MATLAB WILL CRASH.
+        // Retrieve and destroy C++ object
+        robotStatus *robot = (robotStatus *) ssGetPWork(S)[0];
+        double *minJntLimits = 0;//new double[ICUB_DOFS];
+        double *maxJntLimits = 0;//new double[ICUB_DOFS];
 
-    minJntLimits = (double *)ssGetPWork(S)[1];
-    maxJntLimits = (double *)ssGetPWork(S)[2];
+        minJntLimits = (double *)ssGetPWork(S)[1];
+        maxJntLimits = (double *)ssGetPWork(S)[2];
 
 #ifdef DEBUG
-    fprintf(stderr,"mdlTerminate: robot pointer: %p\n", robot);
+        fprintf(stderr,"mdlTerminate: robot pointer: %p\n", robot);
 #endif
 
 
-    if(robot!=NULL) {
-        fprintf(stderr,"mdlTerminate >> Inside robot object %p \n",robot);
-        if(robot->decreaseCounter()==0) {
-            robot->setCtrlMode(CTRL_MODE_POS);
-            printf("ctrl mode set\n");
-            delete robot;
-            printf("robot deleted\n");
-            delete[] minJntLimits;
-            printf("minJntLimits deleted\n");
-            delete[] maxJntLimits;
-            printf("maxJntLimits deleted\n");
-            robotStatus::resetCounter();
-            robot        = NULL;
-            minJntLimits = NULL;
-            maxJntLimits = NULL;
-            ssSetPWorkValue(S,0,NULL);
-            ssSetPWorkValue(S,1,NULL);
-            ssSetPWorkValue(S,2,NULL);
+        if(robot!=NULL) {
+            fprintf(stderr,"mdlTerminate >> Inside robot object %p \n",robot);
+            if(robot->decreaseCounter()==0) {
+                robot->setCtrlMode(CTRL_MODE_POS);
+                printf("ctrl mode set\n");
+                delete robot;
+                printf("robot deleted\n");
+                delete[] minJntLimits;
+                printf("minJntLimits deleted\n");
+                delete[] maxJntLimits;
+                printf("maxJntLimits deleted\n");
+                robotStatus::resetCounter();
+                robot        = NULL;
+                minJntLimits = NULL;
+                maxJntLimits = NULL;
+                ssSetPWorkValue(S,0,NULL);
+                ssSetPWorkValue(S,1,NULL);
+                ssSetPWorkValue(S,2,NULL);
+            }
         }
+        Network::fini();
     }
-}
 
 // Required S-function trailer
 #ifdef  MATLAB_MEX_FILE    /* Is this file being compiled as a MEX-file? */

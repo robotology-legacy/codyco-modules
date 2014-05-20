@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -34,6 +34,12 @@ using namespace yarp::os;
 using namespace std;
 using namespace motorFrictionIdentification;
 
+void iCubPartVersionOptionsPrint()
+{
+    cout<< "\t--headV1/headV2    :Version of the head."  <<endl;
+    cout<< "\t--legsV1/legsV2    :Version of the legs."  <<endl;
+    cout<< "\t--feetV1/feetV2    :Version of the feet."  <<endl;
+}
 
 int main (int argc, char * argv[])
 {
@@ -41,7 +47,7 @@ int main (int argc, char * argv[])
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("default.ini");         //default config file name.
-    rf.setDefaultContext("motorFrictionIdentification"); //when no parameters are given to the module this is the default context    
+    rf.setDefaultContext("motorFrictionIdentification"); //when no parameters are given to the module this is the default context
     rf.configure("ICUB_ROOT",argc,argv);
     // rf.setName("motorFrictionIdentificationControl");
 
@@ -52,10 +58,11 @@ int main (int argc, char * argv[])
         cout<< "\t--from             :Name of the file.ini to be used for calibration."                                                                                       <<endl;
         cout<< "\t--rate             :Period used by the module. Default set to 10ms."                                                                                        <<endl;
         cout<< "\t--robot            :Robot name (icubSim or icub). Set to icub by default."                                                                                  <<endl;
-        cout<< "\t--local            :Prefix of the ports opened by the module. Set to the module name by default, i.e. motorFrictionIdentificationCtrl."                                      <<endl;        
+        cout<< "\t--local            :Prefix of the ports opened by the module. Set to the module name by default, i.e. motorFrictionIdentificationCtrl."                                      <<endl;
+        iCubPartVersionOptionsPrint();
         return 0;
     }
-    
+
     Network yarp;
 
     if (!yarp.checkNetwork())

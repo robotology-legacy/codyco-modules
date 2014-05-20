@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Daniele Pucci
  * email:  daniele.pucci@iit.it
@@ -13,7 +13,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/ 
+*/
 
 #include <iostream>
 #include <sstream>
@@ -29,6 +29,45 @@ using namespace paramHelp;
 using namespace wbiIcub;
 using namespace jointTorqueControl;
 
+void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag & icub_version)
+{
+    //Checking iCub parts version
+    /// \todo this part should be replaced by a more general way of accessing robot parameters
+    ///       namely urdf for structure parameters and robotInterface xml (or runtime interface) to get available sensors
+    icub_version.head_version = 2;
+    if( rf.check("headV1") ) {
+        icub_version.head_version = 1;
+    }
+    if( rf.check("headV2") ) {
+        icub_version.head_version = 2;
+    }
+
+    icub_version.legs_version = 2;
+    if( rf.check("legsV1") ) {
+        icub_version.legs_version = 1;
+    }
+    if( rf.check("legsV2") ) {
+        icub_version.legs_version = 2;
+    }
+
+    /// \note if feet_version are 2, the presence of FT sensors in the feet is assumed
+    icub_version.feet_ft = true;
+    if( rf.check("feetV1") ) {
+        icub_version.feet_ft = false;
+    }
+    if( rf.check("feetV2") ) {
+        icub_version.feet_ft = true;
+    }
+
+    #ifdef CODYCO_USES_URDFDOM
+    if( rf.check("urdf") )
+    {
+        icub_version.uses_urdf = true;
+        icub_version.urdf_file = rf.find("urdf").asString().c_str();
+    }
+    #endif
+}
+
 jointTorqueControlModule::jointTorqueControlModule()
 {
     ctrlThread      = 0;
@@ -37,9 +76,9 @@ jointTorqueControlModule::jointTorqueControlModule()
     torqueCtrl      = 0;
     period          = 10;
 }
-    
+
 bool jointTorqueControlModule::configure(ResourceFinder &rf)
-{		
+{
     //-------------------------------------------------- PARAMETER HELPER SERVER ---------------------------------------------------------
     paramHelper = new ParamHelperServer(jointTorqueControlParamDescr, PARAM_ID_SIZE, jointTorqueControlCommandDescr, COMMAND_ID_SIZE);
     paramHelper->linkParam(PARAM_ID_MODULE_NAME,	&moduleName);
@@ -48,7 +87,7 @@ bool jointTorqueControlModule::configure(ResourceFinder &rf)
 
     paramHelper->registerCommandCallback(COMMAND_ID_HELP, this);
     paramHelper->registerCommandCallback(COMMAND_ID_QUIT, this);
-	
+
     // Read parameters from configuration file (or command line)
     Bottle initMsg;
     paramHelper->initializeParams(rf, initMsg);
@@ -60,43 +99,45 @@ bool jointTorqueControlModule::configure(ResourceFinder &rf)
     rpcPort.open(("/"+moduleName+"/rpc").c_str());
     setName(moduleName.c_str());
     attach(rpcPort);
-    
+
     //--------------------------WHOLE BODY INTERFACE--------------------------
-    robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str());
+    iCub::iDynTree::iCubTree_version_tag icub_version;
+    iCubVersionFromRf(rf,icub_version);
+    robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str(),icub_version);
     robotInterface->addJoints(ICUB_MAIN_JOINTS);
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------
     ctrlThread = new jointTorqueControlThread(period, moduleName, robotName, paramHelper, robotInterface);
     if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing control torque thread. Closing module.\n"); return false; }
-    
+
     fprintf(stderr,"Control torque module started\n");
 	return true;
 }
 
-bool jointTorqueControlModule::respond(const Bottle& cmd, Bottle& reply) 
+bool jointTorqueControlModule::respond(const Bottle& cmd, Bottle& reply)
 {
     paramHelper->lock();
-	if(!paramHelper->processRpcCommand(cmd, reply)) 
+	if(!paramHelper->processRpcCommand(cmd, reply))
 	    reply.addString( (string("Command ")+cmd.toString().c_str()+" not recognized.").c_str());
     paramHelper->unlock();
 
     // if reply is empty put something into it, otherwise the rpc communication gets stuck
     if(reply.size()==0)
         reply.addString( (string("Command ")+cmd.toString().c_str()+" received.").c_str());
-	return true;	
+	return true;
 }
 
 void jointTorqueControlModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
 {
     switch(cd.id)
     {
-    case COMMAND_ID_HELP:   
+    case COMMAND_ID_HELP:
         paramHelper->getHelpMessage(reply);
         break;
     case COMMAND_ID_QUIT:
         stopModule();
-        reply.addString("Quitting module.");    
+        reply.addString("Quitting module.");
         break;
     }
 }

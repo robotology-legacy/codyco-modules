@@ -8,7 +8,7 @@
 ## URDF file format support
 option(CODYCO_USES_URDFDOM "Enable support for URDF input in iDynTree" FALSE)
 if(CODYCO_USES_URDFDOM)
-	add_definitions(-DCODYCO_USES_URDFDOM)
+    add_definitions(-DCODYCO_USES_URDFDOM)
 endif()
 
 
@@ -90,7 +90,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     if (OROCOS_KDL_OLDVERSION)
         set(CODYCO_OSX_STDLIB TRUE)
     endif()
-    
+
     if (CODYCO_OSX_STDLIB)
         if (${CMAKE_GENERATOR} MATCHES "Xcode")
             MESSAGE("Xcode generator: setting standard libraries to libstdc++")
@@ -128,11 +128,11 @@ endif()
 
 #define debug flag
 # SET(COMPILE_DEFINITIONS_DEBUG "${COMPILE_DEFINITIONS_DEBUG};DEBUG=1")
-# add_definitions(-DDEBUG=1) 
-set_property( 
-    DIRECTORY 
-    APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG DEBUG=1 
-) 
+# add_definitions(-DDEBUG=1)
+set_property(
+    DIRECTORY
+    APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG DEBUG=1
+)
 
 #### Option for building tests
 option(CODYCO_BUILD_TESTS "Compile tests" FALSE)

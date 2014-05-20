@@ -21,6 +21,8 @@
 #include <string>
 #include <cassert>
 
+#include <yarp/os/Time.h>
+
 using namespace std;
 using namespace wbi;
 using namespace wbiIcub;
@@ -60,12 +62,15 @@ icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _r
 
 bool icubWholeBodyInterface::init()
 {
+    double wait_workaround = 0.3;
     bool ok = actuatorInt->init();
-    if(!ok) printf("Error while initializing actuator interface.\n");
+    if(!ok) printf("[icubWholeBodyInterface] Error while initializing actuator interface.\n");
+    yarp::os::Time::delay(wait_workaround);
     if(ok) ok = stateInt->init();
-    if(!ok) printf("Error while initializing state interface.\n");
+    if(!ok) printf("[icubWholeBodyInterface] Error while initializing state interface.\n");
+    yarp::os::Time::delay(wait_workaround);
     if(ok) ok = modelInt->init();
-    if(!ok) printf("Error while initializing model interface.\n");
+    if(!ok) printf("[icubWholeBodyInterface] Error while initializing model interface.\n");
     return ok;
 }
 
@@ -106,4 +111,11 @@ int icubWholeBodyInterface::addJoints(const LocalIdList &jList)
     int res4 = modelInt->addJoints(jList);
     assert(res1==res4);
     return res1;
+}
+
+bool icubWholeBodyInterface::setActuactorConfigurationParameter(const std::string& parameterName, const yarp::os::Value& parameterValue)
+{
+    if (actuatorInt)
+        return actuatorInt->setConfigurationParameter(parameterName, parameterValue);
+    return false;
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2014 Fondazione Istituto Italiano di Tecnologia - Italian Institute of Technology
  * Author: Silvio Traversaro
  * email:  silvio.traversaro@iit.it
@@ -60,27 +60,27 @@ public:
     yarp::sig::Vector wbi_imu;
     std::vector<yarp::sig::Vector> measured_ft_sensors;
     std::vector<yarp::sig::Vector> estimated_ft_sensors;
-    
+
     iCubTreeStatus(int nrOfDOFs=0, int nrOfFTSensors=0);
     bool setNrOfDOFs(int nrOfDOFs);
     bool setNrOfFTSensors(int nrOfFTSensors);
     bool zero();
 };
 
-/** 
- * 
+/**
+ *
   */
 class wholeBodyDynamicsThread: public RateThread
 {
     string              name;
     string              robotName;
     wbiIcub::icubWholeBodyStatesLocal *estimator;
-    
-    int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
-    double              PRINT_PERIOD;           
 
-    enum { NORMAL, CALIBRATING } wbd_mode;     /// < Mode of operation of the thread: normal operation or calibration
-    
+    int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
+    double              PRINT_PERIOD;
+
+    enum { NORMAL, CALIBRATING, CALIBRATING_ON_DOUBLE_SUPPORT } wbd_mode;     /// < Mode of operation of the thread: normal operation or calibration
+
     //output ports
     ///< \todo TODO add a proper structure for output ports, by dividing them for body parts or sensors
     BufferedPort<Bottle> *port_RATorques;
@@ -91,43 +91,41 @@ class wholeBodyDynamicsThread: public RateThread
     BufferedPort<Bottle> *port_LWTorques;
     BufferedPort<Bottle> *port_TOTorques;
     BufferedPort<Bottle> *port_HDTorques;
-    
-    /*
+
     BufferedPort<Vector> *port_external_wrench_RA;
     BufferedPort<Vector> *port_external_wrench_LA;
     BufferedPort<Vector> *port_external_wrench_RL;
     BufferedPort<Vector> *port_external_wrench_LL;
-    BufferedPort<Vector> *port_external_wrench_RF;
-    BufferedPort<Vector> *port_external_wrench_LF;
-    
+
     BufferedPort<Vector> *port_external_cartesian_wrench_RA;
     BufferedPort<Vector> *port_external_cartesian_wrench_LA;
     BufferedPort<Vector> *port_external_cartesian_wrench_RL;
     BufferedPort<Vector> *port_external_cartesian_wrench_LL;
-    BufferedPort<Vector> *port_external_cartesian_wrench_RF;
-    BufferedPort<Vector> *port_external_cartesian_wrench_LF;
-    
+
     BufferedPort<Vector> *port_sensor_wrench_RL;
     BufferedPort<Vector> *port_sensor_wrench_LL;
     BufferedPort<Vector> *port_model_wrench_RL;
     BufferedPort<Vector> *port_model_wrench_LL;
-    
-    BufferedPort<Vector> *port_external_wrench_TO;
-    */
-    
+
+
     BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts;
-    
+
     /*
     BufferedPort<Vector> *port_all_accelerations;
     BufferedPort<Vector> *port_all_velocities;
     BufferedPort<Vector> *port_all_positions;
     */
-    
+
     // ports outputing the external dynamics seen at the F/T sensor
+    /*
     BufferedPort<Vector> *port_external_ft_arm_left;
     BufferedPort<Vector> *port_external_ft_arm_right;
     BufferedPort<Vector> *port_external_ft_leg_left;
     BufferedPort<Vector> *port_external_ft_leg_right;
+    */
+
+    BufferedPort<Vector> * port_icubgui_base;
+
     yarp::os::Stamp timestamp;
 
     template <class T> void broadcastData(T& _values, BufferedPort<T> *_port);
@@ -135,10 +133,15 @@ class wholeBodyDynamicsThread: public RateThread
     void writeTorque(Vector _values, int _address, BufferedPort<Bottle> *_port);
     void publishTorques();
     void publishContacts();
+    void getEndEffectorWrenches();
+    void publishEndEffectorWrench();
+    void publishBaseToGui();
     wbi::LocalId convertFTiDynTreeToFTwbi(int ft_sensor_id);
     void normal_run();
     void calibration_run();
-    
+    void calibration_on_double_support_run();
+
+
     //Buffer vectors
     yarp::sig::Vector all_torques;
     yarp::sig::Vector TOTorques;
@@ -149,45 +152,88 @@ class wholeBodyDynamicsThread: public RateThread
     yarp::sig::Vector RLTorques;
 
     iCub::skinDynLib::skinContactList external_forces_list;
-    
+
+    yarp::sig::Vector LAExternalWrench;
+    yarp::sig::Vector RAExternalWrench;
+    yarp::sig::Vector LLExternalWrench;
+    yarp::sig::Vector RLExternalWrench;
+
+    yarp::sig::Vector LACartesianExternalWrench;
+    yarp::sig::Vector RACartesianExternalWrench;
+    yarp::sig::Vector LLCartesianExternalWrench;
+    yarp::sig::Vector RLCartesianExternalWrench;
+
+    yarp::sig::Vector iCubGuiBase;
+
     //Calibration related variables
+    yarp::os::Mutex run_mutex;
     yarp::os::Mutex calibration_mutex;
     iCubTreeStatus tree_status;
-    
-    iCub::iDynTree::iCubTree_version_tag icub_version;
-    iCub::iDynTree::iCubTree icub_model_calibration;
 
-    const int max_samples_used_for_calibration;
-    
+    iCub::iDynTree::iCubTree_version_tag icub_version;
+    iCub::iDynTree::iCubTree * icub_model_calibration;
+
+    int samples_requested_for_calibration;
+    int max_samples_for_calibration;
     int l_foot_ft_sensor_id;
     int r_foot_ft_sensor_id;
-        
+
     int l_arm_ft_sensor_id;
     int r_arm_ft_sensor_id;
-        
+
     int l_leg_ft_sensor_id;
     int r_leg_ft_sensor_id;
-    
+
+    int left_hand_link_id;
+    int right_hand_link_id;
+    int left_foot_link_id;
+    int right_foot_link_id;
+
+    int left_gripper_frame_id;
+    int right_gripper_frame_id;
+    int left_sole_frame_id;
+    int right_sole_frame_id;
+
+    int left_hand_link_idyntree_id;
+    int right_hand_link_idyntree_id;
+    int left_foot_link_idyntree_id;
+    int right_foot_link_idyntree_id;
+
+    int root_link_idyntree_id;
+
+    int left_gripper_frame_idyntree_id;
+    int right_gripper_frame_idyntree_id;
+    int left_sole_frame_idyntree_id;
+    int right_sole_frame_idyntree_id;
+
+    yarp::sig::Matrix transform_mat_buffer;
+
     int samples_used_for_calibration;
-    
+
     std::vector<bool> calibrate_ft_sensor;
     std::vector<yarp::sig::Vector> offset_buffer;
-    //End of Calibration related variables 
+    //End of Calibration related variables
+
+    bool assume_fixed_base_calibration;
 
 public:
-    
-    wholeBodyDynamicsThread(string _name, 
+
+    wholeBodyDynamicsThread(string _name,
                             string _robotName,
-                            int _period, 
-                            wbiIcub::icubWholeBodyStatesLocal *_wbi, 
+                            int _period,
+                            wbiIcub::icubWholeBodyStatesLocal *_wbi,
                             const iCub::iDynTree::iCubTree_version_tag icub_version,
-                            bool autoconnect);
-    
+                            bool autoconnect,
+                            bool assume_fixed_base_calibration);
+
     bool threadInit();
-    bool calibrateOffset(const std::string calib_code);
+    bool calibrateOffset(const std::string calib_code, const int nr_of_samples );
+    bool calibrateOffsetOnDoubleSupport(const std::string calib_code, const int nr_of_samples );
+    bool resetOffset(const std::string calib_code);
+
     /**
      * Wait for the calibration to end and then return.
-     * 
+     *
      * @return always returns true
      */
     bool waitCalibrationDone();

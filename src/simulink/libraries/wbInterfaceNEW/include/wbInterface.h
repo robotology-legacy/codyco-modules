@@ -145,6 +145,11 @@ private:
     /** Mass matrix N+6xN+6 */
     MassMatrix			massMatrix;
     
+    /** End effector wrench */
+    yarp::sig::Vector		EEWrench;
+    
+    static bool		     icub_fixed;
+    
 
 
 
@@ -189,6 +194,9 @@ public:
     yarp::sig::Vector 	getJntAccelerations();
     bool 		getJointLimits(double *qminLims, double *qmaxLims, const int jnt);
     bool 		centroidalMomentum(double* qrad_input, double* dq_input, double* h);
+    bool 		robotEEWrenches(wbi::LocalId LID);
+    yarp::sig::Vector   getEEWrench();
+    bool 		addEstimate();
 };
 
 class counterClass {

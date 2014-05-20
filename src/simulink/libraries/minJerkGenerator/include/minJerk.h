@@ -69,7 +69,6 @@ class minJerkTrajGenerator{
 private:
     minJerkTrajGen *trajGen;
     Vector ref, dref, ddref;
-    double SIMU_RATE;
     //  This vector pos comes from the ROBOT STATE blocks and will be
     //  either x_com, x_foot or qRad (for robot pose) given by the forward
     //  kinematics blocks
@@ -107,24 +106,23 @@ public:
         }
     }
 
-    bool initialize(int RATE, double TT){
+    bool initialize(double RATE, double TT){
 
         //        TDOF = condTaskDOF(type);     //This hould be uncommented if you wanna choose from three particular tasks as described in the switch above
-        SIMU_RATE = static_cast<double>(RATE)/1000;
-        pos.resize      (taskDOF  ,1.0);
+        pos.resize      (taskDOF  ,0.0);
         ref.resize      (taskDOF  ,0.0);  // Result of getPos(). Reference trajectory vector resizing.
         dref.resize     (taskDOF  ,0.0);  // Result of getVel(). Reference trajectory velocity vector resizing.
         ddref.resize    (taskDOF  ,0.0);  // Result of getAcc().
 
-        trajGen = new minJerkTrajGen(taskDOF, SIMU_RATE, TT);
+        fprintf(stderr,"minJerkTrajGen created with taskDOF: %d, RATE: %f, TT: %f \n",taskDOF, RATE, TT);
+        trajGen = new minJerkTrajGen(taskDOF, RATE, TT);
         trajGen->init(pos_init);
         return true;
     }
 
     void updateReferenceTraj(){
-//        fprintf(stderr,"computeNextValues take pos with value: %s \n",pos.toString().c_str());
+       fprintf(stderr,"computeNextValues takes pos: %s \n",pos.toString().c_str());
         trajGen->computeNextValues(pos);
-//        fprintf(stderr,"pos: %s \n",pos.toString().c_str());
         return;
     }
 

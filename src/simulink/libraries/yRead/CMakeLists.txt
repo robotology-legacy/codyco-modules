@@ -68,9 +68,3 @@ endif(WIN32)
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${MATLAB_LIBRARIES})
 install(TARGETS ${PROJECTNAME} DESTINATION mex)
 	
-
-
-
-
-
-

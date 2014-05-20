@@ -74,6 +74,9 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     ///< *************** MODULE PARAMETERS ********************
 	VectorNi 	activeJoints;	// Vector of nDOF integers representing the joints to control  (1: active, 0: inactive) 
     VectorNd	dq;				// Joint velocities (deg/s)
+    double      dqMotor;        // Motor velocities (deg/s)
+    double      dqSignMotor;    // Sign of the motor velocity (deg/s)
+    double      Voltage;    // Sign of the motor velocity (deg/s)
     VectorNd 	kt;				// Vector of nDOF floats ( see Eq. (1) )"), 
     VectorNd 	kvp;			// Vector of nDOF floats ( see Eq. (2) )"), 
     VectorNd	kvn;			// Vector of nDOF floats ( see Eq. (2) )"), 
@@ -91,32 +94,46 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     VectorNd    tauSinFreq;     // Frequencies of the sinusoidal signals that are added to the desired joint torques
     VectorNd	Vmax;			// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"),     
 
-    VectorNd	tauM;			// Measured torques
+    VectorNd	tauM;			// Measured joint torques
+    double      tauMotor;       // Measured joint torques
     VectorNd	motorVoltage;	// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
     VectorNd	etau;			// Errors between actual and desired torques 
     VectorNd	tau;			// Vector of nDOF floats representing the desired torques plus the PI terms
 
+    VectorNd      frictionCompensationFactor;
     int			sendCommands;
     int         gravityCompOn;  // 1 if gravity compensation is on, 0 otherwise
 	string      monitoredJointName;     ///< name of the monitored joint
 	
+	Matrix3d    leftShoulderTorqueCouplingMatrix;
+    Matrix3d    leftShoulderVelocityCouplingMatrix;
+    Matrix3d    rightShoulderTorqueCouplingMatrix;
+    Matrix3d    rightShoulderVelocityCouplingMatrix;
+    Matrix3d    torsoTorqueCouplingMatrix;
+    Matrix3d    torsoVelocityCouplingMatrix;
+	
+	
     //monitored variables
     struct
     {
-        double tauMeas;
-        double tauDes;
-        double tadDesPlusPI;
-        double tauErr;
-        double q;
-        double qDes;
-        double dq;
-        double dqSign;
-        double pwmDes;
-        double pwmMeas;
-        double pwmFF;
-        double pwmFB;
-        double pwmTorqueFF;
-        double pwmFrictionFF;
+        double tauMeas;         //      0
+        double tauDes;          //      1
+        double tauMeas1;        //      2
+        double tauDes1;         //      3
+        double tauMeas2;        //      4
+        double tauDes2;         //      5
+        double tadDesPlusPI;    //      6
+        double tauErr;          //      7
+        double q;               //      8
+        double qDes;            //      9
+        double dq;              //      10
+        double dqSign;          //      11
+        double pwmDes;          //      12
+        double pwmMeas;         //      13
+        double pwmFF;           //      14
+        double pwmFB;           //      15
+        double pwmTorqueFF;     //      16
+        double pwmFrictionFF;   //      17
     } monitor;
 	
     // Input streaming parameters

@@ -57,7 +57,9 @@ static const VectorNd	DEFAULT_KI				    = VectorNd::Constant(0.0);
 static const VectorNd	DEFAULT_KP				    = VectorNd::Constant(0.0);  
 static const VectorNd	DEFAULT_COULOMB_VEL_THR	    = VectorNd::Constant(5.0);
 
-static const VectorNd	DEFAULT_TAUD			= VectorNd::Constant(0.0);  
+static const VectorNd	DEFAULT_TAUD			= VectorNd::Constant(0.0);
+    
+static const VectorNd   DEFAULT_FRICTION_COMPENSATION = VectorNd::Zero();
 
 static const VectorNd	DEFAULT_VMAX			= VectorNd::Constant(100.0);
 static const double		KT_MAX 		         	= 100.0;     
@@ -72,7 +74,8 @@ static const double		V_MAX 	       		  	= 100.0;
 static const double		TAUD_MIN          		= -10.0;     
 static const double		TAUD_MAX 	        	= 10.0;  
 static const double		VM_MIN          		= -1333.0;     
-static const double		VM_MAX	 	        	= 1333.0;       
+static const double		VM_MAX	 	        	= 1333.0;
+    
 
 
 // *** IDs of all the module parameters
@@ -84,17 +87,20 @@ enum jointTorqueControlParamId {
     PARAM_ID_KI,	        PARAM_ID_KP,	            PARAM_ID_COULOMB_VEL_THR,
     PARAM_ID_VMAX,	        PARAM_ID_SENDCMD,           PARAM_ID_MONITORED_JOINT,
     PARAM_ID_KS,            PARAM_ID_KD,                PARAM_ID_GRAV_COMP_ON,
-    PARAM_ID_Q_DES,
+    PARAM_ID_Q_DES, PARAM_ID_FRICTION_COMPENSATION,
     /* STREAMING INPUT PARAMETERS */
     PARAM_ID_TAU_OFFSET,    PARAM_ID_TAU_SIN_AMPL,      PARAM_ID_TAU_SIN_FREQ,
     /* STREAMING OUTPUT PARAMETERS */
     PARAM_ID_VM,	        PARAM_ID_TAU,
     /* MONITOR PARAMETERS*/
-    PARAM_ID_TAU_MEAS,      PARAM_ID_TAUD_MONITOR,      PARAM_ID_TAUD_PLUS_PI,
+    PARAM_ID_TAU_MEAS,      PARAM_ID_TAUD_MONITOR,      
+    PARAM_ID_TAU_MEAS1,     PARAM_ID_TAUD_MONITOR1, 
+    PARAM_ID_TAU_MEAS2,     PARAM_ID_TAUD_MONITOR2, 
+    PARAM_ID_TAUD_PLUS_PI,  PARAM_ID_TAU_ERR,       
+    PARAM_ID_Q,             PARAM_ID_Q_DES_MONITOR,
     PARAM_ID_JOINT_VEL,     PARAM_ID_JOINT_VEL_SIGN,
     PARAM_ID_PWM_DESIRED,   PARAM_ID_PWM_FEEDFORWARD,   PARAM_ID_PWM_FEEDBACK,
     PARAM_ID_PWM_TORQUE_FF, PARAM_ID_PWM_FRICTION_FF,   PARAM_ID_PWM_MEASURED,
-    PARAM_ID_TAU_ERR,       PARAM_ID_Q,                 PARAM_ID_Q_DES_MONITOR,
     PARAM_ID_SIZE,
 };
 
@@ -124,7 +130,8 @@ new ParamProxyBasic<string>("monitored joint",     	PARAM_ID_MONITORED_JOINT,	1,
 new ParamProxyBasic<double>("ks",          	        PARAM_ID_KS,				N_DOF,		ParamBilatBounds<double>(0.0, 100.0),		    PARAM_IN_OUT,       DEFAULT_ZEROS_NDOF.data(),		"Joint stiffnesses"), 
 new ParamProxyBasic<double>("kd",          	        PARAM_ID_KD,				N_DOF,		ParamBilatBounds<double>(0.0, 100.0),		    PARAM_IN_OUT,       DEFAULT_ZEROS_NDOF.data(),		"Joint dampings"), 
 new ParamProxyBasic<int>(   "grav comp on",         PARAM_ID_GRAV_COMP_ON,		1,		    ParamBilatBounds<int>(0, 1),		            PARAM_IN_OUT,       &DEFAULT_GRAV_COMP_ON,		    "1 if gravity compensation is on, 0 otherwise"), 
-new ParamProxyBasic<double>("qDes",          	    PARAM_ID_Q_DES,				N_DOF,		ParamBilatBounds<double>(-180.0, 180.0),		PARAM_IN_OUT,       DEFAULT_ZEROS_NDOF.data(),		"Desired joint angles"), 
+new ParamProxyBasic<double>("qDes",          	    PARAM_ID_Q_DES,				N_DOF,		ParamBilatBounds<double>(-180.0, 180.0),		PARAM_IN_OUT,       DEFAULT_ZEROS_NDOF.data(),		"Desired joint angles"),
+new ParamProxyBasic<double>("fcomp",          	    PARAM_ID_FRICTION_COMPENSATION, N_DOF,		ParamBilatBounds<double>(0, 1.0),		PARAM_IN_OUT,       DEFAULT_FRICTION_COMPENSATION.data(),		"Viscous friction compensation factor (from 0.0 to 1.0)"),
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("tauOffset",        	PARAM_ID_TAU_OFFSET,        N_DOF,      ParamBilatBounds<double>(TAUD_MIN, TAUD_MAX),   PARAM_IN_STREAM,    DEFAULT_TAUD.data(),			"Constant offset added to the desired joint torques"),
 new ParamProxyBasic<double>("tauSinAmpl",        	PARAM_ID_TAU_SIN_AMPL,      N_DOF,      ParamBilatBounds<double>(0.0, TAUD_MAX),        PARAM_IN_STREAM,    DEFAULT_ZEROS_NDOF.data(),		"Amplitudes of the sinusoidal signals that are added to the desired joint torques"),
@@ -135,7 +142,12 @@ new ParamProxyBasic<double>("tau",          	    PARAM_ID_TAU,         		N_DOF, 
 // ************************************************* MONITOR  PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("tauMeas",              PARAM_ID_TAU_MEAS,          1,                                                          PARAM_MONITOR,      0,                              "Torque of the monitored motor"),
 new ParamProxyBasic<double>("tauDes",               PARAM_ID_TAUD_MONITOR,      1,                                                          PARAM_MONITOR,      0,                              "Desired torque of the monitored motor"),
+new ParamProxyBasic<double>("tauMeas1",             PARAM_ID_TAU_MEAS1,         1,                                                          PARAM_MONITOR,      0,                              "Torque of the monitored motor"),
+new ParamProxyBasic<double>("tauDes1",              PARAM_ID_TAUD_MONITOR1,     1,                                                          PARAM_MONITOR,      0,                              "Desired torque of the monitored motor"),
+new ParamProxyBasic<double>("tauMeas2",             PARAM_ID_TAU_MEAS2,         1,                                                          PARAM_MONITOR,      0,                              "Torque of the monitored motor"),
+new ParamProxyBasic<double>("tauDes2",              PARAM_ID_TAUD_MONITOR2,     1,                                                          PARAM_MONITOR,      0,                              "Desired torque of the monitored motor"),
 new ParamProxyBasic<double>("tauDesPlusPI",         PARAM_ID_TAUD_PLUS_PI,      1,                                                          PARAM_MONITOR,      0,                              "Desired torque plus proportional and integral terms of the monitored motor"),
+new ParamProxyBasic<double>("tauErr",               PARAM_ID_TAU_ERR,           1,                                                          PARAM_MONITOR,      0,                              "Tracking torque error"),
 new ParamProxyBasic<double>("dq",                   PARAM_ID_JOINT_VEL,         1,                                                          PARAM_MONITOR,      0,                              "Velocity of the monitored motor"),
 new ParamProxyBasic<double>("sign dq",              PARAM_ID_JOINT_VEL_SIGN,    1,                                                          PARAM_MONITOR,      0,                              "Sign of the velocity of the monitored motor"),
 new ParamProxyBasic<double>("pwmDes",               PARAM_ID_PWM_DESIRED,       1,                                                          PARAM_MONITOR,      0,                              "PWM commanded to the monitored motor"),
@@ -144,9 +156,8 @@ new ParamProxyBasic<double>("pwmFB",                PARAM_ID_PWM_FEEDBACK,      
 new ParamProxyBasic<double>("pwmTorqueFF",          PARAM_ID_PWM_TORQUE_FF,     1,                                                          PARAM_MONITOR,      0,                              "Torque feedforward term of the PWM commanded to the monitored motor"),
 new ParamProxyBasic<double>("pwmFrictionFF",        PARAM_ID_PWM_FRICTION_FF,   1,                                                          PARAM_MONITOR,      0,                              "Friction feedforward term of the PWM commanded to the monitored motor"),
 new ParamProxyBasic<double>("pwmMeas",              PARAM_ID_PWM_MEASURED,      1,                                                          PARAM_MONITOR,      0,                              "Measured PWM of the monitored motor"),
-new ParamProxyBasic<double>("tauErr",               PARAM_ID_TAU_ERR,           1,                                                          PARAM_MONITOR,      0,                              "Tracking torque error"),
 new ParamProxyBasic<double>("q",                    PARAM_ID_Q,                 1,                                                          PARAM_MONITOR,      0,                              "Joint angle"),
-new ParamProxyBasic<double>("qd",                 PARAM_ID_Q_DES_MONITOR,     1,                                                          PARAM_MONITOR,      0,                              "Desired joint angle")
+new ParamProxyBasic<double>("qd",                   PARAM_ID_Q_DES_MONITOR,     1,                                                          PARAM_MONITOR,      0,                              "Desired joint angle")
 };
 
 // *** IDs of all the module command
