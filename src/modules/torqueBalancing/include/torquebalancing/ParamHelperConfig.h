@@ -20,7 +20,7 @@
 #include <paramHelp/paramProxyBasic.h>
 #if defined(__clang__)
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything"
+#pragma clang diagnostic ignored "-Weverything -Wdocumentation"
 #elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wall"
@@ -43,6 +43,8 @@ namespace codyco {
             TorqueBalancingModuleParameterRobotName,
             TorqueBalancingModuleParameterControllerPeriod,
             TorqueBalancingModuleParameterModulePeriod,
+            TorqueBalancingModuleParameterForcesSmoothingDuration,
+            TorqueBalancingModuleParameterJointsSmoothingDuration,
             //RPC parameters
             TorqueBalancingModuleParameterCurrentState,
             //References
@@ -80,7 +82,7 @@ namespace codyco {
             
         } TorqueBalancingModuleParameter;
         
-        static const int TorqueBalancingModuleParameterSize = 30;
+        static const int TorqueBalancingModuleParameterSize = 32;
         
         
         static const std::string defaultModuleName = "torqueBalancing";
@@ -88,6 +90,7 @@ namespace codyco {
         static const int defaultModuleState = 1;
         static const int defaultControllerPeriod = 10; //ms
         static const double defaultModulePeriod = 1.0; //s
+        static const double defaultSmoothingDuration = 5.0; //s
         static const double defaultIntegralLimit = std::numeric_limits<double>::max(); //no limit
         static const Eigen::VectorXd defaultCOMGains = Eigen::VectorXd(3).setZero();
         static const Eigen::VectorXd defaultHandsPositionGains = Eigen::VectorXd::Zero(14);
@@ -101,6 +104,8 @@ namespace codyco {
             new paramHelp::ParamProxyBasic<std::string>("name", TorqueBalancingModuleParameterModuleName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultModuleName, "Name of the instance of the module"),
             new paramHelp::ParamProxyBasic<std::string>("robot", TorqueBalancingModuleParameterRobotName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultRobotName, "Name of the robot"),
             new paramHelp::ParamProxyBasic<int>("period", TorqueBalancingModuleParameterControllerPeriod, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_CONFIG, &defaultControllerPeriod, "Period of the controller"),
+            new paramHelp::ParamProxyBasic<double>("forcesSmoothing", TorqueBalancingModuleParameterForcesSmoothingDuration, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, &defaultSmoothingDuration, "Duration of the trajectory smoother for the contact (hands) forces"),
+            new paramHelp::ParamProxyBasic<double>("jointsSmoothing", TorqueBalancingModuleParameterForcesSmoothingDuration, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, &defaultSmoothingDuration, "Duration of the trajectory smoother for the joints impedance"),
             //RPC parameters
             new paramHelp::ParamProxyBasic<double>("modulePeriod", TorqueBalancingModuleParameterModulePeriod, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultModulePeriod, "Period of the module. Used to update monitored variables."),
             new paramHelp::ParamProxyBasic<int>("state", TorqueBalancingModuleParameterCurrentState, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_IN_OUT, &defaultModuleState, "State of the module"),

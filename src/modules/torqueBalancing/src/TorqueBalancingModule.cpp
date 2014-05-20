@@ -49,6 +49,8 @@ namespace codyco {
         , m_controllerThreadPeriod(10)
         , m_modulePeriod(1.0)
         , m_active(false)
+        , m_forcesSmootherDuration(5)
+        , m_jointsSmootherDuration(5)
         , m_robot(0)
         , m_controller(0)
         , m_references(0)
@@ -113,9 +115,9 @@ namespace codyco {
             
             //create smoother
             MinimumJerkTrajectoryGenerator forcesSmoother(6);
-            forcesSmoother.initializeTimeParameters(m_controllerThreadPeriod, 5); //duration to be moved into module (initial) parameters
+            forcesSmoother.initializeTimeParameters(m_controllerThreadPeriod, m_forcesSmootherDuration); //duration to be moved into module (initial) parameters
             MinimumJerkTrajectoryGenerator jointsSmoother(actuatedDOFs);
-            jointsSmoother.initializeTimeParameters(m_controllerThreadPeriod, 5); //duration to be moved into module (initial) parameters
+            jointsSmoother.initializeTimeParameters(m_controllerThreadPeriod, m_jointsSmootherDuration); //duration to be moved into module (initial) parameters
             
             //create generators
             ReferenceGeneratorInputReader* reader = 0;
@@ -502,6 +504,8 @@ namespace codyco {
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterModuleName, &m_module.m_moduleName);
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterRobotName, &m_module.m_robotName);
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterControllerPeriod, &m_module.m_controllerThreadPeriod);
+            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterForcesSmoothingDuration, &m_module.m_forcesSmootherDuration);
+            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterJointsSmoothingDuration, &m_module.m_jointsSmootherDuration);
             
             if (!linkedVariable) {
                 return false;
