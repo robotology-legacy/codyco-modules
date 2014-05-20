@@ -38,9 +38,7 @@ while on Debian/Ubuntu you can use apt-get :
 sudo apt-get install libeigen3-dev
 ```
 
-The minimum version of Eigen required by codyco is 3.0.5
-
-**The module motorFrictionIdentification requires at least Eigen version 3.1.0**
+The minimum version of Eigen required by codyco is 3.2.0 . 
 
 
 ###kdl
