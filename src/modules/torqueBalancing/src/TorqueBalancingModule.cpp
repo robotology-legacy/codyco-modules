@@ -20,6 +20,7 @@
 #include "Reference.h"
 #include "ReferenceGenerator.h"
 #include "ReferenceGeneratorInputReaderImpl.h"
+#include "MinimumJerkTrajectoryGenerator.h"
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <yarp/os/Port.h>
 #include <vector>
@@ -109,7 +110,13 @@ namespace codyco {
                 std::cerr << "Error in initializing wbi, the number of joints is different from the expected" << std::endl;
                 return false;
             }
-                       
+            
+            //create smoother
+            MinimumJerkTrajectoryGenerator forcesSmoother(6);
+            forcesSmoother.initializeTimeParameters(m_controllerThreadPeriod, 5); //duration to be moved into module (initial) parameters
+            MinimumJerkTrajectoryGenerator jointsSmoother(actuatedDOFs);
+            jointsSmoother.initializeTimeParameters(m_controllerThreadPeriod, 5); //duration to be moved into module (initial) parameters
+            
             //create generators
             ReferenceGeneratorInputReader* reader = 0;
             ReferenceGenerator* generator = 0;
@@ -142,6 +149,7 @@ namespace codyco {
             
             generator = new ReferenceGenerator(m_controllerThreadPeriod, m_references->desiredJointsConfiguration(), *reader);
             if (generator) {
+                generator->setReferenceFilter(&jointsSmoother);
                 m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeImpedanceControl, generator));
             } else {
                 std::cerr << "Could not create impedance controller object." << std::endl;
@@ -190,6 +198,7 @@ namespace codyco {
                 }
                 generator = new ReferenceGenerator(m_controllerThreadPeriod, *(it->reference), *reader);
                 if (generator) {
+                    generator->setReferenceFilter(&forcesSmoother);
                     m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(it->taskType, generator));
                 } else {
                     std::cerr << "Could not create end effector (" << it->referredLinkName << ") force controller object." << std::endl;

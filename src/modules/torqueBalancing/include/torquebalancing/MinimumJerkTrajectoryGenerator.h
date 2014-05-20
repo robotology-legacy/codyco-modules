@@ -49,7 +49,7 @@ namespace codyco {
     namespace torquebalancing {
         
         class MinimumJerkTrajectoryGenerator : public ReferenceFilter {
-            
+        public:
             MinimumJerkTrajectoryGenerator(int dimension);
             
             virtual ~MinimumJerkTrajectoryGenerator();
