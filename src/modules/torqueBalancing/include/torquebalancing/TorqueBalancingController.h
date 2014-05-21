@@ -136,7 +136,7 @@ namespace codyco {
             Eigen::VectorXd m_desiredFeetForces; /*!< 12 */
             Eigen::VectorXd m_desiredCentroidalMomentum;  /*!< 6 */
             Eigen::VectorXd m_desiredHandsForces; /*!< 12 */
-            Eigen::VectorXd m_desiredContactForces; /*!< 24 */
+            Eigen::VectorXd m_desiredContactForces; /*!< 18 (forces + torques for feet, only forces for hands) */
             
             bool m_leftHandForcesActive;
             bool m_rightHandForcesActive;
@@ -165,10 +165,10 @@ namespace codyco {
             Eigen::VectorXd m_gravityForce; /*!< 6 */
             Eigen::MatrixXd m_torquesSelector; /*!< totalDOFs x actuatedDOFs */
             //pseuo inverses
-            Eigen::MatrixXd m_pseudoInverseOfJcMInvSt; /*!< actuatedDOFs x 12 */
+            Eigen::MatrixXd m_pseudoInverseOfJcMInvSt; /*!< actuatedDOFs x (6x2 + 3x2) */
             Eigen::MatrixXd m_pseudoInverseOfJcBase; /*!< 6 x 12 */
             Eigen::MatrixXd m_pseudoInverseOfCentroidalForceMatrix; /*!< 12 x 6 */
-            Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfJcMInvSt; /*!< 12 x actuatedDOFs */
+            Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfJcMInvSt; /*!< (6x2 + 3x2) x actuatedDOFs */
             Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfJcBase; /*!< 12 x 6 */
             Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfCentroidalForceMatrix; /*!< 6 x 12 */
             

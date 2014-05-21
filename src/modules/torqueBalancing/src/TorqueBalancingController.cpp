@@ -54,7 +54,7 @@ namespace codyco {
         , m_desiredFeetForces(12)
         , m_desiredCentroidalMomentum(6)
         , m_desiredHandsForces(12)
-        , m_desiredContactForces(24)
+        , m_desiredContactForces(6*2 + 3*2)
         , m_leftHandForcesActive(false)
         , m_rightHandForcesActive(false)
         , m_jointPositions(actuatedDOFs)
@@ -73,10 +73,10 @@ namespace codyco {
         , m_centroidalForceMatrix(6, 12)
         , m_gravityForce(6)
         , m_torquesSelector(totalDOFs, actuatedDOFs)
-        , m_pseudoInverseOfJcMInvSt(actuatedDOFs, 12)
+        , m_pseudoInverseOfJcMInvSt(actuatedDOFs, 6*2 + 3*2)
         , m_pseudoInverseOfJcBase(6, 12)
         , m_pseudoInverseOfCentroidalForceMatrix(12, 6)
-        , m_svdDecompositionOfJcMInvSt(12, actuatedDOFs)
+        , m_svdDecompositionOfJcMInvSt(6*2 + 3*2, actuatedDOFs)
         , m_svdDecompositionOfJcBase(12, 6)
         , m_svdDecompositionOfCentroidalForceMatrix(6, 12)
         , m_rotoTranslationVector(7)
@@ -326,7 +326,8 @@ namespace codyco {
                                                                             - m_gravityForce
                                                                             - m_desiredHandsForces.head(6) - m_desiredHandsForces.tail(6));
             desiredContactForces.topRows(12) = m_desiredFeetForces;
-            desiredContactForces.bottomRows(12) = m_desiredHandsForces;
+            desiredContactForces.middleRows(12, 3) = m_desiredHandsForces.head(3);
+            desiredContactForces.middleRows(15, 3) = m_desiredHandsForces.segment(6, 3);
         }
         
         void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::MatrixXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques)
