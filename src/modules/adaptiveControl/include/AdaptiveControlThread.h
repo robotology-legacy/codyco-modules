@@ -168,6 +168,8 @@ namespace adaptiveControl {
         
         //debug variables
         double _massMatrixDeterminant;
+        
+        double _torqueSaturation;
    
         yarp::dev::PolyDriver* openDriver(std::string localName, std::string robotName, std::string bodyPartName);
         void computeRegressor(const Eigen::Vector2d& q, /* Joint positions*/

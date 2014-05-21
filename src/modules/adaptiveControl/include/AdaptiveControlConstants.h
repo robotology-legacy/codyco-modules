@@ -122,6 +122,7 @@ namespace adaptiveControl
     static const double defaultRefPhase = 0;
     static const Eigen::Vector8d defaultInitialPiHat = Eigen::Vector8d::Constant(1);
     static const double defaultInitialXi1 = 1;
+    static const double defaultTorqueSaturation = 12;
     
     // *** IDs of all the module parameters
     enum AdaptiveControlParamID {
@@ -150,15 +151,16 @@ namespace adaptiveControl
         AdaptiveControlParamIDRefPhase,
         AdaptiveControlParamIDInitialPiHat,
         AdaptiveControlParamIDInitialXi1,
+        AdaptiveControlParamIDTorqueSaturation
     };
 
     // *****************************************************************************************************************************************
     // ****************************************** DESCRIPTION OF ALL THE MODULE AND THREAD PARAMETERS ******************************************
     // *****************************************************************************************************************************************
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
-    const unsigned short adaptiveControlParamDescriptorsSize = 20;
+    const unsigned short adaptiveControlParamDescriptorsSize = 21;
 #else
-    const unsigned short adaptiveControlParamDescriptorsSize = 19;
+    const unsigned short adaptiveControlParamDescriptorsSize = 20;
 #endif
     const paramHelp::ParamProxyInterface *const adaptiveControlParamDescriptors[]  =
     {
@@ -188,6 +190,7 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<double>("refPhase", AdaptiveControlParamIDRefPhase, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefPhase, "Phase for reference signal: r(t) = base + ampl * sin(2 * pi * freq * t + phase)"),
         new paramHelp::ParamProxyBasic<double>("piHat_0", AdaptiveControlParamIDInitialPiHat, PARAMETERS_SIZE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultInitialPiHat.data(), "Initial values for pihat. They can be set only if the control is off."),
         new paramHelp::ParamProxyBasic<double>("xi1_0", AdaptiveControlParamIDInitialXi1, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultInitialXi1, "Initial values for xi1. It can be set only if the control is off."),
+        new paramHelp::ParamProxyBasic<double>("tauSat", AdaptiveControlParamIDTorqueSaturation, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_IN_OUT, &defaultTorqueSaturation, "Torque saturation for the actuators."),
     };
     
     

@@ -73,7 +73,8 @@ namespace adaptiveControl {
     _link2Length(linklengths(1)),
     _errorIntegral(0),
     _kneeTorque(0),
-    _outputTau(ICUB_PART_DOF, 0.0)
+    _outputTau(ICUB_PART_DOF, 0.0),
+    _torqueSaturation(12)
     {
         _piHat = Vector8d::Zero();
         _dpiHat = Vector8d::Zero();
@@ -124,7 +125,8 @@ namespace adaptiveControl {
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefBaseline, &_refBaseline));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefFrequency, &_refDesiredFrequency));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefAmplitude, &_refAmplitude));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefPhase, &_refPhase));   
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefPhase, &_refPhase));
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDTorqueSaturation, &_torqueSaturation));
         
 		YARP_ASSERT(_paramServer.registerCommandCallback(AdaptiveControlCommandIDStart, this));
 		YARP_ASSERT(_paramServer.registerCommandCallback(AdaptiveControlCommandIDStop, this));
@@ -427,6 +429,8 @@ namespace adaptiveControl {
         
         //compute torques and send them to actuation
         _kneeTorque = regressor.row(1) * _piHat - _kappa(1) * s(1) - _kappaIntegral(1) * _sIntegral(1);
+        _kneeTorque = _kneeTorque > _torqueSaturation ? _torqueSaturation : _kneeTorque;
+        _kneeTorque = _kneeTorque < -_torqueSaturation ? _torqueSaturation : _kneeTorque;
         writeOutputs();
         
         
