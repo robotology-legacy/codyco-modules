@@ -9,10 +9,7 @@
 # ADD_SUBDIRECTORY(A)
 # ADD_SUBDIRECTORY(B)
 
-add_subdirectory(wholeBodyInterface)
-add_subdirectory(modHelp)
 add_subdirectory(motorFrictionIdentificationLib)
-add_subdirectory(codyco-commons)
-add_subdirectory(wholeBodyInterfaceIcub)
+
 
 
