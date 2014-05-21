@@ -75,7 +75,7 @@ Internally, the toolbox uses YARP's ResourceFinder (http://goo.gl/4zAS6r). When 
 - **legsV**:     [int] legs version of your robot.
 - **feetFT**:    [bool] Is the robot endowed with force/torque sensors for its feet?
 - **uses_urdf**: [bool] Is your robot fixed to root or standing on the floor? (for icubGazeboSim this would mean whether you are using the `iCub (fixed)` or `iCub` models)
-- **urdf**:      When using the icubGazeboSim you need to specify the exact location of the urdf model of the robot as found in `/icub-model-generator/generated/`. These models can be downloaded from the repository `https://github.com/robotology-playground/icub-model-generator`. This step is still succeptible to changes in the near future.
+- **urdf**:      When using the icubGazeboSim you need to specify the exact location of the urdf model of the robot as found in `/icub-model-generator/generated/`. These models can be downloaded from the repository https://github.com/robotology-playground/icub-model-generator. This step is still succeptible to changes in the near future.
 
 You will find a few controllers and models that have already been used with the iCub simulator and the real robot as found in `${CODYCO_ROOT}/src/simulink/controllers`. The latest whole-body torque controller for iCub's center of mass can be found in `${MATLAB_ROOT}/src/simulink/controllers/torqueBalancing/controller.mdl`
 
