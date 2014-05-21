@@ -15,7 +15,7 @@ branches:
 install:
   - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
   - sudo apt-get update
-  - sudo apt-get --force-yes install icub libboost-system-dev libboost-thread-dev libtinyxml-dev  libeigen3-dev
+  - sudo apt-get --force-yes install icub libboost-system-dev libboost-thread-dev libtinyxml-dev
 
 
 
