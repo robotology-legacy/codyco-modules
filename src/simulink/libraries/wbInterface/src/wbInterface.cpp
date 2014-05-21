@@ -30,10 +30,6 @@
 #define VERBOSE   0
 #define DEBUGGING 1
 #define TIMING    0
-#define NEWCODE	  1
-// #define ICUB_FIXED
-
-// #define WORLD2BASE_EXTERNAL
 
 YARP_DECLARE_DEVICES(icubmod)
 
