@@ -112,7 +112,6 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     iCub::iDynTree::iCubTree_version_tag icub_version;
     iCubVersionFromRf(rf,icub_version);
 
-
     bool fixed_base = false;
     std::string fixed_link;
     if( rf.check("assume_fixed") )
@@ -135,8 +134,6 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         std::cout << "assume_fixed_base_calibration option found" << std::endl;
         fixed_base_calibration = true;
     }
-
-
 
     //--------------------------RPC PORT--------------------------
     attach(rpcPort);
@@ -187,10 +184,29 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 
     if( rf.check("disable_w0_dw0") )
     {
-        std::cout << "disable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration." << std::endl;
+        std::cout << "disable_w0_dw0 option found, disabling the use of IMU angular velocity/acceleration." << std::endl;
         use_ang_vel_acc = false;
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
     }
+
+    if( rf.check("min_taxel") )
+    {
+        int taxel_threshold = rf.find("min_taxel").asInt();
+        std::cout << "min_taxel option found, ignoring skin contacts with less then "
+                  << taxel_threshold << " active taxels will be ignored." << std::endl;
+        use_ang_vel_acc = false;
+        estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,
+                                                    wbi::ESTIMATION_PARAM_MIN_TAXEL,
+                                                    &taxel_threshold);
+    }
+    else
+    {
+        int taxel_threshold = 0;
+        estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,
+                                                    wbi::ESTIMATION_PARAM_MIN_TAXEL,
+                                                    &taxel_threshold);
+    }
+
 
     bool autoconnect = false;
     if( rf.check("autoconnect") )

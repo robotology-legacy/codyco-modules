@@ -24,7 +24,7 @@
 
 #if defined(__clang__)
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything"
+#pragma clang diagnostic ignored "-Weverything -Wdocumentation"
 #elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wall"
@@ -118,6 +118,9 @@ namespace codyco {
             int m_controllerThreadPeriod;
             double m_modulePeriod;
             bool m_active;
+            
+            double m_forcesSmootherDuration;
+            double m_jointsSmootherDuration;
             
             std::string m_moduleName;
             std::string m_robotName;

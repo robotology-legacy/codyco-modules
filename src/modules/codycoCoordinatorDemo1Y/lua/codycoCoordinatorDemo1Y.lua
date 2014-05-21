@@ -39,13 +39,15 @@ event_contacts_on_both_hands = "e_contacts_on_both_hands"
 
 ----events (input rpc)
 event_reset = "e_reset"
+event_start= "e_start"
 
 events = {
     event_no_contact,
     event_contact_on_left_hand,
     event_contact_on_right_hand,
     event_contacts_on_both_hands,
-    event_reset
+    event_reset,
+    event_start
 }
 
 ----definitions
@@ -144,7 +146,7 @@ function count_contacts()
     skin_contact_left_hand = 0
     skin_contact_right_hand = 0
     skin_activated_taxel_left = 0
-    skin_activated_taxel_right = 0 
+    skin_activated_taxel_right = 0
     last_contact = buffer_skin_contacts:size()-1
     for i = 0,last_contact do
         -- description of skinContact serialization in skinContact::write() method documentation
@@ -342,6 +344,7 @@ function print_help()
     print("["..script_name.."]: --verbose                        : enable verbose output")
     print("["..script_name.."]: --fsm_update_period       period : update period of the FSM (in seconds)")
     print("["..script_name.."]: --fsm_simple_balancing_time time : time (in seconds) to switch from simple balancing to hand seeking phase")
+    print("["..script_name.."]: --fsm_quadruple_balancing_time time : time (in seconds) to switch from quadruple support balancing to simple balancing")
     print("["..script_name.."]: --fsm_state_smoothing_time_constant : time (in seconds) to switch the smooth state")
     print("["..script_name.."]: --fsm_force_threshold threshold : threshold (in Newtons) on external force norm to trigger external contact")
     print("["..script_name.."]: --enable_force_feedback : use external force to detect contacts")
@@ -429,6 +432,7 @@ monitor_port:open("/".. script_name .. "/monitor:o")
 
 fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
 fsm_simple_balancing_time = yarp_rf_find_double(rf,"fsm_simple_balancing_time")
+fsm_quadruple_balancing_time = yarp_rf_find_double(rf,"fsm_quadruple_balancing_time")
 fsm_force_threshold = yarp_rf_find_double(rf,"fsm_force_threshold")
 fsm_state_smoothing_time_constant = yarp_rf_find_double(rf,"fsm_state_smoothing_time_constant")
 fsm_taxel_threshold = yarp_rf_find_int(rf,"fsm_taxel_threshold")
