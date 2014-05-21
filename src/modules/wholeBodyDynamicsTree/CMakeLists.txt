@@ -6,9 +6,10 @@ cmake_minimum_required(VERSION 2.8)
 SET(PROJECTNAME wholeBodyDynamicsTree)
 PROJECT(${PROJECTNAME})
 
-find_package(YARP)
-find_package(ICUB)
-find_package(iDynTree)
+find_package(YARP REQUIRED)
+find_package(ICUB REQUIRED)
+find_package(iDynTree REQUIRED)
+find_package(yarpWholeBodyInterface REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
@@ -22,12 +23,8 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
-                    ${wholeBodyInterface_INCLUDE_DIRS}
-                    ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR}
+                    ${yarpWholeBodyInterface_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
-                    ${orocos_kdl_INCLUDE_DIRS}
-                    ${kdl_codyco_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
@@ -42,7 +39,9 @@ yarp_idl_to_dir(wholeBodyDynamics.thrift ${generated_libs_dir})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} wholeBodyInterface wholeBodyInterfaceIcub ${iDynTree_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES}
+                                     ${iDynTree_LIBRARIES}
+                                     ${yarpWholeBodyInterface})
 
 INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
 
