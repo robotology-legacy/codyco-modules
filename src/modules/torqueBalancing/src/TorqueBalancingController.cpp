@@ -53,6 +53,10 @@ namespace codyco {
         , m_desiredCOMAcceleration(3)
         , m_desiredFeetForces(12)
         , m_desiredCentroidalMomentum(6)
+        , m_desiredHandsForces(12)
+        , m_desiredContactForces(24)
+        , m_leftHandForcesActive(false)
+        , m_rightHandForcesActive(false)
         , m_jointPositions(actuatedDOFs)
         , m_jointVelocities(actuatedDOFs)
         , m_torques(actuatedDOFs)
@@ -60,8 +64,8 @@ namespace codyco {
         , m_centerOfMassPosition(3)
         , m_rightFootPosition(7)
         , m_leftFootPosition(7)
-        , m_feetJacobian(6 + 6, totalDOFs)
-        , m_feetDJacobianDq(12)
+        , m_contactsJacobian(6*2 + 3*2, totalDOFs)
+        , m_contactsDJacobianDq(6*2 + 3*2)
         , m_massMatrix(totalDOFs, totalDOFs)
         , m_generalizedBiasForces(totalDOFs)
         , m_gravityBiasTorques(totalDOFs)
@@ -77,7 +81,9 @@ namespace codyco {
         , m_svdDecompositionOfCentroidalForceMatrix(6, 12)
         , m_rotoTranslationVector(7)
         , m_jointsZeroVector(actuatedDOFs)
-        , m_esaZeroVector(6) {}
+        , m_esaZeroVector(6)
+        , m_jacobianTemporary(6, totalDOFs)
+        , m_dJacobiaDqTemporary(6) {}
         
         TorqueBalancingController::~TorqueBalancingController() {}
 
@@ -89,6 +95,8 @@ namespace codyco {
             bool linkFound = true;
             linkFound = m_robot.getLinkId("l_sole", m_leftFootLinkID);
             linkFound = linkFound && m_robot.getLinkId("r_sole", m_rightFootLinkID);
+            linkFound = linkFound && m_robot.getLinkId("l_gripper", m_leftHandLinkID);
+            linkFound = linkFound && m_robot.getLinkId("r_gripper", m_rightHandLinkID);
             
             m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
                                                             0, -1, 0,
@@ -117,8 +125,8 @@ namespace codyco {
             m_centerOfMassPosition.setZero();
             m_rightFootPosition.setZero();
             m_leftFootPosition.setZero();
-            m_feetJacobian.setZero();
-            m_feetDJacobianDq.setZero();
+            m_contactsJacobian.setZero();
+            m_contactsDJacobianDq.setZero();
             m_generalizedBiasForces.setZero();
             m_gravityBiasTorques.setZero();
             m_centroidalMomentum.setZero();
@@ -129,6 +137,7 @@ namespace codyco {
            
             //zeroing monitored variables
             m_desiredFeetForces.setZero();
+            m_desiredContactForces.setZero();
             m_torques.setZero();
             return linkFound;
         }
@@ -149,10 +158,10 @@ namespace codyco {
             updateRobotState();
             
             //compute desired feet forces
-            computeFeetForces(m_desiredCOMAcceleration, m_desiredFeetForces);
+            computeContactForces(m_desiredCOMAcceleration, m_desiredContactForces);
             
             //compute torques
-            computeTorques(m_desiredFeetForces, m_torques);
+            computeTorques(m_desiredContactForces, m_torques);
             
             //write torques
             writeTorques();
@@ -183,18 +192,6 @@ namespace codyco {
             codyco::LockGuard guard(m_mutex);
             m_impedanceGains = impedanceGains;
         }
-        
-//        const Eigen::VectorXd& TorqueBalancingController::desiredJointsConfiguration()
-//        {
-//            codyco::LockGuard guard(m_mutex);
-//            return m_desiredJointsConfiguration;
-//        }
-//        
-//        void TorqueBalancingController::setDesiredJointsConfiguration(Eigen::VectorXd& desiredJointsConfiguration)
-//        {
-//            codyco::LockGuard guard(m_mutex);
-//            m_desiredJointsConfiguration = desiredJointsConfiguration;
-//        }
         
         void TorqueBalancingController::setActiveState(bool isActive)
         {
@@ -237,6 +234,10 @@ namespace codyco {
                 m_desiredCOMAcceleration = m_references.desiredCOMAcceleration().value();
             if (m_references.desiredJointsConfiguration().isValid())
                 m_desiredJointsConfiguration = m_references.desiredJointsConfiguration().value();
+            if ((m_leftHandForcesActive = m_references.desiredLeftHandForce().isValid()))
+                m_desiredHandsForces.head(6) = m_references.desiredLeftHandForce().value();
+            if ((m_rightHandForcesActive = m_references.desiredRightHandForce().isValid()))
+                m_desiredHandsForces.tail(6) = m_references.desiredRightHandForce().value();
         }
         
         bool TorqueBalancingController::updateRobotState()
@@ -251,8 +252,19 @@ namespace codyco {
             m_world2BaseFrame.setToInverse();
             
             //update jacobians (both feet in one variable)
-            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_feetJacobian.topRows(6).data());
-            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_feetJacobian.bottomRows(6).data());
+            m_contactsJacobian.setZero();
+            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_contactsJacobian.topRows(6).data());
+            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_contactsJacobian.middleRows<6>(6).data());
+            if (m_leftHandForcesActive) {
+                m_jacobianTemporary.setZero();
+                m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_leftHandLinkID, m_jacobianTemporary.data());
+                m_contactsJacobian.middleRows<3>(12) = m_jacobianTemporary.topRows(3);
+            }
+            if (m_rightHandForcesActive) {
+                m_jacobianTemporary.setZero();
+                m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_rightHandLinkID, m_jacobianTemporary.data());
+                m_contactsJacobian.bottomRows(3) = m_jacobianTemporary.topRows(3);
+            }
             
             //update kinematic quantities
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_centerOfMassLinkID, m_rotoTranslationVector.data());
@@ -261,16 +273,28 @@ namespace codyco {
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_rightFootPosition.data());
             
             //update base velocity (to be moved in wbi state)
-            math::pseudoInverse(m_feetJacobian.leftCols(6), m_svdDecompositionOfJcBase,
+            math::pseudoInverse(m_contactsJacobian.topLeftCorner<12, 6>(), m_svdDecompositionOfJcBase,
                                 m_pseudoInverseOfJcBase, PseudoInverseTolerance);
-            m_baseVelocity = -m_pseudoInverseOfJcBase * m_feetJacobian.rightCols(actuatedDOFs) * m_jointVelocities;
+            m_baseVelocity = -m_pseudoInverseOfJcBase * m_contactsJacobian.topRightCorner(12, actuatedDOFs) * m_jointVelocities;
             
             //update dynamic quantities
             m_robot.computeMassMatrix(m_jointPositions.data(), m_world2BaseFrame, m_massMatrix.data());
             m_robot.computeCentroidalMomentum(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_centroidalMomentum.data());
-            
-            m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_leftFootLinkID, m_feetDJacobianDq.head(6).data());
-            m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_rightFootLinkID, m_feetDJacobianDq.tail(6).data());
+
+            m_contactsDJacobianDq.setZero();
+            m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_leftFootLinkID, m_contactsDJacobianDq.head(6).data());
+            m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_rightFootLinkID, m_contactsDJacobianDq.segment<6>(6).data());
+
+            if (m_leftHandForcesActive) {
+                m_dJacobiaDqTemporary.setZero();
+                m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_leftHandLinkID, m_dJacobiaDqTemporary.data());
+                m_contactsDJacobianDq.segment<3>(12) = m_dJacobiaDqTemporary.head(3);
+            }
+            if (m_rightHandForcesActive) {
+                m_dJacobiaDqTemporary.setZero();
+                m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_rightHandLinkID, m_dJacobiaDqTemporary.data());
+                m_contactsDJacobianDq.tail(3) = m_dJacobiaDqTemporary.head(3);
+            }
             
             //Compute bias forces
             m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_gravityUnitVector, m_generalizedBiasForces.data());
@@ -279,7 +303,7 @@ namespace codyco {
             return true;
         }
         
-        void TorqueBalancingController::computeFeetForces(const Eigen::Ref<Eigen::MatrixXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::MatrixXd> desiredFeetForces)
+        void TorqueBalancingController::computeContactForces(const Eigen::Ref<Eigen::MatrixXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::MatrixXd> desiredContactForces)
         {
             using namespace Eigen;
             double mass = m_massMatrix(0, 0);
@@ -298,25 +322,29 @@ namespace codyco {
 //            m_svdDecompositionOfCentroidalForceMatrix.compute(m_centroidalForceMatrix).solve(m_desiredCentroidalMomentum - m_gravityForce);            
             math::pseudoInverse(m_centroidalForceMatrix, m_svdDecompositionOfCentroidalForceMatrix,
                                 m_pseudoInverseOfCentroidalForceMatrix, PseudoInverseTolerance);
-            desiredFeetForces = m_pseudoInverseOfCentroidalForceMatrix * (m_desiredCentroidalMomentum - m_gravityForce);
+            m_desiredFeetForces = m_pseudoInverseOfCentroidalForceMatrix * (m_desiredCentroidalMomentum
+                                                                            - m_gravityForce
+                                                                            - m_desiredHandsForces.head(6) - m_desiredHandsForces.tail(6));
+            desiredContactForces.topRows(12) = m_desiredFeetForces;
+            desiredContactForces.bottomRows(12) = m_desiredHandsForces;
         }
         
-        void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::MatrixXd>& desiredFeetForces, Eigen::Ref<Eigen::MatrixXd> torques)
+        void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::MatrixXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques)
         {
             using namespace Eigen;
             
             //TODO: decide later if there is a performance benefit in moving the declaration of the variables in the class (or if this becomes a "new" at runtime)
             //Names are taken from "math" from brevity
-            MatrixXd JcMInv = m_feetJacobian * m_massMatrix.inverse(); //to become instance (?)
+            MatrixXd JcMInv = m_contactsJacobian * m_massMatrix.inverse(); //to become instance (?)
             MatrixXd JcMInvTorqueSelector = JcMInv * m_torquesSelector; //to become instance (?)
 
             math::pseudoInverse(JcMInvTorqueSelector, m_svdDecompositionOfJcMInvSt,
                                 m_pseudoInverseOfJcMInvSt, PseudoInverseTolerance);
             MatrixXd nullSpaceProjector = MatrixXd::Identity(actuatedDOFs, actuatedDOFs) - m_pseudoInverseOfJcMInvSt * JcMInvTorqueSelector; //to be inlined in m_torques
                         
-            m_torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_feetDJacobianDq - JcMInv * m_feetJacobian.transpose() * desiredFeetForces);
+            m_torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_contactsDJacobianDq - JcMInv * m_contactsJacobian.transpose() * desiredContactForces);
             
-            VectorXd torques0 = m_gravityBiasTorques.tail(actuatedDOFs) - m_feetJacobian.rightCols(actuatedDOFs).transpose() * desiredFeetForces 
+            VectorXd torques0 = m_gravityBiasTorques.tail(actuatedDOFs) - m_contactsJacobian.rightCols(actuatedDOFs).transpose() * desiredContactForces
             - m_impedanceGains.asDiagonal() * (m_jointPositions - m_desiredJointsConfiguration);
             
             m_torques += nullSpaceProjector * torques0;

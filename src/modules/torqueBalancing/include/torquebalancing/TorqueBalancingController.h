@@ -95,18 +95,6 @@ namespace codyco {
              */
             bool isActiveState();
             
-//            /** Returns the currently used desired joints configuration
-//             *  for the impedance/postural task.
-//             * @return the currently used desired joints configuration
-//             */
-//            const Eigen::VectorXd& desiredJointsConfiguration();
-//
-//            /** Sets the new desired joints configuration
-//             *  for the impedance/postural task.
-//             * @param desiredJointsConfiguration the new desired joints configuration
-//             */
-//            void setDesiredJointsConfiguration(Eigen::VectorXd& desiredJointsConfiguration);
-//            
 #pragma mark - Monitorable variables
             
             const Eigen::VectorXd& desiredFeetForces();
@@ -116,8 +104,8 @@ namespace codyco {
         private:
             void readReferences();
             bool updateRobotState();
-            void computeFeetForces(const Eigen::Ref<Eigen::MatrixXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::MatrixXd> desiredFeetForces);
-            void computeTorques(const Eigen::Ref<Eigen::MatrixXd>& desiredFeetForces, Eigen::Ref<Eigen::MatrixXd> torques);
+            void computeContactForces(const Eigen::Ref<Eigen::MatrixXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::MatrixXd> desiredContactForces);
+            void computeTorques(const Eigen::Ref<Eigen::MatrixXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques);
             void writeTorques();
             
             wbi::wholeBodyInterface& m_robot;
@@ -132,6 +120,8 @@ namespace codyco {
             int m_leftFootLinkID;
             int m_rightFootLinkID;
             int m_centerOfMassLinkID;
+            int m_leftHandLinkID;
+            int m_rightHandLinkID;
             
             //References
             ControllerReferences& m_references;
@@ -145,6 +135,11 @@ namespace codyco {
             Eigen::Vector3d m_desiredCOMAcceleration;
             Eigen::VectorXd m_desiredFeetForces; /*!< 12 */
             Eigen::VectorXd m_desiredCentroidalMomentum;  /*!< 6 */
+            Eigen::VectorXd m_desiredHandsForces; /*!< 12 */
+            Eigen::VectorXd m_desiredContactForces; /*!< 24 */
+            
+            bool m_leftHandForcesActive;
+            bool m_rightHandForcesActive;
             
             //state of the robot
             Eigen::VectorXd m_jointPositions;  /*!< totalDOFs */
@@ -156,8 +151,8 @@ namespace codyco {
             Eigen::VectorXd m_leftFootPosition; /*!< 7 */
             
             //Jacobians
-            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_feetJacobian; /*!< 12 x totalDOFs */
-            Eigen::VectorXd m_feetDJacobianDq; /*!< 12 */
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_contactsJacobian; /*!< (6x2 + 3x2) x totalDOFs (forces and torques for feet, only forces for hands)*/
+            Eigen::VectorXd m_contactsDJacobianDq; /*!< (6x2 + 3x2) */
             
             //Kinematic and dynamic variables
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_massMatrix; /*!< totalDOFs x totalDOFs */
@@ -182,6 +177,8 @@ namespace codyco {
             Eigen::Matrix<double, 7, 1> m_rotoTranslationVector; /*!< 7 */
             Eigen::VectorXd m_jointsZeroVector; /*!< actuatedDOFs */
             Eigen::Matrix<double, 6, 1> m_esaZeroVector; /*!< 6 */
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_jacobianTemporary; /* 6 x totalDOFs */
+            Eigen::VectorXd m_dJacobiaDqTemporary; /* 6 */
             
         };
     }
