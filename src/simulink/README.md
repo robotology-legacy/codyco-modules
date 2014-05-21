@@ -19,17 +19,17 @@ alt="Overview of the Simulink library for Whole Body Control" width="480" height
 
 
 ###### Requirements
-* Matlab V. 7.1+ and Simulink (Tested with Matlab R2013a, 7.14 R2012a, 7.12 R2011a).
+* Matlab V. 7.1+ and Simulink (Tested with Matlab R2013a, 7.14 R2012a/b, 7.12 R2011a).
 * YARP (compiled as shared library -IMPORTANT-).
 * CoDyCo. 
 * iCub.
-* Gazebo Simulator + YARP plugins (if you wish to use Gazebo instead of iCub_SIM).
+* Gazebo Simulator + `gazebo_yarp_plugins` (if you wish to use Gazebo instead of iCub_SIM).
 * Operating Systems supported: Linux, MAC OS X, Windows.
 
 **Note: The following instructions are for Linux distributions, but it works similarly on the other operating systems.**
 
 ###### Installation
-Before going ahead with the compilation of the library, make sure that you have MATLAB and Simulink properly installed and running. Then, check that the MEX compiler for MATLAB is setup and working. For this you can try compiling some of the MATLAB C code examples as described in [http://www.mathworks.com/help/matlab/ref/mex.html#btz1tb5-12]. In the following steps assume that `$CODYCO_DIR` points to the `/build` directory of your CoDyCo installation and `$CODYCO_ROOT` to the corresponding `/src` directory. In case you are using the simulator, make sure that the iCub models are being loaded and the gazebo_yarp_plugins properly working. This is easy to verify as you need only to launch a `yarpserver`, then Gazebo and load the desired model, be it iCub (fixed) or iCub. If the robot does not fall under the effect of gravity, it means the plugins are working and you can go ahead with the installation of the Toolbox.
+Before going ahead with the compilation of the library, make sure that you have MATLAB and Simulink properly installed and running. Then, check that the MEX compiler for MATLAB is setup and working. For this you can try compiling some of the MATLAB C code examples as described in [http://www.mathworks.com/help/matlab/ref/mex.html#btz1tb5-12]. In the following steps assume that `$CODYCO_DIR` points to the `/build` directory of your CoDyCo installation and `$CODYCO_ROOT` to the corresponding `/src` directory. In case you are using the simulator, make sure that the iCub models are being loaded and the `gazebo_yarp_plugins` properly working. This is easy to verify as you need only to launch a `yarpserver`, then Gazebo and load the desired model, be it iCub (fixed) or iCub. If the robot does not fall under the effect of gravity, it means the plugins are working and you can go ahead with the installation of the Toolbox.
 
 - **Compiling the WBI Toolbox.** When configuring the CMakeLists for CoDyCo make sure to enable the `CODYCO_USES_WBI_TOOLBOX` flag by doing
 ```bash
@@ -56,7 +56,7 @@ As an alternative you can also run the MATLAB script `startup_wbitoolbox.m` in `
 
 Depending on what you would like to do, remember that you can change the Simulink simulation settings by going to Simulation > Configuration Parameters > Solver and changing the `Stop time` to your desired value, or `inf` if you want the simulation to run 'forever'. Also, since this toolbox is very oriented to real implementation, the `Solver Options` in the very same window should be changed to `Fixed Step` Type and `discrete(no continuous states)` as the Solver.
 
-- **Test the Library.** In $CODYCO_ROOT/src/simulink/controllers you can find some models for testing (more on this in the readme of the aforementioned directory). In order to test that the library is working correctly and properly linking YARP you can try running a `yarpserver`, after which you can go to the controllers directory in MATLAB and open yarpwrite.mdl. Before starting the simulation, give a name to the YARP port where you want to write by double clicking the block and editing the mask that pops up. 
+- **Test the Library.** In `$CODYCO_ROOT/src/simulink/controllers` you can find some models for testing (more on this in the readme of the aforementioned directory). In order to test that the library is working correctly and properly linking YARP you can try running a `yarpserver`, after which you can go to the controllers directory in MATLAB and open yarpwrite.mdl. Before starting the simulation, give a name to the YARP port where you want to write by double clicking the block and editing the mask that pops up. 
 
 - **For MAC OS X Users.** It has been reported that on MAC OS you need to define the place where you want MATLAB to find at runtime dynamic libraries for YARP, in case you have compiled YARP in a directory different from the default one. This can be added in `${MATLAB_ROOT}/bin/.matlab7rc.sh`. 
 ```bash
@@ -77,7 +77,7 @@ Internally, the toolbox uses YARP's ResourceFinder (http://goo.gl/4zAS6r). When 
 - **uses_urdf**: [bool] Is your robot fixed to root or standing on the floor? (for icubGazeboSim this would mean whether you are using the `iCub (fixed)` or `iCub` models)
 - **urdf**:      When using the icubGazeboSim you need to specify the exact location of the urdf model of the robot as found in `/icub-model-generator/generated/`. These models can be downloaded from the repository https://github.com/robotology-playground/icub-model-generator. This step is still succeptible to changes in the near future.
 
-You will find a few controllers and models that have already been used with the iCub simulator and the real robot as found in `${CODYCO_ROOT}/src/simulink/controllers`. The latest whole-body torque controller for iCub's center of mass can be found in `${MATLAB_ROOT}/src/simulink/controllers/torqueBalancing/controller.mdl`
+You will find a few controllers and models that have already been used with the iCub simulator and the real robot as found in `${CODYCO_ROOT}/src/simulink/controllers`. The latest whole-body torque controller for iCub's center of mass can be found in `${CODYCO_ROOT}/src/simulink/controllers/torqueBalancing/controller.mdl`
 
 ###### Tested OS
 Linux, Windows, MAC OS X
