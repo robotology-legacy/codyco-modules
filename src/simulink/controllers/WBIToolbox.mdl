@@ -1,6 +1,6 @@
 Library {
-  Name			  "WBCLibrary"
-  Version		  7.9
+  Name			  "WBIToolbox"
+  Version		  8.1
   MdlSubVersion		  0
   SavedCharacterEncoding  "UTF-8"
   LibraryType		  "BlockLibrary"
@@ -15,15 +15,66 @@ Library {
   "Actuators/setVelDes1||__slNewName__||WBCLibrary/wholeBodyActuators/Set Velocities||__slOldName__||WBCLibrary/wholeBo"
   "dyActuators/setVelDes||__slNewName__||WBCLibrary/wholeBodyActuators/Set Velocities"
   MaxMDLFileLineLength	  120
+  Object {
+    $PropName		    "BdWindowsInfo"
+    $ObjectID		    1
+    $ClassName		    "Simulink.BDWindowsInfo"
+    Object {
+      $PropName		      "WindowsInfo"
+      $ObjectID		      2
+      $ClassName	      "Simulink.WindowInfo"
+      IsActive		      [1]
+      Location		      [105.0, 101.0, 1078.0, 604.0]
+      Object {
+	$PropName		"ModelBrowserInfo"
+	$ObjectID		3
+	$ClassName		"Simulink.ModelBrowserInfo"
+	Visible			[0]
+	DockPosition		"Left"
+	Width			[50]
+	Height			[50]
+	Filter			[9]
+      }
+      Object {
+	$PropName		"ExplorerBarInfo"
+	$ObjectID		4
+	$ClassName		"Simulink.ExplorerBarInfo"
+	Visible			[1]
+      }
+      Array {
+	Type			"Simulink.EditorInfo"
+	Dimension		2
+	Object {
+	  $ObjectID		  5
+	  IsActive		  [1]
+	  ViewObjType		  "SimulinkTopLevel"
+	  LoadSaveID		  "0"
+	  Extents		  [1020.0, 413.0]
+	  ZoomFactor		  [1.9799999999999991]
+	  Offset		  [-24.526766454330669, -15.212627628234969]
+	}
+	Object {
+	  $ObjectID		  6
+	  IsActive		  [0]
+	  ViewObjType		  "SimulinkSubsys"
+	  LoadSaveID		  "209"
+	  Extents		  [1027.0, 468.0]
+	  ZoomFactor		  [1.25]
+	  Offset		  [-48.900544057255388, -54.130161323078994]
+	}
+	PropName		"EditorsInfo"
+      }
+    }
+  }
   Created		  "Thu Feb 06 11:21:39 2014"
   Creator		  "jorhabib"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon May 12 15:55:22 2014"
-  RTWModifiedTimeStamp	  321810884
-  ModelVersionFormat	  "1.%<AutoIncrement:52>"
+  LastModifiedDate	  "Wed May 21 12:26:47 2014"
+  RTWModifiedTimeStamp	  322575903
+  ModelVersionFormat	  "1.%<AutoIncrement:62>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -91,14 +142,14 @@ Library {
     Type		    "Handle"
     Dimension		    1
     Simulink.ConfigSet {
-      $ObjectID		      1
-      Version		      "1.12.0"
+      $ObjectID		      7
+      Version		      "1.13.0"
       Array {
 	Type			"Handle"
 	Dimension		9
 	Simulink.SolverCC {
-	  $ObjectID		  2
-	  Version		  "1.12.0"
+	  $ObjectID		  8
+	  Version		  "1.13.0"
 	  StartTime		  "0.0"
 	  StopTime		  "10.0"
 	  AbsTol		  "auto"
@@ -132,8 +183,8 @@ Library {
 	  InsertRTBMode		  "Whenever possible"
 	}
 	Simulink.DataIOCC {
-	  $ObjectID		  3
-	  Version		  "1.12.0"
+	  $ObjectID		  9
+	  Version		  "1.13.0"
 	  Decimation		  "1"
 	  ExternalInput		  "[t, u]"
 	  FinalStateName	  "xFinal"
@@ -164,8 +215,8 @@ Library {
 	  Refine		  "1"
 	}
 	Simulink.OptimizationCC {
-	  $ObjectID		  4
-	  Version		  "1.12.0"
+	  $ObjectID		  10
+	  Version		  "1.13.0"
 	  Array {
 	    Type		    "Cell"
 	    Dimension		    8
@@ -220,8 +271,8 @@ Library {
 	  ParallelExecutionInRapidAccelerator on
 	}
 	Simulink.DebuggingCC {
-	  $ObjectID		  5
-	  Version		  "1.12.0"
+	  $ObjectID		  11
+	  Version		  "1.13.0"
 	  RTPrefix		  "error"
 	  ConsistencyChecking	  "none"
 	  ArrayBoundsChecking	  "none"
@@ -270,7 +321,7 @@ Library {
 	  UnnecessaryDatatypeConvMsg "none"
 	  VectorMatrixConversionMsg "none"
 	  InvalidFcnCallConnMsg	  "error"
-	  FcnCallInpInsideContextMsg "Enable All"
+	  FcnCallInpInsideContextMsg "EnableAllAsWarning"
 	  SignalLabelMismatchMsg  "none"
 	  UnconnectedInputMsg	  "warning"
 	  UnconnectedOutputMsg	  "warning"
@@ -306,14 +357,17 @@ Library {
 	  SFNoUnconditionalDefaultTransitionDiag "warning"
 	  SFTransitionOutsideNaturalParentDiag "warning"
 	  SFUnconditionalTransitionShadowingDiag "warning"
+	  SFUndirectedBroadcastEventsDiag "warning"
+	  SFTransitionActionBeforeConditionDiag	"warning"
 	}
 	Simulink.HardwareCC {
-	  $ObjectID		  6
-	  Version		  "1.12.0"
+	  $ObjectID		  12
+	  Version		  "1.13.0"
 	  ProdBitPerChar	  8
 	  ProdBitPerShort	  16
 	  ProdBitPerInt		  32
 	  ProdBitPerLong	  32
+	  ProdBitPerLongLong	  64
 	  ProdBitPerFloat	  32
 	  ProdBitPerDouble	  64
 	  ProdBitPerPointer	  32
@@ -323,17 +377,20 @@ Library {
 	  ProdEndianess		  "Unspecified"
 	  ProdWordSize		  32
 	  ProdShiftRightIntArith  on
+	  ProdLongLongMode	  off
 	  ProdHWDeviceType	  "32-bit Generic"
 	  TargetBitPerChar	  8
 	  TargetBitPerShort	  16
 	  TargetBitPerInt	  32
 	  TargetBitPerLong	  32
+	  TargetBitPerLongLong	  64
 	  TargetBitPerFloat	  32
 	  TargetBitPerDouble	  64
 	  TargetBitPerPointer	  32
 	  TargetLargestAtomicInteger "Char"
 	  TargetLargestAtomicFloat "None"
 	  TargetShiftRightIntArith on
+	  TargetLongLongMode	  off
 	  TargetIntDivRoundTo	  "Undefined"
 	  TargetEndianess	  "Unspecified"
 	  TargetWordSize	  32
@@ -345,8 +402,8 @@ Library {
 	  ProdEqTarget		  on
 	}
 	Simulink.ModelReferenceCC {
-	  $ObjectID		  7
-	  Version		  "1.12.0"
+	  $ObjectID		  13
+	  Version		  "1.13.0"
 	  UpdateModelReferenceTargets "IfOutOfDateOrStructuralChange"
 	  CheckModelReferenceTargetMessage "error"
 	  EnableParallelModelReferenceBuilds off
@@ -360,8 +417,8 @@ Library {
 	  SupportModelReferenceSimTargetCustomCode off
 	}
 	Simulink.SFSimCC {
-	  $ObjectID		  8
-	  Version		  "1.12.0"
+	  $ObjectID		  14
+	  Version		  "1.13.0"
 	  SFSimEnableDebug	  on
 	  SFSimOverflowDetection  on
 	  SFSimEcho		  on
@@ -375,8 +432,8 @@ Library {
 	}
 	Simulink.RTWCC {
 	  $BackupClass		  "Simulink.RTWCC"
-	  $ObjectID		  9
-	  Version		  "1.12.0"
+	  $ObjectID		  15
+	  Version		  "1.13.0"
 	  Array {
 	    Type		    "Cell"
 	    Dimension		    9
@@ -395,6 +452,7 @@ Library {
 	  GenCodeOnly		  off
 	  MakeCommand		  "make_rtw"
 	  GenerateMakefile	  on
+	  PackageGeneratedCodeAndArtifacts off
 	  TemplateMakefile	  "grt_default_tmf"
 	  GenerateReport	  off
 	  SaveLog		  off
@@ -411,6 +469,14 @@ Library {
 	  RTWUseSimCustomCode	  off
 	  IncludeHyperlinkInReport off
 	  LaunchReport		  off
+	  PortableWordSizes	  off
+	  GenerateErtSFunction	  off
+	  CreateSILPILBlock	  "None"
+	  CodeExecutionProfiling  off
+	  CodeExecutionProfileVariable "executionProfile"
+	  CodeProfilingSaveOptions "SummaryOnly"
+	  CodeProfilingInstrumentation off
+	  SILDebugging		  off
 	  TargetLang		  "C"
 	  IncludeBusHierarchyInRTWFileBlockHierarchyMap	off
 	  IncludeERTFirstTime	  off
@@ -430,8 +496,8 @@ Library {
 	    Type		    "Handle"
 	    Dimension		    2
 	    Simulink.CodeAppCC {
-	      $ObjectID		      10
-	      Version		      "1.12.0"
+	      $ObjectID		      16
+	      Version		      "1.13.0"
 	      Array {
 		Type			"Cell"
 		Dimension		21
@@ -467,6 +533,7 @@ Library {
 	      PreserveName	      off
 	      PreserveNameWithParent  off
 	      ShowEliminatedStatement off
+	      OperatorAnnotations     off
 	      IncAutoGenComments      off
 	      SimulinkDataObjDesc     off
 	      SFDataObjDesc	      off
@@ -474,7 +541,7 @@ Library {
 	      IncDataTypeInIds	      off
 	      MangleLength	      1
 	      CustomSymbolStrGlobalVar "$R$N$M"
-	      CustomSymbolStrType     "$N$R$M"
+	      CustomSymbolStrType     "$N$R$M_T"
 	      CustomSymbolStrField    "$N$M"
 	      CustomSymbolStrFcn      "$R$N$M$F"
 	      CustomSymbolStrFcnArg   "rt$I$N$M"
@@ -489,14 +556,15 @@ Library {
 	      SimulinkBlockComments   on
 	      MATLABSourceComments    off
 	      EnableCustomComments    off
+	      InternalIdentifier      "Shortened"
 	      InlinedPrmAccess	      "Literals"
 	      ReqsInCode	      off
 	      UseSimReservedNames     off
 	    }
 	    Simulink.GRTTargetCC {
 	      $BackupClass	      "Simulink.TargetCC"
-	      $ObjectID		      11
-	      Version		      "1.12.0"
+	      $ObjectID		      17
+	      Version		      "1.13.0"
 	      Array {
 		Type			"Cell"
 		Dimension		16
@@ -509,13 +577,13 @@ Library {
 		Cell			"GenerateTestInterfaces"
 		Cell			"ModelStepFunctionPrototypeControlCompliant"
 		Cell			"CPPClassGenCompliant"
-		Cell			"MultiInstanceERTCode"
+		Cell			"PortableWordSizes"
 		Cell			"PurelyIntegerCode"
 		Cell			"SupportComplex"
 		Cell			"SupportAbsoluteTime"
 		Cell			"SupportContinuousTime"
 		Cell			"SupportNonInlinedSFcns"
-		Cell			"PortableWordSizes"
+		Cell			"GenerateAllocFcn"
 		PropName		"DisabledProps"
 	      }
 	      TargetFcnLib	      "ansi_tfl_table_tmw.mat"
@@ -524,7 +592,6 @@ Library {
 	      CodeReplacementLibrary  "ANSI_C"
 	      UtilityFuncGeneration   "Auto"
 	      ERTMultiwordTypeDef     "System defined"
-	      CodeExecutionProfiling  off
 	      ERTMultiwordLength      256
 	      MultiwordLength	      2048
 	      GenerateFullHeader      on
@@ -555,11 +622,12 @@ Library {
 	      SupportVariableSizeSignals off
 	      EnableShiftOperators    on
 	      ParenthesesLevel	      "Nominal"
-	      PortableWordSizes	      off
+	      MATLABClassNameForMDSCustomization "Simulink.SoftwareTarget.GRTCustomization"
 	      ModelStepFunctionPrototypeControlCompliant off
 	      CPPClassGenCompliant    off
 	      AutosarCompliant	      off
 	      GRTInterface	      off
+	      GenerateAllocFcn	      off
 	      UseMalloc		      off
 	      ExtMode		      off
 	      ExtModeStaticAlloc      off
@@ -578,8 +646,8 @@ Library {
 	  }
 	}
 	hdlcoderui.hdlcc {
-	  $ObjectID		  12
-	  Version		  "1.12.0"
+	  $ObjectID		  18
+	  Version		  "1.13.0"
 	  Description		  "HDL Coder custom configuration component"
 	  Name			  "HDL Coder"
 	  Array {
@@ -629,6 +697,25 @@ Library {
     FontSize		    9
     FontWeight		    "normal"
     FontAngle		    "normal"
+  }
+  MaskDefaults {
+    SelfModifiable	    "off"
+    IconFrame		    "on"
+    IconOpaque		    "on"
+    RunInitForIconRedraw    "off"
+    IconRotate		    "none"
+    PortRotate		    "default"
+    IconUnits		    "autoscale"
+  }
+  MaskParameterDefaults {
+    Evaluate		    "on"
+    Tunable		    "on"
+    NeverSave		    "off"
+    Internal		    "off"
+    ReadOnly		    "off"
+    Enabled		    "on"
+    Visible		    "on"
+    ToolTip		    "on"
   }
   BlockParameterDefaults {
     Block {
@@ -757,6 +844,7 @@ Library {
       SystemSampleTime	      "-1"
       RTWFcnNameOpts	      "Auto"
       RTWFileNameOpts	      "Auto"
+      FunctionInterfaceSpec   "void_void"
       RTWMemSecFuncInitTerm   "Inherit from model"
       RTWMemSecFuncExecute    "Inherit from model"
       RTWMemSecDataConstants  "Inherit from model"
@@ -806,12 +894,12 @@ Library {
     }
   }
   System {
-    Name		    "WBCLibrary"
-    Location		    [520, 166, 1308, 426]
+    Name		    "WBIToolbox"
+    Location		    [105, 101, 1183, 705]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
-    ScreenColor		    "gray"
+    ScreenColor		    "black"
     PaperOrientation	    "landscape"
     PaperPositionMode	    "auto"
     PaperType		    "usletter"
@@ -827,8 +915,9 @@ Library {
       Name		      "Utilities"
       SID		      "192"
       Ports		      []
-      Position		      [329, 17, 367, 54]
+      Position		      [354, 12, 452, 109]
       ZOrder		      -1
+      ForegroundColor	      "white"
       DropShadow	      on
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -837,15 +926,15 @@ Library {
       Opaque		      off
       RequestExecContextInheritance off
       MaskHideContents	      off
-      MaskDisplay	      "image(imread('utilities.bmp'))"
-      MaskIconFrame	      on
-      MaskIconOpaque	      on
-      MaskIconRotate	      "none"
-      MaskPortRotate	      "default"
-      MaskIconUnits	      "autoscale"
+      Object {
+	$PropName		"MaskObject"
+	$ObjectID		19
+	$ClassName		"Simulink.Mask"
+	Display			"image(imread('utilities.png'))"
+      }
       System {
 	Name			"Utilities"
-	Location		[68, 414, 760, 767]
+	Location		[261, 46, 1376, 738]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -873,22 +962,23 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskPromptString	  "Tolerance"
-	  MaskStyleString	  "edit"
-	  MaskVariables		  "tol=@1;"
-	  MaskTunableValueString  "on"
-	  MaskEnableString	  "on"
-	  MaskVisibilityString	  "on"
-	  MaskToolTipString	  "on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "1e-4"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    20
+	    $ClassName		    "Simulink.Mask"
+	    Object {
+	      $PropName		      "Parameters"
+	      $ObjectID		      21
+	      $ClassName	      "Simulink.MaskParameter"
+	      Type		      "edit"
+	      Name		      "tol"
+	      Prompt		      "Tolerance"
+	      Value		      "1e-4"
+	    }
+	  }
 	  System {
 	    Name		    "DampPinv"
-	    Location		    [999, 549, 1366, 951]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -937,19 +1027,9 @@ Library {
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
 	      SFBlockType	      "MATLAB Function"
-	      MaskType		      "Stateflow"
-	      MaskDescription	      "Embedded MATLAB block"
-	      MaskSelfModifiable      on
-	      MaskDisplay	      "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('p"
-	      "rivate/eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      off
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "normalized"
 	      System {
 		Name			"Damped Pseudo Inverse"
-		Location		[223, 338, 826, 833]
+		Location		[189, 219, 840, 949]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -962,7 +1042,7 @@ Library {
 		TiledPageScale		1
 		ShowPageBoundaries	off
 		ZoomFactor		"100"
-		SIDHighWatermark	"35"
+		SIDHighWatermark	"38"
 		Block {
 		  BlockType		  Inport
 		  Name			  "mat"
@@ -983,20 +1063,20 @@ Library {
 		Block {
 		  BlockType		  Demux
 		  Name			  " Demux "
-		  SID			  "107::27"
+		  SID			  "107::37"
 		  Ports			  [1, 1]
-		  Position		  [270, 160, 320, 200]
-		  ZOrder		  13
+		  Position		  [270, 230, 320, 270]
+		  ZOrder		  17
 		  Outputs		  "1"
 		}
 		Block {
 		  BlockType		  S-Function
 		  Name			  " SFunction "
-		  SID			  "107::26"
-		  Tag			  "Stateflow S-Function WBCLibrary 6"
+		  SID			  "107::36"
+		  Tag			  "Stateflow S-Function WBIToolbox 6"
 		  Ports			  [2, 2]
 		  Position		  [180, 100, 230, 160]
-		  ZOrder		  12
+		  ZOrder		  16
 		  FunctionName		  "sf_sfun"
 		  PortCounts		  "[2 2]"
 		  EnableBusSupport	  off
@@ -1010,9 +1090,9 @@ Library {
 		Block {
 		  BlockType		  Terminator
 		  Name			  " Terminator "
-		  SID			  "107::29"
-		  Position		  [460, 171, 480, 189]
-		  ZOrder		  15
+		  SID			  "107::38"
+		  Position		  [460, 241, 480, 259]
+		  ZOrder		  18
 		}
 		Block {
 		  BlockType		  Outport
@@ -1025,6 +1105,7 @@ Library {
 		Line {
 		  SrcBlock		  "mat"
 		  SrcPort		  1
+		  Points		  [120, 0]
 		  DstBlock		  " SFunction "
 		  DstPort		  1
 		}
@@ -1096,21 +1177,22 @@ Library {
 	  FunctionName		  "sfun_time"
 	  Parameters		  "rate"
 	  EnableBusSupport	  off
-	  MaskType		  "Soft Real Time"
-	  MaskPromptString	  "Simulation rate"
-	  MaskStyleString	  "edit"
-	  MaskVariables		  "rate=@1;"
-	  MaskTunableValueString  "on"
-	  MaskEnableString	  "on"
-	  MaskVisibilityString	  "on"
-	  MaskToolTipString	  "on"
-	  MaskDisplay		  "disp('SoftRealTime')"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "0.010"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    22
+	    $ClassName		    "Simulink.Mask"
+	    Type		    "Soft Real Time"
+	    Display		    "disp('SoftRealTime')"
+	    Object {
+	      $PropName		      "Parameters"
+	      $ObjectID		      23
+	      $ClassName	      "Simulink.MaskParameter"
+	      Type		      "edit"
+	      Name		      "rate"
+	      Prompt		      "Simulation rate"
+	      Value		      "0.010"
+	    }
+	  }
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -1127,22 +1209,23 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskPromptString	  "Tolerance"
-	  MaskStyleString	  "edit"
-	  MaskVariables		  "tol=@1;"
-	  MaskTunableValueString  "on"
-	  MaskEnableString	  "on"
-	  MaskVisibilityString	  "on"
-	  MaskToolTipString	  "on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "1e-4"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    24
+	    $ClassName		    "Simulink.Mask"
+	    Object {
+	      $PropName		      "Parameters"
+	      $ObjectID		      25
+	      $ClassName	      "Simulink.MaskParameter"
+	      Type		      "edit"
+	      Name		      "tol"
+	      Prompt		      "Tolerance"
+	      Value		      "1e-4"
+	    }
+	  }
 	  System {
 	    Name		    "TruncPinv"
-	    Location		    [561, 279, 928, 681]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -1191,19 +1274,9 @@ Library {
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
 	      SFBlockType	      "MATLAB Function"
-	      MaskType		      "Stateflow"
-	      MaskDescription	      "Embedded MATLAB block"
-	      MaskSelfModifiable      on
-	      MaskDisplay	      "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('p"
-	      "rivate/eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      off
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "normalized"
 	      System {
 		Name			"Truncated PseudoInverse"
-		Location		[223, 338, 826, 833]
+		Location		[189, 219, 840, 949]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -1216,7 +1289,7 @@ Library {
 		TiledPageScale		1
 		ShowPageBoundaries	off
 		ZoomFactor		"100"
-		SIDHighWatermark	"35"
+		SIDHighWatermark	"38"
 		Block {
 		  BlockType		  Inport
 		  Name			  "mat"
@@ -1237,20 +1310,20 @@ Library {
 		Block {
 		  BlockType		  Demux
 		  Name			  " Demux "
-		  SID			  "112::27"
+		  SID			  "112::37"
 		  Ports			  [1, 1]
-		  Position		  [270, 160, 320, 200]
-		  ZOrder		  13
+		  Position		  [270, 230, 320, 270]
+		  ZOrder		  17
 		  Outputs		  "1"
 		}
 		Block {
 		  BlockType		  S-Function
 		  Name			  " SFunction "
-		  SID			  "112::26"
-		  Tag			  "Stateflow S-Function WBCLibrary 7"
+		  SID			  "112::36"
+		  Tag			  "Stateflow S-Function WBIToolbox 7"
 		  Ports			  [2, 2]
 		  Position		  [180, 100, 230, 160]
-		  ZOrder		  12
+		  ZOrder		  16
 		  FunctionName		  "sf_sfun"
 		  PortCounts		  "[2 2]"
 		  EnableBusSupport	  off
@@ -1264,9 +1337,9 @@ Library {
 		Block {
 		  BlockType		  Terminator
 		  Name			  " Terminator "
-		  SID			  "112::29"
-		  Position		  [460, 171, 480, 189]
-		  ZOrder		  15
+		  SID			  "112::38"
+		  Position		  [460, 241, 480, 259]
+		  ZOrder		  18
 		}
 		Block {
 		  BlockType		  Outport
@@ -1279,6 +1352,7 @@ Library {
 		Line {
 		  SrcBlock		  "mat"
 		  SrcPort		  1
+		  Points		  [120, 0]
 		  DstBlock		  " SFunction "
 		  DstPort		  1
 		}
@@ -1344,6 +1418,7 @@ Library {
 	  SID			  "730"
 	  Ports			  [1, 5]
 	  Position		  [390, 142, 500, 228]
+	  ZOrder		  -7
 	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -1352,16 +1427,16 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskType		  "WBI to YARP"
-	  MaskDescription	  "Swaps first and third joints of the torso from a WBI whole body state reading."
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    26
+	    $ClassName		    "Simulink.Mask"
+	    Type		    "WBI to YARP"
+	    Description		    "Swaps first and third joints of the torso from a WBI whole body state reading."
+	  }
 	  System {
 	    Name		    "WBI to yarp"
-	    Location		    [1006, 421, 1335, 810]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -1379,6 +1454,7 @@ Library {
 	      Name		      "WBI ordered"
 	      SID		      "731"
 	      Position		      [25, 145, 40, 175]
+	      ZOrder		      -1
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
@@ -1387,6 +1463,7 @@ Library {
 	      SID		      "732"
 	      Ports		      [1, 1]
 	      Position		      [85, 26, 125, 64]
+	      ZOrder		      -2
 	      InputPortWidth	      "25"
 	      IndexOptions	      "Index vector (dialog)"
 	      Indices		      "[1 2 3]"
@@ -1398,6 +1475,7 @@ Library {
 	      SID		      "733"
 	      Ports		      [1, 1]
 	      Position		      [110, 86, 150, 124]
+	      ZOrder		      -3
 	      InputPortWidth	      "25"
 	      IndexOptions	      "Index vector (dialog)"
 	      Indices		      "[4 5 6 7 8]"
@@ -1409,6 +1487,7 @@ Library {
 	      SID		      "734"
 	      Ports		      [1, 1]
 	      Position		      [110, 151, 150, 189]
+	      ZOrder		      -4
 	      InputPortWidth	      "25"
 	      IndexOptions	      "Index vector (dialog)"
 	      Indices		      "[9 10 11 12 13]"
@@ -1420,6 +1499,7 @@ Library {
 	      SID		      "735"
 	      Ports		      [1, 1]
 	      Position		      [110, 216, 150, 254]
+	      ZOrder		      -5
 	      InputPortWidth	      "25"
 	      IndexOptions	      "Index vector (dialog)"
 	      Indices		      "[14 15 16 17 18 19]"
@@ -1431,6 +1511,7 @@ Library {
 	      SID		      "736"
 	      Ports		      [1, 1]
 	      Position		      [110, 286, 150, 324]
+	      ZOrder		      -6
 	      InputPortWidth	      "25"
 	      IndexOptions	      "Index vector (dialog)"
 	      Indices		      "[20 21 22 23 24 25]"
@@ -1442,6 +1523,7 @@ Library {
 	      SID		      "737"
 	      Ports		      [1, 1]
 	      Position		      [145, 29, 200, 61]
+	      ZOrder		      -7
 	      InputPortWidth	      "3"
 	      IndexOptions	      "Index vector (dialog)"
 	      Indices		      "[3 2 1]"
@@ -1452,6 +1534,7 @@ Library {
 	      Name		      "torso"
 	      SID		      "738"
 	      Position		      [215, 38, 245, 52]
+	      ZOrder		      -8
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
@@ -1459,6 +1542,7 @@ Library {
 	      Name		      "leftArm"
 	      SID		      "739"
 	      Position		      [175, 98, 205, 112]
+	      ZOrder		      -9
 	      Port		      "2"
 	      IconDisplay	      "Port number"
 	    }
@@ -1467,6 +1551,7 @@ Library {
 	      Name		      "rightArm"
 	      SID		      "740"
 	      Position		      [175, 163, 205, 177]
+	      ZOrder		      -10
 	      Port		      "3"
 	      IconDisplay	      "Port number"
 	    }
@@ -1475,6 +1560,7 @@ Library {
 	      Name		      "leftLeg"
 	      SID		      "741"
 	      Position		      [175, 228, 205, 242]
+	      ZOrder		      -11
 	      Port		      "4"
 	      IconDisplay	      "Port number"
 	    }
@@ -1483,6 +1569,7 @@ Library {
 	      Name		      "rightLeg"
 	      SID		      "742"
 	      Position		      [175, 298, 205, 312]
+	      ZOrder		      -12
 	      Port		      "5"
 	      IconDisplay	      "Port number"
 	    }
@@ -1515,13 +1602,12 @@ Library {
 	      SrcPort		      1
 	      Points		      [25, 0]
 	      Branch {
-		Points			[0, -60]
+		Points			[0, -55]
 		Branch {
 		  DstBlock		  "Selector"
 		  DstPort		  1
 		}
 		Branch {
-		  Points		  [0, 5]
 		  DstBlock		  "Selector1"
 		  DstPort		  1
 		}
@@ -1566,6 +1652,7 @@ Library {
 	  SID			  "431"
 	  Ports			  [3, 1]
 	  Position		  [530, 58, 640, 102]
+	  ZOrder		  -8
 	  BackgroundColor	  "[0.753334, 1.000000, 0.112472]"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -1574,16 +1661,16 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskType		  "baseVelocity"
-	  MaskDescription	  "This block computes the velocity of the floating base of a bipedal robot"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    27
+	    $ClassName		    "Simulink.Mask"
+	    Type		    "baseVelocity"
+	    Description		    "This block computes the velocity of the floating base of a bipedal robot"
+	  }
 	  System {
 	    Name		    "baseVelocity"
-	    Location		    [754, 458, 1327, 687]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -1601,6 +1688,7 @@ Library {
 	      Name		      "JacobRF"
 	      SID		      "432"
 	      Position		      [15, 53, 45, 67]
+	      ZOrder		      -1
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
@@ -1608,6 +1696,7 @@ Library {
 	      Name		      "JacobLF"
 	      SID		      "433"
 	      Position		      [15, 93, 45, 107]
+	      ZOrder		      -2
 	      Port		      "2"
 	      IconDisplay	      "Port number"
 	    }
@@ -1616,6 +1705,7 @@ Library {
 	      Name		      "dq"
 	      SID		      "434"
 	      Position		      [15, 163, 45, 177]
+	      ZOrder		      -3
 	      Port		      "3"
 	      IconDisplay	      "Port number"
 	    }
@@ -1638,19 +1728,9 @@ Library {
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
 	      SFBlockType	      "MATLAB Function"
-	      MaskType		      "Stateflow"
-	      MaskDescription	      "Embedded MATLAB block"
-	      MaskSelfModifiable      on
-	      MaskDisplay	      "bgColor = Simulink.Root.ColorString2Rgb(get_param(gcbh, 'BackgroundColor')); image(imread('p"
-	      "rivate/eml_membrane_16.png','png','BackgroundColor',bgColor(1:3)),'center'); disp([10 10 'fcn']);"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      off
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "normalized"
 	      System {
 		Name			"MATLAB Function"
-		Location		[257, 457, 812, 717]
+		Location		[223, 338, 826, 833]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -1663,12 +1743,13 @@ Library {
 		TiledPageScale		1
 		ShowPageBoundaries	off
 		ZoomFactor		"100"
-		SIDHighWatermark	"31"
+		SIDHighWatermark	"34"
 		Block {
 		  BlockType		  Inport
 		  Name			  "JcIn"
 		  SID			  "1030::1"
 		  Position		  [20, 101, 40, 119]
+		  ZOrder		  -1
 		  IconDisplay		  "Port number"
 		}
 		Block {
@@ -1683,20 +1764,20 @@ Library {
 		Block {
 		  BlockType		  Demux
 		  Name			  " Demux "
-		  SID			  "1030::20"
+		  SID			  "1030::33"
 		  Ports			  [1, 1]
-		  Position		  [270, 180, 320, 220]
-		  ZOrder		  6
+		  Position		  [270, 230, 320, 270]
+		  ZOrder		  11
 		  Outputs		  "1"
 		}
 		Block {
 		  BlockType		  S-Function
 		  Name			  " SFunction "
-		  SID			  "1030::19"
-		  Tag			  "Stateflow S-Function WBCLibrary 2"
+		  SID			  "1030::32"
+		  Tag			  "Stateflow S-Function WBIToolbox 2"
 		  Ports			  [2, 2]
-		  Position		  [180, 100, 230, 180]
-		  ZOrder		  5
+		  Position		  [180, 100, 230, 160]
+		  ZOrder		  10
 		  FunctionName		  "sf_sfun"
 		  PortCounts		  "[2 2]"
 		  EnableBusSupport	  off
@@ -1710,20 +1791,22 @@ Library {
 		Block {
 		  BlockType		  Terminator
 		  Name			  " Terminator "
-		  SID			  "1030::22"
-		  Position		  [460, 191, 480, 209]
-		  ZOrder		  8
+		  SID			  "1030::34"
+		  Position		  [460, 241, 480, 259]
+		  ZOrder		  12
 		}
 		Block {
 		  BlockType		  Outport
 		  Name			  "y"
 		  SID			  "1030::5"
 		  Position		  [460, 101, 480, 119]
+		  ZOrder		  -6
 		  IconDisplay		  "Port number"
 		}
 		Line {
 		  SrcBlock		  "JcIn"
 		  SrcPort		  1
+		  Points		  [120, 0]
 		  DstBlock		  " SFunction "
 		  DstPort		  1
 		}
@@ -1769,6 +1852,7 @@ Library {
 	      Name		      "baseVel"
 	      SID		      "440"
 	      Position		      [400, 93, 430, 107]
+	      ZOrder		      -15
 	      IconDisplay	      "Port number"
 	    }
 	    Line {
@@ -1812,6 +1896,7 @@ Library {
 	  SID			  "714"
 	  Ports			  [2, 2]
 	  Position		  [140, 143, 200, 187]
+	  ZOrder		  -9
 	  BackgroundColor	  "[0.300000, 0.580000, 1.000000]"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -1820,17 +1905,17 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskType		  "Errors"
-	  MaskDescription	  "Computes two kinds of errors. The first is just the difference between x\nand y while the second"
-	  " is the ratio (x-y)/y."
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    28
+	    $ClassName		    "Simulink.Mask"
+	    Type		    "Errors"
+	    Description		    "Computes two kinds of errors. The first is just the difference between x\nand y while the secon"
+	    "d is the ratio (x-y)/y."
+	  }
 	  System {
 	    Name		    "errors"
-	    Location		    [522, 255, 797, 397]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -1848,6 +1933,7 @@ Library {
 	      Name		      "x"
 	      SID		      "715"
 	      Position		      [30, 28, 60, 42]
+	      ZOrder		      -1
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
@@ -1855,6 +1941,7 @@ Library {
 	      Name		      "y"
 	      SID		      "716"
 	      Position		      [25, 103, 55, 117]
+	      ZOrder		      -2
 	      Port		      "2"
 	      IconDisplay	      "Port number"
 	    }
@@ -1864,6 +1951,7 @@ Library {
 	      SID		      "717"
 	      Ports		      [2, 1]
 	      Position		      [95, 27, 125, 58]
+	      ZOrder		      -3
 	      Inputs		      "+-"
 	      InputSameDT	      off
 	      OutDataTypeStr	      "Inherit: Inherit via internal rule"
@@ -1875,6 +1963,7 @@ Library {
 	      SID		      "718"
 	      Ports		      [2, 1]
 	      Position		      [165, 37, 195, 68]
+	      ZOrder		      -4
 	      Inputs		      "*/"
 	      InputSameDT	      off
 	      OutDataTypeStr	      "Inherit: Inherit via internal rule"
@@ -1886,6 +1975,7 @@ Library {
 	      Name		      "x-y"
 	      SID		      "719"
 	      Position		      [225, 13, 255, 27]
+	      ZOrder		      -5
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
@@ -1893,6 +1983,7 @@ Library {
 	      Name		      "(x-y)./y"
 	      SID		      "720"
 	      Position		      [220, 48, 250, 62]
+	      ZOrder		      -6
 	      Port		      "2"
 	      IconDisplay	      "Port number"
 	    }
@@ -1945,6 +2036,7 @@ Library {
 	  SID			  "706"
 	  Ports			  [1, 1]
 	  Position		  [40, 143, 100, 187]
+	  ZOrder		  -10
 	  BackgroundColor	  "[0.270000, 0.522000, 0.900000]"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -1953,16 +2045,16 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskType		  "Holder"
-	  MaskDescription	  "Holds the first value read by the block at the beginning of the simulation."
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    29
+	    $ClassName		    "Simulink.Mask"
+	    Type		    "Holder"
+	    Description		    "Holds the first value read by the block at the beginning of the simulation."
+	  }
 	  System {
 	    Name		    "holder"
-	    Location		    [371, 331, 909, 542]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -1980,6 +2072,7 @@ Library {
 	      Name		      "s"
 	      SID		      "707"
 	      Position		      [80, 128, 110, 142]
+	      ZOrder		      -1
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
@@ -1987,6 +2080,7 @@ Library {
 	      Name		      "Clock"
 	      SID		      "708"
 	      Position		      [165, 45, 185, 65]
+	      ZOrder		      -2
 	    }
 	    Block {
 	      BlockType		      Reference
@@ -1994,7 +2088,8 @@ Library {
 	      SID		      "709"
 	      Ports		      [1, 1]
 	      Position		      [210, 40, 240, 70]
-	      LibraryVersion	      "1.260"
+	      ZOrder		      -3
+	      LibraryVersion	      "1.274"
 	      SourceBlock	      "simulink/Logic and Bit\nOperations/Compare\nTo Constant"
 	      SourceType	      "Compare To Constant"
 	      relop		      "=="
@@ -2007,6 +2102,7 @@ Library {
 	      Name		      "Memory"
 	      SID		      "710"
 	      Position		      [165, 120, 195, 150]
+	      ZOrder		      -4
 	    }
 	    Block {
 	      BlockType		      Reference
@@ -2014,7 +2110,8 @@ Library {
 	      SID		      "711"
 	      Ports		      [1, 1, 0, 1]
 	      Position		      [230, 114, 305, 156]
-	      LibraryVersion	      "1.726"
+	      ZOrder		      -5
+	      LibraryVersion	      "1.731"
 	      SourceBlock	      "dspsigops/Sample\nand Hold"
 	      SourceType	      "Sample and Hold"
 	      trig		      "Falling edge"
@@ -2026,6 +2123,7 @@ Library {
 	      Name		      "Switch"
 	      SID		      "712"
 	      Position		      [405, 100, 455, 140]
+	      ZOrder		      -6
 	      Criteria		      "u2 > Threshold"
 	      InputSameDT	      off
 	      SaturateOnIntegerOverflow	off
@@ -2035,6 +2133,7 @@ Library {
 	      Name		      "s(0)"
 	      SID		      "713"
 	      Position		      [480, 113, 510, 127]
+	      ZOrder		      -7
 	      IconDisplay	      "Port number"
 	    }
 	    Line {
@@ -2106,28 +2205,45 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskType		  "minJerkTrajGen  "
-	  MaskDescription	  "This block wraps the minJerkTrajGen class from iCub::ctrl::minJerkTrajGen.\n\nThe min jerk traje"
-	  "ctory is approximated using a 3rd order LTI dynamical system (for more details see Pattacini2010). Position, veloci"
-	  "ty and acceleration trajectories are computed. The main advantage with respect to the standard polynomial form is t"
-	  "hat if the reference value yd changes there is no need to recompute the filter coefficients."
-	  MaskPromptString	  "Trajectory dimension (int)|Simulation rate (int) [sec]|Trajectory time (double) [sec]"
-	  MaskStyleString	  "edit,edit,edit"
-	  MaskVariables		  "dim=@1;Ts=@2;Tt=@3;"
-	  MaskTunableValueString  "on,on,on"
-	  MaskCallbackString	  "||"
-	  MaskEnableString	  "on,on,on"
-	  MaskVisibilityString	  "on,on,on"
-	  MaskToolTipString	  "on,on,on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "3|Ts|Tt"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    30
+	    $ClassName		    "Simulink.Mask"
+	    Type		    "minJerkTrajGen  "
+	    Description		    "This block wraps the minJerkTrajGen class from iCub::ctrl::minJerkTrajGen.\n\nThe min jerk traj"
+	    "ectory is approximated using a 3rd order LTI dynamical system (for more details see Pattacini2010). Position, vel"
+	    "ocity and acceleration trajectories are computed. The main advantage with respect to the standard polynomial form"
+	    " is that if the reference value yd changes there is no need to recompute the filter coefficients."
+	    Array {
+	      Type		      "Simulink.MaskParameter"
+	      Dimension		      3
+	      Object {
+		$ObjectID		31
+		Type			"edit"
+		Name			"dim"
+		Prompt			"Trajectory dimension (int)"
+		Value			"3"
+	      }
+	      Object {
+		$ObjectID		32
+		Type			"edit"
+		Name			"Ts"
+		Prompt			"Simulation rate (int) [sec]"
+		Value			"Ts"
+	      }
+	      Object {
+		$ObjectID		33
+		Type			"edit"
+		Name			"Tt"
+		Prompt			"Trajectory time (double) [sec]"
+		Value			"Tt"
+	      }
+	      PropName		      "Parameters"
+	    }
+	  }
 	  System {
 	    Name		    "minJerkTrajGen"
-	    Location		    [467, 113, 977, 708]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2168,20 +2284,37 @@ Library {
 	      FunctionName	      "minJerkGenerator"
 	      Parameters	      "dim, rate, tt"
 	      EnableBusSupport	      off
-	      MaskPromptString	      "Trajectory dimension (int)|Simulation rate (int) [ms]|Trajectory time [s]"
-	      MaskStyleString	      "edit,edit,edit"
-	      MaskVariables	      "dim=@1;rate=@2;tt=@3;"
-	      MaskTunableValueString  "on,on,on"
-	      MaskCallbackString      "||"
-	      MaskEnableString	      "on,on,on"
-	      MaskVisibilityString    "on,on,on"
-	      MaskToolTipString	      "on,on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "dim|Ts|Tt"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		34
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  3
+		  Object {
+		    $ObjectID		    35
+		    Type		    "edit"
+		    Name		    "dim"
+		    Prompt		    "Trajectory dimension (int)"
+		    Value		    "dim"
+		  }
+		  Object {
+		    $ObjectID		    36
+		    Type		    "edit"
+		    Name		    "rate"
+		    Prompt		    "Simulation rate (int) [ms]"
+		    Value		    "Ts"
+		  }
+		  Object {
+		    $ObjectID		    37
+		    Type		    "edit"
+		    Name		    "tt"
+		    Prompt		    "Trajectory time [s]"
+		    Value		    "Tt"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	    }
 	    Block {
 	      BlockType		      Outport
@@ -2254,26 +2387,36 @@ Library {
 	  FunctionName		  "ySynchronizer"
 	  Parameters		  "rate"
 	  EnableBusSupport	  off
-	  MaskType		  "ySynchronizer"
-	  MaskDescription	  "Slows down the simulation and synchronizes all blocks with Yarp time.\nThis block takes two inpu"
-	  "t parameters: \n\nPeriod: rate at which you want the simulation to run. It must coincide with the \"Fixed-step size"
-	  "\" \nset in \"Solver Options\" within the configuration parameters of your simulation.\n\nScale Factor: If your sim"
-	  "ulation runs faster than your desired rate, this block \nwill slow down the simulation to make it match the specifi"
-	  "ed rate (in the case the scale factor is 1)."
-	  MaskPromptString	  "Period |Scale factor"
-	  MaskStyleString	  "edit,edit"
-	  MaskVariables		  "rate=@1;scaleFactor=@2;"
-	  MaskTunableValueString  "on,on"
-	  MaskCallbackString	  "|"
-	  MaskEnableString	  "on,on"
-	  MaskVisibilityString	  "on,on"
-	  MaskToolTipString	  "on,on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "0.010|1"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    38
+	    $ClassName		    "Simulink.Mask"
+	    Type		    "ySynchronizer"
+	    Description		    "Slows down the simulation and synchronizes all blocks with Yarp time.\nThis block takes two inp"
+	    "ut parameters: \n\nPeriod: rate at which you want the simulation to run. It must coincide with the \"Fixed-step s"
+	    "ize\" \nset in \"Solver Options\" within the configuration parameters of your simulation.\n\nScale Factor: If you"
+	    "r simulation runs faster than your desired rate, this block \nwill slow down the simulation to make it match the "
+	    "specified rate (in the case the scale factor is 1)."
+	    Array {
+	      Type		      "Simulink.MaskParameter"
+	      Dimension		      2
+	      Object {
+		$ObjectID		39
+		Type			"edit"
+		Name			"rate"
+		Prompt			"Period "
+		Value			"0.010"
+	      }
+	      Object {
+		$ObjectID		40
+		Type			"edit"
+		Name			"scaleFactor"
+		Prompt			"Scale factor"
+		Value			"1"
+	      }
+	      PropName		      "Parameters"
+	    }
+	  }
 	}
 	Block {
 	  BlockType		  S-Function
@@ -2286,20 +2429,37 @@ Library {
 	  FunctionName		  "yRead"
 	  Parameters		  "from,to,num"
 	  EnableBusSupport	  off
-	  MaskPromptString	  "From|to|num"
-	  MaskStyleString	  "edit,edit,edit"
-	  MaskVariables		  "from=@1;to=@2;num=@3;"
-	  MaskTunableValueString  "on,on,on"
-	  MaskCallbackString	  "||"
-	  MaskEnableString	  "on,on,on"
-	  MaskVisibilityString	  "on,on,on"
-	  MaskToolTipString	  "on,on,on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "['/' robotName '/torso/state:o']|'...'|3"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    41
+	    $ClassName		    "Simulink.Mask"
+	    Array {
+	      Type		      "Simulink.MaskParameter"
+	      Dimension		      3
+	      Object {
+		$ObjectID		42
+		Type			"edit"
+		Name			"from"
+		Prompt			"From"
+		Value			"['/' robotName '/torso/state:o']"
+	      }
+	      Object {
+		$ObjectID		43
+		Type			"edit"
+		Name			"to"
+		Prompt			"to"
+		Value			"'...'"
+	      }
+	      Object {
+		$ObjectID		44
+		Type			"edit"
+		Name			"num"
+		Prompt			"num"
+		Value			"3"
+	      }
+	      PropName		      "Parameters"
+	    }
+	  }
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -2307,6 +2467,7 @@ Library {
 	  SID			  "721"
 	  Ports			  [5, 1]
 	  Position		  [230, 142, 345, 228]
+	  ZOrder		  -14
 	  BackgroundColor	  "[0.240000, 0.464000, 0.800000]"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -2315,17 +2476,17 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskType		  "YARP to wbi"
-	  MaskDescription	  "This is an iCub specific block which swaps the readings of the first and \nthird joint of the to"
-	  "rso."
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    45
+	    $ClassName		    "Simulink.Mask"
+	    Type		    "YARP to wbi"
+	    Description		    "This is an iCub specific block which swaps the readings of the first and \nthird joint of the t"
+	    "orso."
+	  }
 	  System {
 	    Name		    "yarp to WBI"
-	    Location		    [160, 689, 425, 877]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2343,6 +2504,7 @@ Library {
 	      Name		      "torso"
 	      SID		      "722"
 	      Position		      [25, 23, 55, 37]
+	      ZOrder		      -1
 	      IconDisplay	      "Port number"
 	    }
 	    Block {
@@ -2350,6 +2512,7 @@ Library {
 	      Name		      "leftArm"
 	      SID		      "723"
 	      Position		      [25, 53, 55, 67]
+	      ZOrder		      -2
 	      Port		      "2"
 	      IconDisplay	      "Port number"
 	    }
@@ -2358,6 +2521,7 @@ Library {
 	      Name		      "rightArm"
 	      SID		      "724"
 	      Position		      [25, 83, 55, 97]
+	      ZOrder		      -3
 	      Port		      "3"
 	      IconDisplay	      "Port number"
 	    }
@@ -2366,6 +2530,7 @@ Library {
 	      Name		      "leftLeg"
 	      SID		      "725"
 	      Position		      [25, 113, 55, 127]
+	      ZOrder		      -4
 	      Port		      "4"
 	      IconDisplay	      "Port number"
 	    }
@@ -2374,6 +2539,7 @@ Library {
 	      Name		      "rightLeg"
 	      SID		      "726"
 	      Position		      [25, 143, 55, 157]
+	      ZOrder		      -5
 	      Port		      "5"
 	      IconDisplay	      "Port number"
 	    }
@@ -2383,6 +2549,7 @@ Library {
 	      SID		      "727"
 	      Ports		      [5, 1]
 	      Position		      [180, 13, 185, 167]
+	      ZOrder		      -6
 	      ShowName		      off
 	      Inputs		      "5"
 	      DisplayOption	      "bar"
@@ -2393,6 +2560,7 @@ Library {
 	      SID		      "728"
 	      Ports		      [1, 1]
 	      Position		      [85, 14, 140, 46]
+	      ZOrder		      -7
 	      InputPortWidth	      "3"
 	      IndexOptions	      "Index vector (dialog)"
 	      Indices		      "[3 2 1]"
@@ -2403,6 +2571,7 @@ Library {
 	      Name		      "WBI ordered"
 	      SID		      "729"
 	      Position		      [210, 83, 240, 97]
+	      ZOrder		      -8
 	      IconDisplay	      "Port number"
 	    }
 	    Line {
@@ -2464,22 +2633,23 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskPromptString	  "Specify port name starting with \"/\" e.g. '/port/input:i'"
-	  MaskStyleString	  "edit"
-	  MaskVariables		  "port_name=@1;"
-	  MaskTunableValueString  "on"
-	  MaskEnableString	  "on"
-	  MaskVisibilityString	  "on"
-	  MaskToolTipString	  "on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "'...'"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    46
+	    $ClassName		    "Simulink.Mask"
+	    Object {
+	      $PropName		      "Parameters"
+	      $ObjectID		      47
+	      $ClassName	      "Simulink.MaskParameter"
+	      Type		      "edit"
+	      Name		      "port_name"
+	      Prompt		      "Specify port name starting with \"/\" e.g. '/port/input:i'"
+	      Value		      "'...'"
+	    }
+	  }
 	  System {
 	    Name		    "yarp write"
-	    Location		    [636, 387, 904, 704]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2526,8 +2696,9 @@ Library {
       Name		      "wholeBodyActuators"
       SID		      "224"
       Ports		      []
-      Position		      [231, 17, 267, 52]
+      Position		      [240, 11, 338, 108]
       ZOrder		      -17
+      ForegroundColor	      "white"
       DropShadow	      on
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -2536,15 +2707,15 @@ Library {
       Opaque		      off
       RequestExecContextInheritance off
       MaskHideContents	      off
-      MaskDisplay	      "image(imread('wholeBodyActuators.bmp'),'center')"
-      MaskIconFrame	      on
-      MaskIconOpaque	      on
-      MaskIconRotate	      "none"
-      MaskPortRotate	      "default"
-      MaskIconUnits	      "autoscale"
+      Object {
+	$PropName		"MaskObject"
+	$ObjectID		48
+	$ClassName		"Simulink.Mask"
+	Display			"image(imread('wholeBodyActuators.png'),'center')"
+      }
       System {
 	Name			"wholeBodyActuators"
-	Location		[88, 276, 631, 433]
+	Location		[261, 46, 1376, 738]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -2572,31 +2743,42 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskPromptString	  "Control Mode"
-	  MaskStyleString	  "popup(Position|Velocity|Torque)"
-	  MaskVariables		  "ctrlMode=&1;"
-	  MaskTunableValueString  "off"
-	  MaskEnableString	  "on"
-	  MaskVisibilityString	  "on"
-	  MaskToolTipString	  "on"
-	  MaskInitialization	  "switch ctrlMode\n    case 'Velocity'\n%         display('Velocity Mode selected')\n        cu"
-	  "rrent = gcb;\n        block = find_system(current,...\n            'LookUnderMasks','on',...\n            'FollowLi"
-	  "nks','on','Name','set Velocities');\n        if ~isempty(block)\n%             display('setVelDes will be deleted')"
-	  "\n            delete_block(block)\n%             display('setVelDes has been deleted')\n            add_block('WBCL"
-	  "ibrary/wholeBodyActuators/set Velocities', [current,'/setVelDes1'])            \n%             display('New setVelD"
-	  "es has been created')\n            add_line(current,'In1/1',[current '/set Velocities/1'])\n        else\n%        "
-	  "     display('A new setVelDes will be created')\n            add_block('WBCLibrary/wholeBodyActuators/set Velocitie"
-	  "s', [current,'/setVelDes1'])            \n        end\nend"
-	  MaskSelfModifiable	  on
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "Velocity"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    49
+	    $ClassName		    "Simulink.Mask"
+	    Initialization	    "switch ctrlMode\n    case 'Velocity'\n%         display('Velocity Mode selected')\n        cu"
+	    "rrent = gcb;\n        block = find_system(current,...\n            'LookUnderMasks','on',...\n            'Follow"
+	    "Links','on','Name','set Velocities');\n        if ~isempty(block)\n%             display('setVelDes will be delet"
+	    "ed')\n            delete_block(block)\n%             display('setVelDes has been deleted')\n            add_block"
+	    "('WBCLibrary/wholeBodyActuators/set Velocities', [current,'/setVelDes1'])            \n%             display('New"
+	    " setVelDes has been created')\n            add_line(current,'In1/1',[current '/set Velocities/1'])\n        else\n"
+	    "%             display('A new setVelDes will be created')\n            add_block('WBCLibrary/wholeBodyActuators/se"
+	    "t Velocities', [current,'/setVelDes1'])            \n        end\nend"
+	    SelfModifiable	    "on"
+	    Object {
+	      $PropName		      "Parameters"
+	      $ObjectID		      50
+	      $ClassName	      "Simulink.MaskParameter"
+	      Type		      "popup"
+	      Array {
+		Type			"Cell"
+		Dimension		3
+		Cell			"Position"
+		Cell			"Velocity"
+		Cell			"Torque"
+		PropName		"TypeOptions"
+	      }
+	      Name		      "ctrlMode"
+	      Prompt		      "Control Mode"
+	      Value		      "Velocity"
+	      Evaluate		      "off"
+	      Tunable		      "off"
+	    }
+	  }
 	  System {
 	    Name		    "ControlMode"
-	    Location		    [819, 232, 1365, 767]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2626,6 +2808,7 @@ Library {
 	  SID			  "394"
 	  Ports			  [1]
 	  Position		  [175, 53, 245, 97]
+	  ZOrder		  -18
 	  BackgroundColor	  "[0.855000, 0.450000, 0.133000]"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -2634,23 +2817,40 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskPromptString	  "Block type|Robot name|Local name"
-	  MaskStyleString	  "edit,edit,edit"
-	  MaskVariables		  "val=@1;robotName=@2;localName=@3;"
-	  MaskTunableValueString  "on,on,on"
-	  MaskCallbackString	  "||"
-	  MaskEnableString	  "on,on,on"
-	  MaskVisibilityString	  "on,on,on"
-	  MaskToolTipString	  "on,on,on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "5|robotName|localName"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    51
+	    $ClassName		    "Simulink.Mask"
+	    Array {
+	      Type		      "Simulink.MaskParameter"
+	      Dimension		      3
+	      Object {
+		$ObjectID		52
+		Type			"edit"
+		Name			"val"
+		Prompt			"Block type"
+		Value			"5"
+	      }
+	      Object {
+		$ObjectID		53
+		Type			"edit"
+		Name			"robotName"
+		Prompt			"Robot name"
+		Value			"robotName"
+	      }
+	      Object {
+		$ObjectID		54
+		Type			"edit"
+		Name			"localName"
+		Prompt			"Local name"
+		Value			"localName"
+	      }
+	      PropName		      "Parameters"
+	    }
+	  }
 	  System {
 	    Name		    "Set Angles"
-	    Location		    [300, 246, 577, 568]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -2904,6 +3104,7 @@ Library {
 	  SID			  "405"
 	  Ports			  [1]
 	  Position		  [290, 53, 360, 97]
+	  ZOrder		  -19
 	  BackgroundColor	  "[0.941000, 0.415000, 0.192000]"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -2912,23 +3113,40 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskPromptString	  "Block type|Robot name|Local name"
-	  MaskStyleString	  "edit,edit,edit"
-	  MaskVariables		  "val=@1;robotName=@2;localName=@3;"
-	  MaskTunableValueString  "on,on,on"
-	  MaskCallbackString	  "||"
-	  MaskEnableString	  "on,on,on"
-	  MaskVisibilityString	  "on,on,on"
-	  MaskToolTipString	  "on,on,on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "6|robotName|localName"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    55
+	    $ClassName		    "Simulink.Mask"
+	    Array {
+	      Type		      "Simulink.MaskParameter"
+	      Dimension		      3
+	      Object {
+		$ObjectID		56
+		Type			"edit"
+		Name			"val"
+		Prompt			"Block type"
+		Value			"6"
+	      }
+	      Object {
+		$ObjectID		57
+		Type			"edit"
+		Name			"robotName"
+		Prompt			"Robot name"
+		Value			"robotName"
+	      }
+	      Object {
+		$ObjectID		58
+		Type			"edit"
+		Name			"localName"
+		Prompt			"Local name"
+		Value			"localName"
+	      }
+	      PropName		      "Parameters"
+	    }
+	  }
 	  System {
 	    Name		    "Set Torques"
-	    Location		    [657, 219, 958, 594]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -3191,23 +3409,40 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskPromptString	  "Block type|Robot name|Local name"
-	  MaskStyleString	  "edit,edit,edit"
-	  MaskVariables		  "val=@1;robotName=@2;localName=@3;"
-	  MaskTunableValueString  "on,on,on"
-	  MaskCallbackString	  "||"
-	  MaskEnableString	  "on,on,on"
-	  MaskVisibilityString	  "on,on,on"
-	  MaskToolTipString	  "on,on,on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "4|robotName|localName"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    59
+	    $ClassName		    "Simulink.Mask"
+	    Array {
+	      Type		      "Simulink.MaskParameter"
+	      Dimension		      3
+	      Object {
+		$ObjectID		60
+		Type			"edit"
+		Name			"val"
+		Prompt			"Block type"
+		Value			"4"
+	      }
+	      Object {
+		$ObjectID		61
+		Type			"edit"
+		Name			"robotName"
+		Prompt			"Robot name"
+		Value			"robotName"
+	      }
+	      Object {
+		$ObjectID		62
+		Type			"edit"
+		Name			"localName"
+		Prompt			"Local name"
+		Value			"localName"
+	      }
+	      PropName		      "Parameters"
+	    }
+	  }
 	  System {
 	    Name		    "Set Velocities"
-	    Location		    [219, 215, 615, 741]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -3281,20 +3516,37 @@ Library {
 	      FunctionName	      "robotState"
 	      Parameters	      "val,robotname,localname"
 	      EnableBusSupport	      off
-	      MaskPromptString	      "Value|Robot Name (icub - icubSim)|Module Name"
-	      MaskStyleString	      "edit,edit,edit"
-	      MaskVariables	      "val=@1;robotname=@2;localname=@3;"
-	      MaskTunableValueString  "on,on,on"
-	      MaskCallbackString      "||"
-	      MaskEnableString	      "on,on,on"
-	      MaskVisibilityString    "on,on,on"
-	      MaskToolTipString	      "on,on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "val|robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		63
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  3
+		  Object {
+		    $ObjectID		    64
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "val"
+		  }
+		  Object {
+		    $ObjectID		    65
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    66
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	    }
 	    Block {
 	      BlockType		      Terminator
@@ -3473,6 +3725,7 @@ Library {
 	  SID			  "746"
 	  Name			  "DO NOT USE YET. \nUNDER DEVELOPMENT"
 	  Position		  [442, 28]
+	  ZOrder		  -1
 	}
       }
     }
@@ -3481,8 +3734,9 @@ Library {
       Name		      "wholeBodyModel"
       SID		      "209"
       Ports		      []
-      Position		      [135, 17, 170, 53]
+      Position		      [123, 11, 221, 108]
       ZOrder		      -3
+      ForegroundColor	      "white"
       DropShadow	      on
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -3491,16 +3745,16 @@ Library {
       Opaque		      off
       RequestExecContextInheritance off
       MaskHideContents	      off
-      MaskDisplay	      "image(imread('wholeBodyModel.bmp'),'center')"
-      MaskIconFrame	      on
-      MaskIconOpaque	      on
-      MaskIconRotate	      "none"
-      MaskPortRotate	      "default"
-      MaskIconUnits	      "autoscale"
+      Object {
+	$PropName		"MaskObject"
+	$ObjectID		67
+	$ClassName		"Simulink.Mask"
+	Display			"image(imread('wholeBodyModel.png'),'center')"
+      }
       System {
 	Name			"wholeBodyModel"
-	Location		[207, 240, 786, 515]
-	Open			off
+	Location		[105, 101, 1190, 760]
+	Open			on
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -3511,13 +3765,13 @@ Library {
 	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
 	TiledPageScale		1
 	ShowPageBoundaries	off
-	ZoomFactor		"100"
+	ZoomFactor		"125"
 	Block {
 	  BlockType		  SubSystem
 	  Name			  "Dynamics"
 	  SID			  "369"
 	  Ports			  []
-	  Position		  [342, 14, 538, 135]
+	  Position		  [319, 16, 461, 133]
 	  ZOrder		  -1
 	  DropShadow		  on
 	  MinAlgLoopOccurrences	  off
@@ -3527,15 +3781,15 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskDisplay		  "image(imread('dynamics.jpg'))"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    68
+	    $ClassName		    "Simulink.Mask"
+	    Display		    "image(imread('Dynamics.png'))"
+	  }
 	  System {
 	    Name		    "Dynamics"
-	    Location		    [136, 125, 915, 362]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -3554,6 +3808,7 @@ Library {
 	      SID		      "1008"
 	      Ports		      [2, 1]
 	      Position		      [660, 48, 725, 92]
+	      ZOrder		      -1
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
 	      RTWSystemCode	      "Auto"
@@ -3561,23 +3816,33 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "Robot name|Local name"
-	      MaskStyleString	      "edit,edit"
-	      MaskVariables	      "robotName=@1;localName=@2;"
-	      MaskTunableValueString  "on,on"
-	      MaskCallbackString      "|"
-	      MaskEnableString	      "on,on"
-	      MaskVisibilityString    "on,on"
-	      MaskToolTipString	      "on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		69
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  2
+		  Object {
+		    $ObjectID		    70
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "Robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    71
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "Local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"Cent Momentum"
-		Location		[523, 194, 843, 574]
+		Location		[486, 47, 1322, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -3870,6 +4135,7 @@ Library {
 	      SID		      "521"
 	      Ports		      [3, 1]
 	      Position		      [545, 48, 610, 92]
+	      ZOrder		      -2
 	      BackgroundColor	      "[0.287374, 0.000000, 1.000000]"
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
@@ -3878,24 +4144,34 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskType		      "Inverse Dynamics"
-	      MaskPromptString	      "Robot name|Local name"
-	      MaskStyleString	      "edit,edit"
-	      MaskVariables	      "robotName=@1;localName=@2;"
-	      MaskTunableValueString  "on,on"
-	      MaskCallbackString      "|"
-	      MaskEnableString	      "on,on"
-	      MaskVisibilityString    "on,on"
-	      MaskToolTipString	      "on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		72
+		$ClassName		"Simulink.Mask"
+		Type			"Inverse Dynamics"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  2
+		  Object {
+		    $ObjectID		    73
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "Robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    74
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "Local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"Inverse Dynamics"
-		Location		[98, 291, 428, 614]
+		Location		[486, 47, 1322, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4154,23 +4430,40 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "Block type|Robot name|Module name"
-	      MaskStyleString	      "edit,edit,edit"
-	      MaskVariables	      "val=@1;robotname=@2;localname=@3;"
-	      MaskTunableValueString  "on,on,on"
-	      MaskCallbackString      "||"
-	      MaskEnableString	      "on,on,on"
-	      MaskVisibilityString    "on,on,on"
-	      MaskToolTipString	      "on,on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "7|robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		75
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  3
+		  Object {
+		    $ObjectID		    76
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Block type"
+		    Value		    "7"
+		  }
+		  Object {
+		    $ObjectID		    77
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    78
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"computeh"
-		Location		[205, 178, 545, 505]
+		Location		[487, 75, 1330, 538]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4420,6 +4713,7 @@ Library {
 	      SID		      "1139"
 	      Ports		      [2, 1]
 	      Position		      [80, 128, 150, 172]
+	      ZOrder		      -4
 	      BackgroundColor	      "[0.662196, 0.000000, 1.000000]"
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
@@ -4428,24 +4722,40 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "Block type|Robot name|Local name"
-	      MaskStyleString	      "edit,edit,edit"
-	      MaskVariables	      "val=@1;robotName=@2;localName=@3;"
-	      MaskTunableValueString  "on,on,on"
-	      MaskCallbackString      "||"
-	      MaskEnableString	      "on,on,on"
-	      MaskVisibilityString    "on,on,on"
-	      MaskToolTipString	      "on,on,on"
-	      MaskInitialization      "val = 9\nrobotName = 'icubSim'\nlocalName = 'simulink'"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "9|robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		79
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  3
+		  Object {
+		    $ObjectID		    80
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Block type"
+		    Value		    "9"
+		  }
+		  Object {
+		    $ObjectID		    81
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "Robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    82
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "Local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"dJ*dq LeftArm"
-		Location		[988, 90, 1282, 425]
+		Location		[486, 47, 1322, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4697,6 +5007,7 @@ Library {
 	      SID		      "445"
 	      Ports		      [2, 1]
 	      Position		      [430, 48, 500, 92]
+	      ZOrder		      -5
 	      BackgroundColor	      "[0.662196, 0.000000, 1.000000]"
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
@@ -4705,24 +5016,40 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "Block type|Robot name|Local name"
-	      MaskStyleString	      "edit,edit,edit"
-	      MaskVariables	      "val=@1;robotName=@2;localName=@3;"
-	      MaskTunableValueString  "on,on,on"
-	      MaskCallbackString      "||"
-	      MaskEnableString	      "on,on,on"
-	      MaskVisibilityString    "on,on,on"
-	      MaskToolTipString	      "on,on,on"
-	      MaskInitialization      "val = 9\nrobotName = 'icubSim'\nlocalName = 'simulink'"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "9|robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		83
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  3
+		  Object {
+		    $ObjectID		    84
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Block type"
+		    Value		    "9"
+		  }
+		  Object {
+		    $ObjectID		    85
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "Robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    86
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "Local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"dJ*dq LeftFoot"
-		Location		[988, 90, 1282, 425]
+		Location		[487, 75, 1330, 538]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -4973,6 +5300,7 @@ Library {
 	      SID		      "1138"
 	      Ports		      [2, 1]
 	      Position		      [200, 128, 265, 172]
+	      ZOrder		      -6
 	      BackgroundColor	      "[0.501000, 0.015000, 0.850000]"
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
@@ -4981,24 +5309,40 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "Block type|Robot name|Local name"
-	      MaskStyleString	      "edit,edit,edit"
-	      MaskVariables	      "val=@1;robotName=@2;localName=@3;"
-	      MaskTunableValueString  "on,on,on"
-	      MaskCallbackString      "||"
-	      MaskEnableString	      "on,on,on"
-	      MaskVisibilityString    "on,on,on"
-	      MaskToolTipString	      "on,on,on"
-	      MaskInitialization      "val = 9\nrobotName = 'icubSim'\nlocalName = 'simulink'"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "9|robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		87
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  3
+		  Object {
+		    $ObjectID		    88
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Block type"
+		    Value		    "9"
+		  }
+		  Object {
+		    $ObjectID		    89
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "Robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    90
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "Local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"dJ*dq RightArm"
-		Location		[682, 199, 977, 584]
+		Location		[486, 47, 1322, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -5250,6 +5594,7 @@ Library {
 	      SID		      "372"
 	      Ports		      [2, 1]
 	      Position		      [315, 48, 380, 92]
+	      ZOrder		      -7
 	      BackgroundColor	      "[0.501000, 0.015000, 0.850000]"
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
@@ -5258,24 +5603,40 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "Block type|Robot name|Local name"
-	      MaskStyleString	      "edit,edit,edit"
-	      MaskVariables	      "val=@1;robotName=@2;localName=@3;"
-	      MaskTunableValueString  "on,on,on"
-	      MaskCallbackString      "||"
-	      MaskEnableString	      "on,on,on"
-	      MaskVisibilityString    "on,on,on"
-	      MaskToolTipString	      "on,on,on"
-	      MaskInitialization      "val = 9\nrobotName = 'icubSim'\nlocalName = 'simulink'"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "9|robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		91
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  3
+		  Object {
+		    $ObjectID		    92
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Block type"
+		    Value		    "9"
+		  }
+		  Object {
+		    $ObjectID		    93
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "Robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    94
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "Local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"dJ*dq RightFoot"
-		Location		[682, 199, 977, 584]
+		Location		[487, 75, 1330, 538]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -5536,23 +5897,40 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "Block type|Robot name|Module name"
-	      MaskStyleString	      "edit,edit,edit"
-	      MaskVariables	      "val=@1;robotname=@2;localname=@3;"
-	      MaskTunableValueString  "on,on,on"
-	      MaskCallbackString      "||"
-	      MaskEnableString	      "on,on,on"
-	      MaskVisibilityString    "on,on,on"
-	      MaskToolTipString	      "on,on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "8|robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		95
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  3
+		  Object {
+		    $ObjectID		    96
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Block type"
+		    Value		    "8"
+		  }
+		  Object {
+		    $ObjectID		    97
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    98
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"massMatrix"
-		Location		[75, 227, 393, 413]
+		Location		[487, 75, 1330, 538]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -5599,7 +5977,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "massMatrix"
-		    Location		    [522, 268, 835, 639]
+		    Location		    [486, 47, 1322, 542]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -5879,7 +6257,7 @@ Library {
 	  Name			  "Forward Kinematics"
 	  SID			  "176"
 	  Ports			  []
-	  Position		  [35, 15, 97, 132]
+	  Position		  [20, 15, 147, 132]
 	  ZOrder		  -17
 	  DropShadow		  on
 	  MinAlgLoopOccurrences	  off
@@ -5889,15 +6267,15 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskDisplay		  "image(imread('rightLeg.jpg'))"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    99
+	    $ClassName		    "Simulink.Mask"
+	    Display		    "image(imread('forwardKinematics.png'))"
+	  }
 	  System {
 	    Name		    "Forward Kinematics"
-	    Location		    [1813, 388, 2482, 513]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -5925,23 +6303,33 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "robot name|local name"
-	      MaskStyleString	      "edit,edit"
-	      MaskVariables	      "robotName=@1;localName=@2;"
-	      MaskTunableValueString  "on,on"
-	      MaskCallbackString      "|"
-	      MaskEnableString	      "on,on"
-	      MaskVisibilityString    "on,on"
-	      MaskToolTipString	      "on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		100
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  2
+		  Object {
+		    $ObjectID		    101
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    102
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"COMFwdKin "
-		Location		[413, 261, 855, 753]
+		Location		[486, 47, 1322, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -6027,20 +6415,37 @@ Library {
 		  FunctionName		  "robotState"
 		  Parameters		  "val,robotname,localname"
 		  EnableBusSupport	  off
-		  MaskPromptString	  "Value|Robot Name (icub - icubSim)|Module Name"
-		  MaskStyleString	  "edit,edit,edit"
-		  MaskVariables		  "val=@1;robotname=@2;localname=@3;"
-		  MaskTunableValueString  "on,on,on"
-		  MaskCallbackString	  "||"
-		  MaskEnableString	  "on,on,on"
-		  MaskVisibilityString	  "on,on,on"
-		  MaskToolTipString	  "on,on,on"
-		  MaskIconFrame		  on
-		  MaskIconOpaque	  on
-		  MaskIconRotate	  "none"
-		  MaskPortRotate	  "default"
-		  MaskIconUnits		  "autoscale"
-		  MaskValueString	  "2|robotName|localName"
+		  Object {
+		    $PropName		    "MaskObject"
+		    $ObjectID		    103
+		    $ClassName		    "Simulink.Mask"
+		    Array {
+		    Type		    "Simulink.MaskParameter"
+		    Dimension		    3
+		    Object {
+		    $ObjectID		    104
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "2"
+		    }
+		    Object {
+		    $ObjectID		    105
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		    }
+		    Object {
+		    $ObjectID		    106
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		    }
+		    PropName		    "Parameters"
+		    }
+		  }
 		}
 		Block {
 		  BlockType		  Terminator
@@ -6222,23 +6627,33 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "robot name|local name"
-	      MaskStyleString	      "edit,edit"
-	      MaskVariables	      "robotName=@1;localName=@2;"
-	      MaskTunableValueString  "on,on"
-	      MaskCallbackString      "|"
-	      MaskEnableString	      "on,on"
-	      MaskVisibilityString    "on,on"
-	      MaskToolTipString	      "on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		107
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  2
+		  Object {
+		    $ObjectID		    108
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    109
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"LeftFootFwdKin"
-		Location		[356, 167, 1106, 659]
+		Location		[486, 47, 1322, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -6323,20 +6738,37 @@ Library {
 		  FunctionName		  "robotState"
 		  Parameters		  "val,robotname,localname"
 		  EnableBusSupport	  off
-		  MaskPromptString	  "Value|Robot Name (icub - icubSim)|Module Name"
-		  MaskStyleString	  "edit,edit,edit"
-		  MaskVariables		  "val=@1;robotname=@2;localname=@3;"
-		  MaskTunableValueString  "on,on,on"
-		  MaskCallbackString	  "||"
-		  MaskEnableString	  "on,on,on"
-		  MaskVisibilityString	  "on,on,on"
-		  MaskToolTipString	  "on,on,on"
-		  MaskIconFrame		  on
-		  MaskIconOpaque	  on
-		  MaskIconRotate	  "none"
-		  MaskPortRotate	  "default"
-		  MaskIconUnits		  "autoscale"
-		  MaskValueString	  "2|robotName|localName"
+		  Object {
+		    $PropName		    "MaskObject"
+		    $ObjectID		    110
+		    $ClassName		    "Simulink.Mask"
+		    Array {
+		    Type		    "Simulink.MaskParameter"
+		    Dimension		    3
+		    Object {
+		    $ObjectID		    111
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "2"
+		    }
+		    Object {
+		    $ObjectID		    112
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		    }
+		    Object {
+		    $ObjectID		    113
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		    }
+		    PropName		    "Parameters"
+		    }
+		  }
 		}
 		Block {
 		  BlockType		  Terminator
@@ -6476,23 +6908,33 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "robot name|local name"
-	      MaskStyleString	      "edit,edit"
-	      MaskVariables	      "robotName=@1;localName=@2;"
-	      MaskTunableValueString  "on,on"
-	      MaskCallbackString      "|"
-	      MaskEnableString	      "on,on"
-	      MaskVisibilityString    "on,on"
-	      MaskToolTipString	      "on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		114
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  2
+		  Object {
+		    $ObjectID		    115
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    116
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"LeftHandFwdKin"
-		Location		[2412, 594, 3162, 1086]
+		Location		[486, 47, 1322, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -6579,20 +7021,37 @@ Library {
 		  FunctionName		  "robotState"
 		  Parameters		  "val,robotname,localname"
 		  EnableBusSupport	  off
-		  MaskPromptString	  "Value|Robot Name (icub - icubSim)|Module Name"
-		  MaskStyleString	  "edit,edit,edit"
-		  MaskVariables		  "val=@1;robotname=@2;localname=@3;"
-		  MaskTunableValueString  "on,on,on"
-		  MaskCallbackString	  "||"
-		  MaskEnableString	  "on,on,on"
-		  MaskVisibilityString	  "on,on,on"
-		  MaskToolTipString	  "on,on,on"
-		  MaskIconFrame		  on
-		  MaskIconOpaque	  on
-		  MaskIconRotate	  "none"
-		  MaskPortRotate	  "default"
-		  MaskIconUnits		  "autoscale"
-		  MaskValueString	  "2|robotName|localName"
+		  Object {
+		    $PropName		    "MaskObject"
+		    $ObjectID		    117
+		    $ClassName		    "Simulink.Mask"
+		    Array {
+		    Type		    "Simulink.MaskParameter"
+		    Dimension		    3
+		    Object {
+		    $ObjectID		    118
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "2"
+		    }
+		    Object {
+		    $ObjectID		    119
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		    }
+		    Object {
+		    $ObjectID		    120
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		    }
+		    PropName		    "Parameters"
+		    }
+		  }
 		}
 		Block {
 		  BlockType		  Terminator
@@ -6774,23 +7233,33 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "robot name|local name"
-	      MaskStyleString	      "edit,edit"
-	      MaskVariables	      "robotName=@1;localName=@2;"
-	      MaskTunableValueString  "on,on"
-	      MaskCallbackString      "|"
-	      MaskEnableString	      "on,on"
-	      MaskVisibilityString    "on,on"
-	      MaskToolTipString	      "on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		121
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  2
+		  Object {
+		    $ObjectID		    122
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    123
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"RightFootFwdKin"
-		Location		[355, 167, 1105, 659]
+		Location		[486, 47, 1322, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -6877,20 +7346,37 @@ Library {
 		  FunctionName		  "robotState"
 		  Parameters		  "val,robotname,localname"
 		  EnableBusSupport	  off
-		  MaskPromptString	  "Value|Robot Name (icub - icubSim)|Module Name"
-		  MaskStyleString	  "edit,edit,edit"
-		  MaskVariables		  "val=@1;robotname=@2;localname=@3;"
-		  MaskTunableValueString  "on,on,on"
-		  MaskCallbackString	  "||"
-		  MaskEnableString	  "on,on,on"
-		  MaskVisibilityString	  "on,on,on"
-		  MaskToolTipString	  "on,on,on"
-		  MaskIconFrame		  on
-		  MaskIconOpaque	  on
-		  MaskIconRotate	  "none"
-		  MaskPortRotate	  "default"
-		  MaskIconUnits		  "autoscale"
-		  MaskValueString	  "2|robotName|localName"
+		  Object {
+		    $PropName		    "MaskObject"
+		    $ObjectID		    124
+		    $ClassName		    "Simulink.Mask"
+		    Array {
+		    Type		    "Simulink.MaskParameter"
+		    Dimension		    3
+		    Object {
+		    $ObjectID		    125
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "2"
+		    }
+		    Object {
+		    $ObjectID		    126
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		    }
+		    Object {
+		    $ObjectID		    127
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		    }
+		    PropName		    "Parameters"
+		    }
+		  }
 		}
 		Block {
 		  BlockType		  Terminator
@@ -7072,23 +7558,33 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "robot name|local name"
-	      MaskStyleString	      "edit,edit"
-	      MaskVariables	      "robotName=@1;localName=@2;"
-	      MaskTunableValueString  "on,on"
-	      MaskCallbackString      "|"
-	      MaskEnableString	      "on,on"
-	      MaskVisibilityString    "on,on"
-	      MaskToolTipString	      "on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		128
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  2
+		  Object {
+		    $ObjectID		    129
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    130
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"RightHandFwdKin"
-		Location		[2412, 594, 3162, 1086]
+		Location		[486, 47, 1322, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -7175,20 +7671,37 @@ Library {
 		  FunctionName		  "robotState"
 		  Parameters		  "val,robotname,localname"
 		  EnableBusSupport	  off
-		  MaskPromptString	  "Value|Robot Name (icub - icubSim)|Module Name"
-		  MaskStyleString	  "edit,edit,edit"
-		  MaskVariables		  "val=@1;robotname=@2;localname=@3;"
-		  MaskTunableValueString  "on,on,on"
-		  MaskCallbackString	  "||"
-		  MaskEnableString	  "on,on,on"
-		  MaskVisibilityString	  "on,on,on"
-		  MaskToolTipString	  "on,on,on"
-		  MaskIconFrame		  on
-		  MaskIconOpaque	  on
-		  MaskIconRotate	  "none"
-		  MaskPortRotate	  "default"
-		  MaskIconUnits		  "autoscale"
-		  MaskValueString	  "2|robotName|localName"
+		  Object {
+		    $PropName		    "MaskObject"
+		    $ObjectID		    131
+		    $ClassName		    "Simulink.Mask"
+		    Array {
+		    Type		    "Simulink.MaskParameter"
+		    Dimension		    3
+		    Object {
+		    $ObjectID		    132
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "2"
+		    }
+		    Object {
+		    $ObjectID		    133
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		    }
+		    Object {
+		    $ObjectID		    134
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		    }
+		    PropName		    "Parameters"
+		    }
+		  }
 		}
 		Block {
 		  BlockType		  Terminator
@@ -7362,7 +7875,7 @@ Library {
 	  Name			  "Jacobians"
 	  SID			  "202"
 	  Ports			  []
-	  Position		  [120, 15, 317, 137]
+	  Position		  [167, 15, 294, 132]
 	  ZOrder		  -3
 	  DropShadow		  on
 	  MinAlgLoopOccurrences	  off
@@ -7372,15 +7885,15 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskDisplay		  "image(imread('jacobian.png'))"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    135
+	    $ClassName		    "Simulink.Mask"
+	    Display		    "image(imread('jacobian.png'))"
+	  }
 	  System {
 	    Name		    "Jacobians"
-	    Location		    [212, 286, 1002, 444]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -7408,23 +7921,33 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "robot name|local name"
-	      MaskStyleString	      "edit,edit"
-	      MaskVariables	      "robotName=@1;localName=@2;"
-	      MaskTunableValueString  "on,on"
-	      MaskCallbackString      "|"
-	      MaskEnableString	      "on,on"
-	      MaskVisibilityString    "on,on"
-	      MaskToolTipString	      "on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		136
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  2
+		  Object {
+		    $ObjectID		    137
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    138
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"Center of Mass Jacobian"
-		Location		[600, 578, 887, 667]
+		Location		[486, 47, 1322, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -7454,7 +7977,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "Right Foot \nJacobian1"
-		    Location		    [357, 223, 1107, 715]
+		    Location		    [486, 47, 1322, 542]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -7532,20 +8055,37 @@ Library {
 		    FunctionName	    "robotState"
 		    Parameters		    "val,robotname,localname"
 		    EnableBusSupport	    off
-		    MaskPromptString	    "Value|Robot Name (icub - icubSim)|Module Name"
-		    MaskStyleString	    "edit,edit,edit"
-		    MaskVariables	    "val=@1;robotname=@2;localname=@3;"
-		    MaskTunableValueString  "on,on,on"
-		    MaskCallbackString	    "||"
-		    MaskEnableString	    "on,on,on"
-		    MaskVisibilityString    "on,on,on"
-		    MaskToolTipString	    "on,on,on"
-		    MaskIconFrame	    on
-		    MaskIconOpaque	    on
-		    MaskIconRotate	    "none"
-		    MaskPortRotate	    "default"
-		    MaskIconUnits	    "autoscale"
-		    MaskValueString	    "3|robotName|localName"
+		    Object {
+		    $PropName		    "MaskObject"
+		    $ObjectID		    139
+		    $ClassName		    "Simulink.Mask"
+		    Array {
+		    Type		    "Simulink.MaskParameter"
+		    Dimension		    3
+		    Object {
+		    $ObjectID		    140
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "3"
+		    }
+		    Object {
+		    $ObjectID		    141
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		    }
+		    Object {
+		    $ObjectID		    142
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		    }
+		    PropName		    "Parameters"
+		    }
+		    }
 		    }
 		    Block {
 		    BlockType		    Terminator
@@ -7792,23 +8332,33 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "robot name|local name"
-	      MaskStyleString	      "edit,edit"
-	      MaskVariables	      "robotName=@1;localName=@2;"
-	      MaskTunableValueString  "on,on"
-	      MaskCallbackString      "|"
-	      MaskEnableString	      "on,on"
-	      MaskVisibilityString    "on,on"
-	      MaskToolTipString	      "on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		143
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  2
+		  Object {
+		    $ObjectID		    144
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    145
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"Left Foot Jacobian"
-		Location		[370, 316, 657, 406]
+		Location		[486, 47, 1322, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -7838,7 +8388,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "Left Foot \nJacobian1"
-		    Location		    [356, 195, 1106, 687]
+		    Location		    [486, 47, 1322, 542]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -7914,20 +8464,37 @@ Library {
 		    FunctionName	    "robotState"
 		    Parameters		    "val,robotname,localname"
 		    EnableBusSupport	    off
-		    MaskPromptString	    "Value|Robot Name (icub - icubSim)|Module Name"
-		    MaskStyleString	    "edit,edit,edit"
-		    MaskVariables	    "val=@1;robotname=@2;localname=@3;"
-		    MaskTunableValueString  "on,on,on"
-		    MaskCallbackString	    "||"
-		    MaskEnableString	    "on,on,on"
-		    MaskVisibilityString    "on,on,on"
-		    MaskToolTipString	    "on,on,on"
-		    MaskIconFrame	    on
-		    MaskIconOpaque	    on
-		    MaskIconRotate	    "none"
-		    MaskPortRotate	    "default"
-		    MaskIconUnits	    "autoscale"
-		    MaskValueString	    "3|robotName|localName"
+		    Object {
+		    $PropName		    "MaskObject"
+		    $ObjectID		    146
+		    $ClassName		    "Simulink.Mask"
+		    Array {
+		    Type		    "Simulink.MaskParameter"
+		    Dimension		    3
+		    Object {
+		    $ObjectID		    147
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "3"
+		    }
+		    Object {
+		    $ObjectID		    148
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		    }
+		    Object {
+		    $ObjectID		    149
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		    }
+		    PropName		    "Parameters"
+		    }
+		    }
 		    }
 		    Block {
 		    BlockType		    Terminator
@@ -8170,23 +8737,33 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "robot name|local name"
-	      MaskStyleString	      "edit,edit"
-	      MaskVariables	      "robotName=@1;localName=@2;"
-	      MaskTunableValueString  "on,on"
-	      MaskCallbackString      "|"
-	      MaskEnableString	      "on,on"
-	      MaskVisibilityString    "on,on"
-	      MaskToolTipString	      "on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		150
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  2
+		  Object {
+		    $ObjectID		    151
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    152
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"Left Hand Jacobian"
-		Location		[370, 316, 657, 406]
+		Location		[486, 47, 1322, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -8216,7 +8793,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "Left Hand \nJacobian"
-		    Location		    [356, 195, 1106, 687]
+		    Location		    [486, 47, 1322, 542]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -8293,20 +8870,37 @@ Library {
 		    FunctionName	    "robotState"
 		    Parameters		    "val,robotname,localname"
 		    EnableBusSupport	    off
-		    MaskPromptString	    "Value|Robot Name (icub - icubSim)|Module Name"
-		    MaskStyleString	    "edit,edit,edit"
-		    MaskVariables	    "val=@1;robotname=@2;localname=@3;"
-		    MaskTunableValueString  "on,on,on"
-		    MaskCallbackString	    "||"
-		    MaskEnableString	    "on,on,on"
-		    MaskVisibilityString    "on,on,on"
-		    MaskToolTipString	    "on,on,on"
-		    MaskIconFrame	    on
-		    MaskIconOpaque	    on
-		    MaskIconRotate	    "none"
-		    MaskPortRotate	    "default"
-		    MaskIconUnits	    "autoscale"
-		    MaskValueString	    "3|robotName|localName"
+		    Object {
+		    $PropName		    "MaskObject"
+		    $ObjectID		    153
+		    $ClassName		    "Simulink.Mask"
+		    Array {
+		    Type		    "Simulink.MaskParameter"
+		    Dimension		    3
+		    Object {
+		    $ObjectID		    154
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "3"
+		    }
+		    Object {
+		    $ObjectID		    155
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		    }
+		    Object {
+		    $ObjectID		    156
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		    }
+		    PropName		    "Parameters"
+		    }
+		    }
 		    }
 		    Block {
 		    BlockType		    Terminator
@@ -8549,23 +9143,33 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "robot name|local name"
-	      MaskStyleString	      "edit,edit"
-	      MaskVariables	      "robotName=@1;localName=@2;"
-	      MaskTunableValueString  "on,on"
-	      MaskCallbackString      "|"
-	      MaskEnableString	      "on,on"
-	      MaskVisibilityString    "on,on"
-	      MaskToolTipString	      "on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		157
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  2
+		  Object {
+		    $ObjectID		    158
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    159
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"Right Foot Jacobian"
-		Location		[399, 551, 687, 640]
+		Location		[486, 47, 1322, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -8595,7 +9199,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "Right Foot \nJacobian1"
-		    Location		    [356, 195, 1106, 687]
+		    Location		    [486, 47, 1322, 542]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -8673,20 +9277,37 @@ Library {
 		    FunctionName	    "robotState"
 		    Parameters		    "val,robotname,localname"
 		    EnableBusSupport	    off
-		    MaskPromptString	    "Value|Robot Name (icub - icubSim)|Module Name"
-		    MaskStyleString	    "edit,edit,edit"
-		    MaskVariables	    "val=@1;robotname=@2;localname=@3;"
-		    MaskTunableValueString  "on,on,on"
-		    MaskCallbackString	    "||"
-		    MaskEnableString	    "on,on,on"
-		    MaskVisibilityString    "on,on,on"
-		    MaskToolTipString	    "on,on,on"
-		    MaskIconFrame	    on
-		    MaskIconOpaque	    on
-		    MaskIconRotate	    "none"
-		    MaskPortRotate	    "default"
-		    MaskIconUnits	    "autoscale"
-		    MaskValueString	    "3|robotName|localName"
+		    Object {
+		    $PropName		    "MaskObject"
+		    $ObjectID		    160
+		    $ClassName		    "Simulink.Mask"
+		    Array {
+		    Type		    "Simulink.MaskParameter"
+		    Dimension		    3
+		    Object {
+		    $ObjectID		    161
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "3"
+		    }
+		    Object {
+		    $ObjectID		    162
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		    }
+		    Object {
+		    $ObjectID		    163
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		    }
+		    PropName		    "Parameters"
+		    }
+		    }
 		    }
 		    Block {
 		    BlockType		    Terminator
@@ -8934,23 +9555,33 @@ Library {
 	      Opaque		      off
 	      RequestExecContextInheritance off
 	      MaskHideContents	      off
-	      MaskPromptString	      "robot name|local name"
-	      MaskStyleString	      "edit,edit"
-	      MaskVariables	      "robotName=@1;localName=@2;"
-	      MaskTunableValueString  "on,on"
-	      MaskCallbackString      "|"
-	      MaskEnableString	      "on,on"
-	      MaskVisibilityString    "on,on"
-	      MaskToolTipString	      "on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		164
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  2
+		  Object {
+		    $ObjectID		    165
+		    Type		    "edit"
+		    Name		    "robotName"
+		    Prompt		    "robot name"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    166
+		    Type		    "edit"
+		    Name		    "localName"
+		    Prompt		    "local name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	      System {
 		Name			"Right Hand Jacobian"
-		Location		[618, 200, 906, 289]
+		Location		[486, 47, 1322, 584]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -8980,7 +9611,7 @@ Library {
 		  MaskHideContents	  off
 		  System {
 		    Name		    "Right Hand\nJacobian"
-		    Location		    [615, 209, 1365, 701]
+		    Location		    [486, 47, 1322, 542]
 		    Open		    off
 		    ModelBrowserVisibility  off
 		    ModelBrowserWidth	    200
@@ -9058,20 +9689,37 @@ Library {
 		    FunctionName	    "robotState"
 		    Parameters		    "val,robotname,localname"
 		    EnableBusSupport	    off
-		    MaskPromptString	    "Value|Robot Name (icub - icubSim)|Module Name"
-		    MaskStyleString	    "edit,edit,edit"
-		    MaskVariables	    "val=@1;robotname=@2;localname=@3;"
-		    MaskTunableValueString  "on,on,on"
-		    MaskCallbackString	    "||"
-		    MaskEnableString	    "on,on,on"
-		    MaskVisibilityString    "on,on,on"
-		    MaskToolTipString	    "on,on,on"
-		    MaskIconFrame	    on
-		    MaskIconOpaque	    on
-		    MaskIconRotate	    "none"
-		    MaskPortRotate	    "default"
-		    MaskIconUnits	    "autoscale"
-		    MaskValueString	    "3|robotName|localName"
+		    Object {
+		    $PropName		    "MaskObject"
+		    $ObjectID		    167
+		    $ClassName		    "Simulink.Mask"
+		    Array {
+		    Type		    "Simulink.MaskParameter"
+		    Dimension		    3
+		    Object {
+		    $ObjectID		    168
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "3"
+		    }
+		    Object {
+		    $ObjectID		    169
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		    }
+		    Object {
+		    $ObjectID		    170
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		    }
+		    PropName		    "Parameters"
+		    }
+		    }
 		    }
 		    Block {
 		    BlockType		    Terminator
@@ -9311,7 +9959,8 @@ Library {
 	  Name			  "Joint Limits"
 	  SID			  "958"
 	  Ports			  [0, 2]
-	  Position		  [35, 168, 100, 212]
+	  Position		  [20, 168, 85, 212]
+	  ZOrder		  -19
 	  BackgroundColor	  "[1.000000, 0.202946, 0.028293]"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -9320,23 +9969,33 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskPromptString	  "Robot name|Local name"
-	  MaskStyleString	  "edit,edit"
-	  MaskVariables		  "robotName=@1;localName=@2;"
-	  MaskTunableValueString  "on,on"
-	  MaskCallbackString	  "|"
-	  MaskEnableString	  "on,on"
-	  MaskVisibilityString	  "on,on"
-	  MaskToolTipString	  "on,on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "robotName|localName"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    171
+	    $ClassName		    "Simulink.Mask"
+	    Array {
+	      Type		      "Simulink.MaskParameter"
+	      Dimension		      2
+	      Object {
+		$ObjectID		172
+		Type			"edit"
+		Name			"robotName"
+		Prompt			"Robot name"
+		Value			"robotName"
+	      }
+	      Object {
+		$ObjectID		173
+		Type			"edit"
+		Name			"localName"
+		Prompt			"Local name"
+		Value			"localName"
+	      }
+	      PropName		      "Parameters"
+	    }
+	  }
 	  System {
 	    Name		    "Joint Limits"
-	    Location		    [246, 221, 605, 641]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -9623,8 +10282,9 @@ Library {
       Name		      "wholeBodyStates"
       SID		      "206"
       Ports		      []
-      Position		      [36, 17, 74, 54]
+      Position		      [6, 12, 104, 109]
       ZOrder		      -4
+      ForegroundColor	      "white"
       DropShadow	      on
       MinAlgLoopOccurrences   off
       PropExecContextOutsideSubsystem off
@@ -9633,16 +10293,16 @@ Library {
       Opaque		      off
       RequestExecContextInheritance off
       MaskHideContents	      off
-      MaskDisplay	      "image(imread('wholeBodyStates.bmp'),'center');"
-      MaskIconFrame	      on
-      MaskIconOpaque	      on
-      MaskIconRotate	      "none"
-      MaskPortRotate	      "default"
-      MaskIconUnits	      "autoscale"
+      Object {
+	$PropName		"MaskObject"
+	$ObjectID		174
+	$ClassName		"Simulink.Mask"
+	Display			"image(imread('wholeBodyStates.png'),'center');"
+      }
       System {
 	Name			"wholeBodyStates"
-	Location		[72, 191, 783, 417]
-	Open			on
+	Location		[261, 46, 1376, 738]
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -9660,6 +10320,7 @@ Library {
 	  SID			  "671"
 	  Ports			  [0, 1]
 	  Position		  [540, 48, 610, 92]
+	  ZOrder		  -1
 	  BackgroundColor	  "[1.000000, 0.723000, 0.446000]"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -9668,24 +10329,34 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskPromptString	  "Robot name|Local name"
-	  MaskStyleString	  "edit,edit"
-	  MaskVariables		  "robotName=@1;localName=@2;"
-	  MaskTunableValueString  "on,on"
-	  MaskCallbackString	  "|"
-	  MaskEnableString	  "on,on"
-	  MaskVisibilityString	  "on,on"
-	  MaskToolTipString	  "on,on"
-	  MaskDisplay		  "disp('dummy tau')"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "robotName|localName"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    175
+	    $ClassName		    "Simulink.Mask"
+	    Display		    "disp('dummy tau')"
+	    Array {
+	      Type		      "Simulink.MaskParameter"
+	      Dimension		      2
+	      Object {
+		$ObjectID		176
+		Type			"edit"
+		Name			"robotName"
+		Prompt			"Robot name"
+		Value			"robotName"
+	      }
+	      Object {
+		$ObjectID		177
+		Type			"edit"
+		Name			"localName"
+		Prompt			"Local name"
+		Value			"localName"
+	      }
+	      PropName		      "Parameters"
+	    }
+	  }
 	  System {
 	    Name		    "DUMMY Joint Torques"
-	    Location		    [764, 493, 1069, 631]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -9704,6 +10375,7 @@ Library {
 	      SID		      "672"
 	      Ports		      [0, 5]
 	      Position		      [25, 29, 65, 111]
+	      ZOrder		      -1
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
 	      RTWSystemCode	      "Auto"
@@ -9713,7 +10385,7 @@ Library {
 	      MaskHideContents	      off
 	      System {
 		Name			"tau from ports"
-		Location		[227, 196, 457, 686]
+		Location		[217, -12, 1376, 752]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -9732,6 +10404,7 @@ Library {
 		  SID			  "673"
 		  Ports			  [5, 1]
 		  Position		  [125, 202, 150, 268]
+		  ZOrder		  -1
 		  ShowName		  off
 		  Inputs		  "5"
 		  DisplayOption		  "bar"
@@ -9742,6 +10415,7 @@ Library {
 		  SID			  "674"
 		  Ports			  [5, 1]
 		  Position		  [125, 117, 150, 183]
+		  ZOrder		  -2
 		  ShowName		  off
 		  Inputs		  "5"
 		  DisplayOption		  "bar"
@@ -9752,6 +10426,7 @@ Library {
 		  SID			  "675"
 		  Ports			  [3, 1]
 		  Position		  [125, 27, 150, 93]
+		  ZOrder		  -3
 		  ShowName		  off
 		  Inputs		  "3"
 		  DisplayOption		  "bar"
@@ -9762,6 +10437,7 @@ Library {
 		  SID			  "676"
 		  Ports			  [6, 1]
 		  Position		  [125, 372, 145, 438]
+		  ZOrder		  -4
 		  ShowName		  off
 		  Inputs		  "6"
 		  DisplayOption		  "bar"
@@ -9772,6 +10448,7 @@ Library {
 		  SID			  "677"
 		  Ports			  [6, 1]
 		  Position		  [125, 287, 150, 353]
+		  ZOrder		  -5
 		  ShowName		  off
 		  Inputs		  "6"
 		  DisplayOption		  "bar"
@@ -9783,9 +10460,9 @@ Library {
 		  Ports			  [0, 5]
 		  Position		  [25, 116, 95, 184]
 		  ZOrder		  -5
-		  LibraryVersion	  "1.0"
+		  LibraryVersion	  "1.52"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/left_arm/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "5"
@@ -9797,9 +10474,9 @@ Library {
 		  Ports			  [0, 5]
 		  Position		  [25, 201, 95, 269]
 		  ZOrder		  -5
-		  LibraryVersion	  "1.0"
+		  LibraryVersion	  "1.52"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/right_arm/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "5"
@@ -9811,9 +10488,9 @@ Library {
 		  Ports			  [0, 6]
 		  Position		  [25, 286, 95, 354]
 		  ZOrder		  -5
-		  LibraryVersion	  "1.0"
+		  LibraryVersion	  "1.52"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/left_leg/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "6"
@@ -9825,9 +10502,9 @@ Library {
 		  Ports			  [0, 6]
 		  Position		  [25, 371, 95, 439]
 		  ZOrder		  -5
-		  LibraryVersion	  "1.0"
+		  LibraryVersion	  "1.52"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/right_leg/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "6"
@@ -9839,9 +10516,9 @@ Library {
 		  Ports			  [0, 3]
 		  Position		  [25, 26, 95, 94]
 		  ZOrder		  -5
-		  LibraryVersion	  "1.0"
+		  LibraryVersion	  "1.52"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
-		  SourceType		  "Unknown"
+		  SourceType		  ""
 		  from			  "['/' robotName '/torso/analog:o/torques']"
 		  to			  "'...'"
 		  num			  "3"
@@ -9851,6 +10528,7 @@ Library {
 		  Name			  "torso"
 		  SID			  "683"
 		  Position		  [175, 53, 205, 67]
+		  ZOrder		  -11
 		  IconDisplay		  "Port number"
 		}
 		Block {
@@ -9858,6 +10536,7 @@ Library {
 		  Name			  "leftArm"
 		  SID			  "684"
 		  Position		  [175, 143, 205, 157]
+		  ZOrder		  -12
 		  Port			  "2"
 		  IconDisplay		  "Port number"
 		}
@@ -9866,6 +10545,7 @@ Library {
 		  Name			  "rightArm"
 		  SID			  "685"
 		  Position		  [175, 228, 205, 242]
+		  ZOrder		  -13
 		  Port			  "3"
 		  IconDisplay		  "Port number"
 		}
@@ -9874,6 +10554,7 @@ Library {
 		  Name			  "leftLeg"
 		  SID			  "686"
 		  Position		  [175, 313, 205, 327]
+		  ZOrder		  -14
 		  Port			  "4"
 		  IconDisplay		  "Port number"
 		}
@@ -9882,6 +10563,7 @@ Library {
 		  Name			  "rightLeg"
 		  SID			  "687"
 		  Position		  [170, 398, 200, 412]
+		  ZOrder		  -15
 		  Port			  "5"
 		  IconDisplay		  "Port number"
 		}
@@ -10074,6 +10756,7 @@ Library {
 	      SID		      "688"
 	      Ports		      [5, 1]
 	      Position		      [110, 27, 225, 113]
+	      ZOrder		      -2
 	      MinAlgLoopOccurrences   off
 	      PropExecContextOutsideSubsystem off
 	      RTWSystemCode	      "Auto"
@@ -10083,7 +10766,7 @@ Library {
 	      MaskHideContents	      off
 	      System {
 		Name			"yarp to WBI"
-		Location		[160, 579, 425, 767]
+		Location		[486, 47, 1322, 542]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -10101,6 +10784,7 @@ Library {
 		  Name			  "torso"
 		  SID			  "689"
 		  Position		  [25, 23, 55, 37]
+		  ZOrder		  -1
 		  IconDisplay		  "Port number"
 		}
 		Block {
@@ -10108,6 +10792,7 @@ Library {
 		  Name			  "leftArm"
 		  SID			  "690"
 		  Position		  [25, 53, 55, 67]
+		  ZOrder		  -2
 		  Port			  "2"
 		  IconDisplay		  "Port number"
 		}
@@ -10116,6 +10801,7 @@ Library {
 		  Name			  "rightArm"
 		  SID			  "691"
 		  Position		  [25, 83, 55, 97]
+		  ZOrder		  -3
 		  Port			  "3"
 		  IconDisplay		  "Port number"
 		}
@@ -10124,6 +10810,7 @@ Library {
 		  Name			  "leftLeg"
 		  SID			  "692"
 		  Position		  [25, 113, 55, 127]
+		  ZOrder		  -4
 		  Port			  "4"
 		  IconDisplay		  "Port number"
 		}
@@ -10132,6 +10819,7 @@ Library {
 		  Name			  "rightLeg"
 		  SID			  "693"
 		  Position		  [25, 143, 55, 157]
+		  ZOrder		  -5
 		  Port			  "5"
 		  IconDisplay		  "Port number"
 		}
@@ -10141,6 +10829,7 @@ Library {
 		  SID			  "694"
 		  Ports			  [5, 1]
 		  Position		  [180, 13, 185, 167]
+		  ZOrder		  -6
 		  ShowName		  off
 		  Inputs		  "5"
 		  DisplayOption		  "bar"
@@ -10151,6 +10840,7 @@ Library {
 		  SID			  "695"
 		  Ports			  [1, 1]
 		  Position		  [85, 14, 140, 46]
+		  ZOrder		  -7
 		  InputPortWidth	  "3"
 		  IndexOptions		  "Index vector (dialog)"
 		  Indices		  "[3 2 1]"
@@ -10161,6 +10851,7 @@ Library {
 		  Name			  "WBI ordered"
 		  SID			  "696"
 		  Position		  [210, 83, 240, 97]
+		  ZOrder		  -8
 		  IconDisplay		  "Port number"
 		}
 		Line {
@@ -10212,6 +10903,7 @@ Library {
 	      Name		      "joint tau"
 	      SID		      "697"
 	      Position		      [250, 63, 280, 77]
+	      ZOrder		      -3
 	      IconDisplay	      "Port number"
 	    }
 	    Line {
@@ -10258,6 +10950,7 @@ Library {
 	  SID			  "555"
 	  Ports			  [0, 1]
 	  Position		  [310, 48, 380, 92]
+	  ZOrder		  -2
 	  BackgroundColor	  "[0.893000, 0.628791, 0.326838]"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -10266,25 +10959,35 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskType		  "Get Joint Accelerations"
-	  MaskPromptString	  "Robot name|Local name"
-	  MaskStyleString	  "edit,edit"
-	  MaskVariables		  "robotName=@1;localName=@2;"
-	  MaskTunableValueString  "on,on"
-	  MaskCallbackString	  "|"
-	  MaskEnableString	  "on,on"
-	  MaskVisibilityString	  "on,on"
-	  MaskToolTipString	  "on,on"
-	  MaskDisplay		  "disp('ddq')"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "robotName|localName"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    178
+	    $ClassName		    "Simulink.Mask"
+	    Type		    "Get Joint Accelerations"
+	    Display		    "disp('ddq')"
+	    Array {
+	      Type		      "Simulink.MaskParameter"
+	      Dimension		      2
+	      Object {
+		$ObjectID		179
+		Type			"edit"
+		Name			"robotName"
+		Prompt			"Robot name"
+		Value			"robotName"
+	      }
+	      Object {
+		$ObjectID		180
+		Type			"edit"
+		Name			"localName"
+		Prompt			"Local name"
+		Value			"localName"
+	      }
+	      PropName		      "Parameters"
+	    }
+	  }
 	  System {
 	    Name		    "Joint Accelerations"
-	    Location		    [157, 367, 487, 697]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -10440,6 +11143,7 @@ Library {
 	      Name		      "ddqJ"
 	      SID		      "571"
 	      Position		      [250, 213, 280, 227]
+	      ZOrder		      -29
 	      IconDisplay	      "Port number"
 	    }
 	    Line {
@@ -10549,24 +11253,34 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskPromptString	  "robotName|localName"
-	  MaskStyleString	  "edit,edit"
-	  MaskVariables		  "robotName=@1;localName=@2;"
-	  MaskTunableValueString  "on,on"
-	  MaskCallbackString	  "|"
-	  MaskEnableString	  "on,on"
-	  MaskVisibilityString	  "on,on"
-	  MaskToolTipString	  "on,on"
-	  MaskDisplay		  "disp('q')"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "robotName|localName"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    181
+	    $ClassName		    "Simulink.Mask"
+	    Display		    "disp('q')"
+	    Array {
+	      Type		      "Simulink.MaskParameter"
+	      Dimension		      2
+	      Object {
+		$ObjectID		182
+		Type			"edit"
+		Name			"robotName"
+		Prompt			"robotName"
+		Value			"robotName"
+	      }
+	      Object {
+		$ObjectID		183
+		Type			"edit"
+		Name			"localName"
+		Prompt			"localName"
+		Value			"localName"
+	      }
+	      PropName		      "Parameters"
+	    }
+	  }
 	  System {
 	    Name		    "Joint Angles"
-	    Location		    [468, 81, 1365, 769]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -10672,20 +11386,37 @@ Library {
 	      FunctionName	      "robotState"
 	      Parameters	      "val,robotname,localname"
 	      EnableBusSupport	      off
-	      MaskPromptString	      "Value|Robot Name (icub - icubSim)|Module Name"
-	      MaskStyleString	      "edit,edit,edit"
-	      MaskVariables	      "val=@1;robotname=@2;localname=@3;"
-	      MaskTunableValueString  "on,on,on"
-	      MaskCallbackString      "||"
-	      MaskEnableString	      "on,on,on"
-	      MaskVisibilityString    "on,on,on"
-	      MaskToolTipString	      "on,on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "0|robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		184
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  3
+		  Object {
+		    $ObjectID		    185
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "0"
+		  }
+		  Object {
+		    $ObjectID		    186
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    187
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	    }
 	    Block {
 	      BlockType		      Terminator
@@ -10829,6 +11560,7 @@ Library {
 	  SID			  "538"
 	  Ports			  [0, 1]
 	  Position		  [425, 48, 495, 92]
+	  ZOrder		  -4
 	  BackgroundColor	  "[1.000000, 0.634000, 0.268000]"
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -10837,25 +11569,35 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskType		  "Get Joint Torques"
-	  MaskPromptString	  "Robot name|Local name"
-	  MaskStyleString	  "edit,edit"
-	  MaskVariables		  "robotName=@1;localName=@2;"
-	  MaskTunableValueString  "on,on"
-	  MaskCallbackString	  "|"
-	  MaskEnableString	  "on,on"
-	  MaskVisibilityString	  "on,on"
-	  MaskToolTipString	  "on,on"
-	  MaskDisplay		  "disp('tau')"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "robotName|localName"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    188
+	    $ClassName		    "Simulink.Mask"
+	    Type		    "Get Joint Torques"
+	    Display		    "disp('tau')"
+	    Array {
+	      Type		      "Simulink.MaskParameter"
+	      Dimension		      2
+	      Object {
+		$ObjectID		189
+		Type			"edit"
+		Name			"robotName"
+		Prompt			"Robot name"
+		Value			"robotName"
+	      }
+	      Object {
+		$ObjectID		190
+		Type			"edit"
+		Name			"localName"
+		Prompt			"Local name"
+		Value			"localName"
+	      }
+	      PropName		      "Parameters"
+	    }
+	  }
 	  System {
 	    Name		    "Joint Torques"
-	    Location		    [564, 365, 894, 688]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -11011,6 +11753,7 @@ Library {
 	      Name		      "tauJ"
 	      SID		      "554"
 	      Position		      [255, 243, 285, 257]
+	      ZOrder		      -29
 	      IconDisplay	      "Port number"
 	    }
 	    Line {
@@ -11120,24 +11863,34 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskPromptString	  "robotName|localName"
-	  MaskStyleString	  "edit,edit"
-	  MaskVariables		  "robotName=@1;localName=@2;"
-	  MaskTunableValueString  "on,on"
-	  MaskCallbackString	  "|"
-	  MaskEnableString	  "on,on"
-	  MaskVisibilityString	  "on,on"
-	  MaskToolTipString	  "on,on"
-	  MaskDisplay		  "disp('dq')"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "robotName|localName"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    191
+	    $ClassName		    "Simulink.Mask"
+	    Display		    "disp('dq')"
+	    Array {
+	      Type		      "Simulink.MaskParameter"
+	      Dimension		      2
+	      Object {
+		$ObjectID		192
+		Type			"edit"
+		Name			"robotName"
+		Prompt			"robotName"
+		Value			"robotName"
+	      }
+	      Object {
+		$ObjectID		193
+		Type			"edit"
+		Name			"localName"
+		Prompt			"localName"
+		Value			"localName"
+	      }
+	      PropName		      "Parameters"
+	    }
+	  }
 	  System {
 	    Name		    "Joint Velocities"
-	    Location		    [468, 81, 1365, 769]
+	    Location		    [487, 75, 1330, 538]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -11221,20 +11974,37 @@ Library {
 	      FunctionName	      "robotState"
 	      Parameters	      "val,robotname,localname"
 	      EnableBusSupport	      off
-	      MaskPromptString	      "Value|Robot Name (icub - icubSim)|Module Name"
-	      MaskStyleString	      "edit,edit,edit"
-	      MaskVariables	      "val=@1;robotname=@2;localname=@3;"
-	      MaskTunableValueString  "on,on,on"
-	      MaskCallbackString      "||"
-	      MaskEnableString	      "on,on,on"
-	      MaskVisibilityString    "on,on,on"
-	      MaskToolTipString	      "on,on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "1|robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		194
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  3
+		  Object {
+		    $ObjectID		    195
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "1"
+		  }
+		  Object {
+		    $ObjectID		    196
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    197
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	    }
 	    Block {
 	      BlockType		      Terminator
@@ -11416,23 +12186,33 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskPromptString	  "robotName|localName"
-	  MaskStyleString	  "edit,edit"
-	  MaskVariables		  "robotName=@1;localName=@2;"
-	  MaskTunableValueString  "on,on"
-	  MaskCallbackString	  "|"
-	  MaskEnableString	  "on,on"
-	  MaskVisibilityString	  "on,on"
-	  MaskToolTipString	  "on,on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "robotName|localName"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    198
+	    $ClassName		    "Simulink.Mask"
+	    Array {
+	      Type		      "Simulink.MaskParameter"
+	      Dimension		      2
+	      Object {
+		$ObjectID		199
+		Type			"edit"
+		Name			"robotName"
+		Prompt			"robotName"
+		Value			"robotName"
+	      }
+	      Object {
+		$ObjectID		200
+		Type			"edit"
+		Name			"localName"
+		Prompt			"localName"
+		Value			"localName"
+	      }
+	      PropName		      "Parameters"
+	    }
+	  }
 	  System {
 	    Name		    "Left leg EE Wrench"
-	    Location		    [468, 81, 1365, 769]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -11537,20 +12317,37 @@ Library {
 	      FunctionName	      "robotState"
 	      Parameters	      "val,robotname,localname"
 	      EnableBusSupport	      off
-	      MaskPromptString	      "Value|Robot Name (icub - icubSim)|Module Name"
-	      MaskStyleString	      "edit,edit,edit"
-	      MaskVariables	      "val=@1;robotname=@2;localname=@3;"
-	      MaskTunableValueString  "on,on,on"
-	      MaskCallbackString      "||"
-	      MaskEnableString	      "on,on,on"
-	      MaskVisibilityString    "on,on,on"
-	      MaskToolTipString	      "on,on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "15|robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		201
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  3
+		  Object {
+		    $ObjectID		    202
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "15"
+		  }
+		  Object {
+		    $ObjectID		    203
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    204
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	    }
 	    Block {
 	      BlockType		      Terminator
@@ -11712,23 +12509,33 @@ Library {
 	  Opaque		  off
 	  RequestExecContextInheritance	off
 	  MaskHideContents	  off
-	  MaskPromptString	  "robotName|localName"
-	  MaskStyleString	  "edit,edit"
-	  MaskVariables		  "robotName=@1;localName=@2;"
-	  MaskTunableValueString  "on,on"
-	  MaskCallbackString	  "|"
-	  MaskEnableString	  "on,on"
-	  MaskVisibilityString	  "on,on"
-	  MaskToolTipString	  "on,on"
-	  MaskIconFrame		  on
-	  MaskIconOpaque	  on
-	  MaskIconRotate	  "none"
-	  MaskPortRotate	  "default"
-	  MaskIconUnits		  "autoscale"
-	  MaskValueString	  "robotName|localName"
+	  Object {
+	    $PropName		    "MaskObject"
+	    $ObjectID		    205
+	    $ClassName		    "Simulink.Mask"
+	    Array {
+	      Type		      "Simulink.MaskParameter"
+	      Dimension		      2
+	      Object {
+		$ObjectID		206
+		Type			"edit"
+		Name			"robotName"
+		Prompt			"robotName"
+		Value			"robotName"
+	      }
+	      Object {
+		$ObjectID		207
+		Type			"edit"
+		Name			"localName"
+		Prompt			"localName"
+		Value			"localName"
+	      }
+	      PropName		      "Parameters"
+	    }
+	  }
 	  System {
 	    Name		    "Right leg EE Wrench"
-	    Location		    [468, 81, 1365, 769]
+	    Location		    [486, 47, 1322, 584]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -11740,7 +12547,7 @@ Library {
 	    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
 	    TiledPageScale	    1
 	    ShowPageBoundaries	    off
-	    ZoomFactor		    "183"
+	    ZoomFactor		    "80"
 	    Block {
 	      BlockType		      Constant
 	      Name		      " "
@@ -11812,20 +12619,37 @@ Library {
 	      FunctionName	      "robotState"
 	      Parameters	      "val,robotname,localname"
 	      EnableBusSupport	      off
-	      MaskPromptString	      "Value|Robot Name (icub - icubSim)|Module Name"
-	      MaskStyleString	      "edit,edit,edit"
-	      MaskVariables	      "val=@1;robotname=@2;localname=@3;"
-	      MaskTunableValueString  "on,on,on"
-	      MaskCallbackString      "||"
-	      MaskEnableString	      "on,on,on"
-	      MaskVisibilityString    "on,on,on"
-	      MaskToolTipString	      "on,on,on"
-	      MaskIconFrame	      on
-	      MaskIconOpaque	      on
-	      MaskIconRotate	      "none"
-	      MaskPortRotate	      "default"
-	      MaskIconUnits	      "autoscale"
-	      MaskValueString	      "15|robotName|localName"
+	      Object {
+		$PropName		"MaskObject"
+		$ObjectID		208
+		$ClassName		"Simulink.Mask"
+		Array {
+		  Type			  "Simulink.MaskParameter"
+		  Dimension		  3
+		  Object {
+		    $ObjectID		    209
+		    Type		    "edit"
+		    Name		    "val"
+		    Prompt		    "Value"
+		    Value		    "15"
+		  }
+		  Object {
+		    $ObjectID		    210
+		    Type		    "edit"
+		    Name		    "robotname"
+		    Prompt		    "Robot Name (icub - icubSim)"
+		    Value		    "robotName"
+		  }
+		  Object {
+		    $ObjectID		    211
+		    Type		    "edit"
+		    Name		    "localname"
+		    Prompt		    "Module Name"
+		    Value		    "localName"
+		  }
+		  PropName		  "Parameters"
+		}
+	      }
 	    }
 	    Block {
 	      BlockType		      Terminator
@@ -12007,54 +12831,58 @@ Library {
     Annotation {
       SID		      "483"
       Name		      "WHOLE BODY INTERFACE TOOLBOX"
-      Position		      [201, 93]
+      Position		      [231, 153]
       ForegroundColor	      "white"
-      BackgroundColor	      "gray"
-      FontSize		      5
+      BackgroundColor	      "black"
+      ZOrder		      -1
+      FontName		      "Sans Serif"
+      FontSize		      12
     }
     Annotation {
       SID		      "484"
       Name		      "Copyright  2013-3014 Robotics, Brain and Cognitive Sciences Department, Istituto Italiano di Tecnol"
       "ogia\nThis software was supported by the FP7 EU Project CoDyCO (No. 600716 ICT 2011.2.1 Cognitive Systems and Ro"
       "botics (b)\nhttp://www.codyco.eu"
-      Position		      [205, 109]
+      Position		      [235, 169]
       ForegroundColor	      "white"
-      BackgroundColor	      "gray"
+      BackgroundColor	      "black"
+      ZOrder		      -2
       FontSize		      5
     }
   }
 }
 # Finite State Machines
 #
-#    Stateflow Version 7.6 (R2011b) dated Jan 25 2012, 12:15:34
+#    Stateflow Version 7.6 (R2013a) dated Jan 19 2013, 14:12:58
 #
 #
-
 
 Stateflow {
   machine {
     id			    1
-    name		    "WBCLibrary"
+    name		    "WBIToolbox"
     created		    "06-Feb-2014 11:51:26"
+    locked		    1
     isLibrary		    1
     firstTarget		    26
-    sfVersion		    76014001.00040001
+    sfVersion		    76014001.0015
   }
   chart {
     id			    2
     name		    "Utilities/baseVelocity/MATLAB Function"
-    windowPosition	    [375.75 203.25 200.25 189.75]
+    windowPosition	    [226.855 131.4 200 423]
     viewLimits		    [0 156.75 0 153.75]
-    screen		    [1 1 2806 900 1.25]
+    screen		    [1 1 1366 768 1.25]
     treeNode		    [0 3 0 0]
-    firstTransition	    5
-    firstJunction	    4
+    firstTransition	    8
+    firstJunction	    7
     viewObj		    2
     machine		    1
+    locked		    1
     ssIdHighWaterMark	    7
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
-    firstData		    6
+    firstData		    4
     chartFileNumber	    2
     disableImplicitCasting  1
     eml {
@@ -12079,41 +12907,11 @@ Stateflow {
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
-  junction {
-    id			    4
-    position		    [23.5747 49.5747 7]
-    chart		    2
-    linkNode		    [2 0 0]
-    subviewer		    2
-    ssIdNumber		    3
-    type		    CONNECTIVE_JUNCTION
-  }
-  transition {
-    id			    5
-    labelString		    "{eML_blk_kernel();}"
-    labelPosition	    [32.125 19.875 102.544 14.964]
-    fontSize		    12
-    src {
-      intersection	      [0 0 1 0 23.5747 14.625 0 0]
-    }
-    dst {
-      id		      4
-      intersection	      [7 0 -1 -1 23.5747 42.5747 0 0]
-    }
-    midPoint		    [23.5747 24.9468]
-    chart		    2
-    linkNode		    [2 0 0]
-    dataLimits		    [23.575 23.575 14.625 34.575]
-    subviewer		    2
-    drawStyle		    SMART
-    executionOrder	    1
-    ssIdNumber		    2
-  }
   data {
-    id			    6
+    id			    4
     ssIdNumber		    4
     name		    "JcIn"
-    linkNode		    [2 0 7]
+    linkNode		    [2 0 5]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -12129,10 +12927,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    7
+    id			    5
     ssIdNumber		    5
     name		    "y"
-    linkNode		    [2 6 8]
+    linkNode		    [2 4 6]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -12149,10 +12947,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    8
+    id			    6
     ssIdNumber		    6
     name		    "qD"
-    linkNode		    [2 7 0]
+    linkNode		    [2 5 0]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -12170,6 +12968,39 @@ Stateflow {
     }
     dataType		    "Inherit: Same as Simulink"
   }
+  junction {
+    id			    7
+    position		    [23.5747 49.5747 7]
+    chart		    2
+    linkNode		    [2 0 0]
+    subviewer		    2
+    ssIdNumber		    3
+    type		    CONNECTIVE_JUNCTION
+  }
+  transition {
+    id			    8
+    labelString		    "{eML_blk_kernel();}"
+    labelPosition	    [32.125 19.875 102.544 14.964]
+    fontSize		    12
+    src {
+      intersection	      [0 0 1 0 23.5747 14.625 0 0]
+    }
+    dst {
+      id		      7
+      intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
+    }
+    midPoint		    [23.5747 24.9468]
+    chart		    2
+    linkNode		    [2 0 0]
+    dataLimits		    [23.575 23.575 14.625 34.575]
+    subviewer		    2
+    drawStyle		    SMART
+    slide {
+      sticky		      BOTH_STICK
+    }
+    executionOrder	    1
+    ssIdNumber		    2
+  }
   instance {
     id			    9
     name		    "Utilities/baseVelocity/MATLAB Function"
@@ -12179,18 +13010,19 @@ Stateflow {
   chart {
     id			    10
     name		    "Utilities/DampPinv/Damped Pseudo Inverse"
-    windowPosition	    [259 477 200 423]
+    windowPosition	    [133.268 20 200 534.4]
     viewLimits		    [0 156.75 0 153.75]
-    screen		    [1 1 3280 1200 1.25]
+    screen		    [1 1 1366 768 1.25]
     treeNode		    [0 11 0 0]
-    firstTransition	    13
-    firstJunction	    12
+    firstTransition	    16
+    firstJunction	    15
     viewObj		    10
     machine		    1
+    locked		    1
     ssIdHighWaterMark	    8
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
-    firstData		    14
+    firstData		    12
     chartFileNumber	    6
     disableImplicitCasting  1
     eml {
@@ -12217,44 +13049,11 @@ Stateflow {
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
-  junction {
-    id			    12
-    position		    [23.5747 49.5747 7]
-    chart		    10
-    linkNode		    [10 0 0]
-    subviewer		    10
-    ssIdNumber		    3
-    type		    CONNECTIVE_JUNCTION
-  }
-  transition {
-    id			    13
-    labelString		    "{eML_blk_kernel();}"
-    labelPosition	    [32.125 19.875 102.544 14.964]
-    fontSize		    12
-    src {
-      intersection	      [0 0 1 0 23.5747 14.625 0 0]
-    }
-    dst {
-      id		      12
-      intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
-    }
-    midPoint		    [23.5747 24.9468]
-    chart		    10
-    linkNode		    [10 0 0]
-    dataLimits		    [23.575 23.575 14.625 34.575]
-    subviewer		    10
-    drawStyle		    SMART
-    slide {
-      sticky		      BOTH_STICK
-    }
-    executionOrder	    1
-    ssIdNumber		    2
-  }
   data {
-    id			    14
+    id			    12
     ssIdNumber		    4
     name		    "mat"
-    linkNode		    [10 0 15]
+    linkNode		    [10 0 13]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -12270,10 +13069,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    15
+    id			    13
     ssIdNumber		    5
     name		    "DPinv"
-    linkNode		    [10 14 16]
+    linkNode		    [10 12 14]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -12290,10 +13089,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    16
+    id			    14
     ssIdNumber		    8
     name		    "sigma"
-    linkNode		    [10 15 0]
+    linkNode		    [10 13 0]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -12311,6 +13110,39 @@ Stateflow {
     }
     dataType		    "Inherit: Same as Simulink"
   }
+  junction {
+    id			    15
+    position		    [23.5747 49.5747 7]
+    chart		    10
+    linkNode		    [10 0 0]
+    subviewer		    10
+    ssIdNumber		    3
+    type		    CONNECTIVE_JUNCTION
+  }
+  transition {
+    id			    16
+    labelString		    "{eML_blk_kernel();}"
+    labelPosition	    [32.125 19.875 102.544 14.964]
+    fontSize		    12
+    src {
+      intersection	      [0 0 1 0 23.5747 14.625 0 0]
+    }
+    dst {
+      id		      15
+      intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
+    }
+    midPoint		    [23.5747 24.9468]
+    chart		    10
+    linkNode		    [10 0 0]
+    dataLimits		    [23.575 23.575 14.625 34.575]
+    subviewer		    10
+    drawStyle		    SMART
+    slide {
+      sticky		      BOTH_STICK
+    }
+    executionOrder	    1
+    ssIdNumber		    2
+  }
   instance {
     id			    17
     name		    "Utilities/DampPinv/Damped Pseudo Inverse"
@@ -12320,19 +13152,20 @@ Stateflow {
   chart {
     id			    18
     name		    "Utilities/TruncPinv/Truncated PseudoInverse"
-    windowPosition	    [244 474 200 423]
+    windowPosition	    [125.355 20 200 534.4]
     viewLimits		    [0 156.75 0 153.75]
-    screen		    [1 1 3280 1200 1.25]
+    screen		    [1 1 1366 768 1.25]
     treeNode		    [0 19 0 0]
-    firstTransition	    21
-    firstJunction	    20
+    firstTransition	    24
+    firstJunction	    23
     viewObj		    18
     machine		    1
+    locked		    1
     toolbarMode		    LIBRARY_TOOLBAR
     ssIdHighWaterMark	    8
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
-    firstData		    22
+    firstData		    20
     chartFileNumber	    7
     disableImplicitCasting  1
     eml {
@@ -12358,44 +13191,11 @@ Stateflow {
       editorLayout	      "100 M4x1[10 5 700 500]"
     }
   }
-  junction {
-    id			    20
-    position		    [23.5747 49.5747 7]
-    chart		    18
-    linkNode		    [18 0 0]
-    subviewer		    18
-    ssIdNumber		    3
-    type		    CONNECTIVE_JUNCTION
-  }
-  transition {
-    id			    21
-    labelString		    "{eML_blk_kernel();}"
-    labelPosition	    [32.125 19.875 102.544 14.964]
-    fontSize		    12
-    src {
-      intersection	      [0 0 1 0 23.5747 14.625 0 0]
-    }
-    dst {
-      id		      20
-      intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
-    }
-    midPoint		    [23.5747 24.9468]
-    chart		    18
-    linkNode		    [18 0 0]
-    dataLimits		    [23.575 23.575 14.625 34.575]
-    subviewer		    18
-    drawStyle		    SMART
-    slide {
-      sticky		      BOTH_STICK
-    }
-    executionOrder	    1
-    ssIdNumber		    2
-  }
   data {
-    id			    22
+    id			    20
     ssIdNumber		    4
     name		    "mat"
-    linkNode		    [18 0 23]
+    linkNode		    [18 0 21]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -12411,10 +13211,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    23
+    id			    21
     ssIdNumber		    5
     name		    "TPinv"
-    linkNode		    [18 22 24]
+    linkNode		    [18 20 22]
     scope		    OUTPUT_DATA
     machine		    1
     props {
@@ -12431,10 +13231,10 @@ Stateflow {
     dataType		    "Inherit: Same as Simulink"
   }
   data {
-    id			    24
+    id			    22
     ssIdNumber		    8
     name		    "tol"
-    linkNode		    [18 23 0]
+    linkNode		    [18 21 0]
     scope		    INPUT_DATA
     machine		    1
     props {
@@ -12451,6 +13251,39 @@ Stateflow {
       frame		      SF_FRAME_INHERITED
     }
     dataType		    "Inherit: Same as Simulink"
+  }
+  junction {
+    id			    23
+    position		    [23.5747 49.5747 7]
+    chart		    18
+    linkNode		    [18 0 0]
+    subviewer		    18
+    ssIdNumber		    3
+    type		    CONNECTIVE_JUNCTION
+  }
+  transition {
+    id			    24
+    labelString		    "{eML_blk_kernel();}"
+    labelPosition	    [32.125 19.875 102.544 14.964]
+    fontSize		    12
+    src {
+      intersection	      [0 0 1 0 23.5747 14.625 0 0]
+    }
+    dst {
+      id		      23
+      intersection	      [1 0 -1 0 23.5747 42.5747 0 0]
+    }
+    midPoint		    [23.5747 24.9468]
+    chart		    18
+    linkNode		    [18 0 0]
+    dataLimits		    [23.575 23.575 14.625 34.575]
+    subviewer		    18
+    drawStyle		    SMART
+    slide {
+      sticky		      BOTH_STICK
+    }
+    executionOrder	    1
+    ssIdNumber		    2
   }
   instance {
     id			    25
