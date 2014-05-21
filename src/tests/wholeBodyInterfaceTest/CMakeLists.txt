@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 2.8)
 SET(PROJECTNAME wholeBodyInterfaceTest)
 PROJECT(${PROJECTNAME})
 
+find_package(YARP REQUIRED)
 find_package(wholeBodyInterface REQUIRED)
 
 
@@ -21,12 +22,14 @@ SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
-                    ${wholeBodyInterface_INCLUDE_DIRS})
+                    ${wholeBodyInterface_INCLUDE_DIRS}
+                    ${YARP_INCLUDE_DIRS})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${wholeBodyInterface_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME} ${wholeBodyInterface_LIBRARIES}
+                                     ${YARP_LIBRARIES})
 
 if(WIN32)
     INSTALL_TARGETS(/bin/Release ${PROJECTNAME})
