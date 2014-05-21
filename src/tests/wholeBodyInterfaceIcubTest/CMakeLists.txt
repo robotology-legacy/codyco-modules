@@ -6,11 +6,8 @@ cmake_minimum_required(VERSION 2.8)
 SET(PROJECTNAME wholeBodyInterfaceIcubTest)
 PROJECT(${PROJECTNAME})
 
-find_package(YARP)
-find_package(ICUB)
-
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
+find_package(YARP REQUIRED)
+find_package(yarpWholeBodyInterface REQUIRED)
 
 FILE(GLOB folder_source ./*.cpp)
 FILE(GLOB folder_header ./*.h)
@@ -48,7 +45,7 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME} wholeBodyInterface wholeBodyInterfaceIcub
 ${YARP_LIBRARIES} skinDynLib ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
 
 if(WIN32)
-	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})	
+	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})
 else(WIN32)
 	INSTALL_TARGETS(/bin ${PROJECTNAME})
 endif(WIN32)
