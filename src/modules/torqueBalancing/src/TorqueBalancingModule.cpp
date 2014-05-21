@@ -151,7 +151,8 @@ namespace codyco {
             
             generator = new ReferenceGenerator(m_controllerThreadPeriod, m_references->desiredJointsConfiguration(), *reader);
             if (generator) {
-                generator->setReferenceFilter(&jointsSmoother);
+                //generator->setReferenceFilter(&jointsSmoother);
+                generator->setProportionalGains(Eigen::VectorXd::Constant(actuatedDOFs, 1.0));
                 m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeImpedanceControl, generator));
             } else {
                 std::cerr << "Could not create impedance controller object." << std::endl;
@@ -451,13 +452,15 @@ namespace codyco {
             bool tasksState[4] = {comTaskActive, leftHandForceTaskActive, rightHandForceTaskActive, impedanceTaskActive};
             TaskType tasksType[4] = {TaskTypeCOM, TaskTypeLeftHandForce, TaskTypeRightHandForce, TaskTypeImpedanceControl};
             
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 4; i++) {
                 found = m_referenceGenerators.find(tasksType[i]);
                 controlSet = controlSet && found != m_referenceGenerators.end();
                 if (controlSet) {
                     found->second->setActiveState(tasksState[i]);
-                    if (tasksType[i] == TaskTypeImpedanceControl)
-                        found->second->setSignalFeedForward(impedanceReference);
+                    if (tasksType[i] == TaskTypeImpedanceControl) {
+                        found->second->setSignalReference(impedanceReference);
+                        std::cerr << "Setting impedance reference: \n" << impedanceReference << "\n\n";
+                    }
                 }
             }
             m_controller->setActiveState(m_active && controlSet);
@@ -653,6 +656,8 @@ namespace codyco {
                 rightHandPositionGenerator->setDerivativeGains(m_handsPositionDerivativeGain);
                 rightHandPositionGenerator->setIntegralGains(m_handsPositionIntegralGain);
             }
+            m_module.m_controller->setCentroidalMomentumGain(m_centroidalGain);
+            m_module.m_controller->setImpedanceGains(m_impedanceControlGains);
         }
         
         bool TorqueBalancingModule::ParamHelperManager::processRPCCommand(const yarp::os::Bottle &command, yarp::os::Bottle &reply)

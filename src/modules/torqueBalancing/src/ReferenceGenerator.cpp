@@ -44,17 +44,7 @@ namespace codyco {
         , m_previousTime(-1)
         , m_active(false)
         , m_currentSignalValue(reference.valueSize())
-        , m_actualReference(reference.valueSize()) {}
-        
-        ReferenceGenerator::~ReferenceGenerator()
-        {
-            if (m_referenceFilter) {
-                delete m_referenceFilter;
-                m_referenceFilter = 0;
-            }
-        }
-
-        bool ReferenceGenerator::threadInit()
+        , m_actualReference(reference.valueSize())
         {
             m_proportionalGains.setZero();
             m_derivativeGains.setZero();
@@ -72,7 +62,18 @@ namespace codyco {
             //avoid garbage in the generated reference
             m_outputReference.setValue(m_computedReference);
             m_outputReference.setValid(false);
-            
+        }
+        
+        ReferenceGenerator::~ReferenceGenerator()
+        {
+            if (m_referenceFilter) {
+                delete m_referenceFilter;
+                m_referenceFilter = 0;
+            }
+        }
+
+        bool ReferenceGenerator::threadInit()
+        {
             return true;
         }
         
@@ -98,7 +99,6 @@ namespace codyco {
                 m_currentSignalValue = m_reader.getSignal();
                 //compute pid
                 m_error = m_actualReference - m_currentSignalValue;
-                
                 m_integralTerm += dt * m_error;
                 limitIntegral(m_integralTerm, m_integralTerm);
                 

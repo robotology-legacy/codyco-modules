@@ -132,6 +132,8 @@ namespace codyco {
             m_centroidalMomentum.setZero();
             m_massMatrix.setZero();
             
+            m_desiredJointsConfiguration.setZero();
+            
             //zeroing gains
             m_impedanceGains.setZero();
            
@@ -153,7 +155,7 @@ namespace codyco {
             if (!m_active) return;
             //read references
             readReferences();
-            
+
             //read / update state
             updateRobotState();
             
@@ -232,8 +234,9 @@ namespace codyco {
         {
             if (m_references.desiredCOMAcceleration().isValid())
                 m_desiredCOMAcceleration = m_references.desiredCOMAcceleration().value();
-            if (m_references.desiredJointsConfiguration().isValid())
+            if (m_references.desiredJointsConfiguration().isValid()) {
                 m_desiredJointsConfiguration = m_references.desiredJointsConfiguration().value();
+            }
             if ((m_leftHandForcesActive = m_references.desiredLeftHandForce().isValid()))
                 m_desiredHandsForces.head(6) = m_references.desiredLeftHandForce().value();
             if ((m_rightHandForcesActive = m_references.desiredRightHandForce().isValid()))
