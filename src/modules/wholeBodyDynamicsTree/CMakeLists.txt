@@ -41,7 +41,7 @@ ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES}
                                      ${iDynTree_LIBRARIES}
-                                     ${yarpWholeBodyInterface})
+                                     ${yarpWholeBodyInterface_LIBRARIES})
 
 INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
 
