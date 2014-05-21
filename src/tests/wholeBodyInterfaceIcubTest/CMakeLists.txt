@@ -8,6 +8,7 @@ PROJECT(${PROJECTNAME})
 
 find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)
+find_package(iDynTree REQUIRED)
 find_package(yarpWholeBodyInterface REQUIRED)
 
 FILE(GLOB folder_source ./*.cpp)
@@ -22,6 +23,7 @@ INCLUDE_DIRECTORIES(${yarpWholeBodyInterface_INCLUDE_DIRS}
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
 message(STATUS "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+message(STATUS "iDynTree_LIBRARIES : " ${iDynTree_LIBRARIES})
 message(STATUS "yarpWholeBodyInterface_LIBRARIES : " ${yarpWholeBodyInterface_LIBRARIES})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME} ${yarpWholeBodyInterface_LIBRARIES})
