@@ -54,9 +54,9 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${EIGEN3_INCLUDE_DIR}
                     ${codyco-commons_INCLUDE_DIRS})
 
-ADD_EXECUTABLE(${PROJECTNAME} ${SOURCES} ${HEADERS})
+ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME}
+TARGET_LINK_LIBRARIES(${PROJECT_NAME}
                       ${wholeBodyInterface_LIBRARIES}
                       ${yarpWholeBodyInterface_LIBRARIES}
                       ${paramHelp_LIBRARIES}
@@ -65,9 +65,9 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME}
                       ${codyco-commons_LIBRARIES})
 
 if(WIN32)
-    INSTALL_TARGETS(/bin/Release ${PROJECTNAME})
+    INSTALL_TARGETS(/bin/Release ${PROJECT_NAME})
 else(WIN32)
-    INSTALL_TARGETS(/bin ${PROJECTNAME})
+    INSTALL_TARGETS(/bin ${PROJECT_NAME})
 endif(WIN32)
 
 
