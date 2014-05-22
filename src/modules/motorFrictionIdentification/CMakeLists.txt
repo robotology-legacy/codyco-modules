@@ -6,9 +6,12 @@ cmake_minimum_required(VERSION 2.8)
 SET(PROJECTNAME motorFrictionIdentification)
 PROJECT(${PROJECTNAME})
 
-find_package(YARP)
-find_package(ICUB)
+find_package(YARP REQUIRED)
+find_package(ICUB REQUIRED)
+find_package(paramHelp REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(wholeBodyInterface REQUIRED)
+find_package(yarpWholeBodyInterface REQUIRED)
 
 FILE(GLOB folder_source ./src/motorFrictionIdentificationMain.cpp
                         ./src/motorFrictionIdentificationModule.cpp

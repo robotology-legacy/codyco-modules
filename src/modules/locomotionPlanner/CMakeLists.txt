@@ -26,7 +26,8 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR})
+                    ${EIGEN3_INCLUDE_DIR}
+                    ../locomotionControl/include)
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
