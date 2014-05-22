@@ -445,8 +445,13 @@ namespace adaptiveControl {
         
         //compute torques and send them to actuation
         _kneeTorque = regressor.row(1) * _piHat - _kappa(1) * s(1) - _kappaIntegral(1) * _sIntegral(1);
-        _kneeTorque = _kneeTorque > _torqueSaturation ? _torqueSaturation : _kneeTorque;
-        _kneeTorque = _kneeTorque < -_torqueSaturation ? _torqueSaturation : _kneeTorque;
+        if (_kneeTorque > _torqueSaturation) {
+            _kneeTorque = _torqueSaturation;
+            std::cerr << "Saturating torque to: " << _kneeTorque << "\n";
+        } else if (_kneeTorque < -_torqueSaturation) {
+            _kneeTorque = -_torqueSaturation;
+            std::cerr << "Saturating torque to: " << _kneeTorque << "\n";
+        }
         writeOutputs();
         
         

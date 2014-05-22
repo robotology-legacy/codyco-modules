@@ -158,9 +158,9 @@ namespace adaptiveControl
     // ****************************************** DESCRIPTION OF ALL THE MODULE AND THREAD PARAMETERS ******************************************
     // *****************************************************************************************************************************************
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
-    const unsigned short adaptiveControlParamDescriptorsSize = 21;
+    const unsigned short adaptiveControlParamDescriptorsSize = 22;
 #else
-    const unsigned short adaptiveControlParamDescriptorsSize = 20;
+    const unsigned short adaptiveControlParamDescriptorsSize = 21;
 #endif
     const paramHelp::ParamProxyInterface *const adaptiveControlParamDescriptors[]  =
     {
