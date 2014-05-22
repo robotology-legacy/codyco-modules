@@ -20,7 +20,7 @@ alt="Overview of the Simulink library for Whole Body Control" width="480" height
 
 ###### Requirements
 * Matlab V. 7.1+ and Simulink (Tested with Matlab R2013a, 7.14 R2012a/b, 7.12 R2011a).
-* YARP (compiled as shared library -IMPORTANT-).
+* YARP (-IMPORTANT- compiled as shared library, currently a default yarp configuration option).
 * CoDyCo. 
 * iCub.
 * Gazebo Simulator + `gazebo_yarp_plugins` (if you wish to use Gazebo instead of iCub_SIM).
@@ -29,7 +29,9 @@ alt="Overview of the Simulink library for Whole Body Control" width="480" height
 **Note: The following instructions are for Linux distributions, but it works similarly on the other operating systems.**
 
 ###### Installation
-Before going ahead with the compilation of the library, make sure that you have MATLAB and Simulink properly installed and running. Then, check that the MEX compiler for MATLAB is setup and working. For this you can try compiling some of the MATLAB C code examples as described in [http://www.mathworks.com/help/matlab/ref/mex.html#btz1tb5-12]. In the following steps assume that `$CODYCO_DIR` points to the `/build` directory of your CoDyCo installation and `$CODYCO_ROOT` to the corresponding `/src` directory. In case you are using the simulator, make sure that the iCub models are being loaded and the `gazebo_yarp_plugins` properly working. This is easy to verify as you need only to launch a `yarpserver`, then Gazebo and load the desired model, be it iCub (fixed) or iCub. If the robot does not fall under the effect of gravity, it means the plugins are working and you can go ahead with the installation of the Toolbox.
+In the following steps assume that `$CODYCO_DIR` points to the `/build` directory of your CoDyCo installation and `$CODYCO_ROOT` to the corresponding `/src` directory. In case you are using the simulator, make sure that the iCub models are being loaded and the `gazebo_yarp_plugins` properly working. This is easy to verify as you need only to launch a `yarpserver`, then Gazebo and load the desired model, be it iCub (fixed) or iCub. If the robot does not fall under the effect of gravity, it means the plugins are working and you can go ahead with the installation of the Toolbox.
+
+- **Check the matlab configuration.** Before going ahead with the compilation of the library, make sure that you have MATLAB and Simulink properly installed and running. Then, check that the MEX compiler for MATLAB is setup and working. For this you can try compiling some of the MATLAB C code examples as described in [http://www.mathworks.com/help/matlab/ref/mex.html#btz1tb5-12]. 
 
 - **Compiling the WBI Toolbox.** When configuring the CMakeLists for CoDyCo make sure to enable the `CODYCO_USES_WBI_TOOLBOX` flag by doing
 ```bash
