@@ -52,7 +52,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${ctrlLib_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
-                    ${codyco-commons_INCLUDE_DIRS)
+                    ${codyco-commons_INCLUDE_DIRS})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${SOURCES} ${HEADERS})
 
