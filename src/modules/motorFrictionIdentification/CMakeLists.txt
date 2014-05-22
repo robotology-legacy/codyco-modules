@@ -34,7 +34,8 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR})
+                    ${EIGEN3_INCLUDE_DIR}
+                    ${motorFrictionIdentificationLib_INCLUDE_DIRS})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
@@ -43,7 +44,8 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME}
                       ${yarpWholeBodyInterface_LIBRARIES}
                       ${paramHelp_LIBRARIES}
                       ${ctrlLib_LIBRARIES}
-                      ${YARP_LIBRARIES})
+                      ${YARP_LIBRARIES}
+                      motorFrictionIdentificationLib)
 
 if(WIN32)
     INSTALL_TARGETS(/bin/Release ${PROJECTNAME})

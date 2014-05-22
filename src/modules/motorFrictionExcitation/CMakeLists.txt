@@ -27,11 +27,13 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR})
+                    ${EIGEN3_INCLUDE_DIR}
+                    ${motorFrictionIdentificationLib_INCLUDE_DIRS})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME}
+                      motorFrictionIdentificationLib
                       ${wholeBodyInterface_LIBRARIES}
                       ${yarpWholeBodyInterface_LIBRARIES}
                       ${paramHelp_LIBRARIES}
