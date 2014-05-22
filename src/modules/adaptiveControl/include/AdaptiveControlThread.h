@@ -42,6 +42,7 @@
 #include <yarp/os/RateThread.h>
 #include <yarp/sig/Vector.h>
 #include <string>
+#include <iCub/ctrl/minJerkCtrl.h>
 
 #include <Eigen/Core>
 
@@ -133,6 +134,7 @@ namespace adaptiveControl {
         double _refAmplitude;
         double _refPhase; //in rad
         double _refDesiredFrequency; //in Hz
+        double _refDesiredFrequencyInput; //in Hz
         double _refSystemGain;
         
         double _currentRef;
@@ -170,6 +172,10 @@ namespace adaptiveControl {
         double _massMatrixDeterminant;
         
         double _torqueSaturation;
+        
+        iCub::ctrl::minJerkTrajGen _minJerkTrajectoryGenerator;
+        yarp::sig::Vector _minJerkInputFrequency;
+        yarp::sig::Vector _minJerkOutputFrequency;
    
         yarp::dev::PolyDriver* openDriver(std::string localName, std::string robotName, std::string bodyPartName);
         void computeRegressor(const Eigen::Vector2d& q, /* Joint positions*/

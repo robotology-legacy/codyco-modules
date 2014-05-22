@@ -69,12 +69,16 @@ namespace adaptiveControl {
 #endif
     _refAngularVelocity(0),
     _refSystemGain(1),
+    _refDesiredFrequency(0),
     _link1Length(linklengths(0)),
     _link2Length(linklengths(1)),
     _errorIntegral(0),
     _kneeTorque(0),
     _outputTau(ICUB_PART_DOF, 0.0),
-    _torqueSaturation(12)
+    _torqueSaturation(12),
+    _minJerkTrajectoryGenerator(1, periodMilliseconds / 1000.0, 2), //2 seconds of duration
+    _minJerkInputFrequency(1),
+    _minJerkOutputFrequency(1)
     {
         _piHat = Vector8d::Zero();
         _dpiHat = Vector8d::Zero();
@@ -123,7 +127,7 @@ namespace adaptiveControl {
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainGamma, _GammaInput.data()));
         //reference trajectory
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefBaseline, &_refBaseline));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefFrequency, &_refDesiredFrequency));
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefFrequency, &_refDesiredFrequencyInput));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefAmplitude, &_refAmplitude));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefPhase, &_refPhase));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDTorqueSaturation, &_torqueSaturation));
@@ -132,6 +136,7 @@ namespace adaptiveControl {
 		YARP_ASSERT(_paramServer.registerCommandCallback(AdaptiveControlCommandIDStop, this));
         
         YARP_ASSERT(_paramServer.registerParamValueChangedCallback(AdaptiveControlParamIDGainGamma, this));
+        YARP_ASSERT(_paramServer.registerParamValueChangedCallback(AdaptiveControlParamIDRefFrequency, this));
         
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
         YARP_ASSERT(_paramClient.linkParam(jointTorqueControl::PARAM_ID_TAU_OFFSET, _jointTorqueControlTorques.data()));
@@ -268,6 +273,11 @@ namespace adaptiveControl {
             case AdaptiveControlParamIDGainGamma:
                 _Gamma = _GammaInput.asDiagonal();
                 break;
+            case AdaptiveControlParamIDRefFrequency:
+                //compute new trajectory
+                _minJerkInputFrequency(0) = _refDesiredFrequency;
+                _minJerkTrajectoryGenerator.init(_minJerkInputFrequency);
+                break;
             default:
                 break;
         }
@@ -338,6 +348,12 @@ namespace adaptiveControl {
         
         double dt = now - _previousTime;
         _previousTime = now;
+        
+        //update frequency
+        _minJerkInputFrequency(0) = _refDesiredFrequencyInput;
+        _minJerkTrajectoryGenerator.computeNextValues(_minJerkInputFrequency);
+        _minJerkOutputFrequency = _minJerkTrajectoryGenerator.getPos();
+        _refDesiredFrequency = _minJerkOutputFrequency(0);
         
         //update state variables (only if sendCommands = true, otherwise the updating law integrates a constant value)
         //double dotOmega = -_refSystemGain * (_refAngularVelocity - 2 * pi * _refDesiredFrequency);
@@ -564,7 +580,8 @@ namespace adaptiveControl {
             _controlEnabled = true;
             _failedReads = 0;
             _firstRunLoop = true;
-
+            _minJerkInputFrequency(0) = _refDesiredFrequency;
+            _minJerkTrajectoryGenerator.init(_minJerkInputFrequency);
 #ifdef ADAPTIVECONTROL_TORQUECONTROL
             _controlMode->setTorqueMode(passiveJointIndex);
 			_torqueControl->setRefTorque(passiveJointIndex, 0);
