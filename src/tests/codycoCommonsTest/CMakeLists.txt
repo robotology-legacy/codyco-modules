@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 2.8)
 PROJECT(codycoCommons-tests)
 
 find_package(Eigen3 REQUIRED)
+find_package(codycoCommons REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
@@ -16,9 +17,9 @@ FILE(GLOB folder_header ./*.h)
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
-INCLUDE_DIRECTORIES(${codyco_commons_INCLUDE_DIRS}
+INCLUDE_DIRECTORIES(${codycoCommons_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR})
 
 ADD_EXECUTABLE(${PROJECT_NAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} codyco_commons)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${codycoCommons_LIBRARIES})

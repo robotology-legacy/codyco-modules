@@ -11,7 +11,7 @@ find_package(paramHelp REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(wholeBodyInterface REQUIRED)
 find_package(yarpWholeBodyInterface REQUIRED)
-find_package(codyco-commons REQUIRED)
+find_package(codycoCommons REQUIRED)
 
 if(${CODYCO_USES_URDFDOM})
     find_package(Boost)
@@ -53,7 +53,7 @@ INCLUDE_DIRECTORIES(${HEADERS_FOLDER}
                     ${ctrlLib_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
-                    ${codyco-commons_INCLUDE_DIRS})
+                    ${codycoCommons_INCLUDE_DIRS})
 
 ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
@@ -63,7 +63,7 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
                       ${paramHelp_LIBRARIES}
                       ${ctrlLib_LIBRARIES}
                       ${YARP_LIBRARIES}
-                      ${codyco-commons_LIBRARIES})
+                      ${codycoCommons_LIBRARIES})
 
 if(WIN32)
     INSTALL_TARGETS(/bin/Release ${PROJECT_NAME})
