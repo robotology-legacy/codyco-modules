@@ -10,10 +10,6 @@ find_package(YARP)
 find_package(ICUB)
 find_package(Eigen3 REQUIRED)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
-
-
 FILE(GLOB folder_source ./src/motorFrictionIdentificationMain.cpp
                         ./src/motorFrictionIdentificationModule.cpp
                         ./src/motorFrictionIdentificationThread.cpp
@@ -21,26 +17,17 @@ FILE(GLOB folder_source ./src/motorFrictionIdentificationMain.cpp
                         ./src/alternatingRecursiveLinearEstimator.cpp )
 FILE(GLOB folder_header ./include/motorFrictionIdentification/motorFrictionIdentificationModule.h
                         ./include/motorFrictionIdentification/motorFrictionIdentificationThread.h
-                        ./include/motorFrictionIdentification/motorFrictionIdentificationConstants.h 
-                        ./include/motorFrictionIdentification/recursiveLinearEstimator.h 
+                        ./include/motorFrictionIdentification/motorFrictionIdentificationConstants.h
+                        ./include/motorFrictionIdentification/recursiveLinearEstimator.h
                         ./include/motorFrictionIdentification/alternatingRecursiveLinearEstimator.h )
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
-include(iCubHelpers)
-include(iCubOptions)
-
-SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
-
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
-                    ${motorFrictionIdentificationLib_INCLUDE_DIRS}
                     ${wholeBodyInterface_INCLUDE_DIRS}
-                    ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
-                    ${iDynTree_INCLUDE_DIRS}
+                    ${yarpWholeBodyInterface_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
-                    ${Orocos-KDL_INCLUDE_DIRS}
-                    ${kdl_codyco_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
@@ -48,20 +35,16 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} 
-motorFrictionIdentificationLib
-skinDynLib
-ctrlLib
-wholeBodyInterface
-wholeBodyInterfaceIcub
-${paramHelp_LIBRARIES}
-${YARP_LIBRARIES}
-${Orocos-KDL_LIBRARIES}
-${kdl_codyco_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME}
+                      ${wholeBodyInterface_LIBRARIES}
+                      ${yarpWholeBodyInterface_LIBRARIES}
+                      ${paramHelp_LIBRARIES}
+                      ${ctrlLib_LIBRARIES}
+                      ${YARP_LIBRARIES})
 
 if(WIN32)
-	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})	
+    INSTALL_TARGETS(/bin/Release ${PROJECTNAME})
 else(WIN32)
-	INSTALL_TARGETS(/bin ${PROJECTNAME})
+    INSTALL_TARGETS(/bin ${PROJECTNAME})
 endif(WIN32)
 

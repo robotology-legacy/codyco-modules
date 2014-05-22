@@ -6,13 +6,12 @@ cmake_minimum_required(VERSION 2.8)
 SET(PROJECTNAME locomotionControl)
 PROJECT(${PROJECTNAME})
 
-find_package(YARP)
-find_package(ICUB)
+find_package(YARP REQUIRED)
+find_package(ICUB REQUIRED)
+find_package(paramHelp REQUIRED)
 find_package(Eigen3 REQUIRED)
-
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
-
+find_package(wholeBodyInterface REQUIRED)
+find_package(yarpWholeBodyInterface REQUIRED)
 
 FILE(GLOB folder_source ./src/*.cpp)
 FILE(GLOB folder_header ./include/locomotion/*.h)
@@ -20,17 +19,11 @@ FILE(GLOB folder_header ./include/locomotion/*.h)
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
-include(iCubHelpers)
-include(iCubOptions)
-
-SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${wholeBodyInterface_INCLUDE_DIRS}
-                    ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
-                    ${iDynTree_INCLUDE_DIRS}
+                    ${yarpWholeBodyInterface_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
-                    ${kdl_codyco_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
@@ -38,19 +31,16 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} 
-skinDynLib
-wholeBodyInterface
-wholeBodyInterfaceIcub
-${paramHelp_LIBRARIES}
-${ctrlLib_LIBRARIES}
-${YARP_LIBRARIES} 
-${Orocos-KDL_LIBRARIES}
-${kdl_codyco_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME}
+                      ${wholeBodyInterface_LIBRARIES}
+                      ${yarpWholeBodyInterface_LIBRARIES}
+                      ${paramHelp_LIBRARIES}
+                      ${ctrlLib_LIBRARIES}
+                      ${YARP_LIBRARIES})
 
 if(WIN32)
-	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})	
+    INSTALL_TARGETS(/bin/Release ${PROJECTNAME})
 else(WIN32)
-	INSTALL_TARGETS(/bin ${PROJECTNAME})
+    INSTALL_TARGETS(/bin ${PROJECTNAME})
 endif(WIN32)
 
