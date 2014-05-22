@@ -18,13 +18,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 set(SRC_FOLDER ${PROJECT_SOURCE_DIR}/src)
 set(INCLUDE_FOLDER ${PROJECT_SOURCE_DIR}/include)
 
-set(SOURCES 
-    ${SRC_FOLDER}/main.cpp 
-    ${SRC_FOLDER}/AdaptiveControlModule.cpp 
+set(SOURCES
+    ${SRC_FOLDER}/main.cpp
+    ${SRC_FOLDER}/AdaptiveControlModule.cpp
     ${SRC_FOLDER}/AdaptiveControlThread.cpp)
 
-set(INCLUDES 
-    ${INCLUDE_FOLDER}/AdaptiveControlModule.h 
+set(INCLUDES
+    ${INCLUDE_FOLDER}/AdaptiveControlModule.h
     ${INCLUDE_FOLDER}/AdaptiveControlConstants.h
     ${INCLUDE_FOLDER}/AdaptiveControlThread.h)
 
@@ -66,7 +66,7 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME}
      ${kdl_codyco_LIBRARIES})
 
 if(WIN32)
-	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})	
+	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})
 else(WIN32)
 	INSTALL_TARGETS(/bin ${PROJECTNAME})
 endif(WIN32)
