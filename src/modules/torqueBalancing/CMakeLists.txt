@@ -11,6 +11,7 @@ find_package(paramHelp REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(wholeBodyInterface REQUIRED)
 find_package(yarpWholeBodyInterface REQUIRED)
+find_package(codyco-commons REQUIRED)
 
 if(${CODYCO_USES_URDFDOM})
     find_package(Boost)
