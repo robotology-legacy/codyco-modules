@@ -76,7 +76,7 @@ namespace adaptiveControl {
     _kneeTorque(0),
     _outputTau(ICUB_PART_DOF, 0.0),
     _torqueSaturation(12),
-    _minJerkTrajectoryGenerator(1, periodMilliseconds / 1000.0, 2), //2 seconds of duration
+    _minJerkTrajectoryGenerator(1, periodMilliseconds / 1000.0, 10), //5 seconds of duration
     _minJerkInputFrequency(1),
     _minJerkOutputFrequency(1)
     {
@@ -277,6 +277,7 @@ namespace adaptiveControl {
                 //compute new trajectory
                 _minJerkInputFrequency(0) = _refDesiredFrequency;
                 _minJerkTrajectoryGenerator.init(_minJerkInputFrequency);
+                _initialTime = yarp::os::Time::now();
                 break;
             default:
                 break;
@@ -354,7 +355,7 @@ namespace adaptiveControl {
         _minJerkTrajectoryGenerator.computeNextValues(_minJerkInputFrequency);
         _minJerkOutputFrequency = _minJerkTrajectoryGenerator.getPos();
         _refDesiredFrequency = _minJerkOutputFrequency(0);
-        
+                
         //update state variables (only if sendCommands = true, otherwise the updating law integrates a constant value)
         //double dotOmega = -_refSystemGain * (_refAngularVelocity - 2 * pi * _refDesiredFrequency);
         if (_outputEnabled) {
@@ -364,7 +365,8 @@ namespace adaptiveControl {
         }
         
         //define reference trajectory
-        double q_ref = _refBaseline + _refAmplitude * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
+        _q_ref = _refBaseline + _refAmplitude * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
+        double q_ref = _q_ref;
         double dq_ref = _refAmplitude * 2 * pi * _refDesiredFrequency * cos(2 * pi * _refDesiredFrequency * now + _refPhase);
         double ddq_ref = -_refAmplitude * 4 * pi * pi * _refDesiredFrequency * _refDesiredFrequency * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
         //double q_ref = _refBaseline + _refAmplitude * sin(_refAngularVelocity * now + _refPhase);
@@ -585,7 +587,7 @@ namespace adaptiveControl {
             _controlEnabled = true;
             _failedReads = 0;
             _firstRunLoop = true;
-            _minJerkInputFrequency(0) = _refDesiredFrequency;
+            _minJerkInputFrequency(0) = 0;
             _minJerkTrajectoryGenerator.init(_minJerkInputFrequency);
 #ifdef ADAPTIVECONTROL_TORQUECONTROL
             _controlMode->setTorqueMode(passiveJointIndex);
@@ -684,7 +686,7 @@ namespace adaptiveControl {
             norm += _piHat(i) * _piHat(i);
 //             vector.push_back(_piHat(i));
         }
-        vector.push_back(norm);                        //6
+        vector.push_back(norm);                       //6
         vector.push_back(_massMatrixDeterminant);       //7    <======= det
         vector.push_back(_minDeterminantValue);         //8    <======= det _lower limit
         vector.push_back(_piHatModificationOn ? 1 : 0); //9
@@ -706,6 +708,8 @@ namespace adaptiveControl {
         }
         vector.push_back(s(0));      //23  s 1
         vector.push_back(s(1));      //24  s 2
+        
+        vector.push_back(_q_ref);      //25  ref
         
         _debugPort->write();
 		
