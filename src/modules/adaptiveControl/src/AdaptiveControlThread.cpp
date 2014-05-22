@@ -355,6 +355,10 @@ namespace adaptiveControl {
         _minJerkTrajectoryGenerator.computeNextValues(_minJerkInputFrequency);
         _minJerkOutputFrequency = _minJerkTrajectoryGenerator.getPos();
         _refDesiredFrequency = _minJerkOutputFrequency(0);
+        _minJerkOutputFrequency = _minJerkTrajectoryGenerator.getVel();
+        double dFreq = _minJerkOutputFrequency(0);
+        _minJerkOutputFrequency = _minJerkTrajectoryGenerator.getAcc();
+        double ddFreq = _minJerkOutputFrequency(0);
                 
         //update state variables (only if sendCommands = true, otherwise the updating law integrates a constant value)
         //double dotOmega = -_refSystemGain * (_refAngularVelocity - 2 * pi * _refDesiredFrequency);
@@ -366,9 +370,18 @@ namespace adaptiveControl {
         
         //define reference trajectory
         _q_ref = _refBaseline + _refAmplitude * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
+        
+//         double dq_ref = _refAmplitude * 2 * pi * _refDesiredFrequency * cos(2 * pi * _refDesiredFrequency * now + _refPhase);
+//         double ddq_ref = -_refAmplitude * 4 * pi * pi * _refDesiredFrequency * _refDesiredFrequency * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
+        
+        _dq_ref = _refAmplitude * cos(2 * pi * _refDesiredFrequency * now + _refPhase) * (2 * pi * _refDesiredFrequency + 2 * pi * now * dFreq);
+        _ddq_ref = - _refAmplitude * sin(2 * pi * _refDesiredFrequency * now + _refPhase) * (2 * pi * _refDesiredFrequency + 2 * pi * now * dFreq) *  (2 * pi * _refDesiredFrequency + 2 * pi * now * dFreq)
+        + _refAmplitude * cos(2 * pi * _refDesiredFrequency * now + _refPhase) * (2 * pi * dFreq + 2 * pi * dFreq + 2 * pi * now * ddFreq);
         double q_ref = _q_ref;
-        double dq_ref = _refAmplitude * 2 * pi * _refDesiredFrequency * cos(2 * pi * _refDesiredFrequency * now + _refPhase);
-        double ddq_ref = -_refAmplitude * 4 * pi * pi * _refDesiredFrequency * _refDesiredFrequency * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
+        double dq_ref = _dq_ref;
+        double ddq_ref = _ddq_ref;
+//         double ddq_ref = -_refAmplitude * 4 * pi * pi * _refDesiredFrequency * _refDesiredFrequency * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
+        
         //double q_ref = _refBaseline + _refAmplitude * sin(_refAngularVelocity * now + _refPhase);
         //double dq_ref = _refAmplitude * cos(_refAngularVelocity * now + _refPhase) * (dotOmega * now + _refAngularVelocity);
         //double ddq_ref = -_refAmplitude * sin(_refAngularVelocity * now + _refPhase) * (dotOmega * now + _refAngularVelocity) * (dotOmega * now + _refAngularVelocity) 
@@ -710,6 +723,8 @@ namespace adaptiveControl {
         vector.push_back(s(1));      //24  s 2
         
         vector.push_back(_q_ref);      //25  ref
+        vector.push_back(_dq_ref);      //26  ref
+        vector.push_back(_ddq_ref);      //27  ref
         
         _debugPort->write();
 		

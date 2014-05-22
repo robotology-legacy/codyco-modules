@@ -140,6 +140,8 @@ namespace adaptiveControl {
         double _currentRef;
         
         double _q_ref;
+        double _dq_ref;
+        double _ddq_ref;
         
         //geometric parameters
         double _link1Length;
