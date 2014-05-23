@@ -64,8 +64,9 @@ namespace codyco {
              * @param period thread period
              * @param reference object in which to save the computed reference trajectory
              * @param reader object implementing the ReferenceGeneratorInputReader protocol used to obtain the current state of the system.
+             * @param name custom name to be assigned to the controller. Useful while debugging
              */
-            ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader);
+            ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader, const std::string& name = "");
             
             /**
              * Destructor
@@ -77,6 +78,11 @@ namespace codyco {
             virtual void run();
             
 #pragma mark - Getter and setter
+            
+            /** Returns the name of the controller
+             * @return the name of the controller
+             */
+            const std::string& name() const;
             
             //Object is copied inside. Passed object can be deallocated.
             void setReferenceFilter(ReferenceFilter* referenceFilter);
@@ -229,6 +235,8 @@ namespace codyco {
         private:
             
             void limitIntegral(const Eigen::Ref<Eigen::VectorXd>& integral, Eigen::Ref<Eigen::VectorXd> limitedIntegral);
+            
+            const std::string& m_name;
             
             Reference& m_outputReference;
             ReferenceGeneratorInputReader& m_reader;

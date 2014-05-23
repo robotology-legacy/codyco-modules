@@ -27,8 +27,9 @@ namespace codyco {
         
 #pragma mark - ReferenceGenerator methods
         
-        ReferenceGenerator::ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader)
+        ReferenceGenerator::ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader, const std::string& name)
         : RateThread(period)
+        , m_name(name)
         , m_outputReference(reference)
         , m_reader(reader)
         , m_referenceFilter(0)
@@ -114,6 +115,11 @@ namespace codyco {
         }
         
 #pragma mark - Getter and setter
+        
+        const std::string& ReferenceGenerator::name() const
+        {
+            return m_name;
+        }
         
         void ReferenceGenerator::setReferenceFilter(ReferenceFilter* referenceFilter)
         {
