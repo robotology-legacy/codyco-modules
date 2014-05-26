@@ -21,6 +21,7 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
+                    ${motorFrictionIdentificationLib_INCLUDE_DIRS}
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${yarpWholeBodyInterface_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
@@ -32,6 +33,8 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME}
+                      motorFrictionIdentificationLib
+                      skinDynLib
                       ${wholeBodyInterface_LIBRARIES}
                       ${yarpWholeBodyInterface_LIBRARIES}
                       ${paramHelp_LIBRARIES}
