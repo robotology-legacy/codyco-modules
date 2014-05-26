@@ -133,8 +133,8 @@ public:
     bool interruptModule();                       // interrupt, e.g., the ports 
     bool close();                                 // close and shut down the module
     bool respond(const Bottle& command, Bottle& reply);
-    double getPeriod(){ return 0.1; }
     bool updateModule();
+    double getPeriod();
 
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
 

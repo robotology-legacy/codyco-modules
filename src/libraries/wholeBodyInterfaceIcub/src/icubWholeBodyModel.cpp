@@ -346,8 +346,14 @@ int icubWholeBodyModel::bodyPartJointMapping(int bodypart_id, int local_id)
 
 bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
 {
-    if( !this->initDriversDone ) return false; 
-    if( (joint < 0 || joint >= (int)jointIdList.size()) && joint != -1 ) { return false; }
+    if( !this->initDriversDone ) {
+        fprintf(stderr,"First get joint limits return: false \n");
+        return false;
+    } 
+    if( (joint < 0 || joint >= (int)jointIdList.size()) && joint != -1 ) { 
+        fprintf(stderr,"Second get joint limits return: false. Joint number %d \n",joint);
+        return false; 
+    }
 
     if(joint>=0)
     {
@@ -361,6 +367,7 @@ bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
             *qMin = (*qMin) * CTRL_DEG2RAD;   // convert from deg to rad
             *qMax = (*qMax) * CTRL_DEG2RAD;   // convert from deg to rad
         }
+        fprintf(stderr,"Third get joint limits return. Body part %d Index %d \n",lid.bodyPart, lid.index );
         return res;
     }
 
@@ -368,6 +375,7 @@ bool icubWholeBodyModel::getJointLimits(double *qMin, double *qMax, int joint)
     int n = jointIdList.size();
     for(int i=0; i<n; i++)
         res = res && getJointLimits(qMin+i, qMax+i, i);
+    fprintf(stderr,"Fourth get joint limits return \n");
     return res;
 
     // OLD IMPLEMENTATION

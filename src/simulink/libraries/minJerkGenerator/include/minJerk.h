@@ -121,7 +121,7 @@ public:
     }
 
     void updateReferenceTraj(){
-       fprintf(stderr,"computeNextValues takes pos: %s \n",pos.toString().c_str());
+//        fprintf(stderr,"computeNextValues takes pos: %s \n",pos.toString().c_str());
         trajGen->computeNextValues(pos);
         return;
     }
