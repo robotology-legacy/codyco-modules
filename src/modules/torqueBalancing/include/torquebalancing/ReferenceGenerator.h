@@ -236,7 +236,7 @@ namespace codyco {
             
             void limitIntegral(const Eigen::Ref<Eigen::VectorXd>& integral, Eigen::Ref<Eigen::VectorXd> limitedIntegral);
             
-            const std::string& m_name;
+            const std::string m_name;
             
             Reference& m_outputReference;
             ReferenceGeneratorInputReader& m_reader;
