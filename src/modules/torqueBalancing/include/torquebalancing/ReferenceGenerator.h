@@ -44,10 +44,10 @@ namespace codyco {
     namespace torquebalancing {
         
         class ReferenceGeneratorInputReader;
-        class InputFilter;
+        class ReferenceFilter;
         class Reference;
         
-        //TODO: either change name to PIDController, or implement inside a sort of reference smoothing
+        //TODO: change name to PIDController or something else
         /** @class This class is responsible of generating a proper reference signal.
          *
          * This class is agnostic of the reference type and dimension.
@@ -67,17 +67,21 @@ namespace codyco {
              */
             ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader);
             
+            /**
+             * Destructor
+             */
+            ~ReferenceGenerator();
+            
             virtual bool threadInit();
             virtual void threadRelease();
             virtual void run();
             
 #pragma mark - Getter and setter
             
-            //TODO: should I copy the object inside?
-            //and use the same filter for the different references?
-            void setInputFilter(InputFilter* inputFilter);
+            //Object is copied inside. Passed object can be deallocated.
+            void setReferenceFilter(ReferenceFilter* referenceFilter);
             
-            const InputFilter* inputFilter();
+            const ReferenceFilter* referenceFilter();
             
             
             /** Returns the current signal reference used by this controller
@@ -228,7 +232,7 @@ namespace codyco {
             
             Reference& m_outputReference;
             ReferenceGeneratorInputReader& m_reader;
-            InputFilter* m_inputFilter;
+            ReferenceFilter* m_referenceFilter;
             
             Eigen::VectorXd m_computedReference;
             Eigen::VectorXd m_integralTerm;
@@ -247,11 +251,16 @@ namespace codyco {
             double m_previousTime;
             bool m_active;
             
+            //Utility variables
+            Eigen::VectorXd m_currentSignalValue;
+            Eigen::VectorXd m_actualReference;
+            
             yarp::os::Mutex m_mutex;
         };
         
-        /** @class This protocol specifies methods to obtain the current values of a signal and its derivative.
-         *
+        /** 
+         * @class This protocol specifies methods to obtain the current values
+         * of a signal and its derivative.
          */
         class ReferenceGeneratorInputReader {
         public:
@@ -280,13 +289,22 @@ namespace codyco {
             virtual int signalSize() const = 0;
         };
         
-        class InputFilter {
+        /** 
+         * @class This protocol specifies methods to modify the reference signal
+         * for the controller, e.g. minimum jerk, smoothing, ...
+         */
+        class ReferenceFilter {
         public:
-            virtual ~InputFilter();
+            virtual ~ReferenceFilter();
             
-            virtual bool initializeFilterWithReferenceAndInitialTimeAndDuration(const Eigen::VectorXd& reference,
-                                                                                double initialTime,
-                                                                                double duration) = 0;
+            virtual ReferenceFilter* clone() const = 0;
+            
+            virtual bool initializeTimeParameters(double sampleTime,
+                                                  double duration) = 0;
+            
+            virtual bool computeReference(const Eigen::VectorXd& setPoint,
+                                          const Eigen::VectorXd& currentValue,
+                                          double initialTime = 0.0) = 0;
             
             virtual Eigen::VectorXd getValueForCurrentTime(double currentTime) = 0;
         };

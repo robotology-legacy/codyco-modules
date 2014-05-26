@@ -23,7 +23,7 @@ set(HEADERS    ${HEADERS_FOLDER}/TorqueBalancingModule.h
                ${HEADERS_FOLDER}/ReferenceGenerator.h
                ${HEADERS_FOLDER}/ReferenceGeneratorInputReaderImpl.h
                ${HEADERS_FOLDER}/Reference.h
-               ${HEADERS_FOLDER}/SmootherInputReader.h
+               ${HEADERS_FOLDER}/MinimumJerkTrajectoryGenerator.h
                ${HEADERS_FOLDER}/config.h
                ${HEADERS_FOLDER}/ParamHelperConfig.h)
 
@@ -31,7 +31,7 @@ set(SOURCES    ${SRC_FOLDER}/TorqueBalancingModule.cpp
                ${SRC_FOLDER}/TorqueBalancingController.cpp
                ${SRC_FOLDER}/ReferenceGenerator.cpp
                ${SRC_FOLDER}/ReferenceGeneratorInputReaderImpl.cpp
-               ${SRC_FOLDER}/SmootherInputReader.cpp
+               ${SRC_FOLDER}/MinimumJerkTrajectoryGenerator.cpp
                ${SRC_FOLDER}/config.cpp
                ${SRC_FOLDER}/Reference.cpp
                ${SRC_FOLDER}/main.cpp)

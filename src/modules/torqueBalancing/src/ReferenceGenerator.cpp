@@ -30,7 +30,7 @@ namespace codyco {
         : RateThread(period)
         , m_outputReference(reference)
         , m_reader(reader)
-        , m_inputFilter(0)
+        , m_referenceFilter(0)
         , m_computedReference(reference.valueSize())
         , m_integralTerm(reader.signalSize())
         , m_error(reader.signalSize())
@@ -42,9 +42,9 @@ namespace codyco {
         , m_signalDerivativeReference(reference.valueSize())
         , m_signalFeedForward(reference.valueSize())
         , m_previousTime(-1)
-        , m_active(false) {}
-
-        bool ReferenceGenerator::threadInit()
+        , m_active(false)
+        , m_currentSignalValue(reference.valueSize())
+        , m_actualReference(reference.valueSize())
         {
             m_proportionalGains.setZero();
             m_derivativeGains.setZero();
@@ -57,10 +57,23 @@ namespace codyco {
             m_signalDerivativeReference.setZero();
             m_signalFeedForward.setZero();
             
+            m_currentSignalValue.setZero();
+            
             //avoid garbage in the generated reference
             m_outputReference.setValue(m_computedReference);
             m_outputReference.setValid(false);
-            
+        }
+        
+        ReferenceGenerator::~ReferenceGenerator()
+        {
+            if (m_referenceFilter) {
+                delete m_referenceFilter;
+                m_referenceFilter = 0;
+            }
+        }
+
+        bool ReferenceGenerator::threadInit()
+        {
             return true;
         }
         
@@ -79,13 +92,13 @@ namespace codyco {
                 if (m_previousTime < 0) m_previousTime = now;
                 double dt = now - m_previousTime;
                 
-                if (m_inputFilter) {
-                    //TODO: obtain references from input filter
-                    //Should I have differente filters for feedforward / reference?
+                m_actualReference = m_signalReference;
+                if (m_referenceFilter) {
+                    m_actualReference = m_referenceFilter->getValueForCurrentTime(now);
                 }
+                m_currentSignalValue = m_reader.getSignal();
                 //compute pid
-                m_error = m_signalReference - m_reader.getSignal();
-                
+                m_error = m_actualReference - m_currentSignalValue;
                 m_integralTerm += dt * m_error;
                 limitIntegral(m_integralTerm, m_integralTerm);
                 
@@ -101,15 +114,20 @@ namespace codyco {
         
 #pragma mark - Getter and setter
         
-        void ReferenceGenerator::setInputFilter(InputFilter* inputFilter)
+        void ReferenceGenerator::setReferenceFilter(ReferenceFilter* referenceFilter)
         {
             if (this->isRunning()) return;
-            m_inputFilter = inputFilter;
+            if (m_referenceFilter) {
+                delete m_referenceFilter;
+                m_referenceFilter = 0;
+            }
+            if (referenceFilter)
+                m_referenceFilter = referenceFilter->clone();
         }
         
-        const InputFilter* ReferenceGenerator::inputFilter()
+        const ReferenceFilter* ReferenceGenerator::referenceFilter()
         {
-            return m_inputFilter;
+            return m_referenceFilter;
         }
         
         const Eigen::VectorXd& ReferenceGenerator::signalReference()
@@ -122,9 +140,9 @@ namespace codyco {
         {
             codyco::LockGuard guard(m_mutex);
             m_signalReference = reference;
-            if (m_inputFilter) {
-                //TODO: initialize filter.
-                //Do the same for feedforward, derivative (?) and all references
+            if (m_referenceFilter) {
+                //???: If thread is active this is the last updated signal value, otherwise I don't care. The computation will be redone after start
+                m_referenceFilter->computeReference(m_signalReference, m_currentSignalValue, m_previousTime);
             }
         }
         
@@ -158,6 +176,9 @@ namespace codyco {
         {
             codyco::LockGuard guard(m_mutex);
             m_signalReference = reference;
+            if (m_referenceFilter) {
+                m_referenceFilter->computeReference(m_signalReference, m_currentSignalValue, m_previousTime);
+            }
             m_signalDerivativeReference = derivativeReference;
             m_signalFeedForward = feedforward;
         }
@@ -171,11 +192,12 @@ namespace codyco {
                 m_integralTerm.setZero();
                 m_previousTime = -1;
                 //reset references
-                m_signalReference = m_reader.getSignal();
+                m_currentSignalValue = m_reader.getSignal();
+                m_signalReference = m_currentSignalValue;
                 m_signalDerivativeReference = m_reader.getSignalDerivative();
                 m_signalFeedForward.setZero();
-                if (m_inputFilter) {
-                    //TODO: initialize filter.
+                if (m_referenceFilter) {
+                    m_referenceFilter->computeReference(m_signalReference, m_currentSignalValue, yarp::os::Time::now());
                 }
                 
             } else {
@@ -287,9 +309,9 @@ namespace codyco {
         
         bool ReferenceGeneratorInputReader::init() { return true; }
         
-#pragma mark - InputFilter methods
+#pragma mark - ReferenceFilter methods
 
-        InputFilter::~InputFilter() {}
+        ReferenceFilter::~ReferenceFilter() {}
         
     }
 }
