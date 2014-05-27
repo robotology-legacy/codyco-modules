@@ -233,11 +233,11 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         }
     }    
     
-    fprintf(stderr,"initPos contains: %s \n", (minJerkTraj->getInitPos()).toString().c_str());
+//     fprintf(stderr,"initPos contains: %s \n", (minJerkTraj->getInitPos()).toString().c_str());
     double param_rate     = x[1];
     double param_trajtime = x[2];
     if(minJerkTraj->initialize(param_rate, param_trajtime))
-        fprintf(stderr,"successfully initialized minJerkTraj\n");
+//         fprintf(stderr,"successfully initialized minJerkTraj\n");
     
     flag[0] = 0;
     }
@@ -256,9 +256,9 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     Vector tmpPos = minJerkTraj->getPosition();
     Vector tmpVel = minJerkTraj->getVelocity();
     Vector tmpAcc = minJerkTraj->getAcceleration();
-    for(int i=0; i<tmpPos.length(); i++)
-        fprintf(stderr,"%f ",tmpPos[i]);
-    printf("\n");
+    //for(int i=0; i<tmpPos.length(); i++)
+//         fprintf(stderr,"%f ",tmpPos[i]);
+//     printf("\n");
 //    fprintf(stderr,"About to send data to ports \n");
     int_T nOutputPorts = ssGetNumOutputPorts(S);   // FOR THE FIRST TWO OUTPUT PORTS (q and dq)
     for(int_T i=0; i<nOutputPorts; i++){

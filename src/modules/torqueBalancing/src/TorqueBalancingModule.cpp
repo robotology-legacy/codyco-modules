@@ -20,6 +20,7 @@
 #include "Reference.h"
 #include "ReferenceGenerator.h"
 #include "ReferenceGeneratorInputReaderImpl.h"
+#include "MinimumJerkTrajectoryGenerator.h"
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <yarp/os/Port.h>
 #include <vector>
@@ -48,6 +49,8 @@ namespace codyco {
         , m_controllerThreadPeriod(10)
         , m_modulePeriod(1.0)
         , m_active(false)
+        , m_forcesSmootherDuration(5)
+        , m_jointsSmootherDuration(5)
         , m_robot(0)
         , m_controller(0)
         , m_references(0)
@@ -109,7 +112,13 @@ namespace codyco {
                 std::cerr << "Error in initializing wbi, the number of joints is different from the expected" << std::endl;
                 return false;
             }
-                       
+            
+            //create smoother
+            MinimumJerkTrajectoryGenerator forcesSmoother(6);
+            forcesSmoother.initializeTimeParameters(m_controllerThreadPeriod, m_forcesSmootherDuration); //duration to be moved into module (initial) parameters
+            MinimumJerkTrajectoryGenerator jointsSmoother(actuatedDOFs);
+            jointsSmoother.initializeTimeParameters(m_controllerThreadPeriod, m_jointsSmootherDuration); //duration to be moved into module (initial) parameters
+            
             //create generators
             ReferenceGeneratorInputReader* reader = 0;
             ReferenceGenerator* generator = 0;
@@ -142,6 +151,8 @@ namespace codyco {
             
             generator = new ReferenceGenerator(m_controllerThreadPeriod, m_references->desiredJointsConfiguration(), *reader);
             if (generator) {
+                //generator->setReferenceFilter(&jointsSmoother);
+                generator->setProportionalGains(Eigen::VectorXd::Constant(actuatedDOFs, 1.0));
                 m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeImpedanceControl, generator));
             } else {
                 std::cerr << "Could not create impedance controller object." << std::endl;
@@ -174,22 +185,35 @@ namespace codyco {
 //            }
             
             //force tasks
+            //Forces are controlled in open-loop right now.
+            //I set the proportional gain to the identity, set the feedforward through reference (so it is smoothed)
+            //and I do not enable the force reader, so it has no feedback
             std::vector<TaskInformation> tasks;
-            TaskInformation task3 = {TaskTypeLeftHandForce, "l_gripper", &m_references->desiredLeftHandPosition()};
-            tasks.push_back(task3);
-            TaskInformation task4 = {TaskTypeRightHandForce, "r_gripper", &m_references->desiredRightHandPosition()};
-            tasks.push_back(task4);
+            TaskInformation task1 = {TaskTypeLeftHandForce, "l_gripper", &m_references->desiredLeftHandForce()};
+            tasks.push_back(task1);
+            TaskInformation task2 = {TaskTypeRightHandForce, "r_gripper", &m_references->desiredRightHandForce()};
+            tasks.push_back(task2);
+            
+            reader = new VoidReader(6);
+            if (reader) {
+                m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeLeftHandForce, reader));
+            } else {
+                std::cerr << "Could not create Force reader object." << std::endl;
+                return false;
+            }
             
             for (std::vector<TaskInformation>::iterator it = tasks.begin(); it != tasks.end(); it++) {
-                reader = new EndEffectorForceReader(*m_robot, it->referredLinkName);
-                if (reader) {
-                    m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(it->taskType, reader));
-                } else {
-                    std::cerr << "Could not create end effector (" << it->referredLinkName << ") force reader object." << std::endl;
-                    return false;
-                }
+//                reader = new EndEffectorForceReader(*m_robot, it->referredLinkName);
+//                if (reader) {
+//                    m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(it->taskType, reader));
+//                } else {
+//                    std::cerr << "Could not create end effector (" << it->referredLinkName << ") force reader object." << std::endl;
+//                    return false;
+//                }
                 generator = new ReferenceGenerator(m_controllerThreadPeriod, *(it->reference), *reader);
                 if (generator) {
+                    generator->setReferenceFilter(&forcesSmoother);
+                    generator->setProportionalGains(Eigen::VectorXd::Constant(6, 1));
                     m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(it->taskType, generator));
                 } else {
                     std::cerr << "Could not create end effector (" << it->referredLinkName << ") force controller object." << std::endl;
@@ -428,13 +452,15 @@ namespace codyco {
             bool tasksState[4] = {comTaskActive, leftHandForceTaskActive, rightHandForceTaskActive, impedanceTaskActive};
             TaskType tasksType[4] = {TaskTypeCOM, TaskTypeLeftHandForce, TaskTypeRightHandForce, TaskTypeImpedanceControl};
             
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 4; i++) {
                 found = m_referenceGenerators.find(tasksType[i]);
                 controlSet = controlSet && found != m_referenceGenerators.end();
                 if (controlSet) {
                     found->second->setActiveState(tasksState[i]);
-                    if (tasksType[i] == TaskTypeImpedanceControl)
-                        found->second->setSignalFeedForward(impedanceReference);
+                    if (tasksType[i] == TaskTypeImpedanceControl) {
+                        found->second->setSignalReference(impedanceReference);
+                        std::cerr << "Setting impedance reference: \n" << impedanceReference << "\n\n";
+                    }
                 }
             }
             m_controller->setActiveState(m_active && controlSet);
@@ -493,6 +519,8 @@ namespace codyco {
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterModuleName, &m_module.m_moduleName);
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterRobotName, &m_module.m_robotName);
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterControllerPeriod, &m_module.m_controllerThreadPeriod);
+            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterForcesSmoothingDuration, &m_module.m_forcesSmootherDuration);
+            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterJointsSmoothingDuration, &m_module.m_jointsSmootherDuration);
             
             if (!linkedVariable) {
                 return false;
@@ -628,6 +656,8 @@ namespace codyco {
                 rightHandPositionGenerator->setDerivativeGains(m_handsPositionDerivativeGain);
                 rightHandPositionGenerator->setIntegralGains(m_handsPositionIntegralGain);
             }
+            m_module.m_controller->setCentroidalMomentumGain(m_centroidalGain);
+            m_module.m_controller->setImpedanceGains(m_impedanceControlGains);
         }
         
         bool TorqueBalancingModule::ParamHelperManager::processRPCCommand(const yarp::os::Bottle &command, yarp::os::Bottle &reply)
@@ -893,14 +923,15 @@ namespace codyco {
             //this is done in the update status function of the module
             
             //Hands force task are handled like feedforward (currently are open-loop)
+            //But because I need smoothing of the reference I use the setReference function
             if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandForce)) != m_module.m_referenceGenerators.end()
                 && foundController->second) {
-                foundController->second->setSignalFeedForward(m_handsForceReference.head(6));
+                foundController->second->setSignalReference(m_handsForceReference.head(6));
             }
             
             if ((foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandForce)) != m_module.m_referenceGenerators.end()
                 && foundController->second) {
-                foundController->second->setSignalFeedForward(m_handsForceReference.tail(6));
+                foundController->second->setSignalReference(m_handsForceReference.tail(6));
             }
         }
     }

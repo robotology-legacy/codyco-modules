@@ -10,6 +10,11 @@ add_subdirectory(libraries)
 #add_subdirectory(wbciy)
 add_subdirectory(modules)
 
+
+if (CODYCO_DASHBOARD_SUBMIT OR CODYCO_BUILD_TESTS)
+   add_subdirectory(tests)
+endif()
+
 #built ftDumper only if YARP24 is found
 if(CODYCO_BUILD_YARP24_MODULES)
    add_subdirectory(misc/ftDumper)

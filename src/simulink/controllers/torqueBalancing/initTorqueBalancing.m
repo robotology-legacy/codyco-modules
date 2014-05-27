@@ -13,19 +13,33 @@ Ts = 0.01;
 % angular part of the centroidal momentum convergence, i.e. 
 %
 % hwDot = -kw*hwDotDes  
-kCom  = [  70    2   0];
+% kCom  = [  70    2   0];
+kCom  = [  40    4   0];
 kw    = 4;
 
 
 
 % Impedence acting in the null space of HDDDes 
 
-kImpTorso = [3 2 3]*4; 
-kImpArms  = [2 2 2 2 1]*5;
-kImpLegs  = [35 50 0.1 30 2 10]; 
+kImpTorso = [20 20 20]; 
+kImpArms  = [20 20 20 20 5];
+kImpLegs  = [50 50 0.1 30 2 1]; 
 
-kImp  = [kImpTorso,kImpArms,kImpArms,kImpLegs,kImpLegs];
 
+% kCom  = [  60    0   0];
+% kw    = 2;
+% 
+% % kH  = [  60    0   0 2];
+% 
+% % Impedence acting in the null space of HDDDes 
+% 
+% kImpTorso = [40 15 15]; 
+% kImpArms  = [5 5 5 5 5];
+% kImpLegs  = [35 50 0.1 30 2 10]; 
+
+
+
+kImp  = [kImpTorso,kImpArms,kImpArms,kImpLegs,kImpLegs]*0.1;
 
 DT = 20;
 
@@ -68,21 +82,15 @@ end
 % kImpArms  = [2 2 2 2 1]*8;
 % kImpLegs  = [35 10 0.1 40 2 0.5]; 
 
-%% GAINS FOR iCubGenova01
-% kw = 4;
-% kCom  = [  40    0.2   0 ];
-% kImpTorso = [3 2 4]*8; 
-% kImpArms  = [2 2 2 2 1]*8;
-% kImpLegs  = [35 10 0.1 40 2 0.5]; 
+%% GAINS FOR iCubGenova01 (demo's gain)
+% kCom  = [  80    4   0];
+% kw    = 4;
 % 
-
-%% Right left 
-% A = 0.02;
-% f = 0.15; up to 0.17
-% kCom  = [  70    2   0 ];
+% % Impedence acting in the null space of HDDDes 
+% 
 % kImpTorso = [3 2 3]*4; 
-% kImpArms  = [2 2 2 2 1]*8;
-% kImpLegs  = [35 50 0.1 30 2 10]; 
+% kImpArms  = [2 2 2 2 1]*5;
+% kImpLegs  = [50 50 0.1 30 2 10]; 
 
 %% GAINS FOR iCubGenova03
 %

@@ -1,16 +1,16 @@
-disp(sprintf('\n'));
+ disp(sprintf('\n'));
 disp(sprintf('Yarp Based Robotics Whole Body Control Library\n'))
 wbclibroot = fileparts(mfilename('fullpath'));
 if exist(wbclibroot,'dir')
     controllersDir = [wbclibroot filesep 'controllers'];
     addpath(controllersDir);
     cd(controllersDir);
-    cd ../../../build/lib;
-    libDir = pwd;
+    cd ../../../build/lib; 
+    libDir = pwd; 
     imgDir = [controllersDir filesep 'img'];
     addpath(libDir);        %Path where mex libs are compiled
     addpath(imgDir);
-    cd(controllersDir);     % Go back to controllers dir
+    cd(controllersDir);     % Go ba ck to controllers dir
     delete([pwd filesep 'pathdef.m'])
     if (~savepath([pwd filesep 'pathdef.m']))
         usrpath = userpath;
@@ -24,3 +24,7 @@ if exist(wbclibroot,'dir')
         disp('There was an error generating pathdef.m To proceed please manually add the contents of variables controllersDir, imgDir and libDir to your matlabpath')
     end
 end
+
+addpath(genpath('/home/daniele/MATLAB'))
+addpath(genpath('/home/daniele/src/codyco/build'))
+addpath(genpath('/home/daniele/src/codyco/src/simulink'))

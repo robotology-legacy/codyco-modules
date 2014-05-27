@@ -1,9 +1,6 @@
 # Copyright (C) 2010 RobotCub Consortium
-# Author: Andrea Del Prete
+# Author: Francesco Romano
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
-
-cmake_minimum_required(VERSION 2.8)
-PROJECT(codycoCommons-tests)
 
 find_package(Eigen3 REQUIRED)
 find_package(codycoCommons REQUIRED)
@@ -20,6 +17,8 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 INCLUDE_DIRECTORIES(${codycoCommons_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR})
 
-ADD_EXECUTABLE(${PROJECT_NAME} ${folder_source} ${folder_header})
+add_executable(codycoCommons-tests main.cpp)
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${codycoCommons_LIBRARIES})
+target_link_libraries(codycoCommons-tests codyco_commons)
+
+add_test(NAME test_codycoCommons-tests COMMAND codycoCommons-tests)
