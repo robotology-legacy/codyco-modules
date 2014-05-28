@@ -95,6 +95,7 @@ namespace adaptiveControl {
         double _previousTime;
         bool _piHatModificationOn;
         double _integralSaturationLimit;
+        double _sinInitialTime;
         
         
         //configuration parameters
@@ -215,10 +216,12 @@ namespace adaptiveControl {
                               const std::string& robotPart,
                               int periodMilliseconds,
                               paramHelp::ParamHelperServer&paramHelperServer,
-#ifndef ADAPTIVECONTROL_TORQUECONTROL
+                              #ifndef ADAPTIVECONTROL_TORQUECONTROL
                               paramHelp::ParamHelperClient& paramHelperClient,
-#endif
-                              const Eigen::Vector2d &linklengths);
+                              #endif
+                              const Eigen::Vector2d &linklengths,
+                              double refBaselineSmootherDuration,
+                              double refFrequencySmootherDuration);
         ~AdaptiveControlThread();
         
         bool setInitialConditions(const Eigen::Vector8d& initialPiHat, const double& initialXi1);

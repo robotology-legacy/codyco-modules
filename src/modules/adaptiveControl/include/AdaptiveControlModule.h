@@ -51,6 +51,9 @@ namespace adaptiveControl
         
         int _period;
         
+        double _baselineSmootherDuration;
+        double _frequencySmootherDuration;
+        
         Eigen::Vector2d _linkLengths;
         Eigen::Vector8d _initialPiHat;
         double _initialXi1;
