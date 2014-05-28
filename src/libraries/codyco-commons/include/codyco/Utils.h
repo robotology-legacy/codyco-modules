@@ -34,6 +34,18 @@
 #endif
 #endif
 
+#ifndef CODYCO_DEPRECATED(message)
+#if defined(__clang__)
+#define CODYCO_DEPRECATED(message)  __attribute__((deprecated(message)))
+#elif defined(__GNUC__)
+#define CODYCO_DEPRECATED(message)  __attribute__ ((deprecated))
+#elif defined (_MSC_VER)
+#define CODYCO_DEPRECATED(message) __declspec(deprecated(message))
+#else
+#define CODYCO_DEPRECATED(message)
+#endif
+#endif
+
 namespace codyco {}
 
 
