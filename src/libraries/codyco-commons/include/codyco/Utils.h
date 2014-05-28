@@ -34,7 +34,7 @@
 #endif
 #endif
 
-#ifndef CODYCO_DEPRECATED(message)
+#ifndef CODYCO_DEPRECATED
 #if defined(__clang__)
 #define CODYCO_DEPRECATED(message)  __attribute__((deprecated(message)))
 #elif defined(__GNUC__)
