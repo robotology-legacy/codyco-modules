@@ -128,6 +128,8 @@ bool jointTorqueControlModule::respond(const Bottle& cmd, Bottle& reply)
 	return true;
 }
 
+double jointTorqueControlModule::getPeriod() { return 5; }
+
 void jointTorqueControlModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
 {
     switch(cd.id)
@@ -137,7 +139,7 @@ void jointTorqueControlModule::commandReceived(const CommandDescription &cd, con
         break;
     case COMMAND_ID_QUIT:
         stopModule();
-        reply.addString("Quitting module.");
+        reply.addString("Quitting module!");
         break;
     }
 }
@@ -160,8 +162,21 @@ bool jointTorqueControlModule::close()
 
 bool jointTorqueControlModule::updateModule()
 {
-    if (ctrlThread!=0)
-        return true;
+     if (!ctrlThread) {
     printf("jointTorqueControlModule: Error, thread pointer is zero!\n");
     return false;
+     }
+    
+    double periodMean = 0, periodStdDeviation = 0;
+    double usedMean = 0, usedStdDeviation = 0;
+    
+    ctrlThread->getEstPeriod(periodMean, periodStdDeviation);
+    ctrlThread->getEstUsed(usedMean, usedStdDeviation);
+    
+//     if(periodMean > 1.3 * period)
+    {
+        fprintf(stderr, "Control loop period: %3.3f+/-%3.3f. Expected period %d.\n", periodMean, periodStdDeviation, period);
+        fprintf(stderr, "Duration of 'run' method: %3.3f+/-%3.3f.\n", usedMean, usedStdDeviation);
+    }
+    return true;
 }

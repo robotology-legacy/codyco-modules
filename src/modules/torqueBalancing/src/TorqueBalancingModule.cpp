@@ -57,6 +57,7 @@ namespace codyco {
         , m_rpcPort(0)
         , m_paramHelperManager(0)
         , m_initialJointsConfiguration(actuatedDOFs)
+        , m_comReference(3)
         , m_impedanceDoubleSupportReference(actuatedDOFs)
         , m_impedanceLeftHandReference(5)
         , m_impedanceRightHandReference(5) {}
@@ -113,6 +114,27 @@ namespace codyco {
                 return false;
             }
             
+            //load initial configuration for the impedance control
+            m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_initialJointsConfiguration.data());
+            m_references->desiredJointsConfiguration().setValue(m_initialJointsConfiguration);
+            m_impedanceDoubleSupportReference = m_initialJointsConfiguration; //copy into double support state
+            
+            int leftFootLinkID = -1;
+            m_robot->getLinkId("l_sole", leftFootLinkID);
+            
+            wbi::Frame frame;
+            m_robot->computeH(m_initialJointsConfiguration.data(), wbi::Frame(), leftFootLinkID, frame);
+            
+            frame = frame * wbi::Frame(wbi::Rotation(0, 0, 1,
+                                                     0, -1, 0,
+                                                     1, 0, 0));
+            frame.setToInverse();
+            
+            Eigen::VectorXd initialCOM(7);
+            //set initial com to be equal to the read one
+            m_robot->forwardKinematics(m_initialJointsConfiguration.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, initialCOM.data());
+            m_comReference = initialCOM.head(3);
+
             //create smoother
             MinimumJerkTrajectoryGenerator forcesSmoother(6);
             forcesSmoother.initializeTimeParameters(m_controllerThreadPeriod, m_forcesSmootherDuration); //duration to be moved into module (initial) parameters
@@ -132,8 +154,9 @@ namespace codyco {
                 return false;
             }
             
-            generator = new ReferenceGenerator(m_controllerThreadPeriod, m_references->desiredCOMAcceleration(), *reader);
+            generator = new ReferenceGenerator(m_controllerThreadPeriod, m_references->desiredCOMAcceleration(), *reader, "com pid");
             if (generator) {
+                generator->setSignalReference(m_comReference);
                 m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeCOM, generator));
             } else {
                 std::cerr << "Could not create COM controller." << std::endl;
@@ -151,7 +174,8 @@ namespace codyco {
             
             generator = new ReferenceGenerator(m_controllerThreadPeriod, m_references->desiredJointsConfiguration(), *reader);
             if (generator) {
-                generator->setReferenceFilter(&jointsSmoother);
+                //generator->setReferenceFilter(&jointsSmoother);
+                generator->setProportionalGains(Eigen::VectorXd::Constant(actuatedDOFs, 1.0));
                 m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeImpedanceControl, generator));
             } else {
                 std::cerr << "Could not create impedance controller object." << std::endl;
@@ -233,30 +257,6 @@ namespace codyco {
                 std::cerr << "Could not link parameter helper variables." << std::endl;
                 return false;
             }
-
-            //load initial configuration for the impedance control
-            m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_initialJointsConfiguration.data());
-//            m_controller->setDesiredJointsConfiguration(m_initialJointsConfiguration);
-            m_references->desiredJointsConfiguration().setValue(m_initialJointsConfiguration);
-            m_impedanceDoubleSupportReference = m_initialJointsConfiguration; //copy into double support state
-            
-            int leftFootLinkID = -1;
-            m_robot->getLinkId("l_sole", leftFootLinkID);
-            
-            wbi::Frame frame;
-            m_robot->computeH(m_initialJointsConfiguration.data(), wbi::Frame(), leftFootLinkID, frame);
-          
-            frame = frame * wbi::Frame(wbi::Rotation(0, 0, 1,
-                                                     0, -1, 0,
-                                                     1, 0, 0));
-            frame.setToInverse();
-            
-            Eigen::VectorXd initialCOM(7);
-            //set initial com to be equal to the read one
-            m_robot->forwardKinematics(m_initialJointsConfiguration.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, initialCOM.data());
-            Eigen::VectorXd comPosition = initialCOM.head(3);
-            
-            m_references->desiredCOMAcceleration().setValue(comPosition);
 
             //start threads. Controllers start always in inactive state
             //This is needed because they have to be initialized before setting gains, etc..
@@ -450,14 +450,15 @@ namespace codyco {
 //
             bool tasksState[4] = {comTaskActive, leftHandForceTaskActive, rightHandForceTaskActive, impedanceTaskActive};
             TaskType tasksType[4] = {TaskTypeCOM, TaskTypeLeftHandForce, TaskTypeRightHandForce, TaskTypeImpedanceControl};
+            Eigen::VectorXd* taskReferences[4] = {&m_comReference, 0, 0, &impedanceReference};
             
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 4; i++) {
                 found = m_referenceGenerators.find(tasksType[i]);
                 controlSet = controlSet && found != m_referenceGenerators.end();
                 if (controlSet) {
                     found->second->setActiveState(tasksState[i]);
-                    if (tasksType[i] == TaskTypeImpedanceControl)
-                        found->second->setSignalFeedForward(impedanceReference);
+                    if (taskReferences[i])
+                        found->second->setSignalReference(*taskReferences[i]);
                 }
             }
             m_controller->setActiveState(m_active && controlSet);
@@ -469,7 +470,6 @@ namespace codyco {
         : m_module(module)
         , m_initialized(false)
         , m_parameterServer(0)
-        , m_comReference(3)
         , m_handsPositionReference(14)
         , m_handsForceReference(12)
         , m_comProportionalGain(3)
@@ -542,7 +542,7 @@ namespace codyco {
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCurrentState, this);
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterModulePeriod, &m_module.m_modulePeriod);
             //References
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMReference, m_comReference.data())
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMReference, m_module.m_comReference.data())
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCOMReference, this);
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionReference, m_handsPositionReference.data())
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsPositionReference, this);
@@ -653,6 +653,8 @@ namespace codyco {
                 rightHandPositionGenerator->setDerivativeGains(m_handsPositionDerivativeGain);
                 rightHandPositionGenerator->setIntegralGains(m_handsPositionIntegralGain);
             }
+            m_module.m_controller->setCentroidalMomentumGain(m_centroidalGain);
+            m_module.m_controller->setImpedanceGains(m_impedanceControlGains);
         }
         
         bool TorqueBalancingModule::ParamHelperManager::processRPCCommand(const yarp::os::Bottle &command, yarp::os::Bottle &reply)
@@ -738,7 +740,7 @@ namespace codyco {
                 case TorqueBalancingModuleParameterCOMReference:
                     foundController = m_module.m_referenceGenerators.find(TaskTypeCOM);
                     if (foundController != m_module.m_referenceGenerators.end()) {
-                        foundController->second->setSignalReference(m_comReference);
+                        foundController->second->setSignalReference(m_module.m_comReference);
                     }
                     break;
                 case TorqueBalancingModuleParameterHandsPositionReference:
@@ -911,7 +913,7 @@ namespace codyco {
             
             if ((foundController = m_module.m_referenceGenerators.find(TaskTypeCOM)) != m_module.m_referenceGenerators.end()
                 && foundController->second) {
-                foundController->second->setSignalReference(m_comReference);
+                foundController->second->setSignalReference(m_module.m_comReference);
             }
             
             //Hands position task are handles as a different equilibrium configuration for the impedance task.

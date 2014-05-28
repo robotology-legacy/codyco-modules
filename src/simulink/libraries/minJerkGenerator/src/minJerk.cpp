@@ -256,9 +256,9 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     Vector tmpPos = minJerkTraj->getPosition();
     Vector tmpVel = minJerkTraj->getVelocity();
     Vector tmpAcc = minJerkTraj->getAcceleration();
-    for(int i=0; i<tmpPos.length(); i++)
-        fprintf(stderr,"%f ",tmpPos[i]);
-    printf("\n");
+    //for(int i=0; i<tmpPos.length(); i++)
+//         fprintf(stderr,"%f ",tmpPos[i]);
+//     printf("\n");
 //    fprintf(stderr,"About to send data to ports \n");
     int_T nOutputPorts = ssGetNumOutputPorts(S);   // FOR THE FIRST TWO OUTPUT PORTS (q and dq)
     for(int_T i=0; i<nOutputPorts; i++){

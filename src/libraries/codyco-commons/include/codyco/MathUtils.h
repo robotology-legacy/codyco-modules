@@ -32,6 +32,19 @@
 namespace codyco {
     namespace math {
         
+        /** Check if a double is isnan.
+         * We reimplement this function to avoid depending on C++11 (std::isnan) 
+         * or C99 isnan macro.
+         *
+         * @param value value to be checked for nan
+         * @return true if the value is a nan, false otherwise.
+         */
+        inline bool isnan(double value)
+        {
+            volatile double currentValue = value;
+            return currentValue != currentValue;
+        }
+        
         template <typename Derived1, typename Derived2>
         void dampedPseudoInverse(const Eigen::MatrixBase<Derived1>& A,
                                  double dampingFactor,

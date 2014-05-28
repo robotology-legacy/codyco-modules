@@ -57,6 +57,8 @@ namespace adaptiveControl {
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
         _parameterServer->linkParam(AdaptiveControlParamIDJointTorqueControlModuleName, &_torqueControlModuleName);
 #endif
+        _parameterServer->linkParam(AdaptiveControlParamIDBaselineSmootherDuration, &_baselineSmootherDuration);
+        _parameterServer->linkParam(AdaptiveControlParamIDFrequencySmootherDuration, &_frequencySmootherDuration);
         
         _parameterServer->registerCommandCallback(AdaptiveControlCommandIDHelp, this);
         _parameterServer->registerCommandCallback(AdaptiveControlCommandIDQuit, this);
@@ -97,7 +99,7 @@ namespace adaptiveControl {
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
                                                    *_parameterClient,
 #endif
-                                                   _linkLengths);
+                                                   _linkLengths, _baselineSmootherDuration, _frequencySmootherDuration);
         if (!_controlThread || !_controlThread->start()) {
             error_out("Error while initializing control thread. Closing module.\n");
             return false;

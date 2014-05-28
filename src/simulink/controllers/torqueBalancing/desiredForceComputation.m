@@ -77,7 +77,6 @@ block.OutputPort(1).Dimensions       = 12;
 block.OutputPort(1).DatatypeID  = 0; % double
 block.OutputPort(1).Complexity  = 'Real';
 
-
 % Register parameters
 block.NumDialogPrms     = 0;
 
@@ -252,10 +251,6 @@ hDotDes = [ m*xDDcomStar ;
         
 linearTerm = A' * (-hDotDes + grav);
 quadraticTerm = A' * A;
-regTerm = 1e-5; %I regularize the matrix to avoid numerical problems in matlab QP: 
-%sometimes the quadratic term becomes not definite (which is theoretically
-%impossible)
-quadraticTerm = quadraticTerm + regTerm * eye(size(quadraticTerm));
 
 opts = optimset('Algorithm','active-set','Display','off');
 
@@ -300,38 +295,7 @@ quadprog(quadraticTerm, linearTerm, ...
 %    A
 %    (-hDotDes + grav)
 % end
-% if (exitFlag == -3)
-% [lambda.lower lambda.upper]
-% lambda.ineqlin
-% end
-% error = 0;
-% if (any(optForces < lb))% || any(optForces > ub)
-%     disp('ERROR!!!!!! bound constraints violated');
-%     error = 1;
-% end
-% check = Aineq * optForces < bineq;
-% if (~any(check))
-%     error = 1;
-%     disp('ERROR!!!!!! linear constraints violated');
-% end
-
-% myUp = 1000 * ones(12,1);
-% if (any(optForces > myUp))% || any(optForces > ub)
-%     disp('-----------Big forces');
-%     eig(quadraticTerm)
-%     error = 0;
-% end
-% 
-% if (error == 1) 
-%     exitFlag
-%     optForces
-% end
-% 
-% if (any(optForces > myUp) && exitFlag ~= -3)
-%     disp(strcat('!!!!!!!!!!~~~~~~~~~~!!!!!!!!!!!!!! Error and exit flag is ', num2str(exitFlag)));
-%     svd(A)
-%     
-% end
+      
         
 block.OutputPort(1).Data = optForces;
 

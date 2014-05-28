@@ -18,6 +18,7 @@
 #include "Reference.h"
 #include <wbi/wholeBodyInterface.h>
 #include <codyco/LockGuard.h>
+#include <codyco/MathUtils.h>
 #include <yarp/os/Time.h>
 #include <limits>
 
@@ -26,8 +27,9 @@ namespace codyco {
         
 #pragma mark - ReferenceGenerator methods
         
-        ReferenceGenerator::ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader)
+        ReferenceGenerator::ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader, const std::string& name)
         : RateThread(period)
+        , m_name(name)
         , m_outputReference(reference)
         , m_reader(reader)
         , m_referenceFilter(0)
@@ -44,17 +46,7 @@ namespace codyco {
         , m_previousTime(-1)
         , m_active(false)
         , m_currentSignalValue(reference.valueSize())
-        , m_actualReference(reference.valueSize()) {}
-        
-        ReferenceGenerator::~ReferenceGenerator()
-        {
-            if (m_referenceFilter) {
-                delete m_referenceFilter;
-                m_referenceFilter = 0;
-            }
-        }
-
-        bool ReferenceGenerator::threadInit()
+        , m_actualReference(reference.valueSize())
         {
             m_proportionalGains.setZero();
             m_derivativeGains.setZero();
@@ -72,7 +64,18 @@ namespace codyco {
             //avoid garbage in the generated reference
             m_outputReference.setValue(m_computedReference);
             m_outputReference.setValid(false);
-            
+        }
+        
+        ReferenceGenerator::~ReferenceGenerator()
+        {
+            if (m_referenceFilter) {
+                delete m_referenceFilter;
+                m_referenceFilter = 0;
+            }
+        }
+
+        bool ReferenceGenerator::threadInit()
+        {
             return true;
         }
         
@@ -98,7 +101,6 @@ namespace codyco {
                 m_currentSignalValue = m_reader.getSignal();
                 //compute pid
                 m_error = m_actualReference - m_currentSignalValue;
-                
                 m_integralTerm += dt * m_error;
                 limitIntegral(m_integralTerm, m_integralTerm);
                 
@@ -113,6 +115,11 @@ namespace codyco {
         }
         
 #pragma mark - Getter and setter
+        
+        const std::string& ReferenceGenerator::name() const
+        {
+            return m_name;
+        }
         
         void ReferenceGenerator::setReferenceFilter(ReferenceFilter* referenceFilter)
         {
@@ -256,7 +263,7 @@ namespace codyco {
         
         void ReferenceGenerator::setIntegralLimit(double integralLimit)
         {
-            if (!isnan(integralLimit)) {
+            if (!codyco::math::isnan(integralLimit)) {
                 codyco::LockGuard guard(m_mutex);
                 m_integralLimit = std::abs(integralLimit);
             }
@@ -280,7 +287,7 @@ namespace codyco {
             m_proportionalGains = proportionalGains;
             m_derivativeGains = derivativeGains;
             m_integralGains = integralGains;
-            if (!isnan(integralLimit)) {
+            if (!codyco::math::isnan(integralLimit)) {
                 m_integralLimit = std::abs(integralLimit);
             }
         }

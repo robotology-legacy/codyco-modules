@@ -43,7 +43,7 @@ int main(int argc, char** argv)
     
     std::cout << std::endl << "Error with matlab " << Apinv - pinvCheck << std::endl;
     
-    return 0;
+    return (Apinv - pinvCheck).norm() < 0.1 ? 0 : -1;
 }
 
 

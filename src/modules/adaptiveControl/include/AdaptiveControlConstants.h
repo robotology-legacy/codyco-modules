@@ -101,6 +101,8 @@ namespace adaptiveControl
     static const std::string defaultRobotName = "icubSim"; // robot name
     static const std::string defaultRobotPart = "right_leg";
     static const int defaultModulePeriod = 10;
+    static const double defaultBaselineSmootherDuration = 2;
+    static const double defaultFrequencySmootherDuration = 5;
     static const Eigen::Vector2d defaultLinkLengths = Eigen::Vector2d::Zero();
     static const double defaultIntegralSymmetricLimit = 10;
     static const Eigen::VectorNd defaultHomePositions = Eigen::VectorNd::Zero();
@@ -122,6 +124,7 @@ namespace adaptiveControl
     static const double defaultRefPhase = 0;
     static const Eigen::Vector8d defaultInitialPiHat = Eigen::Vector8d::Constant(1);
     static const double defaultInitialXi1 = 1;
+    static const double defaultTorqueSaturation = 12;
     
     // *** IDs of all the module parameters
     enum AdaptiveControlParamID {
@@ -131,6 +134,8 @@ namespace adaptiveControl
         AdaptiveControlParamIDRobotPartName,
         AdaptiveControlParamIDPeriod,
         AdaptiveControlParamIDLinkLengths,
+        AdaptiveControlParamIDBaselineSmootherDuration,
+        AdaptiveControlParamIDFrequencySmootherDuration,
         AdaptiveControlParamIDIntegralSymmetricLimit,
         AdaptiveControlParamIDHomePositions,
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
@@ -150,15 +155,16 @@ namespace adaptiveControl
         AdaptiveControlParamIDRefPhase,
         AdaptiveControlParamIDInitialPiHat,
         AdaptiveControlParamIDInitialXi1,
+        AdaptiveControlParamIDTorqueSaturation
     };
 
     // *****************************************************************************************************************************************
     // ****************************************** DESCRIPTION OF ALL THE MODULE AND THREAD PARAMETERS ******************************************
     // *****************************************************************************************************************************************
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
-    const unsigned short adaptiveControlParamDescriptorsSize = 20;
+    const unsigned short adaptiveControlParamDescriptorsSize = 24;
 #else
-    const unsigned short adaptiveControlParamDescriptorsSize = 19;
+    const unsigned short adaptiveControlParamDescriptorsSize = 23;
 #endif
     const paramHelp::ParamProxyInterface *const adaptiveControlParamDescriptors[]  =
     {
@@ -169,6 +175,8 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<std::string>("part", AdaptiveControlParamIDRobotPartName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultRobotPart, "Robot part: currently only leg is supported, so specify (left|right)_leg"),
         new paramHelp::ParamProxyBasic<int>("period", AdaptiveControlParamIDPeriod, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_CONFIG, &defaultModulePeriod, "Name of the robot"),
         new paramHelp::ParamProxyBasic<double>("linkLengths", AdaptiveControlParamIDLinkLengths, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultLinkLengths.data(), "Length of links"),
+        new paramHelp::ParamProxyBasic<double>("baseSmooth", AdaptiveControlParamIDBaselineSmootherDuration, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, &defaultBaselineSmootherDuration, "Baseline min jerk duration"),
+        new paramHelp::ParamProxyBasic<double>("freqSmooth", AdaptiveControlParamIDFrequencySmootherDuration, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, &defaultFrequencySmootherDuration, "Baseline min jerk duration"),
         new paramHelp::ParamProxyBasic<double>("intLimit", AdaptiveControlParamIDIntegralSymmetricLimit, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_CONFIG, &defaultIntegralSymmetricLimit, "Absolute value of the limit for the integral of the error => the integral will be between -intLimit and intLimit"),
         new paramHelp::ParamProxyBasic<double>("home", AdaptiveControlParamIDHomePositions, ICUB_PART_DOF, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultHomePositions.data(), "Home positions for the robot part"),
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
@@ -188,6 +196,7 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<double>("refPhase", AdaptiveControlParamIDRefPhase, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultRefPhase, "Phase for reference signal: r(t) = base + ampl * sin(2 * pi * freq * t + phase)"),
         new paramHelp::ParamProxyBasic<double>("piHat_0", AdaptiveControlParamIDInitialPiHat, PARAMETERS_SIZE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultInitialPiHat.data(), "Initial values for pihat. They can be set only if the control is off."),
         new paramHelp::ParamProxyBasic<double>("xi1_0", AdaptiveControlParamIDInitialXi1, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultInitialXi1, "Initial values for xi1. It can be set only if the control is off."),
+        new paramHelp::ParamProxyBasic<double>("tauSat", AdaptiveControlParamIDTorqueSaturation, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_IN_OUT, &defaultTorqueSaturation, "Torque saturation for the actuators."),
     };
     
     

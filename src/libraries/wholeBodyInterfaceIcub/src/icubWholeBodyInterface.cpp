@@ -62,7 +62,7 @@ icubWholeBodyInterface::icubWholeBodyInterface(const char* _name, const char* _r
 
 bool icubWholeBodyInterface::init()
 {
-    double wait_workaround = 0.3;
+    double wait_workaround = 0.5;
     bool ok = actuatorInt->init();
     if(!ok) printf("[icubWholeBodyInterface] Error while initializing actuator interface.\n");
     yarp::os::Time::delay(wait_workaround);
