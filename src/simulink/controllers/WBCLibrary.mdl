@@ -24,7 +24,7 @@ Library {
       $ObjectID		      2
       $ClassName	      "Simulink.WindowInfo"
       IsActive		      [1]
-      Location		      [105.0, 101.0, 1078.0, 604.0]
+      Location		      [554.0, 149.0, 1078.0, 604.0]
       Object {
 	$PropName		"ModelBrowserInfo"
 	$ObjectID		3
@@ -46,21 +46,21 @@ Library {
 	Dimension		2
 	Object {
 	  $ObjectID		  5
-	  IsActive		  [1]
+	  IsActive		  [0]
 	  ViewObjType		  "SimulinkTopLevel"
 	  LoadSaveID		  "0"
 	  Extents		  [1020.0, 413.0]
 	  ZoomFactor		  [1.9799999999999991]
-	  Offset		  [-24.526766454330669, -15.212627628234969]
+	  Offset		  [-24.526766454330328, -15.212627628234969]
 	}
 	Object {
 	  $ObjectID		  6
-	  IsActive		  [0]
+	  IsActive		  [1]
 	  ViewObjType		  "SimulinkSubsys"
-	  LoadSaveID		  "209"
-	  Extents		  [1027.0, 468.0]
-	  ZoomFactor		  [1.25]
-	  Offset		  [-48.900544057255388, -54.130161323078994]
+	  LoadSaveID		  "202"
+	  Extents		  [1020.0, 413.0]
+	  ZoomFactor		  [1.0]
+	  Offset		  [0.0, 0.0]
 	}
 	PropName		"EditorsInfo"
       }
@@ -72,9 +72,9 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Wed May 21 12:26:47 2014"
-  RTWModifiedTimeStamp	  322575903
-  ModelVersionFormat	  "1.%<AutoIncrement:62>"
+  LastModifiedDate	  "Sun May 25 21:51:59 2014"
+  RTWModifiedTimeStamp	  322955517
+  ModelVersionFormat	  "1.%<AutoIncrement:66>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -895,7 +895,7 @@ Library {
   }
   System {
     Name		    "WBIToolbox"
-    Location		    [105, 101, 1183, 705]
+    Location		    [298, 174, 1376, 778]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -3753,8 +3753,8 @@ Library {
       }
       System {
 	Name			"wholeBodyModel"
-	Location		[105, 101, 1190, 760]
-	Open			on
+	Location		[703, 141, 1781, 745]
+	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
 	ScreenColor		"white"
@@ -6275,7 +6275,7 @@ Library {
 	  }
 	  System {
 	    Name		    "Forward Kinematics"
-	    Location		    [486, 47, 1322, 584]
+	    Location		    [703, 141, 1781, 745]
 	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
@@ -7893,8 +7893,8 @@ Library {
 	  }
 	  System {
 	    Name		    "Jacobians"
-	    Location		    [486, 47, 1322, 584]
-	    Open		    off
+	    Location		    [554, 149, 1632, 753]
+	    Open		    on
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -8358,7 +8358,7 @@ Library {
 	      }
 	      System {
 		Name			"Left Foot Jacobian"
-		Location		[486, 47, 1322, 584]
+		Location		[554, 149, 1632, 753]
 		Open			off
 		ModelBrowserVisibility	off
 		ModelBrowserWidth	200
@@ -10301,7 +10301,7 @@ Library {
       }
       System {
 	Name			"wholeBodyStates"
-	Location		[261, 46, 1376, 738]
+	Location		[22, 137, 1100, 741]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -10313,7 +10313,7 @@ Library {
 	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
 	TiledPageScale		1
 	ShowPageBoundaries	off
-	ZoomFactor		"100"
+	ZoomFactor		"150"
 	Block {
 	  BlockType		  SubSystem
 	  Name			  "DUMMY Joint Torques"
@@ -12862,7 +12862,6 @@ Stateflow {
     id			    1
     name		    "WBIToolbox"
     created		    "06-Feb-2014 11:51:26"
-    locked		    1
     isLibrary		    1
     firstTarget		    26
     sfVersion		    76014001.0015
@@ -12878,7 +12877,6 @@ Stateflow {
     firstJunction	    7
     viewObj		    2
     machine		    1
-    locked		    1
     ssIdHighWaterMark	    7
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
@@ -13018,7 +13016,6 @@ Stateflow {
     firstJunction	    15
     viewObj		    10
     machine		    1
-    locked		    1
     ssIdHighWaterMark	    8
     decomposition	    CLUSTER_CHART
     type		    EML_CHART
@@ -13160,7 +13157,6 @@ Stateflow {
     firstJunction	    23
     viewObj		    18
     machine		    1
-    locked		    1
     toolbarMode		    LIBRARY_TOOLBAR
     ssIdHighWaterMark	    8
     decomposition	    CLUSTER_CHART

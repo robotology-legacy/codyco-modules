@@ -30,7 +30,7 @@ function blkStruct = slblocks
 %  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
 %  Public License for more details
 
-Browser.Library   = 'WBIToolbox';     %Name of the .mdl file
+Browser.Library   = 'WBCLibrary';     %Name of the .mdl file
 Browser.Name      = 'Whole Body Interface Toolbox';    
 Browser.IsFlat    =  0;
 
