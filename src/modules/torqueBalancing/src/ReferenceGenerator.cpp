@@ -18,6 +18,7 @@
 #include "Reference.h"
 #include <wbi/wholeBodyInterface.h>
 #include <codyco/LockGuard.h>
+#include <codyco/MathUtils.h>
 #include <yarp/os/Time.h>
 #include <limits>
 
@@ -256,7 +257,7 @@ namespace codyco {
         
         void ReferenceGenerator::setIntegralLimit(double integralLimit)
         {
-            if (!isnan(integralLimit)) {
+            if (!codyco::math::isnan(integralLimit)) {
                 codyco::LockGuard guard(m_mutex);
                 m_integralLimit = std::abs(integralLimit);
             }
@@ -280,7 +281,7 @@ namespace codyco {
             m_proportionalGains = proportionalGains;
             m_derivativeGains = derivativeGains;
             m_integralGains = integralGains;
-            if (!isnan(integralLimit)) {
+            if (!codyco::math::isnan(integralLimit)) {
                 m_integralLimit = std::abs(integralLimit);
             }
         }
