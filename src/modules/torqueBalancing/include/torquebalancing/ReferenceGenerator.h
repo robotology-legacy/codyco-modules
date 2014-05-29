@@ -282,14 +282,16 @@ namespace codyco {
             virtual bool init();
             
             /** Gets the current value of the signal
+             * @param context addition information for the method. Varies in implementation
              * @return the current value of the signal
              */
-            virtual const Eigen::VectorXd& getSignal() = 0;
+            virtual const Eigen::VectorXd& getSignal(long context = 0) = 0;
             
             /** Gets the current value of the signal derivative
+             * @param context addition information for the method. Varies in implementation
              * @return the current value of the signal derivative
              */
-            virtual const Eigen::VectorXd& getSignalDerivative() = 0;
+            virtual const Eigen::VectorXd& getSignalDerivative(long context = 0) = 0;
             
             /** Gets the size of the vector returned by the methods of this protocol
              * @return the size of the vectors returned by the implementation of this protocol

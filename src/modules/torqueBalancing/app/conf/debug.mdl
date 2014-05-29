@@ -1,12 +1,12 @@
 Model {
-  Name			  "cppControllerMonitor"
+  Name			  "debug"
   Version		  8.0
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.13"
+    ComputedModelVersion    "1.17"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -30,7 +30,7 @@ Model {
       $ObjectID		      2
       $ClassName	      "Simulink.WindowInfo"
       IsActive		      [1]
-      Location		      [1912.0, -4.0, 1936.0, 1092.0]
+      Location		      [478.0, 136.0, 1238.0, 813.0]
       Object {
 	$PropName		"ModelBrowserInfo"
 	$ObjectID		3
@@ -52,21 +52,21 @@ Model {
 	Dimension		2
 	Object {
 	  $ObjectID		  5
-	  IsActive		  [0]
-	  ViewObjType		  "SimulinkTopLevel"
-	  LoadSaveID		  "0"
-	  Extents		  [1127.0, 739.0]
-	  ZoomFactor		  [2.4680892243673491]
-	  Offset		  [-15.672404328732739, -23.413621392722717]
-	}
-	Object {
-	  $ObjectID		  6
 	  IsActive		  [1]
 	  ViewObjType		  "SimulinkSubsys"
 	  LoadSaveID		  "20"
-	  Extents		  [1689.0, 908.0]
+	  Extents		  [991.0, 629.0]
 	  ZoomFactor		  [2.46]
-	  Offset		  [0.0, -2.8421709430404007e-14]
+	  Offset		  [13.57723577235771, 1.23828125]
+	}
+	Object {
+	  $ObjectID		  6
+	  IsActive		  [0]
+	  ViewObjType		  "SimulinkTopLevel"
+	  LoadSaveID		  "0"
+	  Extents		  [991.0, 629.0]
+	  ZoomFactor		  [2.46]
+	  Offset		  [0.0, 0.0]
 	}
 	PropName		"EditorsInfo"
       }
@@ -78,9 +78,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "icub"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon May 12 14:42:38 2014"
-  RTWModifiedTimeStamp	  321805753
-  ModelVersionFormat	  "1.%<AutoIncrement:13>"
+  LastModifiedDate	  "Thu May 29 10:06:16 2014"
+  RTWModifiedTimeStamp	  323255331
+  ModelVersionFormat	  "1.%<AutoIncrement:17>"
   ConfigurationManager	  "None"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -818,8 +818,8 @@ Model {
     }
   }
   System {
-    Name		    "cppControllerMonitor"
-    Location		    [129, 24, 1503, 947]
+    Name		    "debug"
+    Location		    [478, 136, 1716, 949]
     Open		    on
     ModelBrowserVisibility  on
     ModelBrowserWidth	    200
@@ -833,7 +833,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "246"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "24"
+    SIDHighWatermark	    "27"
     Block {
       BlockType		      SubSystem
       Name		      "Monitor"
@@ -874,7 +874,7 @@ Model {
       }
       System {
 	Name			"Monitor"
-	Location		[1912, -4, 3848, 1088]
+	Location		[478, 136, 1716, 949]
 	Open			on
 	ModelBrowserVisibility	on
 	ModelBrowserWidth	200
@@ -888,11 +888,25 @@ Model {
 	ShowPageBoundaries	off
 	ZoomFactor		"246"
 	Block {
+	  BlockType		  Reference
+	  Name			  "Joint Angles"
+	  SID			  "26"
+	  Ports			  [0, 1]
+	  Position		  [180, 23, 250, 67]
+	  ZOrder		  15
+	  BackgroundColor	  "[0.375000, 0.187500, 0.000000]"
+	  LibraryVersion	  "1.52"
+	  SourceBlock		  "WBCLibrary/wholeBodyStates/Joint Angles"
+	  SourceType		  ""
+	  robotName		  "'icubGazeboSim'"
+	  localName		  "'testFra'"
+	}
+	Block {
 	  BlockType		  SubSystem
 	  Name			  "Monitor"
 	  SID			  "6"
 	  Ports			  [0, 5]
-	  Position		  [20, 25, 115, 165]
+	  Position		  [20, 95, 115, 235]
 	  ZOrder		  6
 	  MinAlgLoopOccurrences	  off
 	  PropExecContextOutsideSubsystem off
@@ -903,7 +917,7 @@ Model {
 	  MaskHideContents	  off
 	  System {
 	    Name		    "Monitor"
-	    Location		    [129, 24, 1503, 947]
+	    Location		    [428, 112, 1666, 925]
 	    Open		    off
 	    ModelBrowserVisibility  on
 	    ModelBrowserWidth	    200
@@ -980,7 +994,7 @@ Model {
 	      ZOrder		      2
 	      BackgroundColor	      "black"
 	      ShowName		      off
-	      LibraryVersion	      "1.47"
+	      LibraryVersion	      "1.52"
 	      SourceBlock	      "WBCLibrary/Utilities/yarp read"
 	      SourceType	      ""
 	      from		      "['/' moduleName '/monitor:o']"
@@ -1100,7 +1114,6 @@ Model {
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      7
-	      Points		      [130, 0]
 	      DstBlock		      "Mux4"
 	      DstPort		      1
 	    }
@@ -1113,42 +1126,36 @@ Model {
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      9
-	      Points		      [130, 0]
 	      DstBlock		      "Mux4"
 	      DstPort		      3
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      10
-	      Points		      [130, 0]
 	      DstBlock		      "Mux2"
 	      DstPort		      1
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      11
-	      Points		      [130, 0]
 	      DstBlock		      "Mux2"
 	      DstPort		      2
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      12
-	      Points		      [130, 0]
 	      DstBlock		      "Mux2"
 	      DstPort		      3
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      13
-	      Points		      [130, 0]
 	      DstBlock		      "Mux2"
 	      DstPort		      4
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      14
-	      Points		      [130, 0]
 	      DstBlock		      "Mux2"
 	      DstPort		      5
 	    }
@@ -1161,77 +1168,66 @@ Model {
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      16
-	      Points		      [130, 0]
 	      DstBlock		      "Mux2"
 	      DstPort		      7
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      17
-	      Points		      [130, 0]
 	      DstBlock		      "Mux2"
 	      DstPort		      8
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      18
-	      Points		      [130, 0]
 	      DstBlock		      "Mux2"
 	      DstPort		      9
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      19
-	      Points		      [130, 0]
 	      DstBlock		      "Mux2"
 	      DstPort		      10
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      20
-	      Points		      [130, 0]
 	      DstBlock		      "Mux2"
 	      DstPort		      11
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      21
-	      Points		      [130, 0]
 	      DstBlock		      "Mux2"
 	      DstPort		      12
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      29
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      8
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      30
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      9
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      31
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      10
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      32
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      11
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      33
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      12
 	    }
@@ -1244,192 +1240,129 @@ Model {
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      22
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      1
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      44
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      23
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      45
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      24
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      39
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      18
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      40
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      19
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      35
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      14
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      36
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      15
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      37
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      16
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      43
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      22
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      41
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      20
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      42
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      21
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      38
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      17
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      46
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      25
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      23
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      2
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      24
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      3
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      25
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      4
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      26
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      5
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      27
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      6
 	    }
 	    Line {
 	      SrcBlock		      "yarp read"
 	      SrcPort		      28
-	      Points		      [130, 0]
 	      DstBlock		      "Mux3"
 	      DstPort		      7
 	    }
 	  }
 	}
 	Block {
-	  BlockType		  Reference
-	  Name			  "S-Function"
-	  SID			  "24"
-	  Ports			  []
-	  Position		  [404, 18, 473, 61]
-	  ZOrder		  13
-	  ForegroundColor	  "red"
-	  ShowName		  off
-	  LibraryVersion	  "1.47"
-	  SourceBlock		  "WBCLibrary/Utilities/S-Function"
-	  SourceType		  "Soft Real Time"
-	  rate			  "0.010"
-	}
-	Block {
 	  BlockType		  Scope
 	  Name			  "Scope"
 	  SID			  "16"
 	  Ports			  [1]
-	  Position		  [170, 19, 200, 51]
+	  Position		  [170, 89, 200, 121]
 	  ZOrder		  8
 	  ShowName		  off
 	  Floating		  off
-	  Location		  [741, 182, 1554, 814]
-	  Open			  off
-	  NumInputPorts		  "1"
-	  List {
-	    ListType		    AxesTitles
-	    axes1		    "%<SignalLabel>"
-	  }
-	  List {
-	    ListType		    ScopeGraphics
-	    FigureColor		    "[0.5 0.5 0.5]"
-	    AxesColor		    "[0 0 0]"
-	    AxesTickColor	    "[1 1 1]"
-	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
-	    LineStyles		    "-|-|-|-|-|-"
-	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
-	    MarkerStyles	    "none|none|none|none|none|none"
-	  }
-	  ShowLegends		  off
-	  DataFormat		  "StructureWithTime"
-	  SampleTime		  "0"
-	}
-	Block {
-	  BlockType		  Scope
-	  Name			  "Scope1"
-	  SID			  "17"
-	  Ports			  [1]
-	  Position		  [210, 49, 240, 81]
-	  ZOrder		  9
-	  ShowName		  off
-	  Floating		  off
-	  Location		  [1987, 116, 2874, 924]
+	  Location		  [994, 81, 1921, 1079]
 	  Open			  on
 	  NumInputPorts		  "1"
 	  List {
@@ -1447,8 +1380,42 @@ Model {
 	    MarkerStyles	    "none|none|none|none|none|none"
 	  }
 	  ShowLegends		  off
-	  YMin			  "-0.1"
-	  YMax			  "0.6"
+	  YMin			  "-2.25"
+	  YMax			  "2.75"
+	  DataFormat		  "StructureWithTime"
+	  SampleTime		  "0"
+	}
+	Block {
+	  BlockType		  Scope
+	  Name			  "Scope1"
+	  SID			  "17"
+	  Ports			  [1]
+	  Position		  [210, 119, 240, 151]
+	  ZOrder		  9
+	  ShowName		  off
+	  Floating		  off
+	  Location		  [67, 81, 994, 1079]
+	  Open			  on
+	  NumInputPorts		  "1"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	  }
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.5 0.5 0.5]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
+	  }
+	  ShowLegends		  on
+	  LegendLocations	  "0.83145     0.90982     0.12999    0.051353"
+	  TimeRange		  "4"
+	  YMin			  "0.2627899343544857"
+	  YMax			  "0.5427899343544857"
 	  SaveName		  "ScopeData1"
 	  DataFormat		  "StructureWithTime"
 	  SampleTime		  "0"
@@ -1458,7 +1425,7 @@ Model {
 	  Name			  "Scope2"
 	  SID			  "18"
 	  Ports			  [1]
-	  Position		  [290, 109, 320, 141]
+	  Position		  [290, 179, 320, 211]
 	  ZOrder		  10
 	  ShowName		  off
 	  Floating		  off
@@ -1479,7 +1446,7 @@ Model {
 	  Name			  "Scope3"
 	  SID			  "19"
 	  Ports			  [1]
-	  Position		  [330, 139, 360, 171]
+	  Position		  [330, 209, 360, 241]
 	  ZOrder		  11
 	  ShowName		  off
 	  Floating		  off
@@ -1500,12 +1467,12 @@ Model {
 	  Name			  "Scope4"
 	  SID			  "23"
 	  Ports			  [1]
-	  Position		  [250, 79, 280, 111]
+	  Position		  [250, 149, 280, 181]
 	  ZOrder		  12
 	  ShowName		  off
 	  Floating		  off
 	  Location		  [152, 223, 904, 782]
-	  Open			  on
+	  Open			  off
 	  NumInputPorts		  "1"
 	  List {
 	    ListType		    AxesTitles
@@ -1526,6 +1493,55 @@ Model {
 	  DataFormat		  "StructureWithTime"
 	  SampleTime		  "0"
 	}
+	Block {
+	  BlockType		  Scope
+	  Name			  "Scope5"
+	  SID			  "27"
+	  Ports			  [1]
+	  Position		  [300, 29, 330, 61]
+	  ZOrder		  16
+	  ShowName		  off
+	  Floating		  off
+	  Location		  [987, 81, 1914, 1079]
+	  Open			  on
+	  NumInputPorts		  "1"
+	  List {
+	    ListType		    AxesTitles
+	    axes1		    "%<SignalLabel>"
+	  }
+	  List {
+	    ListType		    ScopeGraphics
+	    FigureColor		    "[0.5 0.5 0.5]"
+	    AxesColor		    "[0 0 0]"
+	    AxesTickColor	    "[1 1 1]"
+	    LineColors		    "[1 1 0;1 0 1;0 1 1;1 0 0;0 1 0;0 0 1]"
+	    LineStyles		    "-|-|-|-|-|-"
+	    LineWidths		    "[0.5 0.5 0.5 0.5 0.5 0.5]"
+	    MarkerStyles	    "none|none|none|none|none|none"
+	  }
+	  ShowLegends		  on
+	  TimeRange		  "4"
+	  YMin			  "0.2627899343544857"
+	  YMax			  "0.5427899343544857"
+	  SaveName		  "ScopeData5"
+	  DataFormat		  "StructureWithTime"
+	  SampleTime		  "0"
+	}
+	Block {
+	  BlockType		  Reference
+	  Name			  "synchronize"
+	  SID			  "25"
+	  Ports			  [0, 2]
+	  Position		  [25, 19, 110, 61]
+	  ZOrder		  14
+	  ForegroundColor	  "[0.900000, 0.000000, 0.472153]"
+	  ShowName		  off
+	  LibraryVersion	  "1.52"
+	  SourceBlock		  "WBCLibrary/Utilities/synchronize"
+	  SourceType		  "ySynchronizer"
+	  rate			  "0.010"
+	  scaleFactor		  "1"
+	}
 	Line {
 	  SrcBlock		  "Monitor"
 	  SrcPort		  1
@@ -1541,7 +1557,6 @@ Model {
 	Line {
 	  SrcBlock		  "Monitor"
 	  SrcPort		  5
-	  Points		  [195, 0]
 	  DstBlock		  "Scope3"
 	  DstPort		  1
 	}
@@ -1555,6 +1570,12 @@ Model {
 	  SrcBlock		  "Monitor"
 	  SrcPort		  3
 	  DstBlock		  "Scope4"
+	  DstPort		  1
+	}
+	Line {
+	  SrcBlock		  "Joint Angles"
+	  SrcPort		  1
+	  DstBlock		  "Scope5"
 	  DstPort		  1
 	}
       }

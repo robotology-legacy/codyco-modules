@@ -98,7 +98,11 @@ namespace codyco {
                 if (m_referenceFilter) {
                     m_actualReference = m_referenceFilter->getValueForCurrentTime(now);
                 }
-                m_currentSignalValue = m_reader.getSignal();
+                long context = now * 1000; //i use the time in ms as a context
+                if (m_name.compare("com pid") == 0)
+                    std::cerr << m_actualReference << "\n";
+                
+                m_currentSignalValue = m_reader.getSignal(context);
                 //compute pid
                 m_error = m_actualReference - m_currentSignalValue;
                 m_integralTerm += dt * m_error;
@@ -106,7 +110,7 @@ namespace codyco {
                 
                 m_computedReference = m_signalFeedForward
                 + m_proportionalGains.asDiagonal() * m_error
-                + m_derivativeGains.asDiagonal() * (m_signalDerivativeReference - m_reader.getSignalDerivative())
+                + m_derivativeGains.asDiagonal() * (m_signalDerivativeReference - m_reader.getSignalDerivative(context))
                 + m_integralGains.asDiagonal() * m_integralTerm;
                 m_outputReference.setValue(m_computedReference);
                 

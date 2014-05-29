@@ -134,6 +134,7 @@ namespace codyco {
             //set initial com to be equal to the read one
             m_robot->forwardKinematics(m_initialJointsConfiguration.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, initialCOM.data());
             m_comReference = initialCOM.head(3);
+            std::cerr << "Initial COM position: " << m_comReference.transpose() << "\n";
 
             //create smoother
             MinimumJerkTrajectoryGenerator forcesSmoother(6);
@@ -305,6 +306,7 @@ namespace codyco {
         
         bool TorqueBalancingModule::close()
         {
+            setControllersActiveState(false);
             cleanup();
             return true;
         }

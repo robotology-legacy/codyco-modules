@@ -17,6 +17,7 @@
 #include "ReferenceGeneratorInputReaderImpl.h"
 #include "config.h"
 #include <wbi/wholeBodyInterface.h>
+#include <codyco/Utils.h>
 
 //this is temporary until a fix of @traversaro
 //TODO: move methods to generic interface
@@ -33,6 +34,7 @@ namespace codyco {
         , m_outputSignal(7)
         , m_outputSignalDerivative(7)
         , m_jacobian(7, totalDOFs)
+        , m_previousContext(0)
         {
             m_robot.getLinkId(endEffectorLinkName.c_str(), m_endEffectorLinkID);
             initializer();
@@ -41,11 +43,12 @@ namespace codyco {
         EndEffectorPositionReader::EndEffectorPositionReader(wbi::wholeBodyInterface& robot, int linkID)
         : m_robot(robot)
         , m_endEffectorLinkID(linkID)
-        , m_jointsPosition(totalDOFs)
+        , m_jointsPosition(actuatedDOFs)
         , m_jointsVelocity(totalDOFs)
         , m_outputSignal(7)
         , m_outputSignalDerivative(7)
         , m_jacobian(7, totalDOFs)
+        , m_previousContext(0)
         {
             initializer();
         }
@@ -60,31 +63,62 @@ namespace codyco {
                                                             1, 0, 0);
         }
         
-        void EndEffectorPositionReader::updateStatus()
+        void EndEffectorPositionReader::updateStatus(long context)
         {
-            m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
-            m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.data());
+            if (context != 0 && context == m_previousContext) return;
+//             if (dynamic_cast<COMReader*>(this))
+//                 std::cerr << "EndEffectorPositionReader::updateStatus\n";
+            m_jointsVelocity.head(6).setZero();
+            bool status;
+            status = m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
+            if (!status) {
+                std::cerr << FUNCTION_NAME << ": Error while reading positions\n";
+            }
+            status = status && m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.tail(actuatedDOFs).data());
+            if (!status) {
+                std::cerr << FUNCTION_NAME << ": Error while reading velocities\n";
+            }
+//             if (dynamic_cast<COMReader*>(this))
+//                 std::cerr << "pos" << m_jointsPosition.transpose() << "\n";
             
             //update world to base frame
-            m_robot.computeH(m_jointsPosition.data(), wbi::Frame(), m_leftFootLinkID, m_world2BaseFrame);
+            status = status && m_robot.computeH(m_jointsPosition.data(), wbi::Frame(), m_leftFootLinkID, m_world2BaseFrame);
+            if (!status) {
+                std::cerr << FUNCTION_NAME << ": Error while computing homogenous transformation\n";
+            }
             m_world2BaseFrame = m_world2BaseFrame * m_leftFootToBaseRotationFrame;
             m_world2BaseFrame.setToInverse();
-
+            if (dynamic_cast<COMReader*>(this)) {
+                
+                std::cerr << Eigen::Map<Eigen::Vector3d>(m_world2BaseFrame.p).transpose() << "    " << Eigen::Map<Eigen::Matrix3d>(m_world2BaseFrame.R.data) << "\n";
+            }
             
-            m_robot.forwardKinematics(m_jointsPosition.data(), m_world2BaseFrame, m_endEffectorLinkID, m_outputSignal.data());
-            m_robot.computeJacobian(m_jointsPosition.data(), m_world2BaseFrame, m_endEffectorLinkID, m_jacobian.data());
-            m_outputSignalDerivative = m_jacobian * m_jointsVelocity;
+
+            m_jacobian.setZero();
+            status = status && m_robot.forwardKinematics(m_jointsPosition.data(), m_world2BaseFrame, m_endEffectorLinkID, m_outputSignal.data());
+            if (!status) {
+                std::cerr << FUNCTION_NAME << ": Error while computing forward kinematic\n";
+                m_outputSignal.setZero();
+            }
+            status = m_robot.computeJacobian(m_jointsPosition.data(), m_world2BaseFrame, m_endEffectorLinkID, m_jacobian.data());
+            if (!status) {
+                std::cerr << FUNCTION_NAME << ": Error while computing Jacobian\n";
+                
+            } else {
+                m_outputSignalDerivative = m_jacobian * m_jointsVelocity;
+            }
+            m_previousContext = context;
         }
         
-        const Eigen::VectorXd& EndEffectorPositionReader::getSignal()
+        const Eigen::VectorXd& EndEffectorPositionReader::getSignal(long context)
         {
-            updateStatus();
+            updateStatus(context);
             return m_outputSignal;
         }
         
-        const Eigen::VectorXd& EndEffectorPositionReader::getSignalDerivative()
+        const Eigen::VectorXd& EndEffectorPositionReader::getSignalDerivative(long context)
         {
-            updateStatus();
+            updateStatus(context);
             return m_outputSignalDerivative;
         }
         
@@ -93,21 +127,21 @@ namespace codyco {
 #pragma mark - COMReader implementation
         COMReader::COMReader(wbi::wholeBodyInterface& robot)
         : EndEffectorPositionReader(robot, wbi::wholeBodyInterface::COM_LINK_ID)
-        , m_outputSignal(3)
-        , m_outputSignalDerivative(3) {}
+        , m_outputCOM(3)
+        , m_outputCOMVelocity(3) {}
 
         COMReader::~COMReader() {}
         
-        const Eigen::VectorXd& COMReader::getSignal()
+        const Eigen::VectorXd& COMReader::getSignal(long context)
         {
-            m_outputSignal = EndEffectorPositionReader::getSignal().head(3);
-            return m_outputSignal;
+            m_outputCOM = EndEffectorPositionReader::getSignal(context).head(3);
+            return m_outputCOM;
         }
         
-        const Eigen::VectorXd& COMReader::getSignalDerivative()
+        const Eigen::VectorXd& COMReader::getSignalDerivative(long context)
         {
-            m_outputSignalDerivative = EndEffectorPositionReader::getSignalDerivative().head(3);
-            return m_outputSignalDerivative;
+            m_outputCOMVelocity = EndEffectorPositionReader::getSignalDerivative(context).head(3);
+            return m_outputCOMVelocity;
         }
         
         int COMReader::signalSize() const { return 3; }
@@ -119,6 +153,7 @@ namespace codyco {
         , m_jointsPosition(totalDOFs)
         , m_jointsVelocity(totalDOFs)
         , m_outputSignal(6)
+        , m_previousContext(0)
         {
             m_robot.getLinkId("l_sole", m_leftFootLinkID);
             m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
@@ -132,7 +167,7 @@ namespace codyco {
         
         EndEffectorForceReader::~EndEffectorForceReader() {}
         
-        void EndEffectorForceReader::updateStatus()
+        void EndEffectorForceReader::updateStatus(long context)
         {
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.data());
@@ -148,13 +183,13 @@ namespace codyco {
             m_robot.getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, m_endEffectorLocalID, m_outputSignal.data());
         }
         
-        const Eigen::VectorXd& EndEffectorForceReader::getSignal()
+        const Eigen::VectorXd& EndEffectorForceReader::getSignal(long context)
         {
-            updateStatus();
+            updateStatus(context);
             return m_outputSignal;
         }
         
-        const Eigen::VectorXd& EndEffectorForceReader::getSignalDerivative()
+        const Eigen::VectorXd& EndEffectorForceReader::getSignalDerivative(long context)
         {
             return Eigen::VectorXd::Zero(signalSize());
         }
@@ -169,11 +204,11 @@ namespace codyco {
         
         VoidReader::~VoidReader() {}
         
-        const Eigen::VectorXd& VoidReader::getSignal()
+        const Eigen::VectorXd& VoidReader::getSignal(long/*context*/)
         {
             return m_voidVector;
         }
-        const Eigen::VectorXd& VoidReader::getSignalDerivative()
+        const Eigen::VectorXd& VoidReader::getSignalDerivative(long/*context*/)
         {
             return m_voidVector;
         }
