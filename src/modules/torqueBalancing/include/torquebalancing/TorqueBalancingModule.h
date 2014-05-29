@@ -138,6 +138,7 @@ namespace codyco {
             ParamHelperManager* m_paramHelperManager;
             
             Eigen::VectorXd m_initialJointsConfiguration; /*!< This is used for swithing between module states. (Hands position are implemented with the impedance control. */
+            Eigen::VectorXd m_comReference; /*!< Reference for the center of mass */
             //Impedance references
             Eigen::VectorXd m_impedanceDoubleSupportReference;
             Eigen::VectorXd m_impedanceLeftHandReference;
@@ -154,7 +155,6 @@ namespace codyco {
             bool m_initialized;
             paramHelp::ParamHelperServer* m_parameterServer;
             
-            Eigen::VectorXd m_comReference;
             Eigen::VectorXd m_handsPositionReference;
             Eigen::VectorXd m_handsForceReference;
             

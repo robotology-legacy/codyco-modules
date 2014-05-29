@@ -34,8 +34,8 @@ kImp  = [kImpTorso,kImpArms,kImpArms,kImpLegs,kImpLegs];
 transitionLengths = [7 10 2];
 
               
-qFinHands     = [ -30 20 0 40  0;
-                  -30 20 0 40  0]*pi/180;
+qFinHands     = [ -30 20 0 50  0;
+                  -30 20 0 50  0]*pi/180;
 
 if (min(min(qFinHands)) < -3.14 || max(max(qFinHands)) > 3.14)
    error('qFinMovingPart is not valid. Some of its elements do not belong to [-3.14,3.14]'); 

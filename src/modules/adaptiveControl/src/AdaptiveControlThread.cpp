@@ -53,13 +53,16 @@ namespace adaptiveControl {
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
                                                  paramHelp::ParamHelperClient& paramHelperClient,
 #endif
-                                                 const Eigen::Vector2d &linklengths):
+                                                 const Eigen::Vector2d &linklengths,
+                                                 double refBaselineSmootherDuration,
+                                                 double refFrequencySmootherDuration):
     RateThread(periodMilliseconds),
     _period(periodMilliseconds),
     _controlEnabled(false),
     _maxReadFailed(3),
     _failedReads(0),
     _firstRunLoop(true),
+    _sinInitialTime(0),
     _threadName(threadName),
     _robotName(robotName),
     _robotPart(robotPart),
@@ -76,9 +79,10 @@ namespace adaptiveControl {
     _kneeTorque(0),
     _outputTau(ICUB_PART_DOF, 0.0),
     _torqueSaturation(12),
-    _minJerkTrajectoryGenerator(1, periodMilliseconds / 1000.0, 10), //5 seconds of duration
-    _minJerkInputFrequency(1),
-    _minJerkOutputFrequency(1)
+    _minJerkFrequencyGenerator(1, periodMilliseconds / 1000.0, refFrequencySmootherDuration), //10 seconds of duration
+    _minJerkInputVariable(1),
+    _minJerkOutputVariable(1),
+    _minJerkBaselineGenerator(1, periodMilliseconds / 1000.0, refBaselineSmootherDuration) //5 seconds of duration    
     {
         _piHat = Vector8d::Zero();
         _dpiHat = Vector8d::Zero();
@@ -126,7 +130,7 @@ namespace adaptiveControl {
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainKappaIntegral, _kappaIntegral.data()));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainGamma, _GammaInput.data()));
         //reference trajectory
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefBaseline, &_refBaseline));
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefBaseline, &_refDesiredBaseline));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefFrequency, &_refDesiredFrequencyInput));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefAmplitude, &_refAmplitude));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefPhase, &_refPhase));
@@ -275,9 +279,13 @@ namespace adaptiveControl {
                 break;
             case AdaptiveControlParamIDRefFrequency:
                 //compute new trajectory
-                _minJerkInputFrequency(0) = _refDesiredFrequency;
-                _minJerkTrajectoryGenerator.init(_minJerkInputFrequency);
-                _initialTime = yarp::os::Time::now();
+                _minJerkInputVariable(0) = _refDesiredFrequency;
+                _minJerkFrequencyGenerator.init(_minJerkInputVariable);
+                _sinInitialTime = yarp::os::Time::now();
+                break;
+            case AdaptiveControlParamIDRefBaseline:
+                _minJerkInputVariable(0) = _refBaseline;
+                _minJerkBaselineGenerator.init(_minJerkInputVariable);
                 break;
             default:
                 break;
@@ -342,23 +350,34 @@ namespace adaptiveControl {
     {
         if (_firstRunLoop) {
             _firstRunLoop = false;
-            _initialTime = yarp::os::Time::now();
+            _initialTime = _sinInitialTime = yarp::os::Time::now();
             _previousTime = 0;
         }
         double now = yarp::os::Time::now() - _initialTime;
+        double sinTime = yarp::os::Time::now() - _sinInitialTime;
         
         double dt = now - _previousTime;
         _previousTime = now;
         
         //update frequency
-        _minJerkInputFrequency(0) = _refDesiredFrequencyInput;
-        _minJerkTrajectoryGenerator.computeNextValues(_minJerkInputFrequency);
-        _minJerkOutputFrequency = _minJerkTrajectoryGenerator.getPos();
-        _refDesiredFrequency = _minJerkOutputFrequency(0);
-        _minJerkOutputFrequency = _minJerkTrajectoryGenerator.getVel();
-        double dFreq = _minJerkOutputFrequency(0);
-        _minJerkOutputFrequency = _minJerkTrajectoryGenerator.getAcc();
-        double ddFreq = _minJerkOutputFrequency(0);
+        _minJerkInputVariable(0) = _refDesiredFrequencyInput;
+        _minJerkFrequencyGenerator.computeNextValues(_minJerkInputVariable);
+        _minJerkOutputVariable = _minJerkFrequencyGenerator.getPos();
+        _refDesiredFrequency = _minJerkOutputVariable(0);
+        _minJerkOutputVariable = _minJerkFrequencyGenerator.getVel();
+        double dFreq = _minJerkOutputVariable(0);
+        _minJerkOutputVariable = _minJerkFrequencyGenerator.getAcc();
+        double ddFreq = _minJerkOutputVariable(0);
+        
+        //update reference
+        _minJerkInputVariable(0) = _refDesiredBaseline;
+        _minJerkBaselineGenerator.computeNextValues(_minJerkInputVariable);
+        _minJerkOutputVariable = _minJerkBaselineGenerator.getPos();
+        _refBaseline = _minJerkOutputVariable(0);
+        _minJerkOutputVariable = _minJerkBaselineGenerator.getVel();
+        double baseDer = _minJerkOutputVariable(0);
+        _minJerkOutputVariable = _minJerkBaselineGenerator.getAcc();
+        double baseAcc = _minJerkOutputVariable(0);
                 
         //update state variables (only if sendCommands = true, otherwise the updating law integrates a constant value)
         //double dotOmega = -_refSystemGain * (_refAngularVelocity - 2 * pi * _refDesiredFrequency);
@@ -369,17 +388,18 @@ namespace adaptiveControl {
         }
         
         //define reference trajectory
-        _q_ref = _refBaseline + _refAmplitude * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
+        _q_ref = _refBaseline + _refAmplitude * sin(2 * pi * _refDesiredFrequency * sinTime + _refPhase);
         
-//         double dq_ref = _refAmplitude * 2 * pi * _refDesiredFrequency * cos(2 * pi * _refDesiredFrequency * now + _refPhase);
-//         double ddq_ref = -_refAmplitude * 4 * pi * pi * _refDesiredFrequency * _refDesiredFrequency * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
+//         _dq_ref = _refAmplitude * 2 * pi * _refDesiredFrequency * cos(2 * pi * _refDesiredFrequency * now + _refPhase);
+//         _ddq_ref = -_refAmplitude * 4 * pi * pi * _refDesiredFrequency * _refDesiredFrequency * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
         
-        _dq_ref = _refAmplitude * cos(2 * pi * _refDesiredFrequency * now + _refPhase) * (2 * pi * _refDesiredFrequency + 2 * pi * now * dFreq);
-        _ddq_ref = - _refAmplitude * sin(2 * pi * _refDesiredFrequency * now + _refPhase) * (2 * pi * _refDesiredFrequency + 2 * pi * now * dFreq) *  (2 * pi * _refDesiredFrequency + 2 * pi * now * dFreq)
-        + _refAmplitude * cos(2 * pi * _refDesiredFrequency * now + _refPhase) * (2 * pi * dFreq + 2 * pi * dFreq + 2 * pi * now * ddFreq);
+        _dq_ref = baseDer +  _refAmplitude * cos(2 * pi * _refDesiredFrequency * sinTime + _refPhase) * (2 * pi * _refDesiredFrequency + 2 * pi * sinTime * dFreq);
+        _ddq_ref = baseAcc - _refAmplitude * sin(2 * pi * _refDesiredFrequency * sinTime + _refPhase) * (2 * pi * _refDesiredFrequency + 2 * pi * sinTime * dFreq) *  (2 * pi * _refDesiredFrequency + 2 * pi * sinTime * dFreq)
+        + _refAmplitude * cos(2 * pi * _refDesiredFrequency * sinTime + _refPhase) * (2 * pi * dFreq + 2 * pi * dFreq + 2 * pi * sinTime * ddFreq);
         double q_ref = _q_ref;
         double dq_ref = _dq_ref;
         double ddq_ref = _ddq_ref;
+        
 //         double ddq_ref = -_refAmplitude * 4 * pi * pi * _refDesiredFrequency * _refDesiredFrequency * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
         
         //double q_ref = _refBaseline + _refAmplitude * sin(_refAngularVelocity * now + _refPhase);
@@ -462,10 +482,10 @@ namespace adaptiveControl {
         _kneeTorque = regressor.row(1) * _piHat - _kappa(1) * s(1) - _kappaIntegral(1) * _sIntegral(1);
         if (_kneeTorque > _torqueSaturation) {
             _kneeTorque = _torqueSaturation;
-            std::cerr << "Saturating torque to: " << _kneeTorque << "\n";
+//             std::cerr << "Saturating torque to: " << _kneeTorque << "\n";
         } else if (_kneeTorque < -_torqueSaturation) {
             _kneeTorque = -_torqueSaturation;
-            std::cerr << "Saturating torque to: " << _kneeTorque << "\n";
+//             std::cerr << "Saturating torque to: " << _kneeTorque << "\n";
         }
         writeOutputs();
         
@@ -600,8 +620,10 @@ namespace adaptiveControl {
             _controlEnabled = true;
             _failedReads = 0;
             _firstRunLoop = true;
-            _minJerkInputFrequency(0) = 0;
-            _minJerkTrajectoryGenerator.init(_minJerkInputFrequency);
+            _minJerkInputVariable(0) = 0;
+            _minJerkFrequencyGenerator.init(_minJerkInputVariable);
+            _minJerkInputVariable(0) = 0;
+            _minJerkBaselineGenerator.init(_minJerkInputVariable);
 #ifdef ADAPTIVECONTROL_TORQUECONTROL
             _controlMode->setTorqueMode(passiveJointIndex);
 			_torqueControl->setRefTorque(passiveJointIndex, 0);

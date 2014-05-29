@@ -64,8 +64,9 @@ namespace codyco {
              * @param period thread period
              * @param reference object in which to save the computed reference trajectory
              * @param reader object implementing the ReferenceGeneratorInputReader protocol used to obtain the current state of the system.
+             * @param name custom name to be assigned to the controller. Useful while debugging
              */
-            ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader);
+            ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader, const std::string& name = "");
             
             /**
              * Destructor
@@ -77,6 +78,11 @@ namespace codyco {
             virtual void run();
             
 #pragma mark - Getter and setter
+            
+            /** Returns the name of the controller
+             * @return the name of the controller
+             */
+            const std::string& name() const;
             
             //Object is copied inside. Passed object can be deallocated.
             void setReferenceFilter(ReferenceFilter* referenceFilter);
@@ -230,6 +236,8 @@ namespace codyco {
             
             void limitIntegral(const Eigen::Ref<Eigen::VectorXd>& integral, Eigen::Ref<Eigen::VectorXd> limitedIntegral);
             
+            const std::string m_name;
+            
             Reference& m_outputReference;
             ReferenceGeneratorInputReader& m_reader;
             ReferenceFilter* m_referenceFilter;
@@ -274,14 +282,16 @@ namespace codyco {
             virtual bool init();
             
             /** Gets the current value of the signal
+             * @param context addition information for the method. Varies in implementation
              * @return the current value of the signal
              */
-            virtual const Eigen::VectorXd& getSignal() = 0;
+            virtual const Eigen::VectorXd& getSignal(long context = 0) = 0;
             
             /** Gets the current value of the signal derivative
+             * @param context addition information for the method. Varies in implementation
              * @return the current value of the signal derivative
              */
-            virtual const Eigen::VectorXd& getSignalDerivative() = 0;
+            virtual const Eigen::VectorXd& getSignalDerivative(long context = 0) = 0;
             
             /** Gets the size of the vector returned by the methods of this protocol
              * @return the size of the vectors returned by the implementation of this protocol

@@ -104,7 +104,7 @@ mark_as_advanced(LIBRARY_OUTPUT_PATH)
 ### enable testing
 option(CODYCO_DASHBOARD_SUBMIT "Submit compile tests to cdash" FALSE)
 option(ICUB_USE_XDE "Experimental ISIR modules based on XDE" FALSE)
-option(SIMULINK_LIBRARY "Experimental Simulink library" FALSE)
+option(CODYCO_USES_WBI_TOOLBOX "Whole Body Interface Toolbox - Simulink library" FALSE)
 
 if (CODYCO_DASHBOARD_SUBMIT OR CODYCO_BUILD_TESTS)
    include (CTest)

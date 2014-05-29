@@ -8,9 +8,14 @@ PROJECT(${PROJECTNAME})
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-find_package(ICUB       REQUIRED)
-find_package(Eigen3     REQUIRED)
-find_package(iDynTree   REQUIRED)
+find_package(YARP                   REQUIRED)
+find_package(ICUB                   REQUIRED)
+find_package(Eigen3                 REQUIRED)
+find_package(iDynTree               REQUIRED)
+find_package(paramHelp              REQUIRED)
+find_package(wholeBodyInterface     REQUIRED)
+find_package(yarpWholeBodyInterface REQUIRED)
+
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
@@ -26,15 +31,16 @@ source_group("Header Files" FILES ${folder_header})
 include(iCubHelpers)
 include(iCubOptions)
 
+# Check if externl torque control is to be used
+if (ICUBWBI_USE_EXTERNAL_TORQUE_CONTROL)
+    message("Adding external torque control.")
+    add_definitions(-DWBI_ICUB_COMPILE_PARAM_HELP)
+endif()
+
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
 
 #Include directories
-include_directories("${MATLAB_ROOT}/simulink/include")
-include_directories("${MATLAB_ROOT}/extern/include")
-include_directories( ${MATLAB_INCLUDE_DIR})
-include_directories( ${YARP_INCLUDE_DIRS})
-include_directories( ${ICUB_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR}/include
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
@@ -43,6 +49,12 @@ include_directories(${PROJECT_SOURCE_DIR}/include
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR})
+                    
+include_directories("${MATLAB_ROOT}/simulink/include")
+include_directories("${MATLAB_ROOT}/extern/include")
+include_directories( ${MATLAB_INCLUDE_DIR})
+include_directories( ${YARP_INCLUDE_DIRS})
+include_directories( ${ICUB_INCLUDE_DIRS})
 
 #Specify preprocessor flag for MATLAB MEX FILES Compilation.
 add_definitions(-DMATLAB_MEX_FILE)
@@ -84,17 +96,21 @@ elseif(WIN32)
         message("No particular flags have been passed to compiler for Matlab 64bits on a UNIX computer")
 endif(WIN32)
 
-# Linking libraries
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES}
-                                     ${ICUB_LIBRARIES} 
-                                     ${MATLAB_LIBRARIES} 
-                                     ${iDynTree_LIBRARIES} 
-                                     skinDynLib 
-                                     ctrlLib 
-                                     wholeBodyInterface
-                                     wholeBodyInterfaceIcub
-                                     ${paramHelp_LIBRARIES} )
+target_link_libraries(${PROJECTNAME} 
+${wholeBodyInterface_LIBRARIES}
+${yarpWholeBodyInterface_LIBRARIES}
+${paramHelp_LIBRARIES}
+${iDynTree_LIBRARIES}
+${YARP_LIBRARIES} 
+# ${ICUB_LIBRARIES}
+${MATLAB_LIBRARIES}
+${skinDynLib_LIBRARIES}
+${ctrlLib_LIBRARIES}
+)
+
+set(simContext wbit)
+file(GLOB robotstate ${CMAKE_CURRENT_SOURCE_DIR}/conf/wbit/*.ini)
+yarp_install(FILES       ${robotstate} 
+	     DESTINATION ${CODYCO_CONTEXTS_INSTALL_DIR}/${simContext}) 
 
 install(TARGETS ${PROJECTNAME} DESTINATION mex)
-
-

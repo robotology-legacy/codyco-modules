@@ -17,8 +17,6 @@ Ts = 0.01;
 kCom  = [  40    4   0];
 kw    = 4;
 
-
-
 % Impedence acting in the null space of HDDDes 
 
 kImpTorso = [20 20 20]; 
@@ -39,11 +37,24 @@ kImpLegs  = [50 50 0.1 30 2 1];
 
 
 
-kImp  = [kImpTorso,kImpArms,kImpArms,kImpLegs,kImpLegs]*0.1;
+% kCom  = [  60    0   0];
+% kw    = 2;
+% 
+% % kH  = [  60    0   0 2];
+% 
+% % Impedence acting in the null space of HDDDes 
+% 
+% kImpTorso = [40 15 15]; 
+% kImpArms  = [5 5 5 5 5];
+% kImpLegs  = [35 50 0.1 30 2 10]; 
+
+
+
+kImp  = [kImpTorso,kImpArms,kImpArms,kImpLegs,kImpLegs];
 
 DT = 20;
 
-idOfMovingParts = [2 3];  % idOfMovingParts is a vector of integers, each of which is
+idOfMovingParts = [];  % idOfMovingParts is a vector of integers, each of which is
                      % interpreted as: 1 = torso, 2 = left arm, 3 = right arm, 4 = left leg, 5 = right leg
 qFinMovingPart     = [ -15   15   15   20  5   5;
                        -60   60    0   20  0   0]*pi/180;

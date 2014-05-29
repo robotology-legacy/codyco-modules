@@ -95,6 +95,7 @@ namespace adaptiveControl {
         double _previousTime;
         bool _piHatModificationOn;
         double _integralSaturationLimit;
+        double _sinInitialTime;
         
         
         //configuration parameters
@@ -130,6 +131,7 @@ namespace adaptiveControl {
         
         //reference trajectory: for now i compute it internally. In the future we can read from a port
         double _refBaseline;
+        double _refDesiredBaseline;
         double _refAngularVelocity; //in rad/s
         double _refAmplitude;
         double _refPhase; //in rad
@@ -177,9 +179,12 @@ namespace adaptiveControl {
         
         double _torqueSaturation;
         
-        iCub::ctrl::minJerkTrajGen _minJerkTrajectoryGenerator;
-        yarp::sig::Vector _minJerkInputFrequency;
-        yarp::sig::Vector _minJerkOutputFrequency;
+        iCub::ctrl::minJerkTrajGen _minJerkFrequencyGenerator;
+        iCub::ctrl::minJerkTrajGen _minJerkBaselineGenerator;
+        //todo: change amplitude
+        yarp::sig::Vector _minJerkInputVariable;
+        yarp::sig::Vector _minJerkOutputVariable;
+        
    
         yarp::dev::PolyDriver* openDriver(std::string localName, std::string robotName, std::string bodyPartName);
         void computeRegressor(const Eigen::Vector2d& q, /* Joint positions*/
@@ -211,10 +216,12 @@ namespace adaptiveControl {
                               const std::string& robotPart,
                               int periodMilliseconds,
                               paramHelp::ParamHelperServer&paramHelperServer,
-#ifndef ADAPTIVECONTROL_TORQUECONTROL
+                              #ifndef ADAPTIVECONTROL_TORQUECONTROL
                               paramHelp::ParamHelperClient& paramHelperClient,
-#endif
-                              const Eigen::Vector2d &linklengths);
+                              #endif
+                              const Eigen::Vector2d &linklengths,
+                              double refBaselineSmootherDuration,
+                              double refFrequencySmootherDuration);
         ~AdaptiveControlThread();
         
         bool setInitialConditions(const Eigen::Vector8d& initialPiHat, const double& initialXi1);

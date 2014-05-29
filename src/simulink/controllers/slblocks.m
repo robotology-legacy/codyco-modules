@@ -31,7 +31,7 @@ function blkStruct = slblocks
 %  Public License for more details
 
 Browser.Library   = 'WBCLibrary';     %Name of the .mdl file
-Browser.Name      = 'WBC Library';    
+Browser.Name      = 'Whole Body Interface Toolbox';    
 Browser.IsFlat    =  0;
 
 blkStruct.Browser =  Browser;

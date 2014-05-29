@@ -66,14 +66,16 @@ namespace codyco {
             
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_jacobian;
             
-            void updateStatus();
+            long m_previousContext;
+            
+            void updateStatus(long context);
             void initializer();
         public:
             EndEffectorPositionReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName);
             EndEffectorPositionReader(wbi::wholeBodyInterface& robot, int linkID);
             virtual ~EndEffectorPositionReader();
-            virtual const Eigen::VectorXd& getSignal();
-            virtual const Eigen::VectorXd& getSignalDerivative();
+            virtual const Eigen::VectorXd& getSignal(long context = 0);
+            virtual const Eigen::VectorXd& getSignalDerivative(long context = 0);
             virtual int signalSize() const;
         };
         
@@ -88,14 +90,14 @@ namespace codyco {
         class COMReader : public EndEffectorPositionReader {
         private:
 
-            Eigen::VectorXd m_outputSignal;
-            Eigen::VectorXd m_outputSignalDerivative;
+            Eigen::VectorXd m_outputCOM;
+            Eigen::VectorXd m_outputCOMVelocity;
         public:
             COMReader(wbi::wholeBodyInterface& robot);
             
             virtual ~COMReader();
-            virtual const Eigen::VectorXd& getSignal();
-            virtual const Eigen::VectorXd& getSignalDerivative();
+            virtual const Eigen::VectorXd& getSignal(long context = 0);
+            virtual const Eigen::VectorXd& getSignalDerivative(long context = 0);
             virtual int signalSize() const;
             
         };
@@ -120,13 +122,15 @@ namespace codyco {
             Eigen::VectorXd m_jointsVelocity;
             Eigen::VectorXd m_outputSignal;
             
-            void updateStatus();
+            long m_previousContext;
+            
+            void updateStatus(long context);
         public:
             EndEffectorForceReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName);
             
             virtual ~EndEffectorForceReader();
-            virtual const Eigen::VectorXd& getSignal();
-            virtual const Eigen::VectorXd& getSignalDerivative();
+            virtual const Eigen::VectorXd& getSignal(long context = 0);
+            virtual const Eigen::VectorXd& getSignalDerivative(long context = 0);
             virtual int signalSize() const;
             
         };
@@ -143,8 +147,8 @@ namespace codyco {
         public:
             explicit VoidReader(int size);
             virtual ~VoidReader();
-            virtual const Eigen::VectorXd& getSignal();
-            virtual const Eigen::VectorXd& getSignalDerivative();
+            virtual const Eigen::VectorXd& getSignal(long context = 0);
+            virtual const Eigen::VectorXd& getSignalDerivative(long context = 0);
             virtual int signalSize() const;
         };
 
