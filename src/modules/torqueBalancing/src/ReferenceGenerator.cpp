@@ -99,8 +99,6 @@ namespace codyco {
                     m_actualReference = m_referenceFilter->getValueForCurrentTime(now);
                 }
                 long context = now * 1000; //i use the time in ms as a context
-                if (m_name.compare("com pid") == 0)
-                    std::cerr << m_actualReference << "\n";
                 
                 m_currentSignalValue = m_reader.getSignal(context);
                 //compute pid

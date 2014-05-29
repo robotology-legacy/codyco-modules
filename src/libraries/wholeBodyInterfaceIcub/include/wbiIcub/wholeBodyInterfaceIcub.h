@@ -23,6 +23,7 @@
 #include <yarp/dev/IVelocityControl2.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Semaphore.h>
+#include <yarp/os/Mutex.h>
 #include <yarp/os/BufferedPort.h>
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 #include <iCub/ctrl/filters.h>
@@ -62,6 +63,9 @@ namespace wbiIcub
      */
     class icubWholeBodyInterface : public wbi::wholeBodyInterface
     {
+    private:
+        yarp::os::Mutex wbiMutex;
+        
     protected:
         icubWholeBodyStates     *stateInt;
         icubWholeBodyActuators  *actuatorInt;
@@ -81,6 +85,8 @@ namespace wbiIcub
                                std::string urdf_file_name);
         #endif
 
+        yarp::os::Mutex& getInterfaceMutex();
+        
         inline virtual ~icubWholeBodyInterface(){ close(); }
         virtual bool init();
         virtual bool close();
