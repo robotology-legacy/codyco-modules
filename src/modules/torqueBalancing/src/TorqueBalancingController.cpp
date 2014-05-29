@@ -256,8 +256,12 @@ namespace codyco {
             
             //update jacobians (both feet in one variable)
             m_contactsJacobian.setZero();
-            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_contactsJacobian.topRows(6).data());
-            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_contactsJacobian.middleRows<6>(6).data());
+            m_jacobianTemporary.setZero();
+            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_jacobianTemporary.data());
+            m_contactsJacobian.topRows(6) = m_jacobianTemporary;
+            m_jacobianTemporary.setZero();
+            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_jacobianTemporary.data());
+            m_contactsJacobian.middleRows<6>(6) = m_jacobianTemporary;
             if (m_leftHandForcesActive) {
                 m_jacobianTemporary.setZero();
                 m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_leftHandLinkID, m_jacobianTemporary.data());
