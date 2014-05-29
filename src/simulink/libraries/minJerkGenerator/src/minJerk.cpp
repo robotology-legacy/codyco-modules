@@ -236,7 +236,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 //     fprintf(stderr,"initPos contains: %s \n", (minJerkTraj->getInitPos()).toString().c_str());
     double param_rate     = x[1];
     double param_trajtime = x[2];
-    if(minJerkTraj->initialize(param_rate, param_trajtime))
+    minJerkTraj->initialize(param_rate, param_trajtime);
 //         fprintf(stderr,"successfully initialized minJerkTraj\n");
     
     flag[0] = 0;

@@ -1,7 +1,7 @@
-if(SIMULINK_LIBRARY)
+if(CODYCO_USES_WBI_TOOLBOX)
     message(STATUS "Adding -fPIC option to compiler")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-endif(SIMULINK_LIBRARY)
+endif(CODYCO_USES_WBI_TOOLBOX)
 
 
 add_subdirectory(libraries) 
@@ -25,9 +25,9 @@ else (ICUB_USE_XDE)
      message(STATUS "ISIR modules with XDE: NO")
 endif (ICUB_USE_XDE)
 
-if(SIMULINK_LIBRARY)
+if(CODYCO_USES_WBI_TOOLBOX)
     add_subdirectory(simulink)
     message(STATUS "Simulink library will be compiled")
-else(SIMULINK_LIBRARY)
+else(CODYCO_USES_WBI_TOOLBOX)
     message(STATUS "Simulink library skipped")
-endif(SIMULINK_LIBRARY)
+endif(CODYCO_USES_WBI_TOOLBOX)
