@@ -18,6 +18,7 @@
 #include "config.h"
 #include <wbi/wholeBodyInterface.h>
 #include <codyco/Utils.h>
+#include <codyco/LockGuard.h>
 
 //this is temporary until a fix of @traversaro
 //TODO: move methods to generic interface
@@ -29,8 +30,8 @@ namespace codyco {
 #pragma mark - HandsPositionReader implementation
         EndEffectorPositionReader::EndEffectorPositionReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName)
         : m_robot(robot)
-        , m_jointsPosition(totalDOFs)
-        , m_jointsVelocity(totalDOFs)
+        , m_jointsPosition(actuatedDOFs)
+        , m_jointsVelocity(totalDOFs) //In this there is also the base (added manually)
         , m_outputSignal(7)
         , m_outputSignalDerivative(7)
         , m_jacobian(7, totalDOFs)
@@ -66,8 +67,10 @@ namespace codyco {
         void EndEffectorPositionReader::updateStatus(long context)
         {
             if (context != 0 && context == m_previousContext) return;
-//             if (dynamic_cast<COMReader*>(this))
-//                 std::cerr << "EndEffectorPositionReader::updateStatus\n";
+
+            //FIXME:  Base velocity must be given by wbi.
+            //Until then I set it to zero.
+            codyco::LockGuard guard(((wbiIcub::icubWholeBodyInterface*)&m_robot)->getInterfaceMutex());
             m_jointsVelocity.head(6).setZero();
             bool status;
             status = m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
@@ -78,22 +81,16 @@ namespace codyco {
             if (!status) {
                 std::cerr << FUNCTION_NAME << ": Error while reading velocities\n";
             }
-//             if (dynamic_cast<COMReader*>(this))
-//                 std::cerr << "pos" << m_jointsPosition.transpose() << "\n";
             
             //update world to base frame
             status = status && m_robot.computeH(m_jointsPosition.data(), wbi::Frame(), m_leftFootLinkID, m_world2BaseFrame);
+
             if (!status) {
                 std::cerr << FUNCTION_NAME << ": Error while computing homogenous transformation\n";
             }
             m_world2BaseFrame = m_world2BaseFrame * m_leftFootToBaseRotationFrame;
             m_world2BaseFrame.setToInverse();
-            if (dynamic_cast<COMReader*>(this)) {
-                
-                std::cerr << Eigen::Map<Eigen::Vector3d>(m_world2BaseFrame.p).transpose() << "    " << Eigen::Map<Eigen::Matrix3d>(m_world2BaseFrame.R.data) << "\n";
-            }
             
-
             m_jacobian.setZero();
             status = status && m_robot.forwardKinematics(m_jointsPosition.data(), m_world2BaseFrame, m_endEffectorLinkID, m_outputSignal.data());
             if (!status) {
@@ -169,6 +166,7 @@ namespace codyco {
         
         void EndEffectorForceReader::updateStatus(long context)
         {
+            codyco::LockGuard guard(((wbiIcub::icubWholeBodyInterface*)&m_robot)->getInterfaceMutex());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.data());
             

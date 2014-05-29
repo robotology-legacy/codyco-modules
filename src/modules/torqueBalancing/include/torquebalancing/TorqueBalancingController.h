@@ -105,7 +105,7 @@ namespace codyco {
             void readReferences();
             bool updateRobotState();
             void computeContactForces(const Eigen::Ref<Eigen::MatrixXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::MatrixXd> desiredContactForces);
-            void computeTorques(const Eigen::Ref<Eigen::MatrixXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques);
+            void computeTorques(const Eigen::Ref<Eigen::VectorXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques);
             void writeTorques();
             
             wbi::wholeBodyInterface& m_robot;
