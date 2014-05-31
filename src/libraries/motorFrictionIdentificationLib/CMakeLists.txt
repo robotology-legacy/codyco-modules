@@ -4,6 +4,9 @@
 
 SET(PROJECTNAME motorFrictionIdentificationLib)
 
+find_package(YARP REQUIRED)
+find_package(paramHelp REQUIRED)
+
 PROJECT(${PROJECTNAME})
 
 SET(folder_source src/motorFrictionExcitationParams.cpp )
