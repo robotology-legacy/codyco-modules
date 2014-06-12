@@ -33,12 +33,11 @@ In the following steps assume that `$CODYCO_DIR` points to the `/build` director
 
 - **Check the matlab configuration.** Before going ahead with the compilation of the library, make sure that you have MATLAB and Simulink properly installed and running. Then, check that the MEX compiler for MATLAB is setup and working. For this you can try compiling some of the MATLAB C code examples as described in [http://www.mathworks.com/help/matlab/ref/mex.html#btz1tb5-12]. 
 
-- **Compiling the WBI Toolbox.** When configuring the CMakeLists for CoDyCo make sure to enable the `CODYCO_USES_WBI_TOOLBOX` flag by doing
-```bash
-    cd $CODYCO_DIR
-    ccmake ../
-```
-In the UI look for *CODYCO_USES_WBI_TOOLBOX* and press enter to turn it ON/OFF. Then as usual type c to configure until no stars (*) show up and g to generate. Finally, to compile type `make`.
+- **Compiling the WBI Toolbox.** When configuring the CMakeLists for CoDyCo make sure to do it with the flags -DCODYCO_USES_WBI_TOOLBOX:BOOL=YES 
+-DCODYCO_USES_URDFDOM:BOOL=YES
+-DICUBWBI_USE_EXTERNAL_TORQUE_CONTROL:BOOL=NO
+
+Then as usual type c to configure until no stars (*) show up and g to generate. Finally, to compile type `make`.
 
 ~~**Soft Real Time.** For the time being, this block has been taken from the Matlab File Exchange [http://goo.gl/8LMWGD] and it has to be compiled from within MATLAB by changing its current directory to `${CODYCO_ROOT}/simulink/controllers/RealTimeSlower` and typing `mex sfun_time.c`. This will create a mex file according to your operating system and architecture, e.g. for a 32bits Linux-based OS you will get sfun_time.mexglx. This mex file will be used by the example models included in `b${CODYCO_ROOT}/simulink/controllers/` to slow down the simulation for a user-specified rate. It is recommended to define the rate in this block with a variable such as **Ts** and mask your final model where the user can later define the rate.~~ This block will be soon deprecated and replaced by the ySynchronizer block. It is still present in the library and the user does not need to compile it manually.
 

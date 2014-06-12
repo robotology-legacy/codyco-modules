@@ -20,6 +20,7 @@
 #include <wbi/wbiUtil.h>
 #include <codyco/MathUtils.h>
 #include <codyco/LockGuard.h>
+#include <wbiIcub/wholeBodyInterfaceIcub.h>
 
 #include <codyco/Utils.h>
 #include <iostream>
@@ -245,6 +246,7 @@ namespace codyco {
         
         bool TorqueBalancingController::updateRobotState()
         {
+            codyco::LockGuard guard(((wbiIcub::icubWholeBodyInterface*)&m_robot)->getInterfaceMutex());
             //read positions and velocities
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointPositions.data());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointVelocities.data());
@@ -337,7 +339,7 @@ namespace codyco {
             desiredContactForces.middleRows(15, 3) = m_desiredHandsForces.segment(6, 3);
         }
         
-        void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::MatrixXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques)
+        void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::VectorXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques)
         {
             using namespace Eigen;
             
@@ -350,12 +352,20 @@ namespace codyco {
                                 m_pseudoInverseOfJcMInvSt, PseudoInverseTolerance);
             MatrixXd nullSpaceProjector = MatrixXd::Identity(actuatedDOFs, actuatedDOFs) - m_pseudoInverseOfJcMInvSt * JcMInvTorqueSelector; //to be inlined in m_torques
                         
-            m_torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_contactsDJacobianDq - JcMInv * m_contactsJacobian.transpose() * desiredContactForces);
+            torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_contactsDJacobianDq - JcMInv * m_contactsJacobian.transpose() * desiredContactForces);
             
             VectorXd torques0 = m_gravityBiasTorques.tail(actuatedDOFs) - m_contactsJacobian.rightCols(actuatedDOFs).transpose() * desiredContactForces
             - m_impedanceGains.asDiagonal() * (m_jointPositions - m_desiredJointsConfiguration);
             
-            m_torques += nullSpaceProjector * torques0;
+            torques += nullSpaceProjector * torques0;
+            
+// #ifdef DEBUG
+//             checking torques
+//             Eigen::MatrixXd inv = (m_contactsJacobian.topRows(12) * m_massMatrix.inverse() * m_contactsJacobian.topRows(12).transpose()).inverse();
+//             Eigen::VectorXd f = inv * (m_contactsJacobian.topRows(12) * m_massMatrix.inverse() * (m_generalizedBiasForces - m_torquesSelector * torques) - m_contactsDJacobianDq.head(12));
+//             
+//             std::cerr << (f - desiredContactForces.head(12)).transpose() << "\n\n";     
+// #endif
         }
         
         void TorqueBalancingController::writeTorques()

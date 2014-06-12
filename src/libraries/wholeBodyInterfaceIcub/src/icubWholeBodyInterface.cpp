@@ -85,6 +85,11 @@ bool icubWholeBodyInterface::close()
     return ok;
 }
 
+yarp::os::Mutex& icubWholeBodyInterface::getInterfaceMutex()
+{
+    return wbiMutex;
+}
+
 bool icubWholeBodyInterface::removeJoint(const LocalId &j)
 {
     bool ok = actuatorInt->removeActuator(j);

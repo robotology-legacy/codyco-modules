@@ -488,6 +488,7 @@ void DynTree::store_contacts_results()
 //====================================
 bool DynTree::setWorldBasePose(const yarp::sig::Matrix & H_w_b)
 {
+    is_X_dynamic_base_updated = false;
     if ((H_w_b.rows()==4) && (H_w_b.cols()==4))
     {
         return YarptoKDL(H_w_b,world_base_frame);
