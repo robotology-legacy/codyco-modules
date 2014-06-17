@@ -89,14 +89,14 @@ namespace codyco {
         }
         
         void pseudoInverse(const Eigen::Ref<const Eigen::MatrixXd>& A,
-                           Eigen::JacobiSVD<typename Eigen::MatrixXd::PlainObject>& svdDecomposition,
+                           Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject>& svdDecomposition,
                            Eigen::Ref<Eigen::MatrixXd> Apinv,
                            double tolerance,
                            unsigned int computationOptions)
         {
             using namespace Eigen;
             svdDecomposition.compute(A, computationOptions);
-            typename JacobiSVD<typename MatrixXd::PlainObject>::SingularValuesType singularValues = svdDecomposition.singularValues();
+            JacobiSVD<MatrixXd::PlainObject>::SingularValuesType singularValues = svdDecomposition.singularValues();
             for (int idx = 0; idx < singularValues.size(); idx++) {
                 singularValues(idx) = tolerance > 0 && singularValues(idx) > tolerance ? 1.0 / singularValues(idx) : 0.0;
             }

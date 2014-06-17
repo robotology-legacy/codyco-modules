@@ -90,7 +90,7 @@ namespace codyco {
          * @param computationOptions Eigen options for the computation. By default compute the thin U and V matrices.
          */
         void pseudoInverse(const Eigen::Ref<const Eigen::MatrixXd>& A,
-                           Eigen::JacobiSVD<typename Eigen::MatrixXd::PlainObject>& svdDecomposition,
+                           Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject>& svdDecomposition,
                            Eigen::Ref<Eigen::MatrixXd> Apinv,
                            double tolerance,
                            unsigned int computationOptions = Eigen::ComputeThinU|Eigen::ComputeThinV);
@@ -107,9 +107,10 @@ namespace codyco {
          * this function returns \f$ \left[ \vec{a} \right]_\times \f$.
          *
          * @param vector 3D vector
-         * @param skewSymmetrixMatrix resultant skew symmetric matrix
+         * @param skewSymmetricMatrix resultant skew symmetric matrix
          */
-        void skewSymmentricMatrixFrom3DVector(const Eigen::Ref<const Eigen::Vector3d>& vector, Eigen::Ref<Eigen::Matrix3d> skewSymmetricMatrix);
+        void skewSymmentricMatrixFrom3DVector(const Eigen::Ref<const Eigen::Vector3d>& vector,
+                                              Eigen::Ref<Eigen::Matrix3d> skewSymmetricMatrix);
     }
 }
 #endif

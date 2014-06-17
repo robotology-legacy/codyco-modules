@@ -91,6 +91,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         set(CODYCO_OSX_STDLIB TRUE)
     endif()
 
+    #if needs GNU stdc++ AND 
+        message("System: ${CMAKE_SYSTEM}")
+        message("Version: ${CMAKE_SYSTEM_VERSION}")
+        
     if (CODYCO_OSX_STDLIB)
         if (${CMAKE_GENERATOR} MATCHES "Xcode")
             MESSAGE("Xcode generator: setting standard libraries to libstdc++")
