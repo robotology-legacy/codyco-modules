@@ -1,5 +1,5 @@
 Library {
-  Name			  "WBIToolbox"
+  Name			  "WBCLibrary"
   Version		  8.1
   MdlSubVersion		  0
   SavedCharacterEncoding  "UTF-8"
@@ -24,7 +24,7 @@ Library {
       $ObjectID		      2
       $ClassName	      "Simulink.WindowInfo"
       IsActive		      [1]
-      Location		      [554.0, 149.0, 1078.0, 604.0]
+      Location		      [298.0, 148.0, 1078.0, 604.0]
       Object {
 	$PropName		"ModelBrowserInfo"
 	$ObjectID		3
@@ -46,20 +46,20 @@ Library {
 	Dimension		2
 	Object {
 	  $ObjectID		  5
-	  IsActive		  [0]
+	  IsActive		  [1]
 	  ViewObjType		  "SimulinkTopLevel"
 	  LoadSaveID		  "0"
 	  Extents		  [1020.0, 413.0]
 	  ZoomFactor		  [1.9799999999999991]
-	  Offset		  [-24.526766454330328, -15.212627628234969]
+	  Offset		  [-24.526766454330271, -15.212627628234969]
 	}
 	Object {
 	  $ObjectID		  6
-	  IsActive		  [1]
+	  IsActive		  [0]
 	  ViewObjType		  "SimulinkSubsys"
-	  LoadSaveID		  "202"
+	  LoadSaveID		  "209"
 	  Extents		  [1020.0, 413.0]
-	  ZoomFactor		  [1.0]
+	  ZoomFactor		  [1.25]
 	  Offset		  [0.0, 0.0]
 	}
 	PropName		"EditorsInfo"
@@ -72,10 +72,10 @@ Library {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "jorhabib"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Sun May 25 21:51:59 2014"
-  RTWModifiedTimeStamp	  322955517
-  ModelVersionFormat	  "1.%<AutoIncrement:66>"
-  ConfigurationManager	  "None"
+  LastModifiedDate	  "Tue Jun 17 15:05:37 2014"
+  RTWModifiedTimeStamp	  324918337
+  ModelVersionFormat	  "1.%<AutoIncrement:67>"
+  ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
   LibraryLinkDisplay	  "disabled"
@@ -449,11 +449,15 @@ Library {
 	    PropName		    "DisabledProps"
 	  }
 	  SystemTargetFile	  "grt.tlc"
+	  TLCOptions		  ""
 	  GenCodeOnly		  off
 	  MakeCommand		  "make_rtw"
 	  GenerateMakefile	  on
 	  PackageGeneratedCodeAndArtifacts off
+	  PackageName		  ""
 	  TemplateMakefile	  "grt_default_tmf"
+	  PostCodeGenCommand	  ""
+	  Description		  ""
 	  GenerateReport	  off
 	  SaveLog		  off
 	  RTWVerbose		  on
@@ -464,13 +468,21 @@ Library {
 	  TLCAssert		  off
 	  ProcessScriptMode	  "Default"
 	  ConfigurationMode	  "Optimized"
+	  ProcessScript		  ""
+	  ConfigurationScript	  ""
 	  ConfigAtBuild		  off
 	  RTWUseLocalCustomCode	  off
 	  RTWUseSimCustomCode	  off
+	  CustomSourceCode	  ""
+	  CustomHeaderCode	  ""
+	  CustomInclude		  ""
+	  CustomSource		  ""
+	  CustomLibrary		  ""
+	  CustomInitializer	  ""
+	  CustomTerminator	  ""
 	  IncludeHyperlinkInReport off
 	  LaunchReport		  off
 	  PortableWordSizes	  off
-	  GenerateErtSFunction	  off
 	  CreateSILPILBlock	  "None"
 	  CodeExecutionProfiling  off
 	  CodeExecutionProfileVariable "executionProfile"
@@ -490,8 +502,10 @@ Library {
 	  GenerateCodeMetricsReport off
 	  GenerateCodeReplacementReport	off
 	  RTWCompilerOptimization "Off"
+	  RTWCustomCompilerOptimizations ""
 	  CheckMdlBeforeBuild	  "Off"
 	  CustomRebuildMode	  "OnUpdate"
+	  DataInitializer	  ""
 	  Array {
 	    Type		    "Handle"
 	    Dimension		    2
@@ -589,7 +603,7 @@ Library {
 	      TargetFcnLib	      "ansi_tfl_table_tmw.mat"
 	      TargetLibSuffix	      ""
 	      TargetPreCompLibLocation ""
-	      CodeReplacementLibrary  "ANSI_C"
+	      CodeReplacementLibrary  "None"
 	      UtilityFuncGeneration   "Auto"
 	      ERTMultiwordTypeDef     "System defined"
 	      ERTMultiwordLength      256
@@ -597,7 +611,6 @@ Library {
 	      GenerateFullHeader      on
 	      GenerateSampleERTMain   off
 	      GenerateTestInterfaces  off
-	      IsPILTarget	      off
 	      ModelReferenceCompliant on
 	      ParMdlRefBuildCompliant on
 	      CompOptLevelCompliant   on
@@ -624,7 +637,7 @@ Library {
 	      ParenthesesLevel	      "Nominal"
 	      MATLABClassNameForMDSCustomization "Simulink.SoftwareTarget.GRTCustomization"
 	      ModelStepFunctionPrototypeControlCompliant off
-	      CPPClassGenCompliant    off
+	      CPPClassGenCompliant    on
 	      AutosarCompliant	      off
 	      GRTInterface	      off
 	      GenerateAllocFcn	      off
@@ -644,6 +657,7 @@ Library {
 	    }
 	    PropName		    "Components"
 	  }
+	  GenerateErtSFunction	  off
 	}
 	hdlcoderui.hdlcc {
 	  $ObjectID		  18
@@ -662,7 +676,7 @@ Library {
       }
       Name		      "Configuration"
       CurrentDlgPage	      "Solver"
-      ConfigPrmDlgPosition     [ 963, 135, 1843, 765 ] 
+      ConfigPrmDlgPosition    [ 963, 135, 1843, 765 ]  
     }
     PropName		    "ConfigurationSets"
   }
@@ -833,6 +847,9 @@ Library {
       IndexMode		      "One-based"
       InputPortWidth	      "-1"
       SampleTime	      "-1"
+      IndexOptions	      "Index vector (dialog)"
+      Indices		      "1"
+      OutputSizes	      "1"
     }
     Block {
       BlockType		      SubSystem
@@ -894,9 +911,9 @@ Library {
     }
   }
   System {
-    Name		    "WBIToolbox"
-    Location		    [298, 174, 1376, 778]
-    Open		    on
+    Name		    "WBCLibrary"
+    Location		    [298, 148, 1376, 752]
+    Open		    off
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
     ScreenColor		    "black"
@@ -919,13 +936,7 @@ Library {
       ZOrder		      -1
       ForegroundColor	      "white"
       DropShadow	      on
-      MinAlgLoopOccurrences   off
-      PropExecContextOutsideSubsystem off
-      RTWSystemCode	      "Auto"
-      FunctionWithSeparateData off
-      Opaque		      off
       RequestExecContextInheritance off
-      MaskHideContents	      off
       Object {
 	$PropName		"MaskObject"
 	$ObjectID		19
@@ -955,13 +966,7 @@ Library {
 	  Position		  [430, 58, 500, 102]
 	  ZOrder		  -1
 	  BackgroundColor	  "[0.848000, 0.128048, 0.320035]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    20
@@ -1017,15 +1022,9 @@ Library {
 	      ZOrder		      -4
 	      LibraryVersion	      "1.32"
 	      ErrorFcn		      "Stateflow.Translate.translate"
-	      PermitHierarchicalResolution "ExplicitOnly"
+	      PermitHierarchicalResolution "ParametersOnly"
 	      TreatAsAtomicUnit	      on
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      SFBlockType	      "MATLAB Function"
 	      System {
 		Name			"Damped Pseudo Inverse"
@@ -1042,7 +1041,7 @@ Library {
 		TiledPageScale		1
 		ShowPageBoundaries	off
 		ZoomFactor		"100"
-		SIDHighWatermark	"38"
+		SIDHighWatermark	"41"
 		Block {
 		  BlockType		  Inport
 		  Name			  "mat"
@@ -1063,20 +1062,20 @@ Library {
 		Block {
 		  BlockType		  Demux
 		  Name			  " Demux "
-		  SID			  "107::37"
+		  SID			  "107::40"
 		  Ports			  [1, 1]
 		  Position		  [270, 230, 320, 270]
-		  ZOrder		  17
+		  ZOrder		  20
 		  Outputs		  "1"
 		}
 		Block {
 		  BlockType		  S-Function
 		  Name			  " SFunction "
-		  SID			  "107::36"
-		  Tag			  "Stateflow S-Function WBIToolbox 6"
+		  SID			  "107::39"
+		  Tag			  "Stateflow S-Function WBCLibrary 6"
 		  Ports			  [2, 2]
 		  Position		  [180, 100, 230, 160]
-		  ZOrder		  16
+		  ZOrder		  19
 		  FunctionName		  "sf_sfun"
 		  PortCounts		  "[2 2]"
 		  EnableBusSupport	  off
@@ -1090,9 +1089,9 @@ Library {
 		Block {
 		  BlockType		  Terminator
 		  Name			  " Terminator "
-		  SID			  "107::38"
+		  SID			  "107::41"
 		  Position		  [460, 241, 480, 259]
-		  ZOrder		  18
+		  ZOrder		  21
 		}
 		Block {
 		  BlockType		  Outport
@@ -1136,6 +1135,12 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      Outport
@@ -1164,6 +1169,12 @@ Library {
 	      DstPort		      1
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  S-Function
@@ -1202,13 +1213,7 @@ Library {
 	  Position		  [330, 58, 400, 102]
 	  ZOrder		  -3
 	  BackgroundColor	  "[0.534601, 0.470279, 1.000000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    24
@@ -1264,15 +1269,9 @@ Library {
 	      ZOrder		      -4
 	      LibraryVersion	      "1.32"
 	      ErrorFcn		      "Stateflow.Translate.translate"
-	      PermitHierarchicalResolution "ExplicitOnly"
+	      PermitHierarchicalResolution "ParametersOnly"
 	      TreatAsAtomicUnit	      on
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      SFBlockType	      "MATLAB Function"
 	      System {
 		Name			"Truncated PseudoInverse"
@@ -1289,7 +1288,7 @@ Library {
 		TiledPageScale		1
 		ShowPageBoundaries	off
 		ZoomFactor		"100"
-		SIDHighWatermark	"38"
+		SIDHighWatermark	"41"
 		Block {
 		  BlockType		  Inport
 		  Name			  "mat"
@@ -1310,20 +1309,20 @@ Library {
 		Block {
 		  BlockType		  Demux
 		  Name			  " Demux "
-		  SID			  "112::37"
+		  SID			  "112::40"
 		  Ports			  [1, 1]
 		  Position		  [270, 230, 320, 270]
-		  ZOrder		  17
+		  ZOrder		  20
 		  Outputs		  "1"
 		}
 		Block {
 		  BlockType		  S-Function
 		  Name			  " SFunction "
-		  SID			  "112::36"
-		  Tag			  "Stateflow S-Function WBIToolbox 7"
+		  SID			  "112::39"
+		  Tag			  "Stateflow S-Function WBCLibrary 7"
 		  Ports			  [2, 2]
 		  Position		  [180, 100, 230, 160]
-		  ZOrder		  16
+		  ZOrder		  19
 		  FunctionName		  "sf_sfun"
 		  PortCounts		  "[2 2]"
 		  EnableBusSupport	  off
@@ -1337,9 +1336,9 @@ Library {
 		Block {
 		  BlockType		  Terminator
 		  Name			  " Terminator "
-		  SID			  "112::38"
+		  SID			  "112::41"
 		  Position		  [460, 241, 480, 259]
-		  ZOrder		  18
+		  ZOrder		  21
 		}
 		Block {
 		  BlockType		  Outport
@@ -1383,6 +1382,12 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      Outport
@@ -1411,6 +1416,12 @@ Library {
 	      DstPort		      2
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -1420,13 +1431,7 @@ Library {
 	  Position		  [390, 142, 500, 228]
 	  ZOrder		  -7
 	  BackgroundColor	  "[0.180000, 0.348000, 0.600000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    26
@@ -1465,9 +1470,7 @@ Library {
 	      Position		      [85, 26, 125, 64]
 	      ZOrder		      -2
 	      InputPortWidth	      "25"
-	      IndexOptions	      "Index vector (dialog)"
 	      Indices		      "[1 2 3]"
-	      OutputSizes	      "1"
 	    }
 	    Block {
 	      BlockType		      Selector
@@ -1477,9 +1480,7 @@ Library {
 	      Position		      [110, 86, 150, 124]
 	      ZOrder		      -3
 	      InputPortWidth	      "25"
-	      IndexOptions	      "Index vector (dialog)"
 	      Indices		      "[4 5 6 7 8]"
-	      OutputSizes	      "1"
 	    }
 	    Block {
 	      BlockType		      Selector
@@ -1489,9 +1490,7 @@ Library {
 	      Position		      [110, 151, 150, 189]
 	      ZOrder		      -4
 	      InputPortWidth	      "25"
-	      IndexOptions	      "Index vector (dialog)"
 	      Indices		      "[9 10 11 12 13]"
-	      OutputSizes	      "1"
 	    }
 	    Block {
 	      BlockType		      Selector
@@ -1501,9 +1500,7 @@ Library {
 	      Position		      [110, 216, 150, 254]
 	      ZOrder		      -5
 	      InputPortWidth	      "25"
-	      IndexOptions	      "Index vector (dialog)"
 	      Indices		      "[14 15 16 17 18 19]"
-	      OutputSizes	      "1"
 	    }
 	    Block {
 	      BlockType		      Selector
@@ -1513,9 +1510,7 @@ Library {
 	      Position		      [110, 286, 150, 324]
 	      ZOrder		      -6
 	      InputPortWidth	      "25"
-	      IndexOptions	      "Index vector (dialog)"
 	      Indices		      "[20 21 22 23 24 25]"
-	      OutputSizes	      "1"
 	    }
 	    Block {
 	      BlockType		      Selector
@@ -1525,9 +1520,7 @@ Library {
 	      Position		      [145, 29, 200, 61]
 	      ZOrder		      -7
 	      InputPortWidth	      "3"
-	      IndexOptions	      "Index vector (dialog)"
 	      Indices		      "[3 2 1]"
-	      OutputSizes	      "1"
 	    }
 	    Block {
 	      BlockType		      Outport
@@ -1645,6 +1638,12 @@ Library {
 	      DstPort		      1
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -1654,13 +1653,7 @@ Library {
 	  Position		  [530, 58, 640, 102]
 	  ZOrder		  -8
 	  BackgroundColor	  "[0.753334, 1.000000, 0.112472]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    27
@@ -1718,15 +1711,9 @@ Library {
 	      ZOrder		      -4
 	      LibraryVersion	      "1.32"
 	      ErrorFcn		      "Stateflow.Translate.translate"
-	      PermitHierarchicalResolution "ExplicitOnly"
+	      PermitHierarchicalResolution "ParametersOnly"
 	      TreatAsAtomicUnit	      on
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      SFBlockType	      "MATLAB Function"
 	      System {
 		Name			"MATLAB Function"
@@ -1743,7 +1730,7 @@ Library {
 		TiledPageScale		1
 		ShowPageBoundaries	off
 		ZoomFactor		"100"
-		SIDHighWatermark	"34"
+		SIDHighWatermark	"37"
 		Block {
 		  BlockType		  Inport
 		  Name			  "JcIn"
@@ -1764,20 +1751,20 @@ Library {
 		Block {
 		  BlockType		  Demux
 		  Name			  " Demux "
-		  SID			  "1030::33"
+		  SID			  "1030::36"
 		  Ports			  [1, 1]
 		  Position		  [270, 230, 320, 270]
-		  ZOrder		  11
+		  ZOrder		  14
 		  Outputs		  "1"
 		}
 		Block {
 		  BlockType		  S-Function
 		  Name			  " SFunction "
-		  SID			  "1030::32"
-		  Tag			  "Stateflow S-Function WBIToolbox 2"
+		  SID			  "1030::35"
+		  Tag			  "Stateflow S-Function WBCLibrary 2"
 		  Ports			  [2, 2]
 		  Position		  [180, 100, 230, 160]
-		  ZOrder		  10
+		  ZOrder		  13
 		  FunctionName		  "sf_sfun"
 		  PortCounts		  "[2 2]"
 		  EnableBusSupport	  off
@@ -1791,9 +1778,9 @@ Library {
 		Block {
 		  BlockType		  Terminator
 		  Name			  " Terminator "
-		  SID			  "1030::34"
+		  SID			  "1030::37"
 		  Position		  [460, 241, 480, 259]
-		  ZOrder		  12
+		  ZOrder		  15
 		}
 		Block {
 		  BlockType		  Outport
@@ -1837,6 +1824,12 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      Concatenate
@@ -1889,6 +1882,12 @@ Library {
 	      DstPort		      1
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -1898,13 +1897,7 @@ Library {
 	  Position		  [140, 143, 200, 187]
 	  ZOrder		  -9
 	  BackgroundColor	  "[0.300000, 0.580000, 1.000000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    28
@@ -2029,6 +2022,12 @@ Library {
 	      DstPort		      1
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -2038,13 +2037,7 @@ Library {
 	  Position		  [40, 143, 100, 187]
 	  ZOrder		  -10
 	  BackgroundColor	  "[0.270000, 0.522000, 0.900000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    29
@@ -2089,7 +2082,7 @@ Library {
 	      Ports		      [1, 1]
 	      Position		      [210, 40, 240, 70]
 	      ZOrder		      -3
-	      LibraryVersion	      "1.274"
+	      LibraryVersion	      "1.287"
 	      SourceBlock	      "simulink/Logic and Bit\nOperations/Compare\nTo Constant"
 	      SourceType	      "Compare To Constant"
 	      relop		      "=="
@@ -2111,7 +2104,7 @@ Library {
 	      Ports		      [1, 1, 0, 1]
 	      Position		      [230, 114, 305, 156]
 	      ZOrder		      -5
-	      LibraryVersion	      "1.731"
+	      LibraryVersion	      "1.735"
 	      SourceBlock	      "dspsigops/Sample\nand Hold"
 	      SourceType	      "Sample and Hold"
 	      trig		      "Falling edge"
@@ -2189,6 +2182,12 @@ Library {
 	      DstPort		      1
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -2198,13 +2197,7 @@ Library {
 	  Position		  [535, 142, 640, 188]
 	  ZOrder		  -4
 	  BackgroundColor	  "[0.156255, 1.000000, 0.640991]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    30
@@ -2374,6 +2367,12 @@ Library {
 	      DstPort		      1
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  S-Function
@@ -2469,13 +2468,7 @@ Library {
 	  Position		  [230, 142, 345, 228]
 	  ZOrder		  -14
 	  BackgroundColor	  "[0.240000, 0.464000, 0.800000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    45
@@ -2562,9 +2555,7 @@ Library {
 	      Position		      [85, 14, 140, 46]
 	      ZOrder		      -7
 	      InputPortWidth	      "3"
-	      IndexOptions	      "Index vector (dialog)"
 	      Indices		      "[3 2 1]"
-	      OutputSizes	      "1"
 	    }
 	    Block {
 	      BlockType		      Outport
@@ -2617,6 +2608,12 @@ Library {
 	      DstPort		      5
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -2626,13 +2623,7 @@ Library {
 	  Position		  [135, 58, 200, 102]
 	  ZOrder		  -6
 	  BackgroundColor	  "black"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    46
@@ -2688,8 +2679,20 @@ Library {
 	      DstPort		      1
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
       }
+      RTWSystemCode	      "Auto"
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      FunctionWithSeparateData off
+      Opaque		      off
+      MaskHideContents	      off
     }
     Block {
       BlockType		      SubSystem
@@ -2700,13 +2703,7 @@ Library {
       ZOrder		      -17
       ForegroundColor	      "white"
       DropShadow	      on
-      MinAlgLoopOccurrences   off
-      PropExecContextOutsideSubsystem off
-      RTWSystemCode	      "Auto"
-      FunctionWithSeparateData off
-      Opaque		      off
       RequestExecContextInheritance off
-      MaskHideContents	      off
       Object {
 	$PropName		"MaskObject"
 	$ObjectID		48
@@ -2736,13 +2733,7 @@ Library {
 	  Position		  [405, 53, 480, 97]
 	  ZOrder		  -17
 	  BackgroundColor	  "[0.855000, 0.239000, 0.133000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    49
@@ -2801,6 +2792,12 @@ Library {
 	      IconDisplay	      "Port number"
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -2810,13 +2807,7 @@ Library {
 	  Position		  [175, 53, 245, 97]
 	  ZOrder		  -18
 	  BackgroundColor	  "[0.855000, 0.450000, 0.133000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    51
@@ -3097,6 +3088,12 @@ Library {
 	      DstPort		      5
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -3106,13 +3103,7 @@ Library {
 	  Position		  [290, 53, 360, 97]
 	  ZOrder		  -19
 	  BackgroundColor	  "[0.941000, 0.415000, 0.192000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    55
@@ -3393,6 +3384,12 @@ Library {
 	      DstPort		      5
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -3402,13 +3399,7 @@ Library {
 	  Position		  [55, 53, 130, 97]
 	  ZOrder		  -18
 	  BackgroundColor	  "[0.976000, 0.635000, 0.140000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    59
@@ -3720,6 +3711,12 @@ Library {
 	      DstPort		      5
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Annotation {
 	  SID			  "746"
@@ -3728,6 +3725,12 @@ Library {
 	  ZOrder		  -1
 	}
       }
+      RTWSystemCode	      "Auto"
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      FunctionWithSeparateData off
+      Opaque		      off
+      MaskHideContents	      off
     }
     Block {
       BlockType		      SubSystem
@@ -3738,13 +3741,7 @@ Library {
       ZOrder		      -3
       ForegroundColor	      "white"
       DropShadow	      on
-      MinAlgLoopOccurrences   off
-      PropExecContextOutsideSubsystem off
-      RTWSystemCode	      "Auto"
-      FunctionWithSeparateData off
-      Opaque		      off
       RequestExecContextInheritance off
-      MaskHideContents	      off
       Object {
 	$PropName		"MaskObject"
 	$ObjectID		67
@@ -3753,7 +3750,7 @@ Library {
       }
       System {
 	Name			"wholeBodyModel"
-	Location		[703, 141, 1781, 745]
+	Location		[298, 148, 1376, 752]
 	Open			off
 	ModelBrowserVisibility	off
 	ModelBrowserWidth	200
@@ -3774,13 +3771,7 @@ Library {
 	  Position		  [319, 16, 461, 133]
 	  ZOrder		  -1
 	  DropShadow		  on
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    68
@@ -3809,13 +3800,7 @@ Library {
 	      Ports		      [2, 1]
 	      Position		      [660, 48, 725, 92]
 	      ZOrder		      -1
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		69
@@ -4128,6 +4113,12 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -4137,13 +4128,7 @@ Library {
 	      Position		      [545, 48, 610, 92]
 	      ZOrder		      -2
 	      BackgroundColor	      "[0.287374, 0.000000, 1.000000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		72
@@ -4414,6 +4399,12 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -4423,13 +4414,7 @@ Library {
 	      Position		      [200, 48, 265, 92]
 	      ZOrder		      -1
 	      BackgroundColor	      "[0.850000, 0.010000, 0.698000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		75
@@ -4706,6 +4691,12 @@ Library {
 		  DstPort		  5
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -4715,13 +4706,7 @@ Library {
 	      Position		      [80, 128, 150, 172]
 	      ZOrder		      -4
 	      BackgroundColor	      "[0.662196, 0.000000, 1.000000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		79
@@ -5000,6 +4985,12 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -5009,13 +5000,7 @@ Library {
 	      Position		      [430, 48, 500, 92]
 	      ZOrder		      -5
 	      BackgroundColor	      "[0.662196, 0.000000, 1.000000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		83
@@ -5293,6 +5278,12 @@ Library {
 		  DstPort		  5
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -5302,13 +5293,7 @@ Library {
 	      Position		      [200, 128, 265, 172]
 	      ZOrder		      -6
 	      BackgroundColor	      "[0.501000, 0.015000, 0.850000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		87
@@ -5587,6 +5572,12 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -5596,13 +5587,7 @@ Library {
 	      Position		      [315, 48, 380, 92]
 	      ZOrder		      -7
 	      BackgroundColor	      "[0.501000, 0.015000, 0.850000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		91
@@ -5881,6 +5866,12 @@ Library {
 		  DstPort		  5
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -5890,13 +5881,7 @@ Library {
 	      Position		      [80, 48, 150, 92]
 	      ZOrder		      -2
 	      BackgroundColor	      "[0.970000, 0.060000, 0.376000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		95
@@ -5968,13 +5953,7 @@ Library {
 		  Ports			  [1, 1]
 		  Position		  [70, 48, 150, 132]
 		  ZOrder		  -24
-		  MinAlgLoopOccurrences	  off
-		  PropExecContextOutsideSubsystem off
-		  RTWSystemCode		  "Auto"
-		  FunctionWithSeparateData off
-		  Opaque		  off
 		  RequestExecContextInheritance	off
-		  MaskHideContents	  off
 		  System {
 		    Name		    "massMatrix"
 		    Location		    [486, 47, 1322, 542]
@@ -6221,6 +6200,12 @@ Library {
 		    DstPort		    5
 		    }
 		  }
+		  RTWSystemCode		  "Auto"
+		  MinAlgLoopOccurrences	  off
+		  PropExecContextOutsideSubsystem off
+		  FunctionWithSeparateData off
+		  Opaque		  off
+		  MaskHideContents	  off
 		}
 		Block {
 		  BlockType		  Outport
@@ -6249,8 +6234,20 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -6260,13 +6257,7 @@ Library {
 	  Position		  [20, 15, 147, 132]
 	  ZOrder		  -17
 	  DropShadow		  on
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    99
@@ -6296,13 +6287,7 @@ Library {
 	      Position		      [40, 33, 115, 77]
 	      ZOrder		      -1
 	      BackgroundColor	      "[0.243000, 0.074000, 0.972000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		100
@@ -6611,6 +6596,12 @@ Library {
 		  DstPort		  5
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -6620,13 +6611,7 @@ Library {
 	      Position		      [300, 33, 370, 77]
 	      ZOrder		      -2
 	      BackgroundColor	      "[0.031000, 0.800000, 0.970000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		107
@@ -6892,6 +6877,12 @@ Library {
 		  DstPort		  5
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -6901,13 +6892,7 @@ Library {
 	      Position		      [555, 33, 630, 77]
 	      ZOrder		      -3
 	      BackgroundColor	      "[0.031000, 0.800000, 0.970000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		114
@@ -7217,6 +7202,12 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -7226,13 +7217,7 @@ Library {
 	      Position		      [170, 33, 245, 77]
 	      ZOrder		      -3
 	      BackgroundColor	      "[0.074000, 0.349000, 0.941000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		121
@@ -7542,6 +7527,12 @@ Library {
 		  DstPort		  5
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -7551,13 +7542,7 @@ Library {
 	      Position		      [425, 33, 500, 77]
 	      ZOrder		      -3
 	      BackgroundColor	      "[0.074000, 0.349000, 0.941000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		128
@@ -7867,8 +7852,20 @@ Library {
 		  DstPort		  5
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -7878,13 +7875,7 @@ Library {
 	  Position		  [167, 15, 294, 132]
 	  ZOrder		  -3
 	  DropShadow		  on
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    135
@@ -7893,8 +7884,8 @@ Library {
 	  }
 	  System {
 	    Name		    "Jacobians"
-	    Location		    [554, 149, 1632, 753]
-	    Open		    on
+	    Location		    [298, 148, 1376, 752]
+	    Open		    off
 	    ModelBrowserVisibility  off
 	    ModelBrowserWidth	    200
 	    ScreenColor		    "white"
@@ -7914,13 +7905,7 @@ Library {
 	      Position		      [350, 43, 420, 87]
 	      ZOrder		      -3
 	      BackgroundColor	      "[0.000000, 0.910000, 0.177000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		136
@@ -7968,13 +7953,7 @@ Library {
 		  Position		  [25, 29, 70, 51]
 		  ZOrder		  -1
 		  BackgroundColor	  "[1.000000, 0.566599, 0.544887]"
-		  MinAlgLoopOccurrences	  off
-		  PropExecContextOutsideSubsystem off
-		  RTWSystemCode		  "Auto"
-		  FunctionWithSeparateData off
-		  Opaque		  off
 		  RequestExecContextInheritance	off
-		  MaskHideContents	  off
 		  System {
 		    Name		    "Right Foot \nJacobian1"
 		    Location		    [486, 47, 1322, 542]
@@ -8263,6 +8242,12 @@ Library {
 		    DstPort		    5
 		    }
 		  }
+		  RTWSystemCode		  "Auto"
+		  MinAlgLoopOccurrences	  off
+		  PropExecContextOutsideSubsystem off
+		  FunctionWithSeparateData off
+		  Opaque		  off
+		  MaskHideContents	  off
 		}
 		Block {
 		  BlockType		  Reference
@@ -8316,6 +8301,12 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -8325,13 +8316,7 @@ Library {
 	      Position		      [55, 43, 130, 87]
 	      ZOrder		      -1
 	      BackgroundColor	      "[0.047000, 0.909000, 0.803000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		143
@@ -8379,13 +8364,7 @@ Library {
 		  Position		  [25, 28, 70, 52]
 		  ZOrder		  -1
 		  BackgroundColor	  "[1.000000, 0.566599, 0.544887]"
-		  MinAlgLoopOccurrences	  off
-		  PropExecContextOutsideSubsystem off
-		  RTWSystemCode		  "Auto"
-		  FunctionWithSeparateData off
-		  Opaque		  off
 		  RequestExecContextInheritance	off
-		  MaskHideContents	  off
 		  System {
 		    Name		    "Left Foot \nJacobian1"
 		    Location		    [486, 47, 1322, 542]
@@ -8668,6 +8647,12 @@ Library {
 		    DstPort		    5
 		    }
 		  }
+		  RTWSystemCode		  "Auto"
+		  MinAlgLoopOccurrences	  off
+		  PropExecContextOutsideSubsystem off
+		  FunctionWithSeparateData off
+		  Opaque		  off
+		  MaskHideContents	  off
 		}
 		Block {
 		  BlockType		  Reference
@@ -8721,6 +8706,12 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -8730,13 +8721,7 @@ Library {
 	      Position		      [630, 43, 705, 87]
 	      ZOrder		      -1
 	      BackgroundColor	      "[0.047000, 0.909000, 0.803000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		150
@@ -8784,13 +8769,7 @@ Library {
 		  Position		  [25, 28, 70, 52]
 		  ZOrder		  -1
 		  BackgroundColor	  "[1.000000, 0.566599, 0.544887]"
-		  MinAlgLoopOccurrences	  off
-		  PropExecContextOutsideSubsystem off
-		  RTWSystemCode		  "Auto"
-		  FunctionWithSeparateData off
-		  Opaque		  off
 		  RequestExecContextInheritance	off
-		  MaskHideContents	  off
 		  System {
 		    Name		    "Left Hand \nJacobian"
 		    Location		    [486, 47, 1322, 542]
@@ -9074,6 +9053,12 @@ Library {
 		    DstPort		    2
 		    }
 		  }
+		  RTWSystemCode		  "Auto"
+		  MinAlgLoopOccurrences	  off
+		  PropExecContextOutsideSubsystem off
+		  FunctionWithSeparateData off
+		  Opaque		  off
+		  MaskHideContents	  off
 		}
 		Block {
 		  BlockType		  Reference
@@ -9127,6 +9112,12 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -9136,13 +9127,7 @@ Library {
 	      Position		      [205, 43, 275, 87]
 	      ZOrder		      -2
 	      BackgroundColor	      "[0.000000, 1.000000, 0.533000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		157
@@ -9190,13 +9175,7 @@ Library {
 		  Position		  [25, 29, 70, 51]
 		  ZOrder		  -1
 		  BackgroundColor	  "[1.000000, 0.566599, 0.544887]"
-		  MinAlgLoopOccurrences	  off
-		  PropExecContextOutsideSubsystem off
-		  RTWSystemCode		  "Auto"
-		  FunctionWithSeparateData off
-		  Opaque		  off
 		  RequestExecContextInheritance	off
-		  MaskHideContents	  off
 		  System {
 		    Name		    "Right Foot \nJacobian1"
 		    Location		    [486, 47, 1322, 542]
@@ -9486,6 +9465,12 @@ Library {
 		    DstPort		    5
 		    }
 		  }
+		  RTWSystemCode		  "Auto"
+		  MinAlgLoopOccurrences	  off
+		  PropExecContextOutsideSubsystem off
+		  FunctionWithSeparateData off
+		  Opaque		  off
+		  MaskHideContents	  off
 		}
 		Block {
 		  BlockType		  Reference
@@ -9539,6 +9524,12 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -9548,13 +9539,7 @@ Library {
 	      Position		      [495, 43, 565, 87]
 	      ZOrder		      -2
 	      BackgroundColor	      "[0.000000, 1.000000, 0.533000]"
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      Object {
 		$PropName		"MaskObject"
 		$ObjectID		164
@@ -9602,13 +9587,7 @@ Library {
 		  Position		  [25, 29, 70, 51]
 		  ZOrder		  -1
 		  BackgroundColor	  "[1.000000, 0.566599, 0.544887]"
-		  MinAlgLoopOccurrences	  off
-		  PropExecContextOutsideSubsystem off
-		  RTWSystemCode		  "Auto"
-		  FunctionWithSeparateData off
-		  Opaque		  off
 		  RequestExecContextInheritance	off
-		  MaskHideContents	  off
 		  System {
 		    Name		    "Right Hand\nJacobian"
 		    Location		    [486, 47, 1322, 542]
@@ -9898,6 +9877,12 @@ Library {
 		    DstPort		    2
 		    }
 		  }
+		  RTWSystemCode		  "Auto"
+		  MinAlgLoopOccurrences	  off
+		  PropExecContextOutsideSubsystem off
+		  FunctionWithSeparateData off
+		  Opaque		  off
+		  MaskHideContents	  off
 		}
 		Block {
 		  BlockType		  Reference
@@ -9951,8 +9936,20 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -9962,13 +9959,7 @@ Library {
 	  Position		  [20, 168, 85, 212]
 	  ZOrder		  -19
 	  BackgroundColor	  "[1.000000, 0.202946, 0.028293]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    171
@@ -10274,8 +10265,20 @@ Library {
 	      DstPort		      1
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
       }
+      RTWSystemCode	      "Auto"
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      FunctionWithSeparateData off
+      Opaque		      off
+      MaskHideContents	      off
     }
     Block {
       BlockType		      SubSystem
@@ -10286,13 +10289,7 @@ Library {
       ZOrder		      -4
       ForegroundColor	      "white"
       DropShadow	      on
-      MinAlgLoopOccurrences   off
-      PropExecContextOutsideSubsystem off
-      RTWSystemCode	      "Auto"
-      FunctionWithSeparateData off
-      Opaque		      off
       RequestExecContextInheritance off
-      MaskHideContents	      off
       Object {
 	$PropName		"MaskObject"
 	$ObjectID		174
@@ -10322,13 +10319,7 @@ Library {
 	  Position		  [540, 48, 610, 92]
 	  ZOrder		  -1
 	  BackgroundColor	  "[1.000000, 0.723000, 0.446000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    175
@@ -10376,13 +10367,7 @@ Library {
 	      Ports		      [0, 5]
 	      Position		      [25, 29, 65, 111]
 	      ZOrder		      -1
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      System {
 		Name			"tau from ports"
 		Location		[217, -12, 1376, 752]
@@ -10460,7 +10445,7 @@ Library {
 		  Ports			  [0, 5]
 		  Position		  [25, 116, 95, 184]
 		  ZOrder		  -5
-		  LibraryVersion	  "1.52"
+		  LibraryVersion	  "1.66"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
 		  SourceType		  ""
 		  from			  "['/' robotName '/left_arm/analog:o/torques']"
@@ -10474,7 +10459,7 @@ Library {
 		  Ports			  [0, 5]
 		  Position		  [25, 201, 95, 269]
 		  ZOrder		  -5
-		  LibraryVersion	  "1.52"
+		  LibraryVersion	  "1.66"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
 		  SourceType		  ""
 		  from			  "['/' robotName '/right_arm/analog:o/torques']"
@@ -10488,7 +10473,7 @@ Library {
 		  Ports			  [0, 6]
 		  Position		  [25, 286, 95, 354]
 		  ZOrder		  -5
-		  LibraryVersion	  "1.52"
+		  LibraryVersion	  "1.66"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
 		  SourceType		  ""
 		  from			  "['/' robotName '/left_leg/analog:o/torques']"
@@ -10502,7 +10487,7 @@ Library {
 		  Ports			  [0, 6]
 		  Position		  [25, 371, 95, 439]
 		  ZOrder		  -5
-		  LibraryVersion	  "1.52"
+		  LibraryVersion	  "1.66"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
 		  SourceType		  ""
 		  from			  "['/' robotName '/right_leg/analog:o/torques']"
@@ -10516,7 +10501,7 @@ Library {
 		  Ports			  [0, 3]
 		  Position		  [25, 26, 95, 94]
 		  ZOrder		  -5
-		  LibraryVersion	  "1.52"
+		  LibraryVersion	  "1.66"
 		  SourceBlock		  "WBCLibrary/Utilities/yarp read"
 		  SourceType		  ""
 		  from			  "['/' robotName '/torso/analog:o/torques']"
@@ -10749,6 +10734,12 @@ Library {
 		  DstPort		  1
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      SubSystem
@@ -10757,13 +10748,7 @@ Library {
 	      Ports		      [5, 1]
 	      Position		      [110, 27, 225, 113]
 	      ZOrder		      -2
-	      MinAlgLoopOccurrences   off
-	      PropExecContextOutsideSubsystem off
-	      RTWSystemCode	      "Auto"
-	      FunctionWithSeparateData off
-	      Opaque		      off
 	      RequestExecContextInheritance off
-	      MaskHideContents	      off
 	      System {
 		Name			"yarp to WBI"
 		Location		[486, 47, 1322, 542]
@@ -10842,9 +10827,7 @@ Library {
 		  Position		  [85, 14, 140, 46]
 		  ZOrder		  -7
 		  InputPortWidth	  "3"
-		  IndexOptions		  "Index vector (dialog)"
 		  Indices		  "[3 2 1]"
-		  OutputSizes		  "1"
 		}
 		Block {
 		  BlockType		  Outport
@@ -10897,6 +10880,12 @@ Library {
 		  DstPort		  5
 		}
 	      }
+	      RTWSystemCode	      "Auto"
+	      MinAlgLoopOccurrences   off
+	      PropExecContextOutsideSubsystem off
+	      FunctionWithSeparateData off
+	      Opaque		      off
+	      MaskHideContents	      off
 	    }
 	    Block {
 	      BlockType		      Outport
@@ -10943,6 +10932,12 @@ Library {
 	      DstPort		      1
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -10952,13 +10947,7 @@ Library {
 	  Position		  [310, 48, 380, 92]
 	  ZOrder		  -2
 	  BackgroundColor	  "[0.893000, 0.628791, 0.326838]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    178
@@ -11237,6 +11226,12 @@ Library {
 	      DstPort		      2
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -11246,13 +11241,7 @@ Library {
 	  Position		  [85, 48, 155, 92]
 	  ZOrder		  -1
 	  BackgroundColor	  "[0.375000, 0.187500, 0.000000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    181
@@ -11553,6 +11542,12 @@ Library {
 	      DstPort		      5
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -11562,13 +11557,7 @@ Library {
 	  Position		  [425, 48, 495, 92]
 	  ZOrder		  -4
 	  BackgroundColor	  "[1.000000, 0.634000, 0.268000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    188
@@ -11847,6 +11836,12 @@ Library {
 	      DstPort		      2
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -11856,13 +11851,7 @@ Library {
 	  Position		  [200, 48, 270, 92]
 	  ZOrder		  -2
 	  BackgroundColor	  "[0.634000, 0.401533, 0.000000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    191
@@ -12170,6 +12159,12 @@ Library {
 	      DstPort		      5
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -12179,13 +12174,7 @@ Library {
 	  Position		  [85, 128, 155, 172]
 	  ZOrder		  -1
 	  BackgroundColor	  "[0.375000, 0.187500, 0.000000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    198
@@ -12493,6 +12482,12 @@ Library {
 	      DstPort		      2
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
 	Block {
 	  BlockType		  SubSystem
@@ -12502,13 +12497,7 @@ Library {
 	  Position		  [200, 128, 270, 172]
 	  ZOrder		  -2
 	  BackgroundColor	  "[0.634000, 0.401533, 0.000000]"
-	  MinAlgLoopOccurrences	  off
-	  PropExecContextOutsideSubsystem off
-	  RTWSystemCode		  "Auto"
-	  FunctionWithSeparateData off
-	  Opaque		  off
 	  RequestExecContextInheritance	off
-	  MaskHideContents	  off
 	  Object {
 	    $PropName		    "MaskObject"
 	    $ObjectID		    205
@@ -12825,8 +12814,20 @@ Library {
 	      DstPort		      2
 	    }
 	  }
+	  RTWSystemCode		  "Auto"
+	  MinAlgLoopOccurrences	  off
+	  PropExecContextOutsideSubsystem off
+	  FunctionWithSeparateData off
+	  Opaque		  off
+	  MaskHideContents	  off
 	}
       }
+      RTWSystemCode	      "Auto"
+      MinAlgLoopOccurrences   off
+      PropExecContextOutsideSubsystem off
+      FunctionWithSeparateData off
+      Opaque		      off
+      MaskHideContents	      off
     }
     Annotation {
       SID		      "483"
@@ -12851,20 +12852,19 @@ Library {
     }
   }
 }
-# Finite State Machines
+#Finite State Machines
 #
-#    Stateflow Version 7.6 (R2013a) dated Jan 19 2013, 14:12:58
+#   Stateflow Version 8.1 (R2014a) dated Feb  7 2014, 22:23:55
 #
 #
-
 Stateflow {
   machine {
     id			    1
-    name		    "WBIToolbox"
+    name		    "WBCLibrary"
     created		    "06-Feb-2014 11:51:26"
     isLibrary		    1
     firstTarget		    26
-    sfVersion		    76014001.0015
+    sfVersion		    76014001.0016
   }
   chart {
     id			    2
