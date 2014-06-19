@@ -1,7 +1,8 @@
+###THIS DOCUMENTATION IS ABOUT TO BE DEPRECATED!! WBI-TOOLBOX NOW HAS ITS OWN REPOSITORY AND CAN BE FOUND IN: (https://github.com/robotology-playground/WBI-Toolbox)##
+
+
 WBI Toolbox (WBI-T) - Simulink Wrapper for Whole Body Control
 -------------------------------------------------------------
-
-**NEWS: The WBI Toolbox will be presented in the workshop MATLAB/Simulink for Robotics Education and Research during ICRA 2014 with a live demo on the Gazebo simulator!! Check out the whole program of the workshop here: http://goo.gl/L76DbM**
 
 This document contains basic instructions on how to install this toolbox, *tips and tricks* to do so and a walkthrough to get you started using it. Simulink blocks consist of S-functions (http://goo.gl/1GuHVd) which allow C/C++ user specific code compiled as Matlab Executable (MEX) files, thus extending the capabilities of the Simulink environment. In other words, MEX files have been created linking YARP, iCub, **iDynTree** (a more efficient and generic YARP-based robot dynamics library than its predecessor iDyn - http://goo.gl/BnGzKr) and CoDyCo, wrapping the **Whole Body Interface** described in http://goo.gl/dBWO3k. The following video shows a quick introduction to the way it works. For further information read the sections below.
 
