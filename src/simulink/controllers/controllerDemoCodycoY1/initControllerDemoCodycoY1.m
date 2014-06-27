@@ -24,7 +24,7 @@ kH  = [  70    0   0 4];
 
 % Impedence acting in the null space of HDDDes 
 
-kImpTorso = [12 8 12]; 
+kImpTorso = [70 70 12]; 
 kImpArms  = [10 10 10 10 5];
 kImpLegs  = [35 50 0.1 30 2 10]; 
 
