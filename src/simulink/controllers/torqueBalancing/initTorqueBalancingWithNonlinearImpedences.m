@@ -6,51 +6,29 @@ Ts = 0.01;
 % Controller gains for convergence of the desired centroidal momentum. 
 % The first three elements are the Proportional, Intagral, and dDerivative
 % gains taking place in xComDDStart, i.e. 
-%
+% 
 % xComDDStart = xDDcomDes - kCom(1)*(xcom - xcomDes) - kCom(2)*IntErrorCoM - kCom(3)*(xDcom - xDcomDes)  
 %
 % kw is the gain for the 
 % angular part of the centroidal momentum convergence, i.e. 
 %
 % hwDot = -kw*hwDotDes  
-kCom  = [  50    1   5];
-kw    = 5;
+% kCom  = [  70    2   0];
+kCom  = [  95    0  0];
+kw    = 1;
 
 % Impedence acting in the null space of HDDDes 
 
-kImpTorso = [25 25 10]; 
-kImpArms  = [25 25 25  5 5];
-kImpLegs  = [50 80 0.1 30 2 10]; 
+kImpTorso = [10 10 10]; 
+kImpArms  = [12 12 12 12 5];
+kImpLegs  = [5 5 0 10 1 3]; 
 
 
+kImp  = [kImpTorso,kImpArms,kImpArms,kImpLegs,kImpLegs;
+         zeros(1,3),zeros(1,10),1,1,0,1,0,0,1,1,0,1,0,0];
+     
+kImpSat  = [25,20,200];
 
-% kCom  = [  60    0   0];
-% kw    = 2;
-% 
-% % kH  = [  60    0   0 2];
-% 
-% % Impedence acting in the null space of HDDDes 
-% 
-% kImpTorso = [40 15 15]; 
-% kImpArms  = [5 5 5 5 5];
-% kImpLegs  = [35 50 0.1 30 2 10]; 
-
-
-
-% kCom  = [  60    0   0];
-% kw    = 2;
-% 
-% % kH  = [  60    0   0 2];
-% 
-% % Impedence acting in the null space of HDDDes 
-% 
-% kImpTorso = [40 15 15]; 
-% kImpArms  = [5 5 5 5 5];
-% kImpLegs  = [35 50 0.1 30 2 10]; 
-
-
-
-kImp  = [kImpTorso,kImpArms,kImpArms,kImpLegs,kImpLegs];
 
 DT = 20;
 
@@ -116,7 +94,17 @@ end
 % 
 % Demo: Constanst CoM
 %
-% kCom  = [  40    0   0 ];
-% kImpTorso = [1 1 2]*15; 
-% kImpArms  = [1 1 1 1 1]*15;
-% kImpLegs  = [200 150 250 450 10 1]; 
+% kCom  = [  20    0   0];
+% kw    = 4;
+% 
+% % Impedence acting in the null space of HDDDes 
+% 
+% kImpTorso = [10 10 10]; 
+% kImpArms  = [10 10 10 10 5];
+% kImpLegs  = [250 250 0.1 200 2 1]; 
+% kImp  = [kImpTorso,kImpArms,kImpArms,kImpLegs,kImpLegs;
+%          0*ones(1,3),0*ones(1,10),150*ones(1,12)];
+%      
+% kImpSat  = [25,20,500];
+% 
+
