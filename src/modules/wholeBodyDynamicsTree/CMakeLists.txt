@@ -9,6 +9,11 @@ PROJECT(${PROJECTNAME})
 find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)
 find_package(iDynTree REQUIRED)
+
+#workaround for bug 
+add_definitions(-DIDYNTREE_USES_ICUB)
+
+
 find_package(wholeBodyInterface REQUIRED)
 find_package(yarpWholeBodyInterface REQUIRED)
 
