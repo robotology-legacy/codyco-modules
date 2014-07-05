@@ -145,6 +145,7 @@ ContactConstraint::ContactConstraint(std::string name, std::string linkName, wbi
     WbiInequalityTask(6,robot->getDoFs()),
     _linkName(linkName)
 {
+    _X.setIdentity(6, 6);
     if(!robot->getLinkId(linkName.c_str(), _linkId))
         cout<<"Error while trying to get the ID of link "<<linkName<<endl;
 }
@@ -152,10 +153,20 @@ ContactConstraint::ContactConstraint(std::string name, std::string linkName, wbi
 bool ContactConstraint::update(RobotState& state)
 {
     bool res = true;
-    // compute stuff
-    res = res && _robot->computeJacobian(state.qJ.data(), state.xBase, _linkId, _A_eq.data());
-    
     // update equality matrix and equality vectory
+    res = res && _robot->computeJacobian(state.qJ.data(), state.xBase, _linkId, _A_eq.data());
+    res = res && _robot->computeDJdq(state.qJ.data(), state.xBase, state.dqJ.data(),
+                                     state.vBase.data(), _linkId, _a_eq.data());
+    _a_eq *= -1.0;  // _a_eq = -dJ*dq
+    
+    // compute force-momentum mapping matrix _X
+    res = res && _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
+    res = res && _robot->computeH(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _Hcom);
+    _p_com[0] = _H.p[0] - _Hcom.p[0];
+    _p_com[1] = _H.p[1] - _Hcom.p[1];
+    _p_com[2] = _H.p[2] - _Hcom.p[2];
+    _X.bottomLeftCorner<3,3>() = crossProductMatrix(_p_com);
+    
     return res;
 }
 
@@ -262,4 +273,20 @@ void wholeBodyReach::computeOrientationError(const wbi::Rotation& R, const wbi::
     res[0] = aa[3] * aa[0];
     res[1] = aa[3] * aa[1];
     res[2] = aa[3] * aa[2];
+}
+
+Eigen::MatrixR3d wholeBodyReach::crossProductMatrix(Eigen::VectorConst v)
+{
+    //  0 -z +y
+    // +z  0 -x
+    // -y +x  0
+    MatrixR3d S;
+    S(0,0) = S(1,1) = S(2,2) = 0.0;
+    S(1,0) = v(2);
+    S(2,0) = -v(1);
+    S(2,1) = v(0);
+    S(0,1) = -v(2);
+    S(0,2) = v(1);
+    S(1,2) = -v(0);
+    return S;
 }
