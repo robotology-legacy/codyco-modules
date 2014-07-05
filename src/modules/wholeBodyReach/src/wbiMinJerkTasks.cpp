@@ -23,7 +23,8 @@ using namespace wbi;
 using namespace Eigen;
 
 MinJerkPDLinkPoseTask::MinJerkPDLinkPoseTask(string taskName, string linkName, wholeBodyInterface* robot)
-: WbiEqualityTask(taskName, 6, robot),
+: WbiAbstractTask(taskName, 6, robot),
+  WbiEqualityTask(6, robot->getDoFs()),
   WbiPDTask(6, DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
   MinJerkTask(3),   // the trajectory generator is 3d because it works only for the linear part
   _linkName(linkName)
@@ -83,7 +84,8 @@ void MinJerkPDLinkPoseTask::parameterUpdated(const ParamProxyInterface *pp)
 /*********************************************************************************************************/
 
 MinJerkPDMomentumTask::MinJerkPDMomentumTask(std::string taskName, wbi::wholeBodyInterface* robot)
-:   WbiEqualityTask(taskName, 6, robot),
+:   WbiAbstractTask(taskName, 6, robot),
+    WbiEqualityTask(6, robot->getDoFs()),
     WbiPDTask(6, DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
     MinJerkTask(3)   // the trajectory generator is 3d because it works only for the linear part
 {}
@@ -111,7 +113,8 @@ void MinJerkPDMomentumTask::parameterUpdated(const ParamProxyInterface *pp)
 /*********************************************************************************************************/
 
 MinJerkPDPostureTask::MinJerkPDPostureTask(std::string taskName, wbi::wholeBodyInterface* robot)
-:   WbiEqualityTask(taskName, robot->getDoFs(), robot),
+:   WbiAbstractTask(taskName, robot->getDoFs(), robot),
+    WbiEqualityTask(robot->getDoFs(), robot->getDoFs()),
     WbiPDTask(robot->getDoFs(), DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
     MinJerkTask(robot->getDoFs()),
     _paramId_qDes(-1)
@@ -137,15 +140,21 @@ void MinJerkPDPostureTask::linkParameterPostureDes(ParamHelperServer* paramHelpe
 /*********************************************************************************************************/
 
 ContactConstraint::ContactConstraint(std::string name, std::string linkName, wbi::wholeBodyInterface* robot)
-:   WbiEqualityTask(name,6,robot),
-    WbiInequalityTask(name,6,robot),
+:   WbiAbstractTask(name, 6, robot),
+    WbiEqualityTask(6, robot->getDoFs()),
+    WbiInequalityTask(6,robot->getDoFs()),
     _linkName(linkName)
-{}
+{
+    if(!robot->getLinkId(linkName.c_str(), _linkId))
+        cout<<"Error while trying to get the ID of link "<<linkName<<endl;
+}
 
 bool ContactConstraint::update(RobotState& state)
 {
     bool res = true;
     // compute stuff
+    res = res && _robot->computeJacobian(state.qJ.data(), state.xBase, _linkId, _A_eq.data());
+    
     // update equality matrix and equality vectory
     return res;
 }
@@ -155,7 +164,8 @@ bool ContactConstraint::update(RobotState& state)
 /*********************************************************************************************************/
 
 JointLimitTask::JointLimitTask(std::string taskName, wbi::wholeBodyInterface* robot)
-:   WbiInequalityTask(taskName, robot->getDoFs(), robot),
+:   WbiAbstractTask(taskName, 6, robot),
+    WbiInequalityTask(robot->getDoFs(), robot->getDoFs()),
     WbiPDTask(robot->getDoFs())
 {
     _qMin.resize(_m);

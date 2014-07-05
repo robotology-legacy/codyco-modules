@@ -45,18 +45,35 @@ namespace wholeBodyReach
 class wbiStackOfTasks
 {
 protected:
-    std::list<WbiEqualityTask*>     _equalityTasks;
-    WbiEqualityTask*                _momentumTask;
-    std::list<ContactConstraint*>   _constraints;
-    JointLimitTask*                 _jointLimitTask;
-    WbiEqualityTask*                _postureTask;
+    std::list<MinJerkPDLinkPoseTask*>   _equalityTasks;
+    MinJerkPDMomentumTask*              _momentumTask;
+    std::list<ContactConstraint*>       _constraints;
+    JointLimitTask*                     _jointLimitTask;
+    MinJerkPDPostureTask*               _postureTask;
     
     wbi::wholeBodyInterface*        _robot;
     int                             _n;         // number of degrees of freedom of the robot
+    int                             _k;         // number of constraints
     
-    Eigen::Vector3d             _gravAcc;                // gravity acceleration
     Eigen::MatrixRXd            _M;                      // floating-base mass matrix (n+6)x(n+6)
     Eigen::VectorXd             _h;                      // generalized bias forces (n+6)
+    
+    Eigen::MatrixRXd            _X;             /// matrix mapping constraint forces into momentum derivative
+    Eigen::MatrixRXd            _Jc;            /// constraint Jacobian
+    Eigen::VectorXd             _dJcdq;         /// dJc*dq
+    Eigen::VectorXd             _fcDes;         /// desired constraint forces (result of QP)
+    Eigen::Vector6d             _momentumDes;   /// desired momentum
+    Eigen::VectorXd             _ddqDes;        /// desired accelerations (n+6)
+    
+    struct
+    {
+        Eigen::MatrixXd H;      /// Hessian
+        Eigen::VectorXd g;      /// gradient
+        Eigen::MatrixXd CE;
+        Eigen::VectorXd ce0;
+        Eigen::MatrixXd CI;
+        Eigen::VectorXd ci0;
+    } _qpData;
     
 public:
     wbiStackOfTasks(wbi::wholeBodyInterface* robot);
@@ -72,7 +89,8 @@ public:
       * so that it becomes the lowest-priority task.
       * @param task The task to push.
       */
-    virtual void pushEqualityTask(WbiEqualityTask& task);
+    virtual void pushEqualityTask(MinJerkPDLinkPoseTask& task)
+    { _equalityTasks.push_back(&task); }
     
     /** Add the specified constraint to the list of constraints.
       * The order of the constraints does not matter.
@@ -85,7 +103,8 @@ public:
       * @param The momentum control task.
       * @note The momentum task always takes the highest priority.
       */
-    virtual void setMomentumTask(WbiEqualityTask& taskMomentum);
+    virtual void setMomentumTask(MinJerkPDMomentumTask& taskMomentum)
+    { _momentumTask=&taskMomentum; }
     
     /** Set the joint-limit task. If a task is already set,
       * it is replaced.
@@ -93,13 +112,15 @@ public:
       * @note The joint-limit task is actually an inequality constraint and
       *       it takes the highest priority in the stack.
       */
-    virtual void setJointLimitTask(JointLimitTask& taskJL);
+    virtual void setJointLimitTask(JointLimitTask& taskJL)
+    { _jointLimitTask=&taskJL; }
     
     /** Set the posture task, which always takes the lowest priority
       * in the stack. If a task is already set, it is replaced.
       * @param taskPosture The posture control task
       */
-    virtual void setPostureTask(WbiEqualityTask& taskPosture);
+    virtual void setPostureTask(MinJerkPDPostureTask& taskPosture)
+    { _postureTask=&taskPosture; }
     
 };
     

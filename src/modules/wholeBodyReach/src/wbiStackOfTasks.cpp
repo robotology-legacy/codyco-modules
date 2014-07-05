@@ -32,45 +32,83 @@ using namespace yarp::math;
 
 
 // compute dynamics
-//_robot->computeGeneralizedBiasForces(qRad.data(), xBase, dqJ.data(), dq.data(), gravAcc.data(), h.data());
-//_robot->computeMassMatrix(qRad.data(), xBase, M.data());
+
 
 wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot)
-: _robot(robot)
+:   _robot(robot),
+    _momentumTask(NULL),
+    _postureTask(NULL),
+    _jointLimitTask(NULL)
 {
     _n = robot->getDoFs();
+    _M.resize(_n+6,_n+6);
+    _h.resize(_n+6);
+    _ddqDes.resize(_n+6);
+    _qpData.CE.resize(0,0);
+    _qpData.ce0.resize(0);
+    _qpData.CI.resize(0, 0);
+    _qpData.ci0.resize(0);
 }
 
 void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef torques)
 {
+    assert(_momentumTask!=NULL);
+    assert(_postureTask!=NULL);
+    assert(_jointLimitTask!=NULL);
+    
+    // compute dynamics
+    _robot->computeGeneralizedBiasForces(robotState.qJ.data(), robotState.xBase,
+                                         robotState.dqJ.data(), robotState.vBase.data(),
+                                         robotState.g.data(), _h.data());
+    _robot->computeMassMatrix(robotState.qJ.data(), robotState.xBase, _M.data());
+    
+    // compute desired contact forces
+    int iCol = 0;
+    for(list<ContactConstraint*>::iterator it=_constraints.begin(); it!=_constraints.end(); it++)
+    {
+        ContactConstraint& c = **it;
+        c.update(robotState);
+
+//        B = [B; t.getInequalityMatrix()]
+//        b = [b; t.getInequalityVector()]
+        c.getMomentumMapping(_X.block(0,iCol,6,6));
+        c.getEqualityMatrix(_Jc.block(iCol, 0, 6, _n+6));
+        c.getEqualityVector(_dJcdq.segment(iCol, 6));
+
+        iCol += c.getSize();
+    }
+    _momentumTask->update(robotState);
+    _momentumTask->getEqualityVector(_momentumDes);
+    
+    _qpData.H = _X.transpose()*_X + 1e-4*MatrixXd::Identity(_k,_k);
+    _qpData.g = _X.transpose()*_momentumDes;
+    solve_quadprog(_qpData.H, _qpData.g, _qpData.CE, _qpData.ce0, _qpData.CI, _qpData.ci0, _fcDes);
+    
+    torques = _h + _Jc.transpose()*_fcDes;
+    
+//    computeFloatingBaseDynamics(M_u, h_u);
+//    Jc_u = Jc.leftCols(6);
+    
+//    Sbar = [-Mb^{-1}*Mbj; eye(n)];
+//    ddqBar = [Mb^{-1}*(Jc_u^T*f-h_u); zeros(n,1)];
+//    
+//    zBar =(Jc*Sbar).solve(-Jc*ddqBar - dJc_dq);
+//    ddqBar += Sbar*zBar;
+//    Z = Sbar*nullspaceBasis(Jc*Sbar);
 
 }
 
-void wbiStackOfTasks::pushEqualityTask(WbiEqualityTask& task)
-{
-    _equalityTasks.push_back(&task);
-}
 
 void wbiStackOfTasks::addConstraint(ContactConstraint& constraint)
 {
     _constraints.push_back(&constraint);
+    _k = 0;
+    for(list<ContactConstraint*>::iterator it=_constraints.begin(); it!=_constraints.end(); it++)
+        _k += (**it).getSize();
+    _X.resize(6,_k);
+    _Jc.resize(_k,_n+6);
+    _fcDes.resize(_k);
 }
-
-void wbiStackOfTasks::setMomentumTask(WbiEqualityTask& taskMomentum)
-{
-    _momentumTask = &taskMomentum;
-}
-
-void wbiStackOfTasks::setJointLimitTask(JointLimitTask& taskJL)
-{
-    _jointLimitTask = &taskJL;
-}
-
-void wbiStackOfTasks::setPostureTask(WbiEqualityTask& taskPosture)
-{
-    _postureTask = &taskPosture;
-}
-
 
 
 //*************************************************************************************************************************

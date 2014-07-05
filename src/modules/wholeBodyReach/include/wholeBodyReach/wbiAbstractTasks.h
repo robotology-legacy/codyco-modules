@@ -79,7 +79,7 @@ public:
 /** A task described by an affine equality:
   * A x = a
   */
-class WbiEqualityTask: public WbiAbstractTask
+class WbiEqualityTask
 {
 protected:
     Eigen::MatrixRXd   _A_eq;      /// Equality matrix
@@ -87,12 +87,14 @@ protected:
     
 public:
     /** Constructor.
-     * @param taskName The name associated to this task (just an identifier).
      * @param taskSize The size of this task.
-     * @param robot An instance of wholeBodyInterface to interact with the robot.
+     * @param n Number of DoFs of the robot
      */
-    WbiEqualityTask(std::string taskName, int taskSize, wbi::wholeBodyInterface* robot)
-    : WbiAbstractTask(taskName, taskSize, robot) {}
+    WbiEqualityTask(int taskSize, int n)
+    {
+        _A_eq.resize(taskSize, n);
+        _a_eq.resize(taskSize);
+    }
     
     /** Get the current matrix of the equality. */
     virtual void getEqualityMatrix(Eigen::MatrixRef A)
@@ -115,7 +117,7 @@ public:
 /** A task described by an affine inequality:
   * l <= A x <= u
   */
-class WbiInequalityTask: public WbiAbstractTask
+class WbiInequalityTask
 {
 protected:
     Eigen::MatrixRXd   _A_in;      /// Inequality matrix
@@ -124,12 +126,14 @@ protected:
     
 public:
     /** Constructor.
-     * @param taskName The name associated to this task (just an identifier).
      * @param taskSize The size of this task.
-     * @param robot An instance of wholeBodyInterface to interact with the robot.
      */
-    WbiInequalityTask(std::string taskName, int taskSize, wbi::wholeBodyInterface* robot)
-    : WbiAbstractTask(taskName, taskSize, robot) {}
+    WbiInequalityTask(int taskSize, int n)
+    {
+        _A_in.resize(taskSize, n);
+        _l_in.resize(taskSize);
+        _u_in.resize(taskSize);
+    }
     
     /** Get the current matrix of the inequality. */
     virtual void getInequalityMatrix(Eigen::MatrixRef A)
@@ -183,7 +187,10 @@ public:
     :   _gainSize(gainSize),
         _automaticCriticallyDamped(automaticCriticallyDamped),
         _paramId_Kp(-1)
-    {}
+    {
+        _Kp.resize(gainSize);
+        _Kd.resize(gainSize);
+    }
     
     virtual ~WbiPDTask(){}
     

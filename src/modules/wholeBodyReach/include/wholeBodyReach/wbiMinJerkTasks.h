@@ -67,7 +67,8 @@ namespace wholeBodyReach
     /** Task to control the pose (i.e. position and orientation) of
       * a link of the robot.
      */
-    class MinJerkPDLinkPoseTask:    public WbiEqualityTask,
+    class MinJerkPDLinkPoseTask:    public WbiAbstractTask,
+                                    public WbiEqualityTask,
                                     public WbiPDTask,
                                     public MinJerkTask,
                                     public paramHelp::ParamValueObserver
@@ -109,7 +110,8 @@ namespace wholeBodyReach
     /** Task to control the pose (i.e. position and orientation) of
      * a link of the robot.
      */
-    class MinJerkPDMomentumTask:    public WbiEqualityTask,
+    class MinJerkPDMomentumTask:    public WbiAbstractTask,
+                                    public WbiEqualityTask,
                                     public WbiPDTask,
                                     public MinJerkTask,
                                     public paramHelp::ParamValueObserver
@@ -150,7 +152,8 @@ namespace wholeBodyReach
     /** Task to control the posture (i.e. joint configuration)
       * of the robot.
      */
-    class MinJerkPDPostureTask: public WbiEqualityTask,
+    class MinJerkPDPostureTask: public WbiAbstractTask,
+                                public WbiEqualityTask,
                                 public WbiPDTask,
                                 public MinJerkTask,
                                 public paramHelp::ParamValueObserver
@@ -179,17 +182,29 @@ namespace wholeBodyReach
       * the robot and the environment. The contact may constrain all
       * 6 directions of motion (linear + angular) or only the linear part.
       */
-    class ContactConstraint:    public WbiEqualityTask,
+    class ContactConstraint:    public WbiAbstractTask,
+                                public WbiEqualityTask,
                                 public WbiInequalityTask
     {
     protected:
         std::string         _linkName;
+        int                 _linkId;
+        
+        Eigen::MatrixRXd    _X;         /// momentum mapping matrix
+//        Eigen::MatrixRXd    _Jc;        /// constraint Jacobian matrix
+        Eigen::VectorXd     _dJcdq;     /// product between time derivative of Jc and dq
         
     public:
         ContactConstraint(std::string name, std::string linkName, wbi::wholeBodyInterface* robot);
         virtual ~ContactConstraint() {}
         
         virtual bool update(RobotState& state);
+        
+        /** Get the matrix that maps this constraint forces into rate of change
+          * of the momentum of the robot. 
+          */
+        virtual void getMomentumMapping(Eigen::MatrixRef X)
+        { X = _X; }
     };
 
 
@@ -199,7 +214,8 @@ namespace wholeBodyReach
       * It can also take into account joint velocity/acceleration 
       * bounds.
       */
-    class JointLimitTask:   public WbiInequalityTask,
+    class JointLimitTask:   public WbiAbstractTask,
+                            public WbiInequalityTask,
                             public WbiPDTask
     {
     protected:
