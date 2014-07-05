@@ -76,16 +76,18 @@ namespace wholeBodyReach
         Eigen::VectorXd             _dJdq;      /// product of the Jacobian time derivative and the joint velocities
         Eigen::MatrixRXd            _J;         /// Jacobian
         wbi::Frame                  _H;         /// homogenous matrix from world frame to link frame
-        Eigen::Vector7d             _x;         /// pose of the link in world frame in axis/angle notation
+        Eigen::Vector3d             _x;         /// pose of the link in world frame in axis/angle notation
         Eigen::Vector6d             _v;         /// linear-angular velocity of the link frame
         
         int                         _linkId;    /// id of the link
         std::string                 _linkName;  /// name of the link
         bool                        _initSuccessfull;   /// true if initialization was successfull
         
-        Eigen::VectorXd             _positionDesired;
-        wbi::Frame                  _Hdesired;
-        Eigen::Vector6d             _dvStar;    /// acceleration to use in optimization
+        Eigen::Vector7d             _poseDes;           /// desired position + orientation (axis/angle)
+        int                         _paramId_poseDes;   /// id of the parameter associated to _poseDesired
+        
+        wbi::Frame                  _Hdes;
+        Eigen::Vector6d             _dvStar;            /// acceleration to use in optimization
         Eigen::Vector3d             _orientationError;  /// orientation error expressed as a rotation vector
 
     public:
@@ -95,15 +97,12 @@ namespace wholeBodyReach
         /** Link the desired pose of this task to a parameter managed by the specified
          * instance of ParamHelperServer.
          */
-        virtual void linkParameterDesiredPose(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        virtual void linkParameterPoseDes(paramHelp::ParamHelperServer* paramHelper, int paramId);
         
         /** Method called every time a parameter (for which a callback is registered) is changed. */
         virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
 
         virtual bool update(RobotState& state);
-        
-        virtual void    setDesiredPose(const wbi::Frame& poseDesired)
-        { _Hdesired = poseDesired; }
     };
     
     
@@ -112,7 +111,8 @@ namespace wholeBodyReach
      */
     class MinJerkPDMomentumTask:    public WbiEqualityTask,
                                     public WbiPDTask,
-                                    public MinJerkTask
+                                    public MinJerkTask,
+                                    public paramHelp::ParamValueObserver
     {
     protected:
         Eigen::VectorXd             _dJdq;      /// product of the Jacobian time derivative and the joint velocities
@@ -125,9 +125,10 @@ namespace wholeBodyReach
         std::string                 _linkName;  /// name of the link
         bool                        _initSuccessfull;   /// true if initialization was successfull
         
-        Eigen::VectorXd             _positionDesired;
-        Eigen::Vector3d             _comDesired;
-        Eigen::Vector6d             _dvStar;    /// acceleration to use in optimization
+        Eigen::Vector3d             _comDes;
+        int                         _paramId_comDes;   /// id of the parameter associated to _comDes
+        
+        Eigen::Vector6d             _dvStar;            /// acceleration to use in optimization
         Eigen::Vector3d             _orientationError;  /// orientation error expressed as a rotation vector
         
     public:
@@ -136,8 +137,13 @@ namespace wholeBodyReach
         
         virtual bool update(RobotState& state);
         
-        virtual void    setDesiredCoM(Eigen::VectorConst comDesired)
-        { _comDesired = comDesired; }
+        /** Link the desired pose of this task to a parameter managed by the specified
+         * instance of ParamHelperServer.
+         */
+        virtual void linkParameterComDes(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        
+        /** Method called every time a parameter (for which a callback is registered) is changed. */
+        virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
     };
     
     
@@ -146,13 +152,26 @@ namespace wholeBodyReach
      */
     class MinJerkPDPostureTask: public WbiEqualityTask,
                                 public WbiPDTask,
-                                public MinJerkTask
+                                public MinJerkTask,
+                                public paramHelp::ParamValueObserver
     {
+    protected:
+        Eigen::VectorXd         _qDes;          /// desired joint positions
+        int                     _paramId_qDes;  /// id of the parameter associated to _qDes
+        
     public:
         MinJerkPDPostureTask(std::string taskName, wbi::wholeBodyInterface* robot);
         virtual ~MinJerkPDPostureTask(){}
         
         virtual bool update(RobotState& state);
+        
+        /** Link the desired posture of this task to a parameter managed by the specified
+         * instance of ParamHelperServer.
+         */
+        virtual void linkParameterPostureDes(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        
+        /** Method called every time a parameter (for which a callback is registered) is changed. */
+        virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp){}
     };
     
     

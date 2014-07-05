@@ -40,15 +40,15 @@ bool MinJerkPDLinkPoseTask::update(RobotState& state)
     res = res && _robot->computeJacobian(state.qJ.data(), state.xBase, _linkId, _J.data());
     res = res && _robot->computeDJdq(state.qJ.data(), state.xBase, state.dqJ.data(), state.vBase.data(), _linkId, _dJdq.data());
     _v = _J*state.dq;
-    // convert homogeneous matrix to axis-angle notation
+    
+    // copy data into Eigen vector
     _x(0) = _H.p[0]; _x(1) = _H.p[1]; _x(2) = _H.p[2];
-    _H.R.getAxisAngle(_x.data()+3);
     
     // update reference trajectory
-    _trajGen.computeNextValues(_positionDesired);
+    _trajGen.computeNextValues(_poseDes.head<3>());
     _dvStar.head<3>() = _trajGen.getAcc()   + _Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v.head<3>())
-                                            + _Kp.head<3>().cwiseProduct(_trajGen.getPos()-_x.head<3>());
-    computeOrientationError(_H.R, _Hdesired.R, _orientationError);
+                                            + _Kp.head<3>().cwiseProduct(_trajGen.getPos()-_x);
+    computeOrientationError(_H.R, _Hdes.R, _orientationError);
     _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError) - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
     
     // update equality matrix and equality vectory
@@ -57,6 +57,25 @@ bool MinJerkPDLinkPoseTask::update(RobotState& state)
     
     return res;
 }
+
+void MinJerkPDLinkPoseTask::linkParameterPoseDes(ParamHelperServer* paramHelper, int paramId)
+{
+    _paramId_poseDes = paramId;
+    paramHelper->linkParam(paramId, _poseDes.data());
+}
+
+void MinJerkPDLinkPoseTask::parameterUpdated(const ParamProxyInterface *pp)
+{
+    if(pp->id==_paramId_poseDes)
+    {
+        _Hdes.p[0] = _poseDes[0];
+        _Hdes.p[1] = _poseDes[1];
+        _Hdes.p[2] = _poseDes[2];
+        // convert from axis/angle to rotation matrix
+        _Hdes.R.axisAngle(_poseDes.data()+3);
+    }
+}
+
 
 
 /*********************************************************************************************************/
@@ -77,6 +96,15 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
     return res;
 }
 
+void MinJerkPDMomentumTask::linkParameterComDes(ParamHelperServer* paramHelper, int paramId)
+{
+    _paramId_comDes = paramId;
+    paramHelper->linkParam(paramId, _comDes.data());
+}
+
+void MinJerkPDMomentumTask::parameterUpdated(const ParamProxyInterface *pp)
+{}
+
 
 /*********************************************************************************************************/
 /******************************************* MinJerkPDPostureTask ****************************************/
@@ -85,7 +113,8 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
 MinJerkPDPostureTask::MinJerkPDPostureTask(std::string taskName, wbi::wholeBodyInterface* robot)
 :   WbiEqualityTask(taskName, robot->getDoFs(), robot),
     WbiPDTask(robot->getDoFs(), DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
-    MinJerkTask(robot->getDoFs())
+    MinJerkTask(robot->getDoFs()),
+    _paramId_qDes(-1)
 {}
 
 bool MinJerkPDPostureTask::update(RobotState& state)
@@ -94,6 +123,12 @@ bool MinJerkPDPostureTask::update(RobotState& state)
     // compute stuff
     // update equality matrix and equality vectory
     return res;
+}
+
+void MinJerkPDPostureTask::linkParameterPostureDes(ParamHelperServer* paramHelper, int paramId)
+{
+    _paramId_qDes = paramId;
+    paramHelper->linkParam(paramId, _qDes.data());
 }
 
 

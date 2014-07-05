@@ -86,10 +86,13 @@ bool WholeBodyReachThread::threadInit()
 //    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_Q_MAX,               solver->qMax.data()));
 //    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_Q_MIN,               solver->qMin.data()));
 //    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_JNT_LIM_MIN_DIST,    &(solver->safetyThreshold)));
-//    // link module input streaming parameters to member variables
-//    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_XDES_COM,            xd_com.data()));
-//    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_XDES_FOOT,           xd_foot.data()));
-//    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_QDES,                qd.data()));        // constant size
+    
+    // link module input streaming parameters to member variables
+    _tasks.momentum.linkParameterComDes(         _paramHelper, PARAM_ID_XDES_COM);
+    _tasks.supportForearm.linkParameterPoseDes(  _paramHelper, PARAM_ID_XDES_FOREARM);
+    _tasks.graspHand.linkParameterPoseDes(       _paramHelper, PARAM_ID_XDES_HAND);
+    _tasks.posture.linkParameterPostureDes(      _paramHelper, PARAM_ID_QDES);
+    
 //#ifndef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
 //    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_H_W2B,               H_w2b.data()));
 //#endif
@@ -102,11 +105,6 @@ bool WholeBodyReachThread::threadInit()
 //    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_Q,                   qDeg.data()));      // variable size
 
     // Register callbacks for some module parameters
-    YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_XDES_FOREARM,        this));
-    YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_TRAJ_TIME_MOMENTUM,  this));
-    YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_TRAJ_TIME_FOREARM,   this));
-    YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_TRAJ_TIME_HAND,      this));
-    YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_TRAJ_TIME_POSTURE,   this));
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_SUPPORT_PHASE,       this));
 
     // Register callbacks for some module commands
@@ -153,8 +151,8 @@ void WholeBodyReachThread::run()
         if(areDesiredJointTorquesTooLarge())    // check desired joint torques are not too large
         {
             preStopOperations();            // stop the controller
-            cout<<"\n******** ERROR: CONTROLLER STOPPED BECAUSE DESIRED JOINT TORQUES ARE TOO LARGE: "
-                <<toString(_tauDes.transpose(),2)<<endl;
+            cout<<"\n***** ERROR: CONTROLLER STOPPED BECAUSE DESIRED JOINT TORQUES ARE TOO LARGE: "
+                <<toString(_tauDes.transpose(),1)<<endl;
         }
         else
             _robot->setControlReference(_tauDes.data());
