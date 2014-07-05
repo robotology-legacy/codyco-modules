@@ -190,9 +190,10 @@ namespace wholeBodyReach
         std::string         _linkName;
         int                 _linkId;
         
-        Eigen::MatrixRXd    _X;         /// momentum mapping matrix
-//        Eigen::MatrixRXd    _Jc;        /// constraint Jacobian matrix
-        Eigen::VectorXd     _dJcdq;     /// product between time derivative of Jc and dq
+        Eigen::MatrixRXd    _X;     /// momentum mapping matrix
+        wbi::Frame          _Hcom;  /// homogeneous transformation from world to CoM
+        wbi::Frame          _H;     /// homogeneous transformation from world to this link
+        Eigen::Vector3d     _p_com; /// vector from CoM to contact link in world frame
         
     public:
         ContactConstraint(std::string name, std::string linkName, wbi::wholeBodyInterface* robot);
@@ -258,6 +259,8 @@ namespace wholeBodyReach
     
     /** Compute the 3d orientation error given the measured orientation and the desired orientation. */
     void computeOrientationError(const wbi::Rotation& R, const wbi::Rotation& R_des, Eigen::VectorRef res);
+    
+    Eigen::MatrixR3d crossProductMatrix(Eigen::VectorConst v);
     
     
 } // end namespace wholeBodyReach

@@ -19,6 +19,8 @@
 #define WHOLE_BODY_REACH_WBI_SOT
 
 #include <Eigen/Core>               // import most common Eigen types
+#include <Eigen/Cholesky>
+#include <Eigen/SVD>
 #include <yarp/sig/Vector.h>
 #include <yarp/os/Time.h>           // Timer
 #include <vector>
@@ -52,28 +54,41 @@ protected:
     MinJerkPDPostureTask*               _postureTask;
     
     wbi::wholeBodyInterface*        _robot;
-    int                             _n;         // number of degrees of freedom of the robot
-    int                             _k;         // number of constraints
+    int                             _n;         /// number of degrees of freedom of the robot
+    int                             _k;         /// number of constraints
     
-    Eigen::MatrixRXd            _M;                      // floating-base mass matrix (n+6)x(n+6)
-    Eigen::VectorXd             _h;                      // generalized bias forces (n+6)
+    Eigen::MatrixRXd                _M;         /// floating-base mass matrix (n+6)x(n+6)
+    Eigen::VectorXd                 _h;         /// generalized bias forces (n+6)
+    
+    Eigen::MatrixRXd                _Mb_inv;    /// inverse of the 6x6 base mass matrix
+    Eigen::LLT<Eigen::MatrixRXd>    _Mb_llt;    /// Cholesky decomposition of Mb
+    Eigen::VectorXd                 _z;         /// null-space term
+    Eigen::MatrixRXd                _Jc_Sbar;   /// Jc projected in nullspace of base dynamics
+    Eigen::JacobiSVD<Eigen::MatrixRXd>  _Jc_Sbar_svd;   /// svd of Jc*Sbar
     
     Eigen::MatrixRXd            _X;             /// matrix mapping constraint forces into momentum derivative
     Eigen::MatrixRXd            _Jc;            /// constraint Jacobian
     Eigen::VectorXd             _dJcdq;         /// dJc*dq
     Eigen::VectorXd             _fcDes;         /// desired constraint forces (result of QP)
     Eigen::Vector6d             _momentumDes;   /// desired momentum
+    Eigen::VectorXd             _ddqPosture;    /// desired acceleration given by posture task
     Eigen::VectorXd             _ddqDes;        /// desired accelerations (n+6)
     
+    
+    //    minimize      0.5 * x H x + g x
+    //    subject to    CE^T x + ce0 = 0
+    //                  CI^T x + ci0 >= 0
     struct
     {
         Eigen::MatrixXd H;      /// Hessian
         Eigen::VectorXd g;      /// gradient
-        Eigen::MatrixXd CE;
-        Eigen::VectorXd ce0;
-        Eigen::MatrixXd CI;
-        Eigen::VectorXd ci0;
+        Eigen::MatrixXd CE;     /// equality constraint matrix
+        Eigen::VectorXd ce0;    /// equality constraint vecotr
+        Eigen::MatrixXd CI;     /// inequality constraint matrix
+        Eigen::VectorXd ci0;    /// inequality constraint vector
     } _qpData;
+    
+    void computeMb_inverse();
     
 public:
     wbiStackOfTasks(wbi::wholeBodyInterface* robot);

@@ -38,6 +38,9 @@ namespace Eigen
     typedef Matrix<double,6,Dynamic,RowMajor>       JacobianMatrix;     // a Jacobian is 6 rows and N columns
     
     typedef Matrix<double,Dynamic,Dynamic,RowMajor> MatrixRXd;     /// Dynamic matrix with row-major storage order
+    typedef Matrix<double,3,3,RowMajor>             MatrixR3d;
+    typedef Matrix<double,4,4,RowMajor>             MatrixR4d;
+    typedef Matrix<double,6,6,RowMajor>             MatrixR6d;
     
     typedef Ref<VectorXd>                           VectorRef;      /// Type used to pass Eigen vectors by reference
     typedef Ref<MatrixRXd>                          MatrixRef;      /// Type used to pass Eigen matrices by reference
