@@ -100,8 +100,9 @@ bool WholeBodyReachModule::configure(ResourceFinder &rf)
     paramHelper->linkParam(PARAM_ID_MODULE_NAME, &moduleName);
     paramHelper->linkParam(PARAM_ID_CTRL_PERIOD, &period);
     paramHelper->linkParam(PARAM_ID_ROBOT_NAME, &robotName);
-    paramHelper->registerCommandCallback(COMMAND_ID_HELP, this);
-    paramHelper->registerCommandCallback(COMMAND_ID_QUIT, this);
+    paramHelper->registerCommandCallback(COMMAND_ID_RESET_PROFILER, this);
+    paramHelper->registerCommandCallback(COMMAND_ID_HELP,           this);
+    paramHelper->registerCommandCallback(COMMAND_ID_QUIT,           this);
 
     // Read parameters from configuration file (or command line)
     Bottle initMsg;
@@ -156,6 +157,9 @@ void WholeBodyReachModule::commandReceived(const CommandDescription &cd, const B
 {
     switch(cd.id)
     {
+    case COMMAND_ID_RESET_PROFILER:
+        getProfiler().reset_all();
+        break;
     case COMMAND_ID_HELP:
         paramHelper->getHelpMessage(reply);
         break;
@@ -224,6 +228,8 @@ bool WholeBodyReachModule::updateModule()
         printf("Duration of 'run' method: %3.3f+/-%3.3f.\n", avgTimeUsed, stdDevUsed);
     }
 //#endif
+    
+    PRINT_PROFILING_INFO;
 
     return true;
 }

@@ -23,6 +23,7 @@
 #include <vector>
 #include <string>
 #include <yarp/sig/Matrix.h>
+#include <wholeBodyReach/Stopwatch.h>
 
 using namespace paramHelp;
 using namespace std;
@@ -53,8 +54,20 @@ typedef yarp::sig::Matrix                               MatrixY;    // to not mi
 
 namespace wholeBodyReach
 {
+    
+#define DO_PROFILING
 
-// When COMPUTE_WORLD_2_BASE_ROTOTRANSLATION is defined the controller computes the rototranslation 
+#ifdef DO_PROFILING
+    #define START_PROFILING(name)   getProfiler().start(name)
+    #define STOP_PROFILING(name)    getProfiler().stop(name)
+    #define PRINT_PROFILING_INFO    getProfiler().report_all()
+#else
+    #define START_PROFILING(name)
+    #define STOP_PROFILING(name)
+    #define PRINT_PROFILING_INFO
+#endif
+
+// When COMPUTE_WORLD_2_BASE_ROTOTRANSLATION is defined the controller computes the rototranslation
 // from world to floating base assuming that the left foot is always on the ground. Otherwise it 
 // takes the rototranslation as an input streaming parameter (i.e. H_w2b).
 #define COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
@@ -203,7 +216,8 @@ new ParamProxyBasic<double>("qr",               PARAM_ID_QREF,              ICUB
 
 // *** IDs of all the module command
 enum WholeBodyReachCommandId { 
-    COMMAND_ID_START,   COMMAND_ID_STOP,    COMMAND_ID_HELP,    COMMAND_ID_QUIT, 
+    COMMAND_ID_START,   COMMAND_ID_STOP,    COMMAND_ID_HELP,    COMMAND_ID_QUIT,
+    COMMAND_ID_RESET_PROFILER,
     COMMAND_ID_SIZE
 };
 // ******************************************************************************************************************************
@@ -211,11 +225,12 @@ enum WholeBodyReachCommandId {
 // ******************************************************************************************************************************
 const CommandDescription wholeBodyReachCommandDescr[COMMAND_ID_SIZE]  = 
 { 
-//                  NAME            ID                          DESCRIPTION
-CommandDescription("start",         COMMAND_ID_START,           "Start the controller"), 
-CommandDescription("stop",          COMMAND_ID_STOP,            "Stop the controller"), 
-CommandDescription("help",          COMMAND_ID_HELP,            "Get instructions about how to communicate with this module"), 
-CommandDescription("quit",          COMMAND_ID_QUIT,            "Stop the controller and quit the module"), 
+//                  NAME                ID                          DESCRIPTION
+CommandDescription("start",             COMMAND_ID_START,           "Start the controller"),
+CommandDescription("stop",              COMMAND_ID_STOP,            "Stop the controller"),
+CommandDescription("reset profiler",    COMMAND_ID_RESET_PROFILER,  "Reset the profiling statistics"),
+CommandDescription("help",              COMMAND_ID_HELP,            "Get instructions about how to communicate with this module"),
+CommandDescription("quit",              COMMAND_ID_QUIT,            "Stop the controller and quit the module"), 
 };
 
 }

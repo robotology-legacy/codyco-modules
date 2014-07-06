@@ -17,6 +17,7 @@
 
 #include <wholeBodyReach/wbiStackOfTasks.h>
 #include <wholeBodyReach/eiquadprog2011.hpp>
+#include <wholeBodyReach/Stopwatch.h>
 #include <Eigen/SVD>
 
 #include <yarp/sig/Matrix.h>
@@ -41,12 +42,23 @@ using namespace yarp::math;
 #define ddqDes_b    _ddqDes.head<6>()
 #define ddqDes_j    _ddqDes.tail(_n)
 
+#define PROFILE_DYNAMICS_COMPUTATION    "Dynamics computation"
+#define PROFILE_FORCE_QP_PREP           "Force QP preparation"
+#define PROFILE_FORCE_QP                "Force QP"
+#define PROFILE_FORCE_TOTAL             "Force overall computation"
+#define PROFILE_DDQ_DYNAMICS_CONSTR     "Compute dynamics-consistent ddq"
+#define PROFILE_DDQ_CONTACT_CONSTR      "Compute contact-consistent ddq"
+#define PROFILE_DDQ_POSTURE_TASK        "Compute posture task"
+
 wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot)
 :   _robot(robot),
     _momentumTask(NULL),
     _postureTask(NULL),
-    _jointLimitTask(NULL)
+    _jointLimitTask(NULL),
+    _useNullspaceBase(false)
 {
+    _svdOptions = _useNullspaceBase ? ComputeFullU|ComputeFullV : ComputeThinU|ComputeThinV;
+    
     _n = robot->getDoFs();
     _M.resize(_n+6,_n+6);
     _h.resize(_n+6);
@@ -72,35 +84,48 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     //*********************************
     // COMPUTE ROBOT DYNAMICS
     //*********************************
-    _robot->computeGeneralizedBiasForces(robotState.qJ.data(), robotState.xBase,
-                                         robotState.dqJ.data(), robotState.vBase.data(),
-                                         robotState.g.data(), _h.data());
-    _robot->computeMassMatrix(robotState.qJ.data(), robotState.xBase, _M.data());
+    START_PROFILING(PROFILE_DYNAMICS_COMPUTATION);
+    {
+        _robot->computeGeneralizedBiasForces(robotState.qJ.data(), robotState.xBase,
+                                             robotState.dqJ.data(), robotState.vBase.data(),
+                                             robotState.g.data(), _h.data());
+        _robot->computeMassMatrix(robotState.qJ.data(), robotState.xBase, _M.data());
+    }
+    STOP_PROFILING(PROFILE_DYNAMICS_COMPUTATION);
     
     //*********************************
     // COMPUTE DESIRED CONTACT FORCES
     //*********************************
-    int index = 0;
-    for(list<ContactConstraint*>::iterator it=_constraints.begin(); it!=_constraints.end(); it++)
+    START_PROFILING(PROFILE_FORCE_QP_PREP);
     {
-        ContactConstraint& c = **it;
-        c.update(robotState);
+        int index = 0;
+        for(list<ContactConstraint*>::iterator it=_constraints.begin(); it!=_constraints.end(); it++)
+        {
+            ContactConstraint& c = **it;
+            c.update(robotState);
 
-//        B = [B; t.getInequalityMatrix()]
-//        b = [b; t.getInequalityVector()]
-        c.getMomentumMapping(   _X.block(       0,      index,  6, 6));
-        c.getEqualityMatrix(    _Jc.block(      index,  0,      6, _n+6));
-        c.getEqualityVector(    _dJcdq.segment( index,  6));
+    //        B = [B; t.getInequalityMatrix()]
+    //        b = [b; t.getInequalityVector()]
+            c.getMomentumMapping(   _X.block(       0,      index,  6, 6));
+            c.getEqualityMatrix(    _Jc.block(      index,  0,      6, _n+6));
+            c.getEqualityVector(    _dJcdq.segment( index,  6));
 
-        index += c.getSize();
+            index += c.getSize();
+        }
+        _momentumTask->update(robotState);
+        _momentumTask->getEqualityVector(_momentumDes);
+        
+        // @todo Check if possible to avoid this matrix-matrix multiplication
+        _qpData.H   = _X.transpose()*_X + 1e-4*MatrixXd::Identity(_k,_k);
+        _qpData.g   = _X.transpose()*_momentumDes;
     }
-    _momentumTask->update(robotState);
-    _momentumTask->getEqualityVector(_momentumDes);
+    STOP_PROFILING(PROFILE_FORCE_QP_PREP);
     
-    // @todo Check if possible to avoid this matrix-matrix multiplication
-    _qpData.H   = _X.transpose()*_X + 1e-4*MatrixXd::Identity(_k,_k);
-    _qpData.g   = _X.transpose()*_momentumDes;
-    solve_quadprog(_qpData.H, _qpData.g, _qpData.CE, _qpData.ce0, _qpData.CI, _qpData.ci0, _fcDes);
+    START_PROFILING(PROFILE_FORCE_QP);
+    {
+        solve_quadprog(_qpData.H, _qpData.g, _qpData.CE, _qpData.ce0, _qpData.CI, _qpData.ci0, _fcDes);
+    }
+    STOP_PROFILING(PROFILE_FORCE_QP);
     
     //*********************************
     // COMPUTE DESIRED ACCELERATIONS
@@ -108,37 +133,53 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     
     // Compute ddq that respect dynamics:
     //     ddqBar = [Mb^{-1}*(Jc_u^T*f-h_u); zeros(n,1)];
-    computeMb_inverse();
-    ddqDes_b    = _Mb_inv*(Jc_b.transpose()*_fcDes - h_b);
+    START_PROFILING(PROFILE_DDQ_DYNAMICS_CONSTR);
+    {
+        computeMb_inverse();
+        ddqDes_b    = _Mb_inv*(Jc_b.transpose()*_fcDes - h_b);
+    }
+    STOP_PROFILING(PROFILE_DDQ_DYNAMICS_CONSTR);
 
     // Compute ddq that respect also contact constraints:
     //      Sbar = [-Mb^{-1}*Mbj; eye(n)];
     //      z = (Jc*Sbar).solve(-Jc*ddqBar - dJc_dq);
     //      ddqBar += Sbar*zBar
-    _Jc_Sbar    = Jc_j - (Jc_b * _Mb_inv * M_bj);
-    _Jc_Sbar_svd.compute(_Jc_Sbar, ComputeFullU | ComputeFullV);
-    _z          = -1.0 * _Jc_Sbar_svd.solve(Jc_b*ddqDes_b + _dJcdq);    // _z \in \R^{_n}
-    ddqDes_b    += _Mb_inv*(M_bj*_z);
-    ddqDes_j    += _z;
+    START_PROFILING(PROFILE_DDQ_CONTACT_CONSTR);
+    {
+        _Jc_Sbar    = Jc_j - (Jc_b * _Mb_inv * M_bj);
+        _Jc_Sbar_svd.compute(_Jc_Sbar, _svdOptions);
+        _z          = -1.0 * _Jc_Sbar_svd.solve(Jc_b*ddqDes_b + _dJcdq);    // _z \in \R^{_n}
+        ddqDes_b    += _Mb_inv*(M_bj*_z);
+        ddqDes_j    += _z;
+    }
+    STOP_PROFILING(PROFILE_DDQ_CONTACT_CONSTR);
     
     // Now we can go on with the motion tasks, using the nullspace of dynamics and contacts:
     //      Z = Sbar;
     //      Z *= nullspaceBasis(Jc*Sbar);
-    _Z.resize(_n+6,_n);
-    _Z.topRows<6>() = _Mb_inv * M_bj;
-    _Z.bottomRows(_n).setIdentity();
-    updateNullspaceBase(_Jc_Sbar_svd);
+    START_PROFILING(PROFILE_DDQ_POSTURE_TASK);
+    {
+        _Z.resize(_n+6,_n);
+        _Z.topRows<6>() = _Mb_inv * M_bj;
+        _Z.bottomRows(_n).setIdentity();
+        updateNullspace(_Jc_Sbar_svd);
 
-    _postureTask->getEqualityVector(_ddqPosture);
-    _ddqDes     += _Z * (_Z.transpose() * _ddqPosture);
+        _postureTask->update(robotState);
+        _postureTask->getEqualityVector(_ddqPosture);
+        _ddqDes     += _Z * (_Z.transpose() * _ddqPosture);
+    }
+    STOP_PROFILING(PROFILE_DDQ_POSTURE_TASK);
     
     torques     = M_a*_ddqDes + h_j - Jc_j.transpose()*_fcDes;
 }
 
-void wbiStackOfTasks::updateNullspaceBase(JacobiSVD<MatrixRXd>& svd)
+void wbiStackOfTasks::updateNullspace(JacobiSVD<MatrixRXd>& svd)
 {
     int r = (svd.singularValues().array()>PINV_TOL).count();
-    _Z = _Z * svd.matrixV().rightCols(svd.cols()-r);
+    if(_useNullspaceBase)
+        _Z *= svd.matrixV().rightCols(svd.cols()-r);
+    else
+        _Z -= svd.matrixV()*svd.matrixV().transpose();
 }
 
 void wbiStackOfTasks::computeMb_inverse()

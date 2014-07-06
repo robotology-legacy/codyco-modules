@@ -47,6 +47,9 @@ namespace wholeBodyReach
 class wbiStackOfTasks
 {
 protected:
+    bool                                _useNullspaceBase;  /// true: use base, false: use projector
+    int                                 _svdOptions;
+    
     std::list<MinJerkPDLinkPoseTask*>   _equalityTasks;
     MinJerkPDMomentumTask*              _momentumTask;
     std::list<ContactConstraint*>       _constraints;
@@ -62,8 +65,10 @@ protected:
     
     Eigen::MatrixRXd                _Mb_inv;    /// inverse of the 6x6 base mass matrix
     Eigen::LLT<Eigen::MatrixRXd>    _Mb_llt;    /// Cholesky decomposition of Mb
+    
     Eigen::VectorXd                 _z;         /// null-space term
-    Eigen::MatrixRXd                _Z;         /// null-space basis
+    Eigen::MatrixRXd                _Z;         /// null-space basis/projector
+    
     Eigen::MatrixRXd                _Jc_Sbar;   /// Jc projected in nullspace of base dynamics
     Eigen::JacobiSVD<Eigen::MatrixRXd>  _Jc_Sbar_svd;   /// svd of Jc*Sbar
     
@@ -91,9 +96,9 @@ protected:
     
     void computeMb_inverse();
     
-    /** Update the null-space base (contained in _Z) by projecting it
+    /** Update the null-space base/projector (contained in _Z) by projecting it
       * in the nullspace of the specified matrix. */
-    void updateNullspaceBase(Eigen::JacobiSVD<Eigen::MatrixRXd>& svd);
+    void updateNullspace(Eigen::JacobiSVD<Eigen::MatrixRXd>& svd);
     
 public:
     wbiStackOfTasks(wbi::wholeBodyInterface* robot);
@@ -104,6 +109,15 @@ public:
       * @param torques Output control torques.
       */
     virtual void computeSolution(RobotState& robotState, Eigen::VectorRef torques);
+    
+    virtual void useNullspaceBase(bool b)
+    {
+        _useNullspaceBase = b;
+        if(_useNullspaceBase)
+            _svdOptions = Eigen::ComputeFullU | Eigen::ComputeFullV;
+        else
+            _svdOptions = Eigen::ComputeThinU | Eigen::ComputeThinV;
+    }
     
     /** Push the specified equality task at the end of the stack,
       * so that it becomes the lowest-priority task.
