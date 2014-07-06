@@ -63,6 +63,7 @@ protected:
     Eigen::MatrixRXd                _Mb_inv;    /// inverse of the 6x6 base mass matrix
     Eigen::LLT<Eigen::MatrixRXd>    _Mb_llt;    /// Cholesky decomposition of Mb
     Eigen::VectorXd                 _z;         /// null-space term
+    Eigen::MatrixRXd                _Z;         /// null-space basis
     Eigen::MatrixRXd                _Jc_Sbar;   /// Jc projected in nullspace of base dynamics
     Eigen::JacobiSVD<Eigen::MatrixRXd>  _Jc_Sbar_svd;   /// svd of Jc*Sbar
     
@@ -89,6 +90,10 @@ protected:
     } _qpData;
     
     void computeMb_inverse();
+    
+    /** Update the null-space base (contained in _Z) by projecting it
+      * in the nullspace of the specified matrix. */
+    void updateNullspaceBase(Eigen::JacobiSVD<Eigen::MatrixRXd>& svd);
     
 public:
     wbiStackOfTasks(wbi::wholeBodyInterface* robot);

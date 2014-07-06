@@ -51,13 +51,14 @@ bool WholeBodyReachThread::threadInit()
     _k = 12;
     
     // resize all vectors
+    _tauDes.setZero(_n);
     _JfootR.resize(NoChange, _n+6);
     _JfootL.resize(NoChange, _n+6);
     _Jc.resize(_k, _n+6);
     _svdJcb = JacobiSVD<MatrixRXd>(_k, 6, ComputeThinU | ComputeThinV);
-    _robotState.qJ.resize(_n, 0.0);     // joint positions (rad)
-    _robotState.dqJ.resize(_n, 0.0);    // joint velocities (rad/s)
-    _robotState.dq.resize(_n+6, 0.0);   // base+joint velocities
+    _robotState.qJ.setZero(_n);     // joint positions (rad)
+    _robotState.dqJ.setZero(_n);    // joint velocities (rad/s)
+    _robotState.dq.setZero(_n+6);   // base+joint velocities
     
     _robotState.g(0) = 0.0;
     _robotState.g(1) = 0.0;
@@ -93,17 +94,19 @@ bool WholeBodyReachThread::threadInit()
     _tasks.graspHand.linkParameterPoseDes(       _paramHelper, PARAM_ID_XDES_HAND);
     _tasks.posture.linkParameterPostureDes(      _paramHelper, PARAM_ID_QDES);
     
-//#ifndef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
-//    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_H_W2B,               H_w2b.data()));
-//#endif
+#ifndef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
+    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_H_W2B,   _H_w2b.data()));
+#endif
 //    // link module output streaming parameters to member variables
 //    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_XREF_COM,            xr_com.data()));
 //    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_XREF_FOOT,           xr_foot.data()));
 //    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_QREF,                qr.data()));        // constant size
-//    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_X_COM,               x_com.data()));
-//    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_X_FOOT,              x_foot.data()));
-//    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_Q,                   qDeg.data()));      // variable size
-
+    
+    _tasks.momentum.linkParameterCom(       _paramHelper, PARAM_ID_X_COM);
+    _tasks.supportForearm.linkParameterPose(_paramHelper, PARAM_ID_X_FOREARM);
+    _tasks.graspHand.linkParameterPose(     _paramHelper, PARAM_ID_X_HAND);
+    _paramHelper->linkParam(                PARAM_ID_Q,   _robotState.qJ.data());
+    
     // Register callbacks for some module parameters
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_SUPPORT_PHASE,       this));
 
@@ -144,10 +147,11 @@ void WholeBodyReachThread::run()
     _paramHelper->readStreamParams();
 
     readRobotStatus();                      // read encoders, compute positions and Jacobians
+    
+    _solver.computeSolution(_robotState, _tauDes);   // compute desired joint torques
+
     if(_status==WHOLE_BODY_REACH_ON)
     {
-        _solver.computeSolution(_robotState, _tauDes);   // compute desired joint torques
-
         if(areDesiredJointTorquesTooLarge())    // check desired joint torques are not too large
         {
             preStopOperations();            // stop the controller

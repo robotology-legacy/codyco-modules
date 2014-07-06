@@ -162,8 +162,12 @@ public:
   * are supposed to be diagonal matrices, so they are
   * stored as vectors.
   */
-class WbiPDTask : public paramHelp::ParamValueObserver
+class WbiPDTask : virtual public paramHelp::ParamValueObserver
 {
+    /* Use "virtual" inheritance to solve the diamond problem.
+     * See http://www.deitel.com/articles/cplusplus_tutorials/20060225/virtualBaseClass/
+     * for more information.
+     */
 protected:
     Eigen::VectorXd     _Kp;        /// Proportional gains
     Eigen::VectorXd     _Kd;        /// Derivative gains

@@ -31,11 +31,13 @@ using namespace iCub::ctrl;
 using namespace yarp::math;
 
 
-#define Jc_j        _Jc.block(0,6,_k,_n)
-#define Jc_b        _Jc.block(0,0,_k,6)
-#define M_b         _M.block(0,0,6,6)
-#define M_bj        _M.block(0,6,6,_n)
+#define Jc_j        _Jc.rightCols(_n)
+#define Jc_b        _Jc.leftCols<6>()
+#define M_b         _M.topLeftCorner<6, 6>()
+#define M_bj        _M.topRightCorner(6,_n)
+#define M_a         _M.bottomRows(_n)
 #define h_b         _h.head<6>()
+#define h_j         _h.tail(_n)
 #define ddqDes_b    _ddqDes.head<6>()
 #define ddqDes_j    _ddqDes.tail(_n)
 
@@ -114,18 +116,29 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     //      z = (Jc*Sbar).solve(-Jc*ddqBar - dJc_dq);
     //      ddqBar += Sbar*zBar
     _Jc_Sbar    = Jc_j - (Jc_b * _Mb_inv * M_bj);
-    _Jc_Sbar_svd.compute(_Jc_Sbar, ComputeThinU | ComputeThinV);
+    _Jc_Sbar_svd.compute(_Jc_Sbar, ComputeFullU | ComputeFullV);
     _z          = -1.0 * _Jc_Sbar_svd.solve(Jc_b*ddqDes_b + _dJcdq);    // _z \in \R^{_n}
     ddqDes_b    += _Mb_inv*(M_bj*_z);
     ddqDes_j    += _z;
     
     // Now we can go on with the motion tasks, using the nullspace of dynamics and contacts:
-    //    Z = Sbar*nullspaceBasis(Jc*Sbar);
+    //      Z = Sbar;
+    //      Z *= nullspaceBasis(Jc*Sbar);
+    _Z.resize(_n+6,_n);
+    _Z.topRows<6>() = _Mb_inv * M_bj;
+    _Z.bottomRows(_n).setIdentity();
+    updateNullspaceBase(_Jc_Sbar_svd);
 
     _postureTask->getEqualityVector(_ddqPosture);
-    _ddqDes     += _ddqPosture - _Jc_Sbar_svd.solve(_Jc_Sbar*_ddqPosture);
+    _ddqDes     += _Z * (_Z.transpose() * _ddqPosture);
     
-    torques     = _M*_ddqDes + _h - _Jc.transpose()*_fcDes;
+    torques     = M_a*_ddqDes + h_j - Jc_j.transpose()*_fcDes;
+}
+
+void wbiStackOfTasks::updateNullspaceBase(JacobiSVD<MatrixRXd>& svd)
+{
+    int r = (svd.singularValues().array()>PINV_TOL).count();
+    _Z = _Z * svd.matrixV().rightCols(svd.cols()-r);
 }
 
 void wbiStackOfTasks::computeMb_inverse()
@@ -145,6 +158,7 @@ void wbiStackOfTasks::addConstraint(ContactConstraint& constraint)
         _k += (**it).getSize();
     _X.resize(6,_k);
     _Jc.resize(_k,_n+6);
+    _dJcdq.resize(_k);
     _fcDes.resize(_k);
 }
 

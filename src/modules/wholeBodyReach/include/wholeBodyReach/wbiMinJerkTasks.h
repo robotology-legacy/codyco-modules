@@ -31,8 +31,13 @@ namespace wholeBodyReach
     
     /** An abstract task with a minimum-jerk trajectory generator.
      */
-    class MinJerkTask : public paramHelp::ParamValueObserver
+    class MinJerkTask : public virtual paramHelp::ParamValueObserver
     {
+        /* Use "virtual" inheritance to solve the diamond problem.
+         * See http://www.deitel.com/articles/cplusplus_tutorials/20060225/virtualBaseClass/
+         * for more information.
+         */
+        
     protected:
         MinJerkTrajGen              _trajGen;           /// trajectory generator
         double                      _trajDuration;      // trajectory duration
@@ -65,29 +70,32 @@ namespace wholeBodyReach
     
     
     /** Task to control the pose (i.e. position and orientation) of
-      * a link of the robot.
+      * a link of the robot. It uses a minimum-jerk trajectory generator
+      * and a proportional-derivative control law to generate the desired
+      * task-space accelerations.
      */
     class MinJerkPDLinkPoseTask:    public WbiAbstractTask,
                                     public WbiEqualityTask,
                                     public WbiPDTask,
-                                    public MinJerkTask,
-                                    public paramHelp::ParamValueObserver
+                                    public MinJerkTask
     {
     protected:
-        Eigen::VectorXd             _dJdq;      /// product of the Jacobian time derivative and the joint velocities
-        Eigen::MatrixRXd            _J;         /// Jacobian
-        wbi::Frame                  _H;         /// homogenous matrix from world frame to link frame
-        Eigen::Vector3d             _x;         /// pose of the link in world frame in axis/angle notation
-        Eigen::Vector6d             _v;         /// linear-angular velocity of the link frame
-        
         int                         _linkId;    /// id of the link
         std::string                 _linkName;  /// name of the link
         bool                        _initSuccessfull;   /// true if initialization was successfull
         
+        Eigen::VectorXd             _dJdq;      /// product of the Jacobian time derivative and the joint velocities
+        Eigen::MatrixRXd            _J;         /// Jacobian
+        wbi::Frame                  _H;         /// homogenous matrix from world frame to link frame
+        Eigen::Vector6d             _v;         /// linear-angular velocity of the link frame
+        
+        // RPC PARAMETERS
+        Eigen::Vector7d             _pose;              /// measured position+orientation (axis/angle)
         Eigen::Vector7d             _poseDes;           /// desired position + orientation (axis/angle)
         int                         _paramId_poseDes;   /// id of the parameter associated to _poseDesired
+        int                         _paramId_pose;      /// id of the parameter associated to _pose
         
-        wbi::Frame                  _Hdes;
+        wbi::Frame                  _Hdes;              /// same as _poseDes but as homogeneous matrix
         Eigen::Vector6d             _dvStar;            /// acceleration to use in optimization
         Eigen::Vector3d             _orientationError;  /// orientation error expressed as a rotation vector
 
@@ -99,6 +107,7 @@ namespace wholeBodyReach
          * instance of ParamHelperServer.
          */
         virtual void linkParameterPoseDes(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        virtual void linkParameterPose(paramHelp::ParamHelperServer* paramHelper, int paramId);
         
         /** Method called every time a parameter (for which a callback is registered) is changed. */
         virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
@@ -107,31 +116,30 @@ namespace wholeBodyReach
     };
     
     
-    /** Task to control the pose (i.e. position and orientation) of
-     * a link of the robot.
-     */
+    /** Task to control the 6d momentum of the robot.
+      * It computes the desired momentum given the desired position of the center of mass
+      * and the desired angular momentum (assumed to be 0). It uses a minimum-jerk trajectory
+      * generator and a PD control law.
+      */
     class MinJerkPDMomentumTask:    public WbiAbstractTask,
                                     public WbiEqualityTask,
                                     public WbiPDTask,
-                                    public MinJerkTask,
-                                    public paramHelp::ParamValueObserver
+                                    public MinJerkTask
     {
     protected:
-        Eigen::VectorXd             _dJdq;      /// product of the Jacobian time derivative and the joint velocities
-        Eigen::MatrixRXd            _J;         /// Jacobian
-        wbi::Frame                  _H;         /// homogenous matrix from world frame to link frame
-        Eigen::Vector7d             _x;         /// pose of the link in world frame in axis/angle notation
-        Eigen::Vector6d             _v;         /// linear-angular velocity of the link frame
+        Eigen::Vector3d             _v;         /// CoM velocity
+        wbi::Frame                  _H;         /// homogenous matrix from world frame to CoM frame
+        Eigen::Vector6d             _momentum;  /// 6d centroidal momentum
+        double                      _robotMass; /// total mass of the robot
         
-        int                         _linkId;    /// id of the link
         std::string                 _linkName;  /// name of the link
         bool                        _initSuccessfull;   /// true if initialization was successfull
         
+        // RPC PARAMETERS
+        Eigen::Vector3d             _com;
         Eigen::Vector3d             _comDes;
+        int                         _paramId_com;       /// id of the parameter associated to _com
         int                         _paramId_comDes;   /// id of the parameter associated to _comDes
-        
-        Eigen::Vector6d             _dvStar;            /// acceleration to use in optimization
-        Eigen::Vector3d             _orientationError;  /// orientation error expressed as a rotation vector
         
     public:
         MinJerkPDMomentumTask(std::string taskName, wbi::wholeBodyInterface* robot);
@@ -143,9 +151,14 @@ namespace wholeBodyReach
          * instance of ParamHelperServer.
          */
         virtual void linkParameterComDes(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        virtual void linkParameterCom(paramHelp::ParamHelperServer* paramHelper, int paramId);
         
         /** Method called every time a parameter (for which a callback is registered) is changed. */
-        virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
+        virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp)
+        {
+            WbiPDTask::parameterUpdated(pp);
+            MinJerkTask::parameterUpdated(pp);
+        }
     };
     
     
@@ -155,8 +168,7 @@ namespace wholeBodyReach
     class MinJerkPDPostureTask: public WbiAbstractTask,
                                 public WbiEqualityTask,
                                 public WbiPDTask,
-                                public MinJerkTask,
-                                public paramHelp::ParamValueObserver
+                                public MinJerkTask
     {
     protected:
         Eigen::VectorXd         _qDes;          /// desired joint positions
@@ -216,8 +228,7 @@ namespace wholeBodyReach
       * bounds.
       */
     class JointLimitTask:   public WbiAbstractTask,
-                            public WbiInequalityTask,
-                            public WbiPDTask
+                            public WbiInequalityTask
     {
     protected:
         Eigen::VectorXd     _qMin;       /// Lower bound of joint positions

@@ -24,7 +24,7 @@ using namespace Eigen;
 
 MinJerkPDLinkPoseTask::MinJerkPDLinkPoseTask(string taskName, string linkName, wholeBodyInterface* robot)
 : WbiAbstractTask(taskName, 6, robot),
-  WbiEqualityTask(6, robot->getDoFs()),
+  WbiEqualityTask(6, robot->getDoFs()+6),
   WbiPDTask(6, DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
   MinJerkTask(3),   // the trajectory generator is 3d because it works only for the linear part
   _linkName(linkName)
@@ -43,12 +43,13 @@ bool MinJerkPDLinkPoseTask::update(RobotState& state)
     _v = _J*state.dq;
     
     // copy data into Eigen vector
-    _x(0) = _H.p[0]; _x(1) = _H.p[1]; _x(2) = _H.p[2];
+    _pose(0) = _H.p[0]; _pose(1) = _H.p[1]; _pose(2) = _H.p[2];
+    _H.R.axisAngle(_pose.data()+3);
     
     // update reference trajectory
     _trajGen.computeNextValues(_poseDes.head<3>());
     _dvStar.head<3>() = _trajGen.getAcc()   + _Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v.head<3>())
-                                            + _Kp.head<3>().cwiseProduct(_trajGen.getPos()-_x);
+                                            + _Kp.head<3>().cwiseProduct(_trajGen.getPos()-_pose.head<3>());
     computeOrientationError(_H.R, _Hdes.R, _orientationError);
     _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError) - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
     
@@ -63,6 +64,13 @@ void MinJerkPDLinkPoseTask::linkParameterPoseDes(ParamHelperServer* paramHelper,
 {
     _paramId_poseDes = paramId;
     paramHelper->linkParam(paramId, _poseDes.data());
+    paramHelper->registerParamValueChangedCallback(paramId, this);
+}
+
+void MinJerkPDLinkPoseTask::linkParameterPose(ParamHelperServer* paramHelper, int paramId)
+{
+    _paramId_pose = paramId;
+    paramHelper->linkParam(paramId, _pose.data());
 }
 
 void MinJerkPDLinkPoseTask::parameterUpdated(const ParamProxyInterface *pp)
@@ -75,6 +83,11 @@ void MinJerkPDLinkPoseTask::parameterUpdated(const ParamProxyInterface *pp)
         // convert from axis/angle to rotation matrix
         _Hdes.R.axisAngle(_poseDes.data()+3);
     }
+    else
+    {
+        MinJerkTask::parameterUpdated(pp);
+        WbiPDTask::parameterUpdated(pp);
+    }
 }
 
 
@@ -85,16 +98,40 @@ void MinJerkPDLinkPoseTask::parameterUpdated(const ParamProxyInterface *pp)
 
 MinJerkPDMomentumTask::MinJerkPDMomentumTask(std::string taskName, wbi::wholeBodyInterface* robot)
 :   WbiAbstractTask(taskName, 6, robot),
-    WbiEqualityTask(6, robot->getDoFs()),
+    WbiEqualityTask(6, robot->getDoFs()+6),
     WbiPDTask(6, DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
     MinJerkTask(3)   // the trajectory generator is 3d because it works only for the linear part
-{}
+{
+    _robotMass = -1.0;
+}
 
 bool MinJerkPDMomentumTask::update(RobotState& state)
 {
     bool res = true;
-    // compute stuff
-    // update equality matrix and equality vectory
+    // the first time compute the total mass of the robot
+    if(_robotMass<0.0)
+    {
+        int n = _robot->getDoFs();
+        MatrixRXd M(n+6, n+6);
+        res = res && _robot->computeMassMatrix(state.qJ.data(), state.xBase, M.data());
+        _robotMass = M(0,0);
+    }
+    res = res && _robot->computeH(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _H);
+    res = res && _robot->computeCentroidalMomentum(state.qJ.data(), state.xBase, state.dqJ.data(),
+                                                   state.vBase.data(), _momentum.data());
+    res = res && _robot->computeJacobian(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _A_eq.data());
+    _v = _A_eq.topRows<3>()*state.dq;  // compute CoM velocity
+    
+    // copy data into Eigen vector
+    _com(0) = _H.p[0]; _com(1) = _H.p[1]; _com(2) = _H.p[2];
+    
+    // update reference trajectory
+    _trajGen.computeNextValues(_comDes);
+    _a_eq.head<3>() = _robotMass * ( -state.g + _trajGen.getAcc()
+                                     + _Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v)
+                                     + _Kp.head<3>().cwiseProduct(_trajGen.getPos()-_com) );
+    _a_eq.tail<3>() = - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>());
+    
     return res;
 }
 
@@ -104,8 +141,11 @@ void MinJerkPDMomentumTask::linkParameterComDes(ParamHelperServer* paramHelper, 
     paramHelper->linkParam(paramId, _comDes.data());
 }
 
-void MinJerkPDMomentumTask::parameterUpdated(const ParamProxyInterface *pp)
-{}
+void MinJerkPDMomentumTask::linkParameterCom(ParamHelperServer* paramHelper, int paramId)
+{
+    _paramId_com = paramId;
+    paramHelper->linkParam(paramId, _com.data());
+}
 
 
 /*********************************************************************************************************/
@@ -113,10 +153,10 @@ void MinJerkPDMomentumTask::parameterUpdated(const ParamProxyInterface *pp)
 /*********************************************************************************************************/
 
 MinJerkPDPostureTask::MinJerkPDPostureTask(std::string taskName, wbi::wholeBodyInterface* robot)
-:   WbiAbstractTask(taskName, robot->getDoFs(), robot),
-    WbiEqualityTask(robot->getDoFs(), robot->getDoFs()),
-    WbiPDTask(robot->getDoFs(), DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
-    MinJerkTask(robot->getDoFs()),
+:   WbiAbstractTask(taskName, robot->getDoFs()+6, robot),
+    WbiEqualityTask(robot->getDoFs()+6, robot->getDoFs()+6),
+    WbiPDTask(robot->getDoFs()+6, DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
+    MinJerkTask(robot->getDoFs()+6),
     _paramId_qDes(-1)
 {}
 
@@ -141,8 +181,8 @@ void MinJerkPDPostureTask::linkParameterPostureDes(ParamHelperServer* paramHelpe
 
 ContactConstraint::ContactConstraint(std::string name, std::string linkName, wbi::wholeBodyInterface* robot)
 :   WbiAbstractTask(name, 6, robot),
-    WbiEqualityTask(6, robot->getDoFs()),
-    WbiInequalityTask(6,robot->getDoFs()),
+    WbiEqualityTask(6, robot->getDoFs()+6),
+    WbiInequalityTask(6,robot->getDoFs()+6),
     _linkName(linkName)
 {
     _X.setIdentity(6, 6);
@@ -176,8 +216,7 @@ bool ContactConstraint::update(RobotState& state)
 
 JointLimitTask::JointLimitTask(std::string taskName, wbi::wholeBodyInterface* robot)
 :   WbiAbstractTask(taskName, 6, robot),
-    WbiInequalityTask(robot->getDoFs(), robot->getDoFs()),
-    WbiPDTask(robot->getDoFs())
+    WbiInequalityTask(robot->getDoFs()+6, robot->getDoFs()+6)
 {
     _qMin.resize(_m);
     _qMax.resize(_m);
@@ -230,6 +269,7 @@ void MinJerkTask::linkParameterTrajectoryDuration(ParamHelperServer* paramHelper
 {
     _paramId_trajDur = paramId;
     paramHelper->linkParam(paramId, &_trajDuration);
+    paramHelper->registerParamValueChangedCallback(paramId, this);
 }
 
 void MinJerkTask::parameterUpdated(const ParamProxyInterface *pp)
