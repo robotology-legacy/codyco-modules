@@ -123,6 +123,7 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
         MatrixRXd M(n+6, n+6);
         res = res && _robot->computeMassMatrix(state.qJ.data(), state.xBase, M.data());
         _robotMass = M(0,0);
+        cout<<"Robot mass is "<<_robotMass<<endl;
     }
     res = res && _robot->computeH(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _H);
     res = res && _robot->computeCentroidalMomentum(state.qJ.data(), state.xBase, state.dqJ.data(),
@@ -139,6 +140,16 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
                                      + _Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v)
                                      + _Kp.head<3>().cwiseProduct(_trajGen.getPos()-_com) );
     _a_eq.tail<3>() = - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>());
+    
+//    cout<<"state.g "<< state.g.transpose() << endl;
+//    cout<<"_Kp = "<< _Kp.transpose() << endl;
+//    cout<<"_Kd = "<< _Kd.transpose() << endl;
+//    cout<<"_trajGen.getAcc() = "<< _trajGen.getAcc().transpose() << endl;
+//    cout<<"_trajGen.getVel() = "<< _trajGen.getVel().transpose() << endl;
+//    cout<<"_trajGen.getPos() = "<< _trajGen.getPos().transpose() << endl;
+//    cout<<"_v = "<< _v.transpose() << endl;
+//    cout<<"_com = "<< _com.transpose() << endl;
+//    cout<<"_a_eq = "<< _a_eq.transpose() << endl;
     
     return res;
 }
@@ -182,8 +193,9 @@ bool MinJerkPDPostureTask::update(RobotState& state)
 {
     _trajGen.computeNextValues(_qDes);  // the trajectory generator uses deg (not rad)
     _a_eq  = _trajGen.getAcc();
-    _a_eq += _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ);
-    _a_eq += _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ);
+    // multiply gains times DEG2RAD to avoid using very small gain values
+    _a_eq += WBR_DEG2RAD * _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ);
+    _a_eq += WBR_DEG2RAD * _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ);
     return true;
 }
 

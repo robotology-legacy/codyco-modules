@@ -31,6 +31,8 @@ void WbiPDTask::linkParameterKp(ParamHelperServer* paramHelper, int paramId)
     _paramId_Kp = paramId;
     paramHelper->linkParam(paramId, _Kp.data());
     paramHelper->registerParamValueChangedCallback(paramId, this);
+    if(_automaticCriticallyDamped)
+        _Kd = 2*_Kp.cwiseSqrt();
 }
 
 void WbiPDTask::parameterUpdated(const ParamProxyInterface *pp)

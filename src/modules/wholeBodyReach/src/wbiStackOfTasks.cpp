@@ -37,6 +37,7 @@ using namespace yarp::math;
 #define Jc_b        _Jc.leftCols<6>()
 #define M_b         _M.topLeftCorner<6, 6>()
 #define M_bj        _M.topRightCorner(6,_n)
+#define M_u         _M.topRows<6>()
 #define M_a         _M.bottomRows(_n)
 #define h_b         _h.head<6>()
 #define h_j         _h.tail(_n)
@@ -129,12 +130,11 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             _qpData.g   = _X.transpose()*_momentumDes;
         }
         STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
-        
-        sendMsg("H      =\n"+toString(_qpData.H,1,"\n",12));
-        sendMsg("g      = "+toString(_qpData.g,1));
     }
     STOP_PROFILING(PROFILE_FORCE_QP_PREP);
     
+//    cout<< "momentumDes "<<toString(_momentumDes,1)<<endl;
+//    cout<< "g "<<toString(_qpData.g,1)<<endl;
     START_PROFILING(PROFILE_FORCE_QP);
     {
         solve_quadprog(_qpData.H, _qpData.g, _qpData.CE, _qpData.ce0, _qpData.CI, _qpData.ci0, _fcDes);
@@ -151,8 +151,12 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     {
         computeMb_inverse();
         ddqDes_b    = _Mb_inv*(Jc_b.transpose()*_fcDes - h_b);
+        ddqDes_j.setZero();
     }
     STOP_PROFILING(PROFILE_DDQ_DYNAMICS_CONSTR);
+    
+    sendMsg("ddqDes (dynamic consistent) = "+toString(_ddqDes,1));
+    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
 
     // Compute ddq that respect also contact constraints:
     //      Sbar     = [-Mb^{-1}*Mbj; eye(n)];
@@ -163,11 +167,19 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
         _Mb_inv_M_bj= _Mb_inv * M_bj;
         _Jc_Sbar    = Jc_j - (Jc_b * _Mb_inv_M_bj);
         _Jc_Sbar_svd.compute(_Jc_Sbar, _svdOptions);
-        _ddq_jDes    = -1.0 * _Jc_Sbar_svd.solve(Jc_b*ddqDes_b + _dJcdq);    // _z \in \R^{_n}
-        ddqDes_b    += _Mb_inv_M_bj*_ddq_jDes;
+//        cout<<"Jc_b =\n"<< toString(Jc_b,1)<< endl;
+//        cout<<"Jc_b*ddqDes_b = "<< toString(Jc_b*ddqDes_b,1)<< endl;
+//        cout<<"ddqDes_b = "<< toString(ddqDes_b,1)<< endl;
+        _ddq_jDes    = svdSolveWithDamping(_Jc_Sbar_svd, -_dJcdq-Jc_b*ddqDes_b, _numericalDamping);
+//        _ddq_jDes    = _Jc_Sbar_svd.solve(-_dJcdq-Jc_b*ddqDes_b);
+        ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
         ddqDes_j    += _ddq_jDes;
     }
     STOP_PROFILING(PROFILE_DDQ_CONTACT_CONSTR);
+    
+    sendMsg("ddqDes (contact consistent) = "+toString(_ddqDes,1));
+    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
     
     _Z.setIdentity(_n,_n);
     updateNullspace(_Jc_Sbar_svd);
@@ -193,8 +205,8 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             _A = _A_i.leftCols<6>()*_Mb_inv_M_bj + _A_i.rightCols(_n);
             _A *= _Z;
             _A_svd.compute(_A, _svdOptions);
-            _ddq_jDes   = _A_svd.solve(_b_i - _A_i*_ddqDes);    // @todo check this is not +=
-            ddqDes_b    += _Mb_inv_M_bj*_ddq_jDes;
+            _ddq_jDes   = svdSolveWithDamping(_A_svd, _b_i - _A_i*_ddqDes, _numericalDamping); // @todo check this is not +=
+            ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
             ddqDes_j    += _ddq_jDes;
             updateNullspace(_A_svd);
         }
@@ -210,7 +222,7 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             _ddq_jDes   = _Z * (_Z.transpose() * _ddq_jPosture);
         else
             _ddq_jDes   = _Z * _ddq_jPosture;
-        ddqDes_b    += _Mb_inv_M_bj*_ddq_jDes;
+        ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
         ddqDes_j    += _ddq_jDes;
     }
     STOP_PROFILING(PROFILE_DDQ_POSTURE_TASK);
@@ -221,8 +233,11 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     
     sendMsg("fcDes        = "+toString(_fcDes,1));
     sendMsg("ddqDes       = "+toString(_ddqDes,1));
-    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
+//    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
     sendMsg("ddq_jPosture = "+toString(_ddq_jPosture,1));
+    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
+    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
 }
 
 void wbiStackOfTasks::updateNullspace(JacobiSVD<MatrixRXd>& svd)
@@ -292,6 +307,32 @@ void wbiStackOfTasks::parameterUpdated(const ParamProxyInterface* pp)
     }
     cout<< "[wbiStackOfTasks::parameterUpdated] Callback for a parameter that is not managed"
         << pp->name<< endl;
+}
+
+VectorXd wholeBodyReach::svdSolveWithDamping(const JacobiSVD<MatrixRXd>& A, VectorConst b, double damping)
+{
+    eigen_assert(A.computeU() && A.computeV() && "svdSolveWithDamping() requires both unitaries U and V to be computed (thin unitaries suffice).");
+    assert(A.rows()==b.size());
+
+//    cout<<"b = "<<toString(b,1)<<endl;
+    VectorXd tmp(A.cols());
+    int nzsv = A.nonzeroSingularValues();
+    tmp.noalias() = A.matrixU().leftCols(nzsv).adjoint() * b;
+//    cout<<"U^T*b = "<<toString(tmp,1)<<endl;
+    double sv, d2 = damping*damping;
+    for(int i=0; i<nzsv; i++)
+    {
+        sv = A.singularValues()(i);
+        tmp(i) *= sv/(sv*sv + d2);
+    }
+//    cout<<"S^+ U^T b = "<<toString(tmp,1)<<endl;
+    VectorXd res = A.matrixV().leftCols(nzsv) * tmp;
+    
+//    getLogger().sendMsg("sing val = "+toString(A.singularValues(),3), MSG_STREAM_INFO);
+//    getLogger().sendMsg("solution with damp "+toString(damping)+" = "+toString(res.norm()), MSG_STREAM_INFO);
+//    getLogger().sendMsg("solution without damping  ="+toString(A.solve(b).norm()), MSG_STREAM_INFO);
+    
+    return res;
 }
 
 

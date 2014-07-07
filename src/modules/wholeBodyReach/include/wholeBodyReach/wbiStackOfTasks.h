@@ -202,89 +202,10 @@ public:
     double getNumericalDamping(){ return _numericalDamping; }
 };
     
-    
-    
-    
 
-/** Model of a task in the form of a quadratic cost function ||A*x-b||^2. */
-class HQP_Task
-{
-public:
-    Eigen::MatrixRXd A, Apinv, ApinvD;
-    Eigen::MatrixRXd Spinv, SpinvD;
-    Eigen::MatrixRXd N;     // nullspace projector of this task
-    Eigen::VectorXd b;     // known term
-    Eigen::VectorXd svA;   // singular value of the matrix A
+Eigen::VectorXd svdSolveWithDamping(const Eigen::JacobiSVD<Eigen::MatrixRXd>& svd, Eigen::VectorConst b, double damping=0.0);
 
-    /** Create a task with the specified dimensions.
-      * @param m Number of rows of A.
-      * @param n Number of columns of A. */
-    HQP_Task(int m, int n){ resize(m,n); }
-    HQP_Task(){}
-    void resize(int m, int n);
 
-};
-
-/** Solver for the following hierarchy of tasks:
-  * - Task 1: foot constraints (either 1 foot or 2 feet)
-  * - Task 2: center of mass (projection on the ground)
-  * - Task 3: swinging foot
-  * - Task 4: joint posture
-  */
-class WholeBodyReachSolver
-{
-    int n;                              // Number of joints (floating base included)
-    Eigen::MatrixRXd     S;              // selection matrix for joints in the active set
-    std::vector<int>    blockedJoints;  // list of blocked joints
-
-    void blockJoint(int j);             // block the specified joint, adding it to the active set
-public:
-    HQP_Task        constraints;        // k DoFs
-    HQP_Task        com;                // 2 DoFs
-    HQP_Task        foot;               // 6 DoFs
-    HQP_Task        posture;            // n-6 DoFs
-    Eigen::VectorXd qMax;               // joint upper bounds (deg)
-    Eigen::VectorXd qMin;               // joint lower bounds (deg)
-    double          pinvTol;            // Tolerance used for computing truncated pseudoinverses
-    double          pinvDamp;           // Damping factor used for computing damped pseudoinverses
-    double          safetyThreshold;    // minimum distance from the joint bounds (deg)
-    int             solverIterations;   // number of iterations required by the solver
-    double          solverTime;         // time taken to compute the solution
-
-    /** @param _k Number of constraints.
-      * @param _n Number of joints (floating base included). 
-      * @param _pinvTol Tolerance used for computing truncated pseudoinverses.
-      * @param _pinvDamp Damping factor used for computing damped pseudoinverses. 
-      * @param _safetyThreshold Minimum distance to maintain from the joint bounds.
-      * @note The number of joints and constraints can be changed by calling the resize method.
-      *       The tolerances can be changed as well by writing the corresponding public member variables.*/
-    WholeBodyReachSolver(int _k, int _n, double _pinvTol, double _pinvDamp, double _safetyThreshold=0.0);
-
-    /** Call this method any time either the number of joints or of constraints changes.
-      * It resizes all the vectors and matrices.
-      * @param _k Number of constraints.
-      * @param _n Number of joints. */
-    void resize(int _k, int _n);
-    
-    /** Find the desired joint velocities for solving the hierarchy of tasks.
-      * @param qDes Output vector, desired joint velocities (rad/sec).
-      * @param q Input vector, current joint positions (deg), used to check whether the joints are close to their bounds.
-      */
-    void solve(Eigen::VectorXd &dqDes, const Eigen::VectorXd &q);
-
-    const std::vector<int>& getBlockedJointList(){ return blockedJoints; }
-};
-
-/** Tolerance for considering two values equal */
-const double ZERO_TOL = 1e-5;
-
-/**
- * Given the real position/orientation and the desired position/orientation, compute the error as a linear/angular velocity.
- * @param x Real position/orientation as 7d vector
- * @param xd Desired position/orientation as a 7d vector
- * @return w Output 6d vector, linear/angular velocity
- */
-yarp::sig::Vector compute6DError(const yarp::sig::Vector &x, const yarp::sig::Vector &xd);
 
 /** Compute the truncated pseudoinverse of the specified matrix A. 
   * This version of the function takes addtional input matrices to avoid allocating memory and so improve 
@@ -313,6 +234,10 @@ Eigen::MatrixRXd nullSpaceProjector(const Eigen::Ref<Eigen::MatrixRXd> A, double
     
 Eigen::MatrixRXd pinvDampedEigen(const Eigen::Ref<Eigen::MatrixRXd> &A, double damp);
 
+    
+/** Tolerance for considering two values equal */
+const double ZERO_TOL = 1e-5;
+    
 void assertEqual(const Eigen::MatrixRXd &A, const Eigen::MatrixRXd &B, std::string testName, double tol = ZERO_TOL);
 
 void testFailed(std::string testName);
