@@ -55,6 +55,7 @@ typedef yarp::sig::Matrix                               MatrixY;    // to not mi
 namespace wholeBodyReach
 {
     
+// if DO_PROFILING is defined then the profiling is active
 #define DO_PROFILING
 
 #ifdef DO_PROFILING
@@ -69,7 +70,7 @@ namespace wholeBodyReach
 
 // When COMPUTE_WORLD_2_BASE_ROTOTRANSLATION is defined the controller computes the rototranslation
 // from world to floating base assuming that the left foot is always on the ground. Otherwise it 
-// takes the rototranslation as an input streaming parameter (i.e. H_w2b).
+// takes the homogeneous transformation as an input streaming parameter (i.e. H_w2b).
 #define COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
     
 // When DO_NOT_USE_WHOLE_BODY_STATE_INTERFACE is defined the controller does not use the methods
@@ -92,7 +93,7 @@ static const Eigen::IOFormat matrixPrintFormat(1, Eigen::DontAlignCols, " ", ";\
 enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
 
 // *** CONSTANTS
-static const int        PRINT_PERIOD    = 1000;     // period of debug prints (in ms)
+static const int        PRINT_PERIOD    = 2000;     // period of debug prints (in ms)
 static const int        PRINT_MSG_LEVEL = MSG_DEBUG; // only messages whose type is >= PRINT_MSG_LEVEL are printed
 static const double     KP_MAX          = 100.0;    // max value of proportional gains
 static const double     DQ_MAX          = 1.0;      // max joint velocity allowed (rad/sec)
@@ -133,10 +134,11 @@ static const double             DEFAULT_TT_MOMENTUM = 4.0;
 static const double             DEFAULT_TT_FOREARM  = 4.0;
 static const double             DEFAULT_TT_HAND     = 4.0;
 static const double             DEFAULT_TT_POSTURE  = 4.0;
-static const int                DEFAULT_SUPPORT_PHASE   = WBR_SUPPORT_DOUBLE;
-static const double             DEFAULT_PINV_DAMP       = 1e-4;
-static const Eigen::VectorNd    DEFAULT_Q_MAX           = Eigen::VectorNd::Constant(150.0);
-static const Eigen::VectorNd    DEFAULT_Q_MIN           = Eigen::VectorNd::Constant(-150.0);
+static const int                DEFAULT_SUPPORT_PHASE       = WBR_SUPPORT_DOUBLE;
+static const double             DEFAULT_NUM_DAMP            = 1e-4;
+static const int                DEFAULT_USE_NULLSPACE_BASE  = 0;   /// true: solver uses basis, false: it uses projectors
+static const Eigen::VectorNd    DEFAULT_Q_MAX               = Eigen::VectorNd::Constant(180.0);
+static const Eigen::VectorNd    DEFAULT_Q_MIN               = Eigen::VectorNd::Constant(-180.0);
 static const double             DEFAULT_JNT_LIM_MIN_DIST = 5.0;
 // Streaming parameters
 static const Eigen::Vector3d       DEFAULT_XDES_COM        = Eigen::Vector3d::Constant(0.0);
@@ -160,7 +162,7 @@ enum WholeBodyReachParamId {
     PARAM_ID_KP_HAND,               PARAM_ID_KP_POSTURE,
     PARAM_ID_TRAJ_TIME_MOMENTUM,    PARAM_ID_TRAJ_TIME_FOREARM,
     PARAM_ID_TRAJ_TIME_HAND,        PARAM_ID_TRAJ_TIME_POSTURE,
-    PARAM_ID_SUPPORT_PHASE,         PARAM_ID_PINV_DAMP,
+    PARAM_ID_SUPPORT_PHASE,         PARAM_ID_NUM_DAMP,          PARAM_ID_USE_NULLSPACE_BASE,
     PARAM_ID_Q_MAX,                 PARAM_ID_Q_MIN,             PARAM_ID_JNT_LIM_MIN_DIST,
     PARAM_ID_XDES_COM,              PARAM_ID_XDES_FOREARM,
     PARAM_ID_XDES_HAND,             PARAM_ID_QDES,
@@ -177,39 +179,40 @@ enum WholeBodyReachParamId {
 // ******************************************************************************************************************************
 const ParamProxyInterface *const wholeBodyReachParamDescr[PARAM_ID_SIZE] = 
 { 
-//                          NAME                ID                          SIZE                        CONSTRAINTS                                 I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
-new ParamProxyBasic<string>("name",             PARAM_ID_MODULE_NAME,       1,                          ParamConstraint<string>(),                  PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"),
-new ParamProxyBasic<int>(   "period",           PARAM_ID_CTRL_PERIOD,       1,                          ParamBilatBounds<int>(1,1000),              PARAM_CONFIG,       &DEFAULT_CTRL_PERIOD,           "Period of the control loop (ms)"),
-new ParamProxyBasic<string>("robot",            PARAM_ID_ROBOT_NAME,        1,                          ParamConstraint<string>(),                  PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"), 
+//                          NAME                    ID                          SIZE                        CONSTRAINTS                                 I/O ACCESS          DEFAULT VALUE                   DESCRIPTION
+new ParamProxyBasic<string>("name",                 PARAM_ID_MODULE_NAME,       1,                          ParamConstraint<string>(),                  PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"),
+new ParamProxyBasic<int>(   "period",               PARAM_ID_CTRL_PERIOD,       1,                          ParamBilatBounds<int>(1,1000),              PARAM_CONFIG,       &DEFAULT_CTRL_PERIOD,           "Period of the control loop (ms)"),
+new ParamProxyBasic<string>("robot",                PARAM_ID_ROBOT_NAME,        1,                          ParamConstraint<string>(),                  PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"),
 // ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************************
-new ParamProxyBasic<double>("kp momentum",      PARAM_ID_KP_MOMENTUM,       6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_MOMENTUM.data(),     "Proportional gain for the momentum control"),
-new ParamProxyBasic<double>("kp forearm",       PARAM_ID_KP_FOREARM,        6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_FOREARM.data(),      "Proportional gain for the forearm control"),
-new ParamProxyBasic<double>("kp hand",          PARAM_ID_KP_HAND,           6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_HAND.data(),         "Proportional gain for the hand control"),
-new ParamProxyBasic<double>("kp posture",       PARAM_ID_KP_POSTURE,        ParamSize(ICUB_DOFS,true),  ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_POSTURE.data(),      "Proportional gain for the joint posture control"),
-new ParamProxyBasic<double>("tt momentum",      PARAM_ID_TRAJ_TIME_MOMENTUM,1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_TT_MOMENTUM,           "Trajectory time for the momentum minimum jerk trajectory generator"),
-new ParamProxyBasic<double>("tt forearm",       PARAM_ID_TRAJ_TIME_FOREARM, 1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_TT_FOREARM,            "Trajectory time for the forearm minimum jerk trajectory generator"),
-new ParamProxyBasic<double>("tt foot",          PARAM_ID_TRAJ_TIME_HAND,    1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_TT_HAND,               "Trajectory time for the hand minimum jerk trajectory generator"),
-new ParamProxyBasic<double>("tt posture",       PARAM_ID_TRAJ_TIME_POSTURE, 1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_TT_POSTURE,            "Trajectory time for the posture minimum jerk trajectory generator"),
-new ParamProxyBasic<double>("pinv damp",        PARAM_ID_PINV_DAMP,         1,                          ParamBilatBounds<double>(1e-8, 1.0),        PARAM_IN_OUT,       &DEFAULT_PINV_DAMP,             "Damping factor used in the pseudoinverses"),
-new ParamProxyBasic<double>("q max",            PARAM_ID_Q_MAX,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds"),
-new ParamProxyBasic<double>("q min",            PARAM_ID_Q_MIN,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds"),
-new ParamProxyBasic<double>("jlmd",             PARAM_ID_JNT_LIM_MIN_DIST,  1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits"),
+new ParamProxyBasic<double>("kp momentum",          PARAM_ID_KP_MOMENTUM,       6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_MOMENTUM.data(),     "Proportional gain for the momentum control"),
+new ParamProxyBasic<double>("kp forearm",           PARAM_ID_KP_FOREARM,        6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_FOREARM.data(),      "Proportional gain for the forearm control"),
+new ParamProxyBasic<double>("kp hand",              PARAM_ID_KP_HAND,           6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_HAND.data(),         "Proportional gain for the hand control"),
+new ParamProxyBasic<double>("kp posture",           PARAM_ID_KP_POSTURE,        ParamSize(ICUB_DOFS,true),  ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_POSTURE.data(),      "Proportional gain for the joint posture control"),
+new ParamProxyBasic<double>("tt momentum",          PARAM_ID_TRAJ_TIME_MOMENTUM,1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_TT_MOMENTUM,           "Trajectory time for the momentum minimum jerk trajectory generator"),
+new ParamProxyBasic<double>("tt forearm",           PARAM_ID_TRAJ_TIME_FOREARM, 1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_TT_FOREARM,            "Trajectory time for the forearm minimum jerk trajectory generator"),
+new ParamProxyBasic<double>("tt hand",              PARAM_ID_TRAJ_TIME_HAND,    1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_TT_HAND,               "Trajectory time for the hand minimum jerk trajectory generator"),
+new ParamProxyBasic<double>("tt posture",           PARAM_ID_TRAJ_TIME_POSTURE, 1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_TT_POSTURE,            "Trajectory time for the posture minimum jerk trajectory generator"),
+new ParamProxyBasic<double>("num damp",             PARAM_ID_NUM_DAMP,          1,                          ParamBilatBounds<double>(1e-9, 1.0),        PARAM_IN_OUT,       &DEFAULT_NUM_DAMP,              "Numerical damping used to regularize the optimization problems"),
+new ParamProxyBasic<int>(   "use nullspace base",   PARAM_ID_USE_NULLSPACE_BASE,1,                          ParamBilatBounds<int>(0, 1),                PARAM_IN_OUT,       &DEFAULT_USE_NULLSPACE_BASE,    "0: use nullspace projectors, 1: use nullspace basis"),
+new ParamProxyBasic<double>("q max",                PARAM_ID_Q_MAX,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds"),
+new ParamProxyBasic<double>("q min",                PARAM_ID_Q_MIN,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds"),
+new ParamProxyBasic<double>("jlmd",                 PARAM_ID_JNT_LIM_MIN_DIST,  1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits"),
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
-new ParamProxyBasic<int>(   "support phase",    PARAM_ID_SUPPORT_PHASE,     1,                          ParamBilatBounds<int>(0, 2),                PARAM_IN_STREAM,    &DEFAULT_SUPPORT_PHASE,         "Contact support phase, 0: double, 1: triple"),
-new ParamProxyBasic<double>("xd com",           PARAM_ID_XDES_COM,          3,                          ParamBilatBounds<double>(-0.26, 1.0),       PARAM_IN_STREAM,    DEFAULT_XDES_COM.data(),        "Desired 3d position of the center of mass"),
-new ParamProxyBasic<double>("xd forearm",       PARAM_ID_XDES_FOREARM,      7,                          ParamBilatBounds<double>(-6.0, 6.0),        PARAM_IN_STREAM,    DEFAULT_XDES_FOREARM.data(),    "Desired position/orientation of the forearm"),
-new ParamProxyBasic<double>("xd hand",          PARAM_ID_XDES_HAND,         7,                          ParamBilatBounds<double>(-6.0, 6.0),        PARAM_IN_STREAM,    DEFAULT_XDES_HAND.data(),       "Desired position/orientation of the grasping hand"),
-new ParamProxyBasic<double>("qd",               PARAM_ID_QDES,              ICUB_DOFS,                  ParamBilatBounds<double>(-200.0, 200.0),    PARAM_IN_STREAM,    DEFAULT_QDES.data(),            "Desired joint angles"),
-new ParamProxyBasic<double>("H_w2b",            PARAM_ID_H_W2B,             16,                         ParamBilatBounds<double>(-100.0, 100.0),    PARAM_IN_STREAM,    DEFAULT_H_W2B.data(),           "Estimated rototranslation matrix between world and robot base reference frames"),
+new ParamProxyBasic<int>(   "support phase",        PARAM_ID_SUPPORT_PHASE,     1,                          ParamBilatBounds<int>(0, 2),                PARAM_IN_STREAM,    &DEFAULT_SUPPORT_PHASE,         "Contact support phase, 0: double, 1: triple"),
+new ParamProxyBasic<double>("xd com",               PARAM_ID_XDES_COM,          3,                          ParamBilatBounds<double>(-0.26, 1.0),       PARAM_IN_STREAM,    DEFAULT_XDES_COM.data(),        "Desired 3d position of the center of mass"),
+new ParamProxyBasic<double>("xd forearm",           PARAM_ID_XDES_FOREARM,      7,                          ParamBilatBounds<double>(-6.0, 6.0),        PARAM_IN_STREAM,    DEFAULT_XDES_FOREARM.data(),    "Desired position/orientation of the forearm"),
+new ParamProxyBasic<double>("xd hand",              PARAM_ID_XDES_HAND,         7,                          ParamBilatBounds<double>(-6.0, 6.0),        PARAM_IN_STREAM,    DEFAULT_XDES_HAND.data(),       "Desired position/orientation of the grasping hand"),
+new ParamProxyBasic<double>("qd",                   PARAM_ID_QDES,              ICUB_DOFS,                  ParamBilatBounds<double>(-200.0, 200.0),    PARAM_IN_STREAM,    DEFAULT_QDES.data(),            "Desired joint angles"),
+new ParamProxyBasic<double>("H_w2b",                PARAM_ID_H_W2B,             16,                         ParamBilatBounds<double>(-100.0, 100.0),    PARAM_IN_STREAM,    DEFAULT_H_W2B.data(),           "Estimated rototranslation matrix between world and robot base reference frames"),
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
-new ParamProxyBasic<double>("x com",            PARAM_ID_X_COM,             3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_X_COM.data(),           "3d Position of the center of mass"),
-new ParamProxyBasic<double>("x forearm",        PARAM_ID_X_FOREARM,         7,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_X_FOREARM.data(),       "Position/orientation of the forearm"),
-new ParamProxyBasic<double>("x hand",           PARAM_ID_X_HAND,            7,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_X_HAND.data(),          "Position/orientation of the grasping hand"),
-new ParamProxyBasic<double>("q",                PARAM_ID_Q,                 ICUB_DOFS,                  ParamBilatBounds<double>(-100.0, 100.0),    PARAM_OUT_STREAM,   DEFAULT_Q.data(),               "Joint angles"),
-new ParamProxyBasic<double>("xr com",           PARAM_ID_XREF_COM,          3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_XREF_COM.data(),        "3d Reference position of the center of mass generated by a min jerk trajectory generator"),
-new ParamProxyBasic<double>("xr forearm",       PARAM_ID_XREF_FOREARM,      3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_XREF_FOREARM.data(),    "Reference position/orientation of the forearm generated by a min jerk trajectory generator"),
-new ParamProxyBasic<double>("xr hand",          PARAM_ID_XREF_HAND,         3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_XREF_HAND.data(),       "Reference position/orientation of the grasping hand generated by a min jerk trajectory generator"),
-new ParamProxyBasic<double>("qr",               PARAM_ID_QREF,              ICUB_DOFS,                  ParamBilatBounds<double>(-100.0, 100.0),    PARAM_OUT_STREAM,   DEFAULT_QREF.data(),            "Reference joint angles generated by a min jerk trajectory generator")
+new ParamProxyBasic<double>("x com",                PARAM_ID_X_COM,             3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_X_COM.data(),           "3d Position of the center of mass"),
+new ParamProxyBasic<double>("x forearm",            PARAM_ID_X_FOREARM,         7,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_X_FOREARM.data(),       "Position/orientation of the forearm"),
+new ParamProxyBasic<double>("x hand",               PARAM_ID_X_HAND,            7,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_X_HAND.data(),          "Position/orientation of the grasping hand"),
+new ParamProxyBasic<double>("q",                    PARAM_ID_Q,                 ICUB_DOFS,                  ParamBilatBounds<double>(-100.0, 100.0),    PARAM_OUT_STREAM,   DEFAULT_Q.data(),               "Joint angles"),
+new ParamProxyBasic<double>("xr com",               PARAM_ID_XREF_COM,          3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_XREF_COM.data(),        "3d Reference position of the center of mass generated by a min jerk trajectory generator"),
+new ParamProxyBasic<double>("xr forearm",           PARAM_ID_XREF_FOREARM,      3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_XREF_FOREARM.data(),    "Reference position/orientation of the forearm generated by a min jerk trajectory generator"),
+new ParamProxyBasic<double>("xr hand",              PARAM_ID_XREF_HAND,         3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_OUT_STREAM,   DEFAULT_XREF_HAND.data(),       "Reference position/orientation of the grasping hand generated by a min jerk trajectory generator"),
+new ParamProxyBasic<double>("qr",                   PARAM_ID_QREF,              ICUB_DOFS,                  ParamBilatBounds<double>(-100.0, 100.0),    PARAM_OUT_STREAM,   DEFAULT_QREF.data(),            "Reference joint angles generated by a min jerk trajectory generator")
 };
 
 

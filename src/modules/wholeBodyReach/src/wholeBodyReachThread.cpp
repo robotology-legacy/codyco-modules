@@ -32,7 +32,7 @@ using namespace wbiIcub;
 WholeBodyReachThread::WholeBodyReachThread(string name, string robotName, int period, ParamHelperServer *ph, wholeBodyInterface *wbi)
     : RateThread(period),
     _tasks(GRASP_HAND_LINK_NAME, SUPPORT_FOREARM_LINK_NAME, LEFT_FOOT_LINK_NAME, RIGHT_FOOT_LINK_NAME, wbi),
-    _solver(wbi),
+    _solver(wbi, DEFAULT_USE_NULLSPACE_BASE),
     _name(name), _robotName(robotName), _paramHelper(ph), _robot(wbi)
 {
     _status = WHOLE_BODY_REACH_OFF;
@@ -48,6 +48,7 @@ bool WholeBodyReachThread::threadInit()
     // I must know the support phase before calling numberOfConstraintsChanged (to know the number of constraints)
     YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_SUPPORT_PHASE,       &_supportPhase));
     _n = _robot->getJointList().size();
+    cout<< "The robot has "<< _n<< " degrees of freedom\n";
     _k = 12;
     
     // resize all vectors
@@ -71,6 +72,9 @@ bool WholeBodyReachThread::threadInit()
     _solver.addConstraint(_tasks.leftFoot);
     _solver.addConstraint(_tasks.rightFoot);
     _solver.pushEqualityTask(_tasks.supportForearm);
+    
+    _solver.linkParameterToVariable(wbiStackOfTasks::NUMERICAL_DAMPING,  _paramHelper, PARAM_ID_NUM_DAMP);
+    _solver.linkParameterToVariable(wbiStackOfTasks::USE_NULLSPACE_BASE, _paramHelper, PARAM_ID_USE_NULLSPACE_BASE);
 
     // link module rpc parameters to member variables
     _tasks.momentum.linkParameterKp(         _paramHelper, PARAM_ID_KP_MOMENTUM);

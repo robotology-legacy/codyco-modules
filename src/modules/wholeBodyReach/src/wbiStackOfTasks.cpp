@@ -26,6 +26,7 @@
 #include <cstdio>
 
 using namespace wholeBodyReach;
+using namespace paramHelp;
 using namespace Eigen;
 using namespace std;
 using namespace iCub::ctrl;
@@ -42,22 +43,24 @@ using namespace yarp::math;
 #define ddqDes_b    _ddqDes.head<6>()
 #define ddqDes_j    _ddqDes.tail(_n)
 
+#define PROFILE_WHOLE_SOLVER            "Whole solver"
 #define PROFILE_DYNAMICS_COMPUTATION    "Dynamics computation"
 #define PROFILE_FORCE_QP_PREP           "Force QP preparation"
+#define PROFILE_FORCE_QP_MOMENTUM       "Force QP momentum task update"
 #define PROFILE_FORCE_QP                "Force QP"
 #define PROFILE_FORCE_TOTAL             "Force overall computation"
 #define PROFILE_DDQ_DYNAMICS_CONSTR     "Compute dynamics-consistent ddq"
 #define PROFILE_DDQ_CONTACT_CONSTR      "Compute contact-consistent ddq"
 #define PROFILE_DDQ_POSTURE_TASK        "Compute posture task"
 
-wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot)
+wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot, bool useNullspaceBase)
 :   _robot(robot),
     _momentumTask(NULL),
     _postureTask(NULL),
     _jointLimitTask(NULL),
-    _useNullspaceBase(false)
+    _useNullspaceBase(useNullspaceBase)
 {
-    _svdOptions = _useNullspaceBase ? ComputeFullU|ComputeFullV : ComputeThinU|ComputeThinV;
+    this->useNullspaceBase(_useNullspaceBase==1);
     
     _n = robot->getDoFs();
     _M.resize(_n+6,_n+6);
@@ -65,9 +68,9 @@ wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot)
     
     _Mb_inv.setZero(6,6);
     _Mb_llt = LLT<MatrixRXd>(6);
-//    _Jc_Sbar_svd.setThreshold(1e-4);
     _ddqDes.setZero(_n+6);
-    _ddqPosture.setZero(_n+6);
+    _ddq_jDes.setZero(_n);
+    _ddq_jPosture.setZero(_n);
 
     _qpData.CE.resize(0,0);
     _qpData.ce0.resize(0);
@@ -77,9 +80,12 @@ wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot)
 
 void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef torques)
 {
+    START_PROFILING(PROFILE_WHOLE_SOLVER);
+    
     assert(_momentumTask!=NULL);
     assert(_postureTask!=NULL);
     assert(_jointLimitTask!=NULL);
+    useNullspaceBase(_useNullspaceBase==1);
     
     //*********************************
     // COMPUTE ROBOT DYNAMICS
@@ -106,18 +112,23 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
 
     //        B = [B; t.getInequalityMatrix()]
     //        b = [b; t.getInequalityVector()]
-            c.getMomentumMapping(   _X.block(       0,      index,  6, 6));
-            c.getEqualityMatrix(    _Jc.block(      index,  0,      6, _n+6));
-            c.getEqualityVector(    _dJcdq.segment( index,  6));
+            c.getMomentumMapping(   _X.middleCols<6>(index)  );
+            c.getEqualityMatrix(    _Jc.middleRows<6>(index) );
+            c.getEqualityVector(    _dJcdq.segment<6>(index) );
 
             index += c.getSize();
         }
-        _momentumTask->update(robotState);
-        _momentumTask->getEqualityVector(_momentumDes);
         
-        // @todo Check if possible to avoid this matrix-matrix multiplication
-        _qpData.H   = _X.transpose()*_X + 1e-4*MatrixXd::Identity(_k,_k);
-        _qpData.g   = _X.transpose()*_momentumDes;
+        START_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
+        {
+            _momentumTask->update(robotState);
+            _momentumTask->getEqualityVector(_momentumDes);
+        
+            // @todo Check if possible to avoid this matrix-matrix multiplication
+            _qpData.H   = _X.transpose()*_X + 1e-4*MatrixXd::Identity(_k,_k);
+            _qpData.g   = _X.transpose()*_momentumDes;
+        }
+        STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
     }
     STOP_PROFILING(PROFILE_FORCE_QP_PREP);
     
@@ -141,36 +152,69 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     STOP_PROFILING(PROFILE_DDQ_DYNAMICS_CONSTR);
 
     // Compute ddq that respect also contact constraints:
-    //      Sbar = [-Mb^{-1}*Mbj; eye(n)];
-    //      z = (Jc*Sbar).solve(-Jc*ddqBar - dJc_dq);
-    //      ddqBar += Sbar*zBar
+    //      Sbar     = [-Mb^{-1}*Mbj; eye(n)];
+    //      ddq_jDes = (Jc*Sbar).solve(-Jc*ddqDes - dJc_dq);
+    //      ddqBar  += Sbar*ddq_jDes
     START_PROFILING(PROFILE_DDQ_CONTACT_CONSTR);
     {
-        _Jc_Sbar    = Jc_j - (Jc_b * _Mb_inv * M_bj);
+        _Mb_inv_M_bj= _Mb_inv * M_bj;
+        _Jc_Sbar    = Jc_j - (Jc_b * _Mb_inv_M_bj);
         _Jc_Sbar_svd.compute(_Jc_Sbar, _svdOptions);
-        _z          = -1.0 * _Jc_Sbar_svd.solve(Jc_b*ddqDes_b + _dJcdq);    // _z \in \R^{_n}
-        ddqDes_b    += _Mb_inv*(M_bj*_z);
-        ddqDes_j    += _z;
+        _ddq_jDes    = -1.0 * _Jc_Sbar_svd.solve(Jc_b*ddqDes_b + _dJcdq);    // _z \in \R^{_n}
+        ddqDes_b    += _Mb_inv_M_bj*_ddq_jDes;
+        ddqDes_j    += _ddq_jDes;
     }
     STOP_PROFILING(PROFILE_DDQ_CONTACT_CONSTR);
     
+    _Z.setIdentity(_n,_n);
+    updateNullspace(_Jc_Sbar_svd);
+    
+    // Solve the equality motion task
+    // N=I
+    // for i=1:K
+    //      A = A_i*Sbar*N
+    //      ddq_j = A^+ (b_i - A_i*ddq)
+    //      ddq  += Sbar*ddq_j
+    //      N    -= A^+ A
+    // end
+    if(false)
+    {
+        list<MinJerkPDLinkPoseTask*>::iterator it;
+        for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
+        {
+            MinJerkPDLinkPoseTask& t = **it;
+            t.update(robotState);
+            
+            t.getEqualityMatrix(_A_i);
+            t.getEqualityVector(_b_i);
+            _A = _A_i.leftCols<6>()*_Mb_inv_M_bj + _A_i.rightCols(_n);
+            _A *= _Z;
+            _A_svd.compute(_A, _svdOptions);
+            _ddq_jDes   = _A_svd.solve(_b_i - _A_i*_ddqDes);    // @todo check this is not +=
+            ddqDes_b    += _Mb_inv_M_bj*_ddq_jDes;
+            ddqDes_j    += _ddq_jDes;
+            updateNullspace(_A_svd);
+        }
+    }
+    
     // Now we can go on with the motion tasks, using the nullspace of dynamics and contacts:
-    //      Z = Sbar;
-    //      Z *= nullspaceBasis(Jc*Sbar);
+    //      Z = nullspace(Jc*Sbar);
     START_PROFILING(PROFILE_DDQ_POSTURE_TASK);
     {
-        _Z.resize(_n+6,_n);
-        _Z.topRows<6>() = _Mb_inv * M_bj;
-        _Z.bottomRows(_n).setIdentity();
-        updateNullspace(_Jc_Sbar_svd);
-
         _postureTask->update(robotState);
-        _postureTask->getEqualityVector(_ddqPosture);
-        _ddqDes     += _Z * (_Z.transpose() * _ddqPosture);
+        _postureTask->getEqualityVector(_ddq_jPosture);
+        if(_useNullspaceBase)
+            _ddq_jDes   = _Z * (_Z.transpose() * _ddq_jPosture);
+        else
+            _ddq_jDes   = _Z * _ddq_jPosture;
+        ddqDes_b    += _Mb_inv_M_bj*_ddq_jDes;
+        ddqDes_j    += _ddq_jDes;
     }
     STOP_PROFILING(PROFILE_DDQ_POSTURE_TASK);
     
     torques     = M_a*_ddqDes + h_j - Jc_j.transpose()*_fcDes;
+    
+    STOP_PROFILING(PROFILE_WHOLE_SOLVER);
 }
 
 void wbiStackOfTasks::updateNullspace(JacobiSVD<MatrixRXd>& svd)
@@ -179,7 +223,7 @@ void wbiStackOfTasks::updateNullspace(JacobiSVD<MatrixRXd>& svd)
     if(_useNullspaceBase)
         _Z *= svd.matrixV().rightCols(svd.cols()-r);
     else
-        _Z -= svd.matrixV()*svd.matrixV().transpose();
+        _Z -= svd.matrixV().leftCols(r)*svd.matrixV().leftCols(r).transpose();
 }
 
 void wbiStackOfTasks::computeMb_inverse()
@@ -189,7 +233,6 @@ void wbiStackOfTasks::computeMb_inverse()
     _Mb_inv.setIdentity(6,6);
     _Mb_llt.solveInPlace(_Mb_inv);
 }
-
 
 void wbiStackOfTasks::addConstraint(ContactConstraint& constraint)
 {
@@ -204,110 +247,37 @@ void wbiStackOfTasks::addConstraint(ContactConstraint& constraint)
 }
 
 
+void wbiStackOfTasks::linkParameterToVariable(ParamTypeId paramType, ParamHelperServer* paramHelper, int paramId)
+{
+    switch(paramType)
+    {
+        case USE_NULLSPACE_BASE:
+            _useNullspaceBase_paramId = paramId;
+            paramHelper->linkParam(paramId, &_useNullspaceBase);
+            paramHelper->registerParamValueChangedCallback(paramId, this);
+            break;
+        case NUMERICAL_DAMPING:
+            paramHelper->linkParam(paramId, &_numericalDamping);
+            break;
+        default:
+            cout<< "[wbiStackOfTasks::linkParameterToVariable] Trying to link a parameter that is not managed\n";
+    }
+}
+
+void wbiStackOfTasks::parameterUpdated(const ParamProxyInterface* pp)
+{
+    if(pp->id==_useNullspaceBase_paramId)
+    {
+        useNullspaceBase(_useNullspaceBase==1);
+        return;
+    }
+    cout<< "[wbiStackOfTasks::parameterUpdated] Callback for a parameter that is not managed"
+        << pp->name<< endl;
+}
+
+
 //*************************************************************************************************************************
 //************************************************* OLD STUFF *************************************************************
-//*************************************************************************************************************************
-
-WholeBodyReachSolver::WholeBodyReachSolver(int _k, int _n, double _pinvTol, double _pinvDamp, double _st)
-    : pinvTol(_pinvTol), pinvDamp(_pinvDamp), safetyThreshold(_st)
-{
-    resize(_k,_n);
-}
-
-//*************************************************************************************************************************
-void WholeBodyReachSolver::resize(int _k, int _n)
-{
-    n = _n;
-    constraints.resize(_k,n);
-    com.resize(2,n);
-    foot.resize(6,n);
-    posture.resize(n-6,n);
-    S.resize(n,n); S.setIdentity();
-    qMax.resize(n-6);
-    qMin.resize(n-6);
-}
-
-//*************************************************************************************************************************
-void WholeBodyReachSolver::solve(VectorXd &dqjDes, const VectorXd &q)
-{
-    double t0 = yarp::os::Time::now();
-    bool solutionFound=false;
-    solverIterations = 0;
-    VectorXd dqDes; 
-    S.setIdentity();
-    blockedJoints.resize(0);
-
-    while(!solutionFound)
-    {
-        solverIterations++;
-        dqDes = VectorXd::Zero(n);
-        constraints.N.setIdentity();
-        // *** CONTACT CONSTRAINTS
-        pinvTrunc(constraints.A*S, pinvTol, constraints.Apinv, constraints.Spinv, constraints.svA);
-        constraints.N -= constraints.Apinv*constraints.A*S;
-        // *** COM CTRL TASK
-        pinvDampTrunc(com.A*S*constraints.N, pinvTol, pinvDamp, com.Apinv, com.ApinvD, com.Spinv, com.SpinvD, com.svA);
-        dqDes += com.ApinvD*com.b;
-        com.N = constraints.N - com.Apinv*com.A*S*constraints.N;
-        // *** FOOT CTRL TASK
-        pinvDampTrunc(foot.A*S*com.N, pinvTol, pinvDamp, foot.Apinv, foot.ApinvD, foot.Spinv, foot.SpinvD, foot.svA);
-        dqDes += foot.ApinvD*(foot.b - foot.A*S*dqDes);
-        foot.N = com.N - foot.Apinv*foot.A*S*com.N;
-        // *** POSTURE TASK
-        pinvTrunc(posture.A*S*foot.N, pinvTol, posture.Apinv, posture.Spinv, posture.svA);
-        dqDes += posture.Apinv*(posture.b - posture.A*S*dqDes);
-    
-        dqjDes = (S*dqDes).tail(n-6);  // return last n-6 joint vel (i.e. discard base vel)
-
-        solutionFound = true;
-        for(int i=0; i<n-6; i++)
-        {
-            if((q(i)+safetyThreshold>=qMax(i) && dqjDes(i)>0.0) || (q(i)-safetyThreshold<=qMin(i) && dqjDes(i)<0.0))  
-            {
-                blockJoint(i);          // add joint i to the active set
-                solutionFound = false;
-            }
-        }
-    }
-    solverTime = yarp::os::Time::now()-t0;
-}
-
-//*************************************************************************************************************************
-void WholeBodyReachSolver::blockJoint(int j)
-{
-    S(6+j,6+j) = 0.0;
-    blockedJoints.push_back(j);
-}
-
-//*************************************************************************************************************************
-void HQP_Task::resize(int m, int n)
-{
-    A.resize(m,n);
-    Apinv.resize(n,m);
-    ApinvD.resize(n,m);
-    N.resize(n,n);
-    svA.resize(m);
-    b.resize(m);
-}
-
-
-//*************************************************************************************************************************
-yarp::sig::Vector wholeBodyReach::compute6DError(const yarp::sig::Vector &x, const yarp::sig::Vector &xd)
-{
-    yarp::sig::Matrix R     = axis2dcm(x.subVector(3,6));
-    yarp::sig::Matrix Rdes  = axis2dcm(xd.subVector(3,6));
-    yarp::sig::Matrix Re    = Rdes * R.transposed();
-    yarp::sig::Vector aa    = dcm2axis(Re);
-    yarp::sig::Vector res(6);
-    res[0] = xd[0]-x[0];
-    res[1] = xd[1]-x[1];
-    res[2] = xd[2]-x[2];
-    res[3] = aa[3] * aa[0];
-    res[4] = aa[3] * aa[1];
-    res[5] = aa[3] * aa[2];
-    return res;
-}
-
 //*************************************************************************************************************************
 void wholeBodyReach::pinvTrunc(const MatrixRXd &A, double tol, MatrixRXd &Apinv, MatrixRXd &Spinv, VectorXd &sv)
 {

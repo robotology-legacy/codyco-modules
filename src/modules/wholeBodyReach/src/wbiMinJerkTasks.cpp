@@ -153,19 +153,18 @@ void MinJerkPDMomentumTask::linkParameterCom(ParamHelperServer* paramHelper, int
 /*********************************************************************************************************/
 
 MinJerkPDPostureTask::MinJerkPDPostureTask(std::string taskName, wbi::wholeBodyInterface* robot)
-:   WbiAbstractTask(taskName, robot->getDoFs()+6, robot),
-    WbiEqualityTask(robot->getDoFs()+6, robot->getDoFs()+6),
-    WbiPDTask(robot->getDoFs()+6, DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
-    MinJerkTask(robot->getDoFs()+6),
+:   WbiAbstractTask(taskName, robot->getDoFs(), robot),
+    WbiEqualityTask(robot->getDoFs(), robot->getDoFs()),
+    WbiPDTask(robot->getDoFs(), DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
+    MinJerkTask(robot->getDoFs()),
     _paramId_qDes(-1)
 {}
 
 bool MinJerkPDPostureTask::update(RobotState& state)
 {
-    bool res = true;
-    // compute stuff
-    // update equality matrix and equality vectory
-    return res;
+    _a_eq = _trajGen.getAcc()   + _Kd.cwiseProduct(_trajGen.getVel() - state.dqJ)
+                                + _Kp.cwiseProduct(_trajGen.getPos() - state.qJ);
+    return true;
 }
 
 void MinJerkPDPostureTask::linkParameterPostureDes(ParamHelperServer* paramHelper, int paramId)

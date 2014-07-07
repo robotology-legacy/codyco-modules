@@ -23,6 +23,7 @@
 #include <Eigen/SVD>
 #include <yarp/sig/Vector.h>
 #include <yarp/os/Time.h>           // Timer
+#include <paramHelp/ParamHelperServer.h>
 #include <vector>
 #include <list>
 #include <string>
@@ -44,11 +45,23 @@ namespace wholeBodyReach
   * - there is one (and only one) task for the posture
   * - there is an arbitrary number of generic equality motion tasks
  */
-class wbiStackOfTasks
+class wbiStackOfTasks : public paramHelp::ParamValueObserver
 {
+public:
+    /// This enum defines all the parameters of this class
+    enum ParamTypeId
+    {
+        USE_NULLSPACE_BASE,
+        NUMERICAL_DAMPING
+    };
+    
 protected:
-    bool                                _useNullspaceBase;  /// true: use base, false: use projector
-    int                                 _svdOptions;
+    double          _numericalDamping;          /// damping factor to use in solver
+    int             _numericalDamping_paramId;  /// id of the parameter associated to _numericalDamping
+    int             _useNullspaceBase;          /// 1: use base, 0: use projector
+    int             _useNullspaceBase_paramId;  /// id of the parameter associated to _useNullspaceBase
+    
+    int             _svdOptions;                /// specify whether to compute full/thin U/V
     
     std::list<MinJerkPDLinkPoseTask*>   _equalityTasks;
     MinJerkPDMomentumTask*              _momentumTask;
@@ -65,9 +78,16 @@ protected:
     
     Eigen::MatrixRXd                _Mb_inv;    /// inverse of the 6x6 base mass matrix
     Eigen::LLT<Eigen::MatrixRXd>    _Mb_llt;    /// Cholesky decomposition of Mb
+    Eigen::MatrixRXd                _Mb_inv_M_bj;   /// _Mb_inv*M_bj
     
-    Eigen::VectorXd                 _z;         /// null-space term
+    Eigen::VectorXd                 _ddq_jDes;  /// desired joint accelerations
     Eigen::MatrixRXd                _Z;         /// null-space basis/projector
+    
+    /// HIERARCHY OF EQUALITY RESOLUTION 
+    Eigen::MatrixRXd                _A;
+    Eigen::MatrixRXd                _A_i;
+    Eigen::VectorXd                 _b_i;
+    Eigen::JacobiSVD<Eigen::MatrixRXd>  _A_svd;
     
     Eigen::MatrixRXd                _Jc_Sbar;   /// Jc projected in nullspace of base dynamics
     Eigen::JacobiSVD<Eigen::MatrixRXd>  _Jc_Sbar_svd;   /// svd of Jc*Sbar
@@ -77,7 +97,7 @@ protected:
     Eigen::VectorXd             _dJcdq;         /// dJc*dq
     Eigen::VectorXd             _fcDes;         /// desired constraint forces (result of QP)
     Eigen::Vector6d             _momentumDes;   /// desired momentum
-    Eigen::VectorXd             _ddqPosture;    /// desired acceleration given by posture task
+    Eigen::VectorXd             _ddq_jPosture;  /// desired acceleration given by posture task
     Eigen::VectorXd             _ddqDes;        /// desired accelerations (n+6)
     
     
@@ -94,6 +114,7 @@ protected:
         Eigen::VectorXd ci0;    /// inequality constraint vector
     } _qpData;
     
+    /** Compute the inverse of the matrix Mb. */
     void computeMb_inverse();
     
     /** Update the null-space base/projector (contained in _Z) by projecting it
@@ -101,7 +122,17 @@ protected:
     void updateNullspace(Eigen::JacobiSVD<Eigen::MatrixRXd>& svd);
     
 public:
-    wbiStackOfTasks(wbi::wholeBodyInterface* robot);
+    /** Constructor
+      * @param robot Class to compute the robot dynamics and kinematics
+      * @param useNullspaceBase If true the solver uses the basis of the nullspace, 
+                                otherwise it uses nullspace projectors
+     */
+    wbiStackOfTasks(wbi::wholeBodyInterface* robot, bool useNullspaceBase=false);
+    
+    virtual void linkParameterToVariable(ParamTypeId paramType, paramHelp::ParamHelperServer* paramHelper, int paramId);
+    
+    /** Method called every time a parameter (for which a callback is registered) is changed. */
+    virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
     
     /** Update all tasks/constraints and compute the control
       * torques to send to the motors.
@@ -109,15 +140,6 @@ public:
       * @param torques Output control torques.
       */
     virtual void computeSolution(RobotState& robotState, Eigen::VectorRef torques);
-    
-    virtual void useNullspaceBase(bool b)
-    {
-        _useNullspaceBase = b;
-        if(_useNullspaceBase)
-            _svdOptions = Eigen::ComputeFullU | Eigen::ComputeFullV;
-        else
-            _svdOptions = Eigen::ComputeThinU | Eigen::ComputeThinV;
-    }
     
     /** Push the specified equality task at the end of the stack,
       * so that it becomes the lowest-priority task.
@@ -156,6 +178,18 @@ public:
     virtual void setPostureTask(MinJerkPDPostureTask& taskPosture)
     { _postureTask=&taskPosture; }
     
+    virtual void useNullspaceBase(bool b)
+    {
+        _useNullspaceBase = b? 1 : 0;
+        if(b)
+            _svdOptions = Eigen::ComputeFullU | Eigen::ComputeFullV;
+        else
+            _svdOptions = Eigen::ComputeThinU | Eigen::ComputeThinV;
+    }
+    
+    void setNumericalDamping(double d){ _numericalDamping=d; }
+    
+    double getNumericalDamping(){ return _numericalDamping; }
 };
     
     
