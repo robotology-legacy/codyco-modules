@@ -32,6 +32,7 @@
 
 #include <wholeBodyReach/wholeBodyReachConstants.h>
 #include <wholeBodyReach/wbiMinJerkTasks.h>
+#include <wholeBodyReach/Logger.h>
 
 
 namespace wholeBodyReach
@@ -120,6 +121,11 @@ protected:
     /** Update the null-space base/projector (contained in _Z) by projecting it
       * in the nullspace of the specified matrix. */
     void updateNullspace(Eigen::JacobiSVD<Eigen::MatrixRXd>& svd);
+    
+    void sendMsg(const std::string &s, MsgType type=MSG_STREAM_INFO)
+    {
+        getLogger().sendMsg("[wbiStackOfTasks] "+s, type);
+    }
     
 public:
     /** Constructor

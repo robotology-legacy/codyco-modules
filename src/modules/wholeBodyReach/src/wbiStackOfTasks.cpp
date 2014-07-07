@@ -129,6 +129,9 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             _qpData.g   = _X.transpose()*_momentumDes;
         }
         STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
+        
+        sendMsg("H      =\n"+toString(_qpData.H,1,"\n",12));
+        sendMsg("g      = "+toString(_qpData.g,1));
     }
     STOP_PROFILING(PROFILE_FORCE_QP_PREP);
     
@@ -215,6 +218,11 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     torques     = M_a*_ddqDes + h_j - Jc_j.transpose()*_fcDes;
     
     STOP_PROFILING(PROFILE_WHOLE_SOLVER);
+    
+    sendMsg("fcDes        = "+toString(_fcDes,1));
+    sendMsg("ddqDes       = "+toString(_ddqDes,1));
+    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
+    sendMsg("ddq_jPosture = "+toString(_ddq_jPosture,1));
 }
 
 void wbiStackOfTasks::updateNullspace(JacobiSVD<MatrixRXd>& svd)
@@ -391,6 +399,10 @@ void wholeBodyReach::testFailed(string testName)
 //*************************************************************************************************************************
 std::string wholeBodyReach::toString(const Eigen::MatrixRXd &m, int precision, const char* endRowStr, int maxColsPerLine)
 {
+    // if m is a column vector print it as a row vector
+    if(m.cols()==1)
+        return toString(m.transpose(), precision, endRowStr, maxColsPerLine);
+    
     string ret = "";
     if(m.rows()>1 && m.cols()>maxColsPerLine)
     {

@@ -174,18 +174,22 @@ MinJerkPDPostureTask::MinJerkPDPostureTask(std::string taskName, double sampleTi
     WbiPDTask(robot->getDoFs(), DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
     MinJerkTask(robot->getDoFs(), sampleTime),
     _paramId_qDes(-1)
-{}
+{
+    _qDes.setZero(robot->getDoFs());
+}
 
 bool MinJerkPDPostureTask::update(RobotState& state)
 {
-    _a_eq = _trajGen.getAcc()   + _Kd.cwiseProduct(_trajGen.getVel() - state.dqJ)
-                                + _Kp.cwiseProduct(_trajGen.getPos() - state.qJ);
+    _trajGen.computeNextValues(_qDes);  // the trajectory generator uses deg (not rad)
+    _a_eq  = _trajGen.getAcc();
+    _a_eq += _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ);
+    _a_eq += _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ);
     return true;
 }
 
 void MinJerkPDPostureTask::init(RobotState& state)
 {
-    _trajGen.init(state.qJ);
+    _trajGen.init(WBR_RAD2DEG*state.qJ);
 }
 
 

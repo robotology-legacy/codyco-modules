@@ -140,6 +140,7 @@ bool WholeBodyReachThread::threadInit()
     
     if(!readRobotStatus(true))
         return false;
+    _solver.init(_robotState);
 
     printf("\n\n");
     return true;
