@@ -129,17 +129,21 @@ public:
      */
     wbiStackOfTasks(wbi::wholeBodyInterface* robot, bool useNullspaceBase=false);
     
-    virtual void linkParameterToVariable(ParamTypeId paramType, paramHelp::ParamHelperServer* paramHelper, int paramId);
-    
-    /** Method called every time a parameter (for which a callback is registered) is changed. */
-    virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
-    
     /** Update all tasks/constraints and compute the control
       * torques to send to the motors.
       * @param robotState The current state of the robot
       * @param torques Output control torques.
       */
     virtual void computeSolution(RobotState& robotState, Eigen::VectorRef torques);
+    
+    /** Initialize the solver and the trajectory generator of the tasks.
+      * To be called once before starting to call computeSolution. */
+    virtual void init(RobotState& robotState);
+    
+    virtual void linkParameterToVariable(ParamTypeId paramType, paramHelp::ParamHelperServer* paramHelper, int paramId);
+    
+    /** Method called every time a parameter (for which a callback is registered) is changed. */
+    virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
     
     /** Push the specified equality task at the end of the stack,
       * so that it becomes the lowest-priority task.

@@ -22,11 +22,11 @@ using namespace std;
 using namespace wbi;
 using namespace Eigen;
 
-MinJerkPDLinkPoseTask::MinJerkPDLinkPoseTask(string taskName, string linkName, wholeBodyInterface* robot)
+MinJerkPDLinkPoseTask::MinJerkPDLinkPoseTask(string taskName, string linkName, double sampleTime, wholeBodyInterface* robot)
 : WbiAbstractTask(taskName, 6, robot),
   WbiEqualityTask(6, robot->getDoFs()+6),
   WbiPDTask(6, DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
-  MinJerkTask(3),   // the trajectory generator is 3d because it works only for the linear part
+  MinJerkTask(3, sampleTime),   // the trajectory generator is 3d because it works only for the linear part
   _linkName(linkName)
 {
     if(!(_initSuccessfull = _robot->getLinkId(linkName.c_str(), _linkId)))
@@ -58,6 +58,14 @@ bool MinJerkPDLinkPoseTask::update(RobotState& state)
     _a_eq = _dvStar - _dJdq;
     
     return res;
+}
+
+void MinJerkPDLinkPoseTask::init(RobotState& state)
+{
+    bool res = _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
+    assert(res);
+    _pose(0) = _H.p[0]; _pose(1) = _H.p[1]; _pose(2) = _H.p[2];
+    _trajGen.init(_pose.head<3>());
 }
 
 void MinJerkPDLinkPoseTask::linkParameterPoseDes(ParamHelperServer* paramHelper, int paramId)
@@ -96,11 +104,11 @@ void MinJerkPDLinkPoseTask::parameterUpdated(const ParamProxyInterface *pp)
 /******************************************* MinJerkPDMomentumTask ***************************************/
 /*********************************************************************************************************/
 
-MinJerkPDMomentumTask::MinJerkPDMomentumTask(std::string taskName, wbi::wholeBodyInterface* robot)
+MinJerkPDMomentumTask::MinJerkPDMomentumTask(std::string taskName, double sampleTime, wbi::wholeBodyInterface* robot)
 :   WbiAbstractTask(taskName, 6, robot),
     WbiEqualityTask(6, robot->getDoFs()+6),
     WbiPDTask(6, DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
-    MinJerkTask(3)   // the trajectory generator is 3d because it works only for the linear part
+    MinJerkTask(3, sampleTime)   // the trajectory generator is 3d because it works only for the linear part
 {
     _robotMass = -1.0;
 }
@@ -135,6 +143,14 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
     return res;
 }
 
+void MinJerkPDMomentumTask::init(RobotState& state)
+{
+    bool res = _robot->computeH(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _H);
+    assert(res);
+    _com(0) = _H.p[0]; _com(1) = _H.p[1]; _com(2) = _H.p[2];
+    _trajGen.init(_com);
+}
+
 void MinJerkPDMomentumTask::linkParameterComDes(ParamHelperServer* paramHelper, int paramId)
 {
     _paramId_comDes = paramId;
@@ -152,11 +168,11 @@ void MinJerkPDMomentumTask::linkParameterCom(ParamHelperServer* paramHelper, int
 /******************************************* MinJerkPDPostureTask ****************************************/
 /*********************************************************************************************************/
 
-MinJerkPDPostureTask::MinJerkPDPostureTask(std::string taskName, wbi::wholeBodyInterface* robot)
+MinJerkPDPostureTask::MinJerkPDPostureTask(std::string taskName, double sampleTime, wbi::wholeBodyInterface* robot)
 :   WbiAbstractTask(taskName, robot->getDoFs(), robot),
     WbiEqualityTask(robot->getDoFs(), robot->getDoFs()),
     WbiPDTask(robot->getDoFs(), DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
-    MinJerkTask(robot->getDoFs()),
+    MinJerkTask(robot->getDoFs(), sampleTime),
     _paramId_qDes(-1)
 {}
 
@@ -166,6 +182,12 @@ bool MinJerkPDPostureTask::update(RobotState& state)
                                 + _Kp.cwiseProduct(_trajGen.getPos() - state.qJ);
     return true;
 }
+
+void MinJerkPDPostureTask::init(RobotState& state)
+{
+    _trajGen.init(state.qJ);
+}
+
 
 void MinJerkPDPostureTask::linkParameterPostureDes(ParamHelperServer* paramHelper, int paramId)
 {

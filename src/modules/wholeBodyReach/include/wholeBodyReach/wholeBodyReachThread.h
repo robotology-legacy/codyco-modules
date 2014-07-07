@@ -39,6 +39,7 @@
 #include <paramHelp/paramHelperServer.h>
 #include <wholeBodyReach/wholeBodyReachConstants.h>
 #include <wholeBodyReach/wbiStackOfTasks.h>
+#include <wholeBodyReach/Logger.h>
 
 
 using namespace yarp::os;
@@ -85,11 +86,11 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
         
         WholeBodyReachTasks(std::string graspHandLinkName, std::string supportForearmLinkName,
                             std::string leftFootLinkName, std::string rightFootLinkName,
-                            wbi::wholeBodyInterface* wbi)
-          : momentum("momentum", wbi),
-            graspHand("grasp hand", graspHandLinkName, wbi),
-            supportForearm("support forearm", supportForearmLinkName, wbi),
-            posture("posture", wbi),
+                            double sampleTime, wbi::wholeBodyInterface* wbi)
+          : momentum("momentum", sampleTime, wbi),
+            graspHand("grasp hand", graspHandLinkName, sampleTime, wbi),
+            supportForearm("support forearm", supportForearmLinkName, sampleTime, wbi),
+            posture("posture", sampleTime, wbi),
             leftFoot("left foot", leftFootLinkName, wbi),
             rightFoot("right foot", rightFootLinkName, wbi),
             supportForearmConstr("support forearm constraint", supportForearmLinkName, wbi),
@@ -102,7 +103,7 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
     WholeBodyReachStatus        _status;        // thread status ("on" when controlling, off otherwise)
     WholeBodyReachSupportPhase  _supportPhase;  // support status
     
-    int                 _printCountdown;        // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
+//    int                 _printCountdown;        // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     int                 LINK_ID_RIGHT_FOOT;
     int                 LINK_ID_LEFT_FOOT;
     int                 _n;                     // current number of joints
@@ -112,6 +113,7 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
     JacobianMatrix      _JfootL;                // Jacobian of the left foot
     MatrixRXd           _Jc;                    // constraint Jacobian
     JacobiSVD<MatrixRXd> _svdJcb;               // singular value decomposition of Jcb (1st 6 cols of Jc)
+    VectorXd            _qjDeg;                 // joint angles (deg), variable linked to the rpc parameter "q"
 
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
     Frame _H_base_leftFoot;                  // homogeneous transformation from robot base to left foot (i.e. world)
@@ -136,7 +138,7 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
     
 
     /************************************************* PRIVATE METHODS ******************************************************/
-    void sendMsg(const string &msg, MsgType msgType=MSG_INFO);
+    void sendMsg(const string &msg, MsgType msgType=MSG_STREAM_INFO);
 
     /** Read the robot sensors and compute forward kinematics and Jacobians. */
     bool readRobotStatus(bool blockingRead=false);

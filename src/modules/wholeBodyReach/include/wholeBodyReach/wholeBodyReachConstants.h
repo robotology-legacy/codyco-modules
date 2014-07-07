@@ -90,11 +90,11 @@ namespace wholeBodyReach
 static const Eigen::IOFormat matrixPrintFormat(1, Eigen::DontAlignCols, " ", ";\n", "", "", "[", "]");
 
 /** Types of printed messages */
-enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
+//enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
 
 // *** CONSTANTS
-static const int        PRINT_PERIOD    = 2000;     // period of debug prints (in ms)
-static const int        PRINT_MSG_LEVEL = MSG_DEBUG; // only messages whose type is >= PRINT_MSG_LEVEL are printed
+static const double     PRINT_PERIOD    = 2.0;      // period of debug prints (in sec)
+//static const int        PRINT_MSG_LEVEL = MSG_DEBUG; // only messages whose type is >= PRINT_MSG_LEVEL are printed
 static const double     KP_MAX          = 100.0;    // max value of proportional gains
 static const double     DQ_MAX          = 1.0;      // max joint velocity allowed (rad/sec)
 static const double     TAU_MAX         = 20.0;     // max joint torque allowed (Nm)

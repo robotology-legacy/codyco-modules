@@ -100,7 +100,8 @@ namespace wholeBodyReach
         Eigen::Vector3d             _orientationError;  /// orientation error expressed as a rotation vector
 
     public:
-        MinJerkPDLinkPoseTask(std::string taskName, std::string linkName, wbi::wholeBodyInterface* robot);
+        MinJerkPDLinkPoseTask(std::string taskName, std::string linkName,
+                              double sampleTime, wbi::wholeBodyInterface* robot);
         virtual ~MinJerkPDLinkPoseTask(){}
         
         /** Link the desired pose of this task to a parameter managed by the specified
@@ -113,6 +114,8 @@ namespace wholeBodyReach
         virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
 
         virtual bool update(RobotState& state);
+        
+        virtual void init(RobotState& state);
     };
     
     
@@ -142,10 +145,12 @@ namespace wholeBodyReach
         int                         _paramId_comDes;   /// id of the parameter associated to _comDes
         
     public:
-        MinJerkPDMomentumTask(std::string taskName, wbi::wholeBodyInterface* robot);
+        MinJerkPDMomentumTask(std::string taskName, double sampleTime, wbi::wholeBodyInterface* robot);
         virtual ~MinJerkPDMomentumTask(){}
         
         virtual bool update(RobotState& state);
+        
+        virtual void init(RobotState& state);
         
         /** Link the desired pose of this task to a parameter managed by the specified
          * instance of ParamHelperServer.
@@ -175,10 +180,12 @@ namespace wholeBodyReach
         int                     _paramId_qDes;  /// id of the parameter associated to _qDes
         
     public:
-        MinJerkPDPostureTask(std::string taskName, wbi::wholeBodyInterface* robot);
+        MinJerkPDPostureTask(std::string taskName, double sampleTime, wbi::wholeBodyInterface* robot);
         virtual ~MinJerkPDPostureTask(){}
         
         virtual bool update(RobotState& state);
+        
+        virtual void init(RobotState& state);
         
         /** Link the desired posture of this task to a parameter managed by the specified
          * instance of ParamHelperServer.
@@ -212,6 +219,8 @@ namespace wholeBodyReach
         virtual ~ContactConstraint() {}
         
         virtual bool update(RobotState& state);
+        
+        virtual void init(RobotState& state){}
         
         /** Get the matrix that maps this constraint forces into rate of change
           * of the momentum of the robot. 

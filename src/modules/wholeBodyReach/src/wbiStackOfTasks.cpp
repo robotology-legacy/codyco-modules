@@ -234,6 +234,17 @@ void wbiStackOfTasks::computeMb_inverse()
     _Mb_llt.solveInPlace(_Mb_inv);
 }
 
+void wbiStackOfTasks::init(RobotState& robotState)
+{
+    _postureTask->init(robotState);
+    _momentumTask->init(robotState);
+    for(list<ContactConstraint*>::iterator it=_constraints.begin(); it!=_constraints.end(); it++)
+        (*it)->init(robotState);
+    for(list<MinJerkPDLinkPoseTask*>::iterator it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
+        (*it)->init(robotState);
+        
+}
+
 void wbiStackOfTasks::addConstraint(ContactConstraint& constraint)
 {
     _constraints.push_back(&constraint);
