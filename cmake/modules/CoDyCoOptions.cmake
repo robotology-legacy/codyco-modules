@@ -136,3 +136,6 @@ set_property(
 
 #### Option for building tests
 option(CODYCO_BUILD_TESTS "Compile tests" FALSE)
+
+#### Option for build wholeBodyReach module
+option(CODYCO_BUILD_WHOLEBODYREACH "Compile the wholeBodyReach module" FALSE)

@@ -14,4 +14,6 @@ if(CODYCO_BUILD_EIGEN31_MODULES)
 endif()
 
 add_subdirectory(codycoCoordinatorDemo1Y)
-add_subdirectory(wholeBodyReach)
+if(CODYCO_BUILD_WHOLEBODYREACH)
+    add_subdirectory(wholeBodyReach)
+endif()
