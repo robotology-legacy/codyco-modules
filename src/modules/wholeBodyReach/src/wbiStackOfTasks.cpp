@@ -126,8 +126,8 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             _momentumTask->getEqualityVector(_momentumDes);
         
             // @todo Check if possible to avoid this matrix-matrix multiplication
-            _qpData.H   = _X.transpose()*_X + 1e-4*MatrixXd::Identity(_k,_k);
-            _qpData.g   = _X.transpose()*_momentumDes;
+            _qpData.H   = _X.transpose()*_X + 1e-6*MatrixXd::Identity(_k,_k);
+            _qpData.g   = -_X.transpose()*_momentumDes;
         }
         STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
     }
@@ -140,6 +140,7 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
         solve_quadprog(_qpData.H, _qpData.g, _qpData.CE, _qpData.ce0, _qpData.CI, _qpData.ci0, _fcDes);
     }
     STOP_PROFILING(PROFILE_FORCE_QP);
+    sendMsg("Momentum error  = "+toString((_X*_fcDes-_momentumDes).norm()));
     
     //*********************************
     // COMPUTE DESIRED ACCELERATIONS
@@ -183,6 +184,7 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     
     _Z.setIdentity(_n,_n);
     updateNullspace(_Jc_Sbar_svd);
+    sendMsg("Jc*Sbar*Z = "+toString((_Jc_Sbar*_Z).sum()));
     
     // Solve the equality motion task
     // N=I
