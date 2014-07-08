@@ -165,13 +165,14 @@ void WholeBodyReachThread::run()
                 <<toString(_tauDes.transpose(),1)<<endl;
         }
         else
+        {
             _robot->setControlReference(_tauDes.data());
+        }
     }
 
     _paramHelper->sendStreamParams();
     _paramHelper->unlock();
-
-    sendMsg("tauDes \t"+toString(_tauDes.transpose(),1));
+    sendMsg("");
     getLogger().countdown();
 }
 
@@ -189,7 +190,7 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
     AWPolyElement el;
     el.data = _qJ_yarp;
     el.time = _qJStamps[0];
-    _dqJ_yarp = 2.0*_dqFilt->estimate(el);
+    _dqJ_yarp = _dqFilt->estimate(el)/REAL_TIME_FACTOR;
     for(int i=0; i<_n; i++)
         _robotState.dqJ(i) = _dqJ_yarp(i);
 #else
@@ -245,6 +246,7 @@ void WholeBodyReachThread::preStartOperations()
     _solver.init(_robotState);
     _status = WHOLE_BODY_REACH_ON;                 // set thread status to "on"
     _robot->setControlMode(CTRL_MODE_TORQUE);
+    cout<<"\nWholeBodyReachThread::preStartOperations()\n\n";
 }
 
 //*************************************************************************************************************************
@@ -253,6 +255,7 @@ void WholeBodyReachThread::preStopOperations()
     // no need to lock because the mutex is already locked
 //    VectorXd dqMotors = VectorXd::Zero(_n);
 //    _robot->setControlReference(dqMotors.data());       // stop joint motors
+    cout<<"\nWholeBodyReachThread::preStopOperations()\n\n";
     _robot->setControlMode(CTRL_MODE_POS);              // set position control mode
     _status = WHOLE_BODY_REACH_OFF;                            // set thread status to "off"
 }
@@ -264,16 +267,6 @@ void WholeBodyReachThread::numberOfConstraintsChanged()
 //    _solver->resize(_k, _n+6);
 }
 
-
-//*************************************************************************************************************************
-//void WholeBodyReachThread::normalizeFootOrientation()
-//{
-//    double axisNorm = norm3d(&(xd_foot[3]));
-//    xd_foot[3] /= axisNorm;
-//    xd_foot[4] /= axisNorm;
-//    xd_foot[5] /= axisNorm;
-//}
-
 //*************************************************************************************************************************
 void WholeBodyReachThread::threadRelease()
 {
@@ -284,14 +277,6 @@ void WholeBodyReachThread::parameterUpdated(const ParamProxyInterface *pd)
 {
     switch(pd->id)
     {
-    case PARAM_ID_XDES_FOREARM:
-//        normalizeFootOrientation(); break;
-    case PARAM_ID_TRAJ_TIME_MOMENTUM:
-    case PARAM_ID_TRAJ_TIME_FOREARM:
-    case PARAM_ID_TRAJ_TIME_HAND:
-    case PARAM_ID_TRAJ_TIME_POSTURE:
-//        trajGenPosture->setT(tt_posture);
-            break;
     case PARAM_ID_SUPPORT_PHASE:
         numberOfConstraintsChanged(); break;
     default:
@@ -302,6 +287,7 @@ void WholeBodyReachThread::parameterUpdated(const ParamProxyInterface *pd)
 //*************************************************************************************************************************
 void WholeBodyReachThread::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
 {
+    cout<<"\ncommand received called\n\n";
     switch(cd.id)
     {
     case COMMAND_ID_START:

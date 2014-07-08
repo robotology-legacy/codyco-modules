@@ -95,11 +95,12 @@ static const Eigen::IOFormat matrixPrintFormat(1, Eigen::DontAlignCols, " ", ";\
 // *** CONSTANTS
 static const double     WBR_DEG2RAD     = 3.14/180.0;
 static const double     WBR_RAD2DEG     = 180.0/3.14;
+static const double     REAL_TIME_FACTOR = 0.25;    // simulation real-time factor
 static const double     PRINT_PERIOD    = 2.0;      // period of debug prints (in sec)
 //static const int        PRINT_MSG_LEVEL = MSG_DEBUG; // only messages whose type is >= PRINT_MSG_LEVEL are printed
 static const double     KP_MAX          = 100.0;    // max value of proportional gains
 static const double     DQ_MAX          = 1.0;      // max joint velocity allowed (rad/sec)
-static const double     TAU_MAX         = 20.0;     // max joint torque allowed (Nm)
+static const double     TAU_MAX         = 200.0;    // max joint torque allowed (Nm)
 static const double     PINV_TOL        = 1e-4;     // threshold for truncated pseudoinverses
 
 static const string     GRASP_HAND_LINK_NAME        = "r_gripper";

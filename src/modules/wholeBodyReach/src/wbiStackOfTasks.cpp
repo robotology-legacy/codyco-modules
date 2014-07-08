@@ -133,7 +133,7 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     }
     STOP_PROFILING(PROFILE_FORCE_QP_PREP);
     
-//    cout<< "momentumDes "<<toString(_momentumDes,1)<<endl;
+    sendMsg("momentumDes "+toString(_momentumDes,1));
 //    cout<< "g "<<toString(_qpData.g,1)<<endl;
     START_PROFILING(PROFILE_FORCE_QP);
     {
@@ -156,8 +156,8 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     }
     STOP_PROFILING(PROFILE_DDQ_DYNAMICS_CONSTR);
     
-    sendMsg("ddqDes (dynamic consistent) = "+toString(_ddqDes,1));
-    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+//    sendMsg("ddqDes (dynamic consistent) = "+toString(_ddqDes,1));
+//    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
 
     // Compute ddq that respect also contact constraints:
     //      Sbar     = [-Mb^{-1}*Mbj; eye(n)];
@@ -178,13 +178,13 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     }
     STOP_PROFILING(PROFILE_DDQ_CONTACT_CONSTR);
     
-    sendMsg("ddqDes (contact consistent) = "+toString(_ddqDes,1));
-    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+//    sendMsg("ddqDes (contact consistent) = "+toString(_ddqDes,1));
+//    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+//    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
     
     _Z.setIdentity(_n,_n);
     updateNullspace(_Jc_Sbar_svd);
-    sendMsg("Jc*Sbar*Z = "+toString((_Jc_Sbar*_Z).sum()));
+//    sendMsg("Jc*Sbar*Z = "+toString((_Jc_Sbar*_Z).sum()));
     
     // Solve the equality motion task
     // N=I
@@ -237,9 +237,25 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     sendMsg("ddqDes       = "+toString(_ddqDes,1));
 //    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
     sendMsg("ddq_jPosture = "+toString(_ddq_jPosture,1));
-    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
-    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+//    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+//    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
+//    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+    
+#define DEBUG_SOLVER
+#ifdef DEBUG_SOLVER
+    MatrixRXd Nc        = nullSpaceProjector(_Jc, PINV_TOL);
+    MatrixRXd NcSTpinvD = pinvDampedEigen(Nc.rightCols(_n), _numericalDamping);
+    MatrixRXd Jcpinv    = pinvDampedEigen(_Jc, _numericalDamping);
+    VectorXd ddqDes1    = -Jcpinv*_dJcdq;
+    VectorXd ddqDes     = ddqDes1 + NcSTpinvD.transpose()*(_ddq_jPosture - ddqDes1.tail(_n));
+    VectorXd tauDes     = NcSTpinvD * (_M*ddqDes + _h);
+//    sendMsg("-Jcpinv*_dJcdq = "+toString(ddqDes1,1));
+//    sendMsg("ddqDes1 + NcSTpinvD^T*(_ddq_jPosture - ddqDes1) = "+toString(ddqDes,1));
+//    sendMsg("(_M*ddqDes + _h)= "+toString((_M*ddqDes + _h),1));
+    sendMsg("torques CFC   = "+toString(torques,1));
+    sendMsg("tauDes (JSID) = "+toString(tauDes,1));
+    torques = tauDes;
+#endif
 }
 
 void wbiStackOfTasks::updateNullspace(JacobiSVD<MatrixRXd>& svd)

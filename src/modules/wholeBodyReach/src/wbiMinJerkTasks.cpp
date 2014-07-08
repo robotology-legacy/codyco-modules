@@ -192,16 +192,28 @@ MinJerkPDPostureTask::MinJerkPDPostureTask(std::string taskName, double sampleTi
 bool MinJerkPDPostureTask::update(RobotState& state)
 {
     _trajGen.computeNextValues(_qDes);  // the trajectory generator uses deg (not rad)
-    _a_eq  = _trajGen.getAcc();
-    // multiply gains times DEG2RAD to avoid using very small gain values
-    _a_eq += WBR_DEG2RAD * _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ);
-    _a_eq += WBR_DEG2RAD * _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ);
+    _a_eq  = WBR_DEG2RAD * (_trajGen.getAcc()
+                            + _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ)
+                            + _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ));
     return true;
 }
 
 void MinJerkPDPostureTask::init(RobotState& state)
 {
     _trajGen.init(WBR_RAD2DEG*state.qJ);
+#ifdef DEBUG_MINJERKPDPOSTURETASK
+    for(int i=0; i<10; i++)
+    {
+        _trajGen.computeNextValues(_qDes);  // the trajectory generator uses deg (not rad)
+        cout<<"*** Time "<< i*_trajGen.getSampleTime() << endl;
+        cout<<"  Posture acc "<<_trajGen.getAcc().transpose()<<endl;;
+        cout<<"  Posture vel "<<_trajGen.getVel().transpose()<<endl;
+        cout<<"  Posture pos "<<_trajGen.getPos().transpose()<<endl;
+//        _a_eq += WBR_DEG2RAD * _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ);
+//        _a_eq += WBR_DEG2RAD * _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ);
+    }
+    _trajGen.init(WBR_RAD2DEG*state.qJ);
+#endif
 }
 
 
