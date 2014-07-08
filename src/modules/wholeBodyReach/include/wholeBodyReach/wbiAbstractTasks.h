@@ -98,7 +98,11 @@ public:
     
     /** Get the current matrix of the equality. */
     virtual void getEqualityMatrix(Eigen::MatrixRef A)
-    { A = _A_eq; }
+    {
+        assert(A.cols()==_A_eq.cols());
+        assert(A.rows()==_A_eq.rows());
+        A = _A_eq;
+    }
     
     /** Get the current matrix of the equality. */
     virtual const Eigen::MatrixRXd& getEqualityMatrix()
@@ -106,7 +110,10 @@ public:
     
     /** Get the current vector of the equality. */
     virtual void getEqualityVector(Eigen::VectorRef a)
-    { a = _a_eq; }
+    {
+        assert(a.size()==_a_eq.size());
+        a = _a_eq;
+    }
     
     /** Get the current vector of the equality. */
     virtual const Eigen::VectorXd& getEqualityVector()
@@ -137,7 +144,11 @@ public:
     
     /** Get the current matrix of the inequality. */
     virtual void getInequalityMatrix(Eigen::MatrixRef A)
-    { A = _A_in; }
+    {
+        assert(A.cols()==_A_in.cols());
+        assert(A.rows()==_A_in.rows());
+        A = _A_in;
+    }
     
     /** Get the current matrix of the inequality. */
     virtual const Eigen::MatrixRXd& getInequalityMatrix()
@@ -145,7 +156,11 @@ public:
 
     /** Get the current vector of the inequality. */
     virtual void getInequalityVectors(Eigen::VectorRef l, Eigen::VectorRef u)
-    { l = _l_in;    u = _u_in; }
+    {
+        assert(l.size()==_l_in.size());
+        assert(u.size()==_u_in.size());
+        l = _l_in;    u = _u_in;
+    }
     
     /** Get the current lower bound vector of the inequality. */
     virtual const Eigen::VectorXd& getInequalityLowerBound()
@@ -202,6 +217,7 @@ public:
       * instance of ParamHelperServer.
       */
     virtual void linkParameterKp(paramHelp::ParamHelperServer* paramHelper, int paramId);
+    virtual void linkParameterKd(paramHelp::ParamHelperServer* paramHelper, int paramId);
     
     /** Method called every time a parameter (for which a callback is registered)
       * is changed. 

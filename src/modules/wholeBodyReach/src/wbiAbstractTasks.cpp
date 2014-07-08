@@ -31,6 +31,13 @@ void WbiPDTask::linkParameterKp(ParamHelperServer* paramHelper, int paramId)
     _paramId_Kp = paramId;
     paramHelper->linkParam(paramId, _Kp.data());
     paramHelper->registerParamValueChangedCallback(paramId, this);
+    if(_automaticCriticallyDamped)
+        _Kd = 2*_Kp.cwiseSqrt();
+}
+
+void WbiPDTask::linkParameterKd(ParamHelperServer* paramHelper, int paramId)
+{
+    paramHelper->linkParam(paramId, _Kd.data());
 }
 
 void WbiPDTask::parameterUpdated(const ParamProxyInterface *pp)
@@ -40,8 +47,6 @@ void WbiPDTask::parameterUpdated(const ParamProxyInterface *pp)
         if(_automaticCriticallyDamped)
             _Kd = 2*_Kp.cwiseSqrt();
     }
-    else
-        cout<<"A callback is registered but not managed for the parameter "<<pp->name<<endl;
 }
 
 bool WbiPDTask::setProportionalGain(VectorConst Kp)

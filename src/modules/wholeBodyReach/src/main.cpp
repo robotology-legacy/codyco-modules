@@ -62,6 +62,9 @@ int main (int argc, char * argv[])
         fprintf(stderr,"Sorry YARP network is not available\n");
         return -1;
     }
+    
+    // use gazebo clock
+    Time::useNetworkClock("/clock");
 
     //Creating the module
     WholeBodyReachModule module;

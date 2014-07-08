@@ -29,14 +29,15 @@ using namespace wbiIcub;
 
 
 //*************************************************************************************************************************
-WholeBodyReachThread::WholeBodyReachThread(string name, string robotName, int period, ParamHelperServer *ph, wholeBodyInterface *wbi)
+WholeBodyReachThread::WholeBodyReachThread(string name, string robotName, int period,
+                                           ParamHelperServer *ph, wholeBodyInterface *wbi)
     : RateThread(period),
-    _tasks(GRASP_HAND_LINK_NAME, SUPPORT_FOREARM_LINK_NAME, LEFT_FOOT_LINK_NAME, RIGHT_FOOT_LINK_NAME, wbi),
-    _solver(wbi),
+    _tasks(GRASP_HAND_LINK_NAME, SUPPORT_FOREARM_LINK_NAME, LEFT_FOOT_LINK_NAME,
+           RIGHT_FOOT_LINK_NAME, period*1e-3, wbi),
+    _solver(wbi, DEFAULT_USE_NULLSPACE_BASE),
     _name(name), _robotName(robotName), _paramHelper(ph), _robot(wbi)
 {
     _status = WHOLE_BODY_REACH_OFF;
-    _printCountdown = 0;
 }
 
 //*************************************************************************************************************************
@@ -48,9 +49,11 @@ bool WholeBodyReachThread::threadInit()
     // I must know the support phase before calling numberOfConstraintsChanged (to know the number of constraints)
     YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_SUPPORT_PHASE,       &_supportPhase));
     _n = _robot->getJointList().size();
+    cout<< "The robot has "<< _n<< " degrees of freedom\n";
     _k = 12;
     
     // resize all vectors
+    _qjDeg.setZero(_n);
     _tauDes.setZero(_n);
     _JfootR.resize(NoChange, _n+6);
     _JfootL.resize(NoChange, _n+6);
@@ -71,6 +74,9 @@ bool WholeBodyReachThread::threadInit()
     _solver.addConstraint(_tasks.leftFoot);
     _solver.addConstraint(_tasks.rightFoot);
     _solver.pushEqualityTask(_tasks.supportForearm);
+    
+    _solver.linkParameterToVariable(wbiStackOfTasks::NUMERICAL_DAMPING,  _paramHelper, PARAM_ID_NUM_DAMP);
+    _solver.linkParameterToVariable(wbiStackOfTasks::USE_NULLSPACE_BASE, _paramHelper, PARAM_ID_USE_NULLSPACE_BASE);
 
     // link module rpc parameters to member variables
     _tasks.momentum.linkParameterKp(         _paramHelper, PARAM_ID_KP_MOMENTUM);
@@ -78,12 +84,16 @@ bool WholeBodyReachThread::threadInit()
     _tasks.graspHand.linkParameterKp(        _paramHelper, PARAM_ID_KP_HAND);
     _tasks.posture.linkParameterKp(          _paramHelper, PARAM_ID_KP_POSTURE);
     
+    _tasks.momentum.linkParameterKd(         _paramHelper, PARAM_ID_KD_MOMENTUM);
+    _tasks.supportForearm.linkParameterKd(   _paramHelper, PARAM_ID_KD_FOREARM);
+    _tasks.graspHand.linkParameterKd(        _paramHelper, PARAM_ID_KD_HAND);
+    _tasks.posture.linkParameterKd(          _paramHelper, PARAM_ID_KD_POSTURE);
+    
     _tasks.momentum.linkParameterTrajectoryDuration(       _paramHelper, PARAM_ID_TRAJ_TIME_MOMENTUM);
     _tasks.supportForearm.linkParameterTrajectoryDuration( _paramHelper, PARAM_ID_TRAJ_TIME_FOREARM);
     _tasks.graspHand.linkParameterTrajectoryDuration(      _paramHelper, PARAM_ID_TRAJ_TIME_HAND);
     _tasks.posture.linkParameterTrajectoryDuration(        _paramHelper, PARAM_ID_TRAJ_TIME_POSTURE);
     
-//    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_PINV_DAMP,           &(solver->pinvDamp)));
 //    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_Q_MAX,               solver->qMax.data()));
 //    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_Q_MIN,               solver->qMin.data()));
 //    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_JNT_LIM_MIN_DIST,    &(solver->safetyThreshold)));
@@ -103,9 +113,11 @@ bool WholeBodyReachThread::threadInit()
 //    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_QREF,                qr.data()));        // constant size
     
     _tasks.momentum.linkParameterCom(       _paramHelper, PARAM_ID_X_COM);
+    _tasks.momentum.linkParameterComVel(    _paramHelper, PARAM_ID_DX_COM);
+    _tasks.momentum.linkParameterMomentum(  _paramHelper, PARAM_ID_MOMENTUM);
     _tasks.supportForearm.linkParameterPose(_paramHelper, PARAM_ID_X_FOREARM);
     _tasks.graspHand.linkParameterPose(     _paramHelper, PARAM_ID_X_HAND);
-    _paramHelper->linkParam(                PARAM_ID_Q,   _robotState.qJ.data());
+    _paramHelper->linkParam(                PARAM_ID_Q,   _qjDeg.data());
     
     // Register callbacks for some module parameters
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_SUPPORT_PHASE,       this));
@@ -135,7 +147,8 @@ bool WholeBodyReachThread::threadInit()
     
     if(!readRobotStatus(true))
         return false;
-
+    _solver.init(_robotState);
+    
     printf("\n\n");
     return true;
 }
@@ -159,14 +172,15 @@ void WholeBodyReachThread::run()
                 <<toString(_tauDes.transpose(),1)<<endl;
         }
         else
+        {
             _robot->setControlReference(_tauDes.data());
+        }
     }
 
     _paramHelper->sendStreamParams();
     _paramHelper->unlock();
-
     sendMsg("");
-    _printCountdown = (_printCountdown>=PRINT_PERIOD) ? 0 : _printCountdown +(int)getRate();   // countdown for next print (see sendMsg method)
+    getLogger().countdown();
 }
 
 //*************************************************************************************************************************
@@ -182,14 +196,24 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
         _qJ_yarp(i) = _robotState.qJ(i);
     AWPolyElement el;
     el.data = _qJ_yarp;
-    el.time = _qJStamps[0];
-    _dqJ_yarp = 2.0*_dqFilt->estimate(el);
+    el.time = Time::now(); //Use yarp time rather than _qJStamps to be synchronized with simulator
+    
+//    static double _qJStampsOld = 0.0;
+//    static double timeStampOld = 0.0;
+//    double timeStamp = Time::now();
+//    sendMsg("q stamp-stampOld = "+toString(_qJStamps[0]-_qJStampsOld));
+//    sendMsg("t stamp-stampOld = "+toString(timeStamp-timeStampOld)+ "\t Is system clock? "+toString(Time::isSystemClock()));
+//    _qJStampsOld = _qJStamps[0];
+//    timeStampOld = timeStamp;
+    
+    _dqJ_yarp = _dqFilt->estimate(el); // /REAL_TIME_FACTOR;
     for(int i=0; i<_n; i++)
         _robotState.dqJ(i) = _dqJ_yarp(i);
 #else
     res = res && _robot->getEstimates(ESTIMATE_JOINT_POS,    _robotState.qJ.data(),     -1.0, blockingRead);
     res = res && _robot->getEstimates(ESTIMATE_JOINT_VEL,    _robotState.dqJ.data(),    -1.0, blockingRead);
 #endif
+    _qjDeg = CTRL_RAD2DEG*_robotState.qJ;
 
     // base orientation conversion
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
@@ -233,12 +257,12 @@ bool WholeBodyReachThread::areDesiredJointTorquesTooLarge()
 void WholeBodyReachThread::preStartOperations()
 {
     // no need to lock because the mutex is already locked
-    readRobotStatus(true);                  // update com, foot and joint positions
-//    trajGenCom->init(x_com);                // initialize trajectory generators
-//    trajGenFoot->init(x_foot);
-//    trajGenPosture->init(qRad);
+    readRobotStatus(true);
+    // initialize trajectory generators
+    _solver.init(_robotState);
     _status = WHOLE_BODY_REACH_ON;                 // set thread status to "on"
     _robot->setControlMode(CTRL_MODE_TORQUE);
+    cout<<"\nWholeBodyReachThread::preStartOperations()\n\n";
 }
 
 //*************************************************************************************************************************
@@ -247,6 +271,7 @@ void WholeBodyReachThread::preStopOperations()
     // no need to lock because the mutex is already locked
 //    VectorXd dqMotors = VectorXd::Zero(_n);
 //    _robot->setControlReference(dqMotors.data());       // stop joint motors
+    cout<<"\nWholeBodyReachThread::preStopOperations()\n\n";
     _robot->setControlMode(CTRL_MODE_POS);              // set position control mode
     _status = WHOLE_BODY_REACH_OFF;                            // set thread status to "off"
 }
@@ -258,16 +283,6 @@ void WholeBodyReachThread::numberOfConstraintsChanged()
 //    _solver->resize(_k, _n+6);
 }
 
-
-//*************************************************************************************************************************
-//void WholeBodyReachThread::normalizeFootOrientation()
-//{
-//    double axisNorm = norm3d(&(xd_foot[3]));
-//    xd_foot[3] /= axisNorm;
-//    xd_foot[4] /= axisNorm;
-//    xd_foot[5] /= axisNorm;
-//}
-
 //*************************************************************************************************************************
 void WholeBodyReachThread::threadRelease()
 {
@@ -278,24 +293,17 @@ void WholeBodyReachThread::parameterUpdated(const ParamProxyInterface *pd)
 {
     switch(pd->id)
     {
-    case PARAM_ID_XDES_FOREARM:
-//        normalizeFootOrientation(); break;
-    case PARAM_ID_TRAJ_TIME_MOMENTUM:
-    case PARAM_ID_TRAJ_TIME_FOREARM:
-    case PARAM_ID_TRAJ_TIME_HAND:
-    case PARAM_ID_TRAJ_TIME_POSTURE:
-//        trajGenPosture->setT(tt_posture);
-            break;
     case PARAM_ID_SUPPORT_PHASE:
         numberOfConstraintsChanged(); break;
     default:
-        sendMsg("A callback is registered but not managed for the parameter "+pd->name, MSG_WARNING);
+        sendMsg("A callback is registered but not managed for the parameter "+pd->name, MSG_ERROR);
     }
 }
 
 //*************************************************************************************************************************
 void WholeBodyReachThread::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
 {
+    cout<<"\ncommand received called\n\n";
     switch(cd.id)
     {
     case COMMAND_ID_START:
@@ -305,7 +313,7 @@ void WholeBodyReachThread::commandReceived(const CommandDescription &cd, const B
         preStopOperations();
         break;
     default:
-        sendMsg("A callback is registered but not managed for the command "+cd.name, MSG_WARNING);
+        sendMsg("A callback is registered but not managed for the command "+cd.name, MSG_ERROR);
     }
 }
 
@@ -320,8 +328,7 @@ void WholeBodyReachThread::startController()
 //*************************************************************************************************************************
 void WholeBodyReachThread::sendMsg(const string &s, MsgType type)
 {
-    if(_printCountdown==0 && type>=PRINT_MSG_LEVEL)
-        printf("[WholeBodyReachThread] %s\n", s.c_str());
+    getLogger().sendMsg("[WBRThread] "+s, type);
 }
 
 

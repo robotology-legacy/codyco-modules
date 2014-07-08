@@ -42,7 +42,7 @@ using std::ostringstream;
 
 Stopwatch& getProfiler()
 {
-    static Stopwatch s(CPU_TIME);   // alternative is REAL_TIME
+    static Stopwatch s(REAL_TIME);   // alternatives are CPU_TIME and REAL_TIME
     return s;
 }
 

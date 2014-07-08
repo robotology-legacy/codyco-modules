@@ -23,6 +23,7 @@
 #include <Eigen/SVD>
 #include <yarp/sig/Vector.h>
 #include <yarp/os/Time.h>           // Timer
+#include <paramHelp/ParamHelperServer.h>
 #include <vector>
 #include <list>
 #include <string>
@@ -31,6 +32,7 @@
 
 #include <wholeBodyReach/wholeBodyReachConstants.h>
 #include <wholeBodyReach/wbiMinJerkTasks.h>
+#include <wholeBodyReach/Logger.h>
 
 
 namespace wholeBodyReach
@@ -44,11 +46,23 @@ namespace wholeBodyReach
   * - there is one (and only one) task for the posture
   * - there is an arbitrary number of generic equality motion tasks
  */
-class wbiStackOfTasks
+class wbiStackOfTasks : public paramHelp::ParamValueObserver
 {
+public:
+    /// This enum defines all the parameters of this class
+    enum ParamTypeId
+    {
+        USE_NULLSPACE_BASE,
+        NUMERICAL_DAMPING
+    };
+    
 protected:
-    bool                                _useNullspaceBase;  /// true: use base, false: use projector
-    int                                 _svdOptions;
+    double          _numericalDamping;          /// damping factor to use in solver
+    int             _numericalDamping_paramId;  /// id of the parameter associated to _numericalDamping
+    int             _useNullspaceBase;          /// 1: use base, 0: use projector
+    int             _useNullspaceBase_paramId;  /// id of the parameter associated to _useNullspaceBase
+    
+    int             _svdOptions;                /// specify whether to compute full/thin U/V
     
     std::list<MinJerkPDLinkPoseTask*>   _equalityTasks;
     MinJerkPDMomentumTask*              _momentumTask;
@@ -65,9 +79,16 @@ protected:
     
     Eigen::MatrixRXd                _Mb_inv;    /// inverse of the 6x6 base mass matrix
     Eigen::LLT<Eigen::MatrixRXd>    _Mb_llt;    /// Cholesky decomposition of Mb
+    Eigen::MatrixRXd                _Mb_inv_M_bj;   /// _Mb_inv*M_bj
     
-    Eigen::VectorXd                 _z;         /// null-space term
+    Eigen::VectorXd                 _ddq_jDes;  /// desired joint accelerations
     Eigen::MatrixRXd                _Z;         /// null-space basis/projector
+    
+    /// HIERARCHY OF EQUALITY RESOLUTION 
+    Eigen::MatrixRXd                _A;
+    Eigen::MatrixRXd                _A_i;
+    Eigen::VectorXd                 _b_i;
+    Eigen::JacobiSVD<Eigen::MatrixRXd>  _A_svd;
     
     Eigen::MatrixRXd                _Jc_Sbar;   /// Jc projected in nullspace of base dynamics
     Eigen::JacobiSVD<Eigen::MatrixRXd>  _Jc_Sbar_svd;   /// svd of Jc*Sbar
@@ -77,7 +98,7 @@ protected:
     Eigen::VectorXd             _dJcdq;         /// dJc*dq
     Eigen::VectorXd             _fcDes;         /// desired constraint forces (result of QP)
     Eigen::Vector6d             _momentumDes;   /// desired momentum
-    Eigen::VectorXd             _ddqPosture;    /// desired acceleration given by posture task
+    Eigen::VectorXd             _ddq_jPosture;  /// desired acceleration given by posture task
     Eigen::VectorXd             _ddqDes;        /// desired accelerations (n+6)
     
     
@@ -94,14 +115,25 @@ protected:
         Eigen::VectorXd ci0;    /// inequality constraint vector
     } _qpData;
     
+    /** Compute the inverse of the matrix Mb. */
     void computeMb_inverse();
     
     /** Update the null-space base/projector (contained in _Z) by projecting it
       * in the nullspace of the specified matrix. */
     void updateNullspace(Eigen::JacobiSVD<Eigen::MatrixRXd>& svd);
     
+    void sendMsg(const std::string &s, MsgType type=MSG_STREAM_INFO)
+    {
+        getLogger().sendMsg("[wbiStackOfTasks] "+s, type);
+    }
+    
 public:
-    wbiStackOfTasks(wbi::wholeBodyInterface* robot);
+    /** Constructor
+      * @param robot Class to compute the robot dynamics and kinematics
+      * @param useNullspaceBase If true the solver uses the basis of the nullspace, 
+                                otherwise it uses nullspace projectors
+     */
+    wbiStackOfTasks(wbi::wholeBodyInterface* robot, bool useNullspaceBase=false);
     
     /** Update all tasks/constraints and compute the control
       * torques to send to the motors.
@@ -110,14 +142,14 @@ public:
       */
     virtual void computeSolution(RobotState& robotState, Eigen::VectorRef torques);
     
-    virtual void useNullspaceBase(bool b)
-    {
-        _useNullspaceBase = b;
-        if(_useNullspaceBase)
-            _svdOptions = Eigen::ComputeFullU | Eigen::ComputeFullV;
-        else
-            _svdOptions = Eigen::ComputeThinU | Eigen::ComputeThinV;
-    }
+    /** Initialize the solver and the trajectory generator of the tasks.
+      * To be called once before starting to call computeSolution. */
+    virtual void init(RobotState& robotState);
+    
+    virtual void linkParameterToVariable(ParamTypeId paramType, paramHelp::ParamHelperServer* paramHelper, int paramId);
+    
+    /** Method called every time a parameter (for which a callback is registered) is changed. */
+    virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
     
     /** Push the specified equality task at the end of the stack,
       * so that it becomes the lowest-priority task.
@@ -156,91 +188,24 @@ public:
     virtual void setPostureTask(MinJerkPDPostureTask& taskPosture)
     { _postureTask=&taskPosture; }
     
+    virtual void useNullspaceBase(bool b)
+    {
+        _useNullspaceBase = b? 1 : 0;
+        if(b)
+            _svdOptions = Eigen::ComputeFullU | Eigen::ComputeFullV;
+        else
+            _svdOptions = Eigen::ComputeThinU | Eigen::ComputeThinV;
+    }
+    
+    void setNumericalDamping(double d){ _numericalDamping=d; }
+    
+    double getNumericalDamping(){ return _numericalDamping; }
 };
     
-    
-    
-    
 
-/** Model of a task in the form of a quadratic cost function ||A*x-b||^2. */
-class HQP_Task
-{
-public:
-    Eigen::MatrixRXd A, Apinv, ApinvD;
-    Eigen::MatrixRXd Spinv, SpinvD;
-    Eigen::MatrixRXd N;     // nullspace projector of this task
-    Eigen::VectorXd b;     // known term
-    Eigen::VectorXd svA;   // singular value of the matrix A
+Eigen::VectorXd svdSolveWithDamping(const Eigen::JacobiSVD<Eigen::MatrixRXd>& svd, Eigen::VectorConst b, double damping=0.0);
 
-    /** Create a task with the specified dimensions.
-      * @param m Number of rows of A.
-      * @param n Number of columns of A. */
-    HQP_Task(int m, int n){ resize(m,n); }
-    HQP_Task(){}
-    void resize(int m, int n);
 
-};
-
-/** Solver for the following hierarchy of tasks:
-  * - Task 1: foot constraints (either 1 foot or 2 feet)
-  * - Task 2: center of mass (projection on the ground)
-  * - Task 3: swinging foot
-  * - Task 4: joint posture
-  */
-class WholeBodyReachSolver
-{
-    int n;                              // Number of joints (floating base included)
-    Eigen::MatrixRXd     S;              // selection matrix for joints in the active set
-    std::vector<int>    blockedJoints;  // list of blocked joints
-
-    void blockJoint(int j);             // block the specified joint, adding it to the active set
-public:
-    HQP_Task        constraints;        // k DoFs
-    HQP_Task        com;                // 2 DoFs
-    HQP_Task        foot;               // 6 DoFs
-    HQP_Task        posture;            // n-6 DoFs
-    Eigen::VectorXd qMax;               // joint upper bounds (deg)
-    Eigen::VectorXd qMin;               // joint lower bounds (deg)
-    double          pinvTol;            // Tolerance used for computing truncated pseudoinverses
-    double          pinvDamp;           // Damping factor used for computing damped pseudoinverses
-    double          safetyThreshold;    // minimum distance from the joint bounds (deg)
-    int             solverIterations;   // number of iterations required by the solver
-    double          solverTime;         // time taken to compute the solution
-
-    /** @param _k Number of constraints.
-      * @param _n Number of joints (floating base included). 
-      * @param _pinvTol Tolerance used for computing truncated pseudoinverses.
-      * @param _pinvDamp Damping factor used for computing damped pseudoinverses. 
-      * @param _safetyThreshold Minimum distance to maintain from the joint bounds.
-      * @note The number of joints and constraints can be changed by calling the resize method.
-      *       The tolerances can be changed as well by writing the corresponding public member variables.*/
-    WholeBodyReachSolver(int _k, int _n, double _pinvTol, double _pinvDamp, double _safetyThreshold=0.0);
-
-    /** Call this method any time either the number of joints or of constraints changes.
-      * It resizes all the vectors and matrices.
-      * @param _k Number of constraints.
-      * @param _n Number of joints. */
-    void resize(int _k, int _n);
-    
-    /** Find the desired joint velocities for solving the hierarchy of tasks.
-      * @param qDes Output vector, desired joint velocities (rad/sec).
-      * @param q Input vector, current joint positions (deg), used to check whether the joints are close to their bounds.
-      */
-    void solve(Eigen::VectorXd &dqDes, const Eigen::VectorXd &q);
-
-    const std::vector<int>& getBlockedJointList(){ return blockedJoints; }
-};
-
-/** Tolerance for considering two values equal */
-const double ZERO_TOL = 1e-5;
-
-/**
- * Given the real position/orientation and the desired position/orientation, compute the error as a linear/angular velocity.
- * @param x Real position/orientation as 7d vector
- * @param xd Desired position/orientation as a 7d vector
- * @return w Output 6d vector, linear/angular velocity
- */
-yarp::sig::Vector compute6DError(const yarp::sig::Vector &x, const yarp::sig::Vector &xd);
 
 /** Compute the truncated pseudoinverse of the specified matrix A. 
   * This version of the function takes addtional input matrices to avoid allocating memory and so improve 
@@ -269,19 +234,13 @@ Eigen::MatrixRXd nullSpaceProjector(const Eigen::Ref<Eigen::MatrixRXd> A, double
     
 Eigen::MatrixRXd pinvDampedEigen(const Eigen::Ref<Eigen::MatrixRXd> &A, double damp);
 
+    
+/** Tolerance for considering two values equal */
+const double ZERO_TOL = 1e-5;
+    
 void assertEqual(const Eigen::MatrixRXd &A, const Eigen::MatrixRXd &B, std::string testName, double tol = ZERO_TOL);
 
 void testFailed(std::string testName);
-
-/** Convert a generic variable into a string. */
-template <class T> inline std::string toString(const T& t)
-{ std::ostringstream ss; ss << t; return ss.str(); }
-
-/** Convert a generic vector into a string */
-template <class T> inline std::string toString(const std::vector<T>& v, const char *separator=" ")
-{ std::ostringstream s; std::copy(v.begin(), v.end(), std::ostream_iterator<T>(s, separator)); return s.str(); }
-
-std::string toString(const Eigen::MatrixRXd &m, int precision=2, const char* endRowStr="\n", int maxRowsPerLine=10);
 
 }
 

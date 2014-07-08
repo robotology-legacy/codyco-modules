@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2014 CoDyCo
- * @author: Francesco Romano
+ * @author: Francesco Romano, Andrea Del Prete
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -98,7 +98,7 @@ bool MinJerkTrajGen::computeNextValues(VectorConst setPoint)
     return true;
 }
 
-VectorConst MinJerkTrajGen::getPos()
+const VectorXd& MinJerkTrajGen::getPos()
 {
     assert(_minimumJerkGenerator!=NULL);
     const yarp::sig::Vector& pos = _minimumJerkGenerator->getPos();
@@ -107,7 +107,7 @@ VectorConst MinJerkTrajGen::getPos()
     return _posEig;
 }
 
-VectorConst MinJerkTrajGen::getVel()
+const VectorXd& MinJerkTrajGen::getVel()
 {
     assert(_minimumJerkGenerator!=NULL);
     const yarp::sig::Vector& vel = _minimumJerkGenerator->getVel();
@@ -116,7 +116,7 @@ VectorConst MinJerkTrajGen::getVel()
     return _velEig;
 }
 
-VectorConst MinJerkTrajGen::getAcc()
+const VectorXd& MinJerkTrajGen::getAcc()
 {
     assert(_minimumJerkGenerator!=NULL);
     const yarp::sig::Vector& acc = _minimumJerkGenerator->getAcc();

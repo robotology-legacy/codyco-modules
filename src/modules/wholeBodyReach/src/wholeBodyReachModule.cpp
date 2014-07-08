@@ -36,6 +36,7 @@
 #include "wholeBodyReach/wholeBodyReachConstants.h"
 #include "wholeBodyReach/wholeBodyReachThread.h"
 #include "wholeBodyReach/wholeBodyReachModule.h"
+#include <wholeBodyReach/Logger.h>
 
 YARP_DECLARE_DEVICES(icubmod)
 
@@ -114,6 +115,10 @@ bool WholeBodyReachModule::configure(ResourceFinder &rf)
     rpcPort.open(("/"+moduleName+"/rpc").c_str());
     setName(moduleName.c_str());
     attach(rpcPort);
+    
+    //-------------------------- LOGGER --------------------------------------
+    getLogger().setTimeSample(period*1e-3);         // convert from ms to s
+    getLogger().setStreamPrintPeriod(PRINT_PERIOD);
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
     iCub::iDynTree::iCubTree_version_tag icub_version;

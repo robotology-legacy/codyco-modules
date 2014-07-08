@@ -64,9 +64,9 @@ namespace wholeBodyReach
         
         virtual bool computeNextValues(Eigen::VectorConst setPoint);
         
-        virtual Eigen::VectorConst getPos();
-        virtual Eigen::VectorConst getVel();
-        virtual Eigen::VectorConst getAcc();
+        virtual const Eigen::VectorXd& getPos();
+        virtual const Eigen::VectorXd& getVel();
+        virtual const Eigen::VectorXd& getAcc();
         
         virtual double getTrajectoryDuration(){ return _trajDuration; }
         virtual double getSampleTime(){ return _sampleTime; }
