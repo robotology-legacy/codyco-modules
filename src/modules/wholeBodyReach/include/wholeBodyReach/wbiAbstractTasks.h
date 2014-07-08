@@ -217,6 +217,7 @@ public:
       * instance of ParamHelperServer.
       */
     virtual void linkParameterKp(paramHelp::ParamHelperServer* paramHelper, int paramId);
+    virtual void linkParameterKd(paramHelp::ParamHelperServer* paramHelper, int paramId);
     
     /** Method called every time a parameter (for which a callback is registered)
       * is changed. 

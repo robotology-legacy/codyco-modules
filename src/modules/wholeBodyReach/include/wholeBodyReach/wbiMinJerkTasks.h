@@ -20,6 +20,7 @@
 
 #include <Eigen/Core>               // import most common Eigen types
 #include <yarp/sig/Vector.h>
+#include <iCub/ctrl/adaptWinPolyEstimator.h>
 #include <wholeBodyReach/wbiAbstractTasks.h>
 #include <wholeBodyReach/minJerkTrajGen.h>
 #include <wbi/wbiUtil.h>
@@ -130,7 +131,6 @@ namespace wholeBodyReach
                                     public MinJerkTask
     {
     protected:
-        Eigen::Vector3d             _v;         /// CoM velocity
         wbi::Frame                  _H;         /// homogenous matrix from world frame to CoM frame
         Eigen::Vector6d             _momentum;  /// 6d centroidal momentum
         double                      _robotMass; /// total mass of the robot
@@ -140,9 +140,15 @@ namespace wholeBodyReach
         
         // RPC PARAMETERS
         Eigen::Vector3d             _com;
+        Eigen::Vector3d             _v;         /// CoM velocity
         Eigen::Vector3d             _comDes;
-        int                         _paramId_com;       /// id of the parameter associated to _com
-        int                         _paramId_comDes;   /// id of the parameter associated to _comDes
+        Eigen::Vector3d             _comRef;
+        
+        // com vel estimation
+        iCub::ctrl::AWPolyEstimator*        _comFilt;           // derivative filters for com velocities
+        yarp::sig::Vector                  _com_yarp;          // com position
+        yarp::sig::Vector                  _v_yarp;            // com velocity
+
         
     public:
         MinJerkPDMomentumTask(std::string taskName, double sampleTime, wbi::wholeBodyInterface* robot);
@@ -157,6 +163,9 @@ namespace wholeBodyReach
          */
         virtual void linkParameterComDes(paramHelp::ParamHelperServer* paramHelper, int paramId);
         virtual void linkParameterCom(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        virtual void linkParameterComRef(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        virtual void linkParameterComVel(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        virtual void linkParameterMomentum(paramHelp::ParamHelperServer* paramHelper, int paramId);
         
         /** Method called every time a parameter (for which a callback is registered) is changed. */
         virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp)

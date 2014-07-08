@@ -18,6 +18,11 @@
 #include <wholeBodyReach/wbiMinJerkTasks.h>
 #include <wholeBodyReach/Logger.h>
 
+// TEMP
+#include <yarp/os/Time.h>
+using namespace yarp::math;
+// END TEMP
+
 using namespace wholeBodyReach;
 using namespace std;
 using namespace wbi;
@@ -110,10 +115,17 @@ MinJerkPDMomentumTask::MinJerkPDMomentumTask(std::string taskName, double sample
     MinJerkTask(3, sampleTime)   // the trajectory generator is 3d because it works only for the linear part
 {
     _robotMass = -1.0;
+    
+    _comFilt = new iCub::ctrl::AWLinEstimator(16, 1);
+    _com_yarp.resize(3);
+    _v_yarp.resize(3);
 }
 
 bool MinJerkPDMomentumTask::update(RobotState& state)
 {
+    assert(_A_eq.rows()==6 && _A_eq.cols()==_n+6);
+    assert(_a_eq.size()==6);
+    
     bool res = true;
     // the first time compute the total mass of the robot
     if(_robotMass<0.0)
@@ -133,25 +145,44 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
     // copy data into Eigen vector
     _com(0) = _H.p[0]; _com(1) = _H.p[1]; _com(2) = _H.p[2];
     
+    {
+        _com_yarp(0)=_com(0);
+        _com_yarp(1)=_com(1);
+        _com_yarp(2)=_com(2);
+        iCub::ctrl::AWPolyElement el;
+        el.data = _com_yarp;
+        el.time = yarp::os::Time::now(); //Use yarp time to be synchronized with simulator
+        _v_yarp = _comFilt->estimate(el);
+        
+        getLogger().sendMsg("mass*com_vel2 = "+(_robotMass*_v_yarp).toString(3), MSG_STREAM_INFO);
+        getLogger().sendMsg("mass*com_vel  = "+toString(_robotMass*_v,3), MSG_STREAM_INFO);
+        getLogger().sendMsg("momentum      = "+toString(_momentum,3), MSG_STREAM_INFO);
+        
+        _v(0)=_v_yarp(0); _v(1)=_v_yarp(1); _v(2)=_v_yarp(2);
+    }
+    
     // update reference trajectory
     _trajGen.computeNextValues(_comDes);
+    _comRef = _trajGen.getPos();
     _a_eq.head<3>() = _robotMass * ( -state.g + _trajGen.getAcc()
                                      + _Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v)
-                                     + _Kp.head<3>().cwiseProduct(_trajGen.getPos()-_com) );
+                                     + _Kp.head<3>().cwiseProduct(_comRef-_com) );
     _a_eq.tail<3>() = - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>());
     
-    getLogger().sendMsg("Momentum: Kp*e    = "+toString(_Kp.head<3>().cwiseProduct(_trajGen.getPos()-_com),2), MSG_STREAM_INFO);
-    getLogger().sendMsg("Momentum: Kd*de   = "+toString(_Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v),2),   MSG_STREAM_INFO);
-    getLogger().sendMsg("Momentum: ddx_ref = "+toString(_trajGen.getAcc(),2), MSG_STREAM_INFO);
+//    getLogger().sendMsg("Momentum: Kp*e    = "+toString(_Kp.head<3>().cwiseProduct(_trajGen.getPos()-_com),2), MSG_STREAM_INFO);
+//    getLogger().sendMsg("Momentum: Kd*de   = "+toString(_Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v),2),   MSG_STREAM_INFO);
+//    getLogger().sendMsg("Momentum: ddx_ref = "+toString(_trajGen.getAcc(),2), MSG_STREAM_INFO);
 //    cout<<"state.g "<< state.g.transpose() << endl;
 //    cout<<"_Kp = "<< _Kp.transpose() << endl;
 //    cout<<"_Kd = "<< _Kd.transpose() << endl;
 //    cout<<"_trajGen.getAcc() = "<< _trajGen.getAcc().transpose() << endl;
 //    cout<<"_trajGen.getVel() = "<< _trajGen.getVel().transpose() << endl;
 //    cout<<"_trajGen.getPos() = "<< _trajGen.getPos().transpose() << endl;
-//    cout<<"_v = "<< _v.transpose() << endl;
+    
 //    cout<<"_com = "<< _com.transpose() << endl;
 //    cout<<"_a_eq = "<< _a_eq.transpose() << endl;
+    
+    
     
     return res;
 }
@@ -166,14 +197,27 @@ void MinJerkPDMomentumTask::init(RobotState& state)
 
 void MinJerkPDMomentumTask::linkParameterComDes(ParamHelperServer* paramHelper, int paramId)
 {
-    _paramId_comDes = paramId;
     paramHelper->linkParam(paramId, _comDes.data());
 }
 
 void MinJerkPDMomentumTask::linkParameterCom(ParamHelperServer* paramHelper, int paramId)
 {
-    _paramId_com = paramId;
     paramHelper->linkParam(paramId, _com.data());
+}
+
+void MinJerkPDMomentumTask::linkParameterComRef(ParamHelperServer* paramHelper, int paramId)
+{
+    paramHelper->linkParam(paramId, _comRef.data());
+}
+
+void MinJerkPDMomentumTask::linkParameterComVel(ParamHelperServer* paramHelper, int paramId)
+{
+    paramHelper->linkParam(paramId, _v.data());
+}
+
+void MinJerkPDMomentumTask::linkParameterMomentum(ParamHelperServer* paramHelper, int paramId)
+{
+    paramHelper->linkParam(paramId, _momentum.data());
 }
 
 

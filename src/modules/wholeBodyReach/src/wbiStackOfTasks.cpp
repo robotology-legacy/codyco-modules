@@ -134,7 +134,7 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     STOP_PROFILING(PROFILE_FORCE_QP_PREP);
     
     sendMsg("momentumDes "+toString(_momentumDes,1));
-//    cout<< "g "<<toString(_qpData.g,1)<<endl;
+//    cout<< "QP gradient "<<toString(_qpData.g,1)<<endl;
     START_PROFILING(PROFILE_FORCE_QP);
     {
         solve_quadprog(_qpData.H, _qpData.g, _qpData.CE, _qpData.ce0, _qpData.CI, _qpData.ci0, _fcDes);

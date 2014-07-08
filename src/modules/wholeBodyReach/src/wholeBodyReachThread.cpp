@@ -84,6 +84,11 @@ bool WholeBodyReachThread::threadInit()
     _tasks.graspHand.linkParameterKp(        _paramHelper, PARAM_ID_KP_HAND);
     _tasks.posture.linkParameterKp(          _paramHelper, PARAM_ID_KP_POSTURE);
     
+    _tasks.momentum.linkParameterKd(         _paramHelper, PARAM_ID_KD_MOMENTUM);
+    _tasks.supportForearm.linkParameterKd(   _paramHelper, PARAM_ID_KD_FOREARM);
+    _tasks.graspHand.linkParameterKd(        _paramHelper, PARAM_ID_KD_HAND);
+    _tasks.posture.linkParameterKd(          _paramHelper, PARAM_ID_KD_POSTURE);
+    
     _tasks.momentum.linkParameterTrajectoryDuration(       _paramHelper, PARAM_ID_TRAJ_TIME_MOMENTUM);
     _tasks.supportForearm.linkParameterTrajectoryDuration( _paramHelper, PARAM_ID_TRAJ_TIME_FOREARM);
     _tasks.graspHand.linkParameterTrajectoryDuration(      _paramHelper, PARAM_ID_TRAJ_TIME_HAND);
@@ -108,6 +113,8 @@ bool WholeBodyReachThread::threadInit()
 //    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_QREF,                qr.data()));        // constant size
     
     _tasks.momentum.linkParameterCom(       _paramHelper, PARAM_ID_X_COM);
+    _tasks.momentum.linkParameterComVel(    _paramHelper, PARAM_ID_DX_COM);
+    _tasks.momentum.linkParameterMomentum(  _paramHelper, PARAM_ID_MOMENTUM);
     _tasks.supportForearm.linkParameterPose(_paramHelper, PARAM_ID_X_FOREARM);
     _tasks.graspHand.linkParameterPose(     _paramHelper, PARAM_ID_X_HAND);
     _paramHelper->linkParam(                PARAM_ID_Q,   _qjDeg.data());
@@ -199,7 +206,7 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
 //    _qJStampsOld = _qJStamps[0];
 //    timeStampOld = timeStamp;
     
-    _dqJ_yarp = _dqFilt->estimate(el)/REAL_TIME_FACTOR;
+    _dqJ_yarp = _dqFilt->estimate(el); // /REAL_TIME_FACTOR;
     for(int i=0; i<_n; i++)
         _robotState.dqJ(i) = _dqJ_yarp(i);
 #else
