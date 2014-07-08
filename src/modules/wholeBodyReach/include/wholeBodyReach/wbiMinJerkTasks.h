@@ -193,7 +193,11 @@ namespace wholeBodyReach
         virtual void linkParameterPostureDes(paramHelp::ParamHelperServer* paramHelper, int paramId);
         
         /** Method called every time a parameter (for which a callback is registered) is changed. */
-        virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp){}
+        virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp)
+        {
+            WbiPDTask::parameterUpdated(pp);
+            MinJerkTask::parameterUpdated(pp);
+        }
     };
     
     

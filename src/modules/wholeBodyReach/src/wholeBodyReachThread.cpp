@@ -141,7 +141,7 @@ bool WholeBodyReachThread::threadInit()
     if(!readRobotStatus(true))
         return false;
     _solver.init(_robotState);
-
+    
     printf("\n\n");
     return true;
 }
@@ -189,7 +189,16 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
         _qJ_yarp(i) = _robotState.qJ(i);
     AWPolyElement el;
     el.data = _qJ_yarp;
-    el.time = _qJStamps[0];
+    el.time = Time::now(); //Use yarp time rather than _qJStamps to be synchronized with simulator
+    
+//    static double _qJStampsOld = 0.0;
+//    static double timeStampOld = 0.0;
+//    double timeStamp = Time::now();
+//    sendMsg("q stamp-stampOld = "+toString(_qJStamps[0]-_qJStampsOld));
+//    sendMsg("t stamp-stampOld = "+toString(timeStamp-timeStampOld)+ "\t Is system clock? "+toString(Time::isSystemClock()));
+//    _qJStampsOld = _qJStamps[0];
+//    timeStampOld = timeStamp;
+    
     _dqJ_yarp = _dqFilt->estimate(el)/REAL_TIME_FACTOR;
     for(int i=0; i<_n; i++)
         _robotState.dqJ(i) = _dqJ_yarp(i);

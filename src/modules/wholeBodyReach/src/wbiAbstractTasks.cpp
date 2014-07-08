@@ -42,8 +42,6 @@ void WbiPDTask::parameterUpdated(const ParamProxyInterface *pp)
         if(_automaticCriticallyDamped)
             _Kd = 2*_Kp.cwiseSqrt();
     }
-    else
-        cout<<"A callback is registered but not managed for the parameter "<<pp->name<<endl;
 }
 
 bool WbiPDTask::setProportionalGain(VectorConst Kp)

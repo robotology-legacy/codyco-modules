@@ -20,6 +20,9 @@
 #ifndef WBR_LOGGER_H
 #define WBR_LOGGER_H
 
+#include<Eigen/Core>
+#include <wholeBodyReach/wholeBodyReachConstants.h>
+
 namespace wholeBodyReach
 {
     
@@ -57,6 +60,16 @@ protected:
 };
 
 Logger& getLogger();
+
+std::string toString(const Eigen::MatrixRXd &m, int precision=2, const char* endRowStr="\n", int maxRowsPerLine=10);
+    
+/** Convert a generic variable into a string. */
+template <class T> inline std::string toString(const T& t)
+{ std::ostringstream ss; ss << t; return ss.str(); }
+
+/** Convert a generic vector into a string */
+template <class T> inline std::string toString(const std::vector<T>& v, const char *separator=" ")
+{ std::ostringstream s; std::copy(v.begin(), v.end(), std::ostream_iterator<T>(s, separator)); return s.str(); }
     
 };  // end namespace wholeBodyReach
 

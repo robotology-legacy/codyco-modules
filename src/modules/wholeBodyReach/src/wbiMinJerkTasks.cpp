@@ -16,6 +16,7 @@
 */
 
 #include <wholeBodyReach/wbiMinJerkTasks.h>
+#include <wholeBodyReach/Logger.h>
 
 using namespace wholeBodyReach;
 using namespace std;
@@ -90,12 +91,10 @@ void MinJerkPDLinkPoseTask::parameterUpdated(const ParamProxyInterface *pp)
         _Hdes.p[2] = _poseDes[2];
         // convert from axis/angle to rotation matrix
         _Hdes.R.axisAngle(_poseDes.data()+3);
+        return;
     }
-    else
-    {
-        MinJerkTask::parameterUpdated(pp);
-        WbiPDTask::parameterUpdated(pp);
-    }
+    MinJerkTask::parameterUpdated(pp);
+    WbiPDTask::parameterUpdated(pp);
 }
 
 
@@ -141,6 +140,9 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
                                      + _Kp.head<3>().cwiseProduct(_trajGen.getPos()-_com) );
     _a_eq.tail<3>() = - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>());
     
+    getLogger().sendMsg("Momentum: Kp*e    = "+toString(_Kp.head<3>().cwiseProduct(_trajGen.getPos()-_com),2), MSG_STREAM_INFO);
+    getLogger().sendMsg("Momentum: Kd*de   = "+toString(_Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v),2),   MSG_STREAM_INFO);
+    getLogger().sendMsg("Momentum: ddx_ref = "+toString(_trajGen.getAcc(),2), MSG_STREAM_INFO);
 //    cout<<"state.g "<< state.g.transpose() << endl;
 //    cout<<"_Kp = "<< _Kp.transpose() << endl;
 //    cout<<"_Kd = "<< _Kd.transpose() << endl;
@@ -325,6 +327,7 @@ void MinJerkTask::parameterUpdated(const ParamProxyInterface *pp)
 {
     if(pp->id==_paramId_trajDur)
     {
+        cout<<"Set trajectory duration to "<<_trajDuration<<endl;
         _trajGen.setTrajectoryDuration(_trajDuration);
     }
 }

@@ -77,3 +77,32 @@ bool Logger::setStreamPrintPeriod(double s)
     _streamPrintPeriod = s;
     return true;
 }
+
+//*************************************************************************************************************************
+std::string wholeBodyReach::toString(const Eigen::MatrixRXd &m, int precision, const char* endRowStr, int maxColsPerLine)
+{
+    // if m is a column vector print it as a row vector
+    if(m.cols()==1)
+        return toString(m.transpose(), precision, endRowStr, maxColsPerLine);
+    
+    string ret = "";
+    if(m.rows()>1 && m.cols()>maxColsPerLine)
+    {
+        return ret+"("+toString(maxColsPerLine)+" cols)\n" +
+        toString(m.leftCols(maxColsPerLine),precision,endRowStr,maxColsPerLine) + "\n" +
+        toString(m.rightCols(m.cols()-maxColsPerLine),precision,endRowStr,maxColsPerLine);
+    }
+    char tmp[350];
+    for(int i=0;i<m.rows();i++)
+    {
+        for(int j=0;j<m.cols();j++)
+        {
+            sprintf(tmp, "% .*lf\t", precision, m(i,j));
+            ret+=tmp;
+        }
+        ret = ret.substr(0,ret.length()-1);     // remove the last character (tab)
+        if(i<m.rows()-1)                          // if it is not the last row
+            ret+= endRowStr;
+    }
+    return ret.substr(0, ret.length()-1);
+}
