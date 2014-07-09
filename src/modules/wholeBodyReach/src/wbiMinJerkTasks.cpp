@@ -119,14 +119,10 @@ void MinJerkPDLinkPoseTask::parameterUpdated(const ParamProxyInterface *pp)
 MinJerkPDMomentumTask::MinJerkPDMomentumTask(std::string taskName, double sampleTime, wbi::wholeBodyInterface* robot)
 :   WbiAbstractTask(taskName, 6, robot),
     WbiEqualityTask(6, robot->getDoFs()+6),
-    WbiPDTask(6, DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
+    WbiPDTask(6, false),
     MinJerkTask(3, sampleTime)   // the trajectory generator is 3d because it works only for the linear part
 {
     _robotMass = -1.0;
-    
-    _comFilt = new iCub::ctrl::AWLinEstimator(16, 1);
-    _com_yarp.resize(3);
-    _v_yarp.resize(3);
 }
 
 bool MinJerkPDMomentumTask::update(RobotState& state)
@@ -138,37 +134,21 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
     res = res && _robot->computeH(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _H);
     res = res && _robot->computeCentroidalMomentum(state.qJ.data(), state.xBase, state.dqJ.data(),
                                                    state.vBase.data(), _momentum.data());
-    res = res && _robot->computeJacobian(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _A_eq.data());
-    _v = _A_eq.topRows<3>()*state.dq;  // compute CoM velocity
+    _v = _momentum.head<3>()/_robotMass;    // compute CoM velocity
+    
+//    res = res && _robot->computeJacobian(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _A_eq.data());
+//    _v = _A_eq.topRows<3>()*state.dq;  // compute CoM velocity
     
     // copy data into Eigen vector
     _com(0) = _H.p[0]; _com(1) = _H.p[1]; _com(2) = _H.p[2];
-    
-    {
-        _com_yarp(0)=_com(0);
-        _com_yarp(1)=_com(1);
-        _com_yarp(2)=_com(2);
-        iCub::ctrl::AWPolyElement el;
-        el.data = _com_yarp;
-        el.time = yarp::os::Time::now(); //Use yarp time to be synchronized with simulator
-        _v_yarp = _comFilt->estimate(el);
-        
-        getLogger().sendMsg("mass*com_vel2 = "+(_robotMass*_v_yarp).toString(3), MSG_STREAM_INFO);
-        getLogger().sendMsg("mass*com_vel  = "+toString(_robotMass*_v,3), MSG_STREAM_INFO);
-        getLogger().sendMsg("momentum      = "+toString(_momentum,3), MSG_STREAM_INFO);
-        
-//        _v(0)=_v_yarp(0); _v(1)=_v_yarp(1); _v(2)=_v_yarp(2);
-    }
     
     // update reference trajectory
     _trajGen.computeNextValues(_comDes);
     _comRef = _trajGen.getPos();
     _a_eq.head<3>() = _robotMass * ( -state.g + _trajGen.getAcc()
-                                     + _Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v)
-                                     + _Kp.head<3>().cwiseProduct(_comRef-_com) );
-
-    // ### Temporarely set angular momentum to zero ###
-    //_a_eq.tail<3>() = - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>());
+                                     + _Kd.head<3>().cwiseProduct(_trajGen.getVel() - _v)
+                                     + _Kp.head<3>().cwiseProduct(_comRef - _com) );
+    _a_eq.tail<3>() = - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>());
     
 //    getLogger().sendMsg("Momentum: Kp*e    = "+toString(_Kp.head<3>().cwiseProduct(_trajGen.getPos()-_com),2), MSG_STREAM_INFO);
 //    getLogger().sendMsg("Momentum: Kd*de   = "+toString(_Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v),2),   MSG_STREAM_INFO);

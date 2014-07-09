@@ -146,12 +146,6 @@ namespace wholeBodyReach
         Eigen::Vector3d             _comDes;
         Eigen::Vector3d             _comRef;
         
-        // com vel estimation
-        iCub::ctrl::AWPolyEstimator*        _comFilt;           // derivative filters for com velocities
-        yarp::sig::Vector                  _com_yarp;          // com position
-        yarp::sig::Vector                  _v_yarp;            // com velocity
-
-        
     public:
         MinJerkPDMomentumTask(std::string taskName, double sampleTime, wbi::wholeBodyInterface* robot);
         virtual ~MinJerkPDMomentumTask(){}
