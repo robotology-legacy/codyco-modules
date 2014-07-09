@@ -12,6 +12,7 @@ find_package(paramHelp REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(wholeBodyInterface REQUIRED)
 find_package(yarpWholeBodyInterface REQUIRED)
+find_package(motorFrictionIdentificationLib REQUIRED)
 
 FILE(GLOB folder_source ./src/motorFrictionExcitationMain.cpp
                         ./src/motorFrictionExcitationModule.cpp
@@ -33,7 +34,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME}
-                      motorFrictionIdentificationLib
+                      ${motorFrictionIdentificationLib_LIBRARIES}
                       ${wholeBodyInterface_LIBRARIES}
                       ${yarpWholeBodyInterface_LIBRARIES}
                       ${paramHelp_LIBRARIES}
