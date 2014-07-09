@@ -54,20 +54,20 @@ void ContactConstraint::updateForceFrictionConeInequalities()
     _tangentDir2 = _normalDir.cross(_tangentDir1);
     _tangentDir2.normalize();
     
-    // * 1 bilateral for Fn
-    _A_in.block<1,3>(0,0)   = _normalDir.transpose();
-    _l_in(0)                = _fNormalMin;
-    _u_in(0)                = _fNormalMax;
+    // * 1 bilateral for Fn (written as 2 unilateral)
+    _A_in.block<1,3>(0,0)   =   _normalDir.transpose();
+    _A_in.block<1,3>(1,0)   = - _normalDir.transpose();
+    _a_in(0)                = _fNormalMax;
+    _a_in(1)                = _fNormalMin;
     
     // * 4 unilateral for linearized friction cone
     //  Ft < mu*Fn
     // -Ft < mu*Fn
-    _A_in.block<1,3>(1,0)   =  _tangentDir1.transpose() - _muF*_normalDir.transpose();
-    _A_in.block<1,3>(2,0)   = -_tangentDir1.transpose() - _muF*_normalDir.transpose();
-    _A_in.block<1,3>(3,0)   =  _tangentDir2.transpose() - _muF*_normalDir.transpose();
-    _A_in.block<1,3>(3,0)   = -_tangentDir2.transpose() - _muF*_normalDir.transpose();
-    _u_in.segment<4>(1).setZero();
-    _l_in.segment<4>(1).setConstant(NO_LOWER_BOUND);
+    _A_in.block<1,3>(2,0)   =  _tangentDir1.transpose() - _muF*_normalDir.transpose();
+    _A_in.block<1,3>(3,0)   = -_tangentDir1.transpose() - _muF*_normalDir.transpose();
+    _A_in.block<1,3>(4,0)   =  _tangentDir2.transpose() - _muF*_normalDir.transpose();
+    _A_in.block<1,3>(5,0)   = -_tangentDir2.transpose() - _muF*_normalDir.transpose();
+    _a_in.segment<4>(2).setZero();
 }
 
 void ContactConstraint::linkParameterForceFrictionCoefficient(ParamHelperServer* paramHelper, int paramId)
@@ -90,14 +90,13 @@ void ContactConstraint::parameterUpdated(const ParamProxyInterface *pp)
 PlaneContactConstraint::PlaneContactConstraint(std::string name, std::string linkName,
                                                const ContactPlaneSize &planeSize,
                                                wbi::wholeBodyInterface* robot)
-:   ContactConstraint(name, linkName, 6, 11, robot),
+:   ContactConstraint(name, linkName, 6, 12, robot),
     _planeSize(planeSize)
 {
-    _A_in.setZero(11, 6);
-    _l_in.setZero(11);
-    _u_in.setZero(11);
-    // 11 inequalities:
-    // * 1 bilateral for Fz
+    _A_in.setZero(12, 6);
+    _a_in.setZero(12);
+    // 12 inequalities:
+    // * 1 bilateral for Fz (counts as 2)
     // * 4 unilateral for linearized friction cone
     // * 4 unilateral for CoP (i.e. ZMP)
     // * 2 unilateral for normal moment
@@ -132,16 +131,15 @@ void PlaneContactConstraint::updateZmpInequalities()
     // [0 0 -Lxp 1 0 0] f < 0
     // [0 0 -Lxn -1 0 0] f < 0
     // @todo Improve this implementation, which assumes contact plane is aligned with x-y axis
-    _A_in(5,2)    = -_planeSize.xPos;
-    _A_in(5,3)    = 1.0;
-    _A_in(6,2)    = -_planeSize.xNeg;
-    _A_in(6,3)    = -1.0;
-    _A_in(7,2)    = -_planeSize.yPos;
-    _A_in(7,4)    = 1.0;
-    _A_in(8,2)    = -_planeSize.yNeg;
-    _A_in(8,4)    = -1.0;
-    _u_in.segment<4>(5).setZero();
-    _l_in.segment<4>(5).setConstant(NO_LOWER_BOUND);
+    _A_in(6,2)    = -_planeSize.xPos;
+    _A_in(6,3)    = 1.0;
+    _A_in(7,2)    = -_planeSize.xNeg;
+    _A_in(7,3)    = -1.0;
+    _A_in(8,2)    = -_planeSize.yPos;
+    _A_in(8,4)    = 1.0;
+    _A_in(9,2)    = -_planeSize.yNeg;
+    _A_in(9,4)    = -1.0;
+    _a_in.segment<4>(5).setZero();
 }
 
 void PlaneContactConstraint::updateMomentFrictionConeInequalities()
@@ -155,12 +153,11 @@ void PlaneContactConstraint::updateMomentFrictionConeInequalities()
     // * 2 unilateral for linearized moment friction cone Mn (normal moment)
     //  Mn < mu*Fn
     // -Mn < mu*Fn
-    _A_in.block<1,3>(9,0)   = - _muM * _normalDir.transpose();
-    _A_in.block<1,3>(9,3)   =          _normalDir.transpose();
     _A_in.block<1,3>(10,0)  = - _muM * _normalDir.transpose();
-    _A_in.block<1,3>(10,3)  = -        _normalDir.transpose();
-    _u_in.segment<2>(9).setZero();
-    _l_in.segment<2>(9).setConstant(NO_LOWER_BOUND);
+    _A_in.block<1,3>(10,3)  =          _normalDir.transpose();
+    _A_in.block<1,3>(11,0)  = - _muM * _normalDir.transpose();
+    _A_in.block<1,3>(11,3)  = -        _normalDir.transpose();
+    _a_in.segment<2>(10).setZero();
 }
 
 void PlaneContactConstraint::linkParameterMomentFrictionCoefficient(ParamHelperServer* paramHelper, int paramId)

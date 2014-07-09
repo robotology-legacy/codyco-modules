@@ -112,7 +112,7 @@ protected:
         Eigen::VectorXd g;      /// gradient
         Eigen::MatrixXd CE;     /// equality constraint matrix
         Eigen::VectorXd ce0;    /// equality constraint vecotr
-        Eigen::MatrixXd CI;     /// inequality constraint matrix
+        Eigen::MatrixRXd CI;     /// inequality constraint matrix
         Eigen::VectorXd ci0;    /// inequality constraint vector
     } _qpData;
     

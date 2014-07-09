@@ -132,6 +132,8 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
 #endif
     
     // Module parameters
+    double                  _forceFriction;
+    double                  _momentFriction;
 
     // Input streaming parameters
     Matrix4d            _H_w2b;                  // rototranslation from world to base reference frame

@@ -125,25 +125,26 @@ public:
 
     
 /** A task described by an affine inequality:
-  * l <= A x <= u
+  * A x <= a
   */
 class WbiInequalityTask
 {
 protected:
     Eigen::MatrixRXd   _A_in;      /// Inequality matrix
-    Eigen::VectorXd    _l_in;      /// Inequality lower bound vector
-    Eigen::VectorXd    _u_in;      /// Inequality upper bound vector
+    Eigen::VectorXd    _a_in;      /// Inequality upper bound vector
     
 public:
     /** Constructor.
      * @param taskSize The size of this task.
      */
-    WbiInequalityTask(int taskSize, int n)
+    WbiInequalityTask(int numberOfInequalities, int n)
     {
-        _A_in.setZero(taskSize, n);
-        _l_in.setZero(taskSize);
-        _u_in.setZero(taskSize);
+        _A_in.setZero(numberOfInequalities, n);
+        _a_in.setZero(numberOfInequalities);
     }
+    
+    virtual int getNumberOfInequalities()
+    { return _a_in.size(); }
     
     /** Get the current matrix of the inequality. */
     virtual void getInequalityMatrix(Eigen::MatrixRef A)
@@ -158,20 +159,15 @@ public:
     { return _A_in; }
 
     /** Get the current vector of the inequality. */
-    virtual void getInequalityVectors(Eigen::VectorRef l, Eigen::VectorRef u)
+    virtual void getInequalityVector(Eigen::VectorRef a)
     {
-        assert(l.size()==_l_in.size());
-        assert(u.size()==_u_in.size());
-        l = _l_in;    u = _u_in;
+        assert(a.size()==_a_in.size());
+        a = _a_in;
     }
     
-    /** Get the current lower bound vector of the inequality. */
-    virtual const Eigen::VectorXd& getInequalityLowerBound()
-    { return _l_in; }
-    
     /** Get the current upper bound vector of the inequality. */
-    virtual const Eigen::VectorXd& getInequalityUpperBound()
-    { return _u_in; }
+    virtual const Eigen::VectorXd& getInequalityVector()
+    { return _a_in; }
 };
     
     

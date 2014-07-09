@@ -70,6 +70,13 @@ namespace wholeBodyReach
         
         virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
         
+        virtual bool setForceFrictionCoefficient(double muF)
+        {
+            if(muF<=0.0) return false;
+            _muF = muF;
+            updateForceFrictionConeInequalities();
+        }
+        
         virtual bool setMinNormalForce(double mnf)
         {
             if(mnf<0.0) return false;
@@ -119,6 +126,13 @@ namespace wholeBodyReach
         virtual void linkParameterMomentFrictionCoefficient(paramHelp::ParamHelperServer* paramHelper, int paramId);
         
         virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
+        
+        virtual bool setMomentFrictionCoefficient(double muM)
+        {
+            if(muM<=0.0) return false;
+            _muM = muM;
+            updateMomentFrictionConeInequalities();
+        }
     };
     
     

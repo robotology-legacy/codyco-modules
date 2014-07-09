@@ -124,8 +124,12 @@ bool WholeBodyReachThread::threadInit()
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_V_BASE,    _robotState.vBase.data()));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_DQ,        _dqjDeg.data()));
     
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_FORCE_FRICTION,    &_forceFriction));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_MOMENT_FRICTION,   &_momentFriction));
+    
     // Register callbacks for some module parameters
-    YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_SUPPORT_PHASE,       this));
+    YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_FORCE_FRICTION, this));
+    YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_MOMENT_FRICTION, this));
 
     // Register callbacks for some module commands
     YARP_ASSERT(_paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
@@ -299,8 +303,15 @@ void WholeBodyReachThread::parameterUpdated(const ParamProxyInterface *pd)
 {
     switch(pd->id)
     {
-    case PARAM_ID_SUPPORT_PHASE:
-        numberOfConstraintsChanged(); break;
+    case PARAM_ID_FORCE_FRICTION:
+        _tasks.leftFoot.setForceFrictionCoefficient(_forceFriction);
+        _tasks.rightFoot.setForceFrictionCoefficient(_forceFriction);
+        _tasks.supportForearmConstr.setForceFrictionCoefficient(_forceFriction);
+        break;
+    case PARAM_ID_MOMENT_FRICTION:
+        _tasks.leftFoot.setMomentFrictionCoefficient(_momentFriction);
+        _tasks.rightFoot.setMomentFrictionCoefficient(_momentFriction);
+        break;
     default:
         sendMsg("A callback is registered but not managed for the parameter "+pd->name, MSG_ERROR);
     }

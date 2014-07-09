@@ -106,19 +106,23 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     //*********************************
     START_PROFILING(PROFILE_FORCE_QP_PREP);
     {
-        int index = 0;
+        int index_k = 0, k=0, index_in=0, in=0;
         for(list<ContactConstraint*>::iterator it=_constraints.begin(); it!=_constraints.end(); it++)
         {
             ContactConstraint& c = **it;
             c.update(robotState);
+            
+            k  = c.getSize();    // number of constraint forces
+            in = c.getNumberOfInequalities();
 
-    //        B = [B; t.getInequalityMatrix()]
-    //        b = [b; t.getInequalityVector()]
-            c.getMomentumMapping(   _X.middleCols<6>(index)  );
-            c.getEqualityMatrix(    _Jc.middleRows<6>(index) );
-            c.getEqualityVector(    _dJcdq.segment<6>(index) );
+            c.getInequalityMatrix( _qpData.CI.block(index_in, in, index_k, k)); // CI = [CI, t.getInequalityMatrix()]
+            c.getInequalityVector( _qpData.ci0.segment(index_in, in) );         //  b = [b; t.getInequalityVector()]
+            c.getMomentumMapping(  _X.middleCols(index_k, k)  );                //  X = [X, t.getMomentumMapping()]
+            c.getEqualityMatrix(   _Jc.middleRows(index_k, k) );                // Jc = [Jc; t.getEqualityMatrix()]
+            c.getEqualityVector(   _dJcdq.segment(index_k, k) );                // dJc_dq = [dJc_dq; t.getEqualityVector()]
 
-            index += c.getSize();
+            index_k += k;
+            index_in += in;
         }
         
         START_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
@@ -291,12 +295,18 @@ void wbiStackOfTasks::addConstraint(ContactConstraint& constraint)
 {
     _constraints.push_back(&constraint);
     _k = 0;
+    int n_in=0;
     for(list<ContactConstraint*>::iterator it=_constraints.begin(); it!=_constraints.end(); it++)
-        _k += (**it).getSize();
-    _X.resize(6,_k);
-    _Jc.resize(_k,_n+6);
-    _dJcdq.resize(_k);
-    _fcDes.resize(_k);
+    {
+        _k   += (*it)->getSize();
+        n_in += (*it)->getNumberOfInequalities();
+    }
+    _X.setZero(6,_k);
+    _Jc.setZero(_k,_n+6);
+    _dJcdq.setZero(_k);
+    _fcDes.setZero(_k);
+    _qpData.CI.setZero(n_in, _k);
+    _qpData.ci0.setZero(n_in);
 }
 
 

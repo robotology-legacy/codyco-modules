@@ -166,7 +166,9 @@ static const double             DEFAULT_NUM_DAMP            = 1e-4;
 static const int                DEFAULT_USE_NULLSPACE_BASE  = 0;   /// true: solver uses basis, false: it uses projectors
 static const Eigen::VectorNd    DEFAULT_Q_MAX               = Eigen::VectorNd::Constant(180.0);
 static const Eigen::VectorNd    DEFAULT_Q_MIN               = Eigen::VectorNd::Constant(-180.0);
-static const double             DEFAULT_JNT_LIM_MIN_DIST = 5.0;
+static const double             DEFAULT_JNT_LIM_MIN_DIST    = 5.0;
+static const double             DEFAULT_FORCE_FRICTION      = 0.5;  // friction cone coefficient for tangential forces
+static const double             DEFAULT_MOMENT_FRICTION     = 0.5;  // friction cone coefficient for normal moment
 // Streaming parameters
 static const Eigen::Vector3d       DEFAULT_XDES_COM        = Eigen::Vector3d::Constant(0.0);
 static const Eigen::Vector7d       DEFAULT_XDES_FOREARM    = Eigen::Vector7d::Constant(0.0);
@@ -185,6 +187,7 @@ enum WholeBodyReachParamId {
     PARAM_ID_TRAJ_TIME_HAND,        PARAM_ID_TRAJ_TIME_POSTURE,
     PARAM_ID_SUPPORT_PHASE,         PARAM_ID_NUM_DAMP,          PARAM_ID_USE_NULLSPACE_BASE,
     PARAM_ID_Q_MAX,                 PARAM_ID_Q_MIN,             PARAM_ID_JNT_LIM_MIN_DIST,
+    PARAM_ID_FORCE_FRICTION,        PARAM_ID_MOMENT_FRICTION,
     
     PARAM_ID_XDES_COM,              PARAM_ID_XDES_FOREARM,
     PARAM_ID_XDES_HAND,             PARAM_ID_QDES,
@@ -208,6 +211,7 @@ const ParamProxyInterface *const wholeBodyReachParamDescr[PARAM_ID_SIZE] =
 new ParamProxyBasic<string>("name",                 PARAM_ID_MODULE_NAME,       1,                          ParamConstraint<string>(),                  PARAM_CONFIG,       &DEFAULT_MODULE_NAME,           "Name of the instance of the module"),
 new ParamProxyBasic<int>(   "period",               PARAM_ID_CTRL_PERIOD,       1,                          ParamBilatBounds<int>(1,1000),              PARAM_CONFIG,       &DEFAULT_CTRL_PERIOD,           "Period of the control loop (ms)"),
 new ParamProxyBasic<string>("robot",                PARAM_ID_ROBOT_NAME,        1,                          ParamConstraint<string>(),                  PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"),
+
 // ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("kp momentum",          PARAM_ID_KP_MOMENTUM,       6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_MOMENTUM.data(),     "Proportional gain for the momentum control"),
 new ParamProxyBasic<double>("kp forearm",           PARAM_ID_KP_FOREARM,        6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_FOREARM.data(),      "Proportional gain for the forearm control"),
@@ -226,6 +230,9 @@ new ParamProxyBasic<int>(   "use nullspace base",   PARAM_ID_USE_NULLSPACE_BASE,
 new ParamProxyBasic<double>("q max",                PARAM_ID_Q_MAX,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds"),
 new ParamProxyBasic<double>("q min",                PARAM_ID_Q_MIN,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds"),
 new ParamProxyBasic<double>("jlmd",                 PARAM_ID_JNT_LIM_MIN_DIST,  1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits"),
+new ParamProxyBasic<double>("force friction",       PARAM_ID_FORCE_FRICTION,    1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_FORCE_FRICTION,        "Friciton coefficient for tangential forces"),
+new ParamProxyBasic<double>("moment friction",      PARAM_ID_MOMENT_FRICTION,   1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_MOMENT_FRICTION,       "Friciton coefficient for normal moments"),
+    
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<int>(   "support phase",        PARAM_ID_SUPPORT_PHASE,     1,                          ParamBilatBounds<int>(0, 2),                PARAM_IN_STREAM,    &DEFAULT_SUPPORT_PHASE,         "Contact support phase, 0: double, 1: triple"),
 new ParamProxyBasic<double>("xd com",               PARAM_ID_XDES_COM,          3,                          ParamBilatBounds<double>(-0.26, 1.0),       PARAM_IN_STREAM,    DEFAULT_XDES_COM.data(),        "Desired 3d position of the center of mass"),
@@ -233,6 +240,7 @@ new ParamProxyBasic<double>("xd forearm",           PARAM_ID_XDES_FOREARM,      
 new ParamProxyBasic<double>("xd hand",              PARAM_ID_XDES_HAND,         7,                          ParamBilatBounds<double>(-6.0, 6.0),        PARAM_IN_STREAM,    DEFAULT_XDES_HAND.data(),       "Desired position/orientation of the grasping hand"),
 new ParamProxyBasic<double>("qd",                   PARAM_ID_QDES,              ICUB_DOFS,                  ParamBilatBounds<double>(-200.0, 200.0),    PARAM_IN_STREAM,    ZERO_ND.data(),                 "Desired joint angles"),
 new ParamProxyBasic<double>("H_w2b",                PARAM_ID_H_W2B,             16,                         ParamBilatBounds<double>(-100.0, 100.0),    PARAM_IN_STREAM,    DEFAULT_H_W2B.data(),           "Estimated rototranslation matrix between world and robot base reference frames"),
+    
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("x com",                PARAM_ID_X_COM,             3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_3D.data(),                 "3d Position of the center of mass"),
 new ParamProxyBasic<double>("dx com",               PARAM_ID_DX_COM,            3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_3D.data(),                 "3d velocity of the center of mass"),
