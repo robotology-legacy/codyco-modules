@@ -54,6 +54,7 @@ bool WholeBodyReachThread::threadInit()
     
     // resize all vectors
     _qjDeg.setZero(_n);
+    _dqjDeg.setZero(_n);
     _tauDes.setZero(_n);
     _JfootR.resize(NoChange, _n+6);
     _JfootL.resize(NoChange, _n+6);
@@ -107,17 +108,21 @@ bool WholeBodyReachThread::threadInit()
 #ifndef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
     YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_H_W2B,   _H_w2b.data()));
 #endif
-//    // link module output streaming parameters to member variables
-//    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_XREF_COM,            xr_com.data()));
-//    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_XREF_FOOT,           xr_foot.data()));
-//    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_QREF,                qr.data()));        // constant size
+    _tasks.momentum.linkParameterComRef(        _paramHelper, PARAM_ID_XREF_COM);
+    _tasks.supportForearm.linkParameterPosRef(  _paramHelper, PARAM_ID_XREF_FOREARM);
+    _tasks.graspHand.linkParameterPosRef(       _paramHelper, PARAM_ID_XREF_HAND);
+    _tasks.posture.linkParameterPostureRef(     _paramHelper, PARAM_ID_QREF);
     
     _tasks.momentum.linkParameterCom(       _paramHelper, PARAM_ID_X_COM);
-    _tasks.momentum.linkParameterComVel(    _paramHelper, PARAM_ID_DX_COM);
     _tasks.momentum.linkParameterMomentum(  _paramHelper, PARAM_ID_MOMENTUM);
     _tasks.supportForearm.linkParameterPose(_paramHelper, PARAM_ID_X_FOREARM);
     _tasks.graspHand.linkParameterPose(     _paramHelper, PARAM_ID_X_HAND);
-    _paramHelper->linkParam(                PARAM_ID_Q,   _qjDeg.data());
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_Q,   _qjDeg.data()));
+    
+    _tasks.momentum.linkParameterComVel(    _paramHelper,       PARAM_ID_DX_COM);
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_X_BASE,    _robotState.xBase.p));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_V_BASE,    _robotState.vBase.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_DQ,        _dqjDeg.data()));
     
     // Register callbacks for some module parameters
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_SUPPORT_PHASE,       this));
@@ -213,7 +218,8 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
     res = res && _robot->getEstimates(ESTIMATE_JOINT_POS,    _robotState.qJ.data(),     -1.0, blockingRead);
     res = res && _robot->getEstimates(ESTIMATE_JOINT_VEL,    _robotState.dqJ.data(),    -1.0, blockingRead);
 #endif
-    _qjDeg = CTRL_RAD2DEG*_robotState.qJ;
+    _qjDeg  = CTRL_RAD2DEG*_robotState.qJ;
+    _dqjDeg = CTRL_RAD2DEG*_robotState.dqJ;
 
     // base orientation conversion
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
@@ -234,7 +240,7 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
     
     // estimate base velocity from joint velocities and constraint Jacobian Jc
     _svdJcb.compute(_Jc.leftCols<6>(), ComputeThinU | ComputeThinV);
-    _robotState.vBase = _svdJcb.solve(_Jc.rightCols(_n)*_robotState.dqJ);
+    _robotState.vBase = _svdJcb.solve(-_Jc.rightCols(_n)*_robotState.dqJ);
 
     // copy base and joint velocities into _robotState.dq
     _robotState.dq.head<6>() = _robotState.vBase;

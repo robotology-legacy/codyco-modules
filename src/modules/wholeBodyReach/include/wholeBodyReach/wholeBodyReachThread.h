@@ -115,6 +115,7 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
     MatrixRXd           _Jc;                    // constraint Jacobian
     JacobiSVD<MatrixRXd> _svdJcb;               // singular value decomposition of Jcb (1st 6 cols of Jc)
     VectorXd            _qjDeg;                 // joint angles (deg), variable linked to the rpc parameter "q"
+    VectorXd            _dqjDeg;                // joint velocities (deg/sec), variable linked to the rpc parameter "dq"
 
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
     Frame _H_base_leftFoot;                  // homogeneous transformation from robot base to left foot (i.e. world)

@@ -55,8 +55,11 @@ bool MinJerkPDLinkPoseTask::update(RobotState& state)
     
     // update reference trajectory
     _trajGen.computeNextValues(_poseDes.head<3>());
-    _dvStar.head<3>() = _trajGen.getAcc()   + _Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v.head<3>())
-                                            + _Kp.head<3>().cwiseProduct(_trajGen.getPos()-_pose.head<3>());
+    _posRef = _trajGen.getPos();
+    
+    // compute PD
+    _dvStar.head<3>() = _trajGen.getAcc()   + _Kd.head<3>().cwiseProduct(_trajGen.getVel() - _v.head<3>())
+                                            + _Kp.head<3>().cwiseProduct(_posRef - _pose.head<3>());
     computeOrientationError(_H.R, _Hdes.R, _orientationError);
     _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError) - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
     
@@ -84,8 +87,12 @@ void MinJerkPDLinkPoseTask::linkParameterPoseDes(ParamHelperServer* paramHelper,
 
 void MinJerkPDLinkPoseTask::linkParameterPose(ParamHelperServer* paramHelper, int paramId)
 {
-    _paramId_pose = paramId;
     paramHelper->linkParam(paramId, _pose.data());
+}
+
+void MinJerkPDLinkPoseTask::linkParameterPosRef(ParamHelperServer* paramHelper, int paramId)
+{
+    paramHelper->linkParam(paramId, _posRef.data());
 }
 
 void MinJerkPDLinkPoseTask::parameterUpdated(const ParamProxyInterface *pp)
@@ -150,7 +157,7 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
         getLogger().sendMsg("mass*com_vel  = "+toString(_robotMass*_v,3), MSG_STREAM_INFO);
         getLogger().sendMsg("momentum      = "+toString(_momentum,3), MSG_STREAM_INFO);
         
-        _v(0)=_v_yarp(0); _v(1)=_v_yarp(1); _v(2)=_v_yarp(2);
+//        _v(0)=_v_yarp(0); _v(1)=_v_yarp(1); _v(2)=_v_yarp(2);
     }
     
     // update reference trajectory
@@ -159,7 +166,9 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
     _a_eq.head<3>() = _robotMass * ( -state.g + _trajGen.getAcc()
                                      + _Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v)
                                      + _Kp.head<3>().cwiseProduct(_comRef-_com) );
-    _a_eq.tail<3>() = - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>());
+
+    // ### Temporarely set angular momentum to zero ###
+    //_a_eq.tail<3>() = - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>());
     
 //    getLogger().sendMsg("Momentum: Kp*e    = "+toString(_Kp.head<3>().cwiseProduct(_trajGen.getPos()-_com),2), MSG_STREAM_INFO);
 //    getLogger().sendMsg("Momentum: Kd*de   = "+toString(_Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v),2),   MSG_STREAM_INFO);
@@ -227,15 +236,16 @@ MinJerkPDPostureTask::MinJerkPDPostureTask(std::string taskName, double sampleTi
 :   WbiAbstractTask(taskName, robot->getDoFs(), robot),
     WbiEqualityTask(robot->getDoFs(), robot->getDoFs()),
     WbiPDTask(robot->getDoFs(), DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
-    MinJerkTask(robot->getDoFs(), sampleTime),
-    _paramId_qDes(-1)
+    MinJerkTask(robot->getDoFs(), sampleTime)
 {
     _qDes.setZero(robot->getDoFs());
+    _qRef.setZero(robot->getDoFs());
 }
 
 bool MinJerkPDPostureTask::update(RobotState& state)
 {
     _trajGen.computeNextValues(_qDes);  // the trajectory generator uses deg (not rad)
+    _qRef = _trajGen.getPos();
     _a_eq  = WBR_DEG2RAD * (_trajGen.getAcc()
                             + _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ)
                             + _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ));
@@ -260,11 +270,14 @@ void MinJerkPDPostureTask::init(RobotState& state)
 #endif
 }
 
-
 void MinJerkPDPostureTask::linkParameterPostureDes(ParamHelperServer* paramHelper, int paramId)
 {
-    _paramId_qDes = paramId;
     paramHelper->linkParam(paramId, _qDes.data());
+}
+
+void MinJerkPDPostureTask::linkParameterPostureRef(ParamHelperServer* paramHelper, int paramId)
+{
+    paramHelper->linkParam(paramId, _qRef.data());
 }
 
 /*********************************************************************************************************/

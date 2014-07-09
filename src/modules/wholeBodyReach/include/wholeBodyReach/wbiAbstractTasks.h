@@ -95,8 +95,8 @@ public:
      */
     WbiEqualityTask(int taskSize, int n)
     {
-        _A_eq.resize(taskSize, n);
-        _a_eq.resize(taskSize);
+        _A_eq.setZero(taskSize, n);
+        _a_eq.setZero(taskSize);
     }
     
     /** Get the current matrix of the equality. */
@@ -210,8 +210,8 @@ public:
         _automaticCriticallyDamped(automaticCriticallyDamped),
         _paramId_Kp(-1)
     {
-        _Kp.resize(gainSize);
-        _Kd.resize(gainSize);
+        _Kp.setZero(gainSize);
+        _Kd.setZero(gainSize);
     }
     
     virtual ~WbiPDTask(){}

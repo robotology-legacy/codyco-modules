@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
+    
+
 0:2 PARAM_ID_X_COM,                 3:5 PARAM_ID_DX_COM,
 6:8 PARAM_ID_XREF_COM,              9:14 PARAM_ID_MOMENTUM,
 15:21 PARAM_ID_X_FOREARM,             22:28 PARAM_ID_XREF_FOREARM,
 29:35 PARAM_ID_X_HAND,                36:42 PARAM_ID_XREF_HAND,
-43:? PARAM_ID_Q,                     ?:? PARAM_ID_QREF,
+43:49 PARAM_ID_X_BASE,                50:55 PARAM_ID_V_BASE,
+56:80 PARAM_ID_Q,                     81:105 PARAM_ID_DQ,            
+106:120 PARAM_ID_QREF
 -->
 <portscope rows="3" columns="2">
     <!-- plotting COM x -->

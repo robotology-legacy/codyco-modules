@@ -138,6 +138,14 @@ enum WholeBodyReachPhase
 };
 
 // *** DEFAULT PARAMETER VALUES
+static const Eigen::Vector3d       ZERO_3D                 = Eigen::Vector3d::Constant(0.0);
+static const Eigen::Vector6d       ZERO_6D                 = Eigen::Vector6d::Constant(0.0);
+static const Eigen::Vector7d       ZERO_7D                 = Eigen::Vector7d::Constant(0.0);
+static const Eigen::VectorNd       ZERO_ND                 = Eigen::VectorNd::Constant(0.0);
+static const Eigen::Vector3d       ONE_3D                  = Eigen::Vector3d::Constant(1.0);
+static const Eigen::Vector6d       ONE_6D                  = Eigen::Vector6d::Constant(1.0);
+static const Eigen::Vector7d       ONE_7D                  = Eigen::Vector7d::Constant(1.0);
+
 static const string             DEFAULT_MODULE_NAME = "wholeBodyReach";
 static const int                DEFAULT_CTRL_PERIOD = 10;                   // controller period in ms
 static const string             DEFAULT_ROBOT_NAME  = "icubGazeboSim";            // robot name
@@ -145,6 +153,10 @@ static const Eigen::Vector6d    DEFAULT_KP_MOMENTUM = Eigen::Vector6d::Constant(
 static const Eigen::Vector6d    DEFAULT_KP_FOREARM  = Eigen::Vector6d::Constant(1.0);
 static const Eigen::Vector6d    DEFAULT_KP_HAND     = Eigen::Vector6d::Constant(1.0);
 static const Eigen::VectorNd    DEFAULT_KP_POSTURE  = Eigen::VectorNd::Constant(1.0);
+static const Eigen::Vector6d    DEFAULT_KD_MOMENTUM = Eigen::Vector6d::Constant(2.0);
+static const Eigen::Vector6d    DEFAULT_KD_FOREARM  = Eigen::Vector6d::Constant(2.0);
+static const Eigen::Vector6d    DEFAULT_KD_HAND     = Eigen::Vector6d::Constant(2.0);
+static const Eigen::VectorNd    DEFAULT_KD_POSTURE  = Eigen::VectorNd::Constant(2.0);
 static const double             DEFAULT_TT_MOMENTUM = 4.0;
 static const double             DEFAULT_TT_FOREARM  = 4.0;
 static const double             DEFAULT_TT_HAND     = 4.0;
@@ -156,20 +168,10 @@ static const Eigen::VectorNd    DEFAULT_Q_MAX               = Eigen::VectorNd::C
 static const Eigen::VectorNd    DEFAULT_Q_MIN               = Eigen::VectorNd::Constant(-180.0);
 static const double             DEFAULT_JNT_LIM_MIN_DIST = 5.0;
 // Streaming parameters
-static const Eigen::Vector6d       ZERO_6D                 = Eigen::Vector6d::Constant(0.0);
 static const Eigen::Vector3d       DEFAULT_XDES_COM        = Eigen::Vector3d::Constant(0.0);
 static const Eigen::Vector7d       DEFAULT_XDES_FOREARM    = Eigen::Vector7d::Constant(0.0);
 static const Eigen::Vector7d       DEFAULT_XDES_HAND       = Eigen::Vector7d::Constant(0.0);
-static const Eigen::VectorNd       DEFAULT_QDES            = Eigen::VectorNd::Constant(0.0);
 static const Eigen::Matrix4d       DEFAULT_H_W2B           = Eigen::Matrix4d::Identity();
-static const Eigen::Vector2d       DEFAULT_XREF_COM        = Eigen::Vector2d::Constant(0.0);
-static const Eigen::Vector7d       DEFAULT_XREF_FOREARM    = Eigen::Vector7d::Constant(0.0);
-static const Eigen::Vector7d       DEFAULT_XREF_HAND       = Eigen::Vector7d::Constant(0.0);
-static const Eigen::VectorNd       DEFAULT_QREF            = Eigen::VectorNd::Constant(0.0);
-static const Eigen::Vector2d       DEFAULT_X_COM           = Eigen::Vector2d::Constant(0.0);
-static const Eigen::Vector7d       DEFAULT_X_FOREARM       = Eigen::Vector7d::Constant(0.0);
-static const Eigen::Vector7d       DEFAULT_X_HAND          = Eigen::Vector7d::Constant(0.0);
-static const Eigen::VectorNd       DEFAULT_Q               = Eigen::VectorNd::Constant(0.0);
 
 // *** IDs of all the module parameters
 enum WholeBodyReachParamId { 
@@ -192,7 +194,8 @@ enum WholeBodyReachParamId {
     PARAM_ID_XREF_COM,              PARAM_ID_MOMENTUM,
     PARAM_ID_X_FOREARM,             PARAM_ID_XREF_FOREARM,
     PARAM_ID_X_HAND,                PARAM_ID_XREF_HAND,
-    PARAM_ID_Q,                     PARAM_ID_QREF,
+    PARAM_ID_X_BASE,                PARAM_ID_V_BASE,
+    PARAM_ID_Q,                     PARAM_ID_DQ,            PARAM_ID_QREF,
     PARAM_ID_SIZE /*This is the number of parameters, so it must be the last value of the enum.*/
 };
 
@@ -210,10 +213,10 @@ new ParamProxyBasic<double>("kp momentum",          PARAM_ID_KP_MOMENTUM,       
 new ParamProxyBasic<double>("kp forearm",           PARAM_ID_KP_FOREARM,        6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_FOREARM.data(),      "Proportional gain for the forearm control"),
 new ParamProxyBasic<double>("kp hand",              PARAM_ID_KP_HAND,           6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_HAND.data(),         "Proportional gain for the hand control"),
 new ParamProxyBasic<double>("kp posture",           PARAM_ID_KP_POSTURE,        ParamSize(ICUB_DOFS,true),  ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_POSTURE.data(),      "Proportional gain for the joint posture control"),
-new ParamProxyBasic<double>("kd momentum",          PARAM_ID_KD_MOMENTUM,       6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_MOMENTUM.data(),     "Derivative gain for the momentum control"),
-new ParamProxyBasic<double>("kd forearm",           PARAM_ID_KD_FOREARM,        6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_FOREARM.data(),      "Derivative gain for the forearm control"),
-new ParamProxyBasic<double>("kd hand",              PARAM_ID_KD_HAND,           6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_HAND.data(),         "Derivative gain for the hand control"),
-new ParamProxyBasic<double>("kd posture",           PARAM_ID_KD_POSTURE,        ParamSize(ICUB_DOFS,true),  ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_POSTURE.data(),      "Derivative gain for the joint posture control"),
+new ParamProxyBasic<double>("kd momentum",          PARAM_ID_KD_MOMENTUM,       6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KD_MOMENTUM.data(),     "Derivative gain for the momentum control"),
+new ParamProxyBasic<double>("kd forearm",           PARAM_ID_KD_FOREARM,        6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KD_FOREARM.data(),      "Derivative gain for the forearm control"),
+new ParamProxyBasic<double>("kd hand",              PARAM_ID_KD_HAND,           6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KD_HAND.data(),         "Derivative gain for the hand control"),
+new ParamProxyBasic<double>("kd posture",           PARAM_ID_KD_POSTURE,        ParamSize(ICUB_DOFS,true),  ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KD_POSTURE.data(),      "Derivative gain for the joint posture control"),
 new ParamProxyBasic<double>("tt momentum",          PARAM_ID_TRAJ_TIME_MOMENTUM,1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_TT_MOMENTUM,           "Trajectory time for the momentum minimum jerk trajectory generator"),
 new ParamProxyBasic<double>("tt forearm",           PARAM_ID_TRAJ_TIME_FOREARM, 1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_TT_FOREARM,            "Trajectory time for the forearm minimum jerk trajectory generator"),
 new ParamProxyBasic<double>("tt hand",              PARAM_ID_TRAJ_TIME_HAND,    1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_TT_HAND,               "Trajectory time for the hand minimum jerk trajectory generator"),
@@ -228,19 +231,22 @@ new ParamProxyBasic<int>(   "support phase",        PARAM_ID_SUPPORT_PHASE,     
 new ParamProxyBasic<double>("xd com",               PARAM_ID_XDES_COM,          3,                          ParamBilatBounds<double>(-0.26, 1.0),       PARAM_IN_STREAM,    DEFAULT_XDES_COM.data(),        "Desired 3d position of the center of mass"),
 new ParamProxyBasic<double>("xd forearm",           PARAM_ID_XDES_FOREARM,      7,                          ParamBilatBounds<double>(-6.0, 6.0),        PARAM_IN_STREAM,    DEFAULT_XDES_FOREARM.data(),    "Desired position/orientation of the forearm"),
 new ParamProxyBasic<double>("xd hand",              PARAM_ID_XDES_HAND,         7,                          ParamBilatBounds<double>(-6.0, 6.0),        PARAM_IN_STREAM,    DEFAULT_XDES_HAND.data(),       "Desired position/orientation of the grasping hand"),
-new ParamProxyBasic<double>("qd",                   PARAM_ID_QDES,              ICUB_DOFS,                  ParamBilatBounds<double>(-200.0, 200.0),    PARAM_IN_STREAM,    DEFAULT_QDES.data(),            "Desired joint angles"),
+new ParamProxyBasic<double>("qd",                   PARAM_ID_QDES,              ICUB_DOFS,                  ParamBilatBounds<double>(-200.0, 200.0),    PARAM_IN_STREAM,    ZERO_ND.data(),                 "Desired joint angles"),
 new ParamProxyBasic<double>("H_w2b",                PARAM_ID_H_W2B,             16,                         ParamBilatBounds<double>(-100.0, 100.0),    PARAM_IN_STREAM,    DEFAULT_H_W2B.data(),           "Estimated rototranslation matrix between world and robot base reference frames"),
 // ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
-new ParamProxyBasic<double>("x com",                PARAM_ID_X_COM,             3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      DEFAULT_X_COM.data(),           "3d Position of the center of mass"),
-new ParamProxyBasic<double>("dx com",               PARAM_ID_DX_COM,            3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      DEFAULT_X_COM.data(),           "3d velocity of the center of mass"),
-new ParamProxyBasic<double>("xr com",               PARAM_ID_XREF_COM,          3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      DEFAULT_XREF_COM.data(),        "3d Reference position of the center of mass generated by a min jerk trajectory generator"),
+new ParamProxyBasic<double>("x com",                PARAM_ID_X_COM,             3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_3D.data(),                 "3d Position of the center of mass"),
+new ParamProxyBasic<double>("dx com",               PARAM_ID_DX_COM,            3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_3D.data(),                 "3d velocity of the center of mass"),
+new ParamProxyBasic<double>("xr com",               PARAM_ID_XREF_COM,          3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_3D.data(),                 "3d Reference position of the center of mass generated by a min jerk trajectory generator"),
 new ParamProxyBasic<double>("momentum",             PARAM_ID_MOMENTUM,          6,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_6D.data(),                 "6d centroidal momentum"),
-new ParamProxyBasic<double>("x forearm",            PARAM_ID_X_FOREARM,         7,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      DEFAULT_X_FOREARM.data(),       "Position/orientation of the forearm"),
-new ParamProxyBasic<double>("xr forearm",           PARAM_ID_XREF_FOREARM,      3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      DEFAULT_XREF_FOREARM.data(),    "Reference position/orientation of the forearm generated by a min jerk trajectory generator"),
-new ParamProxyBasic<double>("x hand",               PARAM_ID_X_HAND,            7,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      DEFAULT_X_HAND.data(),          "Position/orientation of the grasping hand"),
-new ParamProxyBasic<double>("xr hand",              PARAM_ID_XREF_HAND,         3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      DEFAULT_XREF_HAND.data(),       "Reference position/orientation of the grasping hand generated by a min jerk trajectory generator"),
-new ParamProxyBasic<double>("q",                    PARAM_ID_Q,                 ICUB_DOFS,                  ParamBilatBounds<double>(-100.0, 100.0),    PARAM_MONITOR,      DEFAULT_Q.data(),               "Joint angles"),
-new ParamProxyBasic<double>("qr",                   PARAM_ID_QREF,              ICUB_DOFS,                  ParamBilatBounds<double>(-100.0, 100.0),    PARAM_MONITOR,      DEFAULT_QREF.data(),            "Reference joint angles generated by a min jerk trajectory generator")
+new ParamProxyBasic<double>("x forearm",            PARAM_ID_X_FOREARM,         7,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_7D.data(),                 "Position/orientation of the forearm"),
+new ParamProxyBasic<double>("xr forearm",           PARAM_ID_XREF_FOREARM,      3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_3D.data(),                 "Reference position/orientation of the forearm generated by a min jerk trajectory generator"),
+new ParamProxyBasic<double>("x hand",               PARAM_ID_X_HAND,            7,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_7D.data(),                 "Position/orientation of the grasping hand"),
+new ParamProxyBasic<double>("xr hand",              PARAM_ID_XREF_HAND,         3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_3D.data(),                 "Reference position/orientation of the grasping hand generated by a min jerk trajectory generator"),
+new ParamProxyBasic<double>("x base",               PARAM_ID_X_BASE,            7,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_7D.data(),                 "Position/orientation of the floating base"),
+new ParamProxyBasic<double>("v base",               PARAM_ID_V_BASE,            6,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_7D.data(),                 "Linear/angular velocity of the floating base"),
+new ParamProxyBasic<double>("q",                    PARAM_ID_Q,                 ICUB_DOFS,                  ParamBilatBounds<double>(-100.0, 100.0),    PARAM_MONITOR,      ZERO_ND.data(),                 "Joint angles"),
+new ParamProxyBasic<double>("dq",                   PARAM_ID_DQ,                ICUB_DOFS,                  ParamBilatBounds<double>(-100.0, 100.0),    PARAM_MONITOR,      ZERO_ND.data(),                 "Joint velocities"),
+new ParamProxyBasic<double>("qr",                   PARAM_ID_QREF,              ICUB_DOFS,                  ParamBilatBounds<double>(-100.0, 100.0),    PARAM_MONITOR,      ZERO_ND.data(),                 "Reference joint angles generated by a min jerk trajectory generator")
 };
 
 

@@ -93,6 +93,7 @@ namespace wholeBodyReach
         // RPC PARAMETERS
         Eigen::Vector7d             _pose;              /// measured position+orientation (axis/angle)
         Eigen::Vector7d             _poseDes;           /// desired position + orientation (axis/angle)
+        Eigen::Vector3d             _posRef;            /// reference position
         int                         _paramId_poseDes;   /// id of the parameter associated to _poseDesired
         int                         _paramId_pose;      /// id of the parameter associated to _pose
         
@@ -110,6 +111,7 @@ namespace wholeBodyReach
          */
         virtual void linkParameterPoseDes(paramHelp::ParamHelperServer* paramHelper, int paramId);
         virtual void linkParameterPose(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        virtual void linkParameterPosRef(paramHelp::ParamHelperServer* paramHelper, int paramId);
         
         /** Method called every time a parameter (for which a callback is registered) is changed. */
         virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
@@ -186,7 +188,7 @@ namespace wholeBodyReach
     {
     protected:
         Eigen::VectorXd         _qDes;          /// desired joint positions
-        int                     _paramId_qDes;  /// id of the parameter associated to _qDes
+        Eigen::VectorXd         _qRef;          /// reference joint positions
         
     public:
         MinJerkPDPostureTask(std::string taskName, double sampleTime, wbi::wholeBodyInterface* robot);
@@ -200,6 +202,7 @@ namespace wholeBodyReach
          * instance of ParamHelperServer.
          */
         virtual void linkParameterPostureDes(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        virtual void linkParameterPostureRef(paramHelp::ParamHelperServer* paramHelper, int paramId);
         
         /** Method called every time a parameter (for which a callback is registered) is changed. */
         virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp)
