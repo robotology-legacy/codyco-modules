@@ -3,7 +3,6 @@ if(CODYCO_USES_WBI_TOOLBOX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif(CODYCO_USES_WBI_TOOLBOX)
 
-add_subdirectory(libraries)
 add_subdirectory(modules)
 add_subdirectory(misc/ftDumper)
 
