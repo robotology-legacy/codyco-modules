@@ -33,7 +33,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME}
-                      motorFrictionIdentificationLib
+                      ${motorFrictionIdentificationLib_LIBRARIES}
                       skinDynLib
                       ${wholeBodyInterface_LIBRARIES}
                       ${yarpWholeBodyInterface_LIBRARIES}
