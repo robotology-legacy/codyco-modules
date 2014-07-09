@@ -6,11 +6,10 @@
 #### Options
 
 ## URDF file format support
-option(CODYCO_USES_URDFDOM "Enable support for URDF input in iDynTree" FALSE)
+option(CODYCO_USES_URDFDOM "Enable support for URDF input in iDynTree" TRUE)
 if(CODYCO_USES_URDFDOM)
     add_definitions(-DCODYCO_USES_URDFDOM)
 endif()
-
 
 # SET(CODYCO_TRAVIS_CI FALSE CACHE BOOL "Set if build is done with Travis-CI flags")
 OPTION(CODYCO_TRAVIS_CI "Set if build is done with Travis-CI flags" FALSE)
@@ -68,19 +67,6 @@ endif (CODYCO_INSTALL_WITH_RPATH)
 option(CODYCO_SHARED_LIBRARY "Compile shared libraries rather than static libraries" FALSE)
 if(CODYCO_SHARED_LIBRARY)
     set(BUILD_SHARED_LIBS ON)
-endif()
-
-
-#### Settings for building modules based on Yarp 2.4 configuration method
-option(CODYCO_BUILD_YARP24_MODULES "Compile modules with cmake configuration and installation based on Yarp 2.4" TRUE)
-if(YARP_VERSION VERSION_LESS 2.3.60)
-   set(CODYCO_BUILD_YARP24_MODULES FALSE)
-endif()
-
-#### Settings for building modules that depens on Eigen 3.1 configuration method
-option(CODYCO_BUILD_EIGEN31_MODULES "Compile modules that depend on Eigen 3.1" TRUE)
-if(EIGEN3_VERSION VERSION_LESS 3.1)
-   set(CODYCO_BUILD_EIGEN31_MODULES FALSE)
 endif()
 
 #setting options specific for OS X

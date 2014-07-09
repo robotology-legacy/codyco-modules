@@ -4,15 +4,13 @@
 
 
 #### CMake Setup
-cmake_minimum_required(VERSION 2.6.4)
+cmake_minimum_required(VERSION 2.8.7)
 
 if(COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
-
-
 
 #### CoDyCo Setup
 project(CoDyCo)
@@ -22,29 +20,8 @@ set(CODYCO_VERSION_MINOR "1")
 set(CODYCO_VERSION_PATCH "0")
 set(CODYCO_VERSION "${CODYCO_VERSION_MAJOR}.${CODYCO_VERSION_MINOR}.${CODYCO_VERSION_PATCH}")
 
-
-
-
-#### Find YARP, require that YARP version is at least YARP_REQVERSION
-set(YARP_REQVERSION_MAJOR "2")
-set(YARP_REQVERSION_MINOR "3")
-set(YARP_REQVERSION_PATCH "20")
-set(YARP_REQVERSION_TWEAK "")
-if(YARP_REQVERSION_TWEAK)
-    set(YARP_REQVERSION ${YARP_REQVERSION_MAJOR}.${YARP_REQVERSION_MINOR}.${YARP_REQVERSION_PATCH}.${YARP_REQVERSION_TWEAK})
-else()
-    set(YARP_REQVERSION ${YARP_REQVERSION_MAJOR}.${YARP_REQVERSION_MINOR}.${YARP_REQVERSION_PATCH})
-endif()
-
-find_package(YARP REQUIRED)
-
+find_package(YARP 2.3.61 REQUIRED)
 message(STATUS "YARP is version: ${YARP_VERSION}")
-
-if(YARP_VERSION VERSION_LESS YARP_REQVERSION)
-    message(FATAL_ERROR "YARP version is not compatible, please update YARP")
-else()
-    message(STATUS "found compatible YARP version")
-endif()
 
 if (YARP_HAS_MATH_LIB)
      set(ICUB_HAS_YARP TRUE CACHE BOOL "" FORCE)
@@ -66,25 +43,15 @@ include(CoDyCoFindDependencies)
 include(CoDyCoOptions)
 
 # new "data" installation - available with yarp2.4
-if(CODYCO_BUILD_YARP24_MODULES)
-    include(YarpInstallationHelpers)
-    yarp_configure_external_installation(codyco)
-endif()
-
+include(YarpInstallationHelpers)
+yarp_configure_external_installation(codyco)
 
 #### Find iCub
 
 find_package(ICUB REQUIRED)
 
-if(ICUB_VERSION VERSION_LESS ICUB_REQVERSION)
-    message(FATAL_ERROR "iCub version is not compatible, please update iCub")
-else()
-    message(STATUS "found compatible iCub version")
-endif()
-
 # include iCub CMake modules
 set(CMAKE_MODULE_PATH ${ICUB_MODULE_PATH} ${CMAKE_MODULE_PATH})
-
 
 # add functionalities like icub_add_library/icub_add_executable
 include(iCubHelpers)
@@ -103,19 +70,22 @@ mark_as_advanced(LIBRARY_OUTPUT_PATH)
 
 ### enable testing
 option(CODYCO_DASHBOARD_SUBMIT "Submit compile tests to cdash" FALSE)
+option(CODYCO_BUILD_TESTS "Compile tests" FALSE)
 option(ICUB_USE_XDE "Experimental ISIR modules based on XDE" FALSE)
 option(CODYCO_USES_WBI_TOOLBOX "Whole Body Interface Toolbox - Simulink library" FALSE)
+option(ICUBWBI_USE_EXTERNAL_TORQUE_CONTROL "Compile yarpwholebodyinterface to use JTC external torque control" FALSE)
+
+
+if (ICUBWBI_USE_EXTERNAL_TORQUE_CONTROL)
+    add_definitions(-DWBI_ICUB_COMPILE_PARAM_HELP)
+endif()
+
 
 if (CODYCO_DASHBOARD_SUBMIT OR CODYCO_BUILD_TESTS)
    include (CTest)
 endif()
 
-#### Add external modules
-#add_subdirectory(extern)
-
 add_subdirectory(src)
-add_subdirectory(doc)
-
 
 #### add the "uninstall" target
 include(AddUninstallTarget)

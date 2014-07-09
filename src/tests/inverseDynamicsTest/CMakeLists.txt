@@ -3,8 +3,7 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 cmake_minimum_required(VERSION 2.8)
-SET(PROJECTNAME inverseDynamicsTest)
-PROJECT(${PROJECTNAME})
+#PROJECT(inverseDynamicsTestProject)
 
 find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)
@@ -22,12 +21,12 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 
 INCLUDE_DIRECTORIES(${yarpWholeBodyInterface_INCLUDE_DIRS})
 
-ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
+ADD_EXECUTABLE(inverseDynamicsTest ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${yarpWholeBodyInterface_LIBRARIES})
+TARGET_LINK_LIBRARIES(inverseDynamicsTest ${yarpWholeBodyInterface_LIBRARIES})
 
 if(WIN32)
-	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})
+	INSTALL_TARGETS(/bin/Release inverseDynamicsTest)
 else(WIN32)
-	INSTALL_TARGETS(/bin ${PROJECTNAME})
+	INSTALL_TARGETS(/bin inverseDynamicsTest)
 endif(WIN32)

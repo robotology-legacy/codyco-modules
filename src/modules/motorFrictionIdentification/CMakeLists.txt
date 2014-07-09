@@ -12,6 +12,8 @@ find_package(paramHelp REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(wholeBodyInterface REQUIRED)
 find_package(yarpWholeBodyInterface REQUIRED)
+find_package(motorFrictionIdentificationLib REQUIRED)
+
 
 FILE(GLOB folder_source ./src/motorFrictionIdentificationMain.cpp
                         ./src/motorFrictionIdentificationModule.cpp
@@ -45,7 +47,7 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME}
                       ${paramHelp_LIBRARIES}
                       ${ctrlLib_LIBRARIES}
                       ${YARP_LIBRARIES}
-                      motorFrictionIdentificationLib)
+                      ${motorFrictionIdentificationLib_LIBRARIES})
 
 if(WIN32)
     INSTALL_TARGETS(/bin/Release ${PROJECTNAME})

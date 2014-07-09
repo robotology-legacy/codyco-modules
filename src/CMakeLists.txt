@@ -3,22 +3,11 @@ if(CODYCO_USES_WBI_TOOLBOX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif(CODYCO_USES_WBI_TOOLBOX)
 
-add_subdirectory(tests)
-add_subdirectory(libraries)
-#add_subdirectory(sensorsInterfaces)
-#add_subdirectory(wbci)
-#add_subdirectory(wbciy)
 add_subdirectory(modules)
+add_subdirectory(misc/ftDumper)
 
+add_subdirectory(tests)
 
-if (CODYCO_DASHBOARD_SUBMIT OR CODYCO_BUILD_TESTS)
-   add_subdirectory(tests)
-endif()
-
-#built ftDumper only if YARP24 is found
-if(CODYCO_BUILD_YARP24_MODULES)
-   add_subdirectory(misc/ftDumper)
-endif(CODYCO_BUILD_YARP24_MODULES)
 
 if (ICUB_USE_XDE)
      add_subdirectory(reachComBalance)
