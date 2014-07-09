@@ -28,7 +28,10 @@
 
 namespace wholeBodyReach
 {
-    
+  
+static const double NO_LOWER_BOUND = -std::numeric_limits<double>::infinity();
+static const double NO_UPPER_BOUND =  std::numeric_limits<double>::infinity();
+
 struct RobotState
 {
     Eigen::VectorXd     qJ;     // joint positions
@@ -137,9 +140,9 @@ public:
      */
     WbiInequalityTask(int taskSize, int n)
     {
-        _A_in.resize(taskSize, n);
-        _l_in.resize(taskSize);
-        _u_in.resize(taskSize);
+        _A_in.setZero(taskSize, n);
+        _l_in.setZero(taskSize);
+        _u_in.setZero(taskSize);
     }
     
     /** Get the current matrix of the inequality. */

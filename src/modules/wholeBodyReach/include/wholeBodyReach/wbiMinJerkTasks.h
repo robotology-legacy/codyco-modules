@@ -209,39 +209,6 @@ namespace wholeBodyReach
         }
     };
     
-    
-    /** A constraint representing a rigid contact between one link of
-      * the robot and the environment. The contact may constrain all
-      * 6 directions of motion (linear + angular) or only the linear part.
-      */
-    class ContactConstraint:    public WbiAbstractTask,
-                                public WbiEqualityTask,
-                                public WbiInequalityTask
-    {
-    protected:
-        std::string         _linkName;
-        int                 _linkId;
-        
-        Eigen::MatrixRXd    _X;     /// momentum mapping matrix
-        wbi::Frame          _Hcom;  /// homogeneous transformation from world to CoM
-        wbi::Frame          _H;     /// homogeneous transformation from world to this link
-        Eigen::Vector3d     _p_com; /// vector from CoM to contact link in world frame
-        
-    public:
-        ContactConstraint(std::string name, std::string linkName, wbi::wholeBodyInterface* robot);
-        virtual ~ContactConstraint() {}
-        
-        virtual bool update(RobotState& state);
-        
-        virtual void init(RobotState& state){}
-        
-        /** Get the matrix that maps this constraint forces into rate of change
-          * of the momentum of the robot. 
-          */
-        virtual void getMomentumMapping(Eigen::MatrixRef X)
-        { X = _X; }
-    };
-
 
     /** Task to model the joint limits of the robot.
       * This task computes the bounds on the joint accelerations
@@ -292,9 +259,6 @@ namespace wholeBodyReach
     
     /** Compute the 3d orientation error given the measured orientation and the desired orientation. */
     void computeOrientationError(const wbi::Rotation& R, const wbi::Rotation& R_des, Eigen::VectorRef res);
-    
-    Eigen::MatrixR3d crossProductMatrix(Eigen::VectorConst v);
-    
     
 } // end namespace wholeBodyReach
 

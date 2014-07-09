@@ -32,6 +32,7 @@
 
 #include <wholeBodyReach/wholeBodyReachConstants.h>
 #include <wholeBodyReach/wbiMinJerkTasks.h>
+#include <wholeBodyReach/wbiConstraints.h>
 #include <wholeBodyReach/Logger.h>
 
 

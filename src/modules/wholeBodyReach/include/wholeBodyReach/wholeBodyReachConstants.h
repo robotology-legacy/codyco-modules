@@ -77,6 +77,17 @@ namespace wholeBodyReach
 // of the iWholeBodyState class. Instead, it uses iWholeBodySensor to read the sensor and then
 // it performs some state estimation to get the desired information
 #define DO_NOT_USE_WHOLE_BODY_STATE_INTERFACE
+    
+struct ContactPlaneSize
+{
+    double          xPos; /// size of the contact plane in positive x direction
+    double          xNeg; /// size of the contact plane in negative x direction
+    double          yPos; /// size of the contact plane in positive y direction
+    double          yNeg; /// size of the contact plane in negative y direction
+    
+    ContactPlaneSize(double xp, double xn, double yp, double yn)
+    :xPos(xp), xNeg(xn), yPos(yp), yNeg(yn) {}
+};
 
 /** List of available parameters of IOFormat constructor:
     precision       number of digits for floating point values, or one of the special constants StreamPrecision and FullPrecision.
@@ -107,6 +118,7 @@ static const string     GRASP_HAND_LINK_NAME        = "r_gripper";
 static const string     SUPPORT_FOREARM_LINK_NAME   = "l_forearm";
 static const string     LEFT_FOOT_LINK_NAME         = "l_sole";
 static const string     RIGHT_FOOT_LINK_NAME        = "r_sole";
+static const ContactPlaneSize ICUB_FOOT_SIZE(0.1,0.1,0.1,0.1);
 
 enum WholeBodyReachSupportPhase
 {

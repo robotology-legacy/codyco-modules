@@ -33,7 +33,7 @@ WholeBodyReachThread::WholeBodyReachThread(string name, string robotName, int pe
                                            ParamHelperServer *ph, wholeBodyInterface *wbi)
     : RateThread(period),
     _tasks(GRASP_HAND_LINK_NAME, SUPPORT_FOREARM_LINK_NAME, LEFT_FOOT_LINK_NAME,
-           RIGHT_FOOT_LINK_NAME, period*1e-3, wbi),
+           RIGHT_FOOT_LINK_NAME, period*1e-3, ICUB_FOOT_SIZE, wbi),
     _solver(wbi, DEFAULT_USE_NULLSPACE_BASE),
     _name(name), _robotName(robotName), _paramHelper(ph), _robot(wbi)
 {

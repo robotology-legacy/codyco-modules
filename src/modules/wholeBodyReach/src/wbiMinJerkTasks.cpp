@@ -17,6 +17,7 @@
 
 #include <wholeBodyReach/wbiMinJerkTasks.h>
 #include <wholeBodyReach/Logger.h>
+#include <Eigen/Geometry>
 
 // TEMP
 #include <yarp/os/Time.h>
@@ -127,15 +128,6 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
     assert(_a_eq.size()==6);
     
     bool res = true;
-    // the first time compute the total mass of the robot
-    if(_robotMass<0.0)
-    {
-        int n = _robot->getDoFs();
-        MatrixRXd M(n+6, n+6);
-        res = res && _robot->computeMassMatrix(state.qJ.data(), state.xBase, M.data());
-        _robotMass = M(0,0);
-        cout<<"Robot mass is "<<_robotMass<<endl;
-    }
     res = res && _robot->computeH(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _H);
     res = res && _robot->computeCentroidalMomentum(state.qJ.data(), state.xBase, state.dqJ.data(),
                                                    state.vBase.data(), _momentum.data());
@@ -182,17 +174,23 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
 //    cout<<"_com = "<< _com.transpose() << endl;
 //    cout<<"_a_eq = "<< _a_eq.transpose() << endl;
     
-    
-    
     return res;
 }
 
 void MinJerkPDMomentumTask::init(RobotState& state)
 {
+    // initialize trajectory generator
     bool res = _robot->computeH(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _H);
-    assert(res);
     _com(0) = _H.p[0]; _com(1) = _H.p[1]; _com(2) = _H.p[2];
     _trajGen.init(_com);
+    
+    // compute robot's mass
+    int n = _robot->getDoFs();
+    MatrixRXd M(n+6, n+6);
+    res = res && _robot->computeMassMatrix(state.qJ.data(), state.xBase, M.data());
+    _robotMass = M(0,0);
+    cout<<"Robot mass is "<<_robotMass<<endl;
+    assert(res);
 }
 
 void MinJerkPDMomentumTask::linkParameterComDes(ParamHelperServer* paramHelper, int paramId)
@@ -267,42 +265,6 @@ void MinJerkPDPostureTask::linkParameterPostureDes(ParamHelperServer* paramHelpe
 {
     _paramId_qDes = paramId;
     paramHelper->linkParam(paramId, _qDes.data());
-}
-
-
-/*********************************************************************************************************/
-/******************************************* ContactConstraint *******************************************/
-/*********************************************************************************************************/
-
-ContactConstraint::ContactConstraint(std::string name, std::string linkName, wbi::wholeBodyInterface* robot)
-:   WbiAbstractTask(name, 6, robot),
-    WbiEqualityTask(6, robot->getDoFs()+6),
-    WbiInequalityTask(6,robot->getDoFs()+6),
-    _linkName(linkName)
-{
-    _X.setIdentity(6, 6);
-    if(!robot->getLinkId(linkName.c_str(), _linkId))
-        cout<<"Error while trying to get the ID of link "<<linkName<<endl;
-}
-
-bool ContactConstraint::update(RobotState& state)
-{
-    bool res = true;
-    // update equality matrix and equality vectory
-    res = res && _robot->computeJacobian(state.qJ.data(), state.xBase, _linkId, _A_eq.data());
-    res = res && _robot->computeDJdq(state.qJ.data(), state.xBase, state.dqJ.data(),
-                                     state.vBase.data(), _linkId, _a_eq.data());
-    _a_eq *= -1.0;  // _a_eq = -dJ*dq
-    
-    // compute force-momentum mapping matrix _X
-    res = res && _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
-    res = res && _robot->computeH(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _Hcom);
-    _p_com[0] = _H.p[0] - _Hcom.p[0];
-    _p_com[1] = _H.p[1] - _Hcom.p[1];
-    _p_com[2] = _H.p[2] - _Hcom.p[2];
-    _X.bottomLeftCorner<3,3>() = crossProductMatrix(_p_com);
-    
-    return res;
 }
 
 /*********************************************************************************************************/
@@ -409,20 +371,4 @@ void wholeBodyReach::computeOrientationError(const wbi::Rotation& R, const wbi::
     res[0] = aa[3] * aa[0];
     res[1] = aa[3] * aa[1];
     res[2] = aa[3] * aa[2];
-}
-
-Eigen::MatrixR3d wholeBodyReach::crossProductMatrix(Eigen::VectorConst v)
-{
-    //  0 -z +y
-    // +z  0 -x
-    // -y +x  0
-    MatrixR3d S;
-    S(0,0) = S(1,1) = S(2,2) = 0.0;
-    S(1,0) = v(2);
-    S(2,0) = -v(1);
-    S(2,1) = v(0);
-    S(0,1) = -v(2);
-    S(0,2) = v(1);
-    S(1,2) = -v(0);
-    return S;
 }

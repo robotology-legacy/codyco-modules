@@ -79,20 +79,21 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
         MinJerkPDLinkPoseTask   graspHand;
         MinJerkPDLinkPoseTask   supportForearm;
         MinJerkPDPostureTask    posture;
-        ContactConstraint       leftFoot;
-        ContactConstraint       rightFoot;
-        ContactConstraint       supportForearmConstr;
+        PlaneContactConstraint  leftFoot;
+        PlaneContactConstraint  rightFoot;
+        PointContactConstraint  supportForearmConstr;
         JointLimitTask          jointLimits;
         
         WholeBodyReachTasks(std::string graspHandLinkName, std::string supportForearmLinkName,
                             std::string leftFootLinkName, std::string rightFootLinkName,
-                            double sampleTime, wbi::wholeBodyInterface* wbi)
+                            double sampleTime, const ContactPlaneSize& footSize,
+                            wbi::wholeBodyInterface* wbi)
           : momentum("momentum", sampleTime, wbi),
             graspHand("grasp hand", graspHandLinkName, sampleTime, wbi),
             supportForearm("support forearm", supportForearmLinkName, sampleTime, wbi),
             posture("posture", sampleTime, wbi),
-            leftFoot("left foot", leftFootLinkName, wbi),
-            rightFoot("right foot", rightFootLinkName, wbi),
+            leftFoot("left foot", leftFootLinkName, footSize, wbi),
+            rightFoot("right foot", rightFootLinkName, footSize, wbi),
             supportForearmConstr("support forearm constraint", supportForearmLinkName, wbi),
             jointLimits("joint limits", wbi)
         {}
