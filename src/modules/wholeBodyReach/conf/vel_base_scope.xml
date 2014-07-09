@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--    
+3+3 + 3+6 + 7+3 + 7+3 + 7+6 + 25+25 + 25
+0:2 PARAM_ID_X_COM,                 3:5 PARAM_ID_DX_COM,
+6:8 PARAM_ID_XREF_COM,              9:14 PARAM_ID_MOMENTUM,
+15:21 PARAM_ID_X_FOREARM,             22:24 PARAM_ID_XREF_FOREARM,
+25:31 PARAM_ID_X_HAND,                32:34 PARAM_ID_XREF_HAND,
+35:41 PARAM_ID_X_BASE,                42:47 PARAM_ID_V_BASE,
+48:72 PARAM_ID_Q,                     73:97 PARAM_ID_DQ,            
+98:122 PARAM_ID_QREF
+-->
+<portscope rows="3" columns="3">
+    <!-- plotting base position -->
+    <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Base x"
+          size="60" minval="-0.3" maxval="0.3" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="35" color="Red" title="COM x" type="lines" size="2" />
+    </plot>
+    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Base y"
+          size="60" minval="-0.3" maxval="0.3" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="36" color="Green" title="COM x" type="lines" size="2" />
+    </plot>
+    <plot gridx="0" gridy="2" hspan="1" vspan="1" title="Base z"
+          size="60" minval="0.2" maxval="0.6" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="37" color="Blue" title="COM x" type="lines" size="2" />
+    </plot>
+	
+	
+	
+    <!-- plotting base vx -->
+    <plot gridx="1" gridy="0" hspan="1" vspan="1" title="Base vel x"
+          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="42" color="Red" title="dx" type="lines" size="2" />
+    </plot>
+    <!-- plotting base vy -->
+    <plot gridx="1" gridy="1" hspan="1" vspan="1" title="Base vel y"
+          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="43" color="Green" title="dx" type="lines" size="2" />
+    </plot>
+    <!-- plotting base vz -->
+    <plot gridx="1" gridy="2" hspan="1" vspan="1" title="Base vel z"
+          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="44" color="Blue" title="dx" type="lines" size="2" />
+    </plot>
+	
+	
+    <!-- plotting base w_x -->
+    <plot gridx="2" gridy="0" hspan="1" vspan="1" title="Base ang vel x"
+          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="45" color="Red" title="dx" type="lines" size="2" />
+    </plot>
+    <!-- plotting base w_y -->
+    <plot gridx="2" gridy="1" hspan="1" vspan="1" title="Base ang vel y"
+          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="46" color="Green" title="dx" type="lines" size="2" />
+    </plot>
+    <!-- plotting base w_z -->
+    <plot gridx="2" gridy="2" hspan="1" vspan="1" title="Base ang vel z"
+          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="47" color="Blue" title="dx" type="lines" size="2" />
+    </plot>
+
+</portscope>
