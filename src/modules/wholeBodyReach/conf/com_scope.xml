@@ -13,21 +13,21 @@
 <portscope rows="3" columns="2">
     <!-- plotting COM x -->
     <plot gridx="0" gridy="0" hspan="1" vspan="1" title="COM x ( red desired, blue measured )"
-          size="60" minval="-0.2" maxval="0.2" bgcolor="white">
+          size="60" minval="-0.15" maxval="0.15" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="0" color="Blue" title="COM x" type="lines" size="2" />
 	    <graph remote="/wbr/monitor:o" index="6" color="Red" title="COM x_des" type="lines" size="2" />
     </plot>
 	
     <!-- plotting COM y -->
     <plot gridx="0" gridy="1" hspan="1" vspan="1" title="COM y ( red desired, blue measured )"
-          size="60" minval="-0.2" maxval="0.2" bgcolor="white">
+          size="60" minval="-0.2" maxval="0.1" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="1" color="Blue" title="COM x" type="lines" size="2" />
 	    <graph remote="/wbr/monitor:o" index="7" color="Red" title="COM x_des" type="lines" size="2" />
     </plot>
 	
     <!-- plotting COM z -->
     <plot gridx="0" gridy="2" hspan="1" vspan="1" title="COM z ( red desired, blue measured )"
-          size="60" minval="0.2" maxval="0.5" bgcolor="white">
+          size="60" minval="0.35" maxval="0.65" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="2" color="Blue" title="COM x" type="lines" size="2" />
 	    <graph remote="/wbr/monitor:o" index="8" color="Red" title="COM x_des" type="lines" size="2" />
     </plot>

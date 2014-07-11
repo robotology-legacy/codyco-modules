@@ -113,6 +113,8 @@ static const double     KP_MAX          = 100.0;    // max value of proportional
 static const double     DQ_MAX          = 1.0;      // max joint velocity allowed (rad/sec)
 static const double     TAU_MAX         = 200.0;    // max joint torque allowed (Nm)
 static const double     PINV_TOL        = 1e-4;     // threshold for truncated pseudoinverses
+static const double     FORCE_NORMAL_MIN = 5.0;
+static const double     FORCE_NORMAL_MAX = 300.0;
 
 static const string     GRASP_HAND_LINK_NAME        = "r_gripper";
 static const string     SUPPORT_FOREARM_LINK_NAME   = "l_forearm";

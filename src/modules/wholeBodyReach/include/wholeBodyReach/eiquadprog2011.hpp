@@ -139,7 +139,7 @@ namespace Eigen {
     inline double solve_quadprog(MatrixXd & G,  VectorXd & g0,
                                  const MatrixXd & CE, const VectorXd & ce0,
                                  const MatrixXd & CI, const VectorXd & ci0,
-                                 VectorXd& x){
+                                 VectorXd& x, VectorXi& activeSet, int& activeSetSize){
         
         LLT<MatrixXd,Lower> chol(G.cols());
         double c1;
@@ -150,15 +150,18 @@ namespace Eigen {
         /* decompose the matrix G in the form LL^T */
         chol.compute(G);
         
-        return solve_quadprog2(chol, c1, g0, CE, ce0, CI, ci0, x);
+        return solve_quadprog2(chol, c1, g0, CE, ce0, CI, ci0, x, activeSet, activeSetSize);
         
     }
     
-    /* solve_quadprog2 is used for when the Cholesky decomposition of G is pre-computed */
+    /* solve_quadprog2 is used for when the Cholesky decomposition of G is pre-computed 
+     * @param A Output vector containing the indexes of the active constraints.
+     * @param q Output value representing the size of the active set.
+     */
     inline double solve_quadprog2(LLT<MatrixXd,Lower> &chol,  double c1, VectorXd & g0,
                                   const MatrixXd & CE, const VectorXd & ce0,
                                   const MatrixXd & CI, const VectorXd & ci0,
-                                  VectorXd& x)
+                                  VectorXd& x, VectorXi& A, int& q)
     {
         int i, j, k, l; /* indices */
         int ip, me, mi;
@@ -174,8 +177,9 @@ namespace Eigen {
         const double inf = std::numeric_limits<double>::infinity();
         double t, t1, t2; /* t is the step length, which is the minimum of the partial step length t1
                            * and the full step length t2 */
-        VectorXi A(m + p), A_old(m + p), iai(m + p), iaexcl(m+p);
-        int q;
+//        VectorXi A(m + p); // Del Prete: active set is now an output parameter
+        VectorXi A_old(m + p), iai(m + p), iaexcl(m+p);
+//        int q;
         int iq, iter = 0;
         
         me = p; /* number of equality constraints */

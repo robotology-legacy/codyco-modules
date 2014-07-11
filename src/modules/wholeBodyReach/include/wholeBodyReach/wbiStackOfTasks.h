@@ -114,6 +114,8 @@ protected:
         Eigen::VectorXd ce0;    /// equality constraint vecotr
         Eigen::MatrixRXd CI;     /// inequality constraint matrix
         Eigen::VectorXd ci0;    /// inequality constraint vector
+        Eigen::VectorXi activeSet;  /// vector containing the indexes of the active inequalities
+        int activeSetSize;
     } _qpData;
     
     /** Compute the inverse of the matrix Mb. */
@@ -141,7 +143,7 @@ public:
       * @param robotState The current state of the robot
       * @param torques Output control torques.
       */
-    virtual void computeSolution(RobotState& robotState, Eigen::VectorRef torques);
+    virtual bool computeSolution(RobotState& robotState, Eigen::VectorRef torques);
     
     /** Initialize the solver and the trajectory generator of the tasks.
       * To be called once before starting to call computeSolution. */

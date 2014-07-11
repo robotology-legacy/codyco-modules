@@ -70,11 +70,14 @@ namespace wholeBodyReach
         
         virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
         
+        bool setNormalDirection(Eigen::Vector3d normalDir);
+        
         virtual bool setForceFrictionCoefficient(double muF)
         {
             if(muF<=0.0) return false;
             _muF = muF;
             updateForceFrictionConeInequalities();
+            return true;
         }
         
         virtual bool setMinNormalForce(double mnf)
@@ -82,6 +85,7 @@ namespace wholeBodyReach
             if(mnf<0.0) return false;
             _fNormalMin = mnf;
             updateForceFrictionConeInequalities();
+            return true;
         }
         
         virtual bool setMaxNormalForce(double mnf)
@@ -89,6 +93,7 @@ namespace wholeBodyReach
             if(mnf<0.0) return false;
             _fNormalMax = mnf;
             updateForceFrictionConeInequalities();
+            return true;
         }
         
         /** Get the matrix that maps this constraint forces into rate of change
@@ -132,6 +137,7 @@ namespace wholeBodyReach
             if(muM<=0.0) return false;
             _muM = muM;
             updateMomentFrictionConeInequalities();
+            return true;
         }
     };
     

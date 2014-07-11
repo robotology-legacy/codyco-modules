@@ -123,15 +123,26 @@ bool WholeBodyReachThread::threadInit()
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_X_BASE,    _robotState.xBase.p));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_V_BASE,    _robotState.vBase.data()));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_DQ,        _dqjDeg.data()));
-    
+
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_FORCE_FRICTION,    &_forceFriction));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_MOMENT_FRICTION,   &_momentFriction));
     
-    // Register callbacks for some module parameters
+    _tasks.leftFoot.setForceFrictionCoefficient(    _forceFriction);
+    _tasks.rightFoot.setForceFrictionCoefficient(   _forceFriction);
+    _tasks.supportForearmConstr.setForceFrictionCoefficient(_forceFriction);
+    _tasks.leftFoot.setMomentFrictionCoefficient(   _momentFriction);
+    _tasks.rightFoot.setMomentFrictionCoefficient(  _momentFriction);
+    _tasks.leftFoot.setMaxNormalForce(              FORCE_NORMAL_MAX);
+    _tasks.rightFoot.setMaxNormalForce(             FORCE_NORMAL_MAX);
+    _tasks.supportForearmConstr.setMaxNormalForce(  FORCE_NORMAL_MAX);
+    _tasks.leftFoot.setMinNormalForce(              FORCE_NORMAL_MIN);
+    _tasks.rightFoot.setMinNormalForce(             FORCE_NORMAL_MIN);
+    _tasks.supportForearmConstr.setMinNormalForce(  FORCE_NORMAL_MIN);
+
+    // Register callbacks for some module commands and parameters
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_FORCE_FRICTION, this));
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_MOMENT_FRICTION, this));
-
-    // Register callbacks for some module commands
+    
     YARP_ASSERT(_paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
     YARP_ASSERT(_paramHelper->registerCommandCallback(COMMAND_ID_STOP,            this));
 
@@ -170,7 +181,7 @@ void WholeBodyReachThread::run()
 
     readRobotStatus();                      // read encoders, compute positions and Jacobians
     
-    _solver.computeSolution(_robotState, _tauDes);   // compute desired joint torques
+    bool res = _solver.computeSolution(_robotState, _tauDes);   // compute desired joint torques
 
     if(_status==WHOLE_BODY_REACH_ON)
     {
@@ -179,6 +190,11 @@ void WholeBodyReachThread::run()
             preStopOperations();            // stop the controller
             cout<<"\n***** ERROR: CONTROLLER STOPPED BECAUSE DESIRED JOINT TORQUES ARE TOO LARGE: "
                 <<toString(_tauDes.transpose(),1)<<endl;
+        }
+        else if(res==false)
+        {
+            preStopOperations();            // stop the controller
+            cout<<"\n***** ERROR: CONTROLLER STOPPED BECAUSE SOLVER COULDN'T FIND A SOLUTION\n";
         }
         else
         {
@@ -264,15 +280,21 @@ bool WholeBodyReachThread::areDesiredJointTorquesTooLarge()
 }
 
 //*************************************************************************************************************************
-void WholeBodyReachThread::preStartOperations()
+bool WholeBodyReachThread::preStartOperations()
 {
     // no need to lock because the mutex is already locked
-    readRobotStatus(true);
+    bool res = readRobotStatus(true);
     // initialize trajectory generators
     _solver.init(_robotState);
-    _status = WHOLE_BODY_REACH_ON;                 // set thread status to "on"
-    _robot->setControlMode(CTRL_MODE_TORQUE);
-    cout<<"\nWholeBodyReachThread::preStartOperations()\n\n";
+    res = res && _robot->setControlMode(CTRL_MODE_TORQUE);
+    if(res)
+        _status = WHOLE_BODY_REACH_ON;                 // set thread status to "on"
+    else
+    {
+        _robot->setControlMode(CTRL_MODE_POS);
+        cout<<"\nError in WholeBodyReachThread::preStartOperations(), controller is not gonna start!\n\n";
+    }
+    return res;
 }
 
 //*************************************************************************************************************************

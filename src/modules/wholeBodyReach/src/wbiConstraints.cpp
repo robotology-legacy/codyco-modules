@@ -41,19 +41,27 @@ ContactConstraint::ContactConstraint(std::string name, std::string linkName,
     WbiInequalityTask(numberOfInequalityConstraints, numberOfForces),
     _linkName(linkName)
 {
+    setNormalDirection(Vector3d::UnitZ());
     _X.setIdentity(6, numberOfForces);
     if(!robot->getLinkId(linkName.c_str(), _linkId))
         cout<<"Error while trying to get the ID of link "<<linkName<<endl;
 }
 
-void ContactConstraint::updateForceFrictionConeInequalities()
+bool ContactConstraint::setNormalDirection(Vector3d normalDir)
 {
+    _normalDir = normalDir;
     _normalDir.normalize();
+    if(_normalDir.norm()==0.0)
+        return false;
     _tangentDir1 = _normalDir.cross(Vector3d::UnitY());
     _tangentDir1.normalize();
     _tangentDir2 = _normalDir.cross(_tangentDir1);
     _tangentDir2.normalize();
-    
+    return true;
+}
+
+void ContactConstraint::updateForceFrictionConeInequalities()
+{
     // * 1 bilateral for Fn (written as 2 unilateral)
     _A_in.block<1,3>(0,0)   =   _normalDir.transpose();
     _A_in.block<1,3>(1,0)   = - _normalDir.transpose();
@@ -68,6 +76,9 @@ void ContactConstraint::updateForceFrictionConeInequalities()
     _A_in.block<1,3>(4,0)   =  _tangentDir2.transpose() - _muF*_normalDir.transpose();
     _A_in.block<1,3>(5,0)   = -_tangentDir2.transpose() - _muF*_normalDir.transpose();
     _a_in.segment<4>(2).setZero();
+    
+    cout<<"Force friction inequalities:\n"<< toString(_A_in.block(0,0,6,_m),1)<<endl;
+    cout<<"< "<< toString(_a_in.segment<6>(0),1)<<endl;
 }
 
 void ContactConstraint::linkParameterForceFrictionCoefficient(ParamHelperServer* paramHelper, int paramId)
@@ -139,7 +150,10 @@ void PlaneContactConstraint::updateZmpInequalities()
     _A_in(8,4)    = 1.0;
     _A_in(9,2)    = -_planeSize.yNeg;
     _A_in(9,4)    = -1.0;
-    _a_in.segment<4>(5).setZero();
+    _a_in.segment<4>(6).setZero();
+    
+    cout<<"Zmp inequalities:\n"<< toString(_A_in.block<4,6>(6,0),1)<<endl;
+    cout<<"< "<< toString(_a_in.segment<4>(6),1)<<endl;
 }
 
 void PlaneContactConstraint::updateMomentFrictionConeInequalities()
@@ -158,6 +172,9 @@ void PlaneContactConstraint::updateMomentFrictionConeInequalities()
     _A_in.block<1,3>(11,0)  = - _muM * _normalDir.transpose();
     _A_in.block<1,3>(11,3)  = -        _normalDir.transpose();
     _a_in.segment<2>(10).setZero();
+    
+    cout<<"Moment friction inequalities:\n"<< toString(_A_in.block<2,6>(10,0),1)<<endl;
+    cout<<"< "<< toString(_a_in.segment<2>(10),1)<<endl;
 }
 
 void PlaneContactConstraint::linkParameterMomentFrictionCoefficient(ParamHelperServer* paramHelper, int paramId)

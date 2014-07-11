@@ -151,7 +151,7 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
     bool areDesiredJointTorquesTooLarge();
 
     /** Perform all the operations needed just before starting the controller. */
-    void preStartOperations();
+    bool preStartOperations();
     /** Perform all the operations needed just before stopping the controller. */
     void preStopOperations();
 

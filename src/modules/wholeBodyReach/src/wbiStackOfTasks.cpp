@@ -61,6 +61,7 @@ wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot, bool useNullspa
     _jointLimitTask(NULL),
     _useNullspaceBase(useNullspaceBase)
 {
+    _qpData.activeSetSize = 0;
     this->useNullspaceBase(_useNullspaceBase==1);
     
     _n = robot->getDoFs();
@@ -79,7 +80,7 @@ wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot, bool useNullspa
     _qpData.ci0.resize(0);
 }
 
-void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef torques)
+bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef torques)
 {
     START_PROFILING(PROFILE_WHOLE_SOLVER);
     
@@ -115,15 +116,20 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             k  = c.getSize();    // number of constraint forces
             in = c.getNumberOfInequalities();
 
-            c.getInequalityMatrix( _qpData.CI.block(index_in, in, index_k, k)); // CI = [CI, t.getInequalityMatrix()]
+            c.getInequalityMatrix( _qpData.CI.block(index_in, index_k, in, k)); // CI = [CI, t.getInequalityMatrix()]
             c.getInequalityVector( _qpData.ci0.segment(index_in, in) );         //  b = [b; t.getInequalityVector()]
             c.getMomentumMapping(  _X.middleCols(index_k, k)  );                //  X = [X, t.getMomentumMapping()]
             c.getEqualityMatrix(   _Jc.middleRows(index_k, k) );                // Jc = [Jc; t.getEqualityMatrix()]
             c.getEqualityVector(   _dJcdq.segment(index_k, k) );                // dJc_dq = [dJc_dq; t.getEqualityVector()]
+            
+//            sendMsg("CI block "+c.getName()+":\n"+toString(_qpData.CI.block(index_in, index_k, in, k),1,"\n",12));
+//            sendMsg("ci0: "+toString(_qpData.ci0.segment(index_in, in),1));
 
             index_k += k;
             index_in += in;
         }
+//        sendMsg("CI:\n"+toString(_qpData.CI,1,"\n",12));
+//        sendMsg("ci0: "+toString(_qpData.ci0,1));
         
         START_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
         {
@@ -140,11 +146,16 @@ void wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     
     sendMsg("momentumDes "+toString(_momentumDes,1));
 //    cout<< "QP gradient "<<toString(_qpData.g,1)<<endl;
+    double res;
     START_PROFILING(PROFILE_FORCE_QP);
     {
-        solve_quadprog(_qpData.H, _qpData.g, _qpData.CE, _qpData.ce0, _qpData.CI, _qpData.ci0, _fcDes);
+        res = solve_quadprog(_qpData.H, _qpData.g, _qpData.CE.transpose(), _qpData.ce0,
+                             - _qpData.CI.transpose(), _qpData.ci0, _fcDes,
+                             _qpData.activeSet, _qpData.activeSetSize);
     }
     STOP_PROFILING(PROFILE_FORCE_QP);
+    if(res == std::numeric_limits<double>::infinity())
+        return false;
     sendMsg("Momentum error  = "+toString((_X*_fcDes-_momentumDes).norm()));
     
     //*********************************
@@ -307,6 +318,7 @@ void wbiStackOfTasks::addConstraint(ContactConstraint& constraint)
     _fcDes.setZero(_k);
     _qpData.CI.setZero(n_in, _k);
     _qpData.ci0.setZero(n_in);
+    activeSet = VectorXi::Constant(n_in, -1);
 }
 
 
