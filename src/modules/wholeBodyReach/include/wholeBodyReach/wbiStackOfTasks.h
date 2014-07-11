@@ -23,7 +23,7 @@
 #include <Eigen/SVD>
 #include <yarp/sig/Vector.h>
 #include <yarp/os/Time.h>           // Timer
-#include <paramHelp/ParamHelperServer.h>
+#include <paramHelp/paramHelperServer.h>
 #include <vector>
 #include <list>
 #include <string>

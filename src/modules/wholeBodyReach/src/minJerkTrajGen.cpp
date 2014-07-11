@@ -14,7 +14,7 @@
  * Public License for more details
  */
 
-#include "wholeBodyReach/MinJerkTrajGen.h"
+#include "wholeBodyReach/minJerkTrajGen.h"
 #include <iCub/ctrl/minJerkCtrl.h>
 #include <yarp/sig/Vector.h>
 

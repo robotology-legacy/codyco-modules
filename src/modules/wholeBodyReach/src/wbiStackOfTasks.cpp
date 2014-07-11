@@ -318,7 +318,7 @@ void wbiStackOfTasks::addConstraint(ContactConstraint& constraint)
     _fcDes.setZero(_k);
     _qpData.CI.setZero(n_in, _k);
     _qpData.ci0.setZero(n_in);
-    activeSet = VectorXi::Constant(n_in, -1);
+    _qpData.activeSet = VectorXi::Constant(n_in, -1);
 }
 
 

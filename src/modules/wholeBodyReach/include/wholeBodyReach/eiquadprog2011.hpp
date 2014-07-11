@@ -133,7 +133,7 @@ namespace Eigen {
     double solve_quadprog2(LLT<MatrixXd,Lower> &chol,  double c1, VectorXd & g0,
                            const MatrixXd & CE, const VectorXd & ce0,
                            const MatrixXd & CI, const VectorXd & ci0,
-                           VectorXd& x);
+                           VectorXd& x, VectorXi& A, int& q);
     
     /* solve_quadprog is used for on-demand QP solving */
     inline double solve_quadprog(MatrixXd & G,  VectorXd & g0,
