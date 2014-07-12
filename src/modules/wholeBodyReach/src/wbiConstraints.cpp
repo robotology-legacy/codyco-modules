@@ -77,7 +77,8 @@ void ContactConstraint::updateForceFrictionConeInequalities()
     _A_in.block<1,3>(5,0)   = -_tangentDir2.transpose() - _muF*_normalDir.transpose();
     _a_in.segment<4>(2).setZero();
     
-    cout<<"Force friction inequalities:\n"<< toString(_A_in.block(0,0,6,_m),1)<<endl;
+    cout<<"Force friction inequalities:\n";
+    cout<<toString(_A_in.block(0,0,6,_m),1)<<endl;
     cout<<"< "<< toString(_a_in.segment<6>(0),1)<<endl;
 }
 
@@ -198,9 +199,9 @@ void PlaneContactConstraint::parameterUpdated(const ParamProxyInterface *pp)
 
 PointContactConstraint::PointContactConstraint(std::string name, std::string linkName,
                                                wbi::wholeBodyInterface* robot)
-:   ContactConstraint(name, linkName, 3, 5, robot)
+:   ContactConstraint(name, linkName, 3, 6, robot)
 {
-    _Jc.setZero(6, robot->getDoFs());
+    _Jc.setZero(6, robot->getDoFs()+6);
 }
 
 bool PointContactConstraint::update(RobotState& state)

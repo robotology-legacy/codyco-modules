@@ -127,7 +127,7 @@ MinJerkPDMomentumTask::MinJerkPDMomentumTask(std::string taskName, double sample
 
 bool MinJerkPDMomentumTask::update(RobotState& state)
 {
-    assert(_A_eq.rows()==6 && _A_eq.cols()==_n+6);
+    assert(_A_eq.rows()==6 && _A_eq.cols()==state.qJ.size()+6);
     assert(_a_eq.size()==6);
     
     bool res = true;

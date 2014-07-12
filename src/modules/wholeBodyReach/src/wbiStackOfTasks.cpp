@@ -253,9 +253,9 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     sendMsg("ddqDes       = "+toString(_ddqDes,1));
 //    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
     sendMsg("ddq_jPosture = "+toString(_ddq_jPosture,1));
-    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
-    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+//    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+//    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
+//    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
     
 //#define DEBUG_SOLVER
 #ifdef DEBUG_SOLVER
@@ -272,6 +272,8 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     sendMsg("tauDes (JSID) = "+toString(tauDes,1));
 //    torques = tauDes;
 #endif
+    
+    return true;
 }
 
 void wbiStackOfTasks::updateNullspace(JacobiSVD<MatrixRXd>& svd)

@@ -1,4 +1,4 @@
-add_subdirectory(iDynTreeTests)
+#add_subdirectory(iDynTreeTests)
 add_subdirectory(wholeBodyModelIcubTest)
 #add_subdirectory(codycoCommonsTest)
 #add_subdirectory(wholeBodyInterfaceTest)
