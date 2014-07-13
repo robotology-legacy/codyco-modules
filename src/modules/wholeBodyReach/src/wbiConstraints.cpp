@@ -43,6 +43,8 @@ ContactConstraint::ContactConstraint(std::string name, std::string linkName,
 {
     setNormalDirection(Vector3d::UnitZ());
     _X.setIdentity(6, numberOfForces);
+    _fDes.setZero(numberOfForces);
+    _fIneq.setZero(numberOfForces);
     if(!robot->getLinkId(linkName.c_str(), _linkId))
         cout<<"Error while trying to get the ID of link "<<linkName<<endl;
 }
@@ -63,10 +65,12 @@ bool ContactConstraint::setNormalDirection(Vector3d normalDir)
 void ContactConstraint::updateForceFrictionConeInequalities()
 {
     // * 1 bilateral for Fn (written as 2 unilateral)
+    // Fz < Fmax
+    // -Fz < -Fmin
     _A_in.block<1,3>(0,0)   =   _normalDir.transpose();
     _A_in.block<1,3>(1,0)   = - _normalDir.transpose();
-    _a_in(0)                = _fNormalMax;
-    _a_in(1)                = _fNormalMin;
+    _a_in(0)                =   _fNormalMax;
+    _a_in(1)                = - _fNormalMin;
     
     // * 4 unilateral for linearized friction cone
     //  Ft < mu*Fn
@@ -87,6 +91,11 @@ void ContactConstraint::linkParameterForceFrictionCoefficient(ParamHelperServer*
     paramHelper->linkParam(paramId, &_muF);
     paramHelper->registerParamValueChangedCallback(paramId, this);
     _paramId_muF = paramId;
+}
+
+void ContactConstraint::linkParameterForceInequalities(ParamHelperServer* paramHelper, int paramId)
+{
+    paramHelper->linkParam(paramId, _fIneq.data());
 }
 
 void ContactConstraint::parameterUpdated(const ParamProxyInterface *pp)
@@ -139,18 +148,21 @@ bool PlaneContactConstraint::update(RobotState& state)
 void PlaneContactConstraint::updateZmpInequalities()
 {
     // * 4 unilateral for ZMP
-    //  -Fn*Ltn < Mt < Fn*Ltp
-    // [0 0 -Lxp 1 0 0] f < 0
-    // [0 0 -Lxn -1 0 0] f < 0
+    //  -Fn*Lyn < Mx < Fn*Lyp
+    //  -Fn*Lxn < -My < Fn*Lxp
+    // [0 0 -Lyp +1 0 0] f < 0
+    // [0 0 -Lyn -1 0 0] f < 0
+    // [0 0 -Lxp 0 -1 0] f < 0
+    // [0 0 -Lxn 0 +1 0] f < 0
     // @todo Improve this implementation, which assumes contact plane is aligned with x-y axis
-    _A_in(6,2)    = -_planeSize.xPos;
-    _A_in(6,3)    = 1.0;
-    _A_in(7,2)    = -_planeSize.xNeg;
+    _A_in(6,2)    = -_planeSize.yPos;
+    _A_in(6,3)    =  1.0;
+    _A_in(7,2)    = -_planeSize.yNeg;
     _A_in(7,3)    = -1.0;
-    _A_in(8,2)    = -_planeSize.yPos;
-    _A_in(8,4)    = 1.0;
-    _A_in(9,2)    = -_planeSize.yNeg;
-    _A_in(9,4)    = -1.0;
+    _A_in(8,2)    = -_planeSize.xPos;
+    _A_in(8,4)    = -1.0;
+    _A_in(9,2)    = -_planeSize.xNeg;
+    _A_in(9,4)    =  1.0;
     _a_in.segment<4>(6).setZero();
     
     cout<<"Zmp inequalities:\n"<< toString(_A_in.block<4,6>(6,0),1)<<endl;
@@ -193,6 +205,34 @@ void PlaneContactConstraint::parameterUpdated(const ParamProxyInterface *pp)
         ContactConstraint::parameterUpdated(pp);
 }
 
+bool PlaneContactConstraint::setDesiredConstraintForce(VectorConst fDes)
+{
+    assert(fDes.size()==_fDes.size());
+    _fDes = fDes;
+    if(_fDes(2)!=0.0)
+    {
+        _fIneq(0) =  _fDes(0)/_fDes(2);
+        _fIneq(1) =  _fDes(1)/_fDes(2);
+        _fIneq(3) = -_fDes(4)/_fDes(2);
+        _fIneq(4) =  _fDes(3)/_fDes(2);
+    }
+    else
+    {
+        _fIneq(0) = _fIneq(1) = 0.0;
+        _fIneq(3) = _fIneq(4) = 0.0;
+    }
+    _fIneq(2) = _fDes(2);
+    _fIneq(5) = _fDes(5);
+    
+    VectorXd tmp = _A_in*_fDes;
+    for(int i=0; i<tmp.size(); i++)
+        if(tmp(i)>=_a_in(i))
+            getLogger().sendMsg(_name+" ineq "+toString(i)+" active: ["+toString(_A_in.row(i),1)+"]*f="+toString(tmp(i)),
+                                MSG_STREAM_ERROR);
+    
+    return true;
+}
+
 /*********************************************************************************************************/
 /************************************** PointContactConstraint *******************************************/
 /*********************************************************************************************************/
@@ -223,6 +263,21 @@ bool PointContactConstraint::update(RobotState& state)
     _X.bottomLeftCorner<3,3>() = crossProductMatrix(_p_com);
     
     return res;
+}
+
+bool PointContactConstraint::setDesiredConstraintForce(VectorConst fDes)
+{
+    assert(fDes.size()==_fDes.size());
+    _fDes = fDes;
+    if(_fDes(2)!=0.0)
+    {
+        _fIneq(0) = _fDes(0)/_fDes(2);
+        _fIneq(1) = _fDes(1)/_fDes(2);
+    }
+    else
+        _fIneq(0) = _fIneq(1) = 0.0;
+    _fIneq(2) = _fDes(2);
+    return true;
 }
 
 

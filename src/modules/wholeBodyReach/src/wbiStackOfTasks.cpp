@@ -137,14 +137,14 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             _momentumTask->getEqualityVector(_momentumDes);
         
             // @todo Check if possible to avoid this matrix-matrix multiplication
-            _qpData.H   = _X.transpose()*_X + 1e-6*MatrixXd::Identity(_k,_k);
+            _qpData.H   = _X.transpose()*_X + _numericalDamping*MatrixXd::Identity(_k,_k);
             _qpData.g   = -_X.transpose()*_momentumDes;
         }
         STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
     }
     STOP_PROFILING(PROFILE_FORCE_QP_PREP);
     
-    sendMsg("momentumDes "+toString(_momentumDes,1));
+//    sendMsg("momentumDes "+toString(_momentumDes,1));
 //    cout<< "QP gradient "<<toString(_qpData.g,1)<<endl;
     double res;
     START_PROFILING(PROFILE_FORCE_QP);
@@ -156,7 +156,19 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     STOP_PROFILING(PROFILE_FORCE_QP);
     if(res == std::numeric_limits<double>::infinity())
         return false;
-    sendMsg("Momentum error  = "+toString((_X*_fcDes-_momentumDes).norm()));
+    
+    int index_k = 0, k=0;
+    for(list<ContactConstraint*>::iterator it=_constraints.begin(); it!=_constraints.end(); it++)
+    {
+        ContactConstraint& c = **it;
+        k  = c.getSize();    // number of constraint forces
+        c.setDesiredConstraintForce(_fcDes.segment(index_k, k));
+        index_k += k;
+    }
+    
+    if(_qpData.activeSetSize>0)
+        sendMsg("Active constraints: "+toString(_qpData.activeSet.head(_qpData.activeSetSize)));
+//    sendMsg("Momentum error  = "+toString((_X*_fcDes-_momentumDes).norm()));
     
     //*********************************
     // COMPUTE DESIRED ACCELERATIONS

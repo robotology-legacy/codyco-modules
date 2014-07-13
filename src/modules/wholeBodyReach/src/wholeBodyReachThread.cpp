@@ -127,6 +127,10 @@ bool WholeBodyReachThread::threadInit()
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_FORCE_FRICTION,    &_forceFriction));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_MOMENT_FRICTION,   &_momentFriction));
     
+    _tasks.leftFoot.linkParameterForceInequalities(             _paramHelper, PARAM_ID_FORCE_INEQ_R_FOOT);
+    _tasks.rightFoot.linkParameterForceInequalities(            _paramHelper, PARAM_ID_FORCE_INEQ_L_FOOT);
+    _tasks.supportForearmConstr.linkParameterForceInequalities( _paramHelper, PARAM_ID_FORCE_INEQ_FOREARM);
+    
     _tasks.leftFoot.setForceFrictionCoefficient(    _forceFriction);
     _tasks.rightFoot.setForceFrictionCoefficient(   _forceFriction);
     _tasks.supportForearmConstr.setForceFrictionCoefficient(_forceFriction);

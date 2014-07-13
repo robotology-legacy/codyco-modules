@@ -45,6 +45,8 @@ namespace wholeBodyReach
         wbi::Frame          _H;     /// homogeneous transformation from world to this link
         Eigen::Vector3d     _p_com; /// vector from CoM to contact link in world frame
         
+        Eigen::VectorXd     _fDes;          /// desired constraint force computed by the solver
+        Eigen::VectorXd     _fIneq;         /// 1-2 tang/norm force, 3 norm force, 4-5 ZMP, 6 normal moment
         double              _muF;           /// force friction coefficient
         int                 _paramId_muF;
         double              _fNormalMin;    /// max value for normal force
@@ -67,6 +69,8 @@ namespace wholeBodyReach
         virtual void init(RobotState& state){}
         
         virtual void linkParameterForceFrictionCoefficient(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        
+        virtual void linkParameterForceInequalities(paramHelp::ParamHelperServer* paramHelper, int paramId);
         
         virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
         
@@ -101,6 +105,10 @@ namespace wholeBodyReach
           */
         virtual void getMomentumMapping(Eigen::MatrixRef X) const
         { X = _X; }
+        
+        /** Method used by the solver to let the Constraint know what the associated
+         * constraint force is. */
+        virtual bool setDesiredConstraintForce(Eigen::VectorConst fDes)=0;
     };
     
     
@@ -139,6 +147,10 @@ namespace wholeBodyReach
             updateMomentFrictionConeInequalities();
             return true;
         }
+        
+        /** Method used by the solver to let the Constraint know what the associated
+         * constraint force is. */
+        virtual bool setDesiredConstraintForce(Eigen::VectorConst fDes);
     };
     
     
@@ -166,6 +178,10 @@ namespace wholeBodyReach
             if(p.size()!=3) return false;
             _p = p;
         }
+        
+        /** Method used by the solver to let the Constraint know what the associated
+         * constraint force is. */
+        virtual bool setDesiredConstraintForce(Eigen::VectorConst fDes);
     };
     
     
