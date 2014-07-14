@@ -251,12 +251,6 @@ namespace wholeBodyReach
     };
     
     
-    /** Compute the 6d error vector given the measured frame and the desired frame. */
-    void compute6DError(const wbi::Frame& H, const wbi::Frame& H_des, Eigen::VectorRef res);
-    
-    /** Compute the 3d orientation error given the measured orientation and the desired orientation. */
-    void computeOrientationError(const wbi::Rotation& R, const wbi::Rotation& R_des, Eigen::VectorRef res);
-    
 } // end namespace wholeBodyReach
 
 #endif

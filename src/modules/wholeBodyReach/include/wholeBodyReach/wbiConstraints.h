@@ -34,16 +34,24 @@ namespace wholeBodyReach
     class ContactConstraint:    public WbiAbstractTask,
                                 public WbiEqualityTask,
                                 public WbiInequalityTask,
-                                public paramHelp::ParamValueObserver
+                                public WbiPDTask
     {
     protected:
         std::string         _linkName;
         int                 _linkId;
         
-        Eigen::MatrixRXd    _X;     /// momentum mapping matrix
-        wbi::Frame          _Hcom;  /// homogeneous transformation from world to CoM
-        wbi::Frame          _H;     /// homogeneous transformation from world to this link
-        Eigen::Vector3d     _p_com; /// vector from CoM to contact link in world frame
+        Eigen::VectorXd     _weights;   /// weights used to penalize constraint forces
+        Eigen::MatrixRXd    _X;         /// momentum mapping matrix
+        wbi::Frame          _Hcom;      /// homogeneous transformation from world to CoM
+        wbi::Frame          _H;         /// homogeneous transformation from world to this link
+        Eigen::Vector3d     _p_com;     /// vector from CoM to contact link in world frame
+        
+        /// VARIABLES NEEDED TO CORRECT CONSTRAINT DRIFT
+        Eigen::Vector3d     _pos;       /// position of the link (same as _H.p)
+        Eigen::Vector3d     _posDes;    /// desired position (i.e. initial position of link)
+        wbi::Rotation       _Rdes;      /// desired orientation
+        Eigen::Vector3d     _orientationError;  /// orientation error
+        Eigen::Vector6d     _dvStar;    /// desired 6d acceleration
         
         Eigen::VectorXd     _fDes;          /// desired constraint force computed by the solver
         Eigen::VectorXd     _fIneq;         /// 1-2 tang/norm force, 3 norm force, 4-5 ZMP, 6 normal moment
@@ -66,7 +74,7 @@ namespace wholeBodyReach
         
         virtual bool update(RobotState& state) = 0;
         
-        virtual void init(RobotState& state){}
+        virtual void init(RobotState& state);
         
         virtual void linkParameterForceFrictionCoefficient(paramHelp::ParamHelperServer* paramHelper, int paramId);
         
@@ -100,11 +108,22 @@ namespace wholeBodyReach
             return true;
         }
         
+        virtual bool setWeights(Eigen::VectorConst w)
+        {
+            if(w.size()!=_weights.size())
+                return false;
+            _weights = w;
+            return true;
+        }
+        
         /** Get the matrix that maps this constraint forces into rate of change
           * of the momentum of the robot. 
           */
         virtual void getMomentumMapping(Eigen::MatrixRef X) const
         { X = _X; }
+        
+        virtual void getWeights(Eigen::VectorRef w) const
+        { w = _weights; }
         
         /** Method used by the solver to let the Constraint know what the associated
          * constraint force is. */

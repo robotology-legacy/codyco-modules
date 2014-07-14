@@ -126,6 +126,8 @@ bool WholeBodyReachThread::threadInit()
 
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_FORCE_FRICTION,    &_forceFriction));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_MOMENT_FRICTION,   &_momentFriction));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_KP_CONSTRAINTS,    _kpConstraints.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_WRENCH_WEIGHTS,    _wrenchWeights.data()));
     
     _tasks.leftFoot.linkParameterForceInequalities(             _paramHelper, PARAM_ID_FORCE_INEQ_R_FOOT);
     _tasks.rightFoot.linkParameterForceInequalities(            _paramHelper, PARAM_ID_FORCE_INEQ_L_FOOT);
@@ -142,10 +144,15 @@ bool WholeBodyReachThread::threadInit()
     _tasks.leftFoot.setMinNormalForce(              FORCE_NORMAL_MIN);
     _tasks.rightFoot.setMinNormalForce(             FORCE_NORMAL_MIN);
     _tasks.supportForearmConstr.setMinNormalForce(  FORCE_NORMAL_MIN);
+    _tasks.leftFoot.setProportionalGain(            _kpConstraints);
+    _tasks.rightFoot.setProportionalGain(           _kpConstraints);
+    _tasks.supportForearmConstr.setProportionalGain(_kpConstraints.head<3>());
 
     // Register callbacks for some module commands and parameters
-    YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_FORCE_FRICTION, this));
-    YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_MOMENT_FRICTION, this));
+    YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_FORCE_FRICTION,    this));
+    YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_MOMENT_FRICTION,   this));
+    YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_KP_CONSTRAINTS,    this));
+    YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_WRENCH_WEIGHTS,    this));
     
     YARP_ASSERT(_paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
     YARP_ASSERT(_paramHelper->registerCommandCallback(COMMAND_ID_STOP,            this));
@@ -290,6 +297,13 @@ bool WholeBodyReachThread::preStartOperations()
     bool res = readRobotStatus(true);
     // initialize trajectory generators
     _solver.init(_robotState);
+#define DEBUG_INIT
+#ifdef DEBUG_INIT
+    _tasks.momentum.update(_robotState);
+    _tasks.posture.update(_robotState);
+    cout<<"INIT Desired Momentum:    "<<toString(_tasks.momentum.getEqualityVector(),2)<<endl;
+    cout<<"INIT Desired ddq posture: "<<toString(_tasks.posture.getEqualityVector(),2)<<endl;
+#endif
     res = res && _robot->setControlMode(CTRL_MODE_TORQUE);
     if(res)
         _status = WHOLE_BODY_REACH_ON;                 // set thread status to "on"
@@ -337,6 +351,16 @@ void WholeBodyReachThread::parameterUpdated(const ParamProxyInterface *pd)
     case PARAM_ID_MOMENT_FRICTION:
         _tasks.leftFoot.setMomentFrictionCoefficient(_momentFriction);
         _tasks.rightFoot.setMomentFrictionCoefficient(_momentFriction);
+        break;
+    case PARAM_ID_KP_CONSTRAINTS:
+        _tasks.leftFoot.setProportionalGain(_kpConstraints);
+        _tasks.rightFoot.setProportionalGain(_kpConstraints);
+        _tasks.supportForearmConstr.setProportionalGain(_kpConstraints.head<3>());
+        break;
+    case PARAM_ID_WRENCH_WEIGHTS:
+        _tasks.leftFoot.setWeights(_wrenchWeights);
+        _tasks.rightFoot.setWeights(_wrenchWeights);
+        _tasks.supportForearmConstr.setWeights(_wrenchWeights.head<3>());
         break;
     default:
         sendMsg("A callback is registered but not managed for the parameter "+pd->name, MSG_ERROR);
