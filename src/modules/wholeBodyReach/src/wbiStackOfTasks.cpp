@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -13,7 +13,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/
+ */
 
 #include <wholeBodyReach/wbiStackOfTasks.h>
 #include <wholeBodyReach/eiquadprog2011.hpp>
@@ -56,10 +56,10 @@ using namespace yarp::math;
 
 wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot, bool useNullspaceBase)
 :   _robot(robot),
-    _momentumTask(NULL),
-    _postureTask(NULL),
-    _jointLimitTask(NULL),
-    _useNullspaceBase(useNullspaceBase)
+_momentumTask(NULL),
+_postureTask(NULL),
+_jointLimitTask(NULL),
+_useNullspaceBase(useNullspaceBase)
 {
     _qpData.activeSetSize = 0;
     this->useNullspaceBase(_useNullspaceBase==1);
@@ -73,7 +73,7 @@ wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot, bool useNullspa
     _ddqDes.setZero(_n+6);
     _ddq_jDes.setZero(_n);
     _ddq_jPosture.setZero(_n);
-
+    
     _qpData.CE.resize(0,0);
     _qpData.ce0.resize(0);
     _qpData.CI.resize(0, 0);
@@ -115,37 +115,44 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             
             k  = c.getSize();    // number of constraint forces
             in = c.getNumberOfInequalities();
-
-            c.getInequalityMatrix( _qpData.CI.block(index_in, index_k, in, k)); // CI = [CI, t.getInequalityMatrix()]
-            c.getInequalityVector( _qpData.ci0.segment(index_in, in) );         //  b = [b; t.getInequalityVector()]
+            
+            //            c.getInequalityMatrix( _qpData.CI.block(index_in, index_k, in, k)); // CI = [CI, t.getInequalityMatrix()]
+            //            c.getInequalityVector( _qpData.ci0.segment(index_in, in) );         //  b = [b; t.getInequalityVector()]
             c.getMomentumMapping(  _X.middleCols(index_k, k)  );                //  X = [X, t.getMomentumMapping()]
             c.getEqualityMatrix(   _Jc.middleRows(index_k, k) );                // Jc = [Jc; t.getEqualityMatrix()]
             c.getEqualityVector(   _dJcdq.segment(index_k, k) );                // dJc_dq = [dJc_dq; t.getEqualityVector()]
+            c.getWeights(          _fWeights.segment(index_k,k));
+            //            sendMsg("CI block "+c.getName()+":\n"+toString(_qpData.CI.block(index_in, index_k, in, k),1,"\n",12));
+            //            sendMsg("ci0: "+toString(_qpData.ci0.segment(index_in, in),1));
             
-//            sendMsg("CI block "+c.getName()+":\n"+toString(_qpData.CI.block(index_in, index_k, in, k),1,"\n",12));
-//            sendMsg("ci0: "+toString(_qpData.ci0.segment(index_in, in),1));
-
             index_k += k;
             index_in += in;
         }
-//        sendMsg("CI:\n"+toString(_qpData.CI,1,"\n",12));
-//        sendMsg("ci0: "+toString(_qpData.ci0,1));
+        assert(index_k==_k);
+        //        sendMsg("X:\n"+toString(_X,1,"\n",12));
+        //        sendMsg("CI:\n"+toString(_qpData.CI,1,"\n",12));
+        //        sendMsg("ci0: "+toString(_qpData.ci0,1));
         
         START_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
         {
             _momentumTask->update(robotState);
             _momentumTask->getEqualityVector(_momentumDes);
-        
+            
+            _X_svd.compute(_X, ComputeThinU|ComputeThinV);
+            int r = (_X_svd.singularValues().array()>PINV_TOL).count();
+            _N_X.setIdentity();
+            _N_X -= _X_svd.matrixV().leftCols(r)*_X_svd.matrixV().leftCols(r).transpose();
             // @todo Check if possible to avoid this matrix-matrix multiplication
             _qpData.H   = _X.transpose()*_X + _numericalDamping*MatrixXd::Identity(_k,_k);
+            //                            + _fWeights.asDiagonal()*_N_X;
             _qpData.g   = -_X.transpose()*_momentumDes;
         }
         STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
     }
     STOP_PROFILING(PROFILE_FORCE_QP_PREP);
     
-//    sendMsg("momentumDes "+toString(_momentumDes,1));
-//    cout<< "QP gradient "<<toString(_qpData.g,1)<<endl;
+    //    sendMsg("momentumDes "+toString(_momentumDes,1));
+    //    cout<< "QP gradient "<<toString(_qpData.g,1)<<endl;
     double res;
     START_PROFILING(PROFILE_FORCE_QP);
     {
@@ -168,7 +175,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     
     if(_qpData.activeSetSize>0)
         sendMsg("Active constraints: "+toString(_qpData.activeSet.head(_qpData.activeSetSize)));
-//    sendMsg("Momentum error  = "+toString((_X*_fcDes-_momentumDes).norm()));
+    sendMsg("Momentum error  = "+toString((_X*_fcDes-_momentumDes).norm()));
     
     //*********************************
     // COMPUTE DESIRED ACCELERATIONS
@@ -184,9 +191,9 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     }
     STOP_PROFILING(PROFILE_DDQ_DYNAMICS_CONSTR);
     
-//    sendMsg("ddqDes (dynamic consistent) = "+toString(_ddqDes,1));
-//    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-
+    //    sendMsg("ddqDes (dynamic consistent) = "+toString(_ddqDes,1));
+    //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+    
     // Compute ddq that respect also contact constraints:
     //      Sbar     = [-Mb^{-1}*Mbj; eye(n)];
     //      ddq_jDes = (Jc*Sbar).solve(-Jc*ddqDes - dJc_dq);
@@ -196,23 +203,23 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
         _Mb_inv_M_bj= _Mb_inv * M_bj;
         _Jc_Sbar    = Jc_j - (Jc_b * _Mb_inv_M_bj);
         _Jc_Sbar_svd.compute(_Jc_Sbar, _svdOptions);
-//        cout<<"Jc_b =\n"<< toString(Jc_b,1)<< endl;
-//        cout<<"Jc_b*ddqDes_b = "<< toString(Jc_b*ddqDes_b,1)<< endl;
-//        cout<<"ddqDes_b = "<< toString(ddqDes_b,1)<< endl;
+        //        cout<<"Jc_b =\n"<< toString(Jc_b,1)<< endl;
+        //        cout<<"Jc_b*ddqDes_b = "<< toString(Jc_b*ddqDes_b,1)<< endl;
+        //        cout<<"ddqDes_b = "<< toString(ddqDes_b,1)<< endl;
         _ddq_jDes    = svdSolveWithDamping(_Jc_Sbar_svd, -_dJcdq-Jc_b*ddqDes_b, _numericalDamping);
-//        _ddq_jDes    = _Jc_Sbar_svd.solve(-_dJcdq-Jc_b*ddqDes_b);
+        //        _ddq_jDes    = _Jc_Sbar_svd.solve(-_dJcdq-Jc_b*ddqDes_b);
         ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
         ddqDes_j    += _ddq_jDes;
     }
     STOP_PROFILING(PROFILE_DDQ_CONTACT_CONSTR);
     
-//    sendMsg("ddqDes (contact consistent) = "+toString(_ddqDes,1));
-//    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-//    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+    //    sendMsg("ddqDes (contact consistent) = "+toString(_ddqDes,1));
+    //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+    //    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
     
     _Z.setIdentity(_n,_n);
     updateNullspace(_Jc_Sbar_svd);
-//    sendMsg("Jc*Sbar*Z = "+toString((_Jc_Sbar*_Z).sum()));
+    //    sendMsg("Jc*Sbar*Z = "+toString((_Jc_Sbar*_Z).sum()));
     
     // Solve the equality motion task
     // N=I
@@ -258,18 +265,58 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     STOP_PROFILING(PROFILE_DDQ_POSTURE_TASK);
     
     torques     = M_a*_ddqDes + h_j - Jc_j.transpose()*_fcDes;
+    sendMsg("Torques      = "+jointToString(torques,2));
+    VectorXd torquesOld = torques;
     
+    
+    
+    
+    
+    //    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
+    sendMsg("ddq_jPosture        = "+jointToString(_ddq_jPosture,1));
+    //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+    //    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
+    //    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+    
+    
+#define DEBUG_FORCE_QP
+#ifdef DEBUG_FORCE_QP
+    VectorXd fcDes2 = pinvDampedEigen(_X, _numericalDamping) * _momentumDes;
+    MatrixRXd D = MatrixRXd::Zero(6+_k,_n+6);
+    MatrixRXd Dpinv(_n+6,_k+6), DpinvD(_n+6,_k+6);
+    VectorXd d(6+_k);
+    D.topRows<6>()      = M_u;
+    D.bottomRows(_k)    = _Jc;
+    d.head<6>()         = Jc_b.transpose()*_fcDes - h_b;
+    d.tail(_k)          = -_dJcdq;
+    Dpinv = pinvDampedEigen(D, _numericalDamping);
+//    pinvDampTrunc(D, PINV_TOL, _numericalDamping, Dpinv, DpinvD);
+//    VectorXd ddqDes1 = DpinvD*d;
+//    MatrixRXd N_D       = MatrixRXd::Identity(_n+6,_n+6) - Dpinv*D;
+//    MatrixRXd SN_DpinvD = pinvDampedEigen(N_D.bottomRows(_n), _numericalDamping);
+//    VectorXd ddqDes = ddqDes1 + SN_DpinvD*(_ddq_jPosture - ddqDes1.tail(_n));
+//    VectorXd tauDes = M_a*ddqDes + h_j - Jc_j.transpose()*fcDes2;
+//    torques = tauDes;
+    
+//    sendMsg("ddqDes             = "+jointToString(_ddqDes,1));
+//    sendMsg("DEBUG ddqDes       = "+jointToString(ddqDes,1));
+//    sendMsg("DEBUG ddqDes1      = "+jointToString(ddqDes1,1));
+//    sendMsg("DEBUG ddqDesErr    = "+toString((ddqDes-_ddqDes).norm()));
+//    sendMsg("fcDes              = "+toString(_fcDes,1));
+//    sendMsg("DEBUG fcDes        = "+toString(fcDes2,1));
+//    sendMsg("DEBUG fcDesErr     = "+toString((fcDes2-_fcDes).norm()));
+//    
+//    sendMsg("Base dynamics error  = "+toString((M_u*ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+//    sendMsg("Joint dynamics error = "+toString((M_a*ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
+//    sendMsg("Contact constr error = "+toString((_Jc*ddqDes+_dJcdq).norm()));
+    //    sendMsg("DEBUG tauDes       = "+jointToString(tauDes,1));
+#endif
     STOP_PROFILING(PROFILE_WHOLE_SOLVER);
     
-    sendMsg("fcDes        = "+toString(_fcDes,1));
-    sendMsg("ddqDes       = "+toString(_ddqDes,1));
-//    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
-    sendMsg("ddq_jPosture = "+toString(_ddq_jPosture,1));
-//    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-//    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
-//    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+    sendMsg("Torques      = "+jointToString(torques,2));
+    sendMsg("Torque diff  = "+toString((torques-torquesOld).norm()));
     
-//#define DEBUG_SOLVER
+    //#define DEBUG_SOLVER
 #ifdef DEBUG_SOLVER
     MatrixRXd Nc        = nullSpaceProjector(_Jc, PINV_TOL);
     MatrixRXd NcSTpinvD = pinvDampedEigen(Nc.rightCols(_n), _numericalDamping);
@@ -277,12 +324,12 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     VectorXd ddqDes1    = -Jcpinv*_dJcdq;
     VectorXd ddqDes     = ddqDes1 + NcSTpinvD.transpose()*(_ddq_jPosture - ddqDes1.tail(_n));
     VectorXd tauDes     = NcSTpinvD * (_M*ddqDes + _h);
-//    sendMsg("-Jcpinv*_dJcdq = "+toString(ddqDes1,1));
-//    sendMsg("ddqDes1 + NcSTpinvD^T*(_ddq_jPosture - ddqDes1) = "+toString(ddqDes,1));
-//    sendMsg("(_M*ddqDes + _h)= "+toString((_M*ddqDes + _h),1));
+    //    sendMsg("-Jcpinv*_dJcdq = "+toString(ddqDes1,1));
+    //    sendMsg("ddqDes1 + NcSTpinvD^T*(_ddq_jPosture - ddqDes1) = "+toString(ddqDes,1));
+    //    sendMsg("(_M*ddqDes + _h)= "+toString((_M*ddqDes + _h),1));
     sendMsg("torques CFC   = "+toString(torques,1));
     sendMsg("tauDes (JSID) = "+toString(tauDes,1));
-//    torques = tauDes;
+    //    torques = tauDes;
 #endif
     
     return true;
@@ -313,7 +360,7 @@ void wbiStackOfTasks::init(RobotState& robotState)
         (*it)->init(robotState);
     for(list<MinJerkPDLinkPoseTask*>::iterator it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
         (*it)->init(robotState);
-        
+    
 }
 
 void wbiStackOfTasks::addConstraint(ContactConstraint& constraint)
@@ -327,6 +374,9 @@ void wbiStackOfTasks::addConstraint(ContactConstraint& constraint)
         n_in += (*it)->getNumberOfInequalities();
     }
     _X.setZero(6,_k);
+    _X_svd = SVD(6, _k, ComputeThinU|ComputeThinV);
+    _N_X.setZero(_k,_k);
+    _fWeights.setZero(_k);
     _Jc.setZero(_k,_n+6);
     _dJcdq.setZero(_k);
     _fcDes.setZero(_k);
@@ -361,31 +411,31 @@ void wbiStackOfTasks::parameterUpdated(const ParamProxyInterface* pp)
         return;
     }
     cout<< "[wbiStackOfTasks::parameterUpdated] Callback for a parameter that is not managed"
-        << pp->name<< endl;
+    << pp->name<< endl;
 }
 
 VectorXd wholeBodyReach::svdSolveWithDamping(const JacobiSVD<MatrixRXd>& A, VectorConst b, double damping)
 {
     eigen_assert(A.computeU() && A.computeV() && "svdSolveWithDamping() requires both unitaries U and V to be computed (thin unitaries suffice).");
     assert(A.rows()==b.size());
-
-//    cout<<"b = "<<toString(b,1)<<endl;
+    
+    //    cout<<"b = "<<toString(b,1)<<endl;
     VectorXd tmp(A.cols());
     int nzsv = A.nonzeroSingularValues();
     tmp.noalias() = A.matrixU().leftCols(nzsv).adjoint() * b;
-//    cout<<"U^T*b = "<<toString(tmp,1)<<endl;
+    //    cout<<"U^T*b = "<<toString(tmp,1)<<endl;
     double sv, d2 = damping*damping;
     for(int i=0; i<nzsv; i++)
     {
         sv = A.singularValues()(i);
         tmp(i) *= sv/(sv*sv + d2);
     }
-//    cout<<"S^+ U^T b = "<<toString(tmp,1)<<endl;
+    //    cout<<"S^+ U^T b = "<<toString(tmp,1)<<endl;
     VectorXd res = A.matrixV().leftCols(nzsv) * tmp;
     
-//    getLogger().sendMsg("sing val = "+toString(A.singularValues(),3), MSG_STREAM_INFO);
-//    getLogger().sendMsg("solution with damp "+toString(damping)+" = "+toString(res.norm()), MSG_STREAM_INFO);
-//    getLogger().sendMsg("solution without damping  ="+toString(A.solve(b).norm()), MSG_STREAM_INFO);
+    //    getLogger().sendMsg("sing val = "+toString(A.singularValues(),3), MSG_STREAM_INFO);
+    //    getLogger().sendMsg("solution with damp "+toString(damping)+" = "+toString(res.norm()), MSG_STREAM_INFO);
+    //    getLogger().sendMsg("solution without damping  ="+toString(A.solve(b).norm()), MSG_STREAM_INFO);
     
     return res;
 }
@@ -412,26 +462,29 @@ void wholeBodyReach::pinvTrunc(const MatrixRXd &A, double tol, MatrixRXd &Apinv,
 
 
 //*************************************************************************************************************************
-void wholeBodyReach::pinvDampTrunc(const MatrixRXd &A, double tol, double damp, MatrixRXd &Apinv, MatrixRXd &ApinvDamp, MatrixRXd &Spinv, MatrixRXd &SpinvD, VectorXd &sv)
+void wholeBodyReach::pinvDampTrunc(const MatrixRXd &A, double tol, double damp, MatrixRXd &Apinv, MatrixRXd &ApinvDamp)
 {
     // allocate memory
     int m = A.rows(), n = A.cols(), k = m<n?m:n;
-    Spinv.setZero(k,k); 
-    SpinvD.setZero(k,k);
+    assert(Apinv.rows()==n      && Apinv.cols()==m);
+    assert(ApinvDamp.rows()==n  && ApinvDamp.cols()==m);
+    MatrixRXd Spinv = MatrixRXd::Zero(k,k);
+    MatrixRXd SpinvD = MatrixRXd::Zero(k,k);
     // compute decomposition
     JacobiSVD<MatrixRXd> svd(A, ComputeThinU | ComputeThinV);    // default Eigen SVD
-    sv = svd.singularValues();
-    // compute pseudoinverses of singular value matrix
-    double damp2 = damp*damp;
-    for (int c=0;c<k; c++)
-    {
-        SpinvD(c,c) = sv(c) / (sv(c)*sv(c) + damp2);
-        if ( sv(c)> tol)
-            Spinv(c,c) = 1/sv(c);
-    }
-    // compute pseudoinverses
-    Apinv       = svd.matrixV() * Spinv  * svd.matrixU().transpose();   // truncated pseudoinverse
-    ApinvDamp   = svd.matrixV() * SpinvD * svd.matrixU().transpose();   // damped pseudoinverse
+//    VectorXd sv = svd.singularValues();
+//    // compute pseudoinverses of singular value matrix
+//    double damp2 = damp*damp;
+    
+//    for (int c=0;c<k; c++)
+//    {
+//        SpinvD(c,c) = sv(c) / (sv(c)*sv(c) + damp2);
+//        if ( sv(c)> tol)
+//            Spinv(c,c) = 1/sv(c);
+//    }
+//    // compute pseudoinverses
+//    Apinv       = svd.matrixV() * Spinv  * svd.matrixU().transpose();   // truncated pseudoinverse
+//    ApinvDamp   = svd.matrixV() * SpinvD * svd.matrixU().transpose();   // damped pseudoinverse
 }
 
 Eigen::MatrixRXd wholeBodyReach::pinvDampedEigen(const Eigen::Ref<Eigen::MatrixRXd> &A, double damp)

@@ -47,6 +47,8 @@ namespace Eigen
     typedef Ref<MatrixRXd>                          MatrixRef;      /// Type used to pass Eigen matrices by reference
     typedef const Ref<const VectorXd>&              VectorConst;    /// Type used to pass Eigen vectors by const reference
     typedef const Ref<const MatrixRXd>&             MatrixConst;    /// Type used to pass Eigen matrices by const reference
+    
+    typedef JacobiSVD<MatrixRXd> SVD; /// svd of RowMajor matrix
 }
 
 // define some types

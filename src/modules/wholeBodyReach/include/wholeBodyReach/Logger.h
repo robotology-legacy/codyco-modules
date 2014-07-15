@@ -63,6 +63,8 @@ Logger& getLogger();
 
 std::string toString(const Eigen::MatrixRXd &m, int precision=2, const char* endRowStr="\n", int maxRowsPerLine=10);
     
+std::string jointToString(const Eigen::VectorXd &j, int precision=1);
+    
 /** Convert a generic variable into a string. */
 template <class T> inline std::string toString(const T& t)
 { std::ostringstream ss; ss << t; return ss.str(); }

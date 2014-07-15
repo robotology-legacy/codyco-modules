@@ -102,6 +102,8 @@ namespace wholeBodyReach
         Eigen::Vector3d             _orientationError;  /// orientation error expressed as a rotation vector
 
     public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+        
         MinJerkPDLinkPoseTask(std::string taskName, std::string linkName,
                               double sampleTime, wbi::wholeBodyInterface* robot);
         virtual ~MinJerkPDLinkPoseTask(){}
@@ -147,6 +149,8 @@ namespace wholeBodyReach
         Eigen::Vector3d             _comRef;
         
     public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+        
         MinJerkPDMomentumTask(std::string taskName, double sampleTime, wbi::wholeBodyInterface* robot);
         virtual ~MinJerkPDMomentumTask(){}
         
@@ -249,13 +253,6 @@ namespace wholeBodyReach
         virtual bool setAccelerationLimits(Eigen::VectorConst ddqMin, Eigen::VectorConst ddqMax);
         
     };
-    
-    
-    /** Compute the 6d error vector given the measured frame and the desired frame. */
-    void compute6DError(const wbi::Frame& H, const wbi::Frame& H_des, Eigen::VectorRef res);
-    
-    /** Compute the 3d orientation error given the measured orientation and the desired orientation. */
-    void computeOrientationError(const wbi::Rotation& R, const wbi::Rotation& R_des, Eigen::VectorRef res);
     
 } // end namespace wholeBodyReach
 

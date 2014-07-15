@@ -331,37 +331,3 @@ void MinJerkTask::parameterUpdated(const ParamProxyInterface *pp)
     }
 }
 
-
-/*********************************************************************************************************/
-/******************************************* UTILITIES ***************************************************/
-/*********************************************************************************************************/
-
-void wholeBodyReach::compute6DError(const wbi::Frame& H, const wbi::Frame& H_des, Eigen::VectorRef res)
-{
-    assert(res.size()>=6);
-    Vector4d aa;
-    Rotation Re = H.R; // Re = R_des * R.transposed();
-    Re.setToInverse();
-    H_des.R.rotateInPlace(Re);
-    
-    Re.getAxisAngle(aa.data());
-    res[0] = H_des.p[0]-H.p[0];
-    res[1] = H_des.p[1]-H.p[1];
-    res[2] = H_des.p[2]-H.p[2];
-    res[3] = aa[3] * aa[0];
-    res[4] = aa[3] * aa[1];
-    res[5] = aa[3] * aa[2];
-}
-
-void wholeBodyReach::computeOrientationError(const wbi::Rotation& R, const wbi::Rotation& R_des, Eigen::VectorRef res)
-{
-    assert(res.size()>=3);
-    Vector4d aa;
-    Rotation Re = R; // Re = R_des * R.transposed();
-    Re.setToInverse();
-    R_des.rotateInPlace(Re);
-    Re.getAxisAngle(aa.data());
-    res[0] = aa[3] * aa[0];
-    res[1] = aa[3] * aa[1];
-    res[2] = aa[3] * aa[2];
-}
