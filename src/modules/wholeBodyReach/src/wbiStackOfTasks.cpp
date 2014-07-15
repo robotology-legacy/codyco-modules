@@ -313,9 +313,6 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
 #endif
     STOP_PROFILING(PROFILE_WHOLE_SOLVER);
     
-    sendMsg("Torques      = "+jointToString(torques,2));
-    sendMsg("Torque diff  = "+toString((torques-torquesOld).norm()));
-    
     //#define DEBUG_SOLVER
 #ifdef DEBUG_SOLVER
     MatrixRXd Nc        = nullSpaceProjector(_Jc, PINV_TOL);

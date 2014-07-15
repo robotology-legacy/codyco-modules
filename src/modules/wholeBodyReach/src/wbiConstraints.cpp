@@ -250,8 +250,8 @@ bool PlaneContactConstraint::setDesiredConstraintForce(VectorConst fDes)
     VectorXd tmp = _A_in*_fDes;
     for(int i=0; i<tmp.size(); i++)
         if(tmp(i)>=_a_in(i))
-            getLogger().sendMsg(_name+" ineq "+toString(i)+" active: ["+toString(_A_in.row(i),1)+"]*f="+toString(tmp(i)),
-                                MSG_STREAM_ERROR);
+//            cout<<_name<<" ineq "<<toString(i)<<" active: ["<<toString(_A_in.row(i),1)+"]*f="<<toString(tmp(i));
+            getLogger().sendMsg(_name+" ineq "+toString(i)+" active: ["+toString(_A_in.row(i),1)+"]*f="+toString(tmp(i)), MSG_STREAM_ERROR);
     
     return true;
 }
