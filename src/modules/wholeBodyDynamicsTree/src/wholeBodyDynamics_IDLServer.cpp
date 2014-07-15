@@ -54,6 +54,54 @@ public:
   }
 };
 
+class wholeBodyDynamics_IDLServer_calibStandingLeftFoot : public yarp::os::Portable {
+public:
+  std::string calib_code;
+  int32_t nr_of_samples;
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(3)) return false;
+    if (!writer.writeTag("calibStandingLeftFoot",1,1)) return false;
+    if (!writer.writeString(calib_code)) return false;
+    if (!writer.writeI32(nr_of_samples)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
+class wholeBodyDynamics_IDLServer_calibStandingRightFoot : public yarp::os::Portable {
+public:
+  std::string calib_code;
+  int32_t nr_of_samples;
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(3)) return false;
+    if (!writer.writeTag("calibStandingRightFoot",1,1)) return false;
+    if (!writer.writeString(calib_code)) return false;
+    if (!writer.writeI32(nr_of_samples)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
 class wholeBodyDynamics_IDLServer_resetOffset : public yarp::os::Portable {
 public:
   std::string calib_code;
@@ -114,6 +162,28 @@ bool wholeBodyDynamics_IDLServer::calibStanding(const std::string& calib_code, c
   helper.nr_of_samples = nr_of_samples;
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::calibStanding(const std::string& calib_code, const int32_t nr_of_samples)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool wholeBodyDynamics_IDLServer::calibStandingLeftFoot(const std::string& calib_code, const int32_t nr_of_samples) {
+  bool _return = false;
+  wholeBodyDynamics_IDLServer_calibStandingLeftFoot helper;
+  helper.calib_code = calib_code;
+  helper.nr_of_samples = nr_of_samples;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::calibStandingLeftFoot(const std::string& calib_code, const int32_t nr_of_samples)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool wholeBodyDynamics_IDLServer::calibStandingRightFoot(const std::string& calib_code, const int32_t nr_of_samples) {
+  bool _return = false;
+  wholeBodyDynamics_IDLServer_calibStandingRightFoot helper;
+  helper.calib_code = calib_code;
+  helper.nr_of_samples = nr_of_samples;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::calibStandingRightFoot(const std::string& calib_code, const int32_t nr_of_samples)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -185,6 +255,46 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "calibStandingLeftFoot") {
+      std::string calib_code;
+      int32_t nr_of_samples;
+      if (!reader.readString(calib_code)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readI32(nr_of_samples)) {
+        nr_of_samples = 100;
+      }
+      bool _return;
+      _return = calibStandingLeftFoot(calib_code,nr_of_samples);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "calibStandingRightFoot") {
+      std::string calib_code;
+      int32_t nr_of_samples;
+      if (!reader.readString(calib_code)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readI32(nr_of_samples)) {
+        nr_of_samples = 100;
+      }
+      bool _return;
+      _return = calibStandingRightFoot(calib_code,nr_of_samples);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "resetOffset") {
       std::string calib_code;
       if (!reader.readString(calib_code)) {
@@ -248,6 +358,8 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
     helpString.push_back("*** Available commands:");
     helpString.push_back("calib");
     helpString.push_back("calibStanding");
+    helpString.push_back("calibStandingLeftFoot");
+    helpString.push_back("calibStandingRightFoot");
     helpString.push_back("resetOffset");
     helpString.push_back("quit");
     helpString.push_back("help");
@@ -266,6 +378,22 @@ std::vector<std::string> wholeBodyDynamics_IDLServer::help(const std::string& fu
       helpString.push_back("Calibrate the force/torque sensors when on double support ");
       helpString.push_back("(WARNING: calibrate the sensors when the only external forces acting on the robot are on the sole). ");
       helpString.push_back("For this calibration the strong assumption of simmetry of the robot and its pose is done. ");
+      helpString.push_back("@param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet) ");
+      helpString.push_back("@param nr_of_samples number of samples ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="calibStandingLeftFoot") {
+      helpString.push_back("bool calibStandingLeftFoot(const std::string& calib_code, const int32_t nr_of_samples = 100) ");
+      helpString.push_back("Calibrate the force/torque sensors when on single support on left foot ");
+      helpString.push_back("(WARNING: calibrate the sensors when the only external forces acting on the robot are on the left sole). ");
+      helpString.push_back("@param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet) ");
+      helpString.push_back("@param nr_of_samples number of samples ");
+      helpString.push_back("@return true/false on success/failure ");
+    }
+    if (functionName=="calibStandingRightFoot") {
+      helpString.push_back("bool calibStandingRightFoot(const std::string& calib_code, const int32_t nr_of_samples = 100) ");
+      helpString.push_back("Calibrate the force/torque sensors when on single support on right foot ");
+      helpString.push_back("(WARNING: calibrate the sensors when the only external forces acting on the robot are on the right sole). ");
       helpString.push_back("@param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet) ");
       helpString.push_back("@param nr_of_samples number of samples ");
       helpString.push_back("@return true/false on success/failure ");

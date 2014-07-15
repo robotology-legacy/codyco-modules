@@ -81,7 +81,10 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
                                                  icubWholeBodyStatesLocal *_wbs,
                                                  const iCub::iDynTree::iCubTree_version_tag _icub_version,
                                                  bool autoconnect,
-                                                 bool _assume_fixed_base_calibration)
+                                                 bool _assume_fixed_base_calibration,
+                                                 bool _zmp_test_mode,
+                                                 std::string _zmp_test_feet
+                                                )
     :  RateThread(_period),
        name(_name),
        robotName(_robotName),
@@ -92,7 +95,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        samples_requested_for_calibration(200),
        max_samples_for_calibration(2000),
        samples_used_for_calibration(0),
-       assume_fixed_base_calibration(_assume_fixed_base_calibration)
+       assume_fixed_base_calibration(_assume_fixed_base_calibration),
+       zmp_test_mode(_zmp_test_mode)
     {
 
        std::cout << "Launching wholeBodyDynamicsThread with name : " << _name << " and robotName " << _robotName << " and period " << _period << std::endl;
@@ -101,6 +105,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        } else {
            icub_model_calibration = new iCub::iDynTree::iCubTree(_icub_version);
        }
+
 
 
     //Resize buffer vectors
@@ -188,6 +193,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     port_icubgui_base = new BufferedPort<Vector>;
     port_icubgui_base->open(string("/"+local_name+"/base:o"));
 
+    //Open port for output joint forcetorque
+
     if (autoconnect)
     {
 
@@ -206,8 +213,30 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
             Network::connect(string("/"+local_name+"/right_wrist/Torques:o").c_str(),string("/"+robot_name+"/joint_vsens/right_wrist:i").c_str(),"tcp",false);
     }
 
+    if(zmp_test_mode)
+    {
+        if( _zmp_test_feet == "left" )
+        {
+            foot_under_zmp_test = LEFT_FOOT;
+            icub_model_zmp = new iCub::iDynTree::iCubTree(icub_version);
+            icub_model_zmp->setFloatingBaseLink(icub_model_zmp->getLinkIndex("l_sole"));
+        }
+        else
+        {
+            foot_under_zmp_test = RIGHT_FOOT;
+            icub_model_zmp = new iCub::iDynTree::iCubTree(icub_version);
+            icub_model_zmp->setFloatingBaseLink(icub_model_zmp->getLinkIndex("r_sole"));
+        }
+        port_joint_ankle_cartesian_wrench = new BufferedPort<Vector>;
+        port_joint_ankle_cartesian_wrench_from_model = new BufferedPort<Vector>;
+        port_joint_foot_cartesian_wrench = new BufferedPort<Vector>;
+        port_joint_foot_cartesian_wrench_from_model = new BufferedPort<Vector>;
+        port_joint_ankle_cartesian_wrench->open("/"+local_name+"/joint_ankle_cartesian_wrench:o");
+        port_joint_ankle_cartesian_wrench_from_model->open("/"+local_name+"/joint_ankle_cartesian_wrench_from_model:o");
+        port_joint_foot_cartesian_wrench->open("/"+local_name+"/joint_foot_cartesian_wrench:o");
+        port_joint_foot_cartesian_wrench_from_model->open("/"+local_name+"/joint_foot_cartesian_wrench_from_model:o");
 
-
+    }
 }
 
 //*************************************************************************************************************************
@@ -301,6 +330,23 @@ bool wholeBodyDynamicsThread::threadInit()
     left_sole_frame_id = icub_partition.getLocalLinkIndex(left_sole_frame_idyntree_id);
     right_sole_frame_id = icub_partition.getLocalLinkIndex(right_sole_frame_idyntree_id);
 
+    if( zmp_test_mode )
+    {
+        switch(foot_under_zmp_test)
+        {
+            LEFT_FOOT:
+                ankle_joint_idyntree_id = icub_model_calibration->getJunctionIndex("l_ankle_roll");
+                foot_sole_fake_joint_idyntree_id = icub_model_calibration->getJunctionIndex("l_sole_joint");
+                foot_sole_link_idyntree_id = icub_model_calibration->getLinkIndex("l_sole");
+            break;
+            RIGHT_FOOT:
+                ankle_joint_idyntree_id = icub_model_calibration->getJunctionIndex("r_ankle_roll");
+                foot_sole_fake_joint_idyntree_id = icub_model_calibration->getJunctionIndex("r_sole_joint");
+                foot_sole_link_idyntree_id = icub_model_calibration->getLinkIndex("r_sole");
+            break;
+        }
+    }
+
     //Start with calibration
     calibrateOffset("all",samples_requested_for_calibration);
     printf("\n\n");
@@ -360,6 +406,10 @@ bool wholeBodyDynamicsThread::calibrateOffset(const std::string calib_code, int 
             estimator->setEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,convertFTiDynTreeToFTwbi(ft_id),ft_off);
         }
     }
+
+    //Changing the base of the calibration model to the root link
+    icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex("root_link"));
+
 
     calibration_mutex.lock();
     std::cout << "wholeBodyDynamicsThread::calibrateOffset " << calib_code  << " called successfully, starting calibration." << std::endl;
@@ -437,6 +487,159 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport(const std::string c
     calibration_mutex.lock();
     std::cout << "wholeBodyDynamicsThread::calibrateOffset " << calib_code  << " called successfully, starting calibration." << std::endl;
     wbd_mode = CALIBRATING_ON_DOUBLE_SUPPORT;
+    run_mutex.unlock();
+
+    return true;
+}
+
+//*************************************************************************************************************************
+bool wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport(const std::string calib_code, int samples_to_use)
+{
+    run_mutex.lock();
+    samples_requested_for_calibration= samples_to_use;
+    std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport called with code " << calib_code << std::endl;
+    if( samples_requested_for_calibration <= 0 )
+    {
+        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport error: requested calibration with a negative (" << samples_requested_for_calibration << ") number of samples." << std::endl;
+        return false;
+    }
+    if( calib_code == "feet" && !(icub_version.feet_ft) )
+    {
+        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport error: requested calibration of feet, but feet FT sensor not available." << std::endl;
+        return false;
+    }
+
+
+    if( calib_code == "all" ) {
+        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
+        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
+        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
+        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
+        if( icub_version.feet_ft ) {
+            calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
+            calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
+        }
+    }
+    else if ( calib_code == "arms" )
+    {
+        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
+        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
+    }
+    else if ( calib_code == "legs" )
+    {
+        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
+        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
+    }
+    else if ( calib_code == "feet" )
+    {
+        calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
+        calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
+    }
+    else
+    {
+        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport error: code " << calib_code << " not available" << std::endl;
+        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport code supported are: legs, feet" << std::endl;
+        return false;
+    }
+
+    //Resetting the offset for the sensor being calibrated, to get the raw values
+    for(int ft_id = 0; ft_id < (int)calibrate_ft_sensor.size(); ft_id++ )
+    {
+        if( calibrate_ft_sensor[ft_id] )
+        {
+            double ft_off[6];
+            estimator->getEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,convertFTiDynTreeToFTwbi(ft_id),ft_off);
+
+            std::cout << "wholeBodyDynamicsThread::calibrateOffset: current calibration for FT " << ft_id << " is " <<
+                         ft_off[0] << " " << ft_off[1] << " " << ft_off[2] << " " << ft_off[3] << " " << ft_off[4] << " " << ft_off[5] << std::endl;
+            ft_off[0] = ft_off[1] = ft_off[2] = ft_off[3] = ft_off[4] = ft_off[5] = 0.0;
+            estimator->setEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,convertFTiDynTreeToFTwbi(ft_id),ft_off);
+        }
+    }
+
+     //Changing the base of the calibration model to the left foot
+    icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex("l_sole"));
+
+
+    calibration_mutex.lock();
+    std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport " << calib_code  << " called successfully, starting calibration." << std::endl;
+    wbd_mode = CALIBRATING;
+    run_mutex.unlock();
+
+    return true;
+}
+
+//*************************************************************************************************************************
+bool wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport(const std::string calib_code, int samples_to_use)
+{
+    run_mutex.lock();
+    samples_requested_for_calibration= samples_to_use;
+    std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport called with code " << calib_code << std::endl;
+    if( samples_requested_for_calibration <= 0 )
+    {
+        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport error: requested calibration with a negative (" << samples_requested_for_calibration << ") number of samples." << std::endl;
+        return false;
+    }
+    if( calib_code == "feet" && !(icub_version.feet_ft) )
+    {
+        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport error: requested calibration of feet, but feet FT sensor not available." << std::endl;
+        return false;
+    }
+
+
+    if( calib_code == "all" ) {
+        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
+        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
+        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
+        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
+        if( icub_version.feet_ft ) {
+            calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
+            calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
+        }
+    }
+    else if ( calib_code == "arms" )
+    {
+        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
+        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
+    }
+    else if ( calib_code == "legs" )
+    {
+        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
+        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
+    }
+    else if ( calib_code == "feet" )
+    {
+        calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
+        calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
+    }
+    else
+    {
+        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport error: code " << calib_code << " not available" << std::endl;
+        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport code supported are: legs, feet" << std::endl;
+        return false;
+    }
+
+    //Resetting the offset for the sensor being calibrated, to get the raw values
+    for(int ft_id = 0; ft_id < (int)calibrate_ft_sensor.size(); ft_id++ )
+    {
+        if( calibrate_ft_sensor[ft_id] )
+        {
+            double ft_off[6];
+            estimator->getEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,convertFTiDynTreeToFTwbi(ft_id),ft_off);
+
+            std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport: current calibration for FT " << ft_id << " is " <<
+                         ft_off[0] << " " << ft_off[1] << " " << ft_off[2] << " " << ft_off[3] << " " << ft_off[4] << " " << ft_off[5] << std::endl;
+            ft_off[0] = ft_off[1] = ft_off[2] = ft_off[3] = ft_off[4] = ft_off[5] = 0.0;
+            estimator->setEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,convertFTiDynTreeToFTwbi(ft_id),ft_off);
+        }
+    }
+
+    //Changing the base of the calibration model to the left foot
+    icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex("r_sole"));
+
+    calibration_mutex.lock();
+    std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport " << calib_code  << " called successfully, starting calibration." << std::endl;
+    wbd_mode = CALIBRATING;
     run_mutex.unlock();
 
     return true;
@@ -669,6 +872,58 @@ void wholeBodyDynamicsThread::publishBaseToGui()
     broadcastData<yarp::sig::Vector>(iCubGuiBase,port_icubgui_base);
 }
 
+//*************************************************************************************************************************
+void wholeBodyDynamicsThread::publishAnkleFootForceTorques()
+{
+    YARP_ASSERT(zmp_test_mode);
+
+    yarp::sig::Vector joint_ankle_cartesian_wrench(6,0.0);
+    yarp::sig::Vector joint_ankle_cartesian_wrench_from_model(6,0.0);
+    yarp::sig::Vector joint_foot_cartesian_wrench(6,0.0);
+    yarp::sig::Vector joint_foot_cartesian_wrench_from_model(6,0.0);
+
+    //Compute model forces
+    bool ret;
+    ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
+    ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_VEL,tree_status.dq.data());
+    ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_ACC,tree_status.ddq.data());
+    ret = ret && estimator->getEstimates(wbi::ESTIMATE_IMU,tree_status.wbi_imu.data());
+    YARP_ASSERT(ret);
+
+    //std::cout << "wholeBodyDynamicsThread::calibration_run(): estimates obtained" << std::endl;
+
+    //Setting imu proper acceleration from measure (assuming omega e domega = 0)
+    //acceleration are measures 4:6 (check wbi documentation)
+    tree_status.proper_ddp_imu[0] = tree_status.wbi_imu[4];
+    tree_status.proper_ddp_imu[1] = tree_status.wbi_imu[5];
+    tree_status.proper_ddp_imu[2] = tree_status.wbi_imu[6];
+
+    tree_status.omega_imu[0] = 0.0*tree_status.wbi_imu[7];
+    tree_status.omega_imu[1] = 0.0*tree_status.wbi_imu[8];
+    tree_status.omega_imu[2] = 0.0*tree_status.wbi_imu[9];
+
+    //Estimating sensors
+    icub_model_zmp->setInertialMeasure(0.0*tree_status.omega_imu,0.0*tree_status.domega_imu,tree_status.proper_ddp_imu);
+    icub_model_zmp->setAng(tree_status.q);
+    icub_model_zmp->setDAng(0.0*tree_status.dq);
+    icub_model_zmp->setD2Ang(0.0*tree_status.ddq);
+
+    icub_model_zmp->kinematicRNEA();
+    icub_model_zmp->dynamicRNEA();
+
+    joint_ankle_cartesian_wrench_from_model = icub_model_zmp->getJointForceTorque(ankle_joint_idyntree_id,foot_sole_link_idyntree_id);
+    joint_foot_cartesian_wrench_from_model = icub_model_zmp->getJointForceTorque(foot_sole_fake_joint_idyntree_id,foot_sole_link_idyntree_id);
+
+    YARP_ASSERT(estimator->getEstimateJointForceTorque(ankle_joint_idyntree_id,joint_ankle_cartesian_wrench.data(),foot_sole_link_idyntree_id));
+    YARP_ASSERT(estimator->getEstimateJointForceTorque(foot_sole_fake_joint_idyntree_id,joint_foot_cartesian_wrench.data(),foot_sole_link_idyntree_id));
+
+    broadcastData<yarp::sig::Vector>(joint_ankle_cartesian_wrench,port_joint_ankle_cartesian_wrench);
+    broadcastData<yarp::sig::Vector>(joint_ankle_cartesian_wrench_from_model,port_joint_ankle_cartesian_wrench_from_model);
+    broadcastData<yarp::sig::Vector>(joint_foot_cartesian_wrench,port_joint_foot_cartesian_wrench);
+    broadcastData<yarp::sig::Vector>(joint_foot_cartesian_wrench_from_model,port_joint_foot_cartesian_wrench_from_model);
+
+}
+
 
 //*************************************************************************************************************************
 void wholeBodyDynamicsThread::run()
@@ -719,6 +974,12 @@ void wholeBodyDynamicsThread::normal_run()
 
     //Send base information to iCubGui
     publishBaseToGui();
+
+    //if in zmp test mode, publish the necessary information
+    if( zmp_test_mode )
+    {
+        publishAnkleFootForceTorques();
+    }
 
     //if normal mode, publish the
     printCountdown = (printCountdown>=PRINT_PERIOD) ? 0 : printCountdown +(int)getRate();   // countdown for next print (see sendMsg method)
@@ -838,6 +1099,7 @@ void wholeBodyDynamicsThread::calibration_run()
             calibrate_ft_sensor[ft_sensor_id] = false;
         }
 
+        icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex("root_link"));
         wbd_mode = NORMAL;
         calibration_mutex.unlock();
     }
@@ -937,6 +1199,7 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
             calibrate_ft_sensor[ft_sensor_id] = false;
         }
 
+        icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex("root_link"));
         wbd_mode = NORMAL;
         calibration_mutex.unlock();
     }
@@ -980,6 +1243,15 @@ void wholeBodyDynamicsThread::threadRelease()
     closePort(port_external_wrench_RL);
     std::cerr << "Closing iCubGui base port\n";
     closePort(port_icubgui_base);
+
+    if(zmp_test_mode)
+    {
+        closePort(port_joint_ankle_cartesian_wrench);
+        closePort(port_joint_ankle_cartesian_wrench_from_model);
+        closePort(port_joint_foot_cartesian_wrench);
+        closePort(port_joint_foot_cartesian_wrench_from_model);
+        delete icub_model_zmp;
+    }
 
     delete icub_model_calibration;
 
