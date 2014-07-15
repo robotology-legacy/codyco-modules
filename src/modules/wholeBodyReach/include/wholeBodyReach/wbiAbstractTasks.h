@@ -40,6 +40,8 @@ struct RobotState
     Eigen::Vector6d     vBase;  // base velocities
     Eigen::VectorXd     dq;     // base and joint velocities (6+n)
     Eigen::Vector3d     g;      // gravity acceleration
+    
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
     
     

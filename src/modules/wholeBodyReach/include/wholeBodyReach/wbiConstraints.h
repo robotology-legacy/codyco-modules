@@ -67,6 +67,8 @@ namespace wholeBodyReach
         virtual void updateForceFrictionConeInequalities();
         
     public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+        
         ContactConstraint(std::string name, std::string linkName, int numberOfForces,
                           int numberOfInequalityConstraints, wbi::wholeBodyInterface* robot);
         
@@ -113,6 +115,7 @@ namespace wholeBodyReach
             if(w.size()!=_weights.size())
                 return false;
             _weights = w;
+            _weights.normalize();
             return true;
         }
         
@@ -187,6 +190,8 @@ namespace wholeBodyReach
         Eigen::Vector6d         _dJcdq;
         
     public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+        
         PointContactConstraint(std::string name, std::string linkName, wbi::wholeBodyInterface* robot);
         virtual ~PointContactConstraint() {}
         

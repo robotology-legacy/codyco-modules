@@ -99,6 +99,7 @@ protected:
     Eigen::MatrixRXd            _N_X;           /// nullspace projector of _X
     
     Eigen::VectorXd             _fWeights;      /// penalty weights for _fcDes
+    Eigen::MatrixRXd            _W;             /// force weight matrix
     Eigen::MatrixRXd            _Jc;            /// constraint Jacobian
     Eigen::VectorXd             _dJcdq;         /// dJc*dq
     Eigen::VectorXd             _fcDes;         /// desired constraint forces (result of QP)
@@ -135,6 +136,8 @@ protected:
     }
     
 public:
+     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    
     /** Constructor
       * @param robot Class to compute the robot dynamics and kinematics
       * @param useNullspaceBase If true the solver uses the basis of the nullspace, 

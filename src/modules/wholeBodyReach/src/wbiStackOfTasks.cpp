@@ -143,9 +143,16 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             _N_X.setIdentity();
             _N_X -= _X_svd.matrixV().leftCols(r)*_X_svd.matrixV().leftCols(r).transpose();
             // @todo Check if possible to avoid this matrix-matrix multiplication
-            _qpData.H   = _X.transpose()*_X + _numericalDamping*MatrixXd::Identity(_k,_k);
-//                            + _fWeights.asDiagonal()*_N_X;
+            _W.diagonal() = _fWeights;
+            _qpData.H   = _X.transpose()*_X + _numericalDamping*_W;
             _qpData.g   = -_X.transpose()*_momentumDes;
+            
+//                        _numericalDamping*MatrixXd::Identity(_k,_k);+ (_N_X * _fWeights.asDiagonal() * _N_X);
+//            _W = _N_X * _W * _N_X;
+//            _qpData.H.diagonal() = _fWeights;
+//            sendMsg("H diag: "+toString(_qpData.H.diagonal(),1));
+//            sendMsg("f weights: "+toString(_fWeights,1));
+//            sendMsg("X*N_X = "+toString((_X*_N_X).maxCoeff())+" "+toString((_X*_N_X).minCoeff()));
         }
         STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
     }
@@ -277,7 +284,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
 //    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
     
     
-#define DEBUG_FORCE_QP
+//#define DEBUG_FORCE_QP
 #ifdef DEBUG_FORCE_QP
     VectorXd fcDes2 = pinvDampedEigen(_X, _numericalDamping) * _momentumDes;
     MatrixRXd D = MatrixRXd::Zero(6+_k,_n+6);
@@ -293,7 +300,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     MatrixRXd SN_DpinvD = pinvDampedEigen(N_D.bottomRows(_n), _numericalDamping);
     VectorXd ddqDes = ddqDes1 + SN_DpinvD*(_ddq_jPosture - ddqDes1.tail(_n));
     VectorXd tauDes = M_a*ddqDes + h_j - Jc_j.transpose()*fcDes2;
-    torques = tauDes;
+//    torques = tauDes;
     
     sendMsg("ddqDes             = "+jointToString(_ddqDes,1));
     sendMsg("DEBUG ddqDes       = "+jointToString(ddqDes,1));
@@ -370,9 +377,12 @@ void wbiStackOfTasks::addConstraint(ContactConstraint& constraint)
     _X_svd = SVD(6, _k, ComputeThinU|ComputeThinV);
     _N_X.setZero(_k,_k);
     _fWeights.setZero(_k);
+    _W.setZero(_k,_k);
     _Jc.setZero(_k,_n+6);
     _dJcdq.setZero(_k);
     _fcDes.setZero(_k);
+    _qpData.H.setZero(_k,_k);
+    _qpData.g.setZero(_k);
     _qpData.CI.setZero(n_in, _k);
     _qpData.ci0.setZero(n_in);
     _qpData.activeSet = VectorXi::Constant(n_in, -1);

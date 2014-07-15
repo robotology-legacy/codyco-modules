@@ -102,6 +102,8 @@ namespace wholeBodyReach
         Eigen::Vector3d             _orientationError;  /// orientation error expressed as a rotation vector
 
     public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+        
         MinJerkPDLinkPoseTask(std::string taskName, std::string linkName,
                               double sampleTime, wbi::wholeBodyInterface* robot);
         virtual ~MinJerkPDLinkPoseTask(){}
@@ -147,6 +149,8 @@ namespace wholeBodyReach
         Eigen::Vector3d             _comRef;
         
     public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+        
         MinJerkPDMomentumTask(std::string taskName, double sampleTime, wbi::wholeBodyInterface* robot);
         virtual ~MinJerkPDMomentumTask(){}
         
