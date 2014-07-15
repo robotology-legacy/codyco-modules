@@ -35,6 +35,22 @@ public:
  */
   virtual bool calibStanding(const std::string& calib_code, const int32_t nr_of_samples = 100);
 /**
+ * Calibrate the force/torque sensors when on single support on left foot
+ * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the left sole).
+ * @param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet)
+ * @param nr_of_samples number of samples
+ * @return true/false on success/failure
+ */
+  virtual bool calibStandingLeftFoot(const std::string& calib_code, const int32_t nr_of_samples = 100);
+/**
+ * Calibrate the force/torque sensors when on single support on right foot
+ * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the right sole).
+ * @param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet)
+ * @param nr_of_samples number of samples
+ * @return true/false on success/failure
+ */
+  virtual bool calibStandingRightFoot(const std::string& calib_code, const int32_t nr_of_samples = 100);
+/**
  * Reset the sensor offset to 0 0 0 0 0 0 (six zeros).
  * @param calib_code argument to specify the sensors to reset (all,arms,legs,feet)
  * @return true/false on success/failure

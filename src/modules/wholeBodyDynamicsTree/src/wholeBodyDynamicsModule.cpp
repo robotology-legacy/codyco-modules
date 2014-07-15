@@ -340,8 +340,42 @@ bool wholeBodyDynamicsModule::calibStanding(const std::string& calib_code,
 {
     if(wbdThread)
     {
-        std::cout << getName() << ": calibration for " << calib_code << "requested" << std::endl;
+        std::cout << getName() << ": double support calibration for " << calib_code << "requested" << std::endl;
         wbdThread->calibrateOffsetOnDoubleSupport(calib_code,nr_of_samples);
+        wbdThread->waitCalibrationDone();
+        return true;
+    }
+    else
+    {
+        std::cout << getName() << ": double support calib failed, no wholeBodyDynamicsThread available" << std::endl;
+        return false;
+    }
+}
+
+bool wholeBodyDynamicsModule::calibStandingLeftFoot(const std::string& calib_code,
+                                                   const int32_t nr_of_samples)
+{
+    if(wbdThread)
+    {
+        std::cout << getName() << ": single support left foot calibration for " << calib_code << "requested" << std::endl;
+        wbdThread->calibrateOffsetOnLeftFootSingleSupport(calib_code,nr_of_samples);
+        wbdThread->waitCalibrationDone();
+        return true;
+    }
+    else
+    {
+        std::cout << getName() << ": calib failed, no wholeBodyDynamicsThread available" << std::endl;
+        return false;
+    }
+}
+
+bool wholeBodyDynamicsModule::calibStandingRightFoot(const std::string& calib_code,
+                                                   const int32_t nr_of_samples)
+{
+    if(wbdThread)
+    {
+        std::cout << getName() << ": single support right foot calibration for " << calib_code << "requested" << std::endl;
+        wbdThread->calibrateOffsetOnRightFootSingleSupport(calib_code,nr_of_samples);
         wbdThread->waitCalibrationDone();
         return true;
     }

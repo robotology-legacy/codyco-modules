@@ -251,6 +251,8 @@ public:
     bool threadInit();
     bool calibrateOffset(const std::string calib_code, const int nr_of_samples );
     bool calibrateOffsetOnDoubleSupport(const std::string calib_code, const int nr_of_samples );
+    bool calibrateOffsetOnRightFootSingleSupport(const std::string calib_code, const int nr_of_samples );
+    bool calibrateOffsetOnLeftFootSingleSupport(const std::string calib_code, const int nr_of_samples );
     bool resetOffset(const std::string calib_code);
 
     /**
