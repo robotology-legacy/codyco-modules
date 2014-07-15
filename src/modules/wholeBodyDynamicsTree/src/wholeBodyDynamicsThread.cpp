@@ -219,13 +219,13 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
         {
             foot_under_zmp_test = LEFT_FOOT;
             icub_model_zmp = new iCub::iDynTree::iCubTree(icub_version);
-            icub_model_zmp->setFloatingBaseLink("l_sole");
+            icub_model_zmp->setFloatingBaseLink(icub_model_zmp->getLinkIndex("l_sole"));
         }
         else
         {
             foot_under_zmp_test = RIGHT_FOOT;
             icub_model_zmp = new iCub::iDynTree::iCubTree(icub_version);
-            icub_model_zmp->setFloatingBaseLink("r_sole");
+            icub_model_zmp->setFloatingBaseLink(icub_model_zmp->getLinkIndex("r_sole"));
         }
         port_joint_ankle_cartesian_wrench = new BufferedPort<Vector>;
         port_joint_ankle_cartesian_wrench_from_model = new BufferedPort<Vector>;
