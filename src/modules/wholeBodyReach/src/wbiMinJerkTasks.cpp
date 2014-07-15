@@ -146,9 +146,8 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
     // update reference trajectory
     _trajGen.computeNextValues(_comDes);
     _comRef = _trajGen.getPos();
-    _a_eq.head<3>() = _robotMass * ( -state.g //+ _trajGen.getAcc()
-//                                     + _Kd.head<3>().cwiseProduct(_trajGen.getVel() - _v)
-                                     - _Kd.head<3>().cwiseProduct(_v)
+    _a_eq.head<3>() = _robotMass * ( -state.g + _trajGen.getAcc()
+                                     + _Kd.head<3>().cwiseProduct(_trajGen.getVel() - _v)
                                      + _Kp.head<3>().cwiseProduct(_comRef - _com) );
     _a_eq.tail<3>() = - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>());
     
@@ -228,23 +227,22 @@ bool MinJerkPDPostureTask::update(RobotState& state)
 {
     _trajGen.computeNextValues(_qDes);  // the trajectory generator uses deg (not rad)
     _qRef = _trajGen.getPos();
-    _a_eq  = WBR_DEG2RAD * ( //_trajGen.getAcc() +
-//                            _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ) +
-                            - _Kd.cwiseProduct(WBR_RAD2DEG*state.dqJ) +
-                              _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ));
+    _a_eq  = WBR_DEG2RAD * ( _trajGen.getAcc() +
+                             _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ) +
+                             _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ));
     return true;
 }
 
 void MinJerkPDPostureTask::init(RobotState& state)
 {
     _trajGen.init(WBR_RAD2DEG*state.qJ);
-#define DEBUG_MINJERKPDPOSTURETASK
+//#define DEBUG_MINJERKPDPOSTURETASK
 #ifdef  DEBUG_MINJERKPDPOSTURETASK
         cout<<"  Posture initial pos "<<_trajGen.getPos().transpose()<<endl;
     for(int i=0; i<1; i++)
     {
         _trajGen.computeNextValues(_qDes);  // the trajectory generator uses deg (not rad)
-//        cout<<"*** Time "<< i*_trajGen.getSampleTime() << endl;
+        cout<<"*** Time "<< i*_trajGen.getSampleTime() << endl;
         cout<<"  Posture acc         "<<_trajGen.getAcc().transpose()<<endl;;
         cout<<"  Posture vel         "<<_trajGen.getVel().transpose()<<endl;
         cout<<"  Posture pos         "<<_trajGen.getPos().transpose()<<endl;
