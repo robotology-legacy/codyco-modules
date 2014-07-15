@@ -158,7 +158,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
 //            _W = _N_X * _W * _N_X;
 //            _qpData.H.diagonal() = _fWeights;
 //            sendMsg("H diag: "+toString(_qpData.H.diagonal(),1));
-            sendMsg("f weights: "+toString(_fWeights,1));
+            sendMsg("f weights: "+toString(1e3*_fWeights,1));
 //            sendMsg("X*N_X = "+toString((_X*_N_X).maxCoeff())+" "+toString((_X*_N_X).minCoeff()));
         }
         STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);

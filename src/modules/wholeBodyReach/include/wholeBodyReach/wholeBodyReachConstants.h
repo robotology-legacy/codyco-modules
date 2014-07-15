@@ -115,14 +115,14 @@ static const double     KP_MAX          = 100.0;    // max value of proportional
 static const double     DQ_MAX          = 1.0;      // max joint velocity allowed (rad/sec)
 static const double     TAU_MAX         = 200.0;    // max joint torque allowed (Nm)
 static const double     PINV_TOL        = 1e-4;     // threshold for truncated pseudoinverses
-static const double     FORCE_NORMAL_MIN = 5.0;
+static const double     FORCE_NORMAL_MIN = 20.0;
 static const double     FORCE_NORMAL_MAX = 300.0;
 
 static const string     GRASP_HAND_LINK_NAME        = "r_gripper";
 static const string     SUPPORT_FOREARM_LINK_NAME   = "l_forearm";
 static const string     LEFT_FOOT_LINK_NAME         = "l_sole";
 static const string     RIGHT_FOOT_LINK_NAME        = "r_sole";
-static const ContactPlaneSize ICUB_FOOT_SIZE(0.1,0.01,0.05,0.05);
+static const ContactPlaneSize ICUB_FOOT_SIZE(0.09,0.06,0.03,0.03);
 //static const ContactPlaneSize ICUB_FOOT_SIZE(0.1,0.1,0.1,0.1);
 
 enum WholeBodyReachSupportPhase
