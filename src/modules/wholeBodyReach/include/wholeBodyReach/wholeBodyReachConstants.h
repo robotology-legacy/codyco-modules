@@ -122,8 +122,8 @@ static const string     GRASP_HAND_LINK_NAME        = "r_gripper";
 static const string     SUPPORT_FOREARM_LINK_NAME   = "l_forearm";
 static const string     LEFT_FOOT_LINK_NAME         = "l_sole";
 static const string     RIGHT_FOOT_LINK_NAME        = "r_sole";
-//static const ContactPlaneSize ICUB_FOOT_SIZE(0.1,0.01,0.05,0.05);
-static const ContactPlaneSize ICUB_FOOT_SIZE(0.1,0.1,0.1,0.1);
+static const ContactPlaneSize ICUB_FOOT_SIZE(0.1,0.01,0.05,0.05);
+//static const ContactPlaneSize ICUB_FOOT_SIZE(0.1,0.1,0.1,0.1);
 
 enum WholeBodyReachSupportPhase
 {

@@ -122,6 +122,12 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             c.getEqualityMatrix(   _Jc.middleRows(index_k, k) );                // Jc = [Jc; t.getEqualityMatrix()]
             c.getEqualityVector(   _dJcdq.segment(index_k, k) );                // dJc_dq = [dJc_dq; t.getEqualityVector()]
             c.getWeights(          _fWeights.segment(index_k,k));
+
+            // if the normal force of this constraint (computed at the last step) is not zero
+            // then divide the weights by the normal force
+            if(_fcDes(index_k+2)!=0.0)
+                _fWeights.segment(index_k,k) /= _fcDes(index_k+2);
+            
 //            sendMsg("CI block "+c.getName()+":\n"+toString(_qpData.CI.block(index_in, index_k, in, k),1,"\n",12));
 //            sendMsg("ci0: "+toString(_qpData.ci0.segment(index_in, in),1));
 
@@ -143,6 +149,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             _N_X.setIdentity();
             _N_X -= _X_svd.matrixV().leftCols(r)*_X_svd.matrixV().leftCols(r).transpose();
             // @todo Check if possible to avoid this matrix-matrix multiplication
+            _fWeights.normalize();
             _W.diagonal() = _fWeights;
             _qpData.H   = _X.transpose()*_X + _numericalDamping*_W;
             _qpData.g   = -_X.transpose()*_momentumDes;
@@ -151,7 +158,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
 //            _W = _N_X * _W * _N_X;
 //            _qpData.H.diagonal() = _fWeights;
 //            sendMsg("H diag: "+toString(_qpData.H.diagonal(),1));
-//            sendMsg("f weights: "+toString(_fWeights,1));
+            sendMsg("f weights: "+toString(_fWeights,1));
 //            sendMsg("X*N_X = "+toString((_X*_N_X).maxCoeff())+" "+toString((_X*_N_X).minCoeff()));
         }
         STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
@@ -181,7 +188,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     }
     
     if(_qpData.activeSetSize>0)
-        sendMsg("Active constraints: "+toString(_qpData.activeSet.head(_qpData.activeSetSize)));
+        sendMsg("Active constraints: "+toString(_qpData.activeSet.head(_qpData.activeSetSize).transpose()));
     sendMsg("Momentum error  = "+toString((_X*_fcDes-_momentumDes).norm()));
     
     //*********************************
@@ -276,9 +283,9 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     STOP_PROFILING(PROFILE_WHOLE_SOLVER);
     
     
-    
+    sendMsg("fcDes              = "+toString(_fcDes,1));
 //    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
-    sendMsg("ddq_jPosture        = "+jointToString(_ddq_jPosture,1));
+//    sendMsg("ddq_jPosture        = "+jointToString(_ddq_jPosture,1));
 //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
 //    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
 //    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
