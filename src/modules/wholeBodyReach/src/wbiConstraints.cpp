@@ -39,14 +39,26 @@ ContactConstraint::ContactConstraint(std::string name, std::string linkName,
 :   WbiAbstractTask(name, numberOfForces, robot),
     WbiEqualityTask(numberOfForces, robot->getDoFs()+6),
     WbiInequalityTask(numberOfInequalityConstraints, numberOfForces),
+    WbiPDTask(numberOfForces,true),
     _linkName(linkName)
 {
     setNormalDirection(Vector3d::UnitZ());
     _X.setIdentity(6, numberOfForces);
+    _weights = VectorXd::Constant(numberOfForces, 1.0);
     _fDes.setZero(numberOfForces);
     _fIneq.setZero(numberOfForces);
     if(!robot->getLinkId(linkName.c_str(), _linkId))
         cout<<"Error while trying to get the ID of link "<<linkName<<endl;
+}
+
+void ContactConstraint::init(RobotState& state)
+{
+    bool res = _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
+    assert(res);
+    _Rdes = _H.R;
+    _posDes(0)=_H.p[0];
+    _posDes(1)=_H.p[1];
+    _posDes(2)=_H.p[2];
 }
 
 bool ContactConstraint::setNormalDirection(Vector3d normalDir)
@@ -91,6 +103,7 @@ void ContactConstraint::linkParameterForceFrictionCoefficient(ParamHelperServer*
     paramHelper->linkParam(paramId, &_muF);
     paramHelper->registerParamValueChangedCallback(paramId, this);
     _paramId_muF = paramId;
+    parameterUpdated(paramHelper->getParamProxy(paramId));
 }
 
 void ContactConstraint::linkParameterForceInequalities(ParamHelperServer* paramHelper, int paramId)
@@ -127,12 +140,22 @@ PlaneContactConstraint::PlaneContactConstraint(std::string name, std::string lin
 
 bool PlaneContactConstraint::update(RobotState& state)
 {
-    bool res = true;
     // update equality matrix and equality vectory
+    bool res = _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
     res = res && _robot->computeJacobian(state.qJ.data(), state.xBase, _linkId, _A_eq.data());
     res = res && _robot->computeDJdq(state.qJ.data(), state.xBase, state.dqJ.data(),
                                      state.vBase.data(), _linkId, _a_eq.data());
-    _a_eq *= -1.0;  // _a_eq = -dJ*dq
+    _a_eq *= -1.0;      // _a_eq = -dJ*dq
+    
+    // compute drift correction term
+//    _pos(0) = _H.p[0]; _pos(1) = _H.p[1]; _pos(2) = _H.p[2];
+//    computeOrientationError(_H.R, _Rdes, _orientationError);
+//    _dvStar.head<3>() = _Kp.head<3>().cwiseProduct(_posDes - _pos);
+//    _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError);
+//    _a_eq += _dvStar;   // _a_eq = dvStar - dJ*dq
+    
+//    getLogger().sendMsg(_name+" orientationError = "+toString(_orientationError,1), MSG_STREAM_INFO);
+//    getLogger().sendMsg(_name+" dvStar = "+toString(_dvStar,1), MSG_STREAM_INFO);
     
     // compute force-momentum mapping matrix _X
     res = res && _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);

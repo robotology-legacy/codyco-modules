@@ -106,3 +106,67 @@ std::string wholeBodyReach::toString(const Eigen::MatrixRXd &m, int precision, c
     }
     return ret.substr(0, ret.length()-1);
 }
+
+std::string wholeBodyReach::jointToString(const Eigen::VectorXd &j, int precision)
+{
+    if(j.size()!=ICUB_DOFS && j.size()!=ICUB_DOFS+6)
+        cout<<"Error in size of joint vector: "<<j.size()<<endl;
+    
+    int index=0;
+    string ret = "";
+    char tmp[350];
+    if(j.size()==ICUB_DOFS+6)
+    {
+        ret += "base(";
+        for(int i=0;i<6;i++)
+        {
+            sprintf(tmp, "% .*lf ", precision, j(index));
+            ret+=tmp;
+            index++;
+        }
+        ret = ret.substr(0, ret.length()-1); // remove the last character (tab)
+        ret += ")\t";
+    }
+    ret += "torso(";
+    for(int i=0;i<3;i++)
+    {
+        sprintf(tmp, "% .*lf ", precision, j(index));
+        ret+=tmp;
+        index++;
+    }
+    ret = ret.substr(0, ret.length()-1); // remove the last character (tab)
+    ret += ")\tl_arm(";
+    for(int i=0;i<5;i++)
+    {
+        sprintf(tmp, "% .*lf ", precision, j(index));
+        ret+=tmp;
+        index++;
+    }
+    ret = ret.substr(0, ret.length()-1); // remove the last character (tab)
+    ret += ")\tr_arm(";
+    for(int i=0;i<5;i++)
+    {
+        sprintf(tmp, "% .*lf ", precision, j(index));
+        ret+=tmp;
+        index++;
+    }
+    ret = ret.substr(0, ret.length()-1); // remove the last character (tab)
+    ret += ")\tl_leg(";
+    for(int i=0;i<6;i++)
+    {
+        sprintf(tmp, "% .*lf ", precision, j(index));
+        ret+=tmp;
+        index++;
+    }
+    ret = ret.substr(0, ret.length()-1); // remove the last character (tab)
+    ret += ")\tr_leg(";
+    for(int i=0;i<6;i++)
+    {
+        sprintf(tmp, "% .*lf ", precision, j(index));
+        ret+=tmp;
+        index++;
+    }
+    ret += ")";
+    return ret;
+}
+

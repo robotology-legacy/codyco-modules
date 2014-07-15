@@ -134,6 +134,8 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
     // Module parameters
     double                  _forceFriction;
     double                  _momentFriction;
+    Vector6d                _kpConstraints;
+    Vector6d                _wrenchWeights;     // weights used to penalize wrenches
 
     // Input streaming parameters
     Matrix4d            _H_w2b;                  // rototranslation from world to base reference frame

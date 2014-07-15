@@ -40,6 +40,8 @@ struct RobotState
     Eigen::Vector6d     vBase;  // base velocities
     Eigen::VectorXd     dq;     // base and joint velocities (6+n)
     Eigen::Vector3d     g;      // gravity acceleration
+    
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
     
     
@@ -282,6 +284,12 @@ public:
     virtual void setAutomaticCriticallyDamped(bool value);
 };
     
+    
+/** Compute the 6d error vector given the measured frame and the desired frame. */
+void compute6DError(const wbi::Frame& H, const wbi::Frame& H_des, Eigen::VectorRef res);
+
+/** Compute the 3d orientation error given the measured orientation and the desired orientation. */
+void computeOrientationError(const wbi::Rotation& R, const wbi::Rotation& R_des, Eigen::VectorRef res);
     
 } // end namespace wholeBodyReach
 

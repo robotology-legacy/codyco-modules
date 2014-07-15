@@ -83,6 +83,7 @@ void MinJerkPDLinkPoseTask::linkParameterPoseDes(ParamHelperServer* paramHelper,
     _paramId_poseDes = paramId;
     paramHelper->linkParam(paramId, _poseDes.data());
     paramHelper->registerParamValueChangedCallback(paramId, this);
+    parameterUpdated(paramHelper->getParamProxy(paramId));
 }
 
 void MinJerkPDLinkPoseTask::linkParameterPose(ParamHelperServer* paramHelper, int paramId)
@@ -226,23 +227,25 @@ bool MinJerkPDPostureTask::update(RobotState& state)
 {
     _trajGen.computeNextValues(_qDes);  // the trajectory generator uses deg (not rad)
     _qRef = _trajGen.getPos();
-    _a_eq  = WBR_DEG2RAD * (_trajGen.getAcc()
-                            + _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ)
-                            + _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ));
+    _a_eq  = WBR_DEG2RAD * ( _trajGen.getAcc() +
+                             _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ) +
+                             _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ));
     return true;
 }
 
 void MinJerkPDPostureTask::init(RobotState& state)
 {
     _trajGen.init(WBR_RAD2DEG*state.qJ);
-#ifdef DEBUG_MINJERKPDPOSTURETASK
-    for(int i=0; i<10; i++)
+//#define DEBUG_MINJERKPDPOSTURETASK
+#ifdef  DEBUG_MINJERKPDPOSTURETASK
+        cout<<"  Posture initial pos "<<_trajGen.getPos().transpose()<<endl;
+    for(int i=0; i<1; i++)
     {
         _trajGen.computeNextValues(_qDes);  // the trajectory generator uses deg (not rad)
         cout<<"*** Time "<< i*_trajGen.getSampleTime() << endl;
-        cout<<"  Posture acc "<<_trajGen.getAcc().transpose()<<endl;;
-        cout<<"  Posture vel "<<_trajGen.getVel().transpose()<<endl;
-        cout<<"  Posture pos "<<_trajGen.getPos().transpose()<<endl;
+        cout<<"  Posture acc         "<<_trajGen.getAcc().transpose()<<endl;;
+        cout<<"  Posture vel         "<<_trajGen.getVel().transpose()<<endl;
+        cout<<"  Posture pos         "<<_trajGen.getPos().transpose()<<endl;
 //        _a_eq += WBR_DEG2RAD * _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ);
 //        _a_eq += WBR_DEG2RAD * _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ);
     }
@@ -320,48 +323,15 @@ void MinJerkTask::linkParameterTrajectoryDuration(ParamHelperServer* paramHelper
     _paramId_trajDur = paramId;
     paramHelper->linkParam(paramId, &_trajDuration);
     paramHelper->registerParamValueChangedCallback(paramId, this);
+    parameterUpdated(paramHelper->getParamProxy(paramId));
 }
 
 void MinJerkTask::parameterUpdated(const ParamProxyInterface *pp)
 {
     if(pp->id==_paramId_trajDur)
     {
-        cout<<"Set trajectory duration to "<<_trajDuration<<endl;
+        cout<<"MinJerkTask set trajectory duration to "<<_trajDuration<<endl;
         _trajGen.setTrajectoryDuration(_trajDuration);
     }
 }
 
-
-/*********************************************************************************************************/
-/******************************************* UTILITIES ***************************************************/
-/*********************************************************************************************************/
-
-void wholeBodyReach::compute6DError(const wbi::Frame& H, const wbi::Frame& H_des, Eigen::VectorRef res)
-{
-    assert(res.size()>=6);
-    Vector4d aa;
-    Rotation Re = H.R; // Re = R_des * R.transposed();
-    Re.setToInverse();
-    H_des.R.rotateInPlace(Re);
-    
-    Re.getAxisAngle(aa.data());
-    res[0] = H_des.p[0]-H.p[0];
-    res[1] = H_des.p[1]-H.p[1];
-    res[2] = H_des.p[2]-H.p[2];
-    res[3] = aa[3] * aa[0];
-    res[4] = aa[3] * aa[1];
-    res[5] = aa[3] * aa[2];
-}
-
-void wholeBodyReach::computeOrientationError(const wbi::Rotation& R, const wbi::Rotation& R_des, Eigen::VectorRef res)
-{
-    assert(res.size()>=3);
-    Vector4d aa;
-    Rotation Re = R; // Re = R_des * R.transposed();
-    Re.setToInverse();
-    R_des.rotateInPlace(Re);
-    Re.getAxisAngle(aa.data());
-    res[0] = aa[3] * aa[0];
-    res[1] = aa[3] * aa[1];
-    res[2] = aa[3] * aa[2];
-}

@@ -47,6 +47,8 @@ namespace Eigen
     typedef Ref<MatrixRXd>                          MatrixRef;      /// Type used to pass Eigen matrices by reference
     typedef const Ref<const VectorXd>&              VectorConst;    /// Type used to pass Eigen vectors by const reference
     typedef const Ref<const MatrixRXd>&             MatrixConst;    /// Type used to pass Eigen matrices by const reference
+    
+    typedef JacobiSVD<MatrixRXd>                    SVD;            /// svd of RowMajor matrix
 }
 
 // define some types
@@ -120,7 +122,8 @@ static const string     GRASP_HAND_LINK_NAME        = "r_gripper";
 static const string     SUPPORT_FOREARM_LINK_NAME   = "l_forearm";
 static const string     LEFT_FOOT_LINK_NAME         = "l_sole";
 static const string     RIGHT_FOOT_LINK_NAME        = "r_sole";
-static const ContactPlaneSize ICUB_FOOT_SIZE(0.1, 0.01,0.05,0.05);
+//static const ContactPlaneSize ICUB_FOOT_SIZE(0.1,0.01,0.05,0.05);
+static const ContactPlaneSize ICUB_FOOT_SIZE(0.1,0.1,0.1,0.1);
 
 enum WholeBodyReachSupportPhase
 {
@@ -183,13 +186,14 @@ enum WholeBodyReachParamId {
     
     PARAM_ID_KP_MOMENTUM,           PARAM_ID_KP_FOREARM,
     PARAM_ID_KP_HAND,               PARAM_ID_KP_POSTURE,
+    PARAM_ID_KP_CONSTRAINTS,
     PARAM_ID_KD_MOMENTUM,           PARAM_ID_KD_FOREARM,
     PARAM_ID_KD_HAND,               PARAM_ID_KD_POSTURE,
     PARAM_ID_TRAJ_TIME_MOMENTUM,    PARAM_ID_TRAJ_TIME_FOREARM,
     PARAM_ID_TRAJ_TIME_HAND,        PARAM_ID_TRAJ_TIME_POSTURE,
     PARAM_ID_SUPPORT_PHASE,         PARAM_ID_NUM_DAMP,          PARAM_ID_USE_NULLSPACE_BASE,
     PARAM_ID_Q_MAX,                 PARAM_ID_Q_MIN,             PARAM_ID_JNT_LIM_MIN_DIST,
-    PARAM_ID_FORCE_FRICTION,        PARAM_ID_MOMENT_FRICTION,
+    PARAM_ID_FORCE_FRICTION,        PARAM_ID_MOMENT_FRICTION,   PARAM_ID_WRENCH_WEIGHTS,
     
     PARAM_ID_XDES_COM,              PARAM_ID_XDES_FOREARM,
     PARAM_ID_XDES_HAND,             PARAM_ID_QDES,
@@ -220,6 +224,7 @@ new ParamProxyBasic<double>("kp momentum",          PARAM_ID_KP_MOMENTUM,       
 new ParamProxyBasic<double>("kp forearm",           PARAM_ID_KP_FOREARM,        6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_FOREARM.data(),      "Proportional gain for the forearm control"),
 new ParamProxyBasic<double>("kp hand",              PARAM_ID_KP_HAND,           6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_HAND.data(),         "Proportional gain for the hand control"),
 new ParamProxyBasic<double>("kp posture",           PARAM_ID_KP_POSTURE,        ParamSize(ICUB_DOFS,true),  ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_POSTURE.data(),      "Proportional gain for the joint posture control"),
+new ParamProxyBasic<double>("kp constraints",       PARAM_ID_KP_CONSTRAINTS,    6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       ONE_6D.data(),                  "Proportional gain for correcting constraint drifts"),
 new ParamProxyBasic<double>("kd momentum",          PARAM_ID_KD_MOMENTUM,       6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KD_MOMENTUM.data(),     "Derivative gain for the momentum control"),
 new ParamProxyBasic<double>("kd forearm",           PARAM_ID_KD_FOREARM,        6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KD_FOREARM.data(),      "Derivative gain for the forearm control"),
 new ParamProxyBasic<double>("kd hand",              PARAM_ID_KD_HAND,           6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KD_HAND.data(),         "Derivative gain for the hand control"),
@@ -235,6 +240,7 @@ new ParamProxyBasic<double>("q min",                PARAM_ID_Q_MIN,             
 new ParamProxyBasic<double>("jlmd",                 PARAM_ID_JNT_LIM_MIN_DIST,  1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits"),
 new ParamProxyBasic<double>("force friction",       PARAM_ID_FORCE_FRICTION,    1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_FORCE_FRICTION,        "Friciton coefficient for tangential forces"),
 new ParamProxyBasic<double>("moment friction",      PARAM_ID_MOMENT_FRICTION,   1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_MOMENT_FRICTION,       "Friciton coefficient for normal moments"),
+new ParamProxyBasic<double>("wrench weights",       PARAM_ID_WRENCH_WEIGHTS,    6,                          ParamBilatBounds<double>(1e-4, 1e4),        PARAM_IN_OUT,       ONE_6D.data(),                  "Weights used to penalize 6d wrenches"),
     
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<int>(   "support phase",        PARAM_ID_SUPPORT_PHASE,     1,                          ParamBilatBounds<int>(0, 2),                PARAM_IN_STREAM,    &DEFAULT_SUPPORT_PHASE,         "Contact support phase, 0: double, 1: triple"),

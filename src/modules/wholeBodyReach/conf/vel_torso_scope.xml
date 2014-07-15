@@ -18,14 +18,17 @@ torso(3), left arm(5), right arm(5), left leg(6), right leg(6)
     <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Torso joint 0 pos ( red desired, blue measured )"
           size="60" minval="-200" maxval="200" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="48" color="Blue" title="COM x" type="lines" size="2" />
+        <graph remote="/wbr/monitor:o" index="98" color="Red" title="COM x" type="lines" size="2" />
     </plot>
     <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Torso joint 1 pos ( red desired, blue measured )"
           size="60" minval="-200" maxval="200" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="49" color="Blue" title="COM x" type="lines" size="2" />
+        <graph remote="/wbr/monitor:o" index="99" color="Red" title="COM x" type="lines" size="2" />
     </plot>
     <plot gridx="0" gridy="2" hspan="1" vspan="1" title="Torso joint 2 pos ( red desired, blue measured )"
           size="60" minval="-200" maxval="200" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="50" color="Blue" title="COM x" type="lines" size="2" />
+        <graph remote="/wbr/monitor:o" index="100" color="Red" title="COM x" type="lines" size="2" />
     </plot>
 	
 	

@@ -89,12 +89,17 @@ protected:
     Eigen::MatrixRXd                _A;
     Eigen::MatrixRXd                _A_i;
     Eigen::VectorXd                 _b_i;
-    Eigen::JacobiSVD<Eigen::MatrixRXd>  _A_svd;
+    Eigen::SVD                      _A_svd;
     
-    Eigen::MatrixRXd                _Jc_Sbar;   /// Jc projected in nullspace of base dynamics
-    Eigen::JacobiSVD<Eigen::MatrixRXd>  _Jc_Sbar_svd;   /// svd of Jc*Sbar
+    Eigen::MatrixRXd                _Jc_Sbar;       /// Jc projected in nullspace of base dynamics
+    Eigen::SVD                      _Jc_Sbar_svd;   /// svd of Jc*Sbar
     
     Eigen::MatrixRXd            _X;             /// matrix mapping constraint forces into momentum derivative
+    Eigen::SVD                  _X_svd;         /// svd of Jc*Sbar
+    Eigen::MatrixRXd            _N_X;           /// nullspace projector of _X
+    
+    Eigen::VectorXd             _fWeights;      /// penalty weights for _fcDes
+    Eigen::MatrixRXd            _W;             /// force weight matrix
     Eigen::MatrixRXd            _Jc;            /// constraint Jacobian
     Eigen::VectorXd             _dJcdq;         /// dJc*dq
     Eigen::VectorXd             _fcDes;         /// desired constraint forces (result of QP)
@@ -131,6 +136,8 @@ protected:
     }
     
 public:
+     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    
     /** Constructor
       * @param robot Class to compute the robot dynamics and kinematics
       * @param useNullspaceBase If true the solver uses the basis of the nullspace, 
@@ -229,9 +236,8 @@ void pinvTrunc(const Eigen::MatrixRXd &A, double tol, Eigen::MatrixRXd &Apinv, E
   * @param tol Input threshold for the singular values of the truncated pseudoinverse.
   * @param damp Input damping factor for the damped pseudoinverse.
   * @param Apinv Output nXm matrix, truncated pseudoinverse of A.
-  * @param ApinvDamp Output nXm matrix, damped pseudoinverse of A.
-  * @param sv Output (optional) k-dim vector (with k=min(m,n)), singular values of A. */
-void pinvDampTrunc(const Eigen::MatrixRXd &A, double tol, double damp, Eigen::MatrixRXd &Apinv, Eigen::MatrixRXd &ApinvDamp, Eigen::MatrixRXd &Spinv, Eigen::MatrixRXd &SpinvD, Eigen::VectorXd &sv);
+  * @param ApinvDamp Output nXm matrix, damped pseudoinverse of A.*/
+void pinvDampTrunc(const Eigen::MatrixRXd &A, double tol, double damp, Eigen::MatrixRXd &Apinv, Eigen::MatrixRXd &ApinvDamp);
     
 Eigen::MatrixRXd nullSpaceProjector(const Eigen::Ref<Eigen::MatrixRXd> A, double tol);
     
