@@ -7,7 +7,9 @@
 25:31 PARAM_ID_X_HAND,                32:34 PARAM_ID_XREF_HAND,
 35:41 PARAM_ID_X_BASE,                42:47 PARAM_ID_V_BASE,
 48:72 PARAM_ID_Q,                     73:97 PARAM_ID_DQ,            
-98:122 PARAM_ID_QREF                123:128 PARAM_ID_MOMENTUM_INTEGRAL
+98:122 PARAM_ID_QREF				123:128 PARAM_ID_FORCE_INEQ_R_FOOT,          
+129:134 PARAM_ID_FORCE_INEQ_L_FOOT	135:137 PARAM_ID_FORCE_INEQ_FOREARM,                
+138:143 PARAM_ID_MOMENTUM_INTEGRAL
 -->
 <portscope rows="3" columns="2">
     <!-- plotting COM x -->
@@ -33,18 +35,18 @@
 	
     <!-- plotting Angular momentum -->
     <plot gridx="1" gridy="0" hspan="1" vspan="1" title="Angular Momentum (blue) and its integral (red) "
-          size="60" minval="-0.1" maxval="0.1" bgcolor="white">
-		<graph remote="/wbr/monitor:o" index="126" color="Red" title="Momentum" type="lines" size="2" />
+          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+		<graph remote="/wbr/monitor:o" index="141" color="Red" title="Momentum" type="lines" size="2" />
 		<graph remote="/wbr/monitor:o" index="12" color="Blue" title="Momentum" type="lines" size="2" />
     </plot>
     <plot gridx="1" gridy="1" hspan="1" vspan="1" title="COM dy blue, red Momentum"
-          size="60" minval="-0.1" maxval="0.1" bgcolor="white">
-		<graph remote="/wbr/monitor:o" index="127" color="Red" title="Momentum" type="lines" size="2" />
+          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+		<graph remote="/wbr/monitor:o" index="142" color="Red" title="Momentum" type="lines" size="2" />
 		<graph remote="/wbr/monitor:o" index="13" color="Blue" title="Momentum" type="lines" size="2" />
     </plot>
     <plot gridx="1" gridy="2" hspan="1" vspan="1" title="COM dz blue, red Momentum"
-          size="60" minval="-0.1" maxval="0.1" bgcolor="white">
-		<graph remote="/wbr/monitor:o" index="128" color="Red" title="Momentum" type="lines" size="2" />
+          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+		<graph remote="/wbr/monitor:o" index="143" color="Red" title="Momentum" type="lines" size="2" />
 		<graph remote="/wbr/monitor:o" index="14" color="Blue" title="Momentum" type="lines" size="2" />
     </plot>
 	
