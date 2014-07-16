@@ -37,7 +37,6 @@ MinJerkPDLinkPoseTask::MinJerkPDLinkPoseTask(string taskName, string linkName, d
   _linkName(linkName)
 {
     _J.setZero(6, robot->getDoFs()+6);
-    _dJdq.resize(6);
     if(!(_initSuccessfull = _robot->getLinkId(linkName.c_str(), _linkId)))
         printf("[MinJerkPDLinkPoseTask] Error while trying to get id of link %s\n", linkName.c_str());
 }
@@ -83,6 +82,7 @@ void MinJerkPDLinkPoseTask::init(RobotState& state)
     assert(res);
     _pose(0) = _H.p[0]; _pose(1) = _H.p[1]; _pose(2) = _H.p[2];
     _trajGen.init(_pose.head<3>());
+//    cout<<_name<<" H:\n"<<_H.toString()<<endl;
 }
 
 void MinJerkPDLinkPoseTask::linkParameterPoseDes(ParamHelperServer* paramHelper, int paramId)
@@ -111,7 +111,8 @@ void MinJerkPDLinkPoseTask::parameterUpdated(const ParamProxyInterface *pp)
         _Hdes.p[1] = _poseDes[1];
         _Hdes.p[2] = _poseDes[2];
         // convert from axis/angle to rotation matrix
-        _Hdes.R.axisAngle(_poseDes.data()+3);
+        _Hdes.R = Rotation::axisAngle(_poseDes.data()+3);
+//        cout<<_name<<" H des:\n"<<_Hdes.toString()<<endl;
         return;
     }
     MinJerkTask::parameterUpdated(pp);

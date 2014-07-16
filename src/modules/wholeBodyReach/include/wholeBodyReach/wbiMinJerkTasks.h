@@ -85,7 +85,7 @@ namespace wholeBodyReach
         std::string                 _linkName;  /// name of the link
         bool                        _initSuccessfull;   /// true if initialization was successfull
         
-        Eigen::VectorXd             _dJdq;      /// product of the Jacobian time derivative and the joint velocities
+        Eigen::Vector6d             _dJdq;      /// product of the Jacobian time derivative and the joint velocities
         Eigen::MatrixRXd            _J;         /// Jacobian
         wbi::Frame                  _H;         /// homogenous matrix from world frame to link frame
         Eigen::Vector6d             _v;         /// linear-angular velocity of the link frame
@@ -95,7 +95,7 @@ namespace wholeBodyReach
         Eigen::Vector7d             _poseDes;           /// desired position + orientation (axis/angle)
         Eigen::Vector3d             _posRef;            /// reference position
         int                         _paramId_poseDes;   /// id of the parameter associated to _poseDesired
-        int                         _paramId_pose;      /// id of the parameter associated to _pose
+//        int                         _paramId_pose;      /// id of the parameter associated to _pose
         
         wbi::Frame                  _Hdes;              /// same as _poseDes but as homogeneous matrix
         Eigen::Vector6d             _dvStar;            /// acceleration to use in optimization

@@ -262,14 +262,6 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
         ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
         ddqDes_j    += _ddq_jDes;
         updateNullspace(_A_svd);
-
-#define DEBUG_POSE_TASKS
-#ifdef  DEBUG_POSE_TASKS
-        VectorXd err = _A_i*_ddqDes-_b_i;
-        sendMsg(t.getName()+" error ddq:    "+toString(err,2));
-        sendMsg(t.getName()+" constr err =  "+toString((_Jc*_ddqDes+_dJcdq).norm()));
-        sendMsg(t.getName()+" base dyna err "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-#endif
     }
     
     // Now we can go on with the motion tasks, using the nullspace of dynamics and contacts:
@@ -298,6 +290,17 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
     sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
     sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+
+#define DEBUG_POSE_TASKS
+#ifdef  DEBUG_POSE_TASKS
+    for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
+    {
+        MinJerkPDLinkPoseTask& t = **it;
+        t.getEqualityMatrix(_A_i);
+        t.getEqualityVector(_b_i);
+        sendMsg(t.getName()+" error =    "+toString((_A_i*_ddqDes-_b_i).norm()));
+    }
+#endif
     
     
 //#define DEBUG_FORCE_QP
