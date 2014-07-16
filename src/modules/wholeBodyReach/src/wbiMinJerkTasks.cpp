@@ -66,6 +66,10 @@ bool MinJerkPDLinkPoseTask::update(RobotState& state)
     computeOrientationError(_H.R, _Hdes.R, _orientationError);
     _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError) - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
     
+    // TEMP
+//    _dvStar.tail<3>().setZero();
+    // END TEMP
+    
     // update equality matrix and equality vectory
     _A_eq = _J;
     _a_eq = _dvStar - _dJdq;

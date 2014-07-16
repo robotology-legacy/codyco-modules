@@ -246,24 +246,30 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     //      ddq  += Sbar*ddq_j
     //      N    -= A^+ A
     // end
-    if(true)
+    list<MinJerkPDLinkPoseTask*>::iterator it;
+    for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
     {
-        list<MinJerkPDLinkPoseTask*>::iterator it;
-        for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
-        {
-            MinJerkPDLinkPoseTask& t = **it;
-            t.update(robotState);
-            
-            t.getEqualityMatrix(_A_i);
-            t.getEqualityVector(_b_i);
-            _A = _A_i.leftCols<6>()*_Mb_inv_M_bj + _A_i.rightCols(_n);
-            _A *= _Z;
-            _A_svd.compute(_A, _svdOptions);
-            _ddq_jDes   = svdSolveWithDamping(_A_svd, _b_i - _A_i*_ddqDes, _numericalDamping); // @todo check this is not +=
-            ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
-            ddqDes_j    += _ddq_jDes;
-            updateNullspace(_A_svd);
-        }
+        MinJerkPDLinkPoseTask& t = **it;
+        t.update(robotState);
+        
+        t.getEqualityMatrix(_A_i);
+        t.getEqualityVector(_b_i);
+        _A = _A_i.rightCols(_n) - _A_i.leftCols<6>()*_Mb_inv_M_bj;
+        _A *= _Z;
+        _A_svd.compute(_A, _svdOptions);
+        _ddq_jDes   = svdSolveWithDamping(_A_svd, _b_i - _A_i*_ddqDes, _numericalDamping);
+        _ddq_jDes   = _Z*_ddq_jDes;     /// @todo here I assume i'm using nullspace projectors
+        ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
+        ddqDes_j    += _ddq_jDes;
+        updateNullspace(_A_svd);
+
+#define DEBUG_POSE_TASKS
+#ifdef  DEBUG_POSE_TASKS
+        VectorXd err = _A_i*_ddqDes-_b_i;
+        sendMsg(t.getName()+" error ddq:    "+toString(err,2));
+        sendMsg(t.getName()+" constr err =  "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+        sendMsg(t.getName()+" base dyna err "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+#endif
     }
     
     // Now we can go on with the motion tasks, using the nullspace of dynamics and contacts:
