@@ -53,7 +53,8 @@ bool MinJerkPDLinkPoseTask::update(RobotState& state)
     
     // copy data into Eigen vector
     _pose(0) = _H.p[0]; _pose(1) = _H.p[1]; _pose(2) = _H.p[2];
-    _H.R.axisAngle(_pose.data()+3);
+    _H.R.getAxisAngle(_pose.data()+3);
+//    getLogger().sendMsg(_name+" H:\n"+_H.toString(2)+"\nPose: "+toString(_pose,2), MSG_STREAM_INFO);
     
     // update reference trajectory
     _trajGen.computeNextValues(_poseDes.head<3>());

@@ -16,34 +16,34 @@ torso(3), left arm(5), right arm(5), left leg(6), right leg(6)
 <portscope rows="3" columns="2">
     <!-- plotting forearm pos -->
     <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Forearm x pos ( red desired, blue measured )"
-          size="60" minval="-1" maxval="1" bgcolor="white">
+          size="60" minval="-0.1" maxval="0.3" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="15" color="Blue" title="COM x" type="lines" size="2" />
         <graph remote="/wbr/monitor:o" index="22" color="Red" title="COM x" type="lines" size="2" />
     </plot>
     <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Forearm y pos ( red desired, blue measured )"
-          size="60" minval="-1" maxval="1" bgcolor="white">
+          size="60" minval="-0.3" maxval="0.3" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="16" color="Blue" title="COM x" type="lines" size="2" />
         <graph remote="/wbr/monitor:o" index="23" color="Red" title="COM x" type="lines" size="2" />
     </plot>
     <plot gridx="0" gridy="2" hspan="1" vspan="1" title="Forearm z pos ( red desired, blue measured )"
-          size="60" minval="-1" maxval="1" bgcolor="white">
+          size="60" minval="0.4" maxval="0.8" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="17" color="Blue" title="COM x" type="lines" size="2" />
         <graph remote="/wbr/monitor:o" index="24" color="Red" title="COM x" type="lines" size="2" />
     </plot>
 	
     <!-- plotting hand pos -->
     <plot gridx="1" gridy="0" hspan="1" vspan="1" title="Hand x pos ( red desired, blue measured )"
-          size="60" minval="-1" maxval="1" bgcolor="white">
+          size="60" minval="-0.1" maxval="0.3" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="25" color="Blue" title="COM x" type="lines" size="2" />
         <graph remote="/wbr/monitor:o" index="32" color="Red" title="COM x" type="lines" size="2" />
     </plot>
     <plot gridx="1" gridy="1" hspan="1" vspan="1" title="Hand y pos ( red desired, blue measured )"
-          size="60" minval="-1" maxval="1" bgcolor="white">
+          size="60" minval="-0.3" maxval="0.0" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="26" color="Blue" title="COM x" type="lines" size="2" />
         <graph remote="/wbr/monitor:o" index="33" color="Red" title="COM x" type="lines" size="2" />
     </plot>
     <plot gridx="1" gridy="2" hspan="1" vspan="1" title="Hand z pos ( red desired, blue measured )"
-          size="60" minval="-1" maxval="1" bgcolor="white">
+          size="60" minval="0.4" maxval="0.8" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="27" color="Blue" title="COM x" type="lines" size="2" />
         <graph remote="/wbr/monitor:o" index="34" color="Red" title="COM x" type="lines" size="2" />
     </plot>

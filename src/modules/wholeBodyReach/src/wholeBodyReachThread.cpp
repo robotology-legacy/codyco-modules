@@ -75,6 +75,7 @@ bool WholeBodyReachThread::threadInit()
     _solver.addConstraint(_tasks.leftFoot);
     _solver.addConstraint(_tasks.rightFoot);
     _solver.pushEqualityTask(_tasks.supportForearm);
+    _solver.pushEqualityTask(_tasks.graspHand);
     
     _solver.linkParameterToVariable(wbiStackOfTasks::NUMERICAL_DAMPING,  _paramHelper, PARAM_ID_NUM_DAMP);
     _solver.linkParameterToVariable(wbiStackOfTasks::USE_NULLSPACE_BASE, _paramHelper, PARAM_ID_USE_NULLSPACE_BASE);
@@ -133,20 +134,12 @@ bool WholeBodyReachThread::threadInit()
     _tasks.rightFoot.linkParameterForceInequalities(            _paramHelper, PARAM_ID_FORCE_INEQ_R_FOOT);
     _tasks.supportForearmConstr.linkParameterForceInequalities( _paramHelper, PARAM_ID_FORCE_INEQ_FOREARM);
     
-//    _tasks.leftFoot.setForceFrictionCoefficient(    _forceFriction);
-//    _tasks.rightFoot.setForceFrictionCoefficient(   _forceFriction);
-//    _tasks.supportForearmConstr.setForceFrictionCoefficient(_forceFriction);
-//    _tasks.leftFoot.setMomentFrictionCoefficient(   _momentFriction);
-//    _tasks.rightFoot.setMomentFrictionCoefficient(  _momentFriction);
     _tasks.leftFoot.setMaxNormalForce(              FORCE_NORMAL_MAX);
     _tasks.rightFoot.setMaxNormalForce(             FORCE_NORMAL_MAX);
     _tasks.supportForearmConstr.setMaxNormalForce(  FORCE_NORMAL_MAX);
     _tasks.leftFoot.setMinNormalForce(              FORCE_NORMAL_MIN);
     _tasks.rightFoot.setMinNormalForce(             FORCE_NORMAL_MIN);
     _tasks.supportForearmConstr.setMinNormalForce(  FORCE_NORMAL_MIN);
-//    _tasks.leftFoot.setProportionalGain(            _kpConstraints);
-//    _tasks.rightFoot.setProportionalGain(           _kpConstraints);
-//    _tasks.supportForearmConstr.setProportionalGain(_kpConstraints.head<3>());
 
     // Register callbacks for some module commands and parameters
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_FORCE_FRICTION,    this));
