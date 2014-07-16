@@ -318,15 +318,15 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     MatrixRXd N_D       = MatrixRXd::Identity(_n+6,_n+6) - Dpinv*D;
     MatrixRXd SN_DpinvD = pinvDampedEigen(N_D.bottomRows(_n), _numericalDamping);
     VectorXd ddqDes = ddqDes1 + SN_DpinvD*(_ddq_jPosture - ddqDes1.tail(_n));
-    VectorXd tauDes = M_a*ddqDes + h_j - Jc_j.transpose()*fcDes2;
-//    torques = tauDes;
+    VectorXd tauDes = M_a*ddqDes + h_j - Jc_j.transpose()*_fcDes;
+    torques = tauDes;
     
-    sendMsg("ddqDes             = "+jointToString(_ddqDes,1));
-    sendMsg("DEBUG ddqDes       = "+jointToString(ddqDes,1));
-    sendMsg("DEBUG ddqDes1      = "+jointToString(ddqDes1,1));
+//    sendMsg("ddqDes             = "+jointToString(_ddqDes,1));
+//    sendMsg("DEBUG ddqDes       = "+jointToString(ddqDes,1));
+//    sendMsg("DEBUG ddqDes1      = "+jointToString(ddqDes1,1));
     sendMsg("DEBUG ddqDesErr    = "+toString((ddqDes-_ddqDes).norm()));
-    sendMsg("fcDes              = "+toString(_fcDes,1));
-    sendMsg("DEBUG fcDes        = "+toString(fcDes2,1));
+//    sendMsg("fcDes              = "+toString(_fcDes,1));
+//    sendMsg("DEBUG fcDes        = "+toString(fcDes2,1));
     sendMsg("DEBUG fcDesErr     = "+toString((fcDes2-_fcDes).norm()));
     
     sendMsg("Base dynamics error  = "+toString((M_u*ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
@@ -335,7 +335,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
 //    sendMsg("DEBUG tauDes       = "+jointToString(tauDes,1));
 #endif
     
-//#define DEBUG_SOLVER
+#define DEBUG_SOLVER
 #ifdef DEBUG_SOLVER
     MatrixRXd Nc        = nullSpaceProjector(_Jc, PINV_TOL);
     MatrixRXd NcSTpinvD = pinvDampedEigen(Nc.rightCols(_n), _numericalDamping);
@@ -346,9 +346,15 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
 //    sendMsg("-Jcpinv*_dJcdq = "+toString(ddqDes1,1));
 //    sendMsg("ddqDes1 + NcSTpinvD^T*(_ddq_jPosture - ddqDes1) = "+toString(ddqDes,1));
 //    sendMsg("(_M*ddqDes + _h)= "+toString((_M*ddqDes + _h),1));
+
+//    VectorXd torques_np6 = VectorXd::Zero(_n+6);
+//    torques_np6.tail(_n) = tauDes;
+//    sendMsg("Dynamics error       = "+toString((Nc*(_M*ddqDes+_h-torques_np6)).norm()));
+//    sendMsg("Contact constr error = "+toString((_Jc*ddqDes+_dJcdq).norm()));
+    
     sendMsg("torques CFC   = "+toString(torques,1));
     sendMsg("tauDes (JSID) = "+toString(tauDes,1));
-//    torques = tauDes;
+    torques = tauDes;
 #endif
     
     return true;

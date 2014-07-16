@@ -236,25 +236,35 @@ MinJerkPDPostureTask::MinJerkPDPostureTask(std::string taskName, double sampleTi
 :   WbiAbstractTask(taskName, robot->getDoFs(), robot),
     WbiEqualityTask(robot->getDoFs(), robot->getDoFs()),
     WbiPDTask(robot->getDoFs(), DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
-    MinJerkTask(robot->getDoFs(), sampleTime)
+    MinJerkTask(robot->getDoFs(), sampleTime),
+    _sampleTime(sampleTime)
 {
+    _Ki.setZero(robot->getDoFs());
     _qDes.setZero(robot->getDoFs());
     _qRef.setZero(robot->getDoFs());
+    _qErrorIntegral.setZero(robot->getDoFs());
 }
 
 bool MinJerkPDPostureTask::update(RobotState& state)
 {
     _trajGen.computeNextValues(_qDes);  // the trajectory generator uses deg (not rad)
     _qRef = _trajGen.getPos();
+    _qErrorIntegral += _sampleTime * _Ki.cwiseProduct(_qRef - WBR_RAD2DEG*state.qJ);
+
+    getLogger().sendMsg("qErrInt: "+jointToString(_qErrorIntegral,1),MSG_STREAM_INFO);
+    
     _a_eq  = WBR_DEG2RAD * ( _trajGen.getAcc() +
                              _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ) +
-                             _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ));
+                             _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ) +
+                             _qErrorIntegral);
     return true;
 }
 
 void MinJerkPDPostureTask::init(RobotState& state)
 {
     _trajGen.init(WBR_RAD2DEG*state.qJ);
+    _qErrorIntegral.setZero();
+    
 //#define DEBUG_MINJERKPDPOSTURETASK
 #ifdef  DEBUG_MINJERKPDPOSTURETASK
         cout<<"  Posture initial pos "<<_trajGen.getPos().transpose()<<endl;

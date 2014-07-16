@@ -190,6 +190,9 @@ namespace wholeBodyReach
     protected:
         Eigen::VectorXd         _qDes;          /// desired joint positions
         Eigen::VectorXd         _qRef;          /// reference joint positions
+        Eigen::VectorXd         _qErrorIntegral;
+        Eigen::VectorXd         _Ki;            /// integral gain
+        double                  _sampleTime;
         
     public:
         MinJerkPDPostureTask(std::string taskName, double sampleTime, wbi::wholeBodyInterface* robot);
@@ -204,6 +207,10 @@ namespace wholeBodyReach
          */
         virtual void linkParameterPostureDes(paramHelp::ParamHelperServer* paramHelper, int paramId);
         virtual void linkParameterPostureRef(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        virtual void linkParameterKi(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        {
+            paramHelper->linkParam(paramId, _Ki.data());
+        }
         
         /** Method called every time a parameter (for which a callback is registered) is changed. */
         virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp)

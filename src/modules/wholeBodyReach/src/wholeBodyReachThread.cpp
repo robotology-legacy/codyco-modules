@@ -75,7 +75,7 @@ bool WholeBodyReachThread::threadInit()
     _solver.addConstraint(_tasks.leftFoot);
     _solver.addConstraint(_tasks.rightFoot);
 //    _solver.pushEqualityTask(_tasks.supportForearm);
-    _solver.pushEqualityTask(_tasks.graspHand);
+//    _solver.pushEqualityTask(_tasks.graspHand);
     
     _solver.linkParameterToVariable(wbiStackOfTasks::NUMERICAL_DAMPING,  _paramHelper, PARAM_ID_NUM_DAMP);
     _solver.linkParameterToVariable(wbiStackOfTasks::USE_NULLSPACE_BASE, _paramHelper, PARAM_ID_USE_NULLSPACE_BASE);
@@ -90,6 +90,7 @@ bool WholeBodyReachThread::threadInit()
     _tasks.supportForearm.linkParameterKd(   _paramHelper, PARAM_ID_KD_FOREARM);
     _tasks.graspHand.linkParameterKd(        _paramHelper, PARAM_ID_KD_HAND);
     _tasks.posture.linkParameterKd(          _paramHelper, PARAM_ID_KD_POSTURE);
+    _tasks.posture.linkParameterKi(          _paramHelper, PARAM_ID_KI_POSTURE);
     
     _tasks.momentum.linkParameterTrajectoryDuration(       _paramHelper, PARAM_ID_TRAJ_TIME_MOMENTUM);
     _tasks.supportForearm.linkParameterTrajectoryDuration( _paramHelper, PARAM_ID_TRAJ_TIME_FOREARM);
