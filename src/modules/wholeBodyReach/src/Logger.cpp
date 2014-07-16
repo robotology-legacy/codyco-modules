@@ -104,7 +104,7 @@ std::string wholeBodyReach::toString(const Eigen::MatrixRXd &m, int precision, c
         if(i<m.rows()-1)                          // if it is not the last row
             ret+= endRowStr;
     }
-    return ret.substr(0, ret.length()-1);
+    return ret; //.substr(0, ret.length()-1);
 }
 
 std::string wholeBodyReach::jointToString(const Eigen::VectorXd &j, int precision)

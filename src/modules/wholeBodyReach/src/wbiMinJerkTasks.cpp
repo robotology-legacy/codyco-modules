@@ -63,7 +63,8 @@ bool MinJerkPDLinkPoseTask::update(RobotState& state)
     _dvStar.head<3>() = _trajGen.getAcc()   + _Kd.head<3>().cwiseProduct(_trajGen.getVel() - _v.head<3>())
                                             + _Kp.head<3>().cwiseProduct(_posRef - _pose.head<3>());
     computeOrientationError(_H.R, _Hdes.R, _orientationError);
-    _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError) - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
+//    _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError) - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
+    _dvStar.tail<3>() = - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
     
     // TEMP
 //    _dvStar.tail<3>().setZero();
