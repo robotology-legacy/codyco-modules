@@ -73,6 +73,9 @@ wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot, bool useNullspa
     _ddqDes.setZero(_n+6);
     _ddq_jDes.setZero(_n);
     _ddq_jPosture.setZero(_n);
+    
+    _A_i.setZero(6,_n+6);
+    _b_i.setZero(6);
 
     _qpData.CE.resize(0,0);
     _qpData.ce0.resize(0);
@@ -243,7 +246,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     //      ddq  += Sbar*ddq_j
     //      N    -= A^+ A
     // end
-    if(false)
+    if(true)
     {
         list<MinJerkPDLinkPoseTask*>::iterator it;
         for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
@@ -286,9 +289,9 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     sendMsg("fcDes              = "+toString(_fcDes,1));
 //    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
 //    sendMsg("ddq_jPosture        = "+jointToString(_ddq_jPosture,1));
-//    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-//    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
-//    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
+    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
     
     
 //#define DEBUG_FORCE_QP

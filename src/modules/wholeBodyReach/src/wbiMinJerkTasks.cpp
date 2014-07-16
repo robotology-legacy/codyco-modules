@@ -36,6 +36,8 @@ MinJerkPDLinkPoseTask::MinJerkPDLinkPoseTask(string taskName, string linkName, d
   MinJerkTask(3, sampleTime),   // the trajectory generator is 3d because it works only for the linear part
   _linkName(linkName)
 {
+    _J.setZero(6, robot->getDoFs()+6);
+    _dJdq.resize(6);
     if(!(_initSuccessfull = _robot->getLinkId(linkName.c_str(), _linkId)))
         printf("[MinJerkPDLinkPoseTask] Error while trying to get id of link %s\n", linkName.c_str());
 }
