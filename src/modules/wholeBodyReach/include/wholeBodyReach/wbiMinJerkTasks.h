@@ -137,6 +137,8 @@ namespace wholeBodyReach
     protected:
         wbi::Frame                  _H;         /// homogenous matrix from world frame to CoM frame
         Eigen::Vector6d             _momentum;  /// 6d centroidal momentum
+        Eigen::Vector6d             _momentumIntegral;  /// numerical integral of the momentum
+        double                      _sampleTime;        /// used to compute the momentum integral
         double                      _robotMass; /// total mass of the robot
         
         std::string                 _linkName;  /// name of the link
@@ -166,6 +168,7 @@ namespace wholeBodyReach
         virtual void linkParameterComRef(paramHelp::ParamHelperServer* paramHelper, int paramId);
         virtual void linkParameterComVel(paramHelp::ParamHelperServer* paramHelper, int paramId);
         virtual void linkParameterMomentum(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        virtual void linkParameterMomentumIntegral(paramHelp::ParamHelperServer* paramHelper, int paramId);
         
         /** Method called every time a parameter (for which a callback is registered) is changed. */
         virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp)

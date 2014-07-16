@@ -130,7 +130,8 @@ MinJerkPDMomentumTask::MinJerkPDMomentumTask(std::string taskName, double sample
 :   WbiAbstractTask(taskName, 6, robot),
     WbiEqualityTask(6, robot->getDoFs()+6),
     WbiPDTask(6, false),
-    MinJerkTask(3, sampleTime)   // the trajectory generator is 3d because it works only for the linear part
+    MinJerkTask(3, sampleTime),   // the trajectory generator is 3d because it works only for the linear part
+    _sampleTime(sampleTime)
 {
     _robotMass = -1.0;
 }
@@ -145,6 +146,7 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
     res = res && _robot->computeCentroidalMomentum(state.qJ.data(), state.xBase, state.dqJ.data(),
                                                    state.vBase.data(), _momentum.data());
     _v = _momentum.head<3>()/_robotMass;    // compute CoM velocity
+    _momentumIntegral += _momentum*_sampleTime;
     
 //    res = res && _robot->computeJacobian(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _A_eq.data());
 //    _v = _A_eq.topRows<3>()*state.dq;  // compute CoM velocity
@@ -158,7 +160,8 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
     _a_eq.head<3>() = _robotMass * ( -state.g + _trajGen.getAcc()
                                      + _Kd.head<3>().cwiseProduct(_trajGen.getVel() - _v)
                                      + _Kp.head<3>().cwiseProduct(_comRef - _com) );
-    _a_eq.tail<3>() = - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>());
+    _a_eq.tail<3>() = - _Kp.tail<3>().cwiseProduct(_momentumIntegral.tail<3>())
+                      - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>());
     
 //    getLogger().sendMsg("Momentum: Kp*e    = "+toString(_Kp.head<3>().cwiseProduct(_trajGen.getPos()-_com),2), MSG_STREAM_INFO);
 //    getLogger().sendMsg("Momentum: Kd*de   = "+toString(_Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v),2),   MSG_STREAM_INFO);
@@ -189,6 +192,9 @@ void MinJerkPDMomentumTask::init(RobotState& state)
     res = res && _robot->computeMassMatrix(state.qJ.data(), state.xBase, M.data());
     _robotMass = M(0,0);
     cout<<"Robot mass is "<<_robotMass<<endl;
+    
+    _momentumIntegral.setZero();
+    cout<<"Momentum integral: "<<toString(_momentumIntegral,3)<<endl;
     assert(res);
 }
 
@@ -217,6 +223,10 @@ void MinJerkPDMomentumTask::linkParameterMomentum(ParamHelperServer* paramHelper
     paramHelper->linkParam(paramId, _momentum.data());
 }
 
+void MinJerkPDMomentumTask::linkParameterMomentumIntegral(ParamHelperServer* paramHelper, int paramId)
+{
+    paramHelper->linkParam(paramId, _momentumIntegral.data());
+}
 
 /*********************************************************************************************************/
 /******************************************* MinJerkPDPostureTask ****************************************/

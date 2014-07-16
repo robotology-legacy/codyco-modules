@@ -74,7 +74,7 @@ bool WholeBodyReachThread::threadInit()
     _solver.setJointLimitTask(_tasks.jointLimits);
     _solver.addConstraint(_tasks.leftFoot);
     _solver.addConstraint(_tasks.rightFoot);
-    _solver.pushEqualityTask(_tasks.supportForearm);
+//    _solver.pushEqualityTask(_tasks.supportForearm);
     _solver.pushEqualityTask(_tasks.graspHand);
     
     _solver.linkParameterToVariable(wbiStackOfTasks::NUMERICAL_DAMPING,  _paramHelper, PARAM_ID_NUM_DAMP);
@@ -114,11 +114,12 @@ bool WholeBodyReachThread::threadInit()
     _tasks.graspHand.linkParameterPosRef(       _paramHelper, PARAM_ID_XREF_HAND);
     _tasks.posture.linkParameterPostureRef(     _paramHelper, PARAM_ID_QREF);
     
-    _tasks.momentum.linkParameterCom(       _paramHelper, PARAM_ID_X_COM);
-    _tasks.momentum.linkParameterMomentum(  _paramHelper, PARAM_ID_MOMENTUM);
-    _tasks.supportForearm.linkParameterPose(_paramHelper, PARAM_ID_X_FOREARM);
-    _tasks.graspHand.linkParameterPose(     _paramHelper, PARAM_ID_X_HAND);
-    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_Q,   _qjDeg.data()));
+    _tasks.momentum.linkParameterCom(               _paramHelper, PARAM_ID_X_COM);
+    _tasks.momentum.linkParameterMomentum(          _paramHelper, PARAM_ID_MOMENTUM);
+    _tasks.momentum.linkParameterMomentumIntegral(  _paramHelper, PARAM_ID_MOMENTUM_INTEGRAL);
+    _tasks.supportForearm.linkParameterPose(        _paramHelper, PARAM_ID_X_FOREARM);
+    _tasks.graspHand.linkParameterPose(             _paramHelper, PARAM_ID_X_HAND);
+    YARP_ASSERT(_paramHelper->linkParam(            PARAM_ID_Q,   _qjDeg.data()));
     
     _tasks.momentum.linkParameterComVel(    _paramHelper,       PARAM_ID_DX_COM);
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_X_BASE,    _robotState.xBase.p));
