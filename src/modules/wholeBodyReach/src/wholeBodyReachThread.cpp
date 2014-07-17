@@ -79,6 +79,7 @@ bool WholeBodyReachThread::threadInit()
     
     _solver.linkParameterToVariable(wbiStackOfTasks::NUMERICAL_DAMPING,  _paramHelper, PARAM_ID_NUM_DAMP);
     _solver.linkParameterToVariable(wbiStackOfTasks::USE_NULLSPACE_BASE, _paramHelper, PARAM_ID_USE_NULLSPACE_BASE);
+    _solver.linkParameterToVariable(wbiStackOfTasks::CTRL_ALG,           _paramHelper, PARAM_ID_CTRL_ALGORITHM);
 
     // link module rpc parameters to member variables
     _tasks.momentum.linkParameterKp(         _paramHelper, PARAM_ID_KP_MOMENTUM);

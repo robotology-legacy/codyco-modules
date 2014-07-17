@@ -141,6 +141,15 @@ enum WholeBodyReachPhase
     WBR_GRASP,              /// grasp the target
     WBR_GO_BACK             /// move the free hand back
 };
+    
+enum WholeBodyReachCtrlAlgorithm
+{
+    WBR_CTRL_ALG_MOMENTUM_SOT       = 0,
+    WBR_CTRL_ALG_NULLSPACE_PROJ     = 1,
+    WBR_CTRL_ALG_COM_POSTURE        = 2,
+    WBR_CTRL_ALG_MOMENTUM_POSTURE   = 3,
+    WBR_CTRL_ALG_SIZE               = 4
+};
 
 // *** DEFAULT PARAMETER VALUES
 static const Eigen::Vector3d       ZERO_3D                 = Eigen::Vector3d::Constant(0.0);
@@ -154,6 +163,7 @@ static const Eigen::Vector7d       ONE_7D                  = Eigen::Vector7d::Co
 static const string             DEFAULT_MODULE_NAME = "wholeBodyReach";
 static const int                DEFAULT_CTRL_PERIOD = 10;                   // controller period in ms
 static const string             DEFAULT_ROBOT_NAME  = "icubGazeboSim";            // robot name
+static const int                DEFAULT_CTRL_ALG    = WBR_CTRL_ALG_MOMENTUM_SOT;
 static const Eigen::Vector6d    DEFAULT_KP_MOMENTUM = Eigen::Vector6d::Constant(1.0);
 static const Eigen::Vector6d    DEFAULT_KP_FOREARM  = Eigen::Vector6d::Constant(1.0);
 static const Eigen::Vector6d    DEFAULT_KP_HAND     = Eigen::Vector6d::Constant(1.0);
@@ -184,6 +194,7 @@ static const Eigen::Matrix4d       DEFAULT_H_W2B           = Eigen::Matrix4d::Id
 enum WholeBodyReachParamId { 
     PARAM_ID_MODULE_NAME,           PARAM_ID_CTRL_PERIOD,       PARAM_ID_ROBOT_NAME,
     
+    PARAM_ID_CTRL_ALGORITHM,
     PARAM_ID_KP_MOMENTUM,           PARAM_ID_KP_FOREARM,
     PARAM_ID_KP_HAND,               PARAM_ID_KP_POSTURE,        PARAM_ID_KI_POSTURE,
     PARAM_ID_KP_CONSTRAINTS,
@@ -221,6 +232,7 @@ new ParamProxyBasic<int>(   "period",               PARAM_ID_CTRL_PERIOD,       
 new ParamProxyBasic<string>("robot",                PARAM_ID_ROBOT_NAME,        1,                          ParamConstraint<string>(),                  PARAM_CONFIG,       &DEFAULT_ROBOT_NAME,            "Name of the robot"),
 
 // ************************************************* RPC PARAMETERS ****************************************************************************************************************************************************************************************************************************************
+new ParamProxyBasic<int>(   "ctrl alg",             PARAM_ID_CTRL_ALGORITHM,    1,                          ParamBilatBounds<int>(0, WBR_CTRL_ALG_SIZE),PARAM_IN_OUT,       &DEFAULT_CTRL_ALG,              "Id of the control algorithm MOMENTUM_SOT 0, NULLSPACE_PROJ = 1, COM_POSTURE = 2, MOMENTUM_POSTURE = 3"),
 new ParamProxyBasic<double>("kp momentum",          PARAM_ID_KP_MOMENTUM,       6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_MOMENTUM.data(),     "Proportional gain for the momentum control"),
 new ParamProxyBasic<double>("kp forearm",           PARAM_ID_KP_FOREARM,        6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_FOREARM.data(),      "Proportional gain for the forearm control"),
 new ParamProxyBasic<double>("kp hand",              PARAM_ID_KP_HAND,           6,                          ParamBilatBounds<double>(0.0, KP_MAX),      PARAM_IN_OUT,       DEFAULT_KP_HAND.data(),         "Proportional gain for the hand control"),

@@ -54,10 +54,12 @@ public:
     enum ParamTypeId
     {
         USE_NULLSPACE_BASE,
-        NUMERICAL_DAMPING
+        NUMERICAL_DAMPING,
+        CTRL_ALG
     };
     
 protected:
+    WholeBodyReachCtrlAlgorithm     _ctrlAlg;   /// the id of the control algorithm to use
     double          _numericalDamping;          /// damping factor to use in solver
     int             _numericalDamping_paramId;  /// id of the parameter associated to _numericalDamping
     int             _useNullspaceBase;          /// 1: use base, 0: use projector
@@ -134,6 +136,15 @@ protected:
     {
         getLogger().sendMsg("[wbiStackOfTasks] "+s, type);
     }
+    
+//    WBR_CTRL_ALG_MOMENTUM_SOT       = 0,
+//    WBR_CTRL_ALG_NULLSPACE_PROJ     = 1,
+//    WBR_CTRL_ALG_COM_POSTURE        = 2,
+//    WBR_CTRL_ALG_MOMENTUM_POSTURE   = 3,
+    virtual bool computeMomentumSoT(RobotState& robotState, Eigen::VectorRef torques);
+    virtual bool computeNullspaceProj(RobotState& robotState, Eigen::VectorRef torques);
+    virtual bool computeComPosture(RobotState& robotState, Eigen::VectorRef torques);
+    virtual bool computeMomentumPosture(RobotState& robotState, Eigen::VectorRef torques);
     
 public:
      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
