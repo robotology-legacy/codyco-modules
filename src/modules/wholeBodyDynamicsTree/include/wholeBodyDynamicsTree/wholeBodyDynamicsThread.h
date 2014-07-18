@@ -22,7 +22,6 @@
 #include <iomanip>
 #include <stdexcept>
 #include <vector>
-#include <boost/concept_check.hpp>
 
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
@@ -38,7 +37,6 @@
 
 #include <wbi/wbi.h>
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
-#include <../../../icub-main/src/libraries/icubmod/imu3DM_GX3/dataTypes.h>
 
 using namespace yarp::os;
 using namespace yarp::sig;

@@ -7,26 +7,28 @@
 25:31 PARAM_ID_X_HAND,                32:34 PARAM_ID_XREF_HAND,
 35:41 PARAM_ID_X_BASE,                42:47 PARAM_ID_V_BASE,
 48:72 PARAM_ID_Q,                     73:97 PARAM_ID_DQ,            
-98:122 PARAM_ID_QREF
+98:122 PARAM_ID_QREF				123:128 PARAM_ID_FORCE_INEQ_R_FOOT,          
+129:134 PARAM_ID_FORCE_INEQ_L_FOOT	135:137 PARAM_ID_FORCE_INEQ_FOREARM,                
+138:143 PARAM_ID_MOMENTUM_INTEGRAL  144:168 PARAM_ID_JOINT_TORQUES
 
 Remember that joint order is: 
  0:2         3:7          8:12          13:18       19:24
 torso(3), left arm(5), right arm(5), left leg(6), right leg(6)
 -->
-<portscope rows="3" columns="2">
+<portscope rows="3" columns="3">
     <!-- plotting torso joint pos -->
     <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Torso joint 0 pos ( red desired, blue measured )"
-          size="60" minval="-200" maxval="200" bgcolor="white">
+          size="60" minval="-100" maxval="100" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="48" color="Blue" title="COM x" type="lines" size="2" />
         <graph remote="/wbr/monitor:o" index="98" color="Red" title="COM x" type="lines" size="2" />
     </plot>
     <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Torso joint 1 pos ( red desired, blue measured )"
-          size="60" minval="-200" maxval="200" bgcolor="white">
+          size="60" minval="-100" maxval="100" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="49" color="Blue" title="COM x" type="lines" size="2" />
         <graph remote="/wbr/monitor:o" index="99" color="Red" title="COM x" type="lines" size="2" />
     </plot>
     <plot gridx="0" gridy="2" hspan="1" vspan="1" title="Torso joint 2 pos ( red desired, blue measured )"
-          size="60" minval="-200" maxval="200" bgcolor="white">
+          size="60" minval="-100" maxval="100" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="50" color="Blue" title="COM x" type="lines" size="2" />
         <graph remote="/wbr/monitor:o" index="100" color="Red" title="COM x" type="lines" size="2" />
     </plot>
@@ -35,16 +37,31 @@ torso(3), left arm(5), right arm(5), left leg(6), right leg(6)
 	
     <!-- plotting torso joint vel -->
     <plot gridx="1" gridy="0" hspan="1" vspan="1" title="Torso joint 0 vel"
-          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+          size="60" minval="-10" maxval="10" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="73" color="Blue" title="dx" type="lines" size="2" />
     </plot>
     <plot gridx="1" gridy="1" hspan="1" vspan="1" title="Torso joint 1 vel"
-          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+          size="60" minval="-10" maxval="10" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="74" color="Blue" title="dx" type="lines" size="2" />
     </plot>
     <plot gridx="1" gridy="2" hspan="1" vspan="1" title="Torso joint 2 vel"
-          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+          size="60" minval="-10" maxval="10" bgcolor="white">
         <graph remote="/wbr/monitor:o" index="75" color="Blue" title="dx" type="lines" size="2" />
+    </plot>
+    
+    
+    <!-- plotting torso joint torques -->
+    <plot gridx="2" gridy="0" hspan="1" vspan="1" title="Torso joint 0 torque"
+          size="60" minval="-100" maxval="100" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="144" color="Blue" title="tau" type="lines" size="2" />
+    </plot>
+    <plot gridx="2" gridy="1" hspan="1" vspan="1" title="Torso joint 1 torque"
+          size="60" minval="-10" maxval="10" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="145" color="Blue" title="tau" type="lines" size="2" />
+    </plot>
+    <plot gridx="2" gridy="2" hspan="1" vspan="1" title="Torso joint 2 torque"
+          size="60" minval="-10" maxval="10" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="146" color="Blue" title="tau" type="lines" size="2" />
     </plot>
 
 </portscope>

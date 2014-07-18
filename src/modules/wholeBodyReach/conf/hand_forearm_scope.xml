@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
 3+3 + 3+6 + 7+3 + 7+3 + 7+6 + 25+25 + 25
+3+3 + 3+6 + 7+3 + 7+3 + 7+6 + 25+25 + 25
 0:2 PARAM_ID_X_COM,                 3:5 PARAM_ID_DX_COM,
 6:8 PARAM_ID_XREF_COM,              9:14 PARAM_ID_MOMENTUM,
 15:21 PARAM_ID_X_FOREARM,             22:24 PARAM_ID_XREF_FOREARM,
 25:31 PARAM_ID_X_HAND,                32:34 PARAM_ID_XREF_HAND,
 35:41 PARAM_ID_X_BASE,                42:47 PARAM_ID_V_BASE,
 48:72 PARAM_ID_Q,                     73:97 PARAM_ID_DQ,            
-98:122 PARAM_ID_QREF
+98:122 PARAM_ID_QREF				123:128 PARAM_ID_FORCE_INEQ_R_FOOT,          
+129:134 PARAM_ID_FORCE_INEQ_L_FOOT	135:137 PARAM_ID_FORCE_INEQ_FOREARM,                
+138:143 PARAM_ID_MOMENTUM_INTEGRAL  144:168 PARAM_ID_JOINT_TORQUES
 
 Remember that joint order is: 
  0:2         3:7          8:12          13:18       19:24
