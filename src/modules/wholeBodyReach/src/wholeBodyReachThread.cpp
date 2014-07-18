@@ -190,6 +190,9 @@ void WholeBodyReachThread::run()
 
     readRobotStatus();                      // read encoders, compute positions and Jacobians
     
+    sendMsg("dq "+jointToString(WBR_RAD2DEG * _robotState.dqJ));
+    sendMsg("dq norm    "+toString(WBR_RAD2DEG * _robotState.dqJ.norm()));
+    
     bool res = _solver.computeSolution(_robotState, _tauDes);   // compute desired joint torques
 
     if(_status==WHOLE_BODY_REACH_ON)
@@ -226,7 +229,7 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
     // temporary replacement of _robot->getEstimate because it's too slow
 #ifdef DO_NOT_USE_WHOLE_BODY_STATE_INTERFACE
     res = res && _sensors->readSensors(SENSOR_ENCODER, _robotState.qJ.data(),      _qJStamps.data(), blockingRead);
-    res = res && _sensors->readSensors(SENSOR_TORQUE,  _robotState.torques.data(), NULL,             blockingRead);
+//    res = res && _sensors->readSensors(SENSOR_TORQUE,  _robotState.torques.data(), NULL,             blockingRead);
     for(int i=0; i<_n; i++)
         _qJ_yarp(i) = _robotState.qJ(i);
     AWPolyElement el;

@@ -274,7 +274,7 @@ void MinJerkPDPostureTask::init(RobotState& state)
     
 #define DEBUG_MINJERKPDPOSTURETASK
 #ifdef  DEBUG_MINJERKPDPOSTURETASK
-    cout<<"  Posture initial pos "<<_trajGen.getPos().transpose()<<endl;
+//    cout<<"  Posture initial pos "<<_trajGen.getPos().transpose()<<endl;
     for(int i=0; i<1; i++)
     {
         _trajGen.computeNextValues(_qDes);  // the trajectory generator uses deg (not rad)
@@ -284,14 +284,13 @@ void MinJerkPDPostureTask::init(RobotState& state)
                                 _qErrorIntegral);
         
 //        cout<<"*** Time "<< i*_trajGen.getSampleTime() << endl;
-        cout<<"  Posture acc         "<<_trajGen.getAcc().norm()<<endl;;
-        cout<<"  Posture vel         "<<_trajGen.getVel().norm()<<endl;
-        cout<<"  Posture pos         "<<_trajGen.getPos().transpose()<<endl;
-        cout<<"  Kd*(dqDes - dqJ)    "<<WBR_DEG2RAD*(_Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ)).norm()<<endl;
-        cout<<"  Kp*(qDes - qJ)      "<<WBR_DEG2RAD*(_Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ)).norm()<<endl;
-        cout<<"  _a_eq               "<<_a_eq.norm()<<endl;
-//        _a_eq += WBR_DEG2RAD * _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ);
-//        _a_eq += WBR_DEG2RAD * _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ);
+//        cout<<"  ddqDes              "<<_trajGen.getAcc().norm()<<endl;;
+//        cout<<"  dqDes               "<<_trajGen.getVel().norm()<<endl;
+        cout<<"  dq                  "<<WBR_RAD2DEG*state.dqJ.norm()<<endl;
+//        cout<<"  Posture pos         "<<_trajGen.getPos().transpose()<<endl;
+        cout<<"  Kd*(dqDes - dqJ)    "<<(_Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ)).norm()<<endl;
+//        cout<<"  Kp*(qDes - qJ)      "<<(_Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ)).norm()<<endl;
+        cout<<"  _a_eq (°/s^2)       "<<WBR_RAD2DEG*_a_eq.norm()<<endl;
     }
     _trajGen.init(WBR_RAD2DEG*state.qJ);
 #endif

@@ -149,7 +149,6 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             _momentumTask->getEqualityVector(_momentumDes);
             _fWeights.normalize();
             _W.diagonal() = _fWeights;
-            
         }
         STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
         //    sendMsg("momentumDes "+toString(_momentumDes,1));
@@ -339,15 +338,14 @@ bool wbiStackOfTasks::computeNullspaceProj(RobotState& robotState, Eigen::Vector
     // compute torques
     torques             = NcSTpinvD * (_M*_ddqDes + _h);
 
-    //    sendMsg("-Jcpinv*_dJcdq = "+toString(ddqDes1,1));
-    //    sendMsg("ddqDes1 + NcSTpinvD^T*(_ddq_jPosture - ddqDes1) = "+toString(ddqDes,1));
-    //    sendMsg("(_M*ddqDes + _h)= "+toString((_M*ddqDes + _h),1));
+//    sendMsg("-Jcpinv*_dJcdq = "+toString(ddqDes1,1));
+//    sendMsg("ddqDes1 + NcSTpinvD^T*(_ddq_jPosture - ddqDes1) = "+toString(ddqDes,1));
+//    sendMsg("(_M*ddqDes + _h)= "+toString((_M*ddqDes + _h),1));
     VectorXd torques_np6 = VectorXd::Zero(_n+6);
     torques_np6.tail(_n) = torques;
     sendMsg("Dynamics error           = "+toString((Nc*(_M*_ddqDes+_h-torques_np6)).norm()));
     sendMsg("Contact constr error     = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
-    sendMsg("torques (nullspace proj) = "+toString(torques,1));
-    sendMsg("Rank of Jc:                "+toString(r));
+//    sendMsg("Rank of Jc:                "+toString(r));
     
     return true;
 }
