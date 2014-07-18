@@ -171,13 +171,19 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
         default:                            printf("WbiStackOfTask: ERROR unmanaged control algorithm!\n");
     }
     
-    int index_k = 0, k=0;
-    for(list<ContactConstraint*>::iterator it=_constraints.begin(); it!=_constraints.end(); it++)
+    sendMsg("Torques measured: "+jointToString(robotState.torques));
+    sendMsg("Torques desired:  "+jointToString(torques));
+    
+    if(_ctrlAlg!=WBR_CTRL_ALG_NULLSPACE_PROJ)
     {
-        ContactConstraint& c = **it;
-        k  = c.getSize();    // number of constraint forces
-        c.setDesiredConstraintForce(_fcDes.segment(index_k, k));
-        index_k += k;
+        int index_k = 0, k=0;
+        for(list<ContactConstraint*>::iterator it=_constraints.begin(); it!=_constraints.end(); it++)
+        {
+            ContactConstraint& c = **it;
+            k  = c.getSize();    // number of constraint forces
+            c.setDesiredConstraintForce(_fcDes.segment(index_k, k));
+            index_k += k;
+        }
     }
     
     STOP_PROFILING(PROFILE_WHOLE_SOLVER);
@@ -319,13 +325,18 @@ bool wbiStackOfTasks::computeNullspaceProj(RobotState& robotState, Eigen::Vector
     sendMsg("computeNullspaceProj");
     
     // compute ddq that is consistent with contact constraints
-    MatrixRXd Nc        = nullSpaceProjector(_Jc, PINV_TOL);
-    MatrixRXd NcSTpinvD = pinvDampedEigen(Nc.rightCols(_n), _numericalDamping);
-    MatrixRXd Jcpinv    = pinvDampedEigen(_Jc, _numericalDamping);
-    _ddqDes             = -Jcpinv*_dJcdq;
+    SVD _Jc_svd;
+    _Jc_svd.compute(_Jc, ComputeThinU|ComputeThinV);
+    _ddqDes             = - svdSolveWithDamping(_Jc_svd, _dJcdq, _numericalDamping);
     
     // compute postural task
+    int r = (_Jc_svd.singularValues().array()>PINV_TOL).count();
+    MatrixRXd Nc        = MatrixRXd::Identity(_n+6,_n+6);
+    Nc                  -= _Jc_svd.matrixV().leftCols(r) * _Jc_svd.matrixV().leftCols(r).transpose();
+    MatrixRXd NcSTpinvD = pinvDampedEigen(Nc.rightCols(_n), _numericalDamping);
     _ddqDes             += NcSTpinvD.transpose()*(_ddq_jPosture - _ddqDes.tail(_n));
+    
+    // compute torques
     torques             = NcSTpinvD * (_M*_ddqDes + _h);
 
     //    sendMsg("-Jcpinv*_dJcdq = "+toString(ddqDes1,1));
@@ -336,6 +347,8 @@ bool wbiStackOfTasks::computeNullspaceProj(RobotState& robotState, Eigen::Vector
     sendMsg("Dynamics error           = "+toString((Nc*(_M*_ddqDes+_h-torques_np6)).norm()));
     sendMsg("Contact constr error     = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
     sendMsg("torques (nullspace proj) = "+toString(torques,1));
+    sendMsg("Rank of Jc:                "+toString(r));
+    
     return true;
 }
 

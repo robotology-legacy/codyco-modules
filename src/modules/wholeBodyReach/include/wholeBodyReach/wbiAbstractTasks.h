@@ -34,14 +34,30 @@ static const double NO_UPPER_BOUND =  std::numeric_limits<double>::infinity();
 
 struct RobotState
 {
-    Eigen::VectorXd     qJ;     // joint positions
-    Eigen::VectorXd     dqJ;    // joint velocities
-    wbi::Frame          xBase;  // homogeneous transformation from world to base frame
-    Eigen::Vector6d     vBase;  // base velocities
-    Eigen::VectorXd     dq;     // base and joint velocities (6+n)
-    Eigen::Vector3d     g;      // gravity acceleration
+    Eigen::VectorXd     torques;    // joint torques (n)
+    Eigen::VectorXd     qJ;         // joint positions (n)
+    Eigen::VectorXd     dqJ;        // joint velocities (n)
+    wbi::Frame          xBase;      // homogeneous transformation from world to base frame
+    Eigen::Vector6d     vBase;      // base velocities (6)
+    Eigen::VectorXd     dq;         // base and joint velocities (6+n)
+    Eigen::Vector3d     g;          // gravity acceleration (3)
     
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    
+    /** Resize all the data of this object and initialize them to zero.
+      * Moreover it initializes the gravity acceleration to [0 0 -9.8]. */
+    bool init(int n)
+    {
+        if(n<0)
+            return false;
+        torques.setZero(n);
+        qJ.setZero(n);     // joint positions (rad)
+        dqJ.setZero(n);    // joint velocities (rad/s)
+        dq.setZero(n+6);   // base+joint velocities
+        g(0) = g(1) = 0.0;
+        g(2) = -9.8;
+        return true;
+    }
 };
     
     

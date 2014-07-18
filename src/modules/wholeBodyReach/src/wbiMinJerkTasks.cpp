@@ -186,16 +186,20 @@ void MinJerkPDMomentumTask::init(RobotState& state)
     _com(0) = _H.p[0]; _com(1) = _H.p[1]; _com(2) = _H.p[2];
     _trajGen.init(_com);
     
+    /// TEMP
+    _comDes = _com;
+    
     // compute robot's mass
     int n = _robot->getDoFs();
     MatrixRXd M(n+6, n+6);
     res = res && _robot->computeMassMatrix(state.qJ.data(), state.xBase, M.data());
     _robotMass = M(0,0);
-    cout<<"Robot mass is "<<_robotMass<<endl;
-    
-    _momentumIntegral.setZero();
-    cout<<"Momentum integral: "<<toString(_momentumIntegral,3)<<endl;
+    cout<<"The robot's mass is "<<_robotMass<<" kg."<<endl;
     assert(res);
+    
+    // reset momentum integral
+    _momentumIntegral.setZero();
+    
 }
 
 void MinJerkPDMomentumTask::linkParameterComDes(ParamHelperServer* paramHelper, int paramId)
@@ -248,10 +252,10 @@ MinJerkPDPostureTask::MinJerkPDPostureTask(std::string taskName, double sampleTi
 bool MinJerkPDPostureTask::update(RobotState& state)
 {
     _trajGen.computeNextValues(_qDes);  // the trajectory generator uses deg (not rad)
-    _qRef = _trajGen.getPos();
+    _qRef           = _trajGen.getPos();
     _qErrorIntegral += _sampleTime * _Ki.cwiseProduct(_qRef - WBR_RAD2DEG*state.qJ);
 
-    getLogger().sendMsg("qErrInt: "+jointToString(_qErrorIntegral,1),MSG_STREAM_INFO);
+//    getLogger().sendMsg("qErrInt: "+jointToString(_qErrorIntegral,1),MSG_STREAM_INFO);
     
     _a_eq  = WBR_DEG2RAD * ( _trajGen.getAcc() +
                              _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ) +
@@ -265,16 +269,27 @@ void MinJerkPDPostureTask::init(RobotState& state)
     _trajGen.init(WBR_RAD2DEG*state.qJ);
     _qErrorIntegral.setZero();
     
-//#define DEBUG_MINJERKPDPOSTURETASK
+    // TEMP
+    _qDes = WBR_RAD2DEG*state.qJ;
+    
+#define DEBUG_MINJERKPDPOSTURETASK
 #ifdef  DEBUG_MINJERKPDPOSTURETASK
-        cout<<"  Posture initial pos "<<_trajGen.getPos().transpose()<<endl;
+    cout<<"  Posture initial pos "<<_trajGen.getPos().transpose()<<endl;
     for(int i=0; i<1; i++)
     {
         _trajGen.computeNextValues(_qDes);  // the trajectory generator uses deg (not rad)
-        cout<<"*** Time "<< i*_trajGen.getSampleTime() << endl;
-        cout<<"  Posture acc         "<<_trajGen.getAcc().transpose()<<endl;;
-        cout<<"  Posture vel         "<<_trajGen.getVel().transpose()<<endl;
+        _a_eq  = WBR_DEG2RAD * ( _trajGen.getAcc() +
+                                _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ) +
+                                _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ) +
+                                _qErrorIntegral);
+        
+//        cout<<"*** Time "<< i*_trajGen.getSampleTime() << endl;
+        cout<<"  Posture acc         "<<_trajGen.getAcc().norm()<<endl;;
+        cout<<"  Posture vel         "<<_trajGen.getVel().norm()<<endl;
         cout<<"  Posture pos         "<<_trajGen.getPos().transpose()<<endl;
+        cout<<"  Kd*(dqDes - dqJ)    "<<WBR_DEG2RAD*(_Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ)).norm()<<endl;
+        cout<<"  Kp*(qDes - qJ)      "<<WBR_DEG2RAD*(_Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ)).norm()<<endl;
+        cout<<"  _a_eq               "<<_a_eq.norm()<<endl;
 //        _a_eq += WBR_DEG2RAD * _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ);
 //        _a_eq += WBR_DEG2RAD * _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ);
     }

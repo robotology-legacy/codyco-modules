@@ -28,7 +28,7 @@
 namespace wholeBodyReach
 {
     
-#define DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS true
+#define DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS false
     
     /** An abstract task with a minimum-jerk trajectory generator.
      */

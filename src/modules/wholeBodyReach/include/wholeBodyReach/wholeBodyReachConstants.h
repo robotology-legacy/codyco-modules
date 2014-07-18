@@ -177,7 +177,7 @@ static const double             DEFAULT_TT_FOREARM  = 4.0;
 static const double             DEFAULT_TT_HAND     = 4.0;
 static const double             DEFAULT_TT_POSTURE  = 4.0;
 static const int                DEFAULT_SUPPORT_PHASE       = WBR_SUPPORT_DOUBLE;
-static const double             DEFAULT_NUM_DAMP            = 1e-4;
+static const double             DEFAULT_NUM_DAMP            = 1e-3;
 static const int                DEFAULT_USE_NULLSPACE_BASE  = 0;   /// true: solver uses basis, false: it uses projectors
 static const Eigen::VectorNd    DEFAULT_Q_MAX               = Eigen::VectorNd::Constant(180.0);
 static const Eigen::VectorNd    DEFAULT_Q_MIN               = Eigen::VectorNd::Constant(-180.0);
@@ -217,7 +217,7 @@ enum WholeBodyReachParamId {
     PARAM_ID_X_BASE,                PARAM_ID_V_BASE,
     PARAM_ID_Q,                     PARAM_ID_DQ,                PARAM_ID_QREF,
     PARAM_ID_FORCE_INEQ_R_FOOT,     PARAM_ID_FORCE_INEQ_L_FOOT, PARAM_ID_FORCE_INEQ_FOREARM,
-    PARAM_ID_MOMENTUM_INTEGRAL,
+    PARAM_ID_MOMENTUM_INTEGRAL,     PARAM_ID_JOINT_TORQUES,
     PARAM_ID_SIZE /*This is the number of parameters, so it must be the last value of the enum.*/
 };
 
@@ -281,7 +281,8 @@ new ParamProxyBasic<double>("qr",                   PARAM_ID_QREF,              
 new ParamProxyBasic<double>("f inequalities rfoot",     PARAM_ID_FORCE_INEQ_R_FOOT, 6,                      ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_6D.data(),                 "1-2 tang/norm force, 3 norm force, 4-5 ZMP, 6 normal moment"),
 new ParamProxyBasic<double>("f inequalities rfoot",     PARAM_ID_FORCE_INEQ_L_FOOT, 6,                      ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_6D.data(),                 "1-2 tang/norm force, 3 norm force, 4-5 ZMP, 6 normal moment"),
 new ParamProxyBasic<double>("f inequalities forearm",   PARAM_ID_FORCE_INEQ_FOREARM,3,                      ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_3D.data(),                 "1-2 tang/norm force, 3 norm force, 4-5 ZMP, 6 normal moment"),
-new ParamProxyBasic<double>("momentum integral",    PARAM_ID_MOMENTUM_INTEGRAL, 6,                          ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_6D.data(),                 "Integral of the 6d centroidal momentum")
+new ParamProxyBasic<double>("momentum integral",    PARAM_ID_MOMENTUM_INTEGRAL, 6,                          ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_6D.data(),                 "Integral of the 6d centroidal momentum"),
+new ParamProxyBasic<double>("torques",              PARAM_ID_JOINT_TORQUES,     ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_ND.data(),                 "Joint torques")
 };
 
 

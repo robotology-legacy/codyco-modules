@@ -60,13 +60,8 @@ bool WholeBodyReachThread::threadInit()
     _JfootL.resize(NoChange, _n+6);
     _Jc.resize(_k, _n+6);
     _svdJcb = JacobiSVD<MatrixRXd>(_k, 6, ComputeThinU | ComputeThinV);
-    _robotState.qJ.setZero(_n);     // joint positions (rad)
-    _robotState.dqJ.setZero(_n);    // joint velocities (rad/s)
-    _robotState.dq.setZero(_n+6);   // base+joint velocities
-    
-    _robotState.g(0) = 0.0;
-    _robotState.g(1) = 0.0;
-    _robotState.g(2) = -9.81;
+    if(!_robotState.init(_n))
+        return false;
     
     // setup the stack of tasks
     _solver.setMomentumTask(_tasks.momentum);
@@ -123,10 +118,11 @@ bool WholeBodyReachThread::threadInit()
     _tasks.graspHand.linkParameterPose(             _paramHelper, PARAM_ID_X_HAND);
     YARP_ASSERT(_paramHelper->linkParam(            PARAM_ID_Q,   _qjDeg.data()));
     
-    _tasks.momentum.linkParameterComVel(    _paramHelper,       PARAM_ID_DX_COM);
-    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_X_BASE,    _robotState.xBase.p));
-    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_V_BASE,    _robotState.vBase.data()));
-    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_DQ,        _dqjDeg.data()));
+    _tasks.momentum.linkParameterComVel(    _paramHelper,           PARAM_ID_DX_COM);
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_X_BASE,        _robotState.xBase.p));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_V_BASE,        _robotState.vBase.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_JOINT_TORQUES, _robotState.torques.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_DQ,            _dqjDeg.data()));
 
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_FORCE_FRICTION,    &_forceFriction));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_MOMENT_FRICTION,   &_momentFriction));
@@ -166,6 +162,7 @@ bool WholeBodyReachThread::threadInit()
 #ifdef DO_NOT_USE_WHOLE_BODY_STATE_INTERFACE
     _sensors = new icubWholeBodySensors((_name+"_sensor").c_str(), _robotName.c_str());
     _sensors->addSensors(SENSOR_ENCODER, ICUB_MAIN_JOINTS);
+    _sensors->addSensors(SENSOR_TORQUE,  ICUB_MAIN_JOINTS);
     if(!_sensors->init())
     {
         printf("Initialization of sensor interface failed");
@@ -228,7 +225,8 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
 
     // temporary replacement of _robot->getEstimate because it's too slow
 #ifdef DO_NOT_USE_WHOLE_BODY_STATE_INTERFACE
-    res = res && _sensors->readSensors(SENSOR_ENCODER, _robotState.qJ.data(), _qJStamps.data(), true);
+    res = res && _sensors->readSensors(SENSOR_ENCODER, _robotState.qJ.data(),      _qJStamps.data(), blockingRead);
+    res = res && _sensors->readSensors(SENSOR_TORQUE,  _robotState.torques.data(), NULL,             blockingRead);
     for(int i=0; i<_n; i++)
         _qJ_yarp(i) = _robotState.qJ(i);
     AWPolyElement el;
@@ -243,7 +241,7 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
 //    _qJStampsOld = _qJStamps[0];
 //    timeStampOld = timeStamp;
     
-    _dqJ_yarp = _dqFilt->estimate(el); // /REAL_TIME_FACTOR;
+    _dqJ_yarp = _dqFilt->estimate(el);
     for(int i=0; i<_n; i++)
         _robotState.dqJ(i) = _dqJ_yarp(i);
 #else
@@ -304,8 +302,9 @@ bool WholeBodyReachThread::preStartOperations()
     _tasks.posture.update(_robotState);
     cout<<"INIT Desired Momentum:    "<<toString(_tasks.momentum.getEqualityVector(),2)<<endl;
     cout<<"INIT Desired ddq posture: "<<toString(_tasks.posture.getEqualityVector(),2)<<endl;
+    _solver.init(_robotState);
 #endif
-    res = res && _robot->setControlMode(CTRL_MODE_TORQUE);
+    res = res && _robot->setControlMode(CTRL_MODE_TORQUE, _tauDes.data());
     if(res)
         _status = WHOLE_BODY_REACH_ON;                 // set thread status to "on"
     else
