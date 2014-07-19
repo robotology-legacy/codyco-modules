@@ -5,8 +5,14 @@
 cmake_minimum_required(VERSION 2.8)
 project(torqueBalancing)
 
-find_package(YARP)
+find_package(YARP REQUIRED)
+find_package(ICUB REQUIRED)
+find_package(paramHelp REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(wholeBodyInterface REQUIRED)
+find_package(yarpWholeBodyInterface REQUIRED)
+find_package(codycoCommons REQUIRED)
+
 if(${CODYCO_USES_URDFDOM})
     find_package(Boost)
 endif()
@@ -39,31 +45,32 @@ set(SOURCES    ${SRC_FOLDER}/TorqueBalancingModule.cpp
 source_group("Source Files" FILES ${SOURCES})
 source_group("Header Files" FILES ${HEADERS})
 
-include_directories(${HEADERS_FOLDER}
-                    ${codyco_commons_INCLUDE_DIRS}
+INCLUDE_DIRECTORIES(${HEADERS_FOLDER}
                     ${wholeBodyInterface_INCLUDE_DIRS}
-                    ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
-                    ${iDynTree_INCLUDE_DIRS}
-                    ${orocos_kdl_INCLUDE_DIRS}
-                    ${kdl_codyco_INCLUDE_DIRS}
+                    ${yarpWholeBodyInterface_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR}
-                    ${YARP_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
-                    ${ctrlLib_INCLUDE_DIRS})
+                    ${ctrlLib_INCLUDE_DIRS}
+                    ${YARP_INCLUDE_DIRS}
+                    ${EIGEN3_INCLUDE_DIR}
+                    ${codycoCommons_INCLUDE_DIRS})
 
-if(${CODYCO_USES_URDFDOM})
-    include_directories(${Boost_INCLUDE_DIRS})
-endif(${CODYCO_USES_URDFDOM})
+ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME}
+                      ${wholeBodyInterface_LIBRARIES}
+                      ${yarpWholeBodyInterface_LIBRARIES}
+                      ${paramHelp_LIBRARIES}
+                      ${ctrlLib_LIBRARIES}
+                      ${YARP_LIBRARIES}
+                      ${codycoCommons_LIBRARIES})
 
-target_link_libraries(  ${PROJECT_NAME}
-                        codyco_commons
-                        wholeBodyInterface
-                        wholeBodyInterfaceIcub
-                        paramHelp
-                        ${YARP_LIBRARIES})
+if(WIN32)
+    INSTALL_TARGETS(/bin/Release ${PROJECT_NAME})
+else(WIN32)
+    INSTALL_TARGETS(/bin ${PROJECT_NAME})
+endif(WIN32)
+
 
 # install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 

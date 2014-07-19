@@ -8,6 +8,7 @@ PROJECT(${PROJECTNAME})
 
 find_package(YARP)
 find_package(ICUB)
+find_package(yarpWholeBodyInterface REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
@@ -35,8 +36,7 @@ if(CODYCO_USES_URDFDOM)
      INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 endif()
 
-INCLUDE_DIRECTORIES(
-                    ${wholeBodyInterface_INCLUDE_DIRS}
+INCLUDE_DIRECTORIES(${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
@@ -47,8 +47,11 @@ INCLUDE_DIRECTORIES(
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} wholeBodyInterface wholeBodyInterfaceIcub iDynTree 
-${YARP_LIBRARIES} skinDynLib ${Orocos-KDL_LIBRARIES} ${kdl_codyco_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME} 
+                      ${yarpWholeBodyInterface_LIBRARIES}
+                      ${YARP_LIBRARIES} 
+                      skinDynLib
+                      ${wholeBodyInterface_LIBRARIES})
 
 if(WIN32)
 	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})	

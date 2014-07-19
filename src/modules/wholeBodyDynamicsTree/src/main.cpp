@@ -67,6 +67,14 @@ int main (int argc, char * argv[])
         cout<< "\t--assume_fixed     :Use a link as a kinematic root in estimation (assuming a constant gravity). Possible options: (root_link, l_sole, r_sole)." <<endl;
         cout<< "\t--assume_calibration_fixed_root :Use the root link as a kinematic root  in calibration (assuming constant gravity)." <<endl;
         cout<< "\t--min_taxel  threshold   :Filter input skin contacts: if the activated taxels are lower than the threshold, ignore the contact (default: 1)." << endl;
+        cout<< "\t--zmp_test_left/--zmp_test_right : Enable debug port outputs for robot single standing on left or right foot. " << endl;
+        cout<< "\t\t this option will open the following ports: " << endl;
+        cout<< "\t\t\t /local_name/joint_ankle_cartesian_wrench:o 6 element vector: force torque transmitted from link *_ankle_1 "
+            << "\t\t\t\t to link *_foot expressed on the orientation frame of *_sole and with torque expressed with respect to the origin of frame of link *_sole" << endl;
+        cout<< "\t\t\t /local_name/joint_ankle_cartesian_wrench_from_model:o 6 element vector: as before, but calculated from model " << std::endl;
+        cout<< "\t\t\t /local_name/joint_foot_cartesian_wrench:o 6 element vector: force torque transmitted from link *_foot "
+            << "\t\t\t\t to the enviroment expressed on the orientation frame of *_sole and torque expressed with respect to the origin of frame of link *_sole" << endl;
+        cout<< "\t\t\t /local_name/joint_foot_cartesian_wrench_from_model:o 6 element vector: as before, but calculated from model " << std::endl;
         return 0;
     }
 

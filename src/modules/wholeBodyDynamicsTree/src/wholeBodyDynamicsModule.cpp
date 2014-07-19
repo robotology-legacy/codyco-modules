@@ -215,8 +215,33 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         autoconnect = true;
     }
 
+    bool zmp_test_mode = false;
+    std::string zmp_test_feet = "";
+    if( rf.check("zmp_test_left") )
+    {
+        std::cout << "zmp_test_left option found, enabling testing output of debug quantities related to left leg" << std::endl;
+        zmp_test_mode = true;
+        zmp_test_feet = "left";
+    }
+
+    if( rf.check("zmp_test_right") )
+    {
+        std::cout << "zmp_test_right option found, enabling testing output of debug quantities related to right leg" << std::endl;
+        zmp_test_mode = true;
+        zmp_test_feet = "right";
+    }
+
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
-    wbdThread = new wholeBodyDynamicsThread(moduleName, robotName, period, estimationInterface, icub_version, autoconnect, fixed_base_calibration);
+    wbdThread = new wholeBodyDynamicsThread(moduleName,
+                                            robotName,
+                                            period,
+                                            estimationInterface,
+                                            icub_version,
+                                            autoconnect,
+                                            fixed_base_calibration,
+                                            zmp_test_mode,
+                                            zmp_test_feet
+                                           );
     if(!wbdThread->start()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }
 
     fprintf(stderr,"wholeBodyDynamicsThread started\n");
@@ -315,8 +340,42 @@ bool wholeBodyDynamicsModule::calibStanding(const std::string& calib_code,
 {
     if(wbdThread)
     {
-        std::cout << getName() << ": calibration for " << calib_code << "requested" << std::endl;
+        std::cout << getName() << ": double support calibration for " << calib_code << "requested" << std::endl;
         wbdThread->calibrateOffsetOnDoubleSupport(calib_code,nr_of_samples);
+        wbdThread->waitCalibrationDone();
+        return true;
+    }
+    else
+    {
+        std::cout << getName() << ": double support calib failed, no wholeBodyDynamicsThread available" << std::endl;
+        return false;
+    }
+}
+
+bool wholeBodyDynamicsModule::calibStandingLeftFoot(const std::string& calib_code,
+                                                   const int32_t nr_of_samples)
+{
+    if(wbdThread)
+    {
+        std::cout << getName() << ": single support left foot calibration for " << calib_code << "requested" << std::endl;
+        wbdThread->calibrateOffsetOnLeftFootSingleSupport(calib_code,nr_of_samples);
+        wbdThread->waitCalibrationDone();
+        return true;
+    }
+    else
+    {
+        std::cout << getName() << ": calib failed, no wholeBodyDynamicsThread available" << std::endl;
+        return false;
+    }
+}
+
+bool wholeBodyDynamicsModule::calibStandingRightFoot(const std::string& calib_code,
+                                                   const int32_t nr_of_samples)
+{
+    if(wbdThread)
+    {
+        std::cout << getName() << ": single support right foot calibration for " << calib_code << "requested" << std::endl;
+        wbdThread->calibrateOffsetOnRightFootSingleSupport(calib_code,nr_of_samples);
         wbdThread->waitCalibrationDone();
         return true;
     }

@@ -27,6 +27,24 @@ service wholeBodyDynamics_IDLServer
   */
   bool calibStanding(1:string calib_code, 2:i32 nr_of_samples=100)
 
+ /**
+  * Calibrate the force/torque sensors when on single support on left foot
+  * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the left sole).
+  * @param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet)
+  * @param nr_of_samples number of samples
+  * @return true/false on success/failure
+  */
+  bool calibStandingLeftFoot(1:string calib_code, 2:i32 nr_of_samples=100)
+
+  /**
+  * Calibrate the force/torque sensors when on single support on right foot
+  * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the right sole).
+  * @param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet)
+  * @param nr_of_samples number of samples
+  * @return true/false on success/failure
+  */
+  bool calibStandingRightFoot(1:string calib_code, 2:i32 nr_of_samples=100)
+
   /**
   * Reset the sensor offset to 0 0 0 0 0 0 (six zeros).
   * @param calib_code argument to specify the sensors to reset (all,arms,legs,feet)

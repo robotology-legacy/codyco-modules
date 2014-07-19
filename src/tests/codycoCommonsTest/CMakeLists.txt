@@ -2,10 +2,19 @@
 # Author: Francesco Romano
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
+find_package(Eigen3 REQUIRED)
+find_package(codycoCommons REQUIRED)
 
-enable_testing()
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 
-include_directories(${codyco_commons_INCLUDE_DIRS}
+FILE(GLOB folder_source ./*.cpp)
+FILE(GLOB folder_header ./*.h)
+
+SOURCE_GROUP("Source Files" FILES ${folder_source})
+SOURCE_GROUP("Header Files" FILES ${folder_header})
+
+INCLUDE_DIRECTORIES(${codycoCommons_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR})
 
 add_executable(codycoCommons-tests main.cpp)

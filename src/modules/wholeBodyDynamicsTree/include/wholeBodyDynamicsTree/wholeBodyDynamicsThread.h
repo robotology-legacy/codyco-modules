@@ -126,6 +126,7 @@ class wholeBodyDynamicsThread: public RateThread
 
     BufferedPort<Vector> * port_icubgui_base;
 
+
     yarp::os::Stamp timestamp;
 
     template <class T> void broadcastData(T& _values, BufferedPort<T> *_port);
@@ -136,6 +137,8 @@ class wholeBodyDynamicsThread: public RateThread
     void getEndEffectorWrenches();
     void publishEndEffectorWrench();
     void publishBaseToGui();
+    void publishAnkleFootForceTorques();
+
     wbi::LocalId convertFTiDynTreeToFTwbi(int ft_sensor_id);
     void normal_run();
     void calibration_run();
@@ -216,6 +219,22 @@ class wholeBodyDynamicsThread: public RateThread
 
     bool assume_fixed_base_calibration;
 
+    //zmp test mode
+    bool zmp_test_mode;
+    enum { LEFT_FOOT, RIGHT_FOOT } foot_under_zmp_test;
+    int ankle_joint_idyntree_id;
+    int foot_sole_fake_joint_idyntree_id;
+    int foot_sole_link_idyntree_id;
+
+   // port that output the wrenches relative to the foot/ankle
+    BufferedPort<Vector> * port_joint_ankle_cartesian_wrench;
+    BufferedPort<Vector> * port_joint_ankle_cartesian_wrench_from_model;
+    BufferedPort<Vector> * port_joint_foot_cartesian_wrench;
+    BufferedPort<Vector> * port_joint_foot_cartesian_wrench_from_model;
+    iCub::iDynTree::iCubTree * icub_model_zmp;
+
+
+
 public:
 
     wholeBodyDynamicsThread(string _name,
@@ -224,11 +243,14 @@ public:
                             wbiIcub::icubWholeBodyStatesLocal *_wbi,
                             const iCub::iDynTree::iCubTree_version_tag icub_version,
                             bool autoconnect,
-                            bool assume_fixed_base_calibration);
+                            bool assume_fixed_base_calibration,
+                            bool zmp_test_mode, std::string foot_to_test);
 
     bool threadInit();
     bool calibrateOffset(const std::string calib_code, const int nr_of_samples );
     bool calibrateOffsetOnDoubleSupport(const std::string calib_code, const int nr_of_samples );
+    bool calibrateOffsetOnRightFootSingleSupport(const std::string calib_code, const int nr_of_samples );
+    bool calibrateOffsetOnLeftFootSingleSupport(const std::string calib_code, const int nr_of_samples );
     bool resetOffset(const std::string calib_code);
 
     /**

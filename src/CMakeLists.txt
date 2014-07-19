@@ -3,19 +3,11 @@ if(CODYCO_USES_WBI_TOOLBOX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif(CODYCO_USES_WBI_TOOLBOX)
 
-
-add_subdirectory(libraries) 
-#add_subdirectory(sensorsInterfaces)
-#add_subdirectory(wbci)
-#add_subdirectory(wbciy)
 add_subdirectory(modules)
-if (CODYCO_DASHBOARD_SUBMIT OR CODYCO_BUILD_TESTS)
-   add_subdirectory(tests)
-endif()
-#built ftDumper only if YARP24 is found
-if(CODYCO_BUILD_YARP24_MODULES)
-   add_subdirectory(misc/ftDumper)
-endif(CODYCO_BUILD_YARP24_MODULES)
+add_subdirectory(misc/ftDumper)
+
+add_subdirectory(tests)
+
 
 if (ICUB_USE_XDE)
      add_subdirectory(reachComBalance)
@@ -24,10 +16,3 @@ if (ICUB_USE_XDE)
 else (ICUB_USE_XDE)
      message(STATUS "ISIR modules with XDE: NO")
 endif (ICUB_USE_XDE)
-
-if(CODYCO_USES_WBI_TOOLBOX)
-    add_subdirectory(simulink)
-    message(STATUS "Simulink library will be compiled")
-else(CODYCO_USES_WBI_TOOLBOX)
-    message(STATUS "Simulink library skipped")
-endif(CODYCO_USES_WBI_TOOLBOX)

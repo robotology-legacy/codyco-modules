@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--    
+3+3 + 3+6 + 7+3 + 7+3 + 7+6 + 25+25 + 25
+0:2 PARAM_ID_X_COM,                 3:5 PARAM_ID_DX_COM,
+6:8 PARAM_ID_XREF_COM,              9:14 PARAM_ID_MOMENTUM,
+15:21 PARAM_ID_X_FOREARM,             22:24 PARAM_ID_XREF_FOREARM,
+25:31 PARAM_ID_X_HAND,                32:34 PARAM_ID_XREF_HAND,
+35:41 PARAM_ID_X_BASE,                42:47 PARAM_ID_V_BASE,
+48:72 PARAM_ID_Q,                     73:97 PARAM_ID_DQ,            
+98:122 PARAM_ID_QREF				123:128 PARAM_ID_FORCE_INEQ_R_FOOT,          
+129:134 PARAM_ID_FORCE_INEQ_L_FOOT	135:137 PARAM_ID_FORCE_INEQ_FOREARM,                
+138:143 PARAM_ID_MOMENTUM_INTEGRAL
+-->
+<portscope rows="3" columns="2">
+    <!-- plotting COM x -->
+    <plot gridx="0" gridy="0" hspan="1" vspan="1" title="COM x ( red desired, blue measured )"
+          size="60" minval="-0.15" maxval="0.15" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="0" color="Blue" title="COM x" type="lines" size="2" />
+	    <graph remote="/wbr/monitor:o" index="6" color="Red" title="COM x_des" type="lines" size="2" />
+    </plot>
+	
+    <!-- plotting COM y -->
+    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="COM y ( red desired, blue measured )"
+          size="60" minval="-0.2" maxval="0.1" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="1" color="Blue" title="COM x" type="lines" size="2" />
+	    <graph remote="/wbr/monitor:o" index="7" color="Red" title="COM x_des" type="lines" size="2" />
+    </plot>
+	
+    <!-- plotting COM z -->
+    <plot gridx="0" gridy="2" hspan="1" vspan="1" title="COM z ( red desired, blue measured )"
+          size="60" minval="0.35" maxval="0.65" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="2" color="Blue" title="COM x" type="lines" size="2" />
+	    <graph remote="/wbr/monitor:o" index="8" color="Red" title="COM x_des" type="lines" size="2" />
+    </plot>
+	
+    <!-- plotting Angular momentum -->
+    <plot gridx="1" gridy="0" hspan="1" vspan="1" title="Angular Momentum (blue) and its integral (red) "
+          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+		<graph remote="/wbr/monitor:o" index="141" color="Red" title="Momentum" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="12" color="Blue" title="Momentum" type="lines" size="2" />
+    </plot>
+    <plot gridx="1" gridy="1" hspan="1" vspan="1" title="COM dy blue, red Momentum"
+          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+		<graph remote="/wbr/monitor:o" index="142" color="Red" title="Momentum" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="13" color="Blue" title="Momentum" type="lines" size="2" />
+    </plot>
+    <plot gridx="1" gridy="2" hspan="1" vspan="1" title="COM dz blue, red Momentum"
+          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+		<graph remote="/wbr/monitor:o" index="143" color="Red" title="Momentum" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="14" color="Blue" title="Momentum" type="lines" size="2" />
+    </plot>
+	
+	
+    <!-- plotting COM velocity -->
+    <!--<plot gridx="1" gridy="0" hspan="1" vspan="1" title="blue COM dx, red Momentum"
+          size="60" minval="-0.2" maxval="0.2" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="3" color="Blue" title="COM dx" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="9" color="Red" title="Momentum" type="lines" size="2" />
+    </plot>
+    <plot gridx="1" gridy="1" hspan="1" vspan="1" title="COM dy blue, red Momentum"
+          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="4" color="Blue" title="COM dx" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="10" color="Red" title="Momentum" type="lines" size="2" />
+    </plot>
+    <plot gridx="1" gridy="2" hspan="1" vspan="1" title="COM dz blue, red Momentum"
+          size="60" minval="-0.5" maxval="0.5" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="5" color="Blue" title="COM dx" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="11" color="Red" title="Momentum" type="lines" size="2" />
+    </plot>-->
+
+</portscope>
