@@ -48,7 +48,7 @@ namespace codyco {
         class Reference;
         
         //TODO: change name to PIDController or something else
-        /** @class This class is responsible of generating a proper reference signal.
+        /** This class is responsible of generating a proper reference signal.
          *
          * This class is agnostic of the reference type and dimension.
          * It generates a reference signal as the output of a PID (min jerk trajectory also in the future?). It reads the current value for the signal and signal derivatives from a class which implements the ReferenceGeneratorInputReader protocol.
@@ -267,7 +267,7 @@ namespace codyco {
         };
         
         /** 
-         * @class This protocol specifies methods to obtain the current values
+         * This protocol specifies methods to obtain the current values
          * of a signal and its derivative.
          */
         class ReferenceGeneratorInputReader {
@@ -300,7 +300,7 @@ namespace codyco {
         };
         
         /** 
-         * @class This protocol specifies methods to modify the reference signal
+         * This protocol specifies methods to modify the reference signal
          * for the controller, e.g. minimum jerk, smoothing, ...
          */
         class ReferenceFilter {
