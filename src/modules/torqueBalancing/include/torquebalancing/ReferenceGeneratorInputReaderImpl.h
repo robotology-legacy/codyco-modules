@@ -42,8 +42,8 @@ namespace wbi {
 
 namespace codyco {
     namespace torquebalancing {
-        
-        /** @class Implementation of ReferenceGeneratorInputReader to read the position of a generic endeffector
+
+        /** Implementation of ReferenceGeneratorInputReader to read the position of a generic endeffector
          * of the robot.
          *
          * It handles a 7-dimension vector representing the homogenous transformation of the endeffector position w.r.t. the world frame. The rotational component is expressed as angle-axis.
@@ -55,19 +55,19 @@ namespace codyco {
             wbi::wholeBodyInterface& m_robot;
             wbi::Frame m_world2BaseFrame;
             wbi::Frame m_leftFootToBaseRotationFrame;
-            
+
             int m_endEffectorLinkID;
             int m_leftFootLinkID; /*!< this is temporary to allow robot localization */
-            
+
             Eigen::VectorXd m_jointsPosition;
             Eigen::VectorXd m_jointsVelocity;
             Eigen::VectorXd m_outputSignal;
             Eigen::VectorXd m_outputSignalDerivative;
-            
+
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_jacobian;
-            
+
             long m_previousContext;
-            
+
             void updateStatus(long context);
             void initializer();
         public:
@@ -78,9 +78,9 @@ namespace codyco {
             virtual const Eigen::VectorXd& getSignalDerivative(long context = 0);
             virtual int signalSize() const;
         };
-        
-        
-        /** @class Implementation of ReferenceGeneratorInputReader to read the Center Of Mass position
+
+
+        /** Implementation of ReferenceGeneratorInputReader to read the Center Of Mass position
          * of the robot.
          *
          * It handles a 3-dimension vector representing the x,y,z coordinates of the center of mass of the robot.
@@ -94,15 +94,15 @@ namespace codyco {
             Eigen::VectorXd m_outputCOMVelocity;
         public:
             COMReader(wbi::wholeBodyInterface& robot);
-            
+
             virtual ~COMReader();
             virtual const Eigen::VectorXd& getSignal(long context = 0);
             virtual const Eigen::VectorXd& getSignalDerivative(long context = 0);
             virtual int signalSize() const;
-            
+
         };
 
-        /** @class Implementation of ReferenceGeneratorInputReader to read the forces acting on the 
+        /** Implementation of ReferenceGeneratorInputReader to read the forces acting on the
          * endeffector of the robot.
          *
          * It handles a 6-dimension vector representing the forces and torques acting on the hand.
@@ -114,28 +114,28 @@ namespace codyco {
             wbi::wholeBodyInterface& m_robot;
             wbi::Frame m_world2BaseFrame;
             wbi::Frame m_leftFootToBaseRotationFrame;
-            
+
             int m_leftFootLinkID; /*!< this is temporary to allow robot localization */
             wbi::LocalId m_endEffectorLocalID;
-            
+
             Eigen::VectorXd m_jointsPosition;
             Eigen::VectorXd m_jointsVelocity;
             Eigen::VectorXd m_outputSignal;
-            
+
             long m_previousContext;
-            
+
             void updateStatus(long context);
         public:
             EndEffectorForceReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName);
-            
+
             virtual ~EndEffectorForceReader();
             virtual const Eigen::VectorXd& getSignal(long context = 0);
             virtual const Eigen::VectorXd& getSignalDerivative(long context = 0);
             virtual int signalSize() const;
-            
+
         };
-        
-        /** @class Void implementation of ReferenceGeneratorInputReader.
+
+        /** Void implementation of ReferenceGeneratorInputReader.
          *
          * Specify in the constructor the size of the vectors returned by objects of this class
          * It outputs a zero vector of size signalSize()
