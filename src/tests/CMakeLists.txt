@@ -2,7 +2,7 @@
 add_subdirectory(wholeBodyModelIcubTest)
 #add_subdirectory(codycoCommonsTest)
 #add_subdirectory(wholeBodyInterfaceTest)
-#add_subdirectory(wholeBodyInterfaceIcubTest)
+add_subdirectory(wholeBodyInterfaceIcubTest)
 if(CODYCO_USES_URDFDOM)
     #add_subdirectory(yarpWholeBodyInterfaceTest)
 endif()

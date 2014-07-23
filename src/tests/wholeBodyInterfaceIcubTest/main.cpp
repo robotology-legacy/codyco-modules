@@ -56,7 +56,6 @@ int main(int argc, char * argv[])
     
     bool use_urdf = false;
     
-    #ifdef CODYCO_USES_URDFDOM
     std::string urdf_file;
     if(options.check("urdf")) { 
         use_urdf = true;
@@ -64,21 +63,23 @@ int main(int argc, char * argv[])
     } else {
         use_urdf = false;
     }
-    #endif
+    
     
     // TEST WHOLE BODY INTERFACE
     std::string localName = "wbiTest";
     
     wholeBodyInterface *icub;
-    if( !use_urdf ) {
-        std::cout << "Creating icubWholeBodyInterface with robotName " << robotName << " " << localName << std::endl;
-        icub = new icubWholeBodyInterface(localName.c_str(),robotName.c_str(), iCub::iDynTree::iCubTree_version_tag(2,1,true));
-    } else {
+    iCub::iDynTree::iCubTree_version_tag icub_version;
+    
 #ifdef CODYCO_USES_URDFDOM
-        std::cout << "Creating icubWholeBodyInterface with robotName " << robotName << " " << localName << " " << " and urdf file " << urdf_file << std::endl;
-        icub = new icubWholeBodyInterface(localName.c_str(),robotName.c_str(),iCub::iDynTree::iCubTree_version_tag(2,2,true),urdf_file);
+    icub_version = iCub::iDynTree::iCubTree_version_tag (2, 2, true, true, urdf_file);
+    icub = new icubWholeBodyInterface (localName.c_str(), robotName.c_str(), icub_version);
+#else
+    icub_version = iCub::iDynTree::iCubTree_version_tag (2, 2, true);
+    icub = new icubWholeBodyInterface (localName.c_str(), robotName.c_str(), icub_version, urdf_file);
 #endif
-    }
+    
+    
     
     std::cout << "icubWholeBodyInterface created, adding joints" << std::endl;
 //    icub->addJoints(LocalIdList(RIGHT_ARM,0,1,2,3,4));
@@ -98,7 +99,20 @@ int main(int argc, char * argv[])
     printf("Number of DoFs: %d\n", dof);
     
     Vector q(dof), dq(dof), d2q(dof), qInit(dof), qd(dof);
-    icub->getEstimates(ESTIMATE_JOINT_TORQUE, q.data());
+    double timeIni = Time::now();
+    icub->getEstimates(wbi::ESTIMATE_JOINT_POS, q.data());
+    double timeEnd = Time::now();
+    
+    double elapsedTime = timeEnd - timeIni;
+    printf("Elapsed time for ESTIMATE_JOINT_POST %f \n", elapsedTime);
+    
+    timeIni = Time::now();
+    icub->getEstimates(wbi::ESTIMATE_JOINT_TORQUE, q.data());
+    timeEnd = Time::now();
+    
+    elapsedTime = timeEnd - timeIni;
+    printf("Elapsed time for ESTIMATE_JOINT_TORQUE %f \n", elapsedTime);
+    
     qInit = q;
     qd = q;
 //    Vector refSpeed(dof, CTRL_DEG2RAD*10.0), qd = q;
@@ -161,5 +175,4 @@ int main(int argc, char * argv[])
     printf("Main returning...\n");
     return 0;
 }
-
 
