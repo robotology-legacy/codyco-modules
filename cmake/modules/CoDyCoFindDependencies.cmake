@@ -1,5 +1,11 @@
 #### Find Eigen3
-find_package(Eigen3 3.2 REQUIRED)
+if (${CODYCO_USES_EIGEN_320})
+	find_package(Eigen3 3.2 REQUIRED)
+else()
+	find_package(Eigen3 3.0 REQUIRED)
+endif()
+
+
 
 find_package(orocos_kdl 1.2.3 QUIET)
 if (NOT orocos_kdl_FOUND)
