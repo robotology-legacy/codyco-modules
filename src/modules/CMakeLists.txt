@@ -2,13 +2,15 @@ add_subdirectory(wholeBodyDynamicsTree)
 add_subdirectory(wholeBodyGaze)
 add_subdirectory(adaptiveControl)
 #add_subdirectory(staticInertiaIdentification)
+if(${CODYCO_USES_EIGEN320})
 add_subdirectory(locomotionControl)
 add_subdirectory(locomotionPlanner)
+add_subdirectory(torqueBalancing)
+endif()
+
 add_subdirectory(jointTorqueControl)
 add_subdirectory(motorFrictionExcitation)
 add_subdirectory(motorFrictionIdentification)
-add_subdirectory(torqueBalancing)
-
 
 add_subdirectory(codycoCoordinatorDemo1Y)
 if(CODYCO_BUILD_WHOLEBODYREACH)
