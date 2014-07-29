@@ -26,7 +26,7 @@ using namespace jointTorqueControl;
 using namespace wbiIcub;
 
 //#define IMPEDANCE_CONTROL
-// #define GAZEBO_SIM
+#define GAZEBO_SIM
 
 jointTorqueControlThread::jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
 : RateThread(period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), sendCommands(SEND_COMMANDS_NONACTIVE),
@@ -142,8 +142,8 @@ bool jointTorqueControlThread::threadInit()
     
     torsoVelocityCouplingMatrix = Matrix3d::Identity();    
     
-    torsoTorqueCouplingMatrix = torsoVelocityCouplingMatrix;
     
+    torsoTorqueCouplingMatrix = torsoVelocityCouplingMatrix;
 #else 
     leftShoulderVelocityCouplingMatrix = Matrix3d::Zero();
     leftShoulderVelocityCouplingMatrix(0,0) =  -1.0;
@@ -230,6 +230,7 @@ void jointTorqueControlThread::run()
             tauD(i)         = ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i+6);
 
 #else /* IMPEDANCE_CONTROL */
+            
             tauD(i) = tauOffset(i);// + tauSinAmpl(i)*sin(2*M_PI*tauSinFreq(i)*currentTime);
             
 #endif /* IMPEDANCE_CONTROL */
@@ -336,6 +337,7 @@ void jointTorqueControlThread::run()
                 else
                     motorVoltage(i) = kt(i)*tauMotor + frictionCompensationFactor(i) * kvn(i)*dqMotor + frictionCompensationFactor(i) * kcn(i)*dqSignMotor;
                 Voltage = motorVoltage(i);
+#ifndef GAZEBO_SIM
                 if (lid.bodyPart == iCub::skinDynLib::TORSO)
                 {
 //                     cout << "In torso handler \n"; 
@@ -348,6 +350,7 @@ void jointTorqueControlThread::run()
                         Voltage = motorVoltage(i-1) + motorVoltage(i);                        
                     }
                 }
+#endif
                 if (sendCommands == SEND_COMMANDS_ACTIVE) 
                 {
 //                     cout << "Sending PWM" << "\n";
