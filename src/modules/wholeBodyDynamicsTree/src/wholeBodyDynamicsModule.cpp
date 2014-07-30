@@ -122,17 +122,28 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
             fixed_link != "r_sole" )
         {
             std::cout << "assume_fixed option found, but disabled because " << fixed_link << " is not a recognized fixed_link " << std::endl;
+            return false;
         } else {
-            std::cout << "assume_fixed option found, using a fixed link as a kinematic root instead of the imu." << std::endl;
+            std::cout << "assume_fixed option found, using " << fixed_link << " as fixed link as a kinematic root instead of the imu." << std::endl;
             fixed_base = true;
         }
     }
 
     bool fixed_base_calibration = false;
+    std::string fixed_link_calibration;
     if( rf.check("assume_fixed_base_calibration") )
     {
-        std::cout << "assume_fixed_base_calibration option found" << std::endl;
-        fixed_base_calibration = true;
+        fixed_link_calibration = rf.find("assume_fixed_base_calibration").asString().c_str();
+        if( fixed_link_calibration != "root_link" &&
+            fixed_link_calibration != "l_sole" &&
+            fixed_link_calibration != "r_sole" )
+        {
+            std::cout << "assume_fixed_base_calibration option found, but disabled because " << fixed_link_calibration << " is not a recognized fixed_link " << std::endl;
+            return false;
+        } else {
+            std::cout << "assume_fixed_base_calibration option found, using " << fixed_link_calibration << " as fixed link as a kinematic root instead of the imu for calibration." << std::endl;
+            fixed_base_calibration = true;
+        }
     }
 
     //--------------------------RPC PORT--------------------------
@@ -239,6 +250,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
                                             icub_version,
                                             autoconnect,
                                             fixed_base_calibration,
+                                            fixed_link_calibration,
                                             zmp_test_mode,
                                             zmp_test_feet
                                            );

@@ -218,6 +218,7 @@ class wholeBodyDynamicsThread: public RateThread
     //End of Calibration related variables
 
     bool assume_fixed_base_calibration;
+    std::string fixed_link_calibration;
 
     //zmp test mode
     bool zmp_test_mode;
@@ -244,6 +245,7 @@ public:
                             const iCub::iDynTree::iCubTree_version_tag icub_version,
                             bool autoconnect,
                             bool assume_fixed_base_calibration,
+                            std::string fixed_link,
                             bool zmp_test_mode, std::string foot_to_test);
 
     bool threadInit();

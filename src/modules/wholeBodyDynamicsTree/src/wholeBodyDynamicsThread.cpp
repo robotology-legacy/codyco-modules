@@ -82,6 +82,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
                                                  const iCub::iDynTree::iCubTree_version_tag _icub_version,
                                                  bool autoconnect,
                                                  bool _assume_fixed_base_calibration,
+                                                 std::string _fixed_link_calibration,
                                                  bool _zmp_test_mode,
                                                  std::string _zmp_test_feet
                                                 )
@@ -96,12 +97,13 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        max_samples_for_calibration(2000),
        samples_used_for_calibration(0),
        assume_fixed_base_calibration(_assume_fixed_base_calibration),
+       fixed_link_calibration(_fixed_link_calibration),
        zmp_test_mode(_zmp_test_mode)
     {
 
        std::cout << "Launching wholeBodyDynamicsThread with name : " << _name << " and robotName " << _robotName << " and period " << _period << std::endl;
        if( assume_fixed_base_calibration ) {
-           icub_model_calibration = new iCub::iDynTree::iCubTree(_icub_version,"root_link");
+           icub_model_calibration = new iCub::iDynTree::iCubTree(_icub_version,fixed_link_calibration);
        } else {
            icub_model_calibration = new iCub::iDynTree::iCubTree(_icub_version);
        }
@@ -1032,9 +1034,18 @@ void wholeBodyDynamicsThread::calibration_run()
     //acceleration are measures 4:6 (check wbi documentation)
     if( assume_fixed_base_calibration )
     {
+        double gravity = 9.8;
         tree_status.proper_ddp_imu[0] = 0.0;
         tree_status.proper_ddp_imu[1] = 0.0;
-        tree_status.proper_ddp_imu[2] = 9.8;
+        tree_status.proper_ddp_imu[2] = 0.0;
+        if( fixed_link_calibration == "root_link" )
+        {
+            tree_status.proper_ddp_imu[2] = gravity;
+        }
+        else if( fixed_link_calibration == "l_sole" || fixed_link_calibration == "r_sole" )
+        {
+            tree_status.proper_ddp_imu[0] = gravity;
+        }
     }
     else
     {
@@ -1127,9 +1138,18 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
     //acceleration are measures 4:6 (check wbi documentation)
     if( assume_fixed_base_calibration )
     {
+        double gravity = 9.8;
         tree_status.proper_ddp_imu[0] = 0.0;
         tree_status.proper_ddp_imu[1] = 0.0;
-        tree_status.proper_ddp_imu[2] = 9.8;
+        tree_status.proper_ddp_imu[2] = 0.0;
+        if( fixed_link_calibration == "root_link" )
+        {
+            tree_status.proper_ddp_imu[2] = gravity;
+        }
+        else if( fixed_link_calibration == "l_sole" || fixed_link_calibration == "r_sole" )
+        {
+            tree_status.proper_ddp_imu[0] = gravity;
+        }
     }
     else
     {
