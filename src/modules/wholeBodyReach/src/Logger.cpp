@@ -58,7 +58,12 @@ void Logger::countdown()
 
 void Logger::sendMsg(string msg, MsgType type)
 {
-    if(_printCountdown<0.0)
+    if(type==MSG_STREAM_INFO && _printCountdown<0.0)
+    {
+        printf("%s\n", msg.c_str());
+        return;
+    }
+    if(type==MSG_INFO || type==MSG_ERROR)
         printf("%s\n", msg.c_str());
 }
 
