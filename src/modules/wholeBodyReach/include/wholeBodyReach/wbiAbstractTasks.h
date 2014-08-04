@@ -55,7 +55,7 @@ struct RobotState
         dqJ.setZero(n);    // joint velocities (rad/s)
         dq.setZero(n+6);   // base+joint velocities
         g(0) = g(1) = 0.0;
-        g(2) = -9.8;
+        g(2) = -9.81;
         return true;
     }
 };
