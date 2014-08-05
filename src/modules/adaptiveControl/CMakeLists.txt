@@ -11,6 +11,7 @@ option(ADAPTIVECONTROL_TORQUECONTROL "AdaptiveControl: Enable low level torqueCo
 find_package(YARP)
 find_package(ICUB)
 find_package(Eigen3 REQUIRED)
+find_package(paramHelp REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
@@ -40,7 +41,7 @@ INCLUDE_DIRECTORIES(${INCLUDE_FOLDER}
                     ${iDynTree_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
-                    ${Orocos-KDL_INCLUDE_DIRS}
+                    ${orocos_kdl_INCLUDE_DIRS}
                     ${kdl_codyco_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
                     ${ctrlLib_INCLUDE_DIRS})

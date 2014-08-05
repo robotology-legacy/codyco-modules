@@ -36,6 +36,14 @@
 #include <cmath>
 #include <yarp/os/Mutex.h>
 
+//Visual Studio prior to 2013 lacks NAN support
+#ifdef _MSC_VER
+#ifndef NAN
+static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};
+#define NAN (*(const float *) __nan)
+#endif
+#endif
+
 namespace wbi {
     class wholeBodyIterface;
 }
