@@ -16,6 +16,7 @@
 */
 
 #include <wholeBodyReach/wholeBodyReachThread.h>
+#include <wholeBodyReach/wholeBodyReachParams.h>
 #include <wbiIcub/wholeBodyInterfaceIcub.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
@@ -35,6 +36,7 @@ WholeBodyReachThread::WholeBodyReachThread(string name, string robotName, int pe
     _tasks(GRASP_HAND_LINK_NAME, SUPPORT_FOREARM_LINK_NAME, LEFT_FOOT_LINK_NAME,
            RIGHT_FOOT_LINK_NAME, period*1e-3, ICUB_FOOT_SIZE, wbi),
     _solver(wbi, DEFAULT_USE_NULLSPACE_BASE),
+    _integrator(wbi),
     _name(name), _robotName(robotName), _paramHelper(ph), _robot(wbi)
 {
     _status = WHOLE_BODY_REACH_OFF;
@@ -60,8 +62,9 @@ bool WholeBodyReachThread::threadInit()
     _JfootL.resize(NoChange, _n+6);
     _Jc.resize(_k, _n+6);
     _svdJcb = JacobiSVD<MatrixRXd>(_k, 6, ComputeThinU | ComputeThinV);
-    if(!_robotState.init(_n))
+    if(!_robotState.init(_n) || !_robotStateNew.init(_n))
         return false;
+    
     
     // setup the stack of tasks
     _solver.setMomentumTask(_tasks.momentum);
@@ -72,7 +75,9 @@ bool WholeBodyReachThread::threadInit()
 //    _solver.pushEqualityTask(_tasks.supportForearm);
 //    _solver.pushEqualityTask(_tasks.graspHand);
     
-    _solver.linkParameterToVariable(wbiStackOfTasks::NUMERICAL_DAMPING,  _paramHelper, PARAM_ID_NUM_DAMP);
+    _solver.linkParameterToVariable(wbiStackOfTasks::DYN_NUM_DAMP,       _paramHelper, PARAM_ID_DYN_DAMP);
+    _solver.linkParameterToVariable(wbiStackOfTasks::CONSTR_NUM_DAMP,    _paramHelper, PARAM_ID_CONSTR_DAMP);
+    _solver.linkParameterToVariable(wbiStackOfTasks::TASK_NUM_DAMP,      _paramHelper, PARAM_ID_TASK_DAMP);
     _solver.linkParameterToVariable(wbiStackOfTasks::USE_NULLSPACE_BASE, _paramHelper, PARAM_ID_USE_NULLSPACE_BASE);
     _solver.linkParameterToVariable(wbiStackOfTasks::CTRL_ALG,           _paramHelper, PARAM_ID_CTRL_ALGORITHM);
 
@@ -151,6 +156,12 @@ bool WholeBodyReachThread::threadInit()
     parameterUpdated(_paramHelper->getParamProxy(PARAM_ID_KP_CONSTRAINTS));
     parameterUpdated(_paramHelper->getParamProxy(PARAM_ID_WRENCH_WEIGHTS));
     
+    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_INTEGRATE_EOM, &_integrateEoM));
+    _integrator.linkParameterToVariable(ConstrainedDynamicsIntegrator::TIMESTEP,        _paramHelper, PARAM_ID_INTEGRATOR_DT);
+    _integrator.linkParameterToVariable(ConstrainedDynamicsIntegrator::CONSTR_NUM_DAMP, _paramHelper, PARAM_ID_INTEGRATOR_DAMP);
+    YARP_ASSERT(_integrator.addConstraints(LEFT_FOOT_LINK_NAME));
+    YARP_ASSERT(_integrator.addConstraints(RIGHT_FOOT_LINK_NAME));
+    
     YARP_ASSERT(_paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
     YARP_ASSERT(_paramHelper->registerCommandCallback(COMMAND_ID_STOP,            this));
 
@@ -190,9 +201,13 @@ void WholeBodyReachThread::run()
 
     readRobotStatus();                      // read encoders, compute positions and Jacobians
     
-    sendMsg("dq "+jointToString(WBR_RAD2DEG * _robotState.dqJ));
-    sendMsg("dq norm    "+toString(WBR_RAD2DEG * _robotState.dqJ.norm()));
-    
+    Frame H_left;
+    _robot->computeH(_robotState.qJ.data(), _robotState.xBase, LINK_ID_LEFT_FOOT, H_left);
+    sendMsg("Left foot pose:  "+toString(Vector3d::Map(H_left.p),3));
+//    sendMsg("dq "+jointToString(WBR_RAD2DEG * _robotState.dqJ));
+//    sendMsg("dq norm    "+toString(WBR_RAD2DEG * _robotState.dqJ.norm()));
+//    sendMsg("x base\n"+_robotState.xBase.toString());
+
     bool res = _solver.computeSolution(_robotState, _tauDes);   // compute desired joint torques
 
     if(_status==WHOLE_BODY_REACH_ON)
@@ -207,6 +222,68 @@ void WholeBodyReachThread::run()
         {
             preStopOperations();            // stop the controller
             cout<<"\n***** ERROR: CONTROLLER STOPPED BECAUSE SOLVER COULDN'T FIND A SOLUTION\n";
+        }
+        else if(_integrateEoM)
+        {
+//            sendMsg("q PRE  "+jointToString(WBR_RAD2DEG * _robotState.qJ));
+            double timestep = 1e-3;
+            int nt = getRate()*1e-3/timestep;
+            sendMsg("Number of calls to integrator: "+toString(nt));
+            for(int i=0; i<nt; i++)
+            {
+                _integrator.integrate(_tauDes,
+                                      _robotState.xBase,    _robotState.qJ,    _robotState.dq,
+                                      _robotStateNew.xBase, _robotStateNew.qJ, _robotStateNew.dq);
+                _robotState.xBase   = _robotStateNew.xBase;
+                _robotState.qJ      = _robotStateNew.qJ;
+                _robotState.dq      = _robotStateNew.dq;
+                if(i==0)
+                    sendMsg("|| ddqDes - ddqIntegrator || = "+toString((_integrator._ddq - _solver._ddqDes).norm()));
+            }
+//            sendMsg("q POST "+jointToString(WBR_RAD2DEG * _robotState.qJ));
+            
+#ifdef DEBUG_FORWARD_DYNAMICS
+//            double Jcerr = (_integrator._A - _solver._Jc).norm();
+            // Null-space basis may be different but span the same space.
+            // Given two different basis Z1 and Z2 of the same space, this needs to hold:
+            // Z2 = Z1 * Z1^T * Z2
+            // Z1 = Z2 * Z2^T * Z1
+//            const MatrixRXd& Z1 = _integrator._Z;
+//            const MatrixRXd& Z2 = _solver._Zc;
+//            double Z1err = (Z1 - Z2*Z2.transpose()*Z1).norm();
+//            double Z2err = (Z2 - Z1*Z1.transpose()*Z2).norm();
+//            double ZMZerr = (_integrator._ZMZ - _solver._ZMZ).norm();
+//            VectorXd rhs_solver = (_solver._tau_np6     - _solver._h     - _solver._M    *_solver._ddqBar);
+//            VectorXd rhs_integr = (_integrator._tau_np6 - _integrator._h - _integrator._M*_integrator._ddqBar);
+//            double rhs_err = (rhs_solver-rhs_integr).norm();
+//            double tau_err = (_solver._tau_np6-_integrator._tau_np6).norm();
+//            double h_err = (_solver._h-_integrator._h).norm();
+//            double ddqBar_err = (_solver._ddqBar    -_integrator._ddqBar).norm();
+//            double MddqBar_err = (_solver._M*_solver._ddqBar - _integrator._M*_integrator._ddqBar).norm();
+//            double ddq_c_err = (_integrator._ddq_c - _solver._ddq_c).norm();
+            
+//            double ddqFD_err = (_integrator._ddq - _solver._ddqFD).norm();
+//            sendMsg("Jc err    "+toString(Jcerr));
+//            sendMsg("Z1 err    "+toString(Z1err));
+//            sendMsg("Z2 err    "+toString(Z2err));
+//            sendMsg("Z1\n"+toString(Z1.transpose(),1,"\n",16));
+//            sendMsg("Z2\n"+toString(Z2.transpose(),1,"\n",16));
+//            sendMsg("ZMZ err   "+toString(ZMZerr));
+//            sendMsg("rhs err   "+toString(rhs_err));
+//            sendMsg("tau err   "+toString(tau_err));
+//            sendMsg("h err     "+toString(h_err));
+//            sendMsg("ddqBar err "+toString(ddqBar_err));
+//            sendMsg("M*ddqBar err "+toString(MddqBar_err));
+//            sendMsg("ddq_c err "+toString(ddq_c_err));
+//            sendMsg("ddqFD err   "+toString(ddqFD_err));
+#endif
+            
+            // copy base and joint velocities into _robotState.dqJ and _robotState.vBase
+            _robotState.vBase   = _robotState.dq.head<6>();
+            _robotState.dqJ     = _robotState.dq.tail(_n);
+
+            // send the current state as desired state for the simulator/real robot
+            _robot->setControlReference(_robotState.qJ.data());
         }
         else
         {
@@ -223,61 +300,67 @@ void WholeBodyReachThread::run()
 //*************************************************************************************************************************
 bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
 {
-    // read joint angles
     bool res = true;
-
-    // temporary replacement of _robot->getEstimate because it's too slow
-#ifdef DO_NOT_USE_WHOLE_BODY_STATE_INTERFACE
-    res = res && _sensors->readSensors(SENSOR_ENCODER, _robotState.qJ.data(),      _qJStamps.data(), blockingRead);
-//    res = res && _sensors->readSensors(SENSOR_TORQUE,  _robotState.torques.data(), NULL,             blockingRead);
-    for(int i=0; i<_n; i++)
-        _qJ_yarp(i) = _robotState.qJ(i);
-    AWPolyElement el;
-    el.data = _qJ_yarp;
-    el.time = Time::now(); //Use yarp time rather than _qJStamps to be synchronized with simulator
     
-//    static double _qJStampsOld = 0.0;
-//    static double timeStampOld = 0.0;
-//    double timeStamp = Time::now();
-//    sendMsg("q stamp-stampOld = "+toString(_qJStamps[0]-_qJStampsOld));
-//    sendMsg("t stamp-stampOld = "+toString(timeStamp-timeStampOld)+ "\t Is system clock? "+toString(Time::isSystemClock()));
-//    _qJStampsOld = _qJStamps[0];
-//    timeStampOld = timeStamp;
-    
-    _dqJ_yarp = _dqFilt->estimate(el);
-    for(int i=0; i<_n; i++)
-        _robotState.dqJ(i) = _dqJ_yarp(i);
-#else
-    res = res && _robot->getEstimates(ESTIMATE_JOINT_POS,    _robotState.qJ.data(),     -1.0, blockingRead);
-    res = res && _robot->getEstimates(ESTIMATE_JOINT_VEL,    _robotState.dqJ.data(),    -1.0, blockingRead);
-#endif
-    _qjDeg  = CTRL_RAD2DEG*_robotState.qJ;
-    _dqjDeg = CTRL_RAD2DEG*_robotState.dqJ;
-
-    // base orientation conversion
-#ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
-    _robot->computeH(_robotState.qJ.data(), Frame(), LINK_ID_LEFT_FOOT, _H_base_leftFoot);
-    _H_base_leftFoot = _H_base_leftFoot*_Ha;
-    _H_base_leftFoot.setToInverse().get4x4Matrix(_H_w2b.data());    // homogeneous transformation from world (i.e. left foot) to base
-#endif
-    _robotState.xBase.set4x4Matrix(_H_w2b.data());
-
-    // compute Jacobians of both feet
-    if(_supportPhase==WBR_SUPPORT_DOUBLE)
+    if(!_integrateEoM)
     {
-        res = res && _robot->computeJacobian(_robotState.qJ.data(), _robotState.xBase, LINK_ID_RIGHT_FOOT,  _JfootR.data());
-        res = res && _robot->computeJacobian(_robotState.qJ.data(), _robotState.xBase, LINK_ID_LEFT_FOOT,   _JfootL.data());
-        _Jc.topRows<6>()     = _JfootR;
-        _Jc.bottomRows<6>()  = _JfootL;
+        // temporary replacement of _robot->getEstimate because it's too slow
+#ifdef DO_NOT_USE_WHOLE_BODY_STATE_INTERFACE
+        res = res && _sensors->readSensors(SENSOR_ENCODER, _robotState.qJ.data(),      _qJStamps.data(), blockingRead);
+        //    res = res && _sensors->readSensors(SENSOR_TORQUE,  _robotState.torques.data(), NULL,             blockingRead);
+        for(int i=0; i<_n; i++)
+            _qJ_yarp(i) = _robotState.qJ(i);
+        AWPolyElement el;
+        el.data = _qJ_yarp;
+        el.time = Time::now(); //Use yarp time rather than _qJStamps to be synchronized with simulator
+        
+        //    static double _qJStampsOld = 0.0;
+        //    static double timeStampOld = 0.0;
+        //    double timeStamp = Time::now();
+        //    sendMsg("q stamp-stampOld = "+toString(_qJStamps[0]-_qJStampsOld));
+        //    sendMsg("t stamp-stampOld = "+toString(timeStamp-timeStampOld)+ "\t Is system clock? "+toString(Time::isSystemClock()));
+        //    _qJStampsOld = _qJStamps[0];
+        //    timeStampOld = timeStamp;
+        
+        _dqJ_yarp = _dqFilt->estimate(el);
+        for(int i=0; i<_n; i++)
+            _robotState.dqJ(i) = _dqJ_yarp(i);
+#else
+        res = res && _robot->getEstimates(ESTIMATE_JOINT_POS,    _robotState.qJ.data(),     -1.0, blockingRead);
+        res = res && _robot->getEstimates(ESTIMATE_JOINT_VEL,    _robotState.dqJ.data(),    -1.0, blockingRead);
+#endif
+    
+
+        // base orientation conversion
+#ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
+        // compute base pose assuming left foot is fixed on the ground
+        _robot->computeH(_robotState.qJ.data(), Frame(), LINK_ID_LEFT_FOOT, _H_base_leftFoot);
+        _H_base_leftFoot = _H_base_leftFoot*_Ha;
+        _H_base_leftFoot.setToInverse().get4x4Matrix(_H_w2b.data());    // homogeneous transformation from world (i.e. left foot) to base
+#endif
+        _robotState.xBase.set4x4Matrix(_H_w2b.data());
+
+        // compute Jacobians of both feet to estimate base velocity
+        if(_supportPhase==WBR_SUPPORT_DOUBLE)
+        {
+            res = res && _robot->computeJacobian(_robotState.qJ.data(), _robotState.xBase, LINK_ID_RIGHT_FOOT,  _JfootR.data());
+            res = res && _robot->computeJacobian(_robotState.qJ.data(), _robotState.xBase, LINK_ID_LEFT_FOOT,   _JfootL.data());
+            _Jc.topRows<6>()     = _JfootR;
+            _Jc.bottomRows<6>()  = _JfootL;
+        }
+        
+        // estimate base velocity from joint velocities and constraint Jacobian Jc
+        _svdJcb.compute(_Jc.leftCols<6>(), ComputeThinU | ComputeThinV);
+        _robotState.vBase = _svdJcb.solve(-_Jc.rightCols(_n)*_robotState.dqJ);
+
+        // copy base and joint velocities into _robotState.dq
+        _robotState.dq.head<6>()    = _robotState.vBase;
+        _robotState.dq.tail(_n)     = _robotState.dqJ;
     }
     
-    // estimate base velocity from joint velocities and constraint Jacobian Jc
-    _svdJcb.compute(_Jc.leftCols<6>(), ComputeThinU | ComputeThinV);
-    _robotState.vBase = _svdJcb.solve(-_Jc.rightCols(_n)*_robotState.dqJ);
-
-    // copy base and joint velocities into _robotState.dq
-    _robotState.dq.head<6>() = _robotState.vBase;
-    _robotState.dq.tail(_n) = _robotState.dqJ;
+    // convert joint angles and velocities from rad to deg
+    _qjDeg  = CTRL_RAD2DEG*_robotState.qJ;
+    _dqjDeg = CTRL_RAD2DEG*_robotState.dqJ;
     
     return res;
 }
@@ -299,7 +382,7 @@ bool WholeBodyReachThread::preStartOperations()
     bool res = readRobotStatus(true);
     // initialize trajectory generators
     _solver.init(_robotState);
-#define DEBUG_INIT
+
 #ifdef DEBUG_INIT
     _tasks.momentum.update(_robotState);
     _tasks.posture.update(_robotState);
@@ -307,7 +390,10 @@ bool WholeBodyReachThread::preStartOperations()
     cout<<"INIT Desired ddq posture: "<<toString(_tasks.posture.getEqualityVector(),2)<<endl;
     _solver.init(_robotState);
 #endif
-    res = res && _robot->setControlMode(CTRL_MODE_TORQUE, _tauDes.data());
+    
+    if(_integrateEoM==false)
+        res = res && _robot->setControlMode(CTRL_MODE_TORQUE, _tauDes.data());
+    
     if(res)
         _status = WHOLE_BODY_REACH_ON;                 // set thread status to "on"
     else
@@ -322,11 +408,8 @@ bool WholeBodyReachThread::preStartOperations()
 void WholeBodyReachThread::preStopOperations()
 {
     // no need to lock because the mutex is already locked
-//    VectorXd dqMotors = VectorXd::Zero(_n);
-//    _robot->setControlReference(dqMotors.data());       // stop joint motors
-    cout<<"\nWholeBodyReachThread::preStopOperations()\n\n";
     _robot->setControlMode(CTRL_MODE_POS);              // set position control mode
-    _status = WHOLE_BODY_REACH_OFF;                            // set thread status to "off"
+    _status = WHOLE_BODY_REACH_OFF;                     // set thread status to "off"
 }
 
 //*************************************************************************************************************************
@@ -400,27 +483,3 @@ void WholeBodyReachThread::sendMsg(const string &s, MsgType type)
 {
     getLogger().sendMsg("[WBRThread] "+s, type);
 }
-
-
-// JOINT SPACE INVERSE DYNAMICS
-//MatrixRXd Jc = solver->constraints.A;
-//MatrixRXd Nc        = nullSpaceProjector(Jc, PINV_TOL);
-//MatrixRXd NcSTpinvD = pinvDampedEigen(Nc.rightCols(_n), 1e-8);
-//MatrixRXd Jcpinv    = pinvDampedEigen(Jc, PINV_TOL);
-//VectorXd dJcdq(_k);
-//_robot->computeDJdq(qRad.data(), xBase, dqJ.data(), dq.data(), LINK_ID_RIGHT_FOOT, dJcdq.data());
-//_robot->computeDJdq(qRad.data(), xBase, dqJ.data(), dq.data(), LINK_ID_LEFT_FOOT,  dJcdq.data()+6);
-//VectorXd ddqDes1   = -Jcpinv*dJcdq;
-//VectorXd ddqDes = ddqDes1 + NcSTpinvD.transpose()*(dqcE - ddqDes1.tail(_n));
-//VectorXd  tauDes    = NcSTpinvD * Nc * (M*ddqDes + h);
-
-//// check that tauDes gives the desired accelerations
-//MatrixRXd Minv = M.llt().solve(MatrixRXd::Identity(_n+6,_n+6));
-//MatrixRXd Lambda_c_inv = (Jc*Minv*Jc.transpose());
-//VectorXd tau_Np6 = VectorXd::Zero(_n+6);
-//tau_Np6.tail(_n) = tauDes;
-//VectorXd b = Jc*Minv*(h - tau_Np6) - dJcdq;
-//VectorXd fc = Lambda_c_inv.llt().solve(b);
-//VectorXd ddq = Minv*(tau_Np6 - h + Jc.transpose()*fc);
-//sendMsg("ddq-ddqDes: "+toString((ddq-ddqDes).tail(_n).transpose(),1), MSG_DEBUG);
-//sendMsg("M*ddq+h-J^T*f-tau: "+toString((M*ddq+h-Jc.transpose()*fc-tau_Np6).transpose(),1), MSG_DEBUG);

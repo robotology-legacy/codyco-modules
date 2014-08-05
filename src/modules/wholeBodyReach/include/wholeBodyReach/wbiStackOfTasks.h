@@ -54,14 +54,20 @@ public:
     enum ParamTypeId
     {
         USE_NULLSPACE_BASE,
-        NUMERICAL_DAMPING,
+        DYN_NUM_DAMP,       /// numerical damping used when solving dynamics
+        CONSTR_NUM_DAMP,    /// numerical damping used when solving constraints
+        TASK_NUM_DAMP,      /// numerical damping used when solving tasks
         CTRL_ALG
     };
     
-protected:
+public:
     WholeBodyReachCtrlAlgorithm     _ctrlAlg;   /// the id of the control algorithm to use
-    double          _numericalDamping;          /// damping factor to use in solver
-    int             _numericalDamping_paramId;  /// id of the parameter associated to _numericalDamping
+    double          _numericalDampingDyn;      /// damping factor when solving dynamics
+    double          _numericalDampingConstr;   /// damping factor when solving constraints
+    double          _numericalDampingTask;     /// damping factor when solving tasks
+//    int             _numericalDampingDyn_paramId;  /// id of the parameter associated to _numericalDamping
+//    int             _numericalDampingDyn_paramId;  /// id of the parameter associated to _numericalDamping
+//    int             _numericalDampingDyn_paramId;  /// id of the parameter associated to _numericalDamping
     int             _useNullspaceBase;          /// 1: use base, 0: use projector
     int             _useNullspaceBase_paramId;  /// id of the parameter associated to _useNullspaceBase
     
@@ -146,6 +152,19 @@ protected:
     virtual bool computeComPosture(RobotState& robotState, Eigen::VectorRef torques);
     virtual bool computeMomentumPosture(RobotState& robotState, Eigen::VectorRef torques);
     
+//#define DEBUG_FORWARD_DYNAMICS
+#ifdef DEBUG_FORWARD_DYNAMICS
+public:
+    Eigen::SVD _Jc_svd;
+    Eigen::MatrixRXd _ZMZ, _Zc;
+    Eigen::VectorXd _ddq_c, _ddqBar, _ddqFD, _tau_np6;
+    Eigen::Cholesky _ZMZ_chol;
+    
+    void constrainedForwardDynamics(Eigen::Vector3d& g, Eigen::VectorConst torques, wbi::Frame &xBase,
+                                    Eigen::VectorRef qj, Eigen::VectorRef dq,
+                                    Eigen::VectorRef ddq);
+#endif
+    
 public:
      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
@@ -217,51 +236,8 @@ public:
         else
             _svdOptions = Eigen::ComputeThinU | Eigen::ComputeThinV;
     }
-    
-    void setNumericalDamping(double d){ _numericalDamping=d; }
-    
-    double getNumericalDamping(){ return _numericalDamping; }
 };
     
-
-Eigen::VectorXd svdSolveWithDamping(const Eigen::JacobiSVD<Eigen::MatrixRXd>& svd, Eigen::VectorConst b, double damping=0.0);
-
-
-
-/** Compute the truncated pseudoinverse of the specified matrix A. 
-  * This version of the function takes addtional input matrices to avoid allocating memory and so improve 
-  * the efficiency of the computation. 
-  * @param A Input mXn matrix.
-  * @param tol Input threshold for the singular values of the truncated pseudoinverse.
-  * @param Spinv Output kXk matrix (with k=min(m,n)), truncated pseudoinverse of the singular value matrix of A. 
-  * @param Apinv Output nXm matrix, truncated pseudoinverse of A.
-  * @param sv Output (optional) k-dim vector (with k=min(m,n)), singular values of A. */
-void pinvTrunc(const Eigen::MatrixRXd &A, double tol, Eigen::MatrixRXd &Apinv, Eigen::MatrixRXd &Spinv, Eigen::VectorXd &sv);
-
-/** Compute two different pseudoinverses of the specified matrix A: a truncated pseudoinverse and a
-  * damped pseudoinverse. The difference between the two versions is that the truncated version sets to zero
-  * all the singular values that are less than a certain threshold (tol), whereas the damped version
-  * uses computes this expression: \f[ A^+ = A^T(AA^T+\lambda I)^{-1}\f], where \f[ \lambda \f] is the damping 
-  * factor. Both pseudoinverses are computed from the singular value decomposition of A.
-  * @param A Input mXn matrix.
-  * @param tol Input threshold for the singular values of the truncated pseudoinverse.
-  * @param damp Input damping factor for the damped pseudoinverse.
-  * @param Apinv Output nXm matrix, truncated pseudoinverse of A.
-  * @param ApinvDamp Output nXm matrix, damped pseudoinverse of A.*/
-void pinvDampTrunc(const Eigen::MatrixRXd &A, double tol, double damp, Eigen::MatrixRXd &Apinv, Eigen::MatrixRXd &ApinvDamp);
-    
-Eigen::MatrixRXd nullSpaceProjector(const Eigen::Ref<Eigen::MatrixRXd> A, double tol);
-    
-Eigen::MatrixRXd pinvDampedEigen(const Eigen::Ref<Eigen::MatrixRXd> &A, double damp);
-
-    
-/** Tolerance for considering two values equal */
-const double ZERO_TOL = 1e-5;
-    
-void assertEqual(const Eigen::MatrixRXd &A, const Eigen::MatrixRXd &B, std::string testName, double tol = ZERO_TOL);
-
-void testFailed(std::string testName);
-
 }
 
 #endif

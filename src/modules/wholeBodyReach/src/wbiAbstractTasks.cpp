@@ -21,6 +21,7 @@ using namespace wholeBodyReach;
 using namespace std;
 using namespace Eigen;
 using namespace wbi;
+using namespace paramHelp;
 
 
 /********************************************************************************************/

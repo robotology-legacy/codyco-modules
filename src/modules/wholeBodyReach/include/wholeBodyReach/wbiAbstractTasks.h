@@ -21,6 +21,7 @@
 #include <wbi/wholeBodyInterface.h>
 #include <wbi/wbiUtil.h>
 #include <wholeBodyReach/wholeBodyReachConstants.h>
+#include <wholeBodyReach/wholeBodyReachUtils.h>
 #include <paramHelp/paramHelperServer.h>
 #include <Eigen/Core>               // import most common Eigen types
 #include <string>

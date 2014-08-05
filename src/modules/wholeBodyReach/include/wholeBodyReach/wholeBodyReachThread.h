@@ -40,6 +40,7 @@
 #include <wholeBodyReach/wholeBodyReachConstants.h>
 #include <wholeBodyReach/wbiStackOfTasks.h>
 #include <wholeBodyReach/Logger.h>
+#include <wholeBodyReach/constrainedDynamicsIntegrator.h>
 
 
 using namespace yarp::os;
@@ -71,6 +72,7 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
     wholeBodyInterface*     _robot;             // interface to the robot
     wbiStackOfTasks         _solver;            // stack of task solver
     RobotState              _robotState;        // struct collecting the robot's state information
+    RobotState              _robotStateNew;     // used when integrating EoM
     VectorXd                _tauDes;            // desired joint torques computed by the solver
     
     struct WholeBodyReachTasks
@@ -132,6 +134,8 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
 #endif
     
     // Module parameters
+    int                     _integrateEoM;      // if true it integrates the Equation of Motion
+    ConstrainedDynamicsIntegrator _integrator;
     double                  _forceFriction;
     double                  _momentFriction;
     Vector6d                _kpConstraints;
