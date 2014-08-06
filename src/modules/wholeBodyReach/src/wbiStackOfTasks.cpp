@@ -430,13 +430,13 @@ bool wbiStackOfTasks::computeComPosture(RobotState& robotState, Eigen::VectorRef
     D.topRightCorner(6, _k)         = -Jc_b.transpose()*_N_X;
     d.head<6>()                     = Jc_b.transpose()*_fcDes - h_b;
     d.tail(_k)                      = -_dJcdq;
-    pinvDampTrunc(D, PINV_TOL, _numericalDampingConstr, Dpinv, DpinvD);
+    pinvDampTrunc(D, PINV_TOL, _numericalDampingDyn, Dpinv, DpinvD);
     VectorXd y                      = DpinvD*d;
     
     START_PROFILING(PROFILE_DDQ_POSTURE_TASK);
     {
         MatrixRXd N_D           = MatrixRXd::Identity(_n+6+_k,_n+6+_k) - Dpinv*D;
-        MatrixRXd Jp_NDpinvD    = pinvDampedEigen(N_D.middleRows(6,_n), _numericalDampingConstr);
+        MatrixRXd Jp_NDpinvD    = pinvDampedEigen(N_D.middleRows(6,_n), _numericalDampingTask);
         y                       += Jp_NDpinvD*(_ddq_jPosture - y.segment(6, _n));
     }
     STOP_PROFILING(PROFILE_DDQ_POSTURE_TASK);
