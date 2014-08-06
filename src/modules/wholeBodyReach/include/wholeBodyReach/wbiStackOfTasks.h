@@ -158,6 +158,8 @@ public:
     Eigen::SVD _Jc_svd;
     Eigen::MatrixRXd _ZMZ, _Zc;
     Eigen::VectorXd _ddq_c, _ddqBar, _ddqFD, _tau_np6;
+    Eigen::VectorXd _qj, _dq;
+    wbi::Frame _xB;
     Eigen::Cholesky _ZMZ_chol;
     
     void constrainedForwardDynamics(Eigen::Vector3d& g, Eigen::VectorConst torques, wbi::Frame &xBase,

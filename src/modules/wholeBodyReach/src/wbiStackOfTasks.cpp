@@ -140,6 +140,8 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             index_k += k;
             index_in += in;
         }
+        _dJcdq *= -1.0;
+        
         assert(index_k==_k);
 //        sendMsg("X:\n"+toString(_X,1,"\n",12));
 //        sendMsg("CI:\n"+toString(_qpData.CI,1,"\n",12));
@@ -198,9 +200,13 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     STOP_PROFILING(PROFILE_WHOLE_SOLVER);
     
 #ifdef DEBUG_FORWARD_DYNAMICS
+    _qj = robotState.qJ;
+    _xB = robotState.xBase;
+    _dq = robotState.dq;
+    
     _ddqFD.resize(_n+6);   // accelerations computed by the forward dynamics algorithm
     constrainedForwardDynamics(robotState.g, torques, robotState.xBase, robotState.qJ, robotState.dq, _ddqFD);
-    sendMsg("ddqFD: "+jointToString(WBR_RAD2DEG*_ddqFD,2));
+    sendMsg("ddqFD-ddqDes: "+toString((_ddqFD-_ddqDes).norm()));
 #endif
     
     return res;

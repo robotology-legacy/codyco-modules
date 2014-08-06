@@ -47,8 +47,11 @@ public:
         TIMESTEP            /// timestep used for integration
     };
     
-// this should return protected after debugging
+    Eigen::VectorXd         _ddq_first_call; /// joint+base acceleration computed at the first call of the dynamics (debug)
+    
+// this should return "protected" after debugging
 public:
+    
     wbi::iWholeBodyModel*   _robot;     /// interface to robot dynamics computation
     int                     _n;         /// number of joints
     int                     _m;         /// number of constraints
@@ -141,6 +144,7 @@ public:
                            const wbi::Frame& xB_i, Eigen::VectorConst qj_i, Eigen::VectorConst dq_i,
                            wbi::Frame& xB_f, Eigen::VectorRef qj_f, Eigen::VectorRef dq_f);
     
+    /** Integrate using the default timestep. */
     virtual bool integrate(Eigen::VectorConst torques,
                            const wbi::Frame& xB_i, Eigen::VectorConst qj_i, Eigen::VectorConst dq_i,
                            wbi::Frame& xB_f, Eigen::VectorRef qj_f, Eigen::VectorRef dq_f);

@@ -116,6 +116,8 @@ bool ConstrainedDynamicsIntegrator::integrate(double dt, VectorConst torques,
     // INTEGRATION
     //k1
     dynamics(_x_i, _dx);
+    
+    _ddq_first_call = _ddq;
 
 #define USE_RK4
 #ifdef USE_RK4
@@ -205,18 +207,10 @@ void ConstrainedDynamicsIntegrator::constrainedForwardDynamics(Eigen::VectorCons
     // compute mass matrix and generalized bias forces
     _robot->computeMassMatrix(qj.data(), xBase, _M.data());
     _robot->computeGeneralizedBiasForces(qj.data(), xBase, dq.tail(_n).data(), dq.data(), _g.data(), _h.data());
-    
-    // TEMP
-//    SVD _A_svd;
-//    MatrixRXd _ZMZ, _Z;
-//    VectorXd _ddq_c, _tau_np6 = VectorXd::Zero(_n+6);
-//    Cholesky _ZMZ_chol;
-    // END TEMP
 
     // compute constraint solution: ddqBar = - Jc^+ * dJc * dq
     _A_svd.compute(_A, ComputeFullU | ComputeFullV);
     _ddqBar = svdSolveWithDamping(_A_svd, _b, _numericalDamping);
-//    _ddqBar = _A_svd.solve(_b);
     
     // compute base of null space of constraint Jacobian
     int r = (_A_svd.singularValues().array()>PINV_TOL).count();

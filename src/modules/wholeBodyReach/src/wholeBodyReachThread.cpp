@@ -203,7 +203,7 @@ void WholeBodyReachThread::run()
     
     Frame H_left;
     _robot->computeH(_robotState.qJ.data(), _robotState.xBase, LINK_ID_LEFT_FOOT, H_left);
-    sendMsg("Left foot pose:  "+toString(Vector3d::Map(H_left.p),3));
+    sendMsg("Left foot pose:  "+toString(Vector3d::Map(H_left.p),4));
 //    sendMsg("dq "+jointToString(WBR_RAD2DEG * _robotState.dqJ));
 //    sendMsg("dq norm    "+toString(WBR_RAD2DEG * _robotState.dqJ.norm()));
 //    sendMsg("x base\n"+_robotState.xBase.toString());
@@ -226,8 +226,7 @@ void WholeBodyReachThread::run()
         else if(_integrateEoM)
         {
 //            sendMsg("q PRE  "+jointToString(WBR_RAD2DEG * _robotState.qJ));
-            double timestep = 1e-3;
-            int nt = getRate()*1e-3/timestep;
+            int nt = getRate()*1e-3/_integrator._timestep;
             sendMsg("Number of calls to integrator: "+toString(nt));
             for(int i=0; i<nt; i++)
             {
@@ -238,45 +237,49 @@ void WholeBodyReachThread::run()
                 _robotState.qJ      = _robotStateNew.qJ;
                 _robotState.dq      = _robotStateNew.dq;
                 if(i==0)
-                    sendMsg("|| ddqDes - ddqIntegrator || = "+toString((_integrator._ddq - _solver._ddqDes).norm()));
+                {
+                    sendMsg("|| ddqDes - ddqIntegrator || = "+toString((_integrator._ddq_first_call - _solver._ddqDes).norm()));
+#ifdef DEBUG_FORWARD_DYNAMICS
+                    {
+                    // Null-space basis may be different but span the same space.
+                    // Given two different basis Z1 and Z2 of the same space, this needs to hold:
+                    // Z2 = Z1 * Z1^T * Z2
+                    // Z1 = Z2 * Z2^T * Z1
+                    const MatrixRXd& Z1 = _integrator._Z;
+                    const MatrixRXd& Z2 = _solver._Zc;
+                    double Z1err = (Z1 - Z2*Z2.transpose()*Z1).norm();
+                    double Z2err = (Z2 - Z1*Z1.transpose()*Z2).norm();
+                    double ZMZerr = (_integrator._ZMZ - _solver._ZMZ).norm();
+                    VectorXd rhs_solver = (_solver._tau_np6     - _solver._h     - _solver._M    *_solver._ddqBar);
+                    VectorXd rhs_integr = (_integrator._tau_np6 - _integrator._h - _integrator._M*_integrator._ddqBar);
+                    double MddqBar_err = (_solver._M*_solver._ddqBar - _integrator._M*_integrator._ddqBar).norm();
+                    double ddqFD_err = (_integrator._ddq_first_call - _solver._ddqFD).norm();
+                    
+                    sendMsg("Jc err    "+toString((_integrator._A - _solver._Jc).norm()));
+                    sendMsg("dJc*dq err "+toString((_integrator._b + _solver._dJcdq).norm())); // b = -dJc*dq
+                    sendMsg("damp err "+toString(_integrator._numericalDamping - _solver._numericalDampingConstr));
+                    sendMsg("Z1 err    "+toString(Z1err));
+                    sendMsg("Z2 err    "+toString(Z2err));
+//                  sendMsg("Z1\n"+toString(Z1.transpose(),1,"\n",16));
+//                  sendMsg("Z2\n"+toString(Z2.transpose(),1,"\n",16));
+                    sendMsg("ZMZ err   "+toString(ZMZerr));
+                    sendMsg("rhs err   "+toString((rhs_solver-rhs_integr).norm()));
+//                    sendMsg("tau err   "+toString((_solver._tau_np6-_integrator._tau_np6).norm()));
+//                    sendMsg("qJ err    "+toString((_solver._qj - _integrator._qj).norm()));
+//                    sendMsg("xB err<1e-5? "+toString(isEqual(_solver._xB, _integrator._xB, 1e-5)));
+//                    sendMsg("dq err    "+toString((_solver._dq - _integrator._dq).norm()));
+//                    sendMsg("h err     "+toString((_solver._h-_integrator._h).norm()));
+                    sendMsg("M err      "+toString((_solver._M - _integrator._M).norm()));
+                    sendMsg("ddqBar err "+toString((_solver._ddqBar    -_integrator._ddqBar).norm()));
+                    sendMsg("M*ddqBar err "+toString(MddqBar_err));
+                    sendMsg("ddq_c err "+toString((_integrator._ddq_c - _solver._ddq_c).norm()));
+                    sendMsg("|| ddqFD - ddqIntegrator || = "+toString(ddqFD_err));
+                    }
+#endif
+                }
             }
 //            sendMsg("q POST "+jointToString(WBR_RAD2DEG * _robotState.qJ));
             
-#ifdef DEBUG_FORWARD_DYNAMICS
-//            double Jcerr = (_integrator._A - _solver._Jc).norm();
-            // Null-space basis may be different but span the same space.
-            // Given two different basis Z1 and Z2 of the same space, this needs to hold:
-            // Z2 = Z1 * Z1^T * Z2
-            // Z1 = Z2 * Z2^T * Z1
-//            const MatrixRXd& Z1 = _integrator._Z;
-//            const MatrixRXd& Z2 = _solver._Zc;
-//            double Z1err = (Z1 - Z2*Z2.transpose()*Z1).norm();
-//            double Z2err = (Z2 - Z1*Z1.transpose()*Z2).norm();
-//            double ZMZerr = (_integrator._ZMZ - _solver._ZMZ).norm();
-//            VectorXd rhs_solver = (_solver._tau_np6     - _solver._h     - _solver._M    *_solver._ddqBar);
-//            VectorXd rhs_integr = (_integrator._tau_np6 - _integrator._h - _integrator._M*_integrator._ddqBar);
-//            double rhs_err = (rhs_solver-rhs_integr).norm();
-//            double tau_err = (_solver._tau_np6-_integrator._tau_np6).norm();
-//            double h_err = (_solver._h-_integrator._h).norm();
-//            double ddqBar_err = (_solver._ddqBar    -_integrator._ddqBar).norm();
-//            double MddqBar_err = (_solver._M*_solver._ddqBar - _integrator._M*_integrator._ddqBar).norm();
-//            double ddq_c_err = (_integrator._ddq_c - _solver._ddq_c).norm();
-            
-//            double ddqFD_err = (_integrator._ddq - _solver._ddqFD).norm();
-//            sendMsg("Jc err    "+toString(Jcerr));
-//            sendMsg("Z1 err    "+toString(Z1err));
-//            sendMsg("Z2 err    "+toString(Z2err));
-//            sendMsg("Z1\n"+toString(Z1.transpose(),1,"\n",16));
-//            sendMsg("Z2\n"+toString(Z2.transpose(),1,"\n",16));
-//            sendMsg("ZMZ err   "+toString(ZMZerr));
-//            sendMsg("rhs err   "+toString(rhs_err));
-//            sendMsg("tau err   "+toString(tau_err));
-//            sendMsg("h err     "+toString(h_err));
-//            sendMsg("ddqBar err "+toString(ddqBar_err));
-//            sendMsg("M*ddqBar err "+toString(MddqBar_err));
-//            sendMsg("ddq_c err "+toString(ddq_c_err));
-//            sendMsg("ddqFD err   "+toString(ddqFD_err));
-#endif
             
             // copy base and joint velocities into _robotState.dqJ and _robotState.vBase
             _robotState.vBase   = _robotState.dq.head<6>();
