@@ -34,9 +34,11 @@
 #include <string.h>
 
 #include "wholeBodyReach/wholeBodyReachConstants.h"
+#include "wholeBodyReach/wholeBodyReachParams.h"
 #include "wholeBodyReach/wholeBodyReachThread.h"
 #include "wholeBodyReach/wholeBodyReachModule.h"
 #include <wholeBodyReach/Logger.h>
+#include <wholeBodyReach/Stopwatch.h>
 
 YARP_DECLARE_DEVICES(icubmod)
 

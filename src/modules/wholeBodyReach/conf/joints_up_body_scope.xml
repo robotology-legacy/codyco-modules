@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+3+3 + 3+6 + 7+3 + 7+3 + 7+6 + 25+25 + 25
+0:2 PARAM_ID_X_COM,                 3:5 PARAM_ID_DX_COM,
+6:8 PARAM_ID_XREF_COM,              9:14 PARAM_ID_MOMENTUM,
+15:21 PARAM_ID_X_FOREARM,             22:24 PARAM_ID_XREF_FOREARM,
+25:31 PARAM_ID_X_HAND,                32:34 PARAM_ID_XREF_HAND,
+35:41 PARAM_ID_X_BASE,                42:47 PARAM_ID_V_BASE,
+48:72 PARAM_ID_Q,                     73:97 PARAM_ID_DQ,            
+98:122 PARAM_ID_QREF				123:128 PARAM_ID_FORCE_INEQ_R_FOOT,          
+129:134 PARAM_ID_FORCE_INEQ_L_FOOT	135:137 PARAM_ID_FORCE_INEQ_FOREARM,                
+138:143 PARAM_ID_MOMENTUM_INTEGRAL  144:168 PARAM_ID_JOINT_TORQUES
+
+Remember that joint order is: 
+ 0:2         3:7          8:12          13:18       19:24
+torso(3), left arm(5), right arm(5), left leg(6), right leg(6)
+-->
+<portscope rows="4" columns="3">
+    <!-- plotting torso joint pos -->
+    <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Torso joint 0 pos ( red desired, blue measured )"
+          size="60" minval="-50" maxval="50" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="48" color="Blue" title="COM x" type="lines" size="2" />
+        <graph remote="/wbr/monitor:o" index="98" color="Red" title="COM x" type="lines" size="2" />
+    </plot>
+    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Torso joint 1 pos ( red desired, blue measured )"
+          size="60" minval="-50" maxval="50" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="49" color="Blue" title="COM x" type="lines" size="2" />
+        <graph remote="/wbr/monitor:o" index="99" color="Red" title="COM x" type="lines" size="2" />
+    </plot>
+    <plot gridx="0" gridy="2" hspan="1" vspan="1" title="Torso joint 2 pos ( red desired, blue measured )"
+          size="60" minval="-50" maxval="50" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="50" color="Blue" title="COM x" type="lines" size="2" />
+        <graph remote="/wbr/monitor:o" index="100" color="Red" title="COM x" type="lines" size="2" />
+    </plot>
+	
+    <!-- plotting left arm joint pos -->
+    <plot gridx="1" gridy="0" hspan="1" vspan="1" title="Left arm joint 0 pos ( red desired, blue measured )"
+          size="0" minval="-60" maxval="0" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="51" color="Blue" title="COM x" type="lines" size="2" />
+        <graph remote="/wbr/monitor:o" index="101" color="Red" title="COM x" type="lines" size="2" />
+    </plot>
+    <plot gridx="1" gridy="1" hspan="1" vspan="1" title="Left arm joint 1 pos ( red desired, blue measured )"
+          size="60" minval="20" maxval="80" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="52" color="Blue" title="COM x" type="lines" size="2" />
+        <graph remote="/wbr/monitor:o" index="102" color="Red" title="COM x" type="lines" size="2" />
+    </plot>
+    <plot gridx="1" gridy="2" hspan="1" vspan="1" title="Left arm joint 2 pos ( red desired, blue measured )"
+          size="60" minval="-20" maxval="20" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="53" color="Blue" title="COM x" type="lines" size="2" />
+        <graph remote="/wbr/monitor:o" index="103" color="Red" title="COM x" type="lines" size="2" />
+    </plot>
+    <plot gridx="1" gridy="3" hspan="1" vspan="1" title="Left arm joint 3 pos ( red desired, blue measured )"
+          size="60" minval="0" maxval="90" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="54" color="Blue" title="COM x" type="lines" size="2" />
+        <graph remote="/wbr/monitor:o" index="104" color="Red" title="COM x" type="lines" size="2" />
+    </plot>
+	
+    <!-- plotting right arm joint pos -->
+    <plot gridx="2" gridy="0" hspan="1" vspan="1" title="Right arm joint 0 pos ( red desired, blue measured )"
+          size="0" minval="-60" maxval="0" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="56" color="Blue" title="COM x" type="lines" size="2" />
+        <graph remote="/wbr/monitor:o" index="106" color="Red" title="COM x" type="lines" size="2" />
+    </plot>
+    <plot gridx="2" gridy="1" hspan="1" vspan="1" title="Right arm joint 1 pos ( red desired, blue measured )"
+          size="60" minval="20" maxval="80" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="57" color="Blue" title="COM x" type="lines" size="2" />
+        <graph remote="/wbr/monitor:o" index="107" color="Red" title="COM x" type="lines" size="2" />
+    </plot>
+    <plot gridx="2" gridy="2" hspan="1" vspan="1" title="Right arm joint 2 pos ( red desired, blue measured )"
+          size="60" minval="-20" maxval="20" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="58" color="Blue" title="COM x" type="lines" size="2" />
+        <graph remote="/wbr/monitor:o" index="108" color="Red" title="COM x" type="lines" size="2" />
+    </plot>
+    <plot gridx="2" gridy="3" hspan="1" vspan="1" title="Right arm joint 3 pos ( red desired, blue measured )"
+          size="60" minval="0" maxval="90" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="59" color="Blue" title="COM x" type="lines" size="2" />
+        <graph remote="/wbr/monitor:o" index="109" color="Red" title="COM x" type="lines" size="2" />
+    </plot>
+	
+</portscope>

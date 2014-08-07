@@ -28,6 +28,7 @@ using namespace wholeBodyReach;
 using namespace std;
 using namespace wbi;
 using namespace Eigen;
+using namespace paramHelp;
 
 MinJerkPDLinkPoseTask::MinJerkPDLinkPoseTask(string taskName, string linkName, double sampleTime, wholeBodyInterface* robot)
 : WbiAbstractTask(taskName, 6, robot),

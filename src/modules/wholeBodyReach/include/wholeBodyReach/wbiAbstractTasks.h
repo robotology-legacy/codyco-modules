@@ -21,6 +21,7 @@
 #include <wbi/wholeBodyInterface.h>
 #include <wbi/wbiUtil.h>
 #include <wholeBodyReach/wholeBodyReachConstants.h>
+#include <wholeBodyReach/wholeBodyReachUtils.h>
 #include <paramHelp/paramHelperServer.h>
 #include <Eigen/Core>               // import most common Eigen types
 #include <string>
@@ -55,7 +56,7 @@ struct RobotState
         dqJ.setZero(n);    // joint velocities (rad/s)
         dq.setZero(n+6);   // base+joint velocities
         g(0) = g(1) = 0.0;
-        g(2) = -9.8;
+        g(2) = -9.81;
         return true;
     }
 };

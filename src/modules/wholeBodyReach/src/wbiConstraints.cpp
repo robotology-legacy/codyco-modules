@@ -28,6 +28,7 @@ using namespace wholeBodyReach;
 using namespace std;
 using namespace wbi;
 using namespace Eigen;
+using namespace paramHelp;
 
 /*********************************************************************************************************/
 /******************************************* ContactConstraint *******************************************/

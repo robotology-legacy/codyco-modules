@@ -1,7 +1,7 @@
 /*
-Copyright (c) 2010-2013 Tommaso Urli
+ Copyright (c) 2010-2013 Tommaso Urli       tommaso.urli@uniud.it     University of Udine
+               2014      Andrea Del Prete   andre.delprete@gmail.com  LAAS-CNRS
 
-Tommaso Urli    tommaso.urli@uniud.it   University of Udine
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -36,6 +36,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iomanip>      // std::setprecision
 #include "wholeBodyReach/Stopwatch.h"
 
+using namespace std;
 using std::map;
 using std::string;
 using std::ostringstream;
@@ -46,31 +47,22 @@ Stopwatch& getProfiler()
     return s;
 }
 
-Stopwatch::Stopwatch(StopwatchMode _mode) : active(true), mode(_mode)  {
+/********************************************************************************************/
+Stopwatch::Stopwatch(StopwatchMode _mode) : active(true), mode(_mode)
+{
 	records_of = new map<string, PerformanceData>();
 }
 
-Stopwatch::~Stopwatch() {
-	delete records_of;
-}
-
-void Stopwatch::set_mode(StopwatchMode new_mode) {
-	mode = new_mode;
-}
-
-bool Stopwatch::performance_exists(string perf_name) {
-	return (records_of->find(perf_name) != records_of->end());
-}
-
-long double Stopwatch::take_time() {
-
-	if ( mode == CPU_TIME ) {
-		
-		// Use ctime
-		return clock();
-		
-	} else if ( mode == REAL_TIME ) {
-		
+/********************************************************************************************/
+long double Stopwatch::take_time()
+{
+	if ( mode == CPU_TIME )
+    {
+        return clock(); // Use ctime
+	}
+    
+    if ( mode == REAL_TIME )
+    {
 		// Query operating system
 		
 #ifdef WIN32
@@ -99,15 +91,13 @@ long double Stopwatch::take_time() {
 
 		return measure;
 #endif
-
-	} else {
-		// If mode == NONE, clock has not been initialized, then throw exception
-		throw StopwatchException("Clock not initialized to a time taking mode!");
 	}
+    return -1.0;
 }
 
-void Stopwatch::start(string perf_name)  {
-
+/********************************************************************************************/
+void Stopwatch::start(string perf_name)
+{
 	if (!active) return;
 
 	// Just works if not already present
@@ -125,15 +115,19 @@ void Stopwatch::start(string perf_name)  {
 	perf_info.paused = false;
 }
 
-void Stopwatch::stop(string perf_name) {
-	
-	if (!active) return;
+/********************************************************************************************/
+bool Stopwatch::stop(string perf_name)
+{
+	if (!active) return true;
 	
 	long double clock_end = take_time();
 	
 	// Try to recover performance data
 	if ( !performance_exists(perf_name) )
-		throw StopwatchException("Performance not initialized.");
+    {
+		cerr<<"[Stopwatch::stop] Performance not initialized: "<<perf_name<<endl;
+        return false;
+    }
 	
 	PerformanceData& perf_info = records_of->find(perf_name)->second;
 	
@@ -152,17 +146,22 @@ void Stopwatch::stop(string perf_name) {
 	
 	// Update total time
 	perf_info.total_time += lapse;
+    return true;
 }
 
-void Stopwatch::pause(string perf_name) {
-	
-	if (!active) return;
+/********************************************************************************************/
+bool Stopwatch::pause(string perf_name)
+{
+	if (!active) return true;
 	
 	long double  clock_end = clock();
 	
 	// Try to recover performance data
 	if ( !performance_exists(perf_name)  )
-		throw StopwatchException("Performance not initialized.");
+    {
+		cerr<<"[Stopwatch::pause] Performance not initialized: "<<perf_name<<endl;
+        return false;
+    }
 	
 	PerformanceData& perf_info = records_of->find(perf_name)->second;
 	
@@ -171,10 +170,12 @@ void Stopwatch::pause(string perf_name) {
 	// Update total time
 	perf_info.last_time += lapse;
 	perf_info.total_time += lapse;
+    return true;
 }
 
-void Stopwatch::reset_all() {
-	
+/********************************************************************************************/
+void Stopwatch::reset_all()
+{
 	if (!active) return;
 
 	map<string, PerformanceData>::iterator it;
@@ -184,8 +185,9 @@ void Stopwatch::reset_all() {
 	}
 }
 
-void Stopwatch::report_all(int precision, std::ostream& output) {
-
+/********************************************************************************************/
+void Stopwatch::report_all(int precision, std::ostream& output)
+{
 	if (!active) return;
 
     output<< "\n*** PROFILING RESULTS (min - avg - max) ***\n";
@@ -195,13 +197,17 @@ void Stopwatch::report_all(int precision, std::ostream& output) {
 	}
 }
 
-void Stopwatch::reset(string perf_name) {
-
-	if (!active) return;
+/********************************************************************************************/
+bool Stopwatch::reset(string perf_name)
+{
+	if (!active) return true;
 
 	// Try to recover performance data
 	if ( !performance_exists(perf_name)  )
-		throw StopwatchException("Performance not initialized.");
+    {
+		std::cerr<<"[Stopwatch::reset] Performance not initialized: "<<perf_name<<endl;
+        return false;
+    }
 	
 	PerformanceData& perf_info = records_of->find(perf_name)->second;
 	
@@ -212,25 +218,20 @@ void Stopwatch::reset(string perf_name) {
 	perf_info.last_time = 0;
 	perf_info.paused = false;
 	perf_info.stops = 0;
+    return true;
 }
 
-void Stopwatch::turn_on() {
-	std::cout << "Stopwatch active." << std::endl;
-	active = true;
-}
-
-void Stopwatch::turn_off() {
-	std::cout << "Stopwatch inactive." << std::endl;
-	active = false;
-}
-
-void Stopwatch::report(string perf_name, int precision, std::ostream& output) {
-
-	if (!active) return;
+/********************************************************************************************/
+bool Stopwatch::report(string perf_name, int precision, std::ostream& output)
+{
+	if (!active) return true;
 	
 	// Try to recover performance data
-	if ( !performance_exists(perf_name)  )
-		throw StopwatchException("Performance not initialized.");
+    if ( !performance_exists(perf_name) )
+    {
+		cerr<<"[Stopwatch::report] Performance not initialized: "<<perf_name<<endl;
+        return false;
+    }
 	
 	PerformanceData& perf_info = records_of->find(perf_name)->second;
 
@@ -243,82 +244,21 @@ void Stopwatch::report(string perf_name, int precision, std::ostream& output) {
     output << std::fixed << std::setprecision(precision) << (perf_info.min_time*1e3) << "\t";
     output << std::fixed << std::setprecision(precision) << (perf_info.total_time*1e3 / (long double) perf_info.stops) << "\t";
     output << std::fixed << std::setprecision(precision) << (perf_info.max_time*1e3) << " ms" << std::endl;
-
-//	ostringstream stops;
-//	stops << perf_info.stops;
-//	output << "  *  Stops " << stops.str() << std::endl;
-//	output << std::endl;
+    
+    return true;
 }
 
-long double Stopwatch::get_time_so_far(string perf_name) {
+/********************************************************************************************/
+bool Stopwatch::get_performance_data(string perf_name, PerformanceData& data)
+{
     // Try to recover performance data
-	if ( !performance_exists(perf_name)  )
-		throw StopwatchException("Performance not initialized.");
+	if ( !performance_exists(perf_name) )
+    {
+		cerr<<"[Stopwatch::get_performance_data] Performance not initialized: "<<perf_name<<endl;
+        return false;
+    }
     
-    long double lapse = (take_time() - (records_of->find(perf_name)->second).clock_start);
+    data = records_of->find(perf_name)->second;
     
-    if (mode == CPU_TIME)
-        lapse /= (double) CLOCKS_PER_SEC;
-    
-	return lapse;
-}
-
-long double Stopwatch::get_total_time(string perf_name) {
-
-	// Try to recover performance data
-	if ( !performance_exists(perf_name)  )
-		throw StopwatchException("Performance not initialized.");
-
-	PerformanceData& perf_info = records_of->find(perf_name)->second;
-
-	return perf_info.total_time;
-
-}
-
-long double Stopwatch::get_average_time(string perf_name) {
-	
-	// Try to recover performance data
-	if ( !performance_exists(perf_name)  )
-		throw StopwatchException("Performance not initialized.");
-
-	PerformanceData& perf_info = records_of->find(perf_name)->second;
-
-	return (perf_info.total_time / (long double)perf_info.stops);
-
-}
-
-long double Stopwatch::get_min_time(string perf_name) {
-	
-	// Try to recover performance data
-	if ( !performance_exists(perf_name)  )
-		throw StopwatchException("Performance not initialized.");
-
-	PerformanceData& perf_info = records_of->find(perf_name)->second;
-
-	return perf_info.min_time;
-
-}
-
-long double Stopwatch::get_max_time(string perf_name) {
-	
-	// Try to recover performance data
-	if ( !performance_exists(perf_name)  )
-		throw StopwatchException("Performance not initialized.");
-
-	PerformanceData& perf_info = records_of->find(perf_name)->second;
-
-	return perf_info.max_time;
-
-}
-
-long double Stopwatch::get_last_time(string perf_name) {
-
-	// Try to recover performance data
-	if ( !performance_exists(perf_name)  )
-		throw StopwatchException("Performance not initialized.");
-
-	PerformanceData& perf_info = records_of->find(perf_name)->second;
-
-	return perf_info.last_time;
-
+	return true;
 }
