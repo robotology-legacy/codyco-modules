@@ -31,6 +31,7 @@ ConstrainedDynamicsIntegrator::ConstrainedDynamicsIntegrator(wbi::iWholeBodyMode
 : _p_B(_xB.p),
   _R_B(_xB.R.data)
 {
+    _time = 0.0;
     _robot = robot;
     _n = robot->getDoFs();
     _m = 0;
@@ -101,6 +102,8 @@ bool ConstrainedDynamicsIntegrator::integrate(double dt, VectorConst torques,
                                               const Frame& xB_i, VectorConst qj_i, VectorConst dq_i,
                                               Frame& xB_f,       VectorRef qj_f,   VectorRef dq_f)
 {
+    _time += dt;    /// integrate time
+    
     // convert the state representation from q to x
     _tau = torques;
     _xB = xB_i;

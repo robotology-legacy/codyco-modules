@@ -51,7 +51,7 @@ public:
     
 // this should return "protected" after debugging
 public:
-    
+    double                  _time;      /// current time
     wbi::iWholeBodyModel*   _robot;     /// interface to robot dynamics computation
     int                     _n;         /// number of joints
     int                     _m;         /// number of constraints
@@ -148,6 +148,8 @@ public:
     virtual bool integrate(Eigen::VectorConst torques,
                            const wbi::Frame& xB_i, Eigen::VectorConst qj_i, Eigen::VectorConst dq_i,
                            wbi::Frame& xB_f, Eigen::VectorRef qj_f, Eigen::VectorRef dq_f);
+    
+    virtual double getTime(){ return _time; }
 
 };
     

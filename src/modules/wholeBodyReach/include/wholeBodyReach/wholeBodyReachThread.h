@@ -67,12 +67,13 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
 {
     string                  _name;              // name of the thread
     string                  _robotName;         // name of the robot
+    double                  _time;              // time since the start of the thread
     
     ParamHelperServer*      _paramHelper;       // helper class for parameter management
     wholeBodyInterface*     _robot;             // interface to the robot
     wbiStackOfTasks         _solver;            // stack of task solver
     RobotState              _robotState;        // struct collecting the robot's state information
-    RobotState              _robotStateNew;     // used when integrating EoM
+    RobotState              _robotStateIntegrator;     // used when integrating EoM
     VectorXd                _tauDes;            // desired joint torques computed by the solver
     
     struct WholeBodyReachTasks
