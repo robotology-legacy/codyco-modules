@@ -10,7 +10,7 @@ iCub  the theoretical advances of the project.
 
 More info at http://codyco.eu/
 
-Code documentation automatically generated: http://wiki.icub.org/codyco/html/index.html
+Code documentation automatically generated: http://wiki.icub.org/codyco/dox/html/index.html
 
 This repository contains the main software components used by the CoDyCo project. 
 To install this components and all the necessary dependencies, please refer to the [codyco-superbuild](https://github.com/robotology-playground/codyco-superbuild) repository. 
