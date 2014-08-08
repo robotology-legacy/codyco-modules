@@ -26,8 +26,6 @@
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/Drivers.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
-#include <iCub/ctrl/math.h>
-#include <iCub/ctrl/adaptWinPolyEstimator.h>
 
 #include <iostream>
 #include <sstream>

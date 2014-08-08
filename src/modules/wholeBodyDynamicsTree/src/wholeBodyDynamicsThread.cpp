@@ -269,6 +269,7 @@ bool wholeBodyDynamicsThread::threadInit()
 
     offset_buffer.resize(nrOfAvailableFTSensors,yarp::sig::Vector(6,0.0));
     calibrate_ft_sensor.resize(nrOfAvailableFTSensors,false);
+    YARP_ASSERT(icub_model_calibration->getNrOfDOFs()==32);
     tree_status.setNrOfDOFs(icub_model_calibration->getNrOfDOFs());
     tree_status.setNrOfFTSensors(nrOfAvailableFTSensors);
 
@@ -1022,6 +1023,7 @@ void wholeBodyDynamicsThread::calibration_run()
 {
     std::cout << "wholeBodyDynamicsThread::calibration_run() " << samples_used_for_calibration << " / " << samples_requested_for_calibration << "  called" << std::endl;
     bool ret;
+    YARP_ASSERT(tree_status.q.size() == 32);
     ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
     ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_VEL,tree_status.dq.data());
     ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_ACC,tree_status.ddq.data());
