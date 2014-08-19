@@ -5,6 +5,7 @@ endif(CODYCO_USES_WBI_TOOLBOX)
 
 add_subdirectory(modules)
 add_subdirectory(misc/ftDumper)
+add_subdirectory(misc/reachRandomJointPositions)
 
 add_subdirectory(tests)
 
