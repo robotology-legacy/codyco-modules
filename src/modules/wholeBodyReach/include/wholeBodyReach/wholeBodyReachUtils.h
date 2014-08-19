@@ -44,6 +44,8 @@ namespace Eigen
     
     typedef JacobiSVD<MatrixRXd>                    SVD;            /// svd of RowMajor matrix
     typedef LDLT<MatrixRXd>                         Cholesky;       /// Cholesky decomposition of RowMajor matrix
+    
+//    class JacobiSVDExtended{};
 }
 
 // define some types
