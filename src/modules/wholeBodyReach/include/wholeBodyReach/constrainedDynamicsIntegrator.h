@@ -24,11 +24,24 @@
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/Cholesky>
-#include <wholeBodyReach/wholeBodyReachConstants.h>
 #include <wholeBodyReach/wholeBodyReachUtils.h>
 #include <wbi/wholeBodyInterface.h>
 #include <wbi/wbiUtil.h>
 #include <paramHelp/paramHelperServer.h>
+
+//namespace Eigen
+//{
+//    typedef Matrix<double,Dynamic,Dynamic,RowMajor> MatrixRXd;     /// Dynamic matrix with row-major storage order
+//    typedef Matrix<double,3,3,RowMajor>             MatrixR3d;
+//    
+//    typedef Ref<VectorXd>                           VectorRef;      /// Type used to pass Eigen vectors by reference
+//    typedef Ref<MatrixRXd>                          MatrixRef;      /// Type used to pass Eigen matrices by reference
+//    typedef const Ref<const VectorXd>&              VectorConst;    /// Type used to pass Eigen vectors by const reference
+//    typedef const Ref<const MatrixRXd>&             MatrixConst;    /// Type used to pass Eigen matrices by const reference
+//    
+//    typedef JacobiSVD<MatrixRXd>                    SVD;            /// svd of RowMajor matrix
+//    typedef LDLT<MatrixRXd>                         Cholesky;       /// Cholesky decomposition of RowMajor matrix
+//}
 
 namespace wholeBodyReach
 {
