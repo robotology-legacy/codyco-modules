@@ -749,9 +749,9 @@ namespace adaptiveControl {
         vector.push_back(s(0));      //23  s 1
         vector.push_back(s(1));      //24  s 2
 
-        vector.push_back(_q_ref);      //25  ref
-        vector.push_back(_dq_ref);      //26  ref
-        vector.push_back(_ddq_ref);      //27  ref
+//        vector.push_back(q_ref);      //25  ref
+//        vector.push_back(dq_ref);      //26  ref
+//        vector.push_back(ddq_ref);      //27  ref
 
         _debugPort->write();
 
