@@ -40,6 +40,8 @@ using namespace paramHelp;
 using namespace wbi;
 using namespace Eigen;
 
+//#define INV_DYN_CONTROL
+
 namespace jointTorqueControl
 {
 
@@ -92,13 +94,25 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     VectorNd	tauOffset;      // Vector of nDOF floats representing the desired torques offset
     VectorNd    tauSinAmpl;     // Amplitudes of the sinusoidal signals that are added to the desired joint torques
     VectorNd    tauSinFreq;     // Frequencies of the sinusoidal signals that are added to the desired joint torques
-    VectorNd	Vmax;			// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"),     
+    VectorNd	Vmax;			// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"),
+    double      torqueFiltCutFreq;  // cut frequency of low-pass filter applied to joint torque measurements
 
     VectorNd	tauM;			// Measured joint torques
     double      tauMotor;       // Measured joint torques
     VectorNd	motorVoltage;	// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
     VectorNd	etau;			// Errors between actual and desired torques 
     VectorNd	tau;			// Vector of nDOF floats representing the desired torques plus the PI terms
+    
+#ifdef INV_DYN_CONTROL
+    VectorNp6d  tauInvDyn;      // Desired joint torque computed with inverse dynamics
+    VectorNd    ddqInvDyn;      // Desired joint accelerations
+    VectorNd    dqDes;
+    VectorNd    ddqDes;
+    VectorNd    qSinAmpl;
+    VectorNd    qSinFreq;
+    VectorNd    qOffset;
+    double      initialTime;
+#endif
 
     VectorNd      frictionCompensationFactor;
     int			sendCommands;

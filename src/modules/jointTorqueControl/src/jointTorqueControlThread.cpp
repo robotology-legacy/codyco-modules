@@ -60,12 +60,18 @@ bool jointTorqueControlThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_SENDCMD,            &sendCommands));
 	YARP_ASSERT(paramHelper->linkParam(PARAM_ID_MONITORED_JOINT,    &monitoredJointName));
     
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_FRICTION_COMPENSATION, frictionCompensationFactor.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_FRICTION_COMPENSATION,  frictionCompensationFactor.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TORQUE_FILT_CUT_FREQ,   &torqueFiltCutFreq));
     
     // link controller input streaming parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_OFFSET,	        tauOffset.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_SIN_AMPL,	    tauSinAmpl.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_TAU_SIN_FREQ,	    tauSinFreq.data()));
+
+#ifdef INV_DYN_CONTROL
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_SIN_AMPL,         qSinAmpl.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_SIN_FREQ,         qSinFreq.data()));
+#endif
 	
     // link module output streaming parameters to member variables
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_VM,		            motorVoltage.data()));
@@ -92,9 +98,10 @@ bool jointTorqueControlThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_PWM_FRICTION_FF,	&monitor.pwmFrictionFF));
     
     // Register callbacks for some module parameters
-    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_AJ,                 this));
-	YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_SENDCMD,            this));
-    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_MONITORED_JOINT,    this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_AJ,                     this));
+	YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_SENDCMD,                this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_MONITORED_JOINT,        this));
+    YARP_ASSERT(paramHelper->registerParamValueChangedCallback(PARAM_ID_TORQUE_FILT_CUT_FREQ,   this));
     
     // Register callbacks for some module commands
     YARP_ASSERT(paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
@@ -119,7 +126,6 @@ bool jointTorqueControlThread::threadInit()
     if(!updateJointToMonitor())
         printf("Specified monitored joint name was not recognized: %s\n", monitoredJointName.c_str());
     
-    double torqueFiltCutFreq = 1.0;
     robot->setEstimationParameter(ESTIMATE_JOINT_VEL,    ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE, &JOINT_VEL_ESTIMATION_WINDOW);
     robot->setEstimationParameter(ESTIMATE_JOINT_TORQUE, ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ, &torqueFiltCutFreq);
     
@@ -225,13 +231,18 @@ void jointTorqueControlThread::run()
             
             dqSign(i) = fabs(dq(i))>coulombVelThr(i) ? sign(dq(i)) : pow(dq(i)/coulombVelThr(i),3);
 #ifdef IMPEDANCE_CONTROL
+            
             double error = qDes(i)-q(i);
             double dumpingAndGrav =  gravityCompOn*tauGrav(i+6);
             tauD(i)         = ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i+6);
 
 #else /* IMPEDANCE_CONTROL */
             
-            tauD(i) = tauOffset(i);// + tauSinAmpl(i)*sin(2*M_PI*tauSinFreq(i)*currentTime);
+#ifdef INV_DYN_CONTROL
+            tauD(i) = tauInvDyn(i);
+#else
+            tauD(i) = tauOffset(i) + tauSinAmpl(i)*sin(2*M_PI*tauSinFreq(i)*currentTime);
+#endif
             
 #endif /* IMPEDANCE_CONTROL */
             if (activeJoints(i) == 1)          
@@ -389,7 +400,24 @@ bool jointTorqueControlThread::readRobotStatus(bool blockingRead)
     res = res && robot->getEstimates(ESTIMATE_JOINT_POS,    q.data(),       -1.0, blockingRead);
     res = res && robot->getEstimates(ESTIMATE_JOINT_TORQUE, tauM.data(),    -1.0, blockingRead);
     res = res && robot->getEstimates(ESTIMATE_MOTOR_PWM,    pwmMeas.data(), -1.0, blockingRead);
+
+#ifdef INV_DYN_CONTROL
+    // q   =  A*cos(2*pi*f*t)
+    // dq  = -2*pi*f*A**sin(2*pi*f*t)
+    // ddq = -(2*pi*f)^2 *A*cos(2*pi*f*t)
+    double t = Time::now()-initialTime;
+    VectorNd two_pi_f = 2*M_PI*qSinFreq;
+    VectorNd two_pi_f_t = two_pi_f * t;
+    VectorNd A_cos_2pi_f_t = qSinAmpl * two_pi_f_t.cos();
+    qDes   = qOffset + A_cos_2pi_f_t;
+    dqDes  = -two_pi_f * qSinAmpl * two_pi_f_t.sin();
+    ddqDes = -two_pi_f.square() * A_cos_2pi_f_t;
+    
+    ddqInvDyn = activeJoints.cast<double>() * (ddqDes + ks*(qDes-q) - kd*(dqDes-dq));
+    res = res && robot->inverseDynamics(q.data(), Frame(), dq.data(), zero6, ddqInvDyn.data(), ddxB, zero6, tauInvDyn.data());
+#else
     res = res && robot->inverseDynamics(q.data(), Frame(), zeroN.data(), zero6, zeroN.data(), ddxB, zero6, tauGrav.data());
+#endif
     
     // convert angles from rad to deg
     q   *= CTRL_RAD2DEG;
@@ -407,6 +435,12 @@ void jointTorqueControlThread::startSending()
         //reset desired positions for impedance control
         readRobotStatus(false);
         qDes = q;
+#endif
+
+#ifdef INV_DYN_CONTROL
+        readRobotStatus(false);
+        qOffset = q;
+        initialTime = Time::now();
 #endif
         status = CONTROL_ON;       //sets thread status to ON
         setControlModePWMOnJoints(sendCommands == SEND_COMMANDS_ACTIVE);
@@ -476,6 +510,9 @@ void jointTorqueControlThread::parameterUpdated(const ParamProxyInterface *pd)
         case PARAM_ID_MONITORED_JOINT:
             if(!updateJointToMonitor())
                 printf("Specified monitored joint name was not recognized: %s\n", monitoredJointName.c_str());
+            break;
+        case PARAM_ID_TORQUE_FILT_CUT_FREQ:
+            robot->setEstimationParameter(ESTIMATE_JOINT_TORQUE, ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ, &torqueFiltCutFreq);
             break;
         default:
             printf("A callback is registered but not managed for the parameter %s\n", pd->name.c_str());
