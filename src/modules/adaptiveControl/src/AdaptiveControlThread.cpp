@@ -97,7 +97,7 @@ namespace adaptiveControl {
 #endif
     }
 
-    AdaptiveControlThread::~AdaptiveControlThread() { threadRelease(); }
+    AdaptiveControlThread::~AdaptiveControlThread() { }
 
     bool AdaptiveControlThread::setInitialConditions(const Eigen::Vector8d& initialPiHat, const double& initialXi1)
     {
