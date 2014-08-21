@@ -26,7 +26,7 @@ using namespace jointTorqueControl;
 using namespace wbiIcub;
 
 //#define IMPEDANCE_CONTROL
-#define GAZEBO_SIM
+//#define GAZEBO_SIM
 
 jointTorqueControlThread::jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
 : RateThread(period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), sendCommands(SEND_COMMANDS_NONACTIVE),
@@ -207,7 +207,6 @@ bool jointTorqueControlThread::threadInit()
         
 #endif
     
-    
     return true;
 }
 
@@ -239,7 +238,7 @@ void jointTorqueControlThread::run()
 #else /* IMPEDANCE_CONTROL */
             
 #ifdef INV_DYN_CONTROL
-            tauD(i) = tauInvDyn(i);
+            tauD(i) = tauInvDyn(i+6);
 #else
             tauD(i) = tauOffset(i) + tauSinAmpl(i)*sin(2*M_PI*tauSinFreq(i)*currentTime);
 #endif
@@ -414,14 +413,27 @@ bool jointTorqueControlThread::readRobotStatus(bool blockingRead)
     ddqDes = -two_pi_f.square() * A_cos_2pi_f_t;
     
     ddqInvDyn = activeJoints.cast<double>() * (ddqDes + ks*(qDes-q) + kd*(dqDes-dq));
+//    ddqInvDyn = activeJoints.cast<double>() * (ks*(qDes-q));
     res = res && robot->inverseDynamics(q.data(), Frame(), dq.data(), zero6, ddqInvDyn.data(), ddxB, zero6, tauInvDyn.data());
-#else
-    res = res && robot->inverseDynamics(q.data(), Frame(), zeroN.data(), zero6, zeroN.data(), ddxB, zero6, tauGrav.data());
+    
+//    printf("compute inv dyn\n");
+    sendMsg("q         "+toString(q(monitoredJointId)));
+    sendMsg("qDes      "+toString(qDes(monitoredJointId)));
+    sendMsg("dqDes     "+toString(dqDes(monitoredJointId)));
+    sendMsg("ddqDes    "+toString(ddqDes(monitoredJointId)));
+    sendMsg("ddqInvDyn "+toString(ddqInvDyn(monitoredJointId)));
+    sendMsg("tauInvDyn "+toString(tauInvDyn(monitoredJointId+6)));
+    
 #endif
+
+    res = res && robot->inverseDynamics(q.data(), Frame(), zeroN.data(), zero6, zeroN.data(), ddxB, zero6, tauGrav.data());
+//    tauInvDyn.tail<N_DOF>() = activeJoints.cast<double>() * (ks*(qDes-q));
+//    tauInvDyn += tauGrav;
     
     // convert angles from rad to deg
-    q   *= CTRL_RAD2DEG;
-    dq  *= CTRL_RAD2DEG;
+    q    *= CTRL_RAD2DEG;
+    dq   *= CTRL_RAD2DEG;
+    qDes *= CTRL_RAD2DEG;
     
     return res;
 }
@@ -439,7 +451,7 @@ void jointTorqueControlThread::startSending()
 
 #ifdef INV_DYN_CONTROL
         readRobotStatus(false);
-        qOffset = q;
+        qOffset = q*CTRL_DEG2RAD;
         initialTime = Time::now();
 #endif
         status = CONTROL_ON;       //sets thread status to ON

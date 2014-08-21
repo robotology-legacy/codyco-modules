@@ -1,12 +1,29 @@
+<!--
+     0 PARAM_ID_TAU_MEAS,        PARAM_ID_TAUD_MONITOR,      
+     2 PARAM_ID_TAU_MEAS1,       PARAM_ID_TAUD_MONITOR1, 
+     4 PARAM_ID_TAU_MEAS2,       PARAM_ID_TAUD_MONITOR2, 
+     6 PARAM_ID_TAUD_PLUS_PI,    PARAM_ID_TAU_ERR,       
+     8 PARAM_ID_Q,               PARAM_ID_Q_DES_MONITOR,
+    10 PARAM_ID_JOINT_VEL,       PARAM_ID_JOINT_VEL_SIGN,
+    12 PARAM_ID_PWM_DESIRED,     PARAM_ID_PWM_FEEDFORWARD,   
+    14 PARAM_ID_PWM_FEEDBACK,    PARAM_ID_PWM_TORQUE_FF, 
+    16 PARAM_ID_PWM_FRICTION_FF, PARAM_ID_PWM_MEASURED,
+    -->
 <?xml version="1.0" encoding="UTF-8" ?>
-<portscope rows="2" columns="1">
-    <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Desired PWM" size="1000" minval="-200" maxval="200" bgcolor="white">
-        <graph remote="/jointTorqueControl/monitor:o" index="1" color="Red" title="Torque" type="lines" size="2" />
+<portscope rows="3" columns="1">
+    <plot gridx="0" gridy="0" hspan="1" vspan="1" title="PWM (red des, blue ff)" size="1000" minval="-200" maxval="200" bgcolor="white">
+        <graph remote="/jtc/monitor:o" index="12" color="Red" title="Torque" type="lines" size="2" />
+        <graph remote="/jtc/monitor:o" index="13" color="Blue" title="Torque" type="lines" size="2" />
     </plot>
 
-    <!-- plotting COM y -->
-    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Joint angle" size="1000" bgcolor="white">
-        <graph remote="/jointTorqueControl/monitor:o" index="0" color="Blue" title="PWM" type="lines" size="3" />
+    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Joint angle (red des, blue meas)" size="1000" bgcolor="white">
+        <graph remote="/jtc/monitor:o" index="8" color="Blue" title="PWM" type="lines" size="3" />
+        <graph remote="/jtc/monitor:o" index="9" color="Red" title="PWM" type="lines" size="3" />
+    </plot>
+    
+    <plot gridx="0" gridy="2" hspan="1" vspan="1" title="Torque angle (red des, blue meas)" size="1000" bgcolor="white">
+        <graph remote="/jtc/monitor:o" index="0" color="Blue" title="PWM" type="lines" size="3" />
+        <graph remote="/jtc/monitor:o" index="1" color="Red" title="PWM" type="lines" size="3" />
     </plot>
 
 </portscope>
