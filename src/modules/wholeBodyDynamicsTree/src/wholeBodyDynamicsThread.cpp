@@ -403,9 +403,11 @@ bool wholeBodyDynamicsThread::calibrateOffset(const std::string calib_code, int 
             double ft_off[6];
             estimator->getEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,convertFTiDynTreeToFTwbi(ft_id),ft_off);
 
+
             std::cout << "wholeBodyDynamicsThread::calibrateOffset: current calibration for FT " << ft_id << " is " <<
                          ft_off[0] << " " << ft_off[1] << " " << ft_off[2] << " " << ft_off[3] << " " << ft_off[4] << " " << ft_off[5] << std::endl;
             ft_off[0] = ft_off[1] = ft_off[2] = ft_off[3] = ft_off[4] = ft_off[5] = 0.0;
+            
             estimator->setEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,convertFTiDynTreeToFTwbi(ft_id),ft_off);
         }
     }
@@ -993,14 +995,16 @@ void wholeBodyDynamicsThread::normal_run()
         period = getRate();
         getEstPeriod(avgTime, stdDev);
         getEstUsed(avgTimeUsed, stdDevUsed);
-         printf("[PERFORMANCE INFORMATION]:\n");
-        printf("Expected period %lf ms.\nReal period: %3.1lf+/-%3.1lf ms.\n", period, avgTime, stdDev);
-        printf("Real duration of 'run' method: %3.1lf+/-%3.1lf ms.\n", avgTimeUsed, stdDevUsed);
-        if(avgTimeUsed<0.5*period)
-            printf("Next time you could set a lower period to improve the wholeBodyDynamics performance.\n");
-        else if(avgTime>1.3*period)
-            printf("The period you set was impossible to attain. Next time you could set a higher period.\n");
-
+        if(avgTimeUsed>period) {
+            printf("[PERFORMANCE INFORMATION]:\n");
+            printf("Expected period %lf ms.\nReal period: %3.1lf+/-%3.1lf ms.\n", period, avgTime, stdDev);
+            printf("Real duration of 'run' method: %3.1lf+/-%3.1lf ms.\n", avgTimeUsed, stdDevUsed);
+            if(avgTimeUsed<0.5*period)
+                printf("Next time you could set a lower period to improve the wholeBodyDynamics performance.\n");
+            else if(avgTime>1.3*period)
+                printf("The period you set was impossible to attain. Next time you could set a higher period.\n");
+        }
+        /*
         std::cout << "Torques: " << std::endl;
         std::cout << all_torques.toString() << std::endl;
         std::cout << "Forces: " << std::endl;
@@ -1013,7 +1017,7 @@ void wholeBodyDynamicsThread::normal_run()
             std::cout << "FT sensor " << i << " : " << std::endl;
             std::cout << ft_mes.subVector(6*i,6*i+5).toString() << std::endl;
         }
-
+        */
     }
 
 }
@@ -1021,7 +1025,7 @@ void wholeBodyDynamicsThread::normal_run()
 //*************************************************************************************************************************
 void wholeBodyDynamicsThread::calibration_run()
 {
-    std::cout << "wholeBodyDynamicsThread::calibration_run() " << samples_used_for_calibration << " / " << samples_requested_for_calibration << "  called" << std::endl;
+    //std::cout << "wholeBodyDynamicsThread::calibration_run() " << samples_used_for_calibration << " / " << samples_requested_for_calibration << "  called" << std::endl;
     bool ret;
     YARP_ASSERT(tree_status.q.size() == 32);
     ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
@@ -1081,8 +1085,8 @@ void wholeBodyDynamicsThread::calibration_run()
             estimator->getEstimate(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,convertFTiDynTreeToFTwbi(ft_sensor_id),tree_status.measured_ft_sensors[ft_sensor_id].data());
             assert((int)offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
             offset_buffer[ft_sensor_id] += tree_status.measured_ft_sensors[ft_sensor_id]-tree_status.estimated_ft_sensors[ft_sensor_id];
-            std::cout << "Estimated ft sensor " << ft_sensor_id << " : " << tree_status.estimated_ft_sensors[ft_sensor_id].toString() << std::endl;
-            std::cout << "Subchain mass : " << norm(tree_status.estimated_ft_sensors[ft_sensor_id].subVector(0,2))/norm( tree_status.proper_ddp_imu) << std::endl;
+            //std::cout << "Estimated ft sensor " << ft_sensor_id << " : " << tree_status.estimated_ft_sensors[ft_sensor_id].toString() << std::endl;
+            //std::cout << "Subchain mass : " << norm(tree_status.estimated_ft_sensors[ft_sensor_id].subVector(0,2))/norm( tree_status.proper_ddp_imu) << std::endl;
         }
     }
 
@@ -1118,15 +1122,17 @@ void wholeBodyDynamicsThread::calibration_run()
     }
 
 
+    /*
     std::cout << "wholeBodyDynamicsThread::calibration_run() "
               <<  samples_used_for_calibration << " / "
               << samples_requested_for_calibration << "  finished" << std::endl;
+    */
 }
 
 //*************************************************************************************************************************
 void wholeBodyDynamicsThread::calibration_on_double_support_run()
 {
-    std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run() " << samples_used_for_calibration << " / " << samples_requested_for_calibration << "  called" << std::endl;
+    //std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run() " << samples_used_for_calibration << " / " << samples_requested_for_calibration << "  called" << std::endl;
     bool ret;
     ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
     ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_VEL,tree_status.dq.data());
@@ -1226,10 +1232,11 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
         calibration_mutex.unlock();
     }
 
-
+    /*
     std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run() "
               <<  samples_used_for_calibration << " / "
               << samples_requested_for_calibration << "  finished" << std::endl;
+    */
 }
 
 //*****************************************************************************
