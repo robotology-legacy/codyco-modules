@@ -21,7 +21,7 @@
         pwmFrictionFF;   //      17
 -->
 
-<portscope rows="4" columns="1">
+<portscope rows="3" columns="1">
 	<plot gridx="0" gridy="0" hspan="1" vspan="1" title="Norm of the torque error" size="500" minval="-50" maxval="50" bgcolor="white">
 		<graph remote="/jtc/monitor:o" index="7" color="Red" title="|TorqueError|" type="lines" size="2" />
 	</plot>
@@ -31,11 +31,7 @@
 		<graph remote="/jtc/monitor:o" index="0" color="Blue" title="Measured" type="lines" size="2" />
 		<graph remote="/jtc/monitor:o" index="1" color="Red" title="Desired" type="lines" size="2" />
     </plot>
-    <plot gridx="0" gridy="2" hspan="1" vspan="1" title="Link Torque 2 (red desired, blue measure)" size="500" minval="-13" maxval="13" bgcolor="white">
-		<graph remote="/jtc/monitor:o" index="2" color="Blue" title="Measured" type="lines" size="2" />
-		<graph remote="/jtc/monitor:o" index="3" color="Red" title="Desired" type="lines" size="2" />
-    </plot>
-    <plot gridx="0" gridy="3" hspan="1" vspan="1" title="Link Torque 3 (red desired, blue measure)" size="500" minval="-13" maxval="13" bgcolor="white">
+    <plot gridx="0" gridy="2" hspan="1" vspan="1" title="Link Torque 3 (red desired, blue measure)" size="500" minval="-13" maxval="13" bgcolor="white">
 		<graph remote="/jtc/monitor:o" index="4" color="Blue" title="Measured" type="lines" size="2" />
 		<graph remote="/jtc/monitor:o" index="5" color="Red" title="Desired" type="lines" size="2" />
     </plot>

@@ -84,10 +84,11 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     VectorNd	kvn;			// Vector of nDOF floats ( see Eq. (2) )"), 
     VectorNd	kcp;			// Vector of nDOF floats ( see Eq. (2) )"), 
     VectorNd	kcn;			// Vector of nDOF floats ( see Eq. (2) )"), 
-    VectorNd	ki;				// Vector of nDOF floats representing the position gains ( see Eq. (x) )"), 
-    VectorNd	kp;				// Vector of nDOF floats representing the integral gains ( see Eq. (x) )"), 
-    VectorNd	ks;				// Vector of nDOF floats representing the joint stiffnesses 
-    VectorNd	kd;				// Vector of nDOF floats representing the joint dampings
+    VectorNd    kp;             // Vector of nDOF floats representing the position gains ( see Eq. (x) )"), 
+    VectorNd	ki;				// Vector of nDOF floats representing the integral gains ( see Eq. (x) )"), 
+    VectorNd    kd;             // Vector of nDOF floats representing the derivative gains ( see Eq. (x) )"), 
+    VectorNd	kStiff;				// Vector of nDOF floats representing the joint stiffnesses 
+    VectorNd	kDamp;				// Vector of nDOF floats representing the joint dampings
     VectorNd    qDes;           // Vector of nDOF floats representing the desired joint positions (deg)
     VectorNd	coulombVelThr;	///< Vector of nDOF floats representing the joint vel (deg/s) at which Coulomb friction is completely compensated
     VectorNd	tauD;			// Vector of nDOF floats representing the desired torques
@@ -101,6 +102,8 @@ class jointTorqueControlThread: public RateThread, public ParamValueObserver, pu
     double      tauMotor;       // Measured joint torques
     VectorNd	motorVoltage;	// Vector of nDOF positive floats representing the tensions' bounds (|Vm| < Vmax"), 
     VectorNd	etau;			// Errors between actual and desired torques 
+    VectorNd    Detau;          // Errors between actual and desired torques 
+    VectorNd    etauPrevious;   // Errors between actual and desired torques 
     VectorNd	tau;			// Vector of nDOF floats representing the desired torques plus the PI terms
     
 #ifdef INV_DYN_CONTROL

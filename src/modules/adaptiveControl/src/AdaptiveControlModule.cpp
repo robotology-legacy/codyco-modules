@@ -99,7 +99,7 @@ namespace adaptiveControl {
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
                                                    *_parameterClient,
 #endif
-                                                   _linkLengths, _baselineSmootherDuration, _frequencySmootherDuration);
+                                                   _linkLengths);//, _baselineSmootherDuration, _frequencySmootherDuration);
         if (!_controlThread || !_controlThread->start()) {
             error_out("Error while initializing control thread. Closing module.\n");
             return false;

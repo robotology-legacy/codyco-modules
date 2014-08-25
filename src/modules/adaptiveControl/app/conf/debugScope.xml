@@ -8,7 +8,7 @@
           size="60"
           minval="-100"
           maxval="100"
-          bgcolor="LightSlateGrey">
+          bgcolor="White">
         <graph remote="/adaptiveControl/debug:o"
                index="4"
                color="Black"
@@ -30,7 +30,7 @@
           size="60"
           minval="-100"
           maxval="100"
-          bgcolor="LightSlateGrey">
+          bgcolor="White">
         <graph remote="/adaptiveControl/debug:o"
                index="5"
                color="Black"
@@ -52,7 +52,7 @@
           size="60"
           minval="-100"
           maxval="100"
-          bgcolor="LightSlateGrey">
+          bgcolor="White">
         <graph remote="/adaptiveControl/debug:o"
                index="7"
                color="Black"
@@ -80,7 +80,7 @@
           size="60"
           minval="-100"
           maxval="100"
-          bgcolor="LightSlateGrey">
+          bgcolor="White">
         <graph remote="/adaptiveControl/debug:o"
                index="10"
                color="Blue"
@@ -114,7 +114,7 @@
           size="60"
           minval="-100"
           maxval="100"
-          bgcolor="LightSlateGrey">
+          bgcolor="White">
         <graph remote="/adaptiveControl/debug:o"
                index="2"
                color="Blue"
@@ -136,7 +136,7 @@
           size="60"
           minval="-100"
           maxval="100"
-          bgcolor="LightSlateGrey">
+          bgcolor="White">
         <graph remote="/adaptiveControl/debug:o"
                index="6"
                color="Black"

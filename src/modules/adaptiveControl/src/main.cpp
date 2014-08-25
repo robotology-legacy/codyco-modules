@@ -49,6 +49,8 @@ int main(int argc, char **argv)
         std::cerr << "Sorry YARP network is not available\n";
         return -1;
     }
+
+    std::cout  << "Passive joint " << adaptiveControl::robotPartStartingIndex + adaptiveControl::passiveJointIndex << "    Active joint: " << adaptiveControl::robotPartStartingIndex + adaptiveControl::activeJointIndex << "\n";
     
     //Creating the module
     adaptiveControl::AdaptiveControlModule module;
