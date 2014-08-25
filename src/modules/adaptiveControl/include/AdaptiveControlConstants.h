@@ -50,14 +50,14 @@ namespace adaptiveControl
     const int passiveJointIndex = 0;
     const int activeJointIndex = 3;
     
-    const int robotPartStartingIndex = 13;
+    const int robotPartStartingIndex = 19;
     
     //various constants
     const double gravity = 9.80665;
     const double pi = 3.1415926536;
     
-    inline double convertDegToRad(double degAngle) { return degAngle / 180 * pi; }
-    inline double convertRadToDeg(double radAngle) { return radAngle * 180 / pi; }
+    inline double convertDegToRad(double degAngle) { return (degAngle / 180.0) * pi; }
+    inline double convertRadToDeg(double radAngle) { return (radAngle * 180.0) / pi; }
     inline double hardLimiter(double inputValue, double lowerLimit, double upperLimit)
     { return inputValue > upperLimit ? upperLimit : (inputValue < lowerLimit ? lowerLimit : inputValue); }
 //    template <typename Derived>

@@ -160,7 +160,7 @@ namespace adaptiveControl {
             return false;
         }
         //velocity estimator
-        _velocityEstimator = new AWLinEstimator(16*10/_period, 0.1);
+        _velocityEstimator = new AWLinEstimator(16*10/_period,0.1); // convertDegToRad(0.1));
         if (!_velocityEstimator) {
             error_out("Could not initialize velocity estimator");
             return false;
@@ -207,6 +207,8 @@ namespace adaptiveControl {
         //param server does not call the registered objects on initialization.
         _Gamma = _GammaInput.asDiagonal();
         setRobotToHomePositions();
+        
+        std::cout<< " joint "<< (robotPartStartingIndex + activeJointIndex) << "\n";
 
         return true;
     }
@@ -389,9 +391,9 @@ namespace adaptiveControl {
         }
 
         //define reference trajectory
-        double q_ref = _refBaseline + _refAmplitude * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
-        double dq_ref = _refAmplitude * 2 * pi * _refDesiredFrequency * cos(2 * pi * _refDesiredFrequency * now + _refPhase);
-        double ddq_ref = -_refAmplitude * 4 * pi * pi * _refDesiredFrequency * _refDesiredFrequency * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
+        q_ref = _refBaseline + _refAmplitude * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
+        dq_ref = _refAmplitude * 2 * pi * _refDesiredFrequency * cos(2 * pi * _refDesiredFrequency * now + _refPhase);
+        ddq_ref = -_refAmplitude * 4 * pi * pi * _refDesiredFrequency * _refDesiredFrequency * sin(2 * pi * _refDesiredFrequency * now + _refPhase);
 
         // _q_ref = _refBaseline + _refAmplitude * sin(2 * pi * _refDesiredFrequency * sinTime + _refPhase);
 //
@@ -476,7 +478,7 @@ namespace adaptiveControl {
         //compute dxi
         double dqError = _dq(1) - dq_ref;
 //         dqError = dqError * dqError < convertDegToRad(0.1) ? 0 : dqError;
-        _dxi(1) = ddq_ref - _lambda * (dqError);
+        _dxi(1) = ddq_ref - _lambda * (dqError) - _lambdaIntegral *qTilde ;
         _dxi(0) =  1/m11H * (_kappa(0) * (_dq(0) - _xi(0)) + _kappaIntegral(0) * _sIntegral(0) - (C11H + F1H) * _xi(0) - m12H * _dxi(1) - C12H * _xi(1) - g1H);
 
         //compute regressor
@@ -749,9 +751,12 @@ namespace adaptiveControl {
         vector.push_back(s(0));      //23  s 1
         vector.push_back(s(1));      //24  s 2
 
-//        vector.push_back(q_ref);      //25  ref
-//        vector.push_back(dq_ref);      //26  ref
-//        vector.push_back(ddq_ref);      //27  ref
+        vector.push_back(q_ref);      //25  ref
+        vector.push_back(dq_ref);      //26  ref
+        vector.push_back(ddq_ref);      //27  ref
+
+	vector.push_back(_xi(0)); //28 xi 1
+	vector.push_back(_xi(1)); //29 xi 2
 
         _debugPort->write();
 

@@ -96,8 +96,10 @@ namespace adaptiveControl {
         bool _piHatModificationOn;
         double _integralSaturationLimit;
         // double _sinInitialTime;
-        
-        
+	double q_ref;
+	double dq_ref;
+	double ddq_ref;
+
         //configuration parameters
         const std::string &_threadName;
         const std::string &_robotName;
