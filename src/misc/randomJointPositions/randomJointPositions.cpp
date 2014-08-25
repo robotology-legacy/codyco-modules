@@ -25,10 +25,9 @@ int main(int argc, char *argv[])
 
     if (!params.check("robot") && ( !params.check("part") || !params.check("parts") ) )
     {
-        fprintf(stderr, "Please specify the name and part of the robot\n");
+        fprintf(stderr, "Please specify the name and joints of the robot\n");
         fprintf(stderr, "--robot name (e.g. icub)\n");
-        fprintf(stderr, "--part name (e.g. right_arm)\n");
-        fprintf(stderr, "--parts (name1 name2 ... nameN) (e.g. (right_arm left_arm))");
+        fprintf(stderr, "--joints ((part_name axis_number lower_limit upper_limit) ... )\n");
         return -1;
     }
 
