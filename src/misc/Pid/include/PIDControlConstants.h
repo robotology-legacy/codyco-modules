@@ -50,7 +50,7 @@ namespace adaptiveControl
     const int passiveJointIndex = 0;
     const int activeJointIndex = 3;
     
-    const int robotPartStartingIndex = 19;
+    const int robotPartStartingIndex = 13;
     
     //various constants
     const double gravity = 9.80665;
@@ -157,9 +157,9 @@ namespace adaptiveControl
     // ****************************************** DESCRIPTION OF ALL THE MODULE AND THREAD PARAMETERS ******************************************
     // *****************************************************************************************************************************************
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
-    const unsigned short adaptiveControlParamDescriptorsSize = 20;
+    const unsigned short adaptiveControlParamDescriptorsSize = 22;
 #else
-    const unsigned short adaptiveControlParamDescriptorsSize = 19;
+    const unsigned short adaptiveControlParamDescriptorsSize = 21;
 #endif
     const paramHelp::ParamProxyInterface *const adaptiveControlParamDescriptors[]  =
     {

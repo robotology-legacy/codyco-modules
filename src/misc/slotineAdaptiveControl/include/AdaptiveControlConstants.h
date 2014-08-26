@@ -133,6 +133,7 @@ namespace adaptiveControl
         AdaptiveControlParamIDLinkLengths,
         AdaptiveControlParamIDIntegralSymmetricLimit,
         AdaptiveControlParamIDHomePositions,
+        AdaptiveControlParamIDTorqueSaturation,
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
         AdaptiveControlParamIDJointTorqueControlModuleName,
 #endif
@@ -156,9 +157,9 @@ namespace adaptiveControl
     // ****************************************** DESCRIPTION OF ALL THE MODULE AND THREAD PARAMETERS ******************************************
     // *****************************************************************************************************************************************
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
-    const unsigned short adaptiveControlParamDescriptorsSize = 20;
+    const unsigned short adaptiveControlParamDescriptorsSize = 22;
 #else
-    const unsigned short adaptiveControlParamDescriptorsSize = 19;
+    const unsigned short adaptiveControlParamDescriptorsSize = 21;
 #endif
     const paramHelp::ParamProxyInterface *const adaptiveControlParamDescriptors[]  =
     {
@@ -170,6 +171,7 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<int>("period", AdaptiveControlParamIDPeriod, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_CONFIG, &defaultModulePeriod, "Name of the robot"),
         new paramHelp::ParamProxyBasic<double>("linkLengths", AdaptiveControlParamIDLinkLengths, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultLinkLengths.data(), "Length of links"),
         new paramHelp::ParamProxyBasic<double>("intLimit", AdaptiveControlParamIDIntegralSymmetricLimit, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_CONFIG, &defaultIntegralSymmetricLimit, "Absolute value of the limit for the integral of the error => the integral will be between -intLimit and intLimit"),
+        new paramHelp::ParamProxyBasic<double>("tauSat", AdaptiveControlParamIDTorqueSaturation, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_CONFIG, &defaultRefBaseline, "Absolute value of the limit for the integral of the error => the integral will be between -intLimit and intLimit"),
         new paramHelp::ParamProxyBasic<double>("home", AdaptiveControlParamIDHomePositions, ICUB_PART_DOF, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultHomePositions.data(), "Home positions for the robot part"),
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
  new paramHelp::ParamProxyBasic<std::string>("jtcName", AdaptiveControlParamIDJointTorqueControlModuleName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultTorqueControlModuleName, "Name of the torqueControl module"),

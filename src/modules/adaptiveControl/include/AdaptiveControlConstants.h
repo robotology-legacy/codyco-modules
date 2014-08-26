@@ -50,7 +50,7 @@ namespace adaptiveControl
     const int passiveJointIndex = 0;
     const int activeJointIndex = 3;
     
-    const int robotPartStartingIndex = 19;
+    const int robotPartStartingIndex = 13;
     
     //various constants
     const double gravity = 9.80665;

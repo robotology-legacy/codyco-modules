@@ -114,6 +114,7 @@ namespace adaptiveControl {
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDOutputEnabled, &_outputEnabled));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDIntegralSymmetricLimit, &_integralSaturationLimit));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDHomePositions, _homePositions.data()));
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDTorqueSaturation, &_torqueSaturation));   
         //Kappa, Gamma, Lambda
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambda, &_lambda));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambdaIntegral, &_lambdaIntegral));
@@ -386,7 +387,7 @@ namespace adaptiveControl {
         //compute dxi
         double dqError = _dq(1) - dq_ref;
 //         dqError = dqError * dqError < convertDegToRad(0.1) ? 0 : dqError;
-        _dxi(1) = ddq_ref - _lambda * (dqError);
+        _dxi(1) = ddq_ref - _lambda * (dqError) - _lambdaIntegral * qTilde;
         _dxi(0) = 0;
         
         //compute regressor
@@ -395,6 +396,13 @@ namespace adaptiveControl {
         
         //compute torques and send them to actuation
         _kneeTorque = regressor.row(1) * _piHat - _kappa(1) * s(1) - _kappaIntegral(1) * _sIntegral(1);
+        if (_kneeTorque > _torqueSaturation) {
+            _kneeTorque = _torqueSaturation;
+//             std::cerr << "Saturating torque to: " << _kneeTorque << "\n";
+        } else if (_kneeTorque < -_torqueSaturation) {
+            _kneeTorque = -_torqueSaturation;
+//             std::cerr << "Saturating torque to: " << _kneeTorque << "\n";
+        }
         writeOutputs();
         
         
