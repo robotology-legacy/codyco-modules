@@ -50,7 +50,7 @@ namespace adaptiveControl
     const int passiveJointIndex = 0;
     const int activeJointIndex = 3;
     
-    const int robotPartStartingIndex = 13;
+    const int robotPartStartingIndex = 19;
     
     //various constants
     const double gravity = 9.80665;
@@ -133,6 +133,7 @@ namespace adaptiveControl
         AdaptiveControlParamIDLinkLengths,
         AdaptiveControlParamIDIntegralSymmetricLimit,
         AdaptiveControlParamIDHomePositions,
+        AdaptiveControlParamIDTorqueSaturation,
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
         AdaptiveControlParamIDJointTorqueControlModuleName,
 #endif
@@ -170,6 +171,7 @@ namespace adaptiveControl
         new paramHelp::ParamProxyBasic<int>("period", AdaptiveControlParamIDPeriod, 1, paramHelp::ParamConstraint<int>(), paramHelp::PARAM_CONFIG, &defaultModulePeriod, "Name of the robot"),
         new paramHelp::ParamProxyBasic<double>("linkLengths", AdaptiveControlParamIDLinkLengths, 2, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultLinkLengths.data(), "Length of links"),
         new paramHelp::ParamProxyBasic<double>("intLimit", AdaptiveControlParamIDIntegralSymmetricLimit, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_CONFIG, &defaultIntegralSymmetricLimit, "Absolute value of the limit for the integral of the error => the integral will be between -intLimit and intLimit"),
+        new paramHelp::ParamProxyBasic<double>("tauSat", AdaptiveControlParamIDTorqueSaturation, 1, paramHelp::ParamLowerBound<double>(0), paramHelp::PARAM_CONFIG, &defaultIntegralSymmetricLimit, "Absolute value of the limit for the integral of the error => the integral will be between -intLimit and intLimit"),
         new paramHelp::ParamProxyBasic<double>("home", AdaptiveControlParamIDHomePositions, ICUB_PART_DOF, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_CONFIG, defaultHomePositions.data(), "Home positions for the robot part"),
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
  new paramHelp::ParamProxyBasic<std::string>("jtcName", AdaptiveControlParamIDJointTorqueControlModuleName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultTorqueControlModuleName, "Name of the torqueControl module"),
