@@ -64,6 +64,9 @@ class reachRandomJointPositionsModule: public RFModule
 
     std::vector< controlledJoint > controlledJoints;
     yarp::sig::Vector commandedPositions;
+    yarp::sig::Vector originalPositions;
+    yarp::sig::Vector originalRefSpeeds;
+    bool jointInitialized;
 
     std::map<std::string,yarp::dev::PolyDriver *> drivers;
     std::map<std::string,yarp::dev::IPositionControl *> pos;

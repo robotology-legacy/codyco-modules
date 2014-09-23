@@ -49,6 +49,16 @@ reachRandomJointPositionsModule::reachRandomJointPositionsModule()
 void reachRandomJointPositionsModule::close_drivers()
 {
     std::map<string,PolyDriver*>::iterator it;
+    if(jointInitialized)
+    {
+        for(int jnt=0; jnt < originalPositions.size(); jnt++ )
+        {
+            std::string part = controlledJoints[jnt].part_name;
+            int axis = controlledJoints[jnt].axis_number;
+            pos[part]->setRefSpeed(axis,originalRefSpeeds[jnt]);
+            pos[part]->positionMove(axis,originalPositions[jnt]);
+        }
+    }
     for(it=drivers.begin(); it!=drivers.end(); it++ )
     {
         if(it->second)
@@ -62,6 +72,8 @@ void reachRandomJointPositionsModule::close_drivers()
 
 bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
 {
+    jointInitialized = false;
+    
     std::cout << rf.toString() << std::endl;
 
     if( rf.check("robot") )
@@ -111,6 +123,8 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
 
     controlledJoints.resize(nrOfControlledJoints);
     commandedPositions.resize(nrOfControlledJoints,0.0);
+    originalPositions.resize(nrOfControlledJoints);
+    originalRefSpeeds.resize(nrOfControlledJoints);
 
     for(int jnt=0; jnt < nrOfControlledJoints; jnt++ )
     {
@@ -193,8 +207,12 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
     {
         std::string part = controlledJoints[jnt].part_name;
         int axis = controlledJoints[jnt].axis_number;
+        encs[part]->getEncoder(axis,originalPositions.data()+jnt);
+        pos[part]->getRefSpeed(axis,originalRefSpeeds.data()+jnt);
         pos[part]->setRefSpeed(axis,ref_speed);
     }
+    
+    jointInitialized = true;
 
 
     return true;
