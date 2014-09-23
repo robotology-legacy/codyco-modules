@@ -73,15 +73,18 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
         robotName = "icub";
     }
 
-
+    boringMode = rf.check("boringMode");
+    boringModeInitialized = false;
 
     if( rf.check("local") )
     {
         moduleName = rf.find("local").asString().c_str();
     }
 
-    new_position_period = rf.check("new_position_period",10.0).asDouble();
+    static_pose_period = rf.check("static_pose_period",10.0).asDouble();
+    elapsed_time = 0.0;
     ref_speed = rf.check("ref_speed",3.0).asDouble();
+    period = rf.check("period",1.0).asDouble();
 
 
     if ( !rf.check("joints") )
@@ -107,11 +110,12 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
     std::cout << "Found " << nrOfControlledJoints << " joint to control" << std::endl;
 
     controlledJoints.resize(nrOfControlledJoints);
+    commandedPositions.resize(nrOfControlledJoints,0.0);
 
     for(int jnt=0; jnt < nrOfControlledJoints; jnt++ )
     {
         yarp::os::Bottle * jnt_ptr = jnts.get(jnt+1).asList();
-        if( jnt_ptr == 0 || jnt_ptr->isNull() || jnt_ptr->size() != 4 )
+        if( jnt_ptr == 0 || jnt_ptr->isNull() || !(jnt_ptr->size() == 4 || jnt_ptr->size() == 5)  )
         {
             fprintf(stderr, "Malformed configuration file (joint %d)\n",jnt);
             return false;
@@ -124,6 +128,10 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
         new_joint.axis_number = jnt_ptr->get(1).asInt();
         new_joint.lower_limit = jnt_ptr->get(2).asDouble();
         new_joint.upper_limit = jnt_ptr->get(3).asDouble();
+        if( boringMode ) 
+        {
+            new_joint.delta = jnt_ptr->get(4).asDouble();
+        }
 
         controlledJoints[jnt] = new_joint;
     }
@@ -207,26 +215,72 @@ bool reachRandomJointPositionsModule::close()
 
 bool reachRandomJointPositionsModule::updateModule()
 {
-    std::cout << "Update module called " << std::endl;
-    std::cout << "elapsed_time: " << elapsed_time << std::endl;
-    std::cout << "new_position_period: " << new_position_period << std::endl;
+    //std::cout << "Update module called " << std::endl;
+    //std::cout << "static_pose_period: " << static_pose_period << std::endl;
 
-    elapsed_time += getPeriod();
+    bool dones=true;
+    for(int jnt=0; jnt < controlledJoints.size(); jnt++ )
+    {
+        bool done=true;
+        std::string part = controlledJoints[jnt].part_name;
+        int axis = controlledJoints[jnt].axis_number;
+        pos[part]->checkMotionDone(axis,&done);
+        dones = dones && done;
+    }
+    
+    if(dones)
+    {
+        //std::cout << "elapsed_time: " << elapsed_time << std::endl;
+        elapsed_time += getPeriod();
+        //std::cout << "elapsed_time: " << elapsed_time << std::endl;
+    }
+    
 
-    if( elapsed_time > new_position_period )
+    
+    if( elapsed_time > static_pose_period )
     {
         elapsed_time = 0.0;
         //Set a new position for the controlled joints
+        bool boring_overflow = true;
         for(int jnt=0; jnt < controlledJoints.size(); jnt++ )
         {
             std::string part = controlledJoints[jnt].part_name;
             int axis = controlledJoints[jnt].axis_number;
             double low = controlledJoints[jnt].lower_limit;
             double up = controlledJoints[jnt].upper_limit;
-            double des_pos = yarp::os::Random::uniform(low,up);
-            std::cout  << "Send new desired position: " << des_pos << " to joint " << part <<  " " << axis << std::endl;
-            pos[part]->positionMove(axis,des_pos);
+            //Set desired position, depending on the mode
+            if( !boringMode )
+            {
+                double des_pos = yarp::os::Random::uniform(low,up);
+                commandedPositions[jnt] = des_pos;
+            }
+            else
+            {
+                if( !boringModeInitialized )
+                {
+                    commandedPositions[jnt] = low;
+                }
+                else
+                {
+                    if(boring_overflow)
+                    {
+                        commandedPositions[jnt]=commandedPositions[jnt]+controlledJoints[jnt].delta;
+                        boring_overflow = false;
+                        if( commandedPositions[jnt] > up )
+                        {
+                            commandedPositions[jnt] = low;
+                            boring_overflow = true;
+                        }
+                    }
+                }
+            }
+            std::cout  << "Send new desired position: " << commandedPositions[jnt] << " to joint " << part <<  " " << axis << std::endl;
+            pos[part]->positionMove(axis,commandedPositions[jnt]);
         }
+        boringModeInitialized = true;
+    } 
+    else
+    {
     }
 
     return true;

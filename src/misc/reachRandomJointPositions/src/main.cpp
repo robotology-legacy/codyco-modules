@@ -51,6 +51,7 @@ int main (int argc, char * argv[])
         cout<< "\t--rate :Period used by the module. Default set to 10ms." <<endl;
         cout<< "\t--robot :Robot name (icubSim or icub). Set to icub by default." <<endl;
         cout<< "\t--local :Prefix of the ports opened by the module. Set to the module name by default, i.e. reachRandomJointPositions." <<endl;
+        cout<< "\t--boringMode :Reach all the points in the desired workspace with in a deterministic way"<<endl;
         return 0;
     }
 

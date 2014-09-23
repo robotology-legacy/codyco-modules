@@ -44,6 +44,7 @@ public:
     int axis_number;
     double lower_limit;
     double upper_limit;
+    double delta;
 };
 
 class reachRandomJointPositionsModule: public RFModule
@@ -53,12 +54,16 @@ class reachRandomJointPositionsModule: public RFModule
     string robotName;
     double period;
     double avgTime, stdDev, avgTimeUsed, stdDevUsed;
+    
+    bool boringMode;
+    bool boringModeInitialized;
 
-    double new_position_period;
-    double elapsed_time; // time passed from last position command
+    double static_pose_period;
+    double elapsed_time; // time passed from when the desired pose was reached
     double ref_speed;
 
     std::vector< controlledJoint > controlledJoints;
+    yarp::sig::Vector commandedPositions;
 
     std::map<std::string,yarp::dev::PolyDriver *> drivers;
     std::map<std::string,yarp::dev::IPositionControl *> pos;
