@@ -23,6 +23,7 @@
 #include <yarp/math/SVD.h>
 
 #include <string.h>
+#include <ctime>
 
 
 using namespace yarp::math;
@@ -362,13 +363,13 @@ bool wholeBodyDynamicsThread::calibrateOffset(const std::string calib_code, int 
 {
     run_mutex.lock();
     samples_requested_for_calibration= samples_to_use;
-    std::cout << "wholeBodyDynamicsThread::calibrateOffset called with code " << calib_code << std::endl;
+    std::cout << "[INFO] wholeBodyDynamicsThread::calibrateOffset called with code " << calib_code << std::endl;
     if( samples_requested_for_calibration <= 0 ) {
-        std::cout << "wholeBodyDynamicsThread::calibrateOffset error: requested calibration with a negative (" << samples_requested_for_calibration << ") number of samples." << std::endl;
+        std::cout << "[INFO] wholeBodyDynamicsThread::calibrateOffset error: requested calibration with a negative (" << samples_requested_for_calibration << ") number of samples." << std::endl;
         return false;
     }
     if( calib_code == "feet" && !(icub_version.feet_ft) ) {
-        std::cout << "wholeBodyDynamicsThread::calibrateOffset error: requested calibration of feet, but feet FT sensor not available." << std::endl;
+        std::cout << "[ERR] wholeBodyDynamicsThread::calibrateOffset error: requested calibration of feet, but feet FT sensor not available." << std::endl;
         return false;
     }
 
@@ -391,7 +392,7 @@ bool wholeBodyDynamicsThread::calibrateOffset(const std::string calib_code, int 
         calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
         calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
     } else {
-        std::cout << "wholeBodyDynamicsThread::calibrateOffset error: code " << calib_code << " not available" << std::endl;
+        std::cout << "[ERR] wholeBodyDynamicsThread::calibrateOffset error: code " << calib_code << " not available" << std::endl;
         return false;
     }
 
@@ -404,7 +405,7 @@ bool wholeBodyDynamicsThread::calibrateOffset(const std::string calib_code, int 
             estimator->getEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,convertFTiDynTreeToFTwbi(ft_id),ft_off);
 
 
-            std::cout << "wholeBodyDynamicsThread::calibrateOffset: current calibration for FT " << ft_id << " is " <<
+            std::cout << "[INFO] wholeBodyDynamicsThread::calibrateOffset: current calibration for FT " << ft_id << " is " <<
                          ft_off[0] << " " << ft_off[1] << " " << ft_off[2] << " " << ft_off[3] << " " << ft_off[4] << " " << ft_off[5] << std::endl;
             ft_off[0] = ft_off[1] = ft_off[2] = ft_off[3] = ft_off[4] = ft_off[5] = 0.0;
             
@@ -995,15 +996,17 @@ void wholeBodyDynamicsThread::normal_run()
         period = getRate();
         getEstPeriod(avgTime, stdDev);
         getEstUsed(avgTimeUsed, stdDevUsed);
-        if(avgTimeUsed>period) {
-            printf("[PERFORMANCE INFORMATION]:\n");
-            printf("Expected period %lf ms.\nReal period: %3.1lf+/-%3.1lf ms.\n", period, avgTime, stdDev);
-            printf("Real duration of 'run' method: %3.1lf+/-%3.1lf ms.\n", avgTimeUsed, stdDevUsed);
-            if(avgTimeUsed<0.5*period)
-                printf("Next time you could set a lower period to improve the wholeBodyDynamics performance.\n");
-            else if(avgTime>1.3*period)
-                printf("The period you set was impossible to attain. Next time you could set a higher period.\n");
-        }
+        //if(avgTimeUsed>period) {
+            //std::cout << "Performance information in cout" << std::endl;
+            //std::cerr << "Performance information in cerr" << std::endl;
+            //fprintf(stdout,"PERFORMANCE INFORMATION:\n");
+            //printf("Expected period %lf ms.\nReal period: %3.1lf+/-%3.1lf ms.\n", period, avgTime, stdDev);
+            //printf("Real duration of 'run' method: %3.1lf+/-%3.1lf ms.\n", avgTimeUsed, stdDevUsed);
+            //if(avgTimeUsed<0.5*period)
+            //    printf("Next time you could set a lower period to improve the wholeBodyDynamics performance.\n");
+            //else if(avgTime>1.3*period)
+            //    printf("The period you set was impossible to attain. Next time you could set a higher period.\n");
+        //}
         /*
         std::cout << "Torques: " << std::endl;
         std::cout << all_torques.toString() << std::endl;
@@ -1020,6 +1023,21 @@ void wholeBodyDynamicsThread::normal_run()
         */
     }
 
+}
+
+std::string getCurrentDateAndTime()
+{
+  time_t rawtime;
+  struct tm * timeinfo;
+  char buffer[80];
+
+  time (&rawtime);
+  timeinfo = localtime(&rawtime);
+
+  strftime(buffer,80,"%d-%m-%Y %I:%M:%S",timeinfo);
+  std::string str(buffer);
+
+  return str;
 }
 
 //*************************************************************************************************************************
@@ -1095,6 +1113,8 @@ void wholeBodyDynamicsThread::calibration_run()
 
     if( samples_used_for_calibration >= samples_requested_for_calibration ) {
         //Calculating offset
+        //std::cout.precision(20);
+        std::cout << "[INFO] wholeBodyDynamicsThread: complete calibration at system time : " << getCurrentDateAndTime() << std::endl; 
         for(int ft_sensor_id=0; ft_sensor_id < (int)offset_buffer.size(); ft_sensor_id++ ) {
             if( calibrate_ft_sensor[ft_sensor_id] ) {
                 offset_buffer[ft_sensor_id] *= (1.0/(double)samples_used_for_calibration);
@@ -1103,7 +1123,7 @@ void wholeBodyDynamicsThread::calibration_run()
                 double ft_off[6];
                 estimator->getEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,convertFTiDynTreeToFTwbi(ft_sensor_id),ft_off);
 
-                std::cout << "wholeBodyDynamicsThread: new calibration for FT " << ft_sensor_id << " is " <<
+                std::cout << "[INFO] wholeBodyDynamicsThread: new calibration for FT " << ft_sensor_id << " is " <<
                             ft_off[0] << " " << ft_off[1] << " " << ft_off[2] << " " << ft_off[3] << " " << ft_off[4] << " " << ft_off[5] << std::endl;
             }
         }
