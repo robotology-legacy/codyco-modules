@@ -103,14 +103,14 @@ namespace codyco {
                 
                 m_currentSignalValue = m_reader.getSignal(context);
                 //compute pid
-                m_error = m_actualReference - m_currentSignalValue;
+                m_error = m_currentSignalValue - m_actualReference;
                 m_integralTerm += dt * m_error;
                 limitIntegral(m_integralTerm, m_integralTerm);
                 
                 m_computedReference = m_signalFeedForward
-                + m_proportionalGains.asDiagonal() * m_error
-                + m_derivativeGains.asDiagonal() * (m_signalDerivativeReference - m_reader.getSignalDerivative(context))
-                + m_integralGains.asDiagonal() * m_integralTerm;
+                - m_proportionalGains.asDiagonal() * m_error
+                - m_derivativeGains.asDiagonal() * (m_reader.getSignalDerivative(context) - m_signalDerivativeReference)
+                - m_integralGains.asDiagonal() * m_integralTerm;
                 m_outputReference.setValue(m_computedReference);
                 
                 m_previousTime = now;

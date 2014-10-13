@@ -163,6 +163,8 @@ namespace codyco {
             Eigen::VectorXd m_comIntegralGain;
             double m_comIntegralLimit;
             
+            Eigen::VectorXd m_torqueSaturation;
+            
             //not used now
             Eigen::VectorXd m_handsPositionProportionalGain;
             Eigen::VectorXd m_handsPositionDerivativeGain;

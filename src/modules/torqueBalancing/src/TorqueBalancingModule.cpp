@@ -478,6 +478,7 @@ namespace codyco {
         , m_comDerivativeGain(3)
         , m_comIntegralGain(3)
         , m_comIntegralLimit(std::numeric_limits<double>::max())
+        , m_torqueSaturation(actuatedDOFs)
         , m_handsPositionProportionalGain(14)
         , m_handsPositionDerivativeGain(14)
         , m_handsPositionIntegralGain(14)
@@ -559,6 +560,10 @@ namespace codyco {
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCOMIntegralGain, this);
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMIntegralLimit, &m_comIntegralLimit)
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCOMIntegralLimit, this);
+            
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterTorqueSaturation, m_torqueSaturation.data())
+            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterTorqueSaturation, this);
+            
 //            //Hands position
 //            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionDerivativeGain, m_handsPositionProportionalGain.data())
 //            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsPositionDerivativeGain, this);
@@ -657,6 +662,7 @@ namespace codyco {
             }
             m_module.m_controller->setCentroidalMomentumGain(m_centroidalGain);
             m_module.m_controller->setImpedanceGains(m_impedanceControlGains);
+            m_module.m_controller->setTorqueSaturationLimit(m_torqueSaturation);
         }
         
         bool TorqueBalancingModule::ParamHelperManager::processRPCCommand(const yarp::os::Bottle &command, yarp::os::Bottle &reply)
@@ -879,6 +885,10 @@ namespace codyco {
                     break;
                 case TorqueBalancingModuleParameterImpedanceGain:
                     m_module.m_controller->setImpedanceGains(m_impedanceControlGains);
+                    break;
+                //Saturation
+                case TorqueBalancingModuleParameterTorqueSaturation:
+                    m_module.m_controller->setTorqueSaturationLimit(m_torqueSaturation);
                     break;
             }
         }

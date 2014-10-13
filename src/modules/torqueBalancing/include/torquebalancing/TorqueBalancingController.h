@@ -95,6 +95,16 @@ namespace codyco {
              */
             bool isActiveState();
             
+            /** Sets the torque saturation limits for the actuators
+             * @param newSaturation new value for the saturation limit
+             */
+            void setTorqueSaturationLimit(Eigen::VectorXd& newSaturation);
+            
+            /** Returns the current torque saturation limits
+             * @return the saturation limits
+             */
+            const Eigen::VectorXd& torqueSaturationLimit();
+            
 #pragma mark - Monitorable variables
             
             const Eigen::VectorXd& desiredFeetForces();
@@ -149,6 +159,8 @@ namespace codyco {
             Eigen::Vector3d m_centerOfMassPosition;
             Eigen::VectorXd m_rightFootPosition; /*!< 7 */
             Eigen::VectorXd m_leftFootPosition; /*!< 7 */
+            
+            Eigen::VectorXd m_torqueSaturationLimit; /* actuatedDOFs */
             
             //Jacobians
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_contactsJacobian; /*!< (6x2 + 3x2) x totalDOFs (forces and torques for feet, only forces for hands)*/
