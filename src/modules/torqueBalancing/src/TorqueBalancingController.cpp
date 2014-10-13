@@ -119,7 +119,7 @@ namespace codyco {
             
             m_jointsZeroVector.setZero();
             
-            //reset status to zeroing
+            //reset status to zero
             m_jointPositions.setZero();
             m_jointVelocities.setZero();
             m_baseVelocity.setZero();
@@ -140,6 +140,7 @@ namespace codyco {
            
             //zeroing monitored variables
             m_desiredFeetForces.setZero();
+            m_desiredHandsForces.setZero();
             m_desiredContactForces.setZero();
             m_torques.setZero();
             return linkFound;
@@ -202,7 +203,7 @@ namespace codyco {
             if (m_active == isActive) return;
             if (isActive) {
                 m_desiredCOMAcceleration.setZero(); //reset reference
-                m_robot.setControlMode(wbi::CTRL_MODE_TORQUE);
+//                m_robot.setControlMode(wbi::CTRL_MODE_TORQUE);
             } else {
                 m_robot.setControlMode(wbi::CTRL_MODE_POS);
             }
@@ -328,12 +329,15 @@ namespace codyco {
             //Eigen 3.3 will allow to set a threashold directly on the decomposition
             //thus allowing the method solve to work "properly".
             //Becaues it is not stable yet we use the explicit computation of the SVD
-//            m_svdDecompositionOfCentroidalForceMatrix.compute(m_centroidalForceMatrix).solve(m_desiredCentroidalMomentum - m_gravityForce);            
+//            m_svdDecompositionOfCentroidalForceMatrix.compute(m_centroidalForceMatrix).solve(m_desiredCentroidalMomentum - m_gravityForce);
+            
             math::pseudoInverse(m_centroidalForceMatrix, m_svdDecompositionOfCentroidalForceMatrix,
                                 m_pseudoInverseOfCentroidalForceMatrix, PseudoInverseTolerance);
+            
             m_desiredFeetForces = m_pseudoInverseOfCentroidalForceMatrix * (m_desiredCentroidalMomentum
                                                                             - m_gravityForce
                                                                             - m_desiredHandsForces.head(6) - m_desiredHandsForces.tail(6));
+
             desiredContactForces.topRows(12) = m_desiredFeetForces;
             desiredContactForces.middleRows(12, 3) = m_desiredHandsForces.head(3);
             desiredContactForces.middleRows(15, 3) = m_desiredHandsForces.segment(6, 3);

@@ -60,6 +60,7 @@ namespace codyco {
             m_signalFeedForward.setZero();
             
             m_currentSignalValue.setZero();
+            m_error.setZero(); //only for monitoring
             
             //avoid garbage in the generated reference
             m_outputReference.setValue(m_computedReference);
