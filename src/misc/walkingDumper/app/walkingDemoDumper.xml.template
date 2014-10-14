@@ -26,13 +26,13 @@
         </module>
 
         <module>
-                <name>velocityObserverLeft</name>
+                <name>velocityObserver</name>
                 <parameters>--robot icub --name /velObserverLeft</parameters>
                 <node>icub15</node>
                 <tag>velocityObserver_left</tag>
         </module>
         <module>
-                <name>velocityObserverRight</name>
+                <name>velocityObserver</name>
                 <parameters>--robot icub --name /velObserverRight</parameters>
                 <node>icub15</node>
                 <tag>velocityObserver_right</tag>
@@ -54,7 +54,7 @@
         
         <module>
                 <name>dataDumper</name>
-                <parameters>--name /jointTorquesLeft --dir dumpJointTorques</parameters>
+                <parameters>--name /jointTorquesLeft --dir dumpJointTorquesLeft</parameters>
                 <node>icub15</node>
                 <tag>dataDumper_torquesLeft</tag>
         </module>
@@ -89,7 +89,7 @@
         
         <module>
                 <name>dataDumper</name>
-                <parameters>--name /jointTorquesRight --dir dumpJointTorques</parameters>
+                <parameters>--name /jointTorquesRight --dir dumpJointTorquesRight</parameters>
                 <node>icub15</node>
                 <tag>dataDumper_torquesRight</tag>
         </module>
@@ -135,13 +135,13 @@
         </connection>
         
         <connection>
-                <from>/icub/controlBoardDumper/left_leg/getOutputs</from>
+                <from>/controlBoardDumper/left_leg/getOutputs</from>
                 <to>/jointVoltageLeft</to>
                 <protocol>udp</protocol>
         </connection>
         
         <connection>
-                <from>/icub/controlBoardDumper/left_leg/getCurrents</from>
+                <from>/controlBoardDumper/left_leg/getCurrents</from>
                 <to>/jointCurrentLeft</to>
                 <protocol>udp</protocol>
         </connection>
@@ -168,13 +168,13 @@
         </connection>
         
         <connection>
-                <from>/icub/controlBoardDumper/right_leg/getOutputs</from>
+                <from>/controlBoardDumper/right_leg/getOutputs</from>
                 <to>/jointVoltageRight</to>
                 <protocol>udp</protocol>
         </connection>
         
         <connection>
-                <from>/icub/controlBoardDumper/right_leg/getCurrents</from>
+                <from>/controlBoardDumper/right_leg/getCurrents</from>
                 <to>/jointCurrentRight</to>
                 <protocol>udp</protocol>
         </connection>
