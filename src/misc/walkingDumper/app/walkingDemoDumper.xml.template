@@ -1,0 +1,188 @@
+<application>
+<name>WalkingDemoDumper</name>
+       
+<dependencies></dependencies>
+
+        <module>
+                <name>wholeBodyDynamicsTree</name>
+                <parameters>--autoconnect --headV2 --legsV2 --feetV2 --name wholeBodyDynamicsTree --robot icub</parameters>
+                <node>icub15</node>
+                <tag>wbdt</tag>
+        </module>
+
+
+        <module>
+                <name>controlBoardDumper</name>
+                <parameters>--robot icub --part left_leg --rate 10 --joint "(0 1 2 3 4 5)" --dataToDump "(getCurrents getOutputs)"</parameters>
+                <node>icub15</node>
+                <tag>controlBoardDumper_LeftLeg</tag>
+        </module>
+
+        <module>
+                <name>controlBoardDumper</name>
+                <parameters>--robot icub --part right_leg --rate 10 --joint "(0 1 2 3 4 5)" --dataToDump "(getCurrents getOutputs)"</parameters>
+                <node>icub15</node>
+                <tag>controlBoardDumper_LeftLeg</tag>
+        </module>
+
+        <module>
+                <name>velocityObserverLeft</name>
+                <parameters>--robot icub --name /velObserverLeft</parameters>
+                <node>icub15</node>
+                <tag>velocityObserver_left</tag>
+        </module>
+        <module>
+                <name>velocityObserverRight</name>
+                <parameters>--robot icub --name /velObserverRight</parameters>
+                <node>icub15</node>
+                <tag>velocityObserver_right</tag>
+        </module>
+        
+        <module>
+                <name>dataDumper</name>
+                <parameters>--name /jointAnglesLeft --dir dumpJointAnglesLeft</parameters>
+                <node>icub15</node>
+                <tag>dataDumper_anglesLeft</tag>
+        </module>
+        
+        <module>
+                <name>dataDumper</name>
+                <parameters>--name /jointVelsLeft --dir dumpJointVelsLeft</parameters>
+                <node>icub15</node>
+                <tag>dataDumper_velsLeft</tag>
+        </module>
+        
+        <module>
+                <name>dataDumper</name>
+                <parameters>--name /jointTorquesLeft --dir dumpJointTorques</parameters>
+                <node>icub15</node>
+                <tag>dataDumper_torquesLeft</tag>
+        </module>
+  
+        <module>
+                <name>dataDumper</name>
+                <parameters>--name /jointVoltageLeft --dir dumpJointVoltageLeft</parameters>
+                <node>icub15</node>
+                <tag>dataDumper_voltageLeft</tag>
+        </module>
+  
+        <module>
+                <name>dataDumper</name>
+                <parameters>--name /jointCurrentLeft --dir dumpJointCurrentLeft</parameters>
+                <node>icub15</node>
+                <tag>dataDumper_currentLeft</tag>
+        </module>
+        
+        <module>
+                <name>dataDumper</name>
+                <parameters>--name /jointAnglesRight --dir dumpJointAnglesRight</parameters>
+                <node>icub15</node>
+                <tag>dataDumper_anglesRight</tag>
+        </module>
+        
+        <module>
+                <name>dataDumper</name>
+                <parameters>--name /jointVelsRight --dir dumpJointVelsRight</parameters>
+                <node>icub15</node>
+                <tag>dataDumper_velsRight</tag>
+        </module>
+        
+        <module>
+                <name>dataDumper</name>
+                <parameters>--name /jointTorquesRight --dir dumpJointTorques</parameters>
+                <node>icub15</node>
+                <tag>dataDumper_torquesRight</tag>
+        </module>
+          
+        <module>
+                <name>dataDumper</name>
+                <parameters>--name /jointVoltageRight --dir dumpJointVoltageRight</parameters>
+                <node>icub15</node>
+                <tag>dataDumper_voltageRight</tag>
+        </module>
+  
+        <module>
+                <name>dataDumper</name>
+                <parameters>--name /jointCurrentRight --dir dumpJointCurrentRight</parameters>
+                <node>icub15</node>
+                <tag>dataDumper_currentRight</tag>
+        </module>
+        
+        
+        <connection>
+                <from>/icub/left_leg/state:o</from>
+                <to>/velObserverLeft/pos:i</to>
+                <protocol>udp</protocol>
+        </connection>
+        
+        <connection>
+                <from>/icub/right_leg/state:o</from>
+                <to>/velObserverRight/pos:i</to>
+                <protocol>udp</protocol>
+        </connection>
+        
+        
+        <connection>
+                <from>/icub/left_leg/state:o</from>
+                <to>/jointAnglesLeft</to>
+                <protocol>udp</protocol>
+        </connection>
+        
+        <connection>
+                <from>/velObserverLeft/vel:o</from>
+                <to>/jointVelsLeft</to>
+                <protocol>udp</protocol>
+        </connection>
+        
+        <connection>
+                <from>/icub/controlBoardDumper/left_leg/getOutputs</from>
+                <to>/jointVoltageLeft</to>
+                <protocol>udp</protocol>
+        </connection>
+        
+        <connection>
+                <from>/icub/controlBoardDumper/left_leg/getCurrents</from>
+                <to>/jointCurrentLeft</to>
+                <protocol>udp</protocol>
+        </connection>
+        
+        <connection>
+                <from>/wholeBodyDynamicsTree/left_leg/Torques:o</from>
+                <to>/jointTorquesLeft</to>
+                <protocol>udp</protocol>
+        </connection>
+        
+
+        <!--right-->
+        
+        <connection>
+                <from>/icub/right_leg/state:o</from>
+                <to>/jointAnglesRight</to>
+                <protocol>udp</protocol>
+        </connection>
+        
+        <connection>
+                <from>/velObserverRight/vel:o</from>
+                <to>/jointVelsRight</to>
+                <protocol>udp</protocol>
+        </connection>
+        
+        <connection>
+                <from>/icub/controlBoardDumper/right_leg/getOutputs</from>
+                <to>/jointVoltageRight</to>
+                <protocol>udp</protocol>
+        </connection>
+        
+        <connection>
+                <from>/icub/controlBoardDumper/right_leg/getCurrents</from>
+                <to>/jointCurrentRight</to>
+                <protocol>udp</protocol>
+        </connection>
+        
+        
+        <connection>
+                <from>/wholeBodyDynamicsTree/right_leg/Torques:o</from>
+                <to>/jointTorquesRight</to>
+                <protocol>udp</protocol>
+        </connection>
+</application>
