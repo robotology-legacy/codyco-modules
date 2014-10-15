@@ -1,4 +1,4 @@
-CoDyCo Components
+CoDyCo Modules
 =================
 [![Build Status](https://travis-ci.org/robotology/codyco-modules.svg?branch=master)](https://travis-ci.org/robotology/codyco-modules)
 
