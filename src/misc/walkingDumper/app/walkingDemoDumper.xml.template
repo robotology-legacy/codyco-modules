@@ -13,14 +13,14 @@
 
         <module>
                 <name>controlBoardDumper</name>
-                <parameters>--robot icub --part left_leg --rate 10 --joint "(0 1 2 3 4 5)" --dataToDump "(getCurrents getOutputs)"</parameters>
+                <parameters>--robot icub --part left_leg --rate 10 --joints "(0 1 2 3 4 5)" --dataToDump "(getCurrents getOutputs)"</parameters>
                 <node>icub15</node>
                 <tag>controlBoardDumper_LeftLeg</tag>
         </module>
 
         <module>
                 <name>controlBoardDumper</name>
-                <parameters>--robot icub --part right_leg --rate 10 --joint "(0 1 2 3 4 5)" --dataToDump "(getCurrents getOutputs)"</parameters>
+                <parameters>--robot icub --part right_leg --rate 10 --joints "(0 1 2 3 4 5)" --dataToDump "(getCurrents getOutputs)"</parameters>
                 <node>icub15</node>
                 <tag>controlBoardDumper_LeftLeg</tag>
         </module>
