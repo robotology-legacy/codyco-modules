@@ -13,7 +13,7 @@ endif(COMMAND cmake_policy)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 #### CoDyCo Setup
-project(CoDyCo)
+project(codyco-modules)
 
 set(CODYCO_VERSION_MAJOR "0")
 set(CODYCO_VERSION_MINOR "1")
