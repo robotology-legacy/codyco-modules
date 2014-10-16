@@ -417,8 +417,8 @@ bool jointTorqueControlThread::readRobotStatus(bool blockingRead)
     dqDes  = -two_pi_f * qSinAmpl * two_pi_f_t.sin();
     ddqDes = -two_pi_f.square() * A_cos_2pi_f_t;
     
-    ddqInvDyn = activeJoints.cast<double>() * (ddqDes + ks*(qDes-q) + kd*(dqDes-dq));
-//    ddqInvDyn = activeJoints.cast<double>() * (ks*(qDes-q));
+    ddqInvDyn = activeJoints.cast<double>() * (ddqDes + kStiff*(qDes-q) + kDamp*(dqDes-dq));
+//    ddqInvDyn = activeJoints.cast<double>() * (kStiff*(qDes-q));
     res = res && robot->inverseDynamics(q.data(), Frame(), dq.data(), zero6, ddqInvDyn.data(), ddxB, zero6, tauInvDyn.data());
     
 //    printf("compute inv dyn\n");
