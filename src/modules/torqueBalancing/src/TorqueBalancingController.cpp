@@ -375,7 +375,8 @@ namespace codyco {
             torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_contactsDJacobianDq - JcMInv * m_contactsJacobian.transpose() * desiredContactForces);
             
             VectorXd torques0 = m_gravityBiasTorques.tail(actuatedDOFs) - m_contactsJacobian.rightCols(actuatedDOFs).transpose() * desiredContactForces
-            - m_impedanceGains.asDiagonal() * (m_jointPositions - m_desiredJointsConfiguration);
+            - m_impedanceGains.asDiagonal() * (m_jointPositions - m_desiredJointsConfiguration) 
+            - m_massMatrix.block(6, 0, actuatedDOFs, 6) * m_massMatrix.topLeftCorner<6, 6>().inverse() * (m_gravityBiasTorques.head<6>() - m_contactsJacobian.leftCols(6).transpose() * desiredContactForces);
             
             torques += nullSpaceProjector * torques0;
                         
