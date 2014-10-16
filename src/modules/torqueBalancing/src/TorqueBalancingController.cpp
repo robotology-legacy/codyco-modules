@@ -207,7 +207,7 @@ namespace codyco {
             if (m_active == isActive) return;
             if (isActive) {
                 m_desiredCOMAcceleration.setZero(); //reset reference
-                m_robot.setControlMode(wbi::CTRL_MODE_TORQUE);
+                //m_robot.setControlMode(wbi::CTRL_MODE_TORQUE);
             } else {
                 m_robot.setControlMode(wbi::CTRL_MODE_POS);
             }
@@ -335,6 +335,13 @@ namespace codyco {
             double mass = m_massMatrix(0, 0);
             m_gravityForce(2) = -mass * 9.81;
 
+            static int counter = 0;
+            counter = (counter + 1) % ((int)(50)); //every 5 seconds
+            
+            if (counter == 0) {
+                std::cout << "COM desired :" << desiredCOMAcceleration.transpose() << "\n";
+            }
+
             //building centroidalForceMatrix
             math::skewSymmentricMatrixFrom3DVector(m_leftFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 0));
             math::skewSymmentricMatrixFrom3DVector(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 6));
@@ -395,7 +402,7 @@ namespace codyco {
         
         void TorqueBalancingController::writeTorques()
         {
-            m_robot.setControlReference(m_torques.data());
+            //m_robot.setControlReference(m_torques.data());
         }
         
 #pragma mark - Auxiliary functions

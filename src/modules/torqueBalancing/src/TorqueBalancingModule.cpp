@@ -645,6 +645,7 @@ namespace codyco {
             }
             
             if (comGenerator) {
+                std::cout << "loading defaults " << m_comProportionalGain << "\n";
                 comGenerator->setProportionalGains(m_comProportionalGain);
                 comGenerator->setDerivativeGains(m_comDerivativeGain);
                 comGenerator->setIntegralGains(m_comIntegralGain);

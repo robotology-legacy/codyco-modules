@@ -112,6 +112,10 @@ namespace codyco {
                 - m_derivativeGains.asDiagonal() * (m_reader.getSignalDerivative(context) - m_signalDerivativeReference)
                 - m_integralGains.asDiagonal() * m_integralTerm;
                 m_outputReference.setValue(m_computedReference);
+
+                /*if (strcmp("com pid", m_name.c_str()) == 0) {
+                    std::cout << m_proportionalGains.transpose() << "  D:" <<  m_derivativeGains.transpose() << "  I: " << m_integralGains.transpose() << " \n";
+                }*/
                 
                 m_previousTime = now;
             }
