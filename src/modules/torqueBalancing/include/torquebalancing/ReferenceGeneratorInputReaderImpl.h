@@ -116,7 +116,7 @@ namespace codyco {
             wbi::Frame m_leftFootToBaseRotationFrame;
 
             int m_leftFootLinkID; /*!< this is temporary to allow robot localization */
-            wbi::LocalId m_endEffectorLocalID;
+            wbi::wbiId m_endEffectorLocalID;
 
             Eigen::VectorXd m_jointsPosition;
             Eigen::VectorXd m_jointsVelocity;

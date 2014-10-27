@@ -21,7 +21,7 @@
 #include "ReferenceGenerator.h"
 #include "ReferenceGeneratorInputReaderImpl.h"
 #include "MinimumJerkTrajectoryGenerator.h"
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 #include <yarp/os/Port.h>
 #include <vector>
 
@@ -35,15 +35,15 @@
 
 namespace codyco {
     namespace torquebalancing {
-        
+
         //Utility structure used inside the module
         struct TaskInformation {
             TaskType taskType;
             std::string referredLinkName;
             Reference* reference; //I cannot use a reference because object must be Assignable to be used inside std::vector
         };
-        
-        
+
+
         TorqueBalancingModule::TorqueBalancingModule()
         : m_moduleState(TorqueBalancingModuleStateDoubleSupportStable)
         , m_controllerThreadPeriod(10)
@@ -61,9 +61,9 @@ namespace codyco {
         , m_impedanceDoubleSupportReference(actuatedDOFs)
         , m_impedanceLeftHandReference(5)
         , m_impedanceRightHandReference(5) {}
-        
+
         TorqueBalancingModule::~TorqueBalancingModule() { cleanup(); }
-        
+
         bool TorqueBalancingModule::configure(yarp::os::ResourceFinder& rf)
         {
             //PARAMETERS SECTION
@@ -75,7 +75,7 @@ namespace codyco {
                 return false;
             }
             //END PARAMETER SECTION
-            
+
             m_rpcPort = new yarp::os::Port();
             if (!m_rpcPort
                 || !m_rpcPort->open(("/" + m_moduleName + "/rpc").c_str())) {
@@ -84,19 +84,19 @@ namespace codyco {
             }
             setName(m_moduleName.c_str());
             attach(*m_rpcPort);
-            
+
             //Create reference variable
             m_references = new ControllerReferences();
             if (!m_references) {
                 std::cerr << "Could not create shared references object." << std::endl;
                 return false;
             }
-            
+
             //create reference to wbi
             iCub::iDynTree::iCubTree_version_tag iCubVersion;
             codyco::iCubVersionFromRf(rf, iCubVersion);
             m_robot = new wbiIcub::icubWholeBodyInterface(m_moduleName.c_str(), m_robotName.c_str(), iCubVersion);
-            
+
             if (!m_robot) {
                 std::cerr << "Could not create wbi object." << std::endl;
                 return false;
@@ -107,29 +107,29 @@ namespace codyco {
                 std::cerr << "Could not initialize wbi." << std::endl;
                 return false;
             }
-            
+
             //Sanity checks
             if (wbiIcub::ICUB_MAIN_JOINTS.size() != actuatedDOFs) {
                 std::cerr << "Error in initializing wbi, the number of joints is different from the expected" << std::endl;
                 return false;
             }
-            
+
             //load initial configuration for the impedance control
             m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_initialJointsConfiguration.data());
             m_references->desiredJointsConfiguration().setValue(m_initialJointsConfiguration);
             m_impedanceDoubleSupportReference = m_initialJointsConfiguration; //copy into double support state
-            
+
             int leftFootLinkID = -1;
             m_robot->getLinkId("l_sole", leftFootLinkID);
-            
+
             wbi::Frame frame;
             m_robot->computeH(m_initialJointsConfiguration.data(), wbi::Frame(), leftFootLinkID, frame);
-            
+
             frame = frame * wbi::Frame(wbi::Rotation(0, 0, 1,
                                                      0, -1, 0,
                                                      1, 0, 0));
             frame.setToInverse();
-            
+
             Eigen::VectorXd initialCOM(7);
             //set initial com to be equal to the read one
             m_robot->forwardKinematics(m_initialJointsConfiguration.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, initialCOM.data());
@@ -141,11 +141,11 @@ namespace codyco {
             forcesSmoother.initializeTimeParameters(m_controllerThreadPeriod, m_forcesSmootherDuration); //duration to be moved into module (initial) parameters
             MinimumJerkTrajectoryGenerator jointsSmoother(actuatedDOFs);
             jointsSmoother.initializeTimeParameters(m_controllerThreadPeriod, m_jointsSmootherDuration); //duration to be moved into module (initial) parameters
-            
+
             //create generators
             ReferenceGeneratorInputReader* reader = 0;
             ReferenceGenerator* generator = 0;
-            
+
             //COM task
             reader = new COMReader(*m_robot);
             if (reader) {
@@ -154,7 +154,7 @@ namespace codyco {
                 std::cerr << "Could not create COM reader object." << std::endl;
                 return false;
             }
-            
+
             generator = new ReferenceGenerator(m_controllerThreadPeriod, m_references->desiredCOMAcceleration(), *reader, "com pid");
             if (generator) {
                 generator->setSignalReference(m_comReference);
@@ -163,7 +163,7 @@ namespace codyco {
                 std::cerr << "Could not create COM controller." << std::endl;
                 return false;
             }
-            
+
             //Impedance task
             reader = new VoidReader(actuatedDOFs);
             if (reader) {
@@ -172,7 +172,7 @@ namespace codyco {
                 std::cerr << "Could not create impedance control reader object." << std::endl;
                 return false;
             }
-            
+
             generator = new ReferenceGenerator(m_controllerThreadPeriod, m_references->desiredJointsConfiguration(), *reader);
             if (generator) {
                 //generator->setReferenceFilter(&jointsSmoother);
@@ -183,14 +183,14 @@ namespace codyco {
                 return false;
             }
 
-            
+
 //            //position tasks
 //            std::vector<TaskInformation> tasks;
 //            TaskInformation task1 = {TaskTypeLeftHandPosition, "l_gripper", &m_references->desiredLeftHandPosition()};
 //            tasks.push_back(task1);
 //            TaskInformation task2 = {TaskTypeRightHandPosition, "r_gripper", &m_references->desiredRightHandPosition()};
 //            tasks.push_back(task2);
-//            
+//
 //            for (std::vector<TaskInformation>::iterator it = tasks.begin(); it != tasks.end(); it++) {
 //                reader = new EndEffectorPositionReader(*m_robot, it->referredLinkName);
 //                if (reader) {
@@ -207,7 +207,7 @@ namespace codyco {
 //                    return false;
 //                }
 //            }
-            
+
             //force tasks
             //Forces are controlled in open-loop right now.
             //I set the proportional gain to the identity, set the feedforward through reference (so it is smoothed)
@@ -217,7 +217,7 @@ namespace codyco {
             tasks.push_back(task1);
             TaskInformation task2 = {TaskTypeRightHandForce, "r_gripper", &m_references->desiredRightHandForce()};
             tasks.push_back(task2);
-            
+
             reader = new VoidReader(6);
             if (reader) {
                 m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeLeftHandForce, reader));
@@ -225,7 +225,7 @@ namespace codyco {
                 std::cerr << "Could not create Force reader object." << std::endl;
                 return false;
             }
-            
+
             for (std::vector<TaskInformation>::iterator it = tasks.begin(); it != tasks.end(); it++) {
 //                reader = new EndEffectorForceReader(*m_robot, it->referredLinkName);
 //                if (reader) {
@@ -244,13 +244,13 @@ namespace codyco {
                     return false;
                 }
             }
-            
+
             m_controller = new TorqueBalancingController(m_controllerThreadPeriod, *m_references, *m_robot);
             if (!m_controller) {
                 std::cerr << "Could not create TorqueBalancing controller object." << std::endl;
                 return false;
             }
-            
+
             //link controller and references variables to param helper manager
             if (!m_paramHelperManager->linkVariables()
                 || !m_paramHelperManager->linkMonitoredVariables()
@@ -262,19 +262,19 @@ namespace codyco {
             //start threads. Controllers start always in inactive state
             //This is needed because they have to be initialized before setting gains, etc..
             bool threadsStarted = true;
-            
+
             for (std::map<TaskType, ReferenceGenerator*>::iterator it = m_referenceGenerators.begin(); it != m_referenceGenerators.end(); it++) {
                 threadsStarted = threadsStarted && it->second->start();
             }
             threadsStarted = threadsStarted && m_controller->start();
-            
+
             m_paramHelperManager->loadDefaultVariables();
-            
+
             std::cout << "Module " << m_moduleName << " ready." << std::endl;
-            
+
             return threadsStarted;
         }
-        
+
         bool TorqueBalancingModule::updateModule()
         {
             if (!m_controller) {
@@ -284,95 +284,95 @@ namespace codyco {
 
             m_paramHelperManager->syncLinkedVariables();
             monitorVariables();
-            
+
             static int counter = 0;
             counter = (counter + 1) % ((int)(5 / m_modulePeriod)); //every 5 seconds
-            
+
             if (counter == 0) {
                 double periodMean = 0, periodStdDeviation = 0;
                 double usedMean = 0, usedStdDeviation = 0;
-                
+
                 m_controller->getEstPeriod(periodMean, periodStdDeviation);
                 m_controller->getEstUsed(usedMean, usedStdDeviation);
-                
+
                 if (periodMean > 1.3 * m_controllerThreadPeriod) {
                     std::cout << "[WARNING] Control loop is too slow. Real period: " << periodMean << "+/-" << periodStdDeviation << ". Expected period " << m_controllerThreadPeriod << std::endl;
                     std::cout << "Duration of 'run' method: " << usedMean << "+/-" << usedStdDeviation << std::endl;
                 }
             }
-            
+
             return true;
         }
-        
+
         bool TorqueBalancingModule::close()
         {
             setControllersActiveState(false);
             cleanup();
             return true;
         }
-        
+
         void TorqueBalancingModule::cleanup()
         {
             if (m_paramHelperManager) {
                 delete m_paramHelperManager;
                 m_paramHelperManager = 0;
             }
-            
+
             if (m_rpcPort) {
                 m_rpcPort->close();
                 delete m_rpcPort;
                 m_rpcPort = 0;
             }
-            
+
             //close controller thread
             if (m_controller) {
                 m_controller->stop();
                 delete m_controller;
                 m_controller = 0;
             }
-            
+
             //close trajectory generators
             for (std::map<TaskType, ReferenceGenerator*>::iterator it = m_referenceGenerators.begin(); it != m_referenceGenerators.end(); it++) {
                 it->second->stop();
                 delete it->second;
             }
             m_referenceGenerators.clear();
-            
+
             for (std::map<TaskType, ReferenceGeneratorInputReader*>::iterator it = m_generatorReaders.begin(); it != m_generatorReaders.end(); it++) {
                 delete it->second;
             }
             m_generatorReaders.clear();
-            
+
             //clear the other variables
             if (m_robot) {
                 m_robot->close();
                 delete m_robot;
                 m_robot = 0;
             }
-            
+
             if (m_references) {
                 delete m_references;
                 m_references = 0;
             }
         }
-        
+
         double TorqueBalancingModule::getPeriod()
         {
             return m_modulePeriod;
         }
-        
+
         bool TorqueBalancingModule::respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply)
         {
             if (!m_paramHelperManager->processRPCCommand(command, reply)) {
                 reply.addString((std::string("Command ") + command.toString().c_str() + " not recognized.").c_str());
             }
-            
+
             // if reply is empty put something into it, otherwise the rpc communication gets stuck
             if (reply.size() == 0)
                 reply.addString((std::string("Command ") + command.toString().c_str() + " received.").c_str());
             return true;
         }
-        
+
         void TorqueBalancingModule::setControllersActiveState(bool isActive)
         {
             if (isActive == m_active) return;
@@ -382,12 +382,12 @@ namespace codyco {
 #endif
             updateModuleCoordinationStatus();
         }
-        
+
         void TorqueBalancingModule::monitorVariables()
         {
             m_paramHelperManager->sendMonitoredVariables();
         }
-        
+
         void TorqueBalancingModule::updateModuleCoordinationStatus()
         {
             bool comTaskActive = m_active;
@@ -397,7 +397,7 @@ namespace codyco {
             bool leftHandForceTaskActive = false;
             bool rightHandForceTaskActive = false;
             Eigen::VectorXd impedanceReference = m_impedanceDoubleSupportReference;
-            
+
             switch (m_moduleState) {
                 case TorqueBalancingModuleStateDoubleSupportStable:
 #ifdef DEBUG
@@ -444,7 +444,7 @@ namespace codyco {
 #endif
                     break;
             }
-            
+
             bool controlSet = true;
             std::map<TaskType, ReferenceGenerator*>::iterator found;
 //            bool tasksState[5] = {comTaskActive, leftHandPositionTaskActive, rightHandPositionTaskActive, leftHandForceTaskActive, rightHandForceTaskActive};
@@ -453,7 +453,7 @@ namespace codyco {
             bool tasksState[4] = {comTaskActive, leftHandForceTaskActive, rightHandForceTaskActive, impedanceTaskActive};
             TaskType tasksType[4] = {TaskTypeCOM, TaskTypeLeftHandForce, TaskTypeRightHandForce, TaskTypeImpedanceControl};
             Eigen::VectorXd* taskReferences[4] = {&m_comReference, 0, 0, &impedanceReference};
-            
+
             for (int i = 0; i < 4; i++) {
                 found = m_referenceGenerators.find(tasksType[i]);
                 controlSet = controlSet && found != m_referenceGenerators.end();
@@ -465,9 +465,9 @@ namespace codyco {
             }
             m_controller->setActiveState(m_active && controlSet);
         }
-        
+
 #pragma mark - ParamHelperManager methods
-        
+
         TorqueBalancingModule::ParamHelperManager::ParamHelperManager(TorqueBalancingModule& module)
         : m_module(module)
         , m_initialized(false)
@@ -494,7 +494,7 @@ namespace codyco {
         , m_monitoredCOMIntegralError(3)
         , m_monitoredFeetForces(12)
         , m_monitoredOutputTorques(actuatedDOFs) {}
-        
+
         TorqueBalancingModule::ParamHelperManager::~ParamHelperManager()
         {
             if (m_parameterServer) {
@@ -503,7 +503,7 @@ namespace codyco {
                 m_parameterServer = 0;
             }
         }
-        
+
         bool TorqueBalancingModule::ParamHelperManager::init(yarp::os::ResourceFinder& resourceFinder)
         {
             if (m_initialized) return false;
@@ -514,33 +514,33 @@ namespace codyco {
             if (!m_parameterServer) {
                 return false;
             }
-            
+
             bool linkedVariable = true;
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterModuleName, &m_module.m_moduleName);
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterRobotName, &m_module.m_robotName);
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterControllerPeriod, &m_module.m_controllerThreadPeriod);
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterForcesSmoothingDuration, &m_module.m_forcesSmootherDuration);
             linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterJointsSmoothingDuration, &m_module.m_jointsSmootherDuration);
-            
+
             if (!linkedVariable) {
                 return false;
             }
-            
+
             yarp::os::Bottle replyBottle;
             m_parameterServer->initializeParams(resourceFinder, replyBottle);
-            
+
             if (!m_parameterServer->init(m_module.m_moduleName)) {
                 return false;
             }
             m_initialized = true;
             return true;
         }
-        
+
         bool TorqueBalancingModule::ParamHelperManager::linkVariables()
         {
             if (!m_initialized) return false;
             bool linked = true;
-            
+
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCurrentState, &m_module.m_moduleState)
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCurrentState, this);
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterModulePeriod, &m_module.m_modulePeriod);
@@ -560,10 +560,10 @@ namespace codyco {
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCOMIntegralGain, this);
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMIntegralLimit, &m_comIntegralLimit)
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCOMIntegralLimit, this);
-            
+
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterTorqueSaturation, m_torqueSaturation.data())
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterTorqueSaturation, this);
-            
+
 //            //Hands position
 //            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionDerivativeGain, m_handsPositionProportionalGain.data())
 //            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsPositionDerivativeGain, this);
@@ -599,10 +599,10 @@ namespace codyco {
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCentroidalGain, this);
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterImpedanceGain, m_impedanceControlGains.data())
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterImpedanceGain, this);
-            
+
             return linked;
         }
-        
+
         bool TorqueBalancingModule::ParamHelperManager::linkMonitoredVariables()
         {
             if (!m_initialized) return false;
@@ -612,10 +612,10 @@ namespace codyco {
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorCOMIntegralError, m_monitoredCOMIntegralError.data());
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorFeetForces, m_monitoredFeetForces.data());
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorOutputTorques, m_monitoredOutputTorques.data());
-            
+
             return linked;
         }
-        
+
         bool TorqueBalancingModule::ParamHelperManager::registerCommandCallbacks()
         {
             if (!m_initialized) return false;
@@ -624,10 +624,10 @@ namespace codyco {
             commandRegistered = commandRegistered && m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandStop, this);
             commandRegistered = commandRegistered && m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandQuit, this);
             commandRegistered = commandRegistered && m_parameterServer->registerCommandCallback(TorqueBalancingModuleCommandHelp, this);
-            
+
             return commandRegistered;
         }
-        
+
         void TorqueBalancingModule::ParamHelperManager::loadDefaultVariables()
         {
             std::map<TaskType, ReferenceGenerator*>::iterator foundController;
@@ -643,7 +643,7 @@ namespace codyco {
             if ((foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandPosition)) != m_module.m_referenceGenerators.end()) {
                 rightHandPositionGenerator = foundController->second;
             }
-            
+
             if (comGenerator) {
                 comGenerator->setProportionalGains(m_comProportionalGain);
                 comGenerator->setDerivativeGains(m_comDerivativeGain);
@@ -664,13 +664,13 @@ namespace codyco {
             m_module.m_controller->setImpedanceGains(m_impedanceControlGains);
             m_module.m_controller->setTorqueSaturationLimit(m_torqueSaturation);
         }
-        
+
         bool TorqueBalancingModule::ParamHelperManager::processRPCCommand(const yarp::os::Bottle &command, yarp::os::Bottle &reply)
         {
             assert(m_parameterServer);
             return m_parameterServer->processRpcCommand(command, reply);
         }
-        
+
         void TorqueBalancingModule::ParamHelperManager::sendMonitoredVariables()
         {
             if (!m_parameterServer || !m_module.m_controller) {
@@ -691,12 +691,12 @@ namespace codyco {
             }
             m_monitoredFeetForces = m_module.m_controller->desiredFeetForces();
             m_monitoredOutputTorques = m_module.m_controller->outputTorques();
-            
+
             //send variables
             m_parameterServer->sendStreamParams();
-            
+
         }
-        
+
         void TorqueBalancingModule::ParamHelperManager::syncLinkedVariables()
         {
             std::map<TaskType, ReferenceGenerator*>::iterator foundController;
@@ -712,7 +712,7 @@ namespace codyco {
 //             if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition)) != m_module.m_referenceGenerators.end()) {
 //                 rightHandPositionGenerator = foundController->second;
 //             }
-            
+
             if (comGenerator) {
                 m_comProportionalGain = comGenerator->proportionalGains();
                 m_comDerivativeGain = comGenerator->derivativeGains();
@@ -731,7 +731,7 @@ namespace codyco {
 //                 rightHandPositionGenerator->setIntegralGains(m_handsPositionIntegralGain);
 //             }
         }
-        
+
         void TorqueBalancingModule::ParamHelperManager::parameterUpdated(const paramHelp::ParamProxyInterface *proxyInterface)
         {
             assert(m_parameterServer);
@@ -892,7 +892,7 @@ namespace codyco {
                     break;
             }
         }
-        
+
         void TorqueBalancingModule::ParamHelperManager::commandReceived(const paramHelp::CommandDescription& commandDescription, const yarp::os::Bottle& params, yarp::os::Bottle& reply)
         {
             assert(m_parameterServer);
@@ -917,27 +917,27 @@ namespace codyco {
                     break;
             }
         }
-        
+
         void TorqueBalancingModule::ParamHelperManager::sendReferencesToControllers()
         {
             std::map<TaskType, ReferenceGenerator*>::iterator foundController;
             ReferenceGenerator* generator = 0;
-            
+
             if ((foundController = m_module.m_referenceGenerators.find(TaskTypeCOM)) != m_module.m_referenceGenerators.end()
                 && foundController->second) {
                 foundController->second->setSignalReference(m_module.m_comReference);
             }
-            
+
             //Hands position task are handles as a different equilibrium configuration for the impedance task.
             //this is done in the update status function of the module
-            
+
             //Hands force task are handled like feedforward (currently are open-loop)
             //But because I need smoothing of the reference I use the setReference function
             if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandForce)) != m_module.m_referenceGenerators.end()
                 && foundController->second) {
                 foundController->second->setSignalReference(m_handsForceReference.head(6));
             }
-            
+
             if ((foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandForce)) != m_module.m_referenceGenerators.end()
                 && foundController->second) {
                 foundController->second->setSignalReference(m_handsForceReference.tail(6));
