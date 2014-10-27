@@ -36,7 +36,9 @@
 #include <iCub/skinDynLib/skinContactList.h>
 
 #include <wbi/wbi.h>
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyStatesLocal.h>
+
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -74,7 +76,7 @@ class wholeBodyDynamicsThread: public RateThread
 {
     string              name;
     string              robotName;
-    wbiIcub::icubWholeBodyStatesLocal *estimator;
+    yarpWbi::yarpWholeBodyStatesLocal *estimator;
 
     int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     double              PRINT_PERIOD;
@@ -139,7 +141,7 @@ class wholeBodyDynamicsThread: public RateThread
     void publishBaseToGui();
     void publishAnkleFootForceTorques();
 
-    wbi::LocalId convertFTiDynTreeToFTwbi(int ft_sensor_id);
+    wbi::wbiId convertFTiDynTreeToFTwbi(int ft_sensor_id);
     void normal_run();
     void calibration_run();
     void calibration_on_double_support_run();
@@ -241,7 +243,7 @@ public:
     wholeBodyDynamicsThread(string _name,
                             string _robotName,
                             int _period,
-                            wbiIcub::icubWholeBodyStatesLocal *_wbi,
+                            yarpWbi::yarpWholeBodyStatesLocal *_wbi,
                             const iCub::iDynTree::iCubTree_version_tag icub_version,
                             bool autoconnect,
                             bool assume_fixed_base_calibration,

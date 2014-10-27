@@ -7,7 +7,7 @@ add_subdirectory(modules)
 add_subdirectory(misc/ftDumper)
 add_subdirectory(misc/reachRandomJointPositions)
 
-add_subdirectory(tests)
+#add_subdirectory(tests)
 
 
 if (ICUB_USE_XDE)

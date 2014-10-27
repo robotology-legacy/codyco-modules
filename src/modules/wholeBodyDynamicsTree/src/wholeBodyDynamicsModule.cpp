@@ -33,13 +33,13 @@
 #include <iomanip>
 #include <string.h>
 
-#include "wbiIcub/wholeBodyInterfaceIcub.h"
+#include "yarpWholeBodyInterface/yarpWholeBodyInterface.h"
 
 #include <wholeBodyDynamicsTree/wholeBodyDynamicsThread.h>
 #include <wholeBodyDynamicsTree/wholeBodyDynamicsModule.h>
 
 using namespace yarp::dev;
-using namespace wbiIcub;
+using namespace yarpWbi;
 
 wholeBodyDynamicsModule::wholeBodyDynamicsModule()
 {
@@ -83,13 +83,11 @@ void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag
         icub_version.feet_ft = true;
     }
 
-    #ifdef CODYCO_USES_URDFDOM
     if( rf.check("urdf") )
     {
         icub_version.uses_urdf = true;
         icub_version.urdf_file = rf.find("urdf").asString().c_str();
     }
-    #endif
 }
 
 bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
@@ -157,31 +155,55 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     }
 
     //--------------------------WHOLE BODY STATES INTERFACE--------------------------
-    estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str(), icub_version, fixed_base, fixed_link);
+    yarp::os::Property yarpWbiOptions;
+    //Get wbi options from the canonical file
+    if( !rf.check("wbi_conf_file") )
+    {
+        fprintf(stderr,"[ERR] wholeBodyDynamicsThread: impossible to open wholeBodyInterface: wbi_conf_file option missing");
+    }
+    std::string wbiConfFile = rf.findFile("wbi_conf_file");
+    yarpWbiOptions.fromConfigFile(wbiConfFile);
 
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
-    if( icub_version.feet_ft )
+    //List of joints used in the dynamic model of the robot
+    wbiIdList RobotDynamicModelJoints;
+    std::string RobotDynamicModelJointsListName = "ICUB_MAIN_DYNAMIC_JOINTS";
+    if( !loadIdListFromConfig(RobotDynamicModelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
     {
-        int added_ft_sensors = estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,wbiIcub::ICUB_MAIN_FOOT_FTS);
-        if( added_ft_sensors != (int)wbiIcub::ICUB_MAIN_FOOT_FTS.size() )
-        {
-            std::cout << "Error in adding F/T estimates" << std::endl;
-            return false;
-        }
+        fprintf(stderr, "[ERR] locomotionControl: impossible to load wbiId joint list with name %s\n",RobotDynamicModelJointsListName.c_str());
     }
-    else
+
+    //Add to the options some wbd specific stuff
+    if( fixed_base )
     {
-        int added_ft_sensors = estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,wbiIcub::ICUB_MAIN_FTS);
-        if( added_ft_sensors != (int)wbiIcub::ICUB_MAIN_FTS.size() )
-        {
-            std::cout << "Error in adding F/T estimates" << std::endl;
-            return false;
-        }
+        yarpWbiOptions.put("fixed_base",fixed_link);
     }
-    estimationInterface->addEstimates(wbi::ESTIMATE_IMU,wbiIcub::ICUB_MAIN_IMUS);
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_TORQUE, wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
+
+    estimationInterface = new yarpWholeBodyStatesLocal(moduleName.c_str(), yarpWbiOptions);
+
+    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,RobotDynamicModelJoints);
+    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,RobotDynamicModelJoints);
+    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,RobotDynamicModelJoints);
+
+     //List of 6-axis Force-Torque sensors in the robot
+    wbiIdList RobotFTSensors;
+    std::string RobotFTSensorsListName = "ICUB_MAIN_FTS";
+    if( !loadIdListFromConfig(RobotFTSensorsListName,yarpWbiOptions,RobotFTSensors) )
+    {
+        fprintf(stderr, "[ERR] locomotionControl: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
+    }
+    estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,RobotFTSensors);
+
+    //List of IMUs sensors in the robot
+    wbiIdList RobotIMUSensors;
+    std::string RobotIMUSensorsListName = "ICUB_MAIN_IMUS";
+    if( !loadIdListFromConfig(RobotFTSensorsListName,yarpWbiOptions,RobotIMUSensors) )
+    {
+        fprintf(stderr, "[ERR] locomotionControl: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
+    }
+    estimationInterface->addEstimates(wbi::ESTIMATE_IMU,RobotIMUSensors);
+
+    //Add torque estimation
+    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_TORQUE, RobotDynamicModelJoints);
 
     if(!estimationInterface->init()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl; return false; }
 
