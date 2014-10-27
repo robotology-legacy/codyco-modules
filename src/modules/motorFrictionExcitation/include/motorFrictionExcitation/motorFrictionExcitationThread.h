@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -45,8 +45,8 @@ namespace motorFrictionExcitation
 {
 
 
-enum MotorFrictionExcitationStatus 
-{ 
+enum MotorFrictionExcitationStatus
+{
     EXCITATION_CONTACT,                 ///< a contact excitation is going on
     EXCITATION_CONTACT_FINISHED,        ///< a contact excitation has finished
     EXCITATION_FREE_MOTION,             ///< a free motion excitation is going on
@@ -55,7 +55,7 @@ enum MotorFrictionExcitationStatus
 };
 
 
-/** 
+/**
  * MotorFrictionExcitation control thread.
  */
 class MotorFrictionExcitationThread: public RateThread, public ParamValueObserver, public CommandObserver
@@ -80,10 +80,11 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     ArrayXd             posIntegral;            // integral of (q-q0), where q0 is the initial joint position
     ArrayXd             dqJ;                    // joint velocities (size of vector: n)
     ArrayXd             ftSens;                 // ankle force/torque sensor readings (order is: left, right)
-    vector<LocalId>     currentJointIds;        // IDs of the joints currently excited
-    ArrayXi             currentGlobalJointIds;  // global IDs of the joints currently excited
+    ArrayXi             currentJointNumericIds; // Numeric IDs of the joints currently excited
+    vector<wbiId>       currentJointWbiIds;     // Wbi IDs of the joints currently excited
+    //ArrayXi             currentGlobalJointIds;  // global IDs of the joints currently excited
     ArrayXd              qMinOfCurrentJointFME;  // Joint limit of the current joint during free motion
-    ArrayXd              qMaxOfCurrentJointFME;  // Joint limit of the current joint during free motion  
+    ArrayXd              qMaxOfCurrentJointFME;  // Joint limit of the current joint during free motion
 
     // Module parameters
     FreeMotionExcitationList    freeMotionExc;  ///< free motion excitations
@@ -92,7 +93,7 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
 
     // Output streaming parameters
     ArrayXd             qDeg, qRad;             // measured positions
-    
+
     ///< Output monitoring parameters
     double              pwmDesSingleJoint;      // value of desired pwm for the first controlled joint
     double              qDegMonitor;            // value of the measured joint angle for the first controlled joint
@@ -106,7 +107,7 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     {
         ArrayXd kt, kvp, kvn, kcp, kcn;
     } stdDev;
-    
+
     /************************************************* PRIVATE METHODS ******************************************************/
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO);
 
@@ -128,7 +129,7 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     /** Send commands to the motors. Return true if the operation succeeded, false otherwise. */
     bool sendMotorCommands();
 
-    /** Perform all the operations needed just before starting the controller. 
+    /** Perform all the operations needed just before starting the controller.
      * @return True iff all initialization operations went fine, false otherwise. */
     bool preStartOperations();
 
@@ -139,17 +140,17 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     /** Perform all the operations needed just before stopping the controller. */
     void preStopOperations();
 
-public:	
-    
-    /* If you define a structure having members of fixed-size vectorizable Eigen types, you must overload 
-     * its "operator new" so that it generates 16-bytes-aligned pointers. Fortunately, Eigen provides you 
+public:
+
+    /* If you define a structure having members of fixed-size vectorizable Eigen types, you must overload
+     * its "operator new" so that it generates 16-bytes-aligned pointers. Fortunately, Eigen provides you
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    MotorFrictionExcitationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi, 
+    MotorFrictionExcitationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi,
                                     ResourceFinder &rf, ParamHelperClient *_identificationModule);
-	
-    bool threadInit();	
+
+    bool threadInit();
     void run();
     void threadRelease();
 
@@ -157,7 +158,7 @@ public:
     void parameterUpdated(const ParamProxyInterface *pd);
     /** Callback function for rpc commands. */
     void commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply);
-    
+
     /** Start the excitation process. */
     inline void startExcitation()
     {
@@ -170,13 +171,13 @@ public:
 };
 
 /** Command the motors to move to the specified joint configuration and then wait until the motion is finished. */
-bool moveToJointConfigurationAndWaitMotionDone(wbi::wholeBodyInterface *robot, double *qDes_deg, const int nDoF, 
+bool moveToJointConfigurationAndWaitMotionDone(wbi::wholeBodyInterface *robot, double *qDes_deg, const int nDoF,
     double tolerance_deg=0.1, double *qMaxDeg=0, double *qMinDeg=0);
 
 /** Wait for the specified joint configuration to be reached. */
 bool waitMotionDone(wbi::iWholeBodyStates *robot, double *qDes_deg, const int nDoF, double tolerance_deg=0.1);
 
-bool waitMotionDone(wbi::iWholeBodyStates *robot, double qDes_deg, const LocalId &jointId, double tolerance_deg=0.1);
+bool waitMotionDone(wbi::iWholeBodyStates *robot, double qDes_deg, const int &jointId, double tolerance_deg=0.1);
 
 } // end namespace
 

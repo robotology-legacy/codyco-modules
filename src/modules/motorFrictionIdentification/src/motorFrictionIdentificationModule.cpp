@@ -28,7 +28,7 @@
 
 using namespace yarp::dev;
 using namespace paramHelp;
-using namespace wbiIcub;
+using namespace yarpWbi;
 using namespace motorFrictionIdentification;
 
 MotorFrictionIdentificationModule::MotorFrictionIdentificationModule()
@@ -120,11 +120,14 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
     attach(rpcPort);
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
+
     iCub::iDynTree::iCubTree_version_tag icub_version;
     iCubVersionFromRf(rf,icub_version);
     robotInterface = new icubWholeBodyInterface(moduleName.c_str(),
                                                 robotName.c_str(),
                                                 icub_version);
+
+    
     ///< read the parameter "joint list" from configuration file to configure the WBI
     jointList.resize(paramHelper->getParamProxy(PARAM_ID_JOINT_LIST)->size);
     paramHelper->getParamProxy(PARAM_ID_JOINT_LIST)->linkToVariable(jointList.data());

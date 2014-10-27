@@ -19,7 +19,7 @@
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
 
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 
 #include "motorFrictionIdentificationLib/motorFrictionExcitationParams.h"
 #include "motorFrictionIdentificationLib/motorFrictionIdentificationParams.h"
@@ -27,7 +27,7 @@
 
 using namespace motorFrictionExcitation;
 using namespace yarp::math;
-using namespace wbiIcub;
+using namespace yarpWbi;
 
 //*************************************************************************************************************************
 MotorFrictionExcitationThread::MotorFrictionExcitationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph,
@@ -190,9 +190,9 @@ bool MotorFrictionExcitationThread::readRobotStatus(bool blockingRead)
 bool MotorFrictionExcitationThread::updateReferenceTrajectories()
 {
     ///< update position "error" integral
-    for(unsigned int i=0; i<currentJointIds.size(); i++)
+    for(unsigned int i=0; i<currentJointNumericIds.size(); i++)
     {
-        int jid = currentGlobalJointIds[i];
+        int jid = currentJointNumericIds[i];
 
 
         posIntegral[i] = 0;// += freeMotionExc[freeExcCounter].ki[i]*(qDeg[jid]-freeMotionExc[freeExcCounter].initialJointConfiguration[jid]);
@@ -223,12 +223,12 @@ bool MotorFrictionExcitationThread::updateReferenceTrajectories()
 //*************************************************************************************************************************
 bool MotorFrictionExcitationThread::checkFreeMotionStopConditions()
 {
-    ArrayXd maxStdDev(currentJointIds.size());
+    ArrayXd maxStdDev(currentJointNumericIds.size());
     isFrictionStdDevBelowThreshold = true;
     bool areJointsTooCloseToLimits = false;
-    for(unsigned int i=0; i<currentJointIds.size(); i++)
+    for(unsigned int i=0; i<currentJointNumericIds.size(); i++)
     {
-        int jid = currentGlobalJointIds[i];
+        int jid = currentJointNumericIds[i];
         qDegMonitor = qDeg[jid];
         double jThr = freeMotionExc[freeExcCounter].jointLimitThresh[i];
 
@@ -236,7 +236,7 @@ bool MotorFrictionExcitationThread::checkFreeMotionStopConditions()
         if(fabs(qMax[jid]-qDeg[jid])<jThr || fabs(qDeg[jid]-qMin[jid])<jThr)
         {
             printf("Joint %s got too close to its limit. Q=%.1f, Qmax=%.1f, Qmin=%.1f, Joint limit threshold=%.1f\n",
-                currentJointIds[i].description.c_str(), qDeg[jid], qMax[jid], qMin[jid], jThr);
+                currentJointWbiIds[i].toString().c_str(), qDeg[jid], qMax[jid], qMin[jid], jThr);
             areJointsTooCloseToLimits = true;
         }
 
@@ -244,8 +244,8 @@ bool MotorFrictionExcitationThread::checkFreeMotionStopConditions()
         maxStdDev[i] = max(stdDev.kvp[jid], max(stdDev.kvn[jid], max(stdDev.kcp[jid], stdDev.kcn[jid])));
         if(maxStdDev[i] > freeMotionExc[freeExcCounter].fricParamCovarThresh[i])
             isFrictionStdDevBelowThreshold = false;
-        else if(currentJointIds.size()==1)
-            printf("Std dev of joint %s got under threshold: %f < %f\n", currentJointIds[i].description.c_str(),
+        else if(currentJointNumericIds.size()==1)
+            printf("Std dev of joint %s got under threshold: %f < %f\n", currentJointWbiIds[i].toString().c_str(),
                                             maxStdDev[i], freeMotionExc[freeExcCounter].fricParamCovarThresh[i]);
     }
 
@@ -261,19 +261,19 @@ bool MotorFrictionExcitationThread::checkFreeMotionStopConditions()
 //*************************************************************************************************************************
 bool MotorFrictionExcitationThread::checkContactStopConditions()
 {
-    for(unsigned int i=0; i<currentJointIds.size(); i++)
+    for(unsigned int i=0; i<currentJointNumericIds.size(); i++)
     {
-        if(stdDev.kt[currentGlobalJointIds[i]] > contactExc[contactExcCounter].paramCovarThresh[i])
+        if(stdDev.kt[currentJointNumericIds[i]] > contactExc[contactExcCounter].paramCovarThresh[i])
         {
-            sendMsg(strapp("Standard deviation of 'kt' estimate of joint ",currentJointIds[i].description," is too large: ",
-                stdDev.kt[currentGlobalJointIds[i]], " > ", contactExc[contactExcCounter].paramCovarThresh[i]), MSG_INFO);
+            sendMsg(strapp("Standard deviation of 'kt' estimate of joint ",currentJointWbiIds[i].toString()," is too large: ",
+                stdDev.kt[currentJointNumericIds[i]], " > ", contactExc[contactExcCounter].paramCovarThresh[i]), MSG_INFO);
 
             ktStdDevThrMonitor = contactExc[contactExcCounter].paramCovarThresh[i];
 
             ///< change the joint to monitor
-            if(currentJointIds[i].description != monitoredJoint)
+            if(currentJointWbiIds[i].toString() != monitoredJoint)
             {
-                monitoredJoint = currentJointIds[i].description;
+                monitoredJoint = currentJointWbiIds[i].toString();
                 Bottle reply;
                 if(!identificationModule->setRpcParam(motorFrictionIdentification::PARAM_ID_JOINT_TO_MONITOR, &reply))
                     printf("Error setting joint to monitor: %s\n", reply.toString().c_str());
@@ -312,13 +312,13 @@ bool MotorFrictionExcitationThread::sendMotorCommands()
         return true;
 
     int wbiId = -1;
-    for(unsigned int i=0; i<currentJointIds.size(); i++)
+    for(unsigned int i=0; i<currentJointNumericIds.size(); i++)
     {
-        wbiId = robot->getJointList().localToGlobalId(currentJointIds[i]);
+        wbiId = currentJointNumericIds[i];
         assert(wbiId>=0);
         if(!robot->setControlReference(pwmDes.data()+i, wbiId))
         {
-            printf("Error while setting joint %s control reference.\n", currentJointIds[i].description.c_str());
+            printf("Error while setting joint %s control reference.\n", currentJointWbiIds[i].toString().c_str());
             return false;
         }
     }
@@ -354,20 +354,21 @@ bool MotorFrictionExcitationThread::initContactExcitation()
     int cjn = contactExc[contactExcCounter].jointId.size();  ///< current joint number
     if(cjn==0)
         return false;
-    currentJointIds.resize(cjn);
-    currentGlobalJointIds.resize(cjn);
+    currentJointNumericIds.resize(cjn);
+    currentJointWbiIds.resize(cjn);
     Bottle jointName, reply;
     for(int i=0; i<cjn; i++)
     {
-        currentJointIds[i] = globalToLocalIcubId(contactExc[contactExcCounter].jointId[i]);
-        currentGlobalJointIds[i] = robot->getJointList().localToGlobalId(currentJointIds[i]);
-        jointName.addString(currentJointIds[i].description.c_str());
+        robot->getJointList().numericIdToWbiId(contactExc[contactExcCounter].jointId[i],currentJointWbiIds[i]);
+        robot->getJointList().wbiIdToNumericId(currentJointWbiIds[i],currentJointNumericIds[i]);
+        YARP_ASSERT(currentJointNumericIds[i] == contactExc[contactExcCounter].jointId[i]);
+        jointName.addString(currentJointWbiIds[i].toString().c_str());
         if(!identificationModule->sendRpcCommand(motorFrictionIdentification::COMMAND_ID_ACTIVATE_JOINT, &jointName, &reply))
             printf("Error activating identification of joint %s: %s\n", jointName .toString().c_str(), reply.toString().c_str());
         jointName.clear();
     }
 
-    monitoredJoint = currentJointIds[0].description;
+    monitoredJoint = currentJointWbiIds[0].toString();
     if(!identificationModule->setRpcParam(motorFrictionIdentification::PARAM_ID_JOINT_TO_MONITOR, &reply))
         printf("Error setting joint to monitor: %s\n", reply.toString().c_str());
 
@@ -391,8 +392,8 @@ bool MotorFrictionExcitationThread::initFreeMotionExcitation()
     ///< should give me a good PWM offset
     int cjn = freeMotionExc[freeExcCounter].jointId.size();  ///< current joint number
     pwmOffset.resize(cjn);
-    currentJointIds.resize(cjn);
-    currentGlobalJointIds.resize(cjn);
+    currentJointNumericIds.resize(cjn);
+    currentJointWbiIds.resize(cjn);
     posIntegral.resize(cjn); posIntegral.setZero();
     qMinOfCurrentJointFME.resize(cjn);
     qMaxOfCurrentJointFME.resize(cjn);
@@ -402,18 +403,20 @@ bool MotorFrictionExcitationThread::initFreeMotionExcitation()
     Bottle jointName, reply;
     for(int i=0; i<cjn; i++)
     {
-        LocalId lid = globalToLocalIcubId(freeMotionExc[freeExcCounter].jointId[i]);
-        currentGlobalJointIds[i] = robot->getJointList().localToGlobalId(lid);
-        currentJointIds[i] = lid;
+        wbiId lid;
+        robot->getJointList().numericIdToWbiId(freeMotionExc[freeExcCounter].jointId[i],lid);
+        robot->getJointList().wbiIdToNumericId(lid,currentJointNumericIds[i]);
+        YARP_ASSERT(freeMotionExc[freeExcCounter].jointId[i] == currentJointNumericIds[i]);
+        currentJointWbiIds[i] = lid;
 
-        jointName.addString(currentJointIds[i].description.c_str());
+        jointName.addString(currentJointWbiIds[i].toString().c_str());
         if(!identificationModule->sendRpcCommand(motorFrictionIdentification::COMMAND_ID_ACTIVATE_JOINT, &jointName, &reply))
             printf("Error activating identification of joint %s: %s\n", jointName .toString().c_str(), reply.toString().c_str());
         jointName.clear();
 
-        q0_rad = initialJointConf_deg[currentGlobalJointIds[i]] * CTRL_DEG2RAD;
-        qMinOfCurrentJointFME[i] = qMin[currentGlobalJointIds[i]] * CTRL_DEG2RAD;
-        qMaxOfCurrentJointFME[i] = qMax[currentGlobalJointIds[i]] * CTRL_DEG2RAD;
+        q0_rad = initialJointConf_deg[currentJointNumericIds[i]] * CTRL_DEG2RAD;
+        qMinOfCurrentJointFME[i] = qMin[currentJointNumericIds[i]] * CTRL_DEG2RAD;
+        qMaxOfCurrentJointFME[i] = qMax[currentJointNumericIds[i]] * CTRL_DEG2RAD;
 //         qDes_rad = q0_rad + 3.0*CTRL_DEG2RAD;
 //         qRad_i = 0.0;
 //
@@ -473,7 +476,7 @@ bool MotorFrictionExcitationThread::initFreeMotionExcitation()
 //         waitMotionDone(robot, qDes_rad*CTRL_RAD2DEG, lid, 0.2);
     }
 
-    monitoredJoint = currentJointIds[0].description;
+    monitoredJoint = currentJointWbiIds[0].toString();
     if(!identificationModule->setRpcParam(motorFrictionIdentification::PARAM_ID_JOINT_TO_MONITOR, &reply))
         printf("Error setting joint to monitor: %s\n", reply.toString().c_str());
 
@@ -481,11 +484,11 @@ bool MotorFrictionExcitationThread::initFreeMotionExcitation()
     if(sendCmdToMotors==SEND_COMMANDS_TO_MOTORS)
     {
         ControlMode ctm = wbi::CTRL_MODE_DIRECT_POSITION;// isRobotSimulator(robotName) ? CTRL_MODE_VEL : CTRL_MODE_MOTOR_PWM;
-        for(unsigned int i=0; i<currentJointIds.size(); i++)
+        for(unsigned int i=0; i<currentJointNumericIds.size(); i++)
         {
-            if(!robot->setControlMode(ctm, pwmOffset.data()+i, currentGlobalJointIds[i]))
+            if(!robot->setControlMode(ctm, pwmOffset.data()+i, currentJointNumericIds[i]))
             {
-                printf("Error while setting joint %s control mode to Position Direct.\n", currentJointIds[i].description.c_str());
+                printf("Error while setting joint %s control mode to Position Direct.\n", currentJointWbiIds[i].toString().c_str());
                 return false;
             }
         }
@@ -517,9 +520,9 @@ void MotorFrictionExcitationThread::preStopOperations()
 
     ///< deactivate identification of joints
     Bottle jointName, reply;
-    for(int i=0; i<(int)currentJointIds.size(); i++)
+    for(int i=0; i<(int)currentJointNumericIds.size(); i++)
     {
-        jointName.addString(currentJointIds[i].description.c_str());
+        jointName.addString(currentJointWbiIds[i].toString().c_str());
         if(!identificationModule->sendRpcCommand(motorFrictionIdentification::COMMAND_ID_DEACTIVATE_JOINT, &jointName, &reply))
             printf("Error deactivating identification of joint %s: %s\n", jointName .toString().c_str(), reply.toString().c_str());
         jointName.clear();
@@ -619,7 +622,7 @@ bool motorFrictionExcitation::waitMotionDone(iWholeBodyStates *robot, double *qD
 }
 
 //*************************************************************************************************************************
-bool motorFrictionExcitation::waitMotionDone(iWholeBodyStates *robot, double qDes_deg, const LocalId &jointId, double tolerance_deg)
+bool motorFrictionExcitation::waitMotionDone(iWholeBodyStates *robot, double qDes_deg, const int &jointId, double tolerance_deg)
 {
     double qRad;
     ///< wait for the joints to reach commanded configuration
