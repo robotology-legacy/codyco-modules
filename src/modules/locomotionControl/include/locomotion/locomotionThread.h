@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -112,13 +112,13 @@ class LocomotionThread: public RateThread, public ParamValueObserver, public Com
     Vector              dxr_com, dxr_foot, dqr;     // reference velocities (use yarp vector because minJerkTrajGen gives yarp vector)
     Vector              x_com, x_foot, qDeg, qRad;  // measured positions (use yarp vector because minJerkTrajGen gives yarp vector)
     Vector              dxc_com, dxc_foot, dqc;     // commanded velocities (use yarp vector because minJerkTrajGen gives yarp vector)
-    
+
     // Eigen vectors mapping Yarp vectors
     Map<Vector2d>       dxc_comE;               // commanded velocity of the COM
     Map<Vector6d>       dxc_footE;
     Map<VectorXd>       dqcE;
     Map<VectorXd>       qDegE;
-    
+
     // Trajectory generators
     minJerkTrajGen      *trajGenCom, *trajGenFoot, *trajGenPosture;
 
@@ -148,16 +148,16 @@ class LocomotionThread: public RateThread, public ParamValueObserver, public Com
 
     void normalizeFootOrientation();
 
-public:	
-    
-    /* If you define a structure having members of fixed-size vectorizable Eigen types, you must overload 
-     * its "operator new" so that it generates 16-bytes-aligned pointers. Fortunately, Eigen provides you 
+public:
+
+    /* If you define a structure having members of fixed-size vectorizable Eigen types, you must overload
+     * its "operator new" so that it generates 16-bytes-aligned pointers. Fortunately, Eigen provides you
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     LocomotionThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi);
-	
-    bool threadInit();	
+
+    bool threadInit();
     void run();
     void threadRelease();
 

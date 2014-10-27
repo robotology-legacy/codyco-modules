@@ -41,7 +41,7 @@ YARP_DECLARE_DEVICES(icubmod)
 
 using namespace yarp::dev;
 using namespace paramHelp;
-using namespace wbiIcub;
+using namespace yarpWbi;
 using namespace locomotion;
 
 void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag & icub_version)
@@ -113,12 +113,24 @@ bool LocomotionModule::configure(ResourceFinder &rf)
     attach(rpcPort);
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
-    iCub::iDynTree::iCubTree_version_tag icub_version;
-    iCubVersionFromRf(rf,icub_version);
-    robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str(),icub_version);
-    robotInterface->addJoints(ICUB_MAIN_JOINTS);
-//    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE_SENSOR, LocalId(RIGHT_LEG,1));  // right ankle ft sens
-//    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE_SENSOR, LocalId(LEFT_LEG,1));   // left ankle ft sens
+    yarp::os::Property yarpWbiOptions;
+    //Get wbi options from the canonical file
+    if( !rf.check("wbi_conf_file") )
+    {
+        fprintf(stderr,"[ERR] locomotionControl: impossible to open wholeBodyInterface: wbi_conf_file option missing");
+    }
+    std::string wbiConfFile = rf.findFile("wbi_conf_file");
+    yarpWbiOptions.fromConfigFile(wbiConfFile);
+
+    robotInterface = new yarpWholeBodyInterface(moduleName.c_str(), yarpWbiOptions);
+
+    wbiIdList RobotMainJoints;
+    std::string RobotMainJointsListName = "ICUB_MAIN_JOINTS";
+    if( !loadIdListFromConfig(RobotMainJointsListName,yarpWbiOptions,RobotMainJoints) )
+    {
+        fprintf(stderr, "[ERR] locomotionControl: impossible to load wbiId joint list with name %s\n",RobotMainJointsListName.c_str());
+    }
+    robotInterface->addJoints(RobotMainJoints);
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------

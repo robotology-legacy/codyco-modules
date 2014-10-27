@@ -16,7 +16,7 @@
 */
 
 #include <locomotion/locomotionThread.h>
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
 #include <yarp/math/SVD.h>
@@ -24,7 +24,7 @@
 
 using namespace locomotion;
 using namespace yarp::math;
-using namespace wbiIcub;
+using namespace yarpWbi;
 
 
 //*************************************************************************************************************************
@@ -301,6 +301,7 @@ void LocomotionThread::numberOfConstraintsChanged()
 }
 
 //*************************************************************************************************************************
+
 void LocomotionThread::numberOfJointsChanged()
 {
     LocalId lid;
