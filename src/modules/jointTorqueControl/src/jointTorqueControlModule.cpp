@@ -26,7 +26,7 @@
 
 using namespace yarp::dev;
 using namespace paramHelp;
-using namespace wbiIcub;
+using namespace yarpWbi;
 using namespace jointTorqueControl;
 
 void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag & icub_version)
@@ -101,11 +101,27 @@ bool jointTorqueControlModule::configure(ResourceFinder &rf)
     attach(rpcPort);
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
-    iCub::iDynTree::iCubTree_version_tag icub_version;
-    iCubVersionFromRf(rf,icub_version);
-    robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str(),icub_version);
-    robotInterface->addJoints(ICUB_MAIN_JOINTS);
+    yarp::os::Property yarpWbiOptions;
+    //Get wbi options from the canonical file
+    if( !rf.check("wbi_conf_file") )
+    {
+        fprintf(stderr,"[ERR] jointTorqueControl: impossible to open wholeBodyInterface: wbi_conf_file option missing");
+    }
+    std::string wbiConfFile = rf.findFile("wbi_conf_file");
+    yarpWbiOptions.fromConfigFile(wbiConfFile);
+
+    robotInterface = new yarpWholeBodyInterface(moduleName.c_str(), yarpWbiOptions);
+
+    wbiIdList RobotMainJoints;
+    std::string RobotMainJointsListName = "ICUB_MAIN_JOINTS";
+    if( !loadIdListFromConfig(RobotMainJointsListName,yarpWbiOptions,RobotMainJoints) )
+    {
+        fprintf(stderr, "[ERR] jointTorqueControl: impossible to load wbiId joint list with name %s\n",RobotMainJointsListName.c_str());
+    }
+    robotInterface->addJoints(RobotMainJoints);
+
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
+
 
     //--------------------------CTRL THREAD--------------------------
     ctrlThread = new jointTorqueControlThread(period, moduleName, robotName, paramHelper, robotInterface);
@@ -166,13 +182,13 @@ bool jointTorqueControlModule::updateModule()
     printf("jointTorqueControlModule: Error, thread pointer is zero!\n");
     return false;
      }
-    
+
     double periodMean = 0, periodStdDeviation = 0;
     double usedMean = 0, usedStdDeviation = 0;
-    
+
     ctrlThread->getEstPeriod(periodMean, periodStdDeviation);
     ctrlThread->getEstUsed(usedMean, usedStdDeviation);
-    
+
 //     if(periodMean > 1.3 * period)
     {
         fprintf(stderr, "Control loop period: %3.3f+/-%3.3f. Expected period %d.\n", periodMean, periodStdDeviation, period);

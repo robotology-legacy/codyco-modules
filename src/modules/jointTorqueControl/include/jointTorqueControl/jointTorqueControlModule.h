@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Daniele Pucci
  * email:  daniele.pucci@iit.it
@@ -23,15 +23,15 @@
  *
  * \section intro_sec Background
  *
- * The robot's motors are controlled by using 
- * PWM signals applied to the motors. Assuming that each motors affects the position of only one link 
+ * The robot's motors are controlled by using
+ * PWM signals applied to the motors. Assuming that each motors affects the position of only one link
  * via rigid transmission mechanisms, the relationship between the link's torque \f$ \tau \f$ and the motor's duty cycle \f$ PWM \f$ is assumed to be:
 \f[
 	PWM  = k_t \tau + k_v \dot{q} + k_c \mbox{sign}(\dot{q}),
 \f]
-with \f$k_t\f$, \f$k_v\f$, \f$k_c\f$ three constants, and \f$\dot{q}\f$ the link's velocity. 
-Since discontinuities may be challenging in practice, it is best to smooth the sign function. 
-For the sake of simplicity during the implementation process, we choose a pseudo sign function defined as follows: 
+with \f$k_t\f$, \f$k_v\f$, \f$k_c\f$ three constants, and \f$\dot{q}\f$ the link's velocity.
+Since discontinuities may be challenging in practice, it is best to smooth the sign function.
+For the sake of simplicity during the implementation process, we choose a pseudo sign function defined as follows:
 \f[
         PWM  = k_t \tau + k_v \dot{q} + k_c \tanh(k_s \dot{q}).
 \f]
@@ -41,7 +41,7 @@ Then one has:
 	    PWM  = k_t \tau + k_v \dot{q} + k_c \tanh(k_s \dot{q}).
 \f]
 This model can be improved by considering possible parameters' asymmetries with respect to the joint velocity \f$\dot{q}\f$.
-In particular, the parameters \f$k_v\f$ and \f$k_c\f$ may depend on the sign of \f$\dot{q}\f$, and have different 
+In particular, the parameters \f$k_v\f$ and \f$k_c\f$ may depend on the sign of \f$\dot{q}\f$, and have different
 values depending on this sign. Then, an improved model is:
 \f[
 	PWM  = k_t \tau + [k_{vp} s(\dot{q}) + k_{vn} s(-\dot{q})] \dot{q} + [k_{cp} s(\dot{q}) + k_{cn} s(-\dot{q})] \tanh(k_s \dot{q}),
@@ -50,9 +50,9 @@ where the function \f$s(x)\f$ is the step function, i.e.
 \f[
 	s(x) =  1 \quad \mbox{if} \quad x >= 0; s(x)=0 \quad \mbox{if} \quad x < 0.
 \f]
-As stated, the above equation constitutes the relation between the tension applied to the motor and the link torque. 
+As stated, the above equation constitutes the relation between the tension applied to the motor and the link torque.
 Then, to generate a desired torque \f$\tau_d\f$ coming from an higher control loop, it suffices to evaluate the above equation
-with \f$\tau = \tau_d\f$. In practice, however, it is a best practice to add a lower loop to generate \f$\tau\f$ so that \f$\tau\f$ 
+with \f$\tau = \tau_d\f$. In practice, however, it is a best practice to add a lower loop to generate \f$\tau\f$ so that \f$\tau\f$
 will converge to \f$\tau_d\f$, i.e:
 \f[
     \tau = \tau_d - k_p e_{\tau} - k_i \int e_{\tau} \mbox{dt},
@@ -65,7 +65,7 @@ a) Syncronization between aJ and taoD;
 b) Anti wind-up and associated parameters;
 c) Observer and a.p.;
 d) Filtering parameters for velocity estimation and torque measurement;
-	    
+
 \section lib_sec Libraries
 YARP.
 
@@ -78,7 +78,7 @@ None.
 
 \section example_sec Example Instantiation of the Module
 
-\author Daniele Pucci 
+\author Daniele Pucci
 
 Copyright (C) 2013 CoDyCo Project
 
@@ -100,11 +100,11 @@ This file can be edited at CODYCO_HOME/src/modules/jointTorqueControl/include/jo
 
 #include <paramHelp/paramHelperClient.h>
 #include <paramHelp/paramHelperServer.h>
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 #include <jointTorqueControl/jointTorqueControlThread.h>
- 
+
 using namespace std;
-using namespace yarp::os; 
+using namespace yarp::os;
 using namespace paramHelp;
 using namespace wbi;
 
@@ -130,7 +130,7 @@ public:
     jointTorqueControlModule();
 
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
-    bool interruptModule();                       // interrupt, e.g., the ports 
+    bool interruptModule();                       // interrupt, e.g., the ports
     bool close();                                 // close and shut down the module
     bool respond(const Bottle& command, Bottle& reply);
     bool updateModule();
