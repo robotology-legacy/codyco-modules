@@ -690,8 +690,6 @@ void wholeBodyDynamicsThread::publishTorques()
 {
     //Converting torques from the serialization used in wholeBodyStates interface to the port used by the robot
 
-    assert(part_torques.size() == Torques_ports.size());
-
     for(int output_torque_port_id = 0;
         output_torque_port_id < output_torque_ports.size();
         output_torque_port_id++ )

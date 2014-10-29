@@ -126,7 +126,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 
     //List of joints used in the dynamic model of the robot
     wbiIdList RobotDynamicModelJoints;
-    std::string RobotDynamicModelJointsListName = "ICUB_MAIN_DYNAMIC_JOINTS";
+    std::string RobotDynamicModelJointsListName = "ICUB_DYNAMIC_MODEL_JOINTS";
     if( !loadIdListFromConfig(RobotDynamicModelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
     {
         fprintf(stderr, "[ERR] locomotionControl: impossible to load wbiId joint list with name %s\n",RobotDynamicModelJointsListName.c_str());
@@ -149,16 +149,16 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     std::string RobotFTSensorsListName = "ICUB_MAIN_FTS";
     if( !loadIdListFromConfig(RobotFTSensorsListName,yarpWbiOptions,RobotFTSensors) )
     {
-        fprintf(stderr, "[ERR] locomotionControl: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
+        fprintf(stderr, "[ERR] wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
     }
     estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,RobotFTSensors);
 
     //List of IMUs sensors in the robot
     wbiIdList RobotIMUSensors;
     std::string RobotIMUSensorsListName = "ICUB_MAIN_IMUS";
-    if( !loadIdListFromConfig(RobotFTSensorsListName,yarpWbiOptions,RobotIMUSensors) )
+    if( !loadIdListFromConfig(RobotIMUSensorsListName,yarpWbiOptions,RobotIMUSensors) )
     {
-        fprintf(stderr, "[ERR] locomotionControl: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
+        fprintf(stderr, "[ERR] wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
     }
     estimationInterface->addEstimates(wbi::ESTIMATE_IMU,RobotIMUSensors);
 
@@ -170,14 +170,14 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     bool use_ang_vel_acc = true;
     if( rf.check("enable_w0_dw0") )
     {
-        std::cout << "enable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration." << std::endl;
+        std::cout << "[INFO] enable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration." << std::endl;
         use_ang_vel_acc = true;
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
     }
 
     if( rf.check("disable_w0_dw0") )
     {
-        std::cout << "disable_w0_dw0 option found, disabling the use of IMU angular velocity/acceleration." << std::endl;
+        std::cout << "[INFO] disable_w0_dw0 option found, disabling the use of IMU angular velocity/acceleration." << std::endl;
         use_ang_vel_acc = false;
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
     }
@@ -185,7 +185,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     if( rf.check("min_taxel") )
     {
         int taxel_threshold = rf.find("min_taxel").asInt();
-        std::cout << "min_taxel option found, ignoring skin contacts with less then "
+        std::cout << "[INFO] min_taxel option found, ignoring skin contacts with less then "
                   << taxel_threshold << " active taxels will be ignored." << std::endl;
         use_ang_vel_acc = false;
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,
@@ -204,7 +204,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     bool autoconnect = false;
     if( rf.check("autoconnect") )
     {
-        std::cout << "autoconnect option found, enabling the autoconnection." << std::endl;
+        std::cout << "[INFO] autoconnect option found, enabling the autoconnection." << std::endl;
         autoconnect = true;
     }
 
@@ -212,14 +212,14 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     std::string zmp_test_feet = "";
     if( rf.check("zmp_test_left") )
     {
-        std::cout << "zmp_test_left option found, enabling testing output of debug quantities related to left leg" << std::endl;
+        std::cout << "[INFO] zmp_test_left option found, enabling testing output of debug quantities related to left leg" << std::endl;
         zmp_test_mode = true;
         zmp_test_feet = "left";
     }
 
     if( rf.check("zmp_test_right") )
     {
-        std::cout << "zmp_test_right option found, enabling testing output of debug quantities related to right leg" << std::endl;
+        std::cout << "[INFO] zmp_test_right option found, enabling testing output of debug quantities related to right leg" << std::endl;
         zmp_test_mode = true;
         zmp_test_feet = "right";
     }
@@ -236,7 +236,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
                                             zmp_test_mode,
                                             zmp_test_feet
                                            );
-    if(!wbdThread->start()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }
+    if(!wbdThread->start()){ std::cerr << "[ERR]" << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }
 
     fprintf(stderr,"wholeBodyDynamicsThread started\n");
 
