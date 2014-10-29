@@ -31,6 +31,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	#include <iomanip>
 #endif
 
+#include <stdio.h>
 #include <iostream>
 #include <iomanip>      // std::setprecision
 #include "wholeBodyReach/Logger.h"

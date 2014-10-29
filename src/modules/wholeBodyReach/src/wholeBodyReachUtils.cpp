@@ -24,6 +24,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
+#include <stdio.h>
 #include <iostream>
 #include <iomanip>      // std::setprecision
 #include "wholeBodyReach/wholeBodyReachUtils.h"
@@ -131,7 +132,7 @@ void wholeBodyReach::pinvDampTrunc(const MatrixRXd &A, double tol, double damp, 
 }
 
 //**************************************************************************************************
-Eigen::MatrixRXd wholeBodyReach::pinvDampedEigen(const Eigen::Ref<Eigen::MatrixRXd> &A, double damp)
+Eigen::MatrixRXd wholeBodyReach::pinvDampedEigen(const Eigen::Ref<const Eigen::MatrixRXd> &A, double damp)
 {
     // allocate memory
     int m = A.rows(), n = A.cols(), k = m<n?m:n;
@@ -148,7 +149,7 @@ Eigen::MatrixRXd wholeBodyReach::pinvDampedEigen(const Eigen::Ref<Eigen::MatrixR
 }
 
 //**************************************************************************************************
-Eigen::MatrixRXd wholeBodyReach::nullSpaceProjector(const Eigen::Ref<MatrixRXd> A, double tol)
+Eigen::MatrixRXd wholeBodyReach::nullSpaceProjector(const Eigen::Ref<const MatrixRXd> &A, double tol)
 {
     // allocate memory
     int m = A.rows(), n = A.cols(), k = m<n?m:n;
