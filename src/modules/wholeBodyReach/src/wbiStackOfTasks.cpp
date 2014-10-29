@@ -171,6 +171,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
         case WBR_CTRL_ALG_NULLSPACE_PROJ:   res = computeNullspaceProj(robotState, torques);    break;
         case WBR_CTRL_ALG_COM_POSTURE:      res = computeComPosture(robotState, torques);       break;
         case WBR_CTRL_ALG_MOMENTUM_POSTURE: res = computeMomentumPosture(robotState, torques);  break;
+        case WBR_CTRL_ALG_COM_SOT:          res = computeComSoT(robotState, torques);           break;
         default:                            printf("WbiStackOfTask: ERROR unmanaged control algorithm!\n");
     }
     
@@ -181,7 +182,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
 //    sendMsg("xB:    \n"+robotState.xBase.toString());
 //    sendMsg("q:       "+jointToString(WBR_RAD2DEG*robotState.qJ,1));
 //    sendMsg("dq:      "+jointToString(WBR_RAD2DEG*robotState.dq,1));
-    sendMsg("ddqDes:  "+jointToString(WBR_RAD2DEG*_ddqDes,2));
+//    sendMsg("ddqDes:  "+jointToString(WBR_RAD2DEG*_ddqDes,2));
 //    sendMsg("Torques measured: "+jointToString(robotState.torques));
     
     
@@ -210,6 +211,146 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
 #endif
     
     return res;
+}
+
+//**************************************************************************************************
+bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef torques)
+{
+    sendMsg("ComputeComSoT");
+    
+    START_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
+    {
+        // @todo Check if possible to avoid this matrix-matrix multiplication
+        _qpData.H   = _X.topRows<3>().transpose()*_X.topRows<3>() + _numericalDampingTask*_W;
+        _qpData.g   = -_X.topRows<3>().transpose()*_momentumDes.head<3>();
+        
+        //        sendMsg("H diag: "+toString(_qpData.H.diagonal(),1));
+        //        sendMsg("f weights: "+toString(1e3*_fWeights,1));
+        //        sendMsg("X*N_X = "+toString((_X*_N_X).maxCoeff())+" "+toString((_X*_N_X).minCoeff()));
+    }
+    STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
+    
+    //    sendMsg("momentumDes "+toString(_momentumDes,1));
+    //    cout<< "QP gradient "<<toString(_qpData.g,1)<<endl;
+    double res;
+    START_PROFILING(PROFILE_FORCE_QP);
+    {
+        res = solve_quadprog(_qpData.H, _qpData.g, _qpData.CE.transpose(), _qpData.ce0,
+                             - _qpData.CI.transpose(), _qpData.ci0, _fcDes,
+                             _qpData.activeSet, _qpData.activeSetSize);
+    }
+    STOP_PROFILING(PROFILE_FORCE_QP);
+    if(res == std::numeric_limits<double>::infinity())
+        return false;
+    
+    if(_qpData.activeSetSize>0)
+        sendMsg("Active constraints: "+toString(_qpData.activeSet.head(_qpData.activeSetSize).transpose()));
+    sendMsg("Linear momentum error  = "+toString((_X.topRows<3>()*_fcDes - _momentumDes.head<3>()).norm()));
+    
+    //*********************************
+    // COMPUTE DESIRED ACCELERATIONS
+    //*********************************
+    
+    // Compute [ddq; f] that respect dynamics:
+    //     y = [-Mb^{-1}*h_b; zeros(n+k,1)];
+    START_PROFILING(PROFILE_DDQ_DYNAMICS_CONSTR);
+    {
+        computeMb_inverse();
+        ddqDes_b    = -_Mb_inv*h_b;
+        ddqDes_j.setZero();
+    }
+    STOP_PROFILING(PROFILE_DDQ_DYNAMICS_CONSTR);
+    
+    //    sendMsg("ddqDes (dynamic consistent) = "+toString(_ddqDes,1));
+    //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+    
+    // Compute ddq that respect also contact constraints:
+    //      Sbar     = [-Mb^{-1}*Mbj; eye(n)];
+    //      ddq_jDes = (Jc*Sbar).solve(-Jc*ddqDes - dJc_dq);
+    //      ddqBar  += Sbar*ddq_jDes
+    START_PROFILING(PROFILE_DDQ_CONTACT_CONSTR);
+    {
+        _Mb_inv_M_bj= _Mb_inv * M_bj;
+        _Jc_Sbar    = Jc_j - (Jc_b * _Mb_inv_M_bj);
+        _Jc_Sbar_svd.compute(_Jc_Sbar, _svdOptions);
+        //        cout<<"Jc_b =\n"<< toString(Jc_b,1)<< endl;
+        //        cout<<"Jc_b*ddqDes_b = "<< toString(Jc_b*ddqDes_b,1)<< endl;
+        //        cout<<"ddqDes_b = "<< toString(ddqDes_b,1)<< endl;
+        _ddq_jDes    = svdSolveWithDamping(_Jc_Sbar_svd, -_dJcdq-Jc_b*ddqDes_b, _numericalDampingConstr);
+        //        _ddq_jDes    = _Jc_Sbar_svd.solve(-_dJcdq-Jc_b*ddqDes_b);
+        ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
+        ddqDes_j    += _ddq_jDes;
+    }
+    STOP_PROFILING(PROFILE_DDQ_CONTACT_CONSTR);
+    
+    //    sendMsg("ddqDes (contact consistent) = "+toString(_ddqDes,1));
+    //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+    //    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+    
+    _Z.setIdentity(_n,_n);
+    updateNullspace(_Jc_Sbar_svd);
+    //    sendMsg("Jc*Sbar*Z = "+toString((_Jc_Sbar*_Z).sum()));
+    
+    // Solve the equality motion task
+    // N=I
+    // for i=1:K
+    //      A = A_i*Sbar*N
+    //      ddq_j = A^+ (b_i - A_i*ddq)
+    //      ddq  += Sbar*ddq_j
+    //      N    -= A^+ A
+    // end
+    list<MinJerkPDLinkPoseTask*>::iterator it;
+    for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
+    {
+        MinJerkPDLinkPoseTask& t = **it;
+        t.update(robotState);
+        
+        t.getEqualityMatrix(_A_i);
+        t.getEqualityVector(_b_i);
+        _A = _A_i.rightCols(_n) - _A_i.leftCols<6>()*_Mb_inv_M_bj;
+        _A *= _Z;
+        _A_svd.compute(_A, _svdOptions);
+        _ddq_jDes   = svdSolveWithDamping(_A_svd, _b_i - _A_i*_ddqDes, _numericalDampingTask);
+        _ddq_jDes   = _Z*_ddq_jDes;     /// @todo here I assume i'm using nullspace projectors
+        ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
+        ddqDes_j    += _ddq_jDes;
+        updateNullspace(_A_svd);
+    }
+    
+    // Now we can go on with the motion tasks, using the nullspace of dynamics and contacts:
+    //      Z = nullspace(Jc*Sbar);
+    START_PROFILING(PROFILE_DDQ_POSTURE_TASK);
+    {
+        if(_useNullspaceBase)
+            _ddq_jDes   = _Z * (_Z.transpose() * _ddq_jPosture);
+        else
+            _ddq_jDes   = _Z * _ddq_jPosture;
+        ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
+        ddqDes_j    += _ddq_jDes;
+    }
+    STOP_PROFILING(PROFILE_DDQ_POSTURE_TASK);
+    
+    torques     = M_a*_ddqDes + h_j - Jc_j.transpose()*_fcDes;
+    
+    sendMsg("fcDes              = "+toString(_fcDes,1));
+    //    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
+    //    sendMsg("ddq_jPosture        = "+jointToString(_ddq_jPosture,1));
+    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
+    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+    
+#define DEBUG_POSE_TASKS
+#ifdef  DEBUG_POSE_TASKS
+    for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
+    {
+        MinJerkPDLinkPoseTask& t = **it;
+        t.getEqualityMatrix(_A_i);
+        t.getEqualityVector(_b_i);
+        sendMsg(t.getName()+" error =    "+toString((_A_i*_ddqDes-_b_i).norm()));
+    }
+#endif
+    
+    return true;
 }
 
 //**************************************************************************************************

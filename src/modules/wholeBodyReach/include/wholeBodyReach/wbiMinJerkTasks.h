@@ -135,20 +135,25 @@ namespace wholeBodyReach
                                     public MinJerkTask
     {
     protected:
-        wbi::Frame                  _H;         /// homogenous matrix from world frame to CoM frame
-        Eigen::Vector6d             _momentum;  /// 6d centroidal momentum
+        wbi::Frame                  _H;                 /// homogenous matrix from world frame to CoM frame
+        Eigen::Vector6d             _momentum;          /// 6d centroidal momentum
         Eigen::Vector6d             _momentumIntegral;  /// numerical integral of the momentum
-        double                      _sampleTime;        /// used to compute the momentum integral
-        double                      _robotMass; /// total mass of the robot
         
-        std::string                 _linkName;  /// name of the link
+        wbi::Rotation               _Rdes;              /// desired torso orientation
+        Eigen::Vector3d             _orientationError;  /// error of torso orientation
+        int                         _linkId;            /// id of the torso's link
+        
+        double                      _sampleTime;        /// used to compute the momentum integral
+        double                      _robotMass;         /// total mass of the robot
+        
+        std::string                 _linkName;          /// name of the link
         bool                        _initSuccessfull;   /// true if initialization was successfull
         
         // RPC PARAMETERS
-        Eigen::Vector3d             _com;
+        Eigen::Vector3d             _com;       /// CoM position
         Eigen::Vector3d             _v;         /// CoM velocity
-        Eigen::Vector3d             _comDes;
-        Eigen::Vector3d             _comRef;
+        Eigen::Vector3d             _comDes;    /// desired CoM final position
+        Eigen::Vector3d             _comRef;    /// reference CoM current position
         
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW

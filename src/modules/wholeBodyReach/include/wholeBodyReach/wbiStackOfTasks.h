@@ -53,24 +53,20 @@ public:
     /// This enum defines all the parameters of this class
     enum ParamTypeId
     {
-        USE_NULLSPACE_BASE,
+        USE_NULLSPACE_BASE, /// define whether to use null-space projectors or basis
         DYN_NUM_DAMP,       /// numerical damping used when solving dynamics
         CONSTR_NUM_DAMP,    /// numerical damping used when solving constraints
         TASK_NUM_DAMP,      /// numerical damping used when solving tasks
-        CTRL_ALG
+        CTRL_ALG            /// define which control algorithm to use
     };
     
 public:
     WholeBodyReachCtrlAlgorithm     _ctrlAlg;   /// the id of the control algorithm to use
-    double          _numericalDampingDyn;      /// damping factor when solving dynamics
-    double          _numericalDampingConstr;   /// damping factor when solving constraints
-    double          _numericalDampingTask;     /// damping factor when solving tasks
-//    int             _numericalDampingDyn_paramId;  /// id of the parameter associated to _numericalDamping
-//    int             _numericalDampingDyn_paramId;  /// id of the parameter associated to _numericalDamping
-//    int             _numericalDampingDyn_paramId;  /// id of the parameter associated to _numericalDamping
+    double          _numericalDampingDyn;       /// damping factor when solving dynamics
+    double          _numericalDampingConstr;    /// damping factor when solving constraints
+    double          _numericalDampingTask;      /// damping factor when solving tasks
     int             _useNullspaceBase;          /// 1: use base, 0: use projector
     int             _useNullspaceBase_paramId;  /// id of the parameter associated to _useNullspaceBase
-    
     int             _svdOptions;                /// specify whether to compute full/thin U/V
     
     std::list<MinJerkPDLinkPoseTask*>   _equalityTasks;
@@ -103,7 +99,7 @@ public:
     Eigen::SVD                      _Jc_Sbar_svd;   /// svd of Jc*Sbar
     
     Eigen::MatrixRXd            _X;             /// matrix mapping constraint forces into momentum derivative
-    Eigen::SVD                  _X_svd;         /// svd of Jc*Sbar
+    Eigen::SVD                  _X_svd;         /// svd of X
     Eigen::MatrixRXd            _N_X;           /// nullspace projector of _X
     
     Eigen::VectorXd             _fWeights;      /// penalty weights for _fcDes
@@ -147,10 +143,12 @@ public:
 //    WBR_CTRL_ALG_NULLSPACE_PROJ     = 1,
 //    WBR_CTRL_ALG_COM_POSTURE        = 2,
 //    WBR_CTRL_ALG_MOMENTUM_POSTURE   = 3,
+//    WBR_CTRL_ALG_COM_SOT            = 4,
     virtual bool computeMomentumSoT(RobotState& robotState, Eigen::VectorRef torques);
     virtual bool computeNullspaceProj(RobotState& robotState, Eigen::VectorRef torques);
     virtual bool computeComPosture(RobotState& robotState, Eigen::VectorRef torques);
     virtual bool computeMomentumPosture(RobotState& robotState, Eigen::VectorRef torques);
+    virtual bool computeComSoT(RobotState& robotState, Eigen::VectorRef torques);
     
 //#define DEBUG_FORWARD_DYNAMICS
 #ifdef DEBUG_FORWARD_DYNAMICS

@@ -161,8 +161,22 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
     _a_eq.head<3>() = _robotMass * ( -state.g + _trajGen.getAcc()
                                      + _Kd.head<3>().cwiseProduct(_trajGen.getVel() - _v)
                                      + _Kp.head<3>().cwiseProduct(_comRef - _com) );
-    _a_eq.tail<3>() = - _Kp.tail<3>().cwiseProduct(_momentumIntegral.tail<3>())
-                      - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>());
+
+    bool regulateAngularMomentum=false;
+    if(regulateAngularMomentum)
+    {
+        _a_eq.tail<3>() = - _Kp.tail<3>().cwiseProduct(_momentumIntegral.tail<3>())
+                          - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>());
+    }
+    else
+    {
+        // compute desired angular-momentum rate of change to regulate torso orientation
+        res = res && _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
+        computeOrientationError(_H.R, _Rdes, _orientationError);
+        _a_eq.tail<3>() =   _Kp.tail<3>().cwiseProduct(_orientationError)
+                          - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>()); // - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
+        getLogger().sendMsg("Torso orientation error: "+toString(_orientationError,2), MSG_STREAM_INFO);
+    }
     
 //    getLogger().sendMsg("Momentum: Kp*e    = "+toString(_Kp.head<3>().cwiseProduct(_trajGen.getPos()-_com),2), MSG_STREAM_INFO);
 //    getLogger().sendMsg("Momentum: Kd*de   = "+toString(_Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v),2),   MSG_STREAM_INFO);
@@ -201,6 +215,11 @@ void MinJerkPDMomentumTask::init(RobotState& state)
     // reset momentum integral
     _momentumIntegral.setZero();
     
+    // set desired torso's orientation to initial one
+    if(!(res = _robot->getLinkId("chest", _linkId)))
+        printf("[MinJerkPDMomentumTask] Error while trying to get id of link chest.\n");
+    res = _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
+    _Rdes = _H.R;
 }
 
 void MinJerkPDMomentumTask::linkParameterComDes(ParamHelperServer* paramHelper, int paramId)

@@ -189,8 +189,8 @@ void PlaneContactConstraint::updateZmpInequalities()
     _A_in(9,4)    =  1.0;
     _a_in.segment<4>(6).setZero();
     
-    cout<<"Zmp inequalities:\n"<< toString(_A_in.block<4,6>(6,0),1)<<endl;
-    cout<<"< "<< toString(_a_in.segment<4>(6),1)<<endl;
+    cout<<"Zmp inequalities:\n"<< toString(_A_in.block<4,6>(6,0),2)<<endl;
+    cout<<"< "<< toString(_a_in.segment<4>(6),2)<<endl;
 }
 
 void PlaneContactConstraint::updateMomentFrictionConeInequalities()
@@ -210,8 +210,8 @@ void PlaneContactConstraint::updateMomentFrictionConeInequalities()
     _A_in.block<1,3>(11,3)  = -        _normalDir.transpose();
     _a_in.segment<2>(10).setZero();
     
-    cout<<"Moment friction inequalities:\n"<< toString(_A_in.block<2,6>(10,0),1)<<endl;
-    cout<<"< "<< toString(_a_in.segment<2>(10),1)<<endl;
+    cout<<"Moment friction inequalities:\n"<< toString(_A_in.block<2,6>(10,0),2)<<endl;
+    cout<<"< "<< toString(_a_in.segment<2>(10),2)<<endl;
 }
 
 void PlaneContactConstraint::linkParameterMomentFrictionCoefficient(ParamHelperServer* paramHelper, int paramId)
@@ -250,9 +250,9 @@ bool PlaneContactConstraint::setDesiredConstraintForce(VectorConst fDes)
     
     VectorXd tmp = _A_in*_fDes;
     for(int i=0; i<tmp.size(); i++)
-        if(tmp(i)>=_a_in(i))
-            getLogger().sendMsg(_name+" ineq "+toString(i)+" active: ["+toString(_A_in.row(i),1)+"]*f="+toString(tmp(i)),
-                                MSG_STREAM_ERROR);
+        if(fabs(tmp(i)-_a_in(i))<1e-5)
+            getLogger().sendMsg(_name+" ineq "+toString(i)+" active:     ["+toString(_A_in.row(i),2)+"]*f="+
+                                toString(tmp(i))+" >= "+toString(_a_in(i)), MSG_STREAM_ERROR);
     
     return true;
 }
