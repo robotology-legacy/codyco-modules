@@ -82,7 +82,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
                                                  int _period,
                                                  yarpWholeBodyStatesLocal *_wbs,
                                                  yarp::os::Property & _yarp_wbi_opts,
-                                                 bool autoconnect,
+                                                 bool _autoconnect,
                                                  bool _assume_fixed_base_calibration,
                                                  std::string _fixed_link_calibration,
                                                  bool _zmp_test_mode,
@@ -92,12 +92,14 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        name(_name),
        robotName(_robotName),
        estimator(_wbs),
+       yarp_options(_yarp_wbi_opts),
        printCountdown(0),
        PRINT_PERIOD(2000),
        samples_requested_for_calibration(200),
        max_samples_for_calibration(2000),
        samples_used_for_calibration(0),
        assume_fixed_base_calibration(_assume_fixed_base_calibration),
+       autoconnect(_autoconnect),
        fixed_link_calibration(_fixed_link_calibration),
        zmp_test_mode(_zmp_test_mode)
     {
@@ -124,16 +126,6 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 
     //Resize buffer vectors
     all_torques.resize(_wbs->getEstimateNumber(wbi::ESTIMATE_JOINT_TORQUE));
-    /// \todo hardcoded checking
-    if( _wbs->getEstimateNumber(wbi::ESTIMATE_JOINT_TORQUE) != 32 ) { std::cerr << "wholeBodyDynamicsThread() error: only " << _wbs->getEstimateNumber(wbi::ESTIMATE_JOINT_TORQUE) << " are available "  << std::endl; }
-    YARP_ASSERT(all_torques.size() == 32);
-
-    HDTorques.resize(3);
-    TOTorques.resize(3);
-    LATorques.resize(7);
-    RATorques.resize(7);
-    LLTorques.resize(6);
-    RLTorques.resize(6);
 
     LAExternalWrench.resize(6);
     RAExternalWrench.resize(6);
@@ -150,14 +142,6 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     //Copied from old wholeBodyDynamics
     std::string robot_name = robotName;
     std::string local_name = name;
-    port_RATorques = new BufferedPort<Bottle>;
-    port_LATorques = new BufferedPort<Bottle>;
-    port_RLTorques = new BufferedPort<Bottle>;
-    port_LLTorques = new BufferedPort<Bottle>;
-    port_RWTorques = new BufferedPort<Bottle>;
-    port_LWTorques = new BufferedPort<Bottle>;
-    port_TOTorques = new BufferedPort<Bottle>;
-    port_HDTorques = new BufferedPort<Bottle>;
 
     port_external_wrench_RA = new BufferedPort<Vector>;
     port_external_wrench_LA = new BufferedPort<Vector>;
@@ -172,16 +156,6 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 
     port_contacts = new BufferedPort<skinContactList>;
 
-
-    //Opening ports
-    port_RATorques->open(string("/"+local_name+"/right_arm/Torques:o").c_str());
-    port_LATorques->open(string("/"+local_name+"/left_arm/Torques:o").c_str());
-    port_RLTorques->open(string("/"+local_name+"/right_leg/Torques:o").c_str());
-    port_LLTorques->open(string("/"+local_name+"/left_leg/Torques:o").c_str());
-    port_RWTorques->open(string("/"+local_name+"/right_wrist/Torques:o").c_str());
-    port_LWTorques->open(string("/"+local_name+"/left_wrist/Torques:o").c_str());
-    port_TOTorques->open(string("/"+local_name+"/torso/Torques:o").c_str());
-    port_HDTorques->open(string("/"+local_name+"/head/Torques:o").c_str());
 
     port_contacts->open(string("/"+local_name+"/contacts:o").c_str());
 
@@ -209,23 +183,6 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 
     //Open port for output joint forcetorque
 
-    if (autoconnect)
-    {
-
-        std::cout << "wholeBodyDynamicsThread: autoconnect option enabled, autoconnecting." << std::endl;
-        //from wholeBodyDynamics to iCub (mandatory)
-        Network::connect(string("/"+local_name+"/left_arm/Torques:o").c_str(), string("/"+robot_name+"/joint_vsens/left_arm:i").c_str(),"tcp",false);
-        Network::connect(string("/"+local_name+"/right_arm/Torques:o").c_str(),string("/"+robot_name+"/joint_vsens/right_arm:i").c_str(),"tcp",false);
-        Network::connect(string("/"+local_name+"/left_leg/Torques:o").c_str(), string("/"+robot_name+"/joint_vsens/left_leg:i").c_str(),"tcp",false);
-        Network::connect(string("/"+local_name+"/right_leg/Torques:o").c_str(),string("/"+robot_name+"/joint_vsens/right_leg:i").c_str(),"tcp",false);
-        Network::connect(string("/"+local_name+"/torso/Torques:o").c_str(),    string("/"+robot_name+"/joint_vsens/torso:i").c_str(),"tcp",false);
-
-        //from wholeBodyDynamics to iCub (optional)
-        if (Network::exists(string("/"+robot_name+"/joint_vsens/left_wrist:i").c_str()))
-            Network::connect(string("/"+local_name+"/left_wrist/Torques:o").c_str(), string("/"+robot_name+"/joint_vsens/left_wrist:i").c_str(),"tcp",false);
-        if (Network::exists(string("/"+robot_name+"/joint_vsens/right_wrist:i").c_str()))
-            Network::connect(string("/"+local_name+"/right_wrist/Torques:o").c_str(),string("/"+robot_name+"/joint_vsens/right_wrist:i").c_str(),"tcp",false);
-    }
 
     if(zmp_test_mode)
     {
@@ -275,6 +232,43 @@ void checkFTSensorExist(std::string ft_sensor_name, wbi::wbiIdList & all_fts, st
 //*************************************************************************************************************************
 bool wholeBodyDynamicsThread::threadInit()
 {
+    // Load output torque ports informations
+    yarp::os::Bottle & output_torques_bot = yarp_options.findGroup("WBD_OUTPUT_TORQUE_PORTS");
+    if( output_torques_bot.isNull() )
+    {
+        std::cerr << "[ERR] WBD_OUTPUT_TORQUE_PORTS group not found in wholeBodyDynamics configuration, exiting" << std::endl;
+        return false;
+    }
+
+    int nr_of_output_torques_ports = output_torques_bot.size() - 1;
+
+    wbiIdList torque_list = estimator->getEstimateList(wbi::ESTIMATE_JOINT_TORQUE);
+    for(int output_torque_port = 1; output_torque_port <= output_torques_bot.size(); output_torque_port++)
+    {
+        outputTorquePortInformation torque_port_struct;
+        yarp::os::Bottle * torque_port = output_torques_bot.get(output_torque_port).asList();
+        if( torque_port == NULL || torque_port->isNull() || torque_port->size() != 3 )
+        {
+            std::cerr << "[ERR] malformed WBD_OUTPUT_TORQUE_PORTS group found in wholeBodyDynamics configuration, exiting" << std::endl;
+            return false;
+        }
+        torque_port_struct.port_name = torque_port->get(0).asString();
+        torque_port_struct.magic_number = torque_port->get(1).asInt();
+        yarp::os::Bottle * torque_ids = torque_port->get(2).asList();
+        for(int i = 0; i < torque_ids->size(); i++ )
+        {
+            std::string torque_wbi_id = torque_ids->get(i).asString();
+            int torque_wbi_numeric_id;
+            torque_list.wbiIdToNumericId(torque_wbi_id,torque_wbi_numeric_id);
+            torque_port_struct.wbi_numeric_ids_to_publish.push_back(torque_wbi_numeric_id);
+        }
+        assert(torque_ids->size() == torque_port_struct.wbi_numeric_ids_to_publish.size() );
+        torque_port_struct.output_vector.resize(torque_port_struct.wbi_numeric_ids_to_publish.size());
+    }
+
+    assert(nr_of_output_torques_ports == output_torque_ports.size());
+
+
     //Calibration variables
     int nrOfAvailableFTSensors = estimator->getEstimateNumber(wbi::ESTIMATE_FORCE_TORQUE_SENSOR);
     if( nrOfAvailableFTSensors != icub_model_calibration->getNrOfFTSensors() ) {
@@ -297,20 +291,6 @@ bool wholeBodyDynamicsThread::threadInit()
     checkFTSensorExist("r_leg_ft_sensor",ft_list,legs_fts,icub_model_calibration);
     checkFTSensorExist("l_arm_ft_sensor",ft_list,arms_fts,icub_model_calibration);
     checkFTSensorExist("r_arm_ft_sensor",ft_list,arms_fts,icub_model_calibration);
-
-
-    if( ft_list.containsId("l_foot_ft_sensor") )
-    {
-    }
-    if( ft_list.containsId("r_foot_ft_sensor") )
-    {
-    }
-    if( ft_list.containsId("l_arm_ft_sensor") )
-    {
-    }
-    if( ft_list.containsId("r_arm_ft_sensor") )
-    {
-    }
 
     //Find end effector ids
     int max_id = 100;
@@ -367,6 +347,23 @@ bool wholeBodyDynamicsThread::threadInit()
             break;
         }
     }
+
+    //Open and connect all the ports
+    if (autoconnect)
+    {
+        std::cout << "[INFO] wholeBodyDynamicsThread: autoconnect option enabled, autoconnecting." << std::endl;
+        for(int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
+        {
+            std::string port_name = output_torque_ports[output_torque_port_i].port_name;
+            std::string local_port = "/" + name + "/" + port_name + "/Torques:o";
+            std::string robot_port = "/" + robotName  + "/joint_vsens/" + port_name + ":i";
+            output_torque_ports[output_torque_port_i].output_port.open(local_port);
+            if( Network::exists(robot_port) )
+            {
+                Network::connect(local_port,robot_port,"tcp",false);
+            }
+        }
+     }
 
     //Start with calibration
     calibrateOffset("all",samples_requested_for_calibration);
@@ -692,42 +689,62 @@ void wholeBodyDynamicsThread::getEndEffectorWrenches()
 void wholeBodyDynamicsThread::publishTorques()
 {
     //Converting torques from the serialization used in wholeBodyStates interface to the port used by the robot
+
+    assert(part_torques.size() == Torques_ports.size());
+
+    for(int output_torque_port_id = 0;
+        output_torque_port_id < output_torque_ports.size();
+        output_torque_port_id++ )
+    {
+        for(int output_vector_index = 0;
+            output_vector_index < output_torque_ports[output_torque_port_id].wbi_numeric_ids_to_publish.size();
+            output_vector_index++)
+        {
+            int torque_wbi_numeric_id = output_torque_ports[output_torque_port_id].wbi_numeric_ids_to_publish[output_vector_index];
+            output_torque_ports[output_torque_port_id].output_vector[output_vector_index] = all_torques[torque_wbi_numeric_id];
+        }
+
+        writeTorque(output_torque_ports[output_torque_port_id].output_vector,
+                    output_torque_ports[output_torque_port_id].magic_number,
+                    &(output_torque_ports[output_torque_port_id].output_port));
+    }
+
     /// \todo remove this hardcoded dependency on the serialization used in the interface (using getEstimateList)
 
     /// \note The torso has a weird dependency, basically the joint serialization in the robot and the one on the model are reversed
-    TOTorques[0] = all_torques[2];
-    TOTorques[1] = all_torques[1];
-    TOTorques[2] = all_torques[0];
+    //TOTorques[0] = all_torques[2];
+    //TOTorques[1] = all_torques[1];
+    //TOTorques[2] = all_torques[0];
 
-    for(int i=0; i < 3; i++ ) {
-        HDTorques[i] = all_torques[3+i];
-    }
+    //for(int i=0; i < 3; i++ ) {
+    //    HDTorques[i] = all_torques[3+i];
+    //}
 
-    for(int i=0; i < 7; i++ ) {
-        LATorques[i] = all_torques[3+3+i];
-    }
+    //for(int i=0; i < 7; i++ ) {
+    //    LATorques[i] = all_torques[3+3+i];
+    //}
 
-    for(int i=0; i < 7; i++ ) {
-        RATorques[i] = all_torques[3+3+7+i];
-    }
+    //for(int i=0; i < 7; i++ ) {
+    //    RATorques[i] = all_torques[3+3+7+i];
+    //}
 
-    for(int i=0; i < 6; i++ ) {
-        LLTorques[i] = all_torques[3+3+7+7+i];
-    }
+    //for(int i=0; i < 6; i++ ) {
+    //    LLTorques[i] = all_torques[3+3+7+7+i];
+    //}
 
-    for(int i=0; i < 6; i++ ) {
-        RLTorques[i] = all_torques[3+3+7+7+6+i];
-    }
+    //for(int i=0; i < 6; i++ ) {
+    //    RLTorques[i] = all_torques[3+3+7+7+6+i];
+    //}
 
     //Parameters copied from old wholeBodyDynamics
-    writeTorque(TOTorques, 4, port_TOTorques);
-    writeTorque(HDTorques, 0, port_HDTorques);
-    writeTorque(LATorques, 1, port_LATorques);
-    writeTorque(RATorques, 1, port_RATorques);
-    writeTorque(LATorques, 3, port_LWTorques);
-    writeTorque(RATorques, 3, port_RWTorques);
-    writeTorque(LLTorques, 2, port_LLTorques);
-    writeTorque(RLTorques, 2, port_RLTorques);
+    //writeTorque(TOTorques, 4, port_TOTorques);
+    //writeTorque(HDTorques, 0, port_HDTorques);
+    //writeTorque(LATorques, 1, port_LATorques);
+    //writeTorque(RATorques, 1, port_RATorques);
+    //writeTorque(LATorques, 3, port_LWTorques);
+    //writeTorque(RATorques, 3, port_RWTorques);
+    //writeTorque(LLTorques, 2, port_LLTorques);
+    //writeTorque(RLTorques, 2, port_RLTorques);
 }
 
 //*************************************************************************************************************************
@@ -1191,22 +1208,13 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
 void wholeBodyDynamicsThread::threadRelease()
 {
     run_mutex.lock();
-    std::cerr << "Closing RATorques port\n";
-    closePort(port_RATorques);
-    std::cerr << "Closing LATorques port\n";
-    closePort(port_LATorques);
-    std::cerr << "Closing RLTorques port\n";
-    closePort(port_RLTorques);
-    std::cerr << "Closing LLTorques port\n";
-    closePort(port_LLTorques);
-    std::cerr << "Closing RWTorques port\n";
-    closePort(port_RWTorques);
-    std::cerr << "Closing LWTorques port\n";
-    closePort(port_LWTorques);
-    std::cerr << "Closing TOTorques port\n";
-    closePort(port_TOTorques);
-    std::cerr << "Closing HDTorques port\n";
-    closePort(port_HDTorques);
+
+    std::cerr << "[INFO] Closing output torques ports\n";
+    for(int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
+    {
+        output_torque_ports[output_torque_port_i].output_port.close();
+    }
+
     std::cerr << "Closing contacts port\n";
     closePort(port_contacts);
     std::cerr << "Closing end effector wrenches port\n";

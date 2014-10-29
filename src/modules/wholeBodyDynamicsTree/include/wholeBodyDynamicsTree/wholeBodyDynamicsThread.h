@@ -69,6 +69,15 @@ public:
     bool zero();
 };
 
+struct outputTorquePortInformation
+{
+    std::string port_name;
+    int magic_number;
+    std::vector< int > wbi_numeric_ids_to_publish;
+    yarp::sig::Vector output_vector;
+    BufferedPort<Bottle> output_port;
+};
+
 /**
  *
   */
@@ -82,17 +91,6 @@ class wholeBodyDynamicsThread: public RateThread
     double              PRINT_PERIOD;
 
     enum { NORMAL, CALIBRATING, CALIBRATING_ON_DOUBLE_SUPPORT } wbd_mode;     /// < Mode of operation of the thread: normal operation or calibration
-
-    //output ports
-    ///< \todo TODO add a proper structure for output ports, by dividing them for body parts or sensors
-    BufferedPort<Bottle> *port_RATorques;
-    BufferedPort<Bottle> *port_RLTorques;
-    BufferedPort<Bottle> *port_RWTorques;
-    BufferedPort<Bottle> *port_LATorques;
-    BufferedPort<Bottle> *port_LLTorques;
-    BufferedPort<Bottle> *port_LWTorques;
-    BufferedPort<Bottle> *port_TOTorques;
-    BufferedPort<Bottle> *port_HDTorques;
 
     BufferedPort<Vector> *port_external_wrench_RA;
     BufferedPort<Vector> *port_external_wrench_LA;
@@ -152,12 +150,10 @@ class wholeBodyDynamicsThread: public RateThread
 
     //Buffer vectors
     yarp::sig::Vector all_torques;
-    yarp::sig::Vector TOTorques;
-    yarp::sig::Vector HDTorques;
-    yarp::sig::Vector LATorques;
-    yarp::sig::Vector RATorques;
-    yarp::sig::Vector LLTorques;
-    yarp::sig::Vector RLTorques;
+
+    //Data structures for mapping between wbi and output ports
+    // this are populated by the WBD_TORQUE_PORTS group
+    std::vector< outputTorquePortInformation > output_torque_ports;
 
     iCub::skinDynLib::skinContactList external_forces_list;
 
@@ -234,7 +230,9 @@ class wholeBodyDynamicsThread: public RateThread
     BufferedPort<Vector> * port_joint_foot_cartesian_wrench_from_model;
     iCub::iDynTree::iCubTree * icub_model_zmp;
 
+    bool autoconnect;
 
+    yarp::os::Property yarp_options;
 
 public:
 
@@ -243,7 +241,7 @@ public:
                             int _period,
                             yarpWbi::yarpWholeBodyStatesLocal *_wbi,
                             yarp::os::Property & yarpWbiOptions,
-                            bool autoconnect,
+                            bool _autoconnect,
                             bool assume_fixed_base_calibration,
                             std::string fixed_link,
                             bool zmp_test_mode, std::string foot_to_test);
