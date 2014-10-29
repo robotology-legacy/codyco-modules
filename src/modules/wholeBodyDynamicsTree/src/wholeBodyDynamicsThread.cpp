@@ -20,6 +20,7 @@
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
 #include <yarp/os/BufferedPort.h>
+#include <yarp/os/ResourceFinder.h>
 #include <yarp/math/SVD.h>
 
 #include <string.h>
@@ -80,7 +81,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
                                                  string _robotName,
                                                  int _period,
                                                  yarpWholeBodyStatesLocal *_wbs,
-                                                 const iCub::iDynTree::iCubTree_version_tag _icub_version,
+                                                 yarp::os::Property & _yarp_wbi_opts,
                                                  bool autoconnect,
                                                  bool _assume_fixed_base_calibration,
                                                  std::string _fixed_link_calibration,
@@ -93,7 +94,6 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        estimator(_wbs),
        printCountdown(0),
        PRINT_PERIOD(2000),
-       icub_version(_icub_version),
        samples_requested_for_calibration(200),
        max_samples_for_calibration(2000),
        samples_used_for_calibration(0),
@@ -103,10 +103,21 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     {
 
        std::cout << "Launching wholeBodyDynamicsThread with name : " << _name << " and robotName " << _robotName << " and period " << _period << std::endl;
+
+       if( !_yarp_wbi_opts.check("urdf_file") )
+       {
+            std::cerr << "[ERR] yarpWholeBodyStatesLocal error: urdf_file not found in configuration files" << std::endl;
+            return;
+       }
+
+    std::string urdf_file = _yarp_wbi_opts.find("urdf_file").asString().c_str();
+    yarp::os::ResourceFinder rf;
+    std::string urdf_file_path = rf.findFile(urdf_file.c_str());
+
        if( assume_fixed_base_calibration ) {
-           icub_model_calibration = new iCub::iDynTree::iCubTree(_icub_version,fixed_link_calibration);
+           icub_model_calibration = new iCub::iDynTree::iCubTree(urdf_file_path,fixed_link_calibration);
        } else {
-           icub_model_calibration = new iCub::iDynTree::iCubTree(_icub_version);
+           icub_model_calibration = new iCub::iDynTree::iCubTree(urdf_file_path);
        }
 
 
@@ -221,13 +232,13 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
         if( _zmp_test_feet == "left" )
         {
             foot_under_zmp_test = LEFT_FOOT;
-            icub_model_zmp = new iCub::iDynTree::iCubTree(icub_version);
+            icub_model_zmp = new iCub::iDynTree::iCubTree(urdf_file_path);
             icub_model_zmp->setFloatingBaseLink(icub_model_zmp->getLinkIndex("l_sole"));
         }
         else
         {
             foot_under_zmp_test = RIGHT_FOOT;
-            icub_model_zmp = new iCub::iDynTree::iCubTree(icub_version);
+            icub_model_zmp = new iCub::iDynTree::iCubTree(urdf_file_path);
             icub_model_zmp->setFloatingBaseLink(icub_model_zmp->getLinkIndex("r_sole"));
         }
         port_joint_ankle_cartesian_wrench = new BufferedPort<Vector>;
@@ -250,6 +261,17 @@ wbi::wbiId wholeBodyDynamicsThread::convertFTiDynTreeToFTwbi(int ft_sensor_id)
     return ret;
 }
 
+void checkFTSensorExist(std::string ft_sensor_name, wbi::wbiIdList & all_fts, std::vector<int> & ft_id_list, iCub::iDynTree::iCubTree * icub_model_calibration)
+{
+    if( all_fts.containsId(ft_sensor_name) )
+    {
+        int numeric_id;
+        all_fts.wbiIdToNumericId(ft_sensor_name,numeric_id);
+        YARP_ASSERT(icub_model_calibration->getFTSensorIndex(ft_sensor_name) == numeric_id);
+        ft_id_list.push_back(numeric_id);
+    }
+}
+
 //*************************************************************************************************************************
 bool wholeBodyDynamicsThread::threadInit()
 {
@@ -263,31 +285,33 @@ bool wholeBodyDynamicsThread::threadInit()
 
     offset_buffer.resize(nrOfAvailableFTSensors,yarp::sig::Vector(6,0.0));
     calibrate_ft_sensor.resize(nrOfAvailableFTSensors,false);
-    YARP_ASSERT(icub_model_calibration->getNrOfDOFs()==32);
     tree_status.setNrOfDOFs(icub_model_calibration->getNrOfDOFs());
     tree_status.setNrOfFTSensors(nrOfAvailableFTSensors);
 
-    //the serialization is this one for foot v1 : 0 left arm  1 right arm
-    //                                            2 left leg  3 right leg
+    //Get list of ft sensors for calibration shortcut
+    wbi::wbiIdList ft_list = estimator->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR);
 
-    //and this one                  for foot v2 : 0 left arm  1 right arm
-    //                                            2 left leg  3 left foot
-    //                                            4 right leg 5 right foot
+    checkFTSensorExist("r_foot_ft_sensor",ft_list,feet_fts,icub_model_calibration);
+    checkFTSensorExist("l_foot_ft_sensor",ft_list,feet_fts,icub_model_calibration);
+    checkFTSensorExist("l_leg_ft_sensor",ft_list,legs_fts,icub_model_calibration);
+    checkFTSensorExist("r_leg_ft_sensor",ft_list,legs_fts,icub_model_calibration);
+    checkFTSensorExist("l_arm_ft_sensor",ft_list,arms_fts,icub_model_calibration);
+    checkFTSensorExist("r_arm_ft_sensor",ft_list,arms_fts,icub_model_calibration);
 
-    /// < \todo TODO ENFORCE match between interface and iCub sensors
-    l_arm_ft_sensor_id = icub_model_calibration->getFTSensorIndex("l_arm_ft_sensor");
-    r_arm_ft_sensor_id = icub_model_calibration->getFTSensorIndex("r_arm_ft_sensor");
-    l_leg_ft_sensor_id = icub_model_calibration->getFTSensorIndex("l_leg_ft_sensor");
-    r_leg_ft_sensor_id = icub_model_calibration->getFTSensorIndex("r_leg_ft_sensor");
-    if( icub_version.feet_ft ) {
-        l_foot_ft_sensor_id = icub_model_calibration->getFTSensorIndex("l_foot_ft_sensor");
-        r_foot_ft_sensor_id = icub_model_calibration->getFTSensorIndex("r_foot_ft_sensor");
-    } else {
-        l_foot_ft_sensor_id = -1;
-        r_foot_ft_sensor_id = -1;
+
+    if( ft_list.containsId("l_foot_ft_sensor") )
+    {
+    }
+    if( ft_list.containsId("r_foot_ft_sensor") )
+    {
+    }
+    if( ft_list.containsId("l_arm_ft_sensor") )
+    {
+    }
+    if( ft_list.containsId("r_arm_ft_sensor") )
+    {
     }
 
-    //Find end effector ids
     //Find end effector ids
     int max_id = 100;
     root_link_idyntree_id = icub_model_calibration->getLinkIndex("root_link");
@@ -361,31 +385,9 @@ bool wholeBodyDynamicsThread::calibrateOffset(const std::string calib_code, int 
         std::cout << "[INFO] wholeBodyDynamicsThread::calibrateOffset error: requested calibration with a negative (" << samples_requested_for_calibration << ") number of samples." << std::endl;
         return false;
     }
-    if( calib_code == "feet" && !(icub_version.feet_ft) ) {
-        std::cout << "[ERR] wholeBodyDynamicsThread::calibrateOffset error: requested calibration of feet, but feet FT sensor not available." << std::endl;
-        return false;
-    }
 
-    if( calib_code == "all" ) {
-        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
-        if( icub_version.feet_ft ) {
-            calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
-            calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
-        }
-    } else if ( calib_code == "arms" ) {
-        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
-    } else if ( calib_code == "legs" ) {
-        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
-    } else if ( calib_code == "feet" ) {
-        calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
-    } else {
-        std::cout << "[ERR] wholeBodyDynamicsThread::calibrateOffset error: code " << calib_code << " not available" << std::endl;
+    if( !this->decodeCalibCode(calib_code) )
+    {
         return false;
     }
 
@@ -418,6 +420,60 @@ bool wholeBodyDynamicsThread::calibrateOffset(const std::string calib_code, int 
     return true;
 }
 
+bool wholeBodyDynamicsThread::decodeCalibCode(const std::string calib_code)
+{
+    if( calib_code == "all" ) {
+        for(int ft_sens = 0; ft_sens < calibrate_ft_sensor.size(); ft_sens++ )
+        {
+            calibrate_ft_sensor[ft_sens] = true;
+        }
+    } else if ( calib_code == "arms" ) {
+        if( arms_fts.size() == 0 )
+        {
+            std::cout << "wholeBodyDynamicsThread::decodeCalibCode error: requested feet calibration, but arms FT sensor are not available." << std::endl;
+            return false;
+        }
+        for(int i = 0; i < arms_fts.size(); i++ )
+        {
+            int ft_sens = arms_fts[i];
+            calibrate_ft_sensor[ft_sens] = true;
+        }
+    } else if ( calib_code == "legs" ) {
+        if( legs_fts.size() == 0 )
+        {
+            std::cout << "wholeBodyDynamicsThread::decodeCalibCode error: requested feet calibration, but legs FT sensor are not available." << std::endl;
+            return false;
+        }
+        for(int i = 0; i < legs_fts.size(); i++ )
+        {
+            int ft_sens = legs_fts[i];
+            calibrate_ft_sensor[ft_sens] = true;
+        }
+    } else if ( calib_code == "feet" ) {
+        if( feet_fts.size() == 0 )
+        {
+            std::cout << "wholeBodyDynamicsThread::decodeCalibCode error: requested feet calibration, but feet FT sensor are not available." << std::endl;
+            return false;
+        }
+        for(int i = 0; i < feet_fts.size(); i++ )
+        {
+            int ft_sens = feet_fts[i];
+            calibrate_ft_sensor[ft_sens] = true;
+        }
+    } else {
+        std::cout << "wholeBodyDynamicsThread::decodeCalibCode error: code " << calib_code << " not available" << std::endl;
+        return false;
+    }
+}
+
+void wholeBodyDynamicsThread::disableCalibration()
+{
+    for(int ft_sensor_id=0; ft_sensor_id < (int)offset_buffer.size(); ft_sensor_id++ ) {
+        offset_buffer[ft_sensor_id].zero();
+        calibrate_ft_sensor[ft_sensor_id] = false;
+    }
+}
+
 //*************************************************************************************************************************
 bool wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport(const std::string calib_code, int samples_to_use)
 {
@@ -429,42 +485,9 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport(const std::string c
         std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport error: requested calibration with a negative (" << samples_requested_for_calibration << ") number of samples." << std::endl;
         return false;
     }
-    if( calib_code == "feet" && !(icub_version.feet_ft) )
-    {
-        std::cout << "wholeBodyDynamicsThread::calibrateOffset error: requested calibration of feet, but feet FT sensor not available." << std::endl;
-        return false;
-    }
 
-
-    if( calib_code == "all" ) {
-        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
-        if( icub_version.feet_ft ) {
-            calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
-            calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
-        }
-    }
-    else if ( calib_code == "arms" )
+    if( !this->decodeCalibCode(calib_code) )
     {
-        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
-    }
-    else if ( calib_code == "legs" )
-    {
-        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
-    }
-    else if ( calib_code == "feet" )
-    {
-        calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
-    }
-    else
-    {
-        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport error: code " << calib_code << " not available" << std::endl;
-        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport code supported are: legs, feet" << std::endl;
         return false;
     }
 
@@ -502,42 +525,9 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport(const std::
         std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport error: requested calibration with a negative (" << samples_requested_for_calibration << ") number of samples." << std::endl;
         return false;
     }
-    if( calib_code == "feet" && !(icub_version.feet_ft) )
-    {
-        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport error: requested calibration of feet, but feet FT sensor not available." << std::endl;
-        return false;
-    }
 
-
-    if( calib_code == "all" ) {
-        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
-        if( icub_version.feet_ft ) {
-            calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
-            calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
-        }
-    }
-    else if ( calib_code == "arms" )
+    if( !this->decodeCalibCode(calib_code) )
     {
-        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
-    }
-    else if ( calib_code == "legs" )
-    {
-        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
-    }
-    else if ( calib_code == "feet" )
-    {
-        calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
-    }
-    else
-    {
-        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport error: code " << calib_code << " not available" << std::endl;
-        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport code supported are: legs, feet" << std::endl;
         return false;
     }
 
@@ -579,42 +569,9 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport(const std:
         std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport error: requested calibration with a negative (" << samples_requested_for_calibration << ") number of samples." << std::endl;
         return false;
     }
-    if( calib_code == "feet" && !(icub_version.feet_ft) )
-    {
-        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport error: requested calibration of feet, but feet FT sensor not available." << std::endl;
-        return false;
-    }
 
-
-    if( calib_code == "all" ) {
-        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
-        if( icub_version.feet_ft ) {
-            calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
-            calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
-        }
-    }
-    else if ( calib_code == "arms" )
+    if( !this->decodeCalibCode(calib_code) )
     {
-        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
-    }
-    else if ( calib_code == "legs" )
-    {
-        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
-    }
-    else if ( calib_code == "feet" )
-    {
-        calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
-    }
-    else
-    {
-        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport error: code " << calib_code << " not available" << std::endl;
-        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport code supported are: legs, feet" << std::endl;
         return false;
     }
 
@@ -650,31 +607,8 @@ bool wholeBodyDynamicsThread::resetOffset(const std::string calib_code)
     run_mutex.lock();
     std::cout << "wholeBodyDynamicsThread::resetOffset called with code " << calib_code << std::endl;
 
-    if( calib_code == "feet" && !(icub_version.feet_ft) ) {
-        std::cout << "wholeBodyDynamicsThread::resetOffset error: requested calibration of feet, but feet FT sensor not available." << std::endl;
-        return false;
-    }
-
-    if( calib_code == "all" ) {
-        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
-        if( icub_version.feet_ft ) {
-            calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
-            calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
-        }
-    } else if ( calib_code == "arms" ) {
-        calibrate_ft_sensor[l_arm_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_arm_ft_sensor_id] = true;
-    } else if ( calib_code == "legs" ) {
-        calibrate_ft_sensor[l_leg_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_leg_ft_sensor_id] = true;
-    } else if ( calib_code == "feet" ) {
-        calibrate_ft_sensor[l_foot_ft_sensor_id] = true;
-        calibrate_ft_sensor[r_foot_ft_sensor_id] = true;
-    } else {
-        std::cout << "wholeBodyDynamicsThread::resetOffset error: code " << calib_code << " not available" << std::endl;
+    if( !this->decodeCalibCode(calib_code) )
+    {
         return false;
     }
 
@@ -687,7 +621,13 @@ bool wholeBodyDynamicsThread::resetOffset(const std::string calib_code)
         }
     }
 
-    std::cout << "wholeBodyDynamicsThread::resetOffset " << calib_code  << " called successfully, starting calibration." << std::endl;
+    std::cout << "wholeBodyDynamicsThread::resetOffset " << calib_code  << " called successfully." << std::endl;
+
+    for(int ft_id = 0; ft_id < (int)calibrate_ft_sensor.size(); ft_id++ )
+    {
+        calibrate_ft_sensor[ft_id] = false;
+    }
+
     run_mutex.unlock();
 
     return true;
@@ -1121,10 +1061,8 @@ void wholeBodyDynamicsThread::calibration_run()
 
         //Restoring default data for calibration data structures
         samples_used_for_calibration = 0;
-        for(int ft_sensor_id=0; ft_sensor_id < (int)offset_buffer.size(); ft_sensor_id++ ) {
-            offset_buffer[ft_sensor_id].zero();
-            calibrate_ft_sensor[ft_sensor_id] = false;
-        }
+        this->disableCalibration();
+
 
         icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex("root_link"));
         wbd_mode = NORMAL;

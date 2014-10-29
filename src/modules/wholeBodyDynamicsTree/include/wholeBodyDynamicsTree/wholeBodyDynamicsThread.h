@@ -140,6 +140,9 @@ class wholeBodyDynamicsThread: public RateThread
     void publishEndEffectorWrench();
     void publishBaseToGui();
     void publishAnkleFootForceTorques();
+    bool decodeCalibCode(const std::string calib_code);
+    void disableCalibration();
+
 
     wbi::wbiId convertFTiDynTreeToFTwbi(int ft_sensor_id);
     void normal_run();
@@ -175,19 +178,14 @@ class wholeBodyDynamicsThread: public RateThread
     yarp::os::Mutex calibration_mutex;
     iCubTreeStatus tree_status;
 
-    iCub::iDynTree::iCubTree_version_tag icub_version;
     iCub::iDynTree::iCubTree * icub_model_calibration;
 
     int samples_requested_for_calibration;
     int max_samples_for_calibration;
-    int l_foot_ft_sensor_id;
-    int r_foot_ft_sensor_id;
 
-    int l_arm_ft_sensor_id;
-    int r_arm_ft_sensor_id;
-
-    int l_leg_ft_sensor_id;
-    int r_leg_ft_sensor_id;
+    std::vector<int> arms_fts;
+    std::vector<int> legs_fts;
+    std::vector<int> feet_fts;
 
     int left_hand_link_id;
     int right_hand_link_id;
@@ -244,7 +242,7 @@ public:
                             string _robotName,
                             int _period,
                             yarpWbi::yarpWholeBodyStatesLocal *_wbi,
-                            const iCub::iDynTree::iCubTree_version_tag icub_version,
+                            yarp::os::Property & yarpWbiOptions,
                             bool autoconnect,
                             bool assume_fixed_base_calibration,
                             std::string fixed_link,
