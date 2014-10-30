@@ -63,7 +63,6 @@ wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot, bool useNullspa
     _useNullspaceBase(useNullspaceBase),
     _ctrlAlg(WBR_CTRL_ALG_MOMENTUM_SOT)
 {
-    _qpData.activeSetSize = 0;
     this->useNullspaceBase(_useNullspaceBase==1);
     
     _n = robot->getDoFs();
@@ -79,10 +78,19 @@ wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot, bool useNullspa
     _A_i.setZero(6,_n+6);
     _b_i.setZero(6);
 
-    _qpData.CE.resize(0,0);
-    _qpData.ce0.resize(0);
-    _qpData.CI.resize(0, 0);
-    _qpData.ci0.resize(0);
+    _qpData_f.CE.resize(0,0);
+    _qpData_f.ce0.resize(0);
+    _qpData_f.CI.resize(0, 0);
+    _qpData_f.ci0.resize(0);
+    _qpData_f.activeSetSize   = 0;
+    
+    _qpData_ddq.activeSetSize = 0;
+    _qpData_ddq.H.resize(_n,_n);
+    _qpData_ddq.g.resize(_n);
+    _qpData_ddq.CE.resize(0,0);
+    _qpData_ddq.ce0.resize(0);
+    _qpData_ddq.CI.resize(0, 0);
+    _qpData_ddq.ci0.resize(0);
 }
 
 //**************************************************************************************************
@@ -92,7 +100,6 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     
     assert(_momentumTask!=NULL);
     assert(_postureTask!=NULL);
-    assert(_jointLimitTask!=NULL);
     
     useNullspaceBase(_useNullspaceBase==1);
     
@@ -122,8 +129,8 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             k  = c.getSize();    // number of constraint forces
             in = c.getNumberOfInequalities();
             
-            c.getInequalityMatrix( _qpData.CI.block(index_in, index_k, in, k)); // CI = [CI, t.getInequalityMatrix()]
-            c.getInequalityVector( _qpData.ci0.segment(index_in, in) );         //  b = [b; t.getInequalityVector()]
+            c.getInequalityMatrix( _qpData_f.CI.block(index_in, index_k, in, k)); // CI = [CI, t.getInequalityMatrix()]
+            c.getInequalityVector( _qpData_f.ci0.segment(index_in, in) );         //  b = [b; t.getInequalityVector()]
             c.getMomentumMapping(  _X.middleCols(index_k, k)  );                //  X = [X, t.getMomentumMapping()]
             c.getEqualityMatrix(   _Jc.middleRows(index_k, k) );                // Jc = [Jc; t.getEqualityMatrix()]
             c.getEqualityVector(   _dJcdq.segment(index_k, k) );                // dJc_dq = [dJc_dq; t.getEqualityVector()]
@@ -134,8 +141,8 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             if(_fcDes(index_k+2)!=0.0)
                 _fWeights.segment(index_k,k) /= _fcDes(index_k+2);
             
-//            sendMsg("CI block "+c.getName()+":\n"+toString(_qpData.CI.block(index_in, index_k, in, k),1,"\n",12));
-//            sendMsg("ci0: "+toString(_qpData.ci0.segment(index_in, in),1));
+//            sendMsg("CI block "+c.getName()+":\n"+toString(_qpData_f.CI.block(index_in, index_k, in, k),1,"\n",12));
+//            sendMsg("ci0: "+toString(_qpData_f.ci0.segment(index_in, in),1));
             
             index_k += k;
             index_in += in;
@@ -144,8 +151,8 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
         
         assert(index_k==_k);
 //        sendMsg("X:\n"+toString(_X,1,"\n",12));
-//        sendMsg("CI:\n"+toString(_qpData.CI,1,"\n",12));
-//        sendMsg("ci0: "+toString(_qpData.ci0,1));
+//        sendMsg("CI:\n"+toString(_qpData_f.CI,1,"\n",12));
+//        sendMsg("ci0: "+toString(_qpData_f.ci0,1));
         
         START_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
         {
@@ -156,7 +163,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
         }
         STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
         //    sendMsg("momentumDes "+toString(_momentumDes,1));
-        //    cout<< "QP gradient "<<toString(_qpData.g,1)<<endl;
+        //    cout<< "QP gradient "<<toString(_qpData_f.g,1)<<endl;
     }
     STOP_PROFILING(PROFILE_FORCE_QP_PREP);
     
@@ -171,7 +178,6 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
         case WBR_CTRL_ALG_NULLSPACE_PROJ:   res = computeNullspaceProj(robotState, torques);    break;
         case WBR_CTRL_ALG_COM_POSTURE:      res = computeComPosture(robotState, torques);       break;
         case WBR_CTRL_ALG_MOMENTUM_POSTURE: res = computeMomentumPosture(robotState, torques);  break;
-        case WBR_CTRL_ALG_COM_SOT:          res = computeComSoT(robotState, torques);           break;
         default:                            printf("WbiStackOfTask: ERROR unmanaged control algorithm!\n");
     }
     
@@ -198,6 +204,9 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
         }
     }
     
+    if(_jointLimitTask!=NULL)
+        _jointLimitTask->setDdqDes(_ddqDes.tail(_n));
+    
     STOP_PROFILING(PROFILE_WHOLE_SOLVER);
     
 #ifdef DEBUG_FORWARD_DYNAMICS
@@ -214,166 +223,26 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
 }
 
 //**************************************************************************************************
-bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef torques)
-{
-    sendMsg("ComputeComSoT");
-    
-    START_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
-    {
-        // @todo Check if possible to avoid this matrix-matrix multiplication
-        _qpData.H   = _X.topRows<3>().transpose()*_X.topRows<3>() + _numericalDampingTask*_W;
-        _qpData.g   = -_X.topRows<3>().transpose()*_momentumDes.head<3>();
-        
-        //        sendMsg("H diag: "+toString(_qpData.H.diagonal(),1));
-        //        sendMsg("f weights: "+toString(1e3*_fWeights,1));
-        //        sendMsg("X*N_X = "+toString((_X*_N_X).maxCoeff())+" "+toString((_X*_N_X).minCoeff()));
-    }
-    STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
-    
-    //    sendMsg("momentumDes "+toString(_momentumDes,1));
-    //    cout<< "QP gradient "<<toString(_qpData.g,1)<<endl;
-    double res;
-    START_PROFILING(PROFILE_FORCE_QP);
-    {
-        res = solve_quadprog(_qpData.H, _qpData.g, _qpData.CE.transpose(), _qpData.ce0,
-                             - _qpData.CI.transpose(), _qpData.ci0, _fcDes,
-                             _qpData.activeSet, _qpData.activeSetSize);
-    }
-    STOP_PROFILING(PROFILE_FORCE_QP);
-    if(res == std::numeric_limits<double>::infinity())
-        return false;
-    
-    if(_qpData.activeSetSize>0)
-        sendMsg("Active constraints: "+toString(_qpData.activeSet.head(_qpData.activeSetSize).transpose()));
-    sendMsg("Linear momentum error  = "+toString((_X.topRows<3>()*_fcDes - _momentumDes.head<3>()).norm()));
-    
-    //*********************************
-    // COMPUTE DESIRED ACCELERATIONS
-    //*********************************
-    
-    // Compute [ddq; f] that respect dynamics:
-    //     y = [-Mb^{-1}*h_b; zeros(n+k,1)];
-    START_PROFILING(PROFILE_DDQ_DYNAMICS_CONSTR);
-    {
-        computeMb_inverse();
-        ddqDes_b    = -_Mb_inv*h_b;
-        ddqDes_j.setZero();
-    }
-    STOP_PROFILING(PROFILE_DDQ_DYNAMICS_CONSTR);
-    
-    //    sendMsg("ddqDes (dynamic consistent) = "+toString(_ddqDes,1));
-    //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-    
-    // Compute ddq that respect also contact constraints:
-    //      Sbar     = [-Mb^{-1}*Mbj; eye(n)];
-    //      ddq_jDes = (Jc*Sbar).solve(-Jc*ddqDes - dJc_dq);
-    //      ddqBar  += Sbar*ddq_jDes
-    START_PROFILING(PROFILE_DDQ_CONTACT_CONSTR);
-    {
-        _Mb_inv_M_bj= _Mb_inv * M_bj;
-        _Jc_Sbar    = Jc_j - (Jc_b * _Mb_inv_M_bj);
-        _Jc_Sbar_svd.compute(_Jc_Sbar, _svdOptions);
-        //        cout<<"Jc_b =\n"<< toString(Jc_b,1)<< endl;
-        //        cout<<"Jc_b*ddqDes_b = "<< toString(Jc_b*ddqDes_b,1)<< endl;
-        //        cout<<"ddqDes_b = "<< toString(ddqDes_b,1)<< endl;
-        _ddq_jDes    = svdSolveWithDamping(_Jc_Sbar_svd, -_dJcdq-Jc_b*ddqDes_b, _numericalDampingConstr);
-        //        _ddq_jDes    = _Jc_Sbar_svd.solve(-_dJcdq-Jc_b*ddqDes_b);
-        ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
-        ddqDes_j    += _ddq_jDes;
-    }
-    STOP_PROFILING(PROFILE_DDQ_CONTACT_CONSTR);
-    
-    //    sendMsg("ddqDes (contact consistent) = "+toString(_ddqDes,1));
-    //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-    //    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
-    
-    _Z.setIdentity(_n,_n);
-    updateNullspace(_Jc_Sbar_svd);
-    //    sendMsg("Jc*Sbar*Z = "+toString((_Jc_Sbar*_Z).sum()));
-    
-    // Solve the equality motion task
-    // N=I
-    // for i=1:K
-    //      A = A_i*Sbar*N
-    //      ddq_j = A^+ (b_i - A_i*ddq)
-    //      ddq  += Sbar*ddq_j
-    //      N    -= A^+ A
-    // end
-    list<MinJerkPDLinkPoseTask*>::iterator it;
-    for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
-    {
-        MinJerkPDLinkPoseTask& t = **it;
-        t.update(robotState);
-        
-        t.getEqualityMatrix(_A_i);
-        t.getEqualityVector(_b_i);
-        _A = _A_i.rightCols(_n) - _A_i.leftCols<6>()*_Mb_inv_M_bj;
-        _A *= _Z;
-        _A_svd.compute(_A, _svdOptions);
-        _ddq_jDes   = svdSolveWithDamping(_A_svd, _b_i - _A_i*_ddqDes, _numericalDampingTask);
-        _ddq_jDes   = _Z*_ddq_jDes;     /// @todo here I assume i'm using nullspace projectors
-        ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
-        ddqDes_j    += _ddq_jDes;
-        updateNullspace(_A_svd);
-    }
-    
-    // Now we can go on with the motion tasks, using the nullspace of dynamics and contacts:
-    //      Z = nullspace(Jc*Sbar);
-    START_PROFILING(PROFILE_DDQ_POSTURE_TASK);
-    {
-        if(_useNullspaceBase)
-            _ddq_jDes   = _Z * (_Z.transpose() * _ddq_jPosture);
-        else
-            _ddq_jDes   = _Z * _ddq_jPosture;
-        ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
-        ddqDes_j    += _ddq_jDes;
-    }
-    STOP_PROFILING(PROFILE_DDQ_POSTURE_TASK);
-    
-    torques     = M_a*_ddqDes + h_j - Jc_j.transpose()*_fcDes;
-    
-    sendMsg("fcDes              = "+toString(_fcDes,1));
-    //    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
-    //    sendMsg("ddq_jPosture        = "+jointToString(_ddq_jPosture,1));
-    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
-    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
-    
-#define DEBUG_POSE_TASKS
-#ifdef  DEBUG_POSE_TASKS
-    for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
-    {
-        MinJerkPDLinkPoseTask& t = **it;
-        t.getEqualityMatrix(_A_i);
-        t.getEqualityVector(_b_i);
-        sendMsg(t.getName()+" error =    "+toString((_A_i*_ddqDes-_b_i).norm()));
-    }
-#endif
-    
-    return true;
-}
-
-//**************************************************************************************************
 bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRef torques)
 {
     sendMsg("ComputeMomentumSoT");
     
-    _qpData.H   = _X.transpose()*_X + _numericalDampingTask*_W;
-    _qpData.g   = -_X.transpose()*_momentumDes;
+    _qpData_f.H   = _X.transpose()*_X + _numericalDampingTask*_W;
+    _qpData_f.g   = -_X.transpose()*_momentumDes;
     
     double res;
     START_PROFILING(PROFILE_FORCE_QP);
     {
-        res = solve_quadprog(_qpData.H, _qpData.g, _qpData.CE.transpose(), _qpData.ce0,
-                             - _qpData.CI.transpose(), _qpData.ci0, _fcDes,
-                             _qpData.activeSet, _qpData.activeSetSize);
+        res = solve_quadprog(_qpData_f.H, _qpData_f.g, _qpData_f.CE.transpose(), _qpData_f.ce0,
+                             - _qpData_f.CI.transpose(), _qpData_f.ci0, _fcDes,
+                             _qpData_f.activeSet, _qpData_f.activeSetSize);
     }
     STOP_PROFILING(PROFILE_FORCE_QP);
     if(res == std::numeric_limits<double>::infinity())
         return false;
     
-    if(_qpData.activeSetSize>0)
-        sendMsg("Active constraints: "+toString(_qpData.activeSet.head(_qpData.activeSetSize).transpose()));
+    if(_qpData_f.activeSetSize>0)
+        sendMsg("Active constraints: "+toString(_qpData_f.activeSet.head(_qpData_f.activeSetSize).transpose()));
     sendMsg("Momentum error  = "+toString((_X*_fcDes-_momentumDes).norm()));
     
     //*********************************
@@ -416,10 +285,13 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
     //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
     //    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
     
+    // Now we can go on with the motion tasks, using the nullspace of dynamics and contacts:
+    //      Z = nullspace(Jc*Sbar);
     _Z.setIdentity(_n,_n);
     updateNullspace(_Jc_Sbar_svd);
     //    sendMsg("Jc*Sbar*Z = "+toString((_Jc_Sbar*_Z).sum()));
     
+#define DEBUG_POSE_TASKS
     // Solve the equality motion task
     // N=I
     // for i=1:K
@@ -428,6 +300,17 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
     //      ddq  += Sbar*ddq_j
     //      N    -= A^+ A
     // end
+    bool jointLimitActive = _jointLimitTask!=NULL;
+    if(jointLimitActive)
+    {
+        _jointLimitTask->update(robotState);
+        _jointLimitTask->getInequalityMatrix(_qpData_ddq.CI);
+        _jointLimitTask->getInequalityVector(_qpData_ddq.ci0);
+        cout<<"_qpData_ddq.CI.rows() = "<<_qpData_ddq.CI.rows()<<";\t";
+        cout<<"_qpData_ddq.CI.cols() = "<<_qpData_ddq.CI.cols()<<";\t";
+        cout<<"_qpData_ddq.ci0.size() = "<<_qpData_ddq.ci0.size()<<";\n";
+    }
+    
     list<MinJerkPDLinkPoseTask*>::iterator it;
     for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
     {
@@ -438,16 +321,37 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
         t.getEqualityVector(_b_i);
         _A = _A_i.rightCols(_n) - _A_i.leftCols<6>()*_Mb_inv_M_bj;
         _A *= _Z;
-        _A_svd.compute(_A, _svdOptions);
-        _ddq_jDes   = svdSolveWithDamping(_A_svd, _b_i - _A_i*_ddqDes, _numericalDampingTask);
-        _ddq_jDes   = _Z*_ddq_jDes;     /// @todo here I assume i'm using nullspace projectors
+        
+        if(jointLimitActive)
+        {
+            _qpData_ddq.H   = _A.transpose()*_A + _numericalDampingTask*MatrixXd::Identity(_n,_n);
+            _qpData_ddq.g   = -_A.transpose()*(_b_i - _A_i*_ddqDes);
+            double res = solve_quadprog(_qpData_ddq.H, _qpData_ddq.g, _qpData_ddq.CE.transpose(), _qpData_ddq.ce0,
+                                     _qpData_ddq.CI.transpose(), _qpData_ddq.ci0, _ddq_jDes,
+                                     _qpData_ddq.activeSet, _qpData_ddq.activeSetSize);
+            if(res == std::numeric_limits<double>::infinity())
+                return false;
+            if(_qpData_ddq.activeSetSize>0)
+                sendMsg("Joint limit active constraints: "+toString(_qpData_ddq.activeSet.head(_qpData_ddq.activeSetSize).transpose()));
+        }
+        else
+        {
+            _A_svd.compute(_A, _svdOptions);
+            _ddq_jDes   = svdSolveWithDamping(_A_svd, _b_i - _A_i*_ddqDes, _numericalDampingTask);
+    //        _ddq_jDes   = _Z*_ddq_jDes;     /// @todo here I assume i'm using nullspace projectors
+        }
         ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
         ddqDes_j    += _ddq_jDes;
         updateNullspace(_A_svd);
+        
+#ifdef  DEBUG_POSE_TASKS
+//        sendMsg(t.getName()+" Jacobian =\n"+toString(_A_i));
+        int nzsv = _A_svd.nonzeroSingularValues();
+        sendMsg(t.getName()+" "+toString(nzsv)+"-th sing val = "+toString(_A_svd.singularValues()(nzsv-1)));
+        sendMsg(t.getName()+" ||A*x-b|| =    "+toString((_A_i*_ddqDes-_b_i).norm()));
+#endif
     }
-    
-    // Now we can go on with the motion tasks, using the nullspace of dynamics and contacts:
-    //      Z = nullspace(Jc*Sbar);
+
     START_PROFILING(PROFILE_DDQ_POSTURE_TASK);
     {
         if(_useNullspaceBase)
@@ -465,17 +369,17 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
     //    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
     //    sendMsg("ddq_jPosture        = "+jointToString(_ddq_jPosture,1));
     sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
+//    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
     sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
     
-#define DEBUG_POSE_TASKS
+
 #ifdef  DEBUG_POSE_TASKS
     for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
     {
         MinJerkPDLinkPoseTask& t = **it;
         t.getEqualityMatrix(_A_i);
         t.getEqualityVector(_b_i);
-        sendMsg(t.getName()+" error =    "+toString((_A_i*_ddqDes-_b_i).norm()));
+        sendMsg(t.getName()+" ||A*x-b|| =    "+toString((_A_i*_ddqDes-_b_i).norm()));
     }
 #endif
     
@@ -526,30 +430,30 @@ bool wbiStackOfTasks::computeComPosture(RobotState& robotState, Eigen::VectorRef
     START_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
     {
         // @todo Check if possible to avoid this matrix-matrix multiplication
-        _qpData.H   = _X.topRows<3>().transpose()*_X.topRows<3>() + _numericalDampingTask*_W;
-        _qpData.g   = -_X.topRows<3>().transpose()*_momentumDes.head<3>();
+        _qpData_f.H   = _X.topRows<3>().transpose()*_X.topRows<3>() + _numericalDampingTask*_W;
+        _qpData_f.g   = -_X.topRows<3>().transpose()*_momentumDes.head<3>();
         
-//        sendMsg("H diag: "+toString(_qpData.H.diagonal(),1));
+//        sendMsg("H diag: "+toString(_qpData_f.H.diagonal(),1));
 //        sendMsg("f weights: "+toString(1e3*_fWeights,1));
 //        sendMsg("X*N_X = "+toString((_X*_N_X).maxCoeff())+" "+toString((_X*_N_X).minCoeff()));
     }
     STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
 
     //    sendMsg("momentumDes "+toString(_momentumDes,1));
-    //    cout<< "QP gradient "<<toString(_qpData.g,1)<<endl;
+    //    cout<< "QP gradient "<<toString(_qpData_f.g,1)<<endl;
     double res;
     START_PROFILING(PROFILE_FORCE_QP);
     {
-        res = solve_quadprog(_qpData.H, _qpData.g, _qpData.CE.transpose(), _qpData.ce0,
-                             - _qpData.CI.transpose(), _qpData.ci0, _fcDes,
-                             _qpData.activeSet, _qpData.activeSetSize);
+        res = solve_quadprog(_qpData_f.H, _qpData_f.g, _qpData_f.CE.transpose(), _qpData_f.ce0,
+                             - _qpData_f.CI.transpose(), _qpData_f.ci0, _fcDes,
+                             _qpData_f.activeSet, _qpData_f.activeSetSize);
     }
     STOP_PROFILING(PROFILE_FORCE_QP);
     if(res == std::numeric_limits<double>::infinity())
         return false;
     
-    if(_qpData.activeSetSize>0)
-        sendMsg("Active constraints: "+toString(_qpData.activeSet.head(_qpData.activeSetSize).transpose()));
+    if(_qpData_f.activeSetSize>0)
+        sendMsg("Active constraints: "+toString(_qpData_f.activeSet.head(_qpData_f.activeSetSize).transpose()));
     sendMsg("Linear momentum error  = "+toString((_X.topRows<3>()*_fcDes - _momentumDes.head<3>()).norm()));
     
     //*********************************
@@ -736,11 +640,11 @@ void wbiStackOfTasks::addConstraint(ContactConstraint& constraint)
     _Jc.setZero(_k,_n+6);
     _dJcdq.setZero(_k);
     _fcDes.setZero(_k);
-    _qpData.H.setZero(_k,_k);
-    _qpData.g.setZero(_k);
-    _qpData.CI.setZero(n_in, _k);
-    _qpData.ci0.setZero(n_in);
-    _qpData.activeSet = VectorXi::Constant(n_in, -1);
+    _qpData_f.H.setZero(_k,_k);
+    _qpData_f.g.setZero(_k);
+    _qpData_f.CI.setZero(n_in, _k);
+    _qpData_f.ci0.setZero(n_in);
+    _qpData_f.activeSet = VectorXi::Constant(n_in, -1);
 }
 
 //**************************************************************************************************

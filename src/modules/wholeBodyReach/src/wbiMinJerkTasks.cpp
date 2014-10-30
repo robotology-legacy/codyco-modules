@@ -20,8 +20,8 @@
 #include <Eigen/Geometry>
 
 // TEMP
-#include <yarp/os/Time.h>
-using namespace yarp::math;
+//#include <yarp/os/Time.h>
+//using namespace yarp::math;
 // END TEMP
 
 using namespace wholeBodyReach;
@@ -64,16 +64,18 @@ bool MinJerkPDLinkPoseTask::update(RobotState& state)
     _dvStar.head<3>() = _trajGen.getAcc()   + _Kd.head<3>().cwiseProduct(_trajGen.getVel() - _v.head<3>())
                                             + _Kp.head<3>().cwiseProduct(_posRef - _pose.head<3>());
     computeOrientationError(_H.R, _Hdes.R, _orientationError);
-//    _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError) - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
-    _dvStar.tail<3>() = - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
-    
-    // TEMP
-//    _dvStar.tail<3>().setZero();
-    // END TEMP
+    _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError) - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
     
     // update equality matrix and equality vectory
     _A_eq = _J;
     _a_eq = _dvStar - _dJdq;
+    
+    bool controlPositionOnly = true;
+    if(controlPositionOnly)
+    {
+        _A_eq.bottomRows<3>().setZero();
+        _a_eq.tail<3>().setZero();
+    }
     
     return res;
 }
@@ -83,8 +85,13 @@ void MinJerkPDLinkPoseTask::init(RobotState& state)
     bool res = _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
     assert(res);
     _pose(0) = _H.p[0]; _pose(1) = _H.p[1]; _pose(2) = _H.p[2];
+    _H.R.getAxisAngle(_pose.data()+3);
     _trajGen.init(_pose.head<3>());
 //    cout<<_name<<" H:\n"<<_H.toString()<<endl;
+    
+    // set desired pose to current pose
+    _poseDes = _pose;
+    _Hdes = _H;
 }
 
 void MinJerkPDLinkPoseTask::linkParameterPoseDes(ParamHelperServer* paramHelper, int paramId)
@@ -114,7 +121,7 @@ void MinJerkPDLinkPoseTask::parameterUpdated(const ParamProxyInterface *pp)
         _Hdes.p[2] = _poseDes[2];
         // convert from axis/angle to rotation matrix
         _Hdes.R = Rotation::axisAngle(_poseDes.data()+3);
-//        cout<<_name<<" H des:\n"<<_Hdes.toString()<<endl;
+        cout<<_name<<" H des:\n"<<_Hdes.toString()<<endl;
         return;
     }
     MinJerkTask::parameterUpdated(pp);
@@ -331,8 +338,8 @@ void MinJerkPDPostureTask::linkParameterPostureRef(ParamHelperServer* paramHelpe
 /*********************************************************************************************************/
 
 JointLimitTask::JointLimitTask(std::string taskName, wbi::wholeBodyInterface* robot)
-:   WbiAbstractTask(taskName, 6, robot),
-    WbiInequalityTask(robot->getDoFs()+6, robot->getDoFs()+6)
+:   WbiAbstractTask(taskName, robot->getDoFs(), robot),
+    WbiInequalityTask(2*robot->getDoFs(), robot->getDoFs())
 {
     _qMin.resize(_m);
     _qMax.resize(_m);
@@ -340,23 +347,53 @@ JointLimitTask::JointLimitTask(std::string taskName, wbi::wholeBodyInterface* ro
     _dqMax.resize(_m);
     _ddqMin.resize(_m);
     _ddqMax.resize(_m);
+    updateInequalityMatrix();
 }
+
+void JointLimitTask::init(RobotState& state){}
 
 bool JointLimitTask::update(RobotState& state)
 {
     bool res = true;
-    // compute stuff
-    // update equality matrix and equality vectory
+    for(int i=0; i<_m;i++)
+    {
+        // compute (negative) lower bound
+        _a_in(2*i+0) = -(2.0/pow(_dt,2))*(_qMin(i) - state.qJ(i) - _dt*state.dqJ(i));
+        // compute upper bound
+        _a_in(2*i+1) = +(2.0/pow(_dt,2))*(_qMax(i) - state.qJ(i) - _dt*state.dqJ(i));
+    }
     return res;
 }
 
-bool JointLimitTask::setPositionLimits(VectorConst qMin, VectorConst qMax)
+void JointLimitTask::updateInequalityMatrix()
 {
-    if( !checkVectorSize(qMin) || !checkVectorSize(qMax))
-        return false;
-    _qMin = qMin;
-    _qMax = qMax;
-    return true;
+//  _A_in*x + _a_in >= 0
+    _A_in.setZero(2*_m, _m);
+    for(int i=0; i<_m; i++)
+    {
+        _A_in(2*i+0,i) = 1.0;   // lower bound
+        _A_in(2*i+1,i) = -1.0;  // upper bound
+    }
+}
+
+bool JointLimitTask::setTimestep(double dt)
+{
+    if(dt>0.0)
+    {
+        _dt = dt;
+        return true;
+    }
+    return false;
+}
+
+void JointLimitTask::linkParameterQmin(ParamHelperServer* paramHelper, int paramId)
+{
+    paramHelper->linkParam(paramId, _qMin.data());
+}
+
+void JointLimitTask::linkParameterQmax(ParamHelperServer* paramHelper, int paramId)
+{
+    paramHelper->linkParam(paramId, _qMax.data());
 }
 
 bool JointLimitTask::setVelocityLimits(VectorConst dqMin, VectorConst dqMax)
@@ -374,6 +411,23 @@ bool JointLimitTask::setAccelerationLimits(VectorConst ddqMin, VectorConst ddqMa
         return false;
     _ddqMin = ddqMin;
     _ddqMax = ddqMax;
+    return true;
+}
+
+bool JointLimitTask::setDdqDes(VectorConst ddqDes)
+{
+    if( !checkVectorSize(ddqDes))
+        return false;
+    VectorXd tmp = _A_in*ddqDes;
+    for(int i=0; i<_m; i++)
+    {
+        if(tmp(2*i)>=_a_in(2*i))
+            getLogger().sendMsg("Joint "+toString(i)+" lower bound active:     ["+toString(_A_in.row(2*i),0)+"]*ddq="+
+                                toString(tmp(2*i))+" >= "+toString(_a_in(2*i)), MSG_STREAM_ERROR);
+        if(tmp(2*i+1)>=_a_in(2*i+1))
+            getLogger().sendMsg("Joint "+toString(i)+" upper bound active:     ["+toString(_A_in.row(2*i+1),0)+"]*ddq="+
+                                toString(tmp(2*i+1))+" >= "+toString(_a_in(2*i+1)), MSG_STREAM_ERROR);
+    }
     return true;
 }
 

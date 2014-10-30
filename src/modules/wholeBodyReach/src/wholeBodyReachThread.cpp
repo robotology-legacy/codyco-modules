@@ -74,7 +74,7 @@ bool WholeBodyReachThread::threadInit()
     _solver.addConstraint(_tasks.leftFoot);
     _solver.addConstraint(_tasks.rightFoot);
 //    _solver.pushEqualityTask(_tasks.supportForearm);
-//    _solver.pushEqualityTask(_tasks.graspHand);
+    _solver.pushEqualityTask(_tasks.graspHand);
     
     _solver.linkParameterToVariable(wbiStackOfTasks::DYN_NUM_DAMP,       _paramHelper, PARAM_ID_DYN_DAMP);
     _solver.linkParameterToVariable(wbiStackOfTasks::CONSTR_NUM_DAMP,    _paramHelper, PARAM_ID_CONSTR_DAMP);
@@ -145,6 +145,10 @@ bool WholeBodyReachThread::threadInit()
     _tasks.leftFoot.setMinNormalForce(              FORCE_NORMAL_MIN);
     _tasks.rightFoot.setMinNormalForce(             FORCE_NORMAL_MIN);
     _tasks.supportForearmConstr.setMinNormalForce(  FORCE_NORMAL_MIN);
+    
+    _tasks.jointLimits.setTimestep(10*getRate());
+    _tasks.jointLimits.linkParameterQmax(_paramHelper, PARAM_ID_Q_MAX);
+    _tasks.jointLimits.linkParameterQmin(_paramHelper, PARAM_ID_Q_MIN);
 
     // Register callbacks for some module commands and parameters
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_FORCE_FRICTION,    this));

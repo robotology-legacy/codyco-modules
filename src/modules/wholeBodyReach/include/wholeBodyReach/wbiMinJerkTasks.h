@@ -236,15 +236,18 @@ namespace wholeBodyReach
                             public WbiInequalityTask
     {
     protected:
-        Eigen::VectorXd     _qMin;       /// Lower bound of joint positions
-        Eigen::VectorXd     _qMax;       /// Upper bound of joint positions
-        Eigen::VectorXd     _dqMin;      /// Lower bound of joint velocities
-        Eigen::VectorXd     _dqMax;      /// Upper bound of joint velocities
-        Eigen::VectorXd     _ddqMin;     /// Lower bound of joint accelerations
-        Eigen::VectorXd     _ddqMax;     /// Upper bound of joint accelerations
+        double              _dt;        /// time-step to predict future pos/vel
+        Eigen::VectorXd     _qMin;      /// Lower bound of joint positions
+        Eigen::VectorXd     _qMax;      /// Upper bound of joint positions
+        Eigen::VectorXd     _dqMin;     /// Lower bound of joint velocities
+        Eigen::VectorXd     _dqMax;     /// Upper bound of joint velocities
+        Eigen::VectorXd     _ddqMin;    /// Lower bound of joint accelerations
+        Eigen::VectorXd     _ddqMax;    /// Upper bound of joint accelerations
         
         bool checkVectorSize(Eigen::VectorConst v)
         { return v.size()==this->_m; }
+        
+        void updateInequalityMatrix();
         
     public:
         JointLimitTask(std::string taskName, wbi::wholeBodyInterface* robot);
@@ -252,10 +255,22 @@ namespace wholeBodyReach
         
         virtual bool update(RobotState& state);
         
-        /** Set the joint position limits.
+        virtual void init(RobotState& state);
+        
+        /** Set the time-step used to predict future pos/vel.
          * @return True if the operation succeeded, false otherwise.
          */
-        virtual bool setPositionLimits(Eigen::VectorConst qMin, Eigen::VectorConst qMax);
+        virtual bool setTimestep(double dt);
+        
+        /** Link the joint lower bounds to a parameter managed by the specified
+         * instance of ParamHelperServer.
+         */
+        virtual void linkParameterQmin(paramHelp::ParamHelperServer* paramHelper, int paramId);
+
+        /** Link the joint upper bounds to a parameter managed by the specified
+         * instance of ParamHelperServer.
+         */
+        virtual void linkParameterQmax(paramHelp::ParamHelperServer* paramHelper, int paramId);
         
         /** Set the joint velocity limits. 
           * @return True if the operation succeeded, false otherwise. 
@@ -267,6 +282,13 @@ namespace wholeBodyReach
          */
         virtual bool setAccelerationLimits(Eigen::VectorConst ddqMin, Eigen::VectorConst ddqMax);
         
+        /** Set the desired joint acceleration computed by the solver.
+         * This is mainly used to print some meaningful warnings when there are inequality
+         * constraints active.
+         * @param ddqDes Desired joint accelerations computed by the solver.
+         * @return True if the operation succeeded, false otherwise.
+         */
+        virtual bool setDdqDes(Eigen::VectorConst ddqDes);
     };
     
     

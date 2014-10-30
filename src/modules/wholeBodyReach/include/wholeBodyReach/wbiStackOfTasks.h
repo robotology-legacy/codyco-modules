@@ -115,7 +115,7 @@ public:
     //    minimize      0.5 * x H x + g x
     //    subject to    CE^T x + ce0 = 0
     //                  CI^T x + ci0 >= 0
-    struct
+    struct QpData
     {
         Eigen::MatrixXd H;      /// Hessian
         Eigen::VectorXd g;      /// gradient
@@ -125,7 +125,10 @@ public:
         Eigen::VectorXd ci0;    /// inequality constraint vector
         Eigen::VectorXi activeSet;  /// vector containing the indexes of the active inequalities
         int activeSetSize;
-    } _qpData;
+    };
+    
+    QpData _qpData_f;       /// data for the force QP
+    QpData _qpData_ddq;     /// data for the joint acceleration QP
     
     /** Compute the inverse of the matrix Mb. */
     void computeMb_inverse();
@@ -143,12 +146,10 @@ public:
 //    WBR_CTRL_ALG_NULLSPACE_PROJ     = 1,
 //    WBR_CTRL_ALG_COM_POSTURE        = 2,
 //    WBR_CTRL_ALG_MOMENTUM_POSTURE   = 3,
-//    WBR_CTRL_ALG_COM_SOT            = 4,
     virtual bool computeMomentumSoT(RobotState& robotState, Eigen::VectorRef torques);
     virtual bool computeNullspaceProj(RobotState& robotState, Eigen::VectorRef torques);
     virtual bool computeComPosture(RobotState& robotState, Eigen::VectorRef torques);
     virtual bool computeMomentumPosture(RobotState& robotState, Eigen::VectorRef torques);
-    virtual bool computeComSoT(RobotState& robotState, Eigen::VectorRef torques);
     
 //#define DEBUG_FORWARD_DYNAMICS
 #ifdef DEBUG_FORWARD_DYNAMICS
@@ -219,7 +220,12 @@ public:
       *       it takes the highest priority in the stack.
       */
     virtual void setJointLimitTask(JointLimitTask& taskJL)
-    { _jointLimitTask=&taskJL; }
+    {
+        _jointLimitTask = &taskJL;
+        _qpData_ddq.CI  = taskJL.getInequalityMatrix();
+        _qpData_ddq.ci0 = taskJL.getInequalityVector();
+        _qpData_ddq.activeSet = Eigen::VectorXi::Constant(_qpData_ddq.ci0.size(), -1);
+    }
     
     /** Set the posture task, which always takes the lowest priority
       * in the stack. If a task is already set, it is replaced.

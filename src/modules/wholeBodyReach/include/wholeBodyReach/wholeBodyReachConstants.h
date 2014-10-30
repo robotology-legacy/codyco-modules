@@ -111,8 +111,7 @@ enum WholeBodyReachCtrlAlgorithm
     WBR_CTRL_ALG_NULLSPACE_PROJ     = 1,    // null-space projection (alla Righetti, Mistry)
     WBR_CTRL_ALG_COM_POSTURE        = 2,    // control CoM + posture
     WBR_CTRL_ALG_MOMENTUM_POSTURE   = 3,    // control momentum (CoM+angular momentum) + posture
-    WBR_CTRL_ALG_COM_SOT            = 4,    // SoT with CoM control
-    WBR_CTRL_ALG_SIZE               = 5
+    WBR_CTRL_ALG_SIZE               = 4
 };
 
 }
