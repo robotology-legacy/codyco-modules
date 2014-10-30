@@ -304,11 +304,11 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
     if(jointLimitActive)
     {
         _jointLimitTask->update(robotState);
-        _jointLimitTask->getInequalityMatrix(_qpData_ddq.CI);
+        //_jointLimitTask->getInequalityMatrix(_qpData_ddq.CI); // this is constant, so no need to update it
         _jointLimitTask->getInequalityVector(_qpData_ddq.ci0);
-        cout<<"_qpData_ddq.CI.rows() = "<<_qpData_ddq.CI.rows()<<";\t";
-        cout<<"_qpData_ddq.CI.cols() = "<<_qpData_ddq.CI.cols()<<";\t";
-        cout<<"_qpData_ddq.ci0.size() = "<<_qpData_ddq.ci0.size()<<";\n";
+        //cout<<"_qpData_ddq.CI.rows() = "<<_qpData_ddq.CI.rows()<<";\t";
+        //cout<<"_qpData_ddq.CI.cols() = "<<_qpData_ddq.CI.cols()<<";\t";
+        //cout<<"_qpData_ddq.ci0.size() = "<<_qpData_ddq.ci0.size()<<";\n";
     }
     
     list<MinJerkPDLinkPoseTask*>::iterator it;
@@ -321,7 +321,8 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
         t.getEqualityVector(_b_i);
         _A = _A_i.rightCols(_n) - _A_i.leftCols<6>()*_Mb_inv_M_bj;
         _A *= _Z;
-        
+        _A_svd.compute(_A, _svdOptions);
+
         if(jointLimitActive)
         {
             _qpData_ddq.H   = _A.transpose()*_A + _numericalDampingTask*MatrixXd::Identity(_n,_n);
@@ -336,7 +337,6 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
         }
         else
         {
-            _A_svd.compute(_A, _svdOptions);
             _ddq_jDes   = svdSolveWithDamping(_A_svd, _b_i - _A_i*_ddqDes, _numericalDampingTask);
     //        _ddq_jDes   = _Z*_ddq_jDes;     /// @todo here I assume i'm using nullspace projectors
         }
