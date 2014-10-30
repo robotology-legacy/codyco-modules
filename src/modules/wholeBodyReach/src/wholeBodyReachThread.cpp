@@ -70,7 +70,7 @@ bool WholeBodyReachThread::threadInit()
     // setup the stack of tasks
     _solver.setMomentumTask(_tasks.momentum);
     _solver.setPostureTask(_tasks.posture);
-    _solver.setJointLimitTask(_tasks.jointLimits);
+    //_solver.setJointLimitTask(_tasks.jointLimits);
     _solver.addConstraint(_tasks.leftFoot);
     _solver.addConstraint(_tasks.rightFoot);
 //    _solver.pushEqualityTask(_tasks.supportForearm);

@@ -64,7 +64,7 @@ int main (int argc, char * argv[])
     }
     
     // use gazebo clock
-//    Time::useNetworkClock("/clock");
+    Time::useNetworkClock("/clock");
 
     //Creating the module
     WholeBodyReachModule module;
