@@ -28,6 +28,8 @@
 #include <iCub/ctrl/math.h>
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 
+#include <yarp/os/Log.h>
+
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -120,6 +122,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     if( !rf.check("wbi_conf_file") )
     {
         fprintf(stderr,"[ERR] wholeBodyDynamicsThread: impossible to open wholeBodyInterface: wbi_conf_file option missing");
+        return false;
     }
     std::string wbiConfFile = rf.findFile("wbi_conf_file");
     yarpWbiOptions.fromConfigFile(wbiConfFile);
@@ -129,7 +132,8 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     std::string RobotDynamicModelJointsListName = "ICUB_DYNAMIC_MODEL_JOINTS";
     if( !loadIdListFromConfig(RobotDynamicModelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
     {
-        fprintf(stderr, "[ERR] locomotionControl: impossible to load wbiId joint list with name %s\n",RobotDynamicModelJointsListName.c_str());
+        fprintf(stderr, "[ERR] wholeBodyDynamicsModule: impossible to load wbiId joint list with name %s\n",RobotDynamicModelJointsListName.c_str());
+        return false;
     }
 
     //Add to the options some wbd specific stuff
@@ -137,6 +141,39 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     {
         yarpWbiOptions.put("fixed_base",fixed_link);
     }
+
+    if( rf.check("IDYNTREE_SKINDYNLIB_LINKS") )
+    {
+        yarp::os::Property & prop = yarpWbiOptions.addGroup("IDYNTREE_SKINDYNLIB_LINKS");
+        prop.fromString(rf.findGroup("IDYNTREE_SKINDYNLIB_LINKS").tail().toString());
+    }
+    else
+    {
+        fprintf(stderr, "[ERR] wholeBodyDynamicsModule: impossible to load IDYNTREE_SKINDYNLIB_LINKS group, exiting");
+
+    }
+
+    if( rf.check("WBD_SUBTREES") )
+    {
+        yarp::os::Property & prop = yarpWbiOptions.addGroup("WBD_SUBTREES");
+        prop.fromString(rf.findGroup("WBD_SUBTREES").tail().toString());
+    }
+    else
+    {
+        fprintf(stderr, "[ERR] wholeBodyDynamicsModule: impossible to load WBD_SUBTREES group, exiting");
+    }
+
+    if( rf.check("WBD_OUTPUT_TORQUE_PORTS") )
+    {
+        yarp::os::Property & prop = yarpWbiOptions.addGroup("WBD_OUTPUT_TORQUE_PORTS");
+        prop.fromString(rf.findGroup("WBD_OUTPUT_TORQUE_PORTS").tail().toString());
+    }
+    else
+    {
+        fprintf(stderr, "[ERR] wholeBodyDynamicsModule: impossible to load WBD_OUTPUT_TORQUE_PORTS group, exiting");
+    }
+
+
 
     estimationInterface = new yarpWholeBodyStatesLocal(moduleName.c_str(), yarpWbiOptions);
 

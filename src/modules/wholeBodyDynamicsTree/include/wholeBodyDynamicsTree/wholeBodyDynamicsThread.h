@@ -75,7 +75,7 @@ struct outputTorquePortInformation
     int magic_number;
     std::vector< int > wbi_numeric_ids_to_publish;
     yarp::sig::Vector output_vector;
-    BufferedPort<Bottle> output_port;
+    BufferedPort<Bottle> * output_port;
 };
 
 /**
@@ -174,7 +174,7 @@ class wholeBodyDynamicsThread: public RateThread
     yarp::os::Mutex calibration_mutex;
     iCubTreeStatus tree_status;
 
-    iCub::iDynTree::iCubTree * icub_model_calibration;
+    iCub::iDynTree::TorqueEstimationTree * icub_model_calibration;
 
     int samples_requested_for_calibration;
     int max_samples_for_calibration;
@@ -228,7 +228,7 @@ class wholeBodyDynamicsThread: public RateThread
     BufferedPort<Vector> * port_joint_ankle_cartesian_wrench_from_model;
     BufferedPort<Vector> * port_joint_foot_cartesian_wrench;
     BufferedPort<Vector> * port_joint_foot_cartesian_wrench_from_model;
-    iCub::iDynTree::iCubTree * icub_model_zmp;
+    iCub::iDynTree::TorqueEstimationTree * icub_model_zmp;
 
     bool autoconnect;
 
