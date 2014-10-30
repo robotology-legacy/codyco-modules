@@ -22,6 +22,7 @@
 #include <Eigen/SVD>
 #include <vector>
 #include <string>
+#include <iterator>     // std::ostream_iterator
 #include <wholeBodyReach/wholeBodyReachConstants.h>
 
 namespace Eigen
@@ -80,14 +81,14 @@ namespace wholeBodyReach
      * @param ApinvDamp Output nXm matrix, damped pseudoinverse of A.*/
     void pinvDampTrunc(const Eigen::MatrixRXd &A, double tol, double damp, Eigen::MatrixRXd &Apinv, Eigen::MatrixRXd &ApinvDamp);
     
-    Eigen::MatrixRXd nullSpaceProjector(const Eigen::Ref<Eigen::MatrixRXd> A, double tol);
+    Eigen::MatrixRXd nullSpaceProjector(const Eigen::Ref<const Eigen::MatrixRXd> &A, double tol);
     
-    Eigen::MatrixRXd pinvDampedEigen(const Eigen::Ref<Eigen::MatrixRXd> &A, double damp);
-    
-    
+    Eigen::MatrixRXd pinvDampedEigen(const Eigen::Ref<const Eigen::MatrixRXd> &A, double damp);
     
     
-    std::string toString(Eigen::MatrixConst &m, int precision=2, const char* endRowStr="\n", int maxRowsPerLine=10);
+    
+    
+    std::string toString(Eigen::MatrixConst m, int precision=2, const char* endRowStr="\n", int maxRowsPerLine=10);
     
     std::string jointToString(const Eigen::VectorXd &j, int precision=1);
     

@@ -60,6 +60,7 @@ namespace codyco {
             m_signalFeedForward.setZero();
             
             m_currentSignalValue.setZero();
+            m_error.setZero(); //only for monitoring
             
             //avoid garbage in the generated reference
             m_outputReference.setValue(m_computedReference);
@@ -102,15 +103,19 @@ namespace codyco {
                 
                 m_currentSignalValue = m_reader.getSignal(context);
                 //compute pid
-                m_error = m_actualReference - m_currentSignalValue;
+                m_error = m_currentSignalValue - m_actualReference;
                 m_integralTerm += dt * m_error;
                 limitIntegral(m_integralTerm, m_integralTerm);
                 
                 m_computedReference = m_signalFeedForward
-                + m_proportionalGains.asDiagonal() * m_error
-                + m_derivativeGains.asDiagonal() * (m_signalDerivativeReference - m_reader.getSignalDerivative(context))
-                + m_integralGains.asDiagonal() * m_integralTerm;
+                - m_proportionalGains.asDiagonal() * m_error
+                - m_derivativeGains.asDiagonal() * (m_reader.getSignalDerivative(context) - m_signalDerivativeReference)
+                - m_integralGains.asDiagonal() * m_integralTerm;
                 m_outputReference.setValue(m_computedReference);
+
+                /*if (strcmp("com pid", m_name.c_str()) == 0) {
+                    std::cout << m_proportionalGains.transpose() << "  D:" <<  m_derivativeGains.transpose() << "  I: " << m_integralGains.transpose() << " \n";
+                }*/
                 
                 m_previousTime = now;
             }

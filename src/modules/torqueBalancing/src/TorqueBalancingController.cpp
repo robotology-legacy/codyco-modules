@@ -24,6 +24,7 @@
 
 #include <codyco/Utils.h>
 #include <iostream>
+#include <limits>
 
 #if defined(__clang__)
 #pragma clang diagnostic push
@@ -65,6 +66,7 @@ namespace codyco {
         , m_centerOfMassPosition(3)
         , m_rightFootPosition(7)
         , m_leftFootPosition(7)
+        , m_torqueSaturationLimit(actuatedDOFs)
         , m_contactsJacobian(6*2 + 3*2, totalDOFs)
         , m_contactsDJacobianDq(6*2 + 3*2)
         , m_massMatrix(totalDOFs, totalDOFs)
@@ -118,8 +120,9 @@ namespace codyco {
             m_torquesSelector.bottomRows(actuatedDOFs).setIdentity();
             
             m_jointsZeroVector.setZero();
+            m_torqueSaturationLimit.setConstant(std::numeric_limits<double>::max());
             
-            //reset status to zeroing
+            //reset status to zero
             m_jointPositions.setZero();
             m_jointVelocities.setZero();
             m_baseVelocity.setZero();
@@ -140,6 +143,7 @@ namespace codyco {
            
             //zeroing monitored variables
             m_desiredFeetForces.setZero();
+            m_desiredHandsForces.setZero();
             m_desiredContactForces.setZero();
             m_torques.setZero();
             return linkFound;
@@ -154,6 +158,7 @@ namespace codyco {
         {
             codyco::LockGuard guard(m_mutex);
             if (!m_active) return;
+            
             //read references
             readReferences();
 
@@ -202,7 +207,7 @@ namespace codyco {
             if (m_active == isActive) return;
             if (isActive) {
                 m_desiredCOMAcceleration.setZero(); //reset reference
-                m_robot.setControlMode(wbi::CTRL_MODE_TORQUE);
+                //m_robot.setControlMode(wbi::CTRL_MODE_TORQUE);
             } else {
                 m_robot.setControlMode(wbi::CTRL_MODE_POS);
             }
@@ -213,6 +218,18 @@ namespace codyco {
         {
             codyco::LockGuard guard(m_mutex);
             return m_active;
+        }
+        
+        void TorqueBalancingController::setTorqueSaturationLimit(Eigen::VectorXd& newSaturation)
+        {
+            codyco::LockGuard guard(m_mutex);
+            m_torqueSaturationLimit = newSaturation.array().abs();
+        }
+
+        const Eigen::VectorXd& TorqueBalancingController::torqueSaturationLimit()
+        {
+            codyco::LockGuard guard(m_mutex);
+            return m_torqueSaturationLimit;
         }
         
 #pragma mark - Monitorable variables
@@ -328,12 +345,15 @@ namespace codyco {
             //Eigen 3.3 will allow to set a threashold directly on the decomposition
             //thus allowing the method solve to work "properly".
             //Becaues it is not stable yet we use the explicit computation of the SVD
-//            m_svdDecompositionOfCentroidalForceMatrix.compute(m_centroidalForceMatrix).solve(m_desiredCentroidalMomentum - m_gravityForce);            
+//            m_svdDecompositionOfCentroidalForceMatrix.compute(m_centroidalForceMatrix).solve(m_desiredCentroidalMomentum - m_gravityForce);
+            
             math::pseudoInverse(m_centroidalForceMatrix, m_svdDecompositionOfCentroidalForceMatrix,
                                 m_pseudoInverseOfCentroidalForceMatrix, PseudoInverseTolerance);
+            
             m_desiredFeetForces = m_pseudoInverseOfCentroidalForceMatrix * (m_desiredCentroidalMomentum
                                                                             - m_gravityForce
                                                                             - m_desiredHandsForces.head(6) - m_desiredHandsForces.tail(6));
+
             desiredContactForces.topRows(12) = m_desiredFeetForces;
             desiredContactForces.middleRows(12, 3) = m_desiredHandsForces.head(3);
             desiredContactForces.middleRows(15, 3) = m_desiredHandsForces.segment(6, 3);
@@ -355,9 +375,14 @@ namespace codyco {
             torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_contactsDJacobianDq - JcMInv * m_contactsJacobian.transpose() * desiredContactForces);
             
             VectorXd torques0 = m_gravityBiasTorques.tail(actuatedDOFs) - m_contactsJacobian.rightCols(actuatedDOFs).transpose() * desiredContactForces
-            - m_impedanceGains.asDiagonal() * (m_jointPositions - m_desiredJointsConfiguration);
+            - m_impedanceGains.asDiagonal() * (m_jointPositions - m_desiredJointsConfiguration) 
+            - m_massMatrix.block(6, 0, actuatedDOFs, 6) * m_massMatrix.topLeftCorner<6, 6>().inverse() * (m_gravityBiasTorques.head<6>() - m_contactsJacobian.leftCols(6).transpose() * desiredContactForces);
             
             torques += nullSpaceProjector * torques0;
+                        
+            //apply saturation
+            torques = torques.array().min(m_torqueSaturationLimit.array()).max(-m_torqueSaturationLimit.array());
+
             
 // #ifdef DEBUG
 //             checking torques
@@ -370,7 +395,7 @@ namespace codyco {
         
         void TorqueBalancingController::writeTorques()
         {
-            m_robot.setControlReference(m_torques.data());
+            //m_robot.setControlReference(m_torques.data());
         }
         
 #pragma mark - Auxiliary functions

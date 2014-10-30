@@ -30,7 +30,7 @@ namespace jointTorqueControl
 #define CTRL_RAD2DEG    (180.0/M_PI)
 #define CTRL_DEG2RAD    (M_PI/180.0)
 
-static const int        PRINT_PERIOD                   = 2000;     ///< period of debug prints (in ms)
+static const int        PRINT_PERIOD                   = 500;      ///< period of debug prints (in ms)
 static const double     TORQUE_INTEGRAL_SATURATION     = 10.0;     ///< value at which the torque error integral is saturated
 static const double     JOINT_VEL_ESTIMATION_WINDOW    = 25.0;     ///< max size of the moving window used for velocity estimation
 static const int        START_INDEX_FOR_TORS0          = 0;        ///< The index identifying the starting index of the torso in the activeJoint vector

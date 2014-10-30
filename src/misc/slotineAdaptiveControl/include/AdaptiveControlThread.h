@@ -162,6 +162,7 @@ namespace adaptiveControl {
         Eigen::Vector8d _dpiHat;
         
         double _kneeTorque;
+        double _torqueSaturation;
         
         //Streaming output parameters
         yarp::sig::Vector _outputTau;

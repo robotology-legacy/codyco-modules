@@ -117,6 +117,7 @@ namespace adaptiveControl {
         //Kappa, Gamma, Lambda
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambda, &_lambda));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambdaIntegral, &_lambdaIntegral));
+        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDTorqueSaturation, &_torqueSaturation));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainKappa, _kappa.data()));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainKappaIntegral, _kappaIntegral.data()));
         YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainGamma, _GammaInput.data()));
@@ -338,6 +339,13 @@ namespace adaptiveControl {
         }
         
         _kneeTorque = -_kappa(0) * qTilde - _kappa(1) * (_dq(1) - dq_ref) - _lambdaIntegral * _errorIntegral;
+         if (_kneeTorque > _torqueSaturation) {
+            _kneeTorque = _torqueSaturation;
+//             std::cerr << "Saturating torque to: " << _kneeTorque << "\n";
+        } else if (_kneeTorque < -_torqueSaturation) {
+            _kneeTorque = -_torqueSaturation;
+//             std::cerr << "Saturating torque to: " << _kneeTorque << "\n";
+        }
         writeOutputs();
         
         writeDebug();

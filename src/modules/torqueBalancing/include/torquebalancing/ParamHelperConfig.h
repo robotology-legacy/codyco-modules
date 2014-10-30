@@ -73,6 +73,8 @@ namespace codyco {
             //Centroidal gain
             TorqueBalancingModuleParameterCentroidalGain,
             TorqueBalancingModuleParameterImpedanceGain,
+            //Additional parameters
+            TorqueBalancingModuleParameterTorqueSaturation,
             //MonitoredVariables
             TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration,
             TorqueBalancingModuleParameterMonitorCOMError,
@@ -82,7 +84,7 @@ namespace codyco {
             
         } TorqueBalancingModuleParameter;
         
-        static const int TorqueBalancingModuleParameterSize = 32;
+        static const int TorqueBalancingModuleParameterSize = 33;
         
         
         static const std::string defaultModuleName = "torqueBalancing";
@@ -97,6 +99,7 @@ namespace codyco {
         static const Eigen::VectorXd defaultHandsForceGains = Eigen::VectorXd::Zero(12);
         static const double defaultCentroidalGain = 0;
         static const Eigen::VectorXd defaultImpedanceGains = Eigen::VectorXd::Zero(actuatedDOFs);
+        static const Eigen::VectorXd defaultSaturation = Eigen::VectorXd::Constant(actuatedDOFs, 100);
         
         const paramHelp::ParamProxyInterface *const TorqueBalancingModuleParameterDescriptions[]  =
         {
@@ -134,6 +137,8 @@ namespace codyco {
             //gains
             new paramHelp::ParamProxyBasic<double>("kw", TorqueBalancingModuleParameterCentroidalGain, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultCentroidalGain, "Gain for the centroidal-based controller"),
             new paramHelp::ParamProxyBasic<double>("kImp", TorqueBalancingModuleParameterImpedanceGain, actuatedDOFs, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultImpedanceGains.data(), "Gain for the impedance control task."),
+            //Additional parameters
+            new paramHelp::ParamProxyBasic<double>("tsat", TorqueBalancingModuleParameterTorqueSaturation, actuatedDOFs, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultSaturation.data(), "Torque saturations (positives)"),
             //Monitored variables
             new paramHelp::ParamProxyBasic<double>("desCOMAcc", TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Desired COM acceleration computed by the controller"),
             new paramHelp::ParamProxyBasic<double>("comError", TorqueBalancingModuleParameterMonitorCOMError, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Instantaneous COM error"),

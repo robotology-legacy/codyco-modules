@@ -26,11 +26,14 @@
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Network.h>
 #include <yarp/os/Vocab.h>
+#include <yarp/os/BufferedPort.h>
 
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/IPositionControl.h>
 #include <yarp/dev/IEncoders.h>
 #include <yarp/dev/IControlLimits2.h>
+
+#include <yarp/sig/Vector.h>
 
 
 
@@ -44,6 +47,18 @@ public:
     int axis_number;
     double lower_limit;
     double upper_limit;
+    double delta;
+};
+
+class desiredPositions
+{
+public:
+    yarp::sig::Vector pos;
+    double waiting_time;
+    bool is_return_point;
+    desiredPositions(yarp::sig::Vector _pos, double _waiting_time, bool _is_return_point=false):
+    pos(_pos), waiting_time(_waiting_time), is_return_point(_is_return_point)
+    {}
 };
 
 class reachRandomJointPositionsModule: public RFModule
@@ -53,12 +68,26 @@ class reachRandomJointPositionsModule: public RFModule
     string robotName;
     double period;
     double avgTime, stdDev, avgTimeUsed, stdDevUsed;
+    
+    enum { RANDOM, GRID_VISIT, GRID_MAPPING_WITH_RETURN } mode;
+    bool boringModeInitialized;
 
-    double new_position_period;
-    double elapsed_time; // time passed from last position command
+    double static_pose_period;
+    double return_point_waiting_period;
+    double elapsed_time; // time passed from when the desired pose was reached
     double ref_speed;
 
     std::vector< controlledJoint > controlledJoints;
+    yarp::sig::Vector commandedPositions;
+    double desired_waiting_time;
+    std::vector<desiredPositions> listOfDesiredPositions;
+    yarp::os::BufferedPort<yarp::os::Bottle> isTheRobotInReturnPoint;
+    bool is_desired_point_return_point;
+    
+    int next_desired_position;
+    yarp::sig::Vector originalPositions;
+    yarp::sig::Vector originalRefSpeeds;
+    bool jointInitialized;
 
     std::map<std::string,yarp::dev::PolyDriver *> drivers;
     std::map<std::string,yarp::dev::IPositionControl *> pos;
@@ -74,6 +103,7 @@ public:
     bool interruptModule(); // interrupt, e.g., the ports
     bool close(); // close and shut down the module
     double getPeriod();
+    bool getNewDesiredPosition(yarp::sig::Vector & desired_pos, double & desired_parked_time, bool & is_return_point);
     bool updateModule();
 
 };

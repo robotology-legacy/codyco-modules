@@ -1,0 +1,53 @@
+<application>
+    <name>insituFTexperiment01</name>
+    <dependencies>
+        <port>/icub/right_leg/analog:o</port>
+        <port>/icub/right_foot/analog:o</port>
+    </dependencies>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--port /dataDumper/ft_foot</parameters>
+        <tag>dataDumperFoot</tag>
+    </module>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--port /dataDumper/ft_leg</parameters>
+        <tag>dataDumperLeg</tag>
+    </module>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--port /dataDumper/ft_joint_leg</parameters>
+        <tag>dataDumperJointLeg</tag>
+    </module>
+    <module>
+        <name>dataDumper</name>
+        <parameters>--port /dataDumper/inertial</parameters>
+        <tag>dataDumperInertial</tag>
+    </module>
+    
+    <connection>
+        <from>/icub/inertial</from>
+        <to>/dataDumper/inertial</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/icub/right_leg/analog:o</from>
+        <to>/dataDumper/ft_leg</to>
+        <protocol>udp</protocol>
+    </connection>    
+
+    <connection>
+        <from>/icub/right_foot/analog:o</from>
+        <to>/dataDumper/ft_foot</to>
+        <protocol>udp</protocol>
+    </connection>    
+
+    <connection>
+        <from>/icub/right_leg/state:o</from>
+        <to> /dataDumper/ft_joint_leg</to>
+        <protocol>udp</protocol>
+    </connection>
+   
+</application>
+

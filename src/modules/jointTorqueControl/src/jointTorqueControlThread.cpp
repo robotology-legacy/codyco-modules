@@ -25,7 +25,7 @@
 using namespace jointTorqueControl;
 using namespace wbiIcub;
 
-//#define IMPEDANCE_CONTROL
+// #define IMPEDANCE_CONTROL
 //#define GAZEBO_SIM
 
 jointTorqueControlThread::jointTorqueControlThread(int period, string _name, string _robotName, ParamHelperServer *_ph, wholeBodyInterface *_wbi)
@@ -49,10 +49,11 @@ bool jointTorqueControlThread::threadInit()
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KVN,	            kvn.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KCP,	            kcp.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KCN,	            kcn.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KP,                 kp.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KI,		            ki.data()));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KP,		            kp.data()));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KS,		            ks.data()));
-    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KD,		            kd.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KD,                 kd.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KSTIFF,		        kStiff.data()));
+    YARP_ASSERT(paramHelper->linkParam(PARAM_ID_KDAMP,		        kDamp.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_Q_DES,		        qDes.data()));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_GRAV_COMP_ON,		&gravityCompOn));
     YARP_ASSERT(paramHelper->linkParam(PARAM_ID_COULOMB_VEL_THR,	coulombVelThr.data()));
@@ -207,7 +208,6 @@ bool jointTorqueControlThread::threadInit()
         
 #endif
     
-    
     return true;
 }
 
@@ -234,12 +234,12 @@ void jointTorqueControlThread::run()
             
             double error = qDes(i)-q(i);
             double dumpingAndGrav =  gravityCompOn*tauGrav(i+6);
-            tauD(i)         = ks(i)*(qDes(i)-q(i)) - kd(i)*dq(i) + gravityCompOn*tauGrav(i+6);
+            tauD(i)         = kStiff(i)*(qDes(i)-q(i)) - kDamp(i)*dq(i) + gravityCompOn*tauGrav(i+6);
 
 #else /* IMPEDANCE_CONTROL */
             
 #ifdef INV_DYN_CONTROL
-            tauD(i) = tauInvDyn(i);
+            tauD(i) = tauInvDyn(i+6);
 #else
             tauD(i) = tauOffset(i) + tauSinAmpl(i)*sin(2*M_PI*tauSinFreq(i)*currentTime);
 #endif
@@ -248,8 +248,12 @@ void jointTorqueControlThread::run()
             if (activeJoints(i) == 1)          
             {
                 etau(i)             = tauM(i) - tauD(i);
+                Detau(i)            = (etau(i) - etauPrevious(i))/dt;
+//                 cout << "etau(i) " << etau(i) << " etauPrevious(i) " << etauPrevious(i) <<  " Detau(i) " << Detau(i) << "\n"; 
+                
+                etauPrevious(i)     = etau(i);
                 integralState(i)    = saturation(integralState(i) + ki(i)*dt*etau(i), TORQUE_INTEGRAL_SATURATION, -TORQUE_INTEGRAL_SATURATION) ;
-                tau(i)              = tauD(i) - kp(i)*etau(i) - integralState(i);
+                tau(i)              = tauD(i) - kp(i)*etau(i) - integralState(i) -kd(i)*Detau(i);
                 
                 wbi::LocalId lid = jointList.globalToLocalId(i);
                 tauMotor    = tau(i);
@@ -413,15 +417,28 @@ bool jointTorqueControlThread::readRobotStatus(bool blockingRead)
     dqDes  = -two_pi_f * qSinAmpl * two_pi_f_t.sin();
     ddqDes = -two_pi_f.square() * A_cos_2pi_f_t;
     
-    ddqInvDyn = activeJoints.cast<double>() * (ddqDes + ks*(qDes-q) - kd*(dqDes-dq));
+    ddqInvDyn = activeJoints.cast<double>() * (ddqDes + kStiff*(qDes-q) + kDamp*(dqDes-dq));
+//    ddqInvDyn = activeJoints.cast<double>() * (kStiff*(qDes-q));
     res = res && robot->inverseDynamics(q.data(), Frame(), dq.data(), zero6, ddqInvDyn.data(), ddxB, zero6, tauInvDyn.data());
-#else
-    res = res && robot->inverseDynamics(q.data(), Frame(), zeroN.data(), zero6, zeroN.data(), ddxB, zero6, tauGrav.data());
+    
+//    printf("compute inv dyn\n");
+    sendMsg("q         "+toString(q(monitoredJointId)));
+    sendMsg("qDes      "+toString(qDes(monitoredJointId)));
+    sendMsg("dqDes     "+toString(dqDes(monitoredJointId)));
+    sendMsg("ddqDes    "+toString(ddqDes(monitoredJointId)));
+    sendMsg("ddqInvDyn "+toString(ddqInvDyn(monitoredJointId)));
+    sendMsg("tauInvDyn "+toString(tauInvDyn(monitoredJointId+6)));
+    
 #endif
+
+    res = res && robot->inverseDynamics(q.data(), Frame(), zeroN.data(), zero6, zeroN.data(), ddxB, zero6, tauGrav.data());
+//    tauInvDyn.tail<N_DOF>() = activeJoints.cast<double>() * (ks*(qDes-q));
+//    tauInvDyn += tauGrav;
     
     // convert angles from rad to deg
-    q   *= CTRL_RAD2DEG;
-    dq  *= CTRL_RAD2DEG;
+    q    *= CTRL_RAD2DEG;
+    dq   *= CTRL_RAD2DEG;
+    qDes *= CTRL_RAD2DEG;
     
     return res;
 }
@@ -431,15 +448,16 @@ void jointTorqueControlThread::startSending()
 {
     if (status != CONTROL_ON) {
         resetIntegralState(-1);
+        readRobotStatus(false);
+        etau             = tauM - tauD;
+        etauPrevious     = etau;
 #ifdef IMPEDANCE_CONTROL
         //reset desired positions for impedance control
-        readRobotStatus(false);
         qDes = q;
 #endif
 
 #ifdef INV_DYN_CONTROL
-        readRobotStatus(false);
-        qOffset = q;
+        qOffset = q*CTRL_DEG2RAD;
         initialTime = Time::now();
 #endif
         status = CONTROL_ON;       //sets thread status to ON
@@ -561,10 +579,10 @@ void jointTorqueControlThread::prepareMonitorData()
 //     cout << j;
     monitor.tauMeas         = tauM(j);
     monitor.tauDes          = tauD(j);
-    monitor.tauMeas1        = tauM(j+1);
+    monitor.tauMeas1        = Detau(j);
     monitor.tauDes1         = tauD(j+1);
-    monitor.tauMeas2        = tauM(j+2);
-    monitor.tauDes2         = tauD(j+2);
+    monitor.tauMeas2        = tauM(j+3);
+    monitor.tauDes2         = tauD(j+3);
     monitor.tadDesPlusPI    = tau(j);
     double NormSquareTorqueError = 0;
     for(int i = 0; i < N_DOF; i++)
