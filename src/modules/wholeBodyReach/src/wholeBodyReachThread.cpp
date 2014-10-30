@@ -70,7 +70,7 @@ bool WholeBodyReachThread::threadInit()
     // setup the stack of tasks
     _solver.setMomentumTask(_tasks.momentum);
     _solver.setPostureTask(_tasks.posture);
-    //_solver.setJointLimitTask(_tasks.jointLimits);
+    _solver.setJointLimitTask(_tasks.jointLimits);
     _solver.addConstraint(_tasks.leftFoot);
     _solver.addConstraint(_tasks.rightFoot);
 //    _solver.pushEqualityTask(_tasks.supportForearm);
@@ -146,7 +146,7 @@ bool WholeBodyReachThread::threadInit()
     _tasks.rightFoot.setMinNormalForce(             FORCE_NORMAL_MIN);
     _tasks.supportForearmConstr.setMinNormalForce(  FORCE_NORMAL_MIN);
     
-    _tasks.jointLimits.setTimestep(10*getRate());
+    _tasks.jointLimits.setTimestep(10*getRate()*1e-3);
     _tasks.jointLimits.linkParameterQmax(_paramHelper, PARAM_ID_Q_MAX);
     _tasks.jointLimits.linkParameterQmin(_paramHelper, PARAM_ID_Q_MIN);
 

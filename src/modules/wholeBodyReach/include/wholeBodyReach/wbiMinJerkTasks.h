@@ -244,6 +244,9 @@ namespace wholeBodyReach
         Eigen::VectorXd     _ddqMin;    /// Lower bound of joint accelerations
         Eigen::VectorXd     _ddqMax;    /// Upper bound of joint accelerations
         
+        Eigen::VectorXd     _q;         /// last value of joint positions
+        Eigen::VectorXd     _dq;        /// last value of joint velocities
+        
         bool checkVectorSize(Eigen::VectorConst v)
         { return v.size()==this->_m; }
         
@@ -262,12 +265,12 @@ namespace wholeBodyReach
          */
         virtual bool setTimestep(double dt);
         
-        /** Link the joint lower bounds to a parameter managed by the specified
+        /** Link the joint lower bounds (in deg) to a parameter managed by the specified
          * instance of ParamHelperServer.
          */
         virtual void linkParameterQmin(paramHelp::ParamHelperServer* paramHelper, int paramId);
 
-        /** Link the joint upper bounds to a parameter managed by the specified
+        /** Link the joint upper bounds (in deg) to a parameter managed by the specified
          * instance of ParamHelperServer.
          */
         virtual void linkParameterQmax(paramHelp::ParamHelperServer* paramHelper, int paramId);

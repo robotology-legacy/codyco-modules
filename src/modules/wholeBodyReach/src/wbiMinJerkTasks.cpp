@@ -355,12 +355,14 @@ void JointLimitTask::init(RobotState& state){}
 bool JointLimitTask::update(RobotState& state)
 {
     bool res = true;
+    _q = state.qJ;
+    _dq = state.dqJ;
     for(int i=0; i<_m;i++)
     {
         // compute (negative) lower bound
-        _a_in(2*i+0) = -(2.0/pow(_dt,2))*(_qMin(i) - state.qJ(i) - _dt*state.dqJ(i));
+        _a_in(2*i+0) = -(2.0/pow(_dt,2))*(CTRL_DEG2RAD*_qMin(i) - _q(i) - _dt*_dq(i));
         // compute upper bound
-        _a_in(2*i+1) = +(2.0/pow(_dt,2))*(_qMax(i) - state.qJ(i) - _dt*state.dqJ(i));
+        _a_in(2*i+1) = +(2.0/pow(_dt,2))*(CTRL_DEG2RAD*_qMax(i) - _q(i) - _dt*_dq(i));
     }
     return res;
 }
@@ -421,12 +423,16 @@ bool JointLimitTask::setDdqDes(VectorConst ddqDes)
     VectorXd tmp = _A_in*ddqDes;
     for(int i=0; i<_m; i++)
     {
-        if(tmp(2*i)>=_a_in(2*i))
-            getLogger().sendMsg("Joint "+toString(i)+" lower bound active:     ["+toString(_A_in.row(2*i),0)+"]*ddq="+
-                                toString(tmp(2*i))+" >= "+toString(_a_in(2*i)), MSG_STREAM_ERROR);
-        if(tmp(2*i+1)>=_a_in(2*i+1))
-            getLogger().sendMsg("Joint "+toString(i)+" upper bound active:     ["+toString(_A_in.row(2*i+1),0)+"]*ddq="+
-                                toString(tmp(2*i+1))+" >= "+toString(_a_in(2*i+1)), MSG_STREAM_ERROR);
+        if(tmp(2*i)+_a_in(2*i) <= 0.0 || tmp(2*i+1)+_a_in(2*i+1) <= 0.0)
+            getLogger().sendMsg("Joint limit "+toString(i)+
+                                "\t ddqDes="+toString(ddqDes(i))+
+                                "\t ddqMin="+toString(-_a_in(2*i))+
+                                "\t ddqMax="+toString(_a_in(2*i+1))+
+                                "\t q="+toString(CTRL_RAD2DEG*_q(i))+
+                                "\t qMin="+toString(_qMin(i))+
+                                "\t qMax="+toString(_qMax(i))+
+                                "\t qPred="+toString(CTRL_RAD2DEG*(_q(i)+_dt*_dq(i)+0.5*pow(_dt,2)*ddqDes(i))),
+                                                    MSG_STREAM_INFO);
     }
     return true;
 }
