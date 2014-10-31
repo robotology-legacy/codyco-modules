@@ -147,6 +147,8 @@ namespace wholeBodyReach
         double              _muM;           /// moment friction coefficient
         int                 _paramId_muM;
         
+        Eigen::Vector6d     _vel;           /// spacial velocity of the constrained link
+        
         virtual void updateMomentFrictionConeInequalities();
         virtual void updateZmpInequalities();
         

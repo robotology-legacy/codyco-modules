@@ -147,15 +147,17 @@ bool PlaneContactConstraint::update(RobotState& state)
     res = res && _robot->computeDJdq(state.qJ.data(), state.xBase, state.dqJ.data(),
                                      state.vBase.data(), _linkId, _a_eq.data());
     _a_eq *= -1.0;      // _a_eq = -dJ*dq
+    _vel = _A_eq*state.dq;
     
     // compute drift correction term
-//    _pos(0) = _H.p[0]; _pos(1) = _H.p[1]; _pos(2) = _H.p[2];
-//    computeOrientationError(_H.R, _Rdes, _orientationError);
-//    _dvStar.head<3>() = _Kp.head<3>().cwiseProduct(_posDes - _pos);
-//    _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError);
-//    _a_eq += _dvStar;   // _a_eq = dvStar - dJ*dq
+    _pos(0) = _H.p[0]; _pos(1) = _H.p[1]; _pos(2) = _H.p[2];
+    computeOrientationError(_H.R, _Rdes, _orientationError);
+    _dvStar.head<3>() = _Kp.head<3>().cwiseProduct(_posDes - _pos) - _Kd.head<3>().cwiseProduct(_vel.head<3>());
+    _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError) - _Kd.tail<3>().cwiseProduct(_vel.tail<3>());;
+    _a_eq += _dvStar;   // _a_eq = dvStar - dJ*dq
     
-//    getLogger().sendMsg(_name+" orientationError = "+toString(_orientationError,1), MSG_STREAM_INFO);
+//    getLogger().sendMsg(_name+" position Error = "+toString(1e3*(_posDes - _pos),1), MSG_STREAM_INFO);
+//    getLogger().sendMsg(_name+" orientation Error = "+toString(1e3*_orientationError,1), MSG_STREAM_INFO);
 //    getLogger().sendMsg(_name+" dvStar = "+toString(_dvStar,1), MSG_STREAM_INFO);
     
     // compute force-momentum mapping matrix _X
