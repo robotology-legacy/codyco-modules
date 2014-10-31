@@ -302,7 +302,7 @@ void LocomotionThread::numberOfConstraintsChanged()
 
 //*************************************************************************************************************************
 
-/*
+
 void LocomotionThread::numberOfJointsChanged()
 {
     LocalId lid;
@@ -353,7 +353,6 @@ void LocomotionThread::numberOfJointsChanged()
     //}
     updateSelectionMatrix();
 }
-*/
 
 //*************************************************************************************************************************
 void LocomotionThread::updateSelectionMatrix()

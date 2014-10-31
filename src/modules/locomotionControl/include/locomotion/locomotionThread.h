@@ -144,7 +144,7 @@ class LocomotionThread: public RateThread, public ParamValueObserver, public Com
     /** Method called every time the support status changes. */
     void numberOfConstraintsChanged();
     /** Method called every time the support status changes. */
-    //void numberOfJointsChanged();
+    void numberOfJointsChanged();
 
     void normalizeFootOrientation();
 
