@@ -283,7 +283,7 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
     
     //    sendMsg("ddqDes (contact consistent) = "+toString(_ddqDes,1));
     //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-    //    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+//    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
     
     // Now we can go on with the motion tasks, using the nullspace of dynamics and contacts:
     //      Z = nullspace(Jc*Sbar);
@@ -304,13 +304,9 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
     if(jointLimitActive)
     {
         _jointLimitTask->update(robotState);
-        //_jointLimitTask->getInequalityMatrix(_qpData_ddq.CI); // this is constant, so no need to update it
-        _jointLimitTask->getInequalityVector(_qpData_ddq.ci0);
-        //cout<<"_qpData_ddq.CI.rows() = "<<_qpData_ddq.CI.rows()<<";\t";
-        //cout<<"_qpData_ddq.CI.cols() = "<<_qpData_ddq.CI.cols()<<";\t";
-        //cout<<"_qpData_ddq.ci0.size() = "<<_qpData_ddq.ci0.size()<<";\n";
     }
     
+    double tmp;
     list<MinJerkPDLinkPoseTask*>::iterator it;
     for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
     {
@@ -325,39 +321,70 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
 
         if(jointLimitActive)
         {
-            _qpData_ddq.H   = _A.transpose()*_A + _numericalDampingTask*MatrixXd::Identity(_n,_n);
-            _qpData_ddq.g   = -_A.transpose()*(_b_i - _A_i*_ddqDes);
+            // even if CI is constant, you need to update it every time because we overwrite it
+            _jointLimitTask->getInequalityMatrix(_qpData_ddq.CI);
+            _jointLimitTask->getInequalityVector(_qpData_ddq.ci0);
+            
+            _qpData_ddq.H       = _A.transpose()*_A + _numericalDampingTask*MatrixXd::Identity(_n,_n);
+            _qpData_ddq.g       = -_A.transpose()*(_b_i - _A_i*_ddqDes);
+            _qpData_ddq.ci0     += _qpData_ddq.CI*ddqDes_j;
+            _qpData_ddq.CI      *= _Z;
             double res = solve_quadprog(_qpData_ddq.H, _qpData_ddq.g, _qpData_ddq.CE.transpose(), _qpData_ddq.ce0,
                                      _qpData_ddq.CI.transpose(), _qpData_ddq.ci0, _ddq_jDes,
                                      _qpData_ddq.activeSet, _qpData_ddq.activeSetSize);
             if(res == std::numeric_limits<double>::infinity())
                 return false;
             if(_qpData_ddq.activeSetSize>0)
-                sendMsg("Joint limit active constraints: "+toString(_qpData_ddq.activeSet.head(_qpData_ddq.activeSetSize).transpose()));
+                sendMsg(t.getName()+". Active joint limits: "+toString(_qpData_ddq.activeSet.head(_qpData_ddq.activeSetSize).transpose()));
         }
         else
         {
             _ddq_jDes   = svdSolveWithDamping(_A_svd, _b_i - _A_i*_ddqDes, _numericalDampingTask);
-    //        _ddq_jDes   = _Z*_ddq_jDes;     /// @todo here I assume i'm using nullspace projectors
         }
+        if((tmp=(_ddq_jDes-_Z*_ddq_jDes).norm())>1e-10)
+            sendMsg(t.getName()+". Part of ddq_jDes outside the null space of previous tasks: "+toString(tmp));
         ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
         ddqDes_j    += _ddq_jDes;
         updateNullspace(_A_svd);
         
 #ifdef  DEBUG_POSE_TASKS
 //        sendMsg(t.getName()+" Jacobian =\n"+toString(_A_i));
-        int nzsv = _A_svd.nonzeroSingularValues();
-        sendMsg(t.getName()+" "+toString(nzsv)+"-th sing val = "+toString(_A_svd.singularValues()(nzsv-1)));
-        sendMsg(t.getName()+" ||A*x-b|| =    "+toString((_A_i*_ddqDes-_b_i).norm()));
+//        int nzsv = _A_svd.nonzeroSingularValues();
+//        sendMsg(t.getName()+". "+toString(nzsv)+"-th sing val = "+toString(_A_svd.singularValues()(nzsv-1)));
+//        sendMsg(t.getName()+". Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+//        sendMsg(t.getName()+" ||A*x-b|| =    "+toString((_A_i*_ddqDes-_b_i).norm()));
 #endif
     }
 
     START_PROFILING(PROFILE_DDQ_POSTURE_TASK);
     {
-        if(_useNullspaceBase)
-            _ddq_jDes   = _Z * (_Z.transpose() * _ddq_jPosture);
+        if(jointLimitActive)
+        {
+            _jointLimitTask->getInequalityMatrix(_qpData_ddq.CI);
+            _jointLimitTask->getInequalityVector(_qpData_ddq.ci0);
+            
+            _qpData_ddq.H       = _Z + _numericalDampingTask*MatrixXd::Identity(_n,_n);
+            _qpData_ddq.g       = -_Z*(_ddq_jPosture - ddqDes_j);
+            _qpData_ddq.ci0     += _qpData_ddq.CI*ddqDes_j;
+            _qpData_ddq.CI      *= _Z;
+            double res = solve_quadprog(_qpData_ddq.H, _qpData_ddq.g, _qpData_ddq.CE.transpose(), _qpData_ddq.ce0,
+                                        _qpData_ddq.CI.transpose(), _qpData_ddq.ci0, _ddq_jDes,
+                                        _qpData_ddq.activeSet, _qpData_ddq.activeSetSize);
+            if(res == std::numeric_limits<double>::infinity())
+                return false;
+            if(_qpData_ddq.activeSetSize>0)
+                sendMsg("Posture task. Active joint limits: "+toString(_qpData_ddq.activeSet.head(_qpData_ddq.activeSetSize).transpose()));
+        }
         else
-            _ddq_jDes   = _Z * _ddq_jPosture;
+        {
+            if(_useNullspaceBase)
+                _ddq_jDes   = _Z * (_Z.transpose() * _ddq_jPosture);
+            else
+                _ddq_jDes   = _Z * _ddq_jPosture;
+        }
+        
+        if((tmp=(_ddq_jDes-_Z*_ddq_jDes).norm())>1e-10)
+            sendMsg("Posture task. Part of ddq_jDes outside the null space of previous tasks: "+toString(tmp));
         ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
         ddqDes_j    += _ddq_jDes;
     }
@@ -365,7 +392,7 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
     
     torques     = M_a*_ddqDes + h_j - Jc_j.transpose()*_fcDes;
     
-    sendMsg("fcDes              = "+toString(_fcDes,1));
+//    sendMsg("fcDes              = "+toString(_fcDes,1));
     //    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
     //    sendMsg("ddq_jPosture        = "+jointToString(_ddq_jPosture,1));
     sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
