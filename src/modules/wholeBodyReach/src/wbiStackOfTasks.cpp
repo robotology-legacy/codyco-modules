@@ -239,7 +239,10 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
     }
     STOP_PROFILING(PROFILE_FORCE_QP);
     if(res == std::numeric_limits<double>::infinity())
+    {
+        cout<<"Force QP could not be solved:\n"<<_qpData_f.toString()<<endl;
         return false;
+    }
     
     if(_qpData_f.activeSetSize>0)
         sendMsg("Active constraints: "+toString(_qpData_f.activeSet.head(_qpData_f.activeSetSize).transpose()));
@@ -333,7 +336,10 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
                                      _qpData_ddq.CI.transpose(), _qpData_ddq.ci0, _ddq_jDes,
                                      _qpData_ddq.activeSet, _qpData_ddq.activeSetSize);
             if(res == std::numeric_limits<double>::infinity())
+            {
+                cout<<t.getName()<<" QP could not be solved:\n"<<_qpData_ddq.toString()<<endl;
                 return false;
+            }
             if(_qpData_ddq.activeSetSize>0)
                 sendMsg(t.getName()+". Active joint limits: "+toString(_qpData_ddq.activeSet.head(_qpData_ddq.activeSetSize).transpose()));
         }
@@ -356,6 +362,7 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
 #endif
     }
 
+    sendMsg("Left arm ddq pre posture task:  "+toString(ddqDes_j.segment(3,5).transpose()));
     START_PROFILING(PROFILE_DDQ_POSTURE_TASK);
     {
         if(jointLimitActive)
@@ -371,7 +378,11 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
                                         _qpData_ddq.CI.transpose(), _qpData_ddq.ci0, _ddq_jDes,
                                         _qpData_ddq.activeSet, _qpData_ddq.activeSetSize);
             if(res == std::numeric_limits<double>::infinity())
+            {
+                cout<<"Posture QP could not be solved:\n"<<_qpData_ddq.toString()<<endl;
+//                _ddq_jDes.setZero();
                 return false;
+            }
             if(_qpData_ddq.activeSetSize>0)
                 sendMsg("Posture task. Active joint limits: "+toString(_qpData_ddq.activeSet.head(_qpData_ddq.activeSetSize).transpose()));
         }
@@ -393,6 +404,8 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
     torques     = M_a*_ddqDes + h_j - Jc_j.transpose()*_fcDes;
     
 //    sendMsg("fcDes              = "+toString(_fcDes,1));
+    sendMsg("Left arm ddq post posture task: "+toString(ddqDes_j.segment(3,5).transpose()));
+    sendMsg("Left arm ddq posture task:      "+toString(_ddq_jPosture.segment(3,5).transpose()));
     //    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
     //    sendMsg("ddq_jPosture        = "+jointToString(_ddq_jPosture,1));
     sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));

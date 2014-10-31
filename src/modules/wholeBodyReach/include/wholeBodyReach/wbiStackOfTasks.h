@@ -117,14 +117,28 @@ public:
     //                  CI^T x + ci0 >= 0
     struct QpData
     {
-        Eigen::MatrixXd H;      /// Hessian
-        Eigen::VectorXd g;      /// gradient
-        Eigen::MatrixXd CE;     /// equality constraint matrix
-        Eigen::VectorXd ce0;    /// equality constraint vecotr
-        Eigen::MatrixRXd CI;     /// inequality constraint matrix
-        Eigen::VectorXd ci0;    /// inequality constraint vector
+        Eigen::MatrixXd H;          /// Hessian
+        Eigen::VectorXd g;          /// gradient
+        Eigen::MatrixXd CE;         /// equality constraint matrix
+        Eigen::VectorXd ce0;        /// equality constraint vecotr
+        Eigen::MatrixRXd CI;        /// inequality constraint matrix
+        Eigen::VectorXd ci0;        /// inequality constraint vector
         Eigen::VectorXi activeSet;  /// vector containing the indexes of the active inequalities
         int activeSetSize;
+        
+        std::string toString()
+        {
+            std::stringstream ss;
+            ss<<"****************************************************************\n";
+            ss<<"Hessian:          \n"<<H<<endl;
+            ss<<"Gradient:           "<<g.transpose()<<endl;
+            ss<<"Equality matrix:  \n"<<CE<<endl;
+            ss<<"Equality vector:    "<<ce0.transpose()<<endl;
+            ss<<"Inequality matrix:\n"<<CI<<endl;
+            ss<<"Inequality vector:  "<<ci0.transpose()<<endl;
+            ss<<"****************************************************************\n";
+            return ss.str();
+        }
     };
     
     QpData _qpData_f;       /// data for the force QP
