@@ -347,6 +347,7 @@ JointLimitTask::JointLimitTask(std::string taskName, wbi::wholeBodyInterface* ro
     _dqMax.resize(_m);
     _ddqMin.resize(_m);
     _ddqMax.resize(_m);
+    _qNormalized.resize(_m);
     updateInequalityMatrix();
 }
 
