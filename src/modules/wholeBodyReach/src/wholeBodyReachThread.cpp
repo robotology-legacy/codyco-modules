@@ -212,7 +212,7 @@ void WholeBodyReachThread::run()
     
     Frame H_left;
     _robot->computeH(_robotState.qJ.data(), _robotState.xBase, LINK_ID_LEFT_FOOT, H_left);
-    sendMsg("Left foot pose:  "+toString(Vector3d::Map(H_left.p),4));
+//    sendMsg("Left foot pose:  "+toString(Vector3d::Map(H_left.p),4));
 //    sendMsg("dq "+jointToString(WBR_RAD2DEG * _robotState.dqJ));
 //    sendMsg("dq norm    "+toString(WBR_RAD2DEG * _robotState.dqJ.norm()));
 //    sendMsg("x base\n"+_robotState.xBase.toString());
