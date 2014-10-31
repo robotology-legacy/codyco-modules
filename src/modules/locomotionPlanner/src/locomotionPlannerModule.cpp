@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -13,7 +13,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/ 
+*/
 
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RFModule.h>
@@ -41,7 +41,7 @@ YARP_DECLARE_DEVICES(icubmod)
 
 using namespace yarp::dev;
 using namespace paramHelp;
-using namespace wbiIcub;
+using namespace yarpWbi;
 using namespace locomotionPlanner;
 using namespace locomotion;
 
@@ -52,9 +52,9 @@ LocomotionPlannerModule::LocomotionPlannerModule()
     paramHelper     = 0;
     locoCtrl        = 0;
 }
-    
+
 bool LocomotionPlannerModule::configure(ResourceFinder &rf)
-{		
+{
     //-------------------------------------------------- PARAMETER HELPER SERVER ---------------------------------------------------------
     paramHelper = new ParamHelperServer(locomotionPlannerParamDescr, PARAM_ID_SIZE, locomotionPlannerCommandDescr, COMMAND_ID_SIZE);
     paramHelper->linkParam(PARAM_ID_PLANNER_NAME,           &moduleName);
@@ -98,7 +98,7 @@ bool LocomotionPlannerModule::configure(ResourceFinder &rf)
     //--------------------------CTRL THREAD--------------------------
     ctrlThread = new LocomotionPlannerThread(moduleName, robotName, paramHelper, locoCtrl, robotInterface,fileName);
     if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing locomotion planner thread. Closing module.\n"); return false; }
-    
+
     fprintf(stderr,"Locomotion planner started\n");
 
     if(startInFound)
@@ -107,29 +107,29 @@ bool LocomotionPlannerModule::configure(ResourceFinder &rf)
 	return true;
 }
 
-bool LocomotionPlannerModule::respond(const Bottle& cmd, Bottle& reply) 
+bool LocomotionPlannerModule::respond(const Bottle& cmd, Bottle& reply)
 {
     paramHelper->lock();
-	if(!paramHelper->processRpcCommand(cmd, reply)) 
+	if(!paramHelper->processRpcCommand(cmd, reply))
 	    reply.addString( (string("Command ")+cmd.toString().c_str()+" not recognized.").c_str());
     paramHelper->unlock();
 
     // if reply is empty put something into it, otherwise the rpc communication gets stuck
     if(reply.size()==0)
         reply.addString( (string("Command ")+cmd.toString().c_str()+" received.").c_str());
-	return true;	
+	return true;
 }
 
 void LocomotionPlannerModule::commandReceived(const CommandDescription &cd, const Bottle &params, Bottle &reply)
 {
     switch(cd.id)
     {
-    case COMMAND_ID_HELP:   
-        paramHelper->getHelpMessage(reply);     
+    case COMMAND_ID_HELP:
+        paramHelper->getHelpMessage(reply);
         break;
-    case COMMAND_ID_QUIT:   
-        stopModule(); 
-        reply.addString("Quitting module.");    
+    case COMMAND_ID_QUIT:
+        stopModule();
+        reply.addString("Quitting module.");
         break;
     }
 }

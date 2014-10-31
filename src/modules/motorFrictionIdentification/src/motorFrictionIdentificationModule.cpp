@@ -102,7 +102,7 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
 
 
     ///< read the parameter "joint list" from configuration file to configure the WBI
-    jointList.resize(paramHelper->getParamProxy(PARAM_ID_JOINT_NAMES_LIST)->size);
+    jointNamesList.resize(paramHelper->getParamProxy(PARAM_ID_JOINT_NAMES_LIST)->size);
     paramHelper->getParamProxy(PARAM_ID_JOINT_NAMES_LIST)->linkToVariable(jointNamesList.data());
     ///< link the parameter "joint names" to the variable jointNames
     jointNames.resize(jointList.size());

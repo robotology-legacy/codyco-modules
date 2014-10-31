@@ -76,7 +76,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     resizeAndSetToZero(covarianceInv,           _n*PARAM_NUMBER,    PARAM_NUMBER);
     resizeAndSetToZero(rhs,                     _n,                 PARAM_NUMBER);
 
-    currentJointIds.resize(_n);             ///< IDs of the joints currently excited
+    currentJointWbiIds.resize(_n);             ///< IDs of the joints currently excited
     inputSamples.resize(_n);
     estimators.resize(_n);
 
