@@ -88,7 +88,7 @@ class MotorFrictionIdentificationModule: public RFModule, public CommandObserver
 	string              robotName;      ///< name of the robot
     double              modulePeriod;   ///< module period in seconds
     int                 threadPeriod;   ///< thread period in milliseconds
-    VectorXi            jointList;      ///< IDs of the joints that are specified in the configuration file
+    vector<string>      jointNamesList; ///< IDs of the joints that are specified in the configuration file
     vector<string>      jointNames;     ///< names of the joints that are specified in the configuration file
     double              avgTime, stdDev, avgTimeUsed, stdDevUsed;
 

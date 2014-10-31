@@ -25,7 +25,7 @@
 #include <Eigen/LU>
 
 using namespace yarp::math;
-using namespace wbiIcub;
+using namespace yarpWbi;
 using namespace motorFrictionIdentification;
 
 //*************************************************************************************************************************
@@ -56,7 +56,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     resizeAndSetToZero(dqSignNeg,               _n);
     resizeAndSetToZero(pwm,                     _n);
     resizeAndSetToZero(activeJoints,            _n);
-    resizeAndSetToZero(currentGlobalJointIds,   _n);
+    resizeAndSetToZero(currentJointNumericIds,  _n);
     resizeAndSetToZero(zeroN,                   _n);
     stdDev.kt   =   ArrayXd::Constant(_n, 1e5);
     stdDev.kvp  =   ArrayXd::Constant(_n, 1e5);

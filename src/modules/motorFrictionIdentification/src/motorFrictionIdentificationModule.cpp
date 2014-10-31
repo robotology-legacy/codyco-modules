@@ -40,45 +40,6 @@ MotorFrictionIdentificationModule::MotorFrictionIdentificationModule()
     threadPeriod            = 0;
 }
 
-void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag & icub_version)
-{
-    //Checking iCub parts version
-    /// \todo this part should be replaced by a more general way of accessing robot parameters
-    ///       namely urdf for structure parameters and robotInterface xml (or runtime interface) to get available sensors
-    icub_version.head_version = 2;
-    if( rf.check("headV1") ) {
-        icub_version.head_version = 1;
-    }
-    if( rf.check("headV2") ) {
-        icub_version.head_version = 2;
-    }
-
-    icub_version.legs_version = 2;
-    if( rf.check("legsV1") ) {
-        icub_version.legs_version = 1;
-    }
-    if( rf.check("legsV2") ) {
-        icub_version.legs_version = 2;
-    }
-
-    /// \note if feet_version are 2, the presence of FT sensors in the feet is assumed
-    icub_version.feet_ft = true;
-    if( rf.check("feetV1") ) {
-        icub_version.feet_ft = false;
-    }
-    if( rf.check("feetV2") ) {
-        icub_version.feet_ft = true;
-    }
-
-    #ifdef CODYCO_USES_URDFDOM
-    if( rf.check("urdf") )
-    {
-        icub_version.uses_urdf = true;
-        icub_version.urdf_file = rf.find("urdf").asString().c_str();
-    }
-    #endif
-}
-
 bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
 {
 
@@ -120,28 +81,40 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
     attach(rpcPort);
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
+    yarp::os::Property yarpWbiOptions;
+    //Get wbi options from the canonical file
+    if( !rf.check("wbi_conf_file") )
+    {
+        fprintf(stderr,"[ERR] motorFrictionIdentificationModule: impossible to open motorFrictionIdentificationModule: wbi_conf_file option missing");
+        return false;
+    }
+    std::string wbiConfFile = rf.findFile("wbi_conf_file");
+    yarpWbiOptions.fromConfigFile(wbiConfFile);
 
-    iCub::iDynTree::iCubTree_version_tag icub_version;
-    iCubVersionFromRf(rf,icub_version);
-    robotInterface = new icubWholeBodyInterface(moduleName.c_str(),
-                                                robotName.c_str(),
-                                                icub_version);
+    //List of joints used in the dynamic model of the robot
+    wbiIdList RobotDynamicModelJoints;
+    std::string RobotDynamicModelJointsListName = "ICUB_MAIN_JOINTS";
+    if( !loadIdListFromConfig(RobotDynamicModelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
+    {
+        fprintf(stderr, "[ERR] motorFrictionIdentificationModule: impossible to load wbiId joint list with name %s\n",RobotDynamicModelJointsListName.c_str());
+        return false;
+    }
 
-    
+
     ///< read the parameter "joint list" from configuration file to configure the WBI
-    jointList.resize(paramHelper->getParamProxy(PARAM_ID_JOINT_LIST)->size);
-    paramHelper->getParamProxy(PARAM_ID_JOINT_LIST)->linkToVariable(jointList.data());
+    jointList.resize(paramHelper->getParamProxy(PARAM_ID_JOINT_NAMES_LIST)->size);
+    paramHelper->getParamProxy(PARAM_ID_JOINT_NAMES_LIST)->linkToVariable(jointNamesList.data());
     ///< link the parameter "joint names" to the variable jointNames
     jointNames.resize(jointList.size());
-    paramHelper->getParamProxy(PARAM_ID_JOINT_NAMES)->linkToVariable(jointNames.data(), jointList.size());
+    paramHelper->getParamProxy(PARAM_ID_JOINT_NAMES)->linkToVariable(jointNames.data(), jointNamesList.size());
     ///< add all the specified joints
     bool ok = true;
-    LocalId lid;
-    for(int i=0; ok && i<jointList.size(); i++)
+    wbiId wbi_id;
+    for(int i=0; ok && i<jointNamesList.size(); i++)
     {
-        lid = globalToLocalIcubId(jointList[i]);
-        ok = robotInterface->addJoint(lid);
-        jointNames[i] = lid.description;
+        wbi_id = jointNamesList[i];
+        ok = robotInterface->addJoint(wbi_id);
+        jointNames[i] = jointNamesList[i];
     }
 
     if(!ok || !robotInterface->init())
