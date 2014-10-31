@@ -74,7 +74,7 @@ bool WholeBodyReachThread::threadInit()
     _solver.addConstraint(_tasks.leftFoot);
     _solver.addConstraint(_tasks.rightFoot);
 //    _solver.pushEqualityTask(_tasks.supportForearm);
-    _solver.pushEqualityTask(_tasks.graspHand);
+//    _solver.pushEqualityTask(_tasks.graspHand);
     
     _solver.linkParameterToVariable(wbiStackOfTasks::DYN_NUM_DAMP,       _paramHelper, PARAM_ID_DYN_DAMP);
     _solver.linkParameterToVariable(wbiStackOfTasks::CONSTR_NUM_DAMP,    _paramHelper, PARAM_ID_CONSTR_DAMP);
