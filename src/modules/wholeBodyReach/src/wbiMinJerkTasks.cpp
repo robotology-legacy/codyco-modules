@@ -363,7 +363,11 @@ bool JointLimitTask::update(RobotState& state)
         _a_in(2*i+0) = -(2.0/pow(_dt,2))*(CTRL_DEG2RAD*_qMin(i) - _q(i) - _dt*_dq(i));
         // compute upper bound
         _a_in(2*i+1) = +(2.0/pow(_dt,2))*(CTRL_DEG2RAD*_qMax(i) - _q(i) - _dt*_dq(i));
+        
+        // compute monitoring parameter "q normalized"
+        _qNormalized(i) = (CTRL_RAD2DEG*_q(i)-_qMin(i))/(_qMax(i)-_qMin(i));
     }
+    
     return res;
 }
 
@@ -386,16 +390,6 @@ bool JointLimitTask::setTimestep(double dt)
         return true;
     }
     return false;
-}
-
-void JointLimitTask::linkParameterQmin(ParamHelperServer* paramHelper, int paramId)
-{
-    paramHelper->linkParam(paramId, _qMin.data());
-}
-
-void JointLimitTask::linkParameterQmax(ParamHelperServer* paramHelper, int paramId)
-{
-    paramHelper->linkParam(paramId, _qMax.data());
 }
 
 bool JointLimitTask::setVelocityLimits(VectorConst dqMin, VectorConst dqMax)

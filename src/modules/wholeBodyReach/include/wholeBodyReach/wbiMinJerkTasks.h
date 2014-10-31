@@ -244,8 +244,9 @@ namespace wholeBodyReach
         Eigen::VectorXd     _ddqMin;    /// Lower bound of joint accelerations
         Eigen::VectorXd     _ddqMax;    /// Upper bound of joint accelerations
         
-        Eigen::VectorXd     _q;         /// last value of joint positions
-        Eigen::VectorXd     _dq;        /// last value of joint velocities
+        Eigen::VectorXd     _q;             /// last joint positions
+        Eigen::VectorXd     _dq;            /// last joint velocities
+        Eigen::VectorXd     _qNormalized;   /// last joint positions normalized in [0,1]
         
         bool checkVectorSize(Eigen::VectorConst v)
         { return v.size()==this->_m; }
@@ -268,12 +269,20 @@ namespace wholeBodyReach
         /** Link the joint lower bounds (in deg) to a parameter managed by the specified
          * instance of ParamHelperServer.
          */
-        virtual void linkParameterQmin(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        virtual void linkParameterQmin(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        { paramHelper->linkParam(paramId, _qMin.data()); }
 
         /** Link the joint upper bounds (in deg) to a parameter managed by the specified
          * instance of ParamHelperServer.
          */
-        virtual void linkParameterQmax(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        virtual void linkParameterQmax(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        { paramHelper->linkParam(paramId, _qMax.data()); }
+        
+        /** Link the normalized joint positions to a parameter managed by the specified
+         * instance of ParamHelperServer.
+         */
+        virtual void linkParameterQnormalized(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        { paramHelper->linkParam(paramId, _qNormalized.data()); }
         
         /** Set the joint velocity limits. 
           * @return True if the operation succeeded, false otherwise. 

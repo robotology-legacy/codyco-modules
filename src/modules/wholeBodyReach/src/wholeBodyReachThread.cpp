@@ -146,9 +146,11 @@ bool WholeBodyReachThread::threadInit()
     _tasks.rightFoot.setMinNormalForce(             FORCE_NORMAL_MIN);
     _tasks.supportForearmConstr.setMinNormalForce(  FORCE_NORMAL_MIN);
     
+    // JOINT LIMIT TASK
     _tasks.jointLimits.setTimestep(10*getRate()*1e-3);
     _tasks.jointLimits.linkParameterQmax(_paramHelper, PARAM_ID_Q_MAX);
     _tasks.jointLimits.linkParameterQmin(_paramHelper, PARAM_ID_Q_MIN);
+    _tasks.jointLimits.linkParameterQnormalized(_paramHelper, PARAM_ID_NORMALIZED_Q);
 
     // Register callbacks for some module commands and parameters
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_FORCE_FRICTION,    this));

@@ -100,7 +100,7 @@ enum WholeBodyReachParamId {
     PARAM_ID_X_BASE,                PARAM_ID_V_BASE,
     PARAM_ID_Q,                     PARAM_ID_DQ,                PARAM_ID_QREF,
     PARAM_ID_FORCE_INEQ_R_FOOT,     PARAM_ID_FORCE_INEQ_L_FOOT, PARAM_ID_FORCE_INEQ_FOREARM,
-    PARAM_ID_MOMENTUM_INTEGRAL,     PARAM_ID_JOINT_TORQUES,
+    PARAM_ID_MOMENTUM_INTEGRAL,     PARAM_ID_JOINT_TORQUES,     PARAM_ID_NORMALIZED_Q,
     PARAM_ID_SIZE /*This is the number of parameters, so it must be the last value of the enum.*/
 };
 
@@ -170,7 +170,8 @@ new ParamProxyBasic<double>("f inequalities rfoot",     PARAM_ID_FORCE_INEQ_R_FO
 new ParamProxyBasic<double>("f inequalities rfoot",     PARAM_ID_FORCE_INEQ_L_FOOT, 6,                      ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_6D.data(),                 "1-2 tang/norm force, 3 norm force, 4-5 ZMP, 6 normal moment"),
 new ParamProxyBasic<double>("f inequalities forearm",   PARAM_ID_FORCE_INEQ_FOREARM,3,                      ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_3D.data(),                 "1-2 tang/norm force, 3 norm force, 4-5 ZMP, 6 normal moment"),
 new ParamProxyBasic<double>("momentum integral",    PARAM_ID_MOMENTUM_INTEGRAL, 6,                          ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_6D.data(),                 "Integral of the 6d centroidal momentum"),
-new ParamProxyBasic<double>("torques",              PARAM_ID_JOINT_TORQUES,     ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_ND.data(),                 "Joint torques")
+new ParamProxyBasic<double>("torques",              PARAM_ID_JOINT_TORQUES,     ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_ND.data(),                 "Joint torques"),
+new ParamProxyBasic<double>("q norm",               PARAM_ID_NORMALIZED_Q,      ICUB_DOFS,                  ParamBilatBounds<double>(-1.0, 2.0),        PARAM_MONITOR,      ZERO_ND.data(),                 "Joint angles normalized in [0 1] w.r.t. the joint limits")
 };
 
 
