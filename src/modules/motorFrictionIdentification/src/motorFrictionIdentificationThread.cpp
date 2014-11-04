@@ -30,8 +30,8 @@ using namespace motorFrictionIdentification;
 
 //*************************************************************************************************************************
 MotorFrictionIdentificationThread::MotorFrictionIdentificationThread(string _name, string _robotName, int _period,
-    ParamHelperServer *_ph, wholeBodyInterface *_wbi, ParamHelperClient *_tc)
-    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), torqueController(_tc)
+    ParamHelperServer *_ph, wholeBodyInterface *_wbi, ParamHelperClient *_tc, ResourceFinder & _rf)
+    :  RateThread(_period), name(_name), robotName(_robotName), paramHelper(_ph), robot(_wbi), torqueController(_tc), rf(_rf)
 {
     printCountdown = 0;
     _n = robot->getDoFs();
@@ -79,6 +79,12 @@ bool MotorFrictionIdentificationThread::threadInit()
     currentJointWbiIds.resize(_n);             ///< IDs of the joints currently excited
     inputSamples.resize(_n);
     estimators.resize(_n);
+
+
+
+    //Load coupledMotorThatShouldHaveZeroTorqueForMotorGainEstimation info from
+    //configuration file
+    loadConfiguration();
 
     ///< thread constants
     zero6[0] = zero6[1] = zero6[2] = zero6[3] = zero6[4] = zero6[5] = 0.0;
@@ -162,6 +168,7 @@ bool MotorFrictionIdentificationThread::threadInit()
     if(!readRobotStatus(true))
         return false;
 
+    /*
     leftShoulderVelocityCouplingMatrix = Matrix3d::Zero();
     leftShoulderVelocityCouplingMatrix(0,0) =  -1.0;
     leftShoulderVelocityCouplingMatrix(0,1) =   0.0;
@@ -215,9 +222,52 @@ bool MotorFrictionIdentificationThread::threadInit()
 
     torsoTorqueCouplingMatrix   = torsoVelocityCouplingMatrixInverse.transpose();
     torsoVelocityCouplingMatrix = torsoVelocityCouplingMatrixInverse.inverse().eval();
-
+    */
 
     printf("\n\n");
+    return true;
+}
+
+//
+bool MotorFrictionIdentificationThread::loadConfiguration()
+{
+    checkThatCoupledMotorTorqueIsZero.resize(_n,false);
+    coupledMotorThatShouldHaveZeroTorqueForMotorGainEstimation.resize(_n);
+
+    std::string coupledMotorWithNoZeroTorqueGroupName = "REQUIRE_COUPLED_MOTOR_TO_HAVE_ZERO_TORQUE_FOR_GAIN_ESTIMATION";
+
+    if( rf.check(coupledMotorWithNoZeroTorqueGroupName) )
+    {
+        yarp::os::Bottle & bot = rf.findGroup(coupledMotorWithNoZeroTorqueGroupName);
+        for(int i=1; i < bot.size(); i++ )
+        {
+            if( !(bot.get(i).isList()) ||
+                bot.get(i).asList()->size() !=2  ||
+                !(bot.get(i).asList()->get(0).isString()) ||
+                !(bot.get(i).asList()->get(1).isString()) )
+            {
+                std::cerr << coupledMotorWithNoZeroTorqueGroupName << " group detected, but malformed, exiting" << std::endl;
+                return false;
+            }
+            const wbi::wbiIdList & motorList = this->robot->getEstimateList(ESTIMATE_MOTOR_TORQUE);
+            std::string disable_gain_estimation_motor = bot.get(i).asList()->get(0).asString();
+            std::string motor_that_should_have_zero_torque = bot.get(i).asList()->get(1).asString();
+            int disable_gain_estimation_motor_id, motor_that_should_have_zero_torque_id;
+            bool ret = motorList.wbiIdToNumericId(disable_gain_estimation_motor,disable_gain_estimation_motor_id);
+            if( !ret )
+            {
+                std::cerr << coupledMotorWithNoZeroTorqueGroupName << " group detected, but motor" << disable_gain_estimation_motor << "not found" << std::endl;
+            }
+            ret = motorList.wbiIdToNumericId(motor_that_should_have_zero_torque,motor_that_should_have_zero_torque_id);
+            if( !ret )
+            {
+                std::cerr << coupledMotorWithNoZeroTorqueGroupName << " group detected, but motor" << motor_that_should_have_zero_torque << "not found" << std::endl;
+            }
+            checkThatCoupledMotorTorqueIsZero[disable_gain_estimation_motor_id] = true;
+            coupledMotorThatShouldHaveZeroTorqueForMotorGainEstimation[disable_gain_estimation_motor_id] = motor_that_should_have_zero_torque_id;
+        }
+    }
+
     return true;
 }
 
@@ -227,7 +277,7 @@ void MotorFrictionIdentificationThread::run()
     paramHelper->lock();
     paramHelper->readStreamParams();
 
-    wbi::LocalIdList jointList = robot->getJointList();
+    //wbi::LocalIdList jointList = robot->getJointList();
     readRobotStatus();
     computeInputSamples();
 
@@ -235,11 +285,27 @@ void MotorFrictionIdentificationThread::run()
     {
         if(activeJoints[i]==1 && i == jointMonitor)
         {
-            ///< if joint is moving, estimate friction
-            ///< otherwise, if there is external force, estimate motor gain
             if((fabs(dq[i])>zeroJointVelThr) && fabs(extTorques[i]) < extTorqueThr[i]/10 )
+            {
+                ///< if joint is moving, estimate friction
                 estimators[i].feedSampleForGroup2(inputSamples[i], pwm[i]);
-            else if(fabs(extTorques[i]) > extTorqueThr[i] && fabs(torques[i]) < TORQUE_SENSOR_SATURATION) {
+            }
+            else if(fabs(extTorques[i]) > extTorqueThr[i] && fabs(torques[i]) < TORQUE_SENSOR_SATURATION)
+            {
+                ///< otherwise, if there is external force, estimate motor gain
+                // For some motors that are connected to coupled joints we want to
+                // disregard samples if the torque on some other motor is not zero
+                // (i.e. the torque is bigger then ZERO_TORQUE_THRESHOLD )
+                if( checkThatCoupledMotorTorqueIsZero[i] )
+                {
+                    if( fabs(torques[coupledMotorThatShouldHaveZeroTorqueForMotorGainEstimation[i]]) > ZERO_TORQUE_THRESHOLD)
+                    {
+                        continue;
+                    }
+                }
+
+                /*
+                This was the original hardcoded joint:
                 wbi::LocalId lid = jointList.globalToLocalId(i);
                 if (lid.bodyPart == iCub::skinDynLib::TORSO)
                 {
@@ -269,6 +335,7 @@ void MotorFrictionIdentificationThread::run()
                     }
 
                 }
+                */
                 estimators[i].feedSampleForGroup1(inputSamples[i], pwm[i]);
             }
         }
@@ -304,13 +371,15 @@ bool MotorFrictionIdentificationThread::readRobotStatus(bool blockingRead)
 bool MotorFrictionIdentificationThread::computeInputSamples()
 {
     ///< compute velocity signs
-    wbi::LocalIdList jointList = robot->getJointList();
+    //wbi::LocalIdList jointList = robot->getJointList();
+    /*
     torsoVelocities.setZero();
     torsoTorques.setZero();
     leftShoulderTorques.setZero();
     leftShoulderVelocities.setZero();
     rightShoulderTorques.setZero();
     rightShoulderVelocities.setZero();
+    */
 
     for(int i=0; i<_n; i++)
     {
@@ -326,6 +395,7 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
         inputSamples[i][INDEX_K_CP]   = dqSignPos[i];
         inputSamples[i][INDEX_K_CN]   = dqSignNeg[i];
 
+        /*
         wbi::LocalId lid = jointList.globalToLocalId(i);
         if (lid.bodyPart == iCub::skinDynLib::TORSO
             && lid.index >= 0 && lid.index <= 2)
@@ -353,20 +423,22 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
             inputSamples[i].setRandom();
             pwm[i] = inputSamples[i].dot(xRand) + Random::normal(0, 10.0);
         }
+        */
     }
 
     // Transformations from joint torques and velocities of torso into motors torques and velocities
-    Vector3d torsoMotorTorques    = torsoTorqueCouplingMatrix   * torsoTorques;
-    Vector3d torsoMotorVelocities = torsoVelocityCouplingMatrix * torsoVelocities;
+    //Vector3d torsoMotorTorques    = torsoTorqueCouplingMatrix   * torsoTorques;
+    //Vector3d torsoMotorVelocities = torsoVelocityCouplingMatrix * torsoVelocities;
 
     // Transformations from joint torques and velocities of left shoulder into motors torques and velocities
-    Vector3d leftShoulderMotorTorques     = leftShoulderTorqueCouplingMatrix   * leftShoulderTorques;
-    Vector3d leftShoulderMotorVelocities  = leftShoulderVelocityCouplingMatrix * leftShoulderVelocities;
+    //Vector3d leftShoulderMotorTorques     = leftShoulderTorqueCouplingMatrix   * leftShoulderTorques;
+    //Vector3d leftShoulderMotorVelocities  = leftShoulderVelocityCouplingMatrix * leftShoulderVelocities;
 
     // Transformations from joint torques and velocities of right shoulder into motors torques and velocities
-    Vector3d rightShoulderMotorTorques     =  rightShoulderTorqueCouplingMatrix   * rightShoulderTorques;
-    Vector3d rightShoulderMotorVelocities  =  rightShoulderVelocityCouplingMatrix * rightShoulderVelocities;
+    //Vector3d rightShoulderMotorTorques     =  rightShoulderTorqueCouplingMatrix   * rightShoulderTorques;
+    //Vector3d rightShoulderMotorVelocities  =  rightShoulderVelocityCouplingMatrix * rightShoulderVelocities;
 
+    /*
     for(int i=0; i<_n; i++)
     {
         wbi::LocalId lid = jointList.globalToLocalId(i);
@@ -406,7 +478,7 @@ bool MotorFrictionIdentificationThread::computeInputSamples()
 
         }
 
-    }
+    }*/
 
 
     return true;
@@ -519,7 +591,7 @@ void MotorFrictionIdentificationThread::commandReceived(const CommandDescription
     switch(cd.id)
     {
     case COMMAND_ID_RESET:
-        if(!resetIdentification(convertGlobalToLocalJointId(params)))
+        if(!resetIdentification(convertWbiIdToNumericJointId(params)))
             reply.addString("ERROR: Reset failed.");
         break;
 
@@ -529,7 +601,7 @@ void MotorFrictionIdentificationThread::commandReceived(const CommandDescription
 
     case COMMAND_ID_ACTIVATE_JOINT:
         {
-            int jid = convertGlobalToLocalJointId(params);
+            int jid = convertWbiIdToNumericJointId(params);
             if(jid>=0)
                 activeJoints[jid] = 1;
             else
@@ -539,7 +611,7 @@ void MotorFrictionIdentificationThread::commandReceived(const CommandDescription
 
     case COMMAND_ID_DEACTIVATE_JOINT:
         {
-            int jid = convertGlobalToLocalJointId(params);
+            int jid = convertWbiIdToNumericJointId(params);
             if(jid>=0)
                 activeJoints[jid] = 0;
             else
@@ -606,9 +678,7 @@ bool MotorFrictionIdentificationThread::saveParametersOnFile(const Bottle &param
 //*************************************************************************************************************************
 void MotorFrictionIdentificationThread::updateJointToMonitor()
 {
-    LocalId lid = globalToLocalIcubId(jointMonitorName);
-    if(lid.bodyPart!=iCub::skinDynLib::BODY_PART_UNKNOWN)
-        jointMonitor = robot->getJointList().localToGlobalId(lid);
+    robot->getJointList().wbiIdToNumericId(jointMonitorName,jointMonitor);
 }
 
 //*************************************************************************************************************************
@@ -619,26 +689,23 @@ void MotorFrictionIdentificationThread::sendMsg(const string &s, MsgType type)
 }
 
 //*************************************************************************************************************************
-int MotorFrictionIdentificationThread::convertGlobalToLocalJointId(const Bottle &b)
+int MotorFrictionIdentificationThread::convertWbiIdToNumericJointId(const Bottle &b)
 {
-    if(b.size()==0)
+    if(b.size()==0 ||
+       !(b.get(0).isString()) )
+    {
         return -1;
-
-    LocalId lid;
-    if(b.get(0).isString())
-    {
-        string jointName = b.get(0).asString();
-        lid = globalToLocalIcubId(jointName);
-    }
-    else if(b.get(0).isInt())
-    {
-        int jointId = b.get(0).asInt();
-        lid = globalToLocalIcubId(jointId);
     }
 
-    if(lid.bodyPart==iCub::skinDynLib::BODY_PART_UNKNOWN)
-        return -1;
+    string jointName = b.get(0).asString();
 
-    int jid = robot->getJointList().localToGlobalId(lid);
+    int jid;
+    bool ret = robot->getJointList().wbiIdToNumericId(jointName,jid);
+
+    if(!ret)
+    {
+        jid = -1;
+    }
+
     return jid;
 }

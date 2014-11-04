@@ -105,7 +105,7 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
     jointNamesList.resize(paramHelper->getParamProxy(PARAM_ID_JOINT_NAMES_LIST)->size);
     paramHelper->getParamProxy(PARAM_ID_JOINT_NAMES_LIST)->linkToVariable(jointNamesList.data());
     ///< link the parameter "joint names" to the variable jointNames
-    jointNames.resize(jointList.size());
+    jointNames.resize(jointNamesList.size());
     paramHelper->getParamProxy(PARAM_ID_JOINT_NAMES)->linkToVariable(jointNames.data(), jointNamesList.size());
     ///< add all the specified joints
     bool ok = true;
@@ -124,7 +124,7 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
     }
 fprintf(stderr, "After initialize interface\n");
     //--------------------------CTRL THREAD--------------------------
-    identificationThread = new MotorFrictionIdentificationThread(moduleName, robotName, threadPeriod, paramHelper, robotInterface, torqueController);
+    identificationThread = new MotorFrictionIdentificationThread(moduleName, robotName, threadPeriod, paramHelper, robotInterface, torqueController, rf);
     if(!identificationThread->start())
     {
         fprintf(stderr, "Error while initializing motorFrictionIdentification control thread. Closing module.\n");

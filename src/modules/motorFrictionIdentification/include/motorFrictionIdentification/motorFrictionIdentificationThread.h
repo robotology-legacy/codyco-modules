@@ -93,7 +93,9 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     ArrayXd             dqSignNeg;              ///< negative samples of the motor velocity signes
     ArrayXd             pwm;                    ///< motor PWMs
     vector<VectorXd>    inputSamples;           ///< input samples to use for identification
+    ResourceFinder &    rf;                     ///< Resource finder to read module configuration
 
+    /*
     Matrix3d            leftShoulderTorqueCouplingMatrix;
     Matrix3d            leftShoulderVelocityCouplingMatrix;
     Matrix3d            rightShoulderTorqueCouplingMatrix;
@@ -106,6 +108,7 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     Vector3d             leftShoulderVelocities;
     Vector3d             rightShoulderTorques;
     Vector3d             rightShoulderVelocities;
+    */
 
     ///< *************** INPUT MODULE PARAMETERS ********************
     ArrayXi     activeJoints;       ///< List of flags (0,1) indicating for which motors the identification is active
@@ -122,6 +125,11 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     double      forgetFactor;       ///< Forgetting factor (in [0,1], 1=do not forget) used in the identification
     string      jointMonitorName;   ///< Name of the joint to monitor
     int         jointMonitor;       ///< Joint to monitor
+    vector<bool>  checkThatCoupledMotorTorqueIsZero; ///< if checkThatCoupledMotorTorqueIsZero[i] is true
+                                                // disable motor gain estimation if
+                                                // fabs(coupledMotorThatShouldHaveZeroTorqueForMotorGainEstimation[i]) is
+                                                // larger then ZERO_TORQUE_THRESHOLD
+    ArrayXi coupledMotorThatShouldHaveZeroTorqueForMotorGainEstimation;
 
     ///< *************** OUTPUT FILE PARAMETERS *************************
     MatrixXdR   covarianceInv;      ///< Inverse of the covariance matrix of the parameter estimations
@@ -152,6 +160,8 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     MatrixXd    sigmaMonitor;       ///< Covariance matrix of the parameters of the monitored joint
 
     /************************************************* PRIVATE METHODS ******************************************************/
+    /** Load configuration option from the ResourceFinder passed as a argument to the thread */
+    bool loadConfiguration();
 
     /** Send out the specified message (if the specified msgType is currently allowed). */
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO);
@@ -175,12 +185,12 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
      * @param jid Id of the joint. */
     bool resetIdentification(int jid=-1);
 
-    /** Convert the global id contained in the specified Bottle into a local id to access
-     * the vector of this thread. The Bottle b may either contain an integer id or the name
+    /** Convert the wbiId (string) id contained in the specified Bottle into a numeric id to access
+     * the vector of this thread. The Bottle b should contain the name
      * of the joint.
      * @param b Bottle containing the global id.
      * @return The local id, -1 if nothing was found. */
-    int convertGlobalToLocalJointId(const yarp::os::Bottle &b);
+    int convertWbiIdToNumericJointId(const yarp::os::Bottle &b);
 
     /** Update the variable jointMonitor based on the value of the variable jointMonitorName. */
     void updateJointToMonitor();
@@ -192,7 +202,7 @@ public:
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    MotorFrictionIdentificationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi, ParamHelperClient   *_tc);
+    MotorFrictionIdentificationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi, ParamHelperClient   *_tc, ResourceFinder & rf);
 
     bool threadInit();
     void run();
