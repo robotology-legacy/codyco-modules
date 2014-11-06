@@ -20,6 +20,7 @@
 #include <codyco/Utils.h>
 #include <codyco/LockGuard.h>
 #include <iostream>
+#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 
 //this is temporary until a fix of @traversaro
 //TODO: move methods to generic interface
@@ -73,7 +74,7 @@ namespace codyco {
 
             //FIXME:  Base velocity must be given by wbi.
             //Until then I set it to zero.
-            codyco::LockGuard guard(((wbiIcub::icubWholeBodyInterface*)&m_robot)->getInterfaceMutex());
+            codyco::LockGuard guard(((yarpWbi::yarpWholeBodyInterface*)&m_robot)->getInterfaceMutex());
             m_jointsVelocity.head(6).setZero();
             bool status;
             status = m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
@@ -167,7 +168,7 @@ namespace codyco {
         
         void EndEffectorForceReader::updateStatus(long context)
         {
-            codyco::LockGuard guard(((wbiIcub::icubWholeBodyInterface*)&m_robot)->getInterfaceMutex());
+            codyco::LockGuard guard(((yarpWbi::yarpWholeBodyInterface*)&m_robot)->getInterfaceMutex());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.data());
             
@@ -177,7 +178,7 @@ namespace codyco {
             m_world2BaseFrame.setToInverse();
             
             //TODO: to be fixed
-            ((wbiIcub::icubWholeBodyInterface&)m_robot).setWorldBasePosition(m_world2BaseFrame);
+//            ((wbiIcub::icubWholeBodyInterface&)m_robot).setWorldBasePosition(m_world2BaseFrame);
             
             m_robot.getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, m_endEffectorLocalID, m_outputSignal.data());
         }
