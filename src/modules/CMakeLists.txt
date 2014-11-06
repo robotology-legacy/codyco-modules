@@ -7,7 +7,7 @@ if(${CODYCO_USES_EIGEN_320})
 add_subdirectory(locomotionPlanner)
 #add_subdirectory(torqueBalancing)
 add_subdirectory(motorFrictionExcitation)
-add_subdirectory(motorFrictionIdentification)
+#add_subdirectory(motorFrictionIdentification)
 endif()
 
 #add_subdirectory(jointTorqueControl)

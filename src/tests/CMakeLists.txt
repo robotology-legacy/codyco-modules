@@ -4,7 +4,7 @@
 #add_subdirectory(wholeBodyInterfaceTest)
 #add_subdirectory(wholeBodyInterfaceIcubTest)
 if(CODYCO_USES_URDFDOM)
-    #add_subdirectory(yarpWholeBodyInterfaceTest)
+    add_subdirectory(yarpWholeBodyInterfaceTest)
 endif()
-add_subdirectory(inverseDynamicsTest)
+# add_subdirectory(inverseDynamicsTest)
 
