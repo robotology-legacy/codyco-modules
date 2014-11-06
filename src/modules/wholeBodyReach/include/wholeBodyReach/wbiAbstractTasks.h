@@ -144,7 +144,7 @@ public:
 
     
 /** A task described by an affine inequality:
-  * A x <= a
+  * A x + a >= 0
   */
 class WbiInequalityTask
 {

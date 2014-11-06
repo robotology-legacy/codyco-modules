@@ -22,7 +22,8 @@
 
 namespace Eigen
 {
-    typedef Matrix<double,Dynamic,Dynamic,RowMajor>  MatrixRXd;     /// Dynamic matrix with row-major storage order
+    typedef Matrix<double,Dynamic,Dynamic,RowMajor> MatrixRXd;     /// Dynamic matrix with row-major storage order
+    typedef Matrix<double,6,6,RowMajor>             MatrixR6d;     /// 6x6 matrix with row-major storage order
     
     typedef Ref<VectorXd>                           VectorRef;      /// Type used to pass Eigen vectors by reference
     typedef Ref<MatrixRXd>                          MatrixRef;      /// Type used to pass Eigen matrices by reference

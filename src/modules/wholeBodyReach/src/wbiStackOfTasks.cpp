@@ -16,7 +16,6 @@
 */
 
 #include <wholeBodyReach/wbiStackOfTasks.h>
-#include <wholeBodyReach/eiquadprog2011.hpp>
 #include <wholeBodyReach/Stopwatch.h>
 #include <Eigen/SVD>
 
@@ -69,28 +68,16 @@ wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot, bool useNullspa
     _M.resize(_n+6,_n+6);
     _h.resize(_n+6);
     
-    _Mb_inv.setZero(6,6);
-    _Mb_llt = LLT<MatrixRXd>(6);
+    _Mb_inv.setZero();
+    _Mb_llt = LLT<MatrixR6d>();
     _ddqDes.setZero(_n+6);
     _ddq_jDes.setZero(_n);
     _ddq_jPosture.setZero(_n);
     
     _A_i.setZero(6,_n+6);
-    _b_i.setZero(6);
+    _a_i.setZero(6);
 
-    _qpData_f.CE.resize(0,0);
-    _qpData_f.ce0.resize(0);
-    _qpData_f.CI.resize(0, 0);
-    _qpData_f.ci0.resize(0);
-    _qpData_f.activeSetSize   = 0;
-    
-    _qpData_ddq.activeSetSize = 0;
-    _qpData_ddq.H.resize(_n,_n);
-    _qpData_ddq.g.resize(_n);
-    _qpData_ddq.CE.resize(0,0);
-    _qpData_ddq.ce0.resize(0);
-    _qpData_ddq.CI.resize(0, 0);
-    _qpData_ddq.ci0.resize(0);
+    resizeVariables();
 }
 
 //**************************************************************************************************
@@ -129,11 +116,11 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             k  = c.getSize();    // number of constraint forces
             in = c.getNumberOfInequalities();
             
-            c.getInequalityMatrix( _qpData_f.CI.block(index_in, index_k, in, k)); // CI = [CI, t.getInequalityMatrix()]
-            c.getInequalityVector( _qpData_f.ci0.segment(index_in, in) );         //  b = [b; t.getInequalityVector()]
-            c.getMomentumMapping(  _X.middleCols(index_k, k)  );                //  X = [X, t.getMomentumMapping()]
-            c.getEqualityMatrix(   _Jc.middleRows(index_k, k) );                // Jc = [Jc; t.getEqualityMatrix()]
-            c.getEqualityVector(   _dJcdq.segment(index_k, k) );                // dJc_dq = [dJc_dq; t.getEqualityVector()]
+            c.getInequalityMatrix( _B.block(index_in, index_k, in, k));     // CI = [CI, t.getInequalityMatrix()]
+            c.getInequalityVector( _b.segment(index_in, in) );              //  b = [b; t.getInequalityVector()]
+            c.getMomentumMapping(  _X.middleCols(index_k, k)  );            //  X = [X, t.getMomentumMapping()]
+            c.getEqualityMatrix(   _Jc.middleRows(index_k, k) );            // Jc = [Jc; t.getEqualityMatrix()]
+            c.getEqualityVector(   _dJcdq.segment(index_k, k) );            // dJc_dq = [dJc_dq; t.getEqualityVector()]
             c.getWeights(          _fWeights.segment(index_k,k));
             
             // if the normal force of this constraint (computed at the last step) is not zero
@@ -141,8 +128,8 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             if(_fcDes(index_k+2)!=0.0)
                 _fWeights.segment(index_k,k) /= _fcDes(index_k+2);
             
-//            sendMsg("CI block "+c.getName()+":\n"+toString(_qpData_f.CI.block(index_in, index_k, in, k),1,"\n",12));
-//            sendMsg("ci0: "+toString(_qpData_f.ci0.segment(index_in, in),1));
+//            sendMsg("CI block "+c.getName()+":\n"+toString(_qp_force.CI.block(index_in, index_k, in, k),1,"\n",12));
+//            sendMsg("ci0: "+toString(_qp_force.ci0.segment(index_in, in),1));
             
             index_k += k;
             index_in += in;
@@ -151,19 +138,18 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
         
         assert(index_k==_k);
 //        sendMsg("X:\n"+toString(_X,1,"\n",12));
-//        sendMsg("CI:\n"+toString(_qpData_f.CI,1,"\n",12));
-//        sendMsg("ci0: "+toString(_qpData_f.ci0,1));
+//        sendMsg("CI:\n"+toString(_qp_force.CI,1,"\n",12));
+//        sendMsg("ci0: "+toString(_qp_force.ci0,1));
         
         START_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
         {
             _momentumTask->update(robotState);
             _momentumTask->getEqualityVector(_momentumDes);
             _fWeights.normalize();
-            _W.diagonal() = _fWeights;
         }
         STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
         //    sendMsg("momentumDes "+toString(_momentumDes,1));
-        //    cout<< "QP gradient "<<toString(_qpData_f.g,1)<<endl;
+        //    cout<< "QP gradient "<<toString(_qp_force.g,1)<<endl;
     }
     STOP_PROFILING(PROFILE_FORCE_QP_PREP);
     
@@ -174,11 +160,12 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     bool res;
     switch(_ctrlAlg)
     {
-        case WBR_CTRL_ALG_MOMENTUM_SOT:     res = computeMomentumSoT(robotState, torques);      break;
-        case WBR_CTRL_ALG_NULLSPACE_PROJ:   res = computeNullspaceProj(robotState, torques);    break;
-        case WBR_CTRL_ALG_COM_POSTURE:      res = computeComPosture(robotState, torques);       break;
-        case WBR_CTRL_ALG_MOMENTUM_POSTURE: res = computeMomentumPosture(robotState, torques);  break;
-        default:                            printf("WbiStackOfTask: ERROR unmanaged control algorithm!\n");
+        case WBR_CTRL_ALG_MOMENTUM_SOT:         res = computeMomentumSoT(robotState, torques);      break;
+        case WBR_CTRL_ALG_NULLSPACE_PROJ:       res = computeNullspaceProj(robotState, torques);    break;
+        case WBR_CTRL_ALG_COM_POSTURE:          res = computeComPosture(robotState, torques);       break;
+        case WBR_CTRL_ALG_MOMENTUM_POSTURE:     res = computeMomentumPosture(robotState, torques);  break;
+        case WBR_CTRL_ALG_MOMENTUM_SOT_SAFE:    res = computeMomentumSoT_safe(robotState, torques); break;
+        default: printf("WbiStackOfTask: ERROR unmanaged control algorithm!\n");
     }
     
 //    sendMsg("tau des: "+jointToString(torques,1));
@@ -223,29 +210,225 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
 }
 
 //**************************************************************************************************
-bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRef torques)
+bool wbiStackOfTasks::computeMomentumSoT_safe(RobotState& robotState, Eigen::VectorRef torques)
 {
-    sendMsg("ComputeMomentumSoT");
+    sendMsg("ComputeMomentumSoT_safe");
     
-    _qpData_f.H   = _X.transpose()*_X + _numericalDampingTask*_W;
-    _qpData_f.g   = -_X.transpose()*_momentumDes;
+    bool jointLimitActive = _jointLimitTask!=NULL;
+    if(jointLimitActive)
+        _jointLimitTask->update(robotState);
+    
+    // Set-up equality constraints for QP
+    computeMb_inverse();
+    _Mb_inv_M_bj= _Mb_inv * M_bj;
+    _Jc_Sbar    = Jc_j - (Jc_b * _Mb_inv_M_bj);
+    _qp_force.CE.leftCols(_n)   = _Jc_Sbar;
+    _qp_force.CE.rightCols(_k)  = Jc_b*_Mb_inv*Jc_b.transpose();
+    _qp_force.ce0               = _dJcdq - Jc_b*(_Mb_inv*h_b);
+    // Set-up inequality constraints for QP
+    int n_in = _jointLimitTask->getNumberOfInequalities();
+    _jointLimitTask->getInequalityMatrix(_qp_force.CI.topLeftCorner(n_in, _n));
+    _jointLimitTask->getInequalityVector(_qp_force.ci0.head(n_in));
+    n_in = _B.rows();
+    _qp_force.CI.bottomRightCorner(n_in, _k) = _B;
+    _qp_force.ci0.tail(n_in)    = _b;
+    // Set-up cost function for QP
+    _qp_force.A.rightCols(_k)   = _X;
+    _qp_force.a                 = _momentumDes;
+    _qp_force.w.tail(_k)        = _numericalDampingTask*_fWeights;
+    _qp_force.w.head(_n).setConstant(_numericalDampingDyn);
     
     double res;
     START_PROFILING(PROFILE_FORCE_QP);
     {
-        res = solve_quadprog(_qpData_f.H, _qpData_f.g, _qpData_f.CE.transpose(), _qpData_f.ce0,
-                             - _qpData_f.CI.transpose(), _qpData_f.ci0, _fcDes,
-                             _qpData_f.activeSet, _qpData_f.activeSetSize);
+        res         = _qp_force.solveQP(_numericalDampingConstr);
+        ddqDes_j    = _qp_force.x.head(_n);
+        _fcDes      = _qp_force.x.tail(_k);
+        
+        if(res == std::numeric_limits<double>::infinity())
+        {
+            cout<<"Force QP could not be solved:\n"<<_qp_force.toString()<<endl;
+            return false;
+        }
+        if(_qp_force.activeSetSize>0)
+            sendMsg("Active constraints: "+toString(_qp_force.activeSet.head(_qp_force.activeSetSize).transpose()));
+        _jointLimitTask->setDdqDes(ddqDes_j);
     }
     STOP_PROFILING(PROFILE_FORCE_QP);
-    if(res == std::numeric_limits<double>::infinity())
+    sendMsg("Momentum error  = "+toString((_X*_fcDes-_momentumDes).norm())+
+            ", QP cost "+toString(res));
+    
+    //*********************************
+    // COMPUTE DESIRED ACCELERATIONS
+    //*********************************
+    
+    // Compute base accelerations
+    //     dv_b = Mb^{-1}*(Jc_b^T*f - M_bj*ddq_j - h_b);
+    ddqDes_b    = _Mb_inv*(Jc_b.transpose()*_fcDes - M_bj*ddqDes_j - h_b);
+    //    sendMsg("ddqDes (dynamic consistent) = "+toString(_ddqDes,1));
+//    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+//    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+    
+    
+#define DEBUG_POSE_TASKS
+    // Solve the equality motion task
+    // N=I
+    // for i=1:K
+    //      A = A_i*Sbar*N
+    //      ddq_j = A^+ (b_i - A_i*ddq)
+    //      ddq  += Sbar*ddq_j
+    //      N    -= A^+ A
+    // end
+    
+    _Z.setIdentity(_n,_n);
+    
+    // set the equality constraints for the first QP
+    QpData *firstTask;
+    if(_equalityTasks.empty())
+        firstTask = &_qp_posture;
+    else
+        firstTask = &_qp_motion1;
+    
+    firstTask->CE  = _Jc_Sbar;
+    firstTask->ce0 = _dJcdq + _Jc*_ddqDes;
+    
+    double tmp;
+    list<MinJerkPDLinkPoseTask*>::iterator it;
+    for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
     {
-        cout<<"Force QP could not be solved:\n"<<_qpData_f.toString()<<endl;
-        return false;
+        MinJerkPDLinkPoseTask& t = **it;
+        t.update(robotState);
+        
+        t.getEqualityMatrix(_A_i);
+        t.getEqualityVector(_a_i);
+        
+        // even if CI is constant, we need to update it every time because we overwrite it
+        _jointLimitTask->getInequalityMatrix(_qp_motion1.CI);
+        _jointLimitTask->getInequalityVector(_qp_motion1.ci0);
+        _qp_motion1.ci0     += _qp_motion1.CI*ddqDes_j;
+        _qp_motion1.CI      *= _Z;
+        
+        _qp_motion1.A       = _A_i.rightCols(_n) - _A_i.leftCols<6>()*_Mb_inv_M_bj;
+        _qp_motion1.A       *= _Z;
+        _qp_motion1.w       = _numericalDampingTask*VectorXd::Ones(_n);
+        _qp_motion1.a       = _a_i - _A_i*_ddqDes;
+        for(int i=0; i<_qp_motion1.ci0.size(); i++)
+            if(_qp_motion1.ci0(i)<-1e-10)
+                sendMsg(t.getName()+" ci0("+toString(i)+") = "+toString(_qp_motion1.ci0(i)));
+        
+        double res = _qp_motion1.solveQP(_numericalDampingConstr);
+        _ddq_jDes  = _qp_motion1.x;
+        if(res == std::numeric_limits<double>::infinity())
+        {
+            cout<<t.getName()<<" QP could not be solved:\n"<<_qp_motion1.toString()<<endl;
+            return false;
+        }
+        if(_qp_motion1.activeSetSize>0)
+            sendMsg(t.getName()+". Active joint limits: "+toString(_qp_motion1.activeSet.head(_qp_motion1.activeSetSize).transpose()));
+
+        if((tmp=(_ddq_jDes-_Z*_ddq_jDes).norm())>1e-10)
+            sendMsg(t.getName()+". Part of ddq_jDes outside the null space of previous tasks: "+toString(tmp));
+        
+        ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
+        ddqDes_j    += _ddq_jDes;
+        
+        _qp_motion1.computeQpNullSpace();
+        _Z *= _qp_motion1.N_CE;
+        
+#ifdef  DEBUG_POSE_TASKS
+        _jointLimitTask->setDdqDes(ddqDes_j);
+        //        sendMsg(t.getName()+" Jacobian =\n"+toString(_A_i));
+        //        int nzsv = _A_svd.nonzeroSingularValues();
+        //        sendMsg(t.getName()+". "+toString(nzsv)+"-th sing val = "+toString(_A_svd.singularValues()(nzsv-1)));
+//        sendMsg(t.getName()+". Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+//        sendMsg(t.getName()+" ||A*x-b|| =    "+toString((_A_i*_ddqDes-_a_i).norm()));
+#endif
     }
     
-    if(_qpData_f.activeSetSize>0)
-        sendMsg("Active constraints: "+toString(_qpData_f.activeSet.head(_qpData_f.activeSetSize).transpose()));
+    //    sendMsg("Left arm ddq pre posture task:  "+toString(ddqDes_j.segment(3,5).transpose()));
+    START_PROFILING(PROFILE_DDQ_POSTURE_TASK);
+    {
+        _jointLimitTask->getInequalityMatrix(_qp_posture.CI);
+        _jointLimitTask->getInequalityVector(_qp_posture.ci0);
+        _qp_posture.ci0     += _qp_posture.CI*ddqDes_j;
+        _qp_posture.CI      *= _Z;
+        
+        _qp_posture.A       = _Z;
+        _qp_posture.w       = _numericalDampingTask*VectorXd::Ones(_n);
+        _qp_posture.a       = _ddq_jPosture - ddqDes_j;
+        for(int i=0; i<_qp_posture.ci0.size(); i++)
+            if(_qp_posture.ci0(i) < -1e-10)
+                sendMsg("Posture ci0("+toString(i)+") = "+toString(_qp_posture.ci0(i)));
+        
+        double res = _qp_posture.solveQP(_numericalDampingConstr);
+        _ddq_jDes  = _qp_posture.x;
+        
+        if(res == std::numeric_limits<double>::infinity())
+        {
+            cout<<"Posture QP could not be solved:\n"<<_qp_posture.toString()<<endl;
+            return false;
+        }
+        if(_qp_posture.activeSetSize>0)
+            sendMsg("Posture task. Active joint limits: "+toString(_qp_posture.activeSet.head(_qp_posture.activeSetSize).transpose()));
+        if((tmp=(_ddq_jDes-_Z*_ddq_jDes).norm())>1e-10)
+            sendMsg("Posture task. Part of ddq_jDes outside the null space of previous tasks: "+toString(tmp));
+        
+        ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
+        ddqDes_j    += _ddq_jDes;
+    }
+    STOP_PROFILING(PROFILE_DDQ_POSTURE_TASK);
+    
+    torques     = M_a*_ddqDes + h_j - Jc_j.transpose()*_fcDes;
+    
+    //    sendMsg("fcDes              = "+toString(_fcDes,1));
+    //    sendMsg("Left arm ddq post posture task: "+toString(ddqDes_j.segment(3,5).transpose()));
+    //    sendMsg("Left arm ddq des posture task:      "+toString(_ddq_jPosture.segment(3,5).transpose()));
+    //    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
+    //    sendMsg("ddq_jPosture        = "+jointToString(_ddq_jPosture,1));
+    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+    //    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
+    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+    
+    
+#ifdef  DEBUG_POSE_TASKS
+    for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
+    {
+        MinJerkPDLinkPoseTask& t = **it;
+        t.getEqualityMatrix(_A_i);
+        t.getEqualityVector(_a_i);
+        sendMsg(t.getName()+" ||A*x-b|| =    "+toString((_A_i*_ddqDes-_a_i).norm()));
+    }
+#endif
+    
+    return true;
+}
+
+//**************************************************************************************************
+bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRef torques)
+{
+    sendMsg("ComputeMomentumSoT");
+    
+    _qp_force.A     = _X;
+    _qp_force.a     = _momentumDes;
+    _qp_force.w     = _numericalDampingTask*_fWeights;
+    _qp_force.CI    = _B;
+    _qp_force.ci0   = _b;
+    
+    double res;
+    START_PROFILING(PROFILE_FORCE_QP);
+    {
+        res     = _qp_force.solveQP();
+        _fcDes  = _qp_force.x;
+        if(res == std::numeric_limits<double>::infinity())
+        {
+            cout<<"Force QP could not be solved:\n"<<_qp_force.toString()<<endl;
+            return false;
+        }
+        
+        if(_qp_force.activeSetSize>0)
+            sendMsg("Active constraints: "+toString(_qp_force.activeSet.head(_qp_force.activeSetSize).transpose()));
+    }
+    STOP_PROFILING(PROFILE_FORCE_QP);
     sendMsg("Momentum error  = "+toString((_X*_fcDes-_momentumDes).norm()));
     
     //*********************************
@@ -317,35 +500,38 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
         t.update(robotState);
         
         t.getEqualityMatrix(_A_i);
-        t.getEqualityVector(_b_i);
+        t.getEqualityVector(_a_i);
         _A = _A_i.rightCols(_n) - _A_i.leftCols<6>()*_Mb_inv_M_bj;
         _A *= _Z;
         _A_svd.compute(_A, _svdOptions);
 
         if(jointLimitActive)
         {
-            // even if CI is constant, you need to update it every time because we overwrite it
-            _jointLimitTask->getInequalityMatrix(_qpData_ddq.CI);
-            _jointLimitTask->getInequalityVector(_qpData_ddq.ci0);
+            // even if CI is constant, we need to update it every time because we overwrite it
+            _jointLimitTask->getInequalityMatrix(_qp_motion1.CI);
+            _jointLimitTask->getInequalityVector(_qp_motion1.ci0);
             
-            _qpData_ddq.H       = _A.transpose()*_A + _numericalDampingTask*MatrixXd::Identity(_n,_n);
-            _qpData_ddq.g       = -_A.transpose()*(_b_i - _A_i*_ddqDes);
-            _qpData_ddq.ci0     += _qpData_ddq.CI*ddqDes_j;
-            _qpData_ddq.CI      *= _Z;
-            double res = solve_quadprog(_qpData_ddq.H, _qpData_ddq.g, _qpData_ddq.CE.transpose(), _qpData_ddq.ce0,
-                                     _qpData_ddq.CI.transpose(), _qpData_ddq.ci0, _ddq_jDes,
-                                     _qpData_ddq.activeSet, _qpData_ddq.activeSetSize);
+            _qp_motion1.H       = _A.transpose()*_A + _numericalDampingTask*MatrixXd::Identity(_n,_n);
+            _qp_motion1.g       = -_A.transpose()*(_a_i - _A_i*_ddqDes);
+            _qp_motion1.ci0     += _qp_motion1.CI*ddqDes_j;
+            _qp_motion1.CI      *= _Z;
+            for(int i=0; i<_qp_motion1.ci0.size(); i++)
+                if(_qp_motion1.ci0(i)<-1e-10)
+                    sendMsg(t.getName()+" ci0("+toString(i)+") = "+toString(_qp_motion1.ci0(i)));
+            double res = solve_quadprog(_qp_motion1.H, _qp_motion1.g, _qp_motion1.CE.transpose(), _qp_motion1.ce0,
+                                     _qp_motion1.CI.transpose(), _qp_motion1.ci0, _ddq_jDes,
+                                     _qp_motion1.activeSet, _qp_motion1.activeSetSize);
             if(res == std::numeric_limits<double>::infinity())
             {
-                cout<<t.getName()<<" QP could not be solved:\n"<<_qpData_ddq.toString()<<endl;
+                cout<<t.getName()<<" QP could not be solved:\n"<<_qp_motion1.toString()<<endl;
                 return false;
             }
-            if(_qpData_ddq.activeSetSize>0)
-                sendMsg(t.getName()+". Active joint limits: "+toString(_qpData_ddq.activeSet.head(_qpData_ddq.activeSetSize).transpose()));
+            if(_qp_motion1.activeSetSize>0)
+                sendMsg(t.getName()+". Active joint limits: "+toString(_qp_motion1.activeSet.head(_qp_motion1.activeSetSize).transpose()));
         }
         else
         {
-            _ddq_jDes   = svdSolveWithDamping(_A_svd, _b_i - _A_i*_ddqDes, _numericalDampingTask);
+            _ddq_jDes   = svdSolveWithDamping(_A_svd, _a_i - _A_i*_ddqDes, _numericalDampingTask);
         }
         if((tmp=(_ddq_jDes-_Z*_ddq_jDes).norm())>1e-10)
             sendMsg(t.getName()+". Part of ddq_jDes outside the null space of previous tasks: "+toString(tmp));
@@ -354,37 +540,41 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
         updateNullspace(_A_svd);
         
 #ifdef  DEBUG_POSE_TASKS
+        _jointLimitTask->setDdqDes(ddqDes_j);
 //        sendMsg(t.getName()+" Jacobian =\n"+toString(_A_i));
 //        int nzsv = _A_svd.nonzeroSingularValues();
 //        sendMsg(t.getName()+". "+toString(nzsv)+"-th sing val = "+toString(_A_svd.singularValues()(nzsv-1)));
 //        sendMsg(t.getName()+". Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
-//        sendMsg(t.getName()+" ||A*x-b|| =    "+toString((_A_i*_ddqDes-_b_i).norm()));
+//        sendMsg(t.getName()+" ||A*x-b|| =    "+toString((_A_i*_ddqDes-_a_i).norm()));
 #endif
     }
 
-    sendMsg("Left arm ddq pre posture task:  "+toString(ddqDes_j.segment(3,5).transpose()));
+//    sendMsg("Left arm ddq pre posture task:  "+toString(ddqDes_j.segment(3,5).transpose()));
     START_PROFILING(PROFILE_DDQ_POSTURE_TASK);
     {
         if(jointLimitActive)
         {
-            _jointLimitTask->getInequalityMatrix(_qpData_ddq.CI);
-            _jointLimitTask->getInequalityVector(_qpData_ddq.ci0);
+            _jointLimitTask->getInequalityMatrix(_qp_posture.CI);
+            _jointLimitTask->getInequalityVector(_qp_posture.ci0);
             
-            _qpData_ddq.H       = _Z + _numericalDampingTask*MatrixXd::Identity(_n,_n);
-            _qpData_ddq.g       = -_Z*(_ddq_jPosture - ddqDes_j);
-            _qpData_ddq.ci0     += _qpData_ddq.CI*ddqDes_j;
-            _qpData_ddq.CI      *= _Z;
-            double res = solve_quadprog(_qpData_ddq.H, _qpData_ddq.g, _qpData_ddq.CE.transpose(), _qpData_ddq.ce0,
-                                        _qpData_ddq.CI.transpose(), _qpData_ddq.ci0, _ddq_jDes,
-                                        _qpData_ddq.activeSet, _qpData_ddq.activeSetSize);
+            _qp_posture.H       = _Z + _numericalDampingTask*MatrixXd::Identity(_n,_n);
+            _qp_posture.g       = -_Z*(_ddq_jPosture - ddqDes_j);
+            _qp_posture.ci0     += _qp_posture.CI*ddqDes_j;
+            _qp_posture.CI      *= _Z;
+            for(int i=0; i<_qp_posture.ci0.size(); i++)
+                if(_qp_posture.ci0(i) < -1e-10)
+                    cout<<"Posture ci0("+toString(i)+") = "+toString(_qp_posture.ci0(i))<<endl;
+            double res = solve_quadprog(_qp_posture.H, _qp_posture.g, _qp_posture.CE.transpose(), _qp_posture.ce0,
+                                        _qp_posture.CI.transpose(), _qp_posture.ci0, _ddq_jDes,
+                                        _qp_posture.activeSet, _qp_posture.activeSetSize);
             if(res == std::numeric_limits<double>::infinity())
             {
-                cout<<"Posture QP could not be solved:\n"<<_qpData_ddq.toString()<<endl;
+                cout<<"Posture QP could not be solved:\n"<<_qp_posture.toString()<<endl;
 //                _ddq_jDes.setZero();
                 return false;
             }
-            if(_qpData_ddq.activeSetSize>0)
-                sendMsg("Posture task. Active joint limits: "+toString(_qpData_ddq.activeSet.head(_qpData_ddq.activeSetSize).transpose()));
+            if(_qp_posture.activeSetSize>0)
+                sendMsg("Posture task. Active joint limits: "+toString(_qp_posture.activeSet.head(_qp_posture.activeSetSize).transpose()));
         }
         else
         {
@@ -404,8 +594,8 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
     torques     = M_a*_ddqDes + h_j - Jc_j.transpose()*_fcDes;
     
 //    sendMsg("fcDes              = "+toString(_fcDes,1));
-    sendMsg("Left arm ddq post posture task: "+toString(ddqDes_j.segment(3,5).transpose()));
-    sendMsg("Left arm ddq posture task:      "+toString(_ddq_jPosture.segment(3,5).transpose()));
+//    sendMsg("Left arm ddq post posture task: "+toString(ddqDes_j.segment(3,5).transpose()));
+//    sendMsg("Left arm ddq des posture task:      "+toString(_ddq_jPosture.segment(3,5).transpose()));
     //    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
     //    sendMsg("ddq_jPosture        = "+jointToString(_ddq_jPosture,1));
     sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
@@ -418,8 +608,8 @@ bool wbiStackOfTasks::computeMomentumSoT(RobotState& robotState, Eigen::VectorRe
     {
         MinJerkPDLinkPoseTask& t = **it;
         t.getEqualityMatrix(_A_i);
-        t.getEqualityVector(_b_i);
-        sendMsg(t.getName()+" ||A*x-b|| =    "+toString((_A_i*_ddqDes-_b_i).norm()));
+        t.getEqualityVector(_a_i);
+        sendMsg(t.getName()+" ||A*x-b|| =    "+toString((_A_i*_ddqDes-_a_i).norm()));
     }
 #endif
     
@@ -469,31 +659,30 @@ bool wbiStackOfTasks::computeComPosture(RobotState& robotState, Eigen::VectorRef
     
     START_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
     {
-        // @todo Check if possible to avoid this matrix-matrix multiplication
-        _qpData_f.H   = _X.topRows<3>().transpose()*_X.topRows<3>() + _numericalDampingTask*_W;
-        _qpData_f.g   = -_X.topRows<3>().transpose()*_momentumDes.head<3>();
-        
-//        sendMsg("H diag: "+toString(_qpData_f.H.diagonal(),1));
+        _qp_force.A     = _X.topRows<3>();
+        _qp_force.a     = _momentumDes.head<3>();
+        _qp_force.w     = _numericalDampingTask*_fWeights;
+        _qp_force.CI    = _B;
+        _qp_force.ci0   = _b;
+//        sendMsg("H diag: "+toString(_qp_force.H.diagonal(),1));
 //        sendMsg("f weights: "+toString(1e3*_fWeights,1));
 //        sendMsg("X*N_X = "+toString((_X*_N_X).maxCoeff())+" "+toString((_X*_N_X).minCoeff()));
     }
     STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
 
     //    sendMsg("momentumDes "+toString(_momentumDes,1));
-    //    cout<< "QP gradient "<<toString(_qpData_f.g,1)<<endl;
+    //    cout<< "QP gradient "<<toString(_qp_force.g,1)<<endl;
     double res;
     START_PROFILING(PROFILE_FORCE_QP);
     {
-        res = solve_quadprog(_qpData_f.H, _qpData_f.g, _qpData_f.CE.transpose(), _qpData_f.ce0,
-                             - _qpData_f.CI.transpose(), _qpData_f.ci0, _fcDes,
-                             _qpData_f.activeSet, _qpData_f.activeSetSize);
+        res     = _qp_force.solveQP();
+        _fcDes  = _qp_force.x;
+        if(res == std::numeric_limits<double>::infinity())
+            return false;
+        if(_qp_force.activeSetSize>0)
+            sendMsg("Active constraints: "+toString(_qp_force.activeSet.head(_qp_force.activeSetSize).transpose()));
     }
     STOP_PROFILING(PROFILE_FORCE_QP);
-    if(res == std::numeric_limits<double>::infinity())
-        return false;
-    
-    if(_qpData_f.activeSetSize>0)
-        sendMsg("Active constraints: "+toString(_qpData_f.activeSet.head(_qpData_f.activeSetSize).transpose()));
     sendMsg("Linear momentum error  = "+toString((_X.topRows<3>()*_fcDes - _momentumDes.head<3>()).norm()));
     
     //*********************************
@@ -645,7 +834,7 @@ void wbiStackOfTasks::computeMb_inverse()
 {
     // @todo Improve this computation exploting structure of Mb
     _Mb_llt.compute(M_b);
-    _Mb_inv.setIdentity(6,6);
+    _Mb_inv.setIdentity();
     _Mb_llt.solveInPlace(_Mb_inv);
 }
 
@@ -658,33 +847,71 @@ void wbiStackOfTasks::init(RobotState& robotState)
         (*it)->init(robotState);
     for(list<MinJerkPDLinkPoseTask*>::iterator it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
         (*it)->init(robotState);
-        
+    resizeVariables();
 }
 
 //**************************************************************************************************
 void wbiStackOfTasks::addConstraint(ContactConstraint& constraint)
 {
     _constraints.push_back(&constraint);
+    resizeVariables();
+}
+
+//**************************************************************************************************
+void wbiStackOfTasks::resizeVariables()
+{
+    int n_in=0; // number of inequalities
+    int n_eq;   // number of equalities
+    int nVar;   // number of variables
+    int m;      // size of the force QP task (3 if control CoM, 6 if control 6d momentum)
+    
+    // count constraints
     _k = 0;
-    int n_in=0;
     for(list<ContactConstraint*>::iterator it=_constraints.begin(); it!=_constraints.end(); it++)
     {
         _k   += (*it)->getSize();
         n_in += (*it)->getNumberOfInequalities();
     }
+    
+    // resize matrices and vectors
     _X.setZero(6,_k);
     _X_svd = SVD(6, _k, ComputeThinU|ComputeThinV);
     _N_X.setZero(_k,_k);
+    _B.setZero(n_in,_k);
+    _b.setZero(n_in);
     _fWeights.setZero(_k);
-    _W.setZero(_k,_k);
     _Jc.setZero(_k,_n+6);
     _dJcdq.setZero(_k);
     _fcDes.setZero(_k);
-    _qpData_f.H.setZero(_k,_k);
-    _qpData_f.g.setZero(_k);
-    _qpData_f.CI.setZero(n_in, _k);
-    _qpData_f.ci0.setZero(n_in);
-    _qpData_f.activeSet = VectorXi::Constant(n_in, -1);
+    
+    // resize force-QP variables
+    if(_ctrlAlg==WBR_CTRL_ALG_MOMENTUM_SOT_SAFE)
+    {
+        nVar = _k+_n;
+        if(_jointLimitTask!=NULL)
+            n_in += _jointLimitTask->getNumberOfInequalities();
+        n_eq = _k;
+    }
+    else
+    {
+        nVar = _k;
+        n_eq = 0;
+    }
+    m = _ctrlAlg==WBR_CTRL_ALG_COM_POSTURE ? 3 : 6;
+    _qp_force.resize(nVar, n_eq, n_in, m);
+    cout<<"Resize force QP with "<<nVar<<" variables, "<<n_eq<<" equalities, "<<n_in<<" inequalities, "<<m<<" task size\n";
+    
+    // resize first motion-task-QP variables
+    n_in = _jointLimitTask==NULL ? 0 : _jointLimitTask->getNumberOfInequalities();
+    n_eq = _k;
+    _qp_motion1.resize(_n, n_eq, n_in, 3);
+    
+    // resize second motion-task-QP variables
+    _qp_motion2.resize(_n, 0, n_in, 3);
+    
+    // resize posture-QP variables
+    n_eq = _equalityTasks.empty() ? _k : 0;
+    _qp_posture.resize(_n, n_eq, n_in, _n);
 }
 
 //**************************************************************************************************
@@ -707,7 +934,9 @@ void wbiStackOfTasks::linkParameterToVariable(ParamTypeId paramType, ParamHelper
             paramHelper->linkParam(paramId, &_numericalDampingTask);
             break;
         case CTRL_ALG:
+            _ctrlAlg_paramId = paramId;
             paramHelper->linkParam(paramId, &_ctrlAlg);
+            paramHelper->registerParamValueChangedCallback(paramId, this);
             break;
         default:
             cout<< "[wbiStackOfTasks::linkParameterToVariable] Trying to link a parameter that is not managed\n";
@@ -720,6 +949,11 @@ void wbiStackOfTasks::parameterUpdated(const ParamProxyInterface* pp)
     if(pp->id==_useNullspaceBase_paramId)
     {
         useNullspaceBase(_useNullspaceBase==1);
+        return;
+    }
+    else if(pp->id==_ctrlAlg_paramId)
+    {
+        resizeVariables();
         return;
     }
     cout<< "[wbiStackOfTasks::parameterUpdated] Callback for a parameter that is not managed"

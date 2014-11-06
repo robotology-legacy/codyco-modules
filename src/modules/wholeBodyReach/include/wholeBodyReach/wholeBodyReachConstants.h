@@ -19,7 +19,7 @@
 #define WHOLE_BODY_REACH_CONSTANTS
 
 //#include <paramHelp/paramProxyBasic.h>
-//#include <Eigen/Core>                               // import most common Eigen types
+#include <Eigen/Core>                               // import most common Eigen types
 //#include <vector>
 #include <string>
 //#include <yarp/sig/Matrix.h>
@@ -63,7 +63,7 @@ struct ContactPlaneSize
     rowSuffix       string printed at the end of each row
     matPrefix       string printed at the beginning of the matrix
     matSuffix       string printed at the end of the matrix */
-//static const Eigen::IOFormat matrixPrintFormat(1, Eigen::DontAlignCols, " ", ";\n", "", "", "[", "]");
+static const Eigen::IOFormat matlabPrintFormat(Eigen::FullPrecision, Eigen::DontAlignCols, " ", ";\n", "", "", "[", "];");
 
 /** Types of printed messages */
 //enum MsgType {MSG_DEBUG, MSG_INFO, MSG_WARNING, MSG_ERROR};
@@ -111,7 +111,8 @@ enum WholeBodyReachCtrlAlgorithm
     WBR_CTRL_ALG_NULLSPACE_PROJ     = 1,    // null-space projection (alla Righetti, Mistry)
     WBR_CTRL_ALG_COM_POSTURE        = 2,    // control CoM + posture
     WBR_CTRL_ALG_MOMENTUM_POSTURE   = 3,    // control momentum (CoM+angular momentum) + posture
-    WBR_CTRL_ALG_SIZE               = 4
+    WBR_CTRL_ALG_MOMENTUM_SOT_SAFE  = 4,    // SoT with Momentum control and joint limit enforcement in force QP
+    WBR_CTRL_ALG_SIZE               = 5
 };
 
 }

@@ -74,7 +74,7 @@ bool WholeBodyReachThread::threadInit()
     _solver.addConstraint(_tasks.leftFoot);
     _solver.addConstraint(_tasks.rightFoot);
 //    _solver.pushEqualityTask(_tasks.supportForearm);
-//    _solver.pushEqualityTask(_tasks.graspHand);
+    _solver.pushEqualityTask(_tasks.graspHand);
     
     _solver.linkParameterToVariable(wbiStackOfTasks::DYN_NUM_DAMP,       _paramHelper, PARAM_ID_DYN_DAMP);
     _solver.linkParameterToVariable(wbiStackOfTasks::CONSTR_NUM_DAMP,    _paramHelper, PARAM_ID_CONSTR_DAMP);
@@ -195,6 +195,7 @@ bool WholeBodyReachThread::threadInit()
     if(!readRobotStatus(true))
         return false;
     _solver.init(_robotState);
+    _solver.computeSolution(_robotState, _tauDes);
     
     printf("\n\n");
     return true;
@@ -216,11 +217,12 @@ void WholeBodyReachThread::run()
 //    sendMsg("dq "+jointToString(WBR_RAD2DEG * _robotState.dqJ));
 //    sendMsg("dq norm    "+toString(WBR_RAD2DEG * _robotState.dqJ.norm()));
 //    sendMsg("x base\n"+_robotState.xBase.toString());
-
     bool res = _solver.computeSolution(_robotState, _tauDes);   // compute desired joint torques
-
+    
     if(_status==WHOLE_BODY_REACH_ON)
     {
+        
+        
         if(areDesiredJointTorquesTooLarge())    // check desired joint torques are not too large
         {
             preStopOperations();            // stop the controller
