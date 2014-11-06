@@ -89,7 +89,10 @@ namespace codyco {
         class ControllerReferences
         {
         public:
-            ControllerReferences();
+            /** Constructor
+             * @param actuatedDOFs number of joints actuated
+             */
+            ControllerReferences(int actuatedDOFs);
             
             /** @brief returns the desired COM acceleration 3-dim reference.
              * @return desired COM acceleration (3 dim)

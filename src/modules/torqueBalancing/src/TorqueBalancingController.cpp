@@ -20,7 +20,6 @@
 #include <wbi/wbiUtil.h>
 #include <codyco/MathUtils.h>
 #include <codyco/LockGuard.h>
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
 
 #include <codyco/Utils.h>
 #include <iostream>
@@ -43,9 +42,10 @@
 namespace codyco {
     namespace torquebalancing {
         
-        TorqueBalancingController::TorqueBalancingController(int period, ControllerReferences& references, wbi::wholeBodyInterface& robot)
+        TorqueBalancingController::TorqueBalancingController(int period, ControllerReferences& references, wbi::wholeBodyInterface& robot, int actuatedDOFs)
         : RateThread(period)
         , m_robot(robot)
+        , m_actuatedDOFs(actuatedDOFs)
         , m_active(false)
         , m_centerOfMassLinkID(wbi::wholeBodyInterface::COM_LINK_ID)
         , m_references(references)
@@ -67,15 +67,15 @@ namespace codyco {
         , m_rightFootPosition(7)
         , m_leftFootPosition(7)
         , m_torqueSaturationLimit(actuatedDOFs)
-        , m_contactsJacobian(6*2 + 3*2, totalDOFs)
+        , m_contactsJacobian(6*2 + 3*2, actuatedDOFs + 6)
         , m_contactsDJacobianDq(6*2 + 3*2)
-        , m_massMatrix(totalDOFs, totalDOFs)
-        , m_generalizedBiasForces(totalDOFs)
-        , m_gravityBiasTorques(totalDOFs)
+        , m_massMatrix(actuatedDOFs + 6, actuatedDOFs + 6)
+        , m_generalizedBiasForces(actuatedDOFs + 6)
+        , m_gravityBiasTorques(actuatedDOFs + 6)
         , m_centroidalMomentum(6)
         , m_centroidalForceMatrix(6, 12)
         , m_gravityForce(6)
-        , m_torquesSelector(totalDOFs, actuatedDOFs)
+        , m_torquesSelector(actuatedDOFs + 6, actuatedDOFs)
         , m_pseudoInverseOfJcMInvSt(actuatedDOFs, 6*2 + 3*2)
         , m_pseudoInverseOfJcBase(6, 12)
         , m_pseudoInverseOfCentroidalForceMatrix(12, 6)
@@ -85,7 +85,7 @@ namespace codyco {
         , m_rotoTranslationVector(7)
         , m_jointsZeroVector(actuatedDOFs)
         , m_esaZeroVector(6)
-        , m_jacobianTemporary(6, totalDOFs)
+        , m_jacobianTemporary(6, actuatedDOFs + 6)
         , m_dJacobiaDqTemporary(6) {}
         
         TorqueBalancingController::~TorqueBalancingController() {}
@@ -96,10 +96,10 @@ namespace codyco {
             using namespace Eigen;
             //Initialize constant variables
             bool linkFound = true;
-            linkFound = m_robot.getLinkId("l_sole", m_leftFootLinkID);
-            linkFound = linkFound && m_robot.getLinkId("r_sole", m_rightFootLinkID);
-            linkFound = linkFound && m_robot.getLinkId("l_gripper", m_leftHandLinkID);
-            linkFound = linkFound && m_robot.getLinkId("r_gripper", m_rightHandLinkID);
+            linkFound = m_robot.getFrameList().wbiIdToNumericId("l_sole", m_leftFootLinkID);
+            linkFound = linkFound && m_robot.getFrameList().wbiIdToNumericId("r_sole", m_rightFootLinkID);
+            linkFound = linkFound && m_robot.getFrameList().wbiIdToNumericId("l_gripper", m_leftHandLinkID);
+            linkFound = linkFound && m_robot.getFrameList().wbiIdToNumericId("r_gripper", m_rightHandLinkID);
             
             m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
                                                             0, -1, 0,
@@ -117,7 +117,7 @@ namespace codyco {
             m_gravityUnitVector[2] = -9.81;
             
             m_torquesSelector.setZero();
-            m_torquesSelector.bottomRows(actuatedDOFs).setIdentity();
+            m_torquesSelector.bottomRows(m_actuatedDOFs).setIdentity();
             
             m_jointsZeroVector.setZero();
             m_torqueSaturationLimit.setConstant(std::numeric_limits<double>::max());
@@ -301,7 +301,7 @@ namespace codyco {
             //update base velocity (to be moved in wbi state)
             math::pseudoInverse(m_contactsJacobian.topLeftCorner<12, 6>(), m_svdDecompositionOfJcBase,
                                 m_pseudoInverseOfJcBase, PseudoInverseTolerance);
-            m_baseVelocity = -m_pseudoInverseOfJcBase * m_contactsJacobian.topRightCorner(12, actuatedDOFs) * m_jointVelocities;
+            m_baseVelocity = -m_pseudoInverseOfJcBase * m_contactsJacobian.topRightCorner(12, m_actuatedDOFs) * m_jointVelocities;
             
             //update dynamic quantities
             m_robot.computeMassMatrix(m_jointPositions.data(), m_world2BaseFrame, m_massMatrix.data());
@@ -370,13 +370,13 @@ namespace codyco {
 
             math::pseudoInverse(JcMInvTorqueSelector, m_svdDecompositionOfJcMInvSt,
                                 m_pseudoInverseOfJcMInvSt, PseudoInverseTolerance);
-            MatrixXd nullSpaceProjector = MatrixXd::Identity(actuatedDOFs, actuatedDOFs) - m_pseudoInverseOfJcMInvSt * JcMInvTorqueSelector; //to be inlined in m_torques
+            MatrixXd nullSpaceProjector = MatrixXd::Identity(m_actuatedDOFs, m_actuatedDOFs) - m_pseudoInverseOfJcMInvSt * JcMInvTorqueSelector; //to be inlined in m_torques
                         
             torques = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_contactsDJacobianDq - JcMInv * m_contactsJacobian.transpose() * desiredContactForces);
             
-            VectorXd torques0 = m_gravityBiasTorques.tail(actuatedDOFs) - m_contactsJacobian.rightCols(actuatedDOFs).transpose() * desiredContactForces
+            VectorXd torques0 = m_gravityBiasTorques.tail(m_actuatedDOFs) - m_contactsJacobian.rightCols(m_actuatedDOFs).transpose() * desiredContactForces
             - m_impedanceGains.asDiagonal() * (m_jointPositions - m_desiredJointsConfiguration) 
-            - m_massMatrix.block(6, 0, actuatedDOFs, 6) * m_massMatrix.topLeftCorner<6, 6>().inverse() * (m_gravityBiasTorques.head<6>() - m_contactsJacobian.leftCols(6).transpose() * desiredContactForces);
+            - m_massMatrix.block(6, 0, m_actuatedDOFs, 6) * m_massMatrix.topLeftCorner<6, 6>().inverse() * (m_gravityBiasTorques.head<6>() - m_contactsJacobian.leftCols(6).transpose() * desiredContactForces);
             
             torques += nullSpaceProjector * torques0;
                         

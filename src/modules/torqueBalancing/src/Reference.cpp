@@ -63,7 +63,7 @@ namespace codyco {
         
 #pragma mark - ControllerReferences implementation
         
-        ControllerReferences::ControllerReferences()
+        ControllerReferences::ControllerReferences(int actuatedDOFs)
         : m_desiredCOMAcceleration(3)
         , m_desiredLeftHandPosition(7)
         , m_desiredRightHandPosition(7)

@@ -53,7 +53,7 @@ namespace codyco {
         class TorqueBalancingController: public yarp::os::RateThread
         {
         public:
-            TorqueBalancingController(int period, ControllerReferences& references, wbi::wholeBodyInterface& robot);
+            TorqueBalancingController(int period, ControllerReferences& references, wbi::wholeBodyInterface& robot, int actuatedDOFs);
             virtual ~TorqueBalancingController();
             
 #pragma mark - RateThread methods
@@ -119,6 +119,7 @@ namespace codyco {
             void writeTorques();
             
             wbi::wholeBodyInterface& m_robot;
+            int m_actuatedDOFs;
             wbi::Frame m_world2BaseFrame;
             wbi::Frame m_leftFootToBaseRotationFrame;
             

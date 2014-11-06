@@ -53,6 +53,7 @@ namespace codyco {
         class EndEffectorPositionReader : public ReferenceGeneratorInputReader {
         private:
             wbi::wholeBodyInterface& m_robot;
+            int m_actualSize;
             wbi::Frame m_world2BaseFrame;
             wbi::Frame m_leftFootToBaseRotationFrame;
 
@@ -71,8 +72,8 @@ namespace codyco {
             void updateStatus(long context);
             void initializer();
         public:
-            EndEffectorPositionReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName);
-            EndEffectorPositionReader(wbi::wholeBodyInterface& robot, int linkID);
+            EndEffectorPositionReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName, int actuatedDOFs);
+            EndEffectorPositionReader(wbi::wholeBodyInterface& robot, int linkID, int actuatedDOFs);
             virtual ~EndEffectorPositionReader();
             virtual const Eigen::VectorXd& getSignal(long context = 0);
             virtual const Eigen::VectorXd& getSignalDerivative(long context = 0);
@@ -116,7 +117,7 @@ namespace codyco {
             wbi::Frame m_leftFootToBaseRotationFrame;
 
             int m_leftFootLinkID; /*!< this is temporary to allow robot localization */
-            wbi::wbiId m_endEffectorLocalID;
+            int m_endEffectorLocalID;
 
             Eigen::VectorXd m_jointsPosition;
             Eigen::VectorXd m_jointsVelocity;
@@ -126,7 +127,7 @@ namespace codyco {
 
             void updateStatus(long context);
         public:
-            EndEffectorForceReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName);
+            EndEffectorForceReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName, int totalDOFs);
 
             virtual ~EndEffectorForceReader();
             virtual const Eigen::VectorXd& getSignal(long context = 0);

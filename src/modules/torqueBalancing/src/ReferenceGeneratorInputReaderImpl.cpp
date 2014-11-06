@@ -19,36 +19,39 @@
 #include <wbi/wholeBodyInterface.h>
 #include <codyco/Utils.h>
 #include <codyco/LockGuard.h>
+#include <iostream>
 
 //this is temporary until a fix of @traversaro
 //TODO: move methods to generic interface
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+//#include <wbiIcub/wholeBodyInterfaceIcub.h>
 
 namespace codyco {
     namespace torquebalancing {
         
 #pragma mark - HandsPositionReader implementation
-        EndEffectorPositionReader::EndEffectorPositionReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName)
+        EndEffectorPositionReader::EndEffectorPositionReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName, int size)
         : m_robot(robot)
-        , m_jointsPosition(actuatedDOFs)
-        , m_jointsVelocity(totalDOFs) //In this there is also the base (added manually)
+        , m_actualSize(size)
+        , m_jointsPosition(size)
+        , m_jointsVelocity(size + 6) //In this there is also the base (added manually)
         , m_outputSignal(7)
         , m_outputSignalDerivative(7)
-        , m_jacobian(7, totalDOFs)
+        , m_jacobian(7, size + 6)
         , m_previousContext(0)
         {
-            m_robot.getLinkId(endEffectorLinkName.c_str(), m_endEffectorLinkID);
+            m_robot.getFrameList().wbiIdToNumericId(endEffectorLinkName.c_str(), m_endEffectorLinkID);
             initializer();
         }
         
-        EndEffectorPositionReader::EndEffectorPositionReader(wbi::wholeBodyInterface& robot, int linkID)
+        EndEffectorPositionReader::EndEffectorPositionReader(wbi::wholeBodyInterface& robot, int linkID, int size)
         : m_robot(robot)
+        , m_actualSize(size)
         , m_endEffectorLinkID(linkID)
-        , m_jointsPosition(actuatedDOFs)
-        , m_jointsVelocity(totalDOFs)
+        , m_jointsPosition(size)
+        , m_jointsVelocity(size + 6)
         , m_outputSignal(7)
         , m_outputSignalDerivative(7)
-        , m_jacobian(7, totalDOFs)
+        , m_jacobian(7, size + 6)
         , m_previousContext(0)
         {
             initializer();
@@ -58,7 +61,7 @@ namespace codyco {
         
         void EndEffectorPositionReader::initializer()
         {
-            m_robot.getLinkId("l_sole", m_leftFootLinkID);
+            m_robot.getFrameList().wbiIdToNumericId("l_sole", m_leftFootLinkID);
             m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
                                                             0, -1, 0,
                                                             1, 0, 0);
@@ -77,7 +80,7 @@ namespace codyco {
             if (!status) {
                 std::cerr << FUNCTION_NAME << ": Error while reading positions\n";
             }
-            status = status && m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.tail(actuatedDOFs).data());
+            status = status && m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.tail(m_actualSize).data());
             if (!status) {
                 std::cerr << FUNCTION_NAME << ": Error while reading velocities\n";
             }
@@ -123,7 +126,7 @@ namespace codyco {
         
 #pragma mark - COMReader implementation
         COMReader::COMReader(wbi::wholeBodyInterface& robot)
-        : EndEffectorPositionReader(robot, wbi::wholeBodyInterface::COM_LINK_ID)
+        : EndEffectorPositionReader(robot, wbi::wholeBodyInterface::COM_LINK_ID, 3)
         , m_outputCOM(3)
         , m_outputCOMVelocity(3) {}
 
@@ -145,21 +148,19 @@ namespace codyco {
         
 #pragma mark - HandsForceReader implementation
         EndEffectorForceReader::EndEffectorForceReader(wbi::wholeBodyInterface& robot,
-                                                       std::string endEffectorLinkName)
+                                                       std::string endEffectorLinkName,
+                                                       int totalDOFs)
         : m_robot(robot)
         , m_jointsPosition(totalDOFs)
         , m_jointsVelocity(totalDOFs)
         , m_outputSignal(6)
         , m_previousContext(0)
         {
-            m_robot.getLinkId("l_sole", m_leftFootLinkID);
+            m_robot.getFrameList().wbiIdToNumericId("l_sole", m_leftFootLinkID);
             m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
                                                             0, -1, 0,
                                                             1, 0, 0);
-            int endEffectorGlobalID = -1;
-            m_robot.getLinkId(endEffectorLinkName.c_str(), endEffectorGlobalID);
-            m_endEffectorLocalID = m_robot.getJointList().globalToLocalId(endEffectorGlobalID);
-            
+            m_robot.getFrameList().wbiIdToNumericId(endEffectorLinkName, m_endEffectorLocalID);
         }
         
         EndEffectorForceReader::~EndEffectorForceReader() {}
@@ -177,7 +178,7 @@ namespace codyco {
             
             //TODO: to be fixed
             ((wbiIcub::icubWholeBodyInterface&)m_robot).setWorldBasePosition(m_world2BaseFrame);
-
+            
             m_robot.getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, m_endEffectorLocalID, m_outputSignal.data());
         }
         

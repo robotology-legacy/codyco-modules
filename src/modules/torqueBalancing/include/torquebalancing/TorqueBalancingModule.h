@@ -151,7 +151,7 @@ namespace codyco {
         paramHelp::CommandObserver {
             
             TorqueBalancingModule& m_module;
-            
+                        
             bool m_initialized;
             paramHelp::ParamHelperServer* m_parameterServer;
             
@@ -190,7 +190,7 @@ namespace codyco {
             void sendReferencesToControllers();
             
         public:
-            ParamHelperManager(TorqueBalancingModule& module);
+            ParamHelperManager(TorqueBalancingModule& module, int actuatedDOFs);
             
             bool init(yarp::os::ResourceFinder& resourceFinder);
             bool linkVariables();

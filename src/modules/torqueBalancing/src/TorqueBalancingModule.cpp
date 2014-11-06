@@ -21,17 +21,15 @@
 #include "ReferenceGenerator.h"
 #include "ReferenceGeneratorInputReaderImpl.h"
 #include "MinimumJerkTrajectoryGenerator.h"
-#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
-#include <yarp/os/Port.h>
-#include <vector>
-
-#include <paramHelp/paramHelperServer.h>
 #include "ParamHelperConfig.h"
 
+#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
+#include <paramHelp/paramHelperServer.h>
 #include <codyco/ModelParsing.h>
-#include <iostream>
 #include <codyco/Utils.h>
-
+#include <yarp/os/Port.h>
+#include <iostream>
+#include <vector>
 
 namespace codyco {
     namespace torquebalancing {
@@ -56,9 +54,7 @@ namespace codyco {
         , m_references(0)
         , m_rpcPort(0)
         , m_paramHelperManager(0)
-        , m_initialJointsConfiguration(actuatedDOFs)
         , m_comReference(3)
-        , m_impedanceDoubleSupportReference(actuatedDOFs)
         , m_impedanceLeftHandReference(5)
         , m_impedanceRightHandReference(5) {}
 
@@ -66,10 +62,32 @@ namespace codyco {
 
         bool TorqueBalancingModule::configure(yarp::os::ResourceFinder& rf)
         {
+            //Loading joints information
+            yarp::os::Property wbiProperties;
+            if (!rf.check("wbi_config_file")) {
+                std::cerr << "No WBI configuration file found." << std::endl;
+                return false;
+            }
+            if (!wbiProperties.fromConfigFile(rf.findFile("wbi_config_file"))) {
+                std::cerr << "Not possible to load WBI properties from file." << std::endl;
+                return false;
+            }
+            
+            //retrieve all main joints
+            wbi::wbiIdList iCubMainJoints;
+            if (!yarpWbi::loadIdListFromConfig("ICUB_MAIN_JOINTS", wbiProperties, iCubMainJoints)) {
+                std::cerr << "Cannot find joint list" << std::endl;
+            }
+            double actuatedDOFs = iCubMainJoints.size();
+            double totalDOFs = actuatedDOFs + 6;
+            
+            m_initialJointsConfiguration.resize(actuatedDOFs);
+            m_impedanceDoubleSupportReference.resize(actuatedDOFs);
+            
             //PARAMETERS SECTION
             //Creating parameter server helper
             //link controller and references variables to param helper manager
-            m_paramHelperManager = new ParamHelperManager(*this);
+            m_paramHelperManager = new ParamHelperManager(*this, actuatedDOFs);
             if (!m_paramHelperManager || !m_paramHelperManager->init(rf)) {
                 std::cerr << "Could not initialize parameter helper." << std::endl;
                 return false;
@@ -86,41 +104,33 @@ namespace codyco {
             attach(*m_rpcPort);
 
             //Create reference variable
-            m_references = new ControllerReferences();
+            m_references = new ControllerReferences(actuatedDOFs);
             if (!m_references) {
                 std::cerr << "Could not create shared references object." << std::endl;
                 return false;
             }
 
             //create reference to wbi
-            iCub::iDynTree::iCubTree_version_tag iCubVersion;
-            codyco::iCubVersionFromRf(rf, iCubVersion);
-            m_robot = new wbiIcub::icubWholeBodyInterface(m_moduleName.c_str(), m_robotName.c_str(), iCubVersion);
-
+            m_robot = new yarpWbi::yarpWholeBodyInterface(m_moduleName.c_str(), wbiProperties);
             if (!m_robot) {
                 std::cerr << "Could not create wbi object." << std::endl;
                 return false;
             }
+            
             //add joints
-            m_robot->addJoints(wbiIcub::ICUB_MAIN_JOINTS);
+            m_robot->addJoints(iCubMainJoints);
             if (!m_robot->init()) {
                 std::cerr << "Could not initialize wbi." << std::endl;
                 return false;
             }
-
-            //Sanity checks
-            if (wbiIcub::ICUB_MAIN_JOINTS.size() != actuatedDOFs) {
-                std::cerr << "Error in initializing wbi, the number of joints is different from the expected" << std::endl;
-                return false;
-            }
-
+            
             //load initial configuration for the impedance control
             m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_initialJointsConfiguration.data());
             m_references->desiredJointsConfiguration().setValue(m_initialJointsConfiguration);
             m_impedanceDoubleSupportReference = m_initialJointsConfiguration; //copy into double support state
 
             int leftFootLinkID = -1;
-            m_robot->getLinkId("l_sole", leftFootLinkID);
+            m_robot->getFrameList().wbiIdToNumericId("l_sole", leftFootLinkID);
 
             wbi::Frame frame;
             m_robot->computeH(m_initialJointsConfiguration.data(), wbi::Frame(), leftFootLinkID, frame);
@@ -245,7 +255,7 @@ namespace codyco {
                 }
             }
 
-            m_controller = new TorqueBalancingController(m_controllerThreadPeriod, *m_references, *m_robot);
+            m_controller = new TorqueBalancingController(m_controllerThreadPeriod, *m_references, *m_robot, actuatedDOFs);
             if (!m_controller) {
                 std::cerr << "Could not create TorqueBalancing controller object." << std::endl;
                 return false;
@@ -468,7 +478,7 @@ namespace codyco {
 
 #pragma mark - ParamHelperManager methods
 
-        TorqueBalancingModule::ParamHelperManager::ParamHelperManager(TorqueBalancingModule& module)
+        TorqueBalancingModule::ParamHelperManager::ParamHelperManager(TorqueBalancingModule& module, int actuatedDOFs)
         : m_module(module)
         , m_initialized(false)
         , m_parameterServer(0)
