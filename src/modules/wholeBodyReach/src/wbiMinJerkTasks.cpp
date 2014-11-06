@@ -17,6 +17,7 @@
 
 #include <wholeBodyReach/wbiMinJerkTasks.h>
 #include <wholeBodyReach/Logger.h>
+#include <iCub/skinDynLib/common.h>
 #include <Eigen/Geometry>
 
 // TEMP
@@ -29,6 +30,7 @@ using namespace std;
 using namespace wbi;
 using namespace Eigen;
 using namespace paramHelp;
+using namespace iCub::skinDynLib;
 
 MinJerkPDLinkPoseTask::MinJerkPDLinkPoseTask(string taskName, string linkName, double sampleTime, wholeBodyInterface* robot)
 : WbiAbstractTask(taskName, 6, robot),
@@ -182,7 +184,7 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
         computeOrientationError(_H.R, _Rdes, _orientationError);
         _a_eq.tail<3>() =   _Kp.tail<3>().cwiseProduct(_orientationError)
                           - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>()); // - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
-        getLogger().sendMsg("Torso orientation error: "+toString(_orientationError,2), MSG_STREAM_INFO);
+        getLogger().sendMsg("Root-link orientation error: "+toString(_orientationError,2), MSG_STREAM_INFO);
     }
     
 //    getLogger().sendMsg("Momentum: Kp*e    = "+toString(_Kp.head<3>().cwiseProduct(_trajGen.getPos()-_com),2), MSG_STREAM_INFO);
@@ -222,9 +224,9 @@ void MinJerkPDMomentumTask::init(RobotState& state)
     // reset momentum integral
     _momentumIntegral.setZero();
     
-    // set desired torso's orientation to initial one
-    if(!(res = _robot->getLinkId("chest", _linkId)))
-        printf("[MinJerkPDMomentumTask] Error while trying to get id of link chest.\n");
+    // set desired root-link's orientation to initial one
+    if(!(res = _robot->getLinkId("root_link", _linkId))) // use "chest" alternatively
+        printf("[MinJerkPDMomentumTask] Error while trying to get id of link root_link.\n");
     res = _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
     _Rdes = _H.R;
 }
@@ -419,7 +421,10 @@ bool JointLimitTask::setDdqDes(VectorConst ddqDes)
     for(int i=0; i<_m; i++)
     {
         if(tmp(2*i)+_a_in(2*i) <= 0.0 || tmp(2*i+1)+_a_in(2*i+1) <= 0.0)
-            getLogger().sendMsg("Joint limit "+toString(i)+
+        {
+            LocalId j = _robot->getJointList().globalToLocalId(i);
+            getLogger().sendMsg(BodyPart_s[j.bodyPart]+
+                                " joint "+toString(j.index)+" limit "+toString(i)+
                                 "\t ddqDes="+toString(ddqDes(i))+
                                 "\t ddqMin="+toString(-_a_in(2*i))+
                                 "\t ddqMax="+toString(_a_in(2*i+1))+
@@ -428,6 +433,7 @@ bool JointLimitTask::setDdqDes(VectorConst ddqDes)
                                 "\t qMax="+toString(_qMax(i))+
                                 "\t qPred="+toString(CTRL_RAD2DEG*(_q(i)+_dt*_dq(i)+0.5*pow(_dt,2)*ddqDes(i))),
                                                     MSG_STREAM_INFO);
+        }
     }
     return true;
 }
