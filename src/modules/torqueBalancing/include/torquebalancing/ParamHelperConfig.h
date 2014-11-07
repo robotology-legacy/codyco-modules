@@ -97,10 +97,10 @@ namespace codyco {
         static const Eigen::VectorXd defaultHandsPositionGains = Eigen::VectorXd::Zero(14);
         static const Eigen::VectorXd defaultHandsForceGains = Eigen::VectorXd::Zero(12);
         static const double defaultCentroidalGain = 0;
-        static const Eigen::VectorXd defaultImpedanceGains = Eigen::VectorXd::Zero(tempactuatedDOFs);
-        static const Eigen::VectorXd defaultSaturation = Eigen::VectorXd::Constant(tempactuatedDOFs, 100);
+//        static const Eigen::VectorXd defaultImpedanceGains = Eigen::VectorXd::Zero(tempactuatedDOFs);
+//        static const Eigen::VectorXd defaultSaturation = Eigen::VectorXd::Constant(tempactuatedDOFs, 100);
         
-        const paramHelp::ParamProxyInterface *const TorqueBalancingModuleParameterDescriptions[]  =
+        paramHelp::ParamProxyInterface *const TorqueBalancingModuleParameterDescriptions[]  =
         {
             //config parameters
             new paramHelp::ParamProxyBasic<std::string>("name", TorqueBalancingModuleParameterModuleName, 1, paramHelp::ParamConstraint<std::string>(), paramHelp::PARAM_CONFIG, &defaultModuleName, "Name of the instance of the module"),
@@ -115,7 +115,6 @@ namespace codyco {
             new paramHelp::ParamProxyBasic<double>("comRef", TorqueBalancingModuleParameterCOMReference, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "COM reference (x,y,z)"),
             new paramHelp::ParamProxyBasic<double>("handPosRef", TorqueBalancingModuleParameterHandsPositionReference, 14, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Hands position reference, position + angle axis. Left then Right hand"),
             new paramHelp::ParamProxyBasic<double>("handForcesRef", TorqueBalancingModuleParameterHandsForceReference, 12, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Hands forces reference, forces + torques. Left then Right hand"),
-            new paramHelp::ParamProxyBasic<double>("qDes_2support", TorqueBalancingModuleParameterDesiredJointsConfigurationStateDoubleSupport, tempactuatedDOFs, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Desired joints configuration for impedance control"),
             new paramHelp::ParamProxyBasic<double>("qDes_3support_leftForce", TorqueBalancingModuleParameterDesiredJointsConfigurationStateLeftHandPosition, 5, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Desired joints configuration for impedance control"),
             new paramHelp::ParamProxyBasic<double>("qDes_3support_rightForce", TorqueBalancingModuleParameterDesiredJointsConfigurationStateRightHandPosition, 5, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Desired joints configuration for impedance control"),
             //COM
@@ -135,15 +134,18 @@ namespace codyco {
             new paramHelp::ParamProxyBasic<double>("handForceKi", TorqueBalancingModuleParameterHandsForceIntegralGain, 12, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultHandsForceGains.data(), "Integral gains of Hands forces PID"),
             //gains
             new paramHelp::ParamProxyBasic<double>("kw", TorqueBalancingModuleParameterCentroidalGain, 1, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, &defaultCentroidalGain, "Gain for the centroidal-based controller"),
-            new paramHelp::ParamProxyBasic<double>("kImp", TorqueBalancingModuleParameterImpedanceGain, tempactuatedDOFs, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultImpedanceGains.data(), "Gain for the impedance control task."),
-            //Additional parameters
-            new paramHelp::ParamProxyBasic<double>("tsat", TorqueBalancingModuleParameterTorqueSaturation, tempactuatedDOFs, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, defaultSaturation.data(), "Torque saturations (positives)"),
             //Monitored variables
             new paramHelp::ParamProxyBasic<double>("desCOMAcc", TorqueBalancingModuleParameterMonitorDesiredCOMAcceleration, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Desired COM acceleration computed by the controller"),
             new paramHelp::ParamProxyBasic<double>("comError", TorqueBalancingModuleParameterMonitorCOMError, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Instantaneous COM error"),
             new paramHelp::ParamProxyBasic<double>("comIntError", TorqueBalancingModuleParameterMonitorCOMIntegralError, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Integral of COM error"),
             new paramHelp::ParamProxyBasic<double>("feetForces", TorqueBalancingModuleParameterMonitorFeetForces, 12, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Desired feet forces"),
-            new paramHelp::ParamProxyBasic<double>("outTorques", TorqueBalancingModuleParameterMonitorOutputTorques, tempactuatedDOFs, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Output torques of the controller"),
+            //Param size Free
+            new paramHelp::ParamProxyBasic<double>("qDes_2support", TorqueBalancingModuleParameterDesiredJointsConfigurationStateDoubleSupport, paramHelp::PARAM_SIZE_FREE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Desired joints configuration for impedance control"),
+            new paramHelp::ParamProxyBasic<double>("kImp", TorqueBalancingModuleParameterImpedanceGain, paramHelp::PARAM_SIZE_FREE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Gain for the impedance control task."),
+            //Additional parameters
+            new paramHelp::ParamProxyBasic<double>("tsat", TorqueBalancingModuleParameterTorqueSaturation, paramHelp::PARAM_SIZE_FREE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Torque saturations (positives)"),
+            new paramHelp::ParamProxyBasic<double>("outTorques", TorqueBalancingModuleParameterMonitorOutputTorques, paramHelp::PARAM_SIZE_FREE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Output torques of the controller"),
+            
         };
         
         

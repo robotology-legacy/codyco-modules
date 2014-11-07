@@ -503,7 +503,16 @@ namespace codyco {
         , m_monitoredCOMError(3)
         , m_monitoredCOMIntegralError(3)
         , m_monitoredFeetForces(12)
-        , m_monitoredOutputTorques(actuatedDOFs) {}
+        , m_monitoredOutputTorques(actuatedDOFs)
+        {
+            //this is totally crazy..
+            //indexes to modify are last 4:
+            paramHelp::ParamSize newSize = paramHelp::ParamSize(actuatedDOFs, false);
+            TorqueBalancingModuleParameterDescriptions[TorqueBalancingModuleParameterSize - 4]->size = newSize;
+            TorqueBalancingModuleParameterDescriptions[TorqueBalancingModuleParameterSize - 3]->size = newSize;
+            TorqueBalancingModuleParameterDescriptions[TorqueBalancingModuleParameterSize - 2]->size = newSize;
+            TorqueBalancingModuleParameterDescriptions[TorqueBalancingModuleParameterSize - 1]->size = newSize;
+        }
 
         TorqueBalancingModule::ParamHelperManager::~ParamHelperManager()
         {
