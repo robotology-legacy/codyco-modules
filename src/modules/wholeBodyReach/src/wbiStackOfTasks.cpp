@@ -250,8 +250,19 @@ bool wbiStackOfTasks::computeMomentumSoT_safe(RobotState& robotState, Eigen::Vec
             cout<<"Force QP could not be solved:\n"<<_qp_force.toString()<<endl;
             return false;
         }
+        
         if(_qp_force.activeSetSize>0)
             sendMsg("Active constraints: "+toString(_qp_force.activeSet.head(_qp_force.activeSetSize).transpose()));
+        VectorXd tmp = _qp_force.CI*_qp_force.x;
+        for(int i=0; i<tmp.size(); i++)
+            if(tmp(i)+_qp_force.ci0(i)<-1e-10)
+            {
+                cout<<"Force QP inequality constraint "+toString(i)+" is violated by the solution\n";
+                cout<<tmp(i)<<" < "<< -_qp_force.ci0(i)<<endl;
+                cout<<"x = "<<_qp_force.x.transpose().format(matlabPrintFormat)<<endl;
+                cout<<_qp_force.toString()<<endl;
+                return false;
+            }
         _jointLimitTask->setDdqDes(ddqDes_j);
     }
     STOP_PROFILING(PROFILE_FORCE_QP);
@@ -267,7 +278,8 @@ bool wbiStackOfTasks::computeMomentumSoT_safe(RobotState& robotState, Eigen::Vec
     ddqDes_b    = _Mb_inv*(Jc_b.transpose()*_fcDes - M_bj*ddqDes_j - h_b);
     //    sendMsg("ddqDes (dynamic consistent) = "+toString(_ddqDes,1));
 //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-//    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+    sendMsg("Contact constr residual = "+toString((_Jc*_ddqDes+_dJcdq).transpose()));
     
     
 #define DEBUG_POSE_TASKS
@@ -290,7 +302,10 @@ bool wbiStackOfTasks::computeMomentumSoT_safe(RobotState& robotState, Eigen::Vec
         firstTask = &_qp_motion1;
     
     firstTask->CE  = _Jc_Sbar;
-    firstTask->ce0 = _dJcdq + _Jc*_ddqDes;
+    // to ensure consistency with the contact forces found by the first QP
+    // I make sure the contact-constraint residual is the same
+    firstTask->ce0.setZero();
+//    firstTask->ce0 = _dJcdq + _Jc*_ddqDes;
     
     double tmp;
     list<MinJerkPDLinkPoseTask*>::iterator it;
@@ -314,7 +329,10 @@ bool wbiStackOfTasks::computeMomentumSoT_safe(RobotState& robotState, Eigen::Vec
         _qp_motion1.a       = _a_i - _A_i*_ddqDes;
         for(int i=0; i<_qp_motion1.ci0.size(); i++)
             if(_qp_motion1.ci0(i)<-1e-10)
-                sendMsg(t.getName()+" ci0("+toString(i)+") = "+toString(_qp_motion1.ci0(i)));
+            {
+                cout<<t.getName()+" ci0("+toString(i)+") = "+toString(_qp_motion1.ci0(i))<<endl;
+                return false;
+            }
         
         double res = _qp_motion1.solveQP(_numericalDampingConstr);
         _ddq_jDes  = _qp_motion1.x;
@@ -358,7 +376,10 @@ bool wbiStackOfTasks::computeMomentumSoT_safe(RobotState& robotState, Eigen::Vec
         _qp_posture.a       = _ddq_jPosture - ddqDes_j;
         for(int i=0; i<_qp_posture.ci0.size(); i++)
             if(_qp_posture.ci0(i) < -1e-10)
-                sendMsg("Posture ci0("+toString(i)+") = "+toString(_qp_posture.ci0(i)));
+            {
+                cout<<"Posture ci0("+toString(i)+") = "+toString(_qp_posture.ci0(i))<<endl;
+                return false;
+            }
         
         double res = _qp_posture.solveQP(_numericalDampingConstr);
         _ddq_jDes  = _qp_posture.x;
@@ -385,9 +406,10 @@ bool wbiStackOfTasks::computeMomentumSoT_safe(RobotState& robotState, Eigen::Vec
     //    sendMsg("Left arm ddq des posture task:      "+toString(_ddq_jPosture.segment(3,5).transpose()));
     //    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
     //    sendMsg("ddq_jPosture        = "+jointToString(_ddq_jPosture,1));
-    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+//    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
     //    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
     sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+    sendMsg("Contact constr residual = "+toString((_Jc*_ddqDes+_dJcdq).transpose()));
     
     
 #ifdef  DEBUG_POSE_TASKS
