@@ -150,6 +150,8 @@ bool WholeBodyReachThread::threadInit()
     _tasks.jointLimits.setTimestep(10*getRate()*1e-3);
     _tasks.jointLimits.linkParameterQmax(_paramHelper, PARAM_ID_Q_MAX);
     _tasks.jointLimits.linkParameterQmin(_paramHelper, PARAM_ID_Q_MIN);
+    _tasks.jointLimits.linkParameterDQmax(_paramHelper, PARAM_ID_DQ_MAX);
+    _tasks.jointLimits.linkParameterDDQmax(_paramHelper, PARAM_ID_DDQ_MAX);
     _tasks.jointLimits.linkParameterQnormalized(_paramHelper, PARAM_ID_NORMALIZED_Q);
 
     // Register callbacks for some module commands and parameters

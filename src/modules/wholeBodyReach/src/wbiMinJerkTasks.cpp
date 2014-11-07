@@ -345,9 +345,7 @@ JointLimitTask::JointLimitTask(std::string taskName, wbi::wholeBodyInterface* ro
 {
     _qMin.resize(_m);
     _qMax.resize(_m);
-    _dqMin.resize(_m);
     _dqMax.resize(_m);
-    _ddqMin.resize(_m);
     _ddqMax.resize(_m);
     _qNormalized.resize(_m);
     updateInequalityMatrix();
@@ -360,12 +358,33 @@ bool JointLimitTask::update(RobotState& state)
     bool res = true;
     _q = state.qJ;
     _dq = state.dqJ;
+    double posLim, velLim, ddqMin, ddqMax;
     for(int i=0; i<_m;i++)
     {
-        // compute (negative) lower bound
-        _a_in(2*i+0) = -(2.0/pow(_dt,2))*(CTRL_DEG2RAD*_qMin(i) - _q(i) - _dt*_dq(i));
-        // compute upper bound
-        _a_in(2*i+1) = +(2.0/pow(_dt,2))*(CTRL_DEG2RAD*_qMax(i) - _q(i) - _dt*_dq(i));
+        // *** Compute (negative) lower bound ***
+        // compute min ddq not to hit lower position bound
+        posLim = (2.0/pow(_dt,2))*(CTRL_DEG2RAD*_qMin(i) - _q(i) - _dt*_dq(i));
+        // compute min ddq not to hit lower velocity bound
+        velLim = -(_dq(i)+CTRL_DEG2RAD*_dqMax(i))/_dt;
+        ddqMin = max(posLim, max(velLim, -_ddqMax(i)));
+        _a_in(2*i+0) = -ddqMin;
+        
+        // *** Compute upper bound ***
+        // compute max ddq not to hit upper position bound
+        posLim = +(2.0/pow(_dt,2))*(CTRL_DEG2RAD*_qMax(i) - _q(i) - _dt*_dq(i));
+        // compute max ddq not to hit upper velocity bound
+        velLim = (CTRL_DEG2RAD*_dqMax(i)-_dq(i))/_dt;
+        ddqMax = min(posLim, min(velLim, _ddqMax(i)));
+        _a_in(2*i+1) =ddqMax;
+        
+        // if lower bound is > than upper bound
+        if(ddqMin >= ddqMax)
+        {
+            cout<<"Joint "<<i<<" must violate a vel/acc constraint. q="<<CTRL_RAD2DEG*_q(i)<<
+                  " dq="<<CTRL_RAD2DEG*_dq(i)<<" qMax="<<_qMax(i)<<" qMin="<<_qMin(i)<<"\n";
+            _a_in(2*i+0) = -(2.0/pow(_dt,2))*(CTRL_DEG2RAD*_qMin(i) - _q(i) - _dt*_dq(i));
+            _a_in(2*i+1) = posLim;
+        }
         
         // compute monitoring parameter "q normalized"
         _qNormalized(i) = (CTRL_RAD2DEG*_q(i)-_qMin(i))/(_qMax(i)-_qMin(i));
@@ -395,44 +414,37 @@ bool JointLimitTask::setTimestep(double dt)
     return false;
 }
 
-bool JointLimitTask::setVelocityLimits(VectorConst dqMin, VectorConst dqMax)
-{
-    if( !checkVectorSize(dqMin) || !checkVectorSize(dqMax))
-        return false;
-    _dqMin = dqMin;
-    _dqMax = dqMax;
-    return true;
-}
-
-bool JointLimitTask::setAccelerationLimits(VectorConst ddqMin, VectorConst ddqMax)
-{
-    if( !checkVectorSize(ddqMin) || !checkVectorSize(ddqMax))
-        return false;
-    _ddqMin = ddqMin;
-    _ddqMax = ddqMax;
-    return true;
-}
-
 bool JointLimitTask::setDdqDes(VectorConst ddqDes)
 {
     if( !checkVectorSize(ddqDes))
         return false;
     VectorXd tmp = _A_in*ddqDes;
+    const LocalIdList& jl = _robot->getJointList();
     for(int i=0; i<_m; i++)
     {
         if(tmp(2*i)+_a_in(2*i) <= 0.0 || tmp(2*i+1)+_a_in(2*i+1) <= 0.0)
         {
-            LocalId j = _robot->getJointList().globalToLocalId(i);
+            LocalId j = jl.globalToLocalId(i);
             getLogger().sendMsg(BodyPart_s[j.bodyPart]+
-                                " joint "+toString(j.index)+" limit "+toString(i)+
+                                " joint "+toString(j.index)+" acc limit "+toString(i)+
                                 "\t ddqDes="+toString(ddqDes(i))+
                                 "\t ddqMin="+toString(-_a_in(2*i))+
-                                "\t ddqMax="+toString(_a_in(2*i+1))+
+                                "\t ddqMax="+toString(_a_in(2*i+1)),
+//                                "\t q="+toString(CTRL_RAD2DEG*_q(i))+
+//                                "\t qMin="+toString(_qMin(i))+
+//                                "\t qMax="+toString(_qMax(i))+
+//                                "\t qPred="+toString(CTRL_RAD2DEG*(_q(i)+_dt*_dq(i)+0.5*pow(_dt,2)*ddqDes(i))),
+                                 MSG_STREAM_INFO);
+        }
+        if(CTRL_RAD2DEG*_q(i) <= _qMin(i) || CTRL_RAD2DEG*_q(i) >= _qMax(i))
+        {
+            LocalId j = jl.globalToLocalId(i);
+            getLogger().sendMsg(BodyPart_s[j.bodyPart]+
+                                " joint "+toString(j.index)+" pos limit "+toString(i)+
                                 "\t q="+toString(CTRL_RAD2DEG*_q(i))+
                                 "\t qMin="+toString(_qMin(i))+
-                                "\t qMax="+toString(_qMax(i))+
-                                "\t qPred="+toString(CTRL_RAD2DEG*(_q(i)+_dt*_dq(i)+0.5*pow(_dt,2)*ddqDes(i))),
-                                                    MSG_STREAM_INFO);
+                                "\t qMax="+toString(_qMax(i)),
+                                MSG_STREAM_INFO);
         }
     }
     return true;

@@ -237,12 +237,10 @@ namespace wholeBodyReach
     {
     protected:
         double              _dt;        /// time-step to predict future pos/vel
-        Eigen::VectorXd     _qMin;      /// Lower bound of joint positions
-        Eigen::VectorXd     _qMax;      /// Upper bound of joint positions
-        Eigen::VectorXd     _dqMin;     /// Lower bound of joint velocities
-        Eigen::VectorXd     _dqMax;     /// Upper bound of joint velocities
-        Eigen::VectorXd     _ddqMin;    /// Lower bound of joint accelerations
-        Eigen::VectorXd     _ddqMax;    /// Upper bound of joint accelerations
+        Eigen::VectorXd     _qMin;      /// Lower bound of joint positions [deg]
+        Eigen::VectorXd     _qMax;      /// Upper bound of joint positions [deg]
+        Eigen::VectorXd     _dqMax;     /// Upper bound of joint velocities [deg/s]
+        Eigen::VectorXd     _ddqMax;    /// Upper bound of joint accelerations [deg/s^2]
         
         Eigen::VectorXd     _q;             /// last joint positions
         Eigen::VectorXd     _dq;            /// last joint velocities
@@ -278,22 +276,24 @@ namespace wholeBodyReach
         virtual void linkParameterQmax(paramHelp::ParamHelperServer* paramHelper, int paramId)
         { paramHelper->linkParam(paramId, _qMax.data()); }
         
+        /** Link the joint max velocities (in deg/s) to a parameter managed by the specified
+         * instance of ParamHelperServer.
+         */
+        virtual void linkParameterDQmax(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        { paramHelper->linkParam(paramId, _dqMax.data()); }
+        
+        /** Link the joint max accelerations (in deg/s^2) to a parameter managed by the specified
+         * instance of ParamHelperServer.
+         */
+        virtual void linkParameterDDQmax(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        { paramHelper->linkParam(paramId, _ddqMax.data()); }
+        
         /** Link the normalized joint positions to a parameter managed by the specified
          * instance of ParamHelperServer.
          */
         virtual void linkParameterQnormalized(paramHelp::ParamHelperServer* paramHelper, int paramId)
         { paramHelper->linkParam(paramId, _qNormalized.data()); }
-        
-        /** Set the joint velocity limits. 
-          * @return True if the operation succeeded, false otherwise. 
-         */
-        virtual bool setVelocityLimits(Eigen::VectorConst dqMin, Eigen::VectorConst dqMax);
-        
-        /** Set the joint acceleration limits.
-         * @return True if the operation succeeded, false otherwise.
-         */
-        virtual bool setAccelerationLimits(Eigen::VectorConst ddqMin, Eigen::VectorConst ddqMax);
-        
+                
         /** Set the desired joint acceleration computed by the solver.
          * This is mainly used to print some meaningful warnings when there are inequality
          * constraints active.

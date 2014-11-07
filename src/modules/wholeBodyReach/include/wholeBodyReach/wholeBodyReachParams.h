@@ -62,6 +62,8 @@ static const double             DEFAULT_INTEGRATOR_DT       = 1e-3;
 static const int                DEFAULT_USE_NULLSPACE_BASE  = 0;   /// true: solver uses basis, false: it uses projectors
 static const Eigen::VectorNd    DEFAULT_Q_MAX               = Eigen::VectorNd::Constant(180.0);
 static const Eigen::VectorNd    DEFAULT_Q_MIN               = Eigen::VectorNd::Constant(-180.0);
+static const Eigen::VectorNd    DEFAULT_DQ_MAX              = Eigen::VectorNd::Constant(50.0);
+static const Eigen::VectorNd    DEFAULT_DDQ_MAX             = Eigen::VectorNd::Constant(100.0);
 static const double             DEFAULT_JNT_LIM_MIN_DIST    = 5.0;
 static const double             DEFAULT_FORCE_FRICTION      = 0.5;  // friction cone coefficient for tangential forces
 static const double             DEFAULT_MOMENT_FRICTION     = 0.5;  // friction cone coefficient for normal moment
@@ -87,6 +89,7 @@ enum WholeBodyReachParamId {
     PARAM_ID_SUPPORT_PHASE,         PARAM_ID_DYN_DAMP,          PARAM_ID_CONSTR_DAMP,
     PARAM_ID_TASK_DAMP,             PARAM_ID_USE_NULLSPACE_BASE,
     PARAM_ID_Q_MAX,                 PARAM_ID_Q_MIN,             PARAM_ID_JNT_LIM_MIN_DIST,
+    PARAM_ID_DQ_MAX,                PARAM_ID_DDQ_MAX,
     PARAM_ID_FORCE_FRICTION,        PARAM_ID_MOMENT_FRICTION,   PARAM_ID_WRENCH_WEIGHTS,
     
     PARAM_ID_XDES_COM,              PARAM_ID_XDES_FOREARM,
@@ -137,9 +140,11 @@ new ParamProxyBasic<double>("dyn damp",             PARAM_ID_DYN_DAMP,          
 new ParamProxyBasic<double>("constr damp",          PARAM_ID_CONSTR_DAMP,       1,                          ParamBilatBounds<double>(1e-9, 1.0),        PARAM_IN_OUT,       &DEFAULT_NUM_DAMP,              "Numerical damping used to regularize the constraint resolutions"),
 new ParamProxyBasic<double>("task damp",            PARAM_ID_TASK_DAMP,         1,                          ParamBilatBounds<double>(1e-9, 1.0),        PARAM_IN_OUT,       &DEFAULT_NUM_DAMP,              "Numerical damping used to regularize the task resolutions"),
 new ParamProxyBasic<int>(   "use nullspace base",   PARAM_ID_USE_NULLSPACE_BASE,1,                          ParamBilatBounds<int>(0, 1),                PARAM_IN_OUT,       &DEFAULT_USE_NULLSPACE_BASE,    "0: use nullspace projectors, 1: use nullspace basis"),
-new ParamProxyBasic<double>("q max",                PARAM_ID_Q_MAX,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds"),
-new ParamProxyBasic<double>("q min",                PARAM_ID_Q_MIN,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds"),
+new ParamProxyBasic<double>("q max",                PARAM_ID_Q_MAX,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds [deg]"),
+new ParamProxyBasic<double>("q min",                PARAM_ID_Q_MIN,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds [deg]"),
 new ParamProxyBasic<double>("jlmd",                 PARAM_ID_JNT_LIM_MIN_DIST,  1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits"),
+new ParamProxyBasic<double>("dq max",               PARAM_ID_DQ_MAX,            ICUB_DOFS,                  ParamLowerBound<double>(0.0),               PARAM_IN_OUT,       DEFAULT_DQ_MAX.data(),          "Max joint velocities [deg/s]"),
+new ParamProxyBasic<double>("ddq max",              PARAM_ID_DDQ_MAX,           ICUB_DOFS,                  ParamLowerBound<double>(0.0),               PARAM_IN_OUT,       DEFAULT_DDQ_MAX.data(),         "Max joint accelerations [des/s^2]"),
 new ParamProxyBasic<double>("force friction",       PARAM_ID_FORCE_FRICTION,    1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_FORCE_FRICTION,        "Friciton coefficient for tangential forces"),
 new ParamProxyBasic<double>("moment friction",      PARAM_ID_MOMENT_FRICTION,   1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_MOMENT_FRICTION,       "Friciton coefficient for normal moments"),
 new ParamProxyBasic<double>("wrench weights",       PARAM_ID_WRENCH_WEIGHTS,    6,                          ParamBilatBounds<double>(1e-4, 1e4),        PARAM_IN_OUT,       ONE_6D.data(),                  "Weights used to penalize 6d wrenches"),
