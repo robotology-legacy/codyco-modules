@@ -81,7 +81,7 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     ArrayXd             dqJ;                    // joint velocities (size of vector: n)
     ArrayXd             ftSens;                 // ankle force/torque sensor readings (order is: left, right)
     ArrayXi             currentJointNumericIds; // Numeric IDs of the joints currently excited
-    vector<wbiId>       currentJointWbiIds;     // Wbi IDs of the joints currently excited
+    vector<ID>       currentJointWbiIds;     // Wbi IDs of the joints currently excited
     //ArrayXi             currentGlobalJointIds;  // global IDs of the joints currently excited
     ArrayXd              qMinOfCurrentJointFME;  // Joint limit of the current joint during free motion
     ArrayXd              qMaxOfCurrentJointFME;  // Joint limit of the current joint during free motion

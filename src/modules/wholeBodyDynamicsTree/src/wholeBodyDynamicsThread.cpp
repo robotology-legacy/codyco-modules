@@ -120,20 +120,20 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 
     std::vector<std::string> dof_serialization;
 
-    // \todo TODO FIXME move wbiIdList -> std::vector<std::string> conversion to wbiIdUtils
-    wbiIdList torque_estimation_list = _wbs->getEstimateList(wbi::ESTIMATE_JOINT_TORQUE);
+    // \todo TODO FIXME move IDList -> std::vector<std::string> conversion to wbiIdUtils
+    IDList torque_estimation_list = _wbs->getEstimateList(wbi::ESTIMATE_JOINT_TORQUE);
     for(int dof=0; dof < (int)torque_estimation_list.size(); dof++)
     {
-        wbiId wbi_id;
+        ID wbi_id;
         torque_estimation_list.numericIdToWbiId(dof,wbi_id);
         dof_serialization.push_back(wbi_id.toString());
     }
 
     std::vector<std::string> ft_serialization;
-    wbiIdList ft_sensor_list = _wbs->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR);
+    IDList ft_sensor_list = _wbs->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR);
     for(int ft=0; ft < (int)ft_sensor_list.size(); ft++)
     {
-        wbiId wbi_id;
+        ID wbi_id;
         ft_sensor_list.numericIdToWbiId(ft,wbi_id);
         ft_serialization.push_back(wbi_id.toString());
     }
@@ -233,16 +233,16 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 }
 
 //*************************************************************************************************************************
-wbi::wbiId wholeBodyDynamicsThread::convertFTiDynTreeToFTwbi(int ft_sensor_id)
+wbi::ID wholeBodyDynamicsThread::convertFTiDynTreeToFTwbi(int ft_sensor_id)
 {
-    wbi::wbiId ret;
+    wbi::ID ret;
     estimator->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR).numericIdToWbiId(ft_sensor_id,ret);
     return ret;
 }
 
-void checkFTSensorExist(std::string ft_sensor_name, wbi::wbiIdList & all_fts, std::vector<int> & ft_id_list, iCub::iDynTree::TorqueEstimationTree * icub_model_calibration)
+void checkFTSensorExist(std::string ft_sensor_name, wbi::IDList & all_fts, std::vector<int> & ft_id_list, iCub::iDynTree::TorqueEstimationTree * icub_model_calibration)
 {
-    if( all_fts.containsId(ft_sensor_name) )
+    if( all_fts.containsID(ft_sensor_name) )
     {
         int numeric_id;
         all_fts.wbiIdToNumericId(ft_sensor_name,numeric_id);
@@ -264,7 +264,7 @@ bool wholeBodyDynamicsThread::threadInit()
 
     int nr_of_output_torques_ports = output_torques_bot.size() - 1;
 
-    wbiIdList torque_list = estimator->getEstimateList(wbi::ESTIMATE_JOINT_TORQUE);
+    IDList torque_list = estimator->getEstimateList(wbi::ESTIMATE_JOINT_TORQUE);
     for(int output_torque_port = 1; output_torque_port < output_torques_bot.size(); output_torque_port++)
     {
         outputTorquePortInformation torque_port_struct;
@@ -317,7 +317,7 @@ bool wholeBodyDynamicsThread::threadInit()
     tree_status.setNrOfFTSensors(nrOfAvailableFTSensors);
 
     //Get list of ft sensors for calibration shortcut
-    wbi::wbiIdList ft_list = estimator->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR);
+    wbi::IDList ft_list = estimator->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR);
 
     checkFTSensorExist("r_foot_ft_sensor",ft_list,feet_fts,icub_model_calibration);
     checkFTSensorExist("l_foot_ft_sensor",ft_list,feet_fts,icub_model_calibration);

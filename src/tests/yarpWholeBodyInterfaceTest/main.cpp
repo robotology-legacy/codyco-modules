@@ -71,7 +71,7 @@ int main(int argc, char * argv[])
     robotInterface = new yarpWholeBodyInterface (moduleName.c_str(), yarpWbiOptions);
       
     // Add joints to the robotInterface
-    wbiIdList robotMainJoints;
+    IDList robotMainJoints;
     std::string robotMainJointsList = "ICUB_DYNAMIC_MODEL_JOINTS";
     if (!loadIdListFromConfig(robotMainJointsList, yarpWbiOptions, robotMainJoints)) {
       printf("[ERR] yarpWholeBodyInterfaceTest: Impossible to load from ID List from Configuration file\n");
