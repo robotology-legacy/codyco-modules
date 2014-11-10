@@ -115,6 +115,11 @@ namespace wholeBodyReach
         virtual void linkParameterPose(paramHelp::ParamHelperServer* paramHelper, int paramId);
         virtual void linkParameterPosRef(paramHelp::ParamHelperServer* paramHelper, int paramId);
         
+        virtual void setPosDes(Eigen::Vector3d posDes)
+        {
+            _poseDes.head<3>() = posDes;
+        }
+        
         /** Method called every time a parameter (for which a callback is registered) is changed. */
         virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
 
@@ -164,6 +169,11 @@ namespace wholeBodyReach
         virtual bool update(RobotState& state);
         
         virtual void init(RobotState& state);
+        
+        virtual void setComDes(Eigen::Vector3d comDes)
+        {
+            _comDes = comDes;
+        }
         
         /** Link the desired pose of this task to a parameter managed by the specified
          * instance of ParamHelperServer.

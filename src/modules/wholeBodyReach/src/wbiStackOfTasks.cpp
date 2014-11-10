@@ -215,6 +215,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
 bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef torques)
 {
     sendMsg("ComputeComSoT");
+    double tmp;
     
     bool jointLimitActive = _jointLimitTask!=NULL;
     if(jointLimitActive)
@@ -249,8 +250,8 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
     _Z = _qp_force.N_CE;
     
     sendMsg("Linear momentum error  = "+toString((_X*_fcDes-_momentumDes).head<3>().norm()));
-    //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-    //    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
     
     
 #define DEBUG_POSE_TASKS
@@ -263,7 +264,6 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
     //      N    -= A^+ A
     // end
     
-    double tmp;
     int n_jl_in = _jointLimitTask->getNumberOfInequalities();
     int n_f_in = _B.rows();
     list<MinJerkPDLinkPoseTask*>::iterator it;
@@ -281,7 +281,7 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         _qp_motion1.CI.bottomRightCorner(n_f_in, _k)    = _B;
         _qp_motion1.ci0.tail(n_f_in)                    = _b;
         _qp_motion1.ci0.head(n_jl_in)       += _qp_motion1.CI.topLeftCorner(n_jl_in, _n)*ddqDes_j;
-        _qp_motion1.ci0.tail(n_f_in)        += _qp_motion1.CI.bottomRightCorner(n_f_in, _k)*_fcDes;
+        _qp_motion1.ci0.tail(n_f_in)        += _B*_fcDes;
         _qp_motion1.CI                      *= _Z;
         
         _qp_motion1.A.leftCols(_n)  = _A_i.rightCols(_n) - _A_i.leftCols<6>()*_Mb_inv_M_bj;
@@ -315,9 +315,16 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         }
         if(_qp_motion1.activeSetSize>0)
             sendMsg(t.getName()+". Active joint limits: "+toString(_qp_motion1.activeSet.head(_qp_motion1.activeSetSize).transpose()));
-        
-        if((tmp=(_qp_motion1.x-_Z*_qp_motion1.x).norm())>1e-10)
+        if((tmp=(_qp_motion1.x-_Z*_qp_motion1.x).norm()) > 1e-10)
             sendMsg(t.getName()+". Part of solution outside the null space of previous tasks: "+toString(tmp));
+        VectorXd viol = _qp_motion1.CI*_qp_motion1.x+_qp_motion1.ci0;
+        for(int i=0; i<_qp_motion1.ci0.size(); i++)
+            if(viol(i)<-ZERO_NUM)
+            {
+                cout<<t.getName()+" solution violates inequality "+toString(i)+" by "+toString(viol(i))<<endl;
+                cout<<_qp_motion1.toString()<<endl;
+                cout<<"x = "<<_qp_motion1.x.transpose().format(matlabPrintFormat)<<endl;
+            }
         
         ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
         ddqDes_b    += _Mb_inv_J_cbT*_qp_motion1.x.tail(_k);
@@ -326,14 +333,14 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         
         _qp_motion1.computeQpNullSpace();
         _Z *= _qp_motion1.N_CE;
-        
+
 #ifdef  DEBUG_POSE_TASKS
-        //        _jointLimitTask->setDdqDes(ddqDes_j);
+        _jointLimitTask->setDdqDes(ddqDes_j);
         //        sendMsg(t.getName()+" Jacobian =\n"+toString(_A_i));
         //        int nzsv = _A_svd.nonzeroSingularValues();
         //        sendMsg(t.getName()+". "+toString(nzsv)+"-th sing val = "+toString(_A_svd.singularValues()(nzsv-1)));
-        //        sendMsg(t.getName()+". Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
-        //        sendMsg(t.getName()+" ||A*x-b|| =    "+toString((_A_i*_ddqDes-_a_i).norm()));
+        sendMsg(t.getName()+". Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+        sendMsg(t.getName()+" ||A*x-b|| =    "+toString((_A_i*_ddqDes-_a_i).norm()));
 #endif
     }
     
@@ -346,7 +353,7 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         _qp_posture.CI.bottomRightCorner(n_f_in, _k)    = _B;
         _qp_posture.ci0.tail(n_f_in)                    = _b;
         _qp_posture.ci0.head(n_jl_in)       += _qp_posture.CI.topLeftCorner(n_jl_in, _n)*ddqDes_j;
-        _qp_posture.ci0.tail(n_f_in)        += _qp_posture.CI.bottomRightCorner(n_f_in, _k)*_fcDes;
+        _qp_posture.ci0.tail(n_f_in)        += _B*_fcDes;
         _qp_posture.CI      *= _Z;
         
         _qp_posture.A       = _Z.topRows(_n);

@@ -173,6 +173,8 @@ bool WholeBodyReachThread::threadInit()
     
     YARP_ASSERT(_paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
     YARP_ASSERT(_paramHelper->registerCommandCallback(COMMAND_ID_STOP,            this));
+    YARP_ASSERT(_paramHelper->registerCommandCallback(COMMAND_ID_GO_DOWN,         this));
+    YARP_ASSERT(_paramHelper->registerCommandCallback(COMMAND_ID_GO_UP,           this));
 
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
     _Ha.R = Rotation(0,0,1, 0,-1,0, 1,0,0);   // rotation to align foot Z axis with gravity, Ha=[0 0 1 0; 0 -1 0 0; 1 0 0 0; 0 0 0 1]
@@ -496,6 +498,24 @@ void WholeBodyReachThread::commandReceived(const CommandDescription &cd, const B
     case COMMAND_ID_STOP:
         preStopOperations();
         break;
+    case COMMAND_ID_GO_DOWN:
+        {
+            Vector3d xDes;
+            xDes(0) = 0.2; xDes(1) = -0.3; xDes(2) = 0.1;
+            _tasks.graspHand.setPosDes(xDes);
+            xDes(0) = 0.02; xDes(1) = -0.09; xDes(2) = 0.37;
+            _tasks.momentum.setComDes(xDes);
+            break;
+        }
+    case COMMAND_ID_GO_UP:
+        {
+            Vector3d xDes;
+            xDes(0) = 0.25; xDes(1) = -0.23; xDes(2) = 0.52;
+            _tasks.graspHand.setPosDes(xDes);
+            xDes(0) = 0.02; xDes(1) = -0.07; xDes(2) = 0.47;
+            _tasks.momentum.setComDes(xDes);
+            break;
+        }
     default:
         sendMsg("A callback is registered but not managed for the command "+cd.name, MSG_ERROR);
     }

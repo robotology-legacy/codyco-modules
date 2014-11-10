@@ -184,7 +184,7 @@ new ParamProxyBasic<double>("q norm",               PARAM_ID_NORMALIZED_Q,      
 // *** IDs of all the module command
 enum WholeBodyReachCommandId { 
     COMMAND_ID_START,   COMMAND_ID_STOP,    COMMAND_ID_HELP,    COMMAND_ID_QUIT,
-    COMMAND_ID_RESET_PROFILER,
+    COMMAND_ID_RESET_PROFILER,              COMMAND_ID_GO_DOWN, COMMAND_ID_GO_UP,
     COMMAND_ID_SIZE
 };
 // ******************************************************************************************************************************
@@ -196,6 +196,8 @@ const CommandDescription wholeBodyReachCommandDescr[COMMAND_ID_SIZE]  =
 CommandDescription("start",             COMMAND_ID_START,           "Start the controller"),
 CommandDescription("stop",              COMMAND_ID_STOP,            "Stop the controller"),
 CommandDescription("reset profiler",    COMMAND_ID_RESET_PROFILER,  "Reset the profiling statistics"),
+CommandDescription("go down",           COMMAND_ID_GO_DOWN,         "Move CoM and hand references to go down"),
+CommandDescription("go up",             COMMAND_ID_GO_UP,           "Move CoM and hand references to go back up"),
 CommandDescription("help",              COMMAND_ID_HELP,            "Get instructions about how to communicate with this module"),
 CommandDescription("quit",              COMMAND_ID_QUIT,            "Stop the controller and quit the module"), 
 };

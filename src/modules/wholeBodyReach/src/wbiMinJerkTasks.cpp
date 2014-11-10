@@ -380,8 +380,8 @@ bool JointLimitTask::update(RobotState& state)
         // if lower bound is > than upper bound
         if(ddqMin >= ddqMax)
         {
-            cout<<"Joint "<<i<<" must violate a vel/acc constraint. q="<<CTRL_RAD2DEG*_q(i)<<
-                  " dq="<<CTRL_RAD2DEG*_dq(i)<<" qMax="<<_qMax(i)<<" qMin="<<_qMin(i)<<"\n";
+            getLogger().sendMsg("Joint "+toString(i)+" must violate a vel/acc constraint. q="+toString(CTRL_RAD2DEG*_q(i))+
+                  " dq="+toString(CTRL_RAD2DEG*_dq(i))+" qMax="+toString(_qMax(i))+" qMin="+toString(_qMin(i)), MSG_STREAM_ERROR);
             _a_in(2*i+0) = -(2.0/pow(_dt,2))*(CTRL_DEG2RAD*_qMin(i) - _q(i) - _dt*_dq(i));
             _a_in(2*i+1) = posLim;
         }
