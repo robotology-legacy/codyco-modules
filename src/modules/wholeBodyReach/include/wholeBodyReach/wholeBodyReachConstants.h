@@ -112,7 +112,8 @@ enum WholeBodyReachCtrlAlgorithm
     WBR_CTRL_ALG_COM_POSTURE        = 2,    // control CoM + posture
     WBR_CTRL_ALG_MOMENTUM_POSTURE   = 3,    // control momentum (CoM+angular momentum) + posture
     WBR_CTRL_ALG_MOMENTUM_SOT_SAFE  = 4,    // SoT with Momentum control and joint limit enforcement in force QP
-    WBR_CTRL_ALG_SIZE               = 5
+    WBR_CTRL_ALG_COM_SOT            = 5,    // SoT with CoM control and joint limit enforcement in force QP
+    WBR_CTRL_ALG_SIZE               = 6
 };
 
 }

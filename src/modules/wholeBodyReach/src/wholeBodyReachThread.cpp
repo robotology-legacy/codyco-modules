@@ -251,7 +251,7 @@ void WholeBodyReachThread::run()
                 if(i==0)
                 {
                     sendMsg("|| ddqDes - ddqIntegrator || = "+toString((_integrator._ddq_first_call - _solver._ddqDes).norm()));
-#define DEBUG_FORWARD_DYNAMICS
+//#define DEBUG_FORWARD_DYNAMICS
 #ifdef DEBUG_FORWARD_DYNAMICS
                     // Null-space basis may be different but span the same space.
                     // Given two different basis Z1 and Z2 of the same space, this needs to hold:

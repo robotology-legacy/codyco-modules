@@ -41,6 +41,174 @@
 namespace wholeBodyReach
 {
     
+//    minimize      0.5* || A x - a ||^2 + diag(w) ||x||^2
+//    subject to    CE x + ce0 = 0
+//                  CI x + ci0 >= 0
+class QpData
+{
+private:
+    Eigen::SVD       CE_svd;    /// svd of CE
+    int              svdOpt;    /// specify whether to compute full/thin U/V
+    Eigen::VectorXd  x_bar;     /// a solution of the equality constraints
+    
+    Eigen::MatrixXd CE_empty;   /// empty matrix
+    Eigen::VectorXd ce0_empty;  /// empty vector
+    
+    Eigen::MatrixRXd CI_p;      /// projected inequality constraint matrix
+    Eigen::VectorXd ci0_p;      /// projected inequality constraint vector
+    
+    Eigen::MatrixRXd A_p;   /// projected matrix of least-square form (H = A^T*A + diag(w))
+    Eigen::SVD       A_svd; /// svd of the matrix A
+    Eigen::VectorXd  a_p;   /// projected vector of least-square form ||A*x-a|| (g = -A^T*a)
+    
+public:
+    // @todo move H and g to private section
+    Eigen::MatrixXd H;          /// Hessian
+    Eigen::VectorXd g;          /// gradient
+    Eigen::VectorXd x;          /// solution of the QP
+    
+    Eigen::MatrixRXd CE;        /// equality constraint matrix
+    Eigen::MatrixRXd N_CE;      /// null-space projector of CE
+    Eigen::VectorXd  ce0;       /// equality constraint vecotr
+    
+    
+    Eigen::MatrixRXd CI;        /// inequality constraint matrix
+    Eigen::VectorXd ci0;        /// inequality constraint vector
+    Eigen::VectorXi activeSet;  /// vector containing the indexes of the active inequalities
+    int activeSetSize;
+    
+    Eigen::MatrixRXd A;     /// matrix of least-square form (H = A^T*A + diag(w))
+    Eigen::VectorXd  a;     /// vector of least-square form ||A*x-a|| (g = -A^T*a)
+    Eigen::VectorXd  w;     /// diagonal elements of regularization matrix
+    
+    double solveQP(double numericalDamping=0.0)
+    {
+        double res;
+        if(CE.rows()>0)
+        {
+            // solve equality constraints
+            CE_svd.compute(CE, svdOpt);
+            x_bar = - svdSolveWithDamping(CE_svd, ce0, numericalDamping);
+            
+            // compute null-space projector
+            int r = (CE_svd.singularValues().array()>PINV_TOL).count();
+            N_CE.setIdentity();
+            N_CE  -= CE_svd.matrixV().leftCols(r) * CE_svd.matrixV().leftCols(r).transpose();
+            
+            // update least-square form
+            // || A*x - a || => || A*(x_bar+N_CE*z) - a || = || A*N_CE*z - (a-A*x_bar) ||
+            a_p = a - A*x_bar;
+            A_p = A*N_CE;
+            
+            
+            // update inequalities
+            // CI*x + ci0 => CI*(x_bar+N_CE*z) + ci0 => CI*N_CE*z + (ci0 + CI*x_bar)
+            if(CI.rows()>0)
+            {
+                ci0_p = ci0 + CI*x_bar;
+                CI_p  = CI*N_CE;
+            }
+            
+            // update Hessian and gradient
+            H = A_p.transpose()*A_p;
+            H.diagonal() += w;
+            g = -1.0*(A_p.transpose()*a_p);
+            
+            res = solve_quadprog(H, g, CE_empty, ce0_empty, CI_p.transpose(), ci0_p,
+                                 x, activeSet, activeSetSize);
+            if(res!=std::numeric_limits<double>::infinity())
+                x = x_bar + N_CE*x;
+        }
+        else
+        {
+            // update Hessian and gradient
+            H = A.transpose()*A;
+            H.diagonal() += w;
+            g = -1.0*(A.transpose()*a);
+            
+            res = solve_quadprog(H, g, CE_empty, ce0_empty, CI.transpose(), ci0,
+                                 x, activeSet, activeSetSize);
+        }
+        return res;
+    }
+    
+    /** Compute the null-space projector for the whole QP, that takes into
+     * account both the equality constraints and the cost function.
+     * After calling this function the null-space projector is stored in N_CE.
+     * This is supposed to be called after solveQP().
+     */
+    void computeQpNullSpace()
+    {
+        if(CE.rows()>0)
+        {
+            A_svd.compute(A_p, svdOpt);
+        }
+        else
+        {
+            A_svd.compute(A, svdOpt);
+            N_CE.setIdentity();
+        }
+        int r = (A_svd.singularValues().array()>PINV_TOL).count();
+        N_CE  -= A_svd.matrixV().leftCols(r) * A_svd.matrixV().leftCols(r).transpose();
+    }
+    
+    /** Resize all the variables.
+     * @param nVar Number of variables of the QP
+     * @param nEq Number of equalities of the QP
+     * @param nIn Number of inequalities of the QP
+     * @param nA  Number of rows of the least-square form ||A*x-a||
+     */
+    void resize(int nVar, int nEq, int nIn, int nA)
+    {
+        x.setZero(nVar);
+        H.setZero(nVar, nVar);
+        g.setZero(nVar);
+        
+        CE.setZero(nEq, nVar);
+        svdOpt = Eigen::ComputeThinU | Eigen::ComputeThinV;
+        if(nVar>0 && nEq>0)
+            CE_svd.compute(CE, svdOpt);
+        N_CE.setIdentity(nVar,nVar);
+        ce0.setZero(nEq);
+        
+        CI.setZero(nIn, nVar);
+        ci0.setZero(nIn);
+        CI_p.setZero(nIn, nVar);
+        ci0_p.setZero(nIn);
+        activeSet = Eigen::VectorXi::Constant(nIn, -1);
+        activeSetSize = 0;
+        
+        A.setZero(nA, nVar);
+        A_p.setZero(nA, nVar);
+        if(nVar>0 && nA>0)
+            A_svd.compute(A,svdOpt);
+        a.setZero(nA);
+        a_p.setZero(nA);
+        w.setZero(nVar);
+        
+        CE_empty.resize(0,0);
+        ce0_empty.resize(0);
+    }
+    
+    std::string toString()
+    {
+        std::stringstream ss;
+        ss<<"****************************************************************\n";
+        //            ss<<"H=    "<<H.format(matlabPrintFormat)<<endl;
+        //            ss<<"g=    "<<g.transpose().format(matlabPrintFormat)<<endl;
+        ss<<"A=    "<<A.format(matlabPrintFormat)<<endl;
+        ss<<"a=    "<<a.transpose().format(matlabPrintFormat)<<endl;
+        ss<<"w=    "<<w.transpose().format(matlabPrintFormat)<<endl<<endl;
+        ss<<"CE=   "<<CE.format(matlabPrintFormat)<<endl;
+        ss<<"ce0=  "<<ce0.transpose().format(matlabPrintFormat)<<endl<<endl;
+        ss<<"CI=   "<<CI.format(matlabPrintFormat)<<endl;
+        ss<<"ci0=  "<<ci0.transpose().format(matlabPrintFormat)<<endl;
+        ss<<"****************************************************************\n";
+        return ss.str();
+    }
+};
+
+    
 /** A simplified ad-hoc version of the classical stack of task.
   * The following assumptions hold:
   * - the robot is floating-base and possibly constrained
@@ -63,6 +231,8 @@ public:
     };
     
 public:
+    const double    ZERO_NUM = 1e-10;
+    
     WholeBodyReachCtrlAlgorithm     _ctrlAlg;   /// the id of the control algorithm to use
     int             _ctrlAlg_paramId;           /// id of the parameter associated to _ctrlAlg
     double          _numericalDampingDyn;       /// damping factor when solving dynamics
@@ -88,6 +258,7 @@ public:
     Eigen::MatrixR6d                _Mb_inv;    /// inverse of the 6x6 base mass matrix
     Eigen::LLT<Eigen::MatrixR6d>    _Mb_llt;    /// Cholesky decomposition of Mb
     Eigen::MatrixRXd                _Mb_inv_M_bj;   /// _Mb_inv*M_bj
+    Eigen::MatrixRXd                _Mb_inv_J_cbT;  /// _Mb_inv*Jc_b^T
     
     Eigen::VectorXd                 _ddq_jDes;  /// desired joint accelerations
     Eigen::MatrixRXd                _Z;         /// null-space basis/projector
@@ -115,178 +286,12 @@ public:
     Eigen::VectorXd             _ddq_jPosture;  /// desired acceleration given by posture task
     Eigen::VectorXd             _ddqDes;        /// desired accelerations (n+6)
     
-    
-    //    minimize      0.5 * x H x + g x
-    //    subject to    CE^T x + ce0 = 0
-    //                  CI^T x + ci0 >= 0
-    class QpData
-    {
-    private:
-        Eigen::SVD       CE_svd;    /// svd of CE
-        int              svdOpt;    /// specify whether to compute full/thin U/V
-        Eigen::VectorXd  x_bar;     /// a solution of the equality constraints
-
-        Eigen::MatrixXd CE_empty;   /// empty matrix
-        Eigen::VectorXd ce0_empty;  /// empty vector
-
-        Eigen::MatrixRXd CI_p;      /// projected inequality constraint matrix
-        Eigen::VectorXd ci0_p;      /// projected inequality constraint vector
-        
-        Eigen::MatrixRXd A_p;   /// projected matrix of least-square form (H = A^T*A + diag(w))
-        Eigen::SVD       A_svd; /// svd of the matrix A
-        Eigen::VectorXd  a_p;   /// projected vector of least-square form ||A*x-a|| (g = -A^T*a)
-        
-    public:
-        // @todo move H and g to private section
-        Eigen::MatrixXd H;          /// Hessian
-        Eigen::VectorXd g;          /// gradient
-        Eigen::VectorXd x;          /// solution of the QP
-        
-        Eigen::MatrixRXd CE;        /// equality constraint matrix
-        Eigen::MatrixRXd N_CE;      /// null-space projector of CE
-        Eigen::VectorXd  ce0;       /// equality constraint vecotr
-        
-        
-        Eigen::MatrixRXd CI;        /// inequality constraint matrix
-        Eigen::VectorXd ci0;        /// inequality constraint vector
-        Eigen::VectorXi activeSet;  /// vector containing the indexes of the active inequalities
-        int activeSetSize;
-        
-        Eigen::MatrixRXd A;     /// matrix of least-square form (H = A^T*A + diag(w))
-        Eigen::VectorXd  a;     /// vector of least-square form ||A*x-a|| (g = -A^T*a)
-        Eigen::VectorXd  w;     /// diagonal elements of regularization matrix
-        
-        double solveQP(double numericalDamping=0.0)
-        {
-            double res;
-            if(CE.rows()>0)
-            {
-                // solve equality constraints
-                CE_svd.compute(CE, svdOpt);
-                x_bar = - svdSolveWithDamping(CE_svd, ce0, numericalDamping);
-                
-                // compute null-space projector
-                int r = (CE_svd.singularValues().array()>PINV_TOL).count();
-                N_CE.setIdentity();
-                N_CE  -= CE_svd.matrixV().leftCols(r) * CE_svd.matrixV().leftCols(r).transpose();
-                
-                // update least-square form
-                // || A*x - a || => || A*(x_bar+N_CE*z) - a || = || A*N_CE*z - (a-A*x_bar) ||
-                a_p = a - A*x_bar;
-                A_p = A*N_CE;
-                
-                
-                // update inequalities
-                // CI*x + ci0 => CI*(x_bar+N_CE*z) + ci0 => CI*N_CE*z + (ci0 + CI*x_bar)
-                if(CI.rows()>0)
-                {
-                    ci0_p = ci0 + CI*x_bar;
-                    CI_p  = CI*N_CE;
-                }
-                
-                // update Hessian and gradient
-                H = A_p.transpose()*A_p;
-                H.diagonal() += w;
-                g = -1.0*(A_p.transpose()*a_p);
-                
-                res = solve_quadprog(H, g, CE_empty, ce0_empty, CI_p.transpose(), ci0_p,
-                                     x, activeSet, activeSetSize);
-                if(res!=std::numeric_limits<double>::infinity())
-                    x = x_bar + N_CE*x;
-            }
-            else
-            {
-                // update Hessian and gradient
-                H = A.transpose()*A;
-                H.diagonal() += w;
-                g = -1.0*(A.transpose()*a);
-                
-                res = solve_quadprog(H, g, CE_empty, ce0_empty, CI.transpose(), ci0,
-                                            x, activeSet, activeSetSize);
-            }
-            return res;
-        }
-        
-        /** Compute the null-space projector for the whole QP, that takes into
-         * account both the equality constraints and the cost function. 
-         * After calling this function the null-space projector is stored in N_CE.
-         * This is supposed to be called after solveQP().
-         */
-        void computeQpNullSpace()
-        {
-            if(CE.rows()>0)
-            {
-                A_svd.compute(A_p, svdOpt);
-            }
-            else
-            {
-                A_svd.compute(A, svdOpt);
-                N_CE.setIdentity();
-            }
-            int r = (A_svd.singularValues().array()>PINV_TOL).count();
-            N_CE  -= A_svd.matrixV().leftCols(r) * A_svd.matrixV().leftCols(r).transpose();
-        }
-        
-        /** Resize all the variables.
-         * @param nVar Number of variables of the QP
-         * @param nEq Number of equalities of the QP
-         * @param nIn Number of inequalities of the QP
-         * @param nA  Number of rows of the least-square form ||A*x-a||
-         */
-        void resize(int nVar, int nEq, int nIn, int nA)
-        {
-            x.setZero(nVar);
-            H.setZero(nVar, nVar);
-            g.setZero(nVar);
-            
-            CE.setZero(nEq, nVar);
-            svdOpt = Eigen::ComputeThinU | Eigen::ComputeThinV;
-            if(nVar>0 && nEq>0)
-                CE_svd.compute(CE, svdOpt);
-            N_CE.setIdentity(nVar,nVar);
-            ce0.setZero(nEq);
-            
-            CI.setZero(nIn, nVar);
-            ci0.setZero(nIn);
-            CI_p.setZero(nIn, nVar);
-            ci0_p.setZero(nIn);
-            activeSet = Eigen::VectorXi::Constant(nIn, -1);
-            activeSetSize = 0;
-            
-            A.setZero(nA, nVar);
-            A_p.setZero(nA, nVar);
-            if(nVar>0 && nA>0)
-                A_svd.compute(A,svdOpt);
-            a.setZero(nA);
-            a_p.setZero(nA);
-            w.setZero(nVar);
-            
-            CE_empty.resize(0,0);
-            ce0_empty.resize(0);
-        }
-        
-        std::string toString()
-        {
-            std::stringstream ss;
-            ss<<"****************************************************************\n";
-//            ss<<"H=    "<<H.format(matlabPrintFormat)<<endl;
-//            ss<<"g=    "<<g.transpose().format(matlabPrintFormat)<<endl;
-            ss<<"A=    "<<A.format(matlabPrintFormat)<<endl;
-            ss<<"a=    "<<a.transpose().format(matlabPrintFormat)<<endl;
-            ss<<"w=    "<<w.transpose().format(matlabPrintFormat)<<endl<<endl;
-            ss<<"CE=   "<<CE.format(matlabPrintFormat)<<endl;
-            ss<<"ce0=  "<<ce0.transpose().format(matlabPrintFormat)<<endl<<endl;
-            ss<<"CI=   "<<CI.format(matlabPrintFormat)<<endl;
-            ss<<"ci0=  "<<ci0.transpose().format(matlabPrintFormat)<<endl;
-            ss<<"****************************************************************\n";
-            return ss.str();
-        }
-    };
-    
     QpData _qp_force;       /// force QP
     QpData _qp_motion1;     /// first motion-task QP
     QpData _qp_motion2;     /// second motion-task QP
-    QpData _qp_posture;      /// postural-task QP
+    QpData _qp_posture;     /// postural-task QP
+    
+    bool solveForceQP(RobotState& robotState);
     
     /** Compute the inverse of the matrix Mb. */
     void computeMb_inverse();
@@ -309,11 +314,13 @@ public:
 //    WBR_CTRL_ALG_COM_POSTURE        = 2,
 //    WBR_CTRL_ALG_MOMENTUM_POSTURE   = 3,
 //    WBR_CTRL_ALG_MOMENTUM_SOT_SAFE  = 4,
+//    WBR_CTRL_ALG_COM_SOT            = 5,
     virtual bool computeMomentumSoT(RobotState& robotState, Eigen::VectorRef torques);
     virtual bool computeMomentumSoT_safe(RobotState& robotState, Eigen::VectorRef torques);
     virtual bool computeNullspaceProj(RobotState& robotState, Eigen::VectorRef torques);
     virtual bool computeComPosture(RobotState& robotState, Eigen::VectorRef torques);
     virtual bool computeMomentumPosture(RobotState& robotState, Eigen::VectorRef torques);
+    virtual bool computeComSoT(RobotState& robotState, Eigen::VectorRef torques);
     
 //#define DEBUG_FORWARD_DYNAMICS
 #ifdef DEBUG_FORWARD_DYNAMICS
