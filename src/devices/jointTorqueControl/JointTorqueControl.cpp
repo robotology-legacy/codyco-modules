@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-#include <cstdlib>
+#include <cstring>
 #include <boost/concept_check.hpp>
 
 namespace yarp {
@@ -51,7 +51,6 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     desiredJointTorques.resize(axes,0.0);
     measuredJointTorques.resize(axes,0.0);
     measuredJointPositionsTimestamps.resize(axes,0.0);
-    encoderPolyElement.data.resize(axes,0.0);
     outputJointTorques.resize(axes,0.0);
     jointTorquesError.resize(axes,0.0);
     oldJointTorquesError.resize(axes,0.0);
@@ -244,7 +243,7 @@ bool JointTorqueControl::setRefTorque(int j, double t)
 bool JointTorqueControl::setRefTorques(const double *t)
 {
     yarp::os::LockGuard(this->controlMutex);
-    memcpy(desiredJointTorques.data(),t,this->axes*sizeof(double));
+    ::memcpy(desiredJointTorques.data(),t,this->axes*sizeof(double));
     return true;
 }
 
@@ -422,21 +421,14 @@ bool JointTorqueControl::setTorqueOffset(int j, double v)
 // HIJACKED CONTROL THREAD
 bool JointTorqueControl::threadInit()
 {
-    velocityFilter = new iCub::ctrl::AWLinEstimator(5,1.0);
-
 }
 
 void JointTorqueControl::readStatus()
 {
     bool enc_time;
     this->getEncodersTimed(measuredJointPositions.data(),measuredJointPositionsTimestamps.data());
+    this->getEncoderSpeeds(measuredJointVelocities.data());
     this->getTorques(measuredJointTorques.data());
-
-    // \todo TODO FIXME how to deal with multiple timestamps? Do the mean ?
-    encoderPolyElement.time = measuredJointPositionsTimestamps[0];
-    memcpy(encoderPolyElement.data.data(),measuredJointPositions.data(),(this->axes)*sizeof(double));
-
-    measuredJointVelocities = velocityFilter->estimate(encoderPolyElement);
 }
 
 /** Saturate the specified value between the specified bounds. */
@@ -448,8 +440,6 @@ inline double saturation(const double x, const double xMax, const double xMin)
 void JointTorqueControl::threadRelease()
 {
     yarp::os::LockGuard guard(controlMutex);
-    delete velocityFilter;
-    velocityFilter = 0;
 }
 
 

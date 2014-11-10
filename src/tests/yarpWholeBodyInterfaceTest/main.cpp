@@ -27,6 +27,8 @@
 #include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
 #include <wbi/wbi.h>
 
+#include <yarp/os/LogStream.h>
+
 #include <stdio.h>
 #include <math.h>
 #include <string>
@@ -55,21 +57,21 @@ int main(int argc, char * argv[])
     rf.setVerbose (true);
     rf.setDefaultConfigFile ("wbi_conf_file.ini");
     rf.setDefaultContext ("icubGazeboSim");
-    
+
     rf.configure (argc,argv);
-    
+
     Property yarpWbiOptions;
-   
+
     printf("Finding configuration file\n");
     std::string wbiConfFile = rf.findFile("wbi_conf_file.ini");
     yarpWbiOptions.fromConfigFile(wbiConfFile);
     printf("Configuration file in: %s", wbiConfFile.c_str());
-    
+
     // Create new yarpWholeBodyInterface object
     std::string moduleName = "yarpWholeBodyInterface";
     yarpWholeBodyInterface* robotInterface;
     robotInterface = new yarpWholeBodyInterface (moduleName.c_str(), yarpWbiOptions);
-      
+
     // Add joints to the robotInterface
     IDList robotMainJoints;
     std::string robotMainJointsList = "ICUB_DYNAMIC_MODEL_JOINTS";
@@ -78,34 +80,44 @@ int main(int argc, char * argv[])
       return EXIT_FAILURE;
     }
     robotInterface->addJoints(robotMainJoints);
-    
+
+    if( robotInterface->getJointList().size() != robotMainJointsList.size() )
+    {
+        std::cerr << " robotInterface->getJointList() : " << std::endl;
+        std::cerr << robotInterface->getJointList().toString() << std::endl;
+        std::cerr << " is different from robotMainJoints : " << std::endl;
+        std::cerr << robotMainJoints.toString() << std::endl;
+    }
+
     // Initialize interface
     if (!robotInterface->init()) {
       printf("[ERR] Whole body interface object did not initialize correctly\n");
       return EXIT_FAILURE;
     }
-    
+
+    robotInterface->setControlMode(CTRL_MODE_POS);
+
     Time::delay (0.5);
-    
+
     // Get robot DOF
     int DOF = robotInterface->getDoFs();
-    
-    // Initialize variables    
+
+    // Initialize variables
     Vector q(DOF), dq(DOF), d2q(DOF);
-    
+
     // Get robot estimates
+
     robotInterface->getEstimates(wbi::ESTIMATE_JOINT_POS, q.data(), -1.0, false);
-    
+
     printf("Joint Angles: %s \n", q.toString().c_str());
-    
-    // Set control mode    
+    // Set control mode
     if (!robotInterface->setControlMode(wbi::CTRL_MODE_DIRECT_POSITION)) {
       printf("[ERR] Position control mode could not be set\n");
       return EXIT_FAILURE;
-    }   
-    
-    
-    
+    }
+
+
+
     robotInterface->close();
     delete robotInterface;
 

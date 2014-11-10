@@ -12,7 +12,7 @@
 #include <yarp/os/Mutex.h>
 #include <yarp/os/RateThread.h>
 
-#include <iCub/ctrl/adaptWinPolyEstimator.h>
+#include <yarp/sig/Vector.h>
 
 #include "PassThroughControlBoard.h"
 
@@ -146,9 +146,6 @@ private:
     yarp::sig::Vector                                integralJointTorquesError;
     yarp::sig::Vector                                integralState;
     yarp::sig::Vector                                outputJointTorques;
-
-    iCub::ctrl::AWLinEstimator *                     velocityFilter;
-    iCub::ctrl::AWPolyElement                        encoderPolyElement;
 
     void readStatus();
 

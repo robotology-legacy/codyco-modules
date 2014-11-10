@@ -167,7 +167,7 @@ target_link_libraries(passThroughControlBoard ${YARP_LIBRARIES})
 
 codyco_export_library(passThroughControlBoard)
 
-yarp_add_plugin(jointTorqueControl JointTorqueControl.h JointTorqueControl.cpp)
+yarp_add_plugin(jointTorqueControl JointTorqueControl.h JointTorqueControl.cpp PassThroughControlBoard.h  PassThroughControlBoard.cpp)
 target_link_libraries(jointTorqueControl ${YARP_LIBRARIES})
 
 codyco_export_library(jointTorqueControl)
