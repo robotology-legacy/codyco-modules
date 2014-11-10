@@ -147,7 +147,7 @@ bool WholeBodyReachThread::threadInit()
     _tasks.supportForearmConstr.setMinNormalForce(  FORCE_NORMAL_MIN);
     
     // JOINT LIMIT TASK
-    _tasks.jointLimits.setTimestep(10*getRate()*1e-3);
+    _tasks.jointLimits.setTimestep(50*getRate()*1e-3);
     _tasks.jointLimits.linkParameterQmax(_paramHelper, PARAM_ID_Q_MAX);
     _tasks.jointLimits.linkParameterQmin(_paramHelper, PARAM_ID_Q_MIN);
     _tasks.jointLimits.linkParameterDQmax(_paramHelper, PARAM_ID_DQ_MAX);
@@ -213,8 +213,8 @@ void WholeBodyReachThread::run()
 
     readRobotStatus();                      // read encoders, compute positions and Jacobians
     
-    Frame H_left;
-    _robot->computeH(_robotState.qJ.data(), _robotState.xBase, LINK_ID_LEFT_FOOT, H_left);
+//    Frame H_left;
+//    _robot->computeH(_robotState.qJ.data(), _robotState.xBase, LINK_ID_LEFT_FOOT, H_left);
 //    sendMsg("Left foot pose:  "+toString(Vector3d::Map(H_left.p),4));
 //    sendMsg("dq "+jointToString(WBR_RAD2DEG * _robotState.dqJ));
 //    sendMsg("dq norm    "+toString(WBR_RAD2DEG * _robotState.dqJ.norm()));
@@ -223,8 +223,6 @@ void WholeBodyReachThread::run()
     
     if(_status==WHOLE_BODY_REACH_ON)
     {
-        
-        
         if(areDesiredJointTorquesTooLarge())    // check desired joint torques are not too large
         {
             preStopOperations();            // stop the controller
@@ -249,14 +247,12 @@ void WholeBodyReachThread::run()
                 _integrator.integrate(_tauDes,
                                       _robotState.xBase,    _robotState.qJ,    _robotState.dq,
                                       _robotStateIntegrator.xBase, _robotStateIntegrator.qJ, _robotStateIntegrator.dq);
-                _robotState.xBase   = _robotStateIntegrator.xBase;
-                _robotState.qJ      = _robotStateIntegrator.qJ;
-                _robotState.dq      = _robotStateIntegrator.dq;
+                
                 if(i==0)
                 {
                     sendMsg("|| ddqDes - ddqIntegrator || = "+toString((_integrator._ddq_first_call - _solver._ddqDes).norm()));
+#define DEBUG_FORWARD_DYNAMICS
 #ifdef DEBUG_FORWARD_DYNAMICS
-                    {
                     // Null-space basis may be different but span the same space.
                     // Given two different basis Z1 and Z2 of the same space, this needs to hold:
                     // Z2 = Z1 * Z1^T * Z2
@@ -278,21 +274,25 @@ void WholeBodyReachThread::run()
                     sendMsg("Z2 err    "+toString(Z2err));
 //                  sendMsg("Z1\n"+toString(Z1.transpose(),1,"\n",16));
 //                  sendMsg("Z2\n"+toString(Z2.transpose(),1,"\n",16));
-                    sendMsg("ZMZ err   "+toString(ZMZerr));
+//                    sendMsg("ZMZ err   "+toString(ZMZerr));
                     sendMsg("rhs err   "+toString((rhs_solver-rhs_integr).norm()));
 //                    sendMsg("tau err   "+toString((_solver._tau_np6-_integrator._tau_np6).norm()));
 //                    sendMsg("qJ err    "+toString((_solver._qj - _integrator._qj).norm()));
-//                    sendMsg("xB err<1e-5? "+toString(isEqual(_solver._xB, _integrator._xB, 1e-5)));
-//                    sendMsg("dq err    "+toString((_solver._dq - _integrator._dq).norm()));
-//                    sendMsg("h err     "+toString((_solver._h-_integrator._h).norm()));
-                    sendMsg("M err      "+toString((_solver._M - _integrator._M).norm()));
-                    sendMsg("ddqBar err "+toString((_solver._ddqBar    -_integrator._ddqBar).norm()));
-                    sendMsg("M*ddqBar err "+toString(MddqBar_err));
-                    sendMsg("ddq_c err "+toString((_integrator._ddq_c - _solver._ddq_c).norm()));
+                    sendMsg("xB err<1e-10? "+toString(isEqual(_solver._xB, _integrator._xB_i, 1e-10)));
+//                    sendMsg("xB solver     "+_solver._xB.toString());
+//                    sendMsg("xB integrator "+_integrator._xB.toString());
+                    sendMsg("dq err            "+toString((_solver._dq - _integrator._dq).norm()));
+//                    sendMsg("h err         "+toString((_solver._h-_integrator._h).norm()));
+//                    sendMsg("M err         "+toString((_solver._M - _integrator._M).norm()));
+//                    sendMsg("ddqBar err    "+toString((_solver._ddqBar    -_integrator._ddqBar).norm()));
+//                    sendMsg("M*ddqBar err "+toString(MddqBar_err));
+//                    sendMsg("ddq_c err     "+toString((_integrator._ddq_c - _solver._ddq_c).norm()));
                     sendMsg("|| ddqFD - ddqIntegrator || = "+toString(ddqFD_err));
-                    }
 #endif
                 }
+                _robotState.xBase   = _robotStateIntegrator.xBase;
+                _robotState.qJ      = _robotStateIntegrator.qJ;
+                _robotState.dq      = _robotStateIntegrator.dq;
             }
 //            sendMsg("q POST "+jointToString(WBR_RAD2DEG * _robotState.qJ));
             
@@ -352,8 +352,9 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
     //    timeStampOld = timeStamp;
     
     _dqJ_yarp = _dqFilt->estimate(el);
-    for(int i=0; i<_n; i++)
-        _robotState.dqJ(i) = _dqJ_yarp(i);
+    if(!_integrateEoM)          // if integrating EoM use integrator dq
+        for(int i=0; i<_n; i++)
+            _robotState.dqJ(i) = _dqJ_yarp(i);
 #endif
     
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
@@ -363,7 +364,8 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
     _H_base_leftFoot.setToInverse().get4x4Matrix(_H_w2b.data());    // homogeneous transformation from world (i.e. left foot) to base
 #endif
     // base orientation conversion
-    _robotState.xBase.set4x4Matrix(_H_w2b.data());
+    if(!_integrateEoM)
+        _robotState.xBase.set4x4Matrix(_H_w2b.data());
 
     // compute Jacobians of both feet to estimate base velocity
     res = res && _robot->computeJacobian(_robotState.qJ.data(), _robotState.xBase, LINK_ID_RIGHT_FOOT,  _JfootR.data());
@@ -373,7 +375,8 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
     
     // estimate base velocity from joint velocities and constraint Jacobian Jc
     _svdJcb.compute(_Jc.leftCols<6>(), ComputeThinU | ComputeThinV);
-    _robotState.vBase = _svdJcb.solve(-_Jc.rightCols(_n)*_robotState.dqJ);
+    if(!_integrateEoM)
+        _robotState.vBase = _svdJcb.solve(-_Jc.rightCols(_n)*_robotState.dqJ);
 
     // copy base and joint velocities into _robotState.dq
     _robotState.dq.head<6>()    = _robotState.vBase;

@@ -83,6 +83,11 @@ wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot, bool useNullspa
 //**************************************************************************************************
 bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef torques)
 {
+#ifdef DEBUG_FORWARD_DYNAMICS
+    _qj = robotState.qJ;
+    _xB = robotState.xBase;
+    _dq = robotState.dq;
+#endif
     START_PROFILING(PROFILE_WHOLE_SOLVER);
     
     assert(_momentumTask!=NULL);
@@ -197,12 +202,8 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     STOP_PROFILING(PROFILE_WHOLE_SOLVER);
     
 #ifdef DEBUG_FORWARD_DYNAMICS
-    _qj = robotState.qJ;
-    _xB = robotState.xBase;
-    _dq = robotState.dq;
-    
     _ddqFD.resize(_n+6);   // accelerations computed by the forward dynamics algorithm
-    constrainedForwardDynamics(robotState.g, torques, robotState.xBase, robotState.qJ, robotState.dq, _ddqFD);
+    constrainedForwardDynamics(robotState.g, torques, _xB, _qj, _dq, _ddqFD);
     sendMsg("ddqFD-ddqDes: "+toString((_ddqFD-_ddqDes).norm()));
 #endif
     
@@ -212,6 +213,8 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
 //**************************************************************************************************
 bool wbiStackOfTasks::computeMomentumSoT_safe(RobotState& robotState, Eigen::VectorRef torques)
 {
+    double ZERO_NUM = 1e-10;    // numerical zero
+    
     sendMsg("ComputeMomentumSoT_safe");
     
     bool jointLimitActive = _jointLimitTask!=NULL;
@@ -245,25 +248,78 @@ bool wbiStackOfTasks::computeMomentumSoT_safe(RobotState& robotState, Eigen::Vec
         ddqDes_j    = _qp_force.x.head(_n);
         _fcDes      = _qp_force.x.tail(_k);
         
+        bool qpFailed = false;
         if(res == std::numeric_limits<double>::infinity())
         {
             cout<<"Force QP could not be solved:\n"<<_qp_force.toString()<<endl;
-            return false;
+            qpFailed = true;
         }
-        
-        if(_qp_force.activeSetSize>0)
-            sendMsg("Active constraints: "+toString(_qp_force.activeSet.head(_qp_force.activeSetSize).transpose()));
-        VectorXd tmp = _qp_force.CI*_qp_force.x;
-        for(int i=0; i<tmp.size(); i++)
-            if(tmp(i)+_qp_force.ci0(i)<-1e-10)
+        else
+        {
+            if(_qp_force.activeSetSize>0)
+                sendMsg("Active constraints: "+toString(_qp_force.activeSet.head(_qp_force.activeSetSize).transpose()));
+            VectorXd tmp = _qp_force.CI*_qp_force.x;
+            for(int i=0; i<tmp.size(); i++)
+                if(tmp(i)+_qp_force.ci0(i)<-ZERO_NUM)
+                {
+                    cout<<"Force QP inequality constraint "+toString(i)+" is violated by the solution\n";
+                    cout<<tmp(i)<<" < "<< -_qp_force.ci0(i)<<endl;
+                    qpFailed = true;
+                }
+            if(qpFailed)
             {
-                cout<<"Force QP inequality constraint "+toString(i)+" is violated by the solution\n";
-                cout<<tmp(i)<<" < "<< -_qp_force.ci0(i)<<endl;
                 cout<<"x = "<<_qp_force.x.transpose().format(matlabPrintFormat)<<endl;
                 cout<<_qp_force.toString()<<endl;
-                return false;
             }
-        _jointLimitTask->setDdqDes(ddqDes_j);
+        }
+        
+        if(qpFailed)
+        {
+            cout<<"Trying to solve force QP assuming zero velocities.\n";
+            robotState.dq.setZero();
+            robotState.dqJ.setZero();
+            robotState.vBase.setZero();
+            _robot->computeGeneralizedBiasForces(robotState.qJ.data(), robotState.xBase,
+                                                 robotState.dqJ.data(), robotState.vBase.data(),
+                                                 robotState.g.data(), _h.data());
+            _dJcdq.setZero();
+            _jointLimitTask->update(robotState);
+            _qp_force.ce0               = _dJcdq - Jc_b*(_Mb_inv*h_b);
+            n_in = _jointLimitTask->getNumberOfInequalities();
+            _jointLimitTask->getInequalityVector(_qp_force.ci0.head(n_in));
+            for(int i=0; i<_n;i++)
+            {   // enlarge ddq limits so that ddq=0 doesn't violate any inequalities
+                if(-_qp_force.ci0(2*i)>0.0)         // ddqMin > 0 ?
+                {
+                    cout<<"Saturate to 0 ddqMin "<<i<<", which was "<<-_qp_force.ci0(2*i)<<endl;
+                    _qp_force.ci0(2*i)=0.0;
+                }
+                else if(_qp_force.ci0(2*i+1)<0.0)   // ddqMax < 0 ?
+                {
+                    cout<<"Saturate to 0 ddqMax "<<i<<", which was "<<_qp_force.ci0(2*i+1)<<endl;
+                    _qp_force.ci0(2*i+1)=0.0;
+                }
+            }
+            res         = _qp_force.solveQP(_numericalDampingConstr);
+            if(res == std::numeric_limits<double>::infinity())
+            {
+                cout<<"Force QP with zero velocities COULD NOT be solved:\n"<<_qp_force.toString()<<endl;
+            }
+            else
+            {
+                cout<<"Force QP with zero velocities COULD be solved:\n"<<_qp_force.toString()<<endl;
+                VectorXd tmp = _qp_force.CI*_qp_force.x;
+                for(int i=0; i<tmp.size(); i++)
+                    if(tmp(i)+_qp_force.ci0(i)<-ZERO_NUM)
+                    {
+                        cout<<"Force QP inequality constraint "+toString(i)+" is violated by the solution\n";
+                        cout<<tmp(i)<<" < "<< -_qp_force.ci0(i)<<endl;
+                        cout<<"x = "<<_qp_force.x.transpose().format(matlabPrintFormat)<<endl;
+                    }
+            }
+            return false;
+        }
+//        _jointLimitTask->setDdqDes(ddqDes_j);
     }
     STOP_PROFILING(PROFILE_FORCE_QP);
     sendMsg("Momentum error  = "+toString((_X*_fcDes-_momentumDes).norm())+
@@ -276,10 +332,8 @@ bool wbiStackOfTasks::computeMomentumSoT_safe(RobotState& robotState, Eigen::Vec
     // Compute base accelerations
     //     dv_b = Mb^{-1}*(Jc_b^T*f - M_bj*ddq_j - h_b);
     ddqDes_b    = _Mb_inv*(Jc_b.transpose()*_fcDes - M_bj*ddqDes_j - h_b);
-    //    sendMsg("ddqDes (dynamic consistent) = "+toString(_ddqDes,1));
 //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
-    sendMsg("Contact constr residual = "+toString((_Jc*_ddqDes+_dJcdq).transpose()));
+//    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
     
     
 #define DEBUG_POSE_TASKS
@@ -328,11 +382,19 @@ bool wbiStackOfTasks::computeMomentumSoT_safe(RobotState& robotState, Eigen::Vec
         _qp_motion1.w       = _numericalDampingTask*VectorXd::Ones(_n);
         _qp_motion1.a       = _a_i - _A_i*_ddqDes;
         for(int i=0; i<_qp_motion1.ci0.size(); i++)
-            if(_qp_motion1.ci0(i)<-1e-10)
+            if(_qp_motion1.ci0(i)<-ZERO_NUM)
             {
                 cout<<t.getName()+" ci0("+toString(i)+") = "+toString(_qp_motion1.ci0(i))<<endl;
                 return false;
             }
+            else if(_qp_motion1.ci0(i)<0.0)
+            {
+                // The previous solution slightly violates the constraints
+                // -ZERO_NUM < ci0(i) < 0
+                sendMsg(t.getName()+" slight constraint violation, ci0("+toString(i)+") = "+toString(_qp_motion1.ci0(i)));
+                _qp_motion1.ci0(i) = 0.0;
+            }
+            
         
         double res = _qp_motion1.solveQP(_numericalDampingConstr);
         _ddq_jDes  = _qp_motion1.x;
@@ -354,7 +416,7 @@ bool wbiStackOfTasks::computeMomentumSoT_safe(RobotState& robotState, Eigen::Vec
         _Z *= _qp_motion1.N_CE;
         
 #ifdef  DEBUG_POSE_TASKS
-        _jointLimitTask->setDdqDes(ddqDes_j);
+//        _jointLimitTask->setDdqDes(ddqDes_j);
         //        sendMsg(t.getName()+" Jacobian =\n"+toString(_A_i));
         //        int nzsv = _A_svd.nonzeroSingularValues();
         //        sendMsg(t.getName()+". "+toString(nzsv)+"-th sing val = "+toString(_A_svd.singularValues()(nzsv-1)));
@@ -375,10 +437,17 @@ bool wbiStackOfTasks::computeMomentumSoT_safe(RobotState& robotState, Eigen::Vec
         _qp_posture.w       = _numericalDampingTask*VectorXd::Ones(_n);
         _qp_posture.a       = _ddq_jPosture - ddqDes_j;
         for(int i=0; i<_qp_posture.ci0.size(); i++)
-            if(_qp_posture.ci0(i) < -1e-10)
+            if(_qp_posture.ci0(i) < -ZERO_NUM)
             {
                 cout<<"Posture ci0("+toString(i)+") = "+toString(_qp_posture.ci0(i))<<endl;
                 return false;
+            }
+            else if(_qp_posture.ci0(i)<0.0)
+            {
+                // The previous solution slightly violates the constraints
+                // -ZERO_NUM < ci0(i) < 0
+                sendMsg("Posture slight constraint violation, ci0("+toString(i)+") = "+toString(_qp_posture.ci0(i)));
+                _qp_posture.ci0(i) = 0.0;
             }
         
         double res = _qp_posture.solveQP(_numericalDampingConstr);
@@ -409,7 +478,7 @@ bool wbiStackOfTasks::computeMomentumSoT_safe(RobotState& robotState, Eigen::Vec
 //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
     //    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
     sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
-    sendMsg("Contact constr residual = "+toString((_Jc*_ddqDes+_dJcdq).transpose()));
+//    sendMsg("Contact constr residual = "+toString((_Jc*_ddqDes+_dJcdq).transpose()));
     
     
 #ifdef  DEBUG_POSE_TASKS
