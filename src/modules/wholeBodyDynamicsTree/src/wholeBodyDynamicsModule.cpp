@@ -42,6 +42,8 @@
 
 using namespace yarp::dev;
 using namespace yarpWbi;
+using namespace yarp::os;
+using namespace wbi;
 
 wholeBodyDynamicsModule::wholeBodyDynamicsModule()
 {

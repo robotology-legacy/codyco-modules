@@ -39,17 +39,6 @@
 #include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 #include <yarpWholeBodyInterface/yarpWholeBodyStatesLocal.h>
 
-
-using namespace yarp::os;
-using namespace yarp::sig;
-using namespace yarp::math;
-using namespace iCub::ctrl;
-using namespace iCub::skinDynLib;
-using namespace std;
-using namespace wbi;
-using namespace Eigen;
-
-
 class iCubTreeStatus
 {
 public:
@@ -75,16 +64,16 @@ struct outputTorquePortInformation
     int magic_number;
     std::vector< int > wbi_numeric_ids_to_publish;
     yarp::sig::Vector output_vector;
-    BufferedPort<Bottle> * output_port;
+    yarp::os::BufferedPort<yarp::os::Bottle> * output_port;
 };
 
 /**
  *
   */
-class wholeBodyDynamicsThread: public RateThread
+class wholeBodyDynamicsThread: public yarp::os::RateThread
 {
-    string              name;
-    string              robotName;
+    std::string name;
+    std::string robotName;
     yarpWbi::yarpWholeBodyStatesLocal *estimator;
 
     int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
@@ -92,46 +81,46 @@ class wholeBodyDynamicsThread: public RateThread
 
     enum { NORMAL, CALIBRATING, CALIBRATING_ON_DOUBLE_SUPPORT } wbd_mode;     /// < Mode of operation of the thread: normal operation or calibration
 
-    BufferedPort<Vector> *port_external_wrench_RA;
-    BufferedPort<Vector> *port_external_wrench_LA;
-    BufferedPort<Vector> *port_external_wrench_RL;
-    BufferedPort<Vector> *port_external_wrench_LL;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_wrench_RA;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_wrench_LA;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_wrench_RL;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_wrench_LL;
 
-    BufferedPort<Vector> *port_external_cartesian_wrench_RA;
-    BufferedPort<Vector> *port_external_cartesian_wrench_LA;
-    BufferedPort<Vector> *port_external_cartesian_wrench_RL;
-    BufferedPort<Vector> *port_external_cartesian_wrench_LL;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_cartesian_wrench_RA;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_cartesian_wrench_LA;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_cartesian_wrench_RL;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_cartesian_wrench_LL;
 
-    BufferedPort<Vector> *port_sensor_wrench_RL;
-    BufferedPort<Vector> *port_sensor_wrench_LL;
-    BufferedPort<Vector> *port_model_wrench_RL;
-    BufferedPort<Vector> *port_model_wrench_LL;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_sensor_wrench_RL;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_sensor_wrench_LL;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_model_wrench_RL;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_model_wrench_LL;
 
 
-    BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts;
+    yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts;
 
     /*
-    BufferedPort<Vector> *port_all_accelerations;
-    BufferedPort<Vector> *port_all_velocities;
-    BufferedPort<Vector> *port_all_positions;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_all_accelerations;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_all_velocities;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_all_positions;
     */
 
     // ports outputing the external dynamics seen at the F/T sensor
     /*
-    BufferedPort<Vector> *port_external_ft_arm_left;
-    BufferedPort<Vector> *port_external_ft_arm_right;
-    BufferedPort<Vector> *port_external_ft_leg_left;
-    BufferedPort<Vector> *port_external_ft_leg_right;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_ft_arm_left;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_ft_arm_right;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_ft_leg_left;
+    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_ft_leg_right;
     */
 
-    BufferedPort<Vector> * port_icubgui_base;
+    yarp::os::BufferedPort<yarp::sig::Vector> * port_icubgui_base;
 
 
     yarp::os::Stamp timestamp;
 
-    template <class T> void broadcastData(T& _values, BufferedPort<T> *_port);
-    void closePort(Contactable *_port);
-    void writeTorque(Vector _values, int _address, BufferedPort<Bottle> *_port);
+    template <class T> void broadcastData(T& _values, yarp::os::BufferedPort<T> *_port);
+    void closePort(yarp::os::Contactable *_port);
+    void writeTorque(yarp::sig::Vector _values, int _address, yarp::os::BufferedPort<yarp::os::Bottle> *_port);
     void publishTorques();
     void publishContacts();
     void getEndEffectorWrenches();
@@ -224,10 +213,10 @@ class wholeBodyDynamicsThread: public RateThread
     int foot_sole_link_idyntree_id;
 
    // port that output the wrenches relative to the foot/ankle
-    BufferedPort<Vector> * port_joint_ankle_cartesian_wrench;
-    BufferedPort<Vector> * port_joint_ankle_cartesian_wrench_from_model;
-    BufferedPort<Vector> * port_joint_foot_cartesian_wrench;
-    BufferedPort<Vector> * port_joint_foot_cartesian_wrench_from_model;
+    yarp::os::BufferedPort<yarp::sig::Vector> * port_joint_ankle_cartesian_wrench;
+    yarp::os::BufferedPort<yarp::sig::Vector> * port_joint_ankle_cartesian_wrench_from_model;
+    yarp::os::BufferedPort<yarp::sig::Vector> * port_joint_foot_cartesian_wrench;
+    yarp::os::BufferedPort<yarp::sig::Vector> * port_joint_foot_cartesian_wrench_from_model;
     iCub::iDynTree::TorqueEstimationTree * icub_model_zmp;
 
     bool autoconnect;
@@ -236,8 +225,8 @@ class wholeBodyDynamicsThread: public RateThread
 
 public:
 
-    wholeBodyDynamicsThread(string _name,
-                            string _robotName,
+    wholeBodyDynamicsThread(std::string _name,
+                            std::string _robotName,
                             int _period,
                             yarpWbi::yarpWholeBodyStatesLocal *_wbi,
                             yarp::os::Property & yarpWbiOptions,

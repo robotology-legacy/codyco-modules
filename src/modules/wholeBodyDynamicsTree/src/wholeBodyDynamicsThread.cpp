@@ -29,8 +29,11 @@
 
 using namespace yarp::math;
 using namespace yarp::sig;
+using namespace yarp::os;
+using namespace wbi;
 using namespace yarpWbi;
 using namespace std;
+using namespace iCub::skinDynLib;
 
 iCubTreeStatus::iCubTreeStatus(int nrOfDOFs, int nrOfFTsensors)
 {
