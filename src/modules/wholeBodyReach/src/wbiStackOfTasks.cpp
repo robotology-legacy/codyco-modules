@@ -83,7 +83,6 @@ wbiStackOfTasks::wbiStackOfTasks(wbi::wholeBodyInterface* robot, bool useNullspa
 //**************************************************************************************************
 bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef torques)
 {
-    cout<<"wbiStackOfTasks::computeSolution\n";
 #ifdef DEBUG_FORWARD_DYNAMICS
     _qj = robotState.qJ;
     _xB = robotState.xBase;
@@ -215,7 +214,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
 //**************************************************************************************************
 bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef torques)
 {
-    cout<<"ComputeComSoT"<<endl;
+    sendMsg("ComputeComSoT");
     
     bool jointLimitActive = _jointLimitTask!=NULL;
     if(jointLimitActive)
@@ -226,7 +225,7 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
     _Mb_inv_M_bj  = _Mb_inv * M_bj;
     _Mb_inv_J_cbT = _Mb_inv * Jc_b.transpose();
     
-    _Jc_Sbar    = Jc_j - (Jc_b * _Mb_inv_M_bj);
+    _Jc_Sbar                    = Jc_j - (Jc_b * _Mb_inv_M_bj);
     _qp_force.CE.leftCols(_n)   = _Jc_Sbar;
     _qp_force.CE.rightCols(_k)  = Jc_b*_Mb_inv_J_cbT;
     _qp_force.ce0               = _dJcdq - Jc_b*(_Mb_inv*h_b);
@@ -249,7 +248,7 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
     _qp_force.computeQpNullSpace();
     _Z = _qp_force.N_CE;
     
-    sendMsg("Momentum error  = "+toString((_X*_fcDes-_momentumDes).norm()));
+    sendMsg("Linear momentum error  = "+toString((_X*_fcDes-_momentumDes).head<3>().norm()));
     //    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
     //    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
     
@@ -281,9 +280,9 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         _jointLimitTask->getInequalityVector(_qp_motion1.ci0.head(n_jl_in));
         _qp_motion1.CI.bottomRightCorner(n_f_in, _k)    = _B;
         _qp_motion1.ci0.tail(n_f_in)                    = _b;
-        _qp_motion1.ci0     += _qp_motion1.CI.topLeftCorner(n_jl_in, _n)*ddqDes_j;
-        _qp_motion1.ci0     += _qp_motion1.CI.bottomRightCorner(n_f_in, _k)*_fcDes;
-        _qp_motion1.CI      *= _Z;
+        _qp_motion1.ci0.head(n_jl_in)       += _qp_motion1.CI.topLeftCorner(n_jl_in, _n)*ddqDes_j;
+        _qp_motion1.ci0.tail(n_f_in)        += _qp_motion1.CI.bottomRightCorner(n_f_in, _k)*_fcDes;
+        _qp_motion1.CI                      *= _Z;
         
         _qp_motion1.A.leftCols(_n)  = _A_i.rightCols(_n) - _A_i.leftCols<6>()*_Mb_inv_M_bj;
         _qp_motion1.A.rightCols(_k) = _A_i.leftCols<6>()*_Mb_inv_J_cbT;
@@ -317,8 +316,8 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         if(_qp_motion1.activeSetSize>0)
             sendMsg(t.getName()+". Active joint limits: "+toString(_qp_motion1.activeSet.head(_qp_motion1.activeSetSize).transpose()));
         
-        if((tmp=(_ddq_jDes-_Z*_ddq_jDes).norm())>1e-10)
-            sendMsg(t.getName()+". Part of ddq_jDes outside the null space of previous tasks: "+toString(tmp));
+        if((tmp=(_qp_motion1.x-_Z*_qp_motion1.x).norm())>1e-10)
+            sendMsg(t.getName()+". Part of solution outside the null space of previous tasks: "+toString(tmp));
         
         ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
         ddqDes_b    += _Mb_inv_J_cbT*_qp_motion1.x.tail(_k);
@@ -346,8 +345,8 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         _jointLimitTask->getInequalityVector(_qp_posture.ci0.head(n_jl_in));
         _qp_posture.CI.bottomRightCorner(n_f_in, _k)    = _B;
         _qp_posture.ci0.tail(n_f_in)                    = _b;
-        _qp_posture.ci0     += _qp_posture.CI.topLeftCorner(n_jl_in, _n)*ddqDes_j;
-        _qp_posture.ci0     += _qp_posture.CI.bottomRightCorner(n_f_in, _k)*_fcDes;
+        _qp_posture.ci0.head(n_jl_in)       += _qp_posture.CI.topLeftCorner(n_jl_in, _n)*ddqDes_j;
+        _qp_posture.ci0.tail(n_f_in)        += _qp_posture.CI.bottomRightCorner(n_f_in, _k)*_fcDes;
         _qp_posture.CI      *= _Z;
         
         _qp_posture.A       = _Z.topRows(_n);
@@ -369,7 +368,7 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
             }
         
         double res = _qp_posture.solveQP(_numericalDampingConstr);
-        _ddq_jDes  = _qp_posture.x;
+        _ddq_jDes  = _qp_posture.x.head(_n);
         
         if(res == std::numeric_limits<double>::infinity())
         {
@@ -378,7 +377,7 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         }
         if(_qp_posture.activeSetSize>0)
             sendMsg("Posture task. Active joint limits: "+toString(_qp_posture.activeSet.head(_qp_posture.activeSetSize).transpose()));
-        if((tmp=(_ddq_jDes-_Z*_ddq_jDes).norm())>1e-10)
+        if((tmp=(_qp_posture.x-_Z*_qp_posture.x).norm())>1e-10)
             sendMsg("Posture task. Part of ddq_jDes outside the null space of previous tasks: "+toString(tmp));
         
         ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
@@ -1161,10 +1160,10 @@ void wbiStackOfTasks::resizeVariables()
     {
         n_eq = 0;
         // resize first motion-task-QP variables
-        _qp_motion1.resize(nVar, n_eq, n_in, 3);
-        cout<<"Resize motion QP with "<<nVar<<" variables, "<<n_eq<<" equalities, "<<n_in<<" inequalities, "<<3<<" task size\n";
+        _qp_motion1.resize(nVar, n_eq, n_in, 6);
+        cout<<"Resize motion QP with "<<nVar<<" variables, "<<n_eq<<" equalities, "<<n_in<<" inequalities, "<<6<<" task size\n";
         // resize second motion-task-QP variables
-        _qp_motion2.resize(nVar, n_eq, n_in, 3);
+        _qp_motion2.resize(nVar, n_eq, n_in, 6);
         // resize posture-QP variables
         _qp_posture.resize(nVar, n_eq, n_in, _n);
         cout<<"Resize posture QP with "<<nVar<<" variables, "<<n_eq<<" equalities, "<<n_in<<" inequalities, "<<_n<<" task size\n";
@@ -1175,10 +1174,10 @@ void wbiStackOfTasks::resizeVariables()
         // resize first motion-task-QP variables
         n_in = _jointLimitTask==NULL ? 0 : _jointLimitTask->getNumberOfInequalities();
         n_eq = _k;
-        _qp_motion1.resize(_n, n_eq, n_in, 3);
+        _qp_motion1.resize(_n, n_eq, n_in, 6);
         
         // resize second motion-task-QP variables
-        _qp_motion2.resize(_n, 0, n_in, 3);
+        _qp_motion2.resize(_n, 0, n_in, 6);
         
         // resize posture-QP variables
         n_eq = _equalityTasks.empty() ? _k : 0;

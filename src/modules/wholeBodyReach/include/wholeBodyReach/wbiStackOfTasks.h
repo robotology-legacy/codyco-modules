@@ -231,8 +231,6 @@ public:
     };
     
 public:
-    const double    ZERO_NUM = 1e-10;
-    
     WholeBodyReachCtrlAlgorithm     _ctrlAlg;   /// the id of the control algorithm to use
     int             _ctrlAlg_paramId;           /// id of the parameter associated to _ctrlAlg
     double          _numericalDampingDyn;       /// damping factor when solving dynamics

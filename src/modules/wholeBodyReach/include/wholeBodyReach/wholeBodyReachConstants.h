@@ -78,6 +78,7 @@ static const double     KP_MAX          = 100.0;    // max value of proportional
 static const double     DQ_MAX          = 1.0;      // max joint velocity allowed (rad/sec)
 static const double     TAU_MAX         = 3000.0;    // max joint torque allowed (Nm)
 static const double     PINV_TOL        = 1e-4;     // threshold for truncated pseudoinverses
+static const double     ZERO_NUM        = 1e-10;    // numerical zero (used to check if a value is zero)
 static const double     FORCE_NORMAL_MIN = 20.0;
 static const double     FORCE_NORMAL_MAX = 300.0;
 
