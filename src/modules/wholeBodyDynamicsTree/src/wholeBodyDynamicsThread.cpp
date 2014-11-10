@@ -125,7 +125,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     for(int dof=0; dof < (int)torque_estimation_list.size(); dof++)
     {
         ID wbi_id;
-        torque_estimation_list.numericIdToWbiId(dof,wbi_id);
+        torque_estimation_list.indexToID(dof,wbi_id);
         dof_serialization.push_back(wbi_id.toString());
     }
 
@@ -134,7 +134,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     for(int ft=0; ft < (int)ft_sensor_list.size(); ft++)
     {
         ID wbi_id;
-        ft_sensor_list.numericIdToWbiId(ft,wbi_id);
+        ft_sensor_list.indexToID(ft,wbi_id);
         ft_serialization.push_back(wbi_id.toString());
     }
 
@@ -236,7 +236,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 wbi::ID wholeBodyDynamicsThread::convertFTiDynTreeToFTwbi(int ft_sensor_id)
 {
     wbi::ID ret;
-    estimator->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR).numericIdToWbiId(ft_sensor_id,ret);
+    estimator->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR).indexToID(ft_sensor_id,ret);
     return ret;
 }
 
@@ -245,7 +245,7 @@ void checkFTSensorExist(std::string ft_sensor_name, wbi::IDList & all_fts, std::
     if( all_fts.containsID(ft_sensor_name) )
     {
         int numeric_id;
-        all_fts.wbiIdToNumericId(ft_sensor_name,numeric_id);
+        all_fts.idToIndex(ft_sensor_name,numeric_id);
         YARP_ASSERT(icub_model_calibration->getFTSensorIndex(ft_sensor_name) == numeric_id);
         ft_id_list.push_back(numeric_id);
     }
@@ -291,7 +291,7 @@ bool wholeBodyDynamicsThread::threadInit()
         {
             std::string torque_wbi_id = torque_ids->get(i).asString();
             int torque_wbi_numeric_id;
-            torque_list.wbiIdToNumericId(torque_wbi_id,torque_wbi_numeric_id);
+            torque_list.idToIndex(torque_wbi_id,torque_wbi_numeric_id);
             torque_port_struct.wbi_numeric_ids_to_publish.push_back(torque_wbi_numeric_id);
         }
         assert(torque_ids->size() == torque_port_struct.wbi_numeric_ids_to_publish.size() );

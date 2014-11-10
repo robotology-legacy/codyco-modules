@@ -130,7 +130,7 @@ namespace codyco {
             m_impedanceDoubleSupportReference = m_initialJointsConfiguration; //copy into double support state
 
             int leftFootLinkID = -1;
-            m_robot->getFrameList().wbiIdToNumericId("l_sole", leftFootLinkID);
+            m_robot->getFrameList().idToIndex("l_sole", leftFootLinkID);
 
             wbi::Frame frame;
             m_robot->computeH(m_initialJointsConfiguration.data(), wbi::Frame(), leftFootLinkID, frame);

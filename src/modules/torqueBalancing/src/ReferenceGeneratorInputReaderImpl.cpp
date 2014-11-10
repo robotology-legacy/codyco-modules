@@ -40,7 +40,7 @@ namespace codyco {
         , m_jacobian(7, size + 6)
         , m_previousContext(0)
         {
-            m_robot.getFrameList().wbiIdToNumericId(endEffectorLinkName.c_str(), m_endEffectorLinkID);
+            m_robot.getFrameList().idToIndex(endEffectorLinkName.c_str(), m_endEffectorLinkID);
             initializer();
         }
         
@@ -62,7 +62,7 @@ namespace codyco {
         
         void EndEffectorPositionReader::initializer()
         {
-            m_robot.getFrameList().wbiIdToNumericId("l_sole", m_leftFootLinkID);
+            m_robot.getFrameList().idToIndex("l_sole", m_leftFootLinkID);
             m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
                                                             0, -1, 0,
                                                             1, 0, 0);
@@ -157,11 +157,11 @@ namespace codyco {
         , m_outputSignal(6)
         , m_previousContext(0)
         {
-            m_robot.getFrameList().wbiIdToNumericId("l_sole", m_leftFootLinkID);
+            m_robot.getFrameList().idToIndex("l_sole", m_leftFootLinkID);
             m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
                                                             0, -1, 0,
                                                             1, 0, 0);
-            m_robot.getFrameList().wbiIdToNumericId(endEffectorLinkName, m_endEffectorLocalID);
+            m_robot.getFrameList().idToIndex(endEffectorLinkName, m_endEffectorLocalID);
         }
         
         EndEffectorForceReader::~EndEffectorForceReader() {}

@@ -359,8 +359,8 @@ bool MotorFrictionExcitationThread::initContactExcitation()
     Bottle jointName, reply;
     for(int i=0; i<cjn; i++)
     {
-        robot->getJointList().numericIdToWbiId(contactExc[contactExcCounter].jointId[i],currentJointWbiIds[i]);
-        robot->getJointList().wbiIdToNumericId(currentJointWbiIds[i],currentJointNumericIds[i]);
+        robot->getJointList().indexToID(contactExc[contactExcCounter].jointId[i],currentJointWbiIds[i]);
+        robot->getJointList().idToIndex(currentJointWbiIds[i],currentJointNumericIds[i]);
         YARP_ASSERT(currentJointNumericIds[i] == contactExc[contactExcCounter].jointId[i]);
         jointName.addString(currentJointWbiIds[i].toString().c_str());
         if(!identificationModule->sendRpcCommand(motorFrictionIdentification::COMMAND_ID_ACTIVATE_JOINT, &jointName, &reply))
@@ -404,8 +404,8 @@ bool MotorFrictionExcitationThread::initFreeMotionExcitation()
     for(int i=0; i<cjn; i++)
     {
         ID lid;
-        robot->getJointList().numericIdToWbiId(freeMotionExc[freeExcCounter].jointId[i],lid);
-        robot->getJointList().wbiIdToNumericId(lid,currentJointNumericIds[i]);
+        robot->getJointList().indexToID(freeMotionExc[freeExcCounter].jointId[i],lid);
+        robot->getJointList().idToIndex(lid,currentJointNumericIds[i]);
         YARP_ASSERT(freeMotionExc[freeExcCounter].jointId[i] == currentJointNumericIds[i]);
         currentJointWbiIds[i] = lid;
 
