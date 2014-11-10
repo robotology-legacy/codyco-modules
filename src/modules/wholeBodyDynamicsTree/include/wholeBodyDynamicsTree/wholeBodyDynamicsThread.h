@@ -142,7 +142,7 @@ class wholeBodyDynamicsThread: public RateThread
     void disableCalibration();
 
 
-    wbi::wbiId convertFTiDynTreeToFTwbi(int ft_sensor_id);
+    wbi::ID convertFTiDynTreeToFTwbi(int ft_sensor_id);
     void normal_run();
     void calibration_run();
     void calibration_on_double_support_run();

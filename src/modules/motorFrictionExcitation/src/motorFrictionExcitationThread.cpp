@@ -403,7 +403,7 @@ bool MotorFrictionExcitationThread::initFreeMotionExcitation()
     Bottle jointName, reply;
     for(int i=0; i<cjn; i++)
     {
-        wbiId lid;
+        ID lid;
         robot->getJointList().numericIdToWbiId(freeMotionExc[freeExcCounter].jointId[i],lid);
         robot->getJointList().wbiIdToNumericId(lid,currentJointNumericIds[i]);
         YARP_ASSERT(freeMotionExc[freeExcCounter].jointId[i] == currentJointNumericIds[i]);

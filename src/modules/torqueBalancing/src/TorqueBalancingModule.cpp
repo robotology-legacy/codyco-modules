@@ -74,7 +74,7 @@ namespace codyco {
             }
             
             //retrieve all main joints
-            wbi::wbiIdList iCubMainJoints;
+            wbi::IDList iCubMainJoints;
             if (!yarpWbi::loadIdListFromConfig("ICUB_MAIN_JOINTS", wbiProperties, iCubMainJoints)) {
                 std::cerr << "Cannot find joint list" << std::endl;
             }

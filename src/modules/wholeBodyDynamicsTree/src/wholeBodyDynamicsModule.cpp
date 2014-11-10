@@ -128,7 +128,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     yarpWbiOptions.fromConfigFile(wbiConfFile);
 
     //List of joints used in the dynamic model of the robot
-    wbiIdList RobotDynamicModelJoints;
+    IDList RobotDynamicModelJoints;
     std::string RobotDynamicModelJointsListName = "ICUB_DYNAMIC_MODEL_JOINTS";
     if( !loadIdListFromConfig(RobotDynamicModelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
     {
@@ -182,7 +182,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,RobotDynamicModelJoints);
 
      //List of 6-axis Force-Torque sensors in the robot
-    wbiIdList RobotFTSensors;
+    IDList RobotFTSensors;
     std::string RobotFTSensorsListName = "ICUB_MAIN_FTS";
     if( !loadIdListFromConfig(RobotFTSensorsListName,yarpWbiOptions,RobotFTSensors) )
     {
@@ -191,7 +191,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,RobotFTSensors);
 
     //List of IMUs sensors in the robot
-    wbiIdList RobotIMUSensors;
+    IDList RobotIMUSensors;
     std::string RobotIMUSensorsListName = "ICUB_MAIN_IMUS";
     if( !loadIdListFromConfig(RobotIMUSensorsListName,yarpWbiOptions,RobotIMUSensors) )
     {

@@ -99,7 +99,7 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
 
     robotInterface = new yarpWholeBodyInterface(moduleName.c_str(), yarpWbiOptions);
 
-    wbiIdList RobotMainJoints;
+    IDList RobotMainJoints;
     std::string RobotMainJointsListName = "ICUB_MAIN_JOINTS";
     if( !loadIdListFromConfig(RobotMainJointsListName,yarpWbiOptions,RobotMainJoints) )
     {
