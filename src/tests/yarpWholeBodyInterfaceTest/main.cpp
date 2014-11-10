@@ -90,11 +90,19 @@ int main(int argc, char * argv[])
     // Get robot DOF
     int DOF = robotInterface->getDoFs();
     
+    // Initialize variables    
     Vector q(DOF), dq(DOF), d2q(DOF);
     
+    // Get robot estimates
     robotInterface->getEstimates(wbi::ESTIMATE_JOINT_POS, q.data(), -1.0, false);
     
     printf("Joint Angles: %s \n", q.toString().c_str());
+    
+    // Set control mode    
+    if (!robotInterface->setControlMode(wbi::CTRL_MODE_DIRECT_POSITION)) {
+      printf("[ERR] Position control mode could not be set\n");
+      return EXIT_FAILURE;
+    }   
     
     
     
