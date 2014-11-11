@@ -249,16 +249,16 @@ bool MotorFrictionIdentificationThread::loadConfiguration()
                 std::cerr << coupledMotorWithNoZeroTorqueGroupName << " group detected, but malformed, exiting" << std::endl;
                 return false;
             }
-            const wbi::wbiIdList & motorList = this->robot->getEstimateList(ESTIMATE_MOTOR_TORQUE);
+            const wbi::IDList & motorList = this->robot->getEstimateList(ESTIMATE_MOTOR_TORQUE);
             std::string disable_gain_estimation_motor = bot.get(i).asList()->get(0).asString();
             std::string motor_that_should_have_zero_torque = bot.get(i).asList()->get(1).asString();
             int disable_gain_estimation_motor_id, motor_that_should_have_zero_torque_id;
-            bool ret = motorList.wbiIdToNumericId(disable_gain_estimation_motor,disable_gain_estimation_motor_id);
+            bool ret = motorList.idToIndex(disable_gain_estimation_motor,disable_gain_estimation_motor_id);
             if( !ret )
             {
                 std::cerr << coupledMotorWithNoZeroTorqueGroupName << " group detected, but motor" << disable_gain_estimation_motor << "not found" << std::endl;
             }
-            ret = motorList.wbiIdToNumericId(motor_that_should_have_zero_torque,motor_that_should_have_zero_torque_id);
+            ret = motorList.idToIndex(motor_that_should_have_zero_torque,motor_that_should_have_zero_torque_id);
             if( !ret )
             {
                 std::cerr << coupledMotorWithNoZeroTorqueGroupName << " group detected, but motor" << motor_that_should_have_zero_torque << "not found" << std::endl;
@@ -678,7 +678,7 @@ bool MotorFrictionIdentificationThread::saveParametersOnFile(const Bottle &param
 //*************************************************************************************************************************
 void MotorFrictionIdentificationThread::updateJointToMonitor()
 {
-    robot->getJointList().wbiIdToNumericId(jointMonitorName,jointMonitor);
+    robot->getJointList().idToIndex(jointMonitorName,jointMonitor);
 }
 
 //*************************************************************************************************************************
@@ -700,7 +700,7 @@ int MotorFrictionIdentificationThread::convertWbiIdToNumericJointId(const Bottle
     string jointName = b.get(0).asString();
 
     int jid;
-    bool ret = robot->getJointList().wbiIdToNumericId(jointName,jid);
+    bool ret = robot->getJointList().idToIndex(jointName,jid);
 
     if(!ret)
     {

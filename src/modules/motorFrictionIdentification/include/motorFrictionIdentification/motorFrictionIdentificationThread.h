@@ -78,7 +78,7 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     int                 printCountdown;         ///< every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     int                 _n;                     ///< number of joints of the robot
     ArrayXi             currentJointNumericIds; // Numeric IDs of the joints currently excited
-    vector<wbiId>       currentJointWbiIds;     // Wbi IDs of the joints currently excited
+    vector<ID>       currentJointWbiIds;     // Wbi IDs of the joints currently excited
     ArrayXd             q;                      ///< joint positions
     ArrayXd             dqJ;                    ///< joint velocities
     ArrayXd             dq;                     ///< motor velocities

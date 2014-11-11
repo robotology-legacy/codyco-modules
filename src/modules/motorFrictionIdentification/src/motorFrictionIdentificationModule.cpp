@@ -92,7 +92,7 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
     yarpWbiOptions.fromConfigFile(wbiConfFile);
 
     //List of joints used in the dynamic model of the robot
-    wbiIdList RobotDynamicModelJoints;
+    IDList RobotDynamicModelJoints;
     std::string RobotDynamicModelJointsListName = "ICUB_MAIN_JOINTS";
     if( !loadIdListFromConfig(RobotDynamicModelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
     {
@@ -109,7 +109,7 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
     paramHelper->getParamProxy(PARAM_ID_JOINT_NAMES)->linkToVariable(jointNames.data(), jointNamesList.size());
     ///< add all the specified joints
     bool ok = true;
-    wbiId wbi_id;
+    ID wbi_id;
     for(int i=0; ok && i<jointNamesList.size(); i++)
     {
         wbi_id = jointNamesList[i];
