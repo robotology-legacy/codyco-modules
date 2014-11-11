@@ -119,6 +119,7 @@ namespace wholeBodyReach
     
     Eigen::MatrixRXd pinvDampedEigen(const Eigen::Ref<const Eigen::MatrixRXd> &A, double damp);
     
+    void adjointInv(const Eigen::Ref<const Eigen::Vector3d> &p, Eigen::Ref<Eigen::MatrixR6d> A);
     
     
     

@@ -265,6 +265,18 @@ Eigen::MatrixRXd wholeBodyReach::nullSpaceProjector(const Eigen::Ref<const Matri
 }
 
 //*************************************************************************************************************************
+void wholeBodyReach::adjointInv(const Ref<const Vector3d> &p, Ref<MatrixR6d> A)
+{
+    A.setIdentity();
+    A(0,4) =  p(2);
+    A(0,5) = -p(1);
+    A(1,3) = -p(2);
+    A(1,5) =  p(0);
+    A(2,3) =  p(1);
+    A(2,4) = -p(0);
+}
+
+//*************************************************************************************************************************
 void wholeBodyReach::assertEqual(const MatrixRXd &A, const MatrixRXd &B, string testName, double tol)
 {
     if(A.cols() != B.cols() || A.rows()!=B.rows())

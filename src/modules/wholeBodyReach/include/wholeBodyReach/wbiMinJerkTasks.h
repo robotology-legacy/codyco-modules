@@ -83,6 +83,8 @@ namespace wholeBodyReach
     protected:
         int                         _linkId;    /// id of the link
         std::string                 _linkName;  /// name of the link
+        Eigen::Vector3d             _ctrlPoint; /// point to control in link-reference frame
+        bool                        _controlPositionOnly;   /// if true control only position
         bool                        _initSuccessfull;   /// true if initialization was successfull
         
         Eigen::Vector6d             _dJdq;      /// product of the Jacobian time derivative and the joint velocities
@@ -100,6 +102,7 @@ namespace wholeBodyReach
         wbi::Frame                  _Hdes;              /// same as _poseDes but as homogeneous matrix
         Eigen::Vector6d             _dvStar;            /// acceleration to use in optimization
         Eigen::Vector3d             _orientationError;  /// orientation error expressed as a rotation vector
+        Eigen::MatrixR6d            _adjInv;            /// inverse adjoint matrix of ctrlPoint
 
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -115,9 +118,19 @@ namespace wholeBodyReach
         virtual void linkParameterPose(paramHelp::ParamHelperServer* paramHelper, int paramId);
         virtual void linkParameterPosRef(paramHelp::ParamHelperServer* paramHelper, int paramId);
         
+        virtual void controlPositionOnly(bool b)
+        {
+            _controlPositionOnly = b;
+        }
+        
         virtual void setPosDes(Eigen::Vector3d posDes)
         {
             _poseDes.head<3>() = posDes;
+        }
+        
+        virtual void setControlPoint(Eigen::Vector3d ctrlPoint)
+        {
+            _ctrlPoint = ctrlPoint;
         }
         
         /** Method called every time a parameter (for which a callback is registered) is changed. */

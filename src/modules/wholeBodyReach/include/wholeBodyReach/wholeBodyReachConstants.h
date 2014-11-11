@@ -77,6 +77,7 @@ static const double     PINV_TOL        = 1e-4;     // threshold for truncated p
 static const double     ZERO_NUM        = 1e-10;    // numerical zero (used to check if a value is zero)
 static const double     FORCE_NORMAL_MIN = 20.0;    // min normal force
 static const double     FORCE_NORMAL_MAX = 300.0;   // max normal force
+static const bool       DEFAULT_CONTROL_POSITION_ONLY = true;
 
 static const string     WHOLE_BODY_DYNAMICS_NAME    = "wholeBodyDynamics";
 static const string     GRASP_HAND_LINK_NAME        = "r_gripper";

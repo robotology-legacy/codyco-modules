@@ -37,8 +37,10 @@ MinJerkPDLinkPoseTask::MinJerkPDLinkPoseTask(string taskName, string linkName, d
   WbiEqualityTask(6, robot->getDoFs()+6),
   WbiPDTask(6, DEFAULT_AUTOMATIC_CRITICALLY_DAMPED_GAINS),
   MinJerkTask(3, sampleTime),   // the trajectory generator is 3d because it works only for the linear part
-  _linkName(linkName)
+  _linkName(linkName),
+  _controlPositionOnly(DEFAULT_CONTROL_POSITION_ONLY)
 {
+    _ctrlPoint.setZero();
     _J.setZero(6, robot->getDoFs()+6);
     if(!(_initSuccessfull = _robot->getLinkId(linkName.c_str(), _linkId)))
         printf("[MinJerkPDLinkPoseTask] Error while trying to get id of link %s\n", linkName.c_str());
@@ -51,7 +53,15 @@ bool MinJerkPDLinkPoseTask::update(RobotState& state)
     bool res = _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
     res = res && _robot->computeJacobian(state.qJ.data(), state.xBase, _linkId, _J.data());
     res = res && _robot->computeDJdq(state.qJ.data(), state.xBase, state.dqJ.data(), state.vBase.data(), _linkId, _dJdq.data());
-    _v = _J*state.dq;
+    
+    // compute Jacobian, dJ*dq, position and velocity of control point
+    adjointInv(_ctrlPoint, _adjInv);
+    _J      = _adjInv*_J;
+    _dJdq   = _adjInv*_dJdq;
+    _v      = _J*state.dq;
+    _H.p[0] += _ctrlPoint(0);
+    _H.p[1] += _ctrlPoint(1);
+    _H.p[2] += _ctrlPoint(2);
     
     // copy data into Eigen vector
     _pose(0) = _H.p[0]; _pose(1) = _H.p[1]; _pose(2) = _H.p[2];
@@ -72,8 +82,7 @@ bool MinJerkPDLinkPoseTask::update(RobotState& state)
     _A_eq = _J;
     _a_eq = _dvStar - _dJdq;
     
-    bool controlPositionOnly = true;
-    if(controlPositionOnly)
+    if(_controlPositionOnly)
     {
         _A_eq.bottomRows<3>().setZero();
         _a_eq.tail<3>().setZero();
@@ -89,7 +98,6 @@ void MinJerkPDLinkPoseTask::init(RobotState& state)
     _pose(0) = _H.p[0]; _pose(1) = _H.p[1]; _pose(2) = _H.p[2];
     _H.R.getAxisAngle(_pose.data()+3);
     _trajGen.init(_pose.head<3>());
-//    cout<<_name<<" H:\n"<<_H.toString()<<endl;
     
     // set desired pose to current pose
     _poseDes = _pose;
@@ -123,7 +131,6 @@ void MinJerkPDLinkPoseTask::parameterUpdated(const ParamProxyInterface *pp)
         _Hdes.p[2] = _poseDes[2];
         // convert from axis/angle to rotation matrix
         _Hdes.R = Rotation::axisAngle(_poseDes.data()+3);
-        cout<<_name<<" H des:\n"<<_Hdes.toString()<<endl;
         return;
     }
     MinJerkTask::parameterUpdated(pp);
