@@ -216,6 +216,8 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
 {
     sendMsg("ComputeComSoT");
     double tmp;
+    int n_jl_in = _jointLimitTask->getNumberOfInequalities();
+    int n_f_in  = _B.rows();
     
     bool jointLimitActive = _jointLimitTask!=NULL;
     if(jointLimitActive)
@@ -231,17 +233,15 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
     _qp_force.CE.rightCols(_k)  = Jc_b*_Mb_inv_J_cbT;
     _qp_force.ce0               = _dJcdq - Jc_b*(_Mb_inv*h_b);
     // Set-up inequality constraints for QP
-    int n_in = _jointLimitTask->getNumberOfInequalities();
-    _jointLimitTask->getInequalityMatrix(_qp_force.CI.topLeftCorner(n_in, _n));
-    _jointLimitTask->getInequalityVector(_qp_force.ci0.head(n_in));
-    n_in = _B.rows();
-    _qp_force.CI.bottomRightCorner(n_in, _k) = _B;
-    _qp_force.ci0.tail(n_in)    = _b;
+    _jointLimitTask->getInequalityMatrix(_qp_force.CI.topLeftCorner(n_jl_in, _n));
+    _jointLimitTask->getInequalityVector(_qp_force.ci0.head(n_jl_in));
+    _qp_force.CI.bottomRightCorner(n_f_in, _k) = _B;
+    _qp_force.ci0.tail(n_f_in)    = _b;
     // Set-up cost function for QP
     _qp_force.A.rightCols(_k)   = _X.topRows<3>();
     _qp_force.a                 = _momentumDes.head<3>();
     _qp_force.w.tail(_k)        = _numericalDampingTask*_fWeights;
-    _qp_force.w.head(_n).setConstant(_numericalDampingDyn);
+    _qp_force.w.head(_n).setConstant(_numericalDampingTask);
     
     if(!solveForceQP(robotState))
         return false;
@@ -249,12 +249,7 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
     _qp_force.computeQpNullSpace();
     _Z = _qp_force.N_CE;
     
-    sendMsg("Linear momentum error  = "+toString((_X*_fcDes-_momentumDes).head<3>().norm()));
-    sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
-    
-    
-#define DEBUG_POSE_TASKS
+//#define DEBUG_POSE_TASKS
     // Solve the equality motion task
     // N=I
     // for i=1:K
@@ -264,8 +259,6 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
     //      N    -= A^+ A
     // end
     
-    int n_jl_in = _jointLimitTask->getNumberOfInequalities();
-    int n_f_in = _B.rows();
     list<MinJerkPDLinkPoseTask*>::iterator it;
     for(it=_equalityTasks.begin(); it!=_equalityTasks.end(); it++)
     {
@@ -278,11 +271,14 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         // even if CI is constant, we need to update it every time because we overwrite it
         _jointLimitTask->getInequalityMatrix(_qp_motion1.CI.topLeftCorner(n_jl_in, _n));
         _jointLimitTask->getInequalityVector(_qp_motion1.ci0.head(n_jl_in));
+        _qp_motion1.ci0.head(n_jl_in)       += _qp_motion1.CI.topLeftCorner(n_jl_in, _n)*ddqDes_j;
         _qp_motion1.CI.bottomRightCorner(n_f_in, _k)    = _B;
         _qp_motion1.ci0.tail(n_f_in)                    = _b;
-        _qp_motion1.ci0.head(n_jl_in)       += _qp_motion1.CI.topLeftCorner(n_jl_in, _n)*ddqDes_j;
         _qp_motion1.ci0.tail(n_f_in)        += _B*_fcDes;
-        _qp_motion1.CI                      *= _Z;
+        // the following two lines are equivalent to (but more efficient than):
+        // _qp_motion1.CI *= _Z;
+        _qp_motion1.CI.topRows(n_jl_in)   = _qp_motion1.CI.topLeftCorner(n_jl_in, _n)*_Z.topRows(_n);
+        _qp_motion1.CI.bottomRows(n_f_in) = _qp_motion1.CI.bottomRightCorner(n_f_in, _k)*_Z.bottomRows(_k);
         
         _qp_motion1.A.leftCols(_n)  = _A_i.rightCols(_n) - _A_i.leftCols<6>()*_Mb_inv_M_bj;
         _qp_motion1.A.rightCols(_k) = _A_i.leftCols<6>()*_Mb_inv_J_cbT;
@@ -315,8 +311,9 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         }
         if(_qp_motion1.activeSetSize>0)
             sendMsg(t.getName()+". Active joint limits: "+toString(_qp_motion1.activeSet.head(_qp_motion1.activeSetSize).transpose()));
-        if((tmp=(_qp_motion1.x-_Z*_qp_motion1.x).norm()) > 1e-10)
+        if((tmp=(_qp_motion1.x-_Z*_qp_motion1.x).norm()) > ZERO_NUM)
             sendMsg(t.getName()+". Part of solution outside the null space of previous tasks: "+toString(tmp));
+        // CI*Z*x + ci0 = CI*x + cio + CI*ddqDes
         VectorXd viol = _qp_motion1.CI*_qp_motion1.x+_qp_motion1.ci0;
         for(int i=0; i<_qp_motion1.ci0.size(); i++)
             if(viol(i)<-ZERO_NUM)
@@ -325,7 +322,7 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
                 cout<<_qp_motion1.toString()<<endl;
                 cout<<"x = "<<_qp_motion1.x.transpose().format(matlabPrintFormat)<<endl;
             }
-        
+
         ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
         ddqDes_b    += _Mb_inv_J_cbT*_qp_motion1.x.tail(_k);
         ddqDes_j    += _ddq_jDes;
@@ -344,17 +341,20 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
 #endif
     }
     
-    //    sendMsg("Left arm ddq pre posture task:  "+toString(ddqDes_j.segment(3,5).transpose()));
     START_PROFILING(PROFILE_DDQ_POSTURE_TASK);
     {
         // even if CI is constant, we need to update it every time because we overwrite it
         _jointLimitTask->getInequalityMatrix(_qp_posture.CI.topLeftCorner(n_jl_in, _n));
         _jointLimitTask->getInequalityVector(_qp_posture.ci0.head(n_jl_in));
+        _qp_posture.ci0.head(n_jl_in)       += _qp_posture.CI.topLeftCorner(n_jl_in, _n)*ddqDes_j;
         _qp_posture.CI.bottomRightCorner(n_f_in, _k)    = _B;
         _qp_posture.ci0.tail(n_f_in)                    = _b;
-        _qp_posture.ci0.head(n_jl_in)       += _qp_posture.CI.topLeftCorner(n_jl_in, _n)*ddqDes_j;
-        _qp_posture.ci0.tail(n_f_in)        += _B*_fcDes;
-        _qp_posture.CI      *= _Z;
+        _qp_posture.ci0.tail(n_f_in)                    += _B*_fcDes;
+        // The following two lines are equivalent to:
+        // _qp_posture.CI *= _Z;
+        // but they are more efficient and we can spare setting to zero the empty parts of CI
+        _qp_posture.CI.topRows(n_jl_in)   = _qp_posture.CI.topLeftCorner(n_jl_in, _n)*_Z.topRows(_n);
+        _qp_posture.CI.bottomRows(n_f_in) = _qp_posture.CI.bottomRightCorner(n_f_in, _k)*_Z.bottomRows(_k);
         
         _qp_posture.A       = _Z.topRows(_n);
         _qp_posture.w       = _numericalDampingTask*VectorXd::Ones(_n+_k);
@@ -363,7 +363,7 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         for(int i=0; i<_qp_posture.ci0.size(); i++)
             if(_qp_posture.ci0(i) < -ZERO_NUM)
             {
-                cout<<"Posture ci0("+toString(i)+") = "+toString(_qp_posture.ci0(i))<<endl;
+                cout<<"ERROR: Posture ci0("+toString(i)+") = "+toString(_qp_posture.ci0(i))<<endl;
                 return false;
             }
             else if(_qp_posture.ci0(i)<0.0)
@@ -384,7 +384,7 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         }
         if(_qp_posture.activeSetSize>0)
             sendMsg("Posture task. Active joint limits: "+toString(_qp_posture.activeSet.head(_qp_posture.activeSetSize).transpose()));
-        if((tmp=(_qp_posture.x-_Z*_qp_posture.x).norm())>1e-10)
+        if((tmp=(_qp_posture.x-_Z*_qp_posture.x).norm())>ZERO_NUM)
             sendMsg("Posture task. Part of ddq_jDes outside the null space of previous tasks: "+toString(tmp));
         
         ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
@@ -396,14 +396,9 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
     
     torques     = M_a*_ddqDes + h_j - Jc_j.transpose()*_fcDes;
     
-    //    sendMsg("fcDes              = "+toString(_fcDes,1));
-    //    sendMsg("Left arm ddq post posture task: "+toString(ddqDes_j.segment(3,5).transpose()));
-    //    sendMsg("Left arm ddq des posture task:      "+toString(_ddq_jPosture.segment(3,5).transpose()));
-    //    sendMsg("ddq_jDes     = "+toString(_ddq_jDes,1));
-    //    sendMsg("ddq_jPosture        = "+jointToString(_ddq_jPosture,1));
-        sendMsg("Base dynamics error  = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
-    //    sendMsg("Joint dynamics error = "+toString((M_a*_ddqDes+h_j-Jc_j.transpose()*_fcDes-torques).norm()));
-    sendMsg("Contact constr error = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
+    sendMsg("Linear momentum error = "+toString((_X*_fcDes-_momentumDes).head<3>().norm()));
+    sendMsg("Base dynamics error   = "+toString((M_u*_ddqDes+h_b-Jc_b.transpose()*_fcDes).norm()));
+    sendMsg("Contact constr error  = "+toString((_Jc*_ddqDes+_dJcdq).norm()));
     
     
 #ifdef  DEBUG_POSE_TASKS

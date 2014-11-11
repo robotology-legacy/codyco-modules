@@ -503,7 +503,7 @@ void WholeBodyReachThread::commandReceived(const CommandDescription &cd, const B
             Vector3d xDes;
             xDes(0) = 0.2; xDes(1) = -0.3; xDes(2) = 0.1;
             _tasks.graspHand.setPosDes(xDes);
-            xDes(0) = 0.02; xDes(1) = -0.09; xDes(2) = 0.37;
+            xDes(0) = 0.04; xDes(1) = -0.10; xDes(2) = 0.37;
             _tasks.momentum.setComDes(xDes);
             break;
         }
