@@ -74,7 +74,7 @@ namespace codyco {
 
             //FIXME:  Base velocity must be given by wbi.
             //Until then I set it to zero.
-            codyco::LockGuard guard(((yarpWbi::yarpWholeBodyInterface*)&m_robot)->getInterfaceMutex());
+            codyco::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(&m_robot)->getInterfaceMutex());
             m_jointsVelocity.head(6).setZero();
             bool status;
             status = m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
@@ -155,6 +155,7 @@ namespace codyco {
         , m_jointsPosition(totalDOFs)
         , m_jointsVelocity(totalDOFs)
         , m_outputSignal(6)
+        , m_outputSignalDerivative(signalSize())
         , m_previousContext(0)
         {
             m_robot.getFrameList().idToIndex("l_sole", m_leftFootLinkID);
@@ -162,13 +163,14 @@ namespace codyco {
                                                             0, -1, 0,
                                                             1, 0, 0);
             m_robot.getFrameList().idToIndex(endEffectorLinkName, m_endEffectorLocalID);
+            m_outputSignalDerivative.setZero();
         }
         
         EndEffectorForceReader::~EndEffectorForceReader() {}
         
         void EndEffectorForceReader::updateStatus(long context)
         {
-            codyco::LockGuard guard(((yarpWbi::yarpWholeBodyInterface*)&m_robot)->getInterfaceMutex());
+            codyco::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(&m_robot)->getInterfaceMutex());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.data());
             
@@ -191,7 +193,7 @@ namespace codyco {
         
         const Eigen::VectorXd& EndEffectorForceReader::getSignalDerivative(long context)
         {
-            return Eigen::VectorXd::Zero(signalSize());
+            return m_outputSignalDerivative;
         }
         
         int EndEffectorForceReader::signalSize() const { return 6; }

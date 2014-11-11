@@ -19,19 +19,7 @@
 
 #include "ReferenceGenerator.h"
 #include <wbi/wbiUtil.h>
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything -Wdocumentation"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wall"
-#endif
 #include <Eigen/Core>
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
 #include <string>
 
 namespace wbi {
@@ -122,6 +110,7 @@ namespace codyco {
             Eigen::VectorXd m_jointsPosition;
             Eigen::VectorXd m_jointsVelocity;
             Eigen::VectorXd m_outputSignal;
+            Eigen::VectorXd m_outputSignalDerivative;
 
             long m_previousContext;
 

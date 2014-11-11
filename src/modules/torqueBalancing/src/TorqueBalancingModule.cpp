@@ -296,7 +296,7 @@ namespace codyco {
             monitorVariables();
 
             static int counter = 0;
-            counter = (counter + 1) % ((int)(5 / m_modulePeriod)); //every 5 seconds
+            counter = (counter + 1) % (static_cast<int>(5 / m_modulePeriod)); //every 5 seconds
 
             if (counter == 0) {
                 double periodMean = 0, periodStdDeviation = 0;

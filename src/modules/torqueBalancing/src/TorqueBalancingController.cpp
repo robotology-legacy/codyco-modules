@@ -264,7 +264,7 @@ namespace codyco {
         
         bool TorqueBalancingController::updateRobotState()
         {
-            codyco::LockGuard guard(((yarpWbi::yarpWholeBodyInterface*)&m_robot)->getInterfaceMutex());
+            codyco::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(&m_robot)->getInterfaceMutex());
             //read positions and velocities
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointPositions.data());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointVelocities.data());
