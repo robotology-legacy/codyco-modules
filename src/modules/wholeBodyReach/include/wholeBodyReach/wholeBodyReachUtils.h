@@ -23,6 +23,10 @@
 #include <vector>
 #include <string>
 #include <iterator>     // std::ostream_iterator
+#include <iCub/skinDynLib/common.h>
+#include <iCub/skinDynLib/skinContactList.h>
+#include <yarp/os/BufferedPort.h>
+#include <wbi/wbi.h>
 #include <wholeBodyReach/wholeBodyReachConstants.h>
 
 namespace Eigen
@@ -49,11 +53,41 @@ namespace Eigen
 //    class JacobiSVDExtended{};
 }
 
-// define some types
-//typedef yarp::sig::Matrix                               MatrixY;    // to not mistake Yarp Matrix and Eigen Matrix
-
 namespace wholeBodyReach
 {
+    /** Utility class for reading the skin contacts.
+     */
+    class SkinContactReader
+    {
+        std::string         _name;
+        std::string         _robotName;
+        
+        // input port reading external contacts
+        yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> *port_ext_contacts;
+        // last list of contacts
+        iCub::skinDynLib::skinContactList     contactList;
+        // list of contacts on interested link
+        iCub::skinDynLib::skinContactList     partContList;
+        // contact chosen for the controller
+        iCub::skinDynLib::skinContact*        contact;
+    public:
+        SkinContactReader(std::string name, std::string robotName);
+        
+        /** Open the port and connect to wholeBodyDynamics. */
+        bool init(std::string wholeBodyDynamicsName);
+
+        /** Read the skin contact.
+         * @param blocking If true the reading is blocking.
+         * @return True if the reading succeeded, false otherwise. */
+        bool readContacts(bool blocking=false);
+        
+        /** Returns true if there is at least one contact on the specified skin part. */
+        bool isThereContactOnSkinPart(iCub::skinDynLib::SkinPart sp);
+        
+        /** Get the contact (if any) on the specified skin part.
+         * In case of more contacts get the one that activates the most number of taxels. */
+        bool getContactOnSkinPart(iCub::skinDynLib::SkinPart sp, iCub::skinDynLib::skinContact &c);
+    };
     
     Eigen::VectorXd svdSolveWithDamping(const Eigen::JacobiSVD<Eigen::MatrixRXd>& svd, Eigen::VectorConst b, double damping=0.0);
     
@@ -109,6 +143,8 @@ namespace wholeBodyReach
     void assertEqual(const Eigen::MatrixRXd &A, const Eigen::MatrixRXd &B, std::string testName, double tol = ZERO_TOL);
     
     void testFailed(std::string testName);
+    
+    
 }
 
 #endif

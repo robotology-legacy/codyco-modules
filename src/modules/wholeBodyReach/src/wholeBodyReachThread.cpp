@@ -33,11 +33,12 @@ using namespace wbiIcub;
 WholeBodyReachThread::WholeBodyReachThread(string name, string robotName, int period,
                                            ParamHelperServer *ph, wholeBodyInterface *wbi)
     : RateThread(period),
+    _name(name), _robotName(robotName), _paramHelper(ph), _robot(wbi),
+    _contactReader(name, robotName),
+    _solver(wbi, DEFAULT_USE_NULLSPACE_BASE),
     _tasks(GRASP_HAND_LINK_NAME, SUPPORT_FOREARM_LINK_NAME, LEFT_FOOT_LINK_NAME,
            RIGHT_FOOT_LINK_NAME, period*1e-3, ICUB_FOOT_SIZE, wbi),
-    _solver(wbi, DEFAULT_USE_NULLSPACE_BASE),
-    _integrator(wbi),
-    _name(name), _robotName(robotName), _paramHelper(ph), _robot(wbi)
+    _integrator(wbi)
 {
     _time = 0.0;
     _status = WHOLE_BODY_REACH_OFF;
@@ -73,7 +74,7 @@ bool WholeBodyReachThread::threadInit()
     _solver.setJointLimitTask(_tasks.jointLimits);
     _solver.addConstraint(_tasks.leftFoot);
     _solver.addConstraint(_tasks.rightFoot);
-//    _solver.pushEqualityTask(_tasks.supportForearm);
+    _solver.pushEqualityTask(_tasks.supportForearm);
     _solver.pushEqualityTask(_tasks.graspHand);
     
     _solver.linkParameterToVariable(wbiStackOfTasks::DYN_NUM_DAMP,       _paramHelper, PARAM_ID_DYN_DAMP);
@@ -153,6 +154,14 @@ bool WholeBodyReachThread::threadInit()
     _tasks.jointLimits.linkParameterDQmax(_paramHelper, PARAM_ID_DQ_MAX);
     _tasks.jointLimits.linkParameterDDQmax(_paramHelper, PARAM_ID_DDQ_MAX);
     _tasks.jointLimits.linkParameterQnormalized(_paramHelper, PARAM_ID_NORMALIZED_Q);
+    
+    // PLANNING PARAMETERS
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_DOWN_COM,   _goDown_com.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_DOWN_HAND,  _goDown_hand.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_DOWN_Q,     _goDown_q.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_UP_COM,     _goUp_com.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_UP_HAND,    _goUp_hand.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_UP_Q,       _goUp_q.data()));
 
     // Register callbacks for some module commands and parameters
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_FORCE_FRICTION,    this));
@@ -197,6 +206,8 @@ bool WholeBodyReachThread::threadInit()
 #endif
     
     if(!readRobotStatus(true))
+        return false;
+    if(!_contactReader.init(WHOLE_BODY_DYNAMICS_NAME))
         return false;
     _solver.init(_robotState);
     _solver.computeSolution(_robotState, _tauDes);
@@ -446,13 +457,6 @@ void WholeBodyReachThread::preStopOperations()
 }
 
 //*************************************************************************************************************************
-void WholeBodyReachThread::numberOfConstraintsChanged()
-{
-//    _k = supportPhase==SUPPORT_DOUBLE ? 12 : 6;     // current number of constraints
-//    _solver->resize(_k, _n+6);
-}
-
-//*************************************************************************************************************************
 void WholeBodyReachThread::threadRelease()
 {
 }
@@ -500,20 +504,16 @@ void WholeBodyReachThread::commandReceived(const CommandDescription &cd, const B
         break;
     case COMMAND_ID_GO_DOWN:
         {
-            Vector3d xDes;
-            xDes(0) = 0.2; xDes(1) = -0.3; xDes(2) = 0.1;
-            _tasks.graspHand.setPosDes(xDes);
-            xDes(0) = 0.04; xDes(1) = -0.10; xDes(2) = 0.37;
-            _tasks.momentum.setComDes(xDes);
+            _tasks.graspHand.setPosDes(_goDown_hand);
+            _tasks.momentum.setComDes(_goDown_com);
+            _tasks.posture.setPostureDes(_goDown_q);
             break;
         }
     case COMMAND_ID_GO_UP:
         {
-            Vector3d xDes;
-            xDes(0) = 0.25; xDes(1) = -0.23; xDes(2) = 0.52;
-            _tasks.graspHand.setPosDes(xDes);
-            xDes(0) = 0.02; xDes(1) = -0.07; xDes(2) = 0.47;
-            _tasks.momentum.setComDes(xDes);
+            _tasks.graspHand.setPosDes(_goUp_hand);
+            _tasks.momentum.setComDes(_goUp_com);
+            _tasks.posture.setPostureDes(_goUp_q);
             break;
         }
     default:

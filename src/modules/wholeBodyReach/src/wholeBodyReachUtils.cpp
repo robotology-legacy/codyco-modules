@@ -1,9 +1,7 @@
 /*
-Copyright (c) 2010-2013 Tommaso Urli
+Copyright (c) 2014 Andrea Del Prete
 
-Tommaso Urli    tommaso.urli@uniud.it   University of Udine
-
-Permission is hereby granted, free of charge, to any person obtaining
+ Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
 "Software"), to deal in the Software without restriction, including
 without limitation the rights to use, copy, modify, merge, publish,
@@ -27,13 +25,112 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>      // std::setprecision
+#include <yarp/os/Network.h>
+#include <yarp/os/Time.h>
+#include <wbiIcub/wbiIcubUtil.h>
 #include "wholeBodyReach/wholeBodyReachUtils.h"
 #include "wholeBodyReach/wholeBodyReachConstants.h"
 
 using namespace std;
 using namespace wholeBodyReach;
 using namespace Eigen;
+using namespace iCub::skinDynLib;
+using namespace yarp::os;
+using namespace wbi;
+using namespace wbiIcub;
 
+
+SkinContactReader::SkinContactReader(std::string name, string robotName)
+: _name(name), _robotName(robotName)
+{
+    port_ext_contacts = new BufferedPort<skinContactList>();
+}
+
+/****************************************************************************************************/
+bool SkinContactReader::init(std::string wholeBodyDynamicsName)
+{
+    if(!port_ext_contacts->open(("/"+_name+"/ext_contacts:i").c_str()))
+    {
+        cout<<"Error while trying to open contact reader port\n";
+        return false;
+    }
+
+    if(!isRobotSimulator(_robotName))
+    {
+        // check if wholeBody is running
+        string wbContPortName = "/"+wholeBodyDynamicsName+"/contacts:o";
+        while(!Network::exists(wbContPortName.c_str()))
+        {
+            cout<<"Waiting for wholeBodyDynamics (port: "+wbContPortName+")..."<<endl;
+            Time::delay(1.0);
+        }
+
+        // try to connect to the wholeBodyDynamics output contact port
+        cout<<"wholeBodyDynamics contact port exists! Trying to connect...\n";
+        if(!Network::connect(wbContPortName.c_str(), port_ext_contacts->getName().c_str()))
+        {
+            cout<<"Connection failed.\n";
+            return false;
+        }
+        printf("connection succeeded!\nTrying to read contacts...");
+        contactList = *(port_ext_contacts->read(true));
+        printf("read succeeded!\n");
+    }
+    return true;
+}
+
+/****************************************************************************************************/
+bool SkinContactReader::readContacts(bool blocking)
+{
+    if(!isRobotSimulator(_robotName))
+    {
+        // *** READ EXTERNAL CONTACTS ***
+        skinContactList* contList = port_ext_contacts->read(blocking);
+        if(contList)
+            contactList = *contList;
+        return contList!=NULL;
+    }
+    return false;
+}
+
+/****************************************************************************************************/
+bool SkinContactReader::isThereContactOnSkinPart(SkinPart sp)
+{
+    if(!isRobotSimulator(_robotName))
+    {
+        for(skinContactList::iterator it=contactList.begin(); it!=contactList.end(); it++)
+            if(it->getSkinPart() == sp)
+                return true;
+    }
+    return false;
+}
+
+/****************************************************************************************************/
+bool SkinContactReader::getContactOnSkinPart(SkinPart sp, skinContact &c)
+{
+    unsigned int maxTaxels = 0;
+    partContList.clear();
+    for(skinContactList::iterator it=contactList.begin(); it!=contactList.end(); it++)
+        if(it->getSkinPart() == sp){
+            partContList.push_back(*it);
+            if(it->getActiveTaxels() >= maxTaxels){
+                maxTaxels = it->getActiveTaxels();
+                contact = &(*it);
+            }
+        }
+    
+    // if more than one contact
+    if(partContList.size()>1)
+        cout<<"ERROR: more than 1 contact on the skin part "<<SkinPart_s[sp]<<endl;
+    
+    c = *contact;
+    return !partContList.empty();
+}
+
+
+/****************************************************************************************************/
+/****************************************** MATH UTILS **********************************************/
+/****************************************************************************************************/
 VectorXd wholeBodyReach::svdSolveTransposeWithDamping(const JacobiSVD<MatrixRXd>& A, VectorConst b, double damping)
 {
     eigen_assert(A.computeU() && A.computeV() && "svdSolveTransposeWithDamping() requires both unitaries U and V to be computed (thin unitaries suffice).");

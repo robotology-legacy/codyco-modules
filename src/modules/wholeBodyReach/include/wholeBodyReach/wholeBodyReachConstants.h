@@ -18,14 +18,9 @@
 #ifndef WHOLE_BODY_REACH_CONSTANTS
 #define WHOLE_BODY_REACH_CONSTANTS
 
-//#include <paramHelp/paramProxyBasic.h>
 #include <Eigen/Core>                               // import most common Eigen types
-//#include <vector>
 #include <string>
-//#include <yarp/sig/Matrix.h>
-//#include <wholeBodyReach/Stopwatch.h>
 
-//using namespace paramHelp;
 using namespace std;
 
 static const int       ICUB_DOFS = 25;    // number of (the main) degrees of freedom of iCub
@@ -71,23 +66,24 @@ static const Eigen::IOFormat matlabPrintFormat(Eigen::FullPrecision, Eigen::Dont
 // *** CONSTANTS
 static const double     WBR_DEG2RAD     = 3.14/180.0;
 static const double     WBR_RAD2DEG     = 180.0/3.14;
-static const double     REAL_TIME_FACTOR = 1.00;    // simulation real-time factor
+//static const double     REAL_TIME_FACTOR = 1.00;    // simulation real-time factor
 static const double     PRINT_PERIOD    = 2.0;      // period of debug prints (in sec)
 //static const int        PRINT_MSG_LEVEL = MSG_DEBUG; // only messages whose type is >= PRINT_MSG_LEVEL are printed
 static const double     KP_MAX          = 100.0;    // max value of proportional gains
-static const double     DQ_MAX          = 1.0;      // max joint velocity allowed (rad/sec)
-static const double     TAU_MAX         = 3000.0;    // max joint torque allowed (Nm)
+static const double     DQ_MAX          = 50.0;     // max joint velocity allowed (deg/sec)
+static const double     DDQ_MAX         = 100.0;    // max joint acceleration allowed (deg/sec^2)
+static const double     TAU_MAX         = ICUB_DOFS*50.0;   // max joint torque norm allowed (Nm)
 static const double     PINV_TOL        = 1e-4;     // threshold for truncated pseudoinverses
 static const double     ZERO_NUM        = 1e-10;    // numerical zero (used to check if a value is zero)
-static const double     FORCE_NORMAL_MIN = 20.0;
-static const double     FORCE_NORMAL_MAX = 300.0;
+static const double     FORCE_NORMAL_MIN = 20.0;    // min normal force
+static const double     FORCE_NORMAL_MAX = 300.0;   // max normal force
 
+static const string     WHOLE_BODY_DYNAMICS_NAME    = "wholeBodyDynamics";
 static const string     GRASP_HAND_LINK_NAME        = "r_gripper";
 static const string     SUPPORT_FOREARM_LINK_NAME   = "l_forearm";
 static const string     LEFT_FOOT_LINK_NAME         = "l_sole";
 static const string     RIGHT_FOOT_LINK_NAME        = "r_sole";
 static const ContactPlaneSize ICUB_FOOT_SIZE(0.09,0.06,0.03,0.03);
-//static const ContactPlaneSize ICUB_FOOT_SIZE(0.1,0.1,0.1,0.1);
 
 enum WholeBodyReachSupportPhase
 {

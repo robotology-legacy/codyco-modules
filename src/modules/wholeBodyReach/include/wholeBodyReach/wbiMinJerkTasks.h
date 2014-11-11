@@ -217,6 +217,14 @@ namespace wholeBodyReach
         
         virtual void init(RobotState& state);
         
+        virtual bool setPostureDes(Eigen::VectorConst qDes)
+        {
+            if(qDes.size()!=_qDes.size())
+                return false;
+            _qDes = qDes;
+            return true;
+        }
+        
         /** Link the desired posture of this task to a parameter managed by the specified
          * instance of ParamHelperServer.
          */
