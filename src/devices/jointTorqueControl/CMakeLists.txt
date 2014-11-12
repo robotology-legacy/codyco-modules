@@ -174,6 +174,4 @@ codyco_export_library(jointTorqueControl)
 
 endif (NOT SKIP_jointTorqueControl)
 
-
-
-
+add_subdirectory(app)

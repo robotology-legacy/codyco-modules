@@ -300,9 +300,9 @@ bool JointTorqueControl::setTorquePid(int j, const Pid &pid)
     jointTorqueLoopGains[j].kd = pid.kd;
     jointTorqueLoopGains[j].ki = pid.ki;
     jointTorqueLoopGains[j].max_int = pid.max_int;
+    jointTorqueLoopGains[j].kff = pid.kff;
 
     // Motor level friction compensation parameters
-    motorFrictionCompensationParameters[j].kff = pid.kff;
     motorFrictionCompensationParameters[j].kcp = pid.stiction_up_val;
     motorFrictionCompensationParameters[j].kcn = pid.stiction_down_val;
 
@@ -456,13 +456,25 @@ void JointTorqueControl::run()
     {
         JointTorqueLoopGains gains = jointTorqueLoopGains[j];
         jointTorquesError[j] = measuredJointTorques[j] - desiredJointTorques[j];
-        derivativeJointTorquesError[j] = (jointTorquesError[j]-oldJointTorquesError[j])/(dt);
         integralState[j] = saturation(integralState[j] + gains.ki*dt*jointTorquesError(j),gains.max_int,-gains.max_int);
-        //tau(i)              = tauD(i) - kp(i)*etau(i) - integralState(i) -kd(i)*Detau(i);
-        outputJointTorques[j] = desiredJointTorques[j] - gains.kp*(jointTorquesError[j]) -integralState[j] -gains.kd*derivativeJointTorquesError[j];
+        jointControlOutput[j] = gains.kff*desiredJointTorques[j] - gains.kp*(jointTorquesError[j]) - integralState[j];
+        /** note that we are explicitly removing the D part of the controller.
+         *  To enable it uncomment the following two lines. */
+        // derivativeJointTorquesError[j] = (jointTorquesError[j]-oldJointTorquesError[j])/(dt);
+        // jointControlOutput[j] -= gains.kd*(derivativeJointTorquesError[j]);
     }
 
     //Compute friction compensation (missing for now)
+    //\todo TODO FIXME add coupling
+    for(int j=0; j < this->axes; j++ )
+    {
+        MotorFrictionCompensationParameters frictionParam = motorFrictionCompensationParameters[j];
+        //viscous friction compensation
+        jointControlOutput[j] += frictionParam.kv*measuredJointVelocities[j];
+        //coulomb friction compensation
+        //missing
+        //jointControlOutput[j] += friction compensation
+    }
 
     //Send resulting output
     if( !contains(hijackingTorqueControl,false) )

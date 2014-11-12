@@ -1,14 +1,12 @@
 set(appname motorFrictionExcitation)
 set(yscopename yarpscope)
 
-set(robots)
+set(robots iCubGenova01
+           iCubGenova02
+           iCubGenova03
+           iCubHeidelberg01)
 
-list(APPEND robots "iCubGenova01")
-list(APPEND robots "iCubGenova02")
-list(APPEND robots "iCubGenova03")
-list(APPEND robots "iCubHeidelberg01")
-
-foreach(robot IN robots)
+foreach(robot ${robots})
     file(GLOB robot_conf ${CMAKE_CURRENT_SOURCE_DIR}/robots/${robot}/*.conf)
     yarp_install(FILES ${robot_conf}
                  DESTINATION ${CODYCO_ROBOTS_INSTALL_DIR}/${robot})

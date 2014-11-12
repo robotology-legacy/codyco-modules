@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -41,8 +41,8 @@ int main (int argc, char * argv[])
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("default.ini");         //default config file name.
-    rf.setDefaultContext("motorFrictionExcitation/conf"); //when no parameters are given to the module this is the default context    
-    rf.configure("ICUB_ROOT",argc,argv);
+    rf.setDefaultContext("motorFrictionExcitation"); //when no parameters are given to the module this is the default context
+    rf.configure(argc,argv);
     // rf.setName("motorFrictionExcitationControl");
 
     if (rf.check("help"))
@@ -52,10 +52,10 @@ int main (int argc, char * argv[])
         cout<< "\t--from             :Name of the file.ini to be used for calibration."                                                                                       <<endl;
         cout<< "\t--rate             :Period used by the module. Default set to 10ms."                                                                                        <<endl;
         cout<< "\t--robot            :Robot name (icubSim or icub). Set to icub by default."                                                                                  <<endl;
-        cout<< "\t--local            :Prefix of the ports opened by the module. Set to the module name by default, i.e. motorFrictionExcitationCtrl."                                      <<endl;        
+        cout<< "\t--local            :Prefix of the ports opened by the module. Set to the module name by default, i.e. motorFrictionExcitationCtrl."                                      <<endl;
         return 0;
     }
-    
+
     Network yarp;
 
     if (!yarp.checkNetwork())

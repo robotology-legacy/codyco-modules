@@ -35,24 +35,24 @@ namespace yarp {
  * PWM signals applied to the motors. Assuming that each motors affects the position of only one link
  * via rigid transmission mechanisms, the relationship between the link's torque \f$ \tau \f$ and the motor's duty cycle \f$ PWM \f$ is assumed to be:
 \f[
-    PWM  = k_{ff} \tau + k_v \dot{q} + k_c \mbox{sign}(\dot{q}),
+    PWM  = {PWM}_{\text{control}} + k_v \dot{q} + k_c \mbox{sign}(\dot{q}),
 \f]
-with \f$k_{ff}\f$, \f$k_v\f$, \f$k_c\f$ three constants, and \f$\dot{q}\f$ the link's velocity.
+with \f$k_{ff}\f$, \f$k_v\f$, \f$k_c\f$ three constants, and \f$\dot{q}\f$ the joint's velocity.
 Since discontinuities may be challenging in practice, it is best to smooth the sign function.
 For the sake of simplicity during the implementation process, we choose a pseudo sign function defined as follows:
 \f[
-        PWM  = k_{ff} \tau + k_v \dot{q} + k_c \tanh(k_s \dot{q}).
+        PWM  = {PWM}_{\text{control}} + k_v \dot{q} + k_c \tanh(k_s \dot{q}).
 \f]
 
 Then one has:
 \f[
-        PWM  = k_{ff} \tau + k_v \dot{q} + k_c \tanh(k_s \dot{q}).
+        PWM  = {PWM}_{\text{control}} + k_v \dot{q} + k_c \tanh(k_s \dot{q}).
 \f]
 This model can be improved by considering possible parameters' asymmetries with respect to the joint velocity \f$\dot{q}\f$.
-In particular, the parameters \f$k_v\f$ and \f$k_c\f$ may depend on the sign of \f$\dot{q}\f$, and have different
+In particular, the coulomb friction parameter  \f$k_c\f$ may depend on the sign of \f$\dot{q}\f$, and have different
 values depending on this sign. Then, an improved model is:
 \f[
-    PWM  = k_{ff} \tau + [k_{vp} s(\dot{q}) + k_{vn} s(-\dot{q})] \dot{q} + [k_{cp} s(\dot{q}) + k_{cn} s(-\dot{q})] \tanh(k_s \dot{q}),
+    PWM  = {PWM}_{\text{control}} + k_{v} \dot{q} + [k_{cp} s(\dot{q}) + k_{cn} s(-\dot{q})] \tanh(k_s \dot{q}),
 \f]
 where the function \f$s(x)\f$ is the step function, i.e.
 \f[
@@ -63,7 +63,7 @@ Then, to generate a desired torque \f$\tau_d\f$ coming from an higher control lo
 with \f$\tau = \tau_d\f$. In practice, however, it is a best practice to add a lower loop to generate \f$\tau\f$ so that \f$\tau\f$
 will converge to \f$\tau_d\f$, i.e:
 \f[
-    \tau = \tau_d - k_p e_{\tau} - k_i \int e_{\tau} \mbox{dt},
+    {PWM}_control = k_{ff} \tau_d - k_p e_{\tau} - k_i \int e_{\tau} \mbox{dt},
 \f]
 where \f$ e_{\tau} := \tau - \tau_d \f$.
 
@@ -81,7 +81,6 @@ d) Filtering parameters for velocity estimation and torque measurement;
  */
 struct MotorFrictionCompensationParameters
 {
-    double kff;
     double kv;
     double kcp;
     double kcn;
@@ -90,7 +89,7 @@ struct MotorFrictionCompensationParameters
 
     void reset()
     {
-        kff = kv = kcp = kcn = 0.0;
+        kv = kcp = kcn = 0.0;
         frictionCompensationFactor = coulombVelThr = 0.0;
     }
 };
@@ -105,10 +104,11 @@ struct JointTorqueLoopGains
     double ki;
     double kd;
     double max_int;
+    double kff;
 
     void reset()
     {
-        kp = ki = kd = max_int = 0.0;
+        kff = kp = ki = kd = max_int = 0.0;
     }
 };
 
@@ -145,7 +145,7 @@ private:
     yarp::sig::Vector                                derivativeJointTorquesError;
     yarp::sig::Vector                                integralJointTorquesError;
     yarp::sig::Vector                                integralState;
-    yarp::sig::Vector                                outputJointTorques;
+    yarp::sig::Vector                                jointControlOutput;
 
     void readStatus();
 
