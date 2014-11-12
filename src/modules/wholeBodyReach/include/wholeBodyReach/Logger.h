@@ -15,24 +15,30 @@
  * Public License for more details
  */
 
-
-
 #ifndef WBR_LOGGER_H
 #define WBR_LOGGER_H
-
-#include<Eigen/Core>
-//#include <wholeBodyReach/wholeBodyReachConstants.h>
-//#include <wholeBodyReach/wholeBodyReachUtils.h>
 
 namespace wholeBodyReach
 {
     
+/** Enum representing the different kind of messages.
+ */
 enum MsgType
 {
-	MSG_STREAM_INFO     = 0,	//
-	MSG_STREAM_ERROR    = 1,	//
-	MSG_INFO            = 2,	//
-    MSG_ERROR           = 3     //
+	MSG_STREAM_INFO     = 0,	// streaming information message
+    MSG_STREAM_WARNING  = 1,    // streaming warning message
+	MSG_STREAM_ERROR    = 2,	// streaming error message
+	MSG_INFO            = 3,	// information message
+    MSG_WARNING         = 4,    // warning message
+    MSG_ERROR           = 5     // error message
+};
+    
+enum LoggerVerbosity
+{
+    VERBOSITY_ALL,
+    VERBOSITY_WARNING_ERROR,
+    VERBOSITY_ERROR,
+    VERBOSITY_NONE
 };
 
 /** A simple class for logging messages
@@ -47,19 +53,42 @@ public:
 	/** Destructor */
 	~Logger(){}
 
+    /** Method to be called at every control iteration
+     * to decrement the internal Logger's counter. */
 	void countdown();
     
     void sendMsg(std::string msg, MsgType type);
     
+    /** Set the sampling time at which the method countdown()
+     * is going to be called. */
     bool setTimeSample(double t);
+    
+    /** Set the time period for printing of streaming messages. */
     bool setStreamPrintPeriod(double s);
     
+    /** Set the verbosity level of the logger. */
+    void setVerbosity(LoggerVerbosity lv);
+    
 protected:
-    double      _timeSample;        // specify the period of call of the countdown method
-    double      _streamPrintPeriod; // specify the time period of the stream prints
-    double      _printCountdown;    // every time this is < 0 (i.e. every _streamPrintPeriod sec) print stuff
+    LoggerVerbosity _lv;                /// verbosity of the logger
+    double          _timeSample;        /// specify the period of call of the countdown method
+    double          _streamPrintPeriod; /// specify the time period of the stream prints
+    double          _printCountdown;    /// every time this is < 0 (i.e. every _streamPrintPeriod sec) print stuff
+    
+    bool isStreamMsg(MsgType m)
+    { return m==MSG_STREAM_ERROR || m==MSG_STREAM_INFO || m==MSG_STREAM_WARNING; }
+    
+    bool isInfoMsg(MsgType m)
+    { return m==MSG_STREAM_INFO || m==MSG_INFO; }
+    
+    bool isWarningMsg(MsgType m)
+    { return m==MSG_STREAM_WARNING || m==MSG_WARNING; }
+    
+    bool isErrorMsg(MsgType m)
+    { return m==MSG_STREAM_ERROR || m==MSG_ERROR; }
 };
 
+/** Method to get the logger (singleton). */
 Logger& getLogger();
     
 };  // end namespace wholeBodyReach
