@@ -100,10 +100,6 @@ bool WholeBodyReachThread::threadInit()
     _tasks.graspHand.linkParameterTrajectoryDuration(      _paramHelper, PARAM_ID_TRAJ_TIME_HAND);
     _tasks.posture.linkParameterTrajectoryDuration(        _paramHelper, PARAM_ID_TRAJ_TIME_POSTURE);
     
-//    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_Q_MAX,               solver->qMax.data()));
-//    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_Q_MIN,               solver->qMin.data()));
-//    YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_JNT_LIM_MIN_DIST,    &(solver->safetyThreshold)));
-    
     // link module input streaming parameters to member variables
     _tasks.momentum.linkParameterComDes(         _paramHelper, PARAM_ID_XDES_COM);
     _tasks.supportForearm.linkParameterPoseDes(  _paramHelper, PARAM_ID_XDES_FOREARM);
@@ -149,6 +145,7 @@ bool WholeBodyReachThread::threadInit()
     
     // JOINT LIMIT TASK
     _tasks.jointLimits.setTimestep(50*getRate()*1e-3);
+    _tasks.jointLimits.linkParameterJointLimitMinimumDistance(_paramHelper, PARAM_ID_JNT_LIM_MIN_DIST);
     _tasks.jointLimits.linkParameterQmax(_paramHelper, PARAM_ID_Q_MAX);
     _tasks.jointLimits.linkParameterQmin(_paramHelper, PARAM_ID_Q_MIN);
     _tasks.jointLimits.linkParameterDQmax(_paramHelper, PARAM_ID_DQ_MAX);

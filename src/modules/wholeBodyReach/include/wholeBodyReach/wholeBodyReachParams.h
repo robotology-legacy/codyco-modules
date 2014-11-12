@@ -64,9 +64,9 @@ static const Eigen::VectorNd    DEFAULT_Q_MAX               = Eigen::VectorNd::C
 static const Eigen::VectorNd    DEFAULT_Q_MIN               = Eigen::VectorNd::Constant(-180.0);
 static const Eigen::VectorNd    DEFAULT_DQ_MAX              = Eigen::VectorNd::Constant(DQ_MAX);
 static const Eigen::VectorNd    DEFAULT_DDQ_MAX             = Eigen::VectorNd::Constant(DDQ_MAX);
-static const double             DEFAULT_JNT_LIM_MIN_DIST    = 5.0;
-static const double             DEFAULT_FORCE_FRICTION      = 0.5;  // friction cone coefficient for tangential forces
-static const double             DEFAULT_MOMENT_FRICTION     = 0.5;  // friction cone coefficient for normal moment
+static const double             DEFAULT_JNT_LIM_MIN_DIST    = 1.0;
+static const double             DEFAULT_FORCE_FRICTION      = 0.3;  // friction cone coefficient for tangential forces
+static const double             DEFAULT_MOMENT_FRICTION     = 0.3;  // friction cone coefficient for normal moment
 // Streaming parameters
 static const Eigen::Vector3d       DEFAULT_XDES_COM        = Eigen::Vector3d::Constant(0.0);
 static const Eigen::Vector7d       DEFAULT_XDES_FOREARM    = Eigen::Vector7d::Constant(0.0);
@@ -144,7 +144,7 @@ new ParamProxyBasic<double>("task damp",            PARAM_ID_TASK_DAMP,         
 new ParamProxyBasic<int>(   "use nullspace base",   PARAM_ID_USE_NULLSPACE_BASE,1,                          ParamBilatBounds<int>(0, 1),                PARAM_IN_OUT,       &DEFAULT_USE_NULLSPACE_BASE,    "0: use nullspace projectors, 1: use nullspace basis"),
 new ParamProxyBasic<double>("q max",                PARAM_ID_Q_MAX,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds [deg]"),
 new ParamProxyBasic<double>("q min",                PARAM_ID_Q_MIN,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds [deg]"),
-new ParamProxyBasic<double>("jlmd",                 PARAM_ID_JNT_LIM_MIN_DIST,  1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits"),
+new ParamProxyBasic<double>("joint lim min dist",   PARAM_ID_JNT_LIM_MIN_DIST,  1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits"),
 new ParamProxyBasic<double>("dq max",               PARAM_ID_DQ_MAX,            ICUB_DOFS,                  ParamLowerBound<double>(0.0),               PARAM_IN_OUT,       DEFAULT_DQ_MAX.data(),          "Max joint velocities [deg/s]"),
 new ParamProxyBasic<double>("ddq max",              PARAM_ID_DDQ_MAX,           ICUB_DOFS,                  ParamLowerBound<double>(0.0),               PARAM_IN_OUT,       DEFAULT_DDQ_MAX.data(),         "Max joint accelerations [des/s^2]"),
 new ParamProxyBasic<double>("force friction",       PARAM_ID_FORCE_FRICTION,    1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_FORCE_FRICTION,        "Friciton coefficient for tangential forces"),

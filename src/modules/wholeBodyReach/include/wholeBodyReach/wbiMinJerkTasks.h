@@ -167,6 +167,10 @@ namespace wholeBodyReach
         std::string                 _linkName;          /// name of the link
         bool                        _initSuccessfull;   /// true if initialization was successfull
         
+        /// if true regulate angular momentum to zero
+        /// if false use angular momentum to regulate root link's orientation
+        bool                        _regulateAngularMomentum;
+        
         // RPC PARAMETERS
         Eigen::Vector3d             _com;       /// CoM position
         Eigen::Vector3d             _v;         /// CoM velocity
@@ -268,6 +272,7 @@ namespace wholeBodyReach
     {
     protected:
         double              _dt;        /// time-step to predict future pos/vel
+        double              _minDist;   /// minimum distance to maintain from joint limits
         Eigen::VectorXd     _qMin;      /// Lower bound of joint positions [deg]
         Eigen::VectorXd     _qMax;      /// Upper bound of joint positions [deg]
         Eigen::VectorXd     _dqMax;     /// Upper bound of joint velocities [deg/s]
@@ -288,12 +293,24 @@ namespace wholeBodyReach
         
         virtual bool update(RobotState& state);
         
-        virtual void init(RobotState& state);
+        virtual void init(RobotState& state){}
         
-        /** Set the time-step used to predict future pos/vel.
+        /** Set the time-step used to predict future pos/vel. The larger, the safer.
+         * It should always be greater than the control period.
          * @return True if the operation succeeded, false otherwise.
          */
-        virtual bool setTimestep(double dt);
+        virtual bool setTimestep(double dt)
+        {
+            if(dt<=0.0) return false;
+            _dt = dt;
+            return true;
+        }
+        
+        /** Link the joint limit minimum distance (in deg) to a parameter managed 
+         * by the specified instance of ParamHelperServer.
+         */
+        virtual void linkParameterJointLimitMinimumDistance(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        { paramHelper->linkParam(paramId, &_minDist); }
         
         /** Link the joint lower bounds (in deg) to a parameter managed by the specified
          * instance of ParamHelperServer.

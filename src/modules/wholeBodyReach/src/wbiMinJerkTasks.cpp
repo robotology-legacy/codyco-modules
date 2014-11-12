@@ -148,7 +148,8 @@ MinJerkPDMomentumTask::MinJerkPDMomentumTask(std::string taskName, double sample
     WbiEqualityTask(6, robot->getDoFs()+6),
     WbiPDTask(6, false),
     MinJerkTask(3, sampleTime),   // the trajectory generator is 3d because it works only for the linear part
-    _sampleTime(sampleTime)
+    _sampleTime(sampleTime),
+    _regulateAngularMomentum(DEFAULT_REGULATE_ANGULAR_MOMENTUM)
 {
     _robotMass = -1.0;
 }
@@ -178,8 +179,7 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
                                      + _Kd.head<3>().cwiseProduct(_trajGen.getVel() - _v)
                                      + _Kp.head<3>().cwiseProduct(_comRef - _com) );
 
-    bool regulateAngularMomentum=false;
-    if(regulateAngularMomentum)
+    if(_regulateAngularMomentum)
     {
         _a_eq.tail<3>() = - _Kp.tail<3>().cwiseProduct(_momentumIntegral.tail<3>())
                           - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>());
@@ -191,7 +191,7 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
         computeOrientationError(_H.R, _Rdes, _orientationError);
         _a_eq.tail<3>() =   _Kp.tail<3>().cwiseProduct(_orientationError)
                           - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>()); // - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
-        getLogger().sendMsg("Root-link orientation error: "+toString(_orientationError,2), MSG_STREAM_INFO);
+//        getLogger().sendMsg("Root-link orientation error: "+toString(_orientationError,2), MSG_STREAM_INFO);
     }
     
 //    getLogger().sendMsg("Momentum: Kp*e    = "+toString(_Kp.head<3>().cwiseProduct(_trajGen.getPos()-_com),2), MSG_STREAM_INFO);
@@ -350,6 +350,7 @@ JointLimitTask::JointLimitTask(std::string taskName, wbi::wholeBodyInterface* ro
 :   WbiAbstractTask(taskName, robot->getDoFs(), robot),
     WbiInequalityTask(2*robot->getDoFs(), robot->getDoFs())
 {
+    _minDist = 0.0;
     _qMin.resize(_m);
     _qMax.resize(_m);
     _dqMax.resize(_m);
@@ -357,8 +358,6 @@ JointLimitTask::JointLimitTask(std::string taskName, wbi::wholeBodyInterface* ro
     _qNormalized.resize(_m);
     updateInequalityMatrix();
 }
-
-void JointLimitTask::init(RobotState& state){}
 
 bool JointLimitTask::update(RobotState& state)
 {
@@ -370,7 +369,7 @@ bool JointLimitTask::update(RobotState& state)
     {
         // *** Compute (negative) lower bound ***
         // compute min ddq not to hit lower position bound
-        posLim = (2.0/pow(_dt,2))*(CTRL_DEG2RAD*_qMin(i) - _q(i) - _dt*_dq(i));
+        posLim = (2.0/pow(_dt,2))*(CTRL_DEG2RAD*(_qMin(i)+_minDist) - _q(i) - _dt*_dq(i));
         // compute min ddq not to hit lower velocity bound
         velLim = -(_dq(i)+CTRL_DEG2RAD*_dqMax(i))/_dt;
         ddqMin = max(posLim, max(velLim, -_ddqMax(i)));
@@ -378,7 +377,7 @@ bool JointLimitTask::update(RobotState& state)
         
         // *** Compute upper bound ***
         // compute max ddq not to hit upper position bound
-        posLim = +(2.0/pow(_dt,2))*(CTRL_DEG2RAD*_qMax(i) - _q(i) - _dt*_dq(i));
+        posLim = +(2.0/pow(_dt,2))*(CTRL_DEG2RAD*(_qMax(i)-_minDist) - _q(i) - _dt*_dq(i));
         // compute max ddq not to hit upper velocity bound
         velLim = (CTRL_DEG2RAD*_dqMax(i)-_dq(i))/_dt;
         ddqMax = min(posLim, min(velLim, _ddqMax(i)));
@@ -387,9 +386,11 @@ bool JointLimitTask::update(RobotState& state)
         // if lower bound is > than upper bound
         if(ddqMin >= ddqMax)
         {
-            getLogger().sendMsg("Joint "+toString(i)+" must violate a vel/acc constraint. q="+toString(CTRL_RAD2DEG*_q(i))+
-                  " dq="+toString(CTRL_RAD2DEG*_dq(i))+" qMax="+toString(_qMax(i))+" qMin="+toString(_qMin(i)), MSG_STREAM_ERROR);
-            _a_in(2*i+0) = -(2.0/pow(_dt,2))*(CTRL_DEG2RAD*_qMin(i) - _q(i) - _dt*_dq(i));
+            getLogger().sendMsg("Joint "+toString(i)+" must violate a vel/acc constraint. q="+
+                                toString(CTRL_RAD2DEG*_q(i))+" dq="+toString(CTRL_RAD2DEG*_dq(i))+
+                                " qMax="+toString(_qMax(i))+" qMin="+toString(_qMin(i))+
+                                ", minDist="+toString(_minDist), MSG_STREAM_ERROR);
+            _a_in(2*i+0) = -(2.0/pow(_dt,2))*(CTRL_DEG2RAD*(_qMin(i)+_minDist) - _q(i) - _dt*_dq(i));
             _a_in(2*i+1) = posLim;
         }
         
@@ -409,16 +410,6 @@ void JointLimitTask::updateInequalityMatrix()
         _A_in(2*i+0,i) = 1.0;   // lower bound
         _A_in(2*i+1,i) = -1.0;  // upper bound
     }
-}
-
-bool JointLimitTask::setTimestep(double dt)
-{
-    if(dt>0.0)
-    {
-        _dt = dt;
-        return true;
-    }
-    return false;
 }
 
 bool JointLimitTask::setDdqDes(VectorConst ddqDes)
