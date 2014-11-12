@@ -25,17 +25,20 @@ namespace wholeBodyReach
  */
 enum MsgType
 {
-	MSG_STREAM_INFO     = 0,	// streaming information message
-    MSG_STREAM_WARNING  = 1,    // streaming warning message
-	MSG_STREAM_ERROR    = 2,	// streaming error message
-	MSG_INFO            = 3,	// information message
-    MSG_WARNING         = 4,    // warning message
-    MSG_ERROR           = 5     // error message
+    MSG_STREAM_DEBUG    = 0,    // streaming debug message
+	MSG_STREAM_INFO     = 1,	// streaming information message
+    MSG_STREAM_WARNING  = 2,    // streaming warning message
+	MSG_STREAM_ERROR    = 3,	// streaming error message
+    MSG_DEBUG           = 4,    // debug message
+	MSG_INFO            = 5,	// information message
+    MSG_WARNING         = 6,    // warning message
+    MSG_ERROR           = 7     // error message
 };
     
 enum LoggerVerbosity
 {
     VERBOSITY_ALL,
+    VERBOSITY_INFO_WARNING_ERROR,
     VERBOSITY_WARNING_ERROR,
     VERBOSITY_ERROR,
     VERBOSITY_NONE
@@ -76,7 +79,10 @@ protected:
     double          _printCountdown;    /// every time this is < 0 (i.e. every _streamPrintPeriod sec) print stuff
     
     bool isStreamMsg(MsgType m)
-    { return m==MSG_STREAM_ERROR || m==MSG_STREAM_INFO || m==MSG_STREAM_WARNING; }
+    { return m==MSG_STREAM_ERROR || m==MSG_STREAM_DEBUG || m==MSG_STREAM_INFO || m==MSG_STREAM_WARNING; }
+    
+    bool isDebugMsg(MsgType m)
+    { return m==MSG_STREAM_DEBUG || m==MSG_DEBUG; }
     
     bool isInfoMsg(MsgType m)
     { return m==MSG_STREAM_INFO || m==MSG_INFO; }

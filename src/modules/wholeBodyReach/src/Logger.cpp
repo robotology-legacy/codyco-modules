@@ -63,7 +63,9 @@ void Logger::sendMsg(string msg, MsgType type)
         return;
     if(_lv==VERBOSITY_ERROR && !isErrorMsg(type))
         return;
-    if(_lv==VERBOSITY_WARNING_ERROR && isInfoMsg(type))
+    if(_lv==VERBOSITY_WARNING_ERROR && !(isWarningMsg(type) || isErrorMsg(type)))
+        return;
+    if(_lv==VERBOSITY_INFO_WARNING_ERROR && isDebugMsg(type))
         return;
     if(isStreamMsg(type) && _printCountdown>=0.0)
         return;
