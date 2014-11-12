@@ -51,13 +51,13 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     desiredJointTorques.resize(axes,0.0);
     measuredJointTorques.resize(axes,0.0);
     measuredJointPositionsTimestamps.resize(axes,0.0);
-    outputJointTorques.resize(axes,0.0);
+    jointControlOutput.resize(axes,0.0);
     jointTorquesError.resize(axes,0.0);
     oldJointTorquesError.resize(axes,0.0);
     derivativeJointTorquesError.resize(axes,0.0);
     integralJointTorquesError.resize(axes,0.0);
     integralState.resize(axes,0.0);
-    outputJointTorques.resize(axes,0.0);
+    jointControlOutput.resize(axes,0.0);
 
     //Start control thread
     this->setRate(config.check("controlPeriod",0.01,"update period of the torque control thread").asDouble());
@@ -479,7 +479,7 @@ void JointTorqueControl::run()
     //Send resulting output
     if( !contains(hijackingTorqueControl,false) )
     {
-        this->setRefOutputs(outputJointTorques.data());
+        this->setRefOutputs(jointControlOutput.data());
     }
     else
     {
@@ -487,7 +487,7 @@ void JointTorqueControl::run()
         {
             if( hijackingTorqueControl[j] )
             {
-                this->setRefOutput(j,outputJointTorques[j]);
+                this->setRefOutput(j,jointControlOutput[j]);
             }
         }
     }
