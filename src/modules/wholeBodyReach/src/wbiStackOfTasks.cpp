@@ -113,6 +113,7 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
     START_PROFILING(PROFILE_FORCE_QP_PREP);
     {
         int index_k = 0, k=0, index_in=0, in=0;
+        double forceNormalTot = 0.0;
         for(list<ContactConstraint*>::iterator it=_constraints.begin(); it!=_constraints.end(); it++)
         {
             ContactConstraint& c = **it;
@@ -131,7 +132,13 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             // if the normal force of this constraint (computed at the last step) is not zero
             // then divide the weights by the normal force
             if(_fcDes(index_k+2)!=0.0)
+            {
+//                sendMsg(c.getName()+" fWeights = "+toString(1e3*_fWeights.segment(index_k,k).transpose()));
                 _fWeights.segment(index_k,k) /= _fcDes(index_k+2);
+                forceNormalTot += _fcDes(index_k+2);
+            }
+            else
+                sendMsg("Normal force of contact "+c.getName()+" was zero at the previous loop!", MSG_STREAM_ERROR);
             
 //            sendMsg("CI block "+c.getName()+":\n"+toString(_qp_force.CI.block(index_in, index_k, in, k),1,"\n",12));
 //            sendMsg("ci0: "+toString(_qp_force.ci0.segment(index_in, in),1));
@@ -150,11 +157,13 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
         {
             _momentumTask->update(robotState);
             _momentumTask->getEqualityVector(_momentumDes);
-            _fWeights.normalize();
+//            sendMsg("fWeights = "+toString(1e3*_fWeights.transpose()));
+            if(forceNormalTot!=0.0)
+                _fWeights *= forceNormalTot;
+//            sendMsg("fWeights = "+toString(1e3*_fWeights.transpose()));
+//            _fWeights.normalize();
         }
         STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
-        //    sendMsg("momentumDes "+toString(_momentumDes,1));
-        //    cout<< "QP gradient "<<toString(_qp_force.g,1)<<endl;
     }
     STOP_PROFILING(PROFILE_FORCE_QP_PREP);
     
@@ -240,8 +249,11 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
     // Set-up cost function for QP
     _qp_force.A.rightCols(_k)   = _X.topRows<3>();
     _qp_force.a                 = _momentumDes.head<3>();
+    // set higher numerical damping for joint acc than for contact forces
     _qp_force.w.tail(_k)        = _numericalDampingTask*_fWeights;
-    _qp_force.w.head(_n).setConstant(1e-3*_numericalDampingTask);
+    _qp_force.w.head(_n).setConstant(_numericalDampingTask*_numericalDampingTask);
+    
+    sendMsg("w*1e6 = "+toString(_qp_force.w.transpose()*1e6));
     
     if(!solveForceQP(robotState))
         return false;
@@ -289,14 +301,15 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         for(int i=0; i<_qp_motion1.ci0.size(); i++)
             if(_qp_motion1.ci0(i)<-ZERO_NUM)
             {
-                cout<<t.getName()+" ci0("+toString(i)+") = "+toString(_qp_motion1.ci0(i))<<endl;
+                sendMsg(t.getName()+" ci0("+toString(i)+") = "+toString(_qp_motion1.ci0(i)), MSG_ERROR);
                 return false;
             }
             else if(_qp_motion1.ci0(i)<0.0)
             {
                 // The previous solution slightly violates the constraints
                 // -ZERO_NUM < ci0(i) < 0
-                sendMsg(t.getName()+" slight constraint violation, ci0("+toString(i)+") = "+toString(_qp_motion1.ci0(i)));
+                sendMsg(t.getName()+" slight constraint violation, ci0("+toString(i)+") = "+
+                        toString(_qp_motion1.ci0(i)), MSG_STREAM_WARNING);
                 _qp_motion1.ci0(i) = 0.0;
             }
         
@@ -306,22 +319,16 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         
         if(res == std::numeric_limits<double>::infinity())
         {
-            cout<<t.getName()<<" QP could not be solved:\n"<<_qp_motion1.toString()<<endl;
+            sendMsg(t.getName()+" QP could not be solved!", MSG_ERROR);
+            sendMsg(_qp_motion1.toString(), MSG_DEBUG);
             return false;
         }
         if(_qp_motion1.activeSetSize>0)
-            sendMsg(t.getName()+". Active joint limits: "+toString(_qp_motion1.activeSet.head(_qp_motion1.activeSetSize).transpose()));
+            sendMsg(t.getName()+". Active joint limits: "+
+                    toString(_qp_motion1.activeSet.head(_qp_motion1.activeSetSize).transpose()));
         if((tmp=(_qp_motion1.x-_Z*_qp_motion1.x).norm()) > ZERO_NUM)
-            sendMsg(t.getName()+". Part of solution outside the null space of previous tasks: "+toString(tmp));
-        // CI*Z*x + ci0 = CI*x + cio + CI*ddqDes
-        VectorXd viol = _qp_motion1.CI*_qp_motion1.x+_qp_motion1.ci0;
-        for(int i=0; i<_qp_motion1.ci0.size(); i++)
-            if(viol(i)<-ZERO_NUM)
-            {
-                cout<<t.getName()+" solution violates inequality "+toString(i)+" by "+toString(viol(i))<<endl;
-                cout<<_qp_motion1.toString()<<endl;
-                cout<<"x = "<<_qp_motion1.x.transpose().format(matlabPrintFormat)<<endl;
-            }
+            sendMsg(t.getName()+". Part of solution outside the null space of previous tasks: "+
+                    toString(tmp), MSG_STREAM_WARNING);
 
         ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
         ddqDes_b    += _Mb_inv_J_cbT*_qp_motion1.x.tail(_k);
@@ -363,14 +370,15 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         for(int i=0; i<_qp_posture.ci0.size(); i++)
             if(_qp_posture.ci0(i) < -ZERO_NUM)
             {
-                cout<<"ERROR: Posture ci0("+toString(i)+") = "+toString(_qp_posture.ci0(i))<<endl;
+                sendMsg("ERROR: Posture task, previous QP solution violates inequality "+toString(i)+
+                        " by "+toString(_qp_posture.ci0(i)), MSG_ERROR);
                 return false;
             }
             else if(_qp_posture.ci0(i)<0.0)
             {
-                // The previous solution slightly violates the constraints
-                // -ZERO_NUM < ci0(i) < 0
-                sendMsg("Posture slight constraint violation, ci0("+toString(i)+") = "+toString(_qp_posture.ci0(i)));
+                // The previous solution slightly violates the constraints: -ZERO_NUM < ci0(i) < 0
+                sendMsg("Posture slight constraint violation, ci0("+toString(i)+") = "+
+                        toString(_qp_posture.ci0(i)), MSG_STREAM_WARNING);
                 _qp_posture.ci0(i) = 0.0;
             }
         
@@ -379,13 +387,15 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
         
         if(res == std::numeric_limits<double>::infinity())
         {
-            cout<<"Posture QP could not be solved:\n"<<_qp_posture.toString()<<endl;
+            sendMsg("Posture QP could not be solved!", MSG_ERROR);
+            sendMsg("Posture QP:\n"+_qp_posture.toString(), MSG_DEBUG);
             return false;
         }
         if(_qp_posture.activeSetSize>0)
             sendMsg("Posture task. Active joint limits: "+toString(_qp_posture.activeSet.head(_qp_posture.activeSetSize).transpose()));
         if((tmp=(_qp_posture.x-_Z*_qp_posture.x).norm())>ZERO_NUM)
-            sendMsg("Posture task. Part of ddq_jDes outside the null space of previous tasks: "+toString(tmp));
+            sendMsg("Posture task. Part of ddq_jDes outside the null space of previous tasks: "+
+                    toString(tmp), MSG_STREAM_WARNING);
         
         ddqDes_b    -= _Mb_inv_M_bj*_ddq_jDes;
         ddqDes_b    += _Mb_inv_J_cbT*_qp_posture.x.tail(_k);

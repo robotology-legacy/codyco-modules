@@ -115,7 +115,7 @@ namespace wholeBodyReach
             if(w.size()!=_weights.size())
                 return false;
             _weights = w;
-            _weights.normalize();
+            //_weights.normalize();
             return true;
         }
         

@@ -302,7 +302,7 @@ public:
      * and the current control algorithm. */
     virtual void resizeVariables();
     
-    void sendMsg(const std::string &s, MsgType type=MSG_STREAM_INFO)
+    void sendMsg(const std::string &s, MsgType type=MSG_STREAM_DEBUG)
     {
         getLogger().sendMsg("[wbiStackOfTasks] "+s, type);
     }
