@@ -23,14 +23,15 @@ FILE(GLOB folder_header ./include/wholeBodyDynamicsTree/*.h)
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
-                    ${wholeBodyInterface_INCLUDE_DIRS}
-                    ${yarpWholeBodyInterface_INCLUDE_DIRS}
-                    ${iDynTree_INCLUDE_DIRS}
-                    ${skinDynLib_INCLUDE_DIRS}
-                    ${ctrlLib_INCLUDE_DIRS}
-                    ${YARP_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/include)
+
+include_directories(SYSTEM  ${wholeBodyInterface_INCLUDE_DIRS}
+                            ${yarpWholeBodyInterface_INCLUDE_DIRS}
+                            ${iDynTree_INCLUDE_DIRS}
+                            ${skinDynLib_INCLUDE_DIRS}
+                            ${ctrlLib_INCLUDE_DIRS}
+                            ${YARP_INCLUDE_DIRS}
+                            ${EIGEN3_INCLUDE_DIR})
 
 #Thrift configuration
 include(YarpIDL)
