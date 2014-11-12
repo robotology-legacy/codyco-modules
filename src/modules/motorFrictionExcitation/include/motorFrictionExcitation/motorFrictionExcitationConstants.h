@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -30,7 +30,6 @@ using namespace Eigen;
 
 // define some types
 typedef Eigen::Matrix<double,1,1>                  Vector1d;
-typedef Eigen::Matrix<int,ICUB_DOFS,1>             VectorNi;
 
 namespace motorFrictionExcitation
 {
@@ -43,6 +42,6 @@ static const int        PRINT_MSG_LEVEL = MSG_DEBUG;    ///< only messages whose
 static const double     PWM_MAX         = 400;          ///< max motor PWM allowed (in [-1333; 1333])
 static const double     MAX_POS_INTEGRAL = 50.0;        ///< max position error integral (in PWM units)
 
-}   // end namespace 
+}   // end namespace
 
 #endif

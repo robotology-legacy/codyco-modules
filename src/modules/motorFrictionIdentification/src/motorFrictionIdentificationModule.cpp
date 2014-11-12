@@ -88,8 +88,17 @@ bool MotorFrictionIdentificationModule::configure(ResourceFinder &rf)
         fprintf(stderr,"[ERR] motorFrictionIdentificationModule: impossible to open motorFrictionIdentificationModule: wbi_conf_file option missing");
         return false;
     }
+
+    if( !rf.check("robot") )
+    {
+        fprintf(stderr,"[ERR] motorFrictionIdentificationModule: impossible to open motorFrictionIdentificationModule: robot option missing");
+        return false;
+    }
+
     std::string wbiConfFile = rf.findFile("wbi_conf_file");
     yarpWbiOptions.fromConfigFile(wbiConfFile);
+
+    yarpWbiOptions.put("robot",rf.find("robot").asString());
 
     //List of joints used in the dynamic model of the robot
     IDList RobotDynamicModelJoints;

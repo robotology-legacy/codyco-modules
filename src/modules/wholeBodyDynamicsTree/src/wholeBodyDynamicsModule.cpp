@@ -128,6 +128,9 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     }
     std::string wbiConfFile = rf.findFile("wbi_conf_file");
     yarpWbiOptions.fromConfigFile(wbiConfFile);
+   
+    //Overwrite the robot parameter that could be present in wbi_conf_file
+    yarpWbiOptions.put("robot",rf.find("robot").asString());
 
     //List of joints used in the dynamic model of the robot
     IDList RobotDynamicModelJoints;

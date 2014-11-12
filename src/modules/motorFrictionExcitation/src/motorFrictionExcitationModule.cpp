@@ -97,6 +97,11 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
     std::string wbiConfFile = rf.findFile("wbi_conf_file");
     yarpWbiOptions.fromConfigFile(wbiConfFile);
 
+    if( !rf.check("robot") )
+    {
+        fprintf(stderr,"[ERR] motorFrictionExcitation: impossible to open wholeBodyInterface: robot option missing");
+    }
+
     robotInterface = new yarpWholeBodyInterface(moduleName.c_str(), yarpWbiOptions);
 
     IDList RobotMainJoints;

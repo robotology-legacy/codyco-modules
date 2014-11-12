@@ -54,4 +54,3 @@ if(WIN32)
 else(WIN32)
     INSTALL_TARGETS(/bin ${PROJECTNAME})
 endif(WIN32)
-

@@ -80,7 +80,7 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     ArrayXd             posIntegral;            // integral of (q-q0), where q0 is the initial joint position
     ArrayXd             dqJ;                    // joint velocities (size of vector: n)
     ArrayXd             ftSens;                 // ankle force/torque sensor readings (order is: left, right)
-    ArrayXi             currentJointNumericIds; // Numeric IDs of the joints currently excited
+    ArrayXi             currentJointIndeces; // Indeces of the joints in the global joint list currently excited
     vector<ID>       currentJointWbiIds;     // Wbi IDs of the joints currently excited
     //ArrayXi             currentGlobalJointIds;  // global IDs of the joints currently excited
     ArrayXd              qMinOfCurrentJointFME;  // Joint limit of the current joint during free motion
@@ -89,7 +89,7 @@ class MotorFrictionExcitationThread: public RateThread, public ParamValueObserve
     // Module parameters
     FreeMotionExcitationList    freeMotionExc;  ///< free motion excitations
     ContactExcitationList           contactExc;     ///< in contact excitations
-    ArrayXd             qMin, qMax;                 // lower and upper joint bounds
+    ArrayXd             qPosMin, qPosMax;                 // lower and upper joint bounds
 
     // Output streaming parameters
     ArrayXd             qDeg, qRad;             // measured positions
