@@ -351,6 +351,7 @@ JointLimitTask::JointLimitTask(std::string taskName, wbi::wholeBodyInterface* ro
     WbiInequalityTask(2*robot->getDoFs(), robot->getDoFs())
 {
     _minDist = 0.0;
+    _dt = 1.0;
     _qMin.resize(_m);
     _qMax.resize(_m);
     _dqMax.resize(_m);

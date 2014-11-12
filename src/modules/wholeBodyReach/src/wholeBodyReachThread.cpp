@@ -122,15 +122,23 @@ bool WholeBodyReachThread::threadInit()
     YARP_ASSERT(_paramHelper->linkParam(            PARAM_ID_Q,   _qjDeg.data()));
     
     _tasks.momentum.linkParameterComVel(    _paramHelper,           PARAM_ID_DX_COM);
-    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_X_BASE,        _robotState.xBase.p));
-    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_V_BASE,        _robotState.vBase.data()));
-    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_JOINT_TORQUES, _robotState.torques.data()));
-    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_DQ,            _dqjDeg.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_X_BASE,            _robotState.xBase.p));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_V_BASE,            _robotState.vBase.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_JOINT_TORQUES_DES, _tauDes.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_DQ,                _dqjDeg.data()));
 
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_FORCE_FRICTION,    &_forceFriction));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_MOMENT_FRICTION,   &_momentFriction));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_KP_CONSTRAINTS,    _kpConstraints.data()));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_WRENCH_WEIGHTS,    _wrenchWeights.data()));
+    
+    // PLANNING PARAMETERS
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_DOWN_COM,   _goDown_com.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_DOWN_HAND,  _goDown_hand.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_DOWN_Q,     _goDown_q.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_UP_COM,     _goUp_com.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_UP_HAND,    _goUp_hand.data()));
+    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_UP_Q,       _goUp_q.data()));
     
     _tasks.leftFoot.linkParameterForceInequalities(             _paramHelper, PARAM_ID_FORCE_INEQ_L_FOOT);
     _tasks.rightFoot.linkParameterForceInequalities(            _paramHelper, PARAM_ID_FORCE_INEQ_R_FOOT);
@@ -144,7 +152,7 @@ bool WholeBodyReachThread::threadInit()
     _tasks.supportForearmConstr.setMinNormalForce(  FORCE_NORMAL_MIN);
     
     // JOINT LIMIT TASK
-    _tasks.jointLimits.setTimestep(50*getRate()*1e-3);
+    _tasks.jointLimits.linkParameterJointLimitTimestep(_paramHelper, PARAM_ID_JNT_LIM_DT);
     _tasks.jointLimits.linkParameterJointLimitMinimumDistance(_paramHelper, PARAM_ID_JNT_LIM_MIN_DIST);
     _tasks.jointLimits.linkParameterQmax(_paramHelper, PARAM_ID_Q_MAX);
     _tasks.jointLimits.linkParameterQmin(_paramHelper, PARAM_ID_Q_MIN);
@@ -152,13 +160,7 @@ bool WholeBodyReachThread::threadInit()
     _tasks.jointLimits.linkParameterDDQmax(_paramHelper, PARAM_ID_DDQ_MAX);
     _tasks.jointLimits.linkParameterQnormalized(_paramHelper, PARAM_ID_NORMALIZED_Q);
     
-    // PLANNING PARAMETERS
-    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_DOWN_COM,   _goDown_com.data()));
-    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_DOWN_HAND,  _goDown_hand.data()));
-    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_DOWN_Q,     _goDown_q.data()));
-    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_UP_COM,     _goUp_com.data()));
-    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_UP_HAND,    _goUp_hand.data()));
-    YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_UP_Q,       _goUp_q.data()));
+    
 
     // Register callbacks for some module commands and parameters
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_FORCE_FRICTION,    this));

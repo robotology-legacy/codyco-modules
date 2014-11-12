@@ -306,6 +306,12 @@ namespace wholeBodyReach
             return true;
         }
         
+        /** Link the time-step used to predict future pos/vel (in sec) to a parameter managed
+         * by the specified instance of ParamHelperServer.
+         */
+        virtual void linkParameterJointLimitTimestep(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        { paramHelper->linkParam(paramId, &_dt); }
+        
         /** Link the joint limit minimum distance (in deg) to a parameter managed 
          * by the specified instance of ParamHelperServer.
          */

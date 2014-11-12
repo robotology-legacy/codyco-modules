@@ -241,7 +241,7 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
     _qp_force.A.rightCols(_k)   = _X.topRows<3>();
     _qp_force.a                 = _momentumDes.head<3>();
     _qp_force.w.tail(_k)        = _numericalDampingTask*_fWeights;
-    _qp_force.w.head(_n).setConstant(_numericalDampingTask);
+    _qp_force.w.head(_n).setConstant(1e-3*_numericalDampingTask);
     
     if(!solveForceQP(robotState))
         return false;
