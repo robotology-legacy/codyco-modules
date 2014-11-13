@@ -12,6 +12,9 @@ find_package(YARP)
 find_package(ICUB)
 find_package(Eigen3 REQUIRED)
 find_package(paramHelp REQUIRED)
+IF( NOT ${ADAPTIVECONTROL_TORQUECONTROL})
+    find_package(motorFrictionIdentificationLib REQUIRED)
+ENDIF()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
@@ -37,8 +40,9 @@ include(iCubOptions)
 
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
-INCLUDE_DIRECTORIES(${INCLUDE_FOLDER}
-                    ${iDynTree_INCLUDE_DIRS}
+INCLUDE_DIRECTORIES(${INCLUDE_FOLDER})
+
+INCLUDE_DIRECTORIES(SYSTEM ${iDynTree_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
                     ${orocos_kdl_INCLUDE_DIRS}
@@ -46,17 +50,17 @@ INCLUDE_DIRECTORIES(${INCLUDE_FOLDER}
                     ${EIGEN3_INCLUDE_DIR}
                     ${ctrlLib_INCLUDE_DIRS})
 
+ADD_EXECUTABLE(${PROJECTNAME} ${SOURCES} ${INCLUDES})
+
 #if torquecontrol is off I have to include jointTorqueControl dir
 IF( NOT ${ADAPTIVECONTROL_TORQUECONTROL})
     INCLUDE_DIRECTORIES(${motorFrictionIdentificationLib_INCLUDE_DIRS})
-    TARGET_LINK_LIBRARIES(motorFrictionIdentificationLib)
+    TARGET_LINK_LIBRARIES(${PROJECTNAME} ${motorFrictionIdentificationLib_LIBRARIES})
     MESSAGE("Torque control not enabled")
 ELSE()
     add_definitions(-DADAPTIVECONTROL_TORQUECONTROL)
     MESSAGE("Torque control enabled")
 ENDIF()
-
-ADD_EXECUTABLE(${PROJECTNAME} ${SOURCES} ${INCLUDES})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME}
      ${paramHelp_LIBRARIES}
