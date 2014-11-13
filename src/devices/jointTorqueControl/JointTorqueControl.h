@@ -26,7 +26,7 @@ namespace yarp {
 
 //class JointTorqueControlLoop
 /**
- * \note DO NOT USE. USING THIS MODULE WILL SERIOUSLY RISK TO DAMAGE YOUR ROBOT.
+ * \note DO NOT USE. USING THIS MODULE WILL SERIOUSLY DAMAGE YOUR ROBOT.
  *
  * This device hijack the reference torque signal send to the control board to implement a higher level torque loop.
  * Is not intended for use in production, but for debug of the low level torque control.
@@ -84,13 +84,12 @@ struct MotorFrictionCompensationParameters
     double kv;
     double kcp;
     double kcn;
-    double frictionCompensationFactor;
     double coulombVelThr; ///<  joint vel (deg/s) at which Coulomb friction is completely compensate
 
     void reset()
     {
         kv = kcp = kcn = 0.0;
-        frictionCompensationFactor = coulombVelThr = 0.0;
+        coulombVelThr = 0.0;
     }
 };
 
@@ -105,6 +104,7 @@ struct JointTorqueLoopGains
     double kd;
     double max_int;
     double kff;
+    double max_pwm;
 
     void reset()
     {
@@ -148,6 +148,8 @@ private:
     yarp::sig::Vector                                jointControlOutput;
 
     void readStatus();
+
+    bool loadGains(yarp::os::Searchable& config);
 
 public:
     //CONSTRUCTOR
@@ -211,7 +213,9 @@ public:
     virtual bool getRefAccelerations(double *accs);
     */
 
-    //CONTROL MODE
+    //CONTROL MODE related methods
+    virtual bool setPositionMode();
+    virtual bool setVelocityMode();
     virtual bool setPositionMode(int j);
     virtual bool setVelocityMode(int j);
     virtual bool getControlMode(int j, int *mode);

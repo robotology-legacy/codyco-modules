@@ -5,9 +5,11 @@
 #include <yarp/dev/IEncoders.h>
 #include <yarp/dev/IEncodersTimed.h>
 #include <yarp/dev/IPositionControl2.h>
+#include <yarp/dev/IVelocityControl2.h>
 #include <yarp/dev/IControlMode2.h>
 #include <yarp/dev/ITorqueControl.h>
 #include <yarp/dev/IOpenLoopControl.h>
+#include <yarp/dev/IControlLimits2.h>
 #include <yarp/dev/PolyDriver.h>
 
 
@@ -20,16 +22,23 @@ namespace yarp {
 class yarp::dev::PassThroughControlBoard :  public DeviceDriver,
                                             public IEncodersTimed,
                                             public IPositionControl2,
+                                            public IVelocityControl,
                                             public IControlMode2,
-                                            public ITorqueControl
+                                            public ITorqueControl,
+                                            public IControlLimits2,
+                                            public IInteractionMode
 {
 protected:
     yarp::dev::PolyDriver proxyDevice;
     yarp::dev::IEncodersTimed * proxyIEncodersTimed;
     yarp::dev::IPositionControl2 * proxyIPositionControl2;
+    yarp::dev::IVelocityControl2 * proxyIVelocityControl2;
     yarp::dev::IControlMode2 * proxyIControlMode2;
     yarp::dev::ITorqueControl * proxyITorqueControl;
     yarp::dev::IOpenLoopControl * proxyIOpenLoopControl;
+    yarp::dev::IControlLimits2  * proxyIControlLimits2;
+    yarp::dev::IInteractionMode * proxyIInteractionMode;
+    yarp::dev::IAxisInfo *        proxyIAxisInfo;
 
 public:
     //CONSTRUCTOR
@@ -91,6 +100,23 @@ public:
     virtual bool getRefAcceleration(int j, double *acc);
     virtual bool getRefAccelerations(double *accs);
 
+    //VELOCITY CONTROL 2
+    virtual bool setVelocityMode();
+    virtual bool velocityMove(int j, double sp);
+    virtual bool velocityMove(const double *sp);
+    virtual bool velocityMove(const int n_joint, const int *joints, const double *spds);
+
+    virtual bool setVelPid(int j, const yarp::dev::Pid &pid);
+    virtual bool setVelPids(const yarp::dev::Pid *pids);
+    virtual bool getVelPid(int j, yarp::dev::Pid *pid);
+    virtual bool getVelPids(yarp::dev::Pid *pids);
+
+    //CONTROL LIMITS 2
+    virtual bool getLimits(int axis, double *min, double *max);
+    virtual bool setLimits(int axis, double min, double max);
+    virtual bool getVelLimits(int axis, double *min, double *max);
+    virtual bool setVelLimits(int axis, double min, double max);
+
     //CONTROL MODE
     virtual bool setPositionMode(int j);
     virtual bool setVelocityMode(int j);
@@ -147,6 +173,18 @@ public:
     virtual bool getOutput(int j, double *v);
     virtual bool getOutputs(double *v);
     virtual bool setOpenLoopMode();
+
+    //INTERACTION MODE
+    virtual bool getInteractionMode(int axis, yarp::dev::InteractionModeEnum* mode);
+    virtual bool getInteractionModes(int n_joints, int *joints, yarp::dev::InteractionModeEnum* modes);
+    virtual bool getInteractionModes(yarp::dev::InteractionModeEnum* modes);
+    virtual bool setInteractionMode(int axis, yarp::dev::InteractionModeEnum mode);
+    virtual bool setInteractionModes(int n_joints, int *joints, yarp::dev::InteractionModeEnum* modes);
+    virtual bool setInteractionModes(yarp::dev::InteractionModeEnum* modes);
+
+    //AXIS INFO
+    virtual bool getAxisName(int axis, yarp::os::ConstString& name);
+
 };
 
 #endif /* CODYCO_PASS_THROUGHT_CONTROL_BOARD_H */

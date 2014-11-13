@@ -3,11 +3,11 @@
 #include <yarp/os/LockGuard.h>
 
 #include <yarp/os/Log.h>
+#include <yarp/os/LogStream.h>
 
 #include <algorithm>
 
 #include <cstring>
-#include <boost/concept_check.hpp>
 
 namespace yarp {
 namespace dev {
@@ -38,6 +38,68 @@ JointTorqueControl::~JointTorqueControl()
 {
 }
 
+bool checkVectorExistInConfiguration(yarp::os::Bottle & bot,
+                                     const std::string & name,
+                                     const int expected_vec_size)
+{
+    //std::cerr << " checkVectorExistInConfiguration(" << name
+    //         << " , " << expected_vec_size << " )" << std::endl;
+    //std::cerr << "bot.check(name) : " << bot.check(name) << std::endl;
+    //std::cerr << "bot.find(name).isList(): " << bot.find(name).isList() << std::endl;
+    //std::cerr << "bot.find(name).asList()->size() : " << bot.find(name).asList()->size()<< std::endl;
+
+    return (bot.check(name) &&
+            bot.find(name).isList() &&
+            bot.find(name).asList()->size() == expected_vec_size );
+}
+
+bool JointTorqueControl::loadGains(yarp::os::Searchable& config)
+{
+    if( !config.check("TRQ_PIDS") )
+    {
+        yError("No TRQ_PIDS group find, initialization failed");
+        return false;
+    }
+
+    yarp::os::Bottle & bot = config.findGroup("TRQ_PIDS");
+
+    bool gains_ok = true;
+
+    gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"kff",this->axes);
+    gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"kp",this->axes);
+    gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"ki",this->axes);
+    gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"maxPwm",this->axes);
+    gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"maxInt",this->axes);
+    gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"stictionUp",this->axes);
+    gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"stictionDown",this->axes);
+    gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"bemf",this->axes);
+
+    if( !gains_ok )
+    {
+        yError("TRQ_PIDS group is missing some information, initialization failed");
+        return false;
+    }
+
+    for(int j=0; j < this->axes; j++)
+    {
+        jointTorqueLoopGains[j].reset();
+        motorFrictionCompensationParameters[j].reset();
+
+        jointTorqueLoopGains[j].kff = bot.find("kff").asList()->get(j).asDouble();
+        jointTorqueLoopGains[j].kp = bot.find("kp").asList()->get(j).asDouble();
+        jointTorqueLoopGains[j].ki = bot.find("ki").asList()->get(j).asDouble();
+        jointTorqueLoopGains[j].max_pwm = bot.find("maxPwm").asList()->get(j).asDouble();
+        jointTorqueLoopGains[j].max_int = bot.find("maxInt").asList()->get(j).asDouble();
+
+        motorFrictionCompensationParameters[j].kcp = bot.find("stictionUp").asList()->get(j).asDouble();
+        motorFrictionCompensationParameters[j].kcn = bot.find("stictionDown").asList()->get(j).asDouble();
+        motorFrictionCompensationParameters[j].kv = bot.find("bemf").asList()->get(j).asDouble();
+    }
+
+    return true;
+
+}
+
 bool JointTorqueControl::open(yarp::os::Searchable& config)
 {
     PassThroughControlBoard::open(config);
@@ -61,11 +123,21 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
 
     //Start control thread
     this->setRate(config.check("controlPeriod",0.01,"update period of the torque control thread").asDouble());
-    this->start();
+
+    //Load Gains configurations
+    bool ret = this->loadGains(config);
+
+    if( ret )
+    {
+        ret = ret && this->start();
+    }
+
+    return ret;
 }
 
 bool JointTorqueControl::close()
 {
+    this->RateThread::stop();
     PassThroughControlBoard::close();
 }
 
@@ -171,6 +243,22 @@ bool JointTorqueControl::setControlMode(const int j, const int mode)
         this->startHijackingTorqueControl(j);
         new_mode = VOCAB_CM_OPENLOOP;
     }
+    else
+    {
+        // The if is not really necessary
+        // but it is for clearly state the semantics of
+        // this operation (if a joint was in (hijacking) torque mode
+        // and you switch to another mode stop hijacking
+        // \todo TODO FIXME consider also the case if someone
+        // else changes the control mode of a hijacked joint in the proxy
+        // controlBoard: we should add a check in the update of the thread
+        // that stop the hijacking if a joint control modes is not anymore
+        // in openloop
+        if( this->hijackingTorqueControl[j] )
+        {
+            this->stopHijackingTorqueControl(j);
+        }
+    }
 
     return proxyIControlMode2->setControlMode(j, new_mode);
 }
@@ -189,6 +277,13 @@ bool JointTorqueControl::setControlModes(const int n_joint, const int *joints, i
         {
             this->startHijackingTorqueControl(j);
             modes[i] = VOCAB_CM_OPENLOOP;
+        }
+        else
+        {
+            if( this->hijackingTorqueControl[j] )
+            {
+                this->stopHijackingTorqueControl(j);
+            }
         }
     }
 
@@ -209,6 +304,13 @@ bool JointTorqueControl::setControlModes(int *modes)
             this->startHijackingTorqueControl(j);
             modes[j] = VOCAB_CM_OPENLOOP;
         }
+        else
+        {
+            if( this->hijackingTorqueControl[j] )
+            {
+                this->stopHijackingTorqueControl(j);
+            }
+        }
     }
 
     return proxyIControlMode2->setControlModes(modes);
@@ -223,13 +325,19 @@ bool JointTorqueControl::setTorqueMode()
     return this->setControlModes(controlModesBuffer.data());
 }
 
-/*
+
 bool JointTorqueControl::setPositionMode()
 {
     controlModesBuffer.assign(axes,VOCAB_CM_POSITION);
     return this->setControlModes(controlModesBuffer.data());
 }
-*/
+
+bool JointTorqueControl::setVelocityMode()
+{
+    controlModesBuffer.assign(axes,VOCAB_CM_VELOCITY);
+    return this->setControlModes(controlModesBuffer.data());
+}
+
 //to add if necessary: setVelocityMode, setPositionDirectMode
 
 //TORQUE CONTROL

@@ -1,5 +1,6 @@
 #include "PassThroughControlBoard.h"
 #include <yarp/os/Property.h>
+#include <boost/concept_check.hpp>
 
 namespace yarp {
 namespace dev {
@@ -9,7 +10,10 @@ PassThroughControlBoard::PassThroughControlBoard():
                          proxyIPositionControl2(0),
                          proxyIControlMode2(0),
                          proxyITorqueControl(0),
-                         proxyIOpenLoopControl(0)
+                         proxyIOpenLoopControl(0),
+                         proxyIVelocityControl2(0),
+                         proxyIControlLimits2(0),
+                         proxyIInteractionMode(0)
 {
 }
 
@@ -44,6 +48,10 @@ bool PassThroughControlBoard::open(yarp::os::Searchable& config)
     proxyDevice.view(proxyIControlMode2);
     proxyDevice.view(proxyITorqueControl);
     proxyDevice.view(proxyIOpenLoopControl);
+    proxyDevice.view(proxyIVelocityControl2);
+    proxyDevice.view(proxyIControlLimits2);
+    proxyDevice.view(proxyIInteractionMode);
+    proxyDevice.view(proxyIAxisInfo);
 
 }
 
@@ -815,6 +823,176 @@ bool PassThroughControlBoard::getOutputs(double *v)
     return proxyIOpenLoopControl->getOutputs(v);
 }
 
+bool PassThroughControlBoard::setVelocityMode()
+{
+    if( !proxyIVelocityControl2 )
+    {
+        return false;
+    }
+    return proxyIVelocityControl2->setVelocityMode();
+}
+
+bool PassThroughControlBoard::velocityMove(int j, double sp)
+{
+    if( !proxyIVelocityControl2 )
+    {
+        return false;
+    }
+    return proxyIVelocityControl2->velocityMove(j,sp);
+}
+
+bool PassThroughControlBoard::velocityMove(const double *sp)
+{
+    if( !proxyIVelocityControl2 )
+    {
+        return false;
+    }
+    return proxyIVelocityControl2->velocityMove(sp);
+}
+
+bool PassThroughControlBoard::velocityMove(const int n_joint, const int *joints, const double *spds)
+{
+    if( !proxyIVelocityControl2 )
+    {
+        return false;
+    }
+    return proxyIVelocityControl2->velocityMove(n_joint,joints,spds);
+}
+
+bool PassThroughControlBoard::setVelPid(int j, const yarp::dev::Pid &pid)
+{
+    if( !proxyIVelocityControl2 )
+    {
+        return false;
+    }
+    return proxyIVelocityControl2->setVelPid(j,pid);
+}
+
+bool PassThroughControlBoard::setVelPids(const yarp::dev::Pid *pids)
+{
+    if( !proxyIVelocityControl2 )
+    {
+        return false;
+    }
+    return proxyIVelocityControl2->setVelPids(pids);
+}
+
+bool PassThroughControlBoard::getVelPid(int j, yarp::dev::Pid *pid)
+{
+    if( !proxyIVelocityControl2 )
+    {
+        return false;
+    }
+    return proxyIVelocityControl2->getVelPid(j,pid);
+}
+
+bool PassThroughControlBoard::getVelPids(yarp::dev::Pid *pids)
+{
+    if( !proxyIVelocityControl2 )
+    {
+        return false;
+    }
+    return proxyIVelocityControl2->getVelPids(pids);
+}
+
+bool PassThroughControlBoard::getLimits(int axis, double *min, double *max)
+{
+    if( !proxyIControlLimits2 )
+    {
+        return false;
+    }
+    return proxyIControlLimits2->getLimits(axis,min,max);
+}
+
+bool PassThroughControlBoard::setLimits(int axis, double min, double max)
+{
+    if( !proxyIControlLimits2 )
+    {
+        return false;
+    }
+    return proxyIControlLimits2->setLimits(axis,min,max);
+}
+
+bool PassThroughControlBoard::getVelLimits(int axis, double *min, double *max)
+{
+    if( !proxyIControlLimits2 )
+    {
+        return false;
+    }
+    return proxyIControlLimits2->getVelLimits(axis,min,max);
+}
+
+bool PassThroughControlBoard::setVelLimits(int axis, double min, double max)
+{
+    if( !proxyIControlLimits2 )
+    {
+        return false;
+    }
+    return proxyIControlLimits2->setVelLimits(axis,min,max);
+}
+
+bool PassThroughControlBoard::getInteractionMode(int axis, yarp::dev::InteractionModeEnum* mode)
+{
+    if( !proxyIInteractionMode )
+    {
+        return false;
+    }
+    return proxyIInteractionMode->getInteractionMode(axis,mode);
+}
+
+bool PassThroughControlBoard::getInteractionModes(int n_joints, int *joints, yarp::dev::InteractionModeEnum* modes)
+{
+    if( !proxyIInteractionMode )
+    {
+        return false;
+    }
+    return proxyIInteractionMode->getInteractionModes(n_joints,joints,modes);
+}
+
+bool PassThroughControlBoard::getInteractionModes(yarp::dev::InteractionModeEnum* modes)
+{
+    if( !proxyIInteractionMode )
+    {
+        return false;
+    }
+    return proxyIInteractionMode->getInteractionModes(modes);
+}
+
+bool PassThroughControlBoard::setInteractionMode(int axis, yarp::dev::InteractionModeEnum mode)
+{
+    if( !proxyIInteractionMode )
+    {
+        return false;
+    }
+    return proxyIInteractionMode->setInteractionMode(axis,mode);
+}
+
+bool PassThroughControlBoard::setInteractionModes(int n_joints, int *joints, yarp::dev::InteractionModeEnum* modes)
+{
+    if( !proxyIInteractionMode )
+    {
+        return false;
+    }
+    return proxyIInteractionMode->setInteractionModes(n_joints,joints,modes);
+}
+
+bool PassThroughControlBoard::setInteractionModes(yarp::dev::InteractionModeEnum* modes)
+{
+    if( !proxyIInteractionMode )
+    {
+        return false;
+    }
+    return proxyIInteractionMode->setInteractionModes(modes);
+}
+
+bool  PassThroughControlBoard::getAxisName(int axis, yarp::os::ConstString& name)
+{
+    if( !proxyIAxisInfo )
+    {
+        return false;
+    }
+    return proxyIAxisInfo->getAxisName(axis,name);
+}
 
 }
 }
