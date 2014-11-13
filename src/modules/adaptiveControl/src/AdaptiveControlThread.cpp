@@ -53,7 +53,8 @@ namespace adaptiveControl {
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
                                                  paramHelp::ParamHelperClient& paramHelperClient,
 #endif
-                                                 const Eigen::Vector2d &linklengths
+                                                 const Eigen::Vector2d &linklengths,
+    Settings::Editor &parameters
                                                  // double refBaselineSmootherDuration,
                                                  // double refFrequencySmootherDuration
                                                      ):
@@ -68,6 +69,7 @@ namespace adaptiveControl {
     _robotName(robotName),
     _robotPart(robotPart),
     _paramServer(paramHelperServer),
+    _parameters(parameters),
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
     _paramClient(paramHelperClient),
 #endif
@@ -120,32 +122,32 @@ namespace adaptiveControl {
     bool AdaptiveControlThread::threadInit()
     {
         //link parameters
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDMinDeterminantValue, &_minDeterminantValue));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDOutputEnabled, &_outputEnabled));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDIntegralSymmetricLimit, &_integralSaturationLimit));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDHomePositions, _homePositions.data()));
-        //Kappa, Gamma, Lambda
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambda, &_lambda));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambdaIntegral, &_lambdaIntegral));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainKappa, _kappa.data()));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainKappaIntegral, _kappaIntegral.data()));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainGamma, _GammaInput.data()));
-        //reference trajectory
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefBaseline, &_refBaseline));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefFrequency, &_refDesiredFrequency));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefAmplitude, &_refAmplitude));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefPhase, &_refPhase));
-        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDTorqueSaturation, &_torqueSaturation));
-
-        YARP_ASSERT(_paramServer.registerCommandCallback(AdaptiveControlCommandIDStart, this));
-        YARP_ASSERT(_paramServer.registerCommandCallback(AdaptiveControlCommandIDStop, this));
-
-        YARP_ASSERT(_paramServer.registerParamValueChangedCallback(AdaptiveControlParamIDGainGamma, this));
-        // YARP_ASSERT(_paramServer.registerParamValueChangedCallback(AdaptiveControlParamIDRefFrequency, this));
-
-#ifndef ADAPTIVECONTROL_TORQUECONTROL
-        YARP_ASSERT(_paramClient.linkParam(jointTorqueControl::PARAM_ID_TAU_OFFSET, _jointTorqueControlTorques.data()));
-#endif
+//        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDMinDeterminantValue, &_minDeterminantValue));
+////        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDOutputEnabled, &_outputEnabled));
+//        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDIntegralSymmetricLimit, &_integralSaturationLimit));
+//        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDHomePositions, _homePositions.data()));
+//        //Kappa, Gamma, Lambda
+////        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambda, &_lambda));
+////        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainLambdaIntegral, &_lambdaIntegral));
+//        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainKappa, _kappa.data()));
+//        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainKappaIntegral, _kappaIntegral.data()));
+//        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDGainGamma, _GammaInput.data()));
+//        //reference trajectory
+////        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefBaseline, &_refBaseline));
+////        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefFrequency, &_refDesiredFrequency));
+////        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefAmplitude, &_refAmplitude));
+////        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDRefPhase, &_refPhase));
+//        YARP_ASSERT(_paramServer.linkParam(AdaptiveControlParamIDTorqueSaturation, &_torqueSaturation));
+//
+//        YARP_ASSERT(_paramServer.registerCommandCallback(AdaptiveControlCommandIDStart, this));
+//        YARP_ASSERT(_paramServer.registerCommandCallback(AdaptiveControlCommandIDStop, this));
+//
+//        YARP_ASSERT(_paramServer.registerParamValueChangedCallback(AdaptiveControlParamIDGainGamma, this));
+//        // YARP_ASSERT(_paramServer.registerParamValueChangedCallback(AdaptiveControlParamIDRefFrequency, this));
+//
+//#ifndef ADAPTIVECONTROL_TORQUECONTROL
+//        YARP_ASSERT(_paramClient.linkParam(jointTorqueControl::PARAM_ID_TAU_OFFSET, _jointTorqueControlTorques.data()));
+//#endif
 
         //open ports and drivers
         //Encoder
@@ -215,6 +217,11 @@ namespace adaptiveControl {
 
     void AdaptiveControlThread::run()
     {
+        //Test thrift
+        std::cout << "Enable commands: " << _parameters.get_enableCommands() << "\n";
+        std::cout << "Enable lambda proportional: " << _parameters.get_gains().lambdaProportional << "\n";
+        
+        
         if (_controlEnabled) {
             computeControl();
         }

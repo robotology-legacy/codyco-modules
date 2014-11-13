@@ -32,6 +32,8 @@
 #include "AdaptiveControlConstants.h"
 #include <Eigen/Core>
 
+#include "Settings.h"
+
 
 namespace paramHelp {
     class ParamHelperServer;
@@ -58,9 +60,12 @@ namespace adaptiveControl
         Eigen::Vector8d _initialPiHat;
         double _initialXi1;
         
-        yarp::os::Port _rpcPort;        // a port to handle rpc messages
+        yarp::os::RpcServer _rpcPort;        // a port to handle rpc messages
         AdaptiveControlThread *_controlThread;
         paramHelp::ParamHelperServer* _parameterServer;    // helper class for communication
+        
+        Settings::Editor _moduleSettings;
+//        yarp::os::RpcServer _rpc;
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
         paramHelp::ParamHelperClient* _parameterClient;
         std::string _torqueControlModuleName;

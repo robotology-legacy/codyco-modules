@@ -46,6 +46,8 @@
 
 #include <Eigen/Core>
 
+#include "Settings.h"
+
 namespace paramHelp {
     class ParamHelperServer;
     class ParamHelperClient;
@@ -74,11 +76,11 @@ namespace iCub {
 }
 
 namespace adaptiveControl {
-   
+    
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
-	//class MotorParameters;
+    //class MotorParameters;
 #endif
-	
+    
     class AdaptiveControlThread:
     public yarp::os::RateThread,
     public paramHelp::CommandObserver,
@@ -96,16 +98,18 @@ namespace adaptiveControl {
         bool _piHatModificationOn;
         double _integralSaturationLimit;
         // double _sinInitialTime;
-	double q_ref;
-	double dq_ref;
-	double ddq_ref;
-
+        double q_ref;
+        double dq_ref;
+        double ddq_ref;
+        
         //configuration parameters
         const std::string &_threadName;
         const std::string &_robotName;
         const std::string &_robotPart;
         paramHelp::ParamHelperServer &_paramServer;
         Eigen::VectorNd _homePositions;
+        
+        Settings::Editor& _parameters;
         
         //in-out varables
         yarp::dev::PolyDriver* _driver;
@@ -116,16 +120,16 @@ namespace adaptiveControl {
         yarp::dev::ITorqueControl* _torqueControl;
 #endif
         yarp::os::BufferedPort<yarp::os::Bottle>* _torqueOutput;
-		yarp::os::BufferedPort<yarp::sig::Vector>* _debugPort;
+        yarp::os::BufferedPort<yarp::sig::Vector>* _debugPort;
         
         //Temp: to read directly from gazebo
-//         yarp::os::BufferedPort<yarp::os::Bottle>* _speedInput;
+        //         yarp::os::BufferedPort<yarp::os::Bottle>* _speedInput;
         
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
         paramHelp::ParamHelperClient& _paramClient; //used to send torques commands to torque control
         Eigen::Matrix<double, JOINTTORQUECONTROL_DOFS, 1> _jointTorqueControlTorques;
 #endif
-		
+        
         iCub::ctrl::AWLinEstimator* _velocityEstimator;
         int _outputEnabled;
         
@@ -187,7 +191,7 @@ namespace adaptiveControl {
         // yarp::sig::Vector _minJerkInputVariable;
         // yarp::sig::Vector _minJerkOutputVariable;
         
-   
+        
         yarp::dev::PolyDriver* openDriver(std::string localName, std::string robotName, std::string bodyPartName);
         void computeRegressor(const Eigen::Vector2d& q, /* Joint positions*/
                               const Eigen::Vector2d& dq, /* Joint velocities*/
@@ -201,8 +205,8 @@ namespace adaptiveControl {
         void stopControl();
         void setRobotToHomePositions();
         void haltControl(double* haltPositions);
-		
-		void writeDebug();
+        
+        void writeDebug();
         
         
         template <typename Derived1, typename Derived2>
@@ -221,10 +225,11 @@ namespace adaptiveControl {
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
                               paramHelp::ParamHelperClient& paramHelperClient,
 #endif
-                              const Eigen::Vector2d &linklengths//,
-                              // double refBaselineSmootherDuration,
-                              // double refFrequencySmootherDuration
-                                  );
+                              const Eigen::Vector2d &linklengths,
+                              Settings::Editor &parameters
+        // double refBaselineSmootherDuration,
+        // double refFrequencySmootherDuration
+        );
         ~AdaptiveControlThread();
         
         bool setInitialConditions(const Eigen::Vector8d& initialPiHat, const double& initialXi1);

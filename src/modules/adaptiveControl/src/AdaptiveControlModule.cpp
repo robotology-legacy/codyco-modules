@@ -41,53 +41,62 @@ namespace adaptiveControl {
     bool AdaptiveControlModule::configure(ResourceFinder &rf)
     {
         //-------------------------------------------------- PARAMETER HELPER SERVER ---------------------------------------------------------
-        _parameterServer = new ParamHelperServer(adaptiveControlParamDescriptors, adaptiveControlParamDescriptorsSize,
-                                                 adaptiveControlCommandDescriptors, adaptiveControlCommandDescriptorsSize);
-        if (!_parameterServer) {
-            error_out("Could not initialize parameter server. Closing module");
-            return false;
-        }
-        _parameterServer->linkParam(AdaptiveControlParamIDModuleName, &_moduleName);
-        _parameterServer->linkParam(AdaptiveControlParamIDPeriod, &_period);
-        _parameterServer->linkParam(AdaptiveControlParamIDRobotName, &_robotName);
-        _parameterServer->linkParam(AdaptiveControlParamIDRobotPartName, &_robotPart);
-        _parameterServer->linkParam(AdaptiveControlParamIDLinkLengths, _linkLengths.data());
-        _parameterServer->linkParam(AdaptiveControlParamIDInitialPiHat, _initialPiHat.data());
-        _parameterServer->linkParam(AdaptiveControlParamIDInitialXi1, &_initialXi1);
-#ifndef ADAPTIVECONTROL_TORQUECONTROL
-        _parameterServer->linkParam(AdaptiveControlParamIDJointTorqueControlModuleName, &_torqueControlModuleName);
-#endif
-        _parameterServer->linkParam(AdaptiveControlParamIDBaselineSmootherDuration, &_baselineSmootherDuration);
-        _parameterServer->linkParam(AdaptiveControlParamIDFrequencySmootherDuration, &_frequencySmootherDuration);
+//        _parameterServer = new ParamHelperServer(adaptiveControlParamDescriptors, adaptiveControlParamDescriptorsSize,
+//                                                 adaptiveControlCommandDescriptors, adaptiveControlCommandDescriptorsSize);
+//        if (!_parameterServer) {
+//            error_out("Could not initialize parameter server. Closing module");
+//            return false;
+//        }
         
-        _parameterServer->registerCommandCallback(AdaptiveControlCommandIDHelp, this);
-        _parameterServer->registerCommandCallback(AdaptiveControlCommandIDQuit, this);
-        _parameterServer->registerCommandCallback(AdaptiveControlCommandIDReset, this);
+        _moduleName = "adaptive";
+        _period = 10;
+        _robotName = "icubGazeboSim";
+        _robotPart = "left_leg";
+        
+//        _parameterServer->linkParam(AdaptiveControlParamIDModuleName, &_moduleName);
+//        _parameterServer->linkParam(AdaptiveControlParamIDPeriod, &_period);
+//        _parameterServer->linkParam(AdaptiveControlParamIDRobotName, &_robotName);
+//        _parameterServer->linkParam(AdaptiveControlParamIDRobotPartName, &_robotPart);
+//        _parameterServer->linkParam(AdaptiveControlParamIDLinkLengths, _linkLengths.data());
+//        _parameterServer->linkParam(AdaptiveControlParamIDInitialPiHat, _initialPiHat.data());
+//        _parameterServer->linkParam(AdaptiveControlParamIDInitialXi1, &_initialXi1);
+//#ifndef ADAPTIVECONTROL_TORQUECONTROL
+//        _parameterServer->linkParam(AdaptiveControlParamIDJointTorqueControlModuleName, &_torqueControlModuleName);
+//#endif
+//        _parameterServer->linkParam(AdaptiveControlParamIDBaselineSmootherDuration, &_baselineSmootherDuration);
+//        _parameterServer->linkParam(AdaptiveControlParamIDFrequencySmootherDuration, &_frequencySmootherDuration);
+//        
+//        _parameterServer->registerCommandCallback(AdaptiveControlCommandIDHelp, this);
+//        _parameterServer->registerCommandCallback(AdaptiveControlCommandIDQuit, this);
+//        _parameterServer->registerCommandCallback(AdaptiveControlCommandIDReset, this);
         
         // Read parameters from configuration file (or command line)
         Bottle initMsg;
-        _parameterServer->initializeParams(rf, initMsg);
-        info_out("*** Parsing configuration file...\n%s\n", initMsg.toString().c_str());
+//        _parameterServer->initializeParams(rf, initMsg);
+//        info_out("*** Parsing configuration file...\n%s\n", initMsg.toString().c_str());
+//        
+//        // Open ports for communicating with other modules
+//        if(!_parameterServer->init(_moduleName)) {
+//            error_out("Error while initializing parameter server. Closing module.\n");
+//            return false;
+//        }
         
-        // Open ports for communicating with other modules
-        if(!_parameterServer->init(_moduleName)) {
-            error_out("Error while initializing parameter server. Closing module.\n");
-            return false;
-        }
+        _moduleSettings.yarp().attachAsServer(_rpcPort);
         
         _rpcPort.open(("/" + _moduleName + "/rpc").c_str());
         setName(_moduleName.c_str());
-        attach(_rpcPort);
+        
+//        attach(_rpcPort);
         initMsg.clear();
         
-#ifndef ADAPTIVECONTROL_TORQUECONTROL
-        _parameterClient = new ParamHelperClient(jointTorqueControl::jointTorqueControlParamDescr, jointTorqueControl::PARAM_ID_SIZE,
-                                                 jointTorqueControl::jointTorqueControlCommandDescr, jointTorqueControl::COMMAND_ID_SIZE); //todo
-        if (!_parameterClient || !_parameterClient->init(_moduleName, _torqueControlModuleName, initMsg)) {
-            error_out("Error while initializing parameter client. Closing module.\n");
-            return false;
-        }
-#endif
+//#ifndef ADAPTIVECONTROL_TORQUECONTROL
+//        _parameterClient = new ParamHelperClient(jointTorqueControl::jointTorqueControlParamDescr, jointTorqueControl::PARAM_ID_SIZE,
+//                                                 jointTorqueControl::jointTorqueControlCommandDescr, jointTorqueControl::COMMAND_ID_SIZE); //todo
+//        if (!_parameterClient || !_parameterClient->init(_moduleName, _torqueControlModuleName, initMsg)) {
+//            error_out("Error while initializing parameter client. Closing module.\n");
+//            return false;
+//        }
+//#endif
         
         
         //--------------------------CONTROL THREAD--------------------------
@@ -99,7 +108,7 @@ namespace adaptiveControl {
 #ifndef ADAPTIVECONTROL_TORQUECONTROL
                                                    *_parameterClient,
 #endif
-                                                   _linkLengths);//, _baselineSmootherDuration, _frequencySmootherDuration);
+                                                   _linkLengths, _moduleSettings);//, _baselineSmootherDuration, _frequencySmootherDuration);
         if (!_controlThread || !_controlThread->start()) {
             error_out("Error while initializing control thread. Closing module.\n");
             return false;
