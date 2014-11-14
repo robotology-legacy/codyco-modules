@@ -40,7 +40,7 @@ LocomotionThread::LocomotionThread(string _name, string _robotName, int _period,
 //*************************************************************************************************************************
 bool LocomotionThread::threadInit()
 {
-    ICUB_MAIN_JOINTS = robot->getFrameList(); //this is initialized by the module to the old ICUB_MAIN_JOINTS variable
+    ICUB_MAIN_JOINTS = robot->getJointList(); //this is initialized by the module to the old ICUB_MAIN_JOINTS variable
     YARP_ASSERT(robot->getFrameList().idToIndex("r_sole", LINK_ID_RIGHT_FOOT)); //41
     YARP_ASSERT(robot->getFrameList().idToIndex("l_sole", LINK_ID_LEFT_FOOT));  // 33
     comLinkId           = iWholeBodyModel::COM_LINK_ID;
