@@ -102,14 +102,14 @@ namespace codyco {
                 return false;
             }
             //add joints
-            m_robot->addJoints(wbiIcub::ROBOT_DYNAMIC_MODEL_JOINTS);
+            m_robot->addJoints(wbiIcub::ICUB_MAIN_JOINTS);
             if (!m_robot->init()) {
                 std::cerr << "Could not initialize wbi." << std::endl;
                 return false;
             }
             
             //Sanity checks
-            if (wbiIcub::ROBOT_DYNAMIC_MODEL_JOINTS.size() != actuatedDOFs) {
+            if (wbiIcub::ICUB_MAIN_JOINTS.size() != actuatedDOFs) {
                 std::cerr << "Error in initializing wbi, the number of joints is different from the expected" << std::endl;
                 return false;
             }
