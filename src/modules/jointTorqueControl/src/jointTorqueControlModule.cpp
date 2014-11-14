@@ -104,7 +104,7 @@ bool jointTorqueControlModule::configure(ResourceFinder &rf)
     iCub::iDynTree::iCubTree_version_tag icub_version;
     iCubVersionFromRf(rf,icub_version);
     robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str(),icub_version);
-    robotInterface->addJoints(ICUB_MAIN_JOINTS);
+    robotInterface->addJoints(ROBOT_DYNAMIC_MODEL_JOINTS);
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
 
     //--------------------------CTRL THREAD--------------------------
