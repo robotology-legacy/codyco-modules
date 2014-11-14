@@ -129,7 +129,7 @@ bool MotorFrictionExcitationModule::configure(ResourceFinder &rf)
     iCub::iDynTree::iCubTree_version_tag icub_version;
     iCubVersionFromRf(rf,icub_version);
     robotInterface = new icubWholeBodyInterface(moduleName.c_str(), robotName.c_str(),icub_version);
-    robotInterface->addJoints(ICUB_MAIN_JOINTS);
+    robotInterface->addJoints(ROBOT_DYNAMIC_MODEL_JOINTS);
     robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE_SENSOR, LocalId(RIGHT_LEG,0));  // right get ft sens
     robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE_SENSOR, LocalId(LEFT_LEG,0));   // left leg ft sens
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
