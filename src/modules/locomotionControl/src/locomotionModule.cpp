@@ -85,11 +85,11 @@ bool LocomotionModule::configure(ResourceFinder &rf)
 
     robotInterface = new yarpWholeBodyInterface(moduleName.c_str(), yarpWbiOptions);
 
-    wbiIdList RobotMainJoints;
+    IDList RobotMainJoints;
     std::string RobotMainJointsListName = "ICUB_MAIN_JOINTS";
     if( !loadIdListFromConfig(RobotMainJointsListName,yarpWbiOptions,RobotMainJoints) )
     {
-        fprintf(stderr, "[ERR] locomotionControl: impossible to load wbiId joint list with name %s\n",RobotMainJointsListName.c_str());
+        fprintf(stderr, "[ERR] locomotionControl: impossible to load ID joint list with name %s\n",RobotMainJointsListName.c_str());
     }
     robotInterface->addJoints(RobotMainJoints);
     if(!robotInterface->init()){ fprintf(stderr, "Error while initializing whole body interface. Closing module\n"); return false; }
