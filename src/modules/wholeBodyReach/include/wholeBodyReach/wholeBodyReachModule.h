@@ -31,6 +31,16 @@
  * - left forearm (3 dofs)
  * - joint posture (25 dofs)
  *
+ * Moreover the following inequality constraints are considered:
+ * - joint limits
+ * - max joint velocities
+ * - max joint accelerations
+ * - friction cones
+ * - zero moment point (at each contact)
+ *
+ * In case of conflict between joint limits and joint velocities/accelerations, higher priority
+ * is given to the joint limits.
+ *
  * The control algorithm that gave the best results in simulation is COM_SOT (5), which controls
  * the CoM position, but not the angular momentum.
  *
@@ -44,19 +54,29 @@
  
  \section example_sec Example Instantiation of the Module
  First of all start the module specifying the configuration file:
+ 
      wholeBodyReach --from defaultSim.ini
+ 
  Then connect to the RPC port of the module:
+ 
      yarp rpc /wbr/rpc
+ 
  Then start the module by giving the start command on the RPC port.
+     
      start
+ 
  At start all the desired positions are set to the measured positions, so the robot should not move.
  When the module is started the robot is supposed to be standing on both feet, with the feet parallel
  to each other. After the controller is started you can modify the reference positions of the different
  tasks. You can this in two ways; you can directly set the reference position of a task, e.g.:
+ 
      set xd com 0.04 -0.07 0.45
- Alternatively you can use the "go down" and "go up" commands, which change at the same time the desired 
+
+ Alternatively you can use the "go down" and "go up" commands, which change at the same time the desired
  positions of all the tasks (actually at the moment it is only for CoM, right hand and joint posture).
+ 
      go down
+
  The desired positions associated to the "go down" commands can be changed by configuration file
  or by rpc port through the parameters "go down com", "go down hand", "go down posture". 
  The same applies for the "go up" command.
@@ -139,7 +159,8 @@
  \section lib_sec Libraries
  YARP, Eigen, iCub, wbi, paramHelp.
  
-\section tested_os_sec Tested OS Mac, Linux.
+\section tested_os_sec Tested OS 
+ Mac, Linux.
  
  \author Andrea Del Prete
  
