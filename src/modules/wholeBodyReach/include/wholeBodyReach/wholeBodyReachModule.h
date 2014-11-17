@@ -61,6 +61,17 @@
  or by rpc port through the parameters "go down com", "go down hand", "go down posture". 
  The same applies for the "go up" command.
  
+ \section scope_sec Monitoring the behavior of the controller
+ A bunch of configuration files for plotting some useful quantities using yarpscope
+ can be found in the conf folder. In particular:
+ - com_scope: plot the reference and measured position of the CoM and angular momentum.
+ - hand_forearm_scope: plot reference and measured positions of right hand and left forearm.
+ - force_inequalities: plot the desired ZMPs, ratio of tangential and normal forces, ratio of normal 
+ moments and forces; namely it plots all the bounded quantities related to the contact forces. This 
+ is useful to monitor the robustness of the desired contact forces.
+ - joint_limits: plot the measured joint angles normalized between 0 and 1, useful to monitor when some
+ joints are getting close to their limits.
+ - joint_vels: plot the measured joint velocities in deg/sec
  
  \section parameters_sec Parameters
  List of the module commands and descriptions:
