@@ -156,9 +156,9 @@ bool PlaneContactConstraint::update(RobotState& state)
     _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError) - _Kd.tail<3>().cwiseProduct(_vel.tail<3>());;
     _a_eq += _dvStar;   // _a_eq = dvStar - dJ*dq
     
-    getLogger().sendMsg(_name+" position Error = "+toString(1e3*(_posDes - _pos),1), MSG_STREAM_INFO);
-    getLogger().sendMsg(_name+" orientation Error = "+toString(1e3*_orientationError,1), MSG_STREAM_INFO);
-    getLogger().sendMsg(_name+" dvStar = "+toString(_dvStar,1), MSG_STREAM_INFO);
+    getLogger().sendMsg(_name+" Error = "+toString(1e3*(_posDes - _pos),1)+" "+toString(1e3*_orientationError,1),
+                        MSG_STREAM_DEBUG);
+//    getLogger().sendMsg(_name+" dvStar = "+toString(_dvStar,1), MSG_STREAM_DEBUG);
     
     // compute force-momentum mapping matrix _X
     res = res && _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);

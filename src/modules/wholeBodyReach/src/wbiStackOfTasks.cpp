@@ -133,7 +133,6 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
             // then divide the weights by the normal force
             if(_fcDes(index_k+2)!=0.0)
             {
-//                sendMsg(c.getName()+" fWeights = "+toString(1e3*_fWeights.segment(index_k,k).transpose()));
                 _fWeights.segment(index_k,k) /= _fcDes(index_k+2);
                 forceNormalTot += _fcDes(index_k+2);
             }
@@ -157,10 +156,8 @@ bool wbiStackOfTasks::computeSolution(RobotState& robotState, Eigen::VectorRef t
         {
             _momentumTask->update(robotState);
             _momentumTask->getEqualityVector(_momentumDes);
-//            sendMsg("fWeights = "+toString(1e3*_fWeights.transpose()));
             if(forceNormalTot!=0.0)
                 _fWeights *= forceNormalTot;
-//            sendMsg("fWeights = "+toString(1e3*_fWeights.transpose()));
 //            _fWeights.normalize();
         }
         STOP_PROFILING(PROFILE_FORCE_QP_MOMENTUM);
@@ -252,8 +249,7 @@ bool wbiStackOfTasks::computeComSoT(RobotState& robotState, Eigen::VectorRef tor
     // set higher numerical damping for joint acc than for contact forces
     _qp_force.w.tail(_k)        = _numericalDampingTask*_fWeights;
     _qp_force.w.head(_n).setConstant(_numericalDampingTask*_numericalDampingTask);
-    
-    sendMsg("w*1e6 = "+toString(_qp_force.w.transpose()*1e6));
+//    sendMsg("w*1e6 = "+toString(_qp_force.w.transpose()*1e6));
     
     if(!solveForceQP(robotState))
         return false;
