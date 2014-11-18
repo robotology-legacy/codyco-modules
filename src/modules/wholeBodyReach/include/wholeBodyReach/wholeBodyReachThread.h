@@ -71,6 +71,7 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
     
     ParamHelperServer*      _paramHelper;       // helper class for parameter management
     wholeBodyInterface*     _robot;             // interface to the robot
+    SkinContactReader       _contactReader;     // interface to the skin contacts
     wbiStackOfTasks         _solver;            // stack of task solver
     RobotState              _robotState;        // struct collecting the robot's state information
     RobotState              _robotStateIntegrator;     // used when integrating EoM
@@ -107,7 +108,6 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
     WholeBodyReachStatus        _status;        // thread status ("on" when controlling, off otherwise)
     WholeBodyReachSupportPhase  _supportPhase;  // support status
     
-//    int                 _printCountdown;        // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     int                 LINK_ID_RIGHT_FOOT;
     int                 LINK_ID_LEFT_FOOT;
     int                 _n;                     // current number of joints
@@ -141,6 +141,14 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
     double                  _momentFriction;
     Vector6d                _kpConstraints;
     Vector6d                _wrenchWeights;     // weights used to penalize wrenches
+    
+    // Planning parameters
+    Vector3d        _goDown_com;
+    Vector3d        _goDown_hand;
+    VectorNd        _goDown_q;
+    Vector3d        _goUp_com;
+    Vector3d        _goUp_hand;
+    VectorNd        _goUp_q;
 
     // Input streaming parameters
     Matrix4d            _H_w2b;                  // rototranslation from world to base reference frame
@@ -161,9 +169,6 @@ class WholeBodyReachThread: public RateThread, public ParamValueObserver, public
     bool preStartOperations();
     /** Perform all the operations needed just before stopping the controller. */
     void preStopOperations();
-
-    /** Method called every time the support status changes. */
-    void numberOfConstraintsChanged();
 
 public:	
     

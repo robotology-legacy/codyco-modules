@@ -35,13 +35,13 @@ static const double NO_UPPER_BOUND =  std::numeric_limits<double>::infinity();
 
 struct RobotState
 {
-    Eigen::VectorXd     torques;    // joint torques (n)
-    Eigen::VectorXd     qJ;         // joint positions (n)
-    Eigen::VectorXd     dqJ;        // joint velocities (n)
+    Eigen::VectorXd     torques;    // joint torques in Nm (n)
+    Eigen::VectorXd     qJ;         // joint positions in rad (n)
+    Eigen::VectorXd     dqJ;        // joint velocities in rad/s (n)
     wbi::Frame          xBase;      // homogeneous transformation from world to base frame
     Eigen::Vector6d     vBase;      // base velocities (6)
     Eigen::VectorXd     dq;         // base and joint velocities (6+n)
-    Eigen::Vector3d     g;          // gravity acceleration (3)
+    Eigen::Vector3d     g;          // gravity acceleration in m/s^2 (3)
     
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
@@ -144,7 +144,7 @@ public:
 
     
 /** A task described by an affine inequality:
-  * A x <= a
+  * A x + a >= 0
   */
 class WbiInequalityTask
 {

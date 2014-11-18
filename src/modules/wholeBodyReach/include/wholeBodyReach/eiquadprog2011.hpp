@@ -380,6 +380,7 @@ namespace Eigen {
             /* QPP is infeasible */
             // FIXME: unbounded to raise
             q = iq;
+            std::cerr<<"QP unbounded\n";
             return inf;
         }
         /* case (ii): step in dual space */

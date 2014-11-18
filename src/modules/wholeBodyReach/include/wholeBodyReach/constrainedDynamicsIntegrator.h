@@ -91,6 +91,7 @@ public:
     
     Eigen::VectorXd                 _qj;    /// joint positions
     Eigen::VectorXd                 _dq;    /// base+joint velocities
+    wbi::Frame                      _xB_i;  /// initial base pose (as _xB, but this is not overwritten, just for debugging)
     wbi::Frame                      _xB;    /// base pose
     Eigen::Map<Eigen::Vector3d>     _p_B;   /// (_xB.p);
     Eigen::Map<Eigen::MatrixR3d>    _R_B;   /// (_xB.R.data);  // row major data

@@ -28,9 +28,9 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	#include <sys/time.h>
 #else
 	#include <Windows.h>
-	#include <iomanip>
 #endif
 
+#include <stdio.h>
 #include <iostream>
 #include <iomanip>      // std::setprecision
 #include "wholeBodyReach/Logger.h"
@@ -59,13 +59,17 @@ void Logger::countdown()
 
 void Logger::sendMsg(string msg, MsgType type)
 {
-    if(type==MSG_STREAM_INFO && _printCountdown<0.0)
-    {
-        printf("%s\n", msg.c_str());
+    if(_lv==VERBOSITY_NONE)
         return;
-    }
-    if(type==MSG_INFO || type==MSG_ERROR)
-        printf("%s\n", msg.c_str());
+    if(_lv==VERBOSITY_ERROR && !isErrorMsg(type))
+        return;
+    if(_lv==VERBOSITY_WARNING_ERROR && !(isWarningMsg(type) || isErrorMsg(type)))
+        return;
+    if(_lv==VERBOSITY_INFO_WARNING_ERROR && isDebugMsg(type))
+        return;
+    if(isStreamMsg(type) && _printCountdown>=0.0)
+        return;
+    printf("%s\n", msg.c_str());
 }
 
 bool Logger::setTimeSample(double t)

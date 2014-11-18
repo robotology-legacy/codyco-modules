@@ -83,6 +83,8 @@ namespace wholeBodyReach
     protected:
         int                         _linkId;    /// id of the link
         std::string                 _linkName;  /// name of the link
+        Eigen::Vector3d             _ctrlPoint; /// point to control in link-reference frame
+        bool                        _controlPositionOnly;   /// if true control only position
         bool                        _initSuccessfull;   /// true if initialization was successfull
         
         Eigen::Vector6d             _dJdq;      /// product of the Jacobian time derivative and the joint velocities
@@ -100,6 +102,7 @@ namespace wholeBodyReach
         wbi::Frame                  _Hdes;              /// same as _poseDes but as homogeneous matrix
         Eigen::Vector6d             _dvStar;            /// acceleration to use in optimization
         Eigen::Vector3d             _orientationError;  /// orientation error expressed as a rotation vector
+        Eigen::MatrixR6d            _adjInv;            /// inverse adjoint matrix of ctrlPoint
 
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -114,6 +117,21 @@ namespace wholeBodyReach
         virtual void linkParameterPoseDes(paramHelp::ParamHelperServer* paramHelper, int paramId);
         virtual void linkParameterPose(paramHelp::ParamHelperServer* paramHelper, int paramId);
         virtual void linkParameterPosRef(paramHelp::ParamHelperServer* paramHelper, int paramId);
+        
+        virtual void controlPositionOnly(bool b)
+        {
+            _controlPositionOnly = b;
+        }
+        
+        virtual void setPosDes(Eigen::Vector3d posDes)
+        {
+            _poseDes.head<3>() = posDes;
+        }
+        
+        virtual void setControlPoint(Eigen::Vector3d ctrlPoint)
+        {
+            _ctrlPoint = ctrlPoint;
+        }
         
         /** Method called every time a parameter (for which a callback is registered) is changed. */
         virtual void parameterUpdated(const paramHelp::ParamProxyInterface *pp);
@@ -135,20 +153,29 @@ namespace wholeBodyReach
                                     public MinJerkTask
     {
     protected:
-        wbi::Frame                  _H;         /// homogenous matrix from world frame to CoM frame
-        Eigen::Vector6d             _momentum;  /// 6d centroidal momentum
+        wbi::Frame                  _H;                 /// homogenous matrix from world frame to CoM frame
+        Eigen::Vector6d             _momentum;          /// 6d centroidal momentum
         Eigen::Vector6d             _momentumIntegral;  /// numerical integral of the momentum
-        double                      _sampleTime;        /// used to compute the momentum integral
-        double                      _robotMass; /// total mass of the robot
         
-        std::string                 _linkName;  /// name of the link
+        wbi::Rotation               _Rdes;              /// desired torso orientation
+        Eigen::Vector3d             _orientationError;  /// error of torso orientation
+        int                         _linkId;            /// id of the torso's link
+        
+        double                      _sampleTime;        /// used to compute the momentum integral
+        double                      _robotMass;         /// total mass of the robot
+        
+        std::string                 _linkName;          /// name of the link
         bool                        _initSuccessfull;   /// true if initialization was successfull
         
+        /// if true regulate angular momentum to zero
+        /// if false use angular momentum to regulate root link's orientation
+        bool                        _regulateAngularMomentum;
+        
         // RPC PARAMETERS
-        Eigen::Vector3d             _com;
+        Eigen::Vector3d             _com;       /// CoM position
         Eigen::Vector3d             _v;         /// CoM velocity
-        Eigen::Vector3d             _comDes;
-        Eigen::Vector3d             _comRef;
+        Eigen::Vector3d             _comDes;    /// desired CoM final position
+        Eigen::Vector3d             _comRef;    /// reference CoM current position
         
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -159,6 +186,11 @@ namespace wholeBodyReach
         virtual bool update(RobotState& state);
         
         virtual void init(RobotState& state);
+        
+        virtual void setComDes(Eigen::Vector3d comDes)
+        {
+            _comDes = comDes;
+        }
         
         /** Link the desired pose of this task to a parameter managed by the specified
          * instance of ParamHelperServer.
@@ -202,6 +234,14 @@ namespace wholeBodyReach
         
         virtual void init(RobotState& state);
         
+        virtual bool setPostureDes(Eigen::VectorConst qDes)
+        {
+            if(qDes.size()!=_qDes.size())
+                return false;
+            _qDes = qDes;
+            return true;
+        }
+        
         /** Link the desired posture of this task to a parameter managed by the specified
          * instance of ParamHelperServer.
          */
@@ -231,15 +271,21 @@ namespace wholeBodyReach
                             public WbiInequalityTask
     {
     protected:
-        Eigen::VectorXd     _qMin;       /// Lower bound of joint positions
-        Eigen::VectorXd     _qMax;       /// Upper bound of joint positions
-        Eigen::VectorXd     _dqMin;      /// Lower bound of joint velocities
-        Eigen::VectorXd     _dqMax;      /// Upper bound of joint velocities
-        Eigen::VectorXd     _ddqMin;     /// Lower bound of joint accelerations
-        Eigen::VectorXd     _ddqMax;     /// Upper bound of joint accelerations
+        double              _dt;        /// time-step to predict future pos/vel
+        double              _minDist;   /// minimum distance to maintain from joint limits
+        Eigen::VectorXd     _qMin;      /// Lower bound of joint positions [deg]
+        Eigen::VectorXd     _qMax;      /// Upper bound of joint positions [deg]
+        Eigen::VectorXd     _dqMax;     /// Upper bound of joint velocities [deg/s]
+        Eigen::VectorXd     _ddqMax;    /// Upper bound of joint accelerations [deg/s^2]
+        
+        Eigen::VectorXd     _q;             /// last joint positions
+        Eigen::VectorXd     _dq;            /// last joint velocities
+        Eigen::VectorXd     _qNormalized;   /// last joint positions normalized in [0,1]
         
         bool checkVectorSize(Eigen::VectorConst v)
         { return v.size()==this->_m; }
+        
+        void updateInequalityMatrix();
         
     public:
         JointLimitTask(std::string taskName, wbi::wholeBodyInterface* robot);
@@ -247,21 +293,68 @@ namespace wholeBodyReach
         
         virtual bool update(RobotState& state);
         
-        /** Set the joint position limits.
+        virtual void init(RobotState& state){}
+        
+        /** Set the time-step used to predict future pos/vel. The larger, the safer.
+         * It should always be greater than the control period.
          * @return True if the operation succeeded, false otherwise.
          */
-        virtual bool setPositionLimits(Eigen::VectorConst qMin, Eigen::VectorConst qMax);
+        virtual bool setTimestep(double dt)
+        {
+            if(dt<=0.0) return false;
+            _dt = dt;
+            return true;
+        }
         
-        /** Set the joint velocity limits. 
-          * @return True if the operation succeeded, false otherwise. 
+        /** Link the time-step used to predict future pos/vel (in sec) to a parameter managed
+         * by the specified instance of ParamHelperServer.
          */
-        virtual bool setVelocityLimits(Eigen::VectorConst dqMin, Eigen::VectorConst dqMax);
+        virtual void linkParameterJointLimitTimestep(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        { paramHelper->linkParam(paramId, &_dt); }
         
-        /** Set the joint acceleration limits.
+        /** Link the joint limit minimum distance (in deg) to a parameter managed 
+         * by the specified instance of ParamHelperServer.
+         */
+        virtual void linkParameterJointLimitMinimumDistance(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        { paramHelper->linkParam(paramId, &_minDist); }
+        
+        /** Link the joint lower bounds (in deg) to a parameter managed by the specified
+         * instance of ParamHelperServer.
+         */
+        virtual void linkParameterQmin(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        { paramHelper->linkParam(paramId, _qMin.data()); }
+
+        /** Link the joint upper bounds (in deg) to a parameter managed by the specified
+         * instance of ParamHelperServer.
+         */
+        virtual void linkParameterQmax(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        { paramHelper->linkParam(paramId, _qMax.data()); }
+        
+        /** Link the joint max velocities (in deg/s) to a parameter managed by the specified
+         * instance of ParamHelperServer.
+         */
+        virtual void linkParameterDQmax(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        { paramHelper->linkParam(paramId, _dqMax.data()); }
+        
+        /** Link the joint max accelerations (in deg/s^2) to a parameter managed by the specified
+         * instance of ParamHelperServer.
+         */
+        virtual void linkParameterDDQmax(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        { paramHelper->linkParam(paramId, _ddqMax.data()); }
+        
+        /** Link the normalized joint positions to a parameter managed by the specified
+         * instance of ParamHelperServer.
+         */
+        virtual void linkParameterQnormalized(paramHelp::ParamHelperServer* paramHelper, int paramId)
+        { paramHelper->linkParam(paramId, _qNormalized.data()); }
+                
+        /** Set the desired joint acceleration computed by the solver.
+         * This is mainly used to print some meaningful warnings when there are inequality
+         * constraints active.
+         * @param ddqDes Desired joint accelerations computed by the solver.
          * @return True if the operation succeeded, false otherwise.
          */
-        virtual bool setAccelerationLimits(Eigen::VectorConst ddqMin, Eigen::VectorConst ddqMax);
-        
+        virtual bool setDdqDes(Eigen::VectorConst ddqDes);
     };
     
     

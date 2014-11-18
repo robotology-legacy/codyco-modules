@@ -42,7 +42,7 @@ static const Eigen::Vector7d       ONE_7D                  = Eigen::Vector7d::Co
 static const string             DEFAULT_MODULE_NAME     = "wholeBodyReach";
 static const int                DEFAULT_CTRL_PERIOD     = 10;                   // controller period in ms
 static const string             DEFAULT_ROBOT_NAME      = "icubGazeboSim";            // robot name
-static const int                DEFAULT_CTRL_ALG        = WBR_CTRL_ALG_MOMENTUM_SOT;
+static const int                DEFAULT_CTRL_ALG        = WBR_CTRL_ALG_COM_SOT;
 static const int                DEFAULT_INTEGRATE_EOM   = 0;
 static const Eigen::Vector6d    DEFAULT_KP_MOMENTUM     = Eigen::Vector6d::Constant(1.0);
 static const Eigen::Vector6d    DEFAULT_KP_FOREARM      = Eigen::Vector6d::Constant(1.0);
@@ -62,9 +62,12 @@ static const double             DEFAULT_INTEGRATOR_DT       = 1e-3;
 static const int                DEFAULT_USE_NULLSPACE_BASE  = 0;   /// true: solver uses basis, false: it uses projectors
 static const Eigen::VectorNd    DEFAULT_Q_MAX               = Eigen::VectorNd::Constant(180.0);
 static const Eigen::VectorNd    DEFAULT_Q_MIN               = Eigen::VectorNd::Constant(-180.0);
-static const double             DEFAULT_JNT_LIM_MIN_DIST    = 5.0;
-static const double             DEFAULT_FORCE_FRICTION      = 0.5;  // friction cone coefficient for tangential forces
-static const double             DEFAULT_MOMENT_FRICTION     = 0.5;  // friction cone coefficient for normal moment
+static const Eigen::VectorNd    DEFAULT_DQ_MAX              = Eigen::VectorNd::Constant(DQ_MAX);
+static const Eigen::VectorNd    DEFAULT_DDQ_MAX             = Eigen::VectorNd::Constant(DDQ_MAX);
+static const double             DEFAULT_JNT_LIM_MIN_DIST    = 1.0;  // deg
+static const double             DEFAULT_JNT_LIM_DT          = 0.1;  // sec
+static const double             DEFAULT_FORCE_FRICTION      = 0.3;  // friction cone coefficient for tangential forces
+static const double             DEFAULT_MOMENT_FRICTION     = 0.3;  // friction cone coefficient for normal moment
 // Streaming parameters
 static const Eigen::Vector3d       DEFAULT_XDES_COM        = Eigen::Vector3d::Constant(0.0);
 static const Eigen::Vector7d       DEFAULT_XDES_FOREARM    = Eigen::Vector7d::Constant(0.0);
@@ -87,7 +90,10 @@ enum WholeBodyReachParamId {
     PARAM_ID_SUPPORT_PHASE,         PARAM_ID_DYN_DAMP,          PARAM_ID_CONSTR_DAMP,
     PARAM_ID_TASK_DAMP,             PARAM_ID_USE_NULLSPACE_BASE,
     PARAM_ID_Q_MAX,                 PARAM_ID_Q_MIN,             PARAM_ID_JNT_LIM_MIN_DIST,
+    PARAM_ID_DQ_MAX,                PARAM_ID_DDQ_MAX,           PARAM_ID_JNT_LIM_DT,
     PARAM_ID_FORCE_FRICTION,        PARAM_ID_MOMENT_FRICTION,   PARAM_ID_WRENCH_WEIGHTS,
+    PARAM_ID_GO_DOWN_COM,           PARAM_ID_GO_DOWN_HAND,      PARAM_ID_GO_DOWN_Q,
+    PARAM_ID_GO_UP_COM,             PARAM_ID_GO_UP_HAND,        PARAM_ID_GO_UP_Q,
     
     PARAM_ID_XDES_COM,              PARAM_ID_XDES_FOREARM,
     PARAM_ID_XDES_HAND,             PARAM_ID_QDES,
@@ -100,7 +106,7 @@ enum WholeBodyReachParamId {
     PARAM_ID_X_BASE,                PARAM_ID_V_BASE,
     PARAM_ID_Q,                     PARAM_ID_DQ,                PARAM_ID_QREF,
     PARAM_ID_FORCE_INEQ_R_FOOT,     PARAM_ID_FORCE_INEQ_L_FOOT, PARAM_ID_FORCE_INEQ_FOREARM,
-    PARAM_ID_MOMENTUM_INTEGRAL,     PARAM_ID_JOINT_TORQUES,
+    PARAM_ID_MOMENTUM_INTEGRAL,     PARAM_ID_JOINT_TORQUES_DES, PARAM_ID_NORMALIZED_Q,
     PARAM_ID_SIZE /*This is the number of parameters, so it must be the last value of the enum.*/
 };
 
@@ -137,12 +143,21 @@ new ParamProxyBasic<double>("dyn damp",             PARAM_ID_DYN_DAMP,          
 new ParamProxyBasic<double>("constr damp",          PARAM_ID_CONSTR_DAMP,       1,                          ParamBilatBounds<double>(1e-9, 1.0),        PARAM_IN_OUT,       &DEFAULT_NUM_DAMP,              "Numerical damping used to regularize the constraint resolutions"),
 new ParamProxyBasic<double>("task damp",            PARAM_ID_TASK_DAMP,         1,                          ParamBilatBounds<double>(1e-9, 1.0),        PARAM_IN_OUT,       &DEFAULT_NUM_DAMP,              "Numerical damping used to regularize the task resolutions"),
 new ParamProxyBasic<int>(   "use nullspace base",   PARAM_ID_USE_NULLSPACE_BASE,1,                          ParamBilatBounds<int>(0, 1),                PARAM_IN_OUT,       &DEFAULT_USE_NULLSPACE_BASE,    "0: use nullspace projectors, 1: use nullspace basis"),
-new ParamProxyBasic<double>("q max",                PARAM_ID_Q_MAX,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds"),
-new ParamProxyBasic<double>("q min",                PARAM_ID_Q_MIN,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds"),
-new ParamProxyBasic<double>("jlmd",                 PARAM_ID_JNT_LIM_MIN_DIST,  1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits"),
+new ParamProxyBasic<double>("q max",                PARAM_ID_Q_MAX,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MAX.data(),           "Joint upper bounds [deg]"),
+new ParamProxyBasic<double>("q min",                PARAM_ID_Q_MIN,             ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_IN_OUT,       DEFAULT_Q_MIN.data(),           "Joint lower bounds [deg]"),
+new ParamProxyBasic<double>("joint lim min dist",   PARAM_ID_JNT_LIM_MIN_DIST,  1,                          ParamLowerBound<double>(0.0),               PARAM_IN_OUT,       &DEFAULT_JNT_LIM_MIN_DIST,      "Minimum distance to maintain from the joint limits [deg]"),
+new ParamProxyBasic<double>("joint lim dt",         PARAM_ID_JNT_LIM_DT,        1,                          ParamLowerBound<double>(0.001),             PARAM_IN_OUT,       &DEFAULT_JNT_LIM_DT,            "Timestep to predict future joint positions to compute joint acceleration limits [s]"),
+new ParamProxyBasic<double>("dq max",               PARAM_ID_DQ_MAX,            ICUB_DOFS,                  ParamLowerBound<double>(0.0),               PARAM_IN_OUT,       DEFAULT_DQ_MAX.data(),          "Max joint velocities [deg/s]"),
+new ParamProxyBasic<double>("ddq max",              PARAM_ID_DDQ_MAX,           ICUB_DOFS,                  ParamLowerBound<double>(0.0),               PARAM_IN_OUT,       DEFAULT_DDQ_MAX.data(),         "Max joint accelerations [deg/s^2]"),
 new ParamProxyBasic<double>("force friction",       PARAM_ID_FORCE_FRICTION,    1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_FORCE_FRICTION,        "Friciton coefficient for tangential forces"),
 new ParamProxyBasic<double>("moment friction",      PARAM_ID_MOMENT_FRICTION,   1,                          ParamLowerBound<double>(0.1),               PARAM_IN_OUT,       &DEFAULT_MOMENT_FRICTION,       "Friciton coefficient for normal moments"),
 new ParamProxyBasic<double>("wrench weights",       PARAM_ID_WRENCH_WEIGHTS,    6,                          ParamBilatBounds<double>(1e-4, 1e4),        PARAM_IN_OUT,       ONE_6D.data(),                  "Weights used to penalize 6d wrenches"),
+new ParamProxyBasic<double>("go down com",          PARAM_ID_GO_DOWN_COM,       3,                          ParamBilatBounds<double>(-1, 1),            PARAM_IN_OUT,       ZERO_3D.data(),                 "Desired com position associated to the go-down command"),
+new ParamProxyBasic<double>("go down hand",         PARAM_ID_GO_DOWN_HAND,      3,                          ParamBilatBounds<double>(-1, 1),            PARAM_IN_OUT,       ZERO_3D.data(),                 "Desired hand position associated to the go-down command"),
+new ParamProxyBasic<double>("go down q",            PARAM_ID_GO_DOWN_Q,         ICUB_DOFS,                  ParamBilatBounds<double>(-180, 180),        PARAM_IN_OUT,       ZERO_ND.data(),                 "Desired joint positions associated to the go-down command"),
+new ParamProxyBasic<double>("go up com",            PARAM_ID_GO_UP_COM,         3,                          ParamBilatBounds<double>(-1, 1),            PARAM_IN_OUT,       ZERO_3D.data(),                 "Desired com position associated to the go-up command"),
+new ParamProxyBasic<double>("go up hand",           PARAM_ID_GO_UP_HAND,        3,                          ParamBilatBounds<double>(-1, 1),            PARAM_IN_OUT,       ZERO_3D.data(),                 "Desired hand position associated to the go-up command"),
+new ParamProxyBasic<double>("go up q",              PARAM_ID_GO_UP_Q,           ICUB_DOFS,                  ParamBilatBounds<double>(-180, 180),        PARAM_IN_OUT,       ZERO_ND.data(),                 "Desired joint positions associated to the go-up command"),
     
 // ************************************************* STREAMING INPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<int>(   "support phase",        PARAM_ID_SUPPORT_PHASE,     1,                          ParamBilatBounds<int>(0, 2),                PARAM_IN_STREAM,    &DEFAULT_SUPPORT_PHASE,         "Contact support phase, 0: double, 1: triple"),
@@ -152,7 +167,7 @@ new ParamProxyBasic<double>("xd hand",              PARAM_ID_XDES_HAND,         
 new ParamProxyBasic<double>("qd",                   PARAM_ID_QDES,              ICUB_DOFS,                  ParamBilatBounds<double>(-200.0, 200.0),    PARAM_IN_STREAM,    ZERO_ND.data(),                 "Desired joint angles"),
 new ParamProxyBasic<double>("H_w2b",                PARAM_ID_H_W2B,             16,                         ParamBilatBounds<double>(-100.0, 100.0),    PARAM_IN_STREAM,    DEFAULT_H_W2B.data(),           "Estimated rototranslation matrix between world and robot base reference frames"),
     
-// ************************************************* STREAMING OUTPUT PARAMETERS ****************************************************************************************************************************************************************************************************************************
+// ************************************************* MONITORING PARAMETERS ****************************************************************************************************************************************************************************************************************************
 new ParamProxyBasic<double>("x com",                PARAM_ID_X_COM,             3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_3D.data(),                 "3d Position of the center of mass"),
 new ParamProxyBasic<double>("dx com",               PARAM_ID_DX_COM,            3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_3D.data(),                 "3d velocity of the center of mass"),
 new ParamProxyBasic<double>("xr com",               PARAM_ID_XREF_COM,          3,                          ParamBilatBounds<double>(-10.0, 10.0),      PARAM_MONITOR,      ZERO_3D.data(),                 "3d Reference position of the center of mass generated by a min jerk trajectory generator"),
@@ -166,11 +181,12 @@ new ParamProxyBasic<double>("v base",               PARAM_ID_V_BASE,            
 new ParamProxyBasic<double>("q",                    PARAM_ID_Q,                 ICUB_DOFS,                  ParamBilatBounds<double>(-100.0, 100.0),    PARAM_MONITOR,      ZERO_ND.data(),                 "Joint angles"),
 new ParamProxyBasic<double>("dq",                   PARAM_ID_DQ,                ICUB_DOFS,                  ParamBilatBounds<double>(-100.0, 100.0),    PARAM_MONITOR,      ZERO_ND.data(),                 "Joint velocities"),
 new ParamProxyBasic<double>("qr",                   PARAM_ID_QREF,              ICUB_DOFS,                  ParamBilatBounds<double>(-100.0, 100.0),    PARAM_MONITOR,      ZERO_ND.data(),                 "Reference joint angles generated by a min jerk trajectory generator"),
-new ParamProxyBasic<double>("f inequalities rfoot",     PARAM_ID_FORCE_INEQ_R_FOOT, 6,                      ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_6D.data(),                 "1-2 tang/norm force, 3 norm force, 4-5 ZMP, 6 normal moment"),
-new ParamProxyBasic<double>("f inequalities rfoot",     PARAM_ID_FORCE_INEQ_L_FOOT, 6,                      ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_6D.data(),                 "1-2 tang/norm force, 3 norm force, 4-5 ZMP, 6 normal moment"),
-new ParamProxyBasic<double>("f inequalities forearm",   PARAM_ID_FORCE_INEQ_FOREARM,3,                      ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_3D.data(),                 "1-2 tang/norm force, 3 norm force, 4-5 ZMP, 6 normal moment"),
+new ParamProxyBasic<double>("f inequalities rfoot", PARAM_ID_FORCE_INEQ_R_FOOT, 6,                          ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_6D.data(),                 "1-2 tang/norm force, 3 norm force, 4-5 ZMP, 6 normal moment"),
+new ParamProxyBasic<double>("f inequalities lfoot", PARAM_ID_FORCE_INEQ_L_FOOT, 6,                          ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_6D.data(),                 "1-2 tang/norm force, 3 norm force, 4-5 ZMP, 6 normal moment"),
+new ParamProxyBasic<double>("f inequalities forearm",PARAM_ID_FORCE_INEQ_FOREARM,3,                         ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_3D.data(),                 "1-2 tang/norm force, 3 norm force, 4-5 ZMP, 6 normal moment"),
 new ParamProxyBasic<double>("momentum integral",    PARAM_ID_MOMENTUM_INTEGRAL, 6,                          ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_6D.data(),                 "Integral of the 6d centroidal momentum"),
-new ParamProxyBasic<double>("torques",              PARAM_ID_JOINT_TORQUES,     ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_ND.data(),                 "Joint torques")
+new ParamProxyBasic<double>("taud",                 PARAM_ID_JOINT_TORQUES_DES, ICUB_DOFS,                  ParamConstraint<double>(),                  PARAM_MONITOR,      ZERO_ND.data(),                 "Desired joint torques computed by the solver"),
+new ParamProxyBasic<double>("q_norm",               PARAM_ID_NORMALIZED_Q,      ICUB_DOFS,                  ParamBilatBounds<double>(-1.0, 2.0),        PARAM_MONITOR,      ZERO_ND.data(),                 "Joint angles normalized in [0 1] w.r.t. the joint limits")
 };
 
 
@@ -179,6 +195,7 @@ new ParamProxyBasic<double>("torques",              PARAM_ID_JOINT_TORQUES,     
 enum WholeBodyReachCommandId { 
     COMMAND_ID_START,   COMMAND_ID_STOP,    COMMAND_ID_HELP,    COMMAND_ID_QUIT,
     COMMAND_ID_RESET_PROFILER,
+    COMMAND_ID_GO_DOWN, COMMAND_ID_GO_UP,   COMMAND_ID_GRASP,
     COMMAND_ID_SIZE
 };
 // ******************************************************************************************************************************
@@ -190,6 +207,9 @@ const CommandDescription wholeBodyReachCommandDescr[COMMAND_ID_SIZE]  =
 CommandDescription("start",             COMMAND_ID_START,           "Start the controller"),
 CommandDescription("stop",              COMMAND_ID_STOP,            "Stop the controller"),
 CommandDescription("reset profiler",    COMMAND_ID_RESET_PROFILER,  "Reset the profiling statistics"),
+CommandDescription("go down",           COMMAND_ID_GO_DOWN,         "Move CoM and hand references to go down"),
+CommandDescription("grasp",             COMMAND_ID_GRASP,           "Close the fingers to grasp"),
+CommandDescription("go up",             COMMAND_ID_GO_UP,           "Move CoM and hand references to go back up"),
 CommandDescription("help",              COMMAND_ID_HELP,            "Get instructions about how to communicate with this module"),
 CommandDescription("quit",              COMMAND_ID_QUIT,            "Stop the controller and quit the module"), 
 };

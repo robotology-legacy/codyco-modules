@@ -106,7 +106,8 @@ bool ConstrainedDynamicsIntegrator::integrate(double dt, VectorConst torques,
     
     // convert the state representation from q to x
     _tau = torques;
-    _xB = xB_i;
+    _xB_i = xB_i;
+    _xB   = xB_i;
     _x_i.head<3>()            = _p_B;
     MatrixR3d::Map(&_x_i[3])  = _R_B;
     _x_i.segment(12,_n)       = qj_i;

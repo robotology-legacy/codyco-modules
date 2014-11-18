@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--    
+3+3 + 3+6 + 7+3 + 7+3 + 7+6 + 25+25 + 25
+0:2 PARAM_ID_X_COM,                 3:5 PARAM_ID_DX_COM,
+6:8 PARAM_ID_XREF_COM,              9:14 PARAM_ID_MOMENTUM,
+15:21 PARAM_ID_X_FOREARM,             22:24 PARAM_ID_XREF_FOREARM,
+25:31 PARAM_ID_X_HAND,                32:34 PARAM_ID_XREF_HAND,
+35:41 PARAM_ID_X_BASE,                42:47 PARAM_ID_V_BASE,
+48:72 PARAM_ID_Q,                     73:97 PARAM_ID_DQ,            
+98:122 PARAM_ID_QREF				123:128 PARAM_ID_FORCE_INEQ_R_FOOT,          
+129:134 PARAM_ID_FORCE_INEQ_L_FOOT	135:137 PARAM_ID_FORCE_INEQ_FOREARM,                
+138:143 PARAM_ID_MOMENTUM_INTEGRAL  144:168 PARAM_ID_JOINT_TORQUES
+169:193 PARAM_ID_Q_NORMALIZED
+-->
+<portscope rows="3" columns="2">
+    <plot gridx="0" gridy="0" hspan="1" vspan="1" title="Torso Vel"
+          size="60" minval="-50" maxval="50" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="73" color="Red" title="j0" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="74" color="Green" title="j1" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="75" color="Blue" title="j2" type="lines" size="2" />
+    </plot>
+    <plot gridx="0" gridy="1" hspan="1" vspan="1" title="Left arm vek"
+          size="60" minval="-50" maxval="50" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="76" color="Red" title="j0" type="lines" size="2" />
+  		<graph remote="/wbr/monitor:o" index="77" color="Green" title="j1" type="lines" size="2" />
+  		<graph remote="/wbr/monitor:o" index="78" color="Blue" title="j2" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="79" color="Red"  title="j3" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="80" color="Green" title="j4" type="lines" size="2" />
+    </plot>
+    <plot gridx="0" gridy="2" hspan="1" vspan="1" title="Right arm vel"
+          size="60" minval="-50" maxval="50" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="81" color="Red" title="j0" type="lines" size="2" />
+  		<graph remote="/wbr/monitor:o" index="82" color="Green" title="j1" type="lines" size="2" />
+  		<graph remote="/wbr/monitor:o" index="83" color="Blue" title="j2" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="84" color="Red"  title="j3" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="85" color="Green" title="j4" type="lines" size="2" />
+    </plot>
+    <plot gridx="1" gridy="0" hspan="1" vspan="1" title="Left leg vel"
+          size="60" minval="-50" maxval="50" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="86" color="Red" title="j0" type="lines" size="2" />
+  		<graph remote="/wbr/monitor:o" index="87" color="Green" title="j1" type="lines" size="2" />
+  		<graph remote="/wbr/monitor:o" index="88" color="Blue" title="j2" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="89" color="Red"  title="j3" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="90" color="Green" title="j4" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="91" color="Blue" title="j5" type="lines" size="2" />
+    </plot>
+    <plot gridx="1" gridy="1" hspan="1" vspan="1" title="Right leg vel"
+          size="60" minval="-50" maxval="50" bgcolor="white">
+        <graph remote="/wbr/monitor:o" index="92" color="Red" title="j0" type="lines" size="2" />
+  		<graph remote="/wbr/monitor:o" index="93" color="Green" title="j1" type="lines" size="2" />
+  		<graph remote="/wbr/monitor:o" index="94" color="Blue" title="j2" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="95" color="Red"  title="j3" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="96" color="Green" title="j4" type="lines" size="2" />
+		<graph remote="/wbr/monitor:o" index="97" color="Blue" title="j5" type="lines" size="2" />
+    </plot>
+</portscope>

@@ -85,6 +85,7 @@ void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag
         icub_version.uses_urdf = true;
         icub_version.urdf_file = rf.find("urdf").asString().c_str();
     }
+    printf("icub urdf:\n%s\n", icub_version.urdf_file.c_str());
     #endif
 }
 

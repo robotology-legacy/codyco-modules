@@ -22,6 +22,11 @@
 #include <Eigen/SVD>
 #include <vector>
 #include <string>
+#include <iterator>     // std::ostream_iterator
+#include <iCub/skinDynLib/common.h>
+#include <iCub/skinDynLib/skinContactList.h>
+#include <yarp/os/BufferedPort.h>
+#include <wbi/wbi.h>
 #include <wholeBodyReach/wholeBodyReachConstants.h>
 
 namespace Eigen
@@ -48,11 +53,41 @@ namespace Eigen
 //    class JacobiSVDExtended{};
 }
 
-// define some types
-//typedef yarp::sig::Matrix                               MatrixY;    // to not mistake Yarp Matrix and Eigen Matrix
-
 namespace wholeBodyReach
 {
+    /** Utility class for reading the skin contacts.
+     */
+    class SkinContactReader
+    {
+        std::string         _name;
+        std::string         _robotName;
+        
+        // input port reading external contacts
+        yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> *port_ext_contacts;
+        // last list of contacts
+        iCub::skinDynLib::skinContactList     contactList;
+        // list of contacts on interested link
+        iCub::skinDynLib::skinContactList     partContList;
+        // contact chosen for the controller
+        iCub::skinDynLib::skinContact*        contact;
+    public:
+        SkinContactReader(std::string name, std::string robotName);
+        
+        /** Open the port and connect to wholeBodyDynamics. */
+        bool init(std::string wholeBodyDynamicsName);
+
+        /** Read the skin contact.
+         * @param blocking If true the reading is blocking.
+         * @return True if the reading succeeded, false otherwise. */
+        bool readContacts(bool blocking=false);
+        
+        /** Returns true if there is at least one contact on the specified skin part. */
+        bool isThereContactOnSkinPart(iCub::skinDynLib::SkinPart sp);
+        
+        /** Get the contact (if any) on the specified skin part.
+         * In case of more contacts get the one that activates the most number of taxels. */
+        bool getContactOnSkinPart(iCub::skinDynLib::SkinPart sp, iCub::skinDynLib::skinContact &c);
+    };
     
     Eigen::VectorXd svdSolveWithDamping(const Eigen::JacobiSVD<Eigen::MatrixRXd>& svd, Eigen::VectorConst b, double damping=0.0);
     
@@ -80,14 +115,15 @@ namespace wholeBodyReach
      * @param ApinvDamp Output nXm matrix, damped pseudoinverse of A.*/
     void pinvDampTrunc(const Eigen::MatrixRXd &A, double tol, double damp, Eigen::MatrixRXd &Apinv, Eigen::MatrixRXd &ApinvDamp);
     
-    Eigen::MatrixRXd nullSpaceProjector(const Eigen::Ref<Eigen::MatrixRXd> A, double tol);
+    Eigen::MatrixRXd nullSpaceProjector(const Eigen::Ref<const Eigen::MatrixRXd> &A, double tol);
     
-    Eigen::MatrixRXd pinvDampedEigen(const Eigen::Ref<Eigen::MatrixRXd> &A, double damp);
+    Eigen::MatrixRXd pinvDampedEigen(const Eigen::Ref<const Eigen::MatrixRXd> &A, double damp);
+    
+    void adjointInv(const Eigen::Ref<const Eigen::Vector3d> &p, Eigen::Ref<Eigen::MatrixR6d> A);
     
     
     
-    
-    std::string toString(Eigen::MatrixConst &m, int precision=2, const char* endRowStr="\n", int maxRowsPerLine=10);
+    std::string toString(Eigen::MatrixConst m, int precision=2, const char* endRowStr="\n", int maxRowsPerLine=10);
     
     std::string jointToString(const Eigen::VectorXd &j, int precision=1);
     
@@ -108,6 +144,8 @@ namespace wholeBodyReach
     void assertEqual(const Eigen::MatrixRXd &A, const Eigen::MatrixRXd &B, std::string testName, double tol = ZERO_TOL);
     
     void testFailed(std::string testName);
+    
+    
 }
 
 #endif

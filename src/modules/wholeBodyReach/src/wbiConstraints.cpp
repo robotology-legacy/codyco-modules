@@ -80,23 +80,23 @@ void ContactConstraint::updateForceFrictionConeInequalities()
     // * 1 bilateral for Fn (written as 2 unilateral)
     // Fz < Fmax
     // -Fz < -Fmin
-    _A_in.block<1,3>(0,0)   =   _normalDir.transpose();
-    _A_in.block<1,3>(1,0)   = - _normalDir.transpose();
+    _A_in.block<1,3>(0,0)   = - _normalDir.transpose();
+    _A_in.block<1,3>(1,0)   =   _normalDir.transpose();
     _a_in(0)                =   _fNormalMax;
     _a_in(1)                = - _fNormalMin;
     
     // * 4 unilateral for linearized friction cone
     //  Ft < mu*Fn
     // -Ft < mu*Fn
-    _A_in.block<1,3>(2,0)   =  _tangentDir1.transpose() - _muF*_normalDir.transpose();
-    _A_in.block<1,3>(3,0)   = -_tangentDir1.transpose() - _muF*_normalDir.transpose();
-    _A_in.block<1,3>(4,0)   =  _tangentDir2.transpose() - _muF*_normalDir.transpose();
-    _A_in.block<1,3>(5,0)   = -_tangentDir2.transpose() - _muF*_normalDir.transpose();
+    _A_in.block<1,3>(2,0)   = -_tangentDir1.transpose() + _muF*_normalDir.transpose();
+    _A_in.block<1,3>(3,0)   =  _tangentDir1.transpose() + _muF*_normalDir.transpose();
+    _A_in.block<1,3>(4,0)   = -_tangentDir2.transpose() + _muF*_normalDir.transpose();
+    _A_in.block<1,3>(5,0)   =  _tangentDir2.transpose() + _muF*_normalDir.transpose();
     _a_in.segment<4>(2).setZero();
     
-    cout<<"Force friction inequalities:\n";
-    cout<<toString(_A_in.block(0,0,6,_m),1)<<endl;
-    cout<<"< "<< toString(_a_in.segment<6>(0),1)<<endl;
+//    cout<<"Force friction inequalities:\n";
+//    cout<<toString(_A_in.block(0,0,6,_m),1)<<endl;
+//    cout<<"< "<< toString(_a_in.segment<6>(0),1)<<endl;
 }
 
 void ContactConstraint::linkParameterForceFrictionCoefficient(ParamHelperServer* paramHelper, int paramId)
@@ -147,16 +147,18 @@ bool PlaneContactConstraint::update(RobotState& state)
     res = res && _robot->computeDJdq(state.qJ.data(), state.xBase, state.dqJ.data(),
                                      state.vBase.data(), _linkId, _a_eq.data());
     _a_eq *= -1.0;      // _a_eq = -dJ*dq
+    _vel = _A_eq*state.dq;
     
     // compute drift correction term
-//    _pos(0) = _H.p[0]; _pos(1) = _H.p[1]; _pos(2) = _H.p[2];
-//    computeOrientationError(_H.R, _Rdes, _orientationError);
-//    _dvStar.head<3>() = _Kp.head<3>().cwiseProduct(_posDes - _pos);
-//    _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError);
-//    _a_eq += _dvStar;   // _a_eq = dvStar - dJ*dq
+    _pos(0) = _H.p[0]; _pos(1) = _H.p[1]; _pos(2) = _H.p[2];
+    computeOrientationError(_H.R, _Rdes, _orientationError);
+    _dvStar.head<3>() = _Kp.head<3>().cwiseProduct(_posDes - _pos) - _Kd.head<3>().cwiseProduct(_vel.head<3>());
+    _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError) - _Kd.tail<3>().cwiseProduct(_vel.tail<3>());;
+    _a_eq += _dvStar;   // _a_eq = dvStar - dJ*dq
     
-//    getLogger().sendMsg(_name+" orientationError = "+toString(_orientationError,1), MSG_STREAM_INFO);
-//    getLogger().sendMsg(_name+" dvStar = "+toString(_dvStar,1), MSG_STREAM_INFO);
+    getLogger().sendMsg(_name+" Error = "+toString(1e3*(_posDes - _pos),1)+" "+toString(1e3*_orientationError,1),
+                        MSG_STREAM_DEBUG);
+//    getLogger().sendMsg(_name+" dvStar = "+toString(_dvStar,1), MSG_STREAM_DEBUG);
     
     // compute force-momentum mapping matrix _X
     res = res && _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
@@ -179,18 +181,18 @@ void PlaneContactConstraint::updateZmpInequalities()
     // [0 0 -Lxp 0 -1 0] f < 0
     // [0 0 -Lxn 0 +1 0] f < 0
     // @todo Improve this implementation, which assumes contact plane is aligned with x-y axis
-    _A_in(6,2)    = -_planeSize.yPos;
-    _A_in(6,3)    =  1.0;
-    _A_in(7,2)    = -_planeSize.yNeg;
-    _A_in(7,3)    = -1.0;
-    _A_in(8,2)    = -_planeSize.xPos;
-    _A_in(8,4)    = -1.0;
-    _A_in(9,2)    = -_planeSize.xNeg;
-    _A_in(9,4)    =  1.0;
+    _A_in(6,2)    =  _planeSize.yPos;
+    _A_in(6,3)    = -1.0;
+    _A_in(7,2)    =  _planeSize.yNeg;
+    _A_in(7,3)    =  1.0;
+    _A_in(8,2)    =  _planeSize.xPos;
+    _A_in(8,4)    =  1.0;
+    _A_in(9,2)    =  _planeSize.xNeg;
+    _A_in(9,4)    = -1.0;
     _a_in.segment<4>(6).setZero();
     
-    cout<<"Zmp inequalities:\n"<< toString(_A_in.block<4,6>(6,0),1)<<endl;
-    cout<<"< "<< toString(_a_in.segment<4>(6),1)<<endl;
+//    cout<<"Zmp inequalities:\n"<< toString(_A_in.block<4,6>(6,0),2)<<endl;
+//    cout<<"< "<< toString(_a_in.segment<4>(6),2)<<endl;
 }
 
 void PlaneContactConstraint::updateMomentFrictionConeInequalities()
@@ -204,14 +206,14 @@ void PlaneContactConstraint::updateMomentFrictionConeInequalities()
     // * 2 unilateral for linearized moment friction cone Mn (normal moment)
     //  Mn < mu*Fn
     // -Mn < mu*Fn
-    _A_in.block<1,3>(10,0)  = - _muM * _normalDir.transpose();
-    _A_in.block<1,3>(10,3)  =          _normalDir.transpose();
-    _A_in.block<1,3>(11,0)  = - _muM * _normalDir.transpose();
-    _A_in.block<1,3>(11,3)  = -        _normalDir.transpose();
+    _A_in.block<1,3>(10,0)  =   _muM * _normalDir.transpose();
+    _A_in.block<1,3>(10,3)  = -        _normalDir.transpose();
+    _A_in.block<1,3>(11,0)  =   _muM * _normalDir.transpose();
+    _A_in.block<1,3>(11,3)  =          _normalDir.transpose();
     _a_in.segment<2>(10).setZero();
     
-    cout<<"Moment friction inequalities:\n"<< toString(_A_in.block<2,6>(10,0),1)<<endl;
-    cout<<"< "<< toString(_a_in.segment<2>(10),1)<<endl;
+//    cout<<"Moment friction inequalities:\n"<< toString(_A_in.block<2,6>(10,0),2)<<endl;
+//    cout<<"< "<< toString(_a_in.segment<2>(10),2)<<endl;
 }
 
 void PlaneContactConstraint::linkParameterMomentFrictionCoefficient(ParamHelperServer* paramHelper, int paramId)
@@ -250,9 +252,9 @@ bool PlaneContactConstraint::setDesiredConstraintForce(VectorConst fDes)
     
     VectorXd tmp = _A_in*_fDes;
     for(int i=0; i<tmp.size(); i++)
-        if(tmp(i)>=_a_in(i))
-            getLogger().sendMsg(_name+" ineq "+toString(i)+" active: ["+toString(_A_in.row(i),1)+"]*f="+toString(tmp(i)),
-                                MSG_STREAM_ERROR);
+        if(fabs(tmp(i)+_a_in(i))<-1e-5)
+            getLogger().sendMsg(_name+" ineq "+toString(i)+" active:     ["+toString(_A_in.row(i),2)+"]*f="+
+                                toString(tmp(i))+" < "+toString(-_a_in(i)), MSG_STREAM_ERROR);
     
     return true;
 }
