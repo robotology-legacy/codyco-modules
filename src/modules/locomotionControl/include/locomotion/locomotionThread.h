@@ -69,6 +69,8 @@ class LocomotionThread: public RateThread, public ParamValueObserver, public Com
     wholeBodyInterface  *robot;
     LocomotionSolver    *solver;
 
+    IDList              ICUB_MAIN_JOINTS;
+    
     // Member variables
     int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     int                 LINK_ID_RIGHT_FOOT, LINK_ID_LEFT_FOOT;
