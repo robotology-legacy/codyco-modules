@@ -72,11 +72,13 @@ namespace codyco {
                 std::cerr << "Not possible to load WBI properties from file." << std::endl;
                 return false;
             }
+            wbiProperties.fromString(rf.toString(), false);
             
             //retrieve all main joints
             wbi::IDList iCubMainJoints;
-            if (!yarpWbi::loadIdListFromConfig("ICUB_MAIN_JOINTS", wbiProperties, iCubMainJoints)) {
+            if (!yarpWbi::loadIdListFromConfig("ROBOT_TORQUE_CONTROL_JOINTS", wbiProperties, iCubMainJoints)) {
                 std::cerr << "Cannot find joint list" << std::endl;
+                return false;
             }
             double actuatedDOFs = iCubMainJoints.size();
             double totalDOFs = actuatedDOFs + 6;
