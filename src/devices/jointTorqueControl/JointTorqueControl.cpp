@@ -161,7 +161,26 @@ bool JointTorqueControl::getControlMode(int j, int *mode)
     }
     if( hijackingTorqueControl[j] )
     {
-        *mode = VOCAB_CM_TORQUE;
+        //The hijacked jointshould be in openloop mode,
+        //if not this means someone changed the hijacked joint
+        //control mode of the proxy (for example a robotMotorGui
+        //acting on the hijacked control board) and so we should
+        //stop hijacking
+        int proxy_mode;
+        bool ret = proxyIControlMode2->getControlMode(j,&proxy_mode);
+        if( !ret )
+        {
+            return false;
+        }
+        if( proxy_mode != VOCAB_CM_OPENLOOP )
+        {
+            this->stopHijackingTorqueControl(j);
+            *mode = proxy_mode;
+        }
+        else
+        {
+            *mode = VOCAB_CM_TORQUE;
+        }
         return true;
     }
     else
@@ -187,7 +206,15 @@ bool JointTorqueControl::getControlModes(int *modes)
     {
         if( hijackingTorqueControl[j] )
         {
-            modes[j] = VOCAB_CM_TORQUE;
+            if( modes[j] == VOCAB_CM_OPENLOOP )
+            {
+                modes[j] = VOCAB_CM_TORQUE;
+            }
+            else
+            {
+                //joint j is not anymore in openloop contorl mode, stop hijacking
+                this->stopHijackingTorqueControl(j);
+            }
         }
     }
     return ret;
@@ -223,7 +250,15 @@ bool JointTorqueControl::getControlModes(const int n_joint, const int *joints, i
         int j = joints[i];
         if( this->hijackingTorqueControl[j] )
         {
-            modes[i] = VOCAB_CM_TORQUE;
+            if( modes[i] == VOCAB_CM_OPENLOOP )
+            {
+                modes[i] = VOCAB_CM_TORQUE;
+            }
+            else
+            {
+                //joint j is not anymore in openloop contorl mode, stop hijacking
+                this->stopHijackingTorqueControl(j);
+            }
         }
     }
 

@@ -157,6 +157,8 @@ ENDMACRO(codyco_export_library)
 PREPARE_DEVICE(passThroughControlBoard TYPE PassThroughControlBoard INCLUDE PassThroughControlBoard.h WRAPPER controlboardwrapper)
 PREPARE_DEVICE(jointTorqueControl TYPE JointTorqueControl INCLUDE JointTorqueControl.h WRAPPER controlboardwrapper)
 
+set(ENABLE_codycomod_jointTorqueControl TRUE)
+
 if(NOT SKIP_jointTorqueControl)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
