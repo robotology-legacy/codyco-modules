@@ -6,8 +6,10 @@
 #include <yarp/os/LogStream.h>
 
 #include <algorithm>
-
+#include <math.h>  
 #include <cstring>
+
+#include <yarp/os/Time.h>
 
 namespace yarp {
 namespace dev {
@@ -73,7 +75,9 @@ bool JointTorqueControl::loadGains(yarp::os::Searchable& config)
     gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"stictionUp",this->axes);
     gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"stictionDown",this->axes);
     gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"bemf",this->axes);
+    gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"coulombVelThr",this->axes);
 
+    
     if( !gains_ok )
     {
         yError("TRQ_PIDS group is missing some information, initialization failed");
@@ -83,17 +87,17 @@ bool JointTorqueControl::loadGains(yarp::os::Searchable& config)
     for(int j=0; j < this->axes; j++)
     {
         jointTorqueLoopGains[j].reset();
-        motorFrictionCompensationParameters[j].reset();
+        motorParameters[j].reset();
 
-        jointTorqueLoopGains[j].kff = bot.find("kff").asList()->get(j).asDouble();
         jointTorqueLoopGains[j].kp = bot.find("kp").asList()->get(j).asDouble();
         jointTorqueLoopGains[j].ki = bot.find("ki").asList()->get(j).asDouble();
         jointTorqueLoopGains[j].max_pwm = bot.find("maxPwm").asList()->get(j).asDouble();
         jointTorqueLoopGains[j].max_int = bot.find("maxInt").asList()->get(j).asDouble();
-
-        motorFrictionCompensationParameters[j].kcp = bot.find("stictionUp").asList()->get(j).asDouble();
-        motorFrictionCompensationParameters[j].kcn = bot.find("stictionDown").asList()->get(j).asDouble();
-        motorFrictionCompensationParameters[j].kv = bot.find("bemf").asList()->get(j).asDouble();
+        motorParameters[j].kff            = bot.find("kff").asList()->get(j).asDouble();
+        motorParameters[j].kcp            = bot.find("stictionUp").asList()->get(j).asDouble();
+        motorParameters[j].kcn            = bot.find("stictionDown").asList()->get(j).asDouble();
+        motorParameters[j].kv             = bot.find("bemf").asList()->get(j).asDouble();
+        motorParameters[j].coulombVelThr  = bot.find("coulombVelThr").asList()->get(j).asDouble();
     }
 
     return true;
@@ -106,7 +110,7 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     this->getAxes(&axes);
     hijackingTorqueControl.assign(axes,false);
     controlModesBuffer.resize(axes);
-    motorFrictionCompensationParameters.resize(axes);
+    motorParameters.resize(axes);
     jointTorqueLoopGains.resize(axes);
     measuredJointPositions.resize(axes,0.0);
     measuredJointVelocities.resize(axes,0.0);
@@ -187,7 +191,6 @@ bool JointTorqueControl::getControlMode(int j, int *mode)
     {
         return proxyIControlMode2->getControlMode(j,mode);
     }
-
 }
 
 bool JointTorqueControl::setTorqueMode(int j)
@@ -409,28 +412,28 @@ bool JointTorqueControl::getTorque(int j, double *t)
 {
     yarp::os::LockGuard(this->controlMutex);
     *t = measuredJointTorques[j];
-    return false;
+    return true;
 }
 
 bool JointTorqueControl::getTorques(double *t)
 {
     yarp::os::LockGuard(this->controlMutex);
     memcpy(t,measuredJointTorques.data(),this->axes*sizeof(double));
-    return false;
+    return true;
 }
 
 bool JointTorqueControl::getBemfParam(int j, double *bemf)
 {
     yarp::os::LockGuard(this->controlMutex);
-    *bemf = motorFrictionCompensationParameters[j].kv;
-    return false;
+    *bemf = motorParameters[j].kv;
+    return true;
 }
 
 bool JointTorqueControl::setBemfParam(int j, double bemf)
 {
     yarp::os::LockGuard(this->controlMutex);
-    motorFrictionCompensationParameters[j].kv = bemf;
-    return false;
+    motorParameters[j].kv = bemf;
+    return true;
 }
 
 bool JointTorqueControl::setTorquePid(int j, const Pid &pid)
@@ -439,15 +442,15 @@ bool JointTorqueControl::setTorquePid(int j, const Pid &pid)
     //WARNING: THIS COULD MAPPING COULD CHANGE AT ANY TIME
     yarp::os::LockGuard(this->controlMutex);
     // Joint level torque loop gains
-    jointTorqueLoopGains[j].kp = pid.kp;
-    jointTorqueLoopGains[j].kd = pid.kd;
-    jointTorqueLoopGains[j].ki = pid.ki;
+    jointTorqueLoopGains[j].kp      = pid.kp;
+    jointTorqueLoopGains[j].kd      = pid.kd;
+    jointTorqueLoopGains[j].ki      = pid.ki;
     jointTorqueLoopGains[j].max_int = pid.max_int;
-    jointTorqueLoopGains[j].kff = pid.kff;
 
     // Motor level friction compensation parameters
-    motorFrictionCompensationParameters[j].kcp = pid.stiction_up_val;
-    motorFrictionCompensationParameters[j].kcn = pid.stiction_down_val;
+    motorParameters[j].kcp = pid.stiction_up_val;
+    motorParameters[j].kcn = pid.stiction_down_val;
+    motorParameters[j].kff = pid.kff;
 
     return true;
 }
@@ -569,15 +572,20 @@ bool JointTorqueControl::threadInit()
 void JointTorqueControl::readStatus()
 {
     bool enc_time;
-    this->getEncodersTimed(measuredJointPositions.data(),measuredJointPositionsTimestamps.data());
-    this->getEncoderSpeeds(measuredJointVelocities.data());
-    this->getTorques(measuredJointTorques.data());
+    this->PassThroughControlBoard::getEncodersTimed(measuredJointPositions.data(),measuredJointPositionsTimestamps.data());
+    this->PassThroughControlBoard::getEncoderSpeeds(measuredJointVelocities.data());
+    this->PassThroughControlBoard::getTorques(measuredJointTorques.data());
 }
 
 /** Saturate the specified value between the specified bounds. */
 inline double saturation(const double x, const double xMax, const double xMin)
 {
     return x>xMax ? xMax : (x<xMin?xMin:x);
+}
+
+double JointTorqueControl::sign(double x)
+{
+    return (x > 0) ? 1 : ((x < 0) ? -1 : 0);
 }
 
 void JointTorqueControl::threadRelease()
@@ -597,26 +605,43 @@ void JointTorqueControl::run()
     controlMutex.lock();
     for(int j=0; j < this->axes; j++ )
     {
-        JointTorqueLoopGains gains = jointTorqueLoopGains[j];
-        jointTorquesError[j] = measuredJointTorques[j] - desiredJointTorques[j];
-        integralState[j] = saturation(integralState[j] + gains.ki*dt*jointTorquesError(j),gains.max_int,-gains.max_int);
-        jointControlOutput[j] = gains.kff*desiredJointTorques[j] - gains.kp*(jointTorquesError[j]) - integralState[j];
+        JointTorqueLoopGains &gains = jointTorqueLoopGains[j];
+        jointTorquesError[j]  = measuredJointTorques[j] - desiredJointTorques[j];
+        integralState[j]      = saturation(integralState[j] + gains.ki*dt*jointTorquesError(j),gains.max_int,-gains.max_int);
+        jointControlOutput[j] = desiredJointTorques[j] - gains.kp*jointTorquesError[j] - integralState[j];
         /** note that we are explicitly removing the D part of the controller.
          *  To enable it uncomment the following two lines. */
         // derivativeJointTorquesError[j] = (jointTorquesError[j]-oldJointTorquesError[j])/(dt);
         // jointControlOutput[j] -= gains.kd*(derivativeJointTorquesError[j]);
     }
 
-    //Compute friction compensation (missing for now)
-    //\todo TODO FIXME add coupling
+    
+    // Evaluation of coulomb friction with smoothing close to zero velocity
+    double coulombFriction;
+    double coulombVelThre;
     for(int j=0; j < this->axes; j++ )
     {
-        MotorFrictionCompensationParameters frictionParam = motorFrictionCompensationParameters[j];
+        MotorParameters motorParam = motorParameters[j];
+        coulombVelThre =  motorParam.coulombVelThr;
         //viscous friction compensation
-        jointControlOutput[j] += frictionParam.kv*measuredJointVelocities[j];
-        //coulomb friction compensation
-        //missing
-        //jointControlOutput[j] += friction compensation
+        if (fabs(measuredJointVelocities[j])>coulombVelThre)
+        {
+            coulombFriction = sign(measuredJointVelocities[j]);
+        }
+        else
+        {
+            coulombFriction = pow(measuredJointVelocities[j]/coulombVelThre,3);
+        }
+        if (measuredJointVelocities[j] > 0 )
+        {
+            coulombFriction = motorParam.kcp*coulombFriction;
+        }
+        else
+        {
+            coulombFriction = motorParam.kcn*coulombFriction;
+        }
+        
+        jointControlOutput[j] = motorParam.kff*jointControlOutput[j] + motorParam.kv*measuredJointVelocities[j] + coulombFriction ;
     }
 
     //Send resulting output

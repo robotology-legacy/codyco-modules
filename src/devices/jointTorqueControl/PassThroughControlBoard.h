@@ -26,7 +26,8 @@ class yarp::dev::PassThroughControlBoard :  public DeviceDriver,
                                             public IControlMode2,
                                             public ITorqueControl,
                                             public IControlLimits2,
-                                            public IInteractionMode
+                                            public IInteractionMode,
+                                            public IPidControl
 {
 protected:
     yarp::dev::PolyDriver proxyDevice;
@@ -39,6 +40,7 @@ protected:
     yarp::dev::IControlLimits2  * proxyIControlLimits2;
     yarp::dev::IInteractionMode * proxyIInteractionMode;
     yarp::dev::IAxisInfo *        proxyIAxisInfo;
+    yarp::dev::IPidControl *      proxyIPidControl;
 
 public:
     //CONSTRUCTOR
@@ -184,6 +186,27 @@ public:
 
     //AXIS INFO
     virtual bool getAxisName(int axis, yarp::os::ConstString& name);
+    
+    // IPidControl Interface methods
+    
+    virtual bool setPid (int j, const Pid &pid);
+    virtual bool setPids (const Pid *pids);
+    virtual bool setReference (int j, double ref);
+    virtual bool setReferences (const double *refs);
+    virtual bool setErrorLimit (int j, double limit);
+    virtual bool setErrorLimits (const double *limits);
+    virtual bool getError (int j, double *err);
+    virtual bool getErrors (double *errs);
+    virtual bool getPid (int j, Pid *pid);
+    virtual bool getPids (Pid *pids);
+    virtual bool getReference (int j, double *ref);
+    virtual bool getReferences (double *refs);
+    virtual bool getErrorLimit (int j, double *limit);
+    virtual bool getErrorLimits (double *limits);
+    virtual bool resetPid (int j);
+    virtual bool disablePid (int j);
+    virtual bool enablePid (int j);
+    virtual bool setOffset (int j, double v);
 
 };
 

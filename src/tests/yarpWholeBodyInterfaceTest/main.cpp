@@ -55,7 +55,7 @@ int main(int argc, char * argv[])
     Network yarp;
     yarp::os::ResourceFinder rf;
     rf.setVerbose (true);
-    rf.setDefaultConfigFile ("wbi_conf_file.ini");
+    rf.setDefaultConfigFile ("yarpWholeBodyInterface.ini");
     rf.setDefaultContext ("icubGazeboSim");
 
     rf.configure (argc,argv);
@@ -63,9 +63,9 @@ int main(int argc, char * argv[])
     Property yarpWbiOptions;
 
     printf("Finding configuration file\n");
-    std::string wbiConfFile = rf.findFile("wbi_conf_file.ini");
+    std::string wbiConfFile = rf.findFile("yarpWholeBodyInterface.ini");
     yarpWbiOptions.fromConfigFile(wbiConfFile);
-    printf("Configuration file in: %s", wbiConfFile.c_str());
+    printf("Configuration  file in: %s", wbiConfFile.c_str());
 
     // Create new yarpWholeBodyInterface object
     std::string moduleName = "yarpWholeBodyInterface";
@@ -74,7 +74,7 @@ int main(int argc, char * argv[])
 
     // Add joints to the robotInterface
     IDList robotMainJoints;
-    std::string robotMainJointsList = "ICUB_DYNAMIC_MODEL_JOINTS";
+    std::string robotMainJointsList = "ROBOT_JOINTS_WBITOOLBOX";
     if (!loadIdListFromConfig(robotMainJointsList, yarpWbiOptions, robotMainJoints)) {
       printf("[ERR] yarpWholeBodyInterfaceTest: Impossible to load from ID List from Configuration file\n");
       return EXIT_FAILURE;

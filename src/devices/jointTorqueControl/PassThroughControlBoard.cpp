@@ -994,5 +994,167 @@ bool  PassThroughControlBoard::getAxisName(int axis, yarp::os::ConstString& name
     return proxyIAxisInfo->getAxisName(axis,name);
 }
 
+bool PassThroughControlBoard::setPid (int j, const Pid &pid)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->setPid(j,pid);
+}
+
+bool PassThroughControlBoard::setPids (const Pid *pids)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->setPids(pids);
+}
+
+bool PassThroughControlBoard::setReference (int j, double ref)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->setReference(j,ref);
+}
+
+bool PassThroughControlBoard::setReferences (const double *refs)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->setReferences(refs);
+}
+
+bool PassThroughControlBoard::setErrorLimit (int j, double limit)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->setErrorLimit(j,limit);
+}
+
+bool PassThroughControlBoard::setErrorLimits (const double *limits)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->setErrorLimits(limits);
+}
+
+bool PassThroughControlBoard::getError (int j, double *err)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->getError(j,err);
+}
+
+bool PassThroughControlBoard::getErrors (double *errs)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->getErrors(errs);
+}
+
+bool PassThroughControlBoard::getPid (int j, Pid *pid)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->getPid(j,pid);
+}
+
+bool PassThroughControlBoard::getPids (Pid *pids)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->getPids(pids);
+}
+
+bool PassThroughControlBoard::getReference (int j, double *ref)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->getReference(j,ref);
+}
+
+bool PassThroughControlBoard::getReferences (double *refs)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->getReferences(refs);
+}
+
+bool PassThroughControlBoard::getErrorLimit (int j, double *limit)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->getErrorLimit(j,limit);
+}
+
+bool PassThroughControlBoard::getErrorLimits (double *limits)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->getErrorLimits(limits);
+}
+
+bool PassThroughControlBoard::resetPid (int j)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->resetPid(j);
+}
+
+bool PassThroughControlBoard::disablePid (int j)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->disablePid(j);
+}
+
+bool PassThroughControlBoard::enablePid (int j)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->enablePid(j);
+}
+
+bool PassThroughControlBoard::setOffset (int j, double v)
+{
+    if( !proxyIPidControl )
+    {
+        return false;
+    }
+    return proxyIPidControl->setOffset(j,v);
+}
+
 }
 }

@@ -79,16 +79,17 @@ d) Filtering parameters for velocity estimation and torque measurement;
  * Parameters for the motor level friction compensation
  *
  */
-struct MotorFrictionCompensationParameters
+struct MotorParameters
 {
     double kv;
     double kcp;
     double kcn;
     double coulombVelThr; ///<  joint vel (deg/s) at which Coulomb friction is completely compensate
+    double kff;
 
     void reset()
     {
-        kv = kcp = kcn = 0.0;
+        kff = kv = kcp = kcn = 0.0;
         coulombVelThr = 0.0;
     }
 };
@@ -103,12 +104,11 @@ struct JointTorqueLoopGains
     double ki;
     double kd;
     double max_int;
-    double kff;
     double max_pwm;
 
     void reset()
     {
-        kff = kp = ki = kd = max_int = 0.0;
+        kp = ki = kd = max_int = 0.0;
     }
 };
 
@@ -128,13 +128,15 @@ private:
 
     void startHijackingTorqueControl(int j);
     void stopHijackingTorqueControl(int j);
+    
+    double sign(double j);
 
     //joint torque loop methods & attributes
     yarp::os::Mutex controlMutex; ///< mutex protecting control variables
     yarp::os::Mutex interfacesMutex; ///< mutex  protecting interfaces
 
     std::vector<JointTorqueLoopGains>                jointTorqueLoopGains;
-    std::vector<MotorFrictionCompensationParameters> motorFrictionCompensationParameters;
+    std::vector<MotorParameters> 		     motorParameters;
     yarp::sig::Vector                                desiredJointTorques;
     yarp::sig::Vector                                measuredJointTorques;
     yarp::sig::Vector                                measuredJointPositionsTimestamps;
