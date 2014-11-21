@@ -10,9 +10,15 @@ find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)
 find_package(iDynTree REQUIRED)
 
-#workaround for bug 
-add_definitions(-DIDYNTREE_USES_ICUB)
+#Thrift configuration
+include(YarpIDL)
 
+set(generated_libs_dir "${CMAKE_CURRENT_SOURCE_DIR}")
+yarp_idl_to_dir(wholeBodyDynamics.thrift ${generated_libs_dir})
+
+
+#workaround for bug
+add_definitions(-DIDYNTREE_USES_ICUB)
 
 find_package(wholeBodyInterface REQUIRED)
 find_package(yarpWholeBodyInterface REQUIRED)
@@ -32,12 +38,6 @@ include_directories(SYSTEM  ${wholeBodyInterface_INCLUDE_DIRS}
                             ${ctrlLib_INCLUDE_DIRS}
                             ${YARP_INCLUDE_DIRS}
                             ${EIGEN3_INCLUDE_DIR})
-
-#Thrift configuration
-include(YarpIDL)
-
-set(generated_libs_dir "${CMAKE_CURRENT_SOURCE_DIR}")
-yarp_idl_to_dir(wholeBodyDynamics.thrift ${generated_libs_dir})
 
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
