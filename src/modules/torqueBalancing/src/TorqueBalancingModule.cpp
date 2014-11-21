@@ -159,7 +159,7 @@ namespace codyco {
             ReferenceGenerator* generator = 0;
 
             //COM task
-            reader = new COMReader(*m_robot);
+            reader = new COMReader(*m_robot, actuatedDOFs);
             if (reader) {
                 m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeCOM, reader));
             } else {
