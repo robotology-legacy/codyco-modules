@@ -36,7 +36,8 @@
 #include <iostream>
 #include <typeinfo>
 
-#include <kdl_codyco/treeinertialparameters.hpp>
+// #include <kdl_codyco/treeinertialparameters.hpp>
+// #include <../../external/orocos_kdl/python_orocos_kdl/PyKDL/kinfam.sip>
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -52,6 +53,8 @@ const double TOL = 1e-8;
 
 int main(int argc, char * argv[])
 {
+    Eigen::Matrix<double, 6, Dynamic, Eigen::RowMajor> jacobian;
+
     Network yarp;
     yarp::os::ResourceFinder rf;
     rf.setVerbose (true);
@@ -74,15 +77,18 @@ int main(int argc, char * argv[])
 
     // Add joints to the robotInterface
     IDList robotMainJoints;
-    std::string robotMainJointsList = "ROBOT_JOINTS_WBITOOLBOX";
+    yarp::os::Value wbi_id_list = yarpWbiOptions.find("wbi_id_list");
+    std::string robotMainJointsList = wbi_id_list.toString();
     if (!loadIdListFromConfig(robotMainJointsList, yarpWbiOptions, robotMainJoints)) {
       printf("[ERR] yarpWholeBodyInterfaceTest: Impossible to load from ID List from Configuration file\n");
       return EXIT_FAILURE;
     }
     robotInterface->addJoints(robotMainJoints);
 
-    if( robotInterface->getJointList().size() != robotMainJointsList.size() )
+    if( robotInterface->getJointList().size() != robotMainJoints.size() )
     {
+        std::cerr << "ROBOT_DOF from robotInterface->getJointlist(): " << robotInterface->getJointList().size() << std::endl;
+        std::cerr << "ROBOT_DOF from robotMainJoints.size(): " << robotMainJoints.size() << std::endl;
         std::cerr << " robotInterface->getJointList() : " << std::endl;
         std::cerr << robotInterface->getJointList().toString() << std::endl;
         std::cerr << " is different from robotMainJoints : " << std::endl;
@@ -115,8 +121,6 @@ int main(int argc, char * argv[])
       printf("[ERR] Position control mode could not be set\n");
       return EXIT_FAILURE;
     }
-
-
 
     robotInterface->close();
     delete robotInterface;
