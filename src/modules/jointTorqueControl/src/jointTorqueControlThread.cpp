@@ -328,7 +328,7 @@ void jointTorqueControlThread::run()
                     }
                     if (i == rightShoulderRollGID)
                     {
-//                         cout << "In Right shoulder roll handeler \n";
+//                         cout << "Incd  Right shoulder roll handeler \n";
                         tauMotor = rightShoulderTorqueCouplingMatrix(1,0)  * tau(i-1) +   rightShoulderTorqueCouplingMatrix(1,1) * tau(i) + rightShoulderTorqueCouplingMatrix(1,2)  * tau(i+1);
                         dqMotor  = rightShoulderVelocityCouplingMatrix(1,0) * dq(i-1) +  rightShoulderVelocityCouplingMatrix(1,1) * dq(i) + rightShoulderVelocityCouplingMatrix(1,2) * dq(i+1);
                         dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);

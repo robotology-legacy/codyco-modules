@@ -30,29 +30,29 @@ namespace codyco {
     namespace torquebalancing {
         
 #pragma mark - HandsPositionReader implementation
-        EndEffectorPositionReader::EndEffectorPositionReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName, int size)
+        EndEffectorPositionReader::EndEffectorPositionReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName, int numberOfJoints)
         : m_robot(robot)
-        , m_actualSize(size)
-        , m_jointsPosition(size)
-        , m_jointsVelocity(size + 6) //In this there is also the base (added manually)
+        , m_numberOfJoints(numberOfJoints)
+        , m_jointsPosition(numberOfJoints)
+        , m_jointsVelocity(numberOfJoints + 6) //In this there is also the base (added manually)
         , m_outputSignal(7)
-        , m_outputSignalDerivative(7)
-        , m_jacobian(7, size + 6)
+        , m_outputSignalDerivative(6)
+        , m_jacobian(6, numberOfJoints + 6)
         , m_previousContext(0)
         {
             m_robot.getFrameList().idToIndex(endEffectorLinkName.c_str(), m_endEffectorLinkID);
             initializer();
         }
         
-        EndEffectorPositionReader::EndEffectorPositionReader(wbi::wholeBodyInterface& robot, int linkID, int size)
+        EndEffectorPositionReader::EndEffectorPositionReader(wbi::wholeBodyInterface& robot, int linkID, int numberOfJoints)
         : m_robot(robot)
-        , m_actualSize(size)
+        , m_numberOfJoints(numberOfJoints)
         , m_endEffectorLinkID(linkID)
-        , m_jointsPosition(size)
-        , m_jointsVelocity(size + 6)
+        , m_jointsPosition(numberOfJoints)
+        , m_jointsVelocity(numberOfJoints + 6)
         , m_outputSignal(7)
-        , m_outputSignalDerivative(7)
-        , m_jacobian(7, size + 6)
+        , m_outputSignalDerivative(6)
+        , m_jacobian(6, numberOfJoints + 6)
         , m_previousContext(0)
         {
             initializer();
@@ -81,7 +81,7 @@ namespace codyco {
             if (!status) {
                 std::cerr << FUNCTION_NAME << ": Error while reading positions\n";
             }
-            status = status && m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.tail(m_actualSize).data());
+            status = status && m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.tail(m_numberOfJoints).data());
             if (!status) {
                 std::cerr << FUNCTION_NAME << ": Error while reading velocities\n";
             }
@@ -126,8 +126,8 @@ namespace codyco {
         int EndEffectorPositionReader::signalSize() const { return 7; }
         
 #pragma mark - COMReader implementation
-        COMReader::COMReader(wbi::wholeBodyInterface& robot)
-        : EndEffectorPositionReader(robot, wbi::wholeBodyInterface::COM_LINK_ID, 3)
+        COMReader::COMReader(wbi::wholeBodyInterface& robot, int numberOfJoints)
+        : EndEffectorPositionReader(robot, wbi::wholeBodyInterface::COM_LINK_ID, numberOfJoints)
         , m_outputCOM(3)
         , m_outputCOMVelocity(3) {}
 
@@ -150,10 +150,10 @@ namespace codyco {
 #pragma mark - HandsForceReader implementation
         EndEffectorForceReader::EndEffectorForceReader(wbi::wholeBodyInterface& robot,
                                                        std::string endEffectorLinkName,
-                                                       int totalDOFs)
+                                                       int numberOfJoints)
         : m_robot(robot)
-        , m_jointsPosition(totalDOFs)
-        , m_jointsVelocity(totalDOFs)
+        , m_jointsPosition(numberOfJoints)
+        , m_jointsVelocity(numberOfJoints)
         , m_outputSignal(6)
         , m_outputSignalDerivative(signalSize())
         , m_previousContext(0)

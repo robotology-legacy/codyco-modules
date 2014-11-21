@@ -35,13 +35,14 @@ bool PassThroughControlBoard::open(yarp::os::Searchable& config)
     ok = ok && config.find("proxy_remote").isString();
     ok = ok && config.find("proxy_local").isString();
 
-    yarp::os::Property options;
-    options.put("device", "remote_controlboard");
-    options.put("local", config.find("proxy_local").asString()); //local port names
-    options.put("remote", config.find("proxy_remote").asString()); //where we connect to
+    yarp::os::Property remote_controlboard_options;
+    remote_controlboard_options.fromString(config.toString());
+    remote_controlboard_options.put("device", "remote_controlboard");
+    remote_controlboard_options.put("local", config.find("proxy_local").asString()); //local port names
+    remote_controlboard_options.put("remote", config.find("proxy_remote").asString()); //where we connect to
+    
 
-
-    proxyDevice.open(options);
+    proxyDevice.open(remote_controlboard_options);
 
     proxyDevice.view(proxyIEncodersTimed);
     proxyDevice.view(proxyIPositionControl2);

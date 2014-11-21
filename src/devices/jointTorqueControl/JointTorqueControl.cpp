@@ -6,7 +6,7 @@
 #include <yarp/os/LogStream.h>
 
 #include <algorithm>
-#include <math.h>  
+#include <math.h>
 #include <cstring>
 
 #include <yarp/os/Time.h>
@@ -77,7 +77,7 @@ bool JointTorqueControl::loadGains(yarp::os::Searchable& config)
     gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"bemf",this->axes);
     gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"coulombVelThr",this->axes);
 
-    
+
     if( !gains_ok )
     {
         yError("TRQ_PIDS group is missing some information, initialization failed");
@@ -106,7 +106,13 @@ bool JointTorqueControl::loadGains(yarp::os::Searchable& config)
 
 bool JointTorqueControl::open(yarp::os::Searchable& config)
 {
-    PassThroughControlBoard::open(config);
+    //Workaround: writeStrict option is not documented but
+    //            is necessary for getting correctly working
+    //            single joint streaming, hardcoding it to on
+    yarp::os::Property pass_through_controlboard_config;
+    pass_through_controlboard_config.fromString(config.toString());
+    pass_through_controlboard_config.put("writeStrict","on");
+    PassThroughControlBoard::open(pass_through_controlboard_config);
     this->getAxes(&axes);
     hijackingTorqueControl.assign(axes,false);
     controlModesBuffer.resize(axes);
@@ -615,7 +621,7 @@ void JointTorqueControl::run()
         // jointControlOutput[j] -= gains.kd*(derivativeJointTorquesError[j]);
     }
 
-    
+
     // Evaluation of coulomb friction with smoothing close to zero velocity
     double coulombFriction;
     double coulombVelThre;
@@ -640,7 +646,7 @@ void JointTorqueControl::run()
         {
             coulombFriction = motorParam.kcn*coulombFriction;
         }
-        
+
         jointControlOutput[j] = motorParam.kff*jointControlOutput[j] + motorParam.kv*measuredJointVelocities[j] + coulombFriction ;
     }
 

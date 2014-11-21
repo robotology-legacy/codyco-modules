@@ -128,7 +128,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     }
     std::string wbiConfFile = rf.findFile("wbi_conf_file");
     yarpWbiOptions.fromConfigFile(wbiConfFile);
-   
+
     //Overwrite the robot parameter that could be present in wbi_conf_file
     yarpWbiOptions.put("robot",rf.find("robot").asString());
 
@@ -188,7 +188,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 
      //List of 6-axis Force-Torque sensors in the robot
     IDList RobotFTSensors;
-    std::string RobotFTSensorsListName = "ICUB_MAIN_FTS";
+    std::string RobotFTSensorsListName = "ROBOT_MAIN_FTS";
     if( !loadIdListFromConfig(RobotFTSensorsListName,yarpWbiOptions,RobotFTSensors) )
     {
         fprintf(stderr, "[ERR] wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
