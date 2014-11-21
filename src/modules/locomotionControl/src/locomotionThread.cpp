@@ -308,7 +308,7 @@ void LocomotionThread::numberOfJointsChanged()
 {
     ID lid;
     
-    IDList currentActiveJoints = robot->getFrameList();
+    IDList currentActiveJoints = robot->getJointList();
     for(int i=0; i<activeJoints.size(); i++)
     {
         ICUB_MAIN_JOINTS.indexToID(i, lid);
