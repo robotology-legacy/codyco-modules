@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -48,7 +48,7 @@ ContactConstraint::ContactConstraint(std::string name, std::string linkName,
     _weights = VectorXd::Constant(numberOfForces, 1.0);
     _fDes.setZero(numberOfForces);
     _fIneq.setZero(numberOfForces);
-    if(!robot->getLinkId(linkName.c_str(), _linkId))
+    if(!robot->getFrameList().idToIndex(linkName.c_str(), _linkId))
         cout<<"Error while trying to get the ID of link "<<linkName<<endl;
 }
 
@@ -84,7 +84,7 @@ void ContactConstraint::updateForceFrictionConeInequalities()
     _A_in.block<1,3>(1,0)   =   _normalDir.transpose();
     _a_in(0)                =   _fNormalMax;
     _a_in(1)                = - _fNormalMin;
-    
+
     // * 4 unilateral for linearized friction cone
     //  Ft < mu*Fn
     // -Ft < mu*Fn
@@ -93,7 +93,7 @@ void ContactConstraint::updateForceFrictionConeInequalities()
     _A_in.block<1,3>(4,0)   = -_tangentDir2.transpose() + _muF*_normalDir.transpose();
     _A_in.block<1,3>(5,0)   =  _tangentDir2.transpose() + _muF*_normalDir.transpose();
     _a_in.segment<4>(2).setZero();
-    
+
 //    cout<<"Force friction inequalities:\n";
 //    cout<<toString(_A_in.block(0,0,6,_m),1)<<endl;
 //    cout<<"< "<< toString(_a_in.segment<6>(0),1)<<endl;
@@ -135,7 +135,7 @@ PlaneContactConstraint::PlaneContactConstraint(std::string name, std::string lin
     // * 4 unilateral for linearized friction cone
     // * 4 unilateral for CoP (i.e. ZMP)
     // * 2 unilateral for normal moment
-    
+
     updateZmpInequalities();    // update zmp inequalities because they are supposed to remain constant
 }
 
@@ -148,18 +148,18 @@ bool PlaneContactConstraint::update(RobotState& state)
                                      state.vBase.data(), _linkId, _a_eq.data());
     _a_eq *= -1.0;      // _a_eq = -dJ*dq
     _vel = _A_eq*state.dq;
-    
+
     // compute drift correction term
     _pos(0) = _H.p[0]; _pos(1) = _H.p[1]; _pos(2) = _H.p[2];
     computeOrientationError(_H.R, _Rdes, _orientationError);
     _dvStar.head<3>() = _Kp.head<3>().cwiseProduct(_posDes - _pos) - _Kd.head<3>().cwiseProduct(_vel.head<3>());
     _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError) - _Kd.tail<3>().cwiseProduct(_vel.tail<3>());;
     _a_eq += _dvStar;   // _a_eq = dvStar - dJ*dq
-    
+
     getLogger().sendMsg(_name+" Error = "+toString(1e3*(_posDes - _pos),1)+" "+toString(1e3*_orientationError,1),
                         MSG_STREAM_DEBUG);
 //    getLogger().sendMsg(_name+" dvStar = "+toString(_dvStar,1), MSG_STREAM_DEBUG);
-    
+
     // compute force-momentum mapping matrix _X
     res = res && _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
     res = res && _robot->computeH(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _Hcom);
@@ -167,7 +167,7 @@ bool PlaneContactConstraint::update(RobotState& state)
     _p_com[1] = _H.p[1] - _Hcom.p[1];
     _p_com[2] = _H.p[2] - _Hcom.p[2];
     _X.bottomLeftCorner<3,3>() = crossProductMatrix(_p_com);
-    
+
     return res;
 }
 
@@ -190,7 +190,7 @@ void PlaneContactConstraint::updateZmpInequalities()
     _A_in(9,2)    =  _planeSize.xNeg;
     _A_in(9,4)    = -1.0;
     _a_in.segment<4>(6).setZero();
-    
+
 //    cout<<"Zmp inequalities:\n"<< toString(_A_in.block<4,6>(6,0),2)<<endl;
 //    cout<<"< "<< toString(_a_in.segment<4>(6),2)<<endl;
 }
@@ -202,7 +202,7 @@ void PlaneContactConstraint::updateMomentFrictionConeInequalities()
     _tangentDir1.normalize();
     _tangentDir2 = _normalDir.cross(_tangentDir1);
     _tangentDir2.normalize();
-    
+
     // * 2 unilateral for linearized moment friction cone Mn (normal moment)
     //  Mn < mu*Fn
     // -Mn < mu*Fn
@@ -211,7 +211,7 @@ void PlaneContactConstraint::updateMomentFrictionConeInequalities()
     _A_in.block<1,3>(11,0)  =   _muM * _normalDir.transpose();
     _A_in.block<1,3>(11,3)  =          _normalDir.transpose();
     _a_in.segment<2>(10).setZero();
-    
+
 //    cout<<"Moment friction inequalities:\n"<< toString(_A_in.block<2,6>(10,0),2)<<endl;
 //    cout<<"< "<< toString(_a_in.segment<2>(10),2)<<endl;
 }
@@ -249,13 +249,13 @@ bool PlaneContactConstraint::setDesiredConstraintForce(VectorConst fDes)
     }
     _fIneq(2) = _fDes(2);
     _fIneq(5) = _fDes(5);
-    
+
     VectorXd tmp = _A_in*_fDes;
     for(int i=0; i<tmp.size(); i++)
         if(fabs(tmp(i)+_a_in(i))<-1e-5)
             getLogger().sendMsg(_name+" ineq "+toString(i)+" active:     ["+toString(_A_in.row(i),2)+"]*f="+
                                 toString(tmp(i))+" < "+toString(-_a_in(i)), MSG_STREAM_ERROR);
-    
+
     return true;
 }
 
@@ -279,7 +279,7 @@ bool PointContactConstraint::update(RobotState& state)
     res = res && _robot->computeDJdq(state.qJ.data(), state.xBase, state.dqJ.data(),
                                      state.vBase.data(), _linkId, _dJcdq.data());
     _a_eq = -_dJcdq.head<3>();
-    
+
     // compute force-momentum mapping matrix _X
     res = res && _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
     res = res && _robot->computeH(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _Hcom);
@@ -287,7 +287,7 @@ bool PointContactConstraint::update(RobotState& state)
     _p_com[1] = _H.p[1] - _Hcom.p[1];
     _p_com[2] = _H.p[2] - _Hcom.p[2];
     _X.bottomLeftCorner<3,3>() = crossProductMatrix(_p_com);
-    
+
     return res;
 }
 
