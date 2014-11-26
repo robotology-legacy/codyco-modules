@@ -15,7 +15,7 @@
 #include <yarp/sig/Vector.h>
 
 #include "PassThroughControlBoard.h"
-
+#include <Eigen/Core>
 #include <vector>
 
 namespace yarp {
@@ -76,6 +76,23 @@ d) Filtering parameters for velocity estimation and torque measurement;
 */
 
 /**
+ * Coupling matrices
+ *
+ */
+struct CouplingMatrices
+{
+    Eigen::MatrixXd    torque;
+    Eigen::MatrixXd    velocity;
+
+    void reset(int NDOF)
+    {
+        torque = MatrixXd::Identity(NDOF);
+        velocity = MatrixXd::Identity(NDOF); 
+    }
+};
+
+
+/**
  * Parameters for the motor level friction compensation
  *
  */
@@ -131,12 +148,15 @@ private:
     
     double sign(double j);
 
+    CouplingMatrices couplingMatrices;
+
+    
     //joint torque loop methods & attributes
     yarp::os::Mutex controlMutex; ///< mutex protecting control variables
     yarp::os::Mutex interfacesMutex; ///< mutex  protecting interfaces
 
     std::vector<JointTorqueLoopGains>                jointTorqueLoopGains;
-    std::vector<MotorParameters> 		     motorParameters;
+    std::vector<MotorParameters> 		             motorParameters;
     yarp::sig::Vector                                desiredJointTorques;
     yarp::sig::Vector                                measuredJointTorques;
     yarp::sig::Vector                                measuredJointPositionsTimestamps;
@@ -153,6 +173,8 @@ private:
 
     bool loadGains(yarp::os::Searchable& config);
 
+    bool loadCouplingMatrix(yarp::os::Searchable& config);
+    
 public:
     //CONSTRUCTOR
     JointTorqueControl();
