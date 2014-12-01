@@ -5,18 +5,37 @@
 #include <yarp/os/Log.h>
 #include <yarp/os/LogStream.h>
 
+#include <yarp/os/Bottle.h>
+
 #include <algorithm>
 #include <math.h>
 #include <cstring>
 
 #include <yarp/os/Time.h>
 
+#include <Eigen/LU>
+
 namespace yarp {
 namespace dev {
 
 template <class T>
-bool contains(std::vector<T> const &v, T const &x) {
+bool contains(std::vector<T>  &v, T  &x)
+{
     return ! (std::find(v.begin(), v.end(), x) == v.end());
+}
+
+template <class T>
+int findAndReturnIndex(std::vector<T>  &v, T &x)
+{
+    typename std::vector<T>::iterator it = std::find(v.begin(), v.end(), x);
+    if(it == v.end())
+    {
+        return -1;
+    } 
+    else
+    {
+        return std::distance(v.begin(), it);
+    }
 }
 
 
@@ -105,120 +124,108 @@ bool JointTorqueControl::loadGains(yarp::os::Searchable& config)
 }
 
 
-bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config)
+bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
+                                            CouplingMatrices & coupling_matrix,
+                                            std::string group_name)
 {
-    if( !config.check("JOINTS_MOTOR_KINEMATIC_COUPLINGS") )
+    if( !config.check(group_name) )
     {
+        coupling_matrix.reset(this->axes);
         return true;
     }
     else
     {
-        Bottle couplings_bot = wbi_yarp_properties.findGroup("WBI_YARP_JOINTS_MOTOR_KINEMATIC_COUPLINGS");
+        yarp::os::Bottle couplings_bot = config.findGroup(group_name);
 
-        for(int encoder_id = 0; encoder_id < (int)estimateIdList[SENSOR_ENCODER].size(); encoder_id++)
+        if( checkVectorExistInConfiguration(couplings_bot,"axesNames",this->axes) )
         {
-            //search if coupling information is provided for each motor, if not return false
-            wbi::ID joint_encoder_name;
-            estimateIdList[ESTIMATE_JOINT_POS].indexToID(encoder_id,joint_encoder_name);
-            if( !couplings_bot.check(joint_encoder_name.toString()) )
+            std::cerr << "JointTorqueControl: error in loading axesNames parameter" << std::endl;
+            return false;
+        }
+        if( checkVectorExistInConfiguration(couplings_bot,"motorNames",this->axes) )
+        {
+            std::cerr << "JointTorqueControl: error in loading motorNames parameter" << std::endl;
+            return false;
+        }
+
+        std::vector<std::string> motorNames(this->axes);
+        std::vector<std::string> axesNames(this->axes);
+        for(int j=0; j < this->axes; j++)
+        {
+            motorNames[j] = couplings_bot.find("motorNames").asList()->get(j).asString();
+            axesNames[j]  = couplings_bot.find("axesNames").asList()->get(j).asString();
+        }
+
+        for(int axis_id = 0; axis_id < (int)this->axes; axis_id++)
+        {
+            //search if coupling information is provided for each axis, if not return false
+            std::string axis_name = axesNames[axis_id];
+            if( !couplings_bot.check(axis_name) ||
+                !(couplings_bot.find(axis_name).isList()) )
             {
-                std::cerr << "[ERR] WBI_YARP_JOINTS_MOTOR_KINEMATIC_COUPLINGS group found, but no coupling found for joint "
-                        << joint_encoder_name.toString() << ", exiting" << std::endl;
+                std::cerr << "[ERR] " << group_name << " group found, but no coupling found for joint "
+                        << axis_name << ", exiting" << std::endl;
                         return false;
             }
 
             //Check coupling configuration is well formed
-            Bottle * joint_coupling_bot = couplings_bot.find(joint_encoder_name.toString()).asList();
-            if( !joint_coupling_bot )
-            {
-                std::cerr << "[ERR] WBI_YARP_JOINTS_MOTOR_KINEMATIC_COUPLINGS group found, but coupling found for joint "
-                        << joint_encoder_name.toString() << " is malformed" << std::endl;
-                return false;
-            }
+            yarp::os::Bottle * axis_coupling_bot = couplings_bot.find(axis_name).asList();
 
-            for(int coupled_motor=0; coupled_motor < joint_coupling_bot->size(); coupled_motor++ )
+            for(int coupled_motor=0; coupled_motor < axis_coupling_bot->size(); coupled_motor++ )
             {
-                if( !(joint_coupling_bot->get(coupled_motor).isList()) ||
-                    !(joint_coupling_bot->get(coupled_motor).asList()->size() == 2) ||
-                    !(joint_coupling_bot->get(coupled_motor).asList()->get(0).isDouble()) ||
-                    !(joint_coupling_bot->get(coupled_motor).asList()->get(1).isString()) )
+                if( !(axis_coupling_bot->get(coupled_motor).isList()) ||
+                    !(axis_coupling_bot->get(coupled_motor).asList()->size() == 2) ||
+                    !(axis_coupling_bot->get(coupled_motor).asList()->get(0).isDouble()) ||
+                    !(axis_coupling_bot->get(coupled_motor).asList()->get(1).isString()) )
                 {
-                    std::cerr << "[ERR] WBI_YARP_JOINTS_MOTOR_KINEMATIC_COUPLINGS group found, but coupling found for joint "
-                        << joint_encoder_name.toString() << " is malformed" << std::endl;
+                    std::cerr << "[ERR] " << group_name << "group found, but coupling found for axis "
+                        << axis_name << " is malformed" << std::endl;
                     return false;
                 }
-            }
-        }
-
-        //Reset motor estimate list (the motor list will be induced by the joint list
-        estimateIdList[ESTIMATE_MOTOR_POS] = IDList();
-
-        for(int encoder_id = 0; encoder_id < (int)estimateIdList[SENSOR_ENCODER].size(); encoder_id++)
-        {
-            wbi::ID joint_encoder_name;
-            estimateIdList[ESTIMATE_JOINT_POS].indexToID(encoder_id,joint_encoder_name);
-
-            //Check coupling configuration is well formed
-            Bottle * joint_coupling_bot = couplings_bot.find(joint_encoder_name.toString()).asList();
-
-            //Load motors names
-            for(int coupled_motor=0; coupled_motor < joint_coupling_bot->size(); coupled_motor++ )
-            {
-                std::string motor_name = joint_coupling_bot->get(coupled_motor).asList()->get(1).asString();
-                //Add the motor name to all relevant estimates lists
-                estimateIdList[ESTIMATE_MOTOR_POS].addID(motor_name);
-            }
-
-        }
-
-        if( estimateIdList[ESTIMATE_MOTOR_POS].size() !=  estimateIdList[ESTIMATE_JOINT_POS].size() )
-        {
-            std::cerr << "[ERR] WBI_YARP_JOINTS_MOTOR_KINEMATIC_COUPLINGS group found, but coupling where"
-                    << "the number of joints is different from the number of motors is not currently supported" << std::endl;
+                
+                std::string motorName = axis_coupling_bot->get(coupled_motor).asList()->get(1).asString().c_str();
+                if( !contains(motorNames,motorName) )
+                {
+                    std::cerr << "[ERR] " << group_name << "group found, but motor name  "
+                    << motorName << " is not part of the motor list" << std::endl;
                     return false;
-        }
-
-        //Build coupling matrix
-        int encoders = estimateIdList[ESTIMATE_MOTOR_POS].size();
-
-        Eigen::MatrixXd motor_to_joint_kinematic_coupling(encoders,encoders);
-        motor_to_joint_kinematic_coupling.setZero();
-
-
-        for(int encoder_id = 0; encoder_id < (int)estimateIdList[SENSOR_ENCODER].size(); encoder_id++)
-        {
-            wbi::ID joint_encoder_name;
-            estimateIdList[ESTIMATE_JOINT_POS].indexToID(encoder_id,joint_encoder_name);
-
-            //Check coupling configuration is well formed
-            Bottle * joint_coupling_bot = couplings_bot.find(joint_encoder_name.toString()).asList();
-
-            //Load coupling
-            for(int coupled_motor=0; coupled_motor < joint_coupling_bot->size(); coupled_motor++ )
+                }
+                    
+            }
+            
+            // Zero the row of the selected axis in velocity coupling matrix
+            coupling_matrix.velocity.row(axis_id).setZero();
+            
+            // Get non-zero coefficient of the coupling matrices
+            for(int coupled_motor=0; coupled_motor < axis_coupling_bot->size(); coupled_motor++ )
             {
-                double coupling_coefficient = joint_coupling_bot->get(coupled_motor).asList()->get(0).asDouble();
-                std::string motor_name = joint_coupling_bot->get(coupled_motor).asList()->get(1).asString();
-                int motor_id;
-                estimateIdList[ESTIMATE_MOTOR_POS].idToIndex(motor_name,motor_id);
-
-                motor_to_joint_kinematic_coupling(encoder_id,motor_id) = coupling_coefficient;
+                double coeff = axis_coupling_bot->get(coupled_motor).asList()->get(0).isDouble();
+                std::string motorName = axis_coupling_bot->get(coupled_motor).asList()->get(1).asString();
+                int motorIndex = findAndReturnIndex(motorNames,motorName);
+                
+                if( motorIndex == -1 ) 
+                {
+                    return false;
+                }
+                
+                coupling_matrix.velocity(axis_id,motorIndex) = coeff;
             }
 
         }
 
-        //Transform loaded coupling to the one actually needed
-        Eigen::SparseMatrix<double> I(encoders,encoders);
-        I.setIdentity();
-        double sparse_eps = 1e-3;
-        Eigen::MatrixXd joint_to_motor_kinematic_coupling_dense = motor_to_joint_kinematic_coupling.inverse();
-        Eigen::MatrixXd joint_to_motor_torque_coupling_dense = motor_to_joint_kinematic_coupling.transpose();
-        estimator->joint_to_motor_kinematic_coupling = joint_to_motor_kinematic_coupling_dense.sparseView(sparse_eps);
-        estimator->joint_to_motor_torque_coupling = joint_to_motor_torque_coupling_dense.sparseView(sparse_eps);
-
-        estimator->motor_quantites_estimation_enabled = true;
-
+        // Compute the torque coupling matrix
+        coupling_matrix.torque = coupling_matrix.velocity.inverse().transpose();
+        
+        std::cerr << "loadCouplingMatrix DEBUG: " << std::endl;
+        std::cerr << "loaded kinematic coupling matrix from group " << group_name << std::endl;
+        std::cerr << coupling_matrix.velocity << std::endl;
+        std::cerr << "loaded torque coupling matrix from group " << group_name << std::endl;
+        std::cerr << coupling_matrix.torque << std::endl;
+        
+         
         return true;
     }
+    
 }
 
 bool JointTorqueControl::open(yarp::os::Searchable& config)
@@ -246,18 +253,18 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     derivativeJointTorquesError.resize(axes,0.0);
     integralJointTorquesError.resize(axes,0.0);
     integralState.resize(axes,0.0);
-    jointControlOutput.resize(axes,0.0);
+    jointControlOutputBuffer.resize(axes,0.0);
 
-    
     //Start control thread
     this->setRate(config.check("controlPeriod",0.01,"update period of the torque control thread").asDouble());
 
     //Load Gains configurations
     bool ret = this->loadGains(config);
     
-    couplingMatrices.reset();
-    ret = ret &&  this->loadCouplingMatrix(config);
-
+    //Load coupling matrices 
+    couplingMatrices.reset(this->axes);
+    ret = ret &&  this->loadCouplingMatrix(config,couplingMatrices);
+    
     if( ret )
     {
         ret = ret && this->start();
@@ -691,6 +698,10 @@ void JointTorqueControl::threadRelease()
     yarp::os::LockGuard guard(controlMutex);
 }
 
+inline Eigen::Map<Eigen::MatrixXd> toEigen(yarp::sig::Vector & vec)
+{
+    return Eigen::Map<Eigen::MatrixXd>(vec.data(),1,vec.size());
+}
 
 void JointTorqueControl::run()
 {
@@ -706,10 +717,10 @@ void JointTorqueControl::run()
         JointTorqueLoopGains &gains = jointTorqueLoopGains[j];
         jointTorquesError[j]  = measuredJointTorques[j] - desiredJointTorques[j];
         integralState[j]      = saturation(integralState[j] + gains.ki*dt*jointTorquesError(j),gains.max_int,-gains.max_int);
-        jointControlOutput[j] = desiredJointTorques[j] - gains.kp*jointTorquesError[j] - integralState[j];
+        jointControlOutputBuffer[j] = desiredJointTorques[j] - gains.kp*jointTorquesError[j] - integralState[j];
     }
-    
-    jointControlOutput = couplingMatrices.torque * jointControlOutput;
+
+    toEigen(jointControlOutput) = couplingMatrices.torque * toEigen(jointControlOutputBuffer);
 
     // Evaluation of coulomb friction with smoothing close to zero velocity
     double coulombFriction;
@@ -740,7 +751,8 @@ void JointTorqueControl::run()
     }
 
     //Send resulting output
-    if( !contains(hijackingTorqueControl,false) )
+    bool false_value = false;
+    if( !contains(hijackingTorqueControl,false_value) )
     {
         this->setRefOutputs(jointControlOutput.data());
     }

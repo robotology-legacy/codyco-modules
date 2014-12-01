@@ -86,8 +86,8 @@ struct CouplingMatrices
 
     void reset(int NDOF)
     {
-        torque = MatrixXd::Identity(NDOF);
-        velocity = MatrixXd::Identity(NDOF); 
+        torque = Eigen::MatrixXd::Identity(NDOF,NDOF);
+        velocity = Eigen::MatrixXd::Identity(NDOF,NDOF);
     }
 };
 
@@ -145,12 +145,11 @@ private:
 
     void startHijackingTorqueControl(int j);
     void stopHijackingTorqueControl(int j);
-    
+
     double sign(double j);
 
     CouplingMatrices couplingMatrices;
 
-    
     //joint torque loop methods & attributes
     yarp::os::Mutex controlMutex; ///< mutex protecting control variables
     yarp::os::Mutex interfacesMutex; ///< mutex  protecting interfaces
@@ -168,13 +167,23 @@ private:
     yarp::sig::Vector                                integralJointTorquesError;
     yarp::sig::Vector                                integralState;
     yarp::sig::Vector                                jointControlOutput;
+    yarp::sig::Vector                                jointControlOutputBuffer;
+    
 
     void readStatus();
 
     bool loadGains(yarp::os::Searchable& config);
 
-    bool loadCouplingMatrix(yarp::os::Searchable& config);
-    
+    /**
+     * Load the coupling matrices from the group whose name 
+     *      is specified in group_name 
+     *                             
+     * 
+     */
+    bool loadCouplingMatrix(yarp::os::Searchable& config,
+                            CouplingMatrices & coupling_matrices,
+                            std::string group_name="JOINTS_MOTOR_KINEMATIC_COUPLINGS");
+
 public:
     //CONSTRUCTOR
     JointTorqueControl();
