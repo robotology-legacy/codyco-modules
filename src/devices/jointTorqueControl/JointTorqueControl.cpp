@@ -194,7 +194,7 @@ bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
             }
             
             // Zero the row of the selected axis in velocity coupling matrix
-            coupling_matrix.velocity.row(axis_id).setZero();
+            coupling_matrix.fromJointVelocitiesToMotorVelocities.row(axis_id).setZero();
             
             // Get non-zero coefficient of the coupling matrices
             for(int coupled_motor=0; coupled_motor < axis_coupling_bot->size(); coupled_motor++ )
@@ -208,19 +208,19 @@ bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
                     return false;
                 }
                 
-                coupling_matrix.velocity(axis_id,motorIndex) = coeff;
+                coupling_matrix.fromJointVelocitiesToMotorVelocities(axis_id,motorIndex) = coeff;
             }
 
         }
-
+        coupling_matrix.fromJointTorquesToMotorTorques       = coupling_matrix.fromJointVelocitiesToMotorVelocities.transpose();
+        coupling_matrix.fromJointVelocitiesToMotorVelocities = coupling_matrix.fromJointVelocitiesToMotorVelocities.inverse();
         // Compute the torque coupling matrix
-        coupling_matrix.torque = coupling_matrix.velocity.inverse().transpose();
         
         std::cerr << "loadCouplingMatrix DEBUG: " << std::endl;
         std::cerr << "loaded kinematic coupling matrix from group " << group_name << std::endl;
-        std::cerr << coupling_matrix.velocity << std::endl;
+        std::cerr << coupling_matrix.fromJointVelocitiesToMotorVelocities << std::endl;
         std::cerr << "loaded torque coupling matrix from group " << group_name << std::endl;
-        std::cerr << coupling_matrix.torque << std::endl;
+        std::cerr << coupling_matrix.fromJointTorquesToMotorTorques << std::endl;
         
          
         return true;
@@ -244,6 +244,7 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     jointTorqueLoopGains.resize(axes);
     measuredJointPositions.resize(axes,0.0);
     measuredJointVelocities.resize(axes,0.0);
+    measuredMotorVelocities.resize(axes,0.0);
     desiredJointTorques.resize(axes,0.0);
     measuredJointTorques.resize(axes,0.0);
     measuredJointPositionsTimestamps.resize(axes,0.0);
@@ -707,6 +708,8 @@ void JointTorqueControl::run()
 {
     //Read status (position, velocity, torque) from the controlboard
     this->readStatus();
+    
+    toEigen(measuredMotorVelocities) = couplingMatrices.fromJointVelocitiesToMotorVelocities * toEigen(measuredJointVelocities);
 
     //Compute joint level torque PID
     double dt = this->getRate();
@@ -715,12 +718,12 @@ void JointTorqueControl::run()
     for(int j=0; j < this->axes; j++ )
     {
         JointTorqueLoopGains &gains = jointTorqueLoopGains[j];
-        jointTorquesError[j]  = measuredJointTorques[j] - desiredJointTorques[j];
-        integralState[j]      = saturation(integralState[j] + gains.ki*dt*jointTorquesError(j),gains.max_int,-gains.max_int);
+        jointTorquesError[j]        = measuredJointTorques[j] - desiredJointTorques[j];
+        integralState[j]            = saturation(integralState[j] + gains.ki*dt*jointTorquesError(j),gains.max_int,-gains.max_int);
         jointControlOutputBuffer[j] = desiredJointTorques[j] - gains.kp*jointTorquesError[j] - integralState[j];
     }
 
-    toEigen(jointControlOutput) = couplingMatrices.torque * toEigen(jointControlOutputBuffer);
+    toEigen(jointControlOutput) = couplingMatrices.fromJointTorquesToMotorTorques * toEigen(jointControlOutputBuffer);
 
     // Evaluation of coulomb friction with smoothing close to zero velocity
     double coulombFriction;
@@ -730,15 +733,15 @@ void JointTorqueControl::run()
         MotorParameters motorParam = motorParameters[j];
         coulombVelThre =  motorParam.coulombVelThr;
         //viscous friction compensation
-        if (fabs(measuredJointVelocities[j])>coulombVelThre)
+        if (fabs(measuredMotorVelocities[j])>coulombVelThre)
         {
-            coulombFriction = sign(measuredJointVelocities[j]);
+            coulombFriction = sign(measuredMotorVelocities[j]);
         }
         else
         {
-            coulombFriction = pow(measuredJointVelocities[j]/coulombVelThre,3);
+            coulombFriction = pow(measuredMotorVelocities[j]/coulombVelThre,3);
         }
-        if (measuredJointVelocities[j] > 0 )
+        if (measuredMotorVelocities[j] > 0 )
         {
             coulombFriction = motorParam.kcp*coulombFriction;
         }
@@ -747,7 +750,7 @@ void JointTorqueControl::run()
             coulombFriction = motorParam.kcn*coulombFriction;
         }
 
-        jointControlOutput[j] = motorParam.kff*jointControlOutput[j] + motorParam.kv*measuredJointVelocities[j] + coulombFriction ;
+        jointControlOutput[j] = motorParam.kff*jointControlOutput[j] + motorParam.kv*measuredMotorVelocities[j] + coulombFriction ;
     }
 
     //Send resulting output

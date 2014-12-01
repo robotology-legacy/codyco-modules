@@ -81,13 +81,13 @@ d) Filtering parameters for velocity estimation and torque measurement;
  */
 struct CouplingMatrices
 {
-    Eigen::MatrixXd    torque;
-    Eigen::MatrixXd    velocity;
+    Eigen::MatrixXd    fromJointTorquesToMotorTorques;
+    Eigen::MatrixXd    fromJointVelocitiesToMotorVelocities;
 
     void reset(int NDOF)
     {
-        torque = Eigen::MatrixXd::Identity(NDOF,NDOF);
-        velocity = Eigen::MatrixXd::Identity(NDOF,NDOF);
+        fromJointTorquesToMotorTorques       = Eigen::MatrixXd::Identity(NDOF,NDOF);
+        fromJointVelocitiesToMotorVelocities = Eigen::MatrixXd::Identity(NDOF,NDOF);
     }
 };
 
@@ -161,6 +161,7 @@ private:
     yarp::sig::Vector                                measuredJointPositionsTimestamps;
     yarp::sig::Vector                                measuredJointPositions;
     yarp::sig::Vector                                measuredJointVelocities;
+    yarp::sig::Vector                                measuredMotorVelocities;
     yarp::sig::Vector                                jointTorquesError;
     yarp::sig::Vector                                oldJointTorquesError;
     yarp::sig::Vector                                derivativeJointTorquesError;
