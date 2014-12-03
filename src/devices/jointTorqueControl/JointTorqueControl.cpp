@@ -221,7 +221,6 @@ bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
         std::cerr << coupling_matrix.fromJointVelocitiesToMotorVelocities << std::endl;
         std::cerr << "loaded torque coupling matrix from group " << group_name << std::endl;
         std::cerr << coupling_matrix.fromJointTorquesToMotorTorques << std::endl;
-        
          
         return true;
     }
@@ -264,7 +263,10 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     
     //Load coupling matrices 
     couplingMatrices.reset(this->axes);
-    ret = ret &&  this->loadCouplingMatrix(config,couplingMatrices);
+    ret = ret &&  this->loadCouplingMatrix(config,couplingMatrices,"JOINTS_MOTOR_KINEMATIC_COUPLINGS");
+    
+    couplingMatricesFirmware.reset(this->axes);
+    ret = ret &&  this->loadCouplingMatrix(config,couplingMatrices,"FIRMWARE_COUPLINGS");
     
     if( ret )
     {
@@ -752,6 +754,8 @@ void JointTorqueControl::run()
 
         jointControlOutput[j] = motorParam.kff*jointControlOutput[j] + motorParam.kv*measuredMotorVelocities[j] + coulombFriction ;
     }
+
+    toEigen(jointControlOutput) = couplingMatricesFirmware.fromJointTorquesToMotorTorques.inverse * toEigen(jointControlOutput);
 
     //Send resulting output
     bool false_value = false;

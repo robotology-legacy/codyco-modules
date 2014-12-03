@@ -149,6 +149,7 @@ private:
     double sign(double j);
 
     CouplingMatrices couplingMatrices;
+    CouplingMatrices couplingMatricesFirmware;
 
     //joint torque loop methods & attributes
     yarp::os::Mutex controlMutex; ///< mutex protecting control variables
@@ -183,7 +184,7 @@ private:
      */
     bool loadCouplingMatrix(yarp::os::Searchable& config,
                             CouplingMatrices & coupling_matrices,
-                            std::string group_name="JOINTS_MOTOR_KINEMATIC_COUPLINGS");
+                            std::string group_name);
 
 public:
     //CONSTRUCTOR
