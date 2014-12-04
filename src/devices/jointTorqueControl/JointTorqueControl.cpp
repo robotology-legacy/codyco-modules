@@ -15,6 +15,9 @@
 
 #include <Eigen/LU>
 
+#include <iostream>
+using namespace std;
+
 namespace yarp {
 namespace dev {
 
@@ -137,12 +140,12 @@ bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
     {
         yarp::os::Bottle couplings_bot = config.findGroup(group_name);
 
-        if( checkVectorExistInConfiguration(couplings_bot,"axesNames",this->axes) )
+        if(!checkVectorExistInConfiguration(couplings_bot,"axesNames",this->axes) )
         {
             std::cerr << "JointTorqueControl: error in loading axesNames parameter" << std::endl;
             return false;
         }
-        if( checkVectorExistInConfiguration(couplings_bot,"motorNames",this->axes) )
+        if(!checkVectorExistInConfiguration(couplings_bot,"motorNames",this->axes) )
         {
             std::cerr << "JointTorqueControl: error in loading motorNames parameter" << std::endl;
             return false;
@@ -172,13 +175,13 @@ bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
             yarp::os::Bottle * axis_coupling_bot = couplings_bot.find(axis_name).asList();
 
             for(int coupled_motor=0; coupled_motor < axis_coupling_bot->size(); coupled_motor++ )
-            {
+            { 
                 if( !(axis_coupling_bot->get(coupled_motor).isList()) ||
                     !(axis_coupling_bot->get(coupled_motor).asList()->size() == 2) ||
                     !(axis_coupling_bot->get(coupled_motor).asList()->get(0).isDouble()) ||
                     !(axis_coupling_bot->get(coupled_motor).asList()->get(1).isString()) )
                 {
-                    std::cerr << "[ERR] " << group_name << "group found, but coupling found for axis "
+                    std::cerr << "[ERR] " << group_name << " group found, but coupling for axis "
                         << axis_name << " is malformed" << std::endl;
                     return false;
                 }
@@ -199,7 +202,7 @@ bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
             // Get non-zero coefficient of the coupling matrices
             for(int coupled_motor=0; coupled_motor < axis_coupling_bot->size(); coupled_motor++ )
             {
-                double coeff = axis_coupling_bot->get(coupled_motor).asList()->get(0).isDouble();
+                double coeff = axis_coupling_bot->get(coupled_motor).asList()->get(0).asDouble();
                 std::string motorName = axis_coupling_bot->get(coupled_motor).asList()->get(1).asString();
                 int motorIndex = findAndReturnIndex(motorNames,motorName);
                 
@@ -207,20 +210,22 @@ bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
                 {
                     return false;
                 }
-                
                 coupling_matrix.fromJointVelocitiesToMotorVelocities(axis_id,motorIndex) = coeff;
             }
 
         }
-        coupling_matrix.fromJointTorquesToMotorTorques       = coupling_matrix.fromJointVelocitiesToMotorVelocities.transpose();
-        coupling_matrix.fromJointVelocitiesToMotorVelocities = coupling_matrix.fromJointVelocitiesToMotorVelocities.inverse();
-        // Compute the torque coupling matrix
         
         std::cerr << "loadCouplingMatrix DEBUG: " << std::endl;
         std::cerr << "loaded kinematic coupling matrix from group " << group_name << std::endl;
         std::cerr << coupling_matrix.fromJointVelocitiesToMotorVelocities << std::endl;
         std::cerr << "loaded torque coupling matrix from group " << group_name << std::endl;
         std::cerr << coupling_matrix.fromJointTorquesToMotorTorques << std::endl;
+        
+        coupling_matrix.fromJointTorquesToMotorTorques       = coupling_matrix.fromJointVelocitiesToMotorVelocities.transpose();
+        coupling_matrix.fromJointVelocitiesToMotorVelocities = coupling_matrix.fromJointVelocitiesToMotorVelocities.inverse();
+        // Compute the torque coupling matrix
+        
+
          
         return true;
     }
@@ -261,12 +266,15 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     //Load Gains configurations
     bool ret = this->loadGains(config);
     
+    
     //Load coupling matrices 
     couplingMatrices.reset(this->axes);
-    ret = ret &&  this->loadCouplingMatrix(config,couplingMatrices,"JOINTS_MOTOR_KINEMATIC_COUPLINGS");
+    ret = ret &&  this->loadCouplingMatrix(config,couplingMatrices,"FROM_JOINTS_TO_MOTOR_KINEMATIC_COUPLINGS");
     
+      
     couplingMatricesFirmware.reset(this->axes);
-    ret = ret &&  this->loadCouplingMatrix(config,couplingMatrices,"FIRMWARE_COUPLINGS");
+    ret = ret &&  this->loadCouplingMatrix(config,couplingMatricesFirmware,"FROM_JOINTS_TO_MOTOR_KINEMATIC_COUPLINGS_FIRMWARE");
+    
     
     if( ret )
     {
@@ -675,6 +683,7 @@ bool JointTorqueControl::setTorqueOffset(int j, double v)
 // HIJACKED CONTROL THREAD
 bool JointTorqueControl::threadInit()
 {
+    std::cerr << "Init " << std::endl;    
 }
 
 void JointTorqueControl::readStatus()
@@ -755,7 +764,7 @@ void JointTorqueControl::run()
         jointControlOutput[j] = motorParam.kff*jointControlOutput[j] + motorParam.kv*measuredMotorVelocities[j] + coulombFriction ;
     }
 
-    toEigen(jointControlOutput) = couplingMatricesFirmware.fromJointTorquesToMotorTorques.inverse * toEigen(jointControlOutput);
+    toEigen(jointControlOutput) = couplingMatricesFirmware.fromJointTorquesToMotorTorques.inverse() * toEigen(jointControlOutput);
 
     //Send resulting output
     bool false_value = false;
