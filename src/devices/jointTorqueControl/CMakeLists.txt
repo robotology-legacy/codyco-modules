@@ -2,6 +2,19 @@
 # Authors: Silvio Traversaro <silvio.traversaro@iit.it>
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
+
+find_package(YCM)
+list(APPEND CMAKE_MODULE_PATH "${YCM_MODULE_PATH}")
+ 
+find_package(YARP REQUIRED)
+find_package(Eigen3 REQUIRED)
+  
+list(APPEND CMAKE_MODULE_PATH "${YARP_MODULE_PATH}")
+include(YarpInstallationHelpers)
+  
+yarp_configure_external_installation(codyco)
+
+
 MACRO(codyco_export_library target)
   PARSE_ARGUMENTS(${target}
     "INTERNAL_INCLUDE_DIRS;EXTERNAL_INCLUDE_DIRS;DEPENDS;DESTINATION;FILES;FILES_WITH_PATH"
