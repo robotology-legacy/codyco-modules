@@ -765,7 +765,11 @@ void JointTorqueControl::run()
     }
 
     toEigen(jointControlOutput) = couplingMatricesFirmware.fromJointTorquesToMotorTorques.inverse() * toEigen(jointControlOutput);
-
+    
+    for(int j = 0; j < this->axes; j++)
+    {
+        jointControlOutput[j] = saturation(jointControlOutput[j], jointTorqueLoopGains[j].max_pwm, -jointTorqueLoopGains[j].max_pwm);
+    }    
     //Send resulting output
     bool false_value = false;
     if( !contains(hijackingTorqueControl,false_value) )
