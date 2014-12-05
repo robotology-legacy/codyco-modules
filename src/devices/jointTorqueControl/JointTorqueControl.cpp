@@ -719,7 +719,6 @@ void JointTorqueControl::run()
 {
     //Read status (position, velocity, torque) from the controlboard
     this->readStatus();
-    
     toEigen(measuredMotorVelocities) = couplingMatrices.fromJointVelocitiesToMotorVelocities * toEigen(measuredJointVelocities);
 
     //Compute joint level torque PID
