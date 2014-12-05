@@ -7,6 +7,7 @@ cmake_minimum_required(VERSION 2.8)
 ENABLE_LANGUAGE(CXX)
 
 find_package(YARP REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 add_definitions(${YARP_DEFINES})
 

@@ -15,7 +15,7 @@
 #include <yarp/sig/Vector.h>
 
 #include "PassThroughControlBoard.h"
-
+#include <Eigen/Core>
 #include <vector>
 
 namespace yarp {
@@ -76,6 +76,23 @@ d) Filtering parameters for velocity estimation and torque measurement;
 */
 
 /**
+ * Coupling matrices
+ *
+ */
+struct CouplingMatrices
+{
+    Eigen::MatrixXd    fromJointTorquesToMotorTorques;
+    Eigen::MatrixXd    fromJointVelocitiesToMotorVelocities;
+
+    void reset(int NDOF)
+    {
+        fromJointTorquesToMotorTorques       = Eigen::MatrixXd::Identity(NDOF,NDOF);
+        fromJointVelocitiesToMotorVelocities = Eigen::MatrixXd::Identity(NDOF,NDOF);
+    }
+};
+
+
+/**
  * Parameters for the motor level friction compensation
  *
  */
@@ -128,30 +145,46 @@ private:
 
     void startHijackingTorqueControl(int j);
     void stopHijackingTorqueControl(int j);
-    
+
     double sign(double j);
+
+    CouplingMatrices couplingMatrices;
+    CouplingMatrices couplingMatricesFirmware;
 
     //joint torque loop methods & attributes
     yarp::os::Mutex controlMutex; ///< mutex protecting control variables
     yarp::os::Mutex interfacesMutex; ///< mutex  protecting interfaces
 
     std::vector<JointTorqueLoopGains>                jointTorqueLoopGains;
-    std::vector<MotorParameters> 		     motorParameters;
+    std::vector<MotorParameters> 		             motorParameters;
     yarp::sig::Vector                                desiredJointTorques;
     yarp::sig::Vector                                measuredJointTorques;
     yarp::sig::Vector                                measuredJointPositionsTimestamps;
     yarp::sig::Vector                                measuredJointPositions;
     yarp::sig::Vector                                measuredJointVelocities;
+    yarp::sig::Vector                                measuredMotorVelocities;
     yarp::sig::Vector                                jointTorquesError;
     yarp::sig::Vector                                oldJointTorquesError;
     yarp::sig::Vector                                derivativeJointTorquesError;
     yarp::sig::Vector                                integralJointTorquesError;
     yarp::sig::Vector                                integralState;
     yarp::sig::Vector                                jointControlOutput;
+    yarp::sig::Vector                                jointControlOutputBuffer;
+    
 
     void readStatus();
 
     bool loadGains(yarp::os::Searchable& config);
+
+    /**
+     * Load the coupling matrices from the group whose name 
+     *      is specified in group_name 
+     *                             
+     * 
+     */
+    bool loadCouplingMatrix(yarp::os::Searchable& config,
+                            CouplingMatrices & coupling_matrices,
+                            std::string group_name);
 
 public:
     //CONSTRUCTOR
