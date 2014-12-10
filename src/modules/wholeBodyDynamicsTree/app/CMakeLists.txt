@@ -11,3 +11,5 @@ yarp_install( FILES ${conf}
 
 yarp_install( FILES ${scripts}
               DESTINATION ${CODYCO_APPLICATIONS_TEMPLATES_INSTALL_DIR})
+
+add_subdirectory(robots)
