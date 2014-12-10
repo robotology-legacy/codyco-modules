@@ -260,13 +260,13 @@ void jointTorqueControlThread::run()
                 dqMotor     = dq(i);
                 dqSignMotor = dqSign(i);
 
-                int torsoYawGID    = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 0));
+                int torsoPitchGID    = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 0));
                 int torsoRollGID   = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 1));
-                int torsoPitchGID  = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 2));
+                int torsoYawGID  = jointList.localToGlobalId(wbi::LocalId(lid.bodyPart, 2));
                 if (lid.bodyPart == iCub::skinDynLib::TORSO)
                 {
 //                     cout << "In TORSO handeler \n";
-                    if (i == torsoYawGID)
+                    if (i == torsoPitchGID)
                     {
                         tauMotor = torsoTorqueCouplingMatrix(0,0)  * tau(i) +  torsoTorqueCouplingMatrix(0,1)  * tau(i+1) + torsoTorqueCouplingMatrix(0,2)  * tau(i+2);
                         dqMotor  = torsoVelocityCouplingMatrix(0,0) * dq(i) +  torsoVelocityCouplingMatrix(0,1) * dq(i+1) + torsoVelocityCouplingMatrix(0,2) * dq(i+2);
@@ -280,7 +280,7 @@ void jointTorqueControlThread::run()
                         dqSignMotor = fabs(dqMotor)>coulombVelThr(i) ? sign(dqMotor) : pow(dqMotor/coulombVelThr(i),3);
 //                         cout << "Motor 2 \n";
                     }
-                    if (i == torsoPitchGID)
+                    if (i == torsoYawGID)
                     {
                         tauMotor = torsoTorqueCouplingMatrix(2,0)  * tau(i-2) +  torsoTorqueCouplingMatrix(2,1)  * tau(i-1) + torsoTorqueCouplingMatrix(2,2)  * tau(i);
                         dqMotor  = torsoVelocityCouplingMatrix(2,0) * dq(i-2) +  torsoVelocityCouplingMatrix(2,1) * dq(i-1) + torsoVelocityCouplingMatrix(2,2) * dq(i);
@@ -356,8 +356,8 @@ void jointTorqueControlThread::run()
                 if (lid.bodyPart == iCub::skinDynLib::TORSO)
                 {
 //                     cout << "In torso handler \n";
-                    if (i == torsoYawGID)
-                    {
+                    if (i == torsoPitchGID)
+                    { 
                         Voltage = motorVoltage(i) - motorVoltage(i+1);
                     }
                     if (i == torsoRollGID)

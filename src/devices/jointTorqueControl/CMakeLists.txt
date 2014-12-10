@@ -2,6 +2,19 @@
 # Authors: Silvio Traversaro <silvio.traversaro@iit.it>
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
+
+find_package(YCM)
+list(APPEND CMAKE_MODULE_PATH "${YCM_MODULE_PATH}")
+ 
+find_package(YARP REQUIRED)
+find_package(Eigen3 REQUIRED)
+  
+list(APPEND CMAKE_MODULE_PATH "${YARP_MODULE_PATH}")
+include(YarpInstallationHelpers)
+  
+yarp_configure_external_installation(codyco)
+
+
 MACRO(codyco_export_library target)
   PARSE_ARGUMENTS(${target}
     "INTERNAL_INCLUDE_DIRS;EXTERNAL_INCLUDE_DIRS;DEPENDS;DESTINATION;FILES;FILES_WITH_PATH"
@@ -163,6 +176,9 @@ if(NOT SKIP_jointTorqueControl)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                        ${YARP_INCLUDE_DIRS})
+                       
+include_directories(SYSTEM 
+                    ${EIGEN3_INCLUDE_DIR})
 
 yarp_add_plugin(passThroughControlBoard PassThroughControlBoard.h PassThroughControlBoard.cpp)
 target_link_libraries(passThroughControlBoard ${YARP_LIBRARIES})
