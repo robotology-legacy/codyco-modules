@@ -134,7 +134,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 
     //List of joints used in the dynamic model of the robot
     IDList RobotDynamicModelJoints;
-    std::string RobotDynamicModelJointsListName = "ICUB_DYNAMIC_MODEL_JOINTS";
+    std::string RobotDynamicModelJointsListName = "ROBOT_DYNAMIC_MODEL_JOINTS";
     if( !loadIdListFromConfig(RobotDynamicModelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
     {
         fprintf(stderr, "[ERR] wholeBodyDynamicsModule: impossible to load wbiId joint list with name %s\n",RobotDynamicModelJointsListName.c_str());
@@ -197,7 +197,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 
     //List of IMUs sensors in the robot
     IDList RobotIMUSensors;
-    std::string RobotIMUSensorsListName = "ICUB_MAIN_IMUS";
+    std::string RobotIMUSensorsListName = "ROBOT_MAIN_IMUS";
     if( !loadIdListFromConfig(RobotIMUSensorsListName,yarpWbiOptions,RobotIMUSensors) )
     {
         fprintf(stderr, "[ERR] wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());

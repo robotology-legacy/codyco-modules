@@ -106,18 +106,19 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        fixed_link_calibration(_fixed_link_calibration),
        zmp_test_mode(_zmp_test_mode)
     {
+        // TODO FIXME move all this logic in threadInit
 
        std::cout << "Launching wholeBodyDynamicsThread with name : " << _name << " and robotName " << _robotName << " and period " << _period << std::endl;
 
-       if( !_yarp_wbi_opts.check("urdf_file") )
+       if( !_yarp_wbi_opts.check("urdf") )
        {
-            std::cerr << "[ERR] yarpWholeBodyStatesLocal error: urdf_file not found in configuration files" << std::endl;
+            std::cerr << "[ERR] wholeBodyDynamicsTree error: urdf not found in configuration files" << std::endl;
             return;
        }
 
-    std::string urdf_file = _yarp_wbi_opts.find("urdf_file").asString().c_str();
+    std::string urdf_file = _yarp_wbi_opts.find("urdf").asString().c_str();
     yarp::os::ResourceFinder rf;
-    std::string urdf_file_path = rf.findFile(urdf_file.c_str());
+    std::string urdf_file_path = rf.findFileByName(urdf_file.c_str());
 
 
 
