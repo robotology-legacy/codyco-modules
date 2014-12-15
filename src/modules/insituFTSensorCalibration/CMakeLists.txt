@@ -46,7 +46,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src ${generated_libs_dir}/include)
 
 message(STATUS "INSITU_FT_CALIBRATION_LIBRARIES is : " ${INSITU_FT_CALIBRATION_LIBRARIES})
 TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES}
-                                     ${ICUB_LIBRARIES}
+                                     ctrlLib
                                      ${InSituFTCalibration_LIBRARIES})
 
 INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
