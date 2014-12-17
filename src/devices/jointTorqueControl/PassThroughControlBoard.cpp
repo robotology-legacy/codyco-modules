@@ -1,6 +1,5 @@
 #include "PassThroughControlBoard.h"
 #include <yarp/os/Property.h>
-#include <boost/concept_check.hpp>
 
 namespace yarp {
 namespace dev {
