@@ -164,6 +164,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     RLCartesianExternalWrench.resize(6);
 
     iCubGuiBase.resize(6);
+    FilteredInertialForGravityComp.resize(6);
 
     //Copied from old wholeBodyDynamics
     std::string robot_name = robotName;
@@ -206,6 +207,10 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     //Open port for iCubGui
     port_icubgui_base = new BufferedPort<Vector>;
     port_icubgui_base->open(string("/"+local_name+"/base:o"));
+
+    //Open port for filtered inertial
+    port_filtered_inertial = new BufferedPort<Vector>;
+    port_filtered_inertial->open(string("/"+local_name+"/filtered/inertial:o"));
 
     //Open port for output joint forcetorque
 
@@ -872,6 +877,23 @@ void wholeBodyDynamicsThread::publishBaseToGui()
 }
 
 //*************************************************************************************************************************
+void wholeBodyDynamicsThread::publishFilteredInertialForGravityCompensator()
+{
+    bool ret;
+    ret = estimator->getEstimates(wbi::ESTIMATE_IMU,tree_status.wbi_imu.data());
+    YARP_ASSERT(ret);
+
+    FilteredInertialForGravityComp.zero();
+
+    for(int i=0; i < 6; i++ )
+    {
+        FilteredInertialForGravityComp[0+i] = tree_status.wbi_imu[4+i];
+    }
+
+    broadcastData<yarp::sig::Vector>(FilteredInertialForGravityComp,port_filtered_inertial);
+}
+
+//*************************************************************************************************************************
 void wholeBodyDynamicsThread::publishAnkleFootForceTorques()
 {
     YARP_ASSERT(zmp_test_mode);
@@ -1274,6 +1296,7 @@ void wholeBodyDynamicsThread::threadRelease()
     closePort(port_external_wrench_RL);
     std::cerr << "Closing iCubGui base port\n";
     closePort(port_icubgui_base);
+    closePort(port_filtered_inertial);
 
     if(zmp_test_mode)
     {
