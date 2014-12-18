@@ -30,11 +30,14 @@
 #include <yarp/dev/Drivers.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
 
-
+#include <yarp/os/idl/WireTypes.h>
 
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <fstream>
+
+#include <cstdio>
 #include <string.h>
 
 #include <cmath>
@@ -270,9 +273,129 @@ bool insituFTSensorCalibrationThread::getCalibration(yarp::sig::Matrix & mat)
     return estimator.getEstimatedForceCalibrationMatrix(InSituFTCalibration::wrapMat(mat));
 }
 
+/**
+ * Function to convert a decimal number into 1.15 hex format
+ * Ported from octave function convert_onedotfifteen available
+ * in FTsens calibration software.
+ *
+ */
+bool convert_onedotfifteen(const double indecimal, std::string & hex_out)
+{
+    if(indecimal < -1.0 ||
+       indecimal >= 1.0 )
+    {
+        return false;
+    }
+
+    char buf[10];
+
+    double quant = round((pow(2,15))*indecimal); // Quantize to 15 bits and round to the nearest integer;                                            // cast to 2-complement integer
+    int16_t quant_int = (int16_t) quant;
+    sprintf(buf,"%x",quant_int);   // Convert the decimal number to hex string
+    std::string hex_buf = buf;
+    //return only the last four hex digits, useful if int16_t is not actually 16bit
+    hex_out = hex_buf.substr(hex_buf.size()-4,4);
+}
+
+/**
+ * Write the calibration matrix to a file suitable to be used by the IIT FTsens sensor.
+ * calibration_matrix should map the raw straing gauge values to SI (Newton,NewtonMeters)
+ * units.
+ *
+ * Full scale vector should contain the desired full scales in SI units.
+ */
+bool writeFTsensCalibrationToFile(std::string         filename,
+                                  yarp::sig::Matrix & calibration_matrix,
+                                  yarp::sig::Vector & full_scale)
+{
+    if( calibration_matrix.rows() != 6 ||
+        calibration_matrix.cols() != 6 ||
+        full_scale.size()         != 6 )
+    {
+        return false;
+    }
+
+    std::ofstream myfile;
+    myfile.open (filename.c_str());
+    if( !myfile.is_open() )
+    {
+        std::cerr << "[ERROR] Error in writing calibration matrix to " << filename << std::endl;
+        return false;
+    }
+
+    //It seems that full_scale is required to be an integer, TODO check
+    std::vector<int> full_scale_int;
+    full_scale_int.resize(6);
+
+    for(int i=0; i < 6; i++ )
+    {
+        full_scale_int[i] = round(full_scale[i]);
+    }
+
+    for(int i=0; i < 6; i++ )
+    {
+        for(int j=0; j < 6; j++ )
+        {
+            //The matrix that is passed to the actual sensor use
+            //coefficients gains that are encoded with respect to
+            //the full scale
+            double firmware_coeff = calibration_matrix(i,j)/((double)full_scale_int[i]);
+            //Then this firmware coefficient is expressed in 1.15 two complement fixed point way
+            //that we encode in the file in hex format TODO CHECK endianess problems
+            std::string hex;
+            if( !convert_onedotfifteen(firmware_coeff,hex) )
+            {
+                std::cerr << "[ERROR] Error in writing calibration matrix to file, for the given choice"
+                          << " of fullscale the " << i << " " << j << " coefficient is not in [-1.0,1.0]" << std::endl;
+                myfile.close();
+                return false;
+            }
+
+            myfile << hex << "\r\n";
+        }
+    }
+
+    myfile << 1 << "\r\n";
+
+    for(int i=0; i < 6; i++ )
+    {
+        myfile << full_scale_int[i] << "\r\n";
+    }
+
+    myfile.close();
+}
+
+
 bool insituFTSensorCalibrationThread::writeCalibrationToFile(string filename)
 {
+    //For now we support only force calibration
+    yarp::sig::Matrix force_calibration_matrix(3,6), full_calibration_matrix(6,6);
+    if( !getCalibration(force_calibration_matrix) )
+    {
+        return false;
+    }
 
+    full_calibration_matrix.zero();
+    for(int i  = 0; i < 3; i++ )
+    {
+        for(int j=0; j < 6; j++ )
+        {
+            full_calibration_matrix(i,j) = force_calibration_matrix(i,j);
+        }
+    }
+
+    //Set sensor full scale (TODO: set it from calibration matrix and ADC fullscale)
+    yarp::sig::Vector full_scale(6);
+    for(int i =0; i < 3; i++ )
+    {
+        full_scale[i] = 1000.0;
+    }
+    for(int i =3; i < 6; i++ )
+    {
+        full_scale[i] = 20.0;
+    }
+
+    return writeFTsensCalibrationToFile(filename,full_calibration_matrix,full_scale);
 }
 
 
