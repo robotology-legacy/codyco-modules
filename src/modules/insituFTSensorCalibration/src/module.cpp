@@ -46,6 +46,8 @@
 
 #include "module.h"
 
+#include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
+
 YARP_DECLARE_DEVICES(icubmod)
 
 using namespace yarp::dev;
@@ -137,7 +139,8 @@ bool insituFTSensorCalibrationThread::threadInit()
     }
 
     double estimation_period = rf.check("estimation_period",yarp::os::Value(20.0),"Period (in ms) of sensor readings").asDouble();
-    setRate(estimation_period);
+    setRate((int)estimation_period);
+    yInfo("Estimation period of insitu calibration is: %lf",estimation_period);
     cutOffFrequency = rf.check("estimation_cutoff_frequency",yarp::os::Value(0.3),"Cutoff frequency (in Hz) of the first order filter used to filter measurements").asDouble();
 
     acc_filters.resize(nrOfAccelerometers,0);
@@ -208,6 +211,16 @@ void insituFTSensorCalibrationThread::run()
         smooth_ft[0] = ft_filters[0]->filt(raw_ft[0]);
 
         estimator_datasets[currentDataset]->addMeasurements(InSituFTCalibration::wrapVec(smooth_ft[0]),InSituFTCalibration::wrapVec(smooth_acc[0]));
+    } 
+    else if( status == WAITING_NEW_DATASET_START )
+    {
+        static int run_count = 0;
+        if( run_count % 100 == 0 )
+        {
+            printf("InSitu FT sensor calibration: waiting for new dataset start.");
+            printf("Mount the desired added mass and start new dataset collection via the rpc port.");
+        }
+        run_count++;
     }
 }
 
@@ -463,6 +476,11 @@ bool insituFTSensorCalibrationModule::configure(ResourceFinder &rf)
     {
         moduleName = rf.find("local").asString().c_str();
     }
+    else
+    {
+        moduleName = "insituFTCalibration";
+    }
+    setName(moduleName.c_str());
 
     static_pose_period = rf.check("static_pose_period",1.0).asDouble();
     return_point_waiting_period = rf.check("return_point_waiting_period",5.0).asDouble();
@@ -688,7 +706,48 @@ bool insituFTSensorCalibrationModule::configure(ResourceFinder &rf)
 
 
     isTheRobotInReturnPoint.open("/"+moduleName+"/isTheRobotInReturnPoint:o");
-
+    
+    status = WAITING_NEW_DATASET_START;
+    
+    ///////////////////////////////////////////////
+    //// LAUNCHING SENSOR READING
+    ///////////////////////////////////////////////
+    std::string wbi_conf_file;
+    wbi_conf_file = rf.check("wbi_conf_file",yarp::os::Value("yarpWholeBodyInterface.ini"),"File used for the configuration of the use yarpWholeBodySensors").asString();
+    
+    yarp::os::Property wbi_prop;
+    std::string wbi_conf_file_name = rf.findFileByName(wbi_conf_file);
+    bool ret = wbi_prop.fromConfigFile(wbi_conf_file);
+    
+    if( !ret )
+    {
+       yError("Failure in opening wbi configuration file");
+       close_drivers();
+       return false;
+    }
+    
+    sensors = new yarpWbi::yarpWholeBodySensors(moduleName.c_str(),wbi_prop);
+    
+    if( !sensors->init() )
+    {
+        yError("Failure in opening yarpWholeBodySensors interface");
+        close_drivers();
+        return false;
+    }
+    
+    ///////////////////////////////////////////////
+    //// LAUNCHING ESTIMATION THREAD
+    ///////////////////////////////////////////////
+    estimation_thread = new insituFTSensorCalibrationThread(sensors,rf);
+    
+    if( ! estimation_thread->start() )
+    {
+        yError("Failure in starting calibration thread");
+        close_drivers();
+        sensors->close();
+        return false;
+    }
+    
     return true;
 }
 
@@ -700,6 +759,20 @@ bool insituFTSensorCalibrationModule::interruptModule()
 
 bool insituFTSensorCalibrationModule::close()
 {
+    if( estimation_thread )
+    {
+        estimation_thread->stop();
+        delete estimation_thread;
+        estimation_thread = 0;
+    }
+    
+    if( sensors )
+    {
+        sensors->close();
+        delete sensors;
+        sensors = 0;
+    }
+    
     close_drivers();
     isTheRobotInReturnPoint.close();
     return true;

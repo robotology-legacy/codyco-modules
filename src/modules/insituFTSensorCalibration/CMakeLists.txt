@@ -38,14 +38,16 @@ INCLUDE_DIRECTORIES(SYSTEM
                     ${EIGEN3_INCLUDE_DIR}
                     ${yarpWholeBodyInterface_INCLUDE_DIRS}
                     ${InSituFTCalibration_INCLUDE_DIRS}
-                    ${ctrlLib_INCLUDE_DIRS})
+                    ${ctrlLib_INCLUDE_DIRS}
+                    ${skinDynLib_INCLUDE_DIRS})
 
 include_directories(${PROJECT_SOURCE_DIR}/src ${generated_libs_dir}/include)
 
 message(STATUS "INSITU_FT_CALIBRATION_LIBRARIES is : " ${INSITU_FT_CALIBRATION_LIBRARIES})
 TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES}
                                      ctrlLib
-                                     ${InSituFTCalibration_LIBRARIES})
+                                     ${InSituFTCalibration_LIBRARIES}
+                                     ${yarpWholeBodyInterface_LIBRARIES})
 
 INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
 
