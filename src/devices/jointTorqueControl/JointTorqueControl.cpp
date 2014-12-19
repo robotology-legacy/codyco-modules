@@ -769,6 +769,8 @@ void JointTorqueControl::run()
     {
         jointControlOutput[j] = saturation(jointControlOutput[j], jointTorqueLoopGains[j].max_pwm, -jointTorqueLoopGains[j].max_pwm);
     }    
+
+
     //Send resulting output
     bool false_value = false;
     if( !contains(hijackingTorqueControl,false_value) )
