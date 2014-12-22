@@ -12,7 +12,7 @@ add_subdirectory(motorFrictionIdentification)
 endif()
 
 #add_subdirectory(jointTorqueControl)
-
+add_subdirectory(walkPlayer)
 
 add_subdirectory(codycoCoordinatorDemo1Y)
 if(CODYCO_BUILD_WHOLEBODYREACH)
