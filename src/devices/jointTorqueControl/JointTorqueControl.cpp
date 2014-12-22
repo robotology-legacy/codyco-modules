@@ -218,8 +218,8 @@ bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
         std::cerr << "loadCouplingMatrix DEBUG: " << std::endl;
         std::cerr << "loaded kinematic coupling matrix from group " << group_name << std::endl;
         std::cerr << coupling_matrix.fromJointVelocitiesToMotorVelocities << std::endl;
-        std::cerr << "loaded torque coupling matrix from group " << group_name << std::endl;
-        std::cerr << coupling_matrix.fromJointTorquesToMotorTorques << std::endl;
+//         std::cerr << "loaded torque coupling matrix from group " << group_name << std::endl;
+//         std::cerr << coupling_matrix.fromJointTorquesToMotorTorques << std::endl;
         
         coupling_matrix.fromJointTorquesToMotorTorques       = coupling_matrix.fromJointVelocitiesToMotorVelocities.transpose();
         coupling_matrix.fromJointVelocitiesToMotorVelocities = coupling_matrix.fromJointVelocitiesToMotorVelocities.inverse();
@@ -269,11 +269,11 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     
     //Load coupling matrices 
     couplingMatrices.reset(this->axes);
-    ret = ret &&  this->loadCouplingMatrix(config,couplingMatrices,"FROM_JOINTS_TO_MOTOR_KINEMATIC_COUPLINGS");
+    ret = ret &&  this->loadCouplingMatrix(config,couplingMatrices,"FROM_MOTORS_TO_JOINTS_KINEMATIC_COUPLINGS");
     
       
     couplingMatricesFirmware.reset(this->axes);
-    ret = ret &&  this->loadCouplingMatrix(config,couplingMatricesFirmware,"FROM_JOINTS_TO_MOTOR_KINEMATIC_COUPLINGS_FIRMWARE");
+    ret = ret &&  this->loadCouplingMatrix(config,couplingMatricesFirmware,"FROM_MOTORS_TO_JOINTS_KINEMATIC_COUPLINGS_FIRMWARE");
     
     
     if( ret )
@@ -769,6 +769,8 @@ void JointTorqueControl::run()
     {
         jointControlOutput[j] = saturation(jointControlOutput[j], jointTorqueLoopGains[j].max_pwm, -jointTorqueLoopGains[j].max_pwm);
     }    
+
+
     //Send resulting output
     bool false_value = false;
     if( !contains(hijackingTorqueControl,false_value) )

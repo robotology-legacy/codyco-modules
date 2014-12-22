@@ -115,6 +115,9 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
     yarp::os::BufferedPort<yarp::sig::Vector> * port_icubgui_base;
 
+    yarp::os::BufferedPort<yarp::sig::Vector> * port_filtered_inertial;
+
+
 
     yarp::os::Stamp timestamp;
 
@@ -126,6 +129,7 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     void getEndEffectorWrenches();
     void publishEndEffectorWrench();
     void publishBaseToGui();
+    void publishFilteredInertialForGravityCompensator();
     void publishAnkleFootForceTorques();
     bool decodeCalibCode(const std::string calib_code);
     void disableCalibration();
@@ -157,6 +161,7 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     yarp::sig::Vector RLCartesianExternalWrench;
 
     yarp::sig::Vector iCubGuiBase;
+    yarp::sig::Vector FilteredInertialForGravityComp;
 
     //Calibration related variables
     yarp::os::Mutex run_mutex;

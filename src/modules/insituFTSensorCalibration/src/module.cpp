@@ -30,11 +30,14 @@
 #include <yarp/dev/Drivers.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
 
-
+#include <yarp/os/idl/WireTypes.h>
 
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <fstream>
+
+#include <cstdio>
 #include <string.h>
 
 #include <cmath>
@@ -42,6 +45,8 @@
 #include <InSituFTCalibration/yarp_wrappers.h>
 
 #include "module.h"
+
+#include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
 
 YARP_DECLARE_DEVICES(icubmod)
 
@@ -134,7 +139,8 @@ bool insituFTSensorCalibrationThread::threadInit()
     }
 
     double estimation_period = rf.check("estimation_period",yarp::os::Value(20.0),"Period (in ms) of sensor readings").asDouble();
-    setRate(estimation_period);
+    setRate((int)estimation_period);
+    yInfo("Estimation period of insitu calibration is: %lf",estimation_period);
     cutOffFrequency = rf.check("estimation_cutoff_frequency",yarp::os::Value(0.3),"Cutoff frequency (in Hz) of the first order filter used to filter measurements").asDouble();
 
     acc_filters.resize(nrOfAccelerometers,0);
@@ -205,6 +211,16 @@ void insituFTSensorCalibrationThread::run()
         smooth_ft[0] = ft_filters[0]->filt(raw_ft[0]);
 
         estimator_datasets[currentDataset]->addMeasurements(InSituFTCalibration::wrapVec(smooth_ft[0]),InSituFTCalibration::wrapVec(smooth_acc[0]));
+    } 
+    else if( status == WAITING_NEW_DATASET_START )
+    {
+        static int run_count = 0;
+        if( run_count % 100 == 0 )
+        {
+            printf("InSitu FT sensor calibration: waiting for new dataset start.");
+            printf("Mount the desired added mass and start new dataset collection via the rpc port.");
+        }
+        run_count++;
     }
 }
 
@@ -270,9 +286,129 @@ bool insituFTSensorCalibrationThread::getCalibration(yarp::sig::Matrix & mat)
     return estimator.getEstimatedForceCalibrationMatrix(InSituFTCalibration::wrapMat(mat));
 }
 
+/**
+ * Function to convert a decimal number into 1.15 hex format
+ * Ported from octave function convert_onedotfifteen available
+ * in FTsens calibration software.
+ *
+ */
+bool convert_onedotfifteen(const double indecimal, std::string & hex_out)
+{
+    if(indecimal < -1.0 ||
+       indecimal >= 1.0 )
+    {
+        return false;
+    }
+
+    char buf[10];
+
+    double quant = round((pow(2,15))*indecimal); // Quantize to 15 bits and round to the nearest integer;                                            // cast to 2-complement integer
+    int16_t quant_int = (int16_t) quant;
+    sprintf(buf,"%x",quant_int);   // Convert the decimal number to hex string
+    std::string hex_buf = buf;
+    //return only the last four hex digits, useful if int16_t is not actually 16bit
+    hex_out = hex_buf.substr(hex_buf.size()-4,4);
+}
+
+/**
+ * Write the calibration matrix to a file suitable to be used by the IIT FTsens sensor.
+ * calibration_matrix should map the raw straing gauge values to SI (Newton,NewtonMeters)
+ * units.
+ *
+ * Full scale vector should contain the desired full scales in SI units.
+ */
+bool writeFTsensCalibrationToFile(std::string         filename,
+                                  yarp::sig::Matrix & calibration_matrix,
+                                  yarp::sig::Vector & full_scale)
+{
+    if( calibration_matrix.rows() != 6 ||
+        calibration_matrix.cols() != 6 ||
+        full_scale.size()         != 6 )
+    {
+        return false;
+    }
+
+    std::ofstream myfile;
+    myfile.open (filename.c_str());
+    if( !myfile.is_open() )
+    {
+        std::cerr << "[ERROR] Error in writing calibration matrix to " << filename << std::endl;
+        return false;
+    }
+
+    //It seems that full_scale is required to be an integer, TODO check
+    std::vector<int> full_scale_int;
+    full_scale_int.resize(6);
+
+    for(int i=0; i < 6; i++ )
+    {
+        full_scale_int[i] = round(full_scale[i]);
+    }
+
+    for(int i=0; i < 6; i++ )
+    {
+        for(int j=0; j < 6; j++ )
+        {
+            //The matrix that is passed to the actual sensor use
+            //coefficients gains that are encoded with respect to
+            //the full scale
+            double firmware_coeff = calibration_matrix(i,j)/((double)full_scale_int[i]);
+            //Then this firmware coefficient is expressed in 1.15 two complement fixed point way
+            //that we encode in the file in hex format TODO CHECK endianess problems
+            std::string hex;
+            if( !convert_onedotfifteen(firmware_coeff,hex) )
+            {
+                std::cerr << "[ERROR] Error in writing calibration matrix to file, for the given choice"
+                          << " of fullscale the " << i << " " << j << " coefficient is not in [-1.0,1.0]" << std::endl;
+                myfile.close();
+                return false;
+            }
+
+            myfile << hex << "\r\n";
+        }
+    }
+
+    myfile << 1 << "\r\n";
+
+    for(int i=0; i < 6; i++ )
+    {
+        myfile << full_scale_int[i] << "\r\n";
+    }
+
+    myfile.close();
+}
+
+
 bool insituFTSensorCalibrationThread::writeCalibrationToFile(string filename)
 {
+    //For now we support only force calibration
+    yarp::sig::Matrix force_calibration_matrix(3,6), full_calibration_matrix(6,6);
+    if( !getCalibration(force_calibration_matrix) )
+    {
+        return false;
+    }
 
+    full_calibration_matrix.zero();
+    for(int i  = 0; i < 3; i++ )
+    {
+        for(int j=0; j < 6; j++ )
+        {
+            full_calibration_matrix(i,j) = force_calibration_matrix(i,j);
+        }
+    }
+
+    //Set sensor full scale (TODO: set it from calibration matrix and ADC fullscale)
+    yarp::sig::Vector full_scale(6);
+    for(int i =0; i < 3; i++ )
+    {
+        full_scale[i] = 1000.0;
+    }
+    for(int i =3; i < 6; i++ )
+    {
+        full_scale[i] = 20.0;
+    }
+
+    return writeFTsensCalibrationToFile(filename,full_calibration_matrix,full_scale);
 }
 
 
@@ -340,6 +476,11 @@ bool insituFTSensorCalibrationModule::configure(ResourceFinder &rf)
     {
         moduleName = rf.find("local").asString().c_str();
     }
+    else
+    {
+        moduleName = "insituFTCalibration";
+    }
+    setName(moduleName.c_str());
 
     static_pose_period = rf.check("static_pose_period",1.0).asDouble();
     return_point_waiting_period = rf.check("return_point_waiting_period",5.0).asDouble();
@@ -565,7 +706,48 @@ bool insituFTSensorCalibrationModule::configure(ResourceFinder &rf)
 
 
     isTheRobotInReturnPoint.open("/"+moduleName+"/isTheRobotInReturnPoint:o");
-
+    
+    status = WAITING_NEW_DATASET_START;
+    
+    ///////////////////////////////////////////////
+    //// LAUNCHING SENSOR READING
+    ///////////////////////////////////////////////
+    std::string wbi_conf_file;
+    wbi_conf_file = rf.check("wbi_conf_file",yarp::os::Value("yarpWholeBodyInterface.ini"),"File used for the configuration of the use yarpWholeBodySensors").asString();
+    
+    yarp::os::Property wbi_prop;
+    std::string wbi_conf_file_name = rf.findFileByName(wbi_conf_file);
+    bool ret = wbi_prop.fromConfigFile(wbi_conf_file);
+    
+    if( !ret )
+    {
+       yError("Failure in opening wbi configuration file");
+       close_drivers();
+       return false;
+    }
+    
+    sensors = new yarpWbi::yarpWholeBodySensors(moduleName.c_str(),wbi_prop);
+    
+    if( !sensors->init() )
+    {
+        yError("Failure in opening yarpWholeBodySensors interface");
+        close_drivers();
+        return false;
+    }
+    
+    ///////////////////////////////////////////////
+    //// LAUNCHING ESTIMATION THREAD
+    ///////////////////////////////////////////////
+    estimation_thread = new insituFTSensorCalibrationThread(sensors,rf);
+    
+    if( ! estimation_thread->start() )
+    {
+        yError("Failure in starting calibration thread");
+        close_drivers();
+        sensors->close();
+        return false;
+    }
+    
     return true;
 }
 
@@ -577,6 +759,20 @@ bool insituFTSensorCalibrationModule::interruptModule()
 
 bool insituFTSensorCalibrationModule::close()
 {
+    if( estimation_thread )
+    {
+        estimation_thread->stop();
+        delete estimation_thread;
+        estimation_thread = 0;
+    }
+    
+    if( sensors )
+    {
+        sensors->close();
+        delete sensors;
+        sensors = 0;
+    }
+    
     close_drivers();
     isTheRobotInReturnPoint.close();
     return true;

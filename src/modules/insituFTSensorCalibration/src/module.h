@@ -45,6 +45,8 @@
 
 #include "insituFTSensorCalibration_IDLServer.h"
 
+#include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
+
 
 using namespace std;
 using namespace yarp::os;
@@ -170,6 +172,12 @@ class insituFTSensorCalibrationModule: public RFModule
 
     enum { GRID_VISIT, GRID_MAPPING_WITH_RETURN } mode;
     FTSensorCalibrationStatus status;
+    
+    /** estimation thread */
+    insituFTSensorCalibrationThread * estimation_thread;
+    
+    /** sensor interface */
+    yarpWbi::yarpWholeBodySensors      * sensors;
 
     /* RPC handling */
     insituFTRpcHandler rpc_handler;

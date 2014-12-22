@@ -57,7 +57,6 @@ int main(int argc, char * argv[])
     yarp::os::ResourceFinder rf;
     rf.setVerbose (true);
     rf.setDefaultConfigFile ("yarpWholeBodyInterface.ini");
-//     rf.setDefaultContext ("icubGazeboSim");
 
     Property options;
     options.fromCommand(argc,argv);
