@@ -32,6 +32,10 @@ ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 TARGET_LINK_LIBRARIES(${PROJECTNAME} iDyn
                                      ${YARP_LIBRARIES})
 
-INSTALL(TARGETS ${PROJECTNAME} DESTINATION $ENV{ICUB_DIR}/bin)
+if(WIN32)
+    INSTALL_TARGETS(/bin/Release ${PROJECTNAME})
+else(WIN32)
+    INSTALL_TARGETS(/bin ${PROJECTNAME})
+endif(WIN32)
 
 add_subdirectory(app)
