@@ -134,11 +134,17 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 
     //List of joints used in the dynamic model of the robot
     IDList RobotDynamicModelJoints;
-    std::string RobotDynamicModelJointsListName = "ROBOT_DYNAMIC_MODEL_JOINTS";
-    if( !loadIdListFromConfig(RobotDynamicModelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
+    std::string RobotDynamicModelJointsListName = rf.check("torque_estimation_joint_list",
+                                                           yarp::os::Value("ROBOT_DYNAMIC_MODEL_JOINTS"),
+                                                           "Name of the list of joint used for torque estimation").asString().c_str();
+
+    if( !loadIdListFromConfig(RobotDynamicModelJointsListName,rf,RobotDynamicModelJoints) )
     {
-        fprintf(stderr, "[ERR] wholeBodyDynamicsModule: impossible to load wbiId joint list with name %s\n",RobotDynamicModelJointsListName.c_str());
-        return false;
+        if( !loadIdListFromConfig(RobotDynamicModelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
+        {
+            fprintf(stderr, "[ERR] wholeBodyDynamicsModule: impossible to load wbiId joint list with name %s\n",RobotDynamicModelJointsListName.c_str());
+            return false;
+        }
     }
 
     //Add to the options some wbd specific stuff
