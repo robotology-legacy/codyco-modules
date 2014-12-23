@@ -46,10 +46,15 @@ int main (int argc, char * argv[])
     if (rf.check("help"))
     {
         cout<< "Possible parameters"                                                                                                                                          << endl << endl;
-        cout<< "\t--context          :Where to find an user defined .ini file within $ICUB_ROOT/app e.g. /" << DEFAULT_YARP_CONTEXT << "conf"                                   <<endl;
-        cout<< "\t--from             :Name of the file.ini to be used for calibration."                                                                                       <<endl;
-        cout<< "\t--rate             :Period used by the module. Default set to 10ms."                                                                                        <<endl;
-        cout<< "\t--robot            :Robot name. Set to icub by default."                                                                                  <<endl;
+        cout<< "\t--context          :Where to find an user defined .ini e.g. /" << DEFAULT_YARP_CONTEXT << "conf"                                   <<endl;
+        cout<< "\t--from             :Name of the file .ini user for configuration."                                                                                       <<endl;
+        cout<< "\t--wbi_conf_file    :Name of the configuration file used for yarpWholeBodyInterface ." << endl;
+        cout<< "\t--torque_estimation_joint_list :Name of the wbi::IDList of joint to use in torqueEstimation." << endl
+            << "\t                                This list should be found in the wholeBodyDynamicsTree configuration file" << endl
+            << "\t                                or in the yarpWholeBodyInterface configuration file. Default: ROBOT_DYNAMIC_MODEL_JOINTS" << endl;
+
+        cout<< "\t--robot            :Robot name, overload the setting contained in the wbi_conf_file configuration file."                                                                                  <<endl;
+        cout<< "\t--rate             :Period (in ms) used by the module. Default set to 10ms."                                                                                        <<endl;
         cout<< "\t--name             :Prefix of the ports opened by the module. Set to the module name by default, i.e. wholeBodyDynamicsTree."                                      <<endl;
         cout<< "\t--enable_w0_dw0/disable_w0_dw0    :Enable/disable use of angular velocity and acceleration measured from the IMU (default: disabled)." << endl;
         cout<< "\t--autoconnect      :Autoconnect torques port for low-level torque feedback. " << endl;

@@ -16,6 +16,8 @@
 #include <Eigen/LU>
 
 #include <iostream>
+#include <cmath>
+
 using namespace std;
 
 namespace yarp {
@@ -119,7 +121,7 @@ bool JointTorqueControl::loadGains(yarp::os::Searchable& config)
         motorParameters[j].kcp            = bot.find("stictionUp").asList()->get(j).asDouble();
         motorParameters[j].kcn            = bot.find("stictionDown").asList()->get(j).asDouble();
         motorParameters[j].kv             = bot.find("bemf").asList()->get(j).asDouble();
-        motorParameters[j].coulombVelThr  = bot.find("coulombVelThr").asList()->get(j).asDouble();
+        motorParameters[j].coulombVelThr  = bot.find("coulombVelThr").asList()->get(j).asDouble();        
     }
 
     return true;
@@ -222,6 +224,7 @@ bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
 //         std::cerr << coupling_matrix.fromJointTorquesToMotorTorques << std::endl;
         
         coupling_matrix.fromJointTorquesToMotorTorques       = coupling_matrix.fromJointVelocitiesToMotorVelocities.transpose();
+        coupling_matrix.fromMotorTorquesToJointTorques       = coupling_matrix.fromJointTorquesToMotorTorques.inverse();
         coupling_matrix.fromJointVelocitiesToMotorVelocities = coupling_matrix.fromJointVelocitiesToMotorVelocities.inverse();
         // Compute the torque coupling matrix
         
@@ -275,6 +278,17 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     couplingMatricesFirmware.reset(this->axes);
     ret = ret &&  this->loadCouplingMatrix(config,couplingMatricesFirmware,"FROM_MOTORS_TO_JOINTS_KINEMATIC_COUPLINGS_FIRMWARE");
     
+    std::cerr << "Kinematic coupling matrix " << std::endl;
+    std::cerr << couplingMatrices.fromJointTorquesToMotorTorques << std::endl;
+    std::cerr << "Torque coupling matrix " << std::endl;
+    std::cerr << couplingMatrices.fromJointVelocitiesToMotorVelocities << std::endl;
+    
+    std::cerr << "Kinematic coupling matrix firmware" << std::endl;
+    std::cerr << couplingMatricesFirmware.fromJointTorquesToMotorTorques << std::endl;
+    std::cerr << "Torque coupling matrix firmware" << std::endl;
+    std::cerr << couplingMatricesFirmware.fromJointVelocitiesToMotorVelocities << std::endl;
+    std::cerr << "Torque coupling matrix firmware (inverse)" << std::endl;
+    std::cerr << couplingMatricesFirmware.fromMotorTorquesToJointTorques << std::endl;
     
     if( ret )
     {
@@ -697,7 +711,7 @@ void JointTorqueControl::readStatus()
 /** Saturate the specified value between the specified bounds. */
 inline double saturation(const double x, const double xMax, const double xMin)
 {
-    return x>xMax ? xMax : (x<xMin?xMin:x);
+    return x > xMax ? xMax : (x < xMin ? xMin : x);
 }
 
 double JointTorqueControl::sign(double x)
@@ -738,18 +752,18 @@ void JointTorqueControl::run()
     // Evaluation of coulomb friction with smoothing close to zero velocity
     double coulombFriction;
     double coulombVelThre;
-    for(int j=0; j < this->axes; j++ )
+    for (int j = 0; j < this->axes; j++)
     {
         MotorParameters motorParam = motorParameters[j];
         coulombVelThre =  motorParam.coulombVelThr;
         //viscous friction compensation
-        if (fabs(measuredMotorVelocities[j])>coulombVelThre)
+        if (fabs(measuredMotorVelocities[j]) >= coulombVelThre)
         {
             coulombFriction = sign(measuredMotorVelocities[j]);
         }
         else
         {
-            coulombFriction = pow(measuredMotorVelocities[j]/coulombVelThre,3);
+            coulombFriction = pow(measuredMotorVelocities[j] / coulombVelThre, 3);
         }
         if (measuredMotorVelocities[j] > 0 )
         {
@@ -760,14 +774,16 @@ void JointTorqueControl::run()
             coulombFriction = motorParam.kcn*coulombFriction;
         }
 
-        jointControlOutput[j] = motorParam.kff*jointControlOutput[j] + motorParam.kv*measuredMotorVelocities[j] + coulombFriction ;
+        jointControlOutput[j] = motorParam.kff*jointControlOutput[j] + motorParam.kv*measuredMotorVelocities[j] + coulombFriction;
     }
 
-    toEigen(jointControlOutput) = couplingMatricesFirmware.fromJointTorquesToMotorTorques.inverse() * toEigen(jointControlOutput);
+    toEigen(jointControlOutput) = couplingMatricesFirmware.fromMotorTorquesToJointTorques * toEigen(jointControlOutput);
     
     for(int j = 0; j < this->axes; j++)
     {
         jointControlOutput[j] = saturation(jointControlOutput[j], jointTorqueLoopGains[j].max_pwm, -jointTorqueLoopGains[j].max_pwm);
+        if (isnan(jointControlOutput[j]) || isinf(jointControlOutput[j])) //this is not std c++. Supported in C99 and C++11
+            jointControlOutput[j] = 0;
     }    
 
 
