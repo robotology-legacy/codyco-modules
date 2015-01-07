@@ -33,7 +33,7 @@ robotDriver::robotDriver() {
     icub_dyn = new iCub::iDyn::iCubWholeBody(tag);
 }
 
-yarp::sig::Matrix robotDriver::compute_tranformations (actionStruct act) {
+yarp::sig::Matrix robotDriver::compute_transformations (actionStruct act) {
     for (int i=0; i<6; i++) {
         icub_dyn->lowerTorso->left->setAng(i,act.q_left_leg[i]);
         icub_dyn->lowerTorso->right->setAng(i,act.q_right_leg[i]);
@@ -41,6 +41,10 @@ yarp::sig::Matrix robotDriver::compute_tranformations (actionStruct act) {
         icub_dyn->lowerTorso->right->setDAng(i,0.0);
         icub_dyn->lowerTorso->left->setD2Ang(i,0.0);
         icub_dyn->lowerTorso->right->setD2Ang(i,0.0);
+    }
+    for (int i=0; i<3; i++) {
+        icub_dyn->lowerTorso->up->setAng(i, act.q_torso[i]);
+        icub_dyn->lowerTorso->up->setD2Ang(i,0.0);
     }
 
     yarp::sig::Matrix Hl= icub_dyn->lowerTorso->HLeft  * icub_dyn->lowerTorso->left->getH();
@@ -98,7 +102,7 @@ bool robotDriver::init() {
     if (this->drv_ll->isValid() && this->drv_rl->isValid() && this->drv_to->isValid())
         connected = this->drv_ll->view(ipos_ll) && this->drv_ll->view(ienc_ll) && this->drv_ll->view(ipid_ll) && this->drv_ll->view(icmd_ll) && this->drv_ll->view(idir_ll) &&
                     this->drv_rl->view(ipos_rl) && this->drv_rl->view(ienc_rl) && this->drv_rl->view(ipid_rl) && this->drv_rl->view(icmd_rl) && this->drv_rl->view(idir_rl) &&
-                    this->drv_to->view(ipos_to) && this->drv_to->view(ienc_to) && this->drv_to->view(ipid_to) && this->drv_to->view(icmd_to);
+                    this->drv_to->view(ipos_to) && this->drv_to->view(ienc_to) && this->drv_to->view(ipid_to) && this->drv_to->view(icmd_to) && this->drv_to->view(idir_to);
     else
         connected=false;
 
@@ -114,10 +118,10 @@ bool robotDriver::init() {
             delete this->drv_rl;
             this->drv_rl=0;
         }
-        if (drv_to)
+        if (this->drv_to)
         {
-            delete drv_to;
-            drv_to=0;
+            delete this->drv_to;
+            this->drv_to=0;
         }
     }
 

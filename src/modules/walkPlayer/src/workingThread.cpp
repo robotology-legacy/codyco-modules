@@ -48,13 +48,16 @@ bool WorkingThread::execute_joint_command(int j)
 
     double *ll = actions.action_vector[j].q_left_leg;
     double *rl = actions.action_vector[j].q_right_leg;
-    double encs_ll[6]; double spd_ll[6]; double spd_to[3];
-    double encs_rl[6]; double spd_rl[6]; double encs_to[3];
+    double *to = actions.action_vector[j].q_torso;
+    double encs_ll[6]; double spd_ll[6];
+    double encs_rl[6]; double spd_rl[6];
+    double encs_to[3]; double spd_to[3];
     int    modes[6];
-    double to[3];
-    to[0] = 0.0;
-    to[1] = 0.0;
-    to[2] = -6.0;
+    int    modes_to[3];
+//     double to[3];
+//     to[0] = 0.0;
+//     to[1] = 0.0;
+//     to[2] = -6.0;
 
     if (j==0)
     {
@@ -69,9 +72,10 @@ bool WorkingThread::execute_joint_command(int j)
             spd_rl[i] = fabs(encs_rl[i]-rl[i])/4.0;
         }
 
-        spd_to[0] = fabs(encs_to[0]-to[0])/4.0;
-        spd_to[1] = fabs(encs_to[1]-to[1])/4.0;
-        spd_to[2] = fabs(encs_to[2]-to[2])/4.0;
+        for (int i=0; i<3; i++)
+        {
+            spd_to[i] = fabs(encs_to[i] - to[i]/4.0);
+        }
 
         driver->ipos_ll->setRefSpeeds(spd_ll);
         driver->ipos_rl->setRefSpeeds(spd_rl);
@@ -80,11 +84,14 @@ bool WorkingThread::execute_joint_command(int j)
         driver->ipos_to->positionMove(to);
 
         for (int i=0; i< 6; i++) modes[i] = VOCAB_CM_POSITION;
+        for (int i=0; i< 3; i++) modes_to[i] = VOCAB_CM_POSITION;
         driver->icmd_ll->setControlModes(modes);
         driver->icmd_rl->setControlModes(modes);
+        driver->icmd_to->setControlModes(modes_to);
 
         driver->ipos_ll->positionMove(ll);
         driver->ipos_rl->positionMove(rl);
+        driver->ipos_to->positionMove(to);
 
         cout << "going to to home position" << endl;
 
@@ -96,27 +103,34 @@ bool WorkingThread::execute_joint_command(int j)
     {
         int mode_l =0;
         int mode_r =0;
+        int mode_t =0;
         driver->icmd_rl->getControlMode(0,&mode_r);
         driver->icmd_ll->getControlMode(0,&mode_l);
+        driver->icmd_to->getControlMode(0,&mode_t);
         if (mode_l != VOCAB_CM_POSITION_DIRECT &&
-            mode_r != VOCAB_CM_POSITION_DIRECT)
+            mode_r != VOCAB_CM_POSITION_DIRECT &&
+            mode_t != VOCAB_CM_POSITION_DIRECT)
         {
             //change control mode
-            for (int i=0; i< 6; i++) modes[i] = VOCAB_CM_POSITION_DIRECT;
+            for (int i=0; i < 6; i++) modes[i] = VOCAB_CM_POSITION_DIRECT;
+            for (int i=0; i < 3; i++) modes_to[i] = VOCAB_CM_POSITION_DIRECT;
             driver->icmd_ll->setControlModes(modes);
             driver->icmd_rl->setControlModes(modes);
+            driver->icmd_to->setControlModes(modes_to);
         }
 
         driver->idir_ll->setPositions(ll);
         driver->idir_rl->setPositions(rl);
+        driver->idir_to->setPositions(to);
     }
     return true;
 }
 
 void WorkingThread::compute_and_send_command(int j)
 {
+    // TODO Remove compute_transformations as it seems to be unused.
     //compute the transformations
-    Matrix m = driver->compute_tranformations(actions.action_vector[j]);
+    Matrix m = driver->compute_transformations(actions.action_vector[j]);
     //prepare the output command
     Bottle& bot = port_command_out.prepare();
     bot.clear();
@@ -134,25 +148,36 @@ void WorkingThread::compute_and_send_command(int j)
     //send the joints angles on debug port
     double *ll = actions.action_vector[j].q_left_leg;
     double *rl = actions.action_vector[j].q_right_leg;
+    double *to = actions.action_vector[j].q_torso;
     Bottle& bot2 = this->port_command_joints_ll.prepare();
     bot2.clear();
     Bottle& bot3 = this->port_command_joints_rl.prepare();
     bot3.clear();
+    Bottle& bot4 = this->port_command_joints_to.prepare();
+    bot4.clear();
     bot2.addInt(actions.action_vector[j].counter);
     bot2.addDouble(actions.action_vector[j].time);
     bot3.addInt(actions.action_vector[j].counter);
     bot3.addDouble(actions.action_vector[j].time);
+    bot4.addInt(actions.action_vector[j].counter);;
+    bot4.addDouble(actions.action_vector[j].time);
     for (int ix=0;ix<6;ix++)
     {
         bot2.addDouble(ll[ix]);
         bot3.addDouble(rl[ix]);
     }
+    for (int ix=0; ix < 3; ix++)
+    {
+        bot4.addDouble(to[ix]);
+    }
     this->port_command_joints_ll.write();
     this->port_command_joints_rl.write();
+    this->port_command_joints_to.write();
 }
 
 void WorkingThread::run()
 {
+//     cout << "About to enter mutex wait in WorkingThread::run " << endl;
     mutex.wait();
     double current_time = yarp::os::Time::now();
     static double last_time = yarp::os::Time::now();

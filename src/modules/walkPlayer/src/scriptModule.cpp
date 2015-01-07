@@ -76,7 +76,6 @@ bool scriptModule::configure(ResourceFinder &rf) {
         cout << "Thread period set to "<<period<< "ms" <<endl;
         thread.setRate(period);
     }
-    cout << "Using parameters:" << endl << rf.toString() << endl;
 
     if (rf.check("speed")==true)
     {
@@ -84,7 +83,6 @@ bool scriptModule::configure(ResourceFinder &rf) {
         cout << "speed factor set to "<<fact<< endl;
         thread.speed_factor= fact;
     }
-    cout << "Using parameters:" << endl << rf.toString() << endl;
 
     //*** open the position file
     cout << "opening file..." << endl;
@@ -113,6 +111,7 @@ bool scriptModule::configure(ResourceFinder &rf) {
         return false;
     }
 
+    cout << "Using parameters:" << endl << rf.toString() << endl;
     cout << "module successfully configured. ready." << endl;
     return true;
 }

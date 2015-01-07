@@ -43,7 +43,7 @@ public:
 
 public:
     robotDriver();
-    yarp::sig::Matrix compute_tranformations (actionStruct act);
+    yarp::sig::Matrix compute_transformations (actionStruct act);
     bool configure(const yarp::os::Property &copt);
     bool init();
     ~robotDriver();
