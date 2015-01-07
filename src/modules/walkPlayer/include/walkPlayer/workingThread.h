@@ -5,27 +5,28 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Semaphore.h>
 #include <yarp/os/Time.h>
+#include <math.h>
+
 #include "robotDriver.h"
 #include "actionClass.h"
 
-#include <math.h>
 
 
 
 // ******************** THE THREAD
-class WorkingThread: public yarp::os::RateThread
-{
+class WorkingThread: public yarp::os::RateThread {
 private:
 
 public:
-    robotDriver                     *driver;
-    actionClass                     actions;
-    yarp::os::Semaphore             mutex;
+    robotDriver                               *driver;
+    actionClass                               actions;
+    yarp::os::Semaphore                       mutex;
     yarp::os::BufferedPort<yarp::os::Bottle>  port_command_out;
     yarp::os::BufferedPort<yarp::os::Bottle>  port_command_joints_ll;
     yarp::os::BufferedPort<yarp::os::Bottle>  port_command_joints_rl;
-    bool                            enable_execute_joint_command;
-    double                          speed_factor;
+    yarp::os::BufferedPort<yarp::os::Bottle>  port_command_joints_to;
+    bool                                      enable_execute_joint_command;
+    double                                    speed_factor;
 
     WorkingThread(int period=5);
     ~WorkingThread();

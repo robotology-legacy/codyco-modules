@@ -21,6 +21,7 @@ bool scriptModule::configure(ResourceFinder &rf) {
         name="/walkPlayer";
 
     contextPath=rf.getContextPath().c_str();
+    fprintf(stderr,"||| contextPath: %s\n", contextPath.c_str());
 
     rpcPort.open((name+"/rpc").c_str());
     attach(rpcPort);
@@ -94,7 +95,7 @@ bool scriptModule::configure(ResourceFinder &rf) {
     if (rf.check("filename2")==true)
     {
         string filename = rf.find("filename2").asString().c_str();
-        if (!thread.actions.openFile2(filename))
+        if (!thread.actions.openFile2(filename, rf))
         {
             cout << "ERROR: Unable to parse file" << endl;
             return false;
@@ -106,9 +107,7 @@ bool scriptModule::configure(ResourceFinder &rf) {
         return false;
     }
 
-
-
-    cout << "module succesffully configured. ready." << endl;
+    cout << "module successfully configured. ready." << endl;
     return true;
 }
 

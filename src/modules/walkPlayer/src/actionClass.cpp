@@ -14,13 +14,17 @@ actionClass::actionClass()
     current_status = ACTION_IDLE;
 }
 
-bool actionClass::openFile2(std::string filename)
+bool actionClass::openFile2(std::string filename, yarp::os::ResourceFinder &rf)
 {
     bool ret = true;
     FILE* data_file1 = 0;
     FILE* data_file2 = 0;
     string filename_left= filename + "_left" + ".txt";
     string filename_right= filename + "_right" + ".txt";
+    filename_left  = rf.findFile(filename_left);
+    filename_right = rf.findFile(filename_right);
+    fprintf(stderr, "||| File found for left leg: %s\n", filename_left.c_str());
+    fprintf(stderr, "||| File found for right leg: %s\n", filename_right.c_str());
     data_file1 = fopen(filename_left.c_str(),"r");
     data_file2 = fopen(filename_right.c_str(),"r");
     if (data_file1!=NULL && data_file2!=NULL)

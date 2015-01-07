@@ -13,6 +13,7 @@ WorkingThread::WorkingThread(int period): RateThread(period)
     port_command_out.open("/walkPlayer/port_command_out:o");
     port_command_joints_ll.open("/walkPlayer/port_joints_ll:o");
     port_command_joints_rl.open("/walkPlayer/port_joints_rl:o");
+    port_command_joints_to.open("/walkPlaer/port_joints_to:o");
     speed_factor = 1.0;
 }
 
@@ -24,6 +25,8 @@ WorkingThread::~WorkingThread()
     port_command_joints_ll.close();
     port_command_joints_rl.interrupt();
     port_command_joints_rl.close();
+    port_command_joints_to.interrupt();
+    port_command_joints_to.close();
 }
 
 void WorkingThread::attachRobotDriver(robotDriver *p)
@@ -153,27 +156,27 @@ void WorkingThread::run()
     mutex.wait();
     double current_time = yarp::os::Time::now();
     static double last_time = yarp::os::Time::now();
-    if (actions.current_status==ACTION_IDLE)
+    if (actions.current_status == ACTION_IDLE)
     {
         last_time = current_time;
     }
-    else if (actions.current_status==ACTION_RUNNING)
+    else if (actions.current_status == ACTION_RUNNING)
     {
         //if it's not the last action
         size_t last_action = actions.action_vector.size();
         if (last_action == 0)
         {
             printf("sequence empty!\n");
-            actions.current_status=ACTION_IDLE;
+            actions.current_status = ACTION_IDLE;
             return;
         }
 
-        if (actions.current_action < last_action-1)
+        if (actions.current_action < last_action - 1)
         {
-            //if enough time is passed from the previous action
-            double duration = actions.action_vector[actions.current_action+1].time -
+            //if enough time has passed from the previous action
+            double duration = actions.action_vector[actions.current_action + 1].time -
                                 actions.action_vector[actions.current_action].time;
-            if (current_time-last_time > duration*speed_factor)
+            if (current_time - last_time > duration*speed_factor)
             {
                 last_time = current_time;
                 actions.current_action++;
@@ -188,13 +191,13 @@ void WorkingThread::run()
         else
         {
             printf("sequence complete\n");
-            actions.current_status=ACTION_IDLE;
+            actions.current_status = ACTION_IDLE;
         }
     }
-    else if (actions.current_status==ACTION_START)
+    else if (actions.current_status == ACTION_START)
     {
         compute_and_send_command(0);
-        actions.current_status=ACTION_RUNNING;
+        actions.current_status = ACTION_RUNNING;
     }
     else
     {
