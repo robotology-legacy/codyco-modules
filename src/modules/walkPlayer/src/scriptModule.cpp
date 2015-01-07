@@ -35,11 +35,17 @@ bool scriptModule::configure(ResourceFinder &rf) {
         cerr<<"Error configuring position controller, check parameters"<<endl;
         return false;
     }
+    else {
+        cout << "Configuration done." << endl;
+    }
 
     if (!robot.init())
     {
         cerr<<"Error cannot connect to remote ports"<<endl;
         return false;
+    }
+    else {
+        cout << "Initialization done." << endl;
     }
 
     //*** attach the robot driver to the thread and start it

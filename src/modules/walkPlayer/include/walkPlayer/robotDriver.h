@@ -38,6 +38,7 @@ public:
     yarp::dev::IControlMode2    *icmd_to;
     yarp::dev::IPositionDirect  *idir_rl;
     yarp::dev::IPositionDirect  *idir_ll;
+    yarp::dev::IPositionDirect  *idir_to;
     iCub::iDyn::iCubWholeBody   *icub_dyn;
 
 public:

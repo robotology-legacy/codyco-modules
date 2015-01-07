@@ -13,7 +13,7 @@ WorkingThread::WorkingThread(int period): RateThread(period)
     port_command_out.open("/walkPlayer/port_command_out:o");
     port_command_joints_ll.open("/walkPlayer/port_joints_ll:o");
     port_command_joints_rl.open("/walkPlayer/port_joints_rl:o");
-    port_command_joints_to.open("/walkPlaer/port_joints_to:o");
+    port_command_joints_to.open("/walkPlayer/port_joints_to:o");
     speed_factor = 1.0;
 }
 
