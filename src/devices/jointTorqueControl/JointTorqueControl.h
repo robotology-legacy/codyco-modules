@@ -11,6 +11,8 @@
 
 #include <yarp/os/Mutex.h>
 #include <yarp/os/RateThread.h>
+#include <yarp/os/BufferedPort.h>
+#include <yarp/os/Bottle.h>
 
 #include <yarp/sig/Vector.h>
 
@@ -153,7 +155,8 @@ private:
 
     CouplingMatrices couplingMatrices;
     CouplingMatrices couplingMatricesFirmware;
-
+    yarp::os::BufferedPort<yarp::os::Bottle> outputPort;
+    
     //joint torque loop methods & attributes
     yarp::os::Mutex controlMutex; ///< mutex protecting control variables
     yarp::os::Mutex interfacesMutex; ///< mutex  protecting interfaces
