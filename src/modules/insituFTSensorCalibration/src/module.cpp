@@ -158,13 +158,19 @@ bool insituFTSensorCalibrationThread::threadInit()
     cutOffFrequency = rf.check("estimation_cutoff_frequency",yarp::os::Value(0.3),"Cutoff frequency (in Hz) of the first order filter used to filter measurements").asDouble();
 
     int nrOfAccelerometers=1;
-    if(this->readAccelerationFromSensor)
+    if(!this->readAccelerationFromSensor)
     {
         sensorFrameIndex = -10;
         bool ret = model->getFrameList().idToIndex(wbi::ID(sensorFrame),sensorFrameIndex);
         if( !ret || sensorFrameIndex < 0 )
         {
             yError("insituFTSensorCalibrationThread: error in getting frame %s from URDF",sensorFrame.c_str());
+            return false;
+        }
+
+        if( model->getDoFs() != sensors->getSensorList(wbi::SENSOR_ENCODER).size() )
+        {
+            yError("insituFTSensorCalibrationThread: error model has %d dof, but sensors has %d encodes",model->getDoFs(), sensors->getSensorList(wbi::SENSOR_ENCODER).size());
             return false;
         }
         joint_positions.resize(model->getDoFs());
@@ -270,8 +276,8 @@ void insituFTSensorCalibrationThread::run()
         smooth_ft[0] = ft_filters[0]->filt(raw_ft[0]);
 
 
-        //yDebug("Accelerometer read: %s \n",smooth_acc[0].toString().c_str());
-        //yDebug("FT read: %s \n",smooth_ft[0].toString().c_str());
+        yDebug("Accelerometer read: %s \n",smooth_acc[0].toString().c_str());
+        yDebug("FT read: %s \n",smooth_ft[0].toString().c_str());
 
 
         estimator_datasets[currentDataset]->addMeasurements(InSituFTCalibration::wrapVec(smooth_ft[0]),InSituFTCalibration::wrapVec(smooth_acc[0]));
@@ -815,7 +821,8 @@ bool insituFTSensorCalibrationModule::configure(ResourceFinder &rf)
             rf.findGroup("sensor_to_calibrate").get(1).asList()->find("accelerometer").isString()) ||
           ( rf.findGroup("sensor_to_calibrate").get(1).asList()->check("acceleration_from_geometry") &&
             rf.findGroup("sensor_to_calibrate").get(1).asList()->find("acceleration_from_geometry").isString() &&
-            rf.findGroup("sensor_to_calibrate").get(1).asList()->check("joints_in_geometry") )
+            rf.findGroup("sensor_to_calibrate").get(1).asList()->check("joints_in_geometry") &&
+            rf.findGroup("sensor_to_calibrate").get(1).asList()->find("joints_in_geometry").isList() )
          ) )
     {
         yError("Failure in loading sensors_to_calibrate group");
@@ -850,12 +857,12 @@ bool insituFTSensorCalibrationModule::configure(ResourceFinder &rf)
     }
     else
     {
-        int nr_of_joints_in_geometry = rf.findGroup("sensor_to_calibrate").get(1).find("joints_in_geometry").asList()->size()-1;
+        int nr_of_joints_in_geometry = rf.findGroup("sensor_to_calibrate").get(1).find("joints_in_geometry").asList()->size();
         //Add joints in geometry model to the interface
         for(int i = 0; i < nr_of_joints_in_geometry; i++ )
         {
             bool success;
-            wbi::ID enc_id = rf.findGroup("sensor_to_calibrate").get(1).find("joints_in_geometry").asList()->get(1+i).asString().c_str();
+            wbi::ID enc_id = rf.findGroup("sensor_to_calibrate").get(1).find("joints_in_geometry").asList()->get(i).asString().c_str();
             success = sensors->addSensor(wbi::SENSOR_ENCODER,enc_id);
             success = success && model->addJoint(enc_id);
             if( !success )
@@ -864,6 +871,10 @@ bool insituFTSensorCalibrationModule::configure(ResourceFinder &rf)
                 std::cout << rf.findGroup("sensor_to_calibrate").get(1).toString() << std::endl;
                 close_drivers();
                 return false;
+            }
+            else
+            {
+                yInfo("Success in adding joint %s to the wbi", enc_id.toString().c_str());
             }
         }
     }
