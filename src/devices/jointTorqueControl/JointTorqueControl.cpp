@@ -791,7 +791,7 @@ void JointTorqueControl::run()
     bool false_value = false;
     if( !contains(hijackingTorqueControl,false_value) )
     {
-        this->setRefOutputs(jointControlOutput.data());
+         this->setRefOutputs(jointControlOutput.data());
     }
     else
     {
@@ -799,7 +799,8 @@ void JointTorqueControl::run()
         {
             if( hijackingTorqueControl[j] )
             {
-                this->setRefOutput(j,jointControlOutput[j]);
+//                  std::cerr << "[" << j << "] " << jointControlOutput[j] << "\n";
+                 this->setRefOutput(j,jointControlOutput[j]);
             }
         }
     }
