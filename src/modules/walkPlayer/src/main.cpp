@@ -1,7 +1,8 @@
 /*
  * Copyright (C)2013  iCub Facility - Istituto Italiano di Tecnologia
  * Author: Marco Randazzo
- * email:  marco.randazzo@iit.it
+ * Last Modified by: Jorhabib Eljaik
+ * email:  marco.randazzo@iit.it, jorhabib.eljaik@iit.it
  * website: www.robotcub.org
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -27,8 +28,6 @@
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Thread.h>
 
-// #include <iCub/iDyn/iDyn.h>
-// #include <iCub/iDyn/iDynBody.h>
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 
 #include "constants.h"

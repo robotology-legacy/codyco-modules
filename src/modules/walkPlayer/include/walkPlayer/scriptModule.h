@@ -2,18 +2,11 @@
 #define SCRIPTMODULE_H
 
 #include <yarp/os/RFModule.h>
-// #include <yarp/dev/IPositionControl.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
 #include <yarp/dev/PolyDriver.h>
-// #include <yarp/dev/IEncoders.h>
-// #include <yarp/dev/IControlMode2.h>
-// #include <yarp/dev/IPositionDirect.h>
 #include <yarp/math/Math.h>
 #include <yarp/sig/Matrix.h>
 #include <yarp/os/Property.h>
-
-// #include <iCub/iDyn/iDyn.h>
-// #include <iCub/iDyn/iDynBody.h>
 #include <iostream>
 #include <string.h>
 

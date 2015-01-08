@@ -47,25 +47,48 @@ bool WorkingThread::execute_joint_command(int j)
     if (!driver) return false;
     if (!enable_execute_joint_command) return true;
 
+//     cout << "Action vector is: " << endl;
+//     cout << "Joint angles to set for left leg: " << endl;
+//     for (int i = 0; i < 6; i++) {
+//        actions.action_vector[j].q_left_leg[i]  = CTRL_RAD2DEG * actions.action_vector[j].q_left_leg[i];
+//        actions.action_vector[j].q_right_leg[i] = CTRL_RAD2DEG * actions.action_vector[j].q_right_leg[i];
+//        cout << actions.action_vector[j].q_left_leg[i] << "  ";
+//     }
+//     cout << endl << endl;
+//
+//     cout << "Joint angles to set for torso: " << endl;
+//     for (int i = 0; i < 3; i++) {
+//         actions.action_vector[j].q_torso[i] = CTRL_RAD2DEG * actions.action_vector[j].q_torso[i];
+//         cout << actions.action_vector[j].q_torso[i] << "  ";
+//     }
+//     cout << endl;
+
+    double tmp_q_left_leg[6];
+    double tmp_q_right_leg[6];
+    double tmp_q_torso[3];
+
     cout << "Action vector is: " << endl;
     cout << "Joint angles to set for left leg: " << endl;
+
     for (int i = 0; i < 6; i++) {
-       actions.action_vector[j].q_left_leg[i]  = CTRL_RAD2DEG * actions.action_vector[j].q_left_leg[i];
-       actions.action_vector[j].q_right_leg[i] = CTRL_RAD2DEG * actions.action_vector[j].q_right_leg[i];
-       cout << actions.action_vector[j].q_left_leg[i] << "  ";
+       tmp_q_left_leg[i]  = CTRL_RAD2DEG * actions.action_vector[j].q_left_leg[i];
+       tmp_q_right_leg[i] = CTRL_RAD2DEG * actions.action_vector[j].q_right_leg[i];
+       cout << tmp_q_left_leg[i] << "  ";
     }
     cout << endl << endl;
 
     cout << "Joint angles to set for torso: " << endl;
     for (int i = 0; i < 3; i++) {
-        actions.action_vector[j].q_torso[i] = CTRL_RAD2DEG * actions.action_vector[j].q_torso[i];
-        cout << actions.action_vector[j].q_torso[i] << "  ";
+        tmp_q_torso[i] = CTRL_RAD2DEG * actions.action_vector[j].q_torso[i];
+        cout << tmp_q_torso[i] << "  ";
     }
     cout << endl;
 
-    double *ll = actions.action_vector[j].q_left_leg;
-    double *rl = actions.action_vector[j].q_right_leg;
-    double *to = actions.action_vector[j].q_torso;
+
+
+    double *ll = tmp_q_left_leg;
+    double *rl = tmp_q_right_leg;
+    double *to = tmp_q_torso;
 
     // Swapping torso joints
     double tmp;
@@ -130,7 +153,7 @@ bool WorkingThread::execute_joint_command(int j)
 
         cout << "going to home position" << endl;
 
-        yarp::os::Time::delay(6.0);
+        yarp::os::Time::delay(10.0);
         cout << "done" << endl;
 
     }
