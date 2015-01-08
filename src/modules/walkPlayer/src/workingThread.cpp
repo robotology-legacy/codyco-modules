@@ -47,44 +47,18 @@ bool WorkingThread::execute_joint_command(int j)
     if (!driver) return false;
     if (!enable_execute_joint_command) return true;
 
-//     cout << "Action vector is: " << endl;
-//     cout << "Joint angles to set for left leg: " << endl;
-//     for (int i = 0; i < 6; i++) {
-//        actions.action_vector[j].q_left_leg[i]  = CTRL_RAD2DEG * actions.action_vector[j].q_left_leg[i];
-//        actions.action_vector[j].q_right_leg[i] = CTRL_RAD2DEG * actions.action_vector[j].q_right_leg[i];
-//        cout << actions.action_vector[j].q_left_leg[i] << "  ";
-//     }
-//     cout << endl << endl;
-//
-//     cout << "Joint angles to set for torso: " << endl;
-//     for (int i = 0; i < 3; i++) {
-//         actions.action_vector[j].q_torso[i] = CTRL_RAD2DEG * actions.action_vector[j].q_torso[i];
-//         cout << actions.action_vector[j].q_torso[i] << "  ";
-//     }
-//     cout << endl;
-
     double tmp_q_left_leg[6];
     double tmp_q_right_leg[6];
     double tmp_q_torso[3];
 
-    cout << "Action vector is: " << endl;
-    cout << "Joint angles to set for left leg: " << endl;
-
     for (int i = 0; i < 6; i++) {
        tmp_q_left_leg[i]  = CTRL_RAD2DEG * actions.action_vector[j].q_left_leg[i];
        tmp_q_right_leg[i] = CTRL_RAD2DEG * actions.action_vector[j].q_right_leg[i];
-       cout << tmp_q_left_leg[i] << "  ";
     }
-    cout << endl << endl;
 
-    cout << "Joint angles to set for torso: " << endl;
     for (int i = 0; i < 3; i++) {
         tmp_q_torso[i] = CTRL_RAD2DEG * actions.action_vector[j].q_torso[i];
-        cout << tmp_q_torso[i] << "  ";
     }
-    cout << endl;
-
-
 
     double *ll = tmp_q_left_leg;
     double *rl = tmp_q_right_leg;
@@ -96,26 +70,11 @@ bool WorkingThread::execute_joint_command(int j)
     to[0] = to[2];
     to[2] = tmp;
 
-    cout << "Current counter: " << endl;
-    cout << actions.action_vector[j].counter << endl << endl;
-
-    cout << "Current time: " << endl;
-    cout << actions.action_vector[j].time << endl << endl;
-
-    cout << "Left leg joint angles: " << endl;
-    for (int i=0; i<6; i++)
-        cout << ll[i] << "  ";
-    cout << endl;
-
     double encs_ll[6]; double spd_ll[6];
     double encs_rl[6]; double spd_rl[6];
     double encs_to[3]; double spd_to[3];
     int    modes[6];
     int    modes_to[3];
-//     double to[3];
-//     to[0] = 0.0;
-//     to[1] = 0.0;
-//     to[2] = -6.0;
 
     if (j==0)
     {
@@ -153,7 +112,7 @@ bool WorkingThread::execute_joint_command(int j)
 
         cout << "going to home position" << endl;
 
-        yarp::os::Time::delay(10.0);
+        yarp::os::Time::delay(5.0);
         cout << "done" << endl;
 
     }
@@ -235,7 +194,6 @@ void WorkingThread::compute_and_send_command(int j)
 
 void WorkingThread::run()
 {
-//     cout << "About to enter mutex wait in WorkingThread::run " << endl;
     mutex.wait();
     double current_time = yarp::os::Time::now();
     static double last_time = yarp::os::Time::now();
