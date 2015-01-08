@@ -60,6 +60,7 @@ int main (int argc, char * argv[])
         cout<< "\t--autoconnect      :Autoconnect torques port for low-level torque feedback. " << endl;
         cout<< "\t--assume_fixed     :Use a link as a kinematic root in estimation (assuming a constant gravity). Possible options: (root_link, l_sole, r_sole)." <<endl;
         cout<< "\t--assume_fixed_base_calibration :Use the root link as a kinematic root  in calibration (assuming constant gravity)." <<endl;
+        cout<< "\t--output_clean_ft  :Output the measure of the FT sensors without offset in set of ports." << endl;
         cout<< "\t--min_taxel  threshold   :Filter input skin contacts: if the activated taxels are lower than the threshold, ignore the contact (default: 1)." << endl;
         cout<< "\t--zmp_test_left/--zmp_test_right : Enable debug port outputs for robot single standing on left or right foot. " << endl;
         cout<< "\t\t this option will open the following ports: " << endl;
