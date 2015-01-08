@@ -1,4 +1,5 @@
 #include <yarp/os/RateThread.h>
+#include <iCub/ctrl/math.h>
 #include "workingThread.h"
 
 using namespace yarp::math;
@@ -46,9 +47,43 @@ bool WorkingThread::execute_joint_command(int j)
     if (!driver) return false;
     if (!enable_execute_joint_command) return true;
 
+    cout << "Action vector is: " << endl;
+    cout << "Joint angles to set for left leg: " << endl;
+    for (int i = 0; i < 6; i++) {
+       actions.action_vector[j].q_left_leg[i]  = CTRL_RAD2DEG * actions.action_vector[j].q_left_leg[i];
+       actions.action_vector[j].q_right_leg[i] = CTRL_RAD2DEG * actions.action_vector[j].q_right_leg[i];
+       cout << actions.action_vector[j].q_left_leg[i] << "  ";
+    }
+    cout << endl << endl;
+
+    cout << "Joint angles to set for torso: " << endl;
+    for (int i = 0; i < 3; i++) {
+        actions.action_vector[j].q_torso[i] = CTRL_RAD2DEG * actions.action_vector[j].q_torso[i];
+        cout << actions.action_vector[j].q_torso[i] << "  ";
+    }
+    cout << endl;
+
     double *ll = actions.action_vector[j].q_left_leg;
     double *rl = actions.action_vector[j].q_right_leg;
     double *to = actions.action_vector[j].q_torso;
+
+    // Swapping torso joints
+    double tmp;
+    tmp = to[0];
+    to[0] = to[2];
+    to[2] = tmp;
+
+    cout << "Current counter: " << endl;
+    cout << actions.action_vector[j].counter << endl << endl;
+
+    cout << "Current time: " << endl;
+    cout << actions.action_vector[j].time << endl << endl;
+
+    cout << "Left leg joint angles: " << endl;
+    for (int i=0; i<6; i++)
+        cout << ll[i] << "  ";
+    cout << endl;
+
     double encs_ll[6]; double spd_ll[6];
     double encs_rl[6]; double spd_rl[6];
     double encs_to[3]; double spd_to[3];
@@ -61,7 +96,7 @@ bool WorkingThread::execute_joint_command(int j)
 
     if (j==0)
     {
-        //the first step
+        //the whole body joint trajectory for the first step is done with min jerk controllers rather than position direct
         driver->ienc_ll->getEncoders(encs_ll);
         driver->ienc_rl->getEncoders(encs_rl);
         driver->ienc_to->getEncoders(encs_to);
@@ -74,7 +109,7 @@ bool WorkingThread::execute_joint_command(int j)
 
         for (int i=0; i<3; i++)
         {
-            spd_to[i] = fabs(encs_to[i] - to[i]/4.0);
+            spd_to[i] = fabs(encs_to[i] - to[i])/4.0;
         }
 
         driver->ipos_ll->setRefSpeeds(spd_ll);
@@ -93,7 +128,7 @@ bool WorkingThread::execute_joint_command(int j)
         driver->ipos_rl->positionMove(rl);
         driver->ipos_to->positionMove(to);
 
-        cout << "going to to home position" << endl;
+        cout << "going to home position" << endl;
 
         yarp::os::Time::delay(6.0);
         cout << "done" << endl;

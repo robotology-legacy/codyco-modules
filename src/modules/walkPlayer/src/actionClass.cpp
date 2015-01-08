@@ -105,8 +105,9 @@ bool actionClass::openFile(std::string filename)
 bool actionClass::parseCommandLine2(char* command_line1, char* command_line2, char* command_line3, int line)
 {
         actionStruct tmp_action;
-        int ret1 = sscanf(command_line1, "%d %lf    %lf %lf %lf %lf %lf %lf  ",
-        &tmp_action.counter,
+        double tmp_double = 0;
+        int ret1 = sscanf(command_line1, "%lf %lf    %lf %lf %lf %lf %lf %lf  ",
+        &tmp_double,
         &tmp_action.time,
 
         &tmp_action.q_left_leg[0],
@@ -117,8 +118,14 @@ bool actionClass::parseCommandLine2(char* command_line1, char* command_line2, ch
         &tmp_action.q_left_leg[5]
         );
 
-        int ret2 = sscanf(command_line2, "%d %lf    %lf %lf %lf %lf %lf %lf  ",
-        &tmp_action.counter,
+//         cout << "actionClass::parseCommandLine2 says:  Counter: " << tmp_action.counter << " Time: " << tmp_action.time << endl;
+//         cout << "q_left_leg: \n";
+//         for (int i=0 ; i<6; i++)
+//             cout << tmp_action.q_left_leg[i] << "  ";
+//         cout << endl;
+
+        int ret2 = sscanf(command_line2, "%lf %lf    %lf %lf %lf %lf %lf %lf  ",
+        &tmp_double,
         &tmp_action.time,
 
         &tmp_action.q_right_leg[0],
@@ -129,17 +136,23 @@ bool actionClass::parseCommandLine2(char* command_line1, char* command_line2, ch
         &tmp_action.q_right_leg[5]
         );
 
-        int ret3 = sscanf(command_line3, "%d %lf    %lf %lf %lf  ",
-        &tmp_action.counter,
+        // TODO Third column repeats the second one!! This must be removed
+        double trash = 0;
+        int ret3 = sscanf(command_line3, "%lf %lf %lf    %lf %lf %lf  ",
+        &tmp_double,
         &tmp_action.time,
+
+        &trash,
 
         &tmp_action.q_torso[0],
         &tmp_action.q_torso[1],
         &tmp_action.q_torso[2]
         );
 
+        tmp_action.counter = static_cast<int> (tmp_double);
 
-        if (ret1 == 8 && ret2 == 8 && ret3 == 5)
+        // TODO ret3 should be 5 instead of 6
+        if (ret1 == 8 && ret2 == 8 && ret3 == 6)
         {
             action_vector.push_back(tmp_action);
             return true;
