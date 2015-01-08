@@ -23,7 +23,7 @@
 #include <yarp/os/Stamp.h>
 #include <yarp/os/Random.h>
 #include <yarp/os/LockGuard.h>
-#include <yarp/os/Log.h>
+#include <yarp/os/LogStream.h>
 
 #include <yarp/sig/Vector.h>
 #include <yarp/dev/PolyDriver.h>
@@ -31,6 +31,9 @@
 #include <yarp/dev/ControlBoardInterfaces.h>
 
 #include <yarp/os/idl/WireTypes.h>
+
+#include <yarp/os/LogStream.h>
+
 
 #include <iostream>
 #include <sstream>
@@ -47,6 +50,9 @@
 #include "module.h"
 
 #include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyModel.h>
+
+#include <Eigen/Dense>
 
 YARP_DECLARE_DEVICES(icubmod)
 
@@ -105,17 +111,24 @@ bool FTCalibrationDataset::fromBottle(const yarp::os::Bottle &bot)
 }
 
 insituFTSensorCalibrationThread::insituFTSensorCalibrationThread(wbi::iWholeBodySensors* _sensors,
-                                                                 ResourceFinder& _rf): RateThread(1000),
+                                                                 wbi::iWholeBodyModel*   _model,
+                                                                 ResourceFinder& _rf,
+                                                                 bool _readAccelerationFromSensor,
+                                                                 std::string _sensor_frame
+                                                                ): RateThread(1000),
                                                                                        sensors(_sensors),
+                                                                                       model(_model),
                                                                                        rf(_rf),
-                                                                                       status(WAITING_NEW_DATASET_START)
+                                                                                       status(WAITING_NEW_DATASET_START),
+                                                                                       currentDataset(-1),
+                                                                                       readAccelerationFromSensor(_readAccelerationFromSensor),
+                                                                                       sensorFrame(_sensor_frame),
+                                                                                       sensorFrameIndex(-10)
 {
 }
 
 bool insituFTSensorCalibrationThread::threadInit()
 {
-    int nrOfFTSensors=1;
-    int nrOfAccelerometers=1;
 
     //Load datasets
     yarp::os::Bottle & bot = rf.findGroup("training_datasets");
@@ -141,7 +154,27 @@ bool insituFTSensorCalibrationThread::threadInit()
     double estimation_period = rf.check("estimation_period",yarp::os::Value(20.0),"Period (in ms) of sensor readings").asDouble();
     setRate((int)estimation_period);
     yInfo("Estimation period of insitu calibration is: %lf",estimation_period);
+
     cutOffFrequency = rf.check("estimation_cutoff_frequency",yarp::os::Value(0.3),"Cutoff frequency (in Hz) of the first order filter used to filter measurements").asDouble();
+
+    int nrOfAccelerometers=1;
+    if(!this->readAccelerationFromSensor)
+    {
+        sensorFrameIndex = -10;
+        bool ret = model->getFrameList().idToIndex(wbi::ID(sensorFrame),sensorFrameIndex);
+        if( !ret || sensorFrameIndex < 0 )
+        {
+            yError("insituFTSensorCalibrationThread: error in getting frame %s from URDF",sensorFrame.c_str());
+            return false;
+        }
+
+        if( model->getDoFs() != sensors->getSensorList(wbi::SENSOR_ENCODER).size() )
+        {
+            yError("insituFTSensorCalibrationThread: error model has %d dof, but sensors has %d encodes",model->getDoFs(), sensors->getSensorList(wbi::SENSOR_ENCODER).size());
+            return false;
+        }
+        joint_positions.resize(model->getDoFs());
+    }
 
     acc_filters.resize(nrOfAccelerometers,0);
     raw_acc.resize(nrOfAccelerometers,yarp::sig::Vector(3,0.0));
@@ -151,6 +184,7 @@ bool insituFTSensorCalibrationThread::threadInit()
         acc_filters[acc] = new iCub::ctrl::FirstOrderLowPassFilter(cutOffFrequency,getRate()*1000.0,raw_acc[acc]);
     }
 
+    int nrOfFTSensors=1;
     ft_filters.resize(nrOfFTSensors,0);
     raw_ft.resize(nrOfFTSensors,yarp::sig::Vector(6,0.0));
     smooth_ft.resize(nrOfFTSensors,yarp::sig::Vector(6,0.0));
@@ -180,6 +214,9 @@ bool insituFTSensorCalibrationThread::startDatasetAcquisition()
         return false;
     }
 
+
+    std::cout << "insituFTSensorCalibrationThread: starting acquisition of dataset "
+             << training_datasets[currentDataset].dataset_name << std::endl;
     estimator.addCalibrationDataset(training_datasets[currentDataset].dataset_name,
                                     training_datasets[currentDataset].added_mass);
 
@@ -196,6 +233,13 @@ bool insituFTSensorCalibrationThread::stopDatasetAcquisition()
     return true;
 }
 
+bool insituFTSensorCalibrationThread::finishCalibration()
+{
+    yarp::os::LockGuard guard(threadMutex);
+    status = CALIBRATION_TERMINATED;
+    return true;
+}
+
 void insituFTSensorCalibrationThread::run()
 {
     yarp::os::LockGuard guard(threadMutex);
@@ -204,21 +248,48 @@ void insituFTSensorCalibrationThread::run()
     {
         double * p_timestamp = 0;
         bool blocking = false;
-        sensors->readSensor(wbi::SENSOR_ACCELEROMETER,0,raw_acc[0].data(),p_timestamp,blocking);
+
+        if( this->readAccelerationFromSensor )
+        {
+            sensors->readSensor(wbi::SENSOR_ACCELEROMETER,0,raw_acc[0].data(),p_timestamp,blocking);
+        }
+        else
+        {
+            sensors->readSensors(wbi::SENSOR_ENCODER,joint_positions.data(),p_timestamp,blocking);
+
+            wbi::Frame H_world_sensor;
+            wbi::Rotation R_sensor_world;
+            model->computeH(joint_positions.data(),wbi::Frame::identity(),sensorFrameIndex,H_world_sensor);
+            R_sensor_world = H_world_sensor.R.getInverse();
+
+            Eigen::Vector3d g;
+            g.setZero();
+            g[2] = -9.78;
+
+            Eigen::Map< Eigen::Vector3d >(raw_acc[0].data()) =
+            Eigen::Map< Eigen::Matrix<double,3,3,Eigen::RowMajor> >(R_sensor_world.data)*g;
+        }
+
         sensors->readSensor(wbi::SENSOR_FORCE_TORQUE,0,raw_ft[0].data(),p_timestamp,blocking);
 
         smooth_acc[0] = acc_filters[0]->filt(raw_acc[0]);
         smooth_ft[0] = ft_filters[0]->filt(raw_ft[0]);
 
+
+        yDebug("Accelerometer read: %s \n",smooth_acc[0].toString().c_str());
+        yDebug("FT read: %s \n",smooth_ft[0].toString().c_str());
+
+
         estimator_datasets[currentDataset]->addMeasurements(InSituFTCalibration::wrapVec(smooth_ft[0]),InSituFTCalibration::wrapVec(smooth_acc[0]));
-    } 
+    }
     else if( status == WAITING_NEW_DATASET_START )
     {
         static int run_count = 0;
-        if( run_count % 100 == 0 )
+        if( run_count % 50 == 0 )
         {
-            printf("InSitu FT sensor calibration: waiting for new dataset start.");
-            printf("Mount the desired added mass and start new dataset collection via the rpc port.");
+            printf("InSitu FT sensor calibration: waiting for new dataset start.\n");
+            printf("Mount the desired added mass and start new dataset collection via the rpc port.\n");
+            fflush(stdout);
         }
         run_count++;
     }
@@ -304,10 +375,18 @@ bool convert_onedotfifteen(const double indecimal, std::string & hex_out)
 
     double quant = round((pow(2,15))*indecimal); // Quantize to 15 bits and round to the nearest integer;                                            // cast to 2-complement integer
     int16_t quant_int = (int16_t) quant;
-    sprintf(buf,"%x",quant_int);   // Convert the decimal number to hex string
+    sprintf(buf,"%04X",quant_int);   // Convert the decimal number to hex string
     std::string hex_buf = buf;
     //return only the last four hex digits, useful if int16_t is not actually 16bit
+
+    if( hex_buf.size() < 4 )
+    {
+        return false;
+    }
+
     hex_out = hex_buf.substr(hex_buf.size()-4,4);
+
+    return true;
 }
 
 /**
@@ -376,6 +455,8 @@ bool writeFTsensCalibrationToFile(std::string         filename,
     }
 
     myfile.close();
+
+    return true;
 }
 
 
@@ -422,7 +503,7 @@ void insituFTSensorCalibrationModule::close_drivers()
     std::map<string,PolyDriver*>::iterator it;
     if(jointInitialized)
     {
-        for(int jnt=0; jnt < originalPositions.size(); jnt++ )
+        for(int jnt=0; jnt < (int)originalPositions.size(); jnt++ )
         {
             std::string part = controlledJoints[jnt].part_name;
             int axis = controlledJoints[jnt].axis_number;
@@ -456,7 +537,7 @@ bool insituFTSensorCalibrationModule::configure(ResourceFinder &rf)
         robotName = "icub";
     }
 
-    std::string mode_cfg = rf.find("mode").asString().c_str();
+    std::string mode_cfg = rf.find("excitationMode").asString().c_str();
     if( mode_cfg == "gridVisit" )
     {
         mode = GRID_VISIT;
@@ -467,7 +548,7 @@ bool insituFTSensorCalibrationModule::configure(ResourceFinder &rf)
     }
     else
     {
-        std::cerr << "[ERR] insituFTSensorCalibrationModule: mode " << mode_cfg << "is not available, exiting." << std::endl;
+        std::cerr << "[ERR] insituFTSensorCalibrationModule: excitationMode " << mode_cfg << "is not available, exiting." << std::endl;
         std::cerr << "[ERR] existing modes: random, gridVisit, gridMappingWithReturn" << std::endl;
     }
 
@@ -706,40 +787,114 @@ bool insituFTSensorCalibrationModule::configure(ResourceFinder &rf)
 
 
     isTheRobotInReturnPoint.open("/"+moduleName+"/isTheRobotInReturnPoint:o");
-    
+
     status = WAITING_NEW_DATASET_START;
-    
+
     ///////////////////////////////////////////////
     //// LAUNCHING SENSOR READING
     ///////////////////////////////////////////////
     std::string wbi_conf_file;
     wbi_conf_file = rf.check("wbi_conf_file",yarp::os::Value("yarpWholeBodyInterface.ini"),"File used for the configuration of the use yarpWholeBodySensors").asString();
-    
+
     yarp::os::Property wbi_prop;
     std::string wbi_conf_file_name = rf.findFileByName(wbi_conf_file);
-    bool ret = wbi_prop.fromConfigFile(wbi_conf_file);
-    
+    std::cout << wbi_conf_file_name << std::endl;
+    bool ret = wbi_prop.fromConfigFile(wbi_conf_file_name);
+
     if( !ret )
     {
        yError("Failure in opening wbi configuration file");
        close_drivers();
        return false;
     }
-    
-    sensors = new yarpWbi::yarpWholeBodySensors(moduleName.c_str(),wbi_prop);
-    
-    if( !sensors->init() )
+
+    sensors = new yarpWbi::yarpWholeBodySensors((moduleName+"sensors").c_str(),wbi_prop);
+    model   = new yarpWbi::yarpWholeBodyModel((moduleName+"model").c_str(),wbi_prop);
+
+    //Add sensors
+    if( rf.findGroup("sensor_to_calibrate").isNull() ||
+        !(rf.findGroup("sensor_to_calibrate").get(1).isList()) ||
+        !(rf.findGroup("sensor_to_calibrate").get(1).asList()->check("ft_sensor")) ||
+        !(rf.findGroup("sensor_to_calibrate").get(1).asList()->find("ft_sensor").isString()) ||
+        !(
+          ((rf.findGroup("sensor_to_calibrate").get(1).asList()->check("accelerometer")) &&
+            rf.findGroup("sensor_to_calibrate").get(1).asList()->find("accelerometer").isString()) ||
+          ( rf.findGroup("sensor_to_calibrate").get(1).asList()->check("acceleration_from_geometry") &&
+            rf.findGroup("sensor_to_calibrate").get(1).asList()->find("acceleration_from_geometry").isString() &&
+            rf.findGroup("sensor_to_calibrate").get(1).asList()->check("joints_in_geometry") &&
+            rf.findGroup("sensor_to_calibrate").get(1).asList()->find("joints_in_geometry").isList() )
+         ) )
+    {
+        yError("Failure in loading sensors_to_calibrate group");
+        std::cout << rf.findGroup("sensor_to_calibrate").get(1).toString() << std::endl;
+        close_drivers();
+        return false;
+    }
+
+    bool readAccelerationFromSensor;
+    std::string sensor_frame;
+    if( rf.findGroup("sensor_to_calibrate").get(1).asList()->check("accelerometer") )
+    {
+        readAccelerationFromSensor = true;
+    }
+    else if( rf.findGroup("sensor_to_calibrate").get(1).asList()->check("acceleration_from_geometry") )
+    {
+        readAccelerationFromSensor = false;
+        sensor_frame = rf.findGroup("sensor_to_calibrate").get(1).asList()->find("acceleration_from_geometry").asString();
+    }
+    else
+    {
+        yError("Failure in loading sensors_to_calibrate group");
+        std::cout << rf.findGroup("sensor_to_calibrate").get(1).toString() << std::endl;
+        close_drivers();
+        return false;
+    }
+
+    if( readAccelerationFromSensor )
+    {
+        wbi::ID acc_id = rf.findGroup("sensor_to_calibrate").get(1).find("accelerometer").asString().c_str();
+        ret = ret && sensors->addSensor(wbi::SENSOR_ACCELEROMETER,acc_id);
+    }
+    else
+    {
+        int nr_of_joints_in_geometry = rf.findGroup("sensor_to_calibrate").get(1).find("joints_in_geometry").asList()->size();
+        //Add joints in geometry model to the interface
+        for(int i = 0; i < nr_of_joints_in_geometry; i++ )
+        {
+            bool success;
+            wbi::ID enc_id = rf.findGroup("sensor_to_calibrate").get(1).find("joints_in_geometry").asList()->get(i).asString().c_str();
+            success = sensors->addSensor(wbi::SENSOR_ENCODER,enc_id);
+            success = success && model->addJoint(enc_id);
+            if( !success )
+            {
+                yError("Failure in adding joint %s to the wbi", enc_id.toString().c_str());
+                std::cout << rf.findGroup("sensor_to_calibrate").get(1).toString() << std::endl;
+                close_drivers();
+                return false;
+            }
+            else
+            {
+                yInfo("Success in adding joint %s to the wbi", enc_id.toString().c_str());
+            }
+        }
+    }
+
+    wbi::ID FT_id = rf.findGroup("sensor_to_calibrate").get(1).find("ft_sensor").asString().c_str();
+
+    ret = ret && sensors->addSensor(wbi::SENSOR_FORCE_TORQUE,FT_id);
+
+    if( !ret || !sensors->init() || !model->init() )
     {
         yError("Failure in opening yarpWholeBodySensors interface");
         close_drivers();
         return false;
     }
-    
+
     ///////////////////////////////////////////////
     //// LAUNCHING ESTIMATION THREAD
     ///////////////////////////////////////////////
-    estimation_thread = new insituFTSensorCalibrationThread(sensors,rf);
-    
+    estimation_thread = new insituFTSensorCalibrationThread(sensors,model,rf,readAccelerationFromSensor,sensor_frame);
+
     if( ! estimation_thread->start() )
     {
         yError("Failure in starting calibration thread");
@@ -747,7 +902,7 @@ bool insituFTSensorCalibrationModule::configure(ResourceFinder &rf)
         sensors->close();
         return false;
     }
-    
+
     return true;
 }
 
@@ -765,14 +920,14 @@ bool insituFTSensorCalibrationModule::close()
         delete estimation_thread;
         estimation_thread = 0;
     }
-    
+
     if( sensors )
     {
         sensors->close();
         delete sensors;
         sensors = 0;
     }
-    
+
     close_drivers();
     isTheRobotInReturnPoint.close();
     return true;
@@ -789,7 +944,7 @@ bool insituFTSensorCalibrationModule::getNewDesiredPosition(yarp::sig::Vector & 
     {
         case GRID_VISIT:
         case GRID_MAPPING_WITH_RETURN:
-            if( next_desired_position >= 0 && next_desired_position < listOfDesiredPositions.size() )
+            if( next_desired_position >= 0 && next_desired_position < (int)listOfDesiredPositions.size() )
             {
                 desired_pos = listOfDesiredPositions[next_desired_position].pos;
                 desired_parked_time = listOfDesiredPositions[next_desired_position].waiting_time;
@@ -820,7 +975,7 @@ bool insituFTSensorCalibrationModule::updateModule()
     {
         //Check that all desired position have been reached
         bool dones=true;
-        for(int jnt=0; jnt < controlledJoints.size(); jnt++ )
+        for(int jnt=0; jnt < (int)controlledJoints.size(); jnt++ )
         {
             bool done=true;
             std::string part = controlledJoints[jnt].part_name;
@@ -853,18 +1008,40 @@ bool insituFTSensorCalibrationModule::updateModule()
         {
             elapsed_time = 0.0;
             //set a new position for the controlled joints
-            bool new_position_available = getNewDesiredPosition(commandedPositions,desired_waiting_time,is_desired_point_return_point);
+            bool new_position_available = getNewDesiredPosition(commandedPositions,
+                                                                desired_waiting_time,
+                                                                is_desired_point_return_point);
+
             if( !new_position_available )
             {
                 //no new position available, exiting
                 dataset_finish = true;
+            }
+            else
+            {
+                std::string dataset_name;
+                int dataset_index;
+                estimation_thread->getCurrentDataset(dataset_name, dataset_index);
+                std::cout << "[INFO] insituFTSensorCalibration: Reaching  position " << next_desired_position
+                          << " out of " << listOfDesiredPositions.size() << " positions "         << std::endl
+                          << "[INFO]                            for dataset " << dataset_name
+                          << " ( " << dataset_index+1 << " out of " << estimation_thread->getNrOfTrainingDatasets() << " ) " << std::endl;
+                for(int jnt=0; jnt < (int)controlledJoints.size(); jnt++ )
+                {
+                    std::string part = controlledJoints[jnt].part_name;
+                    int axis = controlledJoints[jnt].axis_number;
+
+
+                    std::cout  << "[INFO] insituFTSensorCalibration: Send desired position: " << commandedPositions[jnt] << " to joint " << part <<  " " << axis << std::endl;
+                    pos[part]->positionMove(axis,commandedPositions[jnt]);
+                }
             }
 
         }
 
         if( dataset_finish )
         {
-            status = WAITING_NEW_DATASET_START;
+            this->stopDatasetAcquisition();
         }
     }
 
@@ -882,6 +1059,33 @@ bool insituFTSensorCalibrationModule::startNewDatasetAcquisition()
     if( status == WAITING_NEW_DATASET_START )
     {
         status = COLLECTING_DATASET;
+        next_desired_position = 0;
+        estimation_thread->startDatasetAcquisition();
+    }
+    return true;
+}
+
+bool insituFTSensorCalibrationModule::stopDatasetAcquisition()
+{
+    if( status == COLLECTING_DATASET )
+    {
+        std::string dataset_name;
+        int dataset_index;
+        estimation_thread->getCurrentDataset(dataset_name, dataset_index);
+        estimation_thread->stopDatasetAcquisition();
+        if( dataset_index == estimation_thread->getNrOfTrainingDatasets()-1 )
+        {
+            //last dataset acquired
+            status = CALIBRATION_TERMINATED;
+            estimation_thread->writeCalibrationToFile("calib_matrix.dat");
+            this->stopModule();
+        }
+        else
+        {
+            status = WAITING_NEW_DATASET_START;
+            next_desired_position = 0;
+        }
+
     }
     return true;
 }

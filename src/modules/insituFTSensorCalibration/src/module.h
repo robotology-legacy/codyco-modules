@@ -46,7 +46,7 @@
 #include "insituFTSensorCalibration_IDLServer.h"
 
 #include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
-
+#include <yarpWholeBodyInterface/yarpWholeBodyModel.h>
 
 using namespace std;
 using namespace yarp::os;
@@ -88,7 +88,8 @@ class insituFTSensorCalibrationModule;
 enum FTSensorCalibrationStatus
 {
   COLLECTING_DATASET,
-  WAITING_NEW_DATASET_START
+  WAITING_NEW_DATASET_START,
+  CALIBRATION_TERMINATED
 };
 
 class insituFTRpcHandler : public insituFTSensorCalibration_IDLServer
@@ -116,6 +117,7 @@ private:
 
 
     wbi::iWholeBodySensors * sensors;
+    wbi::iWholeBodyModel   * model;
     yarp::os::ResourceFinder & rf;
     yarp::os::Mutex threadMutex;
 
@@ -129,9 +131,20 @@ private:
     std::vector<yarp::sig::Vector> raw_ft;
     std::vector<yarp::sig::Vector> smooth_ft;
 
+    // Accelerometer quantities
     std::vector<iCub::ctrl::FirstOrderLowPassFilter *> acc_filters;
     std::vector<yarp::sig::Vector> raw_acc;
     std::vector<yarp::sig::Vector> smooth_acc;
+
+    // Geometrical model quantities
+    bool readAccelerationFromSensor;
+    std::string sensorFrame;
+    int sensorFrameIndex;
+    yarp::sig::Vector joint_positions;
+
+    //Disable copy operators
+    insituFTSensorCalibrationThread(const insituFTSensorCalibrationThread& );
+    insituFTSensorCalibrationThread& operator=(const insituFTSensorCalibrationThread& );
 
 public:
     /**
@@ -140,8 +153,10 @@ public:
      * @param period          update period of the RateThread, passed to the setRate method of the thread [ms]
      */
     insituFTSensorCalibrationThread(wbi::iWholeBodySensors * _sensors,
-                                    yarp::os::ResourceFinder & _rf
-    );
+                                    wbi::iWholeBodyModel   * _models,
+                                    yarp::os::ResourceFinder & _rf,
+                                    bool readAccelerationFromSensor,
+                                    std::string sensor_frame);
 
     bool threadInit();
 
@@ -156,6 +171,8 @@ public:
     int getNrOfTrainingDatasets();
 
     bool stopDatasetAcquisition();
+
+    bool finishCalibration();
 
     bool getCalibration(yarp::sig::Matrix & mat);
     bool writeCalibrationToFile(std::string filename);
@@ -172,12 +189,15 @@ class insituFTSensorCalibrationModule: public RFModule
 
     enum { GRID_VISIT, GRID_MAPPING_WITH_RETURN } mode;
     FTSensorCalibrationStatus status;
-    
+
     /** estimation thread */
     insituFTSensorCalibrationThread * estimation_thread;
-    
+
     /** sensor interface */
     yarpWbi::yarpWholeBodySensors      * sensors;
+
+    /** model interface */
+    yarpWbi::yarpWholeBodyModel       * model;
 
     /* RPC handling */
     insituFTRpcHandler rpc_handler;
@@ -214,6 +234,10 @@ class insituFTSensorCalibrationModule: public RFModule
 
     // Dataset stuff
 
+        //Disable copy operators
+    insituFTSensorCalibrationModule(const insituFTSensorCalibrationModule& );
+    insituFTSensorCalibrationModule& operator=(const insituFTSensorCalibrationModule& );
+
 public:
     insituFTSensorCalibrationModule();
 
@@ -223,9 +247,11 @@ public:
     double getPeriod();
     bool getNewDesiredPosition(yarp::sig::Vector & desired_pos, double & desired_parked_time, bool & is_return_point);
     bool updateModule();
+    bool stopDatasetAcquisition();
 
     // Rpc methods
     bool startNewDatasetAcquisition();
+
 
 };
 

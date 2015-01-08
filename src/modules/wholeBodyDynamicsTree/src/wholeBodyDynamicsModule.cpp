@@ -272,6 +272,13 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         zmp_test_feet = "right";
     }
 
+    bool output_clean_ft = false;
+    if( rf.check("output_clean_ft") )
+    {
+        std::cout << "[INFO] output_clean_ft option found, enabling output of filtered and without offset ft sensors" << std::endl;
+        output_clean_ft = true;
+    }
+
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
     wbdThread = new wholeBodyDynamicsThread(moduleName,
                                             robotName,
@@ -282,7 +289,8 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
                                             fixed_base_calibration,
                                             fixed_link_calibration,
                                             zmp_test_mode,
-                                            zmp_test_feet
+                                            zmp_test_feet,
+                                            output_clean_ft
                                            );
     if(!wbdThread->start()){ std::cerr << "[ERR]" << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }
 

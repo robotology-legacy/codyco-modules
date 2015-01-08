@@ -186,9 +186,9 @@ public:
 
     //AXIS INFO
     virtual bool getAxisName(int axis, yarp::os::ConstString& name);
-    
+
     // IPidControl Interface methods
-    
+
     virtual bool setPid (int j, const Pid &pid);
     virtual bool setPids (const Pid *pids);
     virtual bool setReference (int j, double ref);
