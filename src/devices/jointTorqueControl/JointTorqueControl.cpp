@@ -290,6 +290,11 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     std::cerr << "Torque coupling matrix firmware (inverse)" << std::endl;
     std::cerr << couplingMatricesFirmware.fromMotorTorquesToJointTorques << std::endl;
     
+
+    std::string partName = config.find("partJTC").asString();
+    
+    ret = ret && outputPort.open(("/jtcNEW/" + partName + "/pwm:o").c_str());
+    
     if( ret )
     {
         ret = ret && this->start();
@@ -301,6 +306,7 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
 bool JointTorqueControl::close()
 {
     this->RateThread::stop();
+    outputPort.close();
     PassThroughControlBoard::close();
 }
 
@@ -705,7 +711,9 @@ void JointTorqueControl::readStatus()
     bool enc_time;
     this->PassThroughControlBoard::getEncodersTimed(measuredJointPositions.data(),measuredJointPositionsTimestamps.data());
     this->PassThroughControlBoard::getEncoderSpeeds(measuredJointVelocities.data());
+    measuredJointVelocities.zero();
     this->PassThroughControlBoard::getTorques(measuredJointTorques.data());
+    measuredJointTorques.resize(axes,10.0);
 }
 
 /** Saturate the specified value between the specified bounds. */
@@ -745,6 +753,7 @@ void JointTorqueControl::run()
         jointTorquesError[j]        = measuredJointTorques[j] - desiredJointTorques[j];
         integralState[j]            = saturation(integralState[j] + gains.ki*dt*jointTorquesError(j),gains.max_int,-gains.max_int);
         jointControlOutputBuffer[j] = desiredJointTorques[j] - gains.kp*jointTorquesError[j] - integralState[j];
+
     }
 
     toEigen(jointControlOutput) = couplingMatrices.fromJointTorquesToMotorTorques * toEigen(jointControlOutputBuffer);
@@ -777,6 +786,8 @@ void JointTorqueControl::run()
         jointControlOutput[j] = motorParam.kff*jointControlOutput[j] + motorParam.kv*measuredMotorVelocities[j] + coulombFriction;
     }
 
+    std::cerr << toEigen(jointControlOutput) << "\n";
+
     toEigen(jointControlOutput) = couplingMatricesFirmware.fromMotorTorquesToJointTorques * toEigen(jointControlOutput);
     
     for(int j = 0; j < this->axes; j++)
@@ -786,12 +797,19 @@ void JointTorqueControl::run()
             jointControlOutput[j] = 0;
     }    
 
+    yarp::os::Bottle& pwmBottle = outputPort.prepare();
+    pwmBottle.clear();
 
     //Send resulting output
     bool false_value = false;
     if( !contains(hijackingTorqueControl,false_value) )
     {
-         this->setRefOutputs(jointControlOutput.data());
+      for(int j=0; j < this->axes; j++)
+        {
+         pwmBottle.addDouble(jointControlOutput[j]);
+            
+        }
+         //this->setRefOutputs(jointControlOutput.data());
     }
     else
     {
@@ -799,12 +817,14 @@ void JointTorqueControl::run()
         {
             if( hijackingTorqueControl[j] )
             {
-//                  std::cerr << "[" << j << "] " << jointControlOutput[j] << "\n";
-                 this->setRefOutput(j,jointControlOutput[j]);
+                  //std::cerr << "[" << j << "] " << jointControlOutput[j] << "\n";
+                 //this->setRefOutput(j,jointControlOutput[j]);
+                 pwmBottle.addDouble(jointControlOutput[j]);
             }
         }
     }
-
+    
+    outputPort.write();
     controlMutex.unlock();
 }
 
