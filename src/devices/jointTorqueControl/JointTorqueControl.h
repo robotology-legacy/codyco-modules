@@ -11,8 +11,6 @@
 
 #include <yarp/os/Mutex.h>
 #include <yarp/os/RateThread.h>
-#include <yarp/os/BufferedPort.h>
-#include <yarp/os/Bottle.h>
 
 #include <yarp/sig/Vector.h>
 
@@ -92,7 +90,7 @@ struct CouplingMatrices
         fromJointTorquesToMotorTorques       = Eigen::MatrixXd::Identity(NDOF, NDOF);
         fromMotorTorquesToJointTorques       = Eigen::MatrixXd::Identity(NDOF, NDOF);
         fromJointVelocitiesToMotorVelocities = Eigen::MatrixXd::Identity(NDOF, NDOF);
-        
+
     }
 };
 
@@ -155,8 +153,7 @@ private:
 
     CouplingMatrices couplingMatrices;
     CouplingMatrices couplingMatricesFirmware;
-    yarp::os::BufferedPort<yarp::os::Bottle> outputPort;
-    
+
     //joint torque loop methods & attributes
     yarp::os::Mutex controlMutex; ///< mutex protecting control variables
     yarp::os::Mutex interfacesMutex; ///< mutex  protecting interfaces
@@ -176,17 +173,17 @@ private:
     yarp::sig::Vector                                integralState;
     yarp::sig::Vector                                jointControlOutput;
     yarp::sig::Vector                                jointControlOutputBuffer;
-    
+
 
     void readStatus();
 
     bool loadGains(yarp::os::Searchable& config);
 
     /**
-     * Load the coupling matrices from the group whose name 
-     *      is specified in group_name 
-     *                             
-     * 
+     * Load the coupling matrices from the group whose name
+     *      is specified in group_name
+     *
+     *
      */
     bool loadCouplingMatrix(yarp::os::Searchable& config,
                             CouplingMatrices & coupling_matrices,

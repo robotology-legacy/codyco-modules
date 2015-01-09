@@ -36,7 +36,7 @@ int findAndReturnIndex(std::vector<T>  &v, T &x)
     if(it == v.end())
     {
         return -1;
-    } 
+    }
     else
     {
         return std::distance(v.begin(), it);
@@ -121,7 +121,7 @@ bool JointTorqueControl::loadGains(yarp::os::Searchable& config)
         motorParameters[j].kcp            = bot.find("stictionUp").asList()->get(j).asDouble();
         motorParameters[j].kcn            = bot.find("stictionDown").asList()->get(j).asDouble();
         motorParameters[j].kv             = bot.find("bemf").asList()->get(j).asDouble();
-        motorParameters[j].coulombVelThr  = bot.find("coulombVelThr").asList()->get(j).asDouble();        
+        motorParameters[j].coulombVelThr  = bot.find("coulombVelThr").asList()->get(j).asDouble();
     }
 
     return true;
@@ -177,7 +177,7 @@ bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
             yarp::os::Bottle * axis_coupling_bot = couplings_bot.find(axis_name).asList();
 
             for(int coupled_motor=0; coupled_motor < axis_coupling_bot->size(); coupled_motor++ )
-            { 
+            {
                 if( !(axis_coupling_bot->get(coupled_motor).isList()) ||
                     !(axis_coupling_bot->get(coupled_motor).asList()->size() == 2) ||
                     !(axis_coupling_bot->get(coupled_motor).asList()->get(0).isDouble()) ||
@@ -187,7 +187,7 @@ bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
                         << axis_name << " is malformed" << std::endl;
                     return false;
                 }
-                
+
                 std::string motorName = axis_coupling_bot->get(coupled_motor).asList()->get(1).asString().c_str();
                 if( !contains(motorNames,motorName) )
                 {
@@ -195,20 +195,20 @@ bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
                     << motorName << " is not part of the motor list" << std::endl;
                     return false;
                 }
-                    
+
             }
-            
+
             // Zero the row of the selected axis in velocity coupling matrix
             coupling_matrix.fromJointVelocitiesToMotorVelocities.row(axis_id).setZero();
-            
+
             // Get non-zero coefficient of the coupling matrices
             for(int coupled_motor=0; coupled_motor < axis_coupling_bot->size(); coupled_motor++ )
             {
                 double coeff = axis_coupling_bot->get(coupled_motor).asList()->get(0).asDouble();
                 std::string motorName = axis_coupling_bot->get(coupled_motor).asList()->get(1).asString();
                 int motorIndex = findAndReturnIndex(motorNames,motorName);
-                
-                if( motorIndex == -1 ) 
+
+                if( motorIndex == -1 )
                 {
                     return false;
                 }
@@ -216,23 +216,23 @@ bool JointTorqueControl::loadCouplingMatrix(yarp::os::Searchable& config,
             }
 
         }
-        
+
         std::cerr << "loadCouplingMatrix DEBUG: " << std::endl;
         std::cerr << "loaded kinematic coupling matrix from group " << group_name << std::endl;
         std::cerr << coupling_matrix.fromJointVelocitiesToMotorVelocities << std::endl;
 //         std::cerr << "loaded torque coupling matrix from group " << group_name << std::endl;
 //         std::cerr << coupling_matrix.fromJointTorquesToMotorTorques << std::endl;
-        
+
         coupling_matrix.fromJointTorquesToMotorTorques       = coupling_matrix.fromJointVelocitiesToMotorVelocities.transpose();
         coupling_matrix.fromMotorTorquesToJointTorques       = coupling_matrix.fromJointTorquesToMotorTorques.inverse();
         coupling_matrix.fromJointVelocitiesToMotorVelocities = coupling_matrix.fromJointVelocitiesToMotorVelocities.inverse();
         // Compute the torque coupling matrix
-        
 
-         
+
+
         return true;
     }
-    
+
 }
 
 bool JointTorqueControl::open(yarp::os::Searchable& config)
@@ -268,33 +268,28 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
 
     //Load Gains configurations
     bool ret = this->loadGains(config);
-    
-    
-    //Load coupling matrices 
+
+
+    //Load coupling matrices
     couplingMatrices.reset(this->axes);
     ret = ret &&  this->loadCouplingMatrix(config,couplingMatrices,"FROM_MOTORS_TO_JOINTS_KINEMATIC_COUPLINGS");
-    
-      
+
+
     couplingMatricesFirmware.reset(this->axes);
     ret = ret &&  this->loadCouplingMatrix(config,couplingMatricesFirmware,"FROM_MOTORS_TO_JOINTS_KINEMATIC_COUPLINGS_FIRMWARE");
-    
+
     std::cerr << "fromJointTorquesToMotorTorques matrix" << std::endl;
     std::cerr << couplingMatrices.fromJointTorquesToMotorTorques << std::endl;
     std::cerr << "fromJointVelocitiesToMotorVelocities matrix " << std::endl;
     std::cerr << couplingMatrices.fromJointVelocitiesToMotorVelocities << std::endl;
-    
+
     std::cerr << "fromJointTorquesToMotorTorques matrix firmware" << std::endl;
     std::cerr << couplingMatricesFirmware.fromJointTorquesToMotorTorques << std::endl;
     std::cerr << "fromJointVelocitiesToMotorVelocities  matrix firmware" << std::endl;
     std::cerr << couplingMatricesFirmware.fromJointVelocitiesToMotorVelocities << std::endl;
     std::cerr << "fromMotorTorquesToJointTorques matrix firmware" << std::endl;
     std::cerr << couplingMatricesFirmware.fromMotorTorquesToJointTorques << std::endl;
-    
 
-    std::string partName = config.find("partJTC").asString();
-    
-    ret = ret && outputPort.open(("/jtcNEW/" + partName + "/pwm:o").c_str());
-    
     if( ret )
     {
         ret = ret && this->start();
@@ -306,7 +301,6 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
 bool JointTorqueControl::close()
 {
     this->RateThread::stop();
-    outputPort.close();
     PassThroughControlBoard::close();
 }
 
@@ -703,7 +697,7 @@ bool JointTorqueControl::setTorqueOffset(int j, double v)
 // HIJACKED CONTROL THREAD
 bool JointTorqueControl::threadInit()
 {
-    std::cerr << "Init " << std::endl;    
+    std::cerr << "Init " << std::endl;
 }
 
 void JointTorqueControl::readStatus()
@@ -712,7 +706,6 @@ void JointTorqueControl::readStatus()
     this->PassThroughControlBoard::getEncodersTimed(measuredJointPositions.data(),measuredJointPositionsTimestamps.data());
     this->PassThroughControlBoard::getEncoderSpeeds(measuredJointVelocities.data());
     this->PassThroughControlBoard::getTorques(measuredJointTorques.data());
-
 }
 
 /** Saturate the specified value between the specified bounds. */
@@ -742,7 +735,7 @@ void JointTorqueControl::run()
     this->readStatus();
     toEigen(measuredMotorVelocities) = couplingMatrices.fromJointVelocitiesToMotorVelocities * toEigen(measuredJointVelocities);
 
-   
+
     //Compute joint level torque PID
     double dt = this->getRate();
 
@@ -753,9 +746,8 @@ void JointTorqueControl::run()
         jointTorquesError[j]        = measuredJointTorques[j] - desiredJointTorques[j];
         integralState[j]            = saturation(integralState[j] + gains.ki*dt*jointTorquesError(j),gains.max_int,-gains.max_int);
         jointControlOutputBuffer[j] = desiredJointTorques[j] - gains.kp*jointTorquesError[j] - integralState[j];
-
     }
-    
+
     toEigen(jointControlOutput) = couplingMatrices.fromJointTorquesToMotorTorques * toEigen(jointControlOutputBuffer);
 
     // Evaluation of coulomb friction with smoothing close to zero velocity
@@ -785,31 +777,20 @@ void JointTorqueControl::run()
         jointControlOutput[j] = motorParam.kff*jointControlOutput[j] + motorParam.kv*measuredMotorVelocities[j] + coulombFriction;
     }
 
-     
     toEigen(jointControlOutput) = couplingMatricesFirmware.fromMotorTorquesToJointTorques * toEigen(jointControlOutput);
-    
-    
-    
+
     for(int j = 0; j < this->axes; j++)
     {
         jointControlOutput[j] = saturation(jointControlOutput[j], jointTorqueLoopGains[j].max_pwm, -jointTorqueLoopGains[j].max_pwm);
         if (isnan(jointControlOutput[j]) || isinf(jointControlOutput[j])) //this is not std c++. Supported in C99 and C++11
             jointControlOutput[j] = 0;
-    }    
-
-    yarp::os::Bottle& pwmBottle = outputPort.prepare();
-    pwmBottle.clear();
+    }
 
     //Send resulting output
     bool false_value = false;
     if( !contains(hijackingTorqueControl,false_value) )
     {
-      for(int j=0; j < this->axes; j++)
-        {
-         pwmBottle.addDouble(jointControlOutput[j]);
-            
-        }
-         //this->setRefOutputs(jointControlOutput.data());
+        this->setRefOutputs(jointControlOutput.data());
     }
     else
     {
@@ -817,14 +798,10 @@ void JointTorqueControl::run()
         {
             if( hijackingTorqueControl[j] )
             {
-                  //std::cerr << "[" << j << "] " << jointControlOutput[j] << "\n";
-                 //this->setRefOutput(j,jointControlOutput[j]);
-                 pwmBottle.addDouble(jointControlOutput[j]);
+                this->setRefOutput(j,jointControlOutput[j]);
             }
         }
     }
-    
-    outputPort.write();
     controlMutex.unlock();
 }
 
