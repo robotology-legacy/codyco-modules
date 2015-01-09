@@ -90,7 +90,7 @@ struct CouplingMatrices
         fromJointTorquesToMotorTorques       = Eigen::MatrixXd::Identity(NDOF, NDOF);
         fromMotorTorquesToJointTorques       = Eigen::MatrixXd::Identity(NDOF, NDOF);
         fromJointVelocitiesToMotorVelocities = Eigen::MatrixXd::Identity(NDOF, NDOF);
-        
+
     }
 };
 
@@ -173,17 +173,17 @@ private:
     yarp::sig::Vector                                integralState;
     yarp::sig::Vector                                jointControlOutput;
     yarp::sig::Vector                                jointControlOutputBuffer;
-    
+
 
     void readStatus();
 
     bool loadGains(yarp::os::Searchable& config);
 
     /**
-     * Load the coupling matrices from the group whose name 
-     *      is specified in group_name 
-     *                             
-     * 
+     * Load the coupling matrices from the group whose name
+     *      is specified in group_name
+     *
+     *
      */
     bool loadCouplingMatrix(yarp::os::Searchable& config,
                             CouplingMatrices & coupling_matrices,
