@@ -278,16 +278,16 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     couplingMatricesFirmware.reset(this->axes);
     ret = ret &&  this->loadCouplingMatrix(config,couplingMatricesFirmware,"FROM_MOTORS_TO_JOINTS_KINEMATIC_COUPLINGS_FIRMWARE");
     
-    std::cerr << "Kinematic coupling matrix " << std::endl;
+    std::cerr << "fromJointTorquesToMotorTorques matrix" << std::endl;
     std::cerr << couplingMatrices.fromJointTorquesToMotorTorques << std::endl;
-    std::cerr << "Torque coupling matrix " << std::endl;
+    std::cerr << "fromJointVelocitiesToMotorVelocities matrix " << std::endl;
     std::cerr << couplingMatrices.fromJointVelocitiesToMotorVelocities << std::endl;
     
-    std::cerr << "Kinematic coupling matrix firmware" << std::endl;
+    std::cerr << "fromJointTorquesToMotorTorques matrix firmware" << std::endl;
     std::cerr << couplingMatricesFirmware.fromJointTorquesToMotorTorques << std::endl;
-    std::cerr << "Torque coupling matrix firmware" << std::endl;
+    std::cerr << "fromJointVelocitiesToMotorVelocities  matrix firmware" << std::endl;
     std::cerr << couplingMatricesFirmware.fromJointVelocitiesToMotorVelocities << std::endl;
-    std::cerr << "Torque coupling matrix firmware (inverse)" << std::endl;
+    std::cerr << "fromMotorTorquesToJointTorques matrix firmware" << std::endl;
     std::cerr << couplingMatricesFirmware.fromMotorTorquesToJointTorques << std::endl;
     
 
@@ -711,9 +711,8 @@ void JointTorqueControl::readStatus()
     bool enc_time;
     this->PassThroughControlBoard::getEncodersTimed(measuredJointPositions.data(),measuredJointPositionsTimestamps.data());
     this->PassThroughControlBoard::getEncoderSpeeds(measuredJointVelocities.data());
-    measuredJointVelocities.zero();
     this->PassThroughControlBoard::getTorques(measuredJointTorques.data());
-    measuredJointTorques.resize(axes,10.0);
+
 }
 
 /** Saturate the specified value between the specified bounds. */
@@ -743,6 +742,7 @@ void JointTorqueControl::run()
     this->readStatus();
     toEigen(measuredMotorVelocities) = couplingMatrices.fromJointVelocitiesToMotorVelocities * toEigen(measuredJointVelocities);
 
+   
     //Compute joint level torque PID
     double dt = this->getRate();
 
@@ -755,7 +755,7 @@ void JointTorqueControl::run()
         jointControlOutputBuffer[j] = desiredJointTorques[j] - gains.kp*jointTorquesError[j] - integralState[j];
 
     }
-
+    
     toEigen(jointControlOutput) = couplingMatrices.fromJointTorquesToMotorTorques * toEigen(jointControlOutputBuffer);
 
     // Evaluation of coulomb friction with smoothing close to zero velocity
@@ -782,13 +782,13 @@ void JointTorqueControl::run()
         {
             coulombFriction = motorParam.kcn*coulombFriction;
         }
-
         jointControlOutput[j] = motorParam.kff*jointControlOutput[j] + motorParam.kv*measuredMotorVelocities[j] + coulombFriction;
     }
 
-    std::cerr << toEigen(jointControlOutput) << "\n";
-
+     
     toEigen(jointControlOutput) = couplingMatricesFirmware.fromMotorTorquesToJointTorques * toEigen(jointControlOutput);
+    
+    
     
     for(int j = 0; j < this->axes; j++)
     {
