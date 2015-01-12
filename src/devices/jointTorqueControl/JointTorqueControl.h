@@ -106,11 +106,13 @@ struct MotorParameters
     double kcn;
     double coulombVelThr; ///<  joint vel (deg/s) at which Coulomb friction is completely compensate
     double kff;
+    double frictionCompensation;
 
     void reset()
     {
         kff = kv = kcp = kcn = 0.0;
         coulombVelThr = 0.0;
+        frictionCompensation = 0;
     }
 };
 
@@ -173,7 +175,6 @@ private:
     yarp::sig::Vector                                integralState;
     yarp::sig::Vector                                jointControlOutput;
     yarp::sig::Vector                                jointControlOutputBuffer;
-
 
     void readStatus();
 

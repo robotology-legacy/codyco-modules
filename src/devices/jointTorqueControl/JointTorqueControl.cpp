@@ -56,7 +56,7 @@ void JointTorqueControl::stopHijackingTorqueControl(int j)
 
 
 JointTorqueControl::JointTorqueControl():
-                    PassThroughControlBoard(), RateThread(10)
+                    PassThroughControlBoard(), RateThread(10)         
 {
 }
 
@@ -100,6 +100,7 @@ bool JointTorqueControl::loadGains(yarp::os::Searchable& config)
     gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"stictionDown",this->axes);
     gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"bemf",this->axes);
     gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"coulombVelThr",this->axes);
+    gains_ok = gains_ok && checkVectorExistInConfiguration(bot,"frictionCompensation",this->axes);
 
 
     if( !gains_ok )
@@ -122,6 +123,13 @@ bool JointTorqueControl::loadGains(yarp::os::Searchable& config)
         motorParameters[j].kcn            = bot.find("stictionDown").asList()->get(j).asDouble();
         motorParameters[j].kv             = bot.find("bemf").asList()->get(j).asDouble();
         motorParameters[j].coulombVelThr  = bot.find("coulombVelThr").asList()->get(j).asDouble();
+        motorParameters[j].frictionCompensation  = bot.find("frictionCompensation").asList()->get(j).asDouble();
+        if (motorParameters[j].frictionCompensation > 1 || motorParameters[j].frictionCompensation < 0) {
+            motorParameters[j].frictionCompensation = 0;
+            yWarning("[TRQ_PIDS] frictionCompensation parameter is outside the admissible range [0, 1]. FrictionCompensation reset to 0.0");
+        }
+        
+        
     }
 
     return true;
@@ -264,7 +272,7 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     jointControlOutputBuffer.resize(axes,0.0);
 
     //Start control thread
-    this->setRate(config.check("controlPeriod",0.01,"update period of the torque control thread").asDouble());
+    this->setRate(config.check("controlPeriod",10,"update period of the torque control thread (ms)").asInt());
 
     //Load Gains configurations
     bool ret = this->loadGains(config);
@@ -698,6 +706,7 @@ bool JointTorqueControl::setTorqueOffset(int j, double v)
 bool JointTorqueControl::threadInit()
 {
     std::cerr << "Init " << std::endl;
+    return true;
 }
 
 void JointTorqueControl::readStatus()
@@ -729,26 +738,37 @@ inline Eigen::Map<Eigen::MatrixXd> toEigen(yarp::sig::Vector & vec)
     return Eigen::Map<Eigen::MatrixXd>(vec.data(),1,vec.size());
 }
 
+inline Eigen::Map<Eigen::VectorXd> toEigenVector(yarp::sig::Vector & vec)
+{
+    return Eigen::Map<Eigen::VectorXd>(vec.data(), vec.size());
+}
+
 void JointTorqueControl::run()
 {
+    bool true_value = true;
+    if (!contains(hijackingTorqueControl,true_value) )
+    {
+        return;
+    }
+    
     //Read status (position, velocity, torque) from the controlboard
     this->readStatus();
-    toEigen(measuredMotorVelocities) = couplingMatrices.fromJointVelocitiesToMotorVelocities * toEigen(measuredJointVelocities);
 
 
     //Compute joint level torque PID
-    double dt = this->getRate();
+    double dt = this->getRate() * 0.001;
 
     controlMutex.lock();
     for(int j=0; j < this->axes; j++ )
     {
         JointTorqueLoopGains &gains = jointTorqueLoopGains[j];
         jointTorquesError[j]        = measuredJointTorques[j] - desiredJointTorques[j];
-        integralState[j]            = saturation(integralState[j] + gains.ki*dt*jointTorquesError(j),gains.max_int,-gains.max_int);
+        integralState[j]            = saturation(integralState[j] + gains.ki*dt*jointTorquesError(j),gains.max_int,-gains.max_int );
         jointControlOutputBuffer[j] = desiredJointTorques[j] - gains.kp*jointTorquesError[j] - integralState[j];
     }
-
-    toEigen(jointControlOutput) = couplingMatrices.fromJointTorquesToMotorTorques * toEigen(jointControlOutputBuffer);
+    
+    toEigenVector(jointControlOutput) = couplingMatrices.fromJointTorquesToMotorTorques * toEigenVector(jointControlOutputBuffer);
+    toEigenVector(measuredMotorVelocities) = couplingMatrices.fromJointVelocitiesToMotorVelocities * toEigenVector(measuredJointVelocities);
 
     // Evaluation of coulomb friction with smoothing close to zero velocity
     double coulombFriction;
@@ -774,16 +794,23 @@ void JointTorqueControl::run()
         {
             coulombFriction = motorParam.kcn*coulombFriction;
         }
-        jointControlOutput[j] = motorParam.kff*jointControlOutput[j] + motorParam.kv*measuredMotorVelocities[j] + coulombFriction;
+        jointControlOutput[j] = motorParam.kff*jointControlOutput[j] + motorParameters[j].frictionCompensation * (motorParam.kv*measuredMotorVelocities[j] + coulombFriction);
     }
 
-    toEigen(jointControlOutput) = couplingMatricesFirmware.fromMotorTorquesToJointTorques * toEigen(jointControlOutput);
+    toEigenVector(jointControlOutput) = couplingMatricesFirmware.fromMotorTorquesToJointTorques * toEigenVector(jointControlOutput);
 
+    bool isNaNOrInf = false;
     for(int j = 0; j < this->axes; j++)
     {
+      
         jointControlOutput[j] = saturation(jointControlOutput[j], jointTorqueLoopGains[j].max_pwm, -jointTorqueLoopGains[j].max_pwm);
-        if (isnan(jointControlOutput[j]) || isinf(jointControlOutput[j])) //this is not std c++. Supported in C99 and C++11
+        if (isnan(jointControlOutput[j]) || isinf(jointControlOutput[j])) { //this is not std c++. Supported in C99 and C++11
             jointControlOutput[j] = 0;
+            isNaNOrInf = true;
+        }
+    }
+    if (isNaNOrInf) {
+        yWarning("Inf or NaN found in control output");
     }
 
     //Send resulting output
@@ -802,6 +829,7 @@ void JointTorqueControl::run()
             }
         }
     }
+
     controlMutex.unlock();
 }
 
