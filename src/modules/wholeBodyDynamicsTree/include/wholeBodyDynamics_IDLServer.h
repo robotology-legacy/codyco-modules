@@ -16,7 +16,7 @@ class wholeBodyDynamics_IDLServer;
  */
 class wholeBodyDynamics_IDLServer : public yarp::os::Wire {
 public:
-  wholeBodyDynamics_IDLServer() { yarp().setOwner(*this); }
+  wholeBodyDynamics_IDLServer();
   /**
    * Calibrate the force/torque sensors
    * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the torso/waist)
