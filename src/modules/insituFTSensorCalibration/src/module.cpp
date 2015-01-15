@@ -80,7 +80,9 @@ bool insituFTRpcHandler::quit()
     return true;
 }
 
-FTCalibrationDataset::FTCalibrationDataset()
+FTCalibrationDataset::FTCalibrationDataset():
+                        added_mass(0),
+                        dataset_name("")
 {
 
 }
@@ -151,6 +153,7 @@ bool insituFTSensorCalibrationThread::threadInit()
         estimator_datasets.push_back(0);
     }
 
+
     double estimation_period = rf.check("estimation_period",yarp::os::Value(20.0),"Period (in ms) of sensor readings").asDouble();
     setRate((int)estimation_period);
     yInfo("Estimation period of insitu calibration is: %lf",estimation_period);
@@ -193,6 +196,19 @@ bool insituFTSensorCalibrationThread::threadInit()
         ft_filters[ft] = new iCub::ctrl::FirstOrderLowPassFilter(cutOffFrequency,getRate()*1000.0,raw_ft[ft]);
     }
 
+    if( rf.check("dump") && rf.find("dump").isString() )
+    {
+        std::string dump_filename;
+        dump_filename = rf.find("dump").asString();
+        std::cout << "[INFO] dump option found, dumping to file with prefix: " << dump_filename << std::endl;
+        this->dump = true;
+        this->dump_prefix = dump_filename;
+    }
+    else
+    {
+        this->dump = false;
+    }
+
 
     return true;
 }
@@ -223,6 +239,15 @@ bool insituFTSensorCalibrationThread::startDatasetAcquisition()
     estimator.getCalibrationDataset(training_datasets[currentDataset].dataset_name,
                                     estimator_datasets[currentDataset]);
 
+    if( this->dump )
+    {
+        std::stringstream ss;
+        ss << this->dump_prefix << "_dataset" << currentDataset << ".csv";
+        std::string filename = ss.str();
+        std::cout << "Opening dump file " << filename << std::endl;
+        datasets_dump.open(filename.c_str());
+    }
+
     return true;
 }
 
@@ -230,6 +255,12 @@ bool insituFTSensorCalibrationThread::stopDatasetAcquisition()
 {
     yarp::os::LockGuard guard(threadMutex);
     status = WAITING_NEW_DATASET_START;
+
+    if( this->dump )
+    {
+        datasets_dump.close();
+    }
+
     return true;
 }
 
@@ -276,8 +307,28 @@ void insituFTSensorCalibrationThread::run()
         smooth_ft[0] = ft_filters[0]->filt(raw_ft[0]);
 
 
+        /*
         yDebug("Accelerometer read: %s \n",smooth_acc[0].toString().c_str());
         yDebug("FT read: %s \n",smooth_ft[0].toString().c_str());
+        double mass = 4.4850;
+        yarp::sig::Vector deb = smooth_acc[0];
+        deb[0] = mass*deb[0];
+        deb[1] = mass*deb[1];
+        deb[2] = mass*deb[2];
+        yDebug("Predicted FT read: %s \n",(deb).toString().c_str());*/
+
+        if( this->dump )
+        {
+            for(int i=0; i < 6; i++ )
+            {
+                this->datasets_dump << smooth_ft[0][i] << ",";
+            }
+            this->datasets_dump << smooth_acc[0][0] << ",";
+            this->datasets_dump << smooth_acc[0][1] << ",";
+            this->datasets_dump << smooth_acc[0][2] << std::endl;
+        }
+
+
 
 
         estimator_datasets[currentDataset]->addMeasurements(InSituFTCalibration::wrapVec(smooth_ft[0]),InSituFTCalibration::wrapVec(smooth_acc[0]));
@@ -414,6 +465,11 @@ bool writeFTsensCalibrationToFile(std::string         filename,
         std::cerr << "[ERROR] Error in writing calibration matrix to " << filename << std::endl;
         return false;
     }
+
+    std::cout << "insituFTSensorCalibration module: writing to file calibration matrix: " << std::endl;
+    std::cout << calibration_matrix.toString() << std::endl;
+    std::cout << "insituFTSensorCalibration module: with full scale: " << std::endl;
+    std::cout << full_scale.toString() << std::endl;
 
     //It seems that full_scale is required to be an integer, TODO check
     std::vector<int> full_scale_int;
@@ -682,8 +738,8 @@ bool insituFTSensorCalibrationModule::configure(ResourceFinder &rf)
 
     jointInitialized = true;
 
-    //Configure
-    if( mode == GRID_MAPPING_WITH_RETURN || mode == GRID_VISIT )
+    //Compute the list of desired positions
+    if( mode == GRID_MAPPING_WITH_RETURN  )
     {
         is_desired_point_return_point = false;
         listOfDesiredPositions.resize(0,desiredPositions(yarp::sig::Vector(),0.0));
@@ -773,6 +829,50 @@ bool insituFTSensorCalibrationModule::configure(ResourceFinder &rf)
         }
     }
 
+    if( this->mode == GRID_VISIT )
+    {
+        is_desired_point_return_point = false;
+        listOfDesiredPositions.resize(0,desiredPositions(yarp::sig::Vector(),0.0));
+        next_desired_position = 0;
+        //Generate vector of desired positions
+        if( controlledJoints.size() != 2)
+        {
+            std::cerr << "GRID_VISIT mode available only for two controlled joints" << std::endl;
+            close_drivers();
+            return false;
+        }
+
+        //x is the coordinate on the first controlled joint, y the one of the second
+        double x,y;
+        double minx = controlledJoints[0].lower_limit;
+        double maxx = controlledJoints[0].upper_limit;
+        double miny = controlledJoints[1].lower_limit;
+        double maxy = controlledJoints[1].upper_limit;
+        yarp::sig::Vector desPos(2,0.0);
+        for(x = minx,
+            y = miny;
+            x < maxx;
+            x += controlledJoints[0].delta,
+            y = (y == miny) ? maxy : miny )
+        {
+            desPos[0] = x;
+            desPos[1] = y;
+            listOfDesiredPositions.push_back(desiredPositions(desPos,static_pose_period));
+        }
+
+        for(x = minx,
+            y = miny;
+            y < maxy;
+            x = (x == minx) ? maxx : minx,
+            y += controlledJoints[1].delta )
+        {
+            desPos[0] = x;
+            desPos[1] = y;
+            listOfDesiredPositions.push_back(desiredPositions(desPos,static_pose_period));
+        }
+
+    }
+
     ///////////////////////////////////////////////
     //// RPC PORT
     ///////////////////////////////////////////////
@@ -800,6 +900,12 @@ bool insituFTSensorCalibrationModule::configure(ResourceFinder &rf)
     std::string wbi_conf_file_name = rf.findFileByName(wbi_conf_file);
     std::cout << wbi_conf_file_name << std::endl;
     bool ret = wbi_prop.fromConfigFile(wbi_conf_file_name);
+
+    if( rf.check("robot") && rf.find("robot").isString() )
+    {
+        wbi_prop.put("robot",rf.find("robot").asString());
+    }
+
 
     if( !ret )
     {

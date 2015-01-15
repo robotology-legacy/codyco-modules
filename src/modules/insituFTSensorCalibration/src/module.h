@@ -62,7 +62,7 @@ public:
     double added_mass;
 };
 
-struct controlledJoint
+class controlledJoint
 {
 public:
     std::string part_name;
@@ -70,6 +70,9 @@ public:
     double lower_limit;
     double upper_limit;
     double delta;
+    controlledJoint():
+    part_name(""),axis_number(0),lower_limit(0),upper_limit(0),delta(0)
+    {}
 };
 
 class desiredPositions
@@ -78,6 +81,9 @@ public:
     yarp::sig::Vector pos;
     double waiting_time;
     bool is_return_point;
+    desiredPositions():
+    pos(0), waiting_time(0), is_return_point(false)
+    {}
     desiredPositions(yarp::sig::Vector _pos, double _waiting_time, bool _is_return_point=false):
     pos(_pos), waiting_time(_waiting_time), is_return_point(_is_return_point)
     {}
@@ -124,6 +130,7 @@ private:
     int currentDataset;
     std::vector<FTCalibrationDataset> training_datasets;
     std::vector<InSituFTCalibration::ForceTorqueOffsetEstimator *> estimator_datasets;
+    std::ofstream datasets_dump;
 
     double cutOffFrequency;
 
@@ -145,6 +152,10 @@ private:
     //Disable copy operators
     insituFTSensorCalibrationThread(const insituFTSensorCalibrationThread& );
     insituFTSensorCalibrationThread& operator=(const insituFTSensorCalibrationThread& );
+
+    //Dump option
+    bool dump;
+    std::string dump_prefix;
 
 public:
     /**
@@ -216,6 +227,8 @@ class insituFTSensorCalibrationModule: public RFModule
     std::vector< controlledJoint > controlledJoints;
     yarp::sig::Vector commandedPositions;
     double desired_waiting_time;
+
+    //List of position to reach for each dataset
     std::vector<desiredPositions> listOfDesiredPositions;
     yarp::os::BufferedPort<yarp::os::Bottle> isTheRobotInReturnPoint;
     bool is_desired_point_return_point;
