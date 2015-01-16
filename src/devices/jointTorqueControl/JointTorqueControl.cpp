@@ -309,7 +309,7 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
 bool JointTorqueControl::close()
 {
     this->RateThread::stop();
-    PassThroughControlBoard::close();
+    return PassThroughControlBoard::close();
 }
 
 //CONTROL MODE
@@ -711,7 +711,6 @@ bool JointTorqueControl::threadInit()
 
 void JointTorqueControl::readStatus()
 {
-    bool enc_time;
     this->PassThroughControlBoard::getEncodersTimed(measuredJointPositions.data(),measuredJointPositionsTimestamps.data());
     this->PassThroughControlBoard::getEncoderSpeeds(measuredJointVelocities.data());
     this->PassThroughControlBoard::getTorques(measuredJointTorques.data());
@@ -743,22 +742,11 @@ inline Eigen::Map<Eigen::VectorXd> toEigenVector(yarp::sig::Vector & vec)
     return Eigen::Map<Eigen::VectorXd>(vec.data(), vec.size());
 }
 
-void JointTorqueControl::run()
+void JointTorqueControl::computeOutputMotorTorques()
 {
-    bool true_value = true;
-    if (!contains(hijackingTorqueControl,true_value) )
-    {
-        return;
-    }
-    
-    //Read status (position, velocity, torque) from the controlboard
-    this->readStatus();
-
-
     //Compute joint level torque PID
     double dt = this->getRate() * 0.001;
 
-    controlMutex.lock();
     for(int j=0; j < this->axes; j++ )
     {
         JointTorqueLoopGains &gains = jointTorqueLoopGains[j];
@@ -766,7 +754,7 @@ void JointTorqueControl::run()
         integralState[j]            = saturation(integralState[j] + gains.ki*dt*jointTorquesError(j),gains.max_int,-gains.max_int );
         jointControlOutputBuffer[j] = desiredJointTorques[j] - gains.kp*jointTorquesError[j] - integralState[j];
     }
-    
+
     toEigenVector(jointControlOutput) = couplingMatrices.fromJointTorquesToMotorTorques * toEigenVector(jointControlOutputBuffer);
     toEigenVector(measuredMotorVelocities) = couplingMatrices.fromJointVelocitiesToMotorVelocities * toEigenVector(measuredJointVelocities);
 
@@ -802,7 +790,7 @@ void JointTorqueControl::run()
     bool isNaNOrInf = false;
     for(int j = 0; j < this->axes; j++)
     {
-      
+
         jointControlOutput[j] = saturation(jointControlOutput[j], jointTorqueLoopGains[j].max_pwm, -jointTorqueLoopGains[j].max_pwm);
         if (isnan(jointControlOutput[j]) || isinf(jointControlOutput[j])) { //this is not std c++. Supported in C99 and C++11
             jointControlOutput[j] = 0;
@@ -812,6 +800,24 @@ void JointTorqueControl::run()
     if (isNaNOrInf) {
         yWarning("Inf or NaN found in control output");
     }
+
+}
+
+void JointTorqueControl::run()
+{
+    bool true_value = true;
+    if (!contains(hijackingTorqueControl,true_value) )
+    {
+        return;
+    }
+
+    //Read status (position, velocity, torque) from the controlboard
+    this->readStatus();
+
+    controlMutex.lock();
+    //update output torques
+    computeOutputMotorTorques();
+
 
     //Send resulting output
     bool false_value = false;

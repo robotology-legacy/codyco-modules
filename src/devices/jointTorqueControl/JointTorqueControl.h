@@ -190,6 +190,8 @@ private:
                             CouplingMatrices & coupling_matrices,
                             std::string group_name);
 
+    void computeOutputMotorTorques();
+
 public:
     //CONSTRUCTOR
     JointTorqueControl();

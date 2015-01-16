@@ -4,15 +4,15 @@
 namespace yarp {
 namespace dev {
 
-PassThroughControlBoard::PassThroughControlBoard():
-                         proxyIEncodersTimed(0),
-                         proxyIPositionControl2(0),
-                         proxyIControlMode2(0),
-                         proxyITorqueControl(0),
-                         proxyIOpenLoopControl(0),
-                         proxyIVelocityControl2(0),
-                         proxyIControlLimits2(0),
-                         proxyIInteractionMode(0)
+PassThroughControlBoard::PassThroughControlBoard()
+    : proxyIEncodersTimed(0)
+    , proxyIPositionControl2(0)
+    , proxyIVelocityControl2(0)
+    , proxyIControlMode2(0)
+    , proxyITorqueControl(0)
+    , proxyIOpenLoopControl(0)
+    , proxyIControlLimits2(0)
+    , proxyIInteractionMode(0)
 {
 }
 
@@ -53,11 +53,12 @@ bool PassThroughControlBoard::open(yarp::os::Searchable& config)
     proxyDevice.view(proxyIInteractionMode);
     proxyDevice.view(proxyIAxisInfo);
 
+    return true;
 }
 
 bool PassThroughControlBoard::close()
 {
-    proxyDevice.close();
+    return proxyDevice.close();
 }
 
 bool PassThroughControlBoard::getEncoder(int j, double* v)
