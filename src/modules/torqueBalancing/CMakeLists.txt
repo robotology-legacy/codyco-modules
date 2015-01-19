@@ -45,19 +45,20 @@ set(SOURCES    ${SRC_FOLDER}/TorqueBalancingModule.cpp
 source_group("Source Files" FILES ${SOURCES})
 source_group("Header Files" FILES ${HEADERS})
 
-INCLUDE_DIRECTORIES(${HEADERS_FOLDER}
-                    ${wholeBodyInterface_INCLUDE_DIRS}
-                    ${yarpWholeBodyInterface_INCLUDE_DIRS}
-                    ${paramHelp_INCLUDE_DIRS}
-                    ${skinDynLib_INCLUDE_DIRS}
-                    ${ctrlLib_INCLUDE_DIRS}
-                    ${YARP_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR}
-                    ${codycoCommons_INCLUDE_DIRS})
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR}
+    ${wholeBodyInterface_INCLUDE_DIRS}
+    ${yarpWholeBodyInterface_INCLUDE_DIRS}
+    ${paramHelp_INCLUDE_DIRS}
+    ${skinDynLib_INCLUDE_DIRS}
+    ${ctrlLib_INCLUDE_DIRS}
+    ${YARP_INCLUDE_DIRS}
+    ${codycoCommons_INCLUDE_DIRS})
 
-ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+include_directories(${HEADERS_FOLDER})
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME}
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+
+target_link_libraries(${PROJECT_NAME}
                       ${wholeBodyInterface_LIBRARIES}
                       ${yarpWholeBodyInterface_LIBRARIES}
                       ${paramHelp_LIBRARIES}

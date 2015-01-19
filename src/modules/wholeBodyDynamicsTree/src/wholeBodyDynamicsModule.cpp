@@ -28,18 +28,22 @@
 #include <iCub/ctrl/math.h>
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 
+#include <yarp/os/Log.h>
+
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <string.h>
 
-#include "wbiIcub/wholeBodyInterfaceIcub.h"
+#include "yarpWholeBodyInterface/yarpWholeBodyInterface.h"
 
 #include <wholeBodyDynamicsTree/wholeBodyDynamicsThread.h>
 #include <wholeBodyDynamicsTree/wholeBodyDynamicsModule.h>
 
 using namespace yarp::dev;
-using namespace wbiIcub;
+using namespace yarpWbi;
+using namespace yarp::os;
+using namespace wbi;
 
 wholeBodyDynamicsModule::wholeBodyDynamicsModule()
 {
@@ -51,45 +55,6 @@ wholeBodyDynamicsModule::wholeBodyDynamicsModule()
 bool wholeBodyDynamicsModule::attach(yarp::os::Port &source)
 {
     return this->yarp().attachAsServer(source);
-}
-
-void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag & icub_version)
-{
-    //Checking iCub parts version
-    /// \todo this part should be replaced by a more general way of accessing robot parameters
-    ///       namely urdf for structure parameters and robotInterface xml (or runtime interface) to get available sensors
-    icub_version.head_version = 2;
-    if( rf.check("headV1") ) {
-        icub_version.head_version = 1;
-    }
-    if( rf.check("headV2") ) {
-        icub_version.head_version = 2;
-    }
-
-    icub_version.legs_version = 2;
-    if( rf.check("legsV1") ) {
-        icub_version.legs_version = 1;
-    }
-    if( rf.check("legsV2") ) {
-        icub_version.legs_version = 2;
-    }
-
-    /// \note if feet_version are 2, the presence of FT sensors in the feet is assumed
-    icub_version.feet_ft = true;
-    if( rf.check("feetV1") ) {
-        icub_version.feet_ft = false;
-    }
-    if( rf.check("feetV2") ) {
-        icub_version.feet_ft = true;
-    }
-
-    #ifdef CODYCO_USES_URDFDOM
-    if( rf.check("urdf") )
-    {
-        icub_version.uses_urdf = true;
-        icub_version.urdf_file = rf.find("urdf").asString().c_str();
-    }
-    #endif
 }
 
 bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
@@ -108,9 +73,6 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         std::cerr << "wholeBodyDynamicsModule::configure failed: name parameter not found. Closing module." << std::endl;
         return false;
     }
-
-    iCub::iDynTree::iCubTree_version_tag icub_version;
-    iCubVersionFromRf(rf,icub_version);
 
     bool fixed_base = false;
     std::string fixed_link;
@@ -157,45 +119,113 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     }
 
     //--------------------------WHOLE BODY STATES INTERFACE--------------------------
-    estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(), robotName.c_str(), icub_version, fixed_base, fixed_link);
-
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
-    if( icub_version.feet_ft )
+    yarp::os::Property yarpWbiOptions;
+    //Get wbi options from the canonical file
+    if( !rf.check("wbi_conf_file") )
     {
-        int added_ft_sensors = estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,wbiIcub::ICUB_MAIN_FOOT_FTS);
-        if( added_ft_sensors != (int)wbiIcub::ICUB_MAIN_FOOT_FTS.size() )
+        fprintf(stderr,"[ERR] wholeBodyDynamicsThread: impossible to open wholeBodyInterface: wbi_conf_file option missing");
+        return false;
+    }
+    std::string wbiConfFile = rf.findFile("wbi_conf_file");
+    yarpWbiOptions.fromConfigFile(wbiConfFile);
+
+    //Overwrite the robot parameter that could be present in wbi_conf_file
+    yarpWbiOptions.put("robot",rf.find("robot").asString());
+
+    //List of joints used in the dynamic model of the robot
+    IDList RobotDynamicModelJoints;
+    std::string RobotDynamicModelJointsListName = rf.check("torque_estimation_joint_list",
+                                                           yarp::os::Value("ROBOT_DYNAMIC_MODEL_JOINTS"),
+                                                           "Name of the list of joint used for torque estimation").asString().c_str();
+
+    if( !loadIdListFromConfig(RobotDynamicModelJointsListName,rf,RobotDynamicModelJoints) )
+    {
+        if( !loadIdListFromConfig(RobotDynamicModelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
         {
-            std::cout << "Error in adding F/T estimates" << std::endl;
+            fprintf(stderr, "[ERR] wholeBodyDynamicsModule: impossible to load wbiId joint list with name %s\n",RobotDynamicModelJointsListName.c_str());
             return false;
         }
+    }
+
+    //Add to the options some wbd specific stuff
+    if( fixed_base )
+    {
+        yarpWbiOptions.put("fixed_base",fixed_link);
+    }
+
+    if( rf.check("IDYNTREE_SKINDYNLIB_LINKS") )
+    {
+        yarp::os::Property & prop = yarpWbiOptions.addGroup("IDYNTREE_SKINDYNLIB_LINKS");
+        prop.fromString(rf.findGroup("IDYNTREE_SKINDYNLIB_LINKS").tail().toString());
     }
     else
     {
-        int added_ft_sensors = estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,wbiIcub::ICUB_MAIN_FTS);
-        if( added_ft_sensors != (int)wbiIcub::ICUB_MAIN_FTS.size() )
-        {
-            std::cout << "Error in adding F/T estimates" << std::endl;
-            return false;
-        }
+        fprintf(stderr, "[ERR] wholeBodyDynamicsModule: impossible to load IDYNTREE_SKINDYNLIB_LINKS group, exiting");
+
     }
-    estimationInterface->addEstimates(wbi::ESTIMATE_IMU,wbiIcub::ICUB_MAIN_IMUS);
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_TORQUE, wbiIcub::ICUB_MAIN_DYNAMIC_JOINTS);
+
+    if( rf.check("WBD_SUBTREES") )
+    {
+        yarp::os::Property & prop = yarpWbiOptions.addGroup("WBD_SUBTREES");
+        prop.fromString(rf.findGroup("WBD_SUBTREES").tail().toString());
+    }
+    else
+    {
+        fprintf(stderr, "[ERR] wholeBodyDynamicsModule: impossible to load WBD_SUBTREES group, exiting");
+    }
+
+    if( rf.check("WBD_OUTPUT_TORQUE_PORTS") )
+    {
+        yarp::os::Property & prop = yarpWbiOptions.addGroup("WBD_OUTPUT_TORQUE_PORTS");
+        prop.fromString(rf.findGroup("WBD_OUTPUT_TORQUE_PORTS").tail().toString());
+    }
+    else
+    {
+        fprintf(stderr, "[ERR] wholeBodyDynamicsModule: impossible to load WBD_OUTPUT_TORQUE_PORTS group, exiting");
+    }
+
+
+
+    estimationInterface = new yarpWholeBodyStatesLocal(moduleName.c_str(), yarpWbiOptions);
+
+    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,RobotDynamicModelJoints);
+    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,RobotDynamicModelJoints);
+    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,RobotDynamicModelJoints);
+
+     //List of 6-axis Force-Torque sensors in the robot
+    IDList RobotFTSensors;
+    std::string RobotFTSensorsListName = "ROBOT_MAIN_FTS";
+    if( !loadIdListFromConfig(RobotFTSensorsListName,yarpWbiOptions,RobotFTSensors) )
+    {
+        fprintf(stderr, "[ERR] wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
+    }
+    estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,RobotFTSensors);
+
+    //List of IMUs sensors in the robot
+    IDList RobotIMUSensors;
+    std::string RobotIMUSensorsListName = "ROBOT_MAIN_IMUS";
+    if( !loadIdListFromConfig(RobotIMUSensorsListName,yarpWbiOptions,RobotIMUSensors) )
+    {
+        fprintf(stderr, "[ERR] wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
+    }
+    estimationInterface->addEstimates(wbi::ESTIMATE_IMU,RobotIMUSensors);
+
+    //Add torque estimation
+    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_TORQUE, RobotDynamicModelJoints);
 
     if(!estimationInterface->init()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl; return false; }
 
     bool use_ang_vel_acc = true;
     if( rf.check("enable_w0_dw0") )
     {
-        std::cout << "enable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration." << std::endl;
+        std::cout << "[INFO] enable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration." << std::endl;
         use_ang_vel_acc = true;
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
     }
 
     if( rf.check("disable_w0_dw0") )
     {
-        std::cout << "disable_w0_dw0 option found, disabling the use of IMU angular velocity/acceleration." << std::endl;
+        std::cout << "[INFO] disable_w0_dw0 option found, disabling the use of IMU angular velocity/acceleration." << std::endl;
         use_ang_vel_acc = false;
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
     }
@@ -203,7 +233,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     if( rf.check("min_taxel") )
     {
         int taxel_threshold = rf.find("min_taxel").asInt();
-        std::cout << "min_taxel option found, ignoring skin contacts with less then "
+        std::cout << "[INFO] min_taxel option found, ignoring skin contacts with less then "
                   << taxel_threshold << " active taxels will be ignored." << std::endl;
         use_ang_vel_acc = false;
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,
@@ -222,7 +252,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     bool autoconnect = false;
     if( rf.check("autoconnect") )
     {
-        std::cout << "autoconnect option found, enabling the autoconnection." << std::endl;
+        std::cout << "[INFO] autoconnect option found, enabling the autoconnection." << std::endl;
         autoconnect = true;
     }
 
@@ -230,16 +260,23 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     std::string zmp_test_feet = "";
     if( rf.check("zmp_test_left") )
     {
-        std::cout << "zmp_test_left option found, enabling testing output of debug quantities related to left leg" << std::endl;
+        std::cout << "[INFO] zmp_test_left option found, enabling testing output of debug quantities related to left leg" << std::endl;
         zmp_test_mode = true;
         zmp_test_feet = "left";
     }
 
     if( rf.check("zmp_test_right") )
     {
-        std::cout << "zmp_test_right option found, enabling testing output of debug quantities related to right leg" << std::endl;
+        std::cout << "[INFO] zmp_test_right option found, enabling testing output of debug quantities related to right leg" << std::endl;
         zmp_test_mode = true;
         zmp_test_feet = "right";
+    }
+
+    bool output_clean_ft = false;
+    if( rf.check("output_clean_ft") )
+    {
+        std::cout << "[INFO] output_clean_ft option found, enabling output of filtered and without offset ft sensors" << std::endl;
+        output_clean_ft = true;
     }
 
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
@@ -247,14 +284,15 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
                                             robotName,
                                             period,
                                             estimationInterface,
-                                            icub_version,
+                                            yarpWbiOptions,
                                             autoconnect,
                                             fixed_base_calibration,
                                             fixed_link_calibration,
                                             zmp_test_mode,
-                                            zmp_test_feet
+                                            zmp_test_feet,
+                                            output_clean_ft
                                            );
-    if(!wbdThread->start()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }
+    if(!wbdThread->start()){ std::cerr << "[ERR]" << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }
 
     fprintf(stderr,"wholeBodyDynamicsThread started\n");
 

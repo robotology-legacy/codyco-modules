@@ -17,7 +17,8 @@
 
 #include <wholeBodyReach/wholeBodyReachThread.h>
 #include <wholeBodyReach/wholeBodyReachParams.h>
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <wholeBodyReach/wholeBodyReadWBIidLists.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
 #include <yarp/math/SVD.h>
@@ -26,7 +27,7 @@
 
 using namespace wholeBodyReach;
 using namespace yarp::math;
-using namespace wbiIcub;
+using namespace yarpWbi;
 
 
 //*************************************************************************************************************************
@@ -47,15 +48,15 @@ WholeBodyReachThread::WholeBodyReachThread(string name, string robotName, int pe
 //*************************************************************************************************************************
 bool WholeBodyReachThread::threadInit()
 {
-    YARP_ASSERT(_robot->getLinkId(RIGHT_FOOT_LINK_NAME.c_str(), LINK_ID_RIGHT_FOOT)); // 41
-    YARP_ASSERT(_robot->getLinkId(LEFT_FOOT_LINK_NAME.c_str(),  LINK_ID_LEFT_FOOT));  // 33
+    YARP_ASSERT(_robot->getFrameList().idToIndex(RIGHT_FOOT_LINK_NAME.c_str(), LINK_ID_RIGHT_FOOT)); // 41
+    YARP_ASSERT(_robot->getFrameList().idToIndex(LEFT_FOOT_LINK_NAME.c_str(),  LINK_ID_LEFT_FOOT));  // 33
 
     // I must know the support phase before calling numberOfConstraintsChanged (to know the number of constraints)
     YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_SUPPORT_PHASE,       &_supportPhase));
     _n = _robot->getJointList().size();
     cout<< "The robot has "<< _n<< " degrees of freedom\n";
     _k = 12;
-    
+
     // resize all vectors
     _qjDeg.setZero(_n);
     _dqjDeg.setZero(_n);
@@ -66,8 +67,8 @@ bool WholeBodyReachThread::threadInit()
     _svdJcb = JacobiSVD<MatrixRXd>(_k, 6, ComputeThinU | ComputeThinV);
     if(!_robotState.init(_n) || !_robotStateIntegrator.init(_n))
         return false;
-    
-    
+
+
     // setup the stack of tasks
     _solver.setMomentumTask(_tasks.momentum);
     _solver.setPostureTask(_tasks.posture);
@@ -76,7 +77,7 @@ bool WholeBodyReachThread::threadInit()
     _solver.addConstraint(_tasks.rightFoot);
     _solver.pushEqualityTask(_tasks.supportForearm);
     _solver.pushEqualityTask(_tasks.graspHand);
-    
+
     _solver.linkParameterToVariable(wbiStackOfTasks::DYN_NUM_DAMP,       _paramHelper, PARAM_ID_DYN_DAMP);
     _solver.linkParameterToVariable(wbiStackOfTasks::CONSTR_NUM_DAMP,    _paramHelper, PARAM_ID_CONSTR_DAMP);
     _solver.linkParameterToVariable(wbiStackOfTasks::TASK_NUM_DAMP,      _paramHelper, PARAM_ID_TASK_DAMP);
@@ -88,24 +89,24 @@ bool WholeBodyReachThread::threadInit()
     _tasks.supportForearm.linkParameterKp(   _paramHelper, PARAM_ID_KP_FOREARM);
     _tasks.graspHand.linkParameterKp(        _paramHelper, PARAM_ID_KP_HAND);
     _tasks.posture.linkParameterKp(          _paramHelper, PARAM_ID_KP_POSTURE);
-    
+
     _tasks.momentum.linkParameterKd(         _paramHelper, PARAM_ID_KD_MOMENTUM);
     _tasks.supportForearm.linkParameterKd(   _paramHelper, PARAM_ID_KD_FOREARM);
     _tasks.graspHand.linkParameterKd(        _paramHelper, PARAM_ID_KD_HAND);
     _tasks.posture.linkParameterKd(          _paramHelper, PARAM_ID_KD_POSTURE);
     _tasks.posture.linkParameterKi(          _paramHelper, PARAM_ID_KI_POSTURE);
-    
+
     _tasks.momentum.linkParameterTrajectoryDuration(       _paramHelper, PARAM_ID_TRAJ_TIME_MOMENTUM);
     _tasks.supportForearm.linkParameterTrajectoryDuration( _paramHelper, PARAM_ID_TRAJ_TIME_FOREARM);
     _tasks.graspHand.linkParameterTrajectoryDuration(      _paramHelper, PARAM_ID_TRAJ_TIME_HAND);
     _tasks.posture.linkParameterTrajectoryDuration(        _paramHelper, PARAM_ID_TRAJ_TIME_POSTURE);
-    
+
     // link module input streaming parameters to member variables
     _tasks.momentum.linkParameterComDes(         _paramHelper, PARAM_ID_XDES_COM);
     _tasks.supportForearm.linkParameterPoseDes(  _paramHelper, PARAM_ID_XDES_FOREARM);
     _tasks.graspHand.linkParameterPoseDes(       _paramHelper, PARAM_ID_XDES_HAND);
     _tasks.posture.linkParameterPostureDes(      _paramHelper, PARAM_ID_QDES);
-    
+
 #ifndef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
     YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_H_W2B,   _H_w2b.data()));
 #endif
@@ -113,14 +114,14 @@ bool WholeBodyReachThread::threadInit()
     _tasks.supportForearm.linkParameterPosRef(  _paramHelper, PARAM_ID_XREF_FOREARM);
     _tasks.graspHand.linkParameterPosRef(       _paramHelper, PARAM_ID_XREF_HAND);
     _tasks.posture.linkParameterPostureRef(     _paramHelper, PARAM_ID_QREF);
-    
+
     _tasks.momentum.linkParameterCom(               _paramHelper, PARAM_ID_X_COM);
     _tasks.momentum.linkParameterMomentum(          _paramHelper, PARAM_ID_MOMENTUM);
     _tasks.momentum.linkParameterMomentumIntegral(  _paramHelper, PARAM_ID_MOMENTUM_INTEGRAL);
     _tasks.supportForearm.linkParameterPose(        _paramHelper, PARAM_ID_X_FOREARM);
     _tasks.graspHand.linkParameterPose(             _paramHelper, PARAM_ID_X_HAND);
     YARP_ASSERT(_paramHelper->linkParam(            PARAM_ID_Q,   _qjDeg.data()));
-    
+
     _tasks.momentum.linkParameterComVel(    _paramHelper,           PARAM_ID_DX_COM);
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_X_BASE,            _robotState.xBase.p));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_V_BASE,            _robotState.vBase.data()));
@@ -131,7 +132,7 @@ bool WholeBodyReachThread::threadInit()
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_MOMENT_FRICTION,   &_momentFriction));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_KP_CONSTRAINTS,    _kpConstraints.data()));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_WRENCH_WEIGHTS,    _wrenchWeights.data()));
-    
+
     // PLANNING PARAMETERS
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_DOWN_COM,   _goDown_com.data()));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_DOWN_HAND,  _goDown_hand.data()));
@@ -139,18 +140,18 @@ bool WholeBodyReachThread::threadInit()
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_UP_COM,     _goUp_com.data()));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_UP_HAND,    _goUp_hand.data()));
     YARP_ASSERT(_paramHelper->linkParam(    PARAM_ID_GO_UP_Q,       _goUp_q.data()));
-    
+
     _tasks.leftFoot.linkParameterForceInequalities(             _paramHelper, PARAM_ID_FORCE_INEQ_L_FOOT);
     _tasks.rightFoot.linkParameterForceInequalities(            _paramHelper, PARAM_ID_FORCE_INEQ_R_FOOT);
     _tasks.supportForearmConstr.linkParameterForceInequalities( _paramHelper, PARAM_ID_FORCE_INEQ_FOREARM);
-    
+
     _tasks.leftFoot.setMaxNormalForce(              FORCE_NORMAL_MAX);
     _tasks.rightFoot.setMaxNormalForce(             FORCE_NORMAL_MAX);
     _tasks.supportForearmConstr.setMaxNormalForce(  FORCE_NORMAL_MAX);
     _tasks.leftFoot.setMinNormalForce(              FORCE_NORMAL_MIN);
     _tasks.rightFoot.setMinNormalForce(             FORCE_NORMAL_MIN);
     _tasks.supportForearmConstr.setMinNormalForce(  FORCE_NORMAL_MIN);
-    
+
     // JOINT LIMIT TASK
     _tasks.jointLimits.linkParameterJointLimitTimestep(_paramHelper, PARAM_ID_JNT_LIM_DT);
     _tasks.jointLimits.linkParameterJointLimitMinimumDistance(_paramHelper, PARAM_ID_JNT_LIM_MIN_DIST);
@@ -159,26 +160,26 @@ bool WholeBodyReachThread::threadInit()
     _tasks.jointLimits.linkParameterDQmax(_paramHelper, PARAM_ID_DQ_MAX);
     _tasks.jointLimits.linkParameterDDQmax(_paramHelper, PARAM_ID_DDQ_MAX);
     _tasks.jointLimits.linkParameterQnormalized(_paramHelper, PARAM_ID_NORMALIZED_Q);
-    
-    
+
+
 
     // Register callbacks for some module commands and parameters
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_FORCE_FRICTION,    this));
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_MOMENT_FRICTION,   this));
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_KP_CONSTRAINTS,    this));
     YARP_ASSERT(_paramHelper->registerParamValueChangedCallback(PARAM_ID_WRENCH_WEIGHTS,    this));
-    
+
     parameterUpdated(_paramHelper->getParamProxy(PARAM_ID_FORCE_FRICTION));
     parameterUpdated(_paramHelper->getParamProxy(PARAM_ID_MOMENT_FRICTION));
     parameterUpdated(_paramHelper->getParamProxy(PARAM_ID_KP_CONSTRAINTS));
     parameterUpdated(_paramHelper->getParamProxy(PARAM_ID_WRENCH_WEIGHTS));
-    
+
     YARP_ASSERT(_paramHelper->linkParam(PARAM_ID_INTEGRATE_EOM, &_integrateEoM));
     _integrator.linkParameterToVariable(ConstrainedDynamicsIntegrator::TIMESTEP,        _paramHelper, PARAM_ID_INTEGRATOR_DT);
     _integrator.linkParameterToVariable(ConstrainedDynamicsIntegrator::CONSTR_NUM_DAMP, _paramHelper, PARAM_ID_INTEGRATOR_DAMP);
     YARP_ASSERT(_integrator.addConstraints(LEFT_FOOT_LINK_NAME));
     YARP_ASSERT(_integrator.addConstraints(RIGHT_FOOT_LINK_NAME));
-    
+
     YARP_ASSERT(_paramHelper->registerCommandCallback(COMMAND_ID_START,           this));
     YARP_ASSERT(_paramHelper->registerCommandCallback(COMMAND_ID_STOP,            this));
     YARP_ASSERT(_paramHelper->registerCommandCallback(COMMAND_ID_GO_DOWN,         this));
@@ -190,7 +191,14 @@ bool WholeBodyReachThread::threadInit()
 
     // read _robot status (to be done before initializing trajectory generators)
 #ifdef DO_NOT_USE_WHOLE_BODY_STATE_INTERFACE
-    _sensors = new icubWholeBodySensors((_name+"_sensor").c_str(), _robotName.c_str());
+    //Workaround, loading the default yarpWholeBodyInterface file
+    //you should set appropriately your YARP_ROBOT_NAME so that this will work
+    yarp::os::ResourceFinder rf;
+    std::string wbi_conf_file = rf.findFile("yarpWholeBodyInterface.ini");
+    yarp::os::Property wbi_prop;
+    wbi_prop.fromConfigFile(wbi_conf_file);
+    wbi_prop.put("robot",_robotName);
+    _sensors = new yarpWholeBodySensors((_name+"_sensor").c_str(), wbi_prop);
     _sensors->addSensors(SENSOR_ENCODER, ICUB_MAIN_JOINTS);
     _sensors->addSensors(SENSOR_TORQUE,  ICUB_MAIN_JOINTS);
     if(!_sensors->init())
@@ -203,14 +211,14 @@ bool WholeBodyReachThread::threadInit()
     _qJ_yarp.resize(_n);
     _qJStamps.resize(_n);
 #endif
-    
+
     if(!readRobotStatus(true))
         return false;
     if(!_contactReader.init(WHOLE_BODY_DYNAMICS_NAME))
         return false;
     _solver.init(_robotState);
     _solver.computeSolution(_robotState, _tauDes);
-    
+
     printf("\n\n");
     return true;
 }
@@ -219,12 +227,12 @@ bool WholeBodyReachThread::threadInit()
 void WholeBodyReachThread::run()
 {
     _time += getRate()*1e-3;
-    
+
     _paramHelper->lock();
     _paramHelper->readStreamParams();
 
     readRobotStatus();                      // read encoders, compute positions and Jacobians
-    
+
 //    Frame H_left;
 //    _robot->computeH(_robotState.qJ.data(), _robotState.xBase, LINK_ID_LEFT_FOOT, H_left);
 //    sendMsg("Left foot pose:  "+toString(Vector3d::Map(H_left.p),4));
@@ -232,7 +240,7 @@ void WholeBodyReachThread::run()
 //    sendMsg("dq norm    "+toString(WBR_RAD2DEG * _robotState.dqJ.norm()));
 //    sendMsg("x base\n"+_robotState.xBase.toString());
     bool res = _solver.computeSolution(_robotState, _tauDes);   // compute desired joint torques
-    
+
     if(_status==WHOLE_BODY_REACH_ON)
     {
         if(areDesiredJointTorquesTooLarge())    // check desired joint torques are not too large
@@ -259,7 +267,7 @@ void WholeBodyReachThread::run()
                 _integrator.integrate(_tauDes,
                                       _robotState.xBase,    _robotState.qJ,    _robotState.dq,
                                       _robotStateIntegrator.xBase, _robotStateIntegrator.qJ, _robotStateIntegrator.dq);
-                
+
                 if(i==0)
                 {
                     sendMsg("|| ddqDes - ddqIntegrator || = "+toString((_integrator._ddq_first_call - _solver._ddqDes).norm()));
@@ -278,7 +286,7 @@ void WholeBodyReachThread::run()
                     VectorXd rhs_integr = (_integrator._tau_np6 - _integrator._h - _integrator._M*_integrator._ddqBar);
                     double MddqBar_err = (_solver._M*_solver._ddqBar - _integrator._M*_integrator._ddqBar).norm();
                     double ddqFD_err = (_integrator._ddq_first_call - _solver._ddqFD).norm();
-                    
+
                     sendMsg("Jc err    "+toString((_integrator._A - _solver._Jc).norm()));
                     sendMsg("dJc*dq err "+toString((_integrator._b + _solver._dJcdq).norm())); // b = -dJc*dq
                     sendMsg("damp err "+toString(_integrator._numericalDamping - _solver._numericalDampingConstr));
@@ -307,8 +315,8 @@ void WholeBodyReachThread::run()
                 _robotState.dq      = _robotStateIntegrator.dq;
             }
 //            sendMsg("q POST "+jointToString(WBR_RAD2DEG * _robotState.qJ));
-            
-            
+
+
             // copy base and joint velocities into _robotState.dqJ and _robotState.vBase
             _robotState.vBase   = _robotState.dq.head<6>();
             _robotState.dqJ     = _robotState.dq.tail(_n);
@@ -332,7 +340,7 @@ void WholeBodyReachThread::run()
 bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
 {
     bool res = true;
-    
+
     if(!_integrateEoM)
     {
         // temporary replacement of _robot->getEstimate because it's too slow
@@ -354,7 +362,7 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
         el.time = _time;        // Use integrator time
     else
         el.time = Time::now();  // Use yarp time rather than _qJStamps to be synchronized with simulator
-    
+
     //    static double _qJStampsOld = 0.0;
     //    static double timeStampOld = 0.0;
     //    double timeStamp = Time::now();
@@ -362,13 +370,13 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
     //    sendMsg("t stamp-stampOld = "+toString(timeStamp-timeStampOld)+ "\t Is system clock? "+toString(Time::isSystemClock()));
     //    _qJStampsOld = _qJStamps[0];
     //    timeStampOld = timeStamp;
-    
+
     _dqJ_yarp = _dqFilt->estimate(el);
     if(!_integrateEoM)          // if integrating EoM use integrator dq
         for(int i=0; i<_n; i++)
             _robotState.dqJ(i) = _dqJ_yarp(i);
 #endif
-    
+
 #ifdef COMPUTE_WORLD_2_BASE_ROTOTRANSLATION
     // compute base pose assuming left foot is fixed on the ground
     _robot->computeH(_robotState.qJ.data(), Frame(), LINK_ID_LEFT_FOOT, _H_base_leftFoot);
@@ -384,7 +392,7 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
     res = res && _robot->computeJacobian(_robotState.qJ.data(), _robotState.xBase, LINK_ID_LEFT_FOOT,   _JfootL.data());
     _Jc.topRows<6>()     = _JfootR;
     _Jc.bottomRows<6>()  = _JfootL;
-    
+
     // estimate base velocity from joint velocities and constraint Jacobian Jc
     _svdJcb.compute(_Jc.leftCols<6>(), ComputeThinU | ComputeThinV);
     if(!_integrateEoM)
@@ -393,11 +401,11 @@ bool WholeBodyReachThread::readRobotStatus(bool blockingRead)
     // copy base and joint velocities into _robotState.dq
     _robotState.dq.head<6>()    = _robotState.vBase;
     _robotState.dq.tail(_n)     = _robotState.dqJ;
-    
+
     // convert joint angles and velocities from rad to deg
     _qjDeg  = CTRL_RAD2DEG*_robotState.qJ;
     _dqjDeg = CTRL_RAD2DEG*_robotState.dqJ;
-    
+
     return res;
 }
 
@@ -426,7 +434,7 @@ bool WholeBodyReachThread::preStartOperations()
     cout<<"INIT Desired ddq posture: "<<toString(_tasks.posture.getEqualityVector(),2)<<endl;
     _solver.init(_robotState);
 #endif
-    
+
     if(_integrateEoM==false)
         res = res && _robot->setControlMode(CTRL_MODE_TORQUE, _tauDes.data());
     else
@@ -436,7 +444,7 @@ bool WholeBodyReachThread::preStartOperations()
         _robotStateIntegrator.qJ      = _robotState.qJ;
         _robotStateIntegrator.dq      = _robotState.dq;
     }
-    
+
     if(res)
         _status = WHOLE_BODY_REACH_ON;                 // set thread status to "on"
     else

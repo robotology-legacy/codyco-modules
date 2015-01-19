@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -27,11 +27,11 @@
 
 #include <paramHelp/paramHelperClient.h>
 #include <paramHelp/paramHelperServer.h>
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 #include <locomotionPlanner/locomotionPlannerThread.h>
- 
+
 using namespace std;
-using namespace yarp::os; 
+using namespace yarp::os;
 using namespace paramHelp;
 using namespace wbi;
 
@@ -56,7 +56,7 @@ public:
     LocomotionPlannerModule();
 
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
-    bool interruptModule();                       // interrupt, e.g., the ports 
+    bool interruptModule();                       // interrupt, e.g., the ports
     bool close();                                 // close and shut down the module
     bool respond(const Bottle& command, Bottle& reply);
     double getPeriod(){ return 0.1; }

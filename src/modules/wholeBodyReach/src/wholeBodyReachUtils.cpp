@@ -27,7 +27,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iomanip>      // std::setprecision
 #include <yarp/os/Network.h>
 #include <yarp/os/Time.h>
-#include <wbiIcub/wbiIcubUtil.h>
 #include "wholeBodyReach/wholeBodyReachUtils.h"
 #include "wholeBodyReach/wholeBodyReachConstants.h"
 
@@ -37,7 +36,6 @@ using namespace Eigen;
 using namespace iCub::skinDynLib;
 using namespace yarp::os;
 using namespace wbi;
-using namespace wbiIcub;
 
 
 SkinContactReader::SkinContactReader(std::string name, string robotName)
@@ -118,13 +116,26 @@ bool SkinContactReader::getContactOnSkinPart(SkinPart sp, skinContact &c)
                 contact = &(*it);
             }
         }
-    
+
     // if more than one contact
     if(partContList.size()>1)
         cout<<"ERROR: more than 1 contact on the skin part "<<SkinPart_s[sp]<<endl;
-    
+
     c = *contact;
     return !partContList.empty();
+}
+
+/****************************************************************************************************/
+bool SkinContactReader::isRobotSimulator(string _robotName)
+{
+    if( _robotName == "icubGazeboSim" || _robotName == "icubSim" )
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 
@@ -135,7 +146,7 @@ VectorXd wholeBodyReach::svdSolveTransposeWithDamping(const JacobiSVD<MatrixRXd>
 {
     eigen_assert(A.computeU() && A.computeV() && "svdSolveTransposeWithDamping() requires both unitaries U and V to be computed (thin unitaries suffice).");
     assert(A.cols()==b.size());
-    
+
     //    cout<<"b = "<<toString(b,1)<<endl;
     VectorXd tmp(A.rows());
     int nzsv = A.nonzeroSingularValues();
@@ -149,11 +160,11 @@ VectorXd wholeBodyReach::svdSolveTransposeWithDamping(const JacobiSVD<MatrixRXd>
     }
     //    cout<<"S^+ U^T b = "<<toString(tmp,1)<<endl;
     VectorXd res = A.matrixU().leftCols(nzsv) * tmp;
-    
+
     //    getLogger().sendMsg("sing val = "+toString(A.singularValues(),3), MSG_STREAM_INFO);
     //    getLogger().sendMsg("solution with damp "+toString(damping)+" = "+toString(res.norm()), MSG_STREAM_INFO);
     //    getLogger().sendMsg("solution without damping  ="+toString(A.solve(b).norm()), MSG_STREAM_INFO);
-    
+
     return res;
 }
 
@@ -162,7 +173,7 @@ VectorXd wholeBodyReach::svdSolveWithDamping(const JacobiSVD<MatrixRXd>& A, Vect
 {
     eigen_assert(A.computeU() && A.computeV() && "svdSolveWithDamping() requires both unitaries U and V to be computed (thin unitaries suffice).");
     assert(A.rows()==b.size());
-    
+
     //    cout<<"b = "<<toString(b,1)<<endl;
     VectorXd tmp(A.cols());
     int nzsv = A.nonzeroSingularValues();
@@ -176,11 +187,11 @@ VectorXd wholeBodyReach::svdSolveWithDamping(const JacobiSVD<MatrixRXd>& A, Vect
     }
     //    cout<<"S^+ U^T b = "<<toString(tmp,1)<<endl;
     VectorXd res = A.matrixV().leftCols(nzsv) * tmp;
-    
+
     //    getLogger().sendMsg("sing val = "+toString(A.singularValues(),3), MSG_STREAM_INFO);
     //    getLogger().sendMsg("solution with damp "+toString(damping)+" = "+toString(res.norm()), MSG_STREAM_INFO);
     //    getLogger().sendMsg("solution without damping  ="+toString(A.solve(b).norm()), MSG_STREAM_INFO);
-    
+
     return res;
 }
 
@@ -306,7 +317,7 @@ std::string wholeBodyReach::toString(Eigen::MatrixConst m, int precision, const 
     // if m is a column vector print it as a row vector
     if(m.cols()==1)
         return toString(m.transpose(), precision, endRowStr, maxColsPerLine);
-    
+
     string ret = "";
     if(m.rows()>1 && m.cols()>maxColsPerLine)
     {
@@ -334,7 +345,7 @@ std::string wholeBodyReach::jointToString(const Eigen::VectorXd &j, int precisio
 {
     if(j.size()!=ICUB_DOFS && j.size()!=ICUB_DOFS+6)
         cout<<"Error in size of joint vector: "<<j.size()<<endl;
-    
+
     int index=0;
     string ret = "";
     char tmp[350];

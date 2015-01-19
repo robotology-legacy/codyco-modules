@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -58,7 +58,7 @@ enum MotorFrictionParamIndex
     INDEX_K_CN = 4
 };
 
-/** 
+/**
  * MotorFrictionIdentification thread.
  */
 class MotorFrictionIdentificationThread: public RateThread, public ParamValueObserver, public CommandObserver
@@ -77,8 +77,8 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     vector<AlternatingRecursiveLinearEstimator>    estimators; ///< estimators, one per joint
     int                 printCountdown;         ///< every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     int                 _n;                     ///< number of joints of the robot
-    vector<LocalId>     currentJointIds;        ///< IDs of the joints currently excited
-    ArrayXi             currentGlobalJointIds;  ///< global IDs of the joints currently excited
+    ArrayXi             currentJointNumericIds; // Numeric IDs of the joints currently excited
+    vector<ID>       currentJointWbiIds;     // Wbi IDs of the joints currently excited
     ArrayXd             q;                      ///< joint positions
     ArrayXd             dqJ;                    ///< joint velocities
     ArrayXd             dq;                     ///< motor velocities
@@ -93,7 +93,9 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     ArrayXd             dqSignNeg;              ///< negative samples of the motor velocity signes
     ArrayXd             pwm;                    ///< motor PWMs
     vector<VectorXd>    inputSamples;           ///< input samples to use for identification
-    
+    ResourceFinder &    rf;                     ///< Resource finder to read module configuration
+
+    /*
     Matrix3d            leftShoulderTorqueCouplingMatrix;
     Matrix3d            leftShoulderVelocityCouplingMatrix;
     Matrix3d            rightShoulderTorqueCouplingMatrix;
@@ -106,6 +108,7 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     Vector3d             leftShoulderVelocities;
     Vector3d             rightShoulderTorques;
     Vector3d             rightShoulderVelocities;
+    */
 
     ///< *************** INPUT MODULE PARAMETERS ********************
     ArrayXi     activeJoints;       ///< List of flags (0,1) indicating for which motors the identification is active
@@ -122,7 +125,12 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     double      forgetFactor;       ///< Forgetting factor (in [0,1], 1=do not forget) used in the identification
     string      jointMonitorName;   ///< Name of the joint to monitor
     int         jointMonitor;       ///< Joint to monitor
-    
+    vector<bool>  checkThatCoupledMotorTorqueIsZero; ///< if checkThatCoupledMotorTorqueIsZero[i] is true
+                                                // disable motor gain estimation if
+                                                // fabs(coupledMotorThatShouldHaveZeroTorqueForMotorGainEstimation[i]) is
+                                                // larger then ZERO_TORQUE_THRESHOLD
+    ArrayXi coupledMotorThatShouldHaveZeroTorqueForMotorGainEstimation;
+
     ///< *************** OUTPUT FILE PARAMETERS *************************
     MatrixXdR   covarianceInv;      ///< Inverse of the covariance matrix of the parameter estimations
     MatrixXdR   rhs;                ///< Right-hand side of the linear vector equation that is solved for estimating the parameters
@@ -150,23 +158,25 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
     VectorXd    estimateMonitor;    ///< Estimates of the parameters of the monitored joint
     VectorXd    stdDevMonitor;      ///< Standard deviations of the parameters of the monitored joint
     MatrixXd    sigmaMonitor;       ///< Covariance matrix of the parameters of the monitored joint
-    
+
     /************************************************* PRIVATE METHODS ******************************************************/
-    
+    /** Load configuration option from the ResourceFinder passed as a argument to the thread */
+    bool loadConfiguration();
+
     /** Send out the specified message (if the specified msgType is currently allowed). */
     void sendMsg(const string &msg, MsgType msgType=MSG_INFO);
 
     /** Read the robot status. */
     bool readRobotStatus(bool blockingRead=false);
 
-    /** Compute the input samples to be used for the identification of the motors and frictions. 
+    /** Compute the input samples to be used for the identification of the motors and frictions.
      * @return True iff all initialization operations went fine, false otherwise. */
     bool computeInputSamples();
 
     /** Prepare the data to be sent out for monitoring. */
     void prepareMonitorData();
 
-    /** Save the current values of the identified parameters on a text file. 
+    /** Save the current values of the identified parameters on a text file.
      * @return True if the operation succeeded, false otherwise. */
     bool saveParametersOnFile(const Bottle &params, Bottle &reply);
 
@@ -175,26 +185,26 @@ class MotorFrictionIdentificationThread: public RateThread, public ParamValueObs
      * @param jid Id of the joint. */
     bool resetIdentification(int jid=-1);
 
-    /** Convert the global id contained in the specified Bottle into a local id to access
-     * the vector of this thread. The Bottle b may either contain an integer id or the name
+    /** Convert the wbiId (string) id contained in the specified Bottle into a numeric id to access
+     * the vector of this thread. The Bottle b should contain the name
      * of the joint.
      * @param b Bottle containing the global id.
      * @return The local id, -1 if nothing was found. */
-    int convertGlobalToLocalJointId(const yarp::os::Bottle &b);
+    int convertWbiIdToNumericJointId(const yarp::os::Bottle &b);
 
     /** Update the variable jointMonitor based on the value of the variable jointMonitorName. */
     void updateJointToMonitor();
 
-public:	
-    
-    /* If you define a structure having members of fixed-size vectorizable Eigen types, you must overload 
-     * its "operator new" so that it generates 16-bytes-aligned pointers. Fortunately, Eigen provides you 
+public:
+
+    /* If you define a structure having members of fixed-size vectorizable Eigen types, you must overload
+     * its "operator new" so that it generates 16-bytes-aligned pointers. Fortunately, Eigen provides you
      * with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you. */
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    MotorFrictionIdentificationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi, ParamHelperClient   *_tc);
-	
-    bool threadInit();	
+    MotorFrictionIdentificationThread(string _name, string _robotName, int _period, ParamHelperServer *_ph, wholeBodyInterface *_wbi, ParamHelperClient   *_tc, ResourceFinder & rf);
+
+    bool threadInit();
     void run();
     void threadRelease();
 

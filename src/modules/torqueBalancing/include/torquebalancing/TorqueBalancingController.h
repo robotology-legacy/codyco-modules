@@ -22,20 +22,8 @@
 #include <yarp/os/Mutex.h>
 #include <wbi/wbiUtil.h>
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything -Wdocumentation"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wall"
-#endif
 #include <Eigen/Core>
 #include <Eigen/SVD>
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
 
 namespace wbi {
     class wholeBodyInterface;
@@ -53,7 +41,7 @@ namespace codyco {
         class TorqueBalancingController: public yarp::os::RateThread
         {
         public:
-            TorqueBalancingController(int period, ControllerReferences& references, wbi::wholeBodyInterface& robot);
+            TorqueBalancingController(int period, ControllerReferences& references, wbi::wholeBodyInterface& robot, int actuatedDOFs);
             virtual ~TorqueBalancingController();
             
 #pragma mark - RateThread methods
@@ -119,6 +107,7 @@ namespace codyco {
             void writeTorques();
             
             wbi::wholeBodyInterface& m_robot;
+            int m_actuatedDOFs;
             wbi::Frame m_world2BaseFrame;
             wbi::Frame m_leftFootToBaseRotationFrame;
             

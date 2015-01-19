@@ -16,7 +16,7 @@
 */
 
 #include <locomotion/locomotionThread.h>
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
 #include <yarp/math/SVD.h>
@@ -24,7 +24,7 @@
 
 using namespace locomotion;
 using namespace yarp::math;
-using namespace wbiIcub;
+using namespace yarpWbi;
 
 
 //*************************************************************************************************************************
@@ -40,8 +40,9 @@ LocomotionThread::LocomotionThread(string _name, string _robotName, int _period,
 //*************************************************************************************************************************
 bool LocomotionThread::threadInit()
 {
-    YARP_ASSERT(robot->getLinkId("r_sole", LINK_ID_RIGHT_FOOT)); // 41
-    YARP_ASSERT(robot->getLinkId("l_sole", LINK_ID_LEFT_FOOT));  // 33
+    ICUB_MAIN_JOINTS = robot->getJointList(); //this is initialized by the module to the old ICUB_MAIN_JOINTS variable
+    YARP_ASSERT(robot->getFrameList().idToIndex("r_sole", LINK_ID_RIGHT_FOOT)); //41
+    YARP_ASSERT(robot->getFrameList().idToIndex("l_sole", LINK_ID_LEFT_FOOT));  // 33
     comLinkId           = iWholeBodyModel::COM_LINK_ID;
 
     // I must count the nonzero entries of activeJoints before calling numberOfJointsChanged (to know _n)
@@ -301,14 +302,17 @@ void LocomotionThread::numberOfConstraintsChanged()
 }
 
 //*************************************************************************************************************************
+
+
 void LocomotionThread::numberOfJointsChanged()
 {
-    LocalId lid;
-    LocalIdList currentActiveJoints = robot->getJointList();
+    ID lid;
+    
+    IDList currentActiveJoints = robot->getJointList();
     for(int i=0; i<activeJoints.size(); i++)
     {
-        lid = ICUB_MAIN_JOINTS.globalToLocalId(i);
-        if(currentActiveJoints.containsId(lid))
+        ICUB_MAIN_JOINTS.indexToID(i, lid);
+        if(currentActiveJoints.containsID(lid))
         {
             if(activeJoints[i]==0)
                 robot->removeJoint(lid);

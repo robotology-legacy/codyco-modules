@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -42,7 +42,7 @@ MinJerkPDLinkPoseTask::MinJerkPDLinkPoseTask(string taskName, string linkName, d
 {
     _ctrlPoint.setZero();
     _J.setZero(6, robot->getDoFs()+6);
-    if(!(_initSuccessfull = _robot->getLinkId(linkName.c_str(), _linkId)))
+    if(!(_initSuccessfull = _robot->getFrameList().idToIndex(linkName.c_str(), _linkId)))
         printf("[MinJerkPDLinkPoseTask] Error while trying to get id of link %s\n", linkName.c_str());
 }
 
@@ -53,7 +53,7 @@ bool MinJerkPDLinkPoseTask::update(RobotState& state)
     bool res = _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
     res = res && _robot->computeJacobian(state.qJ.data(), state.xBase, _linkId, _J.data());
     res = res && _robot->computeDJdq(state.qJ.data(), state.xBase, state.dqJ.data(), state.vBase.data(), _linkId, _dJdq.data());
-    
+
     // compute Jacobian, dJ*dq, position and velocity of control point
     adjointInv(_ctrlPoint, _adjInv);
     _J      = _adjInv*_J;
@@ -62,32 +62,32 @@ bool MinJerkPDLinkPoseTask::update(RobotState& state)
     _H.p[0] += _ctrlPoint(0);
     _H.p[1] += _ctrlPoint(1);
     _H.p[2] += _ctrlPoint(2);
-    
+
     // copy data into Eigen vector
     _pose(0) = _H.p[0]; _pose(1) = _H.p[1]; _pose(2) = _H.p[2];
     _H.R.getAxisAngle(_pose.data()+3);
 //    getLogger().sendMsg(_name+" H:\n"+_H.toString(2)+"\nPose: "+toString(_pose,2), MSG_STREAM_INFO);
-    
+
     // update reference trajectory
     _trajGen.computeNextValues(_poseDes.head<3>());
     _posRef = _trajGen.getPos();
-    
+
     // compute PD
     _dvStar.head<3>() = _trajGen.getAcc()   + _Kd.head<3>().cwiseProduct(_trajGen.getVel() - _v.head<3>())
                                             + _Kp.head<3>().cwiseProduct(_posRef - _pose.head<3>());
     computeOrientationError(_H.R, _Hdes.R, _orientationError);
     _dvStar.tail<3>() = _Kp.tail<3>().cwiseProduct(_orientationError) - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
-    
+
     // update equality matrix and equality vectory
     _A_eq = _J;
     _a_eq = _dvStar - _dJdq;
-    
+
     if(_controlPositionOnly)
     {
         _A_eq.bottomRows<3>().setZero();
         _a_eq.tail<3>().setZero();
     }
-    
+
     return res;
 }
 
@@ -98,7 +98,7 @@ void MinJerkPDLinkPoseTask::init(RobotState& state)
     _pose(0) = _H.p[0]; _pose(1) = _H.p[1]; _pose(2) = _H.p[2];
     _H.R.getAxisAngle(_pose.data()+3);
     _trajGen.init(_pose.head<3>());
-    
+
     // set desired pose to current pose
     _poseDes = _pose;
     _Hdes = _H;
@@ -158,20 +158,20 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
 {
     assert(_A_eq.rows()==6 && _A_eq.cols()==state.qJ.size()+6);
     assert(_a_eq.size()==6);
-    
+
     bool res = true;
     res = res && _robot->computeH(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _H);
     res = res && _robot->computeCentroidalMomentum(state.qJ.data(), state.xBase, state.dqJ.data(),
                                                    state.vBase.data(), _momentum.data());
     _v = _momentum.head<3>()/_robotMass;    // compute CoM velocity
     _momentumIntegral += _momentum*_sampleTime;
-    
+
 //    res = res && _robot->computeJacobian(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _A_eq.data());
 //    _v = _A_eq.topRows<3>()*state.dq;  // compute CoM velocity
-    
+
     // copy data into Eigen vector
     _com(0) = _H.p[0]; _com(1) = _H.p[1]; _com(2) = _H.p[2];
-    
+
     // update reference trajectory
     _trajGen.computeNextValues(_comDes);
     _comRef = _trajGen.getPos();
@@ -193,7 +193,7 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
                           - _Kd.tail<3>().cwiseProduct(_momentum.tail<3>()); // - _Kd.tail<3>().cwiseProduct(_v.tail<3>());
 //        getLogger().sendMsg("Root-link orientation error: "+toString(_orientationError,2), MSG_STREAM_INFO);
     }
-    
+
 //    getLogger().sendMsg("Momentum: Kp*e    = "+toString(_Kp.head<3>().cwiseProduct(_trajGen.getPos()-_com),2), MSG_STREAM_INFO);
 //    getLogger().sendMsg("Momentum: Kd*de   = "+toString(_Kd.head<3>().cwiseProduct(_trajGen.getVel()-_v),2),   MSG_STREAM_INFO);
 //    getLogger().sendMsg("Momentum: ddx_ref = "+toString(_trajGen.getAcc(),2), MSG_STREAM_INFO);
@@ -203,10 +203,10 @@ bool MinJerkPDMomentumTask::update(RobotState& state)
 //    cout<<"_trajGen.getAcc() = "<< _trajGen.getAcc().transpose() << endl;
 //    cout<<"_trajGen.getVel() = "<< _trajGen.getVel().transpose() << endl;
 //    cout<<"_trajGen.getPos() = "<< _trajGen.getPos().transpose() << endl;
-    
+
 //    cout<<"_com = "<< _com.transpose() << endl;
 //    cout<<"_a_eq = "<< _a_eq.transpose() << endl;
-    
+
     return res;
 }
 
@@ -216,10 +216,10 @@ void MinJerkPDMomentumTask::init(RobotState& state)
     bool res = _robot->computeH(state.qJ.data(), state.xBase, iWholeBodyModel::COM_LINK_ID, _H);
     _com(0) = _H.p[0]; _com(1) = _H.p[1]; _com(2) = _H.p[2];
     _trajGen.init(_com);
-    
+
     /// TEMP
     _comDes = _com;
-    
+
     // compute robot's mass
     int n = _robot->getDoFs();
     MatrixRXd M(n+6, n+6);
@@ -227,12 +227,12 @@ void MinJerkPDMomentumTask::init(RobotState& state)
     _robotMass = M(0,0);
     cout<<"The robot's mass is "<<_robotMass<<" kg."<<endl;
     assert(res);
-    
+
     // reset momentum integral
     _momentumIntegral.setZero();
-    
+
     // set desired root-link's orientation to initial one
-    if(!(res = _robot->getLinkId("root_link", _linkId))) // use "chest" alternatively
+    if(!(res = _robot->getFrameList().idToIndex("root_link", _linkId))) // use "chest" alternatively
         printf("[MinJerkPDMomentumTask] Error while trying to get id of link root_link.\n");
     res = _robot->computeH(state.qJ.data(), state.xBase, _linkId, _H);
     _Rdes = _H.R;
@@ -292,7 +292,7 @@ bool MinJerkPDPostureTask::update(RobotState& state)
     _qErrorIntegral += _sampleTime * _Ki.cwiseProduct(_qRef - WBR_RAD2DEG*state.qJ);
 
 //    getLogger().sendMsg("qErrInt: "+jointToString(_qErrorIntegral,1),MSG_STREAM_INFO);
-    
+
     _a_eq  = WBR_DEG2RAD * ( _trajGen.getAcc() +
                              _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ) +
                              _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ) +
@@ -304,10 +304,10 @@ void MinJerkPDPostureTask::init(RobotState& state)
 {
     _trajGen.init(WBR_RAD2DEG*state.qJ);
     _qErrorIntegral.setZero();
-    
+
     // TEMP
     _qDes = WBR_RAD2DEG*state.qJ;
-    
+
 #define DEBUG_MINJERKPDPOSTURETASK
 #ifdef  DEBUG_MINJERKPDPOSTURETASK
 //    cout<<"  Posture initial pos "<<_trajGen.getPos().transpose()<<endl;
@@ -318,7 +318,7 @@ void MinJerkPDPostureTask::init(RobotState& state)
                                 _Kd.cwiseProduct(_trajGen.getVel() - WBR_RAD2DEG*state.dqJ) +
                                 _Kp.cwiseProduct(_trajGen.getPos() - WBR_RAD2DEG*state.qJ) +
                                 _qErrorIntegral);
-        
+
 //        cout<<"*** Time "<< i*_trajGen.getSampleTime() << endl;
 //        cout<<"  ddqDes              "<<_trajGen.getAcc().norm()<<endl;;
 //        cout<<"  dqDes               "<<_trajGen.getVel().norm()<<endl;
@@ -375,7 +375,7 @@ bool JointLimitTask::update(RobotState& state)
         velLim = -(_dq(i)+CTRL_DEG2RAD*_dqMax(i))/_dt;
         ddqMin = max(posLim, max(velLim, -_ddqMax(i)));
         _a_in(2*i+0) = -ddqMin;
-        
+
         // *** Compute upper bound ***
         // compute max ddq not to hit upper position bound
         posLim = +(2.0/pow(_dt,2))*(CTRL_DEG2RAD*(_qMax(i)-_minDist) - _q(i) - _dt*_dq(i));
@@ -383,7 +383,7 @@ bool JointLimitTask::update(RobotState& state)
         velLim = (CTRL_DEG2RAD*_dqMax(i)-_dq(i))/_dt;
         ddqMax = min(posLim, min(velLim, _ddqMax(i)));
         _a_in(2*i+1) =ddqMax;
-        
+
         // if lower bound is > than upper bound
         if(ddqMin >= ddqMax)
         {
@@ -394,11 +394,11 @@ bool JointLimitTask::update(RobotState& state)
             _a_in(2*i+0) = -(2.0/pow(_dt,2))*(CTRL_DEG2RAD*(_qMin(i)+_minDist) - _q(i) - _dt*_dq(i));
             _a_in(2*i+1) = posLim;
         }
-        
+
         // compute monitoring parameter "q normalized"
         _qNormalized(i) = (CTRL_RAD2DEG*_q(i)-_qMin(i))/(_qMax(i)-_qMin(i));
     }
-    
+
     return res;
 }
 
@@ -418,14 +418,15 @@ bool JointLimitTask::setDdqDes(VectorConst ddqDes)
     if( !checkVectorSize(ddqDes))
         return false;
     VectorXd tmp = _A_in*ddqDes;
-    const LocalIdList& jl = _robot->getJointList();
+    const IDList& jl = _robot->getJointList();
     for(int i=0; i<_m; i++)
     {
         if(tmp(2*i)+_a_in(2*i) <= 0.0 || tmp(2*i+1)+_a_in(2*i+1) <= 0.0)
         {
-            LocalId j = jl.globalToLocalId(i);
-            getLogger().sendMsg(BodyPart_s[j.bodyPart]+
-                                " joint "+toString(j.index)+" acc limit "+toString(i)+
+            ID j;
+            jl.indexToID(i,j);
+            getLogger().sendMsg(
+                                " joint "+j.toString()+" acc limit "+toString(i)+
                                 "\t ddqDes="+toString(ddqDes(i))+
                                 "\t ddqMin="+toString(-_a_in(2*i))+
                                 "\t ddqMax="+toString(_a_in(2*i+1)),
@@ -437,9 +438,10 @@ bool JointLimitTask::setDdqDes(VectorConst ddqDes)
         }
         if(CTRL_RAD2DEG*_q(i) <= _qMin(i) || CTRL_RAD2DEG*_q(i) >= _qMax(i))
         {
-            LocalId j = jl.globalToLocalId(i);
-            getLogger().sendMsg(BodyPart_s[j.bodyPart]+
-                                " joint "+toString(j.index)+" pos limit "+toString(i)+
+            ID j;
+            jl.indexToID(i,j);
+            getLogger().sendMsg(
+                                " joint "+j.toString()+" pos limit "+toString(i)+
                                 "\t q="+toString(CTRL_RAD2DEG*_q(i))+
                                 "\t qMin="+toString(_qMin(i))+
                                 "\t qMax="+toString(_qMax(i)),

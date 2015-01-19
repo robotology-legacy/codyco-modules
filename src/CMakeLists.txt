@@ -4,6 +4,7 @@ if(CODYCO_USES_WBI_TOOLBOX)
 endif(CODYCO_USES_WBI_TOOLBOX)
 
 add_subdirectory(modules)
+add_subdirectory(devices)
 add_subdirectory(misc/ftDumper)
 add_subdirectory(misc/reachRandomJointPositions)
 

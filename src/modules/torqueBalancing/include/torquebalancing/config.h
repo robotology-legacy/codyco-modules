@@ -19,10 +19,7 @@
 
 namespace codyco {
     namespace torquebalancing {
-        extern const int actuatedDOFs; /*!< number of actuated degree of freedom */
-        extern const int totalDOFs; /*!< total number of degree of freedom. For a free floating robot this is usually the number of actuated joints plus 6*/
-        extern const double PseudoInverseTolerance;
-        
+        extern const double PseudoInverseTolerance;        
     }
 }
 

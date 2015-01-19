@@ -20,7 +20,7 @@
 
 #include <iCub/skinDynLib/common.h>
 
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 
 #include <wbi/wbiUtil.h>
 
@@ -38,7 +38,7 @@ using namespace yarp::math;
 using namespace iCub::skinDynLib;
 using namespace std;
 using namespace wbi;
-using namespace wbiIcub;
+using namespace yarpWbi;
 
 const double TOL = 1e-8;
 
@@ -47,7 +47,7 @@ const double TOL = 1e-8;
  * so eventually we could move this function to wbi to provided a consistency check for an arbitrary implementation
  *
  */
-bool checkInverseDynamicsAndMassMatrixConsistency(iWholeBodyModel * model_interface, const LocalIdList & possible_joints, double tol, bool verbose)
+bool checkInverseDynamicsAndMassMatrixConsistency(iWholeBodyModel * model_interface, const wbiIdList & possible_joints, double tol, bool verbose)
 {
     int nr_of_possible_joints = 0;
     FOR_ALL_OF(itBp, itJ, possible_joints) {
@@ -189,8 +189,8 @@ int main(int argc, char * argv[])
     // TEST WHOLE BODY MODEL
     std::string localName = "wbiTest";
     std::string robotName = "icub";
-    std::cout << "Creating icubWholeBodyModel with robotName " << robotName << " and localName " << localName << std::endl;
-    iWholeBodyModel *icub = new icubWholeBodyModel(localName.c_str(),robotName.c_str(),iCub::iDynTree::iCubTree_version_tag(2,1,true));
+    std::cout << "Creating yarpWholeBodyModel with robotName " << robotName << " and localName " << localName << std::endl;
+    iWholeBodyModel *icub = new yarpWholeBodyModel(localName.c_str(),);
 
     Rand::init();
     for(int i = 0; i < n_checks; i++ ) {

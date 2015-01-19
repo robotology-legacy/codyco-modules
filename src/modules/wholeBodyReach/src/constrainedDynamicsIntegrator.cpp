@@ -41,10 +41,10 @@ ConstrainedDynamicsIntegrator::ConstrainedDynamicsIntegrator(wbi::iWholeBodyMode
     _ddq.setZero(_n+6);         /// joint+base accelerations
     _g(0) = _g(1) = 0.0;
     _g(2) = -9.81;
-    
+
     _qj.setZero(_n);
     _dq.setZero(_n+6);
-    
+
     int dim = 3+9+_n+_n+6;
     _x.setZero(dim);
     _x_i.setZero(dim);
@@ -53,7 +53,7 @@ ConstrainedDynamicsIntegrator::ConstrainedDynamicsIntegrator(wbi::iWholeBodyMode
     _k2.setZero(dim);
     _k3.setZero(dim);
     _k4.setZero(dim);
-    
+
     _numericalDamping = 0.0;
     _timestep = 1e-4;
 }
@@ -62,9 +62,9 @@ ConstrainedDynamicsIntegrator::ConstrainedDynamicsIntegrator(wbi::iWholeBodyMode
 bool ConstrainedDynamicsIntegrator::addConstraints(string linkName)
 {
     int linkId;
-    if(_robot->getLinkId(linkName.c_str(), linkId)==false)
+    if(_robot->getFrameList().idToIndex(linkName.c_str(), linkId)==false)
         return false;
-    
+
     _m += 6;
     _constrainedLinkIds.push_back(linkId);
     resizeConstraintDataStructures();
@@ -103,7 +103,7 @@ bool ConstrainedDynamicsIntegrator::integrate(double dt, VectorConst torques,
                                               Frame& xB_f,       VectorRef qj_f,   VectorRef dq_f)
 {
     _time += dt;    /// integrate time
-    
+
     // convert the state representation from q to x
     _tau = torques;
     _xB_i = xB_i;
@@ -112,15 +112,15 @@ bool ConstrainedDynamicsIntegrator::integrate(double dt, VectorConst torques,
     MatrixR3d::Map(&_x_i[3])  = _R_B;
     _x_i.segment(12,_n)       = qj_i;
     _x_i.tail(_n+6)           = dq_i;
-    
+
 //    Frame H0_i, H1_i;
 //    _robot->computeH(_x_i.segment(12,_n).data(), xB_i, _constrainedLinkIds[0], H0_i);
 //    _robot->computeH(_x_i.segment(12,_n).data(), xB_i, _constrainedLinkIds[1], H1_i);
-    
+
     // INTEGRATION
     //k1
     dynamics(_x_i, _dx);
-    
+
     _ddq_first_call = _ddq;
 
 #define USE_RK4
@@ -154,7 +154,7 @@ bool ConstrainedDynamicsIntegrator::integrate(double dt, VectorConst torques,
     xB_f    = _xB;
     qj_f     = _x.segment(12, _n);
     dq_f     = _x.tail(_n+6);
-        
+
 //    Frame H0_f, H1_f;
 //    _robot->computeH(qj_f.data(), xB_f, _constrainedLinkIds[0], H0_f);
 //    _robot->computeH(qj_f.data(), xB_f, _constrainedLinkIds[1], H1_f);
@@ -167,7 +167,7 @@ bool ConstrainedDynamicsIntegrator::integrate(double dt, VectorConst torques,
 //    cout<<"Constraint 0 final:\n"<<H0_f.toString()<<endl;
 //    getLogger().sendMsg("Constraint 1 initial:\n"+H1_i.toString(), MSG_STREAM_INFO);
 //    cout<<"Constraint 1 final:\n"<<H1_f.toString()<<endl;
-    
+
     return true;
 }
 
@@ -178,14 +178,14 @@ void ConstrainedDynamicsIntegrator::dynamics(VectorConst x, VectorRef dx)
     _R_B    = MatrixR3d::Map(x.segment<9>(3).data());
     _qj     = x.segment(12, _n);
     _dq     = x.tail(_n+6);
-    
+
     constrainedForwardDynamics(_tau, _xB, _qj, _dq, _ddq);
-    
+
 //    getLogger().sendMsg("tau integration: "+jointToString(_tau,1), MSG_STREAM_INFO);
 //    getLogger().sendMsg("q integration: "+jointToString(WBR_RAD2DEG*_qj,1), MSG_STREAM_INFO);
 //    getLogger().sendMsg("dq integration: "+jointToString(WBR_RAD2DEG*_dq,1), MSG_STREAM_INFO);
 //    getLogger().sendMsg("xB integration:\n"+_xB.toString(), MSG_STREAM_INFO);
-    
+
     Map<MatrixR3d>   dR(&dx[3]);
     dx.head<3>()        = _dq.head<3>();
     dR.col(0)           = _dq.segment<3>(3).cross(_R_B.col(0)); // dR = w x R
@@ -207,7 +207,7 @@ void ConstrainedDynamicsIntegrator::constrainedForwardDynamics(Eigen::VectorCons
         _robot->computeDJdq(qj.data(), xBase, dq.tail(_n).data(), dq.data(), _constrainedLinkIds[i], &_b[i*6]);
     }
     _b *= -1.0;
-    
+
     // compute mass matrix and generalized bias forces
     _robot->computeMassMatrix(qj.data(), xBase, _M.data());
     _robot->computeGeneralizedBiasForces(qj.data(), xBase, dq.tail(_n).data(), dq.data(), _g.data(), _h.data());
@@ -215,11 +215,11 @@ void ConstrainedDynamicsIntegrator::constrainedForwardDynamics(Eigen::VectorCons
     // compute constraint solution: ddqBar = - Jc^+ * dJc * dq
     _A_svd.compute(_A, ComputeFullU | ComputeFullV);
     _ddqBar = svdSolveWithDamping(_A_svd, _b, _numericalDamping);
-    
+
     // compute base of null space of constraint Jacobian
     int r = (_A_svd.singularValues().array()>PINV_TOL).count();
     _Z = _A_svd.matrixV().rightCols(_n+6-r);
-    
+
     // compute constrained accelerations ddq_c = (Z^T*M*Z)^{-1}*Z^T*(S^T*tau - h - M*ddqBar)
     _ZMZ = _Z.transpose()*_M*_Z;
     _ZMZ_chol.compute(_ZMZ);
@@ -229,7 +229,7 @@ void ConstrainedDynamicsIntegrator::constrainedForwardDynamics(Eigen::VectorCons
 
     // compute joint accelerations
     ddq = _ddqBar + _Z*_ddq_c;
-    
+
 //    getLogger().sendMsg("rank Jc = "+toString(r), MSG_STREAM_INFO);
 //    getLogger().sendMsg("Z size = "+toString(_Z.rows())+" X "+toString(_Z.cols()), MSG_STREAM_INFO);
 //    getLogger().sendMsg("A*ddq-b = "+toString((_A*ddq-_b).norm()), MSG_STREAM_INFO);
@@ -250,7 +250,7 @@ void ConstrainedDynamicsIntegrator::resizeConstraintDataStructures()
     _A.setZero(_m,_n+6);        /// constraint matrix
     _b.setZero(_m);             /// constraint vector
     _A_svd = SVD(_m,_n+6);      /// svd of the constraint matrix
-    
+
     int k = _n+6-_m;            /// (likely) dimension of null space of the constraints
     if(k<0) k=0;
     _Z.setZero(_n+6,k);

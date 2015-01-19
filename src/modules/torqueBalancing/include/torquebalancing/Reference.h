@@ -18,19 +18,7 @@
 #define REFERENCE_H
 
 #include <yarp/os/Mutex.h>
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything -Wdocumentation"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wall"
-#endif
 #include <Eigen/Core>
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
 
 
 namespace codyco {
@@ -89,7 +77,10 @@ namespace codyco {
         class ControllerReferences
         {
         public:
-            ControllerReferences();
+            /** Constructor
+             * @param actuatedDOFs number of joints actuated
+             */
+            ControllerReferences(int actuatedDOFs);
             
             /** @brief returns the desired COM acceleration 3-dim reference.
              * @return desired COM acceleration (3 dim)

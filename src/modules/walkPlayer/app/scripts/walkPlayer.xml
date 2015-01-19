@@ -1,0 +1,13 @@
+<application>
+<name>walkPlayer</name>
+	
+	<module>
+		<name>walkPlayer</name>
+		<parameters>--robot icub --filename2 seq02_leg --speed 2.0 --execute</parameters>
+		<node>icub15</node>
+		<tag>walkPlayer</tag>
+	</module>
+
+</application>
+
+

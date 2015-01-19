@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2013 CoDyCo
  * Author: Andrea Del Prete
  * email:  andrea.delprete@iit.it
@@ -25,7 +25,7 @@ FreeMotionExcitation::FreeMotionExcitation()
     const ParamProxyInterface *const freeMotionExcitationParamDescr[FREE_MOTION_EXCITATION_PARAM_ID_SIZE] =
     {
     //                          NAME                           ID                          SIZE                 CONSTRAINTS                              I/O ACCESS          DEFAULT VALUE          DESCRIPTION
-    new ParamProxyBasic<int>(   "joint id",                    PARAM_ID_JOINT_ID,          PARAM_SIZE_FREE,     ParamBilatBounds<int>(0,30),             PARAM_CONFIG,       0,                     "Id(s) of the joint(s) to excite"),          
+    new ParamProxyBasic<string>(   "joint id",                    PARAM_ID_JOINT_ID,          PARAM_SIZE_FREE,     ParamBilatBounds<int>(0,30),             PARAM_CONFIG,       0,                     "Id(s) of the joint(s) to excite"),
     new ParamProxyBasic<double>("initial joint configuration", PARAM_ID_INIT_Q,            PARAM_SIZE_FREE,     ParamBilatBounds<double>(-360,360),      PARAM_CONFIG,       0,                     "Initial configuration of all joints before starting excitation"),
     new ParamProxyBasic<double>("a",                           PARAM_ID_A,                 PARAM_SIZE_FREE,     ParamBilatBounds<double>(0,10),          PARAM_CONFIG,       0,                     "Linear coefficient of PWM sinusoid amplitude"),
     new ParamProxyBasic<double>("a0",                          PARAM_ID_A0,                PARAM_SIZE_FREE,     ParamBilatBounds<double>(0,100),         PARAM_CONFIG,       0,                     "Initial amplitude of PWM sinusoid signal"),
@@ -70,7 +70,7 @@ FreeMotionExcitation::FreeMotionExcitation()
 //    for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
 //        relinkParam(it->first);
 //}
-    
+
 FreeMotionExcitation& FreeMotionExcitation::operator=(const FreeMotionExcitation& rhs)
 {
     paramList = rhs.paramList;
@@ -135,7 +135,7 @@ bool FreeMotionExcitation::setSubParam(const char *key, const Bottle &value, Bot
     ///< replace "underscores" with "white spaces"
     string paramName(key);
     replace( paramName.begin(), paramName.end(), '_', ' ');
-    
+
     ///< look for a parameter with name==key and try to set the new value
     for(map<int,ParamProxyInterface*>::iterator it=paramList.begin(); it!=paramList.end(); it++)
         if(it->second->name.compare(paramName)==0)
@@ -144,13 +144,13 @@ bool FreeMotionExcitation::setSubParam(const char *key, const Bottle &value, Bot
             if(it->second->size.freeSize && it->second->size != value.size())
                 resizeParam(it->first, value.size());
             bool res = it->second->set(value, reply);
-            
+
             Bottle b;
             it->second->getAsBottle(b);
             //printf("Subparam %s set to %s\n", key, b.toString().c_str());
             return res;
         }
-    
+
     ///< if no parameter has been found then return false
     if(reply!=NULL)
         reply->addString(("Param name not found: "+paramName).c_str());
@@ -175,24 +175,24 @@ void FreeMotionExcitation::resizeParam(int paramId, int newSize)
     //printf("Param %s changed size to %d\n", paramList[paramId]->name.c_str(), newSize);
     switch(paramId)
     {
-    case PARAM_ID_JOINT_ID:         
+    case PARAM_ID_JOINT_ID:
         jointId.resize(newSize); break;
-    case PARAM_ID_INIT_Q:           
+    case PARAM_ID_INIT_Q:
         initialJointConfiguration.resize(newSize); break;
-    case PARAM_ID_A:                
+    case PARAM_ID_A:
         a.resize(newSize); break;
-    case PARAM_ID_A0:               
+    case PARAM_ID_A0:
         a0.resize(newSize); break;
-    case PARAM_ID_W:                
+    case PARAM_ID_W:
         w.resize(newSize); break;
-    case PARAM_ID_JOINT_LIM_THR:    
+    case PARAM_ID_JOINT_LIM_THR:
         jointLimitThresh.resize(newSize); break;
-    case PARAM_ID_FRIC_PAR_COV_THR: 
+    case PARAM_ID_FRIC_PAR_COV_THR:
         fricParamCovarThresh.resize(newSize); break;
-    case PARAM_ID_POS_INT_GAIN: 
+    case PARAM_ID_POS_INT_GAIN:
         ki.resize(newSize); break;
-    default:    
-        printf("Unexpected param ID in FreeMotionExcitation::resizeParam: %d\n", paramId); 
+    default:
+        printf("Unexpected param ID in FreeMotionExcitation::resizeParam: %d\n", paramId);
         return;
     }
     relinkParam(paramId, newSize);
@@ -202,24 +202,24 @@ void FreeMotionExcitation::relinkParam(int paramId, int newSize)
 {
     switch(paramId)
     {
-    case PARAM_ID_JOINT_ID:         
+    case PARAM_ID_JOINT_ID:
         return paramList[PARAM_ID_JOINT_ID]->linkToVariable(jointId.data(), newSize);
-    case PARAM_ID_INIT_Q:           
+    case PARAM_ID_INIT_Q:
         return paramList[PARAM_ID_INIT_Q]->linkToVariable(initialJointConfiguration.data(), newSize);
-    case PARAM_ID_A:                
+    case PARAM_ID_A:
         return paramList[PARAM_ID_A]->linkToVariable(a.data(), newSize);
-    case PARAM_ID_A0:               
+    case PARAM_ID_A0:
         return paramList[PARAM_ID_A0]->linkToVariable(a0.data(), newSize);
-    case PARAM_ID_W:                
+    case PARAM_ID_W:
         return paramList[PARAM_ID_W]->linkToVariable(w.data(), newSize);
-    case PARAM_ID_JOINT_LIM_THR:    
+    case PARAM_ID_JOINT_LIM_THR:
         return paramList[PARAM_ID_JOINT_LIM_THR]->linkToVariable(jointLimitThresh.data(), newSize);
-    case PARAM_ID_FRIC_PAR_COV_THR: 
+    case PARAM_ID_FRIC_PAR_COV_THR:
         return paramList[PARAM_ID_FRIC_PAR_COV_THR]->linkToVariable(fricParamCovarThresh.data(), newSize);
-    case PARAM_ID_POS_INT_GAIN: 
+    case PARAM_ID_POS_INT_GAIN:
         return paramList[PARAM_ID_POS_INT_GAIN]->linkToVariable(ki.data(), newSize);
-    default:    
-        printf("Unexpected param ID in FreeMotionExcitation::relinkParam: %d\n", paramId); 
+    default:
+        printf("Unexpected param ID in FreeMotionExcitation::relinkParam: %d\n", paramId);
     }
 }
 

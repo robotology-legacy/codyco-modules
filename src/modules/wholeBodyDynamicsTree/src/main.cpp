@@ -34,38 +34,33 @@ using namespace yarp::sig;
 using namespace yarp::os;
 using namespace std;
 
-void iCubPartVersionOptionsPrint()
-{
-    cout<< "\t--headV1/headV2    :Version of the head."  <<endl;
-    cout<< "\t--legsV1/legsV2    :Version of the legs."  <<endl;
-    cout<< "\t--feetV1/feetV2    :Version of the feet."  <<endl;
-    #ifdef CODYCO_USES_URDFDOM
-    cout<< "\t--urdf             :URDF file to load."    <<endl;
-    #endif
-}
-
 int main (int argc, char * argv[])
 {
     //Creating and preparing the Resource Finder
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultConfigFile("default.ini");         //default config file name.
+    rf.setDefaultConfigFile("wholeBodyDynamicsTree.ini");         //default config file name.
     rf.setDefaultContext(DEFAULT_YARP_CONTEXT); //when no parameters are given to the module this is the default context
     rf.configure(argc,argv);
 
     if (rf.check("help"))
     {
         cout<< "Possible parameters"                                                                                                                                          << endl << endl;
-        cout<< "\t--context          :Where to find an user defined .ini file within $ICUB_ROOT/app e.g. /" << DEFAULT_YARP_CONTEXT << "conf"                                   <<endl;
-        cout<< "\t--from             :Name of the file.ini to be used for calibration."                                                                                       <<endl;
-        cout<< "\t--rate             :Period used by the module. Default set to 10ms."                                                                                        <<endl;
-        cout<< "\t--robot            :Robot name. Set to icub by default."                                                                                  <<endl;
+        cout<< "\t--context          :Where to find an user defined .ini e.g. /" << DEFAULT_YARP_CONTEXT << "conf"                                   <<endl;
+        cout<< "\t--from             :Name of the file .ini user for configuration."                                                                                       <<endl;
+        cout<< "\t--wbi_conf_file    :Name of the configuration file used for yarpWholeBodyInterface ." << endl;
+        cout<< "\t--torque_estimation_joint_list :Name of the wbi::IDList of joint to use in torqueEstimation." << endl
+            << "\t                                This list should be found in the wholeBodyDynamicsTree configuration file" << endl
+            << "\t                                or in the yarpWholeBodyInterface configuration file. Default: ROBOT_DYNAMIC_MODEL_JOINTS" << endl;
+
+        cout<< "\t--robot            :Robot name, overload the setting contained in the wbi_conf_file configuration file."                                                                                  <<endl;
+        cout<< "\t--rate             :Period (in ms) used by the module. Default set to 10ms."                                                                                        <<endl;
         cout<< "\t--name             :Prefix of the ports opened by the module. Set to the module name by default, i.e. wholeBodyDynamicsTree."                                      <<endl;
-        iCubPartVersionOptionsPrint();
         cout<< "\t--enable_w0_dw0/disable_w0_dw0    :Enable/disable use of angular velocity and acceleration measured from the IMU (default: disabled)." << endl;
         cout<< "\t--autoconnect      :Autoconnect torques port for low-level torque feedback. " << endl;
         cout<< "\t--assume_fixed     :Use a link as a kinematic root in estimation (assuming a constant gravity). Possible options: (root_link, l_sole, r_sole)." <<endl;
         cout<< "\t--assume_fixed_base_calibration :Use the root link as a kinematic root  in calibration (assuming constant gravity)." <<endl;
+        cout<< "\t--output_clean_ft  :Output the measure of the FT sensors without offset in set of ports." << endl;
         cout<< "\t--min_taxel  threshold   :Filter input skin contacts: if the activated taxels are lower than the threshold, ignore the contact (default: 1)." << endl;
         cout<< "\t--zmp_test_left/--zmp_test_right : Enable debug port outputs for robot single standing on left or right foot. " << endl;
         cout<< "\t\t this option will open the following ports: " << endl;

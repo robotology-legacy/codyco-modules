@@ -29,24 +29,19 @@
 
 #include <wholeBodyDynamicsTree/wholeBodyDynamicsThread.h>
 
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 
-
-using namespace std;
-using namespace yarp::os;
-using namespace wbi;
-
-class wholeBodyDynamicsModule: public RFModule, public wholeBodyDynamics_IDLServer
+class wholeBodyDynamicsModule: public yarp::os::RFModule, public wholeBodyDynamics_IDLServer
 {
     /* module parameters */
-    string  moduleName;
-    string  robotName;
+    std::string  moduleName;
+    std::string  robotName;
     int     period;
     double  avgTime, stdDev, avgTimeUsed, stdDevUsed;
 
-    Port                rpcPort;        // a port to handle rpc messages
+    yarp::os::Port                rpcPort;        // a port to handle rpc messages
     wholeBodyDynamicsThread*   wbdThread;     // locomotion control thread
-    wbiIcub::icubWholeBodyStatesLocal* estimationInterface; // interface to communicate with the robot
+    yarpWbi::yarpWholeBodyStatesLocal* estimationInterface; // interface to communicate with the robot
 
 public:
     wholeBodyDynamicsModule();

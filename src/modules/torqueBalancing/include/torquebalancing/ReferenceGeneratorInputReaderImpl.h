@@ -19,19 +19,7 @@
 
 #include "ReferenceGenerator.h"
 #include <wbi/wbiUtil.h>
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything -Wdocumentation"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wall"
-#endif
 #include <Eigen/Core>
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
 #include <string>
 
 namespace wbi {
@@ -53,6 +41,7 @@ namespace codyco {
         class EndEffectorPositionReader : public ReferenceGeneratorInputReader {
         private:
             wbi::wholeBodyInterface& m_robot;
+            int m_numberOfJoints;
             wbi::Frame m_world2BaseFrame;
             wbi::Frame m_leftFootToBaseRotationFrame;
 
@@ -71,8 +60,8 @@ namespace codyco {
             void updateStatus(long context);
             void initializer();
         public:
-            EndEffectorPositionReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName);
-            EndEffectorPositionReader(wbi::wholeBodyInterface& robot, int linkID);
+            EndEffectorPositionReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName, int numberOfJoints);
+            EndEffectorPositionReader(wbi::wholeBodyInterface& robot, int linkID, int numberOfJoints);
             virtual ~EndEffectorPositionReader();
             virtual const Eigen::VectorXd& getSignal(long context = 0);
             virtual const Eigen::VectorXd& getSignalDerivative(long context = 0);
@@ -93,7 +82,7 @@ namespace codyco {
             Eigen::VectorXd m_outputCOM;
             Eigen::VectorXd m_outputCOMVelocity;
         public:
-            COMReader(wbi::wholeBodyInterface& robot);
+            COMReader(wbi::wholeBodyInterface& robot, int numberOfJoints);
 
             virtual ~COMReader();
             virtual const Eigen::VectorXd& getSignal(long context = 0);
@@ -116,17 +105,18 @@ namespace codyco {
             wbi::Frame m_leftFootToBaseRotationFrame;
 
             int m_leftFootLinkID; /*!< this is temporary to allow robot localization */
-            wbi::LocalId m_endEffectorLocalID;
+            int m_endEffectorLocalID;
 
             Eigen::VectorXd m_jointsPosition;
             Eigen::VectorXd m_jointsVelocity;
             Eigen::VectorXd m_outputSignal;
+            Eigen::VectorXd m_outputSignalDerivative;
 
             long m_previousContext;
 
             void updateStatus(long context);
         public:
-            EndEffectorForceReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName);
+            EndEffectorForceReader(wbi::wholeBodyInterface& robot, std::string endEffectorLinkName, int numberOfJoints);
 
             virtual ~EndEffectorForceReader();
             virtual const Eigen::VectorXd& getSignal(long context = 0);
