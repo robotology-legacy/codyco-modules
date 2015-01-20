@@ -75,12 +75,6 @@ option(ICUB_USE_XDE "Experimental ISIR modules based on XDE" FALSE)
 option(CODYCO_USES_WBI_TOOLBOX "Whole Body Interface Toolbox - Simulink library" FALSE)
 option(ICUBWBI_USE_EXTERNAL_TORQUE_CONTROL "Compile yarpwholebodyinterface to use JTC external torque control" FALSE)
 
-
-if (ICUBWBI_USE_EXTERNAL_TORQUE_CONTROL)
-    add_definitions(-DWBI_ICUB_COMPILE_PARAM_HELP)
-endif()
-
-
 if (CODYCO_DASHBOARD_SUBMIT OR CODYCO_BUILD_TESTS)
    include (CTest)
 endif()

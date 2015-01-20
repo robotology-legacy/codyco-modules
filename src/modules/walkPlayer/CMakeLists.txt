@@ -20,7 +20,6 @@ FILE(GLOB folder_source src/*.cpp)
 #                         include/walkPlayer/actionClass.h)
 FILE(GLOB folder_header include/*.h)
 
-message("HEADERS THAT WILL BE ADDED FOR WALKPLAYER: " ${folder_header})
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 

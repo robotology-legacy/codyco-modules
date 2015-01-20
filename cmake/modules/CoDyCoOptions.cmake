@@ -42,58 +42,19 @@ if(NOT CMAKE_CONFIGURATION_TYPES)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CODYCO_BUILD_TYPES})
 endif()
 
+find_package(YCM REQUIRED)
+include(YCMDefaultDirs)
 
-#### Settings for rpath
-if(${CMAKE_MINIMUM_REQUIRED_VERSION} VERSION_GREATER "2.8.12")
-    message(AUTHOR_WARNING "CMAKE_MINIMUM_REQUIRED_VERSION is now ${CMAKE_MINIMUM_REQUIRED_VERSION}. This check can be removed.")
-endif()
-if(NOT (CMAKE_VERSION VERSION_LESS 2.8.12))
-    if(NOT MSVC)
-        #add the option to disable RPATH
-        set(CODYCOMODULES_DISABLE_RPATH FALSE CACHE BOOL "Disable RPATH installation")
-        mark_as_advanced(CODYCOMODULES_DISABLE_RPATH)
-    endif(NOT MSVC)
+option(CODYCOMODULES_ENABLE_RPATH "Enable support to RPATH" TRUE)
+mark_as_advanced(CODYCOMODULES_ENABLE_RPATH)
 
-    #Configure RPATH
-    set(CMAKE_MACOSX_RPATH 1) #enable RPATH on OSX. This also suppress warnings on CMake >= 3.0
-    # when building, don't use the install RPATH already
-    # (but later on when installing)
-    set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
-    #build directory by default is built with RPATH
-    set(CMAKE_SKIP_BUILD_RPATH  FALSE)
-
-    #This is relative RPATH for libraries built in the same project
-    #I assume that the directory is 
-    # - install_dir/something for binaries
-    # - install_dir/lib for libraries
-    file(RELATIVE_PATH _rel_path "${CMAKE_INSTALL_PREFIX}/bin" "${CMAKE_INSTALL_PREFIX}/lib")
-    if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        set(CMAKE_INSTALL_RPATH "@loader_path/${_rel_path}")
-    else()
-        set(CMAKE_INSTALL_RPATH "\$ORIGIN/${_rel_path}")
-    endif()
-
-    # the RPATH to be used when installing, but only if it's not a system directory (copied form CMake File. To be tested)
-    list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
-    if("${isSystemDir}" STREQUAL "-1")
-       set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-    endif("${isSystemDir}" STREQUAL "-1")
-
-    # add the automatically determined parts of the RPATH
-    # which point to directories outside the build tree to the install RPATH
-    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) #very important!
-
-    if(CODYCOMODULES_DISABLE_RPATH)
-        #what to do? disable RPATH altogether or just revert to the default CMake configuration?
-        #I revert to default
-        unset(CMAKE_INSTALL_RPATH) #remove install rpath
-        set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
-    endif(CODYCOMODULES_DISABLE_RPATH)
-endif()
-#####end RPATH
+include(AddInstallRPATHSupport)
+add_install_rpath_support(BIN_DIRS ${CMAKE_INSTALL_PREFIX}/bin
+                          LIB_DIRS ${CMAKE_INSTALL_PREFIX}/lib
+                          DEPENDS CODYCOMODULES_ENABLE_RPATH
+                          USE_LINK_PATH)
 
 #### Settings for shared libraries
-
 option(CODYCO_SHARED_LIBRARY "Compile shared libraries rather than static libraries" FALSE)
 if(CODYCO_SHARED_LIBRARY)
     set(BUILD_SHARED_LIBS ON)
@@ -106,10 +67,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     if (OROCOS_KDL_OLDVERSION)
         set(CODYCO_OSX_STDLIB TRUE)
     endif()
-
-    #if needs GNU stdc++ AND
-        message("System: ${CMAKE_SYSTEM}")
-        message("Version: ${CMAKE_SYSTEM_VERSION}")
 
     if (CODYCO_OSX_STDLIB)
         if (${CMAKE_GENERATOR} MATCHES "Xcode")
