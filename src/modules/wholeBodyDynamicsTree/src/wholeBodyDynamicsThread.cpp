@@ -918,7 +918,9 @@ void wholeBodyDynamicsThread::publishFilteredFTWithoutOffset()
         int nr_of_ft = estimator->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR).size();
         for(int ft =0; ft < nr_of_ft; ft++ )
         {
+
             estimator->getEstimate(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,ft,tree_status.measured_ft_sensors[ft].data());
+            //std::cout << "Estimate for ft sensor " << ft << " : " << tree_status.measured_ft_sensors[ft].toString() << std::endl;
             broadcastData<yarp::sig::Vector>(tree_status.measured_ft_sensors[ft],port_filtered_ft[ft]);
         }
     }
@@ -1027,6 +1029,9 @@ void wholeBodyDynamicsThread::normal_run()
 
     //Send base information to iCubGui
     publishBaseToGui();
+
+    //Send filtered force torque sensor measurment, if requested
+    publishFilteredFTWithoutOffset();
 
     //if in zmp test mode, publish the necessary information
     if( zmp_test_mode )
