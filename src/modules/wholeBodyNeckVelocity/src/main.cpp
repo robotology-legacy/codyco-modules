@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     ResourceFinder resourceFinder;
     
     resourceFinder.setVerbose(true);
-    resourceFinder.setDefaultConfigFile("default.ini");
+    resourceFinder.setDefaultConfigFile("wholeBodyNeckVelocity.ini");
     resourceFinder.setDefaultContext("wholeBodyNeckVelocity");
     resourceFinder.configure(argc,argv);
     

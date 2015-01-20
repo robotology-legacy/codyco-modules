@@ -11,9 +11,9 @@
 class WholeBodyNeckVelocityThread : public yarp::os::RateThread {
 private:
   wbi::wholeBodyInterface& m_robotInterface;
-  int m_rate;
-  wbi::Frame m_lastRot;
-  yarp::sig::Vector m_worldToSupportFoot;
+  int                      m_rate;
+  wbi::Frame               m_lastRot;
+  yarp::sig::Vector        m_worldToSupportFoot;
 public:
   WholeBodyNeckVelocityThread(wbi::wholeBodyInterface& robotInterface, int rate);
   virtual ~WholeBodyNeckVelocityThread();

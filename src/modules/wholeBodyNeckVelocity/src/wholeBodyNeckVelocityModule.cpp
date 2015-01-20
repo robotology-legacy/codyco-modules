@@ -41,7 +41,7 @@ bool WholeBodyNeckVelocityModule::configure(yarp::os::ResourceFinder& rf) {
   // Retrieve all parameters from configuration file
   if (!rf.check("wbi_config_file")) {
       std::cerr << "No WBI configuration file was specified. Using wbiConfigFileForwholeBodyVelocityNeck.txt as default" << std::endl;
-      wbiConfFileName = "wbiConfigFileForwholeBodyVelocityNeck";
+      wbiConfFileName = "wbiConfigFileForwholeBodyVelocityNeck.ini";
   } else {
       wbiConfFileName = rf.find("wbi_config_file").asString();
   }
@@ -94,6 +94,7 @@ bool WholeBodyNeckVelocityModule::configure(yarp::os::ResourceFinder& rf) {
   //Port that will stream the neck velocity
   m_neckVelocityPort = new BufferedPort<Vector>;
   
+  cout << "DEBUG local is: " << local <<  std::endl;   //FIXME
   if(!m_neckVelocityPort || !m_neckVelocityPort->open(("/" + local + "neckVelocity" + ":o").c_str())) {
       std::cerr << "Could not open port to stream neck velocity" << std::endl;
       return false;
