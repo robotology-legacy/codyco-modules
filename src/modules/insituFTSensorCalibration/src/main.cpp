@@ -52,6 +52,8 @@ int main (int argc, char * argv[])
         cout<< "\t--robot :Robot name. Set to icub by default." <<endl;
         cout<< "\t--local :Prefix of the ports opened by the module. Set to the module name by default, i.e. insituFTSensorCalibration." <<endl;
         cout<< "\t--mode : Style of the workspace exploration (gridVisit|gridMappingWithReturn)"<<endl;
+        cout<< "\t--dump fileprefix : Dump the used acceleration and FT measure to file (debug)" << endl;
+        cout<< "\t--excitationMode : determine how to generate point to reach. grivVisit is the reccomented one" << endl;
         return 0;
     }
 

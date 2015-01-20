@@ -145,6 +145,7 @@ bool WorkingThread::execute_joint_command(int j)
 
 void WorkingThread::compute_and_send_command(int j)
 {
+    this->timestamp.update();
     // TODO Remove compute_transformations as it seems to be unused.
     //compute the transformations
     Matrix m = driver->compute_transformations(actions.action_vector[j]);
@@ -159,6 +160,7 @@ void WorkingThread::compute_and_send_command(int j)
     bot.addString(actions.action_vector[j].tag.c_str());
     //@@@ you can add stuff here...
     //send the output command
+    port_command_out.setEnvelope(this->timestamp);
     port_command_out.write();
     execute_joint_command(j);
 
@@ -176,7 +178,7 @@ void WorkingThread::compute_and_send_command(int j)
     bot2.addDouble(actions.action_vector[j].time);
     bot3.addInt(actions.action_vector[j].counter);
     bot3.addDouble(actions.action_vector[j].time);
-    bot4.addInt(actions.action_vector[j].counter);;
+    bot4.addInt(actions.action_vector[j].counter);
     bot4.addDouble(actions.action_vector[j].time);
     for (int ix=0;ix<6;ix++)
     {
@@ -187,8 +189,11 @@ void WorkingThread::compute_and_send_command(int j)
     {
         bot4.addDouble(to[ix]);
     }
+    this->port_command_joints_ll.setEnvelope(this->timestamp);
     this->port_command_joints_ll.write();
+    this->port_command_joints_rl.setEnvelope(this->timestamp);
     this->port_command_joints_rl.write();
+    this->port_command_joints_to.setEnvelope(this->timestamp);
     this->port_command_joints_to.write();
 }
 

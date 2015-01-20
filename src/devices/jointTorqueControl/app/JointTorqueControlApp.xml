@@ -34,7 +34,7 @@
 
 <module>
                 <name>codycomoddev</name>
-		<parameters>--from jtc_right_arm.ini </parameters>
+		<parameters>--from jtc_right_leg.ini </parameters>
                 <node>icub14</node>
                 <tag>right_arm</tag>
         </module>

@@ -218,7 +218,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     if( publish_filtered_ft )
     {
         //Open ports for filtered ft
-        IDList ft_estimation_list = _wbs->getEstimateList(wbi::ESTIMATE_JOINT_TORQUE);
+        IDList ft_estimation_list = _wbs->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR);
         port_filtered_ft.resize(ft_estimation_list.size());
         for(int i=0; i < (int)ft_estimation_list.size(); i++ )
         {

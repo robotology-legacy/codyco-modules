@@ -5,6 +5,7 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Semaphore.h>
 #include <yarp/os/Time.h>
+#include <yarp/os/Stamp.h>
 #include <math.h>
 
 #include "robotDriver.h"
@@ -17,6 +18,7 @@
 class WorkingThread: public yarp::os::RateThread {
 private:
 
+    yarp::os::Stamp timestamp;
 public:
     robotDriver                               *driver;
     actionClass                               actions;
