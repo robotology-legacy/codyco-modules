@@ -134,11 +134,17 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 
     //List of joints used in the dynamic model of the robot
     IDList RobotDynamicModelJoints;
-    std::string RobotDynamicModelJointsListName = "ICUB_DYNAMIC_MODEL_JOINTS";
-    if( !loadIdListFromConfig(RobotDynamicModelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
+    std::string RobotDynamicModelJointsListName = rf.check("torque_estimation_joint_list",
+                                                           yarp::os::Value("ROBOT_DYNAMIC_MODEL_JOINTS"),
+                                                           "Name of the list of joint used for torque estimation").asString().c_str();
+
+    if( !loadIdListFromConfig(RobotDynamicModelJointsListName,rf,RobotDynamicModelJoints) )
     {
-        fprintf(stderr, "[ERR] wholeBodyDynamicsModule: impossible to load wbiId joint list with name %s\n",RobotDynamicModelJointsListName.c_str());
-        return false;
+        if( !loadIdListFromConfig(RobotDynamicModelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
+        {
+            fprintf(stderr, "[ERR] wholeBodyDynamicsModule: impossible to load wbiId joint list with name %s\n",RobotDynamicModelJointsListName.c_str());
+            return false;
+        }
     }
 
     //Add to the options some wbd specific stuff
@@ -197,7 +203,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
 
     //List of IMUs sensors in the robot
     IDList RobotIMUSensors;
-    std::string RobotIMUSensorsListName = "ICUB_MAIN_IMUS";
+    std::string RobotIMUSensorsListName = "ROBOT_MAIN_IMUS";
     if( !loadIdListFromConfig(RobotIMUSensorsListName,yarpWbiOptions,RobotIMUSensors) )
     {
         fprintf(stderr, "[ERR] wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
@@ -266,6 +272,13 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         zmp_test_feet = "right";
     }
 
+    bool output_clean_ft = false;
+    if( rf.check("output_clean_ft") )
+    {
+        std::cout << "[INFO] output_clean_ft option found, enabling output of filtered and without offset ft sensors" << std::endl;
+        output_clean_ft = true;
+    }
+
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
     wbdThread = new wholeBodyDynamicsThread(moduleName,
                                             robotName,
@@ -276,7 +289,8 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
                                             fixed_base_calibration,
                                             fixed_link_calibration,
                                             zmp_test_mode,
-                                            zmp_test_feet
+                                            zmp_test_feet,
+                                            output_clean_ft
                                            );
     if(!wbdThread->start()){ std::cerr << "[ERR]" << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }
 

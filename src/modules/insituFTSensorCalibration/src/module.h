@@ -45,6 +45,8 @@
 
 #include "insituFTSensorCalibration_IDLServer.h"
 
+#include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyModel.h>
 
 using namespace std;
 using namespace yarp::os;
@@ -60,7 +62,7 @@ public:
     double added_mass;
 };
 
-struct controlledJoint
+class controlledJoint
 {
 public:
     std::string part_name;
@@ -68,6 +70,9 @@ public:
     double lower_limit;
     double upper_limit;
     double delta;
+    controlledJoint():
+    part_name(""),axis_number(0),lower_limit(0),upper_limit(0),delta(0)
+    {}
 };
 
 class desiredPositions
@@ -76,6 +81,9 @@ public:
     yarp::sig::Vector pos;
     double waiting_time;
     bool is_return_point;
+    desiredPositions():
+    pos(0), waiting_time(0), is_return_point(false)
+    {}
     desiredPositions(yarp::sig::Vector _pos, double _waiting_time, bool _is_return_point=false):
     pos(_pos), waiting_time(_waiting_time), is_return_point(_is_return_point)
     {}
@@ -86,7 +94,8 @@ class insituFTSensorCalibrationModule;
 enum FTSensorCalibrationStatus
 {
   COLLECTING_DATASET,
-  WAITING_NEW_DATASET_START
+  WAITING_NEW_DATASET_START,
+  CALIBRATION_TERMINATED
 };
 
 class insituFTRpcHandler : public insituFTSensorCalibration_IDLServer
@@ -114,12 +123,14 @@ private:
 
 
     wbi::iWholeBodySensors * sensors;
+    wbi::iWholeBodyModel   * model;
     yarp::os::ResourceFinder & rf;
     yarp::os::Mutex threadMutex;
 
     int currentDataset;
     std::vector<FTCalibrationDataset> training_datasets;
     std::vector<InSituFTCalibration::ForceTorqueOffsetEstimator *> estimator_datasets;
+    std::ofstream datasets_dump;
 
     double cutOffFrequency;
 
@@ -127,9 +138,24 @@ private:
     std::vector<yarp::sig::Vector> raw_ft;
     std::vector<yarp::sig::Vector> smooth_ft;
 
+    // Accelerometer quantities
     std::vector<iCub::ctrl::FirstOrderLowPassFilter *> acc_filters;
     std::vector<yarp::sig::Vector> raw_acc;
     std::vector<yarp::sig::Vector> smooth_acc;
+
+    // Geometrical model quantities
+    bool readAccelerationFromSensor;
+    std::string sensorFrame;
+    int sensorFrameIndex;
+    yarp::sig::Vector joint_positions;
+
+    //Disable copy operators
+    insituFTSensorCalibrationThread(const insituFTSensorCalibrationThread& );
+    insituFTSensorCalibrationThread& operator=(const insituFTSensorCalibrationThread& );
+
+    //Dump option
+    bool dump;
+    std::string dump_prefix;
 
 public:
     /**
@@ -138,8 +164,10 @@ public:
      * @param period          update period of the RateThread, passed to the setRate method of the thread [ms]
      */
     insituFTSensorCalibrationThread(wbi::iWholeBodySensors * _sensors,
-                                    yarp::os::ResourceFinder & _rf
-    );
+                                    wbi::iWholeBodyModel   * _models,
+                                    yarp::os::ResourceFinder & _rf,
+                                    bool readAccelerationFromSensor,
+                                    std::string sensor_frame);
 
     bool threadInit();
 
@@ -154,6 +182,8 @@ public:
     int getNrOfTrainingDatasets();
 
     bool stopDatasetAcquisition();
+
+    bool finishCalibration();
 
     bool getCalibration(yarp::sig::Matrix & mat);
     bool writeCalibrationToFile(std::string filename);
@@ -170,6 +200,15 @@ class insituFTSensorCalibrationModule: public RFModule
 
     enum { GRID_VISIT, GRID_MAPPING_WITH_RETURN } mode;
     FTSensorCalibrationStatus status;
+
+    /** estimation thread */
+    insituFTSensorCalibrationThread * estimation_thread;
+
+    /** sensor interface */
+    yarpWbi::yarpWholeBodySensors      * sensors;
+
+    /** model interface */
+    yarpWbi::yarpWholeBodyModel       * model;
 
     /* RPC handling */
     insituFTRpcHandler rpc_handler;
@@ -188,6 +227,8 @@ class insituFTSensorCalibrationModule: public RFModule
     std::vector< controlledJoint > controlledJoints;
     yarp::sig::Vector commandedPositions;
     double desired_waiting_time;
+
+    //List of position to reach for each dataset
     std::vector<desiredPositions> listOfDesiredPositions;
     yarp::os::BufferedPort<yarp::os::Bottle> isTheRobotInReturnPoint;
     bool is_desired_point_return_point;
@@ -206,6 +247,10 @@ class insituFTSensorCalibrationModule: public RFModule
 
     // Dataset stuff
 
+        //Disable copy operators
+    insituFTSensorCalibrationModule(const insituFTSensorCalibrationModule& );
+    insituFTSensorCalibrationModule& operator=(const insituFTSensorCalibrationModule& );
+
 public:
     insituFTSensorCalibrationModule();
 
@@ -215,9 +260,11 @@ public:
     double getPeriod();
     bool getNewDesiredPosition(yarp::sig::Vector & desired_pos, double & desired_parked_time, bool & is_return_point);
     bool updateModule();
+    bool stopDatasetAcquisition();
 
     // Rpc methods
     bool startNewDatasetAcquisition();
+
 
 };
 

@@ -41,4 +41,4 @@ if(CODYCO_USES_URDFDOM)
 endif()
 
 find_package(iDynTree REQUIRED)
-find_package(paramHelp 0.0.1 EXACT REQUIRED)
+find_package(paramHelp 0.0.3 REQUIRED)

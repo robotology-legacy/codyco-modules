@@ -115,6 +115,10 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
     yarp::os::BufferedPort<yarp::sig::Vector> * port_icubgui_base;
 
+    yarp::os::BufferedPort<yarp::sig::Vector> * port_filtered_inertial;
+
+    std::vector<yarp::os::BufferedPort<yarp::sig::Vector> *> port_filtered_ft;
+
 
     yarp::os::Stamp timestamp;
 
@@ -126,6 +130,8 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     void getEndEffectorWrenches();
     void publishEndEffectorWrench();
     void publishBaseToGui();
+    void publishFilteredInertialForGravityCompensator();
+    void publishFilteredFTWithoutOffset();
     void publishAnkleFootForceTorques();
     bool decodeCalibCode(const std::string calib_code);
     void disableCalibration();
@@ -157,6 +163,7 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     yarp::sig::Vector RLCartesianExternalWrench;
 
     yarp::sig::Vector iCubGuiBase;
+    yarp::sig::Vector FilteredInertialForGravityComp;
 
     //Calibration related variables
     yarp::os::Mutex run_mutex;
@@ -221,6 +228,8 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
     bool autoconnect;
 
+    bool publish_filtered_ft;
+
     yarp::os::Property yarp_options;
 
 public:
@@ -233,7 +242,9 @@ public:
                             bool _autoconnect,
                             bool assume_fixed_base_calibration,
                             std::string fixed_link,
-                            bool zmp_test_mode, std::string foot_to_test);
+                            bool zmp_test_mode, std::string foot_to_test,
+                            bool publish_filtered_ft
+                           );
 
     bool threadInit();
     bool calibrateOffset(const std::string calib_code, const int nr_of_samples );

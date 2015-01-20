@@ -36,8 +36,6 @@
 #include <iostream>
 #include <typeinfo>
 
-// #include <kdl_codyco/treeinertialparameters.hpp>
-// #include <../../external/orocos_kdl/python_orocos_kdl/PyKDL/kinfam.sip>
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -59,7 +57,17 @@ int main(int argc, char * argv[])
     yarp::os::ResourceFinder rf;
     rf.setVerbose (true);
     rf.setDefaultConfigFile ("yarpWholeBodyInterface.ini");
-    rf.setDefaultContext ("icubGazeboSim");
+
+    Property options;
+    options.fromCommand(argc,argv);
+
+    std::string robotName;
+    if(options.check("robot")) {
+        robotName = options.find("robot").asString();
+    } else {
+        fprintf(stderr,"[WARN] No robot name specified. Using default double_pendulum\n");
+        robotName = "double_pendulum";
+    }
 
     rf.configure (argc,argv);
 

@@ -25,6 +25,7 @@
 
 #include <string.h>
 #include <ctime>
+#include <boost/concept_check.hpp>
 
 
 using namespace yarp::math;
@@ -89,7 +90,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
                                                  bool _assume_fixed_base_calibration,
                                                  std::string _fixed_link_calibration,
                                                  bool _zmp_test_mode,
-                                                 std::string _zmp_test_feet
+                                                 std::string _zmp_test_feet,
+                                                 bool _publish_filtered_ft
                                                 )
     :  RateThread(_period),
        name(_name),
@@ -104,20 +106,22 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        assume_fixed_base_calibration(_assume_fixed_base_calibration),
        autoconnect(_autoconnect),
        fixed_link_calibration(_fixed_link_calibration),
-       zmp_test_mode(_zmp_test_mode)
+       zmp_test_mode(_zmp_test_mode),
+       publish_filtered_ft(_publish_filtered_ft)
     {
+        // TODO FIXME move all this logic in threadInit
 
        std::cout << "Launching wholeBodyDynamicsThread with name : " << _name << " and robotName " << _robotName << " and period " << _period << std::endl;
 
-       if( !_yarp_wbi_opts.check("urdf_file") )
+       if( !_yarp_wbi_opts.check("urdf") )
        {
-            std::cerr << "[ERR] yarpWholeBodyStatesLocal error: urdf_file not found in configuration files" << std::endl;
+            std::cerr << "[ERR] wholeBodyDynamicsTree error: urdf not found in configuration files" << std::endl;
             return;
        }
 
-    std::string urdf_file = _yarp_wbi_opts.find("urdf_file").asString().c_str();
+    std::string urdf_file = _yarp_wbi_opts.find("urdf").asString().c_str();
     yarp::os::ResourceFinder rf;
-    std::string urdf_file_path = rf.findFile(urdf_file.c_str());
+    std::string urdf_file_path = rf.findFileByName(urdf_file.c_str());
 
 
 
@@ -133,7 +137,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     }
 
     std::vector<std::string> ft_serialization;
-    IDList ft_sensor_list = _wbs->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR);
+    IDList ft_sensor_list =  _wbs->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR);
     for(int ft=0; ft < (int)ft_sensor_list.size(); ft++)
     {
         ID wbi_id;
@@ -163,6 +167,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     RLCartesianExternalWrench.resize(6);
 
     iCubGuiBase.resize(6);
+    FilteredInertialForGravityComp.resize(6);
 
     //Copied from old wholeBodyDynamics
     std::string robot_name = robotName;
@@ -205,6 +210,24 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     //Open port for iCubGui
     port_icubgui_base = new BufferedPort<Vector>;
     port_icubgui_base->open(string("/"+local_name+"/base:o"));
+
+    //Open port for filtered inertial
+    port_filtered_inertial = new BufferedPort<Vector>;
+    port_filtered_inertial->open(string("/"+local_name+"/filtered/inertial:o"));
+
+    if( publish_filtered_ft )
+    {
+        //Open ports for filtered ft
+        IDList ft_estimation_list = _wbs->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR);
+        port_filtered_ft.resize(ft_estimation_list.size());
+        for(int i=0; i < (int)ft_estimation_list.size(); i++ )
+        {
+            ID ft_id;
+            ft_estimation_list.indexToID(i,ft_id);
+            port_filtered_ft[i] = new BufferedPort<Vector>;
+            port_filtered_ft[i]->open(string("/"+local_name+"/filtered/"+ft_id.toString()+":o"));
+        }
+    }
 
     //Open port for output joint forcetorque
 
@@ -383,7 +406,7 @@ bool wholeBodyDynamicsThread::threadInit()
     }
 
     //Open and connect all the ports
-    for(int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
+    for(int output_torque_port_i = 0; output_torque_port_i < (int)output_torque_ports.size(); output_torque_port_i++ )
     {
         std::string port_name = output_torque_ports[output_torque_port_i].port_name;
         std::string local_port = "/" + name + "/" + port_name + "/Torques:o";
@@ -739,11 +762,11 @@ void wholeBodyDynamicsThread::publishTorques()
     //Converting torques from the serialization used in wholeBodyStates interface to the port used by the robot
 
     for(int output_torque_port_id = 0;
-        output_torque_port_id < output_torque_ports.size();
+        output_torque_port_id < (int)output_torque_ports.size();
         output_torque_port_id++ )
     {
         for(int output_vector_index = 0;
-            output_vector_index < output_torque_ports[output_torque_port_id].wbi_numeric_ids_to_publish.size();
+            output_vector_index < (int)output_torque_ports[output_torque_port_id].wbi_numeric_ids_to_publish.size();
             output_vector_index++)
         {
             int torque_wbi_numeric_id = output_torque_ports[output_torque_port_id].wbi_numeric_ids_to_publish[output_vector_index];
@@ -868,6 +891,37 @@ void wholeBodyDynamicsThread::publishBaseToGui()
     iCubGuiBase[5] = iCubGuiBase[5] + 1000.0;
 
     broadcastData<yarp::sig::Vector>(iCubGuiBase,port_icubgui_base);
+}
+
+//*************************************************************************************************************************
+void wholeBodyDynamicsThread::publishFilteredInertialForGravityCompensator()
+{
+    bool ret;
+    ret = estimator->getEstimates(wbi::ESTIMATE_IMU,tree_status.wbi_imu.data());
+    YARP_ASSERT(ret);
+
+    FilteredInertialForGravityComp.zero();
+
+    for(int i=0; i < 6; i++ )
+    {
+        FilteredInertialForGravityComp[0+i] = tree_status.wbi_imu[4+i];
+    }
+
+    broadcastData<yarp::sig::Vector>(FilteredInertialForGravityComp,port_filtered_inertial);
+}
+
+//*************************************************************************************************************************
+void wholeBodyDynamicsThread::publishFilteredFTWithoutOffset()
+{
+    if( publish_filtered_ft )
+    {
+        int nr_of_ft = estimator->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR).size();
+        for(int ft =0; ft < nr_of_ft; ft++ )
+        {
+            estimator->getEstimate(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,ft,tree_status.measured_ft_sensors[ft].data());
+            broadcastData<yarp::sig::Vector>(tree_status.measured_ft_sensors[ft],port_filtered_ft[ft]);
+        }
+    }
 }
 
 //*************************************************************************************************************************
@@ -1273,6 +1327,16 @@ void wholeBodyDynamicsThread::threadRelease()
     closePort(port_external_wrench_RL);
     std::cerr << "Closing iCubGui base port\n";
     closePort(port_icubgui_base);
+    closePort(port_filtered_inertial);
+
+    if( publish_filtered_ft )
+    {
+        for(int i =0; i <  (int)estimator->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR).size(); i++ )
+        {
+            closePort(port_filtered_ft[i]);
+        }
+        port_filtered_ft.resize(0);
+    }
 
     if(zmp_test_mode)
     {
