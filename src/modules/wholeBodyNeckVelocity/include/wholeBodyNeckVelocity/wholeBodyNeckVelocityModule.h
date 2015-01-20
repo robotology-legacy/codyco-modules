@@ -35,6 +35,7 @@ public:
   virtual bool   close();
   virtual double getPeriod();
   virtual bool   respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
+  bool closure();
 private:
   std::string m_robotName;
   yarp::os::BufferedPort<yarp::sig::Vector>* m_neckVelocityPort;

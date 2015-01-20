@@ -16,7 +16,7 @@
 
 #include "constants.h"
 #include "wholeBodyNeckVelocityModule.h"
-#include  "wholeBodyNeckVelocityThread.h"
+#include "wholeBodyNeckVelocityThread.h"
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -28,7 +28,7 @@ WholeBodyNeckVelocityModule::WholeBodyNeckVelocityModule()
 
 WholeBodyNeckVelocityModule::~WholeBodyNeckVelocityModule()
 {
-
+    closure();
 }
 
 bool WholeBodyNeckVelocityModule::configure(yarp::os::ResourceFinder& rf) {
@@ -138,12 +138,12 @@ bool WholeBodyNeckVelocityModule::configure(yarp::os::ResourceFinder& rf) {
 
 bool WholeBodyNeckVelocityModule::updateModule()
 {
-    return false;
+    return true;
 }
 
 bool WholeBodyNeckVelocityModule::close()
 {
-return yarp::os::RFModule::close();
+    closure();
 }
 
 double WholeBodyNeckVelocityModule::getPeriod()
@@ -154,4 +154,15 @@ return yarp::os::RFModule::getPeriod();
 bool WholeBodyNeckVelocityModule::respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply)
 {
 return yarp::os::RFModule::respond(command, reply);
+}
+
+bool WholeBodyNeckVelocityModule::closure() {
+    yarp::os::RFModule::close();
+    m_robotInterface->close();
+    m_robotInterface = NULL;
+    
+    m_neckVelocityPort->close();
+    
+    m_neckVelocityThread->stop();
+    m_neckVelocityThread = NULL;
 }
