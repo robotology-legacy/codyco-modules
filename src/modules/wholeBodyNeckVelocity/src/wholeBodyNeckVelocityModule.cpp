@@ -26,10 +26,10 @@ WholeBodyNeckVelocityModule::WholeBodyNeckVelocityModule()
 : m_neckVelocityPort(0),
   m_robotInterface(0) {}
 
-WholeBodyNeckVelocityModule::~WholeBodyNeckVelocityModule()
-{
-    closure();
-}
+// WholeBodyNeckVelocityModule::~WholeBodyNeckVelocityModule()
+// {
+//     closure();
+// }
 
 bool WholeBodyNeckVelocityModule::configure(yarp::os::ResourceFinder& rf) {
   
@@ -158,12 +158,21 @@ return yarp::os::RFModule::respond(command, reply);
 }
 
 bool WholeBodyNeckVelocityModule::closure() {
-    yarp::os::RFModule::close();
-    m_robotInterface->close();
-    m_robotInterface = NULL;
+    if (m_neckVelocityThread) {
+        m_neckVelocityThread->stop();
+        delete m_neckVelocityThread;
+        m_neckVelocityPort = NULL;
+    }
     
-    m_neckVelocityPort->close();
+    if (m_robotInterface) {
+        m_robotInterface->close();
+        delete m_robotInterface;
+        m_robotInterface = NULL;
+    }
     
-    m_neckVelocityThread->stop();
-    m_neckVelocityThread = NULL;
+    if (m_neckVelocityPort) {
+        m_neckVelocityPort->interrupt();
+        m_neckVelocityPort->close();
+    }
+    return true;
 }

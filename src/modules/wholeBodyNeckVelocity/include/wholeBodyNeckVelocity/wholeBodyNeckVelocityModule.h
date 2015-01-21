@@ -29,7 +29,7 @@
 class WholeBodyNeckVelocityModule : public yarp::os::RFModule {
 public:
   WholeBodyNeckVelocityModule();
-  virtual ~WholeBodyNeckVelocityModule();
+//   virtual ~WholeBodyNeckVelocityModule();
   virtual bool   configure(yarp::os::ResourceFinder& rf);
   virtual bool   updateModule();
   virtual bool   close();

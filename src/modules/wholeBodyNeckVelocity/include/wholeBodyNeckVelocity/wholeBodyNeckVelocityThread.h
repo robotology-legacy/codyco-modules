@@ -22,7 +22,7 @@ public:
   virtual void threadRelease();
   virtual void run();
   //ENDS RateThread inherited methods
-  bool computeNeckVelocity(double* neckVelocity, FOOT supportFoot, double* distanceToPreviousBase);
+  bool computeNeckVelocity(Eigen::VectorXd& neckVelocity, FOOT supportFoot, double* distanceToPreviousBase);
   bool computeSupportFootToRoot(FOOT supportFoot, wbi::Frame& supportFootToRoot);
   void retrieveFootEEFrame(FOOT supportFoot, int& footEEFrame);
   void updateWorldToSupportFoot(double* distanceToPreviousBase);
