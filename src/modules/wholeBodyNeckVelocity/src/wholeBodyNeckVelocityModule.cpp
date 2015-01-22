@@ -23,13 +23,7 @@ using namespace yarp::sig;
 using namespace std;
 
 WholeBodyNeckVelocityModule::WholeBodyNeckVelocityModule()
-: m_neckVelocityPort(0),
-  m_robotInterface(0) {}
-
-// WholeBodyNeckVelocityModule::~WholeBodyNeckVelocityModule()
-// {
-//     closure();
-// }
+: m_robotInterface(0) {}
 
 bool WholeBodyNeckVelocityModule::configure(yarp::os::ResourceFinder& rf) {
   
@@ -92,13 +86,13 @@ bool WholeBodyNeckVelocityModule::configure(yarp::os::ResourceFinder& rf) {
   
   //BEGINS PORTS SECTION >>
   //Port that will stream the neck velocity
-  m_neckVelocityPort = new BufferedPort<Vector>;
-  
-  cout << "DEBUG local is: " << local <<  std::endl;   //FIXME
-  if(!m_neckVelocityPort || !m_neckVelocityPort->open(("/" + local + "neckVelocity" + ":o").c_str())) {
-      std::cerr << "Could not open port to stream neck velocity" << std::endl;
-      return false;
-  }  
+//   m_neckVelocityPort = new BufferedPort<Vector>;
+//   
+//   cout << "DEBUG local is: " << local <<  std::endl;   //FIXME
+//   if(!m_neckVelocityPort || !m_neckVelocityPort->open(("/" + local + "neckVelocity" + ":o").c_str())) {
+//       std::cerr << "Could not open port to stream neck velocity" << std::endl;
+//       return false;
+//   }  
   //ENDS PORTS SECTION <<
   
   
@@ -121,7 +115,7 @@ bool WholeBodyNeckVelocityModule::configure(yarp::os::ResourceFinder& rf) {
   
   
   //BEGINS THREAD CALL >>>
-  m_neckVelocityThread = new WholeBodyNeckVelocityThread(*m_robotInterface, rate);
+  m_neckVelocityThread = new WholeBodyNeckVelocityThread(*m_robotInterface, rate, local);
   if (!m_neckVelocityThread) {
     std::cerr << "Could not create thread...\n" << std::endl;
     return false;
@@ -161,18 +155,19 @@ bool WholeBodyNeckVelocityModule::closure() {
     if (m_neckVelocityThread) {
         m_neckVelocityThread->stop();
         delete m_neckVelocityThread;
-        m_neckVelocityPort = NULL;
+    } else {
+        cout << "ERR Could not close thread" << endl;
+        return false;
     }
     
     if (m_robotInterface) {
         m_robotInterface->close();
         delete m_robotInterface;
         m_robotInterface = NULL;
+    } else {
+        cout << "ERR Could not stop/close interface" << endl;
+        return false;
     }
     
-    if (m_neckVelocityPort) {
-        m_neckVelocityPort->interrupt();
-        m_neckVelocityPort->close();
-    }
     return true;
 }

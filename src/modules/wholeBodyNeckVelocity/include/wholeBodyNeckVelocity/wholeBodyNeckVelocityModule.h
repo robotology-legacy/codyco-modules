@@ -38,7 +38,6 @@ public:
   bool closure();
 private:
   std::string m_robotName;
-  yarp::os::BufferedPort<yarp::sig::Vector>* m_neckVelocityPort;
   wbi::wholeBodyInterface* m_robotInterface;
   WholeBodyNeckVelocityThread* m_neckVelocityThread;
 };
