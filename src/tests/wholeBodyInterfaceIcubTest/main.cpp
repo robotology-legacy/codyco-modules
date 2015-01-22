@@ -11,7 +11,7 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Property.h>
-
+#include <yarp/os/ResourceFinder.h>
 #include <yarp/os/Property.h>
 
 #include <yarp/math/Math.h>
@@ -20,7 +20,9 @@
 
 #include <iCub/skinDynLib/common.h>
 
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+//#include <wbiIcub/wholeBodyInterfaceIcub.h>
+//#include <wbiIcub/icubWholeBodyModel.h>
+#include<yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 
 #include <stdio.h>
 #include <math.h>
@@ -35,7 +37,7 @@ using namespace yarp::math;
 using namespace iCub::skinDynLib;
 using namespace std;
 using namespace wbi;
-using namespace wbiIcub;
+using namespace yarpWbi;//wbiIcub;
 using namespace Eigen;
 
 const double TOL = 1e-8;
@@ -43,7 +45,8 @@ const double TOL = 1e-8;
 
 int main(int argc, char * argv[])
 {
-    Network yarp; 
+    Network yarpNet; 
+    /*
     Property options;
     options.fromCommand(argc,argv);
     
@@ -64,19 +67,43 @@ int main(int argc, char * argv[])
         use_urdf = false;
     }
     
+    */
+    
+  string robotName = "icubGazeboSim";
+  yarp::os::ResourceFinder rf;
+  yarp::os::Property yarpWbiOptions;
+  //Get wbi options from the canonical file
+  if( !rf.check("yarp") )
+  {
+      fprintf(stderr,"[ERR] locomotionControl: impossible to open wholeBodyInterface: wbi_conf_file option missing");
+  }
+  
+  rf.setVerbose (true);
+  rf.setDefaultConfigFile ("yarpWholeBodyInterface.ini");
+//   rf.setDefaultContext ("icubGazeboSim");
+  
+  rf.configure(0,0);
+  
+  std::string wbiConfFile = rf.findFile("yarpWholeBodyInterface.ini");
+  yarpWbiOptions.fromConfigFile(wbiConfFile);
+  //Overwrite the robot parameter that could be present in wbi_conf_file
+  yarpWbiOptions.put("robot",robotName);
     
     // TEST WHOLE BODY INTERFACE
     std::string localName = "wbiTest";
     
     wholeBodyInterface *icub;
-    iCub::iDynTree::iCubTree_version_tag icub_version;
+ 
     
 #ifdef CODYCO_USES_URDFDOM
-    icub_version = iCub::iDynTree::iCubTree_version_tag (2, 2, true, true, urdf_file);
-    icub = new icubWholeBodyInterface (localName.c_str(), robotName.c_str(), icub_version);
+    //icub_version = iCub::iDynTree::iCubTree_version_tag (2, 2, true, true, urdf_file);
+    //icub = new icubWholeBodyInterface (localName.c_str(), robotName.c_str(), icub_version);
+    icub =  new yarpWbi::yarpWholeBodyInterface(localName.c_str(), yarpWbiOptions);
 #else
-    icub_version = iCub::iDynTree::iCubTree_version_tag (2, 2, true);
-    icub = new icubWholeBodyInterface (localName.c_str(), robotName.c_str(), icub_version, urdf_file);
+    //  iCub::iDynTree::iCubTree_version_tag icub_version;   
+    //icub_version = iCub::iDynTree::iCubTree_version_tag (2, 2, true);
+    //icub = new icubWholeBodyInterface (localName.c_str(), robotName.c_str(), icub_version, urdf_file);
+    //icub =  new yarpWbi::yarpWholeBodyInterface(localName.c_str(), yarpWbiOptions);
 #endif
     
     
@@ -85,7 +112,16 @@ int main(int argc, char * argv[])
 //    icub->addJoints(LocalIdList(RIGHT_ARM,0,1,2,3,4));
 //    icub->addJoints(LocalIdList(LEFT_ARM,0,1,2,3,4));
 //    icub->addJoints(LocalIdList(TORSO,0,1,2));
-    icub->addJoints(ICUB_MAIN_JOINTS);
+//    icub->addJoints(ICUB_MAIN_JOINTS);
+    
+  wbi::IDList RobotMainJoints;
+  std::string RobotMainJointsListName = "ROBOT_TORQUE_CONTROL_JOINTS";
+  if( !yarpWbi::loadIdListFromConfig(RobotMainJointsListName,yarpWbiOptions,RobotMainJoints) )
+  {
+      fprintf(stderr, "[ERR] locomotionControl: impossible to load wbiId joint list with name %s\n",RobotMainJointsListName.c_str());
+  }	
+  icub->addJoints(RobotMainJoints);
+    
     //icub->addFTsens(LocalId(RIGHT_LEG,1));
     std::cout << "Joints added, calling init method" <<  std::endl;
 
@@ -115,55 +151,55 @@ int main(int argc, char * argv[])
     
     qInit = q;
     qd = q;
-//    Vector refSpeed(dof, CTRL_DEG2RAD*10.0), qd = q;
-//    qd += 15.0*CTRL_DEG2RAD;
-//    printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
-//    printf("Qd:  %s\n", (CTRL_RAD2DEG*qd).toString(1).c_str());
-//    icub->setControlParam(CTRL_PARAM_REF_VEL, refSpeed.data());
-//    icub->setControlReference(qd.data());
-//    int j = 0;
-//    Eigen::Matrix<double,6,Dynamic,RowMajor> jacob; 
-//    jacob.resize(6,dof+6); //13 because in this test we only have right and left arm plus torso
-//
-//    for(int i=0; i<30; i++)
-//    {
-//        Vector com(7,0.0);
-//        wbi::Frame world2base;
-//        world2base.identity();
-//        
-//        Time::delay(1);
-//        icub->getEstimates(ESTIMATE_JOINT_POS, q.data());
-//        icub->getEstimates(ESTIMATE_JOINT_VEL, dq.data());
-//        icub->getEstimates(ESTIMATE_JOINT_ACC,d2q.data());
-//        printf("(Q, dq, d2q):   %.2f \t %.2f \t %.2f\n", CTRL_RAD2DEG*q(j), CTRL_RAD2DEG*dq(j), CTRL_RAD2DEG*d2q(j));
-//        
-//        icub->computeJacobian(q.data(),world2base,wbi::iWholeBodyModel::COM_LINK_ID,jacob.data());
-//        //cout<<"COM Jacobian: "<<jacob<<endl;
-//        
-//        icub->forwardKinematics(q.data(),world2base,wbi::iWholeBodyModel::COM_LINK_ID,com.data());
-//        printf("Center of Mass:  %.10f \t %.10f \t %.10f\n",com[0],com[1],com[2]);
-//                
-//    }
-//    
-//    Vector zeroVec;
-//    zeroVec.resize(dof, 0);
-//    icub->setControlMode(CTRL_MODE_TORQUE);
-//    icub->setControlReference(zeroVec.data());
-//    
-//    printf("Test finished. Press return to exit.");
-//    getchar();
-//    
-////    printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
-//
-//    qd -= CTRL_DEG2RAD*15.0;
-//    icub->setControlMode(CTRL_MODE_POS);
-//    icub->setControlReference(qd.data());
-//
-//    Time::delay(1.0);
-//    printf("Test finished. Press return to exit.");
-//    getchar();
-//    
-//    icub->setControlReference(qInit.data());
+   Vector refSpeed(dof, CTRL_DEG2RAD*1.0);//, qd = q;
+   qd += 15.0*CTRL_DEG2RAD;
+   printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
+   printf("Qd:  %s\n", (CTRL_RAD2DEG*qd).toString(1).c_str());
+   icub->setControlParam(CTRL_PARAM_REF_VEL, refSpeed.data());
+   icub->setControlReference(qd.data());
+   int j = 0;
+   Eigen::Matrix<double,6,Dynamic,RowMajor> jacob; 
+   jacob.resize(6,dof+6); //13 because in this test we only have right and left arm plus torso
+
+   for(int i=0; i<30; i++)
+   {
+       Vector com(7,0.0);
+       wbi::Frame world2base;
+       world2base.identity();
+       
+       Time::delay(1);
+       icub->getEstimates(ESTIMATE_JOINT_POS, q.data());
+       icub->getEstimates(ESTIMATE_JOINT_VEL, dq.data());
+       icub->getEstimates(ESTIMATE_JOINT_ACC,d2q.data());
+       printf("(Q, dq, d2q):   %.2f \t %.2f \t %.2f\n", CTRL_RAD2DEG*q(j), CTRL_RAD2DEG*dq(j), CTRL_RAD2DEG*d2q(j));
+       
+       icub->computeJacobian(q.data(),world2base,wbi::iWholeBodyModel::COM_LINK_ID,jacob.data());
+       //cout<<"COM Jacobian: "<<jacob<<endl;
+       
+       icub->forwardKinematics(q.data(),world2base,wbi::iWholeBodyModel::COM_LINK_ID,com.data());
+       printf("Center of Mass:  %.10f \t %.10f \t %.10f\n",com[0],com[1],com[2]);
+               
+   }
+   
+   Vector zeroVec;
+   zeroVec.resize(dof, 0);
+   icub->setControlMode(CTRL_MODE_TORQUE);
+   icub->setControlReference(zeroVec.data());
+   
+   printf("Test finished. Press return to exit.");
+   getchar();
+   
+   printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
+
+   qd -= CTRL_DEG2RAD*15.0;
+   icub->setControlMode(CTRL_MODE_POS);
+   icub->setControlReference(qd.data());
+
+   Time::delay(1.0);
+   printf("Test finished. Press return to exit.");
+   getchar();
+   
+   icub->setControlReference(qInit.data());
     
     printf("Test finished. Press return to exit.");
     getchar();
