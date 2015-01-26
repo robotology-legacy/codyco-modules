@@ -170,7 +170,8 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     yarp::os::Mutex calibration_mutex;
     iCubTreeStatus tree_status;
 
-    iCub::iDynTree::TorqueEstimationTree * icub_model_calibration;
+    iCub::iDynTree::TorqueEstimationTree * icub_model_calibration; 
+    std::string calibration_support_link;
 
     int samples_requested_for_calibration;
     int max_samples_for_calibration;

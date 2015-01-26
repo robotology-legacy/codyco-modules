@@ -328,6 +328,14 @@ bool wholeBodyDynamicsThread::threadInit()
 
     assert(nr_of_output_torques_ports == output_torque_ports.size());
 
+    // Open calibration configuration
+    calibration_support_link = "root_link";
+    if( yarp_options.check("calibration_support_link") )
+    { 
+        calibration_support_link = yarp_options.find("calibration_support_link").asString().c_str();
+        std::cerr << "[INFO] calibration_support_link is " << calibration_support_link << std::endl;
+    } 
+
 
     //Calibration variables
     int nrOfAvailableFTSensors = estimator->getEstimateNumber(wbi::ESTIMATE_FORCE_TORQUE_SENSOR);
@@ -374,20 +382,6 @@ bool wholeBodyDynamicsThread::threadInit()
     right_sole_frame_idyntree_id = icub_model_calibration->getLinkIndex("r_sole");
     //YARP_ASSERT(right_sole_frame_idyntree_id >= 0 && right_sole_frame_idyntree_id < max_id);
 
-    /*
-    left_hand_link_id = icub_partition.getLocalLinkIndex(left_hand_link_idyntree_id);
-    YARP_ASSERT(left_hand_link_id == 6);
-    YARP_ASSERT(left_hand_link_id >= 0);
-    right_hand_link_id = icub_partition.getLocalLinkIndex(right_hand_link_idyntree_id);
-    YARP_ASSERT(right_hand_link_id >= 0);
-    left_foot_link_id = icub_partition.getLocalLinkIndex(left_foot_link_idyntree_id);
-    right_foot_link_id = icub_partition.getLocalLinkIndex(right_foot_link_idyntree_id);
-
-    left_gripper_frame_id = icub_partition.getLocalLinkIndex(left_gripper_frame_idyntree_id);
-    right_gripper_frame_id = icub_partition.getLocalLinkIndex(right_gripper_frame_idyntree_id);
-    left_sole_frame_id = icub_partition.getLocalLinkIndex(left_sole_frame_idyntree_id);
-    right_sole_frame_id = icub_partition.getLocalLinkIndex(right_sole_frame_idyntree_id);
-    */
     if( zmp_test_mode )
     {
         switch(foot_under_zmp_test)
@@ -476,7 +470,7 @@ bool wholeBodyDynamicsThread::calibrateOffset(const std::string calib_code, int 
     }
 
     //Changing the base of the calibration model to the root link
-    icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex("root_link"));
+    icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex(calibration_support_link));
 
 
     calibration_mutex.lock();
@@ -839,56 +833,58 @@ void wholeBodyDynamicsThread::publishEndEffectorWrench()
 //*************************************************************************************************************************
 void wholeBodyDynamicsThread::publishBaseToGui()
 {
-    bool ret;
-    ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
-    YARP_ASSERT(ret);
-
-    //For the icubGui, the world is the root frame when q == 0
-    //So we have to find the transformation between the root now
-    //and the root when q == 0
-    icub_model_calibration->setAng(tree_status.q);
-
-    // {}^{leftFoot} H_{currentRoot}
-    KDL::Frame H_leftFoot_currentRoot
-       = icub_model_calibration->getPositionKDL(left_foot_link_idyntree_id,root_link_idyntree_id);
-
-    tree_status.q.zero();
-    icub_model_calibration->setAng(tree_status.q);
-
-    //{}^world H_{leftFoot}
-    KDL::Frame H_world_leftFoot
-        = icub_model_calibration->getPositionKDL(root_link_idyntree_id,left_foot_link_idyntree_id);
-
-    KDL::Frame H_world_currentRoot
-        = H_world_leftFoot*H_leftFoot_currentRoot;
 
     iCubGuiBase.zero();
+    
+    // Workaround: if not root_link or left_foot is defined, do not publish base information to the iCubGui
+    if( left_foot_link_idyntree_id != -1 && 
+        root_link_idyntree_id != -1 )
+    {
+        bool ret;
+        ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
+        YARP_ASSERT(ret);
 
-    //Set angular part
-    double roll,pitch,yaw;
-    H_world_currentRoot.M.GetRPY(roll,pitch,yaw);
-    //H_world_currentRoot.M.Inverse().GetRPY(roll,pitch,yaw);
+        //For the icubGui, the world is the root frame when q == 0
+        //So we have to find the transformation between the root now
+        //and the root when q == 0
+        icub_model_calibration->setAng(tree_status.q);
 
-    const double RAD2DEG = 180.0/(3.1415);
+        // {}^{leftFoot} H_{currentRoot}
+        KDL::Frame H_leftFoot_currentRoot
+            = icub_model_calibration->getPositionKDL(left_foot_link_idyntree_id,root_link_idyntree_id);
 
-    iCubGuiBase[0] = RAD2DEG*roll;
-    iCubGuiBase[1] = RAD2DEG*pitch;
-    iCubGuiBase[2] = RAD2DEG*yaw;
+        tree_status.q.zero();
+        icub_model_calibration->setAng(tree_status.q);
 
-    /*
-    iCubGuiBase[0] = RAD2DEG*roll;
-    iCubGuiBase[1] = RAD2DEG*pitch;
-    iCubGuiBase[2] = RAD2DEG*yaw;
-    */
+        //{}^world H_{leftFoot}
+        KDL::Frame H_world_leftFoot
+            = icub_model_calibration->getPositionKDL(root_link_idyntree_id,left_foot_link_idyntree_id);
 
-    //Set linear part (iCubGui wants the root offset in millimeters)
-    const double METERS2MILLIMETERS = 1000.0;
-    iCubGuiBase[3] = METERS2MILLIMETERS*H_world_currentRoot.p(0);
-    iCubGuiBase[4] = METERS2MILLIMETERS*H_world_currentRoot.p(1);
-    iCubGuiBase[5] = METERS2MILLIMETERS*H_world_currentRoot.p(2);
+        KDL::Frame H_world_currentRoot
+            = H_world_leftFoot*H_leftFoot_currentRoot;
 
-    //Add offset to avoid lower forces to be hided by the floor
-    iCubGuiBase[5] = iCubGuiBase[5] + 1000.0;
+        
+
+        //Set angular part
+        double roll,pitch,yaw;
+        H_world_currentRoot.M.GetRPY(roll,pitch,yaw);
+        //H_world_currentRoot.M.Inverse().GetRPY(roll,pitch,yaw);
+
+        const double RAD2DEG = 180.0/(3.1415);
+
+        iCubGuiBase[0] = RAD2DEG*roll;
+        iCubGuiBase[1] = RAD2DEG*pitch;
+        iCubGuiBase[2] = RAD2DEG*yaw;
+
+        //Set linear part (iCubGui wants the root offset in millimeters)
+        const double METERS2MILLIMETERS = 1000.0;
+        iCubGuiBase[3] = METERS2MILLIMETERS*H_world_currentRoot.p(0);
+        iCubGuiBase[4] = METERS2MILLIMETERS*H_world_currentRoot.p(1);
+        iCubGuiBase[5] = METERS2MILLIMETERS*H_world_currentRoot.p(2);
+
+        //Add offset to avoid lower forces to be hided by the floor
+        iCubGuiBase[5] = iCubGuiBase[5] + 1000.0;
+    }
 
     broadcastData<yarp::sig::Vector>(iCubGuiBase,port_icubgui_base);
 }
@@ -1185,7 +1181,7 @@ void wholeBodyDynamicsThread::calibration_run()
         this->disableCalibration();
 
 
-        icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex("root_link"));
+        icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex(calibration_support_link));
         wbd_mode = NORMAL;
         calibration_mutex.unlock();
     }
@@ -1296,7 +1292,7 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
             calibrate_ft_sensor[ft_sensor_id] = false;
         }
 
-        icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex("root_link"));
+        icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex(calibration_support_link));
         wbd_mode = NORMAL;
         calibration_mutex.unlock();
     }
