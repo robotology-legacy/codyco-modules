@@ -30,6 +30,10 @@
 #include <yarp/sig/Vector.h>
 #include <yarp/os/Mutex.h>
 
+#include <yarp/dev/PolyDriver.h>
+#include <yarp/dev/ControlBoardInterfaces.h>
+#include <yarp/dev/IInteractionMode.h>
+
 #include <iCub/ctrl/math.h>
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 #include <iCub/ctrl/minJerkCtrl.h>
@@ -233,6 +237,18 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
     yarp::os::Property yarp_options;
 
+    /// attributes useful for setting the interaction mode to stiff
+    /// when the wholeBodyDynamicsTree is closing
+    struct {
+        std::vector<std::string>           controlBoardNames;
+        // list of controlBoard/Axis pair for each joint
+        std::vector< std::pair<int,int> >  controlBoardAxisList;
+        std::vector<yarp::dev::PolyDriver *> deviceDrivers;
+        std::vector<yarp::dev::IControlMode2 *> controlModeInterfaces;
+        std::vector<yarp::dev::IInteractionMode *> interactionModeInterfaces;
+
+    } torqueEstimationControlBoards;
+
 public:
 
     wholeBodyDynamicsThread(std::string _name,
@@ -262,6 +278,32 @@ public:
     bool waitCalibrationDone();
     void run();
     void threadRelease();
+
+    /**
+     * For all the joints for which we are estimating torques,
+     * set their interaction mode to INTERACTION_STIFF.
+     * Furthermore, if their control mode is CM_TORQUE, switch
+     *  it to CM_POSITION .
+     *
+     * \note this call is extremly expensive, given that it will
+     *       create a lot of blocking RPC traffic. It should not be
+     *       used in a loop, but just at specific isolated moments
+     *       (module closing or module calibrating).
+     */
+    bool ensureJointsAreNotUsingTorqueEstimates();
+
+    /**
+     * Open the controlboardwrappers needed for the
+     * ensureJointsAreNotUsingTorqueEstimates method.
+     */
+    bool openControlBoards();
+
+    /**
+     * Close the controlboardwrappers needed for the
+     * ensureJointsAreNotUsingTorqueEstimates method.
+     */
+    bool closeControlBoards();
+
 
 };
 
