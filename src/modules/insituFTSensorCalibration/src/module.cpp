@@ -1139,6 +1139,7 @@ bool insituFTSensorCalibrationModule::updateModule()
 
 
                     std::cout  << "[INFO] insituFTSensorCalibration: Send desired position: " << commandedPositions[jnt] << " to joint " << part <<  " " << axis << std::endl;
+                    pos[part]->setRefSpeed(axis,ref_speed);
                     pos[part]->positionMove(axis,commandedPositions[jnt]);
                 }
             }
