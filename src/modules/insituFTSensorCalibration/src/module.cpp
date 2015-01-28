@@ -242,10 +242,11 @@ bool insituFTSensorCalibrationThread::startDatasetAcquisition()
     if( this->dump )
     {
         std::stringstream ss;
-        ss << this->dump_prefix << "_dataset" << currentDataset << ".csv";
+        ss << "dataset" << currentDataset << ".csv";
         std::string filename = ss.str();
         std::cout << "Opening dump file " << filename << std::endl;
-        datasets_dump.open(filename.c_str());
+        yarp::os::mkdir(this->dump_prefix.c_str());
+        datasets_dump.open((this->dump_prefix+"/"+filename).c_str());
     }
 
     return true;
@@ -327,9 +328,6 @@ void insituFTSensorCalibrationThread::run()
             this->datasets_dump << smooth_acc[0][1] << ",";
             this->datasets_dump << smooth_acc[0][2] << std::endl;
         }
-
-
-
 
         estimator_datasets[currentDataset]->addMeasurements(InSituFTCalibration::wrapVec(smooth_ft[0]),InSituFTCalibration::wrapVec(smooth_acc[0]));
     }
