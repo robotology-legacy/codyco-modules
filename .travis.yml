@@ -5,8 +5,8 @@ compiler:
   - clang
 
 env:
-  - TRAVIS_BUILD_TYPE=Debug
-  - TRAVIS_BUILD_TYPE=Release
+  - TRAVIS_BUILD_TYPE=Debug, TRAVIS_CMAKE_GENERATOR="Unix Makefiles",
+  - TRAVIS_BUILD_TYPE=Release, TRAVIS_CMAKE_GENERATOR="Unix Makefiles",
 
 install:
  - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
@@ -18,7 +18,7 @@ install:
 
 before_script:
   - cd ..  
-  # use superbuild for getting iDynTree dependencies
+  # use superbuild for getting codyco-modules dependencies
   - git clone https://github.com/robotology/codyco-superbuild
   - cd codyco-superbuild
   - mkdir build
