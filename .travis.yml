@@ -14,8 +14,8 @@ before_script:
   - git clone https://github.com/robotology/codyco-superbuild
   - cd codyco-superbuild
   # install dependencies using the codyco-superbuild script
-  - chmod +x ./.ci/travis-deps.sh
-  - ./.ci/travis-deps.h
+  - chmod +x ~/codyco-superbuild/.ci/travis-deps.sh
+  - ~/codyco-superbuild/.ci/travis-deps.h
   - mkdir build
   - cd build
   # using the YCM_EP_MAINTAINER_MODE variable to enable the subproject-dependees target
