@@ -13,6 +13,8 @@ before_script:
   # use superbuild for getting codyco-modules dependencies
   - git clone https://github.com/robotology/codyco-superbuild
   - cd codyco-superbuild
+  - pwd
+  - ls -R | grep travis-deps
   # install dependencies using the codyco-superbuild script
   - chmod +x ~/build/robotology/codyco-superbuild/.ci/travis-deps.sh
   - ~/build/robotology/codyco-superbuild/.ci/travis-deps.h
