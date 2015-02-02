@@ -59,7 +59,7 @@
 
  Then connect to the RPC port of the module:
 
-     yarp rpc /wholeBodyReach/rpc
+     yarp rpc /wbr/rpc
 
  Then start the module by giving the start command on the RPC port.
 
