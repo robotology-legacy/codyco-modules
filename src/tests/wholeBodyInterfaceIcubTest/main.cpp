@@ -69,6 +69,7 @@ int main(int argc, char * argv[])
     
     */
     
+  printf("Robot name is given \n\n");  
   string robotName = "icubGazeboSim";
   yarp::os::ResourceFinder rf;
   yarp::os::Property yarpWbiOptions;
@@ -134,25 +135,35 @@ int main(int argc, char * argv[])
     printf("Joint list: %s\n", icub->getJointList().toString().c_str());
     printf("Number of DoFs: %d\n", dof);
     
-    Vector q(dof), dq(dof), d2q(dof), qInit(dof), qd(dof);
+    Vector q(dof), dq(dof), d2q(dof), qInit(dof), qd(dof),basePos(12);
+    
+    //Vector qinit(dof);
     double timeIni = Time::now();
     icub->getEstimates(wbi::ESTIMATE_JOINT_POS, q.data());
     double timeEnd = Time::now();
     
-    double elapsedTime = timeEnd - timeIni;
-    printf("Elapsed time for ESTIMATE_JOINT_POST %f \n", elapsedTime);
+    //qinit = q;
     
+    
+    double elapsedTime = timeEnd - timeIni;
+    printf("Elapsed time for ESTIMATE_JOINT_POS %f \n", elapsedTime);
+    /*
     timeIni = Time::now();
     icub->getEstimates(wbi::ESTIMATE_JOINT_TORQUE, q.data());
     timeEnd = Time::now();
     
     elapsedTime = timeEnd - timeIni;
     printf("Elapsed time for ESTIMATE_JOINT_TORQUE %f \n", elapsedTime);
-    
+    */
     qInit = q;
     qd = q;
-   Vector refSpeed(dof, CTRL_DEG2RAD*1.0);//, qd = q;
-   qd += 15.0*CTRL_DEG2RAD;
+   Vector refSpeed(dof, CTRL_DEG2RAD*10.0);//, qd = q;
+   
+   for (int ctr = 0; ctr <13;ctr++)
+   {
+     qd(ctr) += 15.0*CTRL_DEG2RAD;
+   }
+   
    printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
    printf("Qd:  %s\n", (CTRL_RAD2DEG*qd).toString(1).c_str());
    icub->setControlParam(CTRL_PARAM_REF_VEL, refSpeed.data());
@@ -161,7 +172,7 @@ int main(int argc, char * argv[])
    Eigen::Matrix<double,6,Dynamic,RowMajor> jacob; 
    jacob.resize(6,dof+6); //13 because in this test we only have right and left arm plus torso
 
-   for(int i=0; i<30; i++)
+   for(int i=0; i<15; i++)
    {
        Vector com(7,0.0);
        wbi::Frame world2base;
@@ -171,21 +182,15 @@ int main(int argc, char * argv[])
        icub->getEstimates(ESTIMATE_JOINT_POS, q.data());
        icub->getEstimates(ESTIMATE_JOINT_VEL, dq.data());
        icub->getEstimates(ESTIMATE_JOINT_ACC,d2q.data());
-       printf("(Q, dq, d2q):   %.2f \t %.2f \t %.2f\n", CTRL_RAD2DEG*q(j), CTRL_RAD2DEG*dq(j), CTRL_RAD2DEG*d2q(j));
+        printf("(Q, dq, d2q):   %.2f \t %.2f \t %.2f\n", CTRL_RAD2DEG*q(j), CTRL_RAD2DEG*dq(j), CTRL_RAD2DEG*d2q(j));
        
-       icub->computeJacobian(q.data(),world2base,wbi::iWholeBodyModel::COM_LINK_ID,jacob.data());
-       //cout<<"COM Jacobian: "<<jacob<<endl;
-       
-       icub->forwardKinematics(q.data(),world2base,wbi::iWholeBodyModel::COM_LINK_ID,com.data());
-       printf("Center of Mass:  %.10f \t %.10f \t %.10f\n",com[0],com[1],com[2]);
+	icub->getEstimates(ESTIMATE_BASE_POS,basePos.data());
+	printf("BasePos: %2.2f %2.2f %2.2f\n\n",basePos(0),basePos(1),basePos(2));
+	
+	printf("BaseRot: %2.2f %2.2f %2.2f\n %2.2f %2.2f %2.2f\n %2.2f %2.2f %2.2f\n\n\n",basePos(3),basePos(4),basePos(5),basePos(6),basePos(7),basePos(8),basePos(9),basePos(10),basePos(11));
                
    }
-   
-   Vector zeroVec;
-   zeroVec.resize(dof, 0);
-   icub->setControlMode(CTRL_MODE_TORQUE);
-   icub->setControlReference(zeroVec.data());
-   
+
    printf("Test finished. Press return to exit.");
    getchar();
    
@@ -198,6 +203,12 @@ int main(int argc, char * argv[])
    Time::delay(1.0);
    printf("Test finished. Press return to exit.");
    getchar();
+   
+   Vector refSpeedFinal(dof, CTRL_DEG2RAD*25.0);//, qd = q;
+//   qd += 15.0*CTRL_DEG2RAD;
+//   printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
+//   printf("Qd:  %s\n", (CTRL_RAD2DEG*qd).toString(1).c_str());
+   icub->setControlParam(CTRL_PARAM_REF_VEL, refSpeedFinal.data());
    
    icub->setControlReference(qInit.data());
     
