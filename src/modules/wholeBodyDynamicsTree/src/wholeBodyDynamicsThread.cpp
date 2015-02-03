@@ -19,6 +19,7 @@
 #include <yarpWholeBodyInterface/yarpWholeBodyStatesLocal.h>
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
+#include <yarp/os/LogStream.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/ResourceFinder.h>
 #include <yarp/math/SVD.h>
@@ -155,6 +156,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 
     //Resize buffer vectors
     all_torques.resize(_wbs->getEstimateNumber(wbi::ESTIMATE_JOINT_TORQUE));
+
 
     LAExternalWrench.resize(6);
     RAExternalWrench.resize(6);
@@ -327,6 +329,22 @@ bool wholeBodyDynamicsThread::threadInit()
     }
 
     assert(nr_of_output_torques_ports == output_torque_ports.size());
+    
+    //Load configuration related to the controlboards for which we are estimating the torques
+    IDList torque_estimation_list = estimator->getEstimateList(wbi::ESTIMATE_JOINT_TORQUE);
+    bool ret = loadJointsControlBoardFromConfig(yarp_options,
+                                                torque_estimation_list,
+                                                torqueEstimationControlBoards.controlBoardNames,
+                                                torqueEstimationControlBoards.controlBoardAxisList);
+
+    if( ! ret || torque_estimation_list.size() != torqueEstimationControlBoards.controlBoardAxisList.size() )
+    {
+        return false;
+    }
+
+    torqueEstimationControlBoards.deviceDrivers.resize(torqueEstimationControlBoards.controlBoardNames.size());
+    torqueEstimationControlBoards.controlModeInterfaces.resize(torqueEstimationControlBoards.controlBoardNames.size());
+    torqueEstimationControlBoards.interactionModeInterfaces.resize(torqueEstimationControlBoards.controlBoardNames.size());
 
     // Open calibration configuration
     calibration_support_link = "root_link";
@@ -494,7 +512,7 @@ bool wholeBodyDynamicsThread::decodeCalibCode(const std::string calib_code)
             std::cout << "wholeBodyDynamicsThread::decodeCalibCode error: requested feet calibration, but arms FT sensor are not available." << std::endl;
             return false;
         }
-        for(int i = 0; i < arms_fts.size(); i++ )
+        for(int i = 0; i < (int)arms_fts.size(); i++ )
         {
             int ft_sens = arms_fts[i];
             calibrate_ft_sensor[ft_sens] = true;
@@ -505,7 +523,7 @@ bool wholeBodyDynamicsThread::decodeCalibCode(const std::string calib_code)
             std::cout << "wholeBodyDynamicsThread::decodeCalibCode error: requested feet calibration, but legs FT sensor are not available." << std::endl;
             return false;
         }
-        for(int i = 0; i < legs_fts.size(); i++ )
+        for(int i = 0; i < (int)legs_fts.size(); i++ )
         {
             int ft_sens = legs_fts[i];
             calibrate_ft_sensor[ft_sens] = true;
@@ -754,7 +772,6 @@ void wholeBodyDynamicsThread::getEndEffectorWrenches()
 void wholeBodyDynamicsThread::publishTorques()
 {
     //Converting torques from the serialization used in wholeBodyStates interface to the port used by the robot
-
     for(int output_torque_port_id = 0;
         output_torque_port_id < (int)output_torque_ports.size();
         output_torque_port_id++ )
@@ -772,42 +789,6 @@ void wholeBodyDynamicsThread::publishTorques()
                     (output_torque_ports[output_torque_port_id].output_port));
     }
 
-    /// \todo remove this hardcoded dependency on the serialization used in the interface (using getEstimateList)
-
-    /// \note The torso has a weird dependency, basically the joint serialization in the robot and the one on the model are reversed
-    //TOTorques[0] = all_torques[2];
-    //TOTorques[1] = all_torques[1];
-    //TOTorques[2] = all_torques[0];
-
-    //for(int i=0; i < 3; i++ ) {
-    //    HDTorques[i] = all_torques[3+i];
-    //}
-
-    //for(int i=0; i < 7; i++ ) {
-    //    LATorques[i] = all_torques[3+3+i];
-    //}
-
-    //for(int i=0; i < 7; i++ ) {
-    //    RATorques[i] = all_torques[3+3+7+i];
-    //}
-
-    //for(int i=0; i < 6; i++ ) {
-    //    LLTorques[i] = all_torques[3+3+7+7+i];
-    //}
-
-    //for(int i=0; i < 6; i++ ) {
-    //    RLTorques[i] = all_torques[3+3+7+7+6+i];
-    //}
-
-    //Parameters copied from old wholeBodyDynamics
-    //writeTorque(TOTorques, 4, port_TOTorques);
-    //writeTorque(HDTorques, 0, port_HDTorques);
-    //writeTorque(LATorques, 1, port_LATorques);
-    //writeTorque(RATorques, 1, port_RATorques);
-    //writeTorque(LATorques, 3, port_LWTorques);
-    //writeTorque(RATorques, 3, port_RWTorques);
-    //writeTorque(LLTorques, 2, port_LLTorques);
-    //writeTorque(RLTorques, 2, port_RLTorques);
 }
 
 //*************************************************************************************************************************
@@ -1309,11 +1290,13 @@ void wholeBodyDynamicsThread::threadRelease()
 {
     run_mutex.lock();
 
-    std::cerr << "[INFO] Closing output torques ports\n";
+    yInfo() << "Closing output torques ports";
     for(int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
     {
         closePort(output_torque_ports[output_torque_port_i].output_port);
     }
+
+
 
     std::cerr << "Closing contacts port\n";
     closePort(port_contacts);
@@ -1387,4 +1370,74 @@ void wholeBodyDynamicsThread::writeTorque(Vector _values, int _address, Buffered
         a.addDouble(_values(i));
     _port->prepare() = a;
     _port->write();
+}
+
+//*****************************************************************************
+bool wholeBodyDynamicsThread::ensureJointsAreNotUsingTorqueEstimates()
+{
+    //For all joints for which we are estimating the torques, ensure
+    //that we are not doing nothing wrong:
+    //switch for all joints the interaction mode to INTERACTION_STIFF
+    //if the joint is currently using the CM_TORQUE control mode, switch
+    //it to CM_POSITION
+    if( !openControlBoards() )
+    {
+        return false;
+    }
+
+    int torque_list_size = estimator->getEstimateList(wbi::ESTIMATE_JOINT_TORQUE).size();
+    for( int jnt = 0; jnt < torque_list_size; jnt++ )
+    {
+        int ctrlBrd = torqueEstimationControlBoards.controlBoardAxisList[jnt].first;
+        int axis    =  torqueEstimationControlBoards.controlBoardAxisList[jnt].second;
+
+        // Check control mode
+        int ctrlMode = -1;
+        torqueEstimationControlBoards.controlModeInterfaces[ctrlBrd]->getControlMode(axis,&ctrlMode);
+
+        // if the ctrlMode is torque, switch to position
+        if( ctrlMode ==  VOCAB_CM_TORQUE)
+        {
+            torqueEstimationControlBoards.controlModeInterfaces[ctrlBrd]->setControlMode(axis,VOCAB_CM_POSITION);
+        }
+
+        // In any case, set the joint in interaction mode STIFF
+        torqueEstimationControlBoards.interactionModeInterfaces[ctrlBrd]->setInteractionMode(axis,yarp::dev::VOCAB_IM_STIFF);
+    }
+
+    closeControlBoards();
+}
+
+bool wholeBodyDynamicsThread::openControlBoards()
+{
+    for(int ctrlBrd = 0; ctrlBrd < torqueEstimationControlBoards.controlBoardNames.size(); ctrlBrd++ )
+    {
+        if( !openPolyDriver("wholeBodyDynamicsCloseControlBoards",
+                             robotName,
+                             torqueEstimationControlBoards.deviceDrivers[ctrlBrd],
+                             torqueEstimationControlBoards.controlBoardNames[ctrlBrd]) )
+        {
+            closeControlBoards();
+            return false;
+        }
+
+        bool ret = torqueEstimationControlBoards.deviceDrivers[ctrlBrd]->view(torqueEstimationControlBoards.controlModeInterfaces[ctrlBrd]);
+        ret = ret && torqueEstimationControlBoards.deviceDrivers[ctrlBrd]->view(torqueEstimationControlBoards.interactionModeInterfaces[ctrlBrd]);
+
+        if( ret )
+        {
+            closeControlBoards();
+            return false;
+        }
+    }
+}
+
+bool wholeBodyDynamicsThread::closeControlBoards()
+{
+    for(int ctrlBrd = 0; ctrlBrd < torqueEstimationControlBoards.controlBoardNames.size(); ctrlBrd++ )
+    {
+        closePolyDriver(torqueEstimationControlBoards.deviceDrivers[ctrlBrd]);
+        torqueEstimationControlBoards.controlModeInterfaces[ctrlBrd] = 0;
+        torqueEstimationControlBoards.interactionModeInterfaces[ctrlBrd] = 0;
+    }
 }

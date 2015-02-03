@@ -86,7 +86,7 @@ bool WholeBodyReachModule::configure(ResourceFinder &rf)
     yarp::os::Property wbi_opts;
     wbi_opts.fromConfigFile(wbi_conf_file);
     wbi_opts.put("robot",robotName);
-    wbi_opts.put("urdf","/Users/adelpret/devel/icub_gazebo/icub/icubV1_for_idyntree.xml");
+//     wbi_opts.put("urdf","/Users/adelpret/devel/icub_gazebo/icub/icubV1_for_idyntree.xml");
     robotInterface = new yarpWbi::yarpWholeBodyInterface(moduleName.c_str(), wbi_opts);
     robotInterface->addJoints(ICUB_MAIN_JOINTS);
 //    robotInterface->addEstimate(ESTIMATE_FORCE_TORQUE_SENSOR, LocalId(RIGHT_LEG,1));  // right ankle ft sens
