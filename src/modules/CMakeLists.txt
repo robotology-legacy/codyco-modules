@@ -15,8 +15,6 @@ endif()
 add_subdirectory(walkPlayer)
 
 add_subdirectory(codycoCoordinatorDemo1Y)
-if(CODYCO_BUILD_WHOLEBODYREACH)
     add_subdirectory(wholeBodyReach)
-endif()
 
 #add_subdirectory(wholeBodyNeckVelocity)

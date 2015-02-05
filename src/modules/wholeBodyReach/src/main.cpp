@@ -37,6 +37,7 @@ using namespace wholeBodyReach;
 
 int main (int argc, char * argv[])
 {
+    Network yarp;
     //Creating and preparing the Resource Finder
     ResourceFinder rf;
     rf.setVerbose(true);
@@ -54,17 +55,12 @@ int main (int argc, char * argv[])
         cout<< "\t--local            :Prefix of the ports opened by the module. Set to the module name by default, i.e. wholeBodyReachCtrl."                                      <<endl;        
         return 0;
     }
-    
-    Network yarp;
 
-    if (!yarp.checkNetwork())
+    if (!Network::checkNetwork())
     {
         fprintf(stderr,"Sorry YARP network is not available\n");
         return -1;
     }
-    
-    // use gazebo clock
-    Time::useNetworkClock("/clock");
 
     //Creating the module
     WholeBodyReachModule module;
