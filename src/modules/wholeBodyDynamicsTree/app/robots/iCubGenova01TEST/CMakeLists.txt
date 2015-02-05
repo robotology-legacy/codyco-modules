@@ -1,4 +1,4 @@
-set(robotname iCubGenova01)
+set(robotname iCubGenova01TEST)
 
 file(GLOB ini ${CMAKE_CURRENT_SOURCE_DIR}/*.ini)
 
