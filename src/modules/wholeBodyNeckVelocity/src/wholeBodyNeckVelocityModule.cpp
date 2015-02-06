@@ -65,11 +65,11 @@ bool WholeBodyNeckVelocityModule::configure(yarp::os::ResourceFinder& rf) {
   }
   
   // Update swingingFoot given by user
-  std::string swingingFoot;
+  FOOT swingingFoot;
   if (!rf.check("swingingFoot"))
-    swingingFoot = wbiProperties.find("swingingFoot").asInt(); //LEFT FOOT
+    swingingFoot = static_cast<FOOT>(wbiProperties.find("swingingFoot").asInt()); //LEFT FOOT
   else {
-    swingingFoot = rf.find("swingingFoot").asInt();
+    swingingFoot = static_cast<FOOT>(rf.find("swingingFoot").asInt());
     wbiProperties.put("swingingFoot", swingingFoot);
   }
   
@@ -81,6 +81,15 @@ bool WholeBodyNeckVelocityModule::configure(yarp::os::ResourceFinder& rf) {
     local = rf.find("local").asString();
     wbiProperties.put("local",local);
   }
+  
+  // Update WRF given by user
+  FOOT WRF;
+  if (!rf.check("wrf")) {
+      WRF = static_cast<FOOT>(wbiProperties.find("WRF").asInt());
+  } else {
+      WRF = static_cast<FOOT>(rf.find("wrf").asInt());
+      wbiProperties.put("wrf", WRF);
+  }  
   //ENDS PARAMETERS SECTION <<
   
   
@@ -115,7 +124,7 @@ bool WholeBodyNeckVelocityModule::configure(yarp::os::ResourceFinder& rf) {
   
   
   //BEGINS THREAD CALL >>>
-  m_neckVelocityThread = new WholeBodyNeckVelocityThread(*m_robotInterface, rate, local);
+  m_neckVelocityThread = new WholeBodyNeckVelocityThread(*m_robotInterface, rate, local, swingingFoot, WRF, robot);
   if (!m_neckVelocityThread) {
     std::cerr << "Could not create thread...\n" << std::endl;
     return false;
