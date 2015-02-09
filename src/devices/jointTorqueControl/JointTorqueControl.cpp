@@ -843,6 +843,13 @@ void JointTorqueControl::computeOutputMotorTorques()
         jointControlOutput[j] = motorParam.kff*jointControlOutput[j] + motorParameters[j].frictionCompensation * (motorParam.kv*measuredMotorVelocities[j] + coulombFriction);
     }
 
+    if (streamingOutput)
+    {
+        yarp::sig::Vector& output = portForStreamingPWM.prepare();
+        output = jointControlOutput;
+        portForStreamingPWM.write();
+    }
+    
     toEigenVector(jointControlOutput) = couplingMatricesFirmware.fromMotorTorquesToJointTorques * toEigenVector(jointControlOutput);
 
     bool isNaNOrInf = false;
@@ -892,15 +899,8 @@ void JointTorqueControl::run()
     //update output torques
     computeOutputMotorTorques();
 
-//     std::cout << "jointControlOutput : " << toEigenVector(jointControlOutput) << std::endl;
 
-    if (streamingOutput)
-    {
-        yarp::sig::Vector& output = portForStreamingPWM.prepare();
-        output = jointControlOutput;
-        portForStreamingPWM.write();
-    }
-    else
+    if(!streamingOutput)
     {
         //Send resulting output
         bool false_value = false;
