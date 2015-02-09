@@ -18,7 +18,10 @@
 #include <iostream>
 #include <cmath>
 
+#include <yarp/os/all.h>
+
 using namespace std;
+using namespace yarp::os;
 
 namespace yarp {
 namespace dev {
@@ -298,13 +301,28 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     std::cerr << "fromMotorTorquesToJointTorques matrix firmware" << std::endl;
     std::cerr << couplingMatricesFirmware.fromMotorTorquesToJointTorques << std::endl;
 
+
+    streamingOutput = config.check("streamingOutput");
+    std::cerr << "streamingOutput = " << streamingOutput << std::endl;
+
+    if (streamingOutput)    
+    {
+        ret = ret && config.check("name");
+        ret = ret && config.find("name").isString();
+        partName = config.find("name").asString();
+        portForStreamingPWM.open(partName + "/output_pwms");
+    } 
+        
+    
     if( ret )
     {
         ret = ret && this->start();
     }
-
+    
     return ret;
+
 }
+   
 
 bool JointTorqueControl::close()
 {
@@ -347,7 +365,7 @@ bool JointTorqueControl::setTorqueMode(int j)
 }
 
 bool JointTorqueControl::getControlModes(int *modes)
-{
+{    
     if( !proxyIControlMode2 )
     {
         return false;
@@ -416,8 +434,11 @@ bool JointTorqueControl::setControlMode(const int j, const int mode)
     int new_mode = mode;
     if( new_mode == VOCAB_CM_TORQUE )
     {
-        this->startHijackingTorqueControl(j);
-        new_mode = VOCAB_CM_OPENLOOP;
+        if (!streamingOutput)        
+        {
+            this->startHijackingTorqueControl(j);
+            new_mode = VOCAB_CM_OPENLOOP;
+        } 
     }
     else
     {
@@ -431,12 +452,22 @@ bool JointTorqueControl::setControlMode(const int j, const int mode)
         // that stop the hijacking if a joint control modes is not anymore
         // in openloop
         if( this->hijackingTorqueControl[j] )
-        {
-            this->stopHijackingTorqueControl(j);
+        {        
+            if (!streamingOutput)            
+            {
+                this->stopHijackingTorqueControl(j);
+            } 
         }
     }
 
-    return proxyIControlMode2->setControlMode(j, new_mode);
+    if (!streamingOutput)        
+    {
+       return proxyIControlMode2->setControlMode(j, new_mode);
+    } 
+    else
+    {
+       return true;
+    }
 }
 
 bool JointTorqueControl::setControlModes(const int n_joint, const int *joints, int *modes)
@@ -451,19 +482,32 @@ bool JointTorqueControl::setControlModes(const int n_joint, const int *joints, i
         int j = joints[i];
         if( modes[i] == VOCAB_CM_TORQUE )
         {
-            this->startHijackingTorqueControl(j);
-            modes[i] = VOCAB_CM_OPENLOOP;
+            if (!streamingOutput)            
+            {
+                this->startHijackingTorqueControl(j);
+                modes[i] = VOCAB_CM_OPENLOOP;
+            } 
         }
         else
         {
             if( this->hijackingTorqueControl[j] )
-            {
-                this->stopHijackingTorqueControl(j);
+            {            
+                if (!streamingOutput)                
+                {
+                    this->stopHijackingTorqueControl(j);
+                } 
             }
         }
     }
 
-    return proxyIControlMode2->setControlModes(n_joint,joints,modes);
+    if (!streamingOutput)        
+    {
+       return proxyIControlMode2->setControlModes(n_joint,joints,modes);
+    } 
+    else
+    {
+        return true;
+    }
 }
 
 bool JointTorqueControl::setControlModes(int *modes)
@@ -477,19 +521,32 @@ bool JointTorqueControl::setControlModes(int *modes)
     {
         if( modes[j] == VOCAB_CM_TORQUE )
         {
-            this->startHijackingTorqueControl(j);
-            modes[j] = VOCAB_CM_OPENLOOP;
+            if (!streamingOutput)  
+            {
+                this->startHijackingTorqueControl(j);
+                modes[j] = VOCAB_CM_OPENLOOP;
+            } 
         }
         else
         {
             if( this->hijackingTorqueControl[j] )
             {
-                this->stopHijackingTorqueControl(j);
+                if (!streamingOutput)                
+                {
+                    this->stopHijackingTorqueControl(j);
+                } 
             }
         }
     }
 
-    return proxyIControlMode2->setControlModes(modes);
+    if (!streamingOutput)        
+    {
+       return proxyIControlMode2->setControlModes(modes);
+    } 
+    else
+    {
+       return true;
+    }
 }
 
 
@@ -804,38 +861,50 @@ void JointTorqueControl::computeOutputMotorTorques()
 }
 
 void JointTorqueControl::run()
-{
-    bool true_value = true;
-    if (!contains(hijackingTorqueControl,true_value) )
+{    
+    if (!streamingOutput)
     {
-        return;
+        bool true_value = true;
+        if (!contains(hijackingTorqueControl,true_value) )
+        {
+            return;
+        }
     }
-
+    
     //Read status (position, velocity, torque) from the controlboard
     this->readStatus();
 
     controlMutex.lock();
     //update output torques
     computeOutputMotorTorques();
-
-
-    //Send resulting output
-    bool false_value = false;
-    if( !contains(hijackingTorqueControl,false_value) )
+ 
+//     std::cout << "jointControlOutput : " << toEigenVector(jointControlOutput) << std::endl;
+    
+    if (streamingOutput)
     {
-        this->setRefOutputs(jointControlOutput.data());
+        yarp::sig::Vector& output = portForStreamingPWM.prepare();
+        output = jointControlOutput;
+        portForStreamingPWM.write();
     }
     else
     {
-        for(int j=0; j < this->axes; j++)
+        //Send resulting output
+        bool false_value = false;
+        if( !contains(hijackingTorqueControl,false_value) )
         {
-            if( hijackingTorqueControl[j] )
+            this->setRefOutputs(jointControlOutput.data());
+        }
+        else
+        {
+            for(int j=0; j < this->axes; j++)
             {
-                this->setRefOutput(j,jointControlOutput[j]);
+                if( hijackingTorqueControl[j] )
+                {
+                    this->setRefOutput(j,jointControlOutput[j]);
+                }
             }
         }
     }
-
     controlMutex.unlock();
 }
 

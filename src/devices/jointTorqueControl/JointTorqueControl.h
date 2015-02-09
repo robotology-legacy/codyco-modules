@@ -147,6 +147,11 @@ private:
     int axes;
 
     std::vector<int>  controlModesBuffer;
+    
+    // if true, do not hijack and stream the PWMs on port
+    bool streamingOutput;
+    std::string partName;
+    yarp::os::BufferedPort<yarp::sig::Vector> portForStreamingPWM;
 
     void startHijackingTorqueControl(int j);
     void stopHijackingTorqueControl(int j);
