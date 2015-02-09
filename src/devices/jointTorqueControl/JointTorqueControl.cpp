@@ -59,7 +59,7 @@ void JointTorqueControl::stopHijackingTorqueControl(int j)
 
 
 JointTorqueControl::JointTorqueControl():
-                    PassThroughControlBoard(), RateThread(10)         
+                    PassThroughControlBoard(), RateThread(10)
 {
 }
 
@@ -131,8 +131,8 @@ bool JointTorqueControl::loadGains(yarp::os::Searchable& config)
             motorParameters[j].frictionCompensation = 0;
             yWarning("[TRQ_PIDS] frictionCompensation parameter is outside the admissible range [0, 1]. FrictionCompensation reset to 0.0");
         }
-        
-        
+
+
     }
 
     return true;
@@ -305,24 +305,25 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     streamingOutput = config.check("streamingOutput");
     std::cerr << "streamingOutput = " << streamingOutput << std::endl;
 
-    if (streamingOutput)    
+    if (streamingOutput)
     {
         ret = ret && config.check("name");
         ret = ret && config.find("name").isString();
         partName = config.find("name").asString();
         portForStreamingPWM.open(partName + "/output_pwms");
-    } 
-        
-    
+        portForReadingRefTorques.open(partName +"/input_torques");
+    }
+
+
     if( ret )
     {
         ret = ret && this->start();
     }
-    
+
     return ret;
 
 }
-   
+
 
 bool JointTorqueControl::close()
 {
@@ -365,7 +366,7 @@ bool JointTorqueControl::setTorqueMode(int j)
 }
 
 bool JointTorqueControl::getControlModes(int *modes)
-{    
+{
     if( !proxyIControlMode2 )
     {
         return false;
@@ -434,11 +435,11 @@ bool JointTorqueControl::setControlMode(const int j, const int mode)
     int new_mode = mode;
     if( new_mode == VOCAB_CM_TORQUE )
     {
-        if (!streamingOutput)        
+        if (!streamingOutput)
         {
             this->startHijackingTorqueControl(j);
             new_mode = VOCAB_CM_OPENLOOP;
-        } 
+        }
     }
     else
     {
@@ -452,18 +453,18 @@ bool JointTorqueControl::setControlMode(const int j, const int mode)
         // that stop the hijacking if a joint control modes is not anymore
         // in openloop
         if( this->hijackingTorqueControl[j] )
-        {        
-            if (!streamingOutput)            
+        {
+            if (!streamingOutput)
             {
                 this->stopHijackingTorqueControl(j);
-            } 
+            }
         }
     }
 
-    if (!streamingOutput)        
+    if (!streamingOutput)
     {
        return proxyIControlMode2->setControlMode(j, new_mode);
-    } 
+    }
     else
     {
        return true;
@@ -482,28 +483,28 @@ bool JointTorqueControl::setControlModes(const int n_joint, const int *joints, i
         int j = joints[i];
         if( modes[i] == VOCAB_CM_TORQUE )
         {
-            if (!streamingOutput)            
+            if (!streamingOutput)
             {
                 this->startHijackingTorqueControl(j);
                 modes[i] = VOCAB_CM_OPENLOOP;
-            } 
+            }
         }
         else
         {
             if( this->hijackingTorqueControl[j] )
-            {            
-                if (!streamingOutput)                
+            {
+                if (!streamingOutput)
                 {
                     this->stopHijackingTorqueControl(j);
-                } 
+                }
             }
         }
     }
 
-    if (!streamingOutput)        
+    if (!streamingOutput)
     {
        return proxyIControlMode2->setControlModes(n_joint,joints,modes);
-    } 
+    }
     else
     {
         return true;
@@ -521,28 +522,28 @@ bool JointTorqueControl::setControlModes(int *modes)
     {
         if( modes[j] == VOCAB_CM_TORQUE )
         {
-            if (!streamingOutput)  
+            if (!streamingOutput)
             {
                 this->startHijackingTorqueControl(j);
                 modes[j] = VOCAB_CM_OPENLOOP;
-            } 
+            }
         }
         else
         {
             if( this->hijackingTorqueControl[j] )
             {
-                if (!streamingOutput)                
+                if (!streamingOutput)
                 {
                     this->stopHijackingTorqueControl(j);
-                } 
+                }
             }
         }
     }
 
-    if (!streamingOutput)        
+    if (!streamingOutput)
     {
        return proxyIControlMode2->setControlModes(modes);
-    } 
+    }
     else
     {
        return true;
@@ -861,7 +862,7 @@ void JointTorqueControl::computeOutputMotorTorques()
 }
 
 void JointTorqueControl::run()
-{    
+{
     if (!streamingOutput)
     {
         bool true_value = true;
@@ -870,16 +871,29 @@ void JointTorqueControl::run()
             return;
         }
     }
-    
+
+    // if in streamingOutput mode read the reference torques from a port
+    if( streamingOutput )
+    {
+        yarp::sig::Vector * ref_torques = portForReadingRefTorques.read();
+        if( ref_torques != 0 )
+        {
+            for(int i = 0; i < ref_torques->size() && i < desiredJointTorques.size(); i++ )
+            {
+                desiredJointTorques[i] = (*ref_torques)[i];
+            }
+        }
+    }
+
     //Read status (position, velocity, torque) from the controlboard
     this->readStatus();
 
     controlMutex.lock();
     //update output torques
     computeOutputMotorTorques();
- 
+
 //     std::cout << "jointControlOutput : " << toEigenVector(jointControlOutput) << std::endl;
-    
+
     if (streamingOutput)
     {
         yarp::sig::Vector& output = portForStreamingPWM.prepare();
