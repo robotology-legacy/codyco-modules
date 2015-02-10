@@ -6,7 +6,7 @@
 
 
 /**
- * \infile Tests for wholeBodyInterfaceYarp.
+ * \infile Tests for yarpWholeBodyModel.
  */
 #include <yarp/os/Network.h>
 #include <yarp/os/Time.h>
