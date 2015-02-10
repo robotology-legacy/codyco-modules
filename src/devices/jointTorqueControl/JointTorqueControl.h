@@ -152,7 +152,7 @@ private:
     bool streamingOutput;
     std::string partName;
     yarp::os::BufferedPort<yarp::sig::Vector> portForStreamingPWM;
-    yarp::os::BufferedPort<yarp::sig::Vector> portForReadingRefTorques;
+    yarp::os::BufferedPort<yarp::os::Bottle> portForReadingRefTorques;
 
 
     void startHijackingTorqueControl(int j);

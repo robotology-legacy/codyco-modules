@@ -882,12 +882,12 @@ void JointTorqueControl::run()
     // if in streamingOutput mode read the reference torques from a port
     if( streamingOutput )
     {
-        yarp::sig::Vector * ref_torques = portForReadingRefTorques.read();
+        yarp::os::Bottle * ref_torques = portForReadingRefTorques.read(false);
         if( ref_torques != 0 )
         {
             for(int i = 0; i < ref_torques->size() && i < desiredJointTorques.size(); i++ )
             {
-                desiredJointTorques[i] = (*ref_torques)[i];
+                desiredJointTorques[i] = (*ref_torques).get(i).asDouble();
             }
         }
     }
