@@ -1,9 +1,22 @@
 <application>
-<name>JointTorqueControl Device</name>
+<name>JTC and WBDTree</name>
 
         <dependencies>
         </dependencies>
-      
+       <module>
+    <name>wholeBodyDynamicsTree</name>
+    <parameters>--autoconnect --name wholeBodyDynamicsTree --robot icub --assume_fixed l_sole --assume_fixed_base_calibration l_sole</parameters>
+    <node>icub15</node>
+    <tag>wholeBodyDynamicsTree</tag>
+ </module>
+
+ <module>
+    <name>iCubGui</name>
+    <parameters>--xpos 1500 --ypos 50 --width 370</parameters> 
+    <node>icub13</node>
+    <tag>iCubGui</tag>
+  </module>
+
         <module>
                 <name>codycomoddev</name>
 		<parameters>--from jtc_torso.ini </parameters>
@@ -39,5 +52,72 @@
                 <tag>right_leg</tag>
         </module>
 
+<connection>
+    <from>/wholeBodyDynamicsTree/contacts:o</from>
+    <to>/iCubGui/forces</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/wholeBodyDynamicsTree/base:o</from>
+    <to>/iCubGui/base:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/head/state:o</from>
+    <to>/iCubGui/head:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/inertial</from>
+    <to>/iCubGui/inertial:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/left_arm/state:o</from>
+    <to>/iCubGui/left_arm:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/right_arm/state:o</from>
+    <to>/iCubGui/right_arm:i</to>
+    <protocol>udp</protocol>
+  </connection>
+   <connection>
+    <from>/icub/left_leg/state:o</from>
+    <to>/iCubGui/left_leg:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/right_leg/state:o</from>
+    <to>/iCubGui/right_leg:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/torso/state:o</from>
+    <to>/iCubGui/torso:i</to>
+    <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+    <from>/skinManager/skin_events:o</from>
+    <to>/codycoCoordinator1Y/skin_events:i</to>
+  </connection>
+
+  <connection>
+    <from>/skinManager/skin_events:o</from>
+    <to>/wholeBodyDynamicsTree/skin_contacts:i</to>
+  </connection>
+
+  <connection>
+    <from>/wholeBodyDynamicsTree/left_arm/endEffectorWrench:o</from>
+    <to>/codycoCoordinator1Y/left_wrench:i</to>
+  </connection>
+
+  <connection>
+    <from>/wholeBodyDynamicsTree/right_arm/endEffectorWrench:o</from>
+    <to>/codycoCoordinator1Y/right_wrench:i</to>
+  </connection>
+
+         
         
 </application>

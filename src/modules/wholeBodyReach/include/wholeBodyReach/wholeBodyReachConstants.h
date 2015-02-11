@@ -23,7 +23,7 @@
 
 using namespace std;
 
-static const int       ICUB_DOFS = 25;    // number of (the main) degrees of freedom of iCub
+static const int       ICUB_DOFS = 23;    // number of (the main) degrees of freedom of iCub
 
 namespace wholeBodyReach
 {
@@ -38,6 +38,8 @@ namespace wholeBodyReach
 // it performs some state estimation to get the desired information
 #define DO_NOT_USE_WHOLE_BODY_STATE_INTERFACE
     
+#define YARP_WHOLE_BODY_INTERFACE_FILE_NAME "yarpWholeBodyInterface_jtc.ini"    
+
 struct ContactPlaneSize
 {
     double          xPos; /// size of the contact plane in positive x direction
@@ -83,7 +85,7 @@ static const bool       DEFAULT_CONTROL_POSITION_ONLY       = true;
 /// true->control angular momentum, false->control root link's orientation
 static const bool       DEFAULT_REGULATE_ANGULAR_MOMENTUM   = false;
 
-static const string     WHOLE_BODY_DYNAMICS_NAME    = "wholeBodyDynamics";
+static const string     WHOLE_BODY_DYNAMICS_NAME    = "wholeBodyDynamicsTree";
 static const string     GRASP_HAND_LINK_NAME        = "r_gripper";
 static const string     SUPPORT_FOREARM_LINK_NAME   = "l_forearm";
 static const string     LEFT_FOOT_LINK_NAME         = "l_sole";

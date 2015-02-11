@@ -23,8 +23,8 @@
 namespace wholeBodyReach
 {
 
-    const static wbi::IDList ICUB_LEFT_ARM_JOINTS = wbi::IDList("l_shoulder_pitch", "l_shoulder_roll", "l_shoulder_yaw", "l_elbow", "l_wrist_pitch");
-    const static wbi::IDList ICUB_RIGHT_ARM_JOINTS = wbi::IDList("r_shoulder_pitch", "r_shoulder_roll", "r_shoulder_yaw", "r_elbow", "r_wrist_pitch");
+    const static wbi::IDList ICUB_LEFT_ARM_JOINTS = wbi::IDList("l_shoulder_pitch", "l_shoulder_roll", "l_shoulder_yaw", "l_elbow","l_wrist_prosup");
+    const static wbi::IDList ICUB_RIGHT_ARM_JOINTS = wbi::IDList("r_shoulder_pitch", "r_shoulder_roll", "r_shoulder_yaw", "r_elbow","r_wrist_prosup");
     const static wbi::IDList ICUB_TORSO_JOINTS = wbi::IDList("torso_pitch","torso_roll","torso_yaw");
     const static wbi::IDList ICUB_LEFT_LEG_JOINTS = wbi::IDList("l_hip_pitch","l_hip_roll","l_hip_yaw","l_knee","l_ankle_pitch","l_ankle_roll");
     const static wbi::IDList ICUB_RIGHT_LEG_JOINTS = wbi::IDList("r_hip_pitch","r_hip_roll","r_hip_yaw","r_knee","r_ankle_pitch","r_ankle_roll");

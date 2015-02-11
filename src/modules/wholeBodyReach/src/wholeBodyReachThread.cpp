@@ -194,7 +194,7 @@ bool WholeBodyReachThread::threadInit()
     //Workaround, loading the default yarpWholeBodyInterface file
     //you should set appropriately your YARP_ROBOT_NAME so that this will work
     yarp::os::ResourceFinder rf;
-    std::string wbi_conf_file = rf.findFile("yarpWholeBodyInterface.ini");
+    std::string wbi_conf_file = rf.findFile(YARP_WHOLE_BODY_INTERFACE_FILE_NAME);
     yarp::os::Property wbi_prop;
     wbi_prop.fromConfigFile(wbi_conf_file);
     wbi_prop.put("robot",_robotName);

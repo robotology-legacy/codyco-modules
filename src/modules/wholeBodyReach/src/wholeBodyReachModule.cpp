@@ -82,7 +82,7 @@ bool WholeBodyReachModule::configure(ResourceFinder &rf)
     getLogger().setStreamPrintPeriod(PRINT_PERIOD);
 
     //--------------------------WHOLE BODY INTERFACE--------------------------
-    std::string wbi_conf_file = rf.findFileByName("yarpWholeBodyInterface.ini");
+    std::string wbi_conf_file = rf.findFileByName(YARP_WHOLE_BODY_INTERFACE_FILE_NAME);
     yarp::os::Property wbi_opts;
     wbi_opts.fromConfigFile(wbi_conf_file);
     wbi_opts.put("robot",robotName);

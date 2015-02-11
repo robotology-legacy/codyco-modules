@@ -47,7 +47,7 @@ Logger& wholeBodyReach::getLogger()
 Logger::Logger(double timeSample, double streamPrintPeriod)
 : _timeSample(timeSample),
  _streamPrintPeriod(streamPrintPeriod),
- _printCountdown(0.0)
+ _printCountdown(0.0), _lv(VERBOSITY_ERROR)
 {}
 
 void Logger::countdown()
