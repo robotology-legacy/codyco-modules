@@ -187,7 +187,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     if( rf.check("calibration_support_link") )
     {
         yarpWbiOptions.put("calibration_support_link",rf.find("calibration_support_link").asString());
-    } 
+    }
     else
     {
         yarpWbiOptions.put("calibration_support_link","root_link");
