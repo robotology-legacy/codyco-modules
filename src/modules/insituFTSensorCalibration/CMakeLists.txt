@@ -49,7 +49,6 @@ INCLUDE_DIRECTORIES(SYSTEM
 
 include_directories(${PROJECT_SOURCE_DIR}/src ${generated_libs_dir}/include)
 
-message(STATUS "INSITU_FT_CALIBRATION_LIBRARIES is : " ${INSITU_FT_CALIBRATION_LIBRARIES})
 TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES}
                                      ctrlLib
                                      ${InSituFTCalibration_LIBRARIES}
@@ -64,4 +63,6 @@ TARGET_LINK_LIBRARIES(insituFTSensorCalibrationBatch ${YARP_LIBRARIES}
 
 INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
 INSTALL(TARGETS insituFTSensorCalibrationBatch DESTINATION bin)
+
 add_subdirectory(app)
+add_subdirectory(python)
