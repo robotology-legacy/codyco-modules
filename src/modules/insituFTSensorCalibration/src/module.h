@@ -16,7 +16,7 @@
 */
 
 #ifndef INSITU_FT_CALIBRATION_MODULE_H
-#define INSITU_FT_CALIBRATION__MODULE_H
+#define INSITU_FT_CALIBRATION_MODULE_H
 
 #include <iostream>
 #include <string>
@@ -44,6 +44,7 @@
 #include <InSituFTCalibration/offset_estimator.h>
 
 #include "insituFTSensorCalibration_IDLServer.h"
+#include "ftcalibrationdataset.h"
 
 #include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
 #include <yarpWholeBodyInterface/yarpWholeBodyModel.h>
@@ -51,16 +52,7 @@
 using namespace std;
 using namespace yarp::os;
 
-class FTCalibrationDataset
-{
-public:
-    FTCalibrationDataset();
-    ~FTCalibrationDataset();
 
-    bool fromBottle(const yarp::os::Bottle & bot);
-    std::string dataset_name;
-    double added_mass;
-};
 
 class controlledJoint
 {
@@ -82,11 +74,11 @@ public:
     double waiting_time;
     bool is_return_point;
     desiredPositions():
-    pos(0), waiting_time(0), is_return_point(false)
-    {}
+    pos(0), waiting_time(0), is_return_point(false) {};
+
     desiredPositions(yarp::sig::Vector _pos, double _waiting_time, bool _is_return_point=false):
-    pos(_pos), waiting_time(_waiting_time), is_return_point(_is_return_point)
-    {}
+    pos(_pos), waiting_time(_waiting_time), is_return_point(_is_return_point) {};
+
 };
 
 class insituFTSensorCalibrationModule;

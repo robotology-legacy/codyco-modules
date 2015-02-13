@@ -80,38 +80,6 @@ bool insituFTRpcHandler::quit()
     return true;
 }
 
-FTCalibrationDataset::FTCalibrationDataset():
-                        added_mass(0),
-                        dataset_name("")
-{
-
-}
-
-
-FTCalibrationDataset::~FTCalibrationDataset()
-{
-
-}
-
-bool FTCalibrationDataset::fromBottle(const yarp::os::Bottle &bot)
-{
-    if( bot.size() != 2
-        || !(bot.get(0).isString())
-        || !(bot.get(1).isList())
-        || !(bot.get(1).asList()->size() == 2)
-        || !(bot.get(1).asList()->get(0).isString())
-        || !(bot.get(1).asList()->get(0).asString() == "mass")
-        || !(bot.get(1).asList()->get(1).isDouble())
-    )
-    {
-        return false;
-    }
-
-    dataset_name = bot.get(0).asString();
-    added_mass   = bot.get(1).asList()->get(1).asDouble();
-    return true;
-}
-
 insituFTSensorCalibrationThread::insituFTSensorCalibrationThread(wbi::iWholeBodySensors* _sensors,
                                                                  wbi::iWholeBodyModel*   _model,
                                                                  ResourceFinder& _rf,
@@ -132,7 +100,7 @@ insituFTSensorCalibrationThread::insituFTSensorCalibrationThread(wbi::iWholeBody
 bool insituFTSensorCalibrationThread::threadInit()
 {
 
-    //Load datasets
+    //Load datasets data
     yarp::os::Bottle & bot = rf.findGroup("training_datasets");
     int nrOfDatasets = bot.size()-1;
 
