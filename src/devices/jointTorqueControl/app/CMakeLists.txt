@@ -1,7 +1,8 @@
 set(robots iCubGenova01
            iCubGenova03
 	   icubGazeboSim
-           iCubHeidelberg01)
+           iCubHeidelberg01
+           iCubParis02)
 
 foreach(robot ${robots})
     file(GLOB robot_conf ${CMAKE_CURRENT_SOURCE_DIR}/robots/${robot}/*.ini)
