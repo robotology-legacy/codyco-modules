@@ -50,7 +50,7 @@ INCLUDE_DIRECTORIES(${INCLUDE_FOLDER}
 IF( NOT ${TORQUE_CONTROL})
     INCLUDE_DIRECTORIES(${motorFrictionIdentificationLib_INCLUDE_DIRS})
     TARGET_LINK_LIBRARIES(motorFrictionIdentificationLib)
-    MESSAGE("Torque control not enabled")
+    #MESSAGE("Torque control not enabled")
 ELSE()
     add_definitions(-DADAPTIVECONTROL_TORQUECONTROL)
     MESSAGE("Torque control enabled")
