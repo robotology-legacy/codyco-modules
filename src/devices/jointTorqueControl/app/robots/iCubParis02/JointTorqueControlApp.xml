@@ -1,11 +1,9 @@
 <application>
 <name>JTC and WBDTree</name>
 
-        <dependencies>
-        </dependencies>
-       <module>
+ <module>
     <name>wholeBodyDynamicsTree</name>
-    <parameters>--autoconnect --name wholeBodyDynamicsTree --robot icub --assume_fixed l_sole --assume_fixed_base_calibration l_sole</parameters>
+    <parameters>--from wholeBodyDynamicsTree_no_right_arm.ini--autoconnect --name wholeBodyDynamicsTree</parameters>
     <node>icub15</node>
     <tag>wholeBodyDynamicsTree</tag>
  </module>
@@ -97,27 +95,6 @@
     <to>/iCubGui/torso:i</to>
     <protocol>udp</protocol>
   </connection>
-
-  <connection>
-    <from>/skinManager/skin_events:o</from>
-    <to>/codycoCoordinator1Y/skin_events:i</to>
-  </connection>
-
-  <connection>
-    <from>/skinManager/skin_events:o</from>
-    <to>/wholeBodyDynamicsTree/skin_contacts:i</to>
-  </connection>
-
-  <connection>
-    <from>/wholeBodyDynamicsTree/left_arm/endEffectorWrench:o</from>
-    <to>/codycoCoordinator1Y/left_wrench:i</to>
-  </connection>
-
-  <connection>
-    <from>/wholeBodyDynamicsTree/right_arm/endEffectorWrench:o</from>
-    <to>/codycoCoordinator1Y/right_wrench:i</to>
-  </connection>
-
          
         
 </application>
