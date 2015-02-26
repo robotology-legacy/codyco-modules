@@ -2,6 +2,7 @@ set(robots iCubGenova01
            iCubGenova03
 	   icubGazeboSim
            iCubHeidelberg01
+           iCubParis01
            iCubParis02)
 
 foreach(robot ${robots})
