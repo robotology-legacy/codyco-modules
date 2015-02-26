@@ -18,35 +18,35 @@
         <module>
                 <name>codycomoddev</name>
 		<parameters>--from jtc_torso.ini </parameters>
-                <node>macsi02</node>
+                <node>macsi01</node>
                 <tag>jtc_torso</tag>
         </module>
 
 <module>
                 <name>codycomoddev</name>
 		<parameters>--from jtc_left_arm.ini </parameters>
-                <node>macsi02</node>
+                <node>macsi01</node>
                 <tag>jtc_left_arm</tag>
         </module>
 
 <module>
                 <name>codycomoddev</name>
 		<parameters>--from jtc_right_arm.ini </parameters>
-                <node>macsi02</node>
+                <node>macsi01</node>
                 <tag>jtc_right_arm</tag>
         </module>
 
 <module>
                 <name>codycomoddev</name>
 		<parameters>--from jtc_left_leg.ini </parameters>
-                <node>macsi02</node>
+                <node>macsi01</node>
                 <tag>jtc_left_leg</tag>
         </module>
 
 <module>
                 <name>codycomoddev</name>
 		<parameters>--from jtc_right_leg.ini </parameters>
-                <node>macsi02</node>
+                <node>macsi01</node>
                 <tag>right_leg</tag>
         </module>
 
