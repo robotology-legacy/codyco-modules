@@ -4,49 +4,49 @@
  <module>
     <name>wholeBodyDynamicsTree</name>
     <parameters>--from wholeBodyDynamicsTree_no_right_arm.ini--autoconnect --name wholeBodyDynamicsTree</parameters>
-    <node>icub15</node>
+    <node>icub-b1</node>
     <tag>wholeBodyDynamicsTree</tag>
  </module>
 
  <module>
     <name>iCubGui</name>
     <parameters>--xpos 1500 --ypos 50 --width 370</parameters> 
-    <node>icub13</node>
+    <node>icub-desktop</node>
     <tag>iCubGui</tag>
   </module>
 
         <module>
                 <name>codycomoddev</name>
 		<parameters>--from jtc_torso.ini </parameters>
-                <node>icub15</node>
+                <node>icub-b1</node>
                 <tag>torso</tag>
         </module>
 
 <module>
                 <name>codycomoddev</name>
 		<parameters>--from jtc_left_arm.ini </parameters>
-                <node>icub15</node>
+                <node>icub-b1</node>
                 <tag>left_arm</tag>
         </module>
 
 <module>
                 <name>codycomoddev</name>
 		<parameters>--from jtc_right_arm.ini </parameters>
-                <node>icub15</node>
+                <node>icub-b1</node>
                 <tag>right_arm</tag>
         </module>
 
 <module>
                 <name>codycomoddev</name>
 		<parameters>--from jtc_left_leg.ini </parameters>
-                <node>icub15</node>
+                <node>icub-b1</node>
                 <tag>left_leg</tag>
         </module>
 
 <module>
                 <name>codycomoddev</name>
 		<parameters>--from jtc_right_leg.ini </parameters>
-                <node>icub15</node>
+                <node>icub-b1</node>
                 <tag>right_leg</tag>
         </module>
 
