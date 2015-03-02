@@ -4,7 +4,7 @@
  <module>
     <name>wholeBodyDynamicsTree</name>
     <parameters>--autoconnect --name wholeBodyDynamicsTree</parameters>
-    <node>icub15</node>
+    <node>macsi03</node>
     <tag>wholeBodyDynamicsTree</tag>
  </module>
 

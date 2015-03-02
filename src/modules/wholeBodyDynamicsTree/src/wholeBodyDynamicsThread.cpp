@@ -26,7 +26,6 @@
 
 #include <string.h>
 #include <ctime>
-#include <boost/concept_check.hpp>
 
 
 using namespace yarp::math;
@@ -1151,7 +1150,10 @@ void wholeBodyDynamicsThread::calibration_run()
                 double ft_off[6];
                 estimator->getEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,convertFTiDynTreeToFTwbi(ft_sensor_id),ft_off);
 
-                std::cout << "[INFO] wholeBodyDynamicsThread: new calibration for FT " << ft_sensor_id << " is " <<
+                wbi::ID sensor_name;
+                estimator->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR).indexToID(ft_sensor_id,sensor_name);
+
+                std::cout << "[INFO] wholeBodyDynamicsThread: new calibration for FT " << sensor_name.toString() << " is " <<
                             ft_off[0] << " " << ft_off[1] << " " << ft_off[2] << " " << ft_off[3] << " " << ft_off[4] << " " << ft_off[5] << std::endl;
             }
         }
@@ -1260,7 +1262,10 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
                 double ft_off[6];
                 estimator->getEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,convertFTiDynTreeToFTwbi(ft_sensor_id),ft_off);
 
-                std::cout << "wholeBodyDynamicsThread: new calibration for FT " << ft_sensor_id << " is " <<
+                wbi::ID sensor_name;
+                estimator->getEstimateList(wbi::ESTIMATE_FORCE_TORQUE_SENSOR).indexToID(ft_sensor_id,sensor_name);
+
+                std::cout << "wholeBodyDynamicsThread: new calibration for FT " << sensor_name.toString() << " is " <<
                             ft_off[0] << " " << ft_off[1] << " " << ft_off[2] << " " << ft_off[3] << " " << ft_off[4] << " " << ft_off[5] << std::endl;
             }
         }
