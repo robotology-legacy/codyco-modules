@@ -3,7 +3,7 @@
 
  <module>
     <name>wholeBodyDynamicsTree</name>
-    <parameters>--from wholeBodyDynamicsTree_no_right_arm.ini--autoconnect --name wholeBodyDynamicsTree</parameters>
+    <parameters>--from wholeBodyDynamicsTree_no_right_arm.ini --autoconnect --name wholeBodyDynamicsTree</parameters>
     <node>icub-b1</node>
     <tag>wholeBodyDynamicsTree</tag>
  </module>
