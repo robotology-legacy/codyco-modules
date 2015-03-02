@@ -303,6 +303,7 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
 
 
     streamingOutput = config.check("streamingOutput");
+    streamingOutputButContinueHijacking = config.check("streamingOutputButContinueHijacking");
     std::cerr << "streamingOutput = " << streamingOutput << std::endl;
 
     if (streamingOutput)
@@ -435,7 +436,7 @@ bool JointTorqueControl::setControlMode(const int j, const int mode)
     int new_mode = mode;
     if( new_mode == VOCAB_CM_TORQUE )
     {
-        if (!streamingOutput)
+        if (!streamingOutput || streamingOutputButContinueHijacking )
         {
             this->startHijackingTorqueControl(j);
             new_mode = VOCAB_CM_OPENLOOP;
@@ -454,14 +455,14 @@ bool JointTorqueControl::setControlMode(const int j, const int mode)
         // in openloop
         if( this->hijackingTorqueControl[j] )
         {
-            if (!streamingOutput)
+            if (!streamingOutput || streamingOutputButContinueHijacking)
             {
                 this->stopHijackingTorqueControl(j);
             }
         }
     }
 
-    if (!streamingOutput)
+    if (!streamingOutput || streamingOutputButContinueHijacking )
     {
        return proxyIControlMode2->setControlMode(j, new_mode);
     }
@@ -483,7 +484,7 @@ bool JointTorqueControl::setControlModes(const int n_joint, const int *joints, i
         int j = joints[i];
         if( modes[i] == VOCAB_CM_TORQUE )
         {
-            if (!streamingOutput)
+            if (!streamingOutput || streamingOutputButContinueHijacking)
             {
                 this->startHijackingTorqueControl(j);
                 modes[i] = VOCAB_CM_OPENLOOP;
@@ -493,7 +494,7 @@ bool JointTorqueControl::setControlModes(const int n_joint, const int *joints, i
         {
             if( this->hijackingTorqueControl[j] )
             {
-                if (!streamingOutput)
+                if (!streamingOutput || streamingOutputButContinueHijacking )
                 {
                     this->stopHijackingTorqueControl(j);
                 }
@@ -501,7 +502,7 @@ bool JointTorqueControl::setControlModes(const int n_joint, const int *joints, i
         }
     }
 
-    if (!streamingOutput)
+    if (!streamingOutput || streamingOutputButContinueHijacking)
     {
        return proxyIControlMode2->setControlModes(n_joint,joints,modes);
     }
@@ -522,7 +523,7 @@ bool JointTorqueControl::setControlModes(int *modes)
     {
         if( modes[j] == VOCAB_CM_TORQUE )
         {
-            if (!streamingOutput)
+            if (!streamingOutput || streamingOutputButContinueHijacking)
             {
                 this->startHijackingTorqueControl(j);
                 modes[j] = VOCAB_CM_OPENLOOP;
@@ -532,7 +533,7 @@ bool JointTorqueControl::setControlModes(int *modes)
         {
             if( this->hijackingTorqueControl[j] )
             {
-                if (!streamingOutput)
+                if (!streamingOutput || streamingOutputButContinueHijacking)
                 {
                     this->stopHijackingTorqueControl(j);
                 }
@@ -540,7 +541,7 @@ bool JointTorqueControl::setControlModes(int *modes)
         }
     }
 
-    if (!streamingOutput)
+    if (!streamingOutput || streamingOutputButContinueHijacking)
     {
        return proxyIControlMode2->setControlModes(modes);
     }
@@ -880,7 +881,7 @@ void JointTorqueControl::run()
     }
 
     // if in streamingOutput mode read the reference torques from a port
-    if( streamingOutput )
+    if( streamingOutput && !streamingOutputButContinueHijacking  )
     {
         yarp::os::Bottle * ref_torques = portForReadingRefTorques.read(false);
         if( ref_torques != 0 )
@@ -900,7 +901,7 @@ void JointTorqueControl::run()
     computeOutputMotorTorques();
 
 
-    if(!streamingOutput)
+    if(!streamingOutput || streamingOutputButContinueHijacking)
     {
         //Send resulting output
         bool false_value = false;

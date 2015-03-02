@@ -150,6 +150,8 @@ private:
 
     // if true, do not hijack and stream the PWMs on port
     bool streamingOutput;
+    // if true, do hijack even if streamingOutput is true
+    bool streamingOutputButContinueHijacking;
     std::string partName;
     yarp::os::BufferedPort<yarp::sig::Vector> portForStreamingPWM;
     yarp::os::BufferedPort<yarp::os::Bottle> portForReadingRefTorques;
