@@ -4,6 +4,7 @@ add_subdirectory(adaptiveControl)
 #add_subdirectory(staticInertiaIdentification)
 add_subdirectory(insituFTSensorCalibration)
 
+   add_subdirectory(torqueBalancing)
 if(${CODYCO_USES_EIGEN_320})
    add_subdirectory(locomotionControl)
    add_subdirectory(locomotionPlanner)

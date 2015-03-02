@@ -21,6 +21,7 @@
 #include <codyco/LockGuard.h>
 #include <iostream>
 #include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
+#include <yarp/os/Log.h>
 
 //this is temporary until a fix of @traversaro
 //TODO: move methods to generic interface
@@ -71,6 +72,7 @@ namespace codyco {
         void EndEffectorPositionReader::updateStatus(long context)
         {
             if (context != 0 && context == m_previousContext) return;
+            using namespace yarp::os;
 
             //FIXME:  Base velocity must be given by wbi.
             //Until then I set it to zero.
@@ -79,18 +81,18 @@ namespace codyco {
             bool status;
             status = m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
             if (!status) {
-                std::cerr << FUNCTION_NAME << ": Error while reading positions\n";
+                yError("Error while reading positions");
             }
             status = status && m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.tail(m_numberOfJoints).data());
             if (!status) {
-                std::cerr << FUNCTION_NAME << ": Error while reading velocities\n";
+                yError("Error while reading velocities");
             }
             
             //update world to base frame
             status = status && m_robot.computeH(m_jointsPosition.data(), wbi::Frame(), m_leftFootLinkID, m_world2BaseFrame);
 
             if (!status) {
-                std::cerr << FUNCTION_NAME << ": Error while computing homogenous transformation\n";
+                yError("Error while computing homogenous transformation");
             }
             m_world2BaseFrame = m_world2BaseFrame * m_leftFootToBaseRotationFrame;
             m_world2BaseFrame.setToInverse();
@@ -98,12 +100,12 @@ namespace codyco {
             m_jacobian.setZero();
             status = status && m_robot.forwardKinematics(m_jointsPosition.data(), m_world2BaseFrame, m_endEffectorLinkID, m_outputSignal.data());
             if (!status) {
-                std::cerr << FUNCTION_NAME << ": Error while computing forward kinematic\n";
+                yError("Error while computing forward kinematic");
                 m_outputSignal.setZero();
             }
             status = m_robot.computeJacobian(m_jointsPosition.data(), m_world2BaseFrame, m_endEffectorLinkID, m_jacobian.data());
             if (!status) {
-                std::cerr << FUNCTION_NAME << ": Error while computing Jacobian\n";
+                yError("Error while computing Jacobian");
                 
             } else {
                 m_outputSignalDerivative = m_jacobian * m_jointsVelocity;

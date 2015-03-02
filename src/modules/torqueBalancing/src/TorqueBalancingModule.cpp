@@ -28,6 +28,7 @@
 #include <codyco/ModelParsing.h>
 #include <codyco/Utils.h>
 #include <yarp/os/Port.h>
+#include <yarp/os/Log.h>
 #include <iostream>
 #include <vector>
 
@@ -65,19 +66,26 @@ namespace codyco {
             //Loading joints information
             yarp::os::Property wbiProperties;
             if (!rf.check("wbi_config_file")) {
-                std::cerr << "No WBI configuration file found." << std::endl;
+                yFatal("No WBI configuration file found.");
                 return false;
             }
+
+            if (!rf.check("wbi_joint_list")) {
+                yFatal("No joint list found. Please specify a joint list in \"wbi_joint_list\"");
+                return false;
+            }
+
             if (!wbiProperties.fromConfigFile(rf.findFile("wbi_config_file"))) {
-                std::cerr << "Not possible to load WBI properties from file." << std::endl;
+                yFatal("Not possible to load WBI properties from file.");
                 return false;
             }
             wbiProperties.fromString(rf.toString(), false);
-            
+
+            yarp::os::ConstString jointList = rf.find("wbi_joint_list").asString();
             //retrieve all main joints
             wbi::IDList iCubMainJoints;
-            if (!yarpWbi::loadIdListFromConfig("ROBOT_TORQUE_CONTROL_JOINTS", wbiProperties, iCubMainJoints)) {
-                std::cerr << "Cannot find joint list" << std::endl;
+            if (!yarpWbi::loadIdListFromConfig(jointList, wbiProperties, iCubMainJoints)) {
+                yFatal("Cannot find joint list");
                 return false;
             }
             double actuatedDOFs = iCubMainJoints.size();
@@ -91,7 +99,7 @@ namespace codyco {
             //link controller and references variables to param helper manager
             m_paramHelperManager = new ParamHelperManager(*this, actuatedDOFs);
             if (!m_paramHelperManager || !m_paramHelperManager->init(rf)) {
-                std::cerr << "Could not initialize parameter helper." << std::endl;
+                yFatal("Could not initialize parameter helper.");
                 return false;
             }
             //END PARAMETER SECTION
@@ -99,7 +107,7 @@ namespace codyco {
             m_rpcPort = new yarp::os::Port();
             if (!m_rpcPort
                 || !m_rpcPort->open(("/" + m_moduleName + "/rpc").c_str())) {
-                std::cerr << "Could not open RPC port: /" << m_moduleName << "/rpc" << std::endl;
+                yFatal("Could not open RPC port: /%s/rpc", m_moduleName.c_str());
                 return false;
             }
             setName(m_moduleName.c_str());
@@ -108,21 +116,21 @@ namespace codyco {
             //Create reference variable
             m_references = new ControllerReferences(actuatedDOFs);
             if (!m_references) {
-                std::cerr << "Could not create shared references object." << std::endl;
+                yFatal("Could not create shared references object.");
                 return false;
             }
 
             //create reference to wbi
             m_robot = new yarpWbi::yarpWholeBodyInterface(m_moduleName.c_str(), wbiProperties);
             if (!m_robot) {
-                std::cerr << "Could not create wbi object." << std::endl;
+                yFatal("Could not create wbi object.");
                 return false;
             }
             
             //add joints
             m_robot->addJoints(iCubMainJoints);
             if (!m_robot->init()) {
-                std::cerr << "Could not initialize wbi." << std::endl;
+                yFatal("Could not initialize wbi.");
                 return false;
             }
             
@@ -131,11 +139,22 @@ namespace codyco {
             m_references->desiredJointsConfiguration().setValue(m_initialJointsConfiguration);
             m_impedanceDoubleSupportReference = m_initialJointsConfiguration; //copy into double support state
 
-            int leftFootLinkID = -1;
-            m_robot->getFrameList().idToIndex("l_sole", leftFootLinkID);
+//            if (!rf.check("world_frame")) {
+//                yFatal("No world frame specified. Please specify one with \"world_frame\"");
+//                return false;
+//            }
+
+            yarp::os::ConstString worldFrame = "l_sole";// rf.find("world_frame").asString();
+
+            int worldFrameID = -1;
+            m_robot->getFrameList().idToIndex(worldFrame.c_str(), worldFrameID);
+            if (worldFrameID < 0) {
+                yFatal("World frame %s not found. Please specify a valid world frame", worldFrame.c_str());
+                return false;
+            }
 
             wbi::Frame frame;
-            m_robot->computeH(m_initialJointsConfiguration.data(), wbi::Frame(), leftFootLinkID, frame);
+            m_robot->computeH(m_initialJointsConfiguration.data(), wbi::Frame(), worldFrameID, frame);
 
             frame = frame * wbi::Frame(wbi::Rotation(0, 0, 1,
                                                      0, -1, 0,
@@ -146,7 +165,11 @@ namespace codyco {
             //set initial com to be equal to the read one
             m_robot->forwardKinematics(m_initialJointsConfiguration.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, initialCOM.data());
             m_comReference = initialCOM.head(3);
-            std::cerr << "Initial COM position: " << m_comReference.transpose() << "\n";
+
+
+            std::ostringstream outputMessage;
+            outputMessage << "Initial COM position: " << m_comReference.transpose();
+            yInfo("%s", outputMessage.str().c_str());
 
             //create smoother
             MinimumJerkTrajectoryGenerator forcesSmoother(6);
@@ -163,7 +186,7 @@ namespace codyco {
             if (reader) {
                 m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeCOM, reader));
             } else {
-                std::cerr << "Could not create COM reader object." << std::endl;
+                yFatal("Could not create COM reader object.");
                 return false;
             }
 
@@ -172,7 +195,7 @@ namespace codyco {
                 generator->setSignalReference(m_comReference);
                 m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeCOM, generator));
             } else {
-                std::cerr << "Could not create COM controller." << std::endl;
+                yFatal("Could not create COM controller.");
                 return false;
             }
 
@@ -181,7 +204,7 @@ namespace codyco {
             if (reader) {
                 m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeImpedanceControl, reader));
             } else {
-                std::cerr << "Could not create impedance control reader object." << std::endl;
+                yFatal("Could not create impedance control reader object.");
                 return false;
             }
 
@@ -191,7 +214,7 @@ namespace codyco {
                 generator->setProportionalGains(Eigen::VectorXd::Constant(actuatedDOFs, 1.0));
                 m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeImpedanceControl, generator));
             } else {
-                std::cerr << "Could not create impedance controller object." << std::endl;
+                yFatal("Could not create impedance controller object.");
                 return false;
             }
 
@@ -234,7 +257,7 @@ namespace codyco {
             if (reader) {
                 m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeLeftHandForce, reader));
             } else {
-                std::cerr << "Could not create Force reader object." << std::endl;
+                yFatal("Could not create Force reader object.");
                 return false;
             }
 
@@ -252,14 +275,14 @@ namespace codyco {
                     generator->setProportionalGains(Eigen::VectorXd::Constant(6, 1));
                     m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(it->taskType, generator));
                 } else {
-                    std::cerr << "Could not create end effector (" << it->referredLinkName << ") force controller object." << std::endl;
+                    yFatal("Could not create end effector (%s) force controller object.", it->referredLinkName.c_str());
                     return false;
                 }
             }
 
             m_controller = new TorqueBalancingController(m_controllerThreadPeriod, *m_references, *m_robot, actuatedDOFs);
             if (!m_controller) {
-                std::cerr << "Could not create TorqueBalancing controller object." << std::endl;
+                yFatal("Could not create TorqueBalancing controller object.");
                 return false;
             }
 
@@ -267,7 +290,7 @@ namespace codyco {
             if (!m_paramHelperManager->linkVariables()
                 || !m_paramHelperManager->linkMonitoredVariables()
                 || !m_paramHelperManager->registerCommandCallbacks()) {
-                std::cerr << "Could not link parameter helper variables." << std::endl;
+                yFatal("Could not link parameter helper variables.");
                 return false;
             }
 
@@ -282,7 +305,8 @@ namespace codyco {
 
             m_paramHelperManager->loadDefaultVariables();
 
-            std::cout << "Module " << m_moduleName << " ready." << std::endl;
+
+            yInfo("Module %s ready.", m_moduleName.c_str());
 
             return threadsStarted;
         }
@@ -308,8 +332,7 @@ namespace codyco {
                 m_controller->getEstUsed(usedMean, usedStdDeviation);
 
                 if (periodMean > 1.3 * m_controllerThreadPeriod) {
-                    std::cout << "[WARNING] Control loop is too slow. Real period: " << periodMean << "+/-" << periodStdDeviation << ". Expected period " << m_controllerThreadPeriod << std::endl;
-                    std::cout << "Duration of 'run' method: " << usedMean << "+/-" << usedStdDeviation << std::endl;
+                    yWarning("Control loop is too slow. Real period: %lf +/- . Expected period: %lf\nDuration of 'run' method: %lf +/- %lf", periodMean, periodStdDeviation, m_controllerThreadPeriod, usedMean, usedStdDeviation);
                 }
             }
 
@@ -390,7 +413,7 @@ namespace codyco {
             if (isActive == m_active) return;
             m_active = isActive;
 #ifdef DEBUG
-            std::cerr << FUNCTION_NAME << ": Module new state is " << (m_active ? "on" : "off") << std::endl;
+            yDebug("Module new state is %s", (m_active ? "on" : "off"));
 #endif
             updateModuleCoordinationStatus();
         }
@@ -413,7 +436,7 @@ namespace codyco {
             switch (m_moduleState) {
                 case TorqueBalancingModuleStateDoubleSupportStable:
 #ifdef DEBUG
-                    std::cerr << FUNCTION_NAME << ": State Double support" << std::endl;
+                    yDebug("State Double support");
 #endif
                     break;
                 case TorqueBalancingModuleStateDoubleSupportSeekingContactBothHands:
@@ -422,7 +445,7 @@ namespace codyco {
                     impedanceReference.segment(3, 5) = m_impedanceLeftHandReference;
                     impedanceReference.segment(8, 5) = m_impedanceRightHandReference;
 #ifdef DEBUG
-                    std::cerr << FUNCTION_NAME << ": State Double support with hands" << std::endl;
+                    yDebug("State Double support with hands");
 #endif
                     break;
                 case TorqueBalancingModuleStateTripleSupportSeekingContactLeftHand:
@@ -431,7 +454,7 @@ namespace codyco {
                     m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, impedanceReference.data());
                     impedanceReference.segment(3, 5) = m_impedanceLeftHandReference;
 #ifdef DEBUG
-                    std::cerr << FUNCTION_NAME << ": State Triple support. Left hand searches contact" << std::endl;
+                    yDebug("State Triple support. Left hand searches contact");
 #endif
                     break;
                 case TorqueBalancingModuleStateTripleSupportSeekingContactRightHand:
@@ -440,19 +463,19 @@ namespace codyco {
                     m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, impedanceReference.data());
                     impedanceReference.segment(8, 5) = m_impedanceRightHandReference;
 #ifdef DEBUG
-                    std::cerr << FUNCTION_NAME << ": State Triple support. Right hand searches contact" << std::endl;
+                    yDebug("State Triple support. Right hand searches contact");
 #endif
                     break;
                 case TorqueBalancingModuleStateQuadrupleSupport:
                     leftHandForceTaskActive = rightHandForceTaskActive = m_active;
                     m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, impedanceReference.data());
 #ifdef DEBUG
-                    std::cerr << FUNCTION_NAME << ": State Quad support" << std::endl;
+                    yDebug("State Quad support");
 #endif
                     break;
                 default:
 #ifdef DEBUG
-                    std::cerr << FUNCTION_NAME << ": State not recognized" << std::endl;
+                    yDebug("State not recognized");
 #endif
                     break;
             }
@@ -695,7 +718,7 @@ namespace codyco {
         void TorqueBalancingModule::ParamHelperManager::sendMonitoredVariables()
         {
             if (!m_parameterServer || !m_module.m_controller) {
-                std::cerr << "Error: controller or server are nil! Please restart the module" << std::endl;
+                yFatal("Error: controller or server are nil! Please restart the module");
                 return;
             }
             //copy updated varables to internal monitor variables
@@ -760,7 +783,7 @@ namespace codyco {
             switch (proxyInterface->id) {
                 case TorqueBalancingModuleParameterCurrentState:
 #ifdef DEBUG
-                    std::cerr << FUNCTION_NAME << ": State updated to " << m_module.m_moduleState << std::endl;
+                    yDebug("State updated to %d", m_module.m_moduleState);
 #endif
                     m_module.updateModuleCoordinationStatus();
                     sendReferencesToControllers();
