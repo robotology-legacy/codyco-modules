@@ -71,6 +71,17 @@ struct outputTorquePortInformation
     yarp::os::BufferedPort<yarp::os::Bottle> * output_port;
 };
 
+struct outputWrenchPortInformation
+{
+    std::string port_name;
+    std::string link;
+    std::string orientation_frame;
+    std::string origin_frame;
+    int link_index;
+    int orientation_frame_index;
+    int origin_frame_index;
+};
+
 /**
  *
   */
@@ -154,6 +165,14 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     // this are populated by the WBD_TORQUE_PORTS group
     std::vector< outputTorquePortInformation > output_torque_ports;
 
+    // Data structures for wrenches to publish on individual external wrenches
+    // (the complete external force information is published in the contacts:o
+    //  port, but for backward compatibility we have to stream external wrenches
+    //  informations on individual ports
+    std::vector< outputWrenchPortInformation > output_wrench_ports;
+
+    bool loadExternalWrenchesPortsConfigurations();
+
     iCub::skinDynLib::skinContactList external_forces_list;
 
     yarp::sig::Vector LAExternalWrench;
@@ -174,7 +193,7 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     yarp::os::Mutex calibration_mutex;
     iCubTreeStatus tree_status;
 
-    iCub::iDynTree::TorqueEstimationTree * icub_model_calibration; 
+    iCub::iDynTree::TorqueEstimationTree * icub_model_calibration;
     std::string calibration_support_link;
 
     int samples_requested_for_calibration;

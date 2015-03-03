@@ -278,9 +278,75 @@ void checkFTSensorExist(std::string ft_sensor_name, wbi::IDList & all_fts, std::
     }
 }
 
+
+bool wholeBodyDynamicsThread::loadExternalWrenchesPortsConfigurations()
+{
+    // Load output external wrenches ports informations
+    yarp::os::Bottle & output_wrench_bot = yarp_options.findGroup("WBD_OUTPUT_EXTERNAL_WRENCH_PORTS");
+    if( output_wrench_bot.isNull() )
+    {
+        yWarning() << "WBD_OUTPUT_EXTERNAL_WRENCH_PORTS group not found in configuration";
+        return true;
+    }
+
+    int nr_of_output_wrench_ports = output_wrench_bot.size() - 1;
+
+    for(int output_wrench_port = 1; output_wrench_port < output_wrench_bot.size(); output_wrench_port++)
+    {
+        outputWrenchPortInformation wrench_port_struct;
+        yarp::os::Bottle *wrench_port = output_wrench_bot.get(output_wrench_port).asList();
+        if( wrench_port == NULL || wrench_port->isNull() || wrench_port->size() != 2
+            || wrench_port->get(1).asList() == NULL
+            || !(wrench_port->get(1).asList()->size() == 2 || wrench_port->get(1).asList()->size() == 3 ) )
+        {
+            yError() << "malformed WBD_OUTPUT_EXTERNAL_WRENCH_PORTS group  found configuration, exiting";
+            if( wrench_port )
+            {
+                yError() << "malformed line " << wrench_port->toString();
+            }
+            else
+            {
+                yError() << "malformed line " << output_wrench_bot.get(output_wrench_port).toString();
+                yError() << "malformed group " << output_wrench_bot.toString();
+            }
+            return false;
+        }
+
+        wrench_port_struct.port_name = wrench_port->get(0).asString();
+        wrench_port_struct.link = wrench_port->get(1).asList()->get(0).asString();
+
+        if( wrench_port->get(1).asList()->size() == 2 )
+        {
+            // Simple configuration, both the origin and the orientation of the
+            // force belong to the same frame
+            wrench_port_struct.orientation_frame = wrench_port->get(1).asList()->get(1).asString();
+            wrench_port_struct.origin_frame = wrench_port_struct.orientation_frame;
+        }
+        else
+        {
+            assert( wrench_port->get(1).asList()->size() == 3 );
+            // Complex configuration: the first parameter is the frame of the point of expression,
+            // the second parameter is the frame of orientation
+            wrench_port_struct.origin_frame = wrench_port->get(1).asList()->get(1).asString();
+            wrench_port_struct.orientation_frame = wrench_port->get(1).asList()->get(2).asString();
+        }
+
+        output_wrench_ports.push_back(wrench_port_struct);
+
+    }
+
+    assert(nr_of_output_wrench_ports == output_torque_ports.size());
+
+    return true;
+}
+
+
 //*************************************************************************************************************************
 bool wholeBodyDynamicsThread::threadInit()
 {
+    bool ret = this->loadExternalWrenchesPortsConfigurations();
+
+
     // Load output torque ports informations
     yarp::os::Bottle & output_torques_bot = yarp_options.findGroup("WBD_OUTPUT_TORQUE_PORTS");
     if( output_torques_bot.isNull() )
@@ -328,10 +394,10 @@ bool wholeBodyDynamicsThread::threadInit()
     }
 
     assert(nr_of_output_torques_ports == output_torque_ports.size());
-    
+
     //Load configuration related to the controlboards for which we are estimating the torques
     IDList torque_estimation_list = estimator->getEstimateList(wbi::ESTIMATE_JOINT_TORQUE);
-    bool ret = loadJointsControlBoardFromConfig(yarp_options,
+    ret = loadJointsControlBoardFromConfig(yarp_options,
                                                 torque_estimation_list,
                                                 torqueEstimationControlBoards.controlBoardNames,
                                                 torqueEstimationControlBoards.controlBoardAxisList);
@@ -348,10 +414,10 @@ bool wholeBodyDynamicsThread::threadInit()
     // Open calibration configuration
     calibration_support_link = "root_link";
     if( yarp_options.check("calibration_support_link") )
-    { 
+    {
         calibration_support_link = yarp_options.find("calibration_support_link").asString().c_str();
         std::cerr << "[INFO] calibration_support_link is " << calibration_support_link << std::endl;
-    } 
+    }
 
 
     //Calibration variables
@@ -815,9 +881,9 @@ void wholeBodyDynamicsThread::publishBaseToGui()
 {
 
     iCubGuiBase.zero();
-    
+
     // Workaround: if not root_link or left_foot is defined, do not publish base information to the iCubGui
-    if( left_foot_link_idyntree_id != -1 && 
+    if( left_foot_link_idyntree_id != -1 &&
         root_link_idyntree_id != -1 )
     {
         bool ret;
@@ -843,7 +909,7 @@ void wholeBodyDynamicsThread::publishBaseToGui()
         KDL::Frame H_world_currentRoot
             = H_world_leftFoot*H_leftFoot_currentRoot;
 
-        
+
 
         //Set angular part
         double roll,pitch,yaw;

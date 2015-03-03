@@ -184,6 +184,12 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         fprintf(stderr, "[ERR] wholeBodyDynamicsModule: impossible to load WBD_OUTPUT_TORQUE_PORTS group, exiting");
     }
 
+    if( rf.check("WBD_OUTPUT_EXTERNAL_WRENCH_PORTS") )
+    {
+        yarp::os::Property & prop = yarpWbiOptions.addGroup("WBD_OUTPUT_EXTERNAL_WRENCH_PORTS");
+        prop.fromString(rf.findGroup("WBD_OUTPUT_EXTERNAL_WRENCH_PORTS").tail().toString());
+    }
+
     if( rf.check("calibration_support_link") )
     {
         yarpWbiOptions.put("calibration_support_link",rf.find("calibration_support_link").asString());
