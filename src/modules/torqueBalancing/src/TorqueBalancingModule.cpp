@@ -42,7 +42,6 @@ namespace codyco {
             Reference* reference; //I cannot use a reference because object must be Assignable to be used inside std::vector
         };
 
-
         TorqueBalancingModule::TorqueBalancingModule()
         : m_moduleState(TorqueBalancingModuleStateDoubleSupportStable)
         , m_controllerThreadPeriod(10)
@@ -66,17 +65,17 @@ namespace codyco {
             //Loading joints information
             yarp::os::Property wbiProperties;
             if (!rf.check("wbi_config_file")) {
-                yFatal("No WBI configuration file found.");
+                yError("No WBI configuration file found.");
                 return false;
             }
 
             if (!rf.check("wbi_joint_list")) {
-                yFatal("No joint list found. Please specify a joint list in \"wbi_joint_list\"");
+                yError("No joint list found. Please specify a joint list in \"wbi_joint_list\"");
                 return false;
             }
 
             if (!wbiProperties.fromConfigFile(rf.findFile("wbi_config_file"))) {
-                yFatal("Not possible to load WBI properties from file.");
+                yError("Not possible to load WBI properties from file.");
                 return false;
             }
             wbiProperties.fromString(rf.toString(), false);
@@ -85,11 +84,10 @@ namespace codyco {
             //retrieve all main joints
             wbi::IDList iCubMainJoints;
             if (!yarpWbi::loadIdListFromConfig(jointList, wbiProperties, iCubMainJoints)) {
-                yFatal("Cannot find joint list");
+                yError("Cannot find joint list");
                 return false;
             }
             double actuatedDOFs = iCubMainJoints.size();
-            double totalDOFs = actuatedDOFs + 6;
             
             m_initialJointsConfiguration.resize(actuatedDOFs);
             m_impedanceDoubleSupportReference.resize(actuatedDOFs);
@@ -99,7 +97,7 @@ namespace codyco {
             //link controller and references variables to param helper manager
             m_paramHelperManager = new ParamHelperManager(*this, actuatedDOFs);
             if (!m_paramHelperManager || !m_paramHelperManager->init(rf)) {
-                yFatal("Could not initialize parameter helper.");
+                yError("Could not initialize parameter helper.");
                 return false;
             }
             //END PARAMETER SECTION
@@ -107,7 +105,7 @@ namespace codyco {
             m_rpcPort = new yarp::os::Port();
             if (!m_rpcPort
                 || !m_rpcPort->open(("/" + m_moduleName + "/rpc").c_str())) {
-                yFatal("Could not open RPC port: /%s/rpc", m_moduleName.c_str());
+                yError("Could not open RPC port: /%s/rpc", m_moduleName.c_str());
                 return false;
             }
             setName(m_moduleName.c_str());
@@ -116,31 +114,38 @@ namespace codyco {
             //Create reference variable
             m_references = new ControllerReferences(actuatedDOFs);
             if (!m_references) {
-                yFatal("Could not create shared references object.");
+                yError("Could not create shared references object.");
                 return false;
             }
+
+            //Setup streaming
+            m_references->desiredCOMPosition().setUpReaderThread(("/" + m_moduleName + "/com:i"));
+            m_references->desiredCOMPosition().addDelegate(this);
+            m_references->desiredJointsPosition().setUpReaderThread(("/" + m_moduleName + "/qdes:i"));
+            m_references->desiredJointsPosition().addDelegate(this);
 
             //create reference to wbi
             m_robot = new yarpWbi::yarpWholeBodyInterface(m_moduleName.c_str(), wbiProperties);
             if (!m_robot) {
-                yFatal("Could not create wbi object.");
+                yError("Could not create wbi object.");
                 return false;
             }
             
             //add joints
             m_robot->addJoints(iCubMainJoints);
             if (!m_robot->init()) {
-                yFatal("Could not initialize wbi.");
+                yError("Could not initialize wbi.");
                 return false;
             }
             
             //load initial configuration for the impedance control
             m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_initialJointsConfiguration.data());
             m_references->desiredJointsConfiguration().setValue(m_initialJointsConfiguration);
+
             m_impedanceDoubleSupportReference = m_initialJointsConfiguration; //copy into double support state
 
 //            if (!rf.check("world_frame")) {
-//                yFatal("No world frame specified. Please specify one with \"world_frame\"");
+//                yError("No world frame specified. Please specify one with \"world_frame\"");
 //                return false;
 //            }
 
@@ -149,7 +154,7 @@ namespace codyco {
             int worldFrameID = -1;
             m_robot->getFrameList().idToIndex(worldFrame.c_str(), worldFrameID);
             if (worldFrameID < 0) {
-                yFatal("World frame %s not found. Please specify a valid world frame", worldFrame.c_str());
+                yError("World frame %s not found. Please specify a valid world frame", worldFrame.c_str());
                 return false;
             }
 
@@ -186,7 +191,7 @@ namespace codyco {
             if (reader) {
                 m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeCOM, reader));
             } else {
-                yFatal("Could not create COM reader object.");
+                yError("Could not create COM reader object.");
                 return false;
             }
 
@@ -195,7 +200,7 @@ namespace codyco {
                 generator->setSignalReference(m_comReference);
                 m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeCOM, generator));
             } else {
-                yFatal("Could not create COM controller.");
+                yError("Could not create COM controller.");
                 return false;
             }
 
@@ -204,7 +209,7 @@ namespace codyco {
             if (reader) {
                 m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeImpedanceControl, reader));
             } else {
-                yFatal("Could not create impedance control reader object.");
+                yError("Could not create impedance control reader object.");
                 return false;
             }
 
@@ -214,7 +219,7 @@ namespace codyco {
                 generator->setProportionalGains(Eigen::VectorXd::Constant(actuatedDOFs, 1.0));
                 m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeImpedanceControl, generator));
             } else {
-                yFatal("Could not create impedance controller object.");
+                yError("Could not create impedance controller object.");
                 return false;
             }
 
@@ -257,7 +262,7 @@ namespace codyco {
             if (reader) {
                 m_generatorReaders.insert(std::pair<TaskType, ReferenceGeneratorInputReader*>(TaskTypeLeftHandForce, reader));
             } else {
-                yFatal("Could not create Force reader object.");
+                yError("Could not create Force reader object.");
                 return false;
             }
 
@@ -275,14 +280,14 @@ namespace codyco {
                     generator->setProportionalGains(Eigen::VectorXd::Constant(6, 1));
                     m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(it->taskType, generator));
                 } else {
-                    yFatal("Could not create end effector (%s) force controller object.", it->referredLinkName.c_str());
+                    yError("Could not create end effector (%s) force controller object.", it->referredLinkName.c_str());
                     return false;
                 }
             }
 
             m_controller = new TorqueBalancingController(m_controllerThreadPeriod, *m_references, *m_robot, actuatedDOFs);
             if (!m_controller) {
-                yFatal("Could not create TorqueBalancing controller object.");
+                yError("Could not create TorqueBalancing controller object.");
                 return false;
             }
 
@@ -290,7 +295,7 @@ namespace codyco {
             if (!m_paramHelperManager->linkVariables()
                 || !m_paramHelperManager->linkMonitoredVariables()
                 || !m_paramHelperManager->registerCommandCallbacks()) {
-                yFatal("Could not link parameter helper variables.");
+                yError("Could not link parameter helper variables.");
                 return false;
             }
 
@@ -332,7 +337,7 @@ namespace codyco {
                 m_controller->getEstUsed(usedMean, usedStdDeviation);
 
                 if (periodMean > 1.3 * m_controllerThreadPeriod) {
-                    yWarning("Control loop is too slow. Real period: %lf +/- . Expected period: %lf\nDuration of 'run' method: %lf +/- %lf", periodMean, periodStdDeviation, m_controllerThreadPeriod, usedMean, usedStdDeviation);
+                    yWarning("Control loop is too slow. Real period: %lf +/- %lf. Expected period: %d[ms]\nDuration of 'run' method: %lf +/- %lf", periodMean, periodStdDeviation, m_controllerThreadPeriod, usedMean, usedStdDeviation);
                 }
             }
 
@@ -386,8 +391,29 @@ namespace codyco {
             }
 
             if (m_references) {
+                m_references->desiredCOMPosition().removeDelegate(this);
+                m_references->desiredJointsPosition().removeDelegate(this);
+                m_references->desiredCOMPosition().tearDownReaderThread();
+                m_references->desiredJointsPosition().tearDownReaderThread();
+
                 delete m_references;
                 m_references = 0;
+            }
+        }
+
+        void TorqueBalancingModule::referenceDidChangeValue(const codyco::torquebalancing::Reference &reference)
+        {
+            if (!m_references) return;
+
+            TaskType taskType = TaskTypeUnknown;
+            if (&reference == &m_references->desiredCOMPosition()) {
+                taskType = TaskTypeCOM;
+            } else if (&reference == &m_references->desiredJointsPosition()) {
+                taskType = TaskTypeImpedanceControl;
+            } else return;
+            std::map<TaskType, ReferenceGenerator*>::iterator found = m_referenceGenerators.find(TaskTypeCOM);
+            if (found != m_referenceGenerators.end()) {
+                found->second->setSignalReference(reference.value());
             }
         }
 
@@ -507,8 +533,6 @@ namespace codyco {
         : m_module(module)
         , m_initialized(false)
         , m_parameterServer(0)
-        , m_handsPositionReference(14)
-        , m_handsForceReference(12)
         , m_comProportionalGain(3)
         , m_comDerivativeGain(3)
         , m_comIntegralGain(3)
@@ -531,9 +555,8 @@ namespace codyco {
         , m_monitoredOutputTorques(actuatedDOFs)
         {
             //this is totally crazy..
-            //indexes to modify are last 4:
+            //indexes to modify are last 3:
             paramHelp::ParamSize newSize = paramHelp::ParamSize(actuatedDOFs, false);
-            TorqueBalancingModuleParameterDescriptions[TorqueBalancingModuleParameterSize - 4]->size = newSize;
             TorqueBalancingModuleParameterDescriptions[TorqueBalancingModuleParameterSize - 3]->size = newSize;
             TorqueBalancingModuleParameterDescriptions[TorqueBalancingModuleParameterSize - 2]->size = newSize;
             TorqueBalancingModuleParameterDescriptions[TorqueBalancingModuleParameterSize - 1]->size = newSize;
@@ -588,13 +611,6 @@ namespace codyco {
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCurrentState, &m_module.m_moduleState)
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCurrentState, this);
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterModulePeriod, &m_module.m_modulePeriod);
-            //References
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMReference, m_module.m_comReference.data())
-            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCOMReference, this);
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsPositionReference, m_handsPositionReference.data())
-            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsPositionReference, this);
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterHandsForceReference, m_handsForceReference.data())
-            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterHandsForceReference, this);
             //COM
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCOMProportionalGain, m_comProportionalGain.data())
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCOMProportionalGain, this);
@@ -632,12 +648,6 @@ namespace codyco {
 //            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterDesiredJointsConfigurationStateDoubleSupport,
 //                                                            m_module.m_impedanceDoubleSupportReference.data())
 //            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterDesiredJointsConfigurationStateDoubleSupport, this);
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterDesiredJointsConfigurationStateLeftHandPosition,
-                                                            m_module.m_impedanceLeftHandReference.data())
-            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterDesiredJointsConfigurationStateLeftHandPosition, this);
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterDesiredJointsConfigurationStateRightHandPosition,
-                                                            m_module.m_impedanceRightHandReference.data())
-            && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterDesiredJointsConfigurationStateRightHandPosition, this);
             //Centroidal moment / Gains
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterCentroidalGain, &m_centroidalGain)
             && m_parameterServer->registerParamValueChangedCallback(TorqueBalancingModuleParameterCentroidalGain, this);
@@ -718,7 +728,7 @@ namespace codyco {
         void TorqueBalancingModule::ParamHelperManager::sendMonitoredVariables()
         {
             if (!m_parameterServer || !m_module.m_controller) {
-                yFatal("Error: controller or server are nil! Please restart the module");
+                yError("Error: controller or server are nil! Please restart the module");
                 return;
             }
             //copy updated varables to internal monitor variables
@@ -786,34 +796,6 @@ namespace codyco {
                     yDebug("State updated to %d", m_module.m_moduleState);
 #endif
                     m_module.updateModuleCoordinationStatus();
-                    sendReferencesToControllers();
-                    break;
-                    //References
-                case TorqueBalancingModuleParameterCOMReference:
-                    foundController = m_module.m_referenceGenerators.find(TaskTypeCOM);
-                    if (foundController != m_module.m_referenceGenerators.end()) {
-                        foundController->second->setSignalReference(m_module.m_comReference);
-                    }
-                    break;
-                case TorqueBalancingModuleParameterHandsPositionReference:
-                    foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandPosition);
-                    if (foundController != m_module.m_referenceGenerators.end()) {
-                        foundController->second->setSignalReference(m_handsPositionReference.head(7));
-                    }
-                    foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandPosition);
-                    if (foundController != m_module.m_referenceGenerators.end()) {
-                        foundController->second->setSignalReference(m_handsPositionReference.tail(7));
-                    }
-                    break;
-                case TorqueBalancingModuleParameterHandsForceReference:
-                    foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandForce);
-                    if (foundController != m_module.m_referenceGenerators.end()) {
-                        foundController->second->setSignalReference(m_handsPositionReference.head(6));
-                    }
-                    foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandForce);
-                    if (foundController != m_module.m_referenceGenerators.end()) {
-                        foundController->second->setSignalReference(m_handsPositionReference.tail(6));
-                    }
                     break;
                     //COM
                 case TorqueBalancingModuleParameterCOMProportionalGain:
@@ -943,7 +925,6 @@ namespace codyco {
             switch (commandDescription.id) {
                 case TorqueBalancingModuleCommandStart:
                     m_module.setControllersActiveState(true);
-                    sendReferencesToControllers();
                     reply.addString("Controller actived");
                     break;
                 case TorqueBalancingModuleCommandStop:
@@ -962,30 +943,5 @@ namespace codyco {
             }
         }
 
-        void TorqueBalancingModule::ParamHelperManager::sendReferencesToControllers()
-        {
-            std::map<TaskType, ReferenceGenerator*>::iterator foundController;
-            ReferenceGenerator* generator = 0;
-
-            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeCOM)) != m_module.m_referenceGenerators.end()
-                && foundController->second) {
-                foundController->second->setSignalReference(m_module.m_comReference);
-            }
-
-            //Hands position task are handles as a different equilibrium configuration for the impedance task.
-            //this is done in the update status function of the module
-
-            //Hands force task are handled like feedforward (currently are open-loop)
-            //But because I need smoothing of the reference I use the setReference function
-            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeLeftHandForce)) != m_module.m_referenceGenerators.end()
-                && foundController->second) {
-                foundController->second->setSignalReference(m_handsForceReference.head(6));
-            }
-
-            if ((foundController = m_module.m_referenceGenerators.find(TaskTypeRightHandForce)) != m_module.m_referenceGenerators.end()
-                && foundController->second) {
-                foundController->second->setSignalReference(m_handsForceReference.tail(6));
-            }
-        }
     }
 }

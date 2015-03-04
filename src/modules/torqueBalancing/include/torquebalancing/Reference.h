@@ -17,12 +17,21 @@
 #ifndef REFERENCE_H
 #define REFERENCE_H
 
-#include <yarp/os/Mutex.h>
 #include <Eigen/Core>
 
 
 namespace codyco {
     namespace torquebalancing {
+
+        class Reference;
+        class ReferenceDelegate {
+        public:
+            virtual ~ReferenceDelegate();
+            virtual void referenceWillChangeValue(const Reference&, const Eigen::VectorXd& newValue);
+            virtual void referenceDidChangeValue(const Reference&);
+            virtual bool operator==(const ReferenceDelegate&) const;
+            virtual bool operator<(const ReferenceDelegate&) const;
+        };
         
         //TODO: maybe another name is better, as it is a quite generic class
         /** This class wraps the concept of a generic vector value.
@@ -35,19 +44,24 @@ namespace codyco {
         public:
             explicit Reference(int referenceSize);
             ~Reference();
+
+            void addDelegate(ReferenceDelegate *delegate);
+            void removeDelegate(ReferenceDelegate *delegate);
+            bool setUpReaderThread(std::string portName);
+            bool tearDownReaderThread();
             
             /** Return the current value.
              * Before using the value is some computation check if it is valid or not.
              * @return the current value
              */
-            const Eigen::VectorXd& value();
+            const Eigen::VectorXd& value() const;
             
             /** Sets the value for the current reference.
              * The state of the reference automatically switch to active.
              *
              * @param _value value of the new reference to be saved.
              */
-            void setValue(Eigen::VectorXd& _value);
+            void setValue(const Eigen::Ref<const Eigen::VectorXd>& _value);
             
             /** Set the valid state of the reference explicitly
              *
@@ -68,12 +82,14 @@ namespace codyco {
             int valueSize() const;
             
         private:
-            yarp::os::Mutex m_lock;
             Eigen::VectorXd m_value;
             bool m_valid;
             const int m_valueSize;
+
+            void * m_implementation;
         };
-        
+
+        //To be removed from this file
         class ControllerReferences
         {
         public:
@@ -81,6 +97,11 @@ namespace codyco {
              * @param actuatedDOFs number of joints actuated
              */
             ControllerReferences(int actuatedDOFs);
+
+            //External references (exposed by streaming port)
+            Reference& desiredCOMPosition();
+            Reference& desiredJointsPosition();
+
             
             /** @brief returns the desired COM acceleration 3-dim reference.
              * @return desired COM acceleration (3 dim)
@@ -118,6 +139,9 @@ namespace codyco {
             Reference& desiredJointsConfiguration();
             
         private:
+            Reference m_desiredCOMPosition;
+            Reference m_desiredJointsPosition;
+
             Reference m_desiredCOMAcceleration;
             Reference m_desiredLeftHandPosition;
             Reference m_desiredRightHandPosition;
