@@ -131,6 +131,12 @@ namespace codyco {
             }
             m_references->desiredJointsPosition().addDelegate(this);
 
+            //Setup streaming
+            m_references->desiredCOMPosition().setUpReaderThread(("/" + m_moduleName + "/com:i"));
+            m_references->desiredCOMPosition().addDelegate(this);
+            m_references->desiredJointsPosition().setUpReaderThread(("/" + m_moduleName + "/qdes:i"));
+            m_references->desiredJointsPosition().addDelegate(this);
+
             //create reference to wbi
             m_robot = new yarpWbi::yarpWholeBodyInterface(m_moduleName.c_str(), wbiProperties);
             if (!m_robot) {
