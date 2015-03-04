@@ -197,7 +197,7 @@ namespace codyco {
             if (m_active == isActive) return;
             if (isActive) {
                 m_desiredCOMAcceleration.setZero(); //reset reference
-                //m_robot.setControlMode(wbi::CTRL_MODE_TORQUE);
+                m_robot.setControlMode(wbi::CTRL_MODE_TORQUE);
             } else {
                 m_robot.setControlMode(wbi::CTRL_MODE_POS);
             }

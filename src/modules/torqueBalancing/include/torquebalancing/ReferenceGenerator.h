@@ -62,7 +62,10 @@ namespace codyco {
              * @param reader object implementing the ReferenceGeneratorInputReader protocol used to obtain the current state of the system.
              * @param name custom name to be assigned to the controller. Useful while debugging
              */
-            ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader, const std::string& name = "");
+            ReferenceGenerator(int period,
+                               Reference& outputReference,
+                               ReferenceGeneratorInputReader& reader,
+                               const std::string& name = "");
             
             /**
              * Destructor
@@ -237,7 +240,7 @@ namespace codyco {
             Reference& m_outputReference;
             ReferenceGeneratorInputReader& m_reader;
             ReferenceFilter* m_referenceFilter;
-            
+
             Eigen::VectorXd m_computedReference;
             Eigen::VectorXd m_integralTerm;
             Eigen::VectorXd m_error;

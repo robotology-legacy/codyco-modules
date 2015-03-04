@@ -94,7 +94,7 @@ namespace codyco {
                 double now = yarp::os::Time::now();
                 if (m_previousTime < 0) m_previousTime = now;
                 double dt = now - m_previousTime;
-                
+
                 m_actualReference = m_signalReference;
                 if (m_referenceFilter) {
                     m_actualReference = m_referenceFilter->getValueForCurrentTime(now);
@@ -113,10 +113,10 @@ namespace codyco {
                 - m_integralGains.asDiagonal() * m_integralTerm;
                 m_outputReference.setValue(m_computedReference);
 
-                /*if (strcmp("com pid", m_name.c_str()) == 0) {
-                    std::cout << m_proportionalGains.transpose() << "  D:" <<  m_derivativeGains.transpose() << "  I: " << m_integralGains.transpose() << " \n";
-                }*/
-                
+//                if (strcmp("com pid", m_name.c_str()) == 0) {
+//                    std::cout << m_actualReference.transpose() << "\n";
+//                }
+
                 m_previousTime = now;
             }
         }
