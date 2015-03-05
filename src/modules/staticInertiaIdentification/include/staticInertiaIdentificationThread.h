@@ -37,10 +37,10 @@
 #include <iCub/skinDynLib/skinContactList.h>
 
 #include <wbi/wbi.h>
-#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 
 #include <kdl_codyco/regressors/dynamicRegressorGenerator.hpp>
-#include <kdl_codyco/regressors/dataset/DynamicSample.hpp>
+#include <kdl_codyco/regressors/DynamicSample.hpp>
 
 #include "parameterSVDLinearEstimator.h"
 
@@ -71,7 +71,6 @@ class staticInertiaIdentificationThread: public RateThread
     int                 printCountdown;         // every time this is 0 (i.e. every print_period ms) print stuff
     double              printPeriod;
 
-    iCub::iDynTree::iCubTree_version_tag icub_version;
     iCub::iDynTree::iCubTree icub_tree_model;
 
     KDL::CoDyCo::Regressors::DynamicRegressorGenerator * icub_regressor_generator;

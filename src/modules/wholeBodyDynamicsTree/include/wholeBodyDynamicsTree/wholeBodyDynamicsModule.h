@@ -41,7 +41,7 @@ class wholeBodyDynamicsModule: public yarp::os::RFModule, public wholeBodyDynami
 
     yarp::os::Port                rpcPort;        // a port to handle rpc messages
     wholeBodyDynamicsThread*   wbdThread;     // locomotion control thread
-    yarpWbi::yarpWholeBodyStatesLocal* estimationInterface; // interface to communicate with the robot
+    yarpWbi::wholeBodyDynamicsStatesInterface* estimationInterface; // interface to communicate with the robot
 
 public:
     wholeBodyDynamicsModule();

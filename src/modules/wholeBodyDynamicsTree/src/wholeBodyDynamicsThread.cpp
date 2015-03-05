@@ -26,6 +26,7 @@
 
 #include <string.h>
 #include <ctime>
+#include <boost/concept_check.hpp>
 
 
 using namespace yarp::math;
@@ -84,7 +85,7 @@ bool iCubTreeStatus::setNrOfFTSensors(int nrOfFTsensors)
 wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
                                                  string _robotName,
                                                  int _period,
-                                                 yarpWholeBodyStatesLocal *_wbs,
+                                                 wholeBodyDynamicsStatesInterface *_wbs,
                                                  yarp::os::Property & _yarp_wbi_opts,
                                                  bool _autoconnect,
                                                  bool _assume_fixed_base_calibration,
@@ -151,21 +152,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
            icub_model_calibration = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization);
        }
 
-
-
     //Resize buffer vectors
     all_torques.resize(_wbs->getEstimateNumber(wbi::ESTIMATE_JOINT_TORQUE));
-
-
-    LAExternalWrench.resize(6);
-    RAExternalWrench.resize(6);
-    LLExternalWrench.resize(6);
-    RLExternalWrench.resize(6);
-
-    LACartesianExternalWrench.resize(6);
-    RACartesianExternalWrench.resize(6);
-    LLCartesianExternalWrench.resize(6);
-    RLCartesianExternalWrench.resize(6);
 
     iCubGuiBase.resize(6);
     FilteredInertialForGravityComp.resize(6);
@@ -174,39 +162,10 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     std::string robot_name = robotName;
     std::string local_name = name;
 
-    port_external_wrench_RA = new BufferedPort<Vector>;
-    port_external_wrench_LA = new BufferedPort<Vector>;
-    port_external_wrench_RL = new BufferedPort<Vector>;
-    port_external_wrench_LL = new BufferedPort<Vector>;
-
-    port_external_cartesian_wrench_RA = new BufferedPort<Vector>;
-    port_external_cartesian_wrench_LA = new BufferedPort<Vector>;
-    port_external_cartesian_wrench_RL = new BufferedPort<Vector>;
-    port_external_cartesian_wrench_LL = new BufferedPort<Vector>;
-
-
     port_contacts = new BufferedPort<skinContactList>;
 
 
     port_contacts->open(string("/"+local_name+"/contacts:o").c_str());
-
-
-    port_external_wrench_RA->open(string("/"+local_name+"/right_arm/endEffectorWrench:o").c_str());
-    port_external_wrench_LA->open(string("/"+local_name+"/left_arm/endEffectorWrench:o").c_str());
-    port_external_wrench_RL->open(string("/"+local_name+"/right_leg/endEffectorWrench:o").c_str());
-    port_external_wrench_LL->open(string("/"+local_name+"/left_leg/endEffectorWrench:o").c_str());
-    /*
-    port_external_wrench_RF->open(string("/"+local_name+"/right_foot/endEffectorWrench:o").c_str());
-    port_external_wrench_LF->open(string("/"+local_name+"/left_foot/endEffectorWrench:o").c_str());
-    */
-
-    port_external_cartesian_wrench_RA->open(string("/"+local_name+"/right_arm/cartesianEndEffectorWrench:o").c_str());
-    port_external_cartesian_wrench_LA->open(string("/"+local_name+"/left_arm/cartesianEndEffectorWrench:o").c_str());
-    port_external_cartesian_wrench_RL->open(string("/"+local_name+"/right_leg/cartesianEndEffectorWrench:o").c_str());
-    port_external_cartesian_wrench_LL->open(string("/"+local_name+"/left_leg/cartesianEndEffectorWrench:o").c_str());
-
-
-    //port_all_velocities->open(string("/"+local_name+"/all_velocities:o").c_str());
 
     //Open port for iCubGui
     port_icubgui_base = new BufferedPort<Vector>;
@@ -335,19 +294,62 @@ bool wholeBodyDynamicsThread::loadExternalWrenchesPortsConfigurations()
 
     }
 
+    // Load indeces for specified links and frame
+    for(int i=0; i < output_wrench_ports.size(); i++ )
+    {
+        output_wrench_ports[i].link_index =
+            icub_model_calibration->getFrameIndex(output_wrench_ports[i].link);
+        if( output_wrench_ports[i].link_index < 0 )
+        {
+            yError() << "Link " << output_wrench_ports[i].link << " not found in the model.";
+            return false;
+        }
+
+        output_wrench_ports[i].origin_frame_index =
+            icub_model_calibration->getFrameIndex(output_wrench_ports[i].origin_frame);
+        if( output_wrench_ports[i].origin_frame_index < 0 )
+        {
+            yError() << "Frame " << output_wrench_ports[i].origin_frame << " not found in the model.";
+            return false;
+        }
+
+
+        output_wrench_ports[i].orientation_frame_index =
+            icub_model_calibration->getFrameIndex(output_wrench_ports[i].orientation_frame);
+        if( output_wrench_ports[i].orientation_frame_index < 0 )
+        {
+            yError() << "Frame " << output_wrench_ports[i].orientation_frame_index << " not found in the model.";
+            return false;
+        }
+    }
+
     assert(nr_of_output_wrench_ports == output_torque_ports.size());
 
     return true;
 }
 
-
-//*************************************************************************************************************************
-bool wholeBodyDynamicsThread::threadInit()
+bool wholeBodyDynamicsThread::openExternalWrenchesPorts()
 {
-    bool ret = this->loadExternalWrenchesPortsConfigurations();
+    for(int i = 0; i < output_wrench_ports.size(); i++ )
+    {
+        std::string port_name = output_wrench_ports[i].port_name;
+        output_wrench_ports[i].output_port = new BufferedPort<Vector>;
+        output_wrench_ports[i].output_port->open(port_name);
+        output_wrench_ports[i].output_vector.resize(6);
+    }
+}
 
+bool wholeBodyDynamicsThread::closeExternalWrenchesPorts()
+{
+    for(int i = 0; i < output_wrench_ports.size(); i++ )
+    {
+        this->closePort(output_wrench_ports[i].output_port);
+    }
+}
 
-    // Load output torque ports informations
+bool wholeBodyDynamicsThread::loadEstimatedTorquesPortsConfigurations()
+{
+   // Load output torque ports informations
     yarp::os::Bottle & output_torques_bot = yarp_options.findGroup("WBD_OUTPUT_TORQUE_PORTS");
     if( output_torques_bot.isNull() )
     {
@@ -394,6 +396,21 @@ bool wholeBodyDynamicsThread::threadInit()
     }
 
     assert(nr_of_output_torques_ports == output_torque_ports.size());
+
+    return true;
+}
+
+
+
+
+//*************************************************************************************************************************
+bool wholeBodyDynamicsThread::threadInit()
+{
+    bool ret = this->loadExternalWrenchesPortsConfigurations();
+
+    ret = ret && this->loadEstimatedTorquesPortsConfigurations();
+
+    if( ! ret ) return false;
 
     //Load configuration related to the controlboards for which we are estimating the torques
     IDList torque_estimation_list = estimator->getEstimateList(wbi::ESTIMATE_JOINT_TORQUE);
@@ -445,6 +462,7 @@ bool wholeBodyDynamicsThread::threadInit()
 
     //Find end effector ids
     int max_id = 100;
+    /*
     root_link_idyntree_id = icub_model_calibration->getLinkIndex("root_link");
     //YARP_ASSERT(root_link_idyntree_id >= 0 && root_link_idyntree_id < max_id );
     left_hand_link_idyntree_id = icub_model_calibration->getLinkIndex("r_hand");
@@ -464,7 +482,7 @@ bool wholeBodyDynamicsThread::threadInit()
     //YARP_ASSERT(left_sole_frame_idyntree_id >= 0 && left_sole_frame_idyntree_id < max_id);
     right_sole_frame_idyntree_id = icub_model_calibration->getLinkIndex("r_sole");
     //YARP_ASSERT(right_sole_frame_idyntree_id >= 0 && right_sole_frame_idyntree_id < max_id);
-
+    */
     if( zmp_test_mode )
     {
         switch(foot_under_zmp_test)
@@ -491,10 +509,13 @@ bool wholeBodyDynamicsThread::threadInit()
 
     }
 
+    // Open external wrenches ports
+    openExternalWrenchesPorts();
 
-        std::cout << "[INFO] wholeBodyDynamicsThread: autoconnect option enabled, autoconnecting." << std::endl;
-        for(int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
-        {
+
+    std::cout << "[INFO] wholeBodyDynamicsThread: autoconnect option enabled, autoconnecting." << std::endl;
+    for(int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
+    {
             std::string port_name = output_torque_ports[output_torque_port_i].port_name;
             std::string local_port = "/" + name + "/" + port_name + "/Torques:o";
             std::string robot_port = "/" + robotName  + "/joint_vsens/" + port_name + ":i";
@@ -504,7 +525,9 @@ bool wholeBodyDynamicsThread::threadInit()
             {
                 Network::connect(local_port,robot_port,"tcp",false);
             }
-        }
+    }
+
+
 
 
     //Start with calibration
@@ -789,48 +812,76 @@ bool wholeBodyDynamicsThread::waitCalibrationDone()
     return true;
 }
 
-//****************************************************************************
-void wholeBodyDynamicsThread::getEndEffectorWrenches()
+void KDLWrenchFromRawValues(double * buf, KDL::Wrench & f)
 {
-    bool ret;
-    ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
+    for(int i = 0; i < 6; i++ )
+    {
+        f[i] = buf[i];
+    }
+
+    return;
+}
+
+void KDLWrenchToRawValues(const KDL::Wrench & f, double * buf)
+{
+    for(int i = 0; i < 6; i++ )
+    {
+        buf[i] = f[i];
+    }
+    return;
+}
+
+//****************************************************************************
+void wholeBodyDynamicsThread::getExternalWrenches()
+{
+    //Get joint position, to estimate frame transforms
+    bool ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
     if(!ret)
     {
-        std::cout << "wholeBodyDynamicsThread::getEndEffectorWrenches(): Unable to get estimates of joint positions " << std::endl;
+        yError() << "wholeBodyDynamicsThread::getExternalWrenches(): Unable to get estimates of joint positions";
         return;
     }
     YARP_ASSERT(ret);
     icub_model_calibration->setAng(tree_status.q);
 
-    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, left_gripper_frame_id, LAExternalWrench.data());
-    if(!ret)
+    for(int i=0; i < output_wrench_ports.size(); i++ )
     {
-        std::cout << "wholeBodyDynamicsThread::getEndEffectorWrenches(): Unable to get estimates of left gripper" << std::endl;
-        return;
+        int link_id = output_wrench_ports[i].link_index;
+        int frame_origin_id = output_wrench_ports[i].origin_frame_index;
+        int frame_orientation_id = output_wrench_ports[i].orientation_frame_index;
+
+        double buf[6];
+        ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, link_id, buf);
+
+        if(!ret)
+        {
+            yError() << "wholeBodyDynamicsThread::getEndEffectorWrenches(): Unable to get estimates of link_id" << link_id;
+            break;
+        }
+
+        KDL::Wrench link_f;
+
+        // We can do that just because the translational-angular serialization
+        // is the same in KDL and wbi
+        KDLWrenchFromRawValues(buf,link_f);
+
+        // Express the measure in the desired point
+        KDL::Frame origin_frame_H_link =
+            icub_model_calibration->getPositionKDL(frame_origin_id,link_id);
+
+        KDL::Wrench link_f_properly_translated =
+            KDL::Frame(origin_frame_H_link.p)*link_f;
+
+        // Rotate the measure in the desired orientation
+        KDL::Frame orientation_frame_H_link
+            = icub_model_calibration->getPositionKDL(frame_orientation_id,link_id);
+
+        KDL::Wrench link_f_properly_oriented_and_translated = orientation_frame_H_link.M *link_f_properly_translated;
+
+        KDLWrenchToRawValues(link_f_properly_oriented_and_translated,output_wrench_ports[i].output_vector.data());
     }
-    YARP_ASSERT(ret);
-    transform_mat_buffer = icub_model_calibration->getPosition(root_link_idyntree_id,left_gripper_frame_idyntree_id);
-    LACartesianExternalWrench.setSubvector(0,transform_mat_buffer.submatrix(0,2,0,2)*LAExternalWrench.subVector(0,2));
-    LACartesianExternalWrench.setSubvector(3,transform_mat_buffer.submatrix(0,2,0,2)*LAExternalWrench.subVector(3,5));
 
-    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, right_gripper_frame_id, RAExternalWrench.data());
-    YARP_ASSERT(ret);
-    transform_mat_buffer = icub_model_calibration->getPosition(root_link_idyntree_id,right_gripper_frame_idyntree_id);
-    RACartesianExternalWrench.setSubvector(0,transform_mat_buffer.submatrix(0,2,0,2)*RAExternalWrench.subVector(0,2));
-    RACartesianExternalWrench.setSubvector(3,transform_mat_buffer.submatrix(0,2,0,2)*RAExternalWrench.subVector(3,5));
-
-    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, left_sole_frame_id, LLExternalWrench.data());
-    YARP_ASSERT(ret);
-    transform_mat_buffer = icub_model_calibration->getPosition(root_link_idyntree_id,left_sole_frame_idyntree_id);
-    LLCartesianExternalWrench.setSubvector(0,transform_mat_buffer.submatrix(0,2,0,2)*LLExternalWrench.subVector(0,2));
-    LLCartesianExternalWrench.setSubvector(3,transform_mat_buffer.submatrix(0,2,0,2)*LLExternalWrench.subVector(3,5));
-
-
-    ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, right_sole_frame_id, RLExternalWrench.data());
-    YARP_ASSERT(ret);
-    transform_mat_buffer = icub_model_calibration->getPosition(root_link_idyntree_id,right_sole_frame_idyntree_id);
-    RLCartesianExternalWrench.setSubvector(0,transform_mat_buffer.submatrix(0,2,0,2)*RLExternalWrench.subVector(0,2));
-    RLCartesianExternalWrench.setSubvector(3,transform_mat_buffer.submatrix(0,2,0,2)*RLExternalWrench.subVector(3,5));
+    return;
 }
 
 //*************************************************************************************************************************
@@ -863,17 +914,13 @@ void wholeBodyDynamicsThread::publishContacts()
 }
 
 //*************************************************************************************************************************
-void wholeBodyDynamicsThread::publishEndEffectorWrench()
+void wholeBodyDynamicsThread::publishExternalWrenches()
 {
-    broadcastData<yarp::sig::Vector>(LAExternalWrench, port_external_wrench_LA);
-    broadcastData<yarp::sig::Vector>(RAExternalWrench, port_external_wrench_RA);
-    broadcastData<yarp::sig::Vector>(LLExternalWrench, port_external_wrench_LL);
-    broadcastData<yarp::sig::Vector>(RLExternalWrench, port_external_wrench_RL);
-
-    broadcastData<yarp::sig::Vector>(LACartesianExternalWrench, port_external_cartesian_wrench_LA);
-    broadcastData<yarp::sig::Vector>(RACartesianExternalWrench, port_external_cartesian_wrench_RA);
-    broadcastData<yarp::sig::Vector>(LLCartesianExternalWrench, port_external_cartesian_wrench_LL);
-    broadcastData<yarp::sig::Vector>(RLCartesianExternalWrench, port_external_cartesian_wrench_RL);
+    for(int i=0; i < output_wrench_ports.size(); i++ )
+    {
+        broadcastData<Vector>(output_wrench_ports[i].output_vector,
+                              output_wrench_ports[i].output_port);
+    }
 }
 
 //*************************************************************************************************************************
@@ -1058,7 +1105,7 @@ void wholeBodyDynamicsThread::normal_run()
     YARP_ASSERT(ret);
 
     //Get estimated external ee wrenches
-    //getEndEffectorWrenches();
+    getExternalWrenches();
 
     //Send torques
     publishTorques();
@@ -1067,7 +1114,7 @@ void wholeBodyDynamicsThread::normal_run()
     publishContacts();
 
     //Send external wrench estimates
-    //publishEndEffectorWrench();
+    publishExternalWrenches();
 
     //Send base information to iCubGui
     publishBaseToGui();
@@ -1367,20 +1414,12 @@ void wholeBodyDynamicsThread::threadRelease()
         closePort(output_torque_ports[output_torque_port_i].output_port);
     }
 
-
-
-    std::cerr << "Closing contacts port\n";
+    yInfo() << "Closing contacts port";
     closePort(port_contacts);
-    std::cerr << "Closing end effector wrenches port\n";
-    closePort(port_external_cartesian_wrench_LA);
-    closePort(port_external_cartesian_wrench_RA);
-    closePort(port_external_cartesian_wrench_LL);
-    closePort(port_external_cartesian_wrench_RL);
-    closePort(port_external_wrench_LA);
-    closePort(port_external_wrench_LL);
-    closePort(port_external_wrench_RA);
-    closePort(port_external_wrench_RL);
-    std::cerr << "Closing iCubGui base port\n";
+    yInfo() << "Closing end effector wrenches port";
+    closeExternalWrenchesPorts();
+
+    yInfo() << "Closing iCubGui base port";
     closePort(port_icubgui_base);
     closePort(port_filtered_inertial);
 

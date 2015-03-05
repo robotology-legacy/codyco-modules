@@ -80,6 +80,8 @@ struct outputWrenchPortInformation
     int link_index;
     int orientation_frame_index;
     int origin_frame_index;
+    yarp::sig::Vector output_vector;
+    yarp::os::BufferedPort<yarp::sig::Vector> * output_port;
 };
 
 /**
@@ -89,44 +91,14 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 {
     std::string name;
     std::string robotName;
-    yarpWbi::yarpWholeBodyStatesLocal *estimator;
+    yarpWbi::wholeBodyDynamicsStatesInterface *estimator;
 
     int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
     double              PRINT_PERIOD;
 
     enum { NORMAL, CALIBRATING, CALIBRATING_ON_DOUBLE_SUPPORT } wbd_mode;     /// < Mode of operation of the thread: normal operation or calibration
 
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_wrench_RA;
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_wrench_LA;
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_wrench_RL;
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_wrench_LL;
-
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_cartesian_wrench_RA;
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_cartesian_wrench_LA;
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_cartesian_wrench_RL;
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_cartesian_wrench_LL;
-
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_sensor_wrench_RL;
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_sensor_wrench_LL;
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_model_wrench_RL;
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_model_wrench_LL;
-
-
     yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts;
-
-    /*
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_all_accelerations;
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_all_velocities;
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_all_positions;
-    */
-
-    // ports outputing the external dynamics seen at the F/T sensor
-    /*
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_ft_arm_left;
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_ft_arm_right;
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_ft_leg_left;
-    yarp::os::BufferedPort<yarp::sig::Vector> *port_external_ft_leg_right;
-    */
 
     yarp::os::BufferedPort<yarp::sig::Vector> * port_icubgui_base;
 
@@ -142,8 +114,8 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     void writeTorque(yarp::sig::Vector _values, int _address, yarp::os::BufferedPort<yarp::os::Bottle> *_port);
     void publishTorques();
     void publishContacts();
-    void getEndEffectorWrenches();
-    void publishEndEffectorWrench();
+    void getExternalWrenches();
+    void publishExternalWrenches();
     void publishBaseToGui();
     void publishFilteredInertialForGravityCompensator();
     void publishFilteredFTWithoutOffset();
@@ -173,17 +145,13 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
     bool loadExternalWrenchesPortsConfigurations();
 
+    bool openExternalWrenchesPorts();
+    bool closeExternalWrenchesPorts();
+
+    bool loadEstimatedTorquesPortsConfigurations();
+
     iCub::skinDynLib::skinContactList external_forces_list;
 
-    yarp::sig::Vector LAExternalWrench;
-    yarp::sig::Vector RAExternalWrench;
-    yarp::sig::Vector LLExternalWrench;
-    yarp::sig::Vector RLExternalWrench;
-
-    yarp::sig::Vector LACartesianExternalWrench;
-    yarp::sig::Vector RACartesianExternalWrench;
-    yarp::sig::Vector LLCartesianExternalWrench;
-    yarp::sig::Vector RLCartesianExternalWrench;
 
     yarp::sig::Vector iCubGuiBase;
     yarp::sig::Vector FilteredInertialForGravityComp;
@@ -203,6 +171,7 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     std::vector<int> legs_fts;
     std::vector<int> feet_fts;
 
+    /*
     int left_hand_link_id;
     int right_hand_link_id;
     int left_foot_link_id;
@@ -224,6 +193,11 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     int right_gripper_frame_idyntree_id;
     int left_sole_frame_idyntree_id;
     int right_sole_frame_idyntree_id;
+    */
+
+    int left_foot_link_idyntree_id;
+    int right_foot_link_idyntree_id;
+    int root_link_idyntree_id;
 
     yarp::sig::Matrix transform_mat_buffer;
 
@@ -273,7 +247,7 @@ public:
     wholeBodyDynamicsThread(std::string _name,
                             std::string _robotName,
                             int _period,
-                            yarpWbi::yarpWholeBodyStatesLocal *_wbi,
+                            yarpWbi::wholeBodyDynamicsStatesInterface *_wbi,
                             yarp::os::Property & yarpWbiOptions,
                             bool _autoconnect,
                             bool assume_fixed_base_calibration,
