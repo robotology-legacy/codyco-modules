@@ -28,7 +28,7 @@
 #include <iCub/ctrl/math.h>
 #include <iCub/ctrl/adaptWinPolyEstimator.h>
 
-#include <yarp/os/Log.h>
+#include <yarp/os/LogStream.h>
 
 #include <iostream>
 #include <sstream>
@@ -233,14 +233,14 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     bool use_ang_vel_acc = true;
     if( rf.check("enable_w0_dw0") )
     {
-        std::cout << "[INFO] enable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration." << std::endl;
+        yInfo() << "enable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration.";
         use_ang_vel_acc = true;
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
     }
 
     if( rf.check("disable_w0_dw0") )
     {
-        std::cout << "[INFO] disable_w0_dw0 option found, disabling the use of IMU angular velocity/acceleration." << std::endl;
+        yInfo() << "disable_w0_dw0 option found, disabling the use of IMU angular velocity/acceleration.";
         use_ang_vel_acc = false;
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
     }
@@ -248,9 +248,8 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     if( rf.check("min_taxel") )
     {
         int taxel_threshold = rf.find("min_taxel").asInt();
-        std::cout << "[INFO] min_taxel option found, ignoring skin contacts with less then "
-                  << taxel_threshold << " active taxels will be ignored." << std::endl;
-        use_ang_vel_acc = false;
+        yInfo() << "min_taxel option found, ignoring skin contacts with less then "
+                  << taxel_threshold << " active taxels will be ignored.";
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,
                                                     wbi::ESTIMATION_PARAM_MIN_TAXEL,
                                                     &taxel_threshold);
@@ -267,30 +266,14 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     bool autoconnect = false;
     if( rf.check("autoconnect") )
     {
-        std::cout << "[INFO] autoconnect option found, enabling the autoconnection." << std::endl;
+        yInfo() << "autoconnect option found, enabling the autoconnection.";
         autoconnect = true;
-    }
-
-    bool zmp_test_mode = false;
-    std::string zmp_test_feet = "";
-    if( rf.check("zmp_test_left") )
-    {
-        std::cout << "[INFO] zmp_test_left option found, enabling testing output of debug quantities related to left leg" << std::endl;
-        zmp_test_mode = true;
-        zmp_test_feet = "left";
-    }
-
-    if( rf.check("zmp_test_right") )
-    {
-        std::cout << "[INFO] zmp_test_right option found, enabling testing output of debug quantities related to right leg" << std::endl;
-        zmp_test_mode = true;
-        zmp_test_feet = "right";
     }
 
     bool output_clean_ft = false;
     if( rf.check("output_clean_ft") )
     {
-        std::cout << "[INFO] output_clean_ft option found, enabling output of filtered and without offset ft sensors" << std::endl;
+        yInfo() << "output_clean_ft option found, enabling output of filtered and without offset ft sensors";
         output_clean_ft = true;
     }
 
@@ -303,11 +286,14 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
                                             autoconnect,
                                             fixed_base_calibration,
                                             fixed_link_calibration,
-                                            zmp_test_mode,
-                                            zmp_test_feet,
-                                            output_clean_ft
-                                           );
-    if(!wbdThread->start()){ std::cerr << "[ERR]" << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl;; return false; }
+                                            output_clean_ft);
+    if(!wbdThread->start())
+    {
+        yError() << getName()
+                          << ": Error while initializing whole body estimator interface."
+                          << "Closing module";
+        return false;
+    }
 
     fprintf(stderr,"wholeBodyDynamicsThread started\n");
 
@@ -387,14 +373,14 @@ bool wholeBodyDynamicsModule::calib(const std::string& calib_code, const int32_t
 {
     if(wbdThread)
     {
-        std::cout << getName() << ": calibration for " << calib_code << "requested" << std::endl;
+        yInfo() << getName() << ": calibration for " << calib_code << "requested";
         wbdThread->calibrateOffset(calib_code,nr_of_samples);
         wbdThread->waitCalibrationDone();
         return true;
     }
     else
     {
-        std::cout << getName() << ": calib failed, no wholeBodyDynamicsThread available" << std::endl;
+        yInfo() << getName() << ": calib failed, no wholeBodyDynamicsThread available";
         return false;
     }
 }

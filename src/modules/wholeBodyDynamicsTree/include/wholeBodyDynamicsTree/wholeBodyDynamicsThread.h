@@ -171,30 +171,6 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     std::vector<int> legs_fts;
     std::vector<int> feet_fts;
 
-    /*
-    int left_hand_link_id;
-    int right_hand_link_id;
-    int left_foot_link_id;
-    int right_foot_link_id;
-
-    int left_gripper_frame_id;
-    int right_gripper_frame_id;
-    int left_sole_frame_id;
-    int right_sole_frame_id;
-
-    int left_hand_link_idyntree_id;
-    int right_hand_link_idyntree_id;
-    int left_foot_link_idyntree_id;
-    int right_foot_link_idyntree_id;
-
-    int root_link_idyntree_id;
-
-    int left_gripper_frame_idyntree_id;
-    int right_gripper_frame_idyntree_id;
-    int left_sole_frame_idyntree_id;
-    int right_sole_frame_idyntree_id;
-    */
-
     int left_foot_link_idyntree_id;
     int right_foot_link_idyntree_id;
     int root_link_idyntree_id;
@@ -209,20 +185,6 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
     bool assume_fixed_base_calibration;
     std::string fixed_link_calibration;
-
-    //zmp test mode
-    bool zmp_test_mode;
-    enum { LEFT_FOOT, RIGHT_FOOT } foot_under_zmp_test;
-    int ankle_joint_idyntree_id;
-    int foot_sole_fake_joint_idyntree_id;
-    int foot_sole_link_idyntree_id;
-
-   // port that output the wrenches relative to the foot/ankle
-    yarp::os::BufferedPort<yarp::sig::Vector> * port_joint_ankle_cartesian_wrench;
-    yarp::os::BufferedPort<yarp::sig::Vector> * port_joint_ankle_cartesian_wrench_from_model;
-    yarp::os::BufferedPort<yarp::sig::Vector> * port_joint_foot_cartesian_wrench;
-    yarp::os::BufferedPort<yarp::sig::Vector> * port_joint_foot_cartesian_wrench_from_model;
-    iCub::iDynTree::TorqueEstimationTree * icub_model_zmp;
 
     bool autoconnect;
 
@@ -252,7 +214,6 @@ public:
                             bool _autoconnect,
                             bool assume_fixed_base_calibration,
                             std::string fixed_link,
-                            bool zmp_test_mode, std::string foot_to_test,
                             bool publish_filtered_ft
                            );
 
