@@ -46,14 +46,11 @@ int main (int argc, char * argv[])
     if (rf.check("help"))
     {
         cout<< "Possible parameters"                                                                                                                                          << endl << endl;
-        cout<< "\t--context          :Where to find an user defined .ini file within $ICUB_ROOT/app e.g. /" << DEFAULT_YARP_CONTEXT << "conf"                                   <<endl;
+        cout<< "\t--context          :Where to find an user defined .ini file /" << DEFAULT_YARP_CONTEXT << "conf"                                   <<endl;
         cout<< "\t--from             :Name of the file.ini to be used for calibration."                                                                                       <<endl;
         cout<< "\t--rate             :Period used by the module. Default set to 10ms."                                                                                        <<endl;
         cout<< "\t--robot            :Robot name. Set to icub by default."                                                                                  <<endl;
-        cout<< "\t--name             :Prefix of the ports opened by the module. Set to the module name by default, i.e. wholeBodyDynamicsTree."                                      <<endl;
-        cout<< "\t--headV1/headV2    :Version of the head."  <<endl;
-        cout<< "\t--legsV1/legsV2    :Version of the legs."  <<endl;
-        cout<< "\t--feetV1/feetV2    :Version of the feet."  <<endl;
+        cout<< "\t--name             :Prefix of the ports opened by the module. Set to the module name by default, i.e. staticInertiaIdentification."   << endl;
         cout<< "\t--enable_w0_dw0/disable_w0_dw0    :Enable/disable use of angular velocity and acceleration measured from the IMU (default: disabled)." << endl;
         cout<< "\t--autoconnect      :Autoconnect torques port for low-level torque feedback. " << endl;
         return 0;

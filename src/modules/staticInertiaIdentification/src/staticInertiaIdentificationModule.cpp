@@ -25,21 +25,18 @@
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/Drivers.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
-#include <iCub/ctrl/math.h>
-#include <iCub/ctrl/adaptWinPolyEstimator.h>
 
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <string.h>
 
-#include "wbiIcub/wholeBodyInterfaceIcub.h"
+#include "yarpWholeBodyInterface/yarpWholeBodyInterface.h"
 
 #include "staticInertiaIdentificationThread.h"
 #include "staticInertiaIdentificationModule.h"
 
 using namespace yarp::dev;
-using namespace wbiIcub;
 
 staticInertiaIdentificationModule::staticInertiaIdentificationModule()
 {
@@ -51,45 +48,6 @@ staticInertiaIdentificationModule::staticInertiaIdentificationModule()
 bool staticInertiaIdentificationModule::attach(yarp::os::Port &source)
 {
     return this->yarp().attachAsServer(source);
-}
-
-void iCubVersionFromRf(ResourceFinder & rf, iCub::iDynTree::iCubTree_version_tag & icub_version)
-{
-    //Checking iCub parts version
-    /// \todo this part should be replaced by a more general way of accessing robot parameters
-    ///       namely urdf for structure parameters and robotInterface xml (or runtime interface) to get available sensors
-    icub_version.head_version = 2;
-    if( rf.check("headV1") ) {
-        icub_version.head_version = 1;
-    }
-    if( rf.check("headV2") ) {
-        icub_version.head_version = 2;
-    }
-
-    icub_version.legs_version = 2;
-    if( rf.check("legsV1") ) {
-        icub_version.legs_version = 1;
-    }
-    if( rf.check("legsV2") ) {
-        icub_version.legs_version = 2;
-    }
-
-    /// \note if feet_version are 2, the presence of FT sensors in the feet is assumed
-    icub_version.feet_ft = true;
-    if( rf.check("feetV1") ) {
-        icub_version.feet_ft = false;
-    }
-    if( rf.check("feetV2") ) {
-        icub_version.feet_ft = true;
-    }
-
-    #ifdef CODYCO_USES_URDFDOM
-    if( rf.check("urdf") )
-    {
-        icub_version.uses_urdf = true;
-        icub_version.urdf_file = rf.find("urdf").asString().c_str();
-    }
-    #endif
 }
 
 bool staticInertiaIdentificationModule::configure(ResourceFinder &rf)
@@ -109,12 +67,6 @@ bool staticInertiaIdentificationModule::configure(ResourceFinder &rf)
         return false;
     }
 
-    //Checking iCub parts version
-    /// \todo this part should be replaced by a more general way of accessing robot parameters
-    ///       namely urdf for structure parameters and robotInterface xml (or runtime interface) to get available sensors
-    iCub::iDynTree::iCubTree_version_tag icub_version;
-    iCubVersionFromRf(rf,icub_version);
-
     //--------------------------RPC PORT--------------------------
     attach(rpcPort);
     std::string rpcPortName= "/";
@@ -130,7 +82,6 @@ bool staticInertiaIdentificationModule::configure(ResourceFinder &rf)
     std::string fixed_link = "";
     estimationInterface = new icubWholeBodyStatesLocal(moduleName.c_str(),
                                                        robotName.c_str(),
-                                                       icub_version,
                                                        assume_fixed_base,
                                                        fixed_link);
 
@@ -191,7 +142,6 @@ bool staticInertiaIdentificationModule::configure(ResourceFinder &rf)
                                                       robotName,
                                                       identification_thread_period,
                                                       estimationInterface,
-                                                      icub_version,
                                                       thread_opts,
                                                       autoconnect);
     if(!siiThread->start())

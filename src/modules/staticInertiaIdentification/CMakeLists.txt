@@ -8,9 +8,6 @@ PROJECT(${PROJECTNAME})
 
 find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)
-find_package(paramHelp REQUIRED)
-find_package(Eigen3 REQUIRED)
-find_package(wholeBodyInterface REQUIRED)
 find_package(yarpWholeBodyInterface REQUIRED)
 find_package(TinyXML REQUIRED)
 
@@ -22,13 +19,9 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
-                    ${wholeBodyInterface_INCLUDE_DIRS}
                     ${yarpWholeBodyInterface_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
                     ${iDynTree_INCLUDE_DIRS}
-                    ${orocos_kdl_INCLUDE_DIRS}
-                    ${TinyXML_INCLUDE_DIRS}
-                    ${kdl_codyco_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS}
                     ${ctrlLib_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
@@ -46,8 +39,6 @@ ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES}
                                      ${TinyXML_LIBRARIES}
                                      ${iDynTree_LIBRARIES}
-                                     ${kdl_codyco_LIBRARIES)
-                                     ${wholeBodyInterface_LIBRARIES}
                                      ${yarpWholeBodyInterface_LIBRARIES})
 
 INSTALL(TARGETS ${PROJECTNAME} DESTINATION bin)
