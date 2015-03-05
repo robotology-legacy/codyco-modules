@@ -41,7 +41,7 @@
 
 #include <wbi/wbi.h>
 #include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
-#include <yarpWholeBodyInterface/yarpWholeBodyStatesLocal.h>
+#include "wholeBodyDynamicsTree/wholeBodyDynamicsStatesInterface.h"
 
 class iCubTreeStatus
 {
