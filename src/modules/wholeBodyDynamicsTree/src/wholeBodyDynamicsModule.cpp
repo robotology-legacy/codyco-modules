@@ -199,9 +199,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         yarpWbiOptions.put("calibration_support_link","root_link");
     }
 
-
-
-    estimationInterface = new wholeBodyDynamicsStatesInterface(moduleName.c_str(), yarpWbiOptions);
+    estimationInterface = new wholeBodyDynamicsStatesInterface(moduleName.c_str(), period, yarpWbiOptions);
 
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,RobotDynamicModelJoints);
     estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,RobotDynamicModelJoints);
@@ -351,7 +349,7 @@ bool wholeBodyDynamicsModule::updateModule()
 {
     if (wbdThread==0)
     {
-        printf("wholeBodyDynamicsThread pointers are zero\n");
+        yError("wholeBodyDynamicsThread pointers are zero\n");
         return false;
     }
 
@@ -360,8 +358,8 @@ bool wholeBodyDynamicsModule::updateModule()
     //#ifndef NDEBUG
     if(avgTime > 1.3 * period)
     {
-        printf("[WARNING] wholeBodyDynamics loop is too slow. Real period: %3.3f+/-%3.3f. Expected period %d.\n", avgTime, stdDev, period);
-        printf("Duration of 'run' method: %3.3f+/-%3.3f.\n", avgTimeUsed, stdDevUsed);
+        yWarning("[WARNING] wholeBodyDynamics loop is too slow. Real period: %3.3f+/-%3.3f. Expected period %d.\n", avgTime, stdDev, period);
+        yInfo("Duration of 'run' method: %3.3f+/-%3.3f.\n", avgTimeUsed, stdDevUsed);
     }
     //#endif
 
@@ -391,14 +389,14 @@ bool wholeBodyDynamicsModule::calibStanding(const std::string& calib_code,
 {
     if(wbdThread)
     {
-        std::cout << getName() << ": double support calibration for " << calib_code << "requested" << std::endl;
+        yInfo() << getName() << ": double support calibration for " << calib_code << "requested";
         wbdThread->calibrateOffsetOnDoubleSupport(calib_code,nr_of_samples);
         wbdThread->waitCalibrationDone();
         return true;
     }
     else
     {
-        std::cout << getName() << ": double support calib failed, no wholeBodyDynamicsThread available" << std::endl;
+        yError() << getName() << ": double support calib failed, no wholeBodyDynamicsThread available";
         return false;
     }
 }
@@ -408,14 +406,14 @@ bool wholeBodyDynamicsModule::calibStandingLeftFoot(const std::string& calib_cod
 {
     if(wbdThread)
     {
-        std::cout << getName() << ": single support left foot calibration for " << calib_code << "requested" << std::endl;
+        yInfo() << getName() << ": single support left foot calibration for " << calib_code << "requested";
         wbdThread->calibrateOffsetOnLeftFootSingleSupport(calib_code,nr_of_samples);
         wbdThread->waitCalibrationDone();
         return true;
     }
     else
     {
-        std::cout << getName() << ": calib failed, no wholeBodyDynamicsThread available" << std::endl;
+        yError() << getName() << ": calib failed, no wholeBodyDynamicsThread available";
         return false;
     }
 }
@@ -425,14 +423,14 @@ bool wholeBodyDynamicsModule::calibStandingRightFoot(const std::string& calib_co
 {
     if(wbdThread)
     {
-        std::cout << getName() << ": single support right foot calibration for " << calib_code << "requested" << std::endl;
+        yInfo() << getName() << ": single support right foot calibration for " << calib_code << "requested";
         wbdThread->calibrateOffsetOnRightFootSingleSupport(calib_code,nr_of_samples);
         wbdThread->waitCalibrationDone();
         return true;
     }
     else
     {
-        std::cout << getName() << ": calib failed, no wholeBodyDynamicsThread available" << std::endl;
+        yDebug() << getName() << ": calib failed, no wholeBodyDynamicsThread available";
         return false;
     }
 }
@@ -440,11 +438,11 @@ bool wholeBodyDynamicsModule::calibStandingRightFoot(const std::string& calib_co
 bool wholeBodyDynamicsModule::resetOffset(const std::string& calib_code)
 {
     if(wbdThread) {
-        std::cout << getName() << ": offset reset for " << calib_code << "requested" << std::endl;
+        yInfo() << getName() << ": offset reset for " << calib_code << "requested";
         wbdThread->resetOffset(calib_code);
         return true;
     } else {
-        std::cout << getName() << ": calib failed, no wholeBodyDynamicsThread available" << std::endl;
+        yError() << getName() << ": calib failed, no wholeBodyDynamicsThread available";
         return false;
     }
 }

@@ -21,7 +21,7 @@
 #include <iCub/skinDynLib/common.h>
 
 #include <yarp/os/Time.h>
-#include <yarp/os/Log.h>
+#include <yarp/os/LogStream.h>
 #include <yarp/os/ResourceFinder.h>
 
 #include <string>
@@ -43,22 +43,19 @@ using namespace yarp::math;
 using namespace iCub::skinDynLib;
 using namespace iCub::ctrl;
 
-/// < \todo TODO make it a proper parameter
-#define ESTIMATOR_PERIOD 10
-
-
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-//                                          ICUB WHOLE BODY STATES
+//
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 wholeBodyDynamicsStatesInterface::wholeBodyDynamicsStatesInterface(const char* _name,
+                                                                   int estimator_period,
                                                    yarp::os::Property & _wbi_yarp_conf)
 {
     sensors = new yarpWholeBodySensors(_name, _wbi_yarp_conf);              // sensor interface
     skin_contacts_port = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
     skin_contacts_port->open(string("/"+string(_name)+"/skin_contacts:i").c_str());
-    estimator = new yarpWholeBodyDynamicsEstimator(ESTIMATOR_PERIOD, sensors, skin_contacts_port, _wbi_yarp_conf);  // estimation thread
+    estimator = new yarpWholeBodyDynamicsEstimator(estimator_period, sensors, skin_contacts_port, _wbi_yarp_conf);  // estimation thread
 }
 
 bool wholeBodyDynamicsStatesInterface::init()
@@ -66,7 +63,7 @@ bool wholeBodyDynamicsStatesInterface::init()
     bool ok = sensors->init();              // initialize sensor interface
     if( !ok )
     {
-        std::cerr << "wholeBodyDynamicsStatesInterface::init() failed: error in sensor initialization." << std::endl;
+        yError() << "wholeBodyDynamicsStatesInterface::init() failed: error in sensor initialization.";
         close();
         return false;
     }
@@ -74,7 +71,7 @@ bool wholeBodyDynamicsStatesInterface::init()
     ok = estimator->start();
     if( !ok )
     {
-        std::cerr << "wholeBodyDynamicsStatesInterface::init() failed: error in estimator initialization." << std::endl;
+        yError() << "wholeBodyDynamicsStatesInterface::init() failed: error in estimator initialization.";
         close();
         return false;
     }
@@ -754,7 +751,6 @@ void yarpWholeBodyDynamicsEstimator::run()
             el.time = yarp::os::Time::now();
             estimates.lastDq = dqFilt->estimate(el);
             estimates.lastD2q = d2qFilt->estimate(el);
-
         }
 
         ///< Read force/torque sensors

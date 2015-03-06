@@ -322,7 +322,7 @@ bool wholeBodyDynamicsThread::loadEstimatedTorquesPortsConfigurations()
     yarp::os::Bottle & output_torques_bot = yarp_options.findGroup("WBD_OUTPUT_TORQUE_PORTS");
     if( output_torques_bot.isNull() )
     {
-        std::cerr << "[ERR] WBD_OUTPUT_TORQUE_PORTS group not found in wholeBodyDynamics configuration, exiting" << std::endl;
+        yError() << "WBD_OUTPUT_TORQUE_PORTS group not found in wholeBodyDynamics configuration, exiting";
         return false;
     }
 
@@ -336,7 +336,7 @@ bool wholeBodyDynamicsThread::loadEstimatedTorquesPortsConfigurations()
         if( torque_port == NULL || torque_port->isNull() || torque_port->size() != 2
             || torque_port->get(1).asList() == NULL || torque_port->get(1).asList()->size() != 2)
         {
-            std::cerr << "[ERR] malformed WBD_OUTPUT_TORQUE_PORTS group  found in wholeBodyDynamics configuration, exiting" << std::endl;
+            yError() << "malformed WBD_OUTPUT_TORQUE_PORTS group  found in wholeBodyDynamics configuration, exiting";
             if( torque_port )
             {
                 std::cerr << "[ERR] malformed line " << torque_port->toString() << std::endl;
@@ -384,9 +384,9 @@ bool wholeBodyDynamicsThread::threadInit()
     //Load configuration related to the controlboards for which we are estimating the torques
     IDList torque_estimation_list = estimator->getEstimateList(wbi::ESTIMATE_JOINT_TORQUE);
     ret = loadJointsControlBoardFromConfig(yarp_options,
-                                                torque_estimation_list,
-                                                torqueEstimationControlBoards.controlBoardNames,
-                                                torqueEstimationControlBoards.controlBoardAxisList);
+                                           torque_estimation_list,
+                                           torqueEstimationControlBoards.controlBoardNames,
+                                           torqueEstimationControlBoards.controlBoardAxisList);
 
     if( ! ret || torque_estimation_list.size() != torqueEstimationControlBoards.controlBoardAxisList.size() )
     {
@@ -402,7 +402,7 @@ bool wholeBodyDynamicsThread::threadInit()
     if( yarp_options.check("calibration_support_link") )
     {
         calibration_support_link = yarp_options.find("calibration_support_link").asString().c_str();
-        std::cerr << "[INFO] calibration_support_link is " << calibration_support_link << std::endl;
+        yInfo() << "calibration_support_link is " << calibration_support_link;
     }
 
 
@@ -889,8 +889,6 @@ void wholeBodyDynamicsThread::publishBaseToGui()
         KDL::Frame H_world_currentRoot
             = H_world_leftFoot*H_leftFoot_currentRoot;
 
-
-
         //Set angular part
         double roll,pitch,yaw;
         H_world_currentRoot.M.GetRPY(roll,pitch,yaw);
@@ -1007,6 +1005,7 @@ void wholeBodyDynamicsThread::normal_run()
 
         double avgTime, stdDev, avgTimeUsed, stdDevUsed, period;
         period = getRate();
+
         getEstPeriod(avgTime, stdDev);
         getEstUsed(avgTimeUsed, stdDevUsed);
 
@@ -1081,7 +1080,6 @@ void wholeBodyDynamicsThread::calibration_run()
     //std::cout << "wholeBodyDynamicsThread::calibration_run(): F/T estimates computed" << std::endl;
     //std::cout << "wholeBodyDynamicsThread::calibration_run() : imu proper acceleration " << tree_status.proper_ddp_imu.toString() << std::endl;
     //std::cout << "wholeBodyDynamicsThread::calibration_run() : q " << tree_status.q.toString() << std::endl;
-
 
     for(int ft_sensor_id=0; ft_sensor_id < (int)offset_buffer.size(); ft_sensor_id++ ) {
         if( calibrate_ft_sensor[ft_sensor_id] ) {
@@ -1256,6 +1254,16 @@ void wholeBodyDynamicsThread::threadRelease()
 {
     run_mutex.lock();
 
+    if( this->autoconnect )
+    {
+        yInfo() << "Switching all controlboards that use estimation to stiff interaction mode";
+        ensureJointsAreNotUsingTorqueEstimates();
+    }
+    else
+    {
+        yInfo() << "Autoconnect option not enabled";
+    }
+
     yInfo() << "Closing output torques ports";
     for(int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
     {
@@ -1331,6 +1339,7 @@ bool wholeBodyDynamicsThread::ensureJointsAreNotUsingTorqueEstimates()
     //it to CM_POSITION
     if( !openControlBoards() )
     {
+        yError("wholeBodyDynamicsThread: error in opening controlboards");
         return false;
     }
 
@@ -1342,16 +1351,33 @@ bool wholeBodyDynamicsThread::ensureJointsAreNotUsingTorqueEstimates()
 
         // Check control mode
         int ctrlMode = -1;
-        torqueEstimationControlBoards.controlModeInterfaces[ctrlBrd]->getControlMode(axis,&ctrlMode);
+        bool ret;
+        ret = torqueEstimationControlBoards.controlModeInterfaces[ctrlBrd]->getControlMode(axis,&ctrlMode);
+
+        if( !ret || ctrlMode == -1 )
+        {
+            yError("wholeBodyDynamicsThread: error in calling getControlMode for controlboard %s of robot %s",
+                   torqueEstimationControlBoards.controlBoardNames[ctrlBrd].c_str(),robotName.c_str());
+        }
 
         // if the ctrlMode is torque, switch to position
         if( ctrlMode ==  VOCAB_CM_TORQUE)
         {
-            torqueEstimationControlBoards.controlModeInterfaces[ctrlBrd]->setControlMode(axis,VOCAB_CM_POSITION);
+            ret = torqueEstimationControlBoards.controlModeInterfaces[ctrlBrd]->setControlMode(axis,VOCAB_CM_POSITION);
+
+            if( !ret )
+            {
+                yError("wholeBodyDynamicsThread: error in calling setControlMode");
+            }
         }
 
         // In any case, set the joint in interaction mode STIFF
         torqueEstimationControlBoards.interactionModeInterfaces[ctrlBrd]->setInteractionMode(axis,yarp::dev::VOCAB_IM_STIFF);
+
+        if( !ret )
+        {
+            yError("wholeBodyDynamicsThread: error in calling setInteractionMode");
+        }
     }
 
     closeControlBoards();
@@ -1366,6 +1392,8 @@ bool wholeBodyDynamicsThread::openControlBoards()
                              torqueEstimationControlBoards.deviceDrivers[ctrlBrd],
                              torqueEstimationControlBoards.controlBoardNames[ctrlBrd]) )
         {
+            yError() << "Error in opening " << torqueEstimationControlBoards.controlBoardNames[ctrlBrd]
+                   << " of robot " << robotName;
             closeControlBoards();
             return false;
         }
@@ -1373,12 +1401,16 @@ bool wholeBodyDynamicsThread::openControlBoards()
         bool ret = torqueEstimationControlBoards.deviceDrivers[ctrlBrd]->view(torqueEstimationControlBoards.controlModeInterfaces[ctrlBrd]);
         ret = ret && torqueEstimationControlBoards.deviceDrivers[ctrlBrd]->view(torqueEstimationControlBoards.interactionModeInterfaces[ctrlBrd]);
 
-        if( ret )
+        if( !ret )
         {
+            yError() << "Error in opening " << torqueEstimationControlBoards.controlBoardNames[ctrlBrd]
+                   << " of robot " << robotName;
             closeControlBoards();
             return false;
         }
     }
+
+    return true;
 }
 
 bool wholeBodyDynamicsThread::closeControlBoards()

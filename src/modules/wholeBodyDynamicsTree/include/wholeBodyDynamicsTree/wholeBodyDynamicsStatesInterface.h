@@ -276,6 +276,7 @@ namespace yarpWbi
     public:
         // *** CONSTRUCTORS ***
         wholeBodyDynamicsStatesInterface(const char* _name,
+                                         int estimator_period,
                                          yarp::os::Property & _wbi_yarp_conf);
 
 
@@ -357,6 +358,9 @@ namespace yarpWbi
          */
         bool getEstimatedExternalForces(iCub::skinDynLib::skinContactList & external_forces_list);
 
+        //////////////////////////////////////////////////////
+        //// Diagnostic related methods
+        //////////////////////////////////////////////////////
     };
 }
 

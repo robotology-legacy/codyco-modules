@@ -214,8 +214,7 @@ public:
                             bool _autoconnect,
                             bool assume_fixed_base_calibration,
                             std::string fixed_link,
-                            bool publish_filtered_ft
-                           );
+                            bool publish_filtered_ft);
 
     bool threadInit();
     bool calibrateOffset(const std::string calib_code, const int nr_of_samples );

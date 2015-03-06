@@ -16,6 +16,88 @@
  * Public License for more details
 */
 
+
+/**
+@ingroup codyco_module
+
+\defgroup wholeBodyDynamicsTree wholeBodyDynamicsTree
+
+Estimates the external wrenches and internal torques
+of a robot by fusing the information coming from
+the dynamic model and the measurements
+coming from the sensors of the robot.
+
+\author Silvio Traversaro
+
+\section intro_sec Description
+
+This module estimates the external wrenches acting at any link of robot,
+through a model based compensation
+of the 6-axis force/torque (FT) sensor's measurements, which are
+acquired through an input YARP port and provides them to an
+output YARP ports.
+The estimation is perfomed relying on rigid body dynamics using CAD
+parameters.
+The intrinsic offsets of the sensors, which are due to the stresses
+generated during mounting, are defined by the first FT data. In the
+future it will also be given the possibility to set the offsets of
+the sensors.
+The model of the sensor measurements considers a fixed base, with z-axis
+pointing upwards. The estimation of the external wrench applied at the
+end-effector of the limb has the same orientation of the fixed base frame.
+For further information about the use of this module and of the iCub force control interface, please refer to the force control page:
+http://wiki.icub.org/wiki/Force_Control
+
+\section lib_sec Libraries
+- YARP library.
+- iDynTree library.
+- yarpWholeBodyInterface library
+
+\section parameters_sec Parameters
+
+--robot \e name
+- The parameter \e name identifies the robot name. If not specified
+  \e icub is assumed.
+
+--rate \e r
+- The parameter \e r identifies the rate the estimation thread will work. If not
+  specified \e 10ms is assumed.
+
+
+\section portsa_sec Ports Accessed
+The port the service is listening to.
+
+\section portsc_sec Ports Created
+
+
+\section in_files_sec Input Data Files
+None.
+
+\section out_data_sec Output Data Files
+None.
+
+\section conf_file_sec Configuration Files
+None
+
+\section tested_os_sec Tested OS
+Linux and OS X.
+
+\section example_sec Example
+If you properly setted the YARP_ROBOT_NAME enviromental variable,
+and if you provide a proper wholeBodyDynamicsTree.ini configuration file
+you can simply launch wholeBodyDynamicsTree using the following command:
+
+\code
+wholeBodyDynamicsTree --autoconnect
+\endcode
+
+
+\author Silvio Traversaro
+
+*/
+
+
+
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 #include <yarp/dev/all.h>
@@ -35,6 +117,8 @@ using namespace yarp::dev;
 using namespace yarp::sig;
 using namespace yarp::os;
 using namespace std;
+
+
 
 int main (int argc, char * argv[])
 {
@@ -64,14 +148,6 @@ int main (int argc, char * argv[])
         cout<< "\t--assume_fixed_base_calibration :Use the root link as a kinematic root  in calibration (assuming constant gravity)." <<endl;
         cout<< "\t--output_clean_ft  :Output the measure of the FT sensors without offset in set of ports." << endl;
         cout<< "\t--min_taxel  threshold   :Filter input skin contacts: if the activated taxels are lower than the threshold, ignore the contact (default: 1)." << endl;
-        cout<< "\t--zmp_test_left/--zmp_test_right : Enable debug port outputs for robot single standing on left or right foot. " << endl;
-        cout<< "\t\t this option will open the following ports: " << endl;
-        cout<< "\t\t\t /local_name/joint_ankle_cartesian_wrench:o 6 element vector: force torque transmitted from link *_ankle_1 "
-            << "\t\t\t\t to link *_foot expressed on the orientation frame of *_sole and with torque expressed with respect to the origin of frame of link *_sole" << endl;
-        cout<< "\t\t\t /local_name/joint_ankle_cartesian_wrench_from_model:o 6 element vector: as before, but calculated from model " << std::endl;
-        cout<< "\t\t\t /local_name/joint_foot_cartesian_wrench:o 6 element vector: force torque transmitted from link *_foot "
-            << "\t\t\t\t to the enviroment expressed on the orientation frame of *_sole and torque expressed with respect to the origin of frame of link *_sole" << endl;
-        cout<< "\t\t\t /local_name/joint_foot_cartesian_wrench_from_model:o 6 element vector: as before, but calculated from model " << std::endl;
         return 0;
     }
 
