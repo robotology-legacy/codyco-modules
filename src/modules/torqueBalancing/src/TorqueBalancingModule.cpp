@@ -120,9 +120,15 @@ namespace codyco {
             }
 
             //Setup streaming
-            m_references->desiredCOMPosition().setUpReaderThread(("/" + m_moduleName + "/com:i"));
+            if (!m_references->desiredCOMPosition().setUpReaderThread(("/" + m_moduleName + "/com:i"))) {
+                yError("CoM streaming port failed to start.");
+                return false;
+            }
             m_references->desiredCOMPosition().addDelegate(this);
-            m_references->desiredJointsPosition().setUpReaderThread(("/" + m_moduleName + "/qdes:i"));
+            if (!m_references->desiredJointsPosition().setUpReaderThread(("/" + m_moduleName + "/qdes:i"))) {
+                yError("QDes streaming port failed to start.");
+                return false;
+            }
             m_references->desiredJointsPosition().addDelegate(this);
 
             //create reference to wbi
@@ -214,10 +220,11 @@ namespace codyco {
                 return false;
             }
 
-            generator = new ReferenceGenerator(m_controllerThreadPeriod, m_references->desiredJointsConfiguration(), *reader);
+            generator = new ReferenceGenerator(m_controllerThreadPeriod, m_references->desiredJointsConfiguration(), *reader, "qdes");
             if (generator) {
                 //generator->setReferenceFilter(&jointsSmoother);
                 generator->setProportionalGains(Eigen::VectorXd::Constant(actuatedDOFs, 1.0));
+                generator->setSignalReference(m_initialJointsConfiguration);
                 m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeImpedanceControl, generator));
             } else {
                 yError("Could not create impedance controller object.");
@@ -412,7 +419,7 @@ namespace codyco {
             } else if (&reference == &m_references->desiredJointsPosition()) {
                 taskType = TaskTypeImpedanceControl;
             } else return;
-            std::map<TaskType, ReferenceGenerator*>::iterator found = m_referenceGenerators.find(TaskTypeCOM);
+            std::map<TaskType, ReferenceGenerator*>::iterator found = m_referenceGenerators.find(taskType);
             if (found != m_referenceGenerators.end()) {
                 found->second->setSignalReference(reference.value());
             }

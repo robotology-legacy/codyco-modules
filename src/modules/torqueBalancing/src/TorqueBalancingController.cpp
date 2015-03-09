@@ -372,16 +372,10 @@ namespace codyco {
             torques += nullSpaceProjector * torques0;
                         
             //apply saturation
+            //TODO: this must be checked: valgrind says it contains a jump on an unitialized variable
+            //TODO: check isinf or isnan
             torques = torques.array().min(m_torqueSaturationLimit.array()).max(-m_torqueSaturationLimit.array());
 
-            
-// #ifdef DEBUG
-//             checking torques
-//             Eigen::MatrixXd inv = (m_contactsJacobian.topRows(12) * m_massMatrix.inverse() * m_contactsJacobian.topRows(12).transpose()).inverse();
-//             Eigen::VectorXd f = inv * (m_contactsJacobian.topRows(12) * m_massMatrix.inverse() * (m_generalizedBiasForces - m_torquesSelector * torques) - m_contactsDJacobianDq.head(12));
-//             
-//             std::cerr << (f - desiredContactForces.head(12)).transpose() << "\n\n";     
-// #endif
         }
         
         void TorqueBalancingController::writeTorques()

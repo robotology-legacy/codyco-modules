@@ -132,12 +132,14 @@ namespace codyco {
             if (!implementation->readerPort) {
                 implementation->readerPort = new yarp::os::BufferedPort<yarp::sig::Vector>();
                 if (!implementation->readerPort) return false;
+//                implementation->readerPort->useCallback(implementation->reader);
             }
-            if (!implementation->readerPort->isClosed()) {
-                return false;
-            }
+//            if (!implementation->readerPort->isClosed()) {
+//                return false;
+//            }
             result = implementation->readerPort->open(portName);
             implementation->readerPort->useCallback(implementation->reader);
+
             return result;
         }
 
