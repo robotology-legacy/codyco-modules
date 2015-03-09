@@ -4,6 +4,7 @@ add_subdirectory(adaptiveControl)
 #add_subdirectory(staticInertiaIdentification)
 add_subdirectory(insituFTSensorCalibration)
 add_subdirectory(codycoDemoY2/app)
+add_subdirectory(RedBallGraspDemo)
 
 if(${CODYCO_USES_EIGEN_320})
    add_subdirectory(locomotionControl)
