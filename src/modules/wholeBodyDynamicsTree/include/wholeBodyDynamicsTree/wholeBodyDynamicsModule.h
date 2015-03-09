@@ -29,7 +29,7 @@
 
 #include <wholeBodyDynamicsTree/wholeBodyDynamicsThread.h>
 
-#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
+#include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
 
 class wholeBodyDynamicsModule: public yarp::os::RFModule, public wholeBodyDynamics_IDLServer
 {
@@ -39,9 +39,9 @@ class wholeBodyDynamicsModule: public yarp::os::RFModule, public wholeBodyDynami
     int     period;
     double  avgTime, stdDev, avgTimeUsed, stdDevUsed;
 
-    yarp::os::Port                rpcPort;        // a port to handle rpc messages
-    wholeBodyDynamicsThread*   wbdThread;     // locomotion control thread
-    yarpWbi::wholeBodyDynamicsStatesInterface* estimationInterface; // interface to communicate with the robot
+    yarp::os::Port                 rpcPort;        // a port to handle rpc messages
+    wholeBodyDynamicsThread*     wbdThread;     // locomotion control thread
+    yarpWbi::yarpWholeBodySensors* sensors;
 
 public:
     wholeBodyDynamicsModule();

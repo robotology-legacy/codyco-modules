@@ -57,6 +57,7 @@ public:
 
     std::vector<yarp::sig::Vector> measured_ft_sensors;
     std::vector<yarp::sig::Vector> estimated_ft_sensors;
+    std::vector<yarp::sig::Vector> ft_sensors_offset;
 
     RobotStatus(int nrOfDOFs=0, int nrOfFTSensors=0);
     bool setNrOfDOFs(int nrOfDOFs);
@@ -95,6 +96,9 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     std::string moduleName;
     /** prefix for all the ports of the robot at which we are connecting */
     std::string robotName;
+    /** wholeBodySensors interface to get sensors readings */
+    wbi::iWholeBodySensors * sensors;
+
     /** helper class for estimating external wrenches and internal torques */
     ExternalWrenchesAndTorquesEstimator * externalWrenchTorqueEstimator;
 
@@ -109,7 +113,9 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     /** Mode of operation of the thread: normal operation or calibration */
     enum { NORMAL, CALIBRATING, CALIBRATING_ON_DOUBLE_SUPPORT } wbd_mode;
 
-    yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts;
+    yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts_input;
+
+    yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts_output;
 
     yarp::os::BufferedPort<yarp::sig::Vector> * port_icubgui_base;
 
@@ -218,7 +224,7 @@ public:
     wholeBodyDynamicsThread(std::string _name,
                             std::string _robotName,
                             int _period,
-                            yarpWbi::wholeBodyDynamicsStatesInterface *_wbi,
+                            yarpWbi::yarpWholeBodySensors *_wbi,
                             yarp::os::Property & yarpWbiOptions,
                             bool _autoconnect,
                             bool assume_fixed_base_calibration,

@@ -40,6 +40,8 @@ namespace wbi {
     class IDList;
 }
 
+using namespace yarpWbi;
+
 
     class TorqueEstimationSubtree
     {
@@ -59,19 +61,16 @@ namespace wbi {
     class ExternalWrenchesAndTorquesEstimator
     {
     protected:
-        yarpWholeBodySensors        *sensors;
+        double periodInMilliSeconds;
+        yarpWbi::yarpWholeBodySensors        *sensors;
         yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * port_skin_contacts;
         iCub::iDynTree::TorqueEstimationTree * robot_estimation_model;
 
-        //double                      estWind;        // time window for the estimation
-
         iCub::ctrl::AWLinEstimator  *dqFilt;        // joint velocity filter
         iCub::ctrl::AWQuadEstimator *d2qFilt;       // joint acceleration filter
-        iCub::ctrl::AWLinEstimator  *dTauJFilt;     // joint torque derivative filter
-        iCub::ctrl::AWLinEstimator  *dTauMFilt;     // motor torque derivative filter
+
         iCub::ctrl::FirstOrderLowPassFilter *tauJFilt;  ///< low pass filter for joint torque
-        iCub::ctrl::FirstOrderLowPassFilter *tauMFilt;  ///< low pass filter for motor torque
-        iCub::ctrl::FirstOrderLowPassFilter *pwmFilt;   ///< low pass filter for motor PWM
+
         std::vector<iCub::ctrl::FirstOrderLowPassFilter *> imuLinearAccelerationFilters; ///<  low pass filters for IMU linear accelerations
         std::vector<iCub::ctrl::FirstOrderLowPassFilter *> imuAngularVelocityFilters; ///< low pass filters for IMU angular velocity
         std::vector<iCub::ctrl::FirstOrderLowPassFilter *> imuMagnetometerFilters; ///< low pass filters for IMU magnetometer
@@ -81,11 +80,7 @@ namespace wbi {
 
         int dqFiltWL, d2qFiltWL;                    // window lengths of adaptive window filters
         double dqFiltTh, d2qFiltTh;                 // threshold of adaptive window filters
-        int dTauMFiltWL, dTauJFiltWL;               // window lengths of adaptive window filters
-        double dTauMFiltTh, dTauJFiltTh;            // threshold of adaptive window filters
         double tauJCutFrequency;
-        double tauMCutFrequency;
-        double pwmCutFrequency;
         double imuLinearAccelerationCutFrequency;
         double imuAngularVelocityCutFrequency;
         double imuMagnetometerCutFrequency;
@@ -142,17 +137,11 @@ namespace wbi {
         bool setVelFiltParams(int windowLength, double threshold);
         /** Set the parameters of the adaptive window filter used for acceleration estimation. */
         bool setAccFiltParams(int windowLength, double threshold);
-        /** Set the parameters of the adaptive window filter used for joint torque derivative estimation. */
-        bool setDtauJFiltParams(int windowLength, double threshold);
-        /** Set the parameters of the adaptive window filter used for motor torque derivative estimation. */
-        bool setDtauMFiltParams(int windowLength, double threshold);
+
         /** Set the cut frequency of the joint torque low pass filter. */
         bool setTauJCutFrequency(double fc);
         /** Set the cut frequency of the motor torque low pass filter. */
-        bool setTauMCutFrequency(double fc);
-        /** Set the cut frequency of the motor PWM low pass filter. */
-        bool setPwmCutFrequency(double fc);
-        /** Enable or disable the use of IMU angular velocity and acceleration in external force estimation */
+
         bool setEnableOmegaDomegaIMU(bool opt);
         /** Set the minimum number of activated taxels an skin contact should have to be considered by the estimation  */
         bool setMinTaxel(const int min_taxel);
@@ -199,7 +188,7 @@ namespace wbi {
          * \todo TODO skin_contacts should be read from the WholeBodySensors interface
          */
         ExternalWrenchesAndTorquesEstimator(int _period,
-                                       yarpWholeBodySensors *_sensors,
+                                       yarpWbi::yarpWholeBodySensors *_sensors,
                                        yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
                                        yarp::os::Property & _wbi_yarp_conf);
 

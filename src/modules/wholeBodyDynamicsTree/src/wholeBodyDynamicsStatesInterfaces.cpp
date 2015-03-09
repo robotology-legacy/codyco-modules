@@ -53,7 +53,8 @@ ExternalWrenchesAndTorquesEstimator::ExternalWrenchesAndTorquesEstimator(int _pe
                                                                yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
                                                                yarp::os::Property & _wbi_yarp_conf
                                                               )
-:  sensors(_sensors),
+:  periodInMilliSeconds(_period),
+   sensors(_sensors),
    port_skin_contacts(_port_skin_contacts),
    dqFilt(0), d2qFilt(0),
    enable_omega_domega_IMU(false),
@@ -68,21 +69,19 @@ ExternalWrenchesAndTorquesEstimator::ExternalWrenchesAndTorquesEstimator(int _pe
     ///< Window lengths of adaptive window filters
     dqFiltWL            = 16;
     d2qFiltWL           = 25;
-    dTauJFiltWL         = 30;
-    dTauMFiltWL         = 30;
+
     imuAngularAccelerationFiltWL = 25;
 
     ///< Threshold of adaptive window filters
     dqFiltTh            = 1.0;
     d2qFiltTh           = 1.0;
-    dTauJFiltTh         = 0.2;
-    dTauMFiltTh         = 0.2;
+
+
     imuAngularAccelerationFiltTh = 1.0;
 
     ///< Cut frequencies
     tauJCutFrequency    =   3.0;
-    tauMCutFrequency    =   3.0;
-    pwmCutFrequency     =   3.0;
+
     imuLinearAccelerationCutFrequency = 3.0;
     imuAngularVelocityCutFrequency    = 3.0;
     imuMagnetometerCutFrequency       = 3.0;
@@ -133,16 +132,12 @@ bool ExternalWrenchesAndTorquesEstimator::init()
     ///< create derivative filters
     dqFilt = new AWLinEstimator(dqFiltWL, dqFiltTh);
     d2qFilt = new AWQuadEstimator(d2qFiltWL, d2qFiltTh);
-    dTauJFilt = new AWLinEstimator(dTauJFiltWL, dTauJFiltTh);
-    dTauMFilt = new AWLinEstimator(dTauMFiltWL, dTauMFiltTh);
 
     ///< read sensors
-    bool ok = sensors->readSensors(SENSOR_ENCODER, estimates.lastQ.data(), qStamps.data(), true);
+    bool ok = sensors->readSensors(SENSOR_ENCODER, estimates.lastQj.data(), qStamps.data(), true);
 
     ///< create low pass filters
-    tauJFilt    = new FirstOrderLowPassFilter(tauJCutFrequency, getRate()*1e-3, estimates.lastTauJ);
-    tauMFilt    = new FirstOrderLowPassFilter(tauMCutFrequency, getRate()*1e-3, estimates.lastTauJ);
-    pwmFilt     = new FirstOrderLowPassFilter(pwmCutFrequency, getRate()*1e-3, estimates.lastPwm);
+    tauJFilt    = new FirstOrderLowPassFilter(tauJCutFrequency, periodInMilliSeconds*1e-3, estimates.lastTauJ);
 
     IDList available_ft_sensors = sensors->getSensorList(SENSOR_FORCE_TORQUE);
     for(int ft_numeric = 0; ft_numeric < (int)available_ft_sensors.size(); ft_numeric++ )
@@ -151,7 +146,7 @@ bool ExternalWrenchesAndTorquesEstimator::init()
         available_ft_sensors.indexToID(ft_numeric,wbi_id);
         int ft_index = ft_numeric;
         sensors->readSensor(SENSOR_FORCE_TORQUE, ft_index, forcetorques[ft_index].data(), &(forcetorquesStamps[ft_index]),true );
-        forcetorqueFilters[ft_index] = new FirstOrderLowPassFilter(forcetorqueCutFrequency,getRate()*1e-3,forcetorques[ft_index]); ///< low pass filter
+        forcetorqueFilters[ft_index] = new FirstOrderLowPassFilter(forcetorqueCutFrequency,periodInMilliSeconds*1e-3,forcetorques[ft_index]); ///< low pass filter
     }
 
      IDList available_imu_sensors = sensors->getSensorList(SENSOR_IMU);
@@ -161,9 +156,9 @@ bool ExternalWrenchesAndTorquesEstimator::init()
          //std::cout << "readSensor for IMU " << imu_index << std::endl;
          assert((int)IMUs.size() > imu_index && (int)IMUs[imu_index].size() == sensorTypeDescriptions[SENSOR_IMU].dataSize );
          if( sensors->readSensor(SENSOR_IMU, numeric_imu_id, IMUs[imu_index].data(), &(IMUStamps[imu_index]),true ) ) {
-             imuLinearAccelerationFilters[imu_index] = new FirstOrderLowPassFilter(imuLinearAccelerationCutFrequency,getRate()*1e-3,IMUs[imu_index].subVector(4,6));  ///< linear acceleration is filtered with a low pass filter
-             imuAngularVelocityFilters[imu_index] = new FirstOrderLowPassFilter(imuAngularVelocityCutFrequency,getRate()*1e-3,IMUs[imu_index].subVector(7,9));  ///< angular velocity is filtered with a low pass filter
-             imuMagnetometerFilters[imu_index] = new FirstOrderLowPassFilter(imuMagnetometerCutFrequency,getRate()*1e-3,IMUs[imu_index].subVector(10,12));  ///< magnetometer readings are filtered with a low pass filter
+             imuLinearAccelerationFilters[imu_index] = new FirstOrderLowPassFilter(imuLinearAccelerationCutFrequency,periodInMilliSeconds*1e-3,IMUs[imu_index].subVector(4,6));  ///< linear acceleration is filtered with a low pass filter
+             imuAngularVelocityFilters[imu_index] = new FirstOrderLowPassFilter(imuAngularVelocityCutFrequency,periodInMilliSeconds*1e-3,IMUs[imu_index].subVector(7,9));  ///< angular velocity is filtered with a low pass filter
+             imuMagnetometerFilters[imu_index] = new FirstOrderLowPassFilter(imuMagnetometerCutFrequency,periodInMilliSeconds*1e-3,IMUs[imu_index].subVector(10,12));  ///< magnetometer readings are filtered with a low pass filter
          } else {
              std::cout << "icubWholeBodyStates: Error in reading IMU, exiting" << std::endl;
              YARP_ASSERT(false);
@@ -378,7 +373,7 @@ bool ExternalWrenchesAndTorquesEstimator::init()
     return ok;
 }
 
-void ExternalWrenchesAndTorquesEstimator::run()
+void ExternalWrenchesAndTorquesEstimator::estimateExternalWrenchAndInternalJoints()
 {
     run_mutex.wait();
     //Temporary workaround: wholeBodyDynamicsStatesInterface needs all the DOF present in the dynamical model
@@ -405,7 +400,7 @@ void ExternalWrenchesAndTorquesEstimator::run()
         ///< Read encoders
         if(sensors->readSensors(SENSOR_ENCODER, q.data(), qStamps.data(), false))
         {
-            estimates.lastQ = q;
+            estimates.lastQj = q;
             AWPolyElement el;
             el.data = q;
             el.time = yarp::os::Time::now();
@@ -471,18 +466,10 @@ void ExternalWrenchesAndTorquesEstimator::run()
             el.time = yarp::os::Time::now();
 
             estimates.lastTauJ = tauJ;// tauJFilt->filt(tauJ);  ///< low pass filter
-            estimates.lastTauM = tauMFilt->filt(tauJ);  ///< low pass filter
 
             el.data = tauJ;
-            estimates.lastDtauJ = dTauJFilt->estimate(el);  ///< derivative filter
-
-            //el.data = tauM;
-            estimates.lastDtauM = dTauMFilt->estimate(el);  ///< derivative filter
         }
 
-        ///< Read motor pwm
-        sensors->readSensors(SENSOR_PWM, pwm.data(),0, false);
-        estimates.lastPwm = pwmFilt->filt(pwm);     ///< low pass filter
     }
     mutex.post();
 
@@ -694,7 +681,7 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
     assert((int)estimates.lastD2q.size() == robot_estimation_model->getNrOfDOFs());
 
     YARP_ASSERT(robot_estimation_model->setInertialMeasure(omega_used_IMU,domega_used_IMU,ddp_used_IMU));
-    (robot_estimation_model->setAng(estimates.lastQ));
+    (robot_estimation_model->setAng(estimates.lastQj));
     (robot_estimation_model->setDAng(estimates.lastDq));
     (robot_estimation_model->setD2Ang(estimates.lastD2q));
     for(int i=0; i < robot_estimation_model->getNrOfFTSensors(); i++ ) {
@@ -780,24 +767,12 @@ void ExternalWrenchesAndTorquesEstimator::fini()
 {
     if(dqFilt!=0)    { delete dqFilt;  dqFilt=0; }
     if(d2qFilt!=0)   { delete d2qFilt; d2qFilt=0; }
-    if(dTauJFilt!=0) { delete dTauJFilt; dTauJFilt=0; }
-    if(dTauMFilt!=0) { delete dTauMFilt; dTauMFilt=0; }     // motor torque derivative filter
     if(tauJFilt!=0)  { delete tauJFilt; tauJFilt=0; }  ///< low pass filter for joint torque
-    if(tauMFilt!=0)  { delete tauMFilt; tauMFilt=0; }  ///< low pass filter for motor torque
-    if(pwmFilt!=0)   { delete pwmFilt; pwmFilt=0;   }
     deleteFirstOrderFilterVector(imuLinearAccelerationFilters);
     deleteFirstOrderFilterVector(imuAngularVelocityFilters);
     deleteFirstOrderFilterVector(imuMagnetometerFilters);
     deleteFirstOrderFilterVector(forcetorqueFilters);
     if(imuAngularAccelerationFilt!=0) { delete imuAngularAccelerationFilt; imuAngularAccelerationFilt=0; }
-
-    double avgTime, stdDev, avgTimeUsed, stdDevUsed;
-    this->getEstPeriod(avgTime, stdDev);
-    this->getEstUsed(avgTimeUsed, stdDevUsed);
-    double period = this->getRate();
-    printf("[PERFORMANCE INFORMATION][yarpWholeBodyDynamicsEstimator]:\n");
-    printf("Expected period %f ms.\nReal period: %3.1f+/-%3.1f ms.\n", period, avgTime, stdDev);
-    printf("Real duration of 'run' method: %3.1f+/-%3.1f ms.\n", avgTimeUsed, stdDevUsed);
 
     return;
 }
@@ -817,14 +792,10 @@ void ExternalWrenchesAndTorquesEstimator::resizeAll(int n)
     tauJStamps.resize(n,INITIAL_TIMESTAMP);
     pwm.resize(n,0);
     pwmStamps.resize(n,INITIAL_TIMESTAMP);
-    estimates.lastQ.resize(n,0.0);
+    estimates.lastQj.resize(n,0.0);
     estimates.lastDq.resize(n,0.0);
     estimates.lastD2q.resize(n,0.0);
     estimates.lastTauJ.resize(n,0.0);
-    estimates.lastTauM.resize(n,0.0);
-    estimates.lastDtauJ.resize(n,0.0);
-    estimates.lastDtauM.resize(n,0.0);
-    estimates.lastPwm.resize(n,0.0);
 }
 
 void ExternalWrenchesAndTorquesEstimator::lockAndResizeFTs(int n)
@@ -955,34 +926,6 @@ bool ExternalWrenchesAndTorquesEstimator::lockAndSetEstimationParameter(const Es
             res = setMinTaxel(*((int*)value));
         break;
 
-    case ESTIMATE_JOINT_TORQUE_DERIVATIVE:
-        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE)
-            res = setDtauJFiltParams(((int*)value)[0], dTauJFiltTh);
-        else if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD)
-            res = setDtauJFiltParams(dTauJFiltWL, ((double*)value)[0]);
-        break;
-
-    case ESTIMATE_MOTOR_TORQUE:
-        if(ep==ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ)
-            res = setTauMCutFrequency(((double*)value)[0]);
-        break;
-
-    case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:
-        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE)
-            res = setDtauMFiltParams(((int*)value)[0], dTauMFiltTh);
-        else if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD)
-            res = setDtauMFiltParams(dTauMFiltWL, ((double*)value)[0]);
-        break;
-
-    case ESTIMATE_MOTOR_PWM:
-        if(ep==ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ)
-            res = setPwmCutFrequency(((double*)value)[0]);
-        break;
-
-    case ESTIMATE_IMU: ///< \todo TODO
-    case ESTIMATE_FORCE_TORQUE_SENSOR: ///< \todo TODO
-    case ESTIMATE_JOINT_POS:
-    case ESTIMATE_MOTOR_POS:
     default: break;
     }
     mutex.post();
@@ -1059,51 +1002,10 @@ bool ExternalWrenchesAndTorquesEstimator::setAccFiltParams(int windowLength, dou
     return true;
 }
 
-bool ExternalWrenchesAndTorquesEstimator::setDtauJFiltParams(int windowLength, double threshold)
-{
-    if(windowLength<1 || threshold<=0.0)
-        return false;
-    dTauJFiltWL = windowLength;
-    dTauJFiltTh = threshold;
-    if(dTauJFilt!=NULL)
-    {
-        AWPolyList list = dTauJFilt->getList();
-        dTauJFilt = new AWLinEstimator(windowLength, threshold);
-        for(AWPolyList::iterator it=list.begin(); it!=list.end(); it++)
-            dTauJFilt->feedData(*it);
-    }
-    return true;
-}
-
-bool ExternalWrenchesAndTorquesEstimator::setDtauMFiltParams(int windowLength, double threshold)
-{
-    if(windowLength<1 || threshold<=0.0)
-        return false;
-    dTauMFiltWL = windowLength;
-    dTauMFiltTh = threshold;
-    if(dTauMFilt!=NULL)
-    {
-        AWPolyList list = dTauMFilt->getList();
-        dTauMFilt = new AWLinEstimator(windowLength, threshold);
-        for(AWPolyList::iterator it=list.begin(); it!=list.end(); it++)
-            dTauMFilt->feedData(*it);
-    }
-    return true;
-}
 
 bool ExternalWrenchesAndTorquesEstimator::setTauJCutFrequency(double fc)
 {
     return tauJFilt->setCutFrequency(fc);
-}
-
-bool ExternalWrenchesAndTorquesEstimator::setTauMCutFrequency(double fc)
-{
-    return tauMFilt->setCutFrequency(fc);
-}
-
-bool ExternalWrenchesAndTorquesEstimator::setPwmCutFrequency(double fc)
-{
-    return pwmFilt->setCutFrequency(fc);
 }
 
 bool ExternalWrenchesAndTorquesEstimator::setEnableOmegaDomegaIMU(bool _enabled_omega_domega_IMU)

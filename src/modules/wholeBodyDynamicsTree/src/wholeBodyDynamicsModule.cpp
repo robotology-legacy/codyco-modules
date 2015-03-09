@@ -48,7 +48,7 @@ using namespace wbi;
 wholeBodyDynamicsModule::wholeBodyDynamicsModule()
 {
     wbdThread      = 0;
-    estimationInterface  = 0;
+    sensors  = 0;
     period          = 10;
 }
 
@@ -199,65 +199,75 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         yarpWbiOptions.put("calibration_support_link","root_link");
     }
 
-    estimationInterface = new wholeBodyDynamicsStatesInterface(moduleName.c_str(), period, yarpWbiOptions);
+    sensors = new yarpWholeBodySensors(moduleName.c_str(), yarpWbiOptions);
 
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,RobotDynamicModelJoints);
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,RobotDynamicModelJoints);
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,RobotDynamicModelJoints);
+    sensors->addSensors(wbi::SENSOR_ENCODER,RobotDynamicModelJoints);
+    //estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,RobotDynamicModelJoints);
+    //estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,RobotDynamicModelJoints);
 
      //List of 6-axis Force-Torque sensors in the robot
     IDList RobotFTSensors;
     std::string RobotFTSensorsListName = "ROBOT_MAIN_FTS";
     if( !loadIdListFromConfig(RobotFTSensorsListName,yarpWbiOptions,RobotFTSensors) )
     {
-        fprintf(stderr, "[ERR] wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
+        yError("wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
     }
-    estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,RobotFTSensors);
+    sensors->addSensors(wbi::SENSOR_FORCE_TORQUE,RobotFTSensors);
 
     //List of IMUs sensors in the robot
     IDList RobotIMUSensors;
     std::string RobotIMUSensorsListName = "ROBOT_MAIN_IMUS";
     if( !loadIdListFromConfig(RobotIMUSensorsListName,yarpWbiOptions,RobotIMUSensors) )
     {
-        fprintf(stderr, "[ERR] wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
+        yError("wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
     }
-    estimationInterface->addEstimates(wbi::ESTIMATE_IMU,RobotIMUSensors);
+    sensors->addSensors(wbi::SENSOR_FORCE_TORQUE,RobotIMUSensors);
 
-    //Add torque estimation
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_TORQUE, RobotDynamicModelJoints);
-
-    if(!estimationInterface->init()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl; return false; }
+    if(!sensors->init())
+    {
+        yError() << getName() << ": Error while initializing whole body estimator interface.Closing module";
+        return false;
+    }
 
     bool use_ang_vel_acc = true;
     if( rf.check("enable_w0_dw0") )
     {
+        YARP_ASSERT(false);
+
         yInfo() << "enable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration.";
         use_ang_vel_acc = true;
-        estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
+        //estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
     }
 
     if( rf.check("disable_w0_dw0") )
     {
+            YARP_ASSERT(false);
+
         yInfo() << "disable_w0_dw0 option found, disabling the use of IMU angular velocity/acceleration.";
         use_ang_vel_acc = false;
-        estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
+        //estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
     }
 
     if( rf.check("min_taxel") )
     {
+            YARP_ASSERT(false);
+
         int taxel_threshold = rf.find("min_taxel").asInt();
         yInfo() << "min_taxel option found, ignoring skin contacts with less then "
                   << taxel_threshold << " active taxels will be ignored.";
+        /*
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,
                                                     wbi::ESTIMATION_PARAM_MIN_TAXEL,
-                                                    &taxel_threshold);
+                                                    &taxel_threshold);*/
     }
     else
     {
         int taxel_threshold = 0;
+        YARP_ASSERT(false);
+        /*
         estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,
                                                     wbi::ESTIMATION_PARAM_MIN_TAXEL,
-                                                    &taxel_threshold);
+                                                    &taxel_threshold);*/
     }
 
 
@@ -279,7 +289,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     wbdThread = new wholeBodyDynamicsThread(moduleName,
                                             robotName,
                                             period,
-                                            estimationInterface,
+                                            sensors,
                                             yarpWbiOptions,
                                             autoconnect,
                                             fixed_base_calibration,
@@ -313,19 +323,19 @@ bool wholeBodyDynamicsModule::close()
     //stop threads
     if(wbdThread)
     {
-        std::cout << getName() << ": closing wholeBodyDynamicsThread" << std::endl;
+        yInfo() << getName() << ": closing wholeBodyDynamicsThread";
         wbdThread->stop();
         delete wbdThread;
         wbdThread = 0;
     }
-    if(estimationInterface)
+    if(sensors)
     {
-        std::cout << getName() << ": closing wholeBodyStateLocal interface" << std::endl;
-        bool res=estimationInterface->close();
+        yInfo() << getName() << ": closing wholeBodySensors interface";
+        bool res=sensors->close();
         if(!res)
-            printf("Error while closing robot estimator\n");
-        delete estimationInterface;
-        estimationInterface = 0;
+            yError("Error while closing robot sensors interface\n");
+        delete sensors;
+        sensors = 0;
     }
 
     //closing ports
