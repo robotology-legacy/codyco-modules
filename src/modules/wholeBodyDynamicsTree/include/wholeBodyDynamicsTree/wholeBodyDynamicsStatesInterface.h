@@ -64,7 +64,6 @@ using namespace yarpWbi;
         double periodInMilliSeconds;
         yarpWbi::yarpWholeBodySensors        *sensors;
         yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * port_skin_contacts;
-        iCub::iDynTree::TorqueEstimationTree * robot_estimation_model;
 
         iCub::ctrl::AWLinEstimator  *dqFilt;        // joint velocity filter
         iCub::ctrl::AWQuadEstimator *d2qFilt;       // joint acceleration filter
@@ -163,6 +162,9 @@ using namespace yarpWbi;
         void readEndEffectorsExternalWrench();
 
     public:
+
+        iCub::iDynTree::TorqueEstimationTree * robot_estimation_model;
+
 
         yarp::os::Semaphore         mutex;          // mutex for access to class global variables
         yarp::os::Semaphore         model_mutex;    // mutex for access the dynamic model

@@ -58,6 +58,7 @@ public:
     std::vector<yarp::sig::Vector> measured_ft_sensors;
     std::vector<yarp::sig::Vector> estimated_ft_sensors;
     std::vector<yarp::sig::Vector> ft_sensors_offset;
+    std::vector<yarp::sig::Vector> model_ft_sensors;
 
     RobotStatus(int nrOfDOFs=0, int nrOfFTSensors=0);
     bool setNrOfDOFs(int nrOfDOFs);

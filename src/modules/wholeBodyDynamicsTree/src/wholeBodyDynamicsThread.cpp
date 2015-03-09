@@ -59,6 +59,7 @@ bool RobotStatus::zero()
         estimated_ft_sensors[i].zero();
         measured_ft_sensors[i].zero();
         ft_sensors_offset[i].zero();
+        model_ft_sensors[i].zero();
     }
     return true;
 }
@@ -82,6 +83,7 @@ bool RobotStatus::setNrOfFTSensors(int nrOfFTsensors)
     estimated_ft_sensors.resize(nrOfFTsensors,yarp::sig::Vector(6,0.0));
     measured_ft_sensors.resize(nrOfFTsensors,yarp::sig::Vector(6,0.0));
     ft_sensors_offset.resize(nrOfFTsensors,yarp::sig::Vector(6,0.0));
+    model_ft_sensors.resize(nrOfFTsensors,yarp::sig::Vector(6,0.0));
     zero();
     return true;
 }
@@ -764,45 +766,18 @@ void KDLWrenchToRawValues(const KDL::Wrench & f, double * buf)
 //****************************************************************************
 void wholeBodyDynamicsThread::getExternalWrenches()
 {
-    //Get joint position, to estimate frame transforms
-    icub_model_calibration->setAng(tree_status.qj);
-
     for(int i=0; i < output_wrench_ports.size(); i++ )
     {
         int link_id = output_wrench_ports[i].link_index;
         int frame_origin_id = output_wrench_ports[i].origin_frame_index;
         int frame_orientation_id = output_wrench_ports[i].orientation_frame_index;
 
-        double buf[6];
-        //ret = estimator->getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, link_id, buf);
-        YARP_ASSERT(false);
-        bool ret = false;
-        if(!ret)
-        {
-            yError() << "wholeBodyDynamicsThread::getEndEffectorWrenches(): Unable to get estimates of link_id" << link_id;
-            break;
-        }
-
-        KDL::Wrench link_f;
+        KDL::Wrench f =
+            externalWrenchTorqueEstimator->robot_estimation_model->getExternalForceTorqueKDL(link_id,frame_origin_id,frame_orientation_id);
 
         // We can do that just because the translational-angular serialization
         // is the same in KDL and wbi
-        KDLWrenchFromRawValues(buf,link_f);
-
-        // Express the measure in the desired point
-        KDL::Frame origin_frame_H_link =
-            icub_model_calibration->getPositionKDL(frame_origin_id,link_id);
-
-        KDL::Wrench link_f_properly_translated =
-            KDL::Frame(origin_frame_H_link.p)*link_f;
-
-        // Rotate the measure in the desired orientation
-        KDL::Frame orientation_frame_H_link
-            = icub_model_calibration->getPositionKDL(frame_orientation_id,link_id);
-
-        KDL::Wrench link_f_properly_oriented_and_translated = orientation_frame_H_link.M *link_f_properly_translated;
-
-        KDLWrenchToRawValues(link_f_properly_oriented_and_translated,output_wrench_ports[i].output_vector.data());
+        KDLWrenchToRawValues(f,output_wrench_ports[i].output_vector.data());
     }
 
     return;
@@ -904,9 +879,6 @@ void wholeBodyDynamicsThread::publishBaseToGui()
 void wholeBodyDynamicsThread::publishFilteredInertialForGravityCompensator()
 {
     //bool ret;
-    //ret = estimator->getEstimates(wbi::ESTIMATE_IMU,tree_status.wbi_imu.data());
-    YARP_ASSERT(false);
-
     FilteredInertialForGravityComp.zero();
 
     for(int i=0; i < 6; i++ )
@@ -940,10 +912,8 @@ void wholeBodyDynamicsThread::readRobotStatus()
 
     // Get joint encoders position, velocities and accelerations
     sensors->readSensors(SENSOR_ENCODER, tree_status.qj.data(), stamps, wait);
-    tree_status.dqj.zero();
-    tree_status.ddqj.zero();
-    //sensors->readSensors(SENSOR_ENCODER_VEL, tree_status.dqj.data(), stamps, wait);
-    //sensors->readSensors(SENSOR_ENCODER_ACC, tree_status.ddqj.data(), stamps, wait);
+    sensors->readSensors(wbi::SENSOR_ENCODER_SPEED, tree_status.dqj.data(), stamps, wait);
+    sensors->readSensors(wbi::SENSOR_ENCODER_ACCELERATION, tree_status.ddqj.data(), stamps, wait);
 
     // Get 6-Axis F/T sensors measure
     const IDList & available_ft_sensors = sensors->getSensorList(SENSOR_FORCE_TORQUE);
@@ -1009,18 +979,18 @@ void wholeBodyDynamicsThread::estimation_run()
 {
     bool ret;
 
+    // Get sensors informations
+    this->readRobotStatus();
 
-    //Read sensors and do estimation
-    estimator->readSensorsAndDoEstimation();
+    //
+    externalWrenchTorqueEstimator->estimateExternalWrenchAndInternalJoints();
 
     //Get estimated torques
     assert(estimator->getEstimateNumber(wbi::ESTIMATE_JOINT_TORQUE) == (int)all_torques.size());
-    ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_TORQUE,all_torques.data());
-    YARP_ASSERT(ret);
+    all_torques = externalWrenchTorqueEstimator->estimates.lastTauJ;
 
     //Get estimated external contacts
-    ret = estimator->getEstimatedExternalForces(external_forces_list);
-    YARP_ASSERT(ret);
+    external_forces_list = externalWrenchTorqueEstimator->estimatedLastSkinDynContacts;
 
     //Get estimated external ee wrenches
     getExternalWrenches();
@@ -1073,14 +1043,6 @@ std::string getCurrentDateAndTime()
 //*************************************************************************************************************************
 void wholeBodyDynamicsThread::calibration_run()
 {
-    //std::cout << "wholeBodyDynamicsThread::calibration_run() " << samples_used_for_calibration << " / " << samples_requested_for_calibration << "  called" << std::endl;
-    //bool ret;
-    //ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.qj.data());
-    //ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_VEL,tree_status.dqj.data());
-    //ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_ACC,tree_status.ddqj.data());
-    //ret = ret && estimator->getEstimates(wbi::ESTIMATE_IMU,tree_status.wbi_imu.data());
-    YARP_ASSERT(false);
-
     //std::cout << "wholeBodyDynamicsThread::calibration_run(): estimates obtained" << std::endl;
 
     //Setting imu proper acceleration from measure (assuming omega e domega = 0)
@@ -1125,12 +1087,13 @@ void wholeBodyDynamicsThread::calibration_run()
 
     for(int ft_sensor_id=0; ft_sensor_id < (int)offset_buffer.size(); ft_sensor_id++ ) {
         if( calibrate_ft_sensor[ft_sensor_id] ) {
+
             //Get sensor estimated from model
-            icub_model_calibration->getSensorMeasurement(ft_sensor_id,tree_status.estimated_ft_sensors[ft_sensor_id]);
+            icub_model_calibration->getSensorMeasurement(ft_sensor_id,tree_status.model_ft_sensors[ft_sensor_id]);
+
             //Get sensor measure
-            estimator->getEstimate(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,ft_sensor_id,tree_status.measured_ft_sensors[ft_sensor_id].data());
             assert((int)offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
-            offset_buffer[ft_sensor_id] += tree_status.measured_ft_sensors[ft_sensor_id]-tree_status.estimated_ft_sensors[ft_sensor_id];
+            offset_buffer[ft_sensor_id] += tree_status.measured_ft_sensors[ft_sensor_id]-tree_status.model_ft_sensors[ft_sensor_id];
             //std::cout << "Estimated ft sensor " << ft_sensor_id << " : " << tree_status.estimated_ft_sensors[ft_sensor_id].toString() << std::endl;
             //std::cout << "Subchain mass : " << norm(tree_status.estimated_ft_sensors[ft_sensor_id].subVector(0,2))/norm( tree_status.proper_ddp_imu) << std::endl;
         }
