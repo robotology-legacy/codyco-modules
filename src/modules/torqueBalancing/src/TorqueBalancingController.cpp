@@ -110,6 +110,7 @@ namespace codyco {
             m_torquesSelector.bottomRows(m_actuatedDOFs).setIdentity();
             
             m_jointsZeroVector.setZero();
+            m_esaZeroVector.setZero();
             m_torqueSaturationLimit.setConstant(std::numeric_limits<double>::max());
             
             //reset status to zero
