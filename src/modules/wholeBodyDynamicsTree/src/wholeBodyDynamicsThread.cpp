@@ -15,8 +15,11 @@
  * Public License for more details
 */
 
+// Local includes
 #include "wholeBodyDynamicsTree/wholeBodyDynamicsThread.h"
 #include "wholeBodyDynamicsTree/wholeBodyDynamicsStatesInterface.h"
+
+// Yarp includes
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
 #include <yarp/os/LogStream.h>
@@ -24,7 +27,8 @@
 #include <yarp/os/ResourceFinder.h>
 #include <yarp/math/SVD.h>
 
-#include <string.h>
+// System includes
+#include <cstring>
 #include <ctime>
 
 
@@ -36,21 +40,21 @@ using namespace yarpWbi;
 using namespace std;
 using namespace iCub::skinDynLib;
 
-iCubTreeStatus::iCubTreeStatus(int nrOfDOFs, int nrOfFTsensors)
+tatus::RobotStatus(int nrOfDOFs, int nrOfFTsensors)
 {
     setNrOfDOFs(nrOfDOFs);
     setNrOfFTSensors(nrOfFTsensors);
 }
 
-bool iCubTreeStatus::zero()
+bool RobotStatus::zero()
 {
     domega_imu.zero();
     omega_imu.zero();
     proper_ddp_imu.zero();
     wbi_imu.zero();
-    q.zero();
-    dq.zero();
-    ddq.zero();
+    qj.zero();
+    dqj.zero();
+    ddqj.zero();
     for(unsigned int i=0; i < estimated_ft_sensors.size(); i++ ) {
         estimated_ft_sensors[i].zero();
         measured_ft_sensors[i].zero();
@@ -58,21 +62,21 @@ bool iCubTreeStatus::zero()
     return true;
 }
 
-bool iCubTreeStatus::setNrOfDOFs(int nrOfDOFs)
+bool RobotStatus::setNrOfDOFs(int nrOfDOFs)
 {
     domega_imu.resize(3);
     omega_imu.resize(3);
     proper_ddp_imu.resize(3);
     wbi_imu.resize(wbi::sensorTypeDescriptions[wbi::SENSOR_IMU].dataSize);
-    q.resize(nrOfDOFs);
-    dq.resize(nrOfDOFs);
-    ddq.resize(nrOfDOFs);
+    qj.resize(nrOfDOFs);
+    dqj.resize(nrOfDOFs);
+    ddqj.resize(nrOfDOFs);
 
     zero();
     return true;
 }
 
-bool iCubTreeStatus::setNrOfFTSensors(int nrOfFTsensors)
+bool RobotStatus::setNrOfFTSensors(int nrOfFTsensors)
 {
     estimated_ft_sensors.resize(nrOfFTsensors,yarp::sig::Vector(6,0.0));
     measured_ft_sensors.resize(nrOfFTsensors,yarp::sig::Vector(6,0.0));
@@ -92,12 +96,12 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
                                                  bool _publish_filtered_ft
                                                 )
     :  RateThread(_period),
-       name(_name),
+       moduleName(_name),
        robotName(_robotName),
        estimator(_wbs),
        yarp_options(_yarp_wbi_opts),
        printCountdown(0),
-       PRINT_PERIOD(2000),
+       printPeriod(2000),
        samples_requested_for_calibration(200),
        max_samples_for_calibration(2000),
        samples_used_for_calibration(0),
@@ -156,7 +160,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 
     //Copied from old wholeBodyDynamics
     std::string robot_name = robotName;
-    std::string local_name = name;
+    std::string local_name = moduleName;
 
     port_contacts = new BufferedPort<skinContactList>;
 
@@ -437,7 +441,7 @@ bool wholeBodyDynamicsThread::threadInit()
     for(int output_torque_port_i = 0; output_torque_port_i < (int)output_torque_ports.size(); output_torque_port_i++ )
     {
         std::string port_name = output_torque_ports[output_torque_port_i].port_name;
-        std::string local_port = "/" + name + "/" + port_name + "/Torques:o";
+        std::string local_port = "/" + moduleName + "/" + port_name + "/Torques:o";
         std::string robot_port = "/" + robotName  + "/joint_vsens/" + port_name + ":i";
 
     }
@@ -450,7 +454,7 @@ bool wholeBodyDynamicsThread::threadInit()
     for(int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
     {
             std::string port_name = output_torque_ports[output_torque_port_i].port_name;
-            std::string local_port = "/" + name + "/" + port_name + "/Torques:o";
+            std::string local_port = "/" + moduleName + "/" + port_name + "/Torques:o";
             std::string robot_port = "/" + robotName  + "/joint_vsens/" + port_name + ":i";
             output_torque_ports[output_torque_port_i].output_port = new BufferedPort<Bottle>;
             output_torque_ports[output_torque_port_i].output_port->open(local_port);
@@ -768,14 +772,14 @@ void KDLWrenchToRawValues(const KDL::Wrench & f, double * buf)
 void wholeBodyDynamicsThread::getExternalWrenches()
 {
     //Get joint position, to estimate frame transforms
-    bool ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
+    bool ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.qj.data());
     if(!ret)
     {
         yError() << "wholeBodyDynamicsThread::getExternalWrenches(): Unable to get estimates of joint positions";
         return;
     }
     YARP_ASSERT(ret);
-    icub_model_calibration->setAng(tree_status.q);
+    icub_model_calibration->setAng(tree_status.qj);
 
     for(int i=0; i < output_wrench_ports.size(); i++ )
     {
@@ -867,20 +871,20 @@ void wholeBodyDynamicsThread::publishBaseToGui()
         root_link_idyntree_id != -1 )
     {
         bool ret;
-        ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
+        ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.qj.data());
         YARP_ASSERT(ret);
 
         //For the icubGui, the world is the root frame when q == 0
         //So we have to find the transformation between the root now
         //and the root when q == 0
-        icub_model_calibration->setAng(tree_status.q);
+        icub_model_calibration->setAng(tree_status.qj);
 
         // {}^{leftFoot} H_{currentRoot}
         KDL::Frame H_leftFoot_currentRoot
             = icub_model_calibration->getPositionKDL(left_foot_link_idyntree_id,root_link_idyntree_id);
 
-        tree_status.q.zero();
-        icub_model_calibration->setAng(tree_status.q);
+        tree_status.qj.zero();
+        icub_model_calibration->setAng(tree_status.qj);
 
         //{}^world H_{leftFoot}
         KDL::Frame H_world_leftFoot
@@ -945,13 +949,67 @@ void wholeBodyDynamicsThread::publishFilteredFTWithoutOffset()
     }
 }
 
+//***************************************************************************
+void wholeBodyDynamicsThread::readRobotStatus()
+{
+    //Don't wait to get a sensor measure
+    bool wait = false;
+    //Don't get timestamps
+    double * stamps = NULL;
+
+    // Get joint encoders position, velocities and accelerations
+    sensors->readSensors(SENSOR_ENCODER, tree_status.qj.data(), stamps, wait);
+    tree_status.dqj.zero();
+    tree_status.ddqj.zero();
+    //sensors->readSensors(SENSOR_ENCODER_VEL, tree_status.dqj.data(), stamps, wait);
+    //sensors->readSensors(SENSOR_ENCODER_ACC, tree_status.ddqj.data(), stamps, wait);
+
+    // Get 6-Axis F/T sensors measure
+    IDList & available_ft_sensors = sensors->getSensorList(SENSOR_FORCE_TORQUE);
+    for(int ft_numeric = 0; ft_numeric < (int)available_ft_sensors.size(); ft_numeric++ )
+    {
+        int ft_index = ft_numeric;
+        if( sensors->readSensor(SENSOR_FORCE_TORQUE, ft_numeric, tree_status.measured_ft_sensors[ft_numeric].data(), stamps , wait) ) {
+            // Add a low pass filter here? \todo TODO
+            tree_status.estimated_ft_sensors[ft_numeric] = tree_status.estimated_ft_sensors[ft_numeric] - tree_status.ft_sensor_offsets[ft_numeric]; /// remove offset
+        } else {
+            yError() << "wholeBodyDynamics: Error in reading F/T sensors, exiting";
+        }
+    }
+
+    // Get IMU measure (for now only one IMU is considered)
+    IDList & available_imu_sensors = sensors->getSensorList(SENSOR_IMU);
+    for(int imu_numeric = 0; imu_numeric < (int) 1; imu_numeric++ )
+    {
+        int imu_index = imu_numeric;
+        assert((int)IMUs.size() > imu_index );
+        assert((int)IMUs[imu_index].size() == sensorTypeDescriptions[SENSOR_IMU].dataSize );
+        if( sensors->readSensor(SENSOR_IMU, imu_numeric, tree_status.wbi_imu.data(), stamps, wait) )
+        {
+            // fill imu values
+            YARP_ASSERT(false);
+            1++;
+
+            //estimates.lastIMUs[imu_index].setSubvector(4,imuLinearAccelerationFilters[imu_index]->filt(IMUs[imu_index].subVector(4,6)));  ///< linear acceleration is filtered with a low pass filter
+            //estimates.lastIMUs[imu_index].setSubvector(7,imuAngularVelocityFilters[imu_index]->filt(IMUs[imu_index].subVector(7,9)));  ///< angular velocity is filtered with a low pass filter
+        } else {
+            yError() << "wholeBodyDynamicsTree : Error in reading IMU" << std::endl;
+        }
+    }
+
+}
+
+
 //*************************************************************************************************************************
 void wholeBodyDynamicsThread::run()
 {
     run_mutex.lock();
+
+    readRobotStatus();
+
     if( wbd_mode == NORMAL )
     {
-        normal_run();
+        estimation_run();
     }
     else if( wbd_mode == CALIBRATING )
     {
@@ -966,10 +1024,13 @@ void wholeBodyDynamicsThread::run()
 }
 
 //*************************************************************************************************************************
-void wholeBodyDynamicsThread::normal_run()
+void wholeBodyDynamicsThread::estimation_run()
 {
     bool ret;
-    //Get data from estimator and publish it
+
+
+    //Read sensors and do estimation
+    estimator->readSensorsAndDoEstimation();
 
     //Get estimated torques
     assert(estimator->getEstimateNumber(wbi::ESTIMATE_JOINT_TORQUE) == (int)all_torques.size());
@@ -999,7 +1060,7 @@ void wholeBodyDynamicsThread::normal_run()
     publishFilteredFTWithoutOffset();
 
     //if normal mode, publish the
-    printCountdown = (printCountdown>=PRINT_PERIOD) ? 0 : printCountdown +(int)getRate();   // countdown for next print (see sendMsg method)
+    printCountdown = (printCountdown>=printPeriod) ? 0 : printCountdown +(int)getRate();   // countdown for next print (see sendMsg method)
 
     if( printCountdown == 0 ) {
 
@@ -1033,9 +1094,9 @@ void wholeBodyDynamicsThread::calibration_run()
 {
     //std::cout << "wholeBodyDynamicsThread::calibration_run() " << samples_used_for_calibration << " / " << samples_requested_for_calibration << "  called" << std::endl;
     bool ret;
-    ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
-    ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_VEL,tree_status.dq.data());
-    ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_ACC,tree_status.ddq.data());
+    ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.qj.data());
+    ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_VEL,tree_status.dqj.data());
+    ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_ACC,tree_status.ddqj.data());
     ret = ret && estimator->getEstimates(wbi::ESTIMATE_IMU,tree_status.wbi_imu.data());
     YARP_ASSERT(ret);
 
@@ -1070,9 +1131,9 @@ void wholeBodyDynamicsThread::calibration_run()
 
     //Estimating sensors
     icub_model_calibration->setInertialMeasure(0.0*tree_status.omega_imu,0.0*tree_status.domega_imu,tree_status.proper_ddp_imu);
-    icub_model_calibration->setAng(tree_status.q);
-    icub_model_calibration->setDAng(0.0*tree_status.dq);
-    icub_model_calibration->setD2Ang(0.0*tree_status.ddq);
+    icub_model_calibration->setAng(tree_status.qj);
+    icub_model_calibration->setDAng(0.0*tree_status.dqj);
+    icub_model_calibration->setD2Ang(0.0*tree_status.ddqj);
 
     icub_model_calibration->kinematicRNEA();
     icub_model_calibration->dynamicRNEA();
@@ -1141,9 +1202,9 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
 {
     //std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run() " << samples_used_for_calibration << " / " << samples_requested_for_calibration << "  called" << std::endl;
     bool ret;
-    ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.q.data());
-    ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_VEL,tree_status.dq.data());
-    ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_ACC,tree_status.ddq.data());
+    ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.qj.data());
+    ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_VEL,tree_status.dqj.data());
+    ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_ACC,tree_status.ddqj.data());
     ret = ret && estimator->getEstimates(wbi::ESTIMATE_IMU,tree_status.wbi_imu.data());
     YARP_ASSERT(ret);
 
@@ -1178,9 +1239,9 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
 
     //Estimating sensors
     icub_model_calibration->setInertialMeasure(0.0*tree_status.omega_imu,0.0*tree_status.domega_imu,tree_status.proper_ddp_imu);
-    icub_model_calibration->setAng(tree_status.q);
-    icub_model_calibration->setDAng(0.0*tree_status.dq);
-    icub_model_calibration->setD2Ang(0.0*tree_status.ddq);
+    icub_model_calibration->setAng(tree_status.qj);
+    icub_model_calibration->setDAng(0.0*tree_status.dqj);
+    icub_model_calibration->setD2Ang(0.0*tree_status.ddqj);
 
     icub_model_calibration->kinematicRNEA();
     icub_model_calibration->estimateDoubleSupportContactForce(left_foot_link_idyntree_id,right_foot_link_idyntree_id);

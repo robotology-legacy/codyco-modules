@@ -43,20 +43,22 @@
 #include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 #include "wholeBodyDynamicsTree/wholeBodyDynamicsStatesInterface.h"
 
-class iCubTreeStatus
+class RobotStatus
 {
 public:
-    yarp::sig::Vector q;
-    yarp::sig::Vector dq;
-    yarp::sig::Vector ddq;
+    yarp::sig::Vector qj;
+    yarp::sig::Vector dqj;
+    yarp::sig::Vector ddqj;
+
     yarp::sig::Vector omega_imu;
     yarp::sig::Vector domega_imu;
     yarp::sig::Vector proper_ddp_imu;
     yarp::sig::Vector wbi_imu;
+
     std::vector<yarp::sig::Vector> measured_ft_sensors;
     std::vector<yarp::sig::Vector> estimated_ft_sensors;
 
-    iCubTreeStatus(int nrOfDOFs=0, int nrOfFTSensors=0);
+    RobotStatus(int nrOfDOFs=0, int nrOfFTSensors=0);
     bool setNrOfDOFs(int nrOfDOFs);
     bool setNrOfFTSensors(int nrOfFTSensors);
     bool zero();
@@ -89,14 +91,23 @@ struct outputWrenchPortInformation
   */
 class wholeBodyDynamicsThread: public yarp::os::RateThread
 {
-    std::string name;
+    /** prefix for all the ports opened by this module */
+    std::string moduleName;
+    /** prefix for all the ports of the robot at which we are connecting */
     std::string robotName;
-    yarpWbi::wholeBodyDynamicsStatesInterface *estimator;
+    /** helper class for estimating external wrenches and internal torques */
+    ExternalWrenchesAndTorquesEstimator * externalWrenchTorqueEstimator;
 
-    int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
-    double              PRINT_PERIOD;
+    /** helper class for calibrating 6-axis F/T sensors offsets */
+    // OffsetEstimator offsetEstimator;
 
-    enum { NORMAL, CALIBRATING, CALIBRATING_ON_DOUBLE_SUPPORT } wbd_mode;     /// < Mode of operation of the thread: normal operation or calibration
+    /** helper variable for printing every printPeriod milliseconds */
+    int                 printCountdown;
+    /** period after which some diagnostic messages are print */
+    double              printPeriod;
+
+    /** Mode of operation of the thread: normal operation or calibration */
+    enum { NORMAL, CALIBRATING, CALIBRATING_ON_DOUBLE_SUPPORT } wbd_mode;
 
     yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts;
 
@@ -105,7 +116,6 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     yarp::os::BufferedPort<yarp::sig::Vector> * port_filtered_inertial;
 
     std::vector<yarp::os::BufferedPort<yarp::sig::Vector> *> port_filtered_ft;
-
 
     yarp::os::Stamp timestamp;
 
@@ -125,7 +135,7 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
 
     wbi::ID convertFTiDynTreeToFTwbi(int ft_sensor_id);
-    void normal_run();
+    void estimation_run();
     void calibration_run();
     void calibration_on_double_support_run();
 
@@ -152,14 +162,13 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
     iCub::skinDynLib::skinContactList external_forces_list;
 
-
     yarp::sig::Vector iCubGuiBase;
     yarp::sig::Vector FilteredInertialForGravityComp;
 
     //Calibration related variables
     yarp::os::Mutex run_mutex;
     yarp::os::Mutex calibration_mutex;
-    iCubTreeStatus tree_status;
+    RobotStatus tree_status;
 
     iCub::iDynTree::TorqueEstimationTree * icub_model_calibration;
     std::string calibration_support_link;
@@ -229,6 +238,7 @@ public:
      * @return always returns true
      */
     bool waitCalibrationDone();
+    void readRobotStatus();
     void run();
     void threadRelease();
 

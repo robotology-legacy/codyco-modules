@@ -45,354 +45,15 @@ using namespace iCub::ctrl;
 
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-//
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-wholeBodyDynamicsStatesInterface::wholeBodyDynamicsStatesInterface(const char* _name,
-                                                                   int estimator_period,
-                                                   yarp::os::Property & _wbi_yarp_conf)
-{
-    sensors = new yarpWholeBodySensors(_name, _wbi_yarp_conf);              // sensor interface
-    skin_contacts_port = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
-    skin_contacts_port->open(string("/"+string(_name)+"/skin_contacts:i").c_str());
-    estimator = new yarpWholeBodyDynamicsEstimator(estimator_period, sensors, skin_contacts_port, _wbi_yarp_conf);  // estimation thread
-}
-
-bool wholeBodyDynamicsStatesInterface::init()
-{
-    bool ok = sensors->init();              // initialize sensor interface
-    if( !ok )
-    {
-        yError() << "wholeBodyDynamicsStatesInterface::init() failed: error in sensor initialization.";
-        close();
-        return false;
-    }
-
-    ok = estimator->start();
-    if( !ok )
-    {
-        yError() << "wholeBodyDynamicsStatesInterface::init() failed: error in estimator initialization.";
-        close();
-        return false;
-    }
-
-    return ok; // start estimation thread
-}
-
-bool wholeBodyDynamicsStatesInterface::close()
-{
-    std::cout << "[INFO]wholeBodyDynamicsStatesInterface::close() : closing estimator thread" << std::endl;
-    if(estimator) estimator->stop();  // stop estimator BEFORE closing sensor interface
-    std::cout << "[INFO]wholeBodyDynamicsStatesInterface::close() : closing sensor interface" << std::endl;
-    bool ok = (sensors ? sensors->close() : true);
-    std::cout << "[INFO]wholeBodyDynamicsStatesInterface::close() : closing skin_contacts_port" << std::endl;
-    if( skin_contacts_port )
-    {
-        skin_contacts_port->close();
-        delete skin_contacts_port;
-        skin_contacts_port = 0;
-    }
-    std::cout << "wholeBodyDynamicsStatesInterface::close() : deleting sensor interface" << std::endl;
-    if(sensors) { delete sensors; sensors = 0; }
-    std::cout << "wholeBodyDynamicsStatesInterface::close() : deleting estimator thread" << std::endl;
-    if(estimator) { delete estimator; estimator = 0; }
-    return ok;
-}
-
-bool wholeBodyDynamicsStatesInterface::addEstimate(const EstimateType et, const ID &sid)
-{
-    switch(et)
-    {
-    case ESTIMATE_JOINT_POS:                return lockAndAddSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_JOINT_VEL:                return lockAndAddSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_JOINT_ACC:                return lockAndAddSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_JOINT_TORQUE:             return lockAndAddSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_JOINT_TORQUE_DERIVATIVE:  return lockAndAddSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_MOTOR_POS:                return lockAndAddSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_MOTOR_VEL:                return lockAndAddSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_MOTOR_ACC:                return lockAndAddSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_MOTOR_TORQUE:             return lockAndAddSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return lockAndAddSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_MOTOR_PWM:                return lockAndAddSensor(SENSOR_PWM, sid);
-    case ESTIMATE_IMU:                      return lockAndAddSensor(SENSOR_IMU, sid);
-    case ESTIMATE_FORCE_TORQUE_SENSOR:             return lockAndAddSensor(SENSOR_FORCE_TORQUE, sid);
-    default: break;
-    }
-    return false;
-}
-
-int wholeBodyDynamicsStatesInterface::addEstimates(const EstimateType et, const IDList &sids)
-{
-    //\todo TODO properly handle dependencies
-    switch(et)
-    {
-    case ESTIMATE_JOINT_POS:                return lockAndAddSensors(SENSOR_ENCODER, sids);
-    case ESTIMATE_JOINT_VEL:                return lockAndAddSensors(SENSOR_ENCODER, sids);
-    case ESTIMATE_JOINT_ACC:                return lockAndAddSensors(SENSOR_ENCODER, sids);
-    case ESTIMATE_JOINT_TORQUE:             return lockAndAddSensors(SENSOR_ENCODER, sids);
-    case ESTIMATE_JOINT_TORQUE_DERIVATIVE:  return lockAndAddSensors(SENSOR_ENCODER, sids);
-    case ESTIMATE_MOTOR_POS:                return lockAndAddSensors(SENSOR_ENCODER, sids);
-    case ESTIMATE_MOTOR_VEL:                return lockAndAddSensors(SENSOR_ENCODER, sids);
-    case ESTIMATE_MOTOR_ACC:                return lockAndAddSensors(SENSOR_ENCODER, sids);
-    case ESTIMATE_MOTOR_TORQUE:             return lockAndAddSensors(SENSOR_ENCODER, sids);
-    case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return lockAndAddSensors(SENSOR_ENCODER, sids);
-    case ESTIMATE_MOTOR_PWM:                return lockAndAddSensors(SENSOR_PWM, sids);
-    case ESTIMATE_IMU:                      return lockAndAddSensors(SENSOR_IMU, sids);
-    case ESTIMATE_FORCE_TORQUE_SENSOR:      return lockAndAddSensors(SENSOR_FORCE_TORQUE, sids);
-    default: break;
-    }
-    return false;
-}
-
-bool wholeBodyDynamicsStatesInterface::removeEstimate(const EstimateType et, const ID &sid)
-{
-    switch(et)
-    {
-    case ESTIMATE_JOINT_POS:                return lockAndRemoveSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_JOINT_VEL:                return lockAndRemoveSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_JOINT_ACC:                return lockAndRemoveSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_JOINT_TORQUE:             return lockAndRemoveSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_JOINT_TORQUE_DERIVATIVE:  return lockAndRemoveSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_MOTOR_POS:                return lockAndRemoveSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_MOTOR_VEL:                return lockAndRemoveSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_MOTOR_ACC:                return lockAndRemoveSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_MOTOR_TORQUE:             return lockAndRemoveSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return lockAndRemoveSensor(SENSOR_ENCODER, sid);
-    case ESTIMATE_MOTOR_PWM:                return lockAndRemoveSensor(SENSOR_PWM, sid);
-    case ESTIMATE_IMU:                      return lockAndRemoveSensor(SENSOR_IMU, sid);
-    case ESTIMATE_FORCE_TORQUE_SENSOR:      return lockAndRemoveSensor(SENSOR_FORCE_TORQUE, sid);
-    default: break;
-    }
-    return false;
-}
-
-const IDList& wholeBodyDynamicsStatesInterface::getEstimateList(const EstimateType et)
-{
-    switch(et)
-    {
-    case ESTIMATE_JOINT_POS:                return sensors->getSensorList(SENSOR_ENCODER);
-    case ESTIMATE_JOINT_VEL:                return sensors->getSensorList(SENSOR_ENCODER);
-    case ESTIMATE_JOINT_ACC:                return sensors->getSensorList(SENSOR_ENCODER);
-    case ESTIMATE_JOINT_TORQUE:             return sensors->getSensorList(SENSOR_ENCODER);
-    case ESTIMATE_JOINT_TORQUE_DERIVATIVE:  return sensors->getSensorList(SENSOR_ENCODER);
-    case ESTIMATE_MOTOR_POS:                return sensors->getSensorList(SENSOR_ENCODER);
-    case ESTIMATE_MOTOR_VEL:                return sensors->getSensorList(SENSOR_ENCODER);
-    case ESTIMATE_MOTOR_ACC:                return sensors->getSensorList(SENSOR_ENCODER);
-    case ESTIMATE_MOTOR_TORQUE:             return sensors->getSensorList(SENSOR_ENCODER);
-    case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return sensors->getSensorList(SENSOR_ENCODER);
-    case ESTIMATE_MOTOR_PWM:                return sensors->getSensorList(SENSOR_PWM);
-    case ESTIMATE_IMU:                      return sensors->getSensorList(SENSOR_IMU);
-    case ESTIMATE_FORCE_TORQUE_SENSOR:      return sensors->getSensorList(SENSOR_FORCE_TORQUE);
-    default: break;
-    }
-    return emptyList;
-}
-
-int wholeBodyDynamicsStatesInterface::getEstimateNumber(const EstimateType et)
-{
-    switch(et)
-    {
-    case ESTIMATE_JOINT_POS:                return sensors->getSensorNumber(SENSOR_ENCODER);
-    case ESTIMATE_JOINT_VEL:                return sensors->getSensorNumber(SENSOR_ENCODER);
-    case ESTIMATE_JOINT_ACC:                return sensors->getSensorNumber(SENSOR_ENCODER);
-    case ESTIMATE_JOINT_TORQUE:             return sensors->getSensorNumber(SENSOR_ENCODER);
-    case ESTIMATE_JOINT_TORQUE_DERIVATIVE:  return sensors->getSensorNumber(SENSOR_ENCODER);
-    case ESTIMATE_MOTOR_POS:                return sensors->getSensorNumber(SENSOR_ENCODER);
-    case ESTIMATE_MOTOR_VEL:                return sensors->getSensorNumber(SENSOR_ENCODER);
-    case ESTIMATE_MOTOR_ACC:                return sensors->getSensorNumber(SENSOR_ENCODER);
-    case ESTIMATE_MOTOR_TORQUE:             return sensors->getSensorNumber(SENSOR_ENCODER);
-    case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return sensors->getSensorNumber(SENSOR_ENCODER);
-    case ESTIMATE_MOTOR_PWM:                return sensors->getSensorNumber(SENSOR_PWM);
-    case ESTIMATE_IMU:                      return sensors->getSensorNumber(SENSOR_IMU);
-    case ESTIMATE_FORCE_TORQUE_SENSOR:      return sensors->getSensorNumber(SENSOR_FORCE_TORQUE);
-    default: break;
-    }
-    return 0;
-}
-
-bool wholeBodyDynamicsStatesInterface::getEstimate(const EstimateType et, const int numeric_id, double *data, double time, bool blocking)
-{
-    wbi::ID sid;
-    switch(et)
-    {
-    case ESTIMATE_JOINT_POS:
-        return estimator->lockAndCopyVectorElement(numeric_id, estimator->estimates.lastQ, data);
-    case ESTIMATE_JOINT_VEL:
-        return estimator->lockAndCopyVectorElement(numeric_id, estimator->estimates.lastDq, data);
-    case ESTIMATE_JOINT_ACC:
-        return estimator->lockAndCopyVectorElement(numeric_id, estimator->estimates.lastD2q, data);
-    case ESTIMATE_JOINT_TORQUE:
-        return estimator->lockAndCopyVectorElement(numeric_id,estimator->estimates.lastTauJ, data);
-    case ESTIMATE_JOINT_TORQUE_DERIVATIVE:
-        return estimator->lockAndCopyVectorElement(numeric_id, estimator->estimates.lastDtauJ, data);
-    case ESTIMATE_MOTOR_POS:
-        return false;
-    case ESTIMATE_MOTOR_VEL:
-        return getMotorVel(numeric_id, data, time, blocking);
-    case ESTIMATE_MOTOR_ACC:
-        return false;
-    case ESTIMATE_MOTOR_TORQUE:
-        return estimator->lockAndCopyVectorElement(numeric_id, estimator->estimates.lastTauM, data);
-    case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:
-        return estimator->lockAndCopyVectorElement(numeric_id, estimator->estimates.lastDtauM, data);
-    case ESTIMATE_MOTOR_PWM:
-        return lockAndReadSensor(SENSOR_PWM, numeric_id, data, time, blocking);
-    case ESTIMATE_IMU:
-        return estimator->lockAndCopyElementVectorFromVector(numeric_id, estimator->estimates.lastIMUs, data);
-    case ESTIMATE_FORCE_TORQUE_SENSOR:
-        return estimator->lockAndCopyElementVectorFromVector(numeric_id, estimator->estimates.lastForceTorques, data);
-    case ESTIMATE_EXTERNAL_FORCE_TORQUE:
-        return estimator->lockAndCopyExternalForceTorque(numeric_id,data);
-    default: break;
-    }
-    return false;
-}
-
-bool wholeBodyDynamicsStatesInterface::getEstimates(const EstimateType et, double *data, double time, bool blocking)
-{
-    switch(et)
-    {
-    case ESTIMATE_JOINT_POS:                return estimator->lockAndCopyVector(estimator->estimates.lastQ, data);
-    case ESTIMATE_JOINT_VEL:                return estimator->lockAndCopyVector(estimator->estimates.lastDq, data);
-    case ESTIMATE_JOINT_ACC:                return estimator->lockAndCopyVector(estimator->estimates.lastD2q, data);
-    case ESTIMATE_JOINT_TORQUE:             return estimator->lockAndCopyVector(estimator->estimates.lastTauJ, data);
-    case ESTIMATE_JOINT_TORQUE_DERIVATIVE:  return estimator->lockAndCopyVector(estimator->estimates.lastDtauJ, data);
-    case ESTIMATE_MOTOR_POS:                return false;
-    case ESTIMATE_MOTOR_VEL:                return getMotorVel(data, time, blocking);
-    case ESTIMATE_MOTOR_ACC:                return false;
-    case ESTIMATE_MOTOR_TORQUE:             return estimator->lockAndCopyVector(estimator->estimates.lastTauM, data);
-    case ESTIMATE_MOTOR_TORQUE_DERIVATIVE:  return estimator->lockAndCopyVector(estimator->estimates.lastDtauM, data);
-    case ESTIMATE_MOTOR_PWM:                return lockAndReadSensors(SENSOR_PWM, data, time, blocking);
-    case ESTIMATE_IMU:                      return estimator->lockAndCopyVectorOfVectors(estimator->estimates.lastIMUs, data);
-    case ESTIMATE_FORCE_TORQUE_SENSOR:      return estimator->lockAndCopyVectorOfVectors(estimator->estimates.lastForceTorques, data);
-    default: break;
-    }
-    return false;
-}
-
-bool wholeBodyDynamicsStatesInterface::setEstimationParameter(const EstimateType et, const EstimationParameter ep, const void *value)
-{
-    return estimator->lockAndSetEstimationParameter(et, ep, value);
-}
-
-bool wholeBodyDynamicsStatesInterface::setEstimationOffset(const EstimateType et, const ID & sid, const double *value)
-{
-    return estimator->lockAndSetEstimationOffset(et,sid,value);
-}
-
-bool wholeBodyDynamicsStatesInterface::getEstimationOffset(const EstimateType et, const ID & sid, double *value)
-{
-    return estimator->lockAndGetEstimationOffset(et,sid,value);
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-//                                    IMPLEMENTATION SPECIFIC METHODS
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-
-
-bool wholeBodyDynamicsStatesInterface::getEstimatedExternalForces(iCub::skinDynLib::skinContactList & external_forces_list)
-{
-    return lockAndReadExternalForces(external_forces_list);
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-//                                          PRIVATE METHODS
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-
-bool wholeBodyDynamicsStatesInterface::getMotorVel(double *data, double time, bool blocking)
-{
-    bool res = estimator->lockAndCopyVector(estimator->estimates.lastDq, data);    ///< read joint vel
-    if(!res) return false;
-    IDList idList = lockAndGetSensorList(SENSOR_ENCODER);
-    return true;
-}
-
-bool wholeBodyDynamicsStatesInterface::getMotorVel(const int numeric_id, double *data, double time, bool blocking)
-{
-    ///< read joint vel
-    return estimator->lockAndCopyVectorElement(numeric_id, estimator->estimates.lastDq, data);
-}
-
-bool wholeBodyDynamicsStatesInterface::lockAndReadSensors(const SensorType st, double *data, double time, bool blocking)
-{
-    estimator->mutex.wait();
-    bool res = sensors->readSensors(st, data, 0, blocking);
-    estimator->mutex.post();
-    return res;
-}
-
-bool wholeBodyDynamicsStatesInterface::lockAndReadSensor(const SensorType st, const int numeric_id, double *data, double time, bool blocking)
-{
-    estimator->mutex.wait();
-    bool res = sensors->readSensor(st, numeric_id, data, 0, blocking);
-    estimator->mutex.post();
-    return res;
-}
-
-bool wholeBodyDynamicsStatesInterface::lockAndReadExternalForces(iCub::skinDynLib::skinContactList & external_forces_list)
-{
-    estimator->mutex.wait();
-    external_forces_list = estimator->estimatedLastSkinDynContacts;
-    estimator->mutex.post();
-    return true;
-}
-
-bool wholeBodyDynamicsStatesInterface::lockAndAddSensor(const SensorType st, const ID &sid)
-{
-    estimator->mutex.wait();
-    bool res = sensors->addSensor(st, sid);
-    estimator->mutex.post();
-    return res;
-}
-
-int wholeBodyDynamicsStatesInterface::lockAndAddSensors(const SensorType st, const IDList &sids)
-{
-    estimator->mutex.wait();
-    int res = sensors->addSensors(st, sids);
-    estimator->mutex.post();
-    return res;
-}
-
-bool wholeBodyDynamicsStatesInterface::lockAndRemoveSensor(const SensorType st, const ID &sid)
-{
-    estimator->mutex.wait();
-    bool res = sensors->removeSensor(st, sid);
-    estimator->mutex.post();
-    return res;
-}
-
-IDList wholeBodyDynamicsStatesInterface::lockAndGetSensorList(const SensorType st)
-{
-    estimator->mutex.wait();
-    IDList res = sensors->getSensorList(st);
-    estimator->mutex.post();
-    return res;
-}
-
-int wholeBodyDynamicsStatesInterface::lockAndGetSensorNumber(const SensorType st)
-{
-    estimator->mutex.wait();
-    int res = sensors->getSensorNumber(st);
-    estimator->mutex.post();
-    return res;
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
 //                                          ICUB WHOLE BODY DYNAMICS ESTIMATOR
 // *********************************************************************************************************************
 // *********************************************************************************************************************
-yarpWholeBodyDynamicsEstimator::yarpWholeBodyDynamicsEstimator(int _period,
+ExternalWrenchesAndTorquesEstimator::ExternalWrenchesAndTorquesEstimator(int _period,
                                                                yarpWholeBodySensors *_sensors,
                                                                yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * _port_skin_contacts,
                                                                yarp::os::Property & _wbi_yarp_conf
                                                               )
-: RateThread(_period),
-   sensors(_sensors),
+:  sensors(_sensors),
    port_skin_contacts(_port_skin_contacts),
    dqFilt(0), d2qFilt(0),
    enable_omega_domega_IMU(false),
@@ -463,7 +124,7 @@ yarpWholeBodyDynamicsEstimator::yarpWholeBodyDynamicsEstimator(int _period,
     }
 }
 
-bool yarpWholeBodyDynamicsEstimator::threadInit()
+bool ExternalWrenchesAndTorquesEstimator::init()
 {
     resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
     resizeFTs(sensors->getSensorNumber(SENSOR_FORCE_TORQUE));
@@ -477,7 +138,6 @@ bool yarpWholeBodyDynamicsEstimator::threadInit()
 
     ///< read sensors
     bool ok = sensors->readSensors(SENSOR_ENCODER, estimates.lastQ.data(), qStamps.data(), true);
-    ok = ok && sensors->readSensors(SENSOR_PWM, estimates.lastPwm.data(), 0, true);
 
     ///< create low pass filters
     tauJFilt    = new FirstOrderLowPassFilter(tauJCutFrequency, getRate()*1e-3, estimates.lastTauJ);
@@ -718,7 +378,7 @@ bool yarpWholeBodyDynamicsEstimator::threadInit()
     return ok;
 }
 
-void yarpWholeBodyDynamicsEstimator::run()
+void ExternalWrenchesAndTorquesEstimator::run()
 {
     run_mutex.wait();
     //Temporary workaround: wholeBodyDynamicsStatesInterface needs all the DOF present in the dynamical model
@@ -755,18 +415,7 @@ void yarpWholeBodyDynamicsEstimator::run()
 
         ///< Read force/torque sensors
         ///< \todo TODO buffer value of available_ft_sensors to avoid memory allocation (?)
-        IDList available_ft_sensors = sensors->getSensorList(SENSOR_FORCE_TORQUE);
-        for(int ft_numeric = 0; ft_numeric < (int)available_ft_sensors.size(); ft_numeric++ )
-        {
-            int ft_index = ft_numeric;
-            if( sensors->readSensor(SENSOR_FORCE_TORQUE, ft_numeric, forcetorques[ft_index].data(), &(forcetorquesStamps[ft_index]),false ) ) {
-                estimates.lastForceTorques[ft_index] = forcetorqueFilters[ft_index]->filt(forcetorques[ft_index]); ///< low pass filter
-                estimates.lastForceTorques[ft_index] = estimates.lastForceTorques[ft_index] - forcetorques_offset[ft_index]; /// remove offset
-            } else {
-                std::cout << "wholeBodyDynamicsStatesInterface: Error in reading F/T sensors, exiting" << std::endl;
-                YARP_ASSERT(false);
-            }
-        }
+
 
         ///< Read IMU
         ///< \todo TODO buffer value of available_imu_sensors to avoid memory allocation (?)
@@ -842,7 +491,7 @@ void yarpWholeBodyDynamicsEstimator::run()
     return;
 }
 
-void yarpWholeBodyDynamicsEstimator::readSkinContacts()
+void ExternalWrenchesAndTorquesEstimator::readSkinContacts()
 {
     skinContactList *scl = port_skin_contacts->read(false);
     if(scl)
@@ -955,7 +604,7 @@ void yarpWholeBodyDynamicsEstimator::readSkinContacts()
 
 
 
-dynContact yarpWholeBodyDynamicsEstimator::getDefaultContact(const int subtree)
+dynContact ExternalWrenchesAndTorquesEstimator::getDefaultContact(const int subtree)
 {
     int iDynTree_default_contact_link = torque_estimation_subtrees[subtree].default_contact_link;
 
@@ -1005,7 +654,7 @@ void getEEWrench(const iCub::iDynTree::TorqueEstimationTree & icub_model,
     KDLtoYarp(f_gripper,gripper_wrench);
 }
 
-void yarpWholeBodyDynamicsEstimator::estimateExternalForcesAndJointTorques()
+void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques()
 {
     //Assume that only a IMU is available
 
@@ -1127,7 +776,7 @@ void deleteFirstOrderFilterVector(std::vector<iCub::ctrl::FirstOrderLowPassFilte
     vec.resize(0);
 }
 
-void yarpWholeBodyDynamicsEstimator::threadRelease()
+void ExternalWrenchesAndTorquesEstimator::fini()
 {
     if(dqFilt!=0)    { delete dqFilt;  dqFilt=0; }
     if(d2qFilt!=0)   { delete d2qFilt; d2qFilt=0; }
@@ -1153,14 +802,14 @@ void yarpWholeBodyDynamicsEstimator::threadRelease()
     return;
 }
 
-void yarpWholeBodyDynamicsEstimator::lockAndResizeAll(int n)
+void ExternalWrenchesAndTorquesEstimator::lockAndResizeAll(int n)
 {
     mutex.wait();
     resizeAll(n);
     mutex.post();
 }
 
-void yarpWholeBodyDynamicsEstimator::resizeAll(int n)
+void ExternalWrenchesAndTorquesEstimator::resizeAll(int n)
 {
     q.resize(n,0.0);
     qStamps.resize(n,INITIAL_TIMESTAMP);
@@ -1178,14 +827,14 @@ void yarpWholeBodyDynamicsEstimator::resizeAll(int n)
     estimates.lastPwm.resize(n,0.0);
 }
 
-void yarpWholeBodyDynamicsEstimator::lockAndResizeFTs(int n)
+void ExternalWrenchesAndTorquesEstimator::lockAndResizeFTs(int n)
 {
     mutex.wait();
     resizeFTs(n);
     mutex.post();
 }
 
-void yarpWholeBodyDynamicsEstimator::resizeFTs(int n)
+void ExternalWrenchesAndTorquesEstimator::resizeFTs(int n)
 {
     forcetorques.resize(n,Vector(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0));
     forcetorques_offset.resize(n,Vector(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0));
@@ -1194,14 +843,14 @@ void yarpWholeBodyDynamicsEstimator::resizeFTs(int n)
     estimates.lastForceTorques.resize(n,Vector(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0));
 }
 
-void yarpWholeBodyDynamicsEstimator::lockAndResizeIMUs(int n)
+void ExternalWrenchesAndTorquesEstimator::lockAndResizeIMUs(int n)
 {
     mutex.wait();
     resizeIMUs(n);
     mutex.post();
 }
 
-void yarpWholeBodyDynamicsEstimator::resizeIMUs(int n)
+void ExternalWrenchesAndTorquesEstimator::resizeIMUs(int n)
 {
     IMUs.resize(n,Vector(sensorTypeDescriptions[SENSOR_IMU].dataSize,0.0));
     IMUStamps.resize(n,INITIAL_TIMESTAMP);
@@ -1211,7 +860,7 @@ void yarpWholeBodyDynamicsEstimator::resizeIMUs(int n)
     estimates.lastIMUs.resize(n,Vector(sensorTypeDescriptions[SENSOR_IMU].dataSize,0.0));
 }
 
-bool yarpWholeBodyDynamicsEstimator::lockAndCopyVector(const Vector &src, double *dest)
+bool ExternalWrenchesAndTorquesEstimator::lockAndCopyVector(const Vector &src, double *dest)
 {
     if(dest==0)
         return false;
@@ -1221,7 +870,7 @@ bool yarpWholeBodyDynamicsEstimator::lockAndCopyVector(const Vector &src, double
     return true;
 }
 
-bool yarpWholeBodyDynamicsEstimator::lockAndCopyVectorElement(int index, const Vector &src, double *dest)
+bool ExternalWrenchesAndTorquesEstimator::lockAndCopyVectorElement(int index, const Vector &src, double *dest)
 {
     mutex.wait();
     dest[0] = src[index];
@@ -1229,7 +878,7 @@ bool yarpWholeBodyDynamicsEstimator::lockAndCopyVectorElement(int index, const V
     return true;
 }
 
-bool yarpWholeBodyDynamicsEstimator::lockAndCopyElementVectorFromVector(int index, const std::vector<Vector> &src, double *dest)
+bool ExternalWrenchesAndTorquesEstimator::lockAndCopyElementVectorFromVector(int index, const std::vector<Vector> &src, double *dest)
 {
     if(dest==0)
         return false;
@@ -1239,7 +888,7 @@ bool yarpWholeBodyDynamicsEstimator::lockAndCopyElementVectorFromVector(int inde
     return true;
 }
 
-bool yarpWholeBodyDynamicsEstimator::lockAndCopyVectorOfVectors(const std::vector<Vector> &src, double *dest)
+bool ExternalWrenchesAndTorquesEstimator::lockAndCopyVectorOfVectors(const std::vector<Vector> &src, double *dest)
 {
     if(dest==0)
         return false;
@@ -1257,7 +906,7 @@ void copyVector(const yarp::sig::Vector & src, double * dest)
     memcpy(dest,src.data(),src.size()*sizeof(double));
 }
 
-bool yarpWholeBodyDynamicsEstimator::lockAndCopyExternalForceTorque(int link_index, double * dest)
+bool ExternalWrenchesAndTorquesEstimator::lockAndCopyExternalForceTorque(int link_index, double * dest)
 {
     if( link_index < 0 ||
         link_index >= robot_estimation_model->getNrOfLinks() )
@@ -1275,7 +924,7 @@ bool yarpWholeBodyDynamicsEstimator::lockAndCopyExternalForceTorque(int link_ind
     return true;
 }
 
-bool yarpWholeBodyDynamicsEstimator::lockAndSetEstimationParameter(const EstimateType et, const EstimationParameter ep, const void *value)
+bool ExternalWrenchesAndTorquesEstimator::lockAndSetEstimationParameter(const EstimateType et, const EstimationParameter ep, const void *value)
 {
     bool res = false;
     mutex.wait();
@@ -1340,7 +989,7 @@ bool yarpWholeBodyDynamicsEstimator::lockAndSetEstimationParameter(const Estimat
     return res;
 }
 
-bool yarpWholeBodyDynamicsEstimator::lockAndSetEstimationOffset(const EstimateType et, const ID & sid, const double *value)
+bool ExternalWrenchesAndTorquesEstimator::lockAndSetEstimationOffset(const EstimateType et, const ID & sid, const double *value)
 {
     bool res = true;
     int ft_index;
@@ -1358,7 +1007,7 @@ bool yarpWholeBodyDynamicsEstimator::lockAndSetEstimationOffset(const EstimateTy
     return res;
 }
 
-bool yarpWholeBodyDynamicsEstimator::lockAndGetEstimationOffset(const EstimateType et, const ID & sid, double *value)
+bool ExternalWrenchesAndTorquesEstimator::lockAndGetEstimationOffset(const EstimateType et, const ID & sid, double *value)
 {
     bool res = true;
     int ft_index;
@@ -1378,7 +1027,7 @@ bool yarpWholeBodyDynamicsEstimator::lockAndGetEstimationOffset(const EstimateTy
 
 
 
-bool yarpWholeBodyDynamicsEstimator::setVelFiltParams(int windowLength, double threshold)
+bool ExternalWrenchesAndTorquesEstimator::setVelFiltParams(int windowLength, double threshold)
 {
     if(windowLength<1 || threshold<=0.0)
         return false;
@@ -1394,7 +1043,7 @@ bool yarpWholeBodyDynamicsEstimator::setVelFiltParams(int windowLength, double t
     return true;
 }
 
-bool yarpWholeBodyDynamicsEstimator::setAccFiltParams(int windowLength, double threshold)
+bool ExternalWrenchesAndTorquesEstimator::setAccFiltParams(int windowLength, double threshold)
 {
     if(windowLength<1 || threshold<=0.0)
         return false;
@@ -1410,7 +1059,7 @@ bool yarpWholeBodyDynamicsEstimator::setAccFiltParams(int windowLength, double t
     return true;
 }
 
-bool yarpWholeBodyDynamicsEstimator::setDtauJFiltParams(int windowLength, double threshold)
+bool ExternalWrenchesAndTorquesEstimator::setDtauJFiltParams(int windowLength, double threshold)
 {
     if(windowLength<1 || threshold<=0.0)
         return false;
@@ -1426,7 +1075,7 @@ bool yarpWholeBodyDynamicsEstimator::setDtauJFiltParams(int windowLength, double
     return true;
 }
 
-bool yarpWholeBodyDynamicsEstimator::setDtauMFiltParams(int windowLength, double threshold)
+bool ExternalWrenchesAndTorquesEstimator::setDtauMFiltParams(int windowLength, double threshold)
 {
     if(windowLength<1 || threshold<=0.0)
         return false;
@@ -1442,28 +1091,28 @@ bool yarpWholeBodyDynamicsEstimator::setDtauMFiltParams(int windowLength, double
     return true;
 }
 
-bool yarpWholeBodyDynamicsEstimator::setTauJCutFrequency(double fc)
+bool ExternalWrenchesAndTorquesEstimator::setTauJCutFrequency(double fc)
 {
     return tauJFilt->setCutFrequency(fc);
 }
 
-bool yarpWholeBodyDynamicsEstimator::setTauMCutFrequency(double fc)
+bool ExternalWrenchesAndTorquesEstimator::setTauMCutFrequency(double fc)
 {
     return tauMFilt->setCutFrequency(fc);
 }
 
-bool yarpWholeBodyDynamicsEstimator::setPwmCutFrequency(double fc)
+bool ExternalWrenchesAndTorquesEstimator::setPwmCutFrequency(double fc)
 {
     return pwmFilt->setCutFrequency(fc);
 }
 
-bool yarpWholeBodyDynamicsEstimator::setEnableOmegaDomegaIMU(bool _enabled_omega_domega_IMU)
+bool ExternalWrenchesAndTorquesEstimator::setEnableOmegaDomegaIMU(bool _enabled_omega_domega_IMU)
 {
     enable_omega_domega_IMU = _enabled_omega_domega_IMU;
     return true;
 }
 
-bool yarpWholeBodyDynamicsEstimator::setMinTaxel(const int _min_taxel)
+bool ExternalWrenchesAndTorquesEstimator::setMinTaxel(const int _min_taxel)
 {
     if( _min_taxel < 0 )
     {
