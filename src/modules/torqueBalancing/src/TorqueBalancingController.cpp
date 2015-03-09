@@ -245,6 +245,7 @@ namespace codyco {
                 m_desiredCOMAcceleration = m_references.desiredCOMAcceleration().value();
             if (m_references.desiredJointsConfiguration().isValid()) {
                 m_desiredJointsConfiguration = m_references.desiredJointsConfiguration().value();
+                std::cerr << m_desiredJointsConfiguration.transpose() << "\n\n";
             }
             if ((m_leftHandForcesActive = m_references.desiredLeftHandForce().isValid()))
                 m_desiredHandsForces.head(6) = m_references.desiredLeftHandForce().value();

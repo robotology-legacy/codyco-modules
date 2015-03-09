@@ -417,6 +417,8 @@ namespace codyco {
             if (&reference == &m_references->desiredCOMPosition()) {
                 taskType = TaskTypeCOM;
             } else if (&reference == &m_references->desiredJointsPosition()) {
+                //Fix for state machine. To be removed when state machine will be removed
+                m_impedanceDoubleSupportReference = reference.value();
                 taskType = TaskTypeImpedanceControl;
             } else return;
             std::map<TaskType, ReferenceGenerator*>::iterator found = m_referenceGenerators.find(taskType);
