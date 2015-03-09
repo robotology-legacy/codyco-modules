@@ -36,6 +36,8 @@
 #include <iostream>
 #include <typeinfo>
 
+#include <time.h>
+
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -85,8 +87,7 @@ int main(int argc, char * argv[])
 
     // Add joints to the robotInterface
     IDList robotMainJoints;
-    yarp::os::Value wbi_id_list = yarpWbiOptions.find("wbi_id_list");
-    std::string robotMainJointsList = wbi_id_list.toString();
+    std::string robotMainJointsList = "ROBOT_MAIN_JOINTS";
     if (!loadIdListFromConfig(robotMainJointsList, yarpWbiOptions, robotMainJoints)) {
       printf("[ERR] yarpWholeBodyInterfaceTest: Impossible to load from ID List from Configuration file\n");
       return EXIT_FAILURE;
@@ -108,28 +109,36 @@ int main(int argc, char * argv[])
       printf("[ERR] Whole body interface object did not initialize correctly\n");
       return EXIT_FAILURE;
     }
-
-    robotInterface->setControlMode(CTRL_MODE_POS);
-
-    Time::delay (0.5);
-
-    // Get robot DOF
-    int DOF = robotInterface->getDoFs();
-
-    // Initialize variables
-    Vector q(DOF), dq(DOF), d2q(DOF);
-
-    // Get robot estimates
-
-    robotInterface->getEstimates(wbi::ESTIMATE_JOINT_POS, q.data(), -1.0, false);
-
-    printf("Joint Angles: %s \n", q.toString().c_str());
-    // Set control mode
-    if (!robotInterface->setControlMode(wbi::CTRL_MODE_DIRECT_POSITION)) {
-      printf("[ERR] Position control mode could not be set\n");
-      return EXIT_FAILURE;
+    
+    timespec delay;
+    delay.tv_nsec = 0;
+    delay.tv_nsec = 10000000;
+    
+    Eigen::VectorXd pos = Eigen::VectorXd::Zero(25);
+    Eigen::VectorXd esaZero = Eigen::VectorXd::Zero(6);
+    wbi::Frame frame = wbi::Frame::identity();
+    double grav[3];
+    grav[0] = grav[1] = 0;
+    grav[2] = -9.81;
+    Eigen::VectorXd out = Eigen::VectorXd::Zero(31);
+    Eigen::VectorXd first = Eigen::VectorXd::Zero(31);
+    
+    robotInterface->computeGeneralizedBiasForces(pos.data(), frame, pos.data(), esaZero.data(), grav, first.data());
+    
+    
+    while(1) {
+     
+        robotInterface->computeGeneralizedBiasForces(pos.data(), frame, pos.data(), esaZero.data(), grav, out.data());
+        
+        if (first.norm() - out.norm() > 0) {
+            std::cerr << "Error\n" << out.transpose() << "\nVS\n" << first.transpose() << "\n\n";
+        }
+        
+        nanosleep(&delay, NULL);
     }
-
+    
+    
+    
     robotInterface->close();
     delete robotInterface;
 
