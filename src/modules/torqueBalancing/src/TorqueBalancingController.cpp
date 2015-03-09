@@ -110,6 +110,7 @@ namespace codyco {
             m_torquesSelector.bottomRows(m_actuatedDOFs).setIdentity();
             
             m_jointsZeroVector.setZero();
+            m_esaZeroVector.setZero();
             m_torqueSaturationLimit.setConstant(std::numeric_limits<double>::max());
             
             //reset status to zero
@@ -197,7 +198,7 @@ namespace codyco {
             if (m_active == isActive) return;
             if (isActive) {
                 m_desiredCOMAcceleration.setZero(); //reset reference
-                //m_robot.setControlMode(wbi::CTRL_MODE_TORQUE);
+                m_robot.setControlMode(wbi::CTRL_MODE_TORQUE);
             } else {
                 m_robot.setControlMode(wbi::CTRL_MODE_POS);
             }
@@ -371,16 +372,10 @@ namespace codyco {
             torques += nullSpaceProjector * torques0;
                         
             //apply saturation
+            //TODO: this must be checked: valgrind says it contains a jump on an unitialized variable
+            //TODO: check isinf or isnan
             torques = torques.array().min(m_torqueSaturationLimit.array()).max(-m_torqueSaturationLimit.array());
 
-            
-// #ifdef DEBUG
-//             checking torques
-//             Eigen::MatrixXd inv = (m_contactsJacobian.topRows(12) * m_massMatrix.inverse() * m_contactsJacobian.topRows(12).transpose()).inverse();
-//             Eigen::VectorXd f = inv * (m_contactsJacobian.topRows(12) * m_massMatrix.inverse() * (m_generalizedBiasForces - m_torquesSelector * torques) - m_contactsDJacobianDq.head(12));
-//             
-//             std::cerr << (f - desiredContactForces.head(12)).transpose() << "\n\n";     
-// #endif
         }
         
         void TorqueBalancingController::writeTorques()

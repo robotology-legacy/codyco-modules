@@ -66,13 +66,6 @@ target_link_libraries(${PROJECT_NAME}
                       ${YARP_LIBRARIES}
                       ${codycoCommons_LIBRARIES})
 
-if(WIN32)
-    INSTALL_TARGETS(/bin/Release ${PROJECT_NAME})
-else(WIN32)
-    INSTALL_TARGETS(/bin ${PROJECT_NAME})
-endif(WIN32)
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
-
-# install(TARGETS ${PROJECT_NAME} DESTINATION bin)
-
-# add_subdirectory(app)
+add_subdirectory(app)

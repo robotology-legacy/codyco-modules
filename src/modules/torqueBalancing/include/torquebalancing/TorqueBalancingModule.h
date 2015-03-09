@@ -14,6 +14,12 @@
  * Public License for more details
  */
 
+//TODO:
+/*
+ - References should come from streaming ports
+ - State machine should be removed from module => find a way to add/remove tasks at runtime
+ */
+
 #ifndef TORQUEBALANCINGMODULE_H
 #define TORQUEBALANCINGMODULE_H
 
@@ -21,6 +27,7 @@
 #include <map>
 #include <string>
 #include <paramHelp/paramProxyInterface.h>
+#include "Reference.h"
 
 #include <Eigen/Core>
 
@@ -49,6 +56,7 @@ namespace codyco {
         
         /** Possible tasks */
         typedef enum {
+            TaskTypeUnknown, /*!< Default value */
             TaskTypeCOM, /*!< Center of Mass control task */
             TaskTypeLeftHandPosition, /*!< Left hand position control task */
             TaskTypeRightHandPosition,  /*!< Right hand position control task */
@@ -71,7 +79,7 @@ namespace codyco {
         /** @brief Main module for the torque balancing module.
          *
          */
-        class TorqueBalancingModule : public yarp::os::RFModule
+        class TorqueBalancingModule : public yarp::os::RFModule, codyco::torquebalancing::ReferenceDelegate
         {
         public:
             TorqueBalancingModule();
@@ -96,7 +104,10 @@ namespace codyco {
             /** Updates and print the variables to be monitored
              */
             void monitorVariables();
-            
+
+            //Delegate method
+            virtual void referenceDidChangeValue(const Reference&);
+
         private:
             class ParamHelperManager;
             
@@ -142,10 +153,7 @@ namespace codyco {
                         
             bool m_initialized;
             paramHelp::ParamHelperServer* m_parameterServer;
-            
-            Eigen::VectorXd m_handsPositionReference;
-            Eigen::VectorXd m_handsForceReference;
-            
+
             Eigen::VectorXd m_comProportionalGain;
             Eigen::VectorXd m_comDerivativeGain;
             Eigen::VectorXd m_comIntegralGain;
@@ -174,8 +182,6 @@ namespace codyco {
             Eigen::VectorXd m_monitoredCOMIntegralError;
             Eigen::VectorXd m_monitoredFeetForces;
             Eigen::VectorXd m_monitoredOutputTorques;
-            
-            void sendReferencesToControllers();
             
         public:
             ParamHelperManager(TorqueBalancingModule& module, int actuatedDOFs);
