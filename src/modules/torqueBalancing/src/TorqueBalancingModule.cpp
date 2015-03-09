@@ -29,6 +29,7 @@
 #include <codyco/Utils.h>
 #include <yarp/os/Port.h>
 #include <yarp/os/Log.h>
+#include <yarp/os/LockGuard.h>
 #include <iostream>
 #include <vector>
 
@@ -475,6 +476,8 @@ namespace codyco {
 #endif
                     break;
                 case TorqueBalancingModuleStateTripleSupportSeekingContactLeftHand:
+                {
+                    yarp::os::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(m_robot)->getInterfaceMutex());
 //                    leftHandPositionTaskActive = m_active;
                     rightHandForceTaskActive = m_active;
                     m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, impedanceReference.data());
@@ -482,8 +485,11 @@ namespace codyco {
 #ifdef DEBUG
                     yDebug("State Triple support. Left hand searches contact");
 #endif
+                }
                     break;
                 case TorqueBalancingModuleStateTripleSupportSeekingContactRightHand:
+                {
+                    yarp::os::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(m_robot)->getInterfaceMutex());
 //                    rightHandPositionTaskActive = m_active;
                     leftHandForceTaskActive = m_active;
                     m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, impedanceReference.data());
@@ -491,13 +497,17 @@ namespace codyco {
 #ifdef DEBUG
                     yDebug("State Triple support. Right hand searches contact");
 #endif
+                }
                     break;
                 case TorqueBalancingModuleStateQuadrupleSupport:
+                {
+                    yarp::os::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(m_robot)->getInterfaceMutex());
                     leftHandForceTaskActive = rightHandForceTaskActive = m_active;
                     m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, impedanceReference.data());
 #ifdef DEBUG
                     yDebug("State Quad support");
 #endif
+                }
                     break;
                 default:
 #ifdef DEBUG
