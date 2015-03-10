@@ -129,48 +129,6 @@ bool ExternalWrenchesAndTorquesEstimator::init()
     resizeFTs(sensors->getSensorNumber(SENSOR_FORCE_TORQUE));
     resizeIMUs(sensors->getSensorNumber(SENSOR_IMU));
 
-    ///< create derivative filters
-    dqFilt = new AWLinEstimator(dqFiltWL, dqFiltTh);
-    d2qFilt = new AWQuadEstimator(d2qFiltWL, d2qFiltTh);
-
-    ///< read sensors
-    bool ok = sensors->readSensors(SENSOR_ENCODER, estimates.lastQj.data(), qStamps.data(), true);
-
-    ///< create low pass filters
-    tauJFilt    = new FirstOrderLowPassFilter(tauJCutFrequency, periodInMilliSeconds*1e-3, estimates.lastTauJ);
-
-    IDList available_ft_sensors = sensors->getSensorList(SENSOR_FORCE_TORQUE);
-    for(int ft_numeric = 0; ft_numeric < (int)available_ft_sensors.size(); ft_numeric++ )
-    {
-        ID wbi_id;
-        available_ft_sensors.indexToID(ft_numeric,wbi_id);
-        int ft_index = ft_numeric;
-        sensors->readSensor(SENSOR_FORCE_TORQUE, ft_index, forcetorques[ft_index].data(), &(forcetorquesStamps[ft_index]),true );
-        forcetorqueFilters[ft_index] = new FirstOrderLowPassFilter(forcetorqueCutFrequency,periodInMilliSeconds*1e-3,forcetorques[ft_index]); ///< low pass filter
-    }
-
-     IDList available_imu_sensors = sensors->getSensorList(SENSOR_IMU);
-     for(int numeric_imu_id = 0; numeric_imu_id < (int)available_imu_sensors.size(); numeric_imu_id++)
-     {
-         int imu_index = numeric_imu_id;
-         //std::cout << "readSensor for IMU " << imu_index << std::endl;
-         assert((int)IMUs.size() > imu_index && (int)IMUs[imu_index].size() == sensorTypeDescriptions[SENSOR_IMU].dataSize );
-         if( sensors->readSensor(SENSOR_IMU, numeric_imu_id, IMUs[imu_index].data(), &(IMUStamps[imu_index]),true ) ) {
-             imuLinearAccelerationFilters[imu_index] = new FirstOrderLowPassFilter(imuLinearAccelerationCutFrequency,periodInMilliSeconds*1e-3,IMUs[imu_index].subVector(4,6));  ///< linear acceleration is filtered with a low pass filter
-             imuAngularVelocityFilters[imu_index] = new FirstOrderLowPassFilter(imuAngularVelocityCutFrequency,periodInMilliSeconds*1e-3,IMUs[imu_index].subVector(7,9));  ///< angular velocity is filtered with a low pass filter
-             imuMagnetometerFilters[imu_index] = new FirstOrderLowPassFilter(imuMagnetometerCutFrequency,periodInMilliSeconds*1e-3,IMUs[imu_index].subVector(10,12));  ///< magnetometer readings are filtered with a low pass filter
-         } else {
-             std::cout << "icubWholeBodyStates: Error in reading IMU, exiting" << std::endl;
-             YARP_ASSERT(false);
-         }
-         //std::cout << "IMU measured " << std::endl;
-         //std::cout << IMUs[imu_index].toString() << std::endl;
-         //std::cout << "timestamp: " << IMUStamps[imu_index] << std::endl;
-     }
-
-     //Allocating a filter for angular acceleration estimation only for IMU used in iDynTree
-    imuAngularAccelerationFilt = new AWLinEstimator(imuAngularAccelerationFiltWL, imuAngularAccelerationFiltTh);
-
     //Allocation model
     std::string fixed_link_name;
     if( assume_fixed_base )
@@ -369,14 +327,12 @@ bool ExternalWrenchesAndTorquesEstimator::init()
         }
         YARP_ASSERT((robot_estimation_model->getDOFIndex(enc.toString()) == i));
     }
-    if( ok ) yDebug() << "ExternalWrenchesAndTorquesEstimator::init() terminated successfully";
-    if( !ok ) yDebug() << "ExternalWrenchesAndTorquesEstimator::init() failed";
-    return ok;
+    yDebug() << "ExternalWrenchesAndTorquesEstimator::init() terminated successfully";
+    return true;
 }
 
-void ExternalWrenchesAndTorquesEstimator::estimateExternalWrenchAndInternalJoints()
+void ExternalWrenchesAndTorquesEstimator::estimateExternalWrenchAndInternalJoints(RobotStatus & tree_status)
 {
-    run_mutex.wait();
     //Temporary workaround: wholeBodyDynamicsStatesInterface needs all the DOF present in the dynamical model
     if( sensors->getSensorNumber(wbi::SENSOR_ENCODER) != robot_estimation_model->getNrOfDOFs() )
     {
@@ -392,89 +348,31 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalWrenchAndInternalJoint
     }
 
     ///< \todo improve robustness: what if a sensor dies or stop working? interface should warn the user
-    mutex.wait();
     {
         resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
         resizeFTs(sensors->getSensorNumber(SENSOR_FORCE_TORQUE));
         resizeIMUs(sensors->getSensorNumber(SENSOR_IMU));
 
         ///< Read encoders
-        if(sensors->readSensors(SENSOR_ENCODER, q.data(), qStamps.data(), false))
-        {
-            estimates.lastQj = q;
-            AWPolyElement el;
-            el.data = q;
-            el.time = yarp::os::Time::now();
-            estimates.lastDq = dqFilt->estimate(el);
-            estimates.lastD2q = d2qFilt->estimate(el);
-        }
+        omega_used_IMU  = tree_status.omega_imu;
 
-        ///< Read force/torque sensors
-        ///< \todo TODO buffer value of available_ft_sensors to avoid memory allocation (?)
+        domega_used_IMU = tree_status.domega_imu;
 
-
-        ///< Read IMU
-        ///< \todo TODO buffer value of available_imu_sensors to avoid memory allocation (?)
-        ///< \todo TODO add filters for imu values ->
-        IDList available_imu_sensors = sensors->getSensorList(SENSOR_IMU);
-        for(int imu_numeric = 0; imu_numeric < (int) available_imu_sensors.size(); imu_numeric++ )
-        {
-            int imu_index = imu_numeric;
-            //std::cout << "readSensor for IMU " << imu_index << std::endl;
-            assert((int)IMUs.size() > imu_index );
-            assert((int)IMUs[imu_index].size() == sensorTypeDescriptions[SENSOR_IMU].dataSize );
-            if( sensors->readSensor(SENSOR_IMU, imu_numeric, IMUs[imu_index].data(), &(IMUStamps[imu_index]),false ) ) {
-                estimates.lastIMUs[imu_index].setSubvector(0,IMUs[imu_index].subVector(0,3)); ///< orientation is simply copied as already result of an estimation
-                estimates.lastIMUs[imu_index].setSubvector(4,imuLinearAccelerationFilters[imu_index]->filt(IMUs[imu_index].subVector(4,6)));  ///< linear acceleration is filtered with a low pass filter
-                estimates.lastIMUs[imu_index].setSubvector(7,imuAngularVelocityFilters[imu_index]->filt(IMUs[imu_index].subVector(7,9)));  ///< angular velocity is filtered with a low pass filter
-                estimates.lastIMUs[imu_index].setSubvector(10,imuMagnetometerFilters[imu_index]->filt(IMUs[imu_index].subVector(10,12))); ///< magnetometer readings are filtered with a low pass filter
-            } else {
-                std::cout << "wholeBodyDynamicsStatesInterface: Error in reading IMU, exiting" << std::endl;
-                YARP_ASSERT(false);
-            }
-            //std::cout << "IMU measured " << std::endl;
-            //std::cout << IMUs[imu_index].toString() << std::endl;
-            //std::cout << estimates.lastIMUs[imu_index].toString() << std::endl;
-            //std::cout << "timestamp: " << IMUStamps[imu_index] << std::endl;
-        }
-
-        //Estimate angular acceleration only for the IMU used in iDynTree
-        //std::cout << "Angular velocity used for acceleration estimation " <<  estimates.lastIMUs[0].subVector(7,9).toString() << std::endl;
-        AWPolyElement el;
-        el.data = omega_used_IMU = estimates.lastIMUs[0].subVector(7,9);
-        el.time = yarp::os::Time::now();
-
-        domega_used_IMU = imuAngularAccelerationFilt->estimate(el);
-
-        ddp_used_IMU = estimates.lastIMUs[0].subVector(4,6);
-
-        /*
-        std::cout << "domega " <<  domega_used_IMU.toString() << std::endl;
-        std::cout << "omega  " << omega_used_IMU.toString() << std::endl;
-        std::cout << "ddp " << ddp_used_IMU.toString() << std::endl;
-        */
+        ddp_used_IMU = tree_status.proper_ddp_imu;
 
         ///< Read skin contacts
         readSkinContacts();
 
         ///< Estimate joint torque sensors from force/torque measurements
-        estimateExternalForcesAndJointTorques();
+        estimateExternalForcesAndJointTorques(tree_status);
 
         ///< Filter obtained joint torque measures
-        {
-            // @todo Convert joint torques into motor torques
-            AWPolyElement el;
-            el.time = yarp::os::Time::now();
+        // \todo reintroduce the filter ?
+        tree_status.torquesj = tauJ;// tauJFilt->filt(tauJ);  ///< low pass filter
 
-            estimates.lastTauJ = tauJ;// tauJFilt->filt(tauJ);  ///< low pass filter
-
-            el.data = tauJ;
-        }
 
     }
     mutex.post();
-
-    run_mutex.post();
 
     return;
 }
@@ -523,24 +421,12 @@ void ExternalWrenchesAndTorquesEstimator::readSkinContacts()
             }
         }
 
-        //TODO \todo add other parts
-        /*
-        skinContacts = contactsPerBp[LEFT_ARM];
-        skinContacts.insert(skinContacts.end(), contactsPerBp[RIGHT_ARM].begin(), contactsPerBp[RIGHT_ARM].end());
-        skinContacts.insert(skinContacts.end(), contactsPerBp[TORSO].begin(), contactsPerBp[TORSO].end());
-        */
-        //skinContacts.insert(skinContacts.end(), contactsPerBp[LEFT_LEG].begin(), contactsPerBp[LEFT_LEG].end());
-        //skinContacts.insert(skinContacts.end(), contactsPerBp[RIGHT_LEG].begin(), contactsPerBp[RIGHT_LEG].end());
     }
     else if(Time::now()-last_reading_skin_contact_list_Stamp>SKIN_EVENTS_TIMEOUT && last_reading_skin_contact_list_Stamp!=0.0)
     {
         // if time is up, use default contact points \todo TODO
         skinContacts.clear();
     }
-
-    //std::cout << "skinContacts: " << std::endl;
-    //std::cout << skinContacts.toString() << std::endl;
-
 
     //At this point, in a way or the other skinContacts must have at least a valid contact for each subtree
     //If this is not true, we add a default contact for each subgraph
@@ -581,12 +467,8 @@ void ExternalWrenchesAndTorquesEstimator::readSkinContacts()
         {
             dynContact default_contact = this->getDefaultContact(subtree);
             dynContacts.push_back(default_contact);
-            //std::cout << "Adding :" << default_contact.toString() << std::endl;
-            //std::cout << "dynContacts: " << std::endl;
-            //std::cout << dynContacts.toString() << std::endl;
         }
     }
-
 
 }
 
@@ -642,7 +524,7 @@ void getEEWrench(const iCub::iDynTree::TorqueEstimationTree & icub_model,
     KDLtoYarp(f_gripper,gripper_wrench);
 }
 
-void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques()
+void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(RobotStatus & tree_status)
 {
     //Assume that only a IMU is available
 
@@ -677,31 +559,25 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
     }
 
     model_mutex.wait();
-    assert((int)estimates.lastQ.size() == robot_estimation_model->getNrOfDOFs());
-    assert((int)estimates.lastDq.size() == robot_estimation_model->getNrOfDOFs());
-    assert((int)estimates.lastD2q.size() == robot_estimation_model->getNrOfDOFs());
+    assert((int)tree_status.qj.size() == robot_estimation_model->getNrOfDOFs());
+    assert((int)tree_status.dqj.size() == robot_estimation_model->getNrOfDOFs());
+    assert((int)tree_status.ddqj.size() == robot_estimation_model->getNrOfDOFs());
 
-    YARP_ASSERT(robot_estimation_model->setInertialMeasure(omega_used_IMU,domega_used_IMU,ddp_used_IMU));
-    (robot_estimation_model->setAng(estimates.lastQj));
-    (robot_estimation_model->setDAng(estimates.lastDq));
-    (robot_estimation_model->setD2Ang(estimates.lastD2q));
+    bool ok = robot_estimation_model->setInertialMeasure(omega_used_IMU,domega_used_IMU,ddp_used_IMU);
+    robot_estimation_model->setAng(tree_status.qj);
+    robot_estimation_model->setDAng(tree_status.dqj);
+    robot_estimation_model->setD2Ang(tree_status.ddqj);
+
     for(int i=0; i < robot_estimation_model->getNrOfFTSensors(); i++ ) {
-        //std::cout << "Number of F/T sensors available " << estimates.lastForceTorques.size() << std::endl;
-        //std::cout << "Number of F/T sensors required by the model " << icub_model->getNrOfFTSensors() << std::endl;
-        YARP_ASSERT((int)estimates.lastForceTorques.size() == robot_estimation_model->getNrOfFTSensors());
-        assert(estimates.lastForceTorques[i].size() == 6);
-        YARP_ASSERT(robot_estimation_model->setSensorMeasurement(i,estimates.lastForceTorques[i]));
+        assert(tree_status.estimated_ft_sensors[i].size() == 6);
+         ok  = ok && robot_estimation_model->setSensorMeasurement(i,tree_status.estimated_ft_sensors[i]);
     }
     robot_estimation_model->setContacts(dynContacts);
 
-    /** \todo TODO avoid unlocking/locking a mutex locked in the calling function in the called function */
-    /** \todo TODO use a different mutex to ensure that the dimensions of the sensors/states does not change? */
-    //mutex.post();
-
-    YARP_ASSERT(robot_estimation_model->kinematicRNEA());
-    YARP_ASSERT(robot_estimation_model->estimateContactForcesFromSkin());
-    YARP_ASSERT(robot_estimation_model->dynamicRNEA());
-    YARP_ASSERT(robot_estimation_model->computePositions());
+    ok = ok && robot_estimation_model->kinematicRNEA();
+    ok = ok && robot_estimation_model->estimateContactForcesFromSkin();
+    ok = ok && robot_estimation_model->dynamicRNEA();
+    ok = ok && robot_estimation_model->computePositions();
 
     estimatedLastDynContacts = robot_estimation_model->getContacts();
 
@@ -791,12 +667,6 @@ void ExternalWrenchesAndTorquesEstimator::resizeAll(int n)
     qStamps.resize(n,INITIAL_TIMESTAMP);
     tauJ.resize(n,0.0);
     tauJStamps.resize(n,INITIAL_TIMESTAMP);
-    pwm.resize(n,0);
-    pwmStamps.resize(n,INITIAL_TIMESTAMP);
-    estimates.lastQj.resize(n,0.0);
-    estimates.lastDq.resize(n,0.0);
-    estimates.lastD2q.resize(n,0.0);
-    estimates.lastTauJ.resize(n,0.0);
 }
 
 void ExternalWrenchesAndTorquesEstimator::lockAndResizeFTs(int n)
@@ -812,7 +682,6 @@ void ExternalWrenchesAndTorquesEstimator::resizeFTs(int n)
     forcetorques_offset.resize(n,Vector(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0));
     forcetorquesStamps.resize(n,INITIAL_TIMESTAMP);
     forcetorqueFilters.resize(n);
-    estimates.lastForceTorques.resize(n,Vector(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0));
 }
 
 void ExternalWrenchesAndTorquesEstimator::lockAndResizeIMUs(int n)
@@ -829,108 +698,11 @@ void ExternalWrenchesAndTorquesEstimator::resizeIMUs(int n)
     imuAngularVelocityFilters.resize(n);
     imuLinearAccelerationFilters.resize(n);
     imuMagnetometerFilters.resize(n);
-    estimates.lastIMUs.resize(n,Vector(sensorTypeDescriptions[SENSOR_IMU].dataSize,0.0));
-}
-
-bool ExternalWrenchesAndTorquesEstimator::lockAndCopyVector(const Vector &src, double *dest)
-{
-    if(dest==0)
-        return false;
-    mutex.wait();
-    memcpy(dest, src.data(), sizeof(double)*src.size());
-    mutex.post();
-    return true;
-}
-
-bool ExternalWrenchesAndTorquesEstimator::lockAndCopyVectorElement(int index, const Vector &src, double *dest)
-{
-    mutex.wait();
-    dest[0] = src[index];
-    mutex.post();
-    return true;
-}
-
-bool ExternalWrenchesAndTorquesEstimator::lockAndCopyElementVectorFromVector(int index, const std::vector<Vector> &src, double *dest)
-{
-    if(dest==0)
-        return false;
-    mutex.wait();
-    memcpy(dest,src[index].data(),sizeof(double)*src[index].size());
-    mutex.post();
-    return true;
-}
-
-bool ExternalWrenchesAndTorquesEstimator::lockAndCopyVectorOfVectors(const std::vector<Vector> &src, double *dest)
-{
-    if(dest==0)
-        return false;
-    mutex.wait();
-    for(int i=0, offset = 0; i < (int)src.size(); i++) {
-        memcpy(dest+offset,src[i].data(),sizeof(double)*src[i].size());
-        offset += src[i].size();
-    }
-    mutex.post();
-    return true;
 }
 
 void copyVector(const yarp::sig::Vector & src, double * dest)
 {
     memcpy(dest,src.data(),src.size()*sizeof(double));
-}
-
-bool ExternalWrenchesAndTorquesEstimator::lockAndCopyExternalForceTorque(int link_index, double * dest)
-{
-    if( link_index < 0 ||
-        link_index >= robot_estimation_model->getNrOfLinks() )
-    {
-        return false;
-    }
-
-    KDL::Wrench ext_f = robot_estimation_model->getExternalForceTorqueKDL(link_index,link_index,link_index);
-
-    for(int i=0; i < 6; i++ )
-    {
-        dest[i] = ext_f[i];
-    }
-
-    return true;
-}
-
-bool ExternalWrenchesAndTorquesEstimator::lockAndSetEstimationParameter(const EstimateType et, const EstimationParameter ep, const void *value)
-{
-    bool res = false;
-    mutex.wait();
-    switch(et)
-    {
-    case ESTIMATE_JOINT_VEL:
-    case ESTIMATE_MOTOR_VEL:
-        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE)
-            res = setVelFiltParams(((int*)value)[0], dqFiltTh);
-        else if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD)
-            res = setVelFiltParams(dqFiltWL, ((double*)value)[0]);
-        break;
-
-    case ESTIMATE_JOINT_ACC:
-    case ESTIMATE_MOTOR_ACC:
-        if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_MAX_SIZE)
-            res = setAccFiltParams(((int*)value)[0], d2qFiltTh);
-        else if(ep==ESTIMATION_PARAM_ADAPTIVE_WINDOW_THRESHOLD)
-            res = setAccFiltParams(d2qFiltWL, ((double*)value)[0]);
-        break;
-
-    case ESTIMATE_JOINT_TORQUE:
-        if(ep==ESTIMATION_PARAM_LOW_PASS_FILTER_CUT_FREQ)
-            res = setTauJCutFrequency(((double*)value)[0]);
-        else if(ep==wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU)
-            res = setEnableOmegaDomegaIMU(*((bool*)value));
-        else if(ep==wbi::ESTIMATION_PARAM_MIN_TAXEL)
-            res = setMinTaxel(*((int*)value));
-        break;
-
-    default: break;
-    }
-    mutex.post();
-    return res;
 }
 
 bool ExternalWrenchesAndTorquesEstimator::lockAndSetEstimationOffset(const EstimateType et, const ID & sid, const double *value)

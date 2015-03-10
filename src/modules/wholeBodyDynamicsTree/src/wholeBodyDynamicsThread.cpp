@@ -57,6 +57,7 @@ bool RobotStatus::zero()
     qj.zero();
     dqj.zero();
     ddqj.zero();
+    torquesj.zero();
     for(unsigned int i=0; i < estimated_ft_sensors.size(); i++ ) {
         estimated_ft_sensors[i].zero();
         measured_ft_sensors[i].zero();
@@ -75,6 +76,7 @@ bool RobotStatus::setNrOfDOFs(int nrOfDOFs)
     qj.resize(nrOfDOFs);
     dqj.resize(nrOfDOFs);
     ddqj.resize(nrOfDOFs);
+    torquesj.resize(nrOfDOFs);
 
     zero();
     return true;
@@ -976,8 +978,6 @@ void wholeBodyDynamicsThread::readRobotStatus()
 
     // Get joint encoders position, velocities and accelerations
     sensors->readSensors(wbi::SENSOR_ENCODER_POS, tree_status.qj.data(), stamps, wait);
-
-
     sensors->readSensors(wbi::SENSOR_ENCODER_SPEED, tree_status.dqj.data(), stamps, wait);
     sensors->readSensors(wbi::SENSOR_ENCODER_ACCELERATION, tree_status.ddqj.data(), stamps, wait);
 
@@ -1057,11 +1057,11 @@ void wholeBodyDynamicsThread::estimation_run()
     this->readRobotStatus();
 
     //
-    externalWrenchTorqueEstimator->estimateExternalWrenchAndInternalJoints();
+    externalWrenchTorqueEstimator->estimateExternalWrenchAndInternalJoints(this->tree_status);
 
     //Get estimated torques
     assert(estimator->getEstimateNumber(wbi::ESTIMATE_JOINT_TORQUE) == (int)all_torques.size());
-    all_torques = externalWrenchTorqueEstimator->estimates.lastTauJ;
+    all_torques = tree_status.torquesj;
 
     //Get estimated external contacts
     external_forces_list = externalWrenchTorqueEstimator->estimatedLastSkinDynContacts;

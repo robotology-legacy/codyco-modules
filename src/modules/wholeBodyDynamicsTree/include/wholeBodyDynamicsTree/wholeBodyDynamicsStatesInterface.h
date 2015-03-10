@@ -35,6 +35,9 @@
 
 #include "yarpWholeBodyInterface/yarpWholeBodySensors.h"
 
+#include "wholeBodyDynamicsTree/robotStatus.h"
+
+
 namespace wbi {
     class ID;
     class IDList;
@@ -89,7 +92,6 @@ using namespace yarpWbi;
 
         yarp::sig::Vector           q, qStamps;         // last joint position estimation
         yarp::sig::Vector           tauJ, tauJStamps;
-        yarp::sig::Vector           pwm, pwmStamps;
 
         std::vector<yarp::sig::Vector> forcetorques;
         yarp::sig::Vector forcetorquesStamps;
@@ -153,21 +155,19 @@ using namespace yarpWbi;
 
 
         /**  Estimate internal torques and external forces from measured sensors, using iDynTree library */
-        void estimateExternalForcesAndJointTorques();
+        void estimateExternalForcesAndJointTorques(RobotStatus & tree_status);
 
         /** Store external wrenches ad the end effectors */
         void readEndEffectorsExternalWrench();
 
     public:
-
-
         iCub::iDynTree::TorqueEstimationTree * robot_estimation_model;
 
 
         yarp::os::Semaphore         mutex;          // mutex for access to class global variables
         yarp::os::Semaphore         model_mutex;    // mutex for access the dynamic model
-        yarp::os::Semaphore         run_mutex;      // mutex for avoiding multiple run being execute together
 
+        /*
         struct
         {
             yarp::sig::Vector lastQj;                    // last joint position estimation
@@ -177,7 +177,7 @@ using namespace yarpWbi;
             std::vector<yarp::sig::Vector> lastForceTorques; //last Force/torques sensors estimation
             std::vector<yarp::sig::Vector> lastIMUs;    //last IMU sensors estimation
         }
-        estimates;
+        estimates;*/
 
         iCub::skinDynLib::dynContactList estimatedLastDynContacts;
         iCub::skinDynLib::skinContactList estimatedLastSkinDynContacts;
@@ -199,23 +199,13 @@ using namespace yarpWbi;
 
 
         bool init();
-        void estimateExternalWrenchAndInternalJoints();
+        void estimateExternalWrenchAndInternalJoints(RobotStatus & tree_status);
         void fini();
 
         bool setEnableOmegaDomegaIMU(bool opt);
         /** Set the minimum number of activated taxels an skin contact should have to be considered by the estimation  */
         bool setMinTaxel(const int min_taxel);
 
-        /** Take the mutex and copy the content of src into dest. */
-        bool lockAndCopyVector(const yarp::sig::Vector &src, double *dest);
-        /** Take the mutex and copy the i-th element of src into dest. */
-        bool lockAndCopyVectorElement(int i, const yarp::sig::Vector &src, double *dest);
-        /** Take the mutex and copy the (serialized) content of src into dest */
-        bool lockAndCopyVectorOfVectors(const std::vector<yarp::sig::Vector> &src, double *dest);
-        /** Take the mutex and copy the i-th Vector of a vector<Vector> of src into dest */
-        bool lockAndCopyElementVectorFromVector(int i, const std::vector<yarp::sig::Vector> &src, double *dest);
-        /** Take the mutex and copy the external force/torque acting on link sid */
-        bool lockAndCopyExternalForceTorque(int index, double * dest);
 
     };
 
