@@ -43,6 +43,8 @@
 #include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 #include "wholeBodyDynamicsTree/wholeBodyDynamicsStatesInterface.h"
 
+#include "ctrlLibRT/filters.h"
+
 class RobotStatus
 {
 public:
@@ -88,6 +90,28 @@ struct outputWrenchPortInformation
     yarp::os::BufferedPort<yarp::sig::Vector> * output_port;
 };
 
+class wholeBodyDynamicsFilters
+{
+    public:
+
+    wholeBodyDynamicsFilters(int nrOfDOFs, int nrOfFTSensors, double cutoffInHz, double periodInSeconds);
+    ~wholeBodyDynamicsFilters();
+
+    iCub::ctrl::AWLinEstimator  *dqFilt;        // joint velocity filter
+    iCub::ctrl::AWPolyElement dqFiltElement;
+    iCub::ctrl::AWQuadEstimator *d2qFilt;       // joint acceleration filter
+    iCub::ctrl::AWPolyElement d2qFiltElement;
+
+    iCub::ctrl::realTime::FirstOrderLowPassFilter * tauJFilt;  ///< low pass filter for joint torque
+
+    iCub::ctrl::realTime::FirstOrderLowPassFilter * imuLinearAccelerationFilter; ///<  low pass filters for IMU linear accelerations
+    iCub::ctrl::realTime::FirstOrderLowPassFilter * imuAngularVelocityFilter; ///< low pass filters for IMU angular velocity
+    std::vector<iCub::ctrl::realTime::FirstOrderLowPassFilter *> forcetorqueFilters; ///< low pass filters for ForceTorque sensors
+
+    iCub::ctrl::AWLinEstimator * imuAngularAccelerationFilt;
+    iCub::ctrl::AWPolyElement imuAngularAccelerationFiltElement;
+};
+
 /**
  *
   */
@@ -105,6 +129,9 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
     /** helper class for calibrating 6-axis F/T sensors offsets */
     // OffsetEstimator offsetEstimator;
+
+    /** filter class */
+    wholeBodyDynamicsFilters * filters;
 
     /** helper variable for printing every printPeriod milliseconds */
     int                 printCountdown;
@@ -226,11 +253,9 @@ public:
                             std::string _robotName,
                             int _period,
                             yarpWbi::yarpWholeBodySensors *_wbi,
-                            yarp::os::Property & yarpWbiOptions,
-                            bool _autoconnect,
+                            yarp::os::Property & yarpOptions,
                             bool assume_fixed_base_calibration,
-                            std::string fixed_link,
-                            bool publish_filtered_ft);
+                            std::string fixed_link);
 
     bool threadInit();
     bool calibrateOffset(const std::string calib_code, const int nr_of_samples );

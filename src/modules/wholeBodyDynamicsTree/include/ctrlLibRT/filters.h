@@ -145,6 +145,85 @@ public:
    const yarp::sig::Vector & output() const { return y; }
 };
 
+
+
+/**
+* \ingroup Filters
+*
+* First order low pass filter implementing the transfer function
+* H(s) = \frac{1}{1+\tau s}
+*
+*/
+class FirstOrderLowPassFilter
+{
+protected:
+    Filter *filter;         // low pass filter
+    double fc;              // cut frequency
+    double Ts;              // sample time
+    yarp::sig::Vector y;    // filter current output
+
+    void computeCoeff();
+
+public:
+    /**
+    * Creates a filter with specified parameters
+    * @param cutFrequency cut frequency (Hz).
+    * @param sampleTime sample time (s).
+    * @param y0 initial output.
+    */
+    FirstOrderLowPassFilter(const double cutFrequency, const double sampleTime,
+                            const yarp::sig::Vector &y0=yarp::sig::Vector(1,0.0));
+
+    /**
+    * Destructor.
+    */
+    ~FirstOrderLowPassFilter();
+
+    /**
+    * Internal state reset.
+    * @param y0 new internal state.
+    */
+    void init(const yarp::sig::Vector &y0);
+
+    /**
+    * Change the cut frequency of the filter.
+    * @param cutFrequency the new cut frequency (Hz).
+    */
+    bool setCutFrequency(const double cutFrequency);
+
+    /**
+    * Change the sample time of the filter.
+    * @param sampleTime the new sample time (s).
+    */
+    bool setSampleTime(const double sampleTime);
+
+    /**
+    * Retrieve the cut frequency of the filter.
+    * @return the cut frequency (Hz).
+    */
+    double getCutFrequency() { return fc; }
+
+    /**
+    * Retrieve the sample time of the filter.
+    * @return the sample time (s).
+    */
+    double getSampleTime() { return Ts; }
+
+    /**
+    * Performs filtering on the actual input.
+    * @param u reference to the actual input.
+    * @return the corresponding output.
+    */
+    const yarp::sig::Vector& filt(const yarp::sig::Vector &u);
+
+    /**
+    * Return current filter output.
+    * @return the filter output.
+    */
+    const yarp::sig::Vector& output() const { return y; }
+};
+
+
 }
 
 }

@@ -31,6 +31,8 @@
 #include <cstring>
 #include <ctime>
 
+#include "ctrlLibRT/filters.h"
+
 
 using namespace yarp::math;
 using namespace yarp::sig;
@@ -93,38 +95,34 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
                                                  string _robotName,
                                                  int _period,
                                                  yarpWholeBodySensors *_wbs,
-                                                 yarp::os::Property & _yarp_wbi_opts,
-                                                 bool _autoconnect,
+                                                 yarp::os::Property & _yarp_options,
                                                  bool _assume_fixed_base_calibration,
-                                                 std::string _fixed_link_calibration,
-                                                 bool _publish_filtered_ft
+                                                 std::string _fixed_link_calibration
                                                 )
     :  RateThread(_period),
        moduleName(_name),
        robotName(_robotName),
        sensors(_wbs),
-       yarp_options(_yarp_wbi_opts),
+       yarp_options(_yarp_options),
        printCountdown(0),
        printPeriod(2000),
        samples_requested_for_calibration(200),
        max_samples_for_calibration(2000),
        samples_used_for_calibration(0),
        assume_fixed_base_calibration(_assume_fixed_base_calibration),
-       autoconnect(_autoconnect),
-       fixed_link_calibration(_fixed_link_calibration),
-       publish_filtered_ft(_publish_filtered_ft)
+       fixed_link_calibration(_fixed_link_calibration)
     {
         // TODO FIXME move all this logic in threadInit
 
        yInfo() << "Launching wholeBodyDynamicsThread with name : " << _name << " and robotName " << _robotName << " and period " << _period;
 
-       if( !_yarp_wbi_opts.check("urdf") )
+       if( !_yarp_options.check("urdf") )
        {
             yError() << "wholeBodyDynamicsTree error: urdf not found in configuration files";
             return;
        }
 
-    std::string urdf_file = _yarp_wbi_opts.find("urdf").asString().c_str();
+    std::string urdf_file = _yarp_options.find("urdf").asString().c_str();
     yarp::os::ResourceFinder rf;
     std::string urdf_file_path = rf.findFileByName(urdf_file.c_str());
 
@@ -391,6 +389,18 @@ bool wholeBodyDynamicsThread::threadInit()
 
     if( ! ret ) return false;
 
+    // Open estimator
+    int periodInMilliseconds = (int)getRate();
+    this->externalWrenchTorqueEstimator = new ExternalWrenchesAndTorquesEstimator(periodInMilliseconds,
+                                                                                  (yarpWbi::yarpWholeBodySensors *)sensors,
+                                                                                            port_contacts_input,
+                                                                                             yarp_options);
+
+    if( !this->externalWrenchTorqueEstimator->init() )
+    {
+        return false;
+    }
+
     //Load configuration related to the controlboards for which we are estimating the torques
     IDList torque_estimation_list = sensors->getSensorList(wbi::SENSOR_ENCODER);
     ret = loadJointsControlBoardFromConfig(yarp_options,
@@ -400,7 +410,12 @@ bool wholeBodyDynamicsThread::threadInit()
 
     if( ! ret || torque_estimation_list.size() != torqueEstimationControlBoards.controlBoardAxisList.size() )
     {
+        yError() << "Error in loading controlboard information for the configuration file";
         return false;
+    }
+    else
+    {
+        yInfo() << "ControlBoards information correctly loaded from configuration file";
     }
 
     torqueEstimationControlBoards.deviceDrivers.resize(torqueEstimationControlBoards.controlBoardNames.size());
@@ -432,6 +447,46 @@ bool wholeBodyDynamicsThread::threadInit()
     //Get list of ft sensors for calibration shortcut
     wbi::IDList ft_list = sensors->getSensorList(wbi::SENSOR_FORCE_TORQUE);
 
+    if( yarp_options.check("enable_w0_dw0") )
+    {
+        YARP_ASSERT(false);
+
+        yInfo() << "enable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration.";
+        externalWrenchTorqueEstimator->setEnableOmegaDomegaIMU(true);
+    }
+
+    if( yarp_options.check("disable_w0_dw0") )
+    {
+        yInfo() << "disable_w0_dw0 option found, disabling the use of IMU angular velocity/acceleration.";
+        externalWrenchTorqueEstimator->setEnableOmegaDomegaIMU(false);
+    }
+
+    if( yarp_options.check("min_taxel") )
+    {
+        int taxel_threshold = yarp_options.find("min_taxel").asInt();
+        yInfo() << "min_taxel option found, ignoring skin contacts with less then "
+                  << taxel_threshold << " active taxels will be ignored.";
+        externalWrenchTorqueEstimator->setMinTaxel(taxel_threshold);
+    }
+    else
+    {
+        int taxel_threshold = 0;
+        externalWrenchTorqueEstimator->setMinTaxel(0);
+    }
+
+    if( yarp_options.check("autoconnect") )
+    {
+        yInfo() << "autoconnect option found, enabling the autoconnection.";
+        this->autoconnect = true;
+    }
+
+    this->publish_filtered_ft = false;
+    if( yarp_options.check("output_clean_ft") )
+    {
+        yInfo() << "output_clean_ft option found, enabling output of filtered and without offset ft sensors";
+        this->publish_filtered_ft = true;
+    }
+
 
     //Find end effector ids
     int max_id = 100;
@@ -455,10 +510,18 @@ bool wholeBodyDynamicsThread::threadInit()
     // Open external wrenches ports
     openExternalWrenchesPorts();
 
+    // Create filters
+    double cutoffInHz = 3.0;
+    double periodInSeconds = getRate()*1e-3;
+    filters = new wholeBodyDynamicsFilters(torque_estimation_list.size(),nrOfAvailableFTSensors,
+                                          cutoffInHz,periodInSeconds);
 
-    std::cout << "[INFO] wholeBodyDynamicsThread: autoconnect option enabled, autoconnecting." << std::endl;
-    for(int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
+
+    if( this->autoconnect )
     {
+        yInfo() << "wholeBodyDynamicsThread: autoconnect option enabled, autoconnecting.";
+        for(int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
+        {
             std::string port_name = output_torque_ports[output_torque_port_i].port_name;
             std::string local_port = "/" + moduleName + "/" + port_name + "/Torques:o";
             std::string robot_port = "/" + robotName  + "/joint_vsens/" + port_name + ":i";
@@ -468,18 +531,19 @@ bool wholeBodyDynamicsThread::threadInit()
             {
                 Network::connect(local_port,robot_port,"tcp",false);
             }
+        }
     }
-
-
 
 
     //Start with calibration
     if( !calibrateOffset("all",samples_requested_for_calibration) )
     {
-        std::cout << "[ERR] Initial wholeBodyDynamicsThread::calibrateOffset failed" << std::endl;
+        yError() << "Initial wholeBodyDynamicsThread::calibrateOffset failed";
         return false;
     }
-    printf("\n\n");
+
+    yInfo() << "wholeBodyDynamicsThread::threadInit finished successfully.";
+
     return true;
 }
 
@@ -911,7 +975,9 @@ void wholeBodyDynamicsThread::readRobotStatus()
     double * stamps = NULL;
 
     // Get joint encoders position, velocities and accelerations
-    sensors->readSensors(SENSOR_ENCODER, tree_status.qj.data(), stamps, wait);
+    sensors->readSensors(wbi::SENSOR_ENCODER_POS, tree_status.qj.data(), stamps, wait);
+
+
     sensors->readSensors(wbi::SENSOR_ENCODER_SPEED, tree_status.dqj.data(), stamps, wait);
     sensors->readSensors(wbi::SENSOR_ENCODER_ACCELERATION, tree_status.ddqj.data(), stamps, wait);
 
@@ -938,11 +1004,19 @@ void wholeBodyDynamicsThread::readRobotStatus()
         if( sensors->readSensor(SENSOR_IMU, imu_numeric, tree_status.wbi_imu.data(), stamps, wait) )
         {
             // fill imu values
-            YARP_ASSERT(false);
-            //1++;
+            for(int i=0; i < 3; i++ )
+            {
+                tree_status.proper_ddp_imu[i] = tree_status.wbi_imu[i+4];
+                tree_status.omega_imu[i]      = tree_status.wbi_imu[i+7];
+            }
 
-            //estimates.lastIMUs[imu_index].setSubvector(4,imuLinearAccelerationFilters[imu_index]->filt(IMUs[imu_index].subVector(4,6)));  ///< linear acceleration is filtered with a low pass filter
-            //estimates.lastIMUs[imu_index].setSubvector(7,imuAngularVelocityFilters[imu_index]->filt(IMUs[imu_index].subVector(7,9)));  ///< angular velocity is filtered with a low pass filter
+            tree_status.proper_ddp_imu = filters->imuLinearAccelerationFilter->filt(tree_status.proper_ddp_imu);
+            tree_status.omega_imu      = filters->imuAngularVelocityFilter->filt(tree_status.omega_imu);
+
+            filters->imuAngularAccelerationFiltElement.data = tree_status.omega_imu;
+            filters->imuAngularAccelerationFiltElement.time = yarp::os::Time::now();
+            tree_status.domega_imu     = filters->imuAngularAccelerationFilt->estimate(filters->imuAngularAccelerationFiltElement);
+
         } else {
             yError() << "wholeBodyDynamicsTree : Error in reading IMU";
         }
@@ -1143,14 +1217,6 @@ void wholeBodyDynamicsThread::calibration_run()
 //*************************************************************************************************************************
 void wholeBodyDynamicsThread::calibration_on_double_support_run()
 {
-    //std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run() " << samples_used_for_calibration << " / " << samples_requested_for_calibration << "  called" << std::endl;
-    bool ret;
-    //ret = estimator->getEstimates(wbi::ESTIMATE_JOINT_POS,tree_status.qj.data());
-    //ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_VEL,tree_status.dqj.data());
-    //ret = ret && estimator->getEstimates(wbi::ESTIMATE_JOINT_ACC,tree_status.ddqj.data());
-    //ret = ret && estimator->getEstimates(wbi::ESTIMATE_IMU,tree_status.wbi_imu.data());
-    YARP_ASSERT(false);
-
     //std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run(): estimates obtained" << std::endl;
 
     //Setting imu proper acceleration from measure (assuming omega e domega = 0)
@@ -1267,6 +1333,10 @@ void wholeBodyDynamicsThread::threadRelease()
         yInfo() << "Autoconnect option not enabled";
     }
 
+    externalWrenchTorqueEstimator->fini();
+
+    delete externalWrenchTorqueEstimator;
+
     yInfo() << "Closing output torques ports";
     for(int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
     {
@@ -1293,6 +1363,8 @@ void wholeBodyDynamicsThread::threadRelease()
     }
 
     delete icub_model_calibration;
+
+    delete filters;
 
     run_mutex.unlock();
 }
@@ -1425,4 +1497,77 @@ bool wholeBodyDynamicsThread::closeControlBoards()
         torqueEstimationControlBoards.controlModeInterfaces[ctrlBrd] = 0;
         torqueEstimationControlBoards.interactionModeInterfaces[ctrlBrd] = 0;
     }
+}
+
+wholeBodyDynamicsFilters::wholeBodyDynamicsFilters(int nrOfDOFs, int nrOfFTSensors, double cutoffInHz, double periodInSeconds)
+{
+    // Options
+
+    ///< Window lengths of adaptive window filters
+    int dqFiltWL            = 16;
+    int d2qFiltWL           = 25;
+
+    int imuAngularAccelerationFiltWL = 25;
+
+    ///< Threshold of adaptive window filters
+    double dqFiltTh            = 1.0;
+    double d2qFiltTh           = 1.0;
+
+    double imuAngularAccelerationFiltTh = 1.0;
+
+    ///< Cut frequencies
+    double tauJCutFrequency    =   cutoffInHz;
+
+    double imuLinearAccelerationCutFrequency = cutoffInHz;
+    double imuAngularVelocityCutFrequency    = cutoffInHz;
+    double forcetorqueCutFrequency           = cutoffInHz;
+
+    //
+
+    ///< create derivative filters
+    dqFilt = new iCub::ctrl::AWLinEstimator(dqFiltWL, dqFiltTh);
+    d2qFilt = new iCub::ctrl::AWQuadEstimator(d2qFiltWL, d2qFiltTh);
+
+    ///< create low pass filters
+    yarp::sig::Vector dofZeros(nrOfDOFs,0.0);
+    tauJFilt    = new iCub::ctrl::realTime::FirstOrderLowPassFilter(tauJCutFrequency, periodInSeconds, dofZeros);
+
+    yarp::sig::Vector sixZeros(6,0.0);
+    forcetorqueFilters.resize(nrOfFTSensors);
+    for(int ft_numeric = 0; ft_numeric < nrOfFTSensors; ft_numeric++ )
+    {
+        forcetorqueFilters[ft_numeric] = new iCub::ctrl::realTime::FirstOrderLowPassFilter(forcetorqueCutFrequency,periodInSeconds,sixZeros); ///< low pass filter
+    }
+
+    yarp::sig::Vector threeZeros(6,0.0);
+    imuLinearAccelerationFilter = new iCub::ctrl::realTime::FirstOrderLowPassFilter(imuLinearAccelerationCutFrequency,periodInSeconds,threeZeros);  ///< linear acceleration is filtered with a low pass filter
+    imuAngularVelocityFilter = new iCub::ctrl::realTime::FirstOrderLowPassFilter(imuAngularVelocityCutFrequency,periodInSeconds,threeZeros);  ///< angular velocity is filtered with a low pass filter
+
+     //Allocating a filter for angular acceleration estimation only for IMU used in iDynTree
+    imuAngularAccelerationFilt = new iCub::ctrl::AWLinEstimator(imuAngularAccelerationFiltWL, imuAngularAccelerationFiltTh);
+}
+
+template <class T> void deleteObject(T** pp)
+{
+    T* p = *pp;
+    if( p != 0 )
+    {
+        delete p;
+        p = 0;
+    }
+}
+
+wholeBodyDynamicsFilters::~wholeBodyDynamicsFilters()
+{
+    deleteObject(&dqFilt);
+    deleteObject(&d2qFilt);
+    deleteObject(&tauJFilt);
+
+    for(int ft=0; ft < forcetorqueFilters.size(); ft++)
+    {
+        deleteObject(&(forcetorqueFilters[ft]));
+    }
+
+    deleteObject(&imuLinearAccelerationFilter);
+    deleteObject(&imuAngularVelocityFilter);
 }

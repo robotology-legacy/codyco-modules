@@ -129,8 +129,8 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     std::string wbiConfFile = rf.findFile("wbi_conf_file");
     yarpWbiOptions.fromConfigFile(wbiConfFile);
 
-    //Overwrite the robot parameter that could be present in wbi_conf_file
-    yarpWbiOptions.put("robot",rf.find("robot").asString());
+    //Overwrite the parameters in the wbi_conf_file with stuff from the wbd options file
+    yarpWbiOptions.fromString(rf.toString(),false);
 
     //List of joints used in the dynamic model of the robot
     IDList RobotDynamicModelJoints;
@@ -221,68 +221,12 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     {
         yError("wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
     }
-    sensors->addSensors(wbi::SENSOR_FORCE_TORQUE,RobotIMUSensors);
+    sensors->addSensors(wbi::SENSOR_IMU,RobotIMUSensors);
 
     if(!sensors->init())
     {
         yError() << getName() << ": Error while initializing whole body estimator interface.Closing module";
         return false;
-    }
-
-    bool use_ang_vel_acc = true;
-    if( rf.check("enable_w0_dw0") )
-    {
-        YARP_ASSERT(false);
-
-        yInfo() << "enable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration.";
-        use_ang_vel_acc = true;
-        //estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
-    }
-
-    if( rf.check("disable_w0_dw0") )
-    {
-            YARP_ASSERT(false);
-
-        yInfo() << "disable_w0_dw0 option found, disabling the use of IMU angular velocity/acceleration.";
-        use_ang_vel_acc = false;
-        //estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
-    }
-
-    if( rf.check("min_taxel") )
-    {
-            YARP_ASSERT(false);
-
-        int taxel_threshold = rf.find("min_taxel").asInt();
-        yInfo() << "min_taxel option found, ignoring skin contacts with less then "
-                  << taxel_threshold << " active taxels will be ignored.";
-        /*
-        estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,
-                                                    wbi::ESTIMATION_PARAM_MIN_TAXEL,
-                                                    &taxel_threshold);*/
-    }
-    else
-    {
-        int taxel_threshold = 0;
-        YARP_ASSERT(false);
-        /*
-        estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,
-                                                    wbi::ESTIMATION_PARAM_MIN_TAXEL,
-                                                    &taxel_threshold);*/
-    }
-
-
-    bool autoconnect = false;
-    if( rf.check("autoconnect") )
-    {
-        yInfo() << "autoconnect option found, enabling the autoconnection.";
-        autoconnect = true;
-    }
-
-    bool output_clean_ft = false;
-    if( rf.check("output_clean_ft") )
-    {
-        yInfo() << "output_clean_ft option found, enabling output of filtered and without offset ft sensors";
-        output_clean_ft = true;
     }
 
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
@@ -291,19 +235,17 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
                                             period,
                                             sensors,
                                             yarpWbiOptions,
-                                            autoconnect,
                                             fixed_base_calibration,
-                                            fixed_link_calibration,
-                                            output_clean_ft);
+                                            fixed_link_calibration);
     if(!wbdThread->start())
     {
         yError() << getName()
-                          << ": Error while initializing whole body estimator interface."
+                          << ": Error while initializing whole body estimator thread."
                           << "Closing module";
         return false;
     }
 
-    fprintf(stderr,"wholeBodyDynamicsThread started\n");
+    yInfo() << "wholeBodyDynamicsThread started";
 
 
     return true;

@@ -369,7 +369,8 @@ bool ExternalWrenchesAndTorquesEstimator::init()
         }
         YARP_ASSERT((robot_estimation_model->getDOFIndex(enc.toString()) == i));
     }
-    std::cout << "[DEBUG] yarpWholeBodyDynamicsEstimator::threadInit() terminet successfully" << std::endl;
+    if( ok ) yDebug() << "ExternalWrenchesAndTorquesEstimator::init() terminated successfully";
+    if( !ok ) yDebug() << "ExternalWrenchesAndTorquesEstimator::init() failed";
     return ok;
 }
 

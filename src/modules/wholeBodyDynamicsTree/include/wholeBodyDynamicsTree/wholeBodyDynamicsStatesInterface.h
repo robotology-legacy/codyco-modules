@@ -67,7 +67,6 @@ using namespace yarpWbi;
 
         iCub::ctrl::AWLinEstimator  *dqFilt;        // joint velocity filter
         iCub::ctrl::AWQuadEstimator *d2qFilt;       // joint acceleration filter
-
         iCub::ctrl::FirstOrderLowPassFilter *tauJFilt;  ///< low pass filter for joint torque
 
         std::vector<iCub::ctrl::FirstOrderLowPassFilter *> imuLinearAccelerationFilters; ///<  low pass filters for IMU linear accelerations
@@ -141,9 +140,7 @@ using namespace yarpWbi;
         bool setTauJCutFrequency(double fc);
         /** Set the cut frequency of the motor torque low pass filter. */
 
-        bool setEnableOmegaDomegaIMU(bool opt);
-        /** Set the minimum number of activated taxels an skin contact should have to be considered by the estimation  */
-        bool setMinTaxel(const int min_taxel);
+
 
         /** Read the skin contacts and generated the contact points for external wrenches  estimation */
         void readSkinContacts();
@@ -162,6 +159,7 @@ using namespace yarpWbi;
         void readEndEffectorsExternalWrench();
 
     public:
+
 
         iCub::iDynTree::TorqueEstimationTree * robot_estimation_model;
 
@@ -203,6 +201,10 @@ using namespace yarpWbi;
         bool init();
         void estimateExternalWrenchAndInternalJoints();
         void fini();
+
+        bool setEnableOmegaDomegaIMU(bool opt);
+        /** Set the minimum number of activated taxels an skin contact should have to be considered by the estimation  */
+        bool setMinTaxel(const int min_taxel);
 
         /** Take the mutex and copy the content of src into dest. */
         bool lockAndCopyVector(const yarp::sig::Vector &src, double *dest);

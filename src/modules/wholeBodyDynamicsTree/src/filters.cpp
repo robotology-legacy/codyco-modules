@@ -161,3 +161,82 @@ const Vector & Filter::filt(const Vector &u)
 
     return y;
 }
+
+
+/**********************************************************************/
+FirstOrderLowPassFilter::FirstOrderLowPassFilter(const double cutFrequency,
+                                                 const double sampleTime,
+                                                 const Vector &y0)
+{
+    fc=cutFrequency;
+    Ts=sampleTime;
+    y=y0;
+    filter=NULL;
+    computeCoeff();
+}
+
+
+/**********************************************************************/
+FirstOrderLowPassFilter::~FirstOrderLowPassFilter()
+{
+    delete filter;
+}
+
+
+/***************************************************************************/
+void FirstOrderLowPassFilter::init(const Vector &y0)
+{
+    if (filter!=NULL)
+        filter->init(y0);
+}
+
+
+/**********************************************************************/
+bool FirstOrderLowPassFilter::setCutFrequency(const double cutFrequency)
+{
+    if (cutFrequency<=0.0)
+        return false;
+
+    fc=cutFrequency;
+    computeCoeff();
+
+    return true;
+}
+
+
+/**********************************************************************/
+bool FirstOrderLowPassFilter::setSampleTime(const double sampleTime)
+{
+    if (sampleTime<=0.0)
+        return false;
+
+    Ts=sampleTime;
+    computeCoeff();
+
+    return true;
+}
+
+
+/**********************************************************************/
+const Vector& FirstOrderLowPassFilter::filt(const Vector &u)
+{
+    if (filter!=NULL)
+        y=filter->filt(u);
+
+    return y;
+}
+
+
+/**********************************************************************/
+void FirstOrderLowPassFilter::computeCoeff()
+{
+    double tau=1.0/(2.0*M_PI*fc);
+    Vector num=cat(Ts,Ts);
+    Vector den=cat(2.0*tau+Ts,Ts-2.0*tau);
+
+    if (filter!=NULL)
+        filter->adjustCoeffs(num,den);
+    else
+        filter=new Filter(num,den,y);
+}
+
