@@ -183,6 +183,7 @@ Windows, Linux
 
 using namespace yarp::os;
 
+YARP_DECLARE_PLUGINS(icubmod)
 
 int main(int argc, char *argv[])
 {
@@ -193,8 +194,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    //???: register devices?
-//    YARP_REGISTER_DEVICES(icubmod)
+    YARP_REGISTER_PLUGINS(icubmod)
 
     codyco::myReport rep;
 

@@ -1,0 +1,78 @@
+<application>
+
+  <!-- Generic information-->
+  <name>Codyco Y2 Demo</name>
+  <!-- <description></description> -->
+  <version></version>
+
+  <!-- Required modules. -->
+  <module>
+      <name>RedBallGraspDemo</name>
+      <parameters></parameters>
+      <node>icub15</node>
+      <stdio></stdio>
+      <prefix></prefix>
+  </module>
+  
+  <module>
+      <name>pf3dTracker</name>
+      <parameters></parameters>
+      <node>icub13</node>
+      <stdio></stdio>
+      <prefix></prefix>
+  </module>
+  <module>
+      <name>yarpview</name>
+      <parameters>--name /PF3DTracker_viewer --x 960 --y 360 --RefreshTime 50</parameters>
+      <node>icub13</node>
+      <stdio></stdio>
+      <prefix></prefix>
+  </module>
+  
+  <!-- Adding coordinator -->
+  <module>
+      <name>CodycoCoordinatorY2</name>
+      <parameters></parameters>
+      <node>icub13</node>
+      <stdio></stdio>
+      <prefix></prefix>
+  </module>
+
+  <!-- Required connections -->
+  <connection>
+      <from>/icub/camcalib/left/out</from>
+      <to>/pf3dTracker/video:i</to>
+      <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+      <from>/pf3dTracker/video:o</from>
+      <to>/PF3DTracker_viewer</to>
+      <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+      <from>/pf3dTracker/data:o</from>
+      <to>/redBallGrasp/trackTarget:i</to>
+      <protocol>udp</protocol>
+  </connection>
+  
+  <connection>
+      <from>/redBallGrasp/cmdFace:rpc</from>
+      <to>/icub/face/emotions/in</to>
+      <protocol>tcp</protocol>
+  </connection>
+  
+  <connection>
+      <from>/redBallGrasp/qdes:o</from>
+      <to>/y2coordinator/refs:i</to>
+      <protocol>udp</protocol>
+  </connection>
+  
+  <connection>
+      <from>/redBallGrasp/motionDone:rpc</from>
+      <to>/y2coordinator/rpc:i</to>
+      <protocol>tcp</protocol>
+  </connection>
+  
+</application>

@@ -24,8 +24,6 @@
 #include <yarp/sig/Vector.h>
 #include <iCub/ctrl/neuralNetworks.h>
 
-//YARP_DECLARE_DEVICES(icubmod) // ???
-
 namespace codyco {
 
     class Predictor

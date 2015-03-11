@@ -117,17 +117,18 @@ namespace codyco {
         yarp::sig::Vector leftSolverDesiredJointConfiguration;
         yarp::sig::Vector rightSolverDesiredJointConfiguration;
         yarp::sig::Vector* desiredJointConfiguration;
+        //Vector where we read encoder values
+        yarp::sig::Vector leftArmCurrentPosition;
+        yarp::sig::Vector rightArmCurrentPosition;
+        yarp::sig::Vector *currentArmCurrentPosition;
         //Joints splitted into torso, left and right arms
         yarp::sig::Vector torsoDesiredJointConfiguration;
         yarp::sig::Vector leftArmDesiredJointConfiguration;
         yarp::sig::Vector rightArmDesiredJointConfiguration;
         yarp::sig::Vector* currentDesiredArmJointConfiguration;
         //Output ports
-        yarp::os::BufferedPort<yarp::sig::Vector> torsoDesiredJointConfigurationPort;
-        yarp::os::BufferedPort<yarp::sig::Vector> leftArmDesiredJointConfigurationPort;
-        yarp::os::BufferedPort<yarp::sig::Vector> rightArmDesiredJointConfigurationPort;
-        yarp::os::BufferedPort<yarp::sig::Vector> *currentArmDesiredJointConfigurationPort;
-        /* 
+        yarp::os::BufferedPort<yarp::os::Property> desiredJointConfigurationPort;
+        /*
          RCP protocol:
          Writes the following command (two string). [ . ] is optional
          - IS_DONE

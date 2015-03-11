@@ -25,6 +25,7 @@ namespace codyco {
         if (!thr->start())
         {
             delete thr;
+            thr = 0;
             return false;
         }
 

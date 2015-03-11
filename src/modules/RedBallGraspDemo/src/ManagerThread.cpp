@@ -497,10 +497,13 @@ namespace codyco {
 
     void ManagerThread::steerTorsoToHome()
     {
-        Vector &output = torsoDesiredJointConfigurationPort.prepare();
         torsoDesiredJointConfiguration.zero();
-        output = torsoDesiredJointConfiguration;
-        torsoDesiredJointConfigurationPort.write();
+        Bottle bottle;
+        bottle.addList().read(torsoDesiredJointConfiguration);
+        Property &output = desiredJointConfigurationPort.prepare();
+        output.clear(); //??
+        output.put("torso", bottle.get(0));
+        desiredJointConfigurationPort.write(true);
 
         fprintf(stdout,"*** Homing torso\n");
     }
@@ -522,29 +525,14 @@ namespace codyco {
 
     void ManagerThread::steerArmToHome(const int sel)
     {
-        BufferedPort<Vector> *port = NULL;
         std::string type;
 
         if (sel==LEFTARM)
         {
-            if (useLeftArm)
-            {
-                port = &leftArmDesiredJointConfigurationPort;
-            }
-            else
-                return;
-
             type="left_arm";
         }
         else if (sel==RIGHTARM)
         {
-            if (useRightArm)
-            {
-                port = &rightArmDesiredJointConfigurationPort;
-            }
-            else
-                return;
-
             type="right_arm";
         }
         else if (armSel!=NOARM)
@@ -553,9 +541,13 @@ namespace codyco {
             return;
 
         fprintf(stdout,"*** Homing %s\n",type.c_str());
-        Vector &arm = port->prepare();
-        arm = homePoss;
-        port->write();
+
+        Bottle bottle;
+        bottle.addList().read(homePoss);
+        Property &output = desiredJointConfigurationPort.prepare();
+        output.clear();
+        output.put(type, bottle.get(0));
+        desiredJointConfigurationPort.write(true);
 
         openHand(sel);
     }
@@ -604,48 +596,59 @@ namespace codyco {
     void ManagerThread::stopArmJoints(const int sel)
     {
         IEncoders        *ienc=encArm;
+        Vector *armEncoder = NULL;
         Vector *arm = NULL;
-        BufferedPort<Vector> *port = NULL;
-        std::string type;
 
-        if (sel==LEFTARM)
+        std::string type;
+        int selectedArm = NOARM;
+        if (sel == LEFTARM || sel == RIGHTARM) {
+            selectedArm = sel;
+        } else if (armSel != NOARM) {
+            selectedArm = armSel;
+        } else return;
+
+        if (selectedArm==LEFTARM)
         {
             if (useLeftArm)
             {
                 drvLeftArm->view(ienc);
+                armEncoder = &leftArmCurrentPosition;
                 arm = &leftArmDesiredJointConfiguration;
-                port = &leftArmDesiredJointConfigurationPort;
             }
             else
                 return;
 
             type="left_arm";
         }
-        else if (sel==RIGHTARM)
+        else if (selectedArm==RIGHTARM)
         {
             if (useRightArm)
             {
                 drvRightArm->view(ienc);
+                armEncoder = &rightArmCurrentPosition;
                 arm = &rightArmDesiredJointConfiguration;
-                port = &rightArmDesiredJointConfigurationPort;
             }
             else
                 return;
 
             type="right_arm";
         }
-        else if (armSel!=NOARM)
-            type=armSel==LEFTARM?"left_arm":"right_arm";
-        else
-            return;
 
         fprintf(stdout,"*** Stopping %s joints\n",type.c_str());
 
-        ienc->getEncoders(arm->data());
-        Vector &output = port->prepare();
-        output = *arm;
-        port->write();
+        ienc->getEncoders(armEncoder->data());
+        for (int i = 0; i < arm->size(); i++) {
+            (*arm)(i) = (*armEncoder)(i);
+        }
 
+        Bottle bottle;
+        (*arm) *= CTRL_DEG2RAD;
+        bottle.addList().read(*arm);
+
+        Property& output = desiredJointConfigurationPort.prepare();
+        output.clear();
+        output.put(type, bottle.get(0));
+        desiredJointConfigurationPort.write(true);
     }
 
     void ManagerThread::moveHand(const int action, const int sel)
@@ -752,7 +755,7 @@ namespace codyco {
 
                         currentDesiredArmJointConfiguration = &leftArmDesiredJointConfiguration;
                         desiredJointConfiguration = &leftSolverDesiredJointConfiguration;
-                        currentArmDesiredJointConfigurationPort = &leftArmDesiredJointConfigurationPort;
+                        currentArmCurrentPosition = &leftArmCurrentPosition;
                     }
                     else
                     {
@@ -769,7 +772,7 @@ namespace codyco {
 
                         currentDesiredArmJointConfiguration = &rightArmDesiredJointConfiguration;
                         desiredJointConfiguration = &rightSolverDesiredJointConfiguration;
-                        currentArmDesiredJointConfigurationPort = &rightArmDesiredJointConfigurationPort;
+                        currentArmCurrentPosition = &rightArmCurrentPosition;
                     }
 
                     fprintf(stdout,"*** Using %s\n",armSel==LEFTARM?"left_arm":"right_arm");
@@ -795,16 +798,23 @@ namespace codyco {
                 for (int i = 0; i < torsoDesiredJointConfiguration.size(); i++) {
                     torsoDesiredJointConfiguration(i) = (*desiredJointConfiguration)(i);
                 }
-                for (int i = 0; i < currentDesiredArmJointConfiguration->size(); i++) {
+                int size = std::min(desiredJointConfiguration->size() - torsoDesiredJointConfiguration.size(), currentDesiredArmJointConfiguration->size());
+                for (int i = 0; i < size; i++) {
                     (*currentDesiredArmJointConfiguration)(i) = (*desiredJointConfiguration)(i + torsoDesiredJointConfiguration.size());
                 }
-                Vector& torsoOut = torsoDesiredJointConfigurationPort.prepare();
-                torsoOut = torsoDesiredJointConfiguration;
-                torsoDesiredJointConfigurationPort.write();
+                Bottle torsoBottle;
+                Bottle armBottle;
+                torsoDesiredJointConfiguration *= CTRL_DEG2RAD;
+                (*currentDesiredArmJointConfiguration) *= CTRL_DEG2RAD;
+                torsoBottle.addList().read(torsoDesiredJointConfiguration);
+                armBottle.addList().read(*currentDesiredArmJointConfiguration);
 
-                Vector &armOut = currentArmDesiredJointConfigurationPort->prepare();
-                armOut = *currentDesiredArmJointConfiguration;
-                currentArmDesiredJointConfigurationPort->write();
+                Property& output = desiredJointConfigurationPort.prepare();
+                output.clear();
+                output.put("torso", torsoBottle.get(0));
+                output.put((armSel == LEFTARM ? "left_arm" : "right_arm"), armBottle.get(0));
+                desiredJointConfigurationPort.write(true);
+
             }
         }
     }
@@ -837,13 +847,19 @@ namespace codyco {
                     for (int i = 0; i < currentDesiredArmJointConfiguration->size(); i++) {
                         (*currentDesiredArmJointConfiguration)(i) = (*desiredJointConfiguration)(i + torsoDesiredJointConfiguration.size());
                     }
-                    Vector& torsoOut = torsoDesiredJointConfigurationPort.prepare();
-                    torsoOut = torsoDesiredJointConfiguration;
-                    torsoDesiredJointConfigurationPort.write();
+                    Bottle torsoBottle;
+                    Bottle armBottle;
+                    torsoDesiredJointConfiguration *= CTRL_DEG2RAD;
+                    (*currentDesiredArmJointConfiguration) *= CTRL_DEG2RAD;
+                    torsoBottle.addList().read(torsoDesiredJointConfiguration);
+                    armBottle.addList().read(*currentDesiredArmJointConfiguration);
 
-                    Vector &armOut = currentArmDesiredJointConfigurationPort->prepare();
-                    armOut = *currentDesiredArmJointConfiguration;
-                    currentArmDesiredJointConfigurationPort->write();
+
+                    Property& output = desiredJointConfigurationPort.prepare();
+                    output.clear();
+                    output.put("torso", torsoBottle.get(0));
+                    output.put((armSel == LEFTARM ? "left_arm" : "right_arm"), armBottle.get(0));
+                    desiredJointConfigurationPort.write(true);
 
                     closeHand();
 
@@ -950,29 +966,36 @@ namespace codyco {
             fprintf(stdout,"stopping control\n");
             IEncoders *torsoEnc = NULL;
             IEncoders *armEnc = NULL;
-            BufferedPort<Vector> *port = NULL;
 
             drvTorso->view(torsoEnc);
             if (armSel==LEFTARM)
             {
                 drvLeftArm->view(armEnc);
-                port = &leftArmDesiredJointConfigurationPort;
+
             }
             else if (armSel==RIGHTARM)
             {
                 drvRightArm->view(armEnc);
-                port = &rightArmDesiredJointConfigurationPort;
             }
 
             torsoEnc->getEncoders(torsoDesiredJointConfiguration.data());
-            armEnc->getEncoders(currentDesiredArmJointConfiguration->data());
-            Vector &torsoOut = torsoDesiredJointConfigurationPort.prepare();
-            torsoOut = torsoDesiredJointConfiguration;
-            torsoDesiredJointConfigurationPort.write();
+            armEnc->getEncoders(currentArmCurrentPosition->data());
+            for (int i = 0; i < currentArmCurrentPosition->size(); i++) {
+                (*currentDesiredArmJointConfiguration)(i) = (*currentArmCurrentPosition)(i);
+            }
 
-            Vector &output = port->prepare();
-            output = *currentDesiredArmJointConfiguration;
-            port->write();
+            Bottle torsoBottle;
+            Bottle armBottle;
+            torsoDesiredJointConfiguration *= CTRL_DEG2RAD;
+            (*currentDesiredArmJointConfiguration) *= CTRL_DEG2RAD;
+            torsoBottle.addList().read(torsoDesiredJointConfiguration);
+            armBottle.addList().read(*currentDesiredArmJointConfiguration);
+
+            Property output = desiredJointConfigurationPort.prepare();
+            output.clear();
+            output.put("torso", torsoBottle.get(0));
+            output.put((armSel == LEFTARM ? "left_arm" : "right_arm"), armBottle.get(0));
+            desiredJointConfigurationPort.write(true);
 
             Time::delay(0.1);
         }
@@ -1076,12 +1099,8 @@ namespace codyco {
         inportIMDTargetRight.interrupt();
         inportIMDTargetRight.close();
 
-        leftArmDesiredJointConfigurationPort.interrupt();
-        leftArmDesiredJointConfigurationPort.close();
-        rightArmDesiredJointConfigurationPort.interrupt();
-        rightArmDesiredJointConfigurationPort.close();
-        torsoDesiredJointConfigurationPort.interrupt();
-        torsoDesiredJointConfigurationPort.close();
+        desiredJointConfigurationPort.interrupt();
+        desiredJointConfigurationPort.close();
 
         setFace(FACE_HAPPY);
         outportCmdFace.interrupt();
@@ -1104,8 +1123,7 @@ namespace codyco {
     , name(_name)
     , drvTorso(0), drvHead(0), drvLeftArm(0), drvRightArm(0)
     , drvCartLeftArm(0), drvCartRightArm(0), drvGazeCtrl(0)
-    , desiredJointConfiguration(0), currentDesiredArmJointConfiguration(0)
-    , currentArmDesiredJointConfigurationPort(0) {}
+    , desiredJointConfiguration(0), currentDesiredArmJointConfiguration(0), currentArmCurrentPosition(0) {}
 
     bool ManagerThread::threadInit()
     {
@@ -1166,6 +1184,8 @@ namespace codyco {
         bHome.setMonitor(rf.getMonitor());
         homePoss.resize(7,0.0); homeVels.resize(7,0.0);
         getHomeOptions(bHome,homePoss,homeVels);
+        homePoss *= CTRL_DEG2RAD;
+        homeVels *= CTRL_DEG2RAD;
 
         // arm_selection part
         Bottle &bArmSel=rf.findGroup("arm_selection");
@@ -1239,17 +1259,15 @@ namespace codyco {
             close();
             return false;
         }
+
+        desiredJointConfigurationPort.open(name + "/qdes:o");
+
         //read dimension of torso
         int size = 0;
         drvTorso->view(posTorso);
         posTorso->getAxes(&size);
         posTorso = NULL;
         torsoDesiredJointConfiguration.resize(size, 0.0);
-        //open torso port
-        if (!torsoDesiredJointConfigurationPort.open(name + "/torso/qdes:o")) {
-            close();
-            return false;
-        }
 
         drvHead=new PolyDriver;
         if (!drvHead->open(optHead))
@@ -1270,13 +1288,8 @@ namespace codyco {
             drvLeftArm->view(posArm);
             posArm->getAxes(&size);
             posArm = NULL;
-            leftArmDesiredJointConfiguration.resize((size > 7 ? size : size), 0.0);
-
-            //open left arm port
-            if (!leftArmDesiredJointConfigurationPort.open(name + "/left_arm/qdes:o")) {
-                close();
-                return false;
-            }
+            leftArmDesiredJointConfiguration.resize((size > 7 ? 7 : size), 0.0);
+            leftArmCurrentPosition.resize(size, 0.0);
         }
 
         if (useRightArm)
@@ -1291,13 +1304,8 @@ namespace codyco {
             drvRightArm->view(posArm);
             posArm->getAxes(&size);
             posArm = NULL;
-            leftArmDesiredJointConfiguration.resize((size > 7 ? size : size), 0.0);
-
-            //open left arm port
-            if (!rightArmDesiredJointConfigurationPort.open(name + "/right_arm/qdes:o")) {
-                close();
-                return false;
-            }
+            rightArmDesiredJointConfiguration.resize((size > 7 ? 7 : size), 0.0);
+            rightArmCurrentPosition.resize(size, 0.0);
         }
 
         // open cartesiancontrollerclient and gazecontrollerclient drivers
@@ -1367,6 +1375,7 @@ namespace codyco {
             armSel=LEFTARM;
             desiredJointConfiguration = &leftSolverDesiredJointConfiguration;
             currentDesiredArmJointConfiguration = &leftArmDesiredJointConfiguration;
+            currentArmCurrentPosition = &leftArmCurrentPosition;
         }
         else if (useRightArm)
         {
@@ -1381,6 +1390,7 @@ namespace codyco {
             armSel=RIGHTARM;
             desiredJointConfiguration = &rightSolverDesiredJointConfiguration;
             currentDesiredArmJointConfiguration = &rightArmDesiredJointConfiguration;
+            currentArmCurrentPosition = &rightArmCurrentPosition;
         }
         else
         {
@@ -1395,6 +1405,7 @@ namespace codyco {
             armSel=NOARM;
             desiredJointConfiguration = NULL;
             currentDesiredArmJointConfiguration = NULL;
+            currentArmCurrentPosition = NULL;
         }
 
         // init

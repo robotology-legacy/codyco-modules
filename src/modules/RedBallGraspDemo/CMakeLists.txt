@@ -27,3 +27,4 @@ target_link_libraries(${PROJECT_NAME} ctrlLib
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
+add_subdirectory(app)
