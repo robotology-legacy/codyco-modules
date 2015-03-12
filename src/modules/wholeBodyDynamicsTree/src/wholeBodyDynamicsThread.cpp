@@ -988,7 +988,7 @@ void wholeBodyDynamicsThread::readRobotStatus()
         int ft_index = ft_numeric;
         if( sensors->readSensor(SENSOR_FORCE_TORQUE, ft_numeric, tree_status.measured_ft_sensors[ft_numeric].data(), stamps , wait) ) {
             // Add a low pass filter here? \todo TODO
-            tree_status.estimated_ft_sensors[ft_numeric] = tree_status.estimated_ft_sensors[ft_numeric] - tree_status.ft_sensors_offset[ft_numeric]; /// remove offset
+            tree_status.estimated_ft_sensors[ft_numeric] = tree_status.measured_ft_sensors[ft_numeric] - tree_status.ft_sensors_offset[ft_numeric]; /// remove offset
         } else {
             yError() << "wholeBodyDynamics: Error in reading F/T sensors, exiting";
         }
