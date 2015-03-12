@@ -994,8 +994,7 @@ void wholeBodyDynamicsThread::readRobotStatus()
     for(int imu_numeric = 0; imu_numeric < (int) 1; imu_numeric++ )
     {
         int imu_index = imu_numeric;
-        assert((int)IMUs.size() > imu_index );
-        assert((int)IMUs[imu_index].size() == sensorTypeDescriptions[SENSOR_IMU].dataSize );
+        assert( tree_status.wbi_imu.size() == sensorTypeDescriptions[SENSOR_IMU].dataSize );
         if( sensors->readSensor(SENSOR_IMU, imu_numeric, tree_status.wbi_imu.data(), stamps, wait) )
         {
             // fill imu values
@@ -1061,7 +1060,6 @@ void wholeBodyDynamicsThread::estimation_run()
     externalWrenchTorqueEstimator->estimateExternalWrenchAndInternalJoints(this->tree_status);
 
     //Get estimated torques
-    assert(estimator->getEstimateNumber(wbi::ESTIMATE_JOINT_TORQUE) == (int)all_torques.size());
     all_torques = tree_status.torquesj;
 
     //Get estimated external contacts
@@ -1132,9 +1130,9 @@ void wholeBodyDynamicsThread::calibration_run()
         {
             tree_status.proper_ddp_imu[2] = gravity;
         }
-        else if(    fixed_link_calibration == "l_sole" 
-                 || fixed_link_calibration == "r_sole" 
-                 || fixed_link_calibration == "r_foot_dh_frame" 
+        else if(    fixed_link_calibration == "l_sole"
+                 || fixed_link_calibration == "r_sole"
+                 || fixed_link_calibration == "r_foot_dh_frame"
                  || fixed_link_calibration == "l_foot_dh_frame" )
         {
             tree_status.proper_ddp_imu[0] = gravity;
@@ -1238,9 +1236,9 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
         {
             tree_status.proper_ddp_imu[2] = gravity;
         }
-        else if(    fixed_link_calibration == "l_sole" 
-                 || fixed_link_calibration == "r_sole" 
-                 || fixed_link_calibration == "r_foot_dh_frame" 
+        else if(    fixed_link_calibration == "l_sole"
+                 || fixed_link_calibration == "r_sole"
+                 || fixed_link_calibration == "r_foot_dh_frame"
                  || fixed_link_calibration == "l_foot_dh_frame" )
         {
             tree_status.proper_ddp_imu[0] = gravity;
