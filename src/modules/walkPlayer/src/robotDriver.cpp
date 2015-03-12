@@ -52,7 +52,7 @@ yarp::sig::Matrix robotDriver::compute_transformations (actionStruct act) {
 
     //cout << endl<< "HL to string:" << endl << Hl.toString() << endl;
 
-    yarp::sig::Matrix Hlr = iCub::ctrl::SE3inv(icub_dyn->lowerTorso->left->getH()) * iCub::ctrl::SE3inv(icub_dyn->lowerTorso->HLeft) * icub_dyn->lowerTorso->HRight * icub_dyn->lowerTorso->right->getH();
+    yarp::sig::Matrix Hlr = SE3inv(icub_dyn->lowerTorso->left->getH()) * SE3inv(icub_dyn->lowerTorso->HLeft) * icub_dyn->lowerTorso->HRight * icub_dyn->lowerTorso->right->getH();
 
     //cout << endl<< "HLR to string:" << endl << Hlr.toString() << endl;
 
