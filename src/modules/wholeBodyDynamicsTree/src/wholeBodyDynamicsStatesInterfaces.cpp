@@ -150,7 +150,6 @@ bool ExternalWrenchesAndTorquesEstimator::init()
         ft_serialization.push_back(wbi_id.toString());
     }
 
-    model_mutex.wait();
     {
         std::cerr << "[DEBUG] Create TorqueEstimationTree with " << ft_serialization.size() << " ft sensors" << std::endl;
         if( !assume_fixed_base )
@@ -161,7 +160,6 @@ bool ExternalWrenchesAndTorquesEstimator::init()
         }
     }
     //Load mapping from skinDynLib to iDynTree links from configuration files
-    model_mutex.post();
 
     if( !this->wbi_yarp_conf.check("IDYNTREE_SKINDYNLIB_LINKS") )
     {
@@ -183,9 +181,7 @@ bool ExternalWrenchesAndTorquesEstimator::init()
         std::string iDynTree_skinFrame_name = map_bot->get(1).asList()->get(0).asString();
         int skinDynLib_body_part = map_bot->get(1).asList()->get(1).asInt();
         int skinDynLib_link_index = map_bot->get(1).asList()->get(2).asInt();
-        model_mutex.wait();
         bool ret_sdl = robot_estimation_model->addSkinDynLibAlias(iDynTree_link_name,iDynTree_skinFrame_name,skinDynLib_body_part,skinDynLib_link_index);
-        model_mutex.post();
         if( !ret_sdl )
         {
             std::cerr << "[ERR] wholeBodyDynamicsStatesInterface error: IDYNTREE_SKINDYNLIB_LINKS link " << iDynTree_link_name
@@ -232,9 +228,7 @@ bool ExternalWrenchesAndTorquesEstimator::init()
         {
 
             std::string link_name = subtree_links_bot->get(l).asString();
-            model_mutex.wait();
             int link_index = robot_estimation_model->getLinkIndex(link_name);
-            model_mutex.post();
             if( link_index < 0 )
             {
                 std::cerr << "[ERR] wholeBodyDynamicsStatesInterface error: WBD_SUBTREES link " << link_name << " not found in urdf model" << std::endl;
@@ -249,9 +243,7 @@ bool ExternalWrenchesAndTorquesEstimator::init()
         }
         std::string default_contact_link_name = subtree_bot->get(1).asList()->get(1).asString();
 
-        model_mutex.wait();
         int default_contact_link_index = robot_estimation_model->getLinkIndex(default_contact_link_name);
-        model_mutex.post();
         if( default_contact_link_index < 0 )
         {
             std::cerr << "[ERR] wholeBodyDynamicsStatesInterface error: WBD_SUBTREES link " << default_contact_link_name << " not found in urdf model" << std::endl;
@@ -273,11 +265,9 @@ bool ExternalWrenchesAndTorquesEstimator::init()
 
     contacts_for_given_subtree.resize(torque_estimation_subtrees.size());
 
-    model_mutex.wait();
     std::cerr << "[DEBUG] robot_estimation_model->getSubTreeInternalDynamics().size() : " << robot_estimation_model->getSubTreeInternalDynamics().size() << std::endl;
     std::cerr << "[DEBUG] torque_estimation_subtrees.size(): " << torque_estimation_subtrees.size() << std::endl;
     YARP_ASSERT(robot_estimation_model->getSubTreeInternalDynamics().size() ==  torque_estimation_subtrees.size());
-    model_mutex.post();
 
     std::cerr << "[INFO] WBD_SUBTREES correctly loaded with " << torque_estimation_subtrees.size() << "subtrees" << std::endl;
 
@@ -338,7 +328,6 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalWrenchAndInternalJoint
 
 
     }
-    mutex.post();
 
     return;
 }
@@ -412,11 +401,9 @@ void ExternalWrenchesAndTorquesEstimator::readSkinContacts()
     {
         int skinDynLib_body_part = it->getBodyPart();
         int skinDynLib_link_index = it->getLinkNumber();
-        model_mutex.wait();
         int iDynTree_link_index = -1;
         int iDynTree_frame_index=  -1;
         bool skinDynLibID_found = robot_estimation_model->skinDynLib2iDynTree(skinDynLib_body_part,skinDynLib_link_index,iDynTree_link_index,iDynTree_frame_index);
-        model_mutex.post();
         // \todo TODO FIXME properly address when you find an unexpcted contact id without crashing
         if( !skinDynLibID_found )
         {
@@ -447,16 +434,10 @@ dynContact ExternalWrenchesAndTorquesEstimator::getDefaultContact(const int subt
 {
     int iDynTree_default_contact_link = torque_estimation_subtrees[subtree].default_contact_link;
 
-    //std::cout << "default_contact_link" << default_contact_link << std::endl;
-    model_mutex.wait();
-    //std::cout << "Model: " << robot_estimation_model->getKDLUndirectedTree().getSerialization().toString() << std::endl;
-    model_mutex.post();
     int skinDynLib_body_part = -1;
     int skinDynLib_link_index = -1;
     int iDynTree_default_contact_link_skinFrame;
-    model_mutex.wait();
     YARP_ASSERT(robot_estimation_model->getSkinDynLibAlias(iDynTree_default_contact_link,iDynTree_default_contact_link_skinFrame,skinDynLib_body_part,skinDynLib_link_index));
-    model_mutex.post();
     YARP_ASSERT(skinDynLib_body_part != -1);
     YARP_ASSERT(skinDynLib_link_index != -1);
     dynContact return_value = dynContact();
@@ -500,7 +481,7 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
     /** \todo TODO check that serialization between wbi and iDynTree are the same */
     assert(omega_used_IMU.size() == 3);
     assert(domega_used_IMU.size() == 3);
-    assert(ddp_used_IMU.siz() == 3);
+    assert(ddp_used_IMU.size() == 3);
 
     if( !enable_omega_domega_IMU )
     {
@@ -519,16 +500,15 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
         {
             ddp_used_IMU[2] = gravity;
         }
-        else if(    fixed_link == "l_sole" 
-                 || fixed_link == "r_sole" 
-                 || fixed_link == "r_foot_dh_frame" 
+        else if(    fixed_link == "l_sole"
+                 || fixed_link == "r_sole"
+                 || fixed_link == "r_foot_dh_frame"
                  || fixed_link == "l_foot_dh_frame" )
         {
             ddp_used_IMU[0] = gravity;
         }
     }
 
-    model_mutex.wait();
     assert((int)tree_status.qj.size() == robot_estimation_model->getNrOfDOFs());
     assert((int)tree_status.dqj.size() == robot_estimation_model->getNrOfDOFs());
     assert((int)tree_status.ddqj.size() == robot_estimation_model->getNrOfDOFs());
@@ -597,7 +577,6 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
 
     assert((int)tauJ.size() == robot_estimation_model->getNrOfDOFs());
     tauJ = robot_estimation_model->getTorques();
-    model_mutex.post();
 
 }
 
@@ -624,13 +603,6 @@ void ExternalWrenchesAndTorquesEstimator::fini()
     return;
 }
 
-void ExternalWrenchesAndTorquesEstimator::lockAndResizeAll(int n)
-{
-    mutex.wait();
-    resizeAll(n);
-    mutex.post();
-}
-
 void ExternalWrenchesAndTorquesEstimator::resizeAll(int n)
 {
     q.resize(n,0.0);
@@ -639,27 +611,14 @@ void ExternalWrenchesAndTorquesEstimator::resizeAll(int n)
     tauJStamps.resize(n,INITIAL_TIMESTAMP);
 }
 
-void ExternalWrenchesAndTorquesEstimator::lockAndResizeFTs(int n)
-{
-    mutex.wait();
-    resizeFTs(n);
-    mutex.post();
-}
 
 void ExternalWrenchesAndTorquesEstimator::resizeFTs(int n)
 {
     forcetorques.resize(n,Vector(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0));
-    forcetorques_offset.resize(n,Vector(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0));
     forcetorquesStamps.resize(n,INITIAL_TIMESTAMP);
     forcetorqueFilters.resize(n);
 }
 
-void ExternalWrenchesAndTorquesEstimator::lockAndResizeIMUs(int n)
-{
-    mutex.wait();
-    resizeIMUs(n);
-    mutex.post();
-}
 
 void ExternalWrenchesAndTorquesEstimator::resizeIMUs(int n)
 {
@@ -674,43 +633,6 @@ void copyVector(const yarp::sig::Vector & src, double * dest)
 {
     memcpy(dest,src.data(),src.size()*sizeof(double));
 }
-
-bool ExternalWrenchesAndTorquesEstimator::lockAndSetEstimationOffset(const EstimateType et, const ID & sid, const double *value)
-{
-    bool res = true;
-    int ft_index;
-    mutex.wait();
-    switch(et)
-    {
-    case ESTIMATE_FORCE_TORQUE_SENSOR: ///< \todo TODO
-        sensors->getSensorList(SENSOR_FORCE_TORQUE).idToIndex(sid,ft_index);
-        memcpy(forcetorques_offset[ft_index].data(), (double*)value, sizeof(double)*sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize);
-        break;
-    default:
-        break;
-    }
-    mutex.post();
-    return res;
-}
-
-bool ExternalWrenchesAndTorquesEstimator::lockAndGetEstimationOffset(const EstimateType et, const ID & sid, double *value)
-{
-    bool res = true;
-    int ft_index;
-    mutex.wait();
-    switch(et)
-    {
-    case ESTIMATE_FORCE_TORQUE_SENSOR: ///< \todo TODO
-        sensors->getSensorList(SENSOR_FORCE_TORQUE).idToIndex(sid,ft_index);
-        memcpy(value, forcetorques_offset[ft_index].data(), sizeof(double)*sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize);
-        break;
-    default:
-        break;
-    }
-    mutex.post();
-    return res;
-}
-
 
 
 bool ExternalWrenchesAndTorquesEstimator::setVelFiltParams(int windowLength, double threshold)

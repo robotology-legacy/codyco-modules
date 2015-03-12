@@ -96,8 +96,6 @@ using namespace yarpWbi;
         std::vector<yarp::sig::Vector> forcetorques;
         yarp::sig::Vector forcetorquesStamps;
 
-        std::vector<yarp::sig::Vector> forcetorques_offset;
-
         std::vector<yarp::sig::Vector> IMUs;
         yarp::sig::Vector IMUStamps;
 
@@ -121,17 +119,14 @@ using namespace yarpWbi;
 
         /* Resize all vectors using current number of DoFs. */
         void resizeAll(int n);
-        void lockAndResizeAll(int n);
 
         //< \todo TODO add general interface using type (?) of sensors
 
         /* Resize all FT sensors related vectors using current number of Force Torque sensors */
         void resizeFTs(int n);
-        void lockAndResizeFTs(int n);
 
         /* Resize all IMU sensors related vectors using current number of IMU sensors */
         void resizeIMUs(int n);
-        void lockAndResizeIMUs(int n);
 
         /** Set the parameters of the adaptive window filter used for velocity estimation. */
         bool setVelFiltParams(int windowLength, double threshold);
@@ -163,22 +158,6 @@ using namespace yarpWbi;
     public:
         iCub::iDynTree::TorqueEstimationTree * robot_estimation_model;
 
-
-        yarp::os::Semaphore         mutex;          // mutex for access to class global variables
-        yarp::os::Semaphore         model_mutex;    // mutex for access the dynamic model
-
-        /*
-        struct
-        {
-            yarp::sig::Vector lastQj;                    // last joint position estimation
-            yarp::sig::Vector lastDq;                   // last joint velocity estimation
-            yarp::sig::Vector lastD2q;                  // last joint acceleration estimation
-            yarp::sig::Vector lastTauJ;                 // last joint torque
-            std::vector<yarp::sig::Vector> lastForceTorques; //last Force/torques sensors estimation
-            std::vector<yarp::sig::Vector> lastIMUs;    //last IMU sensors estimation
-        }
-        estimates;*/
-
         iCub::skinDynLib::dynContactList estimatedLastDynContacts;
         iCub::skinDynLib::skinContactList estimatedLastSkinDynContacts;
 
@@ -193,10 +172,6 @@ using namespace yarpWbi;
                                        yarp::os::Property & _wbi_yarp_conf);
 
         bool lockAndSetEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
-
-        bool lockAndSetEstimationOffset(const wbi::EstimateType et, const wbi::ID & sid, const double *value);
-        bool lockAndGetEstimationOffset(const wbi::EstimateType et, const wbi::ID & sid, double *value);
-
 
         bool init();
         void estimateExternalWrenchAndInternalJoints(RobotStatus & tree_status);
