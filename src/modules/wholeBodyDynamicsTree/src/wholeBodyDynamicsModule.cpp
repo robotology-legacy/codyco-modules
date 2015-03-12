@@ -75,7 +75,9 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     }
 
     bool fixed_base = false;
+    bool fixed_base_calibration = false;
     std::string fixed_link;
+    std::string fixed_link_calibration;
     if( rf.check("assume_fixed") )
     {
         fixed_link = rf.find("assume_fixed").asString().c_str();
@@ -83,28 +85,13 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
             fixed_link != "l_sole" &&
             fixed_link != "r_sole" )
         {
-            std::cout << "assume_fixed option found, but disabled because " << fixed_link << " is not a recognized fixed_link " << std::endl;
+            yError() << "assume_fixed option found, but disabled because " << fixed_link << " is not a recognized fixed_link ";
             return false;
         } else {
-            std::cout << "assume_fixed option found, using " << fixed_link << " as fixed link as a kinematic root instead of the imu." << std::endl;
+            yInfo() << "assume_fixed option found, using " << fixed_link << " as fixed link as a kinematic root instead of the imu.";
             fixed_base = true;
-        }
-    }
-
-    bool fixed_base_calibration = false;
-    std::string fixed_link_calibration;
-    if( rf.check("assume_fixed_base_calibration") )
-    {
-        fixed_link_calibration = rf.find("assume_fixed_base_calibration").asString().c_str();
-        if( fixed_link_calibration != "root_link" &&
-            fixed_link_calibration != "l_sole" &&
-            fixed_link_calibration != "r_sole" )
-        {
-            std::cout << "assume_fixed_base_calibration option found, but disabled because " << fixed_link_calibration << " is not a recognized fixed_link " << std::endl;
-            return false;
-        } else {
-            std::cout << "assume_fixed_base_calibration option found, using " << fixed_link_calibration << " as fixed link as a kinematic root instead of the imu for calibration." << std::endl;
             fixed_base_calibration = true;
+            fixed_link_calibration = fixed_link;
         }
     }
 

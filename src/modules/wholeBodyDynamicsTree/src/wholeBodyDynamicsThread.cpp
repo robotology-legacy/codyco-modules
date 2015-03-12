@@ -46,6 +46,8 @@ RobotStatus::RobotStatus(int nrOfDOFs, int nrOfFTsensors)
 {
     setNrOfDOFs(nrOfDOFs);
     setNrOfFTSensors(nrOfFTsensors);
+
+    this->zero();
 }
 
 bool RobotStatus::zero()
