@@ -261,10 +261,10 @@ namespace codyco {
             //I set the proportional gain to the identity, set the feedforward through reference (so it is smoothed)
             //and I do not enable the force reader, so it has no feedback
             std::vector<TaskInformation> tasks;
-            TaskInformation task1 = {TaskTypeLeftHandForce, "l_gripper", &m_references->desiredLeftHandForce()};
-            tasks.push_back(task1);
-            TaskInformation task2 = {TaskTypeRightHandForce, "r_gripper", &m_references->desiredRightHandForce()};
-            tasks.push_back(task2);
+//            TaskInformation task1 = {TaskTypeLeftHandForce, "l_gripper", &m_references->desiredLeftHandForce()};
+//            tasks.push_back(task1);
+//            TaskInformation task2 = {TaskTypeRightHandForce, "r_gripper", &m_references->desiredRightHandForce()};
+//            tasks.push_back(task2);
 
             reader = new VoidReader(6);
             if (reader) {

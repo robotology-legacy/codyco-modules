@@ -90,8 +90,8 @@ namespace codyco {
             bool linkFound = true;
             linkFound = m_robot.getFrameList().idToIndex("l_sole", m_leftFootLinkID);
             linkFound = linkFound && m_robot.getFrameList().idToIndex("r_sole", m_rightFootLinkID);
-            linkFound = linkFound && m_robot.getFrameList().idToIndex("l_gripper", m_leftHandLinkID);
-            linkFound = linkFound && m_robot.getFrameList().idToIndex("r_gripper", m_rightHandLinkID);
+            //linkFound = linkFound && m_robot.getFrameList().idToIndex("l_gripper", m_leftHandLinkID);
+            //linkFound = linkFound && m_robot.getFrameList().idToIndex("r_gripper", m_rightHandLinkID);
 
             m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
                                                             0, -1, 0,

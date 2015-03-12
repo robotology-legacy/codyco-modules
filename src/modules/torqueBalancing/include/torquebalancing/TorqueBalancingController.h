@@ -119,8 +119,8 @@ namespace codyco {
             int m_leftFootLinkID;
             int m_rightFootLinkID;
             int m_centerOfMassLinkID;
-            int m_leftHandLinkID;
-            int m_rightHandLinkID;
+            //int m_leftHandLinkID;
+            //int m_rightHandLinkID;
 
             //References
             ControllerReferences& m_references;
