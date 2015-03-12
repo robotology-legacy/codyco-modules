@@ -428,6 +428,8 @@ void ExternalWrenchesAndTorquesEstimator::readSkinContacts()
         skinContacts.clear();
     }
 
+    yDebug() << "ExternalWrenchesAndTorquesEstimator: read " << skinContacts.size() << " from the skin";
+
     //At this point, in a way or the other skinContacts must have at least a valid contact for each subtree
     //If this is not true, we add a default contact for each subgraph
     dynContacts = skinContacts.toDynContactList();
@@ -465,10 +467,14 @@ void ExternalWrenchesAndTorquesEstimator::readSkinContacts()
     {
         if( contacts_for_given_subtree[subtree] == 0 )
         {
+            yDebug() << "ExternalWrenchesAndTorquesEstimator: adding default contact to subtree "
+                     << torque_estimation_subtrees[subtree].subtree_name;
             dynContact default_contact = this->getDefaultContact(subtree);
             dynContacts.push_back(default_contact);
         }
     }
+
+    yDebug() << "ExternalWrenchesAndTorquesEstimator: dynContacts has " << dynContacts.size() << " elements";
 
 }
 
