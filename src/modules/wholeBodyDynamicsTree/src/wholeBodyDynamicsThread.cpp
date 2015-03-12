@@ -496,11 +496,11 @@ bool wholeBodyDynamicsThread::threadInit()
     int max_id = 100;
 
     root_link_idyntree_id = icub_model_calibration->getLinkIndex("root_link");
-    //YARP_ASSERT(root_link_idyntree_id >= 0 && root_link_idyntree_id < max_id );
+    YARP_ASSERT(root_link_idyntree_id >= 0 && root_link_idyntree_id < max_id );
     left_foot_link_idyntree_id = icub_model_calibration->getLinkIndex("l_foot");
-    //YARP_ASSERT(left_foot_link_idyntree_id >= 0  && left_foot_link_idyntree_id < max_id);
+    YARP_ASSERT(left_foot_link_idyntree_id >= 0  && left_foot_link_idyntree_id < max_id);
     right_foot_link_idyntree_id = icub_model_calibration->getLinkIndex("r_foot");
-    //YARP_ASSERT(right_foot_link_idyntree_id >= 0 && right_foot_link_idyntree_id < max_id);
+    YARP_ASSERT(right_foot_link_idyntree_id >= 0 && right_foot_link_idyntree_id < max_id);
 
     //Open and connect all the ports
     for(int output_torque_port_i = 0; output_torque_port_i < (int)output_torque_ports.size(); output_torque_port_i++ )
@@ -660,7 +660,7 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport(const std::string c
     std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport called with code " << calib_code << std::endl;
     if( samples_requested_for_calibration <= 0 )
     {
-        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport error: requested calibration with a negative (" << samples_requested_for_calibration << ") number of samples." << std::endl;
+        yError() << "wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport error: requested calibration with a negative (" << samples_requested_for_calibration << ") number of samples.";
         return false;
     }
 
@@ -680,7 +680,7 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport(const std::string c
     }
 
     calibration_mutex.lock();
-    yInfo() << "wholeBodyDynamicsThread::calibrateOffset " << calib_code  << " called successfully, starting calibration." << std::endl;
+    yInfo() << "wholeBodyDynamicsThread::calibrateOffset " << calib_code  << " called successfully, starting calibration.";
     wbd_mode = CALIBRATING_ON_DOUBLE_SUPPORT;
     run_mutex.unlock();
 
@@ -692,10 +692,10 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport(const std::
 {
     run_mutex.lock();
     samples_requested_for_calibration= samples_to_use;
-    std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport called with code " << calib_code << std::endl;
+    yInfo() << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport called with code " << calib_code;
     if( samples_requested_for_calibration <= 0 )
     {
-        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport error: requested calibration with a negative (" << samples_requested_for_calibration << ") number of samples." << std::endl;
+        yError() << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport error: requested calibration with a negative (" << samples_requested_for_calibration << ") number of samples.";
         return false;
     }
 
@@ -719,7 +719,7 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport(const std::
 
 
     calibration_mutex.lock();
-    std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport " << calib_code  << " called successfully, starting calibration." << std::endl;
+    yInfo() << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport " << calib_code  << " called successfully, starting calibration.";
     wbd_mode = CALIBRATING;
     run_mutex.unlock();
 
@@ -731,10 +731,10 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport(const std:
 {
     run_mutex.lock();
     samples_requested_for_calibration= samples_to_use;
-    std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport called with code " << calib_code << std::endl;
+    yInfo() << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport called with code " << calib_code;
     if( samples_requested_for_calibration <= 0 )
     {
-        std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport error: requested calibration with a negative (" << samples_requested_for_calibration << ") number of samples." << std::endl;
+        yError() << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport error: requested calibration with a negative (" << samples_requested_for_calibration << ") number of samples.";
         return false;
     }
 
@@ -1005,8 +1005,14 @@ void wholeBodyDynamicsThread::readRobotStatus()
                 tree_status.omega_imu[i]      = tree_status.wbi_imu[i+7];
             }
 
+            YARP_ASSERT(tree_status.proper_ddp_imu.size() == 3);
+            YARP_ASSERT(tree_status.omega_imu.size() == 3);
+
             tree_status.proper_ddp_imu = filters->imuLinearAccelerationFilter->filt(tree_status.proper_ddp_imu);
             tree_status.omega_imu      = filters->imuAngularVelocityFilter->filt(tree_status.omega_imu);
+
+            YARP_ASSERT(tree_status.proper_ddp_imu.size() == 3);
+            YARP_ASSERT(tree_status.omega_imu.size() == 3);
 
             filters->imuAngularAccelerationFiltElement.data = tree_status.omega_imu;
             filters->imuAngularAccelerationFiltElement.time = yarp::os::Time::now();
@@ -1126,7 +1132,10 @@ void wholeBodyDynamicsThread::calibration_run()
         {
             tree_status.proper_ddp_imu[2] = gravity;
         }
-        else if( fixed_link_calibration == "l_sole" || fixed_link_calibration == "r_sole" )
+        else if(    fixed_link_calibration == "l_sole" 
+                 || fixed_link_calibration == "r_sole" 
+                 || fixed_link_calibration == "r_foot_dh_frame" 
+                 || fixed_link_calibration == "l_foot_dh_frame" )
         {
             tree_status.proper_ddp_imu[0] = gravity;
         }
@@ -1142,6 +1151,9 @@ void wholeBodyDynamicsThread::calibration_run()
     tree_status.omega_imu[2] = 0.0*tree_status.wbi_imu[9];
 
     //Estimating sensors
+    YARP_ASSERT(tree_status.omega_imu.size() == 3);
+    YARP_ASSERT(tree_status.domega_imu.size() == 3);
+    YARP_ASSERT(tree_status.proper_ddp_imu.size() == 3);
     icub_model_calibration->setInertialMeasure(0.0*tree_status.omega_imu,0.0*tree_status.domega_imu,tree_status.proper_ddp_imu);
     icub_model_calibration->setAng(tree_status.qj);
     icub_model_calibration->setDAng(0.0*tree_status.dqj);
@@ -1226,7 +1238,10 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
         {
             tree_status.proper_ddp_imu[2] = gravity;
         }
-        else if( fixed_link_calibration == "l_sole" || fixed_link_calibration == "r_sole" )
+        else if(    fixed_link_calibration == "l_sole" 
+                 || fixed_link_calibration == "r_sole" 
+                 || fixed_link_calibration == "r_foot_dh_frame" 
+                 || fixed_link_calibration == "l_foot_dh_frame" )
         {
             tree_status.proper_ddp_imu[0] = gravity;
         }
@@ -1243,14 +1258,19 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
 
     //Estimating sensors
     bool ok = true;
+    YARP_ASSERT(tree_status.omega_imu.size() == 3);
+    YARP_ASSERT(tree_status.domega_imu.size() == 3);
+    YARP_ASSERT(tree_status.proper_ddp_imu.size() == 3);
     ok = ok && icub_model_calibration->setInertialMeasure(0.0*tree_status.omega_imu,0.0*tree_status.domega_imu,tree_status.proper_ddp_imu);
-    ok = ok && icub_model_calibration->setAng(tree_status.qj);
-    ok = ok && icub_model_calibration->setDAng(0.0*tree_status.dqj);
-    ok = ok && icub_model_calibration->setD2Ang(0.0*tree_status.ddqj);
+    icub_model_calibration->setAng(tree_status.qj);
+    icub_model_calibration->setDAng(0.0*tree_status.dqj);
+    icub_model_calibration->setD2Ang(0.0*tree_status.ddqj);
 
     ok = ok && icub_model_calibration->kinematicRNEA();
     ok = ok && icub_model_calibration->estimateDoubleSupportContactForce(left_foot_link_idyntree_id,right_foot_link_idyntree_id);
     ok = ok && icub_model_calibration->dynamicRNEA();
+
+    // todo check that the residual forze is zero
 
     if( !ok )
     {
@@ -1259,22 +1279,20 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
 
     //Get known terms of the Newton-Euler equation
 
-    std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run(): F/T estimates computed" << std::endl;
-    std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run() : imu proper acceleration " << tree_status.proper_ddp_imu.toString() << std::endl;
-    std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run() : q " << tree_status.q.toString() << std::endl;
+    yDebug() << "wholeBodyDynamicsThread::calibration_on_double_support_run(): F/T estimates computed";
+    yDebug() << "wholeBodyDynamicsThread::calibration_on_double_support_run() : imu proper acceleration " << tree_status.proper_ddp_imu.toString();
+    yDebug() << "wholeBodyDynamicsThread::calibration_on_double_support_run() : q " << tree_status.qj.toString();
 
     for(int ft_sensor_id=0; ft_sensor_id < (int)offset_buffer.size(); ft_sensor_id++ )
     {
         if( calibrate_ft_sensor[ft_sensor_id] )
         {
             //Get sensor estimated from model
-            icub_model_calibration->getSensorMeasurement(ft_sensor_id,tree_status.estimated_ft_sensors[ft_sensor_id]);
+            icub_model_calibration->getSensorMeasurement(ft_sensor_id,tree_status.model_ft_sensors[ft_sensor_id]);
 
             //Get sensor measure
             assert((int)offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
-            offset_buffer[ft_sensor_id] += tree_status.measured_ft_sensors[ft_sensor_id]-tree_status.estimated_ft_sensors[ft_sensor_id];
-            std::cout << "Estimated ft sensor " << ft_sensor_id << " : " << tree_status.estimated_ft_sensors[ft_sensor_id].toString() << std::endl;
-            std::cout << "Subchain mass : " << norm(tree_status.estimated_ft_sensors[ft_sensor_id].subVector(0,2))/norm( tree_status.proper_ddp_imu) << std::endl;
+            offset_buffer[ft_sensor_id] += tree_status.measured_ft_sensors[ft_sensor_id]-tree_status.model_ft_sensors[ft_sensor_id];
         }
     }
 
@@ -1540,7 +1558,7 @@ wholeBodyDynamicsFilters::wholeBodyDynamicsFilters(int nrOfDOFs, int nrOfFTSenso
         forcetorqueFilters[ft_numeric] = new iCub::ctrl::realTime::FirstOrderLowPassFilter(forcetorqueCutFrequency,periodInSeconds,sixZeros); ///< low pass filter
     }
 
-    yarp::sig::Vector threeZeros(6,0.0);
+    yarp::sig::Vector threeZeros(3,0.0);
     imuLinearAccelerationFilter = new iCub::ctrl::realTime::FirstOrderLowPassFilter(imuLinearAccelerationCutFrequency,periodInSeconds,threeZeros);  ///< linear acceleration is filtered with a low pass filter
     imuAngularVelocityFilter = new iCub::ctrl::realTime::FirstOrderLowPassFilter(imuAngularVelocityCutFrequency,periodInSeconds,threeZeros);  ///< angular velocity is filtered with a low pass filter
 

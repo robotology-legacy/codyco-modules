@@ -112,7 +112,7 @@ using namespace yarpWbi;
         bool enable_omega_domega_IMU;
         int min_taxel;
         bool assume_fixed_base;
-        enum { FIXED_ROOT_LINK, FIXED_L_SOLE, FIXED_R_SOLE } fixed_link;
+        std::string fixed_link;
         yarp::os::Property wbi_yarp_conf;
 
         yarp::sig::Vector omega_used_IMU;

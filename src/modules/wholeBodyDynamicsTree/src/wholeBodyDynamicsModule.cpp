@@ -83,7 +83,9 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         fixed_link = rf.find("assume_fixed").asString().c_str();
         if( fixed_link != "root_link" &&
             fixed_link != "l_sole" &&
-            fixed_link != "r_sole" )
+            fixed_link != "r_sole" && 
+            fixed_link != "r_foot_dh_frame" && 
+            fixed_link != "l_foot_dh_frame" )
         {
             yError() << "assume_fixed option found, but disabled because " << fixed_link << " is not a recognized fixed_link ";
             return false;
@@ -92,6 +94,16 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
             fixed_base = true;
             fixed_base_calibration = true;
             fixed_link_calibration = fixed_link;
+            // \todo TODO workaround for heidelberg 
+            if( fixed_link == "l_sole" ) 
+            {
+                fixed_link = fixed_link_calibration = "l_foot_dh_frame";
+            } 
+
+            if( fixed_link == "r_sole" ) 
+            {
+                fixed_link = fixed_link_calibration = "r_foot_dh_frame";
+            } 
         }
     }
     else

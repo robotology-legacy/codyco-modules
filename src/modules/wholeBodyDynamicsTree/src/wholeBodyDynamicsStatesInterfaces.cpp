@@ -93,24 +93,7 @@ ExternalWrenchesAndTorquesEstimator::ExternalWrenchesAndTorquesEstimator(int _pe
     if( _wbi_yarp_conf.check("fixed_base") )
     {
         assume_fixed_base = true;
-        std::string _fixed_link;
-        _fixed_link = _wbi_yarp_conf.find("fixed_base").asString();
-        if( _fixed_link == "root_link" )
-        {
-            fixed_link = FIXED_ROOT_LINK;
-        }
-        else if( _fixed_link == "l_sole" )
-        {
-            fixed_link = FIXED_L_SOLE;
-        }
-        else if( _fixed_link == "r_sole" )
-        {
-            fixed_link = FIXED_R_SOLE;
-        }
-        else
-        {
-            YARP_ASSERT(false);
-        }
+        fixed_link = _wbi_yarp_conf.find("fixed_base").asString();
     }
     else
     {
@@ -130,23 +113,6 @@ bool ExternalWrenchesAndTorquesEstimator::init()
     resizeIMUs(sensors->getSensorNumber(SENSOR_IMU));
 
     //Allocation model
-    std::string fixed_link_name;
-    if( assume_fixed_base )
-    {
-        switch( fixed_link )
-        {
-            case FIXED_ROOT_LINK:
-                fixed_link_name = "root_link";
-            break;
-            case FIXED_R_SOLE:
-                fixed_link_name = "r_sole";
-            break;
-            case FIXED_L_SOLE:
-                fixed_link_name = "l_sole";
-            break;
-        }
-    }
-
     if(  !wbi_yarp_conf.check("urdf") && !wbi_yarp_conf.check("urdf_file") )
     {
         std::cerr << "yarpWholeBodyModel error: urdf not found in configuration files" << std::endl;
@@ -191,7 +157,7 @@ bool ExternalWrenchesAndTorquesEstimator::init()
         {
             robot_estimation_model = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization);
         } else {
-            robot_estimation_model = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization,fixed_link_name);
+            robot_estimation_model = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization,fixed_link);
         }
     }
     //Load mapping from skinDynLib to iDynTree links from configuration files
@@ -549,15 +515,16 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
         domega_used_IMU.zero();
         omega_used_IMU.zero();
         ddp_used_IMU.zero();
-        switch( fixed_link )
+        if( fixed_link == "root_link" )
         {
-            case FIXED_ROOT_LINK:
-                ddp_used_IMU[2] = gravity;
-            break;
-            case FIXED_L_SOLE:
-            case FIXED_R_SOLE:
-                ddp_used_IMU[0] = gravity;
-            break;
+            ddp_used_IMU[2] = gravity;
+        }
+        else if(    fixed_link == "l_sole" 
+                 || fixed_link == "r_sole" 
+                 || fixed_link == "r_foot_dh_frame" 
+                 || fixed_link == "l_foot_dh_frame" )
+        {
+            ddp_used_IMU[0] = gravity;
         }
     }
 
@@ -566,6 +533,9 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
     assert((int)tree_status.dqj.size() == robot_estimation_model->getNrOfDOFs());
     assert((int)tree_status.ddqj.size() == robot_estimation_model->getNrOfDOFs());
 
+    YARP_ASSERT(omega_used_IMU.size() == 3);
+    YARP_ASSERT(domega_used_IMU.size() == 3);
+    YARP_ASSERT(ddp_used_IMU.size() == 3);
     bool ok = robot_estimation_model->setInertialMeasure(omega_used_IMU,domega_used_IMU,ddp_used_IMU);
     robot_estimation_model->setAng(tree_status.qj);
     robot_estimation_model->setDAng(tree_status.dqj);
