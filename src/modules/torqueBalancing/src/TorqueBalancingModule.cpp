@@ -89,10 +89,10 @@ namespace codyco {
                 return false;
             }
             double actuatedDOFs = iCubMainJoints.size();
-            
+
             m_initialJointsConfiguration.resize(actuatedDOFs);
             m_impedanceDoubleSupportReference.resize(actuatedDOFs);
-            
+
             //PARAMETERS SECTION
             //Creating parameter server helper
             //link controller and references variables to param helper manager
@@ -137,14 +137,14 @@ namespace codyco {
                 yError("Could not create wbi object.");
                 return false;
             }
-            
+
             //add joints
             m_robot->addJoints(iCubMainJoints);
             if (!m_robot->init()) {
                 yError("Could not initialize wbi.");
                 return false;
             }
-            
+
             //load initial configuration for the impedance control
             m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_initialJointsConfiguration.data());
             m_references->desiredJointsConfiguration().setValue(m_initialJointsConfiguration);
