@@ -203,7 +203,7 @@ namespace codyco {
 #pragma mark - ControllerReferences implementation
         
         ControllerReferences::ControllerReferences(int actuatedDOFs)
-        : m_desiredCOMPosition(3)
+        : m_desiredCOM(9)
         , m_desiredJointsPosition(actuatedDOFs)
         , m_desiredCOMAcceleration(3)
         , m_desiredLeftHandPosition(7)
@@ -212,9 +212,9 @@ namespace codyco {
         , m_desiredRightHandForce(6)
         , m_desiredJointsConfiguration(actuatedDOFs) {}
 
-        Reference& ControllerReferences::desiredCOMPosition()
+        Reference& ControllerReferences::desiredCOM()
         {
-            return m_desiredCOMPosition;
+            return m_desiredCOM;
         }
 
         Reference& ControllerReferences::desiredJointsPosition()

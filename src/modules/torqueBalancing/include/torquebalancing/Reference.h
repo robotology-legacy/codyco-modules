@@ -99,7 +99,7 @@ namespace codyco {
             ControllerReferences(int actuatedDOFs);
 
             //External references (exposed by streaming port)
-            Reference& desiredCOMPosition();
+            Reference& desiredCOM();
             Reference& desiredJointsPosition();
 
             
@@ -139,7 +139,7 @@ namespace codyco {
             Reference& desiredJointsConfiguration();
             
         private:
-            Reference m_desiredCOMPosition;
+            Reference m_desiredCOM;
             Reference m_desiredJointsPosition;
 
             Reference m_desiredCOMAcceleration;

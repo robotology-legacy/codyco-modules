@@ -49,6 +49,8 @@ int findAndReturnIndex(std::vector<T>  &v, T &x)
 
 void JointTorqueControl::startHijackingTorqueControl(int j)
 {
+    yarp::os::LockGuard guard(this->controlMutex);
+    desiredJointTorques(j) = measuredJointTorques(j);
     this->hijackingTorqueControl[j] = true;
 }
 
@@ -437,7 +439,9 @@ bool JointTorqueControl::setControlMode(const int j, const int mode)
     {
         if (!streamingOutput)
         {
-            this->startHijackingTorqueControl(j);
+            if (!this->hijackingTorqueControl[j]) {
+                this->startHijackingTorqueControl(j);
+            }
             new_mode = VOCAB_CM_OPENLOOP;
         }
     }
@@ -485,7 +489,9 @@ bool JointTorqueControl::setControlModes(const int n_joint, const int *joints, i
         {
             if (!streamingOutput)
             {
-                this->startHijackingTorqueControl(j);
+                if (!this->hijackingTorqueControl[j]) {
+                    this->startHijackingTorqueControl(j);
+                }
                 modes[i] = VOCAB_CM_OPENLOOP;
             }
         }
@@ -524,7 +530,9 @@ bool JointTorqueControl::setControlModes(int *modes)
         {
             if (!streamingOutput)
             {
-                this->startHijackingTorqueControl(j);
+                if (!this->hijackingTorqueControl[j]) {
+                    this->startHijackingTorqueControl(j);
+                }
                 modes[j] = VOCAB_CM_OPENLOOP;
             }
         }
@@ -870,6 +878,9 @@ void JointTorqueControl::computeOutputMotorTorques()
 
 void JointTorqueControl::run()
 {
+    //Read status (position, velocity, torque) from the controlboard
+    this->readStatus();
+
     if (!streamingOutput)
     {
         bool true_value = true;
@@ -892,13 +903,9 @@ void JointTorqueControl::run()
         }
     }
 
-    //Read status (position, velocity, torque) from the controlboard
-    this->readStatus();
-
-    controlMutex.lock();
+    yarp::os::LockGuard lock(controlMutex);
     //update output torques
     computeOutputMotorTorques();
-
 
     if(!streamingOutput)
     {
@@ -919,7 +926,6 @@ void JointTorqueControl::run()
             }
         }
     }
-    controlMutex.unlock();
 }
 
 
