@@ -68,28 +68,6 @@ using namespace yarpWbi;
         yarpWbi::yarpWholeBodySensors        *sensors;
         yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> * port_skin_contacts;
 
-        iCub::ctrl::AWLinEstimator  *dqFilt;        // joint velocity filter
-        iCub::ctrl::AWQuadEstimator *d2qFilt;       // joint acceleration filter
-        iCub::ctrl::FirstOrderLowPassFilter *tauJFilt;  ///< low pass filter for joint torque
-
-        std::vector<iCub::ctrl::FirstOrderLowPassFilter *> imuLinearAccelerationFilters; ///<  low pass filters for IMU linear accelerations
-        std::vector<iCub::ctrl::FirstOrderLowPassFilter *> imuAngularVelocityFilters; ///< low pass filters for IMU angular velocity
-        std::vector<iCub::ctrl::FirstOrderLowPassFilter *> imuMagnetometerFilters; ///< low pass filters for IMU magnetometer
-        std::vector<iCub::ctrl::FirstOrderLowPassFilter *> forcetorqueFilters; ///< low pass filters for ForceTorque sensors
-
-        iCub::ctrl::AWLinEstimator * imuAngularAccelerationFilt;
-
-        int dqFiltWL, d2qFiltWL;                    // window lengths of adaptive window filters
-        double dqFiltTh, d2qFiltTh;                 // threshold of adaptive window filters
-        double tauJCutFrequency;
-        double imuLinearAccelerationCutFrequency;
-        double imuAngularVelocityCutFrequency;
-        double imuMagnetometerCutFrequency;
-        double forcetorqueCutFrequency;
-
-        double imuAngularAccelerationFiltTh;
-        int imuAngularAccelerationFiltWL;
-
         yarp::sig::Vector           q, qStamps;         // last joint position estimation
         yarp::sig::Vector           tauJ, tauJStamps;
 
@@ -127,17 +105,6 @@ using namespace yarpWbi;
 
         /* Resize all IMU sensors related vectors using current number of IMU sensors */
         void resizeIMUs(int n);
-
-        /** Set the parameters of the adaptive window filter used for velocity estimation. */
-        bool setVelFiltParams(int windowLength, double threshold);
-        /** Set the parameters of the adaptive window filter used for acceleration estimation. */
-        bool setAccFiltParams(int windowLength, double threshold);
-
-        /** Set the cut frequency of the joint torque low pass filter. */
-        bool setTauJCutFrequency(double fc);
-        /** Set the cut frequency of the motor torque low pass filter. */
-
-
 
         /** Read the skin contacts and generated the contact points for external wrenches  estimation */
         void readSkinContacts();

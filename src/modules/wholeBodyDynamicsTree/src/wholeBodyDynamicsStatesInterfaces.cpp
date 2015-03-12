@@ -56,7 +56,6 @@ ExternalWrenchesAndTorquesEstimator::ExternalWrenchesAndTorquesEstimator(int _pe
 :  periodInMilliSeconds(_period),
    sensors(_sensors),
    port_skin_contacts(_port_skin_contacts),
-   dqFilt(0), d2qFilt(0),
    enable_omega_domega_IMU(false),
    min_taxel(0),
    wbi_yarp_conf(_wbi_yarp_conf)
@@ -66,26 +65,6 @@ ExternalWrenchesAndTorquesEstimator::ExternalWrenchesAndTorquesEstimator(int _pe
     resizeFTs(sensors->getSensorNumber(SENSOR_FORCE_TORQUE));
     resizeIMUs(sensors->getSensorNumber(SENSOR_IMU));
 
-    ///< Window lengths of adaptive window filters
-    dqFiltWL            = 16;
-    d2qFiltWL           = 25;
-
-    imuAngularAccelerationFiltWL = 25;
-
-    ///< Threshold of adaptive window filters
-    dqFiltTh            = 1.0;
-    d2qFiltTh           = 1.0;
-
-
-    imuAngularAccelerationFiltTh = 1.0;
-
-    ///< Cut frequencies
-    tauJCutFrequency    =   3.0;
-
-    imuLinearAccelerationCutFrequency = 3.0;
-    imuAngularVelocityCutFrequency    = 3.0;
-    imuMagnetometerCutFrequency       = 3.0;
-    forcetorqueCutFrequency           = 3.0;
 
     ///< Skin timestamp
     last_reading_skin_contact_list_Stamp = -1000.0;
@@ -591,14 +570,6 @@ void deleteFirstOrderFilterVector(std::vector<iCub::ctrl::FirstOrderLowPassFilte
 
 void ExternalWrenchesAndTorquesEstimator::fini()
 {
-    if(dqFilt!=0)    { delete dqFilt;  dqFilt=0; }
-    if(d2qFilt!=0)   { delete d2qFilt; d2qFilt=0; }
-    if(tauJFilt!=0)  { delete tauJFilt; tauJFilt=0; }  ///< low pass filter for joint torque
-    deleteFirstOrderFilterVector(imuLinearAccelerationFilters);
-    deleteFirstOrderFilterVector(imuAngularVelocityFilters);
-    deleteFirstOrderFilterVector(imuMagnetometerFilters);
-    deleteFirstOrderFilterVector(forcetorqueFilters);
-    if(imuAngularAccelerationFilt!=0) { delete imuAngularAccelerationFilt; imuAngularAccelerationFilt=0; }
 
     return;
 }
@@ -616,7 +587,6 @@ void ExternalWrenchesAndTorquesEstimator::resizeFTs(int n)
 {
     forcetorques.resize(n,Vector(sensorTypeDescriptions[SENSOR_FORCE_TORQUE].dataSize,0.0));
     forcetorquesStamps.resize(n,INITIAL_TIMESTAMP);
-    forcetorqueFilters.resize(n);
 }
 
 
@@ -624,53 +594,11 @@ void ExternalWrenchesAndTorquesEstimator::resizeIMUs(int n)
 {
     IMUs.resize(n,Vector(sensorTypeDescriptions[SENSOR_IMU].dataSize,0.0));
     IMUStamps.resize(n,INITIAL_TIMESTAMP);
-    imuAngularVelocityFilters.resize(n);
-    imuLinearAccelerationFilters.resize(n);
-    imuMagnetometerFilters.resize(n);
 }
 
 void copyVector(const yarp::sig::Vector & src, double * dest)
 {
     memcpy(dest,src.data(),src.size()*sizeof(double));
-}
-
-
-bool ExternalWrenchesAndTorquesEstimator::setVelFiltParams(int windowLength, double threshold)
-{
-    if(windowLength<1 || threshold<=0.0)
-        return false;
-    dqFiltWL = windowLength;
-    dqFiltTh = threshold;
-    if(dqFilt!=NULL)
-    {
-        AWPolyList list = dqFilt->getList();
-        dqFilt = new AWLinEstimator(dqFiltWL, dqFiltTh);
-        for(AWPolyList::iterator it=list.begin(); it!=list.end(); it++)
-            dqFilt->feedData(*it);
-    }
-    return true;
-}
-
-bool ExternalWrenchesAndTorquesEstimator::setAccFiltParams(int windowLength, double threshold)
-{
-    if(windowLength<1 || threshold<=0.0)
-        return false;
-    d2qFiltWL = windowLength;
-    d2qFiltTh = threshold;
-    if(d2qFilt!=NULL)
-    {
-        AWPolyList list = d2qFilt->getList();
-        d2qFilt = new AWQuadEstimator(d2qFiltWL, d2qFiltTh);
-        for(AWPolyList::iterator it=list.begin(); it!=list.end(); it++)
-            d2qFilt->feedData(*it);
-    }
-    return true;
-}
-
-
-bool ExternalWrenchesAndTorquesEstimator::setTauJCutFrequency(double fc)
-{
-    return tauJFilt->setCutFrequency(fc);
 }
 
 bool ExternalWrenchesAndTorquesEstimator::setEnableOmegaDomegaIMU(bool _enabled_omega_domega_IMU)
