@@ -28,7 +28,7 @@ int main(int argc, char **argv)
     yarp::os::ResourceFinder resourceFinder;
     
     resourceFinder.setVerbose(true);
-    resourceFinder.setDefaultConfigFile("default.ini");         //default config file name.
+    resourceFinder.setDefaultConfigFile("torqueBalancing.ini");         //default config file name.
     resourceFinder.setDefaultContext("torqueBalancing"); //when no parameters are given to the module this is the default context
     resourceFinder.configure(argc, argv);
     
