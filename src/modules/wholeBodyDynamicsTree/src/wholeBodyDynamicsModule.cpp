@@ -94,6 +94,9 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
             fixed_link_calibration = fixed_link;
         }
     }
+    else
+    {
+    }
 
     //--------------------------RPC PORT--------------------------
     attach(rpcPort);

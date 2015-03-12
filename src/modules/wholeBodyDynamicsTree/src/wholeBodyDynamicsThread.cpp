@@ -674,20 +674,13 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport(const std::string c
     {
         if( calibrate_ft_sensor[ft_id] )
         {
-            double ft_off[6];
-            //estimator->getEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,convertFTiDynTreeToFTwbi(ft_id),ft_off);
-            memcpy(ft_off,tree_status.ft_sensors_offset[ft_id].data(),sizeof(double)*6);
-
-
-            yInfo() << "wholeBodyDynamicsThread::calibrateOffset: current calibration for FT " << ft_id << " is " <<
-                         ft_off[0] << " " << ft_off[1] << " " << ft_off[2] << " " << ft_off[3] << " " << ft_off[4] << " " << ft_off[5];
-            ft_off[0] = ft_off[1] = ft_off[2] = ft_off[3] = ft_off[4] = ft_off[5] = 0.0;
-            //estimator->setEstimationOffset(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,convertFTiDynTreeToFTwbi(ft_id),ft_off);
+            yInfo() << "wholeBodyDynamicsThread::calibrateOffset: current calibration for FT " << ft_id << " is "
+                    << tree_status.ft_sensors_offset[ft_id].toString();
         }
     }
 
     calibration_mutex.lock();
-    std::cout << "wholeBodyDynamicsThread::calibrateOffset " << calib_code  << " called successfully, starting calibration." << std::endl;
+    yInfo() << "wholeBodyDynamicsThread::calibrateOffset " << calib_code  << " called successfully, starting calibration." << std::endl;
     wbd_mode = CALIBRATING_ON_DOUBLE_SUPPORT;
     run_mutex.unlock();
 
@@ -1249,20 +1242,26 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
     tree_status.omega_imu[2] = 0.0*tree_status.wbi_imu[9];
 
     //Estimating sensors
-    icub_model_calibration->setInertialMeasure(0.0*tree_status.omega_imu,0.0*tree_status.domega_imu,tree_status.proper_ddp_imu);
-    icub_model_calibration->setAng(tree_status.qj);
-    icub_model_calibration->setDAng(0.0*tree_status.dqj);
-    icub_model_calibration->setD2Ang(0.0*tree_status.ddqj);
+    bool ok = true;
+    ok = ok && icub_model_calibration->setInertialMeasure(0.0*tree_status.omega_imu,0.0*tree_status.domega_imu,tree_status.proper_ddp_imu);
+    ok = ok && icub_model_calibration->setAng(tree_status.qj);
+    ok = ok && icub_model_calibration->setDAng(0.0*tree_status.dqj);
+    ok = ok && icub_model_calibration->setD2Ang(0.0*tree_status.ddqj);
 
-    icub_model_calibration->kinematicRNEA();
-    icub_model_calibration->estimateDoubleSupportContactForce(left_foot_link_idyntree_id,right_foot_link_idyntree_id);
-    icub_model_calibration->dynamicRNEA();
+    ok = ok && icub_model_calibration->kinematicRNEA();
+    ok = ok && icub_model_calibration->estimateDoubleSupportContactForce(left_foot_link_idyntree_id,right_foot_link_idyntree_id);
+    ok = ok && icub_model_calibration->dynamicRNEA();
+
+    if( !ok )
+    {
+        yError() << "wholeBodyDynamicsThread::calibration_on_double_support_run(): offset estimation failed";
+    }
 
     //Get known terms of the Newton-Euler equation
 
-    //std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run(): F/T estimates computed" << std::endl;
-    //std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run() : imu proper acceleration " << tree_status.proper_ddp_imu.toString() << std::endl;
-    //std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run() : q " << tree_status.q.toString() << std::endl;
+    std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run(): F/T estimates computed" << std::endl;
+    std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run() : imu proper acceleration " << tree_status.proper_ddp_imu.toString() << std::endl;
+    std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run() : q " << tree_status.q.toString() << std::endl;
 
     for(int ft_sensor_id=0; ft_sensor_id < (int)offset_buffer.size(); ft_sensor_id++ )
     {
@@ -1274,8 +1273,8 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
             //Get sensor measure
             assert((int)offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
             offset_buffer[ft_sensor_id] += tree_status.measured_ft_sensors[ft_sensor_id]-tree_status.estimated_ft_sensors[ft_sensor_id];
-            //std::cout << "Estimated ft sensor " << ft_sensor_id << " : " << tree_status.estimated_ft_sensors[ft_sensor_id].toString() << std::endl;
-            //std::cout << "Subchain mass : " << norm(tree_status.estimated_ft_sensors[ft_sensor_id].subVector(0,2))/norm( tree_status.proper_ddp_imu) << std::endl;
+            std::cout << "Estimated ft sensor " << ft_sensor_id << " : " << tree_status.estimated_ft_sensors[ft_sensor_id].toString() << std::endl;
+            std::cout << "Subchain mass : " << norm(tree_status.estimated_ft_sensors[ft_sensor_id].subVector(0,2))/norm( tree_status.proper_ddp_imu) << std::endl;
         }
     }
 
