@@ -147,6 +147,7 @@ namespace codyco {
         {
             ReferencePrivateImplementation *implementation = static_cast<ReferencePrivateImplementation*>(m_implementation);
             if (implementation->readerPort) {
+                implementation->readerPort->disableCallback();
                 implementation->readerPort->interrupt();
                 implementation->readerPort->close();
                 delete implementation->readerPort;
