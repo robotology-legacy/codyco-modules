@@ -134,11 +134,11 @@ namespace codyco {
             Eigen::Vector3d m_desiredCOMAcceleration;
             Eigen::VectorXd m_desiredFeetForces; /*!< 12 */
             Eigen::VectorXd m_desiredCentroidalMomentum;  /*!< 6 */
-            Eigen::VectorXd m_desiredHandsForces; /*!< 12 */
+            //Eigen::VectorXd m_desiredHandsForces; /*!< 12 */
             Eigen::VectorXd m_desiredContactForces; /*!< 12 (Vectorisation of contact wrenches at feet: left_wrench and right_wrench) */
 
-            bool m_leftHandForcesActive;
-            bool m_rightHandForcesActive;
+            //bool m_leftHandForcesActive;
+            //bool m_rightHandForcesActive;
 
             //state of the robot
             Eigen::VectorXd m_jointPositions;  /*!< totalDOFs */

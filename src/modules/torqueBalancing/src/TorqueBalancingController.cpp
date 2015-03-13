@@ -45,10 +45,10 @@ namespace codyco {
         , m_desiredCOMAcceleration(3)
         , m_desiredFeetForces(12)
         , m_desiredCentroidalMomentum(6)
-        , m_desiredHandsForces(12)
+        //, m_desiredHandsForces(12)
         , m_desiredContactForces(6 * 2)
-        , m_leftHandForcesActive(false)
-        , m_rightHandForcesActive(false)
+        //, m_leftHandForcesActive(false)
+        //, m_rightHandForcesActive(false)
         , m_jointPositions(actuatedDOFs)
         , m_jointVelocities(actuatedDOFs)
         , m_torques(actuatedDOFs)
@@ -136,7 +136,7 @@ namespace codyco {
 
             //zeroing monitored variables
             m_desiredFeetForces.setZero();
-            m_desiredHandsForces.setZero();
+            //m_desiredHandsForces.setZero();
             m_desiredContactForces.setZero();
             m_torques.setZero();
             return linkFound;
@@ -323,8 +323,8 @@ namespace codyco {
                                 m_pseudoInverseOfCentroidalForceMatrix, PseudoInverseTolerance);
 
             m_desiredFeetForces = m_pseudoInverseOfCentroidalForceMatrix * (m_desiredCentroidalMomentum
-                                                                            - m_gravityForce
-                                                                            - m_desiredHandsForces.head(6) - m_desiredHandsForces.tail(6));
+                                                                            - m_gravityForce);
+                                                                            //- m_desiredHandsForces.head(6) - m_desiredHandsForces.tail(6));
 
             desiredContactForces = m_desiredFeetForces;
         }
