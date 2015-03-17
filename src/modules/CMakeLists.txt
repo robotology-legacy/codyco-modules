@@ -18,6 +18,6 @@ endif()
 add_subdirectory(walkPlayer)
 
 add_subdirectory(codycoCoordinatorDemo1Y)
-add_subdirectory(codycoCoordinatorDemo2Y)
+add_subdirectory(codycoCoordinatorDemoY2)
 
 #add_subdirectory(wholeBodyNeckVelocity)

@@ -8,6 +8,7 @@
 #include <yarp/os/LogStream.h>
 #include <yarp/os/LockGuard.h>
 #include <yarp/os/Mutex.h>
+#include <yarp/os/Time.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/IEncoders.h>
@@ -46,6 +47,10 @@ namespace codyco {
             yarp::sig::Vector torsoJointReferences;
             yarp::sig::Vector leftArmJointReferences;
             yarp::sig::Vector rightArmJointReferences;
+            yarp::sig::Vector leftLegReferences;
+            yarp::sig::Vector rightLegReferences;
+            //This vector is the "sum" of the torque controlled torso and arms plus the legs
+            yarp::sig::Vector torqueControlOutputReferences;
 
             yarp::sig::Vector torsoTorqueControlledJointReferences;
             yarp::sig::Vector torsoPositionControlledJointReferences;
@@ -63,12 +68,16 @@ namespace codyco {
             yarp::sig::Vector torsoCurrentPosition;
             yarp::sig::Vector leftArmCurrentPosition;
             yarp::sig::Vector rightArmCurrentPosition;
+            yarp::sig::Vector leftLegCurrentPosition;
+            yarp::sig::Vector rightLegCurrentPosition;
 
             std::vector<int> armJointIDs;
             std::vector<int> torsoJointIDs;
             yarp::dev::PolyDriver leftArmDriver;
             yarp::dev::PolyDriver rightArmDriver;
             yarp::dev::PolyDriver torsoDriver;
+            yarp::dev::PolyDriver leftLegDriver;
+            yarp::dev::PolyDriver rightLegDriver;
 
             yarp::dev::IEncoders *torsoEncoders;
             yarp::dev::IPositionDirect *torsoPositionControl;
@@ -80,12 +89,21 @@ namespace codyco {
             yarp::dev::IPositionDirect *rightArmPositionControl;
             yarp::dev::IControlLimits *rightArmLimitsInterface;
 
+            yarp::dev::IEncoders *leftLegEncoders;
+            yarp::dev::IControlLimits *leftLegLimitsInterface;
+            yarp::dev::IEncoders *rightLegEncoders;
+            yarp::dev::IControlLimits *rightLegLimitsInterface;
+
             yarp::sig::Vector torsoMinLimits;
             yarp::sig::Vector torsoMaxLimits;
             yarp::sig::Vector leftArmMinLimits;
             yarp::sig::Vector leftArmMaxLimits;
             yarp::sig::Vector rightArmMinLimits;
             yarp::sig::Vector rightArmMaxLimits;
+            yarp::sig::Vector leftLegMinLimits;
+            yarp::sig::Vector leftLegMaxLimits;
+            yarp::sig::Vector rightLegMinLimits;
+            yarp::sig::Vector rightLegMaxLimits;
 
             std::list<int> torsoMappingInformationComplement;
             std::list<int> armMappingInformationComplement;
@@ -108,30 +126,101 @@ namespace codyco {
                     torsoMappingInformationComplement.push_back(i);
                 }
 
-                std::list<int>::iterator it = torsoMappingInformationComplement.begin();
-                while (it != torsoMappingInformationComplement.end()) {
-                    std::vector<int>::const_iterator found = std::find(torsoJointIDs.begin(), torsoJointIDs.end(), *it);
-                    if (found != torsoJointIDs.end()) {
-                        std::list<int>::iterator toBeRemoved = it;
+                if (torsoJointIDs.size() > 0) {
+                    std::list<int>::iterator it = torsoMappingInformationComplement.begin();
+                    while (it != torsoMappingInformationComplement.end()) {
+                        std::vector<int>::const_iterator found = std::find(torsoJointIDs.begin(), torsoJointIDs.end(), *it);
+                        if (found != torsoJointIDs.end()) {
+                            std::list<int>::iterator toBeRemoved = it;
+                            it++;
+                            torsoMappingInformationComplement.erase(toBeRemoved);
+                        }
                         it++;
-                        torsoMappingInformationComplement.erase(toBeRemoved);
                     }
                 }
+
+                fprintf(stderr, "Torso IDs\n");
+                for (int i = 0; i < torsoJointIDs.size(); i++) {
+                    fprintf(stderr, "%d ", torsoJointIDs[i]);
+                }
+                fprintf(stderr, "\n");
+
+                fprintf(stderr, "Complement Torso IDs\n");
+                for (std::list<int>::iterator it = torsoMappingInformationComplement.begin();
+                     it != torsoMappingInformationComplement.end(); it++) {
+                    fprintf(stderr, "%d ", *it);
+                }
+                fprintf(stderr, "\n");
+
 
                 //Do Arm
                 for (int i = 0; i < leftArmPositionControlledJointReferences.size() + leftArmTorqueControlledJointReferences.size(); i++) {
                     armMappingInformationComplement.push_back(i);
                 }
 
-                it = armMappingInformationComplement.begin();
-                while (it != armMappingInformationComplement.end()) {
-                    std::vector<int>::const_iterator found = std::find(armJointIDs.begin(), armJointIDs.end(), *it);
-                    if (found != armJointIDs.end()) {
-                        std::list<int>::iterator toBeRemoved = it;
+                if (armJointIDs.size() > 0) {
+                    std::list<int>::iterator it = armMappingInformationComplement.begin();
+                    while (it != armMappingInformationComplement.end()) {
+                        std::vector<int>::const_iterator found = std::find(armJointIDs.begin(), armJointIDs.end(), *it);
+                        if (found != armJointIDs.end()) {
+                            std::list<int>::iterator toBeRemoved = it;
+                            it++;
+                            armMappingInformationComplement.erase(toBeRemoved);
+                        }
                         it++;
-                        armMappingInformationComplement.erase(toBeRemoved);
                     }
                 }
+
+                fprintf(stderr, "Arm Joint IDs\n");
+                for (int i = 0; i < armJointIDs.size(); i++) {
+                    fprintf(stderr, "%d ", armJointIDs[i]);
+                }
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Complement Arm IDs\n");
+                for (std::list<int>::iterator it = armMappingInformationComplement.begin();
+                     it != armMappingInformationComplement.end(); it++) {
+                    fprintf(stderr, "%d ", *it);
+                }
+                fprintf(stderr, "\n");
+
+            }
+
+            void copyReferencesForTorqueOutput()
+            {
+                //Assuming the following order:
+                // 1) Torso
+                // 2) Left Arm
+                // 3) Right Arm
+                // 4) Left Leg
+                // 5) Right Leg
+                //TODO: outside demo we should make this more robust (mapping joint names?)
+
+                int index = 0;
+                //Torso
+                if (torsoTorqueControlledJointReferences.size() == 3) {
+                    torqueControlOutputReferences(0) = torsoTorqueControlledJointReferences(2);
+                    torqueControlOutputReferences(1) = torsoTorqueControlledJointReferences(1);
+                    torqueControlOutputReferences(2) = torsoTorqueControlledJointReferences(0);
+                } else {
+                    yWarning("Case not allowed. Setting zero reference for torso");
+                    for (int i = 0; i < torsoTorqueControlledJointReferences.size(); i++) {
+                        torqueControlOutputReferences(i) = 0.0;
+                    }
+                }
+                index += torsoTorqueControlledJointReferences.size();
+                
+                //Left Arm
+                torqueControlOutputReferences.setSubvector(index, leftArmTorqueControlledJointReferences);
+                index += leftArmTorqueControlledJointReferences.size();
+                //Right Arm
+                torqueControlOutputReferences.setSubvector(index, rightArmTorqueControlledJointReferences);
+                index += rightArmTorqueControlledJointReferences.size();
+                //Left Leg
+                torqueControlOutputReferences.setSubvector(index, leftLegReferences);
+                index += leftLegReferences.size();
+                //Right Leg
+                torqueControlOutputReferences.setSubvector(index, rightLegReferences);
+                index += rightLegReferences.size();
             }
 
             ~CoordinatorData() {}
@@ -156,7 +245,6 @@ namespace codyco {
                 return min;
             }
             return value;
-            //return value > max ? max : (value < min ? min : value);
         }
 
         void Reader::onRead(yarp::os::Property& read) {
@@ -176,7 +264,7 @@ namespace codyco {
                     data.torsoJointReferences(2) = limitInput(list->get(0).asDouble(), data.torsoMinLimits(2), data.torsoMaxLimits(2));
                     data.torsoJointReferences(1) = limitInput(list->get(1).asDouble(), data.torsoMinLimits(1), data.torsoMaxLimits(1));
                     data.torsoJointReferences(0) = limitInput(list->get(2).asDouble(), data.torsoMinLimits(0), data.torsoMaxLimits(0));
-                    
+
                     //read in radians
                     data.mapInput(data.torsoJointIDs, data.torsoMappingInformationComplement,
                                   data.torsoJointReferences, data.torsoPositionControlledJointReferences, data.torsoTorqueControlledJointReferences);
@@ -189,7 +277,6 @@ namespace codyco {
                     data.leftArmJointReferences(i) = limitInput(list->get(i).asDouble(),
                                                                 data.leftArmMinLimits(i), data.leftArmMaxLimits(i));
                 }
-                //fprintf(stderr, "Left: %s\n", data.leftArmJointReferences.toString().c_str());
                 //read in radians
                 data.mapInput(data.armJointIDs, data.armMappingInformationComplement,
                               data.leftArmJointReferences, data.leftArmPositionControlledJointReferences, data.leftArmTorqueControlledJointReferences);
@@ -293,19 +380,36 @@ namespace codyco {
             torsoOptions.put("local", getName("/torso"));
             result = result && data->torsoDriver.open(torsoOptions);
 
+            Property leftLegOptions("(device remote_controlboard)");
+            leftLegOptions.put("remote", "/" + m_robotName + "/left_leg");
+            leftLegOptions.put("local", getName("/left_leg"));
+            result = result && data->leftLegDriver.open(leftLegOptions);
+
+            Property rightLegOptions("(device remote_controlboard)");
+            rightLegOptions.put("remote", "/" + m_robotName + "/right_leg");
+            rightLegOptions.put("local", getName("/right_leg"));
+            result = result && data->rightLegDriver.open(rightLegOptions);
+
             if (!result) {
                 cleanup();
                 yError("Could not open control boards");
                 return false;
             }
 
+            bool encoderRead = true;
+            int readCount = 10;
             //Load initial configuration
             data->torsoDriver.view(data->torsoEncoders);
             data->torsoDriver.view(data->torsoPositionControl);
             int torsoAxes = 0;
             data->torsoPositionControl->getAxes(&torsoAxes);
             data->torsoCurrentPosition.resize(torsoAxes, 0.0);
-            data->torsoEncoders->getEncoders(data->torsoCurrentPosition.data());
+            do {
+                encoderRead = data->torsoEncoders->getEncoders(data->torsoCurrentPosition.data());
+                readCount--;
+                yarp::os::Time::delay(0.01);
+            } while(!encoderRead && readCount > 0);
+            result = result && encoderRead;
             data->torsoCurrentPosition *= CTRL_DEG2RAD;
 
             data->leftArmDriver.view(data->leftArmEncoders);
@@ -313,7 +417,16 @@ namespace codyco {
             int leftArmAxes = 0;
             data->leftArmPositionControl->getAxes(&leftArmAxes);
             data->leftArmCurrentPosition.resize(leftArmAxes, 0.0);
-            data->leftArmEncoders->getEncoders(data->leftArmCurrentPosition.data());
+
+            encoderRead = true;
+            readCount = 10;
+            do {
+                encoderRead = data->leftArmEncoders->getEncoders(data->leftArmCurrentPosition.data());
+                readCount--;
+                yarp::os::Time::delay(0.01);
+            } while(!encoderRead && readCount > 0);
+            result = result && encoderRead;
+
             data->leftArmCurrentPosition *= CTRL_DEG2RAD;
 
             data->rightArmDriver.view(data->rightArmEncoders);
@@ -321,9 +434,53 @@ namespace codyco {
             int rightArmAxes = 0;
             data->rightArmPositionControl->getAxes(&rightArmAxes);
             data->rightArmCurrentPosition.resize(rightArmAxes, 0.0);
-            data->rightArmEncoders->getEncoders(data->rightArmCurrentPosition.data());
+            encoderRead = true;
+            readCount = 10;
+            do {
+                encoderRead = data->rightArmEncoders->getEncoders(data->rightArmCurrentPosition.data());
+                readCount--;
+                yarp::os::Time::delay(0.01);
+            } while(!encoderRead && readCount > 0);
+            result = result && encoderRead;
             data->rightArmCurrentPosition *= CTRL_DEG2RAD;
 
+            yarp::dev::IPositionControl *positionControl = NULL;
+            data->leftLegDriver.view(positionControl);
+            data->leftLegDriver.view(data->leftLegEncoders);
+            int leftLegAxes = 0;
+            positionControl->getAxes(&leftLegAxes);
+            data->leftLegCurrentPosition.resize(leftLegAxes, 0.0);
+            data->leftLegReferences.resize(leftLegAxes, 0.0);
+            encoderRead = true;
+            readCount = 10;
+            do {
+                encoderRead = data->leftLegEncoders->getEncoders(data->leftLegCurrentPosition.data());
+                readCount--;
+                yarp::os::Time::delay(0.01);
+            } while(!encoderRead && readCount > 0);
+            result = result && encoderRead;
+            data->leftLegCurrentPosition *= CTRL_DEG2RAD;
+
+            int rightLegAxes = 0;
+            data->rightLegDriver.view(positionControl);
+            data->rightLegDriver.view(data->rightLegEncoders);
+            positionControl->getAxes(&rightLegAxes);
+            data->rightLegCurrentPosition.resize(rightLegAxes, 0.0);
+            data->rightLegReferences.resize(rightLegAxes, 0.0);
+            encoderRead = true;
+            readCount = 10;
+            do {
+                encoderRead = data->rightLegEncoders->getEncoders(data->rightLegCurrentPosition.data());
+                readCount--;
+                yarp::os::Time::delay(0.01);
+            } while(!encoderRead && readCount > 0);
+            result = result && encoderRead;    
+            data->rightLegCurrentPosition *= CTRL_DEG2RAD;
+
+            if (!result) {
+                yError("Could not read initial encoders");
+                return false;
+            }
             //Load limits
             data->torsoMinLimits.resize(torsoAxes, 0.0);
             data->torsoMaxLimits.resize(torsoAxes, 0.0);
@@ -331,10 +488,17 @@ namespace codyco {
             data->leftArmMaxLimits.resize((leftArmAxes > 7 ? 7 : leftArmAxes), 0.0);
             data->rightArmMinLimits.resize((rightArmAxes > 7 ? 7 : rightArmAxes), 0.0);
             data->rightArmMaxLimits.resize((rightArmAxes > 7 ? 7 : rightArmAxes), 0.0);
+            data->leftLegMinLimits.resize(leftLegAxes, 0.0);
+            data->leftLegMaxLimits.resize(leftLegAxes, 0.0);
+            data->rightLegMinLimits.resize(rightLegAxes, 0.0);
+            data->rightLegMaxLimits.resize(rightLegAxes, 0.0);
 
             data->torsoDriver.view(data->torsoLimitsInterface);
             data->leftArmDriver.view(data->leftArmLimitsInterface);
             data->rightArmDriver.view(data->rightArmLimitsInterface);
+            data->leftLegDriver.view(data->leftLegLimitsInterface);
+            data->rightLegDriver.view(data->rightLegLimitsInterface);
+
             for (int i = 0; i < torsoAxes; i++) {
                 data->torsoLimitsInterface->getLimits(i, &data->torsoMinLimits(i), &data->torsoMaxLimits(i));
                 data->torsoMinLimits(i) *= CTRL_DEG2RAD;
@@ -350,6 +514,16 @@ namespace codyco {
                 data->rightArmMinLimits(i) *= CTRL_DEG2RAD;
                 data->rightArmMaxLimits(i) *= CTRL_DEG2RAD;
             }
+            for (int i = 0; i < leftLegAxes; i++) {
+                data->leftLegLimitsInterface->getLimits(i, &data->leftLegMinLimits(i), &data->leftLegMaxLimits(i));
+                data->leftLegMinLimits(i) *= CTRL_DEG2RAD;
+                data->leftLegMaxLimits(i) *= CTRL_DEG2RAD;
+            }
+            for (int i = 0; i < rightLegAxes; i++) {
+                data->rightLegLimitsInterface->getLimits(i, &data->rightLegMinLimits(i), &data->rightLegMaxLimits(i));
+                data->rightLegMinLimits(i) *= CTRL_DEG2RAD;
+                data->rightLegMaxLimits(i) *= CTRL_DEG2RAD;
+            }
 
             //setup initial references to coincide with reads from encoders
             data->torsoJointReferences.resize(3, 0.0);
@@ -364,8 +538,8 @@ namespace codyco {
             for (int i = 0; i < 7; i++) {
                 data->rightArmJointReferences(i) = data->rightArmCurrentPosition(i);
             }
-
-            //legs? Should I use the wbi to load them?
+            data->leftLegReferences = data->leftLegCurrentPosition;
+            data->rightLegReferences = data->rightLegCurrentPosition;
 
             std::vector<std::string> torsoJoints;
             torsoJoints.push_back("torso_yaw");
@@ -420,6 +594,8 @@ namespace codyco {
                 return false;
             }
 
+            data->torqueControlOutputReferences.resize(iCubMainJoints.size(), 0.0);
+
             data->torsoJointIDs.clear(); data->torsoJointIDs.reserve(3);
             data->armJointIDs.clear(); data->armJointIDs.reserve(7);
 
@@ -454,9 +630,9 @@ namespace codyco {
             data->init();
 
             //Setup generators
-            data->torsoGenerator = new iCub::ctrl::minJerkTrajGen(3, trajectoryTimeStep, trajectoryTimeDuration);
-            data->leftArmGenerator = new iCub::ctrl::minJerkTrajGen(7, trajectoryTimeStep, trajectoryTimeDuration);
-            data->rightArmGenerator = new iCub::ctrl::minJerkTrajGen(7, trajectoryTimeStep, trajectoryTimeDuration);
+            data->torsoGenerator = new iCub::ctrl::minJerkTrajGen(data->torsoPositionControlledJointReferences.size(), trajectoryTimeStep, trajectoryTimeDuration);
+            data->leftArmGenerator = new iCub::ctrl::minJerkTrajGen(data->leftArmPositionControlledJointReferences.size(), trajectoryTimeStep, trajectoryTimeDuration);
+            data->rightArmGenerator = new iCub::ctrl::minJerkTrajGen(data->rightArmPositionControlledJointReferences.size(), trajectoryTimeStep, trajectoryTimeDuration);
             data->torqueBalancingGenerator = new iCub::ctrl::minJerkTrajGen(iCubMainJoints.size(), trajectoryTimeStep, trajectoryTimeDuration);
 
             if (!data->torsoGenerator ||
@@ -476,11 +652,12 @@ namespace codyco {
             data->mapInput(data->armJointIDs, data->armMappingInformationComplement,
                            data->rightArmJointReferences, data->rightArmPositionControlledJointReferences, data->rightArmTorqueControlledJointReferences);
 
+            data->copyReferencesForTorqueOutput();
+
             data->torsoGenerator->init(data->torsoPositionControlledJointReferences);
             data->leftArmGenerator->init(data->leftArmPositionControlledJointReferences);
             data->rightArmGenerator->init(data->rightArmPositionControlledJointReferences);
-            //            data->torqueBalancingGenerator->init(??);
-
+            data->torqueBalancingGenerator->init(data->torqueControlOutputReferences);
 
             yInfo("Coordinator ready");
             return true;
@@ -499,23 +676,28 @@ namespace codyco {
             //            if (!data->referencesChanged) return true;
             //            data->referencesChanged = false;
 
+            data->copyReferencesForTorqueOutput();
+
             data->torsoGenerator->computeNextValues(data->torsoPositionControlledJointReferences);
             data->leftArmGenerator->computeNextValues(data->leftArmPositionControlledJointReferences);
             data->rightArmGenerator->computeNextValues(data->rightArmPositionControlledJointReferences);
-            //            data->torqueBalancingGenerator->computeNextValues(??);
+            data->torqueBalancingGenerator->computeNextValues(data->torqueControlOutputReferences);
 
             //send to robot
-            //fprintf(stderr, "Torso: %s\n", (data->torsoGenerator->getPos() * CTRL_RAD2DEG).toString().c_str());
             data->torsoPositionControl->setPositions(data->torsoJointIDs.size(), data->torsoJointIDs.data(), (data->torsoGenerator->getPos() * CTRL_RAD2DEG).data());
 
-            //fprintf(stderr, "Left: %s\n", (data->leftArmGenerator->getPos() * CTRL_RAD2DEG).toString().c_str());
             data->leftArmPositionControl->setPositions(data->armJointIDs.size(), data->armJointIDs.data(), (data->leftArmGenerator->getPos() * CTRL_RAD2DEG).data());
-            //fprintf(stderr, "Right: %s\n", (data->rightArmGenerator->getPos() * CTRL_RAD2DEG).toString().c_str());
+
             data->rightArmPositionControl->setPositions(data->armJointIDs.size(), data->armJointIDs.data(), (data->rightArmGenerator->getPos() * CTRL_RAD2DEG).data());
 
-            //send references as output port
-            //construct big reference to be sent to torque balancing.
-            //???: How do I add the legs here?
+
+
+            yarp::sig::Vector& torqueOutput = m_outputTorqueControlledJointReferences->prepare();
+//            torqueOutput.resize(data->torsoTorqueControlledJointReferences.size(), 0.0);
+            torqueOutput = data->torqueBalancingGenerator->getPos();
+
+            m_outputTorqueControlledJointReferences->write();
+
             return true;
         }
 
