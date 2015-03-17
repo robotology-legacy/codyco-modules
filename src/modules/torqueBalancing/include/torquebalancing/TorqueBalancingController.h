@@ -135,7 +135,7 @@ namespace codyco {
             Eigen::VectorXd m_desiredFeetForces; /*!< 12 */
             Eigen::VectorXd m_desiredCentroidalMomentum;  /*!< 6 */
             Eigen::VectorXd m_desiredHandsForces; /*!< 12 */
-            Eigen::VectorXd m_desiredContactForces; /*!< 18 (forces + torques for feet, only forces for hands) */
+            Eigen::VectorXd m_desiredContactForces; /*!< 12 (Vectorisation of contact wrenches at feet: left_wrench and right_wrench) */
             
             bool m_leftHandForcesActive;
             bool m_rightHandForcesActive;
@@ -152,8 +152,8 @@ namespace codyco {
             Eigen::VectorXd m_torqueSaturationLimit; /* actuatedDOFs */
             
             //Jacobians
-            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_contactsJacobian; /*!< (6x2 + 3x2) x totalDOFs (forces and torques for feet, only forces for hands)*/
-            Eigen::VectorXd m_contactsDJacobianDq; /*!< (6x2 + 3x2) */
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_contactsJacobian; /*!< (6x2) x totalDOFs (forces and torques for feet)*/
+            Eigen::VectorXd m_contactsDJacobianDq; /*!< (6x2) */
             
             //Kinematic and dynamic variables
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_massMatrix; /*!< totalDOFs x totalDOFs */
@@ -166,12 +166,14 @@ namespace codyco {
             Eigen::VectorXd m_gravityForce; /*!< 6 */
             Eigen::MatrixXd m_torquesSelector; /*!< totalDOFs x actuatedDOFs */
             //pseuo inverses
-            Eigen::MatrixXd m_pseudoInverseOfJcMInvSt; /*!< actuatedDOFs x (6x2 + 3x2) */
+            Eigen::MatrixXd m_pseudoInverseOfJcMInvSt; /*!< actuatedDOFs x (6x2) */
             Eigen::MatrixXd m_pseudoInverseOfJcBase; /*!< 6 x 12 */
             Eigen::MatrixXd m_pseudoInverseOfCentroidalForceMatrix; /*!< 12 x 6 */
-            Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfJcMInvSt; /*!< (6x2 + 3x2) x actuatedDOFs */
+            Eigen::MatrixXd m_pseudoInverseOfTauN0_f; /*!< 12 x actuatedDoFs */
+            Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfJcMInvSt; /*!< (6x2) x actuatedDOFs */
             Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfJcBase; /*!< 12 x 6 */
             Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfCentroidalForceMatrix; /*!< 6 x 12 */
+            Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfTauN0_f; /*!< actuatedDoFs x 12 */
             
             //constant auxiliary variables
             double m_gravityUnitVector[3];

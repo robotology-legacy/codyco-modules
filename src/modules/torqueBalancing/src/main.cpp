@@ -25,10 +25,17 @@
 
 int main(int argc, char **argv)
 {
+    //initialize the network
+    yarp::os::Network yarp;
+    if (!yarp::os::Network::checkNetwork(5)) {
+        std::cerr << "YARP network is not available" << std::endl;
+        return -1;
+    }
+
     yarp::os::ResourceFinder resourceFinder;
     
     resourceFinder.setVerbose(true);
-    resourceFinder.setDefaultConfigFile("default.ini");         //default config file name.
+    resourceFinder.setDefaultConfigFile("torqueBalancing.ini");         //default config file name.
     resourceFinder.setDefaultContext("torqueBalancing"); //when no parameters are given to the module this is the default context
     resourceFinder.configure(argc, argv);
     
@@ -42,13 +49,6 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    //initialize the network
-    yarp::os::Network yarp;
-    if (!yarp::os::Network::checkNetwork(5)) {
-        std::cerr << "YARP network is not available" << std::endl;
-        return -1;
-    }
-    
     //module and robot name can be moved inside paramhelp/similar class
     codyco::torquebalancing::TorqueBalancingModule mainModule;
     return mainModule.runModule(resourceFinder);

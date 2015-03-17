@@ -21,3 +21,5 @@ yarp_install( FILES ${scripts}
 
 #yarp_install( FILES ${yscope}
 #        DESTINATION ${CODYCO_CONTEXTS_INSTALL_DIR}/${appname}/yarpscope)
+
+add_subdirectory(robots)
