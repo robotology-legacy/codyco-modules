@@ -154,8 +154,16 @@ namespace codyco {
 
             std::cout << "[INFO]Joint limits are:\nmin" <<m_minJointLimits.transpose() << "\nmax " << m_maxJointLimits.transpose() << "\n";
 
+            //read the initial configuration
+            int count = 10;
+            bool result = false;
+            do {
+                result = m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointPositions.data());
+                count--;
+            } while(!result && count >0);
 
-            return linkFound;
+            std::cout << "Initial read = " << result << "-" << count << "\n" << m_jointPositions.transpose() << "\n";
+            return linkFound && result;
         }
         
         void TorqueBalancingController::threadRelease()
