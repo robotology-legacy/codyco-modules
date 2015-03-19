@@ -22,6 +22,7 @@
 #include <codyco/LockGuard.h>
 #include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 
+#include <yarp/os/LogStream.h>
 #include <codyco/Utils.h>
 #include <iostream>
 #include <limits>
@@ -56,6 +57,8 @@ namespace codyco {
         , m_centerOfMassPosition(3)
         , m_rightFootPosition(7)
         , m_leftFootPosition(7)
+        , m_minJointLimits(actuatedDOFs)
+        , m_maxJointLimits(actuatedDOFs)
         , m_torqueSaturationLimit(actuatedDOFs)
         , m_contactsJacobian(6 * 2, actuatedDOFs + 6)
         , m_contactsDJacobianDq(6 * 2)
@@ -139,6 +142,10 @@ namespace codyco {
             m_desiredHandsForces.setZero();
             m_desiredContactForces.setZero();
             m_torques.setZero();
+
+            //limits
+            m_robot.getJointLimits(m_minJointLimits.data(), m_maxJointLimits.data());
+
             return linkFound;
         }
         
@@ -154,6 +161,12 @@ namespace codyco {
             
             //read references
             readReferences();
+
+            //Check limits
+            if (!checkJointLimits()) {
+                setActiveState(false);
+                return;
+            }
 
             //read / update state
             updateRobotState();
@@ -248,10 +261,18 @@ namespace codyco {
             if (m_references.desiredJointsConfiguration().isValid()) {
                 m_desiredJointsConfiguration = m_references.desiredJointsConfiguration().value();
             }
-//             if ((m_leftHandForcesActive = m_references.desiredLeftHandForce().isValid()))
-//                 m_desiredHandsForces.head(6) = m_references.desiredLeftHandForce().value();
-//             if ((m_rightHandForcesActive = m_references.desiredRightHandForce().isValid()))
-//                 m_desiredHandsForces.tail(6) = m_references.desiredRightHandForce().value();
+        }
+
+        bool TorqueBalancingController::checkJointLimits()
+        {
+            for (int i = 0; i < m_jointPositions.size(); i++) {
+                if (m_jointPositions(i) < m_minJointLimits(i) ||
+                    m_jointPositions(i) > m_maxJointLimits(i)) {
+                    yInfo("Joint %d is outside limit. Stop control", i);
+                    return false;
+                }
+            }
+            return true;
         }
         
         bool TorqueBalancingController::updateRobotState()

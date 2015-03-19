@@ -101,6 +101,7 @@ namespace codyco {
             
         private:
             void readReferences();
+            bool checkJointLimits();
             bool updateRobotState();
             void computeContactForces(const Eigen::Ref<Eigen::MatrixXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::MatrixXd> desiredContactForces);
             void computeTorques(const Eigen::Ref<Eigen::VectorXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques);
@@ -148,7 +149,10 @@ namespace codyco {
             Eigen::Vector3d m_centerOfMassPosition;
             Eigen::VectorXd m_rightFootPosition; /*!< 7 */
             Eigen::VectorXd m_leftFootPosition; /*!< 7 */
-            
+
+            //Limits
+            Eigen::VectorXd m_minJointLimits; /* actuatedDOFs */
+            Eigen::VectorXd m_maxJointLimits; /* actuatedDOFs */
             Eigen::VectorXd m_torqueSaturationLimit; /* actuatedDOFs */
             
             //Jacobians
