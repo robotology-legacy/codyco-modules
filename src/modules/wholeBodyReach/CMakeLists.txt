@@ -21,7 +21,9 @@ SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
 
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
+                    
+INCLUDE_DIRECTORIES(SYSTEM
                     ${wholeBodyInterface_INCLUDE_DIRS}
                     ${yarpWholeBodyInterface_INCLUDE_DIRS}
                     ${paramHelp_INCLUDE_DIRS}
