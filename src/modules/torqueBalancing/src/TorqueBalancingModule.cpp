@@ -298,6 +298,7 @@ namespace codyco {
                 yError("Could not create TorqueBalancing controller object.");
                 return false;
             }
+            m_controller->setDelegate(this);
 
             //link controller and references variables to param helper manager
             if (!m_paramHelperManager->linkVariables()
@@ -374,6 +375,7 @@ namespace codyco {
 
             //close controller thread
             if (m_controller) {
+                m_controller->setDelegate(NULL);
                 m_controller->stop();
                 delete m_controller;
                 m_controller = 0;
@@ -430,6 +432,11 @@ namespace codyco {
                     found->second->setSignalReference(reference.value());
                 }
             } else return;
+        }
+
+        void TorqueBalancingModule::controllerDidStop(ControllerDelegate& controller)
+        {
+            setControllersActiveState(false);
         }
 
         double TorqueBalancingModule::getPeriod()

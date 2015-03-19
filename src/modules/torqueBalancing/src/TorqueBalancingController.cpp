@@ -32,11 +32,17 @@
 
 namespace codyco {
     namespace torquebalancing {
-        
+
+        //Delegate part
+        ControllerDelegate::~ControllerDelegate() {}
+        void ControllerDelegate::controllerDidStart(TorqueBalancingController& controller) {}
+        void ControllerDelegate::controllerDidStop(TorqueBalancingController& controller) {}
+
         TorqueBalancingController::TorqueBalancingController(int period, ControllerReferences& references, wbi::wholeBodyInterface& robot, int actuatedDOFs)
         : RateThread(period)
         , m_robot(robot)
         , m_actuatedDOFs(actuatedDOFs)
+        , m_delegate(0)
         , m_active(false)
         , m_centerOfMassLinkID(wbi::wholeBodyInterface::COM_LINK_ID)
         , m_references(references)
@@ -165,6 +171,7 @@ namespace codyco {
             //Check limits
             if (!checkJointLimits()) {
                 setActiveState(false);
+                if (m_delegate) m_delegate->controllerDidStop(*this);
                 return;
             }
 
@@ -236,6 +243,12 @@ namespace codyco {
         {
             codyco::LockGuard guard(m_mutex);
             return m_torqueSaturationLimit;
+        }
+
+        void TorqueBalancingController::setDelegate(ControllerDelegate *delegate)
+        {
+            codyco::LockGuard guard(m_mutex);
+            this->m_delegate = delegate;
         }
         
 #pragma mark - Monitorable variables

@@ -32,7 +32,16 @@ namespace wbi {
 
 namespace codyco {
     namespace torquebalancing {
-        
+
+        //Move this somewhere else (and make this more generic)
+        class TorqueBalancingController;
+        class ControllerDelegate {
+        public:
+            virtual ~ControllerDelegate();
+            virtual void controllerDidStart(TorqueBalancingController& controller);
+            virtual void controllerDidStop(TorqueBalancingController& controller);
+        };
+
         class ControllerReferences;
         
         /** @brief Represents the actual controller
@@ -98,6 +107,8 @@ namespace codyco {
             const Eigen::VectorXd& desiredFeetForces();
             
             const Eigen::VectorXd& outputTorques();
+
+            void setDelegate(ControllerDelegate *delegate);
             
         private:
             void readReferences();
@@ -111,6 +122,8 @@ namespace codyco {
             int m_actuatedDOFs;
             wbi::Frame m_world2BaseFrame;
             wbi::Frame m_leftFootToBaseRotationFrame;
+
+            ControllerDelegate *m_delegate;
             
             yarp::os::Mutex m_mutex;
             

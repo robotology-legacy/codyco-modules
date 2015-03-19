@@ -28,6 +28,7 @@
 #include <string>
 #include <paramHelp/paramProxyInterface.h>
 #include "Reference.h"
+#include "TorqueBalancingController.h"
 
 #include <Eigen/Core>
 
@@ -51,6 +52,7 @@ namespace codyco {
         
         class ControllerReferences;
         class TorqueBalancingController;
+        class ControllerDelegate;
         class ReferenceGenerator;
         class ReferenceGeneratorInputReader;
         
@@ -79,7 +81,8 @@ namespace codyco {
         /** @brief Main module for the torque balancing module.
          *
          */
-        class TorqueBalancingModule : public yarp::os::RFModule, codyco::torquebalancing::ReferenceDelegate
+        class TorqueBalancingModule : public yarp::os::RFModule,
+        codyco::torquebalancing::ReferenceDelegate, codyco::torquebalancing::ControllerDelegate
         {
         public:
             TorqueBalancingModule();
@@ -107,6 +110,7 @@ namespace codyco {
 
             //Delegate method
             virtual void referenceDidChangeValue(const Reference&);
+            virtual void controllerDidStop(ControllerDelegate&);
 
         private:
             class ParamHelperManager;
