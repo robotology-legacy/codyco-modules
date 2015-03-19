@@ -7,6 +7,14 @@
 
   <!-- Required modules. -->
   <module>
+      <name>torqueBalancing</name>
+      <parameters></parameters>
+      <node>icub15</node>
+      <stdio></stdio>
+      <prefix></prefix>
+  </module>
+
+  <module>
       <name>RedBallGraspDemo</name>
       <parameters></parameters>
       <node>icub15</node>
@@ -73,6 +81,12 @@
       <from>/redBallGrasp/motionDone:rpc</from>
       <to>/y2coordinator/rpc:i</to>
       <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+      <from>/y2coordinator/qdes:o</from>
+      <to>/torqueBalancing/qdes:i</to>
+      <protocol>udp</protocol>
   </connection>
   
 </application>

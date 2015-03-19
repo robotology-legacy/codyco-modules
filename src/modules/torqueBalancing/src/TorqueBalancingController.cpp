@@ -152,6 +152,9 @@ namespace codyco {
             //limits
             m_robot.getJointLimits(m_minJointLimits.data(), m_maxJointLimits.data());
 
+            std::cout << "[INFO]Joint limits are:\nmin" <<m_minJointLimits.transpose() << "\nmax " << m_maxJointLimits.transpose() << "\n";
+
+
             return linkFound;
         }
         
@@ -170,7 +173,9 @@ namespace codyco {
 
             //Check limits
             if (!checkJointLimits()) {
-                setActiveState(false);
+                yInfo() << "Deactivating control";
+                m_robot.setControlMode(wbi::CTRL_MODE_POS);
+                m_active = false;
                 if (m_delegate) m_delegate->controllerDidStop(*this);
                 return;
             }
@@ -216,12 +221,14 @@ namespace codyco {
         
         void TorqueBalancingController::setActiveState(bool isActive)
         {
-            codyco::LockGuard guard(m_mutex);
             if (m_active == isActive) return;
+
+            codyco::LockGuard guard(m_mutex);
             if (isActive) {
                 m_desiredCOMAcceleration.setZero(); //reset reference
                 m_robot.setControlMode(wbi::CTRL_MODE_TORQUE);
             } else {
+                std::cerr << "Deactivating control\n";
                 m_robot.setControlMode(wbi::CTRL_MODE_POS);
             }
             m_active = isActive;
@@ -281,7 +288,7 @@ namespace codyco {
             for (int i = 0; i < m_jointPositions.size(); i++) {
                 if (m_jointPositions(i) < m_minJointLimits(i) ||
                     m_jointPositions(i) > m_maxJointLimits(i)) {
-                    yInfo("Joint %d is outside limit. Stop control", i);
+                    yInfo("Joint %d is outside limit [%lf-%lf is %lf]. Stop control", i, m_minJointLimits(i), m_maxJointLimits(i), m_jointPositions(i));
                     return false;
                 }
             }
