@@ -16,15 +16,11 @@ include(YarpIDL)
 set(generated_libs_dir "${CMAKE_CURRENT_SOURCE_DIR}")
 yarp_idl_to_dir(wholeBodyDynamics.thrift ${generated_libs_dir})
 
-
-#workaround for bug
-add_definitions(-DIDYNTREE_USES_ICUB)
-
 find_package(wholeBodyInterface REQUIRED)
 find_package(yarpWholeBodyInterface REQUIRED)
 
 FILE(GLOB folder_source ./src/*.cpp)
-FILE(GLOB folder_header ./include/wholeBodyDynamicsTree/*.h)
+FILE(GLOB folder_header ./include/wholeBodyDynamicsTree/*.h ./include/ctrlLibRT/*.h)
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})

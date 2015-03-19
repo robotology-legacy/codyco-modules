@@ -43,24 +43,8 @@
 #include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 #include "wholeBodyDynamicsTree/wholeBodyDynamicsStatesInterface.h"
 
-class iCubTreeStatus
-{
-public:
-    yarp::sig::Vector q;
-    yarp::sig::Vector dq;
-    yarp::sig::Vector ddq;
-    yarp::sig::Vector omega_imu;
-    yarp::sig::Vector domega_imu;
-    yarp::sig::Vector proper_ddp_imu;
-    yarp::sig::Vector wbi_imu;
-    std::vector<yarp::sig::Vector> measured_ft_sensors;
-    std::vector<yarp::sig::Vector> estimated_ft_sensors;
-
-    iCubTreeStatus(int nrOfDOFs=0, int nrOfFTSensors=0);
-    bool setNrOfDOFs(int nrOfDOFs);
-    bool setNrOfFTSensors(int nrOfFTSensors);
-    bool zero();
-};
+#include "ctrlLibRT/filters.h"
+#include "wholeBodyDynamicsTree/robotStatus.h"
 
 struct outputTorquePortInformation
 {
@@ -84,28 +68,66 @@ struct outputWrenchPortInformation
     yarp::os::BufferedPort<yarp::sig::Vector> * output_port;
 };
 
+class wholeBodyDynamicsFilters
+{
+    public:
+
+    wholeBodyDynamicsFilters(int nrOfDOFs, int nrOfFTSensors, double cutoffInHz, double periodInSeconds);
+    ~wholeBodyDynamicsFilters();
+
+    iCub::ctrl::AWLinEstimator  *dqFilt;        // joint velocity filter
+    iCub::ctrl::AWPolyElement dqFiltElement;
+    iCub::ctrl::AWQuadEstimator *d2qFilt;       // joint acceleration filter
+    iCub::ctrl::AWPolyElement d2qFiltElement;
+
+    iCub::ctrl::realTime::FirstOrderLowPassFilter * tauJFilt;  ///< low pass filter for joint torque
+
+    iCub::ctrl::realTime::FirstOrderLowPassFilter * imuLinearAccelerationFilter; ///<  low pass filters for IMU linear accelerations
+    iCub::ctrl::realTime::FirstOrderLowPassFilter * imuAngularVelocityFilter; ///< low pass filters for IMU angular velocity
+    std::vector<iCub::ctrl::realTime::FirstOrderLowPassFilter *> forcetorqueFilters; ///< low pass filters for ForceTorque sensors
+
+    iCub::ctrl::AWLinEstimator * imuAngularAccelerationFilt;
+    iCub::ctrl::AWPolyElement imuAngularAccelerationFiltElement;
+};
+
 /**
  *
   */
 class wholeBodyDynamicsThread: public yarp::os::RateThread
 {
-    std::string name;
+    /** prefix for all the ports opened by this module */
+    std::string moduleName;
+    /** prefix for all the ports of the robot at which we are connecting */
     std::string robotName;
-    yarpWbi::wholeBodyDynamicsStatesInterface *estimator;
+    /** wholeBodySensors interface to get sensors readings */
+    wbi::iWholeBodySensors * sensors;
 
-    int                 printCountdown;         // every time this is 0 (i.e. every PRINT_PERIOD ms) print stuff
-    double              PRINT_PERIOD;
+    /** helper class for estimating external wrenches and internal torques */
+    ExternalWrenchesAndTorquesEstimator * externalWrenchTorqueEstimator;
 
-    enum { NORMAL, CALIBRATING, CALIBRATING_ON_DOUBLE_SUPPORT } wbd_mode;     /// < Mode of operation of the thread: normal operation or calibration
+    /** helper class for calibrating 6-axis F/T sensors offsets */
+    // OffsetEstimator offsetEstimator;
 
-    yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts;
+    /** filter class */
+    wholeBodyDynamicsFilters * filters;
+
+    /** helper variable for printing every printPeriod milliseconds */
+    int                 printCountdown;
+    /** period after which some diagnostic messages are print */
+    double              printPeriod;
+
+    /** Mode of operation of the thread: normal operation or calibration */
+    enum { NORMAL, CALIBRATING, CALIBRATING_ON_DOUBLE_SUPPORT } wbd_mode;
+
+    yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts_input;
+
+    yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> *port_contacts_output;
 
     yarp::os::BufferedPort<yarp::sig::Vector> * port_icubgui_base;
 
     yarp::os::BufferedPort<yarp::sig::Vector> * port_filtered_inertial;
 
     std::vector<yarp::os::BufferedPort<yarp::sig::Vector> *> port_filtered_ft;
-
 
     yarp::os::Stamp timestamp;
 
@@ -125,7 +147,7 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
 
     wbi::ID convertFTiDynTreeToFTwbi(int ft_sensor_id);
-    void normal_run();
+    void estimation_run();
     void calibration_run();
     void calibration_on_double_support_run();
 
@@ -152,14 +174,13 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
     iCub::skinDynLib::skinContactList external_forces_list;
 
-
     yarp::sig::Vector iCubGuiBase;
     yarp::sig::Vector FilteredInertialForGravityComp;
 
     //Calibration related variables
     yarp::os::Mutex run_mutex;
     yarp::os::Mutex calibration_mutex;
-    iCubTreeStatus tree_status;
+    RobotStatus tree_status;
 
     iCub::iDynTree::TorqueEstimationTree * icub_model_calibration;
     std::string calibration_support_link;
@@ -209,12 +230,10 @@ public:
     wholeBodyDynamicsThread(std::string _name,
                             std::string _robotName,
                             int _period,
-                            yarpWbi::wholeBodyDynamicsStatesInterface *_wbi,
-                            yarp::os::Property & yarpWbiOptions,
-                            bool _autoconnect,
+                            yarpWbi::yarpWholeBodySensors *_wbi,
+                            yarp::os::Property & yarpOptions,
                             bool assume_fixed_base_calibration,
-                            std::string fixed_link,
-                            bool publish_filtered_ft);
+                            std::string fixed_link);
 
     bool threadInit();
     bool calibrateOffset(const std::string calib_code, const int nr_of_samples );
@@ -229,6 +248,7 @@ public:
      * @return always returns true
      */
     bool waitCalibrationDone();
+    void readRobotStatus();
     void run();
     void threadRelease();
 

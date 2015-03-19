@@ -48,7 +48,7 @@ using namespace wbi;
 wholeBodyDynamicsModule::wholeBodyDynamicsModule()
 {
     wbdThread      = 0;
-    estimationInterface  = 0;
+    sensors  = 0;
     period          = 10;
 }
 
@@ -75,37 +75,39 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     }
 
     bool fixed_base = false;
+    bool fixed_base_calibration = false;
     std::string fixed_link;
+    std::string fixed_link_calibration;
     if( rf.check("assume_fixed") )
     {
         fixed_link = rf.find("assume_fixed").asString().c_str();
         if( fixed_link != "root_link" &&
             fixed_link != "l_sole" &&
-            fixed_link != "r_sole" )
+            fixed_link != "r_sole" && 
+            fixed_link != "r_foot_dh_frame" && 
+            fixed_link != "l_foot_dh_frame" )
         {
-            std::cout << "assume_fixed option found, but disabled because " << fixed_link << " is not a recognized fixed_link " << std::endl;
+            yError() << "assume_fixed option found, but disabled because " << fixed_link << " is not a recognized fixed_link ";
             return false;
         } else {
-            std::cout << "assume_fixed option found, using " << fixed_link << " as fixed link as a kinematic root instead of the imu." << std::endl;
+            yInfo() << "assume_fixed option found, using " << fixed_link << " as fixed link as a kinematic root instead of the imu.";
             fixed_base = true;
+            fixed_base_calibration = true;
+            fixed_link_calibration = fixed_link;
+            // \todo TODO workaround for heidelberg 
+            if( fixed_link == "l_sole" ) 
+            {
+                fixed_link = fixed_link_calibration = "l_foot_dh_frame";
+            } 
+
+            if( fixed_link == "r_sole" ) 
+            {
+                fixed_link = fixed_link_calibration = "r_foot_dh_frame";
+            } 
         }
     }
-
-    bool fixed_base_calibration = false;
-    std::string fixed_link_calibration;
-    if( rf.check("assume_fixed_base_calibration") )
+    else
     {
-        fixed_link_calibration = rf.find("assume_fixed_base_calibration").asString().c_str();
-        if( fixed_link_calibration != "root_link" &&
-            fixed_link_calibration != "l_sole" &&
-            fixed_link_calibration != "r_sole" )
-        {
-            std::cout << "assume_fixed_base_calibration option found, but disabled because " << fixed_link_calibration << " is not a recognized fixed_link " << std::endl;
-            return false;
-        } else {
-            std::cout << "assume_fixed_base_calibration option found, using " << fixed_link_calibration << " as fixed link as a kinematic root instead of the imu for calibration." << std::endl;
-            fixed_base_calibration = true;
-        }
     }
 
     //--------------------------RPC PORT--------------------------
@@ -129,8 +131,8 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     std::string wbiConfFile = rf.findFile("wbi_conf_file");
     yarpWbiOptions.fromConfigFile(wbiConfFile);
 
-    //Overwrite the robot parameter that could be present in wbi_conf_file
-    yarpWbiOptions.put("robot",rf.find("robot").asString());
+    //Overwrite the parameters in the wbi_conf_file with stuff from the wbd options file
+    yarpWbiOptions.fromString(rf.toString(),false);
 
     //List of joints used in the dynamic model of the robot
     IDList RobotDynamicModelJoints;
@@ -199,101 +201,53 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         yarpWbiOptions.put("calibration_support_link","root_link");
     }
 
-    estimationInterface = new wholeBodyDynamicsStatesInterface(moduleName.c_str(), period, yarpWbiOptions);
+    sensors = new yarpWholeBodySensors(moduleName.c_str(), yarpWbiOptions);
 
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_POS,RobotDynamicModelJoints);
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,RobotDynamicModelJoints);
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,RobotDynamicModelJoints);
+    sensors->addSensors(wbi::SENSOR_ENCODER,RobotDynamicModelJoints);
+    //estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_VEL,RobotDynamicModelJoints);
+    //estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_ACC,RobotDynamicModelJoints);
 
      //List of 6-axis Force-Torque sensors in the robot
     IDList RobotFTSensors;
     std::string RobotFTSensorsListName = "ROBOT_MAIN_FTS";
     if( !loadIdListFromConfig(RobotFTSensorsListName,yarpWbiOptions,RobotFTSensors) )
     {
-        fprintf(stderr, "[ERR] wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
+        yError("wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
     }
-    estimationInterface->addEstimates(wbi::ESTIMATE_FORCE_TORQUE_SENSOR,RobotFTSensors);
+    sensors->addSensors(wbi::SENSOR_FORCE_TORQUE,RobotFTSensors);
 
     //List of IMUs sensors in the robot
     IDList RobotIMUSensors;
     std::string RobotIMUSensorsListName = "ROBOT_MAIN_IMUS";
     if( !loadIdListFromConfig(RobotIMUSensorsListName,yarpWbiOptions,RobotIMUSensors) )
     {
-        fprintf(stderr, "[ERR] wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
+        yError("wholeBodyDynamicsTree: impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
     }
-    estimationInterface->addEstimates(wbi::ESTIMATE_IMU,RobotIMUSensors);
+    sensors->addSensors(wbi::SENSOR_IMU,RobotIMUSensors);
 
-    //Add torque estimation
-    estimationInterface->addEstimates(wbi::ESTIMATE_JOINT_TORQUE, RobotDynamicModelJoints);
-
-    if(!estimationInterface->init()){ std::cerr << getName() << ": Error while initializing whole body estimator interface. Closing module" << std::endl; return false; }
-
-    bool use_ang_vel_acc = true;
-    if( rf.check("enable_w0_dw0") )
+    if(!sensors->init())
     {
-        yInfo() << "enable_w0_dw0 option found, enabling the use of IMU angular velocity/acceleration.";
-        use_ang_vel_acc = true;
-        estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
-    }
-
-    if( rf.check("disable_w0_dw0") )
-    {
-        yInfo() << "disable_w0_dw0 option found, disabling the use of IMU angular velocity/acceleration.";
-        use_ang_vel_acc = false;
-        estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,wbi::ESTIMATION_PARAM_ENABLE_OMEGA_IMU_DOMEGA_IMU,&use_ang_vel_acc);
-    }
-
-    if( rf.check("min_taxel") )
-    {
-        int taxel_threshold = rf.find("min_taxel").asInt();
-        yInfo() << "min_taxel option found, ignoring skin contacts with less then "
-                  << taxel_threshold << " active taxels will be ignored.";
-        estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,
-                                                    wbi::ESTIMATION_PARAM_MIN_TAXEL,
-                                                    &taxel_threshold);
-    }
-    else
-    {
-        int taxel_threshold = 0;
-        estimationInterface->setEstimationParameter(wbi::ESTIMATE_JOINT_TORQUE,
-                                                    wbi::ESTIMATION_PARAM_MIN_TAXEL,
-                                                    &taxel_threshold);
-    }
-
-
-    bool autoconnect = false;
-    if( rf.check("autoconnect") )
-    {
-        yInfo() << "autoconnect option found, enabling the autoconnection.";
-        autoconnect = true;
-    }
-
-    bool output_clean_ft = false;
-    if( rf.check("output_clean_ft") )
-    {
-        yInfo() << "output_clean_ft option found, enabling output of filtered and without offset ft sensors";
-        output_clean_ft = true;
+        yError() << getName() << ": Error while initializing whole body estimator interface.Closing module";
+        return false;
     }
 
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
     wbdThread = new wholeBodyDynamicsThread(moduleName,
                                             robotName,
                                             period,
-                                            estimationInterface,
+                                            sensors,
                                             yarpWbiOptions,
-                                            autoconnect,
                                             fixed_base_calibration,
-                                            fixed_link_calibration,
-                                            output_clean_ft);
+                                            fixed_link_calibration);
     if(!wbdThread->start())
     {
         yError() << getName()
-                          << ": Error while initializing whole body estimator interface."
+                          << ": Error while initializing whole body estimator thread."
                           << "Closing module";
         return false;
     }
 
-    fprintf(stderr,"wholeBodyDynamicsThread started\n");
+    yInfo() << "wholeBodyDynamicsThread started";
 
 
     return true;
@@ -313,19 +267,19 @@ bool wholeBodyDynamicsModule::close()
     //stop threads
     if(wbdThread)
     {
-        std::cout << getName() << ": closing wholeBodyDynamicsThread" << std::endl;
+        yInfo() << getName() << ": closing wholeBodyDynamicsThread";
         wbdThread->stop();
         delete wbdThread;
         wbdThread = 0;
     }
-    if(estimationInterface)
+    if(sensors)
     {
-        std::cout << getName() << ": closing wholeBodyStateLocal interface" << std::endl;
-        bool res=estimationInterface->close();
+        yInfo() << getName() << ": closing wholeBodySensors interface";
+        bool res=sensors->close();
         if(!res)
-            printf("Error while closing robot estimator\n");
-        delete estimationInterface;
-        estimationInterface = 0;
+            yError("Error while closing robot sensors interface\n");
+        delete sensors;
+        sensors = 0;
     }
 
     //closing ports
