@@ -120,11 +120,11 @@ namespace codyco {
             }
 
             //Setup streaming
-            if (!m_references->desiredCOMPosition().setUpReaderThread(("/" + m_moduleName + "/com:i"))) {
+            if (!m_references->desiredCOM().setUpReaderThread(("/" + m_moduleName + "/com:i"))) {
                 yError("CoM streaming port failed to start.");
                 return false;
             }
-            m_references->desiredCOMPosition().addDelegate(this);
+            m_references->desiredCOM().addDelegate(this);
             if (!m_references->desiredJointsPosition().setUpReaderThread(("/" + m_moduleName + "/qdes:i"))) {
                 yError("QDes streaming port failed to start.");
                 return false;
@@ -399,9 +399,9 @@ namespace codyco {
             }
 
             if (m_references) {
-                m_references->desiredCOMPosition().removeDelegate(this);
+                m_references->desiredCOM().removeDelegate(this);
                 m_references->desiredJointsPosition().removeDelegate(this);
-                m_references->desiredCOMPosition().tearDownReaderThread();
+                m_references->desiredCOM().tearDownReaderThread();
                 m_references->desiredJointsPosition().tearDownReaderThread();
 
                 delete m_references;
@@ -414,15 +414,22 @@ namespace codyco {
             if (!m_references) return;
 
             TaskType taskType = TaskTypeUnknown;
-            if (&reference == &m_references->desiredCOMPosition()) {
+            if (&reference == &m_references->desiredCOM()) {
                 taskType = TaskTypeCOM;
+                std::map<TaskType, ReferenceGenerator*>::iterator found = m_referenceGenerators.find(taskType);
+                if (found != m_referenceGenerators.end()) {
+                    const Eigen::VectorXd &newReference = reference.value();
+                    found->second->setAllReferences(newReference.head(3), newReference.segment(3, 3), newReference.tail(3));
+                }
             } else if (&reference == &m_references->desiredJointsPosition()) {
+                //Fix for state machine. To be removed when state machine will be removed
+                m_impedanceDoubleSupportReference = reference.value();
                 taskType = TaskTypeImpedanceControl;
+                std::map<TaskType, ReferenceGenerator*>::iterator found = m_referenceGenerators.find(taskType);
+                if (found != m_referenceGenerators.end()) {
+                    found->second->setSignalReference(reference.value());
+                }
             } else return;
-            std::map<TaskType, ReferenceGenerator*>::iterator found = m_referenceGenerators.find(taskType);
-            if (found != m_referenceGenerators.end()) {
-                found->second->setSignalReference(reference.value());
-            }
         }
 
         double TorqueBalancingModule::getPeriod()
