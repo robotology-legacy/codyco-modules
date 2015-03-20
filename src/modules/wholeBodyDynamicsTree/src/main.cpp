@@ -97,19 +97,11 @@ wholeBodyDynamicsTree --autoconnect
 */
 
 
+#include <yarp/os/ResourceFinder.h>
+#include <yarp/os/RFModule.h>
+#include <yarp/os/LogStream.h>
 
-#include <yarp/os/all.h>
-#include <yarp/sig/all.h>
-#include <yarp/dev/all.h>
-#include <iCub/ctrl/math.h>
-#include <yarp/math/Math.h>
-
-#include <string.h>
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-
-#include <wholeBodyDynamicsTree/wholeBodyDynamicsModule.h>
+#include "wholeBodyDynamicsTree/wholeBodyDynamicsModule.h"
 
 #define DEFAULT_YARP_CONTEXT "wholeBodyDynamicsTree"
 
@@ -131,22 +123,24 @@ int main (int argc, char * argv[])
 
     if (rf.check("help"))
     {
-        cout<< "Possible parameters"                                                                                                                                          << endl << endl;
-        cout<< "\t--context          :Where to find an user defined .ini e.g. /" << DEFAULT_YARP_CONTEXT << "conf"                                   <<endl;
-        cout<< "\t--from             :Name of the file .ini user for configuration."                                                                                       <<endl;
-        cout<< "\t--wbi_conf_file    :Name of the configuration file used for yarpWholeBodyInterface ." << endl;
-        cout<< "\t--torque_estimation_joint_list :Name of the wbi::IDList of joint to use in torqueEstimation." << endl
-            << "\t                                This list should be found in the wholeBodyDynamicsTree configuration file" << endl
-            << "\t                                or in the yarpWholeBodyInterface configuration file. Default: ROBOT_DYNAMIC_MODEL_JOINTS" << endl;
+        yInfo()<< "Possible parameters";
+        yInfo()<< "\t--context          :Where to find an user defined .ini e.g. /" << DEFAULT_YARP_CONTEXT << "conf" ;
+        yInfo()<< "\t--from             :Name of the file .ini user for configuration." ;
+        yInfo()<< "\t--wbi_conf_file    :Name of the configuration file used for yarpWholeBodyInterface ." ;
+        yInfo()<< "\t--torque_estimation_joint_list :Name of the wbi::IDList of joint to use in torqueEstimation."
+            << "\t                                This list should be found in the wholeBodyDynamicsTree configuration file"
+            << "\t                                or in the yarpWholeBodyInterface configuration file. Default: ROBOT_DYNAMIC_MODEL_JOINTS" ;
 
-        cout<< "\t--robot            :Robot name, overload the setting contained in the wbi_conf_file configuration file."                                                                                  <<endl;
-        cout<< "\t--rate             :Period (in ms) used by the module. Default set to 10ms."                                                                                        <<endl;
-        cout<< "\t--name             :Prefix of the ports opened by the module. Set to the module name by default, i.e. wholeBodyDynamicsTree."                                      <<endl;
-        cout<< "\t--enable_w0_dw0/disable_w0_dw0    :Enable/disable use of angular velocity and acceleration measured from the IMU (default: disabled)." << endl;
-        cout<< "\t--autoconnect      :Autoconnect torques port for low-level torque feedback. " << endl;
-        cout<< "\t--assume_fixed     :Use a link as a kinematic root in estimation and calibration (assuming a constant gravity). Possible options: (root_link, l_sole, r_sole)." <<endl;
-        cout<< "\t--output_clean_ft  :Output the measure of the FT sensors without offset in set of ports." << endl;
-        cout<< "\t--min_taxel  threshold   :Filter input skin contacts: if the activated taxels are lower than the threshold, ignore the contact (default: 1)." << endl;
+        yInfo()<< "\t--robot            :Robot name, overload the setting contained in the wbi_conf_file configuration file."                                                ;
+        yInfo()<< "\t--rate             :Period (in ms) used by the module. Default set to 10ms."                                                      ;
+        yInfo()<< "\t--name             :Prefix of the ports opened by the module. Set to the module name by default, i.e. wholeBodyDynamicsTree."    ;
+        yInfo()<< "\t--enable_w0_dw0/disable_w0_dw0    :Enable/disable use of angular velocity and acceleration measured from the IMU (default: disabled)." ;
+        yInfo()<< "\t--autoconnect      :Autoconnect torques port for low-level torque feedback. " ;
+        yInfo()<< "\t--assume_fixed     :Use a link as a kinematic root in estimation and calibration (assuming a constant gravity). Possible options: (root_link, l_foot_dh_frame, r_foot_dh_frame).";
+        yInfo()<< "\t--output_clean_ft  :Output the measure of the FT sensors without offset in set of ports." ;
+        yInfo()<< "\t--min_taxel  threshold   :Filter input skin contacts: if the activated taxels are lower than the threshold, ignore the contact (default: 1)." ;
+        //yInfo()<< "\t--smooth_calibration switch_period : Perform a smooth calibration (i.e.: don't stop estimating torques during calibration, and then smoothly change the ft offsets)";
+        //yInfo()<< "\t                                     the switch_period express the period (in ms) used for offset interpolation.";
         return 0;
     }
 

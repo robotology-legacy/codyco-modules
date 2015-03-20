@@ -32,6 +32,7 @@
 #include <ctime>
 
 #include "ctrlLibRT/filters.h"
+#include "../../../../extern/eigen_unsupported/Eigen/src/Geometry/Hyperplane.h"
 
 
 using namespace yarp::math;
@@ -154,8 +155,10 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 
        if( assume_fixed_base_calibration ) {
            icub_model_calibration = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization,fixed_link_calibration);
+           icub_model_world_base_position = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization,fixed_link_calibration);
        } else {
            icub_model_calibration = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization);
+           icub_model_world_base_position = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization);
        }
 
     //Resize buffer vectors
@@ -434,6 +437,13 @@ bool wholeBodyDynamicsThread::threadInit()
         yInfo() << "calibration_support_link is " << calibration_support_link;
     }
 
+    smooth_calibration = yarp_options.check("smooth_calibration");
+    if( smooth_calibration )
+    {
+        smooth_calibration_period_in_ms = yarp_options.find("smooth_calibration").asDouble();
+        yInfo() << "Smooth calibration option enabled, with switching period of  " << smooth_calibration_period_in_ms << " milliseconds";
+    }
+
 
     //Calibration variables
     int nrOfAvailableFTSensors = sensors->getSensorList(wbi::SENSOR_FORCE_TORQUE).size();
@@ -519,6 +529,15 @@ bool wholeBodyDynamicsThread::threadInit()
     double periodInSeconds = getRate()*1e-3;
     filters = new wholeBodyDynamicsFilters(torque_estimation_list.size(),nrOfAvailableFTSensors,
                                           cutoffInHz,periodInSeconds);
+
+    if( smooth_calibration )
+    {
+        offset_smoother = new OffsetSmoother(nrOfAvailableFTSensors,smooth_calibration_period_in_ms/1000.0);
+    }
+    else
+    {
+        offset_smoother = 0;
+    }
 
 
     if( this->autoconnect )
@@ -896,18 +915,18 @@ void wholeBodyDynamicsThread::publishBaseToGui()
         //For the icubGui, the world is the root frame when q == 0
         //So we have to find the transformation between the root now
         //and the root when q == 0
-        icub_model_calibration->setAng(tree_status.qj);
+        icub_model_world_base_position->setAng(tree_status.qj);
 
         // {}^{leftFoot} H_{currentRoot}
         KDL::Frame H_leftFoot_currentRoot
-            = icub_model_calibration->getPositionKDL(left_foot_link_idyntree_id,root_link_idyntree_id);
+            = icub_model_world_base_position->getPositionKDL(left_foot_link_idyntree_id,root_link_idyntree_id);
 
         tree_status.qj.zero();
-        icub_model_calibration->setAng(tree_status.qj);
+        icub_model_world_base_position->setAng(tree_status.qj);
 
         //{}^world H_{leftFoot}
         KDL::Frame H_world_leftFoot
-            = icub_model_calibration->getPositionKDL(root_link_idyntree_id,left_foot_link_idyntree_id);
+            = icub_model_world_base_position->getPositionKDL(root_link_idyntree_id,left_foot_link_idyntree_id);
 
         KDL::Frame H_world_currentRoot
             = H_world_leftFoot*H_leftFoot_currentRoot;
@@ -1032,7 +1051,9 @@ void wholeBodyDynamicsThread::run()
 
     readRobotStatus();
 
-    if( wbd_mode == NORMAL )
+    // If doing smooth calibration, continue to stream torques
+    // even when doing calibration
+    if( wbd_mode == NORMAL || smooth_calibration )
     {
         estimation_run();
     }
@@ -1052,6 +1073,17 @@ void wholeBodyDynamicsThread::run()
 void wholeBodyDynamicsThread::estimation_run()
 {
     bool ret;
+
+    // Update smoothed offset
+    if( this->smooth_calibration )
+    {
+        double now = yarp::os::Time::now();
+        for(int i=0; i < this->tree_status.ft_sensors_offset.size(); i++ )
+        {
+            this->offset_smoother->updateOffset(now,i,tree_status.ft_sensors_offset[i]);
+        }
+    }
+
 
     // Get sensors informations
     this->readRobotStatus();
@@ -1111,6 +1143,19 @@ std::string getCurrentDateAndTime()
   std::string str(buffer);
 
   return str;
+}
+
+//*************************************************************************************************************************
+void wholeBodyDynamicsThread::setNewFTOffset(const int ft_sensor_id, const yarp::sig::Vector & new_offset)
+{
+    if( !smooth_calibration )
+    {
+        tree_status.ft_sensors_offset[ft_sensor_id] = new_offset;
+    }
+    else
+    {
+        offset_smoother->setNewOffset(yarp::os::Time::now(),ft_sensor_id,new_offset,tree_status.ft_sensors_offset[ft_sensor_id]);
+    }
 }
 
 //*************************************************************************************************************************
@@ -1190,7 +1235,7 @@ void wholeBodyDynamicsThread::calibration_run()
                 offset_buffer[ft_sensor_id] *= (1.0/(double)samples_used_for_calibration);
                 assert((int)offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
 
-                tree_status.ft_sensors_offset[ft_sensor_id] = offset_buffer[ft_sensor_id];
+                this->setNewFTOffset(ft_sensor_id,offset_buffer[ft_sensor_id]);
 
                 wbi::ID sensor_name;
                 sensors->getSensorList(wbi::SENSOR_FORCE_TORQUE).indexToID(ft_sensor_id,sensor_name);
@@ -1304,7 +1349,7 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
                 offset_buffer[ft_sensor_id] *= (1.0/(double)samples_used_for_calibration);
                 assert((int)offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
 
-                tree_status.ft_sensors_offset[ft_sensor_id] = offset_buffer[ft_sensor_id];
+                this->setNewFTOffset(ft_sensor_id,offset_buffer[ft_sensor_id]);
 
                 wbi::ID sensor_name;
                 sensors->getSensorList(wbi::SENSOR_FORCE_TORQUE).indexToID(ft_sensor_id,sensor_name);
@@ -1380,8 +1425,14 @@ void wholeBodyDynamicsThread::threadRelease()
     }
 
     delete icub_model_calibration;
+    delete icub_model_world_base_position;
 
     delete filters;
+
+    if( smooth_calibration )
+    {
+        delete offset_smoother;
+    }
 
     run_mutex.unlock();
 }
@@ -1588,3 +1639,51 @@ wholeBodyDynamicsFilters::~wholeBodyDynamicsFilters()
     deleteObject(&imuLinearAccelerationFilter);
     deleteObject(&imuAngularVelocityFilter);
 }
+
+OffsetSmoother::OffsetSmoother(int nrOfFTSensors, double smoothingTimeInSeconds)
+{
+    this->reset(nrOfFTSensors, smoothingTimeInSeconds);
+}
+
+void OffsetSmoother::reset(int nrOfFTSensors, double smoothingTimeInSeconds)
+{
+    this->smooth_calibration_period_in_seconds = smoothingTimeInSeconds;
+    old_offset.resize(nrOfFTSensors,yarp::sig::Vector(6,0.0));
+    new_offset.resize(nrOfFTSensors,yarp::sig::Vector(6,0.0));
+    this->initial_smoothing_time.resize(nrOfFTSensors,0.0);
+    this->is_smoothing.resize(nrOfFTSensors,false);
+
+}
+
+void OffsetSmoother::setNewOffset(double current_time, int ft_id, const Vector& _new_offset, const Vector& _old_offset)
+{
+    assert(ft_id >= 0 && ft_id < this->old_offset.size());
+    old_offset[ft_id] = _old_offset;
+    new_offset[ft_id] = _new_offset;
+    this->initial_smoothing_time[ft_id] = current_time;
+    this->is_smoothing[ft_id]           = true;
+}
+
+
+void OffsetSmoother::updateOffset(const double current_time,
+                                  const int ft_id, yarp::sig::Vector & used_offset)
+{
+    if( this->is_smoothing[ft_id] )
+    {
+        // \todo TODO deal with double overflow
+        double time_since_calibration_in_seconds = current_time-this->initial_smoothing_time[ft_id];
+        if( time_since_calibration_in_seconds > smooth_calibration_period_in_seconds )
+        {
+            used_offset = new_offset[ft_id];
+            this->is_smoothing[ft_id] = false;
+        }
+        double progress = time_since_calibration_in_seconds/smooth_calibration_period_in_seconds;
+        used_offset.resize(6);
+        for( int i =0; i < 6; i++ )
+        {
+            used_offset[i] = old_offset[ft_id][i] + progress*(new_offset[ft_id][i]-old_offset[ft_id][i]);
+        }
+    }
+}
+
+

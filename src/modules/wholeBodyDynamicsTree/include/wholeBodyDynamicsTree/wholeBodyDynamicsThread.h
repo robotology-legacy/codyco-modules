@@ -90,6 +90,23 @@ class wholeBodyDynamicsFilters
     iCub::ctrl::AWPolyElement imuAngularAccelerationFiltElement;
 };
 
+class OffsetSmoother
+{
+    public:
+    double smooth_calibration_period_in_seconds;
+    OffsetSmoother(int nrOfFTSensors, double smoothingTimeInSeconds);
+    void reset(int nrOfFTSensors, double smoothingTimeInSeconds);
+
+    std::vector<yarp::sig::Vector> old_offset;
+    std::vector<yarp::sig::Vector> new_offset;
+    std::vector<double>            initial_smoothing_time;
+    std::vector<bool>              is_smoothing;
+
+    void setNewOffset(double current_time, int ft_id, const yarp::sig::Vector & new_offset, const yarp::sig::Vector & old_offset);
+    void updateOffset(double current_time, int ft_id, yarp::sig::Vector & smoothed_offset);
+
+};
+
 /**
  *
   */
@@ -111,6 +128,9 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     /** filter class */
     wholeBodyDynamicsFilters * filters;
 
+    /** offset smoothe class */
+    OffsetSmoother * offset_smoother;
+
     /** helper variable for printing every printPeriod milliseconds */
     int                 printCountdown;
     /** period after which some diagnostic messages are print */
@@ -130,6 +150,8 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     std::vector<yarp::os::BufferedPort<yarp::sig::Vector> *> port_filtered_ft;
 
     yarp::os::Stamp timestamp;
+
+    void setNewFTOffset(const int ft_sensor_id, const yarp::sig::Vector & new_offset);
 
     template <class T> void broadcastData(T& _values, yarp::os::BufferedPort<T> *_port);
     void closePort(yarp::os::Contactable *_port);
@@ -178,11 +200,14 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     yarp::sig::Vector FilteredInertialForGravityComp;
 
     //Calibration related variables
+    bool smooth_calibration;
+    double smooth_calibration_period_in_ms;
     yarp::os::Mutex run_mutex;
     yarp::os::Mutex calibration_mutex;
     RobotStatus tree_status;
 
     iCub::iDynTree::TorqueEstimationTree * icub_model_calibration;
+    iCub::iDynTree::TorqueEstimationTree * icub_model_world_base_position;
     std::string calibration_support_link;
 
     int samples_requested_for_calibration;
