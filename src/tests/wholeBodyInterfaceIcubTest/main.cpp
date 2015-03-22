@@ -46,34 +46,19 @@ const double TOL = 1e-8;
 int main(int argc, char * argv[])
 {
     Network yarpNet; 
-    /*
-    Property options;
-    options.fromCommand(argc,argv);
-    
-    std::string robotName;
-    if(options.check("robot")) {
-      robotName = options.find("robot").asString();
-    } else {
-      robotName = "icubGazeboSim";
-    }
-    
-    bool use_urdf = false;
-    
-    std::string urdf_file;
-    if(options.check("urdf")) { 
-        use_urdf = true;
-        urdf_file = options.find("urdf").asString();
-    } else {
-        use_urdf = false;
-    }
-    
-    */
     
   printf("Robot name is given \n\n");  
   string robotName = "icubGazeboSim";
   yarp::os::ResourceFinder rf;
   yarp::os::Property yarpWbiOptions;
   //Get wbi options from the canonical file
+  
+  int testType = 1;
+  
+  
+  Property options;
+  options.fromCommand(argc,argv);
+  
   if( !rf.check("yarp") )
   {
       fprintf(stderr,"[ERR] locomotionControl: impossible to open wholeBodyInterface: wbi_conf_file option missing");
@@ -81,7 +66,6 @@ int main(int argc, char * argv[])
   
   rf.setVerbose (true);
   rf.setDefaultConfigFile ("yarpWholeBodyInterface.ini");
-//   rf.setDefaultContext ("icubGazeboSim");
   
   rf.configure(0,0);
   
@@ -90,15 +74,12 @@ int main(int argc, char * argv[])
   //Overwrite the robot parameter that could be present in wbi_conf_file
   yarpWbiOptions.put("robot",robotName);
     
-    // TEST WHOLE BODY INTERFACE
-    std::string localName = "wbiTest";
-    
-    wholeBodyInterface *icub;
+  // TEST WHOLE BODY INTERFACE
+  std::string localName = "wbiTest";
+  wholeBodyInterface *icub;
  
     
 #ifdef CODYCO_USES_URDFDOM
-    //icub_version = iCub::iDynTree::iCubTree_version_tag (2, 2, true, true, urdf_file);
-    //icub = new icubWholeBodyInterface (localName.c_str(), robotName.c_str(), icub_version);
     icub =  new yarpWbi::yarpWholeBodyInterface(localName.c_str(), yarpWbiOptions);
 #else
     //  iCub::iDynTree::iCubTree_version_tag icub_version;   
@@ -107,13 +88,7 @@ int main(int argc, char * argv[])
     //icub =  new yarpWbi::yarpWholeBodyInterface(localName.c_str(), yarpWbiOptions);
 #endif
     
-    
-    
     std::cout << "icubWholeBodyInterface created, adding joints" << std::endl;
-//    icub->addJoints(LocalIdList(RIGHT_ARM,0,1,2,3,4));
-//    icub->addJoints(LocalIdList(LEFT_ARM,0,1,2,3,4));
-//    icub->addJoints(LocalIdList(TORSO,0,1,2));
-//    icub->addJoints(ICUB_MAIN_JOINTS);
     
   wbi::IDList RobotMainJoints;
   std::string RobotMainJointsListName = "ROBOT_TORQUE_CONTROL_JOINTS";
@@ -128,6 +103,14 @@ int main(int argc, char * argv[])
 
     if(!icub->init())
         return 0;
+
+
+
+  if(options.check("test")) {
+        testType = options.find("test").asInt();
+	std::cout<<"Test type selected : "<<testType;
+  }
+
     
     Time::delay(0.5);
     
@@ -159,11 +142,32 @@ int main(int argc, char * argv[])
     qd = q;
    Vector refSpeed(dof, CTRL_DEG2RAD*10.0);//, qd = q;
    
-   for (int ctr = 0; ctr <13;ctr++)
+   if(testType == 1)
    {
-     qd(ctr) += 15.0*CTRL_DEG2RAD;
+    for (int ctr = 0; ctr <13;ctr++)
+    {
+      qd(ctr) += 15.0*CTRL_DEG2RAD;
+    }
    }
-   
+   else
+   {
+     //int keyJointsPlus[] = {13,17,19,23};
+     int keyJointsPlus[] = {13,19,17,23};
+     int keyJointsMinus[] = {16,22};
+     
+     for (int ctr = 0; ctr <2;ctr++)
+     {
+	qd(keyJointsPlus[ctr]) -= 15.0*CTRL_DEG2RAD;
+     }
+     for (int ctr = 2; ctr <4;ctr++)
+     {
+	qd(keyJointsPlus[ctr]) += 15.0*CTRL_DEG2RAD;
+     }
+     for (int ctr = 0; ctr <2;ctr++)
+     {
+	qd(keyJointsMinus[ctr]) -= 30.0*CTRL_DEG2RAD;
+     }
+   }
    printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
    printf("Qd:  %s\n", (CTRL_RAD2DEG*qd).toString(1).c_str());
    icub->setControlParam(CTRL_PARAM_REF_VEL, refSpeed.data());
