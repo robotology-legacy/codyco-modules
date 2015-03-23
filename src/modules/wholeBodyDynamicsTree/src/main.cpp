@@ -139,8 +139,8 @@ int main (int argc, char * argv[])
         yInfo()<< "\t--assume_fixed     :Use a link as a kinematic root in estimation and calibration (assuming a constant gravity). Possible options: (root_link, l_foot_dh_frame, r_foot_dh_frame).";
         yInfo()<< "\t--output_clean_ft  :Output the measure of the FT sensors without offset in set of ports." ;
         yInfo()<< "\t--min_taxel  threshold   :Filter input skin contacts: if the activated taxels are lower than the threshold, ignore the contact (default: 1)." ;
-        //yInfo()<< "\t--smooth_calibration switch_period : Perform a smooth calibration (i.e.: don't stop estimating torques during calibration, and then smoothly change the ft offsets)";
-        //yInfo()<< "\t                                     the switch_period express the period (in ms) used for offset interpolation.";
+        yInfo()<< "\t--smooth_calibration switch_period : Perform a smooth calibration (i.e.: don't stop estimating torques during calibration, and then smoothly change the ft offsets)";
+        yInfo()<< "\t                                     the switch_period express the period (in ms) used for offset interpolation.";
         return 0;
     }
 
