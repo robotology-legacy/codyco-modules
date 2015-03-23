@@ -32,7 +32,7 @@
 #include <ctime>
 
 #include "ctrlLibRT/filters.h"
-    
+
 
 using namespace yarp::math;
 using namespace yarp::sig;
@@ -114,7 +114,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        max_samples_for_calibration(2000),
        samples_used_for_calibration(0),
        assume_fixed_base_calibration(_assume_fixed_base_calibration),
-       fixed_link_calibration(_fixed_link_calibration)
+       fixed_link_calibration(_fixed_link_calibration),
+       run_mutex_acquired(false)
     {
         // TODO FIXME move all this logic in threadInit
 
@@ -498,7 +499,6 @@ bool wholeBodyDynamicsThread::threadInit()
 
     // Open external wrenches ports
     openExternalWrenchesPorts();
-  
 
     //Open port for iCubGui
     port_icubgui_base = new BufferedPort<Vector>;
@@ -519,7 +519,7 @@ bool wholeBodyDynamicsThread::threadInit()
             ft_estimation_list.indexToID(i,ft_id);
             port_filtered_ft[i] = new BufferedPort<Vector>;
             bool ok = port_filtered_ft[i]->open(string("/"+moduleName+"/filtered/"+ft_id.toString()+":o"));
-            
+
             if( !ok )
             {
                 yError() << "Error in opening port " << string("/"+moduleName+"/filtered/"+ft_id.toString()+":o") << ", closing";
@@ -1056,8 +1056,14 @@ void wholeBodyDynamicsThread::readRobotStatus()
 //*************************************************************************************************************************
 void wholeBodyDynamicsThread::run()
 {
-    run_mutex.lock();
+    if( this->run_mutex_acquired )
+    {
+        yError() << "wholeBodyDynamicsTree: run_mutex already acquired at the beginning of run method.";
+        yError() << "    this could cause some problems, please report an issue at https://github.com/robotology/codyco-modules/issues/new";
+    }
 
+    run_mutex.lock();
+    this->run_mutex_acquired = true;
     readRobotStatus();
 
     // If doing smooth calibration, continue to stream torques
@@ -1075,6 +1081,8 @@ void wholeBodyDynamicsThread::run()
         assert( wbd_mode == CALIBRATING_ON_DOUBLE_SUPPORT );
         calibration_on_double_support_run();
     }
+
+    this->run_mutex_acquired = false;
     run_mutex.unlock();
 }
 
@@ -1097,7 +1105,7 @@ void wholeBodyDynamicsThread::estimation_run()
     // Get sensors informations
     this->readRobotStatus();
 
-    //
+    // Estimate external forces and internal torques
     externalWrenchTorqueEstimator->estimateExternalWrenchAndInternalJoints(this->tree_status);
 
     //Get estimated torques

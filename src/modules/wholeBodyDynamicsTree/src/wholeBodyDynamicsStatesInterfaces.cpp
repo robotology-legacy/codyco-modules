@@ -27,6 +27,7 @@
 #include <string>
 #include <iostream>
 #include <yarp/os/Log.h>
+#include <yarp/os/LogStream.h>
 #include <iCub/iDynTree/yarp_kdl.h>
 #include <kdl/frames_io.hpp>
 
@@ -511,6 +512,11 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
     ok = ok && robot_estimation_model->dynamicRNEA();
     ok = ok && robot_estimation_model->computePositions();
 
+    if( !ok )
+    {
+        yError() << "wholeBodyDynamics: external forces computation and torque estimation failed";
+    }
+
     estimatedLastDynContacts = robot_estimation_model->getContacts();
 
     //Create estimatedLastSkinDynContacts using original skinContacts list read from skinManager
@@ -549,8 +555,6 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
         contactFound = false;
 
     }
-
-    //mutex.wait();
 
     estimatedLastSkinDynContacts = skinContacts;
 

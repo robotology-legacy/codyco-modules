@@ -203,6 +203,7 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     bool smooth_calibration;
     double smooth_calibration_period_in_ms;
     yarp::os::Mutex run_mutex;
+    bool run_mutex_acquired;
     yarp::os::Mutex calibration_mutex;
     RobotStatus tree_status;
 
