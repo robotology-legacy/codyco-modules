@@ -32,8 +32,7 @@
 #include <ctime>
 
 #include "ctrlLibRT/filters.h"
-#include "../../../../extern/eigen_unsupported/Eigen/src/Geometry/Hyperplane.h"
-
+    
 
 using namespace yarp::math;
 using namespace yarp::sig;
@@ -170,35 +169,6 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     //Copied from old wholeBodyDynamics
     std::string robot_name = robotName;
     std::string local_name = moduleName;
-
-    //Open ports
-    port_contacts_input = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
-    port_contacts_input->open(string("/"+string(_name)+"/skin_contacts:i").c_str());
-
-    port_contacts_output = new BufferedPort<skinContactList>;
-    port_contacts_output->open(string("/"+local_name+"/contacts:o").c_str());
-
-    //Open port for iCubGui
-    port_icubgui_base = new BufferedPort<Vector>;
-    port_icubgui_base->open(string("/"+local_name+"/base:o"));
-
-    //Open port for filtered inertial
-    port_filtered_inertial = new BufferedPort<Vector>;
-    port_filtered_inertial->open(string("/"+local_name+"/filtered/inertial:o"));
-
-    if( publish_filtered_ft )
-    {
-        //Open ports for filtered ft
-        IDList ft_estimation_list = _wbs->getSensorList(wbi::SENSOR_FORCE_TORQUE);
-        port_filtered_ft.resize(ft_estimation_list.size());
-        for(int i=0; i < (int)ft_estimation_list.size(); i++ )
-        {
-            ID ft_id;
-            ft_estimation_list.indexToID(i,ft_id);
-            port_filtered_ft[i] = new BufferedPort<Vector>;
-            port_filtered_ft[i]->open(string("/"+local_name+"/filtered/"+ft_id.toString()+":o"));
-        }
-    }
 
 }
 
@@ -523,6 +493,41 @@ bool wholeBodyDynamicsThread::threadInit()
 
     // Open external wrenches ports
     openExternalWrenchesPorts();
+    
+      //Open ports
+    port_contacts_input = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
+    port_contacts_input->open(string("/"+string(_name)+"/skin_contacts:i").c_str());
+
+    port_contacts_output = new BufferedPort<skinContactList>;
+    port_contacts_output->open(string("/"+local_name+"/contacts:o").c_str());
+
+    //Open port for iCubGui
+    port_icubgui_base = new BufferedPort<Vector>;
+    port_icubgui_base->open(string("/"+local_name+"/base:o"));
+
+    //Open port for filtered inertial
+    port_filtered_inertial = new BufferedPort<Vector>;
+    port_filtered_inertial->open(string("/"+local_name+"/filtered/inertial:o"));
+
+    if( this->publish_filtered_ft )
+    {
+        //Open ports for filtered ft
+        IDList ft_estimation_list = _wbs->getSensorList(wbi::SENSOR_FORCE_TORQUE);
+        port_filtered_ft.resize(ft_estimation_list.size());
+        for(int i=0; i < (int)ft_estimation_list.size(); i++ )
+        {
+            ID ft_id;
+            ft_estimation_list.indexToID(i,ft_id);
+            port_filtered_ft[i] = new BufferedPort<Vector>;
+            bool ok = port_filtered_ft[i]->open(string("/"+local_name+"/filtered/"+ft_id.toString()+":o"));
+            
+            if( !ok )
+            {
+                yError() << "Error in opening port " << string("/"+local_name+"/filtered/"+ft_id.toString()+":o") << ", closing";
+                return false;
+			}
+        }
+    }
 
     // Create filters
     double cutoffInHz = 3.0;
@@ -975,6 +980,8 @@ void wholeBodyDynamicsThread::publishFilteredFTWithoutOffset()
     if( publish_filtered_ft )
     {
         int nr_of_ft = sensors->getSensorList(wbi::SENSOR_FORCE_TORQUE).size();
+        YARP_ASSERT(nr_of_ft == port_filtered_ft.size());
+        YARP_ASSERT(nr_of_ft == tree_status.estimated_ft_sensors.size());
         for(int ft =0; ft < nr_of_ft; ft++ )
         {
             broadcastData<yarp::sig::Vector>(tree_status.estimated_ft_sensors[ft],port_filtered_ft[ft]);
