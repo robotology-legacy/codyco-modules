@@ -165,11 +165,6 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 
     iCubGuiBase.resize(6);
     FilteredInertialForGravityComp.resize(6);
-
-    //Copied from old wholeBodyDynamics
-    std::string robot_name = robotName;
-    std::string local_name = moduleName;
-
 }
 
 //*************************************************************************************************************************
@@ -366,6 +361,15 @@ bool wholeBodyDynamicsThread::threadInit()
 
     if( ! ret ) return false;
 
+
+  
+    //Open skin ports
+    port_contacts_input = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
+    port_contacts_input->open(string("/"+moduleName+"/skin_contacts:i").c_str());
+
+    port_contacts_output = new BufferedPort<skinContactList>;
+    port_contacts_output->open(string("/"+moduleName+"/contacts:o").c_str());
+
     // Open estimator
     int periodInMilliseconds = (int)getRate();
     this->externalWrenchTorqueEstimator = new ExternalWrenchesAndTorquesEstimator(periodInMilliseconds,
@@ -458,6 +462,7 @@ bool wholeBodyDynamicsThread::threadInit()
         externalWrenchTorqueEstimator->setMinTaxel(0);
     }
 
+    this->autoconnect = false;
     if( yarp_options.check("autoconnect") )
     {
         yInfo() << "autoconnect option found, enabling the autoconnection.";
@@ -493,13 +498,7 @@ bool wholeBodyDynamicsThread::threadInit()
 
     // Open external wrenches ports
     openExternalWrenchesPorts();
-    
-      //Open ports
-    port_contacts_input = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
-    port_contacts_input->open(string("/"+moduleName+"/skin_contacts:i").c_str());
-
-    port_contacts_output = new BufferedPort<skinContactList>;
-    port_contacts_output->open(string("/"+moduleName+"/contacts:o").c_str());
+  
 
     //Open port for iCubGui
     port_icubgui_base = new BufferedPort<Vector>;
@@ -548,6 +547,9 @@ bool wholeBodyDynamicsThread::threadInit()
     if( this->autoconnect )
     {
         yInfo() << "wholeBodyDynamicsThread: autoconnect option enabled, autoconnecting.";
+    }
+
+    {
         for(int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
         {
             std::string port_name = output_torque_ports[output_torque_port_i].port_name;
