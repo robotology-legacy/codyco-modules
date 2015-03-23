@@ -29,26 +29,51 @@ function yarp_gettime()
     return yarp_time_now_sec, yarp_time_now_nsec
 end
 
+--- Generate an event reader function optimized for string events.
+--
+-- When called this function will read all new string events from the given
+-- yarp BufferedPort and return them in a table.
+--
+-- The format supported for getting the events is the following:
+--    * a single string is interpreted as an event
+--    * it the port element is a Bottle, all the elements of the Bottle
+--      that are strings are considered an event.
+--
+-- @param ... list of BufferedPortBottle to read events from
+-- @return getevent function
+function yarp_gen_read_str_events(...)
+    local function read_events(tgttab, bufferedport)
+        while true do
+            local cmd = yarp.Bottle();
+            cmd = input_events:read(false)
+            if( cmd == nil ) then
+                break
+            end
+            if( cmd:isString() ) then
+                tgttab[#tgttab+1] = cmd:asString()
+            end
+            if( cmd.isList() ) then
+                for i=0,cmd:size() then
+                    if( cmd:get(i):isString() ) then
+                        tgttab[#tgttab+1] = cmd:get(i):asString()
+                    end
+                end
+            end
+        end
+     end
+
+     local ports = {...}
+     assert(#ports > 0, "no ports given")
+     -- check its all ports
+     return function ()
+         local res = {}
+         for _,port in ipairs(ports) do read_events(res, port) end
+         return res
+     end
+end
+
+
 rfsm_timeevent.set_gettime_hook(yarp_gettime)
-
-----events (contact)
-event_no_contact             = "e_no_contacts_on_hands"
-event_contact_on_left_hand   = "e_contacts_only_on_left_hand"
-event_contact_on_right_hand  = "e_contacts_only_on_right_hand"
-event_contacts_on_both_hands = "e_contacts_on_both_hands"
-
-----events (input rpc)
-event_reset = "e_reset"
-event_start= "e_start"
-
-events = {
-    event_no_contact,
-    event_contact_on_left_hand,
-    event_contact_on_right_hand,
-    event_contacts_on_both_hands,
-    event_reset,
-    event_start
-}
 
 -------
 function close_script()
@@ -66,87 +91,6 @@ function close_script()
     yarp.Network_fini()
     os.exit()
 end
-
--------
-function update_buffers()
-    skin_contacts = skin_event_port:read(false)
-    if skin_contacts ~= nil then
-        buffer_skin_contacts = skin_contacts
-    end
-
-    new_right_wrench = right_wrench_port:read(false)
-    if new_right_wrench ~= nil then
-        buffer_right_wrench = new_right_wrench
-        buffer_right_force_norm = yarpBottleNorm(buffer_right_wrench,3)
-    end
-
-    new_left_wrench = left_wrench_port:read(false)
-    if new_left_wrench ~= nil then
-        buffer_left_wrench = new_left_wrench
-        buffer_left_force_norm = yarpBottleNorm(buffer_left_wrench,3)
-    end
-end
-
------
-function count_contacts()
-    skin_contact_left_hand = 0
-    skin_contact_right_hand = 0
-    skin_activated_taxel_left = 0
-    skin_activated_taxel_right = 0
-    last_contact = buffer_skin_contacts:size()-1
-    for i = 0,last_contact do
-        -- description of skinContact serialization in skinContact::write() method documentation
-        bp_contact = buffer_skin_contacts:get(i):asList():get(0):asList():get(1):asInt()
-        linkId_contact = buffer_skin_contacts:get(i):asList():get(0):asList():get(2):asInt()
-        activated_taxels = buffer_skin_contacts:get(i):asList():get(6):asList():size()
-        if( bp_contact == bodyPart_left_arm  and  (linkId_contact == linkId_left_hand or linkId_contact == linkId_left_foreArm )) then
-            skin_contact_left_hand = skin_contact_left_hand + 1
-            skin_activated_taxel_left = skin_activated_taxel_left + activated_taxels
-        end
-        if( bp_contact == bodyPart_right_arm and  (linkId_contact == linkId_right_hand or linkId_contact == linkId_right_foreArm  ) ) then
-            skin_contact_right_hand = skin_contact_right_hand + 1
-            skin_activated_taxel_right = skin_activated_taxel_right + activated_taxels
-        end
-    end
-end
-
--------
-function produce_events()
-    if( verbose ) then
-        print("["..script_name.."][debug] current state = " .. current_state )
-        print("["..script_name.."][debug] skin_contact_left_arm = " ..  skin_contact_left_hand )
-        print("["..script_name.."][debug] skin_contact_right_arm  = " ..  skin_contact_right_hand  )
-        print("["..script_name.."][debug] buffer_left_force_norm = " .. buffer_left_force_norm )
-        print("["..script_name.."][debug] buffer_right_force_norm = " .. buffer_right_force_norm )
-    end
-    if( ( skin_activated_taxel_right >= fsm_taxel_threshold and enable_skin_feedback ) or
-        ( buffer_left_force_norm > fsm_force_threshold  and enable_force_feedback ) ) then
-        contact_left_hand = true
-    else
-        contact_left_hand = false
-    end
-
-    if( ( skin_activated_taxel_left >= fsm_taxel_threshold and enable_skin_feedback  ) or
-        ( buffer_right_force_norm > fsm_force_threshold  and enable_force_feedback ) ) then
-        contact_right_hand = true
-    else
-        contact_right_hand = false
-    end
-
-    if( contact_left_hand and contact_right_hand ) then
-        event_to_send = event_contacts_on_both_hands
-    end
-    if( not contact_left_hand and contact_right_hand ) then
-        event_to_send = event_contact_on_right_hand
-    end
-    if( contact_left_hand  and not contact_right_hand ) then
-        event_to_send = event_contact_on_left_hand
-    end
-    if( not contact_left_hand and not contact_right_hand ) then
-        event_to_send = event_no_contact
-    end
-end
-
 
 function yarp_rf_find_double(rf,var_name)
     if( rf:check(var_name) ) then
@@ -217,14 +161,10 @@ fsm_file = rf:findFile("lua/fsm_stepping.lua")
 
 print("[" .. script_name .. "] opening ports")
 
--- rpc port, for communicating with C++ module torqueBalancing
-cmd_action_rpc = yarp.RpcClient()
-cmd_action_rpc:open("/".. script_name .."/cmd_action:o")
-
--- rpc input port, for communicating user
+-- input events port, for getting events from other modules and
+--             from the user rpc
 input_events = yarp.BufferedPortBottle()
-input_events:open("/".. script_name .."/input_events:i")
-
+input_events:open("/".. script_name .."/events:i")
 
 -- Streaming port continuously broadcasting the state
 state_port = yarp.BufferedPortBottle()
@@ -237,12 +177,14 @@ print("[" .. script_name .. "] loading rFSM state machine")
 fsm_model = rfsm.load(fsm_file)
 fsm = rfsm.init(fsm_model)
 
-
 print("[" .. script_name .. "] starting main loop")
 repeat
-    -- print("[" .. script_name .. "] running fsm")
+    -- run the monitor to generate events from ports
+    -- monitor:run(fsm)
+    -- run the finite state machine
+    -- the configurator is implicitly runned by
+    -- the fsm entry/doo/exit functions
     rfsm.run(fsm)
-    -- print("[" .. script_name .. "] waiting for " .. fsm_update_period)
     yarp.Time_delay(fsm_update_period)
 until shouldExit ~= false
 
