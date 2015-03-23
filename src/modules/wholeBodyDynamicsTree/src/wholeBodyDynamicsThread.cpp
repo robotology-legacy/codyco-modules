@@ -363,7 +363,7 @@ bool wholeBodyDynamicsThread::threadInit()
     if( ! ret ) return false;
 
 
-  
+
     //Open skin ports
     port_contacts_input = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
     port_contacts_input->open(string("/"+moduleName+"/skin_contacts:i").c_str());
@@ -566,6 +566,7 @@ bool wholeBodyDynamicsThread::threadInit()
 
 
     //Start with calibration
+    first_calibration = true;
     if( !calibrateOffset("all",samples_requested_for_calibration) )
     {
         yError() << "Initial wholeBodyDynamicsThread::calibrateOffset failed";
@@ -1068,17 +1069,18 @@ void wholeBodyDynamicsThread::run()
 
     // If doing smooth calibration, continue to stream torques
     // even when doing calibration
-    if( wbd_mode == NORMAL || smooth_calibration )
+    if( wbd_mode == NORMAL || smooth_calibration || !first_calibration )
     {
         estimation_run();
     }
-    else if( wbd_mode == CALIBRATING )
+
+    if( wbd_mode == CALIBRATING )
     {
         calibration_run();
     }
-    else
+
+    if( wbd_mode == CALIBRATING_ON_DOUBLE_SUPPORT )
     {
-        assert( wbd_mode == CALIBRATING_ON_DOUBLE_SUPPORT );
         calibration_on_double_support_run();
     }
 
@@ -1269,6 +1271,7 @@ void wholeBodyDynamicsThread::calibration_run()
 
 
         icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex(calibration_support_link));
+        first_calibration = false;
         wbd_mode = NORMAL;
         calibration_mutex.unlock();
     }
