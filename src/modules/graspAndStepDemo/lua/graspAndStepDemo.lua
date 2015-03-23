@@ -4,7 +4,7 @@ require("yarp")
 require("rfsm")
 require("rfsm_timeevent")
 
-script_name = "steppingDemo"
+script_name = "graspAndStepDemo"
 print("[" .. script_name .. "] opening yarp")
 yarp.Network()
 
@@ -157,7 +157,7 @@ if( rf:check("help") ) then
     close_script()
 end
 
-fsm_file = rf:findFile("lua/fsm_stepping.lua")
+fsm_file = rf:findFile("lua/fsm_graspAndStep.lua")
 
 print("[" .. script_name .. "] opening ports")
 
@@ -171,6 +171,7 @@ state_port = yarp.BufferedPortBottle()
 state_port:open("/".. script_name .. "/state:o")
 
 fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
+force_threshold   = yarp_rf_find_double(rf,"force_threshold")
 
 print("[" .. script_name .. "] loading rFSM state machine")
 -- load state machine model and initalize it
@@ -182,7 +183,7 @@ repeat
     -- run the monitor to generate events from ports
     -- monitor:run(fsm)
     -- run the finite state machine
-    -- the configurator is implicitly runned by
+    -- the configurator is implicitly executed by
     -- the fsm entry/doo/exit functions
     rfsm.run(fsm)
     yarp.Time_delay(fsm_update_period)

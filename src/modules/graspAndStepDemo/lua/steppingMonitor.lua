@@ -84,7 +84,7 @@ function steppingMonitor.run(fsm)
     else
         rfsm.send_events(fsm,'e_weight_on_right_foot')
     end
-    
+
 end
 
 function steppingMonitor.close()

@@ -1,29 +1,29 @@
 
 return rfsm.state {
     ---------------------------------------------------------------------------------------
-    -- state DOUBLESUPPORT_TRANSFER_WEIGHT_TO_RIGHT_FOOT                               --
+    -- state DOUBLESUPPORT_TRANSFER_WEIGHT_TO_LEFT_FOOT                               --
     -- In this state the robot is standing on double support,                            --
     -- but is shifting its weight to the support foot                                    --
     ---------------------------------------------------------------------------------------
-    ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_RIGHT_FOOT = rfsm.state{
+    ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_LEFT_FOOT = rfsm.state{
     },
 
     ---------------------------------------------------------------------------------------
-    -- state SINGLESUPPORT_SWING                                                         --
+    -- state SINGLESUPPORT_RIGHT_SWING                                                         --
     -- In this single support state the robot is standing on double support,             --
     -- but is shifting its weight to the support foot                                    --
     ---------------------------------------------------------------------------------------
      -- Not using nesting for now because there is a bug in rfsm tools rfsm.load("fsm_swing.lua"),
-    ST_SINGLESUPPORT_LEFT_SWING = rfsm.state{
+    ST_SINGLESUPPORT_RIGHT_SWING = rfsm.state{
     };
 
 
     ---------------------------------------------------------------------------------------
-    -- state ST_DOUBLESUPPORT_TRANSFER_WEIGHT_FROM_RIGHT_FOOT                               --
+    -- state DOUBLESUPPORT_TRANSFER_WEIGHT_FROM_LEFT_FOOT                                --
     -- In this state the robot is standing on double support,                            --
     -- but is shifting its weight to the support foot                                    --
     ---------------------------------------------------------------------------------------
-    ST_DOUBLESUPPORT_TRANSFER_WEIGHT_FROM_RIGHT_FOOT = rfsm.state{
+    ST_DOUBLESUPPORT_TRANSFER_WEIGHT_FROM_LEFT_FOOT = rfsm.state{
     },
 
     ----------------------------------
@@ -31,11 +31,11 @@ return rfsm.state {
     ----------------------------------
 
     -- Initial transition
-    rfsm.transition { src='initial', tgt='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_RIGHT_FOOT' },
+    rfsm.transition { src='initial', tgt='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_LEFT_FOOT' },
 
     -- Sensor transitions
-    rfsm.transition { src='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_RIGHT_FOOT', tgt='ST_SINGLESUPPORT_SWING', events={ 'e_no_weight_on_left_foot' } },
-    rfsm.transition { src='ST_SINGLESUPPORT_SWING', tgt='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_FROM_RIGHT_FOOT', events={ 'e_swing_motiondone' } },
+    rfsm.transition { src='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_LEFT_FOOT', tgt='ST_SINGLESUPPORT_SWING', events={ 'e_no_weight_on_right_foot' } },
+    rfsm.transition { src='ST_SINGLESUPPORT_SWING', tgt='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_CENTER', events={ 'e_right_leg_swing_motiondone' } },
 
 
 }
