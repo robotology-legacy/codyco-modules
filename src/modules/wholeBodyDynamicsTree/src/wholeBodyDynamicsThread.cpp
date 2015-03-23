@@ -135,7 +135,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
     std::vector<std::string> dof_serialization;
 
     // \todo TODO FIXME move IDList -> std::vector<std::string> conversion to wbiIdUtils
-    IDList torque_estimation_list = _wbs->getSensorList(wbi::SENSOR_ENCODER);
+    IDList torque_estimation_list = sensors->getSensorList(wbi::SENSOR_ENCODER);
     for(int dof=0; dof < (int)torque_estimation_list.size(); dof++)
     {
         ID wbi_id;
@@ -496,34 +496,34 @@ bool wholeBodyDynamicsThread::threadInit()
     
       //Open ports
     port_contacts_input = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
-    port_contacts_input->open(string("/"+string(_name)+"/skin_contacts:i").c_str());
+    port_contacts_input->open(string("/"+moduleName+"/skin_contacts:i").c_str());
 
     port_contacts_output = new BufferedPort<skinContactList>;
-    port_contacts_output->open(string("/"+local_name+"/contacts:o").c_str());
+    port_contacts_output->open(string("/"+moduleName+"/contacts:o").c_str());
 
     //Open port for iCubGui
     port_icubgui_base = new BufferedPort<Vector>;
-    port_icubgui_base->open(string("/"+local_name+"/base:o"));
+    port_icubgui_base->open(string("/"+moduleName+"/base:o"));
 
     //Open port for filtered inertial
     port_filtered_inertial = new BufferedPort<Vector>;
-    port_filtered_inertial->open(string("/"+local_name+"/filtered/inertial:o"));
+    port_filtered_inertial->open(string("/"+moduleName+"/filtered/inertial:o"));
 
     if( this->publish_filtered_ft )
     {
         //Open ports for filtered ft
-        IDList ft_estimation_list = _wbs->getSensorList(wbi::SENSOR_FORCE_TORQUE);
+        IDList ft_estimation_list = sensors->getSensorList(wbi::SENSOR_FORCE_TORQUE);
         port_filtered_ft.resize(ft_estimation_list.size());
         for(int i=0; i < (int)ft_estimation_list.size(); i++ )
         {
             ID ft_id;
             ft_estimation_list.indexToID(i,ft_id);
             port_filtered_ft[i] = new BufferedPort<Vector>;
-            bool ok = port_filtered_ft[i]->open(string("/"+local_name+"/filtered/"+ft_id.toString()+":o"));
+            bool ok = port_filtered_ft[i]->open(string("/"+moduleName+"/filtered/"+ft_id.toString()+":o"));
             
             if( !ok )
             {
-                yError() << "Error in opening port " << string("/"+local_name+"/filtered/"+ft_id.toString()+":o") << ", closing";
+                yError() << "Error in opening port " << string("/"+moduleName+"/filtered/"+ft_id.toString()+":o") << ", closing";
                 return false;
 			}
         }
