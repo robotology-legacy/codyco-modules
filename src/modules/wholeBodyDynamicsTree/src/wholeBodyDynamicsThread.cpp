@@ -1069,7 +1069,7 @@ void wholeBodyDynamicsThread::run()
 
     // If doing smooth calibration, continue to stream torques
     // even when doing calibration
-    if( wbd_mode == NORMAL || smooth_calibration || !first_calibration )
+    if( wbd_mode == NORMAL || (smooth_calibration && !first_calibration) )
     {
         estimation_run();
     }
