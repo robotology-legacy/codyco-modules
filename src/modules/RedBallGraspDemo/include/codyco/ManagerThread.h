@@ -145,6 +145,8 @@ namespace codyco {
         /** mutex to protect the thread */
         yarp::os::Mutex runMutex;
         bool disablingRequested;
+        /** port used for publishing the events */
+        yarp::os::BufferedPort<yarp::os::Bottle> eventsOutputPort;
         //End additions
 
 
@@ -249,6 +251,8 @@ namespace codyco {
         void stopControl();
 
         void setFace(const std::string &type);
+
+        void sendEvents();
 
         void limitRange(yarp::sig::Vector &x);
 

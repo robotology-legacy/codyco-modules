@@ -1134,6 +1134,8 @@ namespace codyco {
         breatherRArpc.close();
         blinkerrpc.close();
         askForMotionDoneRPCClient.close();
+        eventsOutputPort.interrupt();
+        eventsOutputPort.close();
     }
 
     ManagerThread::ManagerThread(const std::string &_name, ResourceFinder &_rf)
@@ -1255,6 +1257,7 @@ namespace codyco {
         breatherRArpc.open((name+"/breather/right_arm:rpc").c_str());
         blinkerrpc.open((name+"/blinker:rpc").c_str());
         askForMotionDoneRPCClient.open(name + "/motionDone:rpc");
+        eventsOutputPort.open(name + "/events:o");
 
         std::string fwslash="/";
 
@@ -1476,6 +1479,7 @@ namespace codyco {
         doRelease();
         doWait();
         commandFace();
+        sendEvents();
     }
 
     void ManagerThread::threadRelease()
@@ -1551,6 +1555,24 @@ namespace codyco {
             disablingRequested=true;
         }
     }
+    // End Additions
+
+    // Additions for event ports
+    void ManagerThread::sendEvents()
+    {
+        yarp::os::Bottle & b = eventsOutputPort.prepare();
+        b.clear();
+        if( state==STATE_DISABLED )
+        {
+            b.addString("e_grasping_disabled");
+        }
+        else
+        {
+            b.addString("e_grasping_enabled");
+        }
+        eventsOutputPort.write();
+    }
+
     // End Additions
 
 }
