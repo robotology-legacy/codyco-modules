@@ -11,23 +11,9 @@ public:
   std::string calib_code;
   int32_t nr_of_samples;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(3)) return false;
-    if (!writer.writeTag("calib",1,1)) return false;
-    if (!writer.writeString(calib_code)) return false;
-    if (!writer.writeI32(nr_of_samples)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const std::string& calib_code, const int32_t nr_of_samples);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class wholeBodyDynamics_IDLServer_calibStanding : public yarp::os::Portable {
@@ -35,23 +21,9 @@ public:
   std::string calib_code;
   int32_t nr_of_samples;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(3)) return false;
-    if (!writer.writeTag("calibStanding",1,1)) return false;
-    if (!writer.writeString(calib_code)) return false;
-    if (!writer.writeI32(nr_of_samples)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const std::string& calib_code, const int32_t nr_of_samples);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class wholeBodyDynamics_IDLServer_calibStandingLeftFoot : public yarp::os::Portable {
@@ -59,23 +31,9 @@ public:
   std::string calib_code;
   int32_t nr_of_samples;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(3)) return false;
-    if (!writer.writeTag("calibStandingLeftFoot",1,1)) return false;
-    if (!writer.writeString(calib_code)) return false;
-    if (!writer.writeI32(nr_of_samples)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const std::string& calib_code, const int32_t nr_of_samples);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class wholeBodyDynamics_IDLServer_calibStandingRightFoot : public yarp::os::Portable {
@@ -83,72 +41,179 @@ public:
   std::string calib_code;
   int32_t nr_of_samples;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(3)) return false;
-    if (!writer.writeTag("calibStandingRightFoot",1,1)) return false;
-    if (!writer.writeString(calib_code)) return false;
-    if (!writer.writeI32(nr_of_samples)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const std::string& calib_code, const int32_t nr_of_samples);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class wholeBodyDynamics_IDLServer_resetOffset : public yarp::os::Portable {
 public:
   std::string calib_code;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(2)) return false;
-    if (!writer.writeTag("resetOffset",1,1)) return false;
-    if (!writer.writeString(calib_code)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const std::string& calib_code);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class wholeBodyDynamics_IDLServer_quit : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("quit",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+bool wholeBodyDynamics_IDLServer_calib::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("calib",1,1)) return false;
+  if (!writer.writeString(calib_code)) return false;
+  if (!writer.writeI32(nr_of_samples)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_calib::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_calib::init(const std::string& calib_code, const int32_t nr_of_samples) {
+  _return = false;
+  this->calib_code = calib_code;
+  this->nr_of_samples = nr_of_samples;
+}
+
+bool wholeBodyDynamics_IDLServer_calibStanding::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("calibStanding",1,1)) return false;
+  if (!writer.writeString(calib_code)) return false;
+  if (!writer.writeI32(nr_of_samples)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_calibStanding::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_calibStanding::init(const std::string& calib_code, const int32_t nr_of_samples) {
+  _return = false;
+  this->calib_code = calib_code;
+  this->nr_of_samples = nr_of_samples;
+}
+
+bool wholeBodyDynamics_IDLServer_calibStandingLeftFoot::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("calibStandingLeftFoot",1,1)) return false;
+  if (!writer.writeString(calib_code)) return false;
+  if (!writer.writeI32(nr_of_samples)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_calibStandingLeftFoot::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_calibStandingLeftFoot::init(const std::string& calib_code, const int32_t nr_of_samples) {
+  _return = false;
+  this->calib_code = calib_code;
+  this->nr_of_samples = nr_of_samples;
+}
+
+bool wholeBodyDynamics_IDLServer_calibStandingRightFoot::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("calibStandingRightFoot",1,1)) return false;
+  if (!writer.writeString(calib_code)) return false;
+  if (!writer.writeI32(nr_of_samples)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_calibStandingRightFoot::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_calibStandingRightFoot::init(const std::string& calib_code, const int32_t nr_of_samples) {
+  _return = false;
+  this->calib_code = calib_code;
+  this->nr_of_samples = nr_of_samples;
+}
+
+bool wholeBodyDynamics_IDLServer_resetOffset::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("resetOffset",1,1)) return false;
+  if (!writer.writeString(calib_code)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_resetOffset::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_resetOffset::init(const std::string& calib_code) {
+  _return = false;
+  this->calib_code = calib_code;
+}
+
+bool wholeBodyDynamics_IDLServer_quit::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("quit",1,1)) return false;
+  return true;
+}
+
+bool wholeBodyDynamics_IDLServer_quit::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void wholeBodyDynamics_IDLServer_quit::init() {
+  _return = false;
+}
+
+wholeBodyDynamics_IDLServer::wholeBodyDynamics_IDLServer() {
+  yarp().setOwner(*this);
+}
 bool wholeBodyDynamics_IDLServer::calib(const std::string& calib_code, const int32_t nr_of_samples) {
   bool _return = false;
   wholeBodyDynamics_IDLServer_calib helper;
-  helper.calib_code = calib_code;
-  helper.nr_of_samples = nr_of_samples;
+  helper.init(calib_code,nr_of_samples);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::calib(const std::string& calib_code, const int32_t nr_of_samples)");
   }
@@ -158,8 +223,7 @@ bool wholeBodyDynamics_IDLServer::calib(const std::string& calib_code, const int
 bool wholeBodyDynamics_IDLServer::calibStanding(const std::string& calib_code, const int32_t nr_of_samples) {
   bool _return = false;
   wholeBodyDynamics_IDLServer_calibStanding helper;
-  helper.calib_code = calib_code;
-  helper.nr_of_samples = nr_of_samples;
+  helper.init(calib_code,nr_of_samples);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::calibStanding(const std::string& calib_code, const int32_t nr_of_samples)");
   }
@@ -169,8 +233,7 @@ bool wholeBodyDynamics_IDLServer::calibStanding(const std::string& calib_code, c
 bool wholeBodyDynamics_IDLServer::calibStandingLeftFoot(const std::string& calib_code, const int32_t nr_of_samples) {
   bool _return = false;
   wholeBodyDynamics_IDLServer_calibStandingLeftFoot helper;
-  helper.calib_code = calib_code;
-  helper.nr_of_samples = nr_of_samples;
+  helper.init(calib_code,nr_of_samples);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::calibStandingLeftFoot(const std::string& calib_code, const int32_t nr_of_samples)");
   }
@@ -180,8 +243,7 @@ bool wholeBodyDynamics_IDLServer::calibStandingLeftFoot(const std::string& calib
 bool wholeBodyDynamics_IDLServer::calibStandingRightFoot(const std::string& calib_code, const int32_t nr_of_samples) {
   bool _return = false;
   wholeBodyDynamics_IDLServer_calibStandingRightFoot helper;
-  helper.calib_code = calib_code;
-  helper.nr_of_samples = nr_of_samples;
+  helper.init(calib_code,nr_of_samples);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::calibStandingRightFoot(const std::string& calib_code, const int32_t nr_of_samples)");
   }
@@ -191,7 +253,7 @@ bool wholeBodyDynamics_IDLServer::calibStandingRightFoot(const std::string& cali
 bool wholeBodyDynamics_IDLServer::resetOffset(const std::string& calib_code) {
   bool _return = false;
   wholeBodyDynamics_IDLServer_resetOffset helper;
-  helper.calib_code = calib_code;
+  helper.init(calib_code);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::resetOffset(const std::string& calib_code)");
   }
@@ -201,6 +263,7 @@ bool wholeBodyDynamics_IDLServer::resetOffset(const std::string& calib_code) {
 bool wholeBodyDynamics_IDLServer::quit() {
   bool _return = false;
   wholeBodyDynamics_IDLServer_quit helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::quit()");
   }
@@ -213,6 +276,8 @@ bool wholeBodyDynamics_IDLServer::read(yarp::os::ConnectionReader& connection) {
   reader.expectAccept();
   if (!reader.readListHeader()) { reader.fail(); return false; }
   yarp::os::ConstString tag = reader.readTag();
+  bool direct = (tag=="__direct__");
+  if (direct) tag = reader.readTag();
   while (!reader.isError()) {
     // TODO: use quick lookup, this is just a test
     if (tag == "calib") {

@@ -1103,10 +1103,6 @@ void wholeBodyDynamicsThread::estimation_run()
         }
     }
 
-
-    // Get sensors informations
-    this->readRobotStatus();
-
     // Estimate external forces and internal torques
     externalWrenchTorqueEstimator->estimateExternalWrenchAndInternalJoints(this->tree_status);
 

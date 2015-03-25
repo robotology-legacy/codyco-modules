@@ -1,35 +1,38 @@
 // This is an automatically-generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
-#include <insituFTSensorCalibration_IDLServer.h>
+#include <eventRepeater.h>
 #include <yarp/os/idl/WireTypes.h>
 
 
 
-class insituFTSensorCalibration_IDLServer_startNewDatasetAcquisition : public yarp::os::Portable {
+class eventRepeater_sendEvent : public yarp::os::Portable {
 public:
+  std::string event;
   bool _return;
-  void init();
+  void init(const std::string& event);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
-class insituFTSensorCalibration_IDLServer_quit : public yarp::os::Portable {
+class eventRepeater_se : public yarp::os::Portable {
 public:
+  std::string event;
   bool _return;
-  void init();
+  void init(const std::string& event);
   virtual bool write(yarp::os::ConnectionWriter& connection);
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
-bool insituFTSensorCalibration_IDLServer_startNewDatasetAcquisition::write(yarp::os::ConnectionWriter& connection) {
+bool eventRepeater_sendEvent::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(1)) return false;
-  if (!writer.writeTag("startNewDatasetAcquisition",1,1)) return false;
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("sendEvent",1,1)) return false;
+  if (!writer.writeString(event)) return false;
   return true;
 }
 
-bool insituFTSensorCalibration_IDLServer_startNewDatasetAcquisition::read(yarp::os::ConnectionReader& connection) {
+bool eventRepeater_sendEvent::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   if (!reader.readListReturn()) return false;
   if (!reader.readBool(_return)) {
@@ -39,18 +42,20 @@ bool insituFTSensorCalibration_IDLServer_startNewDatasetAcquisition::read(yarp::
   return true;
 }
 
-void insituFTSensorCalibration_IDLServer_startNewDatasetAcquisition::init() {
+void eventRepeater_sendEvent::init(const std::string& event) {
   _return = false;
+  this->event = event;
 }
 
-bool insituFTSensorCalibration_IDLServer_quit::write(yarp::os::ConnectionWriter& connection) {
+bool eventRepeater_se::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
-  if (!writer.writeListHeader(1)) return false;
-  if (!writer.writeTag("quit",1,1)) return false;
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("se",1,1)) return false;
+  if (!writer.writeString(event)) return false;
   return true;
 }
 
-bool insituFTSensorCalibration_IDLServer_quit::read(yarp::os::ConnectionReader& connection) {
+bool eventRepeater_se::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   if (!reader.readListReturn()) return false;
   if (!reader.readBool(_return)) {
@@ -60,35 +65,36 @@ bool insituFTSensorCalibration_IDLServer_quit::read(yarp::os::ConnectionReader& 
   return true;
 }
 
-void insituFTSensorCalibration_IDLServer_quit::init() {
+void eventRepeater_se::init(const std::string& event) {
   _return = false;
+  this->event = event;
 }
 
-insituFTSensorCalibration_IDLServer::insituFTSensorCalibration_IDLServer() {
+eventRepeater::eventRepeater() {
   yarp().setOwner(*this);
 }
-bool insituFTSensorCalibration_IDLServer::startNewDatasetAcquisition() {
+bool eventRepeater::sendEvent(const std::string& event) {
   bool _return = false;
-  insituFTSensorCalibration_IDLServer_startNewDatasetAcquisition helper;
-  helper.init();
+  eventRepeater_sendEvent helper;
+  helper.init(event);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool insituFTSensorCalibration_IDLServer::startNewDatasetAcquisition()");
+    fprintf(stderr,"Missing server method '%s'?\n","bool eventRepeater::sendEvent(const std::string& event)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool insituFTSensorCalibration_IDLServer::quit() {
+bool eventRepeater::se(const std::string& event) {
   bool _return = false;
-  insituFTSensorCalibration_IDLServer_quit helper;
-  helper.init();
+  eventRepeater_se helper;
+  helper.init(event);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool insituFTSensorCalibration_IDLServer::quit()");
+    fprintf(stderr,"Missing server method '%s'?\n","bool eventRepeater::se(const std::string& event)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
 
-bool insituFTSensorCalibration_IDLServer::read(yarp::os::ConnectionReader& connection) {
+bool eventRepeater::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   reader.expectAccept();
   if (!reader.readListHeader()) { reader.fail(); return false; }
@@ -97,9 +103,14 @@ bool insituFTSensorCalibration_IDLServer::read(yarp::os::ConnectionReader& conne
   if (direct) tag = reader.readTag();
   while (!reader.isError()) {
     // TODO: use quick lookup, this is just a test
-    if (tag == "startNewDatasetAcquisition") {
+    if (tag == "sendEvent") {
+      std::string event;
+      if (!reader.readString(event)) {
+        reader.fail();
+        return false;
+      }
       bool _return;
-      _return = startNewDatasetAcquisition();
+      _return = sendEvent(event);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -108,9 +119,14 @@ bool insituFTSensorCalibration_IDLServer::read(yarp::os::ConnectionReader& conne
       reader.accept();
       return true;
     }
-    if (tag == "quit") {
+    if (tag == "se") {
+      std::string event;
+      if (!reader.readString(event)) {
+        reader.fail();
+        return false;
+      }
       bool _return;
-      _return = quit();
+      _return = se(event);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -148,31 +164,26 @@ bool insituFTSensorCalibration_IDLServer::read(yarp::os::ConnectionReader& conne
   return false;
 }
 
-std::vector<std::string> insituFTSensorCalibration_IDLServer::help(const std::string& functionName) {
+std::vector<std::string> eventRepeater::help(const std::string& functionName) {
   bool showAll=(functionName=="--all");
   std::vector<std::string> helpString;
   if(showAll) {
     helpString.push_back("*** Available commands:");
-    helpString.push_back("startNewDatasetAcquisition");
-    helpString.push_back("quit");
+    helpString.push_back("sendEvent");
+    helpString.push_back("se");
     helpString.push_back("help");
   }
   else {
-    if (functionName=="startNewDatasetAcquisition") {
-      helpString.push_back("bool startNewDatasetAcquisition() ");
-      helpString.push_back("Start the new dataset acquisition. ");
-      helpString.push_back("At the end of each dataset acquisition, ");
-      helpString.push_back("the module stops until the user changes ");
-      helpString.push_back("the added mass on the robot. This command ");
-      helpString.push_back("is used to start the dataset acquisition ");
-      helpString.push_back("after the added mass is correctly mounted ");
-      helpString.push_back("in the robot. ");
-      helpString.push_back("@return true/false on success/failure ");
+    if (functionName=="sendEvent") {
+      helpString.push_back("bool sendEvent(const std::string& event) ");
+      helpString.push_back("Raise an event on the output streaming port ");
+      helpString.push_back("@param event event to raise. ");
     }
-    if (functionName=="quit") {
-      helpString.push_back("bool quit() ");
-      helpString.push_back("Quit the module. ");
-      helpString.push_back("@return true/false on success/failure ");
+    if (functionName=="se") {
+      helpString.push_back("bool se(const std::string& event) ");
+      helpString.push_back("Raise an event on the output streaming port ");
+      helpString.push_back("@param event event to raise. ");
+      helpString.push_back("\note This is just an shorted alias for the sendEvent method ");
     }
     if (functionName=="help") {
       helpString.push_back("std::vector<std::string> help(const std::string& functionName=\"--all\")");

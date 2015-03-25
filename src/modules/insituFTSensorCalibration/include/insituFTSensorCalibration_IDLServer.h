@@ -16,7 +16,7 @@ class insituFTSensorCalibration_IDLServer;
  */
 class insituFTSensorCalibration_IDLServer : public yarp::os::Wire {
 public:
-  insituFTSensorCalibration_IDLServer() { yarp().setOwner(*this); }
+  insituFTSensorCalibration_IDLServer();
   /**
    * Start the new dataset acquisition.
    * At the end of each dataset acquisition,

@@ -83,8 +83,8 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         fixed_link = rf.find("assume_fixed").asString().c_str();
         if( fixed_link != "root_link" &&
             fixed_link != "l_sole" &&
-            fixed_link != "r_sole" && 
-            fixed_link != "r_foot_dh_frame" && 
+            fixed_link != "r_sole" &&
+            fixed_link != "r_foot_dh_frame" &&
             fixed_link != "l_foot_dh_frame" )
         {
             yError() << "assume_fixed option found, but disabled because " << fixed_link << " is not a recognized fixed_link ";
@@ -94,16 +94,16 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
             fixed_base = true;
             fixed_base_calibration = true;
             fixed_link_calibration = fixed_link;
-            // \todo TODO workaround for heidelberg 
-            if( fixed_link == "l_sole" ) 
+            // \todo TODO workaround for heidelberg
+            if( fixed_link == "l_sole" )
             {
                 fixed_link = fixed_link_calibration = "l_foot_dh_frame";
-            } 
+            }
 
-            if( fixed_link == "r_sole" ) 
+            if( fixed_link == "r_sole" )
             {
                 fixed_link = fixed_link_calibration = "r_foot_dh_frame";
-            } 
+            }
         }
     }
     else
@@ -190,6 +190,12 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     {
         yarp::os::Property & prop = yarpWbiOptions.addGroup("WBD_OUTPUT_EXTERNAL_WRENCH_PORTS");
         prop.fromString(rf.findGroup("WBD_OUTPUT_EXTERNAL_WRENCH_PORTS").tail().toString());
+    }
+
+    //Loading thread period
+    if( rf.check("rate") && rf.find("rate").isInt() )
+    {
+        period = rf.find("rate").asInt();
     }
 
     if( rf.check("calibration_support_link") )
