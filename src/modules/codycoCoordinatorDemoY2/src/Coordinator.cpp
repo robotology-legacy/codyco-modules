@@ -529,6 +529,11 @@ namespace codyco {
             yInfo("Left[min,max]=%s,%s", data->leftArmMinLimits.toString().c_str(), data->leftArmMaxLimits.toString().c_str());
             yInfo("Right[min,max]=%s,%s", data->rightArmMinLimits.toString().c_str(), data->rightArmMaxLimits.toString().c_str());
 
+            yInfo("Read joint limits");
+            yInfo("Torso[min,max]=%s,%s", data->torsoMinLimits.toString().c_str(), data->torsoMaxLimits.toString().c_str());
+            yInfo("Left[min,max]=%s,%s", data->leftArmMinLimits.toString().c_str(), data->leftArmMaxLimits.toString().c_str());
+            yInfo("Right[min,max]=%s,%s", data->rightArmMinLimits.toString().c_str(), data->rightArmMaxLimits.toString().c_str());
+
             //setup initial references to coincide with reads from encoders
             data->torsoJointReferences.resize(3, 0.0);
             for (int i = 0; i < 3; i++) {

@@ -290,10 +290,12 @@ namespace codyco {
 
         icart->setDOF(dof,dof);
 
-        fprintf(stdout,"DOF's=( ");
+        std::string dofString = "DOF's=( ";
+
         for (size_t i=0; i<dof.length(); i++)
-            fprintf(stdout,"%s ",dof[i]>0.0?"on":"off");
-        fprintf(stdout,")\n");
+            dofString.append(dof[i]>0.0?"on ":"off ");
+        dofString.append(")");
+        yInfo("%s", dofString.c_str());
     }
 
     void ManagerThread::getSensorData()
