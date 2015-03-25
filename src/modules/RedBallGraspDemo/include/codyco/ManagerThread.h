@@ -140,6 +140,14 @@ namespace codyco {
         yarp::os::RpcClient askForMotionDoneRPCClient;
         //End additions
 
+        //Additions to support an additional "disabled" state
+        //in which the grasping behavior is disabled
+        /** mutex to protect the thread */
+        yarp::os::Mutex runMutex;
+        bool disablingRequested;
+        //End additions
+
+
         yarp::sig::Vector *armReachOffs;
         yarp::sig::Vector *armGraspOffs;
         yarp::sig::Vector *armGraspSigma;
@@ -225,45 +233,60 @@ namespace codyco {
         void doReach();
 
         void doGrasp();
-        
+
         void doRelease();
-        
+
         void doWait();
-        
+
         void commandFace();
-        
+
         bool checkArmForGrasp();
-        
+
         bool checkTargetForGrasp();
-        
+
         void resetTargetBall();
-        
+
         void stopControl();
-        
+
         void setFace(const std::string &type);
-        
+
         void limitRange(yarp::sig::Vector &x);
-        
+
         yarp::sig::Matrix &rotx(const double theta);
-        
+
         yarp::sig::Matrix &roty(const double theta);
-        
+
         yarp::sig::Matrix &rotz(const double theta);
-        
+
         void deleteGuiTarget();
-        
+
         void close();
-        
+
     public:
         ManagerThread(const std::string &_name, yarp::os::ResourceFinder &_rf);
-        
+
         bool threadInit();
-        
+
         void run();
-        
+
         void threadRelease();
+
+        //Additions to start/stop the grasping behaviour
+        /**
+         * Enable grasping behaviour.
+         */
+        void enableGrasping();
+
+        /**
+         * Disable grasping behaviour.
+         * If the robot was still grasping, first return in home and
+         * then raise an `e_grasping_disabled` on the `events:o` port.
+         */
+        void disableGrasping();
+
+        //End additions
     };
-    
+
 }
 
 #endif /* end of include guard: MANAGERTHREAD_H */

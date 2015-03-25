@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2010 RobotCub Consortium, European Commission FP6 Project IST-004370
  * Author: Ugo Pattacini
  * email:  ugo.pattacini@iit.it
@@ -37,6 +37,7 @@ namespace codyco {
         virtual ~ManagerModule();
 
         bool configure(yarp::os::ResourceFinder &rf);
+        bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
         bool close();
         double getPeriod();
         bool updateModule();

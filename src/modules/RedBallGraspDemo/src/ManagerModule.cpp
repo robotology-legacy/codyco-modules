@@ -2,6 +2,7 @@
 #include "ManagerThread.h"
 
 #include <yarp/os/Time.h>
+
 using yarp::os::Time;
 
 
@@ -51,5 +52,17 @@ namespace codyco {
 
     double ManagerModule::getPeriod()    { return 1.0;  }
     bool   ManagerModule::updateModule() { return true; }
+
+    bool ManagerModule::respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply)
+    {
+        if (command.get(0).asString()=="start") {
+            reply.addString("Enabling grasping");
+            thr->enableGrasping();
+        } else if (command.get(0).asString()=="stop") {
+            reply.addString("Disabling grasping");
+            thr->disableGrasping();
+        }
+        return true;
+    }
 
 }

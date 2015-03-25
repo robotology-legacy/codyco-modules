@@ -1,6 +1,7 @@
 #include "ManagerThread.h"
 
 #include <yarp/os/Bottle.h>
+#include <yarp/os/LockGuard.h>
 #include <yarp/os/Random.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/math/Math.h>
@@ -23,6 +24,7 @@ using namespace iCub::ctrl;
 #define FACE_CUNNING        ("cun")
 #define FACE_SURPRISED      ("sur")
 
+#define STATE_DISABLED         -1
 #define STATE_IDLE              0
 #define STATE_REACH             1
 #define STATE_CHECKMOTIONDONE   2
@@ -379,9 +381,16 @@ namespace codyco {
             }
         }
         else if (((state==STATE_IDLE) || (state==STATE_REACH)) &&
-                 ((Time::now()-idleTimer)>idleTmo) && !wentHome)
+                 ( (Time::now()-idleTimer)>idleTmo || disablingRequested ) && !wentHome )
         {
-            fprintf(stdout,"--- Target timeout => IDLE\n");
+            if( !disablingRequested )
+            {
+                fprintf(stdout,"--- Target timeout => IDLE\n");
+            }
+            else
+            {
+                fprintf(stdout,"--- Disabling requested => DISABLED\n");
+            }
 
             steerHeadToHome();
             stopControl();
@@ -391,7 +400,15 @@ namespace codyco {
 
             wentHome=true;
             deleteGuiTarget();
-            state=STATE_IDLE;
+            if( !disablingRequested )
+            {
+                state=STATE_IDLE;
+            }
+            else
+            {
+                state=STATE_DISABLED;
+                disablingRequested = false;
+            }
         }
     }
 
@@ -1125,10 +1142,14 @@ namespace codyco {
     , name(_name)
     , drvTorso(0), drvHead(0), drvLeftArm(0), drvRightArm(0)
     , drvCartLeftArm(0), drvCartRightArm(0), drvGazeCtrl(0)
-    , desiredJointConfiguration(0), currentDesiredArmJointConfiguration(0), currentArmCurrentPosition(0) {}
+    , desiredJointConfiguration(0), currentDesiredArmJointConfiguration(0), currentArmCurrentPosition(0)
+    , disablingRequested(false)
+    {}
 
     bool ManagerThread::threadInit()
     {
+        yarp::os::LockGuard guard(this->runMutex);
+
         // general part
         Bottle &bGeneral=rf.findGroup("general");
         bGeneral.setMonitor(rf.getMonitor());
@@ -1434,16 +1455,18 @@ namespace codyco {
 
         idleTimer=Time::now();
         Random::seed((int)idleTimer);
-        
+
         wentHome=false;
         state=STATE_IDLE;
         state_breathers=true;
-        
+
         return true;
     }
-    
+
     void ManagerThread::run()
     {
+        yarp::os::LockGuard guard(this->runMutex);
+
         getSensorData();
         doIdle();
         commandHead();
@@ -1454,7 +1477,7 @@ namespace codyco {
         doWait();
         commandFace();
     }
-    
+
     void ManagerThread::threadRelease()
     {
         steerHeadToHome();
@@ -1462,52 +1485,72 @@ namespace codyco {
         steerTorsoToHome();
         steerArmToHome(LEFTARM);
         steerArmToHome(RIGHTARM);
-        
+
         checkTorsoHome(3.0);
         checkArmHome(LEFTARM,3.0);
         checkArmHome(RIGHTARM,3.0);
-        
+
         if (useLeftArm)
         {
             ICartesianControl *icart;
             drvCartLeftArm->view(icart);
             icart->restoreContext(startup_context_id_left);
-            
+
             if (leftArmImpVelMode)
             {
                 IInteractionMode *imode;
                 drvLeftArm->view(imode);
-                
+
                 int len=leftArmJointsStiffness.length()<leftArmJointsDamping.length()?
                 leftArmJointsStiffness.length():leftArmJointsDamping.length();
-                
+
                 for (int j=0; j<len; j++)
                     imode->setInteractionMode(j,VOCAB_IM_STIFF);
             }
         }
-        
+
         if (useRightArm)
         {
             ICartesianControl *icart;
             drvCartRightArm->view(icart);
             icart->restoreContext(startup_context_id_right);
-            
+
             if (rightArmImpVelMode)
             {
                 IInteractionMode *imode;
                 drvRightArm->view(imode);
-                
+
                 int len=rightArmJointsStiffness.length()<rightArmJointsDamping.length()?
                 rightArmJointsStiffness.length():rightArmJointsDamping.length();
-                
+
                 for (int j=0; j<len; j++)
                     imode->setInteractionMode(j,VOCAB_IM_STIFF);
             }
         }
-        
+
         gazeCtrl->restoreContext(startup_context_id_gaze);
-        
+
         close();
     }
+
+    // Additions
+    void ManagerThread::enableGrasping()
+    {
+        yarp::os::LockGuard guard(this->runMutex);
+        if( state==STATE_DISABLED )
+        {
+            state=STATE_IDLE;
+        }
+    }
+
+    void ManagerThread::disableGrasping()
+    {
+        yarp::os::LockGuard guard(this->runMutex);
+        if( state!=STATE_DISABLED )
+        {
+            disablingRequested=true;
+        }
+    }
+    // End Additions
 
 }
