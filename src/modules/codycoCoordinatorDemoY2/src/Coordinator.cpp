@@ -208,7 +208,7 @@ namespace codyco {
                     }
                 }
                 index += torsoTorqueControlledJointReferences.size();
-                
+
                 //Left Arm
                 torqueControlOutputReferences.setSubvector(index, leftArmTorqueControlledJointReferences);
                 index += leftArmTorqueControlledJointReferences.size();
@@ -252,9 +252,11 @@ namespace codyco {
             using yarp::sig::Vector;
             using namespace yarp::math;
 
-            Value &torso = read.find("torso");
-            Value &leftArm = read.find("left_arm");
+            Value &torso    = read.find("torso");
+            Value &leftArm  = read.find("left_arm");
             Value &rightArm = read.find("right_arm");
+            Value &leftLeg  = read.find("left_leg");
+            Value &rightLeg = read.find("right_leg");
 
             LockGuard guard(data.mutex);
             if (!torso.isNull() && torso.isList()) {
@@ -291,6 +293,22 @@ namespace codyco {
                 //read in radians
                 data.mapInput(data.armJointIDs, data.armMappingInformationComplement,
                               data.rightArmJointReferences, data.rightArmPositionControlledJointReferences, data.rightArmTorqueControlledJointReferences);
+            }
+
+            if (!leftLeg.isNull() && leftLeg.isList()) {
+                Bottle *list = leftLeg.asList();
+                for (int i = 0; i < std::min((size_t)list->size(), data.leftLegReferences.size()); i++) {
+                    data.leftLegReferences(i) = limitInput(list->get(i).asDouble(),
+                                                           data.leftLegMinLimits(i), data.leftLegMaxLimits(i));
+                }
+            }
+
+            if (!rightLeg.isNull() && rightLeg.isList()) {
+                Bottle *list = rightLeg.asList();
+                for (int i = 0; i < std::min((size_t)list->size(), data.rightLegReferences.size()); i++) {
+                    data.rightLegReferences(i) = limitInput(list->get(i).asDouble(),
+                                                           data.rightLegMinLimits(i), data.rightLegMaxLimits(i));
+                }
             }
         }
 
@@ -474,7 +492,7 @@ namespace codyco {
                 readCount--;
                 yarp::os::Time::delay(0.01);
             } while(!encoderRead && readCount > 0);
-            result = result && encoderRead;    
+            result = result && encoderRead;
             data->rightLegCurrentPosition *= CTRL_DEG2RAD;
 
             if (!result) {
@@ -805,20 +823,20 @@ namespace codyco {
             if (partName.length() == 0 || partName.compare("torso") == 0) {
                 result = result && checkMotionDone(data->torsoJointReferences, data->torsoCurrentPosition);
             }
-            
+
             if (partName.length() == 0 || partName.compare("left_arm") == 0) {
                 result = result && checkMotionDone(data->leftArmJointReferences, data->leftArmCurrentPosition);
             }
-            
+
             if (partName.length() == 0 || partName.compare("right_arm") == 0) {
                 result = result && checkMotionDone(data->rightArmJointReferences, data->rightArmCurrentPosition);
             }
             reply.addInt(result ? 1 : 0);
-            
-            
+
+
             return true;
         }
-        
+
         bool Coordinator::checkMotionDone(const yarp::sig::Vector &reference, const yarp::sig::Vector &actual) {
             using namespace yarp::math;
             double squaredNorm = 0;
@@ -827,6 +845,6 @@ namespace codyco {
             }
             return squaredNorm < (4.0 * 4.0 * CTRL_DEG2RAD);
         }
-        
+
     }
 }

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+
+<module>
+  <name>codycoTrajGenDemoY2</name>
+  <doxygen-group>codyco_modules</doxygen-group>
+  <description>Trajectory generator helper for CoDyCo second year demo.</description>
+  <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+  <version>0.5</version>
+
+  <description-long>
+     This module takes reference set points for several limbs and the robot CoM,
+     and outputs the trajectories for use of the torqueBalancing module.
+     This is not a generic module, and should be used only for CoDyCo Second Year
+     demo applications.
+  </description-long>
+
+  <arguments>
+    <param default="/y2coordinator" desc="module's name; all the open ports will be tagged with the prefix name.">name</param>
+    <param default="icub" desc="name of the robot to connect to.">robot</param>
+  </arguments>
+
+  <authors>
+    <author email="francesco.romano@iit.it"> Francesco Romano </author>
+  </authors>
+
+  <data>
+    <input>
+      <type>yarp::os::Property</type>
+      <port carrier="tcp">{name}/refs:i</port>
+      <required>no</required>
+      <priority>no</priority>
+      <description>
+        Receive a Property object, on which reference set points
+        for the different parts and for the com are saved.
+      </description>
+    </input>
+
+  </data>
+
+</module>
+
