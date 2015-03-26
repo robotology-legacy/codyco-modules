@@ -39,7 +39,7 @@
   
   <!-- Adding coordinator -->
   <module>
-      <name>CodycoCoordinator2Y</name>
+      <name>CodycoCoordinatorY2</name>
       <parameters></parameters>
       <node>icub13</node>
       <stdio></stdio>
