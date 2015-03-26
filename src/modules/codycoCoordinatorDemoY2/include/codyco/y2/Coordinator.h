@@ -42,6 +42,7 @@ private:
     std::string m_robotName;
     yarp::os::BufferedPort<yarp::os::Property>* m_inputJointReferences;
     yarp::os::BufferedPort<yarp::sig::Vector>* m_outputTorqueControlledJointReferences;
+    yarp::os::BufferedPort<yarp::sig::Vector>* m_outputComDesiredPosVelAcc;
 
     yarp::os::RpcServer *m_rpcServer;
 

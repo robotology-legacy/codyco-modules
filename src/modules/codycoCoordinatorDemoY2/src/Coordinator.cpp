@@ -27,6 +27,9 @@
 namespace codyco {
     namespace y2 {
 
+        // Some const variables useful to increase code readability
+        const int COM_SIZE = 3;
+
         class CoordinatorData;
 
         class Reader : public yarp::os::TypedReaderCallback<yarp::os::Property> {
@@ -47,10 +50,13 @@ namespace codyco {
             yarp::sig::Vector torsoJointReferences;
             yarp::sig::Vector leftArmJointReferences;
             yarp::sig::Vector rightArmJointReferences;
+            //Full vectors. The legs are always assume to be controlled in "torque"
             yarp::sig::Vector leftLegReferences;
             yarp::sig::Vector rightLegReferences;
             //This vector is the "sum" of the torque controlled torso and arms plus the legs
             yarp::sig::Vector torqueControlOutputReferences;
+            //Full vector of the reference set point for the com
+            yarp::sig::Vector comReferences;
 
             yarp::sig::Vector torsoTorqueControlledJointReferences;
             yarp::sig::Vector torsoPositionControlledJointReferences;
@@ -59,11 +65,18 @@ namespace codyco {
             yarp::sig::Vector rightArmTorqueControlledJointReferences;
             yarp::sig::Vector rightArmPositionControlledJointReferences;
 
-            //Reference generators
+            //Trajectory generators
             iCub::ctrl::minJerkTrajGen* torsoGenerator;
             iCub::ctrl::minJerkTrajGen* leftArmGenerator;
             iCub::ctrl::minJerkTrajGen* rightArmGenerator;
             iCub::ctrl::minJerkTrajGen* torqueBalancingGenerator;
+            //Trajectory generator for the com
+            iCub::ctrl::minJerkTrajGen* comGenerator;
+            /** if true, stream the output of the trajectory generator */
+            bool comTrajGenActive;
+            yarp::sig::Vector comDesPos;
+            yarp::sig::Vector comDesVel;
+            yarp::sig::Vector comDesAcc;
 
             yarp::sig::Vector torsoCurrentPosition;
             yarp::sig::Vector leftArmCurrentPosition;
@@ -257,6 +270,7 @@ namespace codyco {
             Value &rightArm = read.find("right_arm");
             Value &leftLeg  = read.find("left_leg");
             Value &rightLeg = read.find("right_leg");
+            Value &com      = read.find("com");
 
             LockGuard guard(data.mutex);
             if (!torso.isNull() && torso.isList()) {
@@ -310,6 +324,21 @@ namespace codyco {
                                                            data.rightLegMinLimits(i), data.rightLegMaxLimits(i));
                 }
             }
+
+            if( !com.isNull() && com.isList() && com.asList()->size() == COM_SIZE ) {
+                Bottle *list = com.asList();
+
+                for (int i = 0; i < COM_SIZE; i++) {
+                    data.comReferences(i) = list->get(i).asDouble();
+                }
+
+                // If this is the first com that we receive, reset the trajectory generator
+                if( !data.comTrajGenActive ) {
+                    data.comGenerator->init(data.comReferences);
+                    data.comTrajGenActive = true;
+                }
+
+            }
         }
 
         void CoordinatorData::mapInput(std::vector<int> &map, std::list<int> &complementMap,
@@ -331,6 +360,7 @@ namespace codyco {
         : m_threadPeriod(0.01)
         , m_inputJointReferences(0)
         , m_outputTorqueControlledJointReferences(0)
+        , m_outputComDesiredPosVelAcc(0)
         , m_rpcServer(0)
         , implementation(0) {}
 
@@ -372,6 +402,16 @@ namespace codyco {
                 cleanup();
                 return false;
             }
+
+            m_outputComDesiredPosVelAcc = new BufferedPort<Vector>();
+            if (!m_outputComDesiredPosVelAcc
+                || !m_outputComDesiredPosVelAcc->open(getName("/comdes:o"))) {
+                cleanup();
+                return false;
+            }
+            // By default, the com trajectory generation is disable until we get a ref com
+            data->comTrajGenActive = false;
+
 
             m_rpcServer = new RpcServer();
             if (!m_rpcServer
@@ -499,6 +539,15 @@ namespace codyco {
                 yError("Could not read initial encoders");
                 return false;
             }
+
+            //Resize com reference vector
+            data->comReferences.resize(COM_SIZE, 0.0);
+
+            //Resize com desired trajectory helper buffers
+            data->comDesPos.resize(COM_SIZE, 0.0);
+            data->comDesVel.resize(COM_SIZE, 0.0);
+            data->comDesAcc.resize(COM_SIZE, 0.0);
+
             //Load limits
             data->torsoMinLimits.resize(torsoAxes, 0.0);
             data->torsoMaxLimits.resize(torsoAxes, 0.0);
@@ -661,11 +710,13 @@ namespace codyco {
             data->leftArmGenerator = new iCub::ctrl::minJerkTrajGen(data->leftArmPositionControlledJointReferences.size(), trajectoryTimeStep, trajectoryTimeDuration);
             data->rightArmGenerator = new iCub::ctrl::minJerkTrajGen(data->rightArmPositionControlledJointReferences.size(), trajectoryTimeStep, trajectoryTimeDuration);
             data->torqueBalancingGenerator = new iCub::ctrl::minJerkTrajGen(iCubMainJoints.size(), trajectoryTimeStep, trajectoryTimeDuration);
+            data->comGenerator = new iCub::ctrl::minJerkTrajGen(3, trajectoryTimeStep,  trajectoryTimeDuration);
 
             if (!data->torsoGenerator ||
                 !data->leftArmGenerator ||
                 !data->rightArmGenerator ||
-                !data->torqueBalancingGenerator) {
+                !data->torqueBalancingGenerator ||
+                !data->comGenerator) {
                 yError("Could not create trajectory generator");
                 cleanup();
                 return false;
@@ -685,6 +736,7 @@ namespace codyco {
             data->leftArmGenerator->init(data->leftArmPositionControlledJointReferences);
             data->rightArmGenerator->init(data->rightArmPositionControlledJointReferences);
             data->torqueBalancingGenerator->init(data->torqueControlOutputReferences);
+            data->comGenerator->init(data->comReferences);
 
             yInfo("Coordinator ready");
             return true;
@@ -697,7 +749,8 @@ namespace codyco {
             CoordinatorData *data = static_cast<CoordinatorData*>(implementation);
             if (!data) return false;
             if (!data->torsoGenerator || !data->leftArmGenerator ||
-                !data->rightArmGenerator || !data->torqueBalancingGenerator) return false;
+                !data->rightArmGenerator || !data->torqueBalancingGenerator ||
+                !data->comGenerator ) return false;
 
             yarp::os::LockGuard guard(data->mutex);
             //            if (!data->referencesChanged) return true;
@@ -717,13 +770,29 @@ namespace codyco {
 
             data->rightArmPositionControl->setPositions(data->armJointIDs.size(), data->armJointIDs.data(), (data->rightArmGenerator->getPos() * CTRL_RAD2DEG).data());
 
+            //send to torqueBalancing
 
-
+            //send position impedance
             yarp::sig::Vector& torqueOutput = m_outputTorqueControlledJointReferences->prepare();
 //            torqueOutput.resize(data->torsoTorqueControlledJointReferences.size(), 0.0);
             torqueOutput = data->torqueBalancingGenerator->getPos();
 
             m_outputTorqueControlledJointReferences->write();
+
+            //send com desired position, velocity, acceleration
+            if( data->comTrajGenActive ) {
+                yarp::sig::Vector& comDesPosVelAcc = m_outputComDesiredPosVelAcc->prepare();
+
+                data->comDesPos = data->comGenerator->getPos();
+                data->comDesVel = data->comGenerator->getVel();
+                data->comDesAcc = data->comGenerator->getAcc();
+                comDesPosVelAcc.setSubvector(0,data->comDesPos);
+                comDesPosVelAcc.setSubvector(1*COM_SIZE,data->comDesVel);
+                comDesPosVelAcc.setSubvector(2*COM_SIZE,data->comDesAcc);
+
+                m_outputComDesiredPosVelAcc->write();
+            }
+
 
             return true;
         }
@@ -748,6 +817,12 @@ namespace codyco {
                 delete m_outputTorqueControlledJointReferences;
                 m_outputTorqueControlledJointReferences = 0;
             }
+           if (m_outputComDesiredPosVelAcc) {
+                m_outputComDesiredPosVelAcc->interrupt();
+                m_outputComDesiredPosVelAcc->close();
+                delete m_outputComDesiredPosVelAcc;
+                m_outputComDesiredPosVelAcc = 0;
+            }
 
             if (m_rpcServer) {
                 m_rpcServer->interrupt();
@@ -770,10 +845,20 @@ namespace codyco {
                     delete data->rightArmGenerator;
                     data->rightArmGenerator = 0;
                 }
+                if (data->torqueBalancingGenerator) {
+                    delete data->torqueBalancingGenerator;
+                    data->torqueBalancingGenerator = 0;
+                }
+                if (data->comGenerator) {
+                    delete data->comGenerator;
+                    data->comGenerator = 0;
+                }
 
                 data->leftArmDriver.close();
                 data->rightArmDriver.close();
                 data->torsoDriver.close();
+                data->leftLegDriver.close();
+                data->rightLegDriver.close();
                 delete data;
                 implementation = 0;
             }

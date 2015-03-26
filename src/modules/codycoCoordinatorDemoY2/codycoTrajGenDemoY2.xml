@@ -36,6 +36,37 @@
       </description>
     </input>
 
+    <output>
+      <type>yarp::os::Vector</type>
+      <port carrier="udp">{name}/qdes:o</port>
+      <required>no</required>
+      <priority>yes</priority>
+      <description>
+        Vector of desired equilibrium position for the impedance, meant to be read by torqueBalancing.
+      </description>
+    </output>
+
+    <output>
+      <type>yarp::os::Vector</type>
+      <port carrier="udp">{name}/comdes:o</port>
+      <required>no</required>
+      <priority>yes</priority>
+      <description>
+        A 9 element vector.
+        Elements 0-2 are the com desired position .
+        Elements 3-5 are the com desired velocity .
+        Elements 6-8 are the com desired acceleration .
+
+        The reference frame in which the com is expressed should be consistent between the component
+        sending the com setpoints and the controller reading the trajectory. This module is however
+        agnostic with respect to this, given that is just generating the com trajectory using a trajectory
+        generator.
+
+        For simplifyng the integration, this port is not published until a com setpoint is received on the
+        refs:i port.
+      </description>
+    </output>
+
   </data>
 
 </module>
