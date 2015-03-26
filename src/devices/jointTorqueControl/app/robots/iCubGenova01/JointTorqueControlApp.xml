@@ -5,7 +5,7 @@
         </dependencies>
        <module>
     <name>wholeBodyDynamicsTree</name>
-    <parameters>--autoconnect --name wholeBodyDynamicsTree --robot icub --assume_fixed l_sole --assume_fixed_base_calibration l_sole</parameters>
+    <parameters>--autoconnect --name wholeBodyDynamicsTree --robot icub --assume_fixed l_foot_dh_frame</parameters>
     <node>icub15</node>
     <tag>wholeBodyDynamicsTree</tag>
  </module>
