@@ -74,6 +74,13 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         return false;
     }
 
+    //Loading thread period
+    if( rf.check("rate") && rf.find("rate").isInt() )
+    {
+        period = rf.find("rate").asInt();
+    }
+
+
     bool fixed_base = false;
     bool fixed_base_calibration = false;
     std::string fixed_link;
@@ -270,6 +277,10 @@ bool wholeBodyDynamicsModule::interruptModule()
 
 bool wholeBodyDynamicsModule::close()
 {
+    // Get for the last time time stats
+    wbdThread->getEstPeriod(avgTime, stdDev);
+    wbdThread->getEstUsed(avgTimeUsed, stdDevUsed);     // real duration of run()
+
     //stop threads
     if(wbdThread)
     {
@@ -315,13 +326,13 @@ bool wholeBodyDynamicsModule::updateModule()
 
     wbdThread->getEstPeriod(avgTime, stdDev);
     wbdThread->getEstUsed(avgTimeUsed, stdDevUsed);     // real duration of run()
-    //#ifndef NDEBUG
+
     if(avgTime > 1.3 * period)
     {
         yWarning("[WARNING] wholeBodyDynamics loop is too slow. Real period: %3.3f+/-%3.3f. Expected period %d.\n", avgTime, stdDev, period);
         yInfo("Duration of 'run' method: %3.3f+/-%3.3f.\n", avgTimeUsed, stdDevUsed);
     }
-    //#endif
+
 
     return true;
 }
