@@ -32,6 +32,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #define NOARM               0
 #define LEFTARM             1
@@ -56,6 +57,23 @@ namespace codyco {
 
     class ManagerThread : public yarp::os::RateThread
     {
+    private:
+        struct JointLimits {
+            int jointIndex;
+
+            struct limit {
+                bool isDefined;
+                double value;
+                limit():isDefined(false){}
+            };
+
+            limit min;
+            limit max;
+
+            JointLimits() : jointIndex(-1) {}
+            JointLimits(int index) : jointIndex(index) {}
+        };
+
     protected:
         yarp::os::ResourceFinder &rf;
 
@@ -105,6 +123,9 @@ namespace codyco {
         yarp::sig::Vector rightArmHandOrien;
         yarp::sig::Vector rightArmJointsStiffness;
         yarp::sig::Vector rightArmJointsDamping;
+
+        std::map<std::string, int> armJointsNamesToIndexes; //Maps joint names to controlboard indexes for the arm (without the prefix l_ or r_)
+        std::map<std::string, std::vector<JointLimits> > solverLimits; //outer map maps part name to the inner structure.
 
         //Additions to change direct robot control with port writing (except hand and gaze)
         //List of joint indexes corresponding to the hand (for IPositionControl2)
@@ -196,7 +217,7 @@ namespace codyco {
 
         void getArmOptions(yarp::os::Bottle &b, yarp::sig::Vector &reachOffs, yarp::sig::Vector &graspOffs,
                            yarp::sig::Vector &graspSigma, yarp::sig::Vector &orien, bool &impVelMode,
-                           yarp::sig::Vector &impStiff, yarp::sig::Vector &impDamp);
+                           yarp::sig::Vector &impStiff, yarp::sig::Vector &impDamp, std::string partName = "", std::string partPrefix = "");
 
         void getHomeOptions(yarp::os::Bottle &b, yarp::sig::Vector &poss, yarp::sig::Vector &vels);
 

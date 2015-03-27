@@ -98,8 +98,8 @@ namespace codyco {
     }
 
     void ManagerThread::getArmOptions(Bottle &b, Vector &reachOffs, Vector &graspOffs,
-                       Vector &graspSigma, Vector &orien, bool &impVelMode,
-                       Vector &impStiff, Vector &impDamp)
+                                      Vector &graspSigma, Vector &orien, bool &impVelMode,
+                                      Vector &impStiff, Vector &impDamp, std::string partName, std::string partPrefix)
     {
         if (b.check("reach_offset","Getting reaching offset"))
         {
@@ -162,6 +162,35 @@ namespace codyco {
             for (size_t i=0; i<len; i++)
                 impDamp[i]=grp.get(1+i).asDouble();
         }
+
+        if (partName != "" && partPrefix != "") {
+            std::vector<JointLimits> partLimits;
+            for (std::map<std::string, int>::const_iterator it = armJointsNamesToIndexes.begin();
+                 it != armJointsNamesToIndexes.end(); it++) {
+                std::string jointName = partPrefix + it->first;
+                if (b.check(jointName, ("Looking for " + jointName + " configuration"))) {
+                    Bottle &grp=b.findGroup(jointName);
+                    JointLimits limits(it->second);
+                    if (grp.check("min","Getting minimum value"))
+                    {
+                        limits.min.value = grp.find("min").asDouble();
+                        limits.min.isDefined = true;
+                        yInfo("Setting %lf as minimum for %s", limits.min.value, jointName.c_str());
+                    }
+                    if (grp.check("max","Getting maximum value"))
+                    {
+                        limits.max.value = grp.find("max").asDouble();
+                        limits.max.isDefined = true;
+                        yInfo("Setting %lf as maximum for %s", limits.max.value, jointName.c_str());
+                    }
+                    partLimits.push_back(limits);
+                }
+            }
+            if (partLimits.size() > 0) {
+                solverLimits.insert(std::pair<std::string, std::vector<JointLimits> >(partName, partLimits));
+            }
+        }
+
     }
 
     void ManagerThread::getHomeOptions(Bottle &b, Vector &poss, Vector &vels)
@@ -290,10 +319,23 @@ namespace codyco {
             }
         }
 
+        std::map<std::string, std::vector<JointLimits> >::const_iterator found = solverLimits.find(type);
+        if (found != solverLimits.end() && found->second.size() > 0) {
+            //set (more) limits
+            for (std::vector<JointLimits>::const_iterator limitsIterator = found->second.begin(); limitsIterator != found->second.end(); limitsIterator++) {
+                double min, max;
+                icart->getLimits(3 + limitsIterator->jointIndex, &min, &max);
+                if (limitsIterator->min.isDefined)
+                    min = limitsIterator->min.value;
+                if (limitsIterator->max.isDefined)
+                    max = limitsIterator->max.value;
+                icart->setLimits(3 + limitsIterator->jointIndex, min, max);
+            }
+        }
+
         icart->setDOF(dof,dof);
 
         std::string dofString = "DOF's=( ";
-
         for (size_t i=0; i<dof.length(); i++)
             dofString.append(dof[i]>0.0?"on ":"off ");
         dofString.append(")");
@@ -1152,6 +1194,15 @@ namespace codyco {
     {
         yarp::os::LockGuard guard(this->runMutex);
 
+        //prepare configuration
+        armJointsNamesToIndexes.insert(std::pair<std::string, int>("shoulder_pitch", 0));
+        armJointsNamesToIndexes.insert(std::pair<std::string, int>("shoulder_roll", 1));
+        armJointsNamesToIndexes.insert(std::pair<std::string, int>("shoulder_yaw", 2));
+        armJointsNamesToIndexes.insert(std::pair<std::string, int>("elbow", 3));
+        armJointsNamesToIndexes.insert(std::pair<std::string, int>("wrist_prosup", 4));
+        armJointsNamesToIndexes.insert(std::pair<std::string, int>("wrist_pitch", 5));
+        armJointsNamesToIndexes.insert(std::pair<std::string, int>("wrist_yaw", 6));
+
         // general part
         Bottle &bGeneral=rf.findGroup("general");
         bGeneral.setMonitor(rf.getMonitor());
@@ -1199,10 +1250,10 @@ namespace codyco {
         rightArmJointsDamping.resize(5,0.0);
         getArmOptions(bLeftArm,leftArmReachOffs,leftArmGraspOffs,
                       leftArmGraspSigma,leftArmHandOrien,leftArmImpVelMode,
-                      leftArmJointsStiffness,leftArmJointsDamping);
+                      leftArmJointsStiffness,leftArmJointsDamping, "left_arm", "l_");
         getArmOptions(bRightArm,rightArmReachOffs,rightArmGraspOffs,
                       rightArmGraspSigma,rightArmHandOrien,rightArmImpVelMode,
-                      rightArmJointsStiffness,rightArmJointsDamping);
+                      rightArmJointsStiffness,rightArmJointsDamping, "right_arm", "r_");
 
         // home part
         Bottle &bHome=rf.findGroup("home_arm");
@@ -1489,54 +1540,54 @@ namespace codyco {
         steerTorsoToHome();
         steerArmToHome(LEFTARM);
         steerArmToHome(RIGHTARM);
-
+        
         checkTorsoHome(3.0);
         checkArmHome(LEFTARM,3.0);
         checkArmHome(RIGHTARM,3.0);
-
+        
         if (useLeftArm)
         {
             ICartesianControl *icart;
             drvCartLeftArm->view(icart);
             icart->restoreContext(startup_context_id_left);
-
+            
             if (leftArmImpVelMode)
             {
                 IInteractionMode *imode;
                 drvLeftArm->view(imode);
-
+                
                 int len=leftArmJointsStiffness.length()<leftArmJointsDamping.length()?
                 leftArmJointsStiffness.length():leftArmJointsDamping.length();
-
+                
                 for (int j=0; j<len; j++)
                     imode->setInteractionMode(j,VOCAB_IM_STIFF);
             }
         }
-
+        
         if (useRightArm)
         {
             ICartesianControl *icart;
             drvCartRightArm->view(icart);
             icart->restoreContext(startup_context_id_right);
-
+            
             if (rightArmImpVelMode)
             {
                 IInteractionMode *imode;
                 drvRightArm->view(imode);
-
+                
                 int len=rightArmJointsStiffness.length()<rightArmJointsDamping.length()?
                 rightArmJointsStiffness.length():rightArmJointsDamping.length();
-
+                
                 for (int j=0; j<len; j++)
                     imode->setInteractionMode(j,VOCAB_IM_STIFF);
             }
         }
-
+        
         gazeCtrl->restoreContext(startup_context_id_gaze);
-
+        
         close();
     }
-
+    
     // Additions
     void ManagerThread::enableGrasping()
     {
@@ -1546,7 +1597,7 @@ namespace codyco {
             state=STATE_IDLE;
         }
     }
-
+    
     void ManagerThread::disableGrasping()
     {
         yarp::os::LockGuard guard(this->runMutex);
@@ -1556,7 +1607,7 @@ namespace codyco {
         }
     }
     // End Additions
-
+    
     // Additions for event ports
     void ManagerThread::sendEvents()
     {
@@ -1572,7 +1623,7 @@ namespace codyco {
         }
         eventsOutputPort.write();
     }
-
+    
     // End Additions
-
+    
 }
