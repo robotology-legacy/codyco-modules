@@ -1065,9 +1065,22 @@ void wholeBodyDynamicsThread::publishBaseToGui()
 
     iCubGuiBase.zero();
 
+    KDL::Frame world_H_rootLink;
+    bool world_H_rootLink_computed = false;
+
+    // If the odometry is enabled, we send to the iCubGui the root_link position obtained throught the odometry
+    // \todo TODO this port published ad hoc should be subsituted with a port
+    // monitor so we can connect the "standard" floating base port to the base
+    // port of the iCubGui
+    if( this->odometry_enabled && root_link_idyntree_id != -1 )
+    {
+        world_H_rootLink = this->odometry_helper.getWorldFrameTransform(root_link_idyntree_id);
+        world_H_rootLink_computed = true;
+    }
+
     // Workaround: if not root_link or left_foot is defined, do not publish base information to the iCubGui
-    if( left_foot_link_idyntree_id != -1 &&
-        root_link_idyntree_id != -1 )
+    if( (left_foot_link_idyntree_id != -1 &&
+        root_link_idyntree_id != -1) && !this->odometry_enabled )
     {
         //For the icubGui, the world is the root frame when q == 0
         //So we have to find the transformation between the root now
@@ -1085,15 +1098,19 @@ void wholeBodyDynamicsThread::publishBaseToGui()
         KDL::Frame H_world_leftFoot
             = icub_model_world_base_position->getPositionKDL(root_link_idyntree_id,left_foot_link_idyntree_id);
 
-        KDL::Frame H_world_currentRoot
+        world_H_rootLink
             = H_world_leftFoot*H_leftFoot_currentRoot;
 
-        //Set angular part
-        double roll,pitch,yaw;
-        H_world_currentRoot.M.GetRPY(roll,pitch,yaw);
-        //H_world_currentRoot.M.Inverse().GetRPY(roll,pitch,yaw);
+        world_H_rootLink_computed = true;
+    }
 
-        const double RAD2DEG = 180.0/(3.1415);
+    //Set angular part
+    if( world_H_rootLink_computed )
+    {
+        double roll,pitch,yaw;
+        world_H_rootLink.M.GetRPY(roll,pitch,yaw);
+
+        const double RAD2DEG = 180.0/(M_PI);
 
         iCubGuiBase[0] = RAD2DEG*roll;
         iCubGuiBase[1] = RAD2DEG*pitch;
@@ -1101,9 +1118,9 @@ void wholeBodyDynamicsThread::publishBaseToGui()
 
         //Set linear part (iCubGui wants the root offset in millimeters)
         const double METERS2MILLIMETERS = 1000.0;
-        iCubGuiBase[3] = METERS2MILLIMETERS*H_world_currentRoot.p(0);
-        iCubGuiBase[4] = METERS2MILLIMETERS*H_world_currentRoot.p(1);
-        iCubGuiBase[5] = METERS2MILLIMETERS*H_world_currentRoot.p(2);
+        iCubGuiBase[3] = METERS2MILLIMETERS*world_H_rootLink.p(0);
+        iCubGuiBase[4] = METERS2MILLIMETERS*world_H_rootLink.p(1);
+        iCubGuiBase[5] = METERS2MILLIMETERS*world_H_rootLink.p(2);
 
         //Add offset to avoid lower forces to be hided by the floor
         iCubGuiBase[5] = iCubGuiBase[5] + 1000.0;
