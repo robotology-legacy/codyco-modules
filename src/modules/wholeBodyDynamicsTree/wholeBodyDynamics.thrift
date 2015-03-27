@@ -57,4 +57,32 @@ service wholeBodyDynamics_IDLServer
   * @return true/false on success/failure
   */
   bool quit();
+
+  // This should be implemented in a separated "simpleLeggedOdometry" interface,
+  // but for the time being it is easier to just implement it here
+  //service simpleLeggedOdometry_IDLServer
+  // {
+
+  /**
+   * Reset the odometry world to be (initially) a frame specified in the robot model,
+   * and specify a link that is assumed to be fixed in the odometry.
+   * @param initial_world_frame the frame of the robot model that is assume to be initially
+   *        coincident with the world/inertial frame.
+   * @param new_fixed_link the name of the link that should be initially fixed
+   * @return true/false on success/failure (typically if the frame/link names are wrong)
+   */
+  bool resetSimpleLeggedOdometry(1:string initial_world_frame, 2:string initial_fixed_link)
+
+  /**
+   * Change the link that is considered fixed by the odometry. 
+   * @param new_fixed_link the name of the new link that should be considered fixed
+   * @return true/false on success/failure (typically if the frame/link names are wrong)
+   */
+  bool changeFixedLinkSimpleLeggedOdometry(1:string new_fixed_link)
+
+  // } /** simpleLeggedOdometry_IDLServer */
 }
+
+
+
+

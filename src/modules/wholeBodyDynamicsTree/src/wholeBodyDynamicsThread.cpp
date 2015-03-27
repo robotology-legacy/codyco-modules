@@ -19,6 +19,9 @@
 #include "wholeBodyDynamicsTree/wholeBodyDynamicsThread.h"
 #include "wholeBodyDynamicsTree/wholeBodyDynamicsStatesInterface.h"
 
+// iDynTree includes
+#include "iCub/iDynTree/yarp_kdl.h"
+
 // Yarp includes
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
@@ -115,7 +118,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        samples_used_for_calibration(0),
        assume_fixed_base_calibration(_assume_fixed_base_calibration),
        fixed_link_calibration(_fixed_link_calibration),
-       run_mutex_acquired(false)
+       run_mutex_acquired(false),
+       odometry_enabled(false)
     {
         // TODO FIXME move all this logic in threadInit
 
@@ -564,6 +568,10 @@ bool wholeBodyDynamicsThread::threadInit()
         }
     }
 
+    ///////////////////////////////////
+    /// Odometry initialization
+    ///////////////////////////////////
+
 
     //Start with calibration
     first_calibration = true;
@@ -831,6 +839,147 @@ bool wholeBodyDynamicsThread::waitCalibrationDone()
     yInfo() << "wholeBodyDynamicsThread::waitCalibrationDone() returning: calibration finished with success";
     return true;
 }
+
+////////////////////////////////////////////////////////////
+//// Simple Legged Odometry
+////////////////////////////////////////////////////////////
+bool wholeBodyDynamicsThread::initOdometry()
+{
+    yarp::os::Bottle & odometry_group = yarp_options.findGroup("SIMPLE_LEGGED_ODOMETRY");
+
+    if( odometry_group.isNull()  )
+    {
+        yInfo() << " SIMPLE_LEGGED_ODOMETRY group not found, odometry disabled";
+        this->odometry_enabled = false;
+        return true;
+    }
+
+    if( !odometry_group.check("initial_world_frame") ||
+        !odometry_group.check("initial_fixed_link") ||
+        !odometry_group.check("floating_base_frame") ||
+        !odometry_group.find("initial_world_frame").isString() ||
+        !odometry_group.find("initial_fixed_link").isString() ||
+        !odometry_group.find("floating_base_frame").isString() )
+    {
+        yError() << " SIMPLE_LEGGED_ODOMETRY group found but malformed, exiting";
+        this->odometry_enabled = false;
+        return false;
+    }
+
+    std::string initial_world_frame = odometry_group.find("initial_world_frame").asString();
+    std::string initial_fixed_link = odometry_group.find("initial_fixed_link").asString();
+    std::string floating_base_frame = odometry_group.find("floating_base_frame").asString();
+
+    KDL::CoDyCo::UndirectedTree undirected_tree = this->icub_model_calibration->getKDLUndirectedTree();
+    bool ok = this->odometry_helper.init(undirected_tree,
+                                         initial_world_frame,
+                                         initial_fixed_link);
+
+    // Get floating base frame index
+    this->odometry_floating_base_frame_index = odometry_helper.getDynTree().getFrameIndex(floating_base_frame);
+
+    ok = ok && (this->odometry_floating_base_frame_index >= 0 &&
+                this->odometry_floating_base_frame_index < odometry_helper.getDynTree().getNrOfFrames());
+
+    if( !ok )
+    {
+        yError() << "Odometry initialization failed, please check your parameters";
+        return false;
+    }
+
+    yInfo() << " SIMPLE_LEGGED_ODOMETRY initialized with initial world frame coincident with "
+           << initial_world_frame << " and initial fixed link " << initial_fixed_link;
+
+    // Open ports
+    port_floatingbase = new BufferedPort<Matrix>;
+    port_floatingbase->open(string("/"+moduleName+"/floatingbasepos:o"));
+
+    return true;
+}
+
+void wholeBodyDynamicsThread::runOdometry()
+{
+    if( this->odometry_enabled )
+    {
+        // Read joint position into the odometry helper model
+        // This could be avoided by using the same geometric model
+        // for odometry, force/torque estimation and sensor force/torque calibration
+        odometry_helper.getDynTree().setAng(this->tree_status.qj);
+
+        // Get floating base position in the world
+        KDL::Frame world_H_floatingbase_kdl = odometry_helper.getWorldFrameTransform(this->odometry_floating_base_frame_index);
+
+        // Publish the floating base position on the port
+        KDLtoYarp_position(world_H_floatingbase_kdl,this->world_H_floatingbase);
+
+        broadcastData<yarp::sig::Matrix>(this->world_H_floatingbase,port_floatingbase);
+    }
+}
+
+void wholeBodyDynamicsThread::closeOdometry()
+{
+    if( this->odometry_enabled )
+    {
+        closePort(port_floatingbase);
+    }
+}
+
+
+
+bool wholeBodyDynamicsThread::resetSimpleLeggedOdometry(const std::string& initial_world_frame, const std::string& initial_fixed_link)
+{
+    bool ok = true;
+    run_mutex.lock();
+    if( this->odometry_enabled )
+    {
+        // Not setting the angle position because it should be setted in the run
+
+        ok = odometry_helper.reset(initial_world_frame,initial_fixed_link);
+        if( ok )
+        {
+            yInfo() << "SIMPLE_LEGGED_ODOMETRY reset to world "
+                    << initial_world_frame << "and fixed link " << initial_fixed_link << " was successfull";
+        }
+        else
+        {
+            yError() << "SIMPLE_LEGGED_ODOMETRY reset to world "
+                    << initial_world_frame << "and fixed link " << initial_fixed_link << " failed";
+        }
+    }
+    else
+    {
+        ok = false;
+    }
+    run_mutex.unlock();
+    return ok;
+}
+
+bool wholeBodyDynamicsThread::changeFixedLinkSimpleLeggedOdometry(const string& new_fixed_link)
+{
+    bool ok = true;
+    run_mutex.lock();
+    if( this->odometry_enabled )
+    {
+        // Not setting the angle position because it should be setted in the run
+
+        ok = odometry_helper.changeFixedLink(new_fixed_link);
+        if( ok )
+        {
+            yInfo() << "SIMPLE_LEGGED_ODOMETRY fixed link successfully changed to " << new_fixed_link;
+        }
+        else
+        {
+            yError() << "SIMPLE_LEGGED_ODOMETRY fixed link change to " << new_fixed_link << "failed";
+        }
+    }
+    else
+    {
+        ok = false;
+    }
+    run_mutex.unlock();
+    return ok;
+}
+
 
 void KDLWrenchFromRawValues(double * buf, KDL::Wrench & f)
 {
@@ -1449,6 +1598,8 @@ void wholeBodyDynamicsThread::threadRelease()
     {
         delete offset_smoother;
     }
+
+    closeOdometry();
 
     run_mutex.unlock();
 }

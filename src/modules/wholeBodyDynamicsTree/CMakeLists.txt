@@ -8,7 +8,7 @@ PROJECT(${PROJECTNAME})
 
 find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)
-find_package(iDynTree REQUIRED)
+find_package(iDynTree 0.3.2 REQUIRED)
 
 #Thrift configuration
 include(YarpIDL)
