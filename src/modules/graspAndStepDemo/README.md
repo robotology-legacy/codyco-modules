@@ -32,6 +32,8 @@ Events
 |:-----------:|:-------------:|:-----------:|
 | `e_grasping_enabled`  | The `**GraspDemo` module is running and the grasping behaviour is **active** | Sent by the `**GraspDemo` module on `events:i` port |
 | `e_grasping_disabled` | The `**GraspDemo` module is running and the grasping behaviour is **not active** | Sent by the `**GraspDemo` module on `events:i` port |
+| `e_grasping_disabling_requested` | |
+| `e_grasping_enabling_requested` | |
 | `e_weight_on_left_foot` | The overall external force acting on the `l_foot` link is greater than or equal to the `force_threshold` `steppingDemo` parameter | Raised internally by the `steppingMonitor` class |
 | `e_no_weight_on_left_foot` | The overall external force acting on the `l_foot` link is lower than the `force_threshold` `steppingDemo` parameter | Raised internally by the `steppingMonitor` class |
 | `e_weight_on_right_foot` | The overall external force acting on the `r_foot` link is greater than or equal to the `force_threshold` `steppingDemo`  parameter | Raised internally by the `steppingMonitor` class |

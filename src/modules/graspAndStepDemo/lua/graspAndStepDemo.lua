@@ -78,14 +78,7 @@ rfsm_timeevent.set_gettime_hook(yarp_gettime)
 -------
 function close_script()
     --- close ports
-    left_wrench_port:close()
-    right_wrench_port:close()
-    skin_event_port:close()
-    cmd_action_rpc:close()
-    state_port:close()
-    smooth_state_port:close()
-    input_events:close()
-    monitor_port:close()
+    close_ports()
 
     -- Deinitialize yarp network
     yarp.Network_fini()
@@ -126,7 +119,7 @@ function yarp_rf_find_string(rf,var_name)
 end
 
 -------
-function print_help()
+function gas_print_help()
     ---- list options
     print("["..script_name.."]: --verbose                        : enable verbose output")
     print("["..script_name.."]: --fsm_update_period       period : update period of the FSM (in seconds)")
@@ -134,44 +127,90 @@ function print_help()
 end
 
 -------
+function gas_open_ports()
+    print("[" .. script_name .. "] opening ports")
+
+    -- input events port
+    input_events = yarp.BufferedPortBottle()
+    input_events:open("/".. script_name .."/events:i")
+
+    -- Streaming port continuously broadcasting the state
+    state_port = yarp.BufferedPortBottle()
+    state_port:open("/".. script_name .. "/state:o")
+
+    -- Port for publishing trajectory generator setpoints
+    setpoints_port = yarp.BufferedPortProperty()
+    setpoints_port:open("/".. script_name .. "/setpoints:o")
+
+    -- Port for starting/stopping the graspDemo module
+    graspingModule_rpc = yarp.BufferedPortBottle()
+    graspingModule_rpc:open("/".. script_name .. "/graspDemo")
+
+    -- Port for activating/deactivating contacts on the controller
+    activeContacts_port = yarp.BufferedPortBottle()
+    activeContacts_port:open("/".. script_name .. "/activeContacts");
+
+    -- Port for setting the fixed link in the odometry module
+    fixedLinkOdometry_port = yarp.BufferedPortBottle()
+    fixedLinkOdometry_port:open("/".. script_name .. "/fixedLink");
+
+end
+
+function gas_close_port(port)
+    if(port)
+        port:interrupt()
+        port:close()
+    end
+end
+
+function gas_close_ports()
+    --close ports
+    gas_close_port(input_events)
+    gas_close_port(state_port)
+    gas_close_port(setpoints_port)
+    gas_close_port(graspingModule_rpc)
+    gas_close_port(activeContacts_port)
+    gas_close_port(fixedLinkOdometry_port)
+end
+
+function gas_loadconfiguration()
+    -- initialization
+    print("["..script_name.."] opening resource finder")
+    rf = yarp.ResourceFinder()
+    rf:setDefaultConfigFile("graspAndStepDemo.ini")
+    rf:setDefaultContext("graspAndStepDemo")
+    print("["..script_name.."] configuring resource finder")
+    rf:configure(arg)
+
+    -- handling parameters
+    script_name = yarp_rf_find_string(rf,"script_name")
+
+    if( rf:check("verbose") ) then
+        print("["..script_name.."]: verbose option found")
+        verbose = true
+    end
+
+    if( rf:check("help") ) then
+        gas_print_help()
+        gas_close_script()
+    end
+
+    fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
+    force_threshold   = yarp_rf_find_double(rf,"force_threshold")
+
+end
+
+-------
 shouldExit = false
 
--- initialization
-print("["..script_name.."] opening resource finder")
-rf = yarp.ResourceFinder()
-rf:setDefaultConfigFile("steppingDemo.ini")
-rf:setDefaultContext("steppingDemo")
-print("["..script_name.."] configuring resource finder")
-rf:configure(arg)
+-- load configuration
+gas_loadconfiguration()
 
--- handling parameters
-script_name = yarp_rf_find_string(rf,"script_name")
+-- open ports
+gas_open_ports()
 
-if( rf:check("verbose") ) then
-    print("["..script_name.."]: verbose option found")
-    verbose = true
-end
-
-if( rf:check("help") ) then
-    print_help()
-    close_script()
-end
-
+-- load main FSM
 fsm_file = rf:findFile("lua/fsm_graspAndStep.lua")
-
-print("[" .. script_name .. "] opening ports")
-
--- input events port, for getting events from other modules and
---             from the user rpc
-input_events = yarp.BufferedPortBottle()
-input_events:open("/".. script_name .."/events:i")
-
--- Streaming port continuously broadcasting the state
-state_port = yarp.BufferedPortBottle()
-state_port:open("/".. script_name .. "/state:o")
-
-fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
-force_threshold   = yarp_rf_find_double(rf,"force_threshold")
 
 print("[" .. script_name .. "] loading rFSM state machine")
 -- load state machine model and initalize it

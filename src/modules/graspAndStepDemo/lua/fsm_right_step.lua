@@ -34,7 +34,7 @@ return rfsm.state {
     rfsm.transition { src='initial', tgt='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_LEFT_FOOT' },
 
     -- Sensor transitions
-    rfsm.transition { src='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_LEFT_FOOT', tgt='ST_SINGLESUPPORT_SWING', events={ 'e_no_weight_on_right_foot' } },
+    rfsm.transition { src='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_LEFT_FOOT', tgt='ST_SINGLESUPPORT_SWING', events={ 'e_com_motion_done' } },
     rfsm.transition { src='ST_SINGLESUPPORT_SWING', tgt='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_CENTER', events={ 'e_right_leg_swing_motiondone' } },
 
 
