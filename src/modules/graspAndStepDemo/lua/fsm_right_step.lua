@@ -6,6 +6,10 @@ return rfsm.state {
     -- but is shifting its weight to the support foot                                    --
     ---------------------------------------------------------------------------------------
     ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_LEFT_FOOT = rfsm.state{
+        entry=function()
+            -- set the odometry fixed link to the right foot
+            gas_sendStringsToRPC(fixedLinkOdometry_port,"changeFixedLinkSimpleLeggedOdometry","l_foot");
+        end,
     },
 
     ---------------------------------------------------------------------------------------

@@ -7,6 +7,10 @@ return rfsm.state {
     ---------------------------------------------------------------------------------------
     ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_RIGHT_FOOT = rfsm.state{
         -- set new com setpoint (for single support)
+        entry=function()
+            -- set the odometry fixed link to the right foot
+            gas_sendStringsToRPC(fixedLinkOdometry_port,"changeFixedLinkSimpleLeggedOdometry","r_foot");
+        end,
     },
 
     ---------------------------------------------------------------------------------------
@@ -16,7 +20,7 @@ return rfsm.state {
     ---------------------------------------------------------------------------------------
      -- Not using nesting for now because there is a bug in rfsm tools rfsm.load("fsm_swing.lua"),
     ST_SINGLESUPPORT_LEFT_SWING = rfsm.state{
-        -- set com setpoint
+        -- set new com setpoint (for single support)
     };
 
 
@@ -26,7 +30,7 @@ return rfsm.state {
     -- but is shifting its weight to the support foot                                    --
     ---------------------------------------------------------------------------------------
     ST_DOUBLESUPPORT_TRANSFER_WEIGHT_FROM_RIGHT_FOOT = rfsm.state{
-        --
+        -- set new com setpoint
     },
 
     ----------------------------------

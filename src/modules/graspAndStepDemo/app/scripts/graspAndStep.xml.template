@@ -1,0 +1,140 @@
+<application>
+
+  <!-- Generic information-->
+  <name>Grasp and Step (CoDyCo Y2 Demo)</name>
+  <!-- <description></description> -->
+  <version></version>
+
+  <!-- Required modules. -->
+  <module>
+      <name>torqueBalancing</name>
+      <parameters></parameters>
+      <node>node</node>
+      <stdio></stdio>
+      <prefix></prefix>
+  </module>
+
+  <module>
+      <name>RedBallGraspDemo</name>
+      <parameters></parameters>
+      <node>node</node>
+      <stdio></stdio>
+      <prefix></prefix>
+  </module>
+
+  <module>
+      <name>pf3dTracker</name>
+      <parameters></parameters>
+      <node>node</node>
+      <stdio></stdio>
+      <prefix></prefix>
+  </module>
+  <module>
+      <name>yarpview</name>
+      <parameters>--name /PF3DTracker_viewer --x 960 --y 360 --RefreshTime 50</parameters>
+      <node>screen-node</node>
+      <stdio></stdio>
+      <prefix></prefix>
+  </module>
+
+  <!-- Adding trajectory generator -->
+  <module>
+      <name>CodycoCoordinatorY2</name>
+      <parameters></parameters>
+      <node>screen-node</node>
+      <stdio></stdio>
+      <prefix></prefix>
+  </module>
+
+  <!-- Adding graspAndStep FSM coordinator -->
+  <module>
+      <name>graspAndStepDemo.lua</name>
+      <deployer>lua</deployer>
+      <node>screen-node</node>
+      <stdio></stdio>
+      <prefix></prefix>
+  </module>
+
+  <!-- Adding eventRepeater to simplify user generation of events (for debug) -->
+  <module>
+      <name>eventRepeater</name>
+      <nome>node</node>
+  </module>
+
+  <!-- Required connections -->
+  <connection>
+      <from>/icub/camcalib/left/out</from>
+      <to>/pf3dTracker/video:i</to>
+      <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+      <from>/pf3dTracker/video:o</from>
+      <to>/PF3DTracker_viewer</to>
+      <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+      <from>/pf3dTracker/data:o</from>
+      <to>/redBallGrasp/trackTarget:i</to>
+      <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+      <from>/redBallGrasp/cmdFace:rpc</from>
+      <to>/icub/face/emotions/in</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+      <from>/redBallGrasp/qdes:o</from>
+      <to>/y2coordinator/refs:i</to>
+      <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+      <from>/redBallGrasp/motionDone:rpc</from>
+      <to>/y2coordinator/rpc:i</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+      <from>/y2coordinator/qdes:o</from>
+      <to>/torqueBalancing/qdes:i</to>
+      <protocol>udp</protocol>
+  </connection>
+
+  <!-- FSM connections -->
+
+  <!-- input to the controller and the trajectory generators -->
+  <connection>
+      <from>/graspAndStepDemo/setpoints:o</from>
+      <to>/y2coordinator/refs:i</to>
+  </connection>
+
+  <connection>
+      <from>/graspAndStepDemo/activeContacts<from>
+      <to>/torqueBalancing/activeContacts:i</to>
+  </connection>
+
+  <!-- RPC connection to start/stop the graspDemo -->
+  <connection>
+      <from>/graspAndStepDemo/graspDemo</from>
+      <to>/redBallGrasp/rpc</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <!-- events port -->
+  <connection>
+      <from>/eventRepeater/events:o</from>
+      <to>/graspAndStepDemo/events:i</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+      <from>/redBallGrasp/events:o</from>
+      <to>/graspAndStepDemo/events:i</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+</application>

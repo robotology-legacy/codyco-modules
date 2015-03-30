@@ -6,6 +6,7 @@ return rfsm.state {
     ---------------------------------------------------------------------------------------
     ST_GRASPING_ACTIVATION_REQUESTED =  rfsm.state{
         entry=function()
+            -- request to activate the grasping
             gas_sendStringToRPC(graspingModule_rpc,"start")
         end,
     },
@@ -20,6 +21,7 @@ return rfsm.state {
     ------------------------------------------------------------------------------------------
     ST_GRASPING_DISABLING_REQUESTED =  rfsm.state{
         entry=function()
+            -- request to stop the grasping
             gas_sendStringToRPC(graspingModule_rpc,"stop")
         end,
     },
