@@ -40,5 +40,6 @@ Events
 | `e_left_step_requested`    | The `**GraspDemo` module requested a left step to enlarge its working space |  Sent by the `**GraspDemo` module on `events:i` port |
 | `e_right_step_completed`    | The left step have been completed | - |
 | `e_left_step_completed`    | The right step have been completed | - |
-| `e_left_leg_swing_motiondone` | The swing motion of the left leg have been completed | - |
-| `e_right_leg_swing_motiondone` | The swing motion of the right leg have been completed | - |
+| `e_left_leg_swing_motiondone` | The swing motion of the left leg have been completed, up to a threshold defined in configuration. | - |
+| `e_right_leg_swing_motiondone` | The swing motion of the right leg have been completed, up to a threshold defined in configuration. | - |
+| `e_com_motiondone` | The motion of the COM has completed, up to a threshold defined in configuration. 
