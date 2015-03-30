@@ -26,6 +26,4 @@ return rfsm.state {
 
     rfsm.transition { src='ST_GRASPING', tgt='ST_LEFT_STEPPING',  events={ 'e_left_step_requested',  'e_grasping_disabled' } },
     rfsm.transition { src='ST_LEFT_STEPPING', tgt='ST_GRASPING',  events={ 'e_left_step_completed' } },
-
-
 }

@@ -19,6 +19,9 @@
 #include "wholeBodyDynamicsTree/wholeBodyDynamicsThread.h"
 #include "wholeBodyDynamicsTree/wholeBodyDynamicsStatesInterface.h"
 
+// iDynTree includes
+#include "iCub/iDynTree/yarp_kdl.h"
+
 // Yarp includes
 #include <yarp/os/Time.h>
 #include <yarp/os/Log.h>
@@ -115,7 +118,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        samples_used_for_calibration(0),
        assume_fixed_base_calibration(_assume_fixed_base_calibration),
        fixed_link_calibration(_fixed_link_calibration),
-       run_mutex_acquired(false)
+       run_mutex_acquired(false),
+       odometry_enabled(false)
     {
         // TODO FIXME move all this logic in threadInit
 
@@ -564,6 +568,10 @@ bool wholeBodyDynamicsThread::threadInit()
         }
     }
 
+    ///////////////////////////////////
+    /// Odometry initialization
+    ///////////////////////////////////
+    initOdometry();
 
     //Start with calibration
     first_calibration = true;
@@ -832,6 +840,150 @@ bool wholeBodyDynamicsThread::waitCalibrationDone()
     return true;
 }
 
+////////////////////////////////////////////////////////////
+//// Simple Legged Odometry
+////////////////////////////////////////////////////////////
+bool wholeBodyDynamicsThread::initOdometry()
+{
+    yarp::os::Bottle & odometry_group = yarp_options.findGroup("SIMPLE_LEGGED_ODOMETRY");
+
+    if( odometry_group.isNull()  )
+    {
+        yInfo() << " SIMPLE_LEGGED_ODOMETRY group not found, odometry disabled";
+        this->odometry_enabled = false;
+        return true;
+    }
+
+    if( !odometry_group.check("initial_world_frame") ||
+        !odometry_group.check("initial_fixed_link") ||
+        !odometry_group.check("floating_base_frame") ||
+        !odometry_group.find("initial_world_frame").isString() ||
+        !odometry_group.find("initial_fixed_link").isString() ||
+        !odometry_group.find("floating_base_frame").isString() )
+    {
+        yError() << " SIMPLE_LEGGED_ODOMETRY group found but malformed, exiting";
+        this->odometry_enabled = false;
+        return false;
+    }
+
+    std::string initial_world_frame = odometry_group.find("initial_world_frame").asString();
+    std::string initial_fixed_link = odometry_group.find("initial_fixed_link").asString();
+    std::string floating_base_frame = odometry_group.find("floating_base_frame").asString();
+
+    KDL::CoDyCo::UndirectedTree undirected_tree = this->icub_model_calibration->getKDLUndirectedTree();
+    bool ok = this->odometry_helper.init(undirected_tree,
+                                         initial_world_frame,
+                                         initial_fixed_link);
+
+    // Get floating base frame index
+    this->odometry_floating_base_frame_index = odometry_helper.getDynTree().getFrameIndex(floating_base_frame);
+
+    ok = ok && (this->odometry_floating_base_frame_index >= 0 &&
+                this->odometry_floating_base_frame_index < odometry_helper.getDynTree().getNrOfFrames());
+
+    if( !ok )
+    {
+        yError() << "Odometry initialization failed, please check your parameters";
+        return false;
+    }
+
+    yInfo() << " SIMPLE_LEGGED_ODOMETRY initialized with initial world frame coincident with "
+           << initial_world_frame << " and initial fixed link " << initial_fixed_link;
+
+    this->odometry_enabled = true;
+
+    // Open ports
+    port_floatingbase = new BufferedPort<Matrix>;
+    port_floatingbase->open(string("/"+moduleName+"/floatingbasepos:o"));
+
+    return true;
+}
+
+void wholeBodyDynamicsThread::runOdometry()
+{
+    if( this->odometry_enabled )
+    {
+        // Read joint position into the odometry helper model
+        // This could be avoided by using the same geometric model
+        // for odometry, force/torque estimation and sensor force/torque calibration
+        odometry_helper.getDynTree().setAng(this->tree_status.qj);
+
+        // Get floating base position in the world
+        KDL::Frame world_H_floatingbase_kdl = odometry_helper.getWorldFrameTransform(this->odometry_floating_base_frame_index);
+
+        // Publish the floating base position on the port
+        KDLtoYarp_position(world_H_floatingbase_kdl,this->world_H_floatingbase);
+
+        broadcastData<yarp::sig::Matrix>(this->world_H_floatingbase,port_floatingbase);
+    }
+}
+
+void wholeBodyDynamicsThread::closeOdometry()
+{
+    if( this->odometry_enabled )
+    {
+        closePort(port_floatingbase);
+    }
+}
+
+
+
+bool wholeBodyDynamicsThread::resetSimpleLeggedOdometry(const std::string& initial_world_frame, const std::string& initial_fixed_link)
+{
+    bool ok = true;
+    run_mutex.lock();
+    if( this->odometry_enabled )
+    {
+        // Not setting the angle position because it should be setted in the run
+
+        ok = odometry_helper.reset(initial_world_frame,initial_fixed_link);
+        if( ok )
+        {
+            yInfo() << "SIMPLE_LEGGED_ODOMETRY reset to world "
+                    << initial_world_frame << "and fixed link " << initial_fixed_link << " was successfull";
+        }
+        else
+        {
+            yError() << "SIMPLE_LEGGED_ODOMETRY reset to world "
+                    << initial_world_frame << "and fixed link " << initial_fixed_link << " failed";
+        }
+    }
+    else
+    {
+        ok = false;
+    }
+    run_mutex.unlock();
+    return ok;
+}
+
+bool wholeBodyDynamicsThread::changeFixedLinkSimpleLeggedOdometry(const string& new_fixed_link)
+{
+    bool ok = true;
+    run_mutex.lock();
+    if( this->odometry_enabled )
+    {
+        // Not setting the angle position because it should be setted in the run
+
+        ok = odometry_helper.changeFixedLink(new_fixed_link);
+        if( ok )
+        {
+            yInfo() << "SIMPLE_LEGGED_ODOMETRY fixed link successfully changed to " << new_fixed_link;
+        }
+        else
+        {
+            yError() << "SIMPLE_LEGGED_ODOMETRY fixed link change to " << new_fixed_link << "failed";
+        }
+    }
+    else
+    {
+        yWarning() << "SIMPLE_LEGGED_ODOMETRY is disabled, changing fixed link failed";
+        ok = false;
+    }
+    run_mutex.unlock();
+    return ok;
+}
+
+
 void KDLWrenchFromRawValues(double * buf, KDL::Wrench & f)
 {
     for(int i = 0; i < 6; i++ )
@@ -916,9 +1068,22 @@ void wholeBodyDynamicsThread::publishBaseToGui()
 
     iCubGuiBase.zero();
 
+    KDL::Frame world_H_rootLink;
+    bool world_H_rootLink_computed = false;
+
+    // If the odometry is enabled, we send to the iCubGui the root_link position obtained throught the odometry
+    // \todo TODO this port published ad hoc should be subsituted with a port
+    // monitor so we can connect the "standard" floating base port to the base
+    // port of the iCubGui
+    if( this->odometry_enabled && root_link_idyntree_id != -1 )
+    {
+        world_H_rootLink = this->odometry_helper.getWorldFrameTransform(root_link_idyntree_id);
+        world_H_rootLink_computed = true;
+    }
+
     // Workaround: if not root_link or left_foot is defined, do not publish base information to the iCubGui
-    if( left_foot_link_idyntree_id != -1 &&
-        root_link_idyntree_id != -1 )
+    if( (left_foot_link_idyntree_id != -1 &&
+        root_link_idyntree_id != -1) && !this->odometry_enabled )
     {
         //For the icubGui, the world is the root frame when q == 0
         //So we have to find the transformation between the root now
@@ -936,15 +1101,19 @@ void wholeBodyDynamicsThread::publishBaseToGui()
         KDL::Frame H_world_leftFoot
             = icub_model_world_base_position->getPositionKDL(root_link_idyntree_id,left_foot_link_idyntree_id);
 
-        KDL::Frame H_world_currentRoot
+        world_H_rootLink
             = H_world_leftFoot*H_leftFoot_currentRoot;
 
-        //Set angular part
-        double roll,pitch,yaw;
-        H_world_currentRoot.M.GetRPY(roll,pitch,yaw);
-        //H_world_currentRoot.M.Inverse().GetRPY(roll,pitch,yaw);
+        world_H_rootLink_computed = true;
+    }
 
-        const double RAD2DEG = 180.0/(3.1415);
+    //Set angular part
+    if( world_H_rootLink_computed )
+    {
+        double roll,pitch,yaw;
+        world_H_rootLink.M.GetRPY(roll,pitch,yaw);
+
+        const double RAD2DEG = 180.0/(M_PI);
 
         iCubGuiBase[0] = RAD2DEG*roll;
         iCubGuiBase[1] = RAD2DEG*pitch;
@@ -952,9 +1121,9 @@ void wholeBodyDynamicsThread::publishBaseToGui()
 
         //Set linear part (iCubGui wants the root offset in millimeters)
         const double METERS2MILLIMETERS = 1000.0;
-        iCubGuiBase[3] = METERS2MILLIMETERS*H_world_currentRoot.p(0);
-        iCubGuiBase[4] = METERS2MILLIMETERS*H_world_currentRoot.p(1);
-        iCubGuiBase[5] = METERS2MILLIMETERS*H_world_currentRoot.p(2);
+        iCubGuiBase[3] = METERS2MILLIMETERS*world_H_rootLink.p(0);
+        iCubGuiBase[4] = METERS2MILLIMETERS*world_H_rootLink.p(1);
+        iCubGuiBase[5] = METERS2MILLIMETERS*world_H_rootLink.p(2);
 
         //Add offset to avoid lower forces to be hided by the floor
         iCubGuiBase[5] = iCubGuiBase[5] + 1000.0;
@@ -1123,6 +1292,9 @@ void wholeBodyDynamicsThread::estimation_run()
 
     //Send external wrench estimates
     publishExternalWrenches();
+
+    //Compute odometry
+    runOdometry();
 
     //Send base information to iCubGui
     publishBaseToGui();
@@ -1449,6 +1621,8 @@ void wholeBodyDynamicsThread::threadRelease()
     {
         delete offset_smoother;
     }
+
+    closeOdometry();
 
     run_mutex.unlock();
 }

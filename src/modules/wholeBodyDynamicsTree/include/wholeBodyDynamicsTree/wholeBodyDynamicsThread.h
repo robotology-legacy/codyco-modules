@@ -42,6 +42,7 @@
 #include <wbi/wbi.h>
 #include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 #include "wholeBodyDynamicsTree/wholeBodyDynamicsStatesInterface.h"
+#include "wholeBodyDynamicsTree/simpleLeggedOdometry.h"
 
 #include "ctrlLibRT/filters.h"
 #include "wholeBodyDynamicsTree/robotStatus.h"
@@ -163,7 +164,6 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     void publishBaseToGui();
     void publishFilteredInertialForGravityCompensator();
     void publishFilteredFTWithoutOffset();
-    void publishAnkleFootForceTorques();
     bool decodeCalibCode(const std::string calib_code);
     void disableCalibration();
 
@@ -252,6 +252,18 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
     } torqueEstimationControlBoards;
 
+    ///////////////////////////////////////////////////////////
+    ///// simpleLeggedOdometry private attributes and methods
+    ///////////////////////////////////////////////////////////
+    simpleLeggedOdometry odometry_helper;
+    int odometry_floating_base_frame_index;
+    yarp::sig::Matrix world_H_floatingbase;
+    yarp::os::BufferedPort<yarp::sig::Matrix> * port_floatingbase;
+    bool odometry_enabled;
+    bool initOdometry();
+    void runOdometry();
+    void closeOdometry();
+
 public:
 
     wholeBodyDynamicsThread(std::string _name,
@@ -263,11 +275,17 @@ public:
                             std::string fixed_link);
 
     bool threadInit();
+
+    // rpc methods
     bool calibrateOffset(const std::string calib_code, const int nr_of_samples );
     bool calibrateOffsetOnDoubleSupport(const std::string calib_code, const int nr_of_samples );
     bool calibrateOffsetOnRightFootSingleSupport(const std::string calib_code, const int nr_of_samples );
     bool calibrateOffsetOnLeftFootSingleSupport(const std::string calib_code, const int nr_of_samples );
     bool resetOffset(const std::string calib_code);
+
+    // rpc simple odometry methods
+    virtual bool resetSimpleLeggedOdometry(const std::string& initial_world_frame, const std::string& initial_fixed_link);
+    virtual bool changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_link);
 
     /**
      * Wait for the calibration to end and then return.

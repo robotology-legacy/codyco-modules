@@ -61,6 +61,21 @@ public:
    * @return true/false on success/failure
    */
   virtual bool quit();
+  /**
+   * Reset the odometry world to be (initially) a frame specified in the robot model,
+   * and specify a link that is assumed to be fixed in the odometry.
+   * @param initial_world_frame the frame of the robot model that is assume to be initially
+   *        coincident with the world/inertial frame.
+   * @param new_fixed_link the name of the link that should be initially fixed
+   * @return true/false on success/failure (typically if the frame/link names are wrong)
+   */
+  virtual bool resetSimpleLeggedOdometry(const std::string& initial_world_frame, const std::string& initial_fixed_link);
+  /**
+   * Change the link that is considered fixed by the odometry.
+   * @param new_fixed_link the name of the new link that should be considered fixed
+   * @return true/false on success/failure (typically if the frame/link names are wrong)
+   */
+  virtual bool changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_link);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

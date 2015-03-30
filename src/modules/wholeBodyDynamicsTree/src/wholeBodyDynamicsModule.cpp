@@ -418,6 +418,29 @@ bool wholeBodyDynamicsModule::resetOffset(const std::string& calib_code)
     }
 }
 
+bool wholeBodyDynamicsModule::resetSimpleLeggedOdometry(const std::string& initial_world_frame,
+                                                        const std::string& initial_fixed_link)
+{
+    if(wbdThread) {
+        return wbdThread->resetSimpleLeggedOdometry(initial_world_frame,initial_fixed_link);
+    } else {
+        return false;
+    }
+}
+
+
+bool wholeBodyDynamicsModule::changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_link)
+{
+    if(wbdThread) {
+        return wbdThread->changeFixedLinkSimpleLeggedOdometry(new_fixed_link);
+    } else {
+        return false;
+    }
+}
+
+
+
+
 
 bool wholeBodyDynamicsModule::quit()
 {

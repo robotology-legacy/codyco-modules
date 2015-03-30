@@ -77,7 +77,25 @@ None.
 None.
 
 \section conf_file_sec Configuration Files
-None
+
+Configuration files of wholeBodyDynamicsTree load several groups,
+to separate concerns about the different functionalities of the wholeBodyDynamicsTree.
+
+### `SIMPLE_LEGGED_ODOMETRY` group
+
+  | Parameter name | Type | Units | Default Value | Required | Description | Notes |
+  |:--------------:|:------:|:-----:|:-------------:|:--------:|:-----------:|:-----:|
+  | initial_world_frame | string | - | - | Yes | Name of the frame of the model that is supposed to be coincident with the world/inertial at start | - |
+  | initial_fixed_link  | string | - | - | Yes | Name of the link that is assumed to be fixed at start |
+  | floating_base_frame  | string | - | - | Yes | Name of the frame assume to be the floating base |
+
+Consider that this values are just initialization values, but you can always
+reset/change fixed link of the simple legged odometry using the RPC port.
+
+It the odometry is correctly configured, the /${name}/floatingbasepos:o port
+will stream the 4x4 Transform matrix representing the world_H_floatingbase transform
+(i.e. the matrix that transforms position homogenous vectors expressed in the floatingbase frame to
+ vector expressed in the world frame)
 
 \section tested_os_sec Tested OS
 Linux and OS X.
