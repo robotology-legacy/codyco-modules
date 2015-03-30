@@ -571,7 +571,7 @@ bool wholeBodyDynamicsThread::threadInit()
     ///////////////////////////////////
     /// Odometry initialization
     ///////////////////////////////////
-
+    initOdometry();
 
     //Start with calibration
     first_calibration = true;
@@ -890,6 +890,8 @@ bool wholeBodyDynamicsThread::initOdometry()
     yInfo() << " SIMPLE_LEGGED_ODOMETRY initialized with initial world frame coincident with "
            << initial_world_frame << " and initial fixed link " << initial_fixed_link;
 
+    this->odometry_enabled = true;
+
     // Open ports
     port_floatingbase = new BufferedPort<Matrix>;
     port_floatingbase->open(string("/"+moduleName+"/floatingbasepos:o"));
@@ -974,6 +976,7 @@ bool wholeBodyDynamicsThread::changeFixedLinkSimpleLeggedOdometry(const string& 
     }
     else
     {
+        yWarning() << "SIMPLE_LEGGED_ODOMETRY is disabled, changing fixed link failed";
         ok = false;
     }
     run_mutex.unlock();
@@ -1289,6 +1292,9 @@ void wholeBodyDynamicsThread::estimation_run()
 
     //Send external wrench estimates
     publishExternalWrenches();
+
+    //Compute odometry
+    runOdometry();
 
     //Send base information to iCubGui
     publishBaseToGui();

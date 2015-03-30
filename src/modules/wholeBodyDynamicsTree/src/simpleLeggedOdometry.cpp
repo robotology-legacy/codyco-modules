@@ -17,6 +17,8 @@
 
 #include "wholeBodyDynamicsTree/simpleLeggedOdometry.h"
 
+#include "kdl/frames_io.hpp"
+
 simpleLeggedOdometry::simpleLeggedOdometry():
     odometry_model(0),
     current_fixed_link_id(-1),
@@ -87,14 +89,13 @@ bool simpleLeggedOdometry::reset(const int initial_world_frame_position_index, c
 
 bool simpleLeggedOdometry::changeFixedLink(const std::string& new_fixed_link_name)
 {
-    KDL::CoDyCo::LinkMap::const_iterator link_it = odometry_model->getKDLUndirectedTree().getLink(new_fixed_link_name);
+    int new_fixed_link_id = odometry_model->getLinkIndex(new_fixed_link_name);
 
-    if( link_it ==  odometry_model->getKDLUndirectedTree().getInvalidLinkIterator() )
+    if( new_fixed_link_id < 0 )
     {
         return false;
     }
 
-    int new_fixed_link_id = link_it->getLinkIndex();
     return changeFixedLink(new_fixed_link_id);
 }
 
@@ -105,6 +106,7 @@ bool simpleLeggedOdometry::changeFixedLink(const int& new_fixed_link_id)
     KDL::Frame world_H_old_fixed = this->world_H_fixed;
     KDL::Frame old_fixed_H_new_fixed = odometry_model->getPositionKDL(old_fixed_link_id,new_fixed_link_id);
     this->world_H_fixed = world_H_old_fixed*old_fixed_H_new_fixed;
+    this->current_fixed_link_id = new_fixed_link_id;
     return true;
 }
 
