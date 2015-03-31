@@ -63,14 +63,16 @@ namespace codyco {
 
         bool TorqueBalancingModule::configure(yarp::os::ResourceFinder& rf)
         {
+            using namespace yarp::os;
+
             //Loading joints information
             yarp::os::Property wbiProperties;
-            if (!rf.check("wbi_config_file")) {
+            if (!rf.check("wbi_config_file", "Checking wbi configuration file")) {
                 yError("No WBI configuration file found.");
                 return false;
             }
 
-            if (!rf.check("wbi_joint_list")) {
+            if (!rf.check("wbi_joint_list", "Checking wbi joint list name")) {
                 yError("No joint list found. Please specify a joint list in \"wbi_joint_list\"");
                 return false;
             }
@@ -92,7 +94,13 @@ namespace codyco {
             
             m_initialJointsConfiguration.resize(actuatedDOFs);
             m_impedanceDoubleSupportReference.resize(actuatedDOFs);
-            
+
+            //Load configuration-time parameters
+            m_moduleName = rf.check("name", Value("torqueBalancing"), "Looking for module name").asString();
+            m_robotName = rf.check("robot", Value("icub"), "Looking for robot name").asString();
+            m_controllerThreadPeriod = rf.check("period", Value(10), "Looking for controller period").asInt();
+            double dynamicsSmoothing = rf.check("dynSmooth", Value(1.0), "Looking for dynamics smoothing transition time ").asDouble();
+
             //PARAMETERS SECTION
             //Creating parameter server helper
             //link controller and references variables to param helper manager
@@ -102,14 +110,15 @@ namespace codyco {
                 return false;
             }
             //END PARAMETER SECTION
+            setName(m_moduleName.c_str());
 
             m_rpcPort = new yarp::os::Port();
             if (!m_rpcPort
-                || !m_rpcPort->open(("/" + m_moduleName + "/rpc").c_str())) {
+                || !m_rpcPort->open(("/" + getName("/rpc")).c_str())) {
                 yError("Could not open RPC port: /%s/rpc", m_moduleName.c_str());
                 return false;
             }
-            setName(m_moduleName.c_str());
+
             attach(*m_rpcPort);
 
             //Create reference variable
@@ -120,12 +129,12 @@ namespace codyco {
             }
 
             //Setup streaming
-            if (!m_references->desiredCOM().setUpReaderThread(("/" + m_moduleName + "/com:i"))) {
+            if (!m_references->desiredCOM().setUpReaderThread(("/" + getName("/com:i")))) {
                 yError("CoM streaming port failed to start.");
                 return false;
             }
             m_references->desiredCOM().addDelegate(this);
-            if (!m_references->desiredJointsPosition().setUpReaderThread(("/" + m_moduleName + "/qdes:i"))) {
+            if (!m_references->desiredJointsPosition().setUpReaderThread(("/" + getName("/qdes:i")))) {
                 yError("QDes streaming port failed to start.");
                 return false;
             }
@@ -293,7 +302,7 @@ namespace codyco {
                 }
             }
 
-            m_controller = new TorqueBalancingController(m_controllerThreadPeriod, *m_references, *m_robot, actuatedDOFs);
+            m_controller = new TorqueBalancingController(m_controllerThreadPeriod, *m_references, *m_robot, actuatedDOFs, dynamicsSmoothing);
             if (!m_controller) {
                 yError("Could not create TorqueBalancing controller object.");
                 return false;
@@ -434,7 +443,7 @@ namespace codyco {
             } else return;
         }
 
-        void TorqueBalancingModule::controllerDidStop(ControllerDelegate& controller)
+        void TorqueBalancingModule::controllerDidStop(TorqueBalancingController& controller)
         {
             setControllersActiveState(false);
         }
@@ -610,17 +619,6 @@ namespace codyco {
                                                                  TorqueBalancingModuleCommandDescriptions,
                                                                  TorqueBalancingModuleCommandSize);
             if (!m_parameterServer) {
-                return false;
-            }
-
-            bool linkedVariable = true;
-            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterModuleName, &m_module.m_moduleName);
-            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterRobotName, &m_module.m_robotName);
-            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterControllerPeriod, &m_module.m_controllerThreadPeriod);
-            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterForcesSmoothingDuration, &m_module.m_forcesSmootherDuration);
-            linkedVariable = linkedVariable && m_parameterServer->linkParam(TorqueBalancingModuleParameterJointsSmoothingDuration, &m_module.m_jointsSmootherDuration);
-
-            if (!linkedVariable) {
                 return false;
             }
 

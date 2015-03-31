@@ -110,7 +110,7 @@ namespace codyco {
 
             //Delegate method
             virtual void referenceDidChangeValue(const Reference&);
-            virtual void controllerDidStop(ControllerDelegate&);
+            virtual void controllerDidStop(TorqueBalancingController&);
 
         private:
             class ParamHelperManager;

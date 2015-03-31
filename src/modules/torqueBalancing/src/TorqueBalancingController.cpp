@@ -38,10 +38,11 @@ namespace codyco {
         void ControllerDelegate::controllerDidStart(TorqueBalancingController& controller) {}
         void ControllerDelegate::controllerDidStop(TorqueBalancingController& controller) {}
 
-        TorqueBalancingController::TorqueBalancingController(int period, ControllerReferences& references, wbi::wholeBodyInterface& robot, int actuatedDOFs)
+        TorqueBalancingController::TorqueBalancingController(int period, ControllerReferences& references, wbi::wholeBodyInterface& robot, int actuatedDOFs, double dynamicSmoothingTime)
         : RateThread(period)
         , m_robot(robot)
         , m_actuatedDOFs(actuatedDOFs)
+        , m_dynamicsTransitionTime(dynamicSmoothingTime)
         , m_delegate(0)
         , m_active(false)
         , m_centerOfMassLinkID(wbi::wholeBodyInterface::COM_LINK_ID)

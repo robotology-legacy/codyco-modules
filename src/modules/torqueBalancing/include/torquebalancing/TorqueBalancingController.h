@@ -50,7 +50,14 @@ namespace codyco {
         class TorqueBalancingController: public yarp::os::RateThread
         {
         public:
-            TorqueBalancingController(int period, ControllerReferences& references, wbi::wholeBodyInterface& robot, int actuatedDOFs);
+            /** Constructor
+             * @param period thread period in milliseconds
+             * @param references Data structure containing the references to be read at each run loop
+             * @param robot reference to the robot interface
+             * @param actuatedDoFs number of joint actuated (dimension of output torques)
+             * @param dynamicSmoothingTime duration (in seconds) of contact or dynamics change smoothing. Default 1.0
+             */
+            TorqueBalancingController(int period, ControllerReferences& references, wbi::wholeBodyInterface& robot, int actuatedDoFs, double dynamicSmoothingTime = 1.0);
             virtual ~TorqueBalancingController();
             
 #pragma mark - RateThread methods
@@ -101,14 +108,19 @@ namespace codyco {
              * @return the saturation limits
              */
             const Eigen::VectorXd& torqueSaturationLimit();
-            
+
+            /** Sets the current delegate. NULL to unset it
+             * 
+             * @param delegate the new delegate or NULL to unset it
+             */
+            void setDelegate(ControllerDelegate *delegate);
+
 #pragma mark - Monitorable variables
             
             const Eigen::VectorXd& desiredFeetForces();
             
             const Eigen::VectorXd& outputTorques();
 
-            void setDelegate(ControllerDelegate *delegate);
             
         private:
             void readReferences();
@@ -120,6 +132,7 @@ namespace codyco {
             
             wbi::wholeBodyInterface& m_robot;
             int m_actuatedDOFs;
+            double m_dynamicsTransitionTime;
             wbi::Frame m_world2BaseFrame;
             wbi::Frame m_leftFootToBaseRotationFrame;
 
