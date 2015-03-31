@@ -7,14 +7,4 @@ add_subdirectory(modules)
 add_subdirectory(devices)
 add_subdirectory(misc/ftDumper)
 add_subdirectory(misc/reachRandomJointPositions)
-
 add_subdirectory(tests)
-
-
-if (ICUB_USE_XDE)
-     add_subdirectory(reachComBalance)
-     add_subdirectory(tests/ISIRControllerYarpTest)
-     message(STATUS "ISIR modules with XDE: YES")
-else (ICUB_USE_XDE)
-     message(STATUS "ISIR modules with XDE: NO")
-endif (ICUB_USE_XDE)

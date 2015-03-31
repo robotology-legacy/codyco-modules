@@ -71,9 +71,7 @@ mark_as_advanced(LIBRARY_OUTPUT_PATH)
 ### enable testing
 option(CODYCO_DASHBOARD_SUBMIT "Submit compile tests to cdash" FALSE)
 option(CODYCO_BUILD_TESTS "Compile tests" FALSE)
-option(ICUB_USE_XDE "Experimental ISIR modules based on XDE" FALSE)
 option(CODYCO_USES_WBI_TOOLBOX "Whole Body Interface Toolbox - Simulink library" FALSE)
-option(ICUBWBI_USE_EXTERNAL_TORQUE_CONTROL "Compile yarpwholebodyinterface to use JTC external torque control" FALSE)
 
 if (CODYCO_DASHBOARD_SUBMIT OR CODYCO_BUILD_TESTS)
    include (CTest)
