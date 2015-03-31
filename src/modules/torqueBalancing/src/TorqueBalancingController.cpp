@@ -16,27 +16,33 @@
 
 #include "TorqueBalancingController.h"
 #include "Reference.h"
+#include "DynamicConstraint.h"
+
 #include <wbi/wholeBodyInterface.h>
 #include <wbi/wbiUtil.h>
 #include <codyco/MathUtils.h>
 #include <codyco/LockGuard.h>
 #include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
-
 #include <yarp/os/LogStream.h>
 #include <codyco/Utils.h>
+#include <iCub/ctrl/minJerkCtrl.h>
+
 #include <iostream>
 #include <limits>
 
 #include <Eigen/LU>
 
+#define TORQUEBALANCING_STATEACTIVE_THRESHOLD 0.05
 
 namespace codyco {
     namespace torquebalancing {
 
-        //Delegate part
+#pragma mark - Delegate classes definitions
         ControllerDelegate::~ControllerDelegate() {}
         void ControllerDelegate::controllerDidStart(TorqueBalancingController& controller) {}
         void ControllerDelegate::controllerDidStop(TorqueBalancingController& controller) {}
+
+#pragma mark - Torque Balancing Controller Implementation
 
         TorqueBalancingController::TorqueBalancingController(int period, ControllerReferences& references, wbi::wholeBodyInterface& robot, int actuatedDOFs, double dynamicSmoothingTime)
         : RateThread(period)
@@ -89,7 +95,7 @@ namespace codyco {
         , m_esaZeroVector(6)
         , m_jacobianTemporary(6, actuatedDOFs + 6)
         , m_dJacobiaDqTemporary(6) {}
-        
+
         TorqueBalancingController::~TorqueBalancingController() {}
 
 #pragma mark - RateThread methods
@@ -102,11 +108,11 @@ namespace codyco {
             linkFound = linkFound && m_robot.getFrameList().idToIndex("r_sole", m_rightFootLinkID);
             linkFound = linkFound && m_robot.getFrameList().idToIndex("l_gripper", m_leftHandLinkID);
             linkFound = linkFound && m_robot.getFrameList().idToIndex("r_gripper", m_rightHandLinkID);
-            
+
             m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
                                                             0, -1, 0,
                                                             1, 0, 0);
-            
+
             //centroidal force matrix
             m_centroidalForceMatrix.setZero();
             m_centroidalForceMatrix.block<3, 3>(0, 0) = Matrix3d::Identity();
@@ -117,14 +123,14 @@ namespace codyco {
             m_gravityForce.setZero();
             m_gravityUnitVector[0] = m_gravityUnitVector[1] = 0;
             m_gravityUnitVector[2] = -9.81;
-            
+
             m_torquesSelector.setZero();
             m_torquesSelector.bottomRows(m_actuatedDOFs).setIdentity();
-            
+
             m_jointsZeroVector.setZero();
             m_esaZeroVector.setZero();
             m_torqueSaturationLimit.setConstant(std::numeric_limits<double>::max());
-            
+
             //reset status to zero
             m_jointPositions.setZero();
             m_jointVelocities.setZero();
@@ -138,12 +144,12 @@ namespace codyco {
             m_gravityBiasTorques.setZero();
             m_centroidalMomentum.setZero();
             m_massMatrix.setZero();
-            
+
             m_desiredJointsConfiguration.setZero();
-            
+
             //zeroing gains
             m_impedanceGains.setZero();
-           
+
             //zeroing monitored variables
             m_desiredFeetForces.setZero();
             m_desiredHandsForces.setZero();
@@ -164,25 +170,36 @@ namespace codyco {
             } while(!result && count >0);
 
             std::cout << "Initial read = " << result << "-" << count << "\n" << m_jointPositions.transpose() << "\n";
+
+            //initializing contact list.
+            DynamicConstraint leftFoot, rightFoot;
+            result = result && leftFoot.init(true, getRate() / 1000.0, m_dynamicsTransitionTime);
+            result = result && rightFoot.init(true, getRate() / 1000.0, m_dynamicsTransitionTime);
+
+            m_activeConstraints.insert(ConstraintsMap::value_type("l_sole", leftFoot));
+            m_activeConstraints.insert(ConstraintsMap::value_type("r_sole", rightFoot));
+
+            result = result && m_activeConstraints.size() == 2;
+
             return linkFound && result;
         }
-        
+
         void TorqueBalancingController::threadRelease()
         {
-            
+
         }
-        
+
         void TorqueBalancingController::run()
         {
             codyco::LockGuard guard(m_mutex);
             if (!m_active) return;
-            
+
             //read references
             readReferences();
 
             //Check limits
             if (!checkJointLimits()) {
-                yInfo() << "Deactivating control";
+                yInfo() << "Joint limits reached. Deactivating control";
                 m_robot.setControlMode(wbi::CTRL_MODE_POS);
                 m_active = false;
                 if (m_delegate) m_delegate->controllerDidStop(*this);
@@ -190,44 +207,50 @@ namespace codyco {
             }
 
             //read / update state
-            updateRobotState();
-            
+            if (!updateRobotState()) {
+                yInfo() << "Failed to update state. Deactivating control";
+                m_robot.setControlMode(wbi::CTRL_MODE_POS);
+                m_active = false;
+                if (m_delegate) m_delegate->controllerDidStop(*this);
+                return;
+            }
+
             //compute desired feet forces
             computeContactForces(m_desiredCOMAcceleration, m_desiredContactForces);
-            
+
             //compute torques
             computeTorques(m_desiredContactForces, m_torques);
-            
+
             //write torques
             writeTorques();
         }
-        
+
 #pragma mark - Getter and setter
-        
+
         double TorqueBalancingController::centroidalMomentumGain()
         {
             codyco::LockGuard guard(m_mutex);
             return m_centroidalMomentumGain;
         }
-        
+
         void TorqueBalancingController::setCentroidalMomentumGain(double centroidalMomentumGain)
         {
             codyco::LockGuard guard(m_mutex);
             m_centroidalMomentumGain = centroidalMomentumGain;
         }
-        
+
         const Eigen::VectorXd& TorqueBalancingController::impedanceGains()
         {
             codyco::LockGuard guard(m_mutex);
             return m_impedanceGains;
         }
-        
+
         void TorqueBalancingController::setImpedanceGains(Eigen::VectorXd& impedanceGains)
         {
             codyco::LockGuard guard(m_mutex);
             m_impedanceGains = impedanceGains;
         }
-        
+
         void TorqueBalancingController::setActiveState(bool isActive)
         {
             if (m_active == isActive) return;
@@ -242,13 +265,13 @@ namespace codyco {
             }
             m_active = isActive;
         }
-        
+
         bool TorqueBalancingController::isActiveState()
         {
             codyco::LockGuard guard(m_mutex);
             return m_active;
         }
-        
+
         void TorqueBalancingController::setTorqueSaturationLimit(Eigen::VectorXd& newSaturation)
         {
             codyco::LockGuard guard(m_mutex);
@@ -266,23 +289,50 @@ namespace codyco {
             codyco::LockGuard guard(m_mutex);
             this->m_delegate = delegate;
         }
-        
+
+        bool TorqueBalancingController::addDynamicConstraint(std::string frameName)
+        {
+            //For now full jacobians are not written in an "iterative" way.
+            //just hardcode all the possible scenarios. (as in MATLAB version)
+            //This must be changed in the future
+            //            ConstraintsMap::iterator found = m_activeConstraints.find(frameName);
+            //            if (found != m_activeConstraints.end()) return false;
+            //            DynamicContraint constraint(frameName);
+            //            constraint.createMemory();
+            //            m_activeConstraints.insert(ConstraintsMap::value_type(frameName, constraint));
+
+            ConstraintsMap::iterator found = m_activeConstraints.find(frameName);
+            if (found == m_activeConstraints.end()) return false;
+            found->second.activate();
+
+            return true;
+        }
+
+        bool TorqueBalancingController::removeDynamicConstraint(std::string frameName)
+        {
+            ConstraintsMap::iterator found = m_activeConstraints.find(frameName);
+            if (found == m_activeConstraints.end()) return false;
+            found->second.deactivate();
+
+            return true;
+        }
+
 #pragma mark - Monitorable variables
-            
+
         const Eigen::VectorXd& TorqueBalancingController::desiredFeetForces()
         {
             codyco::LockGuard guard(m_mutex);
             return m_desiredFeetForces;
         }
-        
+
         const Eigen::VectorXd& TorqueBalancingController::outputTorques()
         {
             codyco::LockGuard guard(m_mutex);
             return m_torques;
         }
-            
+
 #pragma mark - Controller methods
-        
+
         void TorqueBalancingController::readReferences()
         {
             if (m_references.desiredCOMAcceleration().isValid())
@@ -303,46 +353,67 @@ namespace codyco {
             }
             return true;
         }
-        
+
         bool TorqueBalancingController::updateRobotState()
         {
             codyco::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(&m_robot)->getInterfaceMutex());
             //read positions and velocities
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointPositions.data());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointVelocities.data());
-            
+
             //update world to base frame
+            //TODO: move this to wbi
             m_robot.computeH(m_jointPositions.data(), wbi::Frame(), m_leftFootLinkID, m_world2BaseFrame);
             m_world2BaseFrame = m_world2BaseFrame * m_leftFootToBaseRotationFrame;
             m_world2BaseFrame.setToInverse();
-            
+
             //update jacobians (both feet in one variable)
+            ConstraintsMap::iterator leftFootConstraint = m_activeConstraints.find("l_sole");
+            ConstraintsMap::iterator rightFootConstraint = m_activeConstraints.find("r_sole");
+            if (leftFootConstraint == m_activeConstraints.end()
+                || rightFootConstraint == m_activeConstraints.end()) return false;
+
+            leftFootConstraint->second.updateStateInterpolation();
+            rightFootConstraint->second.updateStateInterpolation();
+
             m_contactsJacobian.setZero();
-            m_jacobianTemporary.setZero();
-            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_jacobianTemporary.data());
-            m_contactsJacobian.topRows(6) = m_jacobianTemporary;
-            m_jacobianTemporary.setZero();
-            m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_jacobianTemporary.data());
-            m_contactsJacobian.bottomRows(6) = m_jacobianTemporary;
-            
+            if (leftFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
+                m_jacobianTemporary.setZero();
+                m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_jacobianTemporary.data());
+                m_jacobianTemporary *= leftFootConstraint->second.continuousValue();
+                m_contactsJacobian.topRows(6) = m_jacobianTemporary;
+            }
+            if (rightFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
+                m_jacobianTemporary.setZero();
+                m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_jacobianTemporary.data());
+                m_jacobianTemporary *= rightFootConstraint->second.continuousValue();
+                m_contactsJacobian.bottomRows(6) = m_jacobianTemporary;
+            }
+
             //update kinematic quantities
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_centerOfMassLinkID, m_rotoTranslationVector.data());
             m_centerOfMassPosition = m_rotoTranslationVector.head<3>();
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_leftFootPosition.data());
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_rightFootPosition.data());
-            
+
             //update base velocity (to be moved in wbi state)
             math::pseudoInverse(m_contactsJacobian.topLeftCorner<12, 6>(), m_svdDecompositionOfJcBase,
                                 m_pseudoInverseOfJcBase, PseudoInverseTolerance);
             m_baseVelocity = -m_pseudoInverseOfJcBase * m_contactsJacobian.topRightCorner(12, m_actuatedDOFs) * m_jointVelocities;
-            
+
             //update dynamic quantities
             m_robot.computeMassMatrix(m_jointPositions.data(), m_world2BaseFrame, m_massMatrix.data());
             m_robot.computeCentroidalMomentum(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_centroidalMomentum.data());
 
             m_contactsDJacobianDq.setZero();
-            m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_leftFootLinkID, m_contactsDJacobianDq.head(6).data());
-            m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_rightFootLinkID, m_contactsDJacobianDq.tail(6).data());
+            if (leftFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
+                m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_leftFootLinkID, m_contactsDJacobianDq.head(6).data());
+                m_contactsDJacobianDq.head(6) *= leftFootConstraint->second.continuousValue();
+            }
+            if (rightFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
+                m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_rightFootLinkID, m_contactsDJacobianDq.tail(6).data());
+                m_contactsDJacobianDq *= rightFootConstraint->second.continuousValue();
+            }
 
             //Compute bias forces
             m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_gravityUnitVector, m_generalizedBiasForces.data());
@@ -350,16 +421,36 @@ namespace codyco {
 
             return true;
         }
-        
+
         void TorqueBalancingController::computeContactForces(const Eigen::Ref<Eigen::MatrixXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::MatrixXd> desiredContactForces)
         {
             using namespace Eigen;
             double mass = m_massMatrix(0, 0);
             m_gravityForce(2) = -mass * 9.81;
 
+            ConstraintsMap::const_iterator leftFootConstraint = m_activeConstraints.find("l_sole");
+            ConstraintsMap::const_iterator rightFootConstraint = m_activeConstraints.find("r_sole");
+
             //building centroidalForceMatrix
-            math::skewSymmentricMatrixFrom3DVector(m_leftFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 0));
-            math::skewSymmentricMatrixFrom3DVector(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 6));
+            bool leftConstraintIsActive = false;
+            bool rightConstraintIsActive = false;
+
+            m_centroidalForceMatrix.setZero();
+            if (leftFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
+                leftConstraintIsActive = true;
+                m_centroidalForceMatrix.block<3, 3>(0, 0) = Matrix3d::Identity();
+                m_centroidalForceMatrix.block<3, 3>(3, 3) = Matrix3d::Identity();
+                math::skewSymmentricMatrixFrom3DVector(m_leftFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 0));
+                m_centroidalForceMatrix.leftCols(6) *= leftFootConstraint->second.continuousValue();
+            }
+
+            if (rightFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
+                rightConstraintIsActive = true;
+                m_centroidalForceMatrix.block<3, 3>(0, 6) = Matrix3d::Identity();
+                m_centroidalForceMatrix.block<3, 3>(3, 9) = Matrix3d::Identity();
+                math::skewSymmentricMatrixFrom3DVector(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 6));
+                m_centroidalForceMatrix.rightCols(6) *= rightFootConstraint->second.continuousValue();
+            }
 
             m_desiredCentroidalMomentum.head<3>() = mass * desiredCOMAcceleration;
             m_desiredCentroidalMomentum.tail<3>() = -m_centroidalMomentumGain * m_centroidalMomentum.tail<3>();
@@ -367,22 +458,27 @@ namespace codyco {
             //Eigen 3.3 will allow to set a threashold directly on the decomposition
             //thus allowing the method solve to work "properly".
             //Becaues it is not stable yet we use the explicit computation of the SVD
-//            m_svdDecompositionOfCentroidalForceMatrix.compute(m_centroidalForceMatrix).solve(m_desiredCentroidalMomentum - m_gravityForce);
-            
-            math::pseudoInverse(m_centroidalForceMatrix, m_svdDecompositionOfCentroidalForceMatrix,
-                                m_pseudoInverseOfCentroidalForceMatrix, PseudoInverseTolerance);
-            
-            m_desiredFeetForces = m_pseudoInverseOfCentroidalForceMatrix * (m_desiredCentroidalMomentum
-                                                                            - m_gravityForce
-                                                                            - m_desiredHandsForces.head(6) - m_desiredHandsForces.tail(6));
+            //            m_svdDecompositionOfCentroidalForceMatrix.compute(m_centroidalForceMatrix).solve(m_desiredCentroidalMomentum - m_gravityForce);
+            if (leftConstraintIsActive ^ rightConstraintIsActive) {
+                //substitute the pseudoinverse with its inverse
+                m_desiredFeetForces = m_centroidalForceMatrix.block<6, 6>(0, leftConstraintIsActive ? 0 : 6).partialPivLu().solve(m_desiredCentroidalMomentum
+                                                - m_gravityForce);
 
+            } else {
+                math::pseudoInverse(m_centroidalForceMatrix, m_svdDecompositionOfCentroidalForceMatrix,
+                                    m_pseudoInverseOfCentroidalForceMatrix, PseudoInverseTolerance);
+                m_desiredFeetForces = m_pseudoInverseOfCentroidalForceMatrix * (m_desiredCentroidalMomentum
+                                                                                - m_gravityForce
+                                                                                - m_desiredHandsForces.head(6) - m_desiredHandsForces.tail(6));
+
+            }
             desiredContactForces = m_desiredFeetForces;
         }
-        
+
         void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::VectorXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques)
         {
             using namespace Eigen;
-            
+
             //TODO: decide later if there is a performance benefit in moving the declaration of the variables in the class (or if this becomes a "new" at runtime)
             //Names are taken from "math" from brevity
             MatrixXd JcMInv = m_contactsJacobian * m_massMatrix.inverse(); //to become instance (?)
@@ -393,24 +489,24 @@ namespace codyco {
             math::pseudoInverse(JcMInvTorqueSelector, m_svdDecompositionOfJcMInvSt,
                                 m_pseudoInverseOfJcMInvSt, PseudoInverseTolerance);
             MatrixXd JcNullSpaceProjector = MatrixXd::Identity(m_actuatedDOFs, m_actuatedDOFs) - m_pseudoInverseOfJcMInvSt * JcMInvTorqueSelector;
-                        
+
             MatrixXd mult_f_tau0 =  jointProjectedBaseAccelerations * m_contactsJacobian.leftCols(6).transpose() - m_contactsJacobian.rightCols(m_actuatedDOFs).transpose();
-            
+
             VectorXd  torques0 =  m_gravityBiasTorques.tail(m_actuatedDOFs) - m_impedanceGains.asDiagonal() * (m_jointPositions - m_desiredJointsConfiguration) - jointProjectedBaseAccelerations * m_generalizedBiasForces.head<6>();
-            
+
             MatrixXd mult_f_tau = -m_pseudoInverseOfJcMInvSt * JcMInvJct + JcNullSpaceProjector * mult_f_tau0;
-            
+
             VectorXd n_tau = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_contactsDJacobianDq) + JcNullSpaceProjector * torques0;
 
             MatrixXd forceMatrixNullSpaceProjector = MatrixXd::Identity(12, 12) - m_pseudoInverseOfCentroidalForceMatrix * m_centroidalForceMatrix;
 
             MatrixXd mat = mult_f_tau * forceMatrixNullSpaceProjector;
-            
+
             math::pseudoInverse(mult_f_tau * forceMatrixNullSpaceProjector, m_svdDecompositionOfTauN0_f,m_pseudoInverseOfTauN0_f, PseudoInverseTolerance);
 
             torques = (MatrixXd::Identity(n_tau.size(), n_tau.size()) -mult_f_tau * forceMatrixNullSpaceProjector * m_pseudoInverseOfTauN0_f) * (n_tau + mult_f_tau * desiredContactForces);
 
-                       
+
             //apply saturation
             //TODO: this must be checked: valgrind says it contains a jump on an unitialized variable
             //TODO: check isinf or isnan
