@@ -23,6 +23,21 @@ struct DynamicConstraintPrivate {
             transitionSmoother = 0;
         }
     }
+
+    DynamicConstraintPrivate *clone() {
+        DynamicConstraintPrivate *newObject = new DynamicConstraintPrivate();
+        if (newObject) {
+            newObject->active = this->active;
+            newObject->transitionSmoother = 0;
+            if (this->transitionSmoother) {
+                newObject->transitionSmoother = new iCub::ctrl::minJerkTrajGen(1, this->transitionSmoother->getT(), this->transitionSmoother->getTs());
+                *newObject->transitionSmoother = *this->transitionSmoother;
+            }
+            newObject->innerValue = this->innerValue;
+            newObject->lastComputedValue = this->lastComputedValue;
+        }
+        return newObject;
+    }
 };
 
 DynamicConstraint::DynamicConstraint()
@@ -36,6 +51,31 @@ DynamicConstraint::~DynamicConstraint()
         delete privateData;
         m_implementation = 0;
     }
+}
+
+DynamicConstraint::DynamicConstraint(const DynamicConstraint &other)
+: m_implementation(0)
+{
+    DynamicConstraintPrivate* otherData = static_cast<DynamicConstraintPrivate*>(other.m_implementation);
+    if (otherData) {
+        m_implementation = otherData->clone();
+    }
+}
+
+DynamicConstraint& DynamicConstraint::operator=(const DynamicConstraint &other)
+{
+    if (this != &other) {
+        DynamicConstraintPrivate* otherData = static_cast<DynamicConstraintPrivate*>(other.m_implementation);
+        DynamicConstraintPrivate* privateData = static_cast<DynamicConstraintPrivate*>(m_implementation);
+        if (privateData) {
+            delete privateData;
+        }
+        m_implementation = 0;
+        if (otherData) {
+            m_implementation = otherData->clone();
+        }
+    }
+    return *this;
 }
 
 bool DynamicConstraint::init(bool isConstraintActiveAtInit, double timeStep, double transitionTime)

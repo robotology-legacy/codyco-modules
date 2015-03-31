@@ -158,6 +158,10 @@ namespace codyco {
             int m_actuatedDOFs;
             double m_dynamicsTransitionTime;
             wbi::Frame m_world2BaseFrame;
+            //FIXME: TEMP
+            Eigen::VectorXd m_baseVelocityWBI;
+            wbi::Frame m_world2BaseFrameWBI;
+            Eigen::VectorXd m_world2BaseFrameWBISerialization;
             wbi::Frame m_leftFootToBaseRotationFrame;
 
             ControllerDelegate *m_delegate;

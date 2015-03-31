@@ -32,6 +32,9 @@ namespace codyco {
         public:
             DynamicConstraint();
             ~DynamicConstraint();
+            DynamicConstraint(const DynamicConstraint&);
+            DynamicConstraint& operator=(const DynamicConstraint&);
+
             bool init(bool isConstraintActiveAtInit, double timeStep, double transitionTime);
 
             bool isActive() const;

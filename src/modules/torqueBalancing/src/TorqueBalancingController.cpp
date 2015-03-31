@@ -67,6 +67,8 @@ namespace codyco {
         , m_jointVelocities(actuatedDOFs)
         , m_torques(actuatedDOFs)
         , m_baseVelocity(6)
+        , m_baseVelocityWBI(6)
+        , m_world2BaseFrameWBISerialization(9 + 3)
         , m_centerOfMassPosition(3)
         , m_rightFootPosition(7)
         , m_leftFootPosition(7)
@@ -168,8 +170,6 @@ namespace codyco {
                 result = m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointPositions.data());
                 count--;
             } while(!result && count >0);
-
-            std::cout << "Initial read = " << result << "-" << count << "\n" << m_jointPositions.transpose() << "\n";
 
             //initializing contact list.
             DynamicConstraint leftFoot, rightFoot;
@@ -347,7 +347,7 @@ namespace codyco {
             for (int i = 0; i < m_jointPositions.size(); i++) {
                 if (m_jointPositions(i) < m_minJointLimits(i) ||
                     m_jointPositions(i) > m_maxJointLimits(i)) {
-                    yInfo("Joint %d is outside limit [%lf-%lf is %lf]. Stop control", i, m_minJointLimits(i), m_maxJointLimits(i), m_jointPositions(i));
+                    yInfo("Joint %d is outside limit [%lf,%lf is %lf]. Stop control", i, m_minJointLimits(i), m_maxJointLimits(i), m_jointPositions(i));
                     return false;
                 }
             }
@@ -366,6 +366,15 @@ namespace codyco {
             m_robot.computeH(m_jointPositions.data(), wbi::Frame(), m_leftFootLinkID, m_world2BaseFrame);
             m_world2BaseFrame = m_world2BaseFrame * m_leftFootToBaseRotationFrame;
             m_world2BaseFrame.setToInverse();
+
+            m_robot.getEstimates(wbi::ESTIMATE_BASE_POS, m_world2BaseFrameWBISerialization.data());
+            for (int i = 0; i < 3; i++) {
+                m_world2BaseFrameWBI.p[i] = m_world2BaseFrameWBISerialization(i);
+            }
+            for (int i = 0; i < 9; i++) {
+                m_world2BaseFrameWBI.R.data[i] = m_world2BaseFrameWBISerialization(i + 3);
+            }
+            m_robot.getEstimates(wbi::ESTIMATE_BASE_VEL, m_baseVelocityWBI.data());
 
             //update jacobians (both feet in one variable)
             ConstraintsMap::iterator leftFootConstraint = m_activeConstraints.find("l_sole");
