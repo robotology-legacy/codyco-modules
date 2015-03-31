@@ -29,7 +29,7 @@ function gas_activeContacts(port,activeContacts)
    local bot = port:prepare();
    bot:clear()
    bot:addString("activeContacts")
-   for i = 1,` do
+   for i = 1,#activeContacts do
        bot:addString(activeContacts[i])
    end
    port:write()
@@ -53,7 +53,7 @@ end
 --- Send string to a port (useful for non-blocking RPC)
 --
 --
-function gas_sendStringToRPC(port,string)
+function gas_sendStringToPort(port,string)
    local bot = port:prepare();
    bot:clear()
    bot:addString(string)
@@ -63,7 +63,7 @@ end
 --- Send two strings to a port (useful for non-blocking RPC)
 --
 --
-function gas_sendStringsToRPC(port,string1,string2)
+function gas_sendStringsToPort(port,string1,string2)
    local bot = port:prepare();
    bot:clear()
    bot:addString(string1)

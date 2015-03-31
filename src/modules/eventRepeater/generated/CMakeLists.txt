@@ -13,7 +13,7 @@ foreach(scriptFile ${fileList})
   list(APPEND THRIFT_HEADERS ${headers})
   list(APPEND THRIFT_SOURCES ${sources})
 endforeach()
-message ("Thrift headers ${THRIFT_HEADERS}.\n Thirft sources: ${THRIFT_SOURCES}")
+
 set(generated_libs_include_dir ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE INTERNAL "Generated-files libraries include directory")
 include_directories(${generated_libs_include_dir} ${YARP_INCLUDE_DIRS})
 

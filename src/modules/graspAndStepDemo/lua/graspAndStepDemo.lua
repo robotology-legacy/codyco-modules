@@ -48,12 +48,8 @@ function yarp_gen_read_str_events(...)
             cmd = input_events:read(false)
             if( cmd == nil ) then
                 break
-            end
-            if( cmd:isString() ) then
-                tgttab[#tgttab+1] = cmd:asString()
-            end
-            if( cmd.isList() ) then
-                for i=0,cmd:size() then
+            else
+                for i=0,cmd:size() do
                     if( cmd:get(i):isString() ) then
                         tgttab[#tgttab+1] = cmd:get(i):asString()
                     end
@@ -76,9 +72,9 @@ end
 rfsm_timeevent.set_gettime_hook(yarp_gettime)
 
 -------
-function close_script()
+function gas_close_script()
     --- close ports
-    close_ports()
+    gas_close_ports()
 
     -- Deinitialize yarp network
     yarp.Network_fini()
@@ -92,7 +88,7 @@ function yarp_rf_find_double(rf,var_name)
         return var
     else
         print("[" .. script_name .. "] " .. var_name .." parameter not found, exiting")
-        close_script()
+        gas_close_script()
     end
 end
 
@@ -103,7 +99,7 @@ function yarp_rf_find_int(rf,var_name)
         return var
     else
         print("[" .. script_name .. "] " .. var_name .." parameter not found, exiting")
-        close_script()
+        gas_close_script()
     end
 end
 
@@ -114,7 +110,7 @@ function yarp_rf_find_string(rf,var_name)
         return var
     else
         print("[" .. script_name .. "] " .. var_name .." parameter not found, exiting")
-        close_script()
+        gas_close_script()
     end
 end
 
@@ -133,6 +129,8 @@ function gas_open_ports()
     -- input events port
     input_events = yarp.BufferedPortBottle()
     input_events:open("/".. script_name .."/events:i")
+    -- we don't want to loose any event
+    input_events:setStrict()
 
     -- Streaming port continuously broadcasting the state
     state_port = yarp.BufferedPortBottle()
@@ -154,10 +152,14 @@ function gas_open_ports()
     fixedLinkOdometry_port = yarp.BufferedPortBottle()
     fixedLinkOdometry_port:open("/".. script_name .. "/fixedLink");
 
+    -- Port for sending to iSpeak the current state
+    iSpeak_port = yarp.BufferedPortBottle()
+    iSpeak_port:open("/".. script_name .. "/speak");
+
 end
 
 function gas_close_port(port)
-    if(port)
+    if(port) then
         port:interrupt()
         port:close()
     end
@@ -171,6 +173,7 @@ function gas_close_ports()
     gas_close_port(graspingModule_rpc)
     gas_close_port(activeContacts_port)
     gas_close_port(fixedLinkOdometry_port)
+    gas_close_port(iSpeak_port)
 end
 
 function gas_loadconfiguration()
@@ -196,8 +199,20 @@ function gas_loadconfiguration()
     end
 
     fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
-    force_threshold   = yarp_rf_find_double(rf,"force_threshold")
+    --force_threshold   = yarp_rf_find_double(rf,"force_threshold")
 
+end
+
+function gas_dbg(event_fqn, state_fqn)
+    if( event_fqn == "STATE_ENTER" ) then
+        print("[" .. script_name .. "][" .. event_fqn .. "] entering state " .. state_fqn)
+        -- state_fqn : get last part and substitute underscore and dash with spaces
+        state_simple_name = string.match(state_fqn,".ST_[%w_]+$")
+        if( state_simple_name ) then
+            state_speak = state_simple_name:gsub(".ST_",""):gsub("-"," "):gsub("_"," ")
+            gas_sendStringToPort(iSpeak_port," entering state " .. state_speak)
+        end
+    end
 end
 
 -------
@@ -209,6 +224,9 @@ gas_loadconfiguration()
 -- open ports
 gas_open_ports()
 
+-- load helper functions
+dofile(rf:findFile("lua/gas_funcs.lua"))
+
 -- load main FSM
 fsm_file = rf:findFile("lua/fsm_graspAndStep.lua")
 
@@ -216,6 +234,14 @@ print("[" .. script_name .. "] loading rFSM state machine")
 -- load state machine model and initalize it
 fsm_model = rfsm.load(fsm_file)
 fsm = rfsm.init(fsm_model)
+
+-- configure script specific hooks
+
+-- dbg function, callet at each state enter/exit etc etc
+fsm.dbg = gas_dbg;
+
+-- getevents function, to read functions from a
+fsm.getevents = yarp_gen_read_str_events(input_events);
 
 print("[" .. script_name .. "] starting main loop")
 repeat
@@ -230,4 +256,4 @@ until shouldExit ~= false
 
 print("[" .. script_name .. "] finishing")
 
-close_script()
+gas_close_script()

@@ -61,6 +61,13 @@
       <nome>node</node>
   </module>
 
+  <!-- Adding iSpeak for audio debug of current state -->
+  <module>
+      <name>iSpeak</name>
+      <parameters></parameters>
+      <node>audio-node</node>
+  </module>
+
   <!-- Required connections -->
   <connection>
       <from>/icub/camcalib/left/out</from>
@@ -134,6 +141,13 @@
   <connection>
       <from>/redBallGrasp/events:o</from>
       <to>/graspAndStepDemo/events:i</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <!-- debug connection for audio debug of current state -->
+  <connection>
+      <from>/graspAndStepDemo/speak</from>
+      <to>/iSpeak</to>
       <protocol>tcp</protocol>
   </connection>
 

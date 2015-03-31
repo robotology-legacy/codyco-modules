@@ -4,19 +4,19 @@ return rfsm.state {
     -- state DOUBLESUPPORT_GRASPING                                                       --
     -- In this state the robot is standing on double support, and is graspin             --
     ---------------------------------------------------------------------------------------
-    ST_GRASPING = rfsm.load("fsm_grasping.lua");
+    ST_GRASPING = rfsm.load(rf:findFile("lua/fsm_grasping.lua")),
 
     ---------------------------------------------------------------------------------------
     -- state RIGHT_STEPPING                                                                    --
     -- In this state the robot is standing on double support                             --
     ---------------------------------------------------------------------------------------
-    ST_RIGHT_STEPPING = rfsm.load("fsm_right_step.lua"),
+    ST_RIGHT_STEPPING = rfsm.load(rf:findFile("lua/fsm_right_step.lua")),
 
     ---------------------------------------------------------------------------------------
     -- state LEFT_STEPPING                                                                    --
     -- In this state the robot is standing on double support                             --
     ---------------------------------------------------------------------------------------
-    ST_LEFT_STEPPING = rfsm.load("fsm_left_step.lua"),
+    ST_LEFT_STEPPING = rfsm.load(rf:findFile("lua/fsm_left_step.lua")),
 
     -- Initial transition
     rfsm.transition { src='initial', tgt='ST_GRASPING' },

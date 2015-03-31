@@ -20,5 +20,6 @@ add_subdirectory(walkPlayer)
 
 add_subdirectory(codycoCoordinatorDemoY1)
 add_subdirectory(codycoCoordinatorDemoY2)
+add_subdirectory(graspAndStepDemo)
 
 #add_subdirectory(wholeBodyNeckVelocity)

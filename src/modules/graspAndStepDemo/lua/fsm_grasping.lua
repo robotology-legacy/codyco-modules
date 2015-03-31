@@ -1,5 +1,5 @@
 
-return rfsm.state {
+fsm_grasping = rfsm.state {
     ---------------------------------------------------------------------------------------
     -- state GRASPING_ACTIVE                                                       --
     -- In this state the robot is standing on double support, and is grasping             --
@@ -41,7 +41,9 @@ return rfsm.state {
     rfsm.transition { src='ST_GRASPING_DISABLING_REQUESTED', tgt='ST_GRASPING_DISABLED',  events={ 'e_grasping_disabled' } },
 
     -- Timeout transitions
-    rfsm.transition { src='ST_GRASPING_ACTIVATION_REQUESTED', tgt='ST_GRASPING_DISABLED',  events={ 'e_after(5.0)','e_grasping_disabled' } },
-    rfsm.transition { src='ST_GRASPING_DISABLING_REQUESTED', tgt='ST_GRASPING_ACTIVE',  events={ 'e_after(5.0)','e_grasping_enabled' } },
+    -- rfsm.transition { src='ST_GRASPING_ACTIVATION_REQUESTED', tgt='ST_GRASPING_DISABLED',  events={ 'e_after(5.0)','e_grasping_disabled' } },
+    -- rfsm.transition { src='ST_GRASPING_DISABLING_REQUESTED', tgt='ST_GRASPING_ACTIVE',  events={ 'e_after(5.0)','e_grasping_enabled' } },
 
 }
+
+return fsm_grasping

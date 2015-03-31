@@ -1,5 +1,5 @@
 
-return rfsm.state {
+fsm_left_step = rfsm.state {
     ---------------------------------------------------------------------------------------
     -- state DOUBLESUPPORT_TRANSFER_WEIGHT_TO_RIGHT_FOOT                               --
     -- In this state the robot is standing on double support,                            --
@@ -9,7 +9,7 @@ return rfsm.state {
         -- set new com setpoint (for single support)
         entry=function()
             -- set the odometry fixed link to the right foot
-            gas_sendStringsToRPC(fixedLinkOdometry_port,"changeFixedLinkSimpleLeggedOdometry","r_foot");
+            gas_sendStringsToPort(fixedLinkOdometry_port,"changeFixedLinkSimpleLeggedOdometry","r_foot");
         end,
     },
 
@@ -41,9 +41,11 @@ return rfsm.state {
     rfsm.transition { src='initial', tgt='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_RIGHT_FOOT' },
 
     -- Sensor transitions
-    rfsm.transition { src='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_RIGHT_FOOT', tgt='ST_SINGLESUPPORT_SWING', events={ 'e_com_motion_done' } },
-    rfsm.transition { src='ST_SINGLESUPPORT_SWING', tgt='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_FROM_RIGHT_FOOT', events={ 'e_left_leg_swing_motiondone' } },
+    rfsm.transition { src='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_RIGHT_FOOT', tgt='ST_SINGLESUPPORT_LEFT_SWING', events={ 'e_com_motion_done' } },
+    rfsm.transition { src='ST_SINGLESUPPORT_LEFT_SWING', tgt='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_FROM_RIGHT_FOOT', events={ 'e_left_leg_swing_motiondone' } },
 
 
 }
+
+return fsm_left_step
 
