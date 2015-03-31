@@ -22,8 +22,11 @@
 #include <yarp/os/Mutex.h>
 #include <wbi/wbiUtil.h>
 
+
 #include <Eigen/Core>
 #include <Eigen/SVD>
+
+#include <map>
 
 namespace wbi {
     class wholeBodyInterface;
@@ -32,6 +35,7 @@ namespace wbi {
 
 namespace codyco {
     namespace torquebalancing {
+        class DynamicContraint;
 
         //Move this somewhere else (and make this more generic)
         class TorqueBalancingController;
@@ -115,6 +119,26 @@ namespace codyco {
              */
             void setDelegate(ControllerDelegate *delegate);
 
+            /** Adds an additional constraint to the dynamics equation
+             *
+             * Constraint is described at acceleration level, i.e.
+             * J_c \dot{\nu} + \dot{J}_c \nu = 0 ,
+             * where J_c is the jacobian of the frame 
+             * written in a frame defined as:
+             * - origin at the base frame
+             * - orientation to coincide with the world frame orientation
+             * @param frameName the name of the frame
+             * @return true if the constraint is successfully added
+             */
+            bool addDynamicConstraint(std::string frameName);
+
+            /** Removes a constraint from the dynamics equation
+             * \see TorqueBalancingController#addDynamicConstraint
+             * @param frameName the name of the frame
+             * @return true if the constraint is successfully removed
+             */
+            bool removeDynamicConstraint(std::string frameName);
+
 #pragma mark - Monitorable variables
             
             const Eigen::VectorXd& desiredFeetForces();
@@ -148,7 +172,10 @@ namespace codyco {
             int m_centerOfMassLinkID;
             int m_leftHandLinkID;
             int m_rightHandLinkID;
-            
+
+            typedef std::map<std::string, struct DynamicConstraint> ConstraintsMap;
+            ConstraintsMap m_activeConstraints;
+
             //References
             ControllerReferences& m_references;
             Eigen::VectorXd m_desiredJointsConfiguration; /*!< actuatedDOFs */

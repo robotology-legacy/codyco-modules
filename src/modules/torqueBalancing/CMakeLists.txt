@@ -31,7 +31,8 @@ set(HEADERS    ${HEADERS_FOLDER}/TorqueBalancingModule.h
                ${HEADERS_FOLDER}/Reference.h
                ${HEADERS_FOLDER}/MinimumJerkTrajectoryGenerator.h
                ${HEADERS_FOLDER}/config.h
-               ${HEADERS_FOLDER}/ParamHelperConfig.h)
+               ${HEADERS_FOLDER}/ParamHelperConfig.h
+               ${HEADERS_FOLDER}/DynamicConstraint.h)
 
 set(SOURCES    ${SRC_FOLDER}/TorqueBalancingModule.cpp
                ${SRC_FOLDER}/TorqueBalancingController.cpp
@@ -40,7 +41,8 @@ set(SOURCES    ${SRC_FOLDER}/TorqueBalancingModule.cpp
                ${SRC_FOLDER}/MinimumJerkTrajectoryGenerator.cpp
                ${SRC_FOLDER}/config.cpp
                ${SRC_FOLDER}/Reference.cpp
-               ${SRC_FOLDER}/main.cpp)
+               ${SRC_FOLDER}/main.cpp
+               ${SRC_FOLDER}/DynamicConstraint.cpp)
 
 source_group("Source Files" FILES ${SOURCES})
 source_group("Header Files" FILES ${HEADERS})
