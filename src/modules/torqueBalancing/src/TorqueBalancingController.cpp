@@ -59,10 +59,7 @@ namespace codyco {
         , m_desiredCOMAcceleration(3)
         , m_desiredFeetForces(12)
         , m_desiredCentroidalMomentum(6)
-        , m_desiredHandsForces(12)
         , m_desiredContactForces(6 * 2)
-        , m_leftHandForcesActive(false)
-        , m_rightHandForcesActive(false)
         , m_jointPositions(actuatedDOFs)
         , m_jointVelocities(actuatedDOFs)
         , m_torques(actuatedDOFs)
@@ -92,6 +89,7 @@ namespace codyco {
         , m_svdDecompositionOfJcBase(12, 6)
         , m_svdDecompositionOfCentroidalForceMatrix(6, 12)
         , m_svdDecompositionOfTauN0_f(actuatedDOFs, 12)
+        , m_luDecompositionOfCentroidalMatrix(6)
         , m_rotoTranslationVector(7)
         , m_jointsZeroVector(actuatedDOFs)
         , m_esaZeroVector(6)
@@ -108,8 +106,6 @@ namespace codyco {
             bool linkFound = true;
             linkFound = m_robot.getFrameList().idToIndex("l_sole", m_leftFootLinkID);
             linkFound = linkFound && m_robot.getFrameList().idToIndex("r_sole", m_rightFootLinkID);
-            linkFound = linkFound && m_robot.getFrameList().idToIndex("l_gripper", m_leftHandLinkID);
-            linkFound = linkFound && m_robot.getFrameList().idToIndex("r_gripper", m_rightHandLinkID);
 
             m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
                                                             0, -1, 0,
@@ -154,7 +150,6 @@ namespace codyco {
 
             //zeroing monitored variables
             m_desiredFeetForces.setZero();
-            m_desiredHandsForces.setZero();
             m_desiredContactForces.setZero();
             m_torques.setZero();
 
@@ -428,6 +423,23 @@ namespace codyco {
             m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_gravityUnitVector, m_generalizedBiasForces.data());
             m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_world2BaseFrame, m_jointsZeroVector.data(), m_esaZeroVector.data(), m_gravityUnitVector, m_gravityBiasTorques.data());
 
+
+
+            std::cerr << "Position error " <<
+            pow((m_world2BaseFrame.p[0] - m_world2BaseFrameWBI.p[0]), 2) +
+            pow((m_world2BaseFrame.p[1] - m_world2BaseFrameWBI.p[1]), 2) +
+            pow((m_world2BaseFrame.p[2] - m_world2BaseFrameWBI.p[2]), 2)
+            << "\n";
+            std::cerr << "Velocity error " << (m_baseVelocityWBI - m_baseVelocity).norm() << "\n";
+
+//            std::cerr << "Position (old, new) " <<
+//            m_world2BaseFrame.p[0] << " " << m_world2BaseFrame.p[1] << " " << m_world2BaseFrame.p[2]
+//            << "           " << m_world2BaseFrameWBI.p[0] << " " << m_world2BaseFrameWBI.p[1] << " " << m_world2BaseFrameWBI.p[2]
+//            << "\n";
+//            std::cerr << "Velocity (old, new) " << m_baseVelocityWBI.transpose() << "         " << m_baseVelocity.transpose() << "\n";
+//
+
+
             return true;
         }
 
@@ -470,15 +482,15 @@ namespace codyco {
             //            m_svdDecompositionOfCentroidalForceMatrix.compute(m_centroidalForceMatrix).solve(m_desiredCentroidalMomentum - m_gravityForce);
             if (leftConstraintIsActive ^ rightConstraintIsActive) {
                 //substitute the pseudoinverse with its inverse
-                m_desiredFeetForces = m_centroidalForceMatrix.block<6, 6>(0, leftConstraintIsActive ? 0 : 6).partialPivLu().solve(m_desiredCentroidalMomentum
+                m_luDecompositionOfCentroidalMatrix.compute(m_centroidalForceMatrix.block<6, 6>(0, leftConstraintIsActive ? 0 : 6));
+                m_desiredFeetForces = m_luDecompositionOfCentroidalMatrix.solve(m_desiredCentroidalMomentum
                                                 - m_gravityForce);
 
             } else {
                 math::pseudoInverse(m_centroidalForceMatrix, m_svdDecompositionOfCentroidalForceMatrix,
                                     m_pseudoInverseOfCentroidalForceMatrix, PseudoInverseTolerance);
                 m_desiredFeetForces = m_pseudoInverseOfCentroidalForceMatrix * (m_desiredCentroidalMomentum
-                                                                                - m_gravityForce
-                                                                                - m_desiredHandsForces.head(6) - m_desiredHandsForces.tail(6));
+                                                                                - m_gravityForce);
 
             }
             desiredContactForces = m_desiredFeetForces;

@@ -107,30 +107,6 @@ namespace codyco {
              * @return desired COM acceleration (3 dim)
              */
             Reference& desiredCOMAcceleration();
-            
-            /** @brief returns the desired left hand position reference.
-             * The vector is a 7 dimension vector (position and angle-axis representation).
-             * @return desired desired left hand position (7 dim)
-             */
-            Reference& desiredLeftHandPosition();
-            
-            /** @brief returns the desired right hand position reference.
-             * The vector is a 7 dimension vector (position and angle-axis representation).
-             * @return desired desired right hand position (7 dim)
-             */
-            Reference& desiredRightHandPosition();
-            
-            /** @brief returns the desired left hand force reference.
-             * The vector is a 6 dimension vector (3 forces, 3 torques)
-             * @return desired left hand force (6 dim)
-             */
-            Reference& desiredLeftHandForce();
-            
-            /** @brief returns the desired right hand force reference.
-             * The vector is a 6 dimension vector (3 forces, 3 torques)
-             * @return desired right hand force (6 dim)
-             */
-            Reference& desiredRightHandForce();
 
             /** @brief returns the desired joint configuration reference.
              * The vector has the size of the actuated joints
@@ -143,10 +119,6 @@ namespace codyco {
             Reference m_desiredJointsPosition;
 
             Reference m_desiredCOMAcceleration;
-            Reference m_desiredLeftHandPosition;
-            Reference m_desiredRightHandPosition;
-            Reference m_desiredLeftHandForce;
-            Reference m_desiredRightHandForce;
             Reference m_desiredJointsConfiguration;
         };
         

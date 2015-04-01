@@ -25,6 +25,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/SVD>
+#include <Eigen/LU>
 
 #include <map>
 
@@ -61,7 +62,10 @@ namespace codyco {
              * @param actuatedDoFs number of joint actuated (dimension of output torques)
              * @param dynamicSmoothingTime duration (in seconds) of contact or dynamics change smoothing. Default 1.0
              */
-            TorqueBalancingController(int period, ControllerReferences& references, wbi::wholeBodyInterface& robot, int actuatedDoFs, double dynamicSmoothingTime = 1.0);
+            TorqueBalancingController(int period, ControllerReferences& references,
+                                      wbi::wholeBodyInterface& robot,
+                                      int actuatedDoFs,
+                                      double dynamicSmoothingTime = 1.0);
             virtual ~TorqueBalancingController();
             
 #pragma mark - RateThread methods
@@ -158,6 +162,7 @@ namespace codyco {
             int m_actuatedDOFs;
             double m_dynamicsTransitionTime;
             wbi::Frame m_world2BaseFrame;
+
             //FIXME: TEMP
             Eigen::VectorXd m_baseVelocityWBI;
             wbi::Frame m_world2BaseFrameWBI;
@@ -174,8 +179,6 @@ namespace codyco {
             int m_leftFootLinkID;
             int m_rightFootLinkID;
             int m_centerOfMassLinkID;
-            int m_leftHandLinkID;
-            int m_rightHandLinkID;
 
             typedef std::map<std::string, struct DynamicConstraint> ConstraintsMap;
             ConstraintsMap m_activeConstraints;
@@ -192,12 +195,8 @@ namespace codyco {
             Eigen::Vector3d m_desiredCOMAcceleration;
             Eigen::VectorXd m_desiredFeetForces; /*!< 12 */
             Eigen::VectorXd m_desiredCentroidalMomentum;  /*!< 6 */
-            Eigen::VectorXd m_desiredHandsForces; /*!< 12 */
             Eigen::VectorXd m_desiredContactForces; /*!< 12 (Vectorisation of contact wrenches at feet: left_wrench and right_wrench) */
-            
-            bool m_leftHandForcesActive;
-            bool m_rightHandForcesActive;
-            
+
             //state of the robot
             Eigen::VectorXd m_jointPositions;  /*!< totalDOFs */
             Eigen::VectorXd m_jointVelocities;  /*!< totalDOFs */
@@ -235,6 +234,7 @@ namespace codyco {
             Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfJcBase; /*!< 12 x 6 */
             Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfCentroidalForceMatrix; /*!< 6 x 12 */
             Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfTauN0_f; /*!< actuatedDoFs x 12 */
+            Eigen::PartialPivLU<Eigen::MatrixXd::PlainObject> m_luDecompositionOfCentroidalMatrix; /*!< 6 x 6. Used for plain inversion */
             
             //constant auxiliary variables
             double m_gravityUnitVector[3];

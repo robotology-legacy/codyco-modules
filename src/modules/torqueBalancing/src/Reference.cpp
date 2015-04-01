@@ -207,10 +207,6 @@ namespace codyco {
         : m_desiredCOM(9)
         , m_desiredJointsPosition(actuatedDOFs)
         , m_desiredCOMAcceleration(3)
-        , m_desiredLeftHandPosition(7)
-        , m_desiredRightHandPosition(7)
-        , m_desiredLeftHandForce(6)
-        , m_desiredRightHandForce(6)
         , m_desiredJointsConfiguration(actuatedDOFs) {}
 
         Reference& ControllerReferences::desiredCOM()
@@ -226,26 +222,6 @@ namespace codyco {
         Reference& ControllerReferences::desiredCOMAcceleration()
         {
             return m_desiredCOMAcceleration;
-        }
-        
-        Reference& ControllerReferences::desiredLeftHandPosition()
-        {
-            return m_desiredLeftHandPosition;
-        }
-
-        Reference& ControllerReferences::desiredRightHandPosition()
-        {
-            return m_desiredRightHandPosition;
-        }
-        
-        Reference& ControllerReferences::desiredLeftHandForce()
-        {
-            return m_desiredLeftHandForce;
-        }
-        
-        Reference& ControllerReferences::desiredRightHandForce()
-        {
-            return m_desiredRightHandForce;
         }
         
         Reference& ControllerReferences::desiredJointsConfiguration()
