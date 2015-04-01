@@ -54,6 +54,7 @@ namespace codyco {
         , m_references(0)
         , m_rpcPort(0)
         , m_paramHelperManager(0)
+        , m_tempHeptaVector(7)
         , m_comReference(3) {}
 
         TorqueBalancingModule::~TorqueBalancingModule() { cleanup(); }
@@ -89,8 +90,7 @@ namespace codyco {
             }
             double actuatedDOFs = iCubMainJoints.size();
 
-            m_initialJointsConfiguration.resize(actuatedDOFs);
-            m_impedanceDoubleSupportReference.resize(actuatedDOFs);
+            m_jointsConfiguration.resize(actuatedDOFs);
 
             //Load configuration-time parameters
             m_moduleName = rf.check("name", Value("torqueBalancing"), "Looking for module name").asString();
@@ -153,10 +153,8 @@ namespace codyco {
             }
 
             //load initial configuration for the impedance control
-            m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_initialJointsConfiguration.data());
-            m_references->desiredJointsConfiguration().setValue(m_initialJointsConfiguration);
-
-            m_impedanceDoubleSupportReference = m_initialJointsConfiguration; //copy into double support state
+            m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsConfiguration.data());
+            m_references->desiredJointsConfiguration().setValue(m_jointsConfiguration);
 
             //TODO: To be deprecated
             yarp::os::ConstString worldFrame = "l_sole";// rf.find("world_frame").asString();
@@ -169,7 +167,7 @@ namespace codyco {
             }
 
             wbi::Frame frame;
-            m_robot->computeH(m_initialJointsConfiguration.data(), wbi::Frame(), worldFrameID, frame);
+            m_robot->computeH(m_jointsConfiguration.data(), wbi::Frame(), worldFrameID, frame);
 
             frame = frame * wbi::Frame(wbi::Rotation(0, 0, 1,
                                                      0, -1, 0,
@@ -177,11 +175,9 @@ namespace codyco {
             frame.setToInverse();
             //end section
 
-            Eigen::VectorXd initialCOM(7);
             //set initial com to be equal to the read one
-            m_robot->forwardKinematics(m_initialJointsConfiguration.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, initialCOM.data());
-            m_comReference = initialCOM.head(3);
-
+            m_robot->forwardKinematics(m_jointsConfiguration.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, m_tempHeptaVector.data());
+            m_comReference = m_tempHeptaVector.head<3>();
 
             std::ostringstream outputMessage;
             outputMessage << "Initial COM position: " << m_comReference.transpose();
@@ -226,7 +222,7 @@ namespace codyco {
             if (generator) {
                 //generator->setReferenceFilter(&jointsSmoother);
                 generator->setProportionalGains(Eigen::VectorXd::Constant(actuatedDOFs, 1.0));
-                generator->setSignalReference(m_initialJointsConfiguration);
+                generator->setSignalReference(m_jointsConfiguration);
                 m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeImpedanceControl, generator));
             } else {
                 yError("Could not create impedance controller object.");
@@ -364,8 +360,6 @@ namespace codyco {
                     found->second->setAllReferences(newReference.head(3), newReference.segment(3, 3), newReference.tail(3));
                 }
             } else if (&reference == &m_references->desiredJointsPosition()) {
-                //Fix for state machine. To be removed when state machine will be removed
-                m_impedanceDoubleSupportReference = reference.value();
                 taskType = TaskTypeImpedanceControl;
                 std::map<TaskType, ReferenceGenerator*>::iterator found = m_referenceGenerators.find(taskType);
                 if (found != m_referenceGenerators.end()) {
@@ -404,22 +398,30 @@ namespace codyco {
             yDebug("Module new state is %s", (m_active ? "on" : "off"));
 #endif
             if (isActive) {
-                //TODO: reset references
-                //reset references to current state
-                //read current joint positions
-                //read current CoM position
+                yarp::os::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(m_robot)->getInterfaceMutex());
+                m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsConfiguration.data());
+                wbi::Frame frame;
+                int worldFrameID = -1;
+                m_robot->getFrameList().idToIndex("l_sole", worldFrameID);
+                m_robot->computeH(m_jointsConfiguration.data(), wbi::Frame(), worldFrameID, frame);
+
+                frame = frame * wbi::Frame(wbi::Rotation(0, 0, 1,
+                                                         0, -1, 0,
+                                                         1, 0, 0));
+                frame.setToInverse();
+                m_robot->forwardKinematics(m_jointsConfiguration.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, m_tempHeptaVector.data());
+                m_comReference = m_tempHeptaVector.head<3>();
             }
 
 
             bool comTaskActive = m_active;
             bool impedanceTaskActive = m_active;
-            Eigen::VectorXd impedanceReference = m_impedanceDoubleSupportReference;
 
             bool controlSet = true;
             std::map<TaskType, ReferenceGenerator*>::iterator found;
             bool tasksState[2] = {comTaskActive, impedanceTaskActive};
             TaskType tasksType[2] = {TaskTypeCOM, TaskTypeImpedanceControl};
-            Eigen::VectorXd* taskReferences[2] = {&m_comReference, &impedanceReference};
+            Eigen::VectorXd* taskReferences[2] = {&m_comReference, &m_jointsConfiguration};
 
             for (int i = 0; i < 2; i++) {
                 found = m_referenceGenerators.find(tasksType[i]);

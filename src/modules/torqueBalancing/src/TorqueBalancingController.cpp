@@ -423,23 +423,6 @@ namespace codyco {
             m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_gravityUnitVector, m_generalizedBiasForces.data());
             m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_world2BaseFrame, m_jointsZeroVector.data(), m_esaZeroVector.data(), m_gravityUnitVector, m_gravityBiasTorques.data());
 
-
-
-            std::cerr << "Position error " <<
-            pow((m_world2BaseFrame.p[0] - m_world2BaseFrameWBI.p[0]), 2) +
-            pow((m_world2BaseFrame.p[1] - m_world2BaseFrameWBI.p[1]), 2) +
-            pow((m_world2BaseFrame.p[2] - m_world2BaseFrameWBI.p[2]), 2)
-            << "\n";
-            std::cerr << "Velocity error " << (m_baseVelocityWBI - m_baseVelocity).norm() << "\n";
-
-//            std::cerr << "Position (old, new) " <<
-//            m_world2BaseFrame.p[0] << " " << m_world2BaseFrame.p[1] << " " << m_world2BaseFrame.p[2]
-//            << "           " << m_world2BaseFrameWBI.p[0] << " " << m_world2BaseFrameWBI.p[1] << " " << m_world2BaseFrameWBI.p[2]
-//            << "\n";
-//            std::cerr << "Velocity (old, new) " << m_baseVelocityWBI.transpose() << "         " << m_baseVelocity.transpose() << "\n";
-//
-
-
             return true;
         }
 

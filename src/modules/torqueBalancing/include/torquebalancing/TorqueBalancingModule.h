@@ -117,11 +117,9 @@ namespace codyco {
 
             ParamHelperManager* m_paramHelperManager;
 
-            Eigen::VectorXd m_initialJointsConfiguration; /*!< This is used for swithing between module states. (Hands position are implemented with the impedance control. */
+            Eigen::VectorXd m_jointsConfiguration; /*!< This is used for swithing between module states. (Hands position are implemented with the impedance control. */
+            Eigen::VectorXd m_tempHeptaVector; /*!< Temporary vector of 7 elements */
             Eigen::VectorXd m_comReference; /*!< Reference for the center of mass */
-            //Impedance references
-            Eigen::VectorXd m_impedanceDoubleSupportReference;
-
         };
 
         class TorqueBalancingModule::ParamHelperManager : public
