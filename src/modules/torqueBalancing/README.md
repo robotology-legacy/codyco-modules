@@ -12,6 +12,7 @@ User who want to replicate this module should follow this list.
 
 - Bring the robot in a suitable home position
 - Launch `wholeBodyDynamicsTree` with the following parameters: `--autoconnect --assume_fixed l_foot_dh_frame`
+- Execute the [sensors calibration script](https://github.com/robotology/codyco-modules/blob/master/src/scripts/idleLegJoints.sh)
 - Launch `torqueBalancing`
 - Connect with the rpc module to `/torqueBalancing/rpc` and type `start`
 
