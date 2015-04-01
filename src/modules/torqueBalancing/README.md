@@ -12,7 +12,6 @@ User who want to replicate this module should follow this list.
 
 - Bring the robot in a suitable home position
 - Launch `wholeBodyDynamicsTree` with the following parameters: `--autoconnect --assume_fixed l_foot_dh_frame`
-- Launch the `codycomoddev` devices for all the robot parts
 - Launch `torqueBalancing`
 - Connect with the rpc module to `/torqueBalancing/rpc` and type `start`
 
