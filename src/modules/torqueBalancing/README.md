@@ -28,12 +28,14 @@ User who want to replicate this module should follow this list.
 - `modulePeriod`: module-thread period in seconds. Currently this thread is used only to send debug data. Default to 0.25s (250ms)
 - `wbi_config_file`: name (or full path, see ResourceFinder documentation) to the whole body interface initialization file
 - `wbi_joint_list`: name of the torque controlled joint list.
+
 ####Gains
 #####Center of Mass task
 - `comIntLimit`: integral limit on the CoM PID. One single positive value.
 - `comKp`: proportional gains. 3 values
 - `comKd`: derivative gains. 3 values
 - `comKi`: integral gains. 3 values
+
 #####Other parameters
 - `kw`: gain used for the desired rate of change of the momentum. One value
 - `kImp`: gains for the impedance (low level) task. The number must match the number of torque controlled joints.
@@ -62,6 +64,7 @@ When the user sends a `start` command the actual CoM position and the joint posi
 
 #### CoM reference
 It is possible to send a `CoM` reference by connecting to the streaming port `com:i`. The port expects 9 elements: 3 values for the  desired CoM  position, 3 values for the  desired CoM velocity and 3 values for the  desired CoM acceleration
+
 #### Joint reference
 It is possible to send the impedance resting position as a reference to the streaming port `qdes:i`. This port expects the same number of element as the torque controlled joints. References are in **radians**
 
