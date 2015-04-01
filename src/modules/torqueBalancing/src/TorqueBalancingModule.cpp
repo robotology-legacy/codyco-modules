@@ -116,8 +116,14 @@ namespace codyco {
                 yError("Could not open RPC port: /%s/rpc", m_moduleName.c_str());
                 return false;
             }
-
             attach(*m_rpcPort);
+
+            m_eventsPort = new yarp::os::BufferedPort<yarp::os::Property>();
+            if (!m_eventsPort
+                || !m_eventsPort->open(("/" + getName("/events:o")).c_str())) {
+                yError("Could not open events port: /%s/events:o", m_moduleName.c_str());
+                return false;
+            }
 
             //Create reference variable
             m_references = new ControllerReferences(actuatedDOFs);
@@ -309,6 +315,12 @@ namespace codyco {
                 m_rpcPort = 0;
             }
 
+            if (m_eventsPort) {
+                m_eventsPort->close();
+                delete m_eventsPort;
+                m_eventsPort = 0;
+            }
+
             //close controller thread
             if (m_controller) {
                 m_controller->setDelegate(NULL);
@@ -371,6 +383,9 @@ namespace codyco {
         void TorqueBalancingModule::controllerDidStop(TorqueBalancingController& controller)
         {
             setControllersActiveState(false);
+            yarp::os::Property &event = m_eventsPort->prepare();
+            event.put("STATUS", yarp::os::Value("stop"));
+            m_eventsPort->write();
         }
 
         double TorqueBalancingModule::getPeriod()

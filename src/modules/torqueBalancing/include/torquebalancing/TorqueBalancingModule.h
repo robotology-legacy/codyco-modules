@@ -38,6 +38,10 @@ namespace wbi {
 namespace yarp {
     namespace os {
         class Port;
+        class Property;
+
+        template <typename T>
+        class BufferedPort;
     }
 }
 
@@ -114,6 +118,7 @@ namespace codyco {
             std::map<TaskType, ReferenceGenerator*> m_referenceGenerators;
 
             yarp::os::Port* m_rpcPort;
+            yarp::os::BufferedPort<yarp::os::Property>* m_eventsPort;
 
             ParamHelperManager* m_paramHelperManager;
 
