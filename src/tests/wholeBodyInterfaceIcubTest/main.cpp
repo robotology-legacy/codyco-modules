@@ -118,7 +118,7 @@ int main(int argc, char * argv[])
     printf("Joint list: %s\n", icub->getJointList().toString().c_str());
     printf("Number of DoFs: %d\n", dof);
     
-    Vector q(dof), dq(dof), d2q(dof), qInit(dof), qd(dof),basePos(12);
+    Vector q(dof), dq(dof), d2q(dof), qInit(dof), qd(dof),basePos(16),basePosFromFrame(16);
     
     //Vector qinit(dof);
     double timeIni = Time::now();
@@ -176,6 +176,8 @@ int main(int argc, char * argv[])
    Eigen::Matrix<double,6,Dynamic,RowMajor> jacob; 
    jacob.resize(6,dof+6); //13 because in this test we only have right and left arm plus torso
 
+   wbi::Frame basePosFrame;
+   
    for(int i=0; i<15; i++)
    {
        Vector com(7,0.0);
@@ -189,11 +191,16 @@ int main(int argc, char * argv[])
         printf("(Q, dq, d2q):   %.2f \t %.2f \t %.2f\n", CTRL_RAD2DEG*q(j), CTRL_RAD2DEG*dq(j), CTRL_RAD2DEG*d2q(j));
        
 	icub->getEstimates(ESTIMATE_BASE_POS,basePos.data());
-	printf("BasePos: %2.2f %2.2f %2.2f\n\n",basePos(0),basePos(1),basePos(2));
-	
-	printf("BaseRot: %2.2f %2.2f %2.2f\n %2.2f %2.2f %2.2f\n %2.2f %2.2f %2.2f\n\n\n",basePos(3),basePos(4),basePos(5),basePos(6),basePos(7),basePos(8),basePos(9),basePos(10),basePos(11));
+	printf("BasePos: %2.2f %2.2f %2.2f\n\n",basePos(3),basePos(7),basePos(11));
+	printf("BaseRot: %2.2f %2.2f %2.2f\n %2.2f %2.2f %2.2f\n %2.2f %2.2f %2.2f\n\n\n",basePos(0),basePos(1),basePos(2),basePos(4),basePos(5),basePos(6),basePos(8),basePos(9),basePos(10));
                
-   }
+	wbi::frameFromSerialization(basePos.data(),basePosFrame);
+	wbi::serializationFromFrame(basePosFrame,basePosFromFrame.data());  
+     
+	printf("BasePos: %2.2f %2.2f %2.2f\n\n",basePosFromFrame(3),basePosFromFrame(7),basePosFromFrame(11));
+	printf("BaseRot: %2.2f %2.2f %2.2f\n %2.2f %2.2f %2.2f\n %2.2f %2.2f %2.2f\n\n\n",basePosFromFrame(0),basePosFromFrame(1),basePosFromFrame(2),basePosFromFrame(4),basePosFromFrame(5),basePosFromFrame(6),basePosFromFrame(8),basePosFromFrame(9),basePosFromFrame(10));
+
+  }
 
    printf("Test finished. Press return to exit.");
    getchar();
