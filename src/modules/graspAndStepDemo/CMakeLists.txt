@@ -23,3 +23,5 @@ install(PROGRAMS ${lua_bin} DESTINATION bin)
 
 
 add_subdirectory(app)
+
+add_subdirectory(portmonitor)
