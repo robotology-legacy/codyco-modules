@@ -1,14 +1,14 @@
 ##Module description
 
 This module implements a torque control balancing strategy.
-It computes the interaction forces at the feet in order to satisfy the centroidal dynamics.
-The output torques are chosen such that they are minimal and they generates the forces as computed above.
+It computes the interaction forces at the feet in order to stabilise a desired centroidal dynamics, which ensures the tracking of a desired center-of-mass trajectory.
+A cost function penalizing high joint torques - that generate the feet forces - is added to the control framework.
 
 For details see [iCub whole-body control through force regulation on rigid non-coplanar contacts](http://journal.frontiersin.org/article/10.3389/frobt.2015.00006/abstract)
 
 ###Launch procedure
 The procedure to run the torque balancing module is still quite elaborate.
-User who want to replicate this module should follow this list.
+Users willing to use the module should follow this list.
 
 - Bring the robot in a suitable home position
 - Launch `wholeBodyDynamicsTree` with the following parameters: `--autoconnect --assume_fixed l_foot_dh_frame`
