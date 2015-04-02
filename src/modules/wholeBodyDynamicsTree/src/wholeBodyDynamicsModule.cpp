@@ -75,7 +75,13 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     }
 
     //Loading thread period
-    if( rf.check("rate") && rf.find("rate").isInt() )
+    if( rf.check("period") && rf.find("period").isInt() )
+    {
+        period = rf.find("period").asInt();
+    }
+
+    // If period is not specified, check also the legacy "rate" option
+    if( !rf.check("period") && rf.check("rate") && rf.find("rate").isInt() )
     {
         period = rf.find("rate").asInt();
     }
@@ -197,12 +203,6 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     {
         yarp::os::Property & prop = yarpWbiOptions.addGroup("WBD_OUTPUT_EXTERNAL_WRENCH_PORTS");
         prop.fromString(rf.findGroup("WBD_OUTPUT_EXTERNAL_WRENCH_PORTS").tail().toString());
-    }
-
-    //Loading thread period
-    if( rf.check("rate") && rf.find("rate").isInt() )
-    {
-        period = rf.find("rate").asInt();
     }
 
     if( rf.check("calibration_support_link") )
