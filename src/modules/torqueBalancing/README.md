@@ -78,4 +78,15 @@ The module is composed of the following parts:
 #### Note on reference generators
 The implementation of the reference generator is agnostic of the underlining physical signal. To get the feedback they use a generic interface (currently implemented to retrieve position and velocity of an end-effector and of the CoM).
 
+#### Citing this contribution
+In case you want to cite the content of this module please refer to [iCub whole-body control through force regulation on rigid non-coplanar contacts](http://journal.frontiersin.org/article/10.3389/frobt.2015.00006/abstract) and use the following bibtex entry:
 
+```
+ @article{Nori_etal2015,
+ author="Nori, F. and Traversaro, S. and Eljaik, J. and Romano, F. and Del Prete, A. and Pucci, D.",
+ title="iCub whole-body control through force regulation on rigid non-coplanar contacts",
+ year="2015",
+ journal="Frontiers in {R}obotics and {A}{I}",
+ volume="1"
+ }
+```
