@@ -65,7 +65,7 @@ namespace codyco {
         , m_torques(actuatedDOFs)
         , m_baseVelocity(6)
         , m_baseVelocityWBI(6)
-        , m_world2BaseFrameWBISerialization(9 + 3)
+        , m_world2BaseFrameWBISerialization(16)
         , m_centerOfMassPosition(3)
         , m_rightFootPosition(7)
         , m_leftFootPosition(7)
@@ -352,6 +352,9 @@ namespace codyco {
         bool TorqueBalancingController::updateRobotState()
         {
             codyco::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(&m_robot)->getInterfaceMutex());
+#if defined(DEBUG) && defined(EIGEN_RUNTIME_NO_MALLOC)
+            Eigen::internal::set_is_malloc_allowed(false);
+#endif
             //read positions and velocities
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointPositions.data());
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointVelocities.data());
@@ -363,12 +366,8 @@ namespace codyco {
             m_world2BaseFrame.setToInverse();
 
             m_robot.getEstimates(wbi::ESTIMATE_BASE_POS, m_world2BaseFrameWBISerialization.data());
-            for (int i = 0; i < 3; i++) {
-                m_world2BaseFrameWBI.p[i] = m_world2BaseFrameWBISerialization(i);
-            }
-            for (int i = 0; i < 9; i++) {
-                m_world2BaseFrameWBI.R.data[i] = m_world2BaseFrameWBISerialization(i + 3);
-            }
+            wbi::frameFromSerialization(m_world2BaseFrameWBISerialization.data(), m_world2BaseFrameWBI);
+            
             m_robot.getEstimates(wbi::ESTIMATE_BASE_VEL, m_baseVelocityWBI.data());
 
             //update jacobians (both feet in one variable)
@@ -423,11 +422,17 @@ namespace codyco {
             m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_gravityUnitVector, m_generalizedBiasForces.data());
             m_robot.computeGeneralizedBiasForces(m_jointPositions.data(), m_world2BaseFrame, m_jointsZeroVector.data(), m_esaZeroVector.data(), m_gravityUnitVector, m_gravityBiasTorques.data());
 
+#if defined(DEBUG) && defined(EIGEN_RUNTIME_NO_MALLOC)
+            Eigen::internal::set_is_malloc_allowed(true);
+#endif
             return true;
         }
 
         void TorqueBalancingController::computeContactForces(const Eigen::Ref<Eigen::MatrixXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::MatrixXd> desiredContactForces)
         {
+#if defined(DEBUG) && defined(EIGEN_RUNTIME_NO_MALLOC)
+            Eigen::internal::set_is_malloc_allowed(false);
+#endif
             using namespace Eigen;
             double mass = m_massMatrix(0, 0);
             m_gravityForce(2) = -mass * 9.81;
@@ -477,11 +482,17 @@ namespace codyco {
 
             }
             desiredContactForces = m_desiredFeetForces;
+#if defined(DEBUG) && defined(EIGEN_RUNTIME_NO_MALLOC)
+            Eigen::internal::set_is_malloc_allowed(true);
+#endif
         }
 
         void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::VectorXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques)
         {
             using namespace Eigen;
+#if defined(DEBUG) && defined(EIGEN_RUNTIME_NO_MALLOC)
+            Eigen::internal::set_is_malloc_allowed(false);
+#endif
 
             //TODO: decide later if there is a performance benefit in moving the declaration of the variables in the class (or if this becomes a "new" at runtime)
             //Names are taken from "math" from brevity
@@ -515,8 +526,11 @@ namespace codyco {
             //TODO: this must be checked: valgrind says it contains a jump on an unitialized variable
             //TODO: check isinf or isnan
             torques = torques.array().min(m_torqueSaturationLimit.array()).max(-m_torqueSaturationLimit.array());
+#if defined(DEBUG) && defined(EIGEN_RUNTIME_NO_MALLOC)
+            Eigen::internal::set_is_malloc_allowed(true);
+#endif
         }
-        
+
         void TorqueBalancingController::writeTorques()
         {
             m_robot.setControlReference(m_torques.data());

@@ -1,14 +1,14 @@
 ##Module description
 
 This module implements a torque control balancing strategy.
-It computes the interaction forces at the feet in order to satisfy the centroidal dynamics.
-The output torques are chosen such that they are minimal and they generates the forces as computed above.
+It computes the interaction forces at the feet in order to stabilise a desired centroidal dynamics, which ensures the tracking of a desired center-of-mass trajectory.
+A cost function penalizing high joint torques - that generate the feet forces - is added to the control framework.
 
 For details see [iCub whole-body control through force regulation on rigid non-coplanar contacts](http://journal.frontiersin.org/article/10.3389/frobt.2015.00006/abstract)
 
 ###Launch procedure
 The procedure to run the torque balancing module is still quite elaborate.
-User who want to replicate this module should follow this list.
+Users willing to use the module should follow this list.
 
 - Bring the robot in a suitable home position
 - Launch `wholeBodyDynamicsTree` with the following parameters: `--autoconnect --assume_fixed l_foot_dh_frame`
@@ -78,4 +78,15 @@ The module is composed of the following parts:
 #### Note on reference generators
 The implementation of the reference generator is agnostic of the underlining physical signal. To get the feedback they use a generic interface (currently implemented to retrieve position and velocity of an end-effector and of the CoM).
 
+#### Citing this contribution
+In case you want to cite the content of this module please refer to [iCub whole-body control through force regulation on rigid non-coplanar contacts](http://journal.frontiersin.org/article/10.3389/frobt.2015.00006/abstract) and use the following bibtex entry:
 
+```
+ @article{Nori_etal2015,
+ author="Nori, F. and Traversaro, S. and Eljaik, J. and Romano, F. and Del Prete, A. and Pucci, D.",
+ title="iCub whole-body control through force regulation on rigid non-coplanar contacts",
+ year="2015",
+ journal="Frontiers in {R}obotics and {A}{I}",
+ volume="1"
+ }
+```

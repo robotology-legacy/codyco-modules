@@ -36,16 +36,23 @@ through a model based compensation
 of the 6-axis force/torque (FT) sensor's measurements, which are
 acquired through an input YARP port and provides them to an
 output YARP ports.
+
 The estimation is perfomed relying on rigid body dynamics using CAD
 parameters.
+
 The intrinsic offsets of the sensors, which are due to the stresses
-generated during mounting, are defined by the first FT data. In the
-future it will also be given the possibility to set the offsets of
-the sensors.
+generated during mounting, are defined by the initial FT sensor data.
+Another source of offsets is the thermal drift of the sensors, to recalibrate
+the sensors you can send (assuming that the robot is attached to a fixed base)
+the `calib all` command to the RPC port of wholeBodyDynamicsTree
+(see Ports Created section to get more information on how to access the RPC port).
+
 The model of the sensor measurements considers a fixed base, with z-axis
 pointing upwards. The estimation of the external wrench applied at the
 end-effector of the limb has the same orientation of the fixed base frame.
-For further information about the use of this module and of the iCub force control interface, please refer to the force control page:
+For further information about the use of this module and of the iCub force control interface,
+please refer to the force control page:
+
 http://wiki.icub.org/wiki/Force_Control
 
 \section lib_sec Libraries
@@ -59,16 +66,24 @@ http://wiki.icub.org/wiki/Force_Control
 - The parameter \e name identifies the robot name. If not specified
   \e icub is assumed.
 
---rate \e r
-- The parameter \e r identifies the rate the estimation thread will work. If not
+--period \e period
+  The parameter \e period identifies the rate the estimation thread will work. If not
   specified \e 10ms is assumed.
 
 
 \section portsa_sec Ports Accessed
-The port the service is listening to.
+Coming soon.
 
 \section portsc_sec Ports Created
-
+- \e /${name}/rpc:i
+  This port enable to communicate via rpc with the module.
+  To access it through the command line, open a terminal and write:
+    yarp rpc /${name}/rpc:i
+  Where ${name} is the name of the module (usually wholeBodyDynamics or wholeBodyDynamicsTree)
+  After that, you can type `help` to get an overview of the available functions.
+  If your robot is attached to the fixed base, the:
+   > calib all
+  command will be used to calibrate the FT sensors.
 
 \section in_files_sec Input Data Files
 None.
