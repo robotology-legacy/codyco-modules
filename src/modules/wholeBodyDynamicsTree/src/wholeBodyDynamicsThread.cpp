@@ -486,11 +486,11 @@ bool wholeBodyDynamicsThread::threadInit()
     int max_id = 100;
 
     root_link_idyntree_id = icub_model_calibration->getLinkIndex("root_link");
-    YARP_ASSERT(root_link_idyntree_id >= 0 && root_link_idyntree_id < max_id );
+    //YARP_ASSERT(root_link_idyntree_id >= 0 && root_link_idyntree_id < max_id );
     left_foot_link_idyntree_id = icub_model_calibration->getLinkIndex("l_foot");
-    YARP_ASSERT(left_foot_link_idyntree_id >= 0  && left_foot_link_idyntree_id < max_id);
+    //YARP_ASSERT(left_foot_link_idyntree_id >= 0  && left_foot_link_idyntree_id < max_id);
     right_foot_link_idyntree_id = icub_model_calibration->getLinkIndex("r_foot");
-    YARP_ASSERT(right_foot_link_idyntree_id >= 0 && right_foot_link_idyntree_id < max_id);
+    //YARP_ASSERT(right_foot_link_idyntree_id >= 0 && right_foot_link_idyntree_id < max_id);
 
     //Open and connect all the ports
     for(int output_torque_port_i = 0; output_torque_port_i < (int)output_torque_ports.size(); output_torque_port_i++ )
