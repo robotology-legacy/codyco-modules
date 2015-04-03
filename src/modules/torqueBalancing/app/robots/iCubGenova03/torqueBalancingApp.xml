@@ -17,12 +17,7 @@
     <tag>iCubGui</tag>
   </module>
 
- <module>
-    <name>torqueBalancing</name>
-    <parameters></parameters> 
-    <node>icub14</node>
-    <tag>torqueBalancing</tag>
-  </module>
+
 
         <module>
                 <name>codycomoddev</name>
@@ -58,6 +53,13 @@
                 <node>icub14</node>
                 <tag>right_leg</tag>
         </module>
+
+         <module>
+    <name>torqueBalancing</name>
+    <parameters></parameters> 
+    <node>icub14</node>
+    <tag>torqueBalancing</tag>
+  </module>
 
 <connection>
     <from>/wholeBodyDynamicsTree/contacts:o</from>
