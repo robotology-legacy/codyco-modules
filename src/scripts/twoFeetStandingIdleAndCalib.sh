@@ -7,7 +7,7 @@ for a in $list; do
 	echo "set icmd cmod $a idl"  | yarp rpc /icub/left_leg/rpc:i
 done
 
-sleep 0.5
+sleep 0.25
 
 for a in $list; do
 	echo "set icmd cmod $a pos"  | yarp rpc /icub/right_leg/rpc:i
@@ -21,7 +21,7 @@ for a in $list; do
 	echo "set icmd cmod $a idl"  | yarp rpc /icub/left_leg/rpc:i
 done
 
-sleep 0.5
+sleep 0.25
 
 for a in $list; do
 	echo "set icmd cmod $a pos"  | yarp rpc /icub/right_leg/rpc:i
