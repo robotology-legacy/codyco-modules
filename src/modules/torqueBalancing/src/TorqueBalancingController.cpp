@@ -192,18 +192,18 @@ namespace codyco {
             //read references
             readReferences();
 
-            //Check limits
-            if (!checkJointLimits()) {
-                yInfo() << "Joint limits reached. Deactivating control";
+            //read / update state
+            if (!updateRobotState()) {
+                yInfo() << "Failed to update state. Deactivating control";
                 m_robot.setControlMode(wbi::CTRL_MODE_POS);
                 m_active = false;
                 if (m_delegate) m_delegate->controllerDidStop(*this);
                 return;
             }
 
-            //read / update state
-            if (!updateRobotState()) {
-                yInfo() << "Failed to update state. Deactivating control";
+            //Check limits
+            if (!checkJointLimits()) {
+                yInfo() << "Joint limits reached. Deactivating control";
                 m_robot.setControlMode(wbi::CTRL_MODE_POS);
                 m_active = false;
                 if (m_delegate) m_delegate->controllerDidStop(*this);
