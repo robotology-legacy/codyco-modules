@@ -783,6 +783,8 @@ namespace codyco {
             if( data->comTrajGenActive ) {
                 yarp::sig::Vector& comDesPosVelAcc = m_outputComDesiredPosVelAcc->prepare();
 
+                comDesPosVelAcc.resize(3*COM_SIZE, 0.0);
+
                 data->comDesPos = data->comGenerator->getPos();
                 data->comDesVel = data->comGenerator->getVel();
                 data->comDesAcc = data->comGenerator->getAcc();
