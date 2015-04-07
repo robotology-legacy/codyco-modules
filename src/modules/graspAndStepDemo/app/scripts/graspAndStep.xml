@@ -50,7 +50,7 @@
   <module>
       <name>graspAndStepDemo.lua</name>
       <deployer>lua</deployer>
-      <node>node</node>
+      <node>screen-node</node>
       <stdio></stdio>
       <prefix></prefix>
   </module>

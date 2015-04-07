@@ -5,6 +5,9 @@ require("rfsm")
 require("rfsm_timeevent")
 
 script_name = "graspAndStepDemo"
+
+-- load helper functions
+dofile(rf:findFile("lua/gas_funcs.lua"))
 print("[" .. script_name .. "] opening yarp")
 yarp.Network()
 
@@ -34,7 +37,6 @@ end
 function gas_print_help()
     ---- list options
     print("["..script_name.."]: --verbose                        : enable verbose output")
-    print("["..script_name.."]: --fsm_update_period       period : update period of the FSM (in seconds)")
     print("["..script_name.."]: --help : print this help")
 end
 
@@ -42,7 +44,7 @@ function gas_loadconfiguration()
     -- initialization
     print("["..script_name.."] opening resource finder")
     rf = yarp.ResourceFinder()
-    rf:setDefaultConfigFile("graspAndStepDemo.ini")
+    rf:setDefaultConfigFile("leftRightBalancingDemo.ini")
     rf:setDefaultContext("graspAndStepDemo")
     print("["..script_name.."] configuring resource finder")
     rf:configure(arg)
@@ -60,9 +62,6 @@ function gas_loadconfiguration()
         gas_close_script()
     end
 
-    fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
-    --force_threshold   = yarp_rf_find_double(rf,"force_threshold")
-
 end
 
 -------
@@ -75,6 +74,7 @@ function gas_open_ports()
     -- we don't want to loose any event
     input_events:setStrict()
 
+
     -- Streaming port continuously broadcasting the state
     state_port = yarp.BufferedPortBottle()
     state_port:open("/".. script_name .. "/state:o")
@@ -83,21 +83,18 @@ function gas_open_ports()
     setpoints_port = yarp.BufferedPortProperty()
     setpoints_port:open("/".. script_name .. "/setpoints:o")
 
-    -- Port for starting/stopping the graspDemo module
-    graspingModule_rpc = yarp.BufferedPortBottle()
-    graspingModule_rpc:open("/".. script_name .. "/graspDemo")
-
-    -- Port for activating/deactivating contacts on the controller
-    activeContacts_port = yarp.BufferedPortBottle()
-    activeContacts_port:open("/".. script_name .. "/activeContacts");
-
-    -- Port for setting the fixed link in the odometry module
-    fixedLinkOdometry_port = yarp.BufferedPortBottle()
-    fixedLinkOdometry_port:open("/".. script_name .. "/fixedLink");
-
     -- Port for sending to iSpeak the current state
     iSpeak_port = yarp.BufferedPortBottle()
     iSpeak_port:open("/".. script_name .. "/speak");
+
+
+    -- Port for reading the com position in the world
+    com_port = yarp.BufferedPortBottle()
+    com_port:open("/" .. script_name .. "/com:i");
+
+    -- Port for reading the frame positions w.r.t to the world
+    frames_port = yarp.BufferedPortBottle()
+    frames_port:open("/" .. script_name .. "/frames:i");
 
 end
 
@@ -106,10 +103,35 @@ function gas_close_ports()
     gas_close_port(input_events)
     gas_close_port(state_port)
     gas_close_port(setpoints_port)
-    gas_close_port(graspingModule_rpc)
-    gas_close_port(activeContacts_port)
-    gas_close_port(fixedLinkOdometry_port)
     gas_close_port(iSpeak_port)
+    gas_close_port(com_port)
+    gas_close_port(frames_port)
+end
+
+function gas_updateframes()
+    -- waiting for reading com data
+    gas_setponts.initial_com_in_world_bt = com_port:read()
+    if( gas_setponts.initial_com_in_world_bt ) then
+        PointCoordFromYarpVectorBottle(gas_setponts.initial_com_in_world,
+                                   gas_setponts.initial_com_in_world_bt)
+    end
+
+    -- waiting for reading frame data
+    gas_frames_bt = frames_port:read(true)
+    if( gas_frames_bt ) then
+        HomTransformTableFromBottle(gas_frames,gas_frames_bt)
+    end
+
+    -- get transform
+    world_H_l_foot = gas_frames[l_foot_frame]
+    world_H_r_foot = gas_frames[r_foot_frame]
+
+    -- update com setpoints
+    gas_setponts.left_com_in_world =
+        world_H_l_foot.apply(gas_setponts.left_com_in_l_foot)
+
+    gas_setponts.right_com_in_world =
+        world_H_r_foot.apply(gas_setponts.right_com_in_r_foot)
 end
 
 -------
@@ -121,11 +143,8 @@ gas_loadconfiguration()
 -- open ports
 gas_open_ports()
 
--- load helper functions
-dofile(rf:findFile("lua/gas_funcs.lua"))
-
 -- load main FSM
-fsm_file = rf:findFile("lua/fsm_graspAndStep.lua")
+fsm_file = rf:findFile("lua/fsm_left_right_sway.lua")
 
 print("[" .. script_name .. "] loading rFSM state machine")
 -- load state machine model and initalize it
@@ -140,10 +159,54 @@ fsm.dbg = gas_dbg;
 -- getevents function, to read functions from a
 fsm.getevents = yarp_gen_read_str_events(input_events);
 
+gas_setponts = {
+    -- geometric ponts
+    initial_com_in_world = PointCoord.new()
+    left_com_in_l_foot = PointCoord.new()
+    right_com_in_r_foot = PointCoord.new()
+    left_com_in_world = PointCoord.new()
+    right_com_in_world = PointCoord.new()
+
+    -- bottle buffers to load/unload
+    initial_com_in_world_bt = yarp.Bottle()
+}
+
+gas_frames = {}
+l_foot_frame = "l_sole"
+r_foot_frame = "r_sole"
+
+-- waiting for reading com data
+gas_setponts.initial_com_in_world_bt = com_port:read(true)
+PointCoordFromYarpVectorBottle(gas_setponts.initial_com_in_world,
+                               gas_setponts.initial_com_in_world_bt)
+
+-- waiting for reading frame data
+gas_frames_bt = frames_port:read(true)
+HomTransformTableFromBottle(gas_frames,gas_frames_bt)
+
+-- get transform
+l_foot_H_world = gas_frames[l_foot_frame].inverse()
+r_foot_H_world = gas_frames[r_foot_frame].inverse()
+
+-- generating left and right desired com
+-- the x and y are the left foot origin
+-- while the z is the one of the initial com
+gas_setponts.left_com_in_l_foot.x = 0.0
+gas_setponts.left_com_in_l_foot.y = 0.0
+local initial_com_wrt_left_foot =
+      l_foot_H_world.apply(gas_setponts.initial_com_in_world)
+gas_setponts.left_com_in_l_foot.z = initial_com_wrt_left_foot.z
+
+gas_setponts.right_com_in_r_foot.x = 0.0
+gas_setponts.right_com_in_r_foot.y = 0.0
+local initial_com_wrt_right_foot =
+      r_foot_H_world.apply(gas_setponts.initial_com_in_world)
+gas_setponts.right_com_in_r_foot.z = initial_com_wrt_right_foot.z
+
 print("[" .. script_name .. "] starting main loop")
 repeat
-    -- run the monitor to generate events from ports
-    -- monitor:run(fsm)
+    -- read frames and com information
+    gas_updateframes()
     -- run the finite state machine
     -- the configurator is implicitly executed by
     -- the fsm entry/doo/exit functions

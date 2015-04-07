@@ -48,7 +48,7 @@
 
   <!-- Adding graspAndStep FSM coordinator -->
   <module>
-      <name>graspAndStepDemo.lua</name>
+      <name>leftRightBalancingDemo.lua</name>
       <deployer>lua</deployer>
       <node>node</node>
       <stdio></stdio>
