@@ -10,11 +10,11 @@ it can be useful to read the paper [Coordinating Robotic Tasks and Systems with 
 Structure
 ---------
 
-The component is executed from the main script `steppingDemo.lua`.
+The component is executed from the main script `graspAndStepDemo.lua`.
 
 This script executes periodically the following:
 * a `Coordinator`, implemented throught a `rFSM` finite state machine.
-  This is loaded from the `fsm_stepping.lua` script, and is executed by the `steppingDemo.lua`.
+  This is loaded from the `fsm_graspAndStep.lua` script, and is executed by the `graspAndStepDemo.lua`.
 * a `Configurator`, implemented throught the `entry`, `doo` and `exit` functions
   associated to the finite state machine states. Depending on the state, several actions
   can be performed by the configurator, tipically setting desireded values for controllers
@@ -44,4 +44,4 @@ Events
 | `e_left_step_completed`    | The right step have been completed | - |
 | `e_left_leg_swing_motiondone` | The swing motion of the left leg have been completed, up to a threshold defined in configuration. | - |
 | `e_right_leg_swing_motiondone` | The swing motion of the right leg have been completed, up to a threshold defined in configuration. | - |
-| `e_com_motiondone` | The motion of the COM has completed, up to a threshold defined in configuration. 
+| `e_com_motiondone` | The motion of the COM has completed, up to a threshold defined in configuration.
