@@ -156,7 +156,7 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
     template <class T> void broadcastData(T& _values, yarp::os::BufferedPort<T> *_port);
     void closePort(yarp::os::Contactable *_port);
-    void writeTorque(yarp::sig::Vector _values, int _address, yarp::os::BufferedPort<yarp::os::Bottle> *_port);
+    void writeTorque(const yarp::sig::Vector & _values, int _address, yarp::os::BufferedPort<yarp::os::Bottle> *_port);
     void publishTorques();
     void publishContacts();
     void getExternalWrenches();
@@ -172,10 +172,6 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     void estimation_run();
     void calibration_run();
     void calibration_on_double_support_run();
-
-
-    //Buffer vectors
-    yarp::sig::Vector all_torques;
 
     //Data structures for mapping between wbi and output ports
     // this are populated by the WBD_TORQUE_PORTS group
@@ -200,13 +196,18 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     yarp::sig::Vector FilteredInertialForGravityComp;
 
     //Calibration related variables
+    yarp::sig::Vector zero_three_elem_vector;
+    yarp::sig::Vector zero_dof_elem_vector;
+    yarp::sig::Vector calibration_ddp;
+
     bool smooth_calibration;
     bool first_calibration;
     double smooth_calibration_period_in_ms;
     yarp::os::Mutex run_mutex;
     bool run_mutex_acquired;
     yarp::os::Mutex calibration_mutex;
-    RobotStatus tree_status;
+    RobotJointStatus joint_status;
+    RobotSensorStatus sensor_status;
 
     iCub::iDynTree::TorqueEstimationTree * icub_model_calibration;
     iCub::iDynTree::TorqueEstimationTree * icub_model_world_base_position;
@@ -219,9 +220,13 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     std::vector<int> legs_fts;
     std::vector<int> feet_fts;
 
+    //End Calibration related variables
+
     int left_foot_link_idyntree_id;
     int right_foot_link_idyntree_id;
     int root_link_idyntree_id;
+    KDL::Frame world_H_leftFoot;
+
 
     yarp::sig::Matrix transform_mat_buffer;
 
@@ -258,10 +263,20 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     simpleLeggedOdometry odometry_helper;
     int odometry_floating_base_frame_index;
     yarp::sig::Matrix world_H_floatingbase;
-    yarp::os::BufferedPort<yarp::sig::Matrix> * port_floatingbase;
+    yarp::sig::Vector floatingbase_twist;
+    yarp::sig::Vector floatingbase_acctwist;
     bool odometry_enabled;
+    yarp::os::BufferedPort<yarp::os::Bottle> * port_floatingbasestate;
+    bool frames_streaming_enabled;
+    yarp::os::BufferedPort<yarp::os::Property> * port_frames;
+    std::vector<int> frames_to_stream_indices;
+    std::vector<std::string> frames_to_stream;
+    std::vector<yarp::os::Bottle> buffer_bottles;
+    yarp::sig::Matrix buffer_transform_matrix;
+    bool com_streaming_enabled;
+    yarp::os::BufferedPort<yarp::sig::Vector> * port_com;
     bool initOdometry();
-    void runOdometry();
+    void publishOdometry();
     void closeOdometry();
 
 public:

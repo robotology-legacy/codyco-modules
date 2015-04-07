@@ -117,7 +117,7 @@ using namespace yarpWbi;
 
 
         /**  Estimate internal torques and external forces from measured sensors, using iDynTree library */
-        void estimateExternalForcesAndJointTorques(RobotStatus & tree_status);
+        void estimateExternalForcesAndJointTorques(RobotJointStatus & joint_status, RobotSensorStatus & sensor_status);
 
         /** Store external wrenches ad the end effectors */
         void readEndEffectorsExternalWrench();
@@ -141,7 +141,7 @@ using namespace yarpWbi;
         bool lockAndSetEstimationParameter(const wbi::EstimateType et, const wbi::EstimationParameter ep, const void *value);
 
         bool init();
-        void estimateExternalWrenchAndInternalJoints(RobotStatus & tree_status);
+        void estimateExternalWrenchAndInternalJoints(RobotJointStatus & joint_status, RobotSensorStatus & sensor_status);
         void fini();
 
         bool setEnableOmegaDomegaIMU(bool opt);

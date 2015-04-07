@@ -267,7 +267,7 @@ bool ExternalWrenchesAndTorquesEstimator::init()
     return true;
 }
 
-void ExternalWrenchesAndTorquesEstimator::estimateExternalWrenchAndInternalJoints(RobotStatus & tree_status)
+void ExternalWrenchesAndTorquesEstimator::estimateExternalWrenchAndInternalJoints(RobotJointStatus & joint_status, RobotSensorStatus & sensor_status)
 {
     //Temporary workaround: wholeBodyDynamicsStatesInterface needs all the DOF present in the dynamical model
     if( sensors->getSensorNumber(wbi::SENSOR_ENCODER) != robot_estimation_model->getNrOfDOFs() )
@@ -290,21 +290,21 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalWrenchAndInternalJoint
         resizeIMUs(sensors->getSensorNumber(SENSOR_IMU));
 
         ///< Read encoders
-        omega_used_IMU  = tree_status.omega_imu;
+        omega_used_IMU  = sensor_status.omega_imu;
 
-        domega_used_IMU = tree_status.domega_imu;
+        domega_used_IMU = sensor_status.domega_imu;
 
-        ddp_used_IMU = tree_status.proper_ddp_imu;
+        ddp_used_IMU = sensor_status.proper_ddp_imu;
 
         ///< Read skin contacts
         readSkinContacts();
 
         ///< Estimate joint torque sensors from force/torque measurements
-        estimateExternalForcesAndJointTorques(tree_status);
+        estimateExternalForcesAndJointTorques(joint_status,sensor_status);
 
         ///< Filter obtained joint torque measures
         // \todo reintroduce the filter ?
-        tree_status.torquesj = tauJ;// tauJFilt->filt(tauJ);  ///< low pass filter
+        joint_status.setJointTorquesYARP(tauJ);// tauJFilt->filt(tauJ);  ///< low pass filter
 
 
     }
@@ -454,7 +454,8 @@ void getEEWrench(const iCub::iDynTree::TorqueEstimationTree & icub_model,
     KDLtoYarp(f_gripper,gripper_wrench);
 }
 
-void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(RobotStatus & tree_status)
+void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(RobotJointStatus & joint_status,
+                                                                                RobotSensorStatus & sensor_status)
 {
     //Assume that only a IMU is available
 
@@ -497,13 +498,13 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
     YARP_ASSERT(domega_used_IMU.size() == 3);
     YARP_ASSERT(ddp_used_IMU.size() == 3);
     bool ok = robot_estimation_model->setInertialMeasure(omega_used_IMU,domega_used_IMU,ddp_used_IMU);
-    robot_estimation_model->setAng(tree_status.qj);
-    robot_estimation_model->setDAng(tree_status.dqj);
-    robot_estimation_model->setD2Ang(tree_status.ddqj);
+    robot_estimation_model->setAng(joint_status.getJointPosYARP());
+    robot_estimation_model->setDAng(joint_status.getJointVelYARP());
+    robot_estimation_model->setD2Ang(joint_status.getJointAccYARP());
 
     for(int i=0; i < robot_estimation_model->getNrOfFTSensors(); i++ ) {
         assert(tree_status.estimated_ft_sensors[i].size() == 6);
-         ok  = ok && robot_estimation_model->setSensorMeasurement(i,tree_status.estimated_ft_sensors[i]);
+         ok  = ok && robot_estimation_model->setSensorMeasurement(i,sensor_status.estimated_ft_sensors[i]);
     }
     robot_estimation_model->setContacts(dynContacts);
 

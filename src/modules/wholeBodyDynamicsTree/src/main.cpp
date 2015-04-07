@@ -96,13 +96,15 @@ None.
 Configuration files of wholeBodyDynamicsTree load several groups,
 to separate concerns about the different functionalities of the wholeBodyDynamicsTree.
 
-### `SIMPLE_LEGGED_ODOMETRY` group
+\subsection `SIMPLE_LEGGED_ODOMETRY` group
 
   | Parameter name | Type | Units | Default Value | Required | Description | Notes |
   |:--------------:|:------:|:-----:|:-------------:|:--------:|:-----------:|:-----:|
   | initial_world_frame | string | - | - | Yes | Name of the frame of the model that is supposed to be coincident with the world/inertial at start | - |
-  | initial_fixed_link  | string | - | - | Yes | Name of the link that is assumed to be fixed at start |
-  | floating_base_frame  | string | - | - | Yes | Name of the frame assume to be the floating base |
+  | initial_fixed_link  | string | - | - | Yes | Name of the link that is assumed to be fixed at start | - |
+  | floating_base_frame  | string | - | - | Yes | Name of the frame assume to be the floating base | - |
+  | stream_com           | -      | - | - | No  | If present, open a port /${name}/com:o where you stream the COM position in world coordinates | - |
+  | additional_frames    | list of strings | - | - | No  | If present, open a port /${name}/frames:o where a Bottle of states of additional frames is streamed | - |
 
 Consider that this values are just initialization values, but you can always
 reset/change fixed link of the simple legged odometry using the RPC port.

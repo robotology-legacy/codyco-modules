@@ -97,12 +97,16 @@ class simpleLeggedOdometry
          */
         KDL::Frame getWorldFrameTransform(const int frame_index);
 
-        // Access underling models
         /**
-         * Get the used DynTree object .
+         * Set the joint positions, velocities and accelerations
          */
-        iCub::iDynTree::DynTree & getDynTree();
+        bool setJointsState(const KDL::JntArray & qj, const KDL::JntArray & dqj, const KDL::JntArray & ddqj);
 
+        /**
+         * Get iDynTree underlyng object
+         *
+         */
+        const iCub::iDynTree::DynTree & getDynTree();
 };
 
 #endif

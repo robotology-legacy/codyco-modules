@@ -62,8 +62,7 @@ bool simpleLeggedOdometry::init(KDL::CoDyCo::UndirectedTree & undirected_tree,
     }
 
     odometry_model = new iCub::iDynTree::DynTree(undirected_tree.getTree(),undirected_tree.getSerialization());
-    bool ok = odometry_model->setFloatingBaseLink(initial_fixed_link_index);
-    ok = ok && reset(initial_world_frame_position_index,initial_fixed_link_index);
+    bool ok = reset(initial_world_frame_position_index,initial_fixed_link_index);
     return ok;
 }
 
@@ -115,16 +114,42 @@ std::string simpleLeggedOdometry::getCurrentFixedLink()
     return odometry_model->getKDLUndirectedTree().getLink(this->current_fixed_link_id)->getName();
 }
 
-iCub::iDynTree::DynTree& simpleLeggedOdometry::getDynTree()
-{
-    return *odometry_model;
-}
-
 KDL::Frame simpleLeggedOdometry::getWorldFrameTransform(const int frame_index)
 {
     KDL::Frame fixed_H_frame = odometry_model->getPositionKDL(this->current_fixed_link_id,frame_index);
     return this->world_H_fixed*fixed_H_frame;
 }
+
+bool simpleLeggedOdometry::setJointsState(const KDL::JntArray& qj,
+                                          const KDL::JntArray& dqj,
+                                          const KDL::JntArray& ddqj)
+{
+    if( qj.rows() != odometry_model->getNrOfDOFs()  ||
+        dqj.rows() != odometry_model->getNrOfDOFs()  ||
+        ddqj.rows() != odometry_model->getNrOfDOFs() )
+    {
+        return false;
+    }
+
+    bool ok = true ;
+
+    ok = ok && odometry_model->setAngKDL(qj);
+    ok = ok && odometry_model->setDAngKDL(dqj);
+    ok = ok && odometry_model->setD2AngKDL(ddqj);
+
+    //Update also the floating base position, given this new joint positions
+    KDL::Frame world_H_base = this->getWorldFrameTransform(odometry_model->getFloatingBaseLink());
+    ok = ok && odometry_model->setWorldBasePoseKDL(world_H_base);
+
+    return ok;
+}
+
+const iCub::iDynTree::DynTree & simpleLeggedOdometry::getDynTree()
+{
+    return *odometry_model;
+}
+
+
 
 
 

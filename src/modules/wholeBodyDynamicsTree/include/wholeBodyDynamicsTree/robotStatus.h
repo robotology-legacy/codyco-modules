@@ -18,15 +18,55 @@
 #ifndef _WHOLE_BODY_DYNAMICS_ROBOT_STATUS_H_
 #define _WHOLE_BODY_DYNAMICS_ROBOT_STATUS_H_
 
+#include <yarp/sig/Vector.h>
 
-class RobotStatus
+#include <kdl/jntarray.hpp>
+
+#include <vector>
+
+class RobotJointStatus
 {
-public:
     yarp::sig::Vector qj;
     yarp::sig::Vector dqj;
     yarp::sig::Vector ddqj;
     yarp::sig::Vector torquesj;
 
+    KDL::JntArray qj_kdl;
+    KDL::JntArray dqj_kdl;
+    KDL::JntArray ddqj_kdl;
+    KDL::JntArray torquesj_kdl;
+
+public:
+    bool zero();
+    RobotJointStatus(int nrOfDOFs=0);
+    bool setNrOfDOFs(int nrOfDOFs);
+
+    bool setJointPosYARP(const yarp::sig::Vector & qj);
+    bool setJointVelYARP(const yarp::sig::Vector & dqj);
+    bool setJointAccYARP(const yarp::sig::Vector & ddqj);
+    bool setJointTorquesYARP(const yarp::sig::Vector & torquesj);
+
+    bool setJointPosKDL(const KDL::JntArray & qj);
+    bool setJointVelKDL(const KDL::JntArray & dqj);
+    bool setJointAccKDL(const KDL::JntArray & ddqj);
+    bool setJointTorquesKDL(const KDL::JntArray & torquesj);
+
+    const yarp::sig::Vector & getJointPosYARP() const;
+    const yarp::sig::Vector & getJointVelYARP() const;
+    const yarp::sig::Vector & getJointAccYARP() const;
+    const yarp::sig::Vector & getJointTorquesYARP() const;
+
+    KDL::JntArray & getJointPosKDL();
+    KDL::JntArray & getJointVelKDL();
+    KDL::JntArray & getJointAccKDL();
+    KDL::JntArray & getJointTorquesKDL();
+
+    bool updateYarpBuffers();
+};
+
+class RobotSensorStatus
+{
+public:
     yarp::sig::Vector omega_imu;
     yarp::sig::Vector domega_imu;
     yarp::sig::Vector proper_ddp_imu;
@@ -37,8 +77,7 @@ public:
     std::vector<yarp::sig::Vector> ft_sensors_offset;
     std::vector<yarp::sig::Vector> model_ft_sensors;
 
-    RobotStatus(int nrOfDOFs=0, int nrOfFTSensors=0);
-    bool setNrOfDOFs(int nrOfDOFs);
+    RobotSensorStatus(int nrOfFTSensors=0);
     bool setNrOfFTSensors(int nrOfFTSensors);
     bool zero();
 };

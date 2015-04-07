@@ -33,6 +33,7 @@
 // System includes
 #include <cstring>
 #include <ctime>
+#include <boost/iterator/iterator_concepts.hpp>
 
 #include "ctrlLibRT/filters.h"
 
@@ -45,57 +46,7 @@ using namespace yarpWbi;
 using namespace std;
 using namespace iCub::skinDynLib;
 
-RobotStatus::RobotStatus(int nrOfDOFs, int nrOfFTsensors)
-{
-    setNrOfDOFs(nrOfDOFs);
-    setNrOfFTSensors(nrOfFTsensors);
 
-    this->zero();
-}
-
-bool RobotStatus::zero()
-{
-    domega_imu.zero();
-    omega_imu.zero();
-    proper_ddp_imu.zero();
-    wbi_imu.zero();
-    qj.zero();
-    dqj.zero();
-    ddqj.zero();
-    torquesj.zero();
-    for(unsigned int i=0; i < estimated_ft_sensors.size(); i++ ) {
-        estimated_ft_sensors[i].zero();
-        measured_ft_sensors[i].zero();
-        ft_sensors_offset[i].zero();
-        model_ft_sensors[i].zero();
-    }
-    return true;
-}
-
-bool RobotStatus::setNrOfDOFs(int nrOfDOFs)
-{
-    domega_imu.resize(3);
-    omega_imu.resize(3);
-    proper_ddp_imu.resize(3);
-    wbi_imu.resize(wbi::sensorTypeDescriptions[wbi::SENSOR_IMU].dataSize);
-    qj.resize(nrOfDOFs);
-    dqj.resize(nrOfDOFs);
-    ddqj.resize(nrOfDOFs);
-    torquesj.resize(nrOfDOFs);
-
-    zero();
-    return true;
-}
-
-bool RobotStatus::setNrOfFTSensors(int nrOfFTsensors)
-{
-    estimated_ft_sensors.resize(nrOfFTsensors,yarp::sig::Vector(6,0.0));
-    measured_ft_sensors.resize(nrOfFTsensors,yarp::sig::Vector(6,0.0));
-    ft_sensors_offset.resize(nrOfFTsensors,yarp::sig::Vector(6,0.0));
-    model_ft_sensors.resize(nrOfFTsensors,yarp::sig::Vector(6,0.0));
-    zero();
-    return true;
-}
 
 //************************************************************************************************************************
 wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
@@ -120,7 +71,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        fixed_link_calibration(_fixed_link_calibration),
        run_mutex_acquired(false),
        odometry_enabled(false)
-    {
+{
         // TODO FIXME move all this logic in threadInit
 
        yInfo() << "Launching wholeBodyDynamicsThread with name : " << _name << " and robotName " << _robotName << " and period " << _period;
@@ -133,6 +84,11 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 
     std::string urdf_file = _yarp_options.find("urdf").asString().c_str();
     yarp::os::ResourceFinder rf;
+    if( _yarp_options.check("verbose") )
+    {
+        rf.setVerbose();
+    }
+
     std::string urdf_file_path = rf.findFileByName(urdf_file.c_str());
 
 
@@ -164,9 +120,6 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
            icub_model_calibration = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization);
            icub_model_world_base_position = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization);
        }
-
-    //Resize buffer vectors
-    all_torques.resize(_wbs->getSensorNumber(wbi::SENSOR_FORCE_TORQUE));
 
     iCubGuiBase.resize(6);
     FilteredInertialForGravityComp.resize(6);
@@ -434,8 +387,11 @@ bool wholeBodyDynamicsThread::threadInit()
 
     offset_buffer.resize(nrOfAvailableFTSensors,yarp::sig::Vector(6,0.0));
     calibrate_ft_sensor.resize(nrOfAvailableFTSensors,false);
-    tree_status.setNrOfDOFs(icub_model_calibration->getNrOfDOFs());
-    tree_status.setNrOfFTSensors(nrOfAvailableFTSensors);
+    joint_status.setNrOfDOFs(icub_model_calibration->getNrOfDOFs());
+    sensor_status.setNrOfFTSensors(nrOfAvailableFTSensors);
+    zero_dof_elem_vector.resize(icub_model_calibration->getNrOfDOFs(),0.0);
+    zero_three_elem_vector.resize(3,0.0);
+    calibration_ddp.resize(3,0.0);
 
     //Get list of ft sensors for calibration shortcut
     wbi::IDList ft_list = sensors->getSensorList(wbi::SENSOR_FORCE_TORQUE);
@@ -491,6 +447,11 @@ bool wholeBodyDynamicsThread::threadInit()
     //YARP_ASSERT(left_foot_link_idyntree_id >= 0  && left_foot_link_idyntree_id < max_id);
     right_foot_link_idyntree_id = icub_model_calibration->getLinkIndex("r_foot");
     //YARP_ASSERT(right_foot_link_idyntree_id >= 0 && right_foot_link_idyntree_id < max_id);
+    joint_status.zero();
+    icub_model_calibration->setAng(joint_status.getJointPosYARP());
+    //{}^world H_{leftFoot}
+    world_H_leftFoot
+            = icub_model_calibration->getPositionKDL(root_link_idyntree_id,left_foot_link_idyntree_id);
 
     //Open and connect all the ports
     for(int output_torque_port_i = 0; output_torque_port_i < (int)output_torque_ports.size(); output_torque_port_i++ )
@@ -710,7 +671,7 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport(const std::string c
         if( calibrate_ft_sensor[ft_id] )
         {
             yInfo() << "wholeBodyDynamicsThread::calibrateOffset: current calibration for FT " << ft_id << " is "
-                    << tree_status.ft_sensors_offset[ft_id].toString();
+                    << sensor_status.ft_sensors_offset[ft_id].toString();
         }
     }
 
@@ -745,7 +706,7 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport(const std::
         if( calibrate_ft_sensor[ft_id] )
         {
             yInfo() << "wholeBodyDynamicsThread::calibrateOffset: current calibration for FT " << ft_id << " is "
-                    << tree_status.ft_sensors_offset[ft_id].toString();
+                    << sensor_status.ft_sensors_offset[ft_id].toString();
         }
     }
 
@@ -784,7 +745,7 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport(const std:
         {
 
             yInfo() << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport: current calibration for FT " << ft_id << " is "
-                    << tree_status.ft_sensors_offset[ft_id].toString();
+                    << sensor_status.ft_sensors_offset[ft_id].toString();
         }
     }
 
@@ -813,7 +774,7 @@ bool wholeBodyDynamicsThread::resetOffset(const std::string calib_code)
     //Resetting the offset
     for(int ft_id = 0; ft_id < (int)calibrate_ft_sensor.size(); ft_id++ ) {
         if( calibrate_ft_sensor[ft_id] ) {
-            tree_status.ft_sensors_offset[ft_id] = 0.0;
+            sensor_status.ft_sensors_offset[ft_id] = 0.0;
         }
     }
 
@@ -870,6 +831,23 @@ bool wholeBodyDynamicsThread::initOdometry()
     std::string initial_fixed_link = odometry_group.find("initial_fixed_link").asString();
     std::string floating_base_frame = odometry_group.find("floating_base_frame").asString();
 
+    // Loading additional options
+
+    // Check if com should be streamed
+    this->com_streaming_enabled = odometry_group.check("stream_com");
+
+    // Check if additional frames (besides the floating base) should be streamed
+    if( odometry_group.check("additional_frames") &&
+        odometry_group.find("additional_frames").isList() )
+    {
+        this->frames_streaming_enabled = true;
+    }
+    else
+    {
+        this->frames_streaming_enabled = false;
+    }
+
+    // Allocate model
     KDL::CoDyCo::UndirectedTree undirected_tree = this->icub_model_calibration->getKDLUndirectedTree();
     bool ok = this->odometry_helper.init(undirected_tree,
                                          initial_world_frame,
@@ -891,22 +869,76 @@ bool wholeBodyDynamicsThread::initOdometry()
            << initial_world_frame << " and initial fixed link " << initial_fixed_link;
 
     this->odometry_enabled = true;
+    world_H_floatingbase.resize(4,4);
+    floatingbase_twist.resize(6,0.0);
+    floatingbase_acctwist.resize(6,0.0);
+
+    // Get id of frames to stream
+    if( this->frames_streaming_enabled )
+    {
+        yarp::os::Bottle * frames_bot = odometry_group.find("additional_frames").asList();
+        yDebug() << "frames_bot " << frames_bot->toString();
+        if( frames_bot == NULL ||
+            frames_bot->isNull() )
+        {
+            yError("additional_frames list malformed");
+            return false;
+        }
+
+        for(int i=0; i < frames_bot->size(); i++ )
+        {
+            std::string frame_name = frames_bot->get(i).asString();
+            int frame_index = odometry_helper.getDynTree().getFrameIndex(floating_base_frame);
+            if( frame_index < 0 )
+            {
+                yError("additional_frames: frame %s not found in the model",frame_name.c_str());
+                return false;
+            }
+
+            frames_to_stream.push_back(frame_name);
+            frames_to_stream_indices.push_back(frame_index);
+        }
+
+        buffer_bottles.resize(frames_to_stream.size());
+
+        for(int i=0; i < buffer_bottles.size(); i++ )
+        {
+            yInfo("wholeBodyDynamicsTree: streaming world position of frame %s",frames_to_stream[i].c_str());
+            buffer_bottles[i].addList();
+        }
+
+        buffer_transform_matrix.resize(4,4);
+    }
 
     // Open ports
-    port_floatingbase = new BufferedPort<Matrix>;
-    port_floatingbase->open(string("/"+moduleName+"/floatingbasepos:o"));
+    port_floatingbasestate = new BufferedPort<Bottle>;
+    port_floatingbasestate->open(string("/"+moduleName+"/floatingbasestate:o"));
+
+    if( this->com_streaming_enabled )
+    {
+        port_com = new BufferedPort<Vector>;
+        port_com->open(string("/"+moduleName+"/com:o"));
+    }
+
+    if( this->frames_streaming_enabled )
+    {
+        port_frames = new BufferedPort<Property>;
+        port_frames->open(string("/"+moduleName+"/frames:o"));
+    }
 
     return true;
 }
 
-void wholeBodyDynamicsThread::runOdometry()
+void wholeBodyDynamicsThread::publishOdometry()
 {
     if( this->odometry_enabled )
     {
-        // Read joint position into the odometry helper model
+        // Read joint position, velocity and accelerations into the odometry helper model
         // This could be avoided by using the same geometric model
         // for odometry, force/torque estimation and sensor force/torque calibration
-        odometry_helper.getDynTree().setAng(this->tree_status.qj);
+        odometry_helper.setJointsState(joint_status.getJointPosKDL(),
+                                       joint_status.getJointVelKDL(),
+                                       joint_status.getJointAccKDL());
 
         // Get floating base position in the world
         KDL::Frame world_H_floatingbase_kdl = odometry_helper.getWorldFrameTransform(this->odometry_floating_base_frame_index);
@@ -914,7 +946,45 @@ void wholeBodyDynamicsThread::runOdometry()
         // Publish the floating base position on the port
         KDLtoYarp_position(world_H_floatingbase_kdl,this->world_H_floatingbase);
 
-        broadcastData<yarp::sig::Matrix>(this->world_H_floatingbase,port_floatingbase);
+        yarp::os::Bottle & bot = port_floatingbasestate->prepare();
+        bot.clear();
+        bot.addList().read(this->world_H_floatingbase);
+        bot.addList().read(this->floatingbase_twist);
+        bot.addList().read(this->floatingbase_acctwist);
+
+        port_floatingbasestate->write();
+
+
+        if( this->com_streaming_enabled )
+        {
+            // Stream com in world frame
+            KDL::Vector com = odometry_helper.getDynTree().getCOMKDL();
+
+            yarp::sig::Vector & com_to_send = port_com->prepare();
+            com_to_send.resize(3);
+
+            KDLtoYarp(com,com_to_send);
+
+            port_com->write();
+        }
+
+        if( this->frames_streaming_enabled )
+        {
+            // Stream frames in a property (highly inefficient! clean as soon as possible)
+            Property& output = port_frames->prepare();
+
+            for(int i =0; i < frames_to_stream.size(); i++ )
+            {
+                KDL::Frame frame_to_publish = odometry_helper.getWorldFrameTransform(frames_to_stream_indices[i]);
+
+                KDLtoYarp_position(frame_to_publish,buffer_transform_matrix);
+
+                buffer_bottles[i].get(0).asList()->read(buffer_transform_matrix);
+                output.put(frames_to_stream[i].c_str(),buffer_bottles[i].get(0));
+            }
+
+            port_frames->write();
+        }
     }
 }
 
@@ -922,7 +992,17 @@ void wholeBodyDynamicsThread::closeOdometry()
 {
     if( this->odometry_enabled )
     {
-        closePort(port_floatingbase);
+        closePort(port_floatingbasestate);
+    }
+
+    if( this->frames_streaming_enabled )
+    {
+        closePort(port_frames);
+    }
+
+    if( this->com_streaming_enabled )
+    {
+        closePort(port_com);
     }
 }
 
@@ -1036,7 +1116,7 @@ void wholeBodyDynamicsThread::publishTorques()
             output_vector_index++)
         {
             int torque_wbi_numeric_id = output_torque_ports[output_torque_port_id].wbi_numeric_ids_to_publish[output_vector_index];
-            output_torque_ports[output_torque_port_id].output_vector[output_vector_index] = all_torques[torque_wbi_numeric_id];
+            output_torque_ports[output_torque_port_id].output_vector[output_vector_index] = joint_status.getJointTorquesYARP()[torque_wbi_numeric_id];
         }
 
         writeTorque(output_torque_ports[output_torque_port_id].output_vector,
@@ -1088,21 +1168,15 @@ void wholeBodyDynamicsThread::publishBaseToGui()
         //For the icubGui, the world is the root frame when q == 0
         //So we have to find the transformation between the root now
         //and the root when q == 0
-        icub_model_world_base_position->setAng(tree_status.qj);
+        icub_model_world_base_position->setAngKDL(joint_status.getJointPosKDL());
 
         // {}^{leftFoot} H_{currentRoot}
         KDL::Frame H_leftFoot_currentRoot
             = icub_model_world_base_position->getPositionKDL(left_foot_link_idyntree_id,root_link_idyntree_id);
 
-        tree_status.qj.zero();
-        icub_model_world_base_position->setAng(tree_status.qj);
-
-        //{}^world H_{leftFoot}
-        KDL::Frame H_world_leftFoot
-            = icub_model_world_base_position->getPositionKDL(root_link_idyntree_id,left_foot_link_idyntree_id);
 
         world_H_rootLink
-            = H_world_leftFoot*H_leftFoot_currentRoot;
+            = world_H_leftFoot*H_leftFoot_currentRoot;
 
         world_H_rootLink_computed = true;
     }
@@ -1140,7 +1214,7 @@ void wholeBodyDynamicsThread::publishFilteredInertialForGravityCompensator()
 
     for(int i=0; i < 6; i++ )
     {
-        FilteredInertialForGravityComp[0+i] = tree_status.wbi_imu[4+i];
+        FilteredInertialForGravityComp[0+i] = sensor_status.wbi_imu[4+i];
     }
 
     broadcastData<yarp::sig::Vector>(FilteredInertialForGravityComp,port_filtered_inertial);
@@ -1153,10 +1227,10 @@ void wholeBodyDynamicsThread::publishFilteredFTWithoutOffset()
     {
         int nr_of_ft = sensors->getSensorList(wbi::SENSOR_FORCE_TORQUE).size();
         YARP_ASSERT(nr_of_ft == port_filtered_ft.size());
-        YARP_ASSERT(nr_of_ft == tree_status.estimated_ft_sensors.size());
+        YARP_ASSERT(nr_of_ft == sensor_status.estimated_ft_sensors.size());
         for(int ft =0; ft < nr_of_ft; ft++ )
         {
-            broadcastData<yarp::sig::Vector>(tree_status.estimated_ft_sensors[ft],port_filtered_ft[ft]);
+            broadcastData<yarp::sig::Vector>(sensor_status.estimated_ft_sensors[ft],port_filtered_ft[ft]);
         }
     }
 }
@@ -1170,18 +1244,21 @@ void wholeBodyDynamicsThread::readRobotStatus()
     double * stamps = NULL;
 
     // Get joint encoders position, velocities and accelerations
-    sensors->readSensors(wbi::SENSOR_ENCODER_POS, tree_status.qj.data(), stamps, wait);
-    sensors->readSensors(wbi::SENSOR_ENCODER_SPEED, tree_status.dqj.data(), stamps, wait);
-    sensors->readSensors(wbi::SENSOR_ENCODER_ACCELERATION, tree_status.ddqj.data(), stamps, wait);
+    sensors->readSensors(wbi::SENSOR_ENCODER_POS, joint_status.getJointPosKDL().data.data(), stamps, wait);
+    sensors->readSensors(wbi::SENSOR_ENCODER_SPEED, joint_status.getJointVelKDL().data.data(), stamps, wait);
+    sensors->readSensors(wbi::SENSOR_ENCODER_ACCELERATION, joint_status.getJointAccKDL().data.data(), stamps, wait);
+
+    // Update yarp vectors
+    joint_status.updateYarpBuffers();
 
     // Get 6-Axis F/T sensors measure
     const IDList & available_ft_sensors = sensors->getSensorList(SENSOR_FORCE_TORQUE);
     for(int ft_numeric = 0; ft_numeric < (int)available_ft_sensors.size(); ft_numeric++ )
     {
         int ft_index = ft_numeric;
-        if( sensors->readSensor(SENSOR_FORCE_TORQUE, ft_numeric, tree_status.measured_ft_sensors[ft_numeric].data(), stamps , wait) ) {
+        if( sensors->readSensor(SENSOR_FORCE_TORQUE, ft_numeric, sensor_status.measured_ft_sensors[ft_numeric].data(), stamps , wait) ) {
             // Add a low pass filter here? \todo TODO
-            tree_status.estimated_ft_sensors[ft_numeric] = tree_status.measured_ft_sensors[ft_numeric] - tree_status.ft_sensors_offset[ft_numeric]; /// remove offset
+            sensor_status.estimated_ft_sensors[ft_numeric] = sensor_status.measured_ft_sensors[ft_numeric] - sensor_status.ft_sensors_offset[ft_numeric]; /// remove offset
         } else {
             yError() << "wholeBodyDynamics: Error in reading F/T sensors, exiting";
         }
@@ -1193,27 +1270,27 @@ void wholeBodyDynamicsThread::readRobotStatus()
     {
         int imu_index = imu_numeric;
         assert( tree_status.wbi_imu.size() == sensorTypeDescriptions[SENSOR_IMU].dataSize );
-        if( sensors->readSensor(SENSOR_IMU, imu_numeric, tree_status.wbi_imu.data(), stamps, wait) )
+        if( sensors->readSensor(SENSOR_IMU, imu_numeric, sensor_status.wbi_imu.data(), stamps, wait) )
         {
             // fill imu values
             for(int i=0; i < 3; i++ )
             {
-                tree_status.proper_ddp_imu[i] = tree_status.wbi_imu[i+4];
-                tree_status.omega_imu[i]      = tree_status.wbi_imu[i+7];
+                sensor_status.proper_ddp_imu[i] = sensor_status.wbi_imu[i+4];
+                sensor_status.omega_imu[i]      = sensor_status.wbi_imu[i+7];
             }
 
-            YARP_ASSERT(tree_status.proper_ddp_imu.size() == 3);
-            YARP_ASSERT(tree_status.omega_imu.size() == 3);
+            YARP_ASSERT(sensor_status.proper_ddp_imu.size() == 3);
+            YARP_ASSERT(sensor_status.omega_imu.size() == 3);
 
-            tree_status.proper_ddp_imu = filters->imuLinearAccelerationFilter->filt(tree_status.proper_ddp_imu);
-            tree_status.omega_imu      = filters->imuAngularVelocityFilter->filt(tree_status.omega_imu);
+            sensor_status.proper_ddp_imu = filters->imuLinearAccelerationFilter->filt(sensor_status.proper_ddp_imu);
+            sensor_status.omega_imu      = filters->imuAngularVelocityFilter->filt(sensor_status.omega_imu);
 
-            YARP_ASSERT(tree_status.proper_ddp_imu.size() == 3);
-            YARP_ASSERT(tree_status.omega_imu.size() == 3);
+            YARP_ASSERT(sensor_status.proper_ddp_imu.size() == 3);
+            YARP_ASSERT(sensor_status.omega_imu.size() == 3);
 
-            filters->imuAngularAccelerationFiltElement.data = tree_status.omega_imu;
+            filters->imuAngularAccelerationFiltElement.data = sensor_status.omega_imu;
             filters->imuAngularAccelerationFiltElement.time = yarp::os::Time::now();
-            tree_status.domega_imu     = filters->imuAngularAccelerationFilt->estimate(filters->imuAngularAccelerationFiltElement);
+            sensor_status.domega_imu     = filters->imuAngularAccelerationFilt->estimate(filters->imuAngularAccelerationFiltElement);
 
         } else {
             yError() << "wholeBodyDynamicsTree : Error in reading IMU";
@@ -1266,17 +1343,16 @@ void wholeBodyDynamicsThread::estimation_run()
     if( this->smooth_calibration )
     {
         double now = yarp::os::Time::now();
-        for(int i=0; i < this->tree_status.ft_sensors_offset.size(); i++ )
+        for(int i=0; i < this->sensor_status.ft_sensors_offset.size(); i++ )
         {
-            this->offset_smoother->updateOffset(now,i,tree_status.ft_sensors_offset[i]);
+            this->offset_smoother->updateOffset(now,i,sensor_status.ft_sensors_offset[i]);
         }
     }
 
-    // Estimate external forces and internal torques
-    externalWrenchTorqueEstimator->estimateExternalWrenchAndInternalJoints(this->tree_status);
+    // Estimate external forces and internal torques (torques will be saved in the joint_status)
+    externalWrenchTorqueEstimator->estimateExternalWrenchAndInternalJoints(this->joint_status,
+                                                                           this->sensor_status);
 
-    //Get estimated torques
-    all_torques = tree_status.torquesj;
 
     //Get estimated external contacts
     external_forces_list = externalWrenchTorqueEstimator->estimatedLastSkinDynContacts;
@@ -1294,7 +1370,7 @@ void wholeBodyDynamicsThread::estimation_run()
     publishExternalWrenches();
 
     //Compute odometry
-    runOdometry();
+    publishOdometry();
 
     //Send base information to iCubGui
     publishBaseToGui();
@@ -1337,11 +1413,11 @@ void wholeBodyDynamicsThread::setNewFTOffset(const int ft_sensor_id, const yarp:
 {
     if( !smooth_calibration )
     {
-        tree_status.ft_sensors_offset[ft_sensor_id] = new_offset;
+        sensor_status.ft_sensors_offset[ft_sensor_id] = new_offset;
     }
     else
     {
-        offset_smoother->setNewOffset(yarp::os::Time::now(),ft_sensor_id,new_offset,tree_status.ft_sensors_offset[ft_sensor_id]);
+        offset_smoother->setNewOffset(yarp::os::Time::now(),ft_sensor_id,new_offset,sensor_status.ft_sensors_offset[ft_sensor_id]);
     }
 }
 
@@ -1355,39 +1431,37 @@ void wholeBodyDynamicsThread::calibration_run()
     if( assume_fixed_base_calibration )
     {
         double gravity = 9.8;
-        tree_status.proper_ddp_imu[0] = 0.0;
-        tree_status.proper_ddp_imu[1] = 0.0;
-        tree_status.proper_ddp_imu[2] = 0.0;
+        calibration_ddp[0] = 0.0;
+        calibration_ddp[1] = 0.0;
+        calibration_ddp[2] = 0.0;
         if( fixed_link_calibration == "root_link" )
         {
-            tree_status.proper_ddp_imu[2] = gravity;
+            calibration_ddp[2] = gravity;
         }
         else if(    fixed_link_calibration == "l_sole"
                  || fixed_link_calibration == "r_sole"
                  || fixed_link_calibration == "r_foot_dh_frame"
                  || fixed_link_calibration == "l_foot_dh_frame" )
         {
-            tree_status.proper_ddp_imu[0] = gravity;
+            calibration_ddp[0] = gravity;
         }
     }
     else
     {
-        tree_status.proper_ddp_imu[0] = tree_status.wbi_imu[4];
-        tree_status.proper_ddp_imu[1] = tree_status.wbi_imu[5];
-        tree_status.proper_ddp_imu[2] = tree_status.wbi_imu[6];
+        calibration_ddp[0] = sensor_status.wbi_imu[4];
+        calibration_ddp[1] = sensor_status.wbi_imu[5];
+        calibration_ddp[2] = sensor_status.wbi_imu[6];
     }
-    tree_status.omega_imu[0] = 0.0*tree_status.wbi_imu[7];
-    tree_status.omega_imu[1] = 0.0*tree_status.wbi_imu[8];
-    tree_status.omega_imu[2] = 0.0*tree_status.wbi_imu[9];
 
     //Estimating sensors
-    YARP_ASSERT(tree_status.omega_imu.size() == 3);
-    YARP_ASSERT(tree_status.domega_imu.size() == 3);
-    YARP_ASSERT(tree_status.proper_ddp_imu.size() == 3);
-    icub_model_calibration->setInertialMeasure(0.0*tree_status.omega_imu,0.0*tree_status.domega_imu,tree_status.proper_ddp_imu);
-    icub_model_calibration->setAng(tree_status.qj);
-    icub_model_calibration->setDAng(0.0*tree_status.dqj);
-    icub_model_calibration->setD2Ang(0.0*tree_status.ddqj);
+    YARP_ASSERT(sensor_status.omega_imu.size() == 3);
+    YARP_ASSERT(sensor_status.domega_imu.size() == 3);
+    YARP_ASSERT(sensor_status.proper_ddp_imu.size() == 3);
+
+    icub_model_calibration->setInertialMeasure(zero_three_elem_vector,zero_three_elem_vector,calibration_ddp);
+    icub_model_calibration->setAngKDL(joint_status.getJointPosKDL());
+    icub_model_calibration->setDAng(zero_dof_elem_vector);
+    icub_model_calibration->setD2Ang(zero_dof_elem_vector);
 
     icub_model_calibration->kinematicRNEA();
     icub_model_calibration->dynamicRNEA();
@@ -1400,14 +1474,12 @@ void wholeBodyDynamicsThread::calibration_run()
         if( calibrate_ft_sensor[ft_sensor_id] ) {
 
             //Get sensor estimated from model
-            icub_model_calibration->getSensorMeasurement(ft_sensor_id,tree_status.model_ft_sensors[ft_sensor_id]);
+            icub_model_calibration->getSensorMeasurement(ft_sensor_id,sensor_status.model_ft_sensors[ft_sensor_id]);
 
             //Get sensor measure
             assert((int)offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
-            offset_buffer[ft_sensor_id] += tree_status.measured_ft_sensors[ft_sensor_id]-tree_status.model_ft_sensors[ft_sensor_id];
-            //std::cout << "Estimated ft sensor " << ft_sensor_id << " : " << tree_status.estimated_ft_sensors[ft_sensor_id].toString() << std::endl;
-            //std::cout << "Subchain mass : " << norm(tree_status.estimated_ft_sensors[ft_sensor_id].subVector(0,2))/norm( tree_status.proper_ddp_imu) << std::endl;
-        }
+            offset_buffer[ft_sensor_id] += sensor_status.measured_ft_sensors[ft_sensor_id]-sensor_status.model_ft_sensors[ft_sensor_id];
+         }
     }
 
     samples_used_for_calibration++;
@@ -1428,7 +1500,7 @@ void wholeBodyDynamicsThread::calibration_run()
                 sensors->getSensorList(wbi::SENSOR_FORCE_TORQUE).indexToID(ft_sensor_id,sensor_name);
 
                 yInfo() << "wholeBodyDynamicsThread: new calibration for FT " << sensor_name.toString() << " is "
-                        << tree_status.ft_sensors_offset[ft_sensor_id].toString();
+                        << sensor_status.ft_sensors_offset[ft_sensor_id].toString();
             }
         }
 
@@ -1457,45 +1529,44 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
 {
     //std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run(): estimates obtained" << std::endl;
 
+    bool ok = true;
+
     //Setting imu proper acceleration from measure (assuming omega e domega = 0)
     //acceleration are measures 4:6 (check wbi documentation)
     if( assume_fixed_base_calibration )
     {
         double gravity = 9.8;
-        tree_status.proper_ddp_imu[0] = 0.0;
-        tree_status.proper_ddp_imu[1] = 0.0;
-        tree_status.proper_ddp_imu[2] = 0.0;
+        calibration_ddp[0] = 0.0;
+        calibration_ddp[1] = 0.0;
+        calibration_ddp[2] = 0.0;
         if( fixed_link_calibration == "root_link" )
         {
-            tree_status.proper_ddp_imu[2] = gravity;
+            calibration_ddp[2] = gravity;
         }
         else if(    fixed_link_calibration == "l_sole"
                  || fixed_link_calibration == "r_sole"
                  || fixed_link_calibration == "r_foot_dh_frame"
                  || fixed_link_calibration == "l_foot_dh_frame" )
         {
-            tree_status.proper_ddp_imu[0] = gravity;
+            calibration_ddp[0] = gravity;
         }
     }
     else
     {
-        tree_status.proper_ddp_imu[0] = tree_status.wbi_imu[4];
-        tree_status.proper_ddp_imu[1] = tree_status.wbi_imu[5];
-        tree_status.proper_ddp_imu[2] = tree_status.wbi_imu[6];
+        calibration_ddp[0] = sensor_status.wbi_imu[4];
+        calibration_ddp[1] = sensor_status.wbi_imu[5];
+        calibration_ddp[2] = sensor_status.wbi_imu[6];
     }
-    tree_status.omega_imu[0] = 0.0*tree_status.wbi_imu[7];
-    tree_status.omega_imu[1] = 0.0*tree_status.wbi_imu[8];
-    tree_status.omega_imu[2] = 0.0*tree_status.wbi_imu[9];
 
     //Estimating sensors
-    bool ok = true;
-    YARP_ASSERT(tree_status.omega_imu.size() == 3);
-    YARP_ASSERT(tree_status.domega_imu.size() == 3);
-    YARP_ASSERT(tree_status.proper_ddp_imu.size() == 3);
-    ok = ok && icub_model_calibration->setInertialMeasure(0.0*tree_status.omega_imu,0.0*tree_status.domega_imu,tree_status.proper_ddp_imu);
-    icub_model_calibration->setAng(tree_status.qj);
-    icub_model_calibration->setDAng(0.0*tree_status.dqj);
-    icub_model_calibration->setD2Ang(0.0*tree_status.ddqj);
+    YARP_ASSERT(sensor_status.omega_imu.size() == 3);
+    YARP_ASSERT(sensor_status.domega_imu.size() == 3);
+    YARP_ASSERT(sensor_status.proper_ddp_imu.size() == 3);
+
+    icub_model_calibration->setInertialMeasure(zero_three_elem_vector,zero_three_elem_vector,calibration_ddp);
+    icub_model_calibration->setAngKDL(joint_status.getJointPosKDL());
+    icub_model_calibration->setDAng(zero_dof_elem_vector);
+    icub_model_calibration->setD2Ang(zero_dof_elem_vector);
 
     ok = ok && icub_model_calibration->kinematicRNEA();
     ok = ok && icub_model_calibration->estimateDoubleSupportContactForce(left_foot_link_idyntree_id,right_foot_link_idyntree_id);
@@ -1510,20 +1581,16 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
 
     //Get known terms of the Newton-Euler equation
 
-    yDebug() << "wholeBodyDynamicsThread::calibration_on_double_support_run(): F/T estimates computed";
-    yDebug() << "wholeBodyDynamicsThread::calibration_on_double_support_run() : imu proper acceleration " << tree_status.proper_ddp_imu.toString();
-    yDebug() << "wholeBodyDynamicsThread::calibration_on_double_support_run() : q " << tree_status.qj.toString();
-
     for(int ft_sensor_id=0; ft_sensor_id < (int)offset_buffer.size(); ft_sensor_id++ )
     {
         if( calibrate_ft_sensor[ft_sensor_id] )
         {
             //Get sensor estimated from model
-            icub_model_calibration->getSensorMeasurement(ft_sensor_id,tree_status.model_ft_sensors[ft_sensor_id]);
+            icub_model_calibration->getSensorMeasurement(ft_sensor_id,sensor_status.model_ft_sensors[ft_sensor_id]);
 
             //Get sensor measure
             assert((int)offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
-            offset_buffer[ft_sensor_id] += tree_status.measured_ft_sensors[ft_sensor_id]-tree_status.model_ft_sensors[ft_sensor_id];
+            offset_buffer[ft_sensor_id] += sensor_status.measured_ft_sensors[ft_sensor_id]-sensor_status.model_ft_sensors[ft_sensor_id];
         }
     }
 
@@ -1543,7 +1610,7 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
                 sensors->getSensorList(wbi::SENSOR_FORCE_TORQUE).indexToID(ft_sensor_id,sensor_name);
 
                 yInfo() << "wholeBodyDynamicsThread: new calibration for FT " << sensor_name.toString() << " is "
-                        << tree_status.ft_sensors_offset[ft_sensor_id].toString();
+                        << sensor_status.ft_sensors_offset[ft_sensor_id].toString();
 
             }
         }
@@ -1561,11 +1628,6 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
         calibration_mutex.unlock();
     }
 
-    /*
-    std::cout << "wholeBodyDynamicsThread::calibration_on_double_support_run() "
-              <<  samples_used_for_calibration << " / "
-              << samples_requested_for_calibration << "  finished" << std::endl;
-    */
 }
 
 //*****************************************************************************
@@ -1652,14 +1714,14 @@ template <class T> void wholeBodyDynamicsThread::broadcastData(T& _values, Buffe
 }
 
 //*****************************************************************************
-void wholeBodyDynamicsThread::writeTorque(Vector _values, int _address, BufferedPort<Bottle> *_port)
+void wholeBodyDynamicsThread::writeTorque(const Vector& _values, int _address, BufferedPort<Bottle> *_port)
 {
     /** \todo TODO avoid (as much as feasible) dynamic memory allocation */
-    Bottle a;
+    Bottle & a = _port->prepare();
+    a.clear();
     a.addInt(_address);
     for(size_t i=0;i<_values.length();i++)
         a.addDouble(_values(i));
-    _port->prepare() = a;
     _port->write();
 }
 
