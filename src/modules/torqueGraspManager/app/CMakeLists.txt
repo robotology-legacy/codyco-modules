@@ -1,4 +1,4 @@
-set(modulename RedBallGrasp)
+set(modulename ${PROJECT_NAME})
 
 file(GLOB conf ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini)
 
