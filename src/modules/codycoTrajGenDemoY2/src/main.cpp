@@ -7,7 +7,7 @@
 using namespace yarp::os;
 
 int main(int argc, char **argv) {
-    
+
     Network yarp;
     if (!Network::checkNetwork())
     {
@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
 
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("CodycoCoordinatorY2");
+    rf.setDefaultContext("codycoTrajGenDemoY2");
     rf.setDefaultConfigFile("default.ini");
     rf.configure(argc,argv);
 

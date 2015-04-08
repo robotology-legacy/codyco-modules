@@ -4,7 +4,7 @@ add_subdirectory(adaptiveControl)
 #add_subdirectory(staticInertiaIdentification)
 add_subdirectory(insituFTSensorCalibration)
 add_subdirectory(codycoDemoY2/app)
-add_subdirectory(RedBallGraspDemo)
+add_subdirectory(torqueGraspManager)
 add_subdirectory(eventRepeater)
 
 if(${CODYCO_USES_EIGEN_320})
@@ -19,7 +19,7 @@ endif()
 add_subdirectory(walkPlayer)
 
 add_subdirectory(codycoCoordinatorDemoY1)
-add_subdirectory(codycoCoordinatorDemoY2)
+add_subdirectory(codycoTrajGenDemoY2)
 add_subdirectory(graspAndStepDemo)
 
 #add_subdirectory(wholeBodyNeckVelocity)

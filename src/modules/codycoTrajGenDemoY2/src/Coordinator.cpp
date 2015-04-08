@@ -381,7 +381,7 @@ namespace codyco {
             }
             implementation = data;
 
-            setName(rf.check("moduleName", Value("/y2coordinator")).asString().c_str());
+            setName(rf.check("moduleName", Value("/trajGenY2")).asString().c_str());
             m_threadPeriod = rf.check("modulePeriod", Value(0.01)).asDouble();
             m_robotName = rf.check("robot", Value("icub")).asString();
 

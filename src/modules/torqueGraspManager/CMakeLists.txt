@@ -1,9 +1,9 @@
 # Copyright: 2010 RobotCub Consortium
 # Author: Ugo Pattacini
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
-# 
+#
 
-PROJECT(RedBallGraspDemo)
+PROJECT(torqueGraspManager)
 
 find_package(ICUB)
 find_package(YARP)

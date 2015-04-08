@@ -16,7 +16,7 @@
   </description-long>
 
   <arguments>
-    <param default="/y2coordinator" desc="module's name; all the open ports will be tagged with the prefix name.">name</param>
+    <param default="/trajGenY2" desc="module's name; all the open ports will be tagged with the prefix name.">name</param>
     <param default="icub" desc="name of the robot to connect to.">robot</param>
   </arguments>
 
