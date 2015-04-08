@@ -202,7 +202,7 @@ bool wholeBodyDynamicsThread::loadExternalWrenchesPortsConfigurations()
     }
 
     // Load indeces for specified links and frame
-    for(int i=0; i < output_wrench_ports.size(); i++ )
+    for(unsigned i=0; i < output_wrench_ports.size(); i++ )
     {
         output_wrench_ports[i].link_index =
             icub_model_calibration->getFrameIndex(output_wrench_ports[i].link);
@@ -237,7 +237,7 @@ bool wholeBodyDynamicsThread::loadExternalWrenchesPortsConfigurations()
 
 bool wholeBodyDynamicsThread::openExternalWrenchesPorts()
 {
-    for(int i = 0; i < output_wrench_ports.size(); i++ )
+    for(unsigned int i = 0; i < output_wrench_ports.size(); i++ )
     {
         std::string port_name = output_wrench_ports[i].port_name;
         output_wrench_ports[i].output_port = new BufferedPort<Vector>;
@@ -248,7 +248,7 @@ bool wholeBodyDynamicsThread::openExternalWrenchesPorts()
 
 bool wholeBodyDynamicsThread::closeExternalWrenchesPorts()
 {
-    for(int i = 0; i < output_wrench_ports.size(); i++ )
+    for(unsigned int i = 0; i < output_wrench_ports.size(); i++ )
     {
         this->closePort(output_wrench_ports[i].output_port);
     }
@@ -1269,7 +1269,7 @@ void wholeBodyDynamicsThread::readRobotStatus()
     for(int imu_numeric = 0; imu_numeric < (int) 1; imu_numeric++ )
     {
         int imu_index = imu_numeric;
-        assert( tree_status.wbi_imu.size() == sensorTypeDescriptions[SENSOR_IMU].dataSize );
+        assert( sensor_status.wbi_imu.size() == sensorTypeDescriptions[SENSOR_IMU].dataSize );
         if( sensors->readSensor(SENSOR_IMU, imu_numeric, sensor_status.wbi_imu.data(), stamps, wait) )
         {
             // fill imu values
@@ -1343,7 +1343,7 @@ void wholeBodyDynamicsThread::estimation_run()
     if( this->smooth_calibration )
     {
         double now = yarp::os::Time::now();
-        for(int i=0; i < this->sensor_status.ft_sensors_offset.size(); i++ )
+        for(unsigned int i=0; i < this->sensor_status.ft_sensors_offset.size(); i++ )
         {
             this->offset_smoother->updateOffset(now,i,sensor_status.ft_sensors_offset[i]);
         }
@@ -1650,7 +1650,7 @@ void wholeBodyDynamicsThread::threadRelease()
     delete externalWrenchTorqueEstimator;
 
     yInfo() << "Closing output torques ports";
-    for(int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
+    for(unsigned int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
     {
         closePort(output_torque_ports[output_torque_port_i].output_port);
     }
@@ -1777,11 +1777,13 @@ bool wholeBodyDynamicsThread::ensureJointsAreNotUsingTorqueEstimates()
     }
 
     closeControlBoards();
+
+    return true;
 }
 
 bool wholeBodyDynamicsThread::openControlBoards()
 {
-    for(int ctrlBrd = 0; ctrlBrd < torqueEstimationControlBoards.controlBoardNames.size(); ctrlBrd++ )
+    for(unsigned int ctrlBrd = 0; ctrlBrd < torqueEstimationControlBoards.controlBoardNames.size(); ctrlBrd++ )
     {
         if( !openPolyDriver("wholeBodyDynamicsCloseControlBoards",
                              robotName,
@@ -1883,7 +1885,7 @@ wholeBodyDynamicsFilters::~wholeBodyDynamicsFilters()
     deleteObject(&d2qFilt);
     deleteObject(&tauJFilt);
 
-    for(int ft=0; ft < forcetorqueFilters.size(); ft++)
+    for(unsigned int ft=0; ft < forcetorqueFilters.size(); ft++)
     {
         deleteObject(&(forcetorqueFilters[ft]));
     }
@@ -1907,9 +1909,9 @@ void OffsetSmoother::reset(int nrOfFTSensors, double smoothingTimeInSeconds)
 
 }
 
-void OffsetSmoother::setNewOffset(double current_time, int ft_id, const Vector& _new_offset, const Vector& _old_offset)
+void OffsetSmoother::setNewOffset(double current_time, unsigned int ft_id, const Vector& _new_offset, const Vector& _old_offset)
 {
-    assert(ft_id >= 0 && ft_id < this->old_offset.size());
+    assert(ft_id < this->old_offset.size());
     old_offset[ft_id] = _old_offset;
     new_offset[ft_id] = _new_offset;
     this->initial_smoothing_time[ft_id] = current_time;
@@ -1918,7 +1920,7 @@ void OffsetSmoother::setNewOffset(double current_time, int ft_id, const Vector& 
 
 
 void OffsetSmoother::updateOffset(const double current_time,
-                                  const int ft_id, yarp::sig::Vector & used_offset)
+                                  const unsigned int ft_id, yarp::sig::Vector & used_offset)
 {
     if( this->is_smoothing[ft_id] )
     {

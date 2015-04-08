@@ -18,8 +18,8 @@
 #include "ftcalibrationdataset.h"
 
 FTCalibrationDataset::FTCalibrationDataset():
-                        added_mass(0),
-                        dataset_name("")
+                        dataset_name(""),
+                        added_mass(0)
 {
 
 }

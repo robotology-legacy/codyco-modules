@@ -490,9 +490,10 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
         }
     }
 
-    assert((int)tree_status.qj.size() == robot_estimation_model->getNrOfDOFs());
-    assert((int)tree_status.dqj.size() == robot_estimation_model->getNrOfDOFs());
-    assert((int)tree_status.ddqj.size() == robot_estimation_model->getNrOfDOFs());
+    assert((int)joint_status.getJointPosYARP().size() == robot_estimation_model->getNrOfDOFs());
+    assert((int)joint_status.getJointVelYARP().size() == robot_estimation_model->getNrOfDOFs());
+    assert((int)joint_status.getJointAccYARP().size() == robot_estimation_model->getNrOfDOFs());
+
 
     YARP_ASSERT(omega_used_IMU.size() == 3);
     YARP_ASSERT(domega_used_IMU.size() == 3);
@@ -503,7 +504,7 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
     robot_estimation_model->setD2Ang(joint_status.getJointAccYARP());
 
     for(int i=0; i < robot_estimation_model->getNrOfFTSensors(); i++ ) {
-        assert(tree_status.estimated_ft_sensors[i].size() == 6);
+        assert(sensor_status.estimated_ft_sensors[i].size() == 6);
          ok  = ok && robot_estimation_model->setSensorMeasurement(i,sensor_status.estimated_ft_sensors[i]);
     }
     robot_estimation_model->setContacts(dynContacts);

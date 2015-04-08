@@ -103,8 +103,8 @@ class OffsetSmoother
     std::vector<double>            initial_smoothing_time;
     std::vector<bool>              is_smoothing;
 
-    void setNewOffset(double current_time, int ft_id, const yarp::sig::Vector & new_offset, const yarp::sig::Vector & old_offset);
-    void updateOffset(double current_time, int ft_id, yarp::sig::Vector & smoothed_offset);
+    void setNewOffset(double current_time, unsigned int ft_id, const yarp::sig::Vector & new_offset, const yarp::sig::Vector & old_offset);
+    void updateOffset(const double current_time, const unsigned int ft_id, yarp::sig::Vector & smoothed_offset);
 
 };
 
