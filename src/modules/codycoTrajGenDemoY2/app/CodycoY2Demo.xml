@@ -73,7 +73,7 @@
 
   <connection>
       <from>/torqueGraspManager/qdes:o</from>
-      <to>/y2coordinator/refs:i</to>
+      <to>/trajGenY2/refs:i</to>
       <protocol>udp</protocol>
   </connection>
 
