@@ -364,6 +364,10 @@ bool JointTorqueControl::getControlMode(int j, int *mode)
     {
         return false;
     }
+    
+    yarp::os::LockGuard lock(globalMutex);
+
+    
     if( isHijackingTorqueControl(j) )
     {
         *mode = VOCAB_CM_TORQUE;
@@ -386,6 +390,9 @@ bool JointTorqueControl::getControlModes(int *modes)
     {
         return false;
     }
+    
+    yarp::os::LockGuard lock(globalMutex);
+    
     bool ret = proxyIControlMode2->getControlModes(modes);
     for(int j=0; j < this->axes; j++ )
     {
@@ -422,6 +429,8 @@ bool JointTorqueControl::getControlModes(const int n_joint, const int *joints, i
     {
         return false;
     }
+    
+    yarp::os::LockGuard lock(globalMutex);
 
     bool ret = proxyIControlMode2->getControlModes(n_joint,joints,modes);
 
@@ -454,7 +463,7 @@ bool JointTorqueControl::setControlMode(const int j, const int mode)
     {
         if (!streamingOutput)
         {
-            this->stopHijackingTorqueControlIfNecessary(j);
+            this->startHijackingTorqueControlIfNecessary(j);
             new_mode = VOCAB_CM_OPENLOOP;
         }
     }
@@ -530,6 +539,8 @@ bool JointTorqueControl::setControlModes(int *modes)
     {
         return false;
     }
+    
+    yarp::os::LockGuard lock(globalMutex);
 
     for(int j=0; j < this->axes; j++ )
     {
@@ -675,6 +686,8 @@ bool JointTorqueControl::getTorqueRanges(double *min, double *max)
 
 bool JointTorqueControl::setTorquePids(const Pid *pids)
 {
+    yarp::os::LockGuard lock(globalMutex);
+
     bool ret = true;
     for(int j=0; j < this->axes; j++)
     {
