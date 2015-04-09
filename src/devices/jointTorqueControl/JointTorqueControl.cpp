@@ -49,10 +49,8 @@ int findAndReturnIndex(std::vector<T>  &v, T &x)
 
 void JointTorqueControl::startHijackingTorqueControlIfNecessary(int j)
 {
-
     if( !this->hijackingTorqueControl[j] )
     {
-        yarp::os::LockGuard guard(this->globalMutex);
         desiredJointTorques(j) = measuredJointTorques(j);
         this->hijackingTorqueControl[j] = true;
     }
