@@ -1375,6 +1375,9 @@ void wholeBodyDynamicsThread::estimation_run()
     //Send base information to iCubGui
     publishBaseToGui();
 
+    //Send filtered inertia for gravity compensation
+    publishFilteredInertialForGravityCompensator();
+
     //Send filtered force torque sensor measurment, if requested
     publishFilteredFTWithoutOffset();
 
