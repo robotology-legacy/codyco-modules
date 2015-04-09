@@ -515,7 +515,7 @@ bool wholeBodyDynamicsThread::threadInit()
     }
 
     {
-        for(int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
+        for(unsigned int output_torque_port_i = 0; output_torque_port_i < output_torque_ports.size(); output_torque_port_i++ )
         {
             std::string port_name = output_torque_ports[output_torque_port_i].port_name;
             std::string local_port = "/" + moduleName + "/" + port_name + "/Torques:o";
