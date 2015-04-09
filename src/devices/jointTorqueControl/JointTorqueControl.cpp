@@ -47,16 +47,29 @@ int findAndReturnIndex(std::vector<T>  &v, T &x)
 }
 
 
-void JointTorqueControl::startHijackingTorqueControl(int j)
+void JointTorqueControl::startHijackingTorqueControlIfNecessary(int j)
 {
-    yarp::os::LockGuard guard(this->controlMutex);
-    desiredJointTorques(j) = measuredJointTorques(j);
-    this->hijackingTorqueControl[j] = true;
+
+    if( !this->hijackingTorqueControl[j] )
+    {
+        yarp::os::LockGuard guard(this->globalMutex);
+        desiredJointTorques(j) = measuredJointTorques(j);
+        this->hijackingTorqueControl[j] = true;
+    }
 }
 
-void JointTorqueControl::stopHijackingTorqueControl(int j)
+void JointTorqueControl::stopHijackingTorqueControlIfNecessary(int j)
 {
-    this->hijackingTorqueControl[j] = false;
+
+    if( this->hijackingTorqueControl[j] )
+    {
+        this->hijackingTorqueControl[j] = false;
+    }
+}
+
+bool JointTorqueControl::isHijackingTorqueControl(int j)
+{
+    return this->hijackingTorqueControl[j];
 }
 
 
@@ -351,7 +364,7 @@ bool JointTorqueControl::getControlMode(int j, int *mode)
     {
         return false;
     }
-    if( hijackingTorqueControl[j] )
+    if( isHijackingTorqueControl(j) )
     {
         *mode = VOCAB_CM_TORQUE;
         return true;
@@ -376,7 +389,7 @@ bool JointTorqueControl::getControlModes(int *modes)
     bool ret = proxyIControlMode2->getControlModes(modes);
     for(int j=0; j < this->axes; j++ )
     {
-        if( hijackingTorqueControl[j] )
+        if( this->isHijackingTorqueControl(j) )
         {
             if( modes[j] == VOCAB_CM_OPENLOOP )
             {
@@ -415,7 +428,7 @@ bool JointTorqueControl::getControlModes(const int n_joint, const int *joints, i
     for(int i=0; i < n_joint; i++ )
     {
         int j = joints[i];
-        if( this->hijackingTorqueControl[j] )
+        if( this->isHijackingTorqueControl(j) )
         {
             if( modes[i] == VOCAB_CM_OPENLOOP )
             {
@@ -434,14 +447,14 @@ bool JointTorqueControl::setControlMode(const int j, const int mode)
         return false;
     }
 
+    yarp::os::LockGuard lock(globalMutex);
+
     int new_mode = mode;
     if( new_mode == VOCAB_CM_TORQUE )
     {
         if (!streamingOutput)
         {
-            if (!this->hijackingTorqueControl[j]) {
-                this->startHijackingTorqueControl(j);
-            }
+            this->stopHijackingTorqueControlIfNecessary(j);
             new_mode = VOCAB_CM_OPENLOOP;
         }
     }
@@ -456,12 +469,9 @@ bool JointTorqueControl::setControlMode(const int j, const int mode)
         // controlBoard: we should add a check in the update of the thread
         // that stop the hijacking if a joint control modes is not anymore
         // in openloop
-        if( this->hijackingTorqueControl[j] )
+        if (!streamingOutput)
         {
-            if (!streamingOutput)
-            {
-                this->stopHijackingTorqueControl(j);
-            }
+            this->stopHijackingTorqueControlIfNecessary(j);
         }
     }
 
@@ -482,6 +492,8 @@ bool JointTorqueControl::setControlModes(const int n_joint, const int *joints, i
         return false;
     }
 
+    yarp::os::LockGuard lock(globalMutex);
+
     for(int i=0; i < n_joint; i++ )
     {
         int j = joints[i];
@@ -489,20 +501,15 @@ bool JointTorqueControl::setControlModes(const int n_joint, const int *joints, i
         {
             if (!streamingOutput)
             {
-                if (!this->hijackingTorqueControl[j]) {
-                    this->startHijackingTorqueControl(j);
-                }
+                this->startHijackingTorqueControlIfNecessary(j);
                 modes[i] = VOCAB_CM_OPENLOOP;
             }
         }
         else
         {
-            if( this->hijackingTorqueControl[j] )
+            if (!streamingOutput)
             {
-                if (!streamingOutput)
-                {
-                    this->stopHijackingTorqueControl(j);
-                }
+                this->stopHijackingTorqueControlIfNecessary(j);
             }
         }
     }
@@ -530,20 +537,15 @@ bool JointTorqueControl::setControlModes(int *modes)
         {
             if (!streamingOutput)
             {
-                if (!this->hijackingTorqueControl[j]) {
-                    this->startHijackingTorqueControl(j);
-                }
+                this->startHijackingTorqueControlIfNecessary(j);
                 modes[j] = VOCAB_CM_OPENLOOP;
             }
         }
         else
         {
-            if( this->hijackingTorqueControl[j] )
+            if (!streamingOutput)
             {
-                if (!streamingOutput)
-                {
-                    this->stopHijackingTorqueControl(j);
-                }
+                this->stopHijackingTorqueControlIfNecessary(j);
             }
         }
     }
@@ -585,14 +587,14 @@ bool JointTorqueControl::setVelocityMode()
 //TORQUE CONTROL
 bool JointTorqueControl::setRefTorque(int j, double t)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     desiredJointTorques[j] = t;
     return true;
 }
 
 bool JointTorqueControl::setRefTorques(const double *t)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     ::memcpy(desiredJointTorques.data(),t,this->axes*sizeof(double));
     return true;
 }
@@ -600,42 +602,42 @@ bool JointTorqueControl::setRefTorques(const double *t)
 
 bool JointTorqueControl::getRefTorque(int j, double *t)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     *t = desiredJointTorques[j];
     return true;
 }
 
 bool JointTorqueControl::getRefTorques(double *t)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     memcpy(t,desiredJointTorques.data(),this->axes*sizeof(double));
     return true;
 }
 
 bool JointTorqueControl::getTorque(int j, double *t)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     *t = measuredJointTorques[j];
     return true;
 }
 
 bool JointTorqueControl::getTorques(double *t)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     memcpy(t,measuredJointTorques.data(),this->axes*sizeof(double));
     return true;
 }
 
 bool JointTorqueControl::getBemfParam(int j, double *bemf)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     *bemf = motorParameters[j].kv;
     return true;
 }
 
 bool JointTorqueControl::setBemfParam(int j, double bemf)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     motorParameters[j].kv = bemf;
     return true;
 }
@@ -644,7 +646,7 @@ bool JointTorqueControl::setTorquePid(int j, const Pid &pid)
 {
     //WARNING: the PID structure mixes up motor and joint information
     //WARNING: THIS COULD MAPPING COULD CHANGE AT ANY TIME
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     // Joint level torque loop gains
     jointTorqueLoopGains[j].kp      = pid.kp;
     jointTorqueLoopGains[j].kd      = pid.kd;
@@ -661,13 +663,13 @@ bool JointTorqueControl::setTorquePid(int j, const Pid &pid)
 
 bool JointTorqueControl::getTorqueRange(int j, double *min, double *max)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     return false;
 }
 
 bool JointTorqueControl::getTorqueRanges(double *min, double *max)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     return false;
 }
 
@@ -689,55 +691,55 @@ bool JointTorqueControl::setTorqueErrorLimit(int j, double limit)
 
 bool JointTorqueControl::setTorqueErrorLimits(const double *limits)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     return false;
 }
 
 bool JointTorqueControl::getTorqueError(int j, double *err)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     return false;
 }
 
 bool JointTorqueControl::getTorqueErrors(double *errs)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     return false;
 }
 
 bool JointTorqueControl::getTorquePidOutput(int j, double *out)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     return false;
 }
 
 bool JointTorqueControl::getTorquePidOutputs(double *outs)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     return false;
 }
 
 bool JointTorqueControl::getTorquePid(int j, Pid *pid)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     return false;
 }
 
 bool JointTorqueControl::getTorquePids(Pid *pids)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     return false;
 }
 
 bool JointTorqueControl::getTorqueErrorLimit(int j, double *limit)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     return false;
 }
 
 bool JointTorqueControl::getTorqueErrorLimits(double *limits)
 {
-    yarp::os::LockGuard(this->controlMutex);
+    yarp::os::LockGuard(this->globalMutex);
     return false;
 }
 
@@ -795,7 +797,7 @@ double JointTorqueControl::sign(double x)
 
 void JointTorqueControl::threadRelease()
 {
-    yarp::os::LockGuard guard(controlMutex);
+    yarp::os::LockGuard guard(globalMutex);
 }
 
 inline Eigen::Map<Eigen::MatrixXd> toEigen(yarp::sig::Vector & vec)
@@ -857,7 +859,7 @@ void JointTorqueControl::computeOutputMotorTorques()
         output = jointControlOutput;
         portForStreamingPWM.write();
     }
-    
+
     toEigenVector(jointControlOutput) = couplingMatricesFirmware.fromMotorTorquesToJointTorques * toEigenVector(jointControlOutput);
 
     bool isNaNOrInf = false;
@@ -878,6 +880,11 @@ void JointTorqueControl::computeOutputMotorTorques()
 
 void JointTorqueControl::run()
 {
+    // The control mutex protect concurrent access also to the
+    // hijacked control board methods, so it should protect also
+    // the readStatus method
+    yarp::os::LockGuard lock(globalMutex);
+
     //Read status (position, velocity, torque) from the controlboard
     this->readStatus();
 
@@ -903,12 +910,12 @@ void JointTorqueControl::run()
         }
     }
 
-    yarp::os::LockGuard lock(controlMutex);
     //update output torques
     computeOutputMotorTorques();
 
     if(!streamingOutput)
     {
+
         //Send resulting output
         bool false_value = false;
         if( !contains(hijackingTorqueControl,false_value) )
@@ -925,6 +932,7 @@ void JointTorqueControl::run()
                 }
             }
         }
+
     }
 }
 

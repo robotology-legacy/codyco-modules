@@ -155,8 +155,9 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> portForReadingRefTorques;
 
 
-    void startHijackingTorqueControl(int j);
-    void stopHijackingTorqueControl(int j);
+    void startHijackingTorqueControlIfNecessary(int j);
+    void stopHijackingTorqueControlIfNecessary(int j);
+    bool isHijackingTorqueControl(int j);
 
     double sign(double j);
 
@@ -164,8 +165,7 @@ private:
     CouplingMatrices couplingMatricesFirmware;
 
     //joint torque loop methods & attributes
-    yarp::os::Mutex controlMutex; ///< mutex protecting control variables
-    yarp::os::Mutex interfacesMutex; ///< mutex  protecting interfaces
+    yarp::os::Mutex globalMutex; ///< mutex protecting control variables & proxy interface methods
 
     std::vector<JointTorqueLoopGains>                jointTorqueLoopGains;
     std::vector<MotorParameters> 		             motorParameters;
