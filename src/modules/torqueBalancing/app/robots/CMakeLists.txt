@@ -11,7 +11,7 @@ if(CODYCO_INSTALL_ALL_ROBOTS)
   add_subdirectory(iCubGenova03)
   add_subdirectory(iCubParis01)
   add_subdirectory(iCubParis02)
-  add_subdirectory(iCubHeidelberg01)  icubGazeboSim
+  add_subdirectory(iCubHeidelberg01)  
   add_subdirectory(icubGazeboSim)
 else()
   if(ROBOT_NAME)
