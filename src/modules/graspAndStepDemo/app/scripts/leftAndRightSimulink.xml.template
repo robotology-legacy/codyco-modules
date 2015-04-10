@@ -1,0 +1,92 @@
+<application>
+
+  <!-- Generic information-->
+  <name>Left and Right Balancing (using Simulink)</name>
+  <!-- <description></description> -->
+  <version></version>
+
+  <!-- Required modules. -->
+
+  <!-- Adding trajectory generator -->
+  <module>
+      <name>codycoTrajGenDemoY2</name>
+      <parameters></parameters>
+      <node>screen-node</node>
+      <stdio></stdio>
+      <prefix></prefix>
+  </module>
+
+  <!-- Adding leftRightBalancingDemo FSM coordinator -->
+  <module>
+      <name>leftRightBalancingDemo.lua</name>
+      <deployer>lua</deployer>
+      <node>node</node>
+      <stdio></stdio>
+      <prefix></prefix>
+  </module>
+
+  <!-- Adding eventRepeater to simplify user generation of events (for debug) -->
+  <module>
+      <name>eventRepeater</name>
+      <node>node</node>
+  </module>
+
+  <!-- Adding iSpeak for audio debug of current state -->
+  <module>
+      <name>iSpeak</name>
+      <parameters></parameters>
+      <node>audio-node</node>
+  </module>
+
+  <connection>
+      <from>/trajGenY2/comdes:o</from>
+      <to>/torqueBalancing/comdes:i</to>
+      <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+      <from>/trajGenY2/qdes:o</from>
+      <to>/torqueBalancing/qdes:i</to>
+      <protocol>udp</protocol>
+  </connection>
+
+  <!-- FSM connections -->
+
+  <!-- input to the controller and the trajectory generators -->
+  <connection>
+      <from>/graspAndStepDemo/setpoints:o</from>
+      <to>/trajGenY2/refs:i</to>
+  </connection>
+
+  <connection>
+      <from>/graspAndStepDemo/constraints:o</from>
+      <to>/torqueBalancing/constraints:i</to>
+      <protocol>tcp+recv.portmonitor+type.lua+context.graspAndStepDemo+file.constraints_simulink</protocol>
+  </connection>
+
+  <!-- events port -->
+  <connection>
+      <from>/eventRepeater/events:o</from>
+      <to>/graspAndStepDemo/events:i</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <!-- debug connection for audio debug of current state -->
+  <connection>
+      <from>/graspAndStepDemo/speak</from>
+      <to>/iSpeak</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <!-- frames related connections -->
+  <connection>
+      <from>/wholeBodyDynamicsTree/frames:o</from>
+      <to>/graspAndStepDemo/frames:i</to>
+  </connection>
+
+  <connection>
+      <from>/wholeBodyDynamicsTree/com:o</from>
+      <to>/graspAndStepDemo/com:i</to>
+  </connection>
+
+</application>
