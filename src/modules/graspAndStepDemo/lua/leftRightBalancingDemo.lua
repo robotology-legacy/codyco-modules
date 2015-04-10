@@ -132,6 +132,15 @@ function main()
 
     yarpNetworkTimeout = 10
 
+    if( not yarp.NetworkBase_checkNetwork(yarpNetworkTimeout) ) then
+        print("[" .. script_name .. "] yarp server not found, exiting")
+        yarp.Network_fini()
+        os.exit()
+    end
+
+    -- use the yarp time for time events
+    rfsm_timeevent.set_gettime_hook(yarp_gettime)
+
     -- open ports
     gas_open_ports()
 
