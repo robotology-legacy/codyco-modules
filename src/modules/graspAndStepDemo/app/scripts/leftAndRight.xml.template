@@ -30,6 +30,10 @@
       <node>node</node>
       <stdio></stdio>
       <prefix></prefix>
+      <dependencies>
+          <port timeout="5.0">/wholeBodyDynamicsTree/com:o</port>
+          <port timeout="5.0">/wholeBodyDynamicsTree/frames:o</port>
+      </dependencies>
   </module>
 
   <!-- Adding eventRepeater to simplify user generation of events (for debug) -->

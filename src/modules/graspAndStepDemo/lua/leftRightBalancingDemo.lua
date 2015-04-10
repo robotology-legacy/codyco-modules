@@ -17,17 +17,17 @@ end
 -------
 function gas_print_help()
     ---- list options
-    print("["..script_name.."]: --verbose                        : enable verbose output")
-    print("["..script_name.."]: --help : print this help")
+    print("[INFO] --verbose                        : enable verbose output")
+    print("[INFO] --help : print this help")
 end
 
 function gas_loadconfiguration()
     -- initialization
-    print("["..script_name.."] opening resource finder")
+    print("[INFO] opening resource finder")
     rf = yarp.ResourceFinder()
     rf:setDefaultConfigFile("leftRightBalancingDemo.ini")
     rf:setDefaultContext("graspAndStepDemo")
-    print("["..script_name.."] configuring resource finder")
+    print("[INFO] configuring resource finder")
     rf:configure(arg)
 
     -- load helper functions
