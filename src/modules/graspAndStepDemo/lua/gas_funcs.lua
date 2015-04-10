@@ -28,7 +28,7 @@ end
 function gas_activeContacts(port,activeContacts)
    local bot = port:prepare();
    bot:clear()
-   bot:addString("activeContacts")
+   bot:addString("activateContacts")
    for i = 1,#activeContacts do
        bot:addString(activeContacts[i])
    end
@@ -43,7 +43,7 @@ end
 function gas_deactiveContacts(port,deactiveContacts)
    local bot = port:prepare();
    bot:clear()
-   bot:addString("deactiveContacts")
+   bot:addString("deactivateContacts")
    for i = 1,#deactiveContacts do
        bot:addString(deactiveContacts[i])
    end
