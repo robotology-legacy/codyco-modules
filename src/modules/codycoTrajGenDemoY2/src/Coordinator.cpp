@@ -762,6 +762,7 @@ namespace codyco {
             data->leftArmGenerator->computeNextValues(data->leftArmPositionControlledJointReferences);
             data->rightArmGenerator->computeNextValues(data->rightArmPositionControlledJointReferences);
             data->torqueBalancingGenerator->computeNextValues(data->torqueControlOutputReferences);
+            data->comGenerator->computeNextValues(data->comReferences);
 
             //send to robot
             data->torsoPositionControl->setPositions(data->torsoJointIDs.size(), data->torsoJointIDs.data(), (data->torsoGenerator->getPos() * CTRL_RAD2DEG).data());
