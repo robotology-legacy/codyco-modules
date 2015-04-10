@@ -43,8 +43,8 @@ fsm_left_right_sway = rfsm.state {
 
     -- Time  transitions
     rfsm.transition { src='ST_WEIGHT_ON_THE_MIDDLE', tgt='ST_WEIGHT_ON_LEFT_FOOT', events={'e_after(3)'} },
-    rfsm.transition { src='ST_WEIGHT_ON_LEFT_FOOT', tgt='ST_WEIGHT_ON_RIGHT_FOOT', events={ 'e_after(10)' } },
-    rfsm.transition { src='ST_WEIGHT_ON_RIGHT_FOOT', tgt='ST_WEIGHT_ON_LEFT_FOOT', events={ 'e_after(10)' } },
+    rfsm.transition { src='ST_WEIGHT_ON_LEFT_FOOT', tgt='ST_WEIGHT_ON_RIGHT_FOOT', events={ 'e_after('..switch_period..')' } },
+    rfsm.transition { src='ST_WEIGHT_ON_RIGHT_FOOT', tgt='ST_WEIGHT_ON_LEFT_FOOT', events={ 'e_after('..switch_period..')' } },
 
     -- Event transition
     rfsm.transition { src='ST_WEIGHT_ON_LEFT_FOOT', tgt='ST_WEIGHT_ON_THE_MIDDLE', events={ 'e_reset' } },

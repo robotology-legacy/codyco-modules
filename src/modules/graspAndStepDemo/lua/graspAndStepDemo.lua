@@ -33,25 +33,29 @@ end
 -------
 function gas_print_help()
     ---- list options
-    print("["..script_name.."]: --verbose                        : enable verbose output")
-    print("["..script_name.."]: --fsm_update_period       period : update period of the FSM (in seconds)")
-    print("["..script_name.."]: --help : print this help")
+    print("[INFO] --verbose                        : enable verbose output")
+    print("[INFO] --fsm_update_period       period : update period of the FSM (in seconds)")
+    print("[INFO] --help : print this help")
 end
 
 function gas_loadconfiguration()
     -- initialization
-    print("["..script_name.."] opening resource finder")
+    print("[INFO] opening resource finder")
     rf = yarp.ResourceFinder()
     rf:setDefaultConfigFile("graspAndStepDemo.ini")
     rf:setDefaultContext("graspAndStepDemo")
-    print("["..script_name.."] configuring resource finder")
+    print("[INFO] configuring resource finder")
     rf:configure(arg)
+
+    -- load helper functions
+    dofile(rf:findFile("lua/gas_funcs.lua"))
 
     -- handling parameters
     script_name = yarp_rf_find_string(rf,"script_name")
+    fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
 
     if( rf:check("verbose") ) then
-        print("["..script_name.."]: verbose option found")
+        print("[INFO] verbose option found")
         verbose = true
     end
 
@@ -67,7 +71,7 @@ end
 
 -------
 function gas_open_ports()
-    print("[" .. script_name .. "] opening ports")
+    print("[INFO] opening ports")
 
     -- input events port
     input_events = yarp.BufferedPortBottle()
@@ -121,9 +125,6 @@ gas_loadconfiguration()
 -- open ports
 gas_open_ports()
 
--- load helper functions
-dofile(rf:findFile("lua/gas_funcs.lua"))
-
 -- load main FSM
 fsm_file = rf:findFile("lua/fsm_graspAndStep.lua")
 
@@ -140,7 +141,7 @@ fsm.dbg = gas_dbg;
 -- getevents function, to read functions from a
 fsm.getevents = yarp_gen_read_str_events(input_events);
 
-print("[" .. script_name .. "] starting main loop")
+print("[INFO] starting main loop")
 repeat
     -- run the monitor to generate events from ports
     -- monitor:run(fsm)
@@ -151,6 +152,6 @@ repeat
     yarp.Time_delay(fsm_update_period)
 until shouldExit ~= false
 
-print("[" .. script_name .. "] finishing")
+print("[INFO] finishing")
 
 gas_close_script()

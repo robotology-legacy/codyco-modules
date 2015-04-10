@@ -46,6 +46,12 @@
   </module>
 
   <connection>
+      <from>/trajGenY2/comdes:o</from>
+      <to>/torqueBalancing/comdes:i</to>
+      <protocol>udp</protocol>
+  </connection>
+
+  <connection>
       <from>/trajGenY2/qdes:o</from>
       <to>/torqueBalancing/qdes:i</to>
       <protocol>udp</protocol>
@@ -62,13 +68,6 @@
   <connection>
       <from>/graspAndStepDemo/activeContacts</from>
       <to>/torqueBalancing/activeContacts:i</to>
-      <protocol>tcp</protocol>
-  </connection>
-
-  <!-- RPC connection to start/stop the graspDemo -->
-  <connection>
-      <from>/graspAndStepDemo/graspDemo</from>
-      <to>/redBallGrasp/rpc</to>
       <protocol>tcp</protocol>
   </connection>
 

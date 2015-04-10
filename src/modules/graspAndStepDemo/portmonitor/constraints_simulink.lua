@@ -7,8 +7,8 @@
 -- loading lua-yarp binding library
 require("yarp")
 
--- create global state of active contacts (for now we support just two contacts)
-activeContacts = {}
+-- create global state of active constraints (for now we support just two constraints on the two feet)
+activeConstraints = {}
 
 --
 -- PortMonitor table is used by portmonitor_carrier
@@ -29,7 +29,7 @@ activeContacts = {}
 -- @return Boolean
 --
 PortMonitor.create = function(options)
-    activeContacts = {l_foot=true, r_foot=true}
+    activeConstraints = {l_foot=true, r_foot=true}
     return true;
 end
 
@@ -41,15 +41,15 @@ end
 -- and update() will never be called
 PortMonitor.accept = function(thing)
     if thing:asBottle() == nil then
-        print("[ERROR] active_contacts_simulink.lua: got wrong data type (expected type Bottle)")
+        print("[ERROR] constraints_simulink.lua: got wrong data type (expected type Bottle)")
         return false
     end
     local cmd = thing:asBottle():get(0):asString();
-    if cmd == "activateContacts" or
-       cmd == "deactivateContacts" then
+    if cmd == "activateConstraints" or
+       cmd == "deactivateConstraints" then
         return true
     else
-        print("[ERROR] active_contacts_simulink.lua: unknown cmd " .. cmd)
+        print("[ERROR] constraint_simulink.lua: unknown cmd " .. cmd)
         return false
     end
 end
@@ -60,45 +60,45 @@ end
 -- @return Things
 PortMonitor.update = function(thing)
     if thing:asBottle() == nil then
-        print("[ERROR] bot_modifier.lua: got wrong data type (expected a type that can be casted to a Bottle)")
+        print("[ERROR] constraint_simulink.lua: got wrong data type (expected a type that can be casted to a Bottle)")
         return thing
     end
 
     bt = thing:asBottle()
 
     -- activate contacts
-    if( bt:get(0):asString() == "activateContacts" ) then
+    if( bt:get(0):asString() == "activateConstraints" ) then
         for i = 1,bt:size() do
             if( bt:get(1):asString() == "l_foot" ) then
-                activeContacts.l_foot = true
+                activeConstraints.l_foot = true
             end
             if( bt:get(1):asString() == "r_foot" ) then
-                activeContacts.r_foot = true
+                activeConstraints.r_foot = true
             end
         end
     end
 
     -- deactivate contacts
-    if( bt:get(0):asString() == "deactivateContacts" ) then
+    if( bt:get(0):asString() == "deactivateConstraints" ) then
         for i = 1,bt:size() do
             if( bt:get(1):asString() == "l_foot" ) then
-                activeContacts.l_foot = false
+                activeConstraints.l_foot = false
             end
             if( bt:get(1):asString() == "r_foot" ) then
-                activeContacts.r_foot = false
+                activeConstraints.r_foot = false
             end
         end
     end
 
     -- reset input bottle to a vector
     bt:clear()
-    if( activeContacts.l_foot ) then
+    if( activeConstraints.l_foot ) then
         bt:addDouble(1.0);
     else
         bt:addDouble(0.0);
     end
 
-    if( activeContacts.r_foot ) then
+    if( activeConstraints.r_foot ) then
         bt:addDouble(1.0);
     else
         bt:addDouble(0.0);

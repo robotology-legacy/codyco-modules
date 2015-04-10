@@ -35,6 +35,8 @@ function gas_loadconfiguration()
 
     -- handling parameters
     script_name = yarp_rf_find_string(rf,"script_name")
+    fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
+    switch_period = yarp_rf_find_double(rf,"switch_period")
 
     if( rf:check("verbose") ) then
         print("["..script_name.."]: verbose option found")
@@ -50,7 +52,7 @@ end
 
 -------
 function gas_open_ports()
-    print("[" .. script_name .. "] opening ports")
+    print("[INFO] opening ports")
 
     -- input events port
     input_events = yarp.BufferedPortBottle()
@@ -123,7 +125,7 @@ function main()
     -- load configuration
     gas_loadconfiguration()
 
-    print("[" .. script_name .. "] opening yarp")
+    print("[INFO] opening yarp")
     yarp.Network()
 
     verbose = false
@@ -136,7 +138,7 @@ function main()
     -- load main FSM
     fsm_file = rf:findFile("lua/fsm_left_right_sway.lua")
 
-    print("[" .. script_name .. "] loading rFSM state machine")
+    print("[INFO] loading rFSM state machine")
     -- load state machine model and initalize it
     fsm_model = rfsm.load(fsm_file)
     fsm = rfsm.init(fsm_model)
@@ -168,7 +170,7 @@ function main()
     -- waiting for reading com data
     gas_setponts.initial_com_in_world_bt = com_port:read(true)
     PointCoordFromYarpVectorBottle(gas_setponts.initial_com_in_world,
-                                gas_setponts.initial_com_in_world_bt)
+                                   gas_setponts.initial_com_in_world_bt)
 
     -- waiting for reading frame data
     gas_frames_bt = frames_port:read(true)
@@ -181,19 +183,19 @@ function main()
     -- generating left and right desired com
     -- the x and y are the left foot origin
     -- while the z is the one of the initial com
-    gas_setponts.left_com_in_l_foot.x = 0.0
-    gas_setponts.left_com_in_l_foot.y = 0.0
     local initial_com_wrt_left_foot =
         l_foot_H_world.apply(gas_setponts.initial_com_in_world)
+    gas_setponts.left_com_in_l_foot.x = initial_com_wrt_left_foot.x
+    gas_setponts.left_com_in_l_foot.y = initial_com_wrt_left_foot.y
     gas_setponts.left_com_in_l_foot.z = initial_com_wrt_left_foot.z
 
-    gas_setponts.right_com_in_r_foot.x = 0.0
-    gas_setponts.right_com_in_r_foot.y = 0.0
     local initial_com_wrt_right_foot =
         r_foot_H_world.apply(gas_setponts.initial_com_in_world)
+    gas_setponts.right_com_in_r_foot.x = initial_com_wrt_right_foot.x
+    gas_setponts.right_com_in_r_foot.y = initial_com_wrt_right_foot.y
     gas_setponts.right_com_in_r_foot.z = initial_com_wrt_right_foot.z
 
-    print("[" .. script_name .. "] starting main loop")
+    print("[INFO] starting main loop")
     repeat
         -- read frames and com information
         gas_updateframes()
@@ -204,7 +206,7 @@ function main()
         yarp.Time_delay(fsm_update_period)
     until shouldExit ~= false
 
-    print("[" .. script_name .. "] finishing")
+    print("[INFO] finishing")
 
     gas_close_script()
 end
