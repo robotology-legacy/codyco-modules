@@ -35,6 +35,7 @@ function gas_loadconfiguration()
 
     -- handling parameters
     script_name = yarp_rf_find_string(rf,"script_name")
+    fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
 
     if( rf:check("verbose") ) then
         print("["..script_name.."]: verbose option found")
@@ -139,8 +140,6 @@ function main()
     gas_frames_bt = frames_port:read(true)
 
     repeat
-        -- read frames and com information
-        gas_updateframes()
         -- run the finite state machine
         -- the configurator is implicitly executed by
         -- the fsm entry/doo/exit functions
