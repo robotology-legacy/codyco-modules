@@ -17,8 +17,8 @@ end
 -------
 function gas_print_help()
     ---- list options
-    print("["..script_name.."]: --verbose                        : enable verbose output")
-    print("["..script_name.."]: --help : print this help")
+    print("[INFO] --verbose                        : enable verbose output")
+    print("[INFO] --help : print this help")
 end
 
 function gas_loadconfiguration()

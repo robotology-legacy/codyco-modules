@@ -73,7 +73,7 @@ end
 
 function gas_dbg(event_fqn, state_fqn)
     if( event_fqn == "STATE_ENTER" ) then
-        print("[" .. script_name .. "][" .. event_fqn .. "] entering state " .. state_fqn)
+        print("[INFO][" .. script_name .. "][" .. event_fqn .. "] entering state " .. state_fqn)
         -- state_fqn : get last part and substitute underscore and dash with spaces
         state_simple_name = string.match(state_fqn,".ST_[%w_]+$")
         if( state_simple_name ) then
@@ -93,10 +93,10 @@ end
 function yarp_rf_find_double(rf,var_name)
     if( rf:check(var_name) ) then
         local var = rf:find(var_name):asDouble()
-        print("[" .. script_name .. "] setting " .. var_name .. " to " .. var)
+        print("[INFO] setting " .. var_name .. " to " .. var)
         return var
     else
-        print("[" .. script_name .. "] " .. var_name .." parameter not found, exiting")
+        print("[ERROR] " .. var_name .." parameter not found, exiting")
         gas_close_script()
     end
 end
@@ -104,10 +104,10 @@ end
 function yarp_rf_find_int(rf,var_name)
     if( rf:check(var_name) ) then
         local var = rf:find(var_name):asInt()
-        print("[" .. script_name .. "] setting " .. var_name .. " to " .. var)
+        print("[INFO] setting " .. var_name .. " to " .. var)
         return var
     else
-        print("[" .. script_name .. "] " .. var_name .." parameter not found, exiting")
+        print("[ERROR] " .. var_name .." parameter not found, exiting")
         gas_close_script()
     end
 end
@@ -115,10 +115,10 @@ end
 function yarp_rf_find_string(rf,var_name)
     if( rf:check(var_name) ) then
         local var = rf:find(var_name):asString()
-        print("[" .. script_name .. "] setting " .. var_name .. " to " .. var)
+        print("[INFO] setting " .. var_name .. " to " .. var)
         return var
     else
-        print("[" .. script_name .. "] " .. var_name .." parameter not found, exiting")
+        print("[ERROR] " .. var_name .." parameter not found, exiting")
         gas_close_script()
     end
 end
@@ -154,7 +154,7 @@ function yarp_gen_read_str_events(...)
      end
 
      local ports = {...}
-     assert(#ports > 0, "no ports given")
+     assert(#ports > 0, "[ERROR] no ports given")
      -- check its all ports
      return function ()
          local res = {}
@@ -363,7 +363,6 @@ function HomTransformTableFromBottle(transformTable, tabBot)
     for i = 0,botMax do
         local transformName = tabBot:get(i):asList():get(0):asString()
         local matrixBot        = tabBot:get(i):asList():get(1):asList()
-        print("adding link " .. transformName)
         local homTransform = HomTransform.create()
         HomTransformFromYarpMatrix(homTransform, matrixBot)
         transformTable[transformName] = homTransform;

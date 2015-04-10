@@ -30,6 +30,9 @@ function gas_loadconfiguration()
     print("["..script_name.."] configuring resource finder")
     rf:configure(arg)
 
+    -- load helper functions
+    dofile(rf:findFile("lua/gas_funcs.lua"))
+
     -- handling parameters
     script_name = yarp_rf_find_string(rf,"script_name")
 
@@ -120,8 +123,6 @@ function main()
     -- load configuration
     gas_loadconfiguration()
 
-    -- load helper functions
-    dofile(rf:findFile("lua/gas_funcs.lua"))
     print("[" .. script_name .. "] opening yarp")
     yarp.Network()
 
