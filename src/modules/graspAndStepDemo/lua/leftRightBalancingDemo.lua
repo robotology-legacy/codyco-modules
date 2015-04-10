@@ -162,11 +162,11 @@ function main()
 
     gas_setponts = {
         -- geometric ponts
-        initial_com_in_world = PointCoord.new(),
-        left_com_in_l_foot = PointCoord.new(),
-        right_com_in_r_foot = PointCoord.new(),
-        left_com_in_world = PointCoord.new(),
-        right_com_in_world = PointCoord.new(),
+        initial_com_in_world = PointCoord:new(),
+        left_com_in_l_foot = PointCoord:new(),
+        right_com_in_r_foot = PointCoord:new(),
+        left_com_in_world = PointCoord:new(),
+        right_com_in_world = PointCoord:new(),
 
         -- bottle buffers to load/unload
         initial_com_in_world_bt = yarp.Bottle(),
