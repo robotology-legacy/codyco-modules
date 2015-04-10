@@ -4,25 +4,6 @@ require("yarp")
 require("rfsm")
 require("rfsm_timeevent")
 
-script_name = "graspAndStepDemo"
-
--- load helper functions
-dofile(rf:findFile("lua/gas_funcs.lua"))
-print("[" .. script_name .. "] opening yarp")
-yarp.Network()
-
-verbose = false
-
-yarpNetworkTimeout = 10
-if( not yarp.NetworkBase_checkNetwork(yarpNetworkTimeout) ) then
-    print("[" .. script_name .. "] yarp server not found, exiting")
-    yarp.Network_fini()
-    os.exit()
-end
-
--- use the yarp time for time events
-rfsm_timeevent.set_gettime_hook(yarp_gettime)
-
 -------
 function gas_close_script()
     --- close ports
@@ -44,10 +25,13 @@ function gas_loadconfiguration()
     -- initialization
     print("["..script_name.."] opening resource finder")
     rf = yarp.ResourceFinder()
-    rf:setDefaultConfigFile("leftRightBalancingDemo.ini")
+    rf:setDefaultConfigFile("pingPongDemo.ini")
     rf:setDefaultContext("graspAndStepDemo")
     print("["..script_name.."] configuring resource finder")
     rf:configure(arg)
+
+    -- load yarp_rf helpers
+    dofile(rf:findFile("lua/gas_funcs.lua"))
 
     -- handling parameters
     script_name = yarp_rf_find_string(rf,"script_name")
@@ -78,10 +62,6 @@ function gas_open_ports()
     state_port = yarp.BufferedPortBottle()
     state_port:open("/".. script_name .. "/state:o")
 
-    -- Port for publishing trajectory generator setpoints
-    setpoints_port = yarp.BufferedPortProperty()
-    setpoints_port:open("/".. script_name .. "/setpoints:o")
-
     -- Port for sending to iSpeak the current state
     iSpeak_port = yarp.BufferedPortBottle()
     iSpeak_port:open("/".. script_name .. "/speak");
@@ -100,118 +80,78 @@ function gas_close_ports()
     --close ports
     gas_close_port(input_events)
     gas_close_port(state_port)
-    gas_close_port(setpoints_port)
     gas_close_port(iSpeak_port)
     gas_close_port(com_port)
     gas_close_port(frames_port)
 end
 
-function gas_updateframes()
-    -- waiting for reading com data
-    gas_setponts.initial_com_in_world_bt = com_port:read()
-    if( gas_setponts.initial_com_in_world_bt ) then
-        PointCoordFromYarpVectorBottle(gas_setponts.initial_com_in_world,
-                                       gas_setponts.initial_com_in_world_bt)
-    end
-
-    -- waiting for reading frame data
-    gas_frames_bt = frames_port:read(true)
-    if( gas_frames_bt ) then
-        HomTransformTableFromBottle(gas_frames,gas_frames_bt)
-    end
-
-    -- get transform
-    world_H_l_foot = gas_frames[l_foot_frame]
-    world_H_r_foot = gas_frames[r_foot_frame]
-
-    -- update com setpoints
-    gas_setponts.left_com_in_world =
-        world_H_l_foot.apply(gas_setponts.left_com_in_l_foot)
-
-    gas_setponts.right_com_in_world =
-        world_H_r_foot.apply(gas_setponts.right_com_in_r_foot)
-end
 
 -------
-shouldExit = false
+function main()
 
--- load configuration
-gas_loadconfiguration()
+    shouldExit = false
+    script_name = "graspAndStepDemo"
 
--- open ports
-gas_open_ports()
+    -- load configuration
+    gas_loadconfiguration()
 
--- load main FSM
-fsm_file = rf:findFile("lua/fsm_ping_pong.lua")
+    -- load helper functions
+    print("[" .. script_name .. "] opening yarp")
+    yarp.Network()
 
-print("[" .. script_name .. "] loading rFSM state machine")
--- load state machine model and initalize it
-fsm_model = rfsm.load(fsm_file)
-fsm = rfsm.init(fsm_model)
+    verbose = false
 
--- configure script specific hooks
+    yarpNetworkTimeout = 10
+    if( not yarp.NetworkBase_checkNetwork(yarpNetworkTimeout) ) then
+        print("[" .. script_name .. "] yarp server not found, exiting")
+        yarp.Network_fini()
+        os.exit()
+    end
 
--- dbg function, callet at each state enter/exit etc etc
-fsm.dbg = gas_dbg;
+    -- use the yarp time for time events
+    rfsm_timeevent.set_gettime_hook(yarp_gettime)
 
--- getevents function, to read functions from a
-fsm.getevents = yarp_gen_read_str_events(input_events);
+    -- open ports
+    gas_open_ports()
 
-gas_setponts = {
-    -- geometric ponts
-    initial_com_in_world = PointCoord.new()
-    left_com_in_l_foot = PointCoord.new()
-    right_com_in_r_foot = PointCoord.new()
-    left_com_in_world = PointCoord.new()
-    right_com_in_world = PointCoord.new()
+    -- load main FSM
+    fsm_file = rf:findFile("lua/fsm_ping_pong.lua")
 
-    -- bottle buffers to load/unload
-    initial_com_in_world_bt = yarp.Bottle()
-}
+    print("[" .. script_name .. "] loading rFSM state machine")
+    -- load state machine model and initalize it
+    fsm_model = rfsm.load(fsm_file)
+    fsm = rfsm.init(fsm_model)
 
-gas_frames = {}
-l_foot_frame = "l_sole"
-r_foot_frame = "r_sole"
+    -- configure script specific hooks
 
--- waiting for reading com data
-gas_setponts.initial_com_in_world_bt = com_port:read(true)
-PointCoordFromYarpVectorBottle(gas_setponts.initial_com_in_world,
-                               gas_setponts.initial_com_in_world_bt)
+    -- dbg function, callet at each state enter/exit etc etc
+    fsm.dbg = gas_dbg;
 
--- waiting for reading frame data
-gas_frames_bt = frames_port:read(true)
-HomTransformTableFromBottle(gas_frames,gas_frames_bt)
+    -- getevents function, to read functions from a
+    fsm.getevents = yarp_gen_read_str_events(input_events);
 
--- get transform
-l_foot_H_world = gas_frames[l_foot_frame].inverse()
-r_foot_H_world = gas_frames[r_foot_frame].inverse()
+    -- waiting for reading com data
+    print("[" .. script_name .. "] waiting for reading com port")
+    initial_com_in_world_bt = com_port:read(true)
 
--- generating left and right desired com
--- the x and y are the left foot origin
--- while the z is the one of the initial com
-gas_setponts.left_com_in_l_foot.x = 0.0
-gas_setponts.left_com_in_l_foot.y = 0.0
-local initial_com_wrt_left_foot =
-      l_foot_H_world.apply(gas_setponts.initial_com_in_world)
-gas_setponts.left_com_in_l_foot.z = initial_com_wrt_left_foot.z
+    -- waiting for reading frame data
+    print("[" .. script_name .. "] waiting for reading frames port")
+    gas_frames_bt = frames_port:read(true)
 
-gas_setponts.right_com_in_r_foot.x = 0.0
-gas_setponts.right_com_in_r_foot.y = 0.0
-local initial_com_wrt_right_foot =
-      r_foot_H_world.apply(gas_setponts.initial_com_in_world)
-gas_setponts.right_com_in_r_foot.z = initial_com_wrt_right_foot.z
+    repeat
+        -- read frames and com information
+        gas_updateframes()
+        -- run the finite state machine
+        -- the configurator is implicitly executed by
+        -- the fsm entry/doo/exit functions
+        rfsm.run(fsm)
+        yarp.Time_delay(fsm_update_period)
+    until shouldExit ~= false
 
-print("[" .. script_name .. "] starting main loop")
-repeat
-    -- read frames and com information
-    gas_updateframes()
-    -- run the finite state machine
-    -- the configurator is implicitly executed by
-    -- the fsm entry/doo/exit functions
-    rfsm.run(fsm)
-    yarp.Time_delay(fsm_update_period)
-until shouldExit ~= false
+    print("[" .. script_name .. "] finishing")
 
-print("[" .. script_name .. "] finishing")
+    gas_close_script()
 
-gas_close_script()
+end
+
+main()

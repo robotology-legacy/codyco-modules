@@ -4,25 +4,6 @@ require("yarp")
 require("rfsm")
 require("rfsm_timeevent")
 
-script_name = "graspAndStepDemo"
-
--- load helper functions
-dofile(rf:findFile("lua/gas_funcs.lua"))
-print("[" .. script_name .. "] opening yarp")
-yarp.Network()
-
-verbose = false
-
-yarpNetworkTimeout = 10
-if( not yarp.NetworkBase_checkNetwork(yarpNetworkTimeout) ) then
-    print("[" .. script_name .. "] yarp server not found, exiting")
-    yarp.Network_fini()
-    os.exit()
-end
-
--- use the yarp time for time events
-rfsm_timeevent.set_gettime_hook(yarp_gettime)
-
 -------
 function gas_close_script()
     --- close ports
@@ -132,86 +113,99 @@ function gas_updateframes()
         world_H_r_foot.apply(gas_setponts.right_com_in_r_foot)
 end
 
--------
-shouldExit = false
 
--- load configuration
-gas_loadconfiguration()
+function main()
+    shouldExit = false
 
--- open ports
-gas_open_ports()
+    -- load configuration
+    gas_loadconfiguration()
 
--- load main FSM
-fsm_file = rf:findFile("lua/fsm_left_right_sway.lua")
+    -- load helper functions
+    dofile(rf:findFile("lua/gas_funcs.lua"))
+    print("[" .. script_name .. "] opening yarp")
+    yarp.Network()
 
-print("[" .. script_name .. "] loading rFSM state machine")
--- load state machine model and initalize it
-fsm_model = rfsm.load(fsm_file)
-fsm = rfsm.init(fsm_model)
+    verbose = false
 
--- configure script specific hooks
+    yarpNetworkTimeout = 10
 
--- dbg function, callet at each state enter/exit etc etc
-fsm.dbg = gas_dbg;
+    -- open ports
+    gas_open_ports()
 
--- getevents function, to read functions from a
-fsm.getevents = yarp_gen_read_str_events(input_events);
+    -- load main FSM
+    fsm_file = rf:findFile("lua/fsm_left_right_sway.lua")
 
-gas_setponts = {
-    -- geometric ponts
-    initial_com_in_world = PointCoord.new()
-    left_com_in_l_foot = PointCoord.new()
-    right_com_in_r_foot = PointCoord.new()
-    left_com_in_world = PointCoord.new()
-    right_com_in_world = PointCoord.new()
+    print("[" .. script_name .. "] loading rFSM state machine")
+    -- load state machine model and initalize it
+    fsm_model = rfsm.load(fsm_file)
+    fsm = rfsm.init(fsm_model)
 
-    -- bottle buffers to load/unload
-    initial_com_in_world_bt = yarp.Bottle()
-}
+    -- configure script specific hooks
 
-gas_frames = {}
-l_foot_frame = "l_sole"
-r_foot_frame = "r_sole"
+    -- dbg function, callet at each state enter/exit etc etc
+    fsm.dbg = gas_dbg;
 
--- waiting for reading com data
-gas_setponts.initial_com_in_world_bt = com_port:read(true)
-PointCoordFromYarpVectorBottle(gas_setponts.initial_com_in_world,
-                               gas_setponts.initial_com_in_world_bt)
+    -- getevents function, to read functions from a
+    fsm.getevents = yarp_gen_read_str_events(input_events);
 
--- waiting for reading frame data
-gas_frames_bt = frames_port:read(true)
-HomTransformTableFromBottle(gas_frames,gas_frames_bt)
+    gas_setponts = {
+        -- geometric ponts
+        initial_com_in_world = PointCoord.new(),
+        left_com_in_l_foot = PointCoord.new(),
+        right_com_in_r_foot = PointCoord.new(),
+        left_com_in_world = PointCoord.new(),
+        right_com_in_world = PointCoord.new(),
 
--- get transform
-l_foot_H_world = gas_frames[l_foot_frame].inverse()
-r_foot_H_world = gas_frames[r_foot_frame].inverse()
+        -- bottle buffers to load/unload
+        initial_com_in_world_bt = yarp.Bottle(),
+    }
 
--- generating left and right desired com
--- the x and y are the left foot origin
--- while the z is the one of the initial com
-gas_setponts.left_com_in_l_foot.x = 0.0
-gas_setponts.left_com_in_l_foot.y = 0.0
-local initial_com_wrt_left_foot =
-      l_foot_H_world.apply(gas_setponts.initial_com_in_world)
-gas_setponts.left_com_in_l_foot.z = initial_com_wrt_left_foot.z
+    gas_frames = {}
+    l_foot_frame = "l_sole"
+    r_foot_frame = "r_sole"
 
-gas_setponts.right_com_in_r_foot.x = 0.0
-gas_setponts.right_com_in_r_foot.y = 0.0
-local initial_com_wrt_right_foot =
-      r_foot_H_world.apply(gas_setponts.initial_com_in_world)
-gas_setponts.right_com_in_r_foot.z = initial_com_wrt_right_foot.z
+    -- waiting for reading com data
+    gas_setponts.initial_com_in_world_bt = com_port:read(true)
+    PointCoordFromYarpVectorBottle(gas_setponts.initial_com_in_world,
+                                gas_setponts.initial_com_in_world_bt)
 
-print("[" .. script_name .. "] starting main loop")
-repeat
-    -- read frames and com information
-    gas_updateframes()
-    -- run the finite state machine
-    -- the configurator is implicitly executed by
-    -- the fsm entry/doo/exit functions
-    rfsm.run(fsm)
-    yarp.Time_delay(fsm_update_period)
-until shouldExit ~= false
+    -- waiting for reading frame data
+    gas_frames_bt = frames_port:read(true)
+    HomTransformTableFromBottle(gas_frames,gas_frames_bt)
 
-print("[" .. script_name .. "] finishing")
+    -- get transform
+    l_foot_H_world = gas_frames[l_foot_frame].inverse()
+    r_foot_H_world = gas_frames[r_foot_frame].inverse()
 
-gas_close_script()
+    -- generating left and right desired com
+    -- the x and y are the left foot origin
+    -- while the z is the one of the initial com
+    gas_setponts.left_com_in_l_foot.x = 0.0
+    gas_setponts.left_com_in_l_foot.y = 0.0
+    local initial_com_wrt_left_foot =
+        l_foot_H_world.apply(gas_setponts.initial_com_in_world)
+    gas_setponts.left_com_in_l_foot.z = initial_com_wrt_left_foot.z
+
+    gas_setponts.right_com_in_r_foot.x = 0.0
+    gas_setponts.right_com_in_r_foot.y = 0.0
+    local initial_com_wrt_right_foot =
+        r_foot_H_world.apply(gas_setponts.initial_com_in_world)
+    gas_setponts.right_com_in_r_foot.z = initial_com_wrt_right_foot.z
+
+    print("[" .. script_name .. "] starting main loop")
+    repeat
+        -- read frames and com information
+        gas_updateframes()
+        -- run the finite state machine
+        -- the configurator is implicitly executed by
+        -- the fsm entry/doo/exit functions
+        rfsm.run(fsm)
+        yarp.Time_delay(fsm_update_period)
+    until shouldExit ~= false
+
+    print("[" .. script_name .. "] finishing")
+
+    gas_close_script()
+end
+
+main()

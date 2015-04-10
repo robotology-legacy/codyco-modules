@@ -38,5 +38,5 @@ fsm_ping_pong = rfsm.state {
 
 }
 
-return fsm_left_right_sway
+return fsm_ping_pong
 

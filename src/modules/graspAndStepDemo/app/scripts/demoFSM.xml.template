@@ -2,7 +2,7 @@
 
   <!-- Generic information-->
   <name>Demo FSM</name>
-  <<description>Simple FSM that just jumps between two different states.</description>
+  <description>Simple FSM that just jumps between two different states.</description>
   <version></version>
 
   <!-- Required modules. -->
