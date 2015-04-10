@@ -45,8 +45,8 @@ PortMonitor.accept = function(thing)
         return false
     end
     local cmd = thing:asBottle():get(0):asString();
-    if cmd == "activeContacts" or
-       cmd == "deactiveContacts" then
+    if cmd == "activateContacts" or
+       cmd == "deactivateContacts" then
         return true
     else
         print("[ERROR] active_contacts_simulink.lua: unknown cmd " .. cmd)
@@ -67,7 +67,7 @@ PortMonitor.update = function(thing)
     bt = thing:asBottle()
 
     -- activate contacts
-    if( bt:get(0):asString() == "activeContacts" ) then
+    if( bt:get(0):asString() == "activateContacts" ) then
         for i = 1,bt:size() do
             if( bt:get(1):asString() == "l_foot" ) then
                 activeContacts.l_foot = true
@@ -79,7 +79,7 @@ PortMonitor.update = function(thing)
     end
 
     -- deactivate contacts
-    if( bt:get(0):asString() == "deactiveContacts" ) then
+    if( bt:get(0):asString() == "deactivateContacts" ) then
         for i = 1,bt:size() do
             if( bt:get(1):asString() == "l_foot" ) then
                 activeContacts.l_foot = false
