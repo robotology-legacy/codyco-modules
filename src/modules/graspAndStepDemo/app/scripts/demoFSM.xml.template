@@ -1,0 +1,65 @@
+<application>
+
+  <!-- Generic information-->
+  <name>Demo FSM</name>
+  <<description>Simple FSM that just jumps between two different states.</description>
+  <version></version>
+
+  <!-- Required modules. -->
+
+  <!-- Adding pingPong FSM coordinator -->
+  <module>
+      <name>pingPongDemo.lua</name>
+      <deployer>lua</deployer>
+      <node>node</node>
+      <stdio></stdio>
+      <prefix></prefix>
+      <dependencies>
+          <port timeout="5.0">/wholeBodyDynamicsTree/com:o</port>
+          <port timeout="5.0">/wholeBodyDynamicsTree/frames:o</port>
+      </dependencies>
+  </module>
+
+  <!-- Adding eventRepeater to simplify user generation of events (for debug) -->
+  <module>
+      <name>eventRepeater</name>
+      <node>node</node>
+  </module>
+
+  <!-- Adding iSpeak for audio debug of current state -->
+  <module>
+      <name>iSpeak</name>
+      <parameters></parameters>
+      <node>audio-node</node>
+  </module>
+
+  <!-- FSM connections -->
+
+  <!-- input to the controller and the trajectory generators -->
+
+  <!-- events port -->
+  <connection>
+      <from>/eventRepeater/events:o</from>
+      <to>/graspAndStepDemo/events:i</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <!-- debug connection for audio debug of current state -->
+  <connection>
+      <from>/graspAndStepDemo/speak</from>
+      <to>/iSpeak</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <!-- frames related connections -->
+  <connection>
+      <from>/wholeBodyDynamicsTree/frames:o</from>
+      <to>/graspAndStepDemo/frames:i</to>
+  </connection>
+
+  <connection>
+      <from>/wholeBodyDynamicsTree/com:o</from>
+      <to>/graspAndStepDemo/com:i</to>
+  </connection>
+
+</application>
