@@ -3,6 +3,7 @@
 require("yarp")
 require("rfsm")
 require("rfsm_timeevent")
+require("math")
 
 -------
 function gas_close_script()
@@ -36,10 +37,30 @@ function gas_loadconfiguration()
     -- handling parameters
     script_name = yarp_rf_find_string(rf,"script_name")
     fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
-    switch_period = yarp_rf_find_double(rf,"switch_period")
+    swinging_type = yarp_rf_find_string(rf,"swinging_type")
+
+	 if( swinging_type ~= "switching" and 
+        swinging_type ~= "trajectory" ) then
+        print("[ERROR] swinging_type should be switching or trajectory")
+        gas_close_script()
+    end
+
+    if( swinging_type == "switching" ) then
+  		  switching_period = yarp_rf_find_double(rf,"switching_period")
+  		  -- switching_period = yarp_rf_find_double(rf,"switching_period")
+  		  -- switching_period = yarp_rf_find_double(rf,"switching_period")
+    end
+
+    if( swinging_type == "trajectory" ) then
+  		  trajectory_frequency = yarp_rf_find_double(rf,"trajectory_frequency")
+    end
+
+    delta_x = yarp_rf_find_double(rf,"delta_x")
+    delta_y = yarp_rf_find_double(rf,"delta_y")
+    delta_z = yarp_rf_find_double(rf,"delta_z")
 
     if( rf:check("verbose") ) then
-        print("["..script_name.."]: verbose option found")
+        print("[INFO]: verbose option found")
         verbose = true
     end
 
@@ -94,10 +115,10 @@ end
 
 function gas_updateframes()
     -- waiting for reading com data
-    gas_setponts.initial_com_in_world_bt = com_port:read()
-    if( gas_setponts.initial_com_in_world_bt ) then
-        PointCoordFromYarpVectorBottle(gas_setponts.initial_com_in_world,
-                                       gas_setponts.initial_com_in_world_bt)
+    gas_setpoints.initial_com_in_world_bt = com_port:read()
+    if( gas_setpoints.initial_com_in_world_bt ) then
+        PointCoordFromYarpVectorBottle(gas_setpoints.initial_com_in_world,
+                                       gas_setpoints.initial_com_in_world_bt)
     end
 
     -- waiting for reading frame data
@@ -111,11 +132,11 @@ function gas_updateframes()
     world_H_r_foot = gas_frames[r_foot_frame]
 
     -- update com setpoints
-    gas_setponts.left_com_in_world =
-        world_H_l_foot.apply(gas_setponts.left_com_in_l_foot)
+    gas_setpoints.left_com_in_world =
+        world_H_l_foot:apply(gas_setpoints.left_com_in_l_foot)
 
-    gas_setponts.right_com_in_world =
-        world_H_r_foot.apply(gas_setponts.right_com_in_r_foot)
+    gas_setpoints.right_com_in_world =
+        world_H_r_foot:apply(gas_setpoints.right_com_in_r_foot)
 end
 
 
@@ -145,7 +166,13 @@ function main()
     gas_open_ports()
 
     -- load main FSM
-    fsm_file = rf:findFile("lua/fsm_left_right_sway.lua")
+    if( swinging_type == "switching" ) then
+        fsm_file = rf:findFile("lua/fsm_left_right_sway.lua")
+    end
+
+    if( swinging_type == "trajectory" ) then
+        fsm_file = rf:findFile("lua/fsm_left_right_sine.lua")
+    end
 
     print("[INFO] loading rFSM state machine")
     -- load state machine model and initalize it
@@ -160,16 +187,18 @@ function main()
     -- getevents function, to read functions from a
     fsm.getevents = yarp_gen_read_str_events(input_events);
 
-    gas_setponts = {
+    gas_setpoints = {
         -- geometric ponts
-        initial_com_in_world = PointCoord:new(),
-        left_com_in_l_foot = PointCoord:new(),
-        right_com_in_r_foot = PointCoord:new(),
-        left_com_in_world = PointCoord:new(),
-        right_com_in_world = PointCoord:new(),
+        initial_com_in_world = PointCoord.create(),
+        left_com_in_l_foot = PointCoord.create(),
+        right_com_in_r_foot = PointCoord.create(),
+        left_com_in_world = PointCoord.create(),
+        right_com_in_world = PointCoord.create(),
+        sine_com_in_world  = PointCoord.create(),
 
         -- bottle buffers to load/unload
         initial_com_in_world_bt = yarp.Bottle(),
+        sine_com_in_world_bt    = yarp.Bottle(),
     }
 
     gas_frames = {}
@@ -177,35 +206,39 @@ function main()
     r_foot_frame = "r_sole"
 
     -- waiting for reading com data
-    gas_setponts.initial_com_in_world_bt = com_port:read(true)
-    PointCoordFromYarpVectorBottle(gas_setponts.initial_com_in_world,
-                                   gas_setponts.initial_com_in_world_bt)
+    print("[INFO] waiting for com data")
+    gas_setpoints.initial_com_in_world_bt = com_port:read(true)
+    PointCoordFromYarpVectorBottle(gas_setpoints.initial_com_in_world,
+                                   gas_setpoints.initial_com_in_world_bt)
 
     -- waiting for reading frame data
+    print("[INFO] waiting for frame data")
     gas_frames_bt = frames_port:read(true)
     HomTransformTableFromBottle(gas_frames,gas_frames_bt)
 
     -- get transform
-    l_foot_H_world = gas_frames[l_foot_frame].inverse()
-    r_foot_H_world = gas_frames[r_foot_frame].inverse()
+    -- 
+    l_foot_H_world = gas_frames[l_foot_frame]:inverse()
+    r_foot_H_world = gas_frames[r_foot_frame]:inverse()
 
     -- generating left and right desired com
     -- the x and y are the left foot origin
     -- while the z is the one of the initial com
     local initial_com_wrt_left_foot =
-        l_foot_H_world.apply(gas_setponts.initial_com_in_world)
-    gas_setponts.left_com_in_l_foot.x = initial_com_wrt_left_foot.x
-    gas_setponts.left_com_in_l_foot.y = initial_com_wrt_left_foot.y
-    gas_setponts.left_com_in_l_foot.z = initial_com_wrt_left_foot.z
+        l_foot_H_world:apply(gas_setpoints.initial_com_in_world)
+    gas_setpoints.left_com_in_l_foot.x = initial_com_wrt_left_foot.x
+    gas_setpoints.left_com_in_l_foot.y = initial_com_wrt_left_foot.y
+    gas_setpoints.left_com_in_l_foot.z = initial_com_wrt_left_foot.z
 
     local initial_com_wrt_right_foot =
-        r_foot_H_world.apply(gas_setponts.initial_com_in_world)
-    gas_setponts.right_com_in_r_foot.x = initial_com_wrt_right_foot.x
-    gas_setponts.right_com_in_r_foot.y = initial_com_wrt_right_foot.y
-    gas_setponts.right_com_in_r_foot.z = initial_com_wrt_right_foot.z
+        r_foot_H_world:apply(gas_setpoints.initial_com_in_world)
+    gas_setpoints.right_com_in_r_foot.x = initial_com_wrt_right_foot.x
+    gas_setpoints.right_com_in_r_foot.y = initial_com_wrt_right_foot.y
+    gas_setpoints.right_com_in_r_foot.z = initial_com_wrt_right_foot.z
 
     print("[INFO] starting main loop")
     repeat
+        yarp_now = yarp.Time_now()
         -- read frames and com information
         gas_updateframes()
         -- run the finite state machine

@@ -128,7 +128,7 @@ gas_open_ports()
 -- load main FSM
 fsm_file = rf:findFile("lua/fsm_graspAndStep.lua")
 
-print("[" .. script_name .. "] loading rFSM state machine")
+print("[INFO] loading rFSM state machine")
 -- load state machine model and initalize it
 fsm_model = rfsm.load(fsm_file)
 fsm = rfsm.init(fsm_model)
@@ -148,6 +148,7 @@ repeat
     -- run the finite state machine
     -- the configurator is implicitly executed by
     -- the fsm entry/doo/exit functions
+    yarp_now = yarp.Time_now()
     rfsm.run(fsm)
     yarp.Time_delay(fsm_update_period)
 until shouldExit ~= false

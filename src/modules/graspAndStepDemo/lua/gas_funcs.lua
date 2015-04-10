@@ -3,20 +3,30 @@
 -- functions                   --
 ----------------------------------
 
+function YarpVectorBottleForTrajGenFromPointCoord(point)
+    local vecBot = yarp.Bottle()
+
+    vecBot:addList()
+    vecBot:get(0):asList():addDouble(point.x);
+    vecBot:get(0):asList():addDouble(point.y);
+    vecBot:get(0):asList():addDouble(point.z);
+
+    return vecBot;
+end
+
+
 --- Send reference point to the trajectory generator.
 -- The trajectory generator is the codycoTrajGenY2 module a
 -- and it accepts a property where each trajectory setpoint
--- is a yarp::sig::Vector saved with an appropriate key.
+-- is a Bottle containg a yarp::sig::Vector saved with an appropriate key.
 -- @param port The reference point port
--- @param ref_key the type of reference to send
---        possible values: "com", "right_leg", "left_leg",
---        possible values: "left_arm", "right_arm", "torso"
--- @param setpoint a yarp::sig::Bottle containg the actual setpoints
+-- @param setpoint a PointCoord object with the actual setpoint
 --
-function gas_sendSetPointToTrajGen(port,ref_key,setpoint)
+function gas_sendCOMToTrajGen(port,setpoint)
+   local botTrajGen = YarpVectorBottleForTrajGenFromPointCoord(setpoint)
    local prop = port:prepare();
    prop:clear()
-   prop:put(ref_name,setpoints)
+   prop:put("com",botTrajGen:get(0))
    port:write()
 end
 
@@ -271,12 +281,12 @@ function HomTransform:inverse()
     local invTrans = HomTransform.create()
     invTrans.rot = self.rot:inverse();
     invTrans.origin = invTrans.rot:apply(self.origin:opposite());
-    return invRot
+    return invTrans
 end
 
 
 function HomTransform:apply(point)
-    transformedPoint = rot:apply(point);
+    transformedPoint = self.rot:apply(point);
     transformedPoint.x = transformedPoint.x + point.x;
     transformedPoint.y = transformedPoint.y + point.y;
     transformedPoint.z = transformedPoint.z + point.z;
@@ -297,21 +307,10 @@ function PointCoordFromYarpVectorBottle(point, vecBot)
         point = PointCoord.create()
     end
 
-    point.x = vecBot.get(0).asDouble()
-    point.y = vecBot.get(1).asDouble()
-    point.z = vecBot.get(2).adDouble()
+    point.x = vecBot:get(0):asDouble()
+    point.y = vecBot:get(1):asDouble()
+    point.z = vecBot:get(2):asDouble()
 end
-
-function YarpVectorBottleFromPointCoord(point)
-    local vecBot = yarp.Bottle()
-
-    vecBot.addDouble(point.x);
-    vecBot.addDouble(point.y);
-    vecBot.addDouble(point.z);
-
-    return vecBot;
-end
-
 
 
 function HomTransformFromYarpMatrixBottle(transform, matBot)
@@ -364,7 +363,7 @@ function HomTransformTableFromBottle(transformTable, tabBot)
         local transformName = tabBot:get(i):asList():get(0):asString()
         local matrixBot        = tabBot:get(i):asList():get(1):asList()
         local homTransform = HomTransform.create()
-        HomTransformFromYarpMatrix(homTransform, matrixBot)
+        HomTransformFromYarpMatrixBottle(homTransform, matrixBot)
         transformTable[transformName] = homTransform;
     end
 end

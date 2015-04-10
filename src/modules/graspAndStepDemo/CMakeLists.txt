@@ -6,6 +6,7 @@ set(lua_fsm             ${CMAKE_CURRENT_SOURCE_DIR}/lua/fsm_graspAndStep.lua
                         ${CMAKE_CURRENT_SOURCE_DIR}/lua/fsm_left_step.lua
                         ${CMAKE_CURRENT_SOURCE_DIR}/lua/fsm_right_step.lua
                         ${CMAKE_CURRENT_SOURCE_DIR}/lua/fsm_left_right_sway.lua
+                        ${CMAKE_CURRENT_SOURCE_DIR}/lua/fsm_left_right_sine.lua
                         ${CMAKE_CURRENT_SOURCE_DIR}/lua/fsm_ping_pong.lua
                         ${CMAKE_CURRENT_SOURCE_DIR}/lua/gas_funcs.lua)
 set(lua_bin             ${CMAKE_CURRENT_SOURCE_DIR}/lua/pingPongDemo.lua
