@@ -74,7 +74,6 @@ function gas_open_ports()
     -- we don't want to loose any event
     input_events:setStrict()
 
-
     -- Streaming port continuously broadcasting the state
     state_port = yarp.BufferedPortBottle()
     state_port:open("/".. script_name .. "/state:o")
@@ -86,7 +85,6 @@ function gas_open_ports()
     -- Port for sending to iSpeak the current state
     iSpeak_port = yarp.BufferedPortBottle()
     iSpeak_port:open("/".. script_name .. "/speak");
-
 
     -- Port for reading the com position in the world
     com_port = yarp.BufferedPortBottle()
@@ -113,7 +111,7 @@ function gas_updateframes()
     gas_setponts.initial_com_in_world_bt = com_port:read()
     if( gas_setponts.initial_com_in_world_bt ) then
         PointCoordFromYarpVectorBottle(gas_setponts.initial_com_in_world,
-                                   gas_setponts.initial_com_in_world_bt)
+                                       gas_setponts.initial_com_in_world_bt)
     end
 
     -- waiting for reading frame data
