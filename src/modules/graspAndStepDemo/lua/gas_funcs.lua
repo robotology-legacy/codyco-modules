@@ -23,11 +23,22 @@ end
 -- @param setpoint a PointCoord object with the actual setpoint
 --
 function gas_sendCOMToTrajGen(port,setpoint)
+   comDes_in_world = setpoint;
    local botTrajGen = YarpVectorBottleForTrajGenFromPointCoord(setpoint)
    local prop = port:prepare();
    prop:clear()
    prop:put("com",botTrajGen:get(0))
    port:write()
+end
+
+function generate_com_motiondone_events(fsm)
+    local errX = comDes_in_world.x - comMeas_in_world.x;
+    local errY = comDes_in_world.y - comMeas_in_world.y;
+    local errZ = comDes_in_world.z - comMeas_in_world.z;
+    local comErr = sqrt(errX*errX + errY*errY + errZ*errZ);
+    if( comErr < com_threshold ) then
+        rfsm.send_events(fsm,'e_com_motion_done')
+    end
 end
 
 function gas_sendCOMToBalancing(port,pos,vel,acc)
@@ -137,6 +148,7 @@ function yarp_rf_find_int(rf,var_name)
     end
 end
 
+
 function yarp_rf_find_string(rf,var_name)
     if( rf:check(var_name) ) then
         local var = rf:find(var_name):asString()
@@ -226,7 +238,7 @@ end
 function PointCoord:print( prefix )
    if( prefix == nil ) then
        prefix = ""
-   end 
+   end
 	print(prefix .. "x: " .. self.x .. " y: " .. self.y .. " z: " .. self.z)
 end
 
@@ -406,3 +418,41 @@ end
 function getTransform(transformTable, firstFrame, secondFrame)
     return transformTable[firstFrame]:inverse():compose(transformTable[secondFrame]);
 end
+
+
+function gas_yarpCheckNetwork()
+    print("[INFO] opening yarp")
+    yarp.Network_init()
+
+    yarpNetworkTimeout = 10
+
+    if( not yarp.NetworkBase_checkNetwork(yarpNetworkTimeout) ) then
+        print("[INFO] yarp server not found, exiting")
+        yarp.Network_fini()
+        os.exit()
+    end
+end
+
+function yarp_rf_find_point(rf,var_name)
+    if( rf:check(var_name) ) then
+        local var = rf:find(var_name):asList()
+        local varPoint = PointCoord.create()
+
+        if( var:size() ~= 3 )
+            print("[ERROR] " .. var_name .." parameter found, but do not have 3 elements as a proper point, exiting")
+            gas_close_script()
+        end
+
+        varPoint.x = var:get(0):asDouble()
+        varPoint.y = var:get(1):asDouble()
+        varPoint.z = var:get(2):asDouble()
+
+        print("[INFO] setting " .. var_name .. " to " .. var:toString())
+        return varPoint
+    else
+        print("[ERROR] " .. var_name .." parameter not found, exiting")
+        gas_close_script()
+    end
+end
+
+

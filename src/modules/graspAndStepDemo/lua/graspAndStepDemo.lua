@@ -93,7 +93,7 @@ function gas_open_ports()
 
     -- Port for activating/deactivating contacts on the controller
     activeContacts_port = yarp.BufferedPortBottle()
-    activeContacts_port:open("/".. script_name .. "/activeContacts");
+    activeContacts_port:open("/".. script_name .. "/constraints");
 
     -- Port for setting the fixed link in the odometry module
     fixedLinkOdometry_port = yarp.BufferedPortBottle()

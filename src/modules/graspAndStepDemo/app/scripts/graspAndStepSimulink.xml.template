@@ -6,14 +6,8 @@
   <version></version>
 
   <!-- Required modules. -->
-  <module>
-      <name>torqueBalancing</name>
-      <parameters></parameters>
-      <node>node</node>
-      <stdio></stdio>
-      <prefix></prefix>
-  </module>
 
+  <!--
   <module>
       <name>torqueGraspManager</name>
       <parameters></parameters>
@@ -36,6 +30,7 @@
       <stdio></stdio>
       <prefix></prefix>
   </module>
+  -->
 
   <!-- Adding trajectory generator -->
   <module>
@@ -111,13 +106,13 @@
 
   <connection>
       <from>/trajGenY2/qDes:o</from>
-      <to>/torqueBalancing/qDes:i</to>
+      <to>/matlabTorqueBalancing/qDes:i</to>
       <protocol>udp</protocol>
   </connection>
 
   <connection>
       <from>/trajGenY2/comDes:o</from>
-      <to>/torqueBalancing/comDes:i</to>
+      <to>/matlabTorqueBalancing/comDes:i</to>
       <protocol>udp</protocol>
   </connection>
 
@@ -131,8 +126,8 @@
 
   <connection>
       <from>/graspAndStepDemo/constraints:o</from>
-      <to>/torqueBalancing/constraints:i</to>
-      <protocol>tcp</protocol>
+      <to>/matlabTorqueBalancing/constraints:i</to>
+      <protocol>tcp+recv.portmonitor+type.lua+context.graspAndStepDemo+file.constraints_simulink</protocol>
   </connection>
 
   <!-- RPC connection to start/stop the graspDemo -->
