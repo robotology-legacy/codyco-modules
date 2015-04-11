@@ -17,13 +17,15 @@
 #ifndef TORQUEBALANCINGMODULE_H
 #define TORQUEBALANCINGMODULE_H
 
-#include <yarp/os/RFModule.h>
-#include <map>
-#include <string>
-#include <paramHelp/paramProxyInterface.h>
 #include "Reference.h"
 #include "TorqueBalancingController.h"
 
+#include <yarp/os/RFModule.h>
+#include <yarp/os/PortReaderBuffer.h>
+#include <paramHelp/paramProxyInterface.h>
+
+#include <map>
+#include <string>
 #include <Eigen/Core>
 
 namespace paramHelp {
@@ -66,7 +68,8 @@ namespace codyco {
          *
          */
         class TorqueBalancingModule : public yarp::os::RFModule,
-        codyco::torquebalancing::ReferenceDelegate, codyco::torquebalancing::ControllerDelegate
+        codyco::torquebalancing::ReferenceDelegate, codyco::torquebalancing::ControllerDelegate,
+        public yarp::os::TypedReaderCallback<yarp::os::Bottle>
         {
         public:
             TorqueBalancingModule();
@@ -95,9 +98,11 @@ namespace codyco {
             //Delegate method
             virtual void referenceDidChangeValue(const Reference&);
             virtual void controllerDidStop(TorqueBalancingController&);
+            virtual void onRead(yarp::os::Bottle &read);
 
         private:
             class ParamHelperManager;
+            //TODO: move the private part to use a pimpl pattern
 
             int m_controllerThreadPeriod;
             double m_modulePeriod;
@@ -118,11 +123,12 @@ namespace codyco {
             std::map<TaskType, ReferenceGenerator*> m_referenceGenerators;
 
             yarp::os::Port* m_rpcPort;
+            yarp::os::BufferedPort<yarp::os::Bottle>* m_constraintsPort;
             yarp::os::BufferedPort<yarp::os::Property>* m_eventsPort;
 
             ParamHelperManager* m_paramHelperManager;
 
-            Eigen::VectorXd m_jointsConfiguration; /*!< This is used for swithing between module states. (Hands position are implemented with the impedance control. */
+            Eigen::VectorXd m_jointsConfiguration; /*!< Resting position of the impedance control */
             Eigen::VectorXd m_tempHeptaVector; /*!< Temporary vector of 7 elements */
             Eigen::VectorXd m_comReference; /*!< Reference for the center of mass */
         };

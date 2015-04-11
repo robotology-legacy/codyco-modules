@@ -63,7 +63,7 @@ It also allows to change the value of the gains.
 When the user sends a `start` command the actual CoM position and the joint positions are set as a reference for the CoM PID and for the impedance task.
 
 #### CoM reference
-It is possible to send a `CoM` reference by connecting to the streaming port `com:i`. The port expects 9 elements: 3 values for the  desired CoM  position, 3 values for the  desired CoM velocity and 3 values for the  desired CoM acceleration
+It is possible to send a `CoM` reference by connecting to the streaming port `comDes:i`. The port expects 9 elements: 3 values for the  desired CoM  position, 3 values for the  desired CoM velocity and 3 values for the  desired CoM acceleration
 
 #### Joint reference
 It is possible to send the impedance resting position as a reference to the streaming port `qdes:i`. This port expects the same number of element as the torque controlled joints. References are in **radians**

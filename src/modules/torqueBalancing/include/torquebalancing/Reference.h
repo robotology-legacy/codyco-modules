@@ -47,8 +47,8 @@ namespace codyco {
 
             void addDelegate(ReferenceDelegate *delegate);
             void removeDelegate(ReferenceDelegate *delegate);
-            bool setUpReaderThread(std::string portName);
-            bool tearDownReaderThread();
+            bool setUpReaderPort(std::string portName);
+            bool tearDownReaderPort();
             
             /** Return the current value.
              * Before using the value is some computation check if it is valid or not.

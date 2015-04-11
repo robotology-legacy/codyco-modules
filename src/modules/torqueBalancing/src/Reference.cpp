@@ -103,7 +103,7 @@ namespace codyco {
         
         Reference::~Reference()
         {
-            this->tearDownReaderThread();
+            this->tearDownReaderPort();
             if (m_implementation) {
                 ReferencePrivateImplementation *implementation = static_cast<ReferencePrivateImplementation*>(m_implementation);
                 delete implementation;
@@ -125,7 +125,7 @@ namespace codyco {
             implementation->delegates.erase(delegate);
         }
 
-        bool Reference::setUpReaderThread(std::string portName)
+        bool Reference::setUpReaderPort(std::string portName)
         {
             ReferencePrivateImplementation *implementation = static_cast<ReferencePrivateImplementation*>(m_implementation);
             bool result = false;
@@ -143,7 +143,7 @@ namespace codyco {
             return result;
         }
 
-        bool Reference::tearDownReaderThread()
+        bool Reference::tearDownReaderPort()
         {
             ReferencePrivateImplementation *implementation = static_cast<ReferencePrivateImplementation*>(m_implementation);
             if (implementation->readerPort) {

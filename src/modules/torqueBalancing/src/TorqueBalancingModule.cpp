@@ -33,6 +33,9 @@
 #include <iostream>
 #include <vector>
 
+#define ACTIVATE_CONTACT "activateConstraints"
+#define DEACTIVATE_CONTACT "deactivateConstraints"
+
 namespace codyco {
     namespace torquebalancing {
 
@@ -125,6 +128,14 @@ namespace codyco {
                 return false;
             }
 
+            m_constraintsPort = new yarp::os::BufferedPort<yarp::os::Bottle>();
+            if (!m_constraintsPort
+                || !m_constraintsPort->open(("/" + getName("/constraints:i")).c_str())) {
+                yError("Could not open constraint input port: /%s/constraints:i", m_moduleName.c_str());
+                return false;
+            }
+            m_constraintsPort->useCallback(*this);
+
             //Create reference variable
             m_references = new ControllerReferences(actuatedDOFs);
             if (!m_references) {
@@ -133,12 +144,12 @@ namespace codyco {
             }
 
             //Setup streaming
-            if (!m_references->desiredCOM().setUpReaderThread(("/" + getName("/com:i")))) {
+            if (!m_references->desiredCOM().setUpReaderPort(("/" + getName("/comDes:i")))) {
                 yError("CoM streaming port failed to start.");
                 return false;
             }
             m_references->desiredCOM().addDelegate(this);
-            if (!m_references->desiredJointsPosition().setUpReaderThread(("/" + getName("/qdes:i")))) {
+            if (!m_references->desiredJointsPosition().setUpReaderPort(("/" + getName("/qDes:i")))) {
                 yError("QDes streaming port failed to start.");
                 return false;
             }
@@ -315,6 +326,13 @@ namespace codyco {
                 m_rpcPort = 0;
             }
 
+            if (m_constraintsPort) {
+                m_constraintsPort->close();
+                m_constraintsPort->disableCallback();
+                delete m_constraintsPort;
+                m_constraintsPort = 0;
+            }
+
             if (m_eventsPort) {
                 m_eventsPort->close();
                 delete m_eventsPort;
@@ -351,8 +369,8 @@ namespace codyco {
             if (m_references) {
                 m_references->desiredCOM().removeDelegate(this);
                 m_references->desiredJointsPosition().removeDelegate(this);
-                m_references->desiredCOM().tearDownReaderThread();
-                m_references->desiredJointsPosition().tearDownReaderThread();
+                m_references->desiredCOM().tearDownReaderPort();
+                m_references->desiredJointsPosition().tearDownReaderPort();
 
                 delete m_references;
                 m_references = 0;
@@ -386,6 +404,26 @@ namespace codyco {
             yarp::os::Property &event = m_eventsPort->prepare();
             event.put("STATUS", yarp::os::Value("stop"));
             m_eventsPort->write();
+        }
+
+        void TorqueBalancingModule::onRead(yarp::os::Bottle &read)
+        {
+            //Read of the constraints port
+            //expecting size >= 2
+            if (read.size() < 2) return;
+
+            std::string command = read.get(0).asString();
+            if (command.compare(ACTIVATE_CONTACT) == 0) {
+                for (int i = 1; i < read.size(); i++) {
+                    m_controller->addDynamicConstraint(read.get(i).asString());
+                }
+            }
+
+            if (command.compare(DEACTIVATE_CONTACT) == 0) {
+                for (int i = 1; i < read.size(); i++) {
+                    m_controller->removeDynamicConstraint(read.get(i).asString());
+                }
+            }
         }
 
         double TorqueBalancingModule::getPeriod()

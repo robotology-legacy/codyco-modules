@@ -21,10 +21,11 @@
 #include <wbi/wholeBodyInterface.h>
 #include <wbi/wbiUtil.h>
 #include <codyco/MathUtils.h>
-#include <codyco/LockGuard.h>
 #include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 #include <yarp/os/LogStream.h>
+#include <yarp/os/LockGuard.h>
 #include <codyco/Utils.h>
+
 #include <iCub/ctrl/minJerkCtrl.h>
 
 #include <iostream>
@@ -186,7 +187,7 @@ namespace codyco {
 
         void TorqueBalancingController::run()
         {
-            codyco::LockGuard guard(m_mutex);
+            yarp::os::LockGuard guard(m_mutex);
             if (!m_active) return;
 
             //read references
@@ -224,25 +225,25 @@ namespace codyco {
 
         double TorqueBalancingController::centroidalMomentumGain()
         {
-            codyco::LockGuard guard(m_mutex);
+            yarp::os::LockGuard guard(m_mutex);
             return m_centroidalMomentumGain;
         }
 
         void TorqueBalancingController::setCentroidalMomentumGain(double centroidalMomentumGain)
         {
-            codyco::LockGuard guard(m_mutex);
+            yarp::os::LockGuard guard(m_mutex);
             m_centroidalMomentumGain = centroidalMomentumGain;
         }
 
         const Eigen::VectorXd& TorqueBalancingController::impedanceGains()
         {
-            codyco::LockGuard guard(m_mutex);
+            yarp::os::LockGuard guard(m_mutex);
             return m_impedanceGains;
         }
 
         void TorqueBalancingController::setImpedanceGains(Eigen::VectorXd& impedanceGains)
         {
-            codyco::LockGuard guard(m_mutex);
+            yarp::os::LockGuard guard(m_mutex);
             m_impedanceGains = impedanceGains;
         }
 
@@ -250,7 +251,7 @@ namespace codyco {
         {
             if (m_active == isActive) return;
 
-            codyco::LockGuard guard(m_mutex);
+            yarp::os::LockGuard guard(m_mutex);
             if (isActive) {
                 m_desiredCOMAcceleration.setZero(); //reset reference
                 m_robot.setControlMode(wbi::CTRL_MODE_TORQUE);
@@ -263,25 +264,25 @@ namespace codyco {
 
         bool TorqueBalancingController::isActiveState()
         {
-            codyco::LockGuard guard(m_mutex);
+            yarp::os::LockGuard guard(m_mutex);
             return m_active;
         }
 
         void TorqueBalancingController::setTorqueSaturationLimit(Eigen::VectorXd& newSaturation)
         {
-            codyco::LockGuard guard(m_mutex);
+            yarp::os::LockGuard guard(m_mutex);
             m_torqueSaturationLimit = newSaturation.array().abs();
         }
 
         const Eigen::VectorXd& TorqueBalancingController::torqueSaturationLimit()
         {
-            codyco::LockGuard guard(m_mutex);
+            yarp::os::LockGuard guard(m_mutex);
             return m_torqueSaturationLimit;
         }
 
         void TorqueBalancingController::setDelegate(ControllerDelegate *delegate)
         {
-            codyco::LockGuard guard(m_mutex);
+            yarp::os::LockGuard guard(m_mutex);
             this->m_delegate = delegate;
         }
 
@@ -295,7 +296,7 @@ namespace codyco {
             //            DynamicContraint constraint(frameName);
             //            constraint.createMemory();
             //            m_activeConstraints.insert(ConstraintsMap::value_type(frameName, constraint));
-
+            yarp::os::LockGuard guard(m_mutex);
             ConstraintsMap::iterator found = m_activeConstraints.find(frameName);
             if (found == m_activeConstraints.end()) return false;
             found->second.activate();
@@ -305,6 +306,7 @@ namespace codyco {
 
         bool TorqueBalancingController::removeDynamicConstraint(std::string frameName)
         {
+            yarp::os::LockGuard guard(m_mutex);
             ConstraintsMap::iterator found = m_activeConstraints.find(frameName);
             if (found == m_activeConstraints.end()) return false;
             found->second.deactivate();
@@ -316,13 +318,13 @@ namespace codyco {
 
         const Eigen::VectorXd& TorqueBalancingController::desiredFeetForces()
         {
-            codyco::LockGuard guard(m_mutex);
+            yarp::os::LockGuard guard(m_mutex);
             return m_desiredFeetForces;
         }
 
         const Eigen::VectorXd& TorqueBalancingController::outputTorques()
         {
-            codyco::LockGuard guard(m_mutex);
+            yarp::os::LockGuard guard(m_mutex);
             return m_torques;
         }
 
@@ -351,7 +353,7 @@ namespace codyco {
 
         bool TorqueBalancingController::updateRobotState()
         {
-            codyco::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(&m_robot)->getInterfaceMutex());
+            yarp::os::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(&m_robot)->getInterfaceMutex());
 #if defined(DEBUG) && defined(EIGEN_RUNTIME_NO_MALLOC)
             Eigen::internal::set_is_malloc_allowed(false);
 #endif
