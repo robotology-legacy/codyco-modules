@@ -8,7 +8,9 @@ fsm_left_right_sway = rfsm.state {
     ST_WEIGHT_ON_LEFT_FOOT = rfsm.state{
         entry=function()
             -- set the com desired position
-            gas_sendCOMToTrajGen(setpoints_port,gas_setpoints.left_com_in_world)
+        gas_setpoints.left_com_in_world:print("[DEBUG] gas_setpoints.left_com_in_world : ")
+        gas_setpoints.left_com_in_initial_world:print("[DEBUG] gas_setpoints.left_com_in_initial_world : ")
+        gas_sendCOMToTrajGen(setpoints_port,gas_setpoints.left_com_in_initial_world)
         end,
     },
 
@@ -20,7 +22,9 @@ fsm_left_right_sway = rfsm.state {
     ST_WEIGHT_ON_RIGHT_FOOT = rfsm.state{
         entry=function()
             -- set the com desired position
-            gas_sendCOMToTrajGen(setpoints_port,gas_setpoints.right_com_in_world)
+            gas_setpoints.right_com_in_world:print("[DEBUG] gas_setpoints.right_com_in_world : ")
+            gas_setpoints.right_com_in_initial_world:print("[DEBUG] gas_setpoints.right_com_in_initial_world : ")
+            gas_sendCOMToTrajGen(setpoints_port,gas_setpoints.right_com_in_initial_world)
         end,
     },
 
