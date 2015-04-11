@@ -1,3 +1,14 @@
+function yarpBottleNorm(bot,val)
+    local nrm = 0
+    nrOfElems = math.min(val,bot:size()-1)
+    for i = 0,nrOfElems do
+        local el = bot:get(i):asDouble()
+        nrm = nrm + el*el
+    end
+    nrm = math.sqrt(nrm)
+    return nrm
+end
+
 steppingMonitor = {}
 steppingMonitor.__index = steppingMonitor
 
@@ -5,6 +16,7 @@ function steppingMonitor.create()
     local mon = {}             -- our new object
     setmetatable(mon,steppingMonitor)  -- make steppingMonitor handle lookup
     -- open external force ports
+    print("[DEBUG] creating right_foot_wrench_port")
     mon.right_foot_wrench_port = yarp.BufferedPortBottle()
     mon.right_foot_wrench_port:open("/".. script_name .."/right_foot_wrench:i")
     mon.left_foot_wrench_port = yarp.BufferedPortBottle()
@@ -22,19 +34,20 @@ function steppingMonitor.create()
     mon.buffer_left_foot_wrench:addDouble(0.0)
     mon.buffer_left_foot_wrench:addDouble(0.0)
     mon.buffer_right_foot_wrench = buffer_left_foot_wrench
-    mon.buffer_left_force_norm = 0.0
-    mon.buffer_right_force_norm = 0.0
+    mon.buffer_left_foot_force_norm = 0.0
+    mon.buffer_right_foot_force_norm = 0.0
     return mon
 end
 
+
 function steppingMonitor:update_buffers()
-    local new_right_wrench = self.right_foot_wrench_port:read(false)
+    new_right_wrench = self.right_foot_wrench_port:read(false)
     if new_right_wrench ~= nil then
         self.buffer_right_foot_wrench = new_right_wrench
         self.buffer_right_foot_force_norm = yarpBottleNorm(self.buffer_right_foot_wrench,3)
     end
 
-    local new_left_wrench = left_wrench_port:read(false)
+    new_left_wrench = self.left_foot_wrench_port:read(false)
     if new_left_wrench ~= nil then
         self.buffer_left_foot_wrench = new_left_wrench
         self.buffer_left_foot_force_norm = yarpBottleNorm(self.buffer_left_foot_wrench,3)
@@ -42,16 +55,16 @@ function steppingMonitor:update_buffers()
 end
 
 function steppingMonitor:run(fsm)
-    steppingMonitor:update_buffers()
+    self:update_buffers()
 
     -- events no weight
-    if( self.buffer_left_foot_force_norm < force_threshold )
+    if( self.buffer_left_foot_force_norm < force_threshold ) then
         rfsm.send_events(fsm,'e_no_weight_on_left_foot')
     else
         rfsm.send_events(fsn,'e_weight_on_left_foot')
     end
 
-    if( self.buffer_right_foot_force_norm < force_threshold )
+    if( self.buffer_right_foot_force_norm < force_threshold ) then
         rfsm.send_events(fsm,'e_no_weight_on_right_foot')
     else
         rfsm.send_events(fsm,'e_weight_on_right_foot')

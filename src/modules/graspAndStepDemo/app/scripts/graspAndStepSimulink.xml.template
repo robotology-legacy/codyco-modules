@@ -152,12 +152,27 @@
 
   <connection>
      <from>/wholeBodyDynamicsTree/left_leg/endEffectorWrench:o</from>
-     <to>/graspAndStep/left_foot_wrench:i:o</to>
+     <to>/graspAndStep/left_foot_wrench:i</to>
   </connection>
 
   <connection>
      <from>/wholeBodyDynamicsTree/right_leg/endEffectorWrench:o</from>
-     <to>/graspAndStep/right_foot_wrench:i:o</to>
+     <to>/graspAndStep/right_foot_wrench:i</to>
+  </connection>
+
+  <connection>
+     <from>/wholeBodyDynamicsTree/com:o</from>
+     <to>/graspAndStep/com:i</to>
+  </connection>
+
+  <connection>
+     <from>/wholeBodyDynamicsTree/frames:o</from>
+     <to>/graspAndStep/frames:i</to>
+  </connection>
+
+  <connection>
+     <from>/graspAndStep/odometry:o</from>
+     <to>/wholeBodyDynamicsTree/rpc:i</to>
   </connection>
 
   <!-- debug connection for audio debug of current state -->

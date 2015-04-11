@@ -35,7 +35,8 @@ function generate_com_motiondone_events(fsm)
     local errX = comDes_in_world.x - comMeas_in_world.x;
     local errY = comDes_in_world.y - comMeas_in_world.y;
     local errZ = comDes_in_world.z - comMeas_in_world.z;
-    local comErr = sqrt(errX*errX + errY*errY + errZ*errZ);
+    local comErr = math.sqrt(errX*errX + errY*errY + errZ*errZ);
+    --print("comErr: " .. comErr)
     if( comErr < com_threshold ) then
         rfsm.send_events(fsm,'e_com_motion_done')
     end
@@ -80,8 +81,8 @@ function gas_deactivateConstraints(port,deactivatedConstraints)
    local bot = port:prepare();
    bot:clear()
    bot:addString("deactivateConstraints")
-   for i = 1,#deactivetedContacts do
-       bot:addString(deactivetedConstraints[i])
+   for i = 1,#deactivatedConstraints do
+       bot:addString(deactivatedConstraints[i])
    end
    port:write()
 end
@@ -438,7 +439,7 @@ function yarp_rf_find_point(rf,var_name)
         local var = rf:find(var_name):asList()
         local varPoint = PointCoord.create()
 
-        if( var:size() ~= 3 )
+        if( var:size() ~= 3 ) then
             print("[ERROR] " .. var_name .." parameter found, but do not have 3 elements as a proper point, exiting")
             gas_close_script()
         end

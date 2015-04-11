@@ -34,7 +34,7 @@ function gas_loadconfiguration()
 
     -- load helper functions
     dofile(rf:findFile("lua/gas_funcs.lua"))
-    dofile(rf:findFile("lua/stepperMonitor.lua"))
+    dofile(rf:findFile("lua/steppingMonitor.lua"))
 
     -- handling parameters
     if( rf:check("verbose") ) then
@@ -52,6 +52,10 @@ function gas_loadconfiguration()
     fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
     step_type = yarp_rf_find_string(rf,"step_type")
     gas_setpoints.weight_on_left_foot_com_wrt_l_sole = yarp_rf_find_point(rf,"weight_on_left_foot_com_wrt_l_sole")
+    l_foot_frame = "l_sole"
+    r_foot_frame = "r_sole"
+    force_threshold = yarp_rf_find_double(rf,"force_threshold");
+    com_threshold   = yarp_rf_find_double(rf,"com_threshold")
 
 end
 
@@ -89,8 +93,12 @@ function gas_open_ports()
     constraints_port = yarp.BufferedPortBottle()
     constraints_port:open("/".. script_name .. "/constraints:o");
 
+    -- Port for configuring the simple odometry 
+    odometry_port = yarp.BufferedPortBottle()
+    odometry_port:open("/".. script_name .. "/odometry:o");
+
     -- Port for reading forces are included in the stepperMonitor class
-    stepper_monitor = stepperMonitor.create()
+    stepper_monitor = steppingMonitor.create()
 end
 
 function gas_close_ports()
@@ -101,10 +109,38 @@ function gas_close_ports()
     gas_close_port(com_port)
     gas_close_port(frames_port)
     gas_close_port(setpoints_port)
-    gas_close_port(constraints_port)
+    gas_close_port(constraints_port) 
+    gas_close_port(odometry_port)
 
-    stepper_monitor:close()
+    if( stepper_monitor ~= nil ) then
+        stepper_monitor:close()
+    end
 end
+
+-- initialize setpoints for each state
+function gas_initialize_setpoints()
+    -- waiting for reading com data
+    print("[INFO] waiting for com data")
+    comMeas_in_world_bt = com_port:read(true)
+    PointCoordFromYarpVectorBottle(comMeas_in_world,
+                                   comMeas_in_world_bt)
+
+    comMeas_in_world:print("[INFO] initial com in world frame: ")
+
+    -- waiting for reading frame data
+    print("[INFO] waiting for frame data")
+    gas_frames_bt = frames_port:read(true)
+    HomTransformTableFromBottle(gas_frames,gas_frames_bt)
+
+    l_foot_H_world = gas_frames[l_foot_frame]:inverse()
+
+    gas_setpoints.initial_com_in_l_foot = l_foot_H_world:apply(comMeas_in_world)
+
+    -- workaround: weight_on_left_foot_com_wrt_l_sole is used just for the y value
+    gas_setpoints.weight_on_left_foot_com_wrt_l_sole.x = gas_setpoints.initial_com_in_l_foot.x
+    gas_setpoints.weight_on_left_foot_com_wrt_l_sole.z = gas_setpoints.initial_com_in_l_foot.z
+end
+
 
 function gas_updateframes()
     -- waiting for reading frame data
@@ -115,8 +151,10 @@ function gas_updateframes()
 
     -- reading com data
     comMeas_in_world_bt = com_port:read()
-    PointCoordFromYarpVectorBottle(comMeas_in_world,
+    if( comMeas_in_world_bt ~= nil ) then
+        PointCoordFromYarpVectorBottle(comMeas_in_world,
                                    comMeas_in_world_bt)
+    end
 
 
     -- get transform
@@ -130,25 +168,6 @@ function gas_updateframes()
     gas_setpoints.weight_on_left_foot_com_in_world =
         world_H_l_foot:apply(gas_setpoints.weight_on_left_foot_com_wrt_l_sole)
 end
-
--- initialize setpoints for each state
-function gas_initialize_setpoints()
-    -- waiting for reading com data
-    print("[INFO] waiting for com data")
-    comMeas_in_world_bt = com_port:read(true)
-    PointCoordFromYarpVectorBottle(comMeas_in_world,
-                                   comMeas_in_world_bt)
-
-    -- waiting for reading frame data
-    print("[INFO] waiting for frame data")
-    gas_frames_bt = frames_port:read(true)
-    HomTransformTableFromBottle(gas_frames,gas_frames_bt)
-
-    l_foot_H_world = gas_frames[l_foot_frame]:inverse()
-
-    gas_setpoints.initial_com_in_l_foot = l_foot_H_world:apply(comMeas_in_world)
-end
-
 
 function main()
     shouldExit = false
@@ -167,7 +186,6 @@ function main()
 
     -- load main FSM
     fsm_file = rf:findFile("lua/fsm_test_right_step.lua")
-
     print("[INFO] loading rFSM state machine")
     -- load state machine model and initalize it
     fsm_model = rfsm.load(fsm_file)
@@ -184,10 +202,13 @@ function main()
     fsm.getevents = yarp_gen_read_str_events(input_events);
 
     gas_frames = {}
-    l_foot_frame = "l_sole"
-    r_foot_frame = "r_sole"
+
 
     print("[INFO] starting main loop")
+    comMeas_in_world = PointCoord.create()
+    comDes_in_world  = PointCoord.create()
+    gas_initialize_setpoints()
+
     repeat
         yarp_now = yarp.Time_now()
         -- read frames and com information
