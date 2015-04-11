@@ -198,10 +198,14 @@ function main()
     gas_setpoints = {
         -- geometric ponts
         initial_com_in_world = PointCoord.create(),
+
+        -- switching mode 
         left_com_in_l_foot = PointCoord.create(),
         right_com_in_r_foot = PointCoord.create(),
         left_com_in_world = PointCoord.create(),
         right_com_in_world = PointCoord.create(),
+
+        -- trajectory mode
         sine_com_in_world  = PointCoord.create(),
         vel_sine_com_in_world  = PointCoord.create(),
         acc_sine_com_in_world  = PointCoord.create(),
@@ -232,19 +236,29 @@ function main()
     r_foot_H_world = gas_frames[r_foot_frame]:inverse()
 
     -- generating left and right desired com
-    -- the x and y are the left foot origin
-    -- while the z is the one of the initial com
-    local initial_com_wrt_left_foot =
-        l_foot_H_world:apply(gas_setpoints.initial_com_in_world)
-    gas_setpoints.left_com_in_l_foot.x = initial_com_wrt_left_foot.x
-    gas_setpoints.left_com_in_l_foot.y = initial_com_wrt_left_foot.y
-    gas_setpoints.left_com_in_l_foot.z = initial_com_wrt_left_foot.z
+    local left_com_wrt_world = PointCoord.create()
+    left_com_wrt_world.x = gas_setpoints.initial_com_in_world.x + delta_x
+    left_com_wrt_world.y = gas_setpoints.initial_com_in_world.y + delta_y
+    left_com_wrt_world.z = gas_setpoints.initial_com_in_world.z + delta_z
 
-    local initial_com_wrt_right_foot =
-        r_foot_H_world:apply(gas_setpoints.initial_com_in_world)
-    gas_setpoints.right_com_in_r_foot.x = initial_com_wrt_right_foot.x
-    gas_setpoints.right_com_in_r_foot.y = initial_com_wrt_right_foot.y
-    gas_setpoints.right_com_in_r_foot.z = initial_com_wrt_right_foot.z
+    gas_setpoints.left_com_in_l_foot =
+        l_foot_H_world:apply(left_com_wrt_world)
+
+    print("left_com_wrt_world: ")
+    left_com_wrt_world:print()
+
+
+    local right_com_wrt_world = PointCoord.create()
+    right_com_wrt_world.x = gas_setpoints.initial_com_in_world.x - delta_x
+    right_com_wrt_world.y = gas_setpoints.initial_com_in_world.y - delta_y
+    right_com_wrt_world.z = gas_setpoints.initial_com_in_world.z - delta_z
+ 
+    print("right_com_wrt_world: ")
+    right_com_wrt_world:print()
+
+    gas_setpoints.right_com_in_r_foot =
+        r_foot_H_world:apply(right_com_wrt_world)
+
 
     print("[INFO] starting main loop")
     repeat

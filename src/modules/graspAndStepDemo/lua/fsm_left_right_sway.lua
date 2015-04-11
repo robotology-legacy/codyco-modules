@@ -32,7 +32,7 @@ fsm_left_right_sway = rfsm.state {
     ST_INITIAL_COM = rfsm.state{
         entry=function()
             -- set the com desired position
-            gas_sendCOMToTrajGen(setpoints_port,initial_com_in_world_bt)
+            gas_sendCOMToTrajGen(setpoints_port,gas_setpoints.initial_com_in_world)
         end,
     },
 
@@ -40,7 +40,7 @@ fsm_left_right_sway = rfsm.state {
     rfsm.transition { src='initial', tgt='ST_INITIAL_COM' },
 
     -- Time  transitions
-    rfsm.transition { src='ST_INITIAL_COM', tgt='ST_INITIAL_COM', events={'e_after(3)'} },
+    rfsm.transition { src='ST_INITIAL_COM', tgt='ST_WEIGHT_ON_LEFT_FOOT', events={'e_after(3)'} },
     rfsm.transition { src='ST_WEIGHT_ON_LEFT_FOOT', tgt='ST_WEIGHT_ON_RIGHT_FOOT', events={ 'e_after('..switching_period..')' } },
     rfsm.transition { src='ST_WEIGHT_ON_RIGHT_FOOT', tgt='ST_WEIGHT_ON_LEFT_FOOT', events={ 'e_after('..switching_period..')' } },
 

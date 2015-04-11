@@ -23,6 +23,8 @@ end
 -- @param setpoint a PointCoord object with the actual setpoint
 --
 function gas_sendCOMToTrajGen(port,setpoint)
+   print("gas_sendCOMToTrajGen: sending des com ")
+   setpoint:print()
    local botTrajGen = YarpVectorBottleForTrajGenFromPointCoord(setpoint)
    local prop = port:prepare();
    prop:clear()
@@ -223,6 +225,10 @@ function PointCoord:opposite()
    return oppositePoint;
 end
 
+function PointCoord:print()
+	print("x: " .. self.x .. " y: " .. self.y .. " z: " .. self.z)
+end
+
 -- Rotation (expressed as a rotation matrix)
 RotMatrix = {}
 RotMatrix.__index = RotMatrix
@@ -302,9 +308,9 @@ end
 
 function HomTransform:apply(point)
     transformedPoint = self.rot:apply(point);
-    transformedPoint.x = transformedPoint.x + point.x;
-    transformedPoint.y = transformedPoint.y + point.y;
-    transformedPoint.z = transformedPoint.z + point.z;
+    transformedPoint.x = transformedPoint.x + self.origin.x;
+    transformedPoint.y = transformedPoint.y + self.origin.y;
+    transformedPoint.z = transformedPoint.z + self.origin.z;
 
     return transformedPoint
 end
