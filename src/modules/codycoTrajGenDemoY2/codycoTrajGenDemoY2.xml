@@ -38,7 +38,7 @@
 
     <output>
       <type>yarp::os::Vector</type>
-      <port carrier="udp">{name}/qdes:o</port>
+      <port carrier="udp">{name}/qDes:o</port>
       <required>no</required>
       <priority>yes</priority>
       <description>
@@ -48,7 +48,7 @@
 
     <output>
       <type>yarp::os::Vector</type>
-      <port carrier="udp">{name}/comdes:o</port>
+      <port carrier="udp">{name}/comDes:o</port>
       <required>no</required>
       <priority>yes</priority>
       <description>

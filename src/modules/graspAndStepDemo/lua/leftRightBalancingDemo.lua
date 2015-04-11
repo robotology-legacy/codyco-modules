@@ -39,16 +39,16 @@ function gas_loadconfiguration()
     fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
     swinging_type = yarp_rf_find_string(rf,"swinging_type")
 
-	 if( swinging_type ~= "switching" and 
+    if( swinging_type ~= "switching" and
         swinging_type ~= "trajectory" ) then
         print("[ERROR] swinging_type should be switching or trajectory")
         gas_close_script()
     end
 
     if( swinging_type == "switching" ) then
-  		  switching_period = yarp_rf_find_double(rf,"switching_period")
-  		  -- switching_period = yarp_rf_find_double(rf,"switching_period")
-  		  -- switching_period = yarp_rf_find_double(rf,"switching_period")
+        switching_period = yarp_rf_find_double(rf,"switching_period")
+        -- switching_period = yarp_rf_find_double(rf,"switching_period")
+        -- switching_period = yarp_rf_find_double(rf,"switching_period")
     end
 
     if( swinging_type == "trajectory" ) then
@@ -85,10 +85,6 @@ function gas_open_ports()
     state_port = yarp.BufferedPortBottle()
     state_port:open("/".. script_name .. "/state:o")
 
-    -- Port for publishing trajectory generator setpoints
-    setpoints_port = yarp.BufferedPortProperty()
-    setpoints_port:open("/".. script_name .. "/setpoints:o")
-
     -- Port for sending to iSpeak the current state
     iSpeak_port = yarp.BufferedPortBottle()
     iSpeak_port:open("/".. script_name .. "/speak");
@@ -101,16 +97,35 @@ function gas_open_ports()
     frames_port = yarp.BufferedPortBottle()
     frames_port:open("/" .. script_name .. "/frames:i");
 
+
+    if( swinging_type == "switching" ) then
+        -- Port for publishing trajectory generator setpoints
+        setpoints_port = yarp.BufferedPortProperty()
+        setpoints_port:open("/".. script_name .. "/setpoints:o")
+    end
+
+    if( swinging_type == "trajectory" ) then
+        -- Port for streaming the com desired trajectory in the world
+        comdes_port = yarp.BufferedPortBottle()
+        comdes_port:open("/" .. script_name .. "/comDes:o");
+    end
+
 end
 
 function gas_close_ports()
     --close ports
     gas_close_port(input_events)
     gas_close_port(state_port)
-    gas_close_port(setpoints_port)
     gas_close_port(iSpeak_port)
     gas_close_port(com_port)
     gas_close_port(frames_port)
+    if( swinging_type == "switching" ) then
+        gas_close_port(setpoints_port)
+    end
+
+    if( swinging_type == "trajectory" ) then
+        gas_close_port(comdes_port)
+    end
 end
 
 function gas_updateframes()
@@ -195,6 +210,8 @@ function main()
         left_com_in_world = PointCoord.create(),
         right_com_in_world = PointCoord.create(),
         sine_com_in_world  = PointCoord.create(),
+        vel_sine_com_in_world  = PointCoord.create(),
+        acc_sine_com_in_world  = PointCoord.create(),
 
         -- bottle buffers to load/unload
         initial_com_in_world_bt = yarp.Bottle(),
@@ -217,7 +234,7 @@ function main()
     HomTransformTableFromBottle(gas_frames,gas_frames_bt)
 
     -- get transform
-    -- 
+    --
     l_foot_H_world = gas_frames[l_foot_frame]:inverse()
     r_foot_H_world = gas_frames[r_foot_frame]:inverse()
 

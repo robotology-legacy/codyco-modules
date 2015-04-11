@@ -398,14 +398,14 @@ namespace codyco {
 
             m_outputTorqueControlledJointReferences = new BufferedPort<Vector>();
             if (!m_outputTorqueControlledJointReferences
-                || !m_outputTorqueControlledJointReferences->open(getName("/qdes:o"))) {
+                || !m_outputTorqueControlledJointReferences->open(getName("/qDes:o"))) {
                 cleanup();
                 return false;
             }
 
             m_outputComDesiredPosVelAcc = new BufferedPort<Vector>();
             if (!m_outputComDesiredPosVelAcc
-                || !m_outputComDesiredPosVelAcc->open(getName("/comdes:o"))) {
+                || !m_outputComDesiredPosVelAcc->open(getName("/comDes:o"))) {
                 cleanup();
                 return false;
             }

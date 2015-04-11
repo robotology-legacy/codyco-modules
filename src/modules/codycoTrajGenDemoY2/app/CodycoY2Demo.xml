@@ -72,7 +72,7 @@
   </connection>
 
   <connection>
-      <from>/torqueGraspManager/qdes:o</from>
+      <from>/torqueGraspManager/qDes:o</from>
       <to>/trajGenY2/refs:i</to>
       <protocol>udp</protocol>
   </connection>
@@ -84,8 +84,8 @@
   </connection>
 
   <connection>
-      <from>/trajGenY2/qdes:o</from>
-      <to>/torqueBalancing/qdes:i</to>
+      <from>/trajGenY2/qDes:o</from>
+      <to>/torqueBalancing/qDes:i</to>
       <protocol>udp</protocol>
   </connection>
 

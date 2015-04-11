@@ -15,7 +15,7 @@
   </module>
 
   <module>
-      <name>RedBallGraspDemo</name>
+      <name>torqueGraspManager</name>
       <parameters></parameters>
       <node>node</node>
       <stdio></stdio>
@@ -39,7 +39,7 @@
 
   <!-- Adding trajectory generator -->
   <module>
-      <name>CodycoCoordinatorY2</name>
+      <name>codycoTrajGenDemoY2</name>
       <parameters></parameters>
       <node>screen-node</node>
       <stdio></stdio>
@@ -83,31 +83,31 @@
 
   <connection>
       <from>/pf3dTracker/data:o</from>
-      <to>/redBallGrasp/trackTarget:i</to>
+      <to>/torqueGraspManager/trackTarget:i</to>
       <protocol>udp</protocol>
   </connection>
 
   <connection>
-      <from>/redBallGrasp/cmdFace:rpc</from>
+      <from>/torqueGraspManager/cmdFace:rpc</from>
       <to>/icub/face/emotions/in</to>
       <protocol>tcp</protocol>
   </connection>
 
   <connection>
-      <from>/redBallGrasp/qdes:o</from>
-      <to>/y2coordinator/refs:i</to>
+      <from>/torqueGraspManager/qDes:o</from>
+      <to>/trajGenY2/refs:i</to>
       <protocol>udp</protocol>
   </connection>
 
   <connection>
-      <from>/redBallGrasp/motionDone:rpc</from>
+      <from>/torqueGraspManager/motionDone:rpc</from>
       <to>/y2coordinator/rpc:i</to>
       <protocol>tcp</protocol>
   </connection>
 
   <connection>
-      <from>/y2coordinator/qdes:o</from>
-      <to>/torqueBalancing/qdes:i</to>
+      <from>/trajGenY2/qDes:o</from>
+      <to>/torqueBalancing/qDes:i</to>
       <protocol>udp</protocol>
   </connection>
 
@@ -116,19 +116,19 @@
   <!-- input to the controller and the trajectory generators -->
   <connection>
       <from>/graspAndStepDemo/setpoints:o</from>
-      <to>/y2coordinator/refs:i</to>
+      <to>/trajGenY2/refs:i</to>
   </connection>
 
   <connection>
-      <from>/graspAndStepDemo/activeContacts</from>
-      <to>/torqueBalancing/activeContacts:i</to>
+      <from>/graspAndStepDemo/constraints:o</from>
+      <to>/torqueBalancing/constraints:i</to>
       <protocol>tcp</protocol>
   </connection>
 
   <!-- RPC connection to start/stop the graspDemo -->
   <connection>
       <from>/graspAndStepDemo/graspDemo</from>
-      <to>/redBallGrasp/rpc</to>
+      <to>/torqueGraspManager/rpc</to>
       <protocol>tcp</protocol>
   </connection>
 
@@ -140,7 +140,7 @@
   </connection>
 
   <connection>
-      <from>/redBallGrasp/events:o</from>
+      <from>/torqueGraspManager/events:o</from>
       <to>/graspAndStepDemo/events:i</to>
       <protocol>tcp</protocol>
   </connection>

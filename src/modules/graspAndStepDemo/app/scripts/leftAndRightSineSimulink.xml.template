@@ -7,15 +7,6 @@
 
   <!-- Required modules. -->
 
-  <!-- Adding trajectory generator -->
-  <module>
-      <name>codycoTrajGenDemoY2</name>
-      <parameters></parameters>
-      <node>screen-node</node>
-      <stdio></stdio>
-      <prefix></prefix>
-  </module>
-
   <!-- Adding leftRightBalancingDemo FSM coordinator -->
   <module>
       <name>leftRightBalancingDemo.lua</name>
@@ -43,30 +34,12 @@
   </module>
 
   <connection>
-      <from>/trajGenY2/comDes:o</from>
+      <from>/graspAndStepDemo/comDes:o</from>
       <to>/matlabTorqueBalancing/comDes:i</to>
       <protocol>udp</protocol>
   </connection>
 
-  <connection>
-      <from>/trajGenY2/qdes:o</from>
-      <to>/matlabTorqueBalancing/qdes:i</to>
-      <protocol>udp</protocol>
-  </connection>
-
   <!-- FSM connections -->
-
-  <!-- input to the controller and the trajectory generators -->
-  <connection>
-      <from>/graspAndStepDemo/setpoints:o</from>
-      <to>/trajGenY2/refs:i</to>
-  </connection>
-
-  <connection>
-      <from>/graspAndStepDemo/constraints:o</from>
-      <to>/torqueBalancing/constraints:i</to>
-      <protocol>tcp+recv.portmonitor+type.lua+context.graspAndStepDemo+file.constraints_simulink</protocol>
-  </connection>
 
   <!-- events port -->
   <connection>

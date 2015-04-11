@@ -109,10 +109,12 @@ to separate concerns about the different functionalities of the wholeBodyDynamic
 Consider that this values are just initialization values, but you can always
 reset/change fixed link of the simple legged odometry using the RPC port.
 
-It the odometry is correctly configured, the /${name}/floatingbasepos:o port
-will stream the 4x4 Transform matrix representing the world_H_floatingbase transform
+It the odometry is correctly configured, the /${name}/floatingbasestate:o port
+will stream a bottle with three lists, that are:
+ * the 4x4 Transform yarp::sig::Matrix representing the world_H_floatingbase transform
 (i.e. the matrix that transforms position homogenous vectors expressed in the floatingbase frame to
  vector expressed in the world frame)
+ * The 6x1 yarp::sig::Vector of the coordinates of the base link twist
 
 \section tested_os_sec Tested OS
 Linux and OS X.

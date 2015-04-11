@@ -30,32 +30,47 @@ function gas_sendCOMToTrajGen(port,setpoint)
    port:write()
 end
 
---- Active contacts on the controller
--- @param port The active contacts ports
--- @param contacts a table of names of link
---        that should be considered active contacts
+function gas_sendCOMToBalancing(port,pos,vel,acc)
+    local bot = port:prepare();
+    bot:clear()
+    bot:addDouble(pos.x)
+    bot:addDouble(pos.y)
+    bot:addDouble(pos.z)
+    bot:addDouble(vel.x)
+    bot:addDouble(vel.y)
+    bot:addDouble(vel.z)
+    bot:addDouble(acc.x)
+    bot:addDouble(acc.y)
+    bot:addDouble(acc.z)
+    port:write()
+end
+
+--- Activate constraints on the controller
+-- @param port The constraints port
+-- @param constraints a table of names of link
+--        that should be considered active constraints
 --
-function gas_activeContacts(port,activeContacts)
+function gas_activateConstraints(port,activatedConstraints)
    local bot = port:prepare();
    bot:clear()
-   bot:addString("activateContacts")
-   for i = 1,#activeContacts do
-       bot:addString(activeContacts[i])
+   bot:addString("activateConstraints")
+   for i = 1,#activatedConstraints do
+       bot:addString(activatedConstraints[i])
    end
    port:write()
 end
 
---- Deactive contacts on the controller
+--- Deactivate constraint on the controller
 -- @param port The active contacts ports
 -- @param contacts a table of names of link
 --        that should be considered not active contacts
 --
-function gas_deactiveContacts(port,deactiveContacts)
+function gas_deactivateConstraints(port,deactivatedConstraints)
    local bot = port:prepare();
    bot:clear()
-   bot:addString("deactivateContacts")
-   for i = 1,#deactiveContacts do
-       bot:addString(deactiveContacts[i])
+   bot:addString("deactivateConstraints")
+   for i = 1,#deactivetedContacts do
+       bot:addString(deactivetedConstraints[i])
    end
    port:write()
 end
