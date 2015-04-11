@@ -356,9 +356,10 @@ namespace codyco {
 #if defined(DEBUG) && defined(EIGEN_RUNTIME_NO_MALLOC)
             Eigen::internal::set_is_malloc_allowed(false);
 #endif
+            bool result = true;
             //read positions and velocities
-            m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointPositions.data());
-            m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointVelocities.data());
+            result = result && m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointPositions.data());
+            result = result && m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointVelocities.data());
 
             //update world to base frame
 //            //TODO: move this to wbi
@@ -366,10 +367,10 @@ namespace codyco {
 //            m_world2BaseFrame = m_world2BaseFrame * m_leftFootToBaseRotationFrame;
 //            m_world2BaseFrame.setToInverse();
 
-            m_robot.getEstimates(wbi::ESTIMATE_BASE_POS, m_world2BaseFrameSerialization.data());
+            result = result && m_robot.getEstimates(wbi::ESTIMATE_BASE_POS, m_world2BaseFrameSerialization.data());
             wbi::frameFromSerialization(m_world2BaseFrameSerialization.data(), m_world2BaseFrame);
             
-            m_robot.getEstimates(wbi::ESTIMATE_BASE_VEL, m_baseVelocity.data());
+            result = result && m_robot.getEstimates(wbi::ESTIMATE_BASE_VEL, m_baseVelocity.data());
 
             //update jacobians (both feet in one variable)
             ConstraintsMap::iterator leftFootConstraint = m_activeConstraints.find("l_sole");
@@ -426,7 +427,7 @@ namespace codyco {
 #if defined(DEBUG) && defined(EIGEN_RUNTIME_NO_MALLOC)
             Eigen::internal::set_is_malloc_allowed(true);
 #endif
-            return true;
+            return result;
         }
 
         void TorqueBalancingController::computeContactForces(const Eigen::Ref<Eigen::MatrixXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::MatrixXd> desiredContactForces)
