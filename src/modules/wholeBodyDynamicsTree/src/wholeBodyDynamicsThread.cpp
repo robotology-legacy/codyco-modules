@@ -33,7 +33,6 @@
 // System includes
 #include <cstring>
 #include <ctime>
-#include <boost/iterator/iterator_concepts.hpp>
 
 #include "ctrlLibRT/filters.h"
 
@@ -888,7 +887,7 @@ bool wholeBodyDynamicsThread::initOdometry()
         for(int i=0; i < frames_bot->size(); i++ )
         {
             std::string frame_name = frames_bot->get(i).asString();
-            int frame_index = odometry_helper.getDynTree().getFrameIndex(floating_base_frame);
+            int frame_index = odometry_helper.getDynTree().getFrameIndex(frame_name);
             if( frame_index < 0 )
             {
                 yError("additional_frames: frame %s not found in the model",frame_name.c_str());
