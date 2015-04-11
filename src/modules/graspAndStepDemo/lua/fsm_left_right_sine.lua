@@ -7,22 +7,23 @@ fsm_left_right_sine = rfsm.state {
     ST_STREAMING_SINE = rfsm.state{
         doo=function()
             while true do
-                local sin_now = math.sin(trajectory_frequency*yarp_now)
-                local cos_now = math.cos(trajectory_frequency*yarp_now)
+                local angular_frequency = 2*math.pi*trajectory_frequency;
+                local sin_now = math.sin(angular_frequency*yarp_now)
+                local cos_now = math.cos(angular_frequency*yarp_now)
                 gas_setpoints.sine_com_in_world.x = gas_setpoints.initial_com_in_world.x + delta_x*sin_now;
                 gas_setpoints.sine_com_in_world.y = gas_setpoints.initial_com_in_world.y + delta_y*sin_now;
                 gas_setpoints.sine_com_in_world.z = gas_setpoints.initial_com_in_world.z + delta_z*sin_now;
 
-                gas_setpoints.vel_sine_com_in_world.x = delta_x*trajectory_frequency*cos_now
-                gas_setpoints.vel_sine_com_in_world.y = delta_y*trajectory_frequency*cos_now
-                gas_setpoints.vel_sine_com_in_world.z = delta_z*trajectory_frequency*cos_now
+                gas_setpoints.vel_sine_com_in_world.x = delta_x*angular_frequency*cos_now
+                gas_setpoints.vel_sine_com_in_world.y = delta_y*angular_frequency*cos_now
+                gas_setpoints.vel_sine_com_in_world.z = delta_z*angular_frequency*cos_now
 
-                gas_setpoints.acc_sine_com_in_world.x = -delta_x*trajectory_frequency*trajectory_frequency*sin_now
-                gas_setpoints.acc_sine_com_in_world.y = -delta_y*trajectory_frequency*trajectory_frequency*sin_now
-                gas_setpoints.acc_sine_com_in_world.z = -delta_z*trajectory_frequency*trajectory_frequency*sin_now
+                gas_setpoints.acc_sine_com_in_world.x = -delta_x*angular_frequency*angular_frequency*sin_now
+                gas_setpoints.acc_sine_com_in_world.y = -delta_y*angular_frequency*angular_frequency*sin_now
+                gas_setpoints.acc_sine_com_in_world.z = -delta_z*angular_frequency*angular_frequency*sin_now
 
                 gas_sendCOMToBalancing(comdes_port,gas_setpoints.sine_com_in_world,
-                                                   gas_setpoints.vel_sine_com_in_world
+                                                   gas_setpoints.vel_sine_com_in_world,
                                                    gas_setpoints.acc_sine_com_in_world)
                 rfsm.yield(true)
             end

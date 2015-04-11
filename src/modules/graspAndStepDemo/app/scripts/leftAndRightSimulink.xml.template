@@ -21,6 +21,7 @@
       <name>leftRightBalancingDemo.lua</name>
       <deployer>lua</deployer>
       <node>node</node>
+      <parameters>--swinging_type switching</parameters>
       <stdio></stdio>
       <prefix></prefix>
       <dependencies>

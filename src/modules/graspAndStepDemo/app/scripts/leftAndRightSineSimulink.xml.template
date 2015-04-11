@@ -1,7 +1,7 @@
 <application>
 
   <!-- Generic information-->
-  <name>Left and Right Balancing (using Simulink)</name>
+  <name>Left and Right Balancing with Sine (using Simulink)</name>
   <!-- <description></description> -->
   <version></version>
 
@@ -12,6 +12,7 @@
       <name>leftRightBalancingDemo.lua</name>
       <deployer>lua</deployer>
       <node>node</node>
+      <parameters>--swinging_type trajectory</parameters>
       <stdio></stdio>
       <prefix></prefix>
       <dependencies>

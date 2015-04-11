@@ -129,13 +129,6 @@ function gas_close_ports()
 end
 
 function gas_updateframes()
-    -- waiting for reading com data
-    gas_setpoints.initial_com_in_world_bt = com_port:read()
-    if( gas_setpoints.initial_com_in_world_bt ) then
-        PointCoordFromYarpVectorBottle(gas_setpoints.initial_com_in_world,
-                                       gas_setpoints.initial_com_in_world_bt)
-    end
-
     -- waiting for reading frame data
     gas_frames_bt = frames_port:read(true)
     if( gas_frames_bt ) then
