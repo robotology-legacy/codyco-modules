@@ -65,8 +65,7 @@ namespace codyco {
         , m_jointVelocities(actuatedDOFs)
         , m_torques(actuatedDOFs)
         , m_baseVelocity(6)
-        , m_baseVelocityWBI(6)
-        , m_world2BaseFrameWBISerialization(16)
+        , m_world2BaseFrameSerialization(16)
         , m_centerOfMassPosition(3)
         , m_rightFootPosition(7)
         , m_leftFootPosition(7)
@@ -83,7 +82,7 @@ namespace codyco {
         , m_gravityForce(6)
         , m_torquesSelector(actuatedDOFs + 6, actuatedDOFs)
         , m_pseudoInverseOfJcMInvSt(actuatedDOFs, 6 * 2)
-        , m_pseudoInverseOfJcBase(6, 12)
+//        , m_pseudoInverseOfJcBase(6, 12)
         , m_pseudoInverseOfCentroidalForceMatrix(12, 6)
         , m_pseudoInverseOfTauN0_f(12, actuatedDOFs)
         , m_svdDecompositionOfJcMInvSt(6 * 2, actuatedDOFs)
@@ -108,9 +107,9 @@ namespace codyco {
             linkFound = m_robot.getFrameList().idToIndex("l_sole", m_leftFootLinkID);
             linkFound = linkFound && m_robot.getFrameList().idToIndex("r_sole", m_rightFootLinkID);
 
-            m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
-                                                            0, -1, 0,
-                                                            1, 0, 0);
+//            m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
+//                                                            0, -1, 0,
+//                                                            1, 0, 0);
 
             //centroidal force matrix
             m_centroidalForceMatrix.setZero();
@@ -362,15 +361,15 @@ namespace codyco {
             m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointVelocities.data());
 
             //update world to base frame
-            //TODO: move this to wbi
-            m_robot.computeH(m_jointPositions.data(), wbi::Frame(), m_leftFootLinkID, m_world2BaseFrame);
-            m_world2BaseFrame = m_world2BaseFrame * m_leftFootToBaseRotationFrame;
-            m_world2BaseFrame.setToInverse();
+//            //TODO: move this to wbi
+//            m_robot.computeH(m_jointPositions.data(), wbi::Frame(), m_leftFootLinkID, m_world2BaseFrame);
+//            m_world2BaseFrame = m_world2BaseFrame * m_leftFootToBaseRotationFrame;
+//            m_world2BaseFrame.setToInverse();
 
-            m_robot.getEstimates(wbi::ESTIMATE_BASE_POS, m_world2BaseFrameWBISerialization.data());
-            wbi::frameFromSerialization(m_world2BaseFrameWBISerialization.data(), m_world2BaseFrameWBI);
+            m_robot.getEstimates(wbi::ESTIMATE_BASE_POS, m_world2BaseFrameSerialization.data());
+            wbi::frameFromSerialization(m_world2BaseFrameSerialization.data(), m_world2BaseFrame);
             
-            m_robot.getEstimates(wbi::ESTIMATE_BASE_VEL, m_baseVelocityWBI.data());
+            m_robot.getEstimates(wbi::ESTIMATE_BASE_VEL, m_baseVelocity.data());
 
             //update jacobians (both feet in one variable)
             ConstraintsMap::iterator leftFootConstraint = m_activeConstraints.find("l_sole");
@@ -402,9 +401,9 @@ namespace codyco {
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_rightFootPosition.data());
 
             //update base velocity (to be moved in wbi state)
-            math::pseudoInverse(m_contactsJacobian.topLeftCorner<12, 6>(), m_svdDecompositionOfJcBase,
-                                m_pseudoInverseOfJcBase, PseudoInverseTolerance);
-            m_baseVelocity = -m_pseudoInverseOfJcBase * m_contactsJacobian.topRightCorner(12, m_actuatedDOFs) * m_jointVelocities;
+//            math::pseudoInverse(m_contactsJacobian.topLeftCorner<12, 6>(), m_svdDecompositionOfJcBase,
+//                                m_pseudoInverseOfJcBase, PseudoInverseTolerance);
+//            m_baseVelocity = -m_pseudoInverseOfJcBase * m_contactsJacobian.topRightCorner(12, m_actuatedDOFs) * m_jointVelocities;
 
             //update dynamic quantities
             m_robot.computeMassMatrix(m_jointPositions.data(), m_world2BaseFrame, m_massMatrix.data());

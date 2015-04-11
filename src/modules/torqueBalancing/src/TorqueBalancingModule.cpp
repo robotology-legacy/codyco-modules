@@ -173,24 +173,10 @@ namespace codyco {
             m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsConfiguration.data());
             m_references->desiredJointsConfiguration().setValue(m_jointsConfiguration);
 
-            //TODO: To be deprecated
-            yarp::os::ConstString worldFrame = "l_sole";// rf.find("world_frame").asString();
-
-            int worldFrameID = -1;
-            m_robot->getFrameList().idToIndex(worldFrame.c_str(), worldFrameID);
-            if (worldFrameID < 0) {
-                yError("World frame %s not found. Please specify a valid world frame", worldFrame.c_str());
-                return false;
-            }
-
             wbi::Frame frame;
-            m_robot->computeH(m_jointsConfiguration.data(), wbi::Frame(), worldFrameID, frame);
-
-            frame = frame * wbi::Frame(wbi::Rotation(0, 0, 1,
-                                                     0, -1, 0,
-                                                     1, 0, 0));
-            frame.setToInverse();
-            //end section
+            Eigen::VectorXd baseSerialization(16);
+            m_robot->getEstimates(wbi::ESTIMATE_BASE_POS, baseSerialization.data());
+            wbi::frameFromSerialization(baseSerialization.data(), frame);
 
             //set initial com to be equal to the read one
             m_robot->forwardKinematics(m_jointsConfiguration.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, m_tempHeptaVector.data());

@@ -161,13 +161,6 @@ namespace codyco {
             wbi::wholeBodyInterface& m_robot;
             int m_actuatedDOFs;
             double m_dynamicsTransitionTime;
-            wbi::Frame m_world2BaseFrame;
-
-            //FIXME: TEMP
-            Eigen::VectorXd m_baseVelocityWBI;
-            wbi::Frame m_world2BaseFrameWBI;
-            Eigen::VectorXd m_world2BaseFrameWBISerialization;
-            wbi::Frame m_leftFootToBaseRotationFrame;
 
             ControllerDelegate *m_delegate;
             
@@ -202,6 +195,8 @@ namespace codyco {
             Eigen::VectorXd m_jointVelocities;  /*!< totalDOFs */
             Eigen::VectorXd m_torques; /*!< actuatedDOFs */
             Eigen::VectorXd m_baseVelocity; /*!< 6 */
+            wbi::Frame m_world2BaseFrame;
+            Eigen::VectorXd m_world2BaseFrameSerialization;
             Eigen::Vector3d m_centerOfMassPosition;
             Eigen::VectorXd m_rightFootPosition; /*!< 7 */
             Eigen::VectorXd m_leftFootPosition; /*!< 7 */
@@ -227,7 +222,7 @@ namespace codyco {
             Eigen::MatrixXd m_torquesSelector; /*!< totalDOFs x actuatedDOFs */
             //pseuo inverses
             Eigen::MatrixXd m_pseudoInverseOfJcMInvSt; /*!< actuatedDOFs x (6x2) */
-            Eigen::MatrixXd m_pseudoInverseOfJcBase; /*!< 6 x 12 */
+//            Eigen::MatrixXd m_pseudoInverseOfJcBase; /*!< 6 x 12 */
             Eigen::MatrixXd m_pseudoInverseOfCentroidalForceMatrix; /*!< 12 x 6 */
             Eigen::MatrixXd m_pseudoInverseOfTauN0_f; /*!< 12 x actuatedDoFs */
             Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfJcMInvSt; /*!< (6x2) x actuatedDOFs */
