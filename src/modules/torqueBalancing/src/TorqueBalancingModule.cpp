@@ -440,14 +440,10 @@ namespace codyco {
                 yarp::os::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(m_robot)->getInterfaceMutex());
                 m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsConfiguration.data());
                 wbi::Frame frame;
-                int worldFrameID = -1;
-                m_robot->getFrameList().idToIndex("l_sole", worldFrameID);
-                m_robot->computeH(m_jointsConfiguration.data(), wbi::Frame(), worldFrameID, frame);
+                Eigen::VectorXd baseSerialization(16);
+                m_robot->getEstimates(wbi::ESTIMATE_BASE_POS, baseSerialization.data());
+                wbi::frameFromSerialization(baseSerialization.data(), frame);
 
-                frame = frame * wbi::Frame(wbi::Rotation(0, 0, 1,
-                                                         0, -1, 0,
-                                                         1, 0, 0));
-                frame.setToInverse();
                 m_robot->forwardKinematics(m_jointsConfiguration.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, m_tempHeptaVector.data());
                 m_comReference = m_tempHeptaVector.head<3>();
             }

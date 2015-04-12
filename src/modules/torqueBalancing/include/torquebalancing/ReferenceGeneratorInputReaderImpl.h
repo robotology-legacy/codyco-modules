@@ -42,14 +42,13 @@ namespace codyco {
         private:
             wbi::wholeBodyInterface& m_robot;
             int m_numberOfJoints;
-            wbi::Frame m_world2BaseFrame;
-            wbi::Frame m_leftFootToBaseRotationFrame;
-
             int m_endEffectorLinkID;
-            int m_leftFootLinkID; /*!< this is temporary to allow robot localization */
 
             Eigen::VectorXd m_jointsPosition;
             Eigen::VectorXd m_jointsVelocity;
+            Eigen::VectorXd m_basePositionSerialization;
+            wbi::Frame m_world2BaseFrame;
+            Eigen::VectorXd m_baseVelocity;
             Eigen::VectorXd m_outputSignal;
             Eigen::VectorXd m_outputSignalDerivative;
 

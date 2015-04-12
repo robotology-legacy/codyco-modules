@@ -18,14 +18,10 @@
 #include "config.h"
 #include <wbi/wholeBodyInterface.h>
 #include <codyco/Utils.h>
-#include <codyco/LockGuard.h>
 #include <iostream>
 #include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 #include <yarp/os/Log.h>
-
-//this is temporary until a fix of @traversaro
-//TODO: move methods to generic interface
-//#include <wbiIcub/wholeBodyInterfaceIcub.h>
+#include <yarp/os/LockGuard.h>
 
 namespace codyco {
     namespace torquebalancing {
@@ -50,7 +46,9 @@ namespace codyco {
         , m_numberOfJoints(numberOfJoints)
         , m_endEffectorLinkID(linkID)
         , m_jointsPosition(numberOfJoints)
-        , m_jointsVelocity(numberOfJoints + 6)
+        , m_jointsVelocity(numberOfJoints)
+        , m_basePositionSerialization(16)
+        , m_baseVelocity(6)
         , m_outputSignal(7)
         , m_outputSignalDerivative(6)
         , m_jacobian(6, numberOfJoints + 6)
@@ -61,42 +59,35 @@ namespace codyco {
         
         EndEffectorPositionReader::~EndEffectorPositionReader() {}
         
-        void EndEffectorPositionReader::initializer()
-        {
-            m_robot.getFrameList().idToIndex("l_sole", m_leftFootLinkID);
-            m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
-                                                            0, -1, 0,
-                                                            1, 0, 0);
-        }
+        void EndEffectorPositionReader::initializer() {}
         
         void EndEffectorPositionReader::updateStatus(long context)
         {
             if (context != 0 && context == m_previousContext) return;
             using namespace yarp::os;
 
-            //FIXME:  Base velocity must be given by wbi.
-            //Until then I set it to zero.
-            codyco::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(&m_robot)->getInterfaceMutex());
-            m_jointsVelocity.head(6).setZero();
+            yarp::os::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(&m_robot)->getInterfaceMutex());
             bool status;
             status = m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
             if (!status) {
                 yError("Error while reading positions");
             }
-            status = status && m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.tail(m_numberOfJoints).data());
+            status = status && m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.data());
             if (!status) {
                 yError("Error while reading velocities");
             }
-            
-            //update world to base frame
-            status = status && m_robot.computeH(m_jointsPosition.data(), wbi::Frame(), m_leftFootLinkID, m_world2BaseFrame);
 
+            status = status && m_robot.getEstimates(wbi::ESTIMATE_BASE_POS, m_basePositionSerialization.data());
             if (!status) {
-                yError("Error while computing homogenous transformation");
+                yError("Error while reading base position");
             }
-            m_world2BaseFrame = m_world2BaseFrame * m_leftFootToBaseRotationFrame;
-            m_world2BaseFrame.setToInverse();
-            
+            wbi::frameFromSerialization(m_basePositionSerialization.data(), m_world2BaseFrame);
+
+            status = status && m_robot.getEstimates(wbi::ESTIMATE_BASE_VEL, m_baseVelocity.data());
+            if (!status) {
+                yError("Error while reading base velocity");
+            }
+
             m_jacobian.setZero();
             status = status && m_robot.forwardKinematics(m_jointsPosition.data(), m_world2BaseFrame, m_endEffectorLinkID, m_outputSignal.data());
             if (!status) {
@@ -108,7 +99,7 @@ namespace codyco {
                 yError("Error while computing Jacobian");
                 
             } else {
-                m_outputSignalDerivative = m_jacobian * m_jointsVelocity;
+                m_outputSignalDerivative = m_jacobian.leftCols(6) * m_baseVelocity + m_jacobian.rightCols(m_numberOfJoints) * m_jointsVelocity;
             }
             m_previousContext = context;
         }
@@ -160,11 +151,11 @@ namespace codyco {
         , m_outputSignalDerivative(signalSize())
         , m_previousContext(0)
         {
-            m_robot.getFrameList().idToIndex("l_sole", m_leftFootLinkID);
-            m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
-                                                            0, -1, 0,
-                                                            1, 0, 0);
-            m_robot.getFrameList().idToIndex(endEffectorLinkName, m_endEffectorLocalID);
+//            m_robot.getFrameList().idToIndex("l_sole", m_leftFootLinkID);
+//            m_leftFootToBaseRotationFrame.R = wbi::Rotation(0, 0, 1,
+//                                                            0, -1, 0,
+//                                                            1, 0, 0);
+//            m_robot.getFrameList().idToIndex(endEffectorLinkName, m_endEffectorLocalID);
             m_outputSignalDerivative.setZero();
         }
         
@@ -172,19 +163,19 @@ namespace codyco {
         
         void EndEffectorForceReader::updateStatus(long context)
         {
-            codyco::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(&m_robot)->getInterfaceMutex());
-            m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
-            m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.data());
-            
-            //update world to base frame
-            m_robot.computeH(m_jointsPosition.data(), wbi::Frame(), m_leftFootLinkID, m_world2BaseFrame);
-            m_world2BaseFrame = m_world2BaseFrame * m_leftFootToBaseRotationFrame;
-            m_world2BaseFrame.setToInverse();
-            
-            //TODO: to be fixed
-//            ((wbiIcub::icubWholeBodyInterface&)m_robot).setWorldBasePosition(m_world2BaseFrame);
-            
-            m_robot.getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, m_endEffectorLocalID, m_outputSignal.data());
+//            yarp::os::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(&m_robot)->getInterfaceMutex());
+//            m_robot.getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsPosition.data());
+//            m_robot.getEstimates(wbi::ESTIMATE_JOINT_VEL, m_jointsVelocity.data());
+//            
+//            //update world to base frame
+//            m_robot.computeH(m_jointsPosition.data(), wbi::Frame(), m_leftFootLinkID, m_world2BaseFrame);
+//            m_world2BaseFrame = m_world2BaseFrame * m_leftFootToBaseRotationFrame;
+//            m_world2BaseFrame.setToInverse();
+//            
+//            //TODO: to be fixed
+////            ((wbiIcub::icubWholeBodyInterface&)m_robot).setWorldBasePosition(m_world2BaseFrame);
+//            
+//            m_robot.getEstimate(wbi::ESTIMATE_EXTERNAL_FORCE_TORQUE, m_endEffectorLocalID, m_outputSignal.data());
         }
         
         const Eigen::VectorXd& EndEffectorForceReader::getSignal(long context)
