@@ -54,11 +54,13 @@ function gas_loadconfiguration()
     gas_setpoints.weight_on_left_foot_com_wrt_l_sole = yarp_rf_find_point(rf,"weight_on_left_foot_com_wrt_l_sole")
     l_foot_frame = "l_sole"
     r_foot_frame = "r_sole"
+    root_link = "root_link"
+    world     = "world"
     force_threshold = yarp_rf_find_double(rf,"force_threshold");
     com_threshold   = yarp_rf_find_double(rf,"com_threshold")
     step_length     = yarp_rf_find_double(rf,"step_length")
     step_height     = yarp_rf_find_double(rf,"step_height")
-
+    step_penetration = yarp_rf_find_double(rf,"step_penetration")
 end
 
 -------
@@ -101,7 +103,7 @@ function gas_open_ports()
 
     -- Port for communicating with the cartesianSolver
     root_link_r_sole_solver_port = yarp.Port()
-    root_link_r_sole_solver_port:open("/" .. script_name .. "/root_link_r_sole")
+    root_link_r_sole_solver_port:open("/" .. script_name .. "/root_link_r_sole_solver")
 
     -- Port for reading forces are included in the stepperMonitor class
     stepper_monitor = steppingMonitor.create()
@@ -137,9 +139,16 @@ function gas_initialize_setpoints()
     -- waiting for reading frame data
     print("[INFO] waiting for frame data")
     gas_frames_bt = frames_port:read(true)
+    gas_frames = {}
     HomTransformTableFromBottle(gas_frames,gas_frames_bt)
 
-    l_foot_H_world = gas_frames[l_foot_frame]:inverse()
+    assert(gas_frames[l_foot_frame] ~= nil)
+    assert(gas_frames[r_foot_frame] ~= nil)
+    assert(gas_frames[root_link]    ~= nil)
+
+    buf = gas_frames[l_foot_frame]
+
+    l_foot_H_world = buf:inverse()
 
     gas_setpoints.initial_com_in_l_foot = l_foot_H_world:apply(comMeas_in_world)
 
@@ -160,7 +169,7 @@ function gas_updateframes()
     comMeas_in_world_bt = com_port:read()
     if( comMeas_in_world_bt ~= nil ) then
         PointCoordFromYarpVectorBottle(comMeas_in_world,
-                                   comMeas_in_world_bt)
+                                       comMeas_in_world_bt)
     end
 
 

@@ -29,28 +29,33 @@ fsm_right_step = rfsm.state {
     ST_SINGLESUPPORT_RIGHT_FOOT_INITIAL_SWING = rfsm.state{
         entry=function()
             -- Send initial r_sole setpoint
+            gas_get_transform(world,r_foot_frame).origin:print("Initial r_sole pose ")
+            gas_setpoints.world_r_foot_initial_swing_des_pos.origin:print("Desired r_sole middle pose ")
+
             root_link_r_foot_des_pos = gas_get_transform(root_link,"world"):compose( gas_setpoints.world_r_foot_initial_swing_des_pos)
 
             right_leg_qdes = query_cartesian_solver(root_link_r_sole_solver_port,root_link_r_foot_des_pos);
 
             -- send desired q to right_leg
-            gas_sendPartToTrajGen("right_leg",right_leg_qdes)
+            gas_sendPartToTrajGen(setpoints_port,"right_leg",right_leg_qdes)
         end,
-    }
+    },
 
     ST_SINGLESUPPORT_RIGHT_FOOT_FINAL_SWING = rfsm.state{
         entry=function()
-            gas_sendCOMToTrajGen(setpoints_port,gas_setpoints.weight_on_left_foot_com_in_world);
+            --gas_sendCOMToTrajGen(setpoints_port,gas_setpoints.weight_on_left_foot_com_in_world);
 
             -- Send final r_sole setpoint
+            gas_setpoints.world_r_foot_final_swing_des_pos.origin:print("Desired r_sole final pose")
+
             root_link_r_foot_des_pos = gas_get_transform(root_link,"world"):compose( gas_setpoints.world_r_foot_final_swing_des_pos)
 
             right_leg_qdes = query_cartesian_solver(root_link_r_sole_solver_port,root_link_r_foot_des_pos);
 
             -- send desired q to right_leg
-            gas_sendPartToTrajGen("right_leg",right_leg_qdes)
+            gas_sendPartToTrajGen(setpoints_port,"right_leg",right_leg_qdes)
         end,
-    }
+    },
 
     ST_DOUBLESUPPORT_AFTER_STEP = rfsm.state{
         entry=function()
@@ -58,7 +63,7 @@ fsm_right_step = rfsm.state {
             gas_activateConstraints(constraints_port,{'r_foot','l_foot'})
 
         end,
-    }
+    },
 
     ----------------------------------
     -- setting the transitions      --

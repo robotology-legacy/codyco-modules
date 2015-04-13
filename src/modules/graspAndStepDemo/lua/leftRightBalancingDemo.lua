@@ -199,7 +199,7 @@ function main()
         -- geometric ponts
         initial_com_in_world = PointCoord.create(),
 
-        -- switching mode 
+        -- switching mode
         left_com_in_l_foot = PointCoord.create(),
         right_com_in_r_foot = PointCoord.create(),
         left_com_in_world = PointCoord.create(),
@@ -248,12 +248,11 @@ function main()
     print("left_com_wrt_world: ")
      gas_setpoints.left_com_in_initial_world:print()
 
-
     local right_com_wrt_world = PointCoord.create()
     gas_setpoints.right_com_in_initial_world.x = gas_setpoints.initial_com_in_world.x - delta_x
     gas_setpoints.right_com_in_initial_world.y = gas_setpoints.initial_com_in_world.y - delta_y
     gas_setpoints.right_com_in_initial_world.z = gas_setpoints.initial_com_in_world.z - delta_z
- 
+
     print("right_com_wrt_world: ")
     gas_setpoints.right_com_in_initial_world:print()
 

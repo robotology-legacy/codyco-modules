@@ -189,6 +189,10 @@ function main()
         testRotToAxisAngleAndBack(rotX(math.pi),"rotX of pi")
         testRotToAxisAngleAndBack(rotY(math.pi),"rotY of pi")
         testRotToAxisAngleAndBack(rotZ(math.pi),"rotZ of pi")
+        l_foot_frame = "l_sole"
+        r_foot_frame = "r_sole"
+        root_link    = "root_link"
+
     end
 end
 

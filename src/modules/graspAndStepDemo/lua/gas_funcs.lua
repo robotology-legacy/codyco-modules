@@ -20,7 +20,7 @@ function ValueFromBottle(bot)
 
     vecBot:addList()
 
-    for i in 0,bot:size()-1 do
+    for i = 0,bot:size()-1 do
         vecBot:get(0):asList():addDouble(bot:get(i):asDouble())
     end
 
@@ -45,7 +45,7 @@ function gas_sendCOMToTrajGen(port,setpoint)
 end
 
 function gas_sendPartToTrajGen(port,partName, setpoint_bt)
-   comDes_in_world = setpoint;
+   assert(setpoint_bt,"gas_sendPartToTrajGen: tryng to send nil value")
    local prop = port:prepare();
    prop:clear()
    prop:put(partName,ValueFromBottle(setpoint_bt))
@@ -259,7 +259,7 @@ end
 
 -- add the current vector to a point, return a point
 function VectorCoord:add(point)
-    assert(point.__index == PointCoord)
+    --assert(point.__index == PointCoord)
     local translatedPoint = PointCoord.create()
     translatedPoint.x = point.x + self.x
     translatedPoint.y = point.y + self.y
@@ -297,8 +297,8 @@ function PointCoord:opposite()
 end
 
 function PointCoord:add(point)
-    assert(point.__index == VectorCoord, "PointCoord:add takes a VectorCoord as an input")
-    local translatedPoint = VectorCoord.create()
+    -- assert(point.__index == VectorCoord, "PointCoord:add takes a VectorCoord as an input")
+    local translatedPoint = PointCoord.create()
     translatedPoint.x = point.x + self.x
     translatedPoint.y = point.y + self.y
     translatedPoint.z = point.z + self.z
@@ -311,6 +311,15 @@ function PointCoord:print( prefix )
        prefix = ""
     end
     print(prefix .. "x: " .. self.x .. " y: " .. self.y .. " z: " .. self.z)
+end
+
+function PointCoord:clone()
+    clonedPoint = PointCoord.create()
+    clonedPoint.x = self.x
+    clonedPoint.y = self.y
+    clonedPoint.z = self.z
+
+    return clonedPoint
 end
 
 -- Rotation (expressed as a rotation matrix)
@@ -347,6 +356,8 @@ function RotMatrix:inverse()
 end
 
 function RotMatrix:apply(point)
+    --assert(point.__index == PointCoord or
+    --       point.__index == VectorCoord)
     local transformedPoint = PointCoord.create()
     transformedPoint.x = self.xx * point.x + self.xy * point.y + self.xz * point.z;
     transformedPoint.y = self.yx * point.x + self.yy * point.y + self.yz * point.z;
@@ -366,6 +377,21 @@ function RotMatrix:compose(other)
     composedRotation.zy = self.zx * other.xy + self.zy * other.yy + self.zz * other.zy;
     composedRotation.zz = self.zx * other.xz + self.zy * other.yz + self.zz * other.zz;
     return composedRotation;
+end
+
+function RotMatrix:clone()
+    local clonedRotation = RotMatrix.create()
+    clonedRotation.xx = self.xx
+    clonedRotation.xy = self.xy
+    clonedRotation.xz = self.xz
+    clonedRotation.yx = self.yx
+    clonedRotation.yy = self.yy
+    clonedRotation.yz = self.yz
+    clonedRotation.zx = self.zx
+    clonedRotation.zy = self.zy
+    clonedRotation.zz = self.zz
+
+    return clonedRotation;
 end
 
 function RotMatrix:print(prefix)
@@ -488,12 +514,9 @@ end
 function HomTransform:apply(point)
     transformedPoint = self.rot:apply(point);
 
-    -- it if is a point, also apply translation, otherwise (i.e. vector) just rotate it
-    if( point.__index == PointCoord ) then
         transformedPoint.x = transformedPoint.x + self.origin.x;
         transformedPoint.y = transformedPoint.y + self.origin.y;
         transformedPoint.z = transformedPoint.z + self.origin.z;
-    end
 
     return transformedPoint
 end
@@ -504,6 +527,14 @@ function HomTransform:compose(other)
     composedTransform.origin = self:apply(other.origin)
 
     return composedTransform
+end
+
+function HomTransform:clone()
+    local clonedTransform = HomTransform.create()
+    clonedTransform.rot = self.rot:clone()
+    clonedTransform.origin = self.origin:clone()
+
+    return clonedTransform
 end
 
 
@@ -551,7 +582,7 @@ function HomTransformFromYarpMatrixBottle(transform, matBot)
 
     transform.origin.z = data:get(11):asDouble()
 
-    return
+    return transform
 
 end
 
@@ -633,10 +664,12 @@ function query_cartesian_solver(solver_rpc, des_trans)
     poseReq2:addDouble(axisAngle.ay)
     poseReq2:addDouble(axisAngle.az)
     poseReq2:addDouble(axisAngle.theta)
+    print("[DEBUG] requested xd" .. poseReq2:toString())
     reply = yarp.Bottle()
     solver_rpc:write(req,reply)
-    -- print("reply: " .. reply:toString())
+    print("[DEBUG] actual cartesianSolver reply: " .. reply:toString())
     qd = reply:get(2):asList():get(1):asList()
+    print("[DEBUG] qd : " .. qd:toString())
     return qd
 end
 
@@ -656,7 +689,7 @@ function gas_generate_right_foot_setpoints()
     delta_initial_swing_in_r_foot = VectorCoord.create()
 
     -- go ahead of half a step length
-    delta_initial_swing_in_r_foot.x = step_lenght/2
+    delta_initial_swing_in_r_foot.x = step_length/2
 
     -- no lateral change
     delta_initial_swing_in_r_foot.y = 0.0
@@ -665,21 +698,32 @@ function gas_generate_right_foot_setpoints()
     delta_initial_swing_in_r_foot.z = step_height
 
      -- rotate the delta in world orientation
-    local delta_initial_swing_in_world =  gas_get_transform("world",r_foot):compose(delta_initial_swing_in_r_foot)
+    local delta_initial_swing_in_world =  gas_get_transform("world",r_foot_frame).rot:apply(delta_initial_swing_in_r_foot)
+
+    delta_initial_swing_in_r_foot:print("delta_initial_swing_in_r_foot: ")
+    delta_initial_swing_in_world:print("delta_initial_swing_in_world : ")
+
 
     -- transform the desired orientation of the frame in world
-    world_r_foot_cur_pos = gas_get_transform("world",r_foot)
+    world_r_foot_cur_pos = gas_get_transform("world",r_foot_frame)
 
-    gas_setpoints.world_r_foot_initial_swing_des_pos = world_r_foot_cur_pos
+    gas_setpoints.world_r_foot_initial_swing_des_pos = world_r_foot_cur_pos:clone()
 
     -- save first setpoint in gas_setpoints.world_r_foot_initial_swing_des_pos
+    world_r_foot_cur_pos.origin:print(" world_r_foot_cur_pos.origin ")
+    delta_initial_swing_in_world:print(" delta_initial_swing_in_world ")
     gas_setpoints.world_r_foot_initial_swing_des_pos.origin = world_r_foot_cur_pos.origin:add(delta_initial_swing_in_world)
+    gas_setpoints.world_r_foot_initial_swing_des_pos.origin:print("gas_setpoints.world_r_foot_initial_swing_des_pos.origin")
+
+    gas_get_transform(world,r_foot_frame).origin:print("Initial r_sole pose ")
+    gas_setpoints.world_r_foot_initial_swing_des_pos.origin:print("Desired r_sole middle pose ")
+
 
     -- second and final setpoint
     delta_final_swing_in_r_foot = VectorCoord.create()
 
     -- go ahead of half a step length
-    delta_final_swing_in_r_foot.x = step_lenght
+    delta_final_swing_in_r_foot.x = step_length
 
     -- no lateral change
     delta_final_swing_in_r_foot.y = 0.0
@@ -688,12 +732,12 @@ function gas_generate_right_foot_setpoints()
     delta_final_swing_in_r_foot.z = step_penetration
 
     -- rotate the delta in world orientation
-    local delta_final_swing_in_world =  gas_get_transform("world",r_foot):compose(delta_final_swing_in_r_foot)
+    local delta_final_swing_in_world =  gas_get_transform("world",r_foot_frame).rot:apply(delta_final_swing_in_r_foot)
 
     -- transform the desired orientation of the frame in world
-    world_r_foot_cur_pos = gas_get_transform("world",r_foot)
+    world_r_foot_cur_pos = gas_get_transform("world",r_foot_frame)
 
-    gas_setpoints.world_r_foot_final_swing_des_pos = world_r_foot_cur_pos
+    gas_setpoints.world_r_foot_final_swing_des_pos = world_r_foot_cur_pos:clone()
 
     -- save second setpoint in gas_setpoints.world_r_foot_initial_swing_des_pos
     gas_setpoints.world_r_foot_final_swing_des_pos.origin = world_r_foot_cur_pos.origin:add(delta_final_swing_in_world)
