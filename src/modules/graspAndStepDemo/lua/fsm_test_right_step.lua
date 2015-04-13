@@ -33,8 +33,16 @@ fsm_right_step = rfsm.state {
             gas_setpoints.world_r_foot_initial_swing_des_pos.origin:print("Desired r_sole middle pose ")
 
             root_link_r_foot_des_pos = gas_get_transform(root_link,"world"):compose( gas_setpoints.world_r_foot_initial_swing_des_pos)
+            root_link_r_foot_meas    = gas_get_transform(root_link,r_foot_frame)
 
-            right_leg_qdes = query_cartesian_solver(root_link_r_sole_solver_port,root_link_r_foot_des_pos);
+
+            local aa_des = AxisAngleTableFromRotMatrix(root_link_r_foot_des_pos.rot);
+            local aa_meas = AxisAngleTableFromRotMatrix(root_link_r_foot_meas.rot);
+
+            print("[DEBUG] Angle axis meas : " .. aa_meas.ax .. " " .. aa_meas.ay .. " " .. aa_meas.az .. " " .. aa_meas.theta)
+            print("[DEBUG] Angle axis des  : " .. aa_des.ax .. " " .. aa_des.ay .. " " .. aa_des.az .. " " .. aa_des.theta)
+
+            right_leg_qdes = query_right_leg_cartesian_solver(root_link_r_foot_des_pos);
 
             -- send desired q to right_leg
             gas_sendPartToTrajGen(setpoints_port,"right_leg",right_leg_qdes)
@@ -49,8 +57,16 @@ fsm_right_step = rfsm.state {
             gas_setpoints.world_r_foot_final_swing_des_pos.origin:print("Desired r_sole final pose")
 
             root_link_r_foot_des_pos = gas_get_transform(root_link,"world"):compose( gas_setpoints.world_r_foot_final_swing_des_pos)
+            root_link_r_foot_meas    = gas_get_transform(root_link,r_foot_frame)
 
-            right_leg_qdes = query_cartesian_solver(root_link_r_sole_solver_port,root_link_r_foot_des_pos);
+            local aa_des = AxisAngleTableFromRotMatrix(root_link_r_foot_des_pos.rot);
+            local aa_meas = AxisAngleTableFromRotMatrix(root_link_r_foot_meas.rot);
+
+            print("[DEBUG] Angle axis meas : " .. aa_meas.ax .. " " .. aa_meas.ay .. " " .. aa_meas.az .. " " .. aa_meas.theta)
+            print("[DEBUG] Angle axis des  : " .. aa_des.ax .. " " .. aa_des.ay .. " " .. aa_des.az .. " " .. aa_des.theta)
+
+            right_leg_qdes = query_right_leg_cartesian_solver(root_link_r_foot_des_pos);
+            -- right_leg_qdes = query_cartesian_solver(root_link_r_sole_solver_port,root_link_r_foot_des_pos);
 
             -- send desired q to right_leg
             gas_sendPartToTrajGen(setpoints_port,"right_leg",right_leg_qdes)

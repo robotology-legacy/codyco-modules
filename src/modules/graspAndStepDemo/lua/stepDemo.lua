@@ -105,6 +105,10 @@ function gas_open_ports()
     root_link_r_sole_solver_port = yarp.Port()
     root_link_r_sole_solver_port:open("/" .. script_name .. "/root_link_r_sole_solver")
 
+    -- Port for reading right leg joint positions
+    right_leg_state_port = yarp.BufferedPortBottle()
+    right_leg_state_port:open("/" .. script_name .. "/right_leg/state:i")
+
     -- Port for reading forces are included in the stepperMonitor class
     stepper_monitor = steppingMonitor.create()
 end
@@ -120,6 +124,7 @@ function gas_close_ports()
     gas_close_port(constraints_port)
     gas_close_port(odometry_port)
     gas_close_port(root_link_r_sole_solver_port)
+    gas_close_port(right_leg_state_port)
 
     if( stepper_monitor ~= nil ) then
         stepper_monitor:close()

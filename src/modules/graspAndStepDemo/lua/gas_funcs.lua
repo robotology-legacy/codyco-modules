@@ -651,7 +651,7 @@ end
 -- Query (in a blocking way) the cartesianSolver for getting
 -- suitable configuration, given a desire HomTransform
 -- (conversion to axis angle is done internally)
-function query_cartesian_solver(solver_rpc, des_trans)
+function query_cartesian_solver(solver_rpc, des_trans, rest_pos_bt)
     local axisAngle =  AxisAngleTableFromRotMatrix(des_trans.rot);
     local req = yarp.Bottle()
     req:addString("ask")
@@ -665,6 +665,23 @@ function query_cartesian_solver(solver_rpc, des_trans)
     poseReq2:addDouble(axisAngle.ay)
     poseReq2:addDouble(axisAngle.az)
     poseReq2:addDouble(axisAngle.theta)
+
+    -- adding the current joint position as rest position
+    local restPos = req:addList()
+    restPos:addString("resp")
+    local restPos2 = restPos:addList()
+    for i = 0,rest_pos_bt:size()-1 do
+        restPos2:add(rest_pos_bt:get(i):asDouble())
+    end
+
+    -- adding the current weight of the rest positions
+    local restPosWeight = req:addList()
+    restPosWeight:addString("resw")
+    local restPosWeight2 = restPosWeight:addList()
+    for i = 0,rest_pos_bt:size()-1 do
+        restPosWeight2:add(0.01)
+    end
+
     print("[DEBUG] requested xd" .. poseReq2:toString())
     reply = yarp.Bottle()
     solver_rpc:write(req,reply)
@@ -674,14 +691,22 @@ function query_cartesian_solver(solver_rpc, des_trans)
     return qd
 end
 
+function query_right_leg_cartesian_solver(des_trans)
+    print("[DEBUG] reading right leg joint positions")
+    qMeas = right_leg_state_port:read(true)
+
+    return query_cartesian_solver(root_link_r_sole_solver_port, des_trans, qMeas)
+
+end
+
 function gas_get_transform(final_frame, origin_frame)
     if( final_frame == "world" ) then
-        return gas_frames[origin_frame]
+        return gas_frames[origin_frame]:clone()
     end
     if( origin_frame == "world" ) then
         return gas_frames[final_frame]:inverse()
     end
-    return frames[final_frame]:inverse():compose(frames[origin_frame])
+    return gas_frames[final_frame]:inverse():compose(gas_frames[origin_frame])
 end
 
 
