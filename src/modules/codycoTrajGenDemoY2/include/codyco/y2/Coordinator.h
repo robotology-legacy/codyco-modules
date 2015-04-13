@@ -40,6 +40,7 @@ public:
 private:
     double m_threadPeriod;
     std::string m_robotName;
+    double m_motionDoneThreshold;
     yarp::os::BufferedPort<yarp::os::Property>* m_inputJointReferences;
     yarp::os::BufferedPort<yarp::sig::Vector>* m_outputTorqueControlledJointReferences;
     yarp::os::BufferedPort<yarp::sig::Vector>* m_outputComDesiredPosVelAcc;

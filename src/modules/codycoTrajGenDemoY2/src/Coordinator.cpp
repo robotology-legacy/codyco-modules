@@ -359,6 +359,7 @@ namespace codyco {
         Coordinator::Coordinator()
         : m_threadPeriod(0.01)
         , m_inputJointReferences(0)
+        , m_motionDoneThreshold(4.0)
         , m_outputTorqueControlledJointReferences(0)
         , m_outputComDesiredPosVelAcc(0)
         , m_rpcServer(0)
@@ -384,6 +385,8 @@ namespace codyco {
             setName(rf.check("moduleName", Value("/trajGenY2")).asString().c_str());
             m_threadPeriod = rf.check("modulePeriod", Value(0.01)).asDouble();
             m_robotName = rf.check("robot", Value("icub")).asString();
+            m_motionDoneThreshold = rf.check("motionThreshold", Value(4.0)).asDouble();
+
 
             double trajectoryTimeStep = rf.check("trajTs", Value(m_threadPeriod)).asDouble();
             double trajectoryTimeDuration = rf.check("trajTimeDuration", Value(3.0)).asDouble();
@@ -931,7 +934,7 @@ namespace codyco {
             for (int i = 0; i < std::min(reference.size(), actual.size()); i++) {
                 squaredNorm += (reference(i) - actual(i)) * (reference(i) - actual(i));
             }
-            return squaredNorm < (4.0 * 4.0 * CTRL_DEG2RAD);
+            return squaredNorm < ((4.0 * m_motionDoneThreshold) * (4.0 * m_motionDoneThreshold));
         }
 
     }
