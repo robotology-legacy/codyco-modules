@@ -14,14 +14,15 @@ function YarpVectorBottleForTrajGenFromPointCoord(point)
     return vecBot;
 end
 
-function ValueFromBottle(bot)
+function ValueFromBottleAndDeg2Rad(bot)
 
     local vecBot = yarp.Bottle()
+    local deg2rad = math.pi/180.0
 
     vecBot:addList()
 
     for i = 0,bot:size()-1 do
-        vecBot:get(0):asList():addDouble(bot:get(i):asDouble())
+        vecBot:get(0):asList():addDouble(deg2rad*bot:get(i):asDouble())
     end
 
     return vecBot:get(0)
@@ -48,7 +49,7 @@ function gas_sendPartToTrajGen(port,partName, setpoint_bt)
    assert(setpoint_bt,"gas_sendPartToTrajGen: tryng to send nil value")
    local prop = port:prepare();
    prop:clear()
-   prop:put(partName,ValueFromBottle(setpoint_bt))
+   prop:put(partName,ValueFromBottleAndDeg2Rad(setpoint_bt))
    port:write()
 end
 
