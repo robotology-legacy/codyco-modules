@@ -14,6 +14,19 @@ function YarpVectorBottleForTrajGenFromPointCoord(point)
     return vecBot;
 end
 
+function ValueFromBottle(bot)
+
+    local vecBot = yarp.Bottle()
+
+    vecBot:addList()
+
+    for i in 0,bot:size()-1 do
+        vecBot:get(0):asList():addDouble(bot:get(i):asDouble())
+    end
+
+    return vecBot:get(0)
+end
+
 
 --- Send reference point to the trajectory generator.
 -- The trajectory generator is the codycoTrajGenY2 module a
@@ -28,6 +41,14 @@ function gas_sendCOMToTrajGen(port,setpoint)
    local prop = port:prepare();
    prop:clear()
    prop:put("com",botTrajGen:get(0))
+   port:write()
+end
+
+function gas_sendPartToTrajGen(port,partName, setpoint_bt)
+   comDes_in_world = setpoint;
+   local prop = port:prepare();
+   prop:clear()
+   prop:put(partName,ValueFromBottle(setpoint_bt))
    port:write()
 end
 
@@ -215,6 +236,45 @@ end
 
 --- Basic geometric classes
 
+-- Vector in 3d: difference of points
+VectorCoord = {}
+VectorCoord.__index = VectorCoord
+
+function VectorCoord.create()
+   local vec = {}             -- our new object
+   setmetatable(vec,VectorCoord)  -- make RotMatrix handle lookup
+   vec.x = 0.0       -- initialize our object
+   vec.y = 0.0
+   vec.z = 0.0
+   return vec
+end
+
+function VectorCoord:opposite()
+   local oppositeVec = VectorCoord.create()             -- our new object
+   oppositeVec.x = -self.x;
+   oppositeVec.y = -self.y;
+   oppositeVec.z = -self.z;
+   return oppositeVec;
+end
+
+-- add the current vector to a point, return a point
+function VectorCoord:add(point)
+    assert(point.__index == PointCoord)
+    local translatedPoint = PointCoord.create()
+    translatedPoint.x = point.x + self.x
+    translatedPoint.y = point.y + self.y
+    translatedPoint.z = point.z + self.z
+
+    return translatedPoint;
+end
+
+function VectorCoord:print( prefix )
+    if( prefix == nil ) then
+       prefix = ""
+    end
+    print(prefix .. "x: " .. self.x .. " y: " .. self.y .. " z: " .. self.z)
+end
+
 -- Point coordinates
 PointCoord = {}
 PointCoord.__index = PointCoord
@@ -236,11 +296,21 @@ function PointCoord:opposite()
    return oppositePoint;
 end
 
+function PointCoord:add(point)
+    assert(point.__index == VectorCoord, "PointCoord:add takes a VectorCoord as an input")
+    local translatedPoint = VectorCoord.create()
+    translatedPoint.x = point.x + self.x
+    translatedPoint.y = point.y + self.y
+    translatedPoint.z = point.z + self.z
+
+    return translatedPoint;
+end
+
 function PointCoord:print( prefix )
-   if( prefix == nil ) then
+    if( prefix == nil ) then
        prefix = ""
-   end
-	print(prefix .. "x: " .. self.x .. " y: " .. self.y .. " z: " .. self.z)
+    end
+    print(prefix .. "x: " .. self.x .. " y: " .. self.y .. " z: " .. self.z)
 end
 
 -- Rotation (expressed as a rotation matrix)
@@ -308,6 +378,92 @@ function RotMatrix:print(prefix)
     print(self.zx .. " " .. self.zy .. " " .. self.zz )
 end
 
+function RotMatrixFromAxisAngleTable(tab)
+    return RotMatrixFromAxisAngle(tab.ax,tab.ay,tab.az,tab.theta)
+end
+
+function RotMatrixFromAxisAngle(ax,ay,az,theta)
+    -- ported from Matrix yarp::math::axis2dcm(const Vector &v)
+    local rot = RotMatrix.create()
+
+    -- the default rotation is the identity
+    if theta==0.0 then
+        return rot;
+    end
+
+    local costheta=math.cos(theta);
+    local sintheta=math.sin(theta);
+    local oneMinusCostheta=1.0-costheta;
+
+    local xs =ax*sintheta;
+    local ys =ay*sintheta;
+    local zs =az*sintheta;
+    local xC =ax*oneMinusCostheta;
+    local yC =ay*oneMinusCostheta;
+    local zC =az*oneMinusCostheta;
+    local xyC=ax*yC;
+    local yzC=ay*zC;
+    local zxC=az*xC;
+
+    rot.xx=ax*xC+costheta;
+    rot.xy=xyC-zs;
+    rot.xz=zxC+ys;
+    rot.yx=xyC+zs;
+    rot.yy=ay*yC+costheta;
+    rot.yz=yzC-xs;
+    rot.zx=zxC-ys;
+    rot.zy=yzC+xs;
+    rot.zz=az*zC+costheta;
+
+    return rot
+end
+
+function AxisAngleTableFromRotMatrix(rot)
+    local tolAA = 1e-9
+    local tab = {}
+    tab.ax = 0
+    tab.ay = 0
+    tab.az = 0
+    tab.theta = 0
+
+    -- ported from Vector yarp::math::dcm2axis(const Matrix &R)
+    tab.ax=rot.zy-rot.yz;
+    tab.ay=rot.xz-rot.zx;
+    tab.az=rot.yx-rot.xy;
+    tab.theta=0.0;
+    local r = math.sqrt(tab.ax*tab.ax+tab.ay*tab.ay+tab.az*tab.az);
+
+    if (r<tolAA) then
+        -- symmetric matrix: theta can be 0 or pi
+        local px = rot.xx-1
+        local py = rot.yy-1
+        local pz = rot.zz-1
+        local ax2 = (px-py-pz)/4
+        local ay2 = (py-px-pz)/4
+        local az2 = (pz-px-py)/4
+        if( ax2+ay2+az2 < 0.5 ) then
+        -- theta equal to 0
+            tab.theta = 0.0
+            tab.ax = 0.0
+            tab.ay = 0.0
+            tab.az = 0.0
+        else
+            tab.theta = math.pi
+            tab.ax = math.sqrt(ax2)
+            tab.ay = math.sqrt(ay2)
+            tab.az = math.sqrt(az2)
+        end
+
+    else
+        -- normal case: 0 < theta < pi
+        tab.ax = tab.ax/r;
+        tab.ay = tab.ay/r;
+        tab.az = tab.az/r
+        tab.theta=math.atan2(0.5*r,0.5*(rot.xx+rot.yy+rot.zz-1));
+    end
+
+    return tab;
+end
 
 -- Homogeneous transform
 HomTransform = {}
@@ -331,9 +487,13 @@ end
 
 function HomTransform:apply(point)
     transformedPoint = self.rot:apply(point);
-    transformedPoint.x = transformedPoint.x + self.origin.x;
-    transformedPoint.y = transformedPoint.y + self.origin.y;
-    transformedPoint.z = transformedPoint.z + self.origin.z;
+
+    -- it if is a point, also apply translation, otherwise (i.e. vector) just rotate it
+    if( point.__index == PointCoord ) then
+        transformedPoint.x = transformedPoint.x + self.origin.x;
+        transformedPoint.y = transformedPoint.y + self.origin.y;
+        transformedPoint.z = transformedPoint.z + self.origin.z;
+    end
 
     return transformedPoint
 end
@@ -456,4 +616,86 @@ function yarp_rf_find_point(rf,var_name)
     end
 end
 
+-- Query (in a blocking way) the cartesianSolver for getting
+-- suitable configuration, given a desire HomTransform
+-- (conversion to axis angle is done internally)
+function query_cartesian_solver(solver_rpc, des_trans)
+    local axisAngle =  AxisAngleTableFromRotMatrix(des_trans.rot);
+    local req = yarp.Bottle()
+    req:addString("ask")
+    local poseReq = req:addList()
+    poseReq:addString("xd")
+    local poseReq2 = poseReq:addList()
+    poseReq2:addDouble(des_trans.origin.x)
+    poseReq2:addDouble(des_trans.origin.y)
+    poseReq2:addDouble(des_trans.origin.z)
+    poseReq2:addDouble(axisAngle.ax)
+    poseReq2:addDouble(axisAngle.ay)
+    poseReq2:addDouble(axisAngle.az)
+    poseReq2:addDouble(axisAngle.theta)
+    reply = yarp.Bottle()
+    solver_rpc:write(req,reply)
+    -- print("reply: " .. reply:toString())
+    qd = reply:get(2):asList():get(1):asList()
+    return qd
+end
+
+function gas_get_transform(final_frame, origin_frame)
+    if( final_frame == "world" ) then
+        return gas_frames[origin_frame]
+    end
+    if( origin_frame == "world" ) then
+        return gas_frames[final_frame]:inverse()
+    end
+    return frames[final_frame]:inverse():compose(frames[origin_frame])
+end
+
+
+function gas_generate_right_foot_setpoints()
+    -- first setpoint
+    delta_initial_swing_in_r_foot = VectorCoord.create()
+
+    -- go ahead of half a step length
+    delta_initial_swing_in_r_foot.x = step_lenght/2
+
+    -- no lateral change
+    delta_initial_swing_in_r_foot.y = 0.0
+
+    -- go up of the step_height parameter
+    delta_initial_swing_in_r_foot.z = step_height
+
+     -- rotate the delta in world orientation
+    local delta_initial_swing_in_world =  gas_get_transform("world",r_foot):compose(delta_initial_swing_in_r_foot)
+
+    -- transform the desired orientation of the frame in world
+    world_r_foot_cur_pos = gas_get_transform("world",r_foot)
+
+    gas_setpoints.world_r_foot_initial_swing_des_pos = world_r_foot_cur_pos
+
+    -- save first setpoint in gas_setpoints.world_r_foot_initial_swing_des_pos
+    gas_setpoints.world_r_foot_initial_swing_des_pos.origin = world_r_foot_cur_pos.origin:add(delta_initial_swing_in_world)
+
+    -- second and final setpoint
+    delta_final_swing_in_r_foot = VectorCoord.create()
+
+    -- go ahead of half a step length
+    delta_final_swing_in_r_foot.x = step_lenght
+
+    -- no lateral change
+    delta_final_swing_in_r_foot.y = 0.0
+
+    -- go up of the step_height parameter
+    delta_final_swing_in_r_foot.z = step_penetration
+
+    -- rotate the delta in world orientation
+    local delta_final_swing_in_world =  gas_get_transform("world",r_foot):compose(delta_final_swing_in_r_foot)
+
+    -- transform the desired orientation of the frame in world
+    world_r_foot_cur_pos = gas_get_transform("world",r_foot)
+
+    gas_setpoints.world_r_foot_final_swing_des_pos = world_r_foot_cur_pos
+
+    -- save second setpoint in gas_setpoints.world_r_foot_initial_swing_des_pos
+    gas_setpoints.world_r_foot_final_swing_des_pos.origin = world_r_foot_cur_pos.origin:add(delta_final_swing_in_world)
+end
 

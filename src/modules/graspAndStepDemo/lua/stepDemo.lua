@@ -56,6 +56,8 @@ function gas_loadconfiguration()
     r_foot_frame = "r_sole"
     force_threshold = yarp_rf_find_double(rf,"force_threshold");
     com_threshold   = yarp_rf_find_double(rf,"com_threshold")
+    step_length     = yarp_rf_find_double(rf,"step_length")
+    step_height     = yarp_rf_find_double(rf,"step_height")
 
 end
 
@@ -93,9 +95,13 @@ function gas_open_ports()
     constraints_port = yarp.BufferedPortBottle()
     constraints_port:open("/".. script_name .. "/constraints:o");
 
-    -- Port for configuring the simple odometry 
+    -- Port for configuring the simple odometry
     odometry_port = yarp.BufferedPortBottle()
     odometry_port:open("/".. script_name .. "/odometry:o");
+
+    -- Port for communicating with the cartesianSolver
+    root_link_r_sole_solver_port = yarp.Port()
+    root_link_r_sole_solver_port:open("/" .. script_name .. "/root_link_r_sole")
 
     -- Port for reading forces are included in the stepperMonitor class
     stepper_monitor = steppingMonitor.create()
@@ -109,8 +115,9 @@ function gas_close_ports()
     gas_close_port(com_port)
     gas_close_port(frames_port)
     gas_close_port(setpoints_port)
-    gas_close_port(constraints_port) 
+    gas_close_port(constraints_port)
     gas_close_port(odometry_port)
+    gas_close_port(root_link_r_sole_solver_port)
 
     if( stepper_monitor ~= nil ) then
         stepper_monitor:close()
@@ -223,7 +230,7 @@ function main()
         -- the fsm entry/doo/exit functions
         rfsm.run(fsm)
 
-        -- wait 
+        -- wait
         yarp.Time_delay(fsm_update_period)
     until shouldExit ~= false
 
