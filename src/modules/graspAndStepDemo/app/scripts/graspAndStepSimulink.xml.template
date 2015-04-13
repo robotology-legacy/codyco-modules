@@ -67,6 +67,14 @@
       <node>audio-node</node>
   </module>
 
+  <!-- Adding solver for geometric inversion -->
+  <module>
+      <name>iKinCartesianSolver</name>
+      <parameters>--from legsCartesianSolver.ini --part root_link_r_sole</parameters>
+      <tag>solver_root_link_r_sole</tag>
+      <node>node</node>
+  </module>
+
   <!-- Required connections -->
   <connection>
       <from>/icub/camcalib/left/out</from>
@@ -173,6 +181,11 @@
   <connection>
      <from>/graspAndStep/odometry:o</from>
      <to>/wholeBodyDynamicsTree/rpc:i</to>
+  </connection>
+
+  <connection>
+     <from>/grapsAndStep/root_link_r_sole_solver</from>
+     <to>/cartesianSolver/root_link_r_sole/rpc</to>
   </connection>
 
   <!-- debug connection for audio debug of current state -->
