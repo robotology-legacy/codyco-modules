@@ -510,6 +510,8 @@ namespace codyco {
 
     void ManagerThread::commandHead()
     {
+        if (state == STATE_DISABLED) return;
+
         if (state!=STATE_IDLE)
         {
             gazeCtrl->lookAtFixationPoint(targetPos);
@@ -973,7 +975,7 @@ namespace codyco {
 
     void ManagerThread::commandFace()
     {
-        if (state==STATE_IDLE)
+        if (state==STATE_IDLE || state == STATE_DISABLED)
             setFace(state_breathers?FACE_SHY:FACE_HAPPY);
         else if (state==STATE_REACH)
         {
