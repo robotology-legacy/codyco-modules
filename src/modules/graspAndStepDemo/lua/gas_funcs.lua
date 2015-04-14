@@ -37,7 +37,7 @@ end
 -- @param setpoint a PointCoord object with the actual setpoint
 --
 function gas_sendCOMToTrajGen(port,setpoint)
-   comDes_in_world = setpoint;
+   gas_motion_done_helper.comDes_in_world = setpoint;
    local botTrajGen = YarpVectorBottleForTrajGenFromPointCoord(setpoint)
    local prop = port:prepare();
    prop:clear()
@@ -47,21 +47,83 @@ end
 
 function gas_sendPartToTrajGen(port,partName, setpoint_bt)
    assert(setpoint_bt,"gas_sendPartToTrajGen: tryng to send nil value")
+   if( partName == "right_leg" ) then
+       gas_motion_done_helper.rightLegDes = setpoint_bt
+   end
+   if( partName == "left_leg" ) then
+       gas_motion_done_helper.leftLegDes  = setpoint_bt
+   end
    local prop = port:prepare();
    prop:clear()
    prop:put(partName,ValueFromBottleAndDeg2Rad(setpoint_bt))
    port:write()
 end
 
-function generate_com_motiondone_events(fsm)
-    local errX = comDes_in_world.x - comMeas_in_world.x;
-    local errY = comDes_in_world.y - comMeas_in_world.y;
-    local errZ = comDes_in_world.z - comMeas_in_world.z;
+function yarpBottleDiffNorm(bot,bot2,val)
+    local nrm = 0
+    if( val == nil ) then
+        val = 200
+    end
+    nrOfElems = math.min(val,bot:size()-1,bot2:size()-1)
+    for i = 0,nrOfElems do
+        local el = bot:get(i):asDouble()
+        local el2 = bot2:get(i):asDouble()
+        nrm = nrm + (el-el2)*(el-el2)
+    end
+    nrm = math.sqrt(nrm)
+    return nrm
+end
+
+function generate_motiondone_events(fsm)
+    -- com motion done
+    local errX = gas_motion_done_helper.comDes_in_world.x - gas_motion_done_helper.comMeas_in_world.x;
+    local errY = gas_motion_done_helper.comDes_in_world.y - gas_motion_done_helper.comMeas_in_world.y;
+    local errZ = gas_motion_done_helper.comDes_in_world.z - gas_motion_done_helper.comMeas_in_world.z;
     local comErr = math.sqrt(errX*errX + errY*errY + errZ*errZ);
     --print("comErr: " .. comErr)
     if( comErr < com_threshold ) then
         rfsm.send_events(fsm,'e_com_motion_done')
     end
+
+    -- right leg motion done
+    if( gas_motion_done_helper.rightLegDes ~= nil and gas_motion_done_helper.rightLegMeas ~= nil ) then
+        qErrRL = yarpBottleDiffNorm(gas_motion_done_helper.rightLegDes,gas_motion_done_helper.rightLegMeas)
+
+        if( qErrRL < q_threshold ) then
+            rfsm.send_events(fsm,'e_right_leg_motion_done')
+        end
+    end
+
+    -- left leg motion done
+    if( gas_motion_done_helper.leftLegDes ~= nil and gas_motion_done_helper.leftLegDes ~= nil ) then
+        qErrLL = yarpBottleDiffNorm(gas_motion_done_helper.leftLegDes,gas_motion_done_helper.leftLegMeas)
+
+        if( qErrLL < q_threshold ) then
+            rfsm.send_events(fsm,'e_left_leg_motion_done')
+        end
+    end
+
+
+    if( lastPrintTime == nil ) then
+        lastPrintTime = yarp_now
+    end
+
+    if( yarp_now-lastPrintTime > 1.0 ) then
+        lastPrintTime = yarp_now
+        print("comErr : " .. comErr)
+
+        if( qErrRL ~= nill ) then
+            print(" qErrRL: " .. qErrRL)
+        end
+
+        if( qErrLL ~= nill ) then
+            print(" qErrLL: " .. qErrLL)
+        end
+    end
+
+end
+
+function generate_legs_motiondone_events(fsm)
 end
 
 function gas_sendCOMToBalancing(port,pos,vel,acc)

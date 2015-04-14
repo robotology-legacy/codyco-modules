@@ -39,7 +39,7 @@ fsm_right_step = rfsm.state {
 
     -- Sensor transitions
     rfsm.transition { src='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_LEFT_FOOT', tgt='ST_SINGLESUPPORT_RIGHT_SWING', events={ 'e_com_motion_done' } },
-    rfsm.transition { src='ST_SINGLESUPPORT_RIGHT_SWING', tgt='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_FROM_LEFT_FOOT', events={ 'e_right_leg_swing_motiondone' } },
+    rfsm.transition { src='ST_SINGLESUPPORT_RIGHT_SWING', tgt='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_FROM_LEFT_FOOT', events={ 'e_right_leg_motiondone' } },
 
 
 }

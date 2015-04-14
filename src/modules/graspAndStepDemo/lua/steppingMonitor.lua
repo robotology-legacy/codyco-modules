@@ -33,7 +33,13 @@ function steppingMonitor.create()
     mon.buffer_left_foot_wrench:addDouble(0.0)
     mon.buffer_left_foot_wrench:addDouble(0.0)
     mon.buffer_left_foot_wrench:addDouble(0.0)
-    mon.buffer_right_foot_wrench = buffer_left_foot_wrench
+    mon.buffer_right_foot_wrench = yarp.Bottle()
+    mon.buffer_right_foot_wrench:addDouble(0.0)
+    mon.buffer_right_foot_wrench:addDouble(0.0)
+    mon.buffer_right_foot_wrench:addDouble(0.0)
+    mon.buffer_right_foot_wrench:addDouble(0.0)
+    mon.buffer_right_foot_wrench:addDouble(0.0)
+    mon.buffer_right_foot_wrench:addDouble(0.0)
     mon.buffer_left_foot_force_norm = 0.0
     mon.buffer_right_foot_force_norm = 0.0
     return mon
@@ -58,13 +64,13 @@ function steppingMonitor:run(fsm)
     self:update_buffers()
 
     -- events no weight
-    if( self.buffer_left_foot_force_norm < force_threshold ) then
+    if( math.abs(self.buffer_left_foot_wrench:get(2):asDouble()) < vertical_force_threshold ) then
         rfsm.send_events(fsm,'e_no_weight_on_left_foot')
     else
         rfsm.send_events(fsn,'e_weight_on_left_foot')
     end
 
-    if( self.buffer_right_foot_force_norm < force_threshold ) then
+    if( math.abs(self.buffer_right_foot_wrench:get(2):asDouble()) < vertical_force_threshold ) then
         rfsm.send_events(fsm,'e_no_weight_on_right_foot')
     else
         rfsm.send_events(fsm,'e_weight_on_right_foot')

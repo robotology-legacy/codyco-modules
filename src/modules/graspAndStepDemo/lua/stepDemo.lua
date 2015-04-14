@@ -51,16 +51,18 @@ function gas_loadconfiguration()
     script_name = yarp_rf_find_string(rf,"script_name")
     fsm_update_period = yarp_rf_find_double(rf,"fsm_update_period")
     step_type = yarp_rf_find_string(rf,"step_type")
-    gas_setpoints.weight_on_left_foot_com_wrt_l_sole = yarp_rf_find_point(rf,"weight_on_left_foot_com_wrt_l_sole")
+    --gas_setpoints.weight_on_left_foot_com_wrt_l_sole = yarp_rf_find_point(rf,"weight_on_left_foot_com_wrt_l_sole")
     l_foot_frame = "l_sole"
     r_foot_frame = "r_sole"
     root_link = "root_link"
     world     = "world"
-    force_threshold = yarp_rf_find_double(rf,"force_threshold");
+    vertical_force_threshold = yarp_rf_find_double(rf,"vertical_force_threshold");
     com_threshold   = yarp_rf_find_double(rf,"com_threshold")
+    q_threshold     = yarp_rf_find_double(rf,"q_threshold")
     step_length     = yarp_rf_find_double(rf,"step_length")
     step_height     = yarp_rf_find_double(rf,"step_height")
     step_penetration = yarp_rf_find_double(rf,"step_penetration")
+    transfer_delta_com = yarp_rf_find_double(rf,"transfer_delta_com")
 end
 
 -------
@@ -109,6 +111,14 @@ function gas_open_ports()
     right_leg_state_port = yarp.BufferedPortBottle()
     right_leg_state_port:open("/" .. script_name .. "/right_leg/state:i")
 
+    -- Port for communicating with the cartesianSolver
+    root_link_l_sole_solver_port = yarp.Port()
+    root_link_l_sole_solver_port:open("/" .. script_name .. "/root_link_l_sole_solver")
+
+    -- Port for reading right leg joint positions
+    left_leg_state_port = yarp.BufferedPortBottle()
+    left_leg_state_port:open("/" .. script_name .. "/left_leg/state:i")
+
     -- Port for reading forces are included in the stepperMonitor class
     stepper_monitor = steppingMonitor.create()
 end
@@ -123,8 +133,14 @@ function gas_close_ports()
     gas_close_port(setpoints_port)
     gas_close_port(constraints_port)
     gas_close_port(odometry_port)
+
+    -- right_leg specific ports
     gas_close_port(root_link_r_sole_solver_port)
     gas_close_port(right_leg_state_port)
+
+    -- left_leg specific ports
+    gas_close_port(root_link_l_sole_solver_port)
+    gas_close_port(left_leg_state_port)
 
     if( stepper_monitor ~= nil ) then
         stepper_monitor:close()
@@ -136,16 +152,34 @@ function gas_initialize_setpoints()
     -- waiting for reading com data
     print("[INFO] waiting for com data")
     comMeas_in_world_bt = com_port:read(true)
-    PointCoordFromYarpVectorBottle(comMeas_in_world,
+    PointCoordFromYarpVectorBottle(gas_motion_done_helper.comMeas_in_world,
                                    comMeas_in_world_bt)
 
-    comMeas_in_world:print("[INFO] initial com in world frame: ")
+    gas_motion_done_helper.comMeas_in_world:print("[INFO] initial com in world frame: ")
 
     -- waiting for reading frame data
     print("[INFO] waiting for frame data")
     gas_frames_bt = frames_port:read(true)
     gas_frames = {}
     HomTransformTableFromBottle(gas_frames,gas_frames_bt)
+
+    -- waiting for right leg data
+
+    -- waiting for left leg data
+    print("[DEBUG] waiting right leg")
+    -- read right leg joint positions
+    rightLegMeas_bt = right_leg_state_port:read(true)
+    if( rightLegMeas_bt ~= nil ) then
+        gas_motion_done_helper.rightLegMeas = rightLegMeas_bt;
+    end
+
+    print("[DEBUG] waiting left leg")
+    -- read left leg joint positions
+    leftLegMeas_bt  = left_leg_state_port:read(true)
+    if( leftLegMeas_bt ~= nil ) then
+        gas_motion_done_helper.leftLegMeas = leftLegMeas_bt;
+    end
+
 
     assert(gas_frames[l_foot_frame] ~= nil)
     assert(gas_frames[r_foot_frame] ~= nil)
@@ -155,12 +189,24 @@ function gas_initialize_setpoints()
 
     l_foot_H_world = buf:inverse()
 
-    gas_setpoints.initial_com_in_l_foot = l_foot_H_world:apply(comMeas_in_world)
+    print("[INFO] generating first com reference")
+    gas_setpoints.initial_com_in_l_foot = l_foot_H_world:apply(gas_motion_done_helper.comMeas_in_world)
 
-    -- workaround: weight_on_left_foot_com_wrt_l_sole is used just for the y value
+    -- The delta is used just for the y value
+    gas_setpoints.weight_on_left_foot_com_wrt_l_sole = PointCoord.create()
     gas_setpoints.weight_on_left_foot_com_wrt_l_sole.x = gas_setpoints.initial_com_in_l_foot.x
+    gas_setpoints.weight_on_left_foot_com_wrt_l_sole.y = gas_setpoints.initial_com_in_l_foot.y-transfer_delta_com
     gas_setpoints.weight_on_left_foot_com_wrt_l_sole.z = gas_setpoints.initial_com_in_l_foot.z
+
+    print("[INFO] generating first com reference")
+    -- this delta is used in the final right foot swing
+    gas_setpoints.weight_in_middle_during_step_com_wrt_l_sole = PointCoord.create()
+    gas_setpoints.weight_in_middle_during_step_com_wrt_l_sole.x = gas_setpoints.initial_com_in_l_foot.x+step_length/2
+    gas_setpoints.weight_in_middle_during_step_com_wrt_l_sole.y = gas_setpoints.initial_com_in_l_foot.y
+    gas_setpoints.weight_in_middle_during_step_com_wrt_l_sole.z = gas_setpoints.initial_com_in_l_foot.z
+
 end
+
 
 
 function gas_updateframes()
@@ -171,12 +217,23 @@ function gas_updateframes()
     end
 
     -- reading com data
-    comMeas_in_world_bt = com_port:read()
+    comMeas_in_world_bt = com_port:read(false)
     if( comMeas_in_world_bt ~= nil ) then
-        PointCoordFromYarpVectorBottle(comMeas_in_world,
+        PointCoordFromYarpVectorBottle(gas_motion_done_helper.comMeas_in_world,
                                        comMeas_in_world_bt)
     end
 
+    -- read right leg joint positions
+    rightLegMeas_bt = right_leg_state_port:read(false)
+    if( rightLegMeas_bt ~= nil ) then
+        gas_motion_done_helper.rightLegMeas = rightLegMeas_bt;
+    end
+
+    -- read left leg joint positions
+    leftLegMeas_bt  = left_leg_state_port:read(false)
+    if( leftLegMeas_bt ~= nil ) then
+        gas_motion_done_helper.leftLegMeas = leftLegMeas_bt;
+    end
 
     -- get transform
     world_H_l_foot = gas_frames[l_foot_frame]
@@ -188,6 +245,10 @@ function gas_updateframes()
 
     gas_setpoints.weight_on_left_foot_com_in_world =
         world_H_l_foot:apply(gas_setpoints.weight_on_left_foot_com_wrt_l_sole)
+
+    gas_setpoints.weight_in_middle_during_step_com_in_world =
+        world_H_l_foot:apply(gas_setpoints.weight_in_middle_during_step_com_wrt_l_sole)
+
 end
 
 function main()
@@ -209,12 +270,14 @@ function main()
     fsm_file = rf:findFile("lua/fsm_test_right_step.lua")
     print("[INFO] loading rFSM state machine")
     -- load state machine model and initalize it
+    rfsm_timeevent.set_gettime_hook(yarp_gettime)
+
     fsm_model = rfsm.load(fsm_file)
     fsm = rfsm.init(fsm_model)
 
     -- configure script specific hooks
     -- use the yarp time for time events
-    rfsm_timeevent.set_gettime_hook(yarp_gettime)
+
 
     -- dbg function, callet at each state enter/exit etc etc
     fsm.dbg = gas_dbg;
@@ -222,12 +285,15 @@ function main()
     -- getevents function, to read functions from a
     fsm.getevents = yarp_gen_read_str_events(input_events);
 
+    -- helper table for keeping world to frame frame
     gas_frames = {}
-
+    -- helper table to keep the desired and commanded joint position
+    -- for the various part, useful to generate motion_done events
+    gas_motion_done_helper = {}
 
     print("[INFO] starting main loop")
-    comMeas_in_world = PointCoord.create()
-    comDes_in_world  = PointCoord.create()
+    gas_motion_done_helper.comMeas_in_world = PointCoord.create()
+    gas_motion_done_helper.comDes_in_world  = PointCoord.create()
     gas_initialize_setpoints()
 
     repeat
@@ -237,7 +303,7 @@ function main()
 
         -- raise internal events
         stepper_monitor:run(fsm)
-        generate_com_motiondone_events(fsm)
+        generate_motiondone_events(fsm)
 
         -- run the finite state machine
         -- the configurator is implicitly executed by
