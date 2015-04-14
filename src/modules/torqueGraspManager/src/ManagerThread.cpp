@@ -408,7 +408,7 @@ namespace codyco {
             }
         }
 
-        if (newTarget)
+        if (newTarget && !disablingRequested)
         {
             //send new target to output port
             Vector &outTarget = targetPositionOutputPort.prepare();
