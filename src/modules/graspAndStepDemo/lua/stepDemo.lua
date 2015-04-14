@@ -63,7 +63,9 @@ function gas_loadconfiguration()
     step_height     = yarp_rf_find_double(rf,"step_height")
     step_penetration = yarp_rf_find_double(rf,"step_penetration")
     step_hesitation  = yarp_rf_find_double(rf,"step_hesitation")
-    transfer_delta_com = yarp_rf_find_double(rf,"transfer_delta_com")
+    --transfer_delta_com = yarp_rf_find_double(rf,"transfer_delta_com")
+    transfer_delta_y_r_sole = yarp_rf_find_double(rf,"transfer_delta_y_r_sole")
+    transfer_delta_y_l_sole = yarp_rf_find_double(rf,"transfer_delta_y_l_sole")
 end
 
 -------
@@ -188,25 +190,35 @@ function gas_initialize_setpoints()
     assert(gas_frames[r_foot_frame] ~= nil)
     assert(gas_frames[root_link]    ~= nil)
 
-    buf = gas_frames[l_foot_frame]
+    buf = gas_frames[r_foot_frame]
 
-    l_foot_H_world = buf:inverse()
+    r_foot_H_world = gas_get_transform(r_foot_frame,"world")
+    l_foot_H_world = gas_get_transform(l_foot_frame,"world")
 
-    print("[INFO] generating first com reference")
-    gas_setpoints.initial_com_in_l_foot = l_foot_H_world:apply(gas_motion_done_helper.comMeas_in_world)
+    print("[INFO] generating single support on l_foot reference")
+    gas_setpoints.initial_com_wrt_l_foot = l_foot_H_world:apply(gas_motion_done_helper.comMeas_in_world)
 
     -- The delta is used just for the y value
     gas_setpoints.weight_on_left_foot_com_wrt_l_sole = PointCoord.create()
-    gas_setpoints.weight_on_left_foot_com_wrt_l_sole.x = gas_setpoints.initial_com_in_l_foot.x
-    gas_setpoints.weight_on_left_foot_com_wrt_l_sole.y = gas_setpoints.initial_com_in_l_foot.y+transfer_delta_com
-    gas_setpoints.weight_on_left_foot_com_wrt_l_sole.z = gas_setpoints.initial_com_in_l_foot.z
+    gas_setpoints.weight_on_left_foot_com_wrt_l_sole.x = gas_setpoints.initial_com_wrt_l_foot.x
+    --gas_setpoints.weight_on_left_foot_com_wrt_l_sole.y = gas_setpoints.initial_com_wrt_l_foot.y+transfer_delta_com
+    gas_setpoints.weight_on_left_foot_com_wrt_l_sole.y = transfer_delta_y_l_sole
+    gas_setpoints.weight_on_left_foot_com_wrt_l_sole.z = gas_setpoints.initial_com_wrt_l_foot.z
 
-    print("[INFO] generating first com reference")
+    print("[INFO] generating single support on r_foot reference")
+    gas_setpoints.initial_com_wrt_r_foot = r_foot_H_world:apply(gas_motion_done_helper.comMeas_in_world)
+    gas_setpoints.weight_on_right_foot_com_wrt_r_sole = PointCoord.create()
+    gas_setpoints.weight_on_right_foot_com_wrt_r_sole.x = gas_setpoints.initial_com_wrt_r_foot.x
+    --gas_setpoints.weight_on_left_foot_com_wrt_l_sole.y = gas_setpoints.initial_com_wrt_l_foot.y+transfer_delta_com
+    gas_setpoints.weight_on_right_foot_com_wrt_r_sole.y = transfer_delta_y_r_sole
+    gas_setpoints.weight_on_right_foot_com_wrt_r_sole.z = gas_setpoints.initial_com_wrt_r_foot.z
+
+    print("[INFO] generating  com reference")
     -- this delta is used in the final right foot swing
     gas_setpoints.weight_in_middle_during_step_com_wrt_l_sole = PointCoord.create()
-    gas_setpoints.weight_in_middle_during_step_com_wrt_l_sole.x = gas_setpoints.initial_com_in_l_foot.x+step_length/2
-    gas_setpoints.weight_in_middle_during_step_com_wrt_l_sole.y = gas_setpoints.initial_com_in_l_foot.y
-    gas_setpoints.weight_in_middle_during_step_com_wrt_l_sole.z = gas_setpoints.initial_com_in_l_foot.z
+    gas_setpoints.weight_in_middle_during_step_com_wrt_l_sole.x = gas_setpoints.initial_com_wrt_l_foot.x+step_length/2
+    gas_setpoints.weight_in_middle_during_step_com_wrt_l_sole.y = gas_setpoints.initial_com_wrt_l_foot.y
+    gas_setpoints.weight_in_middle_during_step_com_wrt_l_sole.z = gas_setpoints.initial_com_wrt_l_foot.z
 
 end
 
@@ -242,15 +254,18 @@ function gas_updateframes()
     world_H_l_foot = gas_frames[l_foot_frame]
     world_H_r_foot = gas_frames[r_foot_frame]
 
-    -- update com setpoints
-    gas_setpoints.initial_com_in_world =
-        world_H_l_foot:apply(gas_setpoints.initial_com_in_l_foot)
+    -- update the initial com
+    gas_setpoints.initial_com_wrt_r_foot_in_world =
+        world_H_l_foot:apply(gas_setpoints.initial_com_wrt_r_foot)
 
     gas_setpoints.weight_on_left_foot_com_in_world =
         world_H_l_foot:apply(gas_setpoints.weight_on_left_foot_com_wrt_l_sole)
 
     gas_setpoints.weight_in_middle_during_step_com_in_world =
         world_H_l_foot:apply(gas_setpoints.weight_in_middle_during_step_com_wrt_l_sole)
+
+    gas_setpoints.weight_on_right_foot_com_in_world =
+        world_H_r_foot:apply(gas_setpoints.weight_on_right_foot_com_wrt_r_sole)
 
 end
 
