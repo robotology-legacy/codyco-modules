@@ -111,7 +111,9 @@ bool simpleLeggedOdometry::changeFixedLink(const int& new_fixed_link_id)
 
 std::string simpleLeggedOdometry::getCurrentFixedLink()
 {
-    return odometry_model->getKDLUndirectedTree().getLink(this->current_fixed_link_id)->getName();
+    std::string ret_string;
+    odometry_model->getLinkName(this->current_fixed_link_id,ret_string);
+    return ret_string;
 }
 
 KDL::Frame simpleLeggedOdometry::getWorldFrameTransform(const int frame_index)
