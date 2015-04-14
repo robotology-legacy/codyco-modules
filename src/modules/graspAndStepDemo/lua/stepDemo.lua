@@ -172,6 +172,7 @@ function gas_initialize_setpoints()
     rightLegMeas_bt = right_leg_state_port:read(true)
     if( rightLegMeas_bt ~= nil ) then
         gas_motion_done_helper.rightLegMeas = rightLegMeas_bt;
+        gas_setpoints.initialRightLeg       = rightLegMeas_bt;
     end
 
     print("[DEBUG] waiting left leg")
@@ -179,6 +180,7 @@ function gas_initialize_setpoints()
     leftLegMeas_bt  = left_leg_state_port:read(true)
     if( leftLegMeas_bt ~= nil ) then
         gas_motion_done_helper.leftLegMeas = leftLegMeas_bt;
+        gas_setpoints.initialLeftLeg       = leftLegMeas_bt;
     end
 
 

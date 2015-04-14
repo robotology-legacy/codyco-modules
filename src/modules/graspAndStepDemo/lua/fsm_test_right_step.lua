@@ -85,7 +85,7 @@ fsm_right_step = rfsm.state {
         end
     },
 
-    ST_DOUBLESUPPORT_AFTER_STEP = rfsm.state{
+    ST_DOUBLESUPPORT_AFTER_RIGHT_STEP = rfsm.state{
         entry=function()
             -- reactivate constraint on r_foot
             gas_activateConstraints(constraints_port,{'r_foot','l_foot'})
@@ -106,7 +106,7 @@ fsm_right_step = rfsm.state {
     rfsm.transition { src='ST_SINGLESUPPORT_ON_LEFT_FOOT', tgt='ST_DOUBLESUPPORT_INITIAL_COM', events={ 'e_reset' } },
     rfsm.transition { src='ST_SINGLESUPPORT_ON_LEFT_FOOT', tgt='ST_SINGLESUPPORT_RIGHT_FOOT_INITIAL_SWING', events={ 'e_after(' .. step_hesitation .. ')'} },
     rfsm.transition { src='ST_SINGLESUPPORT_RIGHT_FOOT_INITIAL_SWING', tgt='ST_SINGLESUPPORT_RIGHT_FOOT_FINAL_SWING', events={ 'e_right_leg_motion_done'} },
-    rfsm.transition { src='ST_SINGLESUPPORT_RIGHT_FOOT_FINAL_SWING', tgt='ST_DOUBLESUPPORT_AFTER_STEP', events={ 'e_weight_on_right_foot' } },
+    rfsm.transition { src='ST_SINGLESUPPORT_RIGHT_FOOT_FINAL_SWING', tgt='ST_DOUBLESUPPORT_AFTER_RIGHT_STEP', events={ 'e_weight_on_right_foot' } },
 
 }
 
