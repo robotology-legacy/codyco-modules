@@ -159,6 +159,7 @@ function gas_initialize_setpoints()
                                    comMeas_in_world_bt)
 
     gas_motion_done_helper.comMeas_in_world:print("[INFO] initial com in world frame: ")
+    gas_motion_done_helper.comDes_in_world = gas_motion_done_helper.comMeas_in_world
 
     -- waiting for reading frame data
     print("[INFO] waiting for frame data")
@@ -256,7 +257,7 @@ function gas_updateframes()
 
     -- update the initial com
     gas_setpoints.initial_com_wrt_r_foot_in_world =
-        world_H_l_foot:apply(gas_setpoints.initial_com_wrt_r_foot)
+        world_H_r_foot:apply(gas_setpoints.initial_com_wrt_r_foot)
 
     gas_setpoints.weight_on_left_foot_com_in_world =
         world_H_l_foot:apply(gas_setpoints.weight_on_left_foot_com_wrt_l_sole)

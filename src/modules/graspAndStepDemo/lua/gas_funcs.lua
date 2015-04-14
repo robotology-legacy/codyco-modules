@@ -37,7 +37,7 @@ end
 -- @param setpoint a PointCoord object with the actual setpoint
 --
 function gas_sendCOMToTrajGen(port,setpoint)
-   gas_motion_done_helper.comDes_in_world = setpoint;
+   gas_motion_done_helper.comDes_in_world = setpoint:clone();
    local botTrajGen = YarpVectorBottleForTrajGenFromPointCoord(setpoint)
    local prop = port:prepare();
    prop:clear()
@@ -764,7 +764,7 @@ function query_cartesian_solver(solver_rpc, des_trans, rest_pos_bt)
     r_sole_R_root_link = RotMatrixFromAxisAngleTable(aa_r_sole_root_link_d)
     r_sole_R_l_sole = r_sole_R_root_link:compose(gas_get_transform(root_link,l_foot_frame).rot)
 
-    r_sole_R_l_sole:print("[DEBUG] Desired r_sole_R_l_sole: ")
+    -- r_sole_R_l_sole:print("[DEBUG] Desired r_sole_R_l_sole: ")
 
     qd = reply:get(2):asList():get(1):asList()
 

@@ -77,6 +77,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 
        yInfo() << "Launching wholeBodyDynamicsThread with name : " << _name << " and robotName " << _robotName << " and period " << _period;
 
+         
+
        if( !_yarp_options.check("urdf") )
        {
             yError() << "wholeBodyDynamicsTree error: urdf not found in configuration files";
@@ -223,6 +225,14 @@ bool wholeBodyDynamicsThread::loadExternalWrenchesPortsConfigurations()
 
         output_wrench_ports[i].origin_frame_index =
             icub_model_calibration->getFrameIndex(output_wrench_ports[i].origin_frame);
+        
+        if( this->assume_fixed_base_calibration_from_odometry )
+        {
+            YARP_ASSERT(icub_model_calibration->getFrameIndex(output_wrench_ports[i].origin_frame) == icub_model_calibration_on_l_sole->getFrameIndex(output_wrench_ports[i].origin_frame));
+            YARP_ASSERT(icub_model_calibration->getFrameIndex(output_wrench_ports[i].origin_frame) == icub_model_calibration_on_r_sole->getFrameIndex(output_wrench_ports[i].origin_frame))
+        }
+
+
         if( output_wrench_ports[i].origin_frame_index < 0 )
         {
             yError() << "Frame " << output_wrench_ports[i].origin_frame << " not found in the model.";
@@ -232,6 +242,14 @@ bool wholeBodyDynamicsThread::loadExternalWrenchesPortsConfigurations()
 
         output_wrench_ports[i].orientation_frame_index =
             icub_model_calibration->getFrameIndex(output_wrench_ports[i].orientation_frame);
+
+        if( this->assume_fixed_base_calibration_from_odometry )
+        {
+            YARP_ASSERT(icub_model_calibration->getFrameIndex(output_wrench_ports[i].orientation_frame) == icub_model_calibration_on_l_sole->getFrameIndex(output_wrench_ports[i].orientation_frame));
+            YARP_ASSERT(icub_model_calibration->getFrameIndex(output_wrench_ports[i].orientation_frame) == icub_model_calibration_on_r_sole->getFrameIndex(output_wrench_ports[i].orientation_frame))
+        }
+
+
         if( output_wrench_ports[i].orientation_frame_index < 0 )
         {
             yError() << "Frame " << output_wrench_ports[i].orientation_frame_index << " not found in the model.";
@@ -1126,21 +1144,24 @@ void wholeBodyDynamicsThread::getExternalWrenches()
 
         KDL::Wrench f;
 
-        if( !this->assume_fixed_base_calibration )
-        {
+        if( !this->assume_fixed_base_calibration_from_odometry  )
+        {   
             f = externalWrenchTorqueEstimator->robot_estimation_model->getExternalForceTorqueKDL(link_id,frame_origin_id,frame_orientation_id);
         }
 
-        if( this->assume_fixed_base_calibration )
+        if( this->assume_fixed_base_calibration_from_odometry )
         {
             if( this->current_fixed_link_name == "r_foot" )
             {
                 f = externalWrenchTorqueEstimator->robot_estimation_model_on_r_sole->getExternalForceTorqueKDL(link_id,frame_origin_id,frame_orientation_id);
-            }
-
-            if( this->current_fixed_link_name == "l_foot" )
+            } 
+            else if( this->current_fixed_link_name == "l_foot" )
             {
-                f = externalWrenchTorqueEstimator->robot_estimation_model_on_r_sole->getExternalForceTorqueKDL(link_id,frame_origin_id,frame_orientation_id);
+                f = externalWrenchTorqueEstimator->robot_estimation_model_on_l_sole->getExternalForceTorqueKDL(link_id,frame_origin_id,frame_orientation_id);
+            }
+            else
+            {
+                YARP_ASSERT(false);
             }
         }
 
