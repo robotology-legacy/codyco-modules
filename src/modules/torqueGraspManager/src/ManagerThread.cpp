@@ -410,6 +410,11 @@ namespace codyco {
 
         if (newTarget)
         {
+            //send new target to output port
+            Vector &outTarget = targetPositionOutputPort.prepare();
+            outTarget = targetPos;
+            targetPositionOutputPort.write();
+
             idleTimer=Time::now();
 
             if (state==STATE_IDLE)
@@ -1163,6 +1168,9 @@ namespace codyco {
         desiredJointConfigurationPort.interrupt();
         desiredJointConfigurationPort.close();
 
+        targetPositionOutputPort.interrupt();
+        targetPositionOutputPort.close();
+
         setFace(FACE_HAPPY);
         outportCmdFace.interrupt();
         outportCmdFace.close();
@@ -1309,6 +1317,7 @@ namespace codyco {
         blinkerrpc.open((name+"/blinker:rpc").c_str());
         askForMotionDoneRPCClient.open(name + "/motionDone:rpc");
         eventsOutputPort.open(name + "/events:o");
+        targetPositionOutputPort.open(name + "/target:o");
 
         std::string fwslash="/";
 

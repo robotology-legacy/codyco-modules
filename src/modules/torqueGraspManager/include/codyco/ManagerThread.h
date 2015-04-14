@@ -149,6 +149,7 @@ namespace codyco {
         yarp::sig::Vector* currentDesiredArmJointConfiguration;
         //Output ports
         yarp::os::BufferedPort<yarp::os::Property> desiredJointConfigurationPort;
+        yarp::os::BufferedPort<yarp::sig::Vector> targetPositionOutputPort; //output streaming port with position of target w.r.t. root frame
         /*
          RCP protocol:
          Writes the following command (two string). [ . ] is optional
