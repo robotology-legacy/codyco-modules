@@ -174,6 +174,9 @@ int main (int argc, char * argv[])
         yInfo()<< "\t--enable_w0_dw0/disable_w0_dw0    :Enable/disable use of angular velocity and acceleration measured from the IMU (default: disabled)." ;
         yInfo()<< "\t--autoconnect      :Autoconnect torques port for low-level torque feedback. " ;
         yInfo()<< "\t--assume_fixed     :Use a link as a kinematic root in estimation and calibration (assuming a constant gravity). Possible options: (root_link, l_foot_dh_frame, r_foot_dh_frame).";
+        yInfo()<< "\t--assume_fixed_from_odometry :Use the fixed link from odometry for assume a constant gravity in estimation and calibration";
+        yInfo()<< "                                 ***NOTE: with this option only the calibration on two feet is supported. Furthermore the link should not be switched during calibration.";
+        yInfo()<< "                                 Furthermore the only supported fixed link for odometry are r_foot and l_foot***";
         yInfo()<< "\t--output_clean_ft  :Output the measure of the FT sensors without offset in set of ports." ;
         yInfo()<< "\t--min_taxel  threshold   :Filter input skin contacts: if the activated taxels are lower than the threshold, ignore the contact (default: 1)." ;
         yInfo()<< "\t--smooth_calibration switch_period : Perform a smooth calibration (i.e.: don't stop estimating torques during calibration, and then smoothly change the ft offsets)";

@@ -168,6 +168,11 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
         yarpWbiOptions.put("fixed_base",fixed_link);
     }
 
+    if( rf.check("assume_fixed_from_odometry") )
+    {
+        yarpWbiOptions.put("assume_fixed_from_odometry","dummy");
+    }
+
     if( rf.check("IDYNTREE_SKINDYNLIB_LINKS") )
     {
         yarp::os::Property & prop = yarpWbiOptions.addGroup("IDYNTREE_SKINDYNLIB_LINKS");
@@ -251,7 +256,8 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
                                             sensors,
                                             yarpWbiOptions,
                                             fixed_base_calibration,
-                                            fixed_link_calibration);
+                                            fixed_link_calibration,
+                                            rf.check("assume_fixed_from_odometry"));
     if(!wbdThread->start())
     {
         yError() << getName()

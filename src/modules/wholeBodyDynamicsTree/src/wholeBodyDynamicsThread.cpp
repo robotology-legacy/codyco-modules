@@ -54,7 +54,8 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
                                                  yarpWholeBodySensors *_wbs,
                                                  yarp::os::Property & _yarp_options,
                                                  bool _assume_fixed_base_calibration,
-                                                 std::string _fixed_link_calibration
+                                                 std::string _fixed_link_calibration,
+                                                 bool _assume_fixed_base_calibration_from_odometry
                                                 )
     :  RateThread(_period),
        moduleName(_name),
@@ -68,6 +69,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        samples_used_for_calibration(0),
        assume_fixed_base_calibration(_assume_fixed_base_calibration),
        fixed_link_calibration(_fixed_link_calibration),
+       assume_fixed_base_calibration_from_odometry(_assume_fixed_base_calibration_from_odometry),
        run_mutex_acquired(false),
        odometry_enabled(false)
 {
@@ -115,7 +117,15 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
        if( assume_fixed_base_calibration ) {
            icub_model_calibration = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization,fixed_link_calibration);
            icub_model_world_base_position = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization,fixed_link_calibration);
-       } else {
+       }
+       else if( assume_fixed_base_calibration_from_odometry )
+       {
+           icub_model_calibration_on_l_sole = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization,"l_sole");
+           icub_model_calibration_on_r_sole = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization,"r_sole");
+           icub_model_calibration = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization);
+       }
+       else
+       {
            icub_model_calibration = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization);
            icub_model_world_base_position = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization);
        }
@@ -583,6 +593,11 @@ bool wholeBodyDynamicsThread::calibrateOffset(const std::string calib_code, int 
     //Changing the base of the calibration model to the root link
     icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex(calibration_support_link));
 
+    if( this->assume_fixed_base_calibration_from_odometry )
+    {
+        icub_model_calibration_on_l_sole->setFloatingBaseLink(icub_model_calibration_on_l_sole->getLinkIndex(calibration_support_link));
+        icub_model_calibration_on_r_sole->setFloatingBaseLink(icub_model_calibration_on_r_sole->getLinkIndex(calibration_support_link));
+    }
 
     calibration_mutex.lock();
     std::cout << "wholeBodyDynamicsThread::calibrateOffset " << calib_code  << " called successfully, starting calibration." << std::endl;
@@ -712,6 +727,11 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport(const std::
      //Changing the base of the calibration model to the left foot
     icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex("l_sole"));
 
+    if( this->assume_fixed_base_calibration_from_odometry )
+    {
+        icub_model_calibration_on_l_sole->setFloatingBaseLink(icub_model_calibration_on_l_sole->getLinkIndex("l_sole"));
+        icub_model_calibration_on_r_sole->setFloatingBaseLink(icub_model_calibration_on_r_sole->getLinkIndex("l_sole"));
+    }
 
     calibration_mutex.lock();
     yInfo() << "wholeBodyDynamicsThread::calibrateOffsetOnLeftFootSingleSupport " << calib_code  << " called successfully, starting calibration.";
@@ -750,6 +770,12 @@ bool wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport(const std:
 
     //Changing the base of the calibration model to the left foot
     icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex("r_sole"));
+
+    if( this->assume_fixed_base_calibration_from_odometry )
+    {
+        icub_model_calibration_on_l_sole->setFloatingBaseLink(icub_model_calibration_on_l_sole->getLinkIndex("r_sole"));
+        icub_model_calibration_on_r_sole->setFloatingBaseLink(icub_model_calibration_on_r_sole->getLinkIndex("r_sole"));
+    }
 
     calibration_mutex.lock();
     yInfo() << "wholeBodyDynamicsThread::calibrateOffsetOnRightFootSingleSupport " << calib_code  << " called successfully, starting calibration.";
@@ -851,6 +877,8 @@ bool wholeBodyDynamicsThread::initOdometry()
     bool ok = this->odometry_helper.init(undirected_tree,
                                          initial_world_frame,
                                          initial_fixed_link);
+    this->current_fixed_link_name = initial_fixed_link;
+    externalWrenchTorqueEstimator->current_fixed_link_name = initial_fixed_link;
 
     // Get floating base frame index
     this->odometry_floating_base_frame_index = odometry_helper.getDynTree().getFrameIndex(floating_base_frame);
@@ -984,6 +1012,9 @@ void wholeBodyDynamicsThread::publishOdometry()
 
             port_frames->write();
         }
+
+        // save the current link considered as fixed by the odometry
+        current_fixed_link_name = odometry_helper.getCurrentFixedLink();
     }
 }
 
@@ -1047,6 +1078,8 @@ bool wholeBodyDynamicsThread::changeFixedLinkSimpleLeggedOdometry(const string& 
         if( ok )
         {
             yInfo() << "SIMPLE_LEGGED_ODOMETRY fixed link successfully changed to " << new_fixed_link;
+            this->current_fixed_link_name = new_fixed_link;
+            externalWrenchTorqueEstimator->current_fixed_link_name = new_fixed_link;
         }
         else
         {
@@ -1091,8 +1124,25 @@ void wholeBodyDynamicsThread::getExternalWrenches()
         int frame_origin_id = output_wrench_ports[i].origin_frame_index;
         int frame_orientation_id = output_wrench_ports[i].orientation_frame_index;
 
-        KDL::Wrench f =
-            externalWrenchTorqueEstimator->robot_estimation_model->getExternalForceTorqueKDL(link_id,frame_origin_id,frame_orientation_id);
+        KDL::Wrench f;
+
+        if( !this->assume_fixed_base_calibration )
+        {
+            f = externalWrenchTorqueEstimator->robot_estimation_model->getExternalForceTorqueKDL(link_id,frame_origin_id,frame_orientation_id);
+        }
+
+        if( this->assume_fixed_base_calibration )
+        {
+            if( this->current_fixed_link_name == "r_foot" )
+            {
+                f = externalWrenchTorqueEstimator->robot_estimation_model_on_r_sole->getExternalForceTorqueKDL(link_id,frame_origin_id,frame_orientation_id);
+            }
+
+            if( this->current_fixed_link_name == "l_foot" )
+            {
+                f = externalWrenchTorqueEstimator->robot_estimation_model_on_r_sole->getExternalForceTorqueKDL(link_id,frame_origin_id,frame_orientation_id);
+            }
+        }
 
         // We can do that just because the translational-angular serialization
         // is the same in KDL and wbi
@@ -1519,11 +1569,6 @@ void wholeBodyDynamicsThread::calibration_run()
     }
 
 
-    /*
-    std::cout << "wholeBodyDynamicsThread::calibration_run() "
-              <<  samples_used_for_calibration << " / "
-              << samples_requested_for_calibration << "  finished" << std::endl;
-    */
 }
 
 //*************************************************************************************************************************
@@ -1553,6 +1598,13 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
             calibration_ddp[0] = gravity;
         }
     }
+    else if( this->assume_fixed_base_calibration_from_odometry )
+    {
+        double gravity = 9.8;
+        calibration_ddp[0] = 0.0;
+        calibration_ddp[1] = 0.0;
+        calibration_ddp[2] = 9.8;
+    }
     else
     {
         calibration_ddp[0] = sensor_status.wbi_imu[4];
@@ -1565,14 +1617,44 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
     YARP_ASSERT(sensor_status.domega_imu.size() == 3);
     YARP_ASSERT(sensor_status.proper_ddp_imu.size() == 3);
 
-    icub_model_calibration->setInertialMeasure(zero_three_elem_vector,zero_three_elem_vector,calibration_ddp);
-    icub_model_calibration->setAngKDL(joint_status.getJointPosKDL());
-    icub_model_calibration->setDAng(zero_dof_elem_vector);
-    icub_model_calibration->setD2Ang(zero_dof_elem_vector);
+    if( !this->assume_fixed_base_calibration_from_odometry )
+    {
+        icub_model_calibration->setInertialMeasure(zero_three_elem_vector,zero_three_elem_vector,calibration_ddp);
+        icub_model_calibration->setAngKDL(joint_status.getJointPosKDL());
+        icub_model_calibration->setDAng(zero_dof_elem_vector);
+        icub_model_calibration->setD2Ang(zero_dof_elem_vector);
 
-    ok = ok && icub_model_calibration->kinematicRNEA();
-    ok = ok && icub_model_calibration->estimateDoubleSupportContactForce(left_foot_link_idyntree_id,right_foot_link_idyntree_id);
-    ok = ok && icub_model_calibration->dynamicRNEA();
+        ok = ok && icub_model_calibration->kinematicRNEA();
+        ok = ok && icub_model_calibration->estimateDoubleSupportContactForce(left_foot_link_idyntree_id,right_foot_link_idyntree_id);
+        ok = ok && icub_model_calibration->dynamicRNEA();
+    }
+    else
+    {
+        if( this->current_fixed_link_name == "r_foot" )
+        {
+            icub_model_calibration_on_r_sole->setInertialMeasure(zero_three_elem_vector,zero_three_elem_vector,calibration_ddp);
+            icub_model_calibration_on_r_sole->setAngKDL(joint_status.getJointPosKDL());
+            icub_model_calibration_on_r_sole->setDAng(zero_dof_elem_vector);
+            icub_model_calibration_on_r_sole->setD2Ang(zero_dof_elem_vector);
+
+            ok = ok && icub_model_calibration_on_r_sole->kinematicRNEA();
+            ok = ok && icub_model_calibration_on_r_sole->estimateDoubleSupportContactForce(left_foot_link_idyntree_id,right_foot_link_idyntree_id);
+            ok = ok && icub_model_calibration_on_r_sole->dynamicRNEA();
+        }
+
+        if( this->current_fixed_link_name == "l_foot" )
+        {
+            icub_model_calibration_on_l_sole->setInertialMeasure(zero_three_elem_vector,zero_three_elem_vector,calibration_ddp);
+            icub_model_calibration_on_l_sole->setAngKDL(joint_status.getJointPosKDL());
+            icub_model_calibration_on_l_sole->setDAng(zero_dof_elem_vector);
+            icub_model_calibration_on_l_sole->setD2Ang(zero_dof_elem_vector);
+
+            ok = ok && icub_model_calibration_on_l_sole->kinematicRNEA();
+            ok = ok && icub_model_calibration_on_l_sole->estimateDoubleSupportContactForce(left_foot_link_idyntree_id,right_foot_link_idyntree_id);
+            ok = ok && icub_model_calibration_on_l_sole->dynamicRNEA();
+        }
+    }
+
 
     // todo check that the residual forze is zero
 
@@ -1588,7 +1670,22 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
         if( calibrate_ft_sensor[ft_sensor_id] )
         {
             //Get sensor estimated from model
-            icub_model_calibration->getSensorMeasurement(ft_sensor_id,sensor_status.model_ft_sensors[ft_sensor_id]);
+            if( !this->assume_fixed_base_calibration_from_odometry )
+            {
+                icub_model_calibration->getSensorMeasurement(ft_sensor_id,sensor_status.model_ft_sensors[ft_sensor_id]);
+            }
+            else
+            {
+                if( this->current_fixed_link_name == "r_foot" )
+                {
+                    icub_model_calibration_on_r_sole->getSensorMeasurement(ft_sensor_id,sensor_status.model_ft_sensors[ft_sensor_id]);
+                }
+
+                if( this->current_fixed_link_name == "l_foot" )
+                {
+                    icub_model_calibration_on_l_sole->getSensorMeasurement(ft_sensor_id,sensor_status.model_ft_sensors[ft_sensor_id]);
+                }
+            }
 
             //Get sensor measure
             assert((int)offset_buffer[ft_sensor_id].size() == wbi::sensorTypeDescriptions[wbi::SENSOR_FORCE_TORQUE].dataSize);
@@ -1626,6 +1723,13 @@ void wholeBodyDynamicsThread::calibration_on_double_support_run()
         }
 
         icub_model_calibration->setFloatingBaseLink(icub_model_calibration->getLinkIndex(calibration_support_link));
+
+        if( this->assume_fixed_base_calibration_from_odometry )
+        {
+            icub_model_calibration_on_l_sole->setFloatingBaseLink(icub_model_calibration->getLinkIndex(calibration_support_link));
+            icub_model_calibration_on_r_sole->setFloatingBaseLink(icub_model_calibration->getLinkIndex(calibration_support_link));
+        }
+
         wbd_mode = NORMAL;
         calibration_mutex.unlock();
     }
@@ -1665,6 +1769,8 @@ void wholeBodyDynamicsThread::threadRelease()
 
     yInfo() << "Closing iCubGui base port";
     closePort(port_icubgui_base);
+
+    yInfo() << "Closing filtered inertial port";
     closePort(port_filtered_inertial);
 
     if( publish_filtered_ft )
@@ -1676,8 +1782,19 @@ void wholeBodyDynamicsThread::threadRelease()
         port_filtered_ft.resize(0);
     }
 
+    yInfo() << "Closing filtered inertial port";
     delete icub_model_calibration;
-    delete icub_model_world_base_position;
+
+    if( this->assume_fixed_base_calibration_from_odometry )
+    {
+        delete icub_model_calibration_on_l_sole;
+        delete icub_model_calibration_on_r_sole;
+    }
+
+    if( !this->assume_fixed_base_calibration_from_odometry )
+    {
+        delete icub_model_world_base_position;
+    }
 
     delete filters;
 

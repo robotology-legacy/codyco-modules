@@ -211,6 +211,8 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
     iCub::iDynTree::TorqueEstimationTree * icub_model_calibration;
     iCub::iDynTree::TorqueEstimationTree * icub_model_world_base_position;
+    iCub::iDynTree::TorqueEstimationTree * icub_model_calibration_on_l_sole;
+    iCub::iDynTree::TorqueEstimationTree * icub_model_calibration_on_r_sole;
     std::string calibration_support_link;
 
     int samples_requested_for_calibration;
@@ -238,6 +240,7 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
     bool assume_fixed_base_calibration;
     std::string fixed_link_calibration;
+    bool assume_fixed_base_calibration_from_odometry;
 
     bool autoconnect;
 
@@ -275,6 +278,7 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     yarp::sig::Matrix buffer_transform_matrix;
     bool com_streaming_enabled;
     yarp::os::BufferedPort<yarp::sig::Vector> * port_com;
+    std::string current_fixed_link_name;
     bool initOdometry();
     void publishOdometry();
     void closeOdometry();
@@ -287,7 +291,9 @@ public:
                             yarpWbi::yarpWholeBodySensors *_wbi,
                             yarp::os::Property & yarpOptions,
                             bool assume_fixed_base_calibration,
-                            std::string fixed_link);
+                            std::string fixed_link,
+                            bool assume_fixed_base_calibration_from_odometry
+                           );
 
     bool threadInit();
 

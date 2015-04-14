@@ -89,6 +89,7 @@ using namespace yarpWbi;
         int min_taxel;
         bool assume_fixed_base;
         std::string fixed_link;
+        bool assume_fixed_base_from_odometry;
         yarp::os::Property wbi_yarp_conf;
 
         yarp::sig::Vector omega_used_IMU;
@@ -124,6 +125,11 @@ using namespace yarpWbi;
 
     public:
         iCub::iDynTree::TorqueEstimationTree * robot_estimation_model;
+        iCub::iDynTree::TorqueEstimationTree * robot_estimation_model_on_l_sole;
+        iCub::iDynTree::TorqueEstimationTree * robot_estimation_model_on_r_sole;
+
+        std::string current_fixed_link_name;
+
 
         iCub::skinDynLib::dynContactList estimatedLastDynContacts;
         iCub::skinDynLib::skinContactList estimatedLastSkinDynContacts;

@@ -111,7 +111,7 @@ fsm_right_step = rfsm.state {
     ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_RIGHT_FOOT = rfsm.state{
         entry=function()
             -- send the COM in the right foot convex hull
-            assert(false)
+            gas_sendCOMToTrajGen(setpoints_port,gas_setpoints.weight_on_right_foot_com_in_world);
 
             -- preparing for left foot step: change the odometry fixed link
             -- to the right_foot

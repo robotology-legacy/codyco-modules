@@ -59,7 +59,8 @@ ExternalWrenchesAndTorquesEstimator::ExternalWrenchesAndTorquesEstimator(int _pe
    port_skin_contacts(_port_skin_contacts),
    enable_omega_domega_IMU(false),
    min_taxel(0),
-   wbi_yarp_conf(_wbi_yarp_conf)
+   wbi_yarp_conf(_wbi_yarp_conf),
+   assume_fixed_base_from_odometry(false)
 {
 
     resizeAll(sensors->getSensorNumber(SENSOR_ENCODER));
@@ -80,9 +81,9 @@ ExternalWrenchesAndTorquesEstimator::ExternalWrenchesAndTorquesEstimator(int _pe
         assume_fixed_base = false;
     }
 
-    if( assume_fixed_base )
+    if( _wbi_yarp_conf.check("assume_fixed_from_odometry") )
     {
-
+        this->assume_fixed_base_from_odometry = true;
     }
 }
 
@@ -138,6 +139,12 @@ bool ExternalWrenchesAndTorquesEstimator::init()
         } else {
             robot_estimation_model = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization,fixed_link);
         }
+
+        if( this->assume_fixed_base_from_odometry )
+        {
+            robot_estimation_model_on_l_sole = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization,"l_sole");
+            robot_estimation_model_on_r_sole = new iCub::iDynTree::TorqueEstimationTree(urdf_file_path,dof_serialization,ft_serialization,"r_sole");
+        }
     }
     //Load mapping from skinDynLib to iDynTree links from configuration files
 
@@ -162,6 +169,12 @@ bool ExternalWrenchesAndTorquesEstimator::init()
         int skinDynLib_body_part = map_bot->get(1).asList()->get(1).asInt();
         int skinDynLib_link_index = map_bot->get(1).asList()->get(2).asInt();
         bool ret_sdl = robot_estimation_model->addSkinDynLibAlias(iDynTree_link_name,iDynTree_skinFrame_name,skinDynLib_body_part,skinDynLib_link_index);
+        if( this->assume_fixed_base_from_odometry )
+        {
+            robot_estimation_model_on_l_sole->addSkinDynLibAlias(iDynTree_link_name,iDynTree_skinFrame_name,skinDynLib_body_part,skinDynLib_link_index);
+            robot_estimation_model_on_r_sole->addSkinDynLibAlias(iDynTree_link_name,iDynTree_skinFrame_name,skinDynLib_body_part,skinDynLib_link_index);
+        }
+
         if( !ret_sdl )
         {
             std::cerr << "[ERR] wholeBodyDynamicsStatesInterface error: IDYNTREE_SKINDYNLIB_LINKS link " << iDynTree_link_name
@@ -490,6 +503,14 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
         }
     }
 
+    if( this->assume_fixed_base_from_odometry )
+    {
+        domega_used_IMU.zero();
+        omega_used_IMU.zero();
+        ddp_used_IMU.zero();
+        ddp_used_IMU[2] = gravity;
+    }
+
     assert((int)joint_status.getJointPosYARP().size() == robot_estimation_model->getNrOfDOFs());
     assert((int)joint_status.getJointVelYARP().size() == robot_estimation_model->getNrOfDOFs());
     assert((int)joint_status.getJointAccYARP().size() == robot_estimation_model->getNrOfDOFs());
@@ -498,28 +519,86 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
     YARP_ASSERT(omega_used_IMU.size() == 3);
     YARP_ASSERT(domega_used_IMU.size() == 3);
     YARP_ASSERT(ddp_used_IMU.size() == 3);
-    bool ok = robot_estimation_model->setInertialMeasure(omega_used_IMU,domega_used_IMU,ddp_used_IMU);
-    robot_estimation_model->setAng(joint_status.getJointPosYARP());
-    robot_estimation_model->setDAng(joint_status.getJointVelYARP());
-    robot_estimation_model->setD2Ang(joint_status.getJointAccYARP());
-
-    for(int i=0; i < robot_estimation_model->getNrOfFTSensors(); i++ ) {
-        assert(sensor_status.estimated_ft_sensors[i].size() == 6);
-         ok  = ok && robot_estimation_model->setSensorMeasurement(i,sensor_status.estimated_ft_sensors[i]);
-    }
-    robot_estimation_model->setContacts(dynContacts);
-
-    ok = ok && robot_estimation_model->kinematicRNEA();
-    ok = ok && robot_estimation_model->estimateContactForcesFromSkin();
-    ok = ok && robot_estimation_model->dynamicRNEA();
-    ok = ok && robot_estimation_model->computePositions();
-
-    if( !ok )
+    if( !assume_fixed_base_from_odometry )
     {
-        yError() << "wholeBodyDynamics: external forces computation and torque estimation failed";
+        bool ok = robot_estimation_model->setInertialMeasure(omega_used_IMU,domega_used_IMU,ddp_used_IMU);
+        robot_estimation_model->setAng(joint_status.getJointPosYARP());
+        robot_estimation_model->setDAng(joint_status.getJointVelYARP());
+        robot_estimation_model->setD2Ang(joint_status.getJointAccYARP());
+
+        for(int i=0; i < robot_estimation_model->getNrOfFTSensors(); i++ ) {
+            assert(sensor_status.estimated_ft_sensors[i].size() == 6);
+            ok  = ok && robot_estimation_model->setSensorMeasurement(i,sensor_status.estimated_ft_sensors[i]);
+        }
+        robot_estimation_model->setContacts(dynContacts);
+
+        ok = ok && robot_estimation_model->kinematicRNEA();
+        ok = ok && robot_estimation_model->estimateContactForcesFromSkin();
+        ok = ok && robot_estimation_model->dynamicRNEA();
+        ok = ok && robot_estimation_model->computePositions();
+
+        if( !ok )
+        {
+            yError() << "wholeBodyDynamics: external forces computation and torque estimation failed";
+        }
+
+        estimatedLastDynContacts = robot_estimation_model->getContacts();
     }
 
-    estimatedLastDynContacts = robot_estimation_model->getContacts();
+    if( assume_fixed_base_from_odometry )
+    {
+        if( this->current_fixed_link_name == "r_foot" )
+        {
+            bool ok = robot_estimation_model_on_r_sole->setInertialMeasure(omega_used_IMU,domega_used_IMU,ddp_used_IMU);
+            robot_estimation_model_on_r_sole->setAng(joint_status.getJointPosYARP());
+            robot_estimation_model_on_r_sole->setDAng(joint_status.getJointVelYARP());
+            robot_estimation_model_on_r_sole->setD2Ang(joint_status.getJointAccYARP());
+
+            for(int i=0; i < robot_estimation_model_on_r_sole->getNrOfFTSensors(); i++ ) {
+                assert(sensor_status.estimated_ft_sensors[i].size() == 6);
+                ok  = ok && robot_estimation_model_on_r_sole->setSensorMeasurement(i,sensor_status.estimated_ft_sensors[i]);
+            }
+            robot_estimation_model_on_r_sole->setContacts(dynContacts);
+
+            ok = ok && robot_estimation_model_on_r_sole->kinematicRNEA();
+            ok = ok && robot_estimation_model_on_r_sole->estimateContactForcesFromSkin();
+            ok = ok && robot_estimation_model_on_r_sole->dynamicRNEA();
+            ok = ok && robot_estimation_model_on_r_sole->computePositions();
+
+            if( !ok )
+            {
+                yError() << "wholeBodyDynamics: external forces computation and torque estimation failed";
+            }
+
+            estimatedLastDynContacts = robot_estimation_model_on_r_sole->getContacts();
+        }
+
+        if( this->current_fixed_link_name == "l_foot" )
+        {
+            bool ok = robot_estimation_model_on_l_sole->setInertialMeasure(omega_used_IMU,domega_used_IMU,ddp_used_IMU);
+            robot_estimation_model_on_l_sole->setAng(joint_status.getJointPosYARP());
+            robot_estimation_model_on_l_sole->setDAng(joint_status.getJointVelYARP());
+            robot_estimation_model_on_l_sole->setD2Ang(joint_status.getJointAccYARP());
+
+            for(int i=0; i < robot_estimation_model_on_l_sole->getNrOfFTSensors(); i++ ) {
+                assert(sensor_status.estimated_ft_sensors[i].size() == 6);
+                ok  = ok && robot_estimation_model_on_l_sole->setSensorMeasurement(i,sensor_status.estimated_ft_sensors[i]);
+            }
+            robot_estimation_model_on_l_sole->setContacts(dynContacts);
+
+            ok = ok && robot_estimation_model_on_l_sole->kinematicRNEA();
+            ok = ok && robot_estimation_model_on_l_sole->estimateContactForcesFromSkin();
+            ok = ok && robot_estimation_model_on_l_sole->dynamicRNEA();
+            ok = ok && robot_estimation_model_on_l_sole->computePositions();
+
+            if( !ok )
+            {
+                yError() << "wholeBodyDynamics: external forces computation and torque estimation failed";
+            }
+
+            estimatedLastDynContacts = robot_estimation_model_on_l_sole->getContacts();
+        }
+    }
 
     //Create estimatedLastSkinDynContacts using original skinContacts list read from skinManager
     // for each dynContact find the related skinContact (if any) and set the wrench in it
@@ -561,7 +640,23 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
     estimatedLastSkinDynContacts = skinContacts;
 
     assert((int)tauJ.size() == robot_estimation_model->getNrOfDOFs());
-    tauJ = robot_estimation_model->getTorques();
+    if( !this->assume_fixed_base_from_odometry )
+    {
+        tauJ = robot_estimation_model->getTorques();
+    }
+
+    if( this->assume_fixed_base_from_odometry )
+    {
+        if( this->current_fixed_link_name == "r_foot" )
+        {
+            tauJ = robot_estimation_model_on_r_sole->getTorques();
+        }
+
+        if( this->current_fixed_link_name == "l_foot" )
+        {
+            tauJ = robot_estimation_model_on_l_sole->getTorques();
+        }
+    }
 
 }
 

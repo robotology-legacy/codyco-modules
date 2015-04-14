@@ -59,6 +59,14 @@ function gas_sendPartToTrajGen(port,partName, setpoint_bt)
    port:write()
 end
 
+function gas_changeOdometryFixedLink(port_odometry, link_name)
+    local bot = port_odometry:prepare()
+    bot:clear()
+    bot:addString("changeFixedLinkSimpleLeggedOdometry")
+    bot:addString(link_name)
+    port_odometry:write()
+end
+
 function yarpBottleDiffNorm(bot,bot2,val)
     local nrm = 0
     if( val == nil ) then
@@ -121,9 +129,6 @@ function generate_motiondone_events(fsm)
         end
     end
 
-end
-
-function generate_legs_motiondone_events(fsm)
 end
 
 function gas_sendCOMToBalancing(port,pos,vel,acc)
@@ -760,9 +765,9 @@ function query_cartesian_solver(solver_rpc, des_trans, rest_pos_bt)
     r_sole_R_l_sole = r_sole_R_root_link:compose(gas_get_transform(root_link,l_foot_frame).rot)
 
     r_sole_R_l_sole:print("[DEBUG] Desired r_sole_R_l_sole: ")
-    
+
     qd = reply:get(2):asList():get(1):asList()
-    
+
     -- print("[DEBUG] qd : " .. qd:toString())
     return qd
 end
