@@ -62,6 +62,7 @@ function gas_loadconfiguration()
     step_length     = yarp_rf_find_double(rf,"step_length")
     step_height     = yarp_rf_find_double(rf,"step_height")
     step_penetration = yarp_rf_find_double(rf,"step_penetration")
+    step_hesitation  = yarp_rf_find_double(rf,"step_hesitation")
     transfer_delta_com = yarp_rf_find_double(rf,"transfer_delta_com")
 end
 
@@ -195,7 +196,7 @@ function gas_initialize_setpoints()
     -- The delta is used just for the y value
     gas_setpoints.weight_on_left_foot_com_wrt_l_sole = PointCoord.create()
     gas_setpoints.weight_on_left_foot_com_wrt_l_sole.x = gas_setpoints.initial_com_in_l_foot.x
-    gas_setpoints.weight_on_left_foot_com_wrt_l_sole.y = gas_setpoints.initial_com_in_l_foot.y-transfer_delta_com
+    gas_setpoints.weight_on_left_foot_com_wrt_l_sole.y = gas_setpoints.initial_com_in_l_foot.y+transfer_delta_com
     gas_setpoints.weight_on_left_foot_com_wrt_l_sole.z = gas_setpoints.initial_com_in_l_foot.z
 
     print("[INFO] generating first com reference")
@@ -310,8 +311,12 @@ function main()
         -- the fsm entry/doo/exit functions
         rfsm.run(fsm)
 
-        -- wait
-        yarp.Time_delay(fsm_update_period)
+        -- wait (the fsm is doing blocking operations)
+        local time_passed = yarp.Time_now()-yarp_now
+        if( time_passed >= 0.0 and time_passed < fsm_update_period ) then
+            yarp.Time_delay(fsm_update_period-time_passed)
+        end
+
     until shouldExit ~= false
 
     print("[INFO] finishing")

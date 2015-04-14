@@ -67,9 +67,11 @@ function steppingMonitor:run(fsm)
     if( math.abs(self.buffer_left_foot_wrench:get(2):asDouble()) < vertical_force_threshold ) then
         rfsm.send_events(fsm,'e_no_weight_on_left_foot')
     else
-        rfsm.send_events(fsn,'e_weight_on_left_foot')
+        rfsm.send_events(fsm,'e_weight_on_left_foot')
     end
 
+    vertical_force = self.buffer_right_foot_wrench:get(2):asDouble();
+    --print("Vertical force on right foot : " .. vertical_force)
     if( math.abs(self.buffer_right_foot_wrench:get(2):asDouble()) < vertical_force_threshold ) then
         rfsm.send_events(fsm,'e_no_weight_on_right_foot')
     else
