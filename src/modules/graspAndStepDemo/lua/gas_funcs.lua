@@ -159,12 +159,16 @@ function generate_motiondone_events(fsm)
         lastPrintTime = yarp_now
         print("comErr : " .. comErr)
 
-        if( qErrRL ~= nill ) then
+        if( qErrRL ~= nil ) then
             print(" qErrRL: " .. qErrRL)
         end
 
-        if( qErrLL ~= nill ) then
+        if( qErrLL ~= nil ) then
             print(" qErrLL: " .. qErrLL)
+        end
+        
+        if( vertical_force ~= nil ) then
+			print(" Vertical force on right foot " .. vertical_force)
         end
     end
 
@@ -918,5 +922,15 @@ function gas_generate_left_foot_setpoints()
     gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole = HomTransform.create()
     -- not touching rot because is already the identity gas_setpoints.world_l_sole_initial_swing_des_pos_in_r_sole.rot
     gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole.origin = delta_initial_swing_wrt_r_sole:clone();
+    
+    local delta_final_swing_wrt_r_sole = PointCoord.create()
+    
+    delta_final_swing_wrt_r_sole.x = 0.0
+    delta_final_swing_wrt_r_sole.y = initial_y_distance_between_feet_in_r_sole
+    delta_final_swing_wrt_r_sole.z = 0.0
+    
+    gas_setpoints.l_sole_final_swing_des_pos_in_r_sole = HomTransform.create()
+    gas_setpoints.l_sole_final_swing_des_pos_in_r_sole.origin = delta_final_swing_wrt_r_sole:clone();
+
 end
 	

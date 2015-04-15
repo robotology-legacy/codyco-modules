@@ -105,6 +105,7 @@ fsm_right_step = rfsm.state {
 
         doo=function()
             while true do
+				print("ST_SINGLESUPPORT_RIGHT_FOOT_FINAL_SWING do called")
                 -- Send final r_sole setpoint (considerint that the root_link has moved in the meantime
                 root_link_r_foot_des_pos = gas_get_transform(root_link,"world"):compose( gas_setpoints.world_r_foot_final_swing_des_pos)
 
@@ -112,6 +113,7 @@ fsm_right_step = rfsm.state {
 
                 -- send desired q to right_leg
                 gas_sendPartToTrajGen(setpoints_port,"right_leg",right_leg_qdes)
+                
                 rfsm.yield(true)
             end
         end
@@ -123,6 +125,14 @@ fsm_right_step = rfsm.state {
             gas_activateConstraints(constraints_port,{'r_foot','l_foot'})
 
         end,
+        
+        doo=function()
+			while true do            
+				gas_activateConstraints(constraints_port,{'r_foot','l_foot'})
+				
+			    rfsm.yield(true)
+			end
+		end
     },
 
     ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_RIGHT_FOOT = rfsm.state{
@@ -178,9 +188,34 @@ fsm_right_step = rfsm.state {
         entry=function()
             -- send initial refernce for everything (i.e. com wrt r_sole) 
             print("ST_SINGLESUPPORT_LEFT_FOOT_FINAL_SWING entry done")
+            
+            if( true ) then
+				left_leg_qdes = gas_setpoints.initialLeftLeg
+            else
+				world_H_l_sole_des = gas_setpoints.l_sole_final_swing_des_pos_in_world
+                root_link_H_l_sole_des = gas_get_transform(root_link,"world"):compose(world_H_l_sole_des)
+
+                left_leg_qdes = query_left_leg_cartesian_solver(root_link_H_l_sole_des);
+            end
+            
             gas_sendCOMAndTwoPartsToTrajGen(setpoints_port,gas_setpoints.initial_com_wrt_r_foot_in_world,
                                             "right_leg",gas_setpoints.initialRightLeg,
-                                            "left_leg",gas_setpoints.initialLeftLeg)
+                                            "left_leg",left_leg_qdes)
+        end,
+        
+        doo=function()
+            while true do
+				if( false ) then
+					world_H_l_sole_des = gas_setpoints.l_sole_final_swing_des_pos_in_world
+					root_link_H_l_sole_des = gas_get_transform(root_link,"world"):compose(world_H_l_sole_des)
+
+					left_leg_qdes = query_left_leg_cartesian_solver(root_link_H_l_sole_des);
+
+					gas_sendPartToTrajGen(setpoints_port,"left_leg",left_leg_qdes)
+			    end
+
+                rfsm.yield(true)
+            end
         end,
     },
 
@@ -200,10 +235,10 @@ fsm_right_step = rfsm.state {
     rfsm.transition { src='ST_SINGLESUPPORT_ON_LEFT_FOOT', tgt='ST_SINGLESUPPORT_RIGHT_FOOT_INITIAL_SWING', events={ 'e_after(' .. step_hesitation .. ')'} },
     rfsm.transition { src='ST_SINGLESUPPORT_RIGHT_FOOT_INITIAL_SWING', tgt='ST_SINGLESUPPORT_RIGHT_FOOT_FINAL_SWING', events={ 'e_right_leg_motion_done'} },
     rfsm.transition { src='ST_SINGLESUPPORT_RIGHT_FOOT_FINAL_SWING', tgt='ST_DOUBLESUPPORT_AFTER_RIGHT_STEP', events={ 'e_weight_on_right_foot' } },
-    rfsm.transition { src='ST_DOUBLESUPPORT_AFTER_RIGHT_STEP', tgt='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_RIGHT_FOOT', events={ 'e_dbg_go_on' --[[ 'e_after(' .. step_hesitation .. ')' ]] } },
+    rfsm.transition { src='ST_DOUBLESUPPORT_AFTER_RIGHT_STEP', tgt='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_RIGHT_FOOT', events={  'e_after(' .. step_hesitation .. ')' } },
     rfsm.transition { src='ST_DOUBLESUPPORT_TRANSFER_WEIGHT_TO_RIGHT_FOOT', tgt='ST_SINGLESUPPORT_ON_RIGHT_FOOT', events={ 'e_com_motion_done' } },
-    rfsm.transition { src='ST_SINGLESUPPORT_ON_RIGHT_FOOT', tgt='ST_SINGLESUPPORT_LEFT_FOOT_INITIAL_SWING', events={ 'e_dbg_go_on' --[[ 'e_after(' .. step_hesitation .. ')' ]] } },
-    rfsm.transition { src='ST_SINGLESUPPORT_LEFT_FOOT_INITIAL_SWING', tgt='ST_SINGLESUPPORT_LEFT_FOOT_FINAL_SWING', events={ 'e_dbg_go_on' --[['e_left_leg_motion_done']] } },
+    rfsm.transition { src='ST_SINGLESUPPORT_ON_RIGHT_FOOT', tgt='ST_SINGLESUPPORT_LEFT_FOOT_INITIAL_SWING', events={ 'e_after(' .. step_hesitation .. ')' } },
+    rfsm.transition { src='ST_SINGLESUPPORT_LEFT_FOOT_INITIAL_SWING', tgt='ST_SINGLESUPPORT_LEFT_FOOT_FINAL_SWING', events={ 'e_left_leg_motion_done' } },
     rfsm.transition { src='ST_SINGLESUPPORT_LEFT_FOOT_FINAL_SWING', tgt='ST_DOUBLESUPPORT_INITIAL_COM', events={ 'e_weight_on_left_foot' } },
 }
 

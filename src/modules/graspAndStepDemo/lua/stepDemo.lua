@@ -283,6 +283,11 @@ function gas_updateframes()
         gas_setpoints.l_sole_initial_swing_des_pos_in_world =
             world_H_r_foot:compose(gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole)
     end
+    
+    if( gas_setpoints.l_sole_final_swing_des_pos_in_r_sole ) then
+		gas_setpoints.l_sole_final_swing_des_pos_in_world =
+            world_H_r_foot:compose(gas_setpoints.l_sole_final_swing_des_pos_in_r_sole)
+    end
 
 end
 
@@ -303,7 +308,7 @@ function main()
 
     -- load main FSM
     fsm_file = rf:findFile("lua/fsm_test_right_step.lua")
-    print("[INFO] loading rFSM state machine")
+    print("[INFO] loading rFSM state machine from " .. fsm_file)
     -- load state machine model and initalize it
     rfsm_timeevent.set_gettime_hook(yarp_gettime)
 
