@@ -54,8 +54,11 @@ function gas_sendPartToTrajGen(port,partName, setpoint_bt)
        gas_motion_done_helper.leftLegDes  = setpoint_bt
    end
    local prop = port:prepare();
+   -- print("[DEBUG] gas_sendPartToTrajGen clear")
    prop:clear()
+   -- print("[DEBUG] gas_sendPartToTrajGen put")
    prop:put(partName,ValueFromBottleAndDeg2Rad(setpoint_bt))
+   -- print("[DEBUG] gas_sendPartToTrajGen put")
    port:write()
 end
 
@@ -749,36 +752,52 @@ function query_cartesian_solver(solver_rpc, des_trans, rest_pos_bt)
         restPosWeight2:add(0.01)
     end
 
-    -- print("[DEBUG] requested xd" .. poseReq2:toString())
-    reply = yarp.Bottle()
-    solver_rpc:write(req,reply)
-    -- print("[DEBUG] actual cartesianSolver reply: " .. reply:toString())
+    --print("[DEBUG] requested xd" .. poseReq2:toString())
+    reply2 = yarp.Bottle()
+    reply  = yarp.Bottle()
+    solver_rpc:write(req,reply2)
+    reply:copy(reply2)
+    --print("[DEBUG] actual cartesianSolver reply: " .. reply:toString())
+    --print("[DEBUG] get xd")
     xd = reply:get(1):asList():get(1):asList()
 
-    aa_r_sole_root_link_d = {}
-    aa_r_sole_root_link_d.ax = xd:get(3):asDouble()
-    aa_r_sole_root_link_d.ay = xd:get(4):asDouble()
-    aa_r_sole_root_link_d.az = xd:get(5):asDouble()
-    aa_r_sole_root_link_d.theta = xd:get(6):asDouble()
+    -- aa_r_sole_root_link_d = {}
+    -- aa_r_sole_root_link_d.ax = xd:get(3):asDouble()
+    -- aa_r_sole_root_link_d.ay = xd:get(4):asDouble()
+    -- aa_r_sole_root_link_d.az = xd:get(5):asDouble()
+    -- aa_r_sole_root_link_d.theta = xd:get(6):asDouble()
 
-    r_sole_R_root_link = RotMatrixFromAxisAngleTable(aa_r_sole_root_link_d)
-    r_sole_R_l_sole = r_sole_R_root_link:compose(gas_get_transform(root_link,l_foot_frame).rot)
+    -- r_sole_R_root_link = RotMatrixFromAxisAngleTable(aa_r_sole_root_link_d)
+    -- r_sole_R_l_sole = r_sole_R_root_link:compose(gas_get_transform(root_link,l_foot_frame).rot)
 
     -- r_sole_R_l_sole:print("[DEBUG] Desired r_sole_R_l_sole: ")
-
-    qd = reply:get(2):asList():get(1):asList()
-
+    --print("[DEBUG] get qd")
+    qd2 = reply:get(2):asList():get(1):asList()
+    qd = yarp.Bottle()
+    qd:copy(qd2)
+    
     -- print("[DEBUG] qd : " .. qd:toString())
     return qd
 end
 
 function query_right_leg_cartesian_solver(des_trans)
-    -- print("[DEBUG] reading right leg joint positions")
+    --print("[DEBUG] reading right leg joint positions")
     qMeas = right_leg_state_port:read(true)
 
     return query_cartesian_solver(root_link_r_sole_solver_port, des_trans, qMeas)
 
 end
+
+function query_left_leg_cartesian_solver(des_trans)
+    --print("[DEBUG] reading right leg joint positions")
+    qMeas = left_leg_state_port:read(true)
+
+    --print("[DEBUG] queryng cartesian solver positions")
+    return query_cartesian_solver(root_link_l_sole_solver_port, des_trans, qMeas)
+
+end
+
+
 
 function gas_get_transform(final_frame, origin_frame)
     if( final_frame == "world" ) then
@@ -862,5 +881,5 @@ function gas_generate_left_foot_setpoints()
 
     gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole = HomTransform.create()
     -- not touching rot because is already the identity gas_setpoints.world_l_sole_initial_swing_des_pos_in_r_sole.rot
-    gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole.origin = delta_initial_swing_wrt_r_sole;
+    gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole.origin = delta_initial_swing_wrt_r_sole:clone();
 end

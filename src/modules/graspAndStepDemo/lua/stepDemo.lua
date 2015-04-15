@@ -174,16 +174,20 @@ function gas_initialize_setpoints()
     -- read right leg joint positions
     rightLegMeas_bt = right_leg_state_port:read(true)
     if( rightLegMeas_bt ~= nil ) then
-        gas_motion_done_helper.rightLegMeas = rightLegMeas_bt;
-        gas_setpoints.initialRightLeg       = rightLegMeas_bt;
+        gas_motion_done_helper.rightLegMeas = yarp.Bottle()
+        gas_motion_done_helper.rightLegMeas:copy(rightLegMeas_bt);
+        gas_setpoints.initialRightLeg       = yarp.Bottle()
+        gas_setpoints.initialRightLeg:copy(rightLegMeas_bt);
     end
 
     print("[DEBUG] waiting left leg")
     -- read left leg joint positions
     leftLegMeas_bt  = left_leg_state_port:read(true)
     if( leftLegMeas_bt ~= nil ) then
-        gas_motion_done_helper.leftLegMeas = leftLegMeas_bt;
-        gas_setpoints.initialLeftLeg       = leftLegMeas_bt;
+        gas_motion_done_helper.leftLegMeas = yarp.Bottle()
+        gas_motion_done_helper.leftLegMeas:copy(leftLegMeas_bt);
+        gas_setpoints.initialLeftLeg       = yarp.Bottle()
+        gas_setpoints.initialLeftLeg:copy(leftLegMeas_bt);
     end
 
 
@@ -196,8 +200,8 @@ function gas_initialize_setpoints()
     r_foot_H_world = gas_get_transform(r_foot_frame,"world")
     l_foot_H_world = gas_get_transform(l_foot_frame,"world")
 
-    print("[INFO] initial y distance between feet")
-    initial_y_distance_between_feet_in_r_sole = gas_get_transform(r_foot_frame,l_foot_frame).origin;
+    initial_y_distance_between_feet_in_r_sole = gas_get_transform(r_foot_frame,l_foot_frame).origin.y;
+    print("[INFO] initial y distance between feet " .. initial_y_distance_between_feet_in_r_sole)
 
     print("[INFO] generating single support on l_foot reference")
     gas_setpoints.initial_com_wrt_l_foot = l_foot_H_world:apply(gas_motion_done_helper.comMeas_in_world)
@@ -245,13 +249,13 @@ function gas_updateframes()
     -- read right leg joint positions
     rightLegMeas_bt = right_leg_state_port:read(false)
     if( rightLegMeas_bt ~= nil ) then
-        gas_motion_done_helper.rightLegMeas = rightLegMeas_bt;
+        gas_motion_done_helper.rightLegMeas:copy(rightLegMeas_bt);
     end
 
     -- read left leg joint positions
     leftLegMeas_bt  = left_leg_state_port:read(false)
     if( leftLegMeas_bt ~= nil ) then
-        gas_motion_done_helper.leftLegMeas = leftLegMeas_bt;
+        gas_motion_done_helper.leftLegMeas:copy(leftLegMeas_bt);
     end
 
     -- get transform
@@ -273,7 +277,7 @@ function gas_updateframes()
 
     if( gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole ) then
         gas_setpoints.l_sole_initial_swing_des_pos_in_world =
-            world_H_r_foot:apply(gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole)
+            world_H_r_foot:compose(gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole)
     end
 
 end

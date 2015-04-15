@@ -131,22 +131,22 @@ fsm_right_step = rfsm.state {
         entry=function()
             -- send desired half step position for left foot
             -- take the world_H_l_sole desired, and expresse it with respect to the world
-            local world_H_l_sole_des = gas_setpoints.l_sole_initial_swing_des_pos_in_world
-            local root_link_H_l_sole_des = gas_get_transform(root_link,"world"):compose(world_H_l_sole_des)
+            world_H_l_sole_des = gas_setpoints.l_sole_initial_swing_des_pos_in_world
+            root_link_H_l_sole_des = gas_get_transform(root_link,"world"):compose(world_H_l_sole_des)
 
-            local left_leg_qdes = query_left_leg_cartesian_solver(root_link_H_l_sole_des);
+            left_leg_qdes = query_left_leg_cartesian_solver(root_link_H_l_sole_des);
 
-            gas_sendPartToTrajGen(setpoints_port,"right_leg",right_leg_qdes)
+            gas_sendPartToTrajGen(setpoints_port,"left_leg",left_leg_qdes)
         end,
 
         doo=function()
             while true do
-                local world_H_l_sole_des = gas_setpoints.l_sole_initial_swing_des_pos_in_world
-                local root_link_H_l_sole_des = gas_get_transform(root_link,"world"):compose(world_H_l_sole_des)
+                world_H_l_sole_des = gas_setpoints.l_sole_initial_swing_des_pos_in_world
+                root_link_H_l_sole_des = gas_get_transform(root_link,"world"):compose(world_H_l_sole_des)
 
-                local left_leg_qdes = query_left_leg_cartesian_solver(root_link_H_l_sole_des);
+                left_leg_qdes = query_left_leg_cartesian_solver(root_link_H_l_sole_des);
 
-                gas_sendPartToTrajGen(setpoints_port,"right_leg",right_leg_qdes)
+                gas_sendPartToTrajGen(setpoints_port,"left_leg",left_leg_qdes)
 
                 rfsm.yield(true)
             end
