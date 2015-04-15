@@ -69,10 +69,10 @@ PortMonitor.update = function(thing)
     -- activate contacts
     if( bt:get(0):asString() == "activateConstraints" ) then
         for i = 1,bt:size() do
-            if( bt:get(1):asString() == "l_foot" ) then
+            if( bt:get(i):asString() == "l_foot" ) then
                 activeConstraints.l_foot = true
             end
-            if( bt:get(1):asString() == "r_foot" ) then
+            if( bt:get(i):asString() == "r_foot" ) then
                 activeConstraints.r_foot = true
             end
         end
@@ -81,10 +81,10 @@ PortMonitor.update = function(thing)
     -- deactivate contacts
     if( bt:get(0):asString() == "deactivateConstraints" ) then
         for i = 1,bt:size() do
-            if( bt:get(1):asString() == "l_foot" ) then
+            if( bt:get(i):asString() == "l_foot" ) then
                 activeConstraints.l_foot = false
             end
-            if( bt:get(1):asString() == "r_foot" ) then
+            if( bt:get(i):asString() == "r_foot" ) then
                 activeConstraints.r_foot = false
             end
         end
