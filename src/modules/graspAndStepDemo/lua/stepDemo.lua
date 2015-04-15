@@ -271,6 +271,11 @@ function gas_updateframes()
     gas_setpoints.weight_on_right_foot_com_in_world =
         world_H_r_foot:apply(gas_setpoints.weight_on_right_foot_com_wrt_r_sole)
 
+    if( gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole ) then
+        gas_setpoints.l_sole_initial_swing_des_pos_in_world =
+            world_H_r_foot:apply(gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole)
+    end
+
 end
 
 function main()
