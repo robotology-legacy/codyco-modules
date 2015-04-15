@@ -62,6 +62,34 @@ function gas_sendPartToTrajGen(port,partName, setpoint_bt)
    port:write()
 end
 
+function gas_sendCOMAndTwoPartsToTrajGen(port,com_setpoint, firstPartName, firstPartSetpoint, secondPartName, secondPartSetpoint)
+   
+   -- save desired values 
+   gas_motion_done_helper.comDes_in_world = com_setpoint:clone();
+   
+   if( firstPartName == "right_leg" ) then
+       gas_motion_done_helper.rightLegDes = firstPartSetpoint
+   end
+   if( firstPartName == "left_leg" ) then
+       gas_motion_done_helper.leftLegDes  = firstPartSetpoint
+   end
+   
+   if( secondPartName == "right_leg" ) then
+       gas_motion_done_helper.rightLegDes = secondPartSetpoint
+   end
+   if( secondPartName == "left_leg" ) then
+       gas_motion_done_helper.leftLegDes  = secondPartSetpoint
+   end
+   
+   local comBotTrajGen = YarpVectorBottleForTrajGenFromPointCoord(com_setpoint)
+   local prop = port:prepare();
+   prop:clear()
+   prop:put("com",comBotTrajGen:get(0))
+   prop:put(firstPartName,ValueFromBottleAndDeg2Rad(firstPartSetpoint))
+   prop:put(secondPartName,ValueFromBottleAndDeg2Rad(secondPartSetpoint))
+   port:write(true)
+end
+
 function gas_changeOdometryFixedLink(port_odometry, link_name)
     local bot = port_odometry:prepare()
     bot:clear()
@@ -90,8 +118,16 @@ function generate_motiondone_events(fsm)
     local errX = gas_motion_done_helper.comDes_in_world.x - gas_motion_done_helper.comMeas_in_world.x;
     local errY = gas_motion_done_helper.comDes_in_world.y - gas_motion_done_helper.comMeas_in_world.y;
     local errZ = gas_motion_done_helper.comDes_in_world.z - gas_motion_done_helper.comMeas_in_world.z;
-    local comErr = math.sqrt(errX*errX + errY*errY + errZ*errZ);
+    local comErr = math.sqrt(errX*errX + errY*errY);
     --print("comErr: " .. comErr)
+    if( transfer_right_to_left ) then
+		com_threshold = com_threshold_right_to_left 
+    end
+    
+    if( transfer_left_to_right ) then
+		com_threshold = com_threshold_left_to_right 
+    end
+    
     if( comErr < com_threshold ) then
         rfsm.send_events(fsm,'e_com_motion_done')
     end
@@ -883,3 +919,4 @@ function gas_generate_left_foot_setpoints()
     -- not touching rot because is already the identity gas_setpoints.world_l_sole_initial_swing_des_pos_in_r_sole.rot
     gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole.origin = delta_initial_swing_wrt_r_sole:clone();
 end
+	

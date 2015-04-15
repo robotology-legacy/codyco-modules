@@ -57,7 +57,9 @@ function gas_loadconfiguration()
     root_link = "root_link"
     world     = "world"
     vertical_force_threshold = yarp_rf_find_double(rf,"vertical_force_threshold");
-    com_threshold   = yarp_rf_find_double(rf,"com_threshold")
+    com_threshold_right_to_left   = yarp_rf_find_double(rf,"com_threshold_right_to_left")
+    com_threshold_left_to_right   = yarp_rf_find_double(rf,"com_threshold_left_to_right")
+    com_threshold = com_threshold_right_to_left
     q_threshold     = yarp_rf_find_double(rf,"q_threshold")
     step_length     = yarp_rf_find_double(rf,"step_length")
     step_height     = yarp_rf_find_double(rf,"step_height")
@@ -66,6 +68,8 @@ function gas_loadconfiguration()
     --transfer_delta_com = yarp_rf_find_double(rf,"transfer_delta_com")
     transfer_delta_y_r_sole = yarp_rf_find_double(rf,"transfer_delta_y_r_sole")
     transfer_delta_y_l_sole = yarp_rf_find_double(rf,"transfer_delta_y_l_sole")
+    
+    
 end
 
 -------
