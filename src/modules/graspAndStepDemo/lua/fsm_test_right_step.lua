@@ -122,6 +122,8 @@ fsm_right_step = rfsm.state {
             -- deactivate constraint on left foot
             gas_deactivateConstraints(constraints_port,{'l_foot'})
 
+            -- Generate foot setpoints (two setpoints)
+            gas_generate_left_foot_setpoints()
         end,
     },
 
