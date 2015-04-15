@@ -196,6 +196,9 @@ function gas_initialize_setpoints()
     r_foot_H_world = gas_get_transform(r_foot_frame,"world")
     l_foot_H_world = gas_get_transform(l_foot_frame,"world")
 
+    print("[INFO] initial y distance between feet")
+    initial_y_distance_between_feet_in_r_sole = gas_get_transform(r_foot_frame,l_foot_frame).origin;
+
     print("[INFO] generating single support on l_foot reference")
     gas_setpoints.initial_com_wrt_l_foot = l_foot_H_world:apply(gas_motion_done_helper.comMeas_in_world)
 

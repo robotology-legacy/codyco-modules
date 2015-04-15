@@ -790,7 +790,6 @@ function gas_get_transform(final_frame, origin_frame)
     return gas_frames[final_frame]:inverse():compose(gas_frames[origin_frame])
 end
 
-
 function gas_generate_right_foot_setpoints()
     -- first setpoint
     delta_initial_swing_in_r_foot = VectorCoord.create()
@@ -810,7 +809,6 @@ function gas_generate_right_foot_setpoints()
     delta_initial_swing_in_r_foot:print("delta_initial_swing_in_r_foot: ")
     delta_initial_swing_in_world:print("delta_initial_swing_in_world : ")
 
-
     -- transform the desired orientation of the frame in world
     world_r_foot_cur_pos = gas_get_transform("world",r_foot_frame)
 
@@ -824,7 +822,6 @@ function gas_generate_right_foot_setpoints()
 
     gas_get_transform(world,r_foot_frame).origin:print("Initial r_sole pose ")
     gas_setpoints.world_r_foot_initial_swing_des_pos.origin:print("Desired r_sole middle pose ")
-
 
     -- second and final setpoint
     delta_final_swing_in_r_foot = VectorCoord.create()
@@ -850,3 +847,20 @@ function gas_generate_right_foot_setpoints()
     gas_setpoints.world_r_foot_final_swing_des_pos.origin = world_r_foot_cur_pos.origin:add(delta_final_swing_in_world)
 end
 
+function gas_generate_left_foot_setpoints()
+    -- the left foot step is done with respect to the right foot, in the sense:
+    -- the initial setpoint is done to align in the air the l_sole to the r_sole
+    -- the final one is not present, because in the final part of the step the original
+    -- joint position for the leg are sent
+
+    -- the initial setpoint for the l_sole is generated as the right footstep was perfect
+    local delta_initial_swing_wrt_r_sole = PointCoord.create()
+
+    delta_initial_swing_wrt_r_sole.x = -step_length/2
+    delta_initial_swing_wrt_r_sole.y = initial_y_distance_between_feet_in_r_sole
+    delta_initial_swing_wrt_r_sole.z = step_height;
+
+    gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole = HomTransform.create()
+    -- not touching rot because is already the identity gas_setpoints.world_l_sole_initial_swing_des_pos_in_r_sole.rot
+    gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole.origin = delta_initial_swing_wrt_r_sole;
+end
