@@ -27,7 +27,7 @@ SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
      IF(CMAKE_COMPILER_IS_GNUCC)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
      ENDIF(CMAKE_COMPILER_IS_GNUCC)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
@@ -47,14 +47,14 @@ INCLUDE_DIRECTORIES(${wholeBodyInterface_INCLUDE_DIRS}
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} 
+TARGET_LINK_LIBRARIES(${PROJECTNAME}
                       ${yarpWholeBodyInterface_LIBRARIES}
-                      ${YARP_LIBRARIES} 
+                      ${YARP_LIBRARIES}
                       skinDynLib
                       ${wholeBodyInterface_LIBRARIES})
 
 if(WIN32)
-	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})	
+	INSTALL_TARGETS(/bin/Release ${PROJECTNAME})
 else(WIN32)
 	INSTALL_TARGETS(/bin ${PROJECTNAME})
 endif(WIN32)
