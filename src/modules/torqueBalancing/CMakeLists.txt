@@ -71,3 +71,7 @@ target_link_libraries(${PROJECT_NAME}
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
 add_subdirectory(app)
+
+if(CODYCO_BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
