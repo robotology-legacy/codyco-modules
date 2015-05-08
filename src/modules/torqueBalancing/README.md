@@ -11,7 +11,7 @@ The procedure to run the torque balancing module is still quite elaborate.
 Users willing to use the module should follow this list.
 
 - Bring the robot in a suitable home position (e.g. `$ yarpmotorgui --from robotMotorGuiBalancingTwoFeet.ini` and then pressing the 'Home All' button)
-- Launch `wholeBodyDynamicsTree` with the following parameters: `--autoconnect --assume_fixed l_foot_dh_frame`
+- (Robot Only) Launch `wholeBodyDynamicsTree` with the following parameters: `--autoconnect --assume_fixed l_foot_dh_frame`
 - (Robot Only) Execute the [sensors calibration script](https://github.com/robotology/codyco-modules/blob/master/src/scripts/twoFeetStandingIdleAndCalib.sh): `$ twoFeetStandingIdleAndCalib.sh`
 - Launch `torqueBalancing`
 - Connect with the rpc module to `/torqueBalancing/rpc` and type `start`
