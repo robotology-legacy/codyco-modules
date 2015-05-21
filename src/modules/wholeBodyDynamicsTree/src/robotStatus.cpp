@@ -156,6 +156,7 @@ bool RobotJointStatus::updateYarpBuffers()
     ok = ok && KDLtoYarp(dqj_kdl,dqj);
     ok = ok && KDLtoYarp(ddqj_kdl,ddqj);
     ok = ok && KDLtoYarp(torquesj_kdl,torquesj);
+	return ok;
 }
 
 

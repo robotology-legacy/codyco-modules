@@ -110,10 +110,6 @@ int main(int argc, char * argv[])
       return EXIT_FAILURE;
     }
     
-    timespec delay;
-    delay.tv_nsec = 0;
-    delay.tv_nsec = 10000000;
-    
     Eigen::VectorXd pos = Eigen::VectorXd::Zero(25);
     Eigen::VectorXd esaZero = Eigen::VectorXd::Zero(6);
     wbi::Frame frame = wbi::Frame::identity();
@@ -134,7 +130,8 @@ int main(int argc, char * argv[])
             std::cerr << "Error\n" << out.transpose() << "\nVS\n" << first.transpose() << "\n\n";
         }
         
-        nanosleep(&delay, NULL);
+	    double delay_in_s = 0.01;
+		yarp::os::Time::delay(delay_in_s);
     }
     
     
