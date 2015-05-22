@@ -31,17 +31,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
      ENDIF(CMAKE_COMPILER_IS_GNUCC)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-if(CODYCO_USES_URDFDOM)
-     find_package(Boost REQUIRED)
-     INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
-endif()
-
 INCLUDE_DIRECTORIES(${wholeBodyInterface_INCLUDE_DIRS}
                     ${wholeBodyInterfaceIcub_INCLUDE_DIRS}
                     ${iDynTree_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS}
-                    ${Orocos-KDL_INCLUDE_DIRS}
-                    ${kdl_codyco_INCLUDE_DIRS}
+                    ${orocos_kdl_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR}
                     ${skinDynLib_INCLUDE_DIRS})
 

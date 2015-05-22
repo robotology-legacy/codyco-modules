@@ -13,10 +13,6 @@ find_package(wholeBodyInterface REQUIRED)
 find_package(yarpWholeBodyInterface 0.2.2 REQUIRED)
 find_package(codycoCommons REQUIRED)
 
-if(${CODYCO_USES_URDFDOM})
-    find_package(Boost)
-endif()
-# find_package(ICUB)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 # set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})

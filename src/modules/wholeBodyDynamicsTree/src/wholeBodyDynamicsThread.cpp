@@ -264,13 +264,15 @@ bool wholeBodyDynamicsThread::loadExternalWrenchesPortsConfigurations()
 
 bool wholeBodyDynamicsThread::openExternalWrenchesPorts()
 {
+	bool ok = true;
     for(unsigned int i = 0; i < output_wrench_ports.size(); i++ )
     {
         std::string port_name = output_wrench_ports[i].port_name;
         output_wrench_ports[i].output_port = new BufferedPort<Vector>;
-        output_wrench_ports[i].output_port->open(port_name);
+        ok = ok && output_wrench_ports[i].output_port->open(port_name);
         output_wrench_ports[i].output_vector.resize(6);
     }
+	return ok;
 }
 
 bool wholeBodyDynamicsThread::closeExternalWrenchesPorts()
@@ -279,6 +281,7 @@ bool wholeBodyDynamicsThread::closeExternalWrenchesPorts()
     {
         this->closePort(output_wrench_ports[i].output_port);
     }
+	return true;
 }
 
 bool wholeBodyDynamicsThread::loadEstimatedTorquesPortsConfigurations()
@@ -1953,12 +1956,14 @@ bool wholeBodyDynamicsThread::openControlBoards()
 
 bool wholeBodyDynamicsThread::closeControlBoards()
 {
+	bool ok = true;
     for(int ctrlBrd = 0; ctrlBrd < torqueEstimationControlBoards.controlBoardNames.size(); ctrlBrd++ )
     {
-        closePolyDriver(torqueEstimationControlBoards.deviceDrivers[ctrlBrd]);
+        ok = ok && closePolyDriver(torqueEstimationControlBoards.deviceDrivers[ctrlBrd]);
         torqueEstimationControlBoards.controlModeInterfaces[ctrlBrd] = 0;
         torqueEstimationControlBoards.interactionModeInterfaces[ctrlBrd] = 0;
     }
+	return ok;
 }
 
 wholeBodyDynamicsFilters::wholeBodyDynamicsFilters(int nrOfDOFs, int nrOfFTSensors, double cutoffInHz, double periodInSeconds)
