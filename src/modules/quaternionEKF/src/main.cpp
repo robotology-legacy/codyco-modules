@@ -9,6 +9,7 @@
 #include <fstream>
 
 using namespace std;
+using namespace filter;
 
 int main(int argc, char* argv[]) 
 {
