@@ -20,6 +20,7 @@
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
+using namespace filter;
 
 quaternionEKFThread::quaternionEKFThread ( int period,
                                            std::string moduleName,

@@ -30,7 +30,6 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/os/Time.h>
-#include <../../example/game/game_server/Matrix.h>
 
 #include <iomanip> //setw
 
@@ -69,6 +68,7 @@
 #define GRAVITY_ACC 9.81
 #define PI 3.141592654
 
+namespace filter{
 class quaternionEKFThread: public yarp::os::RateThread
 {
     // Ports for sensor readings
@@ -144,5 +144,6 @@ public:
   bool configureXSens();
   void readDataFromXSens(yarp::sig::Vector* output);
 };
+}
 
 #endif

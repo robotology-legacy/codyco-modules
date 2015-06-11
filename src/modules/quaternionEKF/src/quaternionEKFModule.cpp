@@ -20,6 +20,7 @@
 #include "quaternionEKFThread.h"
 #include "quaternionEKFModule.h"
 
+using namespace filter;
 quaternionEKFModule::quaternionEKFModule()
 {
     period = 0.01;
@@ -60,6 +61,13 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         mode = rf.find("mode").asString();
     } else {
         yError("[quaternionEKFModule::configure] Configuration failed. No value for mode was found.");
+        return false;
+    }
+    
+    if( rf.check("filterType") ) {
+        filterType = rf.find("filterType").asString();
+    } else {
+        yError("[quaternionEKFModule::configure] Configuration failed. No value for filterType was found.");
         return false;
     }
     
@@ -109,14 +117,30 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
 
         // Obtaining filter parameters from configuration file
         yarp::os::Property filterParams;
-        if( !rf.check(FILTER_GROUP_PARAMS_NAME) )  {
-            yError("[quaternionEKFModule::configure] Could not load EKF-PARAMS group from config file");
-            return false;
-        } else   {
-            filterParams.fromString(rf.findGroup(FILTER_GROUP_PARAMS_NAME).tail().toString());
-            yInfo(" [quaternionEKFModule::configure] Filter parameters are: %s ", filterParams.toString().c_str());
-        }
         
+        // for distinguishing direct filter computation
+        std::string tmpDirectFilterType = "direct";
+    
+        if(tmpDirectFilterType.compare(filterType))
+        {
+               if( !rf.check(DIRECT_GROUP_PARAMS_NAME) )  {
+                yError("[quaternionEKFModule::configure] Could not load DIRECT-FILTER-PARAMS group from config file");
+                return false;
+            } else   {
+                filterParams.fromString(rf.findGroup(FILTER_GROUP_PARAMS_NAME).tail().toString());
+                yInfo(" [quaternionEKFModule::configure] Filter parameters are: %s ", filterParams.toString().c_str());
+            }
+        }
+        else
+        {
+            if( !rf.check(FILTER_GROUP_PARAMS_NAME) )  {
+                yError("[quaternionEKFModule::configure] Could not load EKF-PARAMS group from config file");
+                return false;
+            } else   {
+                filterParams.fromString(rf.findGroup(FILTER_GROUP_PARAMS_NAME).tail().toString());
+                yInfo(" [quaternionEKFModule::configure] Filter parameters are: %s ", filterParams.toString().c_str());
+            }
+        }
         // ----------- THREAD INSTANTIATION AND CALLING -----------------
         quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, usingEKF, sensorPortName, verbose, filterParams, &gyroMeasPort);
         if (!quatEKFThread->start()) {

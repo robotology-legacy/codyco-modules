@@ -21,9 +21,11 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/os/RFModule.h>
-#include <quaternionEKFThread.h>
+#include "quaternionEKFThread.h"
 #define FILTER_GROUP_PARAMS_NAME "EKFPARAMS"
+#define DIRECT_GROUP_PARAMS_NAME "DIRECTFILTERPARAMS"
 
+namespace filter{
 class quaternionEKFModule: public yarp::os::RFModule
 {
     double period;
@@ -35,6 +37,11 @@ class quaternionEKFModule: public yarp::os::RFModule
     std::string mode;
     bool usingxsens;
     bool verbose;
+    
+    /*TODO : For now filtertype is a string to indicate EKF or direct filtering, 
+     *later when module name is more generic it must be changed to enum */
+    std::string filterType; 
+    
     yarp::os::BufferedPort<yarp::sig::Vector> gyroMeasPort;
     quaternionEKFThread* quatEKFThread;
     
@@ -51,7 +58,7 @@ public:
     bool   updateModule();
 };
 
-
+}
 
 #endif
 
