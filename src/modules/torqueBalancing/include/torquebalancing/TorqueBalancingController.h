@@ -239,6 +239,15 @@ namespace codyco {
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_jacobianTemporary; /* 6 x totalDOFs */
             Eigen::VectorXd m_dJacobiaDqTemporary; /* 6 */
             
+            //TODO: move all buffers inside this struct to simplify reading
+            struct Buffers {
+                Buffers(int actuatedDOFs);
+                
+                Eigen::VectorXd baseAndJointsVector;
+                Eigen::VectorXd jointsVector;
+                Eigen::VectorXd esaVector;
+            } m_buffers;
+            
         };
     }
 }
