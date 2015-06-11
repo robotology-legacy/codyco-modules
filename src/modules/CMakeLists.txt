@@ -16,6 +16,7 @@ if(${CODYCO_USES_EIGEN_320})
    #add_subdirectory(motorFrictionExcitation)
    #add_subdirectory(motorFrictionIdentification)
    add_subdirectory(wholeBodyReach)
+   add_subdirectory(footOrientationEstimator)	
 endif()
 
 add_subdirectory(walkPlayer)
