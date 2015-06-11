@@ -58,6 +58,7 @@
 #include "nonLinearMeasurementGaussianPdf.h"
 #include "dataDumperParser.h"
 #include "deviceclass.h"
+#include "directFilterComputation.h"
 
 //TODO The path to the original data file must be retrieved by the ResourceFinder.
 #define DATAFILE "/home/jorhabib/Software/extended-kalman-filter/EKF_Quaternion_DynWalking2015/orocos_bfl/data/dumper/icub/inertial/data.log"
@@ -120,6 +121,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     DeviceClass*         m_xsens;
     XsPortInfo           m_mtPort;
     yarp::sig::Vector*   imu_measurement;
+    directFilterComputation* m_directComputation;
     
 public:
   quaternionEKFThread ( int period,

@@ -33,8 +33,8 @@ public:
     directFilterComputation();
     directFilterComputation(MatrixWrapper::Quaternion lsole_Rq_acclsensor);
     ~directFilterComputation();
-    computeOrientation(yarp::sig::Vector sensorReading, yarp::sig::Vector& output);
-    setWorldOrientation(MatrixWrapper::Quaternion& worldOrientation);
+    void computeOrientation(yarp::sig::Vector* sensorReading, yarp::sig::Vector& output);
+    void setWorldOrientation(MatrixWrapper::Quaternion& worldOrientation);
 private:
     MatrixWrapper::Matrix lsole_R_acclsensor;
     MatrixWrapper::Matrix world_R_lsole;

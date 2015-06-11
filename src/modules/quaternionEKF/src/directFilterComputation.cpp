@@ -20,7 +20,6 @@
  */
 
 #include "directFilterComputation.h"
-//#include <Eigen/Dense>
 #include <math.h>
 
 using namespace filter;
@@ -30,12 +29,23 @@ directFilterComputation::directFilterComputation()
 
 }
 
+directFilterComputation::directFilterComputation ( MatrixWrapper::Quaternion lsole_Rq_acclsensor )
+{
+
+}
+
 directFilterComputation::~directFilterComputation()
 {
 
 }
-// filter::directFilterComputation::computeOrientation(yarp::sig::Vector sensor, MatrixWrapper::Quaternion& worldOrientation)
-// {
-//     
-// }
+
+void directFilterComputation::computeOrientation ( yarp::sig::Vector* sensorReading, yarp::sig::Vector& output )
+{
+
+}
+
+void directFilterComputation::setWorldOrientation ( MatrixWrapper::Quaternion& worldOrientation )
+{
+
+}
 

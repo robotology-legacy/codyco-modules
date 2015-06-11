@@ -181,6 +181,8 @@ void quaternionEKFThread::run()
     
     if (!m_usingEKF) {
         cout << "Computing dummy orientation" << endl;
+        yarp::sig::Vector output;
+        m_directComputation->computeOrientation(imu_measurement, output);
     }
 }
 
@@ -208,6 +210,10 @@ bool quaternionEKFThread::threadInit()
     // XSens device
     if (m_xsens)
         m_xsens = new DeviceClass;
+    
+    // Using direct atan2 computation
+    if (!m_usingEKF)
+        m_directComputation = new directFilterComputation();
     
     // imu Measurement vector
     //TODO Put feet acc too! /icub/left_foot_inertial/analog:o
@@ -565,6 +571,14 @@ void quaternionEKFThread::threadRelease()
         delete m_xsens;
         m_xsens = NULL;
         cout << "m_xsens deleted" << endl;
+    }
+
+    if (m_usingEKF) {
+        if (m_directComputation) {
+            delete m_directComputation;
+            m_directComputation = NULL;
+            cout << "m_directComputation deleted" << endl;
+        }
     }
     if (m_publisherFilteredOrientationEulerPort) {
         m_publisherFilteredOrientationEulerPort->interrupt();
