@@ -18,6 +18,11 @@ if(${CODYCO_USES_EIGEN_320})
    add_subdirectory(wholeBodyReach)
 endif()
 
+message("CODYCO_USES_OROCOS_BFL_BERDY is: ${CODYCO_USES_OROCOS_BFL_BERDY}")
+# if(${CODYCO_USES_OROCOS_BFL_BERDY})
+   add_subdirectory(quaternionEKF)
+# endif()
+
 add_subdirectory(walkPlayer)
 
 add_subdirectory(codycoCoordinatorDemoY1)
