@@ -68,6 +68,7 @@
 #define FILTER_GROUP_PARAMS_NAME "EKFPARAMS"
 #define GRAVITY_ACC 9.81
 #define PI 3.141592654
+#define CONVERSION_FACTOR_ACC 5.9855e-04
 
 namespace filter{
 class quaternionEKFThread: public yarp::os::RateThread

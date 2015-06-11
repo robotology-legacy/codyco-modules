@@ -182,6 +182,7 @@ void quaternionEKFThread::run()
     if (!m_usingEKF) {
         cout << "Computing dummy orientation" << endl;
         yarp::sig::Vector output;
+        cout << "Read measurement: " << imu_measurement->toString() << endl;
         m_directComputation->computeOrientation(imu_measurement, output);
     }
 }
@@ -296,7 +297,6 @@ bool quaternionEKFThread::threadInit()
     std::string gyroMeasPortName = string("/" + m_moduleName + "/imu:i");
 
     if (m_autoconnect && !m_usingxsens) {
-//         yarp::os::ConstString src = std::string("/" + m_robotName + "/inertial");
         yarp::os::ConstString src = m_sensorPort;
         cout << "[quaternionEKFThread::threadInit()] src is: " << src << endl;
         if(!yarp::os::Network::connect(src, gyroMeasPortName,"tcp")){

@@ -21,9 +21,14 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/os/RFModule.h>
+#include <yarp/math/Math.h>
+#include <iostream>
+#include <iostream>
+#include <fstream>
 #include "quaternionEKFThread.h"
 #define FILTER_GROUP_PARAMS_NAME "EKFPARAMS"
 #define DIRECT_GROUP_PARAMS_NAME "DIRECTFILTERPARAMS"
+#define CONVERSION_FACTOR_ACC 5.9855e-04
 
 namespace filter{
 class quaternionEKFModule: public yarp::os::RFModule
@@ -34,6 +39,7 @@ class quaternionEKFModule: public yarp::os::RFModule
     std::string sensorPortName;
     bool autoconnect;
     bool usingEKF;
+    bool calib;
     std::string mode;
     bool usingxsens;
     bool verbose;
