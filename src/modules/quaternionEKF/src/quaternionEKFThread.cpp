@@ -217,11 +217,16 @@ bool quaternionEKFThread::threadInit()
     
     // imu Measurement vector
     //TODO Put feet acc too! /icub/left_foot_inertial/analog:o
-    if (!m_sensorPort.compare("/icub/inertial"))
+    if (!m_sensorPort.compare("/icub/inertial")) {
         imu_measurement = new yarp::sig::Vector(12);
-    else {
-        if (!m_sensorPort.compare("/icub/right_hand_inertial/analog:o") || !m_sensorPort.compare("/icub/left_hand_inertial/analog:o"))
+    } else {
+        if (!m_sensorPort.compare("/icub/right_hand_inertial/analog:o") || !m_sensorPort.compare("/icub/left_hand_inertial/analog:o")) {
             imu_measurement = new yarp::sig::Vector(6);
+        } else {
+            if (!m_sensorPort.compare("/icub/right_foot/inertial/analog:o") || !m_sensorPort.compare("/icub/left_foot_inertial/analog:o")) {
+                imu_measurement = new yarp::sig::Vector(3);
+            }
+        }
     }
     
     // Open publisher port for estimate in quaternion
