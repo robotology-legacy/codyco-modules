@@ -64,13 +64,6 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         return false;
     }
     
-    if( rf.check("filterType") ) {
-        filterType = rf.find("filterType").asString();
-    } else {
-        yError("[quaternionEKFModule::configure] Configuration failed. No value for filterType was found.");
-        return false;
-    }
-    
     if ( rf.check("usingXSens") ) {
         usingxsens = rf.find("usingXSens").asBool();
     } else {
@@ -118,10 +111,8 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         // Obtaining filter parameters from configuration file
         yarp::os::Property filterParams;
         
-        // for distinguishing direct filter computation
-        std::string tmpDirectFilterType = "direct";
-    
-        if(tmpDirectFilterType.compare(filterType))
+
+        if(usingEKF)
         {
                if( !rf.check(DIRECT_GROUP_PARAMS_NAME) )  {
                 yError("[quaternionEKFModule::configure] Could not load DIRECT-FILTER-PARAMS group from config file");

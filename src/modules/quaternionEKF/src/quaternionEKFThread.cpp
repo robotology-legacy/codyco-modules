@@ -567,73 +567,80 @@ void quaternionEKFThread::readDataFromXSens(yarp::sig::Vector* output)
 
 void quaternionEKFThread::threadRelease()
 {
-//     if (m_parser) { 
-//         delete m_parser;
-//         m_parser = NULL;
-//         cout << "m_parser deleted" << endl;
-//     }
     if (m_xsens) {
+        cout << "deleting m_xsens " << endl;
         delete m_xsens;
         m_xsens = NULL;
         cout << "m_xsens deleted" << endl;
     }
 
-    if (m_usingEKF) {
+    if (!m_usingEKF) {
         if (m_directComputation) {
+            cout << "deleting m_directComputation " << endl;
             delete m_directComputation;
             m_directComputation = NULL;
             cout << "m_directComputation deleted" << endl;
         }
     }
     if (m_publisherFilteredOrientationEulerPort) {
+        cout << "deleting m_publisherFilteredOrientationEulerPort" << endl;
         m_publisherFilteredOrientationEulerPort->interrupt();
         delete m_publisherFilteredOrientationEulerPort;
         m_publisherFilteredOrientationEulerPort = NULL;
         cout << "m_publisherFilteredOrientationEulerPort deleted" << endl;
     }
     if (m_publisherFilteredOrientationPort) {
+        cout << "deleting m_publisherFilteredOrientationPort" << endl;
         m_publisherFilteredOrientationPort->interrupt();
         delete m_publisherFilteredOrientationPort;
         m_publisherFilteredOrientationPort = NULL;
         cout << "m_publisherFilteredOrientationPort deleted" << endl;
     }
-    if (m_publisherXSensEuler) { 
+    if (m_usingxsens) {
+        cout << "deleting m_publisherXSensEuler " << endl;
         m_publisherXSensEuler->interrupt();
         delete m_publisherXSensEuler;
         m_publisherXSensEuler = NULL;
         cout << "m_publisherXSensEuler deleted" << endl;
     }
     if (m_sys_model) {
+        cout << "deleting m_sys_model" << endl;
         delete m_sys_model;
         m_sys_model = NULL;
         cout << "m_sys_model deleted" << endl;
     }
     if (m_measurement_uncertainty) {
+        cout << "deleting m_measurement_uncertainty " << endl;
         delete m_measurement_uncertainty;
         m_measurement_uncertainty = NULL;
         cout << "m_measurement_uncertainty deleted" << endl;
     }
     if (m_measPdf) {
+        cout << "deleting m_measPdf"  << endl;
         delete m_measPdf;
         m_measPdf = NULL;
         cout << "m_measPdf deleted" << endl;
     }
     if (m_meas_model) {
+        cout << "deleting m_meas_model" << endl;
         delete m_meas_model;
         m_meas_model = NULL;
         cout << "m_meas_model deleted" << endl;
     }
     if (m_prior) { 
+        cout << "deleting m_prior" << endl;
         delete m_prior;
         m_prior = NULL;
         cout << "m_prior deleted" << endl;
     }
     if (m_filter) {
+        cout << "deleting m_filter" << endl;
         delete m_filter;
         m_filter = NULL;
         cout << "m_filter deleted" << endl;
     }
     if (imu_measurement) { 
+        cout << "deleting imu_measurement" << endl;
         delete imu_measurement;
         imu_measurement = NULL;
         cout << "imu_measurement deleted" << endl;
