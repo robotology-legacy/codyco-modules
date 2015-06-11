@@ -29,7 +29,9 @@ class quaternionEKFModule: public yarp::os::RFModule
     double period;
     std::string robotName;
     std::string local;
+    std::string sensorPortName;
     bool autoconnect;
+    bool usingEKF;
     std::string mode;
     bool usingxsens;
     bool verbose;

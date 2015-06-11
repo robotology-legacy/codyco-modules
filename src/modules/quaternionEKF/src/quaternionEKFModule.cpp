@@ -77,6 +77,20 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         return false;
     }
     
+    if ( rf.check("sensorPortName") )  {
+        sensorPortName = rf.find("sensorPortName").asString();
+    } else {
+        yError ("[quaternionEKFModule::configure] Configuration failed. No value for sensorPortName was found");
+        return false;
+    }
+    
+    if ( rf.check("usingEKF") ) {
+        usingEKF = rf.find("usingEKF").asBool();
+    } else {
+        yError ("[quaternionEKFModule::configure] Configuration failed. No value for usingEKF was found.");
+        return false;
+    }
+    
     // ------------ IMU PORT ---------------------------------------
     /*TODO This should be configurable! The number of input ports
      depending on the amount of sensor readings.*/
@@ -104,7 +118,7 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         }
         
         // ----------- THREAD INSTANTIATION AND CALLING -----------------
-        quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, verbose, filterParams, &gyroMeasPort);
+        quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, usingEKF, sensorPortName, verbose, filterParams, &gyroMeasPort);
         if (!quatEKFThread->start()) {
             yError("Error starting quaternionEKFThread!");
             return false;

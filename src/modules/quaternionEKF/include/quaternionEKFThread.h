@@ -80,8 +80,10 @@ class quaternionEKFThread: public yarp::os::RateThread
     int                                          m_period; // Period in ms
     std::string                                  m_moduleName;
     std::string                                  m_robotName;
+    std::string                                  m_sensorPort;
     bool                                         m_autoconnect;
     bool                                         m_usingxsens;
+    bool                                         m_usingEKF;
     bool                                         m_verbose;
     yarp::os::Property                           m_filterParams;
     dataDumperParser*                            m_parser;
@@ -125,6 +127,8 @@ public:
                         std::string robotName,
                         bool autoconnect,
                         bool usingxsens,
+                        bool usingEKF,
+                        std::string sensorPort,
                         bool verbose,
                         yarp::os::Property &filterParams,
                         yarp::os::BufferedPort<yarp::sig::Vector>* m_gyroMeasPort
