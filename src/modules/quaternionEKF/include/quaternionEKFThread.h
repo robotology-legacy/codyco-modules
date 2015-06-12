@@ -123,6 +123,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     XsPortInfo           m_mtPort;
     yarp::sig::Vector*   imu_measurement;
     directFilterComputation* m_directComputation;
+    MatrixWrapper::Quaternion* m_quat_lsole_sensor;
     
 public:
   quaternionEKFThread ( int period,
