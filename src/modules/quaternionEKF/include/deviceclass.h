@@ -13,6 +13,7 @@ and is intended for use only by Xsens Technologies BV and
 
 #pragma once
 
+
 #include <xsens/xsresultvalue.h>
 #include <xsens/xsbytearray.h>
 #include <xsens/xsmessagearray.h>

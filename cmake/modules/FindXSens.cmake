@@ -33,7 +33,7 @@ IF (LINUX_FOUND)
         SET( XSENS_INCLUDE_DIR "${XSENS_CACHE}")
         MESSAGE("-- XSens includes in: ${XSENS_INCLUDE_DIR}")
     ELSE (XSENS_CACHE)
-        MESSAGE(FATAL_ERROR "XSens was not found in the default directory /usr/local. Make sure you have installed it there. Currently we're not supporting user directories for this installation")
+        MESSAGE("XSens was not found in the default directory /usr/local. Make sure you have installed it there. Currently we're not supporting user directories for this installation")
     ENDIF (XSENS_CACHE)
 
     # Find libraries
@@ -56,7 +56,7 @@ IF (LINUX_FOUND)
         SET(XSENS_LIBRARIES "${XSENS_LIBRARIES}")
         MESSAGE("-- XSens libs: ${XSENS_LIBRARIES}")
     ELSE (XSENS_LIBRARIES)
-        MESSAGE(FATAL_ERROR "XSens was not found in the default directory /usr/local. Make sure you have installed it there. Currently we're not supporting user directories for this installation")
+        MESSAGE("XSens was not found in the default directory /usr/local. Make sure you have installed it there. Currently we're not supporting user directories for this installation")
     ENDIF (XSENS_LIBRARIES)
 
     SET(XSENS_FOUND TRUE)

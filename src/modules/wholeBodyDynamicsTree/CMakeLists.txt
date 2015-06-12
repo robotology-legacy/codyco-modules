@@ -38,6 +38,8 @@ include_directories(SYSTEM  ${wholeBodyInterface_INCLUDE_DIRS}
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
+message(STATUS "iDynTree_LIBRARIES: " ${iDynTree_LIBRARIES})
+message(STATUS "yarpWholeBodyInterface_LIBRARIES: " ${yarpWholeBodyInterface_LIBRARIES})
 TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES}
                                      ${iDynTree_LIBRARIES}
                                      ${wholeBodyInterface_LIBRARIES}

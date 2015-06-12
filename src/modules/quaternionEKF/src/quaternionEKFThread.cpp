@@ -58,19 +58,19 @@ void quaternionEKFThread::run()
         bool reading = true;
         imu_measurement = m_gyroMeasPort->read(reading);
     } else {
-        readDataFromXSens(imu_measurement);
+        //readDataFromXSens(imu_measurement);
     }
-    
+
     if (m_verbose) {
         cout << "Full imu_measurement vec: " << endl;
         cout << imu_measurement->toString().c_str() << endl;
     }
-    
+
     if (m_usingEKF) {
         // XSens orientation
         yarp::sig::Vector realOrientation = imu_measurement->subVector(0,2);
         // Extract linear acceleration in m/s^2
-        yarp::sig::Vector imu_linAcc(3); 
+        yarp::sig::Vector imu_linAcc(3);
         imu_linAcc = imu_measurement->subVector(3,5);
         // NOTE The raw angular speed read from the IMU is in deg/s. In this module we will transform
         // it to rad/s
@@ -97,9 +97,9 @@ void quaternionEKFThread::run()
         sys_noise_mu = 0.0;
         MatrixWrapper::Matrix Xi(m_state_size, m_input_size);
         XiOperator(m_posterior_state, &Xi);
-        
+
         // System Noise Covariance
-        // TODO For now let's leave this constant as something to be tuned. 
+        // TODO For now let's leave this constant as something to be tuned.
         // This covariance matrix however should be computed as done in the matlab
         // utility ekfukf/lti_disc.m through Matrix Fraction Decomposition.
         MatrixWrapper::SymmetricMatrix sys_noise_cov(m_state_size);
@@ -114,7 +114,7 @@ void quaternionEKFThread::run()
         tmp.convertToSymmetricMatrix(tmpSym);
         sys_noise_cov = (MatrixWrapper::SymmetricMatrix) tmpSym*pow(m_period/(1000.0*2.0),2);
     //     sys_noise_cov(1,1) = sys_noise_cov (2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = 0.000001;
-        
+
         if (m_verbose)
             cout << "System covariance matrix will be: " << sys_noise_cov << endl;
 
@@ -122,9 +122,9 @@ void quaternionEKFThread::run()
         m_sysPdf.AdditiveNoiseSigmaSet(sys_noise_cov);
 
         double elapsedTime = yarp::os::Time::now() - m_waitingTime;
-        
+
     //     double intpart = 0.0;
-        
+
     //     // NOTE Let's include the measurement roughly every ten seconds
     //     if (modf(elapsedTime/10, &intpart) < 0.001) {
     //         if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
@@ -133,10 +133,10 @@ void quaternionEKFThread::run()
     //             if(!m_filter->Update(m_sys_model, input))
     //                 yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
     //     }
-        
+
         if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
             yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
-        
+
         // Get the posterior of the updated filter. Result of all the system model and meaurement information
         BFL::Pdf<BFL::ColumnVector> * posterior = m_filter->PostGet();
         // Posterior Expectation
@@ -169,16 +169,17 @@ void quaternionEKFThread::run()
         yarp::sig::Vector& tmpPortRef = m_publisherFilteredOrientationPort->prepare();
         tmpPortRef = tmpVec;
         m_publisherFilteredOrientationPort->write();
-        
+
         //  Publish XSens orientation just for debugging
+        /*
         if (m_xsens) {
             yarp::sig::Vector& tmpXSensEuler = m_publisherXSensEuler->prepare();
             tmpXSensEuler = realOrientation;
             m_publisherXSensEuler->write();
-        }
+        }*/
         cout << "Elapsed time: " << elapsedTime << endl;
     }
-    
+
     if (!m_usingEKF) {
         cout << "Computing dummy orientation" << endl;
         yarp::sig::Vector output(12);
@@ -220,15 +221,17 @@ bool quaternionEKFThread::threadInit()
         return false;
         }
     }
-    
+
     // XSens device
+    /*
     if (m_usingxsens)
         m_xsens = new DeviceClass;
-    
+    */
+
     // Using direct atan2 computation
     if (!m_usingEKF)
         m_directComputation = new directFilterComputation(*m_quat_lsole_sensor);
-    
+
     // imu Measurement vector
     //TODO Put feet acc too! /icub/left_foot_inertial/analog:o
     if (!m_sensorPort.compare("/icub/inertial")) {
@@ -242,37 +245,38 @@ bool quaternionEKFThread::threadInit()
             }
         }
     }
-    
+
     // Open publisher port for estimate in quaternion
     m_publisherFilteredOrientationPort = new yarp::os::BufferedPort<yarp::sig::Vector>;
     m_publisherFilteredOrientationPort->open(string("/" + m_moduleName + "/filteredOrientation:o").c_str());
-    
+
     // Open publisher port for estimate in euler angles
     m_publisherFilteredOrientationEulerPort = new yarp::os::BufferedPort<yarp::sig::Vector>;
     m_publisherFilteredOrientationEulerPort->open(string("/" + m_moduleName + "/filteredOrientationEuler:o").c_str());
-    
+
+    /*
     if (m_usingxsens) {
         m_publisherXSensEuler = new yarp::os::BufferedPort<yarp::sig::Vector>;
         m_publisherXSensEuler->open(string("/xsens/euler:o").c_str());
-    }
-    
+    }*/
+
     if(m_usingEKF) {
         // System Noise Mean
         MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
         sys_noise_mu(1) = sys_noise_mu(2) = sys_noise_mu(3) = sys_noise_mu(4) = 0;
-        
+
         // System Noise Covariance
         MatrixWrapper::SymmetricMatrix sys_noise_cov(m_state_size);
         sys_noise_cov = 0.0;
         sys_noise_cov(1,1) = sys_noise_cov(2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = m_sigma_system_noise;
-        
+
         // Setting System noise uncertainty
         m_sysPdf.AdditiveNoiseMuSet(sys_noise_mu);
         m_sysPdf.AdditiveNoiseSigmaSet(sys_noise_cov);
         m_sysPdf.setPeriod(m_period);
         // Creating the model
         m_sys_model = new BFL::AnalyticSystemModelGaussianUncertainty(&m_sysPdf);
-        
+
         // Creating measurement model for linear measurement model
         // Measurement noise distribution
         // Measurement noise mean
@@ -302,14 +306,15 @@ bool quaternionEKFThread::threadInit()
         cout << "State prior: " << prior_mu << endl;
         cout << "Covariance prior: " << prior_cov << endl;
         m_prior = new BFL::Gaussian(prior_mu, prior_cov);
-        
+
         // Construction of the filter
         m_filter = new BFL::ExtendedKalmanFilter(m_prior);
     }
-    
+
     // Sensor ports
     // This port was opened by the module.
     std::string gyroMeasPortName = string("/" + m_moduleName + "/imu:i");
+
 
     if (m_autoconnect && !m_usingxsens) {
         yarp::os::ConstString src = m_sensorPort;
@@ -321,17 +326,18 @@ bool quaternionEKFThread::threadInit()
     }
 
     // XSens IMU configuration
+    /*
     if ( m_usingxsens ) {
         if (!configureXSens()) {
             cout << "XSens configuration was not possible! Check the XSens is plugged to your USB port and that the driver is properly installed" << endl;
             return false;
         }
-    }
+    }*/
 
     cout << "Thread waiting five seconds before starting..." <<  endl;
     yarp::os::Time::delay(5);
-    
-    
+
+
     m_waitingTime = yarp::os::Time::now();
     cout << "Thread is running ... " << endl;
     return true;
@@ -345,7 +351,7 @@ void quaternionEKFThread::XiOperator ( MatrixWrapper::ColumnVector quat, MatrixW
     (*Xi) = 1.0;
     MatrixWrapper::ColumnVector omg(3);
     omg(1) = quat(2);    omg(2) = quat(3);    omg(3) = quat(4);
-    
+
     (*Xi)(1,1) = -quat(2);    (*Xi)(1,2) = -quat(3);    (*Xi)(1,3) = -quat(4);
     MatrixWrapper::Matrix eye(3,3);
     eye.toIdentity();
@@ -364,6 +370,7 @@ void quaternionEKFThread::SOperator ( MatrixWrapper::ColumnVector omg, MatrixWra
     (*S)(3,1) = -omg(2);(*S)(3,2) = omg(1) ; (*S)(3,3) = 0.0;
 }
 
+/*
 bool quaternionEKFThread::configureXSens()
 {
     bool ret = false;
@@ -390,41 +397,41 @@ bool quaternionEKFThread::configureXSens()
 //             std::cout << "Please enter baud rate (eg. 115200): ";
 //             std::cin >> baudRate;
             baudRate = 115200;
-            
+
             XsPortInfo portInfo(portNumber, XsBaud::numericToRate(baudRate));
             portInfoArray.push_back(portInfo);
         }
-        
+
         // Use the first detected device
         m_mtPort = portInfoArray.at(0);
-        
+
         // Open the port with the detected device
         std::cout << "Opening port..." << std::endl;
         if (!m_xsens->openPort(m_mtPort))
             throw std::runtime_error("Could not open port. Aborting.");
-        
+
         // Put the device in configuration mode
         std::cout << "Putting device into configuration mode..." << std::endl;
         if (!m_xsens->gotoConfig()) // Put the device into configuration mode before configuring the device
         {
             throw std::runtime_error("Could not put device into configuration mode. Aborting.");
         }
-        
+
         // Request the device Id to check the device type
         m_mtPort.setDeviceId(m_xsens->getDeviceId());
-        
+
         // Check if we have an MTi / MTx / MTmk4 device
         if (!m_mtPort.deviceId().isMt9c() && !m_mtPort.deviceId().isMtMk4())
         {
             throw std::runtime_error("No MTi / MTx / MTmk4 device found. Aborting.");
         }
         std::cout << "Found a device with id: " << m_mtPort.deviceId().toString().toStdString() << " @ port: " << m_mtPort.portName().toStdString() << ", baudrate: " << m_mtPort.baudrate() << std::endl;
-        
+
         try
         {
             // Print information about detected MTi / MTx / MTmk4 device
             std::cout << "Device: " << m_xsens->getProductCode().toStdString() << " opened." << std::endl;
-            
+
             // Configure the device. Note the differences between MTix and MTmk4
             std::cout << "Configuring the device..." << std::endl;
             uint16_t freq = 100;
@@ -433,7 +440,7 @@ bool quaternionEKFThread::configureXSens()
                 //TODO HERE In our case we want ORIENTATION | ACCELERATION | ANGULAR VELOCITY. The last two are contained in XOM_Calibrated
                 XsOutputMode outputMode = XOM_Orientation | XOM_Calibrated; // output orientation data
                 XsOutputSettings outputSettings = XOS_OrientationMode_Euler | XOS_CalibratedMode_All; // output orientation data as quaternion
-                
+
                 // set the device configuration
                 if (!m_xsens->setDeviceMode(outputMode, outputSettings))
                 {
@@ -445,18 +452,18 @@ bool quaternionEKFThread::configureXSens()
                 XsOutputConfiguration quat(XDI_EulerAngles, freq);
                 XsOutputConfigurationArray configArray;
                 configArray.push_back(quat);
-                
+
                 XsOutputConfiguration acc(XDI_Acceleration, freq);
                 configArray.push_back(acc);
-                
+
                 XsOutputConfiguration angVel(XDI_RateOfTurn, freq);
                 configArray.push_back(angVel);
-                
+
                 XsOutputConfiguration magField(XDI_MagneticField, freq);
                 configArray.push_back(magField);
                 if (!m_xsens->setOutputConfiguration(configArray))
                 {
-                    
+
                     throw std::runtime_error("Could not configure MTmk4 device. Aborting.");
                 }
             }
@@ -464,7 +471,7 @@ bool quaternionEKFThread::configureXSens()
             {
                 throw std::runtime_error("Unknown device while configuring. Aborting.");
             }
-            
+
             // Put the device in measurement mode
             std::cout << "Putting device into measurement mode..." << std::endl;
             if (!m_xsens->gotoMeasurement())
@@ -480,7 +487,7 @@ bool quaternionEKFThread::configureXSens()
         {
             std::cout << "An unknown fatal error has occured. Aborting." << std::endl;
         }
-        
+
     }
     catch (std::runtime_error const & error)
     {
@@ -490,7 +497,7 @@ bool quaternionEKFThread::configureXSens()
     {
         std::cout << "An unknown fatal error has occured. Aborting." << std::endl;
     }
-    
+
     ret = true;
     return ret;
 }
@@ -519,7 +526,7 @@ void quaternionEKFThread::readDataFromXSens(yarp::sig::Vector* output)
             packet.setMessage((*it));
             packet.setDeviceId(m_mtPort.deviceId());
         }
-        
+
         // Get the quaternion data
         XsQuaternion quaternion = packet.orientationQuaternion();
         if (m_verbose) {
@@ -530,7 +537,7 @@ void quaternionEKFThread::readDataFromXSens(yarp::sig::Vector* output)
             << ",Z:" << std::setw(5) << std::fixed << std::setprecision(2) << quaternion.m_z
             ;
         }
-        
+
         // Convert packet to euler
         XsEuler euler = packet.orientationEuler();
         if (m_verbose) {
@@ -539,55 +546,57 @@ void quaternionEKFThread::readDataFromXSens(yarp::sig::Vector* output)
             << ", Yaw:" << std::setw(7) << std::fixed << std::setprecision(2) << euler.m_yaw
             <<std::endl;
         }
-        
+
         XsVector linAcc = packet.calibratedAcceleration();
         if (m_verbose) {
             std::cout << "Accelerometer" << std::endl;
             std::cout << "x: " << linAcc[0] << " y: " << linAcc[1] << " z: " << linAcc[2] << std::endl;
         }
-        
+
         XsVector angVel = packet.calibratedGyroscopeData();
         if (m_verbose) {
             std::cout << "Angular velocity" << std::endl;
             std::cout << "x: " << angVel[0] << " y: " << angVel[1] << " z: " << angVel[2] << std::endl;
         }
-        
+
         XsVector magField = packet.calibratedMagneticField();
         if (m_verbose) {
             std::cout << "Magnetic Field" << std::endl;
             std::cout << "x: " << magField[0] << " y: " << magField[1] << " z: " << magField[2] << std::endl;
         }
-        
+
         // Push euler angles
         output->push_back(static_cast<double>(euler.m_roll));
         output->push_back(static_cast<double>(euler.m_pitch));
         output->push_back(static_cast<double>(euler.m_yaw));
-        
+
         // Push lin acc
         output->push_back(static_cast<double>(linAcc[0]));
         output->push_back(static_cast<double>(linAcc[1]));
         output->push_back(static_cast<double>(linAcc[2]));
-        
-        // Push gyroMeas 
+
+        // Push gyroMeas
         output->push_back(static_cast<double>(angVel[0]));
         output->push_back(static_cast<double>(angVel[1]));
         output->push_back(static_cast<double>(angVel[2]));
-        
+
         // Push magnetic field
         output->push_back(static_cast<double>(magField[0]));
         output->push_back(static_cast<double>(magField[1]));
         output->push_back(static_cast<double>(magField[2]));
     }
 }
+*/
 
 void quaternionEKFThread::threadRelease()
 {
+    /*
     if (m_xsens) {
         cout << "deleting m_xsens " << endl;
         delete m_xsens;
         m_xsens = NULL;
         cout << "m_xsens deleted" << endl;
-    }
+    }*/
 
     if (!m_usingEKF) {
         if (m_directComputation) {
@@ -611,13 +620,14 @@ void quaternionEKFThread::threadRelease()
         m_publisherFilteredOrientationPort = NULL;
         cout << "m_publisherFilteredOrientationPort deleted" << endl;
     }
+    /*
     if (m_usingxsens) {
         cout << "deleting m_publisherXSensEuler " << endl;
         m_publisherXSensEuler->interrupt();
         delete m_publisherXSensEuler;
         m_publisherXSensEuler = NULL;
         cout << "m_publisherXSensEuler deleted" << endl;
-    }
+    }*/
     if (m_sys_model) {
         cout << "deleting m_sys_model" << endl;
         delete m_sys_model;
@@ -642,7 +652,7 @@ void quaternionEKFThread::threadRelease()
         m_meas_model = NULL;
         cout << "m_meas_model deleted" << endl;
     }
-    if (m_prior) { 
+    if (m_prior) {
         cout << "deleting m_prior" << endl;
         delete m_prior;
         m_prior = NULL;
@@ -654,7 +664,7 @@ void quaternionEKFThread::threadRelease()
         m_filter = NULL;
         cout << "m_filter deleted" << endl;
     }
-    if (imu_measurement) { 
+    if (imu_measurement) {
         cout << "deleting imu_measurement" << endl;
         delete imu_measurement;
         imu_measurement = NULL;
