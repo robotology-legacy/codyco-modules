@@ -53,7 +53,6 @@ void directFilterComputation::computeOrientation ( yarp::sig::Vector* sensorRead
     output(0) = phi_xyz;
     output(1) = theta_xyz;
     output(2) = 0.0;
-    
 }
 
 void directFilterComputation::setWorldOrientation ( MatrixWrapper::Quaternion& worldOrientation )

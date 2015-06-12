@@ -189,7 +189,7 @@ void quaternionEKFThread::run()
 
 bool quaternionEKFThread::threadInit()
 {
-    if (!m_filterParams.isNull()) {
+    if (!m_filterParams.isNull() && m_usingEKF) {
         m_state_size = m_filterParams.find("STATE_SIZE").asInt();
         m_input_size = m_filterParams.find("INPUT_SIZE").asInt();
         m_measurement_size = m_filterParams.find("MEASUREMENT_SIZE").asInt();
@@ -204,8 +204,15 @@ bool quaternionEKFThread::threadInit()
         m_smoother = m_filterParams.find("smoother").asBool();
         m_external_imu = m_filterParams.find("externalimu").asBool();
     } else {
+        if (!m_filterParams.isNull() && !m_usingEKF) {
+            m_quat_lsole_sensor = new MatrixWrapper::Quaternion(m_filterParams.find("lsole_qreal_sensor").asDouble(),
+                                                                m_filterParams.find("lsole_qvec1_sensor").asDouble(),
+                                                                m_filterParams.find("lsole_qvec2_sensor").asDouble(),
+                                                                m_filterParams.find("lsole_qvec3_sensor").asDouble());
+        } else {
         yError(" [quaternionEKFThread::threadInit] Filter parameters from configuration file could not be extracted");
         return false;
+        }
     }
     
     // XSens device
@@ -214,7 +221,7 @@ bool quaternionEKFThread::threadInit()
     
     // Using direct atan2 computation
     if (!m_usingEKF)
-        m_directComputation = new directFilterComputation();
+        m_directComputation = new directFilterComputation(*m_quat_lsole_sensor);
     
     // imu Measurement vector
     //TODO Put feet acc too! /icub/left_foot_inertial/analog:o
