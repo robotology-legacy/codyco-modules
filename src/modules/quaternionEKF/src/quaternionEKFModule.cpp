@@ -119,13 +119,13 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
             // Obtaining filter parameters from configuration file
             yarp::os::Property filterParams;
 
-            if(usingEKF)
+            if(!usingEKF)
             {
                 if( !rf.check(DIRECT_GROUP_PARAMS_NAME) )  {
                     yError("[quaternionEKFModule::configure] Could not load DIRECT-FILTER-PARAMS group from config file");
                     return false;
                 } else   {
-                    filterParams.fromString(rf.findGroup(FILTER_GROUP_PARAMS_NAME).tail().toString());
+                    filterParams.fromString(rf.findGroup(DIRECT_GROUP_PARAMS_NAME).tail().toString());
                     yInfo(" [quaternionEKFModule::configure] Filter parameters are: %s ", filterParams.toString().c_str());
                 }
             }

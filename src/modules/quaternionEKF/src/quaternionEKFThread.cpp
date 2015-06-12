@@ -181,9 +181,14 @@ void quaternionEKFThread::run()
     
     if (!m_usingEKF) {
         cout << "Computing dummy orientation" << endl;
-        yarp::sig::Vector output;
-        cout << "Read measurement: " << imu_measurement->toString() << endl;
+        yarp::sig::Vector output(12);
+        output.zero();
         m_directComputation->computeOrientation(imu_measurement, output);
+        cout << "accelerometer measurement: " << imu_measurement->toString() << endl;
+        cout << "Roll, Pitch, Yaw " << output(0) << " " << output(1) << " " << output(2) << endl;
+        yarp::sig::Vector& tmpPortEuler = m_publisherFilteredOrientationEulerPort->prepare();
+        tmpPortEuler = output;
+        m_publisherFilteredOrientationEulerPort->write();
     }
 }
 
@@ -205,6 +210,7 @@ bool quaternionEKFThread::threadInit()
         m_external_imu = m_filterParams.find("externalimu").asBool();
     } else {
         if (!m_filterParams.isNull() && !m_usingEKF) {
+            cout << "Real part of initial quat orientation" << m_filterParams.find("lsole_qreal_sensor").asDouble() << endl;
             m_quat_lsole_sensor = new MatrixWrapper::Quaternion(m_filterParams.find("lsole_qreal_sensor").asDouble(),
                                                                 m_filterParams.find("lsole_qvec1_sensor").asDouble(),
                                                                 m_filterParams.find("lsole_qvec2_sensor").asDouble(),
@@ -216,7 +222,7 @@ bool quaternionEKFThread::threadInit()
     }
     
     // XSens device
-    if (m_xsens)
+    if (m_usingxsens)
         m_xsens = new DeviceClass;
     
     // Using direct atan2 computation
@@ -250,54 +256,56 @@ bool quaternionEKFThread::threadInit()
         m_publisherXSensEuler->open(string("/xsens/euler:o").c_str());
     }
     
-    // System Noise Mean
-    MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
-    sys_noise_mu(1) = sys_noise_mu(2) = sys_noise_mu(3) = sys_noise_mu(4) = 0;
-    
-    // System Noise Covariance
-    MatrixWrapper::SymmetricMatrix sys_noise_cov(m_state_size);
-    sys_noise_cov = 0.0;
-    sys_noise_cov(1,1) = sys_noise_cov(2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = m_sigma_system_noise;
-    
-    // Setting System noise uncertainty
-    m_sysPdf.AdditiveNoiseMuSet(sys_noise_mu);
-    m_sysPdf.AdditiveNoiseSigmaSet(sys_noise_cov);
-    m_sysPdf.setPeriod(m_period);
-    // Creating the model
-    m_sys_model = new BFL::AnalyticSystemModelGaussianUncertainty(&m_sysPdf);
-    
-    // Creating measurement model for linear measurement model
-    // Measurement noise distribution
-    // Measurement noise mean
-    MatrixWrapper::ColumnVector meas_noise_mu(m_measurement_size);
-    meas_noise_mu = 0.0;                // Set all to zero
-    meas_noise_mu(3) = 0.0;
-    // Measurement noise covariance
-    MatrixWrapper::SymmetricMatrix meas_noise_cov(m_measurement_size);
-    meas_noise_cov = 0.0;
-    meas_noise_cov(1,1) = meas_noise_cov(2,2) = meas_noise_cov(3,3) = m_sigma_measurement_noise;
-    // Measurement noise uncertainty
-    m_measurement_uncertainty = new BFL::Gaussian(meas_noise_mu, meas_noise_cov);
-    // Probability density function (PDF) for the measurement
-    m_measPdf = new BFL::nonLinearMeasurementGaussianPdf(*m_measurement_uncertainty);
-    //  Measurement model from the measurement PDF
-    m_meas_model = new BFL::AnalyticMeasurementModelGaussianUncertainty(m_measPdf);
-    // Setting prior. This is equivalent to a zero rotation
-    MatrixWrapper::ColumnVector prior_mu(m_state_size);
-    prior_mu = 0.0;
-    prior_mu(1) = 1.0;
-    m_prior_mu_vec = prior_mu;
-    m_posterior_state = prior_mu;
-    MatrixWrapper::SymmetricMatrix prior_cov(4);
-    prior_cov = 0.0;
-    prior_cov(1,1) = prior_cov(2,2) = prior_cov(3,3) = prior_cov(4,4) = m_prior_cov;
-    cout << "Priors will be: " << endl;
-    cout << "State prior: " << prior_mu << endl;
-    cout << "Covariance prior: " << prior_cov << endl;
-    m_prior = new BFL::Gaussian(prior_mu, prior_cov);
-    
-    // Construction of the filter
-    m_filter = new BFL::ExtendedKalmanFilter(m_prior);
+    if(m_usingEKF) {
+        // System Noise Mean
+        MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
+        sys_noise_mu(1) = sys_noise_mu(2) = sys_noise_mu(3) = sys_noise_mu(4) = 0;
+        
+        // System Noise Covariance
+        MatrixWrapper::SymmetricMatrix sys_noise_cov(m_state_size);
+        sys_noise_cov = 0.0;
+        sys_noise_cov(1,1) = sys_noise_cov(2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = m_sigma_system_noise;
+        
+        // Setting System noise uncertainty
+        m_sysPdf.AdditiveNoiseMuSet(sys_noise_mu);
+        m_sysPdf.AdditiveNoiseSigmaSet(sys_noise_cov);
+        m_sysPdf.setPeriod(m_period);
+        // Creating the model
+        m_sys_model = new BFL::AnalyticSystemModelGaussianUncertainty(&m_sysPdf);
+        
+        // Creating measurement model for linear measurement model
+        // Measurement noise distribution
+        // Measurement noise mean
+        MatrixWrapper::ColumnVector meas_noise_mu(m_measurement_size);
+        meas_noise_mu = 0.0;                // Set all to zero
+        meas_noise_mu(3) = 0.0;
+        // Measurement noise covariance
+        MatrixWrapper::SymmetricMatrix meas_noise_cov(m_measurement_size);
+        meas_noise_cov = 0.0;
+        meas_noise_cov(1,1) = meas_noise_cov(2,2) = meas_noise_cov(3,3) = m_sigma_measurement_noise;
+        // Measurement noise uncertainty
+        m_measurement_uncertainty = new BFL::Gaussian(meas_noise_mu, meas_noise_cov);
+        // Probability density function (PDF) for the measurement
+        m_measPdf = new BFL::nonLinearMeasurementGaussianPdf(*m_measurement_uncertainty);
+        //  Measurement model from the measurement PDF
+        m_meas_model = new BFL::AnalyticMeasurementModelGaussianUncertainty(m_measPdf);
+        // Setting prior. This is equivalent to a zero rotation
+        MatrixWrapper::ColumnVector prior_mu(m_state_size);
+        prior_mu = 0.0;
+        prior_mu(1) = 1.0;
+        m_prior_mu_vec = prior_mu;
+        m_posterior_state = prior_mu;
+        MatrixWrapper::SymmetricMatrix prior_cov(4);
+        prior_cov = 0.0;
+        prior_cov(1,1) = prior_cov(2,2) = prior_cov(3,3) = prior_cov(4,4) = m_prior_cov;
+        cout << "Priors will be: " << endl;
+        cout << "State prior: " << prior_mu << endl;
+        cout << "Covariance prior: " << prior_cov << endl;
+        m_prior = new BFL::Gaussian(prior_mu, prior_cov);
+        
+        // Construction of the filter
+        m_filter = new BFL::ExtendedKalmanFilter(m_prior);
+    }
     
     // Sensor ports
     // This port was opened by the module.

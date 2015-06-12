@@ -29,6 +29,9 @@
 #include <yarp/sig/Vector.h>
 #include <yarp/math/Math.h>
 
+#define CONVERSION_FACTOR_ACC 5.9855e-04
+#define PI 3.141592654
+
 namespace filter{
 class directFilterComputation
 {

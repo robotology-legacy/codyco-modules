@@ -23,13 +23,14 @@
 #include <math.h>
 
 using namespace filter;
+using namespace yarp::math;
 
 directFilterComputation::directFilterComputation()
 {
 
 }
 
-directFilterComputation::directFilterComputation ( MatrixWrapper::Quaternion lsole_Rq_acclsensor )
+directFilterComputation::directFilterComputation ( MatrixWrapper::Quaternion lsole_Rq_acclsensor ) : m_lsole_R_acclsensor(3,3)
 {
     // Store rotation from sensor to left sole frame
     lsole_Rq_acclsensor.getRotation(m_lsole_R_acclsensor);
@@ -38,20 +39,22 @@ directFilterComputation::directFilterComputation ( MatrixWrapper::Quaternion lso
 
 directFilterComputation::~directFilterComputation()
 {
-
 }
 
 void directFilterComputation::computeOrientation ( yarp::sig::Vector* sensorReading, yarp::sig::Vector& output )
 {
+    // Applying scaling factor
+    (*sensorReading) = CONVERSION_FACTOR_ACC*(*sensorReading);
     MatrixWrapper::ColumnVector input(sensorReading->data(), sensorReading->length());
     // Rotate sensor reading (expressed in the sensor frame) to the foot reference frame
+    std::cout << "Rotation matrix: " << m_lsole_R_acclsensor << std::endl;
     input = m_lsole_R_acclsensor*input;
     // Roll assuming xyz rotation
-    double phi_xyz = atan2(input(2), input(3));
+    double phi_xyz = atan2( input(2),input(3) );
     // Pitch assuming xyz rotation
-    double theta_xyz = (-input(1))/(sqrt(pow(input(2),2) + pow(input(3),2)));
-    output(0) = phi_xyz;
-    output(1) = theta_xyz;
+    double theta_xyz = (input(1))/(sqrt(pow(input(2),2) + pow(input(3),2)));
+    output(0) = (180.0/(double)PI)*phi_xyz;
+    output(1) = (180.0/(double)PI)*theta_xyz;
     output(2) = 0.0;
 }
 
