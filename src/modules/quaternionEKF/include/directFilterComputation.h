@@ -24,7 +24,10 @@
 
 #include <yarp/sig/Vector.h> 
 #include <bfl/wrappers/matrix/matrix_wrapper.h>
+#include <bfl/wrappers/matrix/vector_wrapper.h>
+#include <bfl/wrappers/matrix/quaternion_wrapper.h>
 #include <yarp/sig/Vector.h>
+#include <yarp/math/Math.h>
 
 namespace filter{
 class directFilterComputation
@@ -36,9 +39,8 @@ public:
     void computeOrientation(yarp::sig::Vector* sensorReading, yarp::sig::Vector& output);
     void setWorldOrientation(MatrixWrapper::Quaternion& worldOrientation);
 private:
-    MatrixWrapper::Matrix lsole_R_acclsensor;
-    MatrixWrapper::Matrix world_R_lsole;
-
+    MatrixWrapper::Matrix m_lsole_R_acclsensor;
+    MatrixWrapper::Matrix m_world_R_lsole;
 };
 }
 #endif // DIRECTFILTERCOMPUTATION_H

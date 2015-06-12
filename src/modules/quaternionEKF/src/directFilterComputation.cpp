@@ -31,6 +31,8 @@ directFilterComputation::directFilterComputation()
 
 directFilterComputation::directFilterComputation ( MatrixWrapper::Quaternion lsole_Rq_acclsensor )
 {
+    // Store rotation from sensor to left sole frame
+    lsole_Rq_acclsensor.getRotation(m_lsole_R_acclsensor);
 
 }
 
@@ -41,7 +43,17 @@ directFilterComputation::~directFilterComputation()
 
 void directFilterComputation::computeOrientation ( yarp::sig::Vector* sensorReading, yarp::sig::Vector& output )
 {
-
+    MatrixWrapper::ColumnVector input(sensorReading->data(), sensorReading->length());
+    // Rotate sensor reading (expressed in the sensor frame) to the foot reference frame
+    input = m_lsole_R_acclsensor*input;
+    // Roll assuming xyz rotation
+    double phi_xyz = atan2(input(2), input(3));
+    // Pitch assuming xyz rotation
+    double theta_xyz = (-input(1))/(sqrt(pow(input(2),2) + pow(input(3),2)));
+    output(0) = phi_xyz;
+    output(1) = theta_xyz;
+    output(2) = 0.0;
+    
 }
 
 void directFilterComputation::setWorldOrientation ( MatrixWrapper::Quaternion& worldOrientation )
