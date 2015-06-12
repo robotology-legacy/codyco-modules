@@ -173,17 +173,15 @@ namespace codyco {
                 count--;
             } while(!result && count >0);
 
-            //initializing contact list.
-            DynamicConstraint leftFoot, rightFoot;
-            result = result && leftFoot.init(true, getRate() / 1000.0, m_dynamicsTransitionTime);
-            result = result && rightFoot.init(true, getRate() / 1000.0, m_dynamicsTransitionTime);
+            std::stringstream formattedConstraintsString;
+            formattedConstraintsString << m_activeConstraints.size() << " Dyn. Constraints = ";
+            for (ConstraintsMap::const_iterator it = m_activeConstraints.begin();
+                 it != m_activeConstraints.end(); it++) {
+                formattedConstraintsString << it->first << " ";
+            }
+            yInfo("%s", formattedConstraintsString.str().c_str());
 
-            m_activeConstraints.insert(ConstraintsMap::value_type("l_sole", leftFoot));
-            m_activeConstraints.insert(ConstraintsMap::value_type("r_sole", rightFoot));
-
-            result = result && m_activeConstraints.size() == 2;
-
-            return linkFound && result;
+            return linkFound && result && !m_activeConstraints.empty();
         }
 
         void TorqueBalancingController::threadRelease()
@@ -292,7 +290,33 @@ namespace codyco {
             this->m_delegate = delegate;
         }
 
-        bool TorqueBalancingController::addDynamicConstraint(std::string frameName)
+
+        bool TorqueBalancingController::setInitialConstraintSet(const std::vector<std::string> &constraintsLinkName)
+        {
+            if (isRunning()) return false;
+            //TODO: two days before the demo is not the right moment to make the constraints generic.
+            // For now simply accept the l_sole or r_sole constraints.
+            // move everything to something more generic ASAP
+            bool result = true;
+            m_activeConstraints.clear();
+            for (std::vector<std::string>::const_iterator it = constraintsLinkName.begin();
+                 it != constraintsLinkName.end(); it++) {
+                if ((*it).compare("l_sole") == 0) {
+                    DynamicConstraint leftFoot;
+                    result = result && leftFoot.init(true, getRate() / 1000.0, m_dynamicsTransitionTime);
+                    m_activeConstraints.insert(ConstraintsMap::value_type(*it, leftFoot));
+
+                } else if ((*it).compare("r_sole") == 0) {
+                    DynamicConstraint rightFoot;
+                    result = result && rightFoot.init(true, getRate() / 1000.0, m_dynamicsTransitionTime);
+                    m_activeConstraints.insert(ConstraintsMap::value_type(*it, rightFoot));
+                }
+            }
+
+            return result && m_activeConstraints.size() >= 1 && m_activeConstraints.size() <= 2;
+        }
+
+        bool TorqueBalancingController::addDynamicConstraint(std::string frameName, bool /*smooth*/)
         {
             //For now full jacobians are not written in an "iterative" way.
             //just hardcode all the possible scenarios. (as in MATLAB version)
@@ -310,7 +334,7 @@ namespace codyco {
             return true;
         }
 
-        bool TorqueBalancingController::removeDynamicConstraint(std::string frameName)
+        bool TorqueBalancingController::removeDynamicConstraint(std::string frameName, bool /*smooth*/)
         {
             yarp::os::LockGuard guard(m_mutex);
             ConstraintsMap::iterator found = m_activeConstraints.find(frameName);

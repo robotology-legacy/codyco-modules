@@ -248,6 +248,32 @@ namespace codyco {
                 return false;
             }
 
+            //Read initial constraints for the controller
+            std::vector<std::string> constraintsLinkName;
+            if (rf.check("constraint_links", "Checking rigid constraints")) {
+                Bottle &constraints = rf.findGroup("constraint_links");
+                if (constraints.size() == 2) {
+                    Bottle *list = constraints.get(1).asList();
+                    if (list) {
+                        for (int i = 0; i < list->size(); i++) {
+                            Value &linkName = list->get(i);
+                            if (linkName.isString())
+                                constraintsLinkName.push_back(linkName.asString());
+                        }
+                    }
+                }
+            }
+
+            //Default case: two feet balancing (back compatibily)
+            if (constraintsLinkName.empty()) {
+                constraintsLinkName.push_back("l_sole");
+                constraintsLinkName.push_back("r_sole");
+            }
+            if (!m_controller->setInitialConstraintSet(constraintsLinkName)) {
+                yError("Could not set initial dynamic constraints.");
+                return false;
+            }
+
             //start threads. Controllers start always in inactive state
             //This is needed because they have to be initialized before setting gains, etc..
             bool threadsStarted = true;
