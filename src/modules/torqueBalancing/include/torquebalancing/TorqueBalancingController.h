@@ -123,6 +123,14 @@ namespace codyco {
              */
             void setDelegate(ControllerDelegate *delegate);
 
+            /** Initialize the rigid constraints 
+             *
+             * @note this function must be called before the initialization of the thread
+             * to take effect
+             * @param constraintsLinkName the list of 
+             */
+            bool setInitialConstraintSet(const std::vector<std::string> &constraintsLinkName);
+
             /** Adds an additional constraint to the dynamics equation
              *
              * Constraint is described at acceleration level, i.e.
@@ -132,16 +140,18 @@ namespace codyco {
              * - origin at the base frame
              * - orientation to coincide with the world frame orientation
              * @param frameName the name of the frame
+             * @param smooth true if the transition should be smooth (non smooth not supported yet).
              * @return true if the constraint is successfully added
              */
-            bool addDynamicConstraint(std::string frameName);
+            bool addDynamicConstraint(std::string frameName, bool smooth = true);
 
             /** Removes a constraint from the dynamics equation
              * \see TorqueBalancingController#addDynamicConstraint
              * @param frameName the name of the frame
+             * @param smooth true if the transition should be smooth (non smooth not supported yet).
              * @return true if the constraint is successfully removed
              */
-            bool removeDynamicConstraint(std::string frameName);
+            bool removeDynamicConstraint(std::string frameName, bool smooth = true);
 
 #pragma mark - Monitorable variables
             
@@ -238,6 +248,15 @@ namespace codyco {
             Eigen::Matrix<double, 6, 1> m_esaZeroVector; /*!< 6 */
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_jacobianTemporary; /* 6 x totalDOFs */
             Eigen::VectorXd m_dJacobiaDqTemporary; /* 6 */
+            
+            //TODO: move all buffers inside this struct to simplify reading
+            struct Buffers {
+                Buffers(int actuatedDOFs);
+                
+                Eigen::VectorXd baseAndJointsVector;
+                Eigen::VectorXd jointsVector;
+                Eigen::VectorXd esaVector;
+            } m_buffers;
             
         };
     }

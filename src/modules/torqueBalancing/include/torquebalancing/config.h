@@ -19,7 +19,8 @@
 
 namespace codyco {
     namespace torquebalancing {
-        extern const double PseudoInverseTolerance;        
+        extern const double PseudoInverseTolerance;
+        extern const double JcMInvSPseudoInverseDampingTerm;
     }
 }
 
