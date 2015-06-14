@@ -13,10 +13,15 @@ message("** Proj source dir " ${CMAKE_CURRENT_SOURCE_DIR})
 # MATRIX also looks for Boost
 find_package(MATRIX REQUIRED)
 find_package(Boost REQUIRED COMPONENTS iostreams)
-find_package(XSens)
+
+option(QUATERNION_EKF_USE_XSENS FALSE)
+if(QUATERNION_EKF_USE_XSENS)
+    find_package(XSens REQUIRED)
+endif()
+find_package(codycoCommons REQUIRED)
+
 
 # Find orocos-bfl package configuration file
-option(PKG_CONFIG_USE_CMAKE_PREFIX_PATH TRUE)
 find_package(PkgConfig)
 pkg_check_modules(OROCOS_BFL REQUIRED orocos-bfl)
 
@@ -37,22 +42,30 @@ include_directories(SYSTEM ${YARP_INCLUDE_DIRS}
                            ${OROCOS_BFL_INCLUDEDIR}
                            ${Boost_INCLUDE_DIRS}
                            ${PROJECT_SOURCE_DIR}/include)
-#include_directories(SYSTEM ${XSENS_INCLUDE_DIR})
+
+if(QUATERNION_EKF_USE_XSENS)
+    include_directories(SYSTEM ${XSENS_INCLUDE_DIR})
+    message("** XSens include dirs are in: " ${XSENS_INCLUDE_DIR})
+    message("** XSens all static libraries: ${XSENS_LIBRARIES}")
+    add_definitions(-DQUATERNION_EKF_USE_XSENS)
+endif()
 
 message("** Matrix include dirs are: " ${MATRIX_INCLUDE})
 message("** Orocos-bfl include dirs are: " ${OROCOS_BFL_INCLUDEDIR})
 message("** Boost include dirs are: " ${Boost_INCLUDE_DIRS})
 message("** Boost libraries are: ${Boost_LIBRARIES}")
-#message("** XSens include dirs are in: " ${XSENS_INCLUDE_DIR})
-#message("** XSens all static libraries: ${XSENS_LIBRARIES}")
+
+
+link_directories(${OROCOS_BFL_LIBRARY_DIRS})
 
 add_executable(${PROJECTNAME} ${source_dir} ${header_dir})
 
+
 target_link_libraries(${PROJECTNAME}
-                      orocos-bfl
+                      ${OROCOS_BFL_LIBRARIES}
 	              ${YARP_LIBRARIES}
 	              ${MATRIX_LIBS}
-	              ${Boost_LIBRARIES})
+	              ${Boost_LIBRARIES} ${XSENS_LIBRARIES})
 
 if(WIN32)
 INSTALL_TARGETS(/bin/Release ${PROJECTNAME})
