@@ -11,23 +11,9 @@ public:
   int32_t bodyPart;
   int32_t link;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(3)) return false;
-    if (!writer.writeTag("setContact",1,1)) return false;
-    if (!writer.writeI32(bodyPart)) return false;
-    if (!writer.writeI32(link)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const int32_t bodyPart, const int32_t link);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class skinContactGenerator_IDLServer_setContactForce : public yarp::os::Portable {
@@ -42,30 +28,9 @@ public:
   double p_z;
   int32_t skinPart;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(10)) return false;
-    if (!writer.writeTag("setContactForce",1,1)) return false;
-    if (!writer.writeI32(bodyPart)) return false;
-    if (!writer.writeI32(link)) return false;
-    if (!writer.writeDouble(f_x)) return false;
-    if (!writer.writeDouble(f_y)) return false;
-    if (!writer.writeDouble(f_z)) return false;
-    if (!writer.writeDouble(p_x)) return false;
-    if (!writer.writeDouble(p_y)) return false;
-    if (!writer.writeDouble(p_z)) return false;
-    if (!writer.writeI32(skinPart)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const int32_t bodyPart, const int32_t link, const double f_x, const double f_y, const double f_z, const double p_x, const double p_y, const double p_z, const int32_t skinPart);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class skinContactGenerator_IDLServer_setContactName : public yarp::os::Portable {
@@ -73,52 +38,138 @@ public:
   std::string bodyPart;
   std::string link;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(3)) return false;
-    if (!writer.writeTag("setContactName",1,1)) return false;
-    if (!writer.writeString(bodyPart)) return false;
-    if (!writer.writeString(link)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const std::string& bodyPart, const std::string& link);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class skinContactGenerator_IDLServer_quit : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("quit",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+bool skinContactGenerator_IDLServer_setContact::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("setContact",1,1)) return false;
+  if (!writer.writeI32(bodyPart)) return false;
+  if (!writer.writeI32(link)) return false;
+  return true;
+}
+
+bool skinContactGenerator_IDLServer_setContact::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void skinContactGenerator_IDLServer_setContact::init(const int32_t bodyPart, const int32_t link) {
+  _return = false;
+  this->bodyPart = bodyPart;
+  this->link = link;
+}
+
+bool skinContactGenerator_IDLServer_setContactForce::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(10)) return false;
+  if (!writer.writeTag("setContactForce",1,1)) return false;
+  if (!writer.writeI32(bodyPart)) return false;
+  if (!writer.writeI32(link)) return false;
+  if (!writer.writeDouble(f_x)) return false;
+  if (!writer.writeDouble(f_y)) return false;
+  if (!writer.writeDouble(f_z)) return false;
+  if (!writer.writeDouble(p_x)) return false;
+  if (!writer.writeDouble(p_y)) return false;
+  if (!writer.writeDouble(p_z)) return false;
+  if (!writer.writeI32(skinPart)) return false;
+  return true;
+}
+
+bool skinContactGenerator_IDLServer_setContactForce::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void skinContactGenerator_IDLServer_setContactForce::init(const int32_t bodyPart, const int32_t link, const double f_x, const double f_y, const double f_z, const double p_x, const double p_y, const double p_z, const int32_t skinPart) {
+  _return = false;
+  this->bodyPart = bodyPart;
+  this->link = link;
+  this->f_x = f_x;
+  this->f_y = f_y;
+  this->f_z = f_z;
+  this->p_x = p_x;
+  this->p_y = p_y;
+  this->p_z = p_z;
+  this->skinPart = skinPart;
+}
+
+bool skinContactGenerator_IDLServer_setContactName::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("setContactName",1,1)) return false;
+  if (!writer.writeString(bodyPart)) return false;
+  if (!writer.writeString(link)) return false;
+  return true;
+}
+
+bool skinContactGenerator_IDLServer_setContactName::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void skinContactGenerator_IDLServer_setContactName::init(const std::string& bodyPart, const std::string& link) {
+  _return = false;
+  this->bodyPart = bodyPart;
+  this->link = link;
+}
+
+bool skinContactGenerator_IDLServer_quit::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("quit",1,1)) return false;
+  return true;
+}
+
+bool skinContactGenerator_IDLServer_quit::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void skinContactGenerator_IDLServer_quit::init() {
+  _return = false;
+}
+
+skinContactGenerator_IDLServer::skinContactGenerator_IDLServer() {
+  yarp().setOwner(*this);
+}
 bool skinContactGenerator_IDLServer::setContact(const int32_t bodyPart, const int32_t link) {
   bool _return = false;
   skinContactGenerator_IDLServer_setContact helper;
-  helper.bodyPart = bodyPart;
-  helper.link = link;
+  helper.init(bodyPart,link);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool skinContactGenerator_IDLServer::setContact(const int32_t bodyPart, const int32_t link)");
+    yError("Missing server method '%s'?","bool skinContactGenerator_IDLServer::setContact(const int32_t bodyPart, const int32_t link)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -126,17 +177,9 @@ bool skinContactGenerator_IDLServer::setContact(const int32_t bodyPart, const in
 bool skinContactGenerator_IDLServer::setContactForce(const int32_t bodyPart, const int32_t link, const double f_x, const double f_y, const double f_z, const double p_x, const double p_y, const double p_z, const int32_t skinPart) {
   bool _return = false;
   skinContactGenerator_IDLServer_setContactForce helper;
-  helper.bodyPart = bodyPart;
-  helper.link = link;
-  helper.f_x = f_x;
-  helper.f_y = f_y;
-  helper.f_z = f_z;
-  helper.p_x = p_x;
-  helper.p_y = p_y;
-  helper.p_z = p_z;
-  helper.skinPart = skinPart;
+  helper.init(bodyPart,link,f_x,f_y,f_z,p_x,p_y,p_z,skinPart);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool skinContactGenerator_IDLServer::setContactForce(const int32_t bodyPart, const int32_t link, const double f_x, const double f_y, const double f_z, const double p_x, const double p_y, const double p_z, const int32_t skinPart)");
+    yError("Missing server method '%s'?","bool skinContactGenerator_IDLServer::setContactForce(const int32_t bodyPart, const int32_t link, const double f_x, const double f_y, const double f_z, const double p_x, const double p_y, const double p_z, const int32_t skinPart)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -144,10 +187,9 @@ bool skinContactGenerator_IDLServer::setContactForce(const int32_t bodyPart, con
 bool skinContactGenerator_IDLServer::setContactName(const std::string& bodyPart, const std::string& link) {
   bool _return = false;
   skinContactGenerator_IDLServer_setContactName helper;
-  helper.bodyPart = bodyPart;
-  helper.link = link;
+  helper.init(bodyPart,link);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool skinContactGenerator_IDLServer::setContactName(const std::string& bodyPart, const std::string& link)");
+    yError("Missing server method '%s'?","bool skinContactGenerator_IDLServer::setContactName(const std::string& bodyPart, const std::string& link)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -155,8 +197,9 @@ bool skinContactGenerator_IDLServer::setContactName(const std::string& bodyPart,
 bool skinContactGenerator_IDLServer::quit() {
   bool _return = false;
   skinContactGenerator_IDLServer_quit helper;
+  helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool skinContactGenerator_IDLServer::quit()");
+    yError("Missing server method '%s'?","bool skinContactGenerator_IDLServer::quit()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -167,6 +210,8 @@ bool skinContactGenerator_IDLServer::read(yarp::os::ConnectionReader& connection
   reader.expectAccept();
   if (!reader.readListHeader()) { reader.fail(); return false; }
   yarp::os::ConstString tag = reader.readTag();
+  bool direct = (tag=="__direct__");
+  if (direct) tag = reader.readTag();
   while (!reader.isError()) {
     // TODO: use quick lookup, this is just a test
     if (tag == "setContact") {

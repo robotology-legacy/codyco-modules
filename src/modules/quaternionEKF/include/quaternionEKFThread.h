@@ -33,6 +33,7 @@
 
 #include <iomanip> //setw
 
+/*
 #include <xsens/xsresultvalue.h>
 #include <xsens/xsbytearray.h>
 #include <xsens/xsmessagearray.h>
@@ -53,11 +54,12 @@
 #include <xcommunication/usbinterface.h>
 #include <xcommunication/serialinterface.h>
 #include <xcommunication/streaminterface.h>
+*/
 
 #include "nonLinearAnalyticConditionalGaussian.h"
 #include "nonLinearMeasurementGaussianPdf.h"
 #include "dataDumperParser.h"
-#include "deviceclass.h"
+//#include "deviceclass.h"
 #include "directFilterComputation.h"
 
 //TODO The path to the original data file must be retrieved by the ResourceFinder.
@@ -119,15 +121,15 @@ class quaternionEKFThread: public yarp::os::RateThread
     BFL::ExtendedKalmanFilter*  m_filter;
     // Others
     double m_waitingTime;
-    DeviceClass*         m_xsens;
-    XsPortInfo           m_mtPort;
+//    DeviceClass*         m_xsens;
+//    XsPortInfo           m_mtPort;
     yarp::sig::Vector*   imu_measurement;
     directFilterComputation* m_directComputation;
     MatrixWrapper::Quaternion* m_quat_lsole_sensor;
-    
+
 public:
   quaternionEKFThread ( int period,
-                        std::string moduleName, 
+                        std::string moduleName,
                         std::string robotName,
                         bool autoconnect,
                         bool usingxsens,
@@ -145,8 +147,8 @@ public:
   // TODO Temporarily putting this method here. Should be put in MatrixWrapper somewhere
   void SOperator(MatrixWrapper::ColumnVector omg, MatrixWrapper::Matrix* S);
   // When directly plugging the XSens to the USB port this method configures it
-  bool configureXSens();
-  void readDataFromXSens(yarp::sig::Vector* output);
+  //bool configureXSens();
+  //void readDataFromXSens(yarp::sig::Vector* output);
 };
 }
 

@@ -282,7 +282,7 @@ bool wholeBodyDynamics_IDLServer::calib(const std::string& calib_code, const int
   wholeBodyDynamics_IDLServer_calib helper;
   helper.init(calib_code,nr_of_samples);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::calib(const std::string& calib_code, const int32_t nr_of_samples)");
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calib(const std::string& calib_code, const int32_t nr_of_samples)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -292,7 +292,7 @@ bool wholeBodyDynamics_IDLServer::calibStanding(const std::string& calib_code, c
   wholeBodyDynamics_IDLServer_calibStanding helper;
   helper.init(calib_code,nr_of_samples);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::calibStanding(const std::string& calib_code, const int32_t nr_of_samples)");
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStanding(const std::string& calib_code, const int32_t nr_of_samples)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -302,7 +302,7 @@ bool wholeBodyDynamics_IDLServer::calibStandingLeftFoot(const std::string& calib
   wholeBodyDynamics_IDLServer_calibStandingLeftFoot helper;
   helper.init(calib_code,nr_of_samples);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::calibStandingLeftFoot(const std::string& calib_code, const int32_t nr_of_samples)");
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStandingLeftFoot(const std::string& calib_code, const int32_t nr_of_samples)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -312,7 +312,7 @@ bool wholeBodyDynamics_IDLServer::calibStandingRightFoot(const std::string& cali
   wholeBodyDynamics_IDLServer_calibStandingRightFoot helper;
   helper.init(calib_code,nr_of_samples);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::calibStandingRightFoot(const std::string& calib_code, const int32_t nr_of_samples)");
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::calibStandingRightFoot(const std::string& calib_code, const int32_t nr_of_samples)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -322,7 +322,7 @@ bool wholeBodyDynamics_IDLServer::resetOffset(const std::string& calib_code) {
   wholeBodyDynamics_IDLServer_resetOffset helper;
   helper.init(calib_code);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::resetOffset(const std::string& calib_code)");
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::resetOffset(const std::string& calib_code)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -332,7 +332,7 @@ bool wholeBodyDynamics_IDLServer::quit() {
   wholeBodyDynamics_IDLServer_quit helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::quit()");
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::quit()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -342,7 +342,7 @@ bool wholeBodyDynamics_IDLServer::resetSimpleLeggedOdometry(const std::string& i
   wholeBodyDynamics_IDLServer_resetSimpleLeggedOdometry helper;
   helper.init(initial_world_frame,initial_fixed_link);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::resetSimpleLeggedOdometry(const std::string& initial_world_frame, const std::string& initial_fixed_link)");
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::resetSimpleLeggedOdometry(const std::string& initial_world_frame, const std::string& initial_fixed_link)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -352,7 +352,7 @@ bool wholeBodyDynamics_IDLServer::changeFixedLinkSimpleLeggedOdometry(const std:
   wholeBodyDynamics_IDLServer_changeFixedLinkSimpleLeggedOdometry helper;
   helper.init(new_fixed_link);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool wholeBodyDynamics_IDLServer::changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_link)");
+    yError("Missing server method '%s'?","bool wholeBodyDynamics_IDLServer::changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_link)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;

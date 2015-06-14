@@ -72,7 +72,7 @@ bool insituFTSensorCalibration_IDLServer::startNewDatasetAcquisition() {
   insituFTSensorCalibration_IDLServer_startNewDatasetAcquisition helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool insituFTSensorCalibration_IDLServer::startNewDatasetAcquisition()");
+    yError("Missing server method '%s'?","bool insituFTSensorCalibration_IDLServer::startNewDatasetAcquisition()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -82,7 +82,7 @@ bool insituFTSensorCalibration_IDLServer::quit() {
   insituFTSensorCalibration_IDLServer_quit helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool insituFTSensorCalibration_IDLServer::quit()");
+    yError("Missing server method '%s'?","bool insituFTSensorCalibration_IDLServer::quit()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
