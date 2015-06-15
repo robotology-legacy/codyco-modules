@@ -47,7 +47,6 @@ void directFilterComputation::computeOrientation ( yarp::sig::Vector* sensorRead
     (*sensorReading) = CONVERSION_FACTOR_ACC*(*sensorReading);
     MatrixWrapper::ColumnVector input(sensorReading->data(), sensorReading->length());
     // Rotate sensor reading (expressed in the sensor frame) to the foot reference frame
-    std::cout << "Rotation matrix: " << m_lsole_R_acclsensor << std::endl;
     input = m_lsole_R_acclsensor*input;
     // Roll assuming xyz rotation
     double phi_xyz = atan2( input(2),input(3) );

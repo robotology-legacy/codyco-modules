@@ -189,8 +189,7 @@ void quaternionEKFThread::run()
         m_directComputation->computeOrientation(imu_measurement, output);
         // Low pass filtering
         output = lowPassFilter->filt(output);
-        cout << "accelerometer measurement: " << imu_measurement->toString() << endl;
-        cout << "Roll, Pitch, Yaw " << output(0) << " " << output(1) << " " << output(2) << endl;
+//         cout << "Roll, Pitch, Yaw " << output(0) << " " << output(1) << " " << output(2) << endl;
         yarp::sig::Vector& tmpPortEuler = m_publisherFilteredOrientationEulerPort->prepare();
         tmpPortEuler = output;
         m_publisherFilteredOrientationEulerPort->write();
