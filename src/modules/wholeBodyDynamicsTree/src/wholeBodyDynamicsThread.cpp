@@ -77,7 +77,7 @@ wholeBodyDynamicsThread::wholeBodyDynamicsThread(string _name,
 
        yInfo() << "Launching wholeBodyDynamicsThread with name : " << _name << " and robotName " << _robotName << " and period " << _period;
 
-         
+
 
        if( !_yarp_options.check("urdf") )
        {
@@ -225,7 +225,7 @@ bool wholeBodyDynamicsThread::loadExternalWrenchesPortsConfigurations()
 
         output_wrench_ports[i].origin_frame_index =
             icub_model_calibration->getFrameIndex(output_wrench_ports[i].origin_frame);
-        
+
         if( this->assume_fixed_base_calibration_from_odometry )
         {
             YARP_ASSERT(icub_model_calibration->getFrameIndex(output_wrench_ports[i].origin_frame) == icub_model_calibration_on_l_sole->getFrameIndex(output_wrench_ports[i].origin_frame));
@@ -522,7 +522,23 @@ bool wholeBodyDynamicsThread::threadInit()
     }
 
     // Create filters
-    double cutoffInHz = 3.0;
+    if( !yarp_options.check("cutoff") )
+    {
+        yError() << "cutoff option not found, wholeBodyDynamicsTree initialization failed.";
+        yError() << "please add the cutoff option to the wholeBodyDynamicsTree configuration file";
+        return false;
+    }
+
+    if( !yarp_options.find("cutoff").isDouble() )
+    {
+        yError() << "cutoff option found but not a double, wholeBodyDynamicsTree initialization failed.";
+        yError() << "the cutoff option is required to be a double.";
+        return false;
+    }
+
+
+    double cutoffInHz = yarp_options.find("cutoff").asDouble();
+
     double periodInSeconds = getRate()*1e-3;
     filters = new wholeBodyDynamicsFilters(torque_estimation_list.size(),nrOfAvailableFTSensors,
                                           cutoffInHz,periodInSeconds);
@@ -1146,7 +1162,7 @@ void wholeBodyDynamicsThread::getExternalWrenches()
         KDL::Wrench f;
 
         if( !this->assume_fixed_base_calibration_from_odometry  )
-        {   
+        {
             f = externalWrenchTorqueEstimator->robot_estimation_model->getExternalForceTorqueKDL(link_id,frame_origin_id,frame_orientation_id);
         }
 
@@ -1155,7 +1171,7 @@ void wholeBodyDynamicsThread::getExternalWrenches()
             if( this->current_fixed_link_name == "r_foot" )
             {
                 f = externalWrenchTorqueEstimator->robot_estimation_model_on_r_sole->getExternalForceTorqueKDL(link_id,frame_origin_id,frame_orientation_id);
-            } 
+            }
             else if( this->current_fixed_link_name == "l_foot" )
             {
                 f = externalWrenchTorqueEstimator->robot_estimation_model_on_l_sole->getExternalForceTorqueKDL(link_id,frame_origin_id,frame_orientation_id);

@@ -70,6 +70,10 @@ http://wiki.icub.org/wiki/Force_Control
   The parameter \e period identifies the rate the estimation thread will work. If not
   specified \e 10ms is assumed.
 
+--cutoff \e cutoff
+  The parameter cutoff specifies the cutoff frequency (in Hz) of the low pass filters used in
+  wholeBodyDynamicsTree, a typical values is 3.0 Hz.
+
 
 \section portsa_sec Ports Accessed
 Coming soon.
@@ -181,6 +185,7 @@ int main (int argc, char * argv[])
         yInfo()<< "\t--min_taxel  threshold   :Filter input skin contacts: if the activated taxels are lower than the threshold, ignore the contact (default: 1)." ;
         yInfo()<< "\t--smooth_calibration switch_period : Perform a smooth calibration (i.e.: don't stop estimating torques during calibration, and then smoothly change the ft offsets)";
         yInfo()<< "\t                                     the switch_period express the period (in ms) used for offset interpolation.";
+        yInfo()<< "\t--cutoff           :cutoff frequency (in Hz) of the low pass filters used in wholeBodyDynamicsTree.";
         return 0;
     }
 
