@@ -61,6 +61,7 @@
 #include "dataDumperParser.h"
 //#include "deviceclass.h"
 #include "directFilterComputation.h"
+#include <iCub/ctrl/filters.h>
 
 //TODO The path to the original data file must be retrieved by the ResourceFinder.
 #define DATAFILE "/home/jorhabib/Software/extended-kalman-filter/EKF_Quaternion_DynWalking2015/orocos_bfl/data/dumper/icub/inertial/data.log"
@@ -126,6 +127,9 @@ class quaternionEKFThread: public yarp::os::RateThread
     yarp::sig::Vector*   imu_measurement;
     directFilterComputation* m_directComputation;
     MatrixWrapper::Quaternion* m_quat_lsole_sensor;
+    double m_lowPass_cutoffFreq;
+    // Low Pass Filter
+    iCub::ctrl::FirstOrderLowPassFilter * lowPassFilter;
 
 public:
   quaternionEKFThread ( int period,

@@ -17,10 +17,13 @@
 
 #include "quaternionEKFThread.h"
 
+#include <iCub/ctrl/filters.h>
+
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace filter;
+using namespace iCub::ctrl;
 
 quaternionEKFThread::quaternionEKFThread ( int period,
                                            std::string moduleName,
@@ -181,10 +184,11 @@ void quaternionEKFThread::run()
     }
 
     if (!m_usingEKF) {
-        cout << "Computing dummy orientation" << endl;
         yarp::sig::Vector output(12);
         output.zero();
         m_directComputation->computeOrientation(imu_measurement, output);
+        // Low pass filtering
+        output = lowPassFilter->filt(output);
         cout << "accelerometer measurement: " << imu_measurement->toString() << endl;
         cout << "Roll, Pitch, Yaw " << output(0) << " " << output(1) << " " << output(2) << endl;
         yarp::sig::Vector& tmpPortEuler = m_publisherFilteredOrientationEulerPort->prepare();
@@ -216,6 +220,7 @@ bool quaternionEKFThread::threadInit()
                                                                 m_filterParams.find("lsole_qvec1_sensor").asDouble(),
                                                                 m_filterParams.find("lsole_qvec2_sensor").asDouble(),
                                                                 m_filterParams.find("lsole_qvec3_sensor").asDouble());
+            m_lowPass_cutoffFreq = m_filterParams.find("cutoff_freq").asDouble();
         } else {
         yError(" [quaternionEKFThread::threadInit] Filter parameters from configuration file could not be extracted");
         return false;
@@ -229,11 +234,14 @@ bool quaternionEKFThread::threadInit()
     */
 
     // Using direct atan2 computation
-    if (!m_usingEKF)
+    if (!m_usingEKF) {
         m_directComputation = new directFilterComputation(*m_quat_lsole_sensor);
+        double periodInSeconds = getRate()*1e-3;
+        yarp::sig::Vector dofZeros(12,0.0);
+        lowPassFilter = new iCub::ctrl::FirstOrderLowPassFilter(m_lowPass_cutoffFreq, periodInSeconds, dofZeros);
+    }
 
     // imu Measurement vector
-    //TODO Put feet acc too! /icub/left_foot_inertial/analog:o
     if (!m_sensorPort.compare("/icub/inertial")) {
         imu_measurement = new yarp::sig::Vector(12);
     } else {
@@ -604,6 +612,12 @@ void quaternionEKFThread::threadRelease()
             delete m_directComputation;
             m_directComputation = NULL;
             cout << "m_directComputation deleted" << endl;
+        }
+        if (lowPassFilter) {
+            cout << "deleting lowPassFilter" << endl;
+            delete lowPassFilter;
+            lowPassFilter = NULL;
+            cout << "lowPassFilter deleted "<< endl;
         }
     }
     if (m_publisherFilteredOrientationEulerPort) {

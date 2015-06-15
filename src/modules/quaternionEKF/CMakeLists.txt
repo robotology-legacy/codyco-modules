@@ -18,8 +18,8 @@ option(QUATERNION_EKF_USE_XSENS FALSE)
 if(QUATERNION_EKF_USE_XSENS)
     find_package(XSens REQUIRED)
 endif()
-find_package(codycoCommons REQUIRED)
 
+find_package(ICUB REQUIRED)
 
 # Find orocos-bfl package configuration file
 find_package(PkgConfig)
@@ -41,7 +41,8 @@ include_directories(SYSTEM ${YARP_INCLUDE_DIRS}
                            ${MATRIX_INCLUDE}
                            ${OROCOS_BFL_INCLUDEDIR}
                            ${Boost_INCLUDE_DIRS}
-                           ${PROJECT_SOURCE_DIR}/include)
+                           ${PROJECT_SOURCE_DIR}/include
+                           ${ctrlLib_INCLUDE_DIRS})
 
 if(QUATERNION_EKF_USE_XSENS)
     include_directories(SYSTEM ${XSENS_INCLUDE_DIR})
@@ -65,7 +66,9 @@ target_link_libraries(${PROJECTNAME}
                       ${OROCOS_BFL_LIBRARIES}
 	              ${YARP_LIBRARIES}
 	              ${MATRIX_LIBS}
-	              ${Boost_LIBRARIES} ${XSENS_LIBRARIES})
+	              ${Boost_LIBRARIES}
+	              ${XSENS_LIBRARIES}
+	              ctrlLib)
 
 if(WIN32)
 INSTALL_TARGETS(/bin/Release ${PROJECTNAME})
