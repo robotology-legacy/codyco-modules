@@ -78,7 +78,7 @@ bool eventRepeater::sendEvent(const std::string& event) {
   eventRepeater_sendEvent helper;
   helper.init(event);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool eventRepeater::sendEvent(const std::string& event)");
+    yError("Missing server method '%s'?","bool eventRepeater::sendEvent(const std::string& event)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -88,7 +88,7 @@ bool eventRepeater::se(const std::string& event) {
   eventRepeater_se helper;
   helper.init(event);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool eventRepeater::se(const std::string& event)");
+    yError("Missing server method '%s'?","bool eventRepeater::se(const std::string& event)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;

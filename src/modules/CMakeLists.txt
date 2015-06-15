@@ -18,6 +18,10 @@ if(${CODYCO_USES_EIGEN_320})
    add_subdirectory(wholeBodyReach)
 endif()
 
+if(CODYCO_USES_OROCOS_BFL_BERDY)
+   add_subdirectory(quaternionEKF)
+endif()
+
 add_subdirectory(walkPlayer)
 
 add_subdirectory(codycoCoordinatorDemoY1)
