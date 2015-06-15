@@ -371,18 +371,18 @@ void ExternalWrenchesAndTorquesEstimator::readSkinContacts()
     else if(Time::now()-last_reading_skin_contact_list_Stamp>SKIN_EVENTS_TIMEOUT && last_reading_skin_contact_list_Stamp!=0.0)
     {
         // if time is up, use default contact points \todo TODO 
-        std::cout << "Resetting skin contact for timeout" << std::endl;
+        //std::cout << "Resetting skin contact for timeout" << std::endl;
         skinContacts.clear();
     }
   
-    std::cout << "skinContacts: " << skinContacts.toString() << std::endl;
+    //std::cout << "skinContacts: " << skinContacts.toString() << std::endl;
     //std::cout << "dynContacts: " << dynContacts.toString() << std::endl;
 
     //At this point, in a way or the other skinContacts must have at least a valid contact for each subtree
     //If this is not true, we add a default contact for each subgraph
     dynContacts = skinContacts.toDynContactList();
 
-    std::cout << "dynContacts converted from skinContacts: " << dynContacts.toString() << std::endl;
+    //std::cout << "dynContacts converted from skinContacts: " << dynContacts.toString() << std::endl;
 
     // std::cout << "dynContacts: " << std::endl;
     // std::cout << dynContacts.toString() << std::endl;
@@ -409,7 +409,7 @@ void ExternalWrenchesAndTorquesEstimator::readSkinContacts()
         {
             std::string link_name;
             robot_estimation_model->getLinkName(iDynTree_link_index,link_name);
-            std::cout << "Found a contact from skin in link " << link_name << std::endl;
+            //std::cout << "Found a contact from skin in link " << link_name << std::endl;
             contacts_for_given_subtree[link2subtree[iDynTree_link_index]]++;
         }
     }
@@ -545,7 +545,7 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
 
         if( !ok )
         {
-            yError() << "wholeBodyDynamics: external forces computation and torque estimation failed";
+            yWarning() << "wholeBodyDynamics: external forces computation and torque estimation failed";
         }
 
         estimatedLastDynContacts = robot_estimation_model->getContacts();
