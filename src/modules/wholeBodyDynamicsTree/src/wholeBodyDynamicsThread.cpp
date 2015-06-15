@@ -257,8 +257,6 @@ bool wholeBodyDynamicsThread::loadExternalWrenchesPortsConfigurations()
         }
     }
 
-    assert(nr_of_output_wrench_ports == output_torque_ports.size());
-
     return true;
 }
 

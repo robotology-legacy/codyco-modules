@@ -351,35 +351,38 @@ void ExternalWrenchesAndTorquesEstimator::readSkinContacts()
         // if there are more than 1 contact and less than 10 taxels are active then suppose zero moment
         for(map<BodyPart,skinContactList>::iterator it=contactsPerBp.begin(); it!=contactsPerBp.end(); it++)
         {
-            if(it->second.size()>1)
+            for(skinContactList::iterator c=it->second.begin(); c!=it->second.end(); c++)
             {
-                for(skinContactList::iterator c=it->second.begin(); c!=it->second.end(); c++)
+                if( c->getActiveTaxels()<10 && it->second.size()>1)
                 {
-                    if( c->getActiveTaxels()<10 )
-                    {
-                        c->fixMoment();
-                    }
+                    c->fixMoment();
+                }
 
-                    //Insert a contact in skinContacts only if the number of taxel is greater than ActiveTaxels
-                    if( (int)c->getActiveTaxels() > min_taxel )
-                    {
-                        skinContacts.insert(skinContacts.end(),*c);
-                    }
+                //Insert a contact in skinContacts only if the number of taxel is greater than ActiveTaxels
+                if( (int)c->getActiveTaxels() > min_taxel )
+                {
+                    skinContacts.insert(skinContacts.end(),*c);
                 }
             }
+            
         }
 
     }
     else if(Time::now()-last_reading_skin_contact_list_Stamp>SKIN_EVENTS_TIMEOUT && last_reading_skin_contact_list_Stamp!=0.0)
     {
-        // if time is up, use default contact points \todo TODO
+        // if time is up, use default contact points \todo TODO 
+        std::cout << "Resetting skin contact for timeout" << std::endl;
         skinContacts.clear();
     }
-
+  
+    std::cout << "skinContacts: " << skinContacts.toString() << std::endl;
+    //std::cout << "dynContacts: " << dynContacts.toString() << std::endl;
 
     //At this point, in a way or the other skinContacts must have at least a valid contact for each subtree
     //If this is not true, we add a default contact for each subgraph
     dynContacts = skinContacts.toDynContactList();
+
+    std::cout << "dynContacts converted from skinContacts: " << dynContacts.toString() << std::endl;
 
     // std::cout << "dynContacts: " << std::endl;
     // std::cout << dynContacts.toString() << std::endl;
@@ -404,6 +407,9 @@ void ExternalWrenchesAndTorquesEstimator::readSkinContacts()
         }
         else
         {
+            std::string link_name;
+            robot_estimation_model->getLinkName(iDynTree_link_index,link_name);
+            std::cout << "Found a contact from skin in link " << link_name << std::endl;
             contacts_for_given_subtree[link2subtree[iDynTree_link_index]]++;
         }
     }
@@ -605,39 +611,29 @@ void ExternalWrenchesAndTorquesEstimator::estimateExternalForcesAndJointTorques(
     unsigned long cId;
     bool contactFound=false;
 
+    estimatedLastSkinDynContacts = skinContacts;
+
     for(unsigned int i=0; i < estimatedLastDynContacts.size(); i++)
     {
-        //Workaround for bug in iCubGui
-        // \todo TODO remove
-        if( estimatedLastDynContacts[i].getBodyPart() == TORSO &&
-            estimatedLastDynContacts[i].getLinkNumber() == 2 )
-        {
-            //Invert second component
-            yarp::sig::Vector wrench = estimatedLastDynContacts[i].getForceMoment();
-            wrench[1] = -wrench[1];
-            wrench[3+1] = -wrench[3+1];
-            estimatedLastDynContacts[i].setForceMoment(wrench);
-        }
-
         cId = estimatedLastDynContacts[i].getId();
-        for(unsigned int j=0; j<skinContacts.size(); j++)
+        for(unsigned int j=0; j<estimatedLastSkinDynContacts.size(); j++)
         {
-            if(cId == skinContacts[j].getId())
+            if(cId == estimatedLastSkinDynContacts[j].getId())
             {
-                skinContacts[j].setForceMoment( estimatedLastDynContacts[i].getForceMoment() );
+                estimatedLastSkinDynContacts[j].setForceMoment( estimatedLastDynContacts[i].getForceMoment() );
                 contactFound = true;
-                j = skinContacts.size();    // break from the inside for loop
+                j = estimatedLastSkinDynContacts.size();    // break from the inside for loop
             }
         }
 
         // if there is no associated skin contact, create one
         if(!contactFound)
-            skinContacts.push_back(skinContact(estimatedLastDynContacts[i]));
+            estimatedLastSkinDynContacts.push_back(skinContact(estimatedLastDynContacts[i]));
         contactFound = false;
 
     }
 
-    estimatedLastSkinDynContacts = skinContacts;
+
 
     assert((int)tauJ.size() == robot_estimation_model->getNrOfDOFs());
     if( !this->assume_fixed_base_from_odometry )
