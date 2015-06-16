@@ -1,0 +1,117 @@
+<application>
+
+  <!-- Generic information-->
+  <name>Double support to single support transition</name>
+  <!-- <description></description> -->
+  <version></version>
+
+
+
+  <!-- Adding trajectory generator -->
+  <module>
+      <name>codycoTrajGenDemoY2</name>
+      <parameters></parameters>
+      <node>screen-node</node>
+      <stdio></stdio>
+      <prefix></prefix>
+  </module>
+
+  <!-- Adding FSM coordinator -->
+  <module>
+      <name>doubleToSingleDemo.lua</name>
+      <deployer>lua</deployer>
+      <node>node</node>
+      <dependencies>
+          <port timeout="5.0">/wholeBodyDynamicsTree/com:o</port>
+          <port timeout="5.0">/wholeBodyDynamicsTree/frames:o</port>
+          <port timeout="5.0">/wholeBodyDynamicsTree/left_leg/endEffectorWrench:o</port>
+          <port timeout="5.0">/wholeBodyDynamicsTree/right_leg/endEffectorWrench:o</port>
+      </dependencies>
+  </module>
+
+  <!-- Adding eventRepeater to simplify user generation of events (for debug) -->
+  <module>
+      <name>eventRepeater</name>
+      <node>node</node>
+  </module>
+
+
+  <connection>
+      <from>/trajGenY2/qDes:o</from>
+      <to>/torqueBalancing/qDes:i</to>
+      <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+      <from>/trajGenY2/comDes:o</from>
+      <to>/torqueBalancing/comDes:i</to>
+      <protocol>udp</protocol>
+  </connection>
+
+  <!-- FSM connections -->
+
+  <!-- input to the controller and the trajectory generators -->
+  <connection>
+      <from>/graspAndStepDemo/setpoints:o</from>
+      <to>/trajGenY2/refs:i</to>
+  </connection>
+
+  <connection>
+      <from>/graspAndStepDemo/constraints:o</from>
+      <to>/torqueBalancing/constraints:i</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <!-- RPC connection to start/stop the graspDemo -->
+  <connection>
+      <from>/graspAndStepDemo/graspDemo</from>
+      <to>/torqueGraspManager/rpc</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <!-- events port -->
+  <connection>
+      <from>/eventRepeater/events:o</from>
+      <to>/graspAndStepDemo/events:i</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+      <from>/torqueGraspManager/events:o</from>
+      <to>/graspAndStepDemo/events:i</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+     <from>/wholeBodyDynamicsTree/com:o</from>
+     <to>/graspAndStepDemo/com:i</to>
+  </connection>
+
+  <connection>
+    <from>/icub/left_leg/state:o</from>
+    <to>/graspAndStepDemo/left_leg/state:i</to>
+  </connection>
+
+  <connection>
+    <from>/icub/right_leg/state:o</from>
+    <to>/graspAndStepDemo/right_leg/state:i</to>
+  </connection>
+
+  <connection>
+    <from>/icub/torso/state:o</from>
+    <to>/graspAndStepDemo/torso/state:i</to>
+  </connection>
+
+   <connection>
+    <from>/icub/left_arm/state:o</from>
+    <to>/graspAndStepDemo/left_arm/state:i</to>
+  </connection>
+
+
+  <connection>
+    <from>/icub/right_arm/state:o</from>
+    <to>/graspAndStepDemo/right_arm/state:i</to>
+  </connection>
+
+
+</application>

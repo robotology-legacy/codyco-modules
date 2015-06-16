@@ -9,12 +9,14 @@ set(lua_fsm             ${CMAKE_CURRENT_SOURCE_DIR}/lua/fsm_graspAndStep.lua
                         ${CMAKE_CURRENT_SOURCE_DIR}/lua/fsm_left_right_sine.lua
                         ${CMAKE_CURRENT_SOURCE_DIR}/lua/fsm_ping_pong.lua
                         ${CMAKE_CURRENT_SOURCE_DIR}/lua/fsm_test_right_step.lua
+                        ${CMAKE_CURRENT_SOURCE_DIR}/lua/fsm_doubleToSingle.lua
                         ${CMAKE_CURRENT_SOURCE_DIR}/lua/steppingMonitor.lua
                         ${CMAKE_CURRENT_SOURCE_DIR}/lua/gas_funcs.lua)
 set(lua_bin             ${CMAKE_CURRENT_SOURCE_DIR}/lua/pingPongDemo.lua
                         ${CMAKE_CURRENT_SOURCE_DIR}/lua/leftRightBalancingDemo.lua
                         ${CMAKE_CURRENT_SOURCE_DIR}/lua/graspAndStepDemo.lua
-                        ${CMAKE_CURRENT_SOURCE_DIR}/lua/stepDemo.lua)
+                        ${CMAKE_CURRENT_SOURCE_DIR}/lua/stepDemo.lua
+                        ${CMAKE_CURRENT_SOURCE_DIR}/lua/doubleToSingleDemo.lua)
 
 yarp_install(PROGRAMS  ${lua_fsm} DESTINATION ${CODYCO_CONTEXTS_INSTALL_DIR}/${modulename}/lua)
 

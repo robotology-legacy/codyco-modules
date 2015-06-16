@@ -63,30 +63,48 @@ function gas_sendPartToTrajGen(port,partName, setpoint_bt)
 end
 
 function gas_sendCOMAndTwoPartsToTrajGen(port,com_setpoint, firstPartName, firstPartSetpoint, secondPartName, secondPartSetpoint)
-   
-   -- save desired values 
+
+   -- save desired values
    gas_motion_done_helper.comDes_in_world = com_setpoint:clone();
-   
+
    if( firstPartName == "right_leg" ) then
        gas_motion_done_helper.rightLegDes = firstPartSetpoint
    end
    if( firstPartName == "left_leg" ) then
        gas_motion_done_helper.leftLegDes  = firstPartSetpoint
    end
-   
+
    if( secondPartName == "right_leg" ) then
        gas_motion_done_helper.rightLegDes = secondPartSetpoint
    end
    if( secondPartName == "left_leg" ) then
        gas_motion_done_helper.leftLegDes  = secondPartSetpoint
    end
-   
+
    local comBotTrajGen = YarpVectorBottleForTrajGenFromPointCoord(com_setpoint)
    local prop = port:prepare();
    prop:clear()
    prop:put("com",comBotTrajGen:get(0))
    prop:put(firstPartName,ValueFromBottleAndDeg2Rad(firstPartSetpoint))
    prop:put(secondPartName,ValueFromBottleAndDeg2Rad(secondPartSetpoint))
+   port:write(true)
+end
+
+function gas_sendAllPartsToTrajGen(port, leftLegSetPoint, rightLegSetPoint, torsoSetPoint, leftArmSetPoint, rightArmSetPoint)
+   -- save desired values
+   gas_motion_done_helper.leftLegDes  = leftLegSetPoint
+   gas_motion_done_helper.rightLegDes = rightLegSetPoint
+   gas_motion_done_helper.torsoDes    = torsoSetPoint
+   gas_motion_done_helper.leftArmDes  = leftArmSetPoint
+   gas_motion_done_helper.rightArmDes = rightArmSetPoint
+
+   local prop = port:prepare();
+   prop:clear()
+   prop:put("left_leg",ValueFromBottleAndDeg2Rad(gas_motion_done_helper.leftLegDes))
+   prop:put("right_leg",ValueFromBottleAndDeg2Rad(gas_motion_done_helper.rightLegDes))
+   prop:put("torso",ValueFromBottleAndDeg2Rad(gas_motion_done_helper.torsoDes))
+   prop:put("left_arm",ValueFromBottleAndDeg2Rad(gas_motion_done_helper.leftArmDes))
+   prop:put("right_arm",ValueFromBottleAndDeg2Rad(gas_motion_done_helper.rightArmDes))
    port:write(true)
 end
 
@@ -121,13 +139,13 @@ function generate_motiondone_events(fsm)
     local comErr = math.sqrt(errX*errX + errY*errY);
     --print("comErr: " .. comErr)
     if( transfer_right_to_left ) then
-		com_threshold = com_threshold_right_to_left 
+		com_threshold = com_threshold_right_to_left
     end
-    
+
     if( transfer_left_to_right ) then
-		com_threshold = com_threshold_left_to_right 
+		com_threshold = com_threshold_left_to_right
     end
-    
+
     if( comErr < com_threshold ) then
         rfsm.send_events(fsm,'e_com_motion_done')
     end
@@ -166,7 +184,7 @@ function generate_motiondone_events(fsm)
         if( qErrLL ~= nil ) then
             print(" qErrLL: " .. qErrLL)
         end
-        
+
         if( vertical_force ~= nil ) then
 			print(" Vertical force on right foot " .. vertical_force)
         end
@@ -286,6 +304,19 @@ function yarp_rf_find_string(rf,var_name)
     if( rf:check(var_name) ) then
         local var = rf:find(var_name):asString()
         print("[INFO] setting " .. var_name .. " to " .. var)
+        return var
+    else
+        print("[ERROR] " .. var_name .." parameter not found, exiting")
+        gas_close_script()
+    end
+end
+
+function yarp_rf_find_bottle(rf,var_name)
+    if( rf:check(var_name) ) then
+        local var_bot = rf:find(var_name):asList()
+        local var = yarp.Bottle()
+        var:copy(var_bot)
+        print("[INFO] setting " .. var_name .. " to " .. var:toString())
         return var
     else
         print("[ERROR] " .. var_name .." parameter not found, exiting")
@@ -815,7 +846,7 @@ function query_cartesian_solver(solver_rpc, des_trans, rest_pos_bt)
     qd2 = reply:get(2):asList():get(1):asList()
     qd = yarp.Bottle()
     qd:copy(qd2)
-    
+
     -- print("[DEBUG] qd : " .. qd:toString())
     return qd
 end
@@ -922,15 +953,15 @@ function gas_generate_left_foot_setpoints()
     gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole = HomTransform.create()
     -- not touching rot because is already the identity gas_setpoints.world_l_sole_initial_swing_des_pos_in_r_sole.rot
     gas_setpoints.l_sole_initial_swing_des_pos_in_r_sole.origin = delta_initial_swing_wrt_r_sole:clone();
-    
+
     local delta_final_swing_wrt_r_sole = PointCoord.create()
-    
+
     delta_final_swing_wrt_r_sole.x = 0.0
     delta_final_swing_wrt_r_sole.y = initial_y_distance_between_feet_in_r_sole
     delta_final_swing_wrt_r_sole.z = 0.0
-    
+
     gas_setpoints.l_sole_final_swing_des_pos_in_r_sole = HomTransform.create()
     gas_setpoints.l_sole_final_swing_des_pos_in_r_sole.origin = delta_final_swing_wrt_r_sole:clone();
 
 end
-	
+
