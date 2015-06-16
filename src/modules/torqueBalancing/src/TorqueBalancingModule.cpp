@@ -175,16 +175,23 @@ namespace codyco {
 
             wbi::Frame frame;
             Eigen::VectorXd baseSerialization(16);
-            m_robot->getEstimates(wbi::ESTIMATE_BASE_POS, baseSerialization.data());
+            if (!m_robot->getEstimates(wbi::ESTIMATE_BASE_POS, baseSerialization.data())) {
+                yError("Could not compute base estimation.");
+                return false;
+            }
+            
             wbi::frameFromSerialization(baseSerialization.data(), frame);
-
             //set initial com to be equal to the read one
-            m_robot->forwardKinematics(m_jointsConfiguration.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, m_tempHeptaVector.data());
+            if (!m_robot->forwardKinematics(m_jointsConfiguration.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, m_tempHeptaVector.data())) {
+                yError("Could not compute forward kinematics.");
+                return false;
+            }
             m_comReference = m_tempHeptaVector.head<3>();
 
             std::ostringstream outputMessage;
             outputMessage << "Initial COM position: " << m_comReference.transpose();
             yInfo("%s", outputMessage.str().c_str());
+            
 
             //Disabled for now
             //            MinimumJerkTrajectoryGenerator jointsSmoother(actuatedDOFs);
