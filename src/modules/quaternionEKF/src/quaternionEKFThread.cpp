@@ -235,7 +235,7 @@ bool quaternionEKFThread::threadInit()
     // Using direct atan2 computation
     if (!m_usingEKF) {
         m_directComputation = new directFilterComputation(*m_quat_lsole_sensor);
-        double periodInSeconds = getRate()*1e-3;
+        double periodInSeconds = getRate()*1e3;
         yarp::sig::Vector dofZeros(12,0.0);
         lowPassFilter = new iCub::ctrl::FirstOrderLowPassFilter(m_lowPass_cutoffFreq, periodInSeconds, dofZeros);
     }
