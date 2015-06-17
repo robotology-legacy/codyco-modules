@@ -109,11 +109,18 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         if (!tmpOnline.compare(mode)) {
             yInfo(" [quaternionEKFModule::configure] Online estimation will be performed");
             std::string gyroMeasPortName = "/";
-            gyroMeasPortName += "quaternionEKFModule";
+            gyroMeasPortName += local;
             gyroMeasPortName += "/imu:i";
             if (!gyroMeasPort.open(gyroMeasPortName.c_str())) {
                 yError("[quaternionEKFModule::configure] Could not open gyroMeasPort");
                 return false;
+            }
+            if (using2acc) {
+                std::string gyroMeasPortName2 = "/"; gyroMeasPortName2 += local; gyroMeasPortName2 += "/imu2:i";
+                if (!gyroMeasPort2.open(gyroMeasPortName2.c_str())) {
+                    yError("[quaternionEKFModule::configure] Coult not open gyroMeasPort2");
+                    return false;
+                }
             }
 
             // Obtaining filter parameters from configuration file
@@ -140,7 +147,7 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
                 }
             }
             // ----------- THREAD INSTANTIATION AND CALLING -----------------
-            quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, usingEKF, sensorPortName, verbose, filterParams, &gyroMeasPort);
+            quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, usingEKF, sensorPortName, verbose, filterParams, &gyroMeasPort, &gyroMeasPort2);
             if (!quatEKFThread->start()) {
                 yError("Error starting quaternionEKFThread!");
                 return false;
@@ -194,13 +201,15 @@ bool quaternionEKFModule::updateModule()
             yarp::os::Network::connect(sensorPortName, calibPortName, "tcp");
             yarp::sig::Vector* reading;
             reading = acc.read(true);
-            std::cout << "Acc Reading was: " << reading->toString() << std::endl;
-            
             // Prepare to write to file
             std::ofstream myfile;
-            myfile.open("leg0DegreesData.txt");
-            std::cout << "Put the robot on the ground ... " << std::endl;
-            std::cout << "Collecting data ... " << std::endl;
+            string filename;
+            cout << "Please enter desired file name for first 0 degrees angle test" << endl;
+            getline(cin,filename);
+            myfile.open(filename.c_str());
+            cout << "Now put the accelerometer at 0 degrees. Press ENTER when ready" << std::endl;
+            getchar();
+            cout << "Collecting data ... " << std::endl;
             double initTime = yarp::os::Time::now();
             while (yarp::os::Time::now() - initTime < 5.0) {
                 reading = acc.read(true);
@@ -209,10 +218,12 @@ bool quaternionEKFModule::updateModule()
                 myfile << "\n";
             }
             myfile.close();
-            cout << "Now put the leg at 90 degrees in front of the robot. Press ENTER when ready" << endl;
-            getchar();
+            cout << "Please enter desired file name for 90 degrees angle test" << endl;
+            getline(cin,filename);
             ofstream myfile2;
-            myfile2.open("leg90DegreesData.txt");
+            myfile2.open(filename.c_str());
+            cout << "Now put the accelerometer at 90 degrees. Press ENTER when ready" << endl;
+            getchar();
             std::cout << "Collecting data ... " << std::endl;
             initTime = yarp::os::Time::now();
             while (yarp::os::Time::now() - initTime < 5.0) {
@@ -244,6 +255,9 @@ bool quaternionEKFModule::close()
             yInfo(" [quaternionEKFModule::close] Thread closed");
         }
         gyroMeasPort.interrupt();
+        if (using2acc) {
+            gyroMeasPort2.interrupt();
+        }
     }
     return true;
 }
