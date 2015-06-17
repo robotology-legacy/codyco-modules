@@ -677,13 +677,13 @@ void quaternionEKFThread::threadRelease()
         m_publisherXSensEuler = NULL;
         cout << "m_publisherXSensEuler deleted" << endl;
     }*/
-    if (m_sys_model) {
-        cout << "deleting m_sys_model" << endl;
-        delete m_sys_model;
-        m_sys_model = NULL;
-        cout << "m_sys_model deleted" << endl;
-    }
     if (m_usingEKF) {
+        if (m_sys_model) {
+            cout << "deleting m_sys_model" << endl;
+            delete m_sys_model;
+            m_sys_model = NULL;
+            cout << "m_sys_model deleted" << endl;
+        }
         if (m_measurement_uncertainty) {
             cout << "deleting m_measurement_uncertainty " << endl;
             delete m_measurement_uncertainty;
