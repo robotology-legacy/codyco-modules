@@ -107,6 +107,11 @@ namespace codyco {
              */
             bool isActiveState();
             
+            void setCheckJointLimits(bool checkJointLimits);
+            
+            bool doesCheckJointLimits();
+            
+            
             /** Sets the torque saturation limits for the actuators
              * @param newSaturation new value for the saturation limit
              */
@@ -162,7 +167,7 @@ namespace codyco {
             
         private:
             void readReferences();
-            bool checkJointLimits();
+            bool jointsInLimitRange();
             bool updateRobotState();
             void computeContactForces(const Eigen::Ref<Eigen::MatrixXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::MatrixXd> desiredContactForces);
             void computeTorques(const Eigen::Ref<Eigen::VectorXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques);
@@ -177,6 +182,7 @@ namespace codyco {
             yarp::os::Mutex m_mutex;
             
             bool m_active;
+            bool m_checkJointLimits;
             
             //configuration-time constants
             int m_leftFootLinkID;
