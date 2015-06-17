@@ -101,7 +101,10 @@ namespace codyco {
             m_controllerThreadPeriod = rf.check("period", Value(10), "Looking for controller period").asInt();
             double dynamicsSmoothing = rf.check("dynSmooth", Value(1.0), "Looking for dynamics smoothing transition time ").asDouble();
             m_modulePeriod = rf.check("modulePeriod", Value(0.25), "Looking for module period").asDouble();
-
+            Value trueValue;
+            trueValue.fromString("true");
+            bool checkJointLimits = rf.check("check_limits", trueValue, "Looking for joint limits check option").asBool();
+   
             //PARAMETERS SECTION
             //Creating parameter server helper
             //link controller and references variables to param helper manager
@@ -246,6 +249,7 @@ namespace codyco {
                 return false;
             }
             m_controller->setDelegate(this);
+            m_controller->setCheckJointLimits(checkJointLimits);
 
             //link controller and references variables to param helper manager
             if (!m_paramHelperManager->linkVariables()

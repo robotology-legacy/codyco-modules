@@ -40,6 +40,7 @@ class quaternionEKFModule: public yarp::os::RFModule
     bool autoconnect;
     bool usingEKF;
     bool calib;
+    bool using2acc;
     std::string mode;
     bool usingxsens;
     bool verbose;
@@ -49,6 +50,7 @@ class quaternionEKFModule: public yarp::os::RFModule
     std::string filterType; 
     
     yarp::os::BufferedPort<yarp::sig::Vector> gyroMeasPort;
+    yarp::os::BufferedPort<yarp::sig::Vector> gyroMeasPort2;
     quaternionEKFThread* quatEKFThread;
     
     // Parser parameters

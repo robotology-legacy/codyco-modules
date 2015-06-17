@@ -79,6 +79,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     // Ports for sensor readings
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_port_input;
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_gyroMeasPort;
+    yarp::os::BufferedPort<yarp::sig::Vector>*   m_gyroMeasPort2;
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_publisherFilteredOrientationPort;
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_publisherFilteredOrientationEulerPort;
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_publisherXSensEuler;
@@ -86,6 +87,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     std::string                                  m_moduleName;
     std::string                                  m_robotName;
     std::string                                  m_sensorPort;
+    std::string                                  m_sensorPort2;
     bool                                         m_autoconnect;
     bool                                         m_usingxsens;
     bool                                         m_usingEKF;
@@ -125,9 +127,11 @@ class quaternionEKFThread: public yarp::os::RateThread
 //    DeviceClass*         m_xsens;
 //    XsPortInfo           m_mtPort;
     yarp::sig::Vector*   imu_measurement;
+    yarp::sig::Vector*   imu_measurement2;
     directFilterComputation* m_directComputation;
     MatrixWrapper::Quaternion* m_quat_lsole_sensor;
     double m_lowPass_cutoffFreq;
+    bool m_using2acc;
     // Low Pass Filter
     iCub::ctrl::FirstOrderLowPassFilter * lowPassFilter;
 
@@ -141,7 +145,8 @@ public:
                         std::string sensorPort,
                         bool verbose,
                         yarp::os::Property &filterParams,
-                        yarp::os::BufferedPort<yarp::sig::Vector>* m_gyroMeasPort
+                        yarp::os::BufferedPort<yarp::sig::Vector>* m_gyroMeasPort,
+                        yarp::os::BufferedPort<yarp::sig::Vector>* m_gyroMeasPort2
                       );
   bool threadInit();
   void run();
