@@ -138,10 +138,9 @@ bool actionClass::parseCommandLine2(char* command_line1, char* command_line2, ch
 
         // TODO Third column repeats the second one!! This must be removed
         double trash = 0;
-        int ret3 = sscanf(command_line3, "%lf %lf    %lf %lf %lf  ",
+        int ret3 = sscanf(command_line3, "%lf %lf %lf %lf %lf",
         &tmp_double,
         &tmp_action.time,
-
         &tmp_action.q_torso[0],
         &tmp_action.q_torso[1],
         &tmp_action.q_torso[2]
