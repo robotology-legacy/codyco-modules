@@ -9,12 +9,6 @@
           minval="-25"
           maxval="25"
           bgcolor="LightSlateGrey">
-        <graph remote="/icub/left_leg/state:o"
-               index="5"
-               color="Red"
-               title="Roll IMU"
-               type="lines"
-               size="3" />
         <graph remote="/quaternionEKFModule/filteredOrientationEuler:o"
                index="0"
                color="Blue"

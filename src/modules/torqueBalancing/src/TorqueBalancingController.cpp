@@ -52,6 +52,7 @@ namespace codyco {
         , m_dynamicsTransitionTime(dynamicSmoothingTime)
         , m_delegate(0)
         , m_active(false)
+        , m_checkJointLimits(true)
         , m_centerOfMassLinkID(wbi::wholeBodyInterface::COM_LINK_ID)
         , m_references(references)
         , m_desiredJointsConfiguration(actuatedDOFs)
@@ -207,7 +208,7 @@ namespace codyco {
             }
 
             //Check limits
-            if (!checkJointLimits()) {
+            if (m_checkJointLimits && !jointsInLimitRange()) {
                 yInfo() << "Joint limits reached. Deactivating control";
                 m_robot.setControlMode(wbi::CTRL_MODE_POS);
                 m_active = false;
@@ -270,6 +271,18 @@ namespace codyco {
         {
             yarp::os::LockGuard guard(m_mutex);
             return m_active;
+        }
+        
+        void TorqueBalancingController::setCheckJointLimits(bool checkJointLimits)
+        {
+            yarp::os::LockGuard guard(m_mutex);
+            this->m_checkJointLimits = checkJointLimits;
+        }
+            
+        bool TorqueBalancingController::doesCheckJointLimits()
+        {
+            yarp::os::LockGuard guard(m_mutex);
+            return m_checkJointLimits;
         }
 
         void TorqueBalancingController::setTorqueSaturationLimit(Eigen::VectorXd& newSaturation)
@@ -369,7 +382,7 @@ namespace codyco {
             }
         }
 
-        bool TorqueBalancingController::checkJointLimits()
+        bool TorqueBalancingController::jointsInLimitRange()
         {
             for (int i = 0; i < m_jointPositions.size(); i++) {
                 if (m_jointPositions(i) < m_minJointLimits(i) ||

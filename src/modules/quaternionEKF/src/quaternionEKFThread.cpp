@@ -34,7 +34,8 @@ quaternionEKFThread::quaternionEKFThread ( int period,
                                            std::string sensorPort,
                                            bool verbose,
                                            yarp::os::Property &filterParams,
-                                           yarp::os::BufferedPort<yarp::sig::Vector>* gyroMeasPort
+                                           yarp::os::BufferedPort<yarp::sig::Vector>* gyroMeasPort,
+                                           yarp::os::BufferedPort<yarp::sig::Vector>* gyroMeasPort2
                                          )
     : RateThread ( period ),
       m_period ( period ),
@@ -47,10 +48,14 @@ quaternionEKFThread::quaternionEKFThread ( int period,
       m_verbose ( verbose ),
       m_filterParams( filterParams ),
       m_gyroMeasPort ( gyroMeasPort ),
+      m_gyroMeasPort2 ( gyroMeasPort2 ),
       m_sysPdf( STATEDIM ),
       m_prior_mu_vec( STATEDIM ),
       m_waitingTime( 0.0 )
 {
+    //TODO Initialize m_gyroMeasPort according to gyroMeasPort
+    if (!m_sensorPort.compare("/icub/left_foot_inertial/analog:o"))
+        m_sensorPort2 = "/icub/right_foot_inertial/analog:o";
 
 }
 
@@ -60,6 +65,9 @@ void quaternionEKFThread::run()
     if ( !m_usingxsens ) {
         bool reading = true;
         imu_measurement = m_gyroMeasPort->read(reading);
+        if (m_using2acc) {
+            imu_measurement2 = m_gyroMeasPort2->read(reading);
+        }
     } else {
         //readDataFromXSens(imu_measurement);
     }
@@ -159,12 +167,12 @@ void quaternionEKFThread::run()
             cout << "Posterior Mean in Euler Angles: " << (180/PI)*eulerAngles  << endl;
         // Publish results to port
         yarp::sig::Vector tmpVec(m_state_size);
-        for (int i=1; i<m_posterior_state.size()+1; i++) {
+        for (unsigned int i=1; i<m_posterior_state.size()+1; i++) {
             tmpVec(i-1) = m_posterior_state(i);
         }
         // Publish Euler Angles estimation to port
         yarp::sig::Vector tmpEuler(3);
-        for (int i=1; i<eulerAngles.rows()+1; i++)
+        for (unsigned int i=1; i<eulerAngles.rows()+1; i++)
             tmpEuler(i-1) = eulerAngles(i)*(180/PI);
         yarp::sig::Vector& tmpPortEuler = m_publisherFilteredOrientationEulerPort->prepare();
         tmpPortEuler = tmpEuler;
@@ -184,15 +192,31 @@ void quaternionEKFThread::run()
     }
 
     if (!m_usingEKF) {
-        yarp::sig::Vector output(12);
-        output.zero();
-        m_directComputation->computeOrientation(imu_measurement, output);
-        // Low pass filtering
-        output = lowPassFilter->filt(output);
-//         cout << "Roll, Pitch, Yaw " << output(0) << " " << output(1) << " " << output(2) << endl;
-        yarp::sig::Vector& tmpPortEuler = m_publisherFilteredOrientationEulerPort->prepare();
-        tmpPortEuler = output;
-        m_publisherFilteredOrientationEulerPort->write();
+        yarp::sig::Vector output(12), output2(12);
+        output.zero(); output2.zero();
+        if(m_using2acc) {
+            // Filtering accelerometers
+            (*imu_measurement) = lowPassFilter->filt((*imu_measurement));
+            (*imu_measurement2) = lowPassFilter->filt((*imu_measurement2));
+            // Read and filter the two accelerometers
+            m_directComputation->computeOrientation(imu_measurement, output);
+            m_directComputation->computeOrientation(imu_measurement2, output2);
+            // NOTE Storing only the mean of the roll!! 
+            output(0) = (output(0) + output2(0))/2;
+            // Streaming orientation
+            yarp::sig::Vector& tmpPortEuler = m_publisherFilteredOrientationEulerPort->prepare();
+            tmpPortEuler = output;
+            m_publisherFilteredOrientationEulerPort->write();
+        } else {
+            (*imu_measurement) = lowPassFilter->filt((*imu_measurement));
+            m_directComputation->computeOrientation(imu_measurement, output);
+            // Low pass filtering
+//             output = lowPassFilter->filt(output);
+    //         cout << "Roll, Pitch, Yaw " << output(0) << " " << output(1) << " " << output(2) << endl;
+            yarp::sig::Vector& tmpPortEuler = m_publisherFilteredOrientationEulerPort->prepare();
+            tmpPortEuler = output;
+            m_publisherFilteredOrientationEulerPort->write();
+        }
     }
 }
 
@@ -220,9 +244,10 @@ bool quaternionEKFThread::threadInit()
                                                                 m_filterParams.find("lsole_qvec2_sensor").asDouble(),
                                                                 m_filterParams.find("lsole_qvec3_sensor").asDouble());
             m_lowPass_cutoffFreq = m_filterParams.find("cutoff_freq").asDouble();
+            m_using2acc = m_filterParams.find("using2acc").asBool();
         } else {
-        yError(" [quaternionEKFThread::threadInit] Filter parameters from configuration file could not be extracted");
-        return false;
+            yError(" [quaternionEKFThread::threadInit] Filter parameters from configuration file could not be extracted");
+            return false;
         }
     }
 
@@ -233,10 +258,10 @@ bool quaternionEKFThread::threadInit()
     */
 
     // Using direct atan2 computation
-    if (!m_usingEKF) {
+    if (!m_usingEKF && !m_usingxsens) {
         m_directComputation = new directFilterComputation(*m_quat_lsole_sensor);
         double periodInSeconds = getRate()*1e-3;
-        yarp::sig::Vector dofZeros(12,0.0);
+        yarp::sig::Vector dofZeros(3,0.0);
         lowPassFilter = new iCub::ctrl::FirstOrderLowPassFilter(m_lowPass_cutoffFreq, periodInSeconds, dofZeros);
     }
 
@@ -247,8 +272,11 @@ bool quaternionEKFThread::threadInit()
         if (!m_sensorPort.compare("/icub/right_hand_inertial/analog:o") || !m_sensorPort.compare("/icub/left_hand_inertial/analog:o")) {
             imu_measurement = new yarp::sig::Vector(6);
         } else {
-            if (!m_sensorPort.compare("/icub/right_foot/inertial/analog:o") || !m_sensorPort.compare("/icub/left_foot_inertial/analog:o")) {
+            if (!m_sensorPort.compare("/icub/right_foot_inertial/analog:o") || !m_sensorPort.compare("/icub/left_foot_inertial/analog:o")) {
                 imu_measurement = new yarp::sig::Vector(3);
+                if (m_using2acc) {
+                    imu_measurement2 = new yarp::sig::Vector(3);
+                }
             }
         }
     }
@@ -322,13 +350,21 @@ bool quaternionEKFThread::threadInit()
     // This port was opened by the module.
     std::string gyroMeasPortName = string("/" + m_moduleName + "/imu:i");
 
-
     if (m_autoconnect && !m_usingxsens) {
         yarp::os::ConstString src = m_sensorPort;
         cout << "[quaternionEKFThread::threadInit()] src is: " << src << endl;
         if(!yarp::os::Network::connect(src, gyroMeasPortName,"tcp")){
             yError(" [quaternionEKFThread::threadInit()] Connection with %s was not possible. Is the robotInterface running? or XSens IMU connected?", gyroMeasPortName.c_str());
             return false;
+        }
+        if (m_using2acc) {
+            std::string gyroMeasPortName2 = string("/" + m_moduleName + "/imu2:i");
+            yarp::os::ConstString src2 = m_sensorPort2;
+            cout << "[quaternionEKFThread::threadInit()]  src2 is: " << src2 << endl;
+            if(!yarp::os::Network::connect(src2, gyroMeasPortName2, "tcp")) {
+                yError("[quaternionEKFThread::threadInit()] Connection with %s was not possible. Is the robotInterface running? or the right leg accelerometer available?", gyroMeasPortName2.c_str());
+                return false;
+            }
         }
     }
 
@@ -641,47 +677,55 @@ void quaternionEKFThread::threadRelease()
         m_publisherXSensEuler = NULL;
         cout << "m_publisherXSensEuler deleted" << endl;
     }*/
-    if (m_sys_model) {
-        cout << "deleting m_sys_model" << endl;
-        delete m_sys_model;
-        m_sys_model = NULL;
-        cout << "m_sys_model deleted" << endl;
-    }
-    if (m_measurement_uncertainty) {
-        cout << "deleting m_measurement_uncertainty " << endl;
-        delete m_measurement_uncertainty;
-        m_measurement_uncertainty = NULL;
-        cout << "m_measurement_uncertainty deleted" << endl;
-    }
-    if (m_measPdf) {
-        cout << "deleting m_measPdf"  << endl;
-        delete m_measPdf;
-        m_measPdf = NULL;
-        cout << "m_measPdf deleted" << endl;
-    }
-    if (m_meas_model) {
-        cout << "deleting m_meas_model" << endl;
-        delete m_meas_model;
-        m_meas_model = NULL;
-        cout << "m_meas_model deleted" << endl;
-    }
-    if (m_prior) {
-        cout << "deleting m_prior" << endl;
-        delete m_prior;
-        m_prior = NULL;
-        cout << "m_prior deleted" << endl;
-    }
-    if (m_filter) {
-        cout << "deleting m_filter" << endl;
-        delete m_filter;
-        m_filter = NULL;
-        cout << "m_filter deleted" << endl;
+    if (m_usingEKF) {
+        if (m_sys_model) {
+            cout << "deleting m_sys_model" << endl;
+            delete m_sys_model;
+            m_sys_model = NULL;
+            cout << "m_sys_model deleted" << endl;
+        }
+        if (m_measurement_uncertainty) {
+            cout << "deleting m_measurement_uncertainty " << endl;
+            delete m_measurement_uncertainty;
+            m_measurement_uncertainty = NULL;
+            cout << "m_measurement_uncertainty deleted" << endl;
+        }
+        if (m_measPdf) {
+            cout << "deleting m_measPdf"  << endl;
+            delete m_measPdf;
+            m_measPdf = NULL;
+            cout << "m_measPdf deleted" << endl;
+        }
+        if (m_meas_model) {
+            cout << "deleting m_meas_model" << endl;
+            delete m_meas_model;
+            m_meas_model = NULL;
+            cout << "m_meas_model deleted" << endl;
+        }
+        if (m_prior) {
+            cout << "deleting m_prior" << endl;
+            delete m_prior;
+            m_prior = NULL;
+            cout << "m_prior deleted" << endl;
+        }
+        if (m_filter) {
+            cout << "deleting m_filter" << endl;
+            delete m_filter;
+            m_filter = NULL;
+            cout << "m_filter deleted" << endl;
+        }
     }
     if (imu_measurement) {
         cout << "deleting imu_measurement" << endl;
         delete imu_measurement;
         imu_measurement = NULL;
         cout << "imu_measurement deleted" << endl;
+    }
+    if (m_using2acc) {
+        cout << "deleting imu_measurement2" << endl;
+        delete imu_measurement2;
+        imu_measurement2 = NULL;
+        cout << "imu_measurement2 deleted" << endl;
     }
 }
 
