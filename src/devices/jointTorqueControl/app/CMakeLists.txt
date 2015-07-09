@@ -1,13 +1,10 @@
 set(robots iCubGenova01
            iCubGenova03
-	   icubGazeboSim
-           iCubHeidelberg01
+	         icubGazeboSim
            iCubParis01
            iCubParis02)
 
 foreach(robot ${robots})
-    file(GLOB robot_conf ${CMAKE_CURRENT_SOURCE_DIR}/robots/${robot}/*.ini)
-    yarp_install(FILES ${robot_conf}
-                 DESTINATION ${CODYCO_ROBOTS_INSTALL_DIR}/${robot})
+    yarp_install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/robots/${robot}
+                 DESTINATION ${CODYCO_ROBOTS_INSTALL_DIR})
 endforeach()
-
