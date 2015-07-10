@@ -69,7 +69,9 @@ void quaternionEKFThread::run()
             imu_measurement2 = m_gyroMeasPort2->read(reading);
         }
     } else {
-        //readDataFromXSens(imu_measurement);
+#ifdef QUATERNION_EKF_USES_XSENS
+        readDataFromXSens(imu_measurement);
+#endif
     }
 
     if (m_verbose) {
@@ -124,7 +126,8 @@ void quaternionEKFThread::run()
         MatrixWrapper::SymmetricMatrix tmpSym(m_state_size);
         tmp.convertToSymmetricMatrix(tmpSym);
         sys_noise_cov = (MatrixWrapper::SymmetricMatrix) tmpSym*pow(m_period/(1000.0*2.0),2);
-    //     sys_noise_cov(1,1) = sys_noise_cov (2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = 0.000001;
+        // NOTE Next line is setting system noise covariance matrix to a constant diagonal matrix
+        sys_noise_cov(1,1) = sys_noise_cov (2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = 0.000001;
 
         if (m_verbose)
             cout << "System covariance matrix will be: " << sys_noise_cov << endl;
@@ -144,7 +147,12 @@ void quaternionEKFThread::run()
     //             if(!m_filter->Update(m_sys_model, input))
     //                 yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
     //     }
-
+        
+        // NOTE THE NEXT TWO LINES ARE THE ONES I ACTUALLY NEED TO USE!!! DON'T FORGET TO UNCOMMENT AFTER DEBUGGING
+//         if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
+//             yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
+        // NOTE Testing just the model equations
+//         if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
         if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
             yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
 
@@ -181,14 +189,17 @@ void quaternionEKFThread::run()
         tmpPortRef = tmpVec;
         m_publisherFilteredOrientationPort->write();
 
+//         cout << "[DEBUGGING] REAL ORIENTATION: " << realOrientation.toString() << endl;
         //  Publish XSens orientation just for debugging
-        /*
-        if (m_xsens) {
-            yarp::sig::Vector& tmpXSensEuler = m_publisherXSensEuler->prepare();
+#ifdef QUATERNION_EKF_USES_XSENS
+        yarp::sig::Vector& tmpXSensEuler = m_publisherXSensEuler->prepare();
+        if (realOrientation.data()!=NULL) {
             tmpXSensEuler = realOrientation;
             m_publisherXSensEuler->write();
-        }*/
-        cout << "Elapsed time: " << elapsedTime << endl;
+        }
+#endif
+        if (m_verbose)
+            cout << "Elapsed time: " << elapsedTime << endl;
     }
 
     if (!m_usingEKF) {
@@ -252,11 +263,11 @@ bool quaternionEKFThread::threadInit()
     }
 
     // XSens device
-    /*
+#ifdef QUATERNION_EKF_USES_XSENS
     if (m_usingxsens)
         m_xsens = new DeviceClass;
-    */
-
+#endif
+    
     // Using direct atan2 computation
     if (!m_usingEKF && !m_usingxsens) {
         m_directComputation = new directFilterComputation(*m_quat_lsole_sensor);
@@ -266,7 +277,7 @@ bool quaternionEKFThread::threadInit()
     }
 
     // imu Measurement vector
-    if (!m_sensorPort.compare("/icub/inertial")) {
+    if (!m_sensorPort.compare("/" + m_robotName + "/inertial")) {
         imu_measurement = new yarp::sig::Vector(12);
     } else {
         if (!m_sensorPort.compare("/icub/right_hand_inertial/analog:o") || !m_sensorPort.compare("/icub/left_hand_inertial/analog:o")) {
@@ -289,16 +300,17 @@ bool quaternionEKFThread::threadInit()
     m_publisherFilteredOrientationEulerPort = new yarp::os::BufferedPort<yarp::sig::Vector>;
     m_publisherFilteredOrientationEulerPort->open(string("/" + m_moduleName + "/filteredOrientationEuler:o").c_str());
 
-    /*
+#ifdef QUATERNION_EKF_USES_XSENS
     if (m_usingxsens) {
         m_publisherXSensEuler = new yarp::os::BufferedPort<yarp::sig::Vector>;
         m_publisherXSensEuler->open(string("/xsens/euler:o").c_str());
-    }*/
+    }
+#endif
 
     if(m_usingEKF) {
         // System Noise Mean
         MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
-        sys_noise_mu(1) = sys_noise_mu(2) = sys_noise_mu(3) = sys_noise_mu(4) = 0;
+        sys_noise_mu(1) = sys_noise_mu(2) = sys_noise_mu(3) = sys_noise_mu(4) = 0.0;
 
         // System Noise Covariance
         MatrixWrapper::SymmetricMatrix sys_noise_cov(m_state_size);
@@ -369,16 +381,19 @@ bool quaternionEKFThread::threadInit()
     }
 
     // XSens IMU configuration
-    /*
+#ifdef QUATERNION_EKF_USES_XSENS
     if ( m_usingxsens ) {
         if (!configureXSens()) {
             cout << "XSens configuration was not possible! Check the XSens is plugged to your USB port and that the driver is properly installed" << endl;
             return false;
+        } else {
+            yInfo() << "Configuration for XSens done!";
         }
-    }*/
+    }
+#endif
 
-    cout << "Thread waiting five seconds before starting..." <<  endl;
-    yarp::os::Time::delay(5);
+    cout << "Thread waiting two seconds before starting..." <<  endl;
+    yarp::os::Time::delay(2);
 
 
     m_waitingTime = yarp::os::Time::now();
@@ -413,7 +428,7 @@ void quaternionEKFThread::SOperator ( MatrixWrapper::ColumnVector omg, MatrixWra
     (*S)(3,1) = -omg(2);(*S)(3,2) = omg(1) ; (*S)(3,3) = 0.0;
 }
 
-/*
+#ifdef QUATERNION_EKF_USES_XSENS
 bool quaternionEKFThread::configureXSens()
 {
     bool ret = false;
@@ -629,17 +644,18 @@ void quaternionEKFThread::readDataFromXSens(yarp::sig::Vector* output)
         output->push_back(static_cast<double>(magField[2]));
     }
 }
-*/
+#endif 
 
 void quaternionEKFThread::threadRelease()
 {
-    /*
+#ifdef QUATERNION_EKF_USES_XSENS
     if (m_xsens) {
         cout << "deleting m_xsens " << endl;
         delete m_xsens;
         m_xsens = NULL;
         cout << "m_xsens deleted" << endl;
-    }*/
+    }
+#endif
 
     if (!m_usingEKF) {
         if (m_directComputation) {
@@ -669,14 +685,13 @@ void quaternionEKFThread::threadRelease()
         m_publisherFilteredOrientationPort = NULL;
         cout << "m_publisherFilteredOrientationPort deleted" << endl;
     }
-    /*
     if (m_usingxsens) {
         cout << "deleting m_publisherXSensEuler " << endl;
         m_publisherXSensEuler->interrupt();
         delete m_publisherXSensEuler;
         m_publisherXSensEuler = NULL;
         cout << "m_publisherXSensEuler deleted" << endl;
-    }*/
+    }
     if (m_usingEKF) {
         if (m_sys_model) {
             cout << "deleting m_sys_model" << endl;
