@@ -73,6 +73,12 @@
 #define PI 3.141592654
 #define CONVERSION_FACTOR_ACC 5.9855e-04
 
+#include "quaternionEKFconfig.h"
+
+#ifdef QUATERNION_EKF_USES_XSENS
+#include "xsensclasses.h"
+#endif
+
 namespace filter{
 class quaternionEKFThread: public yarp::os::RateThread
 {
@@ -124,8 +130,10 @@ class quaternionEKFThread: public yarp::os::RateThread
     BFL::ExtendedKalmanFilter*  m_filter;
     // Others
     double m_waitingTime;
-//    DeviceClass*         m_xsens;
-//    XsPortInfo           m_mtPort;
+#ifdef QUATERNION_EKF_USES_XSENS
+    DeviceClass*         m_xsens;
+    XsPortInfo           m_mtPort;
+#endif
     yarp::sig::Vector*   imu_measurement;
     yarp::sig::Vector*   imu_measurement2;
     directFilterComputation* m_directComputation;
@@ -156,8 +164,10 @@ public:
   // TODO Temporarily putting this method here. Should be put in MatrixWrapper somewhere
   void SOperator(MatrixWrapper::ColumnVector omg, MatrixWrapper::Matrix* S);
   // When directly plugging the XSens to the USB port this method configures it
-  //bool configureXSens();
-  //void readDataFromXSens(yarp::sig::Vector* output);
+#ifdef QUATERNION_EKF_USES_XSENS
+  bool configureXSens();
+  void readDataFromXSens(yarp::sig::Vector* output);
+#endif
 };
 }
 
