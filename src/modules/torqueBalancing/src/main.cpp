@@ -21,7 +21,6 @@
 
 #include "TorqueBalancingModule.h"
 
-#include <codyco/ModelParsing.h>
 
 int main(int argc, char **argv)
 {

@@ -50,8 +50,6 @@ namespace codyco {
         : m_controllerThreadPeriod(10)
         , m_modulePeriod(1.0)
         , m_active(false)
-        , m_forcesSmootherDuration(5)
-        , m_jointsSmootherDuration(5)
         , m_robot(0)
         , m_controller(0)
         , m_references(0)
@@ -625,8 +623,6 @@ namespace codyco {
         {
             std::map<TaskType, ReferenceGenerator*>::iterator foundController;
             ReferenceGenerator* comGenerator = 0;
-            ReferenceGenerator* leftHandPositionGenerator = 0;
-            ReferenceGenerator* rightHandPositionGenerator = 0;
             if ((foundController = m_module.m_referenceGenerators.find(TaskTypeCOM)) != m_module.m_referenceGenerators.end()) {
                 comGenerator = foundController->second;
             }
