@@ -527,9 +527,15 @@ namespace codyco {
             //            m_svdDecompositionOfCentroidalForceMatrix.compute(m_centroidalForceMatrix).solve(m_desiredCentroidalMomentum - m_gravityForce);
             m_buffers.esaVector = m_desiredCentroidalMomentum - m_gravityForce;
             if (leftConstraintIsActive ^ rightConstraintIsActive) {
+                m_desiredFeetForces.setZero();
                 //substitute the pseudoinverse with its inverse
                 m_luDecompositionOfCentroidalMatrix.compute(m_centroidalForceMatrix.block<6, 6>(0, leftConstraintIsActive ? 0 : 6));
-                m_desiredFeetForces.segment(leftConstraintIsActive ? 0 : 6, 6) = m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector);
+                if (leftConstraintIsActive) {
+                    m_desiredFeetForces.head(6) = m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector);
+                } else {
+                    m_desiredFeetForces.tail(6) = m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector);
+                }
+//                m_desiredFeetForces.segment(leftConstraintIsActive ? 0 : 6, 6) = m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector);
 
             } else {
                 math::pseudoInverse(m_centroidalForceMatrix, m_svdDecompositionOfCentroidalForceMatrix,
