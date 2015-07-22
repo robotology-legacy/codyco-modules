@@ -86,6 +86,7 @@ namespace codyco {
         , m_nullSpaceProjectorOfJcMInvSt(actuatedDOFs, actuatedDOFs)
         //        , m_pseudoInverseOfJcBase(6, 12)
         , m_pseudoInverseOfCentroidalForceMatrix(12, 6)
+        , m_nullSpaceOfCentroidalForceMatrix(12, 12)
         , m_pseudoInverseOfTauN0_f(12, actuatedDOFs)
         , m_svdDecompositionOfJcMInvSt(6 * 2, actuatedDOFs)
         , m_svdDecompositionOfJcBase(12, 6)
@@ -197,12 +198,15 @@ namespace codyco {
             }
             yInfo("%s", formattedConstraintsString.str().c_str());
 
+
+//            debugPort.open("/tb/debug:o");
+
             return linkFound && result && !m_activeConstraints.empty();
         }
 
         void TorqueBalancingController::threadRelease()
         {
-
+            debugPort.close();
         }
 
         void TorqueBalancingController::run()
@@ -456,6 +460,18 @@ namespace codyco {
             m_centerOfMassPosition = m_rotoTranslationVector.head<3>();
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_leftFootPosition.data());
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_rightFootPosition.data());
+//            yarp::sig::Vector &v = debugPort.prepare();
+//            v.resize(6+16);
+//            v(0) = m_leftFootPosition(0) - m_centerOfMassPosition(0);
+//            v(1) = m_leftFootPosition(1) - m_centerOfMassPosition(1);
+//            v(2) = m_leftFootPosition(2) - m_centerOfMassPosition(2);
+//            v(3) = m_rightFootPosition(0) - m_centerOfMassPosition(0);
+//            v(4) = m_rightFootPosition(1) - m_centerOfMassPosition(1);
+//            v(5) = m_rightFootPosition(2) - m_centerOfMassPosition(2);
+//            for (int i = 0; i < 16; i++) {
+//                v(6+ i) = m_world2BaseFrameSerialization.data()[i];
+//            }
+//            debugPort.write();
 
             //update dynamic quantities
             m_robot.computeMassMatrix(m_jointPositions.data(), m_world2BaseFrame, m_massMatrix.data());
@@ -530,18 +546,17 @@ namespace codyco {
                 m_desiredFeetForces.setZero();
                 //substitute the pseudoinverse with its inverse
                 m_luDecompositionOfCentroidalMatrix.compute(m_centroidalForceMatrix.block<6, 6>(0, leftConstraintIsActive ? 0 : 6));
-                if (leftConstraintIsActive) {
-                    m_desiredFeetForces.head(6) = m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector);
-                } else {
-                    m_desiredFeetForces.tail(6) = m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector);
-                }
-//                m_desiredFeetForces.segment(leftConstraintIsActive ? 0 : 6, 6) = m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector);
+                m_desiredFeetForces.segment(leftConstraintIsActive ? 0 : 6, 6) = m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector);
+                m_nullSpaceOfCentroidalForceMatrix.setZero();
 
             } else {
                 math::pseudoInverse(m_centroidalForceMatrix, m_svdDecompositionOfCentroidalForceMatrix,
                                     m_pseudoInverseOfCentroidalForceMatrix, PseudoInverseTolerance);
                 m_desiredFeetForces.noalias() = (m_pseudoInverseOfCentroidalForceMatrix * m_buffers.esaVector);
 
+                //TODO: change the following line by using the null space basis obtained by the pseudoinverse method
+                m_nullSpaceOfCentroidalForceMatrix.setIdentity();
+                m_nullSpaceOfCentroidalForceMatrix -= m_pseudoInverseOfCentroidalForceMatrix * m_centroidalForceMatrix;
             }
             desiredContactForces = m_desiredFeetForces;
 #if defined(DEBUG) && defined(EIGEN_RUNTIME_NO_MALLOC)
@@ -549,7 +564,7 @@ namespace codyco {
 #endif
         }
 
-        void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::VectorXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques)
+        void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::VectorXd>& desiredContactForces, Eigen::Ref<Eigen::VectorXd> torques)
         {
             using namespace Eigen;
 
@@ -589,15 +604,11 @@ namespace codyco {
             m_buffers.jointsVector2 -= m_pseudoInverseOfJcMInvSt * m_contactsDJacobianDq;
             m_buffers.jointsVector2 += m_nullSpaceProjectorOfJcMInvSt * m_buffers.jointsVector;
 
-            //TODO: change the following line by using the null space basis obtained by the pseudoinverse method
-            m_buffers.twelveTimesTwelve.setIdentity();
-            m_buffers.twelveTimesTwelve -= m_pseudoInverseOfCentroidalForceMatrix * m_centroidalForceMatrix;
-
-            math::pseudoInverse(mult_f_tau * m_buffers.twelveTimesTwelve, m_svdDecompositionOfTauN0_f,m_pseudoInverseOfTauN0_f, PseudoInverseTolerance, Eigen::ComputeFullV|Eigen::ComputeFullU);
+            math::pseudoInverse(mult_f_tau * m_nullSpaceOfCentroidalForceMatrix, m_svdDecompositionOfTauN0_f,m_pseudoInverseOfTauN0_f, PseudoInverseTolerance, Eigen::ComputeFullV|Eigen::ComputeFullU);
 
             m_buffers.dofsTimesDoFs.setIdentity();
 
-            torques = (m_buffers.dofsTimesDoFs - mult_f_tau * m_buffers.twelveTimesTwelve * m_pseudoInverseOfTauN0_f) * (m_buffers.jointsVector2 + mult_f_tau * desiredContactForces);
+            torques = (m_buffers.dofsTimesDoFs - mult_f_tau * m_nullSpaceOfCentroidalForceMatrix * m_pseudoInverseOfTauN0_f) * (m_buffers.jointsVector2 + mult_f_tau * desiredContactForces);
 
             //apply saturation
             //TODO: this must be checked: valgrind says it contains a jump on an unitialized variable

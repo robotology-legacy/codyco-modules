@@ -29,6 +29,9 @@
 
 #include <map>
 
+#include <yarp/os/BufferedPort.h>
+#include <yarp/sig/Vector.h>
+
 namespace wbi {
     class wholeBodyInterface;
     class Frame;
@@ -170,7 +173,7 @@ namespace codyco {
             bool jointsInLimitRange();
             bool updateRobotState();
             void computeContactForces(const Eigen::Ref<Eigen::VectorXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::VectorXd> desiredContactForces);
-            void computeTorques(const Eigen::Ref<Eigen::VectorXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques);
+            void computeTorques(const Eigen::Ref<Eigen::VectorXd>& desiredContactForces, Eigen::Ref<Eigen::VectorXd> torques);
             void writeTorques();
             
             wbi::wholeBodyInterface& m_robot;
@@ -241,6 +244,7 @@ namespace codyco {
             Eigen::MatrixXd m_nullSpaceProjectorOfJcMInvSt; /*!< actuatedDOFs x actuatedDOFs */
 //            Eigen::MatrixXd m_pseudoInverseOfJcBase; /*!< 6 x 12 */
             Eigen::MatrixXd m_pseudoInverseOfCentroidalForceMatrix; /*!< 12 x 6 */
+            Eigen::MatrixXd m_nullSpaceOfCentroidalForceMatrix; /*!< 12 x 12 */
             Eigen::MatrixXd m_pseudoInverseOfTauN0_f; /*!< 12 x actuatedDoFs */
             Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfJcMInvSt; /*!< (6x2) x actuatedDOFs */
             Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfJcBase; /*!< 12 x 6 */
@@ -276,7 +280,8 @@ namespace codyco {
                 Eigen::MatrixXd twelveTimesTwelve;
 
             } m_buffers;
-            
+
+            yarp::os::BufferedPort<yarp::sig::Vector> debugPort;
         };
     }
 }
