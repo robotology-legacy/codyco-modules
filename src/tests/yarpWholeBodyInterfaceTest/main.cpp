@@ -20,7 +20,7 @@
 #include <yarp/math/Rand.h>
 
 #include <iCub/skinDynLib/common.h>
-#include <kdl_format_io/urdf_import.hpp>
+#include <iDynTree/ModelIO/impl/urdf_import.hpp>
 #include <kdl_codyco/treeidsolver_recursive_newton_euler.hpp>
 
 #include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
@@ -109,7 +109,7 @@ int main(int argc, char * argv[])
       printf("[ERR] Whole body interface object did not initialize correctly\n");
       return EXIT_FAILURE;
     }
-    
+
     Eigen::VectorXd pos = Eigen::VectorXd::Zero(25);
     Eigen::VectorXd esaZero = Eigen::VectorXd::Zero(6);
     wbi::Frame frame = wbi::Frame::identity();
@@ -118,24 +118,24 @@ int main(int argc, char * argv[])
     grav[2] = -9.81;
     Eigen::VectorXd out = Eigen::VectorXd::Zero(31);
     Eigen::VectorXd first = Eigen::VectorXd::Zero(31);
-    
+
     robotInterface->computeGeneralizedBiasForces(pos.data(), frame, pos.data(), esaZero.data(), grav, first.data());
-    
-    
+
+
     while(1) {
-     
+
         robotInterface->computeGeneralizedBiasForces(pos.data(), frame, pos.data(), esaZero.data(), grav, out.data());
-        
+
         if (first.norm() - out.norm() > 0) {
             std::cerr << "Error\n" << out.transpose() << "\nVS\n" << first.transpose() << "\n\n";
         }
-        
+
 	    double delay_in_s = 0.01;
 		yarp::os::Time::delay(delay_in_s);
     }
-    
-    
-    
+
+
+
     robotInterface->close();
     delete robotInterface;
 
