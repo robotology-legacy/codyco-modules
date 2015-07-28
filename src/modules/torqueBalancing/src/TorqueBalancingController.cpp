@@ -486,7 +486,7 @@ namespace codyco {
             if (rightFootConstraint != m_activeConstraints.end()
                 && rightFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
                 m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_rightFootLinkID, m_contactsDJacobianDq.tail(6).data());
-                m_contactsDJacobianDq *= rightFootConstraint->second.continuousValue();
+                m_contactsDJacobianDq.tail(6) *= rightFootConstraint->second.continuousValue();
             }
 
             //Compute bias forces
@@ -519,8 +519,8 @@ namespace codyco {
             if (leftFootConstraint != m_activeConstraints.end()
                 && leftFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
                 leftConstraintIsActive = true;
-                m_centroidalForceMatrix.block<3, 3>(0, 0) = Matrix3d::Identity();
-                m_centroidalForceMatrix.block<3, 3>(3, 3) = Matrix3d::Identity();
+                m_centroidalForceMatrix.block<3, 3>(0, 0).setIdentity();
+                m_centroidalForceMatrix.block<3, 3>(3, 3).setIdentity();
                 math::skewSymmentricMatrixFrom3DVector(m_leftFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 0));
                 m_centroidalForceMatrix.leftCols(6) *= leftFootConstraint->second.continuousValue();
             }
@@ -528,8 +528,8 @@ namespace codyco {
             if (rightFootConstraint != m_activeConstraints.end()
                 && rightFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
                 rightConstraintIsActive = true;
-                m_centroidalForceMatrix.block<3, 3>(0, 6) = Matrix3d::Identity();
-                m_centroidalForceMatrix.block<3, 3>(3, 9) = Matrix3d::Identity();
+                m_centroidalForceMatrix.block<3, 3>(0, 6).setIdentity();
+                m_centroidalForceMatrix.block<3, 3>(3, 9).setIdentity();
                 math::skewSymmentricMatrixFrom3DVector(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 6));
                 m_centroidalForceMatrix.rightCols(6) *= rightFootConstraint->second.continuousValue();
             }
@@ -552,7 +552,7 @@ namespace codyco {
             } else {
                 math::pseudoInverse(m_centroidalForceMatrix, m_svdDecompositionOfCentroidalForceMatrix,
                                     m_pseudoInverseOfCentroidalForceMatrix, PseudoInverseTolerance);
-                m_desiredFeetForces.noalias() = (m_pseudoInverseOfCentroidalForceMatrix * m_buffers.esaVector);
+                m_desiredFeetForces.noalias() = m_pseudoInverseOfCentroidalForceMatrix * m_buffers.esaVector;
 
                 //TODO: change the following line by using the null space basis obtained by the pseudoinverse method
                 m_nullSpaceOfCentroidalForceMatrix.setIdentity();
@@ -572,43 +572,74 @@ namespace codyco {
             Eigen::internal::set_is_malloc_allowed(false);
 #endif
 
-            m_buffers.totalDoFsLDLTDecomposition.compute(m_massMatrix);
-            Eigen::internal::solve_retval<LDLT<MatrixXd::PlainObject>, MatrixXd> var =
-            m_buffers.totalDoFsLDLTDecomposition.solve(m_buffers.totalDoFsIdentity);
-            m_buffers.totalDoFsTimesTotalDoFs = var.rhs();
+            //Names are taken from "math" from brevity
+            MatrixXd JcMInv = m_contactsJacobian * m_massMatrix.inverse(); //to become instance (?)
+            MatrixXd JcMInvJct = JcMInv * m_contactsJacobian.transpose(); //to become instance (?)
+            MatrixXd JcMInvTorqueSelector = JcMInv * m_torquesSelector; //to become instance (?)
+            MatrixXd jointProjectedBaseAccelerations = m_massMatrix.block(6, 0, m_actuatedDOFs, 6) * m_massMatrix.topLeftCorner<6, 6>().inverse();
 
-            m_buffers.twelveTimesTotalDoFs.noalias() = m_contactsJacobian * m_buffers.totalDoFsTimesTotalDoFs;
-            m_buffers.twelveTimesTwelve.noalias() = m_buffers.twelveTimesTotalDoFs * m_contactsJacobian.transpose();
-            m_buffers.sixTimesSix.noalias() = m_massMatrix.topLeftCorner<6, 6>().inverse();
-            m_buffers.twelveTimesDoFs.noalias() = m_buffers.twelveTimesTotalDoFs * m_torquesSelector;
-            m_buffers.dofsTimesSix.noalias() = m_massMatrix.block(6, 0, m_actuatedDOFs, 6) * m_buffers.sixTimesSix; //* m_massMatrix.topLeftCorner<6, 6>().inverse();
-
-            math::dampedPseudoInverse(m_buffers.twelveTimesDoFs, m_svdDecompositionOfJcMInvSt, m_pseudoInverseOfJcMInvSt,
+            math::dampedPseudoInverse(JcMInvTorqueSelector, m_svdDecompositionOfJcMInvSt, m_pseudoInverseOfJcMInvSt,
                                       PseudoInverseTolerance,
                                       JcMInvSPseudoInverseDampingTerm);
-            math::pseudoInverse(m_buffers.twelveTimesDoFs, m_svdDecompositionOfJcMInvSt,
+            math::pseudoInverse(JcMInvTorqueSelector, m_svdDecompositionOfJcMInvSt,
                                 m_pseudoInverseOfJcMInvSt, PseudoInverseTolerance);
             //TODO: change the following line by using the null space basis obtained by the pseudoinverse method
+            MatrixXd JcNullSpaceProjector = MatrixXd::Identity(m_actuatedDOFs, m_actuatedDOFs) - m_pseudoInverseOfJcMInvSt * JcMInvTorqueSelector;
 
-            m_nullSpaceProjectorOfJcMInvSt.setIdentity();
-            m_nullSpaceProjectorOfJcMInvSt/*.noalias()*/ -= m_pseudoInverseOfJcMInvSt * m_buffers.twelveTimesDoFs;
+            MatrixXd mult_f_tau0 =  jointProjectedBaseAccelerations * m_contactsJacobian.leftCols(6).transpose() - m_contactsJacobian.rightCols(m_actuatedDOFs).transpose();
 
+            VectorXd  torques0 =  m_gravityBiasTorques.tail(m_actuatedDOFs) - m_impedanceGains.asDiagonal() * (m_jointPositions - m_desiredJointsConfiguration) - jointProjectedBaseAccelerations * m_generalizedBiasForces.head<6>();
 
-            MatrixXd mult_f_tau0 =  m_buffers.dofsTimesSix * m_contactsJacobian.leftCols(6).transpose() - m_contactsJacobian.rightCols(m_actuatedDOFs).transpose();
+            MatrixXd mult_f_tau = -m_pseudoInverseOfJcMInvSt * JcMInvJct + JcNullSpaceProjector * mult_f_tau0;
 
-            m_buffers.jointsVector =  m_gravityBiasTorques.tail(m_actuatedDOFs) - m_impedanceGains.asDiagonal() * (m_jointPositions - m_desiredJointsConfiguration) - m_buffers.dofsTimesSix * m_generalizedBiasForces.head<6>();
+            VectorXd n_tau = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_contactsDJacobianDq) + JcNullSpaceProjector * torques0;
 
-            MatrixXd mult_f_tau = -m_pseudoInverseOfJcMInvSt * m_buffers.twelveTimesTwelve + m_nullSpaceProjectorOfJcMInvSt * mult_f_tau0;
+            //TODO: change the following line by using the null space basis obtained by the pseudoinverse method
+//            MatrixXd forceMatrixNullSpaceProjector = MatrixXd::Identity(12, 12) - m_pseudoInverseOfCentroidalForceMatrix * m_centroidalForceMatrix;
 
-            m_buffers.jointsVector2 = m_pseudoInverseOfJcMInvSt * m_buffers.twelveTimesTotalDoFs * m_generalizedBiasForces;
-            m_buffers.jointsVector2 -= m_pseudoInverseOfJcMInvSt * m_contactsDJacobianDq;
-            m_buffers.jointsVector2 += m_nullSpaceProjectorOfJcMInvSt * m_buffers.jointsVector;
+            MatrixXd mat = mult_f_tau * m_nullSpaceOfCentroidalForceMatrix;
 
             math::pseudoInverse(mult_f_tau * m_nullSpaceOfCentroidalForceMatrix, m_svdDecompositionOfTauN0_f,m_pseudoInverseOfTauN0_f, PseudoInverseTolerance, Eigen::ComputeFullV|Eigen::ComputeFullU);
 
-            m_buffers.dofsTimesDoFs.setIdentity();
+            torques = (MatrixXd::Identity(n_tau.size(), n_tau.size()) -mult_f_tau * m_nullSpaceOfCentroidalForceMatrix * m_pseudoInverseOfTauN0_f) * (n_tau + mult_f_tau * desiredContactForces);
 
-            torques = (m_buffers.dofsTimesDoFs - mult_f_tau * m_nullSpaceOfCentroidalForceMatrix * m_pseudoInverseOfTauN0_f) * (m_buffers.jointsVector2 + mult_f_tau * desiredContactForces);
+//            m_buffers.totalDoFsLDLTDecomposition.compute(m_massMatrix);
+//            Eigen::internal::solve_retval<LDLT<MatrixXd::PlainObject>, MatrixXd> var =
+//            m_buffers.totalDoFsLDLTDecomposition.solve(m_buffers.totalDoFsIdentity);
+//            m_buffers.totalDoFsTimesTotalDoFs = var.rhs();
+//
+//            m_buffers.twelveTimesTotalDoFs.noalias() = m_contactsJacobian * m_buffers.totalDoFsTimesTotalDoFs;
+//            m_buffers.twelveTimesTwelve.noalias() = m_buffers.twelveTimesTotalDoFs * m_contactsJacobian.transpose();
+//            m_buffers.sixTimesSix.noalias() = m_massMatrix.topLeftCorner<6, 6>().inverse();
+//            m_buffers.twelveTimesDoFs.noalias() = m_buffers.twelveTimesTotalDoFs * m_torquesSelector;
+//            m_buffers.dofsTimesSix.noalias() = m_massMatrix.block(6, 0, m_actuatedDOFs, 6) * m_buffers.sixTimesSix; //* m_massMatrix.topLeftCorner<6, 6>().inverse();
+//
+//            math::dampedPseudoInverse(m_buffers.twelveTimesDoFs, m_svdDecompositionOfJcMInvSt, m_pseudoInverseOfJcMInvSt,
+//                                      PseudoInverseTolerance,
+//                                      JcMInvSPseudoInverseDampingTerm);
+//            math::pseudoInverse(m_buffers.twelveTimesDoFs, m_svdDecompositionOfJcMInvSt,
+//                                m_pseudoInverseOfJcMInvSt, PseudoInverseTolerance);
+//            //TODO: change the following line by using the null space basis obtained by the pseudoinverse method
+//
+//            m_nullSpaceProjectorOfJcMInvSt.setIdentity();
+//            m_nullSpaceProjectorOfJcMInvSt/*.noalias()*/ -= m_pseudoInverseOfJcMInvSt * m_buffers.twelveTimesDoFs;
+//
+//
+//            MatrixXd mult_f_tau0 =  m_buffers.dofsTimesSix * m_contactsJacobian.leftCols(6).transpose() - m_contactsJacobian.rightCols(m_actuatedDOFs).transpose();
+//
+//            m_buffers.jointsVector =  m_gravityBiasTorques.tail(m_actuatedDOFs) - m_impedanceGains.asDiagonal() * (m_jointPositions - m_desiredJointsConfiguration) - m_buffers.dofsTimesSix * m_generalizedBiasForces.head<6>();
+//
+//            MatrixXd mult_f_tau = -m_pseudoInverseOfJcMInvSt * m_buffers.twelveTimesTwelve + m_nullSpaceProjectorOfJcMInvSt * mult_f_tau0;
+//
+//            m_buffers.jointsVector2 = m_pseudoInverseOfJcMInvSt * m_buffers.twelveTimesTotalDoFs * m_generalizedBiasForces;
+//            m_buffers.jointsVector2 -= m_pseudoInverseOfJcMInvSt * m_contactsDJacobianDq;
+//            m_buffers.jointsVector2 += m_nullSpaceProjectorOfJcMInvSt * m_buffers.jointsVector;
+//
+//            math::pseudoInverse(mult_f_tau * m_nullSpaceOfCentroidalForceMatrix, m_svdDecompositionOfTauN0_f,m_pseudoInverseOfTauN0_f, PseudoInverseTolerance, Eigen::ComputeFullV|Eigen::ComputeFullU);
+//
+//            m_buffers.dofsTimesDoFs.setIdentity();
+//
+//            torques = (m_buffers.dofsTimesDoFs - mult_f_tau * m_nullSpaceOfCentroidalForceMatrix * m_pseudoInverseOfTauN0_f) * (m_buffers.jointsVector2 + mult_f_tau * desiredContactForces);
 
             //apply saturation
             //TODO: this must be checked: valgrind says it contains a jump on an unitialized variable
