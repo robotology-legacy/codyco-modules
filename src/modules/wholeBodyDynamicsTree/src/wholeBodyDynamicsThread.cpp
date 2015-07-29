@@ -536,8 +536,14 @@ bool wholeBodyDynamicsThread::threadInit()
         return false;
     }
 
-
     double cutoffInHz = yarp_options.find("cutoff").asDouble();
+
+    if( cutoffInHz <= 0.0 )
+    {
+        yError() << "cutoff option found but equal to " << cutoffInHz;
+        yError() << "the cutoff option is required to be a positive frequency in hertz.";
+        return false;
+    }
 
     double periodInSeconds = getRate()*1e-3;
     filters = new wholeBodyDynamicsFilters(torque_estimation_list.size(),nrOfAvailableFTSensors,
@@ -1980,7 +1986,10 @@ bool wholeBodyDynamicsThread::closeControlBoards()
 	return ok;
 }
 
-wholeBodyDynamicsFilters::wholeBodyDynamicsFilters(int nrOfDOFs, int nrOfFTSensors, double cutoffInHz, double periodInSeconds)
+wholeBodyDynamicsFilters::wholeBodyDynamicsFilters(int nrOfDOFs,
+                                                   int nrOfFTSensors,
+                                                   double cutoffInHz,
+                                                   double periodInSeconds)
 {
     // Options
 
