@@ -150,9 +150,12 @@ private:
 
     // if true, do not hijack and stream the PWMs on port
     bool streamingOutput;
+    bool jtcV2;
+
     std::string partName;
     yarp::os::BufferedPort<yarp::sig::Vector> portForStreamingPWM;
     yarp::os::BufferedPort<yarp::os::Bottle> portForReadingRefTorques;
+    yarp::os::BufferedPort<yarp::os::Bottle> portForReadingRefQDotDes;
 
 
     void startHijackingTorqueControlIfNecessary(int j);
@@ -170,6 +173,7 @@ private:
     std::vector<JointTorqueLoopGains>                jointTorqueLoopGains;
     std::vector<MotorParameters> 		             motorParameters;
     yarp::sig::Vector                                desiredJointTorques;
+    yarp::sig::Vector                                desiredJointVelocities;
     yarp::sig::Vector                                measuredJointTorques;
     yarp::sig::Vector                                measuredJointPositionsTimestamps;
     yarp::sig::Vector                                measuredJointPositions;

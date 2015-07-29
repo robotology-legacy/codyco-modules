@@ -277,6 +277,7 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
     measuredJointVelocities.resize(axes,0.0);
     measuredMotorVelocities.resize(axes,0.0);
     desiredJointTorques.resize(axes,0.0);
+    desiredJointVelocities.resize(axes,0.0);
     measuredJointTorques.resize(axes,0.0);
     measuredJointPositionsTimestamps.resize(axes,0.0);
     jointControlOutput.resize(axes,0.0);
@@ -327,6 +328,17 @@ bool JointTorqueControl::open(yarp::os::Searchable& config)
         portForReadingRefTorques.open(partName +"/input_torques");
     }
 
+    
+    jtcV2 = config.check("jtcV2");
+    std::cerr << "jtcV2 = " << jtcV2 << std::endl;
+
+    if (jtcV2)
+    {
+        ret = ret && config.check("name");
+        ret = ret && config.find("name").isString();
+        partName = config.find("name").asString();
+        portForReadingRefQDotDes.open(partName +"/qDotDes");
+    }
 
     if( ret )
     {
@@ -917,6 +929,18 @@ void JointTorqueControl::run()
             for(int i = 0; i < ref_torques->size() && i < desiredJointTorques.size(); i++ )
             {
                 desiredJointTorques[i] = (*ref_torques).get(i).asDouble();
+            }
+        }
+    }
+    
+    if( jtcV2 )
+    {
+        yarp::os::Bottle * ref_qDot = portForReadingRefQDotDes.read(false);
+        if( ref_qDot != 0 )
+        {
+            for(int i = 0; i < ref_qDot->size() && i < desiredJointVelocities.size(); i++ )
+            {
+                desiredJointVelocities[i] = (*ref_qDot).get(i).asDouble();
             }
         }
     }
