@@ -29,6 +29,9 @@
 
 #include <map>
 
+#include <yarp/os/BufferedPort.h>
+#include <yarp/sig/Vector.h>
+
 namespace wbi {
     class wholeBodyInterface;
     class Frame;
@@ -169,8 +172,8 @@ namespace codyco {
             void readReferences();
             bool jointsInLimitRange();
             bool updateRobotState();
-            void computeContactForces(const Eigen::Ref<Eigen::MatrixXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::MatrixXd> desiredContactForces);
-            void computeTorques(const Eigen::Ref<Eigen::VectorXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques);
+            void computeContactForces(const Eigen::Ref<Eigen::VectorXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::VectorXd> desiredContactForces);
+            void computeTorques(const Eigen::Ref<Eigen::VectorXd>& desiredContactForces, Eigen::Ref<Eigen::VectorXd> torques);
             void writeTorques();
             
             wbi::wholeBodyInterface& m_robot;
@@ -227,7 +230,7 @@ namespace codyco {
             Eigen::VectorXd m_contactsDJacobianDq; /*!< (6x2) */
             
             //Kinematic and dynamic variables
-            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_massMatrix; /*!< totalDOFs x totalDOFs */
+            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m_massMatrix; /*!< totalDOFs x totalDOFs */
             Eigen::VectorXd m_generalizedBiasForces; /*!< totalDOFs */
             Eigen::VectorXd m_gravityBiasTorques; /*!< totalDOFs */
             Eigen::VectorXd m_centroidalMomentum; /*!< 6 */
@@ -238,8 +241,10 @@ namespace codyco {
             Eigen::MatrixXd m_torquesSelector; /*!< totalDOFs x actuatedDOFs */
             //pseuo inverses
             Eigen::MatrixXd m_pseudoInverseOfJcMInvSt; /*!< actuatedDOFs x (6x2) */
+            Eigen::MatrixXd m_nullSpaceProjectorOfJcMInvSt; /*!< actuatedDOFs x actuatedDOFs */
 //            Eigen::MatrixXd m_pseudoInverseOfJcBase; /*!< 6 x 12 */
             Eigen::MatrixXd m_pseudoInverseOfCentroidalForceMatrix; /*!< 12 x 6 */
+            Eigen::MatrixXd m_nullSpaceOfCentroidalForceMatrix; /*!< 12 x 12 */
             Eigen::MatrixXd m_pseudoInverseOfTauN0_f; /*!< 12 x actuatedDoFs */
             Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfJcMInvSt; /*!< (6x2) x actuatedDOFs */
             Eigen::JacobiSVD<Eigen::MatrixXd::PlainObject> m_svdDecompositionOfJcBase; /*!< 12 x 6 */
@@ -261,9 +266,22 @@ namespace codyco {
                 
                 Eigen::VectorXd baseAndJointsVector;
                 Eigen::VectorXd jointsVector;
+                Eigen::VectorXd jointsVector2;
                 Eigen::VectorXd esaVector;
+
+                Eigen::MatrixXd totalDoFsIdentity;
+                Eigen::MatrixXd totalDoFsTimesTotalDoFs;
+                Eigen::LDLT<Eigen::MatrixXd::PlainObject> totalDoFsLDLTDecomposition;
+                Eigen::MatrixXd twelveTimesTotalDoFs;
+                Eigen::MatrixXd sixTimesSix;
+                Eigen::MatrixXd twelveTimesDoFs;
+                Eigen::MatrixXd dofsTimesSix;
+                Eigen::MatrixXd dofsTimesDoFs;
+                Eigen::MatrixXd twelveTimesTwelve;
+
             } m_buffers;
-            
+
+            yarp::os::BufferedPort<yarp::sig::Vector> debugPort;
         };
     }
 }

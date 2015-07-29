@@ -83,8 +83,10 @@ namespace codyco {
         , m_gravityForce(6)
         , m_torquesSelector(actuatedDOFs + 6, actuatedDOFs)
         , m_pseudoInverseOfJcMInvSt(actuatedDOFs, 6 * 2)
+        , m_nullSpaceProjectorOfJcMInvSt(actuatedDOFs, actuatedDOFs)
         //        , m_pseudoInverseOfJcBase(6, 12)
         , m_pseudoInverseOfCentroidalForceMatrix(12, 6)
+        , m_nullSpaceOfCentroidalForceMatrix(12, 12)
         , m_pseudoInverseOfTauN0_f(12, actuatedDOFs)
         , m_svdDecompositionOfJcMInvSt(6 * 2, actuatedDOFs)
         , m_svdDecompositionOfJcBase(12, 6)
@@ -101,7 +103,17 @@ namespace codyco {
         TorqueBalancingController::Buffers::Buffers(int actuatedDOFs)
         : baseAndJointsVector(actuatedDOFs + 6)
         , jointsVector(actuatedDOFs)
-        , esaVector(6) {}
+        , jointsVector2(actuatedDOFs)
+        , esaVector(6)
+        , totalDoFsIdentity(Eigen::MatrixXd::Identity(actuatedDOFs + 6, actuatedDOFs + 6))
+        , totalDoFsTimesTotalDoFs(actuatedDOFs + 6, actuatedDOFs + 6)
+        , totalDoFsLDLTDecomposition(actuatedDOFs + 6)
+        , twelveTimesTotalDoFs(12, actuatedDOFs + 6)
+        , sixTimesSix(6, 6)
+        , twelveTimesDoFs(12, actuatedDOFs)
+        , dofsTimesSix(actuatedDOFs, 6)
+        , dofsTimesDoFs(actuatedDOFs, actuatedDOFs)
+        , twelveTimesTwelve(12, 12) {}
 
         TorqueBalancingController::~TorqueBalancingController() {}
 
@@ -164,7 +176,11 @@ namespace codyco {
                 return false;
             }
 
-            std::cout << "[INFO]Joint limits are:\nmin" <<m_minJointLimits.transpose() << "\nmax " << m_maxJointLimits.transpose() << "\n";
+            if (this->m_checkJointLimits) {
+                std::cout << "[INFO]Joint limits are:\nmin" <<m_minJointLimits.transpose() << "\nmax " << m_maxJointLimits.transpose() << "\n";
+            } else {
+                yInfo("Joint limits disabled");
+            }
 
             //read the initial configuration
             int count = 10;
@@ -182,12 +198,15 @@ namespace codyco {
             }
             yInfo("%s", formattedConstraintsString.str().c_str());
 
+
+//            debugPort.open("/tb/debug:o");
+
             return linkFound && result && !m_activeConstraints.empty();
         }
 
         void TorqueBalancingController::threadRelease()
         {
-
+            debugPort.close();
         }
 
         void TorqueBalancingController::run()
@@ -412,21 +431,24 @@ namespace codyco {
 
             //update jacobians (both feet in one variable)
             ConstraintsMap::iterator leftFootConstraint = m_activeConstraints.find("l_sole");
+            if (leftFootConstraint != m_activeConstraints.end()) {
+                leftFootConstraint->second.updateStateInterpolation();
+            }
             ConstraintsMap::iterator rightFootConstraint = m_activeConstraints.find("r_sole");
-            if (leftFootConstraint == m_activeConstraints.end()
-                || rightFootConstraint == m_activeConstraints.end()) return false;
-
-            leftFootConstraint->second.updateStateInterpolation();
-            rightFootConstraint->second.updateStateInterpolation();
+            if (rightFootConstraint != m_activeConstraints.end()) {
+                rightFootConstraint->second.updateStateInterpolation();
+            }
 
             m_contactsJacobian.setZero();
-            if (leftFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
+            if (leftFootConstraint != m_activeConstraints.end()
+                && leftFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
                 m_jacobianTemporary.setZero();
                 m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_jacobianTemporary.data());
                 m_jacobianTemporary *= leftFootConstraint->second.continuousValue();
                 m_contactsJacobian.topRows(6) = m_jacobianTemporary;
             }
-            if (rightFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
+            if (rightFootConstraint != m_activeConstraints.end()
+                && rightFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
                 m_jacobianTemporary.setZero();
                 m_robot.computeJacobian(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_jacobianTemporary.data());
                 m_jacobianTemporary *= rightFootConstraint->second.continuousValue();
@@ -438,19 +460,33 @@ namespace codyco {
             m_centerOfMassPosition = m_rotoTranslationVector.head<3>();
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_leftFootLinkID, m_leftFootPosition.data());
             m_robot.forwardKinematics(m_jointPositions.data(), m_world2BaseFrame, m_rightFootLinkID, m_rightFootPosition.data());
+//            yarp::sig::Vector &v = debugPort.prepare();
+//            v.resize(6+16);
+//            v(0) = m_leftFootPosition(0) - m_centerOfMassPosition(0);
+//            v(1) = m_leftFootPosition(1) - m_centerOfMassPosition(1);
+//            v(2) = m_leftFootPosition(2) - m_centerOfMassPosition(2);
+//            v(3) = m_rightFootPosition(0) - m_centerOfMassPosition(0);
+//            v(4) = m_rightFootPosition(1) - m_centerOfMassPosition(1);
+//            v(5) = m_rightFootPosition(2) - m_centerOfMassPosition(2);
+//            for (int i = 0; i < 16; i++) {
+//                v(6+ i) = m_world2BaseFrameSerialization.data()[i];
+//            }
+//            debugPort.write();
 
             //update dynamic quantities
             m_robot.computeMassMatrix(m_jointPositions.data(), m_world2BaseFrame, m_massMatrix.data());
             m_robot.computeCentroidalMomentum(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_centroidalMomentum.data());
 
             m_contactsDJacobianDq.setZero();
-            if (leftFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
+            if (leftFootConstraint != m_activeConstraints.end()
+                && leftFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
                 m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_leftFootLinkID, m_contactsDJacobianDq.head(6).data());
                 m_contactsDJacobianDq.head(6) *= leftFootConstraint->second.continuousValue();
             }
-            if (rightFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
+            if (rightFootConstraint != m_activeConstraints.end()
+                && rightFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
                 m_robot.computeDJdq(m_jointPositions.data(), m_world2BaseFrame, m_jointVelocities.data(), m_baseVelocity.data(), m_rightFootLinkID, m_contactsDJacobianDq.tail(6).data());
-                m_contactsDJacobianDq *= rightFootConstraint->second.continuousValue();
+                m_contactsDJacobianDq.tail(6) *= rightFootConstraint->second.continuousValue();
             }
 
             //Compute bias forces
@@ -463,7 +499,7 @@ namespace codyco {
             return result;
         }
 
-        void TorqueBalancingController::computeContactForces(const Eigen::Ref<Eigen::MatrixXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::MatrixXd> desiredContactForces)
+        void TorqueBalancingController::computeContactForces(const Eigen::Ref<Eigen::VectorXd>& desiredCOMAcceleration, Eigen::Ref<Eigen::VectorXd> desiredContactForces)
         {
 #if defined(DEBUG) && defined(EIGEN_RUNTIME_NO_MALLOC)
             Eigen::internal::set_is_malloc_allowed(false);
@@ -480,18 +516,20 @@ namespace codyco {
             bool rightConstraintIsActive = false;
 
             m_centroidalForceMatrix.setZero();
-            if (leftFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
+            if (leftFootConstraint != m_activeConstraints.end()
+                && leftFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
                 leftConstraintIsActive = true;
-                m_centroidalForceMatrix.block<3, 3>(0, 0) = Matrix3d::Identity();
-                m_centroidalForceMatrix.block<3, 3>(3, 3) = Matrix3d::Identity();
+                m_centroidalForceMatrix.block<3, 3>(0, 0).setIdentity();
+                m_centroidalForceMatrix.block<3, 3>(3, 3).setIdentity();
                 math::skewSymmentricMatrixFrom3DVector(m_leftFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 0));
                 m_centroidalForceMatrix.leftCols(6) *= leftFootConstraint->second.continuousValue();
             }
 
-            if (rightFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
+            if (rightFootConstraint != m_activeConstraints.end()
+                && rightFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
                 rightConstraintIsActive = true;
-                m_centroidalForceMatrix.block<3, 3>(0, 6) = Matrix3d::Identity();
-                m_centroidalForceMatrix.block<3, 3>(3, 9) = Matrix3d::Identity();
+                m_centroidalForceMatrix.block<3, 3>(0, 6).setIdentity();
+                m_centroidalForceMatrix.block<3, 3>(3, 9).setIdentity();
                 math::skewSymmentricMatrixFrom3DVector(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 6));
                 m_centroidalForceMatrix.rightCols(6) *= rightFootConstraint->second.continuousValue();
             }
@@ -505,15 +543,20 @@ namespace codyco {
             //            m_svdDecompositionOfCentroidalForceMatrix.compute(m_centroidalForceMatrix).solve(m_desiredCentroidalMomentum - m_gravityForce);
             m_buffers.esaVector = m_desiredCentroidalMomentum - m_gravityForce;
             if (leftConstraintIsActive ^ rightConstraintIsActive) {
+                m_desiredFeetForces.setZero();
                 //substitute the pseudoinverse with its inverse
                 m_luDecompositionOfCentroidalMatrix.compute(m_centroidalForceMatrix.block<6, 6>(0, leftConstraintIsActive ? 0 : 6));
-                m_desiredFeetForces = m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector);
+                m_desiredFeetForces.segment(leftConstraintIsActive ? 0 : 6, 6) = m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector);
+                m_nullSpaceOfCentroidalForceMatrix.setZero();
 
             } else {
                 math::pseudoInverse(m_centroidalForceMatrix, m_svdDecompositionOfCentroidalForceMatrix,
                                     m_pseudoInverseOfCentroidalForceMatrix, PseudoInverseTolerance);
-                m_desiredFeetForces.noalias() = (m_pseudoInverseOfCentroidalForceMatrix * m_buffers.esaVector);
+                m_desiredFeetForces.noalias() = m_pseudoInverseOfCentroidalForceMatrix * m_buffers.esaVector;
 
+                //TODO: change the following line by using the null space basis obtained by the pseudoinverse method
+                m_nullSpaceOfCentroidalForceMatrix.setIdentity();
+                m_nullSpaceOfCentroidalForceMatrix -= m_pseudoInverseOfCentroidalForceMatrix * m_centroidalForceMatrix;
             }
             desiredContactForces = m_desiredFeetForces;
 #if defined(DEBUG) && defined(EIGEN_RUNTIME_NO_MALLOC)
@@ -521,9 +564,10 @@ namespace codyco {
 #endif
         }
 
-        void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::VectorXd>& desiredContactForces, Eigen::Ref<Eigen::MatrixXd> torques)
+        void TorqueBalancingController::computeTorques(const Eigen::Ref<Eigen::VectorXd>& desiredContactForces, Eigen::Ref<Eigen::VectorXd> torques)
         {
             using namespace Eigen;
+
 #if defined(DEBUG) && defined(EIGEN_RUNTIME_NO_MALLOC)
             Eigen::internal::set_is_malloc_allowed(false);
 #endif
@@ -551,14 +595,51 @@ namespace codyco {
             VectorXd n_tau = m_pseudoInverseOfJcMInvSt * (JcMInv * m_generalizedBiasForces - m_contactsDJacobianDq) + JcNullSpaceProjector * torques0;
 
             //TODO: change the following line by using the null space basis obtained by the pseudoinverse method
-            MatrixXd forceMatrixNullSpaceProjector = MatrixXd::Identity(12, 12) - m_pseudoInverseOfCentroidalForceMatrix * m_centroidalForceMatrix;
+//            MatrixXd forceMatrixNullSpaceProjector = MatrixXd::Identity(12, 12) - m_pseudoInverseOfCentroidalForceMatrix * m_centroidalForceMatrix;
 
-            MatrixXd mat = mult_f_tau * forceMatrixNullSpaceProjector;
+            MatrixXd mat = mult_f_tau * m_nullSpaceOfCentroidalForceMatrix;
 
-            math::pseudoInverse(mult_f_tau * forceMatrixNullSpaceProjector, m_svdDecompositionOfTauN0_f,m_pseudoInverseOfTauN0_f, PseudoInverseTolerance, Eigen::ComputeFullV|Eigen::ComputeFullU);
+            math::pseudoInverse(mult_f_tau * m_nullSpaceOfCentroidalForceMatrix, m_svdDecompositionOfTauN0_f,m_pseudoInverseOfTauN0_f, PseudoInverseTolerance, Eigen::ComputeFullV|Eigen::ComputeFullU);
 
-            torques = (MatrixXd::Identity(n_tau.size(), n_tau.size()) -mult_f_tau * forceMatrixNullSpaceProjector * m_pseudoInverseOfTauN0_f) * (n_tau + mult_f_tau * desiredContactForces);
+            torques = (MatrixXd::Identity(n_tau.size(), n_tau.size()) -mult_f_tau * m_nullSpaceOfCentroidalForceMatrix * m_pseudoInverseOfTauN0_f) * (n_tau + mult_f_tau * desiredContactForces);
 
+//            m_buffers.totalDoFsLDLTDecomposition.compute(m_massMatrix);
+//            Eigen::internal::solve_retval<LDLT<MatrixXd::PlainObject>, MatrixXd> var =
+//            m_buffers.totalDoFsLDLTDecomposition.solve(m_buffers.totalDoFsIdentity);
+//            m_buffers.totalDoFsTimesTotalDoFs = var.rhs();
+//
+//            m_buffers.twelveTimesTotalDoFs.noalias() = m_contactsJacobian * m_buffers.totalDoFsTimesTotalDoFs;
+//            m_buffers.twelveTimesTwelve.noalias() = m_buffers.twelveTimesTotalDoFs * m_contactsJacobian.transpose();
+//            m_buffers.sixTimesSix.noalias() = m_massMatrix.topLeftCorner<6, 6>().inverse();
+//            m_buffers.twelveTimesDoFs.noalias() = m_buffers.twelveTimesTotalDoFs * m_torquesSelector;
+//            m_buffers.dofsTimesSix.noalias() = m_massMatrix.block(6, 0, m_actuatedDOFs, 6) * m_buffers.sixTimesSix; //* m_massMatrix.topLeftCorner<6, 6>().inverse();
+//
+//            math::dampedPseudoInverse(m_buffers.twelveTimesDoFs, m_svdDecompositionOfJcMInvSt, m_pseudoInverseOfJcMInvSt,
+//                                      PseudoInverseTolerance,
+//                                      JcMInvSPseudoInverseDampingTerm);
+//            math::pseudoInverse(m_buffers.twelveTimesDoFs, m_svdDecompositionOfJcMInvSt,
+//                                m_pseudoInverseOfJcMInvSt, PseudoInverseTolerance);
+//            //TODO: change the following line by using the null space basis obtained by the pseudoinverse method
+//
+//            m_nullSpaceProjectorOfJcMInvSt.setIdentity();
+//            m_nullSpaceProjectorOfJcMInvSt/*.noalias()*/ -= m_pseudoInverseOfJcMInvSt * m_buffers.twelveTimesDoFs;
+//
+//
+//            MatrixXd mult_f_tau0 =  m_buffers.dofsTimesSix * m_contactsJacobian.leftCols(6).transpose() - m_contactsJacobian.rightCols(m_actuatedDOFs).transpose();
+//
+//            m_buffers.jointsVector =  m_gravityBiasTorques.tail(m_actuatedDOFs) - m_impedanceGains.asDiagonal() * (m_jointPositions - m_desiredJointsConfiguration) - m_buffers.dofsTimesSix * m_generalizedBiasForces.head<6>();
+//
+//            MatrixXd mult_f_tau = -m_pseudoInverseOfJcMInvSt * m_buffers.twelveTimesTwelve + m_nullSpaceProjectorOfJcMInvSt * mult_f_tau0;
+//
+//            m_buffers.jointsVector2 = m_pseudoInverseOfJcMInvSt * m_buffers.twelveTimesTotalDoFs * m_generalizedBiasForces;
+//            m_buffers.jointsVector2 -= m_pseudoInverseOfJcMInvSt * m_contactsDJacobianDq;
+//            m_buffers.jointsVector2 += m_nullSpaceProjectorOfJcMInvSt * m_buffers.jointsVector;
+//
+//            math::pseudoInverse(mult_f_tau * m_nullSpaceOfCentroidalForceMatrix, m_svdDecompositionOfTauN0_f,m_pseudoInverseOfTauN0_f, PseudoInverseTolerance, Eigen::ComputeFullV|Eigen::ComputeFullU);
+//
+//            m_buffers.dofsTimesDoFs.setIdentity();
+//
+//            torques = (m_buffers.dofsTimesDoFs - mult_f_tau * m_nullSpaceOfCentroidalForceMatrix * m_pseudoInverseOfTauN0_f) * (m_buffers.jointsVector2 + mult_f_tau * desiredContactForces);
 
             //apply saturation
             //TODO: this must be checked: valgrind says it contains a jump on an unitialized variable

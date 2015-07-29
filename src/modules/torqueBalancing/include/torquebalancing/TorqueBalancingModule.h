@@ -108,9 +108,6 @@ namespace codyco {
             double m_modulePeriod;
             bool m_active;
 
-            double m_forcesSmootherDuration;
-            double m_jointsSmootherDuration;
-
             std::string m_moduleName;
             std::string m_robotName;
 
