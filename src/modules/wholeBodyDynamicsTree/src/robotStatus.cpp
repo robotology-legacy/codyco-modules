@@ -129,22 +129,22 @@ KDL::JntArray& RobotJointStatus::getJointTorquesKDL()
     return torquesj_kdl;
 }
 
-const yarp::sig::Vector& RobotJointStatus::getJointPosYARP() const
+yarp::sig::Vector& RobotJointStatus::getJointPosYARP()
 {
     return qj;
 }
 
-const yarp::sig::Vector& RobotJointStatus::getJointVelYARP() const
+yarp::sig::Vector& RobotJointStatus::getJointVelYARP()
 {
     return dqj;
 }
 
-const yarp::sig::Vector& RobotJointStatus::getJointAccYARP() const
+yarp::sig::Vector& RobotJointStatus::getJointAccYARP()
 {
     return ddqj;
 }
 
-const yarp::sig::Vector& RobotJointStatus::getJointTorquesYARP() const
+yarp::sig::Vector& RobotJointStatus::getJointTorquesYARP()
 {
     return torquesj;
 }
@@ -156,10 +156,18 @@ bool RobotJointStatus::updateYarpBuffers()
     ok = ok && KDLtoYarp(dqj_kdl,dqj);
     ok = ok && KDLtoYarp(ddqj_kdl,ddqj);
     ok = ok && KDLtoYarp(torquesj_kdl,torquesj);
-	return ok;
+    return ok;
 }
 
-
+bool RobotJointStatus::updateKDLBuffers()
+{
+    bool ok = true;
+    ok = ok && YarptoKDL(qj,qj_kdl);
+    ok = ok && YarptoKDL(dqj,dqj_kdl);
+    ok = ok && YarptoKDL(ddqj,ddqj_kdl);
+    ok = ok && YarptoKDL(torquesj,torquesj_kdl);
+    return ok;
+}
 
 RobotSensorStatus::RobotSensorStatus(int nrOfFTSensors)
 {
