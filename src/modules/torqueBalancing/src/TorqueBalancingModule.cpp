@@ -102,6 +102,9 @@ namespace codyco {
             Value trueValue;
             trueValue.fromString("true");
             bool checkJointLimits = rf.check("check_limits", trueValue, "Looking for joint limits check option").asBool();
+            Value falseValue;
+            falseValue.fromString("false");
+            bool autoStart = rf.check("autostart", falseValue, "Looking for autostart option").asBool();
    
             //PARAMETERS SECTION
             //Creating parameter server helper
@@ -295,6 +298,9 @@ namespace codyco {
             m_paramHelperManager->loadDefaultVariables();
 
             yInfo("Module %s ready.", m_moduleName.c_str());
+
+            if (autoStart)
+                setControllersActiveState(autoStart);
 
             return threadsStarted;
         }
