@@ -33,7 +33,7 @@
 
 #include <Eigen/LU>
 
-#define TORQUEBALANCING_STATEACTIVE_THRESHOLD 0.05
+#define TORQUEBALANCING_STATEACTIVE_THRESHOLD 0.01
 
 namespace codyco {
     namespace torquebalancing {
@@ -513,12 +513,17 @@ namespace codyco {
 
             //building centroidalForceMatrix
             bool leftConstraintIsActive = false;
+            bool leftConstraintSmoothed = false;
             bool rightConstraintIsActive = false;
+            bool rightConstraintSmoothed = false;
 
             m_centroidalForceMatrix.setZero();
             if (leftFootConstraint != m_activeConstraints.end()
                 && leftFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
                 leftConstraintIsActive = true;
+                //check if the constraint is smoothed or not <=> check against threashold of 1
+                leftConstraintSmoothed = !leftFootConstraint->second.isActiveWithThreshold(1);
+
                 m_centroidalForceMatrix.block<3, 3>(0, 0).setIdentity();
                 m_centroidalForceMatrix.block<3, 3>(3, 3).setIdentity();
                 math::skewSymmentricMatrixFrom3DVector(m_leftFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 0));
@@ -528,6 +533,9 @@ namespace codyco {
             if (rightFootConstraint != m_activeConstraints.end()
                 && rightFootConstraint->second.isActiveWithThreshold(TORQUEBALANCING_STATEACTIVE_THRESHOLD)) {
                 rightConstraintIsActive = true;
+                //check if the constraint is smoothed or not <=> check against threashold of 1
+                rightConstraintSmoothed = !rightFootConstraint->second.isActiveWithThreshold(1);
+
                 m_centroidalForceMatrix.block<3, 3>(0, 6).setIdentity();
                 m_centroidalForceMatrix.block<3, 3>(3, 9).setIdentity();
                 math::skewSymmentricMatrixFrom3DVector(m_rightFootPosition.head<3>() - m_centerOfMassPosition, m_centroidalForceMatrix.block<3, 3>(3, 6));
@@ -540,19 +548,57 @@ namespace codyco {
             //Eigen 3.3 will allow to set a threashold directly on the decomposition
             //thus allowing the method solve to work "properly".
             //Becaues it is not stable yet we use the explicit computation of the SVD
-            //            m_svdDecompositionOfCentroidalForceMatrix.compute(m_centroidalForceMatrix).solve(m_desiredCentroidalMomentum - m_gravityForce);
+            //m_svdDecompositionOfCentroidalForceMatrix.compute(m_centroidalForceMatrix).solve(m_desiredCentroidalMomentum - m_gravityForce);
             m_buffers.esaVector = m_desiredCentroidalMomentum - m_gravityForce;
+
+            //switching between pseudo-inverse and inverse must be done smoothly
+            m_desiredFeetForces.setZero();
+            m_nullSpaceOfCentroidalForceMatrix.setZero();
+
+//            std::cout << leftFootConstraint->second.continuousValue() << " " << rightFootConstraint->second.continuousValue() << "\n";
+
             if (leftConstraintIsActive ^ rightConstraintIsActive) {
-                m_desiredFeetForces.setZero();
-                //substitute the pseudoinverse with its inverse
+                //easy case: if only one constraint is active I should compute the inverse
+                //i also smooth it.
                 m_luDecompositionOfCentroidalMatrix.compute(m_centroidalForceMatrix.block<6, 6>(0, leftConstraintIsActive ? 0 : 6));
-                m_desiredFeetForces.segment(leftConstraintIsActive ? 0 : 6, 6) = m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector);
-                m_nullSpaceOfCentroidalForceMatrix.setZero();
+                m_desiredFeetForces.segment(leftConstraintIsActive ? 0 : 6, 6) =
+                (leftConstraintIsActive ? leftFootConstraint->second.continuousValue() : rightFootConstraint->second.continuousValue()) *
+                m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector);
 
             } else {
                 math::pseudoInverse(m_centroidalForceMatrix, m_svdDecompositionOfCentroidalForceMatrix,
                                     m_pseudoInverseOfCentroidalForceMatrix, PseudoInverseTolerance);
+
+                m_pseudoInverseOfCentroidalForceMatrix *= leftFootConstraint->second.continuousValue() * rightFootConstraint->second.continuousValue();
                 m_desiredFeetForces.noalias() = m_pseudoInverseOfCentroidalForceMatrix * m_buffers.esaVector;
+
+                if (leftConstraintSmoothed) {
+                    //compute also the inverse for the constraint not smoothed
+                    //inverse of right foot
+                    m_luDecompositionOfCentroidalMatrix.compute(m_centroidalForceMatrix.block<6, 6>(0, 6));
+                    m_desiredFeetForces.tail(6) +=
+                    rightFootConstraint->second.continuousValue() *
+                    (1 - leftFootConstraint->second.continuousValue()) *
+                    m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector);
+                    std::cout << (rightFootConstraint->second.continuousValue() *
+                    (1 - leftFootConstraint->second.continuousValue()) *
+                    m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector))(2) << " ";
+
+                }
+                if (rightConstraintSmoothed) {
+                    //compute also the inverse for the constraint not smoothed
+                    //inverse of left foot
+                    m_luDecompositionOfCentroidalMatrix.compute(m_centroidalForceMatrix.block<6, 6>(0, 0));
+                    m_desiredFeetForces.head(6) +=
+                    leftFootConstraint->second.continuousValue() *
+                    (1 - rightFootConstraint->second.continuousValue()) *
+                    m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector);
+                    std::cout << (leftFootConstraint->second.continuousValue() *
+                    (1 - rightFootConstraint->second.continuousValue()) *
+                                  m_luDecompositionOfCentroidalMatrix.solve(m_buffers.esaVector))(2);
+                }
+//                std::cout << "\n";
+
 
                 //TODO: change the following line by using the null space basis obtained by the pseudoinverse method
                 m_nullSpaceOfCentroidalForceMatrix.setIdentity();
