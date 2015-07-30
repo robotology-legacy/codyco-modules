@@ -47,14 +47,6 @@ the sensors you can send (assuming that the robot is attached to a fixed base)
 the `calib all` command to the RPC port of wholeBodyDynamicsTree
 (see Ports Created section to get more information on how to access the RPC port).
 
-The model of the sensor measurements considers a fixed base, with z-axis
-pointing upwards. The estimation of the external wrench applied at the
-end-effector of the limb has the same orientation of the fixed base frame.
-For further information about the use of this module and of the iCub force control interface,
-please refer to the force control page:
-
-http://wiki.icub.org/wiki/Force_Control
-
 \section lib_sec Libraries
 - YARP library.
 - iDynTree library.
@@ -70,10 +62,20 @@ http://wiki.icub.org/wiki/Force_Control
   The parameter \e period identifies the rate the estimation thread will work. If not
   specified \e 10ms is assumed.
 
---cutoff \e cutoff
-  The parameter cutoff specifies the cutoff frequency (in Hz) of the low pass filters used in
-  wholeBodyDynamicsTree, a typical values is 3.0 Hz.
+--cutoff_imu \e cutoff_imu
+  The parameter cutoff_imu specifies the cutoff frequency (in Hz) of the IMU low pass filter used in
+  wholeBodyDynamicsTree. A typical values is 3.0 Hz. For more details on the filters used in
+  wholeBodyDynamicsTree, plese check the filters section.
 
+--cutoff_ft \e cutoff_ft
+  The parameter cutoff_ft specifies the cutoff frequency (in Hz) of the six axis F/T low pass filter used in
+  wholeBodyDynamicsTree. If cutoff_ft is not preset, not filtering is performed on the F/T measurements.
+  For more details on the filters used in wholeBodyDynamicsTree, plese check the filters section.
+
+--cutoff_velacc \e cutoff_velacc
+  The parameter cutoff_velacc specifies the cutoff frequency (in Hz) of the joint velocity and acceleration low pass filter used in
+  wholeBodyDynamicsTree. If cutoff_velacc is not preset, not filtering is performed on the joint velocity and acceleration measurements.
+  For more details on the filters used in wholeBodyDynamicsTree, plese check the filters section.
 
 \section portsa_sec Ports Accessed
 Coming soon.
@@ -132,6 +134,26 @@ you can simply launch wholeBodyDynamicsTree using the following command:
 wholeBodyDynamicsTree --autoconnect
 \endcode
 
+\section filters Filters
+wholeBodyDynamicsTree has optional support for filtering
+the measurement that reads from sensors. In particular it supports
+filtering of:
+ - the IMU readings. If the assume_fixed option is not used, wholeBodyDynamicsTree
+   get the information about the gravity, the linear acceleration and the angular
+   velocity and acceleration on a link in which a IMU is mounted. The default
+   setup is to filter this readings with a first order low pass filter (implemented in
+   iCub::ctrl::realtime::FirstOrderLowPassFilter) with a cutoff frequency of 3hz .
+   This cutoff frequency can be changed with the cutoff_imu configuration parameter.
+ - the six axis F/T sensors readings. By default wholeBodyDynamicsTree does not filter
+   this readings, but an optional first order low pass filter can be specified using the
+   cutoff_ft configuration parameter. In the case the cutoff_ft parameter is specified,
+   the cutoff frequency (in Hz) of the filter is given by the value of the cutoff_ft parametes.
+ - the encoder velocity and acceleration By default wholeBodyDynamicsTree does not filter
+   this readings (that are normally obtained from low level numerical differentiation),
+   but an optional first order low pass filter can be specified using the
+   cutoff_velacc configuration parameter. In the case the cutoff_velacc parameter is specified,
+   the cutoff frequency (in Hz) of the filter is given by the value of the cutoff_velacc parameter.
+
 
 \author Silvio Traversaro
 
@@ -185,7 +207,11 @@ int main (int argc, char * argv[])
         yInfo()<< "\t--min_taxel  threshold   :Filter input skin contacts: if the activated taxels are lower than the threshold, ignore the contact (default: 1)." ;
         yInfo()<< "\t--smooth_calibration switch_period : Perform a smooth calibration (i.e.: don't stop estimating torques during calibration, and then smoothly change the ft offsets)";
         yInfo()<< "\t                                     the switch_period express the period (in ms) used for offset interpolation.";
-        yInfo()<< "\t--cutoff           :cutoff frequency (in Hz) of the low pass filters used in wholeBodyDynamicsTree.";
+        yInfo()<< "\t--cutoff_imu           :cutoff frequency (in Hz) of the low pass filters used for IMU.";
+        yInfo()<< "\t--cutoff_ft            :cutoff frequency (in Hz) of the low pass filters used for six axis F/T sensors measurements.";
+        yInfo()<< "\t                        if not present, no filtering is perfomed on F/T sensor measurements.";
+        yInfo()<< "\t--cutoff_velacc        :cutoff frequency (in Hz) of the low pass filters used for joint velocity and acceleration.";
+        yInfo()<< "\t                        if not present, no filtering is perfomed on joint velocity and accelerations.";
         return 0;
     }
 

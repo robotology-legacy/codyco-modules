@@ -522,32 +522,86 @@ bool wholeBodyDynamicsThread::threadInit()
     }
 
     // Create filters
-    if( !yarp_options.check("cutoff") )
+    // backward compatibility :
+    // support cutoff as a synonym of cutoff_imu
+    if( !yarp_options.check("cutoff_imu") && yarp_options.check("cutoff") )
     {
-        yError() << "cutoff option not found, wholeBodyDynamicsTree initialization failed.";
-        yError() << "please add the cutoff option to the wholeBodyDynamicsTree configuration file";
+        yWarning() << "deprecated option cutoff found, please update your configuration file to use cutoff_imu";
+        yarp_options.put("cutoff_imu",yarp_options.find("cutoff"));
+    }
+
+    if( !yarp_options.check("cutoff_imu") )
+    {
+        yError() << "cutoff_imu option not found, wholeBodyDynamicsTree initialization failed.";
+        yError() << "please add the cutoff_imu option to the wholeBodyDynamicsTree configuration file";
         return false;
     }
 
-    if( !yarp_options.find("cutoff").isDouble() )
+    if( !yarp_options.find("cutoff_imu").isDouble() )
     {
-        yError() << "cutoff option found but not a double, wholeBodyDynamicsTree initialization failed.";
-        yError() << "the cutoff option is required to be a double.";
+        yError() << "cutoff_imu option found but not a double, wholeBodyDynamicsTree initialization failed.";
+        yError() << "the cutoff_imu option is required to be a double.";
         return false;
     }
 
-    double cutoffInHz = yarp_options.find("cutoff").asDouble();
+    double cutoffInHzIMU = yarp_options.find("cutoff_imu").asDouble();
 
-    if( cutoffInHz <= 0.0 )
+    if( cutoffInHzIMU <= 0.0 )
     {
-        yError() << "cutoff option found but equal to " << cutoffInHz;
-        yError() << "the cutoff option is required to be a positive frequency in hertz.";
+        yError() << "cutoff_imu option found but equal to " << cutoffInHzIMU;
+        yError() << "the cutoff_imu option is required to be a positive frequency in hertz.";
         return false;
+    }
+
+    bool enableFTFiltering = false;
+    double cutoffInHzFT = -1.0;
+    if( yarp_options.check("cutoff_ft") )
+    {
+        if( !(yarp_options.find("cutoff_ft").isDouble()) ||
+            !(yarp_options.find("cutoff_ft").asDouble() > 0.0) )
+        {
+            yError() << "cutoff_ft option found but invalid";
+            yError() << "the cutoff_ft option is required to be a positive frequency in hertz.";
+            return false;
+        }
+
+        enableFTFiltering = true;
+        cutoffInHzFT = yarp_options.find("cutoff_ft").asDouble();
+    }
+    else
+    {
+        yInfo() << "cutoff_ft option not found, disabling FT filtering";
+    }
+
+    bool enableVelAccFiltering = false;
+    double cutoffInHzVelAcc = -1.0;
+    if( yarp_options.check("cutoff_velacc") )
+    {
+        if( !(yarp_options.find("cutoff_velacc").isDouble()) ||
+            !(yarp_options.find("cutoff_velacc").asDouble() > 0.0) )
+        {
+            yError() << "cutoff_velacc option found but invalid";
+            yError() << "the cutoff_velacc option is required to be a positive frequency in hertz.";
+            return false;
+        }
+
+        enableVelAccFiltering = true;
+        cutoffInHzVelAcc = yarp_options.find("cutoff_velacc").asDouble();
+    }
+    else
+    {
+        yInfo() << "cutoff_velacc option not found, disabling joint velocities and accelerations filtering";
     }
 
     double periodInSeconds = getRate()*1e-3;
-    filters = new wholeBodyDynamicsFilters(torque_estimation_list.size(),nrOfAvailableFTSensors,
-                                          cutoffInHz,periodInSeconds);
+    filters = new wholeBodyDynamicsFilters(torque_estimation_list.size(),
+                                           nrOfAvailableFTSensors,
+                                           cutoffInHzIMU,
+                                           periodInSeconds,
+                                           enableFTFiltering,
+                                           cutoffInHzFT,
+                                           enableVelAccFiltering,
+                                           cutoffInHzVelAcc);
 
     if( smooth_calibration )
     {
@@ -1344,14 +1398,37 @@ void wholeBodyDynamicsThread::readRobotStatus()
     // Update yarp vectors
     joint_status.updateYarpBuffers();
 
+    // if the user requested to filter the encoder speed and acceleration, we filter them
+    if( filters->enableVelAccFiltering )
+    {
+        joint_status.getJointVelYARP() = filters->jointVelFilter->filt(joint_status.getJointVelYARP());
+        joint_status.getJointAccYARP() = filters->jointAccFilter->filt(joint_status.getJointAccYARP());
+
+        // As we modified the yarp buffers, we need to update the KDL ones.
+        joint_status.updateKDLBuffers();
+    }
+
     // Get 6-Axis F/T sensors measure
     const IDList & available_ft_sensors = sensors->getSensorList(SENSOR_FORCE_TORQUE);
     for(int ft_numeric = 0; ft_numeric < (int)available_ft_sensors.size(); ft_numeric++ )
     {
         int ft_index = ft_numeric;
-        if( sensors->readSensor(SENSOR_FORCE_TORQUE, ft_numeric, sensor_status.measured_ft_sensors[ft_numeric].data(), stamps , wait) ) {
-            // Add a low pass filter here? \todo TODO
-            sensor_status.estimated_ft_sensors[ft_numeric] = sensor_status.measured_ft_sensors[ft_numeric] - sensor_status.ft_sensors_offset[ft_numeric]; /// remove offset
+        if( sensors->readSensor(SENSOR_FORCE_TORQUE,
+                                ft_numeric,
+                                sensor_status.measured_ft_sensors[ft_numeric].data(),
+                                stamps ,
+                                wait) )
+        {
+            /// remove offset
+            sensor_status.estimated_ft_sensors[ft_numeric] =
+                sensor_status.measured_ft_sensors[ft_numeric] - sensor_status.ft_sensors_offset[ft_numeric];
+
+            // if requested, enable filtering
+            if( filters->enableFTFiltering )
+            {
+                sensor_status.estimated_ft_sensors[ft_numeric] =
+                    filters->forcetorqueFilters[ft_numeric]->filt(sensor_status.estimated_ft_sensors[ft_numeric]);
+            }
         } else {
             yError() << "wholeBodyDynamics: Error in reading F/T sensors, exiting";
         }
@@ -1976,65 +2053,76 @@ bool wholeBodyDynamicsThread::openControlBoards()
 
 bool wholeBodyDynamicsThread::closeControlBoards()
 {
-	bool ok = true;
+    bool ok = true;
     for(int ctrlBrd = 0; ctrlBrd < torqueEstimationControlBoards.controlBoardNames.size(); ctrlBrd++ )
     {
         ok = ok && closePolyDriver(torqueEstimationControlBoards.deviceDrivers[ctrlBrd]);
         torqueEstimationControlBoards.controlModeInterfaces[ctrlBrd] = 0;
         torqueEstimationControlBoards.interactionModeInterfaces[ctrlBrd] = 0;
     }
-	return ok;
+    return ok;
 }
 
 wholeBodyDynamicsFilters::wholeBodyDynamicsFilters(int nrOfDOFs,
                                                    int nrOfFTSensors,
-                                                   double cutoffInHz,
-                                                   double periodInSeconds)
+                                                   double cutoffInHzIMU,
+                                                   double periodInSeconds,
+                                                   bool _enableFTFiltering,
+                                                   double cutoffInHzFT,
+                                                   bool _enableVelAccFiltering,
+                                                   double cutoffInHzVelAcc):
+                                                   enableFTFiltering(_enableFTFiltering),
+                                                   enableVelAccFiltering(_enableVelAccFiltering)
 {
     // Options
 
     ///< Window lengths of adaptive window filters
-    int dqFiltWL            = 16;
-    int d2qFiltWL           = 25;
-
     int imuAngularAccelerationFiltWL = 25;
 
     ///< Threshold of adaptive window filters
-    double dqFiltTh            = 1.0;
-    double d2qFiltTh           = 1.0;
-
     double imuAngularAccelerationFiltTh = 1.0;
 
-    ///< Cut frequencies
-    double tauJCutFrequency    =   cutoffInHz;
-
-    double imuLinearAccelerationCutFrequency = cutoffInHz;
-    double imuAngularVelocityCutFrequency    = cutoffInHz;
-    double forcetorqueCutFrequency           = cutoffInHz;
-
-    //
-
-    ///< create derivative filters
-    dqFilt = new iCub::ctrl::AWLinEstimator(dqFiltWL, dqFiltTh);
-    d2qFilt = new iCub::ctrl::AWQuadEstimator(d2qFiltWL, d2qFiltTh);
-
-    ///< create low pass filters
-    yarp::sig::Vector dofZeros(nrOfDOFs,0.0);
-    tauJFilt    = new iCub::ctrl::realTime::FirstOrderLowPassFilter(tauJCutFrequency, periodInSeconds, dofZeros);
-
+    // FT
     yarp::sig::Vector sixZeros(6,0.0);
     forcetorqueFilters.resize(nrOfFTSensors);
     for(int ft_numeric = 0; ft_numeric < nrOfFTSensors; ft_numeric++ )
     {
-        forcetorqueFilters[ft_numeric] = new iCub::ctrl::realTime::FirstOrderLowPassFilter(forcetorqueCutFrequency,periodInSeconds,sixZeros); ///< low pass filter
+        if( this->enableFTFiltering )
+        {
+            forcetorqueFilters[ft_numeric] =
+                new iCub::ctrl::realTime::FirstOrderLowPassFilter(cutoffInHzFT,periodInSeconds,sixZeros);
+        }
+        else
+        {
+            forcetorqueFilters[ft_numeric] = 0;
+        }
     }
 
+    // IMU
     yarp::sig::Vector threeZeros(3,0.0);
-    imuLinearAccelerationFilter = new iCub::ctrl::realTime::FirstOrderLowPassFilter(imuLinearAccelerationCutFrequency,periodInSeconds,threeZeros);  ///< linear acceleration is filtered with a low pass filter
-    imuAngularVelocityFilter = new iCub::ctrl::realTime::FirstOrderLowPassFilter(imuAngularVelocityCutFrequency,periodInSeconds,threeZeros);  ///< angular velocity is filtered with a low pass filter
+    imuLinearAccelerationFilter =
+        new iCub::ctrl::realTime::FirstOrderLowPassFilter(cutoffInHzIMU,periodInSeconds,threeZeros);
+    imuAngularVelocityFilter =
+        new iCub::ctrl::realTime::FirstOrderLowPassFilter(cutoffInHzIMU,periodInSeconds,threeZeros);
 
      //Allocating a filter for angular acceleration estimation only for IMU used in iDynTree
-    imuAngularAccelerationFilt = new iCub::ctrl::AWLinEstimator(imuAngularAccelerationFiltWL, imuAngularAccelerationFiltTh);
+    imuAngularAccelerationFilt =
+        new iCub::ctrl::AWLinEstimator(imuAngularAccelerationFiltWL, imuAngularAccelerationFiltTh);
+
+    // Vel Acc
+    yarp::sig::Vector dofsZeros(nrOfDOFs,0.0);
+    if( this->enableVelAccFiltering )
+    {
+        jointVelFilter =
+            new iCub::ctrl::realTime::FirstOrderLowPassFilter(cutoffInHzVelAcc,periodInSeconds,dofsZeros);
+        jointAccFilter =
+            new iCub::ctrl::realTime::FirstOrderLowPassFilter(cutoffInHzVelAcc,periodInSeconds,dofsZeros);
+    }
+    else
+    {
+        jointVelFilter = 0;
+        jointAccFilter = 0;
+    }
 }
 
 template <class T> void deleteObject(T** pp)
@@ -2049,10 +2137,6 @@ template <class T> void deleteObject(T** pp)
 
 wholeBodyDynamicsFilters::~wholeBodyDynamicsFilters()
 {
-    deleteObject(&dqFilt);
-    deleteObject(&d2qFilt);
-    deleteObject(&tauJFilt);
-
     for(unsigned int ft=0; ft < forcetorqueFilters.size(); ft++)
     {
         deleteObject(&(forcetorqueFilters[ft]));
@@ -2060,6 +2144,8 @@ wholeBodyDynamicsFilters::~wholeBodyDynamicsFilters()
 
     deleteObject(&imuLinearAccelerationFilter);
     deleteObject(&imuAngularVelocityFilter);
+    deleteObject(&jointVelFilter);
+    deleteObject(&jointAccFilter);
 }
 
 OffsetSmoother::OffsetSmoother(int nrOfFTSensors, double smoothingTimeInSeconds)

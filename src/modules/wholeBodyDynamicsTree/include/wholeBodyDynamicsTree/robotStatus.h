@@ -51,17 +51,25 @@ public:
     bool setJointAccKDL(const KDL::JntArray & ddqj);
     bool setJointTorquesKDL(const KDL::JntArray & torquesj);
 
-    const yarp::sig::Vector & getJointPosYARP() const;
-    const yarp::sig::Vector & getJointVelYARP() const;
-    const yarp::sig::Vector & getJointAccYARP() const;
-    const yarp::sig::Vector & getJointTorquesYARP() const;
+    yarp::sig::Vector & getJointPosYARP();
+    yarp::sig::Vector & getJointVelYARP();
+    yarp::sig::Vector & getJointAccYARP();
+    yarp::sig::Vector & getJointTorquesYARP();
 
     KDL::JntArray & getJointPosKDL();
     KDL::JntArray & getJointVelKDL();
     KDL::JntArray & getJointAccKDL();
     KDL::JntArray & getJointTorquesKDL();
 
+    /**
+     * Copy in the yarp buffers the content of the KDL buffers.
+     */
     bool updateYarpBuffers();
+
+    /**
+     * Copy in the KDL buffers the content of the YARP buffers.
+     */
+    bool updateKDLBuffers();
 };
 
 class RobotSensorStatus

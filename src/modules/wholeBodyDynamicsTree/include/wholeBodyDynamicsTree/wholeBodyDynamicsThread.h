@@ -73,22 +73,29 @@ class wholeBodyDynamicsFilters
 {
     public:
 
-    wholeBodyDynamicsFilters(int nrOfDOFs, int nrOfFTSensors, double cutoffInHz, double periodInSeconds);
+    wholeBodyDynamicsFilters(int nrOfDOFs,
+                             int nrOfFTSensors,
+                             double cutoffInHzIMU,
+                             double periodInSeconds,
+                             bool enableFTFiltering,
+                             double cutoffInHzFT,
+                             bool enableVelAccFiltering,
+                             double cutoffInHzVelAcc);
     ~wholeBodyDynamicsFilters();
-
-    iCub::ctrl::AWLinEstimator  *dqFilt;        // joint velocity filter
-    iCub::ctrl::AWPolyElement dqFiltElement;
-    iCub::ctrl::AWQuadEstimator *d2qFilt;       // joint acceleration filter
-    iCub::ctrl::AWPolyElement d2qFiltElement;
-
-    iCub::ctrl::realTime::FirstOrderLowPassFilter * tauJFilt;  ///< low pass filter for joint torque
 
     iCub::ctrl::realTime::FirstOrderLowPassFilter * imuLinearAccelerationFilter; ///<  low pass filters for IMU linear accelerations
     iCub::ctrl::realTime::FirstOrderLowPassFilter * imuAngularVelocityFilter; ///< low pass filters for IMU angular velocity
     std::vector<iCub::ctrl::realTime::FirstOrderLowPassFilter *> forcetorqueFilters; ///< low pass filters for ForceTorque sensors
+    iCub::ctrl::realTime::FirstOrderLowPassFilter * jointVelFilter; ///< low pass filters for joint velocities
+    iCub::ctrl::realTime::FirstOrderLowPassFilter * jointAccFilter; ///< low pass filters for joint accelerations
 
+    // Adaptive filter for imuAngularAcceleration estimation
     iCub::ctrl::AWLinEstimator * imuAngularAccelerationFilt;
     iCub::ctrl::AWPolyElement imuAngularAccelerationFiltElement;
+
+    //Flag for checking if filtering of FT and joint velAcc is enabled or not
+    bool enableFTFiltering;
+    bool enableVelAccFiltering;
 };
 
 class OffsetSmoother
@@ -128,6 +135,9 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
     /** filter class */
     wholeBodyDynamicsFilters * filters;
+
+    /** method to correctly configure the filters class */
+    //initFilters();
 
     /** offset smoothe class */
     OffsetSmoother * offset_smoother;
