@@ -51,10 +51,11 @@ quaternionEKFThread::quaternionEKFThread ( int period,
       m_gyroMeasPort2 ( gyroMeasPort2 ),
       m_sysPdf( STATEDIM ),
       m_prior_mu_vec( STATEDIM ),
-      m_waitingTime( 0.0 )
+      m_waitingTime( 0.0 ),
+      m_using2acc( false )
 {
     //TODO Initialize m_gyroMeasPort according to gyroMeasPort
-    if (!m_sensorPort.compare("/icub/left_foot_inertial/analog:o"))
+    if (!m_sensorPort.compare("/icub/left_foot_inertial/analog:o") && m_using2acc)
         m_sensorPort2 = "/icub/right_foot_inertial/analog:o";
 
 }
@@ -70,7 +71,8 @@ void quaternionEKFThread::run()
         }
     } else {
 #ifdef QUATERNION_EKF_USES_XSENS
-        readDataFromXSens(imu_measurement);
+        if (m_usingxsens)
+            readDataFromXSens(imu_measurement);
 #endif
     }
 
@@ -108,26 +110,28 @@ void quaternionEKFThread::run()
         // TODO This mean changes!!!
         MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
         sys_noise_mu = 0.0;
-        MatrixWrapper::Matrix Xi(m_state_size, m_input_size);
-        XiOperator(m_posterior_state, &Xi);
 
-        // System Noise Covariance
-        // TODO For now let's leave this constant as something to be tuned.
+        /**************** System Noise Covariance ********************************************************************************/
+        // TODO [DEPRECATED] For now let's leave this constant as something to be tuned.
         // This covariance matrix however should be computed as done in the matlab
         // utility ekfukf/lti_disc.m through Matrix Fraction Decomposition.
+        MatrixWrapper::Matrix Xi(m_state_size, m_input_size);
+        XiOperator(m_posterior_state, &Xi);
         MatrixWrapper::SymmetricMatrix sys_noise_cov(m_state_size);
         sys_noise_cov = 0.0;
-
+        // NOTE m_sigma_gyro must be small, ||ek|| = 10e-3 rad/sec
         MatrixWrapper::Matrix Sigma_gyro(m_input_size,m_input_size);
         Sigma_gyro = 0.0;
         Sigma_gyro(1,1) = Sigma_gyro(2,2) = Sigma_gyro(3,3) = m_sigma_gyro;
-
         MatrixWrapper::Matrix tmp = Xi*Sigma_gyro*Xi.transpose();
-        MatrixWrapper::SymmetricMatrix tmpSym(m_state_size);
-        tmp.convertToSymmetricMatrix(tmpSym);
-        sys_noise_cov = (MatrixWrapper::SymmetricMatrix) tmpSym*pow(m_period/(1000.0*2.0),2);
+        // NOTE on 30-07-2015 I commented the following lines because making this matrix symmetric this way does not make much sense from a theoretical point of view. I'd rather add a term such as alpha*I_4x4
+//         MatrixWrapper::SymmetricMatrix tmpSym(m_state_size);
+//         tmp.convertToSymmetricMatrix(tmpSym);
+//         cout << "Symm Matrix: " << tmpSym << endl;
+        sys_noise_cov = (MatrixWrapper::SymmetricMatrix) tmp*pow(m_period/(1000.0*2.0),2);
         // NOTE Next line is setting system noise covariance matrix to a constant diagonal matrix
-        sys_noise_cov(1,1) = sys_noise_cov (2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = 0.000001;
+//         sys_noise_cov = 0.0; sys_noise_cov(1,1) = sys_noise_cov (2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = 0.000001;
+        /****************END System Noise Covariance *********************************************************************************/
 
         if (m_verbose)
             cout << "System covariance matrix will be: " << sys_noise_cov << endl;
@@ -152,9 +156,9 @@ void quaternionEKFThread::run()
 //         if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
 //             yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
         // NOTE Testing just the model equations
+        if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement));
 //         if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
-        if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
-            yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
+//             yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
 
         // Get the posterior of the updated filter. Result of all the system model and meaurement information
         BFL::Pdf<BFL::ColumnVector> * posterior = m_filter->PostGet();
@@ -192,10 +196,12 @@ void quaternionEKFThread::run()
 //         cout << "[DEBUGGING] REAL ORIENTATION: " << realOrientation.toString() << endl;
         //  Publish XSens orientation just for debugging
 #ifdef QUATERNION_EKF_USES_XSENS
-        yarp::sig::Vector& tmpXSensEuler = m_publisherXSensEuler->prepare();
-        if (realOrientation.data()!=NULL) {
-            tmpXSensEuler = realOrientation;
-            m_publisherXSensEuler->write();
+        if (m_usingxsens) {
+            yarp::sig::Vector& tmpXSensEuler = m_publisherXSensEuler->prepare();
+            if (realOrientation.data()!=NULL) {
+                tmpXSensEuler = realOrientation;
+                m_publisherXSensEuler->write();
+            }
         }
 #endif
         if (m_verbose)
@@ -277,16 +283,20 @@ bool quaternionEKFThread::threadInit()
     }
 
     // imu Measurement vector
-    if (!m_sensorPort.compare("/" + m_robotName + "/inertial")) {
+    if (m_usingxsens)
         imu_measurement = new yarp::sig::Vector(12);
-    } else {
-        if (!m_sensorPort.compare("/icub/right_hand_inertial/analog:o") || !m_sensorPort.compare("/icub/left_hand_inertial/analog:o")) {
-            imu_measurement = new yarp::sig::Vector(6);
+    else {
+        if (!m_sensorPort.compare("/" + m_robotName + "/inertial")) {
+            imu_measurement = new yarp::sig::Vector(12);
         } else {
-            if (!m_sensorPort.compare("/icub/right_foot_inertial/analog:o") || !m_sensorPort.compare("/icub/left_foot_inertial/analog:o")) {
-                imu_measurement = new yarp::sig::Vector(3);
-                if (m_using2acc) {
-                    imu_measurement2 = new yarp::sig::Vector(3);
+            if (!m_sensorPort.compare("/icub/right_hand_inertial/analog:o") || !m_sensorPort.compare("/icub/left_hand_inertial/analog:o")) {
+                imu_measurement = new yarp::sig::Vector(6);
+            } else {
+                if (!m_sensorPort.compare("/icub/right_foot_inertial/analog:o") || !m_sensorPort.compare("/icub/left_foot_inertial/analog:o")) {
+                    imu_measurement = new yarp::sig::Vector(3);
+                    if (m_using2acc) {
+                        imu_measurement2 = new yarp::sig::Vector(3);
+                    }
                 }
             }
         }

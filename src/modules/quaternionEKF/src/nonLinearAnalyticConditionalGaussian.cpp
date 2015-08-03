@@ -30,7 +30,10 @@ MatrixWrapper::ColumnVector nonLinearAnalyticConditionalGaussian::ExpectedValueG
     MatrixWrapper::Matrix tmpA(4,4);
     OmegaOperator(angVel, tmpA);
     tmpA = tmpA*(0.5*m_threadPeriod);
-    state = state + tmpA*state + AdditiveNoiseMuGet();
+    // NOTE On 27/07/2015 I changed the sign before AdditiveNoiseMuGet() to a 'minus' according to Choukroun's derivation in Novel Methods for Attitude Determination using Vector Observations
+    // NOTE I think this is wrong!! as what I want to add here is noise with 0 mean and covariance Q^w_k!!! 
+    MatrixWrapper::ColumnVector noise = AdditiveNoiseMuGet();
+    state = state + tmpA*state - noise;
     
     // Normalizing the quaternion
     MatrixWrapper::Quaternion tmpQuat(state);
@@ -42,7 +45,7 @@ MatrixWrapper::ColumnVector nonLinearAnalyticConditionalGaussian::ExpectedValueG
 
 MatrixWrapper::Matrix nonLinearAnalyticConditionalGaussian::dfGet ( unsigned int i ) const
 {
-  // NOTE In this case, since this is rather a linear system, dfGet actually corresponds to the 
+  // NOTE In this case, since this is rather a linear system wrt to the state (quaternion), dfGet actually corresponds to the 
     //    discrete-time transition matrix. 
     MatrixWrapper::ColumnVector angVel = ConditionalArgumentGet(1);
     MatrixWrapper::Matrix identity(4,4); identity.toIdentity();
@@ -73,7 +76,7 @@ bool nonLinearAnalyticConditionalGaussian::OmegaOperator (const MatrixWrapper::C
     Omega(1,1) = 0.0;      Omega(1,2) = -omg(1);   Omega(1,3) = -omg(2);   Omega(1,4) = -omg(3);
     Omega(2,1) = omg(1);   Omega(2,2) =  0.0;      Omega(2,3) =  omg(3);   Omega(2,4) = -omg(2);
     Omega(3,1) = omg(2);   Omega(3,2) = -omg(3);   Omega(3,3) =  0.0;      Omega(3,4) =  omg(1);
-    Omega(4,1) = omg(3);   Omega(4,3) =  omg(2);   Omega(4,3) = -omg(1);   Omega(4,4) =  0.0;
+    Omega(4,1) = omg(3);   Omega(4,2) =  omg(2);   Omega(4,3) = -omg(1);   Omega(4,4) =  0.0;
     return true;
 }
 

@@ -14,7 +14,7 @@ using namespace filter;
 int main(int argc, char* argv[]) 
 {
     yarp::os::ResourceFinder rf;
-    rf.setVerbose(false);
+    rf.setVerbose(true);
     rf.setDefaultContext("quaternionEKF");
     rf.setDefaultConfigFile("quaternionEKFModule.ini");
     rf.configure(argc, argv);
