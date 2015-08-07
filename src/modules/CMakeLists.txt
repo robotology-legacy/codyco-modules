@@ -5,7 +5,7 @@ add_subdirectory(adaptiveControl)
 if(NOT MSVC)
 add_subdirectory(insituFTSensorCalibration)
 endif()
-add_subdirectory(codycoDemoY2/app)
+add_subdirectory(cartesianSolverConfiguration/app)
 add_subdirectory(torqueGraspManager)
 add_subdirectory(eventRepeater)
 
