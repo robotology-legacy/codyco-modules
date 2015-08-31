@@ -28,19 +28,28 @@ MatrixWrapper::ColumnVector nonLinearAnalyticConditionalGaussian::ExpectedValueG
     identity.toIdentity();
     // TODO I need state dimension here instead of hardcoding 4
     MatrixWrapper::Matrix tmpA(4,4);
+    tmpA = 0.0;
     OmegaOperator(angVel, tmpA);
     tmpA = tmpA*(0.5*m_threadPeriod);
     // NOTE On 27/07/2015 I changed the sign before AdditiveNoiseMuGet() to a 'minus' according to Choukroun's derivation in Novel Methods for Attitude Determination using Vector Observations
-    // NOTE I think this is wrong!! as what I want to add here is noise with 0 mean and covariance Q^w_k!!! 
     MatrixWrapper::ColumnVector noise = AdditiveNoiseMuGet();
-    state = state + tmpA*state - noise;
+    // TODO State dimension must be put somewhere in this class!!!!!
+    MatrixWrapper::Matrix tmpB(7,7); 
+    tmpB = 0.0;
+    tmpB.setSubMatrix(tmpA,1,4,1,4);
+    tmpB(5,5) = tmpB(6,6) = tmpB(7,7) = 1.0;
+    state = state + tmpB*state + noise;
     
-    // Normalizing the quaternion
-    MatrixWrapper::Quaternion tmpQuat(state);
+    // Normalizing the quaternion 
+    MatrixWrapper::Quaternion tmpQuat(state.sub(1,4));
     tmpQuat.normalize();
     // The other  methods of the library use inputs of type ColumnVector, therefore a copy of the quaternion is necessary
-    MatrixWrapper::ColumnVector ret(tmpQuat);
-    return ret;
+    MatrixWrapper::ColumnVector retQuat(tmpQuat);
+    state(1)=retQuat(1);
+    state(2)=retQuat(2);
+    state(3)=retQuat(3);
+    state(4)=retQuat(4);
+    return state;
 }
 
 MatrixWrapper::Matrix nonLinearAnalyticConditionalGaussian::dfGet ( unsigned int i ) const
@@ -52,7 +61,9 @@ MatrixWrapper::Matrix nonLinearAnalyticConditionalGaussian::dfGet ( unsigned int
     MatrixWrapper::Matrix tmp(4,4);
     OmegaOperator(angVel, tmp);
     MatrixWrapper::Matrix tmpA = identity + tmp*(0.5*m_threadPeriod);
-    return tmpA;
+    MatrixWrapper::Matrix tmpB(7,7); tmpB.toIdentity();
+    tmpB.setSubMatrix(tmpA,1,4,1,4);
+    return tmpB;
 }
 
 void nonLinearAnalyticConditionalGaussian::setPeriod ( int period )

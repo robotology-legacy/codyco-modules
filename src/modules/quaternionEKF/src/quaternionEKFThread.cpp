@@ -107,16 +107,13 @@ void quaternionEKFThread::run()
 
         // Noise gaussian
         // System Noise Mean
-        // TODO This mean changes!!!
+        // [REMOVE] TODO This mean changes!!!
         MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
         sys_noise_mu = 0.0;
 
         /**************** System Noise Covariance ********************************************************************************/
-        // TODO [DEPRECATED] For now let's leave this constant as something to be tuned.
-        // This covariance matrix however should be computed as done in the matlab
-        // utility ekfukf/lti_disc.m through Matrix Fraction Decomposition.
-        MatrixWrapper::Matrix Xi(m_state_size, m_input_size);
-        XiOperator(m_posterior_state, &Xi);
+        MatrixWrapper::Matrix Xi(4, m_input_size);
+        XiOperator(m_posterior_state.sub(1,4), &Xi);
         MatrixWrapper::SymmetricMatrix sys_noise_cov(m_state_size);
         sys_noise_cov = 0.0;
         // NOTE m_sigma_gyro must be small, ||ek|| = 10e-3 rad/sec
@@ -124,13 +121,13 @@ void quaternionEKFThread::run()
         Sigma_gyro = 0.0;
         Sigma_gyro(1,1) = Sigma_gyro(2,2) = Sigma_gyro(3,3) = m_sigma_gyro;
         MatrixWrapper::Matrix tmp = Xi*Sigma_gyro*Xi.transpose();
-        // NOTE on 30-07-2015 I commented the following lines because making this matrix symmetric this way does not make much sense from a theoretical point of view. I'd rather add a term such as alpha*I_4x4
-//         MatrixWrapper::SymmetricMatrix tmpSym(m_state_size);
-//         tmp.convertToSymmetricMatrix(tmpSym);
-//         cout << "Symm Matrix: " << tmpSym << endl;
-        sys_noise_cov = (MatrixWrapper::SymmetricMatrix) tmp*pow(m_period/(1000.0*2.0),2);
-        // NOTE Next line is setting system noise covariance matrix to a constant diagonal matrix
-//         sys_noise_cov = 0.0; sys_noise_cov(1,1) = sys_noise_cov (2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = 0.000001;
+        tmp = tmp*pow(m_period/(1000.0*2.0),2);
+        sys_noise_cov.setSubMatrix(tmp,1,4,1,4);
+//         cout << "Matrix sys_noise_cov after setting Quaternion Process Cov: " << sys_noise_cov << endl;
+        // NOTE Temporarily putting accelerometer bias covariance matrix here
+        MatrixWrapper::Matrix accBias(3,3);
+        accBias = 0.0; accBias(1,1) = accBias(2,2) = accBias(3,3) = 0.01;
+        sys_noise_cov.setSubMatrix(accBias,5,7,5,7);
         /****************END System Noise Covariance *********************************************************************************/
 
         if (m_verbose)
@@ -320,12 +317,14 @@ bool quaternionEKFThread::threadInit()
     if(m_usingEKF) {
         // System Noise Mean
         MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
-        sys_noise_mu(1) = sys_noise_mu(2) = sys_noise_mu(3) = sys_noise_mu(4) = 0.0;
+        sys_noise_mu = 0.0;
 
         // System Noise Covariance
         MatrixWrapper::SymmetricMatrix sys_noise_cov(m_state_size);
         sys_noise_cov = 0.0;
+        // TODO Add method to MatrixWrapper that assigns the same value to the main diagonal elements of a matrix. Useful for scalability
         sys_noise_cov(1,1) = sys_noise_cov(2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = m_sigma_system_noise;
+        sys_noise_cov(5,5) = sys_noise_cov(6,6) = sys_noise_cov(7,7) = m_sigma_system_noise;
 
         // Setting System noise uncertainty
         m_sysPdf.AdditiveNoiseMuSet(sys_noise_mu);
@@ -339,7 +338,6 @@ bool quaternionEKFThread::threadInit()
         // Measurement noise mean
         MatrixWrapper::ColumnVector meas_noise_mu(m_measurement_size);
         meas_noise_mu = 0.0;                // Set all to zero
-        meas_noise_mu(3) = 0.0;
         // Measurement noise covariance
         MatrixWrapper::SymmetricMatrix meas_noise_cov(m_measurement_size);
         meas_noise_cov = 0.0;
@@ -356,9 +354,10 @@ bool quaternionEKFThread::threadInit()
         prior_mu(1) = 1.0;
         m_prior_mu_vec = prior_mu;
         m_posterior_state = prior_mu;
-        MatrixWrapper::SymmetricMatrix prior_cov(4);
+        MatrixWrapper::SymmetricMatrix prior_cov(m_state_size);
         prior_cov = 0.0;
         prior_cov(1,1) = prior_cov(2,2) = prior_cov(3,3) = prior_cov(4,4) = m_prior_cov;
+        prior_cov(5,5) = prior_cov(6,6) = prior_cov(7,7) = m_prior_cov;
         cout << "Priors will be: " << endl;
         cout << "State prior: " << prior_mu << endl;
         cout << "Covariance prior: " << prior_cov << endl;

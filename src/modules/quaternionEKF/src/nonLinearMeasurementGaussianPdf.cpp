@@ -43,7 +43,8 @@ MatrixWrapper::ColumnVector nonLinearMeasurementGaussianPdf::ExpectedValueGet() 
     // Transpose or inverse since Q is actually a symmetric matrix
     expectedValue = Q.transpose()*g0;
     
-    return expectedValue + AdditiveNoiseMuGet(); 
+    MatrixWrapper::ColumnVector accBias = state.sub(5,7);
+    return expectedValue + accBias + AdditiveNoiseMuGet(); 
 }
 
 MatrixWrapper::Matrix nonLinearMeasurementGaussianPdf::dfGet ( unsigned int i ) const
@@ -56,7 +57,7 @@ MatrixWrapper::Matrix nonLinearMeasurementGaussianPdf::dfGet ( unsigned int i ) 
     double q3 = state(4);
     if (i == 0) { // Derivative with respect to the first conditional argument (i.e. the 4-dim state)
         // Allocating space for Jacobian
-        MatrixWrapper::Matrix dq(3,12);
+        MatrixWrapper::Matrix dq(3,21);
         dq = 0.0;
         MatrixWrapper::Matrix dQdq0(3,3), dQdq1(3,3), dQdq2(3,3), dQdq3(3,3);
         // NOTE Gravity unity vector. Need to review why I set this to [0 0 1]' instead of [0 0 9.8]' in the Matlab code
@@ -93,7 +94,8 @@ MatrixWrapper::Matrix nonLinearMeasurementGaussianPdf::dfGet ( unsigned int i ) 
         MatrixWrapper::ColumnVector dhdq_col3 = dQdq2.transpose()*gravUnitVec;
         MatrixWrapper::ColumnVector dhdq_col4 = dQdq3.transpose()*gravUnitVec;
         
-        MatrixWrapper::Matrix dhdq(3,4); dhdq = 0.0;
+        //NOTE dhdq is of size 3 x STATE_DIM. STATE_DIM should be passed to this class somehow!
+        MatrixWrapper::Matrix dhdq(3,7); dhdq = 0.0;
         dhdq.setColumn(dhdq_col1, 1);
         dhdq.setColumn(dhdq_col2, 2);
         dhdq.setColumn(dhdq_col3, 3);
