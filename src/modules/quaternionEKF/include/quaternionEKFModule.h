@@ -44,6 +44,7 @@ class quaternionEKFModule: public yarp::os::RFModule
     std::string mode;
     bool usingxsens;
     bool verbose;
+    double avgTime, stdDev, avgTimeUsed, stdDevUsed;
     
     /*TODO : For now filtertype is a string to indicate EKF or direct filtering, 
      *later when module name is more generic it must be changed to enum */

@@ -107,7 +107,7 @@ void quaternionEKFThread::run()
 
         // Noise gaussian
         // System Noise Mean
-        // [REMOVE] TODO This mean changes!!!
+        // [REMOVE] TODO This mean should be always zero (?)
         MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
         sys_noise_mu = 0.0;
 

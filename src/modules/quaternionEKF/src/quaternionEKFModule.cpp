@@ -181,6 +181,22 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
 
 bool quaternionEKFModule::updateModule()
 {
+    if (!quatEKFThread)
+    {
+        yError("quateEKFThread pointer is zero!\n");
+        return false;
+    }
+    
+    quatEKFThread->getEstPeriod(avgTime, stdDev);
+    quatEKFThread->getEstUsed(avgTimeUsed, stdDevUsed); // actual duration of main loop
+    
+    if(avgTime > 1.3 * period)
+    {
+        yWarning("[WARNING] quaternionEKFModule loop is too slow. Real period: %3.3f+/-%3.3f. Expected period %d.\n", avgTime, stdDev, period);
+    }
+    
+    yInfo("Duration of 'run' method: %3.3f+/-%3.3f.\n", avgTimeUsed, stdDevUsed);
+    
     std::string tmp = "offline";
 //     std::cout << "Module period" << this->getPeriod() << std::endl;
     if (!tmp.compare(mode)) {
