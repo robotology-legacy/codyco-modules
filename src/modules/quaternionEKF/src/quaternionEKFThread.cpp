@@ -174,7 +174,9 @@ void quaternionEKFThread::run()
             cout << " " << endl;
         }
         MatrixWrapper::ColumnVector eulerAngles(3);
-        expectedValueQuat.getEulerAngles(string("xyz"), eulerAngles);
+        MatrixWrapper::Quaternion tmpQuat;
+        expectedValueQuat.conjugate(tmpQuat);
+        tmpQuat.getEulerAngles(string("xyz"), eulerAngles);
         if (m_verbose)
             cout << "Posterior Mean in Euler Angles: " << (180/PI)*eulerAngles  << endl;
         // Publish results to port
