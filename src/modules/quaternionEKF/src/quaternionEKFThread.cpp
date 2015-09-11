@@ -31,6 +31,7 @@ quaternionEKFThread::quaternionEKFThread ( int period,
                                            bool autoconnect,
                                            bool usingxsens,
                                            bool usingEKF,
+                                           bool usingSkin,
                                            std::string sensorPort,
                                            bool verbose,
                                            yarp::os::Property &filterParams,
@@ -44,6 +45,7 @@ quaternionEKFThread::quaternionEKFThread ( int period,
       m_autoconnect ( autoconnect ),
       m_usingxsens ( usingxsens ),
       m_usingEKF ( usingEKF ),
+      m_usingSkin ( usingSkin ),
       m_sensorPort ( sensorPort ),
       m_verbose ( verbose ),
       m_filterParams( filterParams ),
@@ -55,6 +57,7 @@ quaternionEKFThread::quaternionEKFThread ( int period,
       m_using2acc( false )
 {
     //TODO Initialize m_gyroMeasPort according to gyroMeasPort
+    // NOTE This is assuming that the accelerometer readings are coming from the MTB boards' accelerometers as done in iCubGenova01
     if (!m_sensorPort.compare("/icub/left_foot_inertial/analog:o") && m_using2acc)
         m_sensorPort2 = "/icub/right_foot_inertial/analog:o";
 
@@ -62,8 +65,8 @@ quaternionEKFThread::quaternionEKFThread ( int period,
 
 void quaternionEKFThread::run()
 {
-    // Get Input and measurement
-    if ( !m_usingxsens ) {
+    // Get Input and measurement from XSens or iCubGenova01's sensors
+    if ( !m_usingxsens && !m_usingSkin) {
         bool reading = true;
         imu_measurement = m_gyroMeasPort->read(reading);
         if (m_using2acc) {
@@ -75,21 +78,29 @@ void quaternionEKFThread::run()
             readDataFromXSens(imu_measurement);
 #endif
     }
-
-    if (m_verbose) {
+    
+    if (m_verbose && (!m_usingxsens || m_usingxsens)) {
         cout << "Full imu_measurement vec: " << endl;
         cout << imu_measurement->toString().c_str() << endl;
+    }
+    
+    yarp::sig::Vector imu_linAcc(3);
+    yarp::sig::Vector imu_angVel(3);
+    
+    // Get input(gyro) and measurement(acc) from MTB port
+    if (m_usingSkin && m_usingEKF && !m_usingxsens) {
+        if( !extractMTBDatafromPort(MTB_RIGHT_FOOT_ACC_PLUS_GYRO_1_ID, imu_linAcc, imu_angVel) ) {
+            yError("[quaternionEKFThread::run] Sensor data could not be parsed from MTB port");
+        }
     }
 
     if (m_usingEKF) {
         // XSens orientation
         yarp::sig::Vector realOrientation = imu_measurement->subVector(0,2);
         // Extract linear acceleration in m/s^2
-        yarp::sig::Vector imu_linAcc(3);
         imu_linAcc = imu_measurement->subVector(3,5);
         // NOTE The raw angular speed read from the IMU is in deg/s. In this module we will transform
         // it to rad/s
-        yarp::sig::Vector imu_angVel(3);
         imu_angVel = imu_measurement->subVector(6,8);
         MatrixWrapper::ColumnVector input(m_input_size);
         input(1) = PI/180*imu_angVel(0);
@@ -210,7 +221,9 @@ void quaternionEKFThread::run()
             cout << "Elapsed time: " << elapsedTime << endl;
     }
 
-    if (!m_usingEKF) {
+    // Direct filter computation with one or two accelerometers as specified by m_using2acc (iCubGenova01 specific)
+    // Accelerometer only!!
+    if (!m_usingEKF && !m_usingxsens) {
         yarp::sig::Vector output(12), output2(12);
         output.zero(); output2.zero();
         if(m_using2acc) {
@@ -284,7 +297,7 @@ bool quaternionEKFThread::threadInit()
         lowPassFilter = new iCub::ctrl::FirstOrderLowPassFilter(m_lowPass_cutoffFreq, periodInSeconds, dofZeros);
     }
 
-    // imu Measurement vector
+    // IMU Measurement vector
     if (m_usingxsens)
         imu_measurement = new yarp::sig::Vector(12);
     else {
@@ -296,9 +309,8 @@ bool quaternionEKFThread::threadInit()
             } else {
                 if (!m_sensorPort.compare("/icub/right_foot_inertial/analog:o") || !m_sensorPort.compare("/icub/left_foot_inertial/analog:o")) {
                     imu_measurement = new yarp::sig::Vector(3);
-                    if (m_using2acc) {
+                    if (m_using2acc)
                         imu_measurement2 = new yarp::sig::Vector(3);
-                    }
                 }
             }
         }
@@ -374,23 +386,50 @@ bool quaternionEKFThread::threadInit()
     // This port was opened by the module.
     std::string gyroMeasPortName = string("/" + m_moduleName + "/imu:i");
 
-    if (m_autoconnect && !m_usingxsens) {
-        yarp::os::ConstString src = m_sensorPort;
-        cout << "[quaternionEKFThread::threadInit()] src is: " << src << endl;
-        if(!yarp::os::Network::connect(src, gyroMeasPortName,"tcp")){
-            yError(" [quaternionEKFThread::threadInit()] Connection with %s was not possible. Is the robotInterface running? or XSens IMU connected?", gyroMeasPortName.c_str());
+    // If using acccelerometer and gyro in the foot
+    if (m_autoconnect && m_usingSkin && m_usingEKF && !m_usingxsens && !m_using2acc) {
+        std::string srcTmp = string("/" + m_robotName + "/right_leg/inertialMTB");
+        if ( !m_sensorPort.compare(srcTmp) && m_usingSkin) {
+            // NOTE Here I need to create a port that reads a bottle because the dimensions of this port can't be known a priori, since its size will depend on the amount of sensors that have been specified in the skin configuration file.
+            m_imuSkinPortIn.open(string("/" + m_moduleName + "/imuSkin:i"));
+            if (!yarp::os::Network::connect(srcTmp,m_imuSkinPortIn.getName())) {
+                yError("[quaternionEKFThread::threadInit] Could not connect imuSkin port to the module");
+                return false;
+            } else {
+                // Testing the port reading
+                // Read one measurement from the port to see things are being read properly
+                // This is a blocking reading
+                if ( !m_imuSkinPortIn.read(m_imuSkinBottle) ) {
+                    yError("[quaternionEKFThread::threadInit] Sensor port was NOT read successfully!");
+                    return false;
+                } else {
+                    yInfo("[quaternionEKFThread::threadInit] Skin IMU reading was: %s", m_imuSkinBottle.toString().c_str());
+                }
+            }
+        } else {
+            yError("[quaternionEKFThread::threadInit] Seems like you have specified in the configuration file of this module that you are using the accelerometer and gyroscope connected to the right foot but the sensor port name specified does not correspond to icub/right_leg/inertialMTB");
             return false;
         }
-        if (m_using2acc) {
-            std::string gyroMeasPortName2 = string("/" + m_moduleName + "/imu2:i");
-            yarp::os::ConstString src2 = m_sensorPort2;
-            cout << "[quaternionEKFThread::threadInit()]  src2 is: " << src2 << endl;
-            if(!yarp::os::Network::connect(src2, gyroMeasPortName2, "tcp")) {
-                yError("[quaternionEKFThread::threadInit()] Connection with %s was not possible. Is the robotInterface running? or the right leg accelerometer available?", gyroMeasPortName2.c_str());
-                return false;
+    } else {
+            // NOTE Using Direct Method (atan2)  with feet accelerometers (iCubGenova01 specific)
+            if (m_autoconnect && !m_usingxsens && !m_usingSkin) {
+                yarp::os::ConstString src = m_sensorPort;
+                cout << "[quaternionEKFThread::threadInit()] src is: " << src << endl;
+                if(!yarp::os::Network::connect(src, gyroMeasPortName,"tcp")){
+                    yError(" [quaternionEKFThread::threadInit()] Connection with %s was not possible. Is the robotInterface running? or XSens IMU connected?", gyroMeasPortName.c_str());
+                    return false;
+                }
+                if (m_using2acc) {
+                    std::string gyroMeasPortName2 = string("/" + m_moduleName + "/imu2:i");
+                    yarp::os::ConstString src2 = m_sensorPort2;
+                    cout << "[quaternionEKFThread::threadInit()]  src2 is: " << src2 << endl;
+                    if(!yarp::os::Network::connect(src2, gyroMeasPortName2, "tcp")) {
+                        yError("[quaternionEKFThread::threadInit()] Connection with %s was not possible. Is the robotInterface running? or the right leg accelerometer available?", gyroMeasPortName2.c_str());
+                        return false;
+                    }
+                }
             }
         }
-    }
 
     // XSens IMU configuration
 #ifdef QUATERNION_EKF_USES_XSENS
@@ -438,6 +477,29 @@ void quaternionEKFThread::SOperator ( MatrixWrapper::ColumnVector omg, MatrixWra
     (*S)(1,1) = 0.0;    (*S)(1,2) = -omg(3); (*S)(1,3) = omg(2);
     (*S)(2,1) = omg(3); (*S)(2,2) = 0.0    ; (*S)(2,3) = -omg(1);
     (*S)(3,1) = -omg(2);(*S)(3,2) = omg(1) ; (*S)(3,3) = 0.0;
+}
+
+bool quaternionEKFThread::extractMTBDatafromPort ( int sensorType, Vector& linAccOutput, Vector& gyroMeasOutput )
+{
+    int indexSubVector;
+    if ( !m_imuSkinPortIn.read(m_MTBmeas) ) {
+        yError("[quaternionEKFThread::extractMTBDatafromPort] There was an error trying to read from the MTB port");
+        return false;
+    } else {
+        //TODO Search for sensorType in m_MTBmeas and parse the next three values into linAccOutput or gyroMeasOutput
+        double* tmp;
+        tmp = m_MTBmeas.data();
+        double * it = std::find(tmp, tmp + m_MTBmeas.size(), MTB_RIGHT_FOOT_ACC_PLUS_GYRO_1_ID);
+        if ( it >= tmp + m_MTBmeas.size() ) {
+            yError("[quaternionEKFThread::extractMTBDatafromPort] Sensor %i not found in stream of data!", MTB_RIGHT_FOOT_ACC_PLUS_GYRO_1_ID);
+            return false;
+        } else {
+            indexSubVector = (int)(it - tmp);
+            printf("[DEBUGGING] [quaternionEKFThread::extractMTBDatafromPort]  Element found at index: %i\n", (int)(it - tmp) );
+        }
+    }
+
+    return true;
 }
 
 #ifdef QUATERNION_EKF_USES_XSENS
