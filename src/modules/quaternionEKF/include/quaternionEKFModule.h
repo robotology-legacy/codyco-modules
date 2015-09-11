@@ -39,6 +39,7 @@ class quaternionEKFModule: public yarp::os::RFModule
     std::string sensorPortName;
     bool autoconnect;
     bool usingEKF;
+    bool usingSkin;
     bool calib;
     bool using2acc;
     std::string mode;

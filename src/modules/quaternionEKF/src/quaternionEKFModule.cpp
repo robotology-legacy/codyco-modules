@@ -92,6 +92,20 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         return false;
     }
     
+    if (rf.check("usingSkin")) {
+        usingSkin = rf.find("usingSkin").asBool();
+    } else {
+        yError ("[quaternionEKFModule::configure] Configuration failed. No value for usingSkin was found.");
+        return false;
+    }
+    
+    if (rf.check("using2acc")) {
+        using2acc = rf.find("using2acc").asBool();
+    } else {
+        yError ("[quaternionEKFModule::configure] Configuration failed. No value for using2acc was found.");
+        return false;
+    }
+    
     if ( rf.check("calib") ) {
         calib = rf.find("calib").asBool();
     } else {
@@ -115,6 +129,7 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
                 yError("[quaternionEKFModule::configure] Could not open gyroMeasPort");
                 return false;
             }
+            // If using two accelerometers, open another port for the second reading
             if (using2acc) {
                 std::string gyroMeasPortName2 = "/"; gyroMeasPortName2 += local; gyroMeasPortName2 += "/imu2:i";
                 if (!gyroMeasPort2.open(gyroMeasPortName2.c_str())) {
@@ -126,6 +141,7 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
             // Obtaining filter parameters from configuration file
             yarp::os::Property filterParams;
 
+            // If using Direct method with atan2
             if(!usingEKF)
             {
                 if( !rf.check(DIRECT_GROUP_PARAMS_NAME) )  {
@@ -147,7 +163,7 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
                 }
             }
             // ----------- THREAD INSTANTIATION AND CALLING -----------------
-            quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, usingEKF, sensorPortName, verbose, filterParams, &gyroMeasPort, &gyroMeasPort2);
+            quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, usingEKF, usingSkin, sensorPortName, verbose, filterParams, &gyroMeasPort, &gyroMeasPort2);
             if (!quatEKFThread->start()) {
                 yError("Error starting quaternionEKFThread!");
                 return false;
@@ -174,7 +190,7 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
             }
         }
     } else { 
-        std::cout << "Calibrating only..." << std::endl;
+        std::cout << "Calibrating only... Done bby updateModule()" << std::endl;
     }
   return true;
 }
