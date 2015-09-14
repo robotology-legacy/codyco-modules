@@ -89,7 +89,7 @@ void quaternionEKFThread::run()
     
     // Get input(gyro) and measurement(acc) from MTB port
     if (m_usingSkin && m_usingEKF && !m_usingxsens) {
-        if( !extractMTBDatafromPort(MTB_RIGHT_FOOT_ACC_PLUS_GYRO_1_ID, imu_linAcc, imu_angVel) ) {
+        if( !extractMTBDatafromPort(MTB_RIGHT_HAND_ACC_PLUS_GYRO_1_ID, imu_linAcc, imu_angVel) ) {
             yError("[quaternionEKFThread::run] Sensor data could not be parsed from MTB port");
         } else {
             yInfo("[quaternionEKFThread::run] Parsed sensor data: \n Acc [m/s^2]: \t%s \n Ang Vel [deg/s]: \t%s \n",  imu_linAcc.toString().c_str(), imu_angVel.toString().c_str());
@@ -390,7 +390,7 @@ bool quaternionEKFThread::threadInit()
 
     // If using acccelerometer and gyro in the foot
     if (m_autoconnect && m_usingSkin && m_usingEKF && !m_usingxsens && !m_using2acc) {
-        std::string srcTmp = string("/" + m_robotName + "/right_leg/inertialMTB");
+        std::string srcTmp = string("/" + m_robotName + "/right_hand/inertialMTB");
         if ( !m_sensorPort.compare(srcTmp) && m_usingSkin) {
             // NOTE Here I need to create a port that reads a bottle because the dimensions of this port can't be known a priori, since its size will depend on the amount of sensors that have been specified in the skin configuration file.
             m_imuSkinPortIn.open(string("/" + m_moduleName + "/imuSkin:i"));
@@ -488,38 +488,37 @@ bool quaternionEKFThread::extractMTBDatafromPort ( int boardNum, Vector& linAccO
         yError("[quaternionEKFThread::extractMTBDatafromPort] There was an error trying to read from the MTB port");
         return false;
     } else {
-        //TODO Search for boardNum in m_MTBmeas and parse the next three values into linAccOutput or gyroMeasOutput
+        /******************* searching for multiple instances of the sensor  **************************/
+        /*TODO The following method should work slightly differently, taking into account that every 
+         * data package consists of six data [board_number sensor_type time_stamp datum_x datum_y datum_z].
+         */
         double* tmp;
         tmp = m_MTBmeas.data();
-
-        //TODO The following block is temporary!! Last changes made this recursive in a way.
-        // Try to print m_MTBmeas.size + it and check why "it" isn't changing.
-        /************** searching for multiple instances of the sensor  ********************/
-        double *it = tmp;
+        yInfo("[quaternionEKFThread::extractMTBDatafromPort] Full MTB reading:\n %s\n", m_MTBmeas.toString().c_str());
+        double *it = tmp + 2; // First two elements of the vector can be skipped
         while (it < tmp + m_MTBmeas.size()) {
             it = std::find(it, it + (m_MTBmeas.size() - indexSubVector), boardNum);
             if (it < tmp + m_MTBmeas.size()) {
                 indexSubVector = (int)(it - tmp) + 1;
-//                 printf("[DEBUGGING] [quaternionEKFThread::extractMTBDatafromPort]  Element found at index: %d\n", indexSubVector - 1);
-                it++;
 
                 // Parse sensor data
-                int trueindexSubVector = indexSubVector -1;
+                int trueindexSubVector = indexSubVector - 1;
                 if ( tmp[trueindexSubVector]  == boardNum ) {
                     //  If sensor from board "boardNum" is an accelerometer
                     if ( tmp[trueindexSubVector + 1] == 1.0) {
-                        linAccOutput(0) = tmp[trueindexSubVector + 2];
-                        linAccOutput(1) = tmp[trueindexSubVector + 3];
-                        linAccOutput(2) = tmp[trueindexSubVector + 4];
+                        linAccOutput(0) = tmp[trueindexSubVector + 3];
+                        linAccOutput(1) = tmp[trueindexSubVector + 4];
+                        linAccOutput(2) = tmp[trueindexSubVector + 5];
                     } else {
                         // If sensor from board "boardNum" is a gyroscope
                         if ( tmp[trueindexSubVector + 1] == 2.0 ) {
-                            gyroMeasOutput(0) = tmp[trueindexSubVector + 2];
-                            gyroMeasOutput(1) = tmp[trueindexSubVector + 3];
-                            gyroMeasOutput(2) = tmp[trueindexSubVector + 4];
+                            gyroMeasOutput(0) = tmp[trueindexSubVector + 3];
+                            gyroMeasOutput(1) = tmp[trueindexSubVector + 4];
+                            gyroMeasOutput(2) = tmp[trueindexSubVector + 5];
                         }
                     }
                 }
+                it = it + MTB_PORT_DATA_PACKAGE_OFFSET; //Move to the next position in the vector where data will be
             }
         }
         /**********************************************************************************/
