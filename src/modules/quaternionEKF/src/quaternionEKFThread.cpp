@@ -91,6 +91,8 @@ void quaternionEKFThread::run()
     if (m_usingSkin && m_usingEKF && !m_usingxsens) {
         if( !extractMTBDatafromPort(MTB_RIGHT_FOOT_ACC_PLUS_GYRO_1_ID, imu_linAcc, imu_angVel) ) {
             yError("[quaternionEKFThread::run] Sensor data could not be parsed from MTB port");
+        } else {
+            yInfo("[quaternionEKFThread::run] Parsed sensor data: \n Acc [m/s^2]: \t%s \n Ang Vel [deg/s]: \t%s \n",  imu_linAcc.toString().c_str(), imu_angVel.toString().c_str());
         }
     }
 
@@ -399,12 +401,12 @@ bool quaternionEKFThread::threadInit()
                 // Testing the port reading
                 // Read one measurement from the port to see things are being read properly
                 // This is a blocking reading
-                if ( !m_imuSkinPortIn.read(m_imuSkinBottle) ) {
-                    yError("[quaternionEKFThread::threadInit] Sensor port was NOT read successfully!");
-                    return false;
-                } else {
-                    yInfo("[quaternionEKFThread::threadInit] Skin IMU reading was: %s", m_imuSkinBottle.toString().c_str());
-                }
+//                 if ( !m_imuSkinPortIn.read(m_imuSkinBottle) ) {
+//                     yError("[quaternionEKFThread::threadInit] Sensor port was NOT read successfully!");
+//                     return false;
+//                 } else {
+//                     yInfo("[quaternionEKFThread::threadInit] Skin IMU reading was: %s", m_imuSkinBottle.toString().c_str());
+//                 }
             }
         } else {
             yError("[quaternionEKFThread::threadInit] Seems like you have specified in the configuration file of this module that you are using the accelerometer and gyroscope connected to the right foot but the sensor port name specified does not correspond to icub/right_leg/inertialMTB");
@@ -479,26 +481,49 @@ void quaternionEKFThread::SOperator ( MatrixWrapper::ColumnVector omg, MatrixWra
     (*S)(3,1) = -omg(2);(*S)(3,2) = omg(1) ; (*S)(3,3) = 0.0;
 }
 
-bool quaternionEKFThread::extractMTBDatafromPort ( int sensorType, Vector& linAccOutput, Vector& gyroMeasOutput )
+bool quaternionEKFThread::extractMTBDatafromPort ( int boardNum, Vector& linAccOutput, Vector& gyroMeasOutput )
 {
-    int indexSubVector;
+    int indexSubVector = 0;
     if ( !m_imuSkinPortIn.read(m_MTBmeas) ) {
         yError("[quaternionEKFThread::extractMTBDatafromPort] There was an error trying to read from the MTB port");
         return false;
     } else {
-        //TODO Search for sensorType in m_MTBmeas and parse the next three values into linAccOutput or gyroMeasOutput
+        //TODO Search for boardNum in m_MTBmeas and parse the next three values into linAccOutput or gyroMeasOutput
         double* tmp;
         tmp = m_MTBmeas.data();
-        double * it = std::find(tmp, tmp + m_MTBmeas.size(), MTB_RIGHT_FOOT_ACC_PLUS_GYRO_1_ID);
-        if ( it >= tmp + m_MTBmeas.size() ) {
-            yError("[quaternionEKFThread::extractMTBDatafromPort] Sensor %i not found in stream of data!", MTB_RIGHT_FOOT_ACC_PLUS_GYRO_1_ID);
-            return false;
-        } else {
-            indexSubVector = (int)(it - tmp);
-            printf("[DEBUGGING] [quaternionEKFThread::extractMTBDatafromPort]  Element found at index: %i\n", (int)(it - tmp) );
-        }
-    }
 
+        //TODO The following block is temporary!! Last changes made this recursive in a way.
+        // Try to print m_MTBmeas.size + it and check why "it" isn't changing.
+        /************** searching for multiple instances of the sensor  ********************/
+        double *it = tmp;
+        while (it < tmp + m_MTBmeas.size()) {
+            it = std::find(it, it + (m_MTBmeas.size() - indexSubVector), boardNum);
+            if (it < tmp + m_MTBmeas.size()) {
+                indexSubVector = (int)(it - tmp) + 1;
+//                 printf("[DEBUGGING] [quaternionEKFThread::extractMTBDatafromPort]  Element found at index: %d\n", indexSubVector - 1);
+                it++;
+
+                // Parse sensor data
+                int trueindexSubVector = indexSubVector -1;
+                if ( tmp[trueindexSubVector]  == boardNum ) {
+                    //  If sensor from board "boardNum" is an accelerometer
+                    if ( tmp[trueindexSubVector + 1] == 1.0) {
+                        linAccOutput(0) = tmp[trueindexSubVector + 2];
+                        linAccOutput(1) = tmp[trueindexSubVector + 3];
+                        linAccOutput(2) = tmp[trueindexSubVector + 4];
+                    } else {
+                        // If sensor from board "boardNum" is a gyroscope
+                        if ( tmp[trueindexSubVector + 1] == 2.0 ) {
+                            gyroMeasOutput(0) = tmp[trueindexSubVector + 2];
+                            gyroMeasOutput(1) = tmp[trueindexSubVector + 3];
+                            gyroMeasOutput(2) = tmp[trueindexSubVector + 4];
+                        }
+                    }
+                }
+            }
+        }
+        /**********************************************************************************/
+    }
     return true;
 }
 
