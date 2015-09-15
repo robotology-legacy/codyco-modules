@@ -99,6 +99,20 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         return false;
     }
     
+    if (rf.check("debugGyro")) {
+        debugGyro = rf.find("debugGyro").asBool();
+    } else {
+        yError ("[quaternionEKFModule::configure] Configuration failed. No value for debugGyro was found. ");
+        return false;
+    }
+    
+    if (rf.check("debugAcc")) {
+        debugAcc = rf.find("debugAcc").asBool();
+    } else {
+        yError ("[quaternionEKFModule::configure] Configuration failed. No value for debugAcc was found. ");
+        return false;
+    }
+    
     if (rf.check("using2acc")) {
         using2acc = rf.find("using2acc").asBool();
     } else {
@@ -163,7 +177,7 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
                 }
             }
             // ----------- THREAD INSTANTIATION AND CALLING -----------------
-            quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, usingEKF, usingSkin, sensorPortName, verbose, filterParams, &gyroMeasPort, &gyroMeasPort2);
+            quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, usingEKF, usingSkin, sensorPortName, debugGyro, debugAcc, verbose, filterParams, &gyroMeasPort, &gyroMeasPort2);
             if (!quatEKFThread->start()) {
                 yError("Error starting quaternionEKFThread!");
                 return false;

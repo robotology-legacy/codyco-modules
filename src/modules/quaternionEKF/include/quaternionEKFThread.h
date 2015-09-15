@@ -33,36 +33,13 @@
 
 #include <iomanip> //setw
 #include <algorithm> //std::find
-
-/*
-#include <xsens/xsresultvalue.h>
-#include <xsens/xsbytearray.h>
-#include <xsens/xsmessagearray.h>
-#include <xsens/xsdeviceid.h>
-#include <xsens/xsportinfo.h>
-#include <xsens/xsoutputmode.h>
-#include <xsens/xsoutputsettings.h>
-#include <xsens/xsoutputconfigurationarray.h>
-
-#include <xsens/xsportinfoarray.h>
-#include <xsens/xsdatapacket.h>
-#include <xsens/xstime.h>
-#include <xcommunication/legacydatapacket.h>
-#include <xcommunication/int_xsdatapacket.h>
-#include <xcommunication/enumerateusbdevices.h>
-
-#include <xcommunication/protocolhandler.h>
-#include <xcommunication/usbinterface.h>
-#include <xcommunication/serialinterface.h>
-#include <xcommunication/streaminterface.h>
-*/
-
 #include "nonLinearAnalyticConditionalGaussian.h"
 #include "nonLinearMeasurementGaussianPdf.h"
 #include "dataDumperParser.h"
 //#include "deviceclass.h"
 #include "directFilterComputation.h"
 #include <iCub/ctrl/filters.h>
+#include <yarp/math/Math.h>
 
 //TODO The path to the original data file must be retrieved by the ResourceFinder.
 #define DATAFILE "/home/jorhabib/Software/extended-kalman-filter/EKF_Quaternion_DynWalking2015/orocos_bfl/data/dumper/icub/inertial/data.log"
@@ -77,7 +54,7 @@
 // Gyroscope conversion factor in deg/sec
 #define CONVERSION_FACTOR_GYRO 7.6274e-03
 #define MTB_RIGHT_FOOT_ACC_PLUS_GYRO_1_ID 32.0
-#define MTB_LEFT_FOOT_ACC_PLUS_GYRO_1_ID 33.0
+#define MTB_RIGHT_FOOT_ACC_PLUS_GYRO_2_ID 33.0 // The board to which the skin is connected
 #define MTB_RIGHT_HAND_ACC_PLUS_GYRO_1_ID 25.0
 #define MTB_PORT_DATA_PACKAGE_OFFSET 6
 
@@ -97,6 +74,8 @@ class quaternionEKFThread: public yarp::os::RateThread
     yarp::os::BufferedPort<yarp::sig::Vector>   *m_publisherFilteredOrientationPort;
     yarp::os::BufferedPort<yarp::sig::Vector>   *m_publisherFilteredOrientationEulerPort;
     yarp::os::BufferedPort<yarp::sig::Vector>   *m_publisherXSensEuler;
+    yarp::os::BufferedPort<yarp::sig::Vector>   *m_publisherGyroDebug;
+    yarp::os::BufferedPort<yarp::sig::Vector>   *m_publisherAccDebug;
     yarp::os::Port                               m_imuSkinPortIn;
     int                                          m_period; // Period in ms
     std::string                                  m_moduleName;
@@ -107,6 +86,8 @@ class quaternionEKFThread: public yarp::os::RateThread
     bool                                         m_usingxsens;
     bool                                         m_usingEKF;
     bool                                         m_usingSkin;
+    bool                                         m_debugGyro;
+    bool                                         m_debugAcc;
     bool                                         m_verbose;
     yarp::os::Property                           m_filterParams;
     dataDumperParser                            *m_parser;
@@ -156,16 +137,18 @@ class quaternionEKFThread: public yarp::os::RateThread
     iCub::ctrl::FirstOrderLowPassFilter         *lowPassFilter;
 
 public:
-  quaternionEKFThread ( int period,
-                        std::string moduleName,
-                        std::string robotName,
-                        bool autoconnect,
-                        bool usingxsens,
-                        bool usingEKF,
-                        bool usingSkin,
-                        std::string sensorPort,
-                        bool verbose,
-                        yarp::os::Property &filterParams,
+  quaternionEKFThread ( int                             period,
+                        std::string                     moduleName,
+                        std::string                     robotName,
+                        bool                            autoconnect,
+                        bool                            usingxsens,
+                        bool                            usingEKF,
+                        bool                            usingSkin,
+                        std::string                     sensorPort,
+                        bool                            debugGyro,
+                        bool                            debugAcc,
+                        bool                            verbose,
+                        yarp::os::Property              &filterParams,
                         yarp::os::BufferedPort<yarp::sig::Vector>* m_gyroMeasPort,
                         yarp::os::BufferedPort<yarp::sig::Vector>* m_gyroMeasPort2
                       );
