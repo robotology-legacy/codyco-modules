@@ -38,9 +38,9 @@ int main(int argc, char* argv[])
                                   Kalman Filter approach to estimate orientation of the world ref.\n\
                                   frame in the sensor reference frame based on gyrscope and \n\
                                   accelerometer readings.\n");
-		printf("--inWorldRefFrame :[false] When true, the estimation published in /[local]/filteredOrientationEuler:o\n\
+	printf("--inWorldRefFrame :[false] When true, the estimation published in /[local]/filteredOrientationEuler:o\n\
                                   is expressed in the Earth reference frame. When [false] in the sensor\n\
-                                  reference frame.
+                                  reference frame.\n");
         printf("--usingSkin       :[true] (using2acc=false, usingXSens=false, mode=online) When true,\n\
                                   it is assumed that the right foot of the robot has a palm skin \n\
                                   patch attached in order to use its gyroscope, plus the accelerometer \n\
