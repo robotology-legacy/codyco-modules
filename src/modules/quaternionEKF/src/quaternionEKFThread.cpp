@@ -24,6 +24,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace filter;
 using namespace iCub::ctrl;
+using namespace yarp::math;
 
 quaternionEKFThread::quaternionEKFThread ( int period,
                                            std::string moduleName,
@@ -33,6 +34,8 @@ quaternionEKFThread::quaternionEKFThread ( int period,
                                            bool usingEKF,
                                            bool usingSkin,
                                            std::string sensorPort,
+                                           bool debugGyro,
+                                           bool debugAcc,
                                            bool verbose,
                                            yarp::os::Property &filterParams,
                                            yarp::os::BufferedPort<yarp::sig::Vector>* gyroMeasPort,
@@ -47,6 +50,8 @@ quaternionEKFThread::quaternionEKFThread ( int period,
       m_usingEKF ( usingEKF ),
       m_usingSkin ( usingSkin ),
       m_sensorPort ( sensorPort ),
+      m_debugGyro ( debugGyro ),
+      m_debugAcc ( debugAcc ),
       m_verbose ( verbose ),
       m_filterParams( filterParams ),
       m_gyroMeasPort ( gyroMeasPort ),
@@ -79,55 +84,52 @@ void quaternionEKFThread::run()
 #endif
     }
     
-    if (m_verbose && (!m_usingxsens || m_usingxsens)) {
+    if (m_verbose && (!m_usingSkin || m_usingxsens)) {
         cout << "Full imu_measurement vec: " << endl;
         cout << imu_measurement->toString().c_str() << endl;
     }
     
     yarp::sig::Vector imu_linAcc(3);
     yarp::sig::Vector imu_angVel(3);
+    yarp::sig::Vector realOrientation(3);
     
     // Get input(gyro) and measurement(acc) from MTB port
     if (m_usingSkin && m_usingEKF && !m_usingxsens) {
-        if( !extractMTBDatafromPort(MTB_RIGHT_HAND_ACC_PLUS_GYRO_1_ID, imu_linAcc, imu_angVel) ) {
+        if( !extractMTBDatafromPort(MTB_RIGHT_FOOT_ACC_PLUS_GYRO_2_ID, imu_linAcc, imu_angVel) ) {
             yError("[quaternionEKFThread::run] Sensor data could not be parsed from MTB port");
         } else {
-            yInfo("[quaternionEKFThread::run] Parsed sensor data: \n Acc [m/s^2]: \t%s \n Ang Vel [deg/s]: \t%s \n",  imu_linAcc.toString().c_str(), imu_angVel.toString().c_str());
+            if (m_verbose)
+                yInfo("[quaternionEKFThread::run] Parsed sensor data: \n Acc [m/s^2]: \t%s \n Ang Vel [deg/s]: \t%s \n",  imu_linAcc.toString().c_str(), imu_angVel.toString().c_str());
         }
     }
 
     if (m_usingEKF) {
         // XSens orientation
-        yarp::sig::Vector realOrientation = imu_measurement->subVector(0,2);
+        if (m_usingxsens & !m_usingSkin)
+            realOrientation = imu_measurement->subVector(0,2);
         // Extract linear acceleration in m/s^2
-        imu_linAcc = imu_measurement->subVector(3,5);
-        // NOTE The raw angular speed read from the IMU is in deg/s. In this module we will transform
-        // it to rad/s
-        imu_angVel = imu_measurement->subVector(6,8);
-        MatrixWrapper::ColumnVector input(m_input_size);
-        input(1) = PI/180*imu_angVel(0);
-        input(2) = PI/180*imu_angVel(1);
-        input(3) = PI/180*imu_angVel(2);
+        if (m_usingxsens && !m_usingSkin) {
+            imu_linAcc = imu_measurement->subVector(3,5);
+            // NOTE The raw angular speed read from the IMU is in deg/s. In this module we will transform
+            // it to rad/s
+            imu_angVel = PI/180*imu_measurement->subVector(6,8);
+        }
+        // Copy ang velocity data from a yarp vector into a ColumnVector
+        MatrixWrapper::ColumnVector input(imu_angVel.data(),m_input_size);
         if (m_verbose)
             cout << "VEL INPUT IS: " << input << endl;
-        // Extract accelerometer. Read from port!
-        MatrixWrapper::ColumnVector measurement(m_measurement_size);
-        measurement(1) = imu_linAcc(0);
-        measurement(2) = imu_linAcc(1);
-        measurement(3) = imu_linAcc(2);
+        // Copy accelerometer data from a yarp vector into a ColumnVector
+        MatrixWrapper::ColumnVector measurement(imu_linAcc.data(),m_measurement_size);
         if (m_verbose)
             cout << "ACC INPUT IS: " << measurement << endl;
 
         // Noise gaussian
         // System Noise Mean
-        // TODO This mean changes!!!
+        // TODO [NOT SURE] This mean changes!!!
         MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
         sys_noise_mu = 0.0;
 
         /**************** System Noise Covariance ********************************************************************************/
-        // TODO [DEPRECATED] For now let's leave this constant as something to be tuned.
-        // This covariance matrix however should be computed as done in the matlab
-        // utility ekfukf/lti_disc.m through Matrix Fraction Decomposition.
         MatrixWrapper::Matrix Xi(m_state_size, m_input_size);
         XiOperator(m_posterior_state, &Xi);
         MatrixWrapper::SymmetricMatrix sys_noise_cov(m_state_size);
@@ -184,7 +186,6 @@ void quaternionEKFThread::run()
         if (m_verbose) {
             cout << "Posterior Mean: " << expectedValueQuat << endl;
             cout << "Posterior Covariance: " << posterior->CovarianceGet() << endl;
-            cout << " " << endl;
         }
         MatrixWrapper::ColumnVector eulerAngles(3);
         MatrixWrapper::Quaternion tmpQuat;
@@ -208,7 +209,26 @@ void quaternionEKFThread::run()
         tmpPortRef = tmpVec;
         m_publisherFilteredOrientationPort->write();
 
-//         cout << "[DEBUGGING] REAL ORIENTATION: " << realOrientation.toString() << endl;
+        if (m_usingSkin && m_debugGyro) {
+            yarp::sig::Vector &tmpGyroMeas = m_publisherGyroDebug->prepare();
+            if (imu_angVel.data() != NULL) {
+                tmpGyroMeas = CONVERSION_FACTOR_GYRO*imu_angVel;
+                m_publisherGyroDebug->write();
+            } else {
+                yError("[quaternionEKFThread::run] ang velocity reading was empty");
+            }
+        }
+
+        if (m_usingSkin && m_debugAcc) {
+            yarp::sig::Vector &tmpAccMeas = m_publisherAccDebug->prepare();
+            if (imu_linAcc.data() != NULL) {
+                tmpAccMeas = CONVERSION_FACTOR_ACC*imu_linAcc;
+                m_publisherAccDebug->write();
+            } else {
+                yError("[quaternionEKFThread::run] Accelerometer reading was empty");
+            }
+        }
+
         //  Publish XSens orientation just for debugging
 #ifdef QUATERNION_EKF_USES_XSENS
         if (m_usingxsens) {
@@ -219,8 +239,10 @@ void quaternionEKFThread::run()
             }
         }
 #endif
-        if (m_verbose)
+        if (m_verbose) {
             cout << "Elapsed time: " << elapsedTime << endl;
+            cout << " " << endl;
+        }
     }
 
     // Direct filter computation with one or two accelerometers as specified by m_using2acc (iCubGenova01 specific)
@@ -325,6 +347,13 @@ bool quaternionEKFThread::threadInit()
     // Open publisher port for estimate in euler angles
     m_publisherFilteredOrientationEulerPort = new yarp::os::BufferedPort<yarp::sig::Vector>;
     m_publisherFilteredOrientationEulerPort->open(string("/" + m_moduleName + "/filteredOrientationEuler:o").c_str());
+    
+    if (m_usingSkin) {
+        m_publisherGyroDebug = new yarp::os::BufferedPort<yarp::sig::Vector>;
+        m_publisherGyroDebug->open(string("/" + m_moduleName + "/rawGyroMeas:o").c_str());
+        m_publisherAccDebug = new yarp::os::BufferedPort<yarp::sig::Vector>;
+        m_publisherAccDebug->open(string("/" + m_moduleName + "/rawAccMeas:o").c_str());
+    }
 
 #ifdef QUATERNION_EKF_USES_XSENS
     if (m_usingxsens) {
@@ -390,7 +419,7 @@ bool quaternionEKFThread::threadInit()
 
     // If using acccelerometer and gyro in the foot
     if (m_autoconnect && m_usingSkin && m_usingEKF && !m_usingxsens && !m_using2acc) {
-        std::string srcTmp = string("/" + m_robotName + "/right_hand/inertialMTB");
+        std::string srcTmp = string("/" + m_robotName + "/right_leg/inertialMTB");
         if ( !m_sensorPort.compare(srcTmp) && m_usingSkin) {
             // NOTE Here I need to create a port that reads a bottle because the dimensions of this port can't be known a priori, since its size will depend on the amount of sensors that have been specified in the skin configuration file.
             m_imuSkinPortIn.open(string("/" + m_moduleName + "/imuSkin:i"));
@@ -488,13 +517,11 @@ bool quaternionEKFThread::extractMTBDatafromPort ( int boardNum, Vector& linAccO
         yError("[quaternionEKFThread::extractMTBDatafromPort] There was an error trying to read from the MTB port");
         return false;
     } else {
+        if (m_verbose)
+            yInfo("[quaternionEKFThread::extractMTBDatafromPort] Raw meas: %s", m_MTBmeas.toString().c_str());
         /******************* searching for multiple instances of the sensor  **************************/
-        /*TODO The following method should work slightly differently, taking into account that every 
-         * data package consists of six data [board_number sensor_type time_stamp datum_x datum_y datum_z].
-         */
         double* tmp;
         tmp = m_MTBmeas.data();
-        yInfo("[quaternionEKFThread::extractMTBDatafromPort] Full MTB reading:\n %s\n", m_MTBmeas.toString().c_str());
         double *it = tmp + 2; // First two elements of the vector can be skipped
         while (it < tmp + m_MTBmeas.size()) {
             it = std::find(it, it + (m_MTBmeas.size() - indexSubVector), boardNum);
@@ -518,10 +545,18 @@ bool quaternionEKFThread::extractMTBDatafromPort ( int boardNum, Vector& linAccO
                         }
                     }
                 }
-                it = it + MTB_PORT_DATA_PACKAGE_OFFSET; //Move to the next position in the vector where data will be
+                it = it + MTB_PORT_DATA_PACKAGE_OFFSET; //Move to the next position in the vector where a package data is expected
             }
         }
         /**********************************************************************************/
+        linAccOutput = CONVERSION_FACTOR_ACC*linAccOutput;
+        if (yarp::math::norm(linAccOutput) > 11.0) {
+            yError("WARNING!!! [quaternionEKFThread::run] Gravity's norm is too big!");
+        }
+        gyroMeasOutput = PI/180*CONVERSION_FACTOR_GYRO*gyroMeasOutput;
+        if (yarp::math::norm(gyroMeasOutput) > 100.0) {
+            yError("WARNING!!! [quaternionEKFThread::run] Ang vel's norm is too big!");
+        }
     }
     return true;
 }
@@ -747,7 +782,7 @@ void quaternionEKFThread::readDataFromXSens(yarp::sig::Vector* output)
 void quaternionEKFThread::threadRelease()
 {
 #ifdef QUATERNION_EKF_USES_XSENS
-    if (m_xsens) {
+    if (m_xsens && m_usingxsens) {
         cout << "deleting m_xsens " << endl;
         delete m_xsens;
         m_xsens = NULL;
@@ -782,6 +817,20 @@ void quaternionEKFThread::threadRelease()
         delete m_publisherFilteredOrientationPort;
         m_publisherFilteredOrientationPort = NULL;
         cout << "m_publisherFilteredOrientationPort deleted" << endl;
+    }
+    if (m_publisherAccDebug && m_usingSkin) {
+        cout << "deleting m_publisherAccDebug" << endl;
+        m_publisherAccDebug->interrupt();
+        delete m_publisherAccDebug;
+        m_publisherAccDebug = NULL;
+        cout << "m_publisherAccDebug deleted" << endl;
+    }
+    if (m_publisherGyroDebug && m_usingSkin) {
+        cout << "deleting m_publisherAccDebug" << endl;
+        m_publisherGyroDebug->interrupt();
+        delete m_publisherGyroDebug;
+        m_publisherGyroDebug = NULL;
+        cout << "m_publisherGyroDebug deleted" << endl;
     }
     if (m_usingxsens) {
         cout << "deleting m_publisherXSensEuler " << endl;
@@ -828,7 +877,7 @@ void quaternionEKFThread::threadRelease()
             cout << "m_filter deleted" << endl;
         }
     }
-    if (imu_measurement) {
+    if (imu_measurement && !m_usingSkin) {
         cout << "deleting imu_measurement" << endl;
         delete imu_measurement;
         imu_measurement = NULL;
