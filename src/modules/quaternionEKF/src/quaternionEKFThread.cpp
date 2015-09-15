@@ -32,6 +32,7 @@ quaternionEKFThread::quaternionEKFThread ( int period,
                                            bool autoconnect,
                                            bool usingxsens,
                                            bool usingEKF,
+                                           bool inWorldRefFrame,
                                            bool usingSkin,
                                            std::string sensorPort,
                                            bool debugGyro,
@@ -48,6 +49,7 @@ quaternionEKFThread::quaternionEKFThread ( int period,
       m_autoconnect ( autoconnect ),
       m_usingxsens ( usingxsens ),
       m_usingEKF ( usingEKF ),
+      m_inWorldRefFrame ( inWorldRefFrame ),
       m_usingSkin ( usingSkin ),
       m_sensorPort ( sensorPort ),
       m_debugGyro ( debugGyro ),
@@ -189,7 +191,12 @@ void quaternionEKFThread::run()
         }
         MatrixWrapper::ColumnVector eulerAngles(3);
         MatrixWrapper::Quaternion tmpQuat;
-        expectedValueQuat.conjugate(tmpQuat);
+        // NOTE When comparing results with the XSens sensor, this parameters should be set to TRUE
+        // as the orientation estimated by the XSens IMU is in the Earth reference frame, thus the conjugate
+        // of our estimate should be written to the port.
+        if (m_inWorldRefFrame) {
+            expectedValueQuat.conjugate(tmpQuat);
+        }
         tmpQuat.getEulerAngles(string("xyz"), eulerAngles);
         if (m_verbose)
             cout << "Posterior Mean in Euler Angles: " << (180/PI)*eulerAngles  << endl;
@@ -202,9 +209,11 @@ void quaternionEKFThread::run()
         yarp::sig::Vector tmpEuler(3);
         for (unsigned int i=1; i<eulerAngles.rows()+1; i++)
             tmpEuler(i-1) = eulerAngles(i)*(180/PI);
+        // Writing to port the full estimated orientation in Euler angles (xyz order)
         yarp::sig::Vector& tmpPortEuler = m_publisherFilteredOrientationEulerPort->prepare();
         tmpPortEuler = tmpEuler;
         m_publisherFilteredOrientationEulerPort->write();
+        // Writing to port the full estimated quaternion
         yarp::sig::Vector& tmpPortRef = m_publisherFilteredOrientationPort->prepare();
         tmpPortRef = tmpVec;
         m_publisherFilteredOrientationPort->write();

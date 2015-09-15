@@ -99,6 +99,13 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         return false;
     }
     
+    if (rf.check("inWorldRefFrame")) {
+        inWorldRefFrame = rf.find("inWorldRefFrame").asBool();
+    } else {
+        yError ("[quaternionEKFModule::configure] Configuration failed. No value for inWorldRefFrame was found.");
+        return false;
+    }
+    
     if (rf.check("debugGyro")) {
         debugGyro = rf.find("debugGyro").asBool();
     } else {
@@ -177,7 +184,7 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
                 }
             }
             // ----------- THREAD INSTANTIATION AND CALLING -----------------
-            quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, usingEKF, usingSkin, sensorPortName, debugGyro, debugAcc, verbose, filterParams, &gyroMeasPort, &gyroMeasPort2);
+            quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, usingEKF, inWorldRefFrame, usingSkin, sensorPortName, debugGyro, debugAcc, verbose, filterParams, &gyroMeasPort, &gyroMeasPort2);
             if (!quatEKFThread->start()) {
                 yError("Error starting quaternionEKFThread!");
                 return false;

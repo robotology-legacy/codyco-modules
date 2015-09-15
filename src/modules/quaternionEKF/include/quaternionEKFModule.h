@@ -40,6 +40,7 @@ class quaternionEKFModule: public yarp::os::RFModule
     bool                                        autoconnect;
     bool                                        usingEKF;
     bool                                        usingSkin;
+    bool                                        inWorldRefFrame;
     bool                                        debugGyro;
     bool                                        debugAcc;
     bool                                        calib;
