@@ -41,6 +41,7 @@ class quaternionEKFModule: public yarp::os::RFModule
     bool                                        usingEKF;
     bool                                        usingSkin;
     bool                                        inWorldRefFrame;
+    double                                      gravityVec;
     bool                                        debugGyro;
     bool                                        debugAcc;
     bool                                        calib;

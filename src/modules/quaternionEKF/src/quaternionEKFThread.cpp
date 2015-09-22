@@ -33,6 +33,7 @@ quaternionEKFThread::quaternionEKFThread ( int period,
                                            bool usingxsens,
                                            bool usingEKF,
                                            bool inWorldRefFrame,
+                                           double gravityVec,
                                            bool usingSkin,
                                            std::string sensorPort,
                                            bool debugGyro,
@@ -50,6 +51,7 @@ quaternionEKFThread::quaternionEKFThread ( int period,
       m_usingxsens ( usingxsens ),
       m_usingEKF ( usingEKF ),
       m_inWorldRefFrame ( inWorldRefFrame ),
+      m_gravityVec ( gravityVec ),
       m_usingSkin ( usingSkin ),
       m_sensorPort ( sensorPort ),
       m_debugGyro ( debugGyro ),
@@ -194,9 +196,12 @@ void quaternionEKFThread::run()
         // NOTE When comparing results with the XSens sensor, this parameters should be set to TRUE
         // as the orientation estimated by the XSens IMU is in the Earth reference frame, thus the conjugate
         // of our estimate should be written to the port.
-        if (m_inWorldRefFrame) {
-            expectedValueQuat.conjugate(tmpQuat);
-        }
+//         if (m_inWorldRefFrame) {
+//             expectedValueQuat.conjugate(tmpQuat);
+//         } else { 
+//             tmpQuat = expectedValueQuat;
+//         }
+        expectedValueQuat.conjugate(tmpQuat);
         tmpQuat.getEulerAngles(string("xyz"), eulerAngles);
         if (m_verbose)
             cout << "Posterior Mean in Euler Angles: " << (180/PI)*eulerAngles  << endl;
@@ -221,7 +226,7 @@ void quaternionEKFThread::run()
         if (m_usingSkin && m_debugGyro) {
             yarp::sig::Vector &tmpGyroMeas = m_publisherGyroDebug->prepare();
             if (imu_angVel.data() != NULL) {
-                tmpGyroMeas = CONVERSION_FACTOR_GYRO*imu_angVel;
+                tmpGyroMeas = imu_angVel;
                 m_publisherGyroDebug->write();
             } else {
                 yError("[quaternionEKFThread::run] ang velocity reading was empty");
@@ -231,7 +236,7 @@ void quaternionEKFThread::run()
         if (m_usingSkin && m_debugAcc) {
             yarp::sig::Vector &tmpAccMeas = m_publisherAccDebug->prepare();
             if (imu_linAcc.data() != NULL) {
-                tmpAccMeas = CONVERSION_FACTOR_ACC*imu_linAcc;
+                tmpAccMeas = imu_linAcc;
                 m_publisherAccDebug->write();
             } else {
                 yError("[quaternionEKFThread::run] Accelerometer reading was empty");
@@ -508,8 +513,6 @@ void quaternionEKFThread::XiOperator ( MatrixWrapper::ColumnVector quat, MatrixW
     SOperator(omg, &S);
     MatrixWrapper::Matrix tmpAdd = eye*quat(1) + S;
     Xi->setSubMatrix(tmpAdd,2,4,1,3);
-    if (m_verbose)
-        cout << "Debugging Xi Operator in [quaternionEKFThread::XiOperator]: " << (*Xi) << endl;
 }
 
 void quaternionEKFThread::SOperator ( MatrixWrapper::ColumnVector omg, MatrixWrapper::Matrix* S )
