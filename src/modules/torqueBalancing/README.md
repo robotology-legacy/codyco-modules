@@ -28,6 +28,9 @@ Users willing to use the module should follow this list.
 - `modulePeriod`: module-thread period in seconds. Currently this thread is used only to send debug data. Default to 0.25s (250ms)
 - `wbi_config_file`: name (or full path, see ResourceFinder documentation) to the whole body interface initialization file
 - `wbi_joint_list`: name of the torque controlled joint list.
+- `constraint_links (list_of_frames)`: specifies the list of frames to be considered as dynamic constraints. By default `(l_sole, r_sole`).
+- `check_limits true|false`: specifies if joint limits should be checked. True by default
+- `autostart true|false`: specifies if the torque balancing controller will start as soon as the module is up. False by default.
 
 ####Gains
 #####Center of Mass task
