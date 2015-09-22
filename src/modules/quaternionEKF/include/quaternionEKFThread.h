@@ -90,6 +90,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     bool                                         m_debugAcc;
     bool                                         m_verbose;
     bool                                         m_inWorldRefFrame;
+    double                                       m_gravityVec;
     yarp::os::Property                           m_filterParams;
     dataDumperParser                            *m_parser;
     // currentData struct defined in dataDumperParser.h
@@ -145,6 +146,7 @@ public:
                         bool                            usingxsens,
                         bool                            usingEKF,
                         bool                            inWorldRefFrame,
+                        double                          gravityVec,
                         bool                            usingSkin,
                         std::string                     sensorPort,
                         bool                            debugGyro,

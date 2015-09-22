@@ -39,7 +39,7 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
     {
         period = rf.find("rate").asDouble();
     } else {
-        yError("[quaternionEKFModule::configure] Configuration failed. No rate was specified.");
+        yError("[quaternionEKFModule::configure] Configuration failed. No rate was specified. Remember it should be a double.");
         return false;
     }
     
@@ -103,6 +103,13 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         inWorldRefFrame = rf.find("inWorldRefFrame").asBool();
     } else {
         yError ("[quaternionEKFModule::configure] Configuration failed. No value for inWorldRefFrame was found.");
+        return false;
+    }
+    
+    if (rf.check("gravityVec")) {
+        gravityVec = rf.find("gravityVec").asDouble();
+    } else {
+        yError ("[quaternionEKFModule::configure] Configuration failed. No value for gravityVec was found.");
         return false;
     }
     
@@ -184,7 +191,7 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
                 }
             }
             // ----------- THREAD INSTANTIATION AND CALLING -----------------
-            quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, usingEKF, inWorldRefFrame, usingSkin, sensorPortName, debugGyro, debugAcc, verbose, filterParams, &gyroMeasPort, &gyroMeasPort2);
+            quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, usingEKF, inWorldRefFrame, gravityVec, usingSkin, sensorPortName, debugGyro, debugAcc, verbose, filterParams, &gyroMeasPort, &gyroMeasPort2);
             if (!quatEKFThread->start()) {
                 yError("Error starting quaternionEKFThread!");
                 return false;

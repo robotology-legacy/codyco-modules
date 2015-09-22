@@ -1,0 +1,71 @@
+<application>
+
+  <!-- Generic information-->
+  <name>quatEKFAppWithData</name>
+  <description>Uses quaternionEKF with data thas has been previously saved with the yarpdatadumper and played back with yarpdataplayer</description>
+  <version></version>
+
+  <authors>
+      <author email=""> Jorhabib Eljaik </author>
+  </authors>
+
+  <!-- Required modules. -->
+  <module>
+      <name>quaternionEKF</name>
+      <parameters>--usingXSens false --verbose true --usingSkin true --inWorldRefFrame false --debugGyro true --debugAcc true</parameters>
+      <node>/jorh</node>
+      <display></display>
+      <stdio>/jorh</stdio>
+      <prefix></prefix>
+      <dependencies>
+          <port timeout="5.0"></port>
+          <port timeout="5.0" request="ready" reply="yes"></port>
+          ...
+      </dependencies>
+  </module>
+
+  <module>
+      <name>iCubGui</name>
+      <parameters></parameters>
+      <node>/jorh</node>
+      <display></display>
+      <stdio>/jorh</stdio>
+      <prefix></prefix>
+      <dependencies>
+          <port timeout="5.0">/icub/right_leg/state:o</port>
+          <port timeout="5.0" request="ready" reply="yes"></port>
+          ...
+      </dependencies>
+  </module>
+
+  <module>
+      <name>yarpscope</name>
+      <parameters>--xml /home/jorhabib/Software/codyco-superbuild/main/codyco-modules/src/modules/quaternionEKF/scopeQuatEKFSkin.xml.xml</parameters>
+      <node>/jorh</node>
+      <display></display>
+      <stdio>/jorh</stdio>
+      <prefix></prefix>
+      <dependencies>
+          <port timeout="5.0">/icub/right_leg/inertialMTB</port>
+      </dependencies>
+  </module>
+
+  <module>
+      <name>yarpdataplayer</name>
+      <parameters></parameters>
+      <node>/jorh</node>
+      <display></display>
+      <stdio>/jorh</stdio>
+      <prefix></prefix>
+      <dependencies>
+      </dependencies>
+  </module>
+
+  <!-- Required connections -->
+  <connection persist="true">
+      <from>/icub/right_leg/state:o</from>
+      <to>/iCubGui/right_leg:i</to>
+      <protocol></protocol>
+  </connection>
+
+</application>

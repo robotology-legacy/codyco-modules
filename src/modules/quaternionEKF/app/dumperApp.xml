@@ -7,7 +7,7 @@
 	<module>
 		<name>yarpdatadumper</name>
 		<parameters>--name /dumper/icub/right_leg/state:o --type bottle </parameters>
-		<node>local</node>
+		<node>/jorh</node>
 		<tag>data-dumper-icub-right_leg-state-o</tag>
 	</module>
 	<connection>
@@ -18,7 +18,7 @@
 	<module>
 		<name>yarpdatadumper</name>
 		<parameters>--name /dumper/icub/right_leg/inertialMTB --type bottle </parameters>
-		<node>local</node>
+		<node>/jorh</node>
 		<tag>data-dumper-icub-right_leg-inertialMTB</tag>
 	</module>
 	<connection>
