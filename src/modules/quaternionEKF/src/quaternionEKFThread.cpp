@@ -75,17 +75,12 @@ quaternionEKFThread::quaternionEKFThread ( int period,
 void quaternionEKFThread::run()
 {
     // Get Input and measurement from XSens or iCubGenova01's sensors
-    if ( !m_usingxsens && !m_usingSkin) {
+    if ( m_usingxsens && !m_usingSkin) {
         bool reading = true;
         imu_measurement = m_gyroMeasPort->read(reading);
         if (m_using2acc) {
             imu_measurement2 = m_gyroMeasPort2->read(reading);
         }
-    } else {
-#ifdef QUATERNION_EKF_USES_XSENS
-        if (m_usingxsens)
-            readDataFromXSens(imu_measurement);
-#endif
     }
     
     if (m_verbose && (!m_usingSkin || m_usingxsens)) {
@@ -244,7 +239,6 @@ void quaternionEKFThread::run()
         }
 
         //  Publish XSens orientation just for debugging
-#ifdef QUATERNION_EKF_USES_XSENS
         if (m_usingxsens) {
             yarp::sig::Vector& tmpXSensEuler = m_publisherXSensEuler->prepare();
             if (realOrientation.data()!=NULL) {
@@ -252,7 +246,7 @@ void quaternionEKFThread::run()
                 m_publisherXSensEuler->write();
             }
         }
-#endif
+
         if (m_verbose) {
             cout << "Elapsed time: " << elapsedTime << endl;
             cout << " " << endl;
@@ -321,13 +315,7 @@ bool quaternionEKFThread::threadInit()
         }
     }
 
-    // XSens device
-#ifdef QUATERNION_EKF_USES_XSENS
-    if (m_usingxsens)
-        m_xsens = new DeviceClass;
-#endif
-    
-    // Using direct atan2 computation
+    //NOTE If using direct atan2 computation
     if (!m_usingEKF && !m_usingxsens) {
         m_directComputation = new directFilterComputation(*m_quat_lsole_sensor);
         double periodInSeconds = getRate()*1e-3;
@@ -336,12 +324,10 @@ bool quaternionEKFThread::threadInit()
     }
 
     // IMU Measurement vector
-    if (m_usingxsens)
+    // If we are using a USB-plugged external XSens or we're connected to iCub's XSens
+    if (m_usingxsens || !m_sensorPort.compare("/" + m_robotName + "/inertial") || !m_sensorPort.compare("/externalXSens/data:o"))
         imu_measurement = new yarp::sig::Vector(12);
     else {
-        if (!m_sensorPort.compare("/" + m_robotName + "/inertial")) {
-            imu_measurement = new yarp::sig::Vector(12);
-        } else {
             if (!m_sensorPort.compare("/icub/right_hand_inertial/analog:o") || !m_sensorPort.compare("/icub/left_hand_inertial/analog:o")) {
                 imu_measurement = new yarp::sig::Vector(6);
             } else {
@@ -351,7 +337,6 @@ bool quaternionEKFThread::threadInit()
                         imu_measurement2 = new yarp::sig::Vector(3);
                 }
             }
-        }
     }
 
     // Open publisher port for estimate in quaternion
@@ -362,19 +347,19 @@ bool quaternionEKFThread::threadInit()
     m_publisherFilteredOrientationEulerPort = new yarp::os::BufferedPort<yarp::sig::Vector>;
     m_publisherFilteredOrientationEulerPort->open(string("/" + m_moduleName + "/filteredOrientationEuler:o").c_str());
     
-    if (m_usingSkin) {
+    if (m_usingSkin && m_debugGyro) {
         m_publisherGyroDebug = new yarp::os::BufferedPort<yarp::sig::Vector>;
         m_publisherGyroDebug->open(string("/" + m_moduleName + "/rawGyroMeas:o").c_str());
+    }
+    if (m_usingSkin && m_debugAcc) {
         m_publisherAccDebug = new yarp::os::BufferedPort<yarp::sig::Vector>;
         m_publisherAccDebug->open(string("/" + m_moduleName + "/rawAccMeas:o").c_str());
     }
 
-#ifdef QUATERNION_EKF_USES_XSENS
     if (m_usingxsens) {
         m_publisherXSensEuler = new yarp::os::BufferedPort<yarp::sig::Vector>;
         m_publisherXSensEuler->open(string("/xsens/euler:o").c_str());
     }
-#endif
 
     if(m_usingEKF) {
         // System Noise Mean
@@ -431,8 +416,8 @@ bool quaternionEKFThread::threadInit()
     // This port was opened by the module.
     std::string gyroMeasPortName = string("/" + m_moduleName + "/imu:i");
 
-    // If using acccelerometer and gyro in the foot
-    if (m_autoconnect && m_usingSkin && m_usingEKF && !m_usingxsens && !m_using2acc) {
+    // NOTE If using acccelerometer and gyro in the foot
+    if ( m_usingSkin && m_usingEKF && !m_usingxsens && !m_using2acc) {
         std::string srcTmp = string("/" + m_robotName + "/right_leg/inertialMTB");
         if ( !m_sensorPort.compare(srcTmp) && m_usingSkin) {
             // NOTE Here I need to create a port that reads a bottle because the dimensions of this port can't be known a priori, since its size will depend on the amount of sensors that have been specified in the skin configuration file.
@@ -440,31 +425,24 @@ bool quaternionEKFThread::threadInit()
             if (!yarp::os::Network::connect(srcTmp,m_imuSkinPortIn.getName())) {
                 yError("[quaternionEKFThread::threadInit] Could not connect imuSkin port to the module");
                 return false;
-            } else {
-                // Testing the port reading
-                // Read one measurement from the port to see things are being read properly
-                // This is a blocking reading
-//                 if ( !m_imuSkinPortIn.read(m_imuSkinBottle) ) {
-//                     yError("[quaternionEKFThread::threadInit] Sensor port was NOT read successfully!");
-//                     return false;
-//                 } else {
-//                     yInfo("[quaternionEKFThread::threadInit] Skin IMU reading was: %s", m_imuSkinBottle.toString().c_str());
-//                 }
             }
         } else {
             yError("[quaternionEKFThread::threadInit] Seems like you have specified in the configuration file of this module that you are using the accelerometer and gyroscope connected to the right foot but the sensor port name specified does not correspond to icub/right_leg/inertialMTB");
             return false;
         }
     } else {
-            // NOTE Using Direct Method (atan2)  with feet accelerometers (iCubGenova01 specific)
-            if (m_autoconnect && !m_usingxsens && !m_usingSkin) {
+            // NOTE If using external XSens or Direct Method (atan2)  with feet accelerometers (iCubGenova01 specific)
+            if ( m_usingxsens && !m_usingSkin ) {
                 yarp::os::ConstString src = m_sensorPort;
-                cout << "[quaternionEKFThread::threadInit()] src is: " << src << endl;
+                cout << "[quaternionEKFThread::threadInit()] Sensor SRC port name is: " << src << endl;
                 if(!yarp::os::Network::connect(src, gyroMeasPortName,"tcp")){
-                    yError(" [quaternionEKFThread::threadInit()] Connection with %s was not possible. Is the robotInterface running? or XSens IMU connected?", gyroMeasPortName.c_str());
+                    yError(" [quaternionEKFThread::threadInit()] Connection with %s was not possible!\n \
+                    Is the robotInterface running? or XSens IMU connected?\n \
+                    Tip: Check also that the variable sensorPortName has been properly set in quaternionEKFModule.ini\n \
+                    Also, when using an external USB-plugged XSens launch yarpdev --device inertial --subdevice xsensmtx --name /externalXSens/data:o ", m_sensorPort.c_str());
                     return false;
                 }
-                if (m_using2acc) {
+                if (m_using2acc && !m_usingxsens && !m_usingSkin) {
                     std::string gyroMeasPortName2 = string("/" + m_moduleName + "/imu2:i");
                     yarp::os::ConstString src2 = m_sensorPort2;
                     cout << "[quaternionEKFThread::threadInit()]  src2 is: " << src2 << endl;
@@ -474,23 +452,10 @@ bool quaternionEKFThread::threadInit()
                     }
                 }
             }
-        }
-
-    // XSens IMU configuration
-#ifdef QUATERNION_EKF_USES_XSENS
-    if ( m_usingxsens ) {
-        if (!configureXSens()) {
-            cout << "XSens configuration was not possible! Check the XSens is plugged to your USB port and that the driver is properly installed" << endl;
-            return false;
-        } else {
-            yInfo() << "Configuration for XSens done!";
-        }
-    }
-#endif
+      }
 
     cout << "Thread waiting two seconds before starting..." <<  endl;
     yarp::os::Time::delay(2);
-
 
     m_waitingTime = yarp::os::Time::now();
     cout << "Thread is running ... " << endl;
@@ -573,235 +538,8 @@ bool quaternionEKFThread::extractMTBDatafromPort ( int boardNum, Vector& linAccO
     return true;
 }
 
-#ifdef QUATERNION_EKF_USES_XSENS
-bool quaternionEKFThread::configureXSens()
-{
-    bool ret = false;
-    try
-    {
-        // Scan for connected USB devices
-        std::cout << "Scanning for USB devices..." << std::endl;
-        XsPortInfoArray portInfoArray;
-        xsEnumerateUsbDevices(portInfoArray);
-        if (!portInfoArray.size())
-        {
-            std::string portNumber;
-            int baudRate;
-            #ifdef WIN32
-            std::cout << "No USB Motion Tracker found." << std::endl << std::endl << "Please enter COM port number (eg. 1): " <<
-            #else
-            std::cout << "No USB Motion Tracker found." << std::endl << std::endl << "Please enter COM port name (eg. /dev/ttyUSB0): " <<
-            #endif
-            std::endl;
-            // TODO Temporarily removed and fixed to /dev/ttyUSB0
-//             std::cin >> portNumber;
-            portNumber = string("/dev/ttyUSB0");
-            // TODO Temporarily removed and fixed to 115200
-//             std::cout << "Please enter baud rate (eg. 115200): ";
-//             std::cin >> baudRate;
-            baudRate = 115200;
-
-            XsPortInfo portInfo(portNumber, XsBaud::numericToRate(baudRate));
-            portInfoArray.push_back(portInfo);
-        }
-
-        // Use the first detected device
-        m_mtPort = portInfoArray.at(0);
-
-        // Open the port with the detected device
-        std::cout << "Opening port..." << std::endl;
-        if (!m_xsens->openPort(m_mtPort))
-            throw std::runtime_error("Could not open port. Aborting.");
-
-        // Put the device in configuration mode
-        std::cout << "Putting device into configuration mode..." << std::endl;
-        if (!m_xsens->gotoConfig()) // Put the device into configuration mode before configuring the device
-        {
-            throw std::runtime_error("Could not put device into configuration mode. Aborting.");
-        }
-
-        // Request the device Id to check the device type
-        m_mtPort.setDeviceId(m_xsens->getDeviceId());
-
-        // Check if we have an MTi / MTx / MTmk4 device
-        if (!m_mtPort.deviceId().isMt9c() && !m_mtPort.deviceId().isMtMk4())
-        {
-            throw std::runtime_error("No MTi / MTx / MTmk4 device found. Aborting.");
-        }
-        std::cout << "Found a device with id: " << m_mtPort.deviceId().toString().toStdString() << " @ port: " << m_mtPort.portName().toStdString() << ", baudrate: " << m_mtPort.baudrate() << std::endl;
-
-        try
-        {
-            // Print information about detected MTi / MTx / MTmk4 device
-            std::cout << "Device: " << m_xsens->getProductCode().toStdString() << " opened." << std::endl;
-
-            // Configure the device. Note the differences between MTix and MTmk4
-            std::cout << "Configuring the device..." << std::endl;
-            uint16_t freq = 100;
-            if (m_mtPort.deviceId().isMt9c())
-            {
-                //TODO HERE In our case we want ORIENTATION | ACCELERATION | ANGULAR VELOCITY. The last two are contained in XOM_Calibrated
-                XsOutputMode outputMode = XOM_Orientation | XOM_Calibrated; // output orientation data
-                XsOutputSettings outputSettings = XOS_OrientationMode_Euler | XOS_CalibratedMode_All; // output orientation data as quaternion
-
-                // set the device configuration
-                if (!m_xsens->setDeviceMode(outputMode, outputSettings))
-                {
-                    throw std::runtime_error("Could not configure MT device. Aborting.");
-                }
-            }
-            else if (m_mtPort.deviceId().isMtMk4())
-            {
-                XsOutputConfiguration quat(XDI_EulerAngles, freq);
-                XsOutputConfigurationArray configArray;
-                configArray.push_back(quat);
-
-                XsOutputConfiguration acc(XDI_Acceleration, freq);
-                configArray.push_back(acc);
-
-                XsOutputConfiguration angVel(XDI_RateOfTurn, freq);
-                configArray.push_back(angVel);
-
-                XsOutputConfiguration magField(XDI_MagneticField, freq);
-                configArray.push_back(magField);
-                if (!m_xsens->setOutputConfiguration(configArray))
-                {
-
-                    throw std::runtime_error("Could not configure MTmk4 device. Aborting.");
-                }
-            }
-            else
-            {
-                throw std::runtime_error("Unknown device while configuring. Aborting.");
-            }
-
-            // Put the device in measurement mode
-            std::cout << "Putting device into measurement mode..." << std::endl;
-            if (!m_xsens->gotoMeasurement())
-            {
-                throw std::runtime_error("Could not put device into measurement mode. Aborting.");
-            }
-        }
-        catch (std::runtime_error const & error)
-        {
-            std::cout << error.what() << std::endl;
-        }
-        catch (...)
-        {
-            std::cout << "An unknown fatal error has occured. Aborting." << std::endl;
-        }
-
-    }
-    catch (std::runtime_error const & error)
-    {
-        std::cout << error.what() << std::endl;
-    }
-    catch (...)
-    {
-        std::cout << "An unknown fatal error has occured. Aborting." << std::endl;
-    }
-
-    ret = true;
-    return ret;
-}
-
-void quaternionEKFThread::readDataFromXSens(yarp::sig::Vector* output)
-{
-    XsByteArray data;
-    XsMessageArray msgs;
-
-    m_xsens->readDataToBuffer(data);
-    m_xsens->processBufferedData(data, msgs);
-    for (XsMessageArray::iterator it = msgs.begin(); it != msgs.end(); ++it)
-    {
-        output->clear();
-        // Retrieve a packet
-        XsDataPacket packet;
-        if ((*it).getMessageId() == XMID_MtData) {
-            LegacyDataPacket lpacket(1, false);
-            lpacket.setMessage((*it));
-            lpacket.setXbusSystem(false, false);
-            lpacket.setDeviceId(m_mtPort.deviceId(), 0);
-            lpacket.setDataFormat(XOM_Orientation | XOM_Calibrated, XOS_OrientationMode_Euler | XOS_CalibratedMode_All,0);       //lint !e534
-            XsDataPacket_assignFromXsLegacyDataPacket(&packet, &lpacket, 0);
-        }
-        else if ((*it).getMessageId() == XMID_MtData2) {
-            packet.setMessage((*it));
-            packet.setDeviceId(m_mtPort.deviceId());
-        }
-
-        // Get the quaternion data
-        XsQuaternion quaternion = packet.orientationQuaternion();
-        if (m_verbose) {
-            std::cout << "\r"
-            << "W:" << std::setw(5) << std::fixed << std::setprecision(2) << quaternion.m_w
-            << ",X:" << std::setw(5) << std::fixed << std::setprecision(2) << quaternion.m_x
-            << ",Y:" << std::setw(5) << std::fixed << std::setprecision(2) << quaternion.m_y
-            << ",Z:" << std::setw(5) << std::fixed << std::setprecision(2) << quaternion.m_z
-            ;
-        }
-
-        // Convert packet to euler
-        XsEuler euler = packet.orientationEuler();
-        if (m_verbose) {
-            std::cout << ",Roll:" << std::setw(7) << std::fixed << std::setprecision(2) << euler.m_roll
-            << ", Pitch:" << std::setw(7) << std::fixed << std::setprecision(2) << euler.m_pitch
-            << ", Yaw:" << std::setw(7) << std::fixed << std::setprecision(2) << euler.m_yaw
-            <<std::endl;
-        }
-
-        XsVector linAcc = packet.calibratedAcceleration();
-        if (m_verbose) {
-            std::cout << "Accelerometer" << std::endl;
-            std::cout << "x: " << linAcc[0] << " y: " << linAcc[1] << " z: " << linAcc[2] << std::endl;
-        }
-
-        XsVector angVel = packet.calibratedGyroscopeData();
-        if (m_verbose) {
-            std::cout << "Angular velocity" << std::endl;
-            std::cout << "x: " << angVel[0] << " y: " << angVel[1] << " z: " << angVel[2] << std::endl;
-        }
-
-        XsVector magField = packet.calibratedMagneticField();
-        if (m_verbose) {
-            std::cout << "Magnetic Field" << std::endl;
-            std::cout << "x: " << magField[0] << " y: " << magField[1] << " z: " << magField[2] << std::endl;
-        }
-
-        // Push euler angles
-        output->push_back(static_cast<double>(euler.m_roll));
-        output->push_back(static_cast<double>(euler.m_pitch));
-        output->push_back(static_cast<double>(euler.m_yaw));
-
-        // Push lin acc
-        output->push_back(static_cast<double>(linAcc[0]));
-        output->push_back(static_cast<double>(linAcc[1]));
-        output->push_back(static_cast<double>(linAcc[2]));
-
-        // Push gyroMeas
-        output->push_back(static_cast<double>(angVel[0]));
-        output->push_back(static_cast<double>(angVel[1]));
-        output->push_back(static_cast<double>(angVel[2]));
-
-        // Push magnetic field
-        output->push_back(static_cast<double>(magField[0]));
-        output->push_back(static_cast<double>(magField[1]));
-        output->push_back(static_cast<double>(magField[2]));
-    }
-}
-#endif 
-
 void quaternionEKFThread::threadRelease()
 {
-#ifdef QUATERNION_EKF_USES_XSENS
-    if (m_xsens && m_usingxsens) {
-        cout << "deleting m_xsens " << endl;
-        delete m_xsens;
-        m_xsens = NULL;
-        cout << "m_xsens deleted" << endl;
-    }
-#endif
-
     if (!m_usingEKF) {
         if (m_directComputation) {
             cout << "deleting m_directComputation " << endl;

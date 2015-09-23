@@ -60,10 +60,6 @@
 
 #include "quaternionEKFconfig.h"
 
-#ifdef QUATERNION_EKF_USES_XSENS
-#include "xsensclasses.h"
-#endif
-
 namespace filter{
 class quaternionEKFThread: public yarp::os::RateThread
 {
@@ -123,10 +119,6 @@ class quaternionEKFThread: public yarp::os::RateThread
     BFL::ExtendedKalmanFilter                   *m_filter;
     // Others
     double                                       m_waitingTime;
-#ifdef QUATERNION_EKF_USES_XSENS
-    DeviceClass                                 *m_xsens;
-    XsPortInfo                                   m_mtPort;
-#endif
     yarp::sig::Vector                           *imu_measurement;
     yarp::sig::Vector                           *imu_measurement2;
     yarp::os::Bottle                             m_imuSkinBottle;
@@ -172,16 +164,7 @@ public:
    *  \param[out] gyroMeasOutput Extracted/Parsed gyroscope measurement from MTB port reading.
    */
   bool extractMTBDatafromPort(int sensorType, yarp::sig::Vector &linAccOutput, yarp::sig::Vector &gyroMeasOutput);
-  
-#ifdef QUATERNION_EKF_USES_XSENS
-  /** \brief Configures the USB-plugged XSens sensor for reading.
-   * 
-   *    When directly plugging the XSens to the USB port this method configures it
-   */
-  bool configureXSens();
-  void readDataFromXSens(yarp::sig::Vector* output);
-#endif
-};
+  };
 }
 
 #endif
