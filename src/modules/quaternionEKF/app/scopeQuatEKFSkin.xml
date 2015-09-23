@@ -20,7 +20,7 @@
           gridy="1"
           hspan="1"
           vspan="1"
-          title="Pitch"
+          title="Pitch (Blue)"
           size="60"
           minval="-10"
           maxval="10"
@@ -31,6 +31,12 @@
                title="Pitch quatEKF"
                size="3"
                type="lines" />
+        <graph remote="/icub/right_leg/state:o"
+               index="4"
+               color="Green"
+               title="Pitch quatEKF"
+               size="3"
+               type="lines" />                       
     </plot>
     <plot gridx="1"
           gridy="0"
