@@ -6,59 +6,34 @@
        <module>
     <name>wholeBodyDynamicsTree</name>
     <parameters>--autoconnect --name wholeBodyDynamicsTree --robot icub --assume_fixed l_foot_dh_frame</parameters>
-    <node>icub-b1</node>
+    <node>icub14</node>
     <tag>wholeBodyDynamicsTree</tag>
  </module>
 
  <module>
     <name>iCubGui</name>
     <parameters>--xpos 1500 --ypos 50 --width 370</parameters> 
-    <node>icub13</node>
+    <node>icub14</node>
     <tag>iCubGui</tag>
   </module>
 
 
 
-        <module>
-                <name>codycomoddev</name>
-		<parameters>--from JTC_balancing_two_feet/jtc_torso.ini </parameters>
-                <node>icub15</node>
-                <tag>torso</tag>
-        </module>
-
-<module>
-                <name>codycomoddev</name>
-		<parameters>--from JTC_balancing_two_feet/jtc_left_arm.ini </parameters>
-                <node>icub15</node>
-                <tag>left_arm</tag>
-        </module>
-
-<module>
-                <name>codycomoddev</name>
-		<parameters>--from JTC_balancing_two_feet/jtc_right_arm.ini </parameters>
-                <node>icub15</node>
-                <tag>right_arm</tag>
-        </module>
-
-<module>
-                <name>codycomoddev</name>
-		<parameters>--from JTC_balancing_two_feet/jtc_left_leg.ini </parameters>
-                <node>icub15</node>
-                <tag>left_leg</tag>
-        </module>
-
-<module>
-                <name>codycomoddev</name>
-		<parameters>--from JTC_balancing_two_feet/jtc_right_leg.ini </parameters>
-                <node>icub15</node>
-                <tag>right_leg</tag>
-        </module>
-
-         <module>
+     
+  <module>
     <name>torqueBalancing</name>
-    <parameters>--from torqueBalancingTwoFeet.ini  --autostart true</parameters> 
-    <node>icub15</node>
+    <parameters>--from torqueBalancingTwoFeet.ini  --autostart true --check_limits false</parameters> 
+    <node>icub14</node>
     <tag>torqueBalancing</tag>
+  </module>
+
+
+
+  <module>
+    <name>torqueBalancingReferencesGenerator</name>
+    <parameters> </parameters> 
+    <node>icub14</node>
+    <tag>torqueBalancingReferencesGenerator</tag>
   </module>
 
 <connection>
@@ -109,24 +84,18 @@
 
   <connection>
     <from>/skinManager/skin_events:o</from>
-    <to>/codycoCoordinator1Y/skin_events:i</to>
-  </connection>
-
-  <connection>
-    <from>/skinManager/skin_events:o</from>
     <to>/wholeBodyDynamicsTree/skin_contacts:i</to>
   </connection>
 
   <connection>
-    <from>/wholeBodyDynamicsTree/left_arm/endEffectorWrench:o</from>
-    <to>/codycoCoordinator1Y/left_wrench:i</to>
+    <from>/torqueBalancingRefGen/comDes:o</from>
+    <to>/torqueBalancing/comDes:i</to>
   </connection>
 
   <connection>
-    <from>/wholeBodyDynamicsTree/right_arm/endEffectorWrench:o</from>
-    <to>/codycoCoordinator1Y/right_wrench:i</to>
+    <from>/torqueBalancingRefGen/qDes:o</from>
+    <to>/torqueBalancing/qDes:i</to>
   </connection>
-
          
         
 </application>

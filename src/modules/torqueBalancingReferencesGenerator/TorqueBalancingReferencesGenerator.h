@@ -57,7 +57,9 @@ private:
     yarp::sig::Vector q0;
     yarp::sig::Vector q;
 
-    yarp::sig::Vector comDes;
+    yarp::sig::Vector   comDes;
+    yarp::sig::Vector  DcomDes;
+    yarp::sig::Vector DDcomDes;
     yarp::sig::Vector com0;
     yarp::sig::Vector startingTimePostures;
 

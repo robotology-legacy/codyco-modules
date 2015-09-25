@@ -45,23 +45,27 @@ bool TorqueBalancingReferencesGenerator::updateModule ()
     if (t-t0 < timeoutBeforeStreamingRefs)
     {    
         comDes = com0 ;
-
         qDes = q0;
         
         
     }
     else
     {
-        comDes = com0 + amplitudeOfOscillation*sin(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
+          comDes = com0 + amplitudeOfOscillation*sin(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
+         DcomDes =  2*M_PI*frequencyOfOscillation*amplitudeOfOscillation*cos(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
+        DDcomDes = -2*M_PI*frequencyOfOscillation*2*M_PI*frequencyOfOscillation*amplitudeOfOscillation*sin(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
     }
     
     yarp::sig::Vector& output = portForStreamingComDes.prepare();
-    output = comDes;
-    portForStreamingComDes.write(true);
+    output.resize(9);
+    output.setSubvector(0,comDes);
+    output.setSubvector(3,DcomDes);
+    output.setSubvector(6,DDcomDes);
+    portForStreamingComDes.write();
 
     yarp::sig::Vector& output2 = portForStreamingQdes.prepare();
     output2 = qDes;
-    portForStreamingQdes.write(true);
+    portForStreamingQdes.write();
     
     return true;
 }
@@ -142,7 +146,9 @@ bool TorqueBalancingReferencesGenerator::configure (yarp::os::ResourceFinder &rf
 
     q0.resize(actuatedDOFs, 0.0);
     com0.resize(3, 0.0);
-    comDes.resize(3, 0.0);
+      comDes.resize(3, 0.0);
+     DcomDes.resize(3, 0.0);
+    DDcomDes.resize(3, 0.0);
     m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, q0.data());
     
     double world2BaseFrameSerialization[16];
