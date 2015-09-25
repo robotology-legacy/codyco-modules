@@ -132,8 +132,11 @@ bool TorqueBalancingReferencesGenerator::configure (yarp::os::ResourceFinder &rf
 
     directionOfOscillation.resize(3,0.0);
 
+    if (!loadReferences(rf,postures,actuatedDOFs,changePostural, amplitudeOfOscillation,frequencyOfOscillation, directionOfOscillation  ))
+    {
+        return false;
+    }
     loadReferences(rf,postures,actuatedDOFs,changePostural, amplitudeOfOscillation,frequencyOfOscillation, directionOfOscillation  );
-
     std::cerr << "Time instants of switching postures" << std::endl;
     for(int i=0; i < postures.size(); i++ )
     {
@@ -278,6 +281,14 @@ bool TorqueBalancingReferencesGenerator::loadReferences(yarp::os::Searchable& co
                 }
                 yarp::os::Bottle * postures_bot_i = postures_bot->get(i).asList();
                 post.time = postures_bot_i->get(0).asDouble();
+                if (i > 0)
+                {
+                    if (postures_bot_i->get(0).asDouble() <= postures[i-1].time )
+                    {
+                        std::cerr << "[ERR] Time series of postures is not strictly increasing"  << std::endl;
+                        return false;
+                    }
+                }
                 for (int j=0; j < actuatedDOFs; j++)
                 {
                     post.qDes[j] = postures_bot_i->get(j+1).asDouble();
