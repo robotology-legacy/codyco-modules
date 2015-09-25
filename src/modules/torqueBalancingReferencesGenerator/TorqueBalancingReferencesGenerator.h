@@ -41,13 +41,12 @@ class TorqueBalancingReferencesGenerator : public yarp::os::RFModule
 {
     struct Postures
 {
-    Eigen::VectorXd    qDes;
+    yarp::sig::Vector    qDes;
     double    time;
 
     void reset(int NDOF)
     {
-        qDes.resize(NDOF);
-        qDes.setZero();
+        qDes.resize(NDOF,0);
         time = 0;
     }
 };
@@ -69,6 +68,7 @@ private:
     double            t0;
     double            period;
     
+    std::vector<Postures> postures;
 
     
     yarp::os::BufferedPort<yarp::sig::Vector> portForStreamingComDes;

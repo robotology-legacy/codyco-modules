@@ -51,9 +51,23 @@ bool TorqueBalancingReferencesGenerator::updateModule ()
     }
     else
     {
-          comDes = com0 + amplitudeOfOscillation*sin(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
-         DcomDes =  2*M_PI*frequencyOfOscillation*amplitudeOfOscillation*cos(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
+        comDes = com0 + amplitudeOfOscillation*sin(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
+        DcomDes =  2*M_PI*frequencyOfOscillation*amplitudeOfOscillation*cos(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
         DDcomDes = -2*M_PI*frequencyOfOscillation*2*M_PI*frequencyOfOscillation*amplitudeOfOscillation*sin(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
+    
+        if (changePostural)
+        {
+            qDes = q0;
+            for (int i = 0 ; i < postures.size()-1; i++)
+            {
+                if ((t-t0) > postures[i].time && (t-t0) <= postures[i+1].time )
+                {
+                    qDes = postures[i].qDes;
+                    break;
+                }
+                qDes = postures[postures.size()-1].qDes;
+            }
+        }
     }
     
     yarp::sig::Vector& output = portForStreamingComDes.prepare();
@@ -116,7 +130,6 @@ bool TorqueBalancingReferencesGenerator::configure (yarp::os::ResourceFinder &rf
     robotName = rf.check("robot", Value("icubGazeboSim"), "Looking for robot name").asString();
 //     numberOfPostures = rf.check("numberOfPostures", Value(0), "Looking for numberOfPostures").asInt();
 
-    std::vector<Postures> postures;
     directionOfOscillation.resize(3,0.0);
 
     loadReferences(rf,postures,actuatedDOFs,changePostural, amplitudeOfOscillation,frequencyOfOscillation, directionOfOscillation  );
@@ -130,7 +143,7 @@ bool TorqueBalancingReferencesGenerator::configure (yarp::os::ResourceFinder &rf
     std::cerr << "Postures" << std::endl;
     for(int i=0; i < postures.size(); i++ )
     {
-        std::cerr << postures[i].qDes << "\n" << std::endl;
+        std::cerr << postures[i].qDes.toString() << "\n" << std::endl;
         
     }
 //     
