@@ -49,7 +49,8 @@ namespace codyco {
             
             virtual bool computeReference(const Eigen::VectorXd& setPoint,
                                           const Eigen::VectorXd& currentValue,
-                                          double initialTime = 0.0);
+                                          double initialTime = 0.0,
+                                          bool initFilter = false);
             
             virtual Eigen::VectorXd getValueForCurrentTime(double currentTime);
 

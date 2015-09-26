@@ -72,7 +72,8 @@ namespace codyco {
         
         bool MinimumJerkTrajectoryGenerator::computeReference(const Eigen::VectorXd& setPoint,
                                                               const Eigen::VectorXd& currentValue,
-                                                              double /*initialTime*/)
+                                                              double /*initialTime*/,
+                                                              bool initFilter)
         {
             if (!m_minimumJerkGenerator || !m_yarpReference || !m_yarpInitialValue) return false;
             if (setPoint.size() != m_size || currentValue.size() != m_size) return false;
@@ -81,7 +82,8 @@ namespace codyco {
                 (*m_yarpReference)(i) = setPoint(i);
                 (*m_yarpInitialValue)(i) = currentValue(i);
             }
-            m_minimumJerkGenerator->init(*m_yarpInitialValue);
+            if (initFilter)
+                m_minimumJerkGenerator->init(*m_yarpInitialValue);
             return true;
         }
         

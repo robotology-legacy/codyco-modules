@@ -211,7 +211,7 @@ namespace codyco {
                 m_signalDerivativeReference = m_reader.getSignalDerivative();
                 m_signalFeedForward.setZero();
                 if (m_referenceFilter) {
-                    m_referenceFilter->computeReference(m_signalReference, m_currentSignalValue, yarp::os::Time::now());
+                    m_referenceFilter->computeReference(m_signalReference, m_currentSignalValue, yarp::os::Time::now(), true);
                 }
                 
             } else {
