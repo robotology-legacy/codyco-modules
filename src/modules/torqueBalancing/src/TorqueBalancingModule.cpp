@@ -28,7 +28,7 @@
 #include <codyco/ModelParsing.h>
 #include <codyco/Utils.h>
 #include <yarp/os/Port.h>
-#include <yarp/os/Log.h>
+#include <yarp/os/LogStream.h>
 #include <yarp/os/LockGuard.h>
 #include <iostream>
 #include <vector>
@@ -105,7 +105,48 @@ namespace codyco {
             Value falseValue;
             falseValue.fromString("false");
             bool autoStart = rf.check("autostart", falseValue, "Looking for autostart option").asBool();
-   
+
+            //Check smooth parameter
+            //Structure is: key: smooth
+            //              value: Bottle with: (("type", duration), (...))
+            //                     Type is currently only "joints". duration is a double
+
+            bool jointSmooth = false;
+            double jointSmoothDuration = -1;
+            if (rf.check("smooth", "Looking for smooth parameters")) {
+                if (rf.find("smooth").isList()) {
+                    Bottle *smoothBottle = rf.find("smooth").asList();
+                    //if list has size 2, check if children are string and double
+                    if (smoothBottle->size() == 2 && !smoothBottle->get(0).isList()
+                        && smoothBottle->get(0).isString() && smoothBottle->get(1).isDouble()) {
+                        std::string type = smoothBottle->get(0).asString();
+                        double duration = smoothBottle->get(1).asDouble();
+                        if (type == "joints") {
+                            jointSmooth = true;
+                            jointSmoothDuration = duration;
+                        }
+                    } else {
+                        for (int i = 0; i < smoothBottle->size(); i++) {
+                            //list of list
+                            if (smoothBottle->get(i).isList()) {
+                                Bottle *innerList = smoothBottle->get(i).asList();
+                                if (innerList->size() == 2
+                                    && innerList->get(0).isString()
+                                    && innerList->get(1).isDouble()) {
+                                    //this can be taken into a method.. I'm duplicating the code above
+                                    std::string type = innerList->get(0).asString();
+                                    double duration = innerList->get(1).asDouble();
+                                    if (type == "joints") {
+                                        jointSmooth = true;
+                                        jointSmoothDuration = duration;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             //PARAMETERS SECTION
             //Creating parameter server helper
             //link controller and references variables to param helper manager
@@ -234,7 +275,14 @@ namespace codyco {
 
             generator = new ReferenceGenerator(m_controllerThreadPeriod, m_references->desiredJointsConfiguration(), *reader, "qdes");
             if (generator) {
-                //generator->setReferenceFilter(&jointsSmoother);
+                if (jointSmooth) {
+                    yInfo() << "Joint smoothing is ENABLED with duration " << jointSmoothDuration;
+                    MinimumJerkTrajectoryGenerator jointsSmoother(actuatedDOFs);
+                    jointsSmoother.initializeTimeParameters(m_controllerThreadPeriod, jointSmoothDuration);
+                    generator->setReferenceFilter(&jointsSmoother);
+                } else {
+                    yInfo() << "Joint smoothing is DISABLED";
+                }
                 generator->setProportionalGains(Eigen::VectorXd::Constant(actuatedDOFs, 1.0));
                 generator->setSignalReference(m_jointsConfiguration);
                 m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeImpedanceControl, generator));
