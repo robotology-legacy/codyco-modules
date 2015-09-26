@@ -131,39 +131,37 @@ bool TorqueBalancingReferencesGenerator::configure (yarp::os::ResourceFinder &rf
 //     numberOfPostures = rf.check("numberOfPostures", Value(0), "Looking for numberOfPostures").asInt();
 
     directionOfOscillation.resize(3,0.0);
-
+    frequencyOfOscillation = 0;
+    amplitudeOfOscillation = 0;
     if (!loadReferences(rf,postures,actuatedDOFs,changePostural, amplitudeOfOscillation,frequencyOfOscillation, directionOfOscillation  ))
     {
         return false;
     }
     loadReferences(rf,postures,actuatedDOFs,changePostural, amplitudeOfOscillation,frequencyOfOscillation, directionOfOscillation  );
-    std::cerr << "Time instants of switching postures" << std::endl;
     for(int i=0; i < postures.size(); i++ )
     {
-        std::cerr << postures[i].time << "\n" << std::endl;
-        
+        std::cerr << "[INFO] time_" << i << " = " << postures[i].time << std::endl;
     }
-    std::cerr << "Postures" << std::endl;
     for(int i=0; i < postures.size(); i++ )
     {
-        std::cerr << postures[i].qDes.toString() << "\n" << std::endl;
+        std::cerr << "[INFO] posture_" << i << " = " << postures[i].qDes.toString()<< std::endl;
         
     }
 //     
-    std::cout << "Number of DOFs: " << actuatedDOFs << "\n";
+    std::cout << "[INFO] Number of DOFs: " << actuatedDOFs << std::endl;
     
-    std::cerr << "changePostural: " << changePostural << "\n" << std::endl;
+    std::cerr << "[INFO] changePostural: " << changePostural << std::endl;
     
-    std::cerr << "amplitudeOfOscillation: " << amplitudeOfOscillation << "\n" << std::endl;
+    std::cerr << "[INFO] amplitudeOfOscillation: " << amplitudeOfOscillation << std::endl;
 
-    std::cout << "frequencyOfOscillation " << frequencyOfOscillation << "\n";
+    std::cout << "[INFO] frequencyOfOscillation " << frequencyOfOscillation << std::endl;
     
-    std::cerr << "directionOfOscillation: " << directionOfOscillation.toString() << "\n" << std::endl;
+    std::cerr << "[INFO] directionOfOscillation: " << directionOfOscillation.toString() << std::endl;
 
     q0.resize(actuatedDOFs, 0.0);
     com0.resize(3, 0.0);
-      comDes.resize(3, 0.0);
-     DcomDes.resize(3, 0.0);
+    comDes.resize(3, 0.0);
+    DcomDes.resize(3, 0.0);
     DDcomDes.resize(3, 0.0);
     m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, q0.data());
     
@@ -226,21 +224,6 @@ bool TorqueBalancingReferencesGenerator::close ()
 }
 
 
-bool checkVectorExistInConfiguration(yarp::os::Bottle & bot,
-                                     const std::string & name,
-                                     const int expected_vec_size)
-{
-    //std::cerr << " checkVectorExistInConfiguration(" << name
-    //         << " , " << expected_vec_size << " )" << std::endl;
-    //std::cerr << "bot.check(name) : " << bot.check(name) << std::endl;
-    //std::cerr << "bot.find(name).isList(): " << bot.find(name).isList() << std::endl;
-    //std::cerr << "bot.find(name).asList()->size() : " << bot.find(name).asList()->size()<< std::endl;
-
-    return (bot.check(name) &&
-            bot.find(name).isList() &&
-            bot.find(name).asList()->size() == expected_vec_size );
-}
-
 
 bool TorqueBalancingReferencesGenerator::loadReferences(yarp::os::Searchable& config,
                                             std::vector<Postures> & postures, double actuatedDOFs, bool & changePostural, double & amplitudeOfOscillation, double & frequencyOfOscillation,yarp::sig::Vector & directionOfOscillation  )
@@ -266,7 +249,6 @@ bool TorqueBalancingReferencesGenerator::loadReferences(yarp::os::Searchable& co
             yarp::os::Bottle * postures_bot = group_bot.find("postures").asList();
 
             int numberOfPostures = postures_bot->size();
-            std::cerr << "[INFO] Number of postures: " << numberOfPostures  << std::endl;
             postures.resize(numberOfPostures);
             Postures post;
             post.reset(actuatedDOFs);
@@ -298,25 +280,41 @@ bool TorqueBalancingReferencesGenerator::loadReferences(yarp::os::Searchable& co
                 
             }
         }
-        
-        if( !group_bot.check("directionOfOscillation") ||
-            !(group_bot.find("directionOfOscillation").isList()) ||
-            !(group_bot.find("directionOfOscillation").asList()->size() == 3))
+        if(group_bot.check("directionOfOscillation") || group_bot.check("amplitudeInMeters") || group_bot.check("frequencyInHerz"))
         {
-             std::cerr << "[ERR] directionOfOscillation is malformed" << std::endl;
-             return false;
-        }
+            if( !(group_bot.check("directionOfOscillation")) ||
+                !(group_bot.check("amplitudeInMeters")) ||
+                !(group_bot.check("frequencyInHerz")))
+            {
+                std::cerr << "[ERR] directionOfOscillation or amplitudeInMeters or frequencyInHerz is missing" << std::endl;
+                return false;
+            }
+            
+            if( !(group_bot.find("directionOfOscillation").isList()) ||
+                !(group_bot.find("directionOfOscillation").asList()->size() == 3))
+            {
+                std::cerr << "[ERR] directionOfOscillation is malformed" << std::endl;
+                return false;
+            }
 
-        //Check coupling configuration is well formed
+            //Check coupling configuration is well formed
 
-        for(int i=0; i < 3; i++ )
-        {
-            directionOfOscillation[i] = group_bot.find("directionOfOscillation").asList()->get(i).asDouble();            
-        }
-        
-        amplitudeOfOscillation = group_bot.check("amplitudeInMeters", yarp::os::Value(0), "Looking for amplitudeOfOscillation").asDouble();
+            double normOfDirectionOfOscillation = 0;
+            for(int i=0; i < 3; i++ )
+            {
+                directionOfOscillation[i] = group_bot.find("directionOfOscillation").asList()->get(i).asDouble();            
+                normOfDirectionOfOscillation += directionOfOscillation[i]*directionOfOscillation[i];
+            }
+            if( (normOfDirectionOfOscillation < 0.99) || (normOfDirectionOfOscillation > 1.01)) 
+            {
+                std::cerr << "[ERR] directionOfOscillation is not of unit norm" << std::endl;
+                return false;
+            }
+            amplitudeOfOscillation = group_bot.check("amplitudeInMeters", yarp::os::Value(0), "Looking for amplitudeOfOscillation").asDouble();
                     
-        frequencyOfOscillation = group_bot.check("frequencyInHerz", yarp::os::Value(0), "Looking for frequencyOfOscillation").asDouble();
+            frequencyOfOscillation = group_bot.check("frequencyInHerz", yarp::os::Value(0), "Looking for frequencyOfOscillation").asDouble();
+      
+        }
       
         return true;
     }
