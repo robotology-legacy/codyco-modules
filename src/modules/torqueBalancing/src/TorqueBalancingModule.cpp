@@ -278,7 +278,7 @@ namespace codyco {
                 if (jointSmooth) {
                     yInfo() << "Joint smoothing is ENABLED with duration " << jointSmoothDuration;
                     MinimumJerkTrajectoryGenerator jointsSmoother(actuatedDOFs);
-                    jointsSmoother.initializeTimeParameters(m_controllerThreadPeriod, jointSmoothDuration);
+                    jointsSmoother.initializeTimeParameters(m_controllerThreadPeriod/1000, jointSmoothDuration);
                     generator->setReferenceFilter(&jointsSmoother);
                 } else {
                     yInfo() << "Joint smoothing is DISABLED";
@@ -525,6 +525,8 @@ namespace codyco {
 #ifdef DEBUG
             yDebug("Module new state is %s", (m_active ? "on" : "off"));
 #endif
+            //When the control switch from inactive to active
+            //it should discard all previous references: the robot should stay still
             if (isActive) {
                 yarp::os::LockGuard guard(dynamic_cast<yarpWbi::yarpWholeBodyInterface*>(m_robot)->getInterfaceMutex());
                 m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsConfiguration.data());
@@ -553,7 +555,7 @@ namespace codyco {
                 if (controlSet) {
                     found->second->setActiveState(tasksState[i]);
                     if (taskReferences[i])
-                        found->second->setSignalReference(*taskReferences[i]);
+                        found->second->setSignalReference(*taskReferences[i], true);
                 }
             }
             m_controller->setActiveState(m_active && controlSet);

@@ -52,13 +52,19 @@ namespace codyco {
                                           double initialTime = 0.0,
                                           bool initFilter = false);
             
-            virtual Eigen::VectorXd getValueForCurrentTime(double currentTime);
+            virtual bool updateTrajectoryForCurrentTime(double currentTime);
+
+            virtual const Eigen::VectorXd& getComputedValue();
+            virtual const Eigen::VectorXd& getComputedDerivativeValue();
+            virtual const Eigen::VectorXd& getComputedSecondDerivativeValue();
 
         private:
             
             int m_size;
             iCub::ctrl::minJerkTrajGen* m_minimumJerkGenerator;
             Eigen::VectorXd m_computedPosition;
+            Eigen::VectorXd m_computedVelocity;
+            Eigen::VectorXd m_computedAcceleration;
             
             double m_sampleTime;
             double m_duration;

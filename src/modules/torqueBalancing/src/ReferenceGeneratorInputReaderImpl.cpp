@@ -209,5 +209,35 @@ namespace codyco {
         }
         
         int VoidReader::signalSize() const { return m_size; }
+
+#pragma mark - ConstantReader implementation
+        ConstantReader::ConstantReader(int size) : VoidReader(size) {}
+
+        ConstantReader::ConstantReader(int size, double constant)
+        : VoidReader(size)
+        { setConstant(constant); }
+
+        ConstantReader::ConstantReader(int size, const Eigen::VectorXd& constant)
+        : VoidReader(size)
+        {
+            setConstant(constant);
+        }
+
+        ConstantReader::~ConstantReader() {}
+
+        void ConstantReader::setConstant(double constant)
+        {
+            m_voidVector.setConstant(constant);
+        }
+
+        void ConstantReader::setConstant(const Eigen::VectorXd& constant)
+        {
+            if (constant.size() == m_voidVector.size())
+                m_voidVector = constant;
+            else if (constant.size() > 0) {
+                m_voidVector.setConstant(constant(0));
+            }
+        }
+
     }
 }

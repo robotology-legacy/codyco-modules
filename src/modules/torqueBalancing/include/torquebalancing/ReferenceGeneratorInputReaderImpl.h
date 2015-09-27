@@ -132,6 +132,7 @@ namespace codyco {
         class VoidReader : public ReferenceGeneratorInputReader {
         private:
             const int m_size;
+        protected:
             Eigen::VectorXd m_voidVector;
         public:
             explicit VoidReader(int size);
@@ -139,6 +140,24 @@ namespace codyco {
             virtual const Eigen::VectorXd& getSignal(long context = 0);
             virtual const Eigen::VectorXd& getSignalDerivative(long context = 0);
             virtual int signalSize() const;
+        };
+
+        /** Constant implementation of ReferenceGeneratorInputReader.
+         *
+         * Specify in the constructor the size of the vectors returned by objects of this class
+         * It outputs a constant vector. It is possible to change the constant at run-time
+         */
+
+        class ConstantReader : public VoidReader {
+        public:
+            explicit ConstantReader(int size);
+            ConstantReader(int size, double constant);
+            ConstantReader(int size, const Eigen::VectorXd& constant);
+
+            virtual ~ConstantReader();
+
+            void setConstant(double constant);
+            void setConstant(const Eigen::VectorXd& constant);
         };
 
     }

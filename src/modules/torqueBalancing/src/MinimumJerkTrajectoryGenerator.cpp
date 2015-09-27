@@ -25,6 +25,8 @@ namespace codyco {
         : m_size(dimension)
         , m_minimumJerkGenerator(0)
         , m_computedPosition(m_size)
+        , m_computedVelocity(m_size)
+        , m_computedAcceleration(m_size)
         , m_sampleTime(0.01)
         , m_duration(1)
         , m_yarpReference(0)
@@ -82,22 +84,60 @@ namespace codyco {
                 (*m_yarpReference)(i) = setPoint(i);
                 (*m_yarpInitialValue)(i) = currentValue(i);
             }
-            if (initFilter)
+            if (initFilter) {
                 m_minimumJerkGenerator->init(*m_yarpInitialValue);
             return true;
         }
-        
-        Eigen::VectorXd MinimumJerkTrajectoryGenerator::getValueForCurrentTime(double /*currentTime*/)
+
+        bool MinimumJerkTrajectoryGenerator::updateTrajectoryForCurrentTime(double /*currentTime*/)
         {
-            if (!m_minimumJerkGenerator || !m_yarpReference) return Eigen::VectorXd::Zero(m_size);
-            
+            if (!m_minimumJerkGenerator || !m_yarpReference) return false;
+
             m_minimumJerkGenerator->computeNextValues(*m_yarpReference);
-            yarp::sig::Vector yarpPosition = m_minimumJerkGenerator->getPos();
-            for (int i = 0; i < m_size; i++) {
-                m_computedPosition(i) = yarpPosition(i);
+            return true;
+        }
+
+        const Eigen::VectorXd& MinimumJerkTrajectoryGenerator::getComputedValue()
+        {
+            if (!m_minimumJerkGenerator || !m_yarpReference) {
+                m_computedPosition.setZero();
+            } else {
+                const yarp::sig::Vector &yarpPosition = m_minimumJerkGenerator->getPos();
+                for (int i = 0; i < m_size; i++) {
+                    m_computedPosition(i) = yarpPosition(i);
+                }
             }
             return m_computedPosition;
+
         }
-                
+
+        const Eigen::VectorXd& MinimumJerkTrajectoryGenerator::getComputedDerivativeValue()
+        {
+            if (!m_minimumJerkGenerator || !m_yarpReference) {
+                m_computedVelocity.setZero();
+            } else {
+                const yarp::sig::Vector &yarpVelocity = m_minimumJerkGenerator->getVel();
+                for (int i = 0; i < m_size; i++) {
+                    m_computedVelocity(i) = yarpVelocity(i);
+                }
+            }
+            return m_computedVelocity;
+
+        }
+
+        const Eigen::VectorXd& MinimumJerkTrajectoryGenerator::getComputedSecondDerivativeValue()
+        {
+            if (!m_minimumJerkGenerator || !m_yarpReference) {
+                m_computedAcceleration.setZero();
+            } else {
+                const yarp::sig::Vector &yarpAcceleration = m_minimumJerkGenerator->getAcc();
+                for (int i = 0; i < m_size; i++) {
+                    m_computedAcceleration(i) = yarpAcceleration(i);
+                }
+            }
+            return m_computedAcceleration;
+
+        }
+
     }
 }

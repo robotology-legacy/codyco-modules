@@ -77,6 +77,8 @@ namespace codyco {
             virtual void run();
             
 #pragma mark - Getter and setter
+
+            ReferenceGeneratorInputReader& inputReader();
             
             /** Returns the name of the controller
              * @return the name of the controller
@@ -97,9 +99,11 @@ namespace codyco {
             /** @brief Sets the new reference for the controller.
              *
              * The reference will be used for the computation of the current error.
+             * @note if resetFilter is true the filter will be initialized to coincide with the reference
              * @param reference the new reference for the controller
+             * @param resetFilter initialize the smoothing filter if present
              */
-            void setSignalReference(const Eigen::VectorXd& reference);
+            void setSignalReference(const Eigen::VectorXd& reference, bool resetFilter = false);
             
             /** Returns the current reference for the signal derivative used by this controller
              * @return the current reference for the derivative
@@ -128,13 +132,16 @@ namespace codyco {
             /** Sets all the controller references at once.
              *
              * Use this method if you need to set all the references of the controller.
+             * @note if resetFilter is true the filter will be initialized to coincide with the reference
              * @param reference the reference of the signal
              * @param derivativeReference the reference of the derivative of the signal
              * @param feedforward the feedforward term
+             * @param resetFilter initialize the smoothing filter if present
              */
             void setAllReferences(const Eigen::VectorXd& reference,
                                   const Eigen::VectorXd& derivativeReference,
-                                  const Eigen::VectorXd& feedforward);
+                                  const Eigen::VectorXd& feedforward,
+                                  bool resetFilter = false);
             
             /** Returns if the current thread is active or not
              *
@@ -315,8 +322,13 @@ namespace codyco {
                                           const Eigen::VectorXd& currentValue,
                                           double initialTime = 0.0,
                                           bool initFilter = false) = 0;
-            
-            virtual Eigen::VectorXd getValueForCurrentTime(double currentTime) = 0;
+
+            virtual bool updateTrajectoryForCurrentTime(double currentTime) = 0;
+
+            virtual const Eigen::VectorXd& getComputedValue() = 0;
+            virtual const Eigen::VectorXd& getComputedDerivativeValue() = 0;
+            virtual const Eigen::VectorXd& getComputedSecondDerivativeValue() = 0;
+
         };
     }
 }

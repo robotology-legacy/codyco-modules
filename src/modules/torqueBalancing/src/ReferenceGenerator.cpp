@@ -96,8 +96,8 @@ namespace codyco {
                 double dt = now - m_previousTime;
 
                 m_actualReference = m_signalReference;
-                if (m_referenceFilter) {
-                    m_actualReference = m_referenceFilter->getValueForCurrentTime(now);
+                if (m_referenceFilter && m_referenceFilter->updateTrajectoryForCurrentTime(now)) {
+                    m_actualReference = m_referenceFilter->getComputedValue();
                 }
                 long context = now * 1000; //i use the time in ms as a context
                 
@@ -122,6 +122,11 @@ namespace codyco {
         }
         
 #pragma mark - Getter and setter
+
+        ReferenceGeneratorInputReader& ReferenceGenerator::inputReader()
+        {
+            return m_reader;
+        }
         
         const std::string& ReferenceGenerator::name() const
         {
@@ -150,13 +155,16 @@ namespace codyco {
             return m_signalReference;
         }
         
-        void ReferenceGenerator::setSignalReference(const Eigen::VectorXd& reference)
+        void ReferenceGenerator::setSignalReference(const Eigen::VectorXd& reference, bool resetFilter)
         {
             yarp::os::LockGuard guard(m_mutex);
             m_signalReference = reference;
             if (m_referenceFilter) {
                 //???: If thread is active this is the last updated signal value, otherwise I don't care. The computation will be redone after start
-                m_referenceFilter->computeReference(m_signalReference, m_currentSignalValue, m_previousTime);
+                std::cerr << "---------------------------------------- Ref set to " << m_signalReference.tail(1) << "\n";
+                m_referenceFilter->computeReference(m_signalReference,
+                                                    resetFilter ? m_signalReference : m_currentSignalValue,
+                                                    m_previousTime, resetFilter);
             }
         }
         
@@ -186,12 +194,15 @@ namespace codyco {
         
         void ReferenceGenerator::setAllReferences(const Eigen::VectorXd& reference,
                                                   const Eigen::VectorXd& derivativeReference,
-                                                  const Eigen::VectorXd& feedforward)
+                                                  const Eigen::VectorXd& feedforward,
+                                                  bool resetFilter)
         {
             yarp::os::LockGuard guard(m_mutex);
             m_signalReference = reference;
             if (m_referenceFilter) {
-                m_referenceFilter->computeReference(m_signalReference, m_currentSignalValue, m_previousTime);
+                m_referenceFilter->computeReference(m_signalReference,
+                                                    resetFilter ? m_signalReference : m_currentSignalValue,
+                                                    m_previousTime, resetFilter);
             }
             m_signalDerivativeReference = derivativeReference;
             m_signalFeedForward = feedforward;

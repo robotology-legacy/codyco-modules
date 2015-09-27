@@ -192,7 +192,7 @@ namespace codyco {
             int m_rightFootLinkID;
             int m_centerOfMassLinkID;
 
-            typedef std::map<std::string, struct DynamicConstraint> ConstraintsMap;
+            typedef std::map<std::string, class DynamicConstraint> ConstraintsMap;
             ConstraintsMap m_activeConstraints;
 
             //References
