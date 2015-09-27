@@ -86,6 +86,7 @@ namespace codyco {
             }
             if (initFilter) {
                 m_minimumJerkGenerator->init(*m_yarpInitialValue);
+            }
             return true;
         }
 
