@@ -245,6 +245,28 @@ bool TorqueBalancingReferencesGenerator::loadReferences(yarp::os::Searchable& co
         }
         else
         {
+            if( group_bot.check("posturesInRadians") &&
+                group_bot.check("posturesInDegrees"))
+            {
+                std::cerr << "[ERR] Both posturesInRadians and posturesInDegrees found in the configuration file. Incapable of interpreting postures' unit of measurement" << std::endl;
+                return false;
+            }
+            
+            if( !(group_bot.check("posturesInRadians") ||
+                  group_bot.check("posturesInDegrees")))
+            {
+                std::cerr << "[ERR] Neither posturesInRadians nor posturesInDegrees found in the configuration file. Incapable of interpreting postures' unit of measurement" << std::endl;
+                return false;
+            }
+            
+            double conversion = 1;
+            bool posturesInRadians = true;
+            if(group_bot.check("posturesInDegrees"))
+            {
+                conversion = M_PI/180;
+                posturesInRadians = false;
+            }
+            
             changePostural = true;
             yarp::os::Bottle * postures_bot = group_bot.find("postures").asList();
 
@@ -273,7 +295,15 @@ bool TorqueBalancingReferencesGenerator::loadReferences(yarp::os::Searchable& co
                 }
                 for (int j=0; j < actuatedDOFs; j++)
                 {
-                    post.qDes[j] = postures_bot_i->get(j+1).asDouble();
+                    post.qDes[j] = conversion*(postures_bot_i->get(j+1).asDouble());
+                    if (posturesInRadians)
+                    {
+                        if ( (post.qDes[j] > 2*M_PI) || (post.qDes[j] < -2*M_PI) )
+                        {
+                            std::cerr << "[ERR] postures are expected to be in radians, but they exceed the limits [-2*pi,2*pi]"<< std::endl;
+                            return false;
+                        }
+                    }
                 }
                 
                 postures[i] = post;
