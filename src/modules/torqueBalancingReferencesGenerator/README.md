@@ -3,12 +3,9 @@
 This module streams the desired references of the center-of-mass and the postural task stabilized by the
 `torqueBalancing` module, either c++ or simulink. 
 
-- For the center of mass, it is possible to stream a sinusoidal reference along a given direction. For instance, the left-and-right of the robot can be achieved by streaming:
-~~~
-	comDes(t) = A*sin(2*pi*f*t)*[0;1;0]
-~~~
+- For the center of mass, it is possible to stream either a sinusoidal reference along a given direction or a number of set points at given time instants. For instance, the left-and-right of the robot can be achieved by streaming:
 
-- For the postural task, it is possible to stream a number of set points at a given time instants. 
+- For the postural task, it is possible to stream only a number of set points at given time instants. 
 
 
 ##Module details
@@ -73,7 +70,17 @@ frequencyInHerz   0.5
 directionOfOscillation = (0,1,0)
 ~~~
 
-Assume that one wants to stream the postural references. Then, users have to specify  a list of lists called  
+Assume that one wants to stream set points for the center of mass. Then, users have to specify  a list of lists called  `comTimeAndSetPoints'. Each list of `comTimeAndSetPoints' is expected to have `4` elements, where 
+the first element of each list is interpreted as the time at which the 
+ith `comDes` must be streamed. The ith `comDes` is then specified by the following `3` numbers contained
+in the ith list. For example, assume that two set points `com1` and `com2`, which are 3 element vectors of the form `com1_1,com1_2,com1_3`, must
+be streamed at the time instants `t1` and `t2`. Then, set 
+
+~~~
+comTimeAndSetPoints = ((t1,com1),(t2,com2))
+~~~
+
+Assume that one wants to stream set points for the postural references. Then, users have to specify  a list of lists called  
 `postures'. Each list of `postures' is expected to have `1+NDOF` elements, where `NDOF` is the number of 
 torque controlled degrees of freedom (usually 23). More precisely, `NDOF` must be equal to the 
 number of joints composing the `wbi_joint_list`, which can be found in the `wbi_config_file` 

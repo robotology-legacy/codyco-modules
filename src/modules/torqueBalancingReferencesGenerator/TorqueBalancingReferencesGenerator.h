@@ -39,8 +39,21 @@ namespace wbi {
 
 class TorqueBalancingReferencesGenerator : public yarp::os::RFModule
 {
+    
+    struct ComTimeAndSetPoints
+    {
+    yarp::sig::Vector    comDes;
+    double    time;
+
+    void reset()
+    {
+        comDes.resize(3,0);
+        time = 0;
+    }
+    };
+    
     struct Postures
-{
+    {
     yarp::sig::Vector    qDes;
     double    time;
 
@@ -49,7 +62,7 @@ class TorqueBalancingReferencesGenerator : public yarp::os::RFModule
         qDes.resize(NDOF,0);
         time = 0;
     }
-};
+    };
 private:
     wbi::wholeBodyInterface* m_robot;
     yarp::sig::Vector qDes;
@@ -60,7 +73,6 @@ private:
     yarp::sig::Vector  DcomDes;
     yarp::sig::Vector DDcomDes;
     yarp::sig::Vector com0;
-    yarp::sig::Vector startingTimePostures;
 
     yarp::sig::Vector directionOfOscillation;
     double            amplitudeOfOscillation;
@@ -69,7 +81,8 @@ private:
     double            period;
     
     std::vector<Postures> postures;
-
+    
+    std::vector<ComTimeAndSetPoints> comTimeAndSetPoints;
     
     yarp::os::BufferedPort<yarp::sig::Vector> portForStreamingComDes;
     yarp::os::BufferedPort<yarp::sig::Vector> portForStreamingQdes;;
@@ -77,13 +90,17 @@ private:
     double timeoutBeforeStreamingRefs;
     
     bool   changePostural;
+    bool   changeComWithSetPoints;
     
     std::string robotName;
 //     int numberOfPostures;
     int centerOfMassLinkID;
 
     bool loadReferences(yarp::os::Searchable& config,
-                            std::vector<Postures> & Postures, double actuatedDOFs, bool & changePostural, double & amplitudeOfOscillation, double & frequencyOfOscillation,yarp::sig::Vector & directionOfOscillation  ); 
+                        std::vector<Postures> & Postures, std::vector<ComTimeAndSetPoints> & ComTimeAndSetPoints,
+                        double actuatedDOFs, bool & changePostural, bool & changeComWithSetPoints, 
+                        double & amplitudeOfOscillation, 
+                        double & frequencyOfOscillation,yarp::sig::Vector & directionOfOscillation  ); 
 public:
     virtual double getPeriod ();
     virtual bool  updateModule ();

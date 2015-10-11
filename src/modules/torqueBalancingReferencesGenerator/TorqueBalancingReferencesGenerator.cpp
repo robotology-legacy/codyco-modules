@@ -51,10 +51,28 @@ bool TorqueBalancingReferencesGenerator::updateModule ()
     }
     else
     {
-        comDes = com0 + amplitudeOfOscillation*sin(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
-        DcomDes =  2*M_PI*frequencyOfOscillation*amplitudeOfOscillation*cos(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
-        DDcomDes = -2*M_PI*frequencyOfOscillation*2*M_PI*frequencyOfOscillation*amplitudeOfOscillation*sin(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
-    
+        if (changeComWithSetPoints)
+        {
+            for (int i = 0 ; i < comTimeAndSetPoints.size()-1; i++)
+            {
+                if ((t-t0) > comTimeAndSetPoints[i].time && (t-t0) <= comTimeAndSetPoints[i+1].time )
+                {
+                    comDes = comTimeAndSetPoints[i].comDes;
+                    break;
+                }
+                if ((t-t0) > comTimeAndSetPoints[comTimeAndSetPoints.size()-1].time )
+                {
+                    comDes = comTimeAndSetPoints[comTimeAndSetPoints.size()-1].comDes;
+                }
+            }
+        }
+        else
+        {
+            comDes = com0 + amplitudeOfOscillation*sin(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
+            DcomDes =  2*M_PI*frequencyOfOscillation*amplitudeOfOscillation*cos(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
+            DDcomDes = -2*M_PI*frequencyOfOscillation*2*M_PI*frequencyOfOscillation*amplitudeOfOscillation*sin(2*M_PI*frequencyOfOscillation*(t-t0-timeoutBeforeStreamingRefs))*directionOfOscillation;
+        }
+        
         if (changePostural)
         {
             qDes = q0;
@@ -65,7 +83,10 @@ bool TorqueBalancingReferencesGenerator::updateModule ()
                     qDes = postures[i].qDes;
                     break;
                 }
-                qDes = postures[postures.size()-1].qDes;
+                if ((t-t0) > postures[postures.size()-1].time )
+                {
+                    qDes = postures[postures.size()-1].qDes;
+                }
             }
         }
     }
@@ -133,24 +154,28 @@ bool TorqueBalancingReferencesGenerator::configure (yarp::os::ResourceFinder &rf
     directionOfOscillation.resize(3,0.0);
     frequencyOfOscillation = 0;
     amplitudeOfOscillation = 0;
-    if (!loadReferences(rf,postures,actuatedDOFs,changePostural, amplitudeOfOscillation,frequencyOfOscillation, directionOfOscillation  ))
+
+    if (!loadReferences(rf,postures,comTimeAndSetPoints,actuatedDOFs,changePostural, changeComWithSetPoints,amplitudeOfOscillation,frequencyOfOscillation, directionOfOscillation  ))
     {
         return false;
     }
-    loadReferences(rf,postures,actuatedDOFs,changePostural, amplitudeOfOscillation,frequencyOfOscillation, directionOfOscillation  );
+    loadReferences(rf,postures,comTimeAndSetPoints,actuatedDOFs,changePostural, changeComWithSetPoints,amplitudeOfOscillation,frequencyOfOscillation, directionOfOscillation);
     for(int i=0; i < postures.size(); i++ )
     {
         std::cerr << "[INFO] time_" << i << " = " << postures[i].time << std::endl;
-    }
-    for(int i=0; i < postures.size(); i++ )
-    {
         std::cerr << "[INFO] posture_" << i << " = " << postures[i].qDes.toString()<< std::endl;
-        
+    }
+    for(int i=0; i < comTimeAndSetPoints.size(); i++ )
+    {
+        std::cerr << "[INFO] time_" << i << " = " << comTimeAndSetPoints[i].time << std::endl;
+        std::cerr << "[INFO] com_" << i << " = " <<  comTimeAndSetPoints[i].comDes.toString()<< std::endl;
     }
 //     
     std::cout << "[INFO] Number of DOFs: " << actuatedDOFs << std::endl;
     
     std::cerr << "[INFO] changePostural: " << changePostural << std::endl;
+    
+    std::cerr << "[INFO] changeComWithSetPoints: " << changeComWithSetPoints << std::endl;
     
     std::cerr << "[INFO] amplitudeOfOscillation: " << amplitudeOfOscillation << std::endl;
 
@@ -224,9 +249,10 @@ bool TorqueBalancingReferencesGenerator::close ()
 }
 
 
-
 bool TorqueBalancingReferencesGenerator::loadReferences(yarp::os::Searchable& config,
-                                            std::vector<Postures> & postures, double actuatedDOFs, bool & changePostural, double & amplitudeOfOscillation, double & frequencyOfOscillation,yarp::sig::Vector & directionOfOscillation  )
+                                            std::vector<Postures> & postures, std::vector<ComTimeAndSetPoints> & comTimeAndSetPoints, double actuatedDOFs, 
+                                            bool & changePostural, bool & changeComWithSetPoints,
+                                            double & amplitudeOfOscillation, double & frequencyOfOscillation,yarp::sig::Vector & directionOfOscillation  )
 {
     std::string group_name = "REFERENCES";
     if( !config.check(group_name) )
@@ -268,6 +294,12 @@ bool TorqueBalancingReferencesGenerator::loadReferences(yarp::os::Searchable& co
             }
             
             changePostural = true;
+            if( !(group_bot.find("postures").isList()) )
+            {
+                std::cerr << "[ERR] postures is not a list of lists, each of which must be a NDOF+1 element vector, where the first is the time at which the ith qDes must be streamed"
+                << std::endl;
+                return false;
+            }
             yarp::os::Bottle * postures_bot = group_bot.find("postures").asList();
 
             int numberOfPostures = postures_bot->size();
@@ -279,12 +311,17 @@ bool TorqueBalancingReferencesGenerator::loadReferences(yarp::os::Searchable& co
                 if( !(postures_bot->get(i).isList()) ||
                     !(postures_bot->get(i).asList()->size() == actuatedDOFs + 1) )
                 {
-                    std::cerr << "[ERR] " << group_name << " group found, but is of wrong dimension. Recall that if you are controlling NDOFs, the variable postures must contain NDOFs+1 element "
+                    std::cerr << "[ERR] The list " << i << " of postures is of wrong dimension. Recall that if you are controlling NDOFs, the variable postures must contain NDOFs+1 element "
                     << std::endl;
                     return false;
                 }
                 yarp::os::Bottle * postures_bot_i = postures_bot->get(i).asList();
                 post.time = postures_bot_i->get(0).asDouble();
+                if (post.time  <= 0)
+                {
+                    std::cerr << "[ERR] Time " << i << " of postures is negative"  << std::endl;
+                    return false;
+                }
                 if (i > 0)
                 {
                     if (postures_bot_i->get(0).asDouble() <= postures[i-1].time )
@@ -320,6 +357,12 @@ bool TorqueBalancingReferencesGenerator::loadReferences(yarp::os::Searchable& co
                 return false;
             }
             
+            if (group_bot.check("comTimeAndSetPoints"))
+            {
+                std::cerr << "[ERR] It is impossible to stream both sinusoidal references and set points for the center of mass." << std::endl;
+                return false;
+            }
+            
             if( !(group_bot.find("directionOfOscillation").isList()) ||
                 !(group_bot.find("directionOfOscillation").asList()->size() == 3))
             {
@@ -343,9 +386,60 @@ bool TorqueBalancingReferencesGenerator::loadReferences(yarp::os::Searchable& co
             amplitudeOfOscillation = group_bot.check("amplitudeInMeters", yarp::os::Value(0), "Looking for amplitudeOfOscillation").asDouble();
                     
             frequencyOfOscillation = group_bot.check("frequencyInHerz", yarp::os::Value(0), "Looking for frequencyOfOscillation").asDouble();
+            changeComWithSetPoints = false;
       
         }
-      
+        if (group_bot.check("comTimeAndSetPoints"))
+        {
+            changeComWithSetPoints = true;
+
+            if( !(group_bot.find("comTimeAndSetPoints").isList()) )
+            {
+                std::cerr << "[ERR] comTimeAndSetPoints is not a list of lists, each of which must be a four element vector, where the first is the time at which the ith comDes must be streamed"
+                << std::endl;
+                return false;
+            }
+            yarp::os::Bottle * com_bot = group_bot.find("comTimeAndSetPoints").asList();
+
+
+            int numberOfCom = com_bot->size();
+            comTimeAndSetPoints.resize(numberOfCom);
+            ComTimeAndSetPoints comAndTime;
+            comAndTime.reset();
+            for(int i=0; i < numberOfCom; i++ )
+            {
+                if( !(com_bot->get(i).isList()) ||
+                    !(com_bot->get(i).asList()->size() == 4) )
+                {
+                    std::cerr << "[ERR] The list "<< i << " of comTimeAndSetPoints is of wrong dimension. It must be a four element vector, where the first is the time at which the ith comDes must be streamed"
+                    << std::endl;
+                    return false;
+                }
+                yarp::os::Bottle * com_bot_i = com_bot->get(i).asList();
+                comAndTime.time = com_bot_i->get(0).asDouble();
+                if (comAndTime.time <= 0)
+                {
+                    std::cerr << "[ERR] Time " << i << " of comTimeAndSetPoints is negative"  << std::endl;
+                    return false;
+                }
+                if (i > 0)
+                {
+                    if (com_bot_i->get(0).asDouble() <= comTimeAndSetPoints[i-1].time )
+                    {
+                        std::cerr << "[ERR] Time series of comTimeAndSetPoints is not strictly increasing"  << std::endl;
+                        return false;
+                    }
+                }
+                
+                for (int j=0; j < 3; j++)
+                {
+                    comAndTime.comDes[j] = com_bot_i->get(j+1).asDouble();
+                }
+                
+                comTimeAndSetPoints[i] = comAndTime;
+                
+            }
+        }    
         return true;
     }
 
