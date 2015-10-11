@@ -3,7 +3,7 @@
 This module streams the desired references of the center-of-mass and the postural task stabilized by the
 `torqueBalancing` module, either c++ or simulink. 
 
-- For the center of mass, it is possible to stream either a sinusoidal reference along a given direction or a number of set points at given time instants. For instance, the left-and-right of the robot can be achieved by streaming:
+- For the center of mass, it is possible to stream either a sinusoidal reference along a given direction or a number of set points at given time instants. 
 
 - For the postural task, it is possible to stream only a number of set points at given time instants. 
 
