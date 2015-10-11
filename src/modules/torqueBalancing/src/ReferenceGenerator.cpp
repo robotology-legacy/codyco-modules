@@ -161,7 +161,6 @@ namespace codyco {
             m_signalReference = reference;
             if (m_referenceFilter) {
                 //???: If thread is active this is the last updated signal value, otherwise I don't care. The computation will be redone after start
-//                 std::cerr << "---------------------------------------- /*Ref set to*/ " << m_signalReference.tail(1) << "\n";
                 m_referenceFilter->computeReference(m_signalReference,
                                                     resetFilter ? m_signalReference : m_currentSignalValue,
                                                     m_previousTime, resetFilter);

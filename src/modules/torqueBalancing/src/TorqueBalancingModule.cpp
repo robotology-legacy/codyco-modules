@@ -109,10 +109,14 @@ namespace codyco {
             //Check smooth parameter
             //Structure is: key: smooth
             //              value: Bottle with: (("type", duration), (...))
-            //                     Type is currently only "joints". duration is a double
+            //                     Type is currently only "joints" or "com".
+            //                     duration is a double
 
             bool jointSmooth = false;
+            bool comSmooth = false;
             double jointSmoothDuration = -1;
+            double comSmoothDuration = -1;
+
             if (rf.check("smooth", "Looking for smooth parameters")) {
                 if (rf.find("smooth").isList()) {
                     Bottle *smoothBottle = rf.find("smooth").asList();
@@ -124,6 +128,9 @@ namespace codyco {
                         if (type == "joints") {
                             jointSmooth = true;
                             jointSmoothDuration = duration;
+                        } else if (type == "com") {
+                            comSmooth = true;
+                            comSmoothDuration = duration;
                         }
                     } else {
                         for (int i = 0; i < smoothBottle->size(); i++) {
@@ -139,6 +146,9 @@ namespace codyco {
                                     if (type == "joints") {
                                         jointSmooth = true;
                                         jointSmoothDuration = duration;
+                                    } else if (type == "com") {
+                                        comSmooth = true;
+                                        comSmoothDuration = duration;
                                     }
                                 }
                             }
@@ -257,6 +267,12 @@ namespace codyco {
 
             generator = new ReferenceGenerator(m_controllerThreadPeriod, m_references->desiredCOMAcceleration(), *reader, "com pid");
             if (generator) {
+                if (comSmooth) {
+                    yInfo() << "COM smoothing is ENABLED with duration " << comSmoothDuration;
+                    MinimumJerkTrajectoryGenerator comSmoother(3);
+                    comSmoother.initializeTimeParameters(m_controllerThreadPeriod/1000, comSmoothDuration);
+                    generator->setReferenceFilter(&comSmoother);
+                }
                 generator->setSignalReference(m_comReference);
                 m_referenceGenerators.insert(std::pair<TaskType, ReferenceGenerator*>(TaskTypeCOM, generator));
             } else {
@@ -462,7 +478,12 @@ namespace codyco {
                 std::map<TaskType, ReferenceGenerator*>::iterator found = m_referenceGenerators.find(taskType);
                 if (found != m_referenceGenerators.end()) {
                     const Eigen::VectorXd &newReference = reference.value();
-                    found->second->setAllReferences(newReference.head(3), newReference.segment(3, 3), newReference.tail(3));
+                    //check if smoother is active.
+                    if (found->second->referenceFilter()) {
+                        found->second->setSignalReference(newReference.head(3));
+                    } else {
+                        found->second->setAllReferences(newReference.head(3), newReference.segment(3, 3), newReference.tail(3));
+                    }
                 }
             } else if (&reference == &m_references->desiredJointsPosition()) {
                 taskType = TaskTypeImpedanceControl;

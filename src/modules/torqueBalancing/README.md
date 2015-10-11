@@ -31,6 +31,7 @@ Users willing to use the module should follow this list.
 - `constraint_links (list_of_frames)`: specifies the list of frames to be considered as dynamic constraints. By default `(l_sole, r_sole`).
 - `check_limits true|false`: specifies if joint limits should be checked. True by default
 - `autostart true|false`: specifies if the torque balancing controller will start as soon as the module is up. False by default.
+- `smooth` (bottle): list of smoothing option. See related section.
 
 ####Gains
 #####Center of Mass task
@@ -65,8 +66,24 @@ It also allows to change the value of the gains.
 
 When the user sends a `start` command the actual CoM position and the joint positions are set as a reference for the CoM PID and for the impedance task.
 
+#### Smoothing input references
+It is possible to specify a smoother for the input references. In this way the input references can be simple set points and the controller is responsible to properly smooth the input.
+Smoothing is specified at configuration time with the following grammar:
+```
+smooth : smooth_option | '(' smooth_option* ')'
+smooth_option = '(' type ',' duration ')'
+type = string
+duration = double
+````
+Currently the only type allowed is `joints` or `com`.
+
+Example of the use of the grammar:
+`smooth ("joints", 1.0)`
+or
+`smooth (("joints", 1.0) ("com", 0.5))`
+
 #### CoM reference
-It is possible to send a `CoM` reference by connecting to the streaming port `comDes:i`. The port expects 9 elements: 3 values for the  desired CoM  position, 3 values for the  desired CoM velocity and 3 values for the  desired CoM acceleration
+It is possible to send a `CoM` reference by connecting to the streaming port `comDes:i`. If no smoothing is specified at configuration time, the port expects 9 elements: 3 values for the  desired CoM  position, 3 values for the  desired CoM velocity and 3 values for the  desired CoM acceleration, otherwise the first 3 values are used as desired CoM position.
 
 #### Joint reference
 It is possible to send the impedance resting position as a reference to the streaming port `qdes:i`. This port expects the same number of element as the torque controlled joints. References are in **radians**
