@@ -32,36 +32,13 @@
 #include <yarp/os/Time.h>
 
 #include <iomanip> //setw
-
-/*
-#include <xsens/xsresultvalue.h>
-#include <xsens/xsbytearray.h>
-#include <xsens/xsmessagearray.h>
-#include <xsens/xsdeviceid.h>
-#include <xsens/xsportinfo.h>
-#include <xsens/xsoutputmode.h>
-#include <xsens/xsoutputsettings.h>
-#include <xsens/xsoutputconfigurationarray.h>
-
-#include <xsens/xsportinfoarray.h>
-#include <xsens/xsdatapacket.h>
-#include <xsens/xstime.h>
-#include <xcommunication/legacydatapacket.h>
-#include <xcommunication/int_xsdatapacket.h>
-#include <xcommunication/enumerateusbdevices.h>
-
-#include <xcommunication/protocolhandler.h>
-#include <xcommunication/usbinterface.h>
-#include <xcommunication/serialinterface.h>
-#include <xcommunication/streaminterface.h>
-*/
-
+#include <algorithm> //std::find
 #include "nonLinearAnalyticConditionalGaussian.h"
 #include "nonLinearMeasurementGaussianPdf.h"
 #include "dataDumperParser.h"
-//#include "deviceclass.h"
 #include "directFilterComputation.h"
 #include <iCub/ctrl/filters.h>
+#include <yarp/math/Math.h>
 
 //TODO The path to the original data file must be retrieved by the ResourceFinder.
 #define DATAFILE "/home/jorhabib/Software/extended-kalman-filter/EKF_Quaternion_DynWalking2015/orocos_bfl/data/dumper/icub/inertial/data.log"
@@ -71,24 +48,29 @@
 #define FILTER_GROUP_PARAMS_NAME "EKFPARAMS"
 #define GRAVITY_ACC 9.81
 #define PI 3.141592654
+// Accelerometer conversionf actor in m/s^2
 #define CONVERSION_FACTOR_ACC 5.9855e-04
+// Gyroscope conversion factor in deg/sec
+#define CONVERSION_FACTOR_GYRO 7.6274e-03
+#define MTB_RIGHT_FOOT_ACC_PLUS_GYRO_1_ID 32.0
+#define MTB_RIGHT_FOOT_ACC_PLUS_GYRO_2_ID 33.0 // The board to which the skin is connected
+#define MTB_RIGHT_HAND_ACC_PLUS_GYRO_1_ID 25.0
+#define MTB_PORT_DATA_PACKAGE_OFFSET 6
 
-#include "quaternionEKFconfig.h"
-
-#ifdef QUATERNION_EKF_USES_XSENS
-#include "xsensclasses.h"
-#endif
 
 namespace filter{
 class quaternionEKFThread: public yarp::os::RateThread
 {
     // Ports for sensor readings
-    yarp::os::BufferedPort<yarp::sig::Vector>*   m_port_input;
-    yarp::os::BufferedPort<yarp::sig::Vector>*   m_gyroMeasPort;
-    yarp::os::BufferedPort<yarp::sig::Vector>*   m_gyroMeasPort2;
-    yarp::os::BufferedPort<yarp::sig::Vector>*   m_publisherFilteredOrientationPort;
-    yarp::os::BufferedPort<yarp::sig::Vector>*   m_publisherFilteredOrientationEulerPort;
-    yarp::os::BufferedPort<yarp::sig::Vector>*   m_publisherXSensEuler;
+    yarp::os::BufferedPort<yarp::sig::Vector>   *m_port_input;
+    yarp::os::BufferedPort<yarp::sig::Vector>   *m_gyroMeasPort;
+    yarp::os::BufferedPort<yarp::sig::Vector>   *m_gyroMeasPort2;
+    yarp::os::BufferedPort<yarp::sig::Vector>   *m_publisherFilteredOrientationPort;
+    yarp::os::BufferedPort<yarp::sig::Vector>   *m_publisherFilteredOrientationEulerPort;
+    yarp::os::BufferedPort<yarp::sig::Vector>   *m_publisherXSensEuler;
+    yarp::os::BufferedPort<yarp::sig::Vector>   *m_publisherGyroDebug;
+    yarp::os::BufferedPort<yarp::sig::Vector>   *m_publisherAccDebug;
+    yarp::os::Port                               m_imuSkinPortIn;
     int                                          m_period; // Period in ms
     std::string                                  m_moduleName;
     std::string                                  m_robotName;
@@ -97,62 +79,70 @@ class quaternionEKFThread: public yarp::os::RateThread
     bool                                         m_autoconnect;
     bool                                         m_usingxsens;
     bool                                         m_usingEKF;
+    bool                                         m_usingSkin;
+    bool                                         m_debugGyro;
+    bool                                         m_debugAcc;
     bool                                         m_verbose;
+    bool                                         m_inWorldRefFrame;
+    double                                       m_gravityVec;
     yarp::os::Property                           m_filterParams;
-    dataDumperParser*                            m_parser;
+    dataDumperParser                            *m_parser;
     // currentData struct defined in dataDumperParser.h
     currentData                                  m_currentData;
     BFL::nonLinearAnalyticConditionalGaussian    m_sysPdf;
-    BFL::AnalyticSystemModelGaussianUncertainty* m_sys_model;
-    BFL::Gaussian*                               m_measurement_uncertainty;
-    BFL::nonLinearMeasurementGaussianPdf*        m_measPdf;
+    BFL::AnalyticSystemModelGaussianUncertainty *m_sys_model;
+    BFL::Gaussian                               *m_measurement_uncertainty;
+    BFL::nonLinearMeasurementGaussianPdf        *m_measPdf;
     BFL::AnalyticMeasurementModelGaussianUncertainty* m_meas_model;
     MatrixWrapper::ColumnVector                  m_posterior_state;
     // filter parameters read from configuration file
     // TODO These should be put in some structure
-    int m_state_size;
-    int m_input_size;
-    int m_measurement_size;
-    double m_prior_state_cov;
-    double m_mu_system_noise;
-    double m_sigma_system_noise;
-    double m_sigma_measurement_noise;
-    double m_sigma_gyro;
-    double m_mu_gyro_noise;
-    bool m_smoother;
-    bool m_external_imu;
+    int                                          m_state_size;
+    int                                          m_input_size;
+    int                                          m_measurement_size;
+    double                                       m_prior_state_cov;
+    double                                       m_mu_system_noise;
+    double                                       m_sigma_system_noise;
+    double                                       m_sigma_measurement_noise;
+    double                                       m_sigma_gyro;
+    double                                       m_mu_gyro_noise;
+    bool                                         m_smoother;
+    bool                                         m_external_imu;
     // Priors
-    BFL::Gaussian*   m_prior;
-    double           m_prior_cov;
-    double           m_prior_mu;
-    MatrixWrapper::ColumnVector m_prior_mu_vec;
+    BFL::Gaussian                               *m_prior;
+    double                                       m_prior_cov;
+    double                                       m_prior_mu;
+    MatrixWrapper::ColumnVector                  m_prior_mu_vec;
     // Filter
-    BFL::ExtendedKalmanFilter*  m_filter;
+    BFL::ExtendedKalmanFilter                   *m_filter;
     // Others
-    double m_waitingTime;
-#ifdef QUATERNION_EKF_USES_XSENS
-    DeviceClass*         m_xsens;
-    XsPortInfo           m_mtPort;
-#endif
-    yarp::sig::Vector*   imu_measurement;
-    yarp::sig::Vector*   imu_measurement2;
-    directFilterComputation* m_directComputation;
-    MatrixWrapper::Quaternion* m_quat_lsole_sensor;
-    double m_lowPass_cutoffFreq;
-    bool m_using2acc;
+    double                                       m_waitingTime;
+    yarp::sig::Vector                           *imu_measurement;
+    yarp::sig::Vector                           *imu_measurement2;
+    yarp::os::Bottle                             m_imuSkinBottle;
+    yarp::sig::Vector                            m_MTBmeas;
+    directFilterComputation                     *m_directComputation;
+    MatrixWrapper::Quaternion                   *m_quat_lsole_sensor;
+    double                                       m_lowPass_cutoffFreq;
+    bool                                         m_using2acc;
     // Low Pass Filter
-    iCub::ctrl::FirstOrderLowPassFilter * lowPassFilter;
+    iCub::ctrl::FirstOrderLowPassFilter         *lowPassFilter;
 
 public:
-  quaternionEKFThread ( int period,
-                        std::string moduleName,
-                        std::string robotName,
-                        bool autoconnect,
-                        bool usingxsens,
-                        bool usingEKF,
-                        std::string sensorPort,
-                        bool verbose,
-                        yarp::os::Property &filterParams,
+  quaternionEKFThread ( int                             period,
+                        std::string                     moduleName,
+                        std::string                     robotName,
+                        bool                            autoconnect,
+                        bool                            usingxsens,
+                        bool                            usingEKF,
+                        bool                            inWorldRefFrame,
+                        double                          gravityVec,
+                        bool                            usingSkin,
+                        std::string                     sensorPort,
+                        bool                            debugGyro,
+                        bool                            debugAcc,
+                        bool                            verbose,
+                        yarp::os::Property              &filterParams,
                         yarp::os::BufferedPort<yarp::sig::Vector>* m_gyroMeasPort,
                         yarp::os::BufferedPort<yarp::sig::Vector>* m_gyroMeasPort2
                       );
@@ -163,12 +153,16 @@ public:
   void XiOperator(MatrixWrapper::ColumnVector quat, MatrixWrapper::Matrix* Xi);
   // TODO Temporarily putting this method here. Should be put in MatrixWrapper somewhere
   void SOperator(MatrixWrapper::ColumnVector omg, MatrixWrapper::Matrix* S);
-  // When directly plugging the XSens to the USB port this method configures it
-#ifdef QUATERNION_EKF_USES_XSENS
-  bool configureXSens();
-  void readDataFromXSens(yarp::sig::Vector* output);
-#endif
-};
+   
+  /** \brief Filters and extracts a specific MTB data from an MTB port.
+   * 
+   *    MTB port example: /icub/rigth_leg/inertialMTB
+   *  \param[in]  sensorType ID number of the MTB "position" in iCub's body.
+   *  \param[out] linAccOutput Extracted/Parsed accelerometer measurement from MTB port reading.
+   *  \param[out] gyroMeasOutput Extracted/Parsed gyroscope measurement from MTB port reading.
+   */
+  bool extractMTBDatafromPort(int sensorType, yarp::sig::Vector &linAccOutput, yarp::sig::Vector &gyroMeasOutput);
+  };
 }
 
 #endif

@@ -39,9 +39,9 @@ MatrixWrapper::ColumnVector nonLinearMeasurementGaussianPdf::ExpectedValueGet() 
     MatrixWrapper::Matrix Q(3,3);
     if(!tmpQuat.getRotation(Q))
         std::cout << "[BFL::nonLinearMeasurementGaussianPdf::ExpectedValueGet] Rotation matrix from quaternion could not be computed. " << std::endl;
-    MatrixWrapper::ColumnVector g0(3); g0(1) = 0.0; g0(2) = 0.0; g0(3) = 1.0;
+    MatrixWrapper::ColumnVector g0(3); g0(1) = 0.0; g0(2) = 0.0; g0(3) = GRAVITY_NOMINAL;
     // Transpose or inverse since Q is actually a symmetric matrix
-    expectedValue = Q.transpose()*g0;
+    expectedValue = Q*g0;
     
     return expectedValue + AdditiveNoiseMuGet(); 
 }
@@ -62,7 +62,7 @@ MatrixWrapper::Matrix nonLinearMeasurementGaussianPdf::dfGet ( unsigned int i ) 
         // NOTE Gravity unity vector. Need to review why I set this to [0 0 1]' instead of [0 0 9.8]' in the Matlab code
         MatrixWrapper::ColumnVector gravUnitVec(3);
         gravUnitVec = 0.0; 
-        gravUnitVec(3) = 1.0;
+        gravUnitVec(3) = GRAVITY_NOMINAL;
         
         // Partial derivative of Q with respect to q0
         dq(1,1) = 2.0*q0; dq(1,2) = -q3   ; dq(1,3) =  q2   ;
@@ -88,10 +88,10 @@ MatrixWrapper::Matrix nonLinearMeasurementGaussianPdf::dfGet ( unsigned int i ) 
         dq(3,10) = q1   ; dq(3,11) = q2   ; dq(3,12) = 2.0*q3;
         dQdq3 = (dq.sub(1,3,10,12))*2.0;
         
-        MatrixWrapper::ColumnVector dhdq_col1 = dQdq0.transpose()*gravUnitVec;
-        MatrixWrapper::ColumnVector dhdq_col2 = dQdq1.transpose()*gravUnitVec;
-        MatrixWrapper::ColumnVector dhdq_col3 = dQdq2.transpose()*gravUnitVec;
-        MatrixWrapper::ColumnVector dhdq_col4 = dQdq3.transpose()*gravUnitVec;
+        MatrixWrapper::ColumnVector dhdq_col1 = dQdq0*gravUnitVec;
+        MatrixWrapper::ColumnVector dhdq_col2 = dQdq1*gravUnitVec;
+        MatrixWrapper::ColumnVector dhdq_col3 = dQdq2*gravUnitVec;
+        MatrixWrapper::ColumnVector dhdq_col4 = dQdq3*gravUnitVec;
         
         MatrixWrapper::Matrix dhdq(3,4); dhdq = 0.0;
         dhdq.setColumn(dhdq_col1, 1);

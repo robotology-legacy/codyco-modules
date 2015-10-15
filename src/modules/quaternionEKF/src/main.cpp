@@ -2,6 +2,7 @@
 #include <yarp/os/RFModule.h>
 #include <yarp/os/LogStream.h>
 #include <yarp/os/Network.h>
+#include <iomanip>
 
 #include "quaternionEKFModule.h"
 
@@ -14,23 +15,44 @@ using namespace filter;
 int main(int argc, char* argv[]) 
 {
     yarp::os::ResourceFinder rf;
-    rf.setVerbose(false);
+    rf.setVerbose(true);
     rf.setDefaultContext("quaternionEKF");
     rf.setDefaultConfigFile("quaternionEKFModule.ini");
     rf.configure(argc, argv);
     
     if(rf.check("help")) {
-        yInfo() << "\tParameters";
-        yInfo() << "\t--from            :[quaternionEKFModule.ini] Name of .ini file for configuration";
-        yInfo() << "\t--robot           :[icub] Robot name. Other options: icubGazeboSim";
-        yInfo() << "\t--rate            :[10] Thread period (ms)";
-        yInfo() << "\t--mode            :[online] or offline";
-        yInfo() << "\t--autoconnect     :[true] or false";
-        yInfo() << "\t--calib           :[false] The module enters in calibration mode for which it asks you to put the accelerometer at 0 degrees or 90 degrees. Once this orientation is achieved, the user needs to hit ENTER for data to be collected";
-        yInfo() << "\t--usingXSens      :[false] When true, the module will an XSens IMU attached to the computer for testing the algorithm.";
-        yInfo() << "\t--verbose         :[false] Verbose level.";
-        yInfo() << "\t--sensorPortName  :[/icub/left_foot_inertial/analog:o] Specifies the sensor port name to be used.";
-        yInfo() << "\t--using2acc       :[false] Using two accelerometers for direct angle measurement from only accelerometers plus low pass filtering of the raw measurements.";
+        printf("\n");
+        printf("\PARAMETERS\n");
+        printf("--from            :[quaternionEKFModule.ini] Name of .ini file for configuration\n");
+        printf("--robot           :[icub] Robot name. Other options: icubGazeboSim\n");
+        printf("--rate            :[10] Thread period (ms)\n");
+        printf("--local           :[quaternionEKFModule] Module name used to prepend ports opened by this module\n");
+        printf("--calib           :[false] The module enters in calibration mode for which it asks you \n\
+                                  to put the accelerometer at 0 degrees or 90 degrees. Once this \n\
+                                  orientation is achieved, the user needs to hit ENTER for data to be collected\n");
+        printf("--autoconnect     :[true] or false\n");
+        printf("--mode            :[online] or offline\n");
+        printf("--usingXSens      :[false] When true, the module will an XSens IMU attached to the \n\
+                                  computer (USB) for testing the algorithm.\n");
+        printf("--usingEKF        :[true] When true, the module will use a quaternion-based Extended \n\
+                                  Kalman Filter approach to estimate orientation of the world ref.\n\
+                                  frame in the sensor reference frame based on gyrscope and \n\
+                                  accelerometer readings.\n");
+	printf("--inWorldRefFrame :[false] When true, the estimation published in /[local]/filteredOrientationEuler:o\n\
+                                  is expressed in the Earth reference frame. When [false] in the sensor\n\
+                                  reference frame.\n");
+        printf("--usingSkin       :[true] (using2acc=false, usingXSens=false, mode=online) When true,\n\
+                                  it is assumed that the right foot of the robot has a palm skin \n\
+                                  patch attached in order to use its gyroscope, plus the accelerometer \n\
+                                  in the MTB  board of the right foot.\n");
+        printf("--using2acc       :[false] Using two accelerometers for direct angle measurement from \n\
+                                  only accelerometers plus low pass filtering of the raw measurements.\n");
+        printf("--debugGyro       :[false] When true, the module opens a port called /[local]/rawGyroMeas:o \n\
+                                  streaming the parsed gyroscope measurement from the MTB port.\n");
+        printf("--debugAcc        :[false] When true, the module opens a port called /[local]/rawAccMeas:o \n\
+                                  streaming the parsed accelerometer measurement from the MTB port.\n");
+        printf("--verbose         :[false] When true, prints many debugging messages.\n");
+        printf("--sensorPortName  :[/icub/right_leg/inertialMTB] Specifies the sensor port name to be used.\n");
         return 0;
     }
     

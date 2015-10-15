@@ -33,29 +33,34 @@
 namespace filter{
 class quaternionEKFModule: public yarp::os::RFModule
 {
-    double period;
-    std::string robotName;
-    std::string local;
-    std::string sensorPortName;
-    bool autoconnect;
-    bool usingEKF;
-    bool calib;
-    bool using2acc;
-    std::string mode;
-    bool usingxsens;
-    bool verbose;
+    double                                      period;
+    std::string                                 robotName;
+    std::string                                 local;
+    std::string                                 sensorPortName;
+    bool                                        autoconnect;
+    bool                                        usingEKF;
+    bool                                        usingSkin;
+    bool                                        inWorldRefFrame;
+    double                                      gravityVec;
+    bool                                        debugGyro;
+    bool                                        debugAcc;
+    bool                                        calib;
+    bool                                        using2acc;
+    std::string                                 mode;
+    bool                                        usingxsens;
+    bool                                        verbose;
     
     /*TODO : For now filtertype is a string to indicate EKF or direct filtering, 
      *later when module name is more generic it must be changed to enum */
-    std::string filterType; 
+    std::string                                 filterType; 
     
-    yarp::os::BufferedPort<yarp::sig::Vector> gyroMeasPort;
-    yarp::os::BufferedPort<yarp::sig::Vector> gyroMeasPort2;
-    quaternionEKFThread* quatEKFThread;
+    yarp::os::BufferedPort<yarp::sig::Vector>   gyroMeasPort;
+    yarp::os::BufferedPort<yarp::sig::Vector>   gyroMeasPort2;
+    quaternionEKFThread                        *quatEKFThread;
     
     // Parser parameters
-    dataDumperParser* m_parser;
-    currentData       m_currentData;
+    dataDumperParser                           *m_parser;
+    currentData                                 m_currentData;
     
 public:
     quaternionEKFModule();

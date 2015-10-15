@@ -226,6 +226,7 @@ void WorkingThread::run()
             {
                 last_time = current_time;
                 actions.current_action++;
+                cout << "Current action: " << actions.current_action << endl;
                 compute_and_send_command(actions.current_action);
                 //printf("EXECUTING %d, elapsed_time:%.5f requested_time:%.5f\n", actions.current_action, current_time-last_time, duration);
             }

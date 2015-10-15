@@ -21,7 +21,7 @@
 #include <bfl/pdf/analyticconditionalgaussian_additivenoise.h>
 #include <bfl/pdf/gaussian.h>
 #define NUMBEROFCONDITIONALARGUMENTS 2
-
+#define GRAVITY_NOMINAL 10.0
 namespace BFL {
     class nonLinearMeasurementGaussianPdf: public BFL::AnalyticConditionalGaussianAdditiveNoise
     {
