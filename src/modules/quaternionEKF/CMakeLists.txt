@@ -31,6 +31,7 @@ file(GLOB header_dir include/dataDumperParser.h
                         include/quaternionEKFModule.h
                         include/quaternionEKFThread.h)
 
+
 source_group("Source Files" FILES ${source_dir})
 source_group("Header Files" FILES ${header_dir})
 
@@ -48,6 +49,7 @@ message("** Boost libraries are: ${Boost_LIBRARIES}")
 
 link_directories(${OROCOS_BFL_LIBRARY_DIRS})
 
+message("-------------------- ${PROJECTNAME} ${source_dir} ${header_dir}")
 add_executable(${PROJECTNAME} ${source_dir} ${header_dir})
 
 
