@@ -57,7 +57,6 @@
 #define MTB_RIGHT_HAND_ACC_PLUS_GYRO_1_ID 25.0
 #define MTB_PORT_DATA_PACKAGE_OFFSET 6
 
-//#include "quaternionEKFconfig.h"
 
 namespace filter{
 class quaternionEKFThread: public yarp::os::RateThread
