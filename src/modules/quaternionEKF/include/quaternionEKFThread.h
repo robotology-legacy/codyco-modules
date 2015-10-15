@@ -36,7 +36,6 @@
 #include "nonLinearAnalyticConditionalGaussian.h"
 #include "nonLinearMeasurementGaussianPdf.h"
 #include "dataDumperParser.h"
-//#include "deviceclass.h"
 #include "directFilterComputation.h"
 #include <iCub/ctrl/filters.h>
 #include <yarp/math/Math.h>
@@ -58,7 +57,7 @@
 #define MTB_RIGHT_HAND_ACC_PLUS_GYRO_1_ID 25.0
 #define MTB_PORT_DATA_PACKAGE_OFFSET 6
 
-#include "quaternionEKFconfig.h"
+//#include "quaternionEKFconfig.h"
 
 namespace filter{
 class quaternionEKFThread: public yarp::os::RateThread
