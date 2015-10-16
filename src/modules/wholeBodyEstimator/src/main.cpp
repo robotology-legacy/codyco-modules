@@ -32,7 +32,8 @@ int main(int argc, char* argv[])
     
     yarp::os::Network yarpNetwork;
     
-    if (!yarpNetwork.checkNetwork())
+    double timeout = 10.0;
+    if (!yarpNetwork.checkNetwork(timeout))
     {
         yError("YARP Network is not available. The module will shut down now...");
         return -1;
