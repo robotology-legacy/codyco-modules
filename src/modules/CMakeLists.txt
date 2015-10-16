@@ -21,6 +21,7 @@ endif()
 
 if(CODYCO_USES_OROCOS_BFL_BERDY)
    add_subdirectory(quaternionEKF)
+   add_subdirectory(wholeBodyEstimator)
 endif()
 
 add_subdirectory(walkPlayer)
