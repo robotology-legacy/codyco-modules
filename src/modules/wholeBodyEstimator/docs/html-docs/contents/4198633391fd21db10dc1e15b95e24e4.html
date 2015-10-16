@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>QuaternionEKF</title>
+        <!-- <script src="http://use.edgefonts.net/source-sans-pro;source-code-pro.js"></script> -->
+<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,300italic,400italic,700italic|Source+Code+Pro:300,400,700' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="../assets/css/bootstrap.css">
+<link rel="stylesheet" href="../assets/css/jquery.bonsai.css">
+<link rel="stylesheet" href="../assets/css/main.css">
+<link rel="stylesheet" href="../assets/css/icons.css">
+<script type="text/javascript" src="../assets/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript" src="../assets/js/bootstrap.js"></script>
+<script type="text/javascript" src="../assets/js/jquery.bonsai.js"></script>
+<!-- <script type="text/javascript" src="../assets/js/main.js"></script> -->
+
+    </head>
+    <body>
+        <div>
+
+            <!-- Name Title -->
+
+            <h1>QuaternionEKF</h1>
+
+            <!-- Type and Stereotype -->
+
+            <section style="margin-top: .5em;">
+                <span class="alert alert-info">
+                    <span class="node-icon _icon-UMLClass"></span>
+                    UMLClass
+                </span>
+                
+            </section>
+
+            <!-- Path -->
+
+            <section style="margin-top: 10px">
+                
+                
+                
+                    
+                    <span class="label label-info"><a href='cf9c8b720f3815adeccaf3ef6e48c6c4.html'><span class='node-icon _icon-Project'></span>Untitled</a></span>
+                
+                    <span>::</span>
+                    <span class="label label-info"><a href='594af663de577680f35b13183109d675.html'><span class='node-icon _icon-UMLModel'></span>wholeBodyEstimator</a></span>
+                
+                    <span>::</span>
+                    <span class="label label-info"><a href='4198633391fd21db10dc1e15b95e24e4.html'><span class='node-icon _icon-UMLClass'></span>QuaternionEKF</a></span>
+                
+            </section>
+
+            <!-- Diagram -->
+
+            
+
+            <!-- Description -->
+
+            
+            <section>
+                <h3>Description</h3>
+                <div>
+                    
+                        <span class="label label-info">none</span>
+                    
+                </div>
+            </section>
+            
+
+            <!-- Specification -->
+
+            
+
+            <!-- Directed Relationship -->
+
+            
+
+            <!-- Undirected Relationship -->
+
+            
+
+            <!-- Classifier -->
+
+            
+                
+                
+<section class="element-list">
+    <h3>Generalized Elements</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='a63abca5b6dce481aaad27c573ff24e7.html'><span class='node-icon _icon-UMLClass'></span>IEstimator</a></li>
+        
+    </ul>
+</section>
+
+
+
+                
+                
+
+
+                
+                
+
+
+                
+                
+
+
+                
+                
+
+            
+
+            <!-- Interface -->
+
+            
+
+            <!-- Component -->
+
+            
+
+            <!-- Node -->
+
+            
+
+            <!-- Actor -->
+
+            
+
+            <!-- Use Case -->
+
+            
+
+            <!-- Template Parameters -->
+
+            
+
+            <!-- Literals -->
+
+            
+
+            <!-- Attributes -->
+
+            
+            <section>
+                <h3>Attributes</h3>
+                <table class="table table-striped table-bordered">
+                    <tr>
+                        <th>Visibility</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                    
+                    <tr>
+                        <td>private</td>
+                        <td><a href="a00e9a971d6a5089d129de5e1515c6bc.html">m_sysPdf</a></td>
+                        <td><a href='2dd6bf42f443c9f27c926b8f15d354c0.html'>nonLinearAnalyticConditionalGaussian</a></td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>private</td>
+                        <td><a href="e62f1f9fb9e3b0644a63db8abe5b062f.html">m_measPdf</a></td>
+                        <td><a href='0def84e0695488ec24206eb8b8f470f1.html'>nonLinearMeasurementGaussianPdf</a></td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>public</td>
+                        <td><a href="5467bf14cb2a243121a4371dec671779.html">m_sys_model</a></td>
+                        <td><a href='6a67213e50324d0be188e269ab29d47e.html'>AnalyticSystemModelGaussianUncertainty</a></td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>public</td>
+                        <td><a href="090e9d6845ec5a27bbc688096c73f975.html">m_prior</a></td>
+                        <td><a href='dd998664d5afe9ab19fe7d0e7203d9df.html'>Gaussian</a></td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>public</td>
+                        <td><a href="28708105a12fd678d78a1b467d736eea.html">m_posterior</a></td>
+                        <td><a href='b918c15b6749287901a44ea425529742.html'>ColumnVector</a></td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>public</td>
+                        <td><a href="54d517fdaaeb0be7698dd72100d99541.html">m_filter</a></td>
+                        <td><a href='11d80657c1be16d067979fd8bc70ed69.html'>ExtendedKalmanFilter</a></td>
+                        <td></td>
+                    </tr>
+                    
+                </table>
+            </section>
+            
+
+            <!-- Operations -->
+
+            
+            <section>
+                <h3>Operations</h3>
+                <table class="table table-striped table-bordered">
+                    <tr>
+                        <th>Visibility</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                    </tr>
+                    
+                    <tr>
+                        <td>public</td>
+                        <td><a href="0e464fccf075c26ff61e553170d4ff8d.html">quaternionEKF(wbSensorsInstance)</a></td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>public</td>
+                        <td><a href="eed1d584249004f991b16990c0d223bf.html">init(rf: ResourceFinder): bool</a></td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>public</td>
+                        <td><a href="ef694ba48f263776f98d96a5dbce78a5.html">run()</a></td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>public</td>
+                        <td><a href="58b55fd5ab1655696033355b0d5c373b.html">release()</a></td>
+                        <td></td>
+                    </tr>
+                    
+                </table>
+            </section>
+            
+
+            <!-- Receptions -->
+
+            
+
+            <!-- Extension Points -->
+
+            
+
+            <!-- Parameters -->
+
+            
+
+            <!-- Diagrams -->
+
+            
+            
+
+            <!-- Behavior -->
+
+            
+
+            <!-- Action -->
+
+            
+
+            <!-- Interaction -->
+
+            
+
+            <!-- CombinedFragment -->
+
+            
+
+            <!-- Activity -->
+
+            
+
+            <!-- State Machine -->
+
+            
+
+            <!-- State Machine -->
+
+            
+
+            <!-- State -->
+
+            
+
+            <!-- Vertex -->
+
+            
+
+            <!-- Transition -->
+
+            
+
+            <!-- Properties -->
+
+            <section>
+                <h3>Properties</h3>
+                
+                <table class="table table-striped table-bordered">
+    <tr>
+        <th width="50%">Name</th>
+        <th width="50%">Value</th>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>name</td>
+        <td>QuaternionEKF</td>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>stereotype</td>
+        <td><span class='label label-info'>null</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>visibility</td>
+        <td>public</td>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>isAbstract</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isFinalSpecialization</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isLeaf</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isActive</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+</table>                
+
+            </section>
+
+            <!-- Tags -->
+
+            
+
+            <!-- Constraints, Dependencies, Dependants -->
+
+            
+                
+                
+
+
+                
+                
+
+
+                
+                
+
+            
+
+            <!-- Relationships -->
+
+            
+            
+<section class="element-list">
+    <h3>Relationships</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='cb68d2687e9b262b348c0d246a8cd9ab.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—QuaternionEKF)</a></li>
+        
+        <li><a href='1dec491dfa8886d1a303a6dfa6ff3741.html'><span class='node-icon _icon-UMLGeneralization'></span>(QuaternionEKF→IEstimator)</a></li>
+        
+        <li><a href='4c33ebdcd69e691c0daf5a0418ceca63.html'><span class='node-icon _icon-UMLAssociation'></span>(QuaternionEKF—AnalyticMeasurementModelGaussianUncertainty)</a></li>
+        
+        <li><a href='2646ff6df31f1f4fe04b606c0dc2bd5d.html'><span class='node-icon _icon-UMLAssociation'></span>(QuaternionEKF—ExtendedKalmanFilter)</a></li>
+        
+    </ul>
+</section>
+
+
+
+            <!-- Owned Elements -->
+
+            
+            
+<section class="element-list">
+    <h3>Owned Elements</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='1dec491dfa8886d1a303a6dfa6ff3741.html'><span class='node-icon _icon-UMLGeneralization'></span>(QuaternionEKF→IEstimator)</a></li>
+        
+        <li><a href='4c33ebdcd69e691c0daf5a0418ceca63.html'><span class='node-icon _icon-UMLAssociation'></span>(QuaternionEKF—AnalyticMeasurementModelGaussianUncertainty)</a></li>
+        
+        <li><a href='2646ff6df31f1f4fe04b606c0dc2bd5d.html'><span class='node-icon _icon-UMLAssociation'></span>(QuaternionEKF—ExtendedKalmanFilter)</a></li>
+        
+    </ul>
+</section>
+
+
+
+        </div>
+    </body>
+</html>

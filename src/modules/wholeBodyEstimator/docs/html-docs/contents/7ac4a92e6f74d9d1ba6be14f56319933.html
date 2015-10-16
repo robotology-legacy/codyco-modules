@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>WholeBodyEstimatorThread</title>
+        <!-- <script src="http://use.edgefonts.net/source-sans-pro;source-code-pro.js"></script> -->
+<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,300italic,400italic,700italic|Source+Code+Pro:300,400,700' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="../assets/css/bootstrap.css">
+<link rel="stylesheet" href="../assets/css/jquery.bonsai.css">
+<link rel="stylesheet" href="../assets/css/main.css">
+<link rel="stylesheet" href="../assets/css/icons.css">
+<script type="text/javascript" src="../assets/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript" src="../assets/js/bootstrap.js"></script>
+<script type="text/javascript" src="../assets/js/jquery.bonsai.js"></script>
+<!-- <script type="text/javascript" src="../assets/js/main.js"></script> -->
+
+    </head>
+    <body>
+        <div>
+
+            <!-- Name Title -->
+
+            <h1>WholeBodyEstimatorThread</h1>
+
+            <!-- Type and Stereotype -->
+
+            <section style="margin-top: .5em;">
+                <span class="alert alert-info">
+                    <span class="node-icon _icon-UMLClass"></span>
+                    UMLClass
+                </span>
+                
+            </section>
+
+            <!-- Path -->
+
+            <section style="margin-top: 10px">
+                
+                
+                
+                    
+                    <span class="label label-info"><a href='cf9c8b720f3815adeccaf3ef6e48c6c4.html'><span class='node-icon _icon-Project'></span>Untitled</a></span>
+                
+                    <span>::</span>
+                    <span class="label label-info"><a href='594af663de577680f35b13183109d675.html'><span class='node-icon _icon-UMLModel'></span>wholeBodyEstimator</a></span>
+                
+                    <span>::</span>
+                    <span class="label label-info"><a href='7ac4a92e6f74d9d1ba6be14f56319933.html'><span class='node-icon _icon-UMLClass'></span>WholeBodyEstimatorThread</a></span>
+                
+            </section>
+
+            <!-- Diagram -->
+
+            
+
+            <!-- Description -->
+
+            
+            <section>
+                <h3>Description</h3>
+                <div>
+                    
+                        <span class="label label-info">none</span>
+                    
+                </div>
+            </section>
+            
+
+            <!-- Specification -->
+
+            
+
+            <!-- Directed Relationship -->
+
+            
+
+            <!-- Undirected Relationship -->
+
+            
+
+            <!-- Classifier -->
+
+            
+                
+                
+
+
+                
+                
+
+
+                
+                
+
+
+                
+                
+
+
+                
+                
+
+            
+
+            <!-- Interface -->
+
+            
+
+            <!-- Component -->
+
+            
+
+            <!-- Node -->
+
+            
+
+            <!-- Actor -->
+
+            
+
+            <!-- Use Case -->
+
+            
+
+            <!-- Template Parameters -->
+
+            
+
+            <!-- Literals -->
+
+            
+
+            <!-- Attributes -->
+
+            
+            <section>
+                <h3>Attributes</h3>
+                <table class="table table-striped table-bordered">
+                    <tr>
+                        <th>Visibility</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                    
+                    <tr>
+                        <td>private</td>
+                        <td><a href="978395459282a3f05f938d57a1d3d509.html">m_filter_params</a></td>
+                        <td>Property</td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>private</td>
+                        <td><a href="1b82c59b5236f0181e19ba1f7154ea36.html">m_model_params</a></td>
+                        <td>Property</td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>private</td>
+                        <td><a href="75808557e17c19fd11ef45d8100e9da7.html">m_wbSensorsInstance</a></td>
+                        <td>yarpWholeBodySensors</td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>private</td>
+                        <td><a href="3890c0d3929c8df47d1f22ca920b5fc7.html">m_quaternionEKFInstance</a></td>
+                        <td><a href='a63abca5b6dce481aaad27c573ff24e7.html'>IEstimator</a></td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>private</td>
+                        <td><a href="bdb85dc85382b2c76a33c0fb2c36e887.html">m_singleLeggedOdometryInstance</a></td>
+                        <td><a href='a63abca5b6dce481aaad27c573ff24e7.html'>IEstimator</a></td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>private</td>
+                        <td><a href="39e51c42436fc70f47247ad96e5c049b.html">m_rfCopy</a></td>
+                        <td><a href='8bcce58be29bcc44405f0239f34b065e.html'>ResourceFinder</a></td>
+                        <td></td>
+                    </tr>
+                    
+                </table>
+            </section>
+            
+
+            <!-- Operations -->
+
+            
+            <section>
+                <h3>Operations</h3>
+                <table class="table table-striped table-bordered">
+                    <tr>
+                        <th>Visibility</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                    </tr>
+                    
+                    <tr>
+                        <td>public</td>
+                        <td><a href="166ae0f9ffd968c9e3005b39ebda0f88.html">wholeBodyEstimatorThread(rf: ResourceFinder, period: int)</a></td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>public</td>
+                        <td><a href="393c5b41f8eb9deab9cbd3c784b097c7.html">threadInit(): bool</a></td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>public</td>
+                        <td><a href="629ac7bbaa6aa18879eb04aa25114c3e.html">run()</a></td>
+                        <td></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>public</td>
+                        <td><a href="2b6c773bad8a38778569db2eafb96909.html">threadRelease()</a></td>
+                        <td></td>
+                    </tr>
+                    
+                </table>
+            </section>
+            
+
+            <!-- Receptions -->
+
+            
+
+            <!-- Extension Points -->
+
+            
+
+            <!-- Parameters -->
+
+            
+
+            <!-- Diagrams -->
+
+            
+            
+
+            <!-- Behavior -->
+
+            
+
+            <!-- Action -->
+
+            
+
+            <!-- Interaction -->
+
+            
+
+            <!-- CombinedFragment -->
+
+            
+
+            <!-- Activity -->
+
+            
+
+            <!-- State Machine -->
+
+            
+
+            <!-- State Machine -->
+
+            
+
+            <!-- State -->
+
+            
+
+            <!-- Vertex -->
+
+            
+
+            <!-- Transition -->
+
+            
+
+            <!-- Properties -->
+
+            <section>
+                <h3>Properties</h3>
+                
+                <table class="table table-striped table-bordered">
+    <tr>
+        <th width="50%">Name</th>
+        <th width="50%">Value</th>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>name</td>
+        <td>WholeBodyEstimatorThread</td>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>stereotype</td>
+        <td><span class='label label-info'>null</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>visibility</td>
+        <td>public</td>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>isAbstract</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isFinalSpecialization</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isLeaf</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isActive</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+</table>                
+
+            </section>
+
+            <!-- Tags -->
+
+            
+
+            <!-- Constraints, Dependencies, Dependants -->
+
+            
+                
+                
+
+
+                
+                
+
+
+                
+                
+
+            
+
+            <!-- Relationships -->
+
+            
+            
+<section class="element-list">
+    <h3>Relationships</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='3e0417f9565fb03bf196425e94ba4b17.html'><span class='node-icon _icon-UMLAssociation'></span>wholeBodyEstimatorThread (WholeBodyEstimatorModule—WholeBodyEstimatorThread)</a></li>
+        
+        <li><a href='6bc4dd84b2e8966514977443cdc38fc1.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—BFL)</a></li>
+        
+        <li><a href='de93d912154b669ed5ac9c930b407f9f.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—Matrix_Wrapper)</a></li>
+        
+        <li><a href='a25bbfe442f7296ff5ecfc2ebd5253cb.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—ExtendedKalmanFilter)</a></li>
+        
+        <li><a href='6419118775b253b34d3c890b3e613b89.html'><span class='node-icon _icon-UMLAssociation'></span>m_filter (WholeBodyEstimatorThread—ExtendedKalmanFilter)</a></li>
+        
+        <li><a href='868508478542bf8e2f4c7ebfc745be4b.html'><span class='node-icon _icon-UMLAssociation'></span>m_meas_model (WholeBodyEstimatorThread—AnalyticMeasurementModelGaussianUncertainty)</a></li>
+        
+        <li><a href='e562329089807891793b3a25d18b879d.html'><span class='node-icon _icon-UMLAssociation'></span>m_sys_model (WholeBodyEstimatorThread—AnalyticSystemModelGaussianUncertainty)</a></li>
+        
+        <li><a href='17cacaa72f0bbdb3cdc6902d3096f1dc.html'><span class='node-icon _icon-UMLAssociation'></span>m_measPdf (WholeBodyEstimatorThread—nonLinearMeasurementGaussianPdf)</a></li>
+        
+        <li><a href='347ba5de06332bc8d75ae9a6c5a87231.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—nonLinearAnalyticConditionalGaussian)</a></li>
+        
+        <li><a href='ebe2804d51871f7f49be68664246ce56.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—ColumnVector)</a></li>
+        
+        <li><a href='d1102aa6062ef5f2200cb9e5e9e47cd5.html'><span class='node-icon _icon-UMLAssociation'></span>m_prior (WholeBodyEstimatorThread—Gaussian)</a></li>
+        
+        <li><a href='cf20abab177b12407e56bef8efa92ede.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—SingleLeggedOdometry)</a></li>
+        
+        <li><a href='cb68d2687e9b262b348c0d246a8cd9ab.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—QuaternionEKF)</a></li>
+        
+        <li><a href='923622e01bd9cdfcd5126082c227e034.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—RigidBodyQuaternionEKF)</a></li>
+        
+        <li><a href='e160beb47b2385ae004c6806c0f48169.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—yarpWholeBodySensors)</a></li>
+        
+    </ul>
+</section>
+
+
+
+            <!-- Owned Elements -->
+
+            
+            
+<section class="element-list">
+    <h3>Owned Elements</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='3e0417f9565fb03bf196425e94ba4b17.html'><span class='node-icon _icon-UMLAssociation'></span>wholeBodyEstimatorThread (WholeBodyEstimatorModule—WholeBodyEstimatorThread)</a></li>
+        
+        <li><a href='6bc4dd84b2e8966514977443cdc38fc1.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—BFL)</a></li>
+        
+        <li><a href='de93d912154b669ed5ac9c930b407f9f.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—Matrix_Wrapper)</a></li>
+        
+        <li><a href='a25bbfe442f7296ff5ecfc2ebd5253cb.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—ExtendedKalmanFilter)</a></li>
+        
+        <li><a href='6419118775b253b34d3c890b3e613b89.html'><span class='node-icon _icon-UMLAssociation'></span>m_filter (WholeBodyEstimatorThread—ExtendedKalmanFilter)</a></li>
+        
+        <li><a href='868508478542bf8e2f4c7ebfc745be4b.html'><span class='node-icon _icon-UMLAssociation'></span>m_meas_model (WholeBodyEstimatorThread—AnalyticMeasurementModelGaussianUncertainty)</a></li>
+        
+        <li><a href='e562329089807891793b3a25d18b879d.html'><span class='node-icon _icon-UMLAssociation'></span>m_sys_model (WholeBodyEstimatorThread—AnalyticSystemModelGaussianUncertainty)</a></li>
+        
+        <li><a href='17cacaa72f0bbdb3cdc6902d3096f1dc.html'><span class='node-icon _icon-UMLAssociation'></span>m_measPdf (WholeBodyEstimatorThread—nonLinearMeasurementGaussianPdf)</a></li>
+        
+        <li><a href='347ba5de06332bc8d75ae9a6c5a87231.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—nonLinearAnalyticConditionalGaussian)</a></li>
+        
+        <li><a href='ebe2804d51871f7f49be68664246ce56.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—ColumnVector)</a></li>
+        
+        <li><a href='d1102aa6062ef5f2200cb9e5e9e47cd5.html'><span class='node-icon _icon-UMLAssociation'></span>m_prior (WholeBodyEstimatorThread—Gaussian)</a></li>
+        
+        <li><a href='cf20abab177b12407e56bef8efa92ede.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—SingleLeggedOdometry)</a></li>
+        
+        <li><a href='cb68d2687e9b262b348c0d246a8cd9ab.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—QuaternionEKF)</a></li>
+        
+        <li><a href='923622e01bd9cdfcd5126082c227e034.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—RigidBodyQuaternionEKF)</a></li>
+        
+        <li><a href='e160beb47b2385ae004c6806c0f48169.html'><span class='node-icon _icon-UMLAssociation'></span>(WholeBodyEstimatorThread—yarpWholeBodySensors)</a></li>
+        
+    </ul>
+</section>
+
+
+
+        </div>
+    </body>
+</html>
