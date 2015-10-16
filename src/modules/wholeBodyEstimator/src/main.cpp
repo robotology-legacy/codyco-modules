@@ -36,7 +36,8 @@ int main(int argc, char* argv[])
     if (!yarpNetwork.checkNetwork(timeout))
     {
         yError("YARP Network is not available. The module will shut down now...");
-        return -1;
+        // Standardized exit code
+        return 1;
     }
     
     WholeBodyEstimatorModule module;
