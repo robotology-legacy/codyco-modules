@@ -23,6 +23,7 @@
 class IEstimator
 {
 public:
+    virtual ~IEstimator() = 0;
     virtual bool init(yarp::os::ResourceFinder &rf) = 0;
     virtual void run() = 0;
     virtual void release() = 0;

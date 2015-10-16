@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Fondazione Istituto Italiano di Tecnologia - Italian Institute of Technology
- * Author: Jorhabib Eljaik
- * email:  jorhabib.eljaik@iit.it
+ * Authors: Silvio Traversaro, Jorhabib Eljaik
+ * email: silvio(dot)traversaro(at)iit(dot)it, jorhabib(dot)eljaik(at)iit(dot)it
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
