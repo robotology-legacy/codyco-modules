@@ -15,18 +15,24 @@
  * Public License for more details
  */
 
-#ifndef _IESTIMATOR_H_
-#define _IESTIMATOR_H_
+#ifndef IESTIMATOR_H
+#define IESTIMATOR_H
 
 #include <yarp/os/ResourceFinder.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 
 class IEstimator
 {
 public:
+    // The open and close braces {} are mandatory for this to compile.
+    IEstimator(wbi::iWholeBodySensors *wbs){};
     virtual ~IEstimator() = 0;
     virtual bool init(yarp::os::ResourceFinder &rf) = 0;
     virtual void run() = 0;
     virtual void release() = 0;
 };
+
+#include "LeggedOdometry.h"
+#include "QuaternionEKF.h"
 
 #endif

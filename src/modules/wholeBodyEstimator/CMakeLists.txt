@@ -24,12 +24,12 @@ file(GLOB source_dir    src/main.cpp
                         src/WholeBodyEstimatorThread.cpp
                         src/IDestructors.cpp
                         src/QuaternionEKF.cpp
-                        src/SingleLeggedOdometry.cpp)
+                        src/LeggedOdometry.cpp)
 file(GLOB header_dir    include/WholeBodyEstimatorModule.h
 	                    include/WholeBodyEstimatorThread.h
                         include/IEstimator.h
                         include/QuaternionEKF.h
-                        include/SingleLeggedOdometry.h)
+                        include/LeggedOdometry.h)
 
 source_group("Source Files" FILES ${source_dir})
 source_group("Header Files" FILES ${header_dir})
@@ -60,7 +60,8 @@ target_link_libraries(${PROJECTNAME}
 	                  ${YARP_LIBRARIES}
 				      ${MATRIX_LIBS}
                       ${wholeBodyInterface_LIBRARIES}
-                      ${yarpWholeBodyInterface_LIBRARIES})
+                      ${yarpWholeBodyInterface_LIBRARIES}
+                      ${iDynTree_LIBRARIES})
 
 if(WIN32)
 INSTALL_TARGETS(/bin/Release ${PROJECTNAME})
