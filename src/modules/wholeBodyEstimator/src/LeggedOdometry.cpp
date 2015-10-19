@@ -25,7 +25,7 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     yarp::os::Bottle & odometry_group = rf.findGroup("SIMPLE_LEGGED_ODOMETRY");
     
     // Module name
-    yarp::os::Bottle module_params = rf.findGroup("MODULE_PARAMETERS");
+    yarp::os::Bottle & module_params = rf.findGroup("MODULE_PARAMETERS");
     m_module_name = module_params.find("name").asString();
     
     if( odometry_group.isNull()  )
@@ -72,8 +72,20 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     
     // ######################### PREPARING ARGUMENTS FOR iDynTree object creation ########################
     
+    // Retrieving URDF
+    yarp::os::Property yarpWbiOptions;
+    //Get wbi options from the canonical file
+    if( !rf.check("wbi_conf_file") )
+    {
+        yError("[LeggedOdometry] Impossible to initialize LeggedOdometry: wbi_conf_file option missing");
+        return false;
+    }
+    std::string wbiConfFile = rf.findFile("wbi_conf_file");
+    yarpWbiOptions.fromConfigFile(wbiConfFile);
+
+    
     // URDF File Path
-    std::string urdf_file = rf.find("urdf").asString().c_str();
+    std::string urdf_file = yarpWbiOptions.find("urdf").asString().c_str();
     std::string urdf_file_path = rf.findFileByName(urdf_file.c_str());
     
     // DOF Serialization
@@ -100,7 +112,7 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     // iCub Tree model
     KDL::Tree icub_kdl;
     bool ret;
-    ret = iDynTree::treeFromUrdfFile(urdf_file, icub_kdl);
+    ret = iDynTree::treeFromUrdfFile(urdf_file_path, icub_kdl);
     if( !ret )
     {
         yError() << " LeggedOdometry: error in parsing URDF";
@@ -110,7 +122,7 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     // ft_names
     //Construct F/T sensor name list from URDF gazebo extensions
     std::vector< ::iDynTree::FTSensorData > ft_sensors;
-    ret = ::iDynTree::ftSensorsFromUrdfFile(urdf_file, ft_sensors);
+    ret = ::iDynTree::ftSensorsFromUrdfFile(urdf_file_path, ft_sensors);
     
     if( !ret )
     {
@@ -296,7 +308,7 @@ void LeggedOdometry::run()
         odometry_helper.setJointsState(joint_status.getJointPosKDL(),
                                        joint_status.getJointVelKDL(),
                                        joint_status.getJointAccKDL());
-        
+        w
         // Get floating base position in the world
         KDL::Frame world_H_floatingbase_kdl = odometry_helper.getWorldFrameTransform(this->odometry_floating_base_frame_index);
         

@@ -47,10 +47,12 @@ class WholeBodyEstimatorThread: public yarp::os::RateThread
 private:
     IEstimator* m_quaternionEKFInstance;
     IEstimator* m_floatingBaseLeggedOdometry;
-    wbi::iWholeBodySensors* m_wbs;
+    
+    // Variables for LeggedOdometry
+    wbi::iWholeBodySensors*  m_wbs;
     yarp::os::ResourceFinder m_rfCopy;
 public:
-    WholeBodyEstimatorThread (yarp::os::ResourceFinder &rf, int period);
+    WholeBodyEstimatorThread (yarp::os::ResourceFinder &rf, wbi::iWholeBodySensors* wbs, int period);
     bool threadInit();
     void run();
     void threadRelease();

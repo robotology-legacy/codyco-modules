@@ -4,6 +4,7 @@
 #include "WholeBodyEstimatorThread.h"
 
 using namespace yarp::os;
+using namespace yarpWbi;
 
 WholeBodyEstimatorModule::WholeBodyEstimatorModule()
 {
@@ -12,7 +13,6 @@ WholeBodyEstimatorModule::WholeBodyEstimatorModule()
 
 bool WholeBodyEstimatorModule::configure(ResourceFinder &rf) 
 {
-    bool ret = false;
     
     if (!rf.check("MODULE_PARAMETERS"))
     {
@@ -24,22 +24,43 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
         yInfo(" [WholeBodyEstimatorModule::configure] MODULE_PARAMS group contents are: %s ", m_module_params.toString().c_str());
         
         m_period = m_module_params.find("period").asInt();
-        ret = true;
+        m_module_name = m_module_params.find("name").asString();
+    }
+    
+    std::string wbiConfFile;
+    yarp::os::Property yarpWbiOptions;
+    if (!rf.check("wbi_conf_file"))
+    {
+        yError("WBI configuration file name not specified in config file of this module.");
+        return false;
+    } else
+    {
+        wbiConfFile = rf.findFile("wbi_conf_file");
+        yarpWbiOptions.fromConfigFile(wbiConfFile);
+    }
+    
+    yarpWholeBodySensors* wbs = new yarpWholeBodySensors(m_module_name.c_str(), yarpWbiOptions);
+    
+    // Configure yarpWholeBodySensors before passing it to WholeBodyEstimatorThread
+    
+    m_estimatorThread = new WholeBodyEstimatorThread(rf, wbs, m_period);
+    if (!m_estimatorThread->start())
+    {
+        yError("[WholeBodyEstimatorModule::configure] Couldn't start thread!");
+        return false;
     }
 
-    m_estimatorThread = new WholeBodyEstimatorThread(rf, m_period);
-    
-    return ret;
+    return true;
 }
 
 bool WholeBodyEstimatorModule::updateModule()
 {
-    bool ret = false;
+    bool ret = true;
     return ret;
 }
 
 bool WholeBodyEstimatorModule::close()
 {
-    bool ret = false;
+    bool ret = true;
     return ret;
 }
