@@ -21,6 +21,7 @@
 #include "IEstimator.h"
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/ResourceFinder.h>
+#include <yarp/os/Contactable.h>
 
 #include <iCub/iDynTree/DynTree.h>
 #include <iCub/iDynTree/TorqueEstimationTree.h>
@@ -54,11 +55,11 @@ class LeggedOdometry : public IEstimator
         bool com_streaming_enabled;
         yarp::os::BufferedPort<yarp::sig::Vector> * port_com;
         std::string current_fixed_link_name;
-    
+
         iCub::iDynTree::DynTree *icub_model;
         wbi::iWholeBodySensors *m_sensors;
         iDynTree::RobotJointStatus joint_status;
-    
+
         std::string m_module_name; 
     public:
          LeggedOdometry();
@@ -80,7 +81,11 @@ class LeggedOdometry : public IEstimator
           * From the base class. Does the job of closeOdometry() in wholeBodyDynamicsTree.
           **/
          void release();
-    
+
+         /**
+          * Closes a single port properly.
+          */
+         void closePort(yarp::os::Contactable *_port);
 };
 
 #endif /* LeggedOdometry */

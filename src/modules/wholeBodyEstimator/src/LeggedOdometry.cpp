@@ -350,5 +350,30 @@ if( this->odometry_enabled )
 
 void LeggedOdometry::release()
 {
+    if( this->odometry_enabled )
+    {
+        closePort(port_floatingbasestate);
+    }
     
+    if( this->frames_streaming_enabled )
+    {
+        closePort(port_frames);
+    }
+    
+    if( this->com_streaming_enabled )
+    {
+        closePort(port_com);
+    }
+}
+
+void LeggedOdometry::closePort(Contactable *_port)
+{
+    if (_port)
+    {
+        _port->interrupt();
+        _port->close();
+        
+        delete _port;
+        _port = 0;
+    }
 }
