@@ -32,6 +32,8 @@
 #include <yarp/os/Time.h>
 #include <yarp/sig/Vector.h>
 
+#include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
+
 #include "quaternionEKF.h"
 
 #include <iomanip> //setw
@@ -43,12 +45,15 @@
 class WholeBodyEstimatorThread: public yarp::os::RateThread
 {
 private:
-    IEstimator* quaternionEKFInstance;
+    IEstimator* m_quaternionEKFInstance;
+    IEstimator* m_floatingBaseLeggedOdometry;
+    wbi::iWholeBodySensors* m_wbs;
+    yarp::os::ResourceFinder m_rfCopy;
 public:
     WholeBodyEstimatorThread (yarp::os::ResourceFinder &rf, int period);
-	bool threadInit();
-	void run();
-	void threadRelease();
+    bool threadInit();
+    void run();
+    void threadRelease();
 };
 
 #endif

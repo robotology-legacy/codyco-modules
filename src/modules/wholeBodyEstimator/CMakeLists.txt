@@ -57,8 +57,8 @@ add_executable(${PROJECTNAME} ${source_dir} ${header_dir})
 
 target_link_libraries(${PROJECTNAME}
                       ${OROCOS_BFL_LIBRARIES}
-	                  ${YARP_LIBRARIES}
-				      ${MATRIX_LIBS}
+                      ${YARP_LIBRARIES}
+                      ${MATRIX_LIBS}
                       ${wholeBodyInterface_LIBRARIES}
                       ${yarpWholeBodyInterface_LIBRARIES}
                       ${iDynTree_LIBRARIES})

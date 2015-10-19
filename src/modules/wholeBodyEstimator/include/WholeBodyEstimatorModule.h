@@ -21,19 +21,21 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/os/RFModule.h>
+#include <yarp/os/Property.h>
 #include "WholeBodyEstimatorThread.h"
 
 
 class WholeBodyEstimatorModule: public yarp::os::RFModule {
 private:
-	double							m_period;
-	WholeBodyEstimatorThread		*wholeBodyEstimatorThread;
+    yarp::os::Property              m_module_params;
+    double                          m_period;
+    WholeBodyEstimatorThread        *m_estimatorThread;
 public:
-	WholeBodyEstimatorModule();
-	bool configure(yarp::os::ResourceFinder &rf);
-	double getPeriod(){ return m_period;}
-	bool updateModule();
-	bool close();
+    WholeBodyEstimatorModule();
+    bool configure(yarp::os::ResourceFinder &rf);
+    double getPeriod(){ return m_period;}
+    bool updateModule();
+    bool close();
 };
 
 #endif
