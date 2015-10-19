@@ -25,8 +25,10 @@
 #include <iCub/iDynTree/DynTree.h>
 #include <iCub/iDynTree/TorqueEstimationTree.h>
 #include <iDynTree/Estimation/simpleLeggedOdometry.h>
+#include <iDynTree/Estimation/robotStatus.h>
 #include <iDynTree/ModelIO/impl/urdf_import.hpp>
 #include <iDynTree/ModelIO/impl/urdf_sensor_import.hpp>
+#include <iCub/iDynTree/yarp_kdl.h>
 #include <wbi/wbi.h>
 
 #include <yarp/os/LogStream.h>
@@ -55,7 +57,9 @@ class LeggedOdometry : public IEstimator
     
         iCub::iDynTree::DynTree *icub_model;
         wbi::iWholeBodySensors *m_sensors;
-        //RobotJointStatus joint_status;
+        iDynTree::RobotJointStatus joint_status;
+    
+        std::string m_module_name; 
     public:
          LeggedOdometry();
 

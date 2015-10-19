@@ -23,6 +23,7 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     
     // ########################## ODOMETRY PARAMETERS PARSING ########################################
     yarp::os::Bottle & odometry_group = rf.findGroup("SIMPLE_LEGGED_ODOMETRY");
+    m_module_name = rf.check("moduleName");
     
     if( odometry_group.isNull()  )
     {
@@ -122,8 +123,7 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
         if( 0 == ft_sensors.size() )
         {
             std::cerr << "[ERR] LeggedOdometry: ft sensor " << ft_serialization[serialization_id] << " not found in model file." << std::endl;
-            assert(false);
-            return;
+            return false;
         }
         for(std::size_t ft_sens=0; ft_sens < ft_sensors.size(); ft_sens++ )
         {
@@ -153,8 +153,7 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
             if( ft_sens == ft_sensors.size() -1 )
             {
                 std::cerr << "[ERR] LeggedOdometry: ft sensor " << ft_sens_name << " not found in model file." << std::endl;
-                assert(false);
-                return;
+                return false;
             }
         }
     }
@@ -224,6 +223,9 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     floatingbase_twist.resize(6,0.0);
     floatingbase_acctwist.resize(6,0.0);
     
+    joint_status.setNrOfDOFs(icub_model->getNrOfDOFs());
+    icub_model->setAng(joint_status.getJointPosYARP());
+    
     // Get id of frames to stream
     if( this->frames_streaming_enabled )
     {
@@ -263,87 +265,87 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     
     
     
-//    // Open ports
-//    port_floatingbasestate = new BufferedPort<Bottle>;
-//    port_floatingbasestate->open(string("/"+moduleName+"/floatingbasestate:o"));
-//    
-//    if( this->com_streaming_enabled )
-//    {
-//        port_com = new BufferedPort<Vector>;
-//        port_com->open(string("/"+moduleName+"/com:o"));
-//    }
-//    
-//    if( this->frames_streaming_enabled )
-//    {
-//        port_frames = new BufferedPort<Property>;
-//        port_frames->open(string("/"+moduleName+"/frames:o"));
-//    }
-//
+    // Open ports
+    port_floatingbasestate = new BufferedPort<Bottle>;
+    port_floatingbasestate->open(std::string("/"+m_module_name+"/floatingbasestate:o"));
+    
+    if( this->com_streaming_enabled )
+    {
+        port_com = new BufferedPort<Vector>;
+        port_com->open(std::string("/"+m_module_name+"/com:o"));
+    }
+    
+    if( this->frames_streaming_enabled )
+    {
+        port_frames = new BufferedPort<Property>;
+        port_frames->open(std::string("/"+m_module_name+"/frames:o"));
+    }
+
     return true;
 }
 
 void LeggedOdometry::run()
 {
-//if( this->odometry_enabled )
-//{
-//    // Read joint position, velocity and accelerations into the odometry helper model
-//    // This could be avoided by using the same geometric model
-//    // for odometry, force/torque estimation and sensor force/torque calibration
-//    odometry_helper.setJointsState(joint_status.getJointPosKDL(),
-//                                   joint_status.getJointVelKDL(),
-//                                   joint_status.getJointAccKDL());
-//    
-//    // Get floating base position in the world
-//    KDL::Frame world_H_floatingbase_kdl = odometry_helper.getWorldFrameTransform(this->odometry_floating_base_frame_index);
-//    
-//    // Publish the floating base position on the port
-//    KDLtoYarp_position(world_H_floatingbase_kdl,this->world_H_floatingbase);
-//    
-//    yarp::os::Bottle & bot = port_floatingbasestate->prepare();
-//    bot.clear();
-//    bot.addList().read(this->world_H_floatingbase);
-//    bot.addList().read(this->floatingbase_twist);
-//    bot.addList().read(this->floatingbase_acctwist);
-//    
-//    port_floatingbasestate->write();
-//    
-//    
-//    if( this->com_streaming_enabled )
-//    {
-//        // Stream com in world frame
-//        KDL::Vector com = odometry_helper.getDynTree().getCOMKDL();
-//        
-//        yarp::sig::Vector & com_to_send = port_com->prepare();
-//        com_to_send.resize(3);
-//        
-//        KDLtoYarp(com,com_to_send);
-//        
-//        port_com->write();
-//    }
-//    
-//    if( this->frames_streaming_enabled )
-//    {
-//        // Stream frames in a property (highly inefficient! clean as soon as possible)
-//        Property& output = port_frames->prepare();
-//        
-//        for(int i =0; i < frames_to_stream.size(); i++ )
-//        {
-//            KDL::Frame frame_to_publish = odometry_helper.getWorldFrameTransform(frames_to_stream_indices[i]);
-//            
-//            KDLtoYarp_position(frame_to_publish,buffer_transform_matrix);
-//            
-//            buffer_bottles[i].get(0).asList()->read(buffer_transform_matrix);
-//            output.put(frames_to_stream[i].c_str(),buffer_bottles[i].get(0));
-//        }
-//        
-//        port_frames->write();
-//    }
-//    
-//    // save the current link considered as fixed by the odometry
-//    current_fixed_link_name = odometry_helper.getCurrentFixedLink();
-//}
-//
-//    
+if( this->odometry_enabled )
+{
+    // Read joint position, velocity and accelerations into the odometry helper model
+    // This could be avoided by using the same geometric model
+    // for odometry, force/torque estimation and sensor force/torque calibration
+    odometry_helper.setJointsState(joint_status.getJointPosKDL(),
+                                   joint_status.getJointVelKDL(),
+                                   joint_status.getJointAccKDL());
+    
+    // Get floating base position in the world
+    KDL::Frame world_H_floatingbase_kdl = odometry_helper.getWorldFrameTransform(this->odometry_floating_base_frame_index);
+    
+    // Publish the floating base position on the port
+    KDLtoYarp_position(world_H_floatingbase_kdl,this->world_H_floatingbase);
+    
+    yarp::os::Bottle & bot = port_floatingbasestate->prepare();
+    bot.clear();
+    bot.addList().read(this->world_H_floatingbase);
+    bot.addList().read(this->floatingbase_twist);
+    bot.addList().read(this->floatingbase_acctwist);
+    
+    port_floatingbasestate->write();
+    
+    
+    if( this->com_streaming_enabled )
+    {
+        // Stream com in world frame
+        KDL::Vector com = odometry_helper.getDynTree().getCOMKDL();
+        
+        yarp::sig::Vector & com_to_send = port_com->prepare();
+        com_to_send.resize(3);
+        
+        KDLtoYarp(com,com_to_send);
+        
+        port_com->write();
+    }
+    
+    if( this->frames_streaming_enabled )
+    {
+        // Stream frames in a property (highly inefficient! clean as soon as possible)
+        Property& output = port_frames->prepare();
+        
+        for(int i =0; i < frames_to_stream.size(); i++ )
+        {
+            KDL::Frame frame_to_publish = odometry_helper.getWorldFrameTransform(frames_to_stream_indices[i]);
+            
+            KDLtoYarp_position(frame_to_publish,buffer_transform_matrix);
+            
+            buffer_bottles[i].get(0).asList()->read(buffer_transform_matrix);
+            output.put(frames_to_stream[i].c_str(),buffer_bottles[i].get(0));
+        }
+        
+        port_frames->write();
+    }
+    
+    // save the current link considered as fixed by the odometry
+    current_fixed_link_name = odometry_helper.getCurrentFixedLink();
+}
+
+    
 }
 
 void LeggedOdometry::release()
