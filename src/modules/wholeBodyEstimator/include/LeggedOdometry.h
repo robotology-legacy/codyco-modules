@@ -14,8 +14,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
  */
-#ifndef _LEGGEDODOMETRY_H_
-#define _LEGGEDODOMETRY_H_
+#ifndef LEGGEDODOMETRY_H_
+#define LEGGEDODOMETRY_H_
 
 
 #include "IEstimator.h"
@@ -55,15 +55,16 @@ class LeggedOdometry : public IEstimator
     
         iCub::iDynTree::DynTree *icub_model;
         wbi::iWholeBodySensors *m_sensors;
+        //RobotJointStatus joint_status;
     public:
-         LeggedOdometry(iWholeBodySensors *wbs);
+         LeggedOdometry();
 
          ~LeggedOdometry();
 
          /** 
           * From the base class. Does the same job as initOdemetry() in wholeBodyDynamicsTree.
           **/
-         bool init(yarp::os::ResourceFinder &rf);
+         bool init(yarp::os::ResourceFinder &rf, wbi::iWholeBodySensors *wbs);
 
          /**
           * Run will be called by the main thread and internally calls getWorldFrameTransform()/

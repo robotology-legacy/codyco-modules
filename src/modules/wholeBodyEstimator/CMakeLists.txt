@@ -26,7 +26,7 @@ file(GLOB source_dir    src/main.cpp
                         src/QuaternionEKF.cpp
                         src/LeggedOdometry.cpp)
 file(GLOB header_dir    include/WholeBodyEstimatorModule.h
-	                    include/WholeBodyEstimatorThread.h
+                        include/WholeBodyEstimatorThread.h
                         include/IEstimator.h
                         include/QuaternionEKF.h
                         include/LeggedOdometry.h)

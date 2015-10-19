@@ -15,8 +15,8 @@
  * Public License for more details
  */
 
-#ifndef _QUATERNIONEKF_H_
-#define _QUATERNIONEKF_H_
+#ifndef QUATERNIONEKF_H_
+#define QUATERNIONEKF_H_
 
 #include <yarp/os/ResourceFinder.h>
 #include "IEstimator.h"

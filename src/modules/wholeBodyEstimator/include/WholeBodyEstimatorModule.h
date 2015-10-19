@@ -15,8 +15,8 @@
  * Public License for more details
  */
 
-#ifndef _WHOLEBODYESTIMATORMODULE_H_
-#define _WHOLEBODYESTIMATORMODULE_H_
+#ifndef WHOLEBODYESTIMATORMODULE_H_
+#define WHOLEBODYESTIMATORMODULE_H_
 
 #include <yarp/os/BufferedPort.h>
 #include <yarp/sig/Vector.h>

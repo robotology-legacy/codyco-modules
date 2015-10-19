@@ -15,8 +15,8 @@
  * Public License for more details
  */
 
-#ifndef _WHOLEBODYESTIMATORTHREAD_H_
-#define _WHOLEBODYESTIMATORTHREAD_H_
+#ifndef WHOLEBODYESTIMATORTHREAD_H_
+#define WHOLEBODYESTIMATORTHREAD_H_
 
 #include <bfl/filter/extendedkalmanfilter.h>
 #include <bfl/model/linearanalyticsystemmodel_gaussianuncertainty.h>
