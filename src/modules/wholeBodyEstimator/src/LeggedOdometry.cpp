@@ -6,10 +6,10 @@
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace wbi;
+using namespace iDynTree;
 
 LeggedOdometry::LeggedOdometry()
 {
-    
 }
 
 LeggedOdometry::~LeggedOdometry()
@@ -238,8 +238,11 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     floatingbase_twist.resize(6,0.0);
     floatingbase_acctwist.resize(6,0.0);
     
-    joint_status.setNrOfDOFs(icub_model->getNrOfDOFs());
-    icub_model->setAng(joint_status.getJointPosYARP());
+    // Joints in icub_model
+    m_joint_status = new iDynTree::RobotJointStatus;
+    m_joint_status->setNrOfDOFs(icub_model->getNrOfDOFs());
+    m_joint_status->zero();
+    icub_model->setAng(m_joint_status->getJointPosYARP());
     
     // Get id of frames to stream
     if( this->frames_streaming_enabled )
@@ -300,14 +303,17 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
 
 void LeggedOdometry::run()
 {
+    
     if( this->odometry_enabled )
     {
+        readRobotStatus();
+        
         // Read joint position, velocity and accelerations into the odometry helper model
         // This could be avoided by using the same geometric model
         // for odometry, force/torque estimation and sensor force/torque calibration
-        odometry_helper.setJointsState(joint_status.getJointPosKDL(),
-                                       joint_status.getJointVelKDL(),
-                                       joint_status.getJointAccKDL());
+        odometry_helper.setJointsState(m_joint_status->getJointPosKDL(),
+                                       m_joint_status->getJointVelKDL(),
+                                       m_joint_status->getJointAccKDL());
         
         // Get floating base position in the world
         KDL::Frame world_H_floatingbase_kdl = odometry_helper.getWorldFrameTransform(this->odometry_floating_base_frame_index);
@@ -360,6 +366,18 @@ void LeggedOdometry::run()
     }
 }
 
+void LeggedOdometry::readRobotStatus()
+{
+    // Last two arguments specify not retrieving timestamps and not to wait to get a sensor measurement
+    if ( !m_sensors->readSensors(wbi::SENSOR_ENCODER_POS, m_joint_status->getJointPosKDL().data.data(), NULL, false) )
+    {
+        yError("[LeggedOdometry::readRobotStatus()] Encoders could not be read!");
+    }
+
+    // Update yarp vectors.
+    m_joint_status->updateYarpBuffers();
+}
+
 void LeggedOdometry::release()
 {
     if( this->odometry_enabled )
@@ -376,6 +394,26 @@ void LeggedOdometry::release()
     {
         closePort(port_com);
     }
+    
+    if ( this->icub_model )
+    {
+        delete icub_model;
+        icub_model = 0;
+    }
+    
+    if ( this->m_sensors )
+    {
+        delete m_sensors;
+        m_sensors = 0;
+    }
+    
+    if ( this->m_joint_status )
+    {
+        delete m_joint_status;
+        m_joint_status = 0;
+    }
+    
+    
 }
 
 void LeggedOdometry::closePort(Contactable *_port)

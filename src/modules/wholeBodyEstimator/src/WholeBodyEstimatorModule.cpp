@@ -41,13 +41,12 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
         yarpWbiOptions.fromConfigFile(wbiConfFile);
     }
     
-    yarpWholeBodySensors* wbs = new yarpWholeBodySensors(m_module_name.c_str(), yarpWbiOptions);
     
     // Configure yarpWholeBodySensors before passing it to WholeBodyEstimatorThread
     // Get model joints list
     std::string modelJointsListName = rf.check("joints_list",
                                                 yarp::os::Value("ROBOT_DYNAMIC_MODEL_JOINTS"),
-                                                "Name of the list of joint used for torque estimation").asString().c_str();
+                                                "Name of the list of joint used for the current robot").asString().c_str();
     if( !loadIdListFromConfig(modelJointsListName,rf,RobotDynamicModelJoints) )
     {
         if( !loadIdListFromConfig(modelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
@@ -57,32 +56,11 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
         }
     }
     
-    // Get FT Sensors list
-    IDList RobotFTSensors;
-    std::string RobotFTSensorsListName = "ROBOT_MAIN_FTS";
-    if( !loadIdListFromConfig(RobotFTSensorsListName,yarpWbiOptions,RobotFTSensors) )
-    {
-        yError("[wholeBodyEstimatorModule::configure] Impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
-        return false;
-    }
-    
-    // Get IMU Sensors
-    //List of IMUs sensors in the robot
-    IDList RobotIMUSensors;
-    std::string RobotIMUSensorsListName = "ROBOT_MAIN_IMUS";
-    if( !loadIdListFromConfig(RobotIMUSensorsListName,yarpWbiOptions,RobotIMUSensors) )
-    {
-        yError("[wholeBodyEstimatorModule::configure] impossible to load wbiId list with name %s\n",RobotFTSensorsListName.c_str());
-        return false;
-    }
-
+    yarpWholeBodySensors* wbs = new yarpWholeBodySensors(m_module_name.c_str(), yarpWbiOptions);
 
     // Adding encoders
     wbs->addSensors(wbi::SENSOR_ENCODER, RobotDynamicModelJoints);
-    // Adding FT Sensors
-    wbs->addSensors(wbi::SENSOR_FORCE_TORQUE, RobotFTSensors);
-    // Adding IMUs
-    wbs->addSensors(wbi::SENSOR_IMU, RobotIMUSensors);
+    
     
     // Initializing sensor interface
     if(!wbs->init())

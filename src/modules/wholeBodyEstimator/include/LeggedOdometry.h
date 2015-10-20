@@ -38,54 +38,59 @@ using namespace wbi;
 
 class LeggedOdometry : public IEstimator
 {
-    private:
-        iDynTree::simpleLeggedOdometry odometry_helper;
-        int odometry_floating_base_frame_index;
-        yarp::sig::Matrix world_H_floatingbase;
-        yarp::sig::Vector floatingbase_twist;
-        yarp::sig::Vector floatingbase_acctwist;
-        bool odometry_enabled;
-        yarp::os::BufferedPort<yarp::os::Bottle> * port_floatingbasestate;
-        bool frames_streaming_enabled;
-        yarp::os::BufferedPort<yarp::os::Property> * port_frames;
-        std::vector<int> frames_to_stream_indices;
-        std::vector<std::string> frames_to_stream;
-        std::vector<yarp::os::Bottle> buffer_bottles;
-        yarp::sig::Matrix buffer_transform_matrix;
-        bool com_streaming_enabled;
-        yarp::os::BufferedPort<yarp::sig::Vector> * port_com;
-        std::string current_fixed_link_name;
+private:
+    iDynTree::simpleLeggedOdometry odometry_helper;
+    int odometry_floating_base_frame_index;
+    yarp::sig::Matrix world_H_floatingbase;
+    yarp::sig::Vector floatingbase_twist;
+    yarp::sig::Vector floatingbase_acctwist;
+    bool odometry_enabled;
+    yarp::os::BufferedPort<yarp::os::Bottle> * port_floatingbasestate;
+    bool frames_streaming_enabled;
+    yarp::os::BufferedPort<yarp::os::Property> * port_frames;
+    std::vector<int> frames_to_stream_indices;
+    std::vector<std::string> frames_to_stream;
+    std::vector<yarp::os::Bottle> buffer_bottles;
+    yarp::sig::Matrix buffer_transform_matrix;
+    bool com_streaming_enabled;
+    yarp::os::BufferedPort<yarp::sig::Vector> * port_com;
+    std::string current_fixed_link_name;
 
-        iCub::iDynTree::DynTree *icub_model;
-        wbi::iWholeBodySensors *m_sensors;
-        iDynTree::RobotJointStatus joint_status;
+    iCub::iDynTree::DynTree *icub_model;
+    wbi::iWholeBodySensors *m_sensors;
+    iDynTree::RobotJointStatus * m_joint_status;
 
-        std::string m_module_name; 
-    public:
-         LeggedOdometry();
+    std::string m_module_name;
+public:
+    LeggedOdometry();
 
-         ~LeggedOdometry();
+    ~LeggedOdometry();
 
-         /** 
-          * From the base class. Does the same job as initOdemetry() in wholeBodyDynamicsTree.
-          **/
-         bool init(yarp::os::ResourceFinder &rf, wbi::iWholeBodySensors *wbs);
+    /** 
+    * From the base class. Does the same job as initOdemetry() in wholeBodyDynamicsTree.
+    **/
+    bool init(yarp::os::ResourceFinder &rf, wbi::iWholeBodySensors *wbs);
 
-         /**
-          * Run will be called by the main thread and internally calls getWorldFrameTransform()/
-          * Does the job of publishOdometry() in wholeBodyDynamicsTree
-          */
-         void run();
+    /**
+    * Run will be called by the main thread and internally calls getWorldFrameTransform()/
+    * Does the job of publishOdometry() in wholeBodyDynamicsTree
+    */
+    void run();
 
-         /**
-          * From the base class. Does the job of closeOdometry() in wholeBodyDynamicsTree.
-          **/
-         void release();
+    /**
+    * From the base class. Does the job of closeOdometry() in wholeBodyDynamicsTree.
+    **/
+    void release();
 
-         /**
-          * Closes a single port properly.
-          */
-         void closePort(yarp::os::Contactable *_port);
+    /**
+    * Closes a single port properly.
+    */
+    void closePort(yarp::os::Contactable *_port);
+
+    /** 
+     * Updates joint_status
+     */
+    void readRobotStatus();
 };
 
 #endif /* LeggedOdometry */

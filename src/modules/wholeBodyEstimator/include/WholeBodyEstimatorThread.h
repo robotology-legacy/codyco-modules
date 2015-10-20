@@ -31,8 +31,10 @@
 #include <yarp/os/ResourceFinder.h>
 #include <yarp/os/Time.h>
 #include <yarp/sig/Vector.h>
+#include <yarp/os/Mutex.h>
 
 #include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
+#include <iDynTree/Estimation/robotStatus.h>
 
 #include "quaternionEKF.h"
 
@@ -51,8 +53,14 @@ private:
     // Variables for LeggedOdometry
     wbi::iWholeBodySensors*  m_wbs;
     yarp::os::ResourceFinder m_rfCopy;
+    iDynTree::RobotJointStatus * m_joint_status;
+    
+    yarp::os::Mutex run_mutex;
+    bool m_run_mutex_acquired;
+
 public:
     WholeBodyEstimatorThread (yarp::os::ResourceFinder &rf, wbi::iWholeBodySensors* wbs, int period);
+//    void readRobotStatus();
     bool threadInit();
     void run();
     void threadRelease();
