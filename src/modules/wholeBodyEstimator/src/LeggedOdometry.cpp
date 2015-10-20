@@ -308,7 +308,7 @@ void LeggedOdometry::run()
         odometry_helper.setJointsState(joint_status.getJointPosKDL(),
                                        joint_status.getJointVelKDL(),
                                        joint_status.getJointAccKDL());
-        w
+        
         // Get floating base position in the world
         KDL::Frame world_H_floatingbase_kdl = odometry_helper.getWorldFrameTransform(this->odometry_floating_base_frame_index);
         
