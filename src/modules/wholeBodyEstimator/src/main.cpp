@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
     
     if(rf.check("help")) {
         printf("\n");
-        printf("\PARAMETERS\n");
+        printf("PARAMETERS\n");
         printf("--period          :[10] Thread period in miliseconds\n.");
         printf("--from            :[wholeBodyEstimator.ini] Name of .ini file for configuration\n");
         printf("--robot           :[icub] Robot name. Other options: icubGazeboSim\n");

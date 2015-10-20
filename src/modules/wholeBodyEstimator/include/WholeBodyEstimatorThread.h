@@ -18,12 +18,6 @@
 #ifndef WHOLEBODYESTIMATORTHREAD_H_
 #define WHOLEBODYESTIMATORTHREAD_H_
 
-#include <bfl/filter/extendedkalmanfilter.h>
-#include <bfl/model/linearanalyticsystemmodel_gaussianuncertainty.h>
-#include <bfl/model/linearanalyticmeasurementmodel_gaussianuncertainty.h>
-#include <bfl/pdf/analyticconditionalgaussian.h>
-#include <bfl/pdf/linearanalyticconditionalgaussian.h>
-
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Property.h>
 #include <yarp/os/Bottle.h>
@@ -36,25 +30,23 @@
 #include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
 #include <iDynTree/Estimation/robotStatus.h>
 
-#include "quaternionEKF.h"
-
 #include <iomanip> //setw
 #include <algorithm> //std::find for parsing lines
-// #include "nonLinearAnalyticConditionalGaussian.h"
-// #include "nonLinearMeasurementGaussianPdf.h"
 #include <yarp/math/Math.h>
+
+#include "IEstimator.h"
 
 class WholeBodyEstimatorThread: public yarp::os::RateThread
 {
 private:
     IEstimator* m_quaternionEKFInstance;
     IEstimator* m_floatingBaseLeggedOdometry;
-    
+
     // Variables for LeggedOdometry
     wbi::iWholeBodySensors*  m_wbs;
     yarp::os::ResourceFinder m_rfCopy;
     iDynTree::RobotJointStatus * m_joint_status;
-    
+
     yarp::os::Mutex run_mutex;
     bool m_run_mutex_acquired;
 
