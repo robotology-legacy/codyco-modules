@@ -1,17 +1,10 @@
 <application>
     <name>iCub v1 Gazebo Simulator</name>
-    <description>Fixture for providing a standing iCub v1 simulator</description>
+    <description>Fixture for providing a standing iCub v1 simulator and a balancing controller in matlab.</description>
     <version>1.0</version>
     <authors>
         <author email="silvio.traversaro@iit.it">Silvio Traversaro</author>
     </authors>
-    <!-- yarpserver is required to run the yarp fixture
-    <module>
-        <name>yarpserver</name>
-        <parameters></parameters>
-        <node>localhost</node>
-    </module>
-    -->
     <module>
         <name>gazebo</name>
         <parameters>icub.world</parameters>
@@ -23,13 +16,21 @@
     <!-- dummy dependency to ensure that gazebo is actually launched when the
          fixture returns -->
     <module>
-        <name>torqueBalancing</name>
-        <parameters></parameters>
+        <name>matlab</name>
+        <parameters>-nodisplay -nodesktop -nojvm -r "runWBIToolboxController('torqueBalancing','torqueBalancing.mdl')"</parameters>
         <node>localhost</node>
         <prefix></prefix>
         <dependency>
             <port timeout="10">/icubGazeboSim/right_leg/state:o</port>
             <port timeout="10">/icubGazeboSim/left_leg/state:o</port>
+        </dependency>
+    </module>
+    
+    <module>
+        <name>yarp</name>
+        <node>localhost</node>
+        <dependency>
+            <port timeout="100">/matlabTorqueBalancing/comDes:i</port>
         </dependency>
     </module>
 

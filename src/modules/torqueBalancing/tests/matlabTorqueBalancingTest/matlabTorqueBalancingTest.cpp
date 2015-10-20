@@ -7,7 +7,7 @@
  *
  */
 
-#include "BalancingTest.h"
+#include "matlabTorqueBalancingTest.h"
 
 #include <rtf/dll/Plugin.h>
 
@@ -22,17 +22,17 @@ using namespace yarp::dev;
 
 
 // prepare the plugin
-PREPARE_PLUGIN(BalancingTest)
+PREPARE_PLUGIN(matlabTorqueBalancingTest)
 
-BalancingTest::BalancingTest() : YarpTestCase("BalancingTest")
+matlabTorqueBalancingTest::matlabTorqueBalancingTest() : YarpTestCase("matlabTorqueBalancingTest")
 {
 }
 
-BalancingTest::~BalancingTest()
+matlabTorqueBalancingTest::~matlabTorqueBalancingTest()
 {
 }
 
-bool BalancingTest::setup(yarp::os::Property &property)
+bool matlabTorqueBalancingTest::setup(yarp::os::Property &property)
 {
     std::cout << "Waiting for gazebo " << std::endl;
     yarp::os::Time::delay(10);
@@ -42,14 +42,23 @@ bool BalancingTest::setup(yarp::os::Property &property)
     if(property.check("name"))
         setName(property.find("name").asString());
 
-    duration = property.find("duration").asDouble();
-    pollingStep = property.find("pollingStep").asDouble();
+    if(property.check("duration"))
+    {
+        duration = property.find("duration").asDouble();
+    }
+    else
+    {
+        duration = 100;
+    }
 
-    // Open rpc connection to torqueBalancing
-    RTF_ASSERT_ERROR_IF(rpcPort.open("/balancingTest/rpc"),
-                        "error in opening rpc port");
-    RTF_ASSERT_ERROR_IF(Network::connect(rpcPort.getName(),"/torqueBalancing/rpc"),
-                        "could not connect to remote port, torqueBalancing module not available");
+    if(property.check("duration"))
+    {
+        pollingStep = property.find("pollingStep").asDouble();
+    }
+    else
+    {
+        pollingStep = 5;
+    }
 
     // Open right leg controlboard
     Property options;
@@ -69,9 +78,7 @@ bool BalancingTest::setup(yarp::os::Property &property)
     return true;
 }
 
-void BalancingTest::tearDown() {
-    Network::disconnect("/balancingTest", rpcPort.getName());
-    rpcPort.close();
+void matlabTorqueBalancingTest::tearDown() {
     monitorDD.close();
 }
 
@@ -84,7 +91,7 @@ bool isEqual(int * data, int size, int testValue) {
     return true;
 }
 
-void BalancingTest::run() {
+void matlabTorqueBalancingTest::run() {
 
     // Allocate vector for control modes
     int nrOfAxes;
@@ -100,41 +107,39 @@ void BalancingTest::run() {
     RTF_ASSERT_ERROR_IF(ctrlMode->getControlModes(controlModes.data()),
                         "error in getControlModes");
 
-    RTF_ASSERT_ERROR_IF(isEqual(controlModes.data(),controlModes.size(),VOCAB_CM_POSITION),
-                        "error : robot leg is not in VOCAB_CM_POSITION before starting the controller");
-
-    RTF_TEST_REPORT("Starting balancing");
-    Bottle cmd;
-    cmd.addString("start");
-    Bottle response;
-    RTF_ASSERT_ERROR_IF(rpcPort.write(cmd,response),
-                        "error in sending start command to torqueBalancing");
-    RTF_TEST_REPORT( Asserter::format("Response to command start : %s",response.toString().c_str()));
-
-
     double initialTimeStamp = yarp::os::Time::now();
     double elapsedTime = 0.0;
+    bool testSuccess = false;
     do
     {
         yarp::os::Time::delay(pollingStep);
 
         RTF_TEST_REPORT("Check control mode");
 
-        RTF_ASSERT_ERROR_IF(isEqual(controlModes.data(),controlModes.size(),VOCAB_CM_TORQUE),
-                        "error : robot leg is not in VOCAB_CM_TORQUE after starting the controller, probably the limit have been reached");
+        if(!isEqual(controlModes.data(),controlModes.size(),VOCAB_CM_TORQUE) )
+        {
+            if( !testSuccess )
+            {
+                RTF_TEST_REPORT("Leg still not in position mode");
+            }
+            else // if testSuccess
+            {
+                RTF_TEST_REPORT("Leg switched back from torque mode, test failed");
+                testSuccess = false;
+                break;
+            }
+        }
+        else
+        {
+            RTF_TEST_REPORT("Low-level controller switched to torque, balancing running!");
+            testSuccess = true;
+        }
 
        elapsedTime = yarp::os::Time::now() - initialTimeStamp;
     } while( elapsedTime < duration );
 
-    RTF_TEST_REPORT("Stop balancing");
-    yarp::os::Bottle cmdStop;
-    cmdStop.addString("stop");
-    yarp::os::Bottle responseStop;
-    RTF_ASSERT_ERROR_IF(rpcPort.write(cmd,response),
-                        "error in sending stop command to torqueBalancing");
-    RTF_TEST_REPORT( Asserter::format("Response to command stop : %s",response.toString().c_str()));
-
-    RTF_ASSERT_ERROR_IF(isEqual(controlModes.data(),controlModes.size(),VOCAB_CM_TORQUE),
-                        "error : robot leg is not in VOCAB_CM_POSITION after stopping the controller");
+    RTF_ASSERT_ERROR_IF(testSuccess,
+                        "matlabTorqueBalancingTest failed, low-level controller do not switched to torque"
+                        " or switched back to position control");
 }
 

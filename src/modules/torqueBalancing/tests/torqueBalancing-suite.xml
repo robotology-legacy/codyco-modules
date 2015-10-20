@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<suit name="Matlab torqueBalancing Test Suite">
+    <description>Suite of test for the torqueBalancing module.</description>
+    <environment>--robotname icubGazeboSim</environment>
+    <fixture param="--fixture gazebo-matlab-torqueBalancing-fixture.xml"> yarpmanager </fixture>
+    <test type="dll" param=""> BalancingTest </test>
+</suit>

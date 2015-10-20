@@ -8,7 +8,7 @@
 cmake_minimum_required(VERSION 2.8.9)
 
 # set the project name
-set(PROJECTNAME BalancingTest)
+set(PROJECTNAME matlabTorqueBalancingTest)
 project(${PROJECTNAME})
 
 # add the required cmake packages
@@ -27,8 +27,8 @@ link_libraries(${RTF_LIBRARIES}
 
 # add the source codes to build the plugin library
 set(CMAKE_SHARED_MODULE_PREFIX     "")
-add_library(${PROJECTNAME} MODULE BalancingTest.h
-                                  BalancingTest.cpp)
+add_library(${PROJECTNAME} MODULE matlabTorqueBalancingTest.h
+                                  matlabTorqueBalancingTest.cpp)
 
 set_target_properties(${PROJECTNAME} PROPERTIES
                       LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../)

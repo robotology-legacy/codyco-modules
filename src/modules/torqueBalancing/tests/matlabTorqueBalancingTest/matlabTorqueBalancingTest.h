@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef _BALANCINGTEST_H_
-#define _BALANCINGTEST_H_
+#ifndef _MATLABTORQUEBALANCINGTEST_H_
+#define _MATLABTORQUEBALANCINGTEST_H_
 
 #include <rtf/yarp/YarpTestCase.h>
 
@@ -19,14 +19,13 @@
 
 
 /**
- * BalancingTest : simply launch the torqueBalancing and verify that
- * after ${duration} seconds the controller is still running (i.e.
- * it did not change the control mode back to position)
+ * matlabTorqueBalancingTest : simply launch the torqueBalancing.mdl
+ * and verify that some time before ${duration} seconds the control mode
+ * of the legs has switched to torque mode.
  *
  */
-class BalancingTest : public YarpTestCase
+class matlabTorqueBalancingTest : public YarpTestCase
 {
-    yarp::os::RpcClient rpcPort;
     yarp::dev::PolyDriver monitorDD;
     yarp::dev::IControlMode2 * ctrlMode;
     yarp::dev::IEncoders     * iEncs;
@@ -35,8 +34,8 @@ class BalancingTest : public YarpTestCase
     double pollingStep;
 
 public:
-    BalancingTest();
-    virtual ~BalancingTest();
+    matlabTorqueBalancingTest();
+    virtual ~matlabTorqueBalancingTest();
 
     virtual bool setup(yarp::os::Property& property);
 
