@@ -45,6 +45,10 @@ namespace yarp {
         template <typename T>
         class BufferedPort;
     }
+
+    namespace dev {
+        class Pid;
+    }
 }
 
 namespace codyco {
@@ -56,6 +60,7 @@ namespace codyco {
         class ReferenceGenerator;
         class ReferenceGeneratorInputReader;
 
+
         /** Possible tasks */
         typedef enum {
             TaskTypeUnknown, /*!< Default value */
@@ -63,6 +68,9 @@ namespace codyco {
             TaskTypeImpedanceControl,  /*!< Impedance control (same meaning of postural task) */
         } TaskType;
 
+        extern const std::string TorquePIDInitialKey; /*!< Key used to save original torque PIDs */
+        extern const std::string TorquePIDDefaultKey; /*!< Key used to save default torque PIDs */
+        class PIDList;
 
         /** @brief Main module for the torque balancing module.
          *
@@ -94,6 +102,24 @@ namespace codyco {
             /** Updates and print the variables to be monitored
              */
             void monitorVariables();
+
+            /**
+             * Switch the low level torque control PIDs to the PIDs specified by the input key
+             *
+             * @param gainKey key identifying the torque PIDs
+             *
+             * @return true if succeeded. False otherwise
+             */
+            bool switchToTorqueGainsWithKey(const std::string &gainKey);
+
+            /**
+             * Switch the low level torque control PIDs to the specified PIDs
+             *
+             * @param pids the list of torque pids to be set to the low level torque control
+             *
+             * @return true if succeeded. False otherwise
+             */
+            bool switchToTorqueGains(const PIDList& pids);
 
             //Delegate method
             virtual void referenceDidChangeValue(const Reference&);
@@ -128,6 +154,29 @@ namespace codyco {
             Eigen::VectorXd m_jointsConfiguration; /*!< Resting position of the impedance control */
             Eigen::VectorXd m_tempHeptaVector; /*!< Temporary vector of 7 elements */
             Eigen::VectorXd m_comReference; /*!< Reference for the center of mass */
+
+            typedef std::map<std::string, codyco::torquebalancing::PIDList> PidMap;
+            PidMap m_torquePIDs;
+            yarp::os::Value m_defaultTorquePIDsKey;
+
+            /**
+             * Load torque gains
+             *
+             * @param gains torque gains corresponding config file section
+             *
+             * @return true if succeeded. False otherwise
+             */
+            bool loadTorqueGains(yarp::os::Value &gains);
+
+            /**
+             * Load the PID gains from the specified configuration file
+             *
+             * @param filename   filename containing the PIDs gains
+             * @param [out] loadedPIDs resulting PID gains loaded from config file
+             *
+             * @return true if succeeded. False otherwise
+             */
+            bool loadTorqueGainsFromFile(std::string filename, const PIDList &originalList, PIDList &loadedPIDs);
         };
 
         class TorqueBalancingModule::ParamHelperManager : public
