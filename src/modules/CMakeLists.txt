@@ -23,6 +23,8 @@ if(CODYCO_USES_OROCOS_BFL_BERDY)
    add_subdirectory(quaternionEKF)
 endif()
 
+add_subdirectory(wholeBodyEstimator)
+
 add_subdirectory(walkPlayer)
 
 add_subdirectory(codycoCoordinatorDemoY1)
