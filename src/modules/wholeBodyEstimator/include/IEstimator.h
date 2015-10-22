@@ -30,7 +30,4 @@ public:
     virtual void release() = 0;
 };
 
-#include "LeggedOdometry.h"
-#include "QuaternionEKF.h"
-
 #endif

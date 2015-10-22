@@ -29,7 +29,7 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
     
     std::string wbiConfFile;
     yarp::os::Property yarpWbiOptions;
-    IDList RobotDynamicModelJoints;
+    wbi::IDList RobotDynamicModelJoints;
     
     if (!rf.check("wbi_conf_file"))
     {

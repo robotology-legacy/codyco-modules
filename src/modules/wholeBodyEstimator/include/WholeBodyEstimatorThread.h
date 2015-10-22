@@ -35,6 +35,7 @@
 #include <yarp/math/Math.h>
 
 #include "IEstimator.h"
+#include "LeggedOdometry.h"
 
 class WholeBodyEstimatorThread: public yarp::os::RateThread
 {
