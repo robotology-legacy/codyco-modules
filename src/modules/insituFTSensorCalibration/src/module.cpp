@@ -54,7 +54,7 @@
 
 #include <Eigen/Dense>
 
-YARP_DECLARE_DEVICES(icubmod)
+
 
 using namespace yarp::dev;
 
