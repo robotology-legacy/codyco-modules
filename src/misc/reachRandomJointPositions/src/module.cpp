@@ -36,7 +36,7 @@
 
 #include "module.h"
 
-YARP_DECLARE_DEVICES(icubmod)
+
 
 using namespace yarp::dev;
 

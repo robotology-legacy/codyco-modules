@@ -41,7 +41,7 @@
 #include <wholeBodyReach/Stopwatch.h>
 #include "wholeBodyReach/wholeBodyReadWBIidLists.h"
 
-YARP_DECLARE_DEVICES(icubmod)
+
 
 using namespace yarp::dev;
 using namespace paramHelp;

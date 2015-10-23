@@ -81,7 +81,6 @@ LINK_DIRECTORIES(${PC_ORCISIR_ISIRCONTROLLER_LIBRARY_DIRS})
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME} iDyn
-                                     icubmod
                                      modHelp
                                      ${YARP_LIBRARIES}
                                      ${PC_ORCISIR_ISIRCONTROLLER_LIBRARIES}

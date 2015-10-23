@@ -192,7 +192,6 @@ Windows, Linux
 
 using namespace yarp::os;
 
-YARP_DECLARE_PLUGINS(icubmod)
 
 int main(int argc, char *argv[])
 {
@@ -203,7 +202,6 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    YARP_REGISTER_PLUGINS(icubmod)
 
     codyco::myReport rep;
 

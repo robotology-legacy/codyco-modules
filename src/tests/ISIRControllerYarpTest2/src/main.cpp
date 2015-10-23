@@ -47,8 +47,8 @@ using namespace modHelp;
 using namespace iCub::ctrl;
 using namespace std;
 
-// necessary for cartesian interfaces
-YARP_DECLARE_DEVICES(icubmod)
+
+
 
 
 Vector evalVel(const Vector &x, AWLinEstimator  *linEst)

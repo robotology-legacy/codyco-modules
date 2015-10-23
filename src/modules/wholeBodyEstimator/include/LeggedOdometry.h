@@ -45,8 +45,8 @@ private:
     yarp::sig::Vector floatingbase_twist;
     yarp::sig::Vector floatingbase_acctwist;
     bool odometry_enabled;
-    yarp::os::BufferedPort<yarp::os::Bottle> * port_floatingbasestate;
     bool frames_streaming_enabled;
+    yarp::os::BufferedPort<yarp::os::Bottle> * port_floatingbasestate;
     yarp::os::BufferedPort<yarp::os::Property> * port_frames;
     std::vector<int> frames_to_stream_indices;
     std::vector<std::string> frames_to_stream;

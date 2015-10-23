@@ -37,7 +37,7 @@
 #include "locomotion/locomotionThread.h"
 #include "locomotion/locomotionModule.h"
 
-YARP_DECLARE_DEVICES(icubmod)
+
 
 using namespace yarp::dev;
 using namespace paramHelp;
