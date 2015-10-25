@@ -22,7 +22,7 @@
 @ingroup codyco_module
 
 This is a modified version of the Joint Grasping Demo developed by IIT
-and ISR (available at http://wiki.icub.org/brain/group__demoGraspManager.html)
+and ISR (available at https://github.com/robotology/icub-basic-demos/tree/master/demoRedBall )
 made to work on the top of the wholeBody torque balancing provided by the torqueBalancing module.
 
 The following documentation matches the one of the demoGraspManager, so it is left untouched.
