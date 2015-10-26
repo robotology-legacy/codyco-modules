@@ -233,11 +233,13 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     std::vector<int> feet_fts;
 
     //End Calibration related variables
-
     int left_foot_link_idyntree_id;
     int right_foot_link_idyntree_id;
     int root_link_idyntree_id;
-    KDL::Frame world_H_leftFoot;
+
+    // iCubGui related variables
+    int icubgui_support_frame_idyntree_id;
+    KDL::Frame initial_world_H_supportFrame;
 
 
     yarp::sig::Matrix transform_mat_buffer;

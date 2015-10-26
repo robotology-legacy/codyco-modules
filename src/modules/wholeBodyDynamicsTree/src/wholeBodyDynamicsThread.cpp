@@ -347,8 +347,6 @@ bool wholeBodyDynamicsThread::threadInit()
 
     if( ! ret ) return false;
 
-
-
     //Open skin ports
     port_contacts_input = new yarp::os::BufferedPort<iCub::skinDynLib::skinContactList>;
     port_contacts_input->open(string("/"+moduleName+"/skin_contacts:i").c_str());
@@ -476,10 +474,26 @@ bool wholeBodyDynamicsThread::threadInit()
     right_foot_link_idyntree_id = icub_model_calibration->getLinkIndex("r_foot");
     //YARP_ASSERT(right_foot_link_idyntree_id >= 0 && right_foot_link_idyntree_id < max_id);
     joint_status.zero();
+
+    if( assume_fixed_base_calibration )
+    {
+        icubgui_support_frame_idyntree_id = icub_model_calibration->getLinkIndex(fixed_link_calibration);
+
+        if( icubgui_support_frame_idyntree_id < 0 )
+        {
+            yError() << "Warning: unknown fixed link " << fixed_link_calibration;
+            return false;
+        }
+    }
+    else
+    {
+        icubgui_support_frame_idyntree_id = left_foot_link_idyntree_id;
+    }
+
     icub_model_calibration->setAng(joint_status.getJointPosYARP());
     //{}^world H_{leftFoot}
-    world_H_leftFoot
-            = icub_model_calibration->getPositionKDL(root_link_idyntree_id,left_foot_link_idyntree_id);
+    initial_world_H_supportFrame
+            = icub_model_calibration->getPositionKDL(root_link_idyntree_id,icubgui_support_frame_idyntree_id);
 
     //Open and connect all the ports
     for(int output_torque_port_i = 0; output_torque_port_i < (int)output_torque_ports.size(); output_torque_port_i++ )
@@ -1308,8 +1322,10 @@ void wholeBodyDynamicsThread::publishBaseToGui()
         world_H_rootLink_computed = true;
     }
 
-    // Workaround: if not root_link or left_foot is defined, do not publish base information to the iCubGui
-    if( (left_foot_link_idyntree_id != -1 &&
+    // If the odometry is not enabled, we use to publish to the gui the world
+    // the fixed link specified by the assume_fixed option . If assume_fixed is not
+    // passed, we just assume the `l_sole` link as fixed
+    if( (icubgui_support_frame_idyntree_id != -1 &&
         root_link_idyntree_id != -1) && !this->odometry_enabled )
     {
         //For the icubGui, the world is the root frame when q == 0
@@ -1317,13 +1333,12 @@ void wholeBodyDynamicsThread::publishBaseToGui()
         //and the root when q == 0
         icub_model_world_base_position->setAngKDL(joint_status.getJointPosKDL());
 
-        // {}^{leftFoot} H_{currentRoot}
-        KDL::Frame H_leftFoot_currentRoot
-            = icub_model_world_base_position->getPositionKDL(left_foot_link_idyntree_id,root_link_idyntree_id);
-
+        // {}^{supportFrame} H_{currentRoot}
+        KDL::Frame H_supportFrame_currentRoot
+            = icub_model_world_base_position->getPositionKDL(icubgui_support_frame_idyntree_id,root_link_idyntree_id);
 
         world_H_rootLink
-            = world_H_leftFoot*H_leftFoot_currentRoot;
+            = initial_world_H_supportFrame*H_supportFrame_currentRoot;
 
         world_H_rootLink_computed = true;
     }
