@@ -27,6 +27,7 @@
 #include <paramHelp/paramHelperServer.h>
 #include <codyco/ModelParsing.h>
 #include <codyco/Utils.h>
+#include <codyco/PIDList.h>
 #include <yarp/os/Port.h>
 #include <yarp/os/LogStream.h>
 #include <yarp/os/LockGuard.h>
@@ -43,58 +44,6 @@ namespace codyco {
 
         const std::string TorquePIDInitialKey = "__ORIGINAL_PIDs__";
         const std::string TorquePIDDefaultKey = "__DEFAULT_PIDs__";
-
-        class PIDList {
-        public:
-            size_t size;
-            yarp::dev::Pid *pidList;
-
-            explicit PIDList(size_t _size): size(_size), pidList(0) {
-                pidList = new yarp::dev::Pid[size];
-            }
-
-            PIDList(const PIDList& list): size(list.size), pidList(0) {
-                pidList = new yarp::dev::Pid[size];
-                for (int i = 0; i < size; ++i) {
-                    pidList[i] = list.pidList[i];
-                }
-            }
-
-            ~PIDList() {
-                if (pidList) {
-                    delete [] pidList;
-                    pidList = 0;
-                }
-                size = 0;
-            }
-
-            PIDList& operator=(const PIDList& list) {
-                if (this == &list) return *this;
-                
-                if (this->pidList) {
-                    delete [] pidList;
-                }
-                this->size = list.size;
-                pidList = new yarp::dev::Pid[size];
-                for (int i = 0; i < size; ++i) {
-                    pidList[i] = list.pidList[i];
-                }
-                return *this;
-            }
-
-            std::string description() const {
-                std::ostringstream stream;
-                for (int i = 0; i < size; ++i) {
-                    stream << "kp: " << pidList[i].kp << " kd: " << pidList[i].kd << " ki " << pidList[i].ki << "\n";
-                }
-                return stream.str();
-            }
-
-            friend std::ostream& operator<<(std::ostream& stream, const PIDList& list)
-            {
-                return stream << list.description();
-            }
-        };
 
         //Utility structure used inside the module
         struct TaskInformation {
@@ -691,7 +640,7 @@ namespace codyco {
         {
             if (!m_robot) return false;
             yarpWbi::yarpWholeBodyActuators *actuators = ((yarpWbi::yarpWholeBodyInterface*)m_robot)->wholeBodyActuator();
-            actuators->setPIDGains(pids.pidList, wbi::CTRL_MODE_TORQUE);
+            actuators->setPIDGains(pids.pidList(), wbi::CTRL_MODE_TORQUE);
             return true;
         }
 
@@ -706,7 +655,7 @@ namespace codyco {
             //Load original gains from controlboards and save them the original key.
             PIDList originalGains(m_robot->getDoFs());
             yarpWbi::yarpWholeBodyActuators *actuators = ((yarpWbi::yarpWholeBodyInterface*)m_robot)->wholeBodyActuator();
-            actuators->getPIDGains(originalGains.pidList, wbi::CTRL_MODE_TORQUE);
+            actuators->getPIDGains(originalGains.pidList(), wbi::CTRL_MODE_TORQUE);
             m_torquePIDs.insert(PidMap::value_type(TorquePIDInitialKey, originalGains));
 
             //Now load additional gains
@@ -795,8 +744,8 @@ namespace codyco {
                     continue;
                 }
 
-                loadedPIDs.pidList[jointIndex] = originalList.pidList[jointIndex];
-                result = result && fillPIDWithBottleDescription(*jointConfig, loadedPIDs.pidList[jointIndex]);
+                loadedPIDs.pidList()[jointIndex] = originalList.pidList()[jointIndex];
+                result = result && fillPIDWithBottleDescription(*jointConfig, loadedPIDs.pidList()[jointIndex]);
             }
             return result;
         }

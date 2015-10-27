@@ -52,6 +52,8 @@ namespace yarp {
 }
 
 namespace codyco {
+    class PIDList;
+
     namespace torquebalancing {
 
         class ControllerReferences;
@@ -70,7 +72,7 @@ namespace codyco {
 
         extern const std::string TorquePIDInitialKey; /*!< Key used to save original torque PIDs */
         extern const std::string TorquePIDDefaultKey; /*!< Key used to save default torque PIDs */
-        class PIDList;
+
 
         /** @brief Main module for the torque balancing module.
          *
@@ -155,7 +157,7 @@ namespace codyco {
             Eigen::VectorXd m_tempHeptaVector; /*!< Temporary vector of 7 elements */
             Eigen::VectorXd m_comReference; /*!< Reference for the center of mass */
 
-            typedef std::map<std::string, codyco::torquebalancing::PIDList> PidMap;
+            typedef std::map<std::string, codyco::PIDList> PidMap;
             PidMap m_torquePIDs;
             yarp::os::Value m_defaultTorquePIDsKey;
 
