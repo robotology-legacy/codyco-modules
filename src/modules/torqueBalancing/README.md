@@ -45,6 +45,23 @@ Users willing to use the module should follow this list.
 - `kImp`: gains for the impedance (low level) task. The number must match the number of torque controlled joints.
 - `tsat`: saturations to be applied to the output torques. The number must match the number of torque controlled joints. It must be a positive value.
 
+#####Low level torque gains
+The following two optional elements are available at configuration time to specify the low level torque control gains to be used during the balancing control.
+
+- `torqueGains`: specifies either a single file, or a list of key-file pairs containing the low level torque gains. See below for the file format.
+- `defaultTorqueGainsKey`: specifies the default torque gains set to be loaded when the module starts. If only one set of gains has been specified and this option is not set, the only set of gains will be loaded.
+
+It is possible to specify multiple set of torque gains in order to switch them at runtime (see RPC section).
+As an example:
+
+- Single set: `torqueGains torqueGains.ini`
+- Multiple sets: `torqueGains ((set1, torqueGains_first.ini), (set2, torqueGains_second.ini))`
+
+The file contains for each joint a list of values for the proportional, integrative and derivative gains, e.g.
+`l_shoulder_roll     = ("kp", 5.0), ("ki", 0.0),("kd", 4.0)`
+The original gains read from the firmware will be overwritten with the specified gains in the configuration file (it is then possible to specify only the gains that **must** change). 
+Note that the original gains will be restored at the closure of the module, thus leaving the robot in the same state as before starting *torqueBalancing*.
+
 ###Monitored variables
 The following variables are monitored, that is, they are streamed (in a big vector) in the `monitor:o` port:
 
@@ -61,6 +78,7 @@ The opened RPC port allows to send the following commands:
 - `start`: starts the module
 - `stop`: stops the module
 - `quit`: quits the module
+- `torque_gains_switch __torque_gains_key__`: switch the low level torque control gains to the set specified by the `__torque_gains_key__` key
 
 It also allows to change the value of the gains.
 

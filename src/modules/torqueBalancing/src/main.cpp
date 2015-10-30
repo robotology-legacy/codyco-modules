@@ -31,7 +31,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    yarp::os::ResourceFinder resourceFinder;
+    yarp::os::ResourceFinder resourceFinder = yarp::os::ResourceFinder::getResourceFinderSingleton();
     
     resourceFinder.setVerbose(true);
     resourceFinder.setDefaultConfigFile("torqueBalancing.ini");         //default config file name.

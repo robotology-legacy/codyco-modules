@@ -27,10 +27,13 @@
 #include <paramHelp/paramHelperServer.h>
 #include <codyco/ModelParsing.h>
 #include <codyco/Utils.h>
+#include <codyco/PIDList.h>
 #include <yarp/os/Port.h>
 #include <yarp/os/LogStream.h>
 #include <yarp/os/LockGuard.h>
+#include <yarp/dev/ControlBoardPid.h>
 #include <iostream>
+#include <sstream>
 #include <vector>
 
 #define ACTIVATE_CONTACT "activateConstraints"
@@ -38,6 +41,9 @@
 
 namespace codyco {
     namespace torquebalancing {
+
+        const std::string TorquePIDInitialKey = "__ORIGINAL_PIDs__";
+        const std::string TorquePIDDefaultKey = "__DEFAULT_PIDs__";
 
         //Utility structure used inside the module
         struct TaskInformation {
@@ -224,6 +230,16 @@ namespace codyco {
                 return false;
             }
 
+            //check torque gains after init
+            m_defaultTorquePIDsKey = rf.check("defaultTorqueGainsKey", Value::getNullValue(), "Checking default PIDs set");
+            if (rf.check("torqueGains", "Looking for torque gains section")) {
+                if (!loadTorqueGains(rf.find("torqueGains"))) {
+                    yError("A torque gain option is specified, but failed to load");
+                    return false;
+                }
+            }
+            yInfo() << "Gains in memory: " << m_torquePIDs.size() << "\n";
+
             //load initial configuration for the impedance control
             m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_jointsConfiguration.data());
             m_references->desiredJointsConfiguration().setValue(m_jointsConfiguration);
@@ -363,6 +379,11 @@ namespace codyco {
 
             yInfo("Module %s ready.", m_moduleName.c_str());
 
+            if (m_torquePIDs.size() > 0) {
+                std::string key = m_defaultTorquePIDsKey.isNull() ? TorquePIDDefaultKey : m_defaultTorquePIDsKey.asString().c_str();
+                switchToTorqueGainsWithKey(key);
+            }
+
             if (autoStart)
                 setControllersActiveState(autoStart);
 
@@ -400,6 +421,10 @@ namespace codyco {
         bool TorqueBalancingModule::close()
         {
             setControllersActiveState(false);
+            if (m_torquePIDs.size() > 0) {
+                //restore initial PIDs
+                switchToTorqueGainsWithKey(TorquePIDInitialKey);
+            }
             cleanup();
             return true;
         }
@@ -530,7 +555,15 @@ namespace codyco {
         bool TorqueBalancingModule::respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply)
         {
             if (!m_paramHelperManager->processRPCCommand(command, reply)) {
-                reply.addString((std::string("Command ") + command.toString().c_str() + " not recognized.").c_str());
+                if (command.size() > 1 && command.get(0).isString() && command.get(1).isString()) {
+                    std::string cmd = command.get(0).asString();
+                    if (cmd == "torque_gains_switch") {
+                        if (!switchToTorqueGainsWithKey(command.get(1).asString()))
+                            reply.addString(("Failed to switch to " + command.get(1).asString()).c_str());
+                    }
+                } else {
+                    reply.addString((std::string("Command ") + command.toString().c_str() + " not recognized.").c_str());
+                }
             }
 
             // if reply is empty put something into it, otherwise the rpc communication gets stuck
@@ -585,6 +618,136 @@ namespace codyco {
         void TorqueBalancingModule::monitorVariables()
         {
             m_paramHelperManager->sendMonitoredVariables();
+        }
+
+        bool TorqueBalancingModule::switchToTorqueGainsWithKey(const std::string &gainKey)
+        {
+            PidMap::const_iterator found = m_torquePIDs.find(gainKey);
+            if (found == m_torquePIDs.end()) {
+                yError("Default torque gains not found in the configuration list.");
+                return false;
+            }
+            if (!switchToTorqueGains(found->second)) {
+                yError("Failed to switch to torque gains %s", gainKey.c_str());
+                return false;
+            } else {
+                yInfo("Loaded torque gains - %s", gainKey.c_str());
+            }
+            return true;
+        }
+
+        bool TorqueBalancingModule::switchToTorqueGains(const PIDList& pids)
+        {
+            if (!m_robot) return false;
+            yarpWbi::yarpWholeBodyActuators *actuators = ((yarpWbi::yarpWholeBodyInterface*)m_robot)->wholeBodyActuator();
+            actuators->setPIDGains(pids.pidList(), wbi::CTRL_MODE_TORQUE);
+            return true;
+        }
+
+
+        bool TorqueBalancingModule::loadTorqueGains(yarp::os::Value &gains)
+        {
+            //gains can be:
+            // - filename
+            // - List with (key, filename)
+            // - List of list of (key, filename)
+
+            //Load original gains from controlboards and save them the original key.
+            PIDList originalGains(m_robot->getDoFs());
+            yarpWbi::yarpWholeBodyActuators *actuators = ((yarpWbi::yarpWholeBodyInterface*)m_robot)->wholeBodyActuator();
+            actuators->getPIDGains(originalGains.pidList(), wbi::CTRL_MODE_TORQUE);
+            m_torquePIDs.insert(PidMap::value_type(TorquePIDInitialKey, originalGains));
+
+            //Now load additional gains
+            bool result = true;
+            if (gains.isString()) {
+                PIDList pids(m_robot->getDoFs());
+                result = loadTorqueGainsFromFile(gains.asString(), originalGains, pids);
+                m_torquePIDs.insert(PidMap::value_type(TorquePIDDefaultKey, pids));
+            } else if (gains.isList()) {
+                using namespace yarp::os;
+                Bottle *list = gains.asList();
+                if (list->size() == 2 &&
+                    list->get(0).isString() && list->get(1).isString()) {
+                    std::string key = list->get(0).asString();
+                    std::string filename = list->get(1).asString();
+                    PIDList pids(m_robot->getDoFs());
+                    result = loadTorqueGainsFromFile(filename, originalGains, pids);
+                    m_torquePIDs.insert(PidMap::value_type(key, pids));
+
+                } else {
+                    for (int i = 0; i < list->size(); i++) {
+                        if (list->get(i).isList() &&
+                            list->get(i).asList()->size() == 2 &&
+                            list->get(i).asList()->get(0).isString() && list->get(i).asList()->get(1).isString()) {
+                            std::string key = list->get(i).asList()->get(0).asString();
+                            std::string filename = list->get(i).asList()->get(1).asString();
+                            PIDList pids(m_robot->getDoFs());
+                            result = loadTorqueGainsFromFile(filename, originalGains, pids);
+                            m_torquePIDs.insert(PidMap::value_type(key, pids));
+                        } else {
+                            yError("Malformed torque gains list");
+                            result = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        static bool fillPIDWithBottleDescription(const yarp::os::Bottle &bottle, yarp::dev::Pid &pid)
+        {
+            for (int i = 1; i < bottle.size(); ++i) {
+                if (!bottle.get(i).isList()) continue;
+                yarp::os::Bottle *gains = bottle.get(i).asList();
+                if (gains->size() == 2 && gains->get(0).isString() && gains->get(1).isDouble()) {
+                    std::string gainType = gains->get(0).asString();
+                    double value = gains->get(1).asDouble();
+
+                    if (gainType == "kp") {
+                        pid.setKp(value);
+                    } else if (gainType == "kd") {
+                        pid.setKd(value);
+                    } else if (gainType == "ki") {
+                        pid.setKi(value);
+                    }
+                }
+            }
+            return true;
+        }
+
+        bool TorqueBalancingModule::loadTorqueGainsFromFile(std::string filename,
+                                                            const PIDList &originalList,
+                                                            PIDList &loadedPIDs)
+        {
+            //List of list. Each element has a key: joint name, and a list of pairs: kp, kd, ki and its respective value
+            using namespace yarp::os;
+            yarp::os::ResourceFinder resourceFinder = yarp::os::ResourceFinder::getResourceFinderSingleton();
+            Property file;
+            file.fromConfigFile(resourceFinder.findFile(filename));
+
+            Bottle externalList;
+            externalList.fromString(file.toString());
+
+            bool result = true;
+            wbi::IDList jointList = m_robot->getJointList();
+            for (int i = 0; i < externalList.size(); ++i) {
+                if (!externalList.get(i).isList()) continue;
+                Bottle *jointConfig = externalList.get(i).asList();
+                if (jointConfig->size() < 2 || !jointConfig->get(0).isString()) continue;
+                wbi::ID jointID(jointConfig->get(0).asString());
+                int jointIndex = -1;
+                if (!jointList.idToIndex(jointID, jointIndex)) continue;
+                if (jointIndex < 0 || jointIndex >= jointList.size()) {
+                    yWarning("Specified joint %s index is outside joint list size", jointID.toString().c_str());
+                    continue;
+                }
+
+                loadedPIDs.pidList()[jointIndex] = originalList.pidList()[jointIndex];
+                result = result && fillPIDWithBottleDescription(*jointConfig, loadedPIDs.pidList()[jointIndex]);
+            }
+            return result;
         }
 
 #pragma mark - ParamHelperManager methods

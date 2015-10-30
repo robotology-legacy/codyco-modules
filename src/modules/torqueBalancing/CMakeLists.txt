@@ -11,7 +11,7 @@ find_package(paramHelp REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(wholeBodyInterface REQUIRED)
 find_package(yarpWholeBodyInterface 0.2.2 REQUIRED)
-find_package(codycoCommons REQUIRED)
+find_package(codycoCommons 0.1 REQUIRED)
 
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
