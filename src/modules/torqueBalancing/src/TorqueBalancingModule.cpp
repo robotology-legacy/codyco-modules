@@ -672,11 +672,11 @@ namespace codyco {
                     std::string key = list->get(0).asString();
                     std::string filename = list->get(1).asString();
                     PIDList pids(m_robot->getDoFs());
-                    result = loadTorqueGainsFromFile(filename, originalGains, pids);
-                    m_torquePIDs.insert(PidMap::value_type(key, pids));
+                    result = result && loadTorqueGainsFromFile(filename, originalGains, pids);
+                    if (result) m_torquePIDs.insert(PidMap::value_type(key, pids));
 
                 } else {
-                    for (int i = 0; i < list->size(); i++) {
+                    for (int i = 0; i < list->size() && result; i++) {
                         if (list->get(i).isList() &&
                             list->get(i).asList()->size() == 2 &&
                             list->get(i).asList()->get(0).isString() && list->get(i).asList()->get(1).isString()) {
@@ -684,7 +684,7 @@ namespace codyco {
                             std::string filename = list->get(i).asList()->get(1).asString();
                             PIDList pids(m_robot->getDoFs());
                             result = loadTorqueGainsFromFile(filename, originalGains, pids);
-                            m_torquePIDs.insert(PidMap::value_type(key, pids));
+                            if (result) m_torquePIDs.insert(PidMap::value_type(key, pids));
                         } else {
                             yError("Malformed torque gains list");
                             result = false;
