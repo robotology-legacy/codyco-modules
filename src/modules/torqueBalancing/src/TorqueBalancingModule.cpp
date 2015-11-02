@@ -60,6 +60,7 @@ namespace codyco {
         , m_controller(0)
         , m_references(0)
         , m_rpcPort(0)
+        , m_constraintsPort(0)
         , m_paramHelperManager(0)
         , m_tempHeptaVector(7)
         , m_comReference(3) {}
