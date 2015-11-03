@@ -280,11 +280,11 @@ namespace codyco {
                 m_desiredCOMAcceleration.setZero(); //reset reference
                 //Workaround for the delay of the setControlMode
                 //simulate a control loop to obtain the torques
-                readReferences();
-                updateRobotState();
-                computeContactForces(m_desiredCOMAcceleration, m_desiredContactForces);
-                computeTorques(m_desiredContactForces, m_torques);
-                m_robot.setControlMode(wbi::CTRL_MODE_TORQUE, m_torques.data());
+                //readReferences();
+                //updateRobotState();
+                //computeContactForces(m_desiredCOMAcceleration, m_desiredContactForces);
+                //computeTorques(m_desiredContactForces, m_torques);
+                m_robot.setControlMode(wbi::CTRL_MODE_TORQUE);//, m_torques.data());
             } else {
                 std::cerr << "Deactivating control\n";
                 m_robot.setControlMode(wbi::CTRL_MODE_POS);
