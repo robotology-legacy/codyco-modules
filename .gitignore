@@ -9,3 +9,4 @@
 *.mexa64
 */slprj/
 .nfs*
+*.user
