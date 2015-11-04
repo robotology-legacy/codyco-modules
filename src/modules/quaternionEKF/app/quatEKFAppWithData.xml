@@ -13,9 +13,9 @@
   <module>
       <name>quaternionEKF</name>
       <parameters>--usingXSens false --verbose true --usingSkin true --inWorldRefFrame false --debugGyro true --debugAcc true</parameters>
-      <node>/jorh</node>
+      <node>localhost</node>
       <display></display>
-      <stdio>/jorh</stdio>
+      <stdio>localhost</stdio>
       <prefix></prefix>
       <dependencies>
           <port timeout="5.0"></port>
@@ -27,9 +27,9 @@
   <module>
       <name>iCubGui</name>
       <parameters></parameters>
-      <node>/jorh</node>
+      <node>localhost</node>
       <display></display>
-      <stdio>/jorh</stdio>
+      <stdio>localhost</stdio>
       <prefix></prefix>
       <dependencies>
           <port timeout="5.0">/icub/right_leg/state:o</port>
@@ -40,10 +40,10 @@
 
   <module>
       <name>yarpscope</name>
-      <parameters>--xml /home/jorhabib/Software/codyco-superbuild/main/codyco-modules/src/modules/quaternionEKF/scopeQuatEKFSkin.xml.xml</parameters>
-      <node>/jorh</node>
+      <parameters>--xml /Users/jeljaik/Code/codyco-superbuild/main/codyco-modules/src/modules/quaternionEKF/app/scopeQuatEKFSkin.xml</parameters>
+      <node>localhost</node>
       <display></display>
-      <stdio>/jorh</stdio>
+      <stdio>localhost</stdio>
       <prefix></prefix>
       <dependencies>
           <port timeout="5.0">/icub/right_leg/inertialMTB</port>
@@ -53,9 +53,9 @@
   <module>
       <name>yarpdataplayer</name>
       <parameters></parameters>
-      <node>/jorh</node>
+      <node>localhost</node>
       <display></display>
-      <stdio>/jorh</stdio>
+      <stdio>localhost</stdio>
       <prefix></prefix>
       <dependencies>
       </dependencies>
