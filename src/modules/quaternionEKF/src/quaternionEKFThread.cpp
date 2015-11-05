@@ -116,11 +116,11 @@ void quaternionEKFThread::run()
         // Copy ang velocity data from a yarp vector into a ColumnVector
         MatrixWrapper::ColumnVector input(imu_angVel.data(),m_input_size);
         if (m_verbose)
-            cout << "VEL INPUT IS: " << input << endl;
+            cout << "VEL INPUT IS: " << endl << input << endl;
         // Copy accelerometer data from a yarp vector into a ColumnVector
         MatrixWrapper::ColumnVector measurement(imu_linAcc.data(),m_measurement_size);
         if (m_verbose)
-            cout << "ACC INPUT IS: " << measurement << endl;
+            cout << "ACC INPUT IS: " << endl << measurement << endl;
 
         // Noise gaussian
         // System Noise Mean
@@ -148,7 +148,7 @@ void quaternionEKFThread::run()
         /****************END System Noise Covariance *********************************************************************************/
 
         if (m_verbose)
-            cout << "System covariance matrix will be: " << sys_noise_cov << endl;
+            cout << "System covariance matrix will be: " << endl << sys_noise_cov << endl;
 
         m_sysPdf.AdditiveNoiseMuSet(sys_noise_mu);
         m_sysPdf.AdditiveNoiseSigmaSet(sys_noise_cov);
@@ -179,6 +179,7 @@ void quaternionEKFThread::run()
         // Posterior Expectation
         m_posterior_state = posterior->ExpectedValueGet();
         MatrixWrapper::Quaternion expectedValueQuat(m_posterior_state);
+        std::cout << " Real part of posterior: " << expectedValueQuat.w() << std::endl;
         // Posterior Covariance
         MatrixWrapper::SymmetricMatrix covariance(m_state_size);
         covariance = posterior->CovarianceGet();
@@ -404,8 +405,8 @@ bool quaternionEKFThread::threadInit()
         prior_cov = 0.0;
         prior_cov(1,1) = prior_cov(2,2) = prior_cov(3,3) = prior_cov(4,4) = m_prior_cov;
         cout << "Priors will be: " << endl;
-        cout << "State prior: " << prior_mu << endl;
-        cout << "Covariance prior: " << prior_cov << endl;
+        cout << "State prior: " << endl << prior_mu << endl;
+        cout << "Covariance prior: " << endl << prior_cov << endl;
         m_prior = new BFL::Gaussian(prior_mu, prior_cov);
 
         // Construction of the filter
@@ -455,7 +456,7 @@ bool quaternionEKFThread::threadInit()
       }
 
     cout << "Thread waiting two seconds before starting..." <<  endl;
-    yarp::os::Time::delay(2);
+    //yarp::os::Time::delay(2);
 
     m_waitingTime = yarp::os::Time::now();
     cout << "Thread is running ... " << endl;
@@ -467,10 +468,10 @@ void quaternionEKFThread::XiOperator ( MatrixWrapper::ColumnVector quat, MatrixW
 //     In  Matlab language this would be:
 //     Xi = [       -qk(2:4,:)'           ;
 //           qk(1)*eye(3) + S(qk(2:4,:)) ];
-    (*Xi) = 1.0;
+    // NOTE When testing Eigen I changed the following line from 1.0 to 0.0. Couldn't understand why I would have put 1.0 for instance
+    (*Xi) = 0.0;
     MatrixWrapper::ColumnVector omg(3);
     omg(1) = quat(2);    omg(2) = quat(3);    omg(3) = quat(4);
-
     (*Xi)(1,1) = -quat(2);    (*Xi)(1,2) = -quat(3);    (*Xi)(1,3) = -quat(4);
     MatrixWrapper::Matrix eye(3,3);
     eye.toIdentity();
