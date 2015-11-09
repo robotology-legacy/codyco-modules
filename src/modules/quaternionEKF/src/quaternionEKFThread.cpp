@@ -141,7 +141,6 @@ void quaternionEKFThread::run()
         // NOTE on 30-07-2015 I commented the following lines because making this matrix symmetric this way does not make much sense from a theoretical point of view. I'd rather add a term such as alpha*I_4x4
 //         MatrixWrapper::SymmetricMatrix tmpSym(m_state_size);
 //         tmp.convertToSymmetricMatrix(tmpSym);
-//         cout << "Symm Matrix: " << tmpSym << endl;
         sys_noise_cov = (MatrixWrapper::SymmetricMatrix) tmp*pow(m_period/(1000.0*2.0),2);
         // NOTE Next line is setting system noise covariance matrix to a constant diagonal matrix
 //         sys_noise_cov = 0.0; sys_noise_cov(1,1) = sys_noise_cov (2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = 0.000001;
@@ -179,7 +178,6 @@ void quaternionEKFThread::run()
         // Posterior Expectation
         m_posterior_state = posterior->ExpectedValueGet();
         MatrixWrapper::Quaternion expectedValueQuat(m_posterior_state);
-        std::cout << " Real part of posterior: " << expectedValueQuat.w() << std::endl;
         // Posterior Covariance
         MatrixWrapper::SymmetricMatrix covariance(m_state_size);
         covariance = posterior->CovarianceGet();
