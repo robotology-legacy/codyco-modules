@@ -724,6 +724,10 @@ namespace codyco {
         {
             //List of list. Each element has a key: joint name, and a list of pairs: kp, kd, ki and its respective value
             using namespace yarp::os;
+
+            //first: copy original pids in the new list
+            loadedPIDs = originalList;
+
             yarp::os::ResourceFinder resourceFinder = yarp::os::ResourceFinder::getResourceFinderSingleton();
             Property file;
             file.fromConfigFile(resourceFinder.findFile(filename));
