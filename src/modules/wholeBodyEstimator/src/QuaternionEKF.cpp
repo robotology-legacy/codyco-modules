@@ -1,11 +1,12 @@
 #include "QuaternionEKF.h"
 
+REGISTERIMPL(QuaternionEKF);
+
 using namespace yarp::os;
 
-bool QuaternionEKF::init(ResourceFinder &rf)
+bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
 {
-    bool ret = false;
-    return ret;
+    return true;
 }
 
 void QuaternionEKF::run()

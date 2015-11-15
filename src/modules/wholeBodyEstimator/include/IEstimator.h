@@ -20,11 +20,16 @@
 
 #include <yarp/os/ResourceFinder.h>
 #include <yarpWholeBodyInterface/yarpWholeBodyInterface.h>
+// We need to include the factory here so that the derived classes of IEstimator can use the macros defined there.
+#include "EstimatorsFactory.h"
 
 class IEstimator
 {
 public:
     virtual ~IEstimator() = 0;
+    /**
+     * Method necessary Protype Creational Pattern.
+     */
     virtual bool init(yarp::os::ResourceFinder &rf, wbi::iWholeBodySensors *wbs) = 0;
     virtual void run() = 0;
     virtual void release() = 0;

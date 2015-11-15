@@ -38,6 +38,7 @@ using namespace wbi;
 
 class LeggedOdometry : public IEstimator
 {
+    REGISTER(LeggedOdometry)
 private:
     iDynTree::simpleLeggedOdometry odometry_helper;
     int odometry_floating_base_frame_index;

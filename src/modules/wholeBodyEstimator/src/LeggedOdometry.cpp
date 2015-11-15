@@ -8,6 +8,8 @@ using namespace yarp::sig;
 using namespace wbi;
 using namespace iDynTree;
 
+REGISTERIMPL(LeggedOdometry);
+
 LeggedOdometry::LeggedOdometry()
 {
 }
