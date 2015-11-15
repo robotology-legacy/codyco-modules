@@ -6,10 +6,10 @@ cmake_minimum_required(VERSION 2.6)
 set(PROJECTNAME wholeBodyEstimator)
 project(${PROJECTNAME})
 
-find_package(YARP     REQUIRED)
-find_package(iDynTree REQUIRED)
-find_package(wholeBodyInterface REQUIRED)
-find_package(yarpWholeBodyInterface REQUIRED)
+find_package(YARP                    REQUIRED)
+find_package(iDynTree                REQUIRED)
+find_package(wholeBodyInterface      REQUIRED)
+find_package(yarpWholeBodyInterface  REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package(MATRIX REQUIRED)
@@ -25,12 +25,17 @@ endif()
 file(GLOB source_dir    src/main.cpp
                         src/WholeBodyEstimatorModule.cpp
                         src/WholeBodyEstimatorThread.cpp
+                        src/EstimatorsFactory.cpp
+                        src/EstimatorsCreator.cpp
                         src/IDestructors.cpp
                         src/QuaternionEKF.cpp
                         src/LeggedOdometry.cpp)
 file(GLOB header_dir    include/WholeBodyEstimatorModule.h
                         include/WholeBodyEstimatorThread.h
                         include/IEstimator.h
+                        include/EstimatorsFactory.h
+                        include/EstimatorsCreator.h
+                        include/EstimatorsCreatorImpl.h
                         include/QuaternionEKF.h
                         include/LeggedOdometry.h)
 

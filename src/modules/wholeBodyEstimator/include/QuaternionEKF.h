@@ -23,7 +23,10 @@
 
 class QuaternionEKF : public IEstimator
 {
-    bool init(yarp::os::ResourceFinder &rf);
+    // Every estimator must register itself first here this way
+    REGISTER(QuaternionEKF)
+    
+    bool init(yarp::os::ResourceFinder &rf, wbi::iWholeBodySensors* wbs);
     void run();
     void release();
 };
