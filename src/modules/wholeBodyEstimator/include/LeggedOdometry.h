@@ -57,8 +57,8 @@ private:
     yarp::os::BufferedPort<yarp::sig::Vector> * port_com;
     std::string current_fixed_link_name;
 
-    iCub::iDynTree::DynTree *icub_model;
-    wbi::iWholeBodySensors *m_sensors;
+    iCub::iDynTree::DynTree * icub_model;
+    wbi::iWholeBodySensors * m_sensors;
     iDynTree::RobotJointStatus * m_joint_status;
 
     std::string m_module_name;
