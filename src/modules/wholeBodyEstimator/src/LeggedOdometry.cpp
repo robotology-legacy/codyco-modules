@@ -24,15 +24,28 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     m_sensors = wbs;
     
     // ########################## ODOMETRY PARAMETERS PARSING ########################################
-    yarp::os::Bottle & odometry_group = rf.findGroup("SIMPLE_LEGGED_ODOMETRY");
+    yarp::os::Bottle & odometry_group = rf.findGroup("LeggedOdometry");
+    if ( odometry_group.isNull() )
+    {
+        yError("[LeggedOdometry::init] LeggedOdometry not found");
+        return false;
+    } else {
+        yInfo("[LeggedOdometry::init()] LeggedOdometry group was found");
+    }
     
     // Module name
     yarp::os::Bottle & module_params = rf.findGroup("MODULE_PARAMETERS");
+    if ( module_params.isNull() )
+    {
+        yError("LeggedOdometry::init() MODULE_PARAMETERS not found");
+        return false;
+    } else {
+        yInfo("LeggedOdometry::init() MODULE_PARAMETERS was found");
+    }
     m_module_name = module_params.find("name").asString();
     
     if( odometry_group.isNull()  )
     {
-        yInfo() << " SIMPLE_LEGGED_ODOMETRY group not found, odometry disabled";
         this->odometry_enabled = false;
         return true;
     }
@@ -44,7 +57,7 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
        !odometry_group.find("initial_fixed_link").isString() ||
        !odometry_group.find("floating_base_frame").isString() )
     {
-        yError() << " SIMPLE_LEGGED_ODOMETRY group found but malformed, exiting";
+        yError() << " LeggedOdometry group found but malformed, exiting";
         this->odometry_enabled = false;
         return false;
     }
