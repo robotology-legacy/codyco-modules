@@ -54,26 +54,26 @@ The configuration file `torqueBalancingRefGen.ini` can contain several options.
 - `timeoutBeforeStreamingRefs`: time waited from the module before starting the streaming of references
 
 
-####The field [REFERENCES]
+####The group [REFERENCES]
 
 Assume that one wants to stream only the sinusoidal reference for the center of mass. Then, 
-users have to specify the following paramenters 
+users have to specify the following parameters 
 
 - `amplitudeInMeters`: amplitude of the sinusoidal oscillation in meters 
 - `frequencyInHerz`: frequency of the sinusoidal oscillation in hertz
 - `directionOfOscillation`: unit-norm, three element vector specifying the direction of oscillation in (x,y,z).
 
-As for an example, the classical lift-and-right oscillation for the center of mass is obtained by setting:
+As for an example, the classical left-and-right oscillation for the center of mass is obtained by setting:
 ~~~
 amplitudeInMeters 0.03
 frequencyInHerz   0.5
 directionOfOscillation = (0,1,0)
 ~~~
 
-Assume that one wants to stream set points for the center of mass. Then, users have to specify  a list of lists called  `comTimeAndSetPoints'. Each list of `comTimeAndSetPoints' is expected to have `4` elements, where 
+Assume that one wants to stream set points for the center of mass. Then, users have to specify  a list of lists called  `comTimeAndSetPoints`. Each list of `comTimeAndSetPoints` is expected to have `4` elements, where 
 the first element of each list is interpreted as the time at which the 
-ith `comDes` must be streamed. The ith `comDes` is then specified by the following `3` numbers contained
-in the ith list. For example, assume that two set points `com1` and `com2`, which are 3 element vectors of the form `com1_1,com1_2,com1_3`, must
+i*th* `comDes` must be streamed. The i*th* `comDes` is then specified by the following `3` numbers contained
+in the i*th* list. For example, assume that two set points `com1` and `com2`, which are 3 element vectors of the form `com1_1,com1_2,com1_3`, must
 be streamed at the time instants `t1` and `t2`. Then, set 
 
 ~~~
@@ -81,12 +81,12 @@ comTimeAndSetPoints = ((t1,com1),(t2,com2))
 ~~~
 
 Assume that one wants to stream set points for the postural references. Then, users have to specify  a list of lists called  
-`postures'. Each list of `postures' is expected to have `1+NDOF` elements, where `NDOF` is the number of 
+`postures`. Each list of `postures` is expected to have `1+NDOF` elements, where `NDOF` is the number of 
 torque controlled degrees of freedom (usually 23). More precisely, `NDOF` must be equal to the 
 number of joints composing the `wbi_joint_list`, which can be found in the `wbi_config_file` 
 (see above). The first element of each list of  `postures` is interpreted as the time at which the 
 ith posture must be streamed. The ith posture is then specified by the following `NDOF` numbers contained
-in the ith list. These numbers are expected to be in radians. For example, assume that `NDOF = 23`, and that 
+in the i*th* list. These numbers are expected to be in radians. For example, assume that `NDOF = 23`, and that 
 two robot's postures `q1` and `q2`, which are 23 element vectors of the form `q1_1,q1_2,...,q1_23`, must
 be streamed at the time instants `t1` and `t2`. Then, set 
 
@@ -103,17 +103,17 @@ posturesInDegrees
 
 in the configuration file.
 
-####The field [PORTS_INFO]
-This field must contain two values:
-- `portNameForStreamingComDes`: port that the module creates for streaming the references for the center of mass. Default value `/torqueBalancingRefGen/comDes:o`
+####The group [PORTS_INFO]
+This group must contain two values:
+- `portNameForStreamingComDes`: output port that the module creates for streaming the references for the center of mass. Default value `/torqueBalancingRefGen/comDes:o`
 
-- `portNameForStreamingQdes`: port that the module creates for streaming the references for the postural tasks. `/torqueBalancingRefGen/qDes:o`
+- `portNameForStreamingQdes`: output port that the module creates for streaming the references for the postural tasks. `/torqueBalancingRefGen/qDes:o`
 
 ###Launch procedure
 The connection between the ports of this module (referenceGenerator) and those of the torqueBalancing module must be done externally.
 For this reason, before starting to stream the references, the module waits a certain time, which is 
-configurable in the module's configuration file. Remember that before starting the module, you have to set the environmental variable `YARP_ROBOT_NAME` in the bashrc according to the robot one wants to use (e.g. icubGazeboSim for simulations, or iCubGenova01, iCubParis01, etc. for experiments). Once the module is
-launched, the connections between the ports of this module (where references are streamed) and those of the torqueBalancing module (where references are expected) can be established. Assuming that the default names for the ports are set, the connections can be established by running in a terminal
+configurable in the module's configuration file. Remember that before starting the module, you have to set the environmental variable `YARP_ROBOT_NAME` in the `bashrc` (or the correct file) according to the robot one wants to use (e.g. `icubGazeboSim` for simulations, or `iCubGenova01`, `iCubParis01`, etc. for experiments). Once the module is
+launched, the connections between the ports of this module (where references are streamed) and those of the `torqueBalancing` module (where references are expected) can be established. Assuming that the default names for the ports are set, the connections can be established by running in a terminal
 
 ~~~
 yarp connect /torqueBalancingRefGen/comDes:o /torqueBalancing/comDes:i
@@ -126,3 +126,7 @@ yarp connect /torqueBalancingRefGen/qDes:o /torqueBalancing/qDes:i
 ~~~
 
 for connecting the postural references.
+
+###Notes
+If you configured this module to generates set points it is highly probable that you want to configure the `torqueBalancing` module to smooth the input references, otherwise discontinuities may occour in the control. 
+Please, see the `torqueBalancing` documentation to understand how to properly configure input smoothing.
