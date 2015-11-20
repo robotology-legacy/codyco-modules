@@ -10,6 +10,7 @@ find_package(YARP                    REQUIRED)
 find_package(iDynTree                REQUIRED)
 find_package(wholeBodyInterface      REQUIRED)
 find_package(yarpWholeBodyInterface  REQUIRED)
+find_package(Eigen3                  REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package(MATRIX REQUIRED)
@@ -17,7 +18,7 @@ find_package(MATRIX REQUIRED)
 # The following PkgConfig is for searching OROCOS_BFL
 # Note: The way OROCOS_BFL is searched and so on might
 # be necessary to get updated with more recent CMake directives.
-if(${CODYCO_USES_OROCOS_BFL_BERDY})
+if(CODYCO_USES_OROCOS_BFL_BERDY)
     find_package(PkgConfig)
     pkg_check_modules(OROCOS_BFL REQUIRED orocos-bfl)
 endif()
@@ -29,7 +30,6 @@ file(GLOB source_dir    src/main.cpp
                         src/EstimatorsCreator.cpp
                         src/IDestructors.cpp
                         src/QuaternionEKF.cpp
-                        src/LeggedOdometry.cpp)
 file(GLOB header_dir    include/WholeBodyEstimatorModule.h
                         include/WholeBodyEstimatorThread.h
                         include/IEstimator.h
@@ -37,12 +37,10 @@ file(GLOB header_dir    include/WholeBodyEstimatorModule.h
                         include/EstimatorsCreator.h
                         include/EstimatorsCreatorImpl.h
                         include/QuaternionEKF.h
-                        include/LeggedOdometry.h)
 
 source_group("Source Files" FILES ${source_dir})
 source_group("Header Files" FILES ${header_dir})
 
-include_directories(SYSTEM ${YARP_INCLUDE_DIRS}
                            ${MATRIX_INCLUDE}
                            ${OROCOS_BFL_INCLUDEDIR}
                            ${wholeBodyInterface_INCLUDE_DIRS}
@@ -63,11 +61,9 @@ link_directories(${OROCOS_BFL_LIBRARY_DIRS})
 message("${PROJECTNAME} ${source_dir} ${header_dir}")
 add_executable(${PROJECTNAME} ${source_dir} ${header_dir})
 
-if(${CODYCO_USES_OROCOS_BFL_BERDY})
 target_link_libraries(${PROJECTNAME}
                       ${OROCOS_BFL_LIBRARIES}
                       ${MATRIX_LIBS}
-                      ${YARP_LIBRARIES}}
                       ${wholeBodyInterface_LIBRARIES}
                       ${yarpWholeBodyInterface_LIBRARIES}
                       ${iDynTree_LIBRARIES})
