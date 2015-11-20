@@ -30,6 +30,9 @@ file(GLOB source_dir    src/main.cpp
                         src/EstimatorsCreator.cpp
                         src/IDestructors.cpp
                         src/QuaternionEKF.cpp
+                        src/LeggedOdometry.cpp
+                        src/nonLinearAnalyticConditionalGaussian.cpp
+                        src/nonLinearMeasurementGaussianPdf.cpp)
 file(GLOB header_dir    include/WholeBodyEstimatorModule.h
                         include/WholeBodyEstimatorThread.h
                         include/IEstimator.h
@@ -37,10 +40,15 @@ file(GLOB header_dir    include/WholeBodyEstimatorModule.h
                         include/EstimatorsCreator.h
                         include/EstimatorsCreatorImpl.h
                         include/QuaternionEKF.h
+                        include/LeggedOdometry.h
+                        include/nonLinearAnalyticConditionalGaussian.h
+                        include/nonLinearMeasurementGaussianPdf.h)
 
 source_group("Source Files" FILES ${source_dir})
 source_group("Header Files" FILES ${header_dir})
 
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR}
+                           ${YARP_INCLUDE_DIRS}
                            ${MATRIX_INCLUDE}
                            ${OROCOS_BFL_INCLUDEDIR}
                            ${wholeBodyInterface_INCLUDE_DIRS}
@@ -49,6 +57,7 @@ source_group("Header Files" FILES ${header_dir})
 
 include_directories(include)
 
+message("** wholeBodyEstimator says: ")
 message("** Matrix include dirs are: " ${MATRIX_INCLUDE})
 message("** Orocos-bfl include dirs are: " ${OROCOS_BFL_INCLUDEDIR})
 message("** wholeBodyInterface include dirs are: "${wholeBodyInterface_INCLUDE_DIRS})
@@ -61,9 +70,11 @@ link_directories(${OROCOS_BFL_LIBRARY_DIRS})
 message("${PROJECTNAME} ${source_dir} ${header_dir}")
 add_executable(${PROJECTNAME} ${source_dir} ${header_dir})
 
+if(CODYCO_USES_OROCOS_BFL_BERDY)
 target_link_libraries(${PROJECTNAME}
                       ${OROCOS_BFL_LIBRARIES}
                       ${MATRIX_LIBS}
+                      ${YARP_LIBRARIES}
                       ${wholeBodyInterface_LIBRARIES}
                       ${yarpWholeBodyInterface_LIBRARIES}
                       ${iDynTree_LIBRARIES})
