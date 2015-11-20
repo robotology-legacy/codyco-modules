@@ -128,5 +128,5 @@ yarp connect /torqueBalancingRefGen/qDes:o /torqueBalancing/qDes:i
 for connecting the postural references.
 
 ###Notes
-If you configured this module to stream set points, it is likely to happen that that you want to configure the `torqueBalancing` module to smooth the input references, otherwise discontinuities may occour in the control. 
+If you configured this module to stream set points, it is likely to happen that you want to configure the `torqueBalancing` module to smooth the input references, otherwise discontinuities may occour in the control. 
 Please, see the `torqueBalancing` documentation to understand how to properly configure input smoothing.
