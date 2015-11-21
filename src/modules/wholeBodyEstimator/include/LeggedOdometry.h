@@ -59,13 +59,13 @@ private:
 
     iCub::iDynTree::DynTree * icub_model;
     wbi::iWholeBodySensors * m_sensors;
-    iDynTree::RobotJointStatus * m_joint_status;
+    iDynTree::RobotJointStatus  * m_joint_status;
 
     std::string m_module_name;
 public:
     LeggedOdometry();
 
-    ~LeggedOdometry();
+    virtual ~LeggedOdometry();
 
     /** 
     * From the base class. Does the same job as initOdemetry() in wholeBodyDynamicsTree.

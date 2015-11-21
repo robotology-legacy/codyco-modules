@@ -49,29 +49,6 @@ bool WholeBodyEstimatorThread::threadInit()
         k++;
     }
     
-    // IGNORE THE REST OF THE INITALIZATIONG CODE
-    return true;
-    
-    //TODO Deprecate the following lines as it is now done by the estimators factory.
-    
-    m_floatingBaseLeggedOdometry = new LeggedOdometry;
-    if ( !m_floatingBaseLeggedOdometry->init(m_rfCopy, m_wbs) )
-    {
-        yError("[WholeBodyEstimatorThread::threadInit()] Problem initializing floating base legged odometry. Doh!");
-        return false;
-    } else {
-        yInfo("[WholeBodyEstimatorThread::threadInit()] Floating Base Legged Odometry was succesfully initialized! Good luck with the rest ;)");
-    }
-    
-    m_quaternionEKFInstance = new QuaternionEKF;
-    if ( !m_quaternionEKFInstance->init(m_rfCopy, m_wbs) )
-    {
-        yError("[wholeBodyEstimatorThread::threadInit()] Problem initializing the quaternionEKF estimator.");
-        return false;
-    } else {
-        yInfo("[wholeBodyEstimatorThread::threadInit()] QuaternionEKF instance started successfully.");
-    }
-    
     return true;
 }
 
@@ -94,7 +71,6 @@ void WholeBodyEstimatorThread::run()
         (*it)->run();
     }
 
-    
     this->m_run_mutex_acquired = false;
     run_mutex.unlock();
     
@@ -102,12 +78,13 @@ void WholeBodyEstimatorThread::run()
 
 void WholeBodyEstimatorThread::threadRelease()
 {
-    m_floatingBaseLeggedOdometry->release();
-    if (m_floatingBaseLeggedOdometry != NULL)
+    // Delete each estimator
+    std::vector<IEstimator*>::iterator it;
+    for (it = this->m_estimatorsList.begin(); it < this->m_estimatorsList.end(); ++it)
     {
-        delete m_floatingBaseLeggedOdometry;
-        m_floatingBaseLeggedOdometry = 0;
+        (*it)->release();
     }
+    
 }
 
 bool WholeBodyEstimatorThread::fillEstimatorsMap()
