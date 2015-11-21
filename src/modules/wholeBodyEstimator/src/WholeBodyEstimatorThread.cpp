@@ -125,5 +125,5 @@ bool WholeBodyEstimatorThread::fillEstimatorsList()
     }
     
     return true;
-
+    
 }
