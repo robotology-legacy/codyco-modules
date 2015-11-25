@@ -28,6 +28,22 @@ for a in $list; do
 	echo "set icmd cmod $a pos"  | yarp rpc /icub/left_leg/rpc:i
 done
 
+sleep 0.25
+
+list="0"
+
+for a in $list; do
+echo "set icmd cmod $a idl"  | yarp rpc /icub/right_leg/rpc:i
+done
+
+sleep 0.25
+
+for a in $list; do
+echo "set icmd cmod $a pos"  | yarp rpc /icub/right_leg/rpc:i
+done
+
+sleep 0.25
+
 echo "!!Now I will calib the wholeBodyDynamics!!"
 sleep 0.5
 echo "calibStanding all 600"  | yarp rpc /wholeBodyDynamicsTree/rpc:i
