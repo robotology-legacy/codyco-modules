@@ -1529,6 +1529,10 @@ void wholeBodyDynamicsThread::run()
             threadStatus = STATUS_DISCONNECTED;
         }
     }
+    else
+    {
+        nrOfConsecutiveFailedSensorReadings = 0;
+    }
 
     // If doing smooth calibration, continue to stream torques
     // even when doing calibration
