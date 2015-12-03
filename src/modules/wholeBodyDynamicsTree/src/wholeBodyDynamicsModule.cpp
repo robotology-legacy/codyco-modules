@@ -49,7 +49,8 @@ wholeBodyDynamicsModule::wholeBodyDynamicsModule()
 {
     wbdThread      = 0;
     sensors  = 0;
-    period          = 10;
+    threadPeriodInMSec = 10;
+    modulePeriodInSec  = 0.1;
 }
 
 bool wholeBodyDynamicsModule::attach(yarp::os::Port &source)
@@ -77,13 +78,13 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     //Loading thread period
     if( rf.check("period") && rf.find("period").isInt() )
     {
-        period = rf.find("period").asInt();
+        threadPeriodInMSec = rf.find("period").asInt();
     }
 
     // If period is not specified, check also the legacy "rate" option
     if( !rf.check("period") && rf.check("rate") && rf.find("rate").isInt() )
     {
-        period = rf.find("rate").asInt();
+        threadPeriodInMSec = rf.find("rate").asInt();
     }
 
 
@@ -252,7 +253,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     //--------------------------WHOLE BODY DYNAMICS THREAD--------------------------
     wbdThread = new wholeBodyDynamicsThread(moduleName,
                                             robotName,
-                                            period,
+                                            threadPeriodInMSec,
                                             sensors,
                                             yarpWbiOptions,
                                             fixed_base_calibration,
@@ -311,11 +312,11 @@ bool wholeBodyDynamicsModule::close()
 
 
     printf("[PERFORMANCE INFORMATION]:\n");
-    printf("Expected period %d ms.\nReal period: %3.1f+/-%3.1f ms.\n", period, avgTime, stdDev);
+    printf("Expected period %d ms.\nReal period: %3.1f+/-%3.1f ms.\n", threadPeriodInMSec, avgTime, stdDev);
     printf("Real duration of 'run' method: %3.1f+/-%3.1f ms.\n", avgTimeUsed, stdDevUsed);
-    if(avgTimeUsed<0.5*period)
+    if(avgTimeUsed<0.5*threadPeriodInMSec)
         printf("Next time you could set a lower period to improve the wholeBodyDynamics performance.\n");
-    else if(avgTime>1.3*period)
+    else if(avgTime>1.3*threadPeriodInMSec)
         printf("The period you set was impossible to attain. Next time you could set a higher period.\n");
 
 
@@ -333,12 +334,21 @@ bool wholeBodyDynamicsModule::updateModule()
     wbdThread->getEstPeriod(avgTime, stdDev);
     wbdThread->getEstUsed(avgTimeUsed, stdDevUsed);     // real duration of run()
 
-    if(avgTime > 1.3 * period)
+    if(avgTime > 1.3 * threadPeriodInMSec)
     {
-        yWarning("[WARNING] wholeBodyDynamics loop is too slow. Real period: %3.3f+/-%3.3f. Expected period %d.\n", avgTime, stdDev, period);
+        yWarning("[WARNING] wholeBodyDynamics loop is too slow. Real period: %3.3f+/-%3.3f. Expected period %d.\n", avgTime, stdDev, threadPeriodInMSec);
         yInfo("Duration of 'run' method: %3.3f+/-%3.3f.\n", avgTimeUsed, stdDevUsed);
     }
 
+    // Check status of the thread, and stop the module if is
+    // disconnected from the sensors
+    wholeBodyDynamicsThread::threadStatusEnum threadStatus = wbdThread->getThreadStatus();
+
+    if( threadStatus == wholeBodyDynamicsThread::STATUS_DISCONNECTED )
+    {
+        yError("Lost connection with the sensors, closing the wholeBodyDynamicsTree module.");
+        return false;
+    }
 
     return true;
 }

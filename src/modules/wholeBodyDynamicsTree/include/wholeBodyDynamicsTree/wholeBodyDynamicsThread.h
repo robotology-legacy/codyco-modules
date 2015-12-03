@@ -120,10 +120,29 @@ class OffsetSmoother
   */
 class wholeBodyDynamicsThread: public yarp::os::RateThread
 {
+public:
+     enum threadStatusEnum {STATUS_OK=0, STATUS_DISCONNECTED};
+private:
+    /**
+     * Status of the thread (OK or disconnected)
+     */
+    threadStatusEnum threadStatus;
+
+    /**
+     * Counter of consecutive failed sensor readings.
+     * After there have been 10 (hardcoded value for now)
+     * consecutive failed attemps to read the sensors,
+     * the module automatically closes.
+     *
+     * See https://github.com/robotology/codyco-modules/issues/161
+     */
+    int nrOfConsecutiveFailedSensorReadings;
+
     /** prefix for all the ports opened by this module */
     std::string moduleName;
     /** prefix for all the ports of the robot at which we are connecting */
     std::string robotName;
+
     /** wholeBodySensors interface to get sensors readings */
     wbi::iWholeBodySensors * sensors;
 
@@ -179,9 +198,16 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
 
 
     wbi::ID convertFTiDynTreeToFTwbi(int ft_sensor_id);
-    void estimation_run();
+
+    /**
+     * Run the main loop when the module is actually performing estimation.
+     * @param sensorReadSuccessfull flag passed to mark if the read of the sensor was successful.
+     *                              If false, there was some error while reading the sensors.
+     */
+    void estimation_run(const bool sensorReadSuccessfull);
     void calibration_run();
     void calibration_on_double_support_run();
+
 
     //Data structures for mapping between wbi and output ports
     // this are populated by the WBD_TORQUE_PORTS group
@@ -296,7 +322,6 @@ class wholeBodyDynamicsThread: public yarp::os::RateThread
     void closeOdometry();
 
 public:
-
     wholeBodyDynamicsThread(std::string _name,
                             std::string _robotName,
                             int _period,
@@ -326,9 +351,26 @@ public:
      * @return always returns true
      */
     bool waitCalibrationDone();
-    void readRobotStatus();
+
+    /**
+     * Read the robot sensors from the yarpWholeBodySensors interface.
+     *
+     * @return true if all went well, false if errors occured while reading sensors.
+     */
+    bool readRobotStatus();
+
     void run();
     void threadRelease();
+
+    /**
+     * Get the thread status (STATUS_OK or STATUS_DISCONNECTED).
+     * This method calls the same mutex locked in the run() method
+     * of the thread, so don't call it from the run() if you don't
+     * want to reach a deadlock.
+     *
+     * @return the status of the thread
+     */
+    threadStatusEnum getThreadStatus();
 
     /**
      * For all the joints for which we are estimating torques,

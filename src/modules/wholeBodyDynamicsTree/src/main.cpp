@@ -154,6 +154,20 @@ filtering of:
    cutoff_velacc configuration parameter. In the case the cutoff_velacc parameter is specified,
    the cutoff frequency (in Hz) of the filter is given by the value of the cutoff_velacc parameter.
 
+\section sensorTimeout Sensor Timeout
+wholeBodyDynamicsTree relies on the underlyng yarp devices to detect sensor timeout.
+Currently the only device that is checking for a timeout is the RemoteControlBoard,
+that is used to read encoders position, velocity and accelerations. In the RemoteControlBoard
+a fixed timeout of 0.5 seconds is used : if no measurement is received in that time, the
+reading of the sensor will be considered failed.
+If the sensor reading fails in a period, no estimation is published on the YARP network
+in that period.
+If for 10 consecutive periods of the wholeBodyDynamicsTree module (the default period is 10 ms)
+the reading of the sensors fails, wholeBodyDynamicsTree module shutdowns automatically. 
+Check [issue 161 of codyco-modules issue tracker](https://github.com/robotology/codyco-modules/issues/161)
+for more information on why this feature was introduced.
+
+
 
 \author Silvio Traversaro
 

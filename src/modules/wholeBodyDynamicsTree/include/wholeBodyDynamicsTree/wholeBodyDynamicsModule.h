@@ -36,7 +36,8 @@ class wholeBodyDynamicsModule: public yarp::os::RFModule, public wholeBodyDynami
     /* module parameters */
     std::string  moduleName;
     std::string  robotName;
-    int     period;
+    double     modulePeriodInSec;
+    int     threadPeriodInMSec;
     double  avgTime, stdDev, avgTimeUsed, stdDevUsed;
 
     yarp::os::Port                 rpcPort;        // a port to handle rpc messages
@@ -50,7 +51,7 @@ public:
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
     bool interruptModule();                       // interrupt, e.g., the ports
     bool close();                                 // close and shut down the module
-    double getPeriod(){ return period;  }
+    double getPeriod(){ return modulePeriodInSec;  }
     bool updateModule();
 
     /** RPC methods (Thrift) */
