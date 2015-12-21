@@ -33,23 +33,58 @@
 #include "IEstimator.h"
 
 // TEMPORARY
+/**
+ *  ID number of the first board in the right foot with accelerometer plus gyro as specified in:
+ *
+ *  @return 32.0
+ */
 #define MTB_RIGHT_FOOT_ACC_PLUS_GYRO_1_ID 32.0
+/**
+ *  ID number of the second board in the right foot with accelerometer plus gyro as specified in:
+ *
+ *  @return 33.0
+ *  @note: This is the board to which the palm skin is currently connected.
+ */
 #define MTB_RIGHT_FOOT_ACC_PLUS_GYRO_2_ID 33.0 // The board to which the skin is connected
+/**
+ *  ID number of the MTB board in the palm of iCubGenova01 with accelerometer plys gyro as specified in:
+ *
+ *  @return 25.0
+ */
 #define MTB_RIGHT_HAND_ACC_PLUS_GYRO_1_ID 25.0
+/**
+ *  Position in the measurement vector as read from the port where a package data is expected.
+ *  Recall that before the actual data, there are some other numbers and identifiers that could change.
+ *
+ *  @return 6
+ */
 #define MTB_PORT_DATA_PACKAGE_OFFSET 6
-// Accelerometer conversionf actor in m/s^2
+// Accelerometer conversion factor in m/s^2
+/**
+ *  MTB accelerometer conversion factor.
+ *
+ *  @return 5.9855e-04
+ */
 #define CONVERSION_FACTOR_ACC 5.9855e-04
 // Gyroscope conversion factor in deg/sec
+/**
+ *  MTB gyroscope conversion factor.
+ *
+ *  @return 7.6274e-03
+ */
 #define CONVERSION_FACTOR_GYRO 7.6274e-03
 #define PI 3.141592654
 
+/**
+ *  Structure containing this class parameters necessary for the Extended Kalman Filter.
+ */
 struct quaternionEKFParams
 {
-    int period;
+    unsigned int period;
     std::string robotPrefix;
-    int stateSize;
-    int inputSize;
-    int measurementSize;
+    unsigned int stateSize;
+    unsigned int inputSize;
+    unsigned int measurementSize;
     double muSystemNoise;
     double sigmaSystemNoise;
     double sigmaMeasurementNoise;
@@ -64,12 +99,23 @@ enum outputPorts {
     ORIENTATION_ESTIMATE_PORT_EULER,
 };
 
+/**
+ *  Structure holding information about a publisher port and a method to open and publish.
+ */
 struct publisherPortStruct
 {
     std::string estimatorName;
     std::string portName;
     yarp::sig::Vector outputData;
     yarp::os::BufferedPort<yarp::sig::Vector> * outputPort;
+    /**
+     *  Opens a publisher port and provides methods to configure and publish data.
+     *
+     *  @param className Current estimator class name.
+     *  @param pName     Publisher port name.
+     *
+     *  @return True if port was successfully opened, false otherwise.
+     */
     bool configurePort(std::string className, std::string pName)
     {
         estimatorName = className;
@@ -83,39 +129,63 @@ struct publisherPortStruct
         }
         return true;
     }
+    //TODO: Finish the implementation of this method.
+    /**
+     *  Method used to retrieve and publish data.
+     *
+     *  @return True when succesfully written, false otherwise. 
+     */
+    bool publishData(){ return true; }
 };
 
+/** 
+ *  Structure holding information of a reader port and methods to configure it and connect to an input port.
+ *  @param className name of the current class.
+ *  @param pName Port name.
+ *  @param srcPort Source port name.
+ */
 struct readerPortStruct
 {
-    std::string estimatorName;
-    std::string portName;
-    yarp::os::Port inputPort;
-    bool configurePort(std::string className, std::string pName, std::string srcPort)
+    std::string      estimatorName;
+    std::string      portName;
+    std::string      fullPortName;
+    /**
+     *  Opens a reader port and connects it to its source.
+     *
+     *  @param className    Current estimator class name.
+     *  @param pName        Reader port name.
+     *  @param srcPort      Source port name.
+     *  @param inputPort    Pointer to input port. This should be a private variable of the calling class. 
+     *
+     *  @return true when ports creation and connections are successful.
+     */
+    bool configurePort(std::string className, std::string pName, std::string srcPort, yarp::os::Port * inputPort)
     {
         estimatorName = className;
         portName = pName;
-        std::string fullPortName = std::string("/" + estimatorName + "/" + portName + ":i").c_str();
-        if ( !inputPort.open( fullPortName ) )
-        {
+        fullPortName = std::string("/" + estimatorName + "/" + portName + ":i").c_str();
+        if ( !inputPort->open(fullPortName) ) {
             yError ("Could not open input port %s ", fullPortName.c_str());
             return false;
         } else {
-            if ( !yarp::os::Network::connect(srcPort, inputPort.getName()) )
+            if ( !yarp::os::Network::connect(srcPort, fullPortName) )
             {
-                yError ("Could not connect to port %s", inputPort.getName().c_str() );
+                yError ("Could not connect to port %s", srcPort.c_str() );
                 return false;
             }
         }
         return true;
     }
 };
-
+/**
+ *  Structure holding IMU-like information, namely linear acceleration, angular velocity and real orientation when available in body frame.
+ */
 struct measurementsStruct
 {
     yarp::sig::Vector linAcc;
     yarp::sig::Vector angVel;
+    // Assuming real orientation is given in Eulers
     yarp::sig::Vector realOrientation;
-
 };
 
 class QuaternionEKF : public IEstimator
@@ -125,18 +195,80 @@ class QuaternionEKF : public IEstimator
 public:
     QuaternionEKF();
     virtual ~QuaternionEKF();
+    /**
+     Implemented the init() method from IEstimator. More documentation in the corresponding class.
+     In particular this method reads the estimator parameters from configuration file, opens publisher 
+     and resder ports, initializes filter variables, creates system and measurement model, sets prios 
+     and instantiates an Extended Kalman Filter.
+     
+     - parameter yarp: rf reference to resource finder.
+     - parameter wbi:  wbs pointer to object of type iWholeBodySensors.
+     
+     - returns: Returns true if successful, false otherwise.
+     */
     bool init(yarp::os::ResourceFinder &rf, wbi::iWholeBodySensors* wbs);
+    /**
+     *  Documentation in IEstimator class. 
+     *  In this implementation the following is done:
+     *  - Sensor data is read each time step
+     *  - Updates system noise covariance.
+     *  - Calls the prediction and update steps of the Kalman filter (EKF).
+     *  - Retrieves posterior mean and covariance of the EKF.
+     *  - Publishes estimates results through the ports configured in the init method (quaternion and euler).
+     *  - Optionally streams read gyro and accelerometer data.
+     */
     void run();
     void release();
-    // TODO Probably this method should also be enforced through IEstimator
+    // TODO This method should also be enforced through IEstimator
+    /**
+     *  Reads the filter parameters specified under the group CLASSNAME.
+     *
+     *  @param rf              It is assumed that rf has already been configured and populated.
+     *  @param estimatorParams Filled with the parsed module parameters (output).
+     *
+     *  @return True if parameters for this class were found. False otherwise.
+     *  @note This method should be ported to the estimators interface.
+     */
     bool readEstimatorParams(yarp::os::ResourceFinder &rf, quaternionEKFParams &estimatorParams);
+    /**
+     *  Sets initial system noise mean and covariance and instantiates the model of type BFL::AnalyticSystemModelGaussianUncertainty.
+     */
     void createSystemModel();
+    /**
+     *  Sets initial measurement noise mean and covariance and uses it to create an initial uncertainty PDF which is then used to 
+        create a measurement model of type BFL::AnalyticMeasurementModelGaussianUncertainty.
+     */
     void createMeasurementModel();
+    /**
+     *  Sets prior means and convariances.
+     */
     void setPriors();
+    /**
+     *  Instantiates an Extended Kalman Filter of type BFL::ExtendedKalmanFilter.
+     */
     void createFilter();
+    //FIXME: This should not exist at all. yarpWholeBodySensors should be able to read this after proper initialization.
+    /**
+     *  Temporary fix while yarpWholeBodySensors parses acceleromenters and gyros from URDF and provides this measurement directly through the interface.
+     *  Basically calls extractMTBDatafromPort.
+     *
+     *  @param m This object will contain raw angular velocity, linear acceleration and external estimated orientation -if provided- (output).
+     *
+     *  @return True if parsing from sensor reading port is successful, false otherwise.
+     *  @note This method will be soon deprecated. Waiting for newest version of yarpWholeBodySensors.
+     */
     bool readSensorData(measurementsStruct &m);
+    /**
+     *  Given that the following variables are somewhere defined: MTB_PORT_DATA_PACKAGE_OFFSET, CONVERSION_FACTOR_ACC, CONVERSION_FACTOR_GYRO.
+        This method parses the measurement as streamed by the inertial unit and separates them into linear acceleration, angular velocity and orientation -if provided- (output).
+     *
+     *  @param boardNum     Currently specified in the header of this class.
+     *  @param measurements Parsed data (output).
+     *
+     *  @return True when
+     */
     bool extractMTBDatafromPort(int boardNum, measurementsStruct &measurements);
-    // TODO Temporary
+    //TODO: Temporary
     void XiOperator(MatrixWrapper::ColumnVector quat, MatrixWrapper::Matrix* Xi);
     void SOperator(MatrixWrapper::ColumnVector omg, MatrixWrapper::Matrix* S);
 
@@ -156,6 +288,9 @@ private:
     BFL::ExtendedKalmanFilter * m_filter;
     MatrixWrapper::ColumnVector m_prior_mu_vec;
     MatrixWrapper::ColumnVector m_posterior_state;
+    //FIXME This should be temporary
+    yarp::os::Port * sensorMeasPort;
+    measurementsStruct measurements;
 };
 
 

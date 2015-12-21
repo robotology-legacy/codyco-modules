@@ -6,9 +6,10 @@ using namespace yarp::os;
 using namespace yarp::math;
 
 QuaternionEKF::QuaternionEKF() : m_className("QuaternionEKF")
-{ }
+{}
 
-QuaternionEKF::~QuaternionEKF() {}
+QuaternionEKF::~QuaternionEKF()
+{}
 
 bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
 {
@@ -50,9 +51,10 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     
     // TEMPORARY
     // Open sensor ports
+    sensorMeasPort = new yarp::os::Port;
     readerPortStruct sensorDataPort;
     std::string srcPort = std::string("/" + this->m_quaternionEKFParams.robotPrefix + "/right_leg/inertialMTB");
-    if ( !sensorDataPort.configurePort(this->m_className, std::string("rightFootMTBreadings"), srcPort) )
+    if ( !sensorDataPort.configurePort(this->m_className, std::string("rightFootMTBreader"), srcPort, sensorMeasPort) )
     {
         yError("[QuaternionEKF::init] Could not connect to source port");
         return false;
@@ -77,8 +79,11 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     
     // Create filter
     createFilter();
-        
-    yInfo("QuaternionEKF is running...");
+    
+    // Initialize measurement object
+    measurements.linAcc.resize(3,0.0);
+    measurements.angVel.resize(3,0.0);
+    yInfo("QUATERNIONEKF is running...");
     
     return true;
 }
@@ -86,20 +91,17 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
 void QuaternionEKF::run()
 {
     // Read sensor data
-    measurementsStruct measurements;
     if ( !readSensorData(measurements) )
     {
         yWarning("QuaternionEKF::run() SENSOR DATA COULD NOT BE READ!");
     } else {
-        yInfo("[QuaternionEKF::run] Parsed sensor data: \n Acc [m/s^2]: \t%s \n Ang Vel [deg/s]: \t%s \n",  measurements.linAcc.toString().c_str(), measurements.angVel.toString().c_str());
+        yInfo("[QuaternionEKF::run] Parsed sensor data: \n Acc [m/s^2]: \t%s \n Ang Vel [deg/s]: \t%s \n",  (measurements.linAcc).toString().c_str(), (measurements.angVel).toString().c_str());
     }
     
     // Copy ang velocity data from a yarp vector into a ColumnVector
     MatrixWrapper::ColumnVector input(measurements.angVel.data(),m_quaternionEKFParams.inputSize);
-    std::cout << "[DEBUG] VEL INPUT IS: " << std::endl << input << std::endl;
     // Copy accelerometer data from a yarp vector into a ColumnVector
     MatrixWrapper::ColumnVector measurement(measurements.linAcc.data(),m_quaternionEKFParams.measurementSize);
-    std::cout << "[DEBUG] ACC INPUT IS: " << std::endl << measurement << std::endl;
 
     // Noise gaussian
     // System Noise Mean
@@ -197,7 +199,7 @@ bool QuaternionEKF::readEstimatorParams(yarp::os::ResourceFinder &rf, quaternion
     }
     
     botParams.clear();
-    botParams = rf.findGroup("MODULE_PARAMS");
+    botParams = rf.findGroup("MODULE_PARAMETERS");
     if ( botParams.isNull() )
     {
         yError("[QuaternionEKF::readEstimatorParams] No parameters were read from MODULE_PARAMS group. period is needed!");
@@ -221,6 +223,7 @@ void QuaternionEKF::createSystemModel()
     sys_noise_cov(1,1) = sys_noise_cov(2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = m_quaternionEKFParams.sigmaSystemNoise;
     
     // Setting System noise uncertainty
+    m_sysPdf = new BFL::nonLinearAnalyticConditionalGaussian(m_quaternionEKFParams.stateSize);
     m_sysPdf->AdditiveNoiseMuSet(sys_noise_mu);
     m_sysPdf->AdditiveNoiseSigmaSet(sys_noise_cov);
     m_sysPdf->setPeriod(m_quaternionEKFParams.period);
@@ -276,18 +279,21 @@ void QuaternionEKF::createFilter()
 bool QuaternionEKF::readSensorData(measurementsStruct &meas)
 {
     // TEMPORARY WHILE WHOLEBODYSENSORS IS FINISHED
-    extractMTBDatafromPort(MTB_RIGHT_FOOT_ACC_PLUS_GYRO_2_ID, meas);
-    return true;
+    if ( extractMTBDatafromPort(MTB_RIGHT_FOOT_ACC_PLUS_GYRO_2_ID, meas) )
+        return true;
+    else {
+        yError("QuaternionEKF was not able to read sensor data.");
+        return false;
+    }
     
 }
 
 bool QuaternionEKF::extractMTBDatafromPort(int boardNum, measurementsStruct &measurements)
 {
-    yarp::sig::Vector linAcc = measurements.linAcc;
-    yarp::sig::Vector angVel = measurements.angVel;
     yarp::sig::Vector fullMeasurement;
+    yarp::os::Bottle measurementBottle;
     int indexSubVector = 0;
-    if ( !m_inputPortsList[0].inputPort.read(fullMeasurement) ) {
+    if ( !sensorMeasPort->read(fullMeasurement) ) {
         yError("[quaternionEKFThread::extractMTBDatafromPort] There was an error trying to read from the MTB port");
         return false;
     } else {
@@ -306,15 +312,15 @@ bool QuaternionEKF::extractMTBDatafromPort(int boardNum, measurementsStruct &mea
                 if ( tmp[trueindexSubVector]  == boardNum ) {
                     //  If sensor from board "boardNum" is an accelerometer
                     if ( tmp[trueindexSubVector + 1] == 1.0) {
-                        linAcc(0) = tmp[trueindexSubVector + 3];
-                        linAcc(1) = tmp[trueindexSubVector + 4];
-                        linAcc(2) = tmp[trueindexSubVector + 5];
+                        measurements.linAcc(0) = tmp[trueindexSubVector + 3];
+                        measurements.linAcc(1) = tmp[trueindexSubVector + 4];
+                        measurements.linAcc(2) = tmp[trueindexSubVector + 5];
                     } else {
                         // If sensor from board "boardNum" is a gyroscope
                         if ( tmp[trueindexSubVector + 1] == 2.0 ) {
-                            angVel(0) = tmp[trueindexSubVector + 3];
-                            angVel(1) = tmp[trueindexSubVector + 4];
-                            angVel(2) = tmp[trueindexSubVector + 5];
+                            measurements.angVel(0) = tmp[trueindexSubVector + 3];
+                            measurements.angVel(1) = tmp[trueindexSubVector + 4];
+                            measurements.angVel(2) = tmp[trueindexSubVector + 5];
                         }
                     }
                 }
@@ -322,12 +328,13 @@ bool QuaternionEKF::extractMTBDatafromPort(int boardNum, measurementsStruct &mea
             }
         }
         /**********************************************************************************/
-        linAcc = CONVERSION_FACTOR_ACC*linAcc;
-        if (yarp::math::norm(linAcc) > 11.0) {
+        measurements.linAcc = measurements.linAcc*CONVERSION_FACTOR_ACC;
+        if (yarp::math::norm(measurements.linAcc) > 11.0) {
             yWarning("WARNING!!! [quaternionEKFThread::run] Gravity's norm is too big!");
         }
-        angVel = PI/180*CONVERSION_FACTOR_GYRO*angVel;
-        if (yarp::math::norm(angVel) > 100.0) {
+        //TODO Check that this conversion factor is correct (doubts on the PI/180). See what was done in quaternionEKF
+        measurements.angVel = PI/180*CONVERSION_FACTOR_GYRO*measurements.angVel;
+        if (yarp::math::norm(measurements.angVel) > 100.0) {
             yWarning("WARNING!!! [quaternionEKFThread::run] Ang vel's norm is too big!");
         }
     }

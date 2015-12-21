@@ -16,12 +16,13 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
     
     if (!rf.check("MODULE_PARAMETERS"))
     {
-        yError("Group MODULE_PARAMS was not specified in the configuration file of this module. Please fix it and try again.");
+        yError("Group MODULE_PARAMETERS was not specified in the configuration file of this module. Please fix it and try again.");
         return false;
     } else
     {
+        // Fill m_module_params with module parameters
         m_module_params.fromString(rf.findGroup("MODULE_PARAMETERS").tail().toString());
-        yInfo(" [WholeBodyEstimatorModule::configure] MODULE_PARAMS group contents are: %s ", m_module_params.toString().c_str());
+        yInfo(" [WholeBodyEstimatorModule::configure] MODULE_PARAMETERS group contents are: %s ", m_module_params.toString().c_str());
         
         m_period = m_module_params.find("period").asInt();
         m_module_name = m_module_params.find("name").asString();
@@ -60,7 +61,7 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
 
     // Adding encoders
     wbs->addSensors(wbi::SENSOR_ENCODER, RobotDynamicModelJoints);
-    
+    // TODO Accelerometer and gyroscopes should be added here
     
     // Initializing sensor interface
     if(!wbs->init())
