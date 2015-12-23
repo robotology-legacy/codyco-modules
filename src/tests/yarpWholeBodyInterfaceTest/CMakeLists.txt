@@ -24,6 +24,8 @@ include(iCubOptions)
 
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ICUB_LINK_FLAGS}")
 
+# import math symbols from standard cmath
+add_definitions(-D_USE_MATH_DEFINES)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
      IF(CMAKE_COMPILER_IS_GNUCC)

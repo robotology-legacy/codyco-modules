@@ -25,7 +25,7 @@
 #include<yarpWholeBodyInterface/yarpWholeBodyInterface.h>
 
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 #include <string>
 
 #include <iostream>
@@ -37,10 +37,13 @@ using namespace yarp::math;
 using namespace iCub::skinDynLib;
 using namespace std;
 using namespace wbi;
-using namespace yarpWbi;//wbiIcub;
+using namespace yarpWbi;
 using namespace Eigen;
 
 const double TOL = 1e-8;
+
+const double WBITEST_RAD2DEG = 180.0 / M_PI;
+const double WBITEST_DEG2RAD = M_PI / 180.0;
 
 
 int main(int argc, char * argv[])
@@ -140,13 +143,13 @@ int main(int argc, char * argv[])
     */
     qInit = q;
     qd = q;
-   Vector refSpeed(dof, CTRL_DEG2RAD*10.0);//, qd = q;
+   Vector refSpeed(dof, WBITEST_DEG2RAD*10.0);//, qd = q;
    
    if(testType == 1)
    {
     for (int ctr = 0; ctr <13;ctr++)
     {
-      qd(ctr) += 15.0*CTRL_DEG2RAD;
+      qd(ctr) += 15.0*WBITEST_DEG2RAD;
     }
    }
    else
@@ -157,19 +160,19 @@ int main(int argc, char * argv[])
      
      for (int ctr = 0; ctr <2;ctr++)
      {
-	qd(keyJointsPlus[ctr]) -= 15.0*CTRL_DEG2RAD;
+    qd(keyJointsPlus[ctr]) -= 15.0*WBITEST_DEG2RAD;
      }
      for (int ctr = 2; ctr <4;ctr++)
      {
-	qd(keyJointsPlus[ctr]) += 15.0*CTRL_DEG2RAD;
+    qd(keyJointsPlus[ctr]) += 15.0*WBITEST_DEG2RAD;
      }
      for (int ctr = 0; ctr <2;ctr++)
      {
-	qd(keyJointsMinus[ctr]) -= 30.0*CTRL_DEG2RAD;
+    qd(keyJointsMinus[ctr]) -= 30.0*WBITEST_DEG2RAD;
      }
    }
-   printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
-   printf("Qd:  %s\n", (CTRL_RAD2DEG*qd).toString(1).c_str());
+   printf("Q:   %s\n", (WBITEST_RAD2DEG*q).toString(1).c_str());
+   printf("Qd:  %s\n", (WBITEST_RAD2DEG*qd).toString(1).c_str());
    icub->setControlParam(CTRL_PARAM_REF_VEL, refSpeed.data());
    icub->setControlReference(qd.data());
    int j = 0;
@@ -188,7 +191,7 @@ int main(int argc, char * argv[])
        icub->getEstimates(ESTIMATE_JOINT_POS, q.data());
        icub->getEstimates(ESTIMATE_JOINT_VEL, dq.data());
        icub->getEstimates(ESTIMATE_JOINT_ACC,d2q.data());
-        printf("(Q, dq, d2q):   %.2f \t %.2f \t %.2f\n", CTRL_RAD2DEG*q(j), CTRL_RAD2DEG*dq(j), CTRL_RAD2DEG*d2q(j));
+        printf("(Q, dq, d2q):   %.2f \t %.2f \t %.2f\n", WBITEST_RAD2DEG*q(j), WBITEST_RAD2DEG*dq(j), WBITEST_RAD2DEG*d2q(j));
        
 	icub->getEstimates(ESTIMATE_BASE_POS,basePos.data());
 	printf("BasePos: %2.2f %2.2f %2.2f\n\n",basePos(3),basePos(7),basePos(11));
@@ -205,9 +208,9 @@ int main(int argc, char * argv[])
    printf("Test finished. Press return to exit.");
    getchar();
    
-   printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
+   printf("Q:   %s\n", (WBITEST_RAD2DEG*q).toString(1).c_str());
 
-   qd -= CTRL_DEG2RAD*15.0;
+   qd -= WBITEST_DEG2RAD*15.0;
    icub->setControlMode(CTRL_MODE_POS);
    icub->setControlReference(qd.data());
 
@@ -215,10 +218,10 @@ int main(int argc, char * argv[])
    printf("Test finished. Press return to exit.");
    getchar();
    
-   Vector refSpeedFinal(dof, CTRL_DEG2RAD*25.0);//, qd = q;
-//   qd += 15.0*CTRL_DEG2RAD;
-//   printf("Q:   %s\n", (CTRL_RAD2DEG*q).toString(1).c_str());
-//   printf("Qd:  %s\n", (CTRL_RAD2DEG*qd).toString(1).c_str());
+   Vector refSpeedFinal(dof, WBITEST_DEG2RAD*25.0);//, qd = q;
+//   qd += 15.0*WBITEST_DEG2RAD;
+//   printf("Q:   %s\n", (WBITEST_RAD2DEG*q).toString(1).c_str());
+//   printf("Qd:  %s\n", (WBITEST_RAD2DEG*qd).toString(1).c_str());
    icub->setControlParam(CTRL_PARAM_REF_VEL, refSpeedFinal.data());
    
    icub->setControlReference(qInit.data());

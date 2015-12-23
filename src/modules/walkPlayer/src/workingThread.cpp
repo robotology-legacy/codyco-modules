@@ -1,11 +1,14 @@
 #include <yarp/os/RateThread.h>
-#include <iCub/ctrl/math.h>
+#include <cmath>
+
 #include "workingThread.h"
 
 using namespace yarp::math;
 using namespace yarp::sig;
 using namespace yarp::os;
 using namespace std;
+
+const double WP_RAD2DEG = 180.0 / M_PI;
 
 WorkingThread::WorkingThread(int period): RateThread(period)
 {
@@ -52,12 +55,12 @@ bool WorkingThread::execute_joint_command(int j)
     double tmp_q_torso[3];
 
     for (int i = 0; i < 6; i++) {
-       tmp_q_left_leg[i]  = CTRL_RAD2DEG * actions.action_vector[j].q_left_leg[i];
-       tmp_q_right_leg[i] = CTRL_RAD2DEG * actions.action_vector[j].q_right_leg[i];
+       tmp_q_left_leg[i]  = WP_RAD2DEG * actions.action_vector[j].q_left_leg[i];
+       tmp_q_right_leg[i] = WP_RAD2DEG * actions.action_vector[j].q_right_leg[i];
     }
 
     for (int i = 0; i < 3; i++) {
-        tmp_q_torso[i] = CTRL_RAD2DEG * actions.action_vector[j].q_torso[i];
+        tmp_q_torso[i] = WP_RAD2DEG * actions.action_vector[j].q_torso[i];
     }
 
     double *ll = tmp_q_left_leg;

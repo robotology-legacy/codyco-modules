@@ -18,6 +18,9 @@ include_directories(SYSTEM ${ctrlLib_INCLUDE_DIRS}
                     ${GSL_INCLUDE_DIRS}
                     ${YARP_INCLUDE_DIRS})
 
+# import math symbols from standard cmath
+add_definitions(-D_USE_MATH_DEFINES)
+
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
 target_link_libraries(${PROJECT_NAME} ctrlLib
