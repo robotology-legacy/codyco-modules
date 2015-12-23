@@ -75,9 +75,12 @@ bool WorkingThread::execute_joint_command(int j)
     double encs_to[3]; double spd_to[3];
     int    modes[6];
     int    modes_to[3];
+    double REF_SPEED_FACTOR = this->refSpeedMinJerk; //0.5 -> position direct like
+    int    LIMIT_MIN_JERK = this->minJerkLimit;
 
-    if (j==0)
+    if (REF_SPEED_FACTOR != 0 && j>=0)
     {
+        bool checkMotionDone = false;
         //the whole body joint trajectory for the first step is done with min jerk controllers rather than position direct
         driver->ienc_ll->getEncoders(encs_ll);
         driver->ienc_rl->getEncoders(encs_rl);
@@ -85,13 +88,13 @@ bool WorkingThread::execute_joint_command(int j)
 
         for (int i=0; i<6; i++)
         {
-            spd_ll[i] = fabs(encs_ll[i]-ll[i])/4.0;
-            spd_rl[i] = fabs(encs_rl[i]-rl[i])/4.0;
+            spd_ll[i] = fabs(encs_ll[i]-ll[i])/REF_SPEED_FACTOR;
+            spd_rl[i] = fabs(encs_rl[i]-rl[i])/REF_SPEED_FACTOR;
         }
 
         for (int i=0; i<3; i++)
         {
-            spd_to[i] = fabs(encs_to[i] - to[i])/4.0;
+            spd_to[i] = fabs(encs_to[i] - to[i])/REF_SPEED_FACTOR;
         }
 
         driver->ipos_ll->setRefSpeeds(spd_ll);
@@ -112,7 +115,14 @@ bool WorkingThread::execute_joint_command(int j)
 
         cout << "going to home position" << endl;
 
-        yarp::os::Time::delay(5.0);
+        while(!checkMotionDone) {
+            cout << "Checking motion done" << endl;
+        driver->ipos_ll->checkMotionDone(&checkMotionDone);
+        driver->ipos_rl->checkMotionDone(&checkMotionDone);
+        driver->ipos_to->checkMotionDone(&checkMotionDone);
+        }
+        if ( j==0 )
+            yarp::os::Time::delay(3.0);
         cout << "done" << endl;
 
     }
@@ -129,6 +139,7 @@ bool WorkingThread::execute_joint_command(int j)
             mode_t != VOCAB_CM_POSITION_DIRECT)
         {
             //change control mode
+            // VOCAB_CM_POSITION_DIRECT
             for (int i=0; i < 6; i++) modes[i] = VOCAB_CM_POSITION_DIRECT;
             for (int i=0; i < 3; i++) modes_to[i] = VOCAB_CM_POSITION_DIRECT;
             driver->icmd_ll->setControlModes(modes);

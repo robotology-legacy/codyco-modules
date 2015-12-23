@@ -27,8 +27,12 @@ public:
     yarp::os::BufferedPort<yarp::os::Bottle>  port_command_joints_ll;
     yarp::os::BufferedPort<yarp::os::Bottle>  port_command_joints_rl;
     yarp::os::BufferedPort<yarp::os::Bottle>  port_command_joints_to;
+    yarp::os::BufferedPort<yarp::os::Bottle>  port_command_joints_la;
+    yarp::os::BufferedPort<yarp::os::Bottle>  port_command_joints_ra;
     bool                                      enable_execute_joint_command;
     double                                    speed_factor;
+    int                                       minJerkLimit;
+    double                                    refSpeedMinJerk;
 
     WorkingThread(int period=5);
     ~WorkingThread();

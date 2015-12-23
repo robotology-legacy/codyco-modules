@@ -110,6 +110,17 @@ bool scriptModule::configure(ResourceFinder &rf) {
         cout << "ERROR: Unable to find file with both --filename --filename2 paramters" << endl;
         return false;
     }
+    if (rf.check("minJerkLimit")==true )
+    {
+        int tmpLimit = rf.find("minJerkLimit").asInt();
+        thread.minJerkLimit = tmpLimit;
+    }
+    if (rf.check("refSpeedMinJerk")==true )
+    {
+        thread.refSpeedMinJerk = rf.find("refSpeedMinJerk").asDouble();
+    } else {
+        thread.refSpeedMinJerk = 0.0;
+    }
 
     cout << "Using parameters:" << endl << rf.toString() << endl;
     cout << "module successfully configured. ready." << endl;

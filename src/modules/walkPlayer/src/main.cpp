@@ -57,13 +57,15 @@ int main(int argc, char *argv[])
     if (rf.check("help"))
     {
         cout << "Options:" << endl << endl;
-        cout << "\t--name         <moduleName>: set new module name" << endl;
-        cout << "\t--robot        <robotname>:  robot name"          << endl;
-        cout << "\t--file         <filename>:   the positions file (with both legs)"  << endl;
-        cout << "\t--filename2    <filename>:   to specifiy to use two files (left and leg separate). _left.txt and _right.txt automatically appended"  << endl;
-        cout << "\t--execute      activate the iPid->setReference() control"  << endl;
-        cout << "\t--period       <period>: the period in ms of the internal thread (default 5)"  << endl;
-        cout << "\t--speed        <factor>: speed factor (default 1.0 normal, 0.5 double speed, 2.0 half speed etc)"  << endl;
+        cout << "\t--name               <moduleName>: set new module name" << endl;
+        cout << "\t--robot              <robotname>:  robot name"          << endl;
+        cout << "\t--file               <filename>:   the positions file (with both legs)"  << endl;
+        cout << "\t--filename2          <filename>:   to specifiy to use two files (left and leg separate). _left.txt and _right.txt automatically appended"  << endl;
+        cout << "\t--execute            activate the iPid->setReference() control"  << endl;
+        cout << "\t--period             <period>: the period in ms of the internal thread (default 5)"  << endl;
+        cout << "\t--speed              <factor>: speed factor (default 1.0 normal, 0.5 double speed, 2.0 half speed etc)"  << endl;
+        cout << "\t--refSpeedMinJerk    [0] Reference speed value used by the minimun jerk controllers. " << endl;
+        cout << "\t--minJerkLimit       [0] (int) Limit of the trajectory points after which position direct commands are sent " << endl;
         return 0;
     }
 
