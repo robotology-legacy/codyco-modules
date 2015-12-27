@@ -86,40 +86,41 @@ bool scriptModule::configure(ResourceFinder &rf) {
 
     //*** open the position file
     cout << "opening file..." << endl;
+
     if (rf.check("filename")==true)
     {
         string filename = rf.find("filename").asString().c_str();
-        if (!thread.actions.openFile(filename))
+        if (!thread.actions.openFile(filename, rf))
         {
             cout << "ERROR: Unable to parse file" << endl;
             return false;
         };
     }
-    else
-    if (rf.check("filename2")==true)
-    {
-        string filename = rf.find("filename2").asString().c_str();
-        if (!thread.actions.openFile2(filename, rf))
-        {
-            cout << "ERROR: Unable to parse file" << endl;
-            return false;
-        };
-    }
-    else
-    {
-        cout << "ERROR: Unable to find file with both --filename --filename2 paramters" << endl;
-        return false;
-    }
+    
     if (rf.check("minJerkLimit")==true )
     {
         int tmpLimit = rf.find("minJerkLimit").asInt();
         thread.minJerkLimit = tmpLimit;
     }
+    
     if (rf.check("refSpeedMinJerk")==true )
     {
         thread.refSpeedMinJerk = rf.find("refSpeedMinJerk").asDouble();
     } else {
         thread.refSpeedMinJerk = 0.0;
+    }
+    
+    if (rf.check("torqueBalancingSequence")==true)
+    {
+        string filenamePrefix = rf.find("torqueBalancingSequence").asString().c_str();
+        // Overwrite the execute flag value. This option has higher priority and
+        // should simply stream trajectories use by the torqueBalancing module.
+        thread.enable_execute_joint_command = false;
+        if (!thread.actions.openTorqueBalancingSequence(filenamePrefix,rf))
+        {
+            cout << "ERROR: Unable to parse torque balancing sequence" << endl;
+            return false;
+        }
     }
 
     cout << "Using parameters:" << endl << rf.toString() << endl;

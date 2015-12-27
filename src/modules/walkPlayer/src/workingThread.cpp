@@ -10,11 +10,14 @@ using namespace std;
 WorkingThread::WorkingThread(int period): RateThread(period)
 {
     enable_execute_joint_command = true;
-    //*** open the output port
+    //*** open the output ports
     port_command_out.open("/walkPlayer/port_command_out:o");
     port_command_joints_ll.open("/walkPlayer/port_joints_ll:o");
     port_command_joints_rl.open("/walkPlayer/port_joints_rl:o");
     port_command_joints_to.open("/walkPlayer/port_joints_to:o");
+    port_command_com.open("/walkPlayer/com:o");
+    port_command_postural.open("/walkPlayer/postural:o");
+    port_command_constraints.open("/walkPlayer/constraints:o");
     speed_factor = 1.0;
 }
 
@@ -28,6 +31,12 @@ WorkingThread::~WorkingThread()
     port_command_joints_rl.close();
     port_command_joints_to.interrupt();
     port_command_joints_to.close();
+    port_command_postural.interrupt();
+    port_command_postural.close();
+    port_command_com.interrupt();
+    port_command_com.close();
+    port_command_constraints.interrupt();
+    port_command_constraints.close();
 }
 
 void WorkingThread::attachRobotDriver(robotDriver *p)
@@ -206,6 +215,58 @@ void WorkingThread::compute_and_send_command(int j)
     this->port_command_joints_rl.write();
     this->port_command_joints_to.setEnvelope(this->timestamp);
     this->port_command_joints_to.write();
+    
+    //Send data for torqueBalancing
+    Bottle& bot_com = this->port_command_com.prepare();
+    Bottle& bot_postural = this->port_command_postural.prepare();
+    Bottle& bot_constraints = this->port_command_constraints.prepare();
+    bot_com.clear();
+    bot_postural.clear();
+    bot_constraints.clear();
+    
+    if ( !actions.action_vector_torqueBalancing.com_traj.empty() )
+    {
+        std::deque<double> tmpCom_i = actions.action_vector_torqueBalancing.com_traj.front();
+        while ( !tmpCom_i.empty() )
+        {
+            bot_com.addDouble( tmpCom_i.front() );
+            tmpCom_i.pop_front();
+        }
+        actions.action_vector_torqueBalancing.com_traj.pop_front();
+        tmpCom_i.clear();
+    }
+    
+    if ( !actions.action_vector_torqueBalancing.postural_traj.empty() )
+    {
+        std::deque<double> tmpPostural_i = actions.action_vector_torqueBalancing.postural_traj.front();
+        while ( !tmpPostural_i.empty() )
+        {
+            bot_postural.addDouble( tmpPostural_i.front() );
+            tmpPostural_i.pop_front();
+        }
+        actions.action_vector_torqueBalancing.postural_traj.pop_front();
+        tmpPostural_i.clear();
+    }
+    
+    if ( !actions.action_vector_torqueBalancing.constraints.empty() )
+    {
+        std::deque<int> tmpConstraints_i = actions.action_vector_torqueBalancing.constraints.front();
+        while ( !tmpConstraints_i.empty() )
+        {
+            bot_constraints.addInt( tmpConstraints_i.front() );
+            tmpConstraints_i.pop_front();
+        }
+        actions.action_vector_torqueBalancing.constraints.pop_front();
+        tmpConstraints_i.clear();
+    }
+    
+    this->port_command_com.setEnvelope(this->timestamp);
+    this->port_command_com.write();
+    this->port_command_postural.setEnvelope(this->timestamp);
+    this->port_command_postural.write();
+    this->port_command_constraints.setEnvelope(this->timestamp);
+    this->port_command_constraints.write();
+
 }
 
 void WorkingThread::run()
@@ -237,7 +298,7 @@ void WorkingThread::run()
             {
                 last_time = current_time;
                 actions.current_action++;
-                cout << "Current action: " << actions.current_action << endl;
+                //cout << "Current action: " << actions.current_action << endl;
                 compute_and_send_command(actions.current_action);
                 //printf("EXECUTING %d, elapsed_time:%.5f requested_time:%.5f\n", actions.current_action, current_time-last_time, duration);
             }

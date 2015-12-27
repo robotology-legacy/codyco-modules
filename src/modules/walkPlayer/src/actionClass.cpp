@@ -13,13 +13,23 @@ actionStruct::actionStruct() {
         actionStruct::tag = "UNKNOWN";
 }
 
+actionStructForTorqueBalancing::actionStructForTorqueBalancing()
+{
+//    for (int i = 0; i < COM_TRAJ_NUM_COLS; i++)
+//        actionStructForTorqueBalancing::com_traj[i] = 0.0;
+//    for (int i = 0; i < POSTURAL_TRAJ_NUM_COLS; i++)
+//        actionStructForTorqueBalancing::postural_traj[i] = 0.0;
+//    for (int i = 0; i < CONSTRAINTS_NUM_COLS; i++)
+//        actionStructForTorqueBalancing::constraints[i] = 0.0;
+}
+
 actionClass::actionClass()
 {
     current_action = 0;
     current_status = ACTION_IDLE;
 }
 
-bool actionClass::openFile2(std::string filename, yarp::os::ResourceFinder &rf)
+bool actionClass::openFile(std::string filename, yarp::os::ResourceFinder &rf)
 {
     bool ret = true;
     FILE* data_file1 = 0;
@@ -53,7 +63,7 @@ bool actionClass::openFile2(std::string filename, yarp::os::ResourceFinder &rf)
             bb2 = fgets (trajectory_line2, 1024, data_file2);
             bb3 = fgets (trajectory_line3, 1024, data_file3);
             if (bb1 == 0 || bb2 == 0 || bb3 == 0) break;
-            if(!parseCommandLine2(trajectory_line1, trajectory_line2, trajectory_line3, line++))
+            if(!parseCommandLine(trajectory_line1, trajectory_line2, trajectory_line3, line++))
                 {
                     printf ("error parsing file, line %d\n", line);
                     ret = false;
@@ -74,35 +84,89 @@ bool actionClass::openFile2(std::string filename, yarp::os::ResourceFinder &rf)
     return ret;
 }
 
-bool actionClass::openFile(std::string filename)
+bool actionClass::openTorqueBalancingSequence(std::string filenamePrefix,
+                                              yarp::os::ResourceFinder &rf,
+                                              std::string comTrajSuffix,
+                                              std::string formatComTraj,
+                                              std::string posturalTrajSuffix,
+                                              std::string formatPosturalTraj,
+                                              std::string constraintsTrajSuffix,
+                                              std::string formatConstraintsTraj)
 {
-    bool ret = true;
-    FILE* data_file = 0;
-    data_file = fopen(filename.c_str(),"r");
-    if (data_file!=NULL)
-    {
-        char* bb = 0;
-        int   line =0;
-        do
-        {
-            char command_line[1024];
-            bb = fgets (command_line, 1024, data_file);
-            if (bb == 0) break;
-            if(!parseCommandLine(command_line, line++))
-                {
-                    printf ("error parsing file, line %d\n", line);
-                    ret = false;
-                    break;
-                };
-        }
-        while (1);
-
-        fclose (data_file);
-    }
+    bool ret = false;
+    // Retrieve com data
+    ret = parseTorqueBalancingSequences(filenamePrefix, comTrajSuffix, COM_ID, formatComTraj, rf);
+    // Retrieve postural data
+    ret = ret && parseTorqueBalancingSequences(filenamePrefix, posturalTrajSuffix, POSTURAL_ID, formatPosturalTraj, rf);
+    // Retrieve constraints data
+    ret = ret && parseTorqueBalancingSequences(filenamePrefix, constraintsTrajSuffix, CONSTRAINTS_ID, formatConstraintsTraj, rf);
+    cout << "All trajectories retrieved correctly" << endl;
+    cout << "Size of com_traj = " << action_vector_torqueBalancing.com_traj.size() << endl;
+    cout << "Size of postural_traj = " << action_vector_torqueBalancing.postural_traj.size() << endl;
+    cout << "Size of constraints = " << action_vector_torqueBalancing.constraints.size() << endl;
+    assert(this->action_vector_torqueBalancing.com_traj.size() == this->action_vector_torqueBalancing.postural_traj.size());
+    assert(this->action_vector_torqueBalancing.com_traj.size() == this->action_vector_torqueBalancing.constraints.size());
     return ret;
 }
 
-bool actionClass::parseCommandLine2(char* command_line1, char* command_line2, char* command_line3, int line)
+bool actionClass::parseTorqueBalancingSequences(std::string              filenamePrefix,
+                                                std::string              filenameSuffix,
+                                                int                      partID,
+                                                std::string              format,
+                                                yarp::os::ResourceFinder &rf)
+{
+    bool ret = false;
+    actionStructForTorqueBalancing tmp_action;
+    string filename  = filenamePrefix + "_" + filenameSuffix + ".txt";
+    filename  = rf.findFile(filename);
+    fprintf(stderr, "[!!!] File found for %s: %s\n", filenameSuffix.c_str(), filename.c_str());
+    // Open file
+    ifstream data_file( filename.c_str() );
+    string line;
+    std::deque<double> tmp_com;
+    std::deque<double> tmp_postural;
+    std::deque<int>    tmp_constraints;
+
+    while( std::getline(data_file, line) )
+    {
+        int col = 0;
+        std::istringstream iss( line );
+        std::string result;
+        tmp_com.clear();
+        tmp_postural.clear();
+        tmp_constraints.clear();
+        while( std::getline( iss, result , ' ') )
+        {
+            if ( strcmp(result.c_str(),"") != 0 )
+            {
+                std::stringstream convertor;
+                convertor.clear();
+                convertor.str(result);
+                if (partID == COM_ID)
+                {
+                    tmp_com.push_back(atof(result.c_str()));
+                }
+                if (partID == POSTURAL_ID)
+                    tmp_postural.push_back(atof(result.c_str()));
+                if (partID == CONSTRAINTS_ID)
+                    tmp_constraints.push_back(atoi(result.c_str()));
+                col++;
+            }
+        }
+        if (partID == COM_ID)
+            action_vector_torqueBalancing.com_traj.push_back(tmp_com);
+        if (partID == POSTURAL_ID)
+            action_vector_torqueBalancing.postural_traj.push_back(tmp_postural);
+        if (partID == CONSTRAINTS_ID)
+            action_vector_torqueBalancing.constraints.push_back(tmp_constraints);
+    }
+    
+    data_file.close();
+    ret = true;
+    return ret;
+}
+
+bool actionClass::parseCommandLine(char* command_line1, char* command_line2, char* command_line3, int line)
 {
         actionStruct tmp_action;
         double tmp_double = 0;
@@ -137,7 +201,6 @@ bool actionClass::parseCommandLine2(char* command_line1, char* command_line2, ch
         );
 
         // TODO Third column repeats the second one!! This must be removed
-        double trash = 0;
         int ret3 = sscanf(command_line3, "%lf %lf %lf %lf %lf",
         &tmp_double,
         &tmp_action.time,
@@ -150,36 +213,6 @@ bool actionClass::parseCommandLine2(char* command_line1, char* command_line2, ch
 
         // TODO ret3 should be 5 instead of 6
         if (ret1 == 8 && ret2 == 8 && ret3 == 5)
-        {
-            action_vector.push_back(tmp_action);
-            return true;
-        }
-
-        return false;
-}
-
-bool actionClass::parseCommandLine(char* command_line, int line)
-{
-        actionStruct tmp_action;
-        int ret = sscanf(command_line, "%d %lf    %lf %lf %lf %lf %lf %lf    %lf %lf %lf %lf %lf %lf",
-        &tmp_action.counter,
-        &tmp_action.time,
-
-        &tmp_action.q_left_leg[0],
-        &tmp_action.q_left_leg[1],
-        &tmp_action.q_left_leg[2],
-        &tmp_action.q_left_leg[3],
-        &tmp_action.q_left_leg[4],
-        &tmp_action.q_left_leg[5],
-
-        &tmp_action.q_right_leg[0],
-        &tmp_action.q_right_leg[1],
-        &tmp_action.q_right_leg[2],
-        &tmp_action.q_right_leg[3],
-        &tmp_action.q_right_leg[4],
-        &tmp_action.q_right_leg[5]);
-
-        if (ret == 14)
         {
             action_vector.push_back(tmp_action);
             return true;
