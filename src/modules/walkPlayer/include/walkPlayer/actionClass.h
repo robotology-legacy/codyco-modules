@@ -4,10 +4,9 @@
 
 #include <stdio.h>
 #include <vector>
-#include <string>
+#include <string.h>
 #include <sstream>
 #include <iostream>
-#include <array>
 #include <iomanip>
 #include <fstream>
 #include <stdlib.h>
