@@ -25,6 +25,8 @@ FILE(GLOB folder_header ./include/wholeBodyDynamicsTree/*.h ./include/ctrlLibRT/
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
+add_definitions(-D_USE_MATH_DEFINES)
+
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 include_directories(SYSTEM  ${wholeBodyInterface_INCLUDE_DIRS}
