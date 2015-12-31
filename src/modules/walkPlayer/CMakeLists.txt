@@ -26,13 +26,11 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 # import math symbols from standard cmath
 add_definitions(-D_USE_MATH_DEFINES)
 
-INCLUDE_DIRECTORIES(${YARP_INCLUDE_DIRS}
-                    ${ICUB_INCLUDE_DIRS}
-                    ${HEADERS_DIR})
+INCLUDE_DIRECTORIES(${HEADERS_DIR})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES}  ${ICUB_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} iKin iDyn)
 
 if(WIN32)
     INSTALL_TARGETS(/bin/Release ${PROJECTNAME})
