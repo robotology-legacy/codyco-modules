@@ -26,7 +26,7 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 # import math symbols from standard cmath
 add_definitions(-D_USE_MATH_DEFINES)
 
-INCLUDE_DIRECTORIES(${HEADERS_DIR})
+INCLUDE_DIRECTORIES(${HEADERS_DIR} ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
