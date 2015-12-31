@@ -133,7 +133,7 @@ bool TorqueBalancingReferencesGenerator::configure (yarp::os::ResourceFinder &rf
         return false;
     }
 
-    double actuatedDOFs = iCubMainJoints.size();
+    size_t actuatedDOFs = iCubMainJoints.size();
 
     //create an instance of wbi
     m_robot = new yarpWbi::yarpWholeBodyInterface("torqueBalancingReferencesGenerator", wbiProperties);
