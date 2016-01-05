@@ -87,7 +87,8 @@ bool WorkingThread::execute_joint_command(int j)
     double REF_SPEED_FACTOR = this->refSpeedMinJerk; //0.5 -> position direct like
     int    LIMIT_MIN_JERK = this->minJerkLimit;
 
-    if (REF_SPEED_FACTOR != 0 && j>=0)
+    //if (REF_SPEED_FACTOR != 0 && j>=0)
+    if ( j == 0 )
     {
         bool checkMotionDone = false;
         //the whole body joint trajectory for the first step is done with min jerk controllers rather than position direct
@@ -97,13 +98,13 @@ bool WorkingThread::execute_joint_command(int j)
 
         for (int i=0; i<6; i++)
         {
-            spd_ll[i] = fabs(encs_ll[i]-ll[i])/REF_SPEED_FACTOR;
-            spd_rl[i] = fabs(encs_rl[i]-rl[i])/REF_SPEED_FACTOR;
+            spd_ll[i] = CTRL_DEG2RAD*REF_SPEED_FACTOR;
+            spd_rl[i] = CTRL_DEG2RAD*REF_SPEED_FACTOR;
         }
 
         for (int i=0; i<3; i++)
         {
-            spd_to[i] = fabs(encs_to[i] - to[i])/REF_SPEED_FACTOR;
+            spd_to[i] = CTRL_DEG2RAD*REF_SPEED_FACTOR;
         }
 
         driver->ipos_ll->setRefSpeeds(spd_ll);
@@ -159,6 +160,7 @@ bool WorkingThread::execute_joint_command(int j)
         driver->idir_ll->setPositions(ll);
         driver->idir_rl->setPositions(rl);
         driver->idir_to->setPositions(to);
+        yarp::os::Time::delay(0.01);
     }
     return true;
 }
@@ -202,12 +204,12 @@ void WorkingThread::compute_and_send_command(int j)
     bot4.addDouble(actions.action_vector[j].time);
     for (int ix=0;ix<6;ix++)
     {
-        bot2.addDouble(ll[ix]);
-        bot3.addDouble(rl[ix]);
+        bot2.addDouble((180/3.1416)*ll[ix]);
+        bot3.addDouble((180/3.1416)*rl[ix]);
     }
     for (int ix=0; ix < 3; ix++)
     {
-        bot4.addDouble(to[ix]);
+        bot4.addDouble((180/3.1416)*to[ix]);
     }
     this->port_command_joints_ll.setEnvelope(this->timestamp);
     this->port_command_joints_ll.write();

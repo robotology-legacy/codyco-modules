@@ -127,7 +127,7 @@ void QuaternionEKF::run()
     //         sys_noise_cov = 0.0; sys_noise_cov(1,1) = sys_noise_cov (2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = 0.000001;
     /****************END System Noise Covariance *********************************************************************************/
     
-    std::cout << "System covariance matrix will be: " << std::endl << sys_noise_cov << std::endl;
+    //std::cout << "System covariance matrix will be: " << std::endl << sys_noise_cov << std::endl;
     
     m_sysPdf->AdditiveNoiseMuSet(sys_noise_mu);
     m_sysPdf->AdditiveNoiseSigmaSet(sys_noise_cov);
@@ -146,10 +146,11 @@ void QuaternionEKF::run()
     MatrixWrapper::SymmetricMatrix covariance(m_quaternionEKFParams.stateSize);
     covariance = posterior->CovarianceGet();
     std::cout << "Posterior Mean: " << expectedValueQuat << std::endl;
-    std::cout << "Posterior Covariance: " << posterior->CovarianceGet() << std::endl;
+    //std::cout << "Posterior Covariance: " << posterior->CovarianceGet() << std::endl;
     MatrixWrapper::ColumnVector eulerAngles(3);
-    MatrixWrapper::Quaternion tmpQuat;
-    tmpQuat.getEulerAngles(std::string("xyz"), eulerAngles);
+    //MatrixWrapper::Quaternion tmpQuat(expectedValueQuat);
+    //tmpQuat.getEulerAngles(std::string("xyz"), eulerAngles);
+    expectedValueQuat.getEulerAngles(std::string("xyz"), eulerAngles);
     std::cout << "Posterior Mean in Euler Angles: " << (180/PI)*eulerAngles  << std::endl;
     // Publish results to port
     yarp::sig::Vector tmpVec(m_quaternionEKFParams.stateSize);
@@ -297,7 +298,7 @@ bool QuaternionEKF::extractMTBDatafromPort(int boardNum, measurementsStruct &mea
         yError("[quaternionEKFThread::extractMTBDatafromPort] There was an error trying to read from the MTB port");
         return false;
     } else {
-            yInfo("[quaternionEKFThread::extractMTBDatafromPort] Raw meas: %s", fullMeasurement.toString().c_str());
+            //yInfo("[quaternionEKFThread::extractMTBDatafromPort] Raw meas: %s", fullMeasurement.toString().c_str());
         /******************* searching for multiple instances of the sensor  **************************/
         double* tmp;
         tmp = fullMeasurement.data();
