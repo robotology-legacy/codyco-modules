@@ -166,10 +166,9 @@ void quaternionEKFThread::run()
     //     }
         
         // NOTE THE NEXT TWO LINES ARE THE ONES I ACTUALLY NEED TO USE!!! DON'T FORGET TO UNCOMMENT AFTER DEBUGGING
-//         if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
+        if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
 //             yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
         // NOTE Testing just the model equations
-        if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement));
 //         if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
 //             yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
 

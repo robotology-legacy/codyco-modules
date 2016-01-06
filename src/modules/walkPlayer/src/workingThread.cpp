@@ -160,7 +160,7 @@ bool WorkingThread::execute_joint_command(int j)
         driver->idir_ll->setPositions(ll);
         driver->idir_rl->setPositions(rl);
         driver->idir_to->setPositions(to);
-        yarp::os::Time::delay(0.01);
+        //yarp::os::Time::delay(0.01);
     }
     return true;
 }

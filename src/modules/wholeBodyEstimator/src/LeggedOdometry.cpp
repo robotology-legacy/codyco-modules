@@ -166,7 +166,7 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
                 ft_sens_id = serialization_id;
                 
                 ft_names[ft_sens_id] = ft_sens_name;
-                // \todo TODO FIXME properly address also parent and child cases
+                //TODO: FIXME properly address also parent and child cases
                 //                  and measure_direction
                 if( ft_sensors[ft_sens].frame == ::iDynTree::FTSensorData::SENSOR_FRAME )
                 {
@@ -195,7 +195,8 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     //The DOF serialization done in icub_kdl construction is ok
     KDL::CoDyCo::TreeSerialization serial = KDL::CoDyCo::TreeSerialization(icub_kdl);
     
-    //Setting a custom dof serialization (\todo TODO FIXME : quite a hack, substitute with proper)
+    //Setting a custom dof serialization
+    //TODO: Quite a hack, substitute with proper)
     if( dof_serialization.size() != 0 )
     {
         YARP_ASSERT(dof_serialization.size() == serial.getNrOfDOFs());

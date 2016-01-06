@@ -61,7 +61,7 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
 
     // Adding encoders
     wbs->addSensors(wbi::SENSOR_ENCODER, RobotDynamicModelJoints);
-    // TODO Accelerometer and gyroscopes should be added here
+    //TODO: Accelerometer and gyroscopes should be added here
     
     // Initializing sensor interface
     if(!wbs->init())

@@ -40,7 +40,7 @@ bool WholeBodyEstimatorThread::threadInit()
     {
         if ( !(*it)->init(m_rfCopy, m_wbs) )
         {
-            // TODO Every derived class should have access to their name
+            //TODO: Every derived class should have access to their name
             yError("[WholeBodyEstimatorThread::threadInit()] Estimator could not be initialized");
             return false;
         } else {

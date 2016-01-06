@@ -13,21 +13,21 @@ QuaternionEKF::~QuaternionEKF()
 
 bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
 {
-    // NOTE Maybe instead of passing the resourceFinder I should pass the already parsed groups?
+    //TODO: Maybe instead of passing the resourceFinder I should pass the already parsed groups?
     // Module Parameters
     
+    //TODO: The class name should be addressed better. I had thought of a private member of this class enforced through IEstimator, but its quality of Interface shouldn't allow for private variables.
     // Read filter parameters
-    // The class name should be addressed better. I had thought of a private member of this class enforced through IEstimator, but its quality of Interface shouldn't allow for private variables.
     if ( !readEstimatorParams(rf, this->m_quaternionEKFParams) )
     {
         yError("[QuaternionEKF::init()] Failed ");
         return false;
     } else {
-        yInfo("QuaternionEKF estimator parsed parameters from configuration file correctly.");
+        yInfo("[QuaternionEKF::init()]QuaternionEKF estimator parsed parameters from configuration file correctly. ");
     }
     
     // Open publisher ports
-    // TODO These publisher ports should be addressed automatically by some publishing interface as stated in issue
+    //TODO: These publisher ports should be addressed automatically by some publishing interface as stated in issue ...
     // enum ORIENTATION_ESTIMATE_PORT_QUATERNION
     publisherPortStruct orientationEstimatePort;
     if ( !orientationEstimatePort.configurePort(this->m_className, std::string("filteredOrientation")) )
@@ -43,13 +43,13 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     publisherPortStruct orientationEstimateEulerPort;
     if ( !orientationEstimateEulerPort.configurePort(this->m_className, std::string("filteredOrientationEuler")) )
     {
-        yError("[QuaternionEKF::init()] Estimate port in euler could not be configured");
+        yError("[QuaternionEKF::init] Estimate port in euler could not be configured");
         return false;
     } else {
         m_outputPortsList.push_back(orientationEstimateEulerPort);
     }
     
-    // TEMPORARY
+    //FIXME: Temporary, while yarpWholeBodySensors is finished.
     // Open sensor ports
     sensorMeasPort = new yarp::os::Port;
     readerPortStruct sensorDataPort;
@@ -61,8 +61,6 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     } else {
         m_inputPortsList.push_back(sensorDataPort);
     }
-    
-    
     
     // Initialize rf-dependent private variables
     m_prior_mu_vec.resize(m_quaternionEKFParams.stateSize);
@@ -83,7 +81,7 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     // Initialize measurement object
     measurements.linAcc.resize(3,0.0);
     measurements.angVel.resize(3,0.0);
-    yInfo("QUATERNIONEKF is running...");
+    yInfo("[QuaternionEKF::init] QUATERNIONEKF is running...");
     
     return true;
 }
@@ -93,7 +91,7 @@ void QuaternionEKF::run()
     // Read sensor data
     if ( !readSensorData(measurements) )
     {
-        yWarning("QuaternionEKF::run() SENSOR DATA COULD NOT BE READ!");
+        yWarning("[QuaternionEKF::run] SENSOR DATA COULD NOT BE READ!");
     } else {
         yInfo("[QuaternionEKF::run] Parsed sensor data: \n Acc [m/s^2]: \t%s \n Ang Vel [deg/s]: \t%s \n",  (measurements.linAcc).toString().c_str(), (measurements.angVel).toString().c_str());
     }
@@ -105,11 +103,11 @@ void QuaternionEKF::run()
 
     // Noise gaussian
     // System Noise Mean
-    // TODO [NOT SURE] This mean changes!!!
+    //TODO: [NOT SURE] This mean changes!!!
     MatrixWrapper::ColumnVector sys_noise_mu(m_quaternionEKFParams.stateSize);
     sys_noise_mu = 0.0;
     
-    /**************** System Noise Covariance ********************************************************************************/
+    /**************** System Noise Covariance *********************************************************/
     MatrixWrapper::Matrix Xi(m_quaternionEKFParams.stateSize, m_quaternionEKFParams.inputSize);
     XiOperator(m_posterior_state, &Xi);
     MatrixWrapper::SymmetricMatrix sys_noise_cov(m_quaternionEKFParams.stateSize);
@@ -119,22 +117,23 @@ void QuaternionEKF::run()
     Sigma_gyro = 0.0;
     Sigma_gyro(1,1) = Sigma_gyro(2,2) = Sigma_gyro(3,3) = m_quaternionEKFParams.sigmaGyro;
     MatrixWrapper::Matrix tmp = Xi*Sigma_gyro*Xi.transpose();
-    // NOTE on 30-07-2015 I commented the following lines because making this matrix symmetric this way does not make much sense from a theoretical point of view. I'd rather add a term such as alpha*I_4x4
+    //NOTE: on 30-07-2015 I commented the following lines because making this matrix symmetric this way does not make much sense from a theoretical point of view. I'd rather add a term such as alpha*I_4x4
     //         MatrixWrapper::SymmetricMatrix tmpSym(m_state_size);
     //         tmp.convertToSymmetricMatrix(tmpSym);
     sys_noise_cov = (MatrixWrapper::SymmetricMatrix) tmp*pow(m_quaternionEKFParams.period/(1000.0*2.0),2);
-    // NOTE Next line is setting system noise covariance matrix to a constant diagonal matrix
+    //NOTE: Next line is setting system noise covariance matrix to a constant diagonal matrix
     //         sys_noise_cov = 0.0; sys_noise_cov(1,1) = sys_noise_cov (2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = 0.000001;
-    /****************END System Noise Covariance *********************************************************************************/
+    /**************** ENDS System Noise Covariance *******************************************************/
     
     //std::cout << "System covariance matrix will be: " << std::endl << sys_noise_cov << std::endl;
     
-    m_sysPdf->AdditiveNoiseMuSet(sys_noise_mu);
+    //FIXME: Remove the line below as the mean pretty much never changes and remains zero
+    //m_sysPdf->AdditiveNoiseMuSet(sys_noise_mu);
     m_sysPdf->AdditiveNoiseSigmaSet(sys_noise_cov);
 
     if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
     {
-        yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
+        yError("[QuaternionEKF::run] Update step of the Kalman Filter could not be performed\n");
     }
     
     // Get the posterior of the updated filter. Result of all the system model and meaurement information
@@ -145,13 +144,14 @@ void QuaternionEKF::run()
     // Posterior Covariance
     MatrixWrapper::SymmetricMatrix covariance(m_quaternionEKFParams.stateSize);
     covariance = posterior->CovarianceGet();
-    std::cout << "Posterior Mean: " << expectedValueQuat << std::endl;
+    std::cout << "[QuaternionEKF::run] Posterior Mean: " << expectedValueQuat << std::endl;
     //std::cout << "Posterior Covariance: " << posterior->CovarianceGet() << std::endl;
     MatrixWrapper::ColumnVector eulerAngles(3);
-    //MatrixWrapper::Quaternion tmpQuat(expectedValueQuat);
+    MatrixWrapper::Quaternion tmpQuat(expectedValueQuat);
     //tmpQuat.getEulerAngles(std::string("xyz"), eulerAngles);
-    expectedValueQuat.getEulerAngles(std::string("xyz"), eulerAngles);
-    std::cout << "Posterior Mean in Euler Angles: " << (180/PI)*eulerAngles  << std::endl;
+    expectedValueQuat.conjugate(tmpQuat);
+    tmpQuat.getEulerAngles(std::string("xyz"), eulerAngles);
+    std::cout << "[QuaternionEKF::run] Posterior Mean in Euler Angles: " << (180/PI)*eulerAngles  << std::endl;
     // Publish results to port
     yarp::sig::Vector tmpVec(m_quaternionEKFParams.stateSize);
     for (unsigned int i=1; i<m_posterior_state.size()+1; i++) {
@@ -170,7 +170,7 @@ void QuaternionEKF::run()
     tmpPortRef = tmpVec;
     m_outputPortsList[ORIENTATION_ESTIMATE_PORT_QUATERNION].outputPort->write();
 
-    //TODO RAW GYRO AND ACCELEROMETER DATA COULD BE STREAMED TOO
+    //TODO: RAW GYRO AND ACCELEROMETER DATA COULD BE STREAMED TOO
 }
 
 void QuaternionEKF::release()
@@ -182,6 +182,7 @@ bool QuaternionEKF::readEstimatorParams(yarp::os::ResourceFinder &rf, quaternion
 {
     yarp::os::Bottle botParams;
     botParams = rf.findGroup("QuaternionEKF");
+    yInfo("QuaternionEKF params are: %s ", botParams.toString().c_str());
     if ( botParams.isNull() )
     {
         yError("[QuaternionEKF::readEstimatorParams] No parameters were read from QuaternionEKF group");
@@ -229,6 +230,7 @@ void QuaternionEKF::createSystemModel()
     m_sysPdf->AdditiveNoiseSigmaSet(sys_noise_cov);
     m_sysPdf->setPeriod(m_quaternionEKFParams.period);
     // Creating the model
+    //TODO: Remember to delete this object at the end
     m_sys_model = new BFL::AnalyticSystemModelGaussianUncertainty(m_sysPdf);
 
 }
@@ -246,6 +248,7 @@ void QuaternionEKF::createMeasurementModel()
     meas_noise_cov = 0.0;
     meas_noise_cov(1,1) = meas_noise_cov(2,2) = meas_noise_cov(3,3) = m_quaternionEKFParams.sigmaMeasurementNoise;
     // Measurement noise uncertainty
+    //TODO: Remember to delete this object at the end
     m_measurement_uncertainty = new BFL::Gaussian(meas_noise_mu, meas_noise_cov);
     // Probability density function (PDF) for the measurement
     m_measPdf = new BFL::nonLinearMeasurementGaussianPdf(*m_measurement_uncertainty);
@@ -265,9 +268,9 @@ void QuaternionEKF::setPriors()
     MatrixWrapper::SymmetricMatrix prior_cov(4);
     prior_cov = 0.0;
     prior_cov(1,1) = prior_cov(2,2) = prior_cov(3,3) = prior_cov(4,4) = m_quaternionEKFParams.priorCovariance;
-    yInfo("Priors will be: ");
-    std::cout << "State prior:" << std::endl << prior_mu << std::endl;
-    std::cout << "Covariance prior: " << std::endl << prior_cov << std::endl;
+    yInfo("[QuaternionEKF::setPriors] Priors will be: ");
+    std::cout << "[QuaternionEKF::setPriors] State prior:" << std::endl << prior_mu << std::endl;
+    std::cout << "[QuaternionEKF::setPriors] Covariance prior: " << std::endl << prior_cov << std::endl;
     m_prior = new BFL::Gaussian(prior_mu, prior_cov);
 
 }
@@ -279,11 +282,11 @@ void QuaternionEKF::createFilter()
 
 bool QuaternionEKF::readSensorData(measurementsStruct &meas)
 {
-    // TEMPORARY WHILE WHOLEBODYSENSORS IS FINISHED
+    //FIXME: TEMPORARY WHILE WHOLEBODYSENSORS IS FINISHED
     if ( extractMTBDatafromPort(MTB_RIGHT_FOOT_ACC_PLUS_GYRO_2_ID, meas) )
         return true;
     else {
-        yError("QuaternionEKF was not able to read sensor data.");
+        yError("[QuaternionEKF::readSensorData] QuaternionEKF was not able to read sensor data.");
         return false;
     }
     
@@ -295,10 +298,10 @@ bool QuaternionEKF::extractMTBDatafromPort(int boardNum, measurementsStruct &mea
     yarp::os::Bottle measurementBottle;
     int indexSubVector = 0;
     if ( !sensorMeasPort->read(fullMeasurement) ) {
-        yError("[quaternionEKFThread::extractMTBDatafromPort] There was an error trying to read from the MTB port");
+        yError("[QuaternionEKF::extractMTBDatafromPort] There was an error trying to read from the MTB port");
         return false;
     } else {
-            //yInfo("[quaternionEKFThread::extractMTBDatafromPort] Raw meas: %s", fullMeasurement.toString().c_str());
+            //yInfo("[QuaternionEKF::extractMTBDatafromPort] Raw meas: %s", fullMeasurement.toString().c_str());
         /******************* searching for multiple instances of the sensor  **************************/
         double* tmp;
         tmp = fullMeasurement.data();
@@ -331,12 +334,11 @@ bool QuaternionEKF::extractMTBDatafromPort(int boardNum, measurementsStruct &mea
         /**********************************************************************************/
         measurements.linAcc = measurements.linAcc*CONVERSION_FACTOR_ACC;
         if (yarp::math::norm(measurements.linAcc) > 11.0) {
-            yWarning("WARNING!!! [quaternionEKFThread::run] Gravity's norm is too big!");
+            yWarning("[QuaternionEKF::extractMTBDatafromPort]  WARNING!!! Gravity's norm is too big!");
         }
-        //TODO Check that this conversion factor is correct (doubts on the PI/180). See what was done in quaternionEKF
         measurements.angVel = PI/180*CONVERSION_FACTOR_GYRO*measurements.angVel;
         if (yarp::math::norm(measurements.angVel) > 100.0) {
-            yWarning("WARNING!!! [quaternionEKFThread::run] Ang vel's norm is too big!");
+            yWarning("[QuaternionEKF::extractMTBDatafromPort]  WARNING!!! [QuaternionEKF::extractMTBDatafromPort] Ang vel's norm is too big!");
         }
     }
     return true;

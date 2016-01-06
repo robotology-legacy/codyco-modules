@@ -219,7 +219,7 @@ public:
      */
     void run();
     void release();
-    // TODO This method should also be enforced through IEstimator
+    //TODO: This method should also be enforced through IEstimator
     /**
      *  Reads the filter parameters specified under the group CLASSNAME.
      *

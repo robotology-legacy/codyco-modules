@@ -26,7 +26,7 @@ MatrixWrapper::ColumnVector nonLinearAnalyticConditionalGaussian::ExpectedValueG
     MatrixWrapper::ColumnVector angVel = ConditionalArgumentGet(1);
     MatrixWrapper::Matrix identity(4,4);
     identity.toIdentity();
-    // TODO I need state dimension here instead of hardcoding 4
+    //TODO: I need state dimension here instead of hardcoding 4
     MatrixWrapper::Matrix tmpA(4,4);
     OmegaOperator(angVel, tmpA);
     tmpA = tmpA*(0.5*m_threadPeriod);
@@ -71,7 +71,7 @@ bool nonLinearAnalyticConditionalGaussian::OmegaOperator (const MatrixWrapper::C
         return ret;
     }
     
-    //TODO The size of the state used to build this Omega matrix should be passed to this class somehow.
+    //TODO: The size of the state used to build this Omega matrix should be passed to this class somehow.
     // HARDCODED TEMPORARILY TO 4
     Omega(1,1) = 0.0;      Omega(1,2) = -omg(1);   Omega(1,3) = -omg(2);   Omega(1,4) = -omg(3);
     Omega(2,1) = omg(1);   Omega(2,2) =  0.0;      Omega(2,3) =  omg(3);   Omega(2,4) = -omg(2);

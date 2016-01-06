@@ -40,7 +40,7 @@ namespace BFL
         void setPeriod(int period);
         // Necessary operators
         bool OmegaOperator(const MatrixWrapper::ColumnVector omg, MatrixWrapper::Matrix& output) const;
-        // TODO This should take as input a Quaternion! To be added to the MatrixWrapper class
+        //TODO: This should take as input a Quaternion! To be added to the MatrixWrapper class
         MatrixWrapper::Matrix       XiOperator(const MatrixWrapper::Quaternion) const;
     private:
         double m_threadPeriod; // in seconds!!!
