@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<portscope rows="2" columns="1" carrier="tcp">
+    <plot gridx="0"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="ROLL - Estimated BLUE | Real RED"
+          size="60"
+          minval="-10"
+          maxval="10"
+          bgcolor="LightSlateGrey">
+        <graph remote="/QuaternionEKF/filteredOrientation:o"
+               index="0"
+               color="Blue"
+               title="Roll quatEKF"
+               size="3"
+               type="lines" />
+        <graph remote="/icub/right_leg/state:o"
+              index="5"
+              color="Red"
+              title="Pitch quatEKF"
+              size="3"
+              type="lines" />                       
+               
+    </plot>
+    <plot gridx="0"
+          gridy="1"
+          hspan="1"
+          vspan="1"
+          title="PITCH - Estimated BLUE | Real RED"
+          size="60"
+          minval="-5"
+          maxval="5"
+          bgcolor="LightSlateGrey">
+        <graph remote="/QuaternionEKF/filteredOrientationEuler:o"
+               index="1"
+               color="Blue"
+               title="Pitch quatEKF"
+               size="3"
+               type="lines" />
+        <graph remote="/icub/right_leg/state:o"
+               index="4"
+               color="Red"
+               title="Pitch quatEKF"
+               size="3"
+               type="lines" />                       
+    </plot>
+</portscope>

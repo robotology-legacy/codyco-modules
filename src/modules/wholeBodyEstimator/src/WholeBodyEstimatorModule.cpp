@@ -62,6 +62,8 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
     // Adding encoders
     wbs->addSensors(wbi::SENSOR_ENCODER, RobotDynamicModelJoints);
     //TODO: Accelerometer and gyroscopes should be added here
+    //wbi->addSensors(wbi::SENSOR_ACCELEROMETER, enabledAccelerometersList);
+    //wbi->addSensors(wbi::SENSOR_GYROSCOPES, enabledGyroscopesList);
     
     // Initializing sensor interface
     if(!wbs->init())
@@ -92,6 +94,12 @@ bool WholeBodyEstimatorModule::updateModule()
 
 bool WholeBodyEstimatorModule::close()
 {
-    bool ret = true;
-    return ret;
+    yDebug("Closing module...");
+    if (m_estimatorThread)
+    {
+        m_estimatorThread->stop();
+        delete m_estimatorThread;
+        m_estimatorThread = NULL;
+    }
+    return true;
 }

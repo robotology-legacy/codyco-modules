@@ -9,7 +9,39 @@ QuaternionEKF::QuaternionEKF() : m_className("QuaternionEKF")
 {}
 
 QuaternionEKF::~QuaternionEKF()
-{}
+{
+    if (m_filter)
+    {
+        delete m_filter;
+        m_filter = NULL;
+    }
+    if (m_measPdf)
+    {
+        delete m_measPdf;
+        m_measPdf = NULL;
+    }
+    if (m_measurement_uncertainty)
+    {
+        delete m_measurement_uncertainty;
+        m_measurement_uncertainty = NULL;
+    }
+    if (m_meas_model)
+    {
+        delete m_meas_model;
+        m_meas_model = NULL;
+    }
+    if (m_prior)
+    {
+        delete m_prior;
+        m_prior = NULL;
+    }
+    if (m_sys_model)
+    {
+        delete m_sys_model;
+        m_sys_model = NULL;
+    }
+    yInfo("QuaternionEKF destroyed correctly");
+}
 
 bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
 {
@@ -93,7 +125,7 @@ void QuaternionEKF::run()
     {
         yWarning("[QuaternionEKF::run] SENSOR DATA COULD NOT BE READ!");
     } else {
-        yInfo("[QuaternionEKF::run] Parsed sensor data: \n Acc [m/s^2]: \t%s \n Ang Vel [deg/s]: \t%s \n",  (measurements.linAcc).toString().c_str(), (measurements.angVel).toString().c_str());
+        //yInfo("[QuaternionEKF::run] Parsed sensor data: \n Acc [m/s^2]: \t%s \n Ang Vel [deg/s]: \t%s \n",  (measurements.linAcc).toString().c_str(), (measurements.angVel).toString().c_str());
     }
     
     // Copy ang velocity data from a yarp vector into a ColumnVector
@@ -144,14 +176,14 @@ void QuaternionEKF::run()
     // Posterior Covariance
     MatrixWrapper::SymmetricMatrix covariance(m_quaternionEKFParams.stateSize);
     covariance = posterior->CovarianceGet();
-    std::cout << "[QuaternionEKF::run] Posterior Mean: " << expectedValueQuat << std::endl;
+    //std::cout << "[QuaternionEKF::run] Posterior Mean: " << expectedValueQuat << std::endl;
     //std::cout << "Posterior Covariance: " << posterior->CovarianceGet() << std::endl;
     MatrixWrapper::ColumnVector eulerAngles(3);
     MatrixWrapper::Quaternion tmpQuat(expectedValueQuat);
     //tmpQuat.getEulerAngles(std::string("xyz"), eulerAngles);
     expectedValueQuat.conjugate(tmpQuat);
     tmpQuat.getEulerAngles(std::string("xyz"), eulerAngles);
-    std::cout << "[QuaternionEKF::run] Posterior Mean in Euler Angles: " << (180/PI)*eulerAngles  << std::endl;
+    //std::cout << "[QuaternionEKF::run] Posterior Mean in Euler Angles: " << (180/PI)*eulerAngles  << std::endl;
     // Publish results to port
     yarp::sig::Vector tmpVec(m_quaternionEKFParams.stateSize);
     for (unsigned int i=1; i<m_posterior_state.size()+1; i++) {
@@ -225,12 +257,13 @@ void QuaternionEKF::createSystemModel()
     sys_noise_cov(1,1) = sys_noise_cov(2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = m_quaternionEKFParams.sigmaSystemNoise;
     
     // Setting System noise uncertainty
+    //TODO: Delete m_sysPdf
     m_sysPdf = new BFL::nonLinearAnalyticConditionalGaussian(m_quaternionEKFParams.stateSize);
     m_sysPdf->AdditiveNoiseMuSet(sys_noise_mu);
     m_sysPdf->AdditiveNoiseSigmaSet(sys_noise_cov);
     m_sysPdf->setPeriod(m_quaternionEKFParams.period);
     // Creating the model
-    //TODO: Remember to delete this object at the end
+    //TODO: Delete m_sys_model
     m_sys_model = new BFL::AnalyticSystemModelGaussianUncertainty(m_sysPdf);
 
 }
@@ -251,8 +284,10 @@ void QuaternionEKF::createMeasurementModel()
     //TODO: Remember to delete this object at the end
     m_measurement_uncertainty = new BFL::Gaussian(meas_noise_mu, meas_noise_cov);
     // Probability density function (PDF) for the measurement
+    //TODO: Delete m_measPdf
     m_measPdf = new BFL::nonLinearMeasurementGaussianPdf(*m_measurement_uncertainty);
     //  Measurement model from the measurement PDF
+    //TODO: Delete m_meas_model
     m_meas_model = new BFL::AnalyticMeasurementModelGaussianUncertainty(m_measPdf);
     
 }
@@ -271,12 +306,14 @@ void QuaternionEKF::setPriors()
     yInfo("[QuaternionEKF::setPriors] Priors will be: ");
     std::cout << "[QuaternionEKF::setPriors] State prior:" << std::endl << prior_mu << std::endl;
     std::cout << "[QuaternionEKF::setPriors] Covariance prior: " << std::endl << prior_cov << std::endl;
+    //TODO: Delete m_prior
     m_prior = new BFL::Gaussian(prior_mu, prior_cov);
 
 }
 
 void QuaternionEKF::createFilter()
 {
+    //TODO: Delete m_filter
     m_filter = new BFL::ExtendedKalmanFilter(m_prior);
 }
 

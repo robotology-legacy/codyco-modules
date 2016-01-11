@@ -79,12 +79,14 @@ void WholeBodyEstimatorThread::run()
 void WholeBodyEstimatorThread::threadRelease()
 {
     // Delete each estimator
+    unsigned int k = 1;
     std::vector<IEstimator*>::iterator it;
     for (it = this->m_estimatorsList.begin(); it < this->m_estimatorsList.end(); ++it)
     {
+        yDebug("[WholeBodyEstimatorThread::threadRelease] Calling threadRelease for estimator %i ", k);
         (*it)->release();
+        k++;
     }
-    
 }
 
 bool WholeBodyEstimatorThread::fillEstimatorsMap()
