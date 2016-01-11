@@ -14,31 +14,37 @@ QuaternionEKF::~QuaternionEKF()
     {
         delete m_filter;
         m_filter = NULL;
+        yDebug("m_filter deleted");
     }
     if (m_measPdf)
     {
         delete m_measPdf;
         m_measPdf = NULL;
+        yDebug("m_measPdf deleted");
     }
     if (m_measurement_uncertainty)
     {
         delete m_measurement_uncertainty;
         m_measurement_uncertainty = NULL;
+        yDebug("m_measurement_uncertainty deleted");
     }
     if (m_meas_model)
     {
         delete m_meas_model;
         m_meas_model = NULL;
+        yDebug("m_meas_model deleted");
     }
     if (m_prior)
     {
         delete m_prior;
         m_prior = NULL;
+        yDebug("m_prior deleted");
     }
     if (m_sys_model)
     {
         delete m_sys_model;
         m_sys_model = NULL;
+        yDebug("m_sys_model deleted");
     }
     yInfo("QuaternionEKF destroyed correctly");
 }
@@ -224,13 +230,16 @@ void QuaternionEKF::run()
     tmpPortRef = tmpVec;
     m_outputPortsList[ORIENTATION_ESTIMATE_PORT_QUATERNION].outputPort->write();
 
-    yarp::sig::Vector& tmpRawAccPortRef = m_outputPortsList[RAW_ACCELEROMETER_DATA_PORT].outputPort->prepare();
-    tmpRawAccPortRef = measurements.linAcc;
-    m_outputPortsList[RAW_ACCELEROMETER_DATA_PORT].outputPort->write();
+    if ( this->m_quaternionEKFParams.streamMeasurements )
+    {
+        yarp::sig::Vector& tmpRawAccPortRef = m_outputPortsList[RAW_ACCELEROMETER_DATA_PORT].outputPort->prepare();
+        tmpRawAccPortRef = measurements.linAcc;
+        m_outputPortsList[RAW_ACCELEROMETER_DATA_PORT].outputPort->write();
     
-    yarp::sig::Vector& tmpRawGyroPortRef = m_outputPortsList[RAW_GYROSCOPE_DATA_PORT].outputPort->prepare();
-    tmpRawGyroPortRef = measurements.angVel;
-    m_outputPortsList[RAW_GYROSCOPE_DATA_PORT].outputPort->write();
+        yarp::sig::Vector& tmpRawGyroPortRef = m_outputPortsList[RAW_GYROSCOPE_DATA_PORT].outputPort->prepare();
+        tmpRawGyroPortRef = measurements.angVel;
+        m_outputPortsList[RAW_GYROSCOPE_DATA_PORT].outputPort->write();
+    }
     
 }
 
@@ -270,6 +279,7 @@ bool QuaternionEKF::readEstimatorParams(yarp::os::ResourceFinder &rf, quaternion
     } else {
         estimatorParams.period = botParams.find("period").asInt();
         estimatorParams.robotPrefix = botParams.find("robot").asString();
+        estimatorParams.streamMeasurements = botParams.find("stream_measurements").asBool();
     }
     return true;
 }

@@ -92,6 +92,10 @@ struct quaternionEKFParams
     double piorMu;
     double priorCovariance;
     double muGyroNoise;
+    /**
+     *  Enable the creation and opening of ports streaming raw accelerometer and gyroscope data, when these are directly read from the port. 
+     */
+    bool streamMeasurements;
 };
 
 enum outputPorts {
