@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
         cout << "\t--speed              <factor>: speed factor (default 1.0 normal, 0.5 double speed, 2.0 half speed etc)"  << endl;
         cout << "\t--refSpeedMinJerk    [0] Reference speed value used by the minimun jerk controllers. " << endl;
         cout << "\t--minJerkLimit       [0] (int) Limit of the trajectory points after which position direct commands are sent " << endl;
-        cout << "\t--torqueBalancingSequence  Overwrites the execute flag value. This option has higher priority and should simply stream trajectories used by the torqueBalancing module." << endl;
+        cout <<"\t--torqueBalancingSequence [torqueBalancing] Prefix of the sequences for torque balancing. Overwrites the execute flag value. This option has higher priority and should simply stream trajectories used by the torqueBalancing module." << endl;
         return 0;
     }
 

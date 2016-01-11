@@ -35,7 +35,7 @@ struct actionStructForTorqueBalancing
 {
     std::deque< std::deque<double> >  com_traj;
     std::deque< std::deque<double> >  postural_traj;
-    std::deque< std::deque<int> >     constraints;
+    std::deque< std::deque<double> >     constraints;
     
 public:
     actionStructForTorqueBalancing();

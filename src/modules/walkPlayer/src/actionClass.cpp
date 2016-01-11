@@ -125,7 +125,7 @@ bool actionClass::parseTorqueBalancingSequences(std::string              filenam
     string line;
     std::deque<double> tmp_com;
     std::deque<double> tmp_postural;
-    std::deque<int>    tmp_constraints;
+    std::deque<double> tmp_constraints;
 
     while( std::getline(data_file, line) )
     {
@@ -143,9 +143,7 @@ bool actionClass::parseTorqueBalancingSequences(std::string              filenam
                 convertor.clear();
                 convertor.str(result);
                 if (partID == COM_ID)
-                {
                     tmp_com.push_back(atof(result.c_str()));
-                }
                 if (partID == POSTURAL_ID)
                     tmp_postural.push_back(atof(result.c_str()));
                 if (partID == CONSTRAINTS_ID)
@@ -182,12 +180,6 @@ bool actionClass::parseCommandLine(char* command_line1, char* command_line2, cha
         &tmp_action.q_left_leg[5]
         );
 
-//         cout << "actionClass::parseCommandLine2 says:  Counter: " << tmp_action.counter << " Time: " << tmp_action.time << endl;
-//         cout << "q_left_leg: \n";
-//         for (int i=0 ; i<6; i++)
-//             cout << tmp_action.q_left_leg[i] << "  ";
-//         cout << endl;
-
         int ret2 = sscanf(command_line2, "%lf %lf    %lf %lf %lf %lf %lf %lf  ",
         &tmp_double,
         &tmp_action.time,
@@ -209,7 +201,7 @@ bool actionClass::parseCommandLine(char* command_line1, char* command_line2, cha
         &tmp_action.q_torso[2]
         );
 
-        tmp_action.counter = static_cast<int> (tmp_double);
+        tmp_action.counter = static_cast<double> (tmp_double);
 
         // TODO ret3 should be 5 instead of 6
         if (ret1 == 8 && ret2 == 8 && ret3 == 5)

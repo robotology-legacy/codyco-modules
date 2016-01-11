@@ -14,6 +14,8 @@ scriptModule::scriptModule()
 
 bool scriptModule::configure(ResourceFinder &rf) {
     Time::turboBoost();
+    
+    this->rfCopy = rf;
 
     if (rf.check("name"))
         name=string("/")+rf.find("name").asString().c_str();
@@ -163,6 +165,22 @@ bool scriptModule::respond(const Bottle &command, Bottle &reply)
                     this->thread.actions.current_status = ACTION_IDLE;
                     this->thread.actions.current_action = 0;
                     reply.addVocab(Vocab::encode("ack"));
+                    // Re-read sequence for torqueBalancing
+                    string filenamePrefix;
+                    if (rfCopy.check("torqueBalancingSequence")==true)
+                    {
+                        filenamePrefix = rfCopy.find("torqueBalancingSequence").asString().c_str();
+                        // Overwrite the execute flag value. This option has higher priority and
+                        // should simply stream trajectories use by the torqueBalancing module.
+                        thread.enable_execute_joint_command = false;
+                        if (!thread.actions.openTorqueBalancingSequence(filenamePrefix,rfCopy))
+                        {
+                            cout << "ERROR: Unable to parse torque balancing sequence" << endl;
+                            return false;
+                        }
+                    }
+
+                    this->thread.actions.openFile(filenamePrefix, rfCopy);
                 }
             else
                 {

@@ -252,10 +252,10 @@ void WorkingThread::compute_and_send_command(int j)
     
     if ( !actions.action_vector_torqueBalancing.constraints.empty() )
     {
-        std::deque<int> tmpConstraints_i = actions.action_vector_torqueBalancing.constraints.front();
+        std::deque<double> tmpConstraints_i = actions.action_vector_torqueBalancing.constraints.front();
         while ( !tmpConstraints_i.empty() )
         {
-            bot_constraints.addInt( tmpConstraints_i.front() );
+            bot_constraints.addDouble( tmpConstraints_i.front() );
             tmpConstraints_i.pop_front();
         }
         actions.action_vector_torqueBalancing.constraints.pop_front();
