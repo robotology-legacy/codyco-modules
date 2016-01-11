@@ -34,13 +34,13 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     }
     
     // Module name
-    yarp::os::Bottle & module_params = rf.findGroup("MODULE_PARAMETERS");
+    yarp::os::Bottle & module_params = rf.findGroup("module_parameters");
     if ( module_params.isNull() )
     {
-        yError("LeggedOdometry::init() MODULE_PARAMETERS not found");
+        yError("LeggedOdometry::init() module_parameters not found");
         return false;
     } else {
-        yInfo("LeggedOdometry::init() MODULE_PARAMETERS was found");
+        yInfo("LeggedOdometry::init() module_parameters was found");
     }
     m_module_name = module_params.find("name").asString();
     

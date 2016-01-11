@@ -81,6 +81,28 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
         m_outputPortsList.push_back(orientationEstimateEulerPort);
     }
     
+    // Open publisher port for raw accelerometer data
+    // enum RAW_ACCELEROMETER_DATA_PORT
+    publisherPortStruct rawAccDataPort;
+    if ( !rawAccDataPort.configurePort(this->m_className, std::string("rawAccMeas")) )
+    {
+        yError("[QuaternionEKF::init] Raw accelerometer port could not be configured");
+        return false;
+    } else {
+        m_outputPortsList.push_back(rawAccDataPort);
+    }
+    
+    // Open publisher port for raw gyroscope data
+    // enum RAW_GYROSCOPE_DATA_PORT
+    publisherPortStruct rawGyroDataPort;
+    if ( !rawGyroDataPort.configurePort(this->m_className, std::string("rawGyroMeas")) )
+    {
+        yError("[QuaternionEKF::init] Raw gyroscope data port could not be configured");
+        return false;
+    } else {
+        m_outputPortsList.push_back(rawGyroDataPort);
+    }
+        
     //FIXME: Temporary, while yarpWholeBodySensors is finished.
     // Open sensor ports
     sensorMeasPort = new yarp::os::Port;
@@ -202,7 +224,14 @@ void QuaternionEKF::run()
     tmpPortRef = tmpVec;
     m_outputPortsList[ORIENTATION_ESTIMATE_PORT_QUATERNION].outputPort->write();
 
-    //TODO: RAW GYRO AND ACCELEROMETER DATA COULD BE STREAMED TOO
+    yarp::sig::Vector& tmpRawAccPortRef = m_outputPortsList[RAW_ACCELEROMETER_DATA_PORT].outputPort->prepare();
+    tmpRawAccPortRef = measurements.linAcc;
+    m_outputPortsList[RAW_ACCELEROMETER_DATA_PORT].outputPort->write();
+    
+    yarp::sig::Vector& tmpRawGyroPortRef = m_outputPortsList[RAW_GYROSCOPE_DATA_PORT].outputPort->prepare();
+    tmpRawGyroPortRef = measurements.angVel;
+    m_outputPortsList[RAW_GYROSCOPE_DATA_PORT].outputPort->write();
+    
 }
 
 void QuaternionEKF::release()
@@ -220,20 +249,20 @@ bool QuaternionEKF::readEstimatorParams(yarp::os::ResourceFinder &rf, quaternion
         yError("[QuaternionEKF::readEstimatorParams] No parameters were read from QuaternionEKF group");
         return false;
     } else {
-        estimatorParams.stateSize = botParams.find("STATE_SIZE").asInt();
-        estimatorParams.inputSize = botParams.find("INPUT_SIZE").asInt();
-        estimatorParams.measurementSize = botParams.find("MEASUREMENT_SIZE").asInt();
-        estimatorParams.muSystemNoise = botParams.find("MU_SYSTEM_NOISE").asDouble();
-        estimatorParams.sigmaSystemNoise = botParams.find("SIGMA_SYSTEM_NOISE").asDouble();
-        estimatorParams.sigmaMeasurementNoise = botParams.find("SIGMA_MEASUREMENT_NOISE").asDouble();
-        estimatorParams.sigmaGyro = botParams.find("SIGMA_GYRO_NOISE").asDouble();
-        estimatorParams.piorMu = botParams.find("PRIOR_MU_STATE").asDouble();
-        estimatorParams.priorCovariance = botParams.find("PRIOR_COV_STATE").asDouble();
-        estimatorParams.muGyroNoise = botParams.find("MU_GYRO_NOISE").asDouble();
+        estimatorParams.stateSize = botParams.find("state_size").asInt();
+        estimatorParams.inputSize = botParams.find("input_size").asInt();
+        estimatorParams.measurementSize = botParams.find("measurement_size").asInt();
+        estimatorParams.muSystemNoise = botParams.find("mu_system_noise").asDouble();
+        estimatorParams.sigmaSystemNoise = botParams.find("sigma_system_noise").asDouble();
+        estimatorParams.sigmaMeasurementNoise = botParams.find("sigma_measurement_noise").asDouble();
+        estimatorParams.sigmaGyro = botParams.find("sigma_gyro_noise").asDouble();
+        estimatorParams.piorMu = botParams.find("prior_mu_state").asDouble();
+        estimatorParams.priorCovariance = botParams.find("prior_cov_state").asDouble();
+        estimatorParams.muGyroNoise = botParams.find("mu_gyro_noise").asDouble();
     }
     
     botParams.clear();
-    botParams = rf.findGroup("MODULE_PARAMETERS");
+    botParams = rf.findGroup("module_parameters");
     if ( botParams.isNull() )
     {
         yError("[QuaternionEKF::readEstimatorParams] No parameters were read from MODULE_PARAMS group. period is needed!");

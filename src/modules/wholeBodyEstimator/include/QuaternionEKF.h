@@ -97,6 +97,8 @@ struct quaternionEKFParams
 enum outputPorts {
     ORIENTATION_ESTIMATE_PORT_QUATERNION,
     ORIENTATION_ESTIMATE_PORT_EULER,
+    RAW_ACCELEROMETER_DATA_PORT,
+    RAW_GYROSCOPE_DATA_PORT
 };
 
 /**
@@ -112,7 +114,7 @@ struct publisherPortStruct
      *  Opens a publisher port and provides methods to configure and publish data.
      *
      *  @param className Current estimator class name.
-     *  @param pName     Publisher port name.
+     *  @param pName     Publisher port name. e.g. "rawAccelerometerData". Notice that no ":o" must be added at the end.
      *
      *  @return True if port was successfully opened, false otherwise.
      */

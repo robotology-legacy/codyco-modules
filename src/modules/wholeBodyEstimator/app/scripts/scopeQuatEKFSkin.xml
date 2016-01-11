@@ -62,7 +62,7 @@
                type="lines" />
         <graph remote="/QuaternionEKF/rawGyroMeas:o"
                index="1"
-               color="Red"
+               color="Green"
                title="AngVel_Y"
                size="3"
                type="lines" />               
@@ -90,7 +90,7 @@
                type="lines" />
         <graph remote="/QuaternionEKF/rawAccMeas:o"
                index="1"
-               color="Red"
+               color="Green"
                title="AngVel_Y"
                size="1"
                type="lines" />               

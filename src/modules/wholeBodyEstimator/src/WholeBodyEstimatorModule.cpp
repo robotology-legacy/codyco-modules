@@ -14,15 +14,15 @@ WholeBodyEstimatorModule::WholeBodyEstimatorModule()
 bool WholeBodyEstimatorModule::configure(ResourceFinder &rf) 
 {
     
-    if (!rf.check("MODULE_PARAMETERS"))
+    if (!rf.check("module_parameters"))
     {
-        yError("Group MODULE_PARAMETERS was not specified in the configuration file of this module. Please fix it and try again.");
+        yError("Group module_parameters was not specified in the configuration file of this module. Please fix it and try again.");
         return false;
     } else
     {
         // Fill m_module_params with module parameters
-        m_module_params.fromString(rf.findGroup("MODULE_PARAMETERS").tail().toString());
-        yInfo(" [WholeBodyEstimatorModule::configure] MODULE_PARAMETERS group contents are: %s ", m_module_params.toString().c_str());
+        m_module_params.fromString(rf.findGroup("module_parameters").tail().toString());
+        yInfo(" [WholeBodyEstimatorModule::configure] module_parameters group contents are: %s ", m_module_params.toString().c_str());
         
         m_period = m_module_params.find("period").asInt();
         m_module_name = m_module_params.find("name").asString();

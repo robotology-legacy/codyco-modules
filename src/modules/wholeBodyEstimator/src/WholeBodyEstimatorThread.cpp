@@ -18,7 +18,7 @@ WholeBodyEstimatorThread::WholeBodyEstimatorThread (ResourceFinder &rf, iWholeBo
 bool WholeBodyEstimatorThread::threadInit()
 {
     // Identify Estimators specified in config file
-    // Find ESTIMATORS_LIST and read the list of estimators present.
+    // Find estimators_list and read the list of estimators present.
     if ( !fillEstimatorsMap() )
     {
         yError("[wholeBodyEstimatorThread::threadInit()] Problem1 queried estimators from configuration file.");
@@ -92,7 +92,7 @@ void WholeBodyEstimatorThread::threadRelease()
 bool WholeBodyEstimatorThread::fillEstimatorsMap()
 {
     // Read from rf the estimators list
-    yarp::os::Bottle estimatorsListBottle = m_rfCopy.findGroup("ESTIMATORS_LIST");
+    yarp::os::Bottle estimatorsListBottle = m_rfCopy.findGroup("estimators_list");
     
     // Fill estimators map
     //
@@ -117,7 +117,7 @@ bool WholeBodyEstimatorThread::fillEstimatorsList()
 {
     // For each estimator create a pointer to the corresponding class and add it to the
     // vector list. Beware that the name of the classes of the estimators must correspond
-    // to the ones in ESTIMATORS_LIST
+    // to the ones in estimators_list
     std::map<std::string, int>::iterator it;
     for (it=m_estimatorsMap.begin(); it!=m_estimatorsMap.end(); ++it)
     {
