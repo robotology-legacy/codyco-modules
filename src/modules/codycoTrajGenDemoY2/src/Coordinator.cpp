@@ -24,11 +24,16 @@
 #include <list>
 #include <algorithm>
 
+
+
 namespace codyco {
     namespace y2 {
 
         // Some const variables useful to increase code readability
         const int COM_SIZE = 3;
+
+        const double TGM_RAD2DEG = 180.0 / M_PI;
+        const double TGM_DEG2RAD = M_PI / 180.0;
 
         class CoordinatorData;
 
@@ -471,7 +476,7 @@ namespace codyco {
                 yarp::os::Time::delay(0.01);
             } while(!encoderRead && readCount > 0);
             result = result && encoderRead;
-            data->torsoCurrentPosition *= CTRL_DEG2RAD;
+            data->torsoCurrentPosition *= TGM_DEG2RAD;
 
             data->leftArmDriver.view(data->leftArmEncoders);
             data->leftArmDriver.view(data->leftArmPositionControl);
@@ -488,7 +493,7 @@ namespace codyco {
             } while(!encoderRead && readCount > 0);
             result = result && encoderRead;
 
-            data->leftArmCurrentPosition *= CTRL_DEG2RAD;
+            data->leftArmCurrentPosition *= TGM_DEG2RAD;
 
             data->rightArmDriver.view(data->rightArmEncoders);
             data->rightArmDriver.view(data->rightArmPositionControl);
@@ -503,7 +508,7 @@ namespace codyco {
                 yarp::os::Time::delay(0.01);
             } while(!encoderRead && readCount > 0);
             result = result && encoderRead;
-            data->rightArmCurrentPosition *= CTRL_DEG2RAD;
+            data->rightArmCurrentPosition *= TGM_DEG2RAD;
 
             yarp::dev::IPositionControl *positionControl = NULL;
             data->leftLegDriver.view(positionControl);
@@ -520,7 +525,7 @@ namespace codyco {
                 yarp::os::Time::delay(0.01);
             } while(!encoderRead && readCount > 0);
             result = result && encoderRead;
-            data->leftLegCurrentPosition *= CTRL_DEG2RAD;
+            data->leftLegCurrentPosition *= TGM_DEG2RAD;
 
             int rightLegAxes = 0;
             data->rightLegDriver.view(positionControl);
@@ -536,7 +541,7 @@ namespace codyco {
                 yarp::os::Time::delay(0.01);
             } while(!encoderRead && readCount > 0);
             result = result && encoderRead;
-            data->rightLegCurrentPosition *= CTRL_DEG2RAD;
+            data->rightLegCurrentPosition *= TGM_DEG2RAD;
 
             if (!result) {
                 yError("Could not read initial encoders");
@@ -571,28 +576,28 @@ namespace codyco {
 
             for (int i = 0; i < torsoAxes; i++) {
                 data->torsoLimitsInterface->getLimits(i, &data->torsoMinLimits(i), &data->torsoMaxLimits(i));
-                data->torsoMinLimits(i) *= CTRL_DEG2RAD;
-                data->torsoMaxLimits(i) *= CTRL_DEG2RAD;
+                data->torsoMinLimits(i) *= TGM_DEG2RAD;
+                data->torsoMaxLimits(i) *= TGM_DEG2RAD;
             }
             for (int i = 0; i < (leftArmAxes > 7 ? 7 : leftArmAxes); i++) {
                 data->leftArmLimitsInterface->getLimits(i, &data->leftArmMinLimits(i), &data->leftArmMaxLimits(i));
-                data->leftArmMinLimits(i) *= CTRL_DEG2RAD;
-                data->leftArmMaxLimits(i) *= CTRL_DEG2RAD;
+                data->leftArmMinLimits(i) *= TGM_DEG2RAD;
+                data->leftArmMaxLimits(i) *= TGM_DEG2RAD;
             }
             for (int i = 0; i < (rightArmAxes > 7 ? 7 : rightArmAxes); i++) {
                 data->rightArmLimitsInterface->getLimits(i, &data->rightArmMinLimits(i), &data->rightArmMaxLimits(i));
-                data->rightArmMinLimits(i) *= CTRL_DEG2RAD;
-                data->rightArmMaxLimits(i) *= CTRL_DEG2RAD;
+                data->rightArmMinLimits(i) *= TGM_DEG2RAD;
+                data->rightArmMaxLimits(i) *= TGM_DEG2RAD;
             }
             for (int i = 0; i < leftLegAxes; i++) {
                 data->leftLegLimitsInterface->getLimits(i, &data->leftLegMinLimits(i), &data->leftLegMaxLimits(i));
-                data->leftLegMinLimits(i) *= CTRL_DEG2RAD;
-                data->leftLegMaxLimits(i) *= CTRL_DEG2RAD;
+                data->leftLegMinLimits(i) *= TGM_DEG2RAD;
+                data->leftLegMaxLimits(i) *= TGM_DEG2RAD;
             }
             for (int i = 0; i < rightLegAxes; i++) {
                 data->rightLegLimitsInterface->getLimits(i, &data->rightLegMinLimits(i), &data->rightLegMaxLimits(i));
-                data->rightLegMinLimits(i) *= CTRL_DEG2RAD;
-                data->rightLegMaxLimits(i) *= CTRL_DEG2RAD;
+                data->rightLegMinLimits(i) *= TGM_DEG2RAD;
+                data->rightLegMaxLimits(i) *= TGM_DEG2RAD;
             }
             yInfo("Read joint limits");
             yInfo("Torso[min,max]=%s,%s", data->torsoMinLimits.toString().c_str(), data->torsoMaxLimits.toString().c_str());
@@ -768,11 +773,11 @@ namespace codyco {
             data->comGenerator->computeNextValues(data->comReferences);
 
             //send to robot
-            data->torsoPositionControl->setPositions(data->torsoJointIDs.size(), data->torsoJointIDs.data(), (data->torsoGenerator->getPos() * CTRL_RAD2DEG).data());
+            data->torsoPositionControl->setPositions(data->torsoJointIDs.size(), data->torsoJointIDs.data(), (data->torsoGenerator->getPos() * TGM_RAD2DEG).data());
 
-            data->leftArmPositionControl->setPositions(data->armJointIDs.size(), data->armJointIDs.data(), (data->leftArmGenerator->getPos() * CTRL_RAD2DEG).data());
+            data->leftArmPositionControl->setPositions(data->armJointIDs.size(), data->armJointIDs.data(), (data->leftArmGenerator->getPos() * TGM_RAD2DEG).data());
 
-            data->rightArmPositionControl->setPositions(data->armJointIDs.size(), data->armJointIDs.data(), (data->rightArmGenerator->getPos() * CTRL_RAD2DEG).data());
+            data->rightArmPositionControl->setPositions(data->armJointIDs.size(), data->armJointIDs.data(), (data->rightArmGenerator->getPos() * TGM_RAD2DEG).data());
 
             //send to torqueBalancing
 
@@ -904,11 +909,11 @@ namespace codyco {
             LockGuard guard(data->mutex);
 
             data->torsoEncoders->getEncoders(data->torsoCurrentPosition.data());
-            data->torsoCurrentPosition *= CTRL_DEG2RAD;
+            data->torsoCurrentPosition *= TGM_DEG2RAD;
             data->leftArmEncoders->getEncoders(data->leftArmCurrentPosition.data());
-            data->leftArmCurrentPosition *= CTRL_DEG2RAD;
+            data->leftArmCurrentPosition *= TGM_DEG2RAD;
             data->rightArmEncoders->getEncoders(data->rightArmCurrentPosition.data());
-            data->rightArmCurrentPosition *= CTRL_DEG2RAD;
+            data->rightArmCurrentPosition *= TGM_DEG2RAD;
 
             bool result = true;
             if (partName.length() == 0 || partName.compare("torso") == 0) {

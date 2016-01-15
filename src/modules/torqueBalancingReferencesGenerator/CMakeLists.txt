@@ -7,6 +7,8 @@ find_package(yarpWholeBodyInterface REQUIRED)
 find_package(iDynTree REQUIRED)
 find_package(Eigen3 REQUIRED)
 
+add_definitions(-D_USE_MATH_DEFINES)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${yarpWholeBodyInterface_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME} main.cpp TorqueBalancingReferencesGenerator.h TorqueBalancingReferencesGenerator.cpp)

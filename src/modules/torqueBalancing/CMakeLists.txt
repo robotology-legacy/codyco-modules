@@ -43,6 +43,8 @@ set(SOURCES    ${SRC_FOLDER}/TorqueBalancingModule.cpp
 source_group("Source Files" FILES ${SOURCES})
 source_group("Header Files" FILES ${HEADERS})
 
+add_definitions(-D_USE_MATH_DEFINES)
+
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR}
     ${wholeBodyInterface_INCLUDE_DIRS}
     ${yarpWholeBodyInterface_INCLUDE_DIRS}

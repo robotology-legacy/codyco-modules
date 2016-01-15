@@ -8,6 +8,8 @@
 
 #include <gsl/gsl_math.h>
 
+#include <algorithm>
+
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::dev;

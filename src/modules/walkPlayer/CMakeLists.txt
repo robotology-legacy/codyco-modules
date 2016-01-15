@@ -10,7 +10,7 @@ find_package(YARP REQUIRED)
 find_package(ICUB REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
+
 set(HEADERS_DIR include/walkPlayer)
 
 FILE(GLOB folder_source src/*.cpp)
@@ -23,19 +23,14 @@ FILE(GLOB folder_header include/*.h)
 SOURCE_GROUP("Source Files" FILES ${folder_source})
 SOURCE_GROUP("Header Files" FILES ${folder_header})
 
-include(iCubHelpers)
-include(iCubOptions)
+# import math symbols from standard cmath
+add_definitions(-D_USE_MATH_DEFINES)
 
-
-INCLUDE_DIRECTORIES(${iDyn_INCLUDE_DIRS}
-                    ${ICUB_INCLUDE_DIRS}
-                    ${YARP_INCLUDE_DIRS}
-                    ${HEADERS_DIR})
+INCLUDE_DIRECTORIES(${HEADERS_DIR} ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS})
 
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
-TARGET_LINK_LIBRARIES(${PROJECTNAME} iDyn
-                                     ${YARP_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES} iKin iDyn)
 
 if(WIN32)
     INSTALL_TARGETS(/bin/Release ${PROJECTNAME})

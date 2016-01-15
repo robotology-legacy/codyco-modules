@@ -22,6 +22,9 @@ INCLUDE_DIRECTORIES(${wholeBodyInterface_INCLUDE_DIRS}
                     ${yarpWholeBodyInterface_INCLUDE_DIRS}
                     ${skinDynLib_INCLUDE_DIRS})
 
+# import math symbols from standard cmath
+add_definitions(-D_USE_MATH_DEFINES)
+
 ADD_EXECUTABLE(${PROJECTNAME} ${folder_source} ${folder_header})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME} ${wholeBodyInterface_LIBRARIES}

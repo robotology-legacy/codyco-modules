@@ -50,6 +50,8 @@ using namespace Eigen;
 
 const double TOL = 1e-8;
 
+const double WBITEST_RAD2DEG = 180.0 / M_PI;
+const double WBITEST_DEG2RAD = M_PI / 180.0;
 
 int main(int argc, char * argv[])
 {

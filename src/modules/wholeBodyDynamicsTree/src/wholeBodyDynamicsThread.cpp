@@ -1918,7 +1918,7 @@ void wholeBodyDynamicsThread::threadRelease()
         port_filtered_ft.resize(0);
     }
 
-    yInfo() << "Closing filtered inertial port";
+    yInfo() << "Deleting icub models used for calibration";
     delete icub_model_calibration;
 
     if( this->assume_fixed_base_calibration_from_odometry )
@@ -1931,7 +1931,8 @@ void wholeBodyDynamicsThread::threadRelease()
     {
         delete icub_model_world_base_position;
     }
-
+    
+    yInfo() << "Deleting filters";
     delete filters;
 
     if( smooth_calibration )
@@ -1939,6 +1940,7 @@ void wholeBodyDynamicsThread::threadRelease()
         delete offset_smoother;
     }
 
+    yInfo() << "Closing odometry class";
     closeOdometry();
 
     run_mutex.unlock();

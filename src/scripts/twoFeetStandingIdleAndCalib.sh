@@ -29,7 +29,7 @@ for a in $list; do
 done
 
 echo "!!Now I will calib the wholeBodyDynamics!!"
-sleep 0.5
-echo "calibStanding all 600"  | yarp rpc /wholeBodyDynamicsTree/rpc:i
-sleep 0.5
+sleep 0.1
+echo "calibStanding all 300"  | yarp rpc /wholeBodyDynamicsTree/rpc:i
+sleep 0.1
 yarp clean --timeout 0.2
