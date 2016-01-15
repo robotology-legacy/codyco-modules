@@ -29,20 +29,25 @@ file(GLOB source_dir    src/main.cpp
                         src/EstimatorsFactory.cpp
                         src/EstimatorsCreator.cpp
                         src/IDestructors.cpp
+                        src/portsInterface.cpp
                         src/QuaternionEKF.cpp
                         src/LeggedOdometry.cpp
                         src/nonLinearAnalyticConditionalGaussian.cpp
-                        src/nonLinearMeasurementGaussianPdf.cpp)
+                        src/nonLinearMeasurementGaussianPdf.cpp
+                        src/DirectFiltering.cpp)
 file(GLOB header_dir    include/WholeBodyEstimatorModule.h
                         include/WholeBodyEstimatorThread.h
                         include/IEstimator.h
                         include/EstimatorsFactory.h
                         include/EstimatorsCreator.h
                         include/EstimatorsCreatorImpl.h
+                        include/constants.h
+                        include/portsInterface.h
                         include/QuaternionEKF.h
                         include/LeggedOdometry.h
                         include/nonLinearAnalyticConditionalGaussian.h
-                        include/nonLinearMeasurementGaussianPdf.h)
+                        include/nonLinearMeasurementGaussianPdf.h
+                        include/DirectFiltering.h)
 
 source_group("Source Files" FILES ${source_dir})
 source_group("Header Files" FILES ${header_dir})

@@ -296,13 +296,11 @@ void QuaternionEKF::createSystemModel()
     sys_noise_cov(1,1) = sys_noise_cov(2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = m_quaternionEKFParams.sigmaSystemNoise;
     
     // Setting System noise uncertainty
-    //TODO: Delete m_sysPdf
     m_sysPdf = new BFL::nonLinearAnalyticConditionalGaussian(m_quaternionEKFParams.stateSize);
     m_sysPdf->AdditiveNoiseMuSet(sys_noise_mu);
     m_sysPdf->AdditiveNoiseSigmaSet(sys_noise_cov);
     m_sysPdf->setPeriod(m_quaternionEKFParams.period);
     // Creating the model
-    //TODO: Delete m_sys_model
     m_sys_model = new BFL::AnalyticSystemModelGaussianUncertainty(m_sysPdf);
 
 }
@@ -323,10 +321,8 @@ void QuaternionEKF::createMeasurementModel()
     //TODO: Remember to delete this object at the end
     m_measurement_uncertainty = new BFL::Gaussian(meas_noise_mu, meas_noise_cov);
     // Probability density function (PDF) for the measurement
-    //TODO: Delete m_measPdf
     m_measPdf = new BFL::nonLinearMeasurementGaussianPdf(*m_measurement_uncertainty);
     //  Measurement model from the measurement PDF
-    //TODO: Delete m_meas_model
     m_meas_model = new BFL::AnalyticMeasurementModelGaussianUncertainty(m_measPdf);
     
 }
@@ -345,14 +341,12 @@ void QuaternionEKF::setPriors()
     yInfo("[QuaternionEKF::setPriors] Priors will be: ");
     std::cout << "[QuaternionEKF::setPriors] State prior:" << std::endl << prior_mu << std::endl;
     std::cout << "[QuaternionEKF::setPriors] Covariance prior: " << std::endl << prior_cov << std::endl;
-    //TODO: Delete m_prior
     m_prior = new BFL::Gaussian(prior_mu, prior_cov);
 
 }
 
 void QuaternionEKF::createFilter()
 {
-    //TODO: Delete m_filter
     m_filter = new BFL::ExtendedKalmanFilter(m_prior);
 }
 

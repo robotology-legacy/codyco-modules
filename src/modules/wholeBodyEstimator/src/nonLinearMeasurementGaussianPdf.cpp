@@ -60,6 +60,7 @@ MatrixWrapper::Matrix nonLinearMeasurementGaussianPdf::dfGet ( unsigned int i ) 
         dq = 0.0;
         MatrixWrapper::Matrix dQdq0(3,3), dQdq1(3,3), dQdq2(3,3), dQdq3(3,3);
         // NOTE Gravity unity vector. Need to review why I set this to [0 0 1]' instead of [0 0 9.8]' in the Matlab code
+        //TODO: GravityUnitVec shuld be an input to this method.
         MatrixWrapper::ColumnVector gravUnitVec(3);
         gravUnitVec = 0.0; 
         gravUnitVec(3) = GRAVITY_NOMINAL;
