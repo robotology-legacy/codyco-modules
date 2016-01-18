@@ -101,13 +101,13 @@ bool WorkingThread::execute_joint_command(int j)
 
         for (int i=0; i<6; i++)
         {
-            spd_ll[i] = CTRL_DEG2RAD*REF_SPEED_FACTOR;
-            spd_rl[i] = CTRL_DEG2RAD*REF_SPEED_FACTOR;
+            spd_ll[i] = iCub::ctrl::CTRL_DEG2RAD*REF_SPEED_FACTOR;
+            spd_rl[i] = iCub::ctrl::CTRL_DEG2RAD*REF_SPEED_FACTOR;
         }
 
         for (int i=0; i<3; i++)
         {
-            spd_to[i] = CTRL_DEG2RAD*REF_SPEED_FACTOR;
+            spd_to[i] = iCub::ctrl::CTRL_DEG2RAD*REF_SPEED_FACTOR;
         }
 
         driver->ipos_ll->setRefSpeeds(spd_ll);
