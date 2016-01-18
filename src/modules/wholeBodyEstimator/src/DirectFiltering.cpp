@@ -68,7 +68,7 @@ void DirectFiltering::run ( )
     //computeTilt(&m_meas.linAcc, tilt);
     
     // Stream estimate
-    //this->m_estimatePort.publishEstimateToPort(orientation);
+    this->m_estimatePort.publishEstimateToPort(orientation);
     
     // Stream tilt
     //this->m_tiltPort.publishEstimateToPort(tilt);
