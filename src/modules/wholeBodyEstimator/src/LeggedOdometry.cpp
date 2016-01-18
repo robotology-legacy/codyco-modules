@@ -315,6 +315,7 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
         port_frames->open(std::string("/"+m_module_name+"/frames:o"));
     }
     return true;
+    yInfo("[LeggedOdometry::init()] LeggedOdometry is running ... \n");
 }
 
 void LeggedOdometry::run()

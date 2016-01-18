@@ -141,7 +141,7 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     // Initialize measurement object
     measurements.linAcc.resize(3,0.0);
     measurements.angVel.resize(3,0.0);
-    yInfo("[QuaternionEKF::init] QUATERNIONEKF is running...");
+    yInfo("[QuaternionEKF::init] QUATERNIONEKF is running... \n");
     
     return true;
 }

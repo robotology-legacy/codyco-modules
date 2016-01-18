@@ -39,7 +39,11 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
     } else
     {
         wbiConfFile = rf.findFile("wbi_conf_file");
-        yarpWbiOptions.fromConfigFile(wbiConfFile);
+        if ( !yarpWbiOptions.fromConfigFile(wbiConfFile) )
+        {
+            yError("File %s does not exist and could not be read", wbiConfFile.c_str());
+            return false;
+        }
     }
     
     
@@ -68,7 +72,7 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
     // Initializing sensor interface
     if(!wbs->init())
     {
-        yError("[wholeBodyEstimatorModule::configure] Error while initializing whole body estimator interface.Closing module");
+        yError("[wholeBodyEstimatorModule::configure] Error while initializing whole body estimator interface. Closing module");
         return false;
     } else
     {

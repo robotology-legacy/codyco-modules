@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<portscope rows="2" columns="1" carrier="tcp">
+<portscope rows="2" columns="2" carrier="tcp">
     <plot gridx="0"
           gridy="0"
           hspan="1"
@@ -43,6 +43,40 @@
                color="Red"
                title="Pitch quatEKF"
                size="3"
-               type="lines" />                       
+               type="lines" />
+        <graph remote="/DirectFiltering/orientationEuler:o"
+               index="1"
+               color="Black"
+               title=""
+               size="3"
+               type="lines" />
+<!--       <graph remote="/DirectFiltering/tiltEuler:o"
+              index="0"
+              color="White"
+              title=""
+              size="3"
+              type="lines" /> -->
+    </plot>
+    <plot gridx="1"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="Direct Estimate (No Gyro)"
+          size="60"
+          minval="-5"
+          maxval="5"
+          bgcolor="Black">
+        <graph remote="/DirectFiltering/orientationEuler:o"
+               index="0"
+               color="Red"
+               title=""
+               size="3"
+               type="lines" />
+        <graph remote="/DirectFiltering/orientationEuler:o"
+               index="1"
+               color="Blue"
+               title=""
+               size="3"
+               type="lines" />
     </plot>
 </portscope>

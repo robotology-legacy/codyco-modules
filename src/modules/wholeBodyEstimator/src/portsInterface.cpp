@@ -9,7 +9,13 @@ publisherPort::publisherPort()
 {}
 
 publisherPort::~publisherPort()
-{}
+{
+    if (this->outputPort)
+    {
+        delete this->outputPort;
+        this->outputPort = NULL;
+    }
+}
 
 bool publisherPort::configurePort(std::string className, std::string pName)
 {
@@ -23,6 +29,13 @@ bool publisherPort::configurePort(std::string className, std::string pName)
         return false;
     }
     return true;
+}
+
+void publisherPort::publishEstimateToPort(yarp::sig::Vector& data)
+{
+    yarp::sig::Vector& tmp = this->outputPort->prepare();
+    tmp = data;
+    this->outputPort->write();
 }
 
 // ############## READER_PORT CLASS ##################################################################################################
@@ -57,7 +70,7 @@ bool readerPort::extractMTBDatafromPort(int boardNum, yarp::os::Port * sensorMea
     yarp::os::Bottle measurementBottle;
     int indexSubVector = 0;
     if ( !sensorMeasPort->read(fullMeasurement) ) {
-        yError("[QuaternionEKF::extractMTBDatafromPort] There was an error trying to read from the MTB port");
+        yError("[extractMTBDatafromPort] There was an error trying to read from the MTB port");
         return false;
     } else {
             //yInfo("[QuaternionEKF::extractMTBDatafromPort] Raw meas: %s", fullMeasurement.toString().c_str());

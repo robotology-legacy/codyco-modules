@@ -40,6 +40,13 @@ public:
      *  @return True if port was successfully opened, false otherwise.
      */
     bool configurePort(std::string className, std::string pName);
+    
+    /**
+     *  <#Description#>
+     *
+     *  @param data <#data description#>
+     */
+    void publishEstimateToPort(yarp::sig::Vector& data);
 };
 
 class readerPort

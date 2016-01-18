@@ -20,8 +20,7 @@
               color="Red"
               title="Pitch quatEKF"
               size="3"
-              type="lines" />                       
-               
+              type="lines" />
     </plot>
     <plot gridx="0"
           gridy="1"
@@ -100,4 +99,5 @@
                title="AngVel_Z"
                size="2"
                type="lines" />
+    </plot>
 </portscope>
