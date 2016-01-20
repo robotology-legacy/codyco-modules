@@ -28,40 +28,53 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
         m_module_name = m_module_params.find("name").asString();
     }
     
-    std::string wbiConfFile;
+//    std::string wbiConfFile;
     yarp::os::Property yarpWbiOptions;
     wbi::IDList RobotDynamicModelJoints;
+//
+//    if (!rf.check("wbi_conf_file"))
+//    {
+//        yError("WBI configuration file name not specified in config file of this module.");
+//        return false;
+//    } else
+//    {
+//        wbiConfFile = rf.findFile("wbi_conf_file");
+//        if ( !yarpWbiOptions.fromConfigFile(wbiConfFile) )
+//        {
+//            yError("File %s does not exist and could not be read", wbiConfFile.c_str());
+//            return false;
+//        }
+//    }
+//    
+//    
+//    // Configure yarpWholeBodySensors before passing it to WholeBodyEstimatorThread
+//    // Get model joints list
+//    std::string modelJointsListName = rf.check("joints_list",
+//                                                yarp::os::Value("ROBOT_DYNAMIC_MODEL_JOINTS"),
+//                                                "Name of the list of joint used for the current robot").asString().c_str();
+//    if( !loadIdListFromConfig(modelJointsListName,rf,RobotDynamicModelJoints) )
+//    {
+//        if( !loadIdListFromConfig(modelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
+//        {
+//            yError("[wholeBodyEstimatorModule::configure] Impossible to load wbiId joint list with name %s\n",modelJointsListName.c_str());
+//            return false;
+//        }
+//    }
     
-    if (!rf.check("wbi_conf_file"))
+    if ( !getWbiOptionsAndModelJoints(rf, RobotDynamicModelJoints, yarpWbiOptions) )
     {
-        yError("WBI configuration file name not specified in config file of this module.");
+        yError("[WholeBodyEstimatorModule::getWbiOptionsAndModelJoints] failed ... ");
         return false;
-    } else
-    {
-        wbiConfFile = rf.findFile("wbi_conf_file");
-        if ( !yarpWbiOptions.fromConfigFile(wbiConfFile) )
-        {
-            yError("File %s does not exist and could not be read", wbiConfFile.c_str());
-            return false;
-        }
     }
     
+    // Debugging
+    yInfo("[WholeBodyEstimatorModule::configure] wbiProperties passed were: %s ", yarpWbiOptions.toString().c_str());
     
-    // Configure yarpWholeBodySensors before passing it to WholeBodyEstimatorThread
-    // Get model joints list
-    std::string modelJointsListName = rf.check("joints_list",
-                                                yarp::os::Value("ROBOT_DYNAMIC_MODEL_JOINTS"),
-                                                "Name of the list of joint used for the current robot").asString().c_str();
-    if( !loadIdListFromConfig(modelJointsListName,rf,RobotDynamicModelJoints) )
-    {
-        if( !loadIdListFromConfig(modelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
-        {
-            yError("[wholeBodyEstimatorModule::configure] Impossible to load wbiId joint list with name %s\n",modelJointsListName.c_str());
-            return false;
-        }
-    }
+    // Checking DOF
+    yInfo("[WholeBodyEstimatorModule::configure()] Robot DOF: %d ", RobotDynamicModelJoints.size());
     
-    yarpWholeBodySensors* wbs = new yarpWholeBodySensors(m_module_name.c_str(), yarpWbiOptions);
+    // Creating yarpwholebodysensors object 
+    wbs = new yarpWholeBodySensors(m_module_name.c_str(), yarpWbiOptions);
 
     // Adding encoders
     wbs->addSensors(wbi::SENSOR_ENCODER, RobotDynamicModelJoints);
@@ -90,6 +103,46 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
     return true;
 }
 
+bool WholeBodyEstimatorModule::getWbiOptionsAndModelJoints(yarp::os::ResourceFinder &rf,
+                                                           wbi::IDList &RobotDynamicModelJoints,
+                                                           yarp::os::Property &yarpWbiOptions)
+{
+    std::string wbiConfFile;
+    
+    // Find WBI configuration file and retrieve all options specified.
+    if (!rf.check("wbi_conf_file"))
+    {
+        yError("WBI configuration file name not specified in config file of this module.");
+        return false;
+    } else
+    {
+        wbiConfFile = rf.findFile("wbi_conf_file");
+        if ( !yarpWbiOptions.fromConfigFile(wbiConfFile) )
+        {
+            yError("File %s does not exist and could not be read", wbiConfFile.c_str());
+            return false;
+        }
+    }
+    
+    
+    // Configure yarpWholeBodySensors before passing it to WholeBodyEstimatorThread
+    // Get model joints list
+    std::string modelJointsListName = rf.check("joints_list",
+                                               yarp::os::Value("ROBOT_DYNAMIC_MODEL_JOINTS"),
+                                               "Name of the list of joint used for the current robot").asString().c_str();
+    if( !loadIdListFromConfig(modelJointsListName,rf,RobotDynamicModelJoints) )
+    {
+        if( !loadIdListFromConfig(modelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
+        {
+            yError("[wholeBodyEstimatorModule::configure] Impossible to load wbiId joint list with name %s\n",modelJointsListName.c_str());
+            return false;
+        }
+    }
+
+
+    return true;
+}
+
 bool WholeBodyEstimatorModule::updateModule()
 {
     bool ret = true;
@@ -104,6 +157,16 @@ bool WholeBodyEstimatorModule::close()
         m_estimatorThread->stop();
         delete m_estimatorThread;
         m_estimatorThread = NULL;
+    }
+    
+    yDebug("Deleting wholeBodySensors");
+    if (wbs)
+    {
+        if (wbs->close())
+        {
+            delete wbs;
+            wbs = 0;
+        }
     }
     return true;
 }

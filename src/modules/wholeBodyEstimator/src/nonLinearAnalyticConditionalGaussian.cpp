@@ -1,15 +1,15 @@
 
 #include <bfl/filter/extendedkalmanfilter.h>
-#include"nonLinearAnalyticConditionalGaussian.h"
+#include "nonLinearAnalyticConditionalGaussian.h"
 
 namespace BFL {
-nonLinearAnalyticConditionalGaussian::nonLinearAnalyticConditionalGaussian(int dim) 
+nonLinearAnalyticConditionalGaussian::nonLinearAnalyticConditionalGaussian(int dim)
         : AnalyticConditionalGaussianAdditiveNoise (dim, NUMBEROFCONDITIONALARGUMENTS),
         m_localA(dim, dim)
 {
 }
 
-nonLinearAnalyticConditionalGaussian::nonLinearAnalyticConditionalGaussian ( const BFL::Gaussian& gaus) 
+nonLinearAnalyticConditionalGaussian::nonLinearAnalyticConditionalGaussian ( const BFL::Gaussian& gaus)
 : AnalyticConditionalGaussianAdditiveNoise ( gaus, NUMBEROFCONDITIONALARGUMENTS ), m_localA(4,4)
 {
     //FIXME m_localA can't be allocated like this!!! How do I get the dimension of this state in this class or base class?
@@ -31,10 +31,10 @@ MatrixWrapper::ColumnVector nonLinearAnalyticConditionalGaussian::ExpectedValueG
     OmegaOperator(angVel, tmpA);
     tmpA = tmpA*(0.5*m_threadPeriod);
     // NOTE On 27/07/2015 I changed the sign before AdditiveNoiseMuGet() to a 'minus' according to Choukroun's derivation in Novel Methods for Attitude Determination using Vector Observations
-    // NOTE I think this is wrong!! as what I want to add here is noise with 0 mean and covariance Q^w_k!!! 
+    // NOTE I think this is wrong!! as what I want to add here is noise with 0 mean and covariance Q^w_k!!!
     MatrixWrapper::ColumnVector noise = AdditiveNoiseMuGet();
     state = state + tmpA*state - noise;
-    
+
     // Normalizing the quaternion
     MatrixWrapper::Quaternion tmpQuat(state);
     tmpQuat.normalize();
@@ -45,8 +45,8 @@ MatrixWrapper::ColumnVector nonLinearAnalyticConditionalGaussian::ExpectedValueG
 
 MatrixWrapper::Matrix nonLinearAnalyticConditionalGaussian::dfGet ( unsigned int i ) const
 {
-  // NOTE In this case, since this is rather a linear system wrt to the state (quaternion), dfGet actually corresponds to the 
-    //    discrete-time transition matrix. 
+  // NOTE In this case, since this is rather a linear system wrt to the state (quaternion), dfGet actually corresponds to the
+    //    discrete-time transition matrix.
     MatrixWrapper::ColumnVector angVel = ConditionalArgumentGet(1);
     MatrixWrapper::Matrix identity(4,4); identity.toIdentity();
     MatrixWrapper::Matrix tmp(4,4);
@@ -70,7 +70,7 @@ bool nonLinearAnalyticConditionalGaussian::OmegaOperator (const MatrixWrapper::C
         cout << "[nonLinearAnalyticConditionalGaussian::OmegaOperator] Expected a 4x4 matrix";
         return ret;
     }
-    
+
     //TODO: The size of the state used to build this Omega matrix should be passed to this class somehow.
     // HARDCODED TEMPORARILY TO 4
     Omega(1,1) = 0.0;      Omega(1,2) = -omg(1);   Omega(1,3) = -omg(2);   Omega(1,4) = -omg(3);
@@ -86,4 +86,3 @@ MatrixWrapper::Matrix nonLinearAnalyticConditionalGaussian::XiOperator (const Ma
 }
 
 } // BFL namespace
-

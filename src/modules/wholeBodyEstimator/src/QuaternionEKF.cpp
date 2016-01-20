@@ -8,52 +8,11 @@ using namespace yarp::math;
 QuaternionEKF::QuaternionEKF() : m_className("QuaternionEKF")
 {}
 
-QuaternionEKF::~QuaternionEKF()
-{
-    if (m_filter)
-    {
-        delete m_filter;
-        m_filter = NULL;
-        yDebug("m_filter deleted");
-    }
-    if (m_measPdf)
-    {
-        delete m_measPdf;
-        m_measPdf = NULL;
-        yDebug("m_measPdf deleted");
-    }
-    if (m_measurement_uncertainty)
-    {
-        delete m_measurement_uncertainty;
-        m_measurement_uncertainty = NULL;
-        yDebug("m_measurement_uncertainty deleted");
-    }
-    if (m_meas_model)
-    {
-        delete m_meas_model;
-        m_meas_model = NULL;
-        yDebug("m_meas_model deleted");
-    }
-    if (m_prior)
-    {
-        delete m_prior;
-        m_prior = NULL;
-        yDebug("m_prior deleted");
-    }
-    if (m_sys_model)
-    {
-        delete m_sys_model;
-        m_sys_model = NULL;
-        yDebug("m_sys_model deleted");
-    }
-    yInfo("QuaternionEKF destroyed correctly");
-}
-
 bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
 {
     //TODO: Maybe instead of passing the resourceFinder I should pass the already parsed groups?
     // Module Parameters
-    
+
     //TODO: The class name should be addressed better. I had thought of a private member of this class enforced through IEstimator, but its quality of Interface shouldn't allow for private variables.
     // Read filter parameters
     if ( !readEstimatorParams(rf, this->m_quaternionEKFParams) )
@@ -63,7 +22,7 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     } else {
         yInfo("[QuaternionEKF::init()]QuaternionEKF estimator parsed parameters from configuration file correctly. ");
     }
-    
+
     // Open publisher ports
     //TODO: These publisher ports should be addressed automatically by some publishing interface as stated in issue ...
     // enum ORIENTATION_ESTIMATE_PORT_QUATERNION
@@ -75,7 +34,7 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     } else {
         m_outputPortsList.push_back(orientationEstimatePort);
     }
-    
+
     // Open publisher port for estimate in euler angles
     // enum ORIENTATION_ESTIMATE_PORT_EULER
     publisherPortStruct orientationEstimateEulerPort;
@@ -86,7 +45,7 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     } else {
         m_outputPortsList.push_back(orientationEstimateEulerPort);
     }
-    
+
     // Open publisher port for raw accelerometer data
     // enum RAW_ACCELEROMETER_DATA_PORT
     publisherPortStruct rawAccDataPort;
@@ -97,7 +56,7 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     } else {
         m_outputPortsList.push_back(rawAccDataPort);
     }
-    
+
     // Open publisher port for raw gyroscope data
     // enum RAW_GYROSCOPE_DATA_PORT
     publisherPortStruct rawGyroDataPort;
@@ -108,7 +67,7 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     } else {
         m_outputPortsList.push_back(rawGyroDataPort);
     }
-        
+
     //FIXME: Temporary, while yarpWholeBodySensors is finished.
     // Open sensor ports
     sensorMeasPort = new yarp::os::Port;
@@ -121,28 +80,77 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     } else {
         m_inputPortsList.push_back(sensorDataPort);
     }
-    
+
     // Initialize rf-dependent private variables
     m_prior_mu_vec.resize(m_quaternionEKFParams.stateSize);
     m_posterior_state.resize(m_quaternionEKFParams.stateSize);
-    
+
     // Create system model
     createSystemModel();
-    
+
     // Create measurement model
     createMeasurementModel();
-    
+
     // Setting priors
     setPriors();
-    
+
     // Create filter
     createFilter();
-    
+
     // Initialize measurement object
     measurements.linAcc.resize(3,0.0);
     measurements.angVel.resize(3,0.0);
+
+    // Should this module provide the floating base attitude in the world defined by QuaternionEKF?
+    if (m_quaternionEKFParams.floatingBaseAttitude)
+    {
+        m_floatingBaseEstimate = new wholeBodyEstimator::floatingBase;
+        
+        // Retrieve wbiProperties
+//        std::string wbiConfFile;
+//        yarp::os::Property yarpWbiOptions;
+//        wbi::IDList RobotDynamicModelJoints;
+//        
+//        if (!rf.check("wbi_conf_file"))
+//        {
+//            yError("[QuaternionEKF::init] WBI configuration file name not specified in config file of this module.");
+//            return false;
+//        } else
+//        {
+//            wbiConfFile = rf.findFile("wbi_conf_file");
+//            if ( !yarpWbiOptions.fromConfigFile(wbiConfFile) )
+//            {
+//                yError("[QuaternionEKF::init] File %s does not exist and could not be read", wbiConfFile.c_str());
+//                return false;
+//            }
+//        }
+//        // Configure yarpWholeBodySensors
+//        // Get model joints list
+//        std::string modelJointsListName = rf.check("joints_list",
+//                                                   yarp::os::Value("ROBOT_DYNAMIC_MODEL_JOINTS"),
+//                                                   "Name of the list of joint used for the current robot").asString().c_str();
+//        if( !yarpWbi::loadIdListFromConfig(modelJointsListName,yarpWbiOptions,RobotDynamicModelJoints) )
+//        {
+//            yError("[QuaternionEKF::configure] Impossible to load wbiId joint list with name %s\n",modelJointsListName.c_str());
+//            return false;
+//        }
+        
+        // Retrieve rot_from_ft_to_acc matrix
+        MatrixWrapper::Matrix mat_rot_from_ft_to_acc(3,3);
+        unsigned int k = 0;
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            for (unsigned int j = 0; j < 3; j++)
+            {
+                mat_rot_from_ft_to_acc(i+1,j+1) = m_quaternionEKFParams.rot_from_ft_to_acc_bottle->get(k).asDouble();
+                k++;
+            }
+        }
+        m_floatingBaseEstimate->configure(rf, mat_rot_from_ft_to_acc);
+    }
+
     yInfo("[QuaternionEKF::init] QUATERNIONEKF is running... \n");
-    
+
     return true;
 }
 
@@ -155,7 +163,7 @@ void QuaternionEKF::run()
     } else {
         //yInfo("[QuaternionEKF::run] Parsed sensor data: \n Acc [m/s^2]: \t%s \n Ang Vel [deg/s]: \t%s \n",  (measurements.linAcc).toString().c_str(), (measurements.angVel).toString().c_str());
     }
-    
+
     // Copy ang velocity data from a yarp vector into a ColumnVector
     MatrixWrapper::ColumnVector input(measurements.angVel.data(),m_quaternionEKFParams.inputSize);
     // Copy accelerometer data from a yarp vector into a ColumnVector
@@ -166,7 +174,7 @@ void QuaternionEKF::run()
     //TODO: [NOT SURE] This mean changes!!!
     MatrixWrapper::ColumnVector sys_noise_mu(m_quaternionEKFParams.stateSize);
     sys_noise_mu = 0.0;
-    
+
     /**************** System Noise Covariance *********************************************************/
     MatrixWrapper::Matrix Xi(m_quaternionEKFParams.stateSize, m_quaternionEKFParams.inputSize);
     XiOperator(m_posterior_state, &Xi);
@@ -184,9 +192,9 @@ void QuaternionEKF::run()
     //NOTE: Next line is setting system noise covariance matrix to a constant diagonal matrix
     //         sys_noise_cov = 0.0; sys_noise_cov(1,1) = sys_noise_cov (2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = 0.000001;
     /**************** ENDS System Noise Covariance *******************************************************/
-    
+
     //std::cout << "System covariance matrix will be: " << std::endl << sys_noise_cov << std::endl;
-    
+
     //FIXME: Remove the line below as the mean pretty much never changes and remains zero
     //m_sysPdf->AdditiveNoiseMuSet(sys_noise_mu);
     m_sysPdf->AdditiveNoiseSigmaSet(sys_noise_cov);
@@ -195,7 +203,7 @@ void QuaternionEKF::run()
     {
         yError("[QuaternionEKF::run] Update step of the Kalman Filter could not be performed\n");
     }
-    
+
     // Get the posterior of the updated filter. Result of all the system model and meaurement information
     BFL::Pdf<BFL::ColumnVector> * posterior = m_filter->PostGet();
     // Posterior Expectation
@@ -230,22 +238,42 @@ void QuaternionEKF::run()
     tmpPortRef = tmpVec;
     m_outputPortsList[ORIENTATION_ESTIMATE_PORT_QUATERNION].outputPort->write();
 
-    if ( this->m_quaternionEKFParams.streamMeasurements )
+
+
+    /**
+     *  Estimate floating base attitude
+     */
+    // rot_from_world_to_sensor which is the result of the estimate a.k.a. tmpQuat in previous lines.
+    MatrixWrapper::Matrix rot_from_world_to_sensor(3,3);
+    tmpQuat.getRotation(rot_from_world_to_sensor);
+    // Output matrix rot_from_floatingBase_to_world
+    MatrixWrapper::Matrix rot_from_floatingBase_to_world(3,3);
+    if ( m_quaternionEKFParams.floatingBaseAttitude )
     {
-        yarp::sig::Vector& tmpRawAccPortRef = m_outputPortsList[RAW_ACCELEROMETER_DATA_PORT].outputPort->prepare();
-        tmpRawAccPortRef = measurements.linAcc;
-        m_outputPortsList[RAW_ACCELEROMETER_DATA_PORT].outputPort->write();
-    
-        yarp::sig::Vector& tmpRawGyroPortRef = m_outputPortsList[RAW_GYROSCOPE_DATA_PORT].outputPort->prepare();
-        tmpRawGyroPortRef = measurements.angVel;
-        m_outputPortsList[RAW_GYROSCOPE_DATA_PORT].outputPort->write();
+        m_floatingBaseEstimate->compute_Rot_from_floatingBase_to_world(rot_from_world_to_sensor, rot_from_floatingBase_to_world);
+
     }
+
+    /**
+     *  Streaming of measurements
+     */
+
+     if ( this->m_quaternionEKFParams.streamMeasurements )
+     {
+         yarp::sig::Vector& tmpRawAccPortRef = m_outputPortsList[RAW_ACCELEROMETER_DATA_PORT].outputPort->prepare();
+         tmpRawAccPortRef = measurements.linAcc;
+         m_outputPortsList[RAW_ACCELEROMETER_DATA_PORT].outputPort->write();
     
+         yarp::sig::Vector& tmpRawGyroPortRef = m_outputPortsList[RAW_GYROSCOPE_DATA_PORT].outputPort->prepare();
+         tmpRawGyroPortRef = measurements.angVel;
+         m_outputPortsList[RAW_GYROSCOPE_DATA_PORT].outputPort->write();
+     }
+
 }
 
 void QuaternionEKF::release()
 {
-    
+
 }
 
 bool QuaternionEKF::readEstimatorParams(yarp::os::ResourceFinder &rf, quaternionEKFParams &estimatorParams)
@@ -268,8 +296,10 @@ bool QuaternionEKF::readEstimatorParams(yarp::os::ResourceFinder &rf, quaternion
         estimatorParams.piorMu = botParams.find("prior_mu_state").asDouble();
         estimatorParams.priorCovariance = botParams.find("prior_cov_state").asDouble();
         estimatorParams.muGyroNoise = botParams.find("mu_gyro_noise").asDouble();
+        estimatorParams.floatingBaseAttitude = botParams.find("floating_base_attitude").asBool();
+        estimatorParams.rot_from_ft_to_acc_bottle = new yarp::os::Bottle(*botParams.find("rot_from_ft_to_acc").asList());
     }
-    
+
     botParams.clear();
     botParams = rf.findGroup("module_parameters");
     if ( botParams.isNull() )
@@ -289,12 +319,12 @@ void QuaternionEKF::createSystemModel()
     // System Noise Mean
     MatrixWrapper::ColumnVector sys_noise_mu(m_quaternionEKFParams.stateSize);
     sys_noise_mu(1) = sys_noise_mu(2) = sys_noise_mu(3) = sys_noise_mu(4) = 0.0;
-    
+
     // System Noise Covariance
     MatrixWrapper::SymmetricMatrix sys_noise_cov(m_quaternionEKFParams.stateSize);
     sys_noise_cov = 0.0;
     sys_noise_cov(1,1) = sys_noise_cov(2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = m_quaternionEKFParams.sigmaSystemNoise;
-    
+
     // Setting System noise uncertainty
     m_sysPdf = new BFL::nonLinearAnalyticConditionalGaussian(m_quaternionEKFParams.stateSize);
     m_sysPdf->AdditiveNoiseMuSet(sys_noise_mu);
@@ -324,7 +354,7 @@ void QuaternionEKF::createMeasurementModel()
     m_measPdf = new BFL::nonLinearMeasurementGaussianPdf(*m_measurement_uncertainty);
     //  Measurement model from the measurement PDF
     m_meas_model = new BFL::AnalyticMeasurementModelGaussianUncertainty(m_measPdf);
-    
+
 }
 
 void QuaternionEKF::setPriors()
@@ -359,7 +389,7 @@ bool QuaternionEKF::readSensorData(measurementsStruct &meas)
         yError("[QuaternionEKF::readSensorData] QuaternionEKF was not able to read sensor data.");
         return false;
     }
-    
+
 }
 
 bool QuaternionEKF::extractMTBDatafromPort(int boardNum, measurementsStruct &measurements)
@@ -371,7 +401,7 @@ bool QuaternionEKF::extractMTBDatafromPort(int boardNum, measurementsStruct &mea
         yError("[QuaternionEKF::extractMTBDatafromPort] There was an error trying to read from the MTB port");
         return false;
     } else {
-            //yInfo("[QuaternionEKF::extractMTBDatafromPort] Raw meas: %s", fullMeasurement.toString().c_str());
+        //yInfo("[QuaternionEKF::extractMTBDatafromPort] Raw meas: %s", fullMeasurement.toString().c_str());
         /******************* searching for multiple instances of the sensor  **************************/
         double* tmp;
         tmp = fullMeasurement.data();
@@ -380,7 +410,7 @@ bool QuaternionEKF::extractMTBDatafromPort(int boardNum, measurementsStruct &mea
             it = std::find(it, it + (fullMeasurement.size() - indexSubVector), boardNum);
             if (it < tmp + fullMeasurement.size()) {
                 indexSubVector = (int)(it - tmp) + 1;
-                
+
                 // Parse sensor data
                 int trueindexSubVector = indexSubVector - 1;
                 if ( tmp[trueindexSubVector]  == boardNum ) {
@@ -439,3 +469,56 @@ void QuaternionEKF::SOperator ( MatrixWrapper::ColumnVector omg, MatrixWrapper::
     (*S)(3,1) = -omg(2);(*S)(3,2) = omg(1) ; (*S)(3,3) = 0.0;
 }
 
+QuaternionEKF::~QuaternionEKF()
+{
+    yInfo("Destroying QuaternionEKF");
+    if (m_quaternionEKFParams.floatingBaseAttitude)
+    {
+        yInfo("Deleting m_floatingBaseEstimate");
+        delete m_floatingBaseEstimate;
+        m_floatingBaseEstimate = 0;
+        yInfo("m_floatingBaseEstimate deleted");
+        
+        yInfo("Deleing m_quaternionEKFParams.rot_from_ft_to_acc_bottle");
+        delete m_quaternionEKFParams.rot_from_ft_to_acc_bottle;
+        m_quaternionEKFParams.rot_from_ft_to_acc_bottle = 0;
+        yDebug("Deallocated m_quaternionEKFParams.rot_from_ft_to_acc_bottle");
+    }
+    if (m_filter)
+    {
+        delete m_filter;
+        m_filter = NULL;
+        yDebug("m_filter deleted");
+    }
+    if (m_measPdf)
+    {
+        delete m_measPdf;
+        m_measPdf = NULL;
+        yDebug("m_measPdf deleted");
+    }
+    if (m_measurement_uncertainty)
+    {
+        delete m_measurement_uncertainty;
+        m_measurement_uncertainty = NULL;
+        yDebug("m_measurement_uncertainty deleted");
+    }
+    if (m_meas_model)
+    {
+        delete m_meas_model;
+        m_meas_model = NULL;
+        yDebug("m_meas_model deleted");
+    }
+    if (m_prior)
+    {
+        delete m_prior;
+        m_prior = NULL;
+        yDebug("m_prior deleted");
+    }
+    if (m_sys_model)
+    {
+        delete m_sys_model;
+        m_sys_model = NULL;
+        yDebug("m_sys_model deleted");
+    }
+    yInfo("QuaternionEKF destroyed correctly");
+}

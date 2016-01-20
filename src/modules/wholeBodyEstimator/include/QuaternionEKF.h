@@ -25,6 +25,7 @@
 #include <bfl/pdf/linearanalyticconditionalgaussian.h>
 #include "nonLinearAnalyticConditionalGaussian.h"
 #include "nonLinearMeasurementGaussianPdf.h"
+#include "floatingBase.h"
 
 #include <yarp/os/ResourceFinder.h>
 #include <yarp/os/BufferedPort.h>
@@ -96,6 +97,14 @@ struct quaternionEKFParams
      *  Enable the creation and opening of ports streaming raw accelerometer and gyroscope data, when these are directly read from the port. 
      */
     bool streamMeasurements;
+    /**
+     *  Enables the floating base attitude estimate
+     */
+    bool floatingBaseAttitude;
+    /**
+     *  Rotation matrix from FT sensor to accelerometer. This is temporary while added to the URDF of the robot
+     */
+    yarp::os::Bottle * rot_from_ft_to_acc_bottle;
 };
 
 enum outputPorts {
@@ -297,6 +306,8 @@ private:
     //FIXME This should be temporary
     yarp::os::Port * sensorMeasPort;
     measurementsStruct measurements;
+    wholeBodyEstimator::floatingBase * m_floatingBaseEstimate;
+    
 };
 
 

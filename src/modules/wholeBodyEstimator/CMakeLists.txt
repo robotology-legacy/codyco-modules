@@ -34,7 +34,8 @@ file(GLOB source_dir    src/main.cpp
                         src/LeggedOdometry.cpp
                         src/nonLinearAnalyticConditionalGaussian.cpp
                         src/nonLinearMeasurementGaussianPdf.cpp
-                        src/DirectFiltering.cpp)
+                        src/DirectFiltering.cpp
+                        src/floatingBase.cpp)
 file(GLOB header_dir    include/WholeBodyEstimatorModule.h
                         include/WholeBodyEstimatorThread.h
                         include/IEstimator.h
@@ -47,7 +48,8 @@ file(GLOB header_dir    include/WholeBodyEstimatorModule.h
                         include/LeggedOdometry.h
                         include/nonLinearAnalyticConditionalGaussian.h
                         include/nonLinearMeasurementGaussianPdf.h
-                        include/DirectFiltering.h)
+                        include/DirectFiltering.h
+                        include/floatingBase.h)
 
 source_group("Source Files" FILES ${source_dir})
 source_group("Header Files" FILES ${header_dir})
