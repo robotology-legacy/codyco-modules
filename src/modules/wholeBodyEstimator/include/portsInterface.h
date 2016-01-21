@@ -40,14 +40,22 @@ public:
      *  @return True if port was successfully opened, false otherwise.
      */
     bool configurePort(std::string className, std::string pName);
-    
+
     /**
-     *  <#Description#>
+     *  Publishes the data passed to this method on the port opened by this object.
      *
-     *  @param data <#data description#>
+     *  @param data Data vector to be published.
      */
     void publishEstimateToPort(yarp::sig::Vector& data);
+    
+    /**
+     *  Closes the publisher ports opened by this object.
+     *
+     *  @return True if successful, false otherwise.
+     */
+    bool closePort();
 };
+
 
 class readerPort
 {
@@ -55,18 +63,19 @@ private:
     std::string      estimatorName;
     std::string      portName;
     std::string      fullPortName;
+    yarp::os::Port * inPort;
 public:
     /**
      *  Constructor
      */
     readerPort();
-    
-    
+
+
     /**
      *  Destructor
      */
     virtual ~readerPort();
-    
+
 
     /**
      *  Opens a reader port and connects it to its source.
@@ -79,8 +88,8 @@ public:
      *  @return true when ports creation and connections are successful.
      */
     bool configurePort(std::string className, std::string pName, std::string srcPort, yarp::os::Port * inputPort);
-    
-    
+
+
     /**
      *  This method is specific to an MTB board with gyroscope and accelerometer attached to an ethernet robot such as iCubGenova02. Provided that the following variables are somewhere defined: MTB_PORT_DATA_PACKAGE_OFFSET, CONVERSION_FACTOR_ACC, CONVERSION_FACTOR_GYRO. This method parses the masurements as streamed by the intertial unit and separates them into linear acceleration, angular velocity and orientation -if provided- as output.
      *
@@ -91,6 +100,14 @@ public:
      *  @return True when parsing is succesful, false otherwise.
      */
     bool extractMTBDatafromPort(int boardNum, yarp::os::Port * sensorMeasPort, measurementsStruct &measurements);
+    
+    
+    /**
+     *  Closes the reader port opened by this object.
+     *
+     *  @return True if successful, false otherwise.
+     */
+    bool closePort();
 
 };
 

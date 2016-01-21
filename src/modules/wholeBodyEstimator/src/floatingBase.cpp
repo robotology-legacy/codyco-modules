@@ -12,6 +12,7 @@ namespace wholeBodyEstimator
     {
         if (m_robot)
         {
+            yInfo("[floatingBase::floatingBase] Am I closing the interface?");
             m_robot->close();
             delete m_robot;
             m_robot = 0;
@@ -90,7 +91,7 @@ namespace wholeBodyEstimator
 
 
     bool floatingBase::compute_Rot_from_floatingBase_to_world( MatrixWrapper::Matrix rot_from_world_to_sensor,
-                                                              MatrixWrapper::Matrix &rot_from_floatingBase_to_world )
+                                                               MatrixWrapper::Matrix &rot_from_floatingBase_to_world )
     {
         /**
          *  Compute rot_from_FT_to_floatingBase
@@ -120,9 +121,19 @@ namespace wholeBodyEstimator
         wbi::Rotation rot_from_acc_to_floating_base = rot_from_foot_to_floating_base * rot_from_acc_to_foot;
         // Compute rot_from_floating_base_to_world
         wbi::Rotation wbi_rot_from_world_to_sensor;
-        //TODO: Copy elements of rot_from_world_to_sensor into wbi_rot_from_world_to_sensor
-        wbi::Rotation rot_from_floating_base_to_world = rot_from_acc_to_floating_base * wbi_rot_from_world_to_sensor;
-        //TODO: Now I need to pass rot_from_floating_base_world to the MatrixWrapper object rot_from_floatingBase_to_world
+        // Passing the transpose just because of the different storing order of the matrices
+        wbi_rot_from_world_to_sensor.setDcm(rot_from_world_to_sensor.transpose().data());
+        wbi::Rotation wbi_rot_from_floating_base_to_world = rot_from_acc_to_floating_base * wbi_rot_from_world_to_sensor;
+        //FIXME: I need to this in a smarter way
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            for (unsigned int j = 0; j < 3; j++)
+            {
+                rot_from_floatingBase_to_world(i+1,j+1) = wbi_rot_from_floating_base_to_world(i,j);
+            }
+        }
+        std::cerr << "wbi_rot_from_floating_base_to_world: " << wbi_rot_from_floating_base_to_world.toString().c_str() << std::endl;
+        std::cerr << "rot_from_floatingBase_to_world: " << rot_from_floatingBase_to_world << std::endl;
 
         return true;
     }

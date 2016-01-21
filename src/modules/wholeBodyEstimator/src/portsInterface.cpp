@@ -3,18 +3,17 @@
 
 using namespace yarp::math;
 
-// ############## PUBLISHER_PORT CLASS #############################################################################################
+// ############## PUBLISHER_PORT CLASS ##################################################################################
 
 publisherPort::publisherPort()
 {}
 
 publisherPort::~publisherPort()
 {
-    if (this->outputPort)
-    {
-        delete this->outputPort;
-        this->outputPort = NULL;
-    }
+    yInfo("[publisherPort] Closing port");
+    this->outputPort->close();
+    delete this->outputPort;
+    this->outputPort = NULL;
 }
 
 bool publisherPort::configurePort(std::string className, std::string pName)
@@ -38,7 +37,16 @@ void publisherPort::publishEstimateToPort(yarp::sig::Vector& data)
     this->outputPort->write();
 }
 
-// ############## READER_PORT CLASS ##################################################################################################
+bool publisherPort::closePort()
+{
+    yInfo("[publisherPort] Closing port");
+    this->outputPort->close();
+    delete this->outputPort;
+    this->outputPort = NULL;
+    
+    return true;
+}
+// ############## READER_PORT CLASS #####################################################################################
 
 readerPort::readerPort()
 {}
@@ -48,6 +56,7 @@ readerPort::~readerPort()
 
 bool readerPort::configurePort(std::string className, std::string pName, std::string srcPort, yarp::os::Port * inputPort)
 {
+    inPort = inputPort;
     this->estimatorName = className;
     this->portName = pName;
     this->fullPortName = std::string("/" + estimatorName + "/" + portName + ":i").c_str();
@@ -114,4 +123,14 @@ bool readerPort::extractMTBDatafromPort(int boardNum, yarp::os::Port * sensorMea
         }
     }
     return true;
+}
+
+bool readerPort::closePort()
+{
+        yInfo("[QuaternionEKF::readerPort] Closing port");
+        inPort->close();
+        delete inPort;
+        inPort = NULL;
+        
+        return true;
 }

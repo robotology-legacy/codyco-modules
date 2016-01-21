@@ -105,12 +105,12 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     if (m_quaternionEKFParams.floatingBaseAttitude)
     {
         m_floatingBaseEstimate = new wholeBodyEstimator::floatingBase;
-        
+
         // Retrieve wbiProperties
 //        std::string wbiConfFile;
 //        yarp::os::Property yarpWbiOptions;
 //        wbi::IDList RobotDynamicModelJoints;
-//        
+//
 //        if (!rf.check("wbi_conf_file"))
 //        {
 //            yError("[QuaternionEKF::init] WBI configuration file name not specified in config file of this module.");
@@ -134,7 +134,7 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
 //            yError("[QuaternionEKF::configure] Impossible to load wbiId joint list with name %s\n",modelJointsListName.c_str());
 //            return false;
 //        }
-        
+
         // Retrieve rot_from_ft_to_acc matrix
         MatrixWrapper::Matrix mat_rot_from_ft_to_acc(3,3);
         unsigned int k = 0;
@@ -245,9 +245,11 @@ void QuaternionEKF::run()
      */
     // rot_from_world_to_sensor which is the result of the estimate a.k.a. tmpQuat in previous lines.
     MatrixWrapper::Matrix rot_from_world_to_sensor(3,3);
+    rot_from_world_to_sensor = 0;
     tmpQuat.getRotation(rot_from_world_to_sensor);
     // Output matrix rot_from_floatingBase_to_world
     MatrixWrapper::Matrix rot_from_floatingBase_to_world(3,3);
+    rot_from_floatingBase_to_world = 0;
     if ( m_quaternionEKFParams.floatingBaseAttitude )
     {
         m_floatingBaseEstimate->compute_Rot_from_floatingBase_to_world(rot_from_world_to_sensor, rot_from_floatingBase_to_world);
@@ -263,7 +265,7 @@ void QuaternionEKF::run()
          yarp::sig::Vector& tmpRawAccPortRef = m_outputPortsList[RAW_ACCELEROMETER_DATA_PORT].outputPort->prepare();
          tmpRawAccPortRef = measurements.linAcc;
          m_outputPortsList[RAW_ACCELEROMETER_DATA_PORT].outputPort->write();
-    
+
          yarp::sig::Vector& tmpRawGyroPortRef = m_outputPortsList[RAW_GYROSCOPE_DATA_PORT].outputPort->prepare();
          tmpRawGyroPortRef = measurements.angVel;
          m_outputPortsList[RAW_GYROSCOPE_DATA_PORT].outputPort->write();
@@ -273,6 +275,79 @@ void QuaternionEKF::run()
 
 void QuaternionEKF::release()
 {
+    yInfo("[QuaternionEKF::release] Destroying QuaternionEKF");
+    yInfo("Destroying QuaternionEKF");
+    if (m_quaternionEKFParams.floatingBaseAttitude)
+    {
+        yInfo("[QuaternionEKF::~QuaternionEKF] Deleting m_floatingBaseEstimate");
+        delete m_floatingBaseEstimate;
+        m_floatingBaseEstimate = 0;
+        yInfo("m_floatingBaseEstimate deleted");
+
+        yInfo("[QuaternionEKF::~QuaternionEKF] Deleting m_quaternionEKFParams.rot_from_ft_to_acc_bottle");
+        delete m_quaternionEKFParams.rot_from_ft_to_acc_bottle;
+        m_quaternionEKFParams.rot_from_ft_to_acc_bottle = 0;
+        yDebug("[QuaternionEKF::~QuaternionEKF] Deallocated m_quaternionEKFParams.rot_from_ft_to_acc_bottle");
+    }
+    if (m_filter)
+    {
+        delete m_filter;
+        m_filter = NULL;
+        yDebug("[QuaternionEKF::~QuaternionEKF] m_filter deleted");
+    }
+    if (m_measPdf)
+    {
+        delete m_measPdf;
+        m_measPdf = NULL;
+        yDebug("[QuaternionEKF::~QuaternionEKF] m_measPdf deleted");
+    }
+    if (m_measurement_uncertainty)
+    {
+        delete m_measurement_uncertainty;
+        m_measurement_uncertainty = NULL;
+        yDebug("[QuaternionEKF::~QuaternionEKF] m_measurement_uncertainty deleted");
+    }
+    if (m_meas_model)
+    {
+        delete m_meas_model;
+        m_meas_model = NULL;
+        yDebug("[QuaternionEKF::~QuaternionEKF] m_meas_model deleted");
+    }
+    if (m_prior)
+    {
+        delete m_prior;
+        m_prior = NULL;
+        yDebug("[QuaternionEKF::~QuaternionEKF] m_prior deleted");
+    }
+    if (m_sys_model)
+    {
+        delete m_sys_model;
+        m_sys_model = NULL;
+        yDebug("[QuaternionEKF::~QuaternionEKF] m_sys_model deleted");
+    }
+    
+    // Closing ports
+//    for (std::vector<publisherPortStruct>::iterator it = m_outputPortsList.begin() ; it != m_outputPortsList.end() ; it++)
+//    {
+//        yInfo("[QuaternionEKF::release] Closing ports...");
+//        publisherPortStruct tmpPort = *m_outputPortsList.pop_back();
+//        tmpPort.close();
+//    }
+    
+    for (unsigned i = 0; i < m_outputPortsList.size(); ++i)
+    {
+        yInfo("[QuaternionEKF::release] ... closing output port");
+        m_outputPortsList[i].close();
+    }
+    
+    for (unsigned i = 0; i < m_inputPortsList.size(); ++i)
+    {
+        yInfo("[QuaternionEKF::release] ... closing input port");
+        m_inputPortsList[i].close();
+    }
+    
+    yInfo("[QuaternionEKF::~QuaternionEKF] QuaternionEKF destroyed correctly");
+
 
 }
 
@@ -470,55 +545,4 @@ void QuaternionEKF::SOperator ( MatrixWrapper::ColumnVector omg, MatrixWrapper::
 }
 
 QuaternionEKF::~QuaternionEKF()
-{
-    yInfo("Destroying QuaternionEKF");
-    if (m_quaternionEKFParams.floatingBaseAttitude)
-    {
-        yInfo("Deleting m_floatingBaseEstimate");
-        delete m_floatingBaseEstimate;
-        m_floatingBaseEstimate = 0;
-        yInfo("m_floatingBaseEstimate deleted");
-        
-        yInfo("Deleing m_quaternionEKFParams.rot_from_ft_to_acc_bottle");
-        delete m_quaternionEKFParams.rot_from_ft_to_acc_bottle;
-        m_quaternionEKFParams.rot_from_ft_to_acc_bottle = 0;
-        yDebug("Deallocated m_quaternionEKFParams.rot_from_ft_to_acc_bottle");
-    }
-    if (m_filter)
-    {
-        delete m_filter;
-        m_filter = NULL;
-        yDebug("m_filter deleted");
-    }
-    if (m_measPdf)
-    {
-        delete m_measPdf;
-        m_measPdf = NULL;
-        yDebug("m_measPdf deleted");
-    }
-    if (m_measurement_uncertainty)
-    {
-        delete m_measurement_uncertainty;
-        m_measurement_uncertainty = NULL;
-        yDebug("m_measurement_uncertainty deleted");
-    }
-    if (m_meas_model)
-    {
-        delete m_meas_model;
-        m_meas_model = NULL;
-        yDebug("m_meas_model deleted");
-    }
-    if (m_prior)
-    {
-        delete m_prior;
-        m_prior = NULL;
-        yDebug("m_prior deleted");
-    }
-    if (m_sys_model)
-    {
-        delete m_sys_model;
-        m_sys_model = NULL;
-        yDebug("m_sys_model deleted");
-    }
-    yInfo("QuaternionEKF destroyed correctly");
-}
+{}

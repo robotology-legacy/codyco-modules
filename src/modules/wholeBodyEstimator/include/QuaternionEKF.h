@@ -151,6 +151,16 @@ struct publisherPortStruct
      *  @return True when succesfully written, false otherwise. 
      */
     bool publishData(){ return true; }
+    
+    bool close()
+    {
+        yInfo("[QuaternionEKF::publisherPortStruct] Closing port");
+        this->outputPort->close();
+        delete this->outputPort;
+        this->outputPort = NULL;
+
+        return true;
+    }
 };
 
 /** 
@@ -164,6 +174,7 @@ struct readerPortStruct
     std::string      estimatorName;
     std::string      portName;
     std::string      fullPortName;
+    yarp::os::Port * inPort;
     /**
      *  Opens a reader port and connects it to its source.
      *
@@ -176,6 +187,7 @@ struct readerPortStruct
      */
     bool configurePort(std::string className, std::string pName, std::string srcPort, yarp::os::Port * inputPort)
     {
+        inPort = inputPort;
         estimatorName = className;
         portName = pName;
         fullPortName = std::string("/" + estimatorName + "/" + portName + ":i").c_str();
@@ -191,6 +203,17 @@ struct readerPortStruct
         }
         return true;
     }
+    
+    bool close()
+    {
+        yInfo("[QuaternionEKF::readerPort] Closing port");
+        inPort->close();
+        delete inPort;
+        inPort = NULL;
+        
+        return true;
+    }
+
 };
 /**
  *  Structure holding IMU-like information, namely linear acceleration, angular velocity and real orientation when available in body frame.

@@ -44,23 +44,22 @@ public:
     bool init(yarp::os::ResourceFinder &rf, wbi::iWholeBodySensors *wbs);
     void run();
     void release();
-    
     void computeOrientation(yarp::sig::Vector* sensorReading, yarp::sig::Vector& output);
     void computeTilt(yarp::sig::Vector* sensorReading, yarp::sig::Vector& output);
     void setWorldOrientation(MatrixWrapper::Quaternion& worldOrientation);
     bool readEstimatorParams(yarp::os::ResourceFinder &rf, directFilteringParams &params);
 private:
-    MatrixWrapper::Matrix m_lsole_R_acclsensor;
-    MatrixWrapper::Matrix m_world_R_lsole;
+    MatrixWrapper::Matrix                       m_lsole_R_acclsensor;
+    MatrixWrapper::Matrix                       m_world_R_lsole;
     // Measurements port
-    yarp::os::Port * sensorMeasPort;
+    yarp::os::Port                            * sensorMeasPort;
     yarp::os::BufferedPort<yarp::sig::Vector> * outputPort;
-    directFilteringParams m_params;
-    readerPort    sensorDataPort;
-    publisherPort m_estimatePort;
-    publisherPort m_tiltPort;
-    std::string m_className;
-    measurementsStruct m_meas;
+    directFilteringParams                       m_params;
+    readerPort                                  sensorDataPort;
+    publisherPort                               m_estimatePort;
+    publisherPort                               m_tiltPort;
+    std::string                                 m_className;
+    measurementsStruct                          m_meas;
 };
 
 #endif /*directFiltering*/

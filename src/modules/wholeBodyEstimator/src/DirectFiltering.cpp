@@ -100,7 +100,17 @@ bool DirectFiltering::readEstimatorParams ( yarp::os::ResourceFinder &rf, direct
 
 void DirectFiltering::release ( )
 {
+    if (sensorMeasPort)
+    {
+        sensorMeasPort->close();
+        delete sensorMeasPort;
+        sensorMeasPort = 0;
+    }
     
+    m_estimatePort.closePort();
+    m_tiltPort.closePort();
+    
+     
 }
 
 void DirectFiltering::computeOrientation ( yarp::sig::Vector* sensorReading, yarp::sig::Vector& output )

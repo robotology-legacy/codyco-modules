@@ -11,9 +11,9 @@ WholeBodyEstimatorModule::WholeBodyEstimatorModule()
     m_period = 10;
 }
 
-bool WholeBodyEstimatorModule::configure(ResourceFinder &rf) 
+bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
 {
-    
+
     if (!rf.check("module_parameters"))
     {
         yError("Group module_parameters was not specified in the configuration file of this module. Please fix it and try again.");
@@ -23,11 +23,11 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
         // Fill m_module_params with module parameters
         m_module_params.fromString(rf.findGroup("module_parameters").tail().toString());
         yInfo(" [WholeBodyEstimatorModule::configure] module_parameters group contents are: %s ", m_module_params.toString().c_str());
-        
+
         m_period = m_module_params.find("period").asInt();
         m_module_name = m_module_params.find("name").asString();
     }
-    
+
 //    std::string wbiConfFile;
     yarp::os::Property yarpWbiOptions;
     wbi::IDList RobotDynamicModelJoints;
@@ -45,8 +45,8 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
 //            return false;
 //        }
 //    }
-//    
-//    
+//
+//
 //    // Configure yarpWholeBodySensors before passing it to WholeBodyEstimatorThread
 //    // Get model joints list
 //    std::string modelJointsListName = rf.check("joints_list",
@@ -60,20 +60,20 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
 //            return false;
 //        }
 //    }
-    
+
     if ( !getWbiOptionsAndModelJoints(rf, RobotDynamicModelJoints, yarpWbiOptions) )
     {
         yError("[WholeBodyEstimatorModule::getWbiOptionsAndModelJoints] failed ... ");
         return false;
     }
-    
+
     // Debugging
     yInfo("[WholeBodyEstimatorModule::configure] wbiProperties passed were: %s ", yarpWbiOptions.toString().c_str());
-    
+
     // Checking DOF
     yInfo("[WholeBodyEstimatorModule::configure()] Robot DOF: %d ", RobotDynamicModelJoints.size());
-    
-    // Creating yarpwholebodysensors object 
+
+    // Creating yarpwholebodysensors object
     wbs = new yarpWholeBodySensors(m_module_name.c_str(), yarpWbiOptions);
 
     // Adding encoders
@@ -81,7 +81,7 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
     //TODO: Accelerometer and gyroscopes should be added here
     //wbi->addSensors(wbi::SENSOR_ACCELEROMETER, enabledAccelerometersList);
     //wbi->addSensors(wbi::SENSOR_GYROSCOPES, enabledGyroscopesList);
-    
+
     // Initializing sensor interface
     if(!wbs->init())
     {
@@ -92,7 +92,7 @@ bool WholeBodyEstimatorModule::configure(ResourceFinder &rf)
         yInfo("[wholeBodyEstimatorModule::configure] Whole Body Sensors initialized correctly.");
     }
 
-    
+
     m_estimatorThread = new WholeBodyEstimatorThread(rf, wbs, m_period);
     if (!m_estimatorThread->start())
     {
@@ -108,7 +108,7 @@ bool WholeBodyEstimatorModule::getWbiOptionsAndModelJoints(yarp::os::ResourceFin
                                                            yarp::os::Property &yarpWbiOptions)
 {
     std::string wbiConfFile;
-    
+
     // Find WBI configuration file and retrieve all options specified.
     if (!rf.check("wbi_conf_file"))
     {
@@ -123,8 +123,8 @@ bool WholeBodyEstimatorModule::getWbiOptionsAndModelJoints(yarp::os::ResourceFin
             return false;
         }
     }
-    
-    
+
+
     // Configure yarpWholeBodySensors before passing it to WholeBodyEstimatorThread
     // Get model joints list
     std::string modelJointsListName = rf.check("joints_list",
@@ -151,15 +151,15 @@ bool WholeBodyEstimatorModule::updateModule()
 
 bool WholeBodyEstimatorModule::close()
 {
-    yDebug("Closing module...");
+    yDebug("[QuaternionEKF::~QuaternionEKF] Closing module...");
     if (m_estimatorThread)
     {
         m_estimatorThread->stop();
         delete m_estimatorThread;
         m_estimatorThread = NULL;
     }
-    
-    yDebug("Deleting wholeBodySensors");
+
+    yDebug("[WholeBodyEstimatorModule::close] Deleting wholeBodySensors");
     if (wbs)
     {
         if (wbs->close())
