@@ -19,8 +19,13 @@ namespace wholeBodyEstimator
         }
     }
 
-    bool floatingBase::configure(yarp::os::ResourceFinder &rf, MatrixWrapper::Matrix rot_from_ft_to_acc)
+    bool floatingBase::configure(yarp::os::ResourceFinder &rf, MatrixWrapper::Matrix rot_from_ft_to_acc, wbi::iWholeBodySensors *wbs)
     {
+        /**
+         *  Copy pointer to iWholeBodySensors
+         */
+        m_wbs = wbs;
+        
         /**
          *  Updating rotation matrix from FT sensor to accelerometer
          */
@@ -46,7 +51,7 @@ namespace wholeBodyEstimator
         }
 
         /**
-         *  Instantiate a yarpWholeBodyInterface object
+         *  Instantiate a yarpWholeBodyStates object
          */
         // Retrieve wbi options and model joints
         wbi::IDList RobotDynamicModelJoints;
@@ -57,7 +62,7 @@ namespace wholeBodyEstimator
         yInfo("[floatingBase::configure] Robot DOF: %d ", RobotDynamicModelJoints.size());
 
         // Create reference to wbi
-        m_robot = new yarpWbi::yarpWholeBodyInterface(module_name.c_str(), wbiProperties);
+        m_robot = new yarpWbi::yarpWholeBodyModel(module_name.c_str(), wbiProperties);
         if ( !m_robot )
         {
             yError("[floatingBase::configure] Could not create wbi object");
@@ -68,7 +73,7 @@ namespace wholeBodyEstimator
         m_robot->addJoints(RobotDynamicModelJoints);
 
         /**
-         *  Initialize the yarpWholeBodyInterface object
+         *  Initialize the yarpWholeBodyModel object
          */
         if ( !m_robot->init() )
         {
@@ -76,7 +81,7 @@ namespace wholeBodyEstimator
             return false;
         }
 
-        yInfo("[floatingBase::config] yarpWholeBodyInterface was initialized correctly by floatingBase)");
+        yInfo("[floatingBase::config] yarpWholeBodyModel was initialized correctly by floatingBase)");
 
         /**
          * Resizing private variables of interest
@@ -91,13 +96,14 @@ namespace wholeBodyEstimator
 
 
     bool floatingBase::compute_Rot_from_floatingBase_to_world( MatrixWrapper::Matrix rot_from_world_to_sensor,
-                                                               MatrixWrapper::Matrix &rot_from_floatingBase_to_world )
+                                                               MatrixWrapper::Matrix &rot_from_floatingBase_to_world)
     {
         /**
          *  Compute rot_from_FT_to_floatingBase
          */
         // Retrieve joint angles (rad)
-        m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_q.data());
+        m_wbs->readSensors(wbi::SENSOR_ENCODER_POS, m_q.data());
+        //m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_q.data());
         yInfo( "[floatingBase::compute_Rot_from_floatingBase_to_world()] %s ", m_q.toString().c_str() );
 
         // rot_from_foot_to_floating_base

@@ -146,7 +146,7 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
                 k++;
             }
         }
-        m_floatingBaseEstimate->configure(rf, mat_rot_from_ft_to_acc);
+        m_floatingBaseEstimate->configure(rf, mat_rot_from_ft_to_acc, wbs);
     }
 
     yInfo("[QuaternionEKF::init] QUATERNIONEKF is running... \n");
@@ -379,7 +379,7 @@ bool QuaternionEKF::readEstimatorParams(yarp::os::ResourceFinder &rf, quaternion
     botParams = rf.findGroup("module_parameters");
     if ( botParams.isNull() )
     {
-        yError("[QuaternionEKF::readEstimatorParams] No parameters were read from MODULE_PARAMS group. period is needed!");
+        yError("[QuaternionEKF::readEstimatorParams] No parameters were read from 'module_params' group. period is needed!");
         return false;
     } else {
         estimatorParams.period = botParams.find("period").asInt();
