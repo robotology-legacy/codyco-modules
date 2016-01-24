@@ -123,7 +123,7 @@ bool wholeBodyDynamicsModule::configure(ResourceFinder &rf)
     {
     }
 
-    //--------------------------RPC PORT--------------------------
+    //--------------------------RPC PORT--------------------------------------------
     attach(rpcPort);
     std::string rpcPortName= "/";
     rpcPortName+= getName();
