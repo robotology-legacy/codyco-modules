@@ -226,6 +226,7 @@ void QuaternionEKF::run()
         tmpVec(i-1) = m_posterior_state(i);
     }
     // Publish Euler Angles estimate to port
+    //TODO: Check why I need to do this multiplication in this particular way.
     yarp::sig::Vector tmpEuler(3);
     for (unsigned int i=1; i<eulerAngles.rows()+1; i++)
         tmpEuler(i-1) = eulerAngles(i)*(180/PI);
