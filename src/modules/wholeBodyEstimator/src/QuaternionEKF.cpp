@@ -225,10 +225,11 @@ void QuaternionEKF::run()
     for (unsigned int i=1; i<m_posterior_state.size()+1; i++) {
         tmpVec(i-1) = m_posterior_state(i);
     }
-    // Publish Euler Angles estimation to port
+    // Publish Euler Angles estimate to port
     yarp::sig::Vector tmpEuler(3);
-    for (unsigned int i=1; i<eulerAngles.rows()+1; i++)
-        tmpEuler(i-1) = eulerAngles(i)*(180/PI);
+//    for (unsigned int i=1; i<eulerAngles.rows()+1; i++)
+//        tmpEuler(i-1) = eulerAngles(i)*(180/PI);
+    eulerAngles = eulerAngles*(180/PI);
     // Writing to port the full estimated orientation in Euler angles (xyz order)
     yarp::sig::Vector& tmpPortEuler = m_outputPortsList[ORIENTATION_ESTIMATE_PORT_EULER].outputPort->prepare();
     tmpPortEuler = tmpEuler;
