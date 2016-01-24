@@ -9,7 +9,7 @@
           minval="-10"
           maxval="10"
           bgcolor="LightSlateGrey">
-        <graph remote="/QuaternionEKF/filteredOrientation:o"
+        <graph remote="/QuaternionEKF/filteredOrientationEuler:o"
                index="0"
                color="Blue"
                title="Roll quatEKF"
