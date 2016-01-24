@@ -104,7 +104,7 @@ namespace wholeBodyEstimator
         // Retrieve joint angles (rad)
         m_wbs->readSensors(wbi::SENSOR_ENCODER_POS, m_q.data());
         //m_robot->getEstimates(wbi::ESTIMATE_JOINT_POS, m_q.data());
-        yInfo( "[floatingBase::compute_Rot_from_floatingBase_to_world()] %s ", m_q.toString().c_str() );
+//        yInfo( "[floatingBase::compute_Rot_from_floatingBase_to_world()] %s ", m_q.toString().c_str() );
 
         // rot_from_foot_to_floating_base
         wbi::Frame H;
@@ -115,7 +115,7 @@ namespace wholeBodyEstimator
         int linkId;
         m_robot->getFrameList().idToIndex(linkName.c_str(), linkId);
         m_robot->computeH(m_q.data(), xBase, linkId, H);
-        std::cerr << "Rotation from r_sole to base is: " << std::endl << H.toString().c_str() << std::endl;
+        //std::cerr << "Rotation from r_sole to base is: " << std::endl << H.toString().c_str() << std::endl;
         // rot_from_acc_to_floating_base
         wbi::Rotation rot_from_foot_to_floating_base = H.R;
         //TODO: This has been hardcoded for the right foot!!! but this method should ask for the desired foot
@@ -138,8 +138,8 @@ namespace wholeBodyEstimator
                 rot_from_floatingBase_to_world(i+1,j+1) = wbi_rot_from_floating_base_to_world(i,j);
             }
         }
-        std::cerr << "wbi_rot_from_floating_base_to_world: " << wbi_rot_from_floating_base_to_world.toString().c_str() << std::endl;
-        std::cerr << "rot_from_floatingBase_to_world: " << rot_from_floatingBase_to_world << std::endl;
+        //std::cerr << "wbi_rot_from_floating_base_to_world: " << wbi_rot_from_floating_base_to_world.toString().c_str() << std::endl;
+        //std::cerr << "rot_from_floatingBase_to_world: " << rot_from_floatingBase_to_world << std::endl;
 
         return true;
     }
