@@ -46,6 +46,9 @@ bool DirectFiltering::init ( yarp::os::ResourceFinder &rf, wbi::iWholeBodySensor
         yInfo("[DirectFiltering::init] Tilt output port configured correctly");
     }
     
+    // Open and configure port for sending raw measurements
+    
+    
     m_meas.linAcc.resize(3,0.0);
     m_meas.angVel.resize(3,0.0);
     std::cout << "Running DirectFiltering... \n" << std::endl;

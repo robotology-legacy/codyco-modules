@@ -216,7 +216,6 @@ void QuaternionEKF::run()
     //std::cout << "Posterior Covariance: " << posterior->CovarianceGet() << std::endl;
     MatrixWrapper::ColumnVector eulerAngles(3);
     MatrixWrapper::Quaternion tmpQuat(expectedValueQuat);
-    //tmpQuat.getEulerAngles(std::string("xyz"), eulerAngles);
     expectedValueQuat.conjugate(tmpQuat);
     tmpQuat.getEulerAngles(std::string("xyz"), eulerAngles);
     //std::cout << "[QuaternionEKF::run] Posterior Mean in Euler Angles: " << (180/PI)*eulerAngles  << std::endl;
@@ -513,8 +512,8 @@ bool QuaternionEKF::extractMTBDatafromPort(int boardNum, measurementsStruct &mea
             yWarning("[QuaternionEKF::extractMTBDatafromPort]  WARNING!!! Gravity's norm is too big!");
         }
         // This change of signs is just to rotate the gyro reference frame to match the accelerometer's ref frame given the way it's been installed on the foot.
-        measurements.angVel(1) = -measurements.angVel(1);
-        measurements.angVel(2) = -measurements.angVel(2);
+        measurements.angVel(1) = measurements.angVel(1);
+        measurements.angVel(2) = measurements.angVel(2);
         measurements.angVel = PI/180*CONVERSION_FACTOR_GYRO*measurements.angVel;
         if (yarp::math::norm(measurements.angVel) > 100.0) {
             yWarning("[QuaternionEKF::extractMTBDatafromPort]  WARNING!!! [QuaternionEKF::extractMTBDatafromPort] Ang vel's norm is too big!");
