@@ -330,6 +330,8 @@ private:
     yarp::os::Port * sensorMeasPort;
     measurementsStruct measurements;
     wholeBodyEstimator::floatingBase * m_floatingBaseEstimate;
+    // Resulting Euler angles
+    MatrixWrapper::ColumnVector eulerAngles;
     
 };
 

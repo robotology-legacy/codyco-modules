@@ -10,6 +10,7 @@ QuaternionEKF::QuaternionEKF() : m_className("QuaternionEKF")
 
 bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
 {
+    eulerAngles.assign(3, 0.0);
     //TODO: Maybe instead of passing the resourceFinder I should pass the already parsed groups?
     // Module Parameters
 
@@ -214,7 +215,6 @@ void QuaternionEKF::run()
     covariance = posterior->CovarianceGet();
     //std::cout << "[QuaternionEKF::run] Posterior Mean: " << expectedValueQuat << std::endl;
     //std::cout << "Posterior Covariance: " << posterior->CovarianceGet() << std::endl;
-    MatrixWrapper::ColumnVector eulerAngles(3);
     MatrixWrapper::Quaternion tmpQuat(expectedValueQuat);
     //tmpQuat.getEulerAngles(std::string("xyz"), eulerAngles);
     expectedValueQuat.conjugate(tmpQuat);
