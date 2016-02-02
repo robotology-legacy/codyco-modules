@@ -640,7 +640,9 @@ namespace codyco {
         bool TorqueBalancingModule::switchToTorqueGains(const PIDList& pids)
         {
             if (!m_robot) return false;
-            yarpWbi::yarpWholeBodyActuators *actuators = ((yarpWbi::yarpWholeBodyInterface*)m_robot)->wholeBodyActuator();
+            std::shared_ptr<yarpWbi::yarpWholeBodyActuators> actuators = ((yarpWbi::yarpWholeBodyInterface*)m_robot)->wholeBodyActuator().lock();
+            if (!actuators) return false;
+
             actuators->setPIDGains(pids.pidList(), wbi::CTRL_MODE_TORQUE);
             return true;
         }
@@ -655,7 +657,8 @@ namespace codyco {
 
             //Load original gains from controlboards and save them the original key.
             PIDList originalGains(m_robot->getDoFs());
-            yarpWbi::yarpWholeBodyActuators *actuators = ((yarpWbi::yarpWholeBodyInterface*)m_robot)->wholeBodyActuator();
+            std::shared_ptr<yarpWbi::yarpWholeBodyActuators> actuators = ((yarpWbi::yarpWholeBodyInterface*)m_robot)->wholeBodyActuator().lock();
+            if (!actuators) return false;
             actuators->getPIDGains(originalGains.pidList(), wbi::CTRL_MODE_TORQUE);
             m_torquePIDs.insert(PidMap::value_type(TorquePIDInitialKey, originalGains));
 
