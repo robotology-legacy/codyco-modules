@@ -308,7 +308,7 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
         port_com = new BufferedPort<Vector>;
         port_com->open(std::string("/"+m_module_name+"/com:o"));
     }
-    
+    //FIXME: Unused
     if( this->frames_streaming_enabled )
     {
         port_frames = new BufferedPort<Property>;
@@ -397,6 +397,7 @@ void LeggedOdometry::readRobotStatus()
 
 void LeggedOdometry::release()
 {
+    std::cerr<<"!!!!! release was called for LeggedOdometry " << std::endl;
     if( this->odometry_enabled )
     {
         closePort(port_floatingbasestate);
@@ -418,11 +419,11 @@ void LeggedOdometry::release()
         icub_model = 0;
     }
     
-    if ( this->m_sensors )
-    {
-        delete m_sensors;
-        m_sensors = 0;
-    }
+//    if ( this->m_sensors )
+//    {
+//        delete m_sensors;
+//        m_sensors = 0;
+//    }
     
     if ( this->m_joint_status )
     {

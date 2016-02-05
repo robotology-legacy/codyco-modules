@@ -49,7 +49,13 @@ private:
     bool frames_streaming_enabled;
     yarp::os::BufferedPort<yarp::os::Bottle> * port_floatingbasestate;
     yarp::os::BufferedPort<yarp::os::Property> * port_frames;
+    /**
+     *  Vector containing the indices of the frames to be streamed, after checking they are actually present. These frame have been specified via configuration file of the wholeBodyEstimator under the group LeggedOdometry.
+     */
     std::vector<int> frames_to_stream_indices;
+    /**
+     *  Vector containing the names of the frames to be streamed, after checking they are actually present.
+     */
     std::vector<std::string> frames_to_stream;
     std::vector<yarp::os::Bottle> buffer_bottles;
     yarp::sig::Matrix buffer_transform_matrix;

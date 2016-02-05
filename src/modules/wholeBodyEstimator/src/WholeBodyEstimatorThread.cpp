@@ -21,7 +21,7 @@ bool WholeBodyEstimatorThread::threadInit()
     // Find estimators_list and read the list of estimators present.
     if ( !fillEstimatorsMap() )
     {
-        yError("[wholeBodyEstimatorThread::threadInit()] Problem1 queried estimators from configuration file.");
+        yError("[wholeBodyEstimatorThread::threadInit()] Problem with queried estimators from configuration file.");
         return false;
     } else {
         if ( !fillEstimatorsList() )
@@ -78,6 +78,7 @@ void WholeBodyEstimatorThread::run()
 
 void WholeBodyEstimatorThread::threadRelease()
 {
+    std::cerr << "[wholeBodyEstimatorThread::threadRelease] Starting thread closure... " << std::endl;
     // Delete each estimator
     unsigned int k = 1;
     std::vector<IEstimator*>::iterator it;
@@ -93,14 +94,16 @@ bool WholeBodyEstimatorThread::fillEstimatorsMap()
 {
     // Read from rf the estimators list
     yarp::os::Bottle estimatorsListBottle = m_rfCopy.findGroup("estimators_list");
-    
+    estimatorsListBottle = estimatorsListBottle.tail();
+    std::cout << "[wholeBodyEstimatorThread::fillEstimatorsMap] estimatorsListBottle = " << estimatorsListBottle.toString() << " of size: " << estimatorsListBottle.size() << std::endl;
+    int estimatorsListBottleSize = estimatorsListBottle.size();
     // Fill estimators map
     //
     // e.g. [QuaternionEKF  | 0]
     //      [LeggedOdometry | 1]
     if (!estimatorsListBottle.isNull())
     {
-        for (int i=0; i<estimatorsListBottle.size(); i++)
+        for (int i=0; i<estimatorsListBottleSize; i++)
         {
             yarp::os::Value val = estimatorsListBottle.pop();
             m_estimatorsMap[val.toString()] = i;

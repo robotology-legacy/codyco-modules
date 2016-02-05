@@ -151,7 +151,7 @@ bool WholeBodyEstimatorModule::updateModule()
 
 bool WholeBodyEstimatorModule::close()
 {
-    yDebug("[QuaternionEKF::~QuaternionEKF] Closing module...");
+    yDebug("[WholeBodyEstimatorModule::close] Closing module...");
     if (m_estimatorThread)
     {
         m_estimatorThread->stop();
