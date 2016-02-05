@@ -92,6 +92,25 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     } else {
         m_inputPortsList.push_back(sensorDataPort);
     }
+    
+    std::string srcPortFloatingBasePose = "/LeggedOdometry/floatingbasestate:o";
+    if ( yarp::os::Network::exists(srcPortFloatingBasePose.c_str()) )
+    {
+        // Create reader for the result of LeggedOdometry
+        floatingBasePoseExt = new yarp::os::Port;
+        readerPortStruct floatingBasePoseExtPort;
+        if ( !floatingBasePoseExtPort.configurePort(this->m_className, std::string("floatingBasePose"), srcPortFloatingBasePose, floatingBasePoseExt) )
+        {
+            yError("[QuaternionEKF::init] Could not connect to %s ", srcPortFloatingBasePose.c_str());
+            return false;
+        } else {
+            m_inputPortsList.push_back(floatingBasePoseExtPort);
+        }
+    } else {
+        yError("[QuaternionEKF::init] /LeggedOdometry/floatingbasestate:o does not exist! ");
+    }
+    
+
 
     // Initialize rf-dependent private variables
     m_prior_mu_vec.resize(m_quaternionEKFParams.stateSize);
@@ -291,31 +310,60 @@ void QuaternionEKF::run()
      }
     
     /**
+     *  Retreaving floating base position estimated by LeggedOdometry if available
+     */
+    
+    yarp::os::Bottle floatingBasePositionBottle;
+    yarp::sig::Vector floatingBasePosition(3);
+    floatingBasePosition = 0;
+
+    if ( yarp::os::Network::exists("/LeggedOdometry/floatingbasestate:o") )
+    {
+        floatingBasePoseExt->read(floatingBasePositionBottle);
+        // Copying floating base position vector into floatingBasePosition
+        floatingBasePosition(0) = floatingBasePositionBottle.get(0).asList()->get(0).asDouble();
+        floatingBasePosition(1) = floatingBasePositionBottle.get(0).asList()->get(1).asDouble();
+        floatingBasePosition(2) = floatingBasePositionBottle.get(0).asList()->get(2).asDouble();
+//        yInfo("floating base position vector: %s", floatingBasePosition.toString().c_str());
+    }
+    
+    
+    /**
      *  Streaming floating base attitude
      */
     
     if ( m_quaternionEKFParams.floatingBaseAttitude )
     {
-        yarp::sig::Vector tmpRotMatVec(9);
-        yarp::sig::Vector &tmpFloatingBaseRotation = m_outputPortsList[FLOATING_BASE_ROTATION_PORT].outputPort->prepare();
+        // Creating roto-translation matrix
+        MatrixWrapper::Matrix rotoTrans_from_floatingBase_to_world(4,4);
+        rotoTrans_from_floatingBase_to_world = 0;
+        // Copying rotational part
+        rotoTrans_from_floatingBase_to_world.setSubMatrix(rot_from_floatingBase_to_world, 1, 3, 1, 3);
+        // Copying translational part
+        MatrixWrapper::ColumnVector position(4);
+        position = 1; // all rows 1. After setting the first three values, the last one will remain 1.
+        position(1) = floatingBasePosition(0);
+        position(2) = floatingBasePosition(1);
+        position(3) = floatingBasePosition(2);
+        rotoTrans_from_floatingBase_to_world.setColumn(position, 4);
+        
+        
+        
+        yarp::sig::Vector tmpRotMatVec(16);
         // Streaming columnwise
         unsigned int k = 0;
-        for (unsigned int j=0; j<3; j++)
+        for (unsigned int j=0; j<4; j++)
         {
-            for (unsigned int i=0; i<3; i++)
+            for (unsigned int i=0; i<4; i++)
             {
-                tmpRotMatVec(k) = rot_from_floatingBase_to_world(i+1,j+1);
+                tmpRotMatVec(k) = rotoTrans_from_floatingBase_to_world(i+1,j+1);
                 k++;
             }
         }
+        yarp::sig::Vector &tmpFloatingBaseRotation = m_outputPortsList[FLOATING_BASE_ROTATION_PORT].outputPort->prepare();
         tmpFloatingBaseRotation = tmpRotMatVec;
         m_outputPortsList[FLOATING_BASE_ROTATION_PORT].outputPort->write();
     }
-    
-    
-    
-    
-
 }
 
 void QuaternionEKF::release()

@@ -68,6 +68,7 @@ private:
     iDynTree::RobotJointStatus  * m_joint_status;
 
     std::string m_module_name;
+    std::string m_className;
 public:
     LeggedOdometry();
 

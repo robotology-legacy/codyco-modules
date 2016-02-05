@@ -10,7 +10,7 @@ using namespace iDynTree;
 
 REGISTERIMPL(LeggedOdometry);
 
-LeggedOdometry::LeggedOdometry()
+LeggedOdometry::LeggedOdometry() : m_className("LeggedOdometry")
 {
 }
 
@@ -301,18 +301,18 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     
     // Open ports
     port_floatingbasestate = new BufferedPort<Bottle>;
-    port_floatingbasestate->open(std::string("/"+m_module_name+"/floatingbasestate:o"));
+    port_floatingbasestate->open(std::string("/"+ this->m_className +"/floatingbasestate:o"));
     
     if( this->com_streaming_enabled )
     {
         port_com = new BufferedPort<Vector>;
-        port_com->open(std::string("/"+m_module_name+"/com:o"));
+        port_com->open(std::string("/"+this->m_className+"/com:o"));
     }
     //FIXME: Unused
     if( this->frames_streaming_enabled )
     {
         port_frames = new BufferedPort<Property>;
-        port_frames->open(std::string("/"+m_module_name+"/frames:o"));
+        port_frames->open(std::string("/"+this->m_className+"/frames:o"));
     }
     return true;
     yInfo("[LeggedOdometry::init()] LeggedOdometry is running ... \n");
@@ -340,9 +340,11 @@ void LeggedOdometry::run()
         
         yarp::os::Bottle & bot = port_floatingbasestate->prepare();
         bot.clear();
-        bot.addList().read(this->world_H_floatingbase);
-        bot.addList().read(this->floatingbase_twist);
-        bot.addList().read(this->floatingbase_acctwist);
+        // This matrix is serialized row-wise!!!!
+        yarp::sig::Vector world_P_floatingbase = this->world_H_floatingbase.subcol(0, 3, 3);
+        bot.addList().read(world_P_floatingbase);
+//        bot.addList().read(this->floatingbase_twist);
+//        bot.addList().read(this->floatingbase_acctwist);
         
         port_floatingbasestate->write();
         

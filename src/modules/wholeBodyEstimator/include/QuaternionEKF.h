@@ -329,6 +329,7 @@ private:
     MatrixWrapper::ColumnVector m_posterior_state;
     //FIXME This should be temporary
     yarp::os::Port * sensorMeasPort;
+    yarp::os::Port * floatingBasePoseExt;
     measurementsStruct measurements;
     wholeBodyEstimator::floatingBase * m_floatingBaseEstimate;
     // Resulting Euler angles
