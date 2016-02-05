@@ -72,4 +72,21 @@
                size="3"
                type="lines" />
     </plot>
+    <plot gridx="1"
+          gridy="1"
+          hspan="1"
+          vspan="1"
+          title="Gyro raw measurements"
+          size="60"
+          minval="-5"
+          maxval="5"
+          bgcolor="Black">
+        <graph remote="/QuaternionEKF/filteredOrientationEuler:o"
+               index="2"
+               color="Blue"
+               title=""
+               size="3"
+               type="lines" />
+    </plot>
+    
 </portscope>

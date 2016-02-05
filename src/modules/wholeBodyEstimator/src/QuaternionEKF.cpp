@@ -68,6 +68,17 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     } else {
         m_outputPortsList.push_back(rawGyroDataPort);
     }
+    
+    // Open publisher port for floating base rotation matrix estimate
+    // enum FLOATING_BASE_ROTATION_PORT
+    publisherPortStruct floatingBaseRotPort;
+    if ( !floatingBaseRotPort.configurePort(this->m_className, std::string("floatingBaseRotationMatrix")) )
+    {
+        yError("[QuaternionEKF::init] Floating base rotation matrix estimate port could not be configured");
+        return false;
+    } else {
+        m_outputPortsList.push_back(floatingBaseRotPort);
+    }
 
     //FIXME: Temporary, while yarpWholeBodySensors is finished.
     // Open sensor ports
@@ -247,15 +258,22 @@ void QuaternionEKF::run()
     // rot_from_world_to_sensor which is the result of the estimate a.k.a. tmpQuat in previous lines.
     MatrixWrapper::Matrix rot_from_world_to_sensor(3,3);
     rot_from_world_to_sensor = 0;
-    tmpQuat.getRotation(rot_from_world_to_sensor);
+    // Intentionally setting the yaw to zero as this is not yet properly estimated from magnetometer measurements.
+    rot_from_world_to_sensor.eulerToRotation(eulerAngles(1), eulerAngles(2), 0);
+    // When using Eigen I need to transpose this matrix 
+    rot_from_world_to_sensor = rot_from_world_to_sensor.transpose();
     // Output matrix rot_from_floatingBase_to_world
     MatrixWrapper::Matrix rot_from_floatingBase_to_world(3,3);
     rot_from_floatingBase_to_world = 0;
     if ( m_quaternionEKFParams.floatingBaseAttitude )
     {
         m_floatingBaseEstimate->compute_Rot_from_floatingBase_to_world(rot_from_world_to_sensor, rot_from_floatingBase_to_world);
-
     }
+    
+
+//    MatrixWrapper::Matrix rotMat(3,3); rotMat = 0;
+//    rotMat.eulerToRotation(90, 0, 0);
+//    std::cout << "90 deg roll rotation: " << rotMat << std::endl;
 
     /**
      *  Streaming of measurements
@@ -271,6 +289,32 @@ void QuaternionEKF::run()
          tmpRawGyroPortRef = measurements.angVel;
          m_outputPortsList[RAW_GYROSCOPE_DATA_PORT].outputPort->write();
      }
+    
+    /**
+     *  Streaming floating base attitude
+     */
+    
+    if ( m_quaternionEKFParams.floatingBaseAttitude )
+    {
+        yarp::sig::Vector tmpRotMatVec(9);
+        yarp::sig::Vector &tmpFloatingBaseRotation = m_outputPortsList[FLOATING_BASE_ROTATION_PORT].outputPort->prepare();
+        // Streaming columnwise
+        unsigned int k = 0;
+        for (unsigned int j=0; j<3; j++)
+        {
+            for (unsigned int i=0; i<3; i++)
+            {
+                tmpRotMatVec(k) = rot_from_floatingBase_to_world(i+1,j+1);
+                k++;
+            }
+        }
+        tmpFloatingBaseRotation = tmpRotMatVec;
+        m_outputPortsList[FLOATING_BASE_ROTATION_PORT].outputPort->write();
+    }
+    
+    
+    
+    
 
 }
 
