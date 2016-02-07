@@ -1,0 +1,101 @@
+<application>
+	<name>allMTBCapture</name>
+	<dependencies>
+		<port>icub/left_leg/inertialMTB</port>
+		<port>icub/right_leg/inertialMTB</port>
+		<port>icub/left_hand/inertialMTB</port>
+		<port>icub/right_hand/inertialMTB</port>
+		<port>icub/torso/inertialMTB</port>
+		<port>icub/left_foot/inertialMTB</port>
+		<port>icub/right_foot/inertialMTB</port>
+		<port>icub/inertial</port>
+	</dependencies>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumpericub/left_leg/inertialMTB --type bottle </parameters>
+		<node>localhost</node>
+		<tag>data-dumpericub-left_leg-inertialMTB</tag>
+	</module>
+	<connection>
+		<from>icub/left_leg/inertialMTB</from>
+		<to>/dumpericub/left_leg/inertialMTB</to>
+		<protocol>udp</protocol>
+	</connection>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumpericub/right_leg/inertialMTB --type bottle </parameters>
+		<node>localhost</node>
+		<tag>data-dumpericub-right_leg-inertialMTB</tag>
+	</module>
+	<connection>
+		<from>icub/right_leg/inertialMTB</from>
+		<to>/dumpericub/right_leg/inertialMTB</to>
+		<protocol>udp</protocol>
+	</connection>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumpericub/left_hand/inertialMTB --type bottle </parameters>
+		<node>localhost</node>
+		<tag>data-dumpericub-left_hand-inertialMTB</tag>
+	</module>
+	<connection>
+		<from>icub/left_hand/inertialMTB</from>
+		<to>/dumpericub/left_hand/inertialMTB</to>
+		<protocol>udp</protocol>
+	</connection>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumpericub/right_hand/inertialMTB --type bottle </parameters>
+		<node>localhost</node>
+		<tag>data-dumpericub-right_hand-inertialMTB</tag>
+	</module>
+	<connection>
+		<from>icub/right_hand/inertialMTB</from>
+		<to>/dumpericub/right_hand/inertialMTB</to>
+		<protocol>udp</protocol>
+	</connection>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumpericub/torso/inertialMTB --type bottle </parameters>
+		<node>localhost</node>
+		<tag>data-dumpericub-torso-inertialMTB</tag>
+	</module>
+	<connection>
+		<from>icub/torso/inertialMTB</from>
+		<to>/dumpericub/torso/inertialMTB</to>
+		<protocol>udp</protocol>
+	</connection>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumpericub/left_foot/inertialMTB --type bottle </parameters>
+		<node>localhost</node>
+		<tag>data-dumpericub-left_foot-inertialMTB</tag>
+	</module>
+	<connection>
+		<from>icub/left_foot/inertialMTB</from>
+		<to>/dumpericub/left_foot/inertialMTB</to>
+		<protocol>udp</protocol>
+	</connection>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumpericub/right_foot/inertialMTB --type bottle </parameters>
+		<node>localhost</node>
+		<tag>data-dumpericub-right_foot-inertialMTB</tag>
+	</module>
+	<connection>
+		<from>icub/right_foot/inertialMTB</from>
+		<to>/dumpericub/right_foot/inertialMTB</to>
+		<protocol>udp</protocol>
+	</connection>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumpericub/inertial --type bottle </parameters>
+		<node>localhost</node>
+		<tag>data-dumpericub-inertial</tag>
+	</module>
+	<connection>
+		<from>icub/inertial</from>
+		<to>/dumpericub/inertial</to>
+		<protocol>udp</protocol>
+	</connection>
+</application>

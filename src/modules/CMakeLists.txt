@@ -27,6 +27,8 @@ add_subdirectory(wholeBodyEstimator)
 
 add_subdirectory(walkPlayer)
 
+add_subdirectory(wholeBodySensorTester)
+
 add_subdirectory(codycoCoordinatorDemoY1)
 if(NOT MSVC)
 add_subdirectory(codycoTrajGenDemoY2)
