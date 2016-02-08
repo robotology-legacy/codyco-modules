@@ -26,6 +26,7 @@
 #include <Eigen/Core>
 
 #include <wbi/iWholeBodySensors.h>
+#include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
 #include "WholeBodySensorTesterThread.h"
 /*
 namespace paramHelp {
@@ -33,8 +34,8 @@ namespace paramHelp {
 }
 */
 
-namespace wbi {
-    class iwholeBodySensors;
+namespace yarpWbi {
+    class yarpWholeBodySensors;
 }
 /*
 namespace yarp {
@@ -100,7 +101,8 @@ namespace yarp {
             std::string m_moduleName;
             std::string m_robotName;
 
-            wbi::iWholeBodySensors *wbS;
+            // wbi::iWholeBodySensors *wbS;
+            yarpWbi::yarpWholeBodySensors *wbS;
             
         protected:
             yarp::os::Port      rpcPort;

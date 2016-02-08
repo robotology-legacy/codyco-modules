@@ -203,6 +203,29 @@ void WholeBodySensorTesterThread::run()
     
 //     std::cout <<"Time now : "<<current_time;
     std::cout<<"Counter :"<<ctr++<<"\n";
+    
+    
+        double sensorReading[3], multiSensorReading[9];
+    
+    wbs->readSensor(wbi::SENSOR_ACCELEROMETER,0,sensorReading);
+    
+    std::cout<<"-------------Data read sensor0 : ("<<sensorReading[0]<<","<<sensorReading[1]<<","<<sensorReading[2]<<")\n";
+    
+    wbs->readSensor(wbi::SENSOR_ACCELEROMETER,1,sensorReading);
+    
+    std::cout<<"-------------Data read sensor1 : ("<<sensorReading[0]<<","<<sensorReading[1]<<","<<sensorReading[2]<<")\n";
+    
+    wbs->readSensor(wbi::SENSOR_ACCELEROMETER,2,sensorReading);
+    
+    std::cout<<"-------------Data read sensor2 : ("<<sensorReading[0]<<","<<sensorReading[1]<<","<<sensorReading[2]<<")\n";
+    
+    std::cout<<"-------------------\n\n";
+    
+    wbs->readSensors(wbi::SENSOR_ACCELEROMETER,multiSensorReading);
+    std::cout<<"--------Data multiread sensor1 : ("<<multiSensorReading[0]<<","<<multiSensorReading[1]<<","<<multiSensorReading[2]<<")\n";
+    std::cout<<"--------Data multiread sensor2 : ("<<multiSensorReading[3]<<","<<multiSensorReading[4]<<","<<multiSensorReading[5]<<")\n";
+    std::cout<<"--------Data multiread sensor3 : ("<<multiSensorReading[6]<<","<<multiSensorReading[7]<<","<<multiSensorReading[8]<<")\n";
+    
 //     double current_time = yarp::os::Time::now();
 //     static double last_time = yarp::os::Time::now();
 //     if (actions.current_status == ACTION_IDLE)
@@ -255,3 +278,9 @@ void WholeBodySensorTesterThread::run()
 //     }
     mutex.post();
 }
+
+void WholeBodySensorTesterThread::attachWholeBodySensor(wbi::iWholeBodySensors* s)
+{
+    wbs = s;
+}
+

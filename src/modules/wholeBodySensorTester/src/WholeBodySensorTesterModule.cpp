@@ -5,6 +5,7 @@
 
 #include "WholeBodySensorTesterModule.h"
 
+#include <wbi/wbiConstants.h>
 #include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
 
 using namespace std;
@@ -60,10 +61,13 @@ bool WholeBodySensorTesterModule::configure(ResourceFinder& rf)
                 return false;
     }
     
+    wbS->addAllSensors(wbi::SENSOR_ACCELEROMETER);
+    
     if(!wbS->init()) {
         yError("Could not initialise wbi object.");
     }
     
+
     //*** start the robot driver
 //     if (!robot.configure(portProp))
 //     {
@@ -73,6 +77,8 @@ bool WholeBodySensorTesterModule::configure(ResourceFinder& rf)
 //     else {
 //         cout << "Configuration done." << endl;
 //     }
+    wholeBodySensorTesterThread.attachWholeBodySensor(wbS);
+   
     if (!wholeBodySensorTesterThread.start())
     {
         cerr<<"ERROR: Thread did not start, queue will not work"<<endl;
