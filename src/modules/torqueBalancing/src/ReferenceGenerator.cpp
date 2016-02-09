@@ -24,9 +24,9 @@
 
 namespace codyco {
     namespace torquebalancing {
-        
+
 #pragma mark - ReferenceGenerator methods
-        
+
         ReferenceGenerator::ReferenceGenerator(int period, Reference& reference, ReferenceGeneratorInputReader& reader, const std::string& name)
         : RateThread(period)
         , m_name(name)
@@ -51,22 +51,22 @@ namespace codyco {
             m_proportionalGains.setZero();
             m_derivativeGains.setZero();
             m_integralGains.setZero();
-            
+
             m_computedReference.setZero();
             m_integralTerm.setZero();
-            
+
             m_signalReference.setZero();
             m_signalDerivativeReference.setZero();
             m_signalFeedForward.setZero();
-            
+
             m_currentSignalValue.setZero();
             m_error.setZero(); //only for monitoring
-            
+
             //avoid garbage in the generated reference
             m_outputReference.setValue(m_computedReference);
             m_outputReference.setValid(false);
         }
-        
+
         ReferenceGenerator::~ReferenceGenerator()
         {
             if (m_referenceFilter) {
@@ -79,14 +79,14 @@ namespace codyco {
         {
             return true;
         }
-        
+
         void ReferenceGenerator::threadRelease()
         {
             m_computedReference.setZero();
             m_outputReference.setValue(m_computedReference);
             m_outputReference.setValid(false);
         }
-        
+
         void ReferenceGenerator::run()
         {
             yarp::os::LockGuard guard(m_mutex);
@@ -100,13 +100,13 @@ namespace codyco {
                     m_actualReference = m_referenceFilter->getComputedValue();
                 }
                 long context = now * 1000; //i use the time in ms as a context
-                
+
                 m_currentSignalValue = m_reader.getSignal(context);
                 //compute pid
                 m_error = m_currentSignalValue - m_actualReference;
                 m_integralTerm += dt * m_error;
                 limitIntegral(m_integralTerm, m_integralTerm);
-                
+
                 m_computedReference = m_signalFeedForward
                 - m_proportionalGains.asDiagonal() * m_error
                 - m_derivativeGains.asDiagonal() * (m_reader.getSignalDerivative(context) - m_signalDerivativeReference)
@@ -120,19 +120,19 @@ namespace codyco {
                 m_previousTime = now;
             }
         }
-        
+
 #pragma mark - Getter and setter
 
         ReferenceGeneratorInputReader& ReferenceGenerator::inputReader()
         {
             return m_reader;
         }
-        
+
         const std::string& ReferenceGenerator::name() const
         {
             return m_name;
         }
-        
+
         void ReferenceGenerator::setReferenceFilter(ReferenceFilter* referenceFilter)
         {
             if (this->isRunning()) return;
@@ -143,18 +143,24 @@ namespace codyco {
             if (referenceFilter)
                 m_referenceFilter = referenceFilter->clone();
         }
-        
+
         const ReferenceFilter* ReferenceGenerator::referenceFilter()
         {
             return m_referenceFilter;
         }
-        
+
         const Eigen::VectorXd& ReferenceGenerator::signalReference()
         {
             yarp::os::LockGuard guard(m_mutex);
             return m_signalReference;
         }
-        
+
+        const Eigen::VectorXd& ReferenceGenerator::actualReference()
+        {
+            yarp::os::LockGuard guard(m_mutex);
+            return m_actualReference;
+        }
+
         void ReferenceGenerator::setSignalReference(const Eigen::VectorXd& reference, bool resetFilter)
         {
             yarp::os::LockGuard guard(m_mutex);
@@ -166,31 +172,31 @@ namespace codyco {
                                                     m_previousTime, resetFilter);
             }
         }
-        
+
         const Eigen::VectorXd ReferenceGenerator::signalDerivativeReference()
         {
             yarp::os::LockGuard guard(m_mutex);
             return m_signalDerivativeReference;
         }
-        
+
         void ReferenceGenerator::setSignalDerivativeReference(const Eigen::VectorXd& derivativeReference)
         {
             yarp::os::LockGuard guard(m_mutex);
             m_signalDerivativeReference = derivativeReference;
         }
-        
+
         const Eigen::VectorXd& ReferenceGenerator::signalFeedForward()
         {
             yarp::os::LockGuard guard(m_mutex);
             return m_signalFeedForward;
         }
-        
+
         void ReferenceGenerator::setSignalFeedForward(const Eigen::VectorXd& feedforward)
         {
             yarp::os::LockGuard guard(m_mutex);
             m_signalFeedForward = feedforward;
         }
-        
+
         void ReferenceGenerator::setAllReferences(const Eigen::VectorXd& reference,
                                                   const Eigen::VectorXd& derivativeReference,
                                                   const Eigen::VectorXd& feedforward,
@@ -206,7 +212,7 @@ namespace codyco {
             m_signalDerivativeReference = derivativeReference;
             m_signalFeedForward = feedforward;
         }
-        
+
         void ReferenceGenerator::setActiveState(bool isActive)
         {
             yarp::os::LockGuard guard(m_mutex);
@@ -223,61 +229,61 @@ namespace codyco {
                 if (m_referenceFilter) {
                     m_referenceFilter->computeReference(m_signalReference, m_currentSignalValue, yarp::os::Time::now(), true);
                 }
-                
+
             } else {
                 m_outputReference.setValid(false);
             }
             m_active = isActive;
         }
-        
+
         bool ReferenceGenerator::isActiveState()
         {
             yarp::os::LockGuard guard(m_mutex);
             return m_active;
         }
-        
+
         const Eigen::VectorXd& ReferenceGenerator::proportionalGains()
         {
             yarp::os::LockGuard guard(m_mutex);
             return m_proportionalGains;
         }
-        
+
         void ReferenceGenerator::setProportionalGains(const Eigen::VectorXd& proportionalGains)
         {
             yarp::os::LockGuard guard(m_mutex);
             m_proportionalGains = proportionalGains;
         }
-        
+
         const Eigen::VectorXd& ReferenceGenerator::derivativeGains()
         {
             yarp::os::LockGuard guard(m_mutex);
             return m_derivativeGains;
         }
-        
+
         void ReferenceGenerator::setDerivativeGains(const Eigen::VectorXd& derivativeGains)
         {
             yarp::os::LockGuard guard(m_mutex);
             m_derivativeGains = derivativeGains;
         }
-        
+
         const Eigen::VectorXd& ReferenceGenerator::integralGains()
         {
             yarp::os::LockGuard guard(m_mutex);
             return m_integralGains;
         }
-        
+
         void ReferenceGenerator::setIntegralGains(const Eigen::VectorXd& integralGains)
         {
             yarp::os::LockGuard guard(m_mutex);
             m_integralGains = integralGains;
         }
-        
+
         double ReferenceGenerator::integralLimit()
         {
             yarp::os::LockGuard guard(m_mutex);
             return m_integralLimit;
         }
-        
+
         void ReferenceGenerator::setIntegralLimit(double integralLimit)
         {
             if (!codyco::math::isnan(integralLimit)) {
@@ -285,7 +291,7 @@ namespace codyco {
                 m_integralLimit = std::abs(integralLimit);
             }
         }
-        
+
         void ReferenceGenerator::limitIntegral(const Eigen::Ref<Eigen::VectorXd>& integral, Eigen::Ref<Eigen::VectorXd> limitedIntegral)
         {
 //            limitedIntegral = integral.array().cwiseMin(m_integralLimit).cwiseMax(-m_integralLimit).matrix();
@@ -294,7 +300,7 @@ namespace codyco {
                 : (integral(i) < -m_integralLimit ? -m_integralLimit : integral(i));
             }
         }
-        
+
         void ReferenceGenerator::setAllGains(const Eigen::VectorXd& proportionalGains,
                                              const Eigen::VectorXd& derivativeGains,
                                              const Eigen::VectorXd& integralGains,
@@ -308,34 +314,34 @@ namespace codyco {
                 m_integralLimit = std::abs(integralLimit);
             }
         }
-        
+
         const Eigen::VectorXd& ReferenceGenerator::computedReference()
         {
             yarp::os::LockGuard guard(m_mutex);
             return m_computedReference;
         }
-        
+
         const Eigen::VectorXd& ReferenceGenerator::instantaneousError()
         {
             yarp::os::LockGuard guard(m_mutex);
-            return m_error;   
+            return m_error;
         }
-        
+
         const Eigen::VectorXd& ReferenceGenerator::errorIntegral()
         {
             yarp::os::LockGuard guard(m_mutex);
             return m_integralTerm;
         }
-        
+
 #pragma mark - ReferenceGeneratorInputReader methods
-        
+
         ReferenceGeneratorInputReader::~ReferenceGeneratorInputReader() {}
-        
+
         bool ReferenceGeneratorInputReader::init() { return true; }
-        
+
 #pragma mark - ReferenceFilter methods
 
         ReferenceFilter::~ReferenceFilter() {}
-        
+
     }
 }

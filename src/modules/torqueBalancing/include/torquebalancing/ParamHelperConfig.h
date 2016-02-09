@@ -43,10 +43,11 @@ namespace codyco {
             TorqueBalancingModuleParameterMonitorCOMIntegralError,
             TorqueBalancingModuleParameterMonitorFeetForces,
             TorqueBalancingModuleParameterMonitorOutputTorques,
+            TorqueBalancingModuleParameterMonitorDesiredCOM,
 
         } TorqueBalancingModuleParameter;
 
-        static const int TorqueBalancingModuleParameterSize = 12;
+        static const int TorqueBalancingModuleParameterSize = 13;
 
         static const double defaultIntegralLimit = std::numeric_limits<double>::max(); //no limit
         static const Eigen::VectorXd defaultCOMGains = Eigen::VectorXd(3).setZero();
