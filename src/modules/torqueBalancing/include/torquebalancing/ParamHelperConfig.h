@@ -24,7 +24,7 @@
 
 namespace codyco {
     namespace torquebalancing {
-        
+
         typedef enum {
             //PIDs
             //COM
@@ -43,15 +43,15 @@ namespace codyco {
             TorqueBalancingModuleParameterMonitorCOMIntegralError,
             TorqueBalancingModuleParameterMonitorFeetForces,
             TorqueBalancingModuleParameterMonitorOutputTorques,
-            
+
         } TorqueBalancingModuleParameter;
-        
+
         static const int TorqueBalancingModuleParameterSize = 12;
 
         static const double defaultIntegralLimit = std::numeric_limits<double>::max(); //no limit
         static const Eigen::VectorXd defaultCOMGains = Eigen::VectorXd(3).setZero();
         static const double defaultCentroidalGain = 0;
-        
+
         paramHelp::ParamProxyInterface *const TorqueBalancingModuleParameterDescriptions[]  =
         {
             //COM
@@ -71,20 +71,20 @@ namespace codyco {
             //Additional parameters
             new paramHelp::ParamProxyBasic<double>("tsat", TorqueBalancingModuleParameterTorqueSaturation, paramHelp::PARAM_SIZE_FREE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Torque saturations (positives)"),
             new paramHelp::ParamProxyBasic<double>("outTorques", TorqueBalancingModuleParameterMonitorOutputTorques, paramHelp::PARAM_SIZE_FREE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Output torques of the controller"),
-            
+
         };
-        
-        
+
+
         typedef enum {
             TorqueBalancingModuleCommandStart,
             TorqueBalancingModuleCommandStop,
             TorqueBalancingModuleCommandQuit,
             TorqueBalancingModuleCommandHelp
-            
+
         } TorqueBalancingModuleCommand;
-        
+
         static const int TorqueBalancingModuleCommandSize = 4;
-        
+
         const paramHelp::CommandDescription TorqueBalancingModuleCommandDescriptions[]  =
         {
             paramHelp::CommandDescription("start", TorqueBalancingModuleCommandStart, "Start the control actions"),
