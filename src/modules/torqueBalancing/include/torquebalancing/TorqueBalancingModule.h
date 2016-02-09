@@ -207,6 +207,7 @@ namespace codyco {
             Eigen::VectorXd m_monitoredFeetForces;
             Eigen::VectorXd m_monitoredOutputTorques;
             Eigen::VectorXd m_monitoredDesiredCOM;
+            Eigen::VectorXd m_monitoredMeasuredCOM;
 
 
         public:

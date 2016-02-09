@@ -774,6 +774,7 @@ namespace codyco {
         , m_monitoredFeetForces(12)
         , m_monitoredOutputTorques(actuatedDOFs)
         , m_monitoredDesiredCOM(3)
+        , m_monitoredMeasuredCOM(3)
         {
             //this is totally crazy..
             //indexes to modify are last 3:
@@ -850,6 +851,8 @@ namespace codyco {
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorFeetForces, m_monitoredFeetForces.data());
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorOutputTorques, m_monitoredOutputTorques.data());
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorDesiredCOM, m_monitoredDesiredCOM.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorDesiredCOM, m_monitoredMeasuredCOM.data());
+
 
             return linked;
         }
@@ -909,6 +912,7 @@ namespace codyco {
                 m_monitoredCOMError = comGenerator->instantaneousError();
                 m_monitoredCOMIntegralError = comGenerator->errorIntegral();
                 m_monitoredDesiredCOM = comGenerator->actualReference();
+                m_monitoredMeasuredCOM = comGenerator->inputReader().getSignal().segment<3>(0);
             }
             m_monitoredFeetForces = m_module.m_controller->desiredFeetForces();
             m_monitoredOutputTorques = m_module.m_controller->outputTorques();
