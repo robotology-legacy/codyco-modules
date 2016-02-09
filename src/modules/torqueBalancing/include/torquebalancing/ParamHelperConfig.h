@@ -67,6 +67,7 @@ namespace codyco {
             new paramHelp::ParamProxyBasic<double>("comError", TorqueBalancingModuleParameterMonitorCOMError, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Instantaneous COM error"),
             new paramHelp::ParamProxyBasic<double>("comIntError", TorqueBalancingModuleParameterMonitorCOMIntegralError, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Integral of COM error"),
             new paramHelp::ParamProxyBasic<double>("feetForces", TorqueBalancingModuleParameterMonitorFeetForces, 12, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Desired feet forces"),
+            new paramHelp::ParamProxyBasic<double>("desCOM", TorqueBalancingModuleParameterMonitorDesiredCOM, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Desired COM position"),
             //Param size Free
             new paramHelp::ParamProxyBasic<double>("kImp", TorqueBalancingModuleParameterImpedanceGain, paramHelp::PARAM_SIZE_FREE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Gain for the impedance control task."),
             //Additional parameters
