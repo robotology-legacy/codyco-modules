@@ -851,7 +851,7 @@ namespace codyco {
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorFeetForces, m_monitoredFeetForces.data());
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorOutputTorques, m_monitoredOutputTorques.data());
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorDesiredCOM, m_monitoredDesiredCOM.data());
-            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorDesiredCOM, m_monitoredMeasuredCOM.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorMeasuredCOM, m_monitoredMeasuredCOM.data());
 
 
             return linked;
