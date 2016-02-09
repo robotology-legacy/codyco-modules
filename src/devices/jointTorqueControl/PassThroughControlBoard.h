@@ -27,6 +27,7 @@ class yarp::dev::PassThroughControlBoard :  public DeviceDriver,
                                             public ITorqueControl,
                                             public IControlLimits2,
                                             public IInteractionMode,
+                                            public IAxisInfo,
                                             public IPidControl
 {
 protected:
@@ -102,6 +103,10 @@ public:
     virtual bool getRefAcceleration(int j, double *acc);
     virtual bool getRefAccelerations(double *accs);
 
+    virtual bool getTargetPosition(const int joint, double *ref);
+    virtual bool getTargetPositions(double *refs);
+    virtual bool getTargetPositions(const int n_joint, const int *joints, double *refs);
+
     //VELOCITY CONTROL 2
     virtual bool setVelocityMode();
     virtual bool velocityMove(int j, double sp);
@@ -112,6 +117,10 @@ public:
     virtual bool setVelPids(const yarp::dev::Pid *pids);
     virtual bool getVelPid(int j, yarp::dev::Pid *pid);
     virtual bool getVelPids(yarp::dev::Pid *pids);
+
+    virtual bool getRefVelocity(const int joint, double *vel);
+    virtual bool getRefVelocities(double *vels);
+    virtual bool getRefVelocities(const int n_joint, const int *joints, double *vels);
 
     //CONTROL LIMITS 2
     virtual bool getLimits(int axis, double *min, double *max);
@@ -186,9 +195,9 @@ public:
 
     //AXIS INFO
     virtual bool getAxisName(int axis, yarp::os::ConstString& name);
+    virtual bool getJointType(int axis, yarp::dev::JointTypeEnum& type);
 
     // IPidControl Interface methods
-
     virtual bool setPid (int j, const Pid &pid);
     virtual bool setPids (const Pid *pids);
     virtual bool setReference (int j, double ref);
