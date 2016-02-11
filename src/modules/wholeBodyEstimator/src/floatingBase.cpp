@@ -121,6 +121,7 @@ namespace wholeBodyEstimator
         //TODO: This has been hardcoded for the right foot!!! but this method should ask for the desired foot
         wbi::Rotation rot_from_FT_to_foot(1, 0, 0, 0, -1, 0, 0, 0 , -1);
         //FIXME: I should instead copy the values in the private variable m_rot_from_ft_to_acc
+        // This should rot_fom_FT_to_foot.inverse() (or transpose) but it would be the same for this particular rotation mat.
         wbi::Rotation rot_from_acc_to_FT = rot_from_FT_to_foot;
         wbi::Rotation rot_from_acc_to_foot = rot_from_FT_to_foot * rot_from_acc_to_FT;
         // Copute rot_from_acc_to_floating_base
@@ -129,7 +130,12 @@ namespace wholeBodyEstimator
         wbi::Rotation wbi_rot_from_world_to_sensor;
         // Passing the transpose just because of the different storing order of the matrices
         wbi_rot_from_world_to_sensor.setDcm(rot_from_world_to_sensor.transpose().data());
+//        std::cerr << "[floatinBase::compute_Rot_from_floatingBase_to_world] rot_from_world_to_sensor " << std::endl << rot_from_world_to_sensor << std::endl;
+//        std::cerr << "[floatinBase::compute_Rot_from_floatingBase_to_world] rot_from_acc_to_floating_base " << std::endl
+//        << rot_from_acc_to_floating_base.toString().c_str() << std::endl;
         wbi::Rotation wbi_rot_from_floating_base_to_world = rot_from_acc_to_floating_base * wbi_rot_from_world_to_sensor;
+        // The previous line gives actually the rotation from <world> to <floatingBase>. Therefore the following inverse (Transpose)
+        wbi_rot_from_floating_base_to_world.setToInverse();
         //FIXME: I need to this in a smarter way
         for (unsigned int i = 0; i < 3; i++)
         {

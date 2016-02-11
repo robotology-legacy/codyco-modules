@@ -2,6 +2,7 @@
 #include "LeggedOdometry.h"
 
 #include "kdl/frames_io.hpp"
+#include <yarp/math/Math.h>
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -324,6 +325,7 @@ void LeggedOdometry::run()
     if( this->odometry_enabled )
     {
         readRobotStatus();
+//        std::cerr << "robot status read! " << std::endl;
         
         // Read joint position, velocity and accelerations into the odometry helper model
         // This could be avoided by using the same geometric model
@@ -342,43 +344,55 @@ void LeggedOdometry::run()
         bot.clear();
         // This matrix is serialized row-wise!!!!
         yarp::sig::Vector world_P_floatingbase = this->world_H_floatingbase.subcol(0, 3, 3);
-        bot.addList().read(world_P_floatingbase);
+//        std::cerr << "[Legged Odometry] Position from foot to floating base " << std::endl << world_P_floatingbase.toString().c_str() << std::endl;
+        //NOTE: Temporal hack for having floatingbase_P_world
+        yarp::sig::Matrix world_R_floatingbase = this->world_H_floatingbase.submatrix(0, 2, 0, 2);
+//        std::cerr << "[Legged Odometry] Rotation from floating base to foot " << std::endl << world_R_floatingbase.toString().c_str() << std::endl;
+        
+        yarp::sig::Matrix floatingbase_H_world(4,4);
+        floatingbase_H_world = yarp::math::SE3inv(world_H_floatingbase);
+        yarp::sig::Vector floatingbase_P_foot(3);
+        floatingbase_P_foot = floatingbase_H_world.subcol(0, 3, 3);
+//        std::cerr << "[Legged Odometry] Position vector from floating base to foot " << floatingbase_P_foot.toString().c_str() << std::endl;
+        bot.addList().read(floatingbase_P_foot);
+        
+//        bot.addList().read(world_P_floatingbase);
 //        bot.addList().read(this->floatingbase_twist);
 //        bot.addList().read(this->floatingbase_acctwist);
         
         port_floatingbasestate->write();
         
         
-        if( this->com_streaming_enabled )
-        {
-            // Stream com in world frame
-            KDL::Vector com = odometry_helper.getDynTree().getCOMKDL();
-            
-            yarp::sig::Vector & com_to_send = port_com->prepare();
-            com_to_send.resize(3);
-            
-            KDLtoYarp(com,com_to_send);
-            
-            port_com->write();
-        }
-        
-        if( this->frames_streaming_enabled )
-        {
-            // Stream frames in a property (highly inefficient! clean as soon as possible)
-            Property& output = port_frames->prepare();
-            
-            for(int i =0; i < frames_to_stream.size(); i++ )
-            {
-                KDL::Frame frame_to_publish = odometry_helper.getWorldFrameTransform(frames_to_stream_indices[i]);
-                
-                KDLtoYarp_position(frame_to_publish,buffer_transform_matrix);
-                
-                buffer_bottles[i].get(0).asList()->read(buffer_transform_matrix);
-                output.put(frames_to_stream[i].c_str(),buffer_bottles[i].get(0));
-            }
-            
-            port_frames->write();
-        }
+//        if( this->com_streaming_enabled )
+//        {
+//            // Stream com in world frame
+//            KDL::Vector com = odometry_helper.getDynTree().getCOMKDL();
+//            
+//            yarp::sig::Vector & com_to_send = port_com->prepare();
+//            com_to_send.resize(3);
+//            
+//            KDLtoYarp(com,com_to_send);
+//            
+//            port_com->write();
+//        }
+//        
+//        if( this->frames_streaming_enabled )
+//        {
+//            // Stream frames in a property (highly inefficient! clean as soon as possible)
+//            Property& output = port_frames->prepare();
+//            
+//            for(int i =0; i < frames_to_stream.size(); i++ )
+//            {
+//                KDL::Frame frame_to_publish = odometry_helper.getWorldFrameTransform(frames_to_stream_indices[i]);
+//                
+//                KDLtoYarp_position(frame_to_publish,buffer_transform_matrix);
+//                
+//                buffer_bottles[i].get(0).asList()->read(buffer_transform_matrix);
+//                output.put(frames_to_stream[i].c_str(),buffer_bottles[i].get(0));
+//            }
+//            
+//            port_frames->write();
+//        }
         
         // save the current link considered as fixed by the odometry
         current_fixed_link_name = odometry_helper.getCurrentFixedLink();
@@ -388,6 +402,7 @@ void LeggedOdometry::run()
 void LeggedOdometry::readRobotStatus()
 {
     // Last two arguments specify not retrieving timestamps and not to wait to get a sensor measurement
+//    std::cerr << "Reading robot status" << std::endl;
     if ( !m_sensors->readSensors(wbi::SENSOR_ENCODER_POS, m_joint_status->getJointPosKDL().data.data(), NULL, false) )
     {
         yError("[LeggedOdometry::readRobotStatus()] Encoders could not be read!");

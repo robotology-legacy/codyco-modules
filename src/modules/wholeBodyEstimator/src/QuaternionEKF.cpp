@@ -94,8 +94,9 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     }
     
     std::string srcPortFloatingBasePose = "/LeggedOdometry/floatingbasestate:o";
-    if ( yarp::os::Network::exists(srcPortFloatingBasePose.c_str()) )
-    {
+//    std::cerr << "[QuaternionEKF] Checking existance of floating base port ... " << std::endl;
+//    if ( yarp::os::Network::exists(srcPortFloatingBasePose.c_str()) )
+//    {
         // Create reader for the result of LeggedOdometry
         floatingBasePoseExt = new yarp::os::Port;
         readerPortStruct floatingBasePoseExtPort;
@@ -106,9 +107,9 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
         } else {
             m_inputPortsList.push_back(floatingBasePoseExtPort);
         }
-    } else {
-        yError("[QuaternionEKF::init] /LeggedOdometry/floatingbasestate:o does not exist! ");
-    }
+//    } else {
+//        yError("[QuaternionEKF::init] /LeggedOdometry/floatingbasestate:o does not exist! ");
+//    }
     
 
 
@@ -188,6 +189,7 @@ bool QuaternionEKF::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
 void QuaternionEKF::run()
 {
     // Read sensor data
+//    std::cerr << "[QuaternionEKF] Reading sensor data ... " << std::endl;
     if ( !readSensorData(measurements) )
     {
         yWarning("[QuaternionEKF::run] SENSOR DATA COULD NOT BE READ!");
@@ -282,6 +284,7 @@ void QuaternionEKF::run()
     // When using Eigen I need to transpose this matrix 
     rot_from_world_to_sensor = rot_from_world_to_sensor.transpose();
     // Output matrix rot_from_floatingBase_to_world
+//    std::cerr << "[QuaternionEKF::run] Rotation from world to sensor: " << std::endl << rot_from_world_to_sensor << std::endl;
     MatrixWrapper::Matrix rot_from_floatingBase_to_world(3,3);
     rot_from_floatingBase_to_world = 0;
     if ( m_quaternionEKFParams.floatingBaseAttitude )
@@ -289,10 +292,6 @@ void QuaternionEKF::run()
         m_floatingBaseEstimate->compute_Rot_from_floatingBase_to_world(rot_from_world_to_sensor, rot_from_floatingBase_to_world);
     }
     
-
-//    MatrixWrapper::Matrix rotMat(3,3); rotMat = 0;
-//    rotMat.eulerToRotation(90, 0, 0);
-//    std::cout << "90 deg roll rotation: " << rotMat << std::endl;
 
     /**
      *  Streaming of measurements
@@ -310,22 +309,24 @@ void QuaternionEKF::run()
      }
     
     /**
-     *  Retreaving floating base position estimated by LeggedOdometry if available
+     *  Retrieving floating base position estimated by LeggedOdometry if available
+     *  Currently, this is actually the position of l_sole from the floating base (root) expressed in root.
      */
     
     yarp::os::Bottle floatingBasePositionBottle;
     yarp::sig::Vector floatingBasePosition(3);
     floatingBasePosition = 0;
 
-    if ( yarp::os::Network::exists("/LeggedOdometry/floatingbasestate:o") )
-    {
-        floatingBasePoseExt->read(floatingBasePositionBottle);
+//    std::cerr << "[QuaternionEKF] Checking existance of floating base port ... " << std::endl;
+//    if ( yarp::os::Network::exists("/LeggedOdometry/floatingbasestate:o") )
+//    {
+//        floatingBasePoseExt->read(floatingBasePositionBottle);
         // Copying floating base position vector into floatingBasePosition
-        floatingBasePosition(0) = floatingBasePositionBottle.get(0).asList()->get(0).asDouble();
-        floatingBasePosition(1) = floatingBasePositionBottle.get(0).asList()->get(1).asDouble();
-        floatingBasePosition(2) = floatingBasePositionBottle.get(0).asList()->get(2).asDouble();
+//        floatingBasePosition(0) = floatingBasePositionBottle.get(0).asList()->get(0).asDouble();
+//        floatingBasePosition(1) = floatingBasePositionBottle.get(0).asList()->get(1).asDouble();
+//        floatingBasePosition(2) = floatingBasePositionBottle.get(0).asList()->get(2).asDouble();
 //        yInfo("floating base position vector: %s", floatingBasePosition.toString().c_str());
-    }
+//    }
     
     
     /**
@@ -340,13 +341,24 @@ void QuaternionEKF::run()
         // Copying rotational part
         rotoTrans_from_floatingBase_to_world.setSubMatrix(rot_from_floatingBase_to_world, 1, 3, 1, 3);
         // Copying translational part
-        MatrixWrapper::ColumnVector position(4);
-        position = 1; // all rows 1. After setting the first three values, the last one will remain 1.
-        position(1) = floatingBasePosition(0);
-        position(2) = floatingBasePosition(1);
-        position(3) = floatingBasePosition(2);
-        rotoTrans_from_floatingBase_to_world.setColumn(position, 4);
+        MatrixWrapper::ColumnVector pos_from_floatingBase_to_foot_in_floatingBase(floatingBasePosition.data(),3);
+//        std::cerr << "[QuaternionEKF] pos from floating base to foot in floating base: " << std::endl << pos_from_floatingBase_to_foot_in_floatingBase << std::endl;
+        MatrixWrapper::ColumnVector tmpPosition = rot_from_floatingBase_to_world*pos_from_floatingBase_to_foot_in_floatingBase;
+//        std::cerr << "[QuaternionEKF] pos from floating base to foot in world" << std::endl << tmpPosition << std::endl;
         
+        // Position will contain the homogeneous position vector from floating base to l_sole expressed in floating base.
+        MatrixWrapper::ColumnVector position(4);
+        position = 0; // all rows 1. After setting the first three values, the last one will remain 1.
+        position(1) = tmpPosition(1);
+        position(2) = tmpPosition(2);
+        position(3) = tmpPosition(3);
+        //TODO: Add to this vector the position vector from <world> to <l_sole> expressed in <world> should be roughly [0 0 distance_from_l_sole_to_accelerometer]
+        MatrixWrapper::ColumnVector pos_from_world_to_lsole_in_world(4); pos_from_world_to_lsole_in_world = 0;
+        pos_from_world_to_lsole_in_world(3) = 0.01;
+        pos_from_world_to_lsole_in_world(4) = 1;
+        MatrixWrapper::ColumnVector pos_from_world_to_floatingBase_in_world = pos_from_world_to_lsole_in_world - position;
+//        std::cerr << "[Quaternion] Position from world to floating base in world: " << pos_from_world_to_floatingBase_in_world << std::endl;
+        rotoTrans_from_floatingBase_to_world.setColumn(pos_from_world_to_floatingBase_in_world, 4);
         
         
         yarp::sig::Vector tmpRotMatVec(16);
