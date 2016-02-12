@@ -251,7 +251,7 @@ namespace codyco {
                 yError("Could not compute base estimation.");
                 return false;
             }
-            
+
             wbi::frameFromSerialization(baseSerialization.data(), frame);
             //set initial com to be equal to the read one
             if (!m_robot->forwardKinematics(m_jointsConfiguration.data(), frame, wbi::wholeBodyInterface::COM_LINK_ID, m_tempHeptaVector.data())) {
@@ -263,7 +263,7 @@ namespace codyco {
             std::ostringstream outputMessage;
             outputMessage << "Initial COM position: " << m_comReference.transpose();
             yInfo("%s", outputMessage.str().c_str());
-            
+
 
             //Disabled for now
             //            MinimumJerkTrajectoryGenerator jointsSmoother(actuatedDOFs);
@@ -773,6 +773,8 @@ namespace codyco {
         , m_monitoredCOMIntegralError(3)
         , m_monitoredFeetForces(12)
         , m_monitoredOutputTorques(actuatedDOFs)
+        , m_monitoredDesiredCOM(3)
+        , m_monitoredMeasuredCOM(3)
         {
             //this is totally crazy..
             //indexes to modify are last 3:
@@ -848,6 +850,9 @@ namespace codyco {
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorCOMIntegralError, m_monitoredCOMIntegralError.data());
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorFeetForces, m_monitoredFeetForces.data());
             linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorOutputTorques, m_monitoredOutputTorques.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorDesiredCOM, m_monitoredDesiredCOM.data());
+            linked = linked && m_parameterServer->linkParam(TorqueBalancingModuleParameterMonitorMeasuredCOM, m_monitoredMeasuredCOM.data());
+
 
             return linked;
         }
@@ -906,6 +911,8 @@ namespace codyco {
                 m_monitoredDesiredCOMAcceleration = comGenerator->computedReference();
                 m_monitoredCOMError = comGenerator->instantaneousError();
                 m_monitoredCOMIntegralError = comGenerator->errorIntegral();
+                m_monitoredDesiredCOM = comGenerator->actualReference();
+                m_monitoredMeasuredCOM = comGenerator->inputReader().getSignal().segment<3>(0);
             }
             m_monitoredFeetForces = m_module.m_controller->desiredFeetForces();
             m_monitoredOutputTorques = m_module.m_controller->outputTorques();
@@ -997,6 +1004,6 @@ namespace codyco {
                     break;
             }
         }
-        
+
     }
 }

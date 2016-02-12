@@ -206,6 +206,9 @@ namespace codyco {
             Eigen::VectorXd m_monitoredCOMIntegralError;
             Eigen::VectorXd m_monitoredFeetForces;
             Eigen::VectorXd m_monitoredOutputTorques;
+            Eigen::VectorXd m_monitoredDesiredCOM;
+            Eigen::VectorXd m_monitoredMeasuredCOM;
+
 
         public:
             ParamHelperManager(TorqueBalancingModule& module, int actuatedDOFs);
