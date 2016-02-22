@@ -39,7 +39,7 @@ bool PassThroughControlBoard::open(yarp::os::Searchable& config)
     remote_controlboard_options.put("device", "remote_controlboard");
     remote_controlboard_options.put("local", config.find("proxy_local").asString()); //local port names
     remote_controlboard_options.put("remote", config.find("proxy_remote").asString()); //where we connect to
-    
+
 
     proxyDevice.open(remote_controlboard_options);
 
@@ -406,6 +406,34 @@ bool PassThroughControlBoard::getRefAccelerations(double *accs)
     }
     return proxyIPositionControl2->getRefAccelerations(accs);
 }
+
+bool PassThroughControlBoard::getTargetPosition(const int joint, double* ref)
+{
+    if( !proxyIPositionControl2 )
+    {
+        return false;
+    }
+    return proxyIPositionControl2->getTargetPosition(joint,ref);
+}
+
+bool PassThroughControlBoard::getTargetPositions(const int n_joint, const int* joints, double* refs)
+{
+    if( !proxyIPositionControl2 )
+    {
+        return false;
+    }
+    return proxyIPositionControl2->getTargetPositions(n_joint,joints,refs);
+}
+
+bool PassThroughControlBoard::getTargetPositions(double* refs)
+{
+    if( !proxyIPositionControl2 )
+    {
+        return false;
+    }
+    return proxyIPositionControl2->getTargetPositions(refs);
+}
+
 
 //CONTROL MODE
 bool PassThroughControlBoard::setPositionMode(int j)
@@ -896,6 +924,34 @@ bool PassThroughControlBoard::getVelPids(yarp::dev::Pid *pids)
     return proxyIVelocityControl2->getVelPids(pids);
 }
 
+bool PassThroughControlBoard::getRefVelocity(const int joint, double* vel)
+{
+    if( !proxyIVelocityControl2 )
+    {
+        return false;
+    }
+    return proxyIVelocityControl2->getRefVelocity(joint,vel);
+}
+
+bool PassThroughControlBoard::getRefVelocities(const int n_joint, const int* joints, double* vels)
+{
+    if( !proxyIVelocityControl2 )
+    {
+        return false;
+    }
+    return proxyIVelocityControl2->getRefVelocities(n_joint,joints,vels);
+}
+
+bool PassThroughControlBoard::getRefVelocities(double* vels)
+{
+    if( !proxyIVelocityControl2 )
+    {
+        return false;
+    }
+    return proxyIVelocityControl2->getRefVelocities(vels);
+}
+
+
 bool PassThroughControlBoard::getLimits(int axis, double *min, double *max)
 {
     if( !proxyIControlLimits2 )
@@ -993,6 +1049,15 @@ bool  PassThroughControlBoard::getAxisName(int axis, yarp::os::ConstString& name
         return false;
     }
     return proxyIAxisInfo->getAxisName(axis,name);
+}
+
+bool PassThroughControlBoard::getJointType(int axis, yarp::dev::JointTypeEnum& type)
+{
+    if( !proxyIAxisInfo )
+    {
+        return false;
+    }
+    return proxyIAxisInfo->getJointType(axis,type);
 }
 
 bool PassThroughControlBoard::setPid (int j, const Pid &pid)

@@ -24,7 +24,7 @@
 
 namespace codyco {
     namespace torquebalancing {
-        
+
         typedef enum {
             //PIDs
             //COM
@@ -43,15 +43,17 @@ namespace codyco {
             TorqueBalancingModuleParameterMonitorCOMIntegralError,
             TorqueBalancingModuleParameterMonitorFeetForces,
             TorqueBalancingModuleParameterMonitorOutputTorques,
-            
+            TorqueBalancingModuleParameterMonitorDesiredCOM,
+            TorqueBalancingModuleParameterMonitorMeasuredCOM,
+
         } TorqueBalancingModuleParameter;
-        
-        static const int TorqueBalancingModuleParameterSize = 12;
+
+        static const int TorqueBalancingModuleParameterSize = 14;
 
         static const double defaultIntegralLimit = std::numeric_limits<double>::max(); //no limit
         static const Eigen::VectorXd defaultCOMGains = Eigen::VectorXd(3).setZero();
         static const double defaultCentroidalGain = 0;
-        
+
         paramHelp::ParamProxyInterface *const TorqueBalancingModuleParameterDescriptions[]  =
         {
             //COM
@@ -66,25 +68,27 @@ namespace codyco {
             new paramHelp::ParamProxyBasic<double>("comError", TorqueBalancingModuleParameterMonitorCOMError, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Instantaneous COM error"),
             new paramHelp::ParamProxyBasic<double>("comIntError", TorqueBalancingModuleParameterMonitorCOMIntegralError, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Integral of COM error"),
             new paramHelp::ParamProxyBasic<double>("feetForces", TorqueBalancingModuleParameterMonitorFeetForces, 12, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Desired feet forces"),
+            new paramHelp::ParamProxyBasic<double>("desCOM", TorqueBalancingModuleParameterMonitorDesiredCOM, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Desired COM position"),
+            new paramHelp::ParamProxyBasic<double>("measCOM", TorqueBalancingModuleParameterMonitorMeasuredCOM, 3, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Measured COM position"),
             //Param size Free
             new paramHelp::ParamProxyBasic<double>("kImp", TorqueBalancingModuleParameterImpedanceGain, paramHelp::PARAM_SIZE_FREE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Gain for the impedance control task."),
             //Additional parameters
             new paramHelp::ParamProxyBasic<double>("tsat", TorqueBalancingModuleParameterTorqueSaturation, paramHelp::PARAM_SIZE_FREE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_IN_OUT, 0, "Torque saturations (positives)"),
             new paramHelp::ParamProxyBasic<double>("outTorques", TorqueBalancingModuleParameterMonitorOutputTorques, paramHelp::PARAM_SIZE_FREE, paramHelp::ParamConstraint<double>(), paramHelp::PARAM_MONITOR, 0, "Output torques of the controller"),
-            
+
         };
-        
-        
+
+
         typedef enum {
             TorqueBalancingModuleCommandStart,
             TorqueBalancingModuleCommandStop,
             TorqueBalancingModuleCommandQuit,
             TorqueBalancingModuleCommandHelp
-            
+
         } TorqueBalancingModuleCommand;
-        
+
         static const int TorqueBalancingModuleCommandSize = 4;
-        
+
         const paramHelp::CommandDescription TorqueBalancingModuleCommandDescriptions[]  =
         {
             paramHelp::CommandDescription("start", TorqueBalancingModuleCommandStart, "Start the control actions"),
