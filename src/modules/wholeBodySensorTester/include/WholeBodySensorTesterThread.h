@@ -31,22 +31,33 @@ namespace wbi {
     class iWholeBodySensors;
 }
 
+enum ThreadState {
+    THREAD_PAUSE,
+    THREAD_RUN,
+    THREAD_STOP
+};
+
 // ******************** THE THREAD
 class WholeBodySensorTesterThread: public yarp::os::RateThread {
-private:
 
+private:
     yarp::os::Stamp timestamp;
-    
+    ThreadState threadState;
+    bool scanAndDisplaySensorData();
+    unsigned int maxAccelerometers;
+    unsigned int maxGyroscopes;
 public:
     wbi::iWholeBodySensors *wbs;
 
+    bool setMaxSensors(unsigned int maxAcc, unsigned int maxGyro);
     WholeBodySensorTesterThread(int period=5);
     ~WholeBodySensorTesterThread();
     void attachWholeBodySensor(wbi::iWholeBodySensors *s);
     bool threadInit();
+    bool setThreadState(const ThreadState &ts);
     void run();
-    
-    yarp::os::Semaphore                       mutex;
+
+    yarp::os::Semaphore mutex;
 };
 
 #endif /* end of include guard: WHOLEBODYSENSORTESTERTHREADR_H */

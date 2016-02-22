@@ -34,23 +34,22 @@ int main(int argc, char **argv)
     std::cout<<"WholeBodyStateTester created"<<std::endl;
 
     yarp::os::ResourceFinder resourceFinder = yarp::os::ResourceFinder::getResourceFinderSingleton();
-//     
+
     resourceFinder.setVerbose(true);
     resourceFinder.setDefaultConfigFile("wholeBodySensorTest.ini");         //default config file name.
     resourceFinder.setDefaultContext("wholeBodySensorTester"); //when no parameters are given to the module this is the default context
     resourceFinder.configure(argc, argv);
-    
+
+// Command line options    
     if (resourceFinder.check("help")) {
         std::cout<< "Possible parameters" << std::endl << std::endl;
         std::cout<< "\t--context          :Where to find a user defined .ini file within $ICUB_ROOT/app e.g. /adaptiveControl/conf" << std::endl;
-        std::cout<< "\t--rate             :Period used by the module. Default set to 10ms." << std::endl;
+        std::cout<< "\t--rate             :Period used by the module. Default set to 1000ms." << std::endl;
         std::cout<< "\t--robot            :Robot name (icubSim or icub). Set to icub by default." << std::endl;
         std::cout<< "\t--local            :Prefix of the ports opened by the module. Set to the module name by default, i.e. adaptiveControl." << std::endl;
-//        codyco::iCubPartVersionOptionsPrint();
         return 0;
     }
 
-//     codyco::torquebalancing::TorqueBalancingModule mainModule;
        WholeBodySensorTesterModule mainMod;
        return mainMod.runModule(resourceFinder);
 }
