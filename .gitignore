@@ -10,3 +10,5 @@
 */slprj/
 .nfs*
 *.user
+
+*.fig
