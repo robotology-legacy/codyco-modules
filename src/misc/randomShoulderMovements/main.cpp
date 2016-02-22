@@ -14,6 +14,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdlib>
 
 using namespace yarp::dev;
 using namespace yarp::sig;
@@ -79,6 +80,11 @@ void getShoulderConstraint(Vector & _lB,
     double elb_m=(joint4_1-joint4_0)/(joint3_1-joint3_0);
     double elb_n=joint4_0-elb_m*joint3_0;
 
+    // resize
+    _lB.resize(0);
+    _uB.resize(0);
+    _C.resize(0,3);
+
     Vector row;
     row.resize(constrMatrixCols);
 
@@ -136,11 +142,12 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    if( params.check("sampleInMS") ||
-        params.check("durationInS") ||
-        params.check("refTimeInMS") )
+    if( !params.check("sampleInMS") ||
+        !params.check("durationInS") ||
+        !params.check("refTimeInMS") )
     {
-        fprintf(stderr, "Necessary params not passed");
+        fprintf(stderr, "Necessary params not passed\n");
+        return EXIT_FAILURE;
     }
 
     std::string robotName=params.find("robot").asString().c_str();
@@ -149,6 +156,11 @@ int main(int argc, char *argv[])
     double samplesInMS = params.find("sampleInMS").asDouble();
     double refTimeInMS = params.find("refTimeInMS").asDouble();
 
+    std::cout << "robotName : " << robotName << std::endl;
+    std::cout << "partName : " << partName << std::endl;
+    std::cout << "durationInS : " << durationInS << std::endl;
+    std::cout << "samplesInMS : " << samplesInMS << std::endl;
+    std::cout << "refTimeInMS : " << refTimeInMS << std::endl;
 
     std::string remotePorts="/";
     remotePorts+=robotName;
@@ -172,12 +184,14 @@ int main(int argc, char *argv[])
     IPositionDirect *pos;
     IEncoders *encs;
     IControlLimits * lims;
+    IControlMode2 * ictrl;
 
 
     bool ok;
     ok = robotDevice.view(pos);
     ok = ok && robotDevice.view(encs);
     ok = ok && robotDevice.view(lims);
+    ok = ok && robotDevice.view(ictrl);
 
     if (!ok) {
         printf("Problems acquiring interfaces\n");
@@ -189,7 +203,6 @@ int main(int argc, char *argv[])
     Vector encodersInDeg(nj);
     Vector desPosInDeg(3);
     Vector commandInDeg(3);
-    Vector commandInRad(3);
     Vector minShoulderInDeg(3);
     Vector maxShoulderInDeg(3);
     Vector lowerBoundConstraint;
@@ -201,7 +214,13 @@ int main(int argc, char *argv[])
         lims->getLimits(i,&(minShoulderInDeg[i]),&(maxShoulderInDeg[i]));
     }
 
-    encs->getEncoders(encodersInDeg.data());
+    bool encodersRead = encs->getEncoders(encodersInDeg.data());
+
+    while( !encodersRead )
+    {
+        encodersRead = encs->getEncoders(encodersInDeg.data());
+    }
+
 
     getShoulderConstraint(lowerBoundConstraint,upperBoundConstraint,constraintMatrix);
 
@@ -210,12 +229,21 @@ int main(int argc, char *argv[])
 
     filter.init(encodersInDeg.subVector(0,2));
 
+    std::cout << "Filter initial value " << encodersInDeg.subVector(0,2).toString() << std::endl;
+
     std::vector<int> indexToControl;
     indexToControl.push_back(0);
     indexToControl.push_back(1);
     indexToControl.push_back(2);
 
-    int samples = (int)(durationInS/(samplesInMS/1000.0));
+    // Set control modes
+    ictrl->setControlMode(0,VOCAB_CM_POSITION_DIRECT);
+    ictrl->setControlMode(1,VOCAB_CM_POSITION_DIRECT);
+    ictrl->setControlMode(2,VOCAB_CM_POSITION_DIRECT);
+
+
+    double samplesInS = samplesInMS/1000.0;
+    int samples = (int)(durationInS/samplesInS);
     int samplesForNewPosition = (int)(refTimeInMS/samplesInMS);
     for(int i=0; i < samples; i++ )
     {
@@ -224,13 +252,22 @@ int main(int argc, char *argv[])
             // Generate a new desired shoulder position
             generateRandomShoulderPosition(desPosInDeg,minShoulderInDeg,maxShoulderInDeg,
                                            lowerBoundConstraint,upperBoundConstraint,constraintMatrix);
+
+            std::cout << "New position generated" << std::endl;
+            std::cout << "Position generated " << desPosInDeg.toString() << std::endl;
+            std::cout << "Remaining time " << (samples-i)*(samplesInS) << std::endl;
         }
 
         filter.computeNextValues(desPosInDeg);
 
-        commandInRad = CTRL_DEG2RAD*filter.getPos();
+        commandInDeg = filter.getPos();
 
-        pos->setPositions(3,indexToControl.data(),commandInRad.data());
+        std::cout << "Position set " << commandInDeg.toString() << std::endl;
+
+
+        pos->setPositions(3,indexToControl.data(),commandInDeg.data());
+
+        yarp::os::Time::delay(samplesInS);
     }
 
     robotDevice.close();
