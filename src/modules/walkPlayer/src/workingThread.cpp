@@ -91,7 +91,7 @@ bool WorkingThread::execute_joint_command(int j)
     int    LIMIT_MIN_JERK = this->minJerkLimit;
 
     //if (REF_SPEED_FACTOR != 0 && j>=0)
-    if ( j == 0 )
+    if ( j < 0 )
     {
         bool checkMotionDone = false;
         //the whole body joint trajectory for the first step is done with min jerk controllers rather than position direct
