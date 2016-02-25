@@ -20,7 +20,7 @@ if(${CODYCO_USES_EIGEN_320})
 endif()
 
 # add_subdirectory(wholeBodyEstimator)
-add_subdirectory(iCubWalkingIK)
+add_subdirectory(icubWalkingIK)
 add_subdirectory(walkPlayer)
 
 add_subdirectory(codycoCoordinatorDemoY1)
