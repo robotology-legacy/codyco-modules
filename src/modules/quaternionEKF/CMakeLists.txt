@@ -12,6 +12,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package(MATRIX REQUIRED)
 find_package(Boost REQUIRED COMPONENTS iostreams)
 find_package(ICUB REQUIRED)
+find_package(Eigen3)
+
 # The following PkgConfig is for searching OROCOS_BFL
 find_package(PkgConfig)
 pkg_check_modules(OROCOS_BFL REQUIRED orocos-bfl)
@@ -39,6 +41,7 @@ include_directories(SYSTEM ${YARP_INCLUDE_DIRS}
                            ${MATRIX_INCLUDE}
                            ${OROCOS_BFL_INCLUDEDIR}
                            ${Boost_INCLUDE_DIRS}
+                           ${EIGEN3_INCLUDE_DIR}
                            ${PROJECT_SOURCE_DIR}/include
                            ${ctrlLib_INCLUDE_DIRS})
 
@@ -55,10 +58,10 @@ add_executable(${PROJECTNAME} ${source_dir} ${header_dir})
 
 target_link_libraries(${PROJECTNAME}
                       ${OROCOS_BFL_LIBRARIES}
-	              ${YARP_LIBRARIES}
-	              ${MATRIX_LIBS}
-	              ${Boost_LIBRARIES}
-	              ctrlLib)
+	                  ${YARP_LIBRARIES}
+	                  ${MATRIX_LIBS}
+	                  ${Boost_LIBRARIES}
+	                  ctrlLib)
 
 if(WIN32)
 INSTALL_TARGETS(/bin/Release ${PROJECTNAME})

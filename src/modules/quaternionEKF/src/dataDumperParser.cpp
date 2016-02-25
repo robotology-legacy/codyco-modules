@@ -129,7 +129,8 @@ bool dataDumperParser::parseLine(currentData &currData)
         }
         else
             if (col > 1) {
-                currData.measurement.insert_element(col - 2, atof(tmp));
+                // currData.measurement.insert_element(col - 2, atof(tmp));
+                currData.measurement(atof(tmp));
             }
         col++;
         

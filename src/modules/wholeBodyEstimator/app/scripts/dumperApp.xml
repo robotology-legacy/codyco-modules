@@ -1,0 +1,29 @@
+<application>
+	<name>dumpMTB4EKF</name>
+	<dependencies>
+		<port>/icub/right_leg/state:o</port>
+		<port>/icub/right_leg/inertialMTB</port>
+	</dependencies>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumper/icub/right_leg/state:o --type bottle </parameters>
+		<node>/jorh</node>
+		<tag>data-dumper-icub-right_leg-state-o</tag>
+	</module>
+	<connection>
+		<from>/icub/right_leg/state:o</from>
+		<to>/dumper/icub/right_leg/state:o</to>
+		<protocol>udp</protocol>
+	</connection>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumper/icub/right_leg/inertialMTB --type bottle </parameters>
+		<node>/jorh</node>
+		<tag>data-dumper-icub-right_leg-inertialMTB</tag>
+	</module>
+	<connection>
+		<from>/icub/right_leg/inertialMTB</from>
+		<to>/dumper/icub/right_leg/inertialMTB</to>
+		<protocol>udp</protocol>
+	</connection>
+</application>

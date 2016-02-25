@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<portscope rows="2" columns="2" carrier="mcast">
+<portscope rows="2" columns="2" carrier="tcp">
     <plot gridx="0"
           gridy="0"
           hspan="1"
@@ -22,8 +22,8 @@
           vspan="1"
           title="Pitch (Blue)"
           size="60"
-          minval="-10"
-          maxval="10"
+          minval="-5"
+          maxval="5"
           bgcolor="LightSlateGrey">
         <graph remote="/quaternionEKFModule/filteredOrientationEuler:o"
                index="1"
