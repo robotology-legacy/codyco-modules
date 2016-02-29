@@ -24,15 +24,40 @@
 #include <yarp/sig/Vector.h>
 
 #include <yarpWholeBodyInterface/yarpWholeBodyModel.h>
+#include <yarpWholeBodyInterface/yarpWholeBodyStates.h>
+
+#include "SplineInterpolator.h"
+#include "UtilityFunctions.h"
+
+struct walkingParams{
+    double z_c;
+    int    n_strides;
+    int    T_stride;
+    int    T_switch;
+    double step_width;
+    double step_length;
+    double step_height;
+    int    n_samples;
+    double g;
+};
 
 class iCubWalkingIKThread: public yarp::os::RateThread {
 private:
+    double m_period;
+    std::string m_walkingPatternFile;
+    walkingParams m_walkingParams;
 
 public:
-    iCubWalkingIKThread (int period);
+    iCubWalkingIKThread (int period,
+                         wbi::iWholeBodyModel* wbm,
+                         wbi::iWholeBodyStates* wbs,
+                         walkingParams params,
+                         std::string walkingPatternFile);
     bool threadInit();
     void run();
     void threadRelease();
+    void generateFeetTrajectories(std::string walkingPatternFile,
+                                  walkingParams params);
 };
 
 #endif

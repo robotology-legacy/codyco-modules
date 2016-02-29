@@ -10,13 +10,22 @@
 class iCubWalkingIKModule: public yarp::os::RFModule {
 private:
     double                          m_period;
-    iCubWalkingIKThread            *thread;
+    iCubWalkingIKThread*            thread;
+    wbi::iWholeBodyModel*           m_robotModel;
+    wbi::iWholeBodyStates*          m_robotStates;
+    std::string                     m_moduleName;
+    std::string                     m_robotName;
+    walkingParams                   m_params;
+    std::string                     m_walkingPatternFile;
+    
 public:
     iCubWalkingIKModule();
+    virtual ~iCubWalkingIKModule();
     bool configure(yarp::os::ResourceFinder &rf);
     double getPeriod(){ return m_period; }
     bool updateModule();
     bool close();
+    void closure();
 };
 
 #endif
