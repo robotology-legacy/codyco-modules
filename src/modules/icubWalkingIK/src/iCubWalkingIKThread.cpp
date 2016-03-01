@@ -4,22 +4,25 @@ iCubWalkingIKThread::iCubWalkingIKThread ( int period,
                                            wbi::iWholeBodyModel* wbm,
                                            wbi::iWholeBodyStates* wbs,
                                            walkingParams params,
+                                           yarp::os::ResourceFinder& rf,
                                            std::string walkingPatternFile) :
 RateThread(period),
 m_period(period),
 m_walkingPatternFile(walkingPatternFile),
-m_walkingParams(params)
+m_walkingParams(params),
+m_rf(rf)
 {
 
 }
 
 bool iCubWalkingIKThread::threadInit() {
+    // Generate feet trajectories
+    generateFeetTrajectories(m_walkingPatternFile, m_walkingParams);
+
     return true;
 }
 
 void iCubWalkingIKThread::run() {
-    // Generate feet trajectories
-    generateFeetTrajectories(m_walkingPatternFile, m_walkingParams);
 
 }
 
@@ -27,7 +30,7 @@ void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFil
                                                    walkingParams paramsList) {
     std::string inputfile = walkingPatternFile;
     int N = paramsList.n_samples;
-    int ts = m_period;
+    double ts = (double) m_period/1000;
     int N_steps = paramsList.n_strides;
     // interpolators for the feet and com trajectories from the patterns
     // It uses a spline interpolation made by Martin Felis
@@ -54,8 +57,8 @@ void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFil
         temp_com[3] = paramsList.z_c;
         com_pattern[i] = temp_com;
     }
-    
-    writeOnCSV(com_pattern,"com_pattern.csv");
+//    std::string com_pattern_file = m_rf.findFile("com_pattern.csv");
+    writeOnCSV(com_pattern, "com_pattern.csv");
     
     // compute useful quantities
     double finalTime = inputs[N-1][0];
@@ -70,8 +73,10 @@ void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFil
     std::vector<RigidBodyDynamics::Math::VectorNd> l_foot_traj(N_traj);
     std::vector<RigidBodyDynamics::Math::VectorNd> com_traj(N_traj);
     
-    r_foot_interp.generateFromCSV("r_foot_pattern_aug.csv");
-    l_foot_interp.generateFromCSV("l_foot_pattern_aug.csv");
+    std::string r_foot_pattern_aug_file = m_rf.findFile("r_foot_pattern_aug.csv");
+    std::string l_foot_pattern_aug_file = m_rf.findFile("l_foot_pattern_aug.csv");
+    r_foot_interp.generateFromCSV(r_foot_pattern_aug_file.c_str());
+    l_foot_interp.generateFromCSV(l_foot_pattern_aug_file.c_str());
     com_interp.generateFromCSV("com_pattern.csv");
     
     double t = 0.0;

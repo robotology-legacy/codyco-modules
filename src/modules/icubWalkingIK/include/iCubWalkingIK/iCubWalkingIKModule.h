@@ -9,7 +9,7 @@
 
 class iCubWalkingIKModule: public yarp::os::RFModule {
 private:
-    double                          m_period;
+    int                             m_period;
     iCubWalkingIKThread*            thread;
     wbi::iWholeBodyModel*           m_robotModel;
     wbi::iWholeBodyStates*          m_robotStates;

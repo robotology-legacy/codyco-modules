@@ -22,6 +22,7 @@
 #include <yarp/os/Property.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/sig/Vector.h>
+#include <yarp/os/ResourceFinder.h>
 
 #include <yarpWholeBodyInterface/yarpWholeBodyModel.h>
 #include <yarpWholeBodyInterface/yarpWholeBodyStates.h>
@@ -43,15 +44,17 @@ struct walkingParams{
 
 class iCubWalkingIKThread: public yarp::os::RateThread {
 private:
-    double m_period;
+    int m_period;
     std::string m_walkingPatternFile;
     walkingParams m_walkingParams;
+    yarp::os::ResourceFinder m_rf;
 
 public:
     iCubWalkingIKThread (int period,
                          wbi::iWholeBodyModel* wbm,
                          wbi::iWholeBodyStates* wbs,
                          walkingParams params,
+                         yarp::os::ResourceFinder& rf,
                          std::string walkingPatternFile);
     bool threadInit();
     void run();

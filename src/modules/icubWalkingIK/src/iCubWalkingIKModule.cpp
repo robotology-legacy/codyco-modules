@@ -28,7 +28,7 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
     
     m_moduleName = rf.check("name", Value("iCubWalkingIK"), "Looking for module name").asString();
     m_robotName = rf.check("robot", Value("icubGazeboSim"), "Looking for robot name").asString();
-    m_period = rf.check("period");
+    m_period = rf.check("perior", Value(10), "Looking for period").asInt();
     
     wbiProperties.fromString(rf.toString(), false);
     yarp::os::ConstString jointList = rf.find("wbi_joints_list").asString();
@@ -41,20 +41,29 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
 
     // Building robot model
     m_robotModel = new yarpWbi::yarpWholeBodyModel(m_moduleName.c_str(), wbiProperties);
-    m_robotStates = new yarpWbi::yarpWholeBodyStates(m_moduleName.c_str(), wbiProperties);
+    m_robotStates = new yarpWbi::yarpWholeBodyStates(m_moduleName.c_str(), wbiProperties, m_robotModel);
     //add joints
     m_robotModel->addJoints(iCubMainJoints);
     if (!m_robotModel->init()) {
         yError("Could not initialize WBM.");
         return false;
     }
+    m_robotStates->addEstimates(wbi::ESTIMATE_JOINT_POS, iCubMainJoints);
+    if ( !m_robotStates->init() ) {
+        yError("Could not initialize WBS");
+        return false;
+    }
     
     yarp::sig::Vector initJointConf(m_robotModel->getDoFs());
+    initJointConf.zero();
     //TODO: This 15DOF list should actually be contained in the module's configuration file
     yInfo("[iCubWalkingIKModule::configure] A model of iCub with %i DOF has been created", m_robotModel->getDoFs());
     
     //Retrieve joints configuration
-    m_robotStates->getEstimates(wbi::ESTIMATE_JOINT_POS, initJointConf.data());
+    if (!m_robotStates->getEstimates(wbi::ESTIMATE_JOINT_POS, initJointConf.data())) {
+        yError("[iCubWalkingIKModule::configure] Could not retrieve joints state");
+        return false;
+    }
     
     yInfo("[iCubWalkingIKModule::configure] Initial joint configuration \n, %s", initJointConf.toString().c_str() );
     
@@ -71,15 +80,18 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
     m_params.g = params.check("g",9.81).asDouble();
     
     // Load walking pattern file
-    std::string m_walkingPatternFile = rf.find("patternFile").asString();
+    std::string patternFile = rf.find("patternFile").asString();
+    std::string m_walkingPatternFile = rf.findFile(std::string(patternFile+".csv"));
     yInfo("Pattern file is: %s", m_walkingPatternFile.c_str());
     
     thread = new iCubWalkingIKThread(m_period,
                                      m_robotModel,
                                      m_robotStates,
                                      m_params,
+                                     rf,
                                      m_walkingPatternFile);
-    return true;
+    bool ans = thread->start();
+    return ans;
 }
 
 bool iCubWalkingIKModule::updateModule() {
