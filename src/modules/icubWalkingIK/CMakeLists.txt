@@ -19,12 +19,14 @@ set(HEADERS ${HEADERS_FOLDER}/iCubWalkingIKModule.h
             ${HEADERS_FOLDER}/iCubWalkingIKThread.h
             ${HEADERS_FOLDER}/SplineInterpolator.h
             ${HEADERS_FOLDER}/string_utils.h
-            ${HEADERS_FOLDER}/UtilityFunctions.h)
+            ${HEADERS_FOLDER}/UtilityFunctions.h
+            ${HEADERS_FOLDER}/IK.h)
 
 SET(SOURCES ${SRC_FOLDER}/main.cpp
             ${SRC_FOLDER}/iCubWalkingIKModule.cpp
             ${SRC_FOLDER}/iCubWalkingIKThread.cpp
-            ${SRC_FOLDER}/UtilityFunctions.cpp)
+            ${SRC_FOLDER}/UtilityFunctions.cpp
+            ${SRC_FOLDER}/IK.cc)
 
 source_group("Source Files" FILES ${SOURCES})
 source_group("Header Files" FILES ${HEADERS})

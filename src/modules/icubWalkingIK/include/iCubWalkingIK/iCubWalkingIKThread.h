@@ -29,6 +29,7 @@
 
 #include "SplineInterpolator.h"
 #include "UtilityFunctions.h"
+#include "IK.h"
 
 struct walkingParams{
     double z_c;
@@ -48,6 +49,8 @@ private:
     std::string m_walkingPatternFile;
     walkingParams m_walkingParams;
     yarp::os::ResourceFinder m_rf;
+    wbi::iWholeBodyModel* m_wbm;
+    wbi::iWholeBodyStates* m_wbs;
 
 public:
     iCubWalkingIKThread (int period,
@@ -61,6 +64,7 @@ public:
     void threadRelease();
     void generateFeetTrajectories(std::string walkingPatternFile,
                                   walkingParams params);
+    void inverseKinematics(walkingParams params);
 };
 
 #endif
