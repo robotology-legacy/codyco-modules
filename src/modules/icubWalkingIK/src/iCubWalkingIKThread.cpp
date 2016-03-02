@@ -23,7 +23,7 @@ bool iCubWalkingIKThread::threadInit() {
 }
 
 void iCubWalkingIKThread::run() {
-
+//    IKinematics(<#wbi::iWholeBodyModel *wbm#>, <#wbi::iWholeBodyStates *wbs#>, <#const Eigen::VectorXd &Qinit#>, <#const std::vector<unsigned int> &body_id#>, <#const std::vector<Eigen::Vector3d> &target_pos#>, <#const std::vector<Eigen::Matrix3d> &target_orientation#>, <#std::vector<Eigen::Vector3d> &body_point#>, <#Eigen::VectorXd &Qres#>)
 }
 
 void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFile,
@@ -208,6 +208,43 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     qinit[16] = -0.23;
     
     std::vector<Eigen::VectorXd> com_real(N,Eigen::Vector3d::Zero());
+
+    // IK parameters
+    double step_tol = 1e-8;
+    double lambda = 0.001;
+    double max_iter = 100;
+    
+    // for the real com
+    double mass = 0;
+    Eigen::Vector3d com_temp = Eigen::Vector3d::Zero();
+    
+    // perform some initial IK to get a closer qinit and real com
+    int trials = 10;
+    target_pos[0] = l_foot[0];
+    target_pos[1] = r_foot[0];
+    target_pos[2] = com[0];
+    
+    for(int k = 0; k < trials; k++)
+    {
+        if (!IKinematics(m_wbm, m_wbs, qinit, body_ids, target_pos, target_orientation, body_points, qres, step_tol, lambda, max_iter))
+        {
+            yWarning("iCubWalkingIKThread::inverseKinematics - Could not converge to a solution with the desired tolerance of ");
+        } /*else {
+           std::cout << "[INFO] RigidBodyDynamics::InverseKinematics - IK converged! " << std::endl;
+           }*/
+        qinit = qres;
+        
+        // Transforming COM coordinates in chest
+        int chestId;
+        m_wbm->getFrameList().idToIndex("chest", chestId);
+        wbi::Frame H_from_chest_to_root;
+        m_wbm->computeH(qinit.data(), wbi::Frame(), chestId, H_from_chest_to_root);
+        Eigen::VectorXd com_from_chest(7);
+        m_wbm->forwardKinematics(qres.data(), H_from_chest_to_root, wbi::iWholeBodyModel::COM_LINK_ID, com_from_chest.data());
+//        RigidBodyDynamics::Utils::CalcCenterOfMass(model,qinit,qdot,mass,com_temp);
+//        com_real[0] = com_temp;
+//        body_points[2] = CalcBaseToBodyCoordinates(model,qinit,body_ids[2],com_real[0]);
+    }
 
 
 }

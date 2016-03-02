@@ -146,9 +146,10 @@ bool IKinematics (wbi::iWholeBodyModel* wbm,
                     J(row, j) = G (i,j);
                 }
             }
+            //NOTE: With RBDL first, we would have ort_rates and then (target_pos - point_base)
             for (unsigned int i = 0; i < 3; i++) {
-                e[k * 6 + i + 3] = target_pos[k][i] - point_base[i];
-                e[k * 6 + i] = ort_rates[i];
+                e[k * 6 + i] = target_pos[k][i] - point_base[i];
+                e[k * 6 + i + 3] = ort_rates[i];
             }
         }
         
