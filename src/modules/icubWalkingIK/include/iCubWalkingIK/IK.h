@@ -20,23 +20,8 @@ bool IKinematics (wbi::iWholeBodyModel* wbm,
                   const std::vector<unsigned int>& body_id,
                   const std::vector<Eigen::Vector3d>& target_pos,
                   const std::vector<Eigen::Matrix3d>& target_orientation,
-                  const std::vector<Eigen::Vector3d>& body_point,
+                  std::vector<Eigen::Vector3d>& body_point,
                   Eigen::VectorXd &Qres,
                   double step_tol = 1e-8,
                   double lambda = 0.001,
                   unsigned int max_iter = 100);
-
-//bool IKinematicsQPoasis (
-//		Model &model,
-//		const VectorNd &Qinit,
-//		const std::vector<unsigned int>& body_id,
-//		const std::vector<Vector3d>& target_pos,
-//		const std::vector<VectorNd>& target_orientation,
-//		const std::vector<Vector3d>& body_point,
-//		const std::vector<VectorNd>& q_min,
-//		const std::vector<VectorNd>& q_max,
-//		VectorNd &Qres,
-//		double step_tol = 1e-6,
-//		double lambda = 0.1,
-//		unsigned int max_iter = 50
-//		);

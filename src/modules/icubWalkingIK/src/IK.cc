@@ -11,6 +11,7 @@
 //using namespace qpOASES;
 //using namespace RigidBodyDynamics;
 using namespace Eigen;
+typedef Eigen::Matrix<double,-1,-1,Eigen::RowMajor> MatrixXd_row;
 
 void getEulerAngles(Eigen::Matrix3d R, Eigen::Vector3d& angles, std::string order)
 {
@@ -88,7 +89,7 @@ bool IKinematics (wbi::iWholeBodyModel* wbm,
                   const std::vector<unsigned int>& body_id,
                   const std::vector<Eigen::Vector3d>& target_pos,
                   const std::vector<Eigen::Matrix3d>& target_orientation,
-                  const std::vector<Eigen::Vector3d>& body_point,
+                  std::vector<Eigen::Vector3d>& body_point,
                   Eigen::VectorXd &Qres,
                   double step_tol,
                   double lambda,
@@ -99,7 +100,7 @@ bool IKinematics (wbi::iWholeBodyModel* wbm,
     assert (body_id.size() == body_point.size());
     assert (body_id.size() == target_orientation.size());
     
-    Eigen::MatrixXd J = Eigen::MatrixXd::Zero(6 * body_id.size(), wbm->getDoFs());
+    Eigen::MatrixXd J = Eigen::MatrixXd::Zero(6 * body_id.size(), wbm->getDoFs()+6);
     Eigen::VectorXd e = Eigen::VectorXd::Zero(6 * body_id.size());
     
     Qres = Qinit;
@@ -111,11 +112,13 @@ bool IKinematics (wbi::iWholeBodyModel* wbm,
         
         for (unsigned int k = 0; k < body_id.size(); k++) {
             // Initializing Jacobian matrix to 6 x DOFS
-            Eigen::MatrixXd G (Eigen::MatrixXd::Zero(6, wbm->getDoFs()));
-            wbm->computeJacobian(q_init.data(), wbi::Frame(), body_id[k], G.data());
+            MatrixXd_row G (Eigen::MatrixXd::Zero(6, wbm->getDoFs() + 6));
+            //TODO: The last parameters of this method is actually being ignored at the moment. Silvio will fix this soon. Remember to test against RBDL::CalcPointJacobian6D
+            wbm->computeJacobian(q_init.data(), wbi::Frame(), body_id[k], G.data(), body_point[k].data());
 //            CalcPointJacobian6D (model, Qres, body_id[k], body_point[k], G, false);
             
             // Calculate coordinates of a point in the root reference frame
+            //TODO: Once Silvio will update this method, it will also take the body_point[k] values.
             Eigen::VectorXd point_pose(7);
             wbm->forwardKinematics(q_init.data(), wbi::Frame(), body_id[k], point_pose.data());
             Eigen::Vector3d point_base = point_pose.head(3);
@@ -130,13 +133,15 @@ bool IKinematics (wbi::iWholeBodyModel* wbm,
             Eigen::Matrix3d R = aa.toRotationMatrix();
 //            Eigen::Matrix3d R = CalcBodyWorldOrientation(model, Qres, body_id[k], false);
             
+            // Error in orientation as the corresponding angular velocity of the error rotation matrix
             Eigen::Vector3d ort_rates = Eigen::Vector3d::Zero();
             
+            //TODO: Thoroughly check the following equation!!! Possible source of error
             if(!target_orientation[k].isZero(0))
                 ort_rates = R.transpose()*CalcAngularVelocityfromMatrix(R*target_orientation[k].transpose());
             
             for (unsigned int i = 0; i < 6; i++) {
-                for (unsigned int j = 0; j < wbm->getDoFs(); j++) {
+                for (unsigned int j = 0; j < wbm->getDoFs()+6; j++) {
                     unsigned int row = k * 6 + i;
                     J(row, j) = G (i,j);
                 }
