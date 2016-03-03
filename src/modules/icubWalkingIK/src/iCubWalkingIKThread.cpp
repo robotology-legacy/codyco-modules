@@ -71,9 +71,9 @@ void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFil
     int N_traj = ceil(finalTime/ts)+1;
     
     // trajectories
-    std::vector<RigidBodyDynamics::Math::VectorNd> r_foot_traj(N_traj);
-    std::vector<RigidBodyDynamics::Math::VectorNd> l_foot_traj(N_traj);
-    std::vector<RigidBodyDynamics::Math::VectorNd> com_traj(N_traj);
+    std::vector<Eigen::VectorXd> r_foot_traj(N_traj);
+    std::vector<Eigen::VectorXd> l_foot_traj(N_traj);
+    std::vector<Eigen::VectorXd> com_traj(N_traj);
     
     std::string r_foot_pattern_aug_file = m_rf.findFile("r_foot_pattern_aug.csv");
     std::string l_foot_pattern_aug_file = m_rf.findFile("l_foot_pattern_aug.csv");
@@ -142,7 +142,8 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     int N = N_steps*step_N + step_N + 1;
     
     // quantities to store trajectories read from file
-    RigidBodyDynamics::Math::VectorNd temp = RigidBodyDynamics::Math::VectorNd::Zero(3);
+    Eigen::VectorXd temp(3);
+    temp.Zero();
     std::vector<Eigen::VectorXd> l_foot(N,temp);
     std::vector<Eigen::VectorXd> r_foot(N,temp);
     std::vector<Eigen::VectorXd> com(N,temp);
