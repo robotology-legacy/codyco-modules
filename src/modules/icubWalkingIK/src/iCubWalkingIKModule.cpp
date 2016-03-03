@@ -112,4 +112,12 @@ void iCubWalkingIKModule::closure() {
         delete thread;
         thread = 0;
     }
+    if (m_robotModel) {
+        delete m_robotModel;
+        m_robotModel = 0;
+    }
+    if (m_robotStates) {
+        delete m_robotStates;
+        m_robotStates = 0;
+    }
 }
