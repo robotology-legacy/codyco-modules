@@ -23,6 +23,7 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/os/ResourceFinder.h>
+#include <yarp/os/Time.h>
 
 #include <yarpWholeBodyInterface/yarpWholeBodyModel.h>
 #include <yarpWholeBodyInterface/yarpWholeBodyStates.h>

@@ -1,5 +1,6 @@
 #include <yarp/os/LogStream.h>
 #include <yarp/os/Port.h>
+#include <yarp/os/Time.h>
 #include "iCubWalkingIKModule.h"
 
 
@@ -42,7 +43,7 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
 
     // Building robot model
     m_robotModel = new yarpWbi::yarpWholeBodyModel(m_moduleName.c_str(), wbiProperties);
-    m_robotStates = new yarpWbi::yarpWholeBodyStates(m_moduleName.c_str(), wbiProperties, m_robotModel);
+    m_robotStates = new yarpWbi::yarpWholeBodyStates(m_moduleName.c_str(), wbiProperties);
     //add joints
     m_robotModel->addJoints(iCubMainJoints);
     if (!m_robotModel->init()) {
@@ -60,6 +61,8 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
     //TODO: This 15DOF list should actually be contained in the module's configuration file
     yInfo("[iCubWalkingIKModule::configure] A model of iCub with %i DOF has been created", m_robotModel->getDoFs());
     
+    yInfo("Waiting three seconds before getting first joint state");
+    yarp::os::Time::delay(1);
     //Retrieve joints configuration
     if (!m_robotStates->getEstimates(wbi::ESTIMATE_JOINT_POS, initJointConf.data())) {
         yError("[iCubWalkingIKModule::configure] Could not retrieve joints state");

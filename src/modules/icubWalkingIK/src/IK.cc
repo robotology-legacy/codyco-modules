@@ -103,24 +103,25 @@ bool IKinematics (wbi::iWholeBodyModel* wbm,
     Eigen::MatrixXd J = Eigen::MatrixXd::Zero(6 * body_id.size(), wbm->getDoFs()+6);
     Eigen::VectorXd e = Eigen::VectorXd::Zero(6 * body_id.size());
     
-    Qres = Qinit;
+    Eigen::VectorXd q_init(wbm->getDoFs());
+    wbs->getEstimates(wbi::ESTIMATE_JOINT_POS, q_init.data());
+
+    Qres = q_init;
     
     for (unsigned int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
 //        UpdateKinematicsCustom (model, &Qres, NULL, NULL);
-        Eigen::VectorXd q_init(wbm->getDoFs());
-        wbs->getEstimates(wbi::ESTIMATE_JOINT_POS, q_init.data());
         
         for (unsigned int k = 0; k < body_id.size(); k++) {
             // Initializing Jacobian matrix to 6 x DOFS
             MatrixXd_row G (Eigen::MatrixXd::Zero(6, wbm->getDoFs() + 6));
             //TODO: The last parameters of this method is actually being ignored at the moment. Silvio will fix this soon. Remember to test against RBDL::CalcPointJacobian6D
-            wbm->computeJacobian(q_init.data(), wbi::Frame(), body_id[k], G.data(), body_point[k].data());
+            wbm->computeJacobian(Qres.data(), wbi::Frame(), body_id[k], G.data(), body_point[k].data());
 //            CalcPointJacobian6D (model, Qres, body_id[k], body_point[k], G, false);
             
             // Calculate coordinates of a point in the root reference frame
             //TODO: Once Silvio will update this method, it will also take the body_point[k] values.
             Eigen::VectorXd point_pose(7);
-            wbm->forwardKinematics(q_init.data(), wbi::Frame(), body_id[k], point_pose.data());
+            wbm->forwardKinematics(Qres.data(), wbi::Frame(), body_id[k], point_pose.data());
             Eigen::Vector3d point_base = point_pose.head(3);
 //            Eigen::Vector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
             
@@ -171,8 +172,9 @@ bool IKinematics (wbi::iWholeBodyModel* wbm,
         Eigen::MatrixXd JJT_Ek_wnI = J * J.transpose() + Ek;
         
         Eigen::VectorXd delta_theta = J.transpose() * JJT_Ek_wnI.colPivHouseholderQr().solve (e);
-        
-        Qres = Qres + delta_theta;
+//        std::cerr << "Size of Qres: " << Qres.size() << " while size of delta_theta " << delta_theta.size() << std::endl;
+        //TODO: Here, size of Qres is 15 while size delta is 21
+        Qres = Qres + delta_theta.tail(15);
         if (delta_theta.norm() < step_tol) {
             return true;
         }

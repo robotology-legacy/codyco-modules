@@ -1,9 +1,13 @@
-#ifndef _UTILITIES
-#define _UTILITIES
+#ifndef UTILITIES_H
+#define UTILITIES_H
 
 #include <Eigen/Core>
 #include <iostream>
-#include <rbdl/rbdl.h>
+#include <vector>
+#include <sstream>
+#include <fstream>
+#include <stdio.h>
+#include <string>
 
 #define PI 3.14159265359
 #define DEG2RAD(r) (r*PI/180)

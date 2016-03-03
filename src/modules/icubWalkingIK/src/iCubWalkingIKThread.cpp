@@ -26,6 +26,7 @@ bool iCubWalkingIKThread::threadInit() {
 
 void iCubWalkingIKThread::run() {
     inverseKinematics(m_walkingParams);
+    this->stop();
 }
 
 void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFile,
@@ -135,7 +136,7 @@ void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFil
 
 void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     double step_duration = params.T_stride;
-    double ts = m_period/1000;
+    double ts = (double) m_period/1000;
     int N_steps = params.n_strides;
     
     int step_N = step_duration/ts;
@@ -200,14 +201,15 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     target_orientation[1] = CalcOrientationEulerXYZ(r_foot_ort,ort_order); //r_foot
     target_orientation[2] = Eigen::Matrix3d::Zero();//CalcOrientationEulerXYZ(com_ort,ort_order); //root_link
     
+    //TODO: Not setting to anything qinit for now, since it will be read inside IKinematics from the current configuration of the robot.
     // set initial position close to the target to avoid weird solutions
-    qinit[2] = 0.6;
-    qinit[6] = 0.54;
-    qinit[9] = -0.57;
-    qinit[10] = -0.23;
-    qinit[12] = 0.54;
-    qinit[15] = -0.57;
-    qinit[16] = -0.23;
+//    qinit[2] = 0.6;
+//    qinit[6] = 0.54;
+//    qinit[9] = -0.57;
+//    qinit[10] = -0.23;
+//    qinit[12] = 0.54;
+//    qinit[15] = -0.57;
+//    qinit[16] = -0.23;
     
     std::vector<Eigen::VectorXd> com_real(N,Eigen::Vector3d::Zero());
 
@@ -327,6 +329,8 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     writeOnCSV(res_deg_cut,m_outputDir + "/test_ik_pg.csv");
     writeOnCSV(com_real,m_outputDir + "/real_com_traj.csv");
     writeOnCSV(com_l_sole,m_outputDir + "/com_l_sole.csv");
+    yInfo("Waiting 10 seconds before restarting ... " );
+    yarp::os::Time::delay(10.0);
 
 }
 
