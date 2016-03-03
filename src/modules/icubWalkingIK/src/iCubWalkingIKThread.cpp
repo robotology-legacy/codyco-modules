@@ -142,8 +142,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     int N = N_steps*step_N + step_N + 1;
     
     // quantities to store trajectories read from file
-    Eigen::VectorXd temp(3);
-    temp.Zero();
+    Eigen::VectorXd temp = Eigen::VectorXd::Zero(3);
     std::vector<Eigen::VectorXd> l_foot(N,temp);
     std::vector<Eigen::VectorXd> r_foot(N,temp);
     std::vector<Eigen::VectorXd> com(N,temp);
