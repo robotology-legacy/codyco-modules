@@ -324,11 +324,14 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     }
     
     // write out the resulting joint trajectories for meshup visualization and for the robot
-    yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/test_ik_pg_meshup.csv").c_str());
     writeOnCSV(time_vec_new,res,m_outputDir + "/test_ik_pg_meshup.csv","");//meshup_header);
+    yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/test_ik_pg_meshup.csv").c_str());
     writeOnCSV(res_deg_cut,m_outputDir + "/test_ik_pg.csv");
+    yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/test_ik_pg.csv").c_str());
     writeOnCSV(com_real,m_outputDir + "/real_com_traj.csv");
+    yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/real_com_traj.csv").c_str());
     writeOnCSV(com_l_sole,m_outputDir + "/com_l_sole.csv");
+    yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/com_l_sole.csv").c_str());
     yInfo("Waiting 10 seconds before restarting ... " );
     yarp::os::Time::delay(10.0);
 
