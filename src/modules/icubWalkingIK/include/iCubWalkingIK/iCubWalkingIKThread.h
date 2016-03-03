@@ -51,6 +51,7 @@ private:
     yarp::os::ResourceFinder m_rf;
     wbi::iWholeBodyModel* m_wbm;
     wbi::iWholeBodyStates* m_wbs;
+    std::string m_outputDir;
 
 public:
     iCubWalkingIKThread (int period,
@@ -58,7 +59,8 @@ public:
                          wbi::iWholeBodyStates* wbs,
                          walkingParams params,
                          yarp::os::ResourceFinder& rf,
-                         std::string walkingPatternFile);
+                         std::string walkingPatternFile,
+                         std::string outputDir);
     bool threadInit();
     void run();
     void threadRelease();

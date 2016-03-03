@@ -5,14 +5,16 @@ iCubWalkingIKThread::iCubWalkingIKThread ( int period,
                                            wbi::iWholeBodyStates* wbs,
                                            walkingParams params,
                                            yarp::os::ResourceFinder& rf,
-                                           std::string walkingPatternFile) :
+                                           std::string walkingPatternFile,
+                                           std::string outputDir) :
 RateThread(period),
 m_period(period),
 m_walkingPatternFile(walkingPatternFile),
 m_walkingParams(params),
 m_rf(rf),
 m_wbm(wbm),
-m_wbs(wbs)
+m_wbs(wbs),
+m_outputDir(outputDir)
 { }
 
 bool iCubWalkingIKThread::threadInit() {
@@ -245,7 +247,86 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
 //        com_real[0] = com_temp;
 //        body_points[2] = CalcBaseToBodyCoordinates(model,qinit,body_ids[2],com_real[0]);
     }
+    
+    // perform inverse kinematics using all the defined points and the target positions as from the planned feet and com trajectories
+    double t = 0;
+    for(int i = 0; i < N; i++)
+    {
+        // Retrieve real COM in chest coordinates
+        int chestId;
+        m_wbm->getFrameList().idToIndex("chest", chestId);
+        wbi::Frame H_from_chest_to_root;
+        m_wbm->computeH(qinit.data(), wbi::Frame(), chestId, H_from_chest_to_root);
+        Eigen::VectorXd com_from_chest(7);
+        m_wbm->forwardKinematics(qres.data(), H_from_chest_to_root, wbi::iWholeBodyModel::COM_LINK_ID, com_from_chest.data());
+        
+//        // use the real com as body point
+//        RigidBodyDynamics::Utils::CalcCenterOfMass(model,qinit,qdot,mass,com_temp);
+//        com_real[i] = com_temp;
+//        body_points[2] = CalcBaseToBodyCoordinates(model,qinit,body_ids[2],com_real[i]);
+        
+        
+        target_pos[0] = l_foot[i];
+        target_pos[1] = r_foot[i];
+        target_pos[2] = com[i];
+        time_vec[i] = t;
+        if (!IKinematics(m_wbm, m_wbs, qinit, body_ids, target_pos, target_orientation, body_points, qres, step_tol, lambda, max_iter))
+        {
+            yWarning("iCubWalkingIKThread::inverseKinematics - Could not converge to a solution with the desired tolerance of %lf", step_tol);
+        }
+        
+        res[i] = qres;
+        qinit = qres;
+        t += ts;
+    }
+    
+    // convert into degrees
+    // store all the resulting configurations
+    std::vector<Eigen::VectorXd> res_deg(N,qres);
+    Eigen::VectorXd qres_no_fb(qres.size()-6);
+    std::vector<Eigen::VectorXd> res_deg_cut(N,qres_no_fb);
+    Eigen::VectorXd time_vec_new(N);
+    t = 0;
+    for(int i = 0; i < N; i++)
+    {
+        time_vec_new[i] = t;
+        for(int j = 0; j < qres.size(); j++)
+            res_deg[i][j] = res[i][j];
 
+        t += ts;
+    }
+
+    // store the q only without floating base
+    for(int i = 0; i < N; i++)
+    {
+        for(int j = 6; j < qres.size(); j++)
+            res_deg_cut[i][j-6] = res_deg[i][j];
+    }
+
+    // Change the reference of the com from root to l_sole as per real iCub convention for torque control
+    std::vector<Eigen::VectorXd> com_l_sole(N,Eigen::Vector3d::Zero());
+    int l_sole_idx;
+    m_wbm->getFrameList().idToIndex("l_sole", l_sole_idx);
+    wbi::Frame H_from_l_sole_to_root;
+    m_wbm->computeH(qinit.data(), wbi::Frame(), l_sole_idx, H_from_l_sole_to_root);
+    Eigen::VectorXd l_sole_pos = Eigen::Map<Eigen::VectorXd>(H_from_l_sole_to_root.p,3,1);
+    std::cout << "l_sole pos wrt root: " << H_from_l_sole_to_root.p << std::endl;
+    //TODO: This copying needs to be double-checked.
+    Eigen::MatrixXd l_sole_ort = Eigen::Map<Eigen::MatrixXd>(H_from_l_sole_to_root.R.data,3,3);
+    Eigen::Vector3d l_foot_ang = Eigen::Vector3d::Zero();
+    getEulerAngles(l_sole_ort, l_foot_ang, ort_order);
+    std::cout << "l_sole rot wrt root: " << l_foot_ang.transpose() << std::endl;
+    for(int i = 0; i < N; i++)
+    {
+        com_l_sole[i] = l_sole_ort*com[i] + l_sole_pos;
+    }
+    
+    // write out the resulting joint trajectories for meshup visualization and for the robot
+    yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/test_ik_pg_meshup.csv").c_str());
+    writeOnCSV(time_vec_new,res,m_outputDir + "/test_ik_pg_meshup.csv","");//meshup_header);
+    writeOnCSV(res_deg_cut,m_outputDir + "/test_ik_pg.csv");
+    writeOnCSV(com_real,m_outputDir + "/real_com_traj.csv");
+    writeOnCSV(com_l_sole,m_outputDir + "/com_l_sole.csv");
 
 }
 

@@ -28,7 +28,8 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
     
     m_moduleName = rf.check("name", Value("iCubWalkingIK"), "Looking for module name").asString();
     m_robotName = rf.check("robot", Value("icubGazeboSim"), "Looking for robot name").asString();
-    m_period = rf.check("perior", Value(10), "Looking for period").asInt();
+    m_period = rf.check("period", Value(10), "Looking for period").asInt();
+    m_outputDir = rf.check("outputDir", Value(""), "Output directory to store results").asString();
     
     wbiProperties.fromString(rf.toString(), false);
     yarp::os::ConstString jointList = rf.find("wbi_joints_list").asString();
@@ -89,7 +90,8 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
                                      m_robotStates,
                                      m_params,
                                      rf,
-                                     m_walkingPatternFile);
+                                     m_walkingPatternFile,
+                                     m_outputDir);
     bool ans = thread->start();
     return ans;
 }

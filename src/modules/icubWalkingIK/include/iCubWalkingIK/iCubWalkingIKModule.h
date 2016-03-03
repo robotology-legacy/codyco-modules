@@ -17,6 +17,7 @@ private:
     std::string                     m_robotName;
     walkingParams                   m_params;
     std::string                     m_walkingPatternFile;
+    std::string                     m_outputDir;
     
 public:
     iCubWalkingIKModule();
