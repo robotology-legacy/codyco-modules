@@ -121,7 +121,7 @@ bool IKinematics (wbi::iWholeBodyModel* wbm,
             // Calculate coordinates of a point in the root reference frame
             //TODO: Once Silvio will update this method, it will also take the body_point[k] values.
             Eigen::VectorXd point_pose(7);
-            wbm->forwardKinematics(Qres.data(), wbi::Frame(), body_id[k], point_pose.data());
+            wbm->forwardKinematics(Qres.data(), wbi::Frame(), body_id[k], point_pose.data(), body_point[k].data());
             Eigen::Vector3d point_base = point_pose.head(3);
 //            Eigen::Vector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
             
