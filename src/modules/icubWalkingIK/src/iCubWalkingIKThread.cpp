@@ -262,6 +262,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         m_wbm->computeH(qinit.data(), wbi::Frame(), chestId, H_from_chest_to_root);
         Eigen::VectorXd com_from_chest(7);
         m_wbm->forwardKinematics(qres.data(), H_from_chest_to_root, wbi::iWholeBodyModel::COM_LINK_ID, com_from_chest.data());
+        body_points[2] = com_from_chest;
         
 //        // use the real com as body point
 //        RigidBodyDynamics::Utils::CalcCenterOfMass(model,qinit,qdot,mass,com_temp);
