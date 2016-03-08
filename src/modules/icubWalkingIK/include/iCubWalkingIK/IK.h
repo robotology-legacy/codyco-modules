@@ -2,20 +2,15 @@
 #include <boost/concept_check.hpp>
 #include <yarpWholeBodyInterface/yarpWholeBodyModel.h>
 #include <yarpWholeBodyInterface/yarpWholeBodyStates.h>
-
-//#include <qpOASES.hpp>
-#include <rbdl/rbdl.h>
-
-//using namespace qpOASES;
-//using namespace RigidBodyDynamics;
-//using namespace RigidBodyDynamics::Math;
+#include "floatingBaseOdometry.h"
 
 void getEulerAngles(Eigen::Matrix3d R, Eigen::Vector3d& angles, std::string order);
 Eigen::MatrixXd CalcOrientationEulerXYZ (const Eigen::VectorXd &input, std::string order);
 Eigen::Vector3d CalcAngularVelocityfromMatrix (const Eigen::Matrix3d &RotMat);
 
-bool IKinematics (wbi::iWholeBodyModel* wbm,
-                  wbi::iWholeBodyStates* wbs,
+bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
+                  yarpWbi::yarpWholeBodyStates* wbs,
+                  floatingBaseOdometry* odometry,
                   const Eigen::VectorXd &Qinit,
                   const std::vector<unsigned int>& body_id,
                   const std::vector<Eigen::Vector3d>& target_pos,

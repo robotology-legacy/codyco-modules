@@ -7,6 +7,8 @@
 #include <Eigen/LU>
 #include <Eigen/SVD>
 #include <Eigen/Geometry>
+#include <iCub/iDynTree/DynTree.h>
+#include <iDynTree/Estimation/simpleLeggedOdometry.h>
 
 //using namespace qpOASES;
 //using namespace RigidBodyDynamics;
@@ -83,8 +85,9 @@ Eigen::Vector3d CalcAngularVelocityfromMatrix (const Eigen::Matrix3d &RotMat) {
 }
 
 
-bool IKinematics (wbi::iWholeBodyModel* wbm,
-                  wbi::iWholeBodyStates* wbs,
+bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
+                  yarpWbi::yarpWholeBodyStates* wbs,
+                  floatingBaseOdometry * odometry,
                   const Eigen::VectorXd &Qinit,
                   const std::vector<unsigned int>& body_id,
                   const std::vector<Eigen::Vector3d>& target_pos,
@@ -103,10 +106,7 @@ bool IKinematics (wbi::iWholeBodyModel* wbm,
     Eigen::MatrixXd J = Eigen::MatrixXd::Zero(6 * body_id.size(), wbm->getDoFs()+6);
     Eigen::VectorXd e = Eigen::VectorXd::Zero(6 * body_id.size());
     
-    Eigen::VectorXd q_init(wbm->getDoFs());
-    wbs->getEstimates(wbi::ESTIMATE_JOINT_POS, q_init.data());
-
-    Qres = q_init;
+    Qres = Qinit;
     
     for (unsigned int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
 //        UpdateKinematicsCustom (model, &Qres, NULL, NULL);
@@ -114,13 +114,18 @@ bool IKinematics (wbi::iWholeBodyModel* wbm,
         for (unsigned int k = 0; k < body_id.size(); k++) {
             // Initializing Jacobian matrix to 6 x DOFS
             MatrixXd_row G (Eigen::MatrixXd::Zero(6, wbm->getDoFs() + 6));
-            //TODO: The last parameters of this method is actually being ignored at the moment. Silvio will fix this soon. Remember to test against RBDL::CalcPointJacobian6D
-            wbm->computeJacobian(Qres.data(), wbi::Frame(), body_id[k], G.data(), body_point[k].data());
+            wbi::Frame base_H_world;
+            //TODO: Instead of wbi::Frame() the actual rototranslation from world to root must be passed to this method!!!!
+            // Update odometry and compute world_H_floatingbase
+            odometry->update(Qres.data());
+            wbi::Frame world_H_floatingbase;
+            odometry->get_world_H_floatingbase(world_H_floatingbase);
+            wbm->computeJacobian(Qres.data(), world_H_floatingbase, body_id[k], G.data(), body_point[k].data());
 //            CalcPointJacobian6D (model, Qres, body_id[k], body_point[k], G, false);
             
             // Calculate coordinates of a point in the root reference frame
-            //TODO: Once Silvio will update this method, it will also take the body_point[k] values.
             Eigen::VectorXd point_pose(7);
+            //TODO: Instead of wbi::Frame() the actual rototranslation from world to root must be passed to this method!!!!
             wbm->forwardKinematics(Qres.data(), wbi::Frame(), body_id[k], point_pose.data(), body_point[k].data());
             Eigen::Vector3d point_base = point_pose.head(3);
 //            Eigen::Vector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
@@ -156,7 +161,7 @@ bool IKinematics (wbi::iWholeBodyModel* wbm,
         
         // abort if we are getting "close"
         if (e.norm() < step_tol) {
-            LOG << "Reached target close enough after " << ik_iter << " steps" << std::endl;
+            std::cerr << "Reached target close enough after " << ik_iter << " steps" << std::endl;
             return true;
         }
         

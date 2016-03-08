@@ -31,6 +31,7 @@
 #include "SplineInterpolator.h"
 #include "UtilityFunctions.h"
 #include "IK.h"
+#include "floatingBaseOdometry.h"
 
 struct walkingParams{
     double z_c;
@@ -50,14 +51,15 @@ private:
     std::string m_walkingPatternFile;
     walkingParams m_walkingParams;
     yarp::os::ResourceFinder m_rf;
-    wbi::iWholeBodyModel* m_wbm;
-    wbi::iWholeBodyStates* m_wbs;
+    yarpWbi::yarpWholeBodyModel* m_wbm;
+    yarpWbi::yarpWholeBodyStates* m_wbs;
     std::string m_outputDir;
+    floatingBaseOdometry* m_odometry;
 
 public:
     iCubWalkingIKThread (int period,
-                         wbi::iWholeBodyModel* wbm,
-                         wbi::iWholeBodyStates* wbs,
+                         yarpWbi::yarpWholeBodyModel* wbm,
+                         yarpWbi::yarpWholeBodyStates* wbs,
                          walkingParams params,
                          yarp::os::ResourceFinder& rf,
                          std::string walkingPatternFile,

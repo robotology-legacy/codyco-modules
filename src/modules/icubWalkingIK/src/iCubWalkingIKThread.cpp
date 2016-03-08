@@ -1,8 +1,8 @@
 #include "iCubWalkingIKThread.h"
 
 iCubWalkingIKThread::iCubWalkingIKThread ( int period,
-                                           wbi::iWholeBodyModel* wbm,
-                                           wbi::iWholeBodyStates* wbs,
+                                           yarpWbi::yarpWholeBodyModel* wbm,
+                                           yarpWbi::yarpWholeBodyStates* wbs,
                                            walkingParams params,
                                            yarp::os::ResourceFinder& rf,
                                            std::string walkingPatternFile,
@@ -20,7 +20,14 @@ m_outputDir(outputDir)
 bool iCubWalkingIKThread::threadInit() {
     // Generate feet trajectories
     generateFeetTrajectories(m_walkingPatternFile, m_walkingParams);
-
+    
+    m_odometry = new floatingBaseOdometry(m_wbm);
+    // Initialize floating base odometry
+    if ( !m_odometry->init() ) {
+        yError("iCubWalkingIKThread could not initialize the odometry object");
+        return false;
+    }
+    
     return true;
 }
 
@@ -214,6 +221,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     std::vector<Eigen::VectorXd> com_real(N,Eigen::Vector3d::Zero());
 
     // IK parameters
+    //TODO: Put these parameters in the configuration file
     double step_tol = 1e-8;
     double lambda = 0.001;
     double max_iter = 100;
@@ -228,11 +236,13 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     target_pos[1] = r_foot[0];
     target_pos[2] = com[0];
     
+    m_wbs->getEstimates(wbi::ESTIMATE_JOINT_POS, qinit.data());
+
     for(int k = 0; k < trials; k++)
     {
-        if (!IKinematics(m_wbm, m_wbs, qinit, body_ids, target_pos, target_orientation, body_points, qres, step_tol, lambda, max_iter))
+        if (!IKinematics(m_wbm, m_wbs, m_odometry, qinit, body_ids, target_pos, target_orientation, body_points, qres, step_tol, lambda, max_iter))
         {
-            yWarning("iCubWalkingIKThread::inverseKinematics - Could not converge to a solution with the desired tolerance of ");
+            yWarning("iCubWalkingIKThread::inverseKinematics \n COM Inv. Kinematics \n - Could not converge to a solution with the desired tolerance of %lf", step_tol);
         } /*else {
            std::cout << "[INFO] RigidBodyDynamics::InverseKinematics - IK converged! " << std::endl;
            }*/
@@ -245,7 +255,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         m_wbm->computeH(qinit.data(), wbi::Frame(), chestId, H_from_chest_to_root);
         Eigen::VectorXd com_from_chest(7);
         m_wbm->forwardKinematics(qres.data(), H_from_chest_to_root, wbi::iWholeBodyModel::COM_LINK_ID, com_from_chest.data());
-        body_points[2] = com_from_chest;
+        body_points[2] = com_from_chest.head(3);
 //        RigidBodyDynamics::Utils::CalcCenterOfMass(model,qinit,qdot,mass,com_temp);
 //        com_real[0] = com_temp;
 //        body_points[2] = CalcBaseToBodyCoordinates(model,qinit,body_ids[2],com_real[0]);
@@ -262,7 +272,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         m_wbm->computeH(qinit.data(), wbi::Frame(), chestId, H_from_chest_to_root);
         Eigen::VectorXd com_from_chest(7);
         m_wbm->forwardKinematics(qres.data(), H_from_chest_to_root, wbi::iWholeBodyModel::COM_LINK_ID, com_from_chest.data());
-        body_points[2] = com_from_chest;
+        body_points[2] = com_from_chest.head(3);
         
 //        // use the real com as body point
 //        RigidBodyDynamics::Utils::CalcCenterOfMass(model,qinit,qdot,mass,com_temp);
@@ -274,9 +284,9 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         target_pos[1] = r_foot[i];
         target_pos[2] = com[i];
         time_vec[i] = t;
-        if (!IKinematics(m_wbm, m_wbs, qinit, body_ids, target_pos, target_orientation, body_points, qres, step_tol, lambda, max_iter))
+        if (!IKinematics(m_wbm, m_wbs, m_odometry, qinit, body_ids, target_pos, target_orientation, body_points, qres, step_tol, lambda, max_iter))
         {
-            yWarning("iCubWalkingIKThread::inverseKinematics - Could not converge to a solution with the desired tolerance of %lf", step_tol);
+            yWarning("iCubWalkingIKThread::inverseKinematics \n Inv. Kinematics for all targets \n Could not converge to a solution with the desired tolerance of %lf", step_tol);
         }
         
         res[i] = qres;

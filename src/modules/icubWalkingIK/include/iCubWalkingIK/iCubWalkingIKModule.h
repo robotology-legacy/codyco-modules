@@ -11,8 +11,8 @@ class iCubWalkingIKModule: public yarp::os::RFModule {
 private:
     int                             m_period;
     iCubWalkingIKThread*            thread;
-    wbi::iWholeBodyModel*           m_robotModel;
-    wbi::iWholeBodyStates*          m_robotStates;
+    yarpWbi::yarpWholeBodyModel*           m_robotModel;
+    yarpWbi::yarpWholeBodyStates*          m_robotStates;
     std::string                     m_moduleName;
     std::string                     m_robotName;
     walkingParams                   m_params;
