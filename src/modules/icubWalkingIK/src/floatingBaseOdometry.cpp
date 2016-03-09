@@ -28,6 +28,7 @@ bool floatingBaseOdometry::init(std::string initial_world_frame_position,
     ok = m_floatingBase.init(undirected_tree,
                              initial_world_frame_position,
                              initial_fixed_link);
+    //FIXME: This could be done also by init in simpleLeggedOdometry
     this->m_current_fixed_link_name = initial_fixed_link;
     this->m_floating_base_frame_index = m_floatingBase.getDynTree().getFrameIndex(floating_base_frame_index);
     
@@ -53,9 +54,14 @@ bool floatingBaseOdometry::init(std::string initial_world_frame_position,
 
 }
 
-void floatingBaseOdometry::update(double* q_wbm){
+void floatingBaseOdometry::update(double* q_wbm, bool switch_foot=false){
     // Read robot status
 //    double * q_dyntree = m_joint_status->getJointPosKDL().data.data();
+    if (switch_foot)
+        if ( !changeFixedFoot() )
+        {
+            yError("[floatingBaseOdometry:update()] Could not change fixed frame");
+        }
     yarp::sig::Vector q_dyntree(m_robot_model->getNrOfDOFs());
     m_wbm->convertQ(q_wbm, q_dyntree);
     m_joint_status->setJointPosYARP(q_dyntree);
@@ -76,5 +82,9 @@ void floatingBaseOdometry::update(double* q_wbm){
 
 void floatingBaseOdometry::get_world_H_floatingbase(wbi::Frame &H) {
     H.set4x4Matrix(m_world_H_floatingBase.data());
+}
+
+bool floatingBaseOdometry::changeFixedFoot(){
+    return m_floatingBase.changeFixedFoot();
 }
 

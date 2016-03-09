@@ -117,7 +117,7 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
             wbi::Frame base_H_world;
             //TODO: Instead of wbi::Frame() the actual rototranslation from world to root must be passed to this method!!!!
             // Update odometry and compute world_H_floatingbase
-            odometry->update(Qres.data());
+            odometry->update(Qres.data(), false);
             wbi::Frame world_H_floatingbase;
             odometry->get_world_H_floatingbase(world_H_floatingbase);
             wbm->computeJacobian(Qres.data(), world_H_floatingbase, body_id[k], G.data(), body_point[k].data());
