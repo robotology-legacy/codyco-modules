@@ -65,10 +65,11 @@ void floatingBaseOdometry::update(double* q_wbm, bool switch_foot=false){
             yError("[floatingBaseOdometry:update()] Could not change fixed frame");
         }
     yarp::sig::Vector q_dyntree(m_robot_model->getNrOfDOFs());
+    q_dyntree.zero();
     m_wbm->convertQ(q_wbm, q_dyntree);
     m_joint_status->setJointPosYARP(q_dyntree);
     // Update yarp vectors
-    m_joint_status->updateYarpBuffers();
+    m_joint_status->updateKDLBuffers();
     // Read joint positions, velocities and accelerations.
     m_floatingBase.setJointsState(m_joint_status->getJointPosKDL(),
                                   m_joint_status->getJointVelKDL(),

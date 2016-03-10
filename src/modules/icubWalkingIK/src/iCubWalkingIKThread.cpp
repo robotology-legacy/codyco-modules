@@ -24,9 +24,14 @@ bool iCubWalkingIKThread::threadInit() {
     m_odometry = new floatingBaseOdometry(m_wbm);
     // Initialize floating base odometry
     //FIXME: This initial offset should actually be computed as half the distance between r_sole and l_sole
-    KDL::Vector initial_world_offset( 0.0, -0.08, 0.0);
+    KDL::Vector initial_world_offset( 0.0, 0.0, 0.0);
+    
+    // Initial (current) roboto configuation
+    yarp::sig::Vector initial_configuration_wbm(m_wbm->getDoFs());
+    m_wbs->getEstimates(wbi::ESTIMATE_JOINT_POS, initial_configuration_wbm.data());
+
     if ( !m_odometry->init("l_sole",
-                           "r_sole",
+                           "l_sole",
                            "root_link",
                            initial_world_offset) ) {
         yError("iCubWalkingIKThread could not initialize the odometry object");
