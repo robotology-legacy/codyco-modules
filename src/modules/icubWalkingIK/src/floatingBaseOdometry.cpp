@@ -19,7 +19,8 @@ floatingBaseOdometry::~floatingBaseOdometry(){
 
 bool floatingBaseOdometry::init(std::string initial_world_frame_position,
                                 std::string initial_fixed_link,
-                                std::string floating_base_frame_index){
+                                std::string floating_base_frame_index,
+                                KDL::Vector initial_world_offset){
     bool ok;
 //    std::string initial_world_frame_position = "l_sole";
 //    std::string initial_fixed_link = "r_sole";
@@ -27,7 +28,8 @@ bool floatingBaseOdometry::init(std::string initial_world_frame_position,
     KDL::CoDyCo::UndirectedTree undirected_tree = this->m_robot_model->getKDLUndirectedTree();
     ok = m_floatingBase.init(undirected_tree,
                              initial_world_frame_position,
-                             initial_fixed_link);
+                             initial_fixed_link,
+                             initial_world_offset);
     //FIXME: This could be done also by init in simpleLeggedOdometry
     this->m_current_fixed_link_name = initial_fixed_link;
     this->m_floating_base_frame_index = m_floatingBase.getDynTree().getFrameIndex(floating_base_frame_index);

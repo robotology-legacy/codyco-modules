@@ -41,7 +41,8 @@ public:
     virtual ~floatingBaseOdometry();
     bool init(std::string initial_world_frame_position = "l_sole",
               std::string initial_fixed_link = "r_sole",
-              std::string floating_base_frame_index = "root_link");
+              std::string floating_base_frame_index = "root_link",
+              KDL::Vector initial_world_offset = KDL::Vector());
     void update(double* joints_configuration, bool switch_foot);
     void get_world_H_floatingbase(wbi::Frame &m);
     bool changeFixedFoot();

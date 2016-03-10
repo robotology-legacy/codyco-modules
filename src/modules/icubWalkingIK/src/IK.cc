@@ -126,7 +126,7 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
             // Calculate coordinates of a point in the root reference frame
             Eigen::VectorXd point_pose(7);
             //TODO: Instead of wbi::Frame() the actual rototranslation from world to root must be passed to this method!!!!
-            wbm->forwardKinematics(Qres.data(), wbi::Frame(), body_id[k], point_pose.data(), body_point[k].data());
+            wbm->forwardKinematics(Qres.data(), world_H_floatingbase, body_id[k], point_pose.data(), body_point[k].data());
             Eigen::Vector3d point_base = point_pose.head(3);
 //            Eigen::Vector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
             

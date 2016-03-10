@@ -23,7 +23,12 @@ bool iCubWalkingIKThread::threadInit() {
     
     m_odometry = new floatingBaseOdometry(m_wbm);
     // Initialize floating base odometry
-    if ( !m_odometry->init() ) {
+    //FIXME: This initial offset should actually be computed as half the distance between r_sole and l_sole
+    KDL::Vector initial_world_offset( 0.0, -0.08, 0.0);
+    if ( !m_odometry->init("l_sole",
+                           "r_sole",
+                           "root_link",
+                           initial_world_offset) ) {
         yError("iCubWalkingIKThread could not initialize the odometry object");
         return false;
     }
@@ -57,6 +62,7 @@ void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFil
     Eigen::VectorXd temp_vec_2(4);
     std::vector<Eigen::VectorXd> com_pattern(N,temp_vec_2);
     
+    //FIXME: Remove negative signs for inputs. Also in pattern_generator for pattern_augmented, since now the world reference frame matches
     // separate com pattern
     for(unsigned int i = 0; i < N; i++)
     {
