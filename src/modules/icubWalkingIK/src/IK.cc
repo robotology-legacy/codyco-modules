@@ -143,8 +143,11 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
             Eigen::Vector3d ort_rates = Eigen::Vector3d::Zero();
             
             //TODO: Thoroughly check the following equation!!! Possible source of error
+            //Fixed by Yue
+            // original formulation for RBDL 
+            // ort_rates = R.transpose()*CalcAngularVelocityfromMatrix(R*target_orientation[k].transpose());
             if(!target_orientation[k].isZero(0))
-                ort_rates = R.transpose()*CalcAngularVelocityfromMatrix(R*target_orientation[k].transpose());
+                ort_rates = R*CalcAngularVelocityfromMatrix(target_orientation[k]*R.transpose());
             
             for (unsigned int i = 0; i < 6; i++) {
                 for (unsigned int j = 0; j < wbm->getDoFs()+6; j++) {

@@ -24,7 +24,8 @@ bool iCubWalkingIKThread::threadInit() {
     m_odometry = new floatingBaseOdometry(m_wbm);
     // Initialize floating base odometry
     //FIXME: This initial offset should actually be computed as half the distance between r_sole and l_sole
-    KDL::Vector initial_world_offset( 0.0, 0.0, 0.0);
+    //Done by Yue
+    KDL::Vector initial_world_offset( 0.0, -0.067869, 0.0);
     
     // Initial (current) roboto configuation
     yarp::sig::Vector initial_configuration_wbm(m_wbm->getDoFs());
@@ -68,13 +69,14 @@ void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFil
     std::vector<Eigen::VectorXd> com_pattern(N,temp_vec_2);
     
     //FIXME: Remove negative signs for inputs. Also in pattern_generator for pattern_augmented, since now the world reference frame matches
+    //Fixed by Yue
     // separate com pattern
     for(unsigned int i = 0; i < N; i++)
     {
         Eigen::VectorXd temp_com(4);
         temp_com[0] = inputs[i][0];
-        temp_com[1] = -inputs[i][1];
-        temp_com[2] = -inputs[i][2];
+        temp_com[1] = inputs[i][1];
+        temp_com[2] = inputs[i][2];
         temp_com[3] = paramsList.z_c;
         com_pattern[i] = temp_com;
     }
@@ -207,17 +209,19 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     body_ids[2] = tmp;
     body_points[0] = Eigen::Vector3d::Zero();
     body_points[1] = Eigen::Vector3d::Zero();
-    body_points[2] = Eigen::Vector3d(0,-0.15,0);
+    body_points[2] = Eigen::Vector3d(0,-0.11,0);
     
     std::string ort_order = "123";
     
-    Eigen::Vector3d l_foot_ort = Eigen::Vector3d(DEG2RAD(0),DEG2RAD(0),DEG2RAD(-180));//use 179 for Heidelberg01, -179.9 for iCubGenova02
-    Eigen::Vector3d r_foot_ort = Eigen::Vector3d(DEG2RAD(0),DEG2RAD(0),DEG2RAD(-180));//use -179 for Heidelberg01, -179.9 for iCubGenova02
-    Eigen::Vector3d com_ort = Eigen::Vector3d(DEG2RAD(0),0,DEG2RAD(0)); // root_link
+    Eigen::Vector3d l_foot_ort = Eigen::Vector3d(DEG2RAD(0),DEG2RAD(0),DEG2RAD(0));
+    Eigen::Vector3d r_foot_ort = Eigen::Vector3d(DEG2RAD(0),DEG2RAD(0),DEG2RAD(0));
+    //TODO need to check orientation of chest wrt l_sole (world)
+    Eigen::Vector3d com_ort = Eigen::Vector3d(DEG2RAD(0),0,DEG2RAD(0)); // chest
     
     target_orientation[0] = CalcOrientationEulerXYZ(l_foot_ort,ort_order); //l_foot
     target_orientation[1] = CalcOrientationEulerXYZ(r_foot_ort,ort_order); //r_foot
-    target_orientation[2] = Eigen::Matrix3d::Zero();//CalcOrientationEulerXYZ(com_ort,ort_order); //root_link
+    //TODO Change this into rotation matrix when orientation of chest wrt l_sole is checked
+    target_orientation[2] = Eigen::Matrix3d::Zero();//CalcOrientationEulerXYZ(com_ort,ort_order); //chest
     
     //TODO: Not setting to anything qinit for now, since it will be read inside IKinematics from the current configuration of the robot.
     // set initial position close to the target to avoid weird solutions
@@ -233,13 +237,10 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
 
     // IK parameters
     //TODO: Put these parameters in the configuration file
-    double step_tol = 1e-8;
+    //FIXME: step_tol is now 1e-04, it does not converge for lower tollerances, you should not change lambda
+    double step_tol = 1e-4;
     double lambda = 0.001;
     double max_iter = 100;
-    
-    // for the real com
-    double mass = 0;
-    Eigen::Vector3d com_temp = Eigen::Vector3d::Zero();
     
     // perform some initial IK to get a closer qinit and real com
     int trials = 10;
@@ -288,8 +289,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
 //        // use the real com as body point
 //        RigidBodyDynamics::Utils::CalcCenterOfMass(model,qinit,qdot,mass,com_temp);
 //        com_real[i] = com_temp;
-//        body_points[2] = CalcBaseToBodyCoordinates(model,qinit,body_ids[2],com_real[i]);
-        
+//        body_points[2] = CalcBaseToBodyCoordinates(model,qinit,body_ids[2],com_real[i]);        
         
         target_pos[0] = l_foot[i];
         target_pos[1] = r_foot[i];
@@ -308,8 +308,8 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     // convert into degrees
     // store all the resulting configurations
     std::vector<Eigen::VectorXd> res_deg(N,qres);
-    Eigen::VectorXd qres_no_fb(qres.size()-6);
-    std::vector<Eigen::VectorXd> res_deg_cut(N,qres_no_fb);
+//     Eigen::VectorXd qres_no_fb(qres.size()-6);
+//     std::vector<Eigen::VectorXd> res_deg_cut(N,qres_no_fb);
     Eigen::VectorXd time_vec_new(N);
     t = 0;
     for(int i = 0; i < N; i++)
@@ -321,12 +321,13 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         t += ts;
     }
 
-    // store the q only without floating base
-    for(int i = 0; i < N; i++)
-    {
-        for(int j = 6; j < qres.size(); j++)
-            res_deg_cut[i][j-6] = res_deg[i][j];
-    }
+    //TODO This can be deleted, as it was here because in RBDL there's also floating base in q
+//     // store the q only without floating base
+//     for(int i = 0; i < N; i++)
+//     {
+//         for(int j = 6; j < qres.size(); j++)
+//             res_deg_cut[i][j-6] = res_deg[i][j];
+//     }
 
     // Change the reference of the com from root to l_sole as per real iCub convention for torque control
     std::vector<Eigen::VectorXd> com_l_sole(N,Eigen::Vector3d::Zero());
@@ -347,9 +348,11 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     }
     
     // write out the resulting joint trajectories for meshup visualization and for the robot
-    writeOnCSV(time_vec_new,res,m_outputDir + "/test_ik_pg_meshup.csv","");//meshup_header);
-    yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/test_ik_pg_meshup.csv").c_str());
-    writeOnCSV(res_deg_cut,m_outputDir + "/test_ik_pg.csv");
+    //FIXME the meshuo file cannot be used with meshup anymore now, since there's no floating base information, so it's quite useless to export this file now
+//     writeOnCSV(time_vec_new,res,m_outputDir + "/test_ik_pg_meshup.csv","");//meshup_header);
+//     yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/test_ik_pg_meshup.csv").c_str());
+    // Changed from res_deg_cut to res_deg as res_deg_cut does not make sense now
+    writeOnCSV(res_deg,m_outputDir + "/test_ik_pg.csv");
     yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/test_ik_pg.csv").c_str());
     writeOnCSV(com_real,m_outputDir + "/real_com_traj.csv");
     yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/real_com_traj.csv").c_str());

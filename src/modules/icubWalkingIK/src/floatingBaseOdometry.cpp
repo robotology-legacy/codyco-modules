@@ -79,7 +79,7 @@ void floatingBaseOdometry::update(double* q_wbm, bool switch_foot=false){
     // Transform floating base position in YARP format
     KDLtoYarp_position(world_H_floatingbase_kdl, this->m_world_H_floatingBase);
     
-    std::cerr << "world_H_floatingbase: \n" << m_world_H_floatingBase.toString().c_str() << std::endl;
+//     std::cerr << "world_H_floatingbase: \n" << m_world_H_floatingBase.toString().c_str() << std::endl;
     
 }
 
