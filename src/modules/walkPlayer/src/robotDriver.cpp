@@ -15,9 +15,13 @@ robotDriver::robotDriver() {
     drv_to  = 0;
     ipos_ll = 0;
     ipid_ll = 0;
+    iimp_ll = 0;
+    iint_ll = 0;
     ienc_ll = 0;
     ipos_rl = 0;
     ipid_rl = 0;
+    iimp_rl = 0;
+    iint_rl = 0;
     ienc_rl = 0;
     ipos_to = 0;
     ipid_to = 0;
@@ -100,8 +104,8 @@ bool robotDriver::init() {
     this->drv_to=new PolyDriver(this->drvOptions_to);
 
     if (this->drv_ll->isValid() && this->drv_rl->isValid() && this->drv_to->isValid())
-        connected = this->drv_ll->view(ipos_ll) && this->drv_ll->view(ienc_ll) && this->drv_ll->view(ipid_ll) && this->drv_ll->view(icmd_ll) && this->drv_ll->view(idir_ll) &&
-                    this->drv_rl->view(ipos_rl) && this->drv_rl->view(ienc_rl) && this->drv_rl->view(ipid_rl) && this->drv_rl->view(icmd_rl) && this->drv_rl->view(idir_rl) &&
+        connected = this->drv_ll->view(ipos_ll) && this->drv_ll->view(ienc_ll) && this->drv_ll->view(ipid_ll) && this->drv_ll->view(iimp_ll) && this->drv_ll->view(iint_ll) && this->drv_ll->view(icmd_ll) && this->drv_ll->view(idir_ll) &&
+                    this->drv_rl->view(ipos_rl) && this->drv_rl->view(ienc_rl) && this->drv_rl->view(ipid_rl) && this->drv_rl->view(iimp_rl) && this->drv_rl->view(iint_rl) &&this->drv_rl->view(icmd_rl) && this->drv_rl->view(idir_rl) &&
                     this->drv_to->view(ipos_to) && this->drv_to->view(ienc_to) && this->drv_to->view(ipid_to) && this->drv_to->view(icmd_to) && this->drv_to->view(idir_to);
     else
         connected=false;
@@ -125,14 +129,24 @@ bool robotDriver::init() {
         }
     }
 
+
+
     //set the intial reference speeds
     double speeds_arm[6];
     double speeds_to[3];
-    for (int i=0; i<6; i++) speeds_arm[i] = 20.0;
+    InteractionModeEnum tempMode[6] = {VOCAB_IM_STIFF,VOCAB_IM_STIFF,VOCAB_IM_STIFF,VOCAB_IM_STIFF,VOCAB_IM_STIFF,VOCAB_IM_STIFF};
+
+    for (int i=0; i<6; i++)speeds_arm[i] = 20.0;
     for (int i=0; i<3; i++) speeds_to[i] = 20.0;
+
+
+    this->iint_ll->setInteractionModes(tempMode);
+    this->iint_rl->setInteractionModes(tempMode);
+
     this->ipos_ll->setRefSpeeds(speeds_arm);
     this->ipos_rl->setRefSpeeds(speeds_arm);
     this->ipos_to->setRefSpeeds(speeds_to);
+
 
     return connected;
 }

@@ -1,11 +1,14 @@
 #include <yarp/os/RateThread.h>
+#include <math.h>
 #include <cmath>
+#include <yarp/dev/IInteractionMode.h>
 
 #include "workingThread.h"
 
 using namespace yarp::math;
 using namespace yarp::sig;
 using namespace yarp::os;
+using namespace yarp::dev;
 using namespace std;
 
 const double WP_RAD2DEG = 180.0 / M_PI;
@@ -22,6 +25,8 @@ WorkingThread::WorkingThread(int period): RateThread(period)
     port_command_postural.open("/walkPlayer/postural:o");
     port_command_constraints.open("/walkPlayer/constraints:o");
     speed_factor = 1.0;
+    impedanceStarted = false;
+    currentMode = PRE_WALK_MODE;
 }
 
 WorkingThread::~WorkingThread()
@@ -90,8 +95,8 @@ bool WorkingThread::execute_joint_command(int j)
     double REF_SPEED_FACTOR = this->refSpeedMinJerk; //0.5 -> position direct like
     int    LIMIT_MIN_JERK = this->minJerkLimit;
 
-    //if (REF_SPEED_FACTOR != 0 && j>=0)
-    if ( REF_SPEED_FACTOR != 0 && j==0 )
+    
+    if ( REF_SPEED_FACTOR != 0 && j<0 )
     {
         bool checkMotionDone = false;
         //the whole body joint trajectory for the first step is done with min jerk controllers rather than position direct
@@ -115,6 +120,7 @@ bool WorkingThread::execute_joint_command(int j)
         driver->ipos_to->setRefSpeeds(spd_to);
 
         driver->ipos_to->positionMove(to);
+
 
         for (int i=0; i< 6; i++) modes[i] = VOCAB_CM_POSITION;
         for (int i=0; i< 3; i++) modes_to[i] = VOCAB_CM_POSITION;
@@ -149,21 +155,39 @@ bool WorkingThread::execute_joint_command(int j)
         driver->icmd_to->getControlMode(0,&mode_t);
         if (mode_l != VOCAB_CM_POSITION_DIRECT &&
             mode_r != VOCAB_CM_POSITION_DIRECT &&
-            mode_t != VOCAB_CM_POSITION_DIRECT)
+            mode_t != VOCAB_CM_POSITION_DIRECT && currentMode == PRE_WALK_MODE)
         {
             //change control mode
             // VOCAB_CM_POSITION_DIRECT
             for (int i=0; i < 6; i++) modes[i] = VOCAB_CM_POSITION_DIRECT;
             for (int i=0; i < 3; i++) modes_to[i] = VOCAB_CM_POSITION_DIRECT;
+
+            // addmodifications for impedance control
+            if(driver->iint_rl->setInteractionMode(4,VOCAB_IM_STIFF))
+            {
+                std::cout<<"Stiff interaction Set\n";
+            }
+
             driver->icmd_ll->setControlModes(modes);
             driver->icmd_rl->setControlModes(modes);
             driver->icmd_to->setControlModes(modes_to);
+            currentMode = WALKING_POSITION_MODE;
         }
 
+        driver->idir_to->setPositions(to);
         driver->idir_ll->setPositions(ll);
         driver->idir_rl->setPositions(rl);
-        driver->idir_to->setPositions(to);
-        //yarp::os::Time::delay(0.01);
+
+        yarp::dev::InteractionModeEnum interactionMode=yarp::dev::VOCAB_IM_UNKNOWN;
+        if(currentMode != WALKING_IMPEDANCE_MODE && impedanceStarted)
+        {
+            if(driver->iint_rl->setInteractionMode(4,VOCAB_IM_COMPLIANT))
+            {
+                std::cout<<"Compliant interaction Set\n";
+            }
+
+            currentMode = WALKING_IMPEDANCE_MODE;
+        }
     }
     return true;
 }
@@ -220,7 +244,7 @@ void WorkingThread::compute_and_send_command(int j)
     this->port_command_joints_rl.write();
     this->port_command_joints_to.setEnvelope(this->timestamp);
     this->port_command_joints_to.write();
-    
+
     //Send data for torqueBalancing
     Bottle& bot_com = this->port_command_com.prepare();
     Bottle& bot_postural = this->port_command_postural.prepare();
@@ -228,7 +252,7 @@ void WorkingThread::compute_and_send_command(int j)
     bot_com.clear();
     bot_postural.clear();
     bot_constraints.clear();
-    
+
     if ( !actions.action_vector_torqueBalancing.com_traj.empty() )
     {
         std::deque<double> tmpCom_i = actions.action_vector_torqueBalancing.com_traj.front();
@@ -240,7 +264,7 @@ void WorkingThread::compute_and_send_command(int j)
         actions.action_vector_torqueBalancing.com_traj.pop_front();
         tmpCom_i.clear();
     }
-    
+
     if ( !actions.action_vector_torqueBalancing.postural_traj.empty() )
     {
         std::deque<double> tmpPostural_i = actions.action_vector_torqueBalancing.postural_traj.front();
@@ -252,7 +276,7 @@ void WorkingThread::compute_and_send_command(int j)
         actions.action_vector_torqueBalancing.postural_traj.pop_front();
         tmpPostural_i.clear();
     }
-    
+
     if ( !actions.action_vector_torqueBalancing.constraints.empty() )
     {
         std::deque<double> tmpConstraints_i = actions.action_vector_torqueBalancing.constraints.front();
@@ -264,7 +288,7 @@ void WorkingThread::compute_and_send_command(int j)
         actions.action_vector_torqueBalancing.constraints.pop_front();
         tmpConstraints_i.clear();
     }
-    
+
     this->port_command_com.setEnvelope(this->timestamp);
     this->port_command_com.write();
     this->port_command_postural.setEnvelope(this->timestamp);
@@ -294,6 +318,15 @@ void WorkingThread::run()
             return;
         }
 
+        if(ankleImpedanceStartTime != -1 && (current_time - walkStartTime) >= ankleImpedanceStartTime && impedanceStarted == false)
+        {
+            impedanceStarted = true;
+            std::cout<<"\n\n+ Impedance Started at "<<current_time-walkStartTime<<", desired start :"<<ankleImpedanceStartTime<<"! \n+\n+\n+\n";
+            //assuming right leg impedance
+            driver->iimp_rl->setImpedance(4,ankleImpedance_stiffness,ankleImpedance_damping);
+            std::cout<<"\n\n+ Impedance Set as, stiffness :"<<ankleImpedance_stiffness<<", damping :"<<ankleImpedance_damping<<"! \n";
+
+        }
         if (actions.current_action < last_action - 1)
         {
             //if enough time has passed from the previous action
@@ -303,9 +336,7 @@ void WorkingThread::run()
             {
                 last_time = current_time;
                 actions.current_action++;
-                //cout << "Current action: " << actions.current_action << endl;
                 compute_and_send_command(actions.current_action);
-                //printf("EXECUTING %d, elapsed_time:%.5f requested_time:%.5f\n", actions.current_action, current_time-last_time, duration);
             }
             else
             {
@@ -316,11 +347,15 @@ void WorkingThread::run()
         {
             printf("sequence complete\n");
             actions.current_status = ACTION_IDLE;
+            currentMode = PRE_WALK_MODE;
+            impedanceStarted = false;
         }
     }
     else if (actions.current_status == ACTION_START)
     {
         compute_and_send_command(0);
+        // set the start time for timing impedance turn on
+        walkStartTime = current_time;
         actions.current_status = ACTION_RUNNING;
     }
     else

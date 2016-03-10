@@ -9,9 +9,10 @@
 #define VCTP_POSITION VOCAB3('p','o','s')
 #define VCTP_WAIT VOCAB4('w','a','i','t')
 
-#define ACTION_IDLE    0
-#define ACTION_START   1
-#define ACTION_RUNNING 2
+#define ACTION_IDLE           0
+#define ACTION_START          1
+#define ACTION_RUNNING        2
+#define ACTION_ANKLEIMPEDANCE 3
 
 #define COM_TRAJ_NUM_COLS       9
 #define POSTURAL_TRAJ_NUM_COLS  21

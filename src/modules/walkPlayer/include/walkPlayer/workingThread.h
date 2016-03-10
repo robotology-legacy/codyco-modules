@@ -19,6 +19,11 @@ class WorkingThread: public yarp::os::RateThread {
 private:
 
     yarp::os::Stamp timestamp;
+    double walkStartTime;
+    bool impedanceStarted;
+
+    enum walkMode {PRE_WALK_MODE, WALKING_POSITION_MODE, WALKING_IMPEDANCE_MODE};
+    walkMode currentMode;
 public:
     robotDriver                               *driver;
     actionClass                               actions;
@@ -35,6 +40,9 @@ public:
     int                                       minJerkLimit;
     double                                    refSpeedMinJerk;
 
+    double                                    ankleImpedanceStartTime;
+    double                                    ankleImpedance_stiffness;
+    double                                    ankleImpedance_damping;
     WorkingThread(int period=5);
     ~WorkingThread();
     void attachRobotDriver(robotDriver *p);

@@ -14,7 +14,7 @@ scriptModule::scriptModule()
 
 bool scriptModule::configure(ResourceFinder &rf) {
     Time::turboBoost();
-    
+
     this->rfCopy = rf;
 
     if (rf.check("name"))
@@ -41,6 +41,16 @@ bool scriptModule::configure(ResourceFinder &rf) {
         cout << "Configuration done." << endl;
     }
 
+
+
+//     yarp::os::Property wbiProperties;
+//     if (!rf.check("ankleImpedance", "Checking ankleImpedance configuration file")) {
+//         yError("No ankleImpedance configuration file found.");
+//         return false;
+//     }
+
+
+
     if (!robot.init())
     {
         cerr<<"Error cannot connect to remote ports"<<endl;
@@ -49,6 +59,8 @@ bool scriptModule::configure(ResourceFinder &rf) {
     else {
         cout << "Initialization done." << endl;
     }
+
+
 
     //*** attach the robot driver to the thread and start it
     thread.attachRobotDriver(&robot);
@@ -86,6 +98,28 @@ bool scriptModule::configure(ResourceFinder &rf) {
         thread.speed_factor= fact;
     }
 
+    if(rf.check("ankleImpedanceAt"))
+    {
+        double impedanceSwitchTime = rf.find("ankleImpedanceAt").asDouble();
+        cout<<"Ankle Impedance option found as : "<<impedanceSwitchTime<<endl;
+        thread.ankleImpedanceStartTime = impedanceSwitchTime;
+    }
+    else
+        cout<<"No Ankle Impedance option found"<<endl;
+
+    if(rf.check("stiffness"))
+    {
+        double stiffness = rf.find("stiffness").asDouble();
+        cout<<"Stiffness option found as : " <<stiffness<<endl;
+        thread.ankleImpedance_stiffness = stiffness;
+    }
+    if(rf.check("damping"))
+    {
+        double damping = rf.find("damping").asDouble();
+        cout<<"Damping option found as : " <<damping<<endl;
+        thread.ankleImpedance_damping = damping;
+    }
+
     //*** open the position file
     cout << "opening file..." << endl;
 
@@ -98,20 +132,20 @@ bool scriptModule::configure(ResourceFinder &rf) {
             return false;
         };
     }
-    
+
     if (rf.check("minJerkLimit")==true )
     {
         int tmpLimit = rf.find("minJerkLimit").asInt();
         thread.minJerkLimit = tmpLimit;
     }
-    
+
     if (rf.check("refSpeedMinJerk")==true )
     {
         thread.refSpeedMinJerk = rf.find("refSpeedMinJerk").asDouble();
     } else {
         thread.refSpeedMinJerk = 0.0;
     }
-    
+
     if (rf.check("torqueBalancingSequence")==true)
     {
         string filenamePrefix = rf.find("torqueBalancingSequence").asString().c_str();

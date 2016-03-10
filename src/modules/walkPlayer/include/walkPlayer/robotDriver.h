@@ -4,6 +4,7 @@
 #include <yarp/os/Property.h>
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
+#include <yarp/dev/IInteractionMode.h>
 #include <yarp/math/Math.h>
 #include <yarp/sig/Matrix.h>
 #include <iCub/ctrl/math.h>
@@ -26,9 +27,13 @@ public:
     yarp::dev::PolyDriver       *drv_to;
     yarp::dev::IPositionControl *ipos_ll;
     yarp::dev::IPidControl      *ipid_ll;
+    yarp::dev::IImpedanceControl *iimp_ll;
+    yarp::dev::IInteractionMode *iint_ll;
     yarp::dev::IEncoders        *ienc_ll;
     yarp::dev::IPositionControl *ipos_rl;
     yarp::dev::IPidControl      *ipid_rl;
+    yarp::dev::IImpedanceControl *iimp_rl;
+    yarp::dev::IInteractionMode *iint_rl;
     yarp::dev::IEncoders        *ienc_rl;
     yarp::dev::IPositionControl *ipos_to;
     yarp::dev::IPidControl      *ipid_to;

@@ -23,7 +23,7 @@ protected:
     robotDriver         robot;
     WorkingThread       thread;
     yarp::os::ResourceFinder      rfCopy;
-
+  
 public:
     scriptModule();
 

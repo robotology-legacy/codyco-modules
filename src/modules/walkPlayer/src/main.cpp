@@ -49,8 +49,9 @@ using namespace iCub::ctrl;
 
 int main(int argc, char *argv[])
 {
-    ResourceFinder rf;
+    ResourceFinder rf = ResourceFinder::getResourceFinderSingleton();
     rf.setVerbose(true);
+    rf.setDefaultConfigFile("walkPlayer.ini");
     rf.setDefaultContext("walkPlayer");
     rf.configure(argc,argv);
 
@@ -66,6 +67,7 @@ int main(int argc, char *argv[])
         cout << "\t--refSpeedMinJerk    [0] Reference speed value used by the minimun jerk controllers. " << endl;
         cout << "\t--minJerkLimit       [0] (int) Limit of the trajectory points after which position direct commands are sent " << endl;
         cout <<"\t--torqueBalancingSequence [torqueBalancing] Prefix of the sequences for torque balancing. Overwrites the execute flag value. This option has higher priority and should simply stream trajectories used by the torqueBalancing module." << endl;
+//         cout << "\t--ankleImpedanceAt   <ankleImpedanceStartTime> time at which one of the ankles starts optimal impedance control mode. " <<endl;
         return 0;
     }
 
