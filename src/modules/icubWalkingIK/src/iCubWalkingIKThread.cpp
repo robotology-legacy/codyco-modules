@@ -340,7 +340,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         time_vec[i] = t;
         if (!IKinematics(m_wbm, m_wbs, m_odometry, qinit, body_ids, target_pos, target_orientation, body_points, qres, switch_fixed,  step_tol, lambda, max_iter))
         {
-//             yWarning("iCubWalkingIKThread::inverseKinematics \n Inv. Kinematics for all targets \n Could not converge to a solution with the desired tolerance of %lf", step_tol);
+            yWarning("iCubWalkingIKThread::inverseKinematics \n Inv. Kinematics for all targets \n Could not converge to a solution with the desired tolerance of %lf", step_tol);
         }
         
         res[i] = qres;

@@ -108,6 +108,9 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
     Eigen::VectorXd e = Eigen::VectorXd::Zero(6 * body_id.size());
     
     Qres = Qinit;
+    
+    //FIXME parameter for switching fixed foot switch_fixed, the fixed link update should happen only once at the beginning
+    odometry->update(Qres.data(), switch_fixed);
   
     for (unsigned int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
 //        UpdateKinematicsCustom (model, &Qres, NULL, NULL);
@@ -118,8 +121,8 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
             wbi::Frame base_H_world;
             //TODO: Instead of wbi::Frame() the actual rototranslation from world to root must be passed to this method!!!!
             // Update odometry and compute world_H_floatingbase
-            //FIXME parameter for switching fixed foot switch_fixed
-            odometry->update(Qres.data(), switch_fixed);
+            //FIXME parameter for switching fixed foot switch_fixed, the fixed link update should NOT happen inside the IK iterations
+            odometry->update(Qres.data(), false);
             wbi::Frame world_H_floatingbase;
             odometry->get_world_H_floatingbase(world_H_floatingbase);
             wbm->computeJacobian(Qres.data(), world_H_floatingbase, body_id[k], G.data(), body_point[k].data());
