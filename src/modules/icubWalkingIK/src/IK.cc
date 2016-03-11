@@ -84,7 +84,7 @@ Eigen::Vector3d CalcAngularVelocityfromMatrix (const Eigen::Matrix3d &RotMat) {
     }
 }
 
-
+//FIXME: parameter for switching fixed foot is temporary
 bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
                   yarpWbi::yarpWholeBodyStates* wbs,
                   floatingBaseOdometry * odometry,
@@ -94,7 +94,7 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
                   const std::vector<Eigen::Matrix3d>& target_orientation,
                   std::vector<Eigen::Vector3d>& body_point,
                   Eigen::VectorXd &Qres,
-                  bool switch_fixed,//FIXME parameter for switching fixed foot
+                  bool switch_fixed,
                   double step_tol,
                   double lambda,
                   unsigned int max_iter)

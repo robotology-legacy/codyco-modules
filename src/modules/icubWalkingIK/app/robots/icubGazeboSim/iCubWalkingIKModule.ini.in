@@ -13,7 +13,7 @@ initial_world_reference_frame   l_sole
 initial_fixed_frame             l_sole
 floating_base                   root_link
 offset_from_world_reference     (0.0 -0.067869 0.0)
-world_between_feet              true
+world_between_feet              false
 
 [walking_params]
 ts          0.010000
