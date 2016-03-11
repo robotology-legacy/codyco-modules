@@ -84,7 +84,7 @@ Eigen::Vector3d CalcAngularVelocityfromMatrix (const Eigen::Matrix3d &RotMat) {
     }
 }
 
-
+//FIXME: parameter for switching fixed foot is temporary
 bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
                   yarpWbi::yarpWholeBodyStates* wbs,
                   floatingBaseOdometry * odometry,
@@ -94,7 +94,7 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
                   const std::vector<Eigen::Matrix3d>& target_orientation,
                   std::vector<Eigen::Vector3d>& body_point,
                   Eigen::VectorXd &Qres,
-                  bool switch_fixed,//FIXME parameter for switching fixed foot
+                  bool switch_fixed,
                   double step_tol,
                   double lambda,
                   unsigned int max_iter)
@@ -118,7 +118,7 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
             wbi::Frame base_H_world;
             //TODO: Instead of wbi::Frame() the actual rototranslation from world to root must be passed to this method!!!!
             // Update odometry and compute world_H_floatingbase
-            //FIXME parameter for switching fixed foot switch_fixed
+            //FIXME: parameter for switching fixed foot switch_fixed
             odometry->update(Qres.data(), switch_fixed);
             wbi::Frame world_H_floatingbase;
             odometry->get_world_H_floatingbase(world_H_floatingbase);
