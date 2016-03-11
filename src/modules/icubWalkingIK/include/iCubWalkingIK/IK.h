@@ -17,6 +17,7 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
                   const std::vector<Eigen::Matrix3d>& target_orientation,
                   std::vector<Eigen::Vector3d>& body_point,
                   Eigen::VectorXd &Qres,
+                  bool switch_fixed = false,//FIXME parameter for switching fixed foot
                   double step_tol = 1e-8,
                   double lambda = 0.001,
                   unsigned int max_iter = 100);

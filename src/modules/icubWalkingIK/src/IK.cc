@@ -94,6 +94,7 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
                   const std::vector<Eigen::Matrix3d>& target_orientation,
                   std::vector<Eigen::Vector3d>& body_point,
                   Eigen::VectorXd &Qres,
+                  bool switch_fixed,//FIXME parameter for switching fixed foot
                   double step_tol,
                   double lambda,
                   unsigned int max_iter)
@@ -107,7 +108,7 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
     Eigen::VectorXd e = Eigen::VectorXd::Zero(6 * body_id.size());
     
     Qres = Qinit;
-    
+  
     for (unsigned int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
 //        UpdateKinematicsCustom (model, &Qres, NULL, NULL);
         
@@ -117,7 +118,8 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
             wbi::Frame base_H_world;
             //TODO: Instead of wbi::Frame() the actual rototranslation from world to root must be passed to this method!!!!
             // Update odometry and compute world_H_floatingbase
-            odometry->update(Qres.data(), false);
+            //FIXME parameter for switching fixed foot switch_fixed
+            odometry->update(Qres.data(), switch_fixed);
             wbi::Frame world_H_floatingbase;
             odometry->get_world_H_floatingbase(world_H_floatingbase);
             wbm->computeJacobian(Qres.data(), world_H_floatingbase, body_id[k], G.data(), body_point[k].data());
@@ -184,6 +186,7 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
         //TODO: Here, size of Qres is 15 while size delta is 21
         Qres = Qres + delta_theta.tail(15);
         if (delta_theta.norm() < step_tol) {
+            std::cerr << "Reached target close enough with small delta_theta after " << ik_iter << " steps" << std::endl;
             return true;
         }
     }

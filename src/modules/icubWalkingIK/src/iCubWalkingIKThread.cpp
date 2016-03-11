@@ -278,9 +278,12 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     
     m_wbs->getEstimates(wbi::ESTIMATE_JOINT_POS, qinit.data());
 
+    //FIXME parameter for switching fixed foot
+    bool switch_fixed = false;
     for(int k = 0; k < trials; k++)
     {
-        if (!IKinematics(m_wbm, m_wbs, m_odometry, qinit, body_ids, target_pos, target_orientation, body_points, qres, step_tol, lambda, max_iter))
+      //FIXME introduced parameter for switching fixed foot
+        if (!IKinematics(m_wbm, m_wbs, m_odometry, qinit, body_ids, target_pos, target_orientation, body_points, qres, switch_fixed, step_tol, lambda, max_iter))
         {
             yWarning("iCubWalkingIKThread::inverseKinematics \n COM Inv. Kinematics \n - Could not converge to a solution with the desired tolerance of %lf", step_tol);
         } /*else {
@@ -317,15 +320,27 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
 //        // use the real com as body point
 //        RigidBodyDynamics::Utils::CalcCenterOfMass(model,qinit,qdot,mass,com_temp);
 //        com_real[i] = com_temp;
-//        body_points[2] = CalcBaseToBodyCoordinates(model,qinit,body_ids[2],com_real[i]);        
+//        body_points[2] = CalcBaseToBodyCoordinates(model,qinit,body_ids[2],com_real[i]);   
+        
+        //FIXME parameter to switch fixed foot, always to false except when need to switch
+        switch_fixed = false;
+        if(i>0)//step_N) //use step_N if starting with r_sole
+        {
+          // switch when one of the feet is lifting from the ground
+          if(fabs(r_foot[i-1][2]-l_foot[i-1][2]) == 0 && fabs(r_foot[i][2]-l_foot[i][2]) > 0)
+          {
+            switch_fixed = true;
+            std::cout << "Switching fixed link at time " << t << std::endl; 
+          }
+        }
         
         target_pos[0] = l_foot[i];
         target_pos[1] = r_foot[i];
         target_pos[2] = com[i];
         time_vec[i] = t;
-        if (!IKinematics(m_wbm, m_wbs, m_odometry, qinit, body_ids, target_pos, target_orientation, body_points, qres, step_tol, lambda, max_iter))
+        if (!IKinematics(m_wbm, m_wbs, m_odometry, qinit, body_ids, target_pos, target_orientation, body_points, qres, switch_fixed,  step_tol, lambda, max_iter))
         {
-            yWarning("iCubWalkingIKThread::inverseKinematics \n Inv. Kinematics for all targets \n Could not converge to a solution with the desired tolerance of %lf", step_tol);
+//             yWarning("iCubWalkingIKThread::inverseKinematics \n Inv. Kinematics for all targets \n Could not converge to a solution with the desired tolerance of %lf", step_tol);
         }
         
         res[i] = qres;
