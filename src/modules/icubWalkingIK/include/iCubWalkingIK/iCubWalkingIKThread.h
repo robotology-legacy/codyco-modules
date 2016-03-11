@@ -63,6 +63,16 @@ public:
     void generateFeetTrajectories(std::string walkingPatternFile,
                                   walkingParams params);
     void inverseKinematics(walkingParams params);
+    
+    /**
+     *  Computes a distance vector that goes from ref_frame to the center of both feet at the current configuration
+     *
+     *  @param v         Output KDL vector
+     *  @param ref_frame Reference frame to use for the computation
+     *
+     *  @return true if everything goes well, false otherwise
+     */
+    bool computeCenterBetweenFeet(KDL::Vector &v, std::string ref_frame);
 };
 
 #endif

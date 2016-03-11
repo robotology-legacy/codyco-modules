@@ -33,11 +33,24 @@ bool iCubWalkingIKThread::threadInit() {
     
 #pragma mark NOTE: Next two lines for future implementation
     // Initial (current) robot configuration
-    yarp::sig::Vector initial_configuration_wbm(m_wbm->getDoFs());
-    m_wbs->getEstimates(wbi::ESTIMATE_JOINT_POS, initial_configuration_wbm.data());
+    KDL::Vector computed_initial_world_offset;
+    computed_initial_world_offset.Zero();
+    if ( m_odometryParams.world_between_feet ) {
+        if ( !computeCenterBetweenFeet(computed_initial_world_offset, m_odometryParams.initial_world_reference_frame) ) {
+            yError("iCubWalkingIKThread::threadInit(): There were problems computing the center between the twoo feet at the current configuration");
+            return false;
+        }
+    }
     
 #pragma mark NOTE: This is now specified in the configuration file of this module
-    KDL::Vector initial_world_offset = m_odometryParams.offset_from_world_reference_frame;
+    KDL::Vector initial_world_offset;
+    if ( m_odometryParams.world_between_feet ) {
+        // Use the computed offset to the point between both feet
+        initial_world_offset = computed_initial_world_offset;
+    } else {
+        // Use the offset defined in the configuration file
+        initial_world_offset = m_odometryParams.offset_from_world_reference_frame;
+    }
     std::string initial_world_frame_position = m_odometryParams.initial_world_reference_frame;
     std::string initial_fixed_link = m_odometryParams.initial_fixed_frame;
     std::string floating_base_frame_index = m_odometryParams.floating_base;
@@ -379,7 +392,35 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
 }
 
 #pragma mark -
+#pragma mark Helper methods
+bool iCubWalkingIKThread::computeCenterBetweenFeet(KDL::Vector &v, std::string ref_frame) {
+    // Read current kinematic configuration of th    yarp::sig::Vector initial_configuration_wbm(m_wbm->getDoFs());
+    yarp::sig::Vector initial_configuration_wbm(m_wbm->getDoFs());
+    m_wbs->getEstimates(wbi::ESTIMATE_JOINT_POS, initial_configuration_wbm.data());
+    
+    // Compute distance between two feet from ref_frame
+    yarp::sig::Vector initial_configuration_dyntree(m_wbm->getRobotModel()->getNrOfDOFs());
+    m_wbm->convertQ(initial_configuration_wbm.data(), initial_configuration_dyntree);
+    
+    // Update internal buffers of DynTree robot model
+    iDynTree::RobotJointStatus m_joint_status;
+    m_joint_status.setNrOfDOFs(m_wbm->getRobotModel()->getNrOfDOFs());
+    m_joint_status.zero();
+    m_joint_status.setJointPosYARP(initial_configuration_dyntree);
+    m_joint_status.updateKDLBuffers();
+    
+    m_wbm->getRobotModel()->setAng(m_joint_status.getJointPosYARP());
+    
+    // Return distance to the center of the twoo feet expressed in ref_frame
+    int index_ref_frame = m_wbm->getRobotModel()->getLinkIndex(ref_frame);
+    int index_right_foot = m_wbm->getRobotModel()->getLinkIndex("r_sole");
+    KDL::Frame tmpFrame = m_wbm->getRobotModel()->getPositionKDL(index_ref_frame, index_right_foot);
+    v = 0.5*tmpFrame.p;
+    return true;
+}
+
+#pragma mark -
 #pragma mark Cleanup and closure
 void iCubWalkingIKThread::threadRelease() {
-
+    
 }
