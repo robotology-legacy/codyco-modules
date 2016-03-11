@@ -4,36 +4,47 @@ iCubWalkingIKThread::iCubWalkingIKThread ( int period,
                                            yarpWbi::yarpWholeBodyModel* wbm,
                                            yarpWbi::yarpWholeBodyStates* wbs,
                                            walkingParams params,
+                                           odometryParams &odometry_params,
+                                           inverseKinematicsParams &inverseKin_params,
                                            yarp::os::ResourceFinder& rf,
                                            std::string walkingPatternFile,
-                                           std::string outputDir) :
+                                           std::string outputDir ) :
 RateThread(period),
 m_period(period),
 m_walkingPatternFile(walkingPatternFile),
 m_walkingParams(params),
+m_odometryParams(odometry_params),
+m_inverseKinematicsParams(inverseKin_params),
 m_rf(rf),
 m_wbm(wbm),
 m_wbs(wbs),
 m_outputDir(outputDir)
 { }
-
+#pragma mark -
+#pragma mark Initialization
 bool iCubWalkingIKThread::threadInit() {
     // Generate feet trajectories
     generateFeetTrajectories(m_walkingPatternFile, m_walkingParams);
     
     m_odometry = new floatingBaseOdometry(m_wbm);
     // Initialize floating base odometry
-    //FIXME: This initial offset should actually be computed as half the distance between r_sole and l_sole
+    //FIXME: This initial offset should actually be computed as half the distance between r_sole and l_sole if it is chosen to be in the middle of the feet (configuration file?)
     //Done by Yue
-    KDL::Vector initial_world_offset( 0.0, -0.067869, 0.0);
     
-    // Initial (current) roboto configuation
+#pragma mark NOTE: Next two lines for future implementation
+    // Initial (current) robot configuration
     yarp::sig::Vector initial_configuration_wbm(m_wbm->getDoFs());
     m_wbs->getEstimates(wbi::ESTIMATE_JOINT_POS, initial_configuration_wbm.data());
-
-    if ( !m_odometry->init("l_sole",
-                           "l_sole",
-                           "root_link",
+    
+#pragma mark NOTE: This is now specified in the configuration file of this module
+    KDL::Vector initial_world_offset = m_odometryParams.offset_from_world_reference_frame;
+    std::string initial_world_frame_position = m_odometryParams.initial_world_reference_frame;
+    std::string initial_fixed_link = m_odometryParams.initial_fixed_frame;
+    std::string floating_base_frame_index = m_odometryParams.floating_base;
+    
+    if ( !m_odometry->init(initial_world_frame_position,
+                           initial_fixed_link,
+                           floating_base_frame_index,
                            initial_world_offset) ) {
         yError("iCubWalkingIKThread could not initialize the odometry object");
         return false;
@@ -42,11 +53,14 @@ bool iCubWalkingIKThread::threadInit() {
     return true;
 }
 
+#pragma mark -
 void iCubWalkingIKThread::run() {
     inverseKinematics(m_walkingParams);
     this->stop();
 }
 
+#pragma mark -
+#pragma mark Main inverse kinematics and walking methods
 void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFile,
                                                    walkingParams paramsList) {
     std::string inputfile = walkingPatternFile;
@@ -68,7 +82,6 @@ void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFil
     Eigen::VectorXd temp_vec_2(4);
     std::vector<Eigen::VectorXd> com_pattern(N,temp_vec_2);
     
-    //FIXME: Remove negative signs for inputs. Also in pattern_generator for pattern_augmented, since now the world reference frame matches
     //Fixed by Yue
     // separate com pattern
     for(unsigned int i = 0; i < N; i++)
@@ -209,18 +222,19 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     body_ids[2] = tmp;
     body_points[0] = Eigen::Vector3d::Zero();
     body_points[1] = Eigen::Vector3d::Zero();
+    //FIXME: This should be read at configuration time (as well as the previous body_points
     body_points[2] = Eigen::Vector3d(0,-0.11,0);
     
     std::string ort_order = "123";
     
     Eigen::Vector3d l_foot_ort = Eigen::Vector3d(DEG2RAD(0),DEG2RAD(0),DEG2RAD(0));
     Eigen::Vector3d r_foot_ort = Eigen::Vector3d(DEG2RAD(0),DEG2RAD(0),DEG2RAD(0));
-    //TODO need to check orientation of chest wrt l_sole (world)
+    //TODO: need to check orientation of chest wrt l_sole (world)
     Eigen::Vector3d com_ort = Eigen::Vector3d(DEG2RAD(0),0,DEG2RAD(0)); // chest
     
     target_orientation[0] = CalcOrientationEulerXYZ(l_foot_ort,ort_order); //l_foot
     target_orientation[1] = CalcOrientationEulerXYZ(r_foot_ort,ort_order); //r_foot
-    //TODO Change this into rotation matrix when orientation of chest wrt l_sole is checked
+    //TODO: Change this into rotation matrix when orientation of chest wrt l_sole is checked
     target_orientation[2] = Eigen::Matrix3d::Zero();//CalcOrientationEulerXYZ(com_ort,ort_order); //chest
     
     //TODO: Not setting to anything qinit for now, since it will be read inside IKinematics from the current configuration of the robot.
@@ -236,14 +250,15 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     std::vector<Eigen::VectorXd> com_real(N,Eigen::Vector3d::Zero());
 
     // IK parameters
-    //TODO: Put these parameters in the configuration file
-    //FIXME: step_tol is now 1e-04, it does not converge for lower tollerances, you should not change lambda
-    double step_tol = 1e-4;
-    double lambda = 0.001;
-    double max_iter = 100;
+    //FIXME: Put these parameters in the configuration file
+#pragma mark NOTE: step_tol is now 1e-04, it does not converge for lower tollerances, you should not change lambda
+    double step_tol = m_inverseKinematicsParams.step_tolerance;
+    double lambda   = m_inverseKinematicsParams.lambda;
+    double max_iter = m_inverseKinematicsParams.max_iter;
     
     // perform some initial IK to get a closer qinit and real com
-    int trials = 10;
+    //FIXME: This should be read at configuration time
+    int trials = m_inverseKinematicsParams.trials_initial_IK;
     target_pos[0] = l_foot[0];
     target_pos[1] = r_foot[0];
     target_pos[2] = com[0];
@@ -321,7 +336,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         t += ts;
     }
 
-    //TODO This can be deleted, as it was here because in RBDL there's also floating base in q
+    //TODO: This can be deleted, as it was here because in RBDL there's also floating base in q
 //     // store the q only without floating base
 //     for(int i = 0; i < N; i++)
 //     {
@@ -348,7 +363,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     }
     
     // write out the resulting joint trajectories for meshup visualization and for the robot
-    //FIXME the meshuo file cannot be used with meshup anymore now, since there's no floating base information, so it's quite useless to export this file now
+    //FIXME the meshup file cannot be used with meshup anymore now, since there's no floating base information, so it's quite useless to export this file now
 //     writeOnCSV(time_vec_new,res,m_outputDir + "/test_ik_pg_meshup.csv","");//meshup_header);
 //     yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/test_ik_pg_meshup.csv").c_str());
     // Changed from res_deg_cut to res_deg as res_deg_cut does not make sense now
@@ -363,6 +378,8 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
 
 }
 
+#pragma mark -
+#pragma mark Cleanup and closure
 void iCubWalkingIKThread::threadRelease() {
 
 }

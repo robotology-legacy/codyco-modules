@@ -16,6 +16,8 @@ private:
     std::string                     m_moduleName;
     std::string                     m_robotName;
     walkingParams                   m_params;
+    odometryParams                  m_odometryParams;
+    inverseKinematicsParams         m_inverseKinematicsParams;
     std::string                     m_walkingPatternFile;
     std::string                     m_outputDir;
     

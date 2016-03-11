@@ -83,6 +83,29 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
     m_params.n_samples = params.check("n_samples", 4801).asInt();
     m_params.g = params.check("g",9.81).asDouble();
     
+    // Copying odometry parameters
+    yarp::os::Bottle odometryParamsBottle = rf.findGroup("odometry_params");
+    m_odometryParams.initial_world_reference_frame = odometryParamsBottle.check("initial_world_reference_frame", yarp::os::Value("l_sole")).asString();
+    m_odometryParams.initial_fixed_frame = odometryParamsBottle.check("initial_fixed_frame", yarp::os::Value("l_sole")).asString();
+    m_odometryParams.floating_base = odometryParamsBottle.check("floating_base", yarp::os::Value("root_link")).asString();
+    yarp::os::Bottle * tmpBot;
+    tmpBot = new yarp::os::Bottle(*odometryParamsBottle.find("offset_from_world_reference").asList());
+    for (unsigned int i = 0; i < 3; i++) {
+        m_odometryParams.offset_from_world_reference_frame(i) = tmpBot->get(i).asDouble();
+    }
+    std::cerr << "[DEBUG] offset_from_world_reference_frame read from config file is: " << m_odometryParams.offset_from_world_reference_frame(0) << " "
+                                                                                        << m_odometryParams.offset_from_world_reference_frame(1) << " "
+                                                                                        << m_odometryParams.offset_from_world_reference_frame(2) << " "
+                                                                                        << std::endl;
+    m_odometryParams.world_between_feet = odometryParamsBottle.find("world_between_feet").asBool();
+    
+    // Copying inverse kinematics parameters
+    yarp::os::Bottle inverseKinematicsBottle = rf.findGroup("inverse_kinematics_params");
+    m_inverseKinematicsParams.lambda = inverseKinematicsBottle.find("lambda").asDouble();
+    m_inverseKinematicsParams.step_tolerance = inverseKinematicsBottle.find("step_tolerance").asDouble();
+    m_inverseKinematicsParams.max_iter = inverseKinematicsBottle.find("max_iter").asInt();
+    m_inverseKinematicsParams.trials_initial_IK = inverseKinematicsBottle.find("trials_initial_IK").asInt();
+    
     // Load walking pattern file
     std::string patternFile = rf.find("patternFile").asString();
     std::string m_walkingPatternFile = rf.findFile(std::string(patternFile+".csv"));
@@ -92,6 +115,8 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
                                      m_robotModel,
                                      m_robotStates,
                                      m_params,
+                                     m_odometryParams,
+                                     m_inverseKinematicsParams,
                                      rf,
                                      m_walkingPatternFile,
                                      m_outputDir);

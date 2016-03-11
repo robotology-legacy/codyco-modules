@@ -5,8 +5,15 @@ modulePeriod 0.01
 patternFile  comTraj_iCubGenova01
 outputDir    ${CMAKE_INSTALL_PREFIX}/${CODYCO_ROBOTS_INSTALL_DIR}/${robotname}
 
-wbi_config_file yarpWholeBodyInterface_icubWalkingIK.ini
-wbi_joints_list ROBOT_JOINTS_WALKING_IK
+wbi_config_file             yarpWholeBodyInterface_icubWalkingIK.ini
+wbi_joints_list             ROBOT_JOINTS_WALKING_IK
+
+[odometry_params]
+initial_world_reference_frame   l_sole
+initial_fixed_frame             l_sole
+floating_base                   root_link
+offset_from_world_reference     (0.0 -0.067869 0.0)
+world_between_feet              true
 
 [walking_params]
 ts          0.010000
@@ -20,3 +27,11 @@ step_height 4.000000e-02
 zmp_tol     5.000000e-02
 n_samples   4801
 g           9.810000e+00
+
+[inverse_kinematics_params]
+step_tolerance      1e-4
+lambda              0.001
+max_iter            100
+trials_initial_IK   10
+
+

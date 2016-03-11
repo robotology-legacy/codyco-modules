@@ -22,7 +22,8 @@ set(HEADERS ${HEADERS_FOLDER}/iCubWalkingIKModule.h
             ${HEADERS_FOLDER}/string_utils.h
             ${HEADERS_FOLDER}/UtilityFunctions.h
             ${HEADERS_FOLDER}/IK.h
-            ${HEADERS_FOLDER}/floatingBaseOdometry.h)
+            ${HEADERS_FOLDER}/floatingBaseOdometry.h
+            ${HEADERS_FOLDER}/paramsStructures.h)
 
 SET(SOURCES ${SRC_FOLDER}/main.cpp
             ${SRC_FOLDER}/iCubWalkingIKModule.cpp

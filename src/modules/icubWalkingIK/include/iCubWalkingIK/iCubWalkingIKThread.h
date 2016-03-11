@@ -32,24 +32,15 @@
 #include "UtilityFunctions.h"
 #include "IK.h"
 #include "floatingBaseOdometry.h"
-
-struct walkingParams{
-    double z_c;
-    int    n_strides;
-    int    T_stride;
-    int    T_switch;
-    double step_width;
-    double step_length;
-    double step_height;
-    int    n_samples;
-    double g;
-};
+#include "paramsStructures.h"
 
 class iCubWalkingIKThread: public yarp::os::RateThread {
 private:
     int m_period;
     std::string m_walkingPatternFile;
     walkingParams m_walkingParams;
+    odometryParams m_odometryParams;
+    inverseKinematicsParams m_inverseKinematicsParams;
     yarp::os::ResourceFinder m_rf;
     yarpWbi::yarpWholeBodyModel* m_wbm;
     yarpWbi::yarpWholeBodyStates* m_wbs;
@@ -61,6 +52,8 @@ public:
                          yarpWbi::yarpWholeBodyModel* wbm,
                          yarpWbi::yarpWholeBodyStates* wbs,
                          walkingParams params,
+                         odometryParams &odometry_params,
+                         inverseKinematicsParams &inverseKin_params,
                          yarp::os::ResourceFinder& rf,
                          std::string walkingPatternFile,
                          std::string outputDir);
