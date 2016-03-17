@@ -340,10 +340,6 @@ bool reachRandomJointPositionsModule::getNewDesiredPosition(yarp::sig::Vector & 
 {
     switch(mode)
     {
-        case RANDOM:
-        break;
-        case GRID_VISIT:
-        break;
         case GRID_MAPPING_WITH_RETURN:
             if( next_desired_position >= 0 && next_desired_position < listOfDesiredPositions.size() )
             {
@@ -412,7 +408,7 @@ bool reachRandomJointPositionsModule::updateModule()
         
         
         //Set a new position for the controlled joints
-        /*
+        
         bool boring_overflow = true;
         for(int jnt=0; jnt < controlledJoints.size(); jnt++ )
         {
@@ -421,12 +417,6 @@ bool reachRandomJointPositionsModule::updateModule()
             double low = controlledJoints[jnt].lower_limit;
             double up = controlledJoints[jnt].upper_limit;
             //Set desired position, depending on the mode
-            if( !gridVisitMode )
-            {
-                double des_pos = yarp::os::Random::uniform(low,up);
-                commandedPositions[jnt] = des_pos;
-            }
-            else
             {
                 if( !boringModeInitialized )
                 {
@@ -450,7 +440,6 @@ bool reachRandomJointPositionsModule::updateModule()
             pos[part]->positionMove(axis,commandedPositions[jnt]);
         }
         boringModeInitialized = true;
-        */
     } 
     
     return true;
