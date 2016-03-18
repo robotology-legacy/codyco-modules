@@ -58,7 +58,7 @@ void reachRandomJointPositionsModule::close_drivers()
             std::string part = controlledJoints[jnt].part_name;
             int axis = controlledJoints[jnt].axis_number;
             pos[part]->setRefSpeed(axis,originalRefSpeeds[jnt]);
-            pos[part]->positionMove(axis,originalPositions[jnt]);
+            calib[part]->homingSingleJoint(axis);
         }
     }
     for(it=drivers.begin(); it!=drivers.end(); it++ )
@@ -206,9 +206,11 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
        IEncoders * new_encs;
        IPositionControl * new_poss;
        IControlLimits * new_lims;
+       IRemoteCalibrator * new_calib;
        ok = ok && new_driver->view(new_encs);
        ok = ok && new_driver->view(new_poss);
        ok = ok && new_driver->view(new_lims);
+       ok = ok && new_driver->view(new_calib);
 
        if(!ok)
        {
@@ -221,6 +223,7 @@ bool reachRandomJointPositionsModule::configure(ResourceFinder &rf)
        pos[part_name] = new_poss;
        encs[part_name] = new_encs;
        lims[part_name] = new_lims;
+       calib[part_name] = new_calib;
     }
 
     for(int jnt=0; jnt < nrOfControlledJoints; jnt++ )
