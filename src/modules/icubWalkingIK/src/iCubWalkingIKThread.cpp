@@ -282,7 +282,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     bool switch_fixed = false;
     for(int k = 0; k < trials; k++)
     {
-      //FIXME introduced parameter for switching fixed foot
+    //FIXME introduced parameter for switching fixed foot
         if (!IKinematics(m_wbm, m_wbs, m_odometry, qinit, body_ids, target_pos, target_orientation, body_points, qres, switch_fixed, step_tol, lambda, max_iter))
         {
             yWarning("iCubWalkingIKThread::inverseKinematics \n COM Inv. Kinematics \n - Could not converge to a solution with the desired tolerance of %lf", step_tol);
@@ -322,7 +322,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
 //        com_real[i] = com_temp;
 //        body_points[2] = CalcBaseToBodyCoordinates(model,qinit,body_ids[2],com_real[i]);   
         
-        //FIXME parameter to switch fixed foot, always to false except when need to switch
+//FIXME: parameter to switch fixed foot, always to false except when need to switch
         switch_fixed = false;
         if(i>0)//step_N) //use step_N if starting with r_sole
         {
@@ -391,7 +391,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     }
     
     // write out the resulting joint trajectories for meshup visualization and for the robot
-    //FIXME the meshup file cannot be used with meshup anymore now, since there's no floating base information, so it's quite useless to export this file now
+//FIXME: the meshup file cannot be used with meshup anymore now, since there's no floating base information, so it's quite useless to export this file now
 //     writeOnCSV(time_vec_new,res,m_outputDir + "/test_ik_pg_meshup.csv","");//meshup_header);
 //     yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/test_ik_pg_meshup.csv").c_str());
     // Changed from res_deg_cut to res_deg as res_deg_cut does not make sense now

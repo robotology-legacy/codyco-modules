@@ -109,7 +109,7 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
     
     Qres = Qinit;
     
-    //FIXME parameter for switching fixed foot switch_fixed, the fixed link update should happen only once at the beginning
+//FIXME: parameter for switching fixed foot switch_fixed, the fixed link update should happen only once at the beginning
     odometry->update(Qres.data(), switch_fixed);
   
     for (unsigned int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
@@ -119,9 +119,8 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
             // Initializing Jacobian matrix to 6 x DOFS
             MatrixXd_row G (Eigen::MatrixXd::Zero(6, wbm->getDoFs() + 6));
             wbi::Frame base_H_world;
-            //TODO: Instead of wbi::Frame() the actual rototranslation from world to root must be passed to this method!!!!
             // Update odometry and compute world_H_floatingbase
-            //FIXME parameter for switching fixed foot switch_fixed, the fixed link update should NOT happen inside the IK iterations
+            //!!!!: parameter for switching fixed foot switch_fixed, the fixed link update should NOT happen inside the IK iterations
             odometry->update(Qres.data(), false);
             wbi::Frame world_H_floatingbase;
             odometry->get_world_H_floatingbase(world_H_floatingbase);
@@ -130,7 +129,6 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
             
             // Calculate coordinates of a point in the root reference frame
             Eigen::VectorXd point_pose(7);
-            //TODO: Instead of wbi::Frame() the actual rototranslation from world to root must be passed to this method!!!!
             wbm->forwardKinematics(Qres.data(), world_H_floatingbase, body_id[k], point_pose.data(), body_point[k].data());
             Eigen::Vector3d point_base = point_pose.head(3);
 //            Eigen::Vector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
