@@ -88,9 +88,9 @@ bool robotDriver::configure(const Property &copt) {
 
     if (verbose)
     {
-        cout << "right leg driver options:\n" << drvOptions_rl.toString().c_str();
-        cout << "left  leg driver options:\n" << drvOptions_ll.toString().c_str();
-        cout << "torso     driver options:\n" << drvOptions_to.toString().c_str();
+        cerr << "right leg driver options:\n" << drvOptions_rl.toString().c_str() << endl;
+        cerr << "left  leg driver options:\n" << drvOptions_ll.toString().c_str() << endl;
+        cerr << "torso     driver options:\n" << drvOptions_to.toString().c_str() << endl;
     }
 
     return ret;
@@ -139,8 +139,13 @@ bool robotDriver::init() {
     for (int i=0; i<6; i++)speeds_arm[i] = 20.0;
     for (int i=0; i<3; i++) speeds_to[i] = 20.0;
 
-
-    this->iint_ll->setInteractionModes(tempMode);
+    //FIXME: The following for loop is just for testing joint by joint what happens when setInteractionMode() is used. Delete or comment this block and uncomment line 148  to do it as previously done in a batched way for the left leg.
+    for (unsigned int i=0; i<6; i++) {
+        icmd_ll->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
+        this->iint_ll->setInteractionMode(i, tempMode[i]);
+    }
+    
+//    this->iint_ll->setInteractionModes(tempMode);
     this->iint_rl->setInteractionModes(tempMode);
 
     this->ipos_ll->setRefSpeeds(speeds_arm);
