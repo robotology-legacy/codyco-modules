@@ -62,14 +62,20 @@ bool iCubWalkingIKThread::threadInit() {
         yError("iCubWalkingIKThread could not initialize the odometry object");
         return false;
     }
-    
+    yInfo("Finished initialization... \nWaiting for RPC command [run]...");
     return true;
 }
 
+iCubWalkingIKThread::~iCubWalkingIKThread() {}
+
 #pragma mark -
 void iCubWalkingIKThread::run() {
-    inverseKinematics(m_walkingParams);
-    this->stop();
+//    this->thread_mutex.wait();
+    if ( planner_flag ) {
+        inverseKinematics(m_walkingParams);
+        this->planner_flag = false;
+    }
+//    this->thread_mutex.posst();
 }
 
 #pragma mark -
@@ -326,6 +332,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         switch_fixed = false;
         if(i>0)//step_N) //use step_N if starting with r_sole
         {
+#pragma mark [LAST]: Currently here ...
           // switch when one of the feet is lifting from the ground
           if(fabs(r_foot[i-1][2]-l_foot[i-1][2]) == 0 && fabs(r_foot[i][2]-l_foot[i][2]) > 0)
           {
@@ -391,7 +398,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     }
     
     // write out the resulting joint trajectories for meshup visualization and for the robot
-//FIXME: the meshup file cannot be used with meshup anymore now, since there's no floating base information, so it's quite useless to export this file now
+//FIXME: the meshup file cannot be used with meshup anymore now, since there's no floating base information, so it's quite useless to export this file now. MESHUP can be replaced with the iCubGui updating the world to base rototranslation.
 //     writeOnCSV(time_vec_new,res,m_outputDir + "/test_ik_pg_meshup.csv","");//meshup_header);
 //     yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/test_ik_pg_meshup.csv").c_str());
     // Changed from res_deg_cut to res_deg as res_deg_cut does not make sense now
@@ -401,9 +408,6 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/real_com_traj.csv").c_str());
     writeOnCSV(com_l_sole,m_outputDir + "/com_l_sole.csv");
     yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/com_l_sole.csv").c_str());
-    yInfo("Waiting 10 seconds before restarting ... " );
-    yarp::os::Time::delay(10.0);
-
 }
 
 #pragma mark -
@@ -437,5 +441,9 @@ bool iCubWalkingIKThread::computeCenterBetweenFeet(KDL::Vector &v, std::string r
 #pragma mark -
 #pragma mark Cleanup and closure
 void iCubWalkingIKThread::threadRelease() {
-    
+    if ( m_odometry ) {
+        delete m_odometry;
+        m_odometry = 0;
+        yInfo("m_odometry was deleted ...");
+    }
 }

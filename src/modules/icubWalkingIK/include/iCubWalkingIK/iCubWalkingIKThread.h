@@ -24,6 +24,8 @@
 #include <yarp/sig/Vector.h>
 #include <yarp/os/ResourceFinder.h>
 #include <yarp/os/Time.h>
+#include <yarp/os/Port.h>
+#include <yarp/os/Semaphore.h>
 
 #include <yarpWholeBodyInterface/yarpWholeBodyModel.h>
 #include <yarpWholeBodyInterface/yarpWholeBodyStates.h>
@@ -46,8 +48,11 @@ private:
     yarpWbi::yarpWholeBodyStates* m_wbs;
     std::string m_outputDir;
     floatingBaseOdometry* m_odometry;
-
+    yarp::os::Port m_rpc_port;
 public:
+    yarp::os::Semaphore  thread_mutex;
+    bool planner_flag;
+    
     iCubWalkingIKThread (int period,
                          yarpWbi::yarpWholeBodyModel* wbm,
                          yarpWbi::yarpWholeBodyStates* wbs,
@@ -57,6 +62,7 @@ public:
                          yarp::os::ResourceFinder& rf,
                          std::string walkingPatternFile,
                          std::string outputDir);
+    virtual ~iCubWalkingIKThread();
     bool threadInit();
     void run();
     void threadRelease();

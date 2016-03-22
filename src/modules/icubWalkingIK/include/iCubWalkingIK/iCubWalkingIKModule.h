@@ -20,6 +20,7 @@ private:
     inverseKinematicsParams         m_inverseKinematicsParams;
     std::string                     m_walkingPatternFile;
     std::string                     m_outputDir;
+    yarp::os::Port                  m_rpc_port;
     
 public:
     iCubWalkingIKModule();
@@ -27,8 +28,10 @@ public:
     bool configure(yarp::os::ResourceFinder &rf);
     double getPeriod(){ return m_period; }
     bool updateModule();
+    bool respond(const yarp::os::Bottle &command, yarp::os::Bottle &reply);
     bool close();
     void closure();
+    bool interruptModule();
 };
 
 #endif

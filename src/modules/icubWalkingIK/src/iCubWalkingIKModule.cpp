@@ -6,6 +6,7 @@
 
 using namespace yarp::os;
 using namespace yarpWbi;
+using namespace std;
 
 iCubWalkingIKModule::iCubWalkingIKModule() {}
 
@@ -34,6 +35,13 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
     
     wbiProperties.fromString(rf.toString(), false);
     yarp::os::ConstString jointList = rf.find("wbi_joints_list").asString();
+    
+    //Open RPC port
+    // RPC Port opening
+    m_rpc_port.open(std::string("/" + m_moduleName + "/rpc").c_str());
+    attach(m_rpc_port);
+
+    
     //retrieve all main joints
     wbi::IDList iCubMainJoints;
     if (!yarpWbi::loadIdListFromConfig(jointList, wbiProperties, iCubMainJoints)) {
@@ -124,19 +132,62 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
     return ans;
 }
 
+bool iCubWalkingIKModule::respond(const yarp::os::Bottle &command, yarp::os::Bottle &reply) {
+//    this->thread->thread_mutex.wait();
+    if (command.size()!=0) {
+        string cmdstring = command.get(0).asString().c_str();
+        if ( cmdstring == "help" ) {
+            cerr << "Available commands: " << endl;
+            cout << "run" << endl;
+            reply.addVocab(Vocab::encode("ack"));
+        }
+        else if ( cmdstring == "run" ) {
+            if ( !this->thread->planner_flag ) {
+                this->thread->planner_flag = true;
+                reply.addVocab(Vocab::encode("ack"));
+            }
+        }
+        else if ( cmdstring == "stop" ) {
+            this->close();
+            reply.addVocab(Vocab::encode("ack"));
+        }
+        else {
+            reply.addVocab(Vocab::encode("nack"));
+            return false;
+        }
+    } else {
+        reply.addVocab(Vocab::encode("nack"));
+        return false;
+    }
+//    this->thread->thread_mutex.post();
+    return true;
+}
+
 bool iCubWalkingIKModule::updateModule() {
+    if (this->thread == 0) {
+        yInfo("The thread has been stopped ... ");
+        return false;
+    }
+    return true;
+}
+
+bool iCubWalkingIKModule::interruptModule() {
+    if (this->thread)
+        this->thread->suspend();
+    this->m_rpc_port.interrupt();
     return true;
 }
 
 bool iCubWalkingIKModule::close() {
-    
     closure();
     return true;
 }
 
 void iCubWalkingIKModule::closure() {
     if (thread) {
+//        this->thread->thread_mutex.wait();
         thread->stop();
+//        this->thread->thread_mutex.post();
         delete thread;
         thread = 0;
     }
@@ -148,4 +199,8 @@ void iCubWalkingIKModule::closure() {
         delete m_robotStates;
         m_robotStates = 0;
     }
+    m_rpc_port.interrupt();
+    m_rpc_port.close();
+
+    
 }
