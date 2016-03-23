@@ -36,6 +36,7 @@ bool iCubWalkingIKThread::threadInit() {
     KDL::Vector computed_initial_world_offset;
     computed_initial_world_offset.Zero();
     if ( m_odometryParams.world_between_feet ) {
+//    if ( true ) {
         if ( !computeCenterBetweenFeet(computed_initial_world_offset, m_odometryParams.initial_world_reference_frame) ) {
             yError("iCubWalkingIKThread::threadInit(): There were problems computing the center between the twoo feet at the current configuration");
             return false;

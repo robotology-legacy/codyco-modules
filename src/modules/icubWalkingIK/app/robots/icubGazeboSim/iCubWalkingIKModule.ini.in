@@ -12,7 +12,7 @@ wbi_joints_list             ROBOT_JOINTS_WALKING_IK
 initial_world_reference_frame   l_sole
 initial_fixed_frame             l_sole
 floating_base                   root_link
-offset_from_world_reference     (0.0 -0.067869 0.0)
+offset_from_world_reference     (0.0 -0.0706 0.0)
 world_between_feet              false
 
 [walking_params]
@@ -21,7 +21,7 @@ z_c         0.515000
 n_strides   3
 T_stride    12
 T_switch    1
-step_width  1.600000e-01
+step_width  1.411000e-01
 step_length 5.000000e-02
 step_height 4.000000e-02
 zmp_tol     5.000000e-02
