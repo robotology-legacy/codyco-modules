@@ -79,6 +79,10 @@ public:
      *  @return true if everything goes well, false otherwise
      */
     bool computeCenterBetweenFeet(KDL::Vector &v, std::string ref_frame);
+    
+    bool updateCOMreal(floatingBaseOdometry * odometry, Eigen::VectorXd &com_real, Eigen::VectorXd offset);
+    
+    bool updateFootTrajReal(floatingBaseOdometry * odometry, double * q, Eigen::VectorXd &foot_real, std::string which_foot);
 };
 
 #endif

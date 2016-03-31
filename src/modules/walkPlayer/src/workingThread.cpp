@@ -91,7 +91,7 @@ bool WorkingThread::execute_joint_command(int j)
     int    LIMIT_MIN_JERK = this->minJerkLimit;
 
     //if (REF_SPEED_FACTOR != 0 && j>=0)
-    if ( j < 0 )
+    if ( REF_SPEED_FACTOR != 0 && j>=0 )
     {
         bool checkMotionDone = false;
         //the whole body joint trajectory for the first step is done with min jerk controllers rather than position direct
@@ -101,13 +101,13 @@ bool WorkingThread::execute_joint_command(int j)
 
         for (int i=0; i<6; i++)
         {
-            spd_ll[i] = iCub::ctrl::CTRL_DEG2RAD*REF_SPEED_FACTOR;
-            spd_rl[i] = iCub::ctrl::CTRL_DEG2RAD*REF_SPEED_FACTOR;
+            spd_ll[i] = REF_SPEED_FACTOR;
+            spd_rl[i] = REF_SPEED_FACTOR;
         }
 
         for (int i=0; i<3; i++)
         {
-            spd_to[i] = iCub::ctrl::CTRL_DEG2RAD*REF_SPEED_FACTOR;
+            spd_to[i] = 0.0;
         }
 
         driver->ipos_ll->setRefSpeeds(spd_ll);

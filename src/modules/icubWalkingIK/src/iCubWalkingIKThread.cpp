@@ -76,7 +76,9 @@ void iCubWalkingIKThread::run() {
         inverseKinematics(m_walkingParams);
         this->planner_flag = false;
     }
-//    this->thread_mutex.posst();
+    // Compute root to world rototranslation and write to file
+    
+//    this->thread_mutex.post();
 }
 
 #pragma mark -
@@ -113,6 +115,7 @@ void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFil
         temp_com[3] = paramsList.z_c;
         com_pattern[i] = temp_com;
     }
+    //FIXME: This file should be written in the YARP_ROBOT_NAME installation dir along with all the others that have been already migrated.
 //    std::string com_pattern_file = m_rf.findFile("com_pattern.csv");
     writeOnCSV(com_pattern, "com_pattern.csv");
     
@@ -124,6 +127,7 @@ void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFil
     // into account that time starts from 0
     int N_traj = ceil(finalTime/ts)+1;
     
+    //FIXME: Make the following variables private to this class so that they can  be accesed from the run method
     // trajectories
     std::vector<Eigen::VectorXd> r_foot_traj(N_traj);
     std::vector<Eigen::VectorXd> l_foot_traj(N_traj);
@@ -202,7 +206,8 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     std::vector<Eigen::VectorXd> com(N,temp);
     Eigen::VectorXd time_vec(N);
     
-    // read the feet trajectories
+    //FIXME: This should be passed to the init method of this thread.
+    // read the feet and com trajectories
     readFromCSV("l_foot_traj.csv",l_foot);
     readFromCSV("r_foot_traj.csv",r_foot);
     readFromCSV("com_traj.csv",com);
@@ -267,17 +272,19 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
 //    qinit[15] = -0.57;
 //    qinit[16] = -0.23;
     
+    // Initializing variable to store actual com trajectory after solving inverse kinematics.
     std::vector<Eigen::VectorXd> com_real(N,Eigen::Vector3d::Zero());
+    // Initializing variable to store actual feet trajectory after solving inverse kinematics.
+    std::vector<Eigen::VectorXd> l_foot_real(N,Eigen::Vector3d::Zero());
+    std::vector<Eigen::VectorXd> r_foot_real(N,Eigen::Vector3d::Zero());
 
     // IK parameters
-    //FIXME: Put these parameters in the configuration file
 #pragma mark NOTE: step_tol is now 1e-04, it does not converge for lower tollerances, you should not change lambda
     double step_tol = m_inverseKinematicsParams.step_tolerance;
     double lambda   = m_inverseKinematicsParams.lambda;
     double max_iter = m_inverseKinematicsParams.max_iter;
     
     // perform some initial IK to get a closer qinit and real com
-    //FIXME: This should be read at configuration time
     int trials = m_inverseKinematicsParams.trials_initial_IK;
     target_pos[0] = l_foot[0];
     target_pos[1] = r_foot[0];
@@ -285,11 +292,12 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     
     m_wbs->getEstimates(wbi::ESTIMATE_JOINT_POS, qinit.data());
 
-    //FIXME parameter for switching fixed foot
+    //FIXME: parameter for switching fixed foot
     bool switch_fixed = false;
     for(int k = 0; k < trials; k++)
     {
-    //FIXME introduced parameter for switching fixed foot
+    //FIXME: introduced parameter for switching fixed foot
+        //NOTE: It would be nice if body_ids, target_pos, target_orientation, body_points, lambda and max_iter were put in some structure for inverse kinematics (like ik_params).
         if (!IKinematics(m_wbm, m_wbs, m_odometry, qinit, body_ids, target_pos, target_orientation, body_points, qres, switch_fixed, step_tol, lambda, max_iter))
         {
             yWarning("iCubWalkingIKThread::inverseKinematics \n COM Inv. Kinematics \n - Could not converge to a solution with the desired tolerance of %lf", step_tol);
@@ -306,10 +314,14 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         Eigen::VectorXd com_from_chest(7);
         m_wbm->forwardKinematics(qres.data(), H_from_chest_to_root, wbi::iWholeBodyModel::COM_LINK_ID, com_from_chest.data());
         body_points[2] = com_from_chest.head(3);
+        //!!!!: The following line should be removed. This is just a test!
+        body_points[2] <<  0.0, -0.0317, 0.0;
 //        RigidBodyDynamics::Utils::CalcCenterOfMass(model,qinit,qdot,mass,com_temp);
 //        com_real[0] = com_temp;
 //        body_points[2] = CalcBaseToBodyCoordinates(model,qinit,body_ids[2],com_real[0]);
     }
+    
+    m_wbs->getEstimates(wbi::ESTIMATE_JOINT_POS, qinit.data());
     
     // perform inverse kinematics using all the defined points and the target positions as from the planned feet and com trajectories
     double t = 0;
@@ -321,19 +333,22 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         wbi::Frame H_from_chest_to_root;
         m_wbm->computeH(qinit.data(), wbi::Frame(), chestId, H_from_chest_to_root);
         Eigen::VectorXd com_from_chest(7);
-        m_wbm->forwardKinematics(qres.data(), H_from_chest_to_root, wbi::iWholeBodyModel::COM_LINK_ID, com_from_chest.data());
+        //!!!!: Maybe in the following line instead of qres I should have qinit!!!
+        m_wbm->forwardKinematics(qinit.data(), H_from_chest_to_root, wbi::iWholeBodyModel::COM_LINK_ID, com_from_chest.data());
         body_points[2] = com_from_chest.head(3);
-        
+//        std::cout << "com_from_chest: " << com_from_chest << std::endl;
+        //!!!!: The following line should be removed. This is just a test!
+        body_points[2] << 0.0, -0.0317, 0.0;
+
 //        // use the real com as body point
 //        RigidBodyDynamics::Utils::CalcCenterOfMass(model,qinit,qdot,mass,com_temp);
 //        com_real[i] = com_temp;
-//        body_points[2] = CalcBaseToBodyCoordinates(model,qinit,body_ids[2],com_real[i]);   
+//        body_points[2] = CalcBaseToBodyCoordinates(model,qinit,body_ids[2],com_real[i]);
         
 //FIXME: parameter to switch fixed foot, always to false except when need to switch
         switch_fixed = false;
         if(i>0)//step_N) //use step_N if starting with r_sole
         {
-#pragma mark [LAST]: Currently here ...
           // switch when one of the feet is lifting from the ground
           if(fabs(r_foot[i-1][2]-l_foot[i-1][2]) == 0 && fabs(r_foot[i][2]-l_foot[i][2]) > 0)
           {
@@ -350,6 +365,23 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         {
             yWarning("iCubWalkingIKThread::inverseKinematics \n Inv. Kinematics for all targets \n Could not converge to a solution with the desired tolerance of %lf", step_tol);
         }
+        
+        // Upating real com trajectory after performing inverse kinematics
+        Eigen::VectorXd tmp_com_real(3);
+        tmp_com_real << 0,0,0;
+        Eigen::VectorXd offset(3);
+        offset.setZero();
+        updateCOMreal( m_odometry, tmp_com_real, offset );
+        com_real[i] = tmp_com_real;
+        
+        // Updating real feet trajectory after performing inverse kinematics
+        Eigen::VectorXd tmp_l_foot_real(3); tmp_l_foot_real.setZero();
+        Eigen::VectorXd tmp_r_foot_real(3); tmp_r_foot_real.setZero();
+        updateFootTrajReal(m_odometry, qres.data(), tmp_l_foot_real, "l_sole");
+        updateFootTrajReal(m_odometry, qres.data(), tmp_r_foot_real, "r_sole");
+        l_foot_real[i] = tmp_l_foot_real;
+        r_foot_real[i] = tmp_r_foot_real;
+        
         
         res[i] = qres;
         qinit = qres;
@@ -372,14 +404,6 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         t += ts;
     }
 
-    //TODO: This can be deleted, as it was here because in RBDL there's also floating base in q
-//     // store the q only without floating base
-//     for(int i = 0; i < N; i++)
-//     {
-//         for(int j = 6; j < qres.size(); j++)
-//             res_deg_cut[i][j-6] = res_deg[i][j];
-//     }
-
     // Change the reference of the com from root to l_sole as per real iCub convention for torque control
     std::vector<Eigen::VectorXd> com_l_sole(N,Eigen::Vector3d::Zero());
     int l_sole_idx;
@@ -387,7 +411,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     wbi::Frame H_from_l_sole_to_root;
     m_wbm->computeH(qinit.data(), wbi::Frame(), l_sole_idx, H_from_l_sole_to_root);
     Eigen::VectorXd l_sole_pos = Eigen::Map<Eigen::VectorXd>(H_from_l_sole_to_root.p,3,1);
-    std::cout << "l_sole pos wrt root: " << H_from_l_sole_to_root.p << std::endl;
+    std::cout << "l_sole pos wrt root: " << H_from_l_sole_to_root.p[0] << " " << H_from_l_sole_to_root.p[1] << " " << H_from_l_sole_to_root.p[2] << std::endl;
     //TODO: This copying needs to be double-checked.
     Eigen::MatrixXd l_sole_ort = Eigen::Map<Eigen::MatrixXd>(H_from_l_sole_to_root.R.data,3,3);
     Eigen::Vector3d l_foot_ang = Eigen::Vector3d::Zero();
@@ -398,21 +422,22 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         com_l_sole[i] = l_sole_ort*com[i] + l_sole_pos;
     }
     
-    // write out the resulting joint trajectories for meshup visualization and for the robot
-//FIXME: the meshup file cannot be used with meshup anymore now, since there's no floating base information, so it's quite useless to export this file now. MESHUP can be replaced with the iCubGui updating the world to base rototranslation.
-//     writeOnCSV(time_vec_new,res,m_outputDir + "/test_ik_pg_meshup.csv","");//meshup_header);
-//     yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/test_ik_pg_meshup.csv").c_str());
     // Changed from res_deg_cut to res_deg as res_deg_cut does not make sense now
     writeOnCSV(res_deg,m_outputDir + "/test_ik_pg.csv");
-    yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/test_ik_pg.csv").c_str());
+    yInfo("Wrote test_ik_pg file: %s ", std::string(m_outputDir + "/test_ik_pg.csv").c_str());
     writeOnCSV(com_real,m_outputDir + "/real_com_traj.csv");
-    yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/real_com_traj.csv").c_str());
+    yInfo("Wrote real_com_traj file: %s ", std::string(m_outputDir + "/real_com_traj.csv").c_str());
     writeOnCSV(com_l_sole,m_outputDir + "/com_l_sole.csv");
-    yInfo("Wrote MESHUP file: %s ", std::string(m_outputDir + "/com_l_sole.csv").c_str());
+    yInfo("Wrote com_l_sole file: %s ", std::string(m_outputDir + "/com_l_sole.csv").c_str());
+    writeOnCSV(l_foot_real, std::string(m_outputDir + "/real_left_foot.csv").c_str());
+    yInfo("Wrote real_left_foot file: %s ", std::string(m_outputDir + "/real_left_foot.csv").c_str());
+    writeOnCSV(r_foot_real, std::string(m_outputDir + "/real_right_foot.csv").c_str());
+    yInfo("Wrote real_left_foot file: %s ", std::string(m_outputDir + "/real_right_foot.csv").c_str());
+
 }
 
 #pragma mark -
-#pragma mark Helper methods
+#pragma mark Helper and diagnosis methods
 bool iCubWalkingIKThread::computeCenterBetweenFeet(KDL::Vector &v, std::string ref_frame) {
     // Read current kinematic configuration of th    yarp::sig::Vector initial_configuration_wbm(m_wbm->getDoFs());
     yarp::sig::Vector initial_configuration_wbm(m_wbm->getDoFs());
@@ -436,6 +461,28 @@ bool iCubWalkingIKThread::computeCenterBetweenFeet(KDL::Vector &v, std::string r
     int index_right_foot = m_wbm->getRobotModel()->getLinkIndex("r_sole");
     KDL::Frame tmpFrame = m_wbm->getRobotModel()->getPositionKDL(index_ref_frame, index_right_foot);
     v = 0.5*tmpFrame.p;
+    return true;
+}
+
+bool iCubWalkingIKThread::updateCOMreal(floatingBaseOdometry * odometry, Eigen::VectorXd &com_real, Eigen::VectorXd offset) {
+    wbi::Frame world_H_floatingbase;
+    odometry->get_world_H_floatingbase(world_H_floatingbase);
+    com_real << world_H_floatingbase.p[0], world_H_floatingbase.p[1], world_H_floatingbase.p[2];
+    return true;
+}
+
+bool iCubWalkingIKThread::updateFootTrajReal(floatingBaseOdometry * odometry, double * q, Eigen::VectorXd &foot_real, std::string which_foot) {
+    wbi::Frame world_H_floatingbase;
+    odometry->get_world_H_floatingbase(world_H_floatingbase);
+    // Retrieve rototranslation from <which_foot> to <root>
+    int foot_index;
+    wbi::Frame floatingbase_H_foot;
+    m_wbm->getFrameList().idToIndex(which_foot.c_str(), foot_index);
+    m_wbm->computeH(q, wbi::Frame(), foot_index, floatingbase_H_foot);
+    // Compose rototranslations to express foot trajectory in world reference frame
+    wbi::Frame world_H_foot;
+    world_H_foot = world_H_floatingbase*floatingbase_H_foot;
+    foot_real << world_H_foot.p[0], world_H_foot.p[1], world_H_foot.p[2];
     return true;
 }
 
