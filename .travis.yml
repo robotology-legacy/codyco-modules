@@ -1,12 +1,29 @@
+sudo: required
+dist: trusty
 language: cpp
 
-compiler:
-  - gcc
-  - clang
+# set the CMAKE_PREFIX_PATH enviroment variable to get software installed by the superbuild
+matrix:
+  include:
+    - os: linux
+      compiler: clang
+      env: TRAVIS_CMAKE_GENERATOR="Unix Makefiles", TRAVIS_BUILD_TYPE="Debug", CMAKE_PREFIX_PATH="/home/travis/build/robotology/codyco-superbuild/build/install"
+    - os: linux
+      compiler: clang
+      env: TRAVIS_CMAKE_GENERATOR="Unix Makefiles", TRAVIS_BUILD_TYPE="Release", CMAKE_PREFIX_PATH="/home/travis/build/robotology/codyco-superbuild/build/install"
+    - os: linux
+      compiler: gcc
+      env: TRAVIS_CMAKE_GENERATOR="Unix Makefiles", TRAVIS_BUILD_TYPE="Debug", CMAKE_PREFIX_PATH="/home/travis/build/robotology/codyco-superbuild/build/install"
+    - os: linux
+      compiler: gcc
+      env: TRAVIS_CMAKE_GENERATOR="Unix Makefiles", TRAVIS_BUILD_TYPE="Release", CMAKE_PREFIX_PATH="/home/travis/build/robotology/codyco-superbuild/build/install"
+    - os: osx
+      compiler: gcc
+      env: TRAVIS_CMAKE_GENERATOR="Unix Makefiles", TRAVIS_BUILD_TYPE="Debug", CMAKE_PREFIX_PATH="/home/travis/build/robotology/codyco-superbuild/build/install"
+    - os: osx
+      compiler: clang
+      env: TRAVIS_CMAKE_GENERATOR="Xcode", TRAVIS_BUILD_TYPE="Release", CMAKE_PREFIX_PATH="/home/travis/build/robotology/codyco-superbuild/build/install"
 
-env:
-  - TRAVIS_BUILD_TYPE=Debug, TRAVIS_CMAKE_GENERATOR="Unix Makefiles",
-  - TRAVIS_BUILD_TYPE=Release, TRAVIS_CMAKE_GENERATOR="Unix Makefiles",
 
 before_script:
   - cd ..  
@@ -30,7 +47,7 @@ before_script:
 script:
   - mkdir build
   - cd build
-  - cmake -DCODYCO_TRAVIS_CI:BOOL=ON -DCMAKE_BUILD_TYPE=${TRAVIS_BUILD_TYPE} -DNON_INTERACTIVE_BUILD:BOOL=TRUE ..
+  - cmake -G"${TRAVIS_CMAKE_GENERATOR}" -DCODYCO_TRAVIS_CI:BOOL=ON -DCMAKE_BUILD_TYPE=${TRAVIS_BUILD_TYPE} -DNON_INTERACTIVE_BUILD:BOOL=TRUE ..
   - cmake --build . --config ${TRAVIS_BUILD_TYPE}
 
 notifications:
