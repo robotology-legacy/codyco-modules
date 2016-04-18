@@ -439,7 +439,7 @@ bool wholeBodyDynamicsThread::threadInit()
     if( yarp_options.check("min_taxel") )
     {
         int taxel_threshold = yarp_options.find("min_taxel").asInt();
-        yInfo() << "min_taxel option found, ignoring skin contacts with less then "
+        yInfo() << "min_taxel option found, ignoring skin contacts with less than "
                   << taxel_threshold << " active taxels will be ignored.";
         externalWrenchTorqueEstimator->setMinTaxel(taxel_threshold);
     }
@@ -1931,7 +1931,7 @@ void wholeBodyDynamicsThread::threadRelease()
     {
         delete icub_model_world_base_position;
     }
-    
+
     yInfo() << "Deleting filters";
     delete filters;
 
