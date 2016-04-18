@@ -19,10 +19,10 @@ matrix:
       env: TRAVIS_CMAKE_GENERATOR="Unix Makefiles", TRAVIS_BUILD_TYPE="Release", CMAKE_PREFIX_PATH="/home/travis/build/robotology/codyco-superbuild/build/install"
     - os: osx
       compiler: gcc
-      env: TRAVIS_CMAKE_GENERATOR="Unix Makefiles", TRAVIS_BUILD_TYPE="Debug", CMAKE_PREFIX_PATH="/home/travis/build/robotology/codyco-superbuild/build/install"
+      env: TRAVIS_CMAKE_GENERATOR="Unix Makefiles", TRAVIS_BUILD_TYPE="Debug", CMAKE_PREFIX_PATH="/Users/travis/build/robotology/codyco-superbuild/build/install"
     - os: osx
       compiler: clang
-      env: TRAVIS_CMAKE_GENERATOR="Xcode", TRAVIS_BUILD_TYPE="Release", CMAKE_PREFIX_PATH="/home/travis/build/robotology/codyco-superbuild/build/install"
+      env: TRAVIS_CMAKE_GENERATOR="Xcode", TRAVIS_BUILD_TYPE="Release", CMAKE_PREFIX_PATH="/Users/travis/build/robotology/codyco-superbuild/build/install"
 
 
 before_script:
@@ -39,7 +39,6 @@ before_script:
   # using the YCM_EP_MAINTAINER_MODE variable to enable the subproject-dependees target
   - cmake -G"${TRAVIS_CMAKE_GENERATOR}" -DCODYCO_TRAVIS_CI:BOOL=ON -DCMAKE_BUILD_TYPE=${TRAVIS_BUILD_TYPE} -DYCM_EP_MAINTAINER_MODE:BOOL=ON -DNON_INTERACTIVE_BUILD:BOOL=TRUE ..
   - cmake --build . --config ${TRAVIS_BUILD_TYPE} --target codyco-modules-dependees
-  - export CMAKE_PREFIX_PATH=/home/travis/build/robotology/codyco-superbuild/build/install
   - cd ../..
   # go back to codyco-modules
   - cd codyco-modules
