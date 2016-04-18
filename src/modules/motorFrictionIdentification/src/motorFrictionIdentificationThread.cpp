@@ -295,7 +295,7 @@ void MotorFrictionIdentificationThread::run()
                 ///< otherwise, if there is external force, estimate motor gain
                 // For some motors that are connected to coupled joints we want to
                 // disregard samples if the torque on some other motor is not zero
-                // (i.e. the torque is bigger then ZERO_TORQUE_THRESHOLD )
+                // (i.e. the torque is bigger than ZERO_TORQUE_THRESHOLD )
                 if( checkThatCoupledMotorTorqueIsZero[i] )
                 {
                     if( fabs(torques[coupledMotorThatShouldHaveZeroTorqueForMotorGainEstimation[i]]) > ZERO_TORQUE_THRESHOLD)
