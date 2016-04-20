@@ -134,19 +134,22 @@ bool robotDriver::init() {
     //set the intial reference speeds
     double speeds_arm[6];
     double speeds_to[3];
-    InteractionModeEnum tempMode[6] = {VOCAB_IM_STIFF,VOCAB_IM_STIFF,VOCAB_IM_STIFF,VOCAB_IM_STIFF,VOCAB_IM_STIFF,VOCAB_IM_STIFF};
+//     InteractionModeEnum tempMode[6] = {VOCAB_IM_STIFF,VOCAB_IM_STIFF,
+//         VOCAB_IM_STIFF,VOCAB_IM_STIFF,
+//         VOCAB_IM_STIFF,VOCAB_IM_STIFF};
 
     for (int i=0; i<6; i++)speeds_arm[i] = 20.0;
     for (int i=0; i<3; i++) speeds_to[i] = 20.0;
 
     //FIXME: The following for loop is just for testing joint by joint what happens when setInteractionMode() is used. Delete or comment this block and uncomment line 148  to do it as previously done in a batched way for the left leg.
-    for (unsigned int i=0; i<6; i++) {
-        icmd_ll->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
-        this->iint_ll->setInteractionMode(i, tempMode[i]);
-    }
-    
+//     for (unsigned int i=0; i<6; i++) {
+//         icmd_ll->setControlMode(i, VOCAB_CM_POSITION_DIRECT);
+//         this->iint_ll->setInteractionMode(i, tempMode[i]);
+//         this->iint_rl->setInteractionMode(i,tempMode[i]);
+//     }
+
 //    this->iint_ll->setInteractionModes(tempMode);
-    this->iint_rl->setInteractionModes(tempMode);
+//     this->iint_rl->setInteractionModes(tempMode);
 
     this->ipos_ll->setRefSpeeds(speeds_arm);
     this->ipos_rl->setRefSpeeds(speeds_arm);
