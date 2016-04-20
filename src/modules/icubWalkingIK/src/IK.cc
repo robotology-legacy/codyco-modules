@@ -167,7 +167,7 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
         
         // abort if we are getting "close"
         if (e.norm() < step_tol) {
-            std::cerr << "Reached target close enough after " << ik_iter << " steps" << std::endl;
+//            std::cerr << "Reached target close enough after " << ik_iter << " steps" << std::endl;
             return true;
         }
         
@@ -187,7 +187,7 @@ bool IKinematics (yarpWbi::yarpWholeBodyModel* wbm,
         //TODO: Here, size of Qres is 15 while size delta is 21
         Qres = Qres + delta_theta.tail(15);
         if (delta_theta.norm() < step_tol) {
-            std::cerr << "Reached target close enough with small delta_theta after " << ik_iter << " steps" << std::endl;
+//            std::cerr << "Reached target close enough with small delta_theta after " << ik_iter << " steps" << std::endl;
             return true;
         }
     }

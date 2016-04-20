@@ -1,4 +1,4 @@
-set(robotname icubGazeboSim)
+set(robotname iCubGenova01)
 configure_file(iCubWalkingIKModule.ini.in ${CMAKE_CURRENT_SOURCE_DIR}/iCubWalkingIKModule.ini)
 message(CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR})
 

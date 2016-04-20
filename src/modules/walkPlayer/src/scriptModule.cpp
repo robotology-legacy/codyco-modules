@@ -117,7 +117,7 @@ bool scriptModule::configure(ResourceFinder &rf) {
         string filenamePrefix = rf.find("torqueBalancingSequence").asString().c_str();
         // Overwrite the execute flag value. This option has higher priority and
         // should simply stream trajectories use by the torqueBalancing module.
-        thread.enable_execute_joint_command = false;
+        thread.enable_execute_joint_command = true;
         if (!thread.actions.openTorqueBalancingSequence(filenamePrefix,rf))
         {
             cout << "ERROR: Unable to parse torque balancing sequence" << endl;
@@ -172,7 +172,8 @@ bool scriptModule::respond(const Bottle &command, Bottle &reply)
                         filenamePrefix = rfCopy.find("torqueBalancingSequence").asString().c_str();
                         // Overwrite the execute flag value. This option has higher priority and
                         // should simply stream trajectories use by the torqueBalancing module.
-                        thread.enable_execute_joint_command = false;
+                        //!!!!: Temporarily put this flag to true
+                        thread.enable_execute_joint_command = true;
                         if (!thread.actions.openTorqueBalancingSequence(filenamePrefix,rfCopy))
                         {
                             cout << "ERROR: Unable to parse torque balancing sequence" << endl;

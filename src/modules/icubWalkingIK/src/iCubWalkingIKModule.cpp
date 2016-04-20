@@ -79,8 +79,9 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
     
     yInfo("[iCubWalkingIKModule::configure] Initial joint configuration \n, %s", initJointConf.toString().c_str() );
     
-    // Copying params
-    yarp::os::Bottle params = rf.findGroup("walking_params");
+    // Copying walking parameters file written by patternGenerator
+    yarp::os::Property params;
+    params.fromConfigFile(rf.findFile("walkingParams.txt"));
     m_params.z_c = params.check("z_c", 0.51).asDouble();
     m_params.n_strides = params.check("n_strides", 3).asInt();
     m_params.T_stride = params.check("T_stride", 12).asInt();

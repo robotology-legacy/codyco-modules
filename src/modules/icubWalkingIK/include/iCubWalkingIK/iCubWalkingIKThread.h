@@ -48,7 +48,19 @@ private:
     yarpWbi::yarpWholeBodyStates* m_wbs;
     std::string m_outputDir;
     floatingBaseOdometry* m_odometry;
+    floatingBaseOdometry* m_walkingOdometry;
     yarp::os::Port m_rpc_port;
+    
+    floatingBaseOdometry* m_odometry_while_walking;
+    yarp::sig::Vector m_actual_q;
+    wbi::Frame m_world_H_floatingbase;
+    yarp::os::Port m_ft_foot_port;
+    yarp::os::Port m_feet_constraints;
+    yarp::os::BufferedPort<yarp::sig::Vector> m_output_floating_base;
+    yarp::sig::Vector m_previous_constraints;
+    bool m_switch_foot;
+    bool m_stream_floating_base_flag;
+    
 public:
     yarp::os::Semaphore  thread_mutex;
     bool planner_flag;

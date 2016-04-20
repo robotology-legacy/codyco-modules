@@ -28,8 +28,6 @@ bool iCubWalkingIKThread::threadInit() {
     
     m_odometry = new floatingBaseOdometry(m_wbm);
     // Initialize floating base odometry
-    //FIXME: This initial offset should actually be computed as half the distance between r_sole and l_sole if it is chosen to be in the middle of the feet (configuration file?)
-    //Done by Yue
     
 #pragma mark NOTE: Next two lines for future implementation
     // Initial (current) robot configuration
@@ -42,7 +40,7 @@ bool iCubWalkingIKThread::threadInit() {
             return false;
         }
     }
-    
+
 #pragma mark NOTE: This is now specified in the configuration file of this module
     KDL::Vector initial_world_offset;
     if ( m_odometryParams.world_between_feet ) {
@@ -63,6 +61,39 @@ bool iCubWalkingIKThread::threadInit() {
         yError("iCubWalkingIKThread could not initialize the odometry object");
         return false;
     }
+    
+    //NOTE: Added an additional odometry object to stream the floating base rototranslation when it is actually walking, not for the planning.
+    //FIXME: Remember to destroy this object during closure
+    m_walkingOdometry = new floatingBaseOdometry(m_wbm);
+    if ( !m_walkingOdometry->init(initial_world_frame_position,
+                                 initial_fixed_link,
+                                 floating_base_frame_index,
+                                 initial_world_offset) ) {
+        yError("iCubWalkingIKThread could not initialize the odometry object to rack iCub's floating base");
+        return false;
+    }
+    
+    m_actual_q.resize(m_wbm->getDoFs());
+    std::string module_name = m_rf.find("name").asString();
+    m_ft_foot_port.open(std::string("/" + module_name + "/foot_ft:i").c_str());
+    std::string robot_name = m_rf.find("robot").asString();
+    yarp::os::Network::connect( "/" + robot_name + "/right_foot/analog:o", m_ft_foot_port.getName());
+    m_output_floating_base.open(std::string("/" + module_name + "/floating_base:o").c_str());
+    
+    m_stream_floating_base_flag = m_rf.find("stream_floating_base_pose").asBool();
+    if ( m_stream_floating_base_flag ) {
+        std::string feet_constraints_port_name = std::string("/" + module_name + "/feet_constraints:i");
+        m_feet_constraints.open(feet_constraints_port_name.c_str());
+        if ( !yarp::os::Network::connect("/walkPlayer/constraints:o", feet_constraints_port_name) ) {
+            yError("walkPlayer is not streaming the constraints... In this version it is necessary");
+            return false;
+        }
+    }
+    //Initialize previous constraints to 1 1, as we assume the robot always starts on two feet.
+    m_previous_constraints.resize(2, 1);
+    m_switch_foot = false;
+    //END - odometry while walking
+    
     yInfo("Finished initialization... \nWaiting for RPC command [run]...");
     return true;
 }
@@ -72,12 +103,61 @@ iCubWalkingIKThread::~iCubWalkingIKThread() {}
 #pragma mark -
 void iCubWalkingIKThread::run() {
 //    this->thread_mutex.wait();
-    if ( planner_flag ) {
+    // if ( this->planner_flag )
+    if ( this->planner_flag ) {
         inverseKinematics(m_walkingParams);
         this->planner_flag = false;
     }
-    // Compute root to world rototranslation and write to file
     
+    if ( m_stream_floating_base_flag ) {
+        m_wbs->getEstimates(wbi::ESTIMATE_JOINT_POS, m_actual_q.data());
+        // If feet FT sensor is under threshold and walkPlayer says it can switch, then do it. For now, set to false;
+        // Read feet FT sensor
+        yarp::os::Bottle foot_ft;
+        yarp::os::Bottle constraints;
+        m_ft_foot_port.read(foot_ft,true);
+        m_feet_constraints.read(constraints,true);
+        yarp::sig::Vector new_constraints(2);
+        new_constraints.zero();
+        new_constraints(0) = constraints.get(0).asInt();
+        new_constraints(1) = constraints.get(1).asInt();
+        // Read walkPlayer
+        // Constraints are interpreted as: 1 1 => left (on) right (on)
+        // If weight on right leg is above 27.5Kg and the left foot is supposed to be off (as by the planner) or ...
+        // If weight on right leg is near zero and the right foot is supposed to be off (as by the planner).
+        if (false) {
+            std::cerr << "FT_z right foot: " << foot_ft.get(2).asDouble() << std::endl;
+            std::cerr << "Left contact: " << constraints.get(0).asInt() << std::endl;
+            std::cerr << "Right contact: " << constraints.get(1).asInt() << std::endl;
+        }
+        // When planner says to lift off the foot
+        if ( ( m_previous_constraints(0) == 1 && m_previous_constraints(1) == 1 ) &&
+             ( new_constraints(0) != m_previous_constraints(0) || new_constraints(1) != m_previous_constraints(1) ) ) {
+            m_switch_foot = true;
+            yInfo("FOOT WAS SWITCHED");
+        }
+            
+        //std::cout << "" << std::endl;
+        m_previous_constraints(0) = new_constraints(0);
+        m_previous_constraints(1) = new_constraints(1);
+        m_walkingOdometry->update(m_actual_q.data(), m_switch_foot);
+        m_switch_foot = false;
+        m_walkingOdometry->get_world_H_floatingbase( m_world_H_floatingbase );
+        yarp::sig::Vector &out_floatingbase = m_output_floating_base.prepare();
+        yarp::sig::Vector tmp(12); // [translation - rotation matrix(column-wise)]
+        tmp[0] = m_world_H_floatingbase.p[0];
+        tmp[1] = m_world_H_floatingbase.p[1];
+        tmp[2] = m_world_H_floatingbase.p[2];
+        unsigned int kk = 3;
+        for (unsigned int j=0; j<3; j++) {
+            for (unsigned int i=0; i<3; i++) {
+                tmp[kk] = m_world_H_floatingbase.R(i,j);
+                kk++;
+            }
+        }
+        out_floatingbase = tmp;
+        m_output_floating_base.write();
+    }
 //    this->thread_mutex.post();
 }
 
@@ -247,7 +327,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     body_ids[2] = tmp;
     body_points[0] = Eigen::Vector3d::Zero();
     body_points[1] = Eigen::Vector3d::Zero();
-    //FIXME: This should be read at configuration time (as well as the previous body_points
+    //FIXME: This should be read at configuration time (as well as the previous body_points, although at the moment it's being overwritten later.
     body_points[2] = Eigen::Vector3d(0,-0.11,0);
     
     std::string ort_order = "123";
@@ -262,7 +342,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     //TODO: Change this into rotation matrix when orientation of chest wrt l_sole is checked
     target_orientation[2] = Eigen::Matrix3d::Zero();//CalcOrientationEulerXYZ(com_ort,ort_order); //chest
     
-    //TODO: Not setting to anything qinit for now, since it will be read inside IKinematics from the current configuration of the robot.
+    //TODO: Not setting to any qinit for now, since it will be read inside IKinematics from the current configuration of the robot.
     // set initial position close to the target to avoid weird solutions
 //    qinit[2] = 0.6;
 //    qinit[6] = 0.54;
@@ -314,7 +394,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         Eigen::VectorXd com_from_chest(7);
         m_wbm->forwardKinematics(qres.data(), H_from_chest_to_root, wbi::iWholeBodyModel::COM_LINK_ID, com_from_chest.data());
         body_points[2] = com_from_chest.head(3);
-        //!!!!: The following line should be removed. This is just a test!
+        //!!!!: The following line is very specific to iCub and has been figured out comparing the height of the resulting COM with the resulting joint angles from inverse kinematics against the planned COM trajectory. The exact difference has been then used to find this offset from the chest (in the y direction which is vertical to the floor)!
         body_points[2] <<  0.0, -0.0317, 0.0;
 //        RigidBodyDynamics::Utils::CalcCenterOfMass(model,qinit,qdot,mass,com_temp);
 //        com_real[0] = com_temp;
@@ -333,11 +413,14 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         wbi::Frame H_from_chest_to_root;
         m_wbm->computeH(qinit.data(), wbi::Frame(), chestId, H_from_chest_to_root);
         Eigen::VectorXd com_from_chest(7);
+        Eigen::VectorXd com_from_root(7);
         //!!!!: Maybe in the following line instead of qres I should have qinit!!!
         m_wbm->forwardKinematics(qinit.data(), H_from_chest_to_root, wbi::iWholeBodyModel::COM_LINK_ID, com_from_chest.data());
+        m_wbm->forwardKinematics(qinit.data(), wbi::Frame(), wbi::iWholeBodyModel::COM_LINK_ID, com_from_root.data());
         body_points[2] = com_from_chest.head(3);
-//        std::cout << "com_from_chest: " << com_from_chest << std::endl;
-        //!!!!: The following line should be removed. This is just a test!
+//        std::cout << "com_from_chest: " << com_from_chest.head(3) << std::endl;
+//        std::cout << "com_from_root: " << com_from_root.head(3) << std::endl;
+        //!!!!: The following line is very specific to iCub and has been figured out comparing the height of the resulting COM with the resulting joint angles from inverse kinematics against the planned COM trajectory. The exact difference has been then used to find this offset from the chest (in the y direction which is vertical to the floor)!
         body_points[2] << 0.0, -0.0317, 0.0;
 
 //        // use the real com as body point
@@ -345,7 +428,7 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
 //        com_real[i] = com_temp;
 //        body_points[2] = CalcBaseToBodyCoordinates(model,qinit,body_ids[2],com_real[i]);
         
-//FIXME: parameter to switch fixed foot, always to false except when need to switch
+        //FIXME: parameter to switch fixed foot, always to false except when need to switch
         switch_fixed = false;
         if(i>0)//step_N) //use step_N if starting with r_sole
         {
@@ -386,6 +469,10 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
         res[i] = qres;
         qinit = qres;
         t += ts;
+        
+        double percentage = (double)i/N*100.0;
+        std::cout << "Percentage: " << int(percentage) << "% \r";
+        std::cout.flush();
     }
     
     // convert into degrees
