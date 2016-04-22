@@ -1,5 +1,5 @@
 ts 0.010000
-z_c 0.580000
+z_c 0.560000
 n_strides 3
 T_stride 12
 T_switch 1
