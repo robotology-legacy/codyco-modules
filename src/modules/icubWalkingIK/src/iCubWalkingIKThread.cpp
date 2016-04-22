@@ -102,11 +102,14 @@ iCubWalkingIKThread::~iCubWalkingIKThread() {}
 
 #pragma mark -
 void iCubWalkingIKThread::run() {
-//    this->thread_mutex.wait();
+    this->thread_mutex.wait();
     // if ( this->planner_flag )
     if ( this->planner_flag ) {
+        double init_time = yarp::os::Time::now();
         inverseKinematics(m_walkingParams);
         this->planner_flag = false;
+        double final_time = yarp::os::Time::now();
+        yInfo("Total elapsed time: %f seconds", final_time - init_time);
     }
     
     if ( m_stream_floating_base_flag ) {
@@ -158,7 +161,7 @@ void iCubWalkingIKThread::run() {
         out_floatingbase = tmp;
         m_output_floating_base.write();
     }
-//    this->thread_mutex.post();
+    this->thread_mutex.post();
 }
 
 #pragma mark -
@@ -288,9 +291,12 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     
     //FIXME: This should be passed to the init method of this thread.
     // read the feet and com trajectories
+    double init_time = yarp::os::Time::now();
     readFromCSV("l_foot_traj.csv",l_foot);
     readFromCSV("r_foot_traj.csv",r_foot);
     readFromCSV("com_traj.csv",com);
+    double end_time = yarp::os::Time::now();
+    yInfo("Time reading trajectories in inverseKinematics: %lf", end_time - init_time);
     // initial guess of the joint configuration
     Eigen::VectorXd qinit = Eigen::VectorXd::Zero(m_wbm->getDoFs());
     // result of the inverse kinematics

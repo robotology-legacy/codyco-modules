@@ -134,12 +134,14 @@ bool iCubWalkingIKModule::configure(ResourceFinder &rf) {
 }
 
 bool iCubWalkingIKModule::respond(const yarp::os::Bottle &command, yarp::os::Bottle &reply) {
-//    this->thread->thread_mutex.wait();
+    this->thread->thread_mutex.wait();
+    bool ret = true;
     if (command.size()!=0) {
         string cmdstring = command.get(0).asString().c_str();
         if ( cmdstring == "help" ) {
             cerr << "Available commands: " << endl;
-            cout << "run" << endl;
+            cout << "run: Executes the module." << endl;
+            cout << "quit: Stops the module." << endl;
             reply.addVocab(Vocab::encode("ack"));
         }
         else if ( cmdstring == "run" ) {
@@ -148,20 +150,21 @@ bool iCubWalkingIKModule::respond(const yarp::os::Bottle &command, yarp::os::Bot
                 reply.addVocab(Vocab::encode("ack"));
             }
         }
-        else if ( cmdstring == "stop" ) {
-            this->close();
+        else if ( cmdstring == "quit" ) {
+//            this->close();
             reply.addVocab(Vocab::encode("ack"));
+            ret = false;
         }
         else {
             reply.addVocab(Vocab::encode("nack"));
-            return false;
+            ret = false;
         }
     } else {
         reply.addVocab(Vocab::encode("nack"));
-        return false;
+        ret = false;
     }
-//    this->thread->thread_mutex.post();
-    return true;
+    this->thread->thread_mutex.post();
+    return ret;
 }
 
 bool iCubWalkingIKModule::updateModule() {

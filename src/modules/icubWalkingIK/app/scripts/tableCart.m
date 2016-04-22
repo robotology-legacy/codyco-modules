@@ -3,6 +3,7 @@
 %% Table cart mparameters
 function tableCart(fileName)
 close all;
+clc;
 addpath(genpath('utilities'));
 params = parseParams('walkingParams.txt');
 if (~isstruct(params))
@@ -23,8 +24,6 @@ T_switch = params.T_switch;
 
 foot_width = 0.07;
 foot_length = 0.14;
-
-addpath('./lib');
 
 %% ............ Build ZMP motion
 % If you want to change T_0 (ts in walkingParams.txt) you should modify
@@ -305,5 +304,7 @@ display([getenv('INSTALLED_ROBOT_DIRS') '/comTraj_iCubGenova01.csv']);
 writeToCSV('r_foot_pattern_aug',r_foot_pattern_aug, [getenv('INSTALLED_ROBOT_DIRS') '/']);
 writeToCSV('l_foot_pattern_aug',l_foot_pattern_aug, [getenv('INSTALLED_ROBOT_DIRS') '/']);
 copyfile('walkingParams.txt',getenv('INSTALLED_ROBOT_DIRS'));
+display('Walking parameters file installed as: ');
+display([getenv('INSTALLED_ROBOT_DIRS') '/walkingParams.txt']);
 
 end

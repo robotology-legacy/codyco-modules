@@ -172,7 +172,7 @@ bool scriptModule::respond(const Bottle &command, Bottle &reply)
                         filenamePrefix = rfCopy.find("torqueBalancingSequence").asString().c_str();
                         // Overwrite the execute flag value. This option has higher priority and
                         // should simply stream trajectories use by the torqueBalancing module.
-                        //!!!!: Temporarily put this flag to true
+                        //!!!!: Temporarily put this flag to true so that constraints are also streamed, useful for icubWalkingIK
                         thread.enable_execute_joint_command = true;
                         if (!thread.actions.openTorqueBalancingSequence(filenamePrefix,rfCopy))
                         {
