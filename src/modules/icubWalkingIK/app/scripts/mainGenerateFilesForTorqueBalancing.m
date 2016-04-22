@@ -6,7 +6,8 @@ com_file       = [getenv('INSTALLED_ROBOT_DIRS') '/com_l_sole.csv'];
 filepath = getenv('INSTALLED_ROBOT_DIRS');
 % !!!!Temporary!!!! Local solution for Tariq's experiments. Working only on
 % OS X if compiling in Debug mode. MUST BE CHANGED!!
-filepath = [getenv('CODYCO_SUPERBUILD_DIR') '/main/codyco-modules/bin/Debug']; 
+% filepath = [getenv('CODYCO_SUPERBUILD_DIR') '/main/codyco-modules/bin/Debug']; 
+filepath = [getenv('INSTALLED_ROBOT_DIRS')];
 
 l_foot_traj    = [filepath '/l_foot_traj.csv'];
 r_foot_traj    = [filepath '/r_foot_traj.csv'];

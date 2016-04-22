@@ -200,7 +200,7 @@ void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFil
     }
     //FIXME: This file should be written in the YARP_ROBOT_NAME installation dir along with all the others that have been already migrated.
 //    std::string com_pattern_file = m_rf.findFile("com_pattern.csv");
-    writeOnCSV(com_pattern, "com_pattern.csv");
+    writeOnCSV(com_pattern, std::string(m_outputDir + "/com_pattern.csv"));
     
     // compute useful quantities
     double finalTime = inputs[N-1][0];
@@ -220,7 +220,7 @@ void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFil
     std::string l_foot_pattern_aug_file = m_rf.findFile("l_foot_pattern_aug.csv");
     r_foot_interp.generateFromCSV(r_foot_pattern_aug_file.c_str());
     l_foot_interp.generateFromCSV(l_foot_pattern_aug_file.c_str());
-    com_interp.generateFromCSV("com_pattern.csv");
+    com_interp.generateFromCSV(std::string(m_outputDir + "/com_pattern.csv").c_str());
     
     double t = 0.0;
     int h = 1; //index used to separate left and right feet
@@ -268,9 +268,9 @@ void iCubWalkingIKThread::generateFeetTrajectories(std::string walkingPatternFil
         t = (i+1)*ts;
     }
     
-    writeOnCSV(r_foot_traj,"r_foot_traj.csv");
-    writeOnCSV(l_foot_traj,"l_foot_traj.csv");
-    writeOnCSV(com_traj,"com_traj.csv");
+    writeOnCSV(r_foot_traj,std::string(m_outputDir + "/r_foot_traj.csv"));
+    writeOnCSV(l_foot_traj,std::string(m_outputDir + "/l_foot_traj.csv"));
+    writeOnCSV(com_traj,   std::string(m_outputDir + "/com_traj.csv"));
 
 }
 
@@ -292,9 +292,9 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     //FIXME: This should be passed to the init method of this thread.
     // read the feet and com trajectories
     double init_time = yarp::os::Time::now();
-    readFromCSV("l_foot_traj.csv",l_foot);
-    readFromCSV("r_foot_traj.csv",r_foot);
-    readFromCSV("com_traj.csv",com);
+    readFromCSV(std::string(m_outputDir + "/l_foot_traj.csv"),l_foot);
+    readFromCSV(std::string(m_outputDir + "/r_foot_traj.csv"),r_foot);
+    readFromCSV(std::string(m_outputDir + "/com_traj.csv"),com);
     double end_time = yarp::os::Time::now();
     yInfo("Time reading trajectories in inverseKinematics: %lf", end_time - init_time);
     // initial guess of the joint configuration
@@ -377,6 +377,9 @@ void iCubWalkingIKThread::inverseKinematics(walkingParams params) {
     target_pos[2] = com[0];
     
     m_wbs->getEstimates(wbi::ESTIMATE_JOINT_POS, qinit.data());
+    yInfo("Using the following initial joint configuration: ");
+//    qinit << 0.370514, -0.00103353, -0.0194207, -0.695718, -0.321399, -0.00163334, 0.366373, -0.00112561, 0.0195639, -0.699534, -0.32928, -0.00163269, 0.0760014, -0.0174981, -1.44023e-06;
+    std::cerr << qinit << std::endl;
 
     //FIXME: parameter for switching fixed foot
     bool switch_fixed = false;
