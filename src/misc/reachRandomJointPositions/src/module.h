@@ -32,6 +32,7 @@
 #include <yarp/dev/IPositionControl.h>
 #include <yarp/dev/IEncoders.h>
 #include <yarp/dev/IControlLimits2.h>
+#include <yarp/dev/CalibratorInterfaces.h>
 
 #include <yarp/sig/Vector.h>
 
@@ -93,6 +94,7 @@ class reachRandomJointPositionsModule: public RFModule
     std::map<std::string,yarp::dev::IPositionControl *> pos;
     std::map<std::string,yarp::dev::IEncoders *>encs;
     std::map<std::string,yarp::dev::IControlLimits *>lims;
+    std::map<std::string,yarp::dev::IRemoteCalibrator *> calib;
 
     void close_drivers();
 
