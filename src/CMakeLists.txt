@@ -1,11 +1,11 @@
-if(CODYCO_USES_WBI_TOOLBOX)
-    message(STATUS "Adding -fPIC option to compiler")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-endif(CODYCO_USES_WBI_TOOLBOX)
 
+add_subdirectory(libraries)
 add_subdirectory(idl)
 add_subdirectory(modules)
 add_subdirectory(devices)
+
+
+
 add_subdirectory(misc/ftDumper)
 add_subdirectory(misc/reachRandomJointPositions)
 #add_subdirectory(misc/skinContactGenerator)

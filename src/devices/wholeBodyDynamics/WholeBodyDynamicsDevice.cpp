@@ -8,8 +8,10 @@
 #include <yarp/dev/GenericSensorInterfaces.h>
 
 #include <iDynTree/yarp/YARPConversions.h>
+#include <iDynTree/Core/Utils.h>
 
 #include <cassert>
+#include <cmath>
 
 namespace yarp
 {
@@ -19,8 +21,10 @@ namespace dev
 WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(),
                                                     portPrefix("/wholeBodyDynamics"),
                                                     correctlyConfigured(false),
+                                                    sensorReadCorrectly(false),
                                                     estimationWentWell(false),
-                                                    imuInterface(0)
+                                                    imuInterface(0),
+                                                    ongoingCalibration(false)
 {
 
 }
@@ -182,22 +186,61 @@ bool WholeBodyDynamicsDevice::attachAllVirtualAnalogSensor(const PolyDriverList&
         if( p[devIdx]->poly->view(pVirtualAnalogSens) )
         {
             virtualAnalogList.push(pVirtualAnalogSens);
-            if( p[devIdx]->poly->view(pAxisInfo) )
+            if( !(p[devIdx]->poly->view(pAxisInfo)) )
             {
                 yError() << "WholeBodyDynamicsDevice::attachAll error: device "
                          << p[devIdx]->key << " exposes a IVirtualAnalogSensor, but not a IAxisInfo interface,"
                          << " impossible to map the list of joint names to the IVirtualAnalogSensor interface" << std::endl;
+                return false;
+
+            }
+            else
+            {
+                axisInfoList.push_back(pAxisInfo);
             }
         }
     }
 
+    // Find the axisName ---> device , localAxis mapping
     std::map<std::string, IVirtualAnalogSensor *> axisName2virtualAnalogSensorPtr;
     std::map<std::string, int> axisName2localAxis;
 
+    for(size_t devIdx = 0; devIdx < virtualAnalogList.size(); devIdx++)
+    {
+        int nrOfVirtualAxes = virtualAnalogList[devIdx]->getChannels();
+        for(int localAxis=0; localAxis < nrOfVirtualAxes; localAxis++)
+        {
+            yarp::os::ConstString axisName;
+            axisInfoList[devIdx].getAxisName(localAxis,axisName);
 
+            std::strig axisNameStd = axisName.c_str();
 
+            axisName2virtualAnalogSensorPtr[axisNameStd] = virtualAnalogList[devIdx];
+            axisName2localAxis[axisNameStd] = localAxis;
+        }
+    }
 
+    // Save the axis ---> device, localAxis mapping
+    remappedVirtualAnalogSensorAxis.resize(estimationJointNames.size());
 
+    for(size_t axis = 0; axis < remappedVirtualAnalogSensorAxis.size(); axis++)
+    {
+        std::string jointName = estimationJointNames[axis];
+        // if the name is not exposed in the VirtualAnalogSensors, just save a null pointer
+        // and don't publish the torque estimated for that joint
+        if( axisName2virtualAnalogSensorPtr.find(jointName) == axisName2virtualAnalogSensorPtr.end() )
+        {
+            remappedVirtualAnalogSensorAxis[axis].dev = 0;
+            remappedVirtualAnalogSensorAxis[axis].localAxis = 0;
+        }
+        else
+        {
+            remappedVirtualAnalogSensorAxis[axis].dev = axisName2virtualAnalogSensorPtr[jointName];
+            remappedVirtualAnalogSensorAxis[axis].localAxis = axisName2localAxis[jointName];
+        }
+    }
+
+    return true;
 }
 
 bool WholeBodyDynamicsDevice::attachAllFTs(const PolyDriverList& p)
@@ -273,15 +316,30 @@ bool WholeBodyDynamicsDevice::attachAll(const PolyDriverList& p)
     return ok;
 }
 
-void WholeBodyDynamicsDevice::readSensors()
-{
 
+void convertVectorFromDegreesToRadians(VectorDynSize & vector)
+{
+    for(size_t i=0; i < vector.size(); i++)
+    {
+        vector(i) = iDynTree::deg2rad(vector(i));
+    }
+
+    return;
+}
+
+
+void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
+{
     // Read encoders
-    remappedControlBoardInterfaces.encs->getEncoders(jointPos.data());
+    sensorReadCorrectly = remappedControlBoardInterfaces.encs->getEncoders(jointPos.data());
+    convertVectorFromDegreesToRadians(jointPos);
+
+    // At the moment we are assuming that all joints are revolute
 
     if( settings.useJointVelocities )
     {
-        remappedControlBoardInterfaces.encs->getEncoderSpeeds(jointVel.data());
+        sensorReadCorrectly = sensorReadCorrectly && remappedControlBoardInterfaces.encs->getEncoderSpeeds(jointVel.data());
+        convertVectorFromDegreesToRadians(jointVel);
     }
     else
     {
@@ -290,7 +348,8 @@ void WholeBodyDynamicsDevice::readSensors()
 
     if( settings.useJointAcceleration )
     {
-        remappedControlBoardInterfaces.encs->getEncoderAccelerations(jointAcc.data());
+        sensorReadCorrectly = sensorReadCorrectly && remappedControlBoardInterfaces.encs->getEncoderAccelerations(jointAcc.data());
+        convertVectorFromDegreesToRadians(jointAcc);
     }
     else
     {
@@ -301,7 +360,7 @@ void WholeBodyDynamicsDevice::readSensors()
     for(size_t ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
     {
         iDynTree::Wrench bufWrench;
-        ftSensors[ft]->read(ftMeasurement);
+        sensorReadCorrectly = sensorReadCorrectly && ftSensors[ft]->read(ftMeasurement);
         // Format of F/T measurement in YARP/iDynTree is consistent: linear/angular
         iDynTree::toiDynTree(ftMeasurement,bufWrench);
         sensorsMeasurements.setMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,bufWrench);
@@ -314,13 +373,12 @@ void WholeBodyDynamicsDevice::readSensors()
         angAcc.zero();
         linProperAcc.zero();
         angVel.zero();
-        imuInterface->read(imuMeasurement);
+        sensorReadCorrectly = sensorReadCorrectly && imuInterface->read(imuMeasurement);
 
         // Check format of IMU in YARP http://wiki.icub.org/wiki/Inertial_Sensor
-        assert(false);
-        angVel(0) = imuMeasurement[6];
-        angVel(1) = imuMeasurement[7];
-        angVel(2) = imuMeasurement[8];
+        angVel(0) = iDynTree::deg2rad(imuMeasurement[6]);
+        angVel(1) = iDynTree::deg2rad(imuMeasurement[7]);
+        angVel(2) = iDynTree::deg2rad(imuMeasurement[8]);
 
         linProperAcc(0) = imuMeasurement[3];
         linProperAcc(1) = imuMeasurement[4];
@@ -345,8 +403,32 @@ void WholeBodyDynamicsDevice::readSensors()
     }
 }
 
+void WholeBodyDynamicsDevice::computeCalibration()
+{
+    if( ongoingCalibration )
+    {
+        // Run the calibration
+        estimator.computeExpectedFTSensorsMeasurements(assumedContactLocationsForCalibration,predictedSensorMeasurementsForCalibration,
+                                                       predictedExternalContactWrenchesForCalibration,predictedJointTorquesForCalibration);
+
+        // The kinematics information was already set by the readSensorsAndUpdateKinematics method
+        for(size_t ft = 0; ft < ftSensors.size(); ft++)
+        {
+            if( calibratingFTsensor[ft] )
+            {
+                iDynTree::Wrench estimatedFT;
+                predictedSensorMeasurementsForCalibration.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,estimatedFT);
+                offsetBuffer[ft] += estimatedFT;
+            }
+        }
+    }
+
+}
+
+
 void WholeBodyDynamicsDevice::computeExternalForcesAndJointTorques()
 {
+    // The kinematics information was already set by the readSensorsAndUpdateKinematics method
     estimationWentWell = estimator.estimateExtWrenchesAndJointTorques(measuredContactLocations,sensorsMeasurements,
                                                                        estimateExternalContactWrenches,estimatedJointTorques);
 }
@@ -386,7 +468,7 @@ void WholeBodyDynamicsDevice::publishTorques()
 {
     for(int axis=0; axis < analogSensorAxes.size(); axis++)
     {
-        analogSensorAxes[i].dev->updateMeasure(analogSensorAxes[i].localAxis,estimatedJointTorques(axis));
+        analogSensorAxes[axis].dev->updateMeasure(analogSensorAxes[axis].localAxis,estimatedJointTorques(axis));
     }
 }
 
@@ -400,10 +482,10 @@ void WholeBodyDynamicsDevice::run()
         //this->reconfigureClassFromSettings();
 
         // Read sensor readings
-        this->readSensors();
+        this->readSensorsAndUpdateKinematics();
 
         // Compute calibration if we are in calibration mode
-        //this->computeCalibration();
+        this->computeCalibration();
 
         // Compute estimated external forces and internal joint torques
         this->computeExternalForcesAndJointTorques();

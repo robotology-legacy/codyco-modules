@@ -531,7 +531,7 @@ bool wholeBodyDynamicsThread::threadInit()
             {
                 yError() << "Error in opening port " << string("/"+moduleName+"/filtered/"+ft_id.toString()+":o") << ", closing";
                 return false;
-			}
+            }
         }
     }
 

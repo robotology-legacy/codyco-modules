@@ -56,10 +56,21 @@ private:
     bool correctlyConfigured;
 
     /**
+     *
+     *
+     */
+    bool sensorReadCorrectly;
+
+    /**
      * Flag set to false at the beginning, and to true only if the estimation
      * have been performed correctly.
      */
     bool estimationWentWell;
+
+    /**
+     * Names of the axis (joint with at least a degree of freedom) used in estimation.
+     */
+    std::vector<std::string> estimationJointNames;
 
     /** Remapped controlboard containg the axes for which the joint torques are estimated */
     yarp::dev::PolyDriver remappedControlBoard;
@@ -122,8 +133,14 @@ private:
     /**
      * Run-related methods.
      */
-    void readSensors();
+    void readSensorsAndUpdateKinematics();
+    void computeCalibration();
     void computeExternalForcesAndJointTorques();
+
+    // Calibration related quantitites
+    bool ongoingCalibration;
+    std::vector<bool> calibratingFTsensor;
+    std::vector<iDynTree::Vector6> offsetBuffer;
 
     // Publish related methods
     void publishTorques();
@@ -131,7 +148,6 @@ private:
 
     // Publish related attributes (port, interfaces)
     std::vector<virtualAnalogSensorRemappedAxis> analogSensorAxes;
-
 
     /**
      * Load settings from config.
@@ -163,6 +179,14 @@ private:
     iDynTree::LinkUnknownWrenchContacts measuredContactLocations;
     iDynTree::JointDOFsDoubleArray estimatedJointTorques;
     iDynTree::LinkContactWrenches  estimateExternalContactWrenches;
+
+    /**
+     * Calibration buffers
+     */
+    iDynTree::LinkUnknownWrenchContacts assumedContactLocationsForCalibration;
+    iDynTree::SensorsMeasurements  predictedSensorMeasurementsForCalibration;
+    iDynTree::JointDOFsDoubleArray predictedJointTorquesForCalibration;
+    iDynTree::LinkContactWrenches  predictedExternalContactWrenchesForCalibration;
 
 
 
