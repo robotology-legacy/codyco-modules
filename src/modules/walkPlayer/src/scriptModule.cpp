@@ -14,6 +14,8 @@ scriptModule::scriptModule()
 
 bool scriptModule::configure(ResourceFinder &rf) {
     Time::turboBoost();
+    
+    this->rfCopy = rf;
 
     if (rf.check("name"))
         name=string("/")+rf.find("name").asString().c_str();
@@ -86,29 +88,41 @@ bool scriptModule::configure(ResourceFinder &rf) {
 
     //*** open the position file
     cout << "opening file..." << endl;
+
     if (rf.check("filename")==true)
     {
         string filename = rf.find("filename").asString().c_str();
-        if (!thread.actions.openFile(filename))
+        if (!thread.actions.openFile(filename, rf))
         {
             cout << "ERROR: Unable to parse file" << endl;
             return false;
         };
     }
-    else
-    if (rf.check("filename2")==true)
+    
+    if (rf.check("minJerkLimit")==true )
     {
-        string filename = rf.find("filename2").asString().c_str();
-        if (!thread.actions.openFile2(filename, rf))
-        {
-            cout << "ERROR: Unable to parse file" << endl;
-            return false;
-        };
+        int tmpLimit = rf.find("minJerkLimit").asInt();
+        thread.minJerkLimit = tmpLimit;
     }
-    else
+    
+    if (rf.check("refSpeedMinJerk")==true )
     {
-        cout << "ERROR: Unable to find file with both --filename --filename2 paramters" << endl;
-        return false;
+        thread.refSpeedMinJerk = rf.find("refSpeedMinJerk").asDouble();
+    } else {
+        thread.refSpeedMinJerk = 0.0;
+    }
+    
+    if (rf.check("torqueBalancingSequence")==true)
+    {
+        string filenamePrefix = rf.find("torqueBalancingSequence").asString().c_str();
+        // Overwrite the execute flag value. This option has higher priority and
+        // should simply stream trajectories use by the torqueBalancing module.
+        thread.enable_execute_joint_command = true;
+        if (!thread.actions.openTorqueBalancingSequence(filenamePrefix,rf))
+        {
+            cout << "ERROR: Unable to parse torque balancing sequence" << endl;
+            return false;
+        }
     }
 
     cout << "Using parameters:" << endl << rf.toString() << endl;
@@ -151,6 +165,23 @@ bool scriptModule::respond(const Bottle &command, Bottle &reply)
                     this->thread.actions.current_status = ACTION_IDLE;
                     this->thread.actions.current_action = 0;
                     reply.addVocab(Vocab::encode("ack"));
+                    // Re-read sequence for torqueBalancing
+                    string filenamePrefix;
+                    if (rfCopy.check("torqueBalancingSequence")==true)
+                    {
+                        filenamePrefix = rfCopy.find("torqueBalancingSequence").asString().c_str();
+                        // Overwrite the execute flag value. This option has higher priority and
+                        // should simply stream trajectories use by the torqueBalancing module.
+                        //!!!!: Temporarily put this flag to true so that constraints are also streamed, useful for icubWalkingIK
+                        thread.enable_execute_joint_command = true;
+                        if (!thread.actions.openTorqueBalancingSequence(filenamePrefix,rfCopy))
+                        {
+                            cout << "ERROR: Unable to parse torque balancing sequence" << endl;
+                            return false;
+                        }
+                    }
+
+                    this->thread.actions.openFile(filenamePrefix, rfCopy);
                 }
             else
                 {

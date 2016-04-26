@@ -32,12 +32,16 @@ private:
     double                          m_period;
     std::string                     m_module_name;
     WholeBodyEstimatorThread        *m_estimatorThread;
+    yarpWbi::yarpWholeBodySensors   *wbs;
 public:
     WholeBodyEstimatorModule();
     bool configure(yarp::os::ResourceFinder &rf);
     double getPeriod(){ return m_period;}
     bool updateModule();
     bool close();
+    bool getWbiOptionsAndModelJoints(yarp::os::ResourceFinder &rf,
+                                     wbi::IDList &RobotDynamicModelJoints,
+                                     yarp::os::Property &yarpWbiOptions);
 };
 
 #endif

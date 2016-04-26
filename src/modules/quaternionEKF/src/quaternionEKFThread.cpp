@@ -116,11 +116,11 @@ void quaternionEKFThread::run()
         // Copy ang velocity data from a yarp vector into a ColumnVector
         MatrixWrapper::ColumnVector input(imu_angVel.data(),m_input_size);
         if (m_verbose)
-            cout << "VEL INPUT IS: " << input << endl;
+            cout << "VEL INPUT IS: " << endl << input << endl;
         // Copy accelerometer data from a yarp vector into a ColumnVector
         MatrixWrapper::ColumnVector measurement(imu_linAcc.data(),m_measurement_size);
         if (m_verbose)
-            cout << "ACC INPUT IS: " << measurement << endl;
+            cout << "ACC INPUT IS: " << endl << measurement << endl;
 
         // Noise gaussian
         // System Noise Mean
@@ -141,14 +141,13 @@ void quaternionEKFThread::run()
         // NOTE on 30-07-2015 I commented the following lines because making this matrix symmetric this way does not make much sense from a theoretical point of view. I'd rather add a term such as alpha*I_4x4
 //         MatrixWrapper::SymmetricMatrix tmpSym(m_state_size);
 //         tmp.convertToSymmetricMatrix(tmpSym);
-//         cout << "Symm Matrix: " << tmpSym << endl;
         sys_noise_cov = (MatrixWrapper::SymmetricMatrix) tmp*pow(m_period/(1000.0*2.0),2);
         // NOTE Next line is setting system noise covariance matrix to a constant diagonal matrix
 //         sys_noise_cov = 0.0; sys_noise_cov(1,1) = sys_noise_cov (2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = 0.000001;
         /****************END System Noise Covariance *********************************************************************************/
 
         if (m_verbose)
-            cout << "System covariance matrix will be: " << sys_noise_cov << endl;
+            cout << "System covariance matrix will be: " << endl << sys_noise_cov << endl;
 
         m_sysPdf.AdditiveNoiseMuSet(sys_noise_mu);
         m_sysPdf.AdditiveNoiseSigmaSet(sys_noise_cov);
@@ -167,10 +166,9 @@ void quaternionEKFThread::run()
     //     }
         
         // NOTE THE NEXT TWO LINES ARE THE ONES I ACTUALLY NEED TO USE!!! DON'T FORGET TO UNCOMMENT AFTER DEBUGGING
-//         if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
+        if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
 //             yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
         // NOTE Testing just the model equations
-        if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement));
 //         if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
 //             yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
 
@@ -404,8 +402,8 @@ bool quaternionEKFThread::threadInit()
         prior_cov = 0.0;
         prior_cov(1,1) = prior_cov(2,2) = prior_cov(3,3) = prior_cov(4,4) = m_prior_cov;
         cout << "Priors will be: " << endl;
-        cout << "State prior: " << prior_mu << endl;
-        cout << "Covariance prior: " << prior_cov << endl;
+        cout << "State prior: " << endl << prior_mu << endl;
+        cout << "Covariance prior: " << endl << prior_cov << endl;
         m_prior = new BFL::Gaussian(prior_mu, prior_cov);
 
         // Construction of the filter
@@ -455,7 +453,7 @@ bool quaternionEKFThread::threadInit()
       }
 
     cout << "Thread waiting two seconds before starting..." <<  endl;
-    yarp::os::Time::delay(2);
+    //yarp::os::Time::delay(2);
 
     m_waitingTime = yarp::os::Time::now();
     cout << "Thread is running ... " << endl;
@@ -467,10 +465,10 @@ void quaternionEKFThread::XiOperator ( MatrixWrapper::ColumnVector quat, MatrixW
 //     In  Matlab language this would be:
 //     Xi = [       -qk(2:4,:)'           ;
 //           qk(1)*eye(3) + S(qk(2:4,:)) ];
-    (*Xi) = 1.0;
+    // NOTE When testing Eigen I changed the following line from 1.0 to 0.0. Couldn't understand why I would have put 1.0 for instance
+    (*Xi) = 0.0;
     MatrixWrapper::ColumnVector omg(3);
     omg(1) = quat(2);    omg(2) = quat(3);    omg(3) = quat(4);
-
     (*Xi)(1,1) = -quat(2);    (*Xi)(1,2) = -quat(3);    (*Xi)(1,3) = -quat(4);
     MatrixWrapper::Matrix eye(3,3);
     eye.toIdentity();

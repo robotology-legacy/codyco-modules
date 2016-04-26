@@ -1,0 +1,102 @@
+<application>
+	<name>oneFootBalancingWithSkinDUMP</name>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumper/icub/right_leg/state --type bottle </parameters>
+		<node>/icub23</node>
+		<tag>data-dumper-icub-right-leg-state-o</tag>
+	</module>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumper/icub/left_leg/state --type bottle </parameters>
+		<node>/icub23</node>
+		<tag>data-dumper-icub-left-leg-state-o</tag>
+	</module>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumper/icub/left_arm/state --type bottle </parameters>
+		<node>/icub23</node>
+		<tag>data-dumper-icub-left-arm-o</tag>
+	</module>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumper/icub/right_arm/state --type bottle </parameters>
+		<node>/icub23</node>
+		<tag>data-dumper-icub-right-arm-state-o</tag>
+	</module>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumper/icub/torso/state --type bottle </parameters>
+		<node>/icub23</node>
+		<tag>data-dumper-icub-torso-state-o</tag>
+	</module>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumper/icub/right_leg/inertialMTB --type bottle </parameters>
+		<node>/icub23</node>
+		<tag>data-dumper-icub-right-leg-inertialMTB</tag>
+	</module>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumper/QuaternionEKF/filteredOrientationEuler --type bottle </parameters>
+		<node>/icub23</node>
+		<tag>data-dumper-quaternionekf-euler</tag>
+	</module>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumper/oneFootBalancing/comInfo --type bottle </parameters>
+		<node>/icub23</node>
+		<tag>data-dumper-onefootbalancing-comInfo</tag>
+	</module>
+	<module>
+		<name>yarpdatadumper</name>
+		<parameters>--name /dumper/icub/right_foot/analog --type bottle </parameters>
+		<node>/icub23</node>
+		<tag>data-dumper-onefootbalancing-comInfo</tag>
+	</module>
+	<connection>
+		<from>/icub/right_leg/state:o</from>
+		<to>/dumper/icub/right_leg/state</to>
+		<protocol>udp</protocol>
+	</connection>
+	<connection>
+		<from>/icub/left_leg/state:o</from>
+		<to>/dumper/icub/left_leg/state</to>
+		<protocol>udp</protocol>
+	</connection>
+	<connection>
+		<from>/icub/right_arm/state:o</from>
+		<to>/dumper/icub/right_arm/state</to>
+		<protocol>udp</protocol>
+	</connection>
+	<connection>
+		<from>/icub/left_arm/state:o</from>
+		<to>/dumper/icub/left_arm/state</to>
+		<protocol>udp</protocol>
+	</connection>
+	<connection>
+		<from>/icub/torso/state:o</from>
+		<to>/dumper/icub/torso/state</to>
+		<protocol>udp</protocol>
+	</connection>
+	<connection>
+		<from>/icub/right_leg/inertialMTB</from>
+		<to>/dumper/icub/right_leg/inertialMTB</to>
+		<protocol>udp</protocol>
+	</connection>
+	<connection>
+		<from>/QuaternionEKF/filteredOrientationEuler:o</from>
+		<to>/dumper/QuaternionEKF/filteredOrientationEuler</to>
+		<protocol>udp</protocol>
+	</connection>
+	<connection>
+		<from>/oneFootBalancing/comInfo:o</from>
+		<to>/dumper/oneFootBalancing/comInfo</to>
+		<protocol>udp</protocol>
+	</connection>
+	<connection>
+		<from>/icub/right_foot/analog:o</from>
+		<to>/dumper/icub/right_foot/analog</to>
+		<protocol>udp</protocol>
+	</connection>
+</application>
