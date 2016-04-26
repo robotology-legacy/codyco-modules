@@ -8,10 +8,10 @@
 #include <fstream>
 #include <stdio.h>
 #include <string>
+#include <cmath>
 
-#define PI 3.14159265359
-#define DEG2RAD(r) (r*PI/180)
-#define RAD2DEG(r) (r*180/PI)
+#define DEG2RAD(r) (r*M_PI/180)
+#define RAD2DEG(r) (r*180/M_PI)
 
 inline Eigen::Matrix3d rotx (const double &xrot) {
     double s, c;

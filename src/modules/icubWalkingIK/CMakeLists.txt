@@ -51,6 +51,10 @@ target_link_libraries(${PROJECT_NAME}
                       ${YARP_LIBRARIES}
                       ${iDynTree_LIBRARIES})
 
+if(MSVC)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE _USE_MATH_DEFINES)
+endif()
+
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
 add_subdirectory(app)
