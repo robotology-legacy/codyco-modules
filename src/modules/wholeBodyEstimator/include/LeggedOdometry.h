@@ -38,6 +38,7 @@ using namespace wbi;
 
 class LeggedOdometry : public IEstimator
 {
+    REGISTER(LeggedOdometry)
 private:
     iDynTree::simpleLeggedOdometry odometry_helper;
     int odometry_floating_base_frame_index;
@@ -48,7 +49,13 @@ private:
     bool frames_streaming_enabled;
     yarp::os::BufferedPort<yarp::os::Bottle> * port_floatingbasestate;
     yarp::os::BufferedPort<yarp::os::Property> * port_frames;
+    /**
+     *  Vector containing the indices of the frames to be streamed, after checking they are actually present. These frame have been specified via configuration file of the wholeBodyEstimator under the group LeggedOdometry.
+     */
     std::vector<int> frames_to_stream_indices;
+    /**
+     *  Vector containing the names of the frames to be streamed, after checking they are actually present.
+     */
     std::vector<std::string> frames_to_stream;
     std::vector<yarp::os::Bottle> buffer_bottles;
     yarp::sig::Matrix buffer_transform_matrix;
@@ -56,39 +63,44 @@ private:
     yarp::os::BufferedPort<yarp::sig::Vector> * port_com;
     std::string current_fixed_link_name;
 
-    iCub::iDynTree::DynTree *icub_model;
-    wbi::iWholeBodySensors *m_sensors;
-    iDynTree::RobotJointStatus * m_joint_status;
+    iCub::iDynTree::DynTree * icub_model;
+    wbi::iWholeBodySensors * m_sensors;
+    iDynTree::RobotJointStatus  * m_joint_status;
 
     std::string m_module_name;
+    std::string m_className;
 public:
     LeggedOdometry();
 
-    ~LeggedOdometry();
+    virtual ~LeggedOdometry();
 
-    /** 
-    * From the base class. Does the same job as initOdemetry() in wholeBodyDynamicsTree.
-    **/
+    /**
+     See documentation of IEstimator. Does the same job as initOdometry() in wholeBodyDynamicsTree
+     
+     - parameter rf: Reference to resource finder assuming it has been initialized.
+     - parameter wbs:  Pointer to a whole body sensors object that should have been initialized.
+     
+     - returns: True when initialization is successful, false otherwise.
+     */
     bool init(yarp::os::ResourceFinder &rf, wbi::iWholeBodySensors *wbs);
 
     /**
-    * Run will be called by the main thread and internally calls getWorldFrameTransform()/
-    * Does the job of publishOdometry() in wholeBodyDynamicsTree
-    */
+     *  More info in the documentation of the IEstimator class. Called by wholeBodyEstimatorThread each time step and does the job of publishOdometry() in wholeBodyDynamicsTree.
+     */
     void run();
 
     /**
-    * From the base class. Does the job of closeOdometry() in wholeBodyDynamicsTree.
-    **/
+     *  Same as closeOdometry from wholeBodyDynamicsTree.
+     */
     void release();
 
     /**
-    * Closes a single port properly.
-    */
+     *  Closes a single port properly.
+     */
     void closePort(yarp::os::Contactable *_port);
 
     /** 
-     * Updates joint_status
+     *  Updates joint_status
      */
     void readRobotStatus();
 };

@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
     
     if(rf.check("help")) {
         printf("\n");
-        printf("\PARAMETERS\n");
+        printf("PARAMETERS\n");
         printf("--from            :[quaternionEKFModule.ini] Name of .ini file for configuration\n");
         printf("--robot           :[icub] Robot name. Other options: icubGazeboSim\n");
         printf("--rate            :[10] Thread period (ms)\n");

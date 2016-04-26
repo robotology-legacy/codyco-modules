@@ -1,0 +1,17 @@
+<application>
+	<name>dataCollector.xml</name>
+	<module>
+		<name>dataDumper</name>
+		<parameters>--name inertialMTB --type bottle</parameters>
+		<node>localhost</node>
+		<tag>dumper-right-leg-inertialMTB</tag>
+	</module>
+	<connection>
+		<from>/icub/right_leg/state:o</from>
+		<to>/dumper/icub/right_leg/state:i</to>
+		<protocol>udp</protocol>
+		<from>/icub/right_leg/inertialMTB</from>
+		<to>/dumper/icub/right_leg/inertialMTB:i</to>
+		<protocol>udp</protocol>
+	</connection>
+</application>

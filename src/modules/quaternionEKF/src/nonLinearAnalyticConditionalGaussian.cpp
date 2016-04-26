@@ -63,8 +63,8 @@ void nonLinearAnalyticConditionalGaussian::setPeriod ( int period )
 bool nonLinearAnalyticConditionalGaussian::OmegaOperator (const MatrixWrapper::ColumnVector omg, MatrixWrapper::Matrix& Omega) const
 {
     bool ret = false;
-    if (Omega.size1() == Omega.size2()) {
-        if (!Omega.size1() == 4)
+    if (Omega.rows() == Omega.columns()) {
+        if (!Omega.rows() == 4)
             return ret;
     } else {
         cout << "[nonLinearAnalyticConditionalGaussian::OmegaOperator] Expected a 4x4 matrix";
