@@ -14,6 +14,7 @@
 #include <iDynTree/Estimation/ExtWrenchesAndJointTorquesEstimator.h>
 
 #include <wholeBodyDynamicsSettings.h>
+#include <wholeBodyDynamics_IDLServer.h>
 
 #include <vector>
 
@@ -42,7 +43,8 @@ struct virtualAnalogSensorRemappedAxis
  */
 class WholeBodyDynamicsDevice :  public yarp::dev::DeviceDriver,
                                  public yarp::dev::IMultipleWrapper,
-                                 public yarp::os::RateThread
+                                 public yarp::os::RateThread,
+                                 public wholeBodyDynamics_IDLServer
 {
 private:
     /**
@@ -100,6 +102,7 @@ private:
      * a YARP RPC port.
      */
     wholeBodyDynamicsSettings settings;
+    wholeBodyDynamicsSettings::Editor settingsEditor;
 
     /**
      * Mutex to protect the settings data structure, and all the data in
@@ -112,7 +115,7 @@ private:
     /**
      * A port for editing remotly the setting of wholeBodyDynamics
      */
-    yarp::os::RpcServer settingsPort;
+    yarp::os::Port settingsPort;
 
     /**
      * Open-related methods
@@ -141,6 +144,7 @@ private:
     bool ongoingCalibration;
     std::vector<bool> calibratingFTsensor;
     std::vector<iDynTree::Vector6> offsetBuffer;
+    size_t nrOfCalibrationSamples;
 
     // Publish related methods
     void publishTorques();
@@ -173,8 +177,8 @@ private:
     iDynTree::JointPosDoubleArray  jointPos;
     iDynTree::JointDOFsDoubleArray jointVel;
     iDynTree::JointDOFsDoubleArray jointAcc;
-    yarp::os::Vector               ftMeasurement;
-    yarp::os::Vector               imuMeasurement;
+    yarp::sig::Vector               ftMeasurement;
+    yarp::sig::Vector               imuMeasurement;
     iDynTree::SensorsMeasurements  sensorsMeasurements;
     iDynTree::LinkUnknownWrenchContacts measuredContactLocations;
     iDynTree::JointDOFsDoubleArray estimatedJointTorques;

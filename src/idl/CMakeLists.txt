@@ -1,1 +1,2 @@
 add_subdirectory(wholeBodyDynamicsSettings)
+add_subdirectory(wholeBodyDynamics_IDLServer)

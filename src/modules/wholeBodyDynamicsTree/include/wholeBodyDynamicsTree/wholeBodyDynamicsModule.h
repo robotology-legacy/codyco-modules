@@ -25,7 +25,7 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/Vocab.h>
 
-#include "../wholeBodyDynamics_IDLServer.h"
+#include "wholeBodyDynamics_IDLServer.h"
 
 #include <wholeBodyDynamicsTree/wholeBodyDynamicsThread.h>
 

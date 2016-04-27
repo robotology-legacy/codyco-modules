@@ -1,6 +1,7 @@
 #include "WholeBodyDynamicsDevice.h"
 
 #include <yarp/os/LockGuard.h>
+#include <yarp/os/LogStream.h>
 #include <yarp/os/Property.h>
 #include <yarp/os/ResourceFinder.h>
 
@@ -18,13 +19,14 @@ namespace yarp
 namespace dev
 {
 
-WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(),
+WholeBodyDynamicsDevice::WholeBodyDynamicsDevice(): RateThread(10),
                                                     portPrefix("/wholeBodyDynamics"),
                                                     correctlyConfigured(false),
                                                     sensorReadCorrectly(false),
                                                     estimationWentWell(false),
                                                     imuInterface(0),
-                                                    ongoingCalibration(false)
+                                                    ongoingCalibration(false),
+                                                    settingsEditor(settings)
 {
 
 }
@@ -37,13 +39,13 @@ WholeBodyDynamicsDevice::~WholeBodyDynamicsDevice()
 
 bool WholeBodyDynamicsDevice::openSettings()
 {
-    settings.yarp().attachAsServer(settingsPort);
+    settingsPort.setReader(settingsEditor);
 
     bool ok = settingsPort.open(portPrefix+"/settings");
 
     if( !ok )
     {
-        yError() << "WholeBodyDynamicsDevice: Impossible to open port " << portPrefix+"/settings" << std::endl;
+        yError() << "WholeBodyDynamicsDevice: Impossible to open port " << portPrefix+"/settings";
         return false;
     }
 
@@ -154,7 +156,7 @@ bool WholeBodyDynamicsDevice::attachAllControlBoard(const PolyDriverList& p)
         IEncoders * pEncs = 0;
         if( p[devIdx]->poly->view(pEncs) )
         {
-            controlBoardList.push(p[devIdx]);
+            controlBoardList.push(const_cast<PolyDriverDescriptor&>(*p[devIdx]));
         }
     }
 
@@ -163,7 +165,7 @@ bool WholeBodyDynamicsDevice::attachAllControlBoard(const PolyDriverList& p)
 
     if( !ok )
     {
-        yError() << " WholeBodyDynamicsDevice::attachAll in attachAll of the remappedControlBoard" << std::endl;
+        yError() << " WholeBodyDynamicsDevice::attachAll in attachAll of the remappedControlBoard";
         return false;
     }
 
@@ -185,12 +187,12 @@ bool WholeBodyDynamicsDevice::attachAllVirtualAnalogSensor(const PolyDriverList&
         IAxisInfo            * pAxisInfo          = 0;
         if( p[devIdx]->poly->view(pVirtualAnalogSens) )
         {
-            virtualAnalogList.push(pVirtualAnalogSens);
+            virtualAnalogList.push_back(pVirtualAnalogSens);
             if( !(p[devIdx]->poly->view(pAxisInfo)) )
             {
                 yError() << "WholeBodyDynamicsDevice::attachAll error: device "
                          << p[devIdx]->key << " exposes a IVirtualAnalogSensor, but not a IAxisInfo interface,"
-                         << " impossible to map the list of joint names to the IVirtualAnalogSensor interface" << std::endl;
+                         << " impossible to map the list of joint names to the IVirtualAnalogSensor interface";
                 return false;
 
             }
@@ -211,9 +213,9 @@ bool WholeBodyDynamicsDevice::attachAllVirtualAnalogSensor(const PolyDriverList&
         for(int localAxis=0; localAxis < nrOfVirtualAxes; localAxis++)
         {
             yarp::os::ConstString axisName;
-            axisInfoList[devIdx].getAxisName(localAxis,axisName);
+            axisInfoList[devIdx]->getAxisName(localAxis,axisName);
 
-            std::strig axisNameStd = axisName.c_str();
+            std::string axisNameStd = axisName.c_str();
 
             axisName2virtualAnalogSensorPtr[axisNameStd] = virtualAnalogList[devIdx];
             axisName2localAxis[axisNameStd] = localAxis;
@@ -245,13 +247,13 @@ bool WholeBodyDynamicsDevice::attachAllVirtualAnalogSensor(const PolyDriverList&
 
 bool WholeBodyDynamicsDevice::attachAllFTs(const PolyDriverList& p)
 {
-    PolyDriverList ftList;
+    std::vector<IAnalogSensor *> ftList;
     for(size_t devIdx = 0; devIdx < p.size(); devIdx++)
     {
         IAnalogSensor * pAnalogSens = 0;
         if( p[devIdx]->poly->view(pAnalogSens) )
         {
-            ftList.push(p[devIdx]);
+            ftList.push_back(pAnalogSens);
         }
     }
 
@@ -266,7 +268,7 @@ bool WholeBodyDynamicsDevice::attachAllFTs(const PolyDriverList& p)
     ftSensors.resize(ftList.size());
     for(int i=0; i < ftList.size(); i++)
     {
-        ftList[i]->poly->view(ftSensors[i]);
+        ftSensors[i] = ftList[i];
     }
 
     return true;
@@ -275,25 +277,25 @@ bool WholeBodyDynamicsDevice::attachAllFTs(const PolyDriverList& p)
 
 bool WholeBodyDynamicsDevice::attachAllIMUs(const PolyDriverList& p)
 {
-    PolyDriverList imuList;
+    std::vector<IGenericSensor*> imuList;
 
     for(size_t devIdx = 0; devIdx < p.size(); devIdx++)
     {
         IGenericSensor * pGenericSensor = 0;
         if( p[devIdx]->poly->view(pGenericSensor) )
         {
-            imuList.push(p[devIdx]);
+            imuList.push_back(pGenericSensor);
         }
     }
 
     if( imuList.size() != 1 )
     {
         yError() << " WholeBodyDynamicsDevice::attachAll only one IMU sensors is supported, but "
-                 << imuList.size() << " have been attached to the device" << std::endl;
+                 << imuList.size() << " have been attached to the device";
         return false;
     }
 
-    imuList[0]->poly->view(this->imuInterface);
+    this->imuInterface = imuList[0];
 
     return true;
 }
@@ -316,12 +318,16 @@ bool WholeBodyDynamicsDevice::attachAll(const PolyDriverList& p)
     return ok;
 }
 
+double deg2rad(const double angleInDeg)
+{
+    return angleInDeg*M_PI/180.0;
+}
 
-void convertVectorFromDegreesToRadians(VectorDynSize & vector)
+void convertVectorFromDegreesToRadians(iDynTree::VectorDynSize & vector)
 {
     for(size_t i=0; i < vector.size(); i++)
     {
-        vector(i) = iDynTree::deg2rad(vector(i));
+        vector(i) = deg2rad(vector(i));
     }
 
     return;
@@ -336,7 +342,7 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
 
     // At the moment we are assuming that all joints are revolute
 
-    if( settings.useJointVelocities )
+    if( settings.useJointVelocity )
     {
         sensorReadCorrectly = sensorReadCorrectly && remappedControlBoardInterfaces.encs->getEncoderSpeeds(jointVel.data());
         convertVectorFromDegreesToRadians(jointVel);
@@ -376,9 +382,9 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
         sensorReadCorrectly = sensorReadCorrectly && imuInterface->read(imuMeasurement);
 
         // Check format of IMU in YARP http://wiki.icub.org/wiki/Inertial_Sensor
-        angVel(0) = iDynTree::deg2rad(imuMeasurement[6]);
-        angVel(1) = iDynTree::deg2rad(imuMeasurement[7]);
-        angVel(2) = iDynTree::deg2rad(imuMeasurement[8]);
+        angVel(0) = deg2rad(imuMeasurement[6]);
+        angVel(1) = deg2rad(imuMeasurement[7]);
+        angVel(2) = deg2rad(imuMeasurement[8]);
 
         linProperAcc(0) = imuMeasurement[3];
         linProperAcc(1) = imuMeasurement[4];
@@ -403,6 +409,23 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
     }
 }
 
+void addToSummer(iDynTree::Vector6 & buffer, const iDynTree::Wrench & addedWrench)
+{
+    for(int i=0; i < 6; i++)
+    {
+        buffer(i) = buffer(i) + addedWrench(i);
+    }
+}
+
+void computeMean(const iDynTree::Vector6 & buffer, const size_t nrOfSamples, iDynTree::Wrench & mean)
+{
+    for(int i=0; i < 6; i++)
+    {
+        mean(i) = buffer(i)/nrOfSamples;
+    }
+}
+
+
 void WholeBodyDynamicsDevice::computeCalibration()
 {
     if( ongoingCalibration )
@@ -418,7 +441,7 @@ void WholeBodyDynamicsDevice::computeCalibration()
             {
                 iDynTree::Wrench estimatedFT;
                 predictedSensorMeasurementsForCalibration.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,estimatedFT);
-                offsetBuffer[ft] += estimatedFT;
+                addToSummer(offsetBuffer[ft],estimatedFT);
             }
         }
     }

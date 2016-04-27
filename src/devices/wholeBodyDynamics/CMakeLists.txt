@@ -23,7 +23,7 @@ include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIR})
 
 yarp_add_plugin(wholeBodyDynamicsDevice WholeBodyDynamicsDevice.h WholeBodyDynamicsDevice.cpp)
-target_link_libraries(wholeBodyDynamicsDevice wholeBodyDynamicsSettings ${YARP_LIBRARIES})
+target_link_libraries(wholeBodyDynamicsDevice wholeBodyDynamicsSettings wholeBodyDynamics_IDLServer ${YARP_LIBRARIES})
 yarp_install(TARGETS wholeBodyDynamicsDevice
              EXPORT CoDyCo
              COMPONENT runtime

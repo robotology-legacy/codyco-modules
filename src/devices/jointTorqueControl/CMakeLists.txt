@@ -5,13 +5,13 @@
 
 find_package(YCM)
 list(APPEND CMAKE_MODULE_PATH "${YCM_MODULE_PATH}")
- 
+
 find_package(YARP REQUIRED)
 find_package(Eigen3 REQUIRED)
-  
+
 list(APPEND CMAKE_MODULE_PATH "${YARP_MODULE_PATH}")
 include(YarpInstallationHelpers)
-  
+
 yarp_configure_external_installation(codyco)
 
 
@@ -167,8 +167,8 @@ MACRO(codyco_export_library target)
 
 ENDMACRO(codyco_export_library)
 
-PREPARE_DEVICE(passThroughControlBoard TYPE PassThroughControlBoard INCLUDE PassThroughControlBoard.h WRAPPER controlboardwrapper)
-PREPARE_DEVICE(jointTorqueControl TYPE JointTorqueControl INCLUDE JointTorqueControl.h WRAPPER controlboardwrapper)
+yarp_prepare_device(passThroughControlBoard TYPE PassThroughControlBoard INCLUDE PassThroughControlBoard.h WRAPPER controlboardwrapper)
+yarp_prepare_device(jointTorqueControl TYPE JointTorqueControl INCLUDE JointTorqueControl.h WRAPPER controlboardwrapper)
 
 set(ENABLE_codycomod_jointTorqueControl TRUE)
 
@@ -176,8 +176,8 @@ if(NOT SKIP_jointTorqueControl)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                        ${YARP_INCLUDE_DIRS})
-                       
-include_directories(SYSTEM 
+
+include_directories(SYSTEM
                     ${EIGEN3_INCLUDE_DIR})
 
 yarp_add_plugin(passThroughControlBoard PassThroughControlBoard.h PassThroughControlBoard.cpp)

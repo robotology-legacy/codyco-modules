@@ -74,7 +74,7 @@ service wholeBodyDynamics_IDLServer
   bool resetSimpleLeggedOdometry(1:string initial_world_frame, 2:string initial_fixed_link)
 
   /**
-   * Change the link that is considered fixed by the odometry. 
+   * Change the link that is considered fixed by the odometry.
    * @param new_fixed_link the name of the new link that should be considered fixed
    * @return true/false on success/failure (typically if the frame/link names are wrong)
    */
