@@ -31,5 +31,3 @@ yarp_install(TARGETS wholeBodyDynamicsDevice
              ARCHIVE DESTINATION ${CODYCO_STATIC_PLUGINS_INSTALL_DIR})
 
 endif()
-
-add_subdirectory(app)

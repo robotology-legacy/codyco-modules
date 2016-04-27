@@ -7,6 +7,7 @@
 #include <yarp/dev/Wrapper.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/RpcServer.h>
+#include <yarp/os/Semaphore.h>
 #include <yarp/dev/IVirtualAnalogSensor.h>
 #include <yarp/dev/IAnalogSensor.h>
 #include <yarp/dev/GenericSensorInterfaces.h>
@@ -39,7 +40,8 @@ struct virtualAnalogSensorRemappedAxis
  * | modelFile      |      -         | path to file |    -      | model.urdf    | No                          | Path to the URDF file used for the kinematic and dynamic model. |
  *
  * The axes are then mapped to the wrapped controlboard in the attachAll method, using controlBoardRemapper class.
- * Furthermore are also used to match the yarp axes to the joint names found in the passed URDF fie.
+ * Furthermore are also used to match the yarp axes to the joint names found in the passed URDF file.
+ *
  */
 class WholeBodyDynamicsDevice :  public yarp::dev::DeviceDriver,
                                  public yarp::dev::IMultipleWrapper,
@@ -121,9 +123,16 @@ private:
      * Open-related methods
      */
 
-    bool openSettings();
+    bool openSettingsPort();
+    bool openRPCPort();
     bool openRemapperControlBoard(os::Searchable& config);
     bool openEstimator(os::Searchable& config);
+
+    /**
+     * Close-related methods
+     */
+    bool closeSettingsPort();
+    bool closeRPCPort();
 
     /**
      * Attach-related methods
@@ -137,13 +146,15 @@ private:
      * Run-related methods.
      */
     void readSensorsAndUpdateKinematics();
+    void readContactPoints();
     void computeCalibration();
     void computeExternalForcesAndJointTorques();
 
     // Calibration related quantitites
     bool ongoingCalibration;
     std::vector<bool> calibratingFTsensor;
-    std::vector<iDynTree::Vector6> offsetBuffer;
+    std::vector<iDynTree::Vector6> offsetSumBuffer;
+    std::vector<iDynTree::Wrench>  offset;
     size_t nrOfCalibrationSamples;
 
     // Publish related methods
@@ -162,8 +173,6 @@ private:
      * Class actually doing computations.
      */
     iDynTree::ExtWrenchesAndJointTorquesEstimator estimator;
-
-
 
     /**
      * Buffers related methods
@@ -191,8 +200,112 @@ private:
     iDynTree::SensorsMeasurements  predictedSensorMeasurementsForCalibration;
     iDynTree::JointDOFsDoubleArray predictedJointTorquesForCalibration;
     iDynTree::LinkContactWrenches  predictedExternalContactWrenchesForCalibration;
+    size_t nrOfSamplesUsedUntilNowForCalibration;
+    size_t nrOfSamplesToUseForCalibration;
 
 
+    /***
+     * RPC Calibration related methods
+     */
+    /**
+      * Calibrate the force/torque sensors
+      * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the torso/waist)
+      * @param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet)
+      * @param nr_of_samples number of samples
+      * @return true/false on success/failure
+      */
+     virtual bool calib(const std::string& calib_code, const int32_t nr_of_samples = 100);
+
+     /**
+      * Calibrate the force/torque sensors when on double support
+      * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the sole).
+      * For this calibration the strong assumption of simmetry of the robot and its pose is done.
+      * @param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet)
+      * @param nr_of_samples number of samples
+      * @return true/false on success/failure
+      */
+     virtual bool calibStanding(const std::string& calib_code, const int32_t nr_of_samples = 100);
+
+     /**
+      * Calibrate the force/torque sensors when on single support on left foot
+      * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the left sole).
+      * @param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet)
+      * @param nr_of_samples number of samples
+      * @return true/false on success/failure
+      */
+     virtual bool calibStandingLeftFoot(const std::string& calib_code, const int32_t nr_of_samples = 100);
+
+     /**
+      * Calibrate the force/torque sensors when on single support on right foot
+      * (WARNING: calibrate the sensors when the only external forces acting on the robot are on the right sole).
+      * @param calib_code argument to specify the sensors to calibrate (all,arms,legs,feet)
+      * @param nr_of_samples number of samples
+      * @return true/false on success/failure
+      */
+     virtual bool calibStandingRightFoot(const std::string& calib_code, const int32_t nr_of_samples = 100);
+
+     /**
+      * Reset the sensor offset to 0 0 0 0 0 0 (six zeros).
+      * @param calib_code argument to specify the sensors to reset (all,arms,legs,feet)
+      * @return true/false on success/failure
+      */
+     virtual bool resetOffset(const std::string& calib_code);
+
+     /**
+      * Quit the module.
+      * @return true/false on success/failure
+      */
+     virtual bool quit();
+
+     /**
+      * Reset the odometry world to be (initially) a frame specified in the robot model,
+      * and specify a link that is assumed to be fixed in the odometry.
+      * @param initial_world_frame the frame of the robot model that is assume to be initially
+      *        coincident with the world/inertial frame.
+      * @param new_fixed_link the name of the link that should be initially fixed
+      * @return true/false on success/failure (typically if the frame/link names are wrong)
+      */
+     virtual bool resetSimpleLeggedOdometry(const std::string& initial_world_frame, const std::string& initial_fixed_link);
+
+     /**
+      * Change the link that is considered fixed by the odometry.
+      * @param new_fixed_link the name of the new link that should be considered fixed
+      * @return true/false on success/failure (typically if the frame/link names are wrong)
+      */
+     virtual bool changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_link);
+
+     void setupCalibrationCommonPart(const int32_t nrOfSamples);
+     bool setupCalibrationWithExternalWrenchOnOneFrame(const std::string & frameName, const int32_t nrOfSamples);
+     bool setupCalibrationWithExternalWrenchesOnTwoFrames(const std::string & frame1Name, const std::string & frame2Name, const int32_t nrOfSamples);
+
+
+     /**
+      * RPC Calibration related attributes
+      */
+     yarp::os::Port  rpcPort;        // a port to handle rpc messages
+
+     /**
+      * Semaphore used by the RPC to wait until the calibration is complete.
+      */
+     yarp::os::Semaphore calibrationSemaphore;
+
+     /**
+      * Generic helper methods
+      */
+     size_t getNrOfFTSensors();
+     void waitEndOfCalibration();
+     void endCalibration();
+
+     /**
+      * List of frames in which a contact is assumed to be occuring
+      * if no information about contacts is coming from the skin.
+      * The order of the frames act as a priority:
+      * the list is scanned if for a given subtree no contact is
+      * specified, and a full wrench on the first suitable frame (i.e. frame belonging to the submodel)
+      *  is added.
+      */
+     std::vector<std::string> defaultContactFrames;
+     std::vector<iDynTree::FrameIndex> subModelIndex2DefaultContact;
 
 
 public:
