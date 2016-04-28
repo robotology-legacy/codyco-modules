@@ -13,5 +13,13 @@
 #define ACTION_START   1
 #define ACTION_RUNNING 2
 
+#define COM_TRAJ_NUM_COLS       9
+#define POSTURAL_TRAJ_NUM_COLS  21
+#define CONSTRAINTS_NUM_COLS    2
+
+#define COM_ID           0
+#define POSTURAL_ID      1
+#define CONSTRAINTS_ID   2
+
 
 #endif

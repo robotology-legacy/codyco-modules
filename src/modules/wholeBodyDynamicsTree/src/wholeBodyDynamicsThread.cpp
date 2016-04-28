@@ -1279,7 +1279,14 @@ void wholeBodyDynamicsThread::publishTorques()
             output_vector_index++)
         {
             int torque_wbi_numeric_id = output_torque_ports[output_torque_port_id].wbi_numeric_ids_to_publish[output_vector_index];
-            output_torque_ports[output_torque_port_id].output_vector[output_vector_index] = joint_status.getJointTorquesYARP()[torque_wbi_numeric_id];
+            if( torque_wbi_numeric_id >= joint_status.getJointTorquesYARP().size() || torque_wbi_numeric_id < 0 )
+            {
+                //std::cerr << "Warning: tryng to access element " << torque_wbi_numeric_id << " of vector of size " << joint_status.getJointTorquesYARP().size() << std::endl;
+            }
+            else
+            {
+                output_torque_ports[output_torque_port_id].output_vector[output_vector_index] = joint_status.getJointTorquesYARP()[torque_wbi_numeric_id];
+            }
         }
 
         writeTorque(output_torque_ports[output_torque_port_id].output_vector,

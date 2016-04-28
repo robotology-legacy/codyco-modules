@@ -5,11 +5,10 @@ add_subdirectory(torqueBalancing)
 add_subdirectory(torqueBalancingReferencesGenerator)
 
 if(CODYCO_USES_OROCOS_BFL_BERDY)
-    add_subdirectory(quaternionEKF)
+    add_subdirectory(wholeBodyEstimator)
 endif()
 
-add_subdirectory(wholeBodyEstimator)
-
+add_subdirectory(icubWalkingIK)
 add_subdirectory(walkPlayer)
 
 add_subdirectory(codycoCoordinatorDemoY1)

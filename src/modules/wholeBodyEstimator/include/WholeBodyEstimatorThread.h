@@ -30,12 +30,15 @@
 #include <yarpWholeBodyInterface/yarpWholeBodySensors.h>
 #include <iDynTree/Estimation/robotStatus.h>
 
-#include <iomanip> //setw
-#include <algorithm> //std::find for parsing lines
+#include <iomanip>          //setw
+#include <algorithm>        //std::find for parsing lines
 #include <yarp/math/Math.h>
+#include <map>              //std::map
 
+#include "EstimatorsFactory.h"
 #include "IEstimator.h"
 #include "LeggedOdometry.h"
+#include "QuaternionEKF.h"
 
 class WholeBodyEstimatorThread: public yarp::os::RateThread
 {
@@ -46,10 +49,13 @@ private:
     // Variables for LeggedOdometry
     wbi::iWholeBodySensors*  m_wbs;
     yarp::os::ResourceFinder m_rfCopy;
-    iDynTree::RobotJointStatus * m_joint_status;
+    iDynTree::RobotJointStatus* m_joint_status;
 
     yarp::os::Mutex run_mutex;
     bool m_run_mutex_acquired;
+    
+    std::map< std::string, int > m_estimatorsMap;
+    std::vector< IEstimator* > m_estimatorsList;
 
 public:
     WholeBodyEstimatorThread (yarp::os::ResourceFinder &rf, wbi::iWholeBodySensors* wbs, int period);
@@ -57,6 +63,8 @@ public:
     bool threadInit();
     void run();
     void threadRelease();
+    bool fillEstimatorsMap();
+    bool fillEstimatorsList();
 };
 
 #endif

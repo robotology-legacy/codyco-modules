@@ -2,13 +2,16 @@
 #include "LeggedOdometry.h"
 
 #include "kdl/frames_io.hpp"
+#include <yarp/math/Math.h>
 
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace wbi;
 using namespace iDynTree;
 
-LeggedOdometry::LeggedOdometry()
+REGISTERIMPL(LeggedOdometry);
+
+LeggedOdometry::LeggedOdometry() : m_className("LeggedOdometry")
 {
 }
 
@@ -22,15 +25,28 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     m_sensors = wbs;
     
     // ########################## ODOMETRY PARAMETERS PARSING ########################################
-    yarp::os::Bottle & odometry_group = rf.findGroup("SIMPLE_LEGGED_ODOMETRY");
+    yarp::os::Bottle & odometry_group = rf.findGroup("LeggedOdometry");
+    if ( odometry_group.isNull() )
+    {
+        yError("[LeggedOdometry::init] LeggedOdometry not found");
+        return false;
+    } else {
+        yInfo("[LeggedOdometry::init()] LeggedOdometry group was found");
+    }
     
     // Module name
-    yarp::os::Bottle & module_params = rf.findGroup("MODULE_PARAMETERS");
+    yarp::os::Bottle & module_params = rf.findGroup("module_parameters");
+    if ( module_params.isNull() )
+    {
+        yError("LeggedOdometry::init() module_parameters not found");
+        return false;
+    } else {
+        yInfo("LeggedOdometry::init() module_parameters was found");
+    }
     m_module_name = module_params.find("name").asString();
     
     if( odometry_group.isNull()  )
     {
-        yInfo() << " SIMPLE_LEGGED_ODOMETRY group not found, odometry disabled";
         this->odometry_enabled = false;
         return true;
     }
@@ -42,7 +58,7 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
        !odometry_group.find("initial_fixed_link").isString() ||
        !odometry_group.find("floating_base_frame").isString() )
     {
-        yError() << " SIMPLE_LEGGED_ODOMETRY group found but malformed, exiting";
+        yError() << " LeggedOdometry group found but malformed, exiting";
         this->odometry_enabled = false;
         return false;
     }
@@ -151,7 +167,7 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
                 ft_sens_id = serialization_id;
                 
                 ft_names[ft_sens_id] = ft_sens_name;
-                // \todo TODO FIXME properly address also parent and child cases
+                //TODO: FIXME properly address also parent and child cases
                 //                  and measure_direction
                 if( ft_sensors[ft_sens].frame == ::iDynTree::FTSensorData::SENSOR_FRAME )
                 {
@@ -180,7 +196,8 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     //The DOF serialization done in icub_kdl construction is ok
     KDL::CoDyCo::TreeSerialization serial = KDL::CoDyCo::TreeSerialization(icub_kdl);
     
-    //Setting a custom dof serialization (\todo TODO FIXME : quite a hack, substitute with proper)
+    //Setting a custom dof serialization
+    //TODO: Quite a hack, substitute with proper)
     if( dof_serialization.size() != 0 )
     {
         YARP_ASSERT(dof_serialization.size() == serial.getNrOfDOFs());
@@ -285,20 +302,21 @@ bool LeggedOdometry::init(ResourceFinder &rf, wbi::iWholeBodySensors *wbs)
     
     // Open ports
     port_floatingbasestate = new BufferedPort<Bottle>;
-    port_floatingbasestate->open(std::string("/"+m_module_name+"/floatingbasestate:o"));
+    port_floatingbasestate->open(std::string("/"+ this->m_className +"/floatingbasestate:o"));
     
     if( this->com_streaming_enabled )
     {
         port_com = new BufferedPort<Vector>;
-        port_com->open(std::string("/"+m_module_name+"/com:o"));
+        port_com->open(std::string("/"+this->m_className+"/com:o"));
     }
-    
+    //FIXME: Unused
     if( this->frames_streaming_enabled )
     {
         port_frames = new BufferedPort<Property>;
-        port_frames->open(std::string("/"+m_module_name+"/frames:o"));
+        port_frames->open(std::string("/"+this->m_className+"/frames:o"));
     }
     return true;
+    yInfo("[LeggedOdometry::init()] LeggedOdometry is running ... \n");
 }
 
 void LeggedOdometry::run()
@@ -307,6 +325,7 @@ void LeggedOdometry::run()
     if( this->odometry_enabled )
     {
         readRobotStatus();
+//        std::cerr << "robot status read! " << std::endl;
         
         // Read joint position, velocity and accelerations into the odometry helper model
         // This could be avoided by using the same geometric model
@@ -323,43 +342,57 @@ void LeggedOdometry::run()
         
         yarp::os::Bottle & bot = port_floatingbasestate->prepare();
         bot.clear();
-        bot.addList().read(this->world_H_floatingbase);
-        bot.addList().read(this->floatingbase_twist);
-        bot.addList().read(this->floatingbase_acctwist);
+        // This matrix is serialized row-wise!!!!
+        yarp::sig::Vector world_P_floatingbase = this->world_H_floatingbase.subcol(0, 3, 3);
+//        std::cerr << "[Legged Odometry] Position from foot to floating base " << std::endl << world_P_floatingbase.toString().c_str() << std::endl;
+        //NOTE: Temporal hack for having floatingbase_P_world
+        yarp::sig::Matrix world_R_floatingbase = this->world_H_floatingbase.submatrix(0, 2, 0, 2);
+//        std::cerr << "[Legged Odometry] Rotation from floating base to foot " << std::endl << world_R_floatingbase.toString().c_str() << std::endl;
+        
+        yarp::sig::Matrix floatingbase_H_world(4,4);
+        floatingbase_H_world = yarp::math::SE3inv(world_H_floatingbase);
+        yarp::sig::Vector floatingbase_P_foot(3);
+        floatingbase_P_foot = floatingbase_H_world.subcol(0, 3, 3);
+//        std::cerr << "[Legged Odometry] Position vector from floating base to foot " << floatingbase_P_foot.toString().c_str() << std::endl;
+        bot.addList().read(floatingbase_P_foot);
+        
+//        bot.addList().read(world_P_floatingbase);
+//        bot.addList().read(this->floatingbase_twist);
+//        bot.addList().read(this->floatingbase_acctwist);
         
         port_floatingbasestate->write();
         
         
-        if( this->com_streaming_enabled )
-        {
-            // Stream com in world frame
-            KDL::Vector com = odometry_helper.getDynTree().getCOMKDL();
-            
-            yarp::sig::Vector & com_to_send = port_com->prepare();
-            com_to_send.resize(3);
-            
-            KDLtoYarp(com,com_to_send);
-            
-            port_com->write();
-        }
-        
-        if( this->frames_streaming_enabled )
-        {
-            // Stream frames in a property (highly inefficient! clean as soon as possible)
-            Property& output = port_frames->prepare();
-            
-            for(int i =0; i < frames_to_stream.size(); i++ )
-            {
-                KDL::Frame frame_to_publish = odometry_helper.getWorldFrameTransform(frames_to_stream_indices[i]);
-                
-                KDLtoYarp_position(frame_to_publish,buffer_transform_matrix);
-                
-                buffer_bottles[i].get(0).asList()->read(buffer_transform_matrix);
-                output.put(frames_to_stream[i].c_str(),buffer_bottles[i].get(0));
-            }
-            
-            port_frames->write();
-        }
+//        if( this->com_streaming_enabled )
+//        {
+//            // Stream com in world frame
+//            KDL::Vector com = odometry_helper.getDynTree().getCOMKDL();
+//            
+//            yarp::sig::Vector & com_to_send = port_com->prepare();
+//            com_to_send.resize(3);
+//            
+//            KDLtoYarp(com,com_to_send);
+//            
+//            port_com->write();
+//        }
+//        
+//        if( this->frames_streaming_enabled )
+//        {
+//            // Stream frames in a property (highly inefficient! clean as soon as possible)
+//            Property& output = port_frames->prepare();
+//            
+//            for(int i =0; i < frames_to_stream.size(); i++ )
+//            {
+//                KDL::Frame frame_to_publish = odometry_helper.getWorldFrameTransform(frames_to_stream_indices[i]);
+//                
+//                KDLtoYarp_position(frame_to_publish,buffer_transform_matrix);
+//                
+//                buffer_bottles[i].get(0).asList()->read(buffer_transform_matrix);
+//                output.put(frames_to_stream[i].c_str(),buffer_bottles[i].get(0));
+//            }
+//            
+//            port_frames->write();
+//        }
         
         // save the current link considered as fixed by the odometry
         current_fixed_link_name = odometry_helper.getCurrentFixedLink();
@@ -369,6 +402,7 @@ void LeggedOdometry::run()
 void LeggedOdometry::readRobotStatus()
 {
     // Last two arguments specify not retrieving timestamps and not to wait to get a sensor measurement
+//    std::cerr << "Reading robot status" << std::endl;
     if ( !m_sensors->readSensors(wbi::SENSOR_ENCODER_POS, m_joint_status->getJointPosKDL().data.data(), NULL, false) )
     {
         yError("[LeggedOdometry::readRobotStatus()] Encoders could not be read!");
@@ -380,6 +414,7 @@ void LeggedOdometry::readRobotStatus()
 
 void LeggedOdometry::release()
 {
+    std::cerr<<"!!!!! release was called for LeggedOdometry " << std::endl;
     if( this->odometry_enabled )
     {
         closePort(port_floatingbasestate);
@@ -401,11 +436,11 @@ void LeggedOdometry::release()
         icub_model = 0;
     }
     
-    if ( this->m_sensors )
-    {
-        delete m_sensors;
-        m_sensors = 0;
-    }
+//    if ( this->m_sensors )
+//    {
+//        delete m_sensors;
+//        m_sensors = 0;
+//    }
     
     if ( this->m_joint_status )
     {
