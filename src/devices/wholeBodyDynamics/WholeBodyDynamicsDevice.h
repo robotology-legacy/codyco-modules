@@ -42,6 +42,17 @@ struct virtualAnalogSensorRemappedAxis
  * The axes are then mapped to the wrapped controlboard in the attachAll method, using controlBoardRemapper class.
  * Furthermore are also used to match the yarp axes to the joint names found in the passed URDF file.
  *
+ *
+ * Configuration file using .ini format.
+ *
+ * \code{.unparsed}
+ *  device controlboardremapper
+ *  axesNames (joint1 joint2 joint3)
+ *
+ * ...
+ * \endcode
+ *
+ *
  */
 class WholeBodyDynamicsDevice :  public yarp::dev::DeviceDriver,
                                  public yarp::dev::IMultipleWrapper,
@@ -72,19 +83,25 @@ private:
     bool estimationWentWell;
 
     /**
+     * Flag set to false initially, then to true as soon as a valid offset is available
+     * (so torque estimation can start to be broadcasted).
+     */
+    bool validOffsetAvailable;
+
+
+    /**
      * Names of the axis (joint with at least a degree of freedom) used in estimation.
      */
     std::vector<std::string> estimationJointNames;
 
     /** Remapped controlboard containg the axes for which the joint torques are estimated */
     yarp::dev::PolyDriver remappedControlBoard;
-    struct remappedControlBoardInterfacesStruct
+    struct
     {
         yarp::dev::IEncoders        * encs;
         yarp::dev::IMultipleWrapper * multwrap;
-    };
+    } remappedControlBoardInterfaces;
 
-    remappedControlBoardInterfacesStruct remappedControlBoardInterfaces;
 
     /** F/T sensors interfaces */
     std::vector<yarp::dev::IAnalogSensor * > ftSensors;
@@ -127,6 +144,7 @@ private:
     bool openRPCPort();
     bool openRemapperControlBoard(os::Searchable& config);
     bool openEstimator(os::Searchable& config);
+    bool openDefaultContactFrames(os::Searchable& config);
 
     /**
      * Close-related methods
@@ -150,12 +168,7 @@ private:
     void computeCalibration();
     void computeExternalForcesAndJointTorques();
 
-    // Calibration related quantitites
-    bool ongoingCalibration;
-    std::vector<bool> calibratingFTsensor;
-    std::vector<iDynTree::Vector6> offsetSumBuffer;
-    std::vector<iDynTree::Wrench>  offset;
-    size_t nrOfCalibrationSamples;
+
 
     // Publish related methods
     void publishTorques();
@@ -186,8 +199,8 @@ private:
     iDynTree::JointPosDoubleArray  jointPos;
     iDynTree::JointDOFsDoubleArray jointVel;
     iDynTree::JointDOFsDoubleArray jointAcc;
-    yarp::sig::Vector               ftMeasurement;
-    yarp::sig::Vector               imuMeasurement;
+    yarp::sig::Vector              ftMeasurement;
+    yarp::sig::Vector              imuMeasurement;
     iDynTree::SensorsMeasurements  sensorsMeasurements;
     iDynTree::LinkUnknownWrenchContacts measuredContactLocations;
     iDynTree::JointDOFsDoubleArray estimatedJointTorques;
@@ -196,13 +209,24 @@ private:
     /**
      * Calibration buffers
      */
-    iDynTree::LinkUnknownWrenchContacts assumedContactLocationsForCalibration;
-    iDynTree::SensorsMeasurements  predictedSensorMeasurementsForCalibration;
-    iDynTree::JointDOFsDoubleArray predictedJointTorquesForCalibration;
-    iDynTree::LinkContactWrenches  predictedExternalContactWrenchesForCalibration;
-    size_t nrOfSamplesUsedUntilNowForCalibration;
-    size_t nrOfSamplesToUseForCalibration;
+    struct
+    {
+        bool ongoingCalibration;
+        std::vector<bool> calibratingFTsensor;
+        std::vector<iDynTree::Vector6> offsetSumBuffer;
+        std::vector<iDynTree::Wrench>  offset;
+        iDynTree::LinkUnknownWrenchContacts assumedContactLocationsForCalibration;
+        iDynTree::SensorsMeasurements  predictedSensorMeasurementsForCalibration;
+        iDynTree::JointDOFsDoubleArray predictedJointTorquesForCalibration;
+        iDynTree::LinkContactWrenches  predictedExternalContactWrenchesForCalibration;
+        size_t nrOfSamplesUsedUntilNowForCalibration;
+        size_t nrOfSamplesToUseForCalibration;
+    } calibrationBuffers;
 
+    /**
+      * Semaphore used by the RPC to wait until the calibration is complete.
+      */
+    yarp::os::Semaphore calibrationSemaphore;
 
     /***
      * RPC Calibration related methods
@@ -283,11 +307,6 @@ private:
       * RPC Calibration related attributes
       */
      yarp::os::Port  rpcPort;        // a port to handle rpc messages
-
-     /**
-      * Semaphore used by the RPC to wait until the calibration is complete.
-      */
-     yarp::os::Semaphore calibrationSemaphore;
 
      /**
       * Generic helper methods

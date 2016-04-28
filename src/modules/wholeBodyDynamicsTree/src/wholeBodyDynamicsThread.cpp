@@ -775,7 +775,7 @@ void wholeBodyDynamicsThread::disableCalibration()
 //*************************************************************************************************************************
 bool wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport(const std::string calib_code, int samples_to_use)
 {
-    yarp::os::LockGuard(run_mutex);
+    yarp::os::LockGuard guard(run_mutex);
 
     samples_requested_for_calibration= samples_to_use;
     std::cout << "wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport called with code " << calib_code << std::endl;
@@ -1023,7 +1023,7 @@ bool wholeBodyDynamicsThread::initOdometry()
             return false;
         }
 
-        for(int i=0; i < frames_bot->size(); i++ )
+        for(size_t i=0; i < frames_bot->size(); i++ )
         {
             std::string frame_name = frames_bot->get(i).asString();
             int frame_index = odometry_helper.getDynTree().getFrameIndex(frame_name);
@@ -1039,7 +1039,7 @@ bool wholeBodyDynamicsThread::initOdometry()
 
         buffer_bottles.resize(frames_to_stream.size());
 
-        for(int i=0; i < buffer_bottles.size(); i++ )
+        for(size_t i=0; i < buffer_bottles.size(); i++ )
         {
             yInfo("wholeBodyDynamicsTree: streaming world position of frame %s",frames_to_stream[i].c_str());
             buffer_bottles[i].addList();
@@ -1389,7 +1389,7 @@ void wholeBodyDynamicsThread::publishFilteredFTWithoutOffset()
 {
     if( publish_filtered_ft )
     {
-        int nr_of_ft = sensors->getSensorList(wbi::SENSOR_FORCE_TORQUE).size();
+        size_t nr_of_ft = sensors->getSensorList(wbi::SENSOR_FORCE_TORQUE).size();
         yAssert(nr_of_ft == port_filtered_ft.size());
         yAssert(nr_of_ft == sensor_status.estimated_ft_sensors.size());
         for(int ft =0; ft < nr_of_ft; ft++ )
@@ -1573,7 +1573,7 @@ void wholeBodyDynamicsThread::estimation_run()
 
     if( printCountdown == 0 ) {
        
-        double avgTime, stdDev, avgTimeUsed, stdDevUsed,;
+        double avgTime, stdDev, avgTimeUsed, stdDevUsed;
 
         getEstPeriod(avgTime, stdDev);
         getEstUsed(avgTimeUsed, stdDevUsed);

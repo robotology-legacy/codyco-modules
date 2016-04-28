@@ -1,6 +1,6 @@
 set(robots iCubGenova01
            iCubGenova03
-	         icubGazeboSim
+           icubGazeboSim
            iCubParis01
            iCubParis02)
 

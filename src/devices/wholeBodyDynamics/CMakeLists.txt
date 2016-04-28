@@ -16,10 +16,10 @@ set(ENABLE_codycomod_wholeBodyDynamics TRUE)
 
 if(NOT SKIP_wholeBodyDynamics)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}
-                    ${YARP_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(SYSTEM
+                    ${YARP_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIR})
 
 yarp_add_plugin(wholeBodyDynamicsDevice WholeBodyDynamicsDevice.h WholeBodyDynamicsDevice.cpp)

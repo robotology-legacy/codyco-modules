@@ -59,13 +59,11 @@ include(iCubHelpers)
 #### Set binary dir to ${CMAKE_BINARY_DIR}/bin
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 make_directory(${EXECUTABLE_OUTPUT_PATH})
-message(STATUS "Executables go to ${EXECUTABLE_OUTPUT_PATH}")
 mark_as_advanced(EXECUTABLE_OUTPUT_PATH)
 
 #### Set library dir to ${CMAKE_BINARY_DIR}/lib
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 make_directory(${LIBRARY_OUTPUT_PATH})
-message(STATUS "Libraries go to ${LIBRARY_OUTPUT_PATH}")
 mark_as_advanced(LIBRARY_OUTPUT_PATH)
 
 ### enable testing
