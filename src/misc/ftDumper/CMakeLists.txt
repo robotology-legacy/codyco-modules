@@ -12,8 +12,4 @@ find_package(ICUB)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${YARP_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ICUB_MODULE_PATH})
 
-# new "data" installation - available with yarp2.4
-include(YarpInstallationHelpers)
-yarp_configure_external_installation(codyco)
-
 add_subdirectory(app)

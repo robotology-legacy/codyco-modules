@@ -42,9 +42,15 @@ include(CoDyCoFindDependencies)
 # Import common options (disable flags in windows, rpath, etc..)
 include(CoDyCoOptions)
 
-# new "data" installation - available with yarp2.4
+# Force dynamic plugins. Must be set before
+# yarp_configure_external_installation to ensure that codyco.ini is
+# generated correctly
+set(YARP_FORCE_DYNAMIC_PLUGINS TRUE CACHE INTERNAL "CoDyCo is always built with dynamic plugins")
 include(YarpInstallationHelpers)
-yarp_configure_external_installation(codyco)
+yarp_configure_external_installation(codyco WITH_PLUGINS)
+# Hide YARP_FORCE_DYNAMIC_PLUGINS from gui
+# (yarp_configure_external_installation changes TYPE to BOOL)
+set_property(CACHE YARP_FORCE_DYNAMIC_PLUGINS PROPERTY TYPE INTERNAL)
 
 #### Find iCub
 

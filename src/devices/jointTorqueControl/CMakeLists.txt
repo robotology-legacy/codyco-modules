@@ -10,10 +10,6 @@ find_package(YARP REQUIRED)
 find_package(Eigen3 REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH "${YARP_MODULE_PATH}")
-include(YarpInstallationHelpers)
-
-yarp_configure_external_installation(codyco)
-
 
 MACRO(codyco_export_library target)
   PARSE_ARGUMENTS(${target}

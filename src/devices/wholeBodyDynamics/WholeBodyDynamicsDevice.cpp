@@ -165,7 +165,7 @@ bool WholeBodyDynamicsDevice::openEstimator(os::Searchable& config)
     if( !ok )
     {
         yError() << "WholeBodyDynamicsDevice::open impossible to create ExtWrenchesAndJointTorquesEstimator from file "
-                 << modelFileFullPath;
+                 << modelFileName << " ( full path: " << modelFileFullPath << " ) ";
         return false;
     }
 
