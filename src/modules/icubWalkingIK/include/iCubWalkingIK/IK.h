@@ -1,5 +1,5 @@
 #include <iostream>
-#include <boost/concept_check.hpp>
+//#include <boost/concept_check.hpp>
 #include <yarpWholeBodyInterface/yarpWholeBodyModel.h>
 #include <yarpWholeBodyInterface/yarpWholeBodyStates.h>
 #include "floatingBaseOdometry.h"
