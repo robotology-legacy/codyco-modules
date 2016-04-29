@@ -174,9 +174,6 @@ private:
     void publishTorques();
     void publishEstimatedQuantities();
 
-    // Publish related attributes (port, interfaces)
-    std::vector<virtualAnalogSensorRemappedAxis> analogSensorAxes;
-
     /**
      * Load settings from config.
      */

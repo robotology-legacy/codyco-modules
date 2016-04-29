@@ -92,10 +92,50 @@ bool WholeBodyDynamicsDevice::closeRPCPort()
     return true;
 }
 
+void addVectorOfStringToProperty(yarp::os::Property& prop, std::string key, std::vector<std::string> & list)
+{
+    prop.addGroup(key);
+    yarp::os::Bottle & bot = prop.findGroup(key).addList();
+    for(size_t i=0; i < list.size(); i++)
+    {
+        bot.addString(list[i].c_str());
+    }
+    return;
+}
+
+bool getUsedDOFsList(os::Searchable& config, std::vector<std::string> & usedDOFs)
+{
+    yarp::os::Property prop;
+    prop.fromString(config.toString().c_str());
+
+    yarp::os::Bottle *propAxesNames=prop.find("axesNames").asList();
+    if(propAxesNames==0)
+    {
+       yError() <<"WholeBodyDynamicsDevice: Error parsing parameters: \"axesNames\" should be followed by a list\n";
+       return false;
+    }
+
+    usedDOFs.resize(propAxesNames->size());
+    for(int ax=0; ax < propAxesNames->size(); ax++)
+    {
+        usedDOFs[ax] = propAxesNames->get(ax).asString().c_str();
+    }
+
+    return true;
+}
+
 
 bool WholeBodyDynamicsDevice::openRemapperControlBoard(os::Searchable& config)
 {
-    bool ok = remappedControlBoard.open(config);
+    // Pass to the remapper just the relevant parameters (axesList)
+    yarp::os::Property propRemapper;
+    propRemapper.put("device","controlboardremapper");
+    bool ok = getUsedDOFsList(config,estimationJointNames);
+    if(!ok) return false;
+
+    addVectorOfStringToProperty(propRemapper,"axesNames",estimationJointNames);
+
+    ok = remappedControlBoard.open(propRemapper);
 
     if( !ok )
     {
@@ -124,32 +164,10 @@ bool WholeBodyDynamicsDevice::openRemapperControlBoard(os::Searchable& config)
     return true;
 }
 
-bool getUsedDOFsList(os::Searchable& config, std::vector<std::string> & usedDOFs)
-{
-    yarp::os::Property prop;
-    prop.fromString(config.toString().c_str());
-
-    yarp::os::Bottle *propAxesNames=prop.find("axesNames").asList();
-    if(propAxesNames==0)
-    {
-       yError() <<"WholeBodyDynamicsDevice: Error parsing parameters: \"axesNames\" should be followed by a list\n";
-       return false;
-    }
-
-    usedDOFs.resize(propAxesNames->size());
-    for(int ax=0; ax < propAxesNames->size(); ax++)
-    {
-        usedDOFs[ax] = propAxesNames->get(ax).asString().c_str();
-    }
-
-    return true;
-}
-
 bool WholeBodyDynamicsDevice::openEstimator(os::Searchable& config)
 {
     // get the list of considered dofs from config
-    std::vector<std::string> consideredDOFs;
-    bool ok = getUsedDOFsList(config,consideredDOFs);
+    bool ok = getUsedDOFsList(config,estimationJointNames);
     if(!ok) return false;
 
     yarp::os::ResourceFinder & rf = yarp::os::ResourceFinder::getResourceFinderSingleton();
@@ -161,7 +179,7 @@ bool WholeBodyDynamicsDevice::openEstimator(os::Searchable& config)
     }
 
     std::string modelFileFullPath = rf.findFileByName(modelFileName);
-    ok = estimator.loadModelAndSensorsFromFileWithSpecifiedDOFs(modelFileFullPath,consideredDOFs);
+    ok = estimator.loadModelAndSensorsFromFileWithSpecifiedDOFs(modelFileFullPath,estimationJointNames);
     if( !ok )
     {
         yError() << "WholeBodyDynamicsDevice::open impossible to create ExtWrenchesAndJointTorquesEstimator from file "
@@ -183,6 +201,8 @@ bool WholeBodyDynamicsDevice::openDefaultContactFrames(os::Searchable& /*config*
     defaultContactFrames.push_back("r_upper_leg");
     defaultContactFrames.push_back("l_sole");
     defaultContactFrames.push_back("r_sole");
+    defaultContactFrames.push_back("l_elbow_1");
+    defaultContactFrames.push_back("r_elbow_1");
 
     // We build the defaultContactFramesIdx vector
     std::vector<iDynTree::FrameIndex> defaultContactFramesIdx;
@@ -486,9 +506,13 @@ bool WholeBodyDynamicsDevice::attachAll(const PolyDriverList& p)
     ok = ok && this->attachAllFTs(p);
     ok = ok && this->attachAllIMUs(p);
 
+    ok = this->setupCalibrationWithExternalWrenchOnOneFrame("base_link",100);
+
     if( ok )
     {
         correctlyConfigured = true;
+        yError() << " WholeBodyDynamicsDevice correctly configured, starting the thread and the calibration";
+        this->start();
     }
 
     return ok;
@@ -515,12 +539,14 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
     // Read encoders
     sensorReadCorrectly = remappedControlBoardInterfaces.encs->getEncoders(jointPos.data());
     convertVectorFromDegreesToRadians(jointPos);
+    bool ok;
 
     // At the moment we are assuming that all joints are revolute
 
     if( settings.useJointVelocity )
     {
-        sensorReadCorrectly = sensorReadCorrectly && remappedControlBoardInterfaces.encs->getEncoderSpeeds(jointVel.data());
+        ok = remappedControlBoardInterfaces.encs->getEncoderSpeeds(jointVel.data());
+        sensorReadCorrectly = sensorReadCorrectly && ok;
         convertVectorFromDegreesToRadians(jointVel);
     }
     else
@@ -530,7 +556,8 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
 
     if( settings.useJointAcceleration )
     {
-        sensorReadCorrectly = sensorReadCorrectly && remappedControlBoardInterfaces.encs->getEncoderAccelerations(jointAcc.data());
+        ok = remappedControlBoardInterfaces.encs->getEncoderAccelerations(jointAcc.data());
+        sensorReadCorrectly = sensorReadCorrectly && ok;
         convertVectorFromDegreesToRadians(jointAcc);
     }
     else
@@ -542,7 +569,8 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
     for(size_t ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
     {
         iDynTree::Wrench bufWrench;
-        sensorReadCorrectly = sensorReadCorrectly && ftSensors[ft]->read(ftMeasurement);
+        ok = ftSensors[ft]->read(ftMeasurement);
+        sensorReadCorrectly = sensorReadCorrectly && ok;
         // Format of F/T measurement in YARP/iDynTree is consistent: linear/angular
         iDynTree::toiDynTree(ftMeasurement,bufWrench);
         // Remove offset
@@ -557,7 +585,8 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
         angAcc.zero();
         linProperAcc.zero();
         angVel.zero();
-        sensorReadCorrectly = sensorReadCorrectly && imuInterface->read(imuMeasurement);
+        ok = imuInterface->read(imuMeasurement);
+        sensorReadCorrectly = sensorReadCorrectly && ok;
 
         // Check format of IMU in YARP http://wiki.icub.org/wiki/Inertial_Sensor
         angVel(0) = deg2rad(imuMeasurement[6]);
@@ -584,6 +613,11 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
         gravity(2) = settings.gravity.z;
 
         estimator.updateKinematicsFromFixedBase(jointPos,jointVel,jointAcc,fixedFrameIndex,gravity);
+    }
+
+    if( !sensorReadCorrectly )
+    {
+        //yWarning() << "wholeBodyDynamics warning : one sensor was not readed correctly";
     }
 }
 
@@ -689,6 +723,7 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
         // Only send estimation if a valid offset is available
         if( validOffsetAvailable )
         {
+
             //Send torques
             publishTorques();
 
@@ -715,9 +750,13 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
 
 void WholeBodyDynamicsDevice::publishTorques()
 {
-    for(size_t axis=0; axis < analogSensorAxes.size(); axis++)
+
+    for(size_t axis=0; axis < remappedVirtualAnalogSensorAxis.size(); axis++)
     {
-        analogSensorAxes[axis].dev->updateMeasure(analogSensorAxes[axis].localAxis,estimatedJointTorques(axis));
+        if( remappedVirtualAnalogSensorAxis[axis].dev )
+        {
+            remappedVirtualAnalogSensorAxis[axis].dev->updateMeasure(remappedVirtualAnalogSensorAxis[axis].localAxis,estimatedJointTorques(axis));
+        }
     }
 }
 
@@ -758,6 +797,8 @@ bool WholeBodyDynamicsDevice::close()
     yarp::os::LockGuard guard(this->deviceMutex);
 
     correctlyConfigured = false;
+
+    this->close();
 
     closeRPCPort();
     closeSettingsPort();
@@ -991,6 +1032,9 @@ void WholeBodyDynamicsDevice::endCalibration()
     // The default value for the semaphore is zero, so this will make us wait until the
     // thread of the device (that is different from the thread handling the RPC) wakes
     calibrationSemaphore.post();
+
+    yInfo() << "WholeBodyDynamicsDevice: calibration ended.";
+
     return;
 }
 
