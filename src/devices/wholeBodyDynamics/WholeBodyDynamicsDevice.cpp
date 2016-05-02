@@ -197,8 +197,8 @@ bool WholeBodyDynamicsDevice::openDefaultContactFrames(os::Searchable& /*config*
     defaultContactFrames.push_back("l_hand");
     defaultContactFrames.push_back("r_hand");
     defaultContactFrames.push_back("root_link");
-    defaultContactFrames.push_back("l_upper_leg");
-    defaultContactFrames.push_back("r_upper_leg");
+    defaultContactFrames.push_back("l_lower_leg");
+    defaultContactFrames.push_back("r_lower_leg");
     defaultContactFrames.push_back("l_sole");
     defaultContactFrames.push_back("r_sole");
     defaultContactFrames.push_back("l_elbow_1");
@@ -261,7 +261,7 @@ bool WholeBodyDynamicsDevice::openDefaultContactFrames(os::Searchable& /*config*
     return true;
 }
 
-bool openSkinContactListPorts(os::Searchable& config)
+bool WholeBodyDynamicsDevice::openSkinContactListPorts(os::Searchable& config)
 {
     bool ok = this->portContactsInput.open(portPrefix+"/skin_contacts:i");
     if(!ok) return ok;
@@ -345,6 +345,10 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
 
     // Load settings in the class and in the estimator
     ok = this->loadSettingsFromConfig(config);
+    if( !ok ) return false;
+
+    // Open rpc port
+    ok = this->openRPCPort();
     if( !ok ) return false;
 
     // Open settings port
@@ -555,7 +559,7 @@ bool WholeBodyDynamicsDevice::attachAll(const PolyDriverList& p)
     if( ok )
     {
         correctlyConfigured = true;
-        yError() << " WholeBodyDynamicsDevice correctly configured, starting the thread and the calibration";
+        yDebug() << " WholeBodyDynamicsDevice correctly configured, starting the thread and the calibration";
         this->start();
     }
 
@@ -596,7 +600,7 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
     {
         ok = remappedControlBoardInterfaces.encs->getEncoderSpeeds(jointVel.data());
         sensorReadCorrectly = sensorReadCorrectly && ok;
-        if( !sensorReadCorrectly )
+        if( !ok )
         {
             yWarning() << "wholeBodyDynamics warning : joint velocities was not readed correctly";
         }
@@ -612,7 +616,7 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
     {
         ok = remappedControlBoardInterfaces.encs->getEncoderAccelerations(jointAcc.data());
         sensorReadCorrectly = sensorReadCorrectly && ok;
-        if( !sensorReadCorrectly )
+        if( !ok )
         {
             yWarning() << "wholeBodyDynamics warning : joint accelerations was not readed correctly";
         }
@@ -627,10 +631,13 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
     for(size_t ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
     {
         iDynTree::Wrench bufWrench;
-        ok = ftSensors[ft]->read(ftMeasurement);
+        int ftRetVal = ftSensors[ft]->read(ftMeasurement);
+
+        ok = (ftRetVal == IAnalogSensor::AS_OK);
+
         sensorReadCorrectly = sensorReadCorrectly && ok;
 
-        if( !sensorReadCorrectly )
+        if( !ok )
         {
             std::string sensorName = estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName();
             yWarning() << "wholeBodyDynamics warning : FT sensor " << sensorName << " was not readed correctly";
@@ -653,7 +660,7 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
         ok = imuInterface->read(imuMeasurement);
         sensorReadCorrectly = sensorReadCorrectly && ok;
 
-        if( !sensorReadCorrectly )
+        if( !ok )
         {
             yWarning() << "wholeBodyDynamics warning : imu sensor was not readed correctly";
         }
@@ -697,14 +704,22 @@ void WholeBodyDynamicsDevice::readContactPoints()
     // For now just put the default contact points
     size_t nrOfSubModels = estimator.submodels().getNrOfSubModels();
 
+    yDebug() << "WholeBodyDynamicsDevice nrOfSubModels " << nrOfSubModels;
+
     for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
     {
-        measuredContactLocations.addNewContactInFrame(estimator.model(),
-                                                      subModelIndex2DefaultContact[subModel],
-                                                      iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
+        bool ok = measuredContactLocations.addNewContactInFrame(estimator.model(),
+                                                                subModelIndex2DefaultContact[subModel],
+                                                               iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
+
+        if( !ok )
+        {
+            yWarning() << "Failing in adding default contact for submodel " << subModel;
+        }
     }
 
     // Todo: read contact positions from skin
+    yDebug() << "WholeBodyDynamicsDevice measuredContactLocations " << measuredContactLocations.toString(estimator.model());
 
     return;
 }
@@ -759,6 +774,8 @@ void WholeBodyDynamicsDevice::computeCalibration()
                 if( calibrationBuffers.calibratingFTsensor[ft] )
                 {
                     computeMean(calibrationBuffers.offsetSumBuffer[ft],calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration,calibrationBuffers.offset[ft]);
+
+                    yDebug() << "Offset for sensor " << estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() << " " << calibrationBuffers.offset[ft].toString();
                 }
             }
 
@@ -773,6 +790,7 @@ void WholeBodyDynamicsDevice::computeCalibration()
 void WholeBodyDynamicsDevice::computeExternalForcesAndJointTorques()
 {
     // The kinematics information was already set by the readSensorsAndUpdateKinematics method
+    yDebug() << "WholeBodyDynamicsDevice::computeExternalForcesAndJointTorques() " << measuredContactLocations.toString(estimator.model());
     estimationWentWell = estimator.estimateExtWrenchesAndJointTorques(measuredContactLocations,sensorsMeasurements,
                                                                        estimateExternalContactWrenches,estimatedJointTorques);
 }
@@ -813,13 +831,12 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
     }
 }
 
-template <class T> void broadcastData(T& _values, BufferedPort<T> *_port)
+template <class T> void broadcastData(T& _values, yarp::os::BufferedPort<T>& _port)
 {
-    if (_port && _port->getOutputCount()>0 )
+    if (_port.getOutputCount()>0 )
     {
-        _port->setEnvelope(this->timestamp);
-        _port->prepare()  = _values ;
-        _port->write();
+        _port.prepare()  = _values ;
+        _port.write();
     }
 }
 
@@ -850,6 +867,8 @@ void WholeBodyDynamicsDevice::publishContacts()
 
     if( ok )
     {
+        yDebug() << "WholeBodyDynamicsDevice::publishContacts " << estimateExternalContactWrenches.toString(estimator.model());
+        yDebug() << "WholeBodyDynamicsDevice::publishContacts converted to " << contactsEstimated.toString();
         broadcastData(contactsEstimated,portContactsOutput);
     }
 }
@@ -866,6 +885,9 @@ void WholeBodyDynamicsDevice::run()
         // Read sensor readings
         this->readSensorsAndUpdateKinematics();
 
+        // Read contacts info from the skin or from assume contact location
+        this->readContactPoints();
+
         // Compute calibration if we are in calibration mode
         this->computeCalibration();
 
@@ -879,23 +901,34 @@ void WholeBodyDynamicsDevice::run()
 
 bool WholeBodyDynamicsDevice::detachAll()
 {
+    yDebug() << " WholeBodyDynamicsDevice detachAll called ";
     yarp::os::LockGuard guard(this->deviceMutex);
 
     correctlyConfigured = false;
+
+    yDebug() << " WholeBodyDynamicsDevice detachAll, closing thread ";
+    if (isRunning())
+        stop();
+
+    closeRPCPort();
+    closeSettingsPort();
+
+    yDebug() << " WholeBodyDynamicsDevice detachAll returning";
 
     return true;
 }
 
 bool WholeBodyDynamicsDevice::close()
 {
-    yarp::os::LockGuard guard(this->deviceMutex);
+    yDebug() << " WholeBodyDynamicsDevice close called ";
+
+    // Uncommenting this will result in a deadlock when closing the wbd interface
+    //yarp::os::LockGuard guard(this->deviceMutex);
 
     correctlyConfigured = false;
 
-    this->close();
+    yDebug() << " WholeBodyDynamicsDevice close returning ";
 
-    closeRPCPort();
-    closeSettingsPort();
 
     return true;
 }
