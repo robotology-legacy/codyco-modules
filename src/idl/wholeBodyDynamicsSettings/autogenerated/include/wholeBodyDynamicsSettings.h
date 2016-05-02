@@ -25,15 +25,15 @@ public:
    */
   Gravity gravity;
   /**
-   * If kinematicSource is FIXED_LINK, specify the gravity vector in the fixedFrame
+   * If kinematicSource is FIXED_LINK, specify the gravity vector (in m/s^2) in the fixedFrame
    */
   double imuFilterCutoff;
   /**
-   * Cutoff frequency of the first order filter of the IMU
+   * Cutoff frequency (in Hz) of the first order filter of the IMU
    */
   double forceTorqueFilterCutoff;
   /**
-   * Cutoff frequency of the first order filter of the F/T sensors
+   * Cutoff frequency(in Hz) of the first order filter of the F/T sensors
    */
   bool useJointVelocity;
   /**

@@ -1,6 +1,7 @@
 #ifndef CODYCO_WHOLE_BODY_DYNAMICS_DEVICE_H
 #define CODYCO_WHOLE_BODY_DYNAMICS_DEVICE_H
 
+// YARP includes
 #include <yarp/dev/DeviceDriver.h>
 #include <yarp/dev/PolyDriver.h>
 #include <yarp/dev/ControlBoardInterfaces.h>
@@ -12,7 +13,13 @@
 #include <yarp/dev/IAnalogSensor.h>
 #include <yarp/dev/GenericSensorInterfaces.h>
 
+// iCub includes
+#include <iCub/skinDynLib/skinContactList.h>
+
+// iDynTree includes
 #include <iDynTree/Estimation/ExtWrenchesAndJointTorquesEstimator.h>
+#include <iDynTree/iCub/skinDynLibConversions.h>
+
 
 #include <wholeBodyDynamicsSettings.h>
 #include <wholeBodyDynamics_IDLServer.h>
@@ -145,6 +152,7 @@ private:
     bool openRemapperControlBoard(os::Searchable& config);
     bool openEstimator(os::Searchable& config);
     bool openDefaultContactFrames(os::Searchable& config);
+    bool openSkinContactListPorts(os::Searchable& config);
 
     /**
      * Close-related methods
@@ -172,6 +180,7 @@ private:
 
     // Publish related methods
     void publishTorques();
+    void publishContacts();
     void publishEstimatedQuantities();
 
     /**
@@ -323,6 +332,32 @@ private:
      std::vector<std::string> defaultContactFrames;
      std::vector<iDynTree::FrameIndex> subModelIndex2DefaultContact;
 
+     /**
+      * Port used to read the location of external contacts
+      * obtained from the skin.
+      */
+     yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> portContactsInput;
+
+     /**
+      * \todo we should use directly the class in the BufferedPort portContactsInput
+      */
+     iCub::skinDynLib::skinContactList contactsReadFromSkin;
+
+     /**
+      * Port used to publish the external forces acting on the
+      * robot.
+      */
+     yarp::os::BufferedPort<iCub::skinDynLib::skinContactList> portContactsOutput;
+
+     /**
+      * \todo we should use directly the class in the BufferedPort portContactsOutput
+      */
+     iCub::skinDynLib::skinContactList contactsEstimated;
+
+     /**
+      * Helper to convert between iDynTree and skinDynLib related datastructures.
+      */
+     iDynTree::skinDynLibConversionsHelper conversionHelper;
 
 public:
     // CONSTRUCTOR

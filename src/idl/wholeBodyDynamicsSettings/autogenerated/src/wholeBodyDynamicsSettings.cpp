@@ -287,17 +287,17 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
       if (field=="imuFilterCutoff") {
         if (!writer.writeListHeader(2)) return false;
         if (!writer.writeString("double imuFilterCutoff")) return false;
-        if (!writer.writeString("If kinematicSource is FIXED_LINK, specify the gravity vector in the fixedFrame")) return false;
+        if (!writer.writeString("If kinematicSource is FIXED_LINK, specify the gravity vector (in m/s^2) in the fixedFrame")) return false;
       }
       if (field=="forceTorqueFilterCutoff") {
         if (!writer.writeListHeader(2)) return false;
         if (!writer.writeString("double forceTorqueFilterCutoff")) return false;
-        if (!writer.writeString("Cutoff frequency of the first order filter of the IMU")) return false;
+        if (!writer.writeString("Cutoff frequency (in Hz) of the first order filter of the IMU")) return false;
       }
       if (field=="useJointVelocity") {
         if (!writer.writeListHeader(2)) return false;
         if (!writer.writeString("bool useJointVelocity")) return false;
-        if (!writer.writeString("Cutoff frequency of the first order filter of the F/T sensors")) return false;
+        if (!writer.writeString("Cutoff frequency(in Hz) of the first order filter of the F/T sensors")) return false;
       }
       if (field=="useJointAcceleration") {
         if (!writer.writeListHeader(2)) return false;

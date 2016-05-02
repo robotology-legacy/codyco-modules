@@ -261,6 +261,46 @@ bool WholeBodyDynamicsDevice::openDefaultContactFrames(os::Searchable& /*config*
     return true;
 }
 
+bool openSkinContactListPorts(os::Searchable& config)
+{
+    bool ok = this->portContactsInput.open(portPrefix+"/skin_contacts:i");
+    if(!ok) return ok;
+
+    ok = this->portContactsOutput.open(portPrefix+"/contacts:o");
+    if(!ok) return ok;
+
+    // Configure the conversion helper to read/publish data on this ports
+    yarp::os::Bottle & bot = config.findGroup("IDYNTREE_SKINDYNLIB_LINKS");
+    for(int i=1; i < bot.size(); i++ )
+    {
+        yarp::os::Bottle * map_bot = bot.get(i).asList();
+        if( map_bot->size() != 2 || map_bot->get(1).asList() == NULL ||
+            map_bot->get(1).asList()->size() != 3 )
+        {
+            yError() << "WholeBodyDynamicsDevice: IDYNTREE_SKINDYNLIB_LINKS group is malformed (" << map_bot->toString() << ")";
+            return false;
+        }
+
+        std::string iDynTree_link_name = map_bot->get(0).asString();
+        std::string iDynTree_skinFrame_name = map_bot->get(1).asList()->get(0).asString();
+        int skinDynLib_body_part = map_bot->get(1).asList()->get(1).asInt();
+        int skinDynLib_link_index = map_bot->get(1).asList()->get(2).asInt();
+
+        bool ret_sdl = conversionHelper.addSkinDynLibAlias(estimator.model(),
+                                                           iDynTree_link_name,iDynTree_skinFrame_name,
+                                                           skinDynLib_body_part,skinDynLib_link_index);
+
+        if( !ret_sdl )
+        {
+            yError() << "WholeBodyDynamicsDevice: IDYNTREE_SKINDYNLIB_LINKS link " << iDynTree_link_name
+                      << " and frame " << iDynTree_skinFrame_name << " and not found in urdf model";
+            return false;
+        }
+    }
+
+    return ok;
+}
+
 
 void WholeBodyDynamicsDevice::resizeBuffers()
 {
@@ -316,6 +356,10 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
     if( !ok ) return false;
 
     ok = this->openDefaultContactFrames(config);
+    if( !ok ) return false;
+
+    // Open the skin-related ports
+    ok = this->openSkinContactListPorts(config);
     if( !ok ) return false;
 
 
@@ -541,12 +585,22 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
     convertVectorFromDegreesToRadians(jointPos);
     bool ok;
 
+    if( !sensorReadCorrectly )
+    {
+        yWarning() << "wholeBodyDynamics warning : joint positions was not readed correctly";
+    }
+
     // At the moment we are assuming that all joints are revolute
 
     if( settings.useJointVelocity )
     {
         ok = remappedControlBoardInterfaces.encs->getEncoderSpeeds(jointVel.data());
         sensorReadCorrectly = sensorReadCorrectly && ok;
+        if( !sensorReadCorrectly )
+        {
+            yWarning() << "wholeBodyDynamics warning : joint velocities was not readed correctly";
+        }
+
         convertVectorFromDegreesToRadians(jointVel);
     }
     else
@@ -558,6 +612,10 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
     {
         ok = remappedControlBoardInterfaces.encs->getEncoderAccelerations(jointAcc.data());
         sensorReadCorrectly = sensorReadCorrectly && ok;
+        if( !sensorReadCorrectly )
+        {
+            yWarning() << "wholeBodyDynamics warning : joint accelerations was not readed correctly";
+        }
         convertVectorFromDegreesToRadians(jointAcc);
     }
     else
@@ -571,6 +629,13 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
         iDynTree::Wrench bufWrench;
         ok = ftSensors[ft]->read(ftMeasurement);
         sensorReadCorrectly = sensorReadCorrectly && ok;
+
+        if( !sensorReadCorrectly )
+        {
+            std::string sensorName = estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName();
+            yWarning() << "wholeBodyDynamics warning : FT sensor " << sensorName << " was not readed correctly";
+        }
+
         // Format of F/T measurement in YARP/iDynTree is consistent: linear/angular
         iDynTree::toiDynTree(ftMeasurement,bufWrench);
         // Remove offset
@@ -587,6 +652,11 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
         angVel.zero();
         ok = imuInterface->read(imuMeasurement);
         sensorReadCorrectly = sensorReadCorrectly && ok;
+
+        if( !sensorReadCorrectly )
+        {
+            yWarning() << "wholeBodyDynamics warning : imu sensor was not readed correctly";
+        }
 
         // Check format of IMU in YARP http://wiki.icub.org/wiki/Inertial_Sensor
         angVel(0) = deg2rad(imuMeasurement[6]);
@@ -613,11 +683,6 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
         gravity(2) = settings.gravity.z;
 
         estimator.updateKinematicsFromFixedBase(jointPos,jointVel,jointAcc,fixedFrameIndex,gravity);
-    }
-
-    if( !sensorReadCorrectly )
-    {
-        //yWarning() << "wholeBodyDynamics warning : one sensor was not readed correctly";
     }
 }
 
@@ -728,7 +793,7 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
             publishTorques();
 
             //Send external contacts
-            //publishContacts();
+            publishContacts();
 
             //Send external wrench estimates
             //publishExternalWrenches();
@@ -748,6 +813,16 @@ void WholeBodyDynamicsDevice::publishEstimatedQuantities()
     }
 }
 
+template <class T> void broadcastData(T& _values, BufferedPort<T> *_port)
+{
+    if (_port && _port->getOutputCount()>0 )
+    {
+        _port->setEnvelope(this->timestamp);
+        _port->prepare()  = _values ;
+        _port->write();
+    }
+}
+
 void WholeBodyDynamicsDevice::publishTorques()
 {
 
@@ -757,6 +832,25 @@ void WholeBodyDynamicsDevice::publishTorques()
         {
             remappedVirtualAnalogSensorAxis[axis].dev->updateMeasure(remappedVirtualAnalogSensorAxis[axis].localAxis,estimatedJointTorques(axis));
         }
+    }
+}
+
+void WholeBodyDynamicsDevice::publishContacts()
+{
+    // Clear the buffer of published forces
+    contactsEstimated.clear();
+
+    // Convert the result of estimation
+    bool ok = conversionHelper.updateSkinContactListFromLinkContactWrenches(estimator.model(),estimateExternalContactWrenches,contactsEstimated);
+
+    if( !ok )
+    {
+        yError() << "WholeBodyDynamicsDevice::publishContacts() error in converting estimated external wrenches from iDynTree to skinDynLib";
+    }
+
+    if( ok )
+    {
+        broadcastData(contactsEstimated,portContactsOutput);
     }
 }
 
