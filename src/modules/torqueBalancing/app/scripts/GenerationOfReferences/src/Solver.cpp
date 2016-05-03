@@ -242,5 +242,15 @@ void Solver::finalize_solution(Ipopt::SolverReturn status, Ipopt::Index n,
     std::cerr << "Constraints value (CoM)\n"
     << m_data.constraintsValue << "\n";
 
+    std::cerr << "Checking local minimum\n";
+    Eigen::VectorXd newQ(m_data.primalSolution);
+    for (int i = 0; i < newQ.size(); i++) {
+        double num = (double)rand() / RAND_MAX;
+        num = -0.05 + 0.1 * num;
+        newQ[i] += num;
+    }
+
+    std::cerr << "Cost near optimum is " << 0.5 * (newQ - m_data.qDes).transpose() * (newQ - m_data.qDes) << " instead of " << m_data.optimum << "\n";
+
 }
 
