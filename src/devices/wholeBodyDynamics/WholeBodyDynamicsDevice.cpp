@@ -47,11 +47,6 @@ WholeBodyDynamicsDevice::~WholeBodyDynamicsDevice()
 
 bool WholeBodyDynamicsDevice::openSettingsPort()
 {
-    // Fill setting with their default values
-    settings.kinematicSource = IMU;
-    settings.useJointVelocity = 0;
-    settings.useJointAcceleration = 0;
-
     settingsPort.setReader(settingsEditor);
 
     bool ok = settingsPort.open(portPrefix+"/settings");
@@ -310,7 +305,8 @@ void WholeBodyDynamicsDevice::resizeBuffers()
     this->measuredContactLocations.resize(estimator.model());
     this->ftMeasurement.resize(6);
     this->imuMeasurement.resize(12);
-    this->sensorsMeasurements.resize(estimator.sensors());
+    this->rawSensorsMeasurements.resize(estimator.sensors());
+    this->filteredSensorMeasurements.resize(estimator.sensors());
     this->estimatedJointTorques.resize(estimator.model());
     this->estimateExternalContactWrenches.resize(estimator.model());
 
@@ -325,11 +321,22 @@ void WholeBodyDynamicsDevice::resizeBuffers()
     calibrationBuffers.predictedExternalContactWrenchesForCalibration.resize(estimator.model());
     calibrationBuffers.predictedJointTorquesForCalibration.resize(estimator.model());
     calibrationBuffers.predictedSensorMeasurementsForCalibration.resize(estimator.sensors());
+
+    // Resize filters
+    filters.init(nrOfFTSensors,settings.forceTorqueFilterCutoff,settings.imuFilterCutoff,getRate()/1000.0);
+
 }
 
 
 bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& /*config*/)
 {
+    // Fill setting with their default values
+    settings.kinematicSource = IMU;
+    settings.useJointVelocity = 0;
+    settings.useJointAcceleration = 0;
+    settings.imuFilterCutoff = 3.0;
+    settings.forceTorqueFilterCutoff = 3.0;
+
     return true;
 }
 
@@ -339,12 +346,12 @@ bool WholeBodyDynamicsDevice::open(os::Searchable& config)
 
     bool ok;
 
-    // Create the estimator
-    ok = this->openEstimator(config);
+    // Load settings in the class
+    ok = this->loadSettingsFromConfig(config);
     if( !ok ) return false;
 
-    // Load settings in the class and in the estimator
-    ok = this->loadSettingsFromConfig(config);
+    // Create the estimator
+    ok = this->openEstimator(config);
     if( !ok ) return false;
 
     // Open rpc port
@@ -581,8 +588,7 @@ void convertVectorFromDegreesToRadians(iDynTree::VectorDynSize & vector)
     return;
 }
 
-
-void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
+void WholeBodyDynamicsDevice::readSensors()
 {
     // Read encoders
     sensorReadCorrectly = remappedControlBoardInterfaces.encs->getEncoders(jointPos.data());
@@ -645,19 +651,19 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
 
         // Format of F/T measurement in YARP/iDynTree is consistent: linear/angular
         iDynTree::toiDynTree(ftMeasurement,bufWrench);
-        // Remove offset
-        bufWrench = bufWrench - calibrationBuffers.offset[ft];
-        sensorsMeasurements.setMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,bufWrench);
+
+        rawSensorsMeasurements.setMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,bufWrench);
     }
 
-    // Read IMU Sensor and update the kinematics in the model
+    // Read IMU Sensor
     if( settings.kinematicSource == IMU )
     {
-        iDynTree::Vector3 angAcc, linProperAcc, angVel;
-        angAcc.zero();
-        linProperAcc.zero();
-        angVel.zero();
+        rawIMUMeasurements.angularAcc.zero();
+        rawIMUMeasurements.linProperAcc.zero();
+        rawIMUMeasurements.angularVel.zero();
+
         ok = imuInterface->read(imuMeasurement);
+
         sensorReadCorrectly = sensorReadCorrectly && ok;
 
         if( !ok )
@@ -666,17 +672,72 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
         }
 
         // Check format of IMU in YARP http://wiki.icub.org/wiki/Inertial_Sensor
-        angVel(0) = deg2rad(imuMeasurement[6]);
-        angVel(1) = deg2rad(imuMeasurement[7]);
-        angVel(2) = deg2rad(imuMeasurement[8]);
+        rawIMUMeasurements.angularVel(0) = deg2rad(imuMeasurement[6]);
+        rawIMUMeasurements.angularVel(1) = deg2rad(imuMeasurement[7]);
+        rawIMUMeasurements.angularVel(2) = deg2rad(imuMeasurement[8]);
 
-        linProperAcc(0) = imuMeasurement[3];
-        linProperAcc(1) = imuMeasurement[4];
-        linProperAcc(2) = imuMeasurement[5];
+        rawIMUMeasurements.linProperAcc(0) = imuMeasurement[3];
+        rawIMUMeasurements.linProperAcc(1) = imuMeasurement[4];
+        rawIMUMeasurements.linProperAcc(2) = imuMeasurement[5];
+    }
+}
 
+void WholeBodyDynamicsDevice::filterSensorsAndRemoveSensorOffsets()
+{
+    filters.updateCutOffFrequency(settings.forceTorqueFilterCutoff,settings.imuFilterCutoff);
+
+    yarp::sig::Vector inputFt(6), outputFt(6), inputImu(3), outputImu(3);
+
+    // Filter and remove offset fromn F/T sensors
+    for(size_t ft=0; ft < estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE); ft++ )
+    {
+        iDynTree::Wrench rawFTMeasure;
+        rawSensorsMeasurements.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,rawFTMeasure);
+
+        iDynTree::Wrench rawFTMeasureWithOffsetRemoved  = rawFTMeasure - calibrationBuffers.offset[ft];
+
+        // Filter the data
+        iDynTree::toYarp(rawFTMeasureWithOffsetRemoved,inputFt);
+
+        // Run the filter
+        outputFt = filters.forcetorqueFilters[ft]->filt(inputFt);
+
+        iDynTree::Wrench filteredFTMeasure;
+
+        iDynTree::toiDynTree(outputFt,filteredFTMeasure);
+
+        filteredSensorMeasurements.setMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,filteredFTMeasure);
+    }
+
+    // Filter IMU Sensor
+    if( settings.kinematicSource == IMU )
+    {
+        iDynTree::toYarp(rawIMUMeasurements.linProperAcc,inputImu);
+
+        outputImu = filters.imuLinearAccelerationFilter->filt(inputImu);
+
+        iDynTree::toiDynTree(outputImu,filteredIMUMeasurements.linProperAcc);
+
+        iDynTree::toYarp(rawIMUMeasurements.angularVel,inputImu);
+
+        outputImu = filters.imuAngularVelocityFilter->filt(inputImu);
+
+        iDynTree::toiDynTree(outputImu,filteredIMUMeasurements.angularVel);
+
+        // For now we just assume that the angular acceleration is zero
+        filteredIMUMeasurements.angularAcc.zero();
+    }
+}
+
+void WholeBodyDynamicsDevice::updateKinematics()
+{
+    // Read IMU Sensor and update the kinematics in the model
+    if( settings.kinematicSource == IMU )
+    {
         // Hardcode for the meanwhile
         iDynTree::FrameIndex imuFrameIndex = estimator.model().getFrameIndex("imu_frame");
-        estimator.updateKinematicsFromFloatingBase(jointPos,jointVel,jointAcc,imuFrameIndex,linProperAcc,angVel,angAcc);
+        estimator.updateKinematicsFromFloatingBase(jointPos,jointVel,jointAcc,imuFrameIndex,
+                                                   filteredIMUMeasurements.linProperAcc,filteredIMUMeasurements.angularVel,filteredIMUMeasurements.angularAcc);
     }
     else
     {
@@ -692,6 +753,7 @@ void WholeBodyDynamicsDevice::readSensorsAndUpdateKinematics()
         estimator.updateKinematicsFromFixedBase(jointPos,jointVel,jointAcc,fixedFrameIndex,gravity);
     }
 }
+
 
 void WholeBodyDynamicsDevice::readContactPoints()
 {
@@ -764,10 +826,10 @@ void WholeBodyDynamicsDevice::computeCalibration()
             if( calibrationBuffers.calibratingFTsensor[ft] )
             {
                 iDynTree::Wrench estimatedFT;
-                iDynTree::Wrench measuredFT;
+                iDynTree::Wrench measuredRawFT;
                 calibrationBuffers.predictedSensorMeasurementsForCalibration.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,estimatedFT);
-                sensorsMeasurements.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,measuredFT);
-                addToSummer(calibrationBuffers.offsetSumBuffer[ft],measuredFT-estimatedFT);
+                rawSensorsMeasurements.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,measuredRawFT);
+                addToSummer(calibrationBuffers.offsetSumBuffer[ft],measuredRawFT-estimatedFT);
             }
         }
 
@@ -799,7 +861,7 @@ void WholeBodyDynamicsDevice::computeExternalForcesAndJointTorques()
 {
     // The kinematics information was already set by the readSensorsAndUpdateKinematics method
     //yDebug() << "WholeBodyDynamicsDevice::computeExternalForcesAndJointTorques() " << measuredContactLocations.toString(estimator.model());
-    estimationWentWell = estimator.estimateExtWrenchesAndJointTorques(measuredContactLocations,sensorsMeasurements,
+    estimationWentWell = estimator.estimateExtWrenchesAndJointTorques(measuredContactLocations,filteredSensorMeasurements,
                                                                        estimateExternalContactWrenches,estimatedJointTorques);
 }
 
@@ -891,7 +953,13 @@ void WholeBodyDynamicsDevice::run()
         //this->reconfigureClassFromSettings();
 
         // Read sensor readings
-        this->readSensorsAndUpdateKinematics();
+        this->readSensors();
+
+        // Filter sensor and remove offset
+        this->filterSensorsAndRemoveSensorOffsets();
+
+        // Update kinematics
+        this->updateKinematics();
 
         // Read contacts info from the skin or from assume contact location
         this->readContactPoints();
@@ -1172,6 +1240,77 @@ void WholeBodyDynamicsDevice::endCalibration()
 
     return;
 }
+
+wholeBodyDynamicsDeviceFilters::wholeBodyDynamicsDeviceFilters(): imuLinearAccelerationFilter(0),
+                                                                  imuAngularVelocityFilter(0),
+                                                                  forcetorqueFilters(0)
+{
+
+}
+
+void wholeBodyDynamicsDeviceFilters::init(int nrOfFTSensors, double initialCutOffForFTInHz, double initialCutOffForIMUInHz  , double periodInSeconds)
+{
+    yarp::sig::Vector threeZeros(3,0.0);
+    imuLinearAccelerationFilter =
+        new iCub::ctrl::realTime::FirstOrderLowPassFilter(initialCutOffForIMUInHz,periodInSeconds,threeZeros);
+    imuAngularVelocityFilter =
+        new iCub::ctrl::realTime::FirstOrderLowPassFilter(initialCutOffForIMUInHz,periodInSeconds,threeZeros);
+
+    yarp::sig::Vector sixZeros(6,0.0);
+    forcetorqueFilters.resize(nrOfFTSensors);
+    for(int ft_numeric = 0; ft_numeric < nrOfFTSensors; ft_numeric++ )
+    {
+        forcetorqueFilters[ft_numeric] =
+                new iCub::ctrl::realTime::FirstOrderLowPassFilter(initialCutOffForFTInHz,periodInSeconds,sixZeros);
+    }
+}
+
+
+void wholeBodyDynamicsDeviceFilters::updateCutOffFrequency(double cutoffForFTInHz, double cutOffForIMUInHz)
+{
+    imuLinearAccelerationFilter->setCutFrequency(cutOffForIMUInHz);
+    imuAngularVelocityFilter->setCutFrequency(cutOffForIMUInHz);
+
+    for(size_t ft_numeric = 0; ft_numeric < forcetorqueFilters.size(); ft_numeric++ )
+    {
+        forcetorqueFilters[ft_numeric]->setCutFrequency(cutoffForFTInHz);
+    }
+
+}
+
+void wholeBodyDynamicsDeviceFilters::fini()
+{
+    if( imuLinearAccelerationFilter )
+    {
+        delete imuLinearAccelerationFilter;
+        imuLinearAccelerationFilter = 0;
+    }
+
+    if( imuAngularVelocityFilter )
+    {
+        delete imuAngularVelocityFilter;
+        imuAngularVelocityFilter = 0;
+    }
+
+    for(int ft_numeric = 0; ft_numeric < forcetorqueFilters.size(); ft_numeric++ )
+    {
+        delete forcetorqueFilters[ft_numeric];
+        forcetorqueFilters[ft_numeric] = 0;
+    }
+
+    forcetorqueFilters.resize(0);
+}
+
+wholeBodyDynamicsDeviceFilters::~wholeBodyDynamicsDeviceFilters()
+{
+    fini();
+}
+
+
+
+
+
+
 
 
 }

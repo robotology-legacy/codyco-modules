@@ -28,7 +28,7 @@ using namespace iCub::ctrl::realTime;
 /***************************************************************************/
 Eigen::Map<Eigen::VectorXd> toEigen(yarp::sig::Vector & vec)
 {
-	return Eigen::Map<Eigen::VectorXd>(vec.data(),vec.size());
+    return Eigen::Map<Eigen::VectorXd>(vec.data(),vec.size());
 }
 
 Eigen::Map<const Eigen::VectorXd> toEigen(const yarp::sig::Vector & vec)

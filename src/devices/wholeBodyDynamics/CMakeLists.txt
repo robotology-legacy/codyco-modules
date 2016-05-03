@@ -28,6 +28,7 @@ include_directories(SYSTEM
 yarp_add_plugin(wholeBodyDynamicsDevice WholeBodyDynamicsDevice.h WholeBodyDynamicsDevice.cpp)
 target_link_libraries(wholeBodyDynamicsDevice wholeBodyDynamicsSettings
                                               wholeBodyDynamics_IDLServer
+                                              ctrlLibRT
                                               ${YARP_LIBRARIES}
                                               ${ICUB_LIBRARIES}
                                               ${iDynTree_LIBRARIES})

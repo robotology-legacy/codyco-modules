@@ -20,6 +20,8 @@
 #include <iDynTree/Estimation/ExtWrenchesAndJointTorquesEstimator.h>
 #include <iDynTree/iCub/skinDynLibConversions.h>
 
+// Filters
+#include "ctrlLibRT/filters.h"
 
 #include <wholeBodyDynamicsSettings.h>
 #include <wholeBodyDynamics_IDLServer.h>
@@ -34,6 +36,39 @@ struct virtualAnalogSensorRemappedAxis
 {
     IVirtualAnalogSensor * dev;
     int localAxis;
+};
+
+class wholeBodyDynamicsDeviceFilters
+{
+    public:
+
+    wholeBodyDynamicsDeviceFilters();
+
+    /**
+     * Allocate the filters.
+     */
+    void init(int nrOfFTSensors,
+         double initialCutOffForFTInHz,
+         double initialCutOffForIMUInHz,
+         double periodInSeconds);
+
+    void updateCutOffFrequency(double initialCutOffForFTInHz,
+                               double initialCutOffForIMUInHz);
+
+    /**
+     * Deallocate the filters
+     */
+    void fini();
+
+
+    ~wholeBodyDynamicsDeviceFilters();
+
+    ///<  low pass filters for IMU linear accelerations
+    iCub::ctrl::realTime::FirstOrderLowPassFilter * imuLinearAccelerationFilter;
+    ///< low pass filters for IMU angular velocity
+    iCub::ctrl::realTime::FirstOrderLowPassFilter * imuAngularVelocityFilter;
+    ///< low pass filters for ForceTorque sensors
+    std::vector<iCub::ctrl::realTime::FirstOrderLowPassFilter *> forcetorqueFilters;
 };
 
 /**
@@ -66,6 +101,13 @@ class WholeBodyDynamicsDevice :  public yarp::dev::DeviceDriver,
                                  public yarp::os::RateThread,
                                  public wholeBodyDynamics_IDLServer
 {
+    struct imuMeasurements
+    {
+        iDynTree::Vector3 linProperAcc;
+        iDynTree::Vector3 angularVel;
+        iDynTree::Vector3 angularAcc;
+    };
+
 private:
     /**
      * Port prefix used for all the ports opened by wholeBodyDynamics.
@@ -171,7 +213,9 @@ private:
     /**
      * Run-related methods.
      */
-    void readSensorsAndUpdateKinematics();
+    void readSensors();
+    void filterSensorsAndRemoveSensorOffsets();
+    void updateKinematics();
     void readContactPoints();
     void computeCalibration();
     void computeExternalForcesAndJointTorques();
@@ -207,7 +251,23 @@ private:
     iDynTree::JointDOFsDoubleArray jointAcc;
     yarp::sig::Vector              ftMeasurement;
     yarp::sig::Vector              imuMeasurement;
-    iDynTree::SensorsMeasurements  sensorsMeasurements;
+    /***
+     * Buffer for raw sensors measurements.
+     */
+    iDynTree::SensorsMeasurements  rawSensorsMeasurements;
+    imuMeasurements                rawIMUMeasurements;
+
+    /**
+     * Filters
+     */
+    wholeBodyDynamicsDeviceFilters filters;
+
+    /**
+     * Buffer for filtered (both to reduce noise and remove offset) sensors.
+     */
+    iDynTree::SensorsMeasurements  filteredSensorMeasurements;
+    imuMeasurements                filteredIMUMeasurements;
+
     iDynTree::LinkUnknownWrenchContacts measuredContactLocations;
     iDynTree::JointDOFsDoubleArray estimatedJointTorques;
     iDynTree::LinkContactWrenches  estimateExternalContactWrenches;
