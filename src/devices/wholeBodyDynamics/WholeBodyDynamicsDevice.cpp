@@ -704,7 +704,7 @@ void WholeBodyDynamicsDevice::readContactPoints()
     // For now just put the default contact points
     size_t nrOfSubModels = estimator.submodels().getNrOfSubModels();
 
-    yDebug() << "WholeBodyDynamicsDevice nrOfSubModels " << nrOfSubModels;
+    //yDebug() << "WholeBodyDynamicsDevice nrOfSubModels " << nrOfSubModels;
 
     for(size_t subModel = 0; subModel < nrOfSubModels; subModel++)
     {
@@ -712,14 +712,21 @@ void WholeBodyDynamicsDevice::readContactPoints()
                                                                 subModelIndex2DefaultContact[subModel],
                                                                iDynTree::UnknownWrenchContact(iDynTree::FULL_WRENCH,iDynTree::Position::Zero()));
 
+        /*
+        yDebug() << "WholeBodyDynamicsDevice for submodel " << subModel;
+        yDebug() << "WholeBodyDynamicsDevice adding contact in frame " << estimator.model().getFrameName(subModelIndex2DefaultContact[subModel]);
+        yDebug() << "WholeBodyDynamicsDevice of link " << estimator.model().getLinkName(estimator.model().getFrameLink(subModelIndex2DefaultContact[subModel]));
+        yDebug() << "WholeBodyDynamicsDevice total nr of contacts : " << measuredContactLocations.getNrOfContactsForLink(estimator.model().getFrameLink(subModelIndex2DefaultContact[subModel]));
+        */
+
         if( !ok )
         {
-            yWarning() << "Failing in adding default contact for submodel " << subModel;
+            yWarning() << "wholeBodyDynamics: Failing in adding default contact for submodel " << subModel;
         }
     }
 
     // Todo: read contact positions from skin
-    yDebug() << "WholeBodyDynamicsDevice measuredContactLocations " << measuredContactLocations.toString(estimator.model());
+    //yDebug() << "WholeBodyDynamicsDevice measuredContactLocations " << measuredContactLocations.toString(estimator.model());
 
     return;
 }
@@ -759,6 +766,7 @@ void WholeBodyDynamicsDevice::computeCalibration()
                 iDynTree::Wrench estimatedFT;
                 iDynTree::Wrench measuredFT;
                 calibrationBuffers.predictedSensorMeasurementsForCalibration.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,estimatedFT);
+                sensorsMeasurements.getMeasurement(iDynTree::SIX_AXIS_FORCE_TORQUE,ft,measuredFT);
                 addToSummer(calibrationBuffers.offsetSumBuffer[ft],measuredFT-estimatedFT);
             }
         }
@@ -775,7 +783,7 @@ void WholeBodyDynamicsDevice::computeCalibration()
                 {
                     computeMean(calibrationBuffers.offsetSumBuffer[ft],calibrationBuffers.nrOfSamplesUsedUntilNowForCalibration,calibrationBuffers.offset[ft]);
 
-                    yDebug() << "Offset for sensor " << estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() << " " << calibrationBuffers.offset[ft].toString();
+                    yInfo() << "wholeBodyDynamics: Offset for sensor " << estimator.sensors().getSensor(iDynTree::SIX_AXIS_FORCE_TORQUE,ft)->getName() << " " << calibrationBuffers.offset[ft].toString();
                 }
             }
 
@@ -790,7 +798,7 @@ void WholeBodyDynamicsDevice::computeCalibration()
 void WholeBodyDynamicsDevice::computeExternalForcesAndJointTorques()
 {
     // The kinematics information was already set by the readSensorsAndUpdateKinematics method
-    yDebug() << "WholeBodyDynamicsDevice::computeExternalForcesAndJointTorques() " << measuredContactLocations.toString(estimator.model());
+    //yDebug() << "WholeBodyDynamicsDevice::computeExternalForcesAndJointTorques() " << measuredContactLocations.toString(estimator.model());
     estimationWentWell = estimator.estimateExtWrenchesAndJointTorques(measuredContactLocations,sensorsMeasurements,
                                                                        estimateExternalContactWrenches,estimatedJointTorques);
 }
@@ -867,8 +875,8 @@ void WholeBodyDynamicsDevice::publishContacts()
 
     if( ok )
     {
-        yDebug() << "WholeBodyDynamicsDevice::publishContacts " << estimateExternalContactWrenches.toString(estimator.model());
-        yDebug() << "WholeBodyDynamicsDevice::publishContacts converted to " << contactsEstimated.toString();
+        //yDebug() << "WholeBodyDynamicsDevice::publishContacts " << estimateExternalContactWrenches.toString(estimator.model());
+        //yDebug() << "WholeBodyDynamicsDevice::publishContacts converted to " << contactsEstimated.toString();
         broadcastData(contactsEstimated,portContactsOutput);
     }
 }
