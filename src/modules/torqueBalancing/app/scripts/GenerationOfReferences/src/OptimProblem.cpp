@@ -66,9 +66,6 @@ bool OptimProblem::solveOptimization(const yarp::sig::Vector& desiredCoM, const 
 
     if (status == Solve_Succeeded) {
         yInfo("*** The problem solved!");
-
-        
-
     }
     else {
         yError("*** The problem FAILED!");
