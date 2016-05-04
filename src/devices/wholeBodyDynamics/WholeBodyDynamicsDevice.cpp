@@ -323,7 +323,7 @@ void WholeBodyDynamicsDevice::resizeBuffers()
     calibrationBuffers.predictedSensorMeasurementsForCalibration.resize(estimator.sensors());
 
     // Resize filters
-    filters.init(nrOfFTSensors,settings.forceTorqueFilterCutoff,settings.imuFilterCutoff,getRate()/1000.0);
+    filters.init(nrOfFTSensors,settings.forceTorqueFilterCutoffInHz,settings.imuFilterCutoffInHz,getRate()/1000.0);
 
 }
 
@@ -334,8 +334,8 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& /*config*/)
     settings.kinematicSource = IMU;
     settings.useJointVelocity = 0;
     settings.useJointAcceleration = 0;
-    settings.imuFilterCutoff = 3.0;
-    settings.forceTorqueFilterCutoff = 3.0;
+    settings.imuFilterCutoffInHz = 3.0;
+    settings.forceTorqueFilterCutoffInHz = 3.0;
 
     return true;
 }
@@ -684,7 +684,7 @@ void WholeBodyDynamicsDevice::readSensors()
 
 void WholeBodyDynamicsDevice::filterSensorsAndRemoveSensorOffsets()
 {
-    filters.updateCutOffFrequency(settings.forceTorqueFilterCutoff,settings.imuFilterCutoff);
+    filters.updateCutOffFrequency(settings.forceTorqueFilterCutoffInHz,settings.imuFilterCutoffInHz);
 
     yarp::sig::Vector inputFt(6), outputFt(6), inputImu(3), outputImu(3);
 
@@ -1196,6 +1196,40 @@ bool WholeBodyDynamicsDevice::changeFixedLinkSimpleLeggedOdometry(const std::str
     yError() << "WholeBodyDynamicsDevice::changeFixedLinkSimpleLeggedOdometry method not implemented";
     return false;
 }
+
+double WholeBodyDynamicsDevice::get_forceTorqueFilterCutoffInHz()
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+    
+    return this->settings.forceTorqueFilterCutoffInHz;
+}
+
+bool WholeBodyDynamicsDevice::set_forceTorqueFilterCutoffInHz(const double newCutoff)
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+    
+    this->settings.forceTorqueFilterCutoffInHz = newCutoff;
+    
+    return true;
+}
+
+double WholeBodyDynamicsDevice::get_imuFilterCutoffInHz()
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+    
+    return this->settings.imuFilterCutoffInHz;
+}
+
+bool WholeBodyDynamicsDevice::set_imuFilterCutoffInHz(const double newCutoff)
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+    
+    this->settings.imuFilterCutoffInHz = newCutoff;
+    
+    return true;
+}
+
+
 
 
 bool WholeBodyDynamicsDevice::resetSimpleLeggedOdometry(const std::string& /*initial_world_frame*/, const std::string& /*initial_fixed_link*/)

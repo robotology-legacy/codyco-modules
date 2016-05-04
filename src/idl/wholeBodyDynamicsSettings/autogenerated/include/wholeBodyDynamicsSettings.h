@@ -27,11 +27,11 @@ public:
   /**
    * If kinematicSource is FIXED_LINK, specify the gravity vector (in m/s^2) in the fixedFrame
    */
-  double imuFilterCutoff;
+  double imuFilterCutoffInHz;
   /**
    * Cutoff frequency (in Hz) of the first order filter of the IMU
    */
-  double forceTorqueFilterCutoff;
+  double forceTorqueFilterCutoffInHz;
   /**
    * Cutoff frequency(in Hz) of the first order filter of the F/T sensors
    */
@@ -42,11 +42,11 @@ public:
   bool useJointAcceleration;
 
   // Default constructor
-  wholeBodyDynamicsSettings() : kinematicSource((KinematicSourceType)0), fixedFrameName(""), imuFilterCutoff(0), forceTorqueFilterCutoff(0), useJointVelocity(0), useJointAcceleration(0) {
+  wholeBodyDynamicsSettings() : kinematicSource((KinematicSourceType)0), fixedFrameName(""), imuFilterCutoffInHz(0), forceTorqueFilterCutoffInHz(0), useJointVelocity(0), useJointAcceleration(0) {
   }
 
   // Constructor with field values
-  wholeBodyDynamicsSettings(const KinematicSourceType kinematicSource,const std::string& fixedFrameName,const Gravity& gravity,const double imuFilterCutoff,const double forceTorqueFilterCutoff,const bool useJointVelocity,const bool useJointAcceleration) : kinematicSource(kinematicSource), fixedFrameName(fixedFrameName), gravity(gravity), imuFilterCutoff(imuFilterCutoff), forceTorqueFilterCutoff(forceTorqueFilterCutoff), useJointVelocity(useJointVelocity), useJointAcceleration(useJointAcceleration) {
+  wholeBodyDynamicsSettings(const KinematicSourceType kinematicSource,const std::string& fixedFrameName,const Gravity& gravity,const double imuFilterCutoffInHz,const double forceTorqueFilterCutoffInHz,const bool useJointVelocity,const bool useJointAcceleration) : kinematicSource(kinematicSource), fixedFrameName(fixedFrameName), gravity(gravity), imuFilterCutoffInHz(imuFilterCutoffInHz), forceTorqueFilterCutoffInHz(forceTorqueFilterCutoffInHz), useJointVelocity(useJointVelocity), useJointAcceleration(useJointAcceleration) {
   }
 
   // Copy constructor
@@ -54,8 +54,8 @@ public:
     this->kinematicSource = __alt.kinematicSource;
     this->fixedFrameName = __alt.fixedFrameName;
     this->gravity = __alt.gravity;
-    this->imuFilterCutoff = __alt.imuFilterCutoff;
-    this->forceTorqueFilterCutoff = __alt.forceTorqueFilterCutoff;
+    this->imuFilterCutoffInHz = __alt.imuFilterCutoffInHz;
+    this->forceTorqueFilterCutoffInHz = __alt.forceTorqueFilterCutoffInHz;
     this->useJointVelocity = __alt.useJointVelocity;
     this->useJointAcceleration = __alt.useJointAcceleration;
   }
@@ -65,8 +65,8 @@ public:
     this->kinematicSource = __alt.kinematicSource;
     this->fixedFrameName = __alt.fixedFrameName;
     this->gravity = __alt.gravity;
-    this->imuFilterCutoff = __alt.imuFilterCutoff;
-    this->forceTorqueFilterCutoff = __alt.forceTorqueFilterCutoff;
+    this->imuFilterCutoffInHz = __alt.imuFilterCutoffInHz;
+    this->forceTorqueFilterCutoffInHz = __alt.forceTorqueFilterCutoffInHz;
     this->useJointVelocity = __alt.useJointVelocity;
     this->useJointAcceleration = __alt.useJointAcceleration;
     return *this;
@@ -85,10 +85,10 @@ private:
   bool nested_write_fixedFrameName(yarp::os::idl::WireWriter& writer);
   bool write_gravity(yarp::os::idl::WireWriter& writer);
   bool nested_write_gravity(yarp::os::idl::WireWriter& writer);
-  bool write_imuFilterCutoff(yarp::os::idl::WireWriter& writer);
-  bool nested_write_imuFilterCutoff(yarp::os::idl::WireWriter& writer);
-  bool write_forceTorqueFilterCutoff(yarp::os::idl::WireWriter& writer);
-  bool nested_write_forceTorqueFilterCutoff(yarp::os::idl::WireWriter& writer);
+  bool write_imuFilterCutoffInHz(yarp::os::idl::WireWriter& writer);
+  bool nested_write_imuFilterCutoffInHz(yarp::os::idl::WireWriter& writer);
+  bool write_forceTorqueFilterCutoffInHz(yarp::os::idl::WireWriter& writer);
+  bool nested_write_forceTorqueFilterCutoffInHz(yarp::os::idl::WireWriter& writer);
   bool write_useJointVelocity(yarp::os::idl::WireWriter& writer);
   bool nested_write_useJointVelocity(yarp::os::idl::WireWriter& writer);
   bool write_useJointAcceleration(yarp::os::idl::WireWriter& writer);
@@ -99,10 +99,10 @@ private:
   bool nested_read_fixedFrameName(yarp::os::idl::WireReader& reader);
   bool read_gravity(yarp::os::idl::WireReader& reader);
   bool nested_read_gravity(yarp::os::idl::WireReader& reader);
-  bool read_imuFilterCutoff(yarp::os::idl::WireReader& reader);
-  bool nested_read_imuFilterCutoff(yarp::os::idl::WireReader& reader);
-  bool read_forceTorqueFilterCutoff(yarp::os::idl::WireReader& reader);
-  bool nested_read_forceTorqueFilterCutoff(yarp::os::idl::WireReader& reader);
+  bool read_imuFilterCutoffInHz(yarp::os::idl::WireReader& reader);
+  bool nested_read_imuFilterCutoffInHz(yarp::os::idl::WireReader& reader);
+  bool read_forceTorqueFilterCutoffInHz(yarp::os::idl::WireReader& reader);
+  bool nested_read_forceTorqueFilterCutoffInHz(yarp::os::idl::WireReader& reader);
   bool read_useJointVelocity(yarp::os::idl::WireReader& reader);
   bool nested_read_useJointVelocity(yarp::os::idl::WireReader& reader);
   bool read_useJointAcceleration(yarp::os::idl::WireReader& reader);
@@ -178,19 +178,19 @@ public:
       communicate();
       did_set_gravity();
     }
-    void set_imuFilterCutoff(const double imuFilterCutoff) {
-      will_set_imuFilterCutoff();
-      obj->imuFilterCutoff = imuFilterCutoff;
-      mark_dirty_imuFilterCutoff();
+    void set_imuFilterCutoffInHz(const double imuFilterCutoffInHz) {
+      will_set_imuFilterCutoffInHz();
+      obj->imuFilterCutoffInHz = imuFilterCutoffInHz;
+      mark_dirty_imuFilterCutoffInHz();
       communicate();
-      did_set_imuFilterCutoff();
+      did_set_imuFilterCutoffInHz();
     }
-    void set_forceTorqueFilterCutoff(const double forceTorqueFilterCutoff) {
-      will_set_forceTorqueFilterCutoff();
-      obj->forceTorqueFilterCutoff = forceTorqueFilterCutoff;
-      mark_dirty_forceTorqueFilterCutoff();
+    void set_forceTorqueFilterCutoffInHz(const double forceTorqueFilterCutoffInHz) {
+      will_set_forceTorqueFilterCutoffInHz();
+      obj->forceTorqueFilterCutoffInHz = forceTorqueFilterCutoffInHz;
+      mark_dirty_forceTorqueFilterCutoffInHz();
       communicate();
-      did_set_forceTorqueFilterCutoff();
+      did_set_forceTorqueFilterCutoffInHz();
     }
     void set_useJointVelocity(const bool useJointVelocity) {
       will_set_useJointVelocity();
@@ -215,11 +215,11 @@ public:
     const Gravity& get_gravity() {
       return obj->gravity;
     }
-    double get_imuFilterCutoff() {
-      return obj->imuFilterCutoff;
+    double get_imuFilterCutoffInHz() {
+      return obj->imuFilterCutoffInHz;
     }
-    double get_forceTorqueFilterCutoff() {
-      return obj->forceTorqueFilterCutoff;
+    double get_forceTorqueFilterCutoffInHz() {
+      return obj->forceTorqueFilterCutoffInHz;
     }
     bool get_useJointVelocity() {
       return obj->useJointVelocity;
@@ -230,15 +230,15 @@ public:
     virtual bool will_set_kinematicSource() { return true; }
     virtual bool will_set_fixedFrameName() { return true; }
     virtual bool will_set_gravity() { return true; }
-    virtual bool will_set_imuFilterCutoff() { return true; }
-    virtual bool will_set_forceTorqueFilterCutoff() { return true; }
+    virtual bool will_set_imuFilterCutoffInHz() { return true; }
+    virtual bool will_set_forceTorqueFilterCutoffInHz() { return true; }
     virtual bool will_set_useJointVelocity() { return true; }
     virtual bool will_set_useJointAcceleration() { return true; }
     virtual bool did_set_kinematicSource() { return true; }
     virtual bool did_set_fixedFrameName() { return true; }
     virtual bool did_set_gravity() { return true; }
-    virtual bool did_set_imuFilterCutoff() { return true; }
-    virtual bool did_set_forceTorqueFilterCutoff() { return true; }
+    virtual bool did_set_imuFilterCutoffInHz() { return true; }
+    virtual bool did_set_forceTorqueFilterCutoffInHz() { return true; }
     virtual bool did_set_useJointVelocity() { return true; }
     virtual bool did_set_useJointAcceleration() { return true; }
     void clean() {
@@ -281,16 +281,16 @@ public:
       is_dirty_gravity = true;
       mark_dirty();
     }
-    void mark_dirty_imuFilterCutoff() {
-      if (is_dirty_imuFilterCutoff) return;
+    void mark_dirty_imuFilterCutoffInHz() {
+      if (is_dirty_imuFilterCutoffInHz) return;
       dirty_count++;
-      is_dirty_imuFilterCutoff = true;
+      is_dirty_imuFilterCutoffInHz = true;
       mark_dirty();
     }
-    void mark_dirty_forceTorqueFilterCutoff() {
-      if (is_dirty_forceTorqueFilterCutoff) return;
+    void mark_dirty_forceTorqueFilterCutoffInHz() {
+      if (is_dirty_forceTorqueFilterCutoffInHz) return;
       dirty_count++;
-      is_dirty_forceTorqueFilterCutoff = true;
+      is_dirty_forceTorqueFilterCutoffInHz = true;
       mark_dirty();
     }
     void mark_dirty_useJointVelocity() {
@@ -310,8 +310,8 @@ public:
       is_dirty_kinematicSource = flag;
       is_dirty_fixedFrameName = flag;
       is_dirty_gravity = flag;
-      is_dirty_imuFilterCutoff = flag;
-      is_dirty_forceTorqueFilterCutoff = flag;
+      is_dirty_imuFilterCutoffInHz = flag;
+      is_dirty_forceTorqueFilterCutoffInHz = flag;
       is_dirty_useJointVelocity = flag;
       is_dirty_useJointAcceleration = flag;
       dirty_count = flag ? 7 : 0;
@@ -321,8 +321,8 @@ public:
     bool is_dirty_kinematicSource;
     bool is_dirty_fixedFrameName;
     bool is_dirty_gravity;
-    bool is_dirty_imuFilterCutoff;
-    bool is_dirty_forceTorqueFilterCutoff;
+    bool is_dirty_imuFilterCutoffInHz;
+    bool is_dirty_forceTorqueFilterCutoffInHz;
     bool is_dirty_useJointVelocity;
     bool is_dirty_useJointAcceleration;
   };

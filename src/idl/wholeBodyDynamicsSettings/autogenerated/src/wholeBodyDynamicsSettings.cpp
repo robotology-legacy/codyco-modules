@@ -53,29 +53,29 @@ bool wholeBodyDynamicsSettings::nested_read_gravity(yarp::os::idl::WireReader& r
   }
   return true;
 }
-bool wholeBodyDynamicsSettings::read_imuFilterCutoff(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(imuFilterCutoff)) {
+bool wholeBodyDynamicsSettings::read_imuFilterCutoffInHz(yarp::os::idl::WireReader& reader) {
+  if (!reader.readDouble(imuFilterCutoffInHz)) {
     reader.fail();
     return false;
   }
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_read_imuFilterCutoff(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(imuFilterCutoff)) {
+bool wholeBodyDynamicsSettings::nested_read_imuFilterCutoffInHz(yarp::os::idl::WireReader& reader) {
+  if (!reader.readDouble(imuFilterCutoffInHz)) {
     reader.fail();
     return false;
   }
   return true;
 }
-bool wholeBodyDynamicsSettings::read_forceTorqueFilterCutoff(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(forceTorqueFilterCutoff)) {
+bool wholeBodyDynamicsSettings::read_forceTorqueFilterCutoffInHz(yarp::os::idl::WireReader& reader) {
+  if (!reader.readDouble(forceTorqueFilterCutoffInHz)) {
     reader.fail();
     return false;
   }
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_read_forceTorqueFilterCutoff(yarp::os::idl::WireReader& reader) {
-  if (!reader.readDouble(forceTorqueFilterCutoff)) {
+bool wholeBodyDynamicsSettings::nested_read_forceTorqueFilterCutoffInHz(yarp::os::idl::WireReader& reader) {
+  if (!reader.readDouble(forceTorqueFilterCutoffInHz)) {
     reader.fail();
     return false;
   }
@@ -113,8 +113,8 @@ bool wholeBodyDynamicsSettings::read(yarp::os::idl::WireReader& reader) {
   if (!read_kinematicSource(reader)) return false;
   if (!read_fixedFrameName(reader)) return false;
   if (!read_gravity(reader)) return false;
-  if (!read_imuFilterCutoff(reader)) return false;
-  if (!read_forceTorqueFilterCutoff(reader)) return false;
+  if (!read_imuFilterCutoffInHz(reader)) return false;
+  if (!read_forceTorqueFilterCutoffInHz(reader)) return false;
   if (!read_useJointVelocity(reader)) return false;
   if (!read_useJointAcceleration(reader)) return false;
   return !reader.isError();
@@ -150,20 +150,20 @@ bool wholeBodyDynamicsSettings::nested_write_gravity(yarp::os::idl::WireWriter& 
   if (!writer.writeNested(gravity)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::write_imuFilterCutoff(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(imuFilterCutoff)) return false;
+bool wholeBodyDynamicsSettings::write_imuFilterCutoffInHz(yarp::os::idl::WireWriter& writer) {
+  if (!writer.writeDouble(imuFilterCutoffInHz)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_write_imuFilterCutoff(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(imuFilterCutoff)) return false;
+bool wholeBodyDynamicsSettings::nested_write_imuFilterCutoffInHz(yarp::os::idl::WireWriter& writer) {
+  if (!writer.writeDouble(imuFilterCutoffInHz)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::write_forceTorqueFilterCutoff(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(forceTorqueFilterCutoff)) return false;
+bool wholeBodyDynamicsSettings::write_forceTorqueFilterCutoffInHz(yarp::os::idl::WireWriter& writer) {
+  if (!writer.writeDouble(forceTorqueFilterCutoffInHz)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_write_forceTorqueFilterCutoff(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeDouble(forceTorqueFilterCutoff)) return false;
+bool wholeBodyDynamicsSettings::nested_write_forceTorqueFilterCutoffInHz(yarp::os::idl::WireWriter& writer) {
+  if (!writer.writeDouble(forceTorqueFilterCutoffInHz)) return false;
   return true;
 }
 bool wholeBodyDynamicsSettings::write_useJointVelocity(yarp::os::idl::WireWriter& writer) {
@@ -186,8 +186,8 @@ bool wholeBodyDynamicsSettings::write(yarp::os::idl::WireWriter& writer) {
   if (!write_kinematicSource(writer)) return false;
   if (!write_fixedFrameName(writer)) return false;
   if (!write_gravity(writer)) return false;
-  if (!write_imuFilterCutoff(writer)) return false;
-  if (!write_forceTorqueFilterCutoff(writer)) return false;
+  if (!write_imuFilterCutoffInHz(writer)) return false;
+  if (!write_forceTorqueFilterCutoffInHz(writer)) return false;
   if (!write_useJointVelocity(writer)) return false;
   if (!write_useJointAcceleration(writer)) return false;
   return !writer.isError();
@@ -221,17 +221,17 @@ bool wholeBodyDynamicsSettings::Editor::write(yarp::os::ConnectionWriter& connec
     if (!writer.writeString("gravity")) return false;
     if (!obj->nested_write_gravity(writer)) return false;
   }
-  if (is_dirty_imuFilterCutoff) {
+  if (is_dirty_imuFilterCutoffInHz) {
     if (!writer.writeListHeader(3)) return false;
     if (!writer.writeString("set")) return false;
-    if (!writer.writeString("imuFilterCutoff")) return false;
-    if (!obj->nested_write_imuFilterCutoff(writer)) return false;
+    if (!writer.writeString("imuFilterCutoffInHz")) return false;
+    if (!obj->nested_write_imuFilterCutoffInHz(writer)) return false;
   }
-  if (is_dirty_forceTorqueFilterCutoff) {
+  if (is_dirty_forceTorqueFilterCutoffInHz) {
     if (!writer.writeListHeader(3)) return false;
     if (!writer.writeString("set")) return false;
-    if (!writer.writeString("forceTorqueFilterCutoff")) return false;
-    if (!obj->nested_write_forceTorqueFilterCutoff(writer)) return false;
+    if (!writer.writeString("forceTorqueFilterCutoffInHz")) return false;
+    if (!obj->nested_write_forceTorqueFilterCutoffInHz(writer)) return false;
   }
   if (is_dirty_useJointVelocity) {
     if (!writer.writeListHeader(3)) return false;
@@ -284,14 +284,14 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
         if (!writer.writeString("Gravity gravity")) return false;
         if (!writer.writeString("If kinematicSource is FIXED_LINK, specify the frame of the robot that we know to be fixed (i.e. not moving with respect to an inertial frame)")) return false;
       }
-      if (field=="imuFilterCutoff") {
+      if (field=="imuFilterCutoffInHz") {
         if (!writer.writeListHeader(2)) return false;
-        if (!writer.writeString("double imuFilterCutoff")) return false;
+        if (!writer.writeString("double imuFilterCutoffInHz")) return false;
         if (!writer.writeString("If kinematicSource is FIXED_LINK, specify the gravity vector (in m/s^2) in the fixedFrame")) return false;
       }
-      if (field=="forceTorqueFilterCutoff") {
+      if (field=="forceTorqueFilterCutoffInHz") {
         if (!writer.writeListHeader(2)) return false;
-        if (!writer.writeString("double forceTorqueFilterCutoff")) return false;
+        if (!writer.writeString("double forceTorqueFilterCutoffInHz")) return false;
         if (!writer.writeString("Cutoff frequency (in Hz) of the first order filter of the IMU")) return false;
       }
       if (field=="useJointVelocity") {
@@ -310,8 +310,8 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
     writer.writeString("kinematicSource");
     writer.writeString("fixedFrameName");
     writer.writeString("gravity");
-    writer.writeString("imuFilterCutoff");
-    writer.writeString("forceTorqueFilterCutoff");
+    writer.writeString("imuFilterCutoffInHz");
+    writer.writeString("forceTorqueFilterCutoffInHz");
     writer.writeString("useJointVelocity");
     writer.writeString("useJointAcceleration");
     return true;
@@ -347,14 +347,14 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
       will_set_gravity();
       if (!obj->nested_read_gravity(reader)) return false;
       did_set_gravity();
-    } else if (key == "imuFilterCutoff") {
-      will_set_imuFilterCutoff();
-      if (!obj->nested_read_imuFilterCutoff(reader)) return false;
-      did_set_imuFilterCutoff();
-    } else if (key == "forceTorqueFilterCutoff") {
-      will_set_forceTorqueFilterCutoff();
-      if (!obj->nested_read_forceTorqueFilterCutoff(reader)) return false;
-      did_set_forceTorqueFilterCutoff();
+    } else if (key == "imuFilterCutoffInHz") {
+      will_set_imuFilterCutoffInHz();
+      if (!obj->nested_read_imuFilterCutoffInHz(reader)) return false;
+      did_set_imuFilterCutoffInHz();
+    } else if (key == "forceTorqueFilterCutoffInHz") {
+      will_set_forceTorqueFilterCutoffInHz();
+      if (!obj->nested_read_forceTorqueFilterCutoffInHz(reader)) return false;
+      did_set_forceTorqueFilterCutoffInHz();
     } else if (key == "useJointVelocity") {
       will_set_useJointVelocity();
       if (!obj->nested_read_useJointVelocity(reader)) return false;

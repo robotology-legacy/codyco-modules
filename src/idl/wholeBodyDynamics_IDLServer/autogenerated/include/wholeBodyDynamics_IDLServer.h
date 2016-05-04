@@ -76,6 +76,26 @@ public:
    * @return true/false on success/failure (typically if the frame/link names are wrong)
    */
   virtual bool changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_link);
+  /**
+   * Set the cutoff frequency (in Hz) for IMU measurements
+   * @return true/false on success/failure
+   */
+  virtual bool set_imuFilterCutoffInHz(const double newCutoff);
+  /**
+   * Get the cutoff frequency (in Hz) for IMU measurements
+   * @return the cutoff frequency (in Hz)
+   */
+  virtual double get_imuFilterCutoffInHz();
+  /**
+   * Set the cutoff frequency (in Hz) for FT measurements
+   * @return true/false on success/failure
+   */
+  virtual bool set_forceTorqueFilterCutoffInHz(const double newCutoff);
+  /**
+   * Get the cutoff frequency (in Hz) for FT measurements
+   * @return the cutoff frequency (in Hz)
+   */
+  virtual double get_forceTorqueFilterCutoffInHz();
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

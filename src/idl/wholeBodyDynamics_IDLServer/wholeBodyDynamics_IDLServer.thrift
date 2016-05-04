@@ -79,6 +79,30 @@ service wholeBodyDynamics_IDLServer
    * @return true/false on success/failure (typically if the frame/link names are wrong)
    */
   bool changeFixedLinkSimpleLeggedOdometry(1:string new_fixed_link)
+  
+  /**
+   * Set the cutoff frequency (in Hz) for IMU measurements
+   * @return true/false on success/failure 
+   */
+  bool set_imuFilterCutoffInHz(1:double newCutoff);
+  
+  /**
+   * Get the cutoff frequency (in Hz) for IMU measurements
+   * @return the cutoff frequency (in Hz)
+   */
+  double get_imuFilterCutoffInHz();
+  
+  /**
+   * Set the cutoff frequency (in Hz) for FT measurements
+   * @return true/false on success/failure 
+   */
+  bool set_forceTorqueFilterCutoffInHz(1:double newCutoff);
+  
+  /**
+   * Get the cutoff frequency (in Hz) for FT measurements
+   * @return the cutoff frequency (in Hz)
+   */
+  double get_forceTorqueFilterCutoffInHz();
 
   // } /** simpleLeggedOdometry_IDLServer */
 }
