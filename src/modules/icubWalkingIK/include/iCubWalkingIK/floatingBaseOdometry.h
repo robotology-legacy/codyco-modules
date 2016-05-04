@@ -18,7 +18,11 @@
 #ifndef FLOATING_BASE_ODOMETRY_H
 #define FLOATING_BASE_ODOMETRY_H
 
+<<<<<<< a441e415eb4af2e84c49d16ed99e3cb8ea344968
 #include <iDynTree/Estimation/simpleLeggedOdometryKDL.h>
+=======
+#include <iDynTree/Estimation/simpleLeggedOdometry.h>
+>>>>>>> minor edits on impedance walk
 #include <yarpWholeBodyInterface/yarpWholeBodyModel.h>
 #include <yarp/sig/Matrix.h>
 #include <yarp/os/LogStream.h>
