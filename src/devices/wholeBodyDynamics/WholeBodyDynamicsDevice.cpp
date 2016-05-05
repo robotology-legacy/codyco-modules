@@ -174,12 +174,22 @@ bool WholeBodyDynamicsDevice::openEstimator(os::Searchable& config)
     }
 
     std::string modelFileFullPath = rf.findFileByName(modelFileName);
+
+    yInfo() << "wholeBodyDynamics : Loading model from " << modelFileFullPath;
+
+
     ok = estimator.loadModelAndSensorsFromFileWithSpecifiedDOFs(modelFileFullPath,estimationJointNames);
     if( !ok )
     {
-        yError() << "WholeBodyDynamicsDevice::open impossible to create ExtWrenchesAndJointTorquesEstimator from file "
+        yError() << "wholeBodyDynamics : impossible to create ExtWrenchesAndJointTorquesEstimator from file "
                  << modelFileName << " ( full path: " << modelFileFullPath << " ) ";
         return false;
+    }
+
+    if( estimator.sensors().getNrOfSensors(iDynTree::SIX_AXIS_FORCE_TORQUE) == 0 )
+    {
+        yWarning() << "wholeBodyDynamics : the loaded model has 0 FT sensors, so the estimation will use just the model.";
+        yWarning() << "wholeBodyDynamics : If you instead want to add the FT sensors to your model, please check iDynTree documentation on how to add sensors to models.";
     }
 
     this->resizeBuffers();
@@ -387,6 +397,7 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
     else
     {
         yError() << "wholeBodyDynamics : missing required parameter fixedFrameGravity";
+        return false;
     }
 
     return true;
