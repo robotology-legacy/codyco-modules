@@ -76,10 +76,13 @@ class wholeBodyDynamicsDeviceFilters
  * A device that takes a list of axes and estimates the joint torques for each one of this axes.
  *
  *  Parameters required by this device are:
- * | Parameter name | SubParameter   | Type    | Units          | Default Value | Required                    | Description                                                       | Notes |
- * |:--------------:|:--------------:|:-------:|:--------------:|:-------------:|:--------------------------: |:-----------------------------------------------------------------:|:-----:|
- * | axesNames      |      -         | vector of strings  | -      |   -           | Yes     | Ordered list of the axes that are part of the remapped device. |  |
- * | modelFile      |      -         | path to file |    -      | model.urdf    | No                          | Path to the URDF file used for the kinematic and dynamic model. |
+ * | Parameter name | SubParameter   | Type              | Units | Default Value | Required |   Description                                                     | Notes |
+ * |:--------------:|:--------------:|:-----------------:|:-----:|:-------------:|:--------:|:-----------------------------------------------------------------:|:-----:|
+ * | axesNames      |      -         | vector of strings |   -   |   -           | Yes      | Ordered list of the axes that are part of the remapped device.    |       |
+ * | modelFile      |      -         | path to file      |   -   | model.urdf    | No       | Path to the URDF file used for the kinematic and dynamic model.   |       |
+ * | assumeFixed    |                | frame name        |   -   |     -         | No       | If it is present, the initial kinematic source used for estimation will be that specified frame is fixed, and its gravity is specified by fixedFrameGravity | |
+ * | fixedFrameGravity  |      -     | vector of doubles | m/s^2 | -             | Yes      | Gravity of the frame that is assumed to be fixed, if the kinematic source used is the fixed frame. | |
+ *
  *
  * The axes are then mapped to the wrapped controlboard in the attachAll method, using controlBoardRemapper class.
  * Furthermore are also used to match the yarp axes to the joint names found in the passed URDF file.
@@ -363,7 +366,7 @@ private:
       * @return true/false on success/failure (typically if the frame/link names are wrong)
       */
      virtual bool changeFixedLinkSimpleLeggedOdometry(const std::string& new_fixed_link);
-     
+
      /**
       * Set the cutoff frequency (in Hz) for IMU measurements
       * @return true/false on success/failure
@@ -385,10 +388,25 @@ private:
       */
     virtual double get_forceTorqueFilterCutoffInHz();
 
-     void setupCalibrationCommonPart(const int32_t nrOfSamples);
-     bool setupCalibrationWithExternalWrenchOnOneFrame(const std::string & frameName, const int32_t nrOfSamples);
-     bool setupCalibrationWithExternalWrenchesOnTwoFrames(const std::string & frame1Name, const std::string & frame2Name, const int32_t nrOfSamples);
+    /**
+     * Use the IMU as the kinematic source of
+     * information for the acceleration of one link.
+     */
+    virtual bool useIMUAsKinematicSource();
 
+    /**
+     * Use a fixed frame (tipically root_link, l_sole or r_sole)
+     * as the source of kinematic information. The assumption
+     * is that the specified frame will remain fixed until
+     * the kinematic source is changing, and the gravity
+     * on this link is specified by the fixedFrameGravity (tipically
+     * set to (0,0,-9.81) .
+     */
+    virtual bool useFixedFrameAsKinematicSource(const std::string& fixedFrame);
+
+    void setupCalibrationCommonPart(const int32_t nrOfSamples);
+    bool setupCalibrationWithExternalWrenchOnOneFrame(const std::string & frameName, const int32_t nrOfSamples);
+    bool setupCalibrationWithExternalWrenchesOnTwoFrames(const std::string & frame1Name, const std::string & frame2Name, const int32_t nrOfSamples);
 
      /**
       * RPC Calibration related attributes

@@ -18,7 +18,7 @@ enum KinematicSourceType {
 struct wholeBodyDynamicsSettings {
     1: KinematicSourceType kinematicSource; /** Specify the source of the kinematic information for one link, see KinematicSourceType information for more info. */
     2: string fixedFrameName; /** If kinematicSource is FIXED_LINK, specify the frame of the robot that we know to be fixed (i.e. not moving with respect to an inertial frame) */
-    3: Gravity gravity; /** If kinematicSource is FIXED_LINK, specify the gravity vector (in m/s^2) in the fixedFrame */
+    3: Gravity fixedFrameGravity; /** If kinematicSource is FIXED_LINK, specify the gravity vector (in m/s^2) in the fixedFrame */
     4: double imuFilterCutoffInHz; /** Cutoff frequency (in Hz) of the first order filter of the IMU */
     5: double forceTorqueFilterCutoffInHz; /** Cutoff frequency(in Hz) of the first order filter of the F/T sensors */
     6: bool useJointVelocity; /** Use the joint velocity measurement if this is true, assume they are zero otherwise. */

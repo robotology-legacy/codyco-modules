@@ -23,7 +23,7 @@ public:
   /**
    * If kinematicSource is FIXED_LINK, specify the frame of the robot that we know to be fixed (i.e. not moving with respect to an inertial frame)
    */
-  Gravity gravity;
+  Gravity fixedFrameGravity;
   /**
    * If kinematicSource is FIXED_LINK, specify the gravity vector (in m/s^2) in the fixedFrame
    */
@@ -46,14 +46,14 @@ public:
   }
 
   // Constructor with field values
-  wholeBodyDynamicsSettings(const KinematicSourceType kinematicSource,const std::string& fixedFrameName,const Gravity& gravity,const double imuFilterCutoffInHz,const double forceTorqueFilterCutoffInHz,const bool useJointVelocity,const bool useJointAcceleration) : kinematicSource(kinematicSource), fixedFrameName(fixedFrameName), gravity(gravity), imuFilterCutoffInHz(imuFilterCutoffInHz), forceTorqueFilterCutoffInHz(forceTorqueFilterCutoffInHz), useJointVelocity(useJointVelocity), useJointAcceleration(useJointAcceleration) {
+  wholeBodyDynamicsSettings(const KinematicSourceType kinematicSource,const std::string& fixedFrameName,const Gravity& fixedFrameGravity,const double imuFilterCutoffInHz,const double forceTorqueFilterCutoffInHz,const bool useJointVelocity,const bool useJointAcceleration) : kinematicSource(kinematicSource), fixedFrameName(fixedFrameName), fixedFrameGravity(fixedFrameGravity), imuFilterCutoffInHz(imuFilterCutoffInHz), forceTorqueFilterCutoffInHz(forceTorqueFilterCutoffInHz), useJointVelocity(useJointVelocity), useJointAcceleration(useJointAcceleration) {
   }
 
   // Copy constructor
   wholeBodyDynamicsSettings(const wholeBodyDynamicsSettings& __alt) : WirePortable(__alt)  {
     this->kinematicSource = __alt.kinematicSource;
     this->fixedFrameName = __alt.fixedFrameName;
-    this->gravity = __alt.gravity;
+    this->fixedFrameGravity = __alt.fixedFrameGravity;
     this->imuFilterCutoffInHz = __alt.imuFilterCutoffInHz;
     this->forceTorqueFilterCutoffInHz = __alt.forceTorqueFilterCutoffInHz;
     this->useJointVelocity = __alt.useJointVelocity;
@@ -64,7 +64,7 @@ public:
   const wholeBodyDynamicsSettings& operator = (const wholeBodyDynamicsSettings& __alt) {
     this->kinematicSource = __alt.kinematicSource;
     this->fixedFrameName = __alt.fixedFrameName;
-    this->gravity = __alt.gravity;
+    this->fixedFrameGravity = __alt.fixedFrameGravity;
     this->imuFilterCutoffInHz = __alt.imuFilterCutoffInHz;
     this->forceTorqueFilterCutoffInHz = __alt.forceTorqueFilterCutoffInHz;
     this->useJointVelocity = __alt.useJointVelocity;
@@ -83,8 +83,8 @@ private:
   bool nested_write_kinematicSource(yarp::os::idl::WireWriter& writer);
   bool write_fixedFrameName(yarp::os::idl::WireWriter& writer);
   bool nested_write_fixedFrameName(yarp::os::idl::WireWriter& writer);
-  bool write_gravity(yarp::os::idl::WireWriter& writer);
-  bool nested_write_gravity(yarp::os::idl::WireWriter& writer);
+  bool write_fixedFrameGravity(yarp::os::idl::WireWriter& writer);
+  bool nested_write_fixedFrameGravity(yarp::os::idl::WireWriter& writer);
   bool write_imuFilterCutoffInHz(yarp::os::idl::WireWriter& writer);
   bool nested_write_imuFilterCutoffInHz(yarp::os::idl::WireWriter& writer);
   bool write_forceTorqueFilterCutoffInHz(yarp::os::idl::WireWriter& writer);
@@ -97,8 +97,8 @@ private:
   bool nested_read_kinematicSource(yarp::os::idl::WireReader& reader);
   bool read_fixedFrameName(yarp::os::idl::WireReader& reader);
   bool nested_read_fixedFrameName(yarp::os::idl::WireReader& reader);
-  bool read_gravity(yarp::os::idl::WireReader& reader);
-  bool nested_read_gravity(yarp::os::idl::WireReader& reader);
+  bool read_fixedFrameGravity(yarp::os::idl::WireReader& reader);
+  bool nested_read_fixedFrameGravity(yarp::os::idl::WireReader& reader);
   bool read_imuFilterCutoffInHz(yarp::os::idl::WireReader& reader);
   bool nested_read_imuFilterCutoffInHz(yarp::os::idl::WireReader& reader);
   bool read_forceTorqueFilterCutoffInHz(yarp::os::idl::WireReader& reader);
@@ -171,12 +171,12 @@ public:
       communicate();
       did_set_fixedFrameName();
     }
-    void set_gravity(const Gravity& gravity) {
-      will_set_gravity();
-      obj->gravity = gravity;
-      mark_dirty_gravity();
+    void set_fixedFrameGravity(const Gravity& fixedFrameGravity) {
+      will_set_fixedFrameGravity();
+      obj->fixedFrameGravity = fixedFrameGravity;
+      mark_dirty_fixedFrameGravity();
       communicate();
-      did_set_gravity();
+      did_set_fixedFrameGravity();
     }
     void set_imuFilterCutoffInHz(const double imuFilterCutoffInHz) {
       will_set_imuFilterCutoffInHz();
@@ -212,8 +212,8 @@ public:
     const std::string& get_fixedFrameName() {
       return obj->fixedFrameName;
     }
-    const Gravity& get_gravity() {
-      return obj->gravity;
+    const Gravity& get_fixedFrameGravity() {
+      return obj->fixedFrameGravity;
     }
     double get_imuFilterCutoffInHz() {
       return obj->imuFilterCutoffInHz;
@@ -229,14 +229,14 @@ public:
     }
     virtual bool will_set_kinematicSource() { return true; }
     virtual bool will_set_fixedFrameName() { return true; }
-    virtual bool will_set_gravity() { return true; }
+    virtual bool will_set_fixedFrameGravity() { return true; }
     virtual bool will_set_imuFilterCutoffInHz() { return true; }
     virtual bool will_set_forceTorqueFilterCutoffInHz() { return true; }
     virtual bool will_set_useJointVelocity() { return true; }
     virtual bool will_set_useJointAcceleration() { return true; }
     virtual bool did_set_kinematicSource() { return true; }
     virtual bool did_set_fixedFrameName() { return true; }
-    virtual bool did_set_gravity() { return true; }
+    virtual bool did_set_fixedFrameGravity() { return true; }
     virtual bool did_set_imuFilterCutoffInHz() { return true; }
     virtual bool did_set_forceTorqueFilterCutoffInHz() { return true; }
     virtual bool did_set_useJointVelocity() { return true; }
@@ -275,10 +275,10 @@ public:
       is_dirty_fixedFrameName = true;
       mark_dirty();
     }
-    void mark_dirty_gravity() {
-      if (is_dirty_gravity) return;
+    void mark_dirty_fixedFrameGravity() {
+      if (is_dirty_fixedFrameGravity) return;
       dirty_count++;
-      is_dirty_gravity = true;
+      is_dirty_fixedFrameGravity = true;
       mark_dirty();
     }
     void mark_dirty_imuFilterCutoffInHz() {
@@ -309,7 +309,7 @@ public:
       is_dirty = flag;
       is_dirty_kinematicSource = flag;
       is_dirty_fixedFrameName = flag;
-      is_dirty_gravity = flag;
+      is_dirty_fixedFrameGravity = flag;
       is_dirty_imuFilterCutoffInHz = flag;
       is_dirty_forceTorqueFilterCutoffInHz = flag;
       is_dirty_useJointVelocity = flag;
@@ -320,7 +320,7 @@ public:
     int dirty_count;
     bool is_dirty_kinematicSource;
     bool is_dirty_fixedFrameName;
-    bool is_dirty_gravity;
+    bool is_dirty_fixedFrameGravity;
     bool is_dirty_imuFilterCutoffInHz;
     bool is_dirty_forceTorqueFilterCutoffInHz;
     bool is_dirty_useJointVelocity;

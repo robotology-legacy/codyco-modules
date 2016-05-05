@@ -96,6 +96,20 @@ public:
    * @return the cutoff frequency (in Hz)
    */
   virtual double get_forceTorqueFilterCutoffInHz();
+  /**
+   * Use the IMU as the kinematic source of
+   * information for the acceleration of one link.
+   */
+  virtual bool useIMUAsKinematicSource();
+  /**
+   * Use a fixed frame (tipically root_link, l_sole or r_sole)
+   * as the source of kinematic information. The assumption
+   * is that the specified frame will remain fixed until
+   * the kinematic source is changing, and the gravity
+   * on this link is specified by the fixedFrameGravity (tipically
+   * set to (0,0,-9.81) .
+   */
+  virtual bool useFixedFrameAsKinematicSource(const std::string& fixedFrame);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

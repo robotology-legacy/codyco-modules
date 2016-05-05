@@ -328,7 +328,7 @@ void WholeBodyDynamicsDevice::resizeBuffers()
 }
 
 
-bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& /*config*/)
+bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& config)
 {
     // Fill setting with their default values
     settings.kinematicSource = IMU;
@@ -336,6 +336,58 @@ bool WholeBodyDynamicsDevice::loadSettingsFromConfig(os::Searchable& /*config*/)
     settings.useJointAcceleration = 0;
     settings.imuFilterCutoffInHz = 3.0;
     settings.forceTorqueFilterCutoffInHz = 3.0;
+
+
+    yarp::os::Property prop;
+    prop.fromString(config.toString().c_str());
+
+    // Check the assumeFixed parameter
+    if( prop.check("assume_fixed") )
+    {
+        if( ! prop.find("assume_fixed").isString() )
+        {
+            yError() << "wholeBodyDynamics : assume_fixed is present, but it is not a string";
+            return false;
+        }
+
+        std::string fixedFrameName = prop.find("assume_fixed").asString();
+
+        iDynTree::FrameIndex fixedFrameIndex = estimator.model().getFrameIndex(fixedFrameName);
+
+        if( fixedFrameIndex == iDynTree::FRAME_INVALID_INDEX )
+        {
+            yError() << "wholeBodyDynamics : assume_fixed is present, but " << fixedFrameName << " is not a frame in the model";
+            return false;
+        }
+
+        // Add a hardcoded warning, ugly but I think that in the short term is useful
+        if( fixedFrameName != "root_link" &&
+            fixedFrameName != "l_sole" &&
+            fixedFrameName != "r_sole" )
+        {
+            yWarning() << "wholeBodyDynamics : assume_fixed is set to " << fixedFrameName << " that is not root_link, l_sole or r_sole, so pay attention to correctly set the gravity vector";
+        }
+
+        settings.kinematicSource = FIXED_FRAME;
+        settings.fixedFrameName = fixedFrameName;
+    }
+
+
+    // fixedFrameGravity is always required even if you
+    // use the IMU because the estimation could switch in use a fixed frame
+    // via RPC, so we should have a valid gravity to use
+    if( prop.check("fixedFrameGravity") &&
+        prop.find("fixedFrameGravity").isList() &&
+        prop.find("fixedFrameGravity").asList()->size() == 3 )
+    {
+        settings.fixedFrameGravity.x = prop.find("fixedFrameGravity").asList()->get(0).asDouble();
+        settings.fixedFrameGravity.y = prop.find("fixedFrameGravity").asList()->get(1).asDouble();
+        settings.fixedFrameGravity.z = prop.find("fixedFrameGravity").asList()->get(2).asDouble();
+    }
+    else
+    {
+        yError() << "wholeBodyDynamics : missing required parameter fixedFrameGravity";
+    }
 
     return true;
 }
@@ -746,9 +798,9 @@ void WholeBodyDynamicsDevice::updateKinematics()
         // this should be valid because it was validated when set
         iDynTree::FrameIndex fixedFrameIndex = estimator.model().getFrameIndex(settings.fixedFrameName);
 
-        gravity(0) = settings.gravity.x;
-        gravity(1) = settings.gravity.y;
-        gravity(2) = settings.gravity.z;
+        gravity(0) = settings.fixedFrameGravity.x;
+        gravity(1) = settings.fixedFrameGravity.y;
+        gravity(2) = settings.fixedFrameGravity.z;
 
         estimator.updateKinematicsFromFixedBase(jointPos,jointVel,jointAcc,fixedFrameIndex,gravity);
     }
@@ -1200,34 +1252,69 @@ bool WholeBodyDynamicsDevice::changeFixedLinkSimpleLeggedOdometry(const std::str
 double WholeBodyDynamicsDevice::get_forceTorqueFilterCutoffInHz()
 {
     yarp::os::LockGuard guard(this->deviceMutex);
-    
+
     return this->settings.forceTorqueFilterCutoffInHz;
 }
 
 bool WholeBodyDynamicsDevice::set_forceTorqueFilterCutoffInHz(const double newCutoff)
 {
     yarp::os::LockGuard guard(this->deviceMutex);
-    
+
     this->settings.forceTorqueFilterCutoffInHz = newCutoff;
-    
+
     return true;
 }
 
 double WholeBodyDynamicsDevice::get_imuFilterCutoffInHz()
 {
     yarp::os::LockGuard guard(this->deviceMutex);
-    
+
     return this->settings.imuFilterCutoffInHz;
 }
 
 bool WholeBodyDynamicsDevice::set_imuFilterCutoffInHz(const double newCutoff)
 {
     yarp::os::LockGuard guard(this->deviceMutex);
-    
+
     this->settings.imuFilterCutoffInHz = newCutoff;
-    
+
     return true;
 }
+
+bool WholeBodyDynamicsDevice::useFixedFrameAsKinematicSource(const std::string& fixedFrame)
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+
+    iDynTree::FrameIndex fixedFrameIndex = estimator.model().getFrameIndex(fixedFrame);
+
+    if( fixedFrameIndex == iDynTree::FRAME_INVALID_INDEX )
+    {
+        yError() << "WholeBodyDynamicsDevice::useFixedFrameAsKinematicSource : requested not exiting frame " << fixedFrame << ", method failed";
+        return false;
+    }
+
+    // Set the kinematic source to a fixed frame
+    settings.kinematicSource = FIXED_FRAME;
+    settings.fixedFrameName = fixedFrame;
+
+    yInfo() << "wholeBodyDynamics : successfully set the kinematic source to be the fixed frame " << fixedFrame;
+    yInfo() << "wholeBodyDynamics : with gravity " << settings.fixedFrameGravity.toString();
+
+    return true;
+}
+
+bool WholeBodyDynamicsDevice::useIMUAsKinematicSource()
+{
+    yarp::os::LockGuard guard(this->deviceMutex);
+
+    yInfo() << "wholeBodyDynamics : successfully set the kinematic source to be the IMU ";
+
+    settings.kinematicSource = IMU;
+
+    return true;
+}
+
+
 
 
 

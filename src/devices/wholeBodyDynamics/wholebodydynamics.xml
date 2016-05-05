@@ -5,8 +5,9 @@
     <device name="wholebodydynamics" type="wholebodydynamics">
         <param name="axesNames">(torso_pitch,torso_roll,torso_yaw,neck_pitch, neck_roll,neck_yaw,l_shoulder_pitch,l_shoulder_roll,l_shoulder_yaw,l_elbow,r_shoulder_pitch,r_shoulder_roll,r_shoulder_yaw,r_elbow,l_hip_pitch,l_hip_roll,l_hip_yaw,l_knee,l_ankle_pitch,l_ankle_roll,r_hip_pitch,r_hip_roll,r_hip_yaw,r_knee,r_ankle_pitch,r_ankle_roll)</param>
         <param name="modelFile">model.urdf</param>
+        <param name="fixedFrameGravity">(0,0,-9.81)</param>
 
-        <!-- map between iDynTree links (identified by a name) 
+        <!-- map between iDynTree links (identified by a name)
              and skinDynLib links (identified by their frame name, a BodyPart enum
              and a local (to the body part) index -->
         <group name="IDYNTREE_SKINDYNLIB_LINKS">
@@ -39,7 +40,7 @@
                 <elem name="head">head_mc</elem>
                 <!-- imu -->
                 <elem name="imu">inertial</elem>
-                <!-- ft --> 
+                <!-- ft -->
                 <elem name="l_arm_ft_sensor">left_upper_arm_strain</elem>
                 <elem name="r_arm_ft_sensor">right_upper_arm_strain</elem>
                 <elem name="l_leg_ft_sensor">left_upper_leg_strain</elem>

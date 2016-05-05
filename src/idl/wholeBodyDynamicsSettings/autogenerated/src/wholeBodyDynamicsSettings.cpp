@@ -39,15 +39,15 @@ bool wholeBodyDynamicsSettings::nested_read_fixedFrameName(yarp::os::idl::WireRe
   }
   return true;
 }
-bool wholeBodyDynamicsSettings::read_gravity(yarp::os::idl::WireReader& reader) {
-  if (!reader.read(gravity)) {
+bool wholeBodyDynamicsSettings::read_fixedFrameGravity(yarp::os::idl::WireReader& reader) {
+  if (!reader.read(fixedFrameGravity)) {
     reader.fail();
     return false;
   }
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_read_gravity(yarp::os::idl::WireReader& reader) {
-  if (!reader.readNested(gravity)) {
+bool wholeBodyDynamicsSettings::nested_read_fixedFrameGravity(yarp::os::idl::WireReader& reader) {
+  if (!reader.readNested(fixedFrameGravity)) {
     reader.fail();
     return false;
   }
@@ -112,7 +112,7 @@ bool wholeBodyDynamicsSettings::nested_read_useJointAcceleration(yarp::os::idl::
 bool wholeBodyDynamicsSettings::read(yarp::os::idl::WireReader& reader) {
   if (!read_kinematicSource(reader)) return false;
   if (!read_fixedFrameName(reader)) return false;
-  if (!read_gravity(reader)) return false;
+  if (!read_fixedFrameGravity(reader)) return false;
   if (!read_imuFilterCutoffInHz(reader)) return false;
   if (!read_forceTorqueFilterCutoffInHz(reader)) return false;
   if (!read_useJointVelocity(reader)) return false;
@@ -142,12 +142,12 @@ bool wholeBodyDynamicsSettings::nested_write_fixedFrameName(yarp::os::idl::WireW
   if (!writer.writeString(fixedFrameName)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::write_gravity(yarp::os::idl::WireWriter& writer) {
-  if (!writer.write(gravity)) return false;
+bool wholeBodyDynamicsSettings::write_fixedFrameGravity(yarp::os::idl::WireWriter& writer) {
+  if (!writer.write(fixedFrameGravity)) return false;
   return true;
 }
-bool wholeBodyDynamicsSettings::nested_write_gravity(yarp::os::idl::WireWriter& writer) {
-  if (!writer.writeNested(gravity)) return false;
+bool wholeBodyDynamicsSettings::nested_write_fixedFrameGravity(yarp::os::idl::WireWriter& writer) {
+  if (!writer.writeNested(fixedFrameGravity)) return false;
   return true;
 }
 bool wholeBodyDynamicsSettings::write_imuFilterCutoffInHz(yarp::os::idl::WireWriter& writer) {
@@ -185,7 +185,7 @@ bool wholeBodyDynamicsSettings::nested_write_useJointAcceleration(yarp::os::idl:
 bool wholeBodyDynamicsSettings::write(yarp::os::idl::WireWriter& writer) {
   if (!write_kinematicSource(writer)) return false;
   if (!write_fixedFrameName(writer)) return false;
-  if (!write_gravity(writer)) return false;
+  if (!write_fixedFrameGravity(writer)) return false;
   if (!write_imuFilterCutoffInHz(writer)) return false;
   if (!write_forceTorqueFilterCutoffInHz(writer)) return false;
   if (!write_useJointVelocity(writer)) return false;
@@ -215,11 +215,11 @@ bool wholeBodyDynamicsSettings::Editor::write(yarp::os::ConnectionWriter& connec
     if (!writer.writeString("fixedFrameName")) return false;
     if (!obj->nested_write_fixedFrameName(writer)) return false;
   }
-  if (is_dirty_gravity) {
+  if (is_dirty_fixedFrameGravity) {
     if (!writer.writeListHeader(3)) return false;
     if (!writer.writeString("set")) return false;
-    if (!writer.writeString("gravity")) return false;
-    if (!obj->nested_write_gravity(writer)) return false;
+    if (!writer.writeString("fixedFrameGravity")) return false;
+    if (!obj->nested_write_fixedFrameGravity(writer)) return false;
   }
   if (is_dirty_imuFilterCutoffInHz) {
     if (!writer.writeListHeader(3)) return false;
@@ -279,9 +279,9 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
         if (!writer.writeString("std::string fixedFrameName")) return false;
         if (!writer.writeString("Specify the source of the kinematic information for one link, see KinematicSourceType information for more info.")) return false;
       }
-      if (field=="gravity") {
+      if (field=="fixedFrameGravity") {
         if (!writer.writeListHeader(2)) return false;
-        if (!writer.writeString("Gravity gravity")) return false;
+        if (!writer.writeString("Gravity fixedFrameGravity")) return false;
         if (!writer.writeString("If kinematicSource is FIXED_LINK, specify the frame of the robot that we know to be fixed (i.e. not moving with respect to an inertial frame)")) return false;
       }
       if (field=="imuFilterCutoffInHz") {
@@ -309,7 +309,7 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
     writer.writeString("*** Available fields:");
     writer.writeString("kinematicSource");
     writer.writeString("fixedFrameName");
-    writer.writeString("gravity");
+    writer.writeString("fixedFrameGravity");
     writer.writeString("imuFilterCutoffInHz");
     writer.writeString("forceTorqueFilterCutoffInHz");
     writer.writeString("useJointVelocity");
@@ -343,10 +343,10 @@ bool wholeBodyDynamicsSettings::Editor::read(yarp::os::ConnectionReader& connect
       will_set_fixedFrameName();
       if (!obj->nested_read_fixedFrameName(reader)) return false;
       did_set_fixedFrameName();
-    } else if (key == "gravity") {
-      will_set_gravity();
-      if (!obj->nested_read_gravity(reader)) return false;
-      did_set_gravity();
+    } else if (key == "fixedFrameGravity") {
+      will_set_fixedFrameGravity();
+      if (!obj->nested_read_fixedFrameGravity(reader)) return false;
+      did_set_fixedFrameGravity();
     } else if (key == "imuFilterCutoffInHz") {
       will_set_imuFilterCutoffInHz();
       if (!obj->nested_read_imuFilterCutoffInHz(reader)) return false;

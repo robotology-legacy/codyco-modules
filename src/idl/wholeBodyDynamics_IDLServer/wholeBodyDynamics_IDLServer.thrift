@@ -79,30 +79,51 @@ service wholeBodyDynamics_IDLServer
    * @return true/false on success/failure (typically if the frame/link names are wrong)
    */
   bool changeFixedLinkSimpleLeggedOdometry(1:string new_fixed_link)
-  
+
   /**
    * Set the cutoff frequency (in Hz) for IMU measurements
-   * @return true/false on success/failure 
+   * @return true/false on success/failure
    */
   bool set_imuFilterCutoffInHz(1:double newCutoff);
-  
+
   /**
    * Get the cutoff frequency (in Hz) for IMU measurements
    * @return the cutoff frequency (in Hz)
    */
   double get_imuFilterCutoffInHz();
-  
+
   /**
    * Set the cutoff frequency (in Hz) for FT measurements
-   * @return true/false on success/failure 
+   * @return true/false on success/failure
    */
   bool set_forceTorqueFilterCutoffInHz(1:double newCutoff);
-  
+
   /**
    * Get the cutoff frequency (in Hz) for FT measurements
    * @return the cutoff frequency (in Hz)
    */
   double get_forceTorqueFilterCutoffInHz();
+
+  /**
+   * Use the IMU as the kinematic source of
+   * information for the acceleration of one link.
+   *
+   */
+  bool useIMUAsKinematicSource();
+
+  /**
+   * Use a fixed frame (tipically root_link, l_sole or r_sole)
+   * as the source of kinematic information. The assumption
+   * is that the specified frame will remain fixed until
+   * the kinematic source is changing, and the gravity
+   * on this link is specified by the fixedFrameGravity (tipically
+   * set to (0,0,-9.81) .
+   *
+   * 
+   */
+  bool useFixedFrameAsKinematicSource(1:string fixedFrame);
+
+
 
   // } /** simpleLeggedOdometry_IDLServer */
 }
